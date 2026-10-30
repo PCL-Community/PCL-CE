@@ -378,7 +378,7 @@ public partial class MyLocalCompItem
         // 1：压缩 Subtitle：Auto - 1* - (Auto) - 0
         // 2：继续压缩 Title：1* - 0 - (Auto) - 0
         var currentCompressLevel =
-            ColumnExtend.Width.IsStar ? 0 : ColumnTitle.Width.IsStar ? 2 : 1; // Subtitle 可能是 Collapsed
+            _vm.ColumnExtendWidth.IsStar ? 0 : _vm.ColumnTitleWidth.IsStar ? 2 : 1; // Subtitle 可能是 Collapsed
         var newCompressLevel = default(int);
         switch (currentCompressLevel)
         {
@@ -418,25 +418,25 @@ public partial class MyLocalCompItem
             case 0:
             {
                 // 全部舒展：Auto - Auto - (Auto) - 1*
-                ColumnTitle.Width = GridLength.Auto;
-                ColumnSubtitle.Width = GridLength.Auto;
-                ColumnExtend.Width = new GridLength(1d, GridUnitType.Star);
+                _vm.ColumnTitleWidth = GridLength.Auto;
+                _vm.ColumnSubtitleWidth = GridLength.Auto;
+                _vm.ColumnExtendWidth = new GridLength(1d, GridUnitType.Star);
                 break;
             }
             case 1:
             {
                 // 压缩 Subtitle：Auto - 1* - (Auto) - 0
-                ColumnTitle.Width = GridLength.Auto;
-                ColumnSubtitle.Width = new GridLength(1d, GridUnitType.Star);
-                ColumnExtend.Width = new GridLength(0d, GridUnitType.Pixel);
+                _vm.ColumnTitleWidth = GridLength.Auto;
+                _vm.ColumnSubtitleWidth = new GridLength(1d, GridUnitType.Star);
+                _vm.ColumnExtendWidth = new GridLength(0d, GridUnitType.Pixel);
                 break;
             }
             case 2:
             {
                 // 继续压缩 Title：1* - 0 - (Auto) - 0
-                ColumnTitle.Width = new GridLength(1d, GridUnitType.Star);
-                ColumnSubtitle.Width = new GridLength(0d, GridUnitType.Pixel);
-                ColumnExtend.Width = new GridLength(0d, GridUnitType.Pixel);
+                _vm.ColumnTitleWidth = new GridLength(1d, GridUnitType.Star);
+                _vm.ColumnSubtitleWidth = new GridLength(0d, GridUnitType.Pixel);
+                _vm.ColumnExtendWidth = new GridLength(0d, GridUnitType.Pixel);
                 break;
             }
         }
@@ -518,7 +518,7 @@ public partial class MyLocalCompItem
         set
         {
             PanTags.Children.Clear();
-            PanTags.Visibility = value.Any() ? Visibility.Visible : Visibility.Collapsed;
+            _vm.TagsVisibility = value.Any() ? Visibility.Visible : Visibility.Collapsed;
             foreach (var TagText in value)
             {
                 var newTag = new Border

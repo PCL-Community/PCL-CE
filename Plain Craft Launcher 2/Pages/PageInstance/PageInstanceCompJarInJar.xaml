@@ -5,6 +5,39 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" x:Class="PCL.PageInstanceCompJarInJar"
     PanScroll="{Binding ElementName=PanBack}">
+
+    <local:MyPageRight.Resources>
+        <DataTemplate x:Key="JijTreeRowTemplate">
+            <StackPanel Orientation="Horizontal" Margin="{Binding Margin}">
+                <TextBlock Text="{Binding Name}" Foreground="{DynamicResource ColorBrush1}" FontWeight="Bold"
+                           VerticalAlignment="Center" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding Version}" Foreground="{DynamicResource ColorBrush2}"
+                           VerticalAlignment="Center" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding Loader}" Foreground="{DynamicResource ColorBrush3}"
+                           VerticalAlignment="Center" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding McVersion}" Foreground="{DynamicResource ColorBrushInfo}"
+                           VerticalAlignment="Center" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding Versions}" ToolTip="{Binding VersionsTooltip}"
+                           Foreground="{DynamicResource ColorBrush2}" VerticalAlignment="Center"
+                           TextWrapping="Wrap" />
+                <TextBlock Text="{Binding Status}" Foreground="{Binding StatusBrush}"
+                           VerticalAlignment="Center" TextWrapping="Wrap" />
+            </StackPanel>
+        </DataTemplate>
+        <DataTemplate x:Key="JijDependencyRowTemplate">
+            <StackPanel Orientation="Horizontal" Margin="8,2,0,2">
+                <TextBlock Text="{Binding Primary}" Foreground="{DynamicResource ColorBrush1}"
+                           VerticalAlignment="Center" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding Optional}" Foreground="{DynamicResource ColorBrush2}"
+                           VerticalAlignment="Center" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding GrayLabel}" Foreground="{DynamicResource ColorBrush2}"
+                           VerticalAlignment="Center" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding ColorLabel}" Foreground="{Binding LabelBrush}"
+                           VerticalAlignment="Center" TextWrapping="Wrap" />
+            </StackPanel>
+        </DataTemplate>
+    </local:MyPageRight.Resources>
+
     <Grid>
         <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                               x:Name="PanBack">
@@ -31,7 +64,20 @@
                     <StackPanel Margin="15,10,15,12">
                         <TextBlock Text="{DynamicResource Instance.Resource.Mod.JarInJar.Section.Warnings}"
                                    FontSize="16" FontWeight="Bold" Foreground="{DynamicResource ColorBrush3}" />
-                        <StackPanel x:Name="PanWarnList" Margin="0,8,0,0" />
+                        <ItemsControl x:Name="PanWarnList" Margin="0,8,0,0"
+                                      ItemsSource="{Binding WarningRows}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Text}" Foreground="{Binding Foreground}"
+                                               VerticalAlignment="Center" TextWrapping="Wrap" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </StackPanel>
                 </local:MyCard>
 
@@ -41,7 +87,25 @@
                         <TextBlock Text="{DynamicResource Instance.Resource.Mod.JarInJar.Section.Conflicts}"
                                    ToolTip="{DynamicResource Instance.Resource.Mod.JarInJar.Conflict.Tooltip}"
                                    FontSize="16" FontWeight="Bold" Foreground="{DynamicResource ColorBrush3}" />
-                        <StackPanel x:Name="PanConflictList" Margin="0,8,0,0" />
+                        <ItemsControl x:Name="PanConflictList" Margin="0,8,0,0"
+                                      ItemsSource="{Binding ConflictRows}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="0,2,0,2">
+                                        <TextBlock Text="{Binding Severity}" Foreground="{Binding SeverityBrush}"
+                                                   VerticalAlignment="Center" TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding Pair}"
+                                                   Foreground="{DynamicResource ColorBrush1}"
+                                                   VerticalAlignment="Center" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </StackPanel>
                 </local:MyCard>
 

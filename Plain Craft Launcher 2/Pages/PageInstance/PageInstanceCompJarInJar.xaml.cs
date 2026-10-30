@@ -73,7 +73,7 @@ public partial class PageInstanceCompJarInJar
         _index = new JarInJarIndex(allMods, _instanceMc);
         _vm.HideLoading();
 
-        PanWarnList.Children.Clear();
+        _vm.WarningRows.Clear();
         foreach (var host in allMods)
         {
             if (host.State != CompFile.LocalFileStatus.Fine) continue;
@@ -83,14 +83,14 @@ public partial class PageInstanceCompJarInJar
                     _AppendMissingWarning(node, host, node.JijLoader);
         }
 
-        var hasWarning = PanWarnList.Children.Count > 0;
+        var hasWarning = _vm.WarningRows.Count > 0;
 
-        PanConflictList.Children.Clear();
+        _vm.ConflictRows.Clear();
         var conflictCount = 0;
         foreach (var (a, b, hard) in _index.FindActiveConflicts())
         {
             if (!_Match(a) && !_Match(b)) continue;
-            PanConflictList.Children.Add(_MakeConflictRow(a, b, hard));
+            _vm.ConflictRows.Add(_MakeConflictRow(a, b, hard));
             conflictCount++;
         }
 
@@ -122,26 +122,24 @@ public partial class PageInstanceCompJarInJar
             .Where(m => m.EmbeddedMods is { Count: > 0 } && (_Match(m) || _AnyEmbeddedMatch(m.EmbeddedMods)))
             .ToList();
         foreach (var mod in bundledMods)
-            PanBundledList.Children.Add(_MakeCard(mod, _BuildBundledContent));
+            PanBundledList.Children.Add(_MakeBundledCard(mod));
 
         // 搜索无结果时不显示"没有模组"空态（避免误导为实例本身没有），仅留空白
         _vm.ApplySectionVisibility(hasWarning, conflictCount, relationCount, bundledMods.Count,
             _search.Length > 0);
     }
 
-    private MyCard _MakeCard(CompFile mod, Action<StackPanel, CompFile> build, string? title = null)
+    private MyCard _MakeCard(string title, IEnumerable<object> rows, string templateKey)
     {
         var card = new MyCard
-            { Title = title ?? _DisplayName(mod), CanSwap = true, Margin = new Thickness(0, 0, 0, 10) };
-        var stack = new StackPanel
+            { Title = title, CanSwap = true, Margin = new Thickness(0, 0, 0, 10) };
+        var content = new ItemsControl
         {
-            Margin = new Thickness(20, MyCard.SwapedHeight, 18, 12),
-            VerticalAlignment = VerticalAlignment.Top, RenderTransform = new TranslateTransform(0, 0),
-            Tag = mod // StackInstall 靠 Tag 非空触发一次性懒加载
+            Margin = new Thickness(20, MyCard.SwapedHeight, 18, 30), VerticalAlignment = VerticalAlignment.Top,
+            ItemsSource = rows, ItemTemplate = (DataTemplate)FindResource(templateKey)
         };
-        card.Children.Add(stack);
-        card.SwapControl = stack;
-        card.InstallMethod = s => build(s, mod);
+        card.Children.Add(content);
+        card.SwapControl = content;
         card.IsSwapped = true;
         return card;
     }
@@ -165,32 +163,34 @@ public partial class PageInstanceCompJarInJar
             : _DisplayName(mod) + " " +
               Lang.Text("Instance.Resource.Mod.JarInJar.Bundled.From", _DisplayName(parent));
         if (missing.Count > 0)
-            PanWarnList.Children.Add(_Text(
-                Lang.Text("Instance.Resource.Mod.JarInJar.Warning.Missing", name, string.Join(", ", missing)),
-                _BrushError));
+            _vm.WarningRows.Add(new JijNoticeRow
+            {
+                Text = Lang.Text("Instance.Resource.Mod.JarInJar.Warning.Missing", name, string.Join(", ", missing)),
+                Foreground = _BrushError
+            });
         if (mismatch.Count > 0)
-            PanWarnList.Children.Add(_Text(
-                Lang.Text("Instance.Resource.Mod.JarInJar.Warning.VersionMismatch", name, string.Join(", ", mismatch)),
-                _BrushWarn));
+            _vm.WarningRows.Add(new JijNoticeRow
+            {
+                Text = Lang.Text("Instance.Resource.Mod.JarInJar.Warning.VersionMismatch", name,
+                    string.Join(", ", mismatch)),
+                Foreground = _BrushWarn
+            });
         if (disabled.Count > 0)
-            PanWarnList.Children.Add(_Text(
-                Lang.Text("Instance.Resource.Mod.JarInJar.Warning.Disabled", name, string.Join(", ", disabled)),
-                _BrushWarn));
+            _vm.WarningRows.Add(new JijNoticeRow
+            {
+                Text = Lang.Text("Instance.Resource.Mod.JarInJar.Warning.Disabled", name, string.Join(", ", disabled)),
+                Foreground = _BrushWarn
+            });
     }
 
-    private Panel _MakeConflictRow(CompFile a, CompFile b, bool hard)
+    private JijConflictRow _MakeConflictRow(CompFile a, CompFile b, bool hard) => new()
     {
-        var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 2, 0, 2) };
-        row.Children.Add(_Text(
-            Lang.Text(hard
-                ? "Instance.Resource.Mod.JarInJar.Conflict.Incompatible"
-                : "Instance.Resource.Mod.JarInJar.Conflict.Discouraged"),
-            hard ? _BrushError : _BrushWarn));
-        row.Children.Add(_TextRes(
-            "  " + Lang.Text("Instance.Resource.Mod.JarInJar.Conflict.Pair", _DisplayName(a), _DisplayName(b)),
-            "ColorBrush1"));
-        return row;
-    }
+        Severity = Lang.Text(hard
+            ? "Instance.Resource.Mod.JarInJar.Conflict.Incompatible"
+            : "Instance.Resource.Mod.JarInJar.Conflict.Discouraged"),
+        SeverityBrush = hard ? _BrushError : _BrushWarn,
+        Pair = "  " + Lang.Text("Instance.Resource.Mod.JarInJar.Conflict.Pair", _DisplayName(a), _DisplayName(b))
+    };
 
     private MyCard _MakeRelationCard(CompFile mod, CompFile? parent, List<JarInJarIndex.DepRow> deps)
     {
@@ -198,21 +198,23 @@ public partial class PageInstanceCompJarInJar
             ? _DisplayName(mod)
             : _DisplayName(mod) + "  " +
               Lang.Text("Instance.Resource.Mod.JarInJar.Bundled.From", _DisplayName(parent));
-        return _MakeCard(mod, (stack, owner) =>
-        {
-            foreach (var dep in deps) stack.Children.Add(BuildDependencyRow(owner, dep));
-        }, title);
+        return _MakeCard(title, deps.Select(dep => BuildDependencyRow(mod, dep)).ToList(), "JijDependencyRowTemplate");
     }
 
-    private void _BuildBundledContent(StackPanel stack, CompFile mod)
+    private MyCard _MakeBundledCard(CompFile mod)
+        => _MakeCard(_DisplayName(mod), _BuildBundledRows(mod), "JijTreeRowTemplate");
+
+    private List<JijTreeRow> _BuildBundledRows(CompFile mod)
     {
         var selected = mod.State == CompFile.LocalFileStatus.Fine
             ? _index.GetLoadableEmbedded(mod).ToHashSet()
             : new HashSet<CompFile>();
-        AppendTreeRows(stack, mod.EmbeddedMods, 0, selected);
+        var rows = new List<JijTreeRow>();
+        AppendTreeRows(rows, mod.EmbeddedMods, 0, selected);
+        return rows;
     }
 
-    private void AppendTreeRows(StackPanel stack, List<CompFile> embedded, int depth, HashSet<CompFile> selected)
+    private void AppendTreeRows(List<JijTreeRow> rows, List<CompFile> embedded, int depth, HashSet<CompFile> selected)
     {
         if (embedded is null) return;
 
@@ -223,8 +225,8 @@ public partial class PageInstanceCompJarInJar
             var versions = g.ToList();
             if (versions.Count == 1)
             {
-                stack.Children.Add(BuildTreeRow(versions[0], depth, 0, McConstraintMatcher.MatchKind.None));
-                AppendTreeRows(stack, versions[0].EmbeddedMods, depth + 1, selected);
+                rows.Add(BuildTreeRow(versions[0], depth, 0, McConstraintMatcher.MatchKind.None));
+                AppendTreeRows(rows, versions[0].EmbeddedMods, depth + 1, selected);
                 continue;
             }
 
@@ -240,67 +242,60 @@ public partial class PageInstanceCompJarInJar
                     _instanceMc);
             var tooltip = string.Join("\n",
                 versions.Select(v => string.IsNullOrWhiteSpace(v.Version) ? v.FileName : v.Version));
-            stack.Children.Add(BuildTreeRow(rep, depth, versions.Count, kind, tooltip, selectedRep is not null));
-            AppendTreeRows(stack, rep.EmbeddedMods, depth + 1, selected);
+            rows.Add(BuildTreeRow(rep, depth, versions.Count, kind, tooltip, selectedRep is not null));
+            AppendTreeRows(rows, rep.EmbeddedMods, depth + 1, selected);
         }
 
         foreach (var e in ungrouped)
         {
-            stack.Children.Add(BuildTreeRow(e, depth, 0, McConstraintMatcher.MatchKind.None));
-            AppendTreeRows(stack, e.EmbeddedMods, depth + 1, selected);
+            rows.Add(BuildTreeRow(e, depth, 0, McConstraintMatcher.MatchKind.None));
+            AppendTreeRows(rows, e.EmbeddedMods, depth + 1, selected);
         }
     }
 
-    private Panel BuildTreeRow(CompFile e, int depth, int versionCount, McConstraintMatcher.MatchKind kind,
+    private static JijTreeRow BuildTreeRow(CompFile e, int depth, int versionCount, McConstraintMatcher.MatchKind kind,
         string? versionsTooltip = null, bool selected = false)
     {
-        var row = new StackPanel
-        {
-            Orientation = Orientation.Horizontal, Margin = new Thickness(8 + depth * 20, 2, 0, 2)
-        };
-        row.Children.Add(_TextRes("• " + _DisplayName(e), "ColorBrush1", true));
         var ver = _CleanPlaceholder(e.Version);
-        if (!string.IsNullOrEmpty(ver))
-            row.Children.Add(_TextRes("  (" + ver + ")", "ColorBrush2"));
-        if (!string.IsNullOrEmpty(e.JijLoader))
-            row.Children.Add(_TextRes("  [" + e.JijLoader + "]", "ColorBrush3"));
         var mc = _CleanPlaceholder(e.JijTargetMcVersion);
-        if (!string.IsNullOrEmpty(mc))
-            row.Children.Add(_TextRes("  (MC " + mc + ")", "ColorBrushInfo"));
-
-        if (versionCount > 1)
+        var showVersions = versionCount > 1;
+        var isCurrent = selected || kind is McConstraintMatcher.MatchKind.Exact or McConstraintMatcher.MatchKind.Range;
+        var isIncompatible = !isCurrent && kind == McConstraintMatcher.MatchKind.Incompatible;
+        return new JijTreeRow
         {
-            var badge = _TextRes("  " + Lang.Text("Instance.Resource.Mod.JarInJar.Bundled.Versions", versionCount),
-                "ColorBrush2");
-            if (!string.IsNullOrEmpty(versionsTooltip)) badge.ToolTip = versionsTooltip;
-            row.Children.Add(badge);
-        }
-
-        if (selected || kind is McConstraintMatcher.MatchKind.Exact or McConstraintMatcher.MatchKind.Range)
-            row.Children.Add(_Text("  " + Lang.Text("Instance.Resource.Mod.JarInJar.Bundled.Current"), _BrushOk));
-        else if (kind == McConstraintMatcher.MatchKind.Incompatible)
-            row.Children.Add(_Text("  " + Lang.Text("Instance.Resource.Mod.JarInJar.Bundled.Incompatible"),
-                _BrushWarn));
-
-        return row;
+            Margin = new Thickness(8 + depth * 20, 2, 0, 2), Name = "• " + _DisplayName(e),
+            Version = ver is null ? "" : "  (" + ver + ")",
+            Loader = string.IsNullOrEmpty(e.JijLoader) ? "" : "  [" + e.JijLoader + "]",
+            McVersion = mc is null ? "" : "  (MC " + mc + ")",
+            Versions = showVersions
+                ? "  " + Lang.Text("Instance.Resource.Mod.JarInJar.Bundled.Versions", versionCount)
+                : "",
+            VersionsTooltip = showVersions && !string.IsNullOrEmpty(versionsTooltip) ? versionsTooltip : null,
+            Status = isCurrent
+                ? "  " + Lang.Text("Instance.Resource.Mod.JarInJar.Bundled.Current")
+                : isIncompatible
+                    ? "  " + Lang.Text("Instance.Resource.Mod.JarInJar.Bundled.Incompatible")
+                    : "",
+            StatusBrush = isCurrent ? _BrushOk : isIncompatible ? _BrushWarn : null
+        };
     }
 
-    private Panel BuildDependencyRow(CompFile mod, JarInJarIndex.DepRow dep)
+    private JijDependencyRow BuildDependencyRow(CompFile mod, JarInJarIndex.DepRow dep)
     {
         var status = _index.Analyze(mod, dep);
         var optional = dep.Optional;
-        var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(8, 2, 0, 2) };
         var text = dep.Raw is null ? dep.DepId : dep.DepId + " " + dep.Raw;
-        row.Children.Add(_TextRes("• " + text, "ColorBrush1"));
-        if (optional)
-            row.Children.Add(_TextRes("  " + Lang.Text("Instance.Resource.Mod.JarInJar.Dep.Optional"), "ColorBrush2"));
         var label = "  (" + _StatusLabel(status) + ")";
         // 可选依赖缺失不算问题，用主题灰；其余：内嵌提供灰、已装/已禁/缺失为绿/橙/红语义色
-        if (optional || status == JijDepStatus.Bundled)
-            row.Children.Add(_TextRes(label, "ColorBrush2"));
-        else
-            row.Children.Add(_Text(label, _StatusBrush(status)));
-        return row;
+        var useThemeBrush = optional || status == JijDepStatus.Bundled;
+        return new JijDependencyRow
+        {
+            Primary = "• " + text,
+            Optional = optional ? "  " + Lang.Text("Instance.Resource.Mod.JarInJar.Dep.Optional") : "",
+            GrayLabel = useThemeBrush ? label : "",
+            ColorLabel = useThemeBrush ? "" : label,
+            LabelBrush = useThemeBrush ? null : _StatusBrush(status)
+        };
     }
 
     private static string _StatusLabel(JijDepStatus status) => Lang.Text(status switch
@@ -369,23 +364,6 @@ public partial class PageInstanceCompJarInJar
     private static readonly Brush _BrushOk = new SolidColorBrush(Color.FromRgb(0x4C, 0xAF, 0x50));
     private static readonly Brush _BrushWarn = new SolidColorBrush(Color.FromRgb(0xFF, 0x98, 0x00));
     private static readonly Brush _BrushError = new SolidColorBrush(Color.FromRgb(0xE5, 0x39, 0x35));
-
-    private static TextBlock _Text(string text, Brush brush, bool bold = false) => new()
-    {
-        Text = text, Foreground = brush, VerticalAlignment = VerticalAlignment.Center,
-        FontWeight = bold ? FontWeights.Bold : FontWeights.Normal, TextWrapping = TextWrapping.Wrap
-    };
-
-    private static TextBlock _TextRes(string text, string resourceKey, bool bold = false)
-    {
-        var tb = new TextBlock
-        {
-            Text = text, VerticalAlignment = VerticalAlignment.Center,
-            FontWeight = bold ? FontWeights.Bold : FontWeights.Normal, TextWrapping = TextWrapping.Wrap
-        };
-        tb.SetResourceReference(TextBlock.ForegroundProperty, resourceKey);
-        return tb;
-    }
 
     #endregion
 }

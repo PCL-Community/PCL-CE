@@ -18,4 +18,12 @@ public partial class MyLocalModItemViewModel : ViewModelBase
     [ObservableProperty] private Visibility _updateVisibility = Visibility.Collapsed;
 
     [ObservableProperty] private string? _updateToolTip;
+
+    [ObservableProperty] private GridLength _columnTitleWidth = GridLength.Auto;
+
+    [ObservableProperty] private GridLength _columnSubtitleWidth = GridLength.Auto;
+
+    [ObservableProperty] private GridLength _columnExtendWidth = new(1d, GridUnitType.Star);
+
+    [ObservableProperty] private Visibility _tagsVisibility = Visibility.Collapsed;
 }

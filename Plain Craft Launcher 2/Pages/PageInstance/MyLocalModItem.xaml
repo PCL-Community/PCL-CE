@@ -48,10 +48,16 @@
         SnapsToDevicePixels="False"
         UseLayoutRounding="False">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition x:Name="ColumnTitle" Width="Auto" />
-            <ColumnDefinition x:Name="ColumnSubtitle" Width="Auto" />
+            <ColumnDefinition
+                x:Name="ColumnTitle"
+                Width="{Binding ViewModel.ColumnTitleWidth, ElementName=PanBack}" />
+            <ColumnDefinition
+                x:Name="ColumnSubtitle"
+                Width="{Binding ViewModel.ColumnSubtitleWidth, ElementName=PanBack}" />
             <ColumnDefinition Width="Auto" />
-            <ColumnDefinition x:Name="ColumnExtend" Width="1*" />
+            <ColumnDefinition
+                x:Name="ColumnExtend"
+                Width="{Binding ViewModel.ColumnExtendWidth, ElementName=PanBack}" />
         </Grid.ColumnDefinitions>
         <TextBlock
             x:Name="LabTitle"
@@ -96,7 +102,7 @@
         VerticalAlignment="Center"
         IsHitTestVisible="False"
         Orientation="Horizontal"
-        Visibility="Collapsed">
+        Visibility="{Binding ViewModel.TagsVisibility, ElementName=PanBack}">
         <!--<corelocal:BlurBorder Background="{DynamicResource ColorBrush6}" Padding="3,1" CornerRadius="3" Margin="0,0,4,0" SnapsToDevicePixels="True" UseLayoutRounding="False">
             <TextBlock Text="科技" Foreground="{DynamicResource ColorBrush2}" FontSize="11" />
         </corelocal:BlurBorder>-->
