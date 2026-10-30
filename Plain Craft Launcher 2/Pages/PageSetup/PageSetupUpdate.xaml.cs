@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using PCL.Core.App;
@@ -221,7 +221,7 @@ public partial class PageSetupUpdate : IPageView
         if (ctl is not null) ctl.IsEnabled = false;
         try
         {
-            if (Animations.AniExitsAnyControl())
+            if (Animations.AniExitsAnyControl() || sender is not MyComboBox { IsDropDownOpen: true })
                 return;
 
             var isCancelled = false;

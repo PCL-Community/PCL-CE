@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -585,7 +585,7 @@ public partial class PageSetupLaunch : IPageView
     private void ComboArgumentVisibie_SelectionChanged(object sender, SelectionChangedEventArgs sizeChangedEventArgs)
     {
         ComboChange(sender, sizeChangedEventArgs);
-        if (Animations.AniExitsAnyControl())
+        if (Animations.AniExitsAnyControl() || sender is not MyComboBox { IsDropDownOpen: true })
             return;
         if (ComboArgumentVisibie.SelectedIndex == 0)
             if (Launcher.MyMsgBox(
@@ -599,7 +599,7 @@ public partial class PageSetupLaunch : IPageView
     // 实例隔离提示
     private void ComboArgumentIndie_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (Animations.AniExitsAnyControl())
+        if (Animations.AniExitsAnyControl() || sender is not MyComboBox { IsDropDownOpen: true })
             return;
         Launcher.MyMsgBox(Lang.Text("Setup.Launch.Options.InstanceIsolation.DefaultPolicyHint"));
     }
@@ -631,7 +631,7 @@ public partial class PageSetupLaunch : IPageView
 
     private void ComboAdvanceRenderer_SelectionChanged(MyComboBox sender, object e)
     {
-        if (Animations.AniExitsAnyControl())
+        if (Animations.AniExitsAnyControl() || sender is not MyComboBox { IsDropDownOpen: true })
             return;
         if (!States.Hint.Renderer && ComboAdvanceRenderer.SelectedIndex != 0)
         {
