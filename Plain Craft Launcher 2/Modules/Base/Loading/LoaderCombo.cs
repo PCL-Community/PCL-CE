@@ -191,6 +191,9 @@ public static partial class Loading
                         allFinished = false;
                         blocked = true;
                         continue;
+                    case Common.LoadState.Finished when needsRestart:
+                    case Common.LoadState.Loading when needsRestart:
+                        break;
                     case Common.LoadState.Waiting:
                     case Common.LoadState.Failed:
                     case Common.LoadState.Aborted:
