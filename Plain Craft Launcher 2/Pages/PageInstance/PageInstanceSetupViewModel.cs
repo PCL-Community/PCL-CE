@@ -2,6 +2,7 @@ using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App;
+using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
 using PCL.Core.Minecraft;
 using PCL.Core.Utils;
@@ -272,6 +273,21 @@ public partial class PageInstanceSetupViewModel : ViewModelBase
         TitleHintText = useDefault
             ? Lang.Text("Common.Option.Default")
             : Lang.Text("Instance.Setup.FollowGlobal");
+    }
+
+    [RelayCommand]
+    private void SetRamType(string? tag)
+    {
+        if (Animations.AniExitsAnyControl())
+            return;
+        if (tag is null)
+            return;
+
+        var slash = tag.IndexOf('/');
+        if (slash < 0)
+            return;
+
+        ConfigService.TrySetValue(tag[..slash], int.Parse(tag[(slash + 1)..]), PageInstanceLeft.McInstance.PathInstance);
     }
 
     public void ResetSettings()

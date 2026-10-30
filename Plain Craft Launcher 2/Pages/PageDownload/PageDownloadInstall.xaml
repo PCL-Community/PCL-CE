@@ -7,15 +7,16 @@
     <Grid>
         <Grid Name="PanAllBack">
             <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
-                                  x:Name="PanBack">
-                <Grid Margin="25,10,25,25" Name="PanInner">
-                    <StackPanel Grid.Row="1" Name="PanMinecraft" Grid.IsSharedSizeScope="True" Margin="0,0,0,-10">
+                                  x:Name="PanBack" IsHitTestVisible="{Binding PanBackHitTestVisible}">
+                <Grid Margin="{Binding PanInnerMargin}" Name="PanInner">
+                    <StackPanel Grid.Row="1" Name="PanMinecraft" Grid.IsSharedSizeScope="True" Margin="0,0,0,-10"
+                                IsHitTestVisible="{Binding PanMinecraftHitTestVisible}">
                         <StackPanel.RenderTransform>
                             <TranslateTransform />
                         </StackPanel.RenderTransform>
                     </StackPanel>
                     <StackPanel Grid.Row="1" x:Name="PanSelect" Visibility="Collapsed" Opacity="0"
-                                IsHitTestVisible="False" Margin="0,0,0,45">
+                                IsHitTestVisible="{Binding PanSelectHitTestVisible}" Margin="0,0,0,45">
                         <StackPanel.RenderTransform>
                             <TranslateTransform X="40" />
                         </StackPanel.RenderTransform>

@@ -190,15 +190,15 @@ public partial class PageDownloadInstall : IPageView
             return;
         isInSelectPage = true;
 
-        PanInner.Margin = new Thickness(25d, 10d, 25d, 40d);
+        _vm.PanInnerMargin = new Thickness(25d, 10d, 25d, 40d);
 
         autoSelectedFabricApi = false;
         autoSelectedOptiFabric = false;
         isSelectNameEdited = false;
         PanSelect.Visibility = Visibility.Visible;
-        PanSelect.IsHitTestVisible = true;
-        PanMinecraft.IsHitTestVisible = false;
-        PanBack.IsHitTestVisible = false;
+        _vm.PanSelectHitTestVisible = true;
+        _vm.PanMinecraftHitTestVisible = false;
+        _vm.PanBackHitTestVisible = false;
         PanBack.ScrollToHome();
 
         disabledPageAnimControls.Remove(BtnStart);
@@ -270,7 +270,7 @@ public partial class PageDownloadInstall : IPageView
                 new Animations.AniEaseOutFluent(Animations.AniEasePower.ExtraStrong)),
             Animations.AaCode(() =>
             {
-                PanBack.IsHitTestVisible = true;
+                _vm.PanBackHitTestVisible = true;
                 // 初始化 Binding
                 if (isFirstLoaded)
                     return;
@@ -308,15 +308,15 @@ public partial class PageDownloadInstall : IPageView
             return;
         isInSelectPage = false;
 
-        PanInner.Margin = new Thickness(25d, 10d, 25d, 25d);
+        _vm.PanInnerMargin = new Thickness(25d, 10d, 25d, 25d);
 
         disabledPageAnimControls.Add(BtnStart);
         BtnStart.Show = false;
         ClearSelected(); // 清除已选择项
         PanMinecraft.Visibility = Visibility.Visible;
-        PanSelect.IsHitTestVisible = false;
-        PanMinecraft.IsHitTestVisible = true;
-        PanBack.IsHitTestVisible = false;
+        _vm.PanSelectHitTestVisible = false;
+        _vm.PanMinecraftHitTestVisible = true;
+        _vm.PanBackHitTestVisible = false;
         PanBack.ScrollToHome();
 
         Animations.AniStart(new[]
@@ -330,7 +330,7 @@ public partial class PageDownloadInstall : IPageView
             Animations.AaCode(() =>
             {
                 PanSelect.Visibility = Visibility.Collapsed;
-                PanBack.IsHitTestVisible = true;
+                _vm.PanBackHitTestVisible = true;
             }, after: true)
         }, "FrmDownloadInstall SelectPageSwitch");
     }

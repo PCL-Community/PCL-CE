@@ -36,9 +36,6 @@ public partial class PageInstanceSetup : IPageView
         TextArgumentInfo.TextChanged += TextBoxChange;
         ComboArgumentJava.SelectionChanged += JavaSelectionUpdate;
 
-        RadioRamType2.Check += RadioBoxChange;
-        RadioRamType0.Check += RadioBoxChange;
-        RadioRamType1.Check += RadioBoxChange;
         SliderRamCustom.Change += SliderChange;
         SliderRamInitialCustom.Change += SliderChange;
 
@@ -207,18 +204,6 @@ public partial class PageInstanceSetup : IPageView
     // 将控件改变路由到设置改变
     private static void SetByTag(string tag, object value)
         => ConfigService.TrySetValue(tag, value, PageInstanceLeft.McInstance.PathInstance);
-
-    private void RadioBoxChange(object o, Common.RouteEventArgs routeEventArgs)
-    {
-        if (Animations.AniExitsAnyControl())
-            return;
-        if (o is not MyRadioBox { Tag: string tag }) return;
-
-        var slash = tag.IndexOf('/');
-        if (slash < 0) return;
-
-        SetByTag(tag[..slash], int.Parse(tag[(slash + 1)..]));
-    }
 
     private void TextBoxChange(object o, TextChangedEventArgs textChangedEventArgs)
     {

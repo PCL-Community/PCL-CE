@@ -1,3 +1,4 @@
+using System.Windows;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using PCL.Core.ViewModel;
@@ -112,6 +113,14 @@ public partial class PageDownloadInstallViewModel : ViewModelBase
     [ObservableProperty] private string _instanceName = "";
 
     [ObservableProperty] private string _loadingText = "";
+
+    [ObservableProperty] private Thickness _panInnerMargin = new(25d, 10d, 25d, 25d);
+
+    [ObservableProperty] private bool _panSelectHitTestVisible;
+
+    [ObservableProperty] private bool _panMinecraftHitTestVisible = true;
+
+    [ObservableProperty] private bool _panBackHitTestVisible = true;
 
     [ObservableProperty] private Brush _optiFineForeground = ThemeManager.colorGray1;
 
