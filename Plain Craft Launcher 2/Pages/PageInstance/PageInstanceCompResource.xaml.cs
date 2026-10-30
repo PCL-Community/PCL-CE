@@ -46,8 +46,6 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
         BtnManageInfoExport.Click += BtnManageInfoExport_Click;
         BtnManageDownload.Click += BtnManageDownload_Click;
         BtnHintDownload.Click += BtnManageDownload_Click;
-        BtnSchematicDownloadMod.Click += BtnSchematicDownloadMod_Click;
-        BtnSchematicVersionSelect.Click += BtnSchematicVersionSelect_Click;
         Load.StateChanged += (_, _, _) => UnselectedAllWithAnimation();
         SearchBox.PreviewKeyDown += SearchBox_PreviewKeyDown;
         BtnFilterAll.Check += ChangeFilter;
@@ -132,10 +130,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
             _vm.ShowHintDownload = false;
         }
 
-        if (currentCompType == Comp.CompType.Mod)
-            BtnManageJarInJar.Click += (_, _) =>
-                Launcher.frmInstanceLeft?.PageChange(FormMain.PageSubType.VersionModJarInJar);
-        else
+        if (currentCompType != Comp.CompType.Mod)
             _vm.ShowManageJarInJar = false;
 
         Unloaded += Page_Unloaded;
@@ -154,8 +149,6 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
         BtnManageDownload.Click += BtnManageDownload_Click;
         BtnHintDownload.Click += BtnManageDownload_Click;
         BtnManageInfoExport.Click += BtnManageInfoExport_Click;
-        BtnSchematicDownloadMod.Click += BtnSchematicDownloadMod_Click;
-        BtnSchematicVersionSelect.Click += BtnSchematicVersionSelect_Click;
         Load.StateChanged += (_, _, _) => UnselectedAllWithAnimation();
         SearchBox.PreviewKeyDown += SearchBox_PreviewKeyDown;
         BtnFilterAll.Check += ChangeFilter;
@@ -664,7 +657,8 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
         ToolTipService.SetPlacement(btnOpen, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnOpen, 30d);
         ToolTipService.SetHorizontalOffset(btnOpen, 2d);
-        btnOpen.Click += (ss, ee) => Open_Click((MyIconButton)ss, ee);
+        btnOpen.Command = _vm.OpenFileLocationCommand;
+        btnOpen.CommandParameter = sender.Entry;
         var btnCont = new MyIconButton { LogoScale = 1d, SvgIcon = "lucide/info", Tag = sender };
         btnCont.ToolTip = Lang.Text("Instance.Saves.Detail");
         ToolTipService.SetPlacement(btnCont, PlacementMode.Center);
@@ -1461,20 +1455,14 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
     /// <summary>
     ///     下载投影Mod按钮点击事件。
     /// </summary>
-    private void BtnSchematicDownloadMod_Click(object sender, MouseButtonEventArgs e)
-    {
-        Launcher.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadMod);
-        PageComp.targetVersion = PageInstanceLeft.McInstance; // 将当前实例设置为筛选器
-    }
+    private void BtnSchematicDownloadMod_Click(object sender, MouseButtonEventArgs e) =>
+        _vm.SchematicDownloadModCommand.Execute(null);
 
     /// <summary>
     ///     实例选择按钮点击事件。
     /// </summary>
-    private void BtnSchematicVersionSelect_Click(object sender, MouseButtonEventArgs e)
-    {
-        Launcher.frmMain.PageChange(FormMain.PageType.Launch);
-        Launcher.frmMain.PageChange(FormMain.PageType.InstanceSelect);
-    }
+    private void BtnSchematicVersionSelect_Click(object sender, MouseButtonEventArgs e) =>
+        _vm.SchematicVersionSelectCommand.Execute(null);
 
     #endregion
 
@@ -2715,24 +2703,8 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
     }
 
     // 打开文件所在的位置
-    public void Open_Click(MyIconButton sender, EventArgs e)
-    {
-        try
-        {
-            var listItem = (MyLocalCompItem)sender.Tag;
-            // 对于文件夹使用实际路径，对于文件使用原路径
-            var targetPath = listItem.Entry.IsFolder ? listItem.Entry.ActualPath : listItem.Entry.path;
-            Common.OpenExplorer(targetPath);
-        }
-        catch (Exception ex)
-        {
-            Common.Log(
-                ex,
-                "打开资源文件位置失败",
-                Common.LogLevel.Feedback,
-                userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
-        }
-    }
+    public void Open_Click(MyIconButton sender, EventArgs e) =>
+        _vm.OpenFileLocationCommand.Execute((sender.Tag as MyLocalCompItem)?.Entry);
 
     // 删除
     public void Delete_Click(MyIconButton sender, EventArgs e)

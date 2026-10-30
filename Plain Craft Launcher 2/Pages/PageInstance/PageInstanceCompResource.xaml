@@ -28,7 +28,8 @@
                             <local:MyButton x:Name="BtnManageInfoExport" MinWidth="110" Text="{DynamicResource Instance.Resource.ExportInfo}" Padding="13,7"
                                             Margin="0,7,15,0" HorizontalAlignment="Left" ToolTip="{DynamicResource Instance.Resource.ExportInfo.ToolTip}" />
                             <local:MyButton x:Name="BtnManageJarInJar" MinWidth="110" Text="{DynamicResource Instance.Resource.Mod.JarInJar.Entry}" Padding="13,7"
-                                            Margin="0,7,15,0" HorizontalAlignment="Left" ToolTip="{DynamicResource Instance.Resource.Mod.JarInJar.Entry.ToolTip}" Visibility="{Binding ShowManageJarInJar, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                            Margin="0,7,15,0" HorizontalAlignment="Left" ToolTip="{DynamicResource Instance.Resource.Mod.JarInJar.Entry.ToolTip}" Visibility="{Binding ShowManageJarInJar, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                            Command="{Binding OpenJarInJarCommand}" />
                             <local:MyButton x:Name="BtnManageCheck" MinWidth="110" Text="{DynamicResource Instance.Resource.CheckMods}" Padding="13,7"
                                             Margin="0,7,15,0" HorizontalAlignment="Left"
                                             ToolTip="{DynamicResource Instance.Resource.CheckMods.ToolTip}"
@@ -94,9 +95,9 @@
                                TextWrapping="Wrap" HorizontalAlignment="Center" />
                     <WrapPanel Margin="10,20,10,5" HorizontalAlignment="Center" Orientation="Horizontal">
                         <local:MyButton Height="35" x:Name="BtnSchematicDownloadMod" MinWidth="130" Text="{DynamicResource Instance.Resource.Schematic.DownloadMod}"
-                                        Margin="5,0" Padding="12,0" ColorType="Highlight" />
+                                        Margin="5,0" Padding="12,0" ColorType="Highlight" Command="{Binding SchematicDownloadModCommand}" />
                         <local:MyButton Height="35" x:Name="BtnSchematicVersionSelect" MinWidth="130" Text="{DynamicResource Instance.Resource.Mod.Disabled.SelectInstance}"
-                                        Margin="5,0" Padding="12,0" />
+                                        Margin="5,0" Padding="12,0" Command="{Binding SchematicVersionSelectCommand}" />
                     </WrapPanel>
                 </StackPanel>
             </local:MyCard>

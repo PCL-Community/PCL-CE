@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App.Localization;
 using PCL.Core.ViewModel;
 
@@ -51,6 +52,47 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
     [ObservableProperty] private bool _showManageDownload = true;
     [ObservableProperty] private bool _showHintDownload = true;
     [ObservableProperty] private bool _showManageJarInJar = true;
+
+    [RelayCommand]
+    private void OpenJarInJar()
+    {
+        Launcher.frmInstanceLeft?.PageChange(FormMain.PageSubType.VersionModJarInJar);
+    }
+
+    [RelayCommand]
+    private void SchematicDownloadMod()
+    {
+        Launcher.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadMod);
+        PageComp.targetVersion = PageInstanceLeft.McInstance; // 将当前实例设置为筛选器
+    }
+
+    [RelayCommand]
+    private void SchematicVersionSelect()
+    {
+        Launcher.frmMain.PageChange(FormMain.PageType.Launch);
+        Launcher.frmMain.PageChange(FormMain.PageType.InstanceSelect);
+    }
+
+    [RelayCommand]
+    private void OpenFileLocation(LocalComp.LocalCompFile? entry)
+    {
+        if (entry is null)
+            return;
+        try
+        {
+            // 对于文件夹使用实际路径，对于文件使用原路径
+            var targetPath = entry.IsFolder ? entry.ActualPath : entry.path;
+            Common.OpenExplorer(targetPath);
+        }
+        catch (Exception ex)
+        {
+            Common.Log(
+                ex,
+                "打开资源文件位置失败",
+                Common.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
+        }
+    }
 
     public static string GetSortName(SortMethod method)
     {
