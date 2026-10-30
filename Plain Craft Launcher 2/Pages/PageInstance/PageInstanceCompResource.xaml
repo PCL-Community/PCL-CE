@@ -11,7 +11,8 @@
                                   x:Name="PanBack"
                                   Visibility="{Binding ShowList, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <StackPanel x:Name="PanMain" Margin="25,10,25,10" Grid.IsSharedSizeScope="True"> <!-- 若显示多选模块则为 92 -->
-                    <local:MySearchBox Margin="0,15" HintText="{DynamicResource Instance.Resource.Search.Hint}" x:Name="SearchBox" />
+                    <local:MySearchBox Margin="0,15" HintText="{DynamicResource Instance.Resource.Search.Hint}" x:Name="SearchBox"
+                                      Text="{Binding SearchText}" />
                     <local:MyCard Margin="0,0,0,15" x:Name="PanManage">
                         <WrapPanel Margin="15,8,0,15">
                             <local:MyButton x:Name="BtnManageBack" MinWidth="110" Text="{DynamicResource Instance.Resource.BackToParent}" Padding="13,7"
@@ -38,7 +39,7 @@
                                             Visibility="Collapsed" />
                         </WrapPanel>
                     </local:MyCard>
-                    <local:MyCard x:Name="PanListBack" VerticalAlignment="Top" Opacity="0" Margin="0,0,0,14" Title=" "
+                    <local:MyCard x:Name="PanListBack" VerticalAlignment="Top" Opacity="0" Margin="{Binding ListBackMargin}" Title=" "
                                   MinHeight="55">
                         <StackPanel x:Name="PanFilter" Margin="15,13,0,0" Orientation="Horizontal"
                                     VerticalAlignment="Top" HorizontalAlignment="Left" Height="28">
@@ -60,7 +61,8 @@
                             <local:MyIconTextButton x:Name="BtnSort" Text="{Binding SortText}"
                                                     SvgIcon="lucide/arrow-up-down" />
                         </StackPanel>
-                        <StackPanel Margin="20,48,18,22" Name="PanList" VerticalAlignment="Top" />
+                        <StackPanel Margin="20,48,18,22" Name="PanList" VerticalAlignment="Top"
+                                    Visibility="{Binding ShowItemList, Converter={StaticResource BooleanToVisibilityConverter}}" />
                     </local:MyCard>
                 </StackPanel>
             </local:MyScrollViewer>

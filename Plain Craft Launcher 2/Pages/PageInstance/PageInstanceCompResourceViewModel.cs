@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App.Localization;
 using PCL.Core.ViewModel;
 using System.IO;
+using System.Windows;
 
 namespace PCL;
 
@@ -33,6 +34,9 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
     [ObservableProperty] private string _sortText = "";
 
     [ObservableProperty] private bool _showList = true;
+    [ObservableProperty] private bool _showItemList = true;
+    [ObservableProperty] private Thickness _listBackMargin = new(0d, 0d, 0d, 14d);
+    [ObservableProperty] private string _searchText = "";
     [ObservableProperty] private bool _showEmpty = true;
     [ObservableProperty] private bool _showSchematicEmpty;
     [ObservableProperty] private string _emptyTitle = "";

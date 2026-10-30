@@ -232,7 +232,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
             {
                 Filter = FilterType.All;
                 PanBack.ScrollToHome();
-                SearchBox.Text = "";
+                _vm.SearchText = "";
             });
         }
     }
@@ -536,7 +536,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
             Common.RunInUi(() =>
             {
                 Filter = FilterType.All;
-                SearchBox.Text = ""; // 这会触发结果刷新，所以需要在 ModItems 更新之后，详见 #3124 的视频
+                _vm.SearchText = ""; // 这会触发结果刷新，所以需要在 ModItems 更新之后，详见 #3124 的视频
                 RefreshUI();
                 SetSortMethod(SortMethod.CompName);
             });
@@ -677,9 +677,9 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
 
         // 重新列出列表
         Animations.AniBeginControl();
+        _vm.ShowItemList = showingMods.Any();
         if (showingMods.Any())
         {
-            PanList.Visibility = Visibility.Visible;
             PanList.Children.Clear();
             foreach (var TargetMod in showingMods)
             {
@@ -697,10 +697,6 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
                 item.Checked = selectedMods.Contains(TargetMod.RawPath); // 更新选中状态
                 PanList.Children.Add(item);
             }
-        }
-        else
-        {
-            PanList.Visibility = Visibility.Collapsed;
         }
 
         Animations.AniEndControl();
@@ -823,7 +819,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
             // 更新显示状态
             if (!Animations.AniExitsAnyControl())
             {
-                PanListBack.Margin = new Thickness(0d, 0d, 0d, selected ? 95 : 15);
+                _vm.ListBackMargin = new Thickness(0d, 0d, 0d, selected ? 95 : 15);
                 if (selected)
                 {
                     // 仅在数量增加时播放出现/跳跃动画
@@ -2873,12 +2869,13 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
 
     #region 搜索
 
-    public bool IsSearching => !string.IsNullOrWhiteSpace(SearchBox.Text);
+    public bool IsSearching => !string.IsNullOrWhiteSpace(_vm.SearchText);
     private List<LocalComp.LocalCompFile> searchResult;
     private CancellationTokenSource _cancelToken;
 
     public void SearchRun(object sender, EventArgs e)
     {
+        _vm.SearchText = SearchBox.Text;
         var curToken = new CancellationTokenSource();
         var oldToken = Interlocked.Exchange(ref _cancelToken, curToken);
         oldToken?.Cancel();
