@@ -845,14 +845,15 @@ public partial class PageDownloadCompDetail
         // UI 化筛选器
         PanInstanceFilter.Children.Clear();
         PanModLoaderFilter.Children.Clear();
+        PanInstanceFilterLabel.Children.Clear();
         if (_pageType == Comp.CompType.Mod)
         {
-            PanInstanceFilter.Margin = new Thickness(10d, 10d, 0d, 5d);
+            PanInstanceFilterHost.Margin = new Thickness(10d, 10d, 0d, 5d);
             PanModLoaderFilter.Margin = new Thickness(10d, 5d, 0d, 10d);
         }
         else
         {
-            PanInstanceFilter.Margin = new Thickness(10d, 10d, 0d, 10d);
+            PanInstanceFilterHost.Margin = new Thickness(10d, 10d, 0d, 10d);
             PanModLoaderFilter.Margin = new Thickness(0d);
         }
 
@@ -873,7 +874,7 @@ public partial class PageDownloadCompDetail
                     VerticalAlignment = VerticalAlignment.Center,
                     Margin = new Thickness(2d, 0d, 0d, 0d)
                 };
-                PanInstanceFilter.Children.Add(instanceTextBlock);
+                PanInstanceFilterLabel.Children.Add(instanceTextBlock);
                 var modLoaderTextBlock = new TextBlock
                 {
                     Text = Lang.Text("Download.Comp.Detail.LoaderFilter"),
@@ -890,7 +891,7 @@ public partial class PageDownloadCompDetail
             {
                 var newButton = new MyRadioButton
                 {
-                    Text = version, Margin = new Thickness(2d, 0d, 2d, 0d),
+                    Text = version, Margin = new Thickness(2d, 0d, 2d, 4d),
                     ColorType = MyRadioButton.ColorState.Highlight
                 };
                 newButton.LabText.Margin = new Thickness(-2, 0d, 10d, 0d);
@@ -930,10 +931,7 @@ public partial class PageDownloadCompDetail
                 {
                     var targetGroup =
                         GetGroupedVersionName(_targetInstance, _groupedDrop, _groupedOld);
-                    var children = _pageType == Comp.CompType.Mod
-                        ? PanInstanceFilter.Children.Cast<UIElement>().Skip(1)
-                        : PanInstanceFilter.Children.Cast<UIElement>();
-                    foreach (MyRadioButton button in (IEnumerable)children)
+                    foreach (MyRadioButton button in PanInstanceFilter.Children)
                     {
                         if ((button.Text ?? "") != (targetGroup ?? ""))
                             continue;
@@ -962,10 +960,10 @@ public partial class PageDownloadCompDetail
                     }
                 }
 
-            // 注意：在 Mod 下 index 0 是 TextBlock
+            // 注意：在 Mod 下 PanModLoaderFilter 的 index 0 是 TextBlock
             var index = _pageType == Comp.CompType.Mod ? 1 : 0;
             if (instanceToCheck is null)
-                instanceToCheck = (MyRadioButton)PanInstanceFilter.Children[index];
+                instanceToCheck = (MyRadioButton)PanInstanceFilter.Children[0];
             if (modLoaderToCheck is null && _pageType == Comp.CompType.Mod)
                 modLoaderToCheck = (MyRadioButton)PanModLoaderFilter.Children[index];
             instanceToCheck.Checked = true;
