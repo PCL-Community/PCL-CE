@@ -67,7 +67,24 @@
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
-                            <WrapPanel x:Name="PanInstanceFilter" Margin="0,0,0,-4" />
+                            <ItemsControl x:Name="PanInstanceFilter" Margin="0,0,0,-4"
+                                          ItemsSource="{Binding InstanceFilterOptions}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <local:MyRadioButton Text="{Binding Text}" Margin="2,0,2,4"
+                                                             ColorType="Highlight" GroupName="InstanceFilter"
+                                                             Checked="{Binding IsSelected, Mode=TwoWay}"
+                                                             CheckCommand="{Binding DataContext.SelectInstanceFilterCommand, RelativeSource={RelativeSource AncestorType=local:MyPageRight}}"
+                                                             CheckCommandParameter="{Binding}"
+                                                             local:CompFilterRadioButton.TextMargin="-2,0,10,0" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
                         </DockPanel>
                         <StackPanel x:Name="PanModLoaderFilter" Margin="10,5,0,10" Orientation="Horizontal"
                                     VerticalAlignment="Top" HorizontalAlignment="Left">
@@ -77,6 +94,23 @@
                                     <DataTemplate>
                                         <TextBlock Text="{Binding Text}" VerticalAlignment="Center"
                                                    Margin="2,0,0,0" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <ItemsControl ItemsSource="{Binding ModLoaderFilterOptions}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <local:MyRadioButton Text="{Binding Text}" Margin="2,0,2,0"
+                                                             ColorType="Highlight" GroupName="ModLoaderFilter"
+                                                             Checked="{Binding IsSelected, Mode=TwoWay}"
+                                                             CheckCommand="{Binding DataContext.SelectModLoaderFilterCommand, RelativeSource={RelativeSource AncestorType=local:MyPageRight}}"
+                                                             CheckCommandParameter="{Binding}"
+                                                             local:CompFilterRadioButton.TextMargin="-2,0,10,0" />
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>

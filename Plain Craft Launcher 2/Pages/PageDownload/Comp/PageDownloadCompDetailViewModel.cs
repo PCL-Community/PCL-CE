@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App.Localization;
 using PCL.Core.ViewModel;
 
@@ -25,6 +26,52 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
     public ObservableCollection<CompFilterChip> InstanceFilterLabelChips { get; } = [];
 
     public ObservableCollection<CompFilterChip> ModLoaderFilterLabelChips { get; } = [];
+
+    public ObservableCollection<CompFilterOption> InstanceFilterOptions { get; } = [];
+
+    public ObservableCollection<CompFilterOption> ModLoaderFilterOptions { get; } = [];
+
+    public Action? FilterSelectionChanged { get; set; }
+
+    public CompFilterOption? SelectedInstanceFilter => InstanceFilterOptions.FirstOrDefault(option => option.IsSelected);
+
+    public CompFilterOption? SelectedModLoaderFilter => ModLoaderFilterOptions.FirstOrDefault(option => option.IsSelected);
+
+    public string? InstanceFilterValue => SelectedInstanceFilter?.Text == Lang.Text("Common.Option.All")
+        ? null
+        : SelectedInstanceFilter?.Text;
+
+    public string? ModLoaderFilterValue => SelectedModLoaderFilter?.Text == Lang.Text("Common.Option.All")
+        ? null
+        : SelectedModLoaderFilter?.Text;
+
+    public void SetInstanceFilter(CompFilterOption? option)
+    {
+        foreach (var item in InstanceFilterOptions)
+            item.IsSelected = ReferenceEquals(item, option);
+        OnPropertyChanged(nameof(SelectedInstanceFilter));
+    }
+
+    public void SetModLoaderFilter(CompFilterOption? option)
+    {
+        foreach (var item in ModLoaderFilterOptions)
+            item.IsSelected = ReferenceEquals(item, option);
+        OnPropertyChanged(nameof(SelectedModLoaderFilter));
+    }
+
+    [RelayCommand]
+    private void SelectInstanceFilter(CompFilterOption? option)
+    {
+        SetInstanceFilter(option);
+        FilterSelectionChanged?.Invoke();
+    }
+
+    [RelayCommand]
+    private void SelectModLoaderFilter(CompFilterOption? option)
+    {
+        SetModLoaderFilter(option);
+        FilterSelectionChanged?.Invoke();
+    }
 
     public void ApplyProjectState(Comp.CompProject project)
     {
@@ -106,4 +153,17 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
             return -McVersionComparer.CompareVersion(sx, sy);
         }
     }
+}
+
+/// <summary>资源详情页筛选器中的单个选项。</summary>
+public sealed partial class CompFilterOption : ObservableObject
+{
+    public CompFilterOption(string text)
+    {
+        Text = text;
+    }
+
+    public string Text { get; }
+
+    [ObservableProperty] private bool _isSelected;
 }

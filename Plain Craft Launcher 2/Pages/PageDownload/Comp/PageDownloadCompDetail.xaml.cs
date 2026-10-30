@@ -693,6 +693,7 @@ public partial class PageDownloadCompDetail : IPageView
         PageEnter += RefreshOnNavigate;
         InitializeComponent();
         DataContext = _vm;
+        _vm.FilterSelectionChanged = UpdateFilterResult;
         Load.StateChanged += Load_State;
         BtnIntroWeb.Click += BtnIntroWeb_Click;
         BtnIntroWiki.Click += BtnIntroWiki_Click;
@@ -750,8 +751,6 @@ public partial class PageDownloadCompDetail : IPageView
         }
     }
 
-    private string? _instanceFilter;
-    private string? _modLoaderFilter;
     private bool groupedDrop; // 是否按 Drop 筛选（1.21 / 1.20 / 1.19 / ...）而非小版本号（1.21.1 / 1.21 / 1.20.4 / ...）
 
     private bool groupedOld; // 是否折叠远古版本为一个选项
@@ -800,9 +799,8 @@ public partial class PageDownloadCompDetail : IPageView
 
 
         // UI 化筛选器
-        PanInstanceFilter.Children.Clear();
-        foreach (var radioButton in PanModLoaderFilter.Children.OfType<MyRadioButton>().ToList())
-            PanModLoaderFilter.Children.Remove(radioButton);
+        _vm.InstanceFilterOptions.Clear();
+        _vm.ModLoaderFilterOptions.Clear();
         _vm.InstanceFilterLabelChips.Clear();
         _vm.ModLoaderFilterLabelChips.Clear();
         if (_pageType == Comp.CompType.Mod)
@@ -819,7 +817,7 @@ public partial class PageDownloadCompDetail : IPageView
         _vm.SetFilterVisibility(instanceFilters.Count >= 2);
         if (instanceFilters.Count < 2)
         {
-            _instanceFilter = null;
+            _vm.SetInstanceFilter(null);
         }
         else
         {
@@ -836,55 +834,23 @@ public partial class PageDownloadCompDetail : IPageView
             modLoaderFilters.Insert(0, Lang.Text("Common.Option.All"));
             // 转化为按钮
             foreach (var version in instanceFilters)
-            {
-                var newButton = new MyRadioButton
-                {
-                    Text = version, Margin = new Thickness(2d, 0d, 2d, 4d),
-                    ColorType = MyRadioButton.ColorState.Highlight
-                };
-                newButton.LabText.Margin = new Thickness(-2, 0d, 10d, 0d);
-                newButton.Check += (sender, raiseByMouse) =>
-                {
-                    _instanceFilter = sender.Text == Lang.Text("Common.Option.All") ? null : sender.Text;
-                    UpdateFilterResult();
-                };
-                PanInstanceFilter.Children.Add(newButton);
-            }
+                _vm.InstanceFilterOptions.Add(new CompFilterOption(version));
 
             if (_pageType == Comp.CompType.Mod)
                 foreach (var loader in modLoaderFilters)
-                {
-                    var newButton = new MyRadioButton
-                    {
-                        Text = loader,
-                        Margin = new Thickness(2d, 0d, 2d, 0d),
-                        ColorType = MyRadioButton.ColorState.Highlight
-                    };
-                    newButton.LabText.Margin = new Thickness(-2, 0d, 10d, 0d);
-                    newButton.Check += (sender, raiseByMouse) =>
-                    {
-                        _modLoaderFilter = sender.Text == Lang.Text("Common.Option.All") ? null : sender.Text;
-                        UpdateFilterResult();
-                    };
-                    PanModLoaderFilter.Children.Add(newButton);
-                }
+                    _vm.ModLoaderFilterOptions.Add(new CompFilterOption(loader));
 
             // 自动选择
-            MyRadioButton instanceToCheck = null;
-            MyRadioButton modLoaderToCheck = null;
+            CompFilterOption? instanceToCheck = null;
+            CompFilterOption? modLoaderToCheck = null;
             if (!string.IsNullOrEmpty(_targetInstance))
             {
                 var targetFile = results.FirstOrDefault(v => v.GameVersions.Contains(_targetInstance));
                 if (targetFile is not null)
                 {
                     var targetGroup = GetGroupedVersionName(_targetInstance, groupedDrop, groupedOld);
-                    foreach (MyRadioButton button in PanInstanceFilter.Children)
-                    {
-                        if ((button.Text ?? "") != (targetGroup ?? ""))
-                            continue;
-                        instanceToCheck = button;
-                        break;
-                    }
+                    instanceToCheck = _vm.InstanceFilterOptions.FirstOrDefault(option =>
+                        (option.Text ?? "") == (targetGroup ?? ""));
                 }
             }
 
@@ -893,29 +859,17 @@ public partial class PageDownloadCompDetail : IPageView
                 {
                     var targetFile = results.FirstOrDefault(v => v.ModLoaders.Contains(_targetLoader));
                     if (targetFile is not null)
-                    {
-                        var children = _pageType == Comp.CompType.Mod
-                            ? PanInstanceFilter.Children.Cast<UIElement>().Skip(1)
-                            : PanInstanceFilter.Children.Cast<UIElement>();
-                        foreach (MyRadioButton button in (IEnumerable)children)
-                        {
-                            if ((button.Text ?? "") != (_targetLoader.ToString() ?? ""))
-                                continue;
-                            modLoaderToCheck = button;
-                            break;
-                        }
-                    }
+                        modLoaderToCheck = _vm.InstanceFilterOptions.Skip(1).FirstOrDefault(option =>
+                            (option.Text ?? "") == (_targetLoader.ToString() ?? ""));
                 }
 
-            // 注意：在 Mod 下 index 0 是 TextBlock
-            var index = _pageType == Comp.CompType.Mod ? 1 : 0;
-            if (instanceToCheck is null)
-                instanceToCheck = (MyRadioButton)PanInstanceFilter.Children[0];
-            if (modLoaderToCheck is null && (_pageType == Comp.CompType.Mod))
-                modLoaderToCheck = (MyRadioButton)PanModLoaderFilter.Children[index];
-            instanceToCheck.Checked = true;
+            // 注意：在 Mod 下加载器筛选项与实例筛选项分别存放
+            instanceToCheck ??= _vm.InstanceFilterOptions.FirstOrDefault();
             if (_pageType == Comp.CompType.Mod)
-                modLoaderToCheck.Checked = true;
+                modLoaderToCheck ??= _vm.ModLoaderFilterOptions.FirstOrDefault();
+            _vm.SetInstanceFilter(instanceToCheck);
+            if (_pageType == Comp.CompType.Mod)
+                _vm.SetModLoaderFilter(modLoaderToCheck);
         }
 
         // 更新筛选结果（文件列表 UI 化）
@@ -927,6 +881,9 @@ public partial class PageDownloadCompDetail : IPageView
         var results = PageDownloadCompDetailViewModel.FilterResults(_compFileLoader.output, _pageType);
         if (results is null)
             return;
+
+        var instanceFilter = _vm.InstanceFilterValue;
+        var modLoaderFilter = _vm.ModLoaderFilterValue;
 
         // 1. 预处理基础变量
         var targetVersionText = _targetLoader != Comp.CompLoaderType.Any ? _targetLoader + " " : "";
@@ -956,7 +913,7 @@ public partial class PageDownloadCompDetail : IPageView
             {
                 // 筛选器预检查
                 var currentGroupedName = GetGroupedVersionName(gameVersion, groupedDrop, groupedOld);
-                if (_instanceFilter is not null && (currentGroupedName ?? "") != (_instanceFilter ?? ""))
+                if (instanceFilter is not null && (currentGroupedName ?? "") != (instanceFilter ?? ""))
                     continue;
                 var verName = GetGroupedVersionName(gameVersion, false, false);
                 var loaders = new List<string>();
@@ -973,13 +930,13 @@ public partial class PageDownloadCompDetail : IPageView
                             continue;
 
                         // 模组加载器筛选器
-                        if (_modLoaderFilter is not null && (loader.ToString() ?? "") != (_modLoaderFilter ?? ""))
+                        if (modLoaderFilter is not null && (loader.ToString() ?? "") != (modLoaderFilter ?? ""))
                             continue;
 
                         loaders.Add(loader + " ");
                     }
 
-                    if (loaders.Count == 0 && _modLoaderFilter is not null) continue;
+                    if (loaders.Count == 0 && modLoaderFilter is not null) continue;
                 }
 
                 if (loaders.Count == 0)
@@ -996,15 +953,15 @@ public partial class PageDownloadCompDetail : IPageView
             // 处理“所选版本”卡片 (逻辑合并，减少二次循环)
             if (!string.IsNullOrEmpty(targetCardName))
             {
-                var isMatchFilter = _instanceFilter is null ||
+                var isMatchFilter = instanceFilter is null ||
                                     GetGroupedVersionName(_targetInstance, groupedDrop, groupedOld)
-                                        .StartsWithF(_instanceFilter);
+                                        .StartsWithF(instanceFilter);
 
                 if (isMatchFilter && version.GameVersions.Contains(_targetInstance))
                     if (_targetLoader == Comp.CompLoaderType.Any || version.ModLoaders.Contains(_targetLoader))
                         // 再次检查 version 是否符合筛选器（针对该文件的所有游戏版本）
-                        if (_instanceFilter is null || version.GameVersions.Any(v =>
-                                (GetGroupedVersionName(v, groupedDrop, groupedOld) ?? "") == (_instanceFilter ?? "")))
+                        if (instanceFilter is null || version.GameVersions.Any(v =>
+                                (GetGroupedVersionName(v, groupedDrop, groupedOld) ?? "") == (instanceFilter ?? "")))
                             AddVersionToDict(dict, versionDuplicateChecker, targetCardName, version);
             }
         }
@@ -1153,4 +1110,28 @@ public partial class PageDownloadCompDetail : IPageView
     }
 
     #endregion
+}
+
+/// <summary>为筛选器模板中的单选框提供内部文本边距的附加属性。</summary>
+public static class CompFilterRadioButton
+{
+    public static readonly DependencyProperty TextMarginProperty = DependencyProperty.RegisterAttached(
+        "TextMargin", typeof(Thickness), typeof(CompFilterRadioButton),
+        new FrameworkPropertyMetadata(new Thickness(), OnTextMarginChanged));
+
+    private static void OnTextMarginChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is MyRadioButton radioButton && radioButton.LabText is not null)
+            radioButton.LabText.Margin = (Thickness)e.NewValue;
+    }
+
+    public static Thickness GetTextMargin(DependencyObject element)
+    {
+        return (Thickness)element.GetValue(TextMarginProperty);
+    }
+
+    public static void SetTextMargin(DependencyObject element, Thickness value)
+    {
+        element.SetValue(TextMarginProperty, value);
+    }
 }
