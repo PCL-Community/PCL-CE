@@ -50,11 +50,6 @@ public partial class PageInstanceLeft : IRefreshable, IPageView
         _vm.RefreshModDisabled(McInstance);
     }
 
-    private void RefreshButton_Click(object sender, EventArgs e)
-    {
-        Refresh((FormMain.PageSubType)Common.Val(((MyIconButton)sender).Tag));
-    }
-
     public void Refresh(FormMain.PageSubType subType)
     {
         switch (subType)

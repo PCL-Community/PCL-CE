@@ -173,14 +173,16 @@ public partial class PageInstanceSaves : IRefreshable, IPageView
             Info = entry.Info,
             Type = MyListItem.CheckType.Clickable
         };
-        worldItem.Click += (_, _) => OpenSaveDetails(curFolder);
+        worldItem.Command = _vm.OpenDetailsCommand;
+        worldItem.CommandParameter = curFolder;
 
         var btnOpen = new MyIconButton
         {
             SvgIcon = "lucide/folder-open",
             ToolTip = Lang.Text("Common.Action.Open")
         };
-        btnOpen.Click += (_, _) => Common.OpenExplorer(curFolder);
+        btnOpen.Command = _vm.OpenSaveFolderCommand;
+        btnOpen.CommandParameter = curFolder;
 
         var btnDelete = new MyIconButton
         {
@@ -215,68 +217,29 @@ public partial class PageInstanceSaves : IRefreshable, IPageView
             SvgIcon = "lucide/copy",
             ToolTip = Lang.Text("Common.Action.Copy")
         };
-        btnCopy.Click += (_, _) => CopySaveToClipboard(curFolder);
+        btnCopy.Command = _vm.CopySaveCommand;
+        btnCopy.CommandParameter = curFolder;
 
         var btnInfo = new MyIconButton
         {
             SvgIcon = "lucide/info",
             ToolTip = Lang.Text("Instance.Saves.Details")
         };
-        btnInfo.Click += (_, _) => OpenSaveDetails(curFolder);
+        btnInfo.Command = _vm.OpenDetailsCommand;
+        btnInfo.CommandParameter = curFolder;
 
         var btnLaunch = new MyIconButton
         {
             SvgIcon = "lucide/play",
             ToolTip = Lang.Text("Instance.Saves.QuickPlay")
         };
-        btnLaunch.Click += (_, _) => LaunchSave(curFolder);
+        btnLaunch.Command = _vm.LaunchSaveCommand;
+        btnLaunch.CommandParameter = curFolder;
 
         worldItem.Buttons = _vm.QuickPlayEnabled
             ? [btnOpen, btnDelete, btnCopy, btnInfo, btnLaunch]
             : [btnOpen, btnDelete, btnCopy, btnInfo];
         return worldItem;
-    }
-
-    private static void OpenSaveDetails(string curFolder)
-    {
-        Launcher.frmMain.PageChange(new FormMain.PageStackData
-        {
-            page = FormMain.PageType.VersionSaves,
-            additional = (null, null, null, Comp.CompLoaderType.Any, Comp.CompType.Any, curFolder)
-        });
-    }
-
-    private static void LaunchSave(string curFolder)
-    {
-        var launchOptions = new GameLaunch.McLaunchOptions
-        {
-            WorldName = Path.GetFileName(curFolder),
-            instance = PageInstanceLeft.McInstance
-        };
-        GameLaunch.McLaunchStart(launchOptions);
-        Launcher.frmMain.PageChange(new FormMain.PageStackData { page = FormMain.PageType.Launch });
-    }
-
-    private static void CopySaveToClipboard(string curFolder)
-    {
-        try
-        {
-            if (Directory.Exists(curFolder))
-            {
-                Clipboard.SetFileDropList(new StringCollection { curFolder });
-                HintService.Hint(Lang.Text("Instance.Saves.CopiedToClipboard"));
-                HintService.Hint(Lang.Text("Instance.Saves.CopyPasteWarning"));
-            }
-            else
-            {
-                HintService.Hint(Lang.Text("Instance.Saves.FolderNotFound"));
-            }
-        }
-        catch (Exception ex)
-        {
-            Common.Log(ex, Lang.Text("Instance.Saves.CopyFailed"), Common.LogLevel.Hint,
-                userSummary: Lang.Text("Instance.Saves.CopyFailed"));
-        }
     }
 
     private void SetupFileSystemWatcher()
@@ -336,11 +299,6 @@ public partial class PageInstanceSaves : IRefreshable, IPageView
         _ = RefreshUiAsync();
     }
 
-    private void BtnOpenFolder_Click(object sender, MouseButtonEventArgs e)
-    {
-        Common.OpenExplorer(_vm.WorldPath);
-    }
-
     private void BtnPaste_Click(object sender, MouseButtonEventArgs e)
     {
         var files = Clipboard.GetFileDropList();
@@ -364,12 +322,6 @@ public partial class PageInstanceSaves : IRefreshable, IPageView
         Loading.LoaderTaskbarAdd(loader);
         Launcher.frmMain.BtnExtraDownload.ShowRefresh();
         Launcher.frmMain.BtnExtraDownload.Ribble();
-    }
-
-    private void BtnDownloadNew_Click(object sender, MouseButtonEventArgs e)
-    {
-        Launcher.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadWorld);
-        PageComp.targetVersion = PageInstanceLeft.McInstance;
     }
 
     private void BtnSortClick(object sender, EventArgs e)

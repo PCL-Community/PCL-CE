@@ -29,8 +29,6 @@ public partial class PageInstanceScreenshot : IRefreshable
         DataContext = _vm;
         Loaded += PageSetupLaunch_Loaded;
         PanBack.ScrollChanged += RequireAppend;
-        BtnOpenFolder.Click += BtnOpenFolder_Click;
-        BtnOpenFolderTop.Click += BtnOpenFolder_Click;
     }
 
     public PageInstanceScreenshotViewModel ViewModel => _vm;
@@ -213,7 +211,8 @@ public partial class PageInstanceScreenshot : IRefreshable
                     SvgIcon = "lucide/folder-open",
                     Tag = i
                 };
-                btnOpen.Click += (s, ev) => BtnOpen_Click((MyIconTextButton)s, ev);
+                btnOpen.Command = _vm.OpenScreenshotCommand;
+                btnOpen.CommandParameter = i;
                 stackPanel.Children.Add(btnOpen);
                 var btnDelete = new MyIconTextButton
                 {
@@ -233,7 +232,8 @@ public partial class PageInstanceScreenshot : IRefreshable
                     SvgIcon = "lucide/copy",
                     Tag = i
                 };
-                btnCopy.Click += (s, ev) => BtnCopy_Click((MyIconTextButton)s, ev);
+                btnCopy.Command = _vm.CopyScreenshotCommand;
+                btnCopy.CommandParameter = i;
                 stackPanel.Children.Add(btnCopy);
                 PanList.Children.Add(myCard);
                 myCard.Opacity = 0d;
@@ -272,11 +272,6 @@ public partial class PageInstanceScreenshot : IRefreshable
         return (string)sender.Tag;
     }
 
-    private void BtnOpen_Click(MyIconTextButton sender, EventArgs e)
-    {
-        Common.OpenExplorer(GetPathFromSender(sender));
-    }
-
     private void BtnDelete_Click(MyIconTextButton sender, EventArgs e)
     {
         var path = GetPathFromSender(sender);
@@ -295,41 +290,5 @@ public partial class PageInstanceScreenshot : IRefreshable
                 Common.LogLevel.Hint,
                 userSummary: Lang.Text("Instance.Screenshot.DeleteFailed"));
         }
-    }
-
-    private void BtnCopy_Click(MyIconTextButton sender, EventArgs e)
-    {
-        var imagePath = GetPathFromSender(sender);
-        if (File.Exists(imagePath))
-        {
-            var tryTime = 0;
-            while (tryTime <= 5)
-                try
-                {
-                    Common.Log("[Screenshot] 尝试复制" + imagePath + "到剪贴板");
-                    Clipboard.SetImage(new BitmapImage(new Uri(imagePath)));
-                    HintService.Hint(Lang.Text("Instance.Screenshot.CopiedToClipboard"));
-                    tryTime = 6;
-                    return;
-                }
-                catch (Exception ex)
-                {
-                    tryTime += 1;
-                    Common.Log(ex, $"[Screenshot]第 {tryTime} 次复制尝试失败");
-                }
-
-            HintService.Hint(Lang.Text("Instance.Screenshot.CopyFailed"), HintType.Error);
-        }
-        else
-        {
-            HintService.Hint(Lang.Text("Instance.Screenshot.FileNotFound"));
-        }
-    }
-
-    private void BtnOpenFolder_Click(object sender, MouseButtonEventArgs e)
-    {
-        if (!Directory.Exists(screenshotPath))
-            Directory.CreateDirectory(screenshotPath);
-        Common.OpenExplorer(screenshotPath);
     }
 }
