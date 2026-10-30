@@ -759,12 +759,27 @@ public partial class MyListItem : IMyRadio
     }
 
     // 勾选状态
-    private bool _checked;
+    public static readonly DependencyProperty CheckedProperty = DependencyProperty.Register(nameof(Checked),
+        typeof(bool), typeof(MyListItem), new FrameworkPropertyMetadata(false,
+            FrameworkPropertyMetadataOptions.BindsTwoWayByDefault,
+            (d, e) =>
+            {
+                var obj = (MyListItem)d;
+                if (!obj._isSettingChecked)
+                {
+                    obj.EnsureSingleChecked();
+                    obj.RefreshCheckedVisual((bool)e.NewValue, true);
+                }
+            }));
+
+    private bool _isSettingChecked;
+    private bool _isUserInteraction;
+    private bool _isExecutingCheckCommand;
 
     public bool Checked
     {
-        get => _checked;
-        set => SetChecked(value, false, value != _checked); // 仅在值发生变化时触发动画 (#4596)
+        get => (bool)GetValue(CheckedProperty);
+        set => SetChecked(value, false, value != Checked); // 仅在值发生变化时触发动画 (#4596)
     }
 
     /// <summary>
@@ -780,33 +795,34 @@ public partial class MyListItem : IMyRadio
             // 自定义属性基础
 
             var ChangedEventArgs = new Common.RouteEventArgs(user);
-            var rawValue = _checked;
+            var rawValue = Checked;
+            _isUserInteraction = user;
             if (Type == CheckType.RadioBox)
             {
-                if (IsInitialized && value != _checked)
+                if (IsInitialized && value != Checked)
                 {
-                    _checked = value;
+                    SetCheckedValue(value);
                     Changed?.Invoke(this, ChangedEventArgs);
                     if (ChangedEventArgs.handled)
                     {
-                        _checked = rawValue;
+                        SetCheckedValue(rawValue);
                         return;
                     }
                 }
 
-                _checked = value;
+                SetCheckedValue(value);
             }
             else
             {
-                if (value == _checked)
+                if (value == Checked)
                     return;
-                _checked = value;
+                SetCheckedValue(value);
                 if (IsInitialized)
                 {
                     Changed?.Invoke(this, ChangedEventArgs);
                     if (ChangedEventArgs.handled)
                     {
-                        _checked = rawValue;
+                        SetCheckedValue(rawValue);
                         return;
                     }
                 }
@@ -826,154 +842,204 @@ public partial class MyListItem : IMyRadio
             {
                 if (Parent is null)
                     return;
-                var radioboxList = new List<MyListItem>();
-                var checkedCount = 0;
-                // 收集控件列表与选中个数
-                foreach (var ControlRaw in ((Panel)Parent).Children)
-                {
-                    var control = MyVirtualizingElement.TryInit((FrameworkElement)ControlRaw);
-                    if (control is MyListItem listItem && listItem.Type == CheckType.RadioBox)
-                    {
-                        radioboxList.Add(listItem);
-                        if (listItem.Checked)
-                            checkedCount += 1;
-                    }
-                }
-
-                // 判断选中情况
-                switch (checkedCount)
-                {
-                    case 0:
-                    {
-                        // 没有任何单选框被选中，选择第一个
-                        radioboxList[0].Checked = true;
-                        break;
-                    }
-                    case var @case when @case > 1:
-                    {
-                        // 选中项目多于 1 个
-                        if (Checked)
-                        {
-                            // 如果本控件选中，则取消其他所有控件的选中
-                            foreach (var Control in radioboxList)
-                                if (Control.Checked && !Control.Equals(this))
-                                    Control.Checked = false;
-                        }
-                        else
-                        {
-                            // 如果本控件未选中，则只保留第一个选中的控件
-                            var firstChecked = false;
-                            foreach (var Control in radioboxList)
-                                if (Control.Checked)
-                                {
-                                    if (firstChecked)
-                                        Control.Checked = false; // 修改 Checked 会自动触发 Change 事件，所以不用额外触发
-                                    else
-                                        firstChecked = true;
-                                }
-                        }
-
-                        break;
-                    }
-                }
+                EnsureSingleChecked();
             }
 
-            var customHeight = 20d; // 修改左侧神秘动画条的高度
+            RefreshCheckedVisual(value, anime);
 
-            if (IsLoaded && !Animations.AniExitsAnyControl() && anime) // 防止默认属性变更触发动画
-            {
-                var anim = new List<Animations.AniData>();
-                if (Checked)
-                {
-                    // 由无变有
-                    if (rectCheck is not null)
-                    {
-                        // 统一静态属性：固定高度、居中对齐、无额外边距
-                        rectCheck.Height = customHeight;
-                        rectCheck.VerticalAlignment = VerticalAlignment.Center;
-                        rectCheck.Margin = new Thickness(-1, 0d, 0d, 0d);
-                        rectCheck.Opacity = 1d;
-
-                        // 初始化缩放中心为正中心
-                        var scale = new ScaleTransform(1d, 0d);
-                        rectCheck.RenderTransformOrigin = new Point(0.5d, 0.5d);
-                        rectCheck.RenderTransform = scale;
-
-                        // 动画：让 ScaleY 从 0 弹性放大到 1
-                        anim.Add(Animations.AaDouble(
-                            i => scale.ScaleY = Math.Max(0d, scale.ScaleY + (double)i),
-                            1d - scale.ScaleY,
-                            300,
-                            ease: new Animations.AniEaseOutBack(Animations.AniEasePower.Weak)
-                        ));
-                    }
-
-                    anim.Add(Animations.AaColor(this, ForegroundProperty,
-                        Height < 40d ? "ColorBrush3" : "ColorBrush2", 200));
-                }
-                else
-                {
-                    // 由有变无
-                    if (rectCheck is not null)
-                    {
-                        if (rectCheck.RenderTransform is not ScaleTransform)
-                        {
-                            rectCheck.RenderTransformOrigin = new Point(0.5d, 0.5d);
-                            rectCheck.RenderTransform = new ScaleTransform(1d, 1d);
-                        }
-
-                        var scale = (ScaleTransform)rectCheck.RenderTransform;
-
-                        // 动画：让 ScaleY 从当前值缩减到 0
-                        anim.Add(Animations.AaDouble(
-                            i => scale.ScaleY = Math.Max(0d, scale.ScaleY + (double)i),
-                            -scale.ScaleY,
-                            120,
-                            ease: new Animations.AniEaseInFluent(Animations.AniEasePower.Weak)
-                        ));
-                        anim.Add(Animations.AaOpacity(rectCheck, -rectCheck.Opacity, 70, 40));
-                    }
-
-                    anim.Add(Animations.AaColor(this, ForegroundProperty, "ColorBrush1", 120));
-                }
-
-                Animations.AniStart(anim, "MyListItem Checked " + Uuid);
-            }
-            else
-            {
-                // 不使用动画
-                Animations.AniStop("MyListItem Checked " + Uuid);
-                if (Checked)
-                {
-                    if (rectCheck is not null)
-                    {
-                        rectCheck.Height = customHeight; // 应用自定义固定高度
-                        rectCheck.Margin = new Thickness(-1, 0d, 0d, 0d);
-                        rectCheck.Opacity = 1d;
-                        rectCheck.VerticalAlignment = VerticalAlignment.Center; // 居中
-                        rectCheck.RenderTransform = null; // 清除缩放
-                    }
-
-                    SetResourceReference(ForegroundProperty, Height < 40d ? "ColorBrush3" : "ColorBrush2");
-                }
-                else
-                {
-                    if (rectCheck is not null)
-                    {
-                        rectCheck.Height = 0d;
-                        rectCheck.Margin = new Thickness(-1, 0d, 0d, 0d);
-                        rectCheck.Opacity = 0d;
-                        rectCheck.VerticalAlignment = VerticalAlignment.Center;
-                        rectCheck.RenderTransform = null;
-                    }
-
-                    SetResourceReference(ForegroundProperty, "ColorBrush1");
-                }
-            }
+            if (_isUserInteraction && Checked != rawValue)
+                ExecuteCheckCommand();
         }
         catch (Exception ex)
         {
             Common.Log(ex, "设置 Checked 失败");
+        }
+        finally
+        {
+            _isUserInteraction = false;
+        }
+    }
+
+    private void SetCheckedValue(bool value)
+    {
+        _isSettingChecked = true;
+        try
+        {
+            SetValue(CheckedProperty, value);
+        }
+        finally
+        {
+            _isSettingChecked = false;
+        }
+    }
+
+    private void EnsureSingleChecked()
+    {
+        if (Type != CheckType.RadioBox)
+            return;
+        if (Parent is null)
+            return;
+        var radioboxList = new List<MyListItem>();
+        var checkedCount = 0;
+        // 收集控件列表与选中个数
+        foreach (var ControlRaw in ((Panel)Parent).Children)
+        {
+            var control = MyVirtualizingElement.TryInit((FrameworkElement)ControlRaw);
+            if (control is MyListItem listItem && listItem.Type == CheckType.RadioBox)
+            {
+                radioboxList.Add(listItem);
+                if (listItem.Checked)
+                    checkedCount += 1;
+            }
+        }
+
+        // 判断选中情况
+        switch (checkedCount)
+        {
+            case 0:
+            {
+                // 没有任何单选框被选中，选择第一个
+                radioboxList[0].Checked = true;
+                break;
+            }
+            case var @case when @case > 1:
+            {
+                // 选中项目多于 1 个
+                if (Checked)
+                {
+                    // 如果本控件选中，则取消其他所有控件的选中
+                    foreach (var Control in radioboxList)
+                        if (Control.Checked && !Control.Equals(this))
+                            Control.Checked = false;
+                }
+                else
+                {
+                    // 如果本控件未选中，则只保留第一个选中的控件
+                    var firstChecked = false;
+                    foreach (var Control in radioboxList)
+                        if (Control.Checked)
+                        {
+                            if (firstChecked)
+                                Control.Checked = false; // 修改 Checked 会自动触发 Change 事件，所以不用额外触发
+                            else
+                                firstChecked = true;
+                        }
+                }
+
+                break;
+            }
+        }
+    }
+
+    private void RefreshCheckedVisual(bool value, bool anime)
+    {
+        var customHeight = 20d; // 修改左侧神秘动画条的高度
+
+        if (IsLoaded && !Animations.AniExitsAnyControl() && anime) // 防止默认属性变更触发动画
+        {
+            var anim = new List<Animations.AniData>();
+            if (value)
+            {
+                // 由无变有
+                if (rectCheck is not null)
+                {
+                    // 统一静态属性：固定高度、居中对齐、无额外边距
+                    rectCheck.Height = customHeight;
+                    rectCheck.VerticalAlignment = VerticalAlignment.Center;
+                    rectCheck.Margin = new Thickness(-1, 0d, 0d, 0d);
+                    rectCheck.Opacity = 1d;
+
+                    // 初始化缩放中心为正中心
+                    var scale = new ScaleTransform(1d, 0d);
+                    rectCheck.RenderTransformOrigin = new Point(0.5d, 0.5d);
+                    rectCheck.RenderTransform = scale;
+
+                    // 动画：让 ScaleY 从 0 弹性放大到 1
+                    anim.Add(Animations.AaDouble(
+                        i => scale.ScaleY = Math.Max(0d, scale.ScaleY + (double)i),
+                        1d - scale.ScaleY,
+                        300,
+                        ease: new Animations.AniEaseOutBack(Animations.AniEasePower.Weak)
+                    ));
+                }
+
+                anim.Add(Animations.AaColor(this, ForegroundProperty,
+                    Height < 40d ? "ColorBrush3" : "ColorBrush2", 200));
+            }
+            else
+            {
+                // 由有变无
+                if (rectCheck is not null)
+                {
+                    if (rectCheck.RenderTransform is not ScaleTransform)
+                    {
+                        rectCheck.RenderTransformOrigin = new Point(0.5d, 0.5d);
+                        rectCheck.RenderTransform = new ScaleTransform(1d, 1d);
+                    }
+
+                    var scale = (ScaleTransform)rectCheck.RenderTransform;
+
+                    // 动画：让 ScaleY 从当前值缩减到 0
+                    anim.Add(Animations.AaDouble(
+                        i => scale.ScaleY = Math.Max(0d, scale.ScaleY + (double)i),
+                        -scale.ScaleY,
+                        120,
+                        ease: new Animations.AniEaseInFluent(Animations.AniEasePower.Weak)
+                    ));
+                    anim.Add(Animations.AaOpacity(rectCheck, -rectCheck.Opacity, 70, 40));
+                }
+
+                anim.Add(Animations.AaColor(this, ForegroundProperty, "ColorBrush1", 120));
+            }
+
+            Animations.AniStart(anim, "MyListItem Checked " + Uuid);
+        }
+        else
+        {
+            // 不使用动画
+            Animations.AniStop("MyListItem Checked " + Uuid);
+            if (value)
+            {
+                if (rectCheck is not null)
+                {
+                    rectCheck.Height = customHeight; // 应用自定义固定高度
+                    rectCheck.Margin = new Thickness(-1, 0d, 0d, 0d);
+                    rectCheck.Opacity = 1d;
+                    rectCheck.VerticalAlignment = VerticalAlignment.Center; // 居中
+                    rectCheck.RenderTransform = null; // 清除缩放
+                }
+
+                SetResourceReference(ForegroundProperty, Height < 40d ? "ColorBrush3" : "ColorBrush2");
+            }
+            else
+            {
+                if (rectCheck is not null)
+                {
+                    rectCheck.Height = 0d;
+                    rectCheck.Margin = new Thickness(-1, 0d, 0d, 0d);
+                    rectCheck.Opacity = 0d;
+                    rectCheck.VerticalAlignment = VerticalAlignment.Center;
+                    rectCheck.RenderTransform = null;
+                }
+
+                SetResourceReference(ForegroundProperty, "ColorBrush1");
+            }
+        }
+    }
+
+    private void ExecuteCheckCommand()
+    {
+        var command = CheckCommand;
+        if (_isExecutingCheckCommand || command is null || !command.CanExecute(CheckCommandParameter))
+            return;
+        _isExecutingCheckCommand = true;
+        try
+        {
+            command.Execute(CheckCommandParameter);
+        }
+        finally
+        {
+            _isExecutingCheckCommand = false;
         }
     }
 
@@ -1003,6 +1069,24 @@ public partial class MyListItem : IMyRadio
     {
         get => GetValue(CommandParameterProperty);
         set => SetValue(CommandParameterProperty, value);
+    }
+
+    public static readonly DependencyProperty CheckCommandProperty = DependencyProperty.Register(
+        nameof(CheckCommand), typeof(ICommand), typeof(MyListItem), new PropertyMetadata(null));
+
+    public ICommand? CheckCommand
+    {
+        get => (ICommand?)GetValue(CheckCommandProperty);
+        set => SetValue(CheckCommandProperty, value);
+    }
+
+    public static readonly DependencyProperty CheckCommandParameterProperty = DependencyProperty.Register(
+        nameof(CheckCommandParameter), typeof(object), typeof(MyListItem), new PropertyMetadata(null));
+
+    public object? CheckCommandParameter
+    {
+        get => GetValue(CheckCommandParameterProperty);
+        set => SetValue(CheckCommandParameterProperty, value);
     }
 
     // 菜单与按钮绑定

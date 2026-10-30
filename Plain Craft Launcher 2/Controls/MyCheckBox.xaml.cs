@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
 
@@ -23,11 +24,18 @@ public partial class MyCheckBox
 
     // 在使用 XAML 设置 Checked 属性时，不会触发 Checked_Set 方法，所以需要在这里手动触发 UI 改变
     public static readonly DependencyProperty CheckedProperty = DependencyProperty.Register("Checked", typeof(bool?),
-        typeof(MyCheckBox), new PropertyMetadata(false, (d, e) =>
-        {
-            var obj = (MyCheckBox)d;
-            if (!obj.IsLoaded) obj.SyncUI();
-        }));
+        typeof(MyCheckBox), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault,
+            (d, e) =>
+            {
+                var obj = (MyCheckBox)d;
+                if (!obj._isSettingChecked)
+                {
+                    obj._previousState = (bool?)e.OldValue;
+                    obj.SyncUI();
+                }
+
+                if (obj._isUserInteraction) obj.ExecuteCheckCommand();
+            }));
 
     /// <summary>
     ///     是否为三态复选框。
@@ -41,8 +49,17 @@ public partial class MyCheckBox
             if (sender is not null) ((MyCheckBox)sender).LabText.Text = (string)e.NewValue;
         }));
 
+    public static readonly DependencyProperty CheckCommandProperty = DependencyProperty.Register(nameof(CheckCommand),
+        typeof(ICommand), typeof(MyCheckBox), new PropertyMetadata(null));
+
+    public static readonly DependencyProperty CheckCommandParameterProperty = DependencyProperty.Register(
+        nameof(CheckCommandParameter), typeof(object), typeof(MyCheckBox), new PropertyMetadata(null));
+
     private bool? _previousState = false; // 上一次的勾选状态
     private bool allowMouseDown = true;
+    private bool _isSettingChecked;
+    private bool _isUserInteraction;
+    private bool _isExecutingCheckCommand;
 
     // 点击事件
 
@@ -69,6 +86,18 @@ public partial class MyCheckBox
     {
         get => (bool?)GetValue(CheckedProperty);
         set => SetChecked(value, false);
+    }
+
+    public ICommand? CheckCommand
+    {
+        get => (ICommand?)GetValue(CheckCommandProperty);
+        set => SetValue(CheckCommandProperty, value);
+    }
+
+    public object? CheckCommandParameter
+    {
+        get => GetValue(CheckCommandParameterProperty);
+        set => SetValue(CheckCommandParameterProperty, value);
     }
 
     public bool IsThreeState
@@ -123,7 +152,18 @@ public partial class MyCheckBox
             var isChecked = GetFinalState(value, IsThreeState);
 
             _previousState = Checked; // 记录上一次的勾选状态
-            SetValue(CheckedProperty, isChecked);
+            _isUserInteraction = user;
+            try
+            {
+                _isSettingChecked = true;
+                SetValue(CheckedProperty, isChecked);
+            }
+            finally
+            {
+                _isSettingChecked = false;
+                _isUserInteraction = false;
+            }
+
             if (IsLoaded)
                 Change?.Invoke(this, user);
 
@@ -433,6 +473,22 @@ public partial class MyCheckBox
             Animations.AaColor(ShapeBorder, Border.BorderBrushProperty,
                 IsEnabled ? IsMouseOver ? "ColorBrush3" : "ColorBrush1" : "ColorBrushGray4", animationTimeOfCheck),
             "MyCheckBox BorderColor " + Uuid);
+    }
+
+    private void ExecuteCheckCommand()
+    {
+        var command = CheckCommand;
+        if (_isExecutingCheckCommand || command is null || !command.CanExecute(CheckCommandParameter))
+            return;
+        _isExecutingCheckCommand = true;
+        try
+        {
+            command.Execute(CheckCommandParameter);
+        }
+        finally
+        {
+            _isExecutingCheckCommand = false;
+        }
     }
 
     private static bool? GetFinalState(bool? value, bool isThreeState)
