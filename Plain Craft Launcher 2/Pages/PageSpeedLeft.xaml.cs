@@ -1,101 +1,58 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using PCL.Core.App.Localization;
-using PCL.Network;
+using PCL.Core.UI.Threading;
 
 namespace PCL;
 
-public partial class PageSpeedLeft
+public partial class PageSpeedLeft : IPageView
 {
-    private const int WatcherInterval = 300;
+    private const int watcherInterval = 300;
 
-    // 定时器任务
-    private readonly Dictionary<string, MyCard> _rightCards = new();
+    private readonly PageSpeedLeftViewModel _vm = new();
 
-    // 初始化
-    private bool _isLoad;
+    private readonly Dictionary<string, MyCard> rightCards = new();
+
+    private DispatcherTimer? _timer;
 
     public PageSpeedLeft()
     {
         InitializeComponent();
-        Loaded += Page_Loaded;
+        DataContext = _vm;
     }
 
-    private void Page_Loaded(object sender, RoutedEventArgs e)
+    public void OnNavigatedTo(object? parameter)
     {
-        // 进入时就刷新一次显示
-        Watcher();
-
-        // 如果在页面切换动画的 “上一页消失” 部分已经完成了下载，就直接尝试返回
-        TryReturnToHome();
-
-        if (_isLoad)
-            return;
-        _isLoad = true;
-
-        // 监控定时器
-        var timer = new DispatcherTimer { Interval = new TimeSpan(0, 0, 0, 0, WatcherInterval) };
-        timer.Tick += (_, _) => Watcher();
-        timer.Start();
-
-        // 非调试模式隐藏连接数
-        if (!Common.modeDebug)
+        UiDispatcher.Post(() =>
         {
-            RowDefinitions[12].Height = new GridLength(0d);
-            RowDefinitions[13].Height = new GridLength(0d);
-            RowDefinitions[14].Height = new GridLength(0d);
-            RowDefinitions[15].Height = new GridLength(0d);
+            Watcher();
+            TryReturnToHome();
+        });
+        if (_timer is null)
+        {
+            _timer = new DispatcherTimer { Interval = new TimeSpan(0, 0, 0, 0, watcherInterval) };
+            _timer.Tick += (_, _) => Watcher();
+            if (!Common.modeDebug)
+            {
+                RowDefinitions[12].Height = new GridLength(0d);
+                RowDefinitions[13].Height = new GridLength(0d);
+                RowDefinitions[14].Height = new GridLength(0d);
+                RowDefinitions[15].Height = new GridLength(0d);
+            }
         }
+
+        _timer.Start();
     }
+
+    public void OnNavigatedFrom() => _timer?.Stop();
 
     private void Watcher()
     {
         if (Launcher.frmMain.pageCurrent != FormMain.PageType.TaskManager)
             return;
-        try
-        {
-            #region 更新左边栏
-            if (!Loading.loaderTaskbar.Any())
-            {
-                // 无任务
-                LabProgress.Text = Lang.Number(1d, "P0");
-                LabSpeed.Text = Common.GetString(0) + "/s";
-                LabFile.Text = Lang.Number(0, "N0");
-                LabThread.Text = Lang.Number(0, "N0") + " / " +
-                                 Lang.Number(NetFacade.NetTaskConnectionLimit, "N0");
-            }
-            else
-            {
-                // 有任务，输出基本信息
-                var tasks =
-                    Loading.loaderTaskbar.Where(l => l.show).ToList(); // 筛选掉启动 MC 的任务（#6270）
-                var rawPercent = tasks.Any()
-                    ? Common.MathClamp(
-                        tasks.Average(l => l.Progress),
-                        0, 1)
-                    : 1d;
-                var predictText = Lang.Number(rawPercent, "P2");
-                LabProgress.Text = rawPercent > 0.999999d ? Lang.Number(1d, "P0") : predictText;
-                LabSpeed.Text = Common.GetString(NetFacade.NetManager.Speed) + "/s";
-                LabFile.Text = NetFacade.NetManager.FileRemain < 0
-                    ? "0*"
-                    : Lang.Number(NetFacade.NetManager.FileRemain, "N0");
-                LabThread.Text = Lang.Number(NetFacade.NetManager.ConnectionCount, "N0") + " / " +
-                                 Lang.Number(NetFacade.NetTaskConnectionLimit, "N0");
-            }
-        }
-        #endregion
 
-
-        catch (Exception ex)
-        {
-            Common.Log(
-                ex,
-                "任务管理左栏监视出错",
-                Common.LogLevel.Feedback,
-                userSummary: Lang.Text("Speed.Error.OperationFailed"));
-        }
+        _vm.Refresh();
 
         if (Launcher.frmSpeedRight is null || Launcher.frmSpeedRight.PanMain is null)
             return;
@@ -122,10 +79,10 @@ public partial class PageSpeedLeft
         {
             // 获取实际加载器列表
             var loaderList = ((Loading.LoaderCombo)loader).GetLoaderList();
-            if (_rightCards.ContainsKey(loader.name))
+            if (rightCards.ContainsKey(loader.name))
             {
                 // 已有此卡片
-                Grid card = _rightCards[loader.name];
+                Grid card = rightCards[loader.name];
                 var newValue = loader.Progress + (double)loader.State;
                 if (Common.Val(card.Tag) == newValue)
                     return;
@@ -141,9 +98,9 @@ public partial class PageSpeedLeft
                 {
                     switch (loader.State)
                     {
-                            #region 失败，更新卡片
                         case Common.LoadState.Failed:
                         {
+                            #region 失败，更新卡片
 
                             card.RowDefinitions.Clear();
                             card.Children.Clear();
@@ -158,25 +115,25 @@ public partial class PageSpeedLeft
                                 HintService.Hint(Lang.Text("Speed.Error.Copied"), HintType.Success);
                             };
                             card.Children.Add(tb);
-                        #endregion
                             break;
                         }
-                            #region 完成，销毁卡片并返回
 
+                        #endregion
 
                         case Common.LoadState.Finished:
                         {
-                        #endregion
-                            Animations.AniDispose((MyCard)card.Parent, true,
-                                _ => TryReturnToHome());
+                            #region 完成，销毁卡片并返回
+
+                            Animations.AniDispose((MyCard)card.Parent, true, _ => TryReturnToHome());
                             break;
-                            #region 进度不同，更新卡片
                         }
 
+                        #endregion
 
                         case Common.LoadState.Loading:
                         case Common.LoadState.Waiting:
                         {
+                            #region 进度不同，更新卡片
 
                             do
                             {
@@ -249,7 +206,6 @@ public partial class PageSpeedLeft
                                         ex,
                                         $"刷新任务管理卡片 {loader.name} 失败",
                                         Common.LogLevel.Feedback,
-                        #endregion
                                         userSummary: Lang.Text("Speed.Error.OperationFailed"));
                                 }
                             } while (false);
@@ -257,6 +213,7 @@ public partial class PageSpeedLeft
                             break;
                         }
 
+                        #endregion
                     }
                 }
                 catch (Exception ex)
@@ -265,15 +222,14 @@ public partial class PageSpeedLeft
                         ex,
                         $"更新任务管理显示失败（{loader.State}）",
                         Common.LogLevel.Feedback,
-                    #region 没有卡片且未中断或完成，添加新的卡片
                         userSummary: Lang.Text("Speed.Error.OperationFailed"));
                 }
             }
-            else if (!(loader.State == Common.LoadState.Aborted ||
-                       loader.State == Common.LoadState.Finished))
+            else if (!(loader.State == Common.LoadState.Aborted || loader.State == Common.LoadState.Finished))
             {
                 try
                 {
+                    #region 没有卡片且未中断或完成，添加新的卡片
 
                     var cardXAML = $@"
                         <local:MyCard xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"" xmlns:x=""http://schemas.microsoft.com/winfx/2006/xaml"" xmlns:local=""clr-namespace:PCL;assembly=Plain Craft Launcher 2""
@@ -318,8 +274,7 @@ public partial class PageSpeedLeft
                             }
                         }
 
-                        cardXAML +=
-                            $"<TextBlock Text=\"{Common.EscapeXml(SubTask.name)}\" HorizontalAlignment=\"Left\" Grid.Column=\"1\" Grid.Row=\"{row}\"/>";
+                        cardXAML += $"<TextBlock Text=\"{Common.EscapeXml(SubTask.name)}\" HorizontalAlignment=\"Left\" Grid.Column=\"1\" Grid.Row=\"{row}\"/>";
                         row += 1;
                     }
 
@@ -338,7 +293,7 @@ public partial class PageSpeedLeft
                     }
 
                     Launcher.frmSpeedRight.PanMain.Children.Insert(0, card);
-                    _rightCards.Add(loader.name, card);
+                    rightCards.Add(loader.name, card);
                     Common.Log($"[Watcher] 新建任务管理卡片：{loader.name}");
                     // 添加取消按钮
                     var cancel = new MyIconButton
@@ -358,11 +313,10 @@ public partial class PageSpeedLeft
                                 Launcher.frmMain.pageCurrent == FormMain.PageType.TaskManager)
                                 Launcher.frmMain.PageBack();
                         });
-                        _rightCards.Remove(loader.name);
+                        rightCards.Remove(loader.name);
                         Loading.loaderTaskbar.Remove(loader);
                         Common.Log($"[Taskbar] 关闭任务管理卡片：{loader.name}，且移出任务列表");
                         Common.RunInThread(() => loader.Abort());
-                #endregion
                     };
                     // 如果已经失败，再刷新一次，修改成失败的控件
                     if (loader.State == Common.LoadState.Failed)
@@ -372,6 +326,7 @@ public partial class PageSpeedLeft
                     }
                 }
 
+                #endregion
 
                 catch (Exception ex)
                 {
@@ -395,24 +350,23 @@ public partial class PageSpeedLeft
 
     public void TaskRemove(Loading.LoaderBase loader)
     {
-        if (_rightCards.ContainsKey(loader.name))
+        if (rightCards.ContainsKey(loader.name))
             Common.RunInUiWait(() =>
             {
                 // 移除已有的卡片
-                Grid card = _rightCards[loader.name];
+                Grid card = rightCards[loader.name];
                 Launcher.frmSpeedRight.PanMain.Children.Remove(card);
-                _rightCards.Remove(loader.name);
+                rightCards.Remove(loader.name);
                 Common.Log($"[Watcher] 移除任务管理卡片：{loader.name}");
             });
     }
 
     /// <summary>
-    /// 若没有任务，尝试返回主页。
+    ///     若没有任务，尝试返回主页。
     /// </summary>
     private void TryReturnToHome()
     {
         if (Launcher.frmSpeedRight.PanMain.Children.Count == 0 &&
-            Launcher.frmMain.pageCurrent == FormMain.PageType.TaskManager)
-            Launcher.frmMain.PageBack();
+            Launcher.frmMain.pageCurrent == FormMain.PageType.TaskManager) Launcher.frmMain.PageBack();
     }
 }

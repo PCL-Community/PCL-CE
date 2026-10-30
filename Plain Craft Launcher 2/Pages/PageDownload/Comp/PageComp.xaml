@@ -5,7 +5,6 @@
                       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                       xmlns:local="clr-namespace:PCL"
                       mc:Ignorable="d"
-                      DataContext="{Binding RelativeSource={RelativeSource Self}}"
                       VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
     <local:MyScrollViewer.Resources>
         <BooleanToVisibilityConverter x:Key="VisibilityConverter" />
@@ -108,7 +107,7 @@
                                             Margin="3,0,0,0" />
                         <local:MyIconButton x:Name="BtnSearchInstallModPack"
                                             SvgIcon="lucide/download"
-                                            Visibility="Collapsed"
+                                            Visibility="{Binding IsInstallModPackVisible, Converter={StaticResource VisibilityConverter}}"
                                             ToolTip="{DynamicResource Download.Comp.Filter.InstallModpack.ToolTip}"
                                             LogoScale="0.9"
                                             ToolTipService.HorizontalOffset="-55" ToolTipService.VerticalOffset="5" />
@@ -118,21 +117,26 @@
         </StackPanel>
         <StackPanel x:Name="PanContent">
             <local:MyHint x:Name="HintError" HasBorder="True"
-                          Text="{DynamicResource Download.Comp.Hint.ModrinthUnreachable}"
+                          Visibility="{Binding IsErrorVisible, Converter={StaticResource VisibilityConverter}}"
+                          Text="{Binding ErrorMessage}"
                           Theme="Yellow" Margin="0,0,0,15" />
             <local:MyCard x:Name="CardProjects" UseAnimation="False">
                 <StackPanel x:Name="PanProjects" Margin="12" />
             </local:MyCard>
-            <local:MyCard Margin="0,15,0,0" x:Name="CardPages" HorizontalAlignment="Center">
+            <local:MyCard Margin="0,15,0,0" x:Name="CardPages" HorizontalAlignment="Center"
+                          Visibility="{Binding IsPagerVisible, Converter={StaticResource VisibilityConverter}}">
                 <StackPanel Orientation="Horizontal" Height="23" Margin="10,7">
-                    <local:MyIconButton x:Name="BtnPageFirst" IsEnabled="False" Opacity="0.2" Margin="0,0.5,5,0.5"
+                    <local:MyIconButton x:Name="BtnPageFirst" IsEnabled="{Binding CanGoFirst}"
+                                        Opacity="{Binding FirstOpacity}" Margin="0,0.5,5,0.5"
                                         SvgIcon="lucide/chevrons-left" />
-                    <local:MyIconButton x:Name="BtnPageLeft" IsEnabled="False" Opacity="0.2" Margin="0,0,5,0"
+                    <local:MyIconButton x:Name="BtnPageLeft" IsEnabled="{Binding CanGoLeft}"
+                                        Opacity="{Binding LeftOpacity}" Margin="0,0,5,0"
                                         SvgIcon="lucide/chevron-left" />
-                    <TextBlock x:Name="LabPage" Text="1"
+                    <TextBlock x:Name="LabPage" Text="{Binding PageText}"
                                Margin="8,0,13,0" FontSize="15" VerticalAlignment="Center"
                                Foreground="{DynamicResource ColorBrush3}" />
-                    <local:MyIconButton x:Name="BtnPageRight" Margin="0,0,30,0"
+                    <local:MyIconButton x:Name="BtnPageRight" IsEnabled="{Binding CanGoRight}"
+                                        Opacity="{Binding RightOpacity}" Margin="0,0,30,0"
                                         SvgIcon="lucide/chevron-right" />
                 </StackPanel>
             </local:MyCard>

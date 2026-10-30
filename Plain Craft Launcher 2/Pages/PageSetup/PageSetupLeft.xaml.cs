@@ -5,12 +5,21 @@ using PCL.Core.App.Localization;
 
 namespace PCL;
 
-public partial class PageSetupLeft
+public partial class PageSetupLeft : IPageView
 {
-    private bool _isLoad;
-    private bool _isPageSwitched; // 如果在 Loaded 前切换到其他页面，会导致触发 Loaded 时再次切换一次
+    private readonly PageSetupLeftViewModel _vm = new();
+    private bool isLoad;
+    private bool isPageSwitched; // 如果在 Loaded 前切换到其他页面，会导致触发 Loaded 时再次切换一次
 
-    private void PageSetupLeft_Loaded(object sender, RoutedEventArgs e)
+    private void PageSetupLeft_Loaded(object sender, RoutedEventArgs e) => RefreshNavigation();
+
+    public void OnNavigatedTo(object? parameter) => RefreshNavigation();
+
+    public void OnNavigatedFrom()
+    {
+    }
+
+    private void RefreshNavigation()
     {
         // 是否处于隐藏的子页面
         var isHiddenPage = false;
@@ -30,13 +39,13 @@ public partial class PageSetupLeft
         if (PageSetupUI.HiddenForceShow)
             isHiddenPage = false;
         // 若页面错误，或尚未加载，则继续
-        if (_isLoad && !isHiddenPage)
+        if (isLoad && !isHiddenPage)
             return;
-        _isLoad = true;
+        isLoad = true;
         // 刷新子页面隐藏情况
         PageSetupUI.HiddenRefresh();
         // 选择第一个未被禁用的子页面
-        if (_isPageSwitched)
+        if (isPageSwitched)
             return;
         var hideCfg = Config.Preference.Hide;
         if (!hideCfg.SetupLaunch)
@@ -67,96 +76,85 @@ public partial class PageSetupLeft
 
     private void PageOtherLeft_Unloaded(object sender, RoutedEventArgs e)
     {
-        _isPageSwitched = false;
+        isPageSwitched = false;
     }
 
-    public void Reset(object sender, EventArgs e)
+    public async void Reset(object sender, EventArgs e)
     {
-        switch (Common.Val(((MyIconButton)sender).Tag))
+        var ctl = sender as Control;
+        if (ctl is not null)
+            ctl.IsEnabled = false;
+        var aniHeld = false;
+        try
         {
-            case (double)FormMain.PageSubType.SetupLaunch:
+            var id = (FormMain.PageSubType)Common.Val(((MyIconButton)sender).Tag);
+            if (!await _vm.ConfirmResetAsync(id))
+                return;
+            Animations.AniBeginControl();
+            aniHeld = true;
+            switch (id)
             {
-                if (Launcher.MyMsgBox(Lang.Text("Setup.Left.Reset.Launch.Message"),
-                        Lang.Text("Setup.Left.Reset.Title"),
-                        button2: Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
+                case FormMain.PageSubType.SetupLaunch:
                 {
                     if (Launcher.frmSetupLaunch is null)
                         Launcher.frmSetupLaunch = new PageSetupLaunch();
                     Launcher.frmSetupLaunch.Reset();
                     ItemLaunch.Checked = true;
+                    break;
                 }
-
-                break;
-            }
-            case (double)FormMain.PageSubType.SetupUI:
-            {
-                if (Launcher.MyMsgBox(Lang.Text("Setup.Left.Reset.Ui.Message"),
-                        Lang.Text("Setup.Left.Reset.Title"), button2: Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
+                case FormMain.PageSubType.SetupUI:
                 {
                     if (Launcher.frmSetupUi is null)
                         Launcher.frmSetupUi = new PageSetupUI();
                     Launcher.frmSetupUi.Reset();
                     ItemUI.Checked = true;
+                    break;
                 }
-
-                break;
-            }
-            case (double)FormMain.PageSubType.SetupGameManage:
-            {
-                if (Launcher.MyMsgBox(Lang.Text("Setup.Left.Reset.GameManage.Message"),
-                        Lang.Text("Setup.Left.Reset.Title"),
-                        button2: Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
+                case FormMain.PageSubType.SetupGameManage:
                 {
                     if (Launcher.frmSetupGameManage is null)
                         Launcher.frmSetupGameManage = new PageSetupGameManage();
                     Launcher.frmSetupGameManage.Reset();
                     ItemGameManage.Checked = true;
+                    break;
                 }
-
-                break;
-            }
-            case (double)FormMain.PageSubType.SetupGameLink:
-            {
-                if (Launcher.MyMsgBox(Lang.Text("Setup.Left.Reset.GameLink.Message"),
-                        Lang.Text("Setup.Left.Reset.Title"),
-                        button2: Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
+                case FormMain.PageSubType.SetupGameLink:
                 {
                     if (Launcher.frmSetupGameLink is null)
                         Launcher.frmSetupGameLink = new PageSetupGameLink();
                     Launcher.frmSetupGameLink.Reset();
                     ItemGameLink.Checked = true;
+                    break;
                 }
-
-                break;
-            }
-            case (double)FormMain.PageSubType.SetupLauncherLanguage:
-            {
-                if (Launcher.MyMsgBox(Lang.Text("Setup.Left.Reset.Language.Message"),
-                        Lang.Text("Setup.Left.Reset.Title"),
-                        button2: Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
+                case FormMain.PageSubType.SetupLauncherLanguage:
                 {
                     if (Launcher.frmSetupLauncherLanguage is null)
                         Launcher.frmSetupLauncherLanguage = new PageSetupLauncherLanguage();
                     Launcher.frmSetupLauncherLanguage.Reset();
                     ItemLauncherLanguage.Checked = true;
+                    break;
                 }
-
-                break;
-            }
-            case (double)FormMain.PageSubType.SetupLauncherMisc:
-            {
-                if (Launcher.MyMsgBox(Lang.Text("Setup.Left.Reset.Misc.Message"),
-                        Lang.Text("Setup.Left.Reset.Title"),
-                        button2: Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
+                case FormMain.PageSubType.SetupLauncherMisc:
                 {
                     if (Launcher.frmSetupLauncherMisc is null)
                         Launcher.frmSetupLauncherMisc = new PageSetupLauncherMisc();
                     Launcher.frmSetupLauncherMisc.Reset();
                     ItemLauncherMisc.Checked = true;
+                    break;
                 }
-
-                break;
             }
+        }
+        catch (Exception ex)
+        {
+            Common.Log(ex, "重置设置子页面失败", Common.LogLevel.Feedback,
+                userSummary: Lang.Text("Setup.Error.OperationFailed"));
+        }
+        finally
+        {
+            if (aniHeld)
+                Animations.AniEndControl();
+            if (ctl is not null)
+                ctl.IsEnabled = true;
         }
     }
 
@@ -166,8 +164,7 @@ public partial class PageSetupLeft
         {
             if (!Common.CanFeedback(true))
                 return;
-            switch (Launcher.MyMsgBox(Lang.Text("Setup.Left.Feedback.Message"),
-                        Lang.Text("Setup.Left.Feedback.Title"),
+            switch (Launcher.MyMsgBox(Lang.Text("Setup.Left.Feedback.Message"), Lang.Text("Setup.Left.Feedback.Title"),
                         Lang.Text("Setup.Left.Feedback.SubmitNew"), Lang.Text("Setup.Left.Feedback.ViewList"), Lang.Text("Common.Action.Cancel")))
             {
                 case 1:
@@ -190,15 +187,13 @@ public partial class PageSetupLeft
         {
             case (double)FormMain.PageSubType.SetupFeedback:
             {
-                if (Launcher.frmSetupFeedback is not null)
-                    Launcher.frmSetupFeedback.Loader.Start(isForceRestart: true);
+                if (Launcher.frmSetupFeedback is not null) Launcher.frmSetupFeedback.Loader.Start(isForceRestart: true);
                 ItemFeedback.Checked = true;
                 break;
             }
             case (double)FormMain.PageSubType.SetupJava:
             {
-                if (Launcher.frmSetupJava is not null)
-                    Launcher.frmSetupJava.loader.Start(isForceRestart: true);
+                if (Launcher.frmSetupJava is not null) Launcher.frmSetupJava.loader.Start(isForceRestart: true);
                 ItemJava.Checked = true;
                 break;
             }
@@ -210,46 +205,24 @@ public partial class PageSetupLeft
     #region 页面切换
 
     /// <summary>
-    ///     当前页面的编号。从左往右从 0 开始计算。
+    /// 当前页面的编号。从左往右从 0 开始计算。
     /// </summary>
-    public FormMain.PageSubType PageId;
+    public FormMain.PageSubType pageID
+    {
+        get => _vm.PageID;
+        set => _vm.PageID = value;
+    }
 
     public PageSetupLeft()
     {
         InitializeComponent();
-        // 选择第一个未被禁用的子页面
-        var hideCfg = Config.Preference.Hide;
-        if (!hideCfg.SetupLaunch)
-            PageId = FormMain.PageSubType.SetupLaunch;
-        else if (!hideCfg.SetupJava)
-            PageId = FormMain.PageSubType.SetupJava;
-        else if (!hideCfg.SetupGameManage)
-            PageId = FormMain.PageSubType.SetupGameManage;
-        else if (!hideCfg.SetupGameLink)
-            PageId = FormMain.PageSubType.SetupGameLink;
-        else if (!hideCfg.SetupUi)
-            PageId = FormMain.PageSubType.SetupUI;
-        else if (!hideCfg.SetupLauncherLanguage)
-            PageId = FormMain.PageSubType.SetupLauncherLanguage;
-        else if (!hideCfg.SetupLauncherMisc)
-            PageId = FormMain.PageSubType.SetupLauncherMisc;
-        else if (!hideCfg.SetupAbout)
-            PageId = FormMain.PageSubType.SetupAbout;
-        else if (!hideCfg.SetupUpdate)
-            PageId = FormMain.PageSubType.SetupUpdate;
-        else if (!hideCfg.SetupFeedback)
-            PageId = FormMain.PageSubType.SetupFeedback;
-        else if (!hideCfg.SetupLog)
-            PageId = FormMain.PageSubType.SetupLog;
-        else
-            PageId = FormMain.PageSubType.SetupLaunch;
         AnimatedControl = PanItem;
         Loaded += PageSetupLeft_Loaded;
         Unloaded += PageOtherLeft_Unloaded;
     }
 
     /// <summary>
-    ///     勾选事件改变页面。
+    /// 勾选事件改变页面。
     /// </summary>
     private void PageCheck(object senderRaw, Common.RouteEventArgs e)
     {
@@ -261,11 +234,11 @@ public partial class PageSetupLeft
     }
 
     /// <summary>
-    ///     获取当前导航指定的右页面。
+    /// 获取当前导航指定的右页面。
     /// </summary>
     public object PageGet(FormMain.PageSubType? id = null)
     {
-        var targetID = id ?? PageId;
+        var targetID = id ?? pageID;
         switch (id)
         {
             case FormMain.PageSubType.SetupLaunch:
@@ -343,18 +316,18 @@ public partial class PageSetupLeft
     }
 
     /// <summary>
-    ///     切换现有页面。
+    /// 切换现有页面。
     /// </summary>
     public void PageChange(FormMain.PageSubType id)
     {
-        if (PageId == id)
+        if (pageID == id)
             return;
         Animations.AniBeginControl();
-        _isPageSwitched = true;
+        isPageSwitched = true;
         try
         {
             PageChangeRun((MyPageRight)PageGet(id));
-            PageId = id;
+            pageID = id;
         }
         catch (Exception ex)
         {

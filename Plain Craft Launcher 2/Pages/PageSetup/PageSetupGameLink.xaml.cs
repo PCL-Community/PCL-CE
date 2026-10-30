@@ -1,167 +1,84 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using PCL.Core.App;
-using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
-using PCL.Core.Link.Scaffolding.EasyTier;
 
 namespace PCL;
 
-public partial class PageSetupGameLink
+public partial class PageSetupGameLink : IPageView
 {
-    private bool isFirstLoad = true;
-
-    private new bool isLoaded;
+    private readonly PageSetupGameLinkViewModel _vm = new();
+    private bool _refreshed;
 
     public PageSetupGameLink()
     {
         InitializeComponent();
-        TextUdpNatType.Text = Lang.Text("Setup.GameLink.NetworkTest.UdpNatType", Lang.Text("Setup.GameLink.NetworkTest.NotTested"));
-        TextTcpNatType.Text = Lang.Text("Setup.GameLink.NetworkTest.TcpNatType", Lang.Text("Setup.GameLink.NetworkTest.NotTested"));
-        TextIpv6Status.Text = Lang.Text("Setup.GameLink.NetworkTest.Ipv6Status", Lang.Text("Setup.GameLink.NetworkTest.NotTested"));
+        DataContext = _vm;
         Loaded += PageSetupLink_Loaded;
-        Loaded += (_, _) => Reload();
+        Unloaded += PageSetupLink_Unloaded;
     }
 
-    private void PageSetupLink_Loaded(object sender, RoutedEventArgs e)
+    public PageSetupGameLinkViewModel ViewModel => _vm;
+
+    public void OnNavigatedTo(object? parameter) => Refresh();
+
+    public void OnNavigatedFrom()
     {
-        // 重复加载部分
+    }
+
+    private void PageSetupLink_Loaded(object sender, RoutedEventArgs e) => Refresh();
+
+    private void PageSetupLink_Unloaded(object sender, RoutedEventArgs e) => _refreshed = false;
+
+    private void Refresh()
+    {
         PanBack.ScrollToHome();
-
-        // 非重复加载部分
-        if (isLoaded)
+        if (_refreshed)
             return;
-        isLoaded = true;
-
+        _refreshed = true;
         Animations.AniBeginControl();
         Reload();
         Animations.AniEndControl();
     }
 
-    public void Reload()
-    {
-        TextLinkUsername.Text = Config.Link.Username;
-        // TextLinkRelay.Text = Config.Link.RelayServer
-        // ComboRelayType.SelectedIndex = Config.Link.RelayType
-        // ComboServerType.SelectedIndex = Config.Link.ServerType
-        CheckLatencyFirstMode.Checked = Config.Link.UseLatencyFirstMode;
-        ComboPreferProtocol.SelectedIndex = (int)Config.Link.ProtocolPreference;
-        CheckTryPunchSym.Checked = Config.Link.TryPunchSym;
-        CheckEnableIPv6.Checked = Config.Link.EnableIPv6;
-        CheckEnableCliOutput.Checked = Config.Link.EnableCliOutput;
+    public void Reload() => _vm.Reload();
 
-        // TextRelays.Text = "正在获取信息..."
-        // Do While Not (PageLinkLobby.LobbyAnnouncementLoader.State = LoadState.Finished OrElse PageLinkLobby.LobbyAnnouncementLoader.State = LoadState.Failed)
-        // Thread.Sleep(500)
-        // Loop
-        // If ETRelay.RelayList.Count > 0 Then
-        // TextRelays.Text = ""
-        // For Each Relay In ETRelay.RelayList
-        // Select Case Relay.Type
-        // Case ETRelayType.Community
-        // TextRelays.Text += "[社区] "
-        // Case ETRelayType.Selfhosted
-        // TextRelays.Text += "[自有] "
-        // Case Else 'ETRelayType.Custom
-        // TextRelays.Text += "[自定义] "
-        // End Select
-        // TextRelays.Text += Relay.Name & "，"
-        // Next
-        // TextRelays.Text = TextRelays.Text.BeforeLast("，")
-        // Else
-        // TextRelays.Text = "暂无，你可能需要手动添加中继服务器"
-        // End If
-    }
+    public void Reset() => _vm.Reset();
 
-    // 初始化
-    public void Reset()
-    {
-        try
-        {
-            Config.Link.Reset();
-            Common.Log("[Setup] 已初始化联机页设置");
-            HintService.Hint(Lang.Text("Setup.GameLink.Initialized"), HintType.Success, false);
-            Reload();
-        }
-        catch (Exception ex)
-        {
-            Common.Log(
-                ex,
-                Lang.Text("Setup.GameLink.Error.InitFailed"),
-                Common.LogLevel.Msgbox,
-                userSummary: Lang.Text("Setup.GameLink.Error.InitFailed"));
-        }
-
-        Reload();
-    }
-
-    // 将控件改变路由到设置改变
     private void TextBoxChange(object senderRaw, TextChangedEventArgs e)
     {
         var sender = (MyTextBox)senderRaw;
         if (!Animations.AniExitsAnyControl())
-            SetByTag(sender.Tag?.ToString(), sender.Text);
+            _vm.SetConfigByTag(sender.Tag?.ToString(), sender.Text);
     }
 
-    private static void ComboBoxChange(MyComboBox sender, object e)
+    private void ComboBoxChange(MyComboBox sender, object e)
     {
-        if (!Animations.AniExitsAnyControl())
-            SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
+        if (Animations.AniExitsAnyControl() || sender.SelectedIndex < 0)
+            return;
+        _vm.SetConfigByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
     private void CheckBoxChange(object senderRaw, bool user)
     {
         var sender = (MyCheckBox)senderRaw;
         if (!Animations.AniExitsAnyControl())
-            SetByTag(sender.Tag?.ToString(), sender.Checked);
+            _vm.SetConfigByTag(sender.Tag?.ToString(), sender.Checked);
     }
-
-    private static void SetByTag(string tag, object value)
-        => ConfigService.TrySetValue(tag, value);
 
     private void LinkProtocolPerferenceChange(object sender, SelectionChangedEventArgs e)
     {
-        if (!Animations.AniExitsAnyControl())
-            try
-            {
-                var selection = (LinkProtocolPreference)((MyComboBox)sender).SelectedIndex;
-                Config.Link.ProtocolPreference = selection;
-            }
-            catch (Exception ex)
-            {
-                Common.Log(
-                    ex,
-                    Lang.Text("Setup.GameLink.Error.ConfigChangeFailed"),
-                    Common.LogLevel.Hint,
-                    userSummary: Lang.Text("Setup.GameLink.Error.ConfigChangeFailed"));
-            }
+        var index = ((MyComboBox)sender).SelectedIndex;
+        if (Animations.AniExitsAnyControl() || index < 0)
+            return;
+        _vm.SetProtocolPreference(index);
     }
 
-    // 网络测试
-    private void BtnNetTest_Click(object sender, MouseButtonEventArgs e)
+    private async void BtnNetTest_Click(object sender, MouseButtonEventArgs e)
     {
         try
         {
-            BtnNetTest.IsEnabled = false;
-            BtnNetTest.Text = Lang.Text("Setup.GameLink.NetworkTest.Testing");
-            Common.RunInNewThread(() =>
-            {
-                var status = CliNetTest.GetNetStatusAsync().GetAwaiter().GetResult();
-                Common.RunInUi(() =>
-                {
-                    TextUdpNatType.Text =
-                        Lang.Text("Setup.GameLink.NetworkTest.UdpNatType", CliNetTest.GetNatTypeString(status.UdpNatType));
-                    TextTcpNatType.Text =
-                        Lang.Text("Setup.GameLink.NetworkTest.TcpNatType", CliNetTest.GetNatTypeString(status.TcpNatType));
-                    TextIpv6Status.Text = Lang.Text("Setup.GameLink.NetworkTest.Ipv6Status",
-                        status.SupportIPv6
-                            ? Lang.Text("Setup.GameLink.NetworkTest.Supported")
-                            : Lang.Text("Setup.GameLink.NetworkTest.Unsupported"));
-                    BtnNetTest.IsEnabled = true;
-                    BtnNetTest.Text = Lang.Text("Setup.GameLink.NetworkTest.Start");
-                });
-            });
+            await _vm.RunNetworkTestAsync();
         }
         catch (Exception ex)
         {
@@ -169,8 +86,6 @@ public partial class PageSetupGameLink
                 "[Link] 获取网络测试结果失败",
                 Common.LogLevel.Hint,
                 userSummary: Lang.Text("Setup.GameLink.Error.NetworkTestFailed"));
-            BtnNetTest.IsEnabled = true;
-            BtnNetTest.Text = Lang.Text("Setup.GameLink.NetworkTest.Start");
         }
     }
 }

@@ -26,7 +26,8 @@
                 <local:MySearchBox Margin="0,0,0,15" x:Name="SearchBox"
                                    HintText="{DynamicResource Instance.Resource.Mod.JarInJar.Search.Hint}" />
 
-                <local:MyCard x:Name="CardWarnings" Margin="0,0,0,15">
+                <local:MyCard x:Name="CardWarnings" Margin="0,0,0,15"
+                              Visibility="{Binding CardWarningsVisibility}">
                     <StackPanel Margin="15,10,15,12">
                         <TextBlock Text="{DynamicResource Instance.Resource.Mod.JarInJar.Section.Warnings}"
                                    FontSize="16" FontWeight="Bold" Foreground="{DynamicResource ColorBrush3}" />
@@ -34,7 +35,8 @@
                     </StackPanel>
                 </local:MyCard>
 
-                <local:MyCard x:Name="CardConflicts" Margin="0,0,0,15">
+                <local:MyCard x:Name="CardConflicts" Margin="0,0,0,15"
+                              Visibility="{Binding CardConflictsVisibility}">
                     <StackPanel Margin="15,10,15,12">
                         <TextBlock Text="{DynamicResource Instance.Resource.Mod.JarInJar.Section.Conflicts}"
                                    ToolTip="{DynamicResource Instance.Resource.Mod.JarInJar.Conflict.Tooltip}"
@@ -43,14 +45,14 @@
                     </StackPanel>
                 </local:MyCard>
 
-                <StackPanel x:Name="SectionRelations">
+                <StackPanel x:Name="SectionRelations" Visibility="{Binding SectionRelationsVisibility}">
                     <TextBlock Text="{DynamicResource Instance.Resource.Mod.JarInJar.Section.Relations}"
                                FontSize="16" FontWeight="Bold" Foreground="{DynamicResource ColorBrush3}"
                                Margin="2,0,0,8" />
                     <StackPanel x:Name="PanRelationList" />
                 </StackPanel>
 
-                <StackPanel x:Name="SectionBundled">
+                <StackPanel x:Name="SectionBundled" Visibility="{Binding SectionBundledVisibility}">
                     <TextBlock Text="{DynamicResource Instance.Resource.Mod.JarInJar.Section.Bundled}"
                                FontSize="16" FontWeight="Bold" Foreground="{DynamicResource ColorBrush3}"
                                Margin="2,4,0,8" />
@@ -59,7 +61,7 @@
             </StackPanel>
         </local:MyScrollViewer>
         <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" Margin="40" x:Name="PanEmpty"
-                      Visibility="Collapsed">
+                      Visibility="{Binding PanEmptyVisibility}">
             <StackPanel Margin="20,17">
                 <TextBlock Margin="0,0,0,9" HorizontalAlignment="Center"
                            Text="{DynamicResource Instance.Resource.Mod.JarInJar.Empty.Title}" FontSize="19"
@@ -74,7 +76,7 @@
             </StackPanel>
         </local:MyCard>
         <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" Margin="40,0" SnapsToDevicePixels="True"
-                      x:Name="PanLoad" UseAnimation="False">
+                      x:Name="PanLoad" UseAnimation="False" Visibility="{Binding PanLoadVisibility}">
             <local:MyLoading Text="{DynamicResource Instance.Resource.Loading}" Margin="20,20,20,17" x:Name="Load"
                              HorizontalAlignment="Center" VerticalAlignment="Center" />
         </local:MyCard>

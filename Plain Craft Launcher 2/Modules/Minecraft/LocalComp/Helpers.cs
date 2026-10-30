@@ -11,7 +11,7 @@ public static partial class LocalComp
     public static List<CompLoaderType> GetCurrentVersionModLoader()
     {
         var modLoaders = new List<CompLoaderType>();
-        var instance = PageInstanceLeft.mcInstance;
+        var instance = PageInstanceLeft.McInstance;
         if (instance is null)
             return modLoaders;
 

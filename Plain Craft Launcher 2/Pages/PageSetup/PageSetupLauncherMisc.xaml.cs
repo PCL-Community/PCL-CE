@@ -7,23 +7,37 @@ using System.Windows.Input;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Essentials;
-using PCL.Core.App.Localization;
+using PCL.Core.App.IoC;
 using PCL.Core.UI;
+using PCL.Core.App.Localization;
 using PCL.Core.Utils.OS;
 
 namespace PCL;
 
-public partial class PageSetupLauncherMisc
+public partial class PageSetupLauncherMisc : IPageView
 {
-    private bool _isFirstLoad = true;
+    private readonly PageSetupLauncherMiscViewModel _vm = new();
+    private bool isFirstLoad = true;
 
-    private new bool _isLoaded;
+    private new bool isLoaded;
+
+    private bool _refreshed;
 
     public PageSetupLauncherMisc()
     {
         InitializeComponent();
+        DataContext = _vm;
         Loaded += PageSetupLink_Loaded;
-        Loaded += (_, _) => Reload();
+        Loaded += (_, _) => Refresh();
+        Unloaded += PageSetupLauncherMisc_Unloaded;
+    }
+
+    public PageSetupLauncherMiscViewModel ViewModel => _vm;
+
+    public void OnNavigatedTo(object? parameter) => Refresh();
+
+    public void OnNavigatedFrom()
+    {
     }
 
     private void PageSetupLink_Loaded(object sender, RoutedEventArgs e)
@@ -32,20 +46,30 @@ public partial class PageSetupLauncherMisc
         PanBack.ScrollToHome();
 
         // 非重复加载部分
-        if (_isLoaded)
+        if (isLoaded)
             return;
-        _isLoaded = true;
+        isLoaded = true;
 
         Animations.AniBeginControl();
         SliderLoad();
-        Reload();
+        Refresh();
         Animations.AniEndControl();
+    }
+
+    private void PageSetupLauncherMisc_Unloaded(object sender, RoutedEventArgs e) => _refreshed = false;
+
+    private void Refresh()
+    {
+        if (_refreshed)
+            return;
+        _refreshed = true;
+        Reload();
     }
 
     public void Reload()
     {
         // 系统设置
-        ComboSystemActivity.SelectedIndex = States.System.AnnounceSolution;
+        _vm.Reload();
         CheckSystemDisableHardwareAcceleration.Checked = Config.System.DisableHardwareAcceleration;
         SliderAniFPS.Value = Config.System.AnimationFpsLimit;
         SliderMaxLog.Value = Config.System.MaxGameLog;
@@ -53,15 +77,11 @@ public partial class PageSetupLauncherMisc
         if (TelemetryService.IsBuildUntrusted)
         {
             CheckSystemTelemetry.Checked = false;
-            CheckSystemTelemetry.IsEnabled = false;
             CheckSystemTelemetry.ToolTip = Lang.Text("Setup.Misc.System.Telemetry.Unavailable");
             ToolTipService.SetShowOnDisabled(CheckSystemTelemetry, true);
         }
 
         // 网络
-        TextSystemHttpProxy.Text = Config.Network.HttpProxy.CustomAddress;
-        TextSystemHttpProxyCustomUsername.Text = Config.Network.HttpProxy.CustomUsername;
-        TextSystemHttpProxyCustomPassword.Text = Config.Network.HttpProxy.CustomPassword;
         ((MyRadioBox)FindName($"RadioHttpProxyType{Config.Network.HttpProxy.Type}")).SetChecked(true, false);
         CheckNetDohEnable.Checked = Config.Network.EnableDoH;
 
@@ -100,8 +120,9 @@ public partial class PageSetupLauncherMisc
     private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
-        if (!Animations.AniExitsAnyControl())
-            SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
+        if (Animations.AniExitsAnyControl() || sender.SelectedIndex < 0)
+            return;
+        SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
     private void RadioBoxChange(object senderRaw, Common.RouteEventArgs e)
@@ -213,9 +234,7 @@ public partial class PageSetupLauncherMisc
     private void BtnSystemSettingExp_Click(object sender, MouseButtonEventArgs e)
     {
         var savePath =
-            SystemDialogs.SelectSaveFile(Lang.Text("Setup.Misc.System.ExportSettings.SaveTitle"),
-                "PCL 全局配置.json", Lang.Text("Setup.Misc.System.ExportSettings.Filter"),
-                Common.ExePath);
+            SystemDialogs.SelectSaveFile(Lang.Text("Setup.Misc.System.ExportSettings.SaveTitle"), "PCL 全局配置.json", Lang.Text("Setup.Misc.System.ExportSettings.Filter"), Common.ExePath);
         if (string.IsNullOrWhiteSpace(savePath))
             return;
         File.Copy(ConfigService.SharedConfigPath, savePath, true);
@@ -229,9 +248,7 @@ public partial class PageSetupLauncherMisc
         if (string.IsNullOrWhiteSpace(sourcePath))
             return;
         File.Copy(sourcePath, ConfigService.SharedConfigPath, true);
-        Launcher.MyMsgBox(Lang.Text("Setup.Misc.System.ImportSettings.Success.Message"),
-            button1: Lang.Text("Setup.Misc.System.ImportSettings.Success.Restart"),
-            forceWait: true);
+        Launcher.MyMsgBox(Lang.Text("Setup.Misc.System.ImportSettings.Success.Message"), button1: Lang.Text("Setup.Misc.System.ImportSettings.Success.Restart"), forceWait: true);
         Process.Start(new ProcessStartInfo(Basics.ExecutablePath));
         FormMain.EndProgramForce();
     }
@@ -240,27 +257,31 @@ public partial class PageSetupLauncherMisc
 
     #region 停止使用 PCL CE
 
-    private void BtnSystemStopUsingPclCe_Click(object sender, MouseButtonEventArgs e)
+    private async void BtnSystemStopUsingPclCe_Click(object sender, MouseButtonEventArgs e)
     {
-        var result = Launcher.MyMsgBox(
-            Lang.Text("Setup.Misc.System.StopUsingPclCe.Message"),
-            Lang.Text("Setup.Misc.System.StopUsingPclCe.Title"),
-            Lang.Text("Common.Action.Continue"),
-            Lang.Text("Setup.Misc.System.StopUsingPclCe.ContinueAndRemove"),
-            Lang.Text("Common.Action.Cancel"),
-            isWarn: true);
-
-        if (result < 3)
+        try
         {
-            if (Launcher.MyMsgBox(
+            var result = await Launcher.MyMsgBoxAsync(
+                Lang.Text("Setup.Misc.System.StopUsingPclCe.Message"),
+                Lang.Text("Setup.Misc.System.StopUsingPclCe.Title"),
+                Lang.Text("Common.Action.Continue"),
+                Lang.Text("Setup.Misc.System.StopUsingPclCe.ContinueAndRemove"),
+                Lang.Text("Common.Action.Cancel"),
+                isWarn: true);
+
+            if (result >= 3) return;
+            if (await Launcher.MyMsgBoxAsync(
                     Lang.Text("Setup.Misc.System.StopUsingPclCe.Message.Final"),
                     Lang.Text("Common.Dialog.Warning"),
                     Lang.Text("Common.Action.Continue"),
                     Lang.Text("Common.Action.Cancel"),
                     isWarn: true) == 1)
-            {
                 StopUsingPClCeCore(result == 2);
-            }
+        }
+        catch (Exception ex)
+        {
+            Common.Log(ex, "停止使用 PCL CE 失败", Common.LogLevel.Msgbox,
+                userSummary: Lang.Text("Setup.Error.OperationFailed"));
         }
     }
 
@@ -276,14 +297,14 @@ public partial class PageSetupLauncherMisc
 
                 var versionsPath = Path.Combine(realPath, "versions");
                 if (!Directory.Exists(versionsPath)) continue;
-                
+
                 Delete(
                     Directory.EnumerateDirectories(versionsPath)
                         .Select(p => Path.Combine(p, "PCL", "config.v1.yml"))
                 );
             }
         }
-        
+
         // 由于 CE 文件夹正在使用，使用延迟调用 CMD 的方法删除
         List<string> foldersToDelete =
         [
@@ -300,7 +321,7 @@ public partial class PageSetupLauncherMisc
         {
             sb.Append($"rmdir /s /q \"{folder}\" & ");
         }
-        
+
         Process.Start(new ProcessStartInfo
         {
             FileName = "cmd.exe",
@@ -312,7 +333,7 @@ public partial class PageSetupLauncherMisc
 
         // 强制退出
         KernelInterop.ExitProcess();
-            
+
         void Delete(IEnumerable<string> paths)
         {
             foreach (var path in paths)

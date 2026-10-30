@@ -1,9 +1,9 @@
 ﻿using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using PCL.Core.App;
-using PCL.Core.App.Localization;
 using PCL.Core.Link;
 using PCL.Core.Link.EasyTier;
 using PCL.Core.Link.Lobby;
@@ -12,30 +12,51 @@ using PCL.Core.Link.Natayark;
 using PCL.Core.Link.Scaffolding.Client.Models;
 using PCL.Core.Link.Scaffolding.EasyTier;
 using PCL.Core.Logging;
-using PCL.Core.Utils;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
+using PCL.Core.App.Localization;
+using PCL.Core.Utils;
 
 namespace PCL;
 
-public partial class PageToolsGameLink
+public partial class PageToolsGameLink : IPageView
 {
+    private readonly PageToolsGameLinkViewModel _vm = new();
+
+    private bool _refreshed;
+
     static PageToolsGameLink()
     {
-        InitLoader = new Loading.LoaderCombo<int>(Lang.Text("Link.Mod.Task.InitLobby"),
-            new[]
-            {
-                new Loading.LoaderTask<int, int>(Lang.Text("Common.Action.Initialize"), InitTask)
-                    { ProgressWeight = 0.5d }
-            });
+        initLoader = new Loading.LoaderCombo<int>(Lang.Text("Link.Mod.Task.InitLobby"),
+            new[] { new Loading.LoaderTask<int, int>(Lang.Text("Common.Action.Initialize"), InitTask) { ProgressWeight = 0.5d } });
     }
 
     public PageToolsGameLink()
     {
         InitializeComponent();
+        DataContext = _vm;
         LoaderInit();
-        Loaded += (_, _) => Reload();
+        Loaded += (_, _) => RefreshOnNavigate();
+        Unloaded += (_, _) => _refreshed = false;
         PageEnter += PageLinkLobby_OnPageEnter;
+    }
+
+    public PageToolsGameLinkViewModel ViewModel => _vm;
+
+    public void OnNavigatedTo(object? parameter)
+    {
+        RefreshOnNavigate();
+    }
+
+    public void OnNavigatedFrom()
+    {
+    }
+
+    private void RefreshOnNavigate()
+    {
+        if (_refreshed) return;
+        _refreshed = true;
+        Reload();
     }
 
     #region 初始化
@@ -43,9 +64,9 @@ public partial class PageToolsGameLink
     // 加载器初始化
     private void LoaderInit()
     {
-        PageLoaderInit(Load, PanLoad, PanContent, null, InitLoader, autoRun: false);
+        PageLoaderInit(Load, PanLoad, PanContent, null, initLoader, autoRun: false);
         // 注册自定义的 OnStateChanged
-        InitLoader.OnStateChangedUi += OnLoadStateChanged;
+        initLoader.OnStateChangedUi += OnLoadStateChanged;
 
         LobbyService.OnNeedDownloadEasyTier += () => GameLink.DownloadEasyTier();
         LobbyService.DiscoveredWorlds.CollectionChanged += OnDiscoveredWorldsChanged;
@@ -59,18 +80,14 @@ public partial class PageToolsGameLink
         if (lobbyAnnouncementLoader is null)
         {
             var loaders = new List<Loading.LoaderBase>();
-            loaders.Add(new Loading.LoaderTask<int, int>(Lang.Text("Link.Mod.Task.InitLobbyUi"),
-                _ => Common.RunInUi(() =>
+            loaders.Add(new Loading.LoaderTask<int, int>(Lang.Text("Link.Mod.Task.InitLobbyUi"), _ => Common.RunInUi(() =>
             {
-                HintAnnounce.Visibility = Visibility.Visible;
+                _vm.HintAnnounceVisibility = Visibility.Visible;
                 HintAnnounce.Theme = MyHint.Themes.Blue;
-                HintAnnounce.Text = Lang.Text("Tools.GameLink.Loading.ConnectingServer");
+                _vm.HintAnnounceText = Lang.Text("Tools.GameLink.Loading.ConnectingServer");
             })));
-            loaders.Add(
-                new Loading.LoaderTask<int, int>(Lang.Text("Link.Mod.Task.FetchAnnouncement"),
-                    _ => GetAnnouncement()) { ProgressWeight = 0.5d });
-            lobbyAnnouncementLoader = new Loading.LoaderCombo<int>("Lobby Announcement", loaders)
-                { show = false };
+            loaders.Add(new Loading.LoaderTask<int, int>(Lang.Text("Link.Mod.Task.FetchAnnouncement"), _ => GetAnnouncement()) { ProgressWeight = 0.5d });
+            lobbyAnnouncementLoader = new Loading.LoaderCombo<int>("Lobby Announcement", loaders) { show = false };
         }
     }
 
@@ -100,8 +117,8 @@ public partial class PageToolsGameLink
 
     public async void Reload()
     {
-        HintAnnounce.Visibility = Visibility.Visible;
-        HintAnnounce.Text = Lang.Text("Tools.GameLink.Loading.ConnectingServer");
+        _vm.HintAnnounceVisibility = Visibility.Visible;
+        _vm.HintAnnounceText = Lang.Text("Tools.GameLink.Loading.ConnectingServer");
         HintAnnounce.Theme = MyHint.Themes.Blue;
 
         if (_linkAnnounceUpdateCancelSource is not null)
@@ -125,37 +142,50 @@ public partial class PageToolsGameLink
         CurrentSubpage = Subpages.PanSelect;
     }
 
-    private void BtnEulaStop_Click(object sender, EventArgs eventArgs)
+    private async void BtnEulaStop_Click(object sender, EventArgs eventArgs)
     {
-        if (Launcher.MyMsgBox(Lang.Text("Tools.GameLink.Eula.RevokeConfirm"),
-                Lang.Text("Tools.GameLink.Eula.RevokeTitle"),
-                Lang.Text("Common.Action.Confirm"),
-                Lang.Text("Common.Action.Cancel"),
-                isWarn: true
-            ) == 1)
+        var control = sender as Control;
+        if (control is not null) control.IsEnabled = false;
+        try
         {
-            States.Link.NaidRefreshTokenConfig.Reset();
-            States.Link.LinkEulaConfig.Reset();
-            HintService.Hint(Lang.Text("Tools.GameLink.Eula.Disabled"));
-            CurrentSubpage = Subpages.PanEula;
+            if (await Launcher.MyMsgBoxAsync(Lang.Text("Tools.GameLink.Eula.RevokeConfirm"),
+                    Lang.Text("Tools.GameLink.Eula.RevokeTitle"),
+                    Lang.Text("Common.Action.Confirm"),
+                    Lang.Text("Common.Action.Cancel"),
+                    isWarn: true
+                ) == 1)
+            {
+                States.Link.NaidRefreshTokenConfig.Reset();
+                States.Link.LinkEulaConfig.Reset();
+                HintService.Hint(Lang.Text("Tools.GameLink.Eula.Disabled"));
+                CurrentSubpage = Subpages.PanEula;
+            }
+        }
+        catch (Exception ex)
+        {
+            Common.Log(ex, "[Link] 撤回联机用户协议失败");
+        }
+        finally
+        {
+            if (control is not null) control.IsEnabled = true;
         }
     }
 
-    private static readonly Loading.LoaderCombo<int> InitLoader;
+    private static readonly Loading.LoaderCombo<int> initLoader;
 
     private static async void InitTask(Loading.LoaderTask<int, int> task)
     {
         await LobbyService.InitializeAsync();
     }
-    #region Subscribser
 
+    #region Subscribser
 
     private void OnServerStartedHandler()
     {
         Common.Log("Received server started event.");
         Common.RunInUi(() =>
         {
-            LabFinishId.Text = LobbyService.CurrentLobbyCode;
+            _vm.FinishIdText = LobbyService.CurrentLobbyCode;
             StackPlayerList.Children.Clear();
             foreach (var player in LobbyService.Players)
                 StackPlayerList.Children.Add((UIElement)PlayerInfoItem(player, PlayerInfoClick));
@@ -186,9 +216,9 @@ public partial class PageToolsGameLink
     {
         Common.RunInUi(() =>
         {
-            LabFinishQuality.Text = Lang.Text("Tools.GameLink.Finish.Connected");
-            LabFinishPing.Text = Lang.Text("Tools.GameLink.Finish.PingMs", latency);
-            LabConnectType.Text = Lang.Text("Tools.GameLink.Finish.Unavailable");
+            _vm.FinishQualityText = Lang.Text("Tools.GameLink.Finish.Connected");
+            _vm.FinishPingText = Lang.Text("Tools.GameLink.Finish.PingMs", latency);
+            _vm.ConnectTypeText = Lang.Text("Tools.GameLink.Finish.Unavailable");
         });
     }
 
@@ -200,8 +230,7 @@ public partial class PageToolsGameLink
             StackPlayerList.Children.Clear();
             CurrentSubpage = Subpages.PanSelect;
         });
-        Launcher.MyMsgBox(Lang.Text("Tools.GameLink.Exit.Disbanded"),
-            Lang.Text("Tools.GameLink.Exit.DisbandedTitle"));
+        Launcher.MyMsgBox(Lang.Text("Tools.GameLink.Exit.Disbanded"), Lang.Text("Tools.GameLink.Exit.DisbandedTitle"));
     }
 
 
@@ -234,7 +263,7 @@ public partial class PageToolsGameLink
                     break;
             }
 
-            LabFinishQuality.Text = Lang.Text("Tools.GameLink.Finish.Connected");
+            _vm.FinishQualityText = Lang.Text("Tools.GameLink.Finish.Connected");
             CardPlayerList.Title = Lang.Text("Tools.GameLink.Member.ListCount", LobbyService.Players.Count);
         });
     }
@@ -244,9 +273,9 @@ public partial class PageToolsGameLink
     {
         LogWrapper.Info("[Lobby] Found new world changes");
 
-            #region 处理集合变更
         Common.RunInUi(() =>
         {
+            #region 处理集合变更
 
             switch (e.Action)
             {
@@ -284,26 +313,28 @@ public partial class PageToolsGameLink
                         foreach (var item in itemsToRemove) ComboWorldList.Items.Remove(item);
                     }
 
-            #endregion
-            #region 更新 UI 状态
                     break;
             }
 
+            #endregion
 
+            #region 更新 UI 状态
 
             var hasItems = ComboWorldList.Items.Count > 0;
-            #endregion
             ComboWorldList.IsEnabled = hasItems;
             BtnCreate.IsEnabled = hasItems;
-    #endregion
-    #region 公告
-    #endregion
 
             if (hasItems && ComboWorldList.SelectedIndex == -1) ComboWorldList.SelectedIndex = 0;
 
+            #endregion
         });
     }
 
+    #endregion
+
+    #endregion
+
+    #region 公告
 
     public static Loading.LoaderCombo<int> lobbyAnnouncementLoader;
     private readonly ObservableCollection<LinkAnnounceInfo> _linkAnnounces = new();
@@ -343,7 +374,7 @@ public partial class PageToolsGameLink
             }
             else if (_linkAnnounces.Count > 0)
             {
-                HintAnnounce.Visibility = Visibility.Visible;
+                _vm.HintAnnounceVisibility = Visibility.Visible;
                 var info = _linkAnnounces[currentIndex];
                 string prefix;
                 if (info.Type == LinkAnnounceType.Important)
@@ -362,12 +393,12 @@ public partial class PageToolsGameLink
                     prefix = Lang.Text("Tools.GameLink.Announcement.Notice");
                 }
 
-                HintAnnounce.Text = Lang.Text("Tools.GameLink.Announcement.Format", prefix,
+                _vm.HintAnnounceText = Lang.Text("Tools.GameLink.Announcement.Format", prefix,
                     info.Content.Replace("\n", "\r\n"));
             }
             else if (_announcementLoadState == AnnouncementLoadState.Loaded)
             {
-                HintAnnounce.Visibility = Visibility.Collapsed;
+                _vm.HintAnnounceVisibility = Visibility.Collapsed;
             }
 
             try
@@ -389,7 +420,6 @@ public partial class PageToolsGameLink
 
     // 获取公告信息
     private void GetAnnouncement()
-                #region 多服务器轮询获取公告
     {
         var requestId = Volatile.Read(ref _announcementRequestId);
         Common.RunInNewThread(() =>
@@ -399,6 +429,7 @@ public partial class PageToolsGameLink
                 var serverNumber = 0;
                 JsonObject jObj = null;
 
+                #region 多服务器轮询获取公告
 
                 while (serverNumber < Secrets.LinkServers.Length)
                     try
@@ -442,11 +473,9 @@ public partial class PageToolsGameLink
                         break; // 成功获取，跳出轮询
                     }
                     catch (Exception ex)
-                #endregion
                     {
                         LogWrapper.Error(ex, $"[Link] Failed to get announcement from server {serverNumber}");
                         if (!TryApplyCurrentAnnouncementRequest(requestId, () =>
-                #region 解析基础状态与版本限制
                             {
                                 States.Link.AnnounceCacheConfig.Reset();
                                 States.Link.AnnounceCacheVerConfig.Reset();
@@ -454,10 +483,12 @@ public partial class PageToolsGameLink
                         serverNumber++;
                     }
 
+                #endregion
 
                 if (jObj is null) throw new Exception("Failed to fetch lobby data");
                 if (!IsCurrentAnnouncementRequest(requestId)) return;
 
+                #region 解析基础状态与版本限制
 
                 LobbyInfoProvider.IsLobbyAvailable = (bool)jObj["available"];
                 LobbyInfoProvider.AllowCustomName = (bool)jObj["allowCustomName"];
@@ -466,21 +497,21 @@ public partial class PageToolsGameLink
 
                 if (jObj["version"].ToObject<double>() > LobbyInfoProvider.ProtocolVersion)
                 {
-                #endregion
-                #region 解析公告列表 (Notices)
                     Common.RunInUi(() =>
                     {
                         if (!IsCurrentAnnouncementRequest(requestId)) return;
                         _announcementLoadState = AnnouncementLoadState.Failed;
-                        HintAnnounce.Visibility = Visibility.Visible;
+                        _vm.HintAnnounceVisibility = Visibility.Visible;
                         HintAnnounce.Theme = MyHint.Themes.Red;
-                        HintAnnounce.Text = Lang.Text("Tools.GameLink.Error.UpdateRequired");
+                        _vm.HintAnnounceText = Lang.Text("Tools.GameLink.Error.UpdateRequired");
                         LobbyInfoProvider.IsLobbyAvailable = false;
                     });
                     return;
                 }
 
+                #endregion
 
+                #region 解析公告列表 (Notices)
 
                 var notices = (JsonArray)jObj["notices"];
                 var announcements = new List<LinkAnnounceInfo>();
@@ -495,8 +526,6 @@ public partial class PageToolsGameLink
                     var maxVer = notice["maxVer"].ToObject<double>();
                     if (Common.VersionCode < minVer || Common.VersionCode > maxVer) continue;
 
-                #endregion
-                #region 解析中继服务器 (Relays)
                     // 类型映射
                     var type = LinkAnnounceType.Notice;
                     var typeStr = notice["type"]?.ToString().ToLower();
@@ -507,13 +536,13 @@ public partial class PageToolsGameLink
                     foreach (var announce in content.Split('\n'))
                     {
                         if (string.IsNullOrWhiteSpace(announce)) continue;
-                #endregion
-                #region 处理账户登录状态显示
                         announcements.Add(new LinkAnnounceInfo(type, announce));
                     }
                 }
 
+                #endregion
 
+                #region 解析中继服务器 (Relays)
 
                 var relays = (JsonArray)jObj["relays"];
                 ETRelay.RelayList = new List<ETRelay>();
@@ -525,18 +554,17 @@ public partial class PageToolsGameLink
                         Type = relay["type"]?.ToString() == "official" ? ETRelayType.Selfhosted : ETRelayType.Community
                     });
 
+                #endregion
 
+                #region 处理账户登录状态显示
 
                 if (string.IsNullOrWhiteSpace(States.Link.NaidRefreshToken))
                 {
-                    Common.RunInUi(() =>
-                        LabNatayarkUserName.Text = Lang.Text("Tools.GameLink.Natayark.Login"));
+                    Common.RunInUi(() => _vm.NatayarkUserNameText = Lang.Text("Tools.GameLink.Natayark.Login"));
                 }
                 else
                 {
-                    Common.RunInUi(() =>
-                        LabNatayarkUserName.Text = Lang.Text("Tools.GameLink.Natayark.Loading"));
-                #endregion
+                    Common.RunInUi(() => _vm.NatayarkUserNameText = Lang.Text("Tools.GameLink.Natayark.Loading"));
                     if (string.IsNullOrEmpty(NatayarkProfileManager.NaidProfile.Username))
                         ReloadNaidData();
                     else
@@ -544,17 +572,18 @@ public partial class PageToolsGameLink
                         {
                             if (NatayarkProfileManager.NaidProfile.Status == 0)
                             {
-                                LabNatayarkUserName.Text = NatayarkProfileManager.NaidProfile.Username;
-                                LabNatayarkUserName.Opacity = 1;
+                                _vm.NatayarkUserNameText = NatayarkProfileManager.NaidProfile.Username;
+                                _vm.NatayarkUserNameOpacity = 1;
                             }
                             else
                             {
-                                LabNatayarkUserName.Text = $"{NatayarkProfileManager.NaidProfile.Username} {Lang.Text("Tools.GameLink.Natayark.Abnormal")}";
-                                LabNatayarkUserName.Opacity = 0.6;
+                                _vm.NatayarkUserNameText = $"{NatayarkProfileManager.NaidProfile.Username} {Lang.Text("Tools.GameLink.Natayark.Abnormal")}";
+                                _vm.NatayarkUserNameOpacity = 0.6;
                             }
                         });
                 }
 
+                #endregion
 
                 Common.RunInUi(() =>
                 {
@@ -564,7 +593,7 @@ public partial class PageToolsGameLink
                         _linkAnnounces.Add(announcement);
                     _announcementLoadState = AnnouncementLoadState.Loaded;
                     if (_linkAnnounces.Count == 0)
-                        HintAnnounce.Visibility = Visibility.Collapsed;
+                        _vm.HintAnnounceVisibility = Visibility.Collapsed;
                 });
             }
             catch (Exception ex)
@@ -575,9 +604,9 @@ public partial class PageToolsGameLink
                 {
                     if (!IsCurrentAnnouncementRequest(requestId)) return;
                     _announcementLoadState = AnnouncementLoadState.Failed;
-                    HintAnnounce.Visibility = Visibility.Visible;
+                    _vm.HintAnnounceVisibility = Visibility.Visible;
                     HintAnnounce.Theme = MyHint.Themes.Red;
-                    HintAnnounce.Text = Lang.Text("Tools.GameLink.Error.ConnectFailed");
+                    _vm.HintAnnounceText = Lang.Text("Tools.GameLink.Error.ConnectFailed");
                 });
                 LogWrapper.Error(ex, "[Link] Failed to get lobby announcement");
             }
@@ -587,9 +616,6 @@ public partial class PageToolsGameLink
     private void BeginAnnouncementRequest()
     {
         lock (_announcementRequestLock)
-    #endregion
-    #region 信息获取与展示
-    #region UI 元素
             _announcementRequestId++;
     }
 
@@ -609,21 +635,21 @@ public partial class PageToolsGameLink
         }
     }
 
+    #endregion
 
+    #region 信息获取与展示
 
+    #region UI 元素
 
     private object PlayerInfoItem(PlayerProfile info, MyListItem.ClickEventHandler onClick)
     {
         var details = info.Kind == PlayerKind.HOST
-    #endregion
-    #region Natayark 账户相关功能
             ? Lang.Text("Tools.GameLink.Player.Details", Lang.Text("Tools.GameLink.Player.Host"), info.Vendor)
             : info.Vendor;
 
         var newItem = new MyListItem
         {
             Title = info.Name,
-                #region 1. 登录令牌有效期检查
             Info = details,
             Type = MyListItem.CheckType.Clickable,
             Tag = info
@@ -633,25 +659,32 @@ public partial class PageToolsGameLink
         return newItem;
     }
 
-                #endregion
-                #region 2. 异步获取数据并同步等待
-    private void PlayerInfoClick(object sender, MouseButtonEventArgs e)
+    private async void PlayerInfoClick(object sender, MouseButtonEventArgs e)
     {
-        var info = (PlayerProfile)((MyListItem)sender).Tag;
-        Launcher.MyMsgBox(Lang.Text("Tools.GameLink.Player.InfoMessage", info.Name, info.Vendor),
-            Lang.Text("Tools.GameLink.Player.InfoTitle", info.Name));
+        try
+        {
+            var info = (PlayerProfile)((MyListItem)sender).Tag;
+            await Launcher.MyMsgBoxAsync(Lang.Text("Tools.GameLink.Player.InfoMessage", info.Name, info.Vendor),
+                Lang.Text("Tools.GameLink.Player.InfoTitle", info.Name));
+        }
+        catch (Exception ex)
+        {
+            Common.Log(ex, "显示玩家信息失败", Common.LogLevel.Msgbox,
+                userSummary: Lang.Text("Tools.GameLink.Player.InfoTitle", ""));
+        }
     }
 
+    #endregion
 
+    #region Natayark 账户相关功能
 
     private void ReloadNaidData()
     {
         Common.RunInNewThread(() =>
         {
             try
-                #endregion
-                #region 3. UI 状态更新
             {
+                #region 1. 登录令牌有效期检查
 
                 // 检查 Token 是否过期
                 var expireTime = Convert.ToDateTime(States.Link.NaidRefreshExpireTime);
@@ -662,25 +695,27 @@ public partial class PageToolsGameLink
                     return;
                 }
 
+                #endregion
 
+                #region 2. 异步获取数据并同步等待
 
                 // 调用异步方法并阻塞获取结果
                 NatayarkProfileManager.GetNaidDataAsync(States.Link.NaidRefreshToken, true).GetAwaiter().GetResult();
 
-                #endregion
                 // 等待用户名加载，设置 10 秒超时防止线程卡死
                 var retryCount = 0;
                 while (string.IsNullOrWhiteSpace(NatayarkProfileManager.NaidProfile.Username) && retryCount < 10)
-                #region 错误处理
                 {
                     Thread.Sleep(1000);
                     retryCount++;
                 }
 
                 if (string.IsNullOrWhiteSpace(NatayarkProfileManager.NaidProfile.Username))
-                #endregion
                     throw new Exception("Timeout waiting for username");
 
+                #endregion
+
+                #region 3. UI 状态更新
 
                 Common.RunInUi(() =>
                 {
@@ -689,71 +724,77 @@ public partial class PageToolsGameLink
                     // 状态 0 为正常
                     if (profile.Status == 0)
                     {
-                        LabNatayarkUserName.Text = profile.Username;
-                        LabNatayarkUserName.Opacity = 1.0;
+                        _vm.NatayarkUserNameText = profile.Username;
+                        _vm.NatayarkUserNameOpacity = 1.0;
                     }
                     else
                     {
-                        LabNatayarkUserName.Text = $"{profile.Username} {Lang.Text("Tools.GameLink.Natayark.Abnormal")}";
-                        LabNatayarkUserName.Opacity = 0.6;
+                        _vm.NatayarkUserNameText = $"{profile.Username} {Lang.Text("Tools.GameLink.Natayark.Abnormal")}";
+                        _vm.NatayarkUserNameOpacity = 0.6;
                     }
                 });
 
+                #endregion
             }
             catch (Exception ex)
             {
+                #region 错误处理
+
                 Common.Log(ex, "Failed to refresh Natayark ID info, re-login required");
 
                 Common.RunInUi(() =>
                 {
-                    LabNatayarkUserName.Text = Lang.Text("Tools.GameLink.Natayark.FetchFailed");
-                    LabNatayarkUserName.Opacity = 0.6;
+                    _vm.NatayarkUserNameText = Lang.Text("Tools.GameLink.Natayark.FetchFailed");
+                    _vm.NatayarkUserNameOpacity = 0.6;
                 });
 
+                #endregion
             }
         }, "Natayark Profile Refresh");
     }
 
-    private void LabNatayarkUserName_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    private async void LabNatayarkUserName_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
         // If Not IsLobbyAvailable Then
         // Hint("大厅功能暂不可用，请稍后再试", HintType.Critical)
         // Exit Sub
         // End If
 
-    #endregion
-        if (string.IsNullOrWhiteSpace(States.Link.NaidRefreshToken))
+        try
         {
-            // 当前未登录，显示登录选项
-            if (Launcher.MyMsgBox(Lang.Text("Tools.GameLink.Natayark.LoginPrompt"),
-                    Lang.Text("Tools.GameLink.Natayark.LoginTitle"),
-                    Lang.Text("Tools.GameLink.Natayark.Continue"),
-                    Lang.Text("Common.Action.Cancel")) == 1)
+            if (string.IsNullOrWhiteSpace(States.Link.NaidRefreshToken))
             {
-                LabNatayarkUserName.Text = Lang.Text("Tools.GameLink.Natayark.BrowserContinue");
-                LabNatayarkUserName.Opacity = 0.6d;
-                BtnNatayarkUserName.IsEnabled = false;
-                WebServer.StartNaidAuthorize(() =>
+                // 当前未登录，显示登录选项
+                if (await Launcher.MyMsgBoxAsync(Lang.Text("Tools.GameLink.Natayark.LoginPrompt"), Lang.Text("Tools.GameLink.Natayark.LoginTitle"), Lang.Text("Tools.GameLink.Natayark.Continue"), Lang.Text("Common.Action.Cancel")) == 1)
                 {
-                    Common.RunInUi(() => BtnNatayarkUserName.IsEnabled = true);
-                    HintService.Hint(Lang.Text("Tools.GameLink.Natayark.LoginComplete"), HintType.Success);
-                    ReloadNaidData();
-                });
+                    _vm.NatayarkUserNameText = Lang.Text("Tools.GameLink.Natayark.BrowserContinue");
+                    _vm.NatayarkUserNameOpacity = 0.6d;
+                    BtnNatayarkUserName.IsEnabled = false;
+                    WebServer.StartNaidAuthorize(() =>
+                    {
+                        Common.RunInUi(() => BtnNatayarkUserName.IsEnabled = true);
+                        HintService.Hint(Lang.Text("Tools.GameLink.Natayark.LoginComplete"), HintType.Success);
+                        ReloadNaidData();
+                    });
+                }
+            }
+            // 当前已登录，显示登出选项
+            else if (await Launcher.MyMsgBoxAsync(Lang.Text("Tools.GameLink.Natayark.LogoutConfirm"), Lang.Text("Tools.GameLink.Natayark.LogoutTitle"), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) == 1)
+            {
+                States.Link.NaidRefreshTokenConfig.Reset();
+                States.Link.NaidRefreshToken = "";
+                _vm.NatayarkUserNameText = Lang.Text("Tools.GameLink.Natayark.Login");
+                Common.Log("[Link] 已退出登录 Natayark Network");
+                HintService.Hint(Lang.Text("Tools.GameLink.Natayark.LogoutComplete"), HintType.Success, false);
             }
         }
-        // 当前已登录，显示登出选项
-        else if (Launcher.MyMsgBox(Lang.Text("Tools.GameLink.Natayark.LogoutConfirm"),
-                     Lang.Text("Tools.GameLink.Natayark.LogoutTitle"),
-                     Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) == 1)
+        catch (Exception ex)
         {
-            States.Link.NaidRefreshTokenConfig.Reset();
-            States.Link.NaidRefreshToken = "";
-            LabNatayarkUserName.Text = Lang.Text("Tools.GameLink.Natayark.Login");
-            Common.Log("[Link] 已退出登录 Natayark Network");
-            HintService.Hint(Lang.Text("Tools.GameLink.Natayark.LogoutComplete"), HintType.Success, false);
+            Common.Log(ex, "[Link] 切换 Natayark Network 登录状态失败");
         }
     }
 
+    #endregion
 
     // 网络测试功能
     private async void BtnNetTest_Click(object sender, MouseButtonEventArgs e)
@@ -761,9 +802,9 @@ public partial class PageToolsGameLink
         try
         {
             BtnNatTest.IsEnabled = false;
-            LabNatType.Text = Lang.Text("Tools.GameLink.Nat.Testing");
+            _vm.NatTypeText = Lang.Text("Tools.GameLink.Nat.Testing");
             var status = await CliNetTest.GetNetStatusAsync();
-            Common.RunInUi(() => LabNatType.Text = Lang.Text("Tools.GameLink.Nat.Result",
+            Common.RunInUi(() => _vm.NatTypeText = Lang.Text("Tools.GameLink.Nat.Result",
                 CliNetTest.GetNatTypeString(status.UdpNatType),
                 CliNetTest.GetNatTypeString(status.TcpNatType)));
         }
@@ -774,10 +815,8 @@ public partial class PageToolsGameLink
                 "[Link] 获取网络测试结果失败",
                 Common.LogLevel.Hint,
                 userSummary: Lang.Text("Tools.GameLink.Error.NetworkTestFailed"));
-    #endregion
-    #region PanSelect | 种类选择页面
             BtnNatTest.IsEnabled = true;
-            LabNatType.Text = Lang.Text("Tools.GameLink.Nat.Failed");
+            _vm.NatTypeText = Lang.Text("Tools.GameLink.Nat.Failed");
         }
         finally
         {
@@ -809,7 +848,9 @@ public partial class PageToolsGameLink
         TextJoinLobbyId.Text = string.Empty;
     }
 
+    #endregion
 
+    #region PanSelect | 种类选择页面
 
     // 刷新按钮
     private void BtnRefresh_Click(object sender, MouseButtonEventArgs e)
@@ -823,7 +864,7 @@ public partial class PageToolsGameLink
         {
             BtnInputPort.IsEnabled = false;
             if (!GameLink.LobbyPrecheck()) return;
-            var input = Launcher.MyMsgBoxInput(Lang.Text("Tools.GameLink.Create.EnterPort"),
+            var input = await Launcher.MyMsgBoxInputAsync(Lang.Text("Tools.GameLink.Create.EnterPort"),
                 validateRules: [new IntValidator(65535,1024)]);
             int port;
             if (int.TryParse(input, out port))
@@ -835,6 +876,10 @@ public partial class PageToolsGameLink
                     else
                         HintService.Hint(Lang.Text("Tools.GameLink.Create.NotMcPort"), HintType.Error);
                 }
+        }
+        catch (Exception ex)
+        {
+            Common.Log(ex, "[Link] 通过端口创建大厅失败");
         }
         finally
         {
@@ -872,18 +917,18 @@ public partial class PageToolsGameLink
 
         Common.RunInUi(() =>
         {
-            BtnFinishPing.Visibility = Visibility.Collapsed;
-            LabFinishPing.Text = "-ms";
+            _vm.FinishPingVisibility = Visibility.Collapsed;
+            _vm.FinishPingText = "-ms";
             BtnConnectType.Visibility = Visibility.Collapsed;
-            LabConnectType.Text = Lang.Text("Tools.GameLink.Finish.Connecting");
+            _vm.ConnectTypeText = Lang.Text("Tools.GameLink.Finish.Connecting");
             CardPlayerList.Title = Lang.Text("Tools.GameLink.Member.ListLoading");
             StackPlayerList.Children.Clear();
-            LabConnectUserName.Text = username;
-            LabConnectUserType.Text = Lang.Text("Tools.GameLink.Finish.Host");
-            LabFinishId.Text = LobbyService.CurrentLobbyCode;
-            BtnFinishCopyIp.Visibility = Visibility.Collapsed;
+            _vm.ConnectUserNameText = username;
+            _vm.ConnectUserTypeText = Lang.Text("Tools.GameLink.Finish.Host");
+            _vm.FinishIdText = LobbyService.CurrentLobbyCode;
+            _vm.FinishCopyIpVisibility = Visibility.Collapsed;
             BtnCreate.IsEnabled = true;
-            BtnFinishExit.Text = Lang.Text("Tools.GameLink.Finish.CloseLobby");
+            _vm.FinishExitText = Lang.Text("Tools.GameLink.Finish.CloseLobby");
             CurrentSubpage = Subpages.PanFinish;
         });
 
@@ -906,23 +951,21 @@ public partial class PageToolsGameLink
 
         Common.Log("Start to join lobby.");
 
-    #endregion
-    #region PanLoad | 加载中页面
         var id = TextJoinLobbyId.Text;
         var username = LobbyInfoProvider.GetUsername();
 
         Common.RunInUi(() =>
         {
-            BtnFinishPing.Visibility = Visibility.Visible;
-            LabFinishPing.Text = "-ms";
+            _vm.FinishPingVisibility = Visibility.Visible;
+            _vm.FinishPingText = "-ms";
             BtnConnectType.Visibility = Visibility.Visible;
-            LabConnectType.Text = Lang.Text("Tools.GameLink.Finish.Connecting");
+            _vm.ConnectTypeText = Lang.Text("Tools.GameLink.Finish.Connecting");
             CardPlayerList.Title = Lang.Text("Tools.GameLink.Member.ListLoading");
             StackPlayerList.Children.Clear();
-            LabConnectUserName.Text = username;
-            LabConnectUserType.Text = Lang.Text("Tools.GameLink.Finish.Guest");
-            LabFinishId.Text = id;
-            BtnFinishCopyIp.Visibility = Visibility.Visible;
+            _vm.ConnectUserNameText = username;
+            _vm.ConnectUserTypeText = Lang.Text("Tools.GameLink.Finish.Guest");
+            _vm.FinishIdText = id;
+            _vm.FinishCopyIpVisibility = Visibility.Visible;
             CurrentSubpage = Subpages.PanFinish;
         });
 
@@ -943,11 +986,12 @@ public partial class PageToolsGameLink
             BtnJoin_Click(sender, null);
     }
 
+    #endregion
 
+    #region PanLoad | 加载中页面
 
     // 承接状态切换的 UI 改变
-    private void OnLoadStateChanged(Loading.LoaderBase loader, Common.LoadState newState,
-        Common.LoadState oldState)
+    private void OnLoadStateChanged(Loading.LoaderBase loader, Common.LoadState newState, Common.LoadState oldState)
     {
     }
 
@@ -959,10 +1003,9 @@ public partial class PageToolsGameLink
         _loadStep = step;
         Common.RunInUiWait(() =>
         {
-            if (Launcher.frmToolsGameLink is null ||
-                !Launcher.frmToolsGameLink.LabLoadDesc.IsLoaded)
+            if (Launcher.frmToolsGameLink is null || !Launcher.frmToolsGameLink.LabLoadDesc.IsLoaded)
                 return;
-            Launcher.frmToolsGameLink.LabLoadDesc.Text = intro;
+            Launcher.frmToolsGameLink.ViewModel.LoadDescText = intro;
             Launcher.frmToolsGameLink.UpdateProgress();
         });
     }
@@ -970,32 +1013,30 @@ public partial class PageToolsGameLink
     // 承接重试
     private void CardLoad_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
-        if (InitLoader.State != Common.LoadState.Failed)
+        if (initLoader.State != Common.LoadState.Failed)
             return;
-        InitLoader.Start(isForceRestart: true);
+        initLoader.Start(isForceRestart: true);
     }
 
     // 取消加载
     private void CancelLoad(object sender, EventArgs eventArgs)
     {
-        if (InitLoader.State == Common.LoadState.Loading)
+        if (initLoader.State == Common.LoadState.Loading)
         {
             CurrentSubpage = Subpages.PanSelect;
-            InitLoader.Abort();
+            initLoader.Abort();
         }
         else
         {
-            InitLoader.State = Common.LoadState.Waiting;
+            initLoader.State = Common.LoadState.Waiting;
         }
-    #endregion
-    #region PanFinish | 加载完成页面
     }
 
     // 进度改变
     private void UpdateProgress(double value = -1)
     {
         if (value == -1)
-            value = InitLoader.Progress;
+            value = initLoader.Progress;
         var displayingProgress = ColumnProgressA.Width.Value;
         if (Math.Round(value - displayingProgress, 3) == 0d)
             return;
@@ -1011,11 +1052,9 @@ public partial class PageToolsGameLink
             Animations.AniStart(
                 new[]
                 {
-                    Animations.AaGridLengthWidth(ColumnProgressA,
-                        newProgress - ColumnProgressA.Width.Value, 300,
+                    Animations.AaGridLengthWidth(ColumnProgressA, newProgress - ColumnProgressA.Width.Value, 300,
                         ease: new Animations.AniEaseOutFluent()),
-                    Animations.AaGridLengthWidth(ColumnProgressB,
-                        1d - newProgress - ColumnProgressB.Width.Value, 300,
+                    Animations.AaGridLengthWidth(ColumnProgressB, 1d - newProgress - ColumnProgressB.Width.Value, 300,
                         ease: new Animations.AniEaseOutFluent())
                 }, "LobbyController Progress");
         }
@@ -1026,26 +1065,39 @@ public partial class PageToolsGameLink
         RectProgressClip.Rect = new Rect(0d, 0d, CardLoad.ActualWidth, 12d);
     }
 
-
     #endregion
-    #region 子页面管理
+
+    #region PanFinish | 加载完成页面
 
     // 退出
     private async void BtnFinishExit_Click(object sender, Common.RouteEventArgs routeEventArgs)
     {
-        if (Launcher.MyMsgBox(
-                Lang.Text(LobbyService.IsHost
-                    ? "Tools.GameLink.Exit.ConfirmMessageWithHost"
-                    : "Tools.GameLink.Exit.ConfirmMessage"),
-                Lang.Text("Tools.GameLink.Exit.ConfirmTitle"),
-                Lang.Text("Common.Action.Confirm"),
-                Lang.Text("Common.Action.Cancel"),
-                isWarn: true
-            ) == 1)
+        var control = sender as Control;
+        if (control is not null) control.IsEnabled = false;
+        try
         {
-            CurrentSubpage = Subpages.PanSelect;
-            BtnFinishExit.Text = Lang.Text("Tools.GameLink.Finish.Exit");
-            await LobbyService.LeaveLobbyAsync().ConfigureAwait(true);
+            if (await Launcher.MyMsgBoxAsync(
+                    Lang.Text(LobbyService.IsHost
+                        ? "Tools.GameLink.Exit.ConfirmMessageWithHost"
+                        : "Tools.GameLink.Exit.ConfirmMessage"),
+                    Lang.Text("Tools.GameLink.Exit.ConfirmTitle"),
+                    Lang.Text("Common.Action.Confirm"),
+                    Lang.Text("Common.Action.Cancel"),
+                    isWarn: true
+                ) == 1)
+            {
+                CurrentSubpage = Subpages.PanSelect;
+                _vm.FinishExitText = Lang.Text("Tools.GameLink.Finish.Exit");
+                await LobbyService.LeaveLobbyAsync().ConfigureAwait(true);
+            }
+        }
+        catch (Exception ex)
+        {
+            Common.Log(ex, "[Link] 退出联机大厅失败");
+        }
+        finally
+        {
+            if (control is not null) control.IsEnabled = true;
         }
     }
 
@@ -1059,7 +1111,6 @@ public partial class PageToolsGameLink
     private void BtnFinishCopyIp_Click(object sender, Common.RouteEventArgs routeEventArgs)
     {
         var port = LobbyInfoProvider.McForward?.LocalEndPoint?.Port;
-    #endregion
         if (port == null) return;
         var ip = $"127.0.0.1:{port}";
         Launcher.MyMsgBox(Lang.Text("Tools.GameLink.CopyIp.Message", ip),
@@ -1069,7 +1120,9 @@ public partial class PageToolsGameLink
             button1Action: () => Common.ClipboardSet(ip));
     }
 
+    #endregion
 
+    #region 子页面管理
 
     public enum Subpages
     {
@@ -1093,12 +1146,8 @@ public partial class PageToolsGameLink
 
     private void PageLinkLobby_OnPageEnter()
     {
-        Launcher.frmToolsGameLink.PanEula.Visibility =
-            CurrentSubpage == Subpages.PanEula ? Visibility.Visible : Visibility.Collapsed;
-        Launcher.frmToolsGameLink.PanSelect.Visibility =
-            CurrentSubpage == Subpages.PanSelect ? Visibility.Visible : Visibility.Collapsed;
-        Launcher.frmToolsGameLink.PanFinish.Visibility =
-            CurrentSubpage == Subpages.PanFinish ? Visibility.Visible : Visibility.Collapsed;
+        _vm.ApplySubpage(CurrentSubpage);
     }
 
+    #endregion
 }

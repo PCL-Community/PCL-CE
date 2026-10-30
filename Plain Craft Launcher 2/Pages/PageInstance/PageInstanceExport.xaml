@@ -15,7 +15,8 @@
                               x:Name="PanBack">
             <StackPanel Margin="25,10,25,65">
                 <local:MyHint Margin="0,15,0,0" Text="{DynamicResource Instance.Export.ModrinthWarning}" Theme="Yellow"
-                              x:Name="HintOptiFine" />
+                              x:Name="HintOptiFine"
+                              Visibility="{Binding HintOptiFineVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 <local:MyCard Margin="0,15">
                     <Grid Margin="22,15,25,15">
                         <Grid.ColumnDefinitions>
@@ -29,11 +30,15 @@
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left"
                                    Text="{DynamicResource Instance.Export.PackName}" Margin="0,0,20,0" />
-                        <local:MyTextBox Grid.Row="0" Grid.Column="1" x:Name="TextExportName" MaxLength="100" />
+                        <local:MyTextBox Grid.Row="0" Grid.Column="1" x:Name="TextExportName" MaxLength="100"
+                                         Text="{Binding ExportName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         HintText="{Binding ExportNameHint}" />
                         <TextBlock Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Left"
                                    Text="{DynamicResource Instance.Export.PackVersion}" Margin="30,0,20,0" />
                         <local:MyTextBox Grid.Row="0" Grid.Column="3" x:Name="TextExportVersion"
-                                         Tag="VersionArgumentTitle" MaxLength="100" />
+                                         Tag="VersionArgumentTitle" MaxLength="100"
+                                         Text="{Binding ExportVersion, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         HintText="{Binding ExportVersionHint}" />
                     </Grid>
                 </local:MyCard>
                 <local:MyCard Margin="0,0,0,15" x:Name="CardOptions" MinHeight="39">
@@ -42,8 +47,10 @@
                                             IsHitTestVisible="False" Opacity="0.5"
                                             Text="{DynamicResource Common.Action.Reset}"
                                             SvgIcon="lucide/rotate-ccw"
-                                            LogoScale="0.9" />
-                    <StackPanel Margin="25,38,15,15" Name="PanOptions">
+                                            LogoScale="0.9"
+                                            Visibility="{Binding HasOverrides, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    <StackPanel Margin="25,38,15,15" Name="PanOptions"
+                                Visibility="{Binding OptionsVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <local:MyCheckBox IsEnabled="False" x:Name="CheckOptionsBasic">
                             <local:MyCheckBox.Tag>
                                 <local:ExportOption
@@ -219,7 +226,8 @@
                                     DefaultChecked="False" />
                             </local:MyCheckBox.Tag>
                         </local:MyCheckBox>
-                        <local:MyCheckBox x:Name="CheckOptionsOtherFolders" Change="CheckOptionsOtherFolders_Change">
+                        <local:MyCheckBox x:Name="CheckOptionsOtherFolders" Change="CheckOptionsOtherFolders_Change"
+                                          Visibility="{Binding OtherFoldersVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <local:MyCheckBox.Tag>
                                 <local:ExportOption
                                     Title="{DynamicResource Instance.Export.Option.OtherFolders}"
@@ -229,7 +237,7 @@
                         </local:MyCheckBox>
                         <StackPanel Margin="30,0,0,0" x:Name="PanOptionsOtherFolders"
                                     Visibility="{Binding Checked, ElementName=CheckOptionsOtherFolders, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                        <local:MyCheckBox x:Name="CheckOptionsPcl">
+                        <local:MyCheckBox x:Name="CheckOptionsPcl" IsEnabled="{Binding IncludePclEnabled}">
                             <local:MyCheckBox.Tag>
                                 <local:ExportOption
                                     Title="{DynamicResource Instance.Export.Option.Launcher}"
@@ -264,6 +272,7 @@
                         <local:MyCheckBox Text="{DynamicResource Instance.Export.Advanced.Modrinth}"
                                           x:Name="CheckAdvancedModrinth"
                                           Change="CheckAdvancedModrinth_Change"
+                                          IsEnabled="{Binding ModrinthEnabled}"
                                           ToolTip="{DynamicResource Instance.Export.Advanced.Modrinth.ToolTip}" />
                         <local:MyHint Theme="Blue" RelativeSetup="HintExportConfig" CanClose="True" Margin="0,20,0,2"
                                       Text="{DynamicResource Instance.Export.Advanced.ConfigHint}" />

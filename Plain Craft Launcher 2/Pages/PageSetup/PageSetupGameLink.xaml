@@ -39,7 +39,7 @@
                         <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameLink.Username}"
                                    Margin="0,0,25,0" />
                         <local:MyTextBox x:Name="TextLinkUsername" Grid.Row="0" Grid.ColumnSpan="2" Tag="LinkUsername"
-                                         Grid.Column="2" TextChanged="TextBoxChange"
+                                         Grid.Column="2" TextChanged="TextBoxChange" Text="{Binding LinkUsername, Mode=OneWay}"
                                          ToolTip="{DynamicResource Setup.GameLink.Username.ToolTip}" />
                         <!--<TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="自定义节点" Margin="0,0,25,0" />
                     <local:MyTextBox x:Name="TextLinkRelay" Grid.Row="2" Grid.ColumnSpan="2" Tag="LinkRelayServer" Grid.Column="2" HintText="一般应以 tcp:// 或 udp:// 开头；若有多个，请使用英文分号分割">
@@ -64,21 +64,26 @@
                         <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameLink.Protocol.Preference}" />
                         <local:MyComboBox x:Name="ComboPreferProtocol" Tag="LinkProtocolPreference" Grid.Row="2"
                                           SelectionChanged="LinkProtocolPerferenceChange"
+                                          SelectedIndex="{Binding PreferProtocolIndex, Mode=OneWay}"
                                           Grid.Column="2">
                             <local:MyComboBoxItem Content="{DynamicResource Setup.GameLink.Protocol.Tcp}" ToolTip="{DynamicResource Setup.GameLink.Protocol.Tcp.ToolTip}" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.GameLink.Protocol.Udp}" ToolTip="{DynamicResource Setup.GameLink.Protocol.Udp.ToolTip}" />
                         </local:MyComboBox>
                         <local:MyCheckBox x:Name="CheckLatencyFirstMode" Tag="LinkLatencyFirstMode" Grid.Row="4"
                                           Grid.ColumnSpan="3" Text="{DynamicResource Setup.GameLink.LatencyFirstMode}" Change="CheckBoxChange"
+                                          Checked="{Binding LatencyFirstMode, Mode=OneWay}"
                                           ToolTip="{DynamicResource Setup.GameLink.LatencyFirstMode.ToolTip}" />
                         <local:MyCheckBox x:Name="CheckTryPunchSym" Tag="LinkTryPunchSym" Grid.Row="5"
                                           Grid.ColumnSpan="3" Text="{DynamicResource Setup.GameLink.PortGuessNat}" Change="CheckBoxChange"
+                                          Checked="{Binding TryPunchSym, Mode=OneWay}"
                                           ToolTip="{DynamicResource Setup.GameLink.PortGuessNat.ToolTip}" />
                         <local:MyCheckBox x:Name="CheckEnableIPv6" Tag="LinkEnableIPv6" Grid.Row="6"
                                           Grid.ColumnSpan="3" Text="{DynamicResource Setup.GameLink.EnableIPv6}" Change="CheckBoxChange"
+                                          Checked="{Binding EnableIPv6, Mode=OneWay}"
                                           ToolTip="{DynamicResource Setup.GameLink.EnableIPv6.ToolTip}" />
                         <local:MyCheckBox x:Name="CheckEnableCliOutput" Tag="LinkEnableCliOutput" Grid.Row="7"
                                           Grid.ColumnSpan="3" Text="{DynamicResource Setup.GameLink.CliDebugOutput}" Change="CheckBoxChange"
+                                          Checked="{Binding EnableCliOutput, Mode=OneWay}"
                                           ToolTip="{DynamicResource Setup.GameLink.CliDebugOutput.ToolTip}" />
                         <!--<local:MyButton Grid.Row="17" HorizontalAlignment="Left" Grid.ColumnSpan="3" Width="120" Text="社区节点列表" EventType="打开网页" EventData="https://uptime.easytier.cn/" ColorType="Highlight" ToolTip="查看 EasyTier 社区提供的节点。&#xa;你也可以在此页面提交自己的节点，以帮助整个社区优化连接。"/>-->
                     </Grid>
@@ -100,15 +105,16 @@
                             <RowDefinition Height="30" />
                         </Grid.RowDefinitions>
                         <TextBlock x:Name="TextUdpNatType"
-                                   Text="{DynamicResource Setup.GameLink.NetworkTest.UdpNatType.NotTested}"
+                                   Text="{Binding UdpNatTypeText, Mode=OneWay}"
                                    Grid.Row="0" />
                         <TextBlock x:Name="TextTcpNatType"
-                                   Text="{DynamicResource Setup.GameLink.NetworkTest.TcpNatType.NotTested}"
+                                   Text="{Binding TcpNatTypeText, Mode=OneWay}"
                                    Grid.Row="1" />
                         <TextBlock x:Name="TextIpv6Status"
-                                   Text="{DynamicResource Setup.GameLink.NetworkTest.Ipv6Status.NotTested}"
+                                   Text="{Binding Ipv6StatusText, Mode=OneWay}"
                                    Grid.Row="2" />
-                        <local:MyButton x:Name="BtnNetTest" Text="{DynamicResource Setup.GameLink.NetworkTest.Start}" Grid.Row="4" ColorType="Highlight"
+                        <local:MyButton x:Name="BtnNetTest" Text="{Binding NetTestButtonText, Mode=OneWay}" Grid.Row="4" ColorType="Highlight"
+                                        IsEnabled="{Binding NetTestEnabled, Mode=OneWay}"
                                         Click="BtnNetTest_Click"
                                         VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
                     </Grid>

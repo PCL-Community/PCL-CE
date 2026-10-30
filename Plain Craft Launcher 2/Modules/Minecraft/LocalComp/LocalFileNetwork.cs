@@ -43,7 +43,7 @@ public static partial class LocalComp
             && ChangelogUrls.Count != 0;
 
         private static bool IsUpdateDisabled =>
-            PageInstanceLeft.mcInstance is { } instance
+            PageInstanceLeft.McInstance is { } instance
             && Config.Instance.DisableModUpdate[instance.PathInstance];
 
         public uint CurseForgeHash

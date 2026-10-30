@@ -49,13 +49,15 @@
                         Grid.Row="2"
                         Grid.Column="1"
                         Margin="-5,0,15,0"
-                        Info="{DynamicResource Setup.About.Version.Info}"
+                        Info="{Binding ViewModel.AboutInfo, RelativeSource={RelativeSource AncestorType=local:PageSetupAbout}}"
                         IsHitTestVisible="False"
                         Title="{Binding Name}" />
                     <Image
                         x:Name="ImgPCLLogo"
                         Grid.Row="2"
-                        Margin="3" MouseLeftButtonDown="ImgPCLLogo_Click"
+                        Margin="3"
+                        IsHitTestVisible="{Binding ViewModel.IsLogoClickEnabled, RelativeSource={RelativeSource AncestorType=local:PageSetupAbout}}"
+                        MouseLeftButtonDown="ImgPCLLogo_Click"
                         Source="/Plain Craft Launcher 2;component/Images/Heads/Logo-CE.png">
                         <Image.Clip>
                             <EllipseGeometry
@@ -139,6 +141,7 @@
                         Grid.Column="1"
                         Grid.ColumnSpan="2"
                         Margin="-5,0,0,0"
+                        Visibility="{Binding ViewModel.ShowMcmod, Converter={StaticResource BooleanToVisibilityConverter}, RelativeSource={RelativeSource AncestorType=local:PageSetupAbout}}"
                         Info="{DynamicResource Setup.About.SpecialThanks.Info.Mcmod}"
                         IsHitTestVisible="False"
                         Title="{DynamicResource Setup.About.SpecialThanks.Name.Mcmod}" />
@@ -147,6 +150,7 @@
                         Grid.Row="1"
                         Grid.Column="2"
                         Height="35"
+                        Visibility="{Binding ViewModel.ShowMcmod, Converter={StaticResource BooleanToVisibilityConverter}, RelativeSource={RelativeSource AncestorType=local:PageSetupAbout}}"
                         local:CustomEventService.EventData="https://www.mcmod.cn"
                         local:CustomEventService.EventType="OpenUrl"
                         Text="{DynamicResource Setup.About.SpecialThanks.OpenMcmod}" />
@@ -226,6 +230,7 @@
                         x:Name="ImgMcmod"
                         Grid.Row="1"
                         Margin="3"
+                        Visibility="{Binding ViewModel.ShowMcmod, Converter={StaticResource BooleanToVisibilityConverter}, RelativeSource={RelativeSource AncestorType=local:PageSetupAbout}}"
                         Source="/Plain Craft Launcher 2;component/Images/Heads/wiki.png">
                         <Image.Clip>
                             <EllipseGeometry
@@ -293,7 +298,7 @@
             </local:MyCard>
             <local:MyCard
                 Margin="0,0,0,15"
-                DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:PageSetupAbout}}"
+                DataContext="{Binding ViewModel, RelativeSource={RelativeSource AncestorType=local:PageSetupAbout}}"
                 Title="{DynamicResource Setup.About.Contributors.Title}">
                 <Grid Margin="17,42,15,20">
                     <Grid.RowDefinitions>

@@ -3,11 +3,14 @@ using System.Windows.Controls;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
+using PCL.Core.Utils;
 
 namespace PCL;
 
 public partial class PageSetupGameManage
 {
+    private readonly PageSetupGameManageViewModel _vm = new();
+
     private new bool isLoaded;
 
     public PageSetupGameManage()
@@ -15,6 +18,8 @@ public partial class PageSetupGameManage
         InitializeComponent();
         Loaded += PageSetupSystem_Loaded;
     }
+
+    public PageSetupGameManageViewModel ViewModel => _vm;
 
     private void PageSetupSystem_Loaded(object sender, RoutedEventArgs e)
     {
@@ -27,6 +32,7 @@ public partial class PageSetupGameManage
         isLoaded = true;
 
         Animations.AniBeginControl();
+        DataContext = _vm;
         Reload();
         SliderLoad();
 
@@ -36,7 +42,7 @@ public partial class PageSetupGameManage
             ComboDownloadTranslateV2.Visibility = Visibility.Collapsed;
             TextModManageStyle.Visibility = Visibility.Collapsed;
             ComboModLocalNameStyle.Visibility = Visibility.Collapsed;
-            
+
             RowFilenameFormat.Height = new GridLength(0);
             RowFilenameFormatGap.Height = new GridLength(0);
             RowModManageStyle.Height = new GridLength(0);
@@ -48,21 +54,16 @@ public partial class PageSetupGameManage
 
     public void Reload()
     {
+        _vm.Reload();
+
         // 下载
         SliderDownloadThread.Value = Config.Download.ThreadLimit;
         SliderDownloadFileConnection.Value = Config.Download.FileConnectionLimit;
         SliderDownloadSpeed.Value = Config.Download.SpeedLimit;
-        ComboDownloadHttpMode.SelectedIndex = (int)Config.Download.HttpMode;
-        ComboDownloadSource.SelectedIndex = Config.Download.FileSource;
-        ComboDownloadVersion.SelectedIndex = Config.Download.VersionListSource;
         CheckDownloadAutoSelectVersion.Checked = Config.Download.AutoSelectInstance;
         CheckFixAuthlib.Checked = Config.Download.FixAuthLib;
 
         // Mod 与整合包
-        ComboDownloadTranslateV2.SelectedIndex = Config.Download.Comp.NameFormatV2;
-        ComboDownloadMod.SelectedIndex = Config.Download.Comp.CompSourceSolution;
-        ComboModLocalNameStyle.SelectedIndex = Config.Download.Comp.UiCompNameSolution;
-        ComboDownloadQuickBehavior.SelectedIndex = Config.Download.Comp.QuickDownloadBehavior;
         CheckDownloadIgnoreQuilt.Checked = Config.Download.Comp.IgnoreQuilt;
         CheckDownloadAutoInstallDependencies.Checked = Config.Download.Comp.AutoInstallDependencies;
         CheckDownloadClipboard.Checked = Config.Download.Comp.ReadClipboard;
@@ -115,8 +116,9 @@ public partial class PageSetupGameManage
     private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
-        if (!Animations.AniExitsAnyControl())
-            SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
+        if (Animations.AniExitsAnyControl() || sender.SelectedIndex < 0)
+            return;
+        SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
     private static void SetByTag(string tag, object value)

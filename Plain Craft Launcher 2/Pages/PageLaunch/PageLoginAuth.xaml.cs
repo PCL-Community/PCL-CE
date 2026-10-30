@@ -4,10 +4,10 @@ using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.IO.Net.Http;
 using PCL.Core.Logging;
+using PCL.Core.Minecraft.Yggdrasil;
 using PCL.Core.Minecraft.Profile;
 using PCL.Core.Minecraft.Profile.Authentication;
 using PCL.Core.Minecraft.Profile.Models;
-using PCL.Core.Minecraft.Yggdrasil;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.Validate;
@@ -16,6 +16,8 @@ namespace PCL;
 
 public partial class PageLoginAuth
 {
+    private readonly PageLoginAuthViewModel _vm = new();
+
     public static string draggedAuthServer;
     public static bool? draggedAuthServerOAuthSupported;
 
@@ -38,6 +40,7 @@ public partial class PageLoginAuth
     public PageLoginAuth()
     {
         InitializeComponent();
+        DataContext = _vm;
         Loaded += (_, _) => Reload();
         Loaded += (_, _) => ReloadRegisterButton();
         // Handles
@@ -99,14 +102,7 @@ public partial class PageLoginAuth
             return;
         }
 
-        BtnLogin.IsEnabled = false;
-        BtnOAuth.IsEnabled = false;
-        BtnBack.IsEnabled = false;
-        BtnBackOAuth.IsEnabled = false;
-        BtnUsePassword.IsEnabled = false;
-        BtnUseOAuth.IsEnabled = false;
-        BtnWebsite.IsEnabled = false;
-        BtnPasswordWebsite.IsEnabled = false;
+        _vm.ControlsEnabled = false;
         Dispatcher.BeginInvoke(new Func<Task>(async () =>
         {
             var keepControlsDisabled = false;
@@ -128,7 +124,6 @@ public partial class PageLoginAuth
                     HintService.Hint(Lang.Text("Launch.Account.Auth.EmptyFields"), HintType.Error);
                     return;
                 }
-
                 var loginData = new GameLaunch.McLoginServer(GameLaunch.McLoginType.Auth)
                 {
                     BaseUrl = await ApiLocation.TryRequestAsync(_authServerUrl).ConfigureAwait(true),
@@ -138,7 +133,7 @@ public partial class PageLoginAuth
                 GameLaunch.mcLoginAuthLoader.Start(loginData, true);
                 while (GameLaunch.mcLoginAuthLoader.State == Common.LoadState.Loading)
                 {
-                    BtnLogin.Text = Lang.Number(GameLaunch.mcLoginAuthLoader.Progress, "P0");
+                    _vm.LoginButtonText = Lang.Number(GameLaunch.mcLoginAuthLoader.Progress, "P0");
                     await Task.Delay(50);
                 }
 
@@ -191,15 +186,8 @@ public partial class PageLoginAuth
     private void _FinishLoginAttempt()
     {
         ProfileService.IsCreatingProfile = false;
-        BtnLogin.IsEnabled = true;
-        BtnOAuth.IsEnabled = true;
-        BtnBack.IsEnabled = true;
-        BtnBackOAuth.IsEnabled = true;
-        BtnUsePassword.IsEnabled = true;
-        BtnUseOAuth.IsEnabled = true;
-        BtnWebsite.IsEnabled = true;
-        BtnPasswordWebsite.IsEnabled = true;
-        BtnLogin.Text = Lang.Text("Launch.Account.Auth.Login");
+        _vm.ControlsEnabled = true;
+        _vm.LoginButtonText = Lang.Text("Launch.Account.Auth.Login");
     }
 
     private void _SetLoginMode(bool useOAuth)
@@ -260,8 +248,8 @@ public partial class PageLoginAuth
     private void _UpdateOAuthEntryVisibility()
     {
         var isOAuthAvailable = _oauthSupported == true;
-        BtnUseOAuth.Visibility = isOAuthAvailable ? Visibility.Visible : Visibility.Collapsed;
-        BtnPasswordWebsite.SetValue(ColumnSpanProperty, isOAuthAvailable ? 1 : 3);
+        _vm.UseOAuthVisibility = isOAuthAvailable ? Visibility.Visible : Visibility.Collapsed;
+        BtnPasswordWebsite.SetValue(Grid.ColumnSpanProperty, isOAuthAvailable ? 1 : 3);
     }
 
     private async Task<bool> _TryStartYggdrasilConnectAsync()
@@ -269,22 +257,18 @@ public partial class PageLoginAuth
         var server = await ApiLocation.TryRequestAsync(_authServerUrl).ConfigureAwait(true);
         using var response = await HttpRequest.Create(server).SendAsync().ConfigureAwait(true);
         if (!response.IsSuccess) return false;
-        var metadata =
-            (JsonObject)Common.GetJson(await response.AsStringAsync().ConfigureAwait(true));
+        var metadata = (JsonObject)Common.GetJson(await response.AsStringAsync().ConfigureAwait(true));
         var discovery = metadata["meta"]?["feature.openid_configuration_url"]?.ToString()
                         ?? metadata["feature.openid_configuration_url"]?.ToString();
         if (string.IsNullOrWhiteSpace(discovery)) return false;
 
         using var discoveryResponse = await HttpRequest.Create(discovery).SendAsync().ConfigureAwait(true);
         if (!discoveryResponse.IsSuccess) return false;
-        var discoveryMetadata =
-            (JsonObject)Common.GetJson(await discoveryResponse.AsStringAsync()
-                .ConfigureAwait(true));
+        var discoveryMetadata = (JsonObject)Common.GetJson(await discoveryResponse.AsStringAsync().ConfigureAwait(true));
         var clientId = _GetClientId(server, discoveryMetadata);
         if (string.IsNullOrWhiteSpace(clientId)) return false;
 
-        Common.Log($"[Profile] Yggdrasil Connect client id resolved for {new Uri(server).Host}",
-            Common.LogLevel.Debug);
+        Common.Log($"[Profile] Yggdrasil Connect client id resolved for {new Uri(server).Host}", Common.LogLevel.Debug);
         _ = _CompleteYggdrasilConnectLoginAsync(server, discovery, clientId);
         return true;
     }
@@ -330,8 +314,7 @@ public partial class PageLoginAuth
         Common.RunInUiWait(() =>
         {
             var controls = candidates.Select(candidate => (IMyRadio)new MyRadioBox { Text = candidate.Name }).ToList();
-            var index =
-                Launcher.MyMsgBoxSelect(controls, Lang.Text("Launch.Account.Auth.ChangeProfile"));
+            var index = Launcher.MyMsgBoxSelect(controls, Lang.Text("Launch.Account.Auth.ChangeProfile"));
             if (index is >= 0 and < 100000) selected = candidates[index.Value];
         });
         return selected;
@@ -348,17 +331,14 @@ public partial class PageLoginAuth
             var server = await ApiLocation.TryRequestAsync(authServerUrl).ConfigureAwait(false);
             using var response = await HttpRequest.Create(server).SendAsync().ConfigureAwait(false);
             if (!response.IsSuccess) return false;
-            var metadata =
-                (JsonObject)Common.GetJson(await response.AsStringAsync().ConfigureAwait(false));
+            var metadata = (JsonObject)Common.GetJson(await response.AsStringAsync().ConfigureAwait(false));
             var discovery = metadata["meta"]?["feature.openid_configuration_url"]?.ToString()
                             ?? metadata["feature.openid_configuration_url"]?.ToString();
             if (string.IsNullOrWhiteSpace(discovery)) return false;
 
             using var discoveryResponse = await HttpRequest.Create(discovery).SendAsync().ConfigureAwait(false);
             if (!discoveryResponse.IsSuccess) return false;
-            var discoveryMetadata =
-                (JsonObject)Common.GetJson(await discoveryResponse.AsStringAsync()
-                    .ConfigureAwait(false));
+            var discoveryMetadata = (JsonObject)Common.GetJson(await discoveryResponse.AsStringAsync().ConfigureAwait(false));
             var clientId = _GetClientId(server, discoveryMetadata);
             var deviceEndpoint = discoveryMetadata["device_authorization_endpoint"]?.ToString();
             var tokenEndpoint = discoveryMetadata["token_endpoint"]?.ToString();
@@ -368,7 +348,7 @@ public partial class PageLoginAuth
         }
         catch (Exception ex)
         {
-            Common.Log(ex, "检测 Yggdrasil Connect 支持失败");
+            Common.Log(ex, "检测 Yggdrasil Connect 支持失败", Common.LogLevel.Debug);
             return false;
         }
     }
@@ -385,7 +365,7 @@ public partial class PageLoginAuth
     private void ComboName_TextChanged(object sender, TextChangedEventArgs e)
     {
         _isRegisterMode = string.IsNullOrEmpty(TextName.Text);
-        BtnLink.Content = _isRegisterMode
+        _vm.RegisterLinkContent = _isRegisterMode
             ? Lang.Text("Launch.Account.Auth.Register")
             : Lang.Text("Launch.Account.Auth.ForgotPassword");
     }

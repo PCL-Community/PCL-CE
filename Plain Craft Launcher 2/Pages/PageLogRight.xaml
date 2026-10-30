@@ -57,11 +57,13 @@
                     <local:MyIconTextButton x:Name="BtnOperationKill" Margin="5,0,0,0"
                                             Text="{DynamicResource LogPage.Action.KillProcess}"
                                             Click="BtnOperationKill_Click"
+                                            IsEnabled="{Binding IsKillEnabled}"
                                             LogoScale="0.85"
                                             SvgIcon="lucide/x" />
                     <local:MyIconTextButton x:Name="BtnOperationExportStackDump" Margin="5,0,0,0"
                                             Text="{DynamicResource LogPage.Action.ExportStack}"
                                             Click="BtnOperationExportStackDump_Click"
+                                            IsEnabled="{Binding IsExportStackDumpEnabled}"
                                             LogoScale="0.85"
                                             SvgIcon="lucide/package" />
                 </StackPanel>

@@ -1,25 +1,27 @@
 ﻿using System.IO;
 using System.Windows.Controls;
 using System.Windows.Input;
+using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Controls;
+using PCL.Core.Utils;
+using PCL.Core.IO.Net.Http;
 using PCL.Core.Logging;
 using PCL.Core.Minecraft.IdentityModel;
 using PCL.Core.Minecraft.IdentityModel.OAuth;
-using PCL.Core.UI.Controls;
-using PCL.Core.Utils;
 
 namespace PCL;
 
 public partial class MyMsgLogin
 {
-    private readonly JsonObject _data;
-    private string _userCode; // 需要用户在网页上输入的设备代码
-    private string _website; // 验证网页的网址
+    private readonly JsonObject data;
     private readonly CancellationTokenSource _cancellation = new();
+    private readonly MyMsgLoginViewModel _vm = new();
 
     public MyMsgLogin()
     {
         InitializeComponent();
+        DataContext = _vm;
         // Handles
         Loaded += Load;
         Btn1.Click += Btn1_Click;
@@ -30,12 +32,13 @@ public partial class MyMsgLogin
 
     private void Finished(object result)
     {
-        if (_myConverter.IsExited)
+        if (myConverter.IsExited)
             return;
-        _myConverter.IsExited = true;
+        myConverter.IsExited = true;
         _cancellation.Cancel();
-        _myConverter.Result = result;
-        _myConverter.CompletionHandler?.Invoke(result);
+        myConverter.Result = result;
+        myConverter.CompletionObject.TrySetResult(myConverter.Result);
+        myConverter.CompletionHandler?.Invoke(result);
         Common.RunInUi(Close);
         Thread.Sleep(200);
         Launcher.frmMain.ShowWindowToTop();
@@ -43,25 +46,12 @@ public partial class MyMsgLogin
 
     private void Init()
     {
-        _userCode = (string)_data["user_code"];
-        if (_data["verification_uri_complete"] is not null)
-        {
-            _website = (string)_data["verification_uri_complete"];
-            LabCaption.Text =
-                Lang.Text("Launch.Account.LoginDialog.MicrosoftInstructions.WithAutoFill",
-                    _userCode, _website);
-        }
-        else
-        {
-            _website = (string)_data["verification_uri"];
-            LabCaption.Text = Lang.Text("Launch.Account.LoginDialog.MicrosoftInstructions",
-                _userCode, _website);
-        }
+        _vm.Load(data);
 
         // 设置 UI
         LabTitle.Text = Lang.Text("Launch.Account.LoginDialog.MinecraftLogin");
-        CustomEventService.SetEventData(Btn1, _website);
-        CustomEventService.SetEventData(Btn2, _userCode);
+        CustomEventService.SetEventData(Btn1, _vm.Website);
+        CustomEventService.SetEventData(Btn2, _vm.UserCode);
         // 启动工作线程
         _ = WorkThreadAsync();
     }
@@ -73,27 +63,25 @@ public partial class MyMsgLogin
         {
             await Task.Delay(2000, token).ConfigureAwait(false);
         }
-        catch (OperationCanceledException) when (_myConverter.IsExited)
+        catch (OperationCanceledException) when (myConverter.IsExited)
         {
             return;
         }
-
-        if (_myConverter.IsExited)
+        if (myConverter.IsExited)
             return;
-        Common.OpenWebsite(_website);
-        Common.ClipboardSet(_userCode);
-        var device = _data.ToObject<DeviceCodeData>() ?? throw new InvalidDataException("设备授权数据无效");
+        Common.OpenWebsite(_vm.Website);
+        Common.ClipboardSet(_vm.UserCode);
+        var device = data.ToObject<DeviceCodeData>() ?? throw new InvalidDataException("设备授权数据无效");
         var delayTime = TimeSpan.FromSeconds(device.Interval ?? 5);
         // 轮询
         var unknownFailureCount = 0;
-        while (!_myConverter.IsExited && !token.IsCancellationRequested)
+        while (!myConverter.IsExited && !token.IsCancellationRequested)
         {
             try
             {
-                if (_myConverter.DeviceCodePoll is null)
+                if (myConverter.DeviceCodePoll is null)
                     throw new InvalidOperationException("设备授权没有配置轮询处理程序。");
-                var resultJson =
-                    await _myConverter.DeviceCodePoll(_data, token).ConfigureAwait(false);
+                var resultJson = await myConverter.DeviceCodePoll(data, token).ConfigureAwait(false);
                 token.ThrowIfCancellationRequested();
                 if (resultJson is { IsError: true })
                 {
@@ -128,12 +116,11 @@ public partial class MyMsgLogin
                 }
                 // 获取结果
                 if (resultJson is null) throw new InvalidDataException("微软令牌返回为空");
-                if (_myConverter.LoginResultHandler is not null)
+                if (myConverter.LoginResultHandler is not null)
                 {
                     try
                     {
-                        await _myConverter.LoginResultHandler(resultJson, token)
-                            .ConfigureAwait(false);
+                        await myConverter.LoginResultHandler(resultJson, token).ConfigureAwait(false);
                         token.ThrowIfCancellationRequested();
                     }
                     catch (Exception handlerException)
@@ -147,7 +134,7 @@ public partial class MyMsgLogin
                 Finished(new[] { resultJson.AccessToken ?? string.Empty, resultJson.RefreshToken ?? string.Empty });
                 return;
             }
-            catch (OperationCanceledException) when (_myConverter.IsExited)
+            catch (OperationCanceledException) when (myConverter.IsExited)
             {
                 return;
             }
@@ -162,7 +149,7 @@ public partial class MyMsgLogin
                     {
                         await Task.Delay(2000, token).ConfigureAwait(false);
                     }
-                    catch (OperationCanceledException) when (_myConverter.IsExited)
+                    catch (OperationCanceledException) when (myConverter.IsExited)
                     {
                         return;
                     }
@@ -177,21 +164,23 @@ public partial class MyMsgLogin
     }
 
 
-    private readonly Launcher.MyMsgBoxConverter _myConverter;
-    private readonly int _uuid = Common.GetUuid();
     #region 弹窗
+
+    private readonly Launcher.MyMsgBoxConverter myConverter;
+    private readonly int uuid = Common.GetUuid();
 
     public MyMsgLogin(Launcher.MyMsgBoxConverter converter)
     {
         try
         {
             InitializeComponent();
+            DataContext = _vm;
             Btn1.Name += Common.GetUuid();
             Btn2.Name += Common.GetUuid();
             Btn3.Name += Common.GetUuid();
-            _myConverter = converter;
+            myConverter = converter;
             ShapeLine.StrokeThickness = Common.GetWpfSize(1d);
-            _data = (JsonObject)converter.Content;
+            data = (JsonObject)converter.Content;
             Init();
         }
         catch (Exception ex)
@@ -214,24 +203,22 @@ public partial class MyMsgLogin
             Opacity = 0d;
             Animations.AniStart(
                 Animations.AaColor(Launcher.frmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
-                    (_myConverter.IsWarn
+                    (myConverter.IsWarn
                         ? new Common.MyColor(140d, 80d, 0d, 0d)
-                        : new Common.MyColor(90d, 0d, 0d, 0d)) -
-                    Launcher.frmMain.PanMsgBackground.Background, 200),
+                        : new Common.MyColor(90d, 0d, 0d, 0d)) - Launcher.frmMain.PanMsgBackground.Background, 200),
                 "PanMsgBackground Background");
             Animations.AniStart(
                 new[]
                 {
                     Animations.AaOpacity(this, 1d, 120, 60),
                     Animations.AaDouble(i => TransformPos.Y += (double)i,
-                        -TransformPos.Y, 300, 60,
-                        new Animations.AniEaseOutBack(Animations.AniEasePower.Weak)),
+                        -TransformPos.Y, 300, 60, new Animations.AniEaseOutBack(Animations.AniEasePower.Weak)),
                     Animations.AaDouble(i => TransformRotate.Angle += (double)i,
                         -TransformRotate.Angle, 300, 60,
                         new Animations.AniEaseOutFluent(Animations.AniEasePower.Weak))
-                }, "MyMsgBox " + _uuid);
+                }, "MyMsgBox " + uuid);
             // 记录日志
-            Common.Log($"[Control] 正版验证弹窗：{LabTitle.Text}\r\n{LabCaption.Text}");
+            Common.Log($"[Control] 正版验证弹窗：{LabTitle.Text}\r\n{_vm.CaptionText}");
         }
         catch (Exception ex)
         {
@@ -253,21 +240,18 @@ public partial class MyMsgLogin
                 if (!Launcher.WaitingMyMsgBox.Any())
                     Animations.AniStart(Animations.AaColor(Launcher.frmMain.PanMsgBackground,
                         BlurBorder.BackgroundProperty,
-                        new Common.MyColor(0d, 0d, 0d, 0d) -
-                        Launcher.frmMain.PanMsgBackground.Background, 200,
+                        new Common.MyColor(0d, 0d, 0d, 0d) - Launcher.frmMain.PanMsgBackground.Background, 200,
                         ease: new Animations.AniEaseOutFluent(Animations.AniEasePower.Weak)));
             }, 30),
             Animations.AaOpacity(this, -Opacity, 80, 20),
             Animations.AaDouble(i => TransformPos.Y += (double)i, 20d - TransformPos.Y,
                 150, 0, new Animations.AniEaseOutFluent()),
             Animations.AaDouble(i => TransformRotate.Angle += (double)i,
-                6d - TransformRotate.Angle, 150, 0,
-                new Animations.AniEaseInFluent(Animations.AniEasePower.Weak)),
+                6d - TransformRotate.Angle, 150, 0, new Animations.AniEaseInFluent(Animations.AniEasePower.Weak)),
             Animations.AaCode(() => ((Grid)Parent).Children.Remove(this), after: true)
-        }, "MyMsgBox " + _uuid);
+        }, "MyMsgBox " + uuid);
     }
 
-    // 实现回车和 Esc 的接口
     // 实现回车和 Esc 的接口（#4857）
     public void Btn1_Click(object sender, MouseButtonEventArgs e)
     {
@@ -284,6 +268,6 @@ public partial class MyMsgLogin
         if (e.GetPosition(ShapeLine).Y <= 2d)
             Launcher.frmMain.DragMove();
     }
-    #endregion
 
+    #endregion
 }

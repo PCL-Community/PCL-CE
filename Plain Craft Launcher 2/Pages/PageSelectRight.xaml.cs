@@ -6,23 +6,26 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.FileIO;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Configuration.Storage;
-using PCL.Core.App.Localization;
 using FileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
+using PCL.Core.App.Localization;
+using PCL.Core.UI;
 
 namespace PCL;
 
 public partial class PageSelectRight
 {
-    private const int NormalDelay = 75; // 正常输入延迟0.075秒
-    private const int QuickDelay = 50; // 清空搜索框延迟0.05秒
-    private bool _isRefreshing;
+    private readonly PageSelectRightViewModel _vm = new();
+    private const int normalDelay = 75; // 正常输入延迟0.075秒
+    private const int quickDelay = 50; // 清空搜索框延迟0.05秒
+    private bool isRefreshing;
 
-    private DateTime _lastInputTime = DateTime.MinValue;
-    private DispatcherTimer _reloadTimer;
+    private DateTime lastInputTime = DateTime.MinValue;
+    private DispatcherTimer reloadTimer;
 
     // 窗口属性
     /// <summary>
@@ -33,6 +36,7 @@ public partial class PageSelectRight
     public PageSelectRight()
     {
         InitializeComponent();
+        DataContext = _vm;
         PanVerSearchBox.HintText = Lang.Text("Select.Instance.Search.Hint");
         Loaded += PageSelectRight_Loaded;
         Unloaded += PageSelectRight_Unloaded;
@@ -47,69 +51,68 @@ public partial class PageSelectRight
         PanBack.ScrollToHome();
         PanVerSearchBox.TextChanged += (a, b) => PanVerSearchBox_TextChanged(a, (TextChangedEventArgs)b);
 
-        _reloadTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(NormalDelay) };
-        _reloadTimer.Tick += ReloadTimer_Tick;
+        reloadTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(normalDelay) };
+        reloadTimer.Tick += ReloadTimer_Tick;
     }
 
     private void PanVerSearchBox_TextChanged(object sender, TextChangedEventArgs e)
     {
         // 记录最后一次输入时间
-        _lastInputTime = DateTime.Now;
+        lastInputTime = DateTime.Now;
 
-        _isRefreshing = false;
+        isRefreshing = false;
 
         // 动态调整延迟时间
         if (string.IsNullOrWhiteSpace(PanVerSearchBox.Text))
         {
-            if (_reloadTimer.Interval.TotalMilliseconds != QuickDelay)
-                _reloadTimer.Interval = TimeSpan.FromMilliseconds(QuickDelay);
+            if (reloadTimer.Interval.TotalMilliseconds != quickDelay)
+                reloadTimer.Interval = TimeSpan.FromMilliseconds(quickDelay);
         }
-        else if (_reloadTimer.Interval.TotalMilliseconds != NormalDelay)
+        else if (reloadTimer.Interval.TotalMilliseconds != normalDelay)
         {
-            _reloadTimer.Interval = TimeSpan.FromMilliseconds(NormalDelay);
+            reloadTimer.Interval = TimeSpan.FromMilliseconds(normalDelay);
         }
 
 
-        if (!_reloadTimer.IsEnabled) _reloadTimer.Start();
+        if (!reloadTimer.IsEnabled) reloadTimer.Start();
     }
 
     private void ReloadTimer_Tick(object sender, EventArgs e)
     {
         // 检查是否超过当前设定的延迟时间没有新输入
-        var elapsed = (DateTime.Now - _lastInputTime).TotalMilliseconds;
-        var currentDelay = _reloadTimer.Interval.TotalMilliseconds;
+        var elapsed = (DateTime.Now - lastInputTime).TotalMilliseconds;
+        var currentDelay = reloadTimer.Interval.TotalMilliseconds;
 
-        if (elapsed >= currentDelay &&
-            InstanceList.mcInstanceListLoader.State == Common.LoadState.Finished &&
-            !_isRefreshing)
+        if (elapsed >= currentDelay && InstanceList.mcInstanceListLoader.State == Common.LoadState.Finished &&
+            !isRefreshing)
         {
-            _isRefreshing = true;
+            isRefreshing = true;
 
             // 确保在UI线程执行刷新
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 McInstanceListUI(InstanceList.mcInstanceListLoader);
-                _isRefreshing = false;
+                isRefreshing = false;
             }));
-            _reloadTimer.Stop();
+            reloadTimer.Stop();
         }
     }
 
     private void PageSelectRight_Unloaded(object sender, RoutedEventArgs e)
     {
         // 清理计时器
-        if (_reloadTimer is not null)
+        if (reloadTimer is not null)
         {
-            _reloadTimer.Stop();
-            _reloadTimer.Tick -= ReloadTimer_Tick;
-            _reloadTimer = null;
+            reloadTimer.Stop();
+            reloadTimer.Tick -= ReloadTimer_Tick;
+            reloadTimer = null;
         }
     }
 
     private void LoaderInit()
     {
         PageLoaderInit(Load, PanLoad, PanAllBack, null, InstanceList.mcInstanceListLoader,
-            a => McInstanceListUI((Loading.LoaderTask<string, int>)a),
+            a => this.McInstanceListUI((Loading.LoaderTask<string, int>)a),
             autoRun: false);
     }
 
@@ -133,24 +136,16 @@ public partial class PageSelectRight
             var hasVisibleFolders = false;
             var searchText = PanVerSearchBox.Text.Trim().ToLower(); // 获取搜索框文本
             var hasAnyResults = false;
-            var originalHasInstances =
-                InstanceList.mcInstanceList.ToArray().Any(c => c.Value.Count > 0);
+            var originalHasInstances = InstanceList.mcInstanceList.ToArray().Any(c => c.Value.Count > 0);
 
             // 搜索无结果时显示 PanEmptySearch
-            PanEmptySearch.Visibility = Visibility.Collapsed; // 默认隐藏
+            _vm.EmptySearchPanelVisibility = Visibility.Collapsed; // 默认隐藏
 
             foreach (var Card in InstanceList.mcInstanceList.ToArray())
             {
                 if ((Card.Key == McInstanceCardType.Hidden) ^ showHidden)
                     continue;
-                var filteredInstances = Card.Value.Where(v =>
-                {
-                    if (string.IsNullOrEmpty(searchText))
-                        return true;
-                    return v.Name.ToLower().Contains(searchText) ||
-                           (v.Desc is not null && v.Desc.ToLower().Contains(searchText)) || v.GetDefaultDescription()
-                               .Replace(",", "").ToLower().Trim().Contains(searchText);
-                }).ToList();
+                var filteredInstances = Card.Value.Where(v => _vm.MatchesSearch(v, searchText)).ToList();
                 if (filteredInstances.Count == 0)
                     continue;
 
@@ -292,7 +287,7 @@ public partial class PageSelectRight
             if (PanMain.Children.Count == 1 && ((MyCard)PanMain.Children[0]).IsSwapped)
                 ((MyCard)PanMain.Children[0]).IsSwapped = false;
 
-            PanVerSearchBox.Visibility = hasVisibleFolders ? Visibility.Visible : Visibility.Collapsed;
+            _vm.SearchBoxVisibility = hasVisibleFolders ? Visibility.Visible : Visibility.Collapsed;
 
             // 判断应该显示哪一个页面
             if (!hasAnyResults)
@@ -300,19 +295,19 @@ public partial class PageSelectRight
                 if (!originalHasInstances)
                 {
                     // 完全没有实例的情况
-                    PanEmpty.Visibility = Visibility.Visible;
-                    PanBack.Visibility = Visibility.Collapsed;
+                    _vm.EmptyPanelVisibility = Visibility.Visible;
+                    _vm.BackVisibility = Visibility.Collapsed;
                     if (showHidden)
                     {
-                        LabEmptyTitle.Text = Lang.Text("Select.Instance.Hidden.EmptyTitle");
-                        LabEmptyContent.Text = Lang.Text("Select.Instance.Hidden.EmptyMessage");
-                        BtnEmptyDownload.Visibility = Visibility.Collapsed;
+                        _vm.EmptyTitle = Lang.Text("Select.Instance.Hidden.EmptyTitle");
+                        _vm.EmptyContent = Lang.Text("Select.Instance.Hidden.EmptyMessage");
+                        _vm.EmptyDownloadVisibility = Visibility.Collapsed;
                     }
                     else
                     {
-                        LabEmptyTitle.Text = Lang.Text("Select.Instance.Empty.Title");
-                        LabEmptyContent.Text = Lang.Text("Select.Instance.Empty.Message");
-                        BtnEmptyDownload.Visibility =
+                        _vm.EmptyTitle = Lang.Text("Select.Instance.Empty.Title");
+                        _vm.EmptyContent = Lang.Text("Select.Instance.Empty.Message");
+                        _vm.EmptyDownloadVisibility =
                             Config.Preference.Hide.PageDownload && !PageSetupUI.HiddenForceShow
                                 ? Visibility.Collapsed
                                 : Visibility.Visible;
@@ -323,43 +318,43 @@ public partial class PageSelectRight
                              c.Key == McInstanceCardType.Hidden && c.Value.Count > 0))
                 {
                     // 有隐藏实例但搜索无结果 - 显示搜索无结果提示
-                    PanVerSearchBox.Visibility = Visibility.Visible;
-                    PanEmpty.Visibility = Visibility.Collapsed;
-                    PanBack.Visibility = Visibility.Visible;
-                    PanEmptySearch.Visibility = Visibility.Visible;
-                    LabEmptySearchTitle.Text = Lang.Text("Select.Instance.Hidden.EmptySearchTitle");
-                    LabEmptySearchContent.Text = string.IsNullOrWhiteSpace(searchText)
+                    _vm.SearchBoxVisibility = Visibility.Visible;
+                    _vm.EmptyPanelVisibility = Visibility.Collapsed;
+                    _vm.BackVisibility = Visibility.Visible;
+                    _vm.EmptySearchPanelVisibility = Visibility.Visible;
+                    _vm.EmptySearchTitle = Lang.Text("Select.Instance.Hidden.EmptySearchTitle");
+                    _vm.EmptySearchContent = string.IsNullOrWhiteSpace(searchText)
                         ? Lang.Text("Select.Instance.Search.EmptyInput")
                         : Lang.Text("Select.Instance.Search.NoHiddenResult", searchText);
                 }
                 else if (showHidden)
                 {
                     // 无隐藏实例 - 显示"无隐藏实例"提示
-                    PanEmpty.Visibility = Visibility.Visible;
-                    PanBack.Visibility = Visibility.Collapsed;
-                    LabEmptyTitle.Text = Lang.Text("Select.Instance.Hidden.EmptyTitle");
-                    LabEmptyContent.Text = Lang.Text("Select.Instance.Hidden.EmptyMessage");
-                    BtnEmptyDownload.Visibility = Visibility.Collapsed;
-                    PanVerSearchBox.Visibility = Visibility.Collapsed;
+                    _vm.EmptyPanelVisibility = Visibility.Visible;
+                    _vm.BackVisibility = Visibility.Collapsed;
+                    _vm.EmptyTitle = Lang.Text("Select.Instance.Hidden.EmptyTitle");
+                    _vm.EmptyContent = Lang.Text("Select.Instance.Hidden.EmptyMessage");
+                    _vm.EmptyDownloadVisibility = Visibility.Collapsed;
+                    _vm.SearchBoxVisibility = Visibility.Collapsed;
                 }
                 else
                 {
                     // 普通模式下的搜索无结果
-                    PanVerSearchBox.Visibility = Visibility.Visible;
-                    PanEmpty.Visibility = Visibility.Collapsed;
-                    PanBack.Visibility = Visibility.Visible;
-                    PanEmptySearch.Visibility = Visibility.Visible;
-                    LabEmptySearchTitle.Text = Lang.Text("Select.Instance.EmptySearch.Title");
-                    LabEmptySearchContent.Text = string.IsNullOrWhiteSpace(searchText)
+                    _vm.SearchBoxVisibility = Visibility.Visible;
+                    _vm.EmptyPanelVisibility = Visibility.Collapsed;
+                    _vm.BackVisibility = Visibility.Visible;
+                    _vm.EmptySearchPanelVisibility = Visibility.Visible;
+                    _vm.EmptySearchTitle = Lang.Text("Select.Instance.EmptySearch.Title");
+                    _vm.EmptySearchContent = string.IsNullOrWhiteSpace(searchText)
                         ? Lang.Text("Select.Instance.Search.EmptyInput")
                         : Lang.Text("Select.Instance.Search.NoResult", searchText);
                 }
             }
             else
             {
-                PanBack.Visibility = Visibility.Visible;
-                PanEmpty.Visibility = Visibility.Collapsed;
-                PanEmptySearch.Visibility = Visibility.Collapsed;
+                _vm.BackVisibility = Visibility.Visible;
+                _vm.EmptyPanelVisibility = Visibility.Collapsed;
+                _vm.EmptySearchPanelVisibility = Visibility.Collapsed;
             } // 有结果时隐藏
         }
 
@@ -475,12 +470,12 @@ public partial class PageSelectRight
             ToolTipService.SetHorizontalOffset(btnCont, 2d);
             btnCont.Click += (_, _) =>
             {
-                PageInstanceLeft.mcInstance = version;
+                PageInstanceLeft.McInstance = version;
                 Launcher.frmMain.PageChange(FormMain.PageType.InstanceSetup);
             };
             sender.MouseRightButtonUp += (_, _) =>
             {
-                PageInstanceLeft.mcInstance = version;
+                PageInstanceLeft.McInstance = version;
                 Launcher.frmMain.PageChange(FormMain.PageType.InstanceSetup);
             };
             sender.Buttons = new[] { btnStar, btnOpenFolder, btnDel, btnCont };
@@ -522,8 +517,7 @@ public partial class PageSelectRight
 
     private void BtnDownload_Click(object sender, MouseButtonEventArgs e)
     {
-        Launcher.frmMain.PageChange(FormMain.PageType.Download,
-            FormMain.PageSubType.DownloadInstall);
+        Launcher.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadInstall);
     }
 
     // 修改此代码时，同时修改 PageInstanceOverall 中的代码
@@ -539,8 +533,7 @@ public partial class PageSelectRight
                 : Lang.Text("Select.Instance.Delete.ConfirmMessage", mcInstance.Name);
             var confirmFullMsg = confirmMsg +
                                  (isHintIndie ? "\r\n" + Lang.Text("Select.Instance.Delete.IsolatedWarning") : "");
-            switch (Launcher.MyMsgBox(confirmFullMsg,
-                        Lang.Text("Select.Instance.Delete.ConfirmTitle"),
+            switch (Launcher.MyMsgBox(confirmFullMsg, Lang.Text("Select.Instance.Delete.ConfirmTitle"),
                         button2: Lang.Text("Common.Action.Cancel"), isWarn: true))
             {
                 case 1:
@@ -582,29 +575,24 @@ public partial class PageSelectRight
                     card.Title = card.Title.Replace(Lang.Number(parent.Children.Count - 1, "N0"),
                         Lang.Number(parent.Children.Count - 2, "N0")); // 有一个占位符
                     parent.Children.Remove(item);
-                    if (InstanceList.McMcInstanceSelected is not null &&
-                        (mcInstance.PathInstance ?? "") ==
+                    if (InstanceList.McMcInstanceSelected is not null && (mcInstance.PathInstance ?? "") ==
                         (InstanceList.McMcInstanceSelected.PathInstance ?? ""))
                         // 删除当前实例就更改选择
-                        InstanceList.McMcInstanceSelected =
-                            (McInstance)((MyListItem)parent.Children[0]).Tag;
-                    Loading.LoaderFolderRun(InstanceList.mcInstanceListLoader,
-                        GameFolders.mcFolderSelected,
+                        InstanceList.McMcInstanceSelected = (McInstance)((MyListItem)parent.Children[0]).Tag;
+                    Loading.LoaderFolderRun(InstanceList.mcInstanceListLoader, GameFolders.mcFolderSelected,
                         Loading.LoaderFolderRunType.UpdateOnly, 1, @"versions\");
                 }
                 else
                 {
                     // 删除后没剩了
-                    Loading.LoaderFolderRun(InstanceList.mcInstanceListLoader,
-                        GameFolders.mcFolderSelected,
+                    Loading.LoaderFolderRun(InstanceList.mcInstanceListLoader, GameFolders.mcFolderSelected,
                         Loading.LoaderFolderRunType.ForceRun, 1, @"versions\");
                 }
             }
             else
             {
                 // 同时出现在当前卡片与收藏夹
-                Loading.LoaderFolderRun(InstanceList.mcInstanceListLoader,
-                    GameFolders.mcFolderSelected,
+                Loading.LoaderFolderRun(InstanceList.mcInstanceListLoader, GameFolders.mcFolderSelected,
                     Loading.LoaderFolderRunType.ForceRun, 1, @"versions\");
             }
         }
@@ -624,14 +612,10 @@ public partial class PageSelectRight
 
     public void BtnEmptyDownload_Loaded()
     {
-        var newVisibility = (Config.Preference.Hide.PageDownload && !PageSetupUI.HiddenForceShow) || showHidden
-            ? Visibility.Collapsed
-            : Visibility.Visible;
-        if (BtnEmptyDownload.Visibility != newVisibility)
-        {
-            BtnEmptyDownload.Visibility = newVisibility;
+        var oldVisibility = _vm.EmptyDownloadVisibility;
+        _vm.RefreshEmptyDownloadVisibility(showHidden);
+        if (_vm.EmptyDownloadVisibility != oldVisibility)
             PanLoad.TriggerForceResize();
-        }
     }
 
     #endregion

@@ -7,7 +7,7 @@ using PCL.Core.App.Localization;
 
 namespace PCL;
 
-public partial class PageSetupFeedback
+public partial class PageSetupFeedback : IPageView
 {
     public enum TagId : long
     {
@@ -22,9 +22,10 @@ public partial class PageSetupFeedback
         Upnext = 8550609020L
     }
 
-    private bool _isLoaded;
-
     public Loading.LoaderTask<bool, List<Feedback>> Loader;
+
+    private readonly PageSetupFeedbackViewModel _vm = new();
+    private bool _refreshed;
 
     private static readonly Dictionary<string, (Func<PageSetupFeedback, StackPanel> Panel, string Icon)> TagMap = new()
     {
@@ -42,62 +43,36 @@ public partial class PageSetupFeedback
     public PageSetupFeedback()
     {
         InitializeComponent();
+        DataContext = _vm;
         Loader = new Loading.LoaderTask<bool, List<Feedback>>("FeedbackList", FeedbackListGet);
         Loaded += PageOtherFeedback_Loaded;
+        Unloaded += PageOtherFeedback_Unloaded;
     }
 
-    private void PageOtherFeedback_Loaded(object sender, RoutedEventArgs e)
+    public PageSetupFeedbackViewModel ViewModel => _vm;
+
+    public void OnNavigatedTo(object? parameter) => Refresh();
+
+    public void OnNavigatedFrom()
     {
-        PageLoaderInit(Load, PanLoad, PanContent, PanInfo, Loader, _ => RefreshList());
-        // 重复加载部分
+    }
+
+    private void PageOtherFeedback_Loaded(object sender, RoutedEventArgs e) => Refresh();
+
+    private void PageOtherFeedback_Unloaded(object sender, RoutedEventArgs e) => _refreshed = false;
+
+    private void Refresh()
+    {
         PanBack.ScrollToHome();
-        // 非重复加载部分
-        if (_isLoaded)
+        if (_refreshed)
             return;
-        _isLoaded = true;
+        _refreshed = true;
+        PageLoaderInit(Load, PanLoad, PanContent, PanInfo, Loader, _ => RefreshList());
     }
 
     public void FeedbackListGet(Loading.LoaderTask<bool, List<Feedback>> task)
     {
-        var list = Requester.FetchJson(
-            "https://api.github.com/repos/PCL-Community/PCL2-CE/issues?state=all&sort=created&per_page=200",
-            new RequestParam
-            {
-                Retries = 3,
-                UseBrowserUserAgent = true
-            }) as JsonArray; // 获取近期 200 条数据就够了
-        if (list is null)
-            throw new Exception(Lang.Text("Setup.Feedback.LoadFailed"));
-        var res = new List<Feedback>();
-        foreach (var i in list)
-        {
-            if (i is not JsonObject issue) continue;
-            var pullRequestToken = issue["pull_request"];
-            if (pullRequestToken is not null && pullRequestToken.GetValueKind() != JsonValueKind.Null) continue;
-
-            var item = issue.Deserialize<Feedback>()!;
-            item.User = issue["user"]!["login"]!.ToString();
-            item.Id = issue["number"]!.ToString();
-
-            var issueType = Lang.Text("Setup.Feedback.Uncategorized");
-            var typeToken = issue["type"];
-            if (typeToken is not null && typeToken.GetValueKind() == JsonValueKind.Object)
-            {
-                var typeNameToken = typeToken["name"];
-                if (typeNameToken is not null) issueType = typeNameToken.ToString().ToLower();
-            }
-
-            item.Type = issueType;
-
-            if (issue["labels"] is JsonArray thisTags)
-                foreach (var thisTag in thisTags)
-                    if (thisTag is JsonObject tagObj)
-                        item.Tags.Add(tagObj["id"]!.ToString());
-
-            res.Add(item);
-        }
-
-        task.output = res;
+        task.output = _vm.FetchFeedbackList();
     }
 
     private MyListItem CreateFeedbackItem(Feedback item, string logo)
@@ -133,11 +108,6 @@ public partial class PageSetupFeedback
         }
     }
 
-    private void SetPanelVisibility(StackPanel panel, MyCard card)
-    {
-        card.Visibility = panel.Children.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
-    }
-
     public void RefreshList()
     {
         PanListProcessing.Children.Clear();
@@ -150,25 +120,14 @@ public partial class PageSetupFeedback
         PanListIgnored.Children.Clear();
         PanListDuplicate.Children.Clear();
 
-        foreach (var item in Loader.output)
-        {
-            var tag = item.Tags.Find(TagMap.ContainsKey);
-            if (tag is not null)
-            {
-                var (panel, icon) = TagMap[tag];
-                panel(this).Children.Add(CreateFeedbackItem(item, icon));
-            }
-        }
+        _vm.SetItems(Loader.output);
 
-        SetPanelVisibility(PanListProcessing, PanContentProcessing);
-        SetPanelVisibility(PanListWaitingProcess, PanContentWaitingProcess);
-        SetPanelVisibility(PanListWait, PanContentWait);
-        SetPanelVisibility(PanListPause, PanContentPause);
-        SetPanelVisibility(PanListUpnext, PanContentUpnext);
-        SetPanelVisibility(PanListCompleted, PanContentCompleted);
-        SetPanelVisibility(PanListDecline, PanContentDecline);
-        SetPanelVisibility(PanListIgnored, PanContentIgnored);
-        SetPanelVisibility(PanListDuplicate, PanContentDuplicate);
+        foreach (var entry in _vm.Items)
+        {
+            if (!TagMap.TryGetValue(entry.Tag, out var target))
+                continue;
+            target.Panel(this).Children.Add(CreateFeedbackItem(entry.Feedback, target.Icon));
+        }
     }
 
     private void Feedback_Click(object sender, MouseButtonEventArgs e)

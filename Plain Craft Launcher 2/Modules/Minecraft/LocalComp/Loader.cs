@@ -272,11 +272,11 @@ public static partial class LocalComp
         if ((file.DirectoryName ?? "").Equals(rawName, StringComparison.CurrentCultureIgnoreCase))
             return false;
 
-        return !(PageInstanceLeft.mcInstance is not null
-            && PageInstanceLeft.mcInstance.Info.HasForge
-            && PageInstanceLeft.mcInstance.Info.Drop < 130
+        return !(PageInstanceLeft.McInstance is not null
+            && PageInstanceLeft.McInstance.Info.HasForge
+            && PageInstanceLeft.McInstance.Info.Drop < 130
             && (file.Directory?.Name ?? "")
-            == (PageInstanceLeft.mcInstance.Info.VanillaName ?? ""));
+            == (PageInstanceLeft.McInstance.Info.VanillaName ?? ""));
     }
 
     private static void UpdateResourceListProgress(

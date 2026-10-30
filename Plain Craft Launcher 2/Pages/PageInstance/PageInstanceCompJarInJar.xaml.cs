@@ -1,4 +1,7 @@
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -9,6 +12,7 @@ namespace PCL;
 
 public partial class PageInstanceCompJarInJar
 {
+    private readonly PageInstanceCompJarInJarViewModel _vm = new();
     private JarInJarIndex _index = null!;
     private string? _instanceMc;
     private string _search = "";
@@ -16,6 +20,7 @@ public partial class PageInstanceCompJarInJar
     public PageInstanceCompJarInJar()
     {
         InitializeComponent();
+        DataContext = _vm;
         BtnBack.Click += (_, _) => GoBack();
         BtnEmptyBack.Click += (_, _) => GoBack();
         BtnRefresh.Click += (_, _) => RefreshList();
@@ -26,6 +31,8 @@ public partial class PageInstanceCompJarInJar
         };
         Loaded += (_, _) => RefreshList();
     }
+
+    public PageInstanceCompJarInJarViewModel ViewModel => _vm;
 
     private bool _Match(CompFile m)
     {
@@ -40,9 +47,7 @@ public partial class PageInstanceCompJarInJar
         embedded is not null && embedded.Any(e => _Match(e) || _AnyEmbeddedMatch(e.EmbeddedMods));
 
     private static void GoBack()
-    {
-        Launcher.frmInstanceLeft?.PageChange(FormMain.PageSubType.VersionMod);
-    }
+        => Launcher.frmInstanceLeft?.PageChange(FormMain.PageSubType.VersionMod);
 
     /// <summary>后台内嵌解析完成后刷新当前页。</summary>
     public void OnJijResolved()
@@ -64,9 +69,9 @@ public partial class PageInstanceCompJarInJar
         var allMods = output
             .Where(m => !m.IsFolder && m.State != CompFile.LocalFileStatus.Unavailable)
             .ToList();
-        _instanceMc = PageInstanceLeft.mcInstance?.Info?.VanillaName;
+        _instanceMc = PageInstanceLeft.McInstance?.Info?.VanillaName;
         _index = new JarInJarIndex(allMods, _instanceMc);
-        PanLoad.Visibility = Visibility.Collapsed;
+        _vm.HideLoading();
 
         PanWarnList.Children.Clear();
         foreach (var host in allMods)
@@ -79,7 +84,6 @@ public partial class PageInstanceCompJarInJar
         }
 
         var hasWarning = PanWarnList.Children.Count > 0;
-        CardWarnings.Visibility = hasWarning ? Visibility.Visible : Visibility.Collapsed;
 
         PanConflictList.Children.Clear();
         var conflictCount = 0;
@@ -89,8 +93,6 @@ public partial class PageInstanceCompJarInJar
             PanConflictList.Children.Add(_MakeConflictRow(a, b, hard));
             conflictCount++;
         }
-
-        CardConflicts.Visibility = conflictCount > 0 ? Visibility.Visible : Visibility.Collapsed;
 
         PanRelationList.Children.Clear();
         var relationCount = 0;
@@ -115,21 +117,16 @@ public partial class PageInstanceCompJarInJar
             }
         }
 
-        SectionRelations.Visibility = relationCount > 0 ? Visibility.Visible : Visibility.Collapsed;
-
         PanBundledList.Children.Clear();
         var bundledMods = allMods
             .Where(m => m.EmbeddedMods is { Count: > 0 } && (_Match(m) || _AnyEmbeddedMatch(m.EmbeddedMods)))
             .ToList();
         foreach (var mod in bundledMods)
             PanBundledList.Children.Add(_MakeCard(mod, _BuildBundledContent));
-        SectionBundled.Visibility = bundledMods.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
 
         // 搜索无结果时不显示"没有模组"空态（避免误导为实例本身没有），仅留空白
-        PanEmpty.Visibility =
-            hasWarning || conflictCount > 0 || relationCount > 0 || bundledMods.Count > 0 || _search.Length > 0
-                ? Visibility.Collapsed
-                : Visibility.Visible;
+        _vm.ApplySectionVisibility(hasWarning, conflictCount, relationCount, bundledMods.Count,
+            _search.Length > 0);
     }
 
     private MyCard _MakeCard(CompFile mod, Action<StackPanel, CompFile> build, string? title = null)
@@ -170,15 +167,15 @@ public partial class PageInstanceCompJarInJar
         if (missing.Count > 0)
             PanWarnList.Children.Add(_Text(
                 Lang.Text("Instance.Resource.Mod.JarInJar.Warning.Missing", name, string.Join(", ", missing)),
-                BrushError));
+                _BrushError));
         if (mismatch.Count > 0)
             PanWarnList.Children.Add(_Text(
                 Lang.Text("Instance.Resource.Mod.JarInJar.Warning.VersionMismatch", name, string.Join(", ", mismatch)),
-                BrushWarn));
+                _BrushWarn));
         if (disabled.Count > 0)
             PanWarnList.Children.Add(_Text(
                 Lang.Text("Instance.Resource.Mod.JarInJar.Warning.Disabled", name, string.Join(", ", disabled)),
-                BrushWarn));
+                _BrushWarn));
     }
 
     private Panel _MakeConflictRow(CompFile a, CompFile b, bool hard)
@@ -188,15 +185,14 @@ public partial class PageInstanceCompJarInJar
             Lang.Text(hard
                 ? "Instance.Resource.Mod.JarInJar.Conflict.Incompatible"
                 : "Instance.Resource.Mod.JarInJar.Conflict.Discouraged"),
-            hard ? BrushError : BrushWarn));
+            hard ? _BrushError : _BrushWarn));
         row.Children.Add(_TextRes(
             "  " + Lang.Text("Instance.Resource.Mod.JarInJar.Conflict.Pair", _DisplayName(a), _DisplayName(b)),
             "ColorBrush1"));
         return row;
     }
 
-    private MyCard _MakeRelationCard(CompFile mod, CompFile? parent,
-        List<JarInJarIndex.DepRow> deps)
+    private MyCard _MakeRelationCard(CompFile mod, CompFile? parent, List<JarInJarIndex.DepRow> deps)
     {
         var title = parent is null
             ? _DisplayName(mod)
@@ -281,11 +277,10 @@ public partial class PageInstanceCompJarInJar
         }
 
         if (selected || kind is McConstraintMatcher.MatchKind.Exact or McConstraintMatcher.MatchKind.Range)
-            row.Children.Add(_Text(
-                "  " + Lang.Text("Instance.Resource.Mod.JarInJar.Bundled.Current"), BrushOk));
+            row.Children.Add(_Text("  " + Lang.Text("Instance.Resource.Mod.JarInJar.Bundled.Current"), _BrushOk));
         else if (kind == McConstraintMatcher.MatchKind.Incompatible)
             row.Children.Add(_Text("  " + Lang.Text("Instance.Resource.Mod.JarInJar.Bundled.Incompatible"),
-                BrushWarn));
+                _BrushWarn));
 
         return row;
     }
@@ -319,10 +314,10 @@ public partial class PageInstanceCompJarInJar
 
     private static Brush _StatusBrush(JijDepStatus status) => status switch
     {
-        JijDepStatus.Installed => BrushOk,
-        JijDepStatus.Disabled => BrushWarn,
-        JijDepStatus.VersionMismatch => BrushWarn,
-        _ => BrushError
+        JijDepStatus.Installed => _BrushOk,
+        JijDepStatus.Disabled => _BrushWarn,
+        JijDepStatus.VersionMismatch => _BrushWarn,
+        _ => _BrushError
     };
 
     #endregion
@@ -332,7 +327,7 @@ public partial class PageInstanceCompJarInJar
     // output 是否属于当前实例（mod 路径必在实例游戏目录 PathIndie 下）；空列表无从判断按匹配处理避免误弹
     private static bool _OutputBelongsToCurrentInstance(List<CompFile> output)
     {
-        var inst = PageInstanceLeft.mcInstance;
+        var inst = PageInstanceLeft.McInstance;
         if (inst is null || output is null) return false;
         try
         {
@@ -371,9 +366,9 @@ public partial class PageInstanceCompJarInJar
         return string.IsNullOrWhiteSpace(m.Name) ? m.FileName : m.Name;
     }
 
-    private static readonly Brush BrushOk = new SolidColorBrush(Color.FromRgb(0x4C, 0xAF, 0x50));
-    private static readonly Brush BrushWarn = new SolidColorBrush(Color.FromRgb(0xFF, 0x98, 0x00));
-    private static readonly Brush BrushError = new SolidColorBrush(Color.FromRgb(0xE5, 0x39, 0x35));
+    private static readonly Brush _BrushOk = new SolidColorBrush(Color.FromRgb(0x4C, 0xAF, 0x50));
+    private static readonly Brush _BrushWarn = new SolidColorBrush(Color.FromRgb(0xFF, 0x98, 0x00));
+    private static readonly Brush _BrushError = new SolidColorBrush(Color.FromRgb(0xE5, 0x39, 0x35));
 
     private static TextBlock _Text(string text, Brush brush, bool bold = false) => new()
     {

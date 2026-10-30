@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -16,6 +16,8 @@ public partial class PageInstanceScreenshot : IRefreshable
     private bool _AppendLock;
     private int _Offset;
 
+    private readonly PageInstanceScreenshotViewModel _vm = new();
+
     private List<string> fileList = new();
 
     private bool isLoad;
@@ -24,11 +26,14 @@ public partial class PageInstanceScreenshot : IRefreshable
     public PageInstanceScreenshot()
     {
         InitializeComponent();
+        DataContext = _vm;
         Loaded += PageSetupLaunch_Loaded;
         PanBack.ScrollChanged += RequireAppend;
         BtnOpenFolder.Click += BtnOpenFolder_Click;
         BtnOpenFolderTop.Click += BtnOpenFolder_Click;
     }
+
+    public PageInstanceScreenshotViewModel ViewModel => _vm;
 
     void IRefreshable.Refresh()
     {
@@ -52,7 +57,7 @@ public partial class PageInstanceScreenshot : IRefreshable
     {
         // 重复加载部分
         PanBack.ScrollToHome();
-        screenshotPath = PageInstanceLeft.mcInstance.PathIndie + @"screenshots\";
+        screenshotPath = PageInstanceLeft.McInstance.PathIndie + @"screenshots\";
         if (!Directory.Exists(screenshotPath))
             Directory.CreateDirectory(screenshotPath);
         Dispatcher.BeginInvoke(new Func<Task>(ReloadAsync));
@@ -76,20 +81,11 @@ public partial class PageInstanceScreenshot : IRefreshable
 
     private void RefreshTip()
     {
-        if (fileList.Count.Equals(0))
-        {
-            PanNoPic.Visibility = Visibility.Visible;
-            PanContent.Visibility = Visibility.Collapsed;
-        }
-        else
-        {
-            PanNoPic.Visibility = Visibility.Collapsed;
-            PanContent.Visibility = Visibility.Visible;
-        }
+        _vm.RefreshTip(fileList.Count);
     }
-    
+
     private static string[] allowedSuffix = { "*.png", "*.jpg", "*.jpeg", "*.bmp", "*.webp", "*.tiff" };
-    
+
     private async Task LoadFileListAsync()
     {
         Common.Log("[Screenshot] 刷新截图文件");

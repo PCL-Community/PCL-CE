@@ -1,14 +1,15 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
-using PCL.Core.App;
-using PCL.Core.App.Localization;
 
+using PCL.Core.App.Localization;
 namespace PCL;
 
 public partial class PageToolsLeft
 {
-    private bool _isLoad;
-    private bool _isPageSwitched; // 如果在 Loaded 前切换到其他页面，会导致触发 Loaded 时再次切换一次
+    private readonly PageToolsLeftViewModel _vm = new();
+
+    private bool isLoad;
+    private bool isPageSwitched; // 如果在 Loaded 前切换到其他页面，会导致触发 Loaded 时再次切换一次
 
     public PageToolsLeft()
     {
@@ -20,34 +21,31 @@ public partial class PageToolsLeft
 
     private void PageLinkLeft_Loaded(object sender, RoutedEventArgs e)
     {
-        var isHiddenPage = false;
-        var hide = Config.Preference.Hide;
+        var isHiddenPage = _vm.IsHiddenPage(ItemGameLink.Checked, ItemTest.Checked, PageSetupUI.HiddenForceShow);
 
-        if (ItemGameLink.Checked && hide.ToolsGameLink) isHiddenPage = true;
-        if (ItemTest.Checked && hide.ToolsTest) isHiddenPage = true;
-        if (PageSetupUI.HiddenForceShow)
-            isHiddenPage = false;
         // 若页面错误，或尚未加载，则继续
-        if (_isLoad && !isHiddenPage)
+        if (isLoad && !isHiddenPage)
             return;
-        _isLoad = true;
+        isLoad = true;
         // 刷新子页面隐藏情况
         PageSetupUI.HiddenRefresh();
         // 选择第一个未被禁用的子页面
-        if (_isPageSwitched)
+        if (isPageSwitched)
             return;
-        var hideCfg = Config.Preference.Hide;
-        if (!hideCfg.ToolsGameLink)
-            ItemGameLink.SetChecked(true, false, false);
-        else if (!hideCfg.ToolsTest)
-            ItemTest.SetChecked(true, false, false);
-        else
-            ItemGameLink.SetChecked(true, false, false);
+        switch (_vm.ResolveInitialPageId())
+        {
+            case FormMain.PageSubType.ToolsTest:
+                ItemTest.SetChecked(true, false, false);
+                break;
+            default:
+                ItemGameLink.SetChecked(true, false, false);
+                break;
+        }
     }
 
     private void PageOtherLeft_Unloaded(object sender, RoutedEventArgs e)
     {
-        _isPageSwitched = false;
+        isPageSwitched = false;
     }
 
     public void Refresh(object sender, EventArgs e)
@@ -55,7 +53,7 @@ public partial class PageToolsLeft
         var button = (MyIconButton)sender;
         if (button.Tag is null)
             return;
-        var id = Common.Val(button.Tag);
+        double id = Common.Val(button.Tag);
         switch (id)
         {
             case (double)FormMain.PageSubType.ToolsGameLink:
@@ -74,7 +72,7 @@ public partial class PageToolsLeft
     /// <summary>
     ///     当前页面的编号。
     /// </summary>
-    public FormMain.PageSubType PageId = FormMain.PageSubType.ToolsGameLink;
+    public FormMain.PageSubType pageID = FormMain.PageSubType.ToolsGameLink;
 
     /// <summary>
     ///     勾选事件改变页面。
@@ -90,7 +88,7 @@ public partial class PageToolsLeft
 
     public object PageGet(FormMain.PageSubType? id = null)
     {
-        var targetID = id ?? PageId;
+        var targetID = id ?? pageID;
         switch (id)
         {
             case FormMain.PageSubType.ToolsGameLink:
@@ -117,14 +115,14 @@ public partial class PageToolsLeft
     /// </summary>
     public void PageChange(FormMain.PageSubType id)
     {
-        if (PageId == id)
+        if (pageID == id)
             return;
         Animations.AniBeginControl();
-        _isPageSwitched = true;
+        isPageSwitched = true;
         try
         {
             PageChangeRun((MyPageRight)PageGet(id));
-            PageId = id;
+            pageID = id;
         }
         catch (Exception ex)
         {

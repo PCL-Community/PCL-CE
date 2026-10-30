@@ -37,6 +37,7 @@
                                   VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                                   DeltaMult="0.7">
                 <TextBlock VerticalAlignment="Top" TextTrimming="None" TextWrapping="Wrap" Name="LabCaption"
+                           Text="{Binding CaptionText}"
                            FontSize="15" LineHeight="18"
                            Foreground="{DynamicResource ColorBrush1}" FontWeight="Normal" Padding="1" />
             </local:MyScrollViewer>

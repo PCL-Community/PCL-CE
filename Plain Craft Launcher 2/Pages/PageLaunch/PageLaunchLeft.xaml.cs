@@ -21,11 +21,7 @@ public partial class PageLaunchLeft
     private string _btnLaunchLanguage;
     private McInstance btnLaunchVersion;
     private bool isHeightAnimating;
-
-    public interface ILoginPage
-    {
-        void Reload();
-    }
+    public interface ILoginPage { void Reload(); }
 
     private enum LaunchButtonAction
     {
@@ -50,6 +46,8 @@ public partial class PageLaunchLeft
     private bool isWidthAnimating;
     private double showProgress;
 
+    private readonly PageLaunchLeftViewModel _vm = new();
+
     public PageLaunchLeft()
     {
         InitializeComponent();
@@ -63,12 +61,12 @@ public partial class PageLaunchLeft
         BtnMore.Click += BtnMore_Click;
         PanLaunchingInfo.SizeChanged += PanLaunchingInfo_SizeChangedW;
         PanLaunchingInfo.SizeChanged += PanLaunchingInfo_SizeChangedH;
+        DataContext = _vm;
     }
 
-    private static void OnLanguageChanged(PageLaunchLeft page)
-    {
-        Common.RunInUi(page.RefreshButtonsUI);
-    }
+    public PageLaunchLeftViewModel ViewModel => _vm;
+
+    private static void OnLanguageChanged(PageLaunchLeft page) => Common.RunInUi(page.RefreshButtonsUI);
 
     public void PageLaunchLeft_Loaded(object sender, RoutedEventArgs e)
     {
@@ -90,8 +88,7 @@ public partial class PageLaunchLeft
 
         // 初始化档案
         ProfileService.Load();
-        if (ProfileService.LastUsedProfile >= 0 &&
-            ProfileService.LastUsedProfile < ProfileService.Profiles.Count)
+        if (ProfileService.LastUsedProfile >= 0 && ProfileService.LastUsedProfile < ProfileService.Profiles.Count)
             ProfileService.SelectAt(ProfileService.LastUsedProfile);
 
         // 加载实例
@@ -103,8 +100,7 @@ public partial class PageLaunchLeft
                 packInstallPath = Path.Combine(Common.ExePath, "modpack.zip");
             if (File.Exists(Path.Combine(Common.ExePath, "modpack.mrpack")))
                 packInstallPath = Path.Combine(Common.ExePath, "modpack.mrpack");
-            if (packInstallPath is not null &&
-                !RestrictedFeaturePolicy.Check("auto-modpack-install"))
+            if (packInstallPath is not null && !RestrictedFeaturePolicy.Check("auto-modpack-install"))
                 packInstallPath = null;
             if (packInstallPath is not null)
             {
@@ -124,9 +120,8 @@ public partial class PageLaunchLeft
 
             // 确认 Minecraft 文件夹存在
             GameFolders.mcFolderSelected =
-                States.Game.SelectedFolder.Replace("$", Common.ExePath);
-            if (string.IsNullOrEmpty(GameFolders.mcFolderSelected) ||
-                !Directory.Exists(GameFolders.mcFolderSelected))
+                States.Game.SelectedFolder.ToString().Replace("$", Common.ExePath);
+            if (string.IsNullOrEmpty(GameFolders.mcFolderSelected) || !Directory.Exists(GameFolders.mcFolderSelected))
             {
                 // 无效的文件夹
                 if (string.IsNullOrEmpty(GameFolders.mcFolderSelected))
@@ -135,8 +130,7 @@ public partial class PageLaunchLeft
                     Common.Log("[Launch] Minecraft 文件夹无效，该文件夹已不存在：" + GameFolders.mcFolderSelected,
                         Common.LogLevel.Debug);
                 GameFolders.McFolderListLoader.WaitForExit(isForceRestart: true);
-                States.Game.SelectedFolder =
-                    GameFolders.mcFolderList[0].Location.Replace(Common.ExePath, "$");
+                States.Game.SelectedFolder = GameFolders.mcFolderList[0].Location.Replace(Common.ExePath, "$");
             }
 
             Common.Log("[Launch] Minecraft 文件夹：" + GameFolders.mcFolderSelected);
@@ -172,18 +166,14 @@ public partial class PageLaunchLeft
             // 确认 Minecraft 版本实例
             var selection = States.Game.SelectedInstance;
             var instance = selection == "" ? null : new McInstance(selection);
-            if (instance is null ||
-                !instance.PathInstance.StartsWithF(GameFolders.mcFolderSelected) ||
+            if (instance is null || !instance.PathInstance.StartsWithF(GameFolders.mcFolderSelected) ||
                 !instance.Check())
             {
                 // 无效的实例
-                Common.Log(
-                    "[Launch] 当前选择的 Minecraft 实例无效：" +
-                    (instance is null ? "null" : instance.PathInstance),
+                Common.Log("[Launch] 当前选择的 Minecraft 实例无效：" + (instance is null ? "null" : instance.PathInstance),
                     instance is null ? Common.LogLevel.Normal : Common.LogLevel.Debug);
                 if (InstanceList.mcInstanceListLoader.State != Common.LoadState.Finished)
-                    Loading.LoaderFolderRun(InstanceList.mcInstanceListLoader,
-                        GameFolders.mcFolderSelected,
+                    Loading.LoaderFolderRun(InstanceList.mcInstanceListLoader, GameFolders.mcFolderSelected,
                         Loading.LoaderFolderRunType.ForceRun, 1, @"versions\", true);
                 if (InstanceList.mcInstanceList.Count == 0 ||
                     InstanceList.mcInstanceList.First().Value[0].Logo.Contains("RedstoneBlock"))
@@ -250,8 +240,7 @@ public partial class PageLaunchLeft
             {
                 if (File.Exists(InstanceList.McMcInstanceSelected.PathInstance + ".pclignore"))
                 {
-                    HintService.Hint(Lang.Text("Launch.Home.Instance.InstallingCannotLaunch"),
-                        HintType.Error);
+                    HintService.Hint(Lang.Text("Launch.Home.Instance.InstallingCannotLaunch"), HintType.Error);
                     return;
                 }
 
@@ -260,8 +249,7 @@ public partial class PageLaunchLeft
             }
             case LaunchButtonAction.Download:
             {
-                Launcher.frmMain.PageChange(FormMain.PageType.Download,
-                    FormMain.PageSubType.DownloadInstall);
+                Launcher.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadInstall);
                 break;
             }
         }
@@ -273,8 +261,7 @@ public partial class PageLaunchLeft
             return;
         // 获取当前状态
         int currentState;
-        if (!isLoadFinished ||
-            InstanceList.mcInstanceListLoader.State == Common.LoadState.Loading ||
+        if (!isLoadFinished || InstanceList.mcInstanceListLoader.State == Common.LoadState.Loading ||
             GameFolders.McFolderListLoader.State == Common.LoadState.Loading)
         {
             currentState = 0;
@@ -293,81 +280,73 @@ public partial class PageLaunchLeft
 
         // 更新状态。
         var currentLanguage = LocalizationService.CurrentLanguage.Code;
-        if (currentState != btnLaunchState ||
-            currentLanguage != _btnLaunchLanguage ||
-            ((InstanceList.McMcInstanceSelected is null
-                ? ""
-                : InstanceList.McMcInstanceSelected.PathInstance) ?? "") !=
+        if (currentState == btnLaunchState &&
+            currentLanguage == _btnLaunchLanguage &&
+            ((InstanceList.McMcInstanceSelected is null ? "" : InstanceList.McMcInstanceSelected.PathInstance) ?? "") ==
             ((btnLaunchVersion is null ? "" : btnLaunchVersion.PathInstance) ?? ""))
+            goto ExitRefresh;
+        _btnLaunchLanguage = currentLanguage;
+        btnLaunchVersion = InstanceList.McMcInstanceSelected;
+        btnLaunchState = currentState;
+        switch (currentState)
         {
-            _btnLaunchLanguage = currentLanguage;
-            btnLaunchVersion = InstanceList.McMcInstanceSelected;
-            btnLaunchState = currentState;
-            switch (currentState)
+            case 0:
             {
-                case 0:
-                {
-                    _launchButtonAction = LaunchButtonAction.Loading;
-                    Common.Log("[Minecraft] 启动按钮：正在加载 Minecraft 实例");
-                    Launcher.frmLaunchLeft.BtnLaunch.Text = Lang.Text("Launch.Home.Button.Loading");
-                    Launcher.frmLaunchLeft.BtnLaunch.IsEnabled = false;
-                    Launcher.frmLaunchLeft.LabVersion.Text =
-                        Lang.Text("Launch.Home.Instance.Loading");
-                    Launcher.frmLaunchLeft.BtnInstance.IsEnabled = false;
-                    Launcher.frmLaunchLeft.BtnMore.Visibility = Visibility.Collapsed;
-                    break;
-                }
-                case 1:
-                {
-                    _launchButtonAction = LaunchButtonAction.Disabled;
-                    Common.Log("[Minecraft] 启动按钮：无 Minecraft 实例，下载已禁用");
-                    Launcher.frmLaunchLeft.BtnLaunch.Text = Lang.Text("Launch.Home.Button.Launch");
-                    Launcher.frmLaunchLeft.BtnLaunch.IsEnabled = false;
-                    Launcher.frmLaunchLeft.LabVersion.Text =
-                        Lang.Text("Launch.Home.Instance.NotFound");
-                    Launcher.frmLaunchLeft.BtnInstance.IsEnabled = true;
-                    Launcher.frmLaunchLeft.BtnMore.Visibility = Visibility.Collapsed;
-                    break;
-                }
-                case 2:
-                {
-                    _launchButtonAction = LaunchButtonAction.Download;
-                    Common.Log("[Minecraft] 启动按钮：无 Minecraft 实例，要求下载");
-                    Launcher.frmLaunchLeft.BtnLaunch.Text =
-                        Lang.Text("Launch.Home.Button.Download");
-                    Launcher.frmLaunchLeft.BtnLaunch.IsEnabled = true;
-                    Launcher.frmLaunchLeft.LabVersion.Text =
-                        Lang.Text("Launch.Home.Instance.NotFound");
-                    Launcher.frmLaunchLeft.BtnInstance.IsEnabled = true;
-                    Launcher.frmLaunchLeft.BtnMore.Visibility = Visibility.Collapsed;
-                    break;
-                }
-                case 3:
-                {
-                    _launchButtonAction = LaunchButtonAction.Launch;
-                    Common.Log("[Minecraft] 启动按钮：Minecraft 实例：" +
-                               InstanceList.McMcInstanceSelected.PathInstance);
-                    Launcher.frmLaunchLeft.BtnLaunch.Text = Lang.Text("Launch.Home.Button.Launch");
-                    Launcher.frmLaunchLeft.BtnInstance.IsEnabled = true;
-                    if (ProfileService.Current is not null)
-                        BtnLaunch.IsEnabled = true;
-                    else
-                        BtnLaunch.IsEnabled = false;
-                    Launcher.frmLaunchLeft.LabVersion.Text = InstanceList.McMcInstanceSelected.Name;
-                    break;
-                }
-                // FrmLaunchLeft.BtnMore.Visibility = Visibility.Visible '由功能隐藏设置修改
+                _launchButtonAction = LaunchButtonAction.Loading;
+                Common.Log("[Minecraft] 启动按钮：正在加载 Minecraft 实例");
+                _vm.LaunchButtonText = Lang.Text("Launch.Home.Button.Loading");
+                BtnLaunch.IsEnabled = false;
+                _vm.VersionNameText = Lang.Text("Launch.Home.Instance.Loading");
+                _vm.IsInstanceButtonEnabled = false;
+                _vm.MoreButtonVisibility = Visibility.Collapsed;
+                break;
             }
+            case 1:
+            {
+                _launchButtonAction = LaunchButtonAction.Disabled;
+                Common.Log("[Minecraft] 启动按钮：无 Minecraft 实例，下载已禁用");
+                _vm.LaunchButtonText = Lang.Text("Launch.Home.Button.Launch");
+                BtnLaunch.IsEnabled = false;
+                _vm.VersionNameText = Lang.Text("Launch.Home.Instance.NotFound");
+                _vm.IsInstanceButtonEnabled = true;
+                _vm.MoreButtonVisibility = Visibility.Collapsed;
+                break;
+            }
+            case 2:
+            {
+                _launchButtonAction = LaunchButtonAction.Download;
+                Common.Log("[Minecraft] 启动按钮：无 Minecraft 实例，要求下载");
+                _vm.LaunchButtonText = Lang.Text("Launch.Home.Button.Download");
+                BtnLaunch.IsEnabled = true;
+                _vm.VersionNameText = Lang.Text("Launch.Home.Instance.NotFound");
+                _vm.IsInstanceButtonEnabled = true;
+                _vm.MoreButtonVisibility = Visibility.Collapsed;
+                break;
+            }
+            case 3:
+            {
+                _launchButtonAction = LaunchButtonAction.Launch;
+                Common.Log("[Minecraft] 启动按钮：Minecraft 实例：" + InstanceList.McMcInstanceSelected.PathInstance);
+                _vm.LaunchButtonText = Lang.Text("Launch.Home.Button.Launch");
+                _vm.IsInstanceButtonEnabled = true;
+                if (ProfileService.Current is not null)
+                    BtnLaunch.IsEnabled = true;
+                else
+                    BtnLaunch.IsEnabled = false;
+                _vm.VersionNameText = InstanceList.McMcInstanceSelected.Name;
+                break;
+            }
+            // FrmLaunchLeft.BtnMore.Visibility = Visibility.Visible '由功能隐藏设置修改
         }
 
+        ExitRefresh: ;
+
         // 功能隐藏
-        Launcher.frmLaunchLeft.BtnInstance.Visibility =
+        _vm.InstanceButtonVisibility =
             !PageSetupUI.HiddenForceShow && Config.Preference.Hide.FunctionSelect
                 ? Visibility.Collapsed
                 : Visibility.Visible;
-        if (currentState == 3)
-            Launcher.frmLaunchLeft.BtnMore.Visibility =
-                Launcher.frmLaunchLeft.BtnInstance.Visibility;
+        if (currentState == 3) _vm.MoreButtonVisibility = _vm.InstanceButtonVisibility;
     }
 
     // 取消按钮
@@ -402,11 +381,10 @@ public partial class PageLaunchLeft
         if (GameLaunch.mcLaunchLoader.State == Common.LoadState.Loading)
             return;
         InstanceList.McMcInstanceSelected.Load();
-        PageInstanceLeft.mcInstance = InstanceList.McMcInstanceSelected;
+        PageInstanceLeft.McInstance = InstanceList.McMcInstanceSelected;
         if (File.Exists(InstanceList.McMcInstanceSelected.PathInstance + ".pclignore"))
         {
-            HintService.Hint(Lang.Text("Launch.Home.Instance.InstallingCannotSetup"),
-                HintType.Error);
+            HintService.Hint(Lang.Text("Launch.Home.Instance.InstallingCannotSetup"), HintType.Error);
             return;
         }
 
@@ -414,7 +392,7 @@ public partial class PageLaunchLeft
     }
 
     /// <summary>
-    /// 每 0.2s 执行一次，刷新启动的数据 UI 显示。
+    ///     每 0.2s 执行一次，刷新启动的数据 UI 显示。
     /// </summary>
     public void LaunchingRefresh()
     {
@@ -430,17 +408,16 @@ public partial class PageLaunchLeft
                 {
                     var exitTry = false;
                     foreach (var Loader in GameLaunch.mcLaunchLoaderReal.GetLoaderList(false))
-                        if (Loader.State == Common.LoadState.Loading ||
-                            Loader.State == Common.LoadState.Waiting)
+                        if (Loader.State == Common.LoadState.Loading || Loader.State == Common.LoadState.Waiting)
                         {
-                            LabLaunchingStage.Text = Loader.name;
+                            _vm.LaunchingStageText = Loader.name;
                             isLaunched = Loader.name == StageWaitWindow || Loader.name == StageEnd;
                             exitTry = true;
                             break;
                         }
 
                     if (exitTry) break;
-                    LabLaunchingStage.Text = Lang.Text("Launch.Status.Completed");
+                    _vm.LaunchingStageText = Lang.Text("Launch.Status.Completed");
                 }
                 catch (Exception ex)
                 {
@@ -460,12 +437,9 @@ public partial class PageLaunchLeft
             if (isLaunched)
                 showProgress = 1d; // 如果已经完成了，就不卖关子了
             // 文本
-            LabLaunchingTitle.Text = isLaunched
-                ? Lang.Text("Launch.Status.Title.Launched")
-                : GameLaunch.currentLaunchOptions.SaveBatch is null
-                    ? Lang.Text("Launch.Status.Title.Launching")
-                    : Lang.Text("Launch.Status.Title.ExportingScript");
-            LabLaunchingProgress.Text = Lang.Number(showProgress, "P2");
+            _vm.LaunchingTitleText = isLaunched ? Lang.Text("Launch.Status.Title.Launched") :
+                GameLaunch.currentLaunchOptions.SaveBatch is null ? Lang.Text("Launch.Status.Title.Launching") : Lang.Text("Launch.Status.Title.ExportingScript");
+            _vm.ApplyLaunchingProgress(showProgress);
             var hasLaunchDownloader = false;
             try
             {
@@ -480,7 +454,7 @@ public partial class PageLaunchLeft
                 hasLaunchDownloader = false;
             }
 
-            LabLaunchingDownload.Text = Common.GetString(NetFacade.NetManager.Speed) + "/s";
+            _vm.ApplyLaunchingDownload(NetFacade.NetManager.Speed);
             var shouldShowHint = Config.Preference.ShowLaunchingHint;
             // 进度改变动画
             var animList = new List<Animations.AniData>
@@ -515,8 +489,7 @@ public partial class PageLaunchLeft
                 });
             }
 
-            var isProgressStateChanged =
-                !isLaunched == (LabLaunchingProgress.Visibility == Visibility.Collapsed);
+            var isProgressStateChanged = !isLaunched == (LabLaunchingProgress.Visibility == Visibility.Collapsed);
             if (isProgressStateChanged)
             {
                 LabLaunchingProgress.Visibility = Visibility.Visible;
@@ -524,8 +497,7 @@ public partial class PageLaunchLeft
                 if (isLaunched && shouldShowHint) PanLaunchingHint.Visibility = Visibility.Visible;
                 animList.AddRange(new[]
                 {
-                    Animations.AaOpacity(LabLaunchingProgress,
-                        (!isLaunched ? 1 : 0) - LabLaunchingProgress.Opacity,
+                    Animations.AaOpacity(LabLaunchingProgress, (!isLaunched ? 1 : 0) - LabLaunchingProgress.Opacity,
                         100),
                     Animations.AaOpacity(LabLaunchingProgressLeft,
                         (!isLaunched ? 0.5d : 0d) - LabLaunchingProgressLeft.Opacity, 100),
@@ -554,8 +526,7 @@ public partial class PageLaunchLeft
             return;
         Animations.AniStart(new[]
         {
-            Animations.AaWidth(PanLaunchingInfo, deltaWidth, 180,
-                ease: new Animations.AniEaseOutFluent()),
+            Animations.AaWidth(PanLaunchingInfo, deltaWidth, 180, ease: new Animations.AniEaseOutFluent()),
             Animations.AaCode(() =>
             {
                 isWidthAnimating = false;
@@ -575,8 +546,7 @@ public partial class PageLaunchLeft
             return;
         Animations.AniStart(new[]
         {
-            Animations.AaHeight(PanLaunchingInfo, deltaHeight, 180,
-                ease: new Animations.AniEaseOutFluent()),
+            Animations.AaHeight(PanLaunchingInfo, deltaHeight, 180, ease: new Animations.AniEaseOutFluent()),
             Animations.AaCode(() =>
             {
                 isHeightAnimating = false;
@@ -597,7 +567,7 @@ public partial class PageLaunchLeft
     #region 切换大页面
 
     /// <summary>
-    /// 切换至启动中页面。
+    ///     切换至启动中页面。
     /// </summary>
     public void PageChangeToLaunching()
     {
@@ -606,37 +576,36 @@ public partial class PageLaunchLeft
         {
             case ProfileType.Offline:
             {
-                LabLaunchingMethod.Text = Lang.Text("Launch.Account.Type.Offline");
+                _vm.LaunchingMethodText = Lang.Text("Launch.Account.Type.Offline");
                 break;
             }
             case ProfileType.Microsoft:
             {
-                LabLaunchingMethod.Text = Lang.Text("Launch.Account.Type.Microsoft");
+                _vm.LaunchingMethodText = Lang.Text("Launch.Account.Type.Microsoft");
                 break;
             }
             case ProfileType.Authlib:
             case ProfileType.YggdrasilConnect:
             {
-                LabLaunchingMethod.Text = Lang.Text("Launch.Account.Type.ThirdParty") +
-                                          (!string.IsNullOrEmpty(ProfileService.Current?.ServerName)
-                                              ? " / " + ProfileService.Current.ServerName
-                                              : "");
+                _vm.LaunchingMethodText = Lang.Text("Launch.Account.Type.ThirdParty") + (!string.IsNullOrEmpty(ProfileService.Current?.ServerName)
+                    ? " / " + ProfileService.Current.ServerName
+                    : "");
                 break;
             }
         }
 
         // 初始化页面
-        LabLaunchingName.Text = InstanceList.McMcInstanceSelected.Name;
-        LabLaunchingStage.Text = Lang.Text("Common.Action.Initialize");
-        LabLaunchingTitle.Text = GameLaunch.currentLaunchOptions?.SaveBatch is null
+        _vm.LaunchingNameText = InstanceList.McMcInstanceSelected.Name;
+        _vm.LaunchingStageText = Lang.Text("Common.Action.Initialize");
+        _vm.LaunchingTitleText = GameLaunch.currentLaunchOptions?.SaveBatch is null
             ? Lang.Text("Launch.Status.Title.Launching")
             : Lang.Text("Launch.Status.Title.ExportingScript");
-        LabLaunchingProgress.Text = Lang.Number(0d, "P2");
+        _vm.LaunchingProgressText = Lang.Number(0d, "P2");
         LabLaunchingProgress.Opacity = 1d;
         LabLaunchingDownload.Visibility = Visibility.Visible;
         LabLaunchingProgressLeft.Opacity = 0.6d;
         LabLaunchingDownload.Visibility = Visibility.Visible;
-        LabLaunchingDownload.Text = Common.GetString(0) + "/s";
+        _vm.ApplyLaunchingDownload(0);
         LabLaunchingDownload.Opacity = 0d;
         LabLaunchingDownload.Visibility = Visibility.Collapsed;
         LabLaunchingDownloadLeft.Opacity = 0d;
@@ -649,11 +618,7 @@ public partial class PageLaunchLeft
         GameLaunch.mcLaunchProcess = null;
         GameLaunch.mcLaunchWatcher = null;
 
-        var shouldShowHint = Config.Preference.ShowLaunchingHint;
-        if (shouldShowHint)
-            LabLaunchingHint.Text = PageLaunchRight.GetRandomHint(true, true);
-        else
-            LabLaunchingHint.Text = "";
+        _vm.ApplyLaunchingHint(Config.Preference.ShowLaunchingHint);
 
         // 初始化其他页面
         PanInput.IsHitTestVisible = false;
@@ -664,21 +629,18 @@ public partial class PageLaunchLeft
             new[]
             {
                 Animations.AaOpacity(PanInput, 0d, 50),
-                Animations.AaOpacity(PanInput, -PanInput.Opacity, 110,
-                    ease: new Animations.AniEaseInFluent(),
+                Animations.AaOpacity(PanInput, -PanInput.Opacity, 110, ease: new Animations.AniEaseInFluent(),
                     after: true),
-                Animations.AaScaleTransform(PanInput,
-                    1.2d - ((ScaleTransform)PanInput.RenderTransform).ScaleX, 160),
+                Animations.AaScaleTransform(PanInput, 1.2d - ((ScaleTransform)PanInput.RenderTransform).ScaleX, 160),
                 Animations.AaOpacity(PanLaunching, 1d - PanLaunching.Opacity, 150, 100),
-                Animations.AaScaleTransform(PanLaunching,
-                    1d - ((ScaleTransform)PanLaunching.RenderTransform).ScaleX,
+                Animations.AaScaleTransform(PanLaunching, 1d - ((ScaleTransform)PanLaunching.RenderTransform).ScaleX,
                     500, 100, new Animations.AniEaseOutBack(Animations.AniEasePower.Weak)),
                 Animations.AaCode(() => PanLaunching.IsHitTestVisible = true, 150)
             }, "Launch State Page"); // 略作延迟，这样如果预检测失败，不会出现奇怪的弹一下的动画
     }
 
     /// <summary>
-    /// 切换至登录页面。
+    ///     切换至登录页面。
     /// </summary>
     public void PageChangeToLogin()
     {
@@ -695,16 +657,15 @@ public partial class PageLaunchLeft
                     0.8d - ((ScaleTransform)PanLaunching.RenderTransform).ScaleX, 150,
                     ease: new Animations.AniEaseOutFluent(Animations.AniEasePower.Weak)),
                 Animations.AaOpacity(PanInput, 1d - PanInput.Opacity, 250, 50),
-                Animations.AaScaleTransform(PanInput,
-                    1d - ((ScaleTransform)PanInput.RenderTransform).ScaleX, 300, 50,
+                Animations.AaScaleTransform(PanInput, 1d - ((ScaleTransform)PanInput.RenderTransform).ScaleX, 300, 50,
                     new Animations.AniEaseOutBack(Animations.AniEasePower.Weak)),
                 Animations.AaCode(() => PanInput.IsHitTestVisible = true, 200)
             }, "Launch State Page", true);
     }
+
     #endregion
+
     #region 切换登录页面
-
-
 
     private enum PageType
     {
@@ -717,7 +678,7 @@ public partial class PageLaunchLeft
     }
 
     /// <summary>
-    /// 当前页面的种类。
+    ///     当前页面的种类。
     /// </summary>
     private PageType pageCurrent = PageType.None;
 
@@ -764,23 +725,24 @@ public partial class PageLaunchLeft
     }
 
     /// <summary>
-    /// 切换现有登录页面种类，返回新页面的实例。
+    ///     切换现有登录页面种类，返回新页面的实例。
     /// </summary>
     /// <param name="type">新页面的种类。</param>
     /// <param name="anim">是否显示动画。</param>
     private object PageChange(PageType type, bool anim)
     {
-            #region 确定更改的页面实例并实例化
         object pageNew = Launcher.frmLoginMs; // 初始化一个东西，避免在执行时出现异常导致雪崩
         try
         {
+            #region 确定更改的页面实例并实例化
 
-            #endregion
-            #region 切换页面
             if (pageCurrent == type)
                 return pageNew;
             pageNew = PageGet(type);
 
+            #endregion
+
+            #region 切换页面
 
             Animations.AniStop("FrmLogin PageChange");
             // 清除页面关联性
@@ -788,15 +750,13 @@ public partial class PageLaunchLeft
             {
                 element.SetValue(ContentPresenter.ContentProperty, null);
             }
-
             if (anim)
             {
                 // 动画
                 // 执行动画
                 Dispatcher.Invoke(() => Animations.AniStart(new[]
                 {
-                    Animations.AaOpacity(PanLogin, -PanLogin.Opacity, 100,
-                        ease: new Animations.AniEaseOutFluent()),
+                    Animations.AaOpacity(PanLogin, -PanLogin.Opacity, 100, ease: new Animations.AniEaseOutFluent()),
                     Animations.AaCode(() =>
                     {
                         Animations.AniBeginControl();
@@ -810,13 +770,13 @@ public partial class PageLaunchLeft
             else
             {
                 // 无动画
-            #endregion
                 Animations.AniBeginControl();
                 PanLogin.Children.Clear();
                 PanLogin.Children.Add((UIElement)pageNew);
                 Animations.AniEndControl();
             }
 
+            #endregion
 
             pageCurrent = type;
             return pageNew;
@@ -827,14 +787,13 @@ public partial class PageLaunchLeft
                 ex,
                 Lang.Text("Launch.Account.Error.SwitchPage", Common.GetStringFromEnum(type)),
                 Common.LogLevel.Feedback,
-                userSummary: Lang.Text("Launch.Account.Error.SwitchPage",
-                    Common.GetStringFromEnum(type)));
+                userSummary: Lang.Text("Launch.Account.Error.SwitchPage", Common.GetStringFromEnum(type)));
             return pageNew;
         }
     }
 
     /// <summary>
-    /// 确认当前显示的子页面正确，并刷新该页面。
+    ///     确认当前显示的子页面正确，并刷新该页面。
     /// </summary>
     /// <param name="anim">是否显示动画</param>
     /// <param name="targetLoginType">目标验证方式，若正在创建档案需填</param>
@@ -861,8 +820,6 @@ public partial class PageLaunchLeft
             if (_launchButtonAction != LaunchButtonAction.Download)
                 BtnLaunch.IsEnabled = false;
         }
-    #endregion
-    #region 皮肤
 
         // 刷新页面
         if (pageCurrent == type)
@@ -870,11 +827,12 @@ public partial class PageLaunchLeft
         PageChange(type, anim);
     }
 
+    #endregion
 
+    #region 皮肤
 
     // 正版皮肤
-    public static Loading.LoaderTask<Common.EqualableList<string>, string> skinMs = new(
-        "Loader Skin Ms", SkinMsLoad,
+    public static Loading.LoaderTask<Common.EqualableList<string>, string> skinMs = new("Loader Skin Ms", SkinMsLoad,
         inputDelegate: SkinMsInput, priority: ThreadPriority.AboveNormal);
 
     private static Common.EqualableList<string> SkinMsInput()
@@ -890,8 +848,7 @@ public partial class PageLaunchLeft
         // 如果在输入时清空皮肤，若输入内容一样则不会执行 Load 方法，导致皮肤不被加载
         Common.RunInUi(() =>
         {
-            if (Launcher.frmLoginProfileSkin is not null &&
-                Launcher.frmLoginProfileSkin.Skin is not null)
+            if (Launcher.frmLoginProfileSkin is not null && Launcher.frmLoginProfileSkin.Skin is not null)
                 Launcher.frmLoginProfileSkin.Skin.Clear();
         });
         // 获取 Url
@@ -905,71 +862,69 @@ public partial class PageLaunchLeft
 
         if (string.IsNullOrEmpty(userName))
         {
-            data.output = Common.PathImage + "Skins/" +
-                          Skin.McSkinVariant(ProfileUi.GetOfflineUuid(userName)) +
+            data.output = Common.PathImage + "Skins/" + Skin.McSkinVariant(ProfileUi.GetOfflineUuid(userName)) +
                           ".png";
             Common.Log("[Minecraft] 获取微软正版皮肤失败，ID 为空");
+            goto Finish;
         }
-        else
-        {
-            try
-            {
-                var result = Skin.McSkinGetAddress(uuid, "Ms");
-                if (data.IsAborted)
-                    throw new ThreadInterruptedException("当前任务已取消：" + userName);
-                result = Skin.McSkinDownload(result);
-                if (data.IsAborted)
-                    throw new ThreadInterruptedException("当前任务已取消：" + userName);
-                data.output = result;
-            }
-            catch (Exception ex)
-            {
-                if (ex is ThreadInterruptedException)
-                {
-                    data.output = "";
-                    Common.Log("[Minecraft] 已取消皮肤获取：" + userName);
-                    return;
-                }
 
-                if (ex.ToString().Contains("429"))
-                {
-                    data.output = Common.PathImage + "Skins/" +
-                                  Skin.McSkinVariant(ProfileUi.GetOfflineUuid(userName)) + ".png";
-                    Common.Log(
-                        Lang.Text("Launch.Skin.Error.MsRateLimited", userName),
-                        Common.LogLevel.Hint,
-                        userSummary: Lang.Text("Launch.Skin.Error.MsRateLimited", userName));
-                }
-                else if (ex.ToString().Contains("未设置自定义皮肤"))
-                {
-                    data.output = Common.PathImage + "Skins/" +
-                                  Skin.McSkinVariant(ProfileUi.GetOfflineUuid(userName)) + ".png";
-                    Common.Log("[Minecraft] 用户未设置自定义皮肤，跳过皮肤加载");
-                }
-                else
-                {
-                    data.output = Common.PathImage + "Skins/" +
-                                  Skin.McSkinVariant(ProfileUi.GetOfflineUuid(userName)) + ".png";
-                    Common.Log(
-                        ex,
-                        Lang.Text("Launch.Skin.Error.MsGet", userName),
-                        Common.LogLevel.Hint,
-                        userSummary: Lang.Text("Launch.Skin.Error.MsGet", userName));
-                }
+        try
+        {
+            var result = Skin.McSkinGetAddress(uuid, "Ms");
+            if (data.IsAborted)
+                throw new ThreadInterruptedException("当前任务已取消：" + userName);
+            result = Skin.McSkinDownload(result);
+            if (data.IsAborted)
+                throw new ThreadInterruptedException("当前任务已取消：" + userName);
+            data.output = result;
+        }
+        catch (Exception ex)
+        {
+            if (ex is ThreadInterruptedException)
+            {
+                data.output = "";
+                Common.Log("[Minecraft] 已取消皮肤获取：" + userName);
+                return;
+            }
+
+            if (ex.ToString().Contains("429"))
+            {
+                data.output = Common.PathImage + "Skins/" +
+                              Skin.McSkinVariant(ProfileUi.GetOfflineUuid(userName)) + ".png";
+                Common.Log(
+                    Lang.Text("Launch.Skin.Error.MsRateLimited", userName),
+                    Common.LogLevel.Hint,
+                    userSummary: Lang.Text("Launch.Skin.Error.MsRateLimited", userName));
+            }
+            else if (ex.ToString().Contains("未设置自定义皮肤"))
+            {
+                data.output = Common.PathImage + "Skins/" +
+                               Skin.McSkinVariant(ProfileUi.GetOfflineUuid(userName)) + ".png";
+                Common.Log("[Minecraft] 用户未设置自定义皮肤，跳过皮肤加载");
+            }
+            else
+            {
+                data.output = Common.PathImage + "Skins/" +
+                               Skin.McSkinVariant(ProfileUi.GetOfflineUuid(userName)) + ".png";
+                Common.Log(
+                    ex,
+                    Lang.Text("Launch.Skin.Error.MsGet", userName),
+                    Common.LogLevel.Hint,
+                    userSummary: Lang.Text("Launch.Skin.Error.MsGet", userName));
             }
         }
+
+        Finish: ;
 
         // 刷新显示
-        if (Launcher.frmLoginProfileSkin is not null &&
-            ReferenceEquals(Launcher.frmLoginProfileSkin.Skin.loader, data))
+        if (Launcher.frmLoginProfileSkin is not null && ReferenceEquals(Launcher.frmLoginProfileSkin.Skin.loader, data))
             Common.RunInUi(Launcher.frmLoginProfileSkin.Skin.Load);
         else if (!data.IsAborted) // 如果已经中断，Input 也被清空，就不会再次刷新
             data.input = null; // 清空输入，因为皮肤实际上没有被渲染，如果不清空切换到页面的 Start 会由于输入相同而不渲染
     }
 
     // 离线皮肤
-    public static Loading.LoaderTask<Common.EqualableList<string>, string> skinLegacy = new(
-        "Loader Skin Legacy",
+    public static Loading.LoaderTask<Common.EqualableList<string>, string> skinLegacy = new("Loader Skin Legacy",
         SkinLegacyLoad, inputDelegate: SkinLegacyInput, priority: ThreadPriority.AboveNormal);
 
     private static Common.EqualableList<string> SkinLegacyInput()
@@ -983,22 +938,19 @@ public partial class PageLaunchLeft
         // 清空已有皮肤
         Common.RunInUi(() =>
         {
-            if (Launcher.frmLoginProfileSkin is not null &&
-                Launcher.frmLoginProfileSkin.Skin is not null)
+            if (Launcher.frmLoginProfileSkin is not null && Launcher.frmLoginProfileSkin.Skin is not null)
                 Launcher.frmLoginProfileSkin.Skin.Clear();
         });
         data.output = Common.PathImage + "Skins/" + Skin.McSkinVariant(data.input[1]) + ".png";
         // 刷新显示
-        if (Launcher.frmLoginProfileSkin is not null &&
-            ReferenceEquals(Launcher.frmLoginProfileSkin.Skin.loader, data))
+        if (Launcher.frmLoginProfileSkin is not null && ReferenceEquals(Launcher.frmLoginProfileSkin.Skin.loader, data))
             Common.RunInUi(() => Launcher.frmLoginProfileSkin.Skin.Load());
         else if (!data.IsAborted) // 如果已经中断，Input 也被清空，就不会再次刷新
             data.input = null; // 清空输入，因为皮肤实际上没有被渲染，如果不清空切换到页面的 Start 会由于输入相同而不渲染
     }
 
     // Authlib-Injector 皮肤
-    public static Loading.LoaderTask<Common.EqualableList<string>, string> skinAuth = new(
-        "Loader Skin Auth",
+    public static Loading.LoaderTask<Common.EqualableList<string>, string> skinAuth = new("Loader Skin Auth",
         SkinAuthLoad, inputDelegate: SkinAuthInput, priority: ThreadPriority.AboveNormal);
 
     private static Common.EqualableList<string> SkinAuthInput()
@@ -1014,8 +966,7 @@ public partial class PageLaunchLeft
         // 如果在输入时清空皮肤，若输入内容一样则不会执行 Load 方法，导致皮肤不被加载
         Common.RunInUi(() =>
         {
-            if (Launcher.frmLoginProfileSkin is not null &&
-                Launcher.frmLoginProfileSkin.Skin is not null)
+            if (Launcher.frmLoginProfileSkin is not null && Launcher.frmLoginProfileSkin.Skin is not null)
                 Launcher.frmLoginProfileSkin.Skin.Clear();
         });
         // 获取 Url
@@ -1025,57 +976,56 @@ public partial class PageLaunchLeft
         {
             data.output = Common.PathImage + "Skins/Steve.png";
             Common.Log("[Minecraft] 获取 Authlib-Injector 皮肤失败，ID 为空");
+            goto Finish;
         }
-        else
-        {
-            try
-            {
-                var result = Skin.McSkinGetAddress(uuid, "Auth");
-                if (data.IsAborted)
-                    throw new ThreadInterruptedException("当前任务已取消：" + userName);
-                result = Skin.McSkinDownload(result);
-                if (data.IsAborted)
-                    throw new ThreadInterruptedException("当前任务已取消：" + userName);
-                data.output = result;
-            }
-            catch (Exception ex)
-            {
-                if (ex is ThreadInterruptedException)
-                {
-                    data.output = "";
-                    return;
-                }
 
-                if (ex.ToString().Contains("429"))
-                {
-                    data.output = Common.PathImage + "Skins/Steve.png";
-                    Common.Log(
-                        $"[Minecraft] 获取 Authlib-Injector 皮肤失败（{userName}）：获取皮肤太过频繁，请 5 分钟后再试！",
-                        Common.LogLevel.Hint,
-                        userSummary: Lang.Text("Launch.Skin.Error.AuthlibRateLimited"));
-                }
-                else if (ex.ToString().Contains("未设置自定义皮肤"))
-                {
-                    data.output = Common.PathImage + "Skins/Steve.png";
-                    Common.Log("[Minecraft] 用户未设置自定义皮肤，跳过皮肤加载");
-                }
-                else
-                {
-                    data.output = Common.PathImage + "Skins/Steve.png";
-                    Common.Log(
-                        ex,
-                        Lang.Text("Launch.Skin.Error.AuthGet", userName),
-                        Common.LogLevel.Hint,
-                        userSummary: Lang.Text("Launch.Skin.Error.AuthGet", userName));
-                }
+        try
+        {
+            var result = Skin.McSkinGetAddress(uuid, "Auth");
+            if (data.IsAborted)
+                throw new ThreadInterruptedException("当前任务已取消：" + userName);
+            result = Skin.McSkinDownload(result);
+            if (data.IsAborted)
+                throw new ThreadInterruptedException("当前任务已取消：" + userName);
+            data.output = result;
+        }
+        catch (Exception ex)
+        {
+            if (ex is ThreadInterruptedException)
+            {
+                data.output = "";
+                return;
+            }
+
+            if (ex.ToString().Contains("429"))
+            {
+                data.output = Common.PathImage + "Skins/Steve.png";
+                Common.Log(
+                    $"[Minecraft] 获取 Authlib-Injector 皮肤失败（{userName}）：获取皮肤太过频繁，请 5 分钟后再试！",
+                    Common.LogLevel.Hint,
+                    userSummary: Lang.Text("Launch.Skin.Error.AuthlibRateLimited"));
+            }
+            else if (ex.ToString().Contains("未设置自定义皮肤"))
+            {
+                data.output = Common.PathImage + "Skins/Steve.png";
+                Common.Log("[Minecraft] 用户未设置自定义皮肤，跳过皮肤加载");
+            }
+            else
+            {
+                data.output = Common.PathImage + "Skins/Steve.png";
+                Common.Log(
+                    ex,
+                    Lang.Text("Launch.Skin.Error.AuthGet", userName),
+                    Common.LogLevel.Hint,
+                    userSummary: Lang.Text("Launch.Skin.Error.AuthGet", userName));
             }
         }
+
+        Finish: ;
 
         // 刷新显示
-        if (Launcher.frmLoginProfileSkin is not null &&
-            ReferenceEquals(Launcher.frmLoginProfileSkin.Skin.loader, data))
+        if (Launcher.frmLoginProfileSkin is not null && ReferenceEquals(Launcher.frmLoginProfileSkin.Skin.loader, data))
             Common.RunInUi(Launcher.frmLoginProfileSkin.Skin.Load);
-    #endregion
         else if (!data.IsAborted) // 如果已经中断，Input 也被清空，就不会再次刷新
             data.input = null; // 清空输入，因为皮肤实际上没有被渲染，如果不清空切换到页面的 Start 会由于输入相同而不渲染
     }
@@ -1085,4 +1035,5 @@ public partial class PageLaunchLeft
     public static List<Loading.LoaderTask<Common.EqualableList<string>, string>> skinLoaders = new()
         { skinMs, skinLegacy, skinAuth };
 
+    #endregion
 }

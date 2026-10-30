@@ -46,6 +46,7 @@
                             Grid.Row="0"
                             Grid.Column="1"
                             Grid.ColumnSpan="2"
+                            SelectedIndex="{Binding UiLanguageIndex, Mode=OneWay}"
                             SelectionChanged="ComboUiLanguage_SelectionChanged" />
 
                         <TextBlock
@@ -60,6 +61,7 @@
                             Grid.Row="2"
                             Grid.Column="1"
                             Grid.ColumnSpan="2"
+                            SelectedIndex="{Binding FormatCultureIndex, Mode=OneWay}"
                             SelectionChanged="ComboUiFormatCulture_SelectionChanged" />
                     </Grid>
 

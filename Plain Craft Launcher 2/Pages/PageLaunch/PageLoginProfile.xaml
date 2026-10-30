@@ -4,7 +4,6 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:local="clr-namespace:PCL"
-      DataContext="{Binding RelativeSource={RelativeSource Self}}"
       mc:Ignorable="d"
       d:DesignHeight="450" d:DesignWidth="800">
 
@@ -27,7 +26,7 @@
 
     <local:MyScrollViewer Grid.Row="3" MaxHeight="300" Margin="10,0,10,0">
         <!-- 世界需要 MVVM -->
-        <ItemsControl ItemsSource="{Binding ProfileCollection}">
+        <ItemsControl ItemsSource="{Binding Profiles}">
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
                     <local:MyListItem Margin="8,2,10,2"

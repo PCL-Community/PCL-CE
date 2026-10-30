@@ -8,9 +8,12 @@ namespace PCL;
 
 public partial class PageLoginProfileSkin
 {
+    private readonly PageLoginProfileSkinViewModel _vm = new();
+
     public PageLoginProfileSkin()
     {
         InitializeComponent();
+        DataContext = _vm;
         Loaded += (_, _) => Reload();
         // Handles
         PanData.MouseEnter += ShowPanel;
@@ -19,6 +22,8 @@ public partial class PageLoginProfileSkin
         BtnEdit.Click += BtnEdit_Click;
         BtnSelect.Click += ChangeProfile;
     }
+
+    public PageLoginProfileSkinViewModel ViewModel => _vm;
 
     /// <summary>
     ///     刷新页面显示的所有信息。
@@ -30,26 +35,22 @@ public partial class PageLoginProfileSkin
         var profile = ProfileService.Current ?? throw new InvalidOperationException("No profile selected.");
         if (profile.ProfileType == ProfileType.Microsoft)
         {
-            BtnEdit.Visibility = Visibility.Visible;
             Common.Log("[Profile] 使用正版皮肤加载器");
             Skin.loader = PageLaunchLeft.skinMs;
         }
         else if (profile.ProfileType is ProfileType.Authlib or ProfileType.YggdrasilConnect)
         {
-            BtnEdit.Visibility = Visibility.Visible;
             Common.Log("[Profile] 使用 Authlib 皮肤加载器");
             Skin.loader = PageLaunchLeft.skinAuth;
         }
         else
         {
-            BtnEdit.Visibility = Visibility.Collapsed;
             Common.Log("[Profile] 使用离线皮肤加载器");
             Skin.loader = PageLaunchLeft.skinLegacy;
         }
 
         Skin.loader.Start(isForceRestart: true);
-        TextName.Text = profile.UserName;
-        TextType.Text = ProfileUi.GetProfileInfo(profile);
+        _vm.Load(profile);
     }
 
     #region 控制与编辑
@@ -98,8 +99,7 @@ public partial class PageLoginProfileSkin
                  !string.IsNullOrWhiteSpace(profile.Server))
         {
             var server = profile.Server;
-            Common.OpenWebsite(server.Replace(
-                "/api/yggdrasil/authserver" + (server.EndsWithF("/") ? "/" : ""),
+            Common.OpenWebsite(server.Replace("/api/yggdrasil/authserver" + (server.EndsWithF("/") ? "/" : ""),
                 "/user/profile"));
         }
         else

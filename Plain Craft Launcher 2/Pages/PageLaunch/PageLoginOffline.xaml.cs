@@ -1,17 +1,15 @@
-using System.Windows;
-using PCL.Core.Utils.Validate;
-using PCL.Core.App.Localization;
-using PCL.Core.Minecraft.Profile;
-using PCL.Core.Minecraft.Profile.Models;
+using System;
 
 namespace PCL;
 
-public partial class PageLoginOffline
+public partial class PageLoginOffline : IPageView
 {
+    private readonly PageLoginOfflineViewModel _vm = new();
+
     public PageLoginOffline()
     {
-        // Handles
         InitializeComponent();
+        DataContext = _vm;
         BtnBack.Click += BtnBack_Click;
         RadioUuidCustom.Check += RadioUuid_Checked;
         RadioUuidStandard.Check += RadioUuid_Checked;
@@ -19,74 +17,24 @@ public partial class PageLoginOffline
         BtnLogin.Click += BtnLogin_Click;
     }
 
-    private void BtnBack_Click(object sender, EventArgs e)
+    public void OnNavigatedTo(object? parameter) => Refresh();
+
+    public void OnNavigatedFrom()
     {
-        ProfileService.IsCreatingProfile = false;
-        Common.RunInUi(() => Launcher.frmLaunchLeft.RefreshPage(true));
     }
 
-    private void RadioUuid_Checked(object sender, Common.RouteEventArgs e)
+    private void Refresh()
     {
-        if (RadioUuidCustom.Checked)
-        {
-            TextUuidTitle.Visibility = Visibility.Visible;
-            TextUuid.Visibility = Visibility.Visible;
-        }
-        else
-        {
-            TextUuidTitle.Visibility = Visibility.Collapsed;
-            TextUuid.Visibility = Visibility.Collapsed;
-        }
+        _vm.ChangeUuidModeCommand.Execute(RadioUuidCustom.Checked
+            ? PageLoginOfflineViewModel.UuidMode.Custom
+            : RadioUuidLegacy.Checked
+                ? PageLoginOfflineViewModel.UuidMode.Legacy
+                : PageLoginOfflineViewModel.UuidMode.Standard);
     }
 
-    private void BtnLogin_Click(object sender, EventArgs e)
-    {
-        // 玩家 ID 输入检查
-        var username = TextName.Text;
-        var usernameValidateResult = new RegexValidator("^[A-z0-9_]{3,16}$").Validate(username);
-        if (!usernameValidateResult.IsValid)
-                if (Launcher.MyMsgBox(
-                        Lang.Text("Launch.Account.Offline.InvalidPlayerId.Message"),
-                        Lang.Text("Launch.Account.Offline.InvalidPlayerId.Title"), Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel"), isWarn: true, forceWait: true) == 2)
-                return;
-        // UUID
-        string userUuid = null;
-        if (RadioUuidCustom.Checked)
-        {
-            // 自定义输入检查
-            var uuidInput = TextUuid.Text.Replace("-", "");
-            var uuidValidateResult = new RegexValidator("^[a-fA-F0-9]{32}$").Validate(uuidInput);
-            if (RadioUuidCustom.Checked && !uuidValidateResult.IsValid)
-            {
-                HintService.Hint(Lang.Text("Launch.Account.Offline.InvalidUuid", uuidValidateResult), HintType.Error);
-                return;
-            }
+    private void BtnBack_Click(object sender, EventArgs e) => _vm.BackCommand.Execute(null);
 
-            userUuid = uuidInput;
-        }
-        else if (RadioUuidLegacy.Checked)
-        {
-            userUuid = ProfileUi.GetOfflineUuid(username, isLegacy: true);
-        }
-        else
-        {
-            userUuid = ProfileUi.GetOfflineUuid(username);
-        }
+    private void RadioUuid_Checked(object sender, Common.RouteEventArgs e) => Refresh();
 
-        // 创建档案
-        var newProfile = new McProfile
-        {
-            ProfileType = ProfileType.Offline,
-            Uuid = userUuid,
-            UserName = username,
-            Description = "",
-            AccessToken = userUuid,
-            ClientToken = userUuid,
-            ProfileId = Guid.NewGuid().ToString("N")
-        };
-        ProfileService.Add(newProfile);
-        ProfileService.IsCreatingProfile = false;
-        HintService.Hint(Lang.Text("Launch.Account.Profile.Created"), HintType.Success);
-        Common.RunInUi(() => Launcher.frmLaunchLeft.RefreshPage(true));
-    }
+    private void BtnLogin_Click(object sender, EventArgs e) => _vm.LoginCommand.Execute(null);
 }

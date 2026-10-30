@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI;
 
 namespace PCL;
 
@@ -14,12 +15,17 @@ public partial class PageLogLeft
     public int isLoading;
     public List<KeyValuePair<int, GameWatcher.Watcher>> shownLogs = new();
 
+    private readonly PageLogLeftViewModel _vm = new();
+
     public PageLogLeft()
     {
         InitializeComponent();
+        DataContext = _vm;
         Loaded += PageLogLeft_Loaded;
         Unloaded += PageLogLeft_Unloaded;
     }
+
+    public PageLogLeftViewModel ViewModel => _vm;
 
     private void PageLogLeft_Loaded(object sender, RoutedEventArgs e)
     {
@@ -36,7 +42,7 @@ public partial class PageLogLeft
     {
         try
         {
-            if (shownLogs.Count == 0)
+            if (!_vm.HasLogs)
             {
                 Launcher.frmMain.PageChange((FormMain.PageType)Launcher.frmMain.PageCurrentSub);
                 return;
@@ -49,24 +55,22 @@ public partial class PageLogLeft
 
             // 测试实例列表
             Launcher.frmLogLeft.PanList.Children.Add(new TextBlock
-                { Text = Lang.Text("LogPage.Left.InstancesTitle"), Margin = new Thickness(13d, 18d, 5d, 4d), Opacity = 0.6d, FontSize = 12d });
+                { Text = _vm.InstancesTitle, Margin = new Thickness(13d, 18d, 5d, 4d), Opacity = 0.6d, FontSize = 12d });
             foreach (var item in shownLogs)
             {
                 // 添加控件
                 var uuid = item.Key;
                 var version = item.Value.version;
-                var proc = item.Value.gameProcess;
                 var newItem = new MyListItem
                 {
                     IsScaleAnimationEnabled = false, Type = MyListItem.CheckType.RadioBox, MinPaddingRight = 30,
-                    Title = version.Name, Info = $"{version.Info} - {Lang.Date(proc.StartTime, "T")}", Height = 40d, Tag = uuid
+                    Title = version.Name, Info = _vm.GetItemInfo(item.Value), Height = 40d, Tag = uuid
                 };
                 newItem.Changed += Launcher.frmLogLeft.Version_Change;
                 // Dim KillButton As New MyIconButton With {.Logo = Logo.IconButtonCross, .LogoScale = 0.85}
                 var removeButton = new MyIconButton { SvgIcon = "lucide/trash-2", LogoScale = 1.1d };
                 // AddHandler KillButton.Click, AddressOf FrmLogLeft.Kill_Click
-                removeButton.Click += (a, b) =>
-                    Launcher.frmLogLeft.Remove_Click(a, (RoutedEventArgs)b);
+                removeButton.Click += (a, b) => Launcher.frmLogLeft.Remove_Click(a, (RoutedEventArgs)b);
                 newItem.Buttons = new[] { removeButton };
                 if (uuid == currentUuid)
                     newItem.Checked = true;
@@ -74,7 +78,7 @@ public partial class PageLogLeft
             }
 
             // 通知日志保留设置
-            if (!States.Hint.MaxGameLog)
+            if (_vm.ShouldShowMaxLinesHint)
             {
                 States.Hint.MaxGameLog = true;
                 HintService.Hint(Lang.Text("LogPage.MaxLines.Hint", 500));
@@ -107,30 +111,7 @@ public partial class PageLogLeft
                 {
                     var paragraph = new Paragraph(new Run(e.logText)) { Foreground = e.color, Margin = margin };
                     flowDocuments[uuid].Blocks.Add(paragraph);
-                    var maxLog = (ulong)Config.System.MaxGameLog;
-                    switch (maxLog)
-                    {
-                        case <= 5UL:
-                        {
-                            maxLog = (ulong)Math.Round(maxLog * 10m + 50m);
-                            break;
-                        }
-                        case <= 13UL:
-                        {
-                            maxLog = (ulong)Math.Round(maxLog * 50m - 150m);
-                            break;
-                        }
-                        case <= 28UL:
-                        {
-                            maxLog = (ulong)Math.Round(maxLog * 100m - 800m);
-                            break;
-                        }
-                        default:
-                        {
-                            maxLog = 18446744073709551615UL;
-                            break;
-                        }
-                    }
+                    var maxLog = _vm.GetMaxLogCount();
 
                     while (flowDocuments[uuid].Blocks.Count > (decimal)maxLog)
                         flowDocuments[uuid].Blocks.Remove(flowDocuments[uuid].Blocks.FirstBlock);

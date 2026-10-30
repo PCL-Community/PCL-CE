@@ -14,14 +14,15 @@ namespace PCL;
 
 public partial class PageSelectLeft : IRefreshable
 {
-    private bool _isFirstLoad = true;
-    private List<GameFolders.McFolder> _mcFolderListLast;
+    private readonly PageSelectLeftViewModel _vm = new();
+    private List<GameFolders.McFolder> mcFolderListLast;
 
     public PageSelectLeft()
     {
         Initialized += PageSelectLeft_Initialized;
         Loaded += PageSelectLeft_Loaded;
         InitializeComponent();
+        DataContext = _vm;
     }
 
     void IRefreshable.Refresh()
@@ -39,9 +40,9 @@ public partial class PageSelectLeft : IRefreshable
 
     private void PageSelectLeft_Loaded(object sender, RoutedEventArgs e)
     {
-        if (_isFirstLoad)
+        if (_vm.IsFirstLoad)
             McFolderListUI(); // 若已经执行完成，触发首次加载
-        _isFirstLoad = false;
+        _vm.IsFirstLoad = false;
     }
 
     private void McFolderListUI()
@@ -49,11 +50,10 @@ public partial class PageSelectLeft : IRefreshable
         try
         {
             // 确认数据有变化
-            if (_mcFolderListLast is not null &&
-                _mcFolderListLast.SequenceEqual(GameFolders.mcFolderList))
+            if (mcFolderListLast is not null && mcFolderListLast.SequenceEqual(GameFolders.mcFolderList))
                 return;
 
-            _mcFolderListLast = new List<GameFolders.McFolder>(GameFolders.mcFolderList);
+            mcFolderListLast = new List<GameFolders.McFolder>(GameFolders.mcFolderList);
 
             // 创建 UI
             Launcher.frmSelectLeft.PanList.Children.Clear();
@@ -113,10 +113,8 @@ public partial class PageSelectLeft : IRefreshable
                         AddMenuItem("Refresh", Lang.Text("Common.Action.Refresh"), iconRefresh, null,
                             Launcher.frmSelectLeft.Refresh_Click);
                         AddMenuItem("Delete",
-                            GameFolders.mcFolderList.Count == 1 &&
-                            folder.Location == Path.Combine(Common.ExePath, ".minecraft") + @"\"
-                                ? Lang.Text("Select.Folder.Clear")
-                                : Lang.Text("Common.Action.Delete"), iconDelete, new Thickness(0, 0, 0, 2),
+                            PageSelectLeftViewModel.GetDeleteMenuText(folder, GameFolders.mcFolderList.Count),
+                            iconDelete, new Thickness(0, 0, 0, 2),
                             Launcher.frmSelectLeft.Delete_Click);
                         break;
 
@@ -161,10 +159,10 @@ public partial class PageSelectLeft : IRefreshable
                 var moveDownItem = contMenu.Items.OfType<MyMenuItem>().FirstOrDefault(x => x.Name == "MoveDown");
 
                 // 如果是第一个项目，隐藏上移按钮
-                if (i == 0) moveUpItem.Visibility = Visibility.Collapsed;
+                if (PageSelectLeftViewModel.IsFirstItem(i)) moveUpItem.Visibility = Visibility.Collapsed;
 
                 // 如果是最后一个项目，隐藏下移按钮
-                if (i == GameFolders.mcFolderList.Count - 1)
+                if (PageSelectLeftViewModel.IsLastItem(i, GameFolders.mcFolderList.Count))
                     moveDownItem.Visibility = Visibility.Collapsed;
 
                 // 构建列表项
@@ -264,22 +262,19 @@ public partial class PageSelectLeft : IRefreshable
             Launcher.frmSelectLeft.PanList.Children.Add(itemInstall);
 
             // 边距
-            Launcher.frmSelectLeft.PanList.Children.Add(new FrameworkElement
-                { Height = 10, IsHitTestVisible = false });
+            Launcher.frmSelectLeft.PanList.Children.Add(new FrameworkElement { Height = 10, IsHitTestVisible = false });
 
             // 确认勾选状态
             for (var i = 0; i < GameFolders.mcFolderList.Count; i++)
                 if (GameFolders.mcFolderList[i].Location == GameFolders.mcFolderSelected)
                 {
-                    ((MyListItem)Launcher.frmSelectLeft.PanList.Children[i + 1]).Checked =
-                        true; //去掉第一个标题
+                    ((MyListItem)Launcher.frmSelectLeft.PanList.Children[i + 1]).Checked = true; //去掉第一个标题
                     return;
                 }
 
             if (GameFolders.mcFolderList.Count == 0)
                 throw new ArgumentNullException("没有可用的 Minecraft 文件夹");
-            States.Game.SelectedFolder =
-                GameFolders.mcFolderList[0].Location.Replace(Common.ExePath, "$");
+            States.Game.SelectedFolder = GameFolders.mcFolderList[0].Location.Replace(Common.ExePath, "$");
             ((MyListItem)Launcher.frmSelectLeft.PanList.Children[1]).Checked = true;
         }
         catch (Exception ex)
@@ -299,8 +294,7 @@ public partial class PageSelectLeft : IRefreshable
     private void MoveUp_Click(object sender, RoutedEventArgs e)
     {
         var folder =
-            (GameFolders.McFolder)((MyListItem)((Popup)((ContextMenu)((MyMenuItem)sender).Parent)
-                    .Parent)
+            (GameFolders.McFolder)((MyListItem)((Popup)((ContextMenu)((MyMenuItem)sender).Parent).Parent)
                 .PlacementTarget)
             .Tag;
         var index = GameFolders.mcFolderList.IndexOf(folder);
@@ -313,8 +307,7 @@ public partial class PageSelectLeft : IRefreshable
     private void MoveDown_Click(object sender, RoutedEventArgs e)
     {
         var folder =
-            (GameFolders.McFolder)((MyListItem)((Popup)((ContextMenu)((MyMenuItem)sender).Parent)
-                    .Parent)
+            (GameFolders.McFolder)((MyListItem)((Popup)((ContextMenu)((MyMenuItem)sender).Parent).Parent)
                 .PlacementTarget)
             .Tag;
         var index = GameFolders.mcFolderList.IndexOf(folder);
@@ -336,8 +329,7 @@ public partial class PageSelectLeft : IRefreshable
     private void Restore_Click(object sender, RoutedEventArgs e)
     {
         var folder =
-            (GameFolders.McFolder)((MyListItem)((Popup)((ContextMenu)((MyMenuItem)sender).Parent)
-                    .Parent)
+            (GameFolders.McFolder)((MyListItem)((Popup)((ContextMenu)((MyMenuItem)sender).Parent).Parent)
                 .PlacementTarget)
             .Tag;
         var index = GameFolders.mcFolderList.IndexOf(folder);
@@ -347,7 +339,7 @@ public partial class PageSelectLeft : IRefreshable
     }
 
     // 添加文件夹
-    private void Add_Click()
+    private async void Add_Click()
     {
         var newFolder = "";
         // 检查是否有下载任务
@@ -376,7 +368,7 @@ public partial class PageSelectLeft : IRefreshable
                 : splitedNames.Last();
             if (defaultName.Length > 40)
                 defaultName = defaultName[..39];
-            var newName = Launcher.MyMsgBoxInput(Lang.Text("Select.Folder.InputDisplayName.Title"),
+            var newName = await Launcher.MyMsgBoxInputAsync(Lang.Text("Select.Folder.InputDisplayName.Title"),
                 Lang.Text("Select.Folder.InputDisplayName.Message"), defaultName,
                 [new NullOrWhiteSpaceValidator(), new StringLengthValidator(), new BlacklistValidator([">", "|"])]);
             if (string.IsNullOrWhiteSpace(newName))
@@ -510,15 +502,14 @@ public partial class PageSelectLeft : IRefreshable
     }
 
     // 右键菜单
-    public void Remove_Click(object sender, RoutedEventArgs e)
+    public async void Remove_Click(object sender, RoutedEventArgs e)
     {
         try
         {
             var folder =
-                (GameFolders.McFolder)((MyListItem)
-                    ((Popup)((ContextMenu)((MyMenuItem)sender).Parent).Parent)
+                (GameFolders.McFolder)((MyListItem)((Popup)((ContextMenu)((MyMenuItem)sender).Parent).Parent)
                     .PlacementTarget).Tag;
-            switch (Launcher.MyMsgBox(
+            switch (await Launcher.MyMsgBoxAsync(
                         Lang.Text("Select.Folder.Cleanup.Message"),
                         Lang.Text("Select.Folder.Cleanup.Title"), Lang.Text("Common.Action.Delete"),
                         Lang.Text("Select.Folder.Cleanup.Keep"), Lang.Text("Common.Action.Cancel")))
@@ -582,7 +573,7 @@ public partial class PageSelectLeft : IRefreshable
         }
     }
 
-    public void Delete_Click(object sender, RoutedEventArgs e)
+    public async void Delete_Click(object sender, RoutedEventArgs e)
     {
         var menuItem = (MyMenuItem)sender;
         var contextMenu = (ContextMenu)menuItem.Parent;
@@ -590,11 +581,7 @@ public partial class PageSelectLeft : IRefreshable
         var listItem = (MyListItem)popup.PlacementTarget;
         var folder = (GameFolders.McFolder)listItem.Tag;
 
-        var isClearing =
-            folder.Type is GameFolders.McFolder.Types.Original
-                or GameFolders.McFolder.Types.RenamedOriginal
-            && folder.Location == Common.ExePath + @".minecraft\"
-            && GameFolders.mcFolderList.Count == 1;
+        var isClearing = PageSelectLeftViewModel.IsClearingDefaultFolder(folder, GameFolders.mcFolderList.Count);
 
         var deleteText = Lang.Text(isClearing ? "Select.Folder.Clear" : "Common.Action.Delete");
         var firstWarning =
@@ -609,15 +596,23 @@ public partial class PageSelectLeft : IRefreshable
         var success = Lang.Text(isClearing ? "Select.Folder.Clear.Success" : "Select.Folder.Delete.Success",
             folder.Name);
 
-        if (Launcher.MyMsgBox(firstWarning, Lang.Text("Select.Folder.Delete.WarningTitle"),
-                Lang.Text("Common.Action.Cancel"), Lang.Text("Common.Action.Confirm"),
-                Lang.Text("Common.Action.Cancel")) != 2)
-            return;
+        try
+        {
+            if (await Launcher.MyMsgBoxAsync(firstWarning, Lang.Text("Select.Folder.Delete.WarningTitle"),
+                    Lang.Text("Common.Action.Cancel"), Lang.Text("Common.Action.Confirm"),
+                    Lang.Text("Common.Action.Cancel")) != 2)
+                return;
 
-        if (Launcher.MyMsgBox(finalWarning, Lang.Text("Select.Folder.Delete.WarningTitle"),
-                confirmTitle, Lang.Text("Common.Action.Cancel"),
-                isWarn: true) != 1)
+            if (await Launcher.MyMsgBoxAsync(finalWarning, Lang.Text("Select.Folder.Delete.WarningTitle"),
+                    confirmTitle, Lang.Text("Common.Action.Cancel"),
+                    isWarn: true) != 1)
+                return;
+        }
+        catch (Exception ex)
+        {
+            Common.Log(ex, Lang.Text("Select.Folder.Error.Operate", deleteText, folder.Name));
             return;
+        }
 
         var folders = States.Game.Folders.Split('|', StringSplitOptions.RemoveEmptyEntries).ToList();
         var index = folders.FindIndex(f => f.EndsWith(folder.Location));
@@ -652,16 +647,13 @@ public partial class PageSelectLeft : IRefreshable
 
     public void Open_Click(object sender, RoutedEventArgs e)
     {
-        Common.OpenExplorer(
-            ((MyListItem)((Popup)((ContextMenu)((MyMenuItem)sender).Parent).Parent).PlacementTarget)
+        Common.OpenExplorer(((MyListItem)((Popup)((ContextMenu)((MyMenuItem)sender).Parent).Parent).PlacementTarget)
             .Info);
     }
 
     public void Refresh_Click(object sender, RoutedEventArgs e)
     {
-        var data =
-            (GameFolders.McFolder)((MyListItem)((Popup)((ContextMenu)((MyMenuItem)sender).Parent)
-                    .Parent)
+        var data = (GameFolders.McFolder)((MyListItem)((Popup)((ContextMenu)((MyMenuItem)sender).Parent).Parent)
             .PlacementTarget).Tag;
         RefreshCurrent(data.Location);
     }
@@ -679,18 +671,16 @@ public partial class PageSelectLeft : IRefreshable
                 Loading.LoaderFolderRunType.ForceRun, 1, @"versions\");
     }
 
-    public void Rename_Click(object sender, RoutedEventArgs e)
+    public async void Rename_Click(object sender, RoutedEventArgs e)
     {
         var folder =
-            (GameFolders.McFolder)((MyListItem)((Popup)((ContextMenu)((MyMenuItem)sender).Parent)
-                    .Parent)
+            (GameFolders.McFolder)((MyListItem)((Popup)((ContextMenu)((MyMenuItem)sender).Parent).Parent)
                 .PlacementTarget)
             .Tag;
         try
         {
             // 获取输入
-            var newName = Launcher.MyMsgBoxInput(Lang.Text("Select.Folder.Rename.Title"), "",
-                folder.Name,
+            var newName = await Launcher.MyMsgBoxInputAsync(Lang.Text("Select.Folder.Rename.Title"), "", folder.Name,
             [
                 new NullOrWhiteSpaceValidator(), new StringLengthValidator(1, 30),
                 new BlacklistValidator([">", "|"])
@@ -747,8 +737,7 @@ public partial class PageSelectLeft : IRefreshable
         }
 
         // 更换
-        States.Game.SelectedFolder =
-            ((GameFolders.McFolder)sender.Tag).Location.Replace(Common.ExePath, "$");
+        States.Game.SelectedFolder = ((GameFolders.McFolder)sender.Tag).Location.Replace(Common.ExePath, "$");
         GameFolders.McFolderListLoader.Start(isForceRestart: true);
         Loading.LoaderFolderRun(InstanceList.mcInstanceListLoader, GameFolders.mcFolderSelected,
             Loading.LoaderFolderRunType.RunOnUpdated, 1, @"versions\"); // 刷新实例列表
@@ -859,8 +848,7 @@ public partial class PageSelectLeft : IRefreshable
             }
 
             // 检查文件夹是否在列表中
-            if (!GameFolders.mcFolderList.Contains(sourceFolder) ||
-                !GameFolders.mcFolderList.Contains(targetFolder))
+            if (!GameFolders.mcFolderList.Contains(sourceFolder) || !GameFolders.mcFolderList.Contains(targetFolder))
             {
                 e.Handled = true;
                 return;

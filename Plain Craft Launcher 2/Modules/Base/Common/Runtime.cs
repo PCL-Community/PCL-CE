@@ -7,6 +7,7 @@ using System.Windows.Threading;
 using Microsoft.VisualBasic;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
+using PCL.Core.UI.Threading;
 using PCL.Core.Utils.OS;
 
 namespace PCL;
@@ -240,6 +241,7 @@ public static partial class Common
             Name = name ?? $"Runtime New Invoke {GetUuid()}#",
             Priority = priority
         };
+        th.IsBackground = true;
         th.Start();
         return th;
     }
@@ -251,9 +253,7 @@ public static partial class Common
     /// </summary>
     public static Output RunInUiWait<Output>(Func<Output> action)
     {
-        return RunInUi()
-            ? action()
-            : System.Windows.Application.Current.Dispatcher.Invoke(action);
+        return RunInUi() ? action() : UiDispatcher.Invoke(action)!;
     }
 
     /// <summary>
@@ -263,12 +263,10 @@ public static partial class Common
     /// </summary>
     public static void RunInUiWait(Action action)
     {
-        if (System.Windows.Application.Current is null)
-            return;
         if (RunInUi())
             action();
         else
-            System.Windows.Application.Current.Dispatcher.Invoke(action);
+            UiDispatcher.Invoke(action);
     }
 
     /// <summary>

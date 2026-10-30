@@ -1,71 +1,52 @@
-﻿using System.Collections.ObjectModel;
+using System;
+using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
-using PCL.Core.App;
 using PCL.Core.App.Localization;
-using PCL.Core.Minecraft.Profile;
 using PCL.Core.Minecraft.Profile.Models;
 
 namespace PCL;
 
-public partial class PageLoginProfile
+public partial class PageLoginProfile : IPageView
 {
+    private readonly PageLoginProfileViewModel _vm = new();
+
     public PageLoginProfile()
     {
         InitializeComponent();
+        DataContext = _vm;
+        _vm.PropertyChanged += VmOnPropertyChanged;
         Loaded += (_, _) => Reload();
     }
 
-    public ObservableCollection<ProfileItem> ProfileCollection { get; set; } = new();
+    public void OnNavigatedTo(object? parameter) => Reload();
 
-    /// <summary>
-    ///     刷新页面显示的所有信息。
-    /// </summary>
-    public void Reload()
+    public void OnNavigatedFrom()
     {
-        RefreshProfileList();
-        Launcher.frmLoginProfileSkin = null;
-        // RunInNewThread(Sub()
-        // Thread.Sleep(800)
-        // RunInUi(Sub() FrmLaunchLeft.RefreshPage(True))
-        // End Sub)
     }
 
-    /// <summary>
-    ///     刷新档案列表
-    /// </summary>
-    public void RefreshProfileList()
+    public void Reload()
     {
-        Common.Log("[Profile] 刷新档案列表");
-        ProfileCollection.Clear();
-        ProfileService.Load();
-        try
-        {
-            foreach (var p in ProfileService.Profiles)
-                ProfileCollection.Add(new ProfileItem(p));
-            HintMicrosoft.Visibility = ProfileService.Profiles.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-            Common.Log("[Profile] 档案列表刷新完成");
-        }
-        catch (Exception ex)
-        {
-            Common.Log(
-                ex,
-                Lang.Text("Launch.Account.Profile.Error.Read"),
-                Common.LogLevel.Feedback,
-                userSummary: Lang.Text("Launch.Account.Profile.Error.Read"));
-        }
+        _vm.ReloadCommand.Execute(null);
+        Launcher.frmLoginProfileSkin = null;
+    }
 
-        if (!ProfileService.Profiles.Any())
+    public void RefreshProfileList() => _vm.ReloadCommand.Execute(null);
+
+    private void VmOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        switch (e.PropertyName)
         {
-            States.Hint.LaunchWithProfile = true;
-            HintCreate.Visibility = Visibility.Visible;
-        }
-        else
-        {
-            HintCreate.Visibility = Visibility.Collapsed;
+            case nameof(PageLoginProfileViewModel.ShowCreateHint):
+                HintCreate.Visibility = _vm.ShowCreateHint ? Visibility.Visible : Visibility.Collapsed;
+                break;
+            case nameof(PageLoginProfileViewModel.ShowMicrosoftHint):
+                HintMicrosoft.Visibility = _vm.ShowMicrosoftHint ? Visibility.Visible : Visibility.Collapsed;
+                break;
         }
     }
 
@@ -95,107 +76,75 @@ public partial class PageLoginProfile
         public string Username => Profile.UserName;
     }
 
-    #region 控件
-
     private void SelectProfile(object sender, MouseButtonEventArgs e)
     {
-        var item = (MyListItem)sender;
-        var tag = (McProfile)item.Tag;
-        ProfileService.Select(tag);
-        Common.Log($"[Profile] 选定档案: {tag.UserName}, 以 {tag.ProfileType} 方式验证");
-
-        // 清除登录验证缓存，确保使用新档案的验证信息
-        GameLaunch.mcLoginMsLoader.State = Common.LoadState.Waiting;
-        GameLaunch.mcLoginAuthLoader.State = Common.LoadState.Waiting;
-        GameLaunch.mcLoginLegacyLoader.State = Common.LoadState.Waiting;
-
-        Common.RunInUi(() =>
-        {
-            Launcher.frmLaunchLeft.RefreshPage(true);
-            Launcher.frmLaunchLeft.BtnLaunch.IsEnabled = true;
-        });
+        if (sender is not MyListItem { DataContext: ProfileItem item }) return;
+        _vm.Select(item);
+        Launcher.frmLaunchLeft.RefreshPage(true);
+        Launcher.frmLaunchLeft.BtnLaunch.IsEnabled = true;
     }
 
     private void ProfileContMenuBuild(MyListItem sender, EventArgs e)
     {
-        // 更改 UUID
         var btnEditUuid = new MyIconButton
             { SvgIcon = "lucide/pencil", ToolTip = Lang.Text("Launch.Account.Profile.ChangeUuid"), Tag = sender.Tag };
         ToolTipService.SetPlacement(btnEditUuid, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnEditUuid, 30d);
         ToolTipService.SetHorizontalOffset(btnEditUuid, 2d);
         btnEditUuid.Click += EditProfileUuid;
-        // 复制 UUID
         var btnCopyUuid = new MyIconButton
             { SvgIcon = "lucide/copy", ToolTip = Lang.Text("Launch.Account.Profile.CopyUuid"), Tag = sender.Tag };
         ToolTipService.SetPlacement(btnCopyUuid, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnCopyUuid, 30d);
         ToolTipService.SetHorizontalOffset(btnCopyUuid, 2d);
         btnCopyUuid.Click += CopyProfileUuid;
-        // 更改验证服务器名称
         var btnEditServerName = new MyIconButton
             { SvgIcon = "lucide/info", ToolTip = Lang.Text("Launch.Account.Profile.ChangeAuthServerName"), Tag = sender.Tag };
         ToolTipService.SetPlacement(btnEditServerName, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnEditServerName, 30d);
         ToolTipService.SetHorizontalOffset(btnEditServerName, 2d);
         btnEditServerName.Click += EditProfileServer;
-        // 删除档案
         var btnDelete = new MyIconButton { SvgIcon = "lucide/trash-2", ToolTip = Lang.Text("Launch.Account.Profile.Delete"), Tag = sender.Tag };
         ToolTipService.SetPlacement(btnDelete, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnDelete, 30d);
         ToolTipService.SetHorizontalOffset(btnDelete, 2d);
         btnDelete.Click += DeleteProfile;
-        // 根据档案类型显示不同的菜单项
         if (((McProfile)sender.Tag).ProfileType == ProfileType.Offline)
             sender.Buttons = new[] { btnEditUuid, btnDelete };
         else
             sender.Buttons = new[] { btnCopyUuid, btnDelete };
     }
 
-    // 创建档案
-    private void BtnNew_Click(object sender, EventArgs e)
-    {
-        Common.RunInNewThread(() =>
-        {
-            ProfileUi.CreateProfile();
-            Common.RunInUi(() => RefreshProfileList());
-        });
-    }
+    private void BtnNew_Click(object sender, EventArgs e) => _vm.CreateProfileCommand.Execute(null);
 
-    // 编辑 UUID
     private void EditProfileUuid(object sender, EventArgs e)
     {
-        ProfileUi.EditOfflineUuid((McProfile)((MyIconButton)sender).Tag);
+        var item = FindProfileItem(sender);
+        if (item is not null) _vm.EditUuidCommand.Execute(item);
     }
 
     private void CopyProfileUuid(object sender, EventArgs e)
     {
-        if (sender is MyIconButton { Tag: McProfile profile }) Common.ClipboardSet(profile.Uuid);
+        var item = FindProfileItem(sender);
+        if (item is not null) _vm.CopyUuidCommand.Execute(item);
     }
 
-    // 编辑验证服务器名称
     private void EditProfileServer(object sender, EventArgs e)
     {
-        var profile = (McProfile)((MyIconButton)sender).Tag;
-        var name = Launcher.MyMsgBoxInput(Lang.Text("Launch.Account.Profile.EditServerName.Title"),
-            Lang.Text("Launch.Account.Profile.EditServerName.Message"), profile.ServerName);
-        if (name is not null) ProfileUi.EditAuthServerName(profile, name);
+        var item = FindProfileItem(sender);
+        if (item is not null) _vm.EditServerNameCommand.Execute(item);
     }
 
-    // 删除档案
     private void DeleteProfile(object sender, EventArgs e)
     {
-        if (Launcher.MyMsgBox(Lang.Text("Launch.Account.Profile.DeleteConfirm.Message"),
-                Lang.Text("Launch.Account.Profile.DeleteConfirm.Title"),
-                Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel"),
-                isWarn: true,
-                forceWait: true) == 2)
-            return;
-        ProfileUi.RemoveProfile((McProfile)((MyIconButton)sender).Tag);
-        Common.RunInUi(() => RefreshProfileList());
+        var item = FindProfileItem(sender);
+        if (item is not null) _vm.DeleteProfileCommand.Execute(item);
     }
 
-    
-
-    #endregion
+    private ProfileItem? FindProfileItem(object sender)
+    {
+        return ((MyIconButton)sender).Tag is McProfile profile
+            ? _vm.Profiles.FirstOrDefault(p => p.Profile == profile)
+            : null;
+    }
 }

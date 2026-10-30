@@ -109,6 +109,7 @@ public partial class MyMsgText
         // 结束线程阻塞
         if (myConverter.ForceWait || !string.IsNullOrEmpty(myConverter.Button2))
             myConverter.WaitFrame.Continue = false;
+        myConverter.Completion.TrySetResult(myConverter.Result is int value ? value : null);
         ComponentDispatcher.PopModal();
         // 动画
         Animations.AniStart(new[]

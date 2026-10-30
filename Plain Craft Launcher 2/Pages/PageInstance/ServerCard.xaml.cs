@@ -149,7 +149,7 @@ public partial class ServerCard
             var launchOptions = new GameLaunch.McLaunchOptions
             {
                 ServerIp = server.Address,
-                instance = PageInstanceLeft.mcInstance
+                instance = PageInstanceLeft.McInstance
             };
             GameLaunch.McLaunchStart(launchOptions);
             Launcher.frmMain.PageChange(new FormMain.PageStackData

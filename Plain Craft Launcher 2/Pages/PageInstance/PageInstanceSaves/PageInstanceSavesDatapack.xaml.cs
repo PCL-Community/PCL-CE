@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -7,60 +7,40 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using Microsoft.VisualBasic.FileIO;
 using PCL.Core.App;
-using PCL.Core.App.Localization;
 using PCL.Core.UI;
 using PCL.Core.UI.Theme;
 using PCL.Network;
 using PCL.Network.Loaders;
 using FileSystem = Microsoft.VisualBasic.FileSystem;
+using PCL.Core.App.Localization;
+using SortMethod = PCL.PageInstanceSavesDatapackViewModel.DatapackSortMethod;
+using FilterType = PCL.PageInstanceSavesDatapackViewModel.DatapackFilterType;
 
 namespace PCL;
 
-public partial class PageInstanceSavesDatapack : IRefreshable
+public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
 {
-    #region 数据包信息缓存
-    private readonly Dictionary<string, (DateTime CreationTime, long Length)>
-        _datapackFileInfoCache = new();
-
-    // 获取数据包信息（带缓存）
-    private (DateTime CreationTime, long Length) GetDatapackFileInfo(string path)
-    {
-        (DateTime CreationTime, long Length) cacheItem;
-        if (_datapackFileInfoCache.TryGetValue(path, out cacheItem)) return cacheItem;
-
-        try
-        {
-            var fileInfo = new FileInfo(path);
-            var newItem = (fileInfo.CreationTime, fileInfo.Length);
-            if (!_datapackFileInfoCache.ContainsKey(path))
-                _datapackFileInfoCache.Add(path, newItem);
-            return newItem;
-        }
-        catch (Exception ex)
-        {
-            Common.Log(ex, "获取数据包信息失败: " + path);
-            return (DateTime.MinValue, 0L);
-        }
-    }
-
-    // 页面关闭时清理缓存
-    private void Page_Unloaded(object sender, RoutedEventArgs e)
-    {
-        _datapackFileInfoCache.Clear();
-    }
-    #endregion
     #region 初始化
 
+    private readonly PageInstanceSavesDatapackViewModel _vm = new();
+    private readonly MyLocalCompItem.SwipeSelect currentSwipSelect;
+    private readonly Dictionary<string, MyLocalCompItem> datapackItems = new();
+    private readonly object sortLock = new();
+    private bool _refreshed;
+    private bool _syncingFilter;
+    private bool isLoad;
+    private int bottomBarShownCount;
 
-    private readonly MyLocalCompItem.SwipeSelect _currentSwipSelect;
+    public PageInstanceSavesDatapackViewModel ViewModel => _vm;
 
     public PageInstanceSavesDatapack()
     {
-        _currentSwipSelect = new MyLocalCompItem.SwipeSelect { TargetFrm = this };
+        currentSwipSelect = new MyLocalCompItem.SwipeSelect { TargetFrm = this };
 
         InitializeComponent();
+        DataContext = _vm;
         Unloaded += Page_Unloaded;
-        Loaded += (_, _) => PageOther_Loaded();
+        Loaded += (_, _) => RefreshOnNavigate();
         LoaderInit();
         PageExit += UnselectedAllWithAnimation;
         // Handles
@@ -91,33 +71,40 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         SearchBox.TextChanged += SearchRun;
     }
 
-    private LocalComp.CompLocalLoaderData GetRequireLoaderData()
+    private void Page_Unloaded(object sender, RoutedEventArgs e)
     {
-        var res = new LocalComp.CompLocalLoaderData();
-        res.gameVersion = PageInstanceLeft.mcInstance;
-        res.frm = null;
-        res.loaders = new[] { Comp.CompLoaderType.Minecraft }.ToList();
-        res.compPath = Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks");
-        res.compType = Comp.CompType.DataPack;
-        return res;
+        _refreshed = false;
+        _vm.ClearFileInfoCache();
     }
 
-    private bool _isLoad;
+    void IPageView.OnNavigatedTo(object? parameter)
+    {
+        RefreshOnNavigate();
+    }
 
-    public void PageOther_Loaded()
+    void IPageView.OnNavigatedFrom()
+    {
+    }
+
+    private void RefreshOnNavigate()
     {
         if (Launcher.frmMain.pageLast.page != FormMain.PageType.CompDetail)
             PanBack.ScrollToHome();
+
+        if (_refreshed)
+            return;
+        _refreshed = true;
+
         Animations.AniBeginControl();
-        selectedDatapacks.Clear();
+        _vm.ClearSelection();
         ReloadDatapackFileList();
         ChangeAllSelected(false);
         Animations.AniEndControl();
 
         // 非重复加载部分
-        if (_isLoad)
+        if (isLoad)
             return;
-        _isLoad = true;
+        isLoad = true;
 
         Launcher.frmMain.KeyDown += FrmMain_KeyDown;
         // 调整按钮边距（这玩意儿没法从 XAML 改）
@@ -125,8 +112,19 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             Btn.LabText.Margin = new Thickness(-2, 0d, 8d, 0d);
     }
 
+    private LocalComp.CompLocalLoaderData GetRequireLoaderData()
+    {
+        var res = new LocalComp.CompLocalLoaderData();
+        res.gameVersion = PageInstanceLeft.McInstance;
+        res.frm = null;
+        res.loaders = new[] { Comp.CompLoaderType.Minecraft }.ToList();
+        res.compPath = Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks");
+        res.compType = Comp.CompType.DataPack;
+        return res;
+    }
+
     /// <summary>
-    /// 刷新数据包列表。
+    ///     刷新数据包列表。
     /// </summary>
     public void ReloadDatapackFileList(bool forceReload = false)
     {
@@ -135,26 +133,23 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                 : Loading.LoaderFolderRunType.RunOnUpdated))
         {
             Common.Log("[System] 已刷新数据包列表");
-            _datapackFileInfoCache.Clear();
+            _vm.ClearFileInfoCache();
 
             Common.RunInUi(() =>
             {
-                Filter = FilterType.All;
+                _vm.Filter = FilterType.All;
+                SyncFilterRadios();
                 PanBack.ScrollToHome();
                 SearchBox.Text = "";
+                _vm.SearchText = "";
+                RefreshUI();
             });
         }
     }
 
-    // 强制刷新
-    private void RefreshSelf()
-    {
-        Refresh();
-    }
-
     void IRefreshable.Refresh()
     {
-        RefreshSelf();
+        Refresh();
     }
 
     public void Refresh()
@@ -179,56 +174,34 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     {
         var loadPath = Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks");
         return Loading.LoaderFolderRun(LocalComp.CompResourceListLoader, loadPath, type,
-    #endregion
-    #region UI 化
             loaderInput: GetRequireLoaderData());
     }
 
+    #endregion
 
+    #region UI 化
 
-    /// <summary>
-    /// 已加载的数据包 UI 缓存。Key 为数据包的 RawPath。
-    /// </summary>
-    public Dictionary<string, MyLocalCompItem> datapackItems = new();
-
-    /// <summary>
-    /// 将加载器结果的数据包列表加载为 UI。
-    /// </summary>
     private void LoadUIFromLoaderOutput()
     {
         try
         {
-            // 判断应该显示哪一个页面
-            if (LocalComp.CompResourceListLoader.output.Any())
-            {
-                PanBack.Visibility = Visibility.Visible;
-                PanEmpty.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                // 根据组件类型设置 PanEmpty 的文本内容
-                TxtEmptyTitle.Text = Lang.Text("Instance.Resource.Datapack.Empty.Title");
-                TxtEmptyDescription.Text = Lang.Text("Instance.Resource.Datapack.Empty.Description");
-
-                PanEmpty.Visibility = Visibility.Visible;
-                PanBack.Visibility = Visibility.Collapsed;
+            _vm.ShowDatapacks = LocalComp.CompResourceListLoader.output.Any();
+            if (!_vm.ShowDatapacks)
                 return;
-            }
 
-            // 修改缓存
             datapackItems.Clear();
             var itemsToShow = LocalComp.CompResourceListLoader.output.ToList();
 
             foreach (var DatapackEntity in itemsToShow)
                 datapackItems[DatapackEntity.RawPath] = BuildLocalCompItem(DatapackEntity);
 
-            // 显示结果
             Common.RunInUi(() =>
             {
-                Filter = FilterType.All;
-                SearchBox.Text = ""; // 这会触发结果刷新，所以需要在 DatapackItems 更新之后
+                _vm.Filter = FilterType.All;
+                SyncFilterRadios();
+                SearchBox.Text = "";
+                _vm.SetSortMethod(SortMethod.CompName);
                 RefreshUI();
-                SetSortMethod(SortMethod.CompName);
             });
         }
         catch (Exception ex)
@@ -251,9 +224,9 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                 SnapsToDevicePixels = true,
                 Entry = entry,
                 buttonHandler = BuildLocalCompItemBtnHandler,
-                Checked = selectedDatapacks.Contains(entry.RawPath)
+                Checked = _vm.SelectedDatapacks.Contains(entry.RawPath)
             };
-            newItem.CurrentSwipe = _currentSwipSelect;
+            newItem.CurrentSwipe = currentSwipSelect;
             newItem.Tags = entry.Tags;
             entry.OnCompUpdate += _ => newItem.Refresh();
             newItem.Refresh();
@@ -330,34 +303,22 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     }
 
     /// <summary>
-    /// 刷新整个 UI。
+    ///     刷新整个 UI。
     /// </summary>
     public void RefreshUI()
     {
         if (PanList is null)
             return;
-        var showingDatapacks =
-            (IsSearching ? _searchResult : datapackItems.Values.Select(i => i.Entry))
-            .Where(m => CanPassFilter(m)).ToList();
 
-        // 对显示的数据包进行排序
-        if (showingDatapacks.Any())
-        {
-            var sortMethod = GetSortMethod(_currentSortMethod);
-            showingDatapacks.Sort((a, b) => sortMethod(a, b));
-        }
-
-        // 重新列出列表
         Animations.AniBeginControl();
-        if (showingDatapacks.Any())
+        _vm.Apply();
+        if (_vm.VisibleEntries.Count > 0)
         {
-            PanList.Visibility = Visibility.Visible;
             PanList.Children.Clear();
-            foreach (var TargetDatapack in showingDatapacks)
+            foreach (var TargetDatapack in _vm.VisibleEntries)
             {
-                if (!datapackItems.ContainsKey(TargetDatapack.RawPath))
+                if (!datapackItems.TryGetValue(TargetDatapack.RawPath, out var item))
                     continue;
-                var item = datapackItems[TargetDatapack.RawPath];
 
                 // 确保元素没有父容器，避免重复添加异常
                 if (item.Parent is not null) ((Panel)item.Parent).Children.Remove(item);
@@ -366,193 +327,92 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                     ThemeService.IsDarkMode);
                 TextStyles.MinecraftFormatter.SetColorfulTextLab(item.LabInfo.Text, item.LabInfo,
                     ThemeService.IsDarkMode);
-                item.Checked = selectedDatapacks.Contains(TargetDatapack.RawPath); // 更新选中状态
+                item.Checked = _vm.SelectedDatapacks.Contains(TargetDatapack.RawPath); // 更新选中状态
                 PanList.Children.Add(item);
             }
         }
-        else
-        {
-            PanList.Visibility = Visibility.Collapsed;
-        }
 
         Animations.AniEndControl();
-        selectedDatapacks =
-            new HashSet<string>(selectedDatapacks.Where(m =>
-                showingDatapacks.Any(s => (s.RawPath ?? "") == (m ?? ""))));
         RefreshBars();
     }
 
     /// <summary>
-    /// 刷新顶栏和底栏显示。
+    ///     刷新顶栏和底栏显示。
     /// </summary>
     public void RefreshBars()
     {
-        Dispatcher.BeginInvoke(new Func<Task>(async () =>
+        _vm.RefreshBarState();
+        var selected = _vm.SelectedCount > 0;
+
+        if (!Animations.AniExitsAnyControl())
         {
-            // -----------------
-            // 顶部栏
-            // -----------------
-
-            // 计数
-            var anyCount = 0;
-            var enabledCount = 0;
-            var disabledCount = 0;
-            var updateCount = 0;
-            var unavalialeCount = 0;
-            var itemSource =
-                (IsSearching ? _searchResult : datapackItems.Values.Select(i => i.Entry)).ToArray();
-            await Task.Run(() =>
+            PanListBack.Margin = new Thickness(0d, 0d, 0d, selected ? 95 : 15);
+            if (selected)
             {
-                foreach (var item in itemSource)
+                // 仅在数量增加时播放出现/跳跃动画
+                if (bottomBarShownCount >= _vm.SelectedCount)
                 {
-                    anyCount += 1;
-                    if (item.CanUpdate) updateCount += 1;
-                    if (item.State == LocalComp.LocalCompFile.LocalFileStatus.Fine)
-                        enabledCount += 1;
-                    if (item.State == LocalComp.LocalCompFile.LocalFileStatus.Disabled)
-                        disabledCount += 1;
-                    if (item.State == LocalComp.LocalCompFile.LocalFileStatus.Unavailable)
-                        unavalialeCount += 1;
+                    bottomBarShownCount = _vm.SelectedCount;
+                    return;
                 }
-            });
-            // 显示
-            BtnFilterAll.Text = IsSearching ? Lang.Text("Instance.Resource.Filter.SearchResult") : Lang.Text("Instance.Resource.Filter.AllWithCount", anyCount);
-            BtnFilterCanUpdate.Text = Lang.Text("Instance.Resource.Filter.UpdatableWithCount", updateCount);
-            BtnFilterCanUpdate.Visibility = Filter == FilterType.CanUpdate || updateCount > 0
-                ? Visibility.Visible
-                : Visibility.Collapsed;
-            BtnFilterEnabled.Text = Lang.Text("Instance.Resource.Filter.EnabledWithCount", enabledCount);
-            BtnFilterEnabled.Visibility = Filter == FilterType.Enabled || (enabledCount > 0 && enabledCount < anyCount)
-                ? Visibility.Visible
-                : Visibility.Collapsed;
-            BtnFilterDisabled.Text = Lang.Text("Instance.Resource.Filter.DisabledWithCount", disabledCount);
-            BtnFilterDisabled.Visibility = Filter == FilterType.Disabled || disabledCount > 0
-                ? Visibility.Visible
-                : Visibility.Collapsed;
-            BtnFilterError.Text = Lang.Text("Instance.Resource.Filter.ErrorWithCount", unavalialeCount);
-            BtnFilterError.Visibility = Filter == FilterType.Unavailable || unavalialeCount > 0
-                ? Visibility.Visible
-                : Visibility.Collapsed;
 
-            // -----------------
-            // 底部栏
-            // -----------------
-
-            // 计数
-            var newCount = selectedDatapacks.Count;
-            var selected = newCount > 0;
-            if (selected)
-                LabSelect.Text = Lang.Text("Instance.Resource.SelectedCount", newCount);
-
-            // 按钮可用性
-            if (selected)
-            {
-                var hasUpdate = false;
-                var hasEnabled = false;
-                var hasDisabled = false;
-                var canFavoriteAndShare = true;
-
-
-                // 检查是否所有选中的数据包都有有效的项目信息
-                await Task.Run(() =>
-                {
-                    foreach (var DatapackEntity in LocalComp.CompResourceListLoader.output)
-                        if (selectedDatapacks.Contains(DatapackEntity.RawPath))
-                        {
-                            if (DatapackEntity.CanUpdate) hasUpdate = true;
-                            if (DatapackEntity.State ==
-                                LocalComp.LocalCompFile.LocalFileStatus.Fine)
-                                hasEnabled = true;
-                            else if (DatapackEntity.State ==
-                                     LocalComp.LocalCompFile.LocalFileStatus.Disabled)
-                                hasDisabled = true;
-                            if (DatapackEntity.Comp is null || string.IsNullOrEmpty(DatapackEntity.Comp.Id))
-                                canFavoriteAndShare = false;
-                        }
-                });
-
-                BtnSelectDisable.IsEnabled = hasEnabled;
-                BtnSelectEnable.IsEnabled = hasDisabled;
-                BtnSelectUpdate.IsEnabled = hasUpdate;
-                BtnSelectFavorites.IsEnabled = canFavoriteAndShare;
-                BtnSelectShare.IsEnabled = canFavoriteAndShare;
-            }
-
-            // 更新显示状态
-            if (!Animations.AniExitsAnyControl())
-            {
-                PanListBack.Margin = new Thickness(0d, 0d, 0d, selected ? 95 : 15);
-                if (selected)
-                {
-                    // 仅在数量增加时播放出现/跳跃动画
-                    if (_bottomBarShownCount >= newCount)
+                bottomBarShownCount = _vm.SelectedCount;
+                // 出现/跳跃动画
+                CardSelect.Visibility = Visibility.Visible;
+                Animations.AniStart(
+                    new[]
                     {
-                        _bottomBarShownCount = newCount;
-                        return;
-                    }
-
-                    _bottomBarShownCount = newCount;
-                    // 出现/跳跃动画
-                    CardSelect.Visibility = Visibility.Visible;
-                    Animations.AniStart(
-                        new[]
-                        {
-                            Animations.AaOpacity(CardSelect, 1d - CardSelect.Opacity, 60),
-                            Animations.AaTranslateY(CardSelect, -27 - TransSelect.Y, 120,
-                                ease: new Animations.AniEaseOutFluent(Animations.AniEasePower
-                                    .Weak)),
-                            Animations.AaTranslateY(CardSelect, 3d, 150, 120,
-                                new Animations.AniEaseInoutFluent(Animations.AniEasePower.Weak)),
-                            Animations.AaTranslateY(CardSelect, -1, 90, 270,
-                                new Animations.AniEaseInoutFluent(Animations.AniEasePower.Weak))
-                        }, "Datapack Sidebar");
-                }
-                else
-                {
-                    // 不重复播放隐藏动画
-                    if (_bottomBarShownCount == 0)
-                        return;
-                    _bottomBarShownCount = 0;
-                    // 隐藏动画
-                    Animations.AniStart(
-                        new[]
-                        {
-                            Animations.AaOpacity(CardSelect, -CardSelect.Opacity, 90),
-                            Animations.AaTranslateY(CardSelect, -10 - TransSelect.Y, 90,
-                                ease: new Animations.AniEaseInFluent(Animations.AniEasePower.Weak)),
-                            Animations.AaCode(() => CardSelect.Visibility = Visibility.Collapsed,
-                                after: true)
-                        }, "Datapack Sidebar");
-                }
+                        Animations.AaOpacity(CardSelect, 1d - CardSelect.Opacity, 60),
+                        Animations.AaTranslateY(CardSelect, -27 - TransSelect.Y, 120,
+                            ease: new Animations.AniEaseOutFluent(Animations.AniEasePower.Weak)),
+                        Animations.AaTranslateY(CardSelect, 3d, 150, 120,
+                            new Animations.AniEaseInoutFluent(Animations.AniEasePower.Weak)),
+                        Animations.AaTranslateY(CardSelect, -1, 90, 270,
+                            new Animations.AniEaseInoutFluent(Animations.AniEasePower.Weak))
+                    }, "Datapack Sidebar");
             }
             else
             {
-                Animations.AniStop("Datapack Sidebar");
-                _bottomBarShownCount = newCount;
-                if (selected)
-                {
-                    CardSelect.Visibility = Visibility.Visible;
-                    CardSelect.Opacity = 1d;
-                    TransSelect.Y = -25;
-                }
-                else
-                {
-                    CardSelect.Visibility = Visibility.Collapsed;
-                    CardSelect.Opacity = 0d;
-                    TransSelect.Y = -10;
-                }
+                // 不重复播放隐藏动画
+                if (bottomBarShownCount == 0)
+                    return;
+                bottomBarShownCount = 0;
+                // 隐藏动画
+                Animations.AniStart(
+                    new[]
+                    {
+                        Animations.AaOpacity(CardSelect, -CardSelect.Opacity, 90),
+                        Animations.AaTranslateY(CardSelect, -10 - TransSelect.Y, 90,
+                            ease: new Animations.AniEaseInFluent(Animations.AniEasePower.Weak)),
+                        Animations.AaCode(() => CardSelect.Visibility = Visibility.Collapsed, after: true)
+                    }, "Datapack Sidebar");
             }
-    #endregion
-    #region 管理
-        }));
+        }
+        else
+        {
+            Animations.AniStop("Datapack Sidebar");
+            bottomBarShownCount = _vm.SelectedCount;
+            if (selected)
+            {
+                CardSelect.Visibility = Visibility.Visible;
+                CardSelect.Opacity = 1d;
+                TransSelect.Y = -25;
+            }
+            else
+            {
+                CardSelect.Visibility = Visibility.Collapsed;
+                CardSelect.Opacity = 0d;
+                TransSelect.Y = -10;
+            }
+        }
     }
 
-    private int _bottomBarShownCount;
+    #endregion
 
-
+    #region 管理
 
     /// <summary>
-    /// 打开 datapacks 文件夹。
+    ///     打开 datapacks 文件夹。
     /// </summary>
     private void BtnManageOpen_Click(object sender, EventArgs e)
     {
@@ -573,98 +433,30 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     }
 
     /// <summary>
-    /// 全选。
+    ///     全选。
     /// </summary>
     private void BtnManageSelectAll_Click(object sender, MouseButtonEventArgs e)
     {
-        ChangeAllSelected(selectedDatapacks.Count < PanList.Children.Count);
+        ChangeAllSelected(_vm.SelectedCount < PanList.Children.Count);
     }
 
     /// <summary>
-    /// 安装数据包。
+    ///     安装数据包。
     /// </summary>
-    private void BtnManageInstall_Click(object sender, MouseButtonEventArgs e)
+    private async void BtnManageInstall_Click(object sender, MouseButtonEventArgs e)
     {
-        var fileList = SystemDialogs.SelectFiles(
-            Lang.Text("Instance.Saves.Datapack.Install.FileDialog.Filter"),
-            Lang.Text("Instance.Saves.Datapack.Install.FileDialog.Title"));
-        if (fileList is null || fileList.Length == 0)
-            return;
-        InstallDatapackFiles(fileList);
-        Refresh();
-    }
-
-    /// <summary>
-    /// 安装数据包文件。
-    /// </summary>
-    public static void InstallDatapackFiles(IEnumerable<string> filePathList)
-    {
-        if (!filePathList.Any())
-            return;
-
-        var extension = filePathList.First().AfterLast(".").ToLower();
-
-        // 检查文件扩展名
-        if (extension != "zip")
-        {
-            HintService.Hint(Lang.Text("Instance.Resource.Install.UnsupportedFormat", extension, Lang.Text("Download.Comp.Type.DataPack"), "zip"), HintType.Error);
-            return;
-        }
-
-        // 检查回收站
-        if (filePathList.First().Contains(@":\$RECYCLE.BIN\"))
-        {
-            HintService.Hint(Lang.Text("Instance.Resource.Install.RestoreFromRecycleBin"), HintType.Error);
-            return;
-        }
-
-        Common.Log($"[System] 文件为 {extension} 格式，尝试作为数据包安装");
-
-        // 确认安装
-        if (!(Launcher.frmMain.pageCurrent == FormMain.PageType.InstanceSetup &&
-              Launcher.frmMain.PageCurrentSub == FormMain.PageSubType.VersionSavesDatapack))
-            if (Launcher.MyMsgBox(Lang.Text("Instance.Saves.Datapack.Install.Message"),
-                    Lang.Text("Instance.Saves.Datapack.Install.Title"), Lang.Text("Common.Action.Confirm"),
-                    Lang.Text("Common.Action.Cancel")) != 1)
-                return;
-
-        // 执行安装
+        var ctl = sender as Control;
+        if (ctl is not null) ctl.IsEnabled = false;
         try
         {
-            var datapackFolder = Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks");
-            Directory.CreateDirectory(datapackFolder);
-
-            foreach (var FilePath in filePathList)
-            {
-                var newFileName = Common.GetFileNameFromPath(FilePath);
-                var destFile = datapackFolder + newFileName;
-
-                if (File.Exists(destFile))
-                    if (Launcher.MyMsgBox(
-                            Lang.Text("Instance.Resource.Install.OverwriteConfirm.Message",
-                                newFileName),
-                            Lang.Text("Instance.Resource.Install.OverwriteConfirm.Title"),
-                            Lang.Text("Common.Action.Overwrite"),
-                            Lang.Text("Common.Action.Cancel")) != 1)
-                        continue;
-
-                Common.CopyFile(FilePath, destFile);
-            }
-
-            if (filePathList.Count() == 1)
-                HintService.Hint(
-                    Lang.Text("Instance.Resource.Install.SuccessSingle",
-                        Common.GetFileNameFromPath(filePathList.First())), HintType.Success);
-            else
-                HintService.Hint(Lang.Text("Instance.Resource.Install.SuccessMultiple", filePathList.Count(), Lang.Text("Download.Comp.Type.DataPack")), HintType.Success);
-
-            // 刷新列表
-            if (Launcher.frmMain.pageCurrent == FormMain.PageType.InstanceSetup &&
-                Launcher.frmMain.PageCurrentSub == FormMain.PageSubType.VersionSavesDatapack)
-                if (Launcher.frmInstanceSavesDatapack is not null)
-                    Launcher.frmInstanceSavesDatapack.ReloadDatapackFileList(true);
+            var fileList = SystemDialogs.SelectFiles(
+                Lang.Text("Instance.Saves.Datapack.Install.FileDialog.Filter"),
+                Lang.Text("Instance.Saves.Datapack.Install.FileDialog.Title"));
+            if (fileList is null || fileList.Length == 0)
+                return;
+            await PageInstanceSavesDatapackViewModel.InstallFilesAsync(fileList);
+            Refresh();
         }
-
         catch (Exception ex)
         {
             Common.Log(
@@ -673,98 +465,85 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                 Common.LogLevel.Msgbox,
                 userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
         }
+        finally
+        {
+            if (ctl is not null) ctl.IsEnabled = true;
+        }
     }
 
     /// <summary>
-    /// 下载数据包。
+    ///     安装数据包文件。
+    /// </summary>
+    public static void InstallDatapackFiles(IEnumerable<string> filePathList)
+    {
+        _ = PageInstanceSavesDatapackViewModel.InstallFilesAsync(filePathList.ToList());
+    }
+
+    /// <summary>
+    ///     下载数据包。
     /// </summary>
     private void BtnManageDownload_Click(object sender, MouseButtonEventArgs e)
     {
         var datapackPath = Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks");
         Directory.CreateDirectory(datapackPath);
         PageDownloadCompDetail.cachedFolder[Comp.CompType.DataPack] = datapackPath;
-        Launcher.frmMain.PageChange(FormMain.PageType.Download,
-            FormMain.PageSubType.DownloadDataPack);
-        PageComp.targetVersion = PageInstanceLeft.mcInstance; // 将当前实例设置为筛选器
+        Launcher.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadDataPack);
+        PageComp.targetVersion = PageInstanceLeft.McInstance; // 将当前实例设置为筛选器
     }
 
     /// <summary>
-    /// 导出信息。
+    ///     导出信息。
     /// </summary>
-    private void BtnManageInfoExport_Click(object sender, MouseButtonEventArgs e)
+    private async void BtnManageInfoExport_Click(object sender, MouseButtonEventArgs e)
     {
-        var choice =
-            Launcher.MyMsgBox(
+        var ctl = sender as Control;
+        if (ctl is not null) ctl.IsEnabled = false;
+        try
+        {
+            var choice = await Launcher.MyMsgBoxAsync(
                 Lang.Text("Instance.Saves.Datapack.Export.Mode.Message"),
-                Lang.Text("Instance.Resource.Export.Mode.Title"), Lang.Text("Instance.Resource.Export.Mode.Txt"), Lang.Text("Instance.Resource.Export.Mode.Csv"), Lang.Text("Common.Action.Cancel"));
+                Lang.Text("Instance.Resource.Export.Mode.Title"), Lang.Text("Instance.Resource.Export.Mode.Txt"),
+                Lang.Text("Instance.Resource.Export.Mode.Csv"), Lang.Text("Common.Action.Cancel"));
+            if (choice is not (1 or 2))
+                return;
 
-        void ExportText(string content, string fileName)
-        {
-            try
-            {
-                var savePath =
-                    SystemDialogs.SelectSaveFile(Lang.Text("Instance.Resource.Export.SelectSaveLocation"), fileName, Lang.Text("Instance.Resource.Export.FilesFilter"));
-                if (string.IsNullOrWhiteSpace(savePath)) return;
-                File.WriteAllText(savePath, content, Encoding.UTF8);
-                Common.OpenExplorer(savePath);
-            }
-            catch (Exception ex)
-            {
-                Common.Log(
-                    ex,
-                    "导出数据包信息失败",
-                    Common.LogLevel.Msgbox,
-                    userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
-            }
+            var isCsv = choice == 2;
+            await _vm.EnsureFileInfoAsync(LocalComp.CompResourceListLoader.output.Select(entry => entry.path));
+            var content = _vm.BuildExportContent(isCsv);
+            var savePath = SystemDialogs.SelectSaveFile(
+                Lang.Text("Instance.Resource.Export.SelectSaveLocation"),
+                Common.GetFolderNameFromPath(PageInstanceSavesLeft.currentSave) +
+                (isCsv ? "的数据包信息.csv" : "的数据包信息.txt"),
+                Lang.Text("Instance.Resource.Export.FilesFilter"));
+            if (string.IsNullOrWhiteSpace(savePath))
+                return;
+            await _vm.WriteExportFileAsync(savePath, content);
+            Common.OpenExplorer(savePath);
         }
-
-        ;
-        switch (choice)
+        catch (Exception ex)
         {
-            case 1: // TXT
-            {
-                var exportContent = new List<string>();
-                foreach (var DatapackEntity in LocalComp.CompResourceListLoader.output)
-                    exportContent.Add(DatapackEntity.FileName);
-                ExportText(exportContent.Join("\r\n"),
-                    Common.GetFolderNameFromPath(PageInstanceSavesLeft.currentSave) + "的数据包信息.txt");
-                break;
-            }
-
-            case 2: // CSV
-            {
-                var exportContent = new List<string>();
-                exportContent.Add("文件名,数据包名称,数据包版本,此版本更新时间,工程 ID,文件大小（字节）,文件路径");
-                foreach (var DatapackEntity in LocalComp.CompResourceListLoader.output)
-                    exportContent.Add(
-                        $"{DatapackEntity.FileName},{DatapackEntity.Comp?.TranslatedName},{DatapackEntity.Version},{DatapackEntity.CompFile?.ReleaseDate},{DatapackEntity.Comp?.Id},{GetDatapackFileInfo(DatapackEntity.path).Length},{DatapackEntity.path}");
-    #endregion
-    #region 选择
-                ExportText(exportContent.Join("\r\n"),
-                    Common.GetFolderNameFromPath(PageInstanceSavesLeft.currentSave) + "的数据包信息.csv");
-                break;
-            }
+            Common.Log(
+                ex,
+                "导出数据包信息失败",
+                Common.LogLevel.Msgbox,
+                userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
+        }
+        finally
+        {
+            if (ctl is not null) ctl.IsEnabled = true;
         }
     }
 
+    #endregion
 
-
-    /// <summary>
-    /// 选择的数据包的路径。
-    /// </summary>
-    public HashSet<string> selectedDatapacks = new();
+    #region 选择
 
     // 单项切换选择状态
     public void CheckChanged(MyLocalCompItem sender, Common.RouteEventArgs e)
     {
         if (Animations.AniExitsAnyControl())
             return;
-        // 更新选择了的内容
-        var selectedKey = sender.Entry.RawPath;
-        if (sender.Checked)
-            selectedDatapacks.Add(selectedKey);
-        else
-            selectedDatapacks.Remove(selectedKey);
+        _vm.SetSelected(sender.Entry.RawPath, sender.Checked);
         RefreshBars();
     }
 
@@ -772,13 +551,13 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     private void ChangeAllSelected(bool value)
     {
         Animations.AniBeginControl();
-        selectedDatapacks.Clear();
+        _vm.ClearSelection();
         foreach (var Item in datapackItems.Values)
         {
             var shouldSelected = value && PanList.Children.Contains(Item);
             Item.Checked = shouldSelected;
             if (shouldSelected)
-                selectedDatapacks.Add(Item.Entry.RawPath);
+                _vm.SetSelected(Item.Entry.RawPath, true);
         }
 
         Animations.AniEndControl();
@@ -800,8 +579,6 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             ChangeAllSelected(true);
     }
 
-    #endregion
-    #region 筛选
     private void SearchBox_PreviewKeyDown(object sender, KeyEventArgs e)
     {
         // Ctrl + A 会被搜索框捕获，导致无法全选，所以在按下 Ctrl + A 时转移焦点以便捕获
@@ -811,17 +588,16 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             PanBack.Focus();
     }
 
+    #endregion
 
+    #region 筛选
 
-    public FilterType Filter
+    private void SyncFilterRadios()
     {
-        get => field;
-        set
+        _syncingFilter = true;
+        try
         {
-            if (field == value)
-                return;
-            field = value;
-            switch (value)
+            switch (_vm.Filter)
             {
                 case FilterType.All:
                 {
@@ -850,112 +626,31 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                     break;
                 }
             }
-
-            RefreshUI();
         }
-    } = FilterType.All;
-
-    public enum FilterType
-    {
-        All = 0,
-        Enabled = 1,
-        Disabled = 2,
-        CanUpdate = 3,
-        Unavailable = 4
-    }
-
-    /// <summary>
-    /// 检查该数据包项是否符合当前筛选的类别。
-    /// </summary>
-    private bool CanPassFilter(LocalComp.LocalCompFile checkingDatapack)
-    {
-        switch (Filter)
+        finally
         {
-            case FilterType.All:
-            {
-                return true;
-            }
-            case FilterType.Enabled:
-            {
-                return checkingDatapack.State == LocalComp.LocalCompFile.LocalFileStatus.Fine;
-            }
-            case FilterType.Disabled:
-            {
-                return checkingDatapack.State == LocalComp.LocalCompFile.LocalFileStatus.Disabled;
-            }
-            case FilterType.CanUpdate:
-            {
-                return checkingDatapack.CanUpdate;
-            }
-            case FilterType.Unavailable:
-            {
-                return checkingDatapack.State ==
-                       LocalComp.LocalCompFile.LocalFileStatus.Unavailable;
-            }
-
-            default:
-            {
-                return false;
-            }
-    #endregion
-    #region 排序
+            _syncingFilter = false;
         }
     }
 
     // 点击筛选项触发的改变
     private void ChangeFilter(MyRadioButton sender, bool raiseByMouse)
     {
-        Filter = (FilterType)Convert.ToInt32(sender.Tag);
+        if (_syncingFilter)
+            return;
+        _vm.Filter = (FilterType)Convert.ToInt32(sender.Tag);
         RefreshUI();
         DoSort();
     }
 
+    #endregion
 
-    private SortMethod _currentSortMethod = SortMethod.CompName;
+    #region 排序
 
     private void SetSortMethod(SortMethod target)
     {
-        _currentSortMethod = target;
-        BtnSort.Text = Lang.Text("Instance.Resource.Sort.Text", GetSortName(target));
+        _vm.SetSortMethod(target);
         DoSort();
-    }
-
-    private enum SortMethod
-    {
-        FileName,
-        CompName,
-        CreateTime,
-        DatapackFileSize
-    }
-
-    private string GetSortName(SortMethod method)
-    {
-        switch (method)
-        {
-            case SortMethod.FileName:
-            {
-                return Lang.Text("Instance.Resource.Sort.FileName");
-            }
-            case SortMethod.CompName:
-            {
-                return Lang.Text("Instance.Resource.Sort.ResourceName");
-            }
-            case SortMethod.CreateTime:
-            {
-                return Lang.Text("Instance.Resource.Sort.AddTime");
-            }
-            case SortMethod.DatapackFileSize:
-            {
-                return Lang.Text("Instance.Resource.Sort.FileSize");
-            }
-
-            default:
-            {
-                return Lang.Text("Instance.Resource.Sort.ResourceName");
-            }
-        }
-
-        return "";
     }
 
     private void BtnSortClick(object sender, Common.RouteEventArgs e)
@@ -964,7 +659,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         foreach (SortMethod i in Enum.GetValues(typeof(SortMethod)))
         {
             var item = new MyMenuItem();
-            item.Header = GetSortName(i);
+            item.Header = _vm.GetSortName(i);
             item.Click += (_, _) => SetSortMethod(i);
             body.Items.Add(item);
         }
@@ -974,11 +669,9 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         body.IsOpen = true;
     }
 
-    private readonly object _sortLock = new();
-
     private void DoSort()
     {
-        lock (_sortLock)
+        lock (sortLock)
         {
             try
             {
@@ -987,7 +680,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
 
                 // 将子元素转换为可排序的列表
                 var items = PanList.Children.OfType<MyLocalCompItem>().ToList();
-                var method = GetSortMethod(_currentSortMethod);
+                var method = _vm.GetSortMethod(_vm.SortMethod);
 
                 // 分离有效和无效项（保持原始相对顺序）
                 var invalid = items.Where(i => i.Entry is null).ToList();
@@ -1013,154 +706,66 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         }
     }
 
-    private Func<LocalComp.LocalCompFile, LocalComp.LocalCompFile, int> GetSortMethod(
-        SortMethod method)
-    {
-        switch (method)
-        {
-            case SortMethod.FileName:
-            {
-                return (a, b) => string.Compare(a.FileName, b.FileName, StringComparison.OrdinalIgnoreCase);
-            }
-            case SortMethod.CompName:
-            {
-                return (a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
-            }
-            case SortMethod.CreateTime:
-            {
-                return (a, b) =>
-                {
-                    var aDate = GetDatapackFileInfo(a.path).CreationTime;
-                    var bDate = GetDatapackFileInfo(b.path).CreationTime;
-                    if (aDate == DateTime.MinValue && bDate == DateTime.MinValue)
-                        return string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
-
-                    if (aDate == DateTime.MinValue) return 1;
-
-                    if (bDate == DateTime.MinValue) return -1;
-                    return bDate.CompareTo(aDate);
-                };
-            }
-            case SortMethod.DatapackFileSize:
-            {
-                return (a, b) =>
-                {
-                    var aSize = GetDatapackFileInfo(a.path).Length;
-                    var bSize = GetDatapackFileInfo(b.path).Length;
-                    if (aSize == 0L && bSize == 0L)
-                        return string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
-
-                    if (aSize == 0L) return 1;
     #endregion
+
     #region 下边栏
 
-                    if (bSize == 0L) return -1;
-                    return bSize.CompareTo(aSize);
-                };
-            }
-
-            default:
-            {
-                return (a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
-            }
+    // 启用
+    private async void BtnSelectEnable_Click(object sender, Common.RouteEventArgs e)
+    {
+        try
+        {
+            await ToggleDatapacksAsync(
+                LocalComp.CompResourceListLoader.output.Where(m => _vm.SelectedDatapacks.Contains(m.RawPath))
+                    .ToList(), true);
+            ChangeAllSelected(false);
+        }
+        catch (Exception ex)
+        {
+            Common.Log(
+                ex,
+                "切换数据包启用状态失败",
+                Common.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
         }
     }
 
-
-
-    // 启用
-    private void BtnSelectEnable_Click(object sender, Common.RouteEventArgs e)
-    {
-        ToggleDatapacks(
-            LocalComp.CompResourceListLoader.output
-                .Where(m => selectedDatapacks.Contains(m.RawPath)).ToList(),
-            true);
-        ChangeAllSelected(false);
-    }
-
     // 禁用
-    private void BtnSelectDisable_Click(object sender, Common.RouteEventArgs e)
+    private async void BtnSelectDisable_Click(object sender, Common.RouteEventArgs e)
     {
-        ToggleDatapacks(
-            LocalComp.CompResourceListLoader.output
-                .Where(m => selectedDatapacks.Contains(m.RawPath)).ToList(),
-            false);
-        ChangeAllSelected(false);
+        try
+        {
+            await ToggleDatapacksAsync(
+                LocalComp.CompResourceListLoader.output.Where(m => _vm.SelectedDatapacks.Contains(m.RawPath))
+                    .ToList(), false);
+            ChangeAllSelected(false);
+        }
+        catch (Exception ex)
+        {
+            Common.Log(
+                ex,
+                "切换数据包启用状态失败",
+                Common.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
+        }
     }
 
     /// <summary>
-    /// 启用/禁用数据包（通过重命名文件夹为 .disabled）
+    ///     启用/禁用数据包（通过重命名文件夹为 .disabled）
     /// </summary>
-    private void ToggleDatapacks(IEnumerable<LocalComp.LocalCompFile> datapackList, bool isEnable)
+    private async Task ToggleDatapacksAsync(IEnumerable<LocalComp.LocalCompFile> datapackList, bool isEnable)
     {
-        var isSuccessful = true;
-        foreach (var DatapackE in datapackList)
+        var outcome = await _vm.ToggleDatapacksAsync(datapackList, isEnable);
+
+        foreach (var (OldEntry, NewEntry) in outcome.Replaced)
         {
-            var datapackEntity = DatapackE;
-            string newPath = null;
-
-            if (datapackEntity.State == LocalComp.LocalCompFile.LocalFileStatus.Fine && !isEnable)
-                // 禁用 - 添加 .disabled 后缀
-                newPath = datapackEntity.path + ".disabled";
-            else if (datapackEntity.State == LocalComp.LocalCompFile.LocalFileStatus.Disabled &&
-                     isEnable)
-                // 启用 - 移除 .disabled 后缀
-                newPath = datapackEntity.RawPath;
-            else
-                continue;
-
-            // 重命名
-            try
-            {
-                if (File.Exists(newPath))
-                {
-                    Launcher.MyMsgBox(Lang.Text("Instance.Saves.Datapack.Replace.FileNameConflict",
-                        Common.GetFileNameFromPath(newPath)));
-                    continue;
-                }
-
-                FileSystem.Rename(datapackEntity.path, newPath);
-            }
-            catch (FileNotFoundException ex)
-            {
-                Common.Log(
-                    ex,
-                    $"未找到需要重命名的数据包（{datapackEntity.path ?? "null"}）",
-                    Common.LogLevel.Feedback,
-                    userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
-                ReloadDatapackFileList(true);
-                return;
-            }
-            catch (Exception ex)
-            {
-                Common.Log(ex, $"重命名数据包失败（{datapackEntity.path ?? "null"}）");
-                isSuccessful = false;
-            }
-
-            // 更改 Loader 中的列表
-            var newDatapackEntity = new LocalComp.LocalCompFile(newPath);
-            newDatapackEntity.FromJson(datapackEntity.ToJson());
-            if (LocalComp.CompResourceListLoader.output.Contains(datapackEntity))
-            {
-                var indexOfLoader = LocalComp.CompResourceListLoader.output.IndexOf(datapackEntity);
-                LocalComp.CompResourceListLoader.output.RemoveAt(indexOfLoader);
-                LocalComp.CompResourceListLoader.output.Insert(indexOfLoader, newDatapackEntity);
-            }
-
-            if (_searchResult is not null && _searchResult.Contains(datapackEntity))
-            {
-                var indexOfResult = _searchResult.IndexOf(datapackEntity);
-                _searchResult.Remove(datapackEntity);
-                _searchResult.Insert(indexOfResult, newDatapackEntity);
-            }
-
             // 更改 UI 中的列表
             try
             {
-                var newItem = BuildLocalCompItem(newDatapackEntity);
-                datapackItems[datapackEntity.RawPath] = newItem;
+                var newItem = BuildLocalCompItem(NewEntry);
+                datapackItems[OldEntry.RawPath] = newItem;
                 var indexOfUi = PanList.Children.IndexOf(PanList.Children.OfType<MyLocalCompItem>()
-                    .FirstOrDefault(i => ReferenceEquals(i.Entry, datapackEntity)));
+                    .FirstOrDefault(i => ReferenceEquals(i.Entry, OldEntry)));
                 if (indexOfUi == -1)
                     continue;
                 PanList.Children.RemoveAt(indexOfUi);
@@ -1170,15 +775,21 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             {
                 Common.Log(
                     ex,
-                    $"更新 UI 列表项失败：{datapackEntity.FileName}",
+                    $"更新 UI 列表项失败：{OldEntry.FileName}",
                     Common.LogLevel.Hint,
                     userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
             }
         }
 
+        if (outcome.Aborted)
+        {
+            ReloadDatapackFileList(true);
+            return;
+        }
+
         Dispatcher.Invoke(() => PanList.UpdateLayout(), DispatcherPriority.Background);
 
-        if (isSuccessful)
+        if (outcome.IsSuccessful)
         {
             RefreshBars();
         }
@@ -1192,229 +803,47 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     }
 
     // 更新
-    private void BtnSelectUpdate_Click(object sender, Common.RouteEventArgs e)
+    private async void BtnSelectUpdate_Click(object sender, Common.RouteEventArgs e)
     {
-        var updateList = LocalComp.CompResourceListLoader.output
-            .Where(m => selectedDatapacks.Contains(m.RawPath) && m.CanUpdate).ToList();
-        if (!updateList.Any())
-            return;
-        UpdateResource(updateList);
-        ChangeAllSelected(false);
-    }
-
-    /// <summary>
-    /// 记录正在进行数据包更新的 datapacks 文件夹路径。
-    /// </summary>
-    public static List<string> updatingVersions = new();
-
-    private static bool TryGetSafeDatapackUpdateFileName(Comp.CompFile file, out string fileName)
-    {
-        fileName = file.FileName?.Trim() ?? "";
-        if (string.IsNullOrEmpty(fileName))
-            return false;
-
-        if (!fileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
-            return false;
-
-        if (fileName.IndexOfAny(new[] { '\\', '/', ':' }) >= 0)
-            return false;
-
-        if (fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
-            return false;
-
-        return fileName == Path.GetFileName(fileName) && fileName != "." && fileName != "..";
-    }
-
-    private static bool TryBuildDatapackUpdatePath(string rootPath, string fileName, out string fullPath)
-    {
-        var fullRootPath = Path.GetFullPath(rootPath);
-        if (!fullRootPath.EndsWith(Path.DirectorySeparatorChar.ToString()) &&
-            !fullRootPath.EndsWith(Path.AltDirectorySeparatorChar.ToString()))
-            fullRootPath += Path.DirectorySeparatorChar;
-
-        fullPath = Path.GetFullPath(Path.Combine(fullRootPath, fileName));
-        return fullPath.StartsWith(fullRootPath, StringComparison.OrdinalIgnoreCase);
+        try
+        {
+            var updateList = LocalComp.CompResourceListLoader.output
+                .Where(m => _vm.SelectedDatapacks.Contains(m.RawPath) && m.CanUpdate).ToList();
+            if (!updateList.Any())
+                return;
+            await UpdateResourceAsync(updateList);
+            ChangeAllSelected(false);
+        }
+        catch (Exception ex)
+        {
+            Common.Log(ex, "初始化数据包更新失败");
+        }
     }
 
     public void UpdateResource(IEnumerable<LocalComp.LocalCompFile> datapackList)
     {
-        // 更新前警告
-        if (!States.Hint.FunctionDatapackUpdate || datapackList.Count() >= 15)
-        {
-            if (Launcher.MyMsgBox(
-                    Lang.Text("Instance.Saves.Datapack.Update.Warning.Message"),
-                    Lang.Text("Instance.Saves.Datapack.Update.Warning.Title"), Lang.Text("Instance.Saves.Datapack.Update.Warning.Confirm"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
-                States.Hint.FunctionDatapackUpdate = true;
-            else
-                return;
-        }
+        _ = UpdateResourceAsync(datapackList);
+    }
 
+    private async Task UpdateResourceAsync(IEnumerable<LocalComp.LocalCompFile> datapackList)
+    {
         try
         {
-            // 构造下载信息
-            datapackList = datapackList.ToList(); // 防止刷新影响迭代器
-            var fileList = new List<DownloadFile>();
-            var fileCopyList = new Dictionary<string, string>();
-            var updateEntryList = new List<LocalComp.LocalCompFile>();
-            var tempRoot = Path.Combine(Common.pathTemp, "DownloadedComp");
-            var datapackRoot = Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks");
-            var skippedUnsafeFileCount = 0;
-            foreach (var Entry in datapackList)
+            var list = datapackList.ToList();
+            // 更新前警告
+            if (!States.Hint.FunctionDatapackUpdate || list.Count >= 15)
             {
-                var file = Entry.UpdateFile;
-                if (!file.Available)
-                    continue;
-                if (!TryGetSafeDatapackUpdateFileName(file, out var safeFileName) ||
-                    !TryBuildDatapackUpdatePath(tempRoot, safeFileName, out var tempAddress) ||
-                    !TryBuildDatapackUpdatePath(datapackRoot, safeFileName, out var realAddress))
-                {
-                    skippedUnsafeFileCount++;
-                    Common.Log($"[DatapackUpdate] 已跳过不安全的数据包更新文件名：{file.FileName}",
-                        Common.LogLevel.Debug);
-                    continue;
-                }
-
-                // 添加到下载列表
-                fileList.Add(file.ToNetFile(tempAddress, Comp.DownloadReason.Update,
-                    file.RawGameVersions.FirstOrDefault()));
-                fileCopyList[tempAddress] = realAddress;
-                updateEntryList.Add(Entry);
+                if (1 != await Launcher.MyMsgBoxAsync(
+                        Lang.Text("Instance.Saves.Datapack.Update.Warning.Message"),
+                        Lang.Text("Instance.Saves.Datapack.Update.Warning.Title"),
+                        Lang.Text("Instance.Saves.Datapack.Update.Warning.Confirm"),
+                        Lang.Text("Common.Action.Cancel"), isWarn: true))
+                    return;
+                States.Hint.FunctionDatapackUpdate = true;
             }
 
-            if (skippedUnsafeFileCount > 0)
-                HintService.Hint(
-                    Lang.Text("Instance.Saves.Datapack.Update.UnsafeFilesSkipped", skippedUnsafeFileCount),
-                    HintType.Error);
-            if (!fileList.Any())
-                return;
-
-            // 构造加载器
-            var installLoaders = new List<Loading.LoaderBase>();
-            var finishedFileNames = new List<string>();
-            installLoaders.Add(
-                new LoaderDownload(Lang.Text("Instance.Saves.Datapack.Update.Task.DownloadFiles"), fileList)
-                    { ProgressWeight = updateEntryList.Count * 1.5d });
-
-            installLoaders.Add(new Loading.LoaderTask<int, int>(
-                Lang.Text("Instance.Saves.Datapack.Update.Task.ReplaceFiles"), _ =>
-                {
-                    try
-                    {
-                        foreach (var Entry in updateEntryList)
-                            if (File.Exists(Entry.path))
-                                Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(Entry.path, UIOption.AllDialogs,
-                                    RecycleOption.SendToRecycleBin);
-                            else
-                                Common.Log($"[DatapackUpdate] 未找到更新前的数据包文件，跳过对它的删除：{Entry.path}",
-                                    Common.LogLevel.Debug);
-
-                        foreach (var Entry in fileCopyList)
-                        {
-                            if (File.Exists(Entry.Value))
-                            {
-                                Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(Entry.Value, UIOption.AllDialogs,
-                                    RecycleOption.SendToRecycleBin);
-                                Common.Log($"[Datapack] 更新后的数据包文件已存在，将会把它放入回收站：{Entry.Value}",
-                                    Common.LogLevel.Debug);
-                            }
-
-                            if (Directory.Exists(Common.GetPathFromFullPath(Entry.Value)))
-                            {
-                                File.Move(Entry.Key, Entry.Value);
-                                finishedFileNames.Add(Common.GetFileNameFromPath(Entry.Value));
-                            }
-                            else
-                            {
-                                Common.Log($"[Datapack] 更新后的目标文件夹已被删除：{Entry.Value}",
-                                    Common.LogLevel.Debug);
-                            }
-                        }
-                    }
-                    catch (OperationCanceledException ex)
-                    {
-                        Common.Log(ex, "替换旧版数据包文件时被主动取消");
-                    }
-                }));
-
-            // 结束处理
-            var loader = new Loading.LoaderCombo<IEnumerable<LocalComp.LocalCompFile>>(
-                Lang.Text("Instance.Saves.Datapack.Update.Task.Title",
-                    Common.GetFolderNameFromPath(PageInstanceSavesLeft.currentSave)),
-                installLoaders);
-            var pathDatapacks = Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks");
-
-            loader.OnStateChanged = _ =>
-            {
-                switch (loader.State)
-                {
-                    case Common.LoadState.Finished:
-                    {
-                        switch (finishedFileNames.Count)
-                        {
-                            case 0:
-                            {
-                                Common.Log("[DatapackUpdate] 没有数据包被成功更新");
-                                break;
-                            }
-                            case 1:
-                            {
-                                HintService.Hint(Lang.Text("Instance.Resource.Update.SuccessSingle", finishedFileNames.Single()), HintType.Success);
-                                break;
-                            }
-
-                            default:
-                            {
-                                HintService.Hint(Lang.Text("Instance.Resource.Update.SuccessMultiple", finishedFileNames.Count), HintType.Success);
-                                break;
-                            }
-                        }
-
-                        break;
-                    }
-                    case Common.LoadState.Failed:
-                    {
-                        HintService.Hint(Lang.Text("Instance.Resource.Update.Failed", loader.Error.Message), HintType.Error);
-                        break;
-                    }
-                    case Common.LoadState.Aborted:
-                    {
-                        HintService.Hint(Lang.Text("Instance.Resource.Update.Aborted"));
-                        break;
-                    }
-
-                    default:
-                    {
-                        return;
-                    }
-                }
-
-                Common.Log($"[DatapackUpdate] 已从正在进行数据包更新的文件夹列表移除：{pathDatapacks}");
-                updatingVersions.Remove(pathDatapacks);
-
-                // 清理缓存
-                Common.RunInNewThread(() =>
-                {
-                    try
-                    {
-                        foreach (var TempFile in fileCopyList.Keys)
-                            if (File.Exists(TempFile))
-                                File.Delete(TempFile);
-                    }
-                    catch (Exception ex)
-                    {
-                        Common.Log(ex, "清理数据包更新缓存失败");
-                    }
-                }, "Clean Datapack Update Cache", ThreadPriority.BelowNormal);
-            };
-
-            // 启动加载器
-            Common.Log($"[DatapackUpdate] 开始更新 {datapackList.Count()} 个数据包：{pathDatapacks}");
-            updatingVersions.Add(pathDatapacks);
-            loader.Start();
-            Loading.LoaderTaskbarAdd(loader);
-            Launcher.frmMain.BtnExtraDownload.ShowRefresh();
-            Launcher.frmMain.BtnExtraDownload.Ribble();
-            ReloadDatapackFileList(true);
+            if (await _vm.UpdateAsync(list))
+                ReloadDatapackFileList(true);
         }
         catch (Exception ex)
         {
@@ -1425,61 +854,31 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     // 删除
     private void BtnSelectDelete_Click(object sender, Common.RouteEventArgs e)
     {
-        DeleteDatapacks(
-            LocalComp.CompResourceListLoader.output.Where(m =>
-                selectedDatapacks.Contains(m.RawPath)));
+        _ = DeleteDatapacksAsync(LocalComp.CompResourceListLoader.output
+            .Where(m => _vm.SelectedDatapacks.Contains(m.RawPath)));
         ChangeAllSelected(false);
     }
 
-    private void DeleteDatapacks(IEnumerable<LocalComp.LocalCompFile> datapackList)
+    private async Task DeleteDatapacksAsync(IEnumerable<LocalComp.LocalCompFile> datapackList)
     {
         try
         {
-            var isSuccessful = true;
             var isShiftPressed = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
-
-            // 确认需要删除的文件
-            datapackList = datapackList.SelectMany(target =>
+            var outcome = await _vm.DeleteFilesAsync(datapackList, isShiftPressed);
+            if (outcome.Fatal is not null)
             {
-                if (target.State == LocalComp.LocalCompFile.LocalFileStatus.Fine)
-                    return new[] { target.path, target.path + ".disabled" };
+                Common.Log(
+                    outcome.Fatal,
+                    "删除数据包出现未知错误",
+                    Common.LogLevel.Feedback,
+                    userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
+                ReloadDatapackFileList(true);
+                LoaderRun(Loading.LoaderFolderRunType.UpdateOnly);
+                return;
+            }
 
-                return new[] { target.path, target.RawPath };
-            }).Distinct().Where(m => File.Exists(m)).Select(m => new LocalComp.LocalCompFile(m))
-            .ToList();
-
-            // 实际删除文件
-            foreach (var DatapackEntity in datapackList)
+            foreach (var DatapackEntity in outcome.Deleted)
             {
-                try
-                {
-                    if (isShiftPressed)
-                        File.Delete(DatapackEntity.path);
-                    else
-                        Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(DatapackEntity.path,
-                            UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
-                }
-                catch (OperationCanceledException ex)
-                {
-                    Common.Log(ex, "删除数据包被主动取消");
-                    ReloadDatapackFileList(true);
-                    return;
-                }
-                catch (Exception ex)
-                {
-                    Common.Log(
-                        ex,
-                        $"删除数据包失败（{DatapackEntity.path}）",
-                        Common.LogLevel.Msgbox,
-                        userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
-                    isSuccessful = false;
-                }
-
-                // 取消选中
-                selectedDatapacks.Remove(DatapackEntity.RawPath);
-                // 更改 Loader 和 UI 中的列表
-                LocalComp.CompResourceListLoader.output.Remove(DatapackEntity);
-                _searchResult?.Remove(DatapackEntity);
                 datapackItems.Remove(DatapackEntity.RawPath);
                 var indexOfUi = PanList.Children.IndexOf(PanList.Children.OfType<MyLocalCompItem>()
                     .FirstOrDefault(i => i.Entry.Equals(DatapackEntity)));
@@ -1487,43 +886,50 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                     PanList.Children.RemoveAt(indexOfUi);
             }
 
+            if (outcome.Canceled)
+            {
+                ReloadDatapackFileList(true);
+                return;
+            }
+
             RefreshBars();
-            if (!isSuccessful)
+            if (!outcome.IsSuccessful)
             {
                 HintService.Hint(Lang.Text("Instance.Saves.Datapack.Delete.FileOccupied"), HintType.Error);
                 ReloadDatapackFileList(true);
-            }
-            else if (PanList.Children.Count == 0)
-            {
-                ReloadDatapackFileList(true);
-            }
-            else
-            {
-                RefreshBars();
+                return;
             }
 
-            if (!isSuccessful)
-                return;
+            if (PanList.Children.Count == 0)
+                ReloadDatapackFileList(true);
+            else
+                RefreshBars();
+
             if (isShiftPressed)
             {
-                if (datapackList.Count() == 1)
-                    HintService.Hint(Lang.Text("Instance.Saves.Datapack.Delete.PermanentSingle", datapackList.Single().FileName), HintType.Success);
+                if (outcome.Deleted.Count == 1)
+                    HintService.Hint(
+                        Lang.Text("Instance.Saves.Datapack.Delete.PermanentSingle", outcome.Deleted[0].FileName),
+                        HintType.Success);
                 else
-                    HintService.Hint(Lang.Text("Instance.Saves.Datapack.Delete.PermanentMultiple", datapackList.Count()), HintType.Success);
+                    HintService.Hint(
+                        Lang.Text("Instance.Saves.Datapack.Delete.PermanentMultiple", outcome.Deleted.Count),
+                        HintType.Success);
             }
-            else if (datapackList.Count() == 1)
+            else if (outcome.Deleted.Count == 1)
             {
-                HintService.Hint(Lang.Text("Instance.Saves.Datapack.Delete.RecycleSingle", datapackList.Single().FileName), HintType.Success);
+                HintService.Hint(
+                    Lang.Text("Instance.Saves.Datapack.Delete.RecycleSingle", outcome.Deleted[0].FileName),
+                    HintType.Success);
             }
             else
             {
-                HintService.Hint(Lang.Text("Instance.Saves.Datapack.Delete.RecycleMultiple", datapackList.Count()), HintType.Success);
+                HintService.Hint(
+                    Lang.Text("Instance.Saves.Datapack.Delete.RecycleMultiple", outcome.Deleted.Count),
+                    HintType.Success);
             }
-        }
-        catch (OperationCanceledException ex)
-        {
-            Common.Log(ex, "删除数据包被主动取消");
-            ReloadDatapackFileList(true);
+
+            LoaderRun(Loading.LoaderFolderRunType.UpdateOnly);
         }
         catch (Exception ex)
         {
@@ -1533,9 +939,8 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                 Common.LogLevel.Feedback,
                 userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
             ReloadDatapackFileList(true);
+            LoaderRun(Loading.LoaderFolderRunType.UpdateOnly);
         }
-
-        LoaderRun(Loading.LoaderFolderRunType.UpdateOnly);
     }
 
     // 取消选择
@@ -1546,11 +951,9 @@ public partial class PageInstanceSavesDatapack : IRefreshable
 
     // 收藏
     private void BtnSelectFavorites_Click(object sender, Common.RouteEventArgs e)
-    #endregion
-    #region 单个资源项
     {
         var selected = LocalComp.CompResourceListLoader.output
-            .Where(m => selectedDatapacks.Contains(m.RawPath) && m.Comp is not null).Select(i => i.Comp).ToList();
+            .Where(m => _vm.SelectedDatapacks.Contains(m.RawPath) && m.Comp is not null).Select(i => i.Comp).ToList();
         Comp.CompFavorites.ShowMenu(selected, (UIElement)sender);
     }
 
@@ -1558,15 +961,18 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     private void BtnSelectShare_Click(object sender, Common.RouteEventArgs e)
     {
         var shareList = LocalComp.CompResourceListLoader.output
-            .Where(m => selectedDatapacks.Contains(m.RawPath) && m.Comp is not null).Select(i => i.Comp.Id).ToHashSet();
+            .Where(m => _vm.SelectedDatapacks.Contains(m.RawPath) && m.Comp is not null).Select(i => i.Comp.Id)
+            .ToHashSet();
         Common.ClipboardSet(Comp.CompFavorites.GetShareCode(shareList));
         ChangeAllSelected(false);
     }
 
+    #endregion
 
+    #region 单个资源项
 
     // 详情
-    public void Info_Click(object sender, EventArgs e)
+    public async void Info_Click(object sender, EventArgs e)
     {
         try
         {
@@ -1575,7 +981,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             // 加载失败信息
             if (datapackEntry.State == LocalComp.LocalCompFile.LocalFileStatus.Unavailable)
             {
-                Launcher.MyMsgBox(
+                await Launcher.MyMsgBoxAsync(
                     Lang.Text(
                         "Instance.Saves.Datapack.Info.ReadFailed.WithDetail",
                         datapackEntry.FileUnavailableReason.ToString()),
@@ -1589,13 +995,14 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                 Launcher.frmMain.PageChange(new FormMain.PageStackData
                 {
                     page = FormMain.PageType.CompDetail,
-                    additional = (datapackEntry.Comp, new List<string>(),
-                        PageInstanceLeft.mcInstance.Info.VanillaName,
+                    additional = (datapackEntry.Comp, new List<string>(), PageInstanceLeft.McInstance.Info.VanillaName,
                         Comp.CompLoaderType.Minecraft, Comp.CompType.DataPack, null)
                 });
             }
             else
             {
+                await _vm.EnsureFileInfoAsync(new[] { datapackEntry.path });
+
                 // 获取信息
                 var contentLines = new List<string>();
 
@@ -1604,13 +1011,13 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                 if (datapackEntry.Authors is not null)
                     contentLines.Add(Lang.Text("Instance.Saves.Datapack.Info.Author") + datapackEntry.Authors);
                 contentLines.Add(Lang.Text("Instance.Saves.Datapack.Info.File") + datapackEntry.FileName + "（" +
-                                 Common.GetString(GetDatapackFileInfo(datapackEntry.path).Length) +
-                                 "）");
+                                 Common.GetString(_vm.GetDatapackFileInfo(datapackEntry.path).Length) + "）");
                 if (datapackEntry.Version is not null)
                     contentLines.Add(Lang.Text("Instance.Saves.Datapack.Info.Version") + datapackEntry.Version);
 
                 var debugInfo = new List<string>();
-                if (datapackEntry.ModId is not null) debugInfo.Add(Lang.Text("Instance.Saves.Datapack.Info.DatapackId") + datapackEntry.ModId);
+                if (datapackEntry.ModId is not null)
+                    debugInfo.Add(Lang.Text("Instance.Saves.Datapack.Info.DatapackId") + datapackEntry.ModId);
                 if (debugInfo.Any())
                 {
                     contentLines.Add("");
@@ -1619,11 +1026,11 @@ public partial class PageInstanceSavesDatapack : IRefreshable
 
                 // 显示详情信息
                 if (datapackEntry.Url is null)
-                    Launcher.MyMsgBox(contentLines.Join("\r\n"), datapackEntry.Name,
+                    await Launcher.MyMsgBoxAsync(contentLines.Join("\r\n"), datapackEntry.Name,
                         Lang.Text("Instance.Resource.Item.Info.Return"));
-                else if (Launcher.MyMsgBox(contentLines.Join("\r\n"), datapackEntry.Name,
+                else if (1 == await Launcher.MyMsgBoxAsync(contentLines.Join("\r\n"), datapackEntry.Name,
                              Lang.Text("Instance.Resource.Item.Info.OpenWebsite"),
-                             Lang.Text("Instance.Resource.Item.Info.Return")) == 1)
+                             Lang.Text("Instance.Resource.Item.Info.Return")))
                     Common.OpenWebsite(datapackEntry.Url);
             }
         }
@@ -1659,43 +1066,43 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     public void Delete_Click(MyIconButton sender, EventArgs e)
     {
         var listItem = (MyLocalCompItem)sender.Tag;
-    #endregion
-    #region 搜索
-        DeleteDatapacks(new[] { listItem.Entry });
+        _ = DeleteDatapacksAsync(new[] { listItem.Entry });
     }
 
     // 启用
     public void Enable_Click(MyIconButton sender, EventArgs e)
     {
         var listItem = (MyLocalCompItem)sender.Tag;
-        ToggleDatapacks(new[] { listItem.Entry }, true);
+        _ = ToggleDatapacksAsync(new[] { listItem.Entry }, true);
     }
 
     // 禁用
     public void Disable_Click(MyIconButton sender, EventArgs e)
     {
         var listItem = (MyLocalCompItem)sender.Tag;
-        ToggleDatapacks(new[] { listItem.Entry }, false);
+        _ = ToggleDatapacksAsync(new[] { listItem.Entry }, false);
     }
 
+    #endregion
 
+    #region 搜索
 
-    public bool IsSearching => !string.IsNullOrWhiteSpace(SearchBox.Text);
-    private List<LocalComp.LocalCompFile> _searchResult;
+    public bool IsSearching => _vm.IsSearching;
 
     public void SearchRun(object sender, EventArgs e)
     {
         try
         {
-            if (IsSearching)
+            _vm.SearchText = SearchBox.Text;
+            if (_vm.IsSearching)
             {
                 // 构造请求
                 var queryList = new List<Common.SearchEntry<LocalComp.LocalCompFile>>();
                 foreach (var Entry in LocalComp.CompResourceListLoader.output)
                 {
                     var searchSource = new List<Common.SearchSource>();
-                    searchSource.Add(new Common.SearchSource(Entry.Name));
-                    searchSource.Add(new Common.SearchSource(Entry.FileName));
+                    searchSource.Add(new Common.SearchSource(Entry.Name, 1d));
+                    searchSource.Add(new Common.SearchSource(Entry.FileName, 1d));
                     if (Entry.Version is not null)
                         searchSource.Add(new Common.SearchSource(Entry.Version, 0.2d));
                     if (Entry.Description is not null && !string.IsNullOrEmpty(Entry.Description))
@@ -1703,24 +1110,22 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                     if (Entry.Comp is not null)
                     {
                         if ((Entry.Comp.RawName ?? "") != (Entry.Name ?? ""))
-                            searchSource.Add(new Common.SearchSource(Entry.Comp.RawName));
+                            searchSource.Add(new Common.SearchSource(Entry.Comp.RawName, 1d));
                         if ((Entry.Comp.TranslatedName ?? "") != (Entry.Comp.RawName ?? ""))
-                            searchSource.Add(new Common.SearchSource(Entry.Comp.TranslatedName));
+                            searchSource.Add(new Common.SearchSource(Entry.Comp.TranslatedName, 1d));
                         if ((Entry.Comp.Description ?? "") != (Entry.Description ?? ""))
                             searchSource.Add(new Common.SearchSource(Entry.Comp.Description, 0.4d));
-                        searchSource.Add(new Common.SearchSource(string.Join("", Entry.Comp.Tags),
-                            0.2d));
+                        searchSource.Add(new Common.SearchSource(string.Join("", Entry.Comp.Tags), 0.2d));
                     }
-    #endregion
 
                     queryList.Add(new Common.SearchEntry<LocalComp.LocalCompFile>
                         { item = Entry, searchSource = searchSource });
                 }
 
                 // 进行搜索
-                _searchResult = Common
-                    .Search(queryList, SearchBox.Text, Common.MaxLocalSearchDepth, 0.35d)
-                    .Select(r => r.item).ToList();
+                _vm.SetSearchResult(
+                    Common.Search(queryList, SearchBox.Text, Common.MaxLocalSearchDepth, 0.35d)
+                        .Select(r => r.item).ToList());
             }
 
             RefreshUI();
@@ -1731,4 +1136,5 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         }
     }
 
+    #endregion
 }

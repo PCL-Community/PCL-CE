@@ -15,10 +15,10 @@ public partial class Setup
             return;
 
         Common.WriteIni($"{GameFolders.mcFolderSelected}PCL.ini", "InstanceCache", "");
-        if (PageInstanceLeft.mcInstance is null || GameFolders.mcFolderSelected is null)
+        if (PageInstanceLeft.McInstance is null || GameFolders.mcFolderSelected is null)
             return;
 
-        PageInstanceLeft.mcInstance = new McInstance(PageInstanceLeft.mcInstance.Name).Load();
+        PageInstanceLeft.McInstance = new McInstance(PageInstanceLeft.McInstance.Name).Load();
         Loading.LoaderFolderRun(
             InstanceList.mcInstanceListLoader,
             GameFolders.mcFolderSelected,
