@@ -53,11 +53,34 @@
                               Visibility="{Binding FilterVisibility}">
                     <StackPanel>
                         <DockPanel x:Name="PanInstanceFilterHost" Margin="10,10,0,5">
-                            <Grid x:Name="PanInstanceFilterLabel" DockPanel.Dock="Left" Height="27" VerticalAlignment="Top" />
+                            <ItemsControl x:Name="PanInstanceFilterLabel" DockPanel.Dock="Left" Height="27"
+                                          VerticalAlignment="Top" ItemsSource="{Binding InstanceFilterLabelChips}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <Grid />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Text}" VerticalAlignment="Center"
+                                                   Margin="2,0,0,0" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
                             <WrapPanel x:Name="PanInstanceFilter" Margin="0,0,0,-4" />
                         </DockPanel>
                         <StackPanel x:Name="PanModLoaderFilter" Margin="10,5,0,10" Orientation="Horizontal"
-                                    VerticalAlignment="Top" HorizontalAlignment="Left" />
+                                    VerticalAlignment="Top" HorizontalAlignment="Left">
+                            <ItemsControl x:Name="PanModLoaderFilterLabel" VerticalAlignment="Center"
+                                          ItemsSource="{Binding ModLoaderFilterLabelChips}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Text}" VerticalAlignment="Center"
+                                                   Margin="2,0,0,0" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
                     </StackPanel>
                 </local:MyCard>
                 <StackPanel Name="PanResults" />

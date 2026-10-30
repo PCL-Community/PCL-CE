@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -20,6 +21,10 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
     [ObservableProperty] private Visibility _filterVisibility = Visibility.Visible;
 
     [ObservableProperty] private bool _isFavorite;
+
+    public ObservableCollection<CompFilterChip> InstanceFilterLabelChips { get; } = [];
+
+    public ObservableCollection<CompFilterChip> ModLoaderFilterLabelChips { get; } = [];
 
     public void ApplyProjectState(Comp.CompProject project)
     {

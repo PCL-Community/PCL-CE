@@ -801,8 +801,10 @@ public partial class PageDownloadCompDetail : IPageView
 
         // UI 化筛选器
         PanInstanceFilter.Children.Clear();
-        PanModLoaderFilter.Children.Clear();
-        PanInstanceFilterLabel.Children.Clear();
+        foreach (var radioButton in PanModLoaderFilter.Children.OfType<MyRadioButton>().ToList())
+            PanModLoaderFilter.Children.Remove(radioButton);
+        _vm.InstanceFilterLabelChips.Clear();
+        _vm.ModLoaderFilterLabelChips.Clear();
         if (_pageType == Comp.CompType.Mod)
         {
             PanInstanceFilterHost.Margin = new Thickness(10d, 10d, 0d, 5d);
@@ -824,20 +826,10 @@ public partial class PageDownloadCompDetail : IPageView
             // 插入标签
             if (_pageType == Comp.CompType.Mod)
             {
-                var instanceTextBlock = new TextBlock
-                {
-                    Text = Lang.Text("Download.Comp.Detail.InstanceFilter"),
-                    VerticalAlignment = VerticalAlignment.Center,
-                    Margin = new Thickness(2d, 0d, 0d, 0d)
-                };
-                PanInstanceFilterLabel.Children.Add(instanceTextBlock);
-                var modLoaderTextBlock = new TextBlock
-                {
-                    Text = Lang.Text("Download.Comp.Detail.LoaderFilter"),
-                    VerticalAlignment = VerticalAlignment.Center,
-                    Margin = new Thickness(2d, 0d, 0d, 0d)
-                };
-                PanModLoaderFilter.Children.Add(modLoaderTextBlock);
+                _vm.InstanceFilterLabelChips.Add(
+                    new CompFilterChip(Lang.Text("Download.Comp.Detail.InstanceFilter")));
+                _vm.ModLoaderFilterLabelChips.Add(
+                    new CompFilterChip(Lang.Text("Download.Comp.Detail.LoaderFilter")));
             }
 
             instanceFilters.Insert(0, Lang.Text("Common.Option.All"));
