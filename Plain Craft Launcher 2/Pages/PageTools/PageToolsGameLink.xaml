@@ -358,7 +358,21 @@
                     <local:MyCard x:Name="CardPlayerList" Title="{DynamicResource Tools.GameLink.Member.ListLoading}"
                                   Margin="10" MinWidth="300"
                                   Grid.Row="1" Grid.RowSpan="4" Grid.Column="1">
-                        <StackPanel x:Name="StackPlayerList" Margin="5,35,6,8" />
+                        <ItemsControl x:Name="StackPlayerList" Margin="5,35,6,8"
+                                      ItemsSource="{Binding PlayerRows}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <local:MyListItem Title="{Binding Name}" Info="{Binding Info}"
+                                                      Type="Clickable" Tag="{Binding}"
+                                                      Click="PlayerInfoClick" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </local:MyCard>
                 </Grid>
             </Grid>

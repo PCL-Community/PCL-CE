@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -92,6 +93,8 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
     [ObservableProperty]
     private bool _worldListEnabled = true;
 
+    public ObservableCollection<GameLinkPlayerRow> PlayerRows { get; } = [];
+
     /// <summary>按当前子页面更新三个子页面的可见性。</summary>
     public void ApplySubpage(PageToolsGameLink.Subpages subpage)
     {
@@ -125,4 +128,16 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
     {
         JoinLobbyId = string.Empty;
     }
+}
+
+/// <summary>游戏联机页的玩家列表行。</summary>
+public sealed class GameLinkPlayerRow
+{
+    public required string Name { get; init; }
+
+    public required string Info { get; init; }
+
+    public required string Vendor { get; init; }
+
+    public required string MachineId { get; init; }
 }

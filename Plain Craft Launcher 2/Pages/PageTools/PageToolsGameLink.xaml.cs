@@ -104,7 +104,7 @@ public partial class PageToolsGameLink : IPageView
             Common.RunInUi(() =>
             {
                 CardPlayerList.Title = Lang.Text("Tools.GameLink.Member.ListLoading");
-                StackPlayerList.Children.Clear();
+                _vm.PlayerRows.Clear();
                 CurrentSubpage = Subpages.PanSelect;
             });
         }
@@ -185,9 +185,9 @@ public partial class PageToolsGameLink : IPageView
         Common.RunInUi(() =>
         {
             _vm.FinishIdText = LobbyService.CurrentLobbyCode;
-            StackPlayerList.Children.Clear();
+            _vm.PlayerRows.Clear();
             foreach (var player in LobbyService.Players)
-                StackPlayerList.Children.Add((UIElement)PlayerInfoItem(player, PlayerInfoClick));
+                _vm.PlayerRows.Add(_MakePlayerRow(player));
         });
     }
 
@@ -200,7 +200,7 @@ public partial class PageToolsGameLink : IPageView
             Common.RunInUi(() =>
             {
                 CardPlayerList.Title = Lang.Text("Tools.GameLink.Member.ListLoading");
-                StackPlayerList.Children.Clear();
+                _vm.PlayerRows.Clear();
                 CurrentSubpage = Subpages.PanSelect;
             });
         }
@@ -226,7 +226,7 @@ public partial class PageToolsGameLink : IPageView
         Common.RunInUi(() =>
         {
             CardPlayerList.Title = Lang.Text("Tools.GameLink.Member.ListLoading");
-            StackPlayerList.Children.Clear();
+            _vm.PlayerRows.Clear();
             CurrentSubpage = Subpages.PanSelect;
         });
         Launcher.MyMsgBox(Lang.Text("Tools.GameLink.Exit.Disbanded"), Lang.Text("Tools.GameLink.Exit.DisbandedTitle"));
@@ -243,22 +243,22 @@ public partial class PageToolsGameLink : IPageView
                 case NotifyCollectionChangedAction.Add:
                     if (e.NewItems is not null)
                         foreach (PlayerProfile player in e.NewItems)
-                            StackPlayerList.Children.Add((UIElement)PlayerInfoItem(player, PlayerInfoClick));
+                            _vm.PlayerRows.Add(_MakePlayerRow(player));
                     break;
                 case NotifyCollectionChangedAction.Remove:
                     if (e.OldItems is not null)
                         foreach (PlayerProfile player in e.OldItems)
                         {
-                            var itemToRemove = StackPlayerList.Children.OfType<MyListItem>()
-                                .FirstOrDefault(item => ((PlayerProfile)item.Tag).MachineId == player.MachineId);
-                            if (itemToRemove is not null) StackPlayerList.Children.Remove(itemToRemove);
+                            var itemToRemove = _vm.PlayerRows
+                                .FirstOrDefault(item => item.MachineId == player.MachineId);
+                            if (itemToRemove is not null) _vm.PlayerRows.Remove(itemToRemove);
                         }
 
                     break;
                 default:
-                    StackPlayerList.Children.Clear();
+                    _vm.PlayerRows.Clear();
                     foreach (var player in LobbyService.Players)
-                        StackPlayerList.Children.Add((UIElement)PlayerInfoItem(player, PlayerInfoClick));
+                        _vm.PlayerRows.Add(_MakePlayerRow(player));
                     break;
             }
 
@@ -640,29 +640,26 @@ public partial class PageToolsGameLink : IPageView
 
     #region UI 元素
 
-    private object PlayerInfoItem(PlayerProfile info, MyListItem.ClickEventHandler onClick)
+    private static GameLinkPlayerRow _MakePlayerRow(PlayerProfile info)
     {
         var details = info.Kind == PlayerKind.HOST
             ? Lang.Text("Tools.GameLink.Player.Details", Lang.Text("Tools.GameLink.Player.Host"), info.Vendor)
             : info.Vendor;
 
-        var newItem = new MyListItem
+        return new GameLinkPlayerRow
         {
-            Title = info.Name,
+            Name = info.Name,
             Info = details,
-            Type = MyListItem.CheckType.Clickable,
-            Tag = info
+            Vendor = info.Vendor,
+            MachineId = info.MachineId
         };
-        newItem.Click += onClick;
-
-        return newItem;
     }
 
     private async void PlayerInfoClick(object sender, MouseButtonEventArgs e)
     {
         try
         {
-            var info = (PlayerProfile)((MyListItem)sender).Tag;
+            var info = (GameLinkPlayerRow)((MyListItem)sender).Tag;
             await Launcher.MyMsgBoxAsync(Lang.Text("Tools.GameLink.Player.InfoMessage", info.Name, info.Vendor),
                 Lang.Text("Tools.GameLink.Player.InfoTitle", info.Name));
         }
@@ -897,7 +894,7 @@ public partial class PageToolsGameLink : IPageView
             _vm.ConnectTypeVisibility = Visibility.Collapsed;
             _vm.ConnectTypeText = Lang.Text("Tools.GameLink.Finish.Connecting");
             CardPlayerList.Title = Lang.Text("Tools.GameLink.Member.ListLoading");
-            StackPlayerList.Children.Clear();
+            _vm.PlayerRows.Clear();
             _vm.ConnectUserNameText = username;
             _vm.ConnectUserTypeText = Lang.Text("Tools.GameLink.Finish.Host");
             _vm.FinishIdText = LobbyService.CurrentLobbyCode;
@@ -913,7 +910,7 @@ public partial class PageToolsGameLink : IPageView
             Common.RunInUi(() =>
             {
                 CardPlayerList.Title = Lang.Text("Tools.GameLink.Member.ListLoading");
-                StackPlayerList.Children.Clear();
+                _vm.PlayerRows.Clear();
                 CurrentSubpage = Subpages.PanSelect;
             });
     }
@@ -936,7 +933,7 @@ public partial class PageToolsGameLink : IPageView
             _vm.ConnectTypeVisibility = Visibility.Visible;
             _vm.ConnectTypeText = Lang.Text("Tools.GameLink.Finish.Connecting");
             CardPlayerList.Title = Lang.Text("Tools.GameLink.Member.ListLoading");
-            StackPlayerList.Children.Clear();
+            _vm.PlayerRows.Clear();
             _vm.ConnectUserNameText = username;
             _vm.ConnectUserTypeText = Lang.Text("Tools.GameLink.Finish.Guest");
             _vm.FinishIdText = id;
@@ -950,7 +947,7 @@ public partial class PageToolsGameLink : IPageView
             Common.RunInUi(() =>
             {
                 CardPlayerList.Title = Lang.Text("Tools.GameLink.Member.ListLoading");
-                StackPlayerList.Children.Clear();
+                _vm.PlayerRows.Clear();
                 CurrentSubpage = Subpages.PanSelect;
             });
     }
