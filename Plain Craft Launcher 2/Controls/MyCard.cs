@@ -444,6 +444,33 @@ public class MyCard : AnimatedBackgroundGrid
 
     public delegate void SwapEventHandler(object sender, Common.RouteEventArgs e);
 
+    public static readonly DependencyProperty CommandProperty = DependencyProperty.Register(nameof(Command),
+        typeof(ICommand), typeof(MyCard), new PropertyMetadata(null));
+
+    public ICommand? Command
+    {
+        get => (ICommand?)GetValue(CommandProperty);
+        set => SetValue(CommandProperty, value);
+    }
+
+    public static readonly DependencyProperty CommandParameterProperty = DependencyProperty.Register(
+        nameof(CommandParameter), typeof(object), typeof(MyCard), new PropertyMetadata(null));
+
+    public object? CommandParameter
+    {
+        get => GetValue(CommandParameterProperty);
+        set => SetValue(CommandParameterProperty, value);
+    }
+
+    public static readonly DependencyProperty PreviewSwapCommandProperty = DependencyProperty.Register(
+        nameof(PreviewSwapCommand), typeof(ICommand), typeof(MyCard), new PropertyMetadata(null));
+
+    public ICommand? PreviewSwapCommand
+    {
+        get => (ICommand?)GetValue(PreviewSwapCommandProperty);
+        set => SetValue(PreviewSwapCommandProperty, value);
+    }
+
     public const int SwapedHeight = 40;
 
     private void MyCard_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -477,16 +504,54 @@ public class MyCard : AnimatedBackgroundGrid
             _isSwapMouseDown = false;
             return;
         }
+        ExecutePreviewSwapCommand();
 
         IsSwapped = !IsSwapped;
         Common.Log(
             "[Control] " + (IsSwapped ? "折叠卡片" : "展开卡片") + (Title is null ? "" : "：" + Title));
         Swap?.Invoke(this, e2);
+        ExecuteCommand();
     }
 
     private void MyCard_MouseLeave_Swap(object sender, MouseEventArgs e)
     {
         _isSwapMouseDown = false;
+    }
+
+    private bool _isCommandRunning;
+
+    private void ExecuteCommand()
+    {
+        var command = Command;
+        if (_isCommandRunning || command is null || !command.CanExecute(CommandParameter))
+            return;
+        _isCommandRunning = true;
+        try
+        {
+            command.Execute(CommandParameter);
+        }
+        finally
+        {
+            _isCommandRunning = false;
+        }
+    }
+
+    private bool _isPreviewSwapCommandRunning;
+
+    private void ExecutePreviewSwapCommand()
+    {
+        var command = PreviewSwapCommand;
+        if (_isPreviewSwapCommandRunning || command is null || !command.CanExecute(CommandParameter))
+            return;
+        _isPreviewSwapCommandRunning = true;
+        try
+        {
+            command.Execute(CommandParameter);
+        }
+        finally
+        {
+            _isPreviewSwapCommandRunning = false;
+        }
     }
 
     #endregion

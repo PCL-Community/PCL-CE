@@ -80,8 +80,10 @@
                     <!--加载器-->
                     <TextBlock x:Name="LabLoader" VerticalAlignment="Center" HorizontalAlignment="Left"
                                Text="{DynamicResource Download.Comp.Filter.Loader}"
-                               Margin="5,0,5,0" Grid.Row="2" Grid.Column="2" />
-                    <local:MyComboBox x:Name="ComboSearchLoader" Grid.Row="2" Grid.Column="3" MaxDropDownHeight="320">
+                               Margin="5,0,5,0" Grid.Row="2" Grid.Column="2"
+                               Visibility="{Binding IsLoaderLabelVisible, Converter={StaticResource VisibilityConverter}}" />
+                    <local:MyComboBox x:Name="ComboSearchLoader" Grid.Row="2" Grid.Column="3"
+                                      Visibility="{Binding IsLoaderComboVisible, Converter={StaticResource VisibilityConverter}}" MaxDropDownHeight="320">
                         <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Filter.Loader.Any}"
                                               IsSelected="True" Tag="0" />
                         <local:MyComboBoxItem Content="{DynamicResource Common.Installation.Forge}" Tag="1" />
@@ -89,7 +91,8 @@
                         <local:MyComboBoxItem Content="{DynamicResource Common.Installation.Fabric}" Tag="4" />
                         <local:MyComboBoxItem Content="{DynamicResource Common.Installation.Quilt}" Tag="5" />
                     </local:MyComboBox>
-                    <local:MyComboBox x:Name="ComboSearchShaderLoader" Visibility="Collapsed" Grid.Row="2"
+                    <local:MyComboBox x:Name="ComboSearchShaderLoader"
+                                      Visibility="{Binding IsShaderLoaderComboVisible, Converter={StaticResource VisibilityConverter}}" Grid.Row="2"
                                       Grid.Column="3" MaxDropDownHeight="320">
                         <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Filter.Loader.AnyShader}" Tag=""
                                               IsSelected="True" />
@@ -145,7 +148,8 @@
         <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="True"
                       x:Name="PanLoad" UseAnimation="False" Margin="40,50">
             <local:MyLoading Margin="20,20,20,17" x:Name="Load" HorizontalAlignment="Center"
-                             VerticalAlignment="Center" />
+                             VerticalAlignment="Center"
+                             Text="{Binding LoadingText}" />
         </local:MyCard>
     </StackPanel>
 </local:MyScrollViewer>

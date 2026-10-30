@@ -34,6 +34,14 @@ public partial class PageCompViewModel : ViewModelBase
 
     [ObservableProperty] private bool _supportModrinth = true;
 
+    [ObservableProperty] private bool _isLoaderLabelVisible = true;
+
+    [ObservableProperty] private bool _isLoaderComboVisible = true;
+
+    [ObservableProperty] private bool _isShaderLoaderComboVisible;
+
+    [ObservableProperty] private string _loadingText = Lang.Text("Application.Control.Loading.Default");
+
     [RelayCommand]
     public void InstallModPack()
     {

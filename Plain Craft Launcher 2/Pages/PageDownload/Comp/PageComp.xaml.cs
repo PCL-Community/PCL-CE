@@ -183,7 +183,7 @@ public partial class PageComp
             _vm.IsInstallModPackVisible = value == Comp.CompType.ModPack;
             loader.name = Lang.Text("Download.Comp.List.Source.ResourceFetch", TypeName);
             PanSearchBox.HintText = Comp.GetCompSearchName(value);
-            Load.Text = Comp.GetCompLoadingName(value);
+            _vm.LoadingText = Comp.GetCompLoadingName(value);
         }
     } = (Comp.CompType)(-1);
 
@@ -269,21 +269,21 @@ public partial class PageComp
         // 根据页面类型控制加载器选择的显示
         if (PageType == Comp.CompType.Shader)
         {
-            LabLoader.Visibility = Visibility.Visible;
-            ComboSearchLoader.Visibility = Visibility.Collapsed;
-            ComboSearchShaderLoader.Visibility = Visibility.Visible;
+            _vm.IsLoaderLabelVisible = true;
+            _vm.IsLoaderComboVisible = false;
+            _vm.IsShaderLoaderComboVisible = true;
         }
         else if (PageType == Comp.CompType.Mod || PageType == Comp.CompType.ModPack)
         {
-            LabLoader.Visibility = Visibility.Visible;
-            ComboSearchLoader.Visibility = Visibility.Visible;
-            ComboSearchShaderLoader.Visibility = Visibility.Collapsed;
+            _vm.IsLoaderLabelVisible = true;
+            _vm.IsLoaderComboVisible = true;
+            _vm.IsShaderLoaderComboVisible = false;
         }
         else
         {
-            LabLoader.Visibility = Visibility.Collapsed;
-            ComboSearchLoader.Visibility = Visibility.Collapsed;
-            ComboSearchShaderLoader.Visibility = Visibility.Collapsed;
+            _vm.IsLoaderLabelVisible = false;
+            _vm.IsLoaderComboVisible = false;
+            _vm.IsShaderLoaderComboVisible = false;
         }
     }
 
