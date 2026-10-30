@@ -35,6 +35,7 @@ public partial class PageToolsGameLink : IPageView
     {
         InitializeComponent();
         DataContext = _vm;
+        DialogServiceInstaller.Install(_vm);
         LoaderInit();
         Loaded += (_, _) => RefreshOnNavigate();
         Unloaded += (_, _) => _refreshed = false;
@@ -147,10 +148,11 @@ public partial class PageToolsGameLink : IPageView
         _vm.EulaStopEnabled = false;
         try
         {
-            if (await Launcher.MyMsgBoxAsync(Lang.Text("Tools.GameLink.Eula.RevokeConfirm"),
-                    Lang.Text("Tools.GameLink.Eula.RevokeTitle"),
-                    Lang.Text("Common.Action.Confirm"),
-                    Lang.Text("Common.Action.Cancel"),
+            if (await _vm.Dialog.ShowAsync(
+                    title: Lang.Text("Tools.GameLink.Eula.RevokeTitle"),
+                    content: Lang.Text("Tools.GameLink.Eula.RevokeConfirm"),
+                    button1: Lang.Text("Common.Action.Confirm"),
+                    button2: Lang.Text("Common.Action.Cancel"),
                     isWarn: true
                 ) == 1)
             {
@@ -660,8 +662,10 @@ public partial class PageToolsGameLink : IPageView
         try
         {
             var info = (GameLinkPlayerRow)((MyListItem)sender).Tag;
-            await Launcher.MyMsgBoxAsync(Lang.Text("Tools.GameLink.Player.InfoMessage", info.Name, info.Vendor),
-                Lang.Text("Tools.GameLink.Player.InfoTitle", info.Name));
+            await _vm.Dialog.ShowAsync(
+                title: Lang.Text("Tools.GameLink.Player.InfoTitle", info.Name),
+                content: Lang.Text("Tools.GameLink.Player.InfoMessage", info.Name, info.Vendor),
+                button1: Lang.Text("Common.Action.Confirm"));
         }
         catch (Exception ex)
         {
@@ -761,7 +765,11 @@ public partial class PageToolsGameLink : IPageView
             if (string.IsNullOrWhiteSpace(States.Link.NaidRefreshToken))
             {
                 // 当前未登录，显示登录选项
-                if (await Launcher.MyMsgBoxAsync(Lang.Text("Tools.GameLink.Natayark.LoginPrompt"), Lang.Text("Tools.GameLink.Natayark.LoginTitle"), Lang.Text("Tools.GameLink.Natayark.Continue"), Lang.Text("Common.Action.Cancel")) == 1)
+                if (await _vm.Dialog.ShowAsync(
+                        title: Lang.Text("Tools.GameLink.Natayark.LoginTitle"),
+                        content: Lang.Text("Tools.GameLink.Natayark.LoginPrompt"),
+                        button1: Lang.Text("Tools.GameLink.Natayark.Continue"),
+                        button2: Lang.Text("Common.Action.Cancel")) == 1)
                 {
                     _vm.NatayarkUserNameText = Lang.Text("Tools.GameLink.Natayark.BrowserContinue");
                     _vm.NatayarkUserNameOpacity = 0.6d;
@@ -775,7 +783,11 @@ public partial class PageToolsGameLink : IPageView
                 }
             }
             // 当前已登录，显示登出选项
-            else if (await Launcher.MyMsgBoxAsync(Lang.Text("Tools.GameLink.Natayark.LogoutConfirm"), Lang.Text("Tools.GameLink.Natayark.LogoutTitle"), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) == 1)
+            else if (await _vm.Dialog.ShowAsync(
+                         title: Lang.Text("Tools.GameLink.Natayark.LogoutTitle"),
+                         content: Lang.Text("Tools.GameLink.Natayark.LogoutConfirm"),
+                         button1: Lang.Text("Common.Action.Confirm"),
+                         button2: Lang.Text("Common.Action.Cancel")) == 1)
             {
                 States.Link.NaidRefreshTokenConfig.Reset();
                 States.Link.NaidRefreshToken = "";
@@ -836,8 +848,10 @@ public partial class PageToolsGameLink : IPageView
         {
             _vm.InputPortEnabled = false;
             if (!GameLink.LobbyPrecheck()) return;
-            var input = await Launcher.MyMsgBoxInputAsync(Lang.Text("Tools.GameLink.Create.EnterPort"),
-                validateRules: [new IntValidator(65535,1024)]);
+            var input = await _vm.Dialog.InputAsync(
+                title: Lang.Text("Tools.GameLink.Create.EnterPort"),
+                content: "",
+                validateRules: [new IntValidator(65535, 1024)]);
             int port;
             if (int.TryParse(input, out port))
                 using (var ping = McPingServiceFactory.CreateService("127.0.0.1", port, 5000))
@@ -1047,13 +1061,13 @@ public partial class PageToolsGameLink : IPageView
         _vm.FinishExitEnabled = false;
         try
         {
-            if (await Launcher.MyMsgBoxAsync(
-                    Lang.Text(LobbyService.IsHost
+            if (await _vm.Dialog.ShowAsync(
+                    title: Lang.Text("Tools.GameLink.Exit.ConfirmTitle"),
+                    content: Lang.Text(LobbyService.IsHost
                         ? "Tools.GameLink.Exit.ConfirmMessageWithHost"
                         : "Tools.GameLink.Exit.ConfirmMessage"),
-                    Lang.Text("Tools.GameLink.Exit.ConfirmTitle"),
-                    Lang.Text("Common.Action.Confirm"),
-                    Lang.Text("Common.Action.Cancel"),
+                    button1: Lang.Text("Common.Action.Confirm"),
+                    button2: Lang.Text("Common.Action.Cancel"),
                     isWarn: true
                 ) == 1)
             {
