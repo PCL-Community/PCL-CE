@@ -47,9 +47,6 @@ public partial class PageInstanceSetup : IPageView
         TextServerAuthRegister.TextChanged += TextBoxChange;
         TextServerAuthName.TextChanged += TextBoxChange;
         TextServerEnter.TextChanged += TextBoxChange;
-        BtnServerAuthLittle.Click += BtnServerAuthLittle_Click;
-        BtnServerAuthLock.Click += BtnServerAuthLock_Click;
-        BtnServerNewProfile.Click += BtnServerNewProfile_Click;
 
         ComboAdvanceRenderer.SelectionChanged += ComboAdvanceRenderer_SelectionChanged;
         TextAdvanceJvm.TextChanged += TextBoxChange;
@@ -65,8 +62,6 @@ public partial class PageInstanceSetup : IPageView
         CheckAdvanceDisableLF.Change += CheckBoxChange;
         CheckUseDebugLog4j2Config.Change += CheckUseDebugLog4j2Config_CheckChanged;
         CheckAdvanceDisableLwjglUnsafeAgent.Change += CheckBoxChange;
-
-        BtnSwitch.Click += BtnSwitch_Click;
 
         TextServerEnter.TextChanged += TextServerEnter_Change;
         ComboArgumentJava.DropDownOpened += ComboArgumentJava_DropDownOpened;
@@ -123,7 +118,7 @@ public partial class PageInstanceSetup : IPageView
             // 启动参数
             TextArgumentTitle.Text = Config.Instance.Title[PageInstanceLeft.McInstance.PathInstance];
             CheckArgumentTitleEmpty.Checked = Config.Instance.UseGlobalTitle[PageInstanceLeft.McInstance.PathInstance];
-            TextArgumentInfo.Text = Config.Instance.TypeInfo[PageInstanceLeft.McInstance.PathInstance];
+            _vm.ArgumentInfoText = Config.Instance.TypeInfo[PageInstanceLeft.McInstance.PathInstance];
             var _unused = PageInstanceLeft.McInstance.PathIndie; // 触发自动判定
             ComboArgumentIndieV2.SelectedIndex = Config.Instance.IndieV2[PageInstanceLeft.McInstance.PathInstance] ? 0 : 1;
             _vm.RefreshTitleEmptyHint(TextArgumentTitle.Text);
@@ -138,20 +133,20 @@ public partial class PageInstanceSetup : IPageView
             RamType(ramType);
 
             // 服务器
-            TextServerEnter.Text = Config.Instance.ServerToEnter[PageInstanceLeft.McInstance.PathInstance];
+            _vm.ServerEnterText = Config.Instance.ServerToEnter[PageInstanceLeft.McInstance.PathInstance];
             ComboServerLoginRequire.SelectedIndex = Config.InstanceAuth.LoginRequirementSolution[PageInstanceLeft.McInstance.PathInstance];
             comboServerLoginLast = ComboServerLoginRequire.SelectedIndex;
-            TextServerAuthServer.Text = Config.InstanceAuth.AuthServerAddress[PageInstanceLeft.McInstance.PathInstance];
-            TextServerAuthName.Text = Config.InstanceAuth.AuthServerDisplayName[PageInstanceLeft.McInstance.PathInstance];
-            TextServerAuthRegister.Text = Config.InstanceAuth.AuthRegisterAddress[PageInstanceLeft.McInstance.PathInstance];
+            _vm.ServerAuthServerText = Config.InstanceAuth.AuthServerAddress[PageInstanceLeft.McInstance.PathInstance];
+            _vm.ServerAuthNameText = Config.InstanceAuth.AuthServerDisplayName[PageInstanceLeft.McInstance.PathInstance];
+            _vm.ServerAuthRegisterText = Config.InstanceAuth.AuthRegisterAddress[PageInstanceLeft.McInstance.PathInstance];
             ServerLogin(ComboServerLoginRequire.SelectedIndex);
 
             // 高级设置
             ComboAdvanceRenderer.SelectedIndex = Config.Instance.Renderer[PageInstanceLeft.McInstance.PathInstance];
-            TextAdvanceClasspathHead.Text = Config.Instance.ClasspathHead[PageInstanceLeft.McInstance.PathInstance];
-            TextAdvanceJvm.Text = Config.Instance.JvmArgs[PageInstanceLeft.McInstance.PathInstance];
-            TextAdvanceGame.Text = Config.Instance.GameArgs[PageInstanceLeft.McInstance.PathInstance];
-            TextAdvanceRun.Text = Config.Instance.PreLaunchCommand[PageInstanceLeft.McInstance.PathInstance];
+            _vm.AdvanceClasspathHeadText = Config.Instance.ClasspathHead[PageInstanceLeft.McInstance.PathInstance];
+            _vm.AdvanceJvmText = Config.Instance.JvmArgs[PageInstanceLeft.McInstance.PathInstance];
+            _vm.AdvanceGameText = Config.Instance.GameArgs[PageInstanceLeft.McInstance.PathInstance];
+            _vm.AdvanceRunText = Config.Instance.PreLaunchCommand[PageInstanceLeft.McInstance.PathInstance];
             CheckAdvanceRunWait.Checked = Config.Instance.PreLaunchCommandWait[PageInstanceLeft.McInstance.PathInstance];
             CheckAdvanceDisableLwjglUnsafeAgent.Checked = Config.Instance.DisableLwjglUnsafeAgent[PageInstanceLeft.McInstance.PathInstance];
             CheckAdvanceDisableModUpdate.Checked = Config.Instance.DisableModUpdate[PageInstanceLeft.McInstance.PathInstance];
@@ -260,10 +255,7 @@ public partial class PageInstanceSetup : IPageView
     }
 
     // 切换到全局设置
-    private void BtnSwitch_Click(object sender, MouseButtonEventArgs e)
-    {
-        Launcher.frmMain.PageChange(FormMain.PageType.Setup);
-    }
+    private void BtnSwitch_Click(object sender, MouseButtonEventArgs e) => _vm.OpenGlobalSettingsCommand.Execute(null);
 
     #region 游戏内存
     public void RamType(int type)
@@ -468,10 +460,7 @@ public partial class PageInstanceSetup : IPageView
         if (Animations.AniExitsAnyControl() || ComboServerLoginRequire.SelectedIndex < 0)
             return;
         ServerLogin(ComboServerLoginRequire.SelectedIndex);
-        if (TextServerAuthServer.IsValidated)
-            BtnServerAuthLock.IsEnabled = true;
-        else
-            BtnServerAuthLock.IsEnabled = false;
+        _vm.ServerAuthLockEnabled = TextServerAuthServer.IsValidated;
         if ((ComboServerLoginRequire.SelectedIndex == 2 || ComboServerLoginRequire.SelectedIndex == 3) &&
             !TextServerAuthServer.IsValidated)
             return;
@@ -483,26 +472,26 @@ public partial class PageInstanceSetup : IPageView
 
     private void TextServerAuthServer_MouseLeave(object sender, RoutedEventArgs e)
     {
-        if (string.IsNullOrWhiteSpace(TextServerAuthServer.Text))
+        if (string.IsNullOrWhiteSpace(_vm.ServerAuthServerText))
             return;
-        if (!(TextServerAuthServer.Text.EndsWithF("/api/yggdrasil/") ||
-              TextServerAuthServer.Text.EndsWithF("/api/yggdrasil")))
+        if (!(_vm.ServerAuthServerText.EndsWithF("/api/yggdrasil/") ||
+              _vm.ServerAuthServerText.EndsWithF("/api/yggdrasil")))
         {
-            if (TextServerAuthServer.Text.EndsWithF("/"))
+            if (_vm.ServerAuthServerText.EndsWithF("/"))
             {
-                TextServerAuthServer.Text = $"{TextServerAuthServer.Text}api/yggdrasil";
+                _vm.ServerAuthServerText = $"{_vm.ServerAuthServerText}api/yggdrasil";
                 HintService.Hint(Lang.Text("Instance.Setup.Server.AuthServer.AutoFormatted"));
             }
             else
             {
-                TextServerAuthServer.Text = $"{TextServerAuthServer.Text}/api/yggdrasil";
+                _vm.ServerAuthServerText = $"{_vm.ServerAuthServerText}/api/yggdrasil";
                 HintService.Hint(Lang.Text("Instance.Setup.Server.AuthServer.AutoFormatted"));
             }
         }
 
-        if (TextServerAuthServer.Text.EndsWithF("/api/yggdrasil/"))
+        if (_vm.ServerAuthServerText.EndsWithF("/api/yggdrasil/"))
         {
-            TextServerAuthServer.Text = TextServerAuthServer.Text.BeforeLast("/");
+            _vm.ServerAuthServerText = _vm.ServerAuthServerText.BeforeLast("/");
             HintService.Hint(Lang.Text("Instance.Setup.Server.AuthServer.AutoFormatted"));
         }
 
@@ -517,70 +506,17 @@ public partial class PageInstanceSetup : IPageView
     }
 
     // LittleSkin
-    private async void BtnServerAuthLittle_Click(object sender, MouseButtonEventArgs e)
-    {
-        try
-        {
-            if (!string.IsNullOrEmpty(TextServerAuthServer.Text) &&
-                TextServerAuthServer.Text != "https://littleskin.cn/api/yggdrasil" && await Launcher.MyMsgBoxAsync(
-                    Lang.Text("Instance.Setup.Server.LittleSkin.Override.Message"),
-                    Lang.Text("Instance.Setup.Server.LittleSkin.Override.Title"), Lang.Text("Instance.Setup.Server.LittleSkin.Override.Continue"), Lang.Text("Common.Action.Cancel")) == 2)
-                return;
-            TextServerAuthServer.Text = "https://littleskin.cn/api/yggdrasil";
-            TextServerAuthRegister.Text = "https://littleskin.cn/auth/register";
-            TextServerAuthName.Text = Lang.Text("Instance.Setup.Server.LittleSkin.Name");
-        }
-        catch (Exception ex)
-        {
-            Common.Log(ex, "应用 LittleSkin 登录设置失败", Common.LogLevel.Feedback,
-                userSummary: Lang.Text("Instance.Setup.Error.OperationFailed"));
-        }
-    }
+    private void BtnServerAuthLittle_Click(object sender, MouseButtonEventArgs e) => _vm.ApplyLittleSkinCommand.Execute(null);
 
     // 锁定设置
-    private async void BtnServerAuthLock_Click(object sender, MouseButtonEventArgs e)
-    {
-        var ctl = sender as Control;
-        if (ctl is not null) ctl.IsEnabled = false;
-        try
-        {
-            if (await Launcher.MyMsgBoxAsync(
-                    Lang.Text("Instance.Setup.Server.LockLoginMethod.Message"),
-                    Lang.Text("Instance.Setup.Server.LockLoginMethod.Title"), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
-            {
-                Config.InstanceAuth.AuthLocked[PageInstanceLeft.McInstance.PathInstance] = true;
-                Reload();
-            }
-        }
-        catch (Exception ex)
-        {
-            Common.Log(ex, "锁定登录方式失败", Common.LogLevel.Feedback,
-                userSummary: Lang.Text("Instance.Setup.Error.OperationFailed"));
-        }
-        finally
-        {
-            if (ctl is not null) ctl.IsEnabled = true;
-        }
-    }
+    private void BtnServerAuthLock_Click(object sender, MouseButtonEventArgs e) => _vm.LockServerAuthCommand.Execute(null);
 
     // 跳转新建档案
-    private void BtnServerNewProfile_Click(object sender, MouseButtonEventArgs e)
-    {
-        if (!ProfileUi.CanCreateOtherProfile())
-            return;
+    private void BtnServerNewProfile_Click(object sender, MouseButtonEventArgs e) => _vm.CreateServerProfileCommand.Execute(null);
 
-        Launcher.frmMain.PageChange(new FormMain.PageStackData { page = FormMain.PageType.Launch });
-        PageLoginAuth.draggedAuthServer = TextServerAuthServer.Text;
-        Common.RunInNewThread(() =>
-        {
-            Thread.Sleep(150);
-            Common.RunInUi(() => Launcher.frmLaunchLeft.RefreshPage(true, GameLaunch.McLoginType.Auth));
-        });
-    }
-
-    private static void TextServerEnter_Change(object sender, TextChangedEventArgs e)
+    private void TextServerEnter_Change(object sender, TextChangedEventArgs e)
     {
-        if (sender is MyTextBox textBox) textBox.Text = textBox.Text.Replace("：", ":");
+        if (sender is MyTextBox textBox) _vm.ServerEnterText = textBox.Text.Replace("：", ":");
     }
 
     #endregion
@@ -838,8 +774,7 @@ public partial class PageInstanceSetup : IPageView
 
     private async void ComboArgumentIndieV2_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        var ctl = sender as Control;
-        if (ctl is not null) ctl.IsEnabled = false;
+        _vm.IndieV2Enabled = false;
         try
         {
             if (Animations.AniExitsAnyControl())
@@ -867,7 +802,7 @@ public partial class PageInstanceSetup : IPageView
         }
         finally
         {
-            if (ctl is not null) ctl.IsEnabled = true;
+            _vm.IndieV2Enabled = true;
         }
     }
 
@@ -896,8 +831,7 @@ public partial class PageInstanceSetup : IPageView
 
     private async void ComboAdvanceRenderer_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        var ctl = sender as Control;
-        if (ctl is not null) ctl.IsEnabled = false;
+        _vm.RendererEnabled = false;
         try
         {
             if (Animations.AniExitsAnyControl())
@@ -931,14 +865,13 @@ public partial class PageInstanceSetup : IPageView
         }
         finally
         {
-            if (ctl is not null) ctl.IsEnabled = true;
+            _vm.RendererEnabled = true;
         }
     }
 
     private async void CheckUseDebugLog4j2Config_CheckChanged(object sender, bool e)
     {
-        var ctl = sender as Control;
-        if (ctl is not null) ctl.IsEnabled = false;
+        _vm.DebugLog4j2Enabled = false;
         try
         {
             if (Animations.AniExitsAnyControl())
@@ -972,7 +905,7 @@ public partial class PageInstanceSetup : IPageView
         }
         finally
         {
-            if (ctl is not null) ctl.IsEnabled = true;
+            _vm.DebugLog4j2Enabled = true;
         }
     }
 

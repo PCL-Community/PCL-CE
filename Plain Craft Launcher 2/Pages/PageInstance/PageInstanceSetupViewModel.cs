@@ -1,5 +1,6 @@
 using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Minecraft;
@@ -12,9 +13,23 @@ namespace PCL;
 /// <summary>实例独立设置页的视图模型。</summary>
 public partial class PageInstanceSetupViewModel : ViewModelBase
 {
+    [ObservableProperty] private string _advanceClasspathHeadText = "";
+
+    [ObservableProperty] private string _advanceGameText = "";
+
+    [ObservableProperty] private string _advanceJvmText = "";
+
+    [ObservableProperty] private string _advanceRunText = "";
+
+    [ObservableProperty] private string _argumentInfoText = "";
+
     [ObservableProperty] private bool _checkAdvanceRunWaitVisible;
 
+    [ObservableProperty] private bool _debugLog4j2Enabled = true;
+
     [ObservableProperty] private bool _disableJlwEnabled = true;
+
+    [ObservableProperty] private bool _indieV2Enabled = true;
 
     [ObservableProperty] private bool _ramCustomEnabled = true;
 
@@ -30,11 +45,23 @@ public partial class PageInstanceSetupViewModel : ViewModelBase
 
     [ObservableProperty] private bool _ramWarnVisible = true;
 
+    [ObservableProperty] private bool _rendererEnabled = true;
+
     [ObservableProperty] private bool _serverAuthEditable = true;
+
+    [ObservableProperty] private bool _serverAuthLockEnabled;
 
     [ObservableProperty] private bool _serverAuthLockVisible = true;
 
+    [ObservableProperty] private string _serverAuthNameText = "";
+
+    [ObservableProperty] private string _serverAuthRegisterText = "";
+
+    [ObservableProperty] private string _serverAuthServerText = "";
+
     [ObservableProperty] private bool _serverAuthVisible;
+
+    [ObservableProperty] private string _serverEnterText = "";
 
     [ObservableProperty] private bool _serverHttpWarningVisible;
 
@@ -254,5 +281,72 @@ public partial class PageInstanceSetupViewModel : ViewModelBase
         Config.Instance.Reset(PageInstanceLeft.McInstance.PathInstance);
         Common.Log("[Setup] 已初始化实例独立设置");
         HintService.Hint(Lang.Text("Instance.Setup.Initialize.Success"), HintType.Success, false);
+    }
+
+    [RelayCommand]
+    private async Task ApplyLittleSkin()
+    {
+        try
+        {
+            if (!string.IsNullOrEmpty(ServerAuthServerText) &&
+                ServerAuthServerText != "https://littleskin.cn/api/yggdrasil" && await Launcher.MyMsgBoxAsync(
+                    Lang.Text("Instance.Setup.Server.LittleSkin.Override.Message"),
+                    Lang.Text("Instance.Setup.Server.LittleSkin.Override.Title"), Lang.Text("Instance.Setup.Server.LittleSkin.Override.Continue"), Lang.Text("Common.Action.Cancel")) == 2)
+                return;
+            ServerAuthServerText = "https://littleskin.cn/api/yggdrasil";
+            ServerAuthRegisterText = "https://littleskin.cn/auth/register";
+            ServerAuthNameText = Lang.Text("Instance.Setup.Server.LittleSkin.Name");
+        }
+        catch (Exception ex)
+        {
+            Common.Log(ex, "应用 LittleSkin 登录设置失败", Common.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Setup.Error.OperationFailed"));
+        }
+    }
+
+    [RelayCommand]
+    private void CreateServerProfile()
+    {
+        if (!ProfileUi.CanCreateOtherProfile())
+            return;
+
+        Launcher.frmMain.PageChange(new FormMain.PageStackData { page = FormMain.PageType.Launch });
+        PageLoginAuth.draggedAuthServer = ServerAuthServerText;
+        Common.RunInNewThread(() =>
+        {
+            Thread.Sleep(150);
+            Common.RunInUi(() => Launcher.frmLaunchLeft.RefreshPage(true, GameLaunch.McLoginType.Auth));
+        });
+    }
+
+    [RelayCommand]
+    private async Task LockServerAuth()
+    {
+        ServerAuthLockEnabled = false;
+        try
+        {
+            if (await Launcher.MyMsgBoxAsync(
+                    Lang.Text("Instance.Setup.Server.LockLoginMethod.Message"),
+                    Lang.Text("Instance.Setup.Server.LockLoginMethod.Title"), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
+            {
+                Config.InstanceAuth.AuthLocked[PageInstanceLeft.McInstance.PathInstance] = true;
+                Launcher.frmInstanceSetup?.Reload();
+            }
+        }
+        catch (Exception ex)
+        {
+            Common.Log(ex, "锁定登录方式失败", Common.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Setup.Error.OperationFailed"));
+        }
+        finally
+        {
+            ServerAuthLockEnabled = true;
+        }
+    }
+
+    [RelayCommand]
+    private void OpenGlobalSettings()
+    {
+        Launcher.frmMain.PageChange(FormMain.PageType.Setup);
     }
 }
