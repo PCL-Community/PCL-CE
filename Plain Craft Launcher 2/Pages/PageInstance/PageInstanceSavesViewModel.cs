@@ -57,12 +57,12 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
     {
         try
         {
-            var cur = new ModLaunch.LaunchArgument(PageInstanceLeft.McInstance);
+            var cur = new GameLaunch.LaunchArgument(PageInstanceLeft.McInstance);
             _quickPlayFeature = cur.HasArguments("--quickPlaySingleplayer");
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "检查存档快捷启动失败", ModBase.LogLevel.Hint,
+            Common.Log(ex, "检查存档快捷启动失败", Common.LogLevel.Hint,
                 userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
         }
     }
@@ -111,7 +111,7 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, Lang.Text("Instance.Saves.DeleteFailed"), ModBase.LogLevel.Hint,
+                Common.Log(ex, Lang.Text("Instance.Saves.DeleteFailed"), Common.LogLevel.Hint,
                     userSummary: Lang.Text("Instance.Saves.DeleteFailed"));
                 return false;
             }
@@ -133,7 +133,7 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
                     }
                     else
                     {
-                        ModBase.CopyDirectory(i, worldPath + GetFolderNameFromPath(i));
+                        Common.CopyDirectory(i, worldPath + GetFolderNameFromPath(i));
                         copied += 1;
                     }
                 }
@@ -144,7 +144,7 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, Lang.Text("Instance.Saves.PasteFolderFailed"), ModBase.LogLevel.Hint,
+                Common.Log(ex, Lang.Text("Instance.Saves.PasteFolderFailed"), Common.LogLevel.Hint,
                     userSummary: Lang.Text("Instance.Saves.PasteFolderFailed"));
             }
 
@@ -175,29 +175,29 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
 
         if (rescan)
         {
-            ModBase.Log("[World] 刷新存档文件");
+            Common.Log("[World] 刷新存档文件");
             _saveFolders.Clear();
             if (Directory.Exists(path))
                 _saveFolders.AddRange(Directory.EnumerateDirectories(path));
-            if (ModBase.modeDebug)
-                ModBase.Log("[World] 共发现 " + _saveFolders.Count + " 个存档文件夹", ModBase.LogLevel.Debug);
-            if (ModBase.modeDebug)
-                ModBase.Log(_quickPlayFeature is true ? "[World] 该实例支持存档快捷启动" : "[World] 该实例不支持存档快捷启动",
-                    ModBase.LogLevel.Debug);
+            if (Common.modeDebug)
+                Common.Log("[World] 共发现 " + _saveFolders.Count + " 个存档文件夹", Common.LogLevel.Debug);
+            if (Common.modeDebug)
+                Common.Log(_quickPlayFeature is true ? "[World] 该实例支持存档快捷启动" : "[World] 该实例不支持存档快捷启动",
+                    Common.LogLevel.Debug);
         }
 
         List<string> showingSaves;
         if (searching)
         {
-            var queryList = new List<ModBase.SearchEntry<string>>();
+            var queryList = new List<Common.SearchEntry<string>>();
             foreach (var saveFolder in _saveFolders)
             {
                 var folderName = GetFolderNameFromPath(saveFolder);
-                var searchSource = new List<ModBase.SearchSource> { new(folderName, 1d) };
-                queryList.Add(new ModBase.SearchEntry<string> { item = saveFolder, searchSource = searchSource });
+                var searchSource = new List<Common.SearchSource> { new(folderName, 1d) };
+                queryList.Add(new Common.SearchEntry<string> { item = saveFolder, searchSource = searchSource });
             }
 
-            showingSaves = ModBase.Search(queryList, query, ModBase.MaxLocalSearchDepth, 0.35d)
+            showingSaves = Common.Search(queryList, query, Common.MaxLocalSearchDepth, 0.35d)
                 .Select(r => r.item).ToList();
         }
         else
@@ -228,13 +228,13 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
         if (File.Exists(saveLogo))
         {
             var target =
-                $@"{PageInstanceLeft.McInstance.PathInstance}PCL\ImgCache\{ModBase.GetStringMD5(saveLogo)}.png";
-            ModBase.CopyFile(saveLogo, target);
+                $@"{PageInstanceLeft.McInstance.PathInstance}PCL\ImgCache\{Common.GetStringMd5(saveLogo)}.png";
+            Common.CopyFile(saveLogo, target);
             saveLogo = target;
         }
         else
         {
-            saveLogo = ModBase.pathImage + "Icons/NoIcon.png";
+            saveLogo = Common.PathImage + "Icons/NoIcon.png";
         }
 
         var info = Lang.Text("Instance.Saves.CreationTime",

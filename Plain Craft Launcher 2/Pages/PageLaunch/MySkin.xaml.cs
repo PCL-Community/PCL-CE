@@ -25,7 +25,7 @@ public partial class MySkin
 
     // 点击
     private bool isSkinMouseDown;
-    public ModLoader.LoaderTask<ModBase.EqualableList<string>, string> loader;
+    public Loading.LoaderTask<Common.EqualableList<string>, string> loader;
 
     public MySkin()
     {
@@ -61,31 +61,33 @@ public partial class MySkin
     // 控件动画
     private void PanSkin_MouseEnter(object sender, MouseEventArgs e)
     {
-        ModAnimation.AniStart(ModAnimation.AaOpacity(ShadowSkin, 0.8d - ShadowSkin.Opacity, 200, 100), "Skin Shadow");
+        Animations.AniStart(Animations.AaOpacity(ShadowSkin, 0.8d - ShadowSkin.Opacity, 200, 100),
+            "Skin Shadow");
     }
 
     private void PanSkin_MouseLeave(object sender, MouseEventArgs e)
     {
-        ModAnimation.AniStart(ModAnimation.AaOpacity(ShadowSkin, 0.2d - ShadowSkin.Opacity, 200), "Skin Shadow");
+        Animations.AniStart(Animations.AaOpacity(ShadowSkin, 0.2d - ShadowSkin.Opacity, 200),
+            "Skin Shadow");
         isSkinMouseDown = false;
-        ModAnimation.AniStart(
-            ModAnimation.AaScaleTransform(this, 1d - ((ScaleTransform)RenderTransform).ScaleX, 60,
-                ease: new ModAnimation.AniEaseOutFluent()), "Skin Scale");
+        Animations.AniStart(
+            Animations.AaScaleTransform(this, 1d - ((ScaleTransform)RenderTransform).ScaleX, 60,
+                ease: new Animations.AniEaseOutFluent()), "Skin Scale");
     }
 
     private void PanSkin_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         isSkinMouseDown = true;
-        ModAnimation.AniStart(
-            ModAnimation.AaScaleTransform(this, 0.9d - ((ScaleTransform)RenderTransform).ScaleX, 60,
-                ease: new ModAnimation.AniEaseOutFluent()), "Skin Scale");
+        Animations.AniStart(
+            Animations.AaScaleTransform(this, 0.9d - ((ScaleTransform)RenderTransform).ScaleX, 60,
+                ease: new Animations.AniEaseOutFluent()), "Skin Scale");
     }
 
     private void PanSkin_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
-        ModAnimation.AniStart(
-            ModAnimation.AaScaleTransform(this, 1d - ((ScaleTransform)RenderTransform).ScaleX, 60,
-                ease: new ModAnimation.AniEaseOutFluent()), "Skin Scale");
+        Animations.AniStart(
+            Animations.AaScaleTransform(this, 1d - ((ScaleTransform)RenderTransform).ScaleX, 60,
+                ease: new Animations.AniEaseOutFluent()), "Skin Scale");
         if (!isSkinMouseDown) return;
         isSkinMouseDown = false;
         Click?.Invoke(sender, e);
@@ -97,13 +99,13 @@ public partial class MySkin
         Save(loader);
     }
 
-    public static void Save(ModLoader.LoaderTask<ModBase.EqualableList<string>, string> loader)
+    public static void Save(Loading.LoaderTask<Common.EqualableList<string>, string> loader)
     {
         var address = loader.output;
-        if (loader.State != ModBase.LoadState.Finished)
+        if (loader.State != Common.LoadState.Finished)
         {
             HintService.Hint(Lang.Text("Launch.Skin.Fetching"), HintType.Error);
-            if (loader.State != ModBase.LoadState.Loading)
+            if (loader.State != Common.LoadState.Loading)
                 loader.Start();
             return;
         }
@@ -111,28 +113,28 @@ public partial class MySkin
         try
         {
             var fileAddress = SystemDialogs.SelectSaveFile(Lang.Text("Launch.Skin.SaveDialog.Title"),
-                ModBase.GetFileNameFromPath(address),
+                Common.GetFileNameFromPath(address),
                 Lang.Text("Launch.Skin.SaveDialog.Filter"));
             if (!fileAddress.Contains(@"\")) return;
             File.Delete(fileAddress);
-            if (address.StartsWith(ModBase.pathImage))
+            if (address.StartsWith(Common.PathImage))
             {
                 var image = new MyBitmap(address);
                 image.Save(fileAddress);
             }
             else
             {
-                ModBase.CopyFile(address, fileAddress);
+                Common.CopyFile(address, fileAddress);
             }
 
             HintService.Hint(Lang.Text("Launch.Skin.SaveSuccess"), HintType.Success);
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 Lang.Text("Launch.Skin.Save.Error"),
-                ModBase.LogLevel.Hint,
+                Common.LogLevel.Hint,
                 userSummary: Lang.Text("Launch.Skin.Save.Error"));
         }
     }
@@ -153,7 +155,7 @@ public partial class MySkin
             Address = loader.output;
             if (string.IsNullOrEmpty(Address))
                 throw new Exception("皮肤加载器 " + loader.name + " 没有输出");
-            if (!Address.StartsWith(ModBase.pathImage) && !File.Exists(Address))
+            if (!Address.StartsWith(Common.PathImage) && !File.Exists(Address))
                 throw new FileNotFoundException("皮肤文件未找到", Address);
             // 加载
             MyBitmap image;
@@ -163,10 +165,10 @@ public partial class MySkin
             }
             catch (Exception ex) // #2272
             {
-                ModBase.Log(
+                Common.Log(
                     ex,
                     Lang.Text("Launch.Skin.Load.Error.Corrupted", Address),
-                    ModBase.LogLevel.Hint,
+                    Common.LogLevel.Hint,
                     userSummary: Lang.Text("Launch.Skin.Load.Error.Corrupted", Address));
                 File.Delete(Address);
                 return;
@@ -214,7 +216,7 @@ public partial class MySkin
             // 用于显示档案列表头像的图片
             var skinHeadId = Address.Between(new[] { Address.Contains("Images/Skins/") ? "Skins/" : @"Skin\" }[0],
                 ".png");
-            var cachePath = ModBase.pathTemp + $@"Cache\Skin\Head\{skinHeadId}.png";
+            var cachePath = Common.pathTemp + $@"Cache\Skin\Head\{skinHeadId}.png";
             if (ProfileService.Current is { } profile)
             {
                 var updated = profile.Clone();
@@ -239,17 +241,17 @@ public partial class MySkin
                 }
             }
 
-            if (!Directory.Exists(ModBase.pathTemp + @"Cache\Skin\Head"))
-                Directory.CreateDirectory(ModBase.pathTemp + @"Cache\Skin\Head");
+            if (!Directory.Exists(Common.pathTemp + @"Cache\Skin\Head"))
+                Directory.CreateDirectory(Common.pathTemp + @"Cache\Skin\Head");
             completeHead.Save(cachePath, ImageFormat.Png);
-            ModBase.Log("[Skin] 载入头像成功：" + loader.name);
+            Common.Log("[Skin] 载入头像成功：" + loader.name);
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 Lang.Text("Launch.Skin.Load.Error.Avatar", $"{(Address ?? "null")},{loader.name}"),
-                ModBase.LogLevel.Hint,
+                Common.LogLevel.Hint,
                 userSummary: Lang.Text("Launch.Skin.Load.Error.Avatar", $"{(Address ?? "null")},{loader.name}"));
         }
     }
@@ -284,30 +286,31 @@ public partial class MySkin
     /// <summary>
     ///     刷新皮肤缓存。
     /// </summary>
-    public static void RefreshCache(ModLoader.LoaderTask<ModBase.EqualableList<string>, string> sender = null)
+    public static void RefreshCache(Loading.LoaderTask<Common.EqualableList<string>, string> sender = null)
     {
         var hasLoaderRunning =
-            PageLaunchLeft.skinLoaders.Any(skinLoader => skinLoader.State == ModBase.LoadState.Loading);
+            PageLaunchLeft.skinLoaders.Any(skinLoader =>
+                skinLoader.State == Common.LoadState.Loading);
 
-        if (ModMain.frmLaunchLeft is not null && hasLoaderRunning)
+        if (Launcher.frmLaunchLeft is not null && hasLoaderRunning)
             // 由于 Abort 不是实时的，暂时不会释放文件，会导致删除报错，故只能取消执行
             HintService.Hint(Lang.Text("Launch.Skin.Refresh.Busy"));
         else
             // 清空缓存
             // 刷新控件
-            ModBase.RunInThread(() =>
+            Common.RunInThread(() =>
             {
                 try
                 {
                     HintService.Hint(Lang.Text("Launch.Skin.Refreshing"));
-                    ModBase.Log("[Skin] 正在清空皮肤缓存");
-                    if (Directory.Exists(ModBase.pathTemp + @"Cache\Skin"))
-                        ModBase.DeleteDirectory(ModBase.pathTemp + @"Cache\Skin");
-                    if (Directory.Exists(ModBase.pathTemp + @"Cache\Uuid"))
-                        ModBase.DeleteDirectory(ModBase.pathTemp + @"Cache\Uuid");
-                    ModBase.IniClearCache(ModBase.pathTemp + @"Cache\Skin\IndexMs.ini");
-                    ModBase.IniClearCache(ModBase.pathTemp + @"Cache\Skin\IndexAuth.ini");
-                    ModBase.IniClearCache(ModBase.pathTemp + @"Cache\Uuid\Mojang.ini");
+                    Common.Log("[Skin] 正在清空皮肤缓存");
+                    if (Directory.Exists(Common.pathTemp + @"Cache\Skin"))
+                        Common.DeleteDirectory(Common.pathTemp + @"Cache\Skin");
+                    if (Directory.Exists(Common.pathTemp + @"Cache\Uuid"))
+                        Common.DeleteDirectory(Common.pathTemp + @"Cache\Uuid");
+                    Common.IniClearCache(Common.pathTemp + @"Cache\Skin\IndexMs.ini");
+                    Common.IniClearCache(Common.pathTemp + @"Cache\Skin\IndexAuth.ini");
+                    Common.IniClearCache(Common.pathTemp + @"Cache\Uuid\Mojang.ini");
                     foreach (var SkinLoader in sender is not null
                                  ? new[] { sender }
                                  : new[] { PageLaunchLeft.skinLegacy, PageLaunchLeft.skinMs })
@@ -316,10 +319,10 @@ public partial class MySkin
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(
+                    Common.Log(
                         ex,
                         Lang.Text("Launch.Skin.Refresh.Error"),
-                        ModBase.LogLevel.Msgbox,
+                        Common.LogLevel.Msgbox,
                         userSummary: Lang.Text("Launch.Skin.Refresh.Error"));
                 }
             });
@@ -334,21 +337,21 @@ public partial class MySkin
         // 更新缓存
         // 刷新控件
         // 完成提示
-        ModBase.RunInThread(() =>
+        Common.RunInThread(() =>
         {
             try
             {
-                ModBase.WriteIni(ModBase.pathTemp + @"Cache\Skin\IndexMs.ini", uuid, skinAddress);
-                ModBase.Log($"[Skin] 已写入皮肤地址缓存 {uuid} -> {skinAddress}");
+                Common.WriteIni(Common.pathTemp + @"Cache\Skin\IndexMs.ini", uuid, skinAddress);
+                Common.Log($"[Skin] 已写入皮肤地址缓存 {uuid} -> {skinAddress}");
                 PageLaunchLeft.skinMs.WaitForExit(isForceRestart: true);
                 HintService.Hint(Lang.Text("Launch.Skin.ChangeSuccess"), HintType.Success);
             }
             catch (Exception ex)
             {
-                ModBase.Log(
+                Common.Log(
                     ex,
                     Lang.Text("Launch.Skin.Change.Error.MsRefresh"),
-                    ModBase.LogLevel.Feedback,
+                    Common.LogLevel.Feedback,
                     userSummary: Lang.Text("Launch.Skin.Change.Error.MsRefresh"));
             }
         });
@@ -363,7 +366,7 @@ public partial class MySkin
             return;
         }
 
-        if (ModLaunch.mcLoginMsLoader.State == ModBase.LoadState.Failed)
+        if (GameLaunch.mcLoginMsLoader.State == Common.LoadState.Failed)
         {
             HintService.Hint(Lang.Text("Launch.Skin.Cape.LoginFailed"), HintType.Error);
             return;
@@ -372,28 +375,30 @@ public partial class MySkin
         HintService.Hint(Lang.Text("Launch.Skin.Cape.FetchingList"));
         isChanging = true;
         // 开始实际获取
-        ModBase.RunInNewThread(() =>
+        Common.RunInNewThread(() =>
         {
             try
             {
                 // 获取登录信息
-                if (ModLaunch.mcLoginMsLoader.State != ModBase.LoadState.Finished)
-                    ModLaunch.mcLoginMsLoader.WaitForExit(ProfileUi.GetLoginData());
-                if (ModLaunch.mcLoginMsLoader.State != ModBase.LoadState.Finished)
+                if (GameLaunch.mcLoginMsLoader.State != Common.LoadState.Finished)
+                    GameLaunch.mcLoginMsLoader.WaitForExit(ProfileUi.GetLoginData());
+                if (GameLaunch.mcLoginMsLoader.State != Common.LoadState.Finished)
                 {
                     HintService.Hint(Lang.Text("Launch.Skin.Cape.LoginFailed"), HintType.Error);
                     return;
                 }
 
-                var accessToken = ModLaunch.mcLoginMsLoader.output.AccessToken;
-                var uuid = ModLaunch.mcLoginMsLoader.output.Uuid;
-                var skinData = (JsonObject)ModBase.GetJson(ModLaunch.mcLoginMsLoader.output.ProfileJson);
+                var accessToken = GameLaunch.mcLoginMsLoader.output.AccessToken;
+                var uuid = GameLaunch.mcLoginMsLoader.output.Uuid;
+                var skinData =
+                    (JsonObject)Common.GetJson(GameLaunch.mcLoginMsLoader.output.ProfileJson);
                 foreach (var itemSkin in skinData["capes"].AsArray())
                 {
                     if (itemSkin["url"] is null)
                         continue;
-                    var localFile = $@"{ModBase.pathTemp}Cache\Capes\{itemSkin["alias"]}.png";
-                    var capeFrontFile = $@"{ModBase.pathTemp}Cache\Capes\{itemSkin["alias"]}-front.png";
+                    var localFile = $@"{Common.pathTemp}Cache\Capes\{itemSkin["alias"]}.png";
+                    var capeFrontFile =
+                        $@"{Common.pathTemp}Cache\Capes\{itemSkin["alias"]}-front.png";
                     if (File.Exists(localFile) && File.Exists(capeFrontFile))
                     {
                         itemSkin["url"] = capeFrontFile;
@@ -412,7 +417,7 @@ public partial class MySkin
 
                 // 获取玩家的所有披风
                 int? selId = null;
-                ModBase.RunInUiWait(() =>
+                Common.RunInUiWait(() =>
                 {
                     try
                     {
@@ -434,15 +439,16 @@ public partial class MySkin
                                 LogoScale = 0.8d
                             });
 
-                        selId = ModMain.MyMsgBoxSelect(selectionControl, Lang.Text("Launch.Skin.Cape.SelectTitle"),
+                        selId = Launcher.MyMsgBoxSelect(selectionControl,
+                            Lang.Text("Launch.Skin.Cape.SelectTitle"),
                             Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"));
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(
+                        Common.Log(
                             ex,
                             Lang.Text("Launch.Skin.Cape.Error.List"),
-                            ModBase.LogLevel.Feedback,
+                            Common.LogLevel.Feedback,
                             userSummary: Lang.Text("Launch.Skin.Cape.Error.List"));
                     }
                 });
@@ -463,16 +469,16 @@ public partial class MySkin
                 if (result.Contains("\"errorMessage\""))
                     HintService.Hint(
                         Lang.Text("Launch.Skin.Cape.ChangeFailedWithReason",
-                            ((JsonObject)ModBase.GetJson(result))["errorMessage"]), HintType.Error);
+                            ((JsonObject)Common.GetJson(result))["errorMessage"]), HintType.Error);
                 else
                     HintService.Hint(Lang.Text("Launch.Skin.Cape.ChangeSuccess"), HintType.Success);
             }
             catch (Exception ex)
             {
-                ModBase.Log(
+                Common.Log(
                     ex,
                     Lang.Text("Launch.Skin.Cape.ChangeFailed"),
-                    ModBase.LogLevel.Hint,
+                    Common.LogLevel.Hint,
                     userSummary: Lang.Text("Launch.Skin.Cape.ChangeFailed"));
             }
             finally

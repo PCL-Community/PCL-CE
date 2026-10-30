@@ -31,14 +31,14 @@ public partial class PageSetupLauncherLanguage
             return;
         _isLoaded = true;
 
-        ModAnimation.AniBeginControl();
+        Animations.AniBeginControl();
         Reload();
-        ModAnimation.AniEndControl();
+        Animations.AniEndControl();
     }
 
     public void Reload()
     {
-        ModAnimation.AniBeginControl();
+        Animations.AniBeginControl();
         try
         {
             ReloadLanguageCombo();
@@ -47,7 +47,7 @@ public partial class PageSetupLauncherLanguage
         }
         finally
         {
-            ModAnimation.AniEndControl();
+            Animations.AniEndControl();
         }
     }
 
@@ -58,16 +58,16 @@ public partial class PageSetupLauncherLanguage
             Config.Preference.Localization.LanguageConfig.SetDefaultValue();
             Config.Preference.Localization.FormatCultureConfig.SetDefaultValue();
             LocalizationService.ApplyFromConfig();
-            ModBase.Log("[Setup] 已初始化启动器-语言页设置");
+            Common.Log("[Setup] 已初始化启动器-语言页设置");
             HintService.Hint(Lang.Text("Setup.Language.Reset.Success"), HintType.Success, false);
             Reload();
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 "初始化启动器-语言页设置失败",
-                ModBase.LogLevel.Msgbox,
+                Common.LogLevel.Msgbox,
                 userSummary: Lang.Text("Setup.Error.OperationFailed"));
         }
     }
@@ -133,7 +133,7 @@ public partial class PageSetupLauncherLanguage
 
     private void ComboUiLanguage_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (ModAnimation.AniExitsAnyControl())
+        if (Animations.AniExitsAnyControl())
             return;
         if (ComboUiLanguage.SelectedItem is not MyComboBoxItem item)
             return;
@@ -149,7 +149,7 @@ public partial class PageSetupLauncherLanguage
 
     private void ComboUiFormatCulture_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (ModAnimation.AniExitsAnyControl())
+        if (Animations.AniExitsAnyControl())
             return;
         if (ComboUiFormatCulture.SelectedItem is not MyComboBoxItem item)
             return;

@@ -38,9 +38,9 @@ public partial class PageSetupGameLink : IPageView
         if (_refreshed)
             return;
         _refreshed = true;
-        ModAnimation.AniBeginControl();
+        Animations.AniBeginControl();
         Reload();
-        ModAnimation.AniEndControl();
+        Animations.AniEndControl();
     }
 
     public void Reload() => _vm.Reload();
@@ -50,13 +50,13 @@ public partial class PageSetupGameLink : IPageView
     private void TextBoxChange(object senderRaw, TextChangedEventArgs e)
     {
         var sender = (MyTextBox)senderRaw;
-        if (!ModAnimation.AniExitsAnyControl())
+        if (!Animations.AniExitsAnyControl())
             _vm.SetConfigByTag(sender.Tag?.ToString(), sender.Text);
     }
 
     private void ComboBoxChange(MyComboBox sender, object e)
     {
-        if (ModAnimation.AniExitsAnyControl() || sender.SelectedIndex < 0)
+        if (Animations.AniExitsAnyControl() || sender.SelectedIndex < 0)
             return;
         _vm.SetConfigByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }
@@ -64,14 +64,14 @@ public partial class PageSetupGameLink : IPageView
     private void CheckBoxChange(object senderRaw, bool user)
     {
         var sender = (MyCheckBox)senderRaw;
-        if (!ModAnimation.AniExitsAnyControl())
+        if (!Animations.AniExitsAnyControl())
             _vm.SetConfigByTag(sender.Tag?.ToString(), sender.Checked);
     }
 
     private void LinkProtocolPerferenceChange(object sender, SelectionChangedEventArgs e)
     {
         var index = ((MyComboBox)sender).SelectedIndex;
-        if (ModAnimation.AniExitsAnyControl() || index < 0)
+        if (Animations.AniExitsAnyControl() || index < 0)
             return;
         _vm.SetProtocolPreference(index);
     }
@@ -84,9 +84,9 @@ public partial class PageSetupGameLink : IPageView
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex,
+            Common.Log(ex,
                 "[Link] 获取网络测试结果失败",
-                ModBase.LogLevel.Hint,
+                Common.LogLevel.Hint,
                 userSummary: Lang.Text("Setup.GameLink.Error.NetworkTestFailed"));
         }
     }

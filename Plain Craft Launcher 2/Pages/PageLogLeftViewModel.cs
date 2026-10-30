@@ -9,11 +9,11 @@ public partial class PageLogLeftViewModel : ViewModelBase
 {
     public string InstancesTitle => Lang.Text("LogPage.Left.InstancesTitle");
 
-    public bool HasLogs => ModMain.frmLogLeft is not null && ModMain.frmLogLeft.shownLogs.Count > 0;
+    public bool HasLogs => Launcher.frmLogLeft is not null && Launcher.frmLogLeft.shownLogs.Count > 0;
 
     public bool ShouldShowMaxLinesHint => !States.Hint.MaxGameLog;
 
-    public string GetItemInfo(ModWatcher.Watcher watcher)
+    public string GetItemInfo(GameWatcher.Watcher watcher)
     {
         return $"{watcher.version.Info} - {Lang.Date(watcher.gameProcess.StartTime, "T")}";
     }

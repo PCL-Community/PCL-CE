@@ -48,24 +48,26 @@ public class MyScrollViewer : ScrollViewer
 
     public void PerformVerticalOffsetDelta(double delta)
     {
-        ModAnimation.AniStart(ModAnimation.AaDouble(animDelta =>
+        Animations.AniStart(Animations.AaDouble(animDelta =>
         {
-            realOffset = ModBase.MathClamp(realOffset + (double)animDelta, 0d, ExtentHeight - ActualHeight);
+            realOffset = Common.MathClamp(realOffset + (double)animDelta, 0d,
+                ExtentHeight - ActualHeight);
             ScrollToVerticalOffset(realOffset);
-        }, delta * DeltaMult, 300, 0, new ModAnimation.AniEaseOutFluent((ModAnimation.AniEasePower)6), false));
+        }, delta * DeltaMult, 300, 0, new Animations.AniEaseOutFluent((Animations.AniEasePower)6),
+        false));
     }
 
     private void MyScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
     {
         realOffset = VerticalOffset;
-        if (ModMain.frmMain is not null &&
+        if (Launcher.frmMain is not null &&
             (e.VerticalChange != 0 || e.ViewportHeightChange != 0))
-            ModMain.frmMain.BtnExtraBack.ShowRefresh();
+            Launcher.frmMain.BtnExtraBack.ShowRefresh();
     }
 
     private void MyScrollViewer_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
-        ModMain.frmMain.BtnExtraBack.ShowRefresh();
+        Launcher.frmMain.BtnExtraBack.ShowRefresh();
     }
 
     private void Load()

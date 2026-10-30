@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Text.RegularExpressions;
@@ -125,7 +125,11 @@ public class McInstance
         /// <param name="name">实例名，或实例文件夹的完整路径（不规定是否以 \ 结尾）。</param>
         public McInstance(string name)
         {
-            PathInstance = (name.Contains(":") ? name : Path.Combine(ModFolder.mcFolderSelected, "versions", name)) + (name.EndsWithF(@"\") ? "" : @"\");
+            PathInstance =
+                (name.Contains(":")
+                    ? name
+                    : Path.Combine(GameFolders.mcFolderSelected, "versions", name)) +
+                (name.EndsWithF(@"\") ? "" : @"\");
         }
 
         /// <summary>
@@ -151,7 +155,7 @@ public class McInstance
                         // 从老的实例独立设置中迁移：-1 未决定，0 使用全局设置，1 手动开启，2 手动关闭
                         if (!Config.Instance.IndieV1Config.IsDefault(PathInstance) && Config.Instance.IndieV1[PathInstance] > 0)
                         {
-                            ModBase.Log($"[Minecraft] 版本隔离初始化（{Name}）：从老的实例独立设置中迁移");
+                            Common.Log($"[Minecraft] 版本隔离初始化（{Name}）：从老的实例独立设置中迁移");
                             return Config.Instance.IndieV1[PathInstance] == 1;
                         }
 
@@ -161,15 +165,16 @@ public class McInstance
                         if ((modFolder.Exists && modFolder.EnumerateFiles().Any()) ||
                             (saveFolder.Exists && saveFolder.EnumerateDirectories().Any()))
                         {
-                            ModBase.Log($"[Minecraft] 版本隔离初始化（{Name}）：实例文件夹下存在 mods 或 saves 文件夹，自动开启");
+                            Common.Log(
+                                $"[Minecraft] 版本隔离初始化（{Name}）：实例文件夹下存在 mods 或 saves 文件夹，自动开启");
                             return true;
                         }
 
                         // 根据全局的默认设置决定是否隔离
                         var isRelease = state != McInstanceState.Fool && state != McInstanceState.Old &&
                                         state != McInstanceState.Snapshot;
-                        ModBase.Log(
-                            $"[Minecraft] 版本隔离初始化（{Name}）：从全局默认设置中（{Config.Launch.IndieSolutionV2}）判断，State {ModBase.GetStringFromEnum(state)}，IsRelease {isRelease}，Modable {Modable}");
+                        Common.Log(
+                            $"[Minecraft] 版本隔离初始化（{Name}）：从全局默认设置中（{Config.Launch.IndieSolutionV2}）判断，State {Common.GetStringFromEnum(state)}，IsRelease {isRelease}，Modable {Modable}");
                         
                         return Config.Launch.IndieSolutionV2 switch
                         {
@@ -184,7 +189,9 @@ public class McInstance
                     Config.Instance.IndieV2[PathInstance] = ShouldBeIndie();
                 }
 
-                return Config.Instance.IndieV2[PathInstance] ? PathInstance : ModFolder.mcFolderSelected;
+                return Config.Instance.IndieV2[PathInstance]
+                    ? PathInstance
+                    : GameFolders.mcFolderSelected;
             }
         }
 
@@ -196,7 +203,7 @@ public class McInstance
             get
             {
                 if (field is null && !string.IsNullOrEmpty(PathInstance))
-                    field = ModBase.GetFolderNameFromPath(PathInstance);
+                    field = Common.GetFolderNameFromPath(PathInstance);
                 return field;
             }
         }
@@ -359,7 +366,7 @@ public class McInstance
                         if (jsonVerName.Length < 32) // 因为 wiki 说这玩意儿可能是个 hash，虽然我没发现
                         {
                             field.VanillaName = jsonVerName;
-                            ModBase.Log("[Minecraft] 从版本 jar 中的 version.json 获取到版本号：" + jsonVerName);
+                            Common.Log("[Minecraft] 从版本 jar 中的 version.json 获取到版本号：" + jsonVerName);
                             goto VersionSearchFinish;
                         }
                     }
@@ -374,7 +381,7 @@ public class McInstance
                     }
 
                     // 非准确的版本判断警告
-                    ModBase.Log("[Minecraft] 无法完全确认 MC 版本号的版本：" + Name);
+                    Common.Log("[Minecraft] 无法完全确认 MC 版本号的版本：" + Name);
                     field.Reliable = false;
                     // 从文件夹名中获取
                     regex = Name.RegexSeek(RegexPatterns.MinecraftJsonVersion, RegexOptions.IgnoreCase);
@@ -401,7 +408,7 @@ public class McInstance
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, "识别 Minecraft 版本时出错");
+                    Common.Log(ex, "识别 Minecraft 版本时出错");
                     field.VanillaName = McInstanceInfo.UnknownVanillaName;
                     SetRuntimeDesc("Minecraft.Error.Unrecognizable", ex.Message);
                 }
@@ -420,15 +427,15 @@ public class McInstance
                 if (field.VanillaName.StartsWithF("1."))
                 {
                     var segments = field.VanillaName.Split(" _-.".ToCharArray());
-                    field.vanilla = new Version((int)Math.Round(ModBase.Val(segments.Count() >= 2 ? segments[1] : "0")),
-                        0, (int)Math.Round(ModBase.Val(segments.Count() >= 3 ? segments[2] : "0")));
+                    field.vanilla = new Version((int)Math.Round(Common.Val(segments.Count() >= 2 ? segments[1] : "0")),
+                        0, (int)Math.Round(Common.Val(segments.Count() >= 3 ? segments[2] : "0")));
                 }
                 else if (field.VanillaName.RegexCheck(@"^[2-9][0-9]\."))
                 {
                     var segments = field.VanillaName.Split(" _-.".ToCharArray());
-                    field.vanilla = new Version((int)Math.Round(ModBase.Val(segments[0])),
-                        (int)Math.Round(ModBase.Val(segments.Count() >= 2 ? segments[1] : "0")),
-                        (int)Math.Round(ModBase.Val(segments.Count() >= 3 ? segments[2] : "0")));
+                    field.vanilla = new Version((int)Math.Round(Common.Val(segments[0])),
+                        (int)Math.Round(Common.Val(segments.Count() >= 2 ? segments[1] : "0")),
+                        (int)Math.Round(Common.Val(segments.Count() >= 3 ? segments[2] : "0")));
                 }
                 else
                 {
@@ -465,7 +472,8 @@ public class McInstance
                         if (jsonFiles.Count() == 1)
                         {
                             jsonPath = jsonFiles[0];
-                            ModBase.Log("[Minecraft] 未找到同名实例 JSON，自动换用 " + jsonPath, ModBase.LogLevel.Debug);
+                            Common.Log("[Minecraft] 未找到同名实例 JSON，自动换用 " + jsonPath,
+                                Common.LogLevel.Debug);
                         }
                         else
                         {
@@ -474,24 +482,26 @@ public class McInstance
                         }
                     }
 
-                    field = ModBase.ReadFile(jsonPath);
+                    field = Common.ReadFile(jsonPath);
                     // 如果 ReadFile 失败会返回空字符串；这可能是由于文件被临时占用，故延时后重试
                     if (!FastJsonCheck(field))
                     {
-                        if (ModBase.RunInUi())
+                        if (Common.RunInUi())
                         {
-                            ModBase.Log($"[Minecraft] 实例 JSON 文件为空或有误，将进行短暂重试（{jsonPath}）", ModBase.LogLevel.Debug);
+                            Common.Log($"[Minecraft] 实例 JSON 文件为空或有误，将进行短暂重试（{jsonPath}）",
+                                Common.LogLevel.Debug);
                             Thread.Sleep(200);
-                            field = ModBase.ReadFile(jsonPath);
+                            field = Common.ReadFile(jsonPath);
                         }
                         else
                         {
-                            ModBase.Log($"[Minecraft] 实例 JSON 文件为空或有误，将在 2s 后重试读取（{jsonPath}）", ModBase.LogLevel.Debug);
+                            Common.Log($"[Minecraft] 实例 JSON 文件为空或有误，将在 2s 后重试读取（{jsonPath}）",
+                                Common.LogLevel.Debug);
                             Thread.Sleep(2000);
-                            field = ModBase.ReadFile(jsonPath);
+                            field = Common.ReadFile(jsonPath);
                         }
                         if (!FastJsonCheck(field))
-                            ModBase.GetJson(field);
+                            Common.GetJson(field);
                     }
                 }
 
@@ -513,7 +523,7 @@ public class McInstance
                     var text = JsonText; // 触发 JsonText 的 Get 事件
                     try
                     {
-                        field = (JsonObject)ModBase.GetJson(text);
+                        field = (JsonObject)Common.GetJson(text);
                         // 转换 HMCL 关键项
                         if (field.ContainsKey("patches") && !field.ContainsKey("time"))
                         {
@@ -526,8 +536,8 @@ public class McInstance
                                 subjsonList.Add(subjson); }
                             subjsonList.Sort((left, right) =>
                             {
-                                var leftVal = ModBase.Val((left["priority"] ?? "0").ToString());
-                                var rightVal = ModBase.Val((right["priority"] ?? "0").ToString());
+                                var leftVal = Common.Val((left["priority"] ?? "0").ToString());
+                                var rightVal = Common.Val((right["priority"] ?? "0").ToString());
                                 return leftVal.CompareTo(rightVal);
                             });
                             foreach (var Subjson in subjsonList)
@@ -536,7 +546,7 @@ public class McInstance
                                 if (id is not null)
                                 {
                                     // 合并 JSON
-                                    ModBase.Log("[Minecraft] 合并 HMCL 分支项：" + id);
+                                    Common.Log("[Minecraft] 合并 HMCL 分支项：" + id);
                                     if (currentObject is not null)
                                         currentObject.Merge(Subjson);
                                     else
@@ -544,7 +554,7 @@ public class McInstance
                                 }
                                 else
                                 {
-                                    ModBase.Log("[Minecraft] 存在为空的 HMCL 分支项");
+                                    Common.Log("[Minecraft] 存在为空的 HMCL 分支项");
                                 }
                             }
 
@@ -557,42 +567,41 @@ public class McInstance
 
                         // 与继承实例合并
                         object inheritInstanceName = null;
-                        do
+                        try
                         {
-                            try
+                            inheritInstanceName = field["inheritsFrom"] is null
+                                ? ""
+                                : field["inheritsFrom"].ToString();
+                            if (Equals(inheritInstanceName, Name))
                             {
-                                inheritInstanceName = field["inheritsFrom"] is null
-                                    ? ""
-                                    : field["inheritsFrom"].ToString();
-                                if (Equals(inheritInstanceName, Name))
-                                {
-                                    ModBase.Log("[Minecraft] 自引用的继承实例：" + Name, ModBase.LogLevel.Debug);
-                                    inheritInstanceName = "";
+                                Common.Log("[Minecraft] 自引用的继承实例：" + Name, Common.LogLevel.Debug);
+                                inheritInstanceName = "";
+                            }
+
+                            while (true)
+                            {
+                                if (Equals(inheritInstanceName, ""))
                                     break;
-                                }
 
-                                Recheck: ;
-
-                                if (!Equals(inheritInstanceName, ""))
-                                {
-                                    var inheritInstance = new McInstance(inheritInstanceName?.ToString() ?? "");
-                                    // 继续循环
-                                    if (Equals(inheritInstance.InheritInstanceName,
-                                            inheritInstanceName))
-                                        throw new Exception(Lang.Text("Minecraft.Error.DependencyRecursion",
-                                            inheritInstanceName));
-                                    inheritInstanceName = inheritInstance.InheritInstanceName;
-                                    // 合并
-                                    inheritInstance.JsonObject.Merge(field);
-                                    field = inheritInstance.JsonObject;
-                                    goto Recheck;
-                                }
+                                var inheritInstance =
+                                    new McInstance(inheritInstanceName?.ToString() ?? "");
+                                // 继续循环
+                                if (Equals(inheritInstance.InheritInstanceName,
+                                        inheritInstanceName))
+                                    throw new Exception(Lang.Text(
+                                        "Minecraft.Error.DependencyRecursion",
+                                        inheritInstanceName));
+                                inheritInstanceName = inheritInstance.InheritInstanceName;
+                                // 合并
+                                inheritInstance.JsonObject.Merge(field);
+                                field = inheritInstance.JsonObject;
                             }
-                            catch (Exception ex)
-                            {
-                                ModBase.Log(ex, "合并实例依赖项 JSON 失败（" + (inheritInstanceName ?? "null") + "）");
-                            }
-                        } while (false);
+                        }
+                        catch (Exception ex)
+                        {
+                            Common.Log(ex,
+                                "合并实例依赖项 JSON 失败（" + (inheritInstanceName ?? "null") + "）");
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -640,13 +649,15 @@ public class McInstance
                                 if (versionJson is not null)
                                     using (var versionJsonStream = new StreamReader(versionJson.Open()))
                                     {
-                                        field = (JsonObject)ModBase.GetJson(versionJsonStream.ReadToEnd());
+                                        field = (JsonObject)Common.GetJson(versionJsonStream
+                                            .ReadToEnd());
                                     }
                             }
                         }
                         catch (Exception ex)
                         {
-                            ModBase.Log(ex, $"从实例 JAR 中读取 version.json 失败 ({PathInstance}{Name}.jar)");
+                            Common.Log(ex,
+                                $"从实例 JAR 中读取 version.json 失败 ({PathInstance}{Name}.jar)");
                         }
                     } while (false);
                 }
@@ -698,13 +709,13 @@ public class McInstance
             try
             {
                 Directory.CreateDirectory(PathInstance + @"PCL\");
-                ModBase.CheckPermissionWithException(PathInstance + @"PCL\");
+                Common.CheckPermissionWithException(PathInstance + @"PCL\");
             }
             catch (Exception ex)
             {
                 state = McInstanceState.Error;
                 SetRuntimeDesc("Select.Instance.Description.NoPermission");
-                ModBase.Log(ex, "没有访问实例文件夹的权限");
+                Common.Log(ex, "没有访问实例文件夹的权限");
                 return false;
             }
 
@@ -715,7 +726,7 @@ public class McInstance
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "实例 JSON 可用性检查失败（" + PathInstance + "）");
+                Common.Log(ex, "实例 JSON 可用性检查失败（" + PathInstance + "）");
                 JsonText = "";
                 JsonObject = null;
                 SetRuntimeDescRaw(ex.Message);
@@ -731,7 +742,7 @@ public class McInstance
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "版本号获取失败（" + Name + "）");
+                Common.Log(ex, "版本号获取失败（" + Name + "）");
                 state = McInstanceState.Error;
                 SetRuntimeDesc("Minecraft.Error.VersionNumberFetchFailed", ex);
                 return false;
@@ -741,7 +752,8 @@ public class McInstance
             try
             {
                 if (!string.IsNullOrEmpty(InheritInstanceName))
-                    if (!File.Exists(Path.Combine(ModBase.GetPathFromFullPath(PathInstance), InheritInstanceName, InheritInstanceName + ".json")))
+                    if (!File.Exists(Path.Combine(Common.GetPathFromFullPath(PathInstance),
+                            InheritInstanceName, InheritInstanceName + ".json")))
                     {
                         state = McInstanceState.Error;
                         SetRuntimeDesc(
@@ -752,7 +764,7 @@ public class McInstance
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "依赖实例检查出错（" + Name + "）");
+                Common.Log(ex, "依赖实例检查出错（" + Name + "）");
                 state = McInstanceState.Error;
                 SetRuntimeDescFactory(() =>
                     $"{Lang.Text("Select.Instance.Description.UnknownError")}: {ex}");
@@ -900,73 +912,73 @@ public class McInstance
                     {
                         case McInstanceState.Original:
                         {
-                            Logo = ModBase.pathImage + "Blocks/Grass.png";
+                            Logo = Common.PathImage + "Blocks/Grass.png";
                             break;
                         }
                         case McInstanceState.Snapshot:
                         {
-                            Logo = ModBase.pathImage + "Blocks/CommandBlock.png";
+                            Logo = Common.PathImage + "Blocks/CommandBlock.png";
                             break;
                         }
                         case McInstanceState.Old:
                         {
-                            Logo = ModBase.pathImage + "Blocks/CobbleStone.png";
+                            Logo = Common.PathImage + "Blocks/CobbleStone.png";
                             break;
                         }
                         case McInstanceState.Forge:
                         {
-                            Logo = ModBase.pathImage + "Blocks/Anvil.png";
+                            Logo = Common.PathImage + "Blocks/Anvil.png";
                             break;
                         }
                         case McInstanceState.NeoForge:
                         {
-                            Logo = ModBase.pathImage + "Blocks/NeoForge.png";
+                            Logo = Common.PathImage + "Blocks/NeoForge.png";
                             break;
                         }
                         case McInstanceState.Cleanroom:
                         {
-                            Logo = ModBase.pathImage + "Blocks/Cleanroom.png";
+                            Logo = Common.PathImage + "Blocks/Cleanroom.png";
                             break;
                         }
                         case McInstanceState.Fabric:
                         {
-                            Logo = ModBase.pathImage + "Blocks/Fabric.png";
+                            Logo = Common.PathImage + "Blocks/Fabric.png";
                             break;
                         }
                         case McInstanceState.LegacyFabric:
                         {
-                            Logo = ModBase.pathImage + "Blocks/Fabric.png";
+                            Logo = Common.PathImage + "Blocks/Fabric.png";
                             break;
                         }
                         case McInstanceState.Quilt:
                         {
-                            Logo = ModBase.pathImage + "Blocks/Quilt.png";
+                            Logo = Common.PathImage + "Blocks/Quilt.png";
                             break;
                         }
                         case McInstanceState.OptiFine:
                         {
-                            Logo = ModBase.pathImage + "Blocks/GrassPath.png";
+                            Logo = Common.PathImage + "Blocks/GrassPath.png";
                             break;
                         }
                         case McInstanceState.LiteLoader:
                         {
-                            Logo = ModBase.pathImage + "Blocks/Egg.png";
+                            Logo = Common.PathImage + "Blocks/Egg.png";
                             break;
                         }
                         case McInstanceState.Fool:
                         {
-                            Logo = ModBase.pathImage + "Blocks/GoldBlock.png";
+                            Logo = Common.PathImage + "Blocks/GoldBlock.png";
                             break;
                         }
                         case McInstanceState.LabyMod:
                         {
-                            Logo = ModBase.pathImage + "Blocks/LabyMod.png";
+                            Logo = Common.PathImage + "Blocks/LabyMod.png";
                             break;
                         }
 
                         default:
                         {
-                            Logo = ModBase.pathImage + "Blocks/RedstoneBlock.png";
+                            Logo = Common.PathImage + "Blocks/RedstoneBlock.png";
                             break;
                         }
                     }
@@ -1011,12 +1023,12 @@ public class McInstance
             {
                 SetRuntimeDescFactory(() =>
                     Lang.Text("Select.Instance.Description.UnknownError") + ": " + ex);
-                Logo = ModBase.pathImage + "Blocks/RedstoneBlock.png";
+                Logo = Common.PathImage + "Blocks/RedstoneBlock.png";
                 state = McInstanceState.Error;
-                ModBase.Log(
+                Common.Log(
                     ex,
                     Lang.Text("Select.Instance.Error.Load", Name),
-                    ModBase.LogLevel.Feedback,
+                    Common.LogLevel.Feedback,
                     userSummary: Lang.Text("Select.Instance.Error.Load", Name));
             }
             finally

@@ -28,23 +28,23 @@ namespace PCL
         public static void Raise(EventType type, string arg)
         {
             if (type == EventType.None) return;
-            ModBase.Log($"[Control] 执行自定义事件: {type}, {arg}");
+            Common.Log($"[Control] 执行自定义事件: {type}, {arg}");
 
             try
             {
                 if (ActionMap.TryGetValue(type, out var action))
                     action(arg, type);
                 else
-                    ModMain.MyMsgBox(
+                    Launcher.MyMsgBox(
                         Lang.Text("Event.Error.UnknownType", type.ToString()),
                         Lang.Text("Event.Error.Title"));
             }
             catch (Exception ex)
             {
-                ModBase.Log(
+                Common.Log(
                     ex,
                     Lang.Text("Event.Error.ExecutionFailed", type, arg),
-                    ModBase.LogLevel.Msgbox,
+                    Common.LogLevel.Msgbox,
                     userSummary: Lang.Text("Event.Error.ExecutionFailed", type, arg));
             }
         }
@@ -106,11 +106,12 @@ namespace PCL
             arg = arg.Replace('\\', '/');
             if (!arg.Contains("://") || arg.StartsWithF("file", true))
             {
-                ModMain.MyMsgBox(Lang.Text("Event.Error.UrlRequired"), Lang.Text("Event.Error.Title"));
+                Launcher.MyMsgBox(Lang.Text("Event.Error.UrlRequired"),
+                    Lang.Text("Event.Error.Title"));
                 return;
             }
             HintService.Hint(Lang.Text("Event.OpenUrl.Opening", arg));
-            ModBase.RunInThread(() => ModBase.OpenWebsite(arg));
+            Common.RunInThread(() => Common.OpenWebsite(arg));
         }
 
         /// <summary>
@@ -119,7 +120,7 @@ namespace PCL
         private static void _OpenFileOrCommand(string arg, EventType type)
         {
             var args = SplitArgs(arg);
-            ModBase.RunInThread(() =>
+            Common.RunInThread(() =>
             {
                 try
                 {
@@ -130,10 +131,10 @@ namespace PCL
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(
+                    Common.Log(
                         ex,
                         Lang.Text("Event.Error.ExecutionFailed", type, arg),
-                        ModBase.LogLevel.Msgbox,
+                        Common.LogLevel.Msgbox,
                         userSummary: Lang.Text("Event.Error.ExecutionFailed", type, arg));
                 }
             });
@@ -147,18 +148,19 @@ namespace PCL
             var args = SplitArgs(arg);
             if (args[0] == "\\current")
             {
-                if (ModInstanceList.McMcInstanceSelected is null)
+                if (InstanceList.McMcInstanceSelected is null)
                     throw new InvalidOperationException(Lang.Text("Event.LaunchGame.SelectVersion"));
-                args[0] = ModInstanceList.McMcInstanceSelected.Name;
+                args[0] = InstanceList.McMcInstanceSelected.Name;
             }
-            ModBase.RunInUi(() =>
+
+            Common.RunInUi(() =>
             {
-                var launchOptions = new ModLaunch.McLaunchOptions
+                var launchOptions = new GameLaunch.McLaunchOptions
                 {
                     ServerIp = args.Length >= 2 ? args[1] : null,
                     instance = new McInstance(args[0])
                 };
-                if (ModLaunch.McLaunchStart(launchOptions))
+                if (GameLaunch.McLaunchStart(launchOptions))
                     HintService.Hint(Lang.Text("Event.LaunchGame.Starting", args[0]));
             });
         }
@@ -166,16 +168,19 @@ namespace PCL
         /// <summary>
         /// 复制文本到剪贴板。
         /// </summary>
-        private static void _CopyText(string arg, EventType _) => ModBase.ClipboardSet(arg);
+        private static void _CopyText(string arg, EventType _)
+        {
+            Common.ClipboardSet(arg);
+        }
 
         /// <summary>
         /// 刷新主页 / 刷新当前页面。要求当前 pageRight 实现 IRefreshable。
         /// </summary>
         private static void _Refresh(string arg, EventType _)
         {
-            if (ModMain.frmMain?.pageRight is IRefreshable refreshable)
+            if (Launcher.frmMain?.pageRight is IRefreshable refreshable)
             {
-                ModBase.RunInUiWait(() => refreshable.Refresh());
+                Common.RunInUiWait(() => refreshable.Refresh());
                 if (string.IsNullOrEmpty(arg))
                     HintService.Hint(Lang.Text("Event.Refresh.Success"), HintType.Success);
             }
@@ -192,7 +197,7 @@ namespace PCL
         /// 清理垃圾。异步执行 RubbishClear。
         /// </summary>
         private static void _ClearTrash(string _, EventType __) =>
-            ModBase.RunInThread(PageToolsTest.RubbishClear);
+            Common.RunInThread(PageToolsTest.RubbishClear);
 
         /// <summary>
         /// 弹出消息框。参数：Title|Content[|ButtonText]。
@@ -202,7 +207,7 @@ namespace PCL
             var args = SplitArgs(arg);
             if (args.Length == 1)
                 throw new ArgumentException(Lang.Text("Event.Error.MissingArgs", type.ToString(), "Title|Content"));
-            ModMain.MyMsgBox(
+            Launcher.MyMsgBox(
                 FixNewlines(args[1]),
                 FixNewlines(args[0]),
                 args.Length > 2 ? args[2] : Lang.Text("Common.Action.Confirm"));
@@ -236,21 +241,21 @@ namespace PCL
         private static void _SwitchPage(string arg, EventType _)
         {
             var args = SplitArgs(arg);
-            ModBase.RunInUi(() =>
+            Common.RunInUi(() =>
             {
                 var page = (FormMain.PageType)Enum.Parse(typeof(FormMain.PageType), args[0], true);
                 var sub = args.Length == 1
                     ? FormMain.PageSubType.Default
                     : (FormMain.PageSubType)Enum.Parse(typeof(FormMain.PageSubType), args[1], true);
-                ModMain.frmMain?.PageChange(page, sub);
+                Launcher.frmMain?.PageChange(page, sub);
             });
         }
 
         /// <summary>
-        /// 导入 / 安装整合包。触发 ModModpack.ModpackInstall()。
+        /// 导入 / 安装整合包。触发 Modpack.ModpackInstall()。
         /// </summary>
         private static void _ModpackInstall(string _, EventType __) =>
-            ModBase.RunInUi(ModModpack.ModpackInstall);
+            Common.RunInUi(Modpack.ModpackInstall);
 
         /// <summary>
         /// 下载文件。参数：Url[|SavePath[|FileName]]，校验 http/https 前缀并弹安全确认。
@@ -261,7 +266,8 @@ namespace PCL
             args[0] = args[0].Replace('\\', '/');
             if (!args[0].StartsWithF("http://", true) && !args[0].StartsWithF("https://", true))
             {
-                ModMain.MyMsgBox(Lang.Text("Event.Error.DownloadUrlRequired"), Lang.Text("Event.Error.Title"));
+                Launcher.MyMsgBox(Lang.Text("Event.Error.DownloadUrlRequired"),
+                    Lang.Text("Event.Error.Title"));
                 return;
             }
             if (!EventSafetyConfirm(Lang.Text("Event.Download.Confirm", args[0])))
@@ -270,7 +276,7 @@ namespace PCL
             try
             {
                 PageToolsTest.StartCustomDownload(args[0],
-                    args.Length >= 2 ? args[1] : ModBase.GetFileNameFromPath(args[0]),
+                    args.Length >= 2 ? args[1] : Common.GetFileNameFromPath(args[0]),
                     args.Length >= 3 ? args[2] : null);
             }
             catch
@@ -291,7 +297,7 @@ namespace PCL
             {
                 if (!CanWriteSettingFromCustomEvent(args[0]))
                     return;
-                item.SetValueNoType(args[1], ModInstanceList.McMcInstanceSelected?.PathInstance);
+                item.SetValueNoType(args[1], InstanceList.McMcInstanceSelected?.PathInstance);
             }
             if (args.Length == 2)
                 HintService.Hint(Lang.Text("Event.Setting.Written", args[0], args[1]), HintType.Success);
@@ -300,7 +306,7 @@ namespace PCL
         {
             if (!SecuritySensitiveSettingKeys.Contains(key))
                 return true;
-            ModBase.Log($"[Control] 已阻止自定义事件写入高危设置：{key}", ModBase.LogLevel.Developer);
+            Common.Log($"[Control] 已阻止自定义事件写入高危设置：{key}", Common.LogLevel.Developer);
             HintService.Hint(Lang.Text("Event.Safety.DangerousSettingBlocked", key), HintType.Error);
             return false;
         }
@@ -328,21 +334,21 @@ namespace PCL
             if (!Uri.TryCreate(args[0], UriKind.Absolute, out var uri) ||
                 (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
             {
-                ModBase.OpenWebsite("https://docs.pclc.cc/ce");
+                Common.OpenWebsite("https://docs.pclc.cc/ce");
                 return;
             }
 
-            ModBase.RunInThread(() =>
+            Common.RunInThread(() =>
             {
                 try
                 {
                     var actualPaths = GetAbsoluteUrls(args[0], type);
                     var location = actualPaths[0];
                     var content = PageHelpDetail.LoadContent(location);
-                    ModBase.RunInUiWait(() =>
+                    Common.RunInUiWait(() =>
                     {
                         var page = new PageHelpDetail(content);
-                        ModMain.frmMain.PageChange(new FormMain.PageStackData
+                        Launcher.frmMain.PageChange(new FormMain.PageStackData
                         {
                             page = FormMain.PageType.HelpDetail,
                             helpPage = page
@@ -351,10 +357,10 @@ namespace PCL
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(
+                    Common.Log(
                         ex,
                         Lang.Text("Event.Error.ExecutionFailed", type, arg),
-                        ModBase.LogLevel.Msgbox,
+                        Common.LogLevel.Msgbox,
                         userSummary: Lang.Text("Event.Error.ExecutionFailed", type, arg));
                 }
             });
@@ -366,7 +372,8 @@ namespace PCL
                 Uri.TryCreate(relativeUrl, UriKind.Absolute, out var remoteUri) &&
                 (remoteUri.Scheme == Uri.UriSchemeHttp || remoteUri.Scheme == Uri.UriSchemeHttps))
             {
-                if (ModBase.RunInUi()) throw new Exception("能打开联网帮助页面的 MyListItem 必须手动设置 Title、Info 属性！");
+                if (Common.RunInUi())
+                    throw new Exception("能打开联网帮助页面的 MyListItem 必须手动设置 Title、Info 属性！");
 
                 // 获取文件名
                 string rawFileName;
@@ -387,19 +394,19 @@ namespace PCL
                 }
 
                 // 下载文件
-                var tempFolder = ModMain.RequestTaskTempFolder();
+                var tempFolder = Launcher.RequestTaskTempFolder();
                 var jsonPath = Path.Combine(tempFolder, rawFileName);
                 var xamlPath = Path.ChangeExtension(jsonPath, ".xaml");
                 var xamlUri = new UriBuilder(remoteUri)
                 {
                     Path = Path.ChangeExtension(remoteUri.AbsolutePath, ".xaml").Replace('\\', '/')
                 }.Uri.AbsoluteUri;
-                ModBase.Log($"[Control] 转换网络帮助资源：{relativeUrl} -> {jsonPath}");
+                Common.Log($"[Control] 转换网络帮助资源：{relativeUrl} -> {jsonPath}");
                 try
                 {
                     Task.WhenAll(
-                        ModNet.NetDownloadByClient(remoteUri.AbsoluteUri, jsonPath),
-                        ModNet.NetDownloadByClient(xamlUri, xamlPath)
+                        NetFacade.NetDownloadByClient(remoteUri.AbsoluteUri, jsonPath),
+                        NetFacade.NetDownloadByClient(xamlUri, xamlPath)
                     ).GetAwaiter().GetResult();
                 }
                 catch (Exception e)
@@ -420,7 +427,7 @@ namespace PCL
 
             if (Path.IsPathFullyQualified(relativeUrl)) // 绝对路径
             {
-                ModBase.Log($"[Control] 自定义事件中由绝对路径 {type}: {relativeUrl}");
+                Common.Log($"[Control] 自定义事件中由绝对路径 {type}: {relativeUrl}");
                 return [relativeUrl, pclDir];
             }
             if (File.Exists(Path.Combine(pclDir, relativeUrl))) // 相对 PCL 文件夹的路径
@@ -429,12 +436,12 @@ namespace PCL
                 var resolved = Path.GetFullPath(fullPath);
                 if (!resolved.StartsWith(pclDir, StringComparison.OrdinalIgnoreCase))
                     throw new UnauthorizedAccessException(Lang.Text("Event.Error.FileNotFound", relativeUrl));
-                ModBase.Log($"[Control] 自定义事件中由相对 PCL 文件夹的路径 {type}: {fullPath}");
+                Common.Log($"[Control] 自定义事件中由相对 PCL 文件夹的路径 {type}: {fullPath}");
                 return [fullPath, pclDir];
             }
             if (type is EventType.OpenFile or EventType.ExecuteCommand) // 直接使用原有路径启动程序
             {
-                ModBase.Log($"[Control] 自定义事件中直接 {type}: {relativeUrl}");
+                Common.Log($"[Control] 自定义事件中直接 {type}: {relativeUrl}");
                 return [relativeUrl, pclDir];
             }
             throw new FileNotFoundException(Lang.Text("Event.Error.FileNotFound", relativeUrl), relativeUrl);
@@ -448,7 +455,7 @@ namespace PCL
             if (States.Hint.HomepageCommand)
                 return true;
 
-            return ModMain.MyMsgBox(
+            return Launcher.MyMsgBox(
                 Lang.Text("Event.Safety.ConfirmMessage", message),
                 Lang.Text("Event.Safety.Title"),
                 Lang.Text("Common.Action.Continue"),

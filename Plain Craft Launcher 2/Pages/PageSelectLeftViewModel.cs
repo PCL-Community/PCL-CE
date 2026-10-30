@@ -20,17 +20,17 @@ public partial class PageSelectLeftViewModel : ViewModelBase
         return index == count - 1;
     }
 
-    public static string GetDeleteMenuText(ModFolder.McFolder folder, int folderCount)
+    public static string GetDeleteMenuText(GameFolders.McFolder folder, int folderCount)
     {
-        return folderCount == 1 && folder.Location == Path.Combine(ModBase.exePath, ".minecraft") + @"\"
+        return folderCount == 1 && folder.Location == Path.Combine(Common.ExePath, ".minecraft") + @"\"
             ? Lang.Text("Select.Folder.Clear")
             : Lang.Text("Common.Action.Delete");
     }
 
-    public static bool IsClearingDefaultFolder(ModFolder.McFolder folder, int folderCount)
+    public static bool IsClearingDefaultFolder(GameFolders.McFolder folder, int folderCount)
     {
-        return folder.type is ModFolder.McFolder.Types.Original or ModFolder.McFolder.Types.RenamedOriginal
-               && folder.Location == ModBase.exePath + @".minecraft\"
+        return folder.Type is GameFolders.McFolder.Types.Original or GameFolders.McFolder.Types.RenamedOriginal
+               && folder.Location == Common.ExePath + @".minecraft\"
                && folderCount == 1;
     }
 }

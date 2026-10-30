@@ -31,7 +31,7 @@ public partial class PageSetupGameManage
             return;
         isLoaded = true;
 
-        ModAnimation.AniBeginControl();
+        Animations.AniBeginControl();
         DataContext = _vm;
         Reload();
         SliderLoad();
@@ -42,14 +42,14 @@ public partial class PageSetupGameManage
             ComboDownloadTranslateV2.Visibility = Visibility.Collapsed;
             TextModManageStyle.Visibility = Visibility.Collapsed;
             ComboModLocalNameStyle.Visibility = Visibility.Collapsed;
-            
+
             RowFilenameFormat.Height = new GridLength(0);
             RowFilenameFormatGap.Height = new GridLength(0);
             RowModManageStyle.Height = new GridLength(0);
             RowModManageStyleGap.Height = new GridLength(0);
         }
 
-        ModAnimation.AniEndControl();
+        Animations.AniEndControl();
     }
 
     public void Reload()
@@ -83,15 +83,15 @@ public partial class PageSetupGameManage
         {
             Config.Download.Reset();
             Config.Tool.Reset();
-            ModBase.Log("[Setup] 已初始化其他页设置");
+            Common.Log("[Setup] 已初始化其他页设置");
             HintService.Hint(Lang.Text("Setup.GameManage.Initialized"), HintType.Success, false);
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 Lang.Text("Setup.GameManage.Error.InitFailed"),
-                ModBase.LogLevel.Msgbox,
+                Common.LogLevel.Msgbox,
                 userSummary: Lang.Text("Setup.GameManage.Error.InitFailed"));
         }
 
@@ -102,21 +102,21 @@ public partial class PageSetupGameManage
     private void CheckBoxChange(object senderRaw, bool user)
     {
         var sender = (MyCheckBox)senderRaw;
-        if (!ModAnimation.AniExitsAnyControl())
+        if (!Animations.AniExitsAnyControl())
             SetByTag(sender.Tag?.ToString(), sender.Checked);
     }
 
     private void SliderChange(object senderRaw, bool user)
     {
         var sender = (MySlider)senderRaw;
-        if (!ModAnimation.AniExitsAnyControl())
+        if (!Animations.AniExitsAnyControl())
             SetByTag(sender.Tag?.ToString(), sender.Value);
     }
 
     private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
-        if (ModAnimation.AniExitsAnyControl() || sender.SelectedIndex < 0)
+        if (Animations.AniExitsAnyControl() || sender.SelectedIndex < 0)
             return;
         SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }
@@ -146,14 +146,14 @@ public partial class PageSetupGameManage
         });
     }
 
-    private void SliderDownloadThread_PreviewChange(object sender, ModBase.RouteEventArgs e)
+    private void SliderDownloadThread_PreviewChange(object sender, Common.RouteEventArgs e)
     {
         if (SliderDownloadThread.Value < 64)
             return;
         if (!States.Hint.LargeDownloadThread)
         {
             States.Hint.LargeDownloadThread = true;
-            ModMain.MyMsgBox(
+            Launcher.MyMsgBox(
                 Lang.Text("Setup.GameManage.Download.Threads.TooManyWarning.Message"),
                 Lang.Text("Common.Dialog.Warning"),
                 Lang.Text("Setup.GameManage.Download.Threads.TooManyWarning.Confirm"), isWarn: true);

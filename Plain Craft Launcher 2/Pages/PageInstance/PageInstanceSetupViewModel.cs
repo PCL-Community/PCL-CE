@@ -153,7 +153,7 @@ public partial class PageInstanceSetupViewModel : ViewModelBase
             ramGive = PageSetupLaunch.GetRamFromTick(value);
         }
 
-        if (is32BitJava ?? !ModJava.IsGameSet64BitJava(PageInstanceLeft.McInstance))
+        if (is32BitJava ?? !JavaRuntime.IsGameSet64BitJava(PageInstanceLeft.McInstance))
             ramGive = Math.Min(1d, ramGive);
         return ramGive;
     }
@@ -172,7 +172,7 @@ public partial class PageInstanceSetupViewModel : ViewModelBase
         var ramAvailable = Math.Round((double)(phyRam.Available / 1024 / 1024 / 1024), 1);
         RamGameActual = Math.Round(Math.Min(RamGame, ramAvailable), 5);
         RamUsed = Math.Round(RamTotal - ramAvailable, 5);
-        RamEmpty = Math.Round(ModBase.MathClamp(RamTotal - RamUsed - RamGame, 0d, 1000d), 1);
+        RamEmpty = Math.Round(Common.MathClamp(RamTotal - RamUsed - RamGame, 0d, 1000d), 1);
         if (RamTotal <= 1.5d)
             RamMaxValue = (int)Math.Round(Math.Max(Math.Floor((RamTotal - 0.3d) / 0.1d), 1d));
         else if (RamTotal <= 8d)
@@ -195,8 +195,8 @@ public partial class PageInstanceSetupViewModel : ViewModelBase
         RamGameText = $"{Lang.Number(RamGame, "N1")} GiB{(suffixText.Length > 0 ? $" ({suffixText})" : "")}";
         RamUsedText = $"{Lang.Number(RamUsed, "N1")} GiB";
         RamTotalText = $" / {Lang.Number(RamTotal, "N1")} GiB";
-        RamWarnVisible = RamGame == 1d && !ModJava.IsGameSet64BitJava(instance) && !SystemInfo.Is32BitSystem &&
-                         ModJava.Javas.ExistAnyJava();
+        RamWarnVisible = RamGame == 1d && !JavaRuntime.IsGameSet64BitJava(instance) && !SystemInfo.Is32BitSystem &&
+                         JavaRuntime.Javas.ExistAnyJava();
         RamTooHighVisible = RamGame / RamTotal > 0.75d;
     }
 
@@ -252,7 +252,7 @@ public partial class PageInstanceSetupViewModel : ViewModelBase
         if (!Config.InstanceAuth.AuthLocked[PageInstanceLeft.McInstance.PathInstance])
             Config.InstanceAuth.Reset(PageInstanceLeft.McInstance.PathInstance);
         Config.Instance.Reset(PageInstanceLeft.McInstance.PathInstance);
-        ModBase.Log("[Setup] 已初始化实例独立设置");
+        Common.Log("[Setup] 已初始化实例独立设置");
         HintService.Hint(Lang.Text("Instance.Setup.Initialize.Success"), HintType.Success, false);
     }
 }

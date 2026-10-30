@@ -148,23 +148,23 @@ public partial class PageInstanceServer : MyPageRight
 
     public async void RefreshServers()
     {
-        ModBase.Log("刷新服务器列表");
+        Common.Log("刷新服务器列表");
         try
         {
             await LoadServersFromFileAsync();
 
-            ModBase.RunInUi(() => UpdateServerUi());
+            Common.RunInUi(() => UpdateServerUi());
 
             PingAllServers();
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 Lang.Text("Instance.Server.RefreshFailed"),
-                ModBase.LogLevel.Feedback,
+                Common.LogLevel.Feedback,
                 userSummary: Lang.Text("Instance.Server.RefreshFailed"));
-            ModBase.RunInUi(() => HintService.Hint(
+            Common.RunInUi(() => HintService.Hint(
                 Lang.Text("Instance.Server.RefreshFailed.WithDetail", ex.ToString()),
                 HintType.Error));
         }
@@ -186,10 +186,10 @@ public partial class PageInstanceServer : MyPageRight
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 Lang.Text("Instance.Server.RefreshFailed"),
-                ModBase.LogLevel.Feedback,
+                Common.LogLevel.Feedback,
                 userSummary: Lang.Text("Instance.Server.RefreshFailed"));
             HintService.Hint(
                 Lang.Text("Instance.Server.RefreshFailed.WithDetail", ex.ToString()),
@@ -250,12 +250,12 @@ public partial class PageInstanceServer : MyPageRight
 
     public static (string Name, string Address, bool Success) GetServerInfo(MinecraftServerInfo server)
     {
-        var newName = ModMain.MyMsgBoxInput(Lang.Text("Instance.Server.EditTitle"), Lang.Text("Instance.Server.NamePrompt"), server.Name,
+        var newName = Launcher.MyMsgBoxInput(Lang.Text("Instance.Server.EditTitle"), Lang.Text("Instance.Server.NamePrompt"), server.Name,
             [new NullOrWhiteSpaceValidator()]);
 
         if (string.IsNullOrEmpty(newName)) return (string.Empty, string.Empty, false);
 
-        var newAddress = ModMain.MyMsgBoxInput(Lang.Text("Instance.Server.EditTitle"),
+        var newAddress = Launcher.MyMsgBoxInput(Lang.Text("Instance.Server.EditTitle"),
             Lang.Text("Instance.Server.AddressPrompt"), server.Address,
             [new NullOrWhiteSpaceValidator()]);
         if (string.IsNullOrEmpty(newAddress)) return (string.Empty, string.Empty, false);
@@ -277,7 +277,7 @@ public partial class PageInstanceServer : MyPageRight
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Instance.Server.ReadFileFailed"));
+            Common.Log(ex, Lang.Text("Instance.Server.ReadFileFailed"));
         }
     }
 
@@ -285,7 +285,7 @@ public partial class PageInstanceServer : MyPageRight
     {
         if (serversList is not null)
         {
-            ModBase.Log($"Found {serversList.Count} servers:");
+            Common.Log($"Found {serversList.Count} servers:");
 
             for (int i = 0, loopTo = serversList.Count - 1; i <= loopTo; i++)
             {
@@ -296,9 +296,9 @@ public partial class PageInstanceServer : MyPageRight
                     var name = server.Get<NbtString>("name")?.Value ?? "Unknown";
                     var iconBase64 = server.Get<NbtString>("icon")?.Value;
 
-                    ModBase.Log($"服务器 {i + 1}:");
-                    ModBase.Log($"  名字: {name}");
-                    ModBase.Log($"  IP: {ip}");
+                    Common.Log($"服务器 {i + 1}:");
+                    Common.Log($"  名字: {name}");
+                    Common.Log($"  IP: {ip}");
                     serverList.Add(new MinecraftServerInfo
                     {
                         Name = name,
@@ -311,7 +311,7 @@ public partial class PageInstanceServer : MyPageRight
         }
         else
         {
-            ModBase.Log("No 'servers' list found in servers.dat.");
+            Common.Log("No 'servers' list found in servers.dat.");
         }
     }
 
@@ -365,7 +365,7 @@ public partial class PageInstanceServer : MyPageRight
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, $"Ping 服务器失败: {currentServer}");
+                        Common.Log(ex, $"Ping 服务器失败: {currentServer}");
                     }
                     finally
                     {
@@ -378,11 +378,11 @@ public partial class PageInstanceServer : MyPageRight
         }
         catch (OperationCanceledException ex)
         {
-            ModBase.Log("PingAllServers 被取消", ModBase.LogLevel.Debug);
+            Common.Log("PingAllServers 被取消", Common.LogLevel.Debug);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "PingAllServers 失败");
+            Common.Log(ex, "PingAllServers 失败");
         }
     }
 
@@ -394,9 +394,9 @@ public partial class PageInstanceServer : MyPageRight
             using (var query = McPingServiceFactory.CreateService(addr.Host, addr.Ip, addr.Port))
             {
                 McPingResult? result;
-                ModBase.Log("Pinging server: " + server.Address + ":" + addr.Port);
+                Common.Log("Pinging server: " + server.Address + ":" + addr.Port);
                 result = await query.PingAsync(token);
-                ModBase.Log("Ping result: " + (result is not null ? "Success" : "Failed"));
+                Common.Log("Ping result: " + (result is not null ? "Success" : "Failed"));
                 if (result is not null)
                 {
                     server.Status = ServerStatus.Online;
@@ -416,12 +416,12 @@ public partial class PageInstanceServer : MyPageRight
         catch (OperationCanceledException ex)
         {
             server.Status = ServerStatus.Offline;
-            ModBase.Log("Ping 服务器被取消: " + server.Address, ModBase.LogLevel.Debug);
+            Common.Log("Ping 服务器被取消: " + server.Address, Common.LogLevel.Debug);
         }
         catch (Exception ex)
         {
             server.Status = ServerStatus.Offline;
-            ModBase.Log(ex, $"Ping 服务器失败: {server.Address}:{server.Port}");
+            Common.Log(ex, $"Ping 服务器失败: {server.Address}:{server.Port}");
         }
 
         return server;

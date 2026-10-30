@@ -14,7 +14,8 @@ public partial class PageDownloadLabyMod
 
     private void LoaderInit()
     {
-        PageLoaderInit(Load, PanLoad, CardVersions, CardTip, ModDownload.dlLabyModListLoader, _ => Load_OnFinish());
+        PageLoaderInit(Load, PanLoad, CardVersions, CardTip, GameDownload.DlLabyModListLoader,
+            _ => Load_OnFinish());
     }
 
     private void Init()
@@ -27,7 +28,7 @@ public partial class PageDownloadLabyMod
         // 结果数据化
         try
         {
-            var versions = ModDownload.dlLabyModListLoader.output.Value;
+            var versions = GameDownload.DlLabyModListLoader.output.Value;
             if (versions is null)
                 return;
             var productionEntry = new JsonObject();
@@ -37,9 +38,9 @@ public partial class PageDownloadLabyMod
             snapshotEntry.Add("channel", "snapshot");
             snapshotEntry.Add("version", versions["snapshot"]["labyModVersion"].ToString());
             PanVersions.Children.Clear();
-            PanVersions.Children.Add(ModDownloadLib.LabyModDownloadListItem(productionEntry,
+            PanVersions.Children.Add(DownloadUi.LabyModDownloadListItem(productionEntry,
                 (a, b) => this.LabyMod_Production_Selected((MyListItem)a, b)));
-            PanVersions.Children.Add(ModDownloadLib.LabyModDownloadListItem(snapshotEntry,
+            PanVersions.Children.Add(DownloadUi.LabyModDownloadListItem(snapshotEntry,
                 (a, b) => this.LabyMod_Snapshot_Selected((MyListItem)a, b)));
             LocalizedText.TryBind(
                 CardVersions,
@@ -48,26 +49,26 @@ public partial class PageDownloadLabyMod
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 "可视化 LabyMod 版本列表出错",
-                ModBase.LogLevel.Feedback,
+                Common.LogLevel.Feedback,
                 userSummary: Lang.Text("Download.Error.OperationFailed"));
         }
     }
 
     private void LabyMod_Production_Selected(MyListItem sender, EventArgs e)
     {
-        ModDownloadLib.McDownloadLabyModProductionLoaderSave();
+        DownloadUi.McDownloadLabyModProductionLoaderSave();
     }
 
     private void LabyMod_Snapshot_Selected(MyListItem sender, EventArgs e)
     {
-        ModDownloadLib.McDownloadLabyModSnapshotLoaderSave();
+        DownloadUi.McDownloadLabyModSnapshotLoaderSave();
     }
 
     private void BtnWeb_Click(object sender, EventArgs e)
     {
-        ModBase.OpenWebsite("https://labymod.net");
+        Common.OpenWebsite("https://labymod.net");
     }
 }

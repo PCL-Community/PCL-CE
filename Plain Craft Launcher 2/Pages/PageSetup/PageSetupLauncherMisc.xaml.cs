@@ -50,10 +50,10 @@ public partial class PageSetupLauncherMisc : IPageView
             return;
         isLoaded = true;
 
-        ModAnimation.AniBeginControl();
+        Animations.AniBeginControl();
         SliderLoad();
         Refresh();
-        ModAnimation.AniEndControl();
+        Animations.AniEndControl();
     }
 
     private void PageSetupLauncherMisc_Unloaded(object sender, RoutedEventArgs e) => _refreshed = false;
@@ -99,16 +99,16 @@ public partial class PageSetupLauncherMisc : IPageView
             Config.Network.Reset();
             Config.Debug.Reset();
             Config.System.Reset();
-            ModBase.Log("[Setup] 已初始化启动器-杂项页设置");
+            Common.Log("[Setup] 已初始化启动器-杂项页设置");
             HintService.Hint(Lang.Text("Setup.Misc.Initialized"), HintType.Success, false);
             Reload();
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 Lang.Text("Setup.Misc.Error.InitFailed"),
-                ModBase.LogLevel.Msgbox,
+                Common.LogLevel.Msgbox,
                 userSummary: Lang.Text("Setup.Misc.Error.InitFailed"));
         }
 
@@ -119,16 +119,16 @@ public partial class PageSetupLauncherMisc : IPageView
     private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
-        if (ModAnimation.AniExitsAnyControl() || sender.SelectedIndex < 0)
+        if (Animations.AniExitsAnyControl() || sender.SelectedIndex < 0)
             return;
         SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
-    private void RadioBoxChange(object senderRaw, ModBase.RouteEventArgs e)
+    private void RadioBoxChange(object senderRaw, Common.RouteEventArgs e)
     {
         var sender = (MyRadioBox)senderRaw;
         var gotCfg = sender.Tag?.ToString()?.Split("/") ?? Array.Empty<string>();
-        if (!ModAnimation.AniExitsAnyControl() && gotCfg.Length >= 2)
+        if (!Animations.AniExitsAnyControl() && gotCfg.Length >= 2)
             SetByTag(gotCfg[0], int.Parse(gotCfg[1]));
     }
 
@@ -136,14 +136,14 @@ public partial class PageSetupLauncherMisc : IPageView
     {
         var sender = (MyCheckBox)senderRaw;
         if (!user) return;
-        if (!ModAnimation.AniExitsAnyControl())
+        if (!Animations.AniExitsAnyControl())
             SetByTag(sender.Tag?.ToString(), sender.Checked);
     }
 
     private void SliderChange(object senderRaw, bool user)
     {
         var sender = (MySlider)senderRaw;
-        if (!ModAnimation.AniExitsAnyControl())
+        if (!Animations.AniExitsAnyControl())
             SetByTag(sender.Tag?.ToString(), sender.Value);
     }
 
@@ -190,18 +190,18 @@ public partial class PageSetupLauncherMisc : IPageView
     // 调试模式
     private void CheckDebugMode_Change(object _, bool __)
     {
-        if (!ModAnimation.AniExitsAnyControl())
+        if (!Animations.AniExitsAnyControl())
             HintService.Hint(Lang.Text("Setup.Misc.Debug.Mode.Hint"), log: false);
     }
 
     // 自动更新
     private void ComboSystemActivity_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (ModAnimation.AniExitsAnyControl())
+        if (Animations.AniExitsAnyControl())
             return;
         if (ComboSystemActivity.SelectedIndex != 2)
             return;
-        if (ModMain.MyMsgBox(
+        if (Launcher.MyMsgBox(
                 Lang.Text("Setup.Misc.System.Announcement.Disabled.Warning.Message"),
                 Lang.Text("Common.Dialog.Warning"),
                 Lang.Text("Setup.Misc.System.Announcement.Disabled.Warning.Confirm"),
@@ -232,12 +232,12 @@ public partial class PageSetupLauncherMisc : IPageView
     private void BtnSystemSettingExp_Click(object sender, MouseButtonEventArgs e)
     {
         var savePath =
-            SystemDialogs.SelectSaveFile(Lang.Text("Setup.Misc.System.ExportSettings.SaveTitle"), "PCL 全局配置.json", Lang.Text("Setup.Misc.System.ExportSettings.Filter"), ModBase.exePath);
+            SystemDialogs.SelectSaveFile(Lang.Text("Setup.Misc.System.ExportSettings.SaveTitle"), "PCL 全局配置.json", Lang.Text("Setup.Misc.System.ExportSettings.Filter"), Common.ExePath);
         if (string.IsNullOrWhiteSpace(savePath))
             return;
         File.Copy(ConfigService.SharedConfigPath, savePath, true);
         HintService.Hint(Lang.Text("Setup.Misc.System.ExportSettings.Success"), HintType.Success);
-        ModBase.OpenExplorer(savePath);
+        Common.OpenExplorer(savePath);
     }
 
     private void BtnSystemSettingImp_Click(object sender, MouseButtonEventArgs e)
@@ -246,7 +246,7 @@ public partial class PageSetupLauncherMisc : IPageView
         if (string.IsNullOrWhiteSpace(sourcePath))
             return;
         File.Copy(sourcePath, ConfigService.SharedConfigPath, true);
-        ModMain.MyMsgBox(Lang.Text("Setup.Misc.System.ImportSettings.Success.Message"), button1: Lang.Text("Setup.Misc.System.ImportSettings.Success.Restart"), forceWait: true);
+        Launcher.MyMsgBox(Lang.Text("Setup.Misc.System.ImportSettings.Success.Message"), button1: Lang.Text("Setup.Misc.System.ImportSettings.Success.Restart"), forceWait: true);
         Process.Start(new ProcessStartInfo(Basics.ExecutablePath));
         FormMain.EndProgramForce();
     }
@@ -259,7 +259,7 @@ public partial class PageSetupLauncherMisc : IPageView
     {
         try
         {
-            var result = await ModMain.MyMsgBoxAsync(
+            var result = await Launcher.MyMsgBoxAsync(
                 Lang.Text("Setup.Misc.System.StopUsingPclCe.Message"),
                 Lang.Text("Setup.Misc.System.StopUsingPclCe.Title"),
                 Lang.Text("Common.Action.Continue"),
@@ -268,7 +268,7 @@ public partial class PageSetupLauncherMisc : IPageView
                 isWarn: true);
 
             if (result >= 3) return;
-            if (await ModMain.MyMsgBoxAsync(
+            if (await Launcher.MyMsgBoxAsync(
                     Lang.Text("Setup.Misc.System.StopUsingPclCe.Message.Final"),
                     Lang.Text("Common.Dialog.Warning"),
                     Lang.Text("Common.Action.Continue"),
@@ -278,7 +278,7 @@ public partial class PageSetupLauncherMisc : IPageView
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "停止使用 PCL CE 失败", ModBase.LogLevel.Msgbox,
+            Common.Log(ex, "停止使用 PCL CE 失败", Common.LogLevel.Msgbox,
                 userSummary: Lang.Text("Setup.Error.OperationFailed"));
         }
     }
@@ -295,14 +295,14 @@ public partial class PageSetupLauncherMisc : IPageView
 
                 var versionsPath = Path.Combine(realPath, "versions");
                 if (!Directory.Exists(versionsPath)) continue;
-                
+
                 Delete(
                     Directory.EnumerateDirectories(versionsPath)
                         .Select(p => Path.Combine(p, "PCL", "config.v1.yml"))
                 );
             }
         }
-        
+
         // 由于 CE 文件夹正在使用，使用延迟调用 CMD 的方法删除
         List<string> foldersToDelete =
         [
@@ -319,7 +319,7 @@ public partial class PageSetupLauncherMisc : IPageView
         {
             sb.Append($"rmdir /s /q \"{folder}\" & ");
         }
-        
+
         Process.Start(new ProcessStartInfo
         {
             FileName = "cmd.exe",
@@ -331,7 +331,7 @@ public partial class PageSetupLauncherMisc : IPageView
 
         // 强制退出
         KernelInterop.ExitProcess();
-            
+
         void Delete(IEnumerable<string> paths)
         {
             foreach (var path in paths)

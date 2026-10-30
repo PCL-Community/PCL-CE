@@ -30,22 +30,22 @@ public partial class PageLoginProfileSkin
     /// </summary>
     public void Reload()
     {
-        ModBase.Log("[Profile] 刷新档案界面");
+        Common.Log("[Profile] 刷新档案界面");
         Skin.Clear();
         var profile = ProfileService.Current ?? throw new InvalidOperationException("No profile selected.");
         if (profile.ProfileType == ProfileType.Microsoft)
         {
-            ModBase.Log("[Profile] 使用正版皮肤加载器");
+            Common.Log("[Profile] 使用正版皮肤加载器");
             Skin.loader = PageLaunchLeft.skinMs;
         }
         else if (profile.ProfileType is ProfileType.Authlib or ProfileType.YggdrasilConnect)
         {
-            ModBase.Log("[Profile] 使用 Authlib 皮肤加载器");
+            Common.Log("[Profile] 使用 Authlib 皮肤加载器");
             Skin.loader = PageLaunchLeft.skinAuth;
         }
         else
         {
-            ModBase.Log("[Profile] 使用离线皮肤加载器");
+            Common.Log("[Profile] 使用离线皮肤加载器");
             Skin.loader = PageLaunchLeft.skinLegacy;
         }
 
@@ -58,7 +58,7 @@ public partial class PageLoginProfileSkin
     // 显示 / 隐藏控制
     private void ShowPanel(object sender, MouseEventArgs e)
     {
-        ModAnimation.AniStart(ModAnimation.AaOpacity(PanButtons, 1d - PanButtons.Opacity, 120),
+        Animations.AniStart(Animations.AaOpacity(PanButtons, 1d - PanButtons.Opacity, 120),
             "PageLoginProfileSkin Button");
     }
 
@@ -66,7 +66,7 @@ public partial class PageLoginProfileSkin
     {
         if (BtnEdit.ContextMenu.IsOpen || BtnSkin.ContextMenu.IsOpen || PanData.IsMouseOver)
             return;
-        ModAnimation.AniStart(ModAnimation.AaOpacity(PanButtons, -PanButtons.Opacity, 120),
+        Animations.AniStart(Animations.AaOpacity(PanButtons, -PanButtons.Opacity, 120),
             "PageLoginProfileSkin Button");
     }
 
@@ -93,13 +93,13 @@ public partial class PageLoginProfileSkin
         var profile = ProfileService.Current;
         if (profile?.ProfileType == ProfileType.Microsoft)
         {
-            ModBase.OpenWebsite("https://account.live.com/password/Change");
+            Common.OpenWebsite("https://account.live.com/password/Change");
         }
         else if ((profile?.ProfileType is ProfileType.Authlib or ProfileType.YggdrasilConnect) &&
                  !string.IsNullOrWhiteSpace(profile.Server))
         {
             var server = profile.Server;
-            ModBase.OpenWebsite(server.Replace("/api/yggdrasil/authserver" + (server.EndsWithF("/") ? "/" : ""),
+            Common.OpenWebsite(server.Replace("/api/yggdrasil/authserver" + (server.EndsWithF("/") ? "/" : ""),
                 "/user/profile"));
         }
         else
@@ -118,10 +118,10 @@ public partial class PageLoginProfileSkin
     private void ChangeProfile(object sender, EventArgs e)
     {
         ProfileService.Select(null);
-        ModBase.RunInUi(() =>
+        Common.RunInUi(() =>
         {
-            ModMain.frmLaunchLeft.RefreshPage(true);
-            ModMain.frmLaunchLeft.BtnLaunch.IsEnabled = false;
+            Launcher.frmLaunchLeft.RefreshPage(true);
+            Launcher.frmLaunchLeft.BtnLaunch.IsEnabled = false;
         });
     }
 
@@ -133,7 +133,7 @@ public partial class PageLoginProfileSkin
             ProfileUi.ChangeSkinMs();
         else if ((profile?.ProfileType is ProfileType.Authlib or ProfileType.YggdrasilConnect) &&
                  !string.IsNullOrWhiteSpace(profile.Server))
-            ModBase.OpenWebsite(profile.Server.BeforeFirst("api/yggdrasil/authserver") +
+            Common.OpenWebsite(profile.Server.BeforeFirst("api/yggdrasil/authserver") +
                                 "user/closet");
         else
                 HintService.Hint(Lang.Text("Launch.Account.ProfileSkin.SkinUnsupported"));
@@ -159,7 +159,7 @@ public partial class PageLoginProfileSkin
             Skin.BtnSkinCape_Click(sender, e);
         else if ((profile?.ProfileType is ProfileType.Authlib or ProfileType.YggdrasilConnect) &&
                  !string.IsNullOrWhiteSpace(profile.Server))
-            ModBase.OpenWebsite(profile.Server.BeforeFirst("api/yggdrasil/authserver") +
+            Common.OpenWebsite(profile.Server.BeforeFirst("api/yggdrasil/authserver") +
                                 "user/closet");
         else
             HintService.Hint(Lang.Text("Launch.Account.ProfileSkin.CapeUnsupported"));

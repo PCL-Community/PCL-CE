@@ -14,7 +14,7 @@ public partial class PageInstanceModDisabledViewModel : ViewModelBase
     {
         var newVisibility =
             (Config.Preference.Hide.PageDownload && !PageSetupUI.HiddenForceShow) ||
-            (ModMain.frmSelectRight is not null && ModMain.frmSelectRight.showHidden)
+            (Launcher.frmSelectRight is not null && Launcher.frmSelectRight.showHidden)
                 ? Visibility.Collapsed
                 : Visibility.Visible;
         if (BtnDownloadVisibility == newVisibility)

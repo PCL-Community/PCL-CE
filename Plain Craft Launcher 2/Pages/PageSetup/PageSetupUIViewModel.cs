@@ -95,13 +95,13 @@ public partial class PageSetupUIViewModel : ViewModelBase
 
     public async Task<bool> ConfirmBackgroundClearAsync()
     {
-        return await ModMain.MyMsgBoxAsync(Lang.Text("Setup.Ui.Background.Clear.Confirm.Message"),
+        return await Launcher.MyMsgBoxAsync(Lang.Text("Setup.Ui.Background.Clear.Confirm.Message"),
             Lang.Text("Common.Dialog.Warning"), button2: Lang.Text("Common.Action.Cancel"), isWarn: true) == 1;
     }
 
     public async Task<bool> ConfirmMusicClearAsync()
     {
-        return await ModMain.MyMsgBoxAsync(Lang.Text("Setup.Ui.Music.Clear.Confirm.Message"),
+        return await Launcher.MyMsgBoxAsync(Lang.Text("Setup.Ui.Music.Clear.Confirm.Message"),
             Lang.Text("Common.Dialog.Warning"), button2: Lang.Text("Common.Action.Cancel"), isWarn: true) == 1;
     }
 

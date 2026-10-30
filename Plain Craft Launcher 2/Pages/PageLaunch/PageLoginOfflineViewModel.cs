@@ -34,7 +34,7 @@ public partial class PageLoginOfflineViewModel : ViewModelBase
     public void Back()
     {
         ProfileService.IsCreatingProfile = false;
-        ModBase.RunInUi(() => ModMain.frmLaunchLeft?.RefreshPage(true));
+        Common.RunInUi(() => Launcher.frmLaunchLeft?.RefreshPage(true));
     }
 
     [RelayCommand]
@@ -48,7 +48,7 @@ public partial class PageLoginOfflineViewModel : ViewModelBase
             var username = UserName;
             if (!new RegexValidator("^[A-z0-9_]{3,16}$").Validate(username).IsValid)
             {
-                var result = await ModMain.MyMsgBoxAsync(
+                var result = await Launcher.MyMsgBoxAsync(
                     Lang.Text("Launch.Account.Offline.InvalidPlayerId.Message"),
                     Lang.Text("Launch.Account.Offline.InvalidPlayerId.Title"),
                     Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel"), isWarn: true);
@@ -91,11 +91,11 @@ public partial class PageLoginOfflineViewModel : ViewModelBase
             ProfileService.Add(newProfile);
             ProfileService.IsCreatingProfile = false;
             HintService.Hint(Lang.Text("Launch.Account.Profile.Created"), HintType.Success);
-            ModBase.RunInUi(() => ModMain.frmLaunchLeft?.RefreshPage(true));
+            Common.RunInUi(() => Launcher.frmLaunchLeft?.RefreshPage(true));
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "创建离线档案失败", ModBase.LogLevel.Feedback);
+            Common.Log(ex, "创建离线档案失败", Common.LogLevel.Feedback);
         }
     }
 }

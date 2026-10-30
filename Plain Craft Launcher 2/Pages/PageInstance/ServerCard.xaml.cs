@@ -1,9 +1,9 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using PCL.Core.App.Localization;
 using PCL.Core.UI;
 using PCL.Core.UI.Theme;
-using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -50,7 +50,7 @@ public partial class ServerCard
     public void UpdateServerInfo(MinecraftServerInfo serverInfo)
     {
         server = serverInfo;
-        ModBase.RunInUi(() => UpdateServerUi());
+        Common.RunInUi(() => UpdateServerUi());
     }
 
     /// <summary>
@@ -146,21 +146,22 @@ public partial class ServerCard
     {
         try
         {
-            var launchOptions = new ModLaunch.McLaunchOptions
+            var launchOptions = new GameLaunch.McLaunchOptions
             {
                 ServerIp = server.Address,
                 instance = PageInstanceLeft.McInstance
             };
-            ModLaunch.McLaunchStart(launchOptions);
-            ModMain.frmMain.PageChange(new FormMain.PageStackData { page = FormMain.PageType.Launch });
+            GameLaunch.McLaunchStart(launchOptions);
+            Launcher.frmMain.PageChange(new FormMain.PageStackData
+                { page = FormMain.PageType.Launch });
             HintService.Hint(Lang.Text("Instance.Server.Card.ConnectingTo", server.Name));
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 Lang.Text("Instance.Server.Card.LaunchFailed"),
-                ModBase.LogLevel.Feedback,
+                Common.LogLevel.Feedback,
                 userSummary: Lang.Text("Instance.Server.Card.LaunchFailed"));
             HintService.Hint(Lang.Text("Instance.Server.Card.LaunchFailedMsg", ex.Message), HintType.Error);
         }
@@ -178,7 +179,7 @@ public partial class ServerCard
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Instance.Server.Card.CopyAddressFailed"));
+            Common.Log(ex, Lang.Text("Instance.Server.Card.CopyAddressFailed"));
             HintService.Hint(Lang.Text("Instance.Server.Card.CopyAddressFailed"), HintType.Error);
         }
     }
@@ -217,7 +218,7 @@ public partial class ServerCard
 
     private void BtnRemove_Click(object sender, RoutedEventArgs e)
     {
-        if (ModMain.MyMsgBox(
+        if (Launcher.MyMsgBox(
                 Lang.Text("Instance.Server.Card.RemoveConfirmMessage", server.Name, server.Address),
                 Lang.Text("Instance.Server.Card.RemoveConfirmTitle"), Lang.Text("Common.Action.Confirm"),
                 Lang.Text("Common.Action.Cancel")

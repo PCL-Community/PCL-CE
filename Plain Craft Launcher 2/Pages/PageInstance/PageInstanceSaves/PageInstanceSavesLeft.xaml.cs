@@ -38,10 +38,10 @@ public partial class PageInstanceSavesLeft : IRefreshable
         PageInstanceSavesLeftViewModel.OpenSaveFolder(currentSave);
     }
 
-    private void PageCheck(object sender, ModBase.RouteEventArgs e)
+    private void PageCheck(object sender, Common.RouteEventArgs e)
     {
         if (sender is MyListItem item && item.Tag is not null)
-            PageChange((FormMain.PageSubType)ModBase.Val(item.Tag));
+            PageChange((FormMain.PageSubType)Common.Val(item.Tag));
     }
 
     public object PageGet(FormMain.PageSubType id = FormMain.PageSubType.Default)
@@ -52,15 +52,15 @@ public partial class PageInstanceSavesLeft : IRefreshable
         {
             case FormMain.PageSubType.VersionSavesInfo:
             {
-                if (ModMain.frmInstanceSavesInfo is null)
-                    ModMain.frmInstanceSavesInfo = new PageInstanceSavesInfo();
-                return ModMain.frmInstanceSavesInfo;
+                if (Launcher.frmInstanceSavesInfo is null)
+                    Launcher.frmInstanceSavesInfo = new PageInstanceSavesInfo();
+                return Launcher.frmInstanceSavesInfo;
             }
             case FormMain.PageSubType.VersionSavesDatapack:
             {
-                if (ModMain.frmInstanceSavesDatapack is null)
-                    ModMain.frmInstanceSavesDatapack = new PageInstanceSavesDatapack();
-                return ModMain.frmInstanceSavesDatapack;
+                if (Launcher.frmInstanceSavesDatapack is null)
+                    Launcher.frmInstanceSavesDatapack = new PageInstanceSavesDatapack();
+                return Launcher.frmInstanceSavesDatapack;
             }
 
             default:
@@ -74,7 +74,7 @@ public partial class PageInstanceSavesLeft : IRefreshable
     {
         if (pageID == id)
             return;
-        ModAnimation.AniBeginControl();
+        Animations.AniBeginControl();
         try
         {
             PageChangeRun((MyPageRight)PageGet(id));
@@ -82,49 +82,49 @@ public partial class PageInstanceSavesLeft : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 PageInstanceSavesLeftViewModel.GetSwitchFailedMessage(id),
-                ModBase.LogLevel.Feedback,
+                Common.LogLevel.Feedback,
                 userSummary: PageInstanceSavesLeftViewModel.GetSwitchFailedMessage(id));
         }
         finally
         {
-            ModAnimation.AniEndControl();
+            Animations.AniEndControl();
         }
     }
 
     private static void PageChangeRun(MyPageRight target)
     {
-        ModAnimation.AniStop("FrmMain PageChangeRight");
+        Animations.AniStop("FrmMain PageChangeRight");
         if (target.Parent is not null)
             target.SetValue(ContentPresenter.ContentProperty, null);
-        ModMain.frmMain.pageRight = target;
-        ((MyPageRight)ModMain.frmMain.PanMainRight.Child).PageOnExit();
-        ModAnimation.AniStart(new[]
+        Launcher.frmMain.pageRight = target;
+        ((MyPageRight)Launcher.frmMain.PanMainRight.Child).PageOnExit();
+        Animations.AniStart(new[]
         {
-            ModAnimation.AaCode(() =>
+            Animations.AaCode(() =>
             {
-                ((MyPageRight)ModMain.frmMain.PanMainRight.Child).PageOnForceExit();
-                ModMain.frmMain.PanMainRight.Child = ModMain.frmMain.pageRight;
-                ModMain.frmMain.pageRight.Opacity = 0d;
+                ((MyPageRight)Launcher.frmMain.PanMainRight.Child).PageOnForceExit();
+                Launcher.frmMain.PanMainRight.Child = Launcher.frmMain.pageRight;
+                Launcher.frmMain.pageRight.Opacity = 0d;
             }, 130),
-            ModAnimation.AaCode(() =>
+            Animations.AaCode(() =>
             {
-                ModMain.frmMain.pageRight.Opacity = 1d;
-                ModMain.frmMain.pageRight.PageOnEnter();
+                Launcher.frmMain.pageRight.Opacity = 1d;
+                Launcher.frmMain.pageRight.PageOnEnter();
             }, 30, true)
         }, "PageLeft PageChange");
     }
 
     public void RefreshButton_Click(object sender, EventArgs e)
     {
-        Refresh((FormMain.PageSubType)ModBase.Val(((MyIconButton)sender).Tag));
+        Refresh((FormMain.PageSubType)Common.Val(((MyIconButton)sender).Tag));
     }
 
     public void Refresh()
     {
-        Refresh(ModMain.frmMain.PageCurrentSub);
+        Refresh(Launcher.frmMain.PageCurrentSub);
     }
 
     public void Refresh(FormMain.PageSubType subType)
@@ -133,10 +133,10 @@ public partial class PageInstanceSavesLeft : IRefreshable
         {
             case FormMain.PageSubType.VersionSavesDatapack:
             {
-                if (ModMain.frmInstanceSavesDatapack is null)
-                    ModMain.frmInstanceSavesDatapack = new PageInstanceSavesDatapack();
+                if (Launcher.frmInstanceSavesDatapack is null)
+                    Launcher.frmInstanceSavesDatapack = new PageInstanceSavesDatapack();
                 if (ItemDatapack.Checked)
-                    ModMain.frmInstanceSavesDatapack.Refresh();
+                    Launcher.frmInstanceSavesDatapack.Refresh();
                 else
                     ItemDatapack.Checked = true;
 

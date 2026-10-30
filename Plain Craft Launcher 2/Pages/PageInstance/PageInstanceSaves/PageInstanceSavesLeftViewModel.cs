@@ -21,7 +21,7 @@ public partial class PageInstanceSavesLeftViewModel : ViewModelBase
 
     public static void OpenSaveFolder(string savePath)
     {
-        ModBase.OpenExplorer($@"{savePath}\");
+        Common.OpenExplorer($@"{savePath}\");
     }
 
     public static void HintRefreshing()

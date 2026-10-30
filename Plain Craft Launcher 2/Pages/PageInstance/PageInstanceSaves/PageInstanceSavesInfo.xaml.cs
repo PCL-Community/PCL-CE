@@ -64,8 +64,8 @@ public partial class PageInstanceSavesInfo : IRefreshable, IPageView
         try
         {
             await _vm.LoadAsync();
-            if (ModMain.frmInstanceSavesLeft is not null)
-                ModMain.frmInstanceSavesLeft.ViewModel.ShowDatapackTab = _vm.ShowDatapackTab;
+            if (Launcher.frmInstanceSavesLeft is not null)
+                Launcher.frmInstanceSavesLeft.ViewModel.ShowDatapackTab = _vm.ShowDatapackTab;
             PanList.Children.Clear();
             PanList.RowDefinitions.Clear();
             PanSettingsList.Children.Clear();
@@ -75,7 +75,7 @@ public partial class PageInstanceSavesInfo : IRefreshable, IPageView
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Instance.Saves.Info.Error.LoadFailed"), ModBase.LogLevel.Msgbox,
+            Common.Log(ex, Lang.Text("Instance.Saves.Info.Error.LoadFailed"), Common.LogLevel.Msgbox,
                 userSummary: Lang.Text("Instance.Saves.Info.Error.LoadFailed"));
         }
     }
@@ -129,11 +129,11 @@ public partial class PageInstanceSavesInfo : IRefreshable, IPageView
     {
         try
         {
-            ModBase.ClipboardSet(content);
+            Common.ClipboardSet(content);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Instance.Saves.Info.Error.ClipboardFailed"), ModBase.LogLevel.Hint,
+            Common.Log(ex, Lang.Text("Instance.Saves.Info.Error.ClipboardFailed"), Common.LogLevel.Hint,
                 userSummary: Lang.Text("Instance.Saves.Info.Error.ClipboardFailed"));
         }
     }
@@ -169,7 +169,7 @@ public partial class PageInstanceSavesInfo : IRefreshable, IPageView
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, Lang.Text("Instance.Saves.Info.Modify.CheatFailed"), ModBase.LogLevel.Hint,
+                Common.Log(ex, Lang.Text("Instance.Saves.Info.Modify.CheatFailed"), Common.LogLevel.Hint,
                     userSummary: Lang.Text("Instance.Saves.Info.Modify.CheatFailed"));
             }
         };
@@ -220,7 +220,7 @@ public partial class PageInstanceSavesInfo : IRefreshable, IPageView
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, Lang.Text("Instance.Saves.Info.Modify.DifficultyFailed"), ModBase.LogLevel.Hint,
+                Common.Log(ex, Lang.Text("Instance.Saves.Info.Modify.DifficultyFailed"), Common.LogLevel.Hint,
                     userSummary: Lang.Text("Instance.Saves.Info.Modify.DifficultyFailed"));
             }
         }

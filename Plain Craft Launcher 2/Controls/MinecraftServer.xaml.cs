@@ -1,4 +1,4 @@
-using PCL.Core.App.Localization;
+﻿using PCL.Core.App.Localization;
 using PCL.Core.Link.McPing;
 using PCL.Core.Link.McPing.Model;
 using PCL.Core.Minecraft;
@@ -69,7 +69,7 @@ public partial class MinecraftServer : Grid
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "[MinecraftServer] 信息查询失败");
+            Common.Log(ex, "[MinecraftServer] 信息查询失败");
             LocalizedText.TryBind(
                 LabServerDesc,
                 "Text",
@@ -91,7 +91,8 @@ public partial class MinecraftServer : Grid
 
         // 更新玩家信息
         LabServerPlayer.Text = $"{ret.Players.Online}/{ret.Players.Max}";
-        ModStyle.MinecraftFormatter.SetColorfulTextLab($"§{latencyColor}{ret.Latency}ms", LabServerLatency, false);
+        TextStyles.MinecraftFormatter.SetColorfulTextLab($"§{latencyColor}{ret.Latency}ms",
+            LabServerLatency, false);
 
         // 玩家列表提示
         if (ret.Players.Samples is not null && ret.Players.Samples.Any())

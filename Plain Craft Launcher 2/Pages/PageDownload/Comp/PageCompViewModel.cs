@@ -33,7 +33,7 @@ public partial class PageCompViewModel : ViewModelBase
 
     [ObservableProperty] private bool _supportModrinth = true;
 
-    public void ApplyPagerState(int currentPage, ModComp.CompProjectStorage storage)
+    public void ApplyPagerState(int currentPage, Comp.CompProjectStorage storage)
     {
         PageText = Lang.Number(currentPage + 1, "N0");
         IsPagerVisible = storage.results.Count > PageComp.pageSize ||
@@ -50,7 +50,7 @@ public partial class PageCompViewModel : ViewModelBase
         RightOpacity = CanGoRight ? 1d : 0.2d;
     }
 
-    public void ApplyErrorState(ModComp.CompProjectStorage storage)
+    public void ApplyErrorState(Comp.CompProjectStorage storage)
     {
         IsErrorVisible = storage.errorMessage is not null;
         ErrorMessage = storage.errorMessage ?? string.Empty;

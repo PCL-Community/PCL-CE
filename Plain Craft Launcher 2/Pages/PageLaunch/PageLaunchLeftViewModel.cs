@@ -44,6 +44,6 @@ public partial class PageLaunchLeftViewModel : ViewModelBase
 
     public void ApplyLaunchingDownload(long speed)
     {
-        LaunchingDownloadText = ModBase.GetString(speed) + "/s";
+        LaunchingDownloadText = Common.GetString(speed) + "/s";
     }
 }

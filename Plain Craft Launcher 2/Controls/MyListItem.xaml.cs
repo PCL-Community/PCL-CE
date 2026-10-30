@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -20,7 +19,7 @@ public partial class MyListItem : IMyRadio
 
     public bool isMouseOverAnimationEnabled = true;
 
-    private string stateLast;
+    private string _stateLast;
 
     public object tag { get; set; }
     public event IMyRadio.CheckEventHandler? Check;
@@ -41,7 +40,7 @@ public partial class MyListItem : IMyRadio
         // 判断当前颜色
         string stateNew;
         int time;
-        if (isMouseDown && !(Type == CheckType.RadioBox && Checked))
+        if (_isMouseDown && !(Type == CheckType.RadioBox && Checked))
         {
             stateNew = "MouseDown";
             time = 120;
@@ -57,21 +56,22 @@ public partial class MyListItem : IMyRadio
             time = 180;
         }
 
-        if ((stateLast ?? "") == (stateNew ?? ""))
+        if ((_stateLast ?? "") == (stateNew ?? ""))
             return;
-        stateLast = stateNew;
+        _stateLast = stateNew;
         // 触发颜色动画
-        if (IsLoaded && !ModAnimation.AniExitsAnyControl()) // 防止默认属性变更触发动画
+        if (IsLoaded && !Animations.AniExitsAnyControl()) // 防止默认属性变更触发动画
         {
             // 有动画
-            var ani = new List<ModAnimation.AniData>();
+            var ani = new List<Animations.AniData>();
             if (IsMouseOver && isMouseOverAnimationEnabled)
             {
                 if (buttonStack is not null)
                 {
-                    ani.Add(ModAnimation.AaOpacity(buttonStack, 1d - buttonStack.Opacity, (int)Math.Round(time * 0.7d),
+                    ani.Add(Animations.AaOpacity(buttonStack, 1d - buttonStack.Opacity,
+                        (int)Math.Round(time * 0.7d),
                         (int)Math.Round(time * 0.3d)));
-                    ani.Add(ModAnimation.AaDouble(
+                    ani.Add(Animations.AaDouble(
                         i => ColumnPaddingRight.Width =
                             new GridLength(Math.Max(0, ColumnPaddingRight.Width.Value + (double)i)),
                         Math.Max(MinPaddingRight, 5 + Buttons.Count() * 25) - ColumnPaddingRight.Width.Value,
@@ -80,51 +80,55 @@ public partial class MyListItem : IMyRadio
 
                 ani.AddRange(new[]
                 {
-                    ModAnimation.AaColor(RectBack, Border.BackgroundProperty,
-                        isMouseDown ? "ColorBrush6" : "ColorBrushBg1", time),
-                    ModAnimation.AaOpacity(RectBack, 1d - RectBack.Opacity, time,
-                        ease: new ModAnimation.AniEaseOutFluent())
+                    Animations.AaColor(RectBack, Border.BackgroundProperty,
+                        _isMouseDown ? "ColorBrush6" : "ColorBrushBg1", time),
+                    Animations.AaOpacity(RectBack, 1d - RectBack.Opacity, time,
+                        ease: new Animations.AniEaseOutFluent())
                 });
                 if (IsScaleAnimationEnabled)
                 {
-                    ani.Add(ModAnimation.AaScaleTransform(RectBack,
+                    ani.Add(Animations.AaScaleTransform(RectBack,
                         1d - ((ScaleTransform)RectBack.RenderTransform).ScaleX, (int)Math.Round(time * 1.6d),
-                        ease: new ModAnimation.AniEaseOutFluent()));
-                    if (isMouseDown)
-                        ani.Add(ModAnimation.AaScaleTransform(this, 0.98d - ((ScaleTransform)RenderTransform).ScaleX,
-                            (int)Math.Round(time * 0.9d), ease: new ModAnimation.AniEaseOutFluent()));
+                        ease: new Animations.AniEaseOutFluent()));
+                    if (_isMouseDown)
+                        ani.Add(Animations.AaScaleTransform(this,
+                            0.98d - ((ScaleTransform)RenderTransform).ScaleX,
+                            (int)Math.Round(time * 0.9d), ease: new Animations.AniEaseOutFluent()));
                     else
-                        ani.Add(ModAnimation.AaScaleTransform(this, 1d - ((ScaleTransform)RenderTransform).ScaleX,
-                            (int)Math.Round(time * 1.2d), ease: new ModAnimation.AniEaseOutFluent()));
+                        ani.Add(Animations.AaScaleTransform(this,
+                            1d - ((ScaleTransform)RenderTransform).ScaleX,
+                            (int)Math.Round(time * 1.2d), ease: new Animations.AniEaseOutFluent()));
                 }
             }
             else
             {
                 if (buttonStack is not null)
                 {
-                    ani.Add(ModAnimation.AaOpacity(buttonStack, -buttonStack.Opacity, (int)Math.Round(time * 0.4d)));
-                    ani.Add(ModAnimation.AaDouble(
+                    ani.Add(Animations.AaOpacity(buttonStack, -buttonStack.Opacity,
+                        (int)Math.Round(time * 0.4d)));
+                    ani.Add(Animations.AaDouble(
                         i => ColumnPaddingRight.Width =
                             new GridLength(Math.Max(0, ColumnPaddingRight.Width.Value + (double)i)),
                         MinPaddingRight - ColumnPaddingRight.Width.Value, (int)Math.Round(time * 0.4d)));
                 }
 
-                ani.Add(ModAnimation.AaOpacity(RectBack, -RectBack.Opacity, time));
+                ani.Add(Animations.AaOpacity(RectBack, -RectBack.Opacity, time));
                 if (IsScaleAnimationEnabled)
                     ani.AddRange(new[]
                     {
-                        ModAnimation.AaColor(RectBack, Border.BackgroundProperty,
-                            isMouseDown ? "ColorBrush6" : "ColorBrush7", time),
-                        ModAnimation.AaScaleTransform(this, 1d - ((ScaleTransform)RenderTransform).ScaleX, time * 3,
-                            ease: new ModAnimation.AniEaseOutFluent()),
-                        ModAnimation.AaScaleTransform(RectBack,
+                        Animations.AaColor(RectBack, Border.BackgroundProperty,
+                            _isMouseDown ? "ColorBrush6" : "ColorBrush7", time),
+                        Animations.AaScaleTransform(this,
+                            1d - ((ScaleTransform)RenderTransform).ScaleX, time * 3,
+                            ease: new Animations.AniEaseOutFluent()),
+                        Animations.AaScaleTransform(RectBack,
                             0.996d - ((ScaleTransform)RectBack.RenderTransform).ScaleX, time,
-                            ease: new ModAnimation.AniEaseOutFluent()),
-                        ModAnimation.AaScaleTransform(RectBack, -0.246d, 1, after: true)
+                            ease: new Animations.AniEaseOutFluent()),
+                        Animations.AaScaleTransform(RectBack, -0.246d, 1, after: true)
                     });
             }
 
-            ModAnimation.AniStart(ani, "ListItem Color " + Uuid);
+            Animations.AniStart(ani, "ListItem Color " + Uuid);
         }
         else
         {
@@ -152,7 +156,7 @@ public partial class MyListItem : IMyRadio
                 }
 
                 RenderTransform = new ScaleTransform(1d, 1d);
-                if (_RectBack is not null)
+                if (_rectBack is not null)
                 {
                     if (IsScaleAnimationEnabled)
                         RectBack.RenderTransform = new ScaleTransform(0.75d, 0.75d);
@@ -161,7 +165,7 @@ public partial class MyListItem : IMyRadio
                 }
             }
 
-            ModAnimation.AniStop("ListItem Color " + Uuid);
+            Animations.AniStop("ListItem Color " + Uuid);
         }
     }
 
@@ -182,13 +186,13 @@ public partial class MyListItem : IMyRadio
     #region 后加载控件
 
     // 指向背景
-    private Border _RectBack;
+    private Border _rectBack;
 
     public Border RectBack
     {
         get
         {
-            if (_RectBack is null)
+            if (_rectBack is null)
             {
                 var rect = new Border
                 {
@@ -196,7 +200,7 @@ public partial class MyListItem : IMyRadio
                     CornerRadius = new CornerRadius(IsScaleAnimationEnabled || Height > 40d ? 6 : 0),
                     RenderTransform = IsScaleAnimationEnabled ? new ScaleTransform(0.8d, 0.8d) : null,
                     RenderTransformOrigin = new Point(0.5d, 0.5d),
-                    BorderThickness = new Thickness(ModBase.GetWPFSize(1d)),
+                    BorderThickness = new Thickness(Common.GetWpfSize(1d)),
                     SnapsToDevicePixels = true,
                     IsHitTestVisible = false,
                     Opacity = 0d
@@ -206,13 +210,13 @@ public partial class MyListItem : IMyRadio
                 SetColumnSpan(rect, 999);
                 SetRowSpan(rect, 999);
                 Children.Insert(0, rect);
-                _RectBack = rect;
+                _rectBack = rect;
                 // <!--<Border x:Name = "RectBack" CornerRadius="3" RenderTransformOrigin="0.5,0.5" SnapsToDevicePixels="True" 
                 // IsHitTestVisible = "False" Opacity="0" BorderThickness="1" 
                 // Grid.ColumnSpan = "4" Background="{DynamicResource ColorBrush7}" BorderBrush="{DynamicResource ColorBrush6}"/>-->
             }
 
-            return _RectBack;
+            return _rectBack;
         }
     }
 
@@ -323,7 +327,7 @@ public partial class MyListItem : IMyRadio
     #region 自定义属性
 
     // Uuid
-    public int Uuid = ModBase.GetUuid();
+    public int Uuid = Common.GetUuid();
 
     /// <summary>
     ///     是否启用缩放动画。
@@ -334,7 +338,7 @@ public partial class MyListItem : IMyRadio
         set
         {
             field = value;
-            if (_RectBack is not null)
+            if (_rectBack is not null)
                 RectBack.CornerRadius = new CornerRadius(value ? 6 : 0);
         }
     } = true;
@@ -597,8 +601,8 @@ public partial class MyListItem : IMyRadio
                     HorizontalAlignment = HorizontalAlignment.Stretch,
                     VerticalAlignment = VerticalAlignment.Stretch
                 };
-                if (logo.Contains(ModBase.pathTemp + @"Cache\Skin\Head") ||
-                    logo.Contains(ModBase.pathTemp + @"Cache\Cape"))
+                if (logo.Contains(Common.pathTemp + @"Cache\Skin\Head") ||
+                    logo.Contains(Common.pathTemp + @"Cache\Cape"))
                     RenderOptions.SetBitmapScalingMode(pathLogo, BitmapScalingMode.NearestNeighbor);
                 else
                     RenderOptions.SetBitmapScalingMode(pathLogo, BitmapScalingMode.Linear);
@@ -632,13 +636,13 @@ public partial class MyListItem : IMyRadio
             // 图标的点击事件
             if (LogoClickable)
             {
-                pathLogo.MouseLeave += (sender, e) => isLogoDown = false;
-                pathLogo.MouseLeftButtonDown += (sender, e) => isLogoDown = true;
+                pathLogo.MouseLeave += (sender, e) => _isLogoDown = false;
+                pathLogo.MouseLeftButtonDown += (sender, e) => _isLogoDown = true;
                 pathLogo.MouseLeftButtonUp += (sender, e) =>
                 {
-                    if (isLogoDown)
+                    if (_isLogoDown)
                     {
-                        isLogoDown = false;
+                        _isLogoDown = false;
                         LogoClick?.Invoke(((FrameworkElement)sender).Tag, e);
                     }
                 };
@@ -670,7 +674,7 @@ public partial class MyListItem : IMyRadio
     /// </summary>
     public bool LogoClickable { get; set; } = false;
 
-    private bool isLogoDown;
+    private bool _isLogoDown;
 
     // 勾选选项
     public enum CheckType
@@ -681,21 +685,23 @@ public partial class MyListItem : IMyRadio
         CheckBox
     }
 
-    private CheckType _Type = CheckType.None;
+    private CheckType _type = CheckType.None;
 
     public CheckType Type
     {
-        get => _Type;
+        get => _type;
         set
         {
-            if (_Type == value)
+            if (_type == value)
                 return;
-            _Type = value;
+            _type = value;
             // 切换左栏大小
             ColumnCheck.Width =
-                new GridLength(_Type == CheckType.None || _Type == CheckType.Clickable ? Height < 40d ? 4 : 2 : 6);
+                new GridLength(_type == CheckType.None || _type == CheckType.Clickable
+                    ? Height < 40d ? 4 : 2
+                    : 6);
             // 切换竖条控件
-            if (_Type == CheckType.None || _Type == CheckType.Clickable)
+            if (_type == CheckType.None || _type == CheckType.Clickable)
             {
                 // 移除竖条控件
                 if (rectCheck is not null)
@@ -732,7 +738,7 @@ public partial class MyListItem : IMyRadio
     {
         var logo = Logo;
         var hasLogo = IsUsingSvgIcon || !string.IsNullOrEmpty(logo);
-        ColumnCheck.Width = new GridLength(_Type is CheckType.None or CheckType.Clickable
+        ColumnCheck.Width = new GridLength(_type is CheckType.None or CheckType.Clickable
             ? Height < 40d
                 ? 4
                 : 2
@@ -753,12 +759,12 @@ public partial class MyListItem : IMyRadio
     }
 
     // 勾选状态
-    private bool _Checked;
+    private bool _checked;
 
     public bool Checked
     {
-        get => _Checked;
-        set => SetChecked(value, false, value != _Checked); // 仅在值发生变化时触发动画 (#4596)
+        get => _checked;
+        set => SetChecked(value, false, value != _checked); // 仅在值发生变化时触发动画 (#4596)
     }
 
     /// <summary>
@@ -773,34 +779,34 @@ public partial class MyListItem : IMyRadio
         {
             // 自定义属性基础
 
-            var ChangedEventArgs = new ModBase.RouteEventArgs(user);
-            var rawValue = _Checked;
+            var ChangedEventArgs = new Common.RouteEventArgs(user);
+            var rawValue = _checked;
             if (Type == CheckType.RadioBox)
             {
-                if (IsInitialized && value != _Checked)
+                if (IsInitialized && value != _checked)
                 {
-                    _Checked = value;
+                    _checked = value;
                     Changed?.Invoke(this, ChangedEventArgs);
                     if (ChangedEventArgs.handled)
                     {
-                        _Checked = rawValue;
+                        _checked = rawValue;
                         return;
                     }
                 }
 
-                _Checked = value;
+                _checked = value;
             }
             else
             {
-                if (value == _Checked)
+                if (value == _checked)
                     return;
-                _Checked = value;
+                _checked = value;
                 if (IsInitialized)
                 {
                     Changed?.Invoke(this, ChangedEventArgs);
                     if (ChangedEventArgs.handled)
                     {
-                        _Checked = rawValue;
+                        _checked = rawValue;
                         return;
                     }
                 }
@@ -808,7 +814,7 @@ public partial class MyListItem : IMyRadio
 
             if (value)
             {
-                var checkEventArgs = new ModBase.RouteEventArgs(user);
+                var checkEventArgs = new Common.RouteEventArgs(user);
                 Check?.Invoke(this, checkEventArgs);
                 if (checkEventArgs.handled)
                     return;
@@ -874,9 +880,9 @@ public partial class MyListItem : IMyRadio
 
             var customHeight = 20d; // 修改左侧神秘动画条的高度
 
-            if (IsLoaded && !ModAnimation.AniExitsAnyControl() && anime) // 防止默认属性变更触发动画
+            if (IsLoaded && !Animations.AniExitsAnyControl() && anime) // 防止默认属性变更触发动画
             {
-                var anim = new List<ModAnimation.AniData>();
+                var anim = new List<Animations.AniData>();
                 if (Checked)
                 {
                     // 由无变有
@@ -894,15 +900,15 @@ public partial class MyListItem : IMyRadio
                         rectCheck.RenderTransform = scale;
 
                         // 动画：让 ScaleY 从 0 弹性放大到 1
-                        anim.Add(ModAnimation.AaDouble(
+                        anim.Add(Animations.AaDouble(
                             i => scale.ScaleY = Math.Max(0d, scale.ScaleY + (double)i),
                             1d - scale.ScaleY,
                             300,
-                            ease: new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)
+                            ease: new Animations.AniEaseOutBack(Animations.AniEasePower.Weak)
                         ));
                     }
 
-                    anim.Add(ModAnimation.AaColor(this, ForegroundProperty,
+                    anim.Add(Animations.AaColor(this, ForegroundProperty,
                         Height < 40d ? "ColorBrush3" : "ColorBrush2", 200));
                 }
                 else
@@ -919,24 +925,24 @@ public partial class MyListItem : IMyRadio
                         var scale = (ScaleTransform)rectCheck.RenderTransform;
 
                         // 动画：让 ScaleY 从当前值缩减到 0
-                        anim.Add(ModAnimation.AaDouble(
+                        anim.Add(Animations.AaDouble(
                             i => scale.ScaleY = Math.Max(0d, scale.ScaleY + (double)i),
                             -scale.ScaleY,
                             120,
-                            ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)
+                            ease: new Animations.AniEaseInFluent(Animations.AniEasePower.Weak)
                         ));
-                        anim.Add(ModAnimation.AaOpacity(rectCheck, -rectCheck.Opacity, 70, 40));
+                        anim.Add(Animations.AaOpacity(rectCheck, -rectCheck.Opacity, 70, 40));
                     }
 
-                    anim.Add(ModAnimation.AaColor(this, ForegroundProperty, "ColorBrush1", 120));
+                    anim.Add(Animations.AaColor(this, ForegroundProperty, "ColorBrush1", 120));
                 }
 
-                ModAnimation.AniStart(anim, "MyListItem Checked " + Uuid);
+                Animations.AniStart(anim, "MyListItem Checked " + Uuid);
             }
             else
             {
                 // 不使用动画
-                ModAnimation.AniStop("MyListItem Checked " + Uuid);
+                Animations.AniStop("MyListItem Checked " + Uuid);
                 if (Checked)
                 {
                     if (rectCheck is not null)
@@ -967,7 +973,7 @@ public partial class MyListItem : IMyRadio
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "设置 Checked 失败");
+            Common.Log(ex, "设置 Checked 失败");
         }
     }
 
@@ -1049,7 +1055,7 @@ public partial class MyListItem : IMyRadio
     // 触发点击事件
     private void Button_MouseUp(object sender, MouseButtonEventArgs e)
     {
-        if (!isMouseDown)
+        if (!_isMouseDown)
             return;
         Click?.Invoke(sender, e);
         if (e.Handled)
@@ -1058,7 +1064,7 @@ public partial class MyListItem : IMyRadio
         var dependencyObject = (DependencyObject)sender;
         if (CustomEventService.GetEventType(dependencyObject) != EventType.None)
         {
-            ModMain.RaiseCustomEvent(this);
+            Launcher.RaiseCustomEvent(this);
             e.Handled = true;
         }
 
@@ -1069,19 +1075,19 @@ public partial class MyListItem : IMyRadio
         {
             case CheckType.Clickable:
             {
-                ModBase.Log("[Control] 按下单击列表项：" + Title);
+                Common.Log("[Control] 按下单击列表项：" + Title);
                 break;
             }
             case CheckType.RadioBox:
             {
-                ModBase.Log("[Control] 按下单选列表项：" + Title);
+                Common.Log("[Control] 按下单选列表项：" + Title);
                 if (!Checked)
                     SetChecked(true, true, true);
                 break;
             }
             case CheckType.CheckBox:
             {
-                ModBase.Log("[Control] 按下复选列表项（" + !Checked + "）：" + Title);
+                Common.Log("[Control] 按下复选列表项（" + !Checked + "）：" + Title);
                 SetChecked(!Checked, true, true);
                 break;
             }
@@ -1089,13 +1095,13 @@ public partial class MyListItem : IMyRadio
     }
 
     // 鼠标点击判定
-    private bool isMouseDown;
+    private bool _isMouseDown;
 
     private void Button_MouseDown(object sender, MouseButtonEventArgs e)
     {
         if (IsMouseDirectlyOver && !(Type == CheckType.None))
         {
-            isMouseDown = true;
+            _isMouseDown = true;
             if (buttonStack is not null)
                 buttonStack.IsHitTestVisible = false;
         }
@@ -1103,7 +1109,7 @@ public partial class MyListItem : IMyRadio
 
     private void Button_MouseLeave(object sender, object e)
     {
-        isMouseDown = false;
+        _isMouseDown = false;
         if (buttonStack is not null)
             buttonStack.IsHitTestVisible = true;
     }

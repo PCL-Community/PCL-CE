@@ -48,7 +48,7 @@ public partial class PageSetupAboutViewModel : ViewModelBase
     public void RotateCommunityLogo(object? sender)
     {
         if (sender is null) return;
-        ModAnimation.AniStart(new[] { ModAnimation.AaRotateTransform(sender, 360d) });
+        Animations.AniStart(new[] { Animations.AaRotateTransform(sender, 360d) });
     }
 
     [RelayCommand]
@@ -69,7 +69,7 @@ public partial class PageSetupAboutViewModel : ViewModelBase
                         HintService.Hint(Lang.Text("Setup.About.EasterEgg.StillClicking"));
                         break;
                     case 25:
-                        if (await ModMain.MyMsgBoxAsync(Lang.Text("Setup.About.EasterEgg.Bored.Message"),
+                        if (await Launcher.MyMsgBoxAsync(Lang.Text("Setup.About.EasterEgg.Bored.Message"),
                                 Lang.Text("Setup.About.EasterEgg.Bored.Title"),
                                 Lang.Text("Setup.About.EasterEgg.Bored.Yes"),
                                 Lang.Text("Setup.About.EasterEgg.Bored.No")) == 2)
@@ -88,7 +88,7 @@ public partial class PageSetupAboutViewModel : ViewModelBase
                         HintService.Hint(Lang.Text("Setup.About.EasterEgg.NothingBehind"));
                         break;
                     case 150:
-                        switch (await ModMain.MyMsgBoxAsync(Lang.Text("Setup.About.EasterEgg.Tired.Message1"),
+                        switch (await Launcher.MyMsgBoxAsync(Lang.Text("Setup.About.EasterEgg.Tired.Message1"),
                                     Lang.Text("Setup.About.EasterEgg.Tired.Title1"),
                                     Lang.Text("Setup.About.EasterEgg.Tired.Exhausted"),
                                     Lang.Text("Setup.About.EasterEgg.Tired.NotTired")))
@@ -97,7 +97,7 @@ public partial class PageSetupAboutViewModel : ViewModelBase
                                 HintService.Hint(Lang.Text("Setup.About.EasterEgg.Tired.StopClicking"));
                                 break;
                             case 2:
-                                switch (await ModMain.MyMsgBoxAsync(
+                                switch (await Launcher.MyMsgBoxAsync(
                                             Lang.Text("Setup.About.EasterEgg.Tired.Message2"),
                                             Lang.Text("Setup.About.EasterEgg.Tired.Title2"),
                                             Lang.Text("Setup.About.EasterEgg.Tired.Exhausted"),
@@ -107,7 +107,7 @@ public partial class PageSetupAboutViewModel : ViewModelBase
                                         HintService.Hint(Lang.Text("Setup.About.EasterEgg.Tired.StopClicking"));
                                         break;
                                     case 2:
-                                        switch (await ModMain.MyMsgBoxAsync(
+                                        switch (await Launcher.MyMsgBoxAsync(
                                                     Lang.Text("Setup.About.EasterEgg.Tired.Message3"),
                                                     Lang.Text("Setup.About.EasterEgg.Tired.Title3"),
                                                     Lang.Text("Setup.About.EasterEgg.Tired.Exhausted"),
@@ -143,26 +143,26 @@ public partial class PageSetupAboutViewModel : ViewModelBase
                 var my = rand.Next(-1, 1);
                 if (my == 0)
                     my = 1;
-                ModAnimation.AniStart(new[]
+                Animations.AniStart(new[]
                 {
-                    ModAnimation.AaTranslateX(sender, mx, 0), ModAnimation.AaTranslateY(sender, my, 0),
-                    ModAnimation.AaTranslateX(sender, -mx, 0, 100), ModAnimation.AaTranslateY(sender, -my, 0, 100)
+                    Animations.AaTranslateX(sender, mx, 0), Animations.AaTranslateY(sender, my, 0),
+                    Animations.AaTranslateX(sender, -mx, 0, 100), Animations.AaTranslateY(sender, -my, 0, 100)
                 });
             }
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "处理彩蛋点击时失败", ModBase.LogLevel.Feedback,
+            Common.Log(ex, "处理彩蛋点击时失败", Common.LogLevel.Feedback,
                 userSummary: Lang.Text("Setup.Error.OperationFailed"));
         }
     }
 
     private static string FormatVersionInfo()
     {
-        return Lang.Text("Setup.About.Version.Info").Replace("%VERSION%", ModBase.versionBaseName)
-            .Replace("%VERSIONCODE%", ModBase.versionCode.ToString())
-            .Replace("%BRANCH%", ModBase.versionBranchName)
-            .Replace("%COMMIT_HASH%", ModBase.commitHashShort);
+        return Lang.Text("Setup.About.Version.Info").Replace("%VERSION%", Common.VersionBaseName)
+            .Replace("%VERSIONCODE%", Common.VersionCode.ToString())
+            .Replace("%BRANCH%", Common.VersionBranchName)
+            .Replace("%COMMIT_HASH%", Common.CommitHashShort);
     }
 
     private static async Task<List<PageSetupAbout.GitHubContributor>> FetchContributorsAsync()

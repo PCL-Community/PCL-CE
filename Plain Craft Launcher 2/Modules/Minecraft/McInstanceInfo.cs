@@ -161,7 +161,7 @@ namespace PCL;
                 // 末尾数字，如 C5 beta4 中的 5
                 result *= 100;
                 result = (int)Math.Round(result +
-                                         ModBase.Val(OptiFine[1..].RegexSeek("[0-9]+")));
+                                         Common.Val(OptiFine[1..].RegexSeek("[0-9]+")));
                 // 测试标记（正式版为 99，Pre[x] 为 50+x，Beta[x] 为 x）
                 result *= 100;
                 if (OptiFine.ContainsF("pre", true))
@@ -169,12 +169,13 @@ namespace PCL;
                 if (OptiFine.ContainsF("pre", true) || OptiFine.ContainsF("beta", true))
                 {
                     var lastChar = OptiFine[^1..];
-                    if (ModBase.Val(lastChar) == 0d && lastChar != "0")
+                    if (Common.Val(lastChar) == 0d && lastChar != "0")
                         result += 1; // 为 pre 或 beta 结尾，视作 1
                     else
                         result =
                             (int)Math.Round(result +
-                                            ModBase.Val(OptiFine.ToLower().RegexSeek("(?<=((pre)|(beta)))[0-9]+")));
+                                            Common.Val(OptiFine.ToLower()
+                                                .RegexSeek("(?<=((pre)|(beta)))[0-9]+")));
                 }
                 else
                 {
@@ -212,22 +213,25 @@ namespace PCL;
                 {
                     case var @case when @case > 4:
                     {
-                        return (int)Math.Round(ModBase.Val(segments[0]) * 1000000d + ModBase.Val(segments[1]) * 10000d +
-                                               ModBase.Val(segments[3]));
+                        return (int)Math.Round(Common.Val(segments[0]) * 1000000d +
+                                               Common.Val(segments[1]) * 10000d +
+                                               Common.Val(segments[3]));
                     }
                     case 3:
                     {
-                        return (int)Math.Round(ModBase.Val(segments[0]) * 1000000d + ModBase.Val(segments[1]) * 10000d +
-                                               ModBase.Val(segments[2]));
+                        return (int)Math.Round(Common.Val(segments[0]) * 1000000d +
+                                               Common.Val(segments[1]) * 10000d +
+                                               Common.Val(segments[2]));
                     }
                     case 2:
                     {
-                        return (int)Math.Round(ModBase.Val(segments[0]) * 1000000d + ModBase.Val(segments[1]) * 10000d);
+                        return (int)Math.Round(Common.Val(segments[0]) * 1000000d +
+                                               Common.Val(segments[1]) * 10000d);
                     }
 
                     default:
                     {
-                        return (int)Math.Round(ModBase.Val(segments[0]) * 1000000d);
+                        return (int)Math.Round(Common.Val(segments[0]) * 1000000d);
                     }
                 }
             }
@@ -294,7 +298,7 @@ namespace PCL;
                 return false;
             if (version.RegexCheck(@"^1\.\d"))
                 return true;
-            if (ModBase.Val(version.RegexSeek(@"^[2-9]\d\.\d+")) > 25d)
+            if (Common.Val(version.RegexSeek(@"^[2-9]\d\.\d+")) > 25d)
                 return true;
             return false;
         }
@@ -333,8 +337,8 @@ namespace PCL;
 
             if (segments.Length < 2)
                 return -1;
-            var major = (int)Math.Round(ModBase.Val(segments[0]));
-            var minor = (int)Math.Round(ModBase.Val(segments[1]));
+            var major = (int)Math.Round(Common.Val(segments[0]));
+            var minor = (int)Math.Round(Common.Val(segments[1]));
             if (major == 1) return minor * 10;
             if (major >= 25) return major * 10 + minor;
             if (major == 2) return 50; //2.0愚人节

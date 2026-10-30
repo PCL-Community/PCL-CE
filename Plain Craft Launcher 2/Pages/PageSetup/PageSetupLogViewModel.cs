@@ -48,7 +48,7 @@ public partial class PageSetupLogViewModel : ViewModelBase
 
     public async Task<bool> CleanAsync()
     {
-        var result = await ModMain.MyMsgBoxAsync(Lang.Text("Setup.Log.Clear.Confirm.Message"),
+        var result = await Launcher.MyMsgBoxAsync(Lang.Text("Setup.Log.Clear.Confirm.Message"),
             Lang.Text("Setup.Log.Clear.Confirm.Title"), Lang.Text("Common.Action.Confirm"),
             Lang.Text("Common.Action.Cancel"), isWarn: true);
         if (result != 1)
@@ -123,7 +123,7 @@ public partial class PageSetupLogViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "删除非当前日志文件失败", ModBase.LogLevel.Feedback,
+            Common.Log(ex, "删除非当前日志文件失败", Common.LogLevel.Feedback,
                 userSummary: Lang.Text("Setup.Error.OperationFailed"));
             return false;
         }
@@ -152,7 +152,7 @@ public partial class PageSetupLogViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Setup.Log.ExportFailed"), ModBase.LogLevel.Hint,
+            Common.Log(ex, Lang.Text("Setup.Log.ExportFailed"), Common.LogLevel.Hint,
                 userSummary: Lang.Text("Setup.Log.ExportFailed"));
             return false;
         }

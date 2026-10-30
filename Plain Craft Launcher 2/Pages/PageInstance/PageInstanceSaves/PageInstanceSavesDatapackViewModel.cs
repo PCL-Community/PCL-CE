@@ -32,12 +32,12 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
     }
 
     public sealed record DatapackToggleOutcome(
-        List<(ModLocalComp.LocalCompFile Old, ModLocalComp.LocalCompFile New)> Replaced,
+        List<(LocalComp.LocalCompFile Old, LocalComp.LocalCompFile New)> Replaced,
         bool IsSuccessful,
         bool Aborted);
 
     public sealed record DatapackDeleteOutcome(
-        List<ModLocalComp.LocalCompFile> Deleted,
+        List<LocalComp.LocalCompFile> Deleted,
         bool IsSuccessful,
         bool Canceled,
         Exception? Fatal);
@@ -87,8 +87,8 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
     private string _searchText = "";
 
     private readonly Dictionary<string, (DateTime CreationTime, long Length)> _fileInfoCache = new();
-    private readonly List<ModLocalComp.LocalCompFile> _visibleEntries = [];
-    private List<ModLocalComp.LocalCompFile>? _searchResult;
+    private readonly List<LocalComp.LocalCompFile> _visibleEntries = [];
+    private List<LocalComp.LocalCompFile>? _searchResult;
 
     public PageInstanceSavesDatapackViewModel()
     {
@@ -101,21 +101,21 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
 
     public HashSet<string> SelectedDatapacks { get; } = new();
 
-    public IReadOnlyList<ModLocalComp.LocalCompFile> VisibleEntries => _visibleEntries;
+    public IReadOnlyList<LocalComp.LocalCompFile> VisibleEntries => _visibleEntries;
 
     public static string GetDatapackFolderPath()
     {
         return Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks");
     }
 
-    public void SetSearchResult(List<ModLocalComp.LocalCompFile>? result)
+    public void SetSearchResult(List<LocalComp.LocalCompFile>? result)
     {
         _searchResult = result;
     }
 
     public void Apply()
     {
-        var output = ModLocalComp.compResourceListLoader.output;
+        var output = LocalComp.CompResourceListLoader.output;
         if (output is null)
         {
             _visibleEntries.Clear();
@@ -144,7 +144,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
 
     public void RefreshBarState()
     {
-        var output = ModLocalComp.compResourceListLoader.output;
+        var output = LocalComp.CompResourceListLoader.output;
         if (output is null)
         {
             SelectedCount = SelectedDatapacks.Count;
@@ -153,11 +153,11 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
 
         var itemSource = (IsSearching && _searchResult is not null ? _searchResult : output).ToArray();
         var anyCount = itemSource.Length;
-        var enabledCount = itemSource.Count(item => item.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine);
-        var disabledCount = itemSource.Count(item => item.State == ModLocalComp.LocalCompFile.LocalFileStatus.Disabled);
+        var enabledCount = itemSource.Count(item => item.State == LocalComp.LocalCompFile.LocalFileStatus.Fine);
+        var disabledCount = itemSource.Count(item => item.State == LocalComp.LocalCompFile.LocalFileStatus.Disabled);
         var updateCount = itemSource.Count(item => item.CanUpdate);
         var unavailableCount =
-            itemSource.Count(item => item.State == ModLocalComp.LocalCompFile.LocalFileStatus.Unavailable);
+            itemSource.Count(item => item.State == LocalComp.LocalCompFile.LocalFileStatus.Unavailable);
 
         FilterAllText = IsSearching
             ? Lang.Text("Instance.Resource.Filter.SearchResult")
@@ -185,9 +185,9 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
             if (!SelectedDatapacks.Contains(datapackEntity.RawPath))
                 continue;
             if (datapackEntity.CanUpdate) hasUpdate = true;
-            if (datapackEntity.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine)
+            if (datapackEntity.State == LocalComp.LocalCompFile.LocalFileStatus.Fine)
                 hasEnabled = true;
-            else if (datapackEntity.State == ModLocalComp.LocalCompFile.LocalFileStatus.Disabled)
+            else if (datapackEntity.State == LocalComp.LocalCompFile.LocalFileStatus.Disabled)
                 hasDisabled = true;
             if (datapackEntity.Comp is null || string.IsNullOrEmpty(datapackEntity.Comp.Id))
                 canFavoriteAndShare = false;
@@ -199,7 +199,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
         CanFavoriteAndShare = canFavoriteAndShare;
     }
 
-    public bool CanPassFilter(ModLocalComp.LocalCompFile checkingDatapack)
+    public bool CanPassFilter(LocalComp.LocalCompFile checkingDatapack)
     {
         switch (Filter)
         {
@@ -209,11 +209,11 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
             }
             case DatapackFilterType.Enabled:
             {
-                return checkingDatapack.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine;
+                return checkingDatapack.State == LocalComp.LocalCompFile.LocalFileStatus.Fine;
             }
             case DatapackFilterType.Disabled:
             {
-                return checkingDatapack.State == ModLocalComp.LocalCompFile.LocalFileStatus.Disabled;
+                return checkingDatapack.State == LocalComp.LocalCompFile.LocalFileStatus.Disabled;
             }
             case DatapackFilterType.CanUpdate:
             {
@@ -221,7 +221,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
             }
             case DatapackFilterType.Unavailable:
             {
-                return checkingDatapack.State == ModLocalComp.LocalCompFile.LocalFileStatus.Unavailable;
+                return checkingDatapack.State == LocalComp.LocalCompFile.LocalFileStatus.Unavailable;
             }
 
             default:
@@ -265,7 +265,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
         }
     }
 
-    public Func<ModLocalComp.LocalCompFile, ModLocalComp.LocalCompFile, int> GetSortMethod(DatapackSortMethod method)
+    public Func<LocalComp.LocalCompFile, LocalComp.LocalCompFile, int> GetSortMethod(DatapackSortMethod method)
     {
         switch (method)
         {
@@ -328,7 +328,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "获取数据包信息失败: " + path);
+            Common.Log(ex, "获取数据包信息失败: " + path);
             return (DateTime.MinValue, 0L);
         }
     }
@@ -383,11 +383,11 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                 return;
             }
 
-            ModBase.Log($"[System] 文件为 {extension} 格式，尝试作为数据包安装");
+            Common.Log($"[System] 文件为 {extension} 格式，尝试作为数据包安装");
 
-            if (!(ModMain.frmMain.pageCurrent == FormMain.PageType.InstanceSetup &&
-                  ModMain.frmMain.PageCurrentSub == FormMain.PageSubType.VersionSavesDatapack))
-                if (1 != await ModMain.MyMsgBoxAsync(
+            if (!(Launcher.frmMain.pageCurrent == FormMain.PageType.InstanceSetup &&
+                  Launcher.frmMain.PageCurrentSub == FormMain.PageSubType.VersionSavesDatapack))
+                if (1 != await Launcher.MyMsgBoxAsync(
                         Lang.Text("Instance.Saves.Datapack.Install.Message"),
                         Lang.Text("Instance.Saves.Datapack.Install.Title"), Lang.Text("Common.Action.Confirm"),
                         Lang.Text("Common.Action.Cancel")))
@@ -397,11 +397,11 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
             var copyList = new List<(string Source, string Destination)>();
             foreach (var filePath in filePathList)
             {
-                var newFileName = ModBase.GetFileNameFromPath(filePath);
+                var newFileName = Common.GetFileNameFromPath(filePath);
                 var destFile = datapackFolder + newFileName;
 
                 if (File.Exists(destFile))
-                    if (1 != await ModMain.MyMsgBoxAsync(
+                    if (1 != await Launcher.MyMsgBoxAsync(
                             Lang.Text("Instance.Resource.Install.OverwriteConfirm.Message", newFileName),
                             Lang.Text("Instance.Resource.Install.OverwriteConfirm.Title"),
                             Lang.Text("Common.Action.Overwrite"), Lang.Text("Common.Action.Cancel")))
@@ -414,45 +414,45 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
             {
                 Directory.CreateDirectory(datapackFolder);
                 foreach (var (source, destination) in copyList)
-                    ModBase.CopyFile(source, destination);
+                    Common.CopyFile(source, destination);
             });
 
             if (filePathList.Count == 1)
                 HintService.Hint(
                     Lang.Text("Instance.Resource.Install.SuccessSingle",
-                        ModBase.GetFileNameFromPath(filePathList[0])), HintType.Success);
+                        Common.GetFileNameFromPath(filePathList[0])), HintType.Success);
             else
                 HintService.Hint(
                     Lang.Text("Instance.Resource.Install.SuccessMultiple", filePathList.Count,
                         Lang.Text("Download.Comp.Type.DataPack")), HintType.Success);
 
-            if (ModMain.frmMain.pageCurrent == FormMain.PageType.InstanceSetup &&
-                ModMain.frmMain.PageCurrentSub == FormMain.PageSubType.VersionSavesDatapack)
-                ModMain.frmInstanceSavesDatapack?.ReloadDatapackFileList(true);
+            if (Launcher.frmMain.pageCurrent == FormMain.PageType.InstanceSetup &&
+                Launcher.frmMain.PageCurrentSub == FormMain.PageSubType.VersionSavesDatapack)
+                Launcher.frmInstanceSavesDatapack?.ReloadDatapackFileList(true);
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 "复制数据包文件失败",
-                ModBase.LogLevel.Msgbox,
+                Common.LogLevel.Msgbox,
                 userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
         }
     }
 
     public async Task<DatapackToggleOutcome> ToggleDatapacksAsync(
-        IEnumerable<ModLocalComp.LocalCompFile> datapackList, bool isEnable)
+        IEnumerable<LocalComp.LocalCompFile> datapackList, bool isEnable)
     {
-        var replaced = new List<(ModLocalComp.LocalCompFile Old, ModLocalComp.LocalCompFile New)>();
+        var replaced = new List<(LocalComp.LocalCompFile Old, LocalComp.LocalCompFile New)>();
         var isSuccessful = true;
         try
         {
             foreach (var datapackEntity in datapackList.ToList())
             {
                 string? newPath;
-                if (datapackEntity.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine && !isEnable)
+                if (datapackEntity.State == LocalComp.LocalCompFile.LocalFileStatus.Fine && !isEnable)
                     newPath = datapackEntity.path + ".disabled";
-                else if (datapackEntity.State == ModLocalComp.LocalCompFile.LocalFileStatus.Disabled && isEnable)
+                else if (datapackEntity.State == LocalComp.LocalCompFile.LocalFileStatus.Disabled && isEnable)
                     newPath = datapackEntity.RawPath;
                 else
                     continue;
@@ -461,9 +461,9 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                 {
                     if (File.Exists(newPath))
                     {
-                        await ModMain.MyMsgBoxAsync(
+                        await Launcher.MyMsgBoxAsync(
                             Lang.Text("Instance.Saves.Datapack.Replace.FileNameConflict",
-                                ModBase.GetFileNameFromPath(newPath)));
+                                Common.GetFileNameFromPath(newPath)));
                         continue;
                     }
 
@@ -471,22 +471,22 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                 }
                 catch (FileNotFoundException ex)
                 {
-                    ModBase.Log(
+                    Common.Log(
                         ex,
                         $"未找到需要重命名的数据包（{datapackEntity.path ?? "null"}）",
-                        ModBase.LogLevel.Feedback,
+                        Common.LogLevel.Feedback,
                         userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
                     return new DatapackToggleOutcome(replaced, isSuccessful, true);
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, $"重命名数据包失败（{datapackEntity.path ?? "null"}）");
+                    Common.Log(ex, $"重命名数据包失败（{datapackEntity.path ?? "null"}）");
                     isSuccessful = false;
                 }
 
-                var newDatapackEntity = new ModLocalComp.LocalCompFile(newPath);
+                var newDatapackEntity = new LocalComp.LocalCompFile(newPath);
                 newDatapackEntity.FromJson(datapackEntity.ToJson());
-                var output = ModLocalComp.compResourceListLoader.output;
+                var output = LocalComp.CompResourceListLoader.output;
                 if (output.Contains(datapackEntity))
                 {
                     var indexOfLoader = output.IndexOf(datapackEntity);
@@ -506,10 +506,10 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 "切换数据包启用状态失败",
-                ModBase.LogLevel.Feedback,
+                Common.LogLevel.Feedback,
                 userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
             return new DatapackToggleOutcome(replaced, false, true);
         }
@@ -518,23 +518,23 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
     }
 
     public async Task<DatapackDeleteOutcome> DeleteFilesAsync(
-        IEnumerable<ModLocalComp.LocalCompFile> datapackList, bool isShiftPressed)
+        IEnumerable<LocalComp.LocalCompFile> datapackList, bool isShiftPressed)
     {
-        var deleted = new List<ModLocalComp.LocalCompFile>();
+        var deleted = new List<LocalComp.LocalCompFile>();
         var isSuccessful = true;
-        var targets = new List<ModLocalComp.LocalCompFile>();
+        var targets = new List<LocalComp.LocalCompFile>();
         Exception? failure = null;
         await RunAsync(ct => Task.Run(() =>
         {
             try
             {
                 targets = datapackList.SelectMany(target =>
-                        target.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine
+                        target.State == LocalComp.LocalCompFile.LocalFileStatus.Fine
                             ? new[] { target.path, target.path + ".disabled" }
                             : new[] { target.path, target.RawPath })
                     .Distinct()
                     .Where(File.Exists)
-                    .Select(path => new ModLocalComp.LocalCompFile(path))
+                    .Select(path => new LocalComp.LocalCompFile(path))
                     .ToList();
             }
             catch (Exception ex)
@@ -558,21 +558,21 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
             }
             catch (OperationCanceledException ex)
             {
-                ModBase.Log(ex, "删除数据包被主动取消");
+                Common.Log(ex, "删除数据包被主动取消");
                 return new DatapackDeleteOutcome(deleted, isSuccessful, true, null);
             }
             catch (Exception ex)
             {
-                ModBase.Log(
+                Common.Log(
                     ex,
                     $"删除数据包失败（{datapackEntity.path}）",
-                    ModBase.LogLevel.Msgbox,
+                    Common.LogLevel.Msgbox,
                     userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
                 isSuccessful = false;
             }
 
             SelectedDatapacks.Remove(datapackEntity.RawPath);
-            ModLocalComp.compResourceListLoader.output.Remove(datapackEntity);
+            LocalComp.CompResourceListLoader.output.Remove(datapackEntity);
             _searchResult?.Remove(datapackEntity);
             deleted.Add(datapackEntity);
         }
@@ -580,15 +580,15 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
         return new DatapackDeleteOutcome(deleted, isSuccessful, false, null);
     }
 
-    public async Task<bool> UpdateAsync(IEnumerable<ModLocalComp.LocalCompFile> datapackList)
+    public async Task<bool> UpdateAsync(IEnumerable<LocalComp.LocalCompFile> datapackList)
     {
         try
         {
             var list = datapackList.ToList();
             var fileList = new List<DownloadFile>();
             var fileCopyList = new Dictionary<string, string>();
-            var updateEntryList = new List<ModLocalComp.LocalCompFile>();
-            var tempRoot = Path.Combine(ModBase.pathTemp, "DownloadedComp");
+            var updateEntryList = new List<LocalComp.LocalCompFile>();
+            var tempRoot = Path.Combine(Common.pathTemp, "DownloadedComp");
             var datapackRoot = GetDatapackFolderPath();
             var skippedUnsafeFileCount = 0;
             foreach (var Entry in list)
@@ -601,11 +601,11 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                     !TryBuildDatapackUpdatePath(datapackRoot, safeFileName, out var realAddress))
                 {
                     skippedUnsafeFileCount++;
-                    ModBase.Log($"[DatapackUpdate] 已跳过不安全的数据包更新文件名：{file.FileName}", ModBase.LogLevel.Debug);
+                    Common.Log($"[DatapackUpdate] 已跳过不安全的数据包更新文件名：{file.FileName}", Common.LogLevel.Debug);
                     continue;
                 }
 
-                fileList.Add(file.ToNetFile(tempAddress, ModComp.DownloadReason.Update,
+                fileList.Add(file.ToNetFile(tempAddress, Comp.DownloadReason.Update,
                     file.RawGameVersions.FirstOrDefault()));
                 fileCopyList[tempAddress] = realAddress;
                 updateEntryList.Add(Entry);
@@ -618,13 +618,13 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
             if (!fileList.Any())
                 return false;
 
-            var installLoaders = new List<ModLoader.LoaderBase>();
+            var installLoaders = new List<Loading.LoaderBase>();
             var finishedFileNames = new List<string>();
             installLoaders.Add(
                 new LoaderDownload(Lang.Text("Instance.Saves.Datapack.Update.Task.DownloadFiles"), fileList)
                     { ProgressWeight = updateEntryList.Count * 1.5d });
 
-            installLoaders.Add(new ModLoader.LoaderTask<int, int>(
+            installLoaders.Add(new Loading.LoaderTask<int, int>(
                 Lang.Text("Instance.Saves.Datapack.Update.Task.ReplaceFiles"), _ =>
                 {
                     try
@@ -634,8 +634,8 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                                 Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(Entry.path, UIOption.AllDialogs,
                                     RecycleOption.SendToRecycleBin);
                             else
-                                ModBase.Log($"[DatapackUpdate] 未找到更新前的数据包文件，跳过对它的删除：{Entry.path}",
-                                    ModBase.LogLevel.Debug);
+                                Common.Log($"[DatapackUpdate] 未找到更新前的数据包文件，跳过对它的删除：{Entry.path}",
+                                    Common.LogLevel.Debug);
 
                         foreach (var Entry in fileCopyList)
                         {
@@ -643,43 +643,43 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                             {
                                 Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(Entry.Value, UIOption.AllDialogs,
                                     RecycleOption.SendToRecycleBin);
-                                ModBase.Log($"[Datapack] 更新后的数据包文件已存在，将会把它放入回收站：{Entry.Value}",
-                                    ModBase.LogLevel.Debug);
+                                Common.Log($"[Datapack] 更新后的数据包文件已存在，将会把它放入回收站：{Entry.Value}",
+                                    Common.LogLevel.Debug);
                             }
 
-                            if (Directory.Exists(ModBase.GetPathFromFullPath(Entry.Value)))
+                            if (Directory.Exists(Common.GetPathFromFullPath(Entry.Value)))
                             {
                                 File.Move(Entry.Key, Entry.Value);
-                                finishedFileNames.Add(ModBase.GetFileNameFromPath(Entry.Value));
+                                finishedFileNames.Add(Common.GetFileNameFromPath(Entry.Value));
                             }
                             else
                             {
-                                ModBase.Log($"[Datapack] 更新后的目标文件夹已被删除：{Entry.Value}", ModBase.LogLevel.Debug);
+                                Common.Log($"[Datapack] 更新后的目标文件夹已被删除：{Entry.Value}", Common.LogLevel.Debug);
                             }
                         }
                     }
                     catch (OperationCanceledException ex)
                     {
-                        ModBase.Log(ex, "替换旧版数据包文件时被主动取消");
+                        Common.Log(ex, "替换旧版数据包文件时被主动取消");
                     }
                 }));
 
-            var loader = new ModLoader.LoaderCombo<IEnumerable<ModLocalComp.LocalCompFile>>(
+            var loader = new Loading.LoaderCombo<IEnumerable<LocalComp.LocalCompFile>>(
                 Lang.Text("Instance.Saves.Datapack.Update.Task.Title",
-                    ModBase.GetFolderNameFromPath(PageInstanceSavesLeft.currentSave)), installLoaders);
+                    Common.GetFolderNameFromPath(PageInstanceSavesLeft.currentSave)), installLoaders);
             var pathDatapacks = GetDatapackFolderPath();
 
             loader.OnStateChanged = _ =>
             {
                 switch (loader.State)
                 {
-                    case ModBase.LoadState.Finished:
+                    case Common.LoadState.Finished:
                     {
                         switch (finishedFileNames.Count)
                         {
                             case 0:
                             {
-                                ModBase.Log("[DatapackUpdate] 没有数据包被成功更新");
+                                Common.Log("[DatapackUpdate] 没有数据包被成功更新");
                                 break;
                             }
                             case 1:
@@ -701,13 +701,13 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
 
                         break;
                     }
-                    case ModBase.LoadState.Failed:
+                    case Common.LoadState.Failed:
                     {
                         HintService.Hint(Lang.Text("Instance.Resource.Update.Failed", loader.Error.Message),
                             HintType.Error);
                         break;
                     }
-                    case ModBase.LoadState.Aborted:
+                    case Common.LoadState.Aborted:
                     {
                         HintService.Hint(Lang.Text("Instance.Resource.Update.Aborted"));
                         break;
@@ -719,10 +719,10 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                     }
                 }
 
-                ModBase.Log($"[DatapackUpdate] 已从正在进行数据包更新的文件夹列表移除：{pathDatapacks}");
+                Common.Log($"[DatapackUpdate] 已从正在进行数据包更新的文件夹列表移除：{pathDatapacks}");
                 UpdatingVersions.Remove(pathDatapacks);
 
-                ModBase.RunInNewThread(() =>
+                Common.RunInNewThread(() =>
                 {
                     try
                     {
@@ -732,22 +732,22 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, "清理数据包更新缓存失败");
+                        Common.Log(ex, "清理数据包更新缓存失败");
                     }
                 }, "Clean Datapack Update Cache", ThreadPriority.BelowNormal);
             };
 
-            ModBase.Log($"[DatapackUpdate] 开始更新 {list.Count()} 个数据包：{pathDatapacks}");
+            Common.Log($"[DatapackUpdate] 开始更新 {list.Count()} 个数据包：{pathDatapacks}");
             UpdatingVersions.Add(pathDatapacks);
             loader.Start();
-            ModLoader.LoaderTaskbarAdd(loader);
-            ModMain.frmMain.BtnExtraDownload.ShowRefresh();
-            ModMain.frmMain.BtnExtraDownload.Ribble();
+            Loading.LoaderTaskbarAdd(loader);
+            Launcher.frmMain.BtnExtraDownload.ShowRefresh();
+            Launcher.frmMain.BtnExtraDownload.Ribble();
             return true;
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "初始化数据包更新失败");
+            Common.Log(ex, "初始化数据包更新失败");
             return false;
         }
     }
@@ -757,15 +757,15 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
         var exportContent = new List<string>();
         if (!isCsv)
         {
-            foreach (var datapackEntity in ModLocalComp.compResourceListLoader.output)
+            foreach (var datapackEntity in LocalComp.CompResourceListLoader.output)
                 exportContent.Add(datapackEntity.FileName);
             return string.Join("\r\n", exportContent);
         }
 
         exportContent.Add("文件名,数据包名称,数据包版本,此版本更新时间,工程 ID,文件大小（字节）,文件路径");
-        foreach (var datapackEntity in ModLocalComp.compResourceListLoader.output)
+        foreach (var datapackEntity in LocalComp.CompResourceListLoader.output)
             exportContent.Add(
-                $"{datapackEntity.FileName},{datapackEntity.Comp?.TranslatedName},{datapackEntity.Version},{datapackEntity.compFile?.ReleaseDate},{datapackEntity.Comp?.Id},{GetDatapackFileInfo(datapackEntity.path).Length},{datapackEntity.path}");
+                $"{datapackEntity.FileName},{datapackEntity.Comp?.TranslatedName},{datapackEntity.Version},{datapackEntity.CompFile?.ReleaseDate},{datapackEntity.Comp?.Id},{GetDatapackFileInfo(datapackEntity.path).Length},{datapackEntity.path}");
         return string.Join("\r\n", exportContent);
     }
 
@@ -774,7 +774,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
         await RunAsync(ct => Task.Run(() => File.WriteAllText(savePath, content, Encoding.UTF8), ct));
     }
 
-    private static bool TryGetSafeDatapackUpdateFileName(ModComp.CompFile file, out string fileName)
+    private static bool TryGetSafeDatapackUpdateFileName(Comp.CompFile file, out string fileName)
     {
         fileName = file.FileName?.Trim() ?? "";
         if (string.IsNullOrEmpty(fileName))

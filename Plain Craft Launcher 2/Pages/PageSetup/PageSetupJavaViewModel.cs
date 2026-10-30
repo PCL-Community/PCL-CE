@@ -64,7 +64,7 @@ public class PageSetupJavaViewModel : ViewModelBase
     {
         try
         {
-            var target = ModJava.Javas.AddOrGet(entry.Installation.JavaExePath);
+            var target = JavaRuntime.Javas.AddOrGet(entry.Installation.JavaExePath);
             if (target is null)
             {
                 HintService.Hint(Lang.Text("Setup.Java.Unavailable"));
@@ -78,15 +78,15 @@ public class PageSetupJavaViewModel : ViewModelBase
             }
 
             target.IsEnabled = !target.IsEnabled;
-            ModJava.Javas.SaveConfig();
+            JavaRuntime.Javas.SaveConfig();
             return target.IsEnabled;
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 Lang.Text("Setup.Java.EnableFailed"),
-                ModBase.LogLevel.Hint,
+                Common.LogLevel.Hint,
                 userSummary: Lang.Text("Setup.Java.EnableFailed"));
             return null;
         }
@@ -105,9 +105,9 @@ public class PageSetupJavaViewModel : ViewModelBase
     {
         await RunAsync(ct => Task.Run(() =>
         {
-            ModJava.Javas.AddOrGet(javaExePath);
-            ModJava.Javas.SaveConfig();
+            JavaRuntime.Javas.AddOrGet(javaExePath);
+            JavaRuntime.Javas.SaveConfig();
         }, ct));
-        return ModJava.Javas.Exist(javaExePath);
+        return JavaRuntime.Javas.Exist(javaExePath);
     }
 }

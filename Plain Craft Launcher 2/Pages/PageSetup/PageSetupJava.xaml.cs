@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -15,12 +15,12 @@ public partial class PageSetupJava : IPageView
     private bool _refreshed;
     private bool _scanning;
 
-    public ModLoader.LoaderTask<bool, List<JavaEntry>> loader;
+    public Loading.LoaderTask<bool, List<JavaEntry>> loader;
 
     public PageSetupJava()
     {
         InitializeComponent();
-        loader = new ModLoader.LoaderTask<bool, List<JavaEntry>>("JavaPageLoader", Load_GetJavaList);
+        loader = new Loading.LoaderTask<bool, List<JavaEntry>>("JavaPageLoader", Load_GetJavaList);
         Loaded += PageSetupLaunch_Loaded;
         Unloaded += PageSetupLaunch_Unloaded;
     }
@@ -50,7 +50,7 @@ public partial class PageSetupJava : IPageView
         return false;
     }
 
-    private void Load_GetJavaList(ModLoader.LoaderTask<bool, List<JavaEntry>> task)
+    private void Load_GetJavaList(Loading.LoaderTask<bool, List<JavaEntry>> task)
     {
         if ((task.input || task.isForceRestarting) && !_scanning)
         {
@@ -58,7 +58,7 @@ public partial class PageSetupJava : IPageView
             _ = ScanThenRefreshAsync();
         }
 
-        task.output = ModJava.Javas.GetSortedJavaList();
+        task.output = JavaRuntime.Javas.GetSortedJavaList();
     }
 
     private async Task ScanThenRefreshAsync()
@@ -66,7 +66,7 @@ public partial class PageSetupJava : IPageView
         try
         {
             await _vm.ScanJavaAsync();
-            ModBase.RunInUi(OnLoadFinished);
+            Common.RunInUi(OnLoadFinished);
         }
         finally
         {
@@ -86,7 +86,7 @@ public partial class PageSetupJava : IPageView
         itemAuto.Check += (sender, e) => Config.Launch.SelectedJava = "";
         PanContent.Children.Add(itemAuto);
         var currentSetJava = Config.Launch.SelectedJava;
-        foreach (var entry in ModJava.Javas.GetSortedJavaList())
+        foreach (var entry in JavaRuntime.Javas.GetSortedJavaList())
         {
             var item = ItemBuild(entry);
             PanContent.Children.Add(item);
@@ -100,7 +100,7 @@ public partial class PageSetupJava : IPageView
 
     protected override void RefreshLocalization()
     {
-        if (loader.State == ModBase.LoadState.Finished)
+        if (loader.State == Common.LoadState.Finished)
         {
             var savedOffset = PanBack.VerticalOffset;
             OnLoadFinished();
@@ -129,7 +129,7 @@ public partial class PageSetupJava : IPageView
             if (!PageSetupJavaViewModel.EnsureAvailable(j))
                 return;
 
-            ModBase.OpenExplorer(j.Installation.JavaFolder);
+            Common.OpenExplorer(j.Installation.JavaFolder);
         };
         var btnInfo = new MyIconButton();
         btnInfo.SvgIcon = "lucide/info";
@@ -144,16 +144,16 @@ public partial class PageSetupJava : IPageView
                 if (!PageSetupJavaViewModel.EnsureAvailable(j))
                     return;
 
-                await ModMain.MyMsgBoxAsync(
+                await Launcher.MyMsgBoxAsync(
                     PageSetupJavaViewModel.BuildInfoMessage(j),
                     Lang.Text("Setup.Java.Info.Title"));
             }
             catch (Exception ex)
             {
-                ModBase.Log(
+                Common.Log(
                     ex,
                     Lang.Text("Setup.Error.OperationFailed"),
-                    ModBase.LogLevel.Feedback,
+                    Common.LogLevel.Feedback,
                     userSummary: Lang.Text("Setup.Error.OperationFailed"));
             }
             finally
@@ -201,7 +201,7 @@ public partial class PageSetupJava : IPageView
         return item;
     }
 
-    private async void BtnAdd_Click(object sender, ModBase.RouteEventArgs e)
+    private async void BtnAdd_Click(object sender, Common.RouteEventArgs e)
     {
         var control = sender as Control;
         if (control is not null)
@@ -212,7 +212,7 @@ public partial class PageSetupJava : IPageView
                 Lang.Text("Setup.Java.SelectFile.Title"));
             if (string.IsNullOrEmpty(ret) || !File.Exists(ret))
                 return;
-            if (ModJava.Javas.Exist(ret))
+            if (JavaRuntime.Javas.Exist(ret))
             {
                 HintService.Hint(Lang.Text("Setup.Java.AlreadyExists"));
                 return;
@@ -230,10 +230,10 @@ public partial class PageSetupJava : IPageView
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 Lang.Text("Setup.Java.AddFailed"),
-                ModBase.LogLevel.Hint,
+                Common.LogLevel.Hint,
                 userSummary: Lang.Text("Setup.Java.AddFailed"));
         }
         finally

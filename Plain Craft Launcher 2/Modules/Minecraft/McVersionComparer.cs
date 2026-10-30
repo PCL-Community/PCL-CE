@@ -61,7 +61,10 @@ public static class McVersionComparer
             var leftValue = lefts.Count - 1 < i ? "0" : lefts[i];
             var rightValue = rights.Count - 1 < i ? "0" : rights[i];
             if ((leftValue ?? "") == (rightValue ?? ""))
-                goto NextEntry;
+            {
+                i += 1;
+                continue;
+            }
             if (leftValue == "rc")
                 leftValue = (-1).ToString();
             if (leftValue == "pre")
@@ -70,7 +73,7 @@ public static class McVersionComparer
                 leftValue = (-3).ToString();
             if (leftValue == "experimental")
                 leftValue = (-4).ToString();
-            var leftValValue = ModBase.Val(leftValue);
+            var leftValValue = Common.Val(leftValue);
             if (rightValue == "rc")
                 rightValue = (-1).ToString();
             if (rightValue == "pre")
@@ -79,7 +82,7 @@ public static class McVersionComparer
                 rightValue = (-3).ToString();
             if (rightValue == "experimental")
                 rightValue = (-4).ToString();
-            var rightValValue = ModBase.Val(rightValue);
+            var rightValValue = Common.Val(rightValue);
             if (leftValValue == 0d && rightValValue == 0d)
             {
                 // 如果没有数值则直接比较字符串
@@ -97,8 +100,6 @@ public static class McVersionComparer
             {
                 return -1;
             }
-
-            NextEntry: ;
 
             i += 1;
         }

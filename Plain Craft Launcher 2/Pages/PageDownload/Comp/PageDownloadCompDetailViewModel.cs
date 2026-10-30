@@ -21,7 +21,7 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
 
     [ObservableProperty] private bool _isFavorite;
 
-    public void ApplyProjectState(ModComp.CompProject project)
+    public void ApplyProjectState(Comp.CompProject project)
     {
         IntroWebText = project.FromCurseForge ? "CurseForge" : "Modrinth";
         IntroWikiVisibility = Lang.IsChineseMainland && project.WikiId != 0
@@ -39,17 +39,17 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
 
     public void RefreshFavorite(string projectId)
     {
-        IsFavorite = ModComp.CompFavorites.IsFavourite(projectId);
+        IsFavorite = Comp.CompFavorites.IsFavourite(projectId);
     }
 
     // 筛选类型相同的结果（Modrinth 会返回 Mod、服务端插件、数据包混合的列表）
-    public static List<ModComp.CompFile> FilterResults(List<ModComp.CompFile> results, ModComp.CompType pageType)
+    public static List<Comp.CompFile> FilterResults(List<Comp.CompFile> results, Comp.CompType pageType)
     {
-        if (pageType == ModComp.CompType.Any)
+        if (pageType == Comp.CompType.Any)
         {
-            results = results.Where(r => r.Type != ModComp.CompType.Plugin).ToList();
+            results = results.Where(r => r.Type != Comp.CompType.Plugin).ToList();
         }
-        else if (pageType == ModComp.CompType.Shader || pageType == ModComp.CompType.ResourcePack)
+        else if (pageType == Comp.CompType.Shader || pageType == Comp.CompType.ResourcePack)
         {
         }
         // 不筛选光影和资源包，否则原版光影会因为是资源包格式而被过滤（Meloong-Git/#6473）

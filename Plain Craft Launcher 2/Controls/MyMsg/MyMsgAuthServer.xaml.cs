@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
@@ -8,16 +6,15 @@ using PCL.Core.App.Localization;
 using PCL.Core.UI.Controls;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
-using PCL.Core.Utils.Validate;
 
 namespace PCL;
 
 public partial class MyMsgAuthServer
 {
-    private readonly ModMain.MyMsgBoxConverter _converter;
-    private readonly int _uuid = ModBase.GetUuid();
+    private readonly Launcher.MyMsgBoxConverter _converter;
+    private readonly int _uuid = Common.GetUuid();
 
-    public MyMsgAuthServer(ModMain.MyMsgBoxConverter converter)
+    public MyMsgAuthServer(Launcher.MyMsgBoxConverter converter)
     {
         InitializeComponent();
         _converter = converter;
@@ -39,7 +36,7 @@ public partial class MyMsgAuthServer
                 }));
             }
         };
-        ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
+        ShapeLine.StrokeThickness = Common.GetWpfSize(1d);
         LabTitle.MouseLeftButtonDown += Drag;
         PanBorder.MouseLeftButtonDown += Drag;
         Loaded += Load;
@@ -48,16 +45,18 @@ public partial class MyMsgAuthServer
     private void Load(object sender, EventArgs e)
     {
         Opacity = 0d;
-        ModAnimation.AniStart(
+        Animations.AniStart(
             new[]
         {
-            ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
-                new ModBase.MyColor(90d, 0d, 0d, 0d) - ModMain.frmMain.PanMsgBackground.Background, 200),
-            ModAnimation.AaOpacity(this, 1d, 120, 60),
-            ModAnimation.AaDouble(i => TransformPos.Y += (double)i, -TransformPos.Y, 300, 60,
-                new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
-            ModAnimation.AaDouble(i => TransformRotate.Angle += (double)i, -TransformRotate.Angle, 300, 60,
-                new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
+            Animations.AaColor(Launcher.frmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
+                new Common.MyColor(90d, 0d, 0d, 0d) -
+                Launcher.frmMain.PanMsgBackground.Background, 200),
+            Animations.AaOpacity(this, 1d, 120, 60),
+            Animations.AaDouble(i => TransformPos.Y += (double)i, -TransformPos.Y, 300, 60,
+                new Animations.AniEaseOutBack(Animations.AniEasePower.Weak)),
+            Animations.AaDouble(i => TransformRotate.Angle += (double)i, -TransformRotate.Angle,
+                300, 60,
+                new Animations.AniEaseOutFluent(Animations.AniEasePower.Weak))
         }, "MyMsgBox " + _uuid);
     }
 
@@ -87,23 +86,24 @@ public partial class MyMsgAuthServer
         _converter.WaitFrame.Continue = false;
         _converter.CompletionObject.TrySetResult(_converter.Result);
         ComponentDispatcher.PopModal();
-        ModAnimation.AniStart(new[]
+        Animations.AniStart(new[]
         {
-            ModAnimation.AaCode(() =>
+            Animations.AaCode(() =>
             {
-                if (!ModMain.WaitingMyMsgBox.Any())
-                    ModAnimation.AniStart(ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground,
+                if (!Launcher.WaitingMyMsgBox.Any())
+                    Animations.AniStart(Animations.AaColor(Launcher.frmMain.PanMsgBackground,
                         BlurBorder.BackgroundProperty,
-                        new ModBase.MyColor(0d, 0d, 0d, 0d) - ModMain.frmMain.PanMsgBackground.Background, 200,
-                        ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
+                        new Common.MyColor(0d, 0d, 0d, 0d) -
+                        Launcher.frmMain.PanMsgBackground.Background, 200,
+                        ease: new Animations.AniEaseOutFluent(Animations.AniEasePower.Weak)));
             }, 30),
-            ModAnimation.AaOpacity(this, -Opacity, 80, 20),
-            ModAnimation.AaDouble(i => TransformPos.Y += (double)i, 20d - TransformPos.Y,
-                150, 0, new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaDouble(i => TransformRotate.Angle += (double)i,
+            Animations.AaOpacity(this, -Opacity, 80, 20),
+            Animations.AaDouble(i => TransformPos.Y += (double)i, 20d - TransformPos.Y,
+                150, 0, new Animations.AniEaseOutFluent()),
+            Animations.AaDouble(i => TransformRotate.Angle += (double)i,
                 6d - TransformRotate.Angle, 150, 0,
-                new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
-            ModAnimation.AaCode(() => ((Grid)Parent).Children.Remove(this), after: true)
+                new Animations.AniEaseInFluent(Animations.AniEasePower.Weak)),
+            Animations.AaCode(() => ((Grid)Parent).Children.Remove(this), after: true)
         }, "MyMsgBox " + _uuid);
     }
 
@@ -112,11 +112,11 @@ public partial class MyMsgAuthServer
         try
         {
             if (e.LeftButton == MouseButtonState.Pressed && e.GetPosition(ShapeLine).Y <= 2d)
-                ModMain.frmMain.DragMove();
+                Launcher.frmMain.DragMove();
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "拖拽移动失败", ModBase.LogLevel.Hint,
+            Common.Log(ex, "拖拽移动失败", Common.LogLevel.Hint,
                 userSummary: Lang.Text("Application.Control.MessageBox.Error.OperationFailed"));
         }
     }

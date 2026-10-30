@@ -48,29 +48,29 @@ public partial class PageSetupLeft : IPageView
         if (isPageSwitched)
             return;
         var hideCfg = Config.Preference.Hide;
-        if (!hideCfg.SetupLaunch) 
+        if (!hideCfg.SetupLaunch)
             ItemLaunch.SetChecked(true, false, false);
-        else if (!hideCfg.SetupJava) 
-            ItemJava.SetChecked(true, false, false);    
-        else if (!hideCfg.SetupGameManage) 
+        else if (!hideCfg.SetupJava)
+            ItemJava.SetChecked(true, false, false);
+        else if (!hideCfg.SetupGameManage)
             ItemGameManage.SetChecked(true, false, false);
-        else if (!hideCfg.SetupGameLink) 
-            ItemGameLink.SetChecked(true, false, false);    
-        else if (!hideCfg.SetupUi) 
+        else if (!hideCfg.SetupGameLink)
+            ItemGameLink.SetChecked(true, false, false);
+        else if (!hideCfg.SetupUi)
             ItemUI.SetChecked(true, false, false);
         else if (!hideCfg.SetupLauncherLanguage)
             ItemLauncherLanguage.SetChecked(true, false, false);
-        else if (!hideCfg.SetupLauncherMisc) 
+        else if (!hideCfg.SetupLauncherMisc)
             ItemLauncherMisc.SetChecked(true, false, false);
-        else if (!hideCfg.SetupAbout) 
-            ItemAbout.SetChecked(true, false, false);   
-        else if (!hideCfg.SetupUpdate) 
+        else if (!hideCfg.SetupAbout)
+            ItemAbout.SetChecked(true, false, false);
+        else if (!hideCfg.SetupUpdate)
             ItemUpdate.SetChecked(true, false, false);
-        else if (!hideCfg.SetupFeedback) 
+        else if (!hideCfg.SetupFeedback)
             ItemFeedback.SetChecked(true, false, false);
-        else if (!hideCfg.SetupLog) 
+        else if (!hideCfg.SetupLog)
             ItemLog.SetChecked(true, false, false);
-        else 
+        else
             ItemLaunch.SetChecked(true, false, false);
     }
 
@@ -87,58 +87,58 @@ public partial class PageSetupLeft : IPageView
         var aniHeld = false;
         try
         {
-            var id = (FormMain.PageSubType)ModBase.Val(((MyIconButton)sender).Tag);
+            var id = (FormMain.PageSubType)Common.Val(((MyIconButton)sender).Tag);
             if (!await _vm.ConfirmResetAsync(id))
                 return;
-            ModAnimation.AniBeginControl();
+            Animations.AniBeginControl();
             aniHeld = true;
             switch (id)
             {
                 case FormMain.PageSubType.SetupLaunch:
                 {
-                    if (ModMain.frmSetupLaunch is null)
-                        ModMain.frmSetupLaunch = new PageSetupLaunch();
-                    ModMain.frmSetupLaunch.Reset();
+                    if (Launcher.frmSetupLaunch is null)
+                        Launcher.frmSetupLaunch = new PageSetupLaunch();
+                    Launcher.frmSetupLaunch.Reset();
                     ItemLaunch.Checked = true;
                     break;
                 }
                 case FormMain.PageSubType.SetupUI:
                 {
-                    if (ModMain.frmSetupUI is null)
-                        ModMain.frmSetupUI = new PageSetupUI();
-                    ModMain.frmSetupUI.Reset();
+                    if (Launcher.frmSetupUi is null)
+                        Launcher.frmSetupUi = new PageSetupUI();
+                    Launcher.frmSetupUi.Reset();
                     ItemUI.Checked = true;
                     break;
                 }
                 case FormMain.PageSubType.SetupGameManage:
                 {
-                    if (ModMain.frmSetupGameManage is null)
-                        ModMain.frmSetupGameManage = new PageSetupGameManage();
-                    ModMain.frmSetupGameManage.Reset();
+                    if (Launcher.frmSetupGameManage is null)
+                        Launcher.frmSetupGameManage = new PageSetupGameManage();
+                    Launcher.frmSetupGameManage.Reset();
                     ItemGameManage.Checked = true;
                     break;
                 }
                 case FormMain.PageSubType.SetupGameLink:
                 {
-                    if (ModMain.frmSetupGameLink is null)
-                        ModMain.frmSetupGameLink = new PageSetupGameLink();
-                    ModMain.frmSetupGameLink.Reset();
+                    if (Launcher.frmSetupGameLink is null)
+                        Launcher.frmSetupGameLink = new PageSetupGameLink();
+                    Launcher.frmSetupGameLink.Reset();
                     ItemGameLink.Checked = true;
                     break;
                 }
                 case FormMain.PageSubType.SetupLauncherLanguage:
                 {
-                    if (ModMain.frmSetupLauncherLanguage is null)
-                        ModMain.frmSetupLauncherLanguage = new PageSetupLauncherLanguage();
-                    ModMain.frmSetupLauncherLanguage.Reset();
+                    if (Launcher.frmSetupLauncherLanguage is null)
+                        Launcher.frmSetupLauncherLanguage = new PageSetupLauncherLanguage();
+                    Launcher.frmSetupLauncherLanguage.Reset();
                     ItemLauncherLanguage.Checked = true;
                     break;
                 }
                 case FormMain.PageSubType.SetupLauncherMisc:
                 {
-                    if (ModMain.frmSetupLauncherMisc is null)
-                        ModMain.frmSetupLauncherMisc = new PageSetupLauncherMisc();
-                    ModMain.frmSetupLauncherMisc.Reset();
+                    if (Launcher.frmSetupLauncherMisc is null)
+                        Launcher.frmSetupLauncherMisc = new PageSetupLauncherMisc();
+                    Launcher.frmSetupLauncherMisc.Reset();
                     ItemLauncherMisc.Checked = true;
                     break;
                 }
@@ -146,13 +146,13 @@ public partial class PageSetupLeft : IPageView
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "重置设置子页面失败", ModBase.LogLevel.Feedback,
+            Common.Log(ex, "重置设置子页面失败", Common.LogLevel.Feedback,
                 userSummary: Lang.Text("Setup.Error.OperationFailed"));
         }
         finally
         {
             if (aniHeld)
-                ModAnimation.AniEndControl();
+                Animations.AniEndControl();
             if (ctl is not null)
                 ctl.IsEnabled = true;
         }
@@ -160,21 +160,21 @@ public partial class PageSetupLeft : IPageView
 
     public static void TryFeedback() // Handles ItemFeedback.Click
     {
-        ModBase.RunInNewThread(() =>
+        Common.RunInNewThread(() =>
         {
-            if (!ModBase.CanFeedback(true))
+            if (!Common.CanFeedback(true))
                 return;
-            switch (ModMain.MyMsgBox(Lang.Text("Setup.Left.Feedback.Message"), Lang.Text("Setup.Left.Feedback.Title"),
+            switch (Launcher.MyMsgBox(Lang.Text("Setup.Left.Feedback.Message"), Lang.Text("Setup.Left.Feedback.Title"),
                         Lang.Text("Setup.Left.Feedback.SubmitNew"), Lang.Text("Setup.Left.Feedback.ViewList"), Lang.Text("Common.Action.Cancel")))
             {
                 case 1:
                 {
-                    ModBase.Feedback();
+                    Common.Feedback();
                     break;
                 }
                 case 2:
                 {
-                    ModBase.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/issues/");
+                    Common.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/issues/");
                     break;
                 }
             }
@@ -183,17 +183,17 @@ public partial class PageSetupLeft : IPageView
 
     public void Refresh(object sender, EventArgs e) // 由边栏按钮匿名调用
     {
-        switch (ModBase.Val(((MyIconButton)sender).Tag))
+        switch (Common.Val(((MyIconButton)sender).Tag))
         {
             case (double)FormMain.PageSubType.SetupFeedback:
             {
-                if (ModMain.frmSetupFeedback is not null) ModMain.frmSetupFeedback.Loader.Start(isForceRestart: true);
+                if (Launcher.frmSetupFeedback is not null) Launcher.frmSetupFeedback.Loader.Start(isForceRestart: true);
                 ItemFeedback.Checked = true;
                 break;
             }
             case (double)FormMain.PageSubType.SetupJava:
             {
-                if (ModMain.frmSetupJava is not null) ModMain.frmSetupJava.loader.Start(isForceRestart: true);
+                if (Launcher.frmSetupJava is not null) Launcher.frmSetupJava.loader.Start(isForceRestart: true);
                 ItemJava.Checked = true;
                 break;
             }
@@ -224,13 +224,13 @@ public partial class PageSetupLeft : IPageView
     /// <summary>
     /// 勾选事件改变页面。
     /// </summary>
-    private void PageCheck(object senderRaw, ModBase.RouteEventArgs e)
+    private void PageCheck(object senderRaw, Common.RouteEventArgs e)
     {
         var sender = (MyListItem)senderRaw;
         // 尚未初始化控件属性时，sender.Tag 为 Nothing，会跳过切换，且由于 PageID 默认为 0 而切换到第一个页面
         // 若使用 IsLoaded，则会导致模拟点击不被执行（模拟点击切换页面时，控件的 IsLoaded 为 False）
         if (sender.Tag is not null)
-            PageChange((FormMain.PageSubType)ModBase.Val(sender.Tag));
+            PageChange((FormMain.PageSubType)Common.Val(sender.Tag));
     }
 
     /// <summary>
@@ -243,69 +243,69 @@ public partial class PageSetupLeft : IPageView
         {
             case FormMain.PageSubType.SetupLaunch:
             {
-                if (ModMain.frmSetupLaunch is null)
-                    ModMain.frmSetupLaunch = new PageSetupLaunch();
-                return ModMain.frmSetupLaunch;
+                if (Launcher.frmSetupLaunch is null)
+                    Launcher.frmSetupLaunch = new PageSetupLaunch();
+                return Launcher.frmSetupLaunch;
             }
             case FormMain.PageSubType.SetupUI:
             {
-                if (ModMain.frmSetupUI is null)
-                    ModMain.frmSetupUI = new PageSetupUI();
-                return ModMain.frmSetupUI;
+                if (Launcher.frmSetupUi is null)
+                    Launcher.frmSetupUi = new PageSetupUI();
+                return Launcher.frmSetupUi;
             }
             case FormMain.PageSubType.SetupGameManage:
             {
-                if (ModMain.frmSetupGameManage is null)
-                    ModMain.frmSetupGameManage = new PageSetupGameManage();
-                return ModMain.frmSetupGameManage;
+                if (Launcher.frmSetupGameManage is null)
+                    Launcher.frmSetupGameManage = new PageSetupGameManage();
+                return Launcher.frmSetupGameManage;
             }
             case FormMain.PageSubType.SetupUpdate:
             {
-                if (ModMain.frmSetupUpdate is null)
-                    ModMain.frmSetupUpdate = new PageSetupUpdate();
-                return ModMain.frmSetupUpdate;
+                if (Launcher.frmSetupUpdate is null)
+                    Launcher.frmSetupUpdate = new PageSetupUpdate();
+                return Launcher.frmSetupUpdate;
             }
             case FormMain.PageSubType.SetupAbout:
             {
-                if (ModMain.frmSetupAbout is null)
-                    ModMain.frmSetupAbout = new PageSetupAbout();
-                return ModMain.frmSetupAbout;
+                if (Launcher.frmSetupAbout is null)
+                    Launcher.frmSetupAbout = new PageSetupAbout();
+                return Launcher.frmSetupAbout;
             }
             case FormMain.PageSubType.SetupLog:
             {
-                if (ModMain.frmSetupLog is null)
-                    ModMain.frmSetupLog = new PageSetupLog();
-                return ModMain.frmSetupLog;
+                if (Launcher.frmSetupLog is null)
+                    Launcher.frmSetupLog = new PageSetupLog();
+                return Launcher.frmSetupLog;
             }
             case FormMain.PageSubType.SetupFeedback:
             {
-                if (ModMain.frmSetupFeedback is null)
-                    ModMain.frmSetupFeedback = new PageSetupFeedback();
-                return ModMain.frmSetupFeedback;
+                if (Launcher.frmSetupFeedback is null)
+                    Launcher.frmSetupFeedback = new PageSetupFeedback();
+                return Launcher.frmSetupFeedback;
             }
             case FormMain.PageSubType.SetupGameLink:
             {
-                if (ModMain.frmSetupGameLink is null)
-                    ModMain.frmSetupGameLink = new PageSetupGameLink();
-                return ModMain.frmSetupGameLink;
+                if (Launcher.frmSetupGameLink is null)
+                    Launcher.frmSetupGameLink = new PageSetupGameLink();
+                return Launcher.frmSetupGameLink;
             }
             case FormMain.PageSubType.SetupLauncherLanguage:
             {
-                if (ModMain.frmSetupLauncherLanguage is null)
-                    ModMain.frmSetupLauncherLanguage = new PageSetupLauncherLanguage();
-                return ModMain.frmSetupLauncherLanguage;
+                if (Launcher.frmSetupLauncherLanguage is null)
+                    Launcher.frmSetupLauncherLanguage = new PageSetupLauncherLanguage();
+                return Launcher.frmSetupLauncherLanguage;
             }
             case FormMain.PageSubType.SetupLauncherMisc:
             {
-                if (ModMain.frmSetupLauncherMisc is null)
-                    ModMain.frmSetupLauncherMisc = new PageSetupLauncherMisc();
-                return ModMain.frmSetupLauncherMisc;
+                if (Launcher.frmSetupLauncherMisc is null)
+                    Launcher.frmSetupLauncherMisc = new PageSetupLauncherMisc();
+                return Launcher.frmSetupLauncherMisc;
             }
             case FormMain.PageSubType.SetupJava:
             {
-                if (ModMain.frmSetupJava is null)
-                    ModMain.frmSetupJava = new PageSetupJava();
-                return ModMain.frmSetupJava;
+                if (Launcher.frmSetupJava is null)
+                    Launcher.frmSetupJava = new PageSetupJava();
+                return Launcher.frmSetupJava;
             }
 
             default:
@@ -322,7 +322,7 @@ public partial class PageSetupLeft : IPageView
     {
         if (pageID == id)
             return;
-        ModAnimation.AniBeginControl();
+        Animations.AniBeginControl();
         isPageSwitched = true;
         try
         {
@@ -331,38 +331,38 @@ public partial class PageSetupLeft : IPageView
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 $"切换分页面失败（ID {(int)id}）",
-                ModBase.LogLevel.Feedback,
+                Common.LogLevel.Feedback,
                 userSummary: Lang.Text("Setup.Error.OperationFailed"));
         }
         finally
         {
-            ModAnimation.AniEndControl();
+            Animations.AniEndControl();
         }
     }
 
     private static void PageChangeRun(MyPageRight target)
     {
-        ModAnimation.AniStop("FrmMain PageChangeRight"); // 停止主页面的右页面切换动画，防止它与本动画一起触发多次 PageOnEnter
+        Animations.AniStop("FrmMain PageChangeRight"); // 停止主页面的右页面切换动画，防止它与本动画一起触发多次 PageOnEnter
         if (target.Parent is not null)
             target.SetValue(ContentPresenter.ContentProperty, null);
-        ModMain.frmMain.pageRight = target;
-        ((MyPageRight)ModMain.frmMain.PanMainRight.Child).PageOnExit();
-        ModAnimation.AniStart(new[]
+        Launcher.frmMain.pageRight = target;
+        ((MyPageRight)Launcher.frmMain.PanMainRight.Child).PageOnExit();
+        Animations.AniStart(new[]
         {
-            ModAnimation.AaCode(() =>
+            Animations.AaCode(() =>
             {
-                ((MyPageRight)ModMain.frmMain.PanMainRight.Child).PageOnForceExit();
-                ModMain.frmMain.PanMainRight.Child = ModMain.frmMain.pageRight;
-                ModMain.frmMain.pageRight.Opacity = 0d;
+                ((MyPageRight)Launcher.frmMain.PanMainRight.Child).PageOnForceExit();
+                Launcher.frmMain.PanMainRight.Child = Launcher.frmMain.pageRight;
+                Launcher.frmMain.pageRight.Opacity = 0d;
             }, 130),
-            ModAnimation.AaCode(() =>
+            Animations.AaCode(() =>
             {
                 // 延迟触发页面通用动画，以使得在 Loaded 事件中加载的控件得以处理
-                ModMain.frmMain.pageRight.Opacity = 1d;
-                ModMain.frmMain.pageRight.PageOnEnter();
+                Launcher.frmMain.pageRight.Opacity = 1d;
+                Launcher.frmMain.pageRight.PageOnEnter();
             }, 30, true)
         }, "PageLeft PageChange");
     }

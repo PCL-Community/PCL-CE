@@ -71,7 +71,7 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
 
     public static void OpenVersionFolder(McInstance version)
     {
-        ModBase.OpenExplorer(version.PathInstance);
+        Common.OpenExplorer(version.PathInstance);
     }
 
     public void RefreshDisplay(McInstance instance)

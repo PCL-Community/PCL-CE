@@ -129,7 +129,7 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Instance.Saves.Info.Error.LoadFailed"), ModBase.LogLevel.Msgbox,
+            Common.Log(ex, Lang.Text("Instance.Saves.Info.Error.LoadFailed"), Common.LogLevel.Msgbox,
                 userSummary: Lang.Text("Instance.Saves.Info.Error.LoadFailed"));
             Reset();
             ShowContent = false;
@@ -159,7 +159,7 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, Lang.Text("Instance.Saves.Info.Modify.CheatFailed"), ModBase.LogLevel.Hint,
+                Common.Log(ex, Lang.Text("Instance.Saves.Info.Modify.CheatFailed"), Common.LogLevel.Hint,
                     userSummary: Lang.Text("Instance.Saves.Info.Modify.CheatFailed"));
                 return false;
             }
@@ -194,7 +194,7 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, Lang.Text("Instance.Saves.Info.Modify.DifficultyFailed"), ModBase.LogLevel.Hint,
+                Common.Log(ex, Lang.Text("Instance.Saves.Info.Modify.DifficultyFailed"), Common.LogLevel.Hint,
                     userSummary: Lang.Text("Instance.Saves.Info.Modify.DifficultyFailed"));
                 return false;
             }
@@ -223,15 +223,15 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
         {
             if (versionName is null)
             {
-                ModBase.Log(Lang.Text("Instance.Saves.Info.Chunkbase.UnknownVersion"), ModBase.LogLevel.Hint,
+                Common.Log(Lang.Text("Instance.Saves.Info.Chunkbase.UnknownVersion"), Common.LogLevel.Hint,
                     userSummary: Lang.Text("Instance.Saves.Info.Chunkbase.UnknownVersion"));
                 return;
             }
 
             if (versionName.Any(char.IsLetter))
             {
-                ModBase.Log(Lang.Text("Instance.Saves.Info.Chunkbase.PreviewVersion", versionName),
-                    ModBase.LogLevel.Hint,
+                Common.Log(Lang.Text("Instance.Saves.Info.Chunkbase.PreviewVersion", versionName),
+                    Common.LogLevel.Hint,
                     userSummary: Lang.Text("Instance.Saves.Info.Chunkbase.PreviewVersion", versionName));
                 return;
             }
@@ -241,12 +241,12 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
                 : versionName.Contains('.')
                     ? string.Join("_", versionName.Split('.').Take(2))
                     : versionName.Replace(".", "_");
-            ModBase.OpenWebsite(
+            Common.OpenWebsite(
                 $"https://www.chunkbase.com/apps/seed-map#seed={seed}&platform=java_{usedVersion}&dimension=overworld");
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Instance.Saves.Info.Error.ChunkbaseFailed"), ModBase.LogLevel.Hint,
+            Common.Log(ex, Lang.Text("Instance.Saves.Info.Error.ChunkbaseFailed"), Common.LogLevel.Hint,
                 userSummary: Lang.Text("Instance.Saves.Info.Error.ChunkbaseFailed"));
         }
     }

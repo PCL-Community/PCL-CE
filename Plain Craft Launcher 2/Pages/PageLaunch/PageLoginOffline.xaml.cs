@@ -34,7 +34,7 @@ public partial class PageLoginOffline : IPageView
 
     private void BtnBack_Click(object sender, EventArgs e) => _vm.BackCommand.Execute(null);
 
-    private void RadioUuid_Checked(object sender, ModBase.RouteEventArgs e) => Refresh();
+    private void RadioUuid_Checked(object sender, Common.RouteEventArgs e) => Refresh();
 
     private void BtnLogin_Click(object sender, EventArgs e) => _vm.LoginCommand.Execute(null);
 }

@@ -73,7 +73,7 @@ public partial class PageSetupLog : IPageView
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "加载日志列表失败", ModBase.LogLevel.Feedback,
+            Common.Log(ex, "加载日志列表失败", Common.LogLevel.Feedback,
                 userSummary: Lang.Text("Setup.Error.OperationFailed"));
         }
     }
@@ -95,7 +95,7 @@ public partial class PageSetupLog : IPageView
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "清理日志文件失败", ModBase.LogLevel.Feedback,
+            Common.Log(ex, "清理日志文件失败", Common.LogLevel.Feedback,
                 userSummary: Lang.Text("Setup.Error.OperationFailed"));
         }
         finally
@@ -113,7 +113,7 @@ public partial class PageSetupLog : IPageView
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Setup.Log.ExportFailed"), ModBase.LogLevel.Hint,
+            Common.Log(ex, Lang.Text("Setup.Log.ExportFailed"), Common.LogLevel.Hint,
                 userSummary: Lang.Text("Setup.Log.ExportFailed"));
         }
     }
@@ -126,7 +126,7 @@ public partial class PageSetupLog : IPageView
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Setup.Log.ExportFailed"), ModBase.LogLevel.Hint,
+            Common.Log(ex, Lang.Text("Setup.Log.ExportFailed"), Common.LogLevel.Hint,
                 userSummary: Lang.Text("Setup.Log.ExportFailed"));
         }
     }

@@ -46,7 +46,7 @@ public partial class PageHelpDetailViewModel : ViewModelBase
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "刷新帮助详情页失败", ModBase.LogLevel.Msgbox,
+                Common.Log(ex, "刷新帮助详情页失败", Common.LogLevel.Msgbox,
                     userSummary: Lang.Text("Event.Error.ExecutionFailed", EventType.OpenHelp, sourcePath));
                 throw;
             }
@@ -58,7 +58,7 @@ public partial class PageHelpDetailViewModel : ViewModelBase
         if (!File.Exists(jsonPath))
             throw new FileNotFoundException("未找到帮助 JSON 文件", jsonPath);
 
-        var json = ModMain.ArgumentReplace(File.ReadAllText(jsonPath), SecurityElement.Escape);
+        var json = Launcher.ArgumentReplace(File.ReadAllText(jsonPath), SecurityElement.Escape);
         using var document = JsonDocument.Parse(json);
         if (!document.RootElement.TryGetProperty("Title", out var titleElement) ||
             titleElement.ValueKind != JsonValueKind.String ||

@@ -13,12 +13,12 @@ public partial class PageInstanceServerViewModel : ViewModelBase
     {
         if (serverCount == 0)
         {
-            ModBase.Log(Lang.Text("Instance.Server.NoServersFound"));
+            Common.Log(Lang.Text("Instance.Server.NoServersFound"));
             ShowContent = false;
             return;
         }
 
-        ModBase.Log(Lang.Text("Instance.Server.FoundServers"));
+        Common.Log(Lang.Text("Instance.Server.FoundServers"));
         ShowContent = true;
     }
 }

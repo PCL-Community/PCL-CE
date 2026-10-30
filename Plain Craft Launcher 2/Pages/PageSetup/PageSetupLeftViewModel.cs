@@ -53,7 +53,7 @@ public partial class PageSetupLeftViewModel : ViewModelBase
         };
         if (messageKey is null)
             return false;
-        var result = await ModMain.MyMsgBoxAsync(
+        var result = await Launcher.MyMsgBoxAsync(
             Lang.Text(messageKey),
             Lang.Text("Setup.Left.Reset.Title"),
             button2: Lang.Text("Common.Action.Cancel"),

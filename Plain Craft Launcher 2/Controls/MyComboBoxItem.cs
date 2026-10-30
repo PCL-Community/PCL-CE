@@ -15,7 +15,7 @@ public class MyComboBoxItem : ComboBoxItem
 
     // 基础
 
-    public int Uuid = ModBase.GetUuid();
+    public int Uuid = Common.GetUuid();
 
     public MyComboBoxItem()
     {
@@ -64,20 +64,20 @@ public class MyComboBoxItem : ComboBoxItem
         backColorName = newBackColorName;
         fontOpacity = newFontOpacity;
         // 触发颜色动画
-        if (IsLoaded && !ModAnimation.AniExitsAnyControl()) // 防止默认属性变更触发动画
+        if (IsLoaded && !Animations.AniExitsAnyControl()) // 防止默认属性变更触发动画
         {
             // 有动画
-            ModAnimation.AniStart(
+            Animations.AniStart(
                 new[]
                 {
-                    ModAnimation.AaColor(this, BackgroundProperty, backColorName, time),
-                    ModAnimation.AaOpacity(this, fontOpacity - Opacity, time)
+                    Animations.AaColor(this, BackgroundProperty, backColorName, time),
+                    Animations.AaOpacity(this, fontOpacity - Opacity, time)
                 }, "ComboBoxItem Color " + Uuid);
         }
         else
         {
             // 无动画
-            ModAnimation.AniStop("ComboBoxItem Color " + Uuid);
+            Animations.AniStop("ComboBoxItem Color " + Uuid);
             SetResourceReference(BackgroundProperty, backColorName);
             Opacity = fontOpacity;
         }
@@ -95,6 +95,6 @@ public class MyComboBoxItem : ComboBoxItem
 
     private void MyComboBoxItem_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
-        ModBase.Log("[Control] 选择下拉列表项：" + ToString());
+        Common.Log("[Control] 选择下拉列表项：" + ToString());
     }
 }

@@ -24,13 +24,13 @@ public partial class PageLogRightViewModel : ViewModelBase
 
     public bool CanShow()
     {
-        return ModMain.frmLogLeft is not null && ModMain.frmLogLeft.currentLog is not null &&
-               ModMain.frmLogLeft.currentUuid > 0 && ModMain.frmLogLeft.shownLogs.Count > 0;
+        return Launcher.frmLogLeft is not null && Launcher.frmLogLeft.currentLog is not null &&
+               Launcher.frmLogLeft.currentUuid > 0 && Launcher.frmLogLeft.shownLogs.Count > 0;
     }
 
     public void RefreshOperationButtons()
     {
-        var log = ModMain.frmLogLeft?.currentLog;
+        var log = Launcher.frmLogLeft?.currentLog;
         if (log is null)
         {
             IsKillEnabled = false;
@@ -44,7 +44,7 @@ public partial class PageLogRightViewModel : ViewModelBase
 
     public void RefreshCounters()
     {
-        var log = ModMain.frmLogLeft?.currentLog;
+        var log = Launcher.frmLogLeft?.currentLog;
         var fatal = log?.countFatal ?? 0u;
         var error = log?.countError ?? 0u;
         var warn = log?.countWarn ?? 0u;
