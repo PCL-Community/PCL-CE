@@ -26,7 +26,6 @@ public partial class PageDownloadCompFavorites
             CompFavoritesGet, inputDelegate: LoaderInput);
         Initialized += PageDownloadCompFavorites_Inited;
         Loaded += PageDownloadCompFavorites_Loaded;
-        KeyDown += Page_KeyDown;
         InitializeComponent();
         DataContext = _vm;
         DialogServiceInstaller.Install(_vm);
@@ -41,13 +40,6 @@ public partial class PageDownloadCompFavorites
         }
         // Handles
         Load.StateChanged += Load_State;
-        Btn_FavoritesCancel.Click += Btn_FavoritesCancel_Clicked;
-        Btn_SelectCancel.Click += Btn_SelectCancel_Clicked;
-        Btn_FavoritesShare.Click += Btn_FavoritesShare_Clicked;
-        Btn_FavoritesDownload.Click += Btn_FavoritesDownload_Clicked;
-        ComboTargetFav.SelectionChanged += ComboTargetFav_Selected;
-        HintGetFail.MouseLeftButtonDown += HintGetFail_MouseLeftButtonDown;
-        PanSearchBox.TextChanged += SearchRun;
         WeakLanguageChanged.Add(this, OnLanguageChanged);
     }
     private static void OnLanguageChanged(PageDownloadCompFavorites page) => Common.RunInUi(page._RefreshCategoryTitles);
@@ -349,7 +341,7 @@ public partial class PageDownloadCompFavorites
         // 更新显示状态
         if (!Animations.AniExitsAnyControl())
         {
-            PanContentList.Margin = new Thickness(0d, 0d, 0d, selected ? 80 : 0);
+            _vm.ContentListMargin = new Thickness(0d, 0d, 0d, selected ? 80 : 0);
             if (selected)
             {
                 // 仅在数量增加时播放出现/跳跃动画
@@ -489,8 +481,7 @@ public partial class PageDownloadCompFavorites
 
     private async void Btn_FavoritesDownload_Clicked(object sender, Common.RouteEventArgs e)
     {
-        var ctl = sender as Control;
-        if (ctl is not null) ctl.IsEnabled = false;
+        _vm.IsBulkDownloadEnabled = false;
         try
         {
             if (1 != await _vm.Dialog.ShowAsync(
@@ -678,7 +669,7 @@ public partial class PageDownloadCompFavorites
         }
         finally
         {
-            if (ctl is not null) ctl.IsEnabled = true;
+            _vm.IsBulkDownloadEnabled = true;
         }
     }
 

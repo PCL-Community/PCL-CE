@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using PCL.Core.App.Localization;
 using PCL.Core.ViewModel;
+using System.Windows;
 
 namespace PCL;
 
@@ -20,6 +21,12 @@ public partial class PageDownloadCompFavoritesViewModel : ViewModelBase
     [ObservableProperty] private bool _showContentList = true;
 
     [ObservableProperty] private bool _showNoContent = true;
+
+    /// <summary>内容列表底部留白，用于给底部操作栏让位。</summary>
+    [ObservableProperty] private Thickness _contentListMargin = new(0d);
+
+    /// <summary>批量下载按钮是否可用，在下载对话框期间置为不可用。</summary>
+    [ObservableProperty] private bool _isBulkDownloadEnabled = true;
 
     public static string GetCategoryTitleFormat(int type) => type switch
     {
