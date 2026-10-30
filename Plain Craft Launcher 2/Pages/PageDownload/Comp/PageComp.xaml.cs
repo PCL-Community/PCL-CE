@@ -109,12 +109,6 @@ public partial class PageComp
         });
     }
 
-    // 安装已有整合包按钮
-    private void BtnSearchInstallModPack_Click(object sender, EventArgs e)
-    {
-        Modpack.ModpackInstall();
-    }
-
     /// <summary>
     ///     刷新所有已显示项目的收藏状态
     /// </summary>
@@ -223,7 +217,6 @@ public partial class PageComp
         PanSearchBox.KeyDown += EnterTrigger;
         TextSearchVersion.KeyDown += EnterTrigger;
         BtnSearchReset.Click += (_, _) => ResetFilter();
-        BtnSearchInstallModPack.Click += BtnSearchInstallModPack_Click;
     }
 
     private void PageCompControls_Inited(object sender, EventArgs e)

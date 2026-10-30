@@ -1,4 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using PCL.Core.App;
+using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.ViewModel;
 
 namespace PCL;
@@ -12,9 +16,13 @@ public partial class PageToolsTestViewModel : ViewModelBase
 
     [ObservableProperty] private bool _crashButtonVisible;
 
+    [ObservableProperty] private bool _createShortcutEnabled = true;
+
     [ObservableProperty] private bool _downloadOpenEnabled = true;
 
     [ObservableProperty] private bool _downloadStartEnabled = true;
+
+    [ObservableProperty] private bool _launchCountEnabled = true;
 
     [ObservableProperty] private bool _skinPreviewVisible;
 
@@ -34,5 +42,63 @@ public partial class PageToolsTestViewModel : ViewModelBase
     {
         DownloadStartEnabled = folderValid && urlValid && nameValid;
         DownloadOpenEnabled = folderValid;
+    }
+
+    [RelayCommand]
+    private void Crash()
+    {
+        throw new Exception(Lang.Text("Tools.Test.Crash.ManualCrash"));
+    }
+
+    [RelayCommand]
+    private async Task CreateShortcutAsync()
+    {
+        CreateShortcutEnabled = false;
+        try
+        {
+            var shortcutName = Lang.Text("Tools.Test.Shortcut.FileName", ".lnk");
+            var desktopName = Lang.Text("Tools.Test.Shortcut.Desktop");
+            var startName = Lang.Text("Tools.Test.Shortcut.StartMenu");
+            var desktop = Paths.GetSpecialPath(Environment.SpecialFolder.Desktop, shortcutName);
+            var start = Paths.GetSpecialPath(Environment.SpecialFolder.StartMenu, @"Programs\" + shortcutName);
+            var choice =
+                await Launcher.MyMsgBoxAsync(
+                    Lang.Text("Tools.Test.Shortcut.ConfirmMessage", desktopName, desktop, startName, start),
+                    Lang.Text("Tools.Test.Shortcut.SelectLocation"), Lang.Text("Common.Action.Cancel"), desktopName, startName);
+            if (choice == 1)
+                return;
+            var shortcutPath = choice == 2 ? desktop : start;
+            var locationName = choice == 2 ? desktopName : startName;
+            Files.CreateShortcut(shortcutPath, Basics.ExecutablePath);
+            HintService.Hint(Lang.Text("Tools.Test.Shortcut.Created", locationName), HintType.Success);
+        }
+        catch (Exception ex)
+        {
+            Common.Log(ex, "创建快捷方式失败", Common.LogLevel.Feedback,
+                userSummary: Lang.Text("Tools.Test.Error.OperationFailed"));
+        }
+        finally
+        {
+            CreateShortcutEnabled = true;
+        }
+    }
+
+    [RelayCommand]
+    private async Task ShowLaunchCountAsync()
+    {
+        LaunchCountEnabled = false;
+        try
+        {
+            await Launcher.MyMsgBoxAsync(Lang.Text("Tools.Test.LaunchCount.Message", States.System.LaunchCount), Lang.Text("Tools.Test.LaunchCount.Title"));
+        }
+        catch (Exception ex)
+        {
+            Common.Log(ex, "显示启动次数弹窗失败", Common.LogLevel.Feedback,
+                userSummary: Lang.Text("Tools.Test.Error.OperationFailed"));
+        }
+        finally
+        {
+            LaunchCountEnabled = true;
+        }
     }
 }

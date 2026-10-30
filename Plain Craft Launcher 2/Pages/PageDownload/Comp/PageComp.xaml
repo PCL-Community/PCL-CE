@@ -107,6 +107,7 @@
                                             Margin="3,0,0,0" />
                         <local:MyIconButton x:Name="BtnSearchInstallModPack"
                                             SvgIcon="lucide/download"
+                                            Command="{Binding InstallModPackCommand}"
                                             Visibility="{Binding IsInstallModPackVisible, Converter={StaticResource VisibilityConverter}}"
                                             ToolTip="{DynamicResource Download.Comp.Filter.InstallModpack.ToolTip}"
                                             LogoScale="0.9"

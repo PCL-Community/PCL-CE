@@ -487,59 +487,6 @@ public partial class PageToolsTest : IPageView
         return Lang.Text(key);
     }
 
-    private async void BtnCreateShortcut_Click(object sender, MouseButtonEventArgs e)
-    {
-        var ctl = sender as Control;
-        if (ctl is not null) ctl.IsEnabled = false;
-        try
-        {
-            var shortcutName = Lang.Text("Tools.Test.Shortcut.FileName", ".lnk");
-            var desktopName = Lang.Text("Tools.Test.Shortcut.Desktop");
-            var startName = Lang.Text("Tools.Test.Shortcut.StartMenu");
-            var desktop = Paths.GetSpecialPath(Environment.SpecialFolder.Desktop, shortcutName);
-            var start = Paths.GetSpecialPath(Environment.SpecialFolder.StartMenu, @"Programs\" + shortcutName);
-            var choice =
-                await Launcher.MyMsgBoxAsync(
-                    Lang.Text("Tools.Test.Shortcut.ConfirmMessage", desktopName, desktop, startName, start),
-                    Lang.Text("Tools.Test.Shortcut.SelectLocation"), Lang.Text("Common.Action.Cancel"), desktopName, startName);
-            if (choice == 1)
-                return;
-            var shortcutPath = choice == 2 ? desktop : start;
-            var locationName = choice == 2 ? desktopName : startName;
-            Files.CreateShortcut(shortcutPath, Basics.ExecutablePath);
-            HintService.Hint(Lang.Text("Tools.Test.Shortcut.Created", locationName), HintType.Success);
-        }
-        catch (Exception ex)
-        {
-            Common.Log(ex, "创建快捷方式失败", Common.LogLevel.Feedback,
-                userSummary: Lang.Text("Tools.Test.Error.OperationFailed"));
-        }
-        finally
-        {
-            if (ctl is not null) ctl.IsEnabled = true;
-        }
-    }
-
-    // 启动计数显示
-    private async void BtnLaunchCount_Click(object sender, MouseButtonEventArgs e)
-    {
-        var ctl = sender as Control;
-        if (ctl is not null) ctl.IsEnabled = false;
-        try
-        {
-            await Launcher.MyMsgBoxAsync(Lang.Text("Tools.Test.LaunchCount.Message", States.System.LaunchCount), Lang.Text("Tools.Test.LaunchCount.Title"));
-        }
-        catch (Exception ex)
-        {
-            Common.Log(ex, "显示启动次数弹窗失败", Common.LogLevel.Feedback,
-                userSummary: Lang.Text("Tools.Test.Error.OperationFailed"));
-        }
-        finally
-        {
-            if (ctl is not null) ctl.IsEnabled = true;
-        }
-    }
-
     private async void BtnAchievementPreview_Click(object sender, MouseButtonEventArgs e)
     {
         var url = GetAchievementUrl();
@@ -653,11 +600,6 @@ public partial class PageToolsTest : IPageView
         var url = $"https://minecraft-api.com/api/achivements/{block}/{title}/{str1}";
         if (!string.IsNullOrEmpty(str2)) url += $"/{str2}";
         return url;
-    }
-
-    private void BtnCrash_Click(object sender, MouseButtonEventArgs e)
-    {
-        throw new Exception(Lang.Text("Tools.Test.Crash.ManualCrash"));
     }
 
     private int GetHeadSize() => CmbHeadSize.SelectedIndex switch

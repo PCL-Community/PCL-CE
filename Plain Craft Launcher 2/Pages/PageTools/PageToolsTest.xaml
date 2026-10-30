@@ -16,14 +16,16 @@
                                     Click="BtnLuck_Click" />
                     <local:MyButton MinWidth="100" Text="{DynamicResource Tools.Test.Crash.Title}"
                                     ToolTip="{DynamicResource Tools.Test.Crash.ManualCrash}" ColorType="Red"
-                                    Margin="0,0,15,15" Click="BtnCrash_Click"
+                                    Margin="0,0,15,15" Command="{Binding CrashCommand}"
                                     Visibility="{Binding CrashButtonVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                                     x:Name="BtnCrash" />
                     <local:MyButton MinWidth="120" Text="{DynamicResource Tools.Test.Shortcut.Title}"
                                     ToolTip="{DynamicResource Tools.Test.Shortcut.ToolTip}" Margin="0,0,15,15"
-                                    Click="BtnCreateShortcut_Click" />
+                                    Command="{Binding CreateShortcutCommand}"
+                                    IsEnabled="{Binding CreateShortcutEnabled}" />
                     <local:MyButton MinWidth="120" Text="{DynamicResource Tools.Test.LaunchCount.Title}"
-                                    Margin="0,0,15,15" Click="BtnLaunchCount_Click" />
+                                    Margin="0,0,15,15" Command="{Binding ShowLaunchCountCommand}"
+                                    IsEnabled="{Binding LaunchCountEnabled}" />
                 </WrapPanel>
             </local:MyCard>
             <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Tools.Test.CustomDownload.Title}">

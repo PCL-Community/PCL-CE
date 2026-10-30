@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App.Localization;
 using PCL.Core.ViewModel;
 
@@ -32,6 +33,12 @@ public partial class PageCompViewModel : ViewModelBase
     [ObservableProperty] private bool _supportCurseForge = true;
 
     [ObservableProperty] private bool _supportModrinth = true;
+
+    [RelayCommand]
+    public void InstallModPack()
+    {
+        Modpack.ModpackInstall();
+    }
 
     public void ApplyPagerState(int currentPage, Comp.CompProjectStorage storage)
     {
