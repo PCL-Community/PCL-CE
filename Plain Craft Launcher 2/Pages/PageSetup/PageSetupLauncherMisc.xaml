@@ -1,11 +1,11 @@
-<local:MyPageRight
+﻿<local:MyPageRight
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:loc="https://ce.pclc.cc/core/localization"
     xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" x:Class="PCL.PageSetupLauncherMisc"
-    PanScroll="{Binding ElementName=PanBack}">
+    PanScroll="{Binding ElementName=PanBack}"
+    xmlns:loc="https://ce.pclc.cc/core/localization">
     <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
         <StackPanel x:Name="PanMain" Margin="25,10">
             <local:MyCard Margin="0,15" Title="{loc:Loc Setup.Misc.System.Title}">
@@ -19,41 +19,26 @@
                         <RowDefinition Height="9" />
                         <RowDefinition Height="28" />
                         <RowDefinition Height="5" />
-                        <RowDefinition Height="28" />
-                        <RowDefinition Height="5" />
                         <RowDefinition Height="20" />
                         <RowDefinition Height="8" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left"
-                               Text="{loc:Loc Setup.Misc.System.Announcement}" Margin="0,0,25,0"
+                    <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{loc:Loc Setup.Misc.System.Announcement}" Margin="0,0,25,0"
                                Grid.Row="0" />
-                    <local:MyComboBox x:Name="ComboSystemActivity" Tag="SystemSystemActivity" Grid.Column="1"
+                    <local:MyComboBox x:Name="ComboSystemActivity" Tag="SystemSystemActivity" Grid.Column="1" SelectedIndex="{Binding ActivityIndex, Mode=OneWay}"
                                       Grid.Row="0"
                                       SelectionChanged="ComboSystemActivity_OnSelectionChanged">
-                        <local:MyComboBoxItem
-                            Content="{loc:Loc Setup.Misc.System.Announcement.All}"
-                            ToolTip="{loc:Loc Setup.Misc.System.Announcement.All.ToolTip}" />
-                        <local:MyComboBoxItem
-                            Content="{loc:Loc Setup.Misc.System.Announcement.ImportantOnly}" />
-                        <local:MyComboBoxItem
-                            Content="{loc:Loc Setup.Misc.System.Announcement.Disabled}" />
+                        <local:MyComboBoxItem Content="{loc:Loc Setup.Misc.System.Announcement.All}" ToolTip="{loc:Loc Setup.Misc.System.Announcement.All.ToolTip}" />
+                        <local:MyComboBoxItem Content="{loc:Loc Setup.Misc.System.Announcement.ImportantOnly}" />
+                        <local:MyComboBoxItem Content="{loc:Loc Setup.Misc.System.Announcement.Disabled}" />
                     </local:MyComboBox>
-                    <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left"
-                               Text="{loc:Loc Setup.Misc.System.MaxFps}"
+                    <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{loc:Loc Setup.Misc.System.MaxLogLines}"
                                Margin="0,0,25,0" />
-                    <local:MySlider x:Name="SliderAniFPS" Grid.Row="2" Tag="UiAniFPS" MaxValue="59" Value="59"
+                    <local:MySlider x:Name="SliderMaxLog" Grid.Row="2" Tag="SystemMaxLog" MaxValue="29" Value="13"
                                     Grid.Column="1"
-                                    ToolTip="{loc:Loc Setup.Misc.System.MaxFps.ToolTip}"
+                                     ToolTip="{loc:Loc Setup.Misc.System.MaxLogLines.ToolTip}"
                                     Change="SliderChange" />
-                    <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left"
-                               Text="{loc:Loc Setup.Misc.System.MaxLogLines}"
-                               Margin="0,0,25,0" />
-                    <local:MySlider x:Name="SliderMaxLog" Grid.Row="4" Tag="SystemMaxLog" MaxValue="29" Value="13"
-                                    Grid.Column="1"
-                                    ToolTip="{loc:Loc Setup.Misc.System.MaxLogLines.ToolTip}"
-                                    Change="SliderChange" />
-                    <Grid Grid.Row="6" Grid.ColumnSpan="5">
+                    <Grid Grid.Row="4" Grid.ColumnSpan="5">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" SharedSizeGroup="CheckBox" />
                             <ColumnDefinition Width="Auto" SharedSizeGroup="CheckBox" />
@@ -63,18 +48,11 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="20" />
                         </Grid.RowDefinitions>
-                        <local:MyCheckBox Grid.Row="0" Grid.Column="0"
-                                          Text="{loc:Loc Setup.Misc.System.DisableHardwareAcceleration}"
-                                          x:Name="CheckSystemDisableHardwareAcceleration"
-                                          Tag="SystemDisableHardwareAcceleration"
-                                          Change="CheckSystemDisableHardwareAcceleration_OnChange" />
-                        <local:MyCheckBox Grid.Row="0" Grid.Column="1"
-                                          Text="{loc:Loc Setup.Misc.System.Telemetry}"
-                                          x:Name="CheckSystemTelemetry" Tag="SystemTelemetry"
-                                          Change="CheckBoxChange"
-                                          ToolTip="{loc:Loc Setup.Misc.System.Telemetry.ToolTip}" />
+                        <local:MyCheckBox Grid.Row="0" Grid.Column="0" Text="{loc:Loc Setup.Misc.System.DisableHardwareAcceleration}" x:Name="CheckSystemDisableHardwareAcceleration" Tag="SystemDisableHardwareAcceleration" Change="CheckSystemDisableHardwareAcceleration_OnChange"/>
+                        <local:MyCheckBox Grid.Row="0" Grid.Column="1" Text="{loc:Loc Setup.Misc.System.Telemetry}" x:Name="CheckSystemTelemetry" Tag="SystemTelemetry" Change="CheckBoxChange" IsEnabled="{Binding TelemetryEnabled, Mode=OneWay}"
+                          ToolTip="{loc:Loc Setup.Misc.System.Telemetry.ToolTip}"/>
                     </Grid>
-                    <Grid Grid.Row="8" Grid.ColumnSpan="5">
+                    <Grid Grid.Row="6" Grid.ColumnSpan="5">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
@@ -85,16 +63,13 @@
                             <RowDefinition Height="35" />
                         </Grid.RowDefinitions>
                         <local:MyButton Grid.Column="0" Grid.Row="0" x:Name="BtnSystemSettingExp" MinWidth="140"
-                                        Text="{loc:Loc Setup.Misc.System.ExportSettings}"
-                                        Padding="13,0" Margin="0,0,20,0"
+                                        Text="{loc:Loc Setup.Misc.System.ExportSettings}" Padding="13,0" Margin="0,0,20,0"
                                         Click="BtnSystemSettingExp_Click" />
                         <local:MyButton Grid.Column="1" Grid.Row="0" x:Name="BtnSystemSettingImp" MinWidth="140"
-                                        Text="{loc:Loc Setup.Misc.System.ImportSettings}"
-                                        Padding="13,0" Margin="0,0,20,0"
+                                        Text="{loc:Loc Setup.Misc.System.ImportSettings}" Padding="13,0" Margin="0,0,20,0"
                                         Click="BtnSystemSettingImp_Click" />
                         <local:MyButton Grid.Column="2" Grid.Row="0" x:Name="BtnSystemStopUsingPclCe" MinWidth="140"
-                                        Text="{loc:Loc Setup.Misc.System.StopUsingPclCe}"
-                                        Padding="13,0" Margin="0,0,20,0"
+                                        Text="{loc:Loc Setup.Misc.System.StopUsingPclCe}" Padding="13,0" Margin="0,0,20,0"
                                         ColorType="Red" Click="BtnSystemStopUsingPclCe_Click" />
                     </Grid>
                 </Grid>
@@ -117,8 +92,7 @@
                                       Grid.ColumnSpan="2" Text="{loc:Loc Setup.Misc.Network.DoH}"
                                       ToolTip="{loc:Loc Setup.Misc.Network.DoH.ToolTip}"
                                       Change="CheckBoxChange" />
-                    <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left"
-                               Text="{loc:Loc Setup.Misc.Network.HttpProxy}"
+                    <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{loc:Loc Setup.Misc.Network.HttpProxy}"
                                Margin="0,0,25,0" />
                     <Grid Grid.Row="2" Grid.Column="1">
                         <Grid.ColumnDefinitions>
@@ -127,16 +101,13 @@
                             <ColumnDefinition Width="1*" />
                             <ColumnDefinition Width="0.2*" />
                         </Grid.ColumnDefinitions>
-                        <local:MyRadioBox Text="{loc:Loc Setup.Misc.Network.Proxy.None}"
-                                          x:Name="RadioHttpProxyType0" Height="22"
+                        <local:MyRadioBox Text="{loc:Loc Setup.Misc.Network.Proxy.None}" x:Name="RadioHttpProxyType0" Height="22"
                                           Tag="SystemHttpProxyType/0" Grid.Column="0"
                                           Check="RadioBoxChange" />
-                        <local:MyRadioBox Text="{loc:Loc Setup.Misc.Network.Proxy.System}"
-                                          x:Name="RadioHttpProxyType1" Height="22"
+                        <local:MyRadioBox Text="{loc:Loc Setup.Misc.Network.Proxy.System}" x:Name="RadioHttpProxyType1" Height="22"
                                           Tag="SystemHttpProxyType/1" Grid.Column="1"
                                           Check="RadioBoxChange" />
-                        <local:MyRadioBox Text="{loc:Loc Setup.Misc.Network.Proxy.Custom}"
-                                          x:Name="RadioHttpProxyType2" Height="22"
+                        <local:MyRadioBox Text="{loc:Loc Setup.Misc.Network.Proxy.Custom}" x:Name="RadioHttpProxyType2" Height="22"
                                           Tag="SystemHttpProxyType/2" Grid.Column="2"
                                           Check="RadioBoxChange" />
                     </Grid>
@@ -156,45 +127,32 @@
                             <ColumnDefinition Width="1*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <local:MyHint Text="{loc:Loc Setup.Misc.Network.Proxy.UntrustedWarning}"
-                                      Grid.Row="0" Grid.ColumnSpan="5" Theme="Yellow" />
+                        <local:MyHint Text="{loc:Loc Setup.Misc.Network.Proxy.UntrustedWarning}" Grid.Row="0" Grid.ColumnSpan="5" Theme="Yellow" />
                         <local:MyTextBox x:Name="TextSystemHttpProxy" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5"
-                                         Tag="SystemHttpProxy" HintText="比如 http://127.0.0.1:1080/"
+                                         Tag="SystemHttpProxy" HintText="比如 http://127.0.0.1:1080/" Text="{Binding HttpProxyText, Mode=OneWay}"
                                          ToolTip="{loc:Loc Setup.Misc.Network.Proxy.InvalidWarning}" />
-                        <TextBlock Grid.Column="0" Grid.Row="4"
-                                   Text="{loc:Loc Setup.Misc.Network.Proxy.Username}"
-                                   VerticalAlignment="Center"
+                        <TextBlock Grid.Column="0" Grid.Row="4" Text="{loc:Loc Setup.Misc.Network.Proxy.Username}" VerticalAlignment="Center"
                                    HorizontalAlignment="Left" Margin="0,0,5,0" />
-                        <local:MyTextBox Grid.Column="1" Grid.Row="4"
-                                         HintText="{loc:Loc Setup.Misc.Network.Proxy.Optional}"
-                                         Tag="SystemHttpProxyCustomUsername"
+                        <local:MyTextBox Grid.Column="1" Grid.Row="4" HintText="{loc:Loc Setup.Misc.Network.Proxy.Optional}" Tag="SystemHttpProxyCustomUsername" Text="{Binding HttpProxyUsername, Mode=OneWay}"
                                          x:Name="TextSystemHttpProxyCustomUsername" Margin="0,0,5,0" />
-                        <TextBlock Grid.Column="2" Grid.Row="4"
-                                   Text="{loc:Loc Setup.Misc.Network.Proxy.Password}"
-                                   VerticalAlignment="Center"
+                        <TextBlock Grid.Column="2" Grid.Row="4" Text="{loc:Loc Setup.Misc.Network.Proxy.Password}" VerticalAlignment="Center"
                                    HorizontalAlignment="Left" Margin="0,0,5,0" />
-                        <local:MyTextBox Grid.Column="3" Grid.Row="4"
-                                         HintText="{loc:Loc Setup.Misc.Network.Proxy.Optional}"
-                                         Tag="SystemHttpProxyCustomPassword"
+                        <local:MyTextBox Grid.Column="3" Grid.Row="4" HintText="{loc:Loc Setup.Misc.Network.Proxy.Optional}" Tag="SystemHttpProxyCustomPassword" Text="{Binding HttpProxyPassword, Mode=OneWay}"
                                          x:Name="TextSystemHttpProxyCustomPassword" Margin="0,0,5,0" />
-                        <local:MyButton Text="{loc:Loc Setup.Misc.Network.Proxy.Apply}"
-                                        TextPadding="3" Grid.Row="4" Grid.Column="4"
+                        <local:MyButton Text="{loc:Loc Setup.Misc.Network.Proxy.Apply}" TextPadding="3" Grid.Row="4" Grid.Column="4"
                                         x:Name="BtnApplyHttpProxy" Click="ApplyHttpProxyBtn_OnClicked" />
                     </Grid>
                 </Grid>
             </local:MyCard>
 
-            <local:MyCard x:Name="CardDebug" Margin="0,0,0,15"
-                          Title="{loc:Loc Setup.Misc.Debug.Title}" CanSwap="True" IsSwapped="True">
+            <local:MyCard x:Name="CardDebug" Margin="0,0,0,15" Title="{loc:Loc Setup.Misc.Debug.Title}" CanSwap="True" IsSwapped="True">
                 <StackPanel Margin="25,40,25,15">
                     <Grid x:Name="PanDebugAnim" Height="22" Margin="0,0,0,10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
                             <ColumnDefinition />
                         </Grid.ColumnDefinitions>
-                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left"
-                                   Text="{loc:Loc Setup.Misc.Debug.AnimationSpeed}"
-                                   Margin="0,0,25,0" />
+                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{loc:Loc Setup.Misc.Debug.AnimationSpeed}" Margin="0,0,25,0" />
                         <local:MySlider x:Name="SliderDebugAnim" Tag="SystemDebugAnim" MaxValue="30" Grid.Column="1"
                                         Change="SliderChange" />
                     </Grid>
@@ -204,18 +162,14 @@
                             <ColumnDefinition />
                             <ColumnDefinition />
                         </Grid.ColumnDefinitions>
-                        <local:MyCheckBox Grid.Column="0"
-                                          Text="{loc:Loc Setup.Misc.Debug.SkipCopy}" Height="22"
+                        <local:MyCheckBox Grid.Column="0" Text="{loc:Loc Setup.Misc.Debug.SkipCopy}" Height="22"
                                           x:Name="CheckDebugSkipCopy" Tag="SystemDebugSkipCopy"
                                           ToolTip="{loc:Loc Setup.Misc.Debug.SkipCopy.ToolTip}"
                                           Change="CheckBoxChange" />
-                        <local:MyCheckBox Grid.Column="1" Text="{loc:Loc Setup.Misc.Debug.Mode}"
-                                          Height="22" x:Name="CheckDebugMode"
-                                          Tag="SystemDebugMode"
-                                          ToolTip="{loc:Loc Setup.Misc.Debug.Mode.ToolTip}"
+                        <local:MyCheckBox Grid.Column="1" Text="{loc:Loc Setup.Misc.Debug.Mode}" Height="22" x:Name="CheckDebugMode"
+                                          Tag="SystemDebugMode" ToolTip="{loc:Loc Setup.Misc.Debug.Mode.ToolTip}"
                                           Change="CheckDebugMode_OnChange" />
-                        <local:MyCheckBox Grid.Column="2" Text="{loc:Loc Setup.Misc.Debug.Delay}"
-                                          Height="22" x:Name="CheckDebugDelay"
+                        <local:MyCheckBox Grid.Column="2" Text="{loc:Loc Setup.Misc.Debug.Delay}" Height="22" x:Name="CheckDebugDelay"
                                           Tag="SystemDebugDelay"
                                           ToolTip="{loc:Loc Setup.Misc.Debug.Delay.ToolTip}"
                                           Change="CheckBoxChange" />

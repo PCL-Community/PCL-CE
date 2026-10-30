@@ -8,14 +8,37 @@ using PCL.Core.Utils.OS;
 
 namespace PCL;
 
-public partial class PageSetupUpdate
+public partial class PageSetupUpdate : IPageView
 {
+    private readonly PageSetupUpdateViewModel _vm = new();
+    private bool _refreshed;
+
     public VersionDataModel updateInfo;
 
     public PageSetupUpdate()
     {
         InitializeComponent();
-        Loaded += (_, _) => Init();
+        DataContext = _vm;
+        Loaded += (_, _) => Refresh();
+        Unloaded += PageSetupUpdate_Unloaded;
+    }
+
+    public PageSetupUpdateViewModel ViewModel => _vm;
+
+    public void OnNavigatedTo(object? parameter) => Refresh();
+
+    public void OnNavigatedFrom()
+    {
+    }
+
+    private void PageSetupUpdate_Unloaded(object sender, RoutedEventArgs e) => _refreshed = false;
+
+    private void Refresh()
+    {
+        if (_refreshed)
+            return;
+        _refreshed = true;
+        Init();
     }
 
     private void Init()
@@ -26,7 +49,7 @@ public partial class PageSetupUpdate
         ComboSystemUpdateChannel.SelectedIndex = (int)Config.Update.UpdateChannel;
         ComboSystemUpdateMode.SelectedIndex = (int)Config.Update.UpdateMode;
 
-        TextCurrentVersion.Text = "PCL CE " + VersionNameFormat(ModBase.versionBaseName);
+        _vm.Reload();
         ModAnimation.AniEndControl();
         CheckUpdate();
     }
@@ -64,10 +87,10 @@ public partial class PageSetupUpdate
     public async void CheckUpdate()
     {
         ModBase.Log("[Update] 开始检查更新");
-        CardUpdate.Visibility = Visibility.Collapsed;
-        CardCheck.Visibility = Visibility.Visible;
+        _vm.ShowUpdateCard = false;
+        _vm.ShowCheckCard = true;
+        _vm.CheckAgainEnabled = false;
         TextCurrentDesc.TrySetLocalizedValue("Text", "Setup.Update.Checking");
-        BtnCheckAgain.IsEnabled = false;
         switch (await IsLatestAsync())
         {
             case UpdateStatus.Available:
@@ -79,7 +102,7 @@ public partial class PageSetupUpdate
                         UpdateManager.IsCurrentVersionBeta
                             ? UpdateChannel.beta
                             : UpdateChannel.stable, SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64);
-                    TextUpdateName.Text = "PCL CE " + VersionNameFormat(updateInfo.VersionName);
+                    _vm.UpdateNameText = "PCL CE " + VersionNameFormat(updateInfo.VersionName);
                     var summary = updateInfo.Changelog.Between("<summary>", "</summary>");
                     if (!updateInfo.Changelog.Contains("<summary>") || string.IsNullOrWhiteSpace(summary.Trim()))
                         TextChangelog.TrySetLocalizedValue("Text", "Setup.Update.Changelog.Empty");
@@ -91,9 +114,10 @@ public partial class PageSetupUpdate
                     checkUpdateEx = ex;
                 }
 
-                BtnCheckAgain.IsEnabled = true;
+                _vm.CheckAgainEnabled = true;
                 if (updateInfo is null)
                 {
+                    _vm.CurrentDescText = Lang.Text("Setup.Update.CheckFailed");
                     TextCurrentDesc.TrySetLocalizedValue("Text", "Setup.Update.CheckFailed");
                     if (checkUpdateEx is not null)
                         ModBase.Log(
@@ -125,23 +149,25 @@ public partial class PageSetupUpdate
                     BtnUpdate.IsEnabled = true;
                 }
 
-                CardUpdate.Visibility = Visibility.Visible;
-                CardCheck.Visibility = Visibility.Collapsed;
+                _vm.ShowUpdateCard = true;
+                _vm.ShowCheckCard = false;
                 break;
             }
             case UpdateStatus.Latest:
             {
-                CardUpdate.Visibility = Visibility.Collapsed;
-                CardCheck.Visibility = Visibility.Visible;
-                BtnCheckAgain.IsEnabled = true;
+                _vm.ShowUpdateCard = false;
+                _vm.ShowCheckCard = true;
+                _vm.CheckAgainEnabled = true;
+                _vm.CurrentDescText = Lang.Text("Setup.Update.Latest");
                 TextCurrentDesc.TrySetLocalizedValue("Text", "Setup.Update.Latest");
                 break;
             }
             case UpdateStatus.Error:
             {
-                CardUpdate.Visibility = Visibility.Collapsed;
-                CardCheck.Visibility = Visibility.Visible;
-                BtnCheckAgain.IsEnabled = true;
+                _vm.ShowUpdateCard = false;
+                _vm.ShowCheckCard = true;
+                _vm.CheckAgainEnabled = true;
+                _vm.CurrentDescText = Lang.Text("Setup.Update.CheckFailed");
                 TextCurrentDesc.TrySetLocalizedValue("Text", "Setup.Update.CheckFailed");
                 break;
             }
@@ -164,12 +190,26 @@ public partial class PageSetupUpdate
         UpdateManager.UpdateStart(UpdateEnums.UpdateType.UpdateNow);
     }
 
-    private void BtnChangelogDetail_Click(object sender, EventArgs e)
+    private async void BtnChangelogDetail_Click(object sender, EventArgs e)
     {
-        if (updateInfo is null)
-            ModMain.MyMsgBox(Lang.Text("Setup.Update.Changelog.Unavailable"), Lang.Text("Setup.Update.Changelog.Title"));
-        else
-            ModMain.MyMsgBoxMarkdown(updateInfo.Changelog, Lang.Text("Setup.Update.Changelog.Title"));
+        var ctl = sender as Control;
+        if (ctl is not null) ctl.IsEnabled = false;
+        try
+        {
+            if (updateInfo is null)
+                await ModMain.MyMsgBoxAsync(Lang.Text("Setup.Update.Changelog.Unavailable"), Lang.Text("Setup.Update.Changelog.Title"));
+            else
+                ModMain.MyMsgBoxMarkdown(updateInfo.Changelog, Lang.Text("Setup.Update.Changelog.Title"));
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "查看更新日志失败", ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Setup.Error.OperationFailed"));
+        }
+        finally
+        {
+            if (ctl is not null) ctl.IsEnabled = true;
+        }
     }
 
     private void ComboSystemUpdateMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -178,69 +218,83 @@ public partial class PageSetupUpdate
             Config.Update.UpdateMode = (LauncherAutoUpdateBehavior)ComboSystemUpdateMode.SelectedIndex;
     }
 
-    private void ComboSystemUpdateBranch_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private async void ComboSystemUpdateBranch_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (ModAnimation.AniExitsAnyControl())
-            return;
-
-        var isCancelled = false;
-        switch (ComboSystemUpdateChannel.SelectedIndex)
+        var ctl = sender as Control;
+        if (ctl is not null) ctl.IsEnabled = false;
+        try
         {
-            case 0:
+            if (ModAnimation.AniExitsAnyControl())
+                return;
+
+            var isCancelled = false;
+            switch (ComboSystemUpdateChannel.SelectedIndex)
             {
-                break;
-            }
-            case 1:
-            {
-                if (ModMain.MyMsgBox(Lang.Text("Setup.Update.Channel.Beta.Warning.Message"),
-                        Lang.Text("Setup.Update.Channel.Common.Warning.Title"),
-                        Lang.Text("Setup.Update.Channel.Common.Warning.Confirm"),
-                        Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
-                    isCancelled = true;
-                else
-                    CheckUpdate();
-                break;
-            }
-            case 2:
-            {
-                if (ModMain.MyMsgBox(Lang.Text("Setup.Update.Channel.Dev.Warning.Message"),
-                        Lang.Text("Setup.Update.Channel.Common.Warning.Title"),
-                        Lang.Text("Setup.Update.Channel.Common.Warning.Confirm"),
-                        Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
+                case 0:
                 {
-                    isCancelled = true;
                     break;
                 }
+                case 1:
+                {
+                    if (await ModMain.MyMsgBoxAsync(Lang.Text("Setup.Update.Channel.Beta.Warning.Message"),
+                            Lang.Text("Setup.Update.Channel.Common.Warning.Title"),
+                            Lang.Text("Setup.Update.Channel.Common.Warning.Confirm"),
+                            Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
+                        isCancelled = true;
+                    else
+                        CheckUpdate();
+                    break;
+                }
+                case 2:
+                {
+                    if (await ModMain.MyMsgBoxAsync(Lang.Text("Setup.Update.Channel.Dev.Warning.Message"),
+                            Lang.Text("Setup.Update.Channel.Common.Warning.Title"),
+                            Lang.Text("Setup.Update.Channel.Common.Warning.Confirm"),
+                            Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
+                    {
+                        isCancelled = true;
+                        break;
+                    }
 
-                var confirmText = Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.ExpectedInput");
-                var ret = ModMain.MyMsgBoxInput(
-                    Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.Title"),
-                    Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.Message", confirmText),
-                    button1: Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.Submit"),
-                    button2: Lang.Text("Common.Action.Cancel"), isWarn: true);
-    
-                if (ret == confirmText)
-                {
-                    CheckUpdate();
+                    var confirmText = Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.ExpectedInput");
+                    var ret = await ModMain.MyMsgBoxInputAsync(
+                        Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.Title"),
+                        Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.Message", confirmText),
+                        button1: Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.Submit"),
+                        button2: Lang.Text("Common.Action.Cancel"), isWarn: true);
+
+                    if (ret == confirmText)
+                    {
+                        CheckUpdate();
+                    }
+                    else
+                    {
+                        HintService.Hint(Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.WrongInput"));
+                        isCancelled = true;
+                    }
+                    break;
                 }
-                else
-                {
-                    HintService.Hint(Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.WrongInput"));
-                    isCancelled = true;
-                }
-                break;
+            }
+
+            if (isCancelled)
+            {
+                ModAnimation.AniBeginControl();
+                ComboSystemUpdateChannel.SelectedItem = e.RemovedItems[0];
+                ModAnimation.AniEndControl();
+            }
+            else
+            {
+                Config.Update.UpdateChannel = (Core.App.UpdateChannel)ComboSystemUpdateChannel.SelectedIndex;
             }
         }
-
-        if (isCancelled)
+        catch (Exception ex)
         {
-            ModAnimation.AniBeginControl();
-            ComboSystemUpdateChannel.SelectedItem = e.RemovedItems[0];
-            ModAnimation.AniEndControl();
+            ModBase.Log(ex, "切换更新通道失败", ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Setup.Error.OperationFailed"));
         }
-        else
+        finally
         {
-            Config.Update.UpdateChannel = (Core.App.UpdateChannel)ComboSystemUpdateChannel.SelectedIndex;
+            if (ctl is not null) ctl.IsEnabled = true;
         }
     }
 
@@ -259,15 +313,7 @@ public partial class PageSetupUpdate
         ModBase.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/v" + ModBase.versionBaseName);
     }
 
-    public string VersionNameFormat(string str)
-    {
-        str = str.Replace("v", "");
-        if (!str.Contains("-"))
-            return str;
-        var add = str.AfterLast("-");
-        str = str.BeforeLast("-");
-        return $"{str} {add.Replace(".", " ").Replace("beta", "Beta").Replace("rc", "RC")}";
-    }
+    public string VersionNameFormat(string str) => PageSetupUpdateViewModel.VersionNameFormat(str);
 
     private void BtnCheckAgain_OnClick(object sender, MouseButtonEventArgs e)
     {

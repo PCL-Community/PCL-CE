@@ -33,11 +33,6 @@ public static partial class Config
         /// </summary>
         [ConfigItem<int>("SystemMaxLog", 13)] public partial int MaxGameLog { get; set; }
 
-        /// <summary>
-        /// 动画帧率上限。
-        /// </summary>
-        [ConfigItem<int>("UiAniFPS", 59)] public partial int AnimationFpsLimit { get; set; }
-
         [ConfigItem<string>("Profile", "{\"lastUsed\":-1,\"profiles\":[]}", ConfigSource.SharedEncrypt)] public partial string Profiles { get; set; }
 
     }

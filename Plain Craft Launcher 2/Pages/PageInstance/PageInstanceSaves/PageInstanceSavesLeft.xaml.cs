@@ -1,7 +1,6 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -9,8 +8,22 @@ public partial class PageInstanceSavesLeft : IRefreshable
 {
     public static string currentSave;
 
-    // 初始化
+    private readonly PageInstanceSavesLeftViewModel _vm = new();
     private bool isLoad;
+
+    public FormMain.PageSubType pageID = FormMain.PageSubType.Default;
+
+    public PageInstanceSavesLeft()
+    {
+        InitializeComponent();
+        DataContext = _vm;
+        Loaded += Page_Loaded;
+        ItemInfo.Check += PageCheck;
+        ItemDatapack.Check += PageCheck;
+        BtnOpenFolder.Click += BtnOpenFolder_Click;
+    }
+
+    public PageInstanceSavesLeftViewModel ViewModel => _vm;
 
     private void Page_Loaded(object sender, RoutedEventArgs e)
     {
@@ -22,28 +35,9 @@ public partial class PageInstanceSavesLeft : IRefreshable
     private void BtnOpenFolder_Click(object sender, MouseButtonEventArgs e)
     {
         e.Handled = true;
-        ModBase.OpenExplorer($@"{currentSave}\");
+        PageInstanceSavesLeftViewModel.OpenSaveFolder(currentSave);
     }
 
-    #region 龙猫牌 页面管理
-
-    /// <summary>
-    ///     当前页面的编号。从 0 开始计算。
-    /// </summary>
-    public FormMain.PageSubType pageID = FormMain.PageSubType.Default;
-
-    public PageInstanceSavesLeft()
-    {
-        InitializeComponent();
-        Loaded += Page_Loaded;
-        ItemInfo.Check += PageCheck;
-        ItemDatapack.Check += PageCheck;
-        BtnOpenFolder.Click += BtnOpenFolder_Click;
-    }
-
-    /// <summary>
-    ///     勾选事件改变页面。
-    /// </summary>
     private void PageCheck(object sender, ModBase.RouteEventArgs e)
     {
         if (sender is MyListItem item && item.Tag is not null)
@@ -71,14 +65,11 @@ public partial class PageInstanceSavesLeft : IRefreshable
 
             default:
             {
-                throw new Exception(Lang.Text("Instance.Saves.Left.UnknownSubPage", (int)id));
+                throw new Exception(PageInstanceSavesLeftViewModel.GetUnknownSubPageMessage(id));
             }
         }
     }
 
-    /// <summary>
-    ///     切换现有页面。
-    /// </summary>
     public void PageChange(FormMain.PageSubType id)
     {
         if (pageID == id)
@@ -93,9 +84,9 @@ public partial class PageInstanceSavesLeft : IRefreshable
         {
             ModBase.Log(
                 ex,
-                Lang.Text("Instance.Saves.Left.SwitchFailed", (int)id),
+                PageInstanceSavesLeftViewModel.GetSwitchFailedMessage(id),
                 ModBase.LogLevel.Feedback,
-                userSummary: Lang.Text("Instance.Saves.Left.SwitchFailed", (int)id));
+                userSummary: PageInstanceSavesLeftViewModel.GetSwitchFailedMessage(id));
         }
         finally
         {
@@ -105,7 +96,7 @@ public partial class PageInstanceSavesLeft : IRefreshable
 
     private static void PageChangeRun(MyPageRight target)
     {
-        ModAnimation.AniStop("FrmMain PageChangeRight"); // 停止主页面的右页面切换动画，防止它与本动画一起触发多次 PageOnEnter
+        ModAnimation.AniStop("FrmMain PageChangeRight");
         if (target.Parent is not null)
             target.SetValue(ContentPresenter.ContentProperty, null);
         ModMain.frmMain.pageRight = target;
@@ -120,14 +111,13 @@ public partial class PageInstanceSavesLeft : IRefreshable
             }, 130),
             ModAnimation.AaCode(() =>
             {
-                // 延迟触发页面通用动画，以使得在 Loaded 事件中加载的控件得以处理
                 ModMain.frmMain.pageRight.Opacity = 1d;
                 ModMain.frmMain.pageRight.PageOnEnter();
             }, 30, true)
         }, "PageLeft PageChange");
     }
 
-    public void RefreshButton_Click(object sender, EventArgs e) // 由边栏按钮匿名调用
+    public void RefreshButton_Click(object sender, EventArgs e)
     {
         Refresh((FormMain.PageSubType)ModBase.Val(((MyIconButton)sender).Tag));
     }
@@ -154,8 +144,6 @@ public partial class PageInstanceSavesLeft : IRefreshable
             }
         }
 
-        HintService.Hint(Lang.Text("Instance.Saves.Left.Refreshing"));
+        PageInstanceSavesLeftViewModel.HintRefreshing();
     }
-
-    #endregion
 }

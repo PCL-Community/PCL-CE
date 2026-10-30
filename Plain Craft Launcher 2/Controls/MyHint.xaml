@@ -1,12 +1,12 @@
-<Border x:Class="PCL.MyHint" x:Name="PanBack"
+﻿<Border x:Class="PCL.MyHint" x:Name="PanBack"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:PCL"
-        xmlns:loc="https://ce.pclc.cc/core/localization"
         FocusVisualStyle="{x:Null}"
         UseLayoutRounding="True" SnapsToDevicePixels="True" HorizontalAlignment="Stretch" BorderThickness="3,0,0,0"
-        BorderBrush="#99FF4444" CornerRadius="2">
-    <Grid UseLayoutRounding="False" SnapsToDevicePixels="False">
+        BorderBrush="#99FF4444" CornerRadius="2"
+        xmlns:loc="https://ce.pclc.cc/core/localization">
+    <Grid UseLayoutRounding="True" SnapsToDevicePixels="False">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*" />
             <ColumnDefinition Width="Auto" />

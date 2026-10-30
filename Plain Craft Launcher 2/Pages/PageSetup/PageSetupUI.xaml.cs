@@ -12,15 +12,18 @@ namespace PCL;
 
 public partial class PageSetupUI
 {
-    public string[] ThemeColors => Basics.IsAprilFool 
-        ? [Lang.Text("Setup.Ui.Theme.Color.SkyBlue"), Lang.Text("Setup.Ui.Theme.Color.CatBlue"), Lang.Text("Setup.Ui.Theme.Color.CrashBlue"), Lang.Text("Setup.Ui.Theme.Color.Hmcl")]
-        : [Lang.Text("Setup.Ui.Theme.Color.SkyBlue"), Lang.Text("Setup.Ui.Theme.Color.CatBlue"), Lang.Text("Setup.Ui.Theme.Color.CrashBlue")];
-    
+    private readonly PageSetupUIViewModel _vm = new();
+
+    public PageSetupUIViewModel ViewModel => _vm;
+
+    public string[] ThemeColors => _vm.ThemeColors;
+
     public new bool isLoaded;
 
     public PageSetupUI()
     {
         InitializeComponent();
+        DataContext = _vm;
         Loaded += PageSetupUI_Loaded;
         Loaded += (_, _) => HiddenRefresh();
     }
@@ -41,7 +44,7 @@ public partial class PageSetupUI
 
         SliderLoad();
 
-        PanLauncherHide.Visibility = Visibility.Visible;
+        _vm.ShowLauncherHint();
     }
 
     public void Reload()
@@ -205,8 +208,9 @@ public partial class PageSetupUI
     private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
-        if (!ModAnimation.AniExitsAnyControl())
-            SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
+        if (ModAnimation.AniExitsAnyControl() || sender.SelectedIndex < 0)
+            return;
+        SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
     private void CheckBoxChange(object senderRaw, bool user)
@@ -261,48 +265,43 @@ public partial class PageSetupUI
     {
         if (PanBackgroundOpacity is null)
             return;
-        if (show)
-        {
-            PanBackgroundOpacity.Visibility = Visibility.Visible;
-            PanBackgroundBlur.Visibility = Visibility.Visible;
-            PanBackgroundSuit.Visibility = Visibility.Visible;
-            BtnBackgroundClear.Visibility = Visibility.Visible;
-            CheckAutoPauseVideo.Visibility = Visibility.Visible;
-            LocalizedText.TryBind(
-                CardBackground,
-                "Title",
-                () => Lang.Text("Setup.Ui.Background.TitleWithCount", count));
-        }
-        else
-        {
-            PanBackgroundOpacity.Visibility = Visibility.Collapsed;
-            PanBackgroundBlur.Visibility = Visibility.Collapsed;
-            PanBackgroundSuit.Visibility = Visibility.Collapsed;
-            BtnBackgroundClear.Visibility = Visibility.Collapsed;
-            CheckAutoPauseVideo.Visibility = Visibility.Collapsed;
-            LocalizedText.TryBind(
-                CardBackground,
-                "Title",
-                () => Lang.Text("Setup.Ui.Background.TitleDefault"));
-        }
-
+        _vm.ApplyBackgroundState(show, count);
+        LocalizedText.TryBind(
+            CardBackground,
+            "Title",
+            () => show
+                ? Lang.Text("Setup.Ui.Background.TitleWithCount", count)
+                : Lang.Text("Setup.Ui.Background.TitleDefault"));
         CardBackground.TriggerForceResize();
     }
 
-    private void BtnBackgroundClear_Click(object sender, MouseButtonEventArgs e)
+    private async void BtnBackgroundClear_Click(object sender, MouseButtonEventArgs e)
     {
-        if (ModMain.MyMsgBox(Lang.Text("Setup.Ui.Background.Clear.Confirm.Message"),
-                Lang.Text("Common.Dialog.Warning"), button2: Lang.Text("Common.Action.Cancel"),
-                isWarn: true) == 1)
+        var control = sender as FrameworkElement;
+        if (control is not null)
+            control.IsEnabled = false;
+        try
         {
+            if (!await _vm.ConfirmBackgroundClearAsync())
+                return;
             ModBase.DeleteDirectory(ModBase.exePath + @"PCL\Pictures");
             BackgroundRefresh(false, true);
             HintService.Hint(Lang.Text("Setup.Ui.Background.Clear.Success"), HintType.Success);
         }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "清空背景内容失败", ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
+        }
+        finally
+        {
+            if (control is not null)
+                control.IsEnabled = true;
+        }
     }
 
     /// <summary>
-    ///     刷新背景图片及设置页 UI。
+    /// 刷新背景图片及设置页 UI。
     /// </summary>
     /// <param name="isHint">是否显示刷新提示。</param>
     /// <param name="refresh">是否刷新图片显示。</param>
@@ -572,36 +571,27 @@ public partial class PageSetupUI
     {
         if (PanBackgroundOpacity is null)
             return;
-        if (ModMusic.musicAllList.Any())
-        {
-            PanMusicVolume.Visibility = Visibility.Visible;
-            PanMusicDetail.Visibility = Visibility.Visible;
-            BtnMusicClear.Visibility = Visibility.Visible;
-            var musicCount = ModMusic.musicAllList.Count;
-            LocalizedText.TryBind(
-                CardMusic,
-                "Title",
-                () => Lang.Text("Setup.Ui.Music.TitleWithCount", musicCount));
-        }
-        else
-        {
-            PanMusicVolume.Visibility = Visibility.Collapsed;
-            PanMusicDetail.Visibility = Visibility.Collapsed;
-            BtnMusicClear.Visibility = Visibility.Collapsed;
-            LocalizedText.TryBind(
-                CardMusic,
-                "Title",
-                () => Lang.Text("Setup.Ui.Music.Title"));
-        }
-
+        var hasMusic = ModMusic.musicAllList.Any();
+        var musicCount = ModMusic.musicAllList.Count;
+        _vm.ApplyMusicState(hasMusic, hasMusic ? ModBase.EnumerateFiles(ModBase.exePath + @"PCL\Musics\").Count() : 0);
+        LocalizedText.TryBind(
+            CardMusic,
+            "Title",
+            () => hasMusic
+                ? Lang.Text("Setup.Ui.Music.TitleWithCount", musicCount)
+                : Lang.Text("Setup.Ui.Music.Title"));
         CardMusic.TriggerForceResize();
     }
 
-    private void BtnMusicClear_Click(object sender, MouseButtonEventArgs e)
+    private async void BtnMusicClear_Click(object sender, MouseButtonEventArgs e)
     {
-        if (ModMain.MyMsgBox(Lang.Text("Setup.Ui.Music.Clear.Confirm.Message"),
-                Lang.Text("Common.Dialog.Warning"), button2: Lang.Text("Common.Action.Cancel"),
-                isWarn: true) == 1)
+        var control = sender as FrameworkElement;
+        if (control is not null)
+            control.IsEnabled = false;
+        try
+        {
+            if (!await _vm.ConfirmMusicClearAsync())
+                return;
             ModBase.RunInThread(() =>
             {
                 HintService.Hint(Lang.Text("Setup.Ui.Music.Deleting"));
@@ -640,6 +630,17 @@ public partial class PageSetupUI
                         userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
                 }
             });
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "清空背景音乐失败", ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
+        }
+        finally
+        {
+            if (control is not null)
+                control.IsEnabled = true;
+        }
     }
 
     private void CheckMusicStart_Change(object sender, bool user)
@@ -676,6 +677,8 @@ public partial class PageSetupUI
     private void ThemeColor_Change(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
+        if (ModAnimation.AniExitsAnyControl() || sender.SelectedIndex < 0)
+            return;
         SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
         ThemeManager.ThemeRefresh();
     }
@@ -689,15 +692,12 @@ public partial class PageSetupUI
     // 滑动条
     private void SliderLoad()
     {
-        SliderMusicVolume.getHintText = new Func<object, object>(v =>
-            Lang.Number(Math.Ceiling(Convert.ToDouble(v) * 0.1d) / 100d, "P0"));
-        SliderLauncherOpacity.getHintText = new Func<object, object>(v =>
-            Lang.Number(Math.Round(40 + Convert.ToDouble(v) * 0.1d) / 100d, "P0"));
-        SliderBackgroundOpacity.getHintText = new Func<object, object>(v =>
-            Lang.Number(Math.Round(Convert.ToDouble(v) * 0.1d) / 100d, "P0"));
-        SliderBackgroundBlur.getHintText = new Func<object, object>(v => Lang.Text("Setup.Ui.Slider.Pixel", Lang.Number(Convert.ToDouble(v), "N0")));
-        SliderBlurValue.getHintText = new Func<object, object>(v => Lang.Text("Setup.Ui.Slider.Pixel", Lang.Number(Convert.ToDouble(v), "N0")));
-        SliderBlurSamplingRate.getHintText = new Func<object, object>(v => Lang.Number(Convert.ToDouble(v) / 100d, "P0"));
+        SliderMusicVolume.getHintText = new Func<object, object>(PageSetupUIViewModel.FormatMusicVolumeHint);
+        SliderLauncherOpacity.getHintText = new Func<object, object>(PageSetupUIViewModel.FormatLauncherOpacityHint);
+        SliderBackgroundOpacity.getHintText = new Func<object, object>(PageSetupUIViewModel.FormatBackgroundOpacityHint);
+        SliderBackgroundBlur.getHintText = new Func<object, object>(PageSetupUIViewModel.FormatPixelHint);
+        SliderBlurValue.getHintText = new Func<object, object>(PageSetupUIViewModel.FormatPixelHint);
+        SliderBlurSamplingRate.getHintText = new Func<object, object>(PageSetupUIViewModel.FormatSamplingRateHint);
     }
 
     private void CheckMusicStart_OnChange(object sender, bool user)
@@ -715,7 +715,7 @@ public partial class PageSetupUI
     #region 功能隐藏
 
     /// <summary>
-    ///     是否强制显示被禁用的功能。
+    /// 是否强制显示被禁用的功能。
     /// </summary>
     public static bool HiddenForceShow
     {
@@ -728,7 +728,7 @@ public partial class PageSetupUI
     }
 
     /// <summary>
-    ///     更新功能隐藏带来的显示变化。
+    /// 更新功能隐藏带来的显示变化。
     /// </summary>
     public static void HiddenRefresh()
     {
@@ -761,9 +761,7 @@ public partial class PageSetupUI
             // 功能隐藏设置卡片
             if (ModMain.frmSetupUI is not null)
             {
-                ModMain.frmSetupUI.CardSwitch.Visibility = !HiddenForceShow && conf.FunctionHidden
-                    ? Visibility.Collapsed
-                    : Visibility.Visible;
+                ModMain.frmSetupUI.ViewModel.ApplyFeatureHideState(HiddenForceShow, conf.FunctionHidden);
                 LocalizedText.TryBind(
                     ModMain.frmSetupUI.CardSwitch,
                     "Title",

@@ -4,7 +4,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
-using DotNet.Globbing;
 using PCL.Core.App;
 using PCL.Core.UI;
 using PCL.Core.App.Localization;
@@ -52,14 +51,17 @@ public class ExportOption : DependencyObject
     public bool RequireModLoaderOrOptiFine { get; set; }
 }
 
-public partial class PageInstanceExport : IRefreshable
+public partial class PageInstanceExport : IRefreshable, IPageView
 {
-    private string currentVersion = "";
+    private readonly PageInstanceExportViewModel _vm = new();
+    private bool _refreshed;
 
     public PageInstanceExport()
     {
         InitializeComponent();
-        Loaded += (_, _) => PageInstanceExport_Loaded();
+        DataContext = _vm;
+        Loaded += PageInstanceExport_Loaded;
+        Unloaded += (_, _) => _refreshed = false;
         CardOptions.MouseLeftButtonDown += CardOptions_MouseLeftButtonDown;
         BtnAdvancedExport.Click += ExportConfig;
         BtnAdvancedImport.Click += ImportConfig;
@@ -74,10 +76,29 @@ public partial class PageInstanceExport : IRefreshable
         RefreshAll();
     }
 
-    private void PageInstanceExport_Loaded()
+    public PageInstanceExportViewModel ViewModel => _vm;
+
+    public void OnNavigatedTo(object? parameter)
     {
+        RefreshOnNavigate();
+    }
+
+    public void OnNavigatedFrom()
+    {
+    }
+
+    private void PageInstanceExport_Loaded(object sender, RoutedEventArgs e)
+    {
+        RefreshOnNavigate();
+    }
+
+    private void RefreshOnNavigate()
+    {
+        if (_refreshed)
+            return;
+        _refreshed = true;
         ModAnimation.AniBeginControl();
-        if ((currentVersion ?? "") != (PageInstanceLeft.McInstance.PathInstance ?? ""))
+        if (_vm.CurrentVersion != (PageInstanceLeft.McInstance.PathInstance ?? ""))
             RefreshAll(); // 切换到了另一个实例，重置页面
         ModAnimation.AniEndControl();
     }
@@ -85,13 +106,7 @@ public partial class PageInstanceExport : IRefreshable
     public void RefreshAll()
     {
         ModBase.Log("[Export] 刷新导出页面");
-        HintOptiFine.Visibility =
-            PageInstanceLeft.McInstance.Info.HasOptiFine ? Visibility.Visible : Visibility.Collapsed;
-        currentVersion = PageInstanceLeft.McInstance.PathInstance;
-        TextExportName.Text = "";
-        TextExportName.HintText = PageInstanceLeft.McInstance.Name;
-        TextExportVersion.Text = "";
-        TextExportVersion.HintText = "1.0.0";
+        _vm.RefreshHeader(PageInstanceLeft.McInstance);
         CheckAdvancedInclude.Checked = false;
         CheckAdvancedModrinth.Checked = false;
         GetExportOption(CheckOptionsBasic).DescriptionFactory =
@@ -105,9 +120,9 @@ public partial class PageInstanceExport : IRefreshable
     // 自动填写整合包名称
     private void TextExportName_GotFocus(object sender, RoutedEventArgs routedEventArgs)
     {
-        if (string.IsNullOrEmpty(TextExportName.Text))
+        if (string.IsNullOrEmpty(_vm.ExportName))
         {
-            TextExportName.Text = TextExportName.HintText;
+            _vm.ExportName = _vm.ExportNameHint;
             TextExportName.SelectionStart = TextExportName.Text.Length;
         }
     }
@@ -117,7 +132,7 @@ public partial class PageInstanceExport : IRefreshable
     {
         if (CheckAdvancedModrinth.Checked == true)
             CheckOptionsPcl.Checked = false;
-        CheckOptionsPcl.IsEnabled = (bool)!CheckAdvancedModrinth.Checked;
+        _vm.IncludePclEnabled = CheckAdvancedModrinth.Checked != true;
     }
 
     // 勾选"其他文件夹"时，同步勾选/取消所有子选项
@@ -134,7 +149,7 @@ public partial class PageInstanceExport : IRefreshable
     {
         if (CheckAdvancedInclude.Checked == true)
             CheckAdvancedModrinth.Checked = false;
-        CheckAdvancedModrinth.IsEnabled = (bool)!CheckAdvancedInclude.Checked;
+        _vm.ModrinthEnabled = CheckAdvancedInclude.Checked != true;
     }
 
     #region 子选项
@@ -163,7 +178,7 @@ public partial class PageInstanceExport : IRefreshable
         var rootDir = new DirectoryInfo(pathIndie);
         if (!rootDir.Exists)
         {
-            CheckOptionsOtherFolders.Visibility = Visibility.Collapsed;
+            _vm.RefreshOtherFolders(0);
             return;
         }
 
@@ -222,9 +237,7 @@ public partial class PageInstanceExport : IRefreshable
             });
         }
 
-        CheckOptionsOtherFolders.Visibility = PanOptionsOtherFolders.Children.Count > 0
-            ? Visibility.Visible
-            : Visibility.Collapsed;
+        _vm.RefreshOtherFolders(PanOptionsOtherFolders.Children.Count);
     }
 
     private void ReloadSubOptions(StackPanel panel, bool acceptCompressedFile, bool acceptFolder,
@@ -387,14 +400,14 @@ public partial class PageInstanceExport : IRefreshable
                 !PageInstanceLeft.McInstance.Modable)
                 return false;
             // 粗略检查是否可能有符合规则的文件/文件夹
-            return StandardizeLines((targetOption.Rules ?? targetOption.ShowRules).Split('|'), true).Any(rule =>
+            return PageInstanceExportViewModel.StandardizeLines((targetOption.Rules ?? targetOption.ShowRules).Split('|'), true).Any(rule =>
             {
                 if (rule.StartsWithF("!"))
                     return false; // 只看正向规则
                 // 检查前两级
                 try
                 {
-                    if (allEntries.Any(entry => LikeString(entry, rule)))
+                    if (allEntries.Any(entry => PageInstanceExportViewModel.LikeString(entry, rule)))
                         return true;
                 }
                 catch (Exception ex)
@@ -448,22 +461,6 @@ public partial class PageInstanceExport : IRefreshable
     }
 
     /// <summary>
-    ///     对文本行进行标准化处理，以便使用 Like 进行匹配。
-    /// </summary>
-    private IEnumerable<string> StandardizeLines(IEnumerable<string> raw, bool addSuffixStarToFolderPath)
-    {
-        foreach (var IgnoreLineRaw in raw)
-        {
-            var ignoreLine = IgnoreLineRaw;
-            ignoreLine = ignoreLine.Trim();
-            if (string.IsNullOrEmpty(ignoreLine) || ignoreLine.StartsWithF("#") || ignoreLine.StartsWithF("="))
-                continue;
-            ignoreLine = ignoreLine.Replace("/", @"\");
-            yield return ignoreLine + (ignoreLine.EndsWithF(@"\") && addSuffixStarToFolderPath ? "**" : "");
-        }
-    }
-
-    /// <summary>
     ///     获取所有可作为选项的 CheckBox。
     /// </summary>
     private IEnumerable<MyCheckBox> GetAllOptions(bool includeHidden)
@@ -512,17 +509,14 @@ public partial class PageInstanceExport : IRefreshable
         set
         {
             field = value;
+            _vm.HasOverrides = value is not null;
             if (value is null)
             {
-                BtnOverrideCancel.Visibility = Visibility.Collapsed;
-                PanOptions.Visibility = Visibility.Visible;
                 CardOptions.Inlines.Clear();
                 CardOptions.Inlines.Add(new Run(Lang.Text("Instance.Export.OptionListTitle")) { FontWeight = FontWeights.Bold });
             }
             else
             {
-                BtnOverrideCancel.Visibility = Visibility.Visible;
-                PanOptions.Visibility = Visibility.Collapsed;
                 CardOptions.Inlines.Clear();
                 CardOptions.Inlines.Add(new Run(Lang.Text("Instance.Export.OptionListTitle") + ":    ") { FontWeight = FontWeights.Bold });
                 CardOptions.Inlines.Add(new Run(Lang.Text("Instance.Export.OptionList.FromConfig")) { FontWeight = FontWeights.Normal });
@@ -630,8 +624,8 @@ public partial class PageInstanceExport : IRefreshable
             States.System.ExportConfigPath = configPath;
             var configLines = new List<string>();
             // ini 段
-            configLines.Add("Name:" + TextExportName.Text);
-            configLines.Add("Version:" + TextExportVersion.Text);
+            configLines.Add("Name:" + _vm.ExportName);
+            configLines.Add("Version:" + _vm.ExportVersion);
             configLines.Add("");
             configLines.Add("# " + Lang.Text("Instance.Export.Config.Comment.IncludeLauncher"));
             configLines.Add("IncludeLauncher:" + CheckOptionsPcl.Checked);
@@ -710,8 +704,8 @@ public partial class PageInstanceExport : IRefreshable
             }
 
             // 赋值到界面控件
-            TextExportName.Text = ini.GetOrDefault("Name", "");
-            TextExportVersion.Text = ini.GetOrDefault("Version", "");
+            _vm.ExportName = ini.GetOrDefault("Name", "");
+            _vm.ExportVersion = ini.GetOrDefault("Version", "");
             CheckOptionsPcl.Checked =
                 Convert.ToBoolean(ini.GetOrDefault("IncludeLauncher", false.ToString()));
             CheckOptionsPclCustom.Checked =
@@ -833,10 +827,34 @@ public partial class PageInstanceExport : IRefreshable
     /// <summary>
     ///     开始导出。
     /// </summary>
-    private void StartExport(object sender, MouseButtonEventArgs e)
+    private async void StartExport(object sender, MouseButtonEventArgs e)
     {
-        var packName = string.IsNullOrEmpty(TextExportName.Text) ? TextExportName.HintText : TextExportName.Text;
-        var packVersion = string.IsNullOrEmpty(TextExportVersion.Text) ? "1.0.0" : TextExportVersion.Text;
+        var ctl = sender as Control;
+        if (ctl is not null)
+            ctl.IsEnabled = false;
+        try
+        {
+            await StartExportAsync();
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(
+                ex,
+                "导出整合包失败",
+                ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Instance.Export.Error.OperationFailed"));
+        }
+        finally
+        {
+            if (ctl is not null)
+                ctl.IsEnabled = true;
+        }
+    }
+
+    private async Task StartExportAsync()
+    {
+        var packName = string.IsNullOrEmpty(_vm.ExportName) ? _vm.ExportNameHint : _vm.ExportName;
+        var packVersion = string.IsNullOrEmpty(_vm.ExportVersion) ? "1.0.0" : _vm.ExportVersion;
 
         // 重复任务检查
         var loaderName = Lang.Text("Instance.Export.ExportTask.Prefix") + packName;
@@ -862,7 +880,7 @@ public partial class PageInstanceExport : IRefreshable
             catch (Exception ex)
             {
                 ModBase.Log(ex, $"无法使用配置文件中指定的导出路径（{configPackPath}）");
-                if (ModMain.MyMsgBox(
+                if (await ModMain.MyMsgBoxAsync(
                         Lang.Text("Instance.Export.PackPathInvalid.WithDetail", configPackPath, ex.ToString()),
                         Lang.Text("Instance.Export.PackPathInvalid.Title"), Lang.Text("Common.Action.Confirm"),
                         Lang.Text("Common.Action.Cancel")) == 2)
@@ -877,7 +895,7 @@ public partial class PageInstanceExport : IRefreshable
             if (CheckOptionsPcl.Checked == false)
                 extensions.Add(Lang.Text("Instance.Export.MrpackFilter"));
             packPath = SystemDialogs.SelectSaveFile(Lang.Text("Instance.Export.SelectSaveLocation"),
-                packName + (string.IsNullOrEmpty(TextExportVersion.Text) ? "" : " " + TextExportVersion.Text),
+                packName + (string.IsNullOrEmpty(_vm.ExportVersion) ? "" : " " + _vm.ExportVersion),
                 extensions.Join("|"));
             ModBase.Log($"[Export] 手动指定的导出路径：{packPath}");
         }
@@ -894,8 +912,8 @@ public partial class PageInstanceExport : IRefreshable
         var modrinthUploadMode = (bool)CheckAdvancedModrinth.Checked;
         var includePCL = (bool)CheckOptionsPcl.Checked;
         var includePCLCustom = (bool)(includePCL ? CheckOptionsPclCustom.Checked : (bool?)false);
-        var allRules = StandardizeLines(GetAllRules(), true).ToList();
-        var allExtraFiles = StandardizeLines(GetExtraFileLines(), false).ToList();
+        var allRules = PageInstanceExportViewModel.StandardizeLines(GetAllRules(), true).ToList();
+        var allExtraFiles = PageInstanceExportViewModel.StandardizeLines(GetExtraFileLines(), false).ToList();
         ModBase.Log($"[Export] 准备导出整合包，共有 {allRules.Count} 条规则，{allExtraFiles.Count} 条追加内容行");
 
         // 构造步骤加载器
@@ -953,7 +971,7 @@ public partial class PageInstanceExport : IRefreshable
                     foreach (var Rule in allRules)
                     {
                         var revert = Rule.StartsWith("!");
-                        if (LikeString(relativePath, Rule.TrimStart('!')))
+                        if (PageInstanceExportViewModel.LikeString(relativePath, Rule.TrimStart('!')))
                             shouldKeep = !revert;
                     }
 
@@ -1283,12 +1301,4 @@ public partial class PageInstanceExport : IRefreshable
     }
 
     #endregion
-
-    private static bool LikeString(string input, string pattern)
-    {
-        pattern = pattern.Replace("#", "[0-9]");
-        var options = new GlobOptions { Evaluation = { CaseInsensitive = true } };
-        var glob = Glob.Parse(pattern, options);
-        return glob.IsMatch(input);
-    }
 }

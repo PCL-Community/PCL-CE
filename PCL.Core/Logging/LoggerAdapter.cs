@@ -1,137 +1,138 @@
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading;
 
 namespace PCL.Core.Logging;
 
 /// <summary>
-/// Microsoft.Extensions.Logging.ILogger 适配器
-/// 将现有的 Logger 包装为标准的 ILogger 接口实现
+/// Adapts <see cref="Logger" /> to <see cref="ILogger" />. The category name becomes the entry source,
+/// scopes are rendered as a prefix of the message, and the exception is handed to the logger untouched so
+/// its stack trace is rendered exactly once on the writer thread.
 /// </summary>
 public class LoggerAdapter(Logger logger, string categoryName) : ILogger
 {
     private readonly Logger _innerLogger = logger ?? throw new ArgumentNullException(nameof(logger));
     private readonly string _categoryName = categoryName ?? throw new ArgumentNullException(nameof(categoryName));
 
-    private static readonly AsyncLocal<Stack<object>> _ScopeStack = new();
-
-    IDisposable ILogger.BeginScope<TState>(TState state)
+    /// <summary>An immutable node of the ambient scope chain. Pushing replaces the reference, popping restores the parent.</summary>
+    private sealed class ScopeNode(string text, ScopeNode? parent)
     {
-        _ScopeStack.Value ??= new Stack<object>();
-        _ScopeStack.Value.Push(state);
-        return new ScopeDisposable(state);
+        public string Text { get; } = text;
+        public ScopeNode? Parent { get; } = parent;
     }
 
-#pragma warning disable CS9113 // 参数未读。
-    private class ScopeDisposable(object state) : IDisposable
+    // Ambient by design: a scope spans categories. An immutable chain is used because a shared mutable
+    // stack would let a child async context push onto the parent's stack.
+    private static readonly AsyncLocal<ScopeNode?> _Scope = new();
+
+    /// <summary>
+    /// Pushes a scope onto the ambient chain, snapshotting <c>state.ToString()</c> once instead of on every
+    /// log call, and returns a handle that pops exactly the node it pushed.
+    /// </summary>
+    IDisposable ILogger.BeginScope<TState>(TState state)
     {
-        private bool _disposed;
+        var node = new ScopeNode(state?.ToString() ?? string.Empty, _Scope.Value);
+        _Scope.Value = node;
+        return new ScopeDisposable(node);
+    }
+
+    /// <summary>
+    /// Pops a single scope node. Disposal is idempotent and a no-op when the ambient chain has already moved
+    /// on, so out-of-order disposal cannot corrupt the chain.
+    /// </summary>
+    private sealed class ScopeDisposable(ScopeNode node) : IDisposable
+    {
+        private int _disposed;
 
         public void Dispose()
         {
-            if (_disposed)
-                return;
-
-            if (_ScopeStack.Value is { Count: > 0 })
-            {
-#if DEBUG
-                var popped = _ScopeStack.Value.Pop();
-                if (!ReferenceEquals(popped, state))
-                {
-                    throw new InvalidOperationException("Scope disposal order mismatch.");
-                }
-#else
-                _ = _ScopeStack.Value.Pop();
-#endif
-            }
-
-            _disposed = true;
+            if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
+            if (ReferenceEquals(_Scope.Value, node)) _Scope.Value = node.Parent;
         }
     }
 
-    public bool IsEnabled(Microsoft.Extensions.Logging.LogLevel level) => true;
+    /// <summary>
+    /// Maps the Microsoft level onto the local one and defers to <see cref="Logger.IsEnabled" />, so callers
+    /// can skip building the message and the state object entirely.
+    /// </summary>
+    public bool IsEnabled(Microsoft.Extensions.Logging.LogLevel level)
+        => _ToPclLevel(level) is { } pclLevel && _innerLogger.IsEnabled(pclLevel);
 
-    public void Log<TState>(Microsoft.Extensions.Logging.LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+    /// <summary>
+    /// Formats the message with the exception excluded, adds the event id and scope prefix only when they
+    /// exist, and forwards the exception separately. This keeps the exception text in the output exactly
+    /// once and avoids allocating a builder for the common case.
+    /// </summary>
+    public void Log<TState>(
+        Microsoft.Extensions.Logging.LogLevel logLevel,
+        EventId eventId,
+        TState state,
+        Exception? exception,
+        Func<TState, Exception?, string> formatter)
     {
-        if (!IsEnabled(logLevel))
+        if (_ToPclLevel(logLevel) is not { } pclLevel || !_innerLogger.IsEnabled(pclLevel))
             return;
 
         ArgumentNullException.ThrowIfNull(formatter);
 
-        var originalMessage = formatter(state, exception);
-        var sb = new StringBuilder();
+        var message = formatter(state, null);
+        var scope = _BuildScopeContext();
+        var hasEventId = eventId.Id != 0 || !string.IsNullOrEmpty(eventId.Name);
 
-        // 类别名称
-        if (!string.IsNullOrEmpty(_categoryName))
+        if (hasEventId || scope is not null)
         {
-            sb.Append('[').Append(_categoryName).Append("] ");
-        }
-
-        // 事件 ID
-        if (eventId.Id != 0 || !string.IsNullOrEmpty(eventId.Name))
-        {
-            sb.Append("[EventId:");
-            if (!string.IsNullOrEmpty(eventId.Name))
+            var builder = new StringBuilder(message.Length + 48);
+            if (hasEventId)
             {
-                sb.Append(eventId.Id).Append(':').Append(eventId.Name);
+                builder.Append("[EventId:");
+                if (!string.IsNullOrEmpty(eventId.Name))
+                    builder.Append(eventId.Id).Append(':').Append(eventId.Name);
+                else
+                    builder.Append(eventId.Id);
+                builder.Append("] ");
             }
-            else
-            {
-                sb.Append(eventId.Id);
-            }
-            sb.Append("] ");
+
+            if (scope is not null) builder.Append('[').Append(scope).Append("] ");
+
+            builder.Append(message);
+            message = builder.ToString();
         }
 
-        // 上下文信息
-        var scopeContext = _BuildScopeContext();
-        if (!string.IsNullOrEmpty(scopeContext))
-        {
-            sb.Append('[').Append(_categoryName).Append("] ");
-        }
-
-        sb.Append(originalMessage);
-        var finalMessage = sb.ToString();
-
-        // 日志级别
-        switch (logLevel)
-        {
-            case Microsoft.Extensions.Logging.LogLevel.Trace:
-                _innerLogger.Trace(finalMessage);
-                break;
-            case Microsoft.Extensions.Logging.LogLevel.Debug:
-                _innerLogger.Debug(finalMessage);
-                break;
-            case Microsoft.Extensions.Logging.LogLevel.Information:
-                _innerLogger.Info(finalMessage);
-                break;
-            case Microsoft.Extensions.Logging.LogLevel.Warning:
-                _innerLogger.Warn(finalMessage);
-                break;
-            case Microsoft.Extensions.Logging.LogLevel.Error:
-                _innerLogger.Error(finalMessage);
-                break;
-            case Microsoft.Extensions.Logging.LogLevel.Critical:
-                _innerLogger.Fatal(finalMessage);
-                break;
-        }
-
-        if (exception is not null)
-        {
-            var exceptionMessage = $"Exception: {exception}";
-            _innerLogger.Log($"[{_categoryName}] {exceptionMessage}");
-        }
+        _innerLogger.Log(pclLevel, message, _categoryName, exception);
     }
 
-    private string _BuildScopeContext()
+    /// <summary>Renders the ambient scope chain outermost first, joined by <c>=&gt;</c>, or <see langword="null" /> when no scope is active.</summary>
+    private static string? _BuildScopeContext()
     {
-        var stack = _ScopeStack.Value;
-        if (stack is null || stack.Count == 0)
-            return string.Empty;
+        var node = _Scope.Value;
+        if (node is null) return null;
 
-        var scopes = stack.AsEnumerable().Reverse();
-        return string.Join(" => ", scopes.Select(s => s.ToString()));
+        var builder = new StringBuilder();
+        _AppendScope(builder, node);
+        return builder.ToString();
     }
+
+    /// <summary>Appends the chain recursively, so the outermost scope comes first without any reversal buffer.</summary>
+    private static void _AppendScope(StringBuilder builder, ScopeNode node)
+    {
+        if (node.Parent is not null)
+        {
+            _AppendScope(builder, node.Parent);
+            builder.Append(" => ");
+        }
+        builder.Append(node.Text);
+    }
+
+    /// <summary>Maps a Microsoft level onto the local level, or <see langword="null" /> for an unknown value.</summary>
+    private static LogLevel? _ToPclLevel(Microsoft.Extensions.Logging.LogLevel level) => level switch
+    {
+        Microsoft.Extensions.Logging.LogLevel.Trace => LogLevel.Trace,
+        Microsoft.Extensions.Logging.LogLevel.Debug => LogLevel.Debug,
+        Microsoft.Extensions.Logging.LogLevel.Information => LogLevel.Info,
+        Microsoft.Extensions.Logging.LogLevel.Warning => LogLevel.Warning,
+        Microsoft.Extensions.Logging.LogLevel.Error => LogLevel.Error,
+        Microsoft.Extensions.Logging.LogLevel.Critical => LogLevel.Fatal,
+        _ => null
+    };
 }

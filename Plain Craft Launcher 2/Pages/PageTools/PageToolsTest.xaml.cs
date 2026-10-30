@@ -23,8 +23,10 @@ using System.Globalization;
 
 namespace PCL;
 
-public partial class PageToolsTest
+public partial class PageToolsTest : IPageView
 {
+    private readonly PageToolsTestViewModel _vm = new();
+    private bool _refreshed;
     private Bitmap currentSkinBitmap;
     private Bitmap generatedHeadBitmap;
 
@@ -34,17 +36,35 @@ public partial class PageToolsTest
     public PageToolsTest()
     {
         InitializeComponent();
+        DataContext = _vm;
         BtnSelectSkin.Click += BtnSelectSkin_Click;
         CmbHeadSize.SelectionChanged += CmbHeadSize_SelectionChanged;
-        Loaded += (_, _) => MeLoaded();
-        #if DEBUG
-        BtnCrash.Visibility = Visibility.Visible;
-        #endif
+        Loaded += (_, _) => RefreshOnNavigate();
+        Unloaded += (_, _) => _refreshed = false;
+    }
+
+    public PageToolsTestViewModel ViewModel => _vm;
+
+    public void OnNavigatedTo(object? parameter)
+    {
+        RefreshOnNavigate();
+    }
+
+    public void OnNavigatedFrom()
+    {
+    }
+
+    private void RefreshOnNavigate()
+    {
+        if (_refreshed)
+            return;
+        _refreshed = true;
+        MeLoaded();
     }
 
     private void MeLoaded()
     {
-        BtnDownloadStart.IsEnabled = false;
+        _vm.DownloadStartEnabled = false;
 
         TextDownloadFolder.Text = States.Tool.DownloadFolder;
         TextDownloadFolder.Validate();
@@ -60,19 +80,15 @@ public partial class PageToolsTest
 
     private void StartButtonRefresh()
     {
-        BtnDownloadStart.IsEnabled = string.IsNullOrEmpty(TextDownloadFolder.ValidateResult) &&
-                                     string.IsNullOrEmpty(TextDownloadUrl.ValidateResult) &&
-                                     string.IsNullOrEmpty(TextDownloadName.ValidateResult);
+        _vm.RefreshDownloadButtons(
+            string.IsNullOrEmpty(TextDownloadFolder.ValidateResult),
+            string.IsNullOrEmpty(TextDownloadUrl.ValidateResult),
+            string.IsNullOrEmpty(TextDownloadName.ValidateResult));
 
-        BtnDownloadOpen.IsEnabled = string.IsNullOrEmpty(TextDownloadFolder.ValidateResult);
-
-        BtnAchievementPreview.IsEnabled = string.IsNullOrEmpty(AchievementBlockTextBox.ValidateResult) &&
-                                          string.IsNullOrEmpty(AchievementTitleTextBox.ValidateResult) &&
-                                          string.IsNullOrEmpty(AchievementString1TextBox.ValidateResult);
-
-        BtnAchievementSave.IsEnabled = string.IsNullOrEmpty(AchievementBlockTextBox.ValidateResult) &&
-                                       string.IsNullOrEmpty(AchievementTitleTextBox.ValidateResult) &&
-                                       string.IsNullOrEmpty(AchievementString1TextBox.ValidateResult);
+        _vm.RefreshAchievementButtons(
+            string.IsNullOrEmpty(AchievementBlockTextBox.ValidateResult),
+            string.IsNullOrEmpty(AchievementTitleTextBox.ValidateResult),
+            string.IsNullOrEmpty(AchievementString1TextBox.ValidateResult));
     }
 
     private void SaveCacheDownloadFolder(object sender, RoutedEventArgs e)
@@ -173,17 +189,25 @@ public partial class PageToolsTest
         }
     }
 
-    public static void Jrrp()
+    public static async void Jrrp()
     {
-        var random = new Random(GenerateDailySeed());
-        var luckValue = random.Next(0, 101);
-        var rating = GetRating(luckValue);
-        var title = Lang.Text("Tools.Test.Luck.MsgboxTitle", Lang.Date(DateTime.Now, "d"));
+        try
+        {
+            var random = new Random(GenerateDailySeed());
+            var luckValue = random.Next(0, 101);
+            var rating = GetRating(luckValue);
+            var title = Lang.Text("Tools.Test.Luck.MsgboxTitle", Lang.Date(DateTime.Now, "d"));
 
-        if (luckValue >= 60)
-            ModMain.MyMsgBox(Lang.Text("Tools.Test.Luck.MessageGood", luckValue, rating), title);
-        else
-            ModMain.MyMsgBox(Lang.Text("Tools.Test.Luck.MessageBad", luckValue, rating), title, isWarn: luckValue <= 30);
+            if (luckValue >= 60)
+                await ModMain.MyMsgBoxAsync(Lang.Text("Tools.Test.Luck.MessageGood", luckValue, rating), title);
+            else
+                await ModMain.MyMsgBoxAsync(Lang.Text("Tools.Test.Luck.MessageBad", luckValue, rating), title, isWarn: luckValue <= 30);
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "显示今日人品弹窗失败", ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Tools.Test.Error.OperationFailed"));
+        }
     }
 
     public static void RubbishClear()
@@ -466,29 +490,57 @@ public partial class PageToolsTest
         return Lang.Text(key);
     }
 
-    private void BtnCreateShortcut_Click(object sender, MouseButtonEventArgs e)
+    private async void BtnCreateShortcut_Click(object sender, MouseButtonEventArgs e)
     {
-        var shortcutName = Lang.Text("Tools.Test.Shortcut.FileName", ".lnk");
-        var desktopName = Lang.Text("Tools.Test.Shortcut.Desktop");
-        var startName = Lang.Text("Tools.Test.Shortcut.StartMenu");
-        var desktop = Paths.GetSpecialPath(Environment.SpecialFolder.Desktop, shortcutName);
-        var start = Paths.GetSpecialPath(Environment.SpecialFolder.StartMenu, @"Programs\" + shortcutName);
-        var choice =
-            ModMain.MyMsgBox(
-                Lang.Text("Tools.Test.Shortcut.ConfirmMessage", desktopName, desktop, startName, start),
-                Lang.Text("Tools.Test.Shortcut.SelectLocation"), Lang.Text("Common.Action.Cancel"), desktopName, startName);
-        if (choice == 1)
-            return;
-        var shortcutPath = choice == 2 ? desktop : start;
-        var locationName = choice == 2 ? desktopName : startName;
-        Files.CreateShortcut(shortcutPath, Basics.ExecutablePath);
-        HintService.Hint(Lang.Text("Tools.Test.Shortcut.Created", locationName), HintType.Success);
+        var ctl = sender as Control;
+        if (ctl is not null) ctl.IsEnabled = false;
+        try
+        {
+            var shortcutName = Lang.Text("Tools.Test.Shortcut.FileName", ".lnk");
+            var desktopName = Lang.Text("Tools.Test.Shortcut.Desktop");
+            var startName = Lang.Text("Tools.Test.Shortcut.StartMenu");
+            var desktop = Paths.GetSpecialPath(Environment.SpecialFolder.Desktop, shortcutName);
+            var start = Paths.GetSpecialPath(Environment.SpecialFolder.StartMenu, @"Programs\" + shortcutName);
+            var choice =
+                await ModMain.MyMsgBoxAsync(
+                    Lang.Text("Tools.Test.Shortcut.ConfirmMessage", desktopName, desktop, startName, start),
+                    Lang.Text("Tools.Test.Shortcut.SelectLocation"), Lang.Text("Common.Action.Cancel"), desktopName, startName);
+            if (choice == 1)
+                return;
+            var shortcutPath = choice == 2 ? desktop : start;
+            var locationName = choice == 2 ? desktopName : startName;
+            Files.CreateShortcut(shortcutPath, Basics.ExecutablePath);
+            HintService.Hint(Lang.Text("Tools.Test.Shortcut.Created", locationName), HintType.Success);
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "创建快捷方式失败", ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Tools.Test.Error.OperationFailed"));
+        }
+        finally
+        {
+            if (ctl is not null) ctl.IsEnabled = true;
+        }
     }
 
     // 启动计数显示
-    private void BtnLaunchCount_Click(object sender, MouseButtonEventArgs e)
+    private async void BtnLaunchCount_Click(object sender, MouseButtonEventArgs e)
     {
-        ModMain.MyMsgBox(Lang.Text("Tools.Test.LaunchCount.Message", States.System.LaunchCount), Lang.Text("Tools.Test.LaunchCount.Title"));
+        var ctl = sender as Control;
+        if (ctl is not null) ctl.IsEnabled = false;
+        try
+        {
+            await ModMain.MyMsgBoxAsync(Lang.Text("Tools.Test.LaunchCount.Message", States.System.LaunchCount), Lang.Text("Tools.Test.LaunchCount.Title"));
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "显示启动次数弹窗失败", ModBase.LogLevel.Feedback,
+                userSummary: Lang.Text("Tools.Test.Error.OperationFailed"));
+        }
+        finally
+        {
+            if (ctl is not null) ctl.IsEnabled = true;
+        }
     }
 
     private async void BtnAchievementPreview_Click(object sender, MouseButtonEventArgs e)
@@ -517,7 +569,7 @@ public partial class PageToolsTest
                     Dispatcher.Invoke(() =>
                     {
                         AchievementImage.Source = bitmapImage;
-                        AchievementImage.Visibility = Visibility.Visible;
+                        _vm.AchievementImageVisible = true;
                     });
                 }
             else if (response.StatusCode == HttpStatusCode.NotFound)
@@ -640,7 +692,7 @@ public partial class PageToolsTest
             if (currentSkinBitmap.Width != currentSkinBitmap.Height)
             {
                 HintService.Hint(Lang.Text("Tools.Test.Avatar.InvalidSize"), HintType.Error);
-                SkinPreviewBorder.Visibility = Visibility.Collapsed;
+                _vm.SkinPreviewVisible = false;
                 return;
             }
 
@@ -649,7 +701,7 @@ public partial class PageToolsTest
             ImgFace.Source = BitmapToBitmapImage(generatedHeadBitmap);
             ImgHair.Source = null;
 
-            SkinPreviewBorder.Visibility = Visibility.Visible;
+            _vm.SkinPreviewVisible = true;
             HintService.Hint(Lang.Text("Tools.Test.Avatar.Generated"), HintType.Success);
         }
 
@@ -657,7 +709,7 @@ public partial class PageToolsTest
         {
             ModBase.Log(ex, "生成头像失败");
             HintService.Hint(Lang.Text("Tools.Test.Avatar.GenerateFailed", ex.Message), HintType.Error);
-            SkinPreviewBorder.Visibility = Visibility.Collapsed;
+            _vm.SkinPreviewVisible = false;
         }
     }
 

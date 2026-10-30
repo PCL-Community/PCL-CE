@@ -1,12 +1,12 @@
-<local:MyPageRight
+﻿<local:MyPageRight
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:loc="https://ce.pclc.cc/core/localization"
     xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:svgIcon="clr-namespace:PCL.Core.UI.Controls.SvgIcon;assembly=PCL.Core"
     mc:Ignorable="d" x:Class="PCL.PageToolsGameLink"
-    d:DesignWidth="800" d:DesignHeight="800">
+    d:DesignWidth="800" d:DesignHeight="800"
+    xmlns:loc="https://ce.pclc.cc/core/localization">
     <Grid>
         <Grid x:Name="PanLoad" Visibility="Collapsed">
             <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" x:Name="CardLoad"
@@ -34,15 +34,13 @@
                                      Text="" TextError="" TextErrorInherit="False" AutoRun="False"
                                      IsHitTestVisible="False" />
                     <TextBlock x:Name="LabLoadTitle" Grid.Column="3" Grid.Row="1" Grid.ColumnSpan="2"
-                               VerticalAlignment="Center"
-                               Text="{loc:Loc Tools.GameLink.Loading.Creating}"
+                               VerticalAlignment="Center" Text="{loc:Loc Tools.GameLink.Loading.Creating}"
                                FontSize="19"
                                Margin="0,0,25,1" Foreground="{Binding Foreground, ElementName=Load}"
                                IsHitTestVisible="False" />
                     <TextBlock x:Name="LabLoadDesc" Grid.Column="3" Grid.ColumnSpan="3" Grid.Row="2"
                                VerticalAlignment="Center" Margin="0,5,10,-5"
-                               Text="{loc:Loc Tools.GameLink.Loading.DownloadingModule}"
-                               FontSize="14"
+                               Text="{Binding LoadDescText}" FontSize="14"
                                LineHeight="19" MaxWidth="400" MaxHeight="220" TextWrapping="Wrap"
                                Foreground="{StaticResource ColorBrushGray3}" IsHitTestVisible="False" />
                     <local:MyIconButton Grid.Column="5" Grid.Row="1" x:Name="BtnLoadCancel" Height="28" Width="28"
@@ -77,24 +75,23 @@
                 </Grid.RowDefinitions>
                 <local:MyHint x:Name="HintAnnounce" Margin="10" MinHeight="36" MaxHeight="64" Grid.Row="0"
                               HorizontalAlignment="Stretch"
-                              Text="{loc:Loc Tools.GameLink.Loading.ConnectingServer}" Theme="Blue" />
-                <StackPanel x:Name="PanEula" Grid.Row="1" HorizontalAlignment="Stretch" Orientation="Vertical">
+                              Text="{Binding HintAnnounceText}" Visibility="{Binding HintAnnounceVisibility}" Theme="Blue" />
+                <StackPanel x:Name="PanEula" Grid.Row="1" HorizontalAlignment="Stretch" Orientation="Vertical"
+                            Visibility="{Binding PanEulaVisibility}">
                     <local:MyCard Title="{loc:Loc Tools.GameLink.Agreement.Title}" Margin="10">
                         <StackPanel Margin="20,40,18,18">
                             <TextBlock TextWrapping="Wrap" Margin="0,0,0,10"
                                        Text="{loc:Loc Tools.GameLink.Agreement.Description}" />
-                            <local:MyListItem
-                                Title="{loc:Loc Tools.GameLink.Agreement.PrivacyPolicy}"
-                                Info="{loc:Loc Tools.GameLink.Agreement.PrivacyPolicyInfo}"
-                                Type="Clickable" local:CustomEventService.EventType="OpenUrl"
-                                local:CustomEventService.EventData="https://www.pclc.cc/privacy/personal-info-brief.html"
-                                Logo="pack://application:,,,/images/Blocks/Grass.png" />
-                            <local:MyListItem
-                                Title="{loc:Loc Tools.GameLink.Agreement.NatayarkTerms}"
-                                Info="{loc:Loc Tools.GameLink.Agreement.NatayarkTermsInfo}"
-                                Type="Clickable" local:CustomEventService.EventType="OpenUrl"
-                                local:CustomEventService.EventData="https://account.naids.com/policy"
-                                Logo="pack://application:,,,/images/Blocks/Grass.png" />
+                            <local:MyListItem Title="{loc:Loc Tools.GameLink.Agreement.PrivacyPolicy}"
+                                              Info="{loc:Loc Tools.GameLink.Agreement.PrivacyPolicyInfo}"
+                                              Type="Clickable" local:CustomEventService.EventType="OpenUrl"
+                                              local:CustomEventService.EventData="https://www.pclc.cc/privacy/personal-info-brief.html"
+                                              Logo="pack://application:,,,/images/Blocks/Grass.png" />
+                            <local:MyListItem Title="{loc:Loc Tools.GameLink.Agreement.NatayarkTerms}"
+                                              Info="{loc:Loc Tools.GameLink.Agreement.NatayarkTermsInfo}"
+                                              Type="Clickable" local:CustomEventService.EventType="OpenUrl"
+                                              local:CustomEventService.EventData="https://account.naids.com/policy"
+                                              Logo="pack://application:,,,/images/Blocks/Grass.png" />
                             <TextBlock TextWrapping="Wrap" Margin="0,10,0,0"
                                        Text="{loc:Loc Tools.GameLink.Agreement.Body}" />
                             <local:MyButton x:Name="BtnEulaAgree"
@@ -104,7 +101,8 @@
                         </StackPanel>
                     </local:MyCard>
                 </StackPanel>
-                <StackPanel x:Name="PanSelect" Grid.Row="1" HorizontalAlignment="Stretch" Orientation="Vertical">
+                <StackPanel x:Name="PanSelect" Grid.Row="1" HorizontalAlignment="Stretch" Orientation="Vertical"
+                            Visibility="{Binding PanSelectVisibility}">
                     <StackPanel Margin="10,4" HorizontalAlignment="Right" Orientation="Horizontal">
                         <local:MyCard Margin="12,0" x:Name="BtnNatTest">
                             <StackPanel Orientation="Horizontal"
@@ -119,8 +117,7 @@
                                              Margin="12,0,7,0"
                                              Icon="lucide/ethernet-port" />
                                 <TextBlock x:Name="LabNatType" IsHitTestVisible="False"
-                                           Text="{loc:Loc Tools.GameLink.Nat.Test}"
-                                           VerticalAlignment="Center"
+                                           Text="{Binding NatTypeText}" VerticalAlignment="Center"
                                            Foreground="{DynamicResource ColorBrushGray1}" Margin="0,0,12,0" />
                             </StackPanel>
                         </local:MyCard>
@@ -138,7 +135,8 @@
                                              Icon="lucide/user" />
                                 <TextBlock x:Name="LabNatayarkUserName"
                                            MouseLeftButtonUp="LabNatayarkUserName_MouseLeftButtonUp"
-                                           Text="{loc:Loc Tools.GameLink.Natayark.Login}"
+                                           Text="{Binding NatayarkUserNameText}"
+                                           Opacity="{Binding NatayarkUserNameOpacity}"
                                            VerticalAlignment="Center"
                                            Foreground="{DynamicResource ColorBrushGray1}" Margin="0,0,12,0" />
                             </StackPanel>
@@ -155,8 +153,7 @@
                                                 ColorType="Highlight"
                                                 Width="50" Margin="10,0,0,0" Click="BtnJoin_Click" />
                                 <local:MyButton x:Name="BtnPaste" DockPanel.Dock="Right"
-                                                Text="{loc:Loc Tools.GameLink.Join.Paste}"
-                                                ColorType="Normal"
+                                                Text="{loc:Loc Tools.GameLink.Join.Paste}" ColorType="Normal"
                                                 Width="50" Margin="10,0,0,0" Click="PasteLobbyId" />
                                 <local:MyButton x:Name="BtnClearLobbyId" DockPanel.Dock="Right"
                                                 Text="{loc:Loc Tools.GameLink.Join.Clear}"
@@ -180,8 +177,7 @@
                                                 ColorType="Highlight" Width="50" Margin="10,0,0,0"
                                                 Click="BtnCreate_Click" />
                                 <local:MyButton x:Name="BtnRefresh" DockPanel.Dock="Right"
-                                                Text="{loc:Loc Common.Action.Refresh}"
-                                                ColorType="Normal"
+                                                Text="{loc:Loc Common.Action.Refresh}" ColorType="Normal"
                                                 Width="50" Margin="10,0,0,0" Click="BtnRefresh_Click" />
                                 <local:MyButton x:Name="BtnInputPort" DockPanel.Dock="Right"
                                                 Text="{loc:Loc Tools.GameLink.Create.ManualInput}"
@@ -223,7 +219,7 @@
                         </StackPanel>
                     </StackPanel>
                 </local:MyCard>
-                <Grid x:Name="PanFinish" Visibility="Collapsed" Grid.Row="1">
+                <Grid x:Name="PanFinish" Visibility="{Binding PanFinishVisibility}" Grid.Row="1">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
@@ -239,13 +235,11 @@
                     <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center"
                                 Grid.ColumnSpan="2">
                         <local:MyHint Margin="0,0,0,16" x:Name="HintEasyTierVersion"
-                                      Text="{loc:Loc Tools.GameLink.EasyTierVersion}"
-                                      Theme="Yellow"
+                                      Text="{loc:Loc Tools.GameLink.EasyTierVersion}" Theme="Yellow"
                                       Visibility="Collapsed" />
                     </StackPanel>
                     <!--大厅信息栏-->
-                    <local:MyCard x:Name="PanNetInfo"
-                                  Title="{loc:Loc Tools.GameLink.Finish.InfoTitle}"
+                    <local:MyCard x:Name="PanNetInfo" Title="{loc:Loc Tools.GameLink.Finish.InfoTitle}"
                                   Margin="10" Grid.Row="2">
                         <StackPanel Orientation="Vertical" Margin="10,35,10,10">
                             <StackPanel x:Name="BtnFinishQuality" Margin="5" Orientation="Horizontal"
@@ -257,19 +251,19 @@
                                       Fill="{StaticResource ColorBrushGray1}" Margin="0,0,7,0"
                                       Data="M512 128c212.064 0 384 171.936 384 384s-173.632 384-384 384C299.936 896 128 724.064 128 512S299.936 128 512 128z m-126.4 575.968c-1.728 40.8 3.52 76.8 36.32 115.2 28.576 8.32 58.816 12.832 90.08 12.832 81.984 0 156.8-30.848 213.408-81.536-77.12 7.2-161.6-5.952-289.216-61.856-11.616 7.52-18.976 12.608-50.592 15.36z m-193.44-202.368c0 123.744 53.536 214.272 135.744 272.16-6.08-25.6-8.352-48.448-4.96-91.68-21.344-17.6-34.944-39.264-34.624-82.08-50.816-42.88-82.88-75.712-96.16-98.4zM544 448c-14.944 0-29.12-3.424-41.728-9.504-10.976 12.96-21.376 26.432-31.2 40.512-4.832 6.912-15.36 23.776-31.616 50.624a95.872 95.872 0 0 1 36.384 106.432c155.52 68.16 302.56 62.048 325.952 11.904 23.36-50.112-35.968-139.776-189.504-228.48A95.68 95.68 0 0 1 544 448z m-160 128a32 32 0 1 0 0 64 32 32 0 0 0 0-64z m-161.92-199.2c-16.576 35.52 16.96 99.68 94.08 163.2a95.936 95.936 0 0 1 59.616-27.648c19.936-35.008 30.72-52.736 42.88-70.08 10.944-15.648 22.528-30.656 38.432-49.44-5.696-12.128-8.96-25.6-9.088-39.872-118.176-30.4-206.88-16.96-225.92 23.84z m415.136-47.84c1.824 7.36 3.296 19.104 2.336 32.416 88.96 48.704 153.76 105.056 192.32 160.704 0-118.656-34.208-176.064-75.52-210.976-49.792-5.92-69.952-4.064-119.136 17.856zM544 320a32 32 0 1 0 0 64 32 32 0 0 0 0-64z m-32-128c-82.016 0-156.8 30.848-213.44 81.6 47.264-4.384 96-0.544 170.304 18.624A95.84 95.84 0 0 1 544 256c21.568 0 41.472 7.104 57.504 19.104 35.968-17.28 62.016-25.824 87.136-29.984A318.528 318.528 0 0 0 512 192z" />
                                 <TextBlock x:Name="LabFinishQuality" IsHitTestVisible="False"
-                                           Text="{loc:Loc Tools.GameLink.Finish.Checking}"
+                                           Text="{Binding FinishQualityText}"
                                            VerticalAlignment="Center" Foreground="{StaticResource ColorBrushGray1}"
                                            Margin="0,0,12,0" />
                             </StackPanel>
                             <StackPanel x:Name="BtnFinishPing" Margin="5" Orientation="Horizontal"
-                                        Background="{StaticResource ColorBrushSemiTransparent}" Visibility="Collapsed"
+                                        Background="{StaticResource ColorBrushSemiTransparent}" Visibility="{Binding FinishPingVisibility}"
                                         ToolTip="{loc:Loc Tools.GameLink.Finish.PingToHost}"
                                         ToolTipService.Placement="MousePoint"
                                         ToolTipService.InitialShowDelay="100" ToolTipService.VerticalOffset="-35">
                                 <Path IsHitTestVisible="False" Width="14" Stretch="Uniform"
                                       Fill="{StaticResource ColorBrushGray1}" Margin="0,0,7,0"
                                       Data="M512 409.6a102.4 102.4 0 0 0-51.2 190.464V1024h102.4v-423.936A102.4 102.4 0 0 0 512 409.6z M512 0a512 512 0 0 0-263.168 950.272l51.2-87.552a409.6 409.6 0 1 1 420.864 0l51.2 87.552A512 512 0 0 0 512 0z M819.2 512a307.2 307.2 0 1 0-464.896 263.168l51.2-88.064a204.8 204.8 0 1 1 209.92 0l51.2 88.064A307.2 307.2 0 0 0 819.2 512z" />
-                                <TextBlock x:Name="LabFinishPing" IsHitTestVisible="False" Text="-ms"
+                                <TextBlock x:Name="LabFinishPing" IsHitTestVisible="False" Text="{Binding FinishPingText}"
                                            VerticalAlignment="Center" Foreground="{StaticResource ColorBrushGray1}"
                                            Margin="0,0,12,0" />
                             </StackPanel>
@@ -281,7 +275,7 @@
                                 <Path IsHitTestVisible="False" Width="14" Stretch="Uniform"
                                       Fill="{StaticResource ColorBrushGray1}" Margin="0,0,7,0"
                                       Data="M21.15,2.86a2.89,2.89,0,0,0-3-.71L4,6.88a2.9,2.9,0,0,0-.12,5.47l5.24,2h0a.93.93,0,0,1,.53.52l2,5.25A2.87,2.87,0,0,0,14.36,22h.07a2.88,2.88,0,0,0,2.69-2L21.85,5.83A2.89,2.89,0,0,0,21.15,2.86ZM20,5.2,15.22,19.38a.88.88,0,0,1-.84.62.92.92,0,0,1-.87-.58l-2-5.25a2.91,2.91,0,0,0-1.67-1.68l-5.25-2A.9.9,0,0,1,4,9.62a.88.88,0,0,1,.62-.84L18.8,4.05A.91.91,0,0,1,20,5.2Z" />
-                                <TextBlock x:Name="LabFinishId" IsHitTestVisible="False" Text=""
+                                <TextBlock x:Name="LabFinishId" IsHitTestVisible="False" Text="{Binding FinishIdText}"
                                            VerticalAlignment="Center" Foreground="{StaticResource ColorBrushGray1}"
                                            Margin="0,0,12,0" />
                             </StackPanel>
@@ -294,7 +288,7 @@
                                       Fill="{StaticResource ColorBrushGray1}" Margin="0,0,7,0"
                                       Data="M215.625 18.75A9.375 9.375 0 0 1 225 28.125V249.24375L283.9875 190.2375A9.375 9.375 0 0 1 297.2625000000001 203.5125L222.2625 278.5125000000001A9.375 9.375 0 0 1 208.9875 278.5125000000001L133.9875 203.5125A9.375 9.375 0 1 1 147.2625 190.2375L206.25 249.24375V28.125A9.375 9.375 0 0 1 215.625 18.75zM84.375 281.25A9.375 9.375 0 0 0 93.75 271.875V50.75625L152.7375 109.7625A9.375 9.375 0 0 0 166.0125 96.4875L91.0125 21.4875A9.375 9.375 0 0 0 77.7375 21.4875L2.7375 96.4875A9.375 9.375 0 0 0 16.0125 109.7625L75 50.75625V271.875A9.375 9.375 0 0 0 84.375 281.25z" />
                                 <TextBlock x:Name="LabConnectType" IsHitTestVisible="False"
-                                           Text="{loc:Loc Tools.GameLink.Finish.Connecting}"
+                                           Text="{Binding ConnectTypeText}"
                                            VerticalAlignment="Center" Foreground="{StaticResource ColorBrushGray1}"
                                            Margin="0,0,12,0" />
                             </StackPanel>
@@ -311,7 +305,7 @@
                                 <Path IsHitTestVisible="False" Width="14" Stretch="Uniform"
                                       Fill="{StaticResource ColorBrushGray1}" Margin="12,0,7,0"
                                       Data="M512 447.223c-88.224 0-160-71.776-160-160s71.776-160 160-160c88.225 0 160 71.776 160 160s-71.775 160-160 160z m0-256c-52.935 0-96 43.065-96 96s43.065 96 96 96 96-43.065 96-96-43.065-96-96-96zM454.901 870.594c-96.594 0-184.933-3.802-231.263-49.955C203.308 800.386 193 774.164 193 742.701c0-31.629 10.247-62.812 30.457-92.686 17.978-26.573 42.908-50.741 74.098-71.833C359.256 536.46 437.418 512.53 512 512.53c74.55 0 152.55 23.943 214.002 65.691 31.05 21.094 55.861 45.273 73.746 71.867C819.822 679.937 830 711.096 830 742.701c0 31.552-10.317 57.827-30.664 78.097-50.714 50.521-151.822 50.128-258.88 49.723a7395.45 7395.45 0 0 0-56.914-0.001c-9.605 0.037-19.163 0.074-28.641 0.074zM512 806.447c9.567 0 19.149 0.037 28.701 0.073 49.52 0.191 96.284 0.37 135.808-4.396 38.418-4.633 64.546-13.604 77.659-26.668 5.079-5.06 11.832-13.96 11.832-32.755 0-38.089-27.688-78.744-75.963-111.54C638.933 596.442 574.04 576.53 512 576.53c-126.309 0-255 83.862-255 166.171 0 18.675 6.738 27.547 11.807 32.596 32.045 31.922 128.975 31.55 214.491 31.224 9.556-0.037 19.139-0.074 28.702-0.074z" />
-                                <TextBlock x:Name="LabConnectUserName" IsHitTestVisible="False" Text="UserName"
+                                <TextBlock x:Name="LabConnectUserName" IsHitTestVisible="False" Text="{Binding ConnectUserNameText}"
                                            VerticalAlignment="Center" Foreground="{StaticResource ColorBrushGray1}"
                                            Margin="0,0,12,0" />
                             </StackPanel>
@@ -330,19 +324,19 @@
                                 <Path IsHitTestVisible="False" Height="13" Width="13" Stretch="Uniform"
                                       Fill="{StaticResource ColorBrushGray1}" Margin="12,0,7,0"
                                       Data="M274.773333 419.498667h154.624v76.8H274.773333v-76.8z m0-154.965334h399.701334V341.333333H274.773333V264.533333z M92.16 105.472v832.170667h179.541333v-76.8H168.96V182.272h678.229333v227.669333h76.8V105.472H92.16z M645.12 720.213333c91.818667-1.024 165.888-75.776 165.888-167.936 0-92.842667-75.093333-167.936-167.936-167.936s-167.936 75.093333-167.936 167.936c0 92.16 74.069333 166.912 165.888 167.936-129.365333 1.024-238.933333 90.794667-279.210667 215.722667h81.92c35.84-81.92 111.616-138.922667 198.997334-138.922667s163.498667 56.661333 198.997333 138.922667h82.261333c-40.277333-124.586667-149.845333-214.698667-278.869333-215.722667z m-2.389333-76.8c-50.176 0-91.477333-40.96-91.477334-91.477333 0-50.176 40.96-91.477333 91.477334-91.477333 50.176 0 91.477333 40.96 91.477333 91.477333s-40.96 91.477333-91.477333 91.477333z" />
-                                <TextBlock x:Name="LabConnectUserType" IsHitTestVisible="False" Text="UserType"
+                                <TextBlock x:Name="LabConnectUserType" IsHitTestVisible="False" Text="{Binding ConnectUserTypeText}"
                                            VerticalAlignment="Center" Foreground="{StaticResource ColorBrushGray1}"
                                            Margin="0,0,12,0" />
                             </StackPanel>
                         </StackPanel>
                     </local:MyCard>
                     <!--操作栏-->
-                    <local:MyCard x:Name="PanOperation"
-                                  Title="{loc:Loc Tools.GameLink.Finish.Actions}"
+                    <local:MyCard x:Name="PanOperation" Title="{loc:Loc Tools.GameLink.Finish.Actions}"
                                   Margin="10" Grid.Row="3">
                         <StackPanel Orientation="Vertical" Margin="10,35,10,10">
                             <local:MyIconTextButton Margin="-2,1" HorizontalAlignment="Left" x:Name="BtnFinishCopyIp"
                                                     Text="{loc:Loc Tools.GameLink.Finish.CopyVirtualIp}"
+                                                    Visibility="{Binding FinishCopyIpVisibility}"
                                                     Click="BtnFinishCopyIp_Click"
                                                     SvgIcon="lucide/copy" />
                             <local:MyIconTextButton Margin="-2,1" HorizontalAlignment="Left" x:Name="BtnFinishCopy"
@@ -350,14 +344,13 @@
                                                     Click="BtnFinishCopy_Click"
                                                     SvgIcon="lucide/copy" />
                             <local:MyIconTextButton Margin="-2,1" HorizontalAlignment="Left" x:Name="BtnFinishExit"
-                                                    Text="{loc:Loc Tools.GameLink.Finish.Exit}"
+                                                    Text="{Binding FinishExitText}"
                                                     Click="BtnFinishExit_Click"
                                                     SvgIcon="lucide/power" />
                         </StackPanel>
                     </local:MyCard>
                     <!--成员-->
-                    <local:MyCard x:Name="CardPlayerList"
-                                  Title="{loc:Loc Tools.GameLink.Member.ListLoading}"
+                    <local:MyCard x:Name="CardPlayerList" Title="{loc:Loc Tools.GameLink.Member.ListLoading}"
                                   Margin="10" MinWidth="300"
                                   Grid.Row="1" Grid.RowSpan="4" Grid.Column="1">
                         <StackPanel x:Name="StackPlayerList" Margin="5,35,6,8" />

@@ -1,16 +1,16 @@
-<local:MyPageRight
+﻿<local:MyPageRight
     x:Class="PCL.PageSetupAbout"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:app="clr-namespace:PCL.Core.App;assembly=PCL.Core"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:PCL"
-    xmlns:loc="https://ce.pclc.cc/core/localization"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     DataContext="{Binding Source={x:Static app:Basics.Metadata}}"
     PanScroll="{Binding ElementName=PanBack}"
-    RenderOptions.BitmapScalingMode="LowQuality">
+    RenderOptions.BitmapScalingMode="LowQuality"
+    xmlns:loc="https://ce.pclc.cc/core/localization">
     <local:MyScrollViewer
         x:Name="PanBack"
         HorizontalScrollBarVisibility="Disabled"
@@ -50,13 +50,15 @@
                         Grid.Row="2"
                         Grid.Column="1"
                         Margin="-5,0,15,0"
-                        Info="{loc:Loc Setup.About.Version.Info}"
+                        Info="{Binding ViewModel.AboutInfo, RelativeSource={RelativeSource AncestorType=local:PageSetupAbout}}"
                         IsHitTestVisible="False"
                         Title="{Binding Name}" />
                     <Image
                         x:Name="ImgPCLLogo"
                         Grid.Row="2"
-                        Margin="3" MouseLeftButtonDown="ImgPCLLogo_Click"
+                        Margin="3"
+                        IsHitTestVisible="{Binding ViewModel.IsLogoClickEnabled, RelativeSource={RelativeSource AncestorType=local:PageSetupAbout}}"
+                        MouseLeftButtonDown="ImgPCLLogo_Click"
                         Source="/Plain Craft Launcher 2;component/Images/Heads/Logo-CE.png">
                         <Image.Clip>
                             <EllipseGeometry
@@ -140,6 +142,7 @@
                         Grid.Column="1"
                         Grid.ColumnSpan="2"
                         Margin="-5,0,0,0"
+                        Visibility="{Binding ViewModel.ShowMcmod, Converter={StaticResource BooleanToVisibilityConverter}, RelativeSource={RelativeSource AncestorType=local:PageSetupAbout}}"
                         Info="{loc:Loc Setup.About.SpecialThanks.Info.Mcmod}"
                         IsHitTestVisible="False"
                         Title="{loc:Loc Setup.About.SpecialThanks.Name.Mcmod}" />
@@ -148,6 +151,7 @@
                         Grid.Row="1"
                         Grid.Column="2"
                         Height="35"
+                        Visibility="{Binding ViewModel.ShowMcmod, Converter={StaticResource BooleanToVisibilityConverter}, RelativeSource={RelativeSource AncestorType=local:PageSetupAbout}}"
                         local:CustomEventService.EventData="https://www.mcmod.cn"
                         local:CustomEventService.EventType="OpenUrl"
                         Text="{loc:Loc Setup.About.SpecialThanks.OpenMcmod}" />
@@ -227,6 +231,7 @@
                         x:Name="ImgMcmod"
                         Grid.Row="1"
                         Margin="3"
+                        Visibility="{Binding ViewModel.ShowMcmod, Converter={StaticResource BooleanToVisibilityConverter}, RelativeSource={RelativeSource AncestorType=local:PageSetupAbout}}"
                         Source="/Plain Craft Launcher 2;component/Images/Heads/wiki.png">
                         <Image.Clip>
                             <EllipseGeometry
@@ -294,7 +299,7 @@
             </local:MyCard>
             <local:MyCard
                 Margin="0,0,0,15"
-                DataContext="{Binding RelativeSource={RelativeSource AncestorType=local:PageSetupAbout}}"
+                DataContext="{Binding ViewModel, RelativeSource={RelativeSource AncestorType=local:PageSetupAbout}}"
                 Title="{loc:Loc Setup.About.Contributors.Title}">
                 <Grid Margin="17,42,15,20">
                     <Grid.RowDefinitions>

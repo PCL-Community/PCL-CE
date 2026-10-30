@@ -46,6 +46,7 @@ public partial class PageLaunchLeft
     ///     当前正在显示名称的启动阶段加载器。用于避免每次刷新都重建绑定。
     /// </summary>
     private ModLoader.LoaderBase? _launchingStageLoader;
+    private readonly PageLaunchLeftViewModel _vm = new();
 
     public PageLaunchLeft()
     {
@@ -60,7 +61,11 @@ public partial class PageLaunchLeft
         BtnMore.Click += BtnMore_Click;
         PanLaunchingInfo.SizeChanged += PanLaunchingInfo_SizeChangedW;
         PanLaunchingInfo.SizeChanged += PanLaunchingInfo_SizeChangedH;
+        DataContext = _vm;
     }
+
+    public PageLaunchLeftViewModel ViewModel => _vm;
+
     private static void OnLanguageChanged(PageLaunchLeft page) => ModBase.RunInUi(page.RefreshButtonsUI);
 
     public void PageLaunchLeft_Loaded(object sender, RoutedEventArgs e)
@@ -289,60 +294,46 @@ public partial class PageLaunchLeft
             {
                 _launchButtonAction = LaunchButtonAction.Loading;
                 ModBase.Log("[Minecraft] 启动按钮：正在加载 Minecraft 实例");
-                ModMain.frmLaunchLeft.BtnLaunch.TrySetLocalizedValue(
-                    "Text",
-                    "Launch.Home.Button.Loading");
-                ModMain.frmLaunchLeft.BtnLaunch.IsEnabled = false;
-                ModMain.frmLaunchLeft.LabVersion.TrySetLocalizedValue(
-                    "Text",
-                    "Launch.Home.Instance.Loading");
-                ModMain.frmLaunchLeft.BtnInstance.IsEnabled = false;
-                ModMain.frmLaunchLeft.BtnMore.Visibility = Visibility.Collapsed;
+                _vm.LaunchButtonText = Lang.Text("Launch.Home.Button.Loading");
+                BtnLaunch.IsEnabled = false;
+                _vm.VersionNameText = Lang.Text("Launch.Home.Instance.Loading");
+                _vm.IsInstanceButtonEnabled = false;
+                _vm.MoreButtonVisibility = Visibility.Collapsed;
                 break;
             }
             case 1:
             {
                 _launchButtonAction = LaunchButtonAction.Disabled;
                 ModBase.Log("[Minecraft] 启动按钮：无 Minecraft 实例，下载已禁用");
-                ModMain.frmLaunchLeft.BtnLaunch.TrySetLocalizedValue(
-                    "Text",
-                    "Launch.Home.Button.Launch");
-                ModMain.frmLaunchLeft.BtnLaunch.IsEnabled = false;
-                ModMain.frmLaunchLeft.LabVersion.TrySetLocalizedValue(
-                    "Text",
-                    "Launch.Home.Instance.NotFound");
-                ModMain.frmLaunchLeft.BtnInstance.IsEnabled = true;
-                ModMain.frmLaunchLeft.BtnMore.Visibility = Visibility.Collapsed;
+                _vm.LaunchButtonText = Lang.Text("Launch.Home.Button.Launch");
+                BtnLaunch.IsEnabled = false;
+                _vm.VersionNameText = Lang.Text("Launch.Home.Instance.NotFound");
+                _vm.IsInstanceButtonEnabled = true;
+                _vm.MoreButtonVisibility = Visibility.Collapsed;
                 break;
             }
             case 2:
             {
                 _launchButtonAction = LaunchButtonAction.Download;
                 ModBase.Log("[Minecraft] 启动按钮：无 Minecraft 实例，要求下载");
-                ModMain.frmLaunchLeft.BtnLaunch.TrySetLocalizedValue(
-                    "Text",
-                    "Launch.Home.Button.Download");
-                ModMain.frmLaunchLeft.BtnLaunch.IsEnabled = true;
-                ModMain.frmLaunchLeft.LabVersion.TrySetLocalizedValue(
-                    "Text",
-                    "Launch.Home.Instance.NotFound");
-                ModMain.frmLaunchLeft.BtnInstance.IsEnabled = true;
-                ModMain.frmLaunchLeft.BtnMore.Visibility = Visibility.Collapsed;
+                _vm.LaunchButtonText = Lang.Text("Launch.Home.Button.Download");
+                BtnLaunch.IsEnabled = true;
+                _vm.VersionNameText = Lang.Text("Launch.Home.Instance.NotFound");
+                _vm.IsInstanceButtonEnabled = true;
+                _vm.MoreButtonVisibility = Visibility.Collapsed;
                 break;
             }
             case 3:
             {
                 _launchButtonAction = LaunchButtonAction.Launch;
                 ModBase.Log("[Minecraft] 启动按钮：Minecraft 实例：" + ModInstanceList.McMcInstanceSelected.PathInstance);
-                ModMain.frmLaunchLeft.BtnLaunch.TrySetLocalizedValue(
-                    "Text",
-                    "Launch.Home.Button.Launch");
-                ModMain.frmLaunchLeft.BtnInstance.IsEnabled = true;
+                _vm.LaunchButtonText = Lang.Text("Launch.Home.Button.Launch");
+                _vm.IsInstanceButtonEnabled = true;
                 if (ProfileService.Current is not null)
                     BtnLaunch.IsEnabled = true;
                 else
                     BtnLaunch.IsEnabled = false;
-                ModMain.frmLaunchLeft.LabVersion.Text = ModInstanceList.McMcInstanceSelected.Name;
+                _vm.VersionNameText = ModInstanceList.McMcInstanceSelected.Name;
                 break;
             }
             // FrmLaunchLeft.BtnMore.Visibility = Visibility.Visible '由功能隐藏设置修改
@@ -351,11 +342,11 @@ public partial class PageLaunchLeft
         ExitRefresh: ;
 
         // 功能隐藏
-        ModMain.frmLaunchLeft.BtnInstance.Visibility =
+        _vm.InstanceButtonVisibility =
             !PageSetupUI.HiddenForceShow && Config.Preference.Hide.FunctionSelect
                 ? Visibility.Collapsed
                 : Visibility.Visible;
-        if (currentState == 3) ModMain.frmLaunchLeft.BtnMore.Visibility = ModMain.frmLaunchLeft.BtnInstance.Visibility;
+        if (currentState == 3) _vm.MoreButtonVisibility = _vm.InstanceButtonVisibility;
     }
 
     // 取消按钮
@@ -482,7 +473,7 @@ public partial class PageLaunchLeft
                 hasLaunchDownloader = false;
             }
 
-            LabLaunchingDownload.Text = ModBase.GetString(ModNet.NetManager.Speed) + "/s";
+            _vm.ApplyLaunchingDownload(ModNet.NetManager.Speed);
             var shouldShowHint = Config.Preference.ShowLaunchingHint;
             // 进度改变动画
             var animList = new List<ModAnimation.AniData>
@@ -640,7 +631,7 @@ public partial class PageLaunchLeft
         LabLaunchingDownload.Visibility = Visibility.Visible;
         LabLaunchingProgressLeft.Opacity = 0.6d;
         LabLaunchingDownload.Visibility = Visibility.Visible;
-        LabLaunchingDownload.Text = ModBase.GetString(0) + "/s";
+        _vm.ApplyLaunchingDownload(0);
         LabLaunchingDownload.Opacity = 0d;
         LabLaunchingDownload.Visibility = Visibility.Collapsed;
         LabLaunchingDownloadLeft.Opacity = 0d;

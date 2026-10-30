@@ -16,6 +16,8 @@ namespace PCL;
 
 public partial class PageLoginAuth
 {
+    private readonly PageLoginAuthViewModel _vm = new();
+
     public static string draggedAuthServer;
     public static bool? draggedAuthServerOAuthSupported;
 
@@ -38,6 +40,7 @@ public partial class PageLoginAuth
     public PageLoginAuth()
     {
         InitializeComponent();
+        DataContext = _vm;
         Loaded += (_, _) => Reload();
         Loaded += (_, _) => ReloadRegisterButton();
         // Handles
@@ -99,14 +102,7 @@ public partial class PageLoginAuth
             return;
         }
 
-        BtnLogin.IsEnabled = false;
-        BtnOAuth.IsEnabled = false;
-        BtnBack.IsEnabled = false;
-        BtnBackOAuth.IsEnabled = false;
-        BtnUsePassword.IsEnabled = false;
-        BtnUseOAuth.IsEnabled = false;
-        BtnWebsite.IsEnabled = false;
-        BtnPasswordWebsite.IsEnabled = false;
+        _vm.ControlsEnabled = false;
         Dispatcher.BeginInvoke(new Func<Task>(async () =>
         {
             var keepControlsDisabled = false;
@@ -137,7 +133,7 @@ public partial class PageLoginAuth
                 ModLaunch.mcLoginAuthLoader.Start(loginData, true);
                 while (ModLaunch.mcLoginAuthLoader.State == ModBase.LoadState.Loading)
                 {
-                    BtnLogin.Text = Lang.Number(ModLaunch.mcLoginAuthLoader.Progress, "P0");
+                    _vm.LoginButtonText = Lang.Number(ModLaunch.mcLoginAuthLoader.Progress, "P0");
                     await Task.Delay(50);
                 }
 
@@ -190,15 +186,8 @@ public partial class PageLoginAuth
     private void _FinishLoginAttempt()
     {
         ProfileService.IsCreatingProfile = false;
-        BtnLogin.IsEnabled = true;
-        BtnOAuth.IsEnabled = true;
-        BtnBack.IsEnabled = true;
-        BtnBackOAuth.IsEnabled = true;
-        BtnUsePassword.IsEnabled = true;
-        BtnUseOAuth.IsEnabled = true;
-        BtnWebsite.IsEnabled = true;
-        BtnPasswordWebsite.IsEnabled = true;
-        BtnLogin.TrySetLocalizedValue("Text", "Launch.Account.Auth.Login");
+        _vm.ControlsEnabled = true;
+        _vm.LoginButtonText = Lang.Text("Launch.Account.Auth.Login");
     }
 
     private void _SetLoginMode(bool useOAuth)
@@ -259,7 +248,7 @@ public partial class PageLoginAuth
     private void _UpdateOAuthEntryVisibility()
     {
         var isOAuthAvailable = _oauthSupported == true;
-        BtnUseOAuth.Visibility = isOAuthAvailable ? Visibility.Visible : Visibility.Collapsed;
+        _vm.UseOAuthVisibility = isOAuthAvailable ? Visibility.Visible : Visibility.Collapsed;
         BtnPasswordWebsite.SetValue(Grid.ColumnSpanProperty, isOAuthAvailable ? 1 : 3);
     }
 
@@ -376,12 +365,9 @@ public partial class PageLoginAuth
     private void ComboName_TextChanged(object sender, TextChangedEventArgs e)
     {
         _isRegisterMode = string.IsNullOrEmpty(TextName.Text);
-        LocalizedText.TryBind(
-            BtnLink,
-            "Content",
-            () => _isRegisterMode
-                ? Lang.Text("Launch.Account.Auth.Register")
-                : Lang.Text("Launch.Account.Auth.ForgotPassword"));
+        _vm.RegisterLinkContent = _isRegisterMode
+            ? Lang.Text("Launch.Account.Auth.Register")
+            : Lang.Text("Launch.Account.Auth.ForgotPassword");
     }
 
     private void Btn_Click(object sender, EventArgs e)

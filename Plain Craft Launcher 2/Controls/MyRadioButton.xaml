@@ -29,6 +29,6 @@
                    Foreground="White"
                    Margin="8,0,12,0"
                    SnapsToDevicePixels="False"
-                   UseLayoutRounding="False" />
+                   UseLayoutRounding="True" />
     </StackPanel>
 </Border>

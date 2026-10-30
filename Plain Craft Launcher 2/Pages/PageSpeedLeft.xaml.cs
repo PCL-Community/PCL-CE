@@ -1,98 +1,58 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
-using PCL.Network;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Threading;
 
 namespace PCL;
 
-public partial class PageSpeedLeft
+public partial class PageSpeedLeft : IPageView
 {
     private const int watcherInterval = 300;
 
-    // 定时器任务
+    private readonly PageSpeedLeftViewModel _vm = new();
+
     private readonly Dictionary<string, MyCard> rightCards = new();
 
-    // 初始化
-    private bool isLoad;
+    private DispatcherTimer? _timer;
 
     public PageSpeedLeft()
     {
         InitializeComponent();
-        Loaded += Page_Loaded;
+        DataContext = _vm;
     }
 
-    private void Page_Loaded(object sender, RoutedEventArgs e)
+    public void OnNavigatedTo(object? parameter)
     {
-        // 进入时就刷新一次显示
-        Watcher();
-
-        // 如果在页面切换动画的 “上一页消失” 部分已经完成了下载，就直接尝试返回
-        TryReturnToHome();
-
-        if (isLoad)
-            return;
-        isLoad = true;
-
-        // 监控定时器
-        var timer = new DispatcherTimer { Interval = new TimeSpan(0, 0, 0, 0, watcherInterval) };
-        timer.Tick += (_, _) => Watcher();
-        timer.Start();
-
-        // 非调试模式隐藏连接数
-        if (!ModBase.modeDebug)
+        UiDispatcher.Post(() =>
         {
-            RowDefinitions[12].Height = new GridLength(0d);
-            RowDefinitions[13].Height = new GridLength(0d);
-            RowDefinitions[14].Height = new GridLength(0d);
-            RowDefinitions[15].Height = new GridLength(0d);
+            Watcher();
+            TryReturnToHome();
+        });
+        if (_timer is null)
+        {
+            _timer = new DispatcherTimer { Interval = new TimeSpan(0, 0, 0, 0, watcherInterval) };
+            _timer.Tick += (_, _) => Watcher();
+            if (!ModBase.modeDebug)
+            {
+                RowDefinitions[12].Height = new GridLength(0d);
+                RowDefinitions[13].Height = new GridLength(0d);
+                RowDefinitions[14].Height = new GridLength(0d);
+                RowDefinitions[15].Height = new GridLength(0d);
+            }
         }
+
+        _timer.Start();
     }
+
+    public void OnNavigatedFrom() => _timer?.Stop();
 
     private void Watcher()
     {
         if (ModMain.frmMain.pageCurrent != FormMain.PageType.TaskManager)
             return;
-        try
-        {
-            #region 更新左边栏
 
-            if (!ModLoader.loaderTaskbar.Any())
-            {
-                // 无任务
-                LabProgress.Text = Lang.Number(1d, "P0");
-                LabSpeed.Text = ModBase.GetString(0) + "/s";
-                LabFile.Text = Lang.Number(0, "N0");
-                LabThread.Text = Lang.Number(0, "N0") + " / " + Lang.Number(ModNet.NetTaskConnectionLimit, "N0");
-            }
-            else
-            {
-                // 有任务，输出基本信息
-                var tasks = ModLoader.loaderTaskbar.Where(l => l.show).ToList(); // 筛选掉启动 MC 的任务（#6270）
-                var rawPercent = tasks.Any()
-                    ? ModBase.MathClamp(
-                        tasks.Average(l => l.Progress),
-                        0, 1)
-                    : 1d;
-                var predictText = Lang.Number(rawPercent, "P2");
-                LabProgress.Text = rawPercent > 0.999999d ? Lang.Number(1d, "P0") : predictText;
-                LabSpeed.Text = ModBase.GetString(ModNet.NetManager.Speed) + "/s";
-                LabFile.Text = ModNet.NetManager.FileRemain < 0 ? "0*" : Lang.Number(ModNet.NetManager.FileRemain, "N0");
-                LabThread.Text = Lang.Number(ModNet.NetManager.ConnectionCount, "N0") + " / " +
-                                 Lang.Number(ModNet.NetTaskConnectionLimit, "N0");
-            }
-        }
-
-        #endregion
-
-        catch (Exception ex)
-        {
-            ModBase.Log(
-                ex,
-                "任务管理左栏监视出错",
-                ModBase.LogLevel.Feedback,
-                userSummary: Lang.Text("Speed.Error.OperationFailed"));
-        }
+        _vm.Refresh();
 
         if (ModMain.frmSpeedRight is null || ModMain.frmSpeedRight.PanMain is null)
             return;

@@ -16,6 +16,7 @@ using FileSystem = Microsoft.VisualBasic.FileSystem;
 using SearchOption = System.IO.SearchOption;
 using PCL.Core.App.Localization;
 using PCL.Core.Utils;
+using SortMethod = PCL.PageInstanceCompResourceViewModel.SortMethod;
 
 namespace PCL;
 
@@ -29,6 +30,7 @@ public partial class PageInstanceCompResource : IRefreshable
     public PageInstanceCompResource()
     {
         InitializeComponent();
+        DataContext = _vm;
         Unloaded += Page_Unloaded;
         Loaded += (_, _) => PageOther_Loaded();
         Initialized += (_, _) => LoaderInit();
@@ -95,6 +97,10 @@ public partial class PageInstanceCompResource : IRefreshable
 
     #region 初始化
 
+    private readonly PageInstanceCompResourceViewModel _vm = new();
+
+    public PageInstanceCompResourceViewModel ViewModel => _vm;
+
     private readonly ModComp.CompType currentCompType = ModComp.CompType.Mod;
 
     private readonly MyLocalCompItem.SwipeSelect currentSwipSelect;
@@ -107,28 +113,29 @@ public partial class PageInstanceCompResource : IRefreshable
 
         // 此调用是设计器所必需的。
         InitializeComponent();
+        DataContext = _vm;
 
         // 在 InitializeComponent() 调用之后添加任何初始化。
 
         if (new[] { ModComp.CompType.Shader, ModComp.CompType.ResourcePack, ModComp.CompType.Schematic }.Contains(
                 currentCompType))
         {
-            BtnSelectEnable.Visibility = Visibility.Collapsed;
-            BtnSelectDisable.Visibility = Visibility.Collapsed;
+            _vm.ShowSelectEnable = false;
+            _vm.ShowSelectDisable = false;
         }
 
         // 投影文件管理页隐藏下载按钮
         if (currentCompType == ModComp.CompType.Schematic)
         {
-            BtnManageDownload.Visibility = Visibility.Collapsed;
-            BtnHintDownload.Visibility = Visibility.Collapsed;
+            _vm.ShowManageDownload = false;
+            _vm.ShowHintDownload = false;
         }
 
         if (currentCompType == ModComp.CompType.Mod)
             BtnManageJarInJar.Click += (_, _) =>
                 ModMain.frmInstanceLeft?.PageChange(FormMain.PageSubType.VersionModJarInJar);
         else
-            BtnManageJarInJar.Visibility = Visibility.Collapsed;
+            _vm.ShowManageJarInJar = false;
 
         Unloaded += Page_Unloaded;
         Loaded += (_, _) => PageOther_Loaded();
@@ -468,9 +475,7 @@ public partial class PageInstanceCompResource : IRefreshable
 
         // 强制刷新UI状态
         // 确保按钮状态正确
-        ModBase.RunInUi(() =>
-            BtnManageBack.Visibility =
-                !string.IsNullOrEmpty(CurrentFolderPath) ? Visibility.Visible : Visibility.Collapsed);
+        ModBase.RunInUi(() => _vm.ShowManageBack = !string.IsNullOrEmpty(CurrentFolderPath));
 
         // 延迟一帧后再加载，确保UI状态已更新
         ModBase.RunInUi(
@@ -497,9 +502,7 @@ public partial class PageInstanceCompResource : IRefreshable
             // 判断应该显示哪一个页面
             if (ModLocalComp.compResourceListLoader.output.Any())
             {
-                PanBack.Visibility = Visibility.Visible;
-                PanEmpty.Visibility = Visibility.Collapsed;
-                PanSchematicEmpty.Visibility = Visibility.Collapsed;
+                _vm.ShowListPanel();
             }
             else
             {
@@ -509,9 +512,7 @@ public partial class PageInstanceCompResource : IRefreshable
                     var schematicsPath = PageInstanceLeft.McInstance.PathIndie + @"schematics\";
                     if (!Directory.Exists(schematicsPath))
                     {
-                        PanSchematicEmpty.Visibility = Visibility.Visible;
-                        PanEmpty.Visibility = Visibility.Collapsed;
-                        PanBack.Visibility = Visibility.Collapsed;
+                        _vm.ShowSchematicEmptyPanel();
                         return;
                     }
                 }
@@ -553,13 +554,11 @@ public partial class PageInstanceCompResource : IRefreshable
 
                 // 如果当前在子文件夹中，显示返回上一级按钮
                 if (!string.IsNullOrEmpty(CurrentFolderPath))
-                    BtnHintBack.Visibility = Visibility.Visible;
+                    _vm.ShowHintBack = true;
                 else
-                    BtnHintBack.Visibility = Visibility.Collapsed;
+                    _vm.ShowHintBack = false;
 
-                PanEmpty.Visibility = Visibility.Visible;
-                PanBack.Visibility = Visibility.Collapsed;
-                PanSchematicEmpty.Visibility = Visibility.Collapsed;
+                _vm.ShowEmptyPanel();
                 return;
             }
 
@@ -805,30 +804,22 @@ public partial class PageInstanceCompResource : IRefreshable
                 BtnFilterCanUpdate,
                 "Text",
                 () => Lang.Text("Instance.Resource.Filter.UpdatableWithCount", updateCount));
-            BtnFilterCanUpdate.Visibility = Filter == FilterType.CanUpdate || updateCount > 0
-                ? Visibility.Visible
-                : Visibility.Collapsed;
+            _vm.ShowFilterCanUpdate = Filter == FilterType.CanUpdate || updateCount > 0;
             LocalizedText.TryBind(
                 BtnFilterEnabled,
                 "Text",
                 () => Lang.Text("Instance.Resource.Filter.EnabledWithCount", enabledCount));
-            BtnFilterEnabled.Visibility = Filter == FilterType.Enabled || (enabledCount > 0 && enabledCount < anyCount)
-                ? Visibility.Visible
-                : Visibility.Collapsed;
+            _vm.ShowFilterEnabled = Filter == FilterType.Enabled || (enabledCount > 0 && enabledCount < anyCount);
             LocalizedText.TryBind(
                 BtnFilterDisabled,
                 "Text",
                 () => Lang.Text("Instance.Resource.Filter.DisabledWithCount", disabledCount));
-            BtnFilterDisabled.Visibility = Filter == FilterType.Disabled || disabledCount > 0
-                ? Visibility.Visible
-                : Visibility.Collapsed;
+            _vm.ShowFilterDisabled = Filter == FilterType.Disabled || disabledCount > 0;
             LocalizedText.TryBind(
                 BtnFilterError,
                 "Text",
                 () => Lang.Text("Instance.Resource.Filter.ErrorWithCount", unavalialeCount));
-            BtnFilterError.Visibility = Filter == FilterType.Unavailable || unavalialeCount > 0
-                ? Visibility.Visible
-                : Visibility.Collapsed;
+            _vm.ShowFilterError = Filter == FilterType.Unavailable || unavalialeCount > 0;
             // 查找重复项目
             var duplicateItems = await Task.Run(() => itemSource.GroupBy(m =>
             {
@@ -842,15 +833,13 @@ public partial class PageInstanceCompResource : IRefreshable
                 () => Lang.Text(
                     "Instance.Resource.Filter.DuplicateWithCount",
                     duplicateItems.Count));
-            BtnFilterDuplicate.Visibility = Filter == FilterType.Duplicate || duplicateItems.Any()
-                ? Visibility.Visible
-                : Visibility.Collapsed;
+            _vm.ShowFilterDuplicate = Filter == FilterType.Duplicate || duplicateItems.Any();
 
             // 返回按钮显示控制（在子文件夹中时显示）
             if (!string.IsNullOrEmpty(CurrentFolderPath))
-                BtnManageBack.Visibility = Visibility.Visible;
+                _vm.ShowManageBack = true;
             else
-                BtnManageBack.Visibility = Visibility.Collapsed;
+                _vm.ShowManageBack = false;
 
             // -----------------
             // 底部栏
@@ -889,26 +878,25 @@ public partial class PageInstanceCompResource : IRefreshable
                         }
                 });
 
-                BtnSelectDisable.IsEnabled = hasEnabled;
-                BtnSelectEnable.IsEnabled = hasDisabled;
-                BtnSelectUpdate.IsEnabled = hasUpdate;
+                _vm.CanDisable = hasEnabled;
+                _vm.CanEnable = hasDisabled;
+                _vm.CanUpdate = hasUpdate;
 
                 // 针对投影原理图隐藏分享 更新 收藏按钮
                 if (currentCompType == ModComp.CompType.Schematic)
                 {
-                    BtnSelectUpdate.Visibility = Visibility.Collapsed;
-                    BtnSelectFavorites.Visibility = Visibility.Collapsed;
-                    BtnSelectShare.Visibility = Visibility.Collapsed;
+                    _vm.ShowSelectUpdate = false;
+                    _vm.ShowSelectFavorites = false;
+                    _vm.ShowSelectShare = false;
                 }
                 else
                 {
-                    BtnSelectUpdate.Visibility = Visibility.Visible;
-                    BtnSelectFavorites.Visibility = Visibility.Visible;
-                    BtnSelectShare.Visibility = Visibility.Visible;
+                    _vm.ShowSelectUpdate = true;
+                    _vm.ShowSelectFavorites = true;
+                    _vm.ShowSelectShare = true;
 
                     // 根据是否已加载项目信息来启用/禁用收藏和分享按钮
-                    BtnSelectFavorites.IsEnabled = canFavoriteAndShare;
-                    BtnSelectShare.IsEnabled = canFavoriteAndShare;
+                    _vm.CanFavoriteAndShare = canFavoriteAndShare;
                 }
             }
 
@@ -1719,47 +1707,9 @@ public partial class PageInstanceCompResource : IRefreshable
         DoSort();
     }
 
-    private enum SortMethod
-    {
-        FileName,
-        CompName,
-        TagNums,
-        CreateTime,
-        ModFileSize
-    }
-
     private string GetSortName(SortMethod method)
     {
-        switch (method)
-        {
-            case SortMethod.FileName:
-            {
-                return Lang.Text("Instance.Resource.Sort.FileName");
-            }
-            case SortMethod.CompName:
-            {
-                return Lang.Text("Instance.Resource.Sort.ResourceName");
-            }
-            case SortMethod.TagNums:
-            {
-                return Lang.Text("Instance.Resource.Sort.TagCount");
-            }
-            case SortMethod.CreateTime:
-            {
-                return Lang.Text("Instance.Resource.Sort.AddTime");
-            }
-            case SortMethod.ModFileSize:
-            {
-                return Lang.Text("Instance.Resource.Sort.FileSize");
-            }
-
-            default:
-            {
-                return Lang.Text("Instance.Resource.Sort.ResourceName");
-            }
-        }
-
-        return "";
+        return PageInstanceCompResourceViewModel.GetSortName(method);
     }
 
     private void BtnSortClick(object sender, ModBase.RouteEventArgs e)
@@ -2587,7 +2537,7 @@ public partial class PageInstanceCompResource : IRefreshable
     #region 单个资源项
 
     // 详情
-    public void Info_Click(object sender, EventArgs e)
+    public async void Info_Click(object sender, EventArgs e)
     {
         try
         {
@@ -2597,7 +2547,7 @@ public partial class PageInstanceCompResource : IRefreshable
             // 加载失败信息
             if (modEntry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Unavailable)
             {
-                ModMain.MyMsgBox(
+                await ModMain.MyMsgBoxAsync(
                     Lang.Text("Instance.Resource.Item.Info.FailedMessage.WithDetail",
                         modEntry.FileUnavailableReason.ToString()),
                     Lang.Text("Instance.Resource.Item.Info.FailedTitle"));
@@ -2737,7 +2687,7 @@ public partial class PageInstanceCompResource : IRefreshable
                 if (modEntry.IsFolder)
                 {
                     // 文件夹只显示基本信息，不提供搜索功能
-                    ModMain.MyMsgBox(contentLines.Join("\r\n"), modEntry.Name, Lang.Text("Instance.Resource.Item.Info.Return"));
+                    await ModMain.MyMsgBoxAsync(contentLines.Join("\r\n"), modEntry.Name, Lang.Text("Instance.Resource.Item.Info.Return"));
                 }
                 else
                 {
@@ -2762,19 +2712,19 @@ public partial class PageInstanceCompResource : IRefreshable
                     {
                         // 投影原理图文件或非中文区域不显示百科搜索选项
                         if (modEntry.Url is null)
-                            ModMain.MyMsgBox(contentLines.Join("\r\n"), modEntry.Name, Lang.Text("Instance.Resource.Item.Info.Return"));
-                        else if (ModMain.MyMsgBox(contentLines.Join("\r\n"), modEntry.Name, Lang.Text("Instance.Resource.Item.Info.OpenWebsite"), Lang.Text("Instance.Resource.Item.Info.Return")) ==
+                            await ModMain.MyMsgBoxAsync(contentLines.Join("\r\n"), modEntry.Name, Lang.Text("Instance.Resource.Item.Info.Return"));
+                        else if (await ModMain.MyMsgBoxAsync(contentLines.Join("\r\n"), modEntry.Name, Lang.Text("Instance.Resource.Item.Info.OpenWebsite"), Lang.Text("Instance.Resource.Item.Info.Return")) ==
                                  1) ModBase.OpenWebsite(modEntry.Url);
                     }
                     // 其他资源类型保留百科搜索功能
                     else if (modEntry.Url is null)
                     {
-                        if (ModMain.MyMsgBox(contentLines.Join("\r\n"), modEntry.Name, Lang.Text("Instance.Resource.Item.Info.McMod"), Lang.Text("Instance.Resource.Item.Info.Return")) == 1)
+                        if (await ModMain.MyMsgBoxAsync(contentLines.Join("\r\n"), modEntry.Name, Lang.Text("Instance.Resource.Item.Info.McMod"), Lang.Text("Instance.Resource.Item.Info.Return")) == 1)
                             ModBase.OpenWebsite("https://www.mcmod.cn/s?key=" + modSearchName + "&site=all&filter=0");
                     }
                     else
                     {
-                        switch (ModMain.MyMsgBox(contentLines.Join("\r\n"), modEntry.Name, Lang.Text("Instance.Resource.Item.Info.OpenWebsite"), Lang.Text("Instance.Resource.Item.Info.McMod"),
+                        switch (await ModMain.MyMsgBoxAsync(contentLines.Join("\r\n"), modEntry.Name, Lang.Text("Instance.Resource.Item.Info.OpenWebsite"), Lang.Text("Instance.Resource.Item.Info.McMod"),
                                     Lang.Text("Instance.Resource.Item.Info.Return")))
                         {
                             case 1:

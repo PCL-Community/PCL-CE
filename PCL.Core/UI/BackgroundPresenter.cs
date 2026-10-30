@@ -48,6 +48,8 @@ namespace PCL.Core.UI
             _OnRenderMethod.Invoke(target, drawingContext);
         }
 
+        private const double EffectPadding = 32;
+
         internal static void DrawVisual(DrawingContext drawingContext, Visual visual, Point relatedXY)
         {
             var visualBrush = new VisualBrush(visual);
@@ -60,9 +62,14 @@ namespace PCL.Core.UI
                 return;
             }
 
+            var bounds = contentBounds;
+            bounds.Inflate(EffectPadding, EffectPadding);
+            visualBrush.ViewboxUnits = BrushMappingMode.Absolute;
+            visualBrush.Viewbox = bounds;
+
             drawingContext.DrawRectangle(
                 visualBrush, null,
-                new Rect(relatedXY.X + contentBounds.X, relatedXY.Y + contentBounds.Y, contentBounds.Width, contentBounds.Height));
+                new Rect(relatedXY.X + bounds.X, relatedXY.Y + bounds.Y, bounds.Width, bounds.Height));
         }
 
         /// <inheritdoc/>

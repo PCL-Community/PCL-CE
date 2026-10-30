@@ -1,12 +1,13 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
-using PCL.Core.App;
 
 using PCL.Core.App.Localization;
 namespace PCL;
 
 public partial class PageToolsLeft
 {
+    private readonly PageToolsLeftViewModel _vm = new();
+
     private bool isLoad;
     private bool isPageSwitched; // 如果在 Loaded 前切换到其他页面，会导致触发 Loaded 时再次切换一次
 
@@ -20,13 +21,8 @@ public partial class PageToolsLeft
 
     private void PageLinkLeft_Loaded(object sender, RoutedEventArgs e)
     {
-        var isHiddenPage = false;
-        var hide = Config.Preference.Hide;
+        var isHiddenPage = _vm.IsHiddenPage(ItemGameLink.Checked, ItemTest.Checked, PageSetupUI.HiddenForceShow);
 
-        if (ItemGameLink.Checked && hide.ToolsGameLink) isHiddenPage = true;
-        if (ItemTest.Checked && hide.ToolsTest) isHiddenPage = true;
-        if (PageSetupUI.HiddenForceShow)
-            isHiddenPage = false;
         // 若页面错误，或尚未加载，则继续
         if (isLoad && !isHiddenPage)
             return;
@@ -36,13 +32,15 @@ public partial class PageToolsLeft
         // 选择第一个未被禁用的子页面
         if (isPageSwitched) 
             return;
-        var hideCfg = Config.Preference.Hide;
-        if (!hideCfg.ToolsGameLink)
-            ItemGameLink.SetChecked(true, false, false);
-        else if (!hideCfg.ToolsTest)
-            ItemTest.SetChecked(true, false, false);
-        else
-            ItemGameLink.SetChecked(true, false, false);
+        switch (_vm.ResolveInitialPageId())
+        {
+            case FormMain.PageSubType.ToolsTest:
+                ItemTest.SetChecked(true, false, false);
+                break;
+            default:
+                ItemGameLink.SetChecked(true, false, false);
+                break;
+        }
     }
 
     private void PageOtherLeft_Unloaded(object sender, RoutedEventArgs e)

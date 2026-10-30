@@ -1,21 +1,43 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
-using PCL.Core.App;
 using PCL.Core.App.Localization;
 
 namespace PCL;
 
-public partial class PageInstanceLeft : IRefreshable
+public partial class PageInstanceLeft : IRefreshable, IPageView
 {
-    /// <summary>
-    ///     当前显示设置的 MC 实例。
-    /// </summary>
     public static McInstance McInstance = null;
+
+    private readonly PageInstanceLeftViewModel _vm = new();
+    private bool _refreshed;
 
     public PageInstanceLeft()
     {
         InitializeComponent();
-        Loaded += (_, _) => RefreshModDisabled();
+        DataContext = _vm;
+        Loaded += (_, _) => RefreshOnNavigate();
+        Unloaded += (_, _) => _refreshed = false;
+    }
+
+    public PageInstanceLeftViewModel ViewModel => _vm;
+
+    public FormMain.PageSubType pageID = FormMain.PageSubType.Default;
+
+    public void OnNavigatedTo(object? parameter)
+    {
+        RefreshOnNavigate();
+    }
+
+    public void OnNavigatedFrom()
+    {
+    }
+
+    private void RefreshOnNavigate()
+    {
+        if (_refreshed)
+            return;
+        _refreshed = true;
+        RefreshModDisabled();
     }
 
     public void Refresh()
@@ -25,78 +47,10 @@ public partial class PageInstanceLeft : IRefreshable
 
     public void RefreshModDisabled()
     {
-        var hide = Config.Preference.Hide;
-
-        if (McInstance is not null && McInstance.Modable)
-        {
-            ItemMod.Visibility = !PageSetupUI.HiddenForceShow && hide.InstanceMod
-                ? Visibility.Collapsed
-                : Visibility.Visible;
-            ItemModDisabled.Visibility = Visibility.Collapsed;
-        }
-        else
-        {
-            ItemMod.Visibility = Visibility.Collapsed;
-            ItemModDisabled.Visibility = !PageSetupUI.HiddenForceShow && hide.InstanceMod
-                ? Visibility.Collapsed
-                : Visibility.Visible;
-        }
-
-        // 功能隐藏
-        if (!PageSetupUI.HiddenForceShow)
-        {
-            var disableCount = 0;
-            if (hide.InstanceSave)
-                disableCount += 1;
-            if (hide.InstanceScreenshot)
-                disableCount += 1;
-            if (hide.InstanceMod)
-                disableCount += 1;
-            if (hide.InstanceResourcePack)
-                disableCount += 1;
-            if (hide.InstanceShader)
-                disableCount += 1;
-            if (hide.InstanceSchematic)
-                disableCount += 1;
-            if (hide.InstanceServer)
-                disableCount += 1;
-            if (disableCount == 7)
-                TextResource.Visibility = Visibility.Collapsed;
-            else
-                TextResource.Visibility = Visibility.Visible;
-        }
-        else
-        {
-            TextResource.Visibility = Visibility.Visible;
-        }
-
-        ItemInstall.Visibility = !PageSetupUI.HiddenForceShow && hide.InstanceEdit
-            ? Visibility.Collapsed
-            : Visibility.Visible;
-        ItemExport.Visibility = !PageSetupUI.HiddenForceShow && hide.InstanceExport
-            ? Visibility.Collapsed
-            : Visibility.Visible;
-        ItemWorld.Visibility = !PageSetupUI.HiddenForceShow && hide.InstanceSave
-            ? Visibility.Collapsed
-            : Visibility.Visible;
-        ItemScreenshot.Visibility = !PageSetupUI.HiddenForceShow && hide.InstanceScreenshot
-            ? Visibility.Collapsed
-            : Visibility.Visible;
-        ItemResourcePack.Visibility = !PageSetupUI.HiddenForceShow && hide.InstanceResourcePack
-            ? Visibility.Collapsed
-            : Visibility.Visible;
-        ItemShader.Visibility = !PageSetupUI.HiddenForceShow && hide.InstanceShader
-            ? Visibility.Collapsed
-            : Visibility.Visible;
-        ItemSchematic.Visibility = !PageSetupUI.HiddenForceShow && hide.InstanceSchematic
-            ? Visibility.Collapsed
-            : Visibility.Visible;
-        ItemServer.Visibility = !PageSetupUI.HiddenForceShow && hide.InstanceServer
-            ? Visibility.Collapsed
-            : Visibility.Visible;
+        _vm.RefreshModDisabled(McInstance);
     }
 
-    private void RefreshButton_Click(object sender, EventArgs e) // 由边栏按钮匿名调用
+    private void RefreshButton_Click(object sender, EventArgs e)
     {
         Refresh((FormMain.PageSubType)ModBase.Val(((MyIconButton)sender).Tag));
     }
@@ -112,7 +66,7 @@ public partial class PageInstanceLeft : IRefreshable
             }
             case FormMain.PageSubType.VersionScreenshot:
             {
-                var ignore= PageInstanceScreenshot.RefreshAsync();
+                _ = PageInstanceScreenshot.RefreshAsync();
                 break;
             }
             case FormMain.PageSubType.VersionWorld:
@@ -141,9 +95,12 @@ public partial class PageInstanceLeft : IRefreshable
                 ModDownload.dlOptiFineListLoader.Start(isForceRestart: true);
                 ModDownload.dlForgeListLoader.Start(isForceRestart: true);
                 ModDownload.dlNeoForgeListLoader.Start(isForceRestart: true);
+                ModDownload.dlCleanroomListLoader.Start(isForceRestart: true);
                 ModDownload.dlLiteLoaderListLoader.Start(isForceRestart: true);
                 ModDownload.dlFabricListLoader.Start(isForceRestart: true);
                 ModDownload.dlFabricApiLoader.Start(isForceRestart: true);
+                ModDownload.dlLegacyFabricListLoader.Start(isForceRestart: true);
+                ModDownload.dlLegacyFabricApiLoader.Start(isForceRestart: true);
                 ModDownload.dlOptiFabricLoader.Start(isForceRestart: true);
                 ModDownload.dlLabyModListLoader.Start(isForceRestart: true);
                 ItemInstall.Checked = true;
@@ -167,31 +124,37 @@ public partial class PageInstanceLeft : IRefreshable
         }
     }
 
-    public void Reset(object sender, EventArgs e)
+    public async void Reset(object sender, EventArgs e)
     {
-        if (ModMain.MyMsgBox(Lang.Text("Instance.Left.InitializeSettings.ConfirmMessage"),
-                Lang.Text("Instance.Left.InitializeSettings.ConfirmTitle"),
-                button2: Lang.Text("Common.Action.Cancel"),
-                isWarn: true)
-            == 1)
+        var control = sender as FrameworkElement;
+        if (control is not null)
+            control.IsEnabled = false;
+        try
         {
+            var choice = await ModMain.MyMsgBoxAsync(
+                PageInstanceLeftViewModel.GetResetConfirmMessage(),
+                PageInstanceLeftViewModel.GetResetConfirmTitle(),
+                button2: PageInstanceLeftViewModel.GetCancelText(),
+                isWarn: true);
+            if (choice != 1)
+                return;
             if (ModMain.frmInstanceSetup is null)
                 ModMain.frmInstanceSetup = new PageInstanceSetup();
             ModMain.frmInstanceSetup.Reset();
             ItemSetup.Checked = true;
         }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "初始化实例设置失败", ModBase.LogLevel.Msgbox,
+                userSummary: Lang.Text("Instance.Error.OperationFailed"));
+        }
+        finally
+        {
+            if (control is not null)
+                control.IsEnabled = true;
+        }
     }
 
-    #region 页面切换
-
-    /// <summary>
-    ///     当前页面的编号。从 0 开始计算。
-    /// </summary>
-    public FormMain.PageSubType pageID = FormMain.PageSubType.Default;
-
-    /// <summary>
-    ///     勾选事件改变页面。
-    /// </summary>
     private void PageCheck(object sender, ModBase.RouteEventArgs e)
     {
         if (sender is MyListItem item && item.Tag is not null)
@@ -285,14 +248,11 @@ public partial class PageInstanceLeft : IRefreshable
 
             default:
             {
-                throw new Exception("未知的实例设置子页面种类：" + (int)id);
+                throw new Exception(PageInstanceLeftViewModel.GetUnknownSubPageMessage(id));
             }
         }
     }
 
-    /// <summary>
-    ///     切换现有页面。
-    /// </summary>
     public void PageChange(FormMain.PageSubType id)
     {
         if (pageID == id)
@@ -307,7 +267,7 @@ public partial class PageInstanceLeft : IRefreshable
         {
             ModBase.Log(
                 ex,
-                "切换分页面失败（ID " + (int)id + "）",
+                PageInstanceLeftViewModel.GetSwitchFailedMessage(id),
                 ModBase.LogLevel.Feedback,
                 userSummary: Lang.Text("Instance.Error.OperationFailed"));
         }
@@ -319,7 +279,7 @@ public partial class PageInstanceLeft : IRefreshable
 
     private static void PageChangeRun(MyPageRight target)
     {
-        ModAnimation.AniStop("FrmMain PageChangeRight"); // 停止主页面的右页面切换动画，防止它与本动画一起触发多次 PageOnEnter
+        ModAnimation.AniStop("FrmMain PageChangeRight");
         if (target.Parent is not null)
             target.SetValue(ContentPresenter.ContentProperty, null);
         ModMain.frmMain.pageRight = target;
@@ -334,12 +294,9 @@ public partial class PageInstanceLeft : IRefreshable
             }, 130),
             ModAnimation.AaCode(() =>
             {
-                // 延迟触发页面通用动画，以使得在 Loaded 事件中加载的控件得以处理
                 ModMain.frmMain.pageRight.Opacity = 1d;
                 ModMain.frmMain.pageRight.PageOnEnter();
             }, 30, true)
         }, "PageLeft PageChange");
     }
-
-    #endregion
 }

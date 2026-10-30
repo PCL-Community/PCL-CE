@@ -1,5 +1,6 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Media;
 using PCL.Core.App;
@@ -17,12 +18,17 @@ public partial class PageLogRight
     public Run labInfo;
     public Run labWarn;
 
+    private readonly PageLogRightViewModel _vm = new();
+
     public PageLogRight()
     {
         Initialized += (_, _) => Init();
         Loaded += PageLogRight_Loaded;
         InitializeComponent();
+        DataContext = _vm;
     }
+
+    public PageLogRightViewModel ViewModel => _vm;
 
     public void Init()
     {
@@ -43,6 +49,8 @@ public partial class PageLogRight
                 (Brush)System.Windows.Application.Current.Resources[
                     ThemeManager.IsDarkMode ? "ColorBrushInfoDark" : "ColorBrushInfo"]
         };
+        labInfo.SetBinding(Run.TextProperty,
+            new Binding(nameof(PageLogRightViewModel.InfoCountText)) { Source = _vm });
         PanLogCard.Inlines.Add(labInfo);
         PanLogCard.Inlines.Add(new Run(" | "));
         labWarn = new Run
@@ -75,8 +83,7 @@ public partial class PageLogRight
     public void Reload()
     {
         // 初始化
-        if (ModMain.frmLogLeft.currentLog is null || ModMain.frmLogLeft.currentUuid <= 0 ||
-            ModMain.frmLogLeft.shownLogs.Count == 0)
+        if (!_vm.CanShow())
         {
             ModMain.frmMain.PageChange(ModMain.frmMain.pageCurrent);
             return;
@@ -84,23 +91,12 @@ public partial class PageLogRight
 
         PanAllBack.Visibility = Visibility.Visible;
         CardOperation.Visibility = Visibility.Visible;
-        BtnOperationKill.IsEnabled = !ModMain.frmLogLeft.currentLog.gameProcess.HasExited;
-        BtnOperationExportStackDump.IsEnabled = !ModMain.frmLogLeft.currentLog.gameProcess.HasExited &&
-                                                !string.IsNullOrWhiteSpace(ModMain.frmLogLeft.currentLog.jStackPath);
+        _vm.RefreshOperationButtons();
         SliderMaxLog.Value = Config.System.MaxGameLog;
         // y = 10x + 50 (0 <= x <= 5, 50 <= y <= 100)
         // y = 50x - 150 (5 < x <= 13, 100 < y <= 500)
         // y = 100x - 800 (13 < x <= 28, 500 < y <= 2000)
-        SliderMaxLog.getHintText = new Func<object, object>(v =>
-        {
-            return v switch
-            {
-                _ when (int)v <= 5 => ((int)v * 10 + 50).ToString(),
-                _ when (int)v <= 13 => ((int)v * 50 - 150).ToString(),
-                _ when (int)v <= 28 => ((int)v * 100 - 800).ToString(),
-                _ => Lang.Text("LogPage.MaxLines.Unlimited")
-            };
-        });
+        SliderMaxLog.getHintText = new Func<object, object>(PageLogRightViewModel.GetMaxLogHintText);
         // 绑定日志输出
         PanLog.Document = ModMain.frmLogLeft.flowDocuments[ModMain.frmLogLeft.currentUuid];
         // 绑定事件
@@ -206,7 +202,7 @@ public partial class PageLogRight
         if (savePath.Length < 3)
             return;
         HintService.Hint(Lang.Text("LogPage.ExportStack.Progress"));
-        BtnOperationExportStackDump.IsEnabled = false;
+        _vm.IsExportStackDumpEnabled = false;
         ModBase.RunInNewThread(() =>
         {
             var dump = ModMain.frmLogLeft.currentLog.ExportStackDump(savePath);
@@ -214,7 +210,7 @@ public partial class PageLogRight
             ModBase.RunInUi(() =>
             {
                 HintService.Hint(Lang.Text("LogPage.ExportStack.Success"), HintType.Success);
-                BtnOperationExportStackDump.IsEnabled = true;
+                _vm.IsExportStackDumpEnabled = true;
             });
             ModBase.OpenExplorer(savePath);
         });
@@ -222,8 +218,8 @@ public partial class PageLogRight
 
     private void OnGameExit()
     {
-        ModBase.RunInUi(() => BtnOperationKill.IsEnabled = false);
-        ModBase.RunInUi(() => BtnOperationExportStackDump.IsEnabled = false);
+        ModBase.RunInUi(() => _vm.IsKillEnabled = false);
+        ModBase.RunInUi(() => _vm.IsExportStackDumpEnabled = false);
     }
 
     #endregion

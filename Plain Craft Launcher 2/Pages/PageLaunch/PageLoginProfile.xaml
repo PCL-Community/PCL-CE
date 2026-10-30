@@ -1,13 +1,12 @@
-<Grid x:Class="PCL.PageLoginProfile" Tag="False"
+﻿<Grid x:Class="PCL.PageLoginProfile" Tag="False"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:local="clr-namespace:PCL"
-      xmlns:loc="https://ce.pclc.cc/core/localization"
-      DataContext="{Binding RelativeSource={RelativeSource Self}}"
       mc:Ignorable="d"
-      d:DesignHeight="450" d:DesignWidth="800">
+      d:DesignHeight="450" d:DesignWidth="800"
+      xmlns:loc="https://ce.pclc.cc/core/localization">
 
     <Grid.RowDefinitions>
         <RowDefinition Height="Auto" />
@@ -19,19 +18,16 @@
         <RowDefinition Height="20" />
     </Grid.RowDefinitions>
 
-    <local:MyHint x:Name="HintSelect" Margin="0,10,0,0" Theme="Blue"
-                  Text="{loc:Loc Launch.Account.Profile.SelectHint}" Grid.Row="0" CanClose="True"
-                  RelativeSetup="HintProfileSelect" />
-    <local:MyHint x:Name="HintCreate" Margin="0,10,0,0" Theme="Blue"
-                  Text="{loc:Loc Launch.Account.Profile.CreateAndSelectHint}" Grid.Row="0"
-                  Visibility="Collapsed" />
-    <local:MyHint x:Name="HintMicrosoft" Margin="0,10,0,0" Theme="Yellow"
-                  Text="{loc:Loc Launch.Account.Profile.RequireMicrosoftHint}" Grid.Row="1"
-                  Visibility="Collapsed" />
+    <local:MyHint x:Name="HintSelect" Margin="0,10,0,0" Theme="Blue" Text="{loc:Loc Launch.Account.Profile.SelectHint}" Grid.Row="0" CanClose="True"
+                   RelativeSetup="HintProfileSelect" />
+    <local:MyHint x:Name="HintCreate" Margin="0,10,0,0" Theme="Blue" Text="{loc:Loc Launch.Account.Profile.CreateAndSelectHint}" Grid.Row="0"
+                   Visibility="Collapsed" />
+    <local:MyHint x:Name="HintMicrosoft" Margin="0,10,0,0" Theme="Yellow" Text="{loc:Loc Launch.Account.Profile.RequireMicrosoftHint}" Grid.Row="1"
+                   Visibility="Collapsed" />
 
     <local:MyScrollViewer Grid.Row="3" MaxHeight="300" Margin="10,0,10,0">
         <!-- 世界需要 MVVM -->
-        <ItemsControl ItemsSource="{Binding ProfileCollection}">
+        <ItemsControl ItemsSource="{Binding Profiles}">
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
                     <local:MyListItem Margin="8,2,10,2"
@@ -48,9 +44,7 @@
         <StackPanel Orientation="Horizontal" Margin="10,3,0,3">
             <local:MyIconButton Height="24" Margin="0,0.5,9,0" x:Name="BtnNew"
                                  Click="BtnNew_Click"
-                                 ToolTip="{loc:Loc Launch.Account.Profile.Create}"
-                                 ToolTipService.Placement="Center"
-                                 ToolTipService.VerticalOffset="35"
+                                 ToolTip="{loc:Loc Launch.Account.Profile.Create}" ToolTipService.Placement="Center" ToolTipService.VerticalOffset="35"
                                 ToolTipService.HorizontalOffset="1" ToolTipService.InitialShowDelay="50"
                                 LogoScale="1.08"
                                 SvgIcon="lucide/user-plus" />

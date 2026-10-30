@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using FluentValidation;
 using FluentValidation.Results;
+using PCL.Core.App.Localization;
 
 namespace PCL.Core.Utils.Validate;
 
@@ -21,7 +22,7 @@ public class BlacklistValidator(List<string> contains) : AbstractValidator<strin
                 {
                     if (input.Contains(items))
                     {
-                        context.AddFailure($"输入内容不能包含 {items}！");
+                        context.AddFailure(Lang.Text("Common.Validate.Blacklisted", items));
                     }
                 }
             });

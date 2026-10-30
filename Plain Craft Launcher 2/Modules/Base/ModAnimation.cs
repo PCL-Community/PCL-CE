@@ -1,10 +1,10 @@
 ﻿using System.Collections;
-using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using PCL.Core.App;
 using PCL.Core.Utils;
 using PCL.Network;
 
@@ -16,184 +16,235 @@ public static partial class ModAnimation
     private static int aniCount;
     private static int aniFPSCounter;
     private static long aniFPSTimer;
+    private static bool aniInFrame;
 
     /// <summary>
     ///     当前的动画 FPS。
     /// </summary>
-    public static int aniFPS;
+    private static int aniFPS;
 
     /// <summary>
-    ///     开始动画执行。
+    ///     Start the animation loop. Call once, after the main window exists.
     /// </summary>
+    /// <remarks>
+    ///     Frames are driven by <c>CompositionTarget.Rendering</c>: one tick per rendered frame, on the UI thread,
+    ///     right before the frame is composited. No dedicated thread, no dispatcher round-trip, no frame cap.
+    /// </remarks>
     public static void AniStart()
     {
-        // 初始化计时器
-        aniLastTick = TimeUtils.GetTimeTick();
+        aniLastTick = Stopwatch.GetTimestamp();
         aniFPSTimer = aniLastTick;
-        aniRunning = true; // 标记动画执行开始
+        aniRunning = true;
 
-        var minFrameGap = 1000d / (Config.System.AnimationFpsLimit + 1) / 2;
-
-
-        ModBase.RunInNewThread(() =>
+        ModBase.RunInUi(() =>
         {
-            try
-            {
-                ModBase.Log("[Animation] 动画线程开始");
-                while (true)
-                {
-                    // 两帧之间的间隔时间
-                    var deltaTime =
-                        (long)Math.Round(ModBase.MathClamp(TimeUtils.GetTimeTick() - aniLastTick, 0, 100000));
-                    if (deltaTime < minFrameGap)
-                    {
-                        // 限制 FPS
-                        Thread.Sleep(1);
-                        continue;
-                    }
-
-                    aniLastTick = TimeUtils.GetTimeTick();
-                    // 记录 FPS
-                    if (ModBase.modeDebug)
-                    {
-                        if (ModBase.MathClamp(aniLastTick - aniFPSTimer, 0d, 100000d) >= 500d)
-                        {
-                            aniFPS = aniFPSCounter;
-                            aniFPSCounter = 0;
-                            aniFPSTimer = aniLastTick;
-                        }
-
-                        aniFPSCounter += 2;
-                    }
-
-                    // 执行动画
-                    ModBase.RunInUiWait(() =>
-                    {
-                        aniCount = 0;
-                        AniTimer((int)Math.Round(deltaTime * aniSpeed));
-                        // #If DEBUG Then
-                        // FrmMain.Title = "F " & AniFPS & ", A " & AniCount & ", R " & NetManage.FileRemain
-                        // #Else
-                        // If ModeDebug Then FrmMain.Title = "FPS " & AniFPS & ", 动画 " & AniCount & ", 下载中 " & NetManage.FileRemain
-                        // #End If
-                        if (RandomUtils.NextInt(0, 64 * (ModBase.modeDebug ? 5 : 30)) == 0 &&
-                            ((aniFPS < 62 && aniFPS > 0) || aniCount > 4 || ModNet.NetManager.FileRemain != 0))
-                            ModBase.Log("[Report] FPS " + aniFPS + ", 动画 " + aniCount + ", 下载中 " +
-                                        ModNet.NetManager.FileRemain + "（" +
-                                        ModBase.GetString(ModNet.NetManager.Speed) + "/s）");
-                    });
-                }
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            catch (Exception ex)
-            {
-                ModBase.Log(
-                    ex,
-                    "动画帧执行失败",
-                    ModBase.LogLevel.Critical,
-                    userSummary: Lang.Text("Application.Animation.Error.OperationFailed"));
-            }
-        }, "Animation", ThreadPriority.AboveNormal);
+            CompositionTarget.Rendering -= AniOnRendering; // never subscribe twice
+            CompositionTarget.Rendering += AniOnRendering;
+            ModBase.Log("[Animation] 动画帧循环已挂载到渲染管线", ModBase.LogLevel.Developer);
+        });
     }
 
     /// <summary>
-    ///     动画定时器事件。
+    ///     Advance the animations by one frame. Raised once per rendered frame, on the UI thread.
     /// </summary>
+    /// <param name="sender">Unused.</param>
+    /// <param name="e">Unused.</param>
+    private static void AniOnRendering(object? sender, EventArgs e)
+    {
+        if (aniInFrame) return; // WM_SIZE re-enters this synchronously
+        aniInFrame = true;
+
+        try
+        {
+            var now = Stopwatch.GetTimestamp();
+            var deltaTick = (int)Math.Round(ModBase.MathClamp(AniMs(now - aniLastTick), 0, 100000) * aniSpeed);
+            aniLastTick = now;
+
+            if (ModBase.modeDebug)
+            {
+                if (AniMs(now - aniFPSTimer) >= 500d)
+                {
+                    aniFPS = aniFPSCounter;
+                    aniFPSCounter = 0;
+                    aniFPSTimer = now;
+                }
+
+                aniFPSCounter += 2; // 500 ms window -> frames per second
+            }
+
+            if (deltaTick <= 0)
+            {
+                AniFlushGroups(); // still publish starts and stops, so nothing piles up
+                return;
+            }
+
+            aniCount = 0;
+            AniTimer(deltaTick);
+
+            if (RandomUtils.NextInt(0, 64 * (ModBase.modeDebug ? 5 : 30)) == 0 &&
+                ((aniFPS < 62 && aniFPS > 0) || aniCount > 4 || ModNet.NetManager.FileRemain != 0))
+                ModBase.Log("[Report] FPS " + aniFPS + ", 动画 " + aniCount + ", 下载中 " +
+                            ModNet.NetManager.FileRemain + "（" + ModBase.GetString(ModNet.NetManager.Speed) + "/s）");
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, "动画帧执行失败", ModBase.LogLevel.Critical,
+                userSummary: Lang.Text("Application.Animation.Error.OperationFailed"));
+        }
+        finally
+        {
+            aniInFrame = false;
+        }
+    }
+
+    /// <summary>
+    ///     Advance every running animation group by one frame. Must run on the UI thread.
+    /// </summary>
+    /// <param name="deltaTick">Elapsed time since the previous frame, in milliseconds, already scaled by <c>aniSpeed</c>.</param>
+    /// <remarks>
+    ///     Groups started during this call are published at the start of the next frame, so the group list
+    ///     stays stable while it is iterated. A failure inside one group is logged and does not stop the others.
+    /// </remarks>
     public static void AniTimer(int deltaTick)
     {
         try
         {
             if (deltaTick / aniSpeed > 100d)
                 ModBase.Log("[Animation] 两个动画帧间隔 " + deltaTick + " ms", ModBase.LogLevel.Developer);
-            var i = -1;
-            // 循环每个动画组
-            while (i + 1 < aniGroups.Count)
+
+            AniFlushGroups();
+
+            var groups = aniOrder;
+            for (var i = 0; i < groups.Count; i++)
             {
-                i += 1;
-                // 初始化
-                var entry = aniGroups.Values.ElementAtOrDefault(i);
-                if (entry.startTick > aniLastTick)
-                    continue; // 跳过本刻之后开始的动画
-                var canRemoveAfter = true; // 是否应该去除“之后”标记
-                var ii = 0;
+                var entry = groups[i];
+                if (entry.Dead) continue;
+                if (entry.startTick > aniLastTick) continue;
 
-                // 循环每个动画
-                while (ii < entry.data.Count)
+                try
                 {
-                    var anim = entry.data[ii];
-                    // 执行种类
-                    if (!anim.isAfter) // 之前
-                    {
-                        canRemoveAfter = false; // 取消“之后”标记 
-                        // 增加执行时间
-                        anim.timeFinished += deltaTick;
-                        // 执行动画
-                        if (anim.timeFinished > 0)
-                        {
-                            anim = AniRun(anim);
-                            aniCount += 1;
-                        }
-
-                        // 如果当前动画已执行完毕
-                        if (anim.timeFinished >= anim.timeTotal)
-                        {
-                            // 如果是去向颜色资源的动画，设置引用
-                            if (anim.typeMain == AniType.Color &&
-                                !string.Equals(((dynamic)anim.obj)[2] as string, "", StringComparison.Ordinal))
-                                ((dynamic)anim.obj)[0]
-                                    .SetResourceReference(((dynamic)anim.obj)[1], ((dynamic)anim.obj)[2]);
-                            // 删除
-                            entry.data.RemoveAt(ii);
-                            goto NextAni;
-                        }
-
-                        entry.data[ii] = anim;
-                    }
-                    else if (canRemoveAfter) // 之后
-                    {
-                        // 之后改为之前
-                        canRemoveAfter = false;
-                        anim.isAfter = false;
-                        entry.data[ii] = anim;
-                        // 重新循环该动画
-                        goto NextAni;
-                    }
-                    else
-                    {
-                        // 不能去除该“之后”标记，结束该动画组
-                        break;
-                    }
-
-                    ii += 1;
-                    NextAni: ;
+                    AniRunGroup(entry, deltaTick);
                 }
-
-                // 如果当前动画组都执行完毕则删除
-                if (!entry.data.Any())
+                catch (Exception ex)
                 {
-                    // 为了避免新添加的动画影响顺序，不能 RemoveAt(i)
-                    // 为了允许动画在执行中添加同名动画组，不能按名字移除
-                    for (int current = 0, loopTo = aniGroups.Count - 1; current <= loopTo; current++)
-                        if (aniGroups.ElementAt(current).Value.Uuid == entry.Uuid)
-                        {
-                            aniGroups.Remove(aniGroups.ElementAt(current).Key, out _);
-                            break;
-                        }
-
-                    i -= 1;
+                    ModBase.Log(ex, "动画组执行失败", ModBase.LogLevel.Hint,
+                        userSummary: Lang.Text("Application.Animation.Error.OperationFailed"));
                 }
             }
         }
-
         catch (Exception ex)
         {
-            ModBase.Log(
-                ex,
-                "动画刻执行失败",
-                ModBase.LogLevel.Hint,
+            ModBase.Log(ex, "动画刻执行失败", ModBase.LogLevel.Hint,
                 userSummary: Lang.Text("Application.Animation.Error.OperationFailed"));
+        }
+    }
+
+    /// <summary>
+    ///     Apply the changes collected since the last frame: publish newly started groups into the
+    ///     iteration order and drop the groups marked as dead.
+    /// </summary>
+    /// <remarks>Called by <c>AniTimer</c> at the start of a frame, on the UI thread only.</remarks>
+    private static void AniFlushGroups()
+    {
+        lock (aniGroupsLock)
+        {
+            if (aniPendingAdds.Count > 0)
+            {
+                foreach (var entry in aniPendingAdds)
+                    if (!entry.Dead)
+                        aniOrder.Add(entry);
+                aniPendingAdds.Clear();
+            }
+
+            if (aniOrderDirty)
+            {
+                aniOrder.RemoveAll(static e => e.Dead);
+                aniOrderDirty = false;
+            }
+        }
+    }
+
+    /// <summary>
+    ///     Advance one animation group: run its due animations, promote a blocked "after" animation
+    ///     when everything before it has finished, and remove the animations that reached their end.
+    ///     The group is marked dead once its animation list becomes empty.
+    /// </summary>
+    /// <param name="entry">Group to advance.</param>
+    /// <param name="deltaTick">Elapsed time since the previous frame, in milliseconds.</param>
+    /// <remarks>
+    ///     Finished animations are dropped with a write cursor and the list tail is shifted once at the end,
+    ///     instead of calling RemoveAt per animation, so a frame never reallocates or shifts more than once.
+    /// </remarks>
+    private static void AniRunGroup(AniGroupEntry entry, int deltaTick)
+    {
+        var data = entry.data;
+        var span = CollectionsMarshal.AsSpan(data);
+        var write = 0;
+        var blocked = false; // an "after" runs only when everything before it is already gone
+        int read;
+
+        for (read = 0; read < span.Length; read++)
+        {
+            ref var anim = ref span[read];
+
+            if (anim.isAfter)
+            {
+                if (blocked) break;
+                anim.isAfter = false;
+            }
+            blocked = true;
+
+            anim.timeFinished += deltaTick;
+            if (anim.timeFinished > 0)
+            {
+                AniRun(ref anim);
+                aniCount++;
+            }
+
+            if (anim.timeFinished >= anim.timeTotal)
+            {
+                AniFinishColor(ref anim);
+                continue; // dropped, never copied
+            }
+
+            if (write != read) span[write] = anim;
+            write++;
+        }
+
+        if (write < read) data.RemoveRange(write, read - write); // close the gaps, keep the tail
+        if (data.Count == 0) AniKillGroup(entry);
+    }
+
+    /// <summary>
+    ///     Release a finished color animation: if it animated towards a resource key, give the property
+    ///     back to that resource instead of leaving it with the computed color value.
+    /// </summary>
+    /// <param name="anim">Animation that just reached its total duration.</param>
+    private static void AniFinishColor(ref AniData anim)
+    {
+        if (anim.typeMain == AniType.Color &&
+            anim.obj is object[] { Length: >= 3 } target &&
+            target[2] is not string { Length: 0 })
+            ((FrameworkElement)target[0]).SetResourceReference((DependencyProperty)target[1], target[2]!);
+    }
+
+    /// <summary>
+    ///     Mark a group as dead and unregister it by name. The frame loop skips it immediately,
+    ///     and the next flush removes it from the iteration order.
+    /// </summary>
+    /// <param name="entry">Group that has finished or was stopped.</param>
+    /// <remarks>
+    ///     The name is unregistered only while it still points to this exact instance, so a group
+    ///     started later under the same name is never removed by mistake.
+    /// </remarks>
+    private static void AniKillGroup(AniGroupEntry entry)
+    {
+        entry.Dead = true;
+        lock (aniGroupsLock)
+        {
+            if (aniByName.TryGetValue(entry.Key, out var current) && ReferenceEquals(current, entry))
+                aniByName.Remove(entry.Key);
+            aniOrderDirty = true;
         }
     }
 
@@ -201,7 +252,7 @@ public static partial class ModAnimation
     ///     执行一个动画。
     /// </summary>
     /// <param name="ani">执行的动画对象。</param>
-    private static AniData AniRun(AniData ani)
+    private static void AniRun(ref AniData ani)
     {
         try
         {
@@ -427,8 +478,6 @@ public static partial class ModAnimation
                 ModBase.LogLevel.Hint,
                 userSummary: Lang.Text("Application.Animation.Error.OperationFailed"));
         }
-
-        return ani;
     }
 
     #region 声明
@@ -438,27 +487,46 @@ public static partial class ModAnimation
     /// </summary>
     public static double aniSpeed = 1d;
 
-    /// <summary>
-    ///     动画组列表。
-    /// </summary>
-    public static ConcurrentDictionary<string, AniGroupEntry> aniGroups = new();
+    // Name -> group. Always current, so AniIsRun is true right after AniStart.
+    private static readonly Dictionary<string, AniGroupEntry> aniByName = new(StringComparer.Ordinal);
+    // Insertion order. Mutated only at frame start, so the frame loop reads it without locks.
+    private static readonly List<AniGroupEntry> aniOrder = [];
+    // Groups started during a frame, published at the next frame start.
+    private static readonly List<AniGroupEntry> aniPendingAdds = [];
+    private static readonly Lock aniGroupsLock = new();
+    private static bool aniOrderDirty;
 
+    /// <summary>
+    ///     A running animation group: its animation list in playback order, plus the tick it was started at.
+    /// </summary>
     public class AniGroupEntry
     {
-        public List<AniData> data;
+        public List<AniData> data = [];
+        /// <summary>Stopwatch tick at which the group was started.</summary>
         public long startTick;
+        /// <summary>Registry key, used to unregister the group without touching a same-named newcomer.</summary>
+        public string Key = "";
         public int Uuid = ModBase.GetUuid();
+        /// <summary>Set when the group is stopped or finished; the frame loop skips it immediately.</summary>
+        internal volatile bool Dead;
     }
 
     /// <summary>
-    ///     上一次记刻的时间。
+    ///     Timestamp of the previous frame, in <see cref="Stopwatch" /> ticks.
     /// </summary>
+    /// <remarks>
+    ///     Stopwatch is used instead of <c>TickCount64</c>, whose 15.6 ms granularity made animations step in chunks
+    ///     and froze every frame when the display ran faster than the clock.
+    /// </remarks>
     private static long aniLastTick;
+
+    /// <summary>Convert a stopwatch tick delta to milliseconds.</summary>
+    private static double AniMs(long ticks) => ticks * 1000d / Stopwatch.Frequency;
 
     /// <summary>
     ///     动画模块是否正在运行。
     /// </summary>
-    public static bool aniRunning;
+    private static bool aniRunning;
 
     private static readonly object aniControlEnabledLock = new();
 
@@ -1490,47 +1558,72 @@ public static partial class ModAnimation
     #region 接口（开始、中断、检测）
 
     /// <summary>
-    ///     开始一个动画组。
+    ///     Start an animation group. A group already running under the same name is stopped first, and the
+    ///     new one is appended after the existing groups, so it wins whenever both animate the same property.
     /// </summary>
-    /// <param name="aniGroup">由 Aa 开头的函数初始化的 AniData 对象集合。</param>
-    /// <param name="name">动画组的名称。如果重复会直接停止同名动画组。</param>
+    /// <param name="aniGroup">Animations built by the <c>Aa*</c> helpers; nested lists are flattened.</param>
+    /// <param name="name">Name used by <c>AniStop</c> and <c>AniIsRun</c>; empty means a generated unique name.</param>
+    /// <param name="refreshTime">Reset the frame clock before starting, so a stalled UI thread does not eat the animation's beginning.</param>
     public static void AniStart(IList aniGroup, string name = "", bool refreshTime = false)
     {
         if (refreshTime)
-            aniLastTick = TimeUtils.GetTimeTick(); // 避免处理动画时已经造成了极大的延迟，导致动画突然结束
-        // 添加到正在执行的动画组
+            aniLastTick = Stopwatch.GetTimestamp();
+
         var newEntry = new AniGroupEntry
-            { data = ModBase.GetFullList<AniData>(aniGroup), startTick = TimeUtils.GetTimeTick() };
-        if (string.IsNullOrEmpty(name))
-            name = newEntry.Uuid.ToString();
-        else
-            AniStop(name);
-        aniGroups.TryAdd(name, newEntry);
+        {
+            data = ModBase.GetFullList<AniData>(aniGroup),
+            startTick = Stopwatch.GetTimestamp()
+        };
+        if (string.IsNullOrEmpty(name)) name = newEntry.Uuid.ToString();
+        newEntry.Key = name;
+
+        lock (aniGroupsLock)
+        {
+            if (aniByName.TryGetValue(name, out var old))
+            {
+                old.Dead = true;
+                aniOrderDirty = true;
+            }
+
+            aniByName[name] = newEntry;
+            aniPendingAdds.Add(newEntry); // runs from the next frame on, after older groups
+        }
     }
 
     /// <summary>
-    ///     开始一个动画组。
+    ///     Start an animation group that contains a single animation.
     /// </summary>
+    /// <param name="aniGroup">The animation to run.</param>
+    /// <param name="name">Name used by <c>AniStop</c> and <c>AniIsRun</c>; empty means a generated unique name.</param>
+    /// <param name="refreshTime">Reset the frame clock before starting.</param>
     public static void AniStart(AniData aniGroup, string name = "", bool refreshTime = false)
     {
         AniStart(new List<AniData> { aniGroup }, name, refreshTime);
     }
 
     /// <summary>
-    ///     直接停止一个动画组。
+    ///     Stop the group registered under the given name. The group stops on the current frame;
+    ///     property values it already applied are not rolled back.
     /// </summary>
-    /// <param name="name">需要停止的动画组的名称。</param>
+    /// <param name="name">Name passed to <c>AniStart</c>. Unknown names are ignored.</param>
     public static void AniStop(string name)
     {
-        aniGroups.Remove(name, out _);
+        lock (aniGroupsLock)
+        {
+            if (!aniByName.Remove(name, out var entry)) return;
+            entry.Dead = true;
+            aniOrderDirty = true;
+        }
     }
 
     /// <summary>
-    ///     获取动画是否正在进行中。
+    ///     Check whether a group is currently registered under the given name.
     /// </summary>
+    /// <param name="name">Name passed to <c>AniStart</c>.</param>
+    /// <returns><see langword="true" /> while the group is registered, including frames where it is only waiting on a delay.</returns>
     public static bool AniIsRun(string name)
     {
-        return aniGroups.ContainsKey(name);
+        lock (aniGroupsLock) return aniByName.ContainsKey(name);
     }
 
     #endregion
