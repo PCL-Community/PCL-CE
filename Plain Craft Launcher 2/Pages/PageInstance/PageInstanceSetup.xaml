@@ -37,7 +37,8 @@
                                    Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="ComboArgumentIndieV2" Grid.Row="0" Grid.ColumnSpan="2"
                                           Tag="VersionArgumentIndieV2" Grid.Column="1"
-                                          IsEnabled="{Binding IndieV2Enabled}">
+                                          IsEnabled="{Binding IndieV2Enabled}"
+                                          SelectionChanged="ComboArgumentIndieV2_SelectionChanged">
                             <local:MyComboBoxItem Content="{DynamicResource Instance.Setup.Options.InstanceIsolation.Enabled}"
                                                   ToolTipService.InitialShowDelay="0"
                                                   ToolTipService.BetweenShowDelay="0"
@@ -56,6 +57,7 @@
                                           HintText="{Binding TitleHintText}" Grid.Row="2" Grid.ColumnSpan="2"
                                           Tag="VersionArgumentTitle" Grid.Column="1" IsEditable="True"
                                           IsTextSearchEnabled="False"
+                                          TextChanged="TextArgumentTitle_TextChanged"
                                           ToolTip="{DynamicResource Instance.Setup.Options.WindowTitle.ToolTip}">
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Launch.Options.WindowTitle.SampleFormat}" />
                         </local:MyComboBox>
@@ -64,6 +66,7 @@
                                           Grid.ColumnSpan="3"
                                           Text="{DynamicResource Instance.Setup.Options.WindowTitle.Default}"
                                           Tag="VersionArgumentTitleEmpty"
+                                          Change="CheckArgumentTitleEmpty_Change"
                                           Grid.Column="0"
                                           ToolTip="{DynamicResource Instance.Setup.Options.WindowTitle.Default.ToolTip}" />
                         <TextBlock Grid.Row="6" VerticalAlignment="Center" HorizontalAlignment="Left"
@@ -71,6 +74,7 @@
                                    Margin="0,0,25,0" />
                         <local:MyTextBox x:Name="TextArgumentInfo" Grid.Row="6" Grid.ColumnSpan="2"
                                          Tag="VersionArgumentInfo" Grid.Column="1"
+                                         TextChanged="TextBoxChange"
                                          Text="{Binding ArgumentInfoText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                          HintText="{DynamicResource Instance.Setup.FollowGlobal}"
                                          ToolTip="{DynamicResource Instance.Setup.Options.CustomInfo.ToolTip}">
@@ -89,6 +93,8 @@
                                    Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="ComboArgumentJava" Grid.ColumnSpan="2" Grid.Row="8" Grid.Column="1"
                                           MaxDropDownHeight="240"
+                                          SelectionChanged="JavaSelectionUpdate"
+                                          DropDownOpened="ComboArgumentJava_DropDownOpened"
                                           ToolTip="{DynamicResource Instance.Setup.Options.Java.ToolTip}">
                             <ComboBoxItem Content="{DynamicResource Instance.Setup.Options.Java.Loading}" IsSelected="True" />
                         </local:MyComboBox>
@@ -274,6 +280,8 @@
                         <local:MyTextBox x:Name="TextServerAuthServer"
                                          IsEnabled="{Binding ServerAuthEditable}" Grid.Row="1" Grid.ColumnSpan="2"
                                          ShowValidateResult="False" Tag="VersionServerAuthServer" Grid.Column="1"
+                                         TextChanged="TextBoxChange"
+                                         LostFocus="TextServerAuthServer_MouseLeave"
                                          Text="{Binding ServerAuthServerText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                          Margin="0,8,0,0" Visibility="{Binding ServerAuthVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                                          HintText="{DynamicResource Instance.Setup.Server.AuthServer.Hint}">
@@ -287,6 +295,7 @@
                         <local:MyTextBox x:Name="TextServerAuthRegister"
                                          IsEnabled="{Binding ServerAuthEditable}" Grid.Row="2" Grid.ColumnSpan="2"
                                          ShowValidateResult="False" Tag="VersionServerAuthRegister" Grid.Column="1"
+                                         TextChanged="TextBoxChange"
                                          Text="{Binding ServerAuthRegisterText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                          Margin="0,8,0,0" Visibility="{Binding ServerAuthVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                                          HintText="{DynamicResource Instance.Setup.Server.Register.Hint}">
@@ -300,6 +309,7 @@
                         <local:MyTextBox x:Name="TextServerAuthName"
                                          IsEnabled="{Binding ServerAuthEditable}" Grid.Row="3" Grid.ColumnSpan="2"
                                          ShowValidateResult="False" Tag="VersionServerAuthName" Grid.Column="1"
+                                         TextChanged="TextBoxChange"
                                          Text="{Binding ServerAuthNameText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                          Margin="0,8,0,0" Visibility="{Binding ServerAuthVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                                          HintText="{DynamicResource Instance.Setup.Server.Name.Hint}" />
@@ -308,6 +318,7 @@
                                    Margin="0,0,25,0" />
                         <local:MyTextBox x:Name="TextServerEnter" Grid.ColumnSpan="2" Grid.Row="5"
                                          Tag="VersionServerEnter" Grid.Column="1"
+                                         TextChanged="TextBoxChange"
                                          Text="{Binding ServerEnterText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                          ToolTip="{DynamicResource Instance.Setup.Server.AutoJoin.ToolTip}">
                             <local:MyTextBox.ValidateRules>
@@ -380,6 +391,7 @@
                                Margin="0,0,25,0" />
                     <local:MyTextBox x:Name="TextAdvanceJvm" Grid.Row="2" Grid.ColumnSpan="2" Tag="VersionAdvanceJvm"
                                      Grid.Column="1" MaxLength="4000"
+                                     TextChanged="TextBoxChange"
                                      Text="{Binding AdvanceJvmText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                      ToolTip="{DynamicResource Instance.Setup.Advanced.JvmArgs.ToolTip}"
                                      HintText="{DynamicResource Instance.Setup.FollowGlobal}"
@@ -391,6 +403,7 @@
                                Margin="0,0,25,0" />
                     <local:MyTextBox x:Name="TextAdvanceGame" Grid.Row="4" Grid.ColumnSpan="2" Tag="VersionAdvanceGame"
                                      Grid.Column="1"
+                                     TextChanged="TextBoxChange"
                                      Text="{Binding AdvanceGameText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                      ToolTip="{DynamicResource Instance.Setup.Advanced.GameArgs.ToolTip}"
                                      HintText="{DynamicResource Instance.Setup.FollowGlobal}" />
@@ -400,6 +413,7 @@
                                Margin="0,0,25,0" />
                     <local:MyTextBox x:Name="TextAdvanceClasspathHead" Grid.Row="6" Grid.ColumnSpan="2"
                                      Tag="VersionAdvanceClasspathHead" Grid.Column="1"
+                                     TextChanged="TextBoxChange"
                                      Text="{Binding AdvanceClasspathHeadText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                      ToolTip="{DynamicResource Instance.Setup.Advanced.Classpath.ToolTip}" />
 
@@ -408,50 +422,60 @@
                                Margin="0,0,25,3" />
                     <local:MyTextBox x:Name="TextAdvanceRun" Grid.Row="8" Grid.ColumnSpan="2" Tag="VersionAdvanceRun"
                                      Grid.Column="1" HintText="" Margin="0,0,0,3"
+                                     TextChanged="TextAdvanceRun_TextChanged"
                                      Text="{Binding AdvanceRunText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                      ToolTip="{DynamicResource Instance.Setup.Advanced.PreLaunchCommand.ToolTip}" />
 
                     <StackPanel Margin="0,8,0,4" Grid.Row="9" Grid.ColumnSpan="2" HorizontalAlignment="Left">
                         <local:MyCheckBox Height="28" x:Name="CheckAdvanceRunWait" Tag="VersionAdvanceRunWait"
+                                          Change="CheckBoxChange"
                                           Visibility="{Binding CheckAdvanceRunWaitVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                                           Text="{DynamicResource Setup.Launch.Advanced.PreLaunchCommand.Wait}" />
                         <local:MyCheckBox Height="28"
                                           Text="{DynamicResource Instance.Setup.Advanced.DisableModUpdate}"
                                           x:Name="CheckAdvanceDisableModUpdate"
                                           Tag="VersionAdvanceDisableModUpdate"
+                                          Change="CheckBoxChange"
                                           ToolTip="{DynamicResource Setup.Ui.FeatureHide.Item.ModUpdate.ToolTip}" />
                         <local:MyCheckBox Height="28"
                                           Text="{DynamicResource Instance.Setup.Advanced.IgnoreJavaCompatibility}"
                                           x:Name="CheckAdvanceJava"
                                           Tag="VersionAdvanceJava"
+                                          Change="CheckBoxChange"
                                           ToolTip="{DynamicResource Instance.Setup.Advanced.IgnoreJavaCompatibility.ToolTip}" />
                         <local:MyCheckBox Height="28"
                                           Text="{DynamicResource Instance.Setup.Advanced.DisableFileVerification}"
                                           x:Name="CheckAdvanceAssetsV2"
                                           Tag="VersionAdvanceAssetsV2" Margin="0,0,60,0"
+                                          Change="CheckBoxChange"
                                           ToolTip="{DynamicResource Instance.Setup.Advanced.DisableFileVerification.ToolTip}" />
                         <local:MyCheckBox Height="28" Text="{DynamicResource Instance.Setup.Advanced.UseGlobalProxy}"
                                           x:Name="CheckAdvanceUseProxyV2"
                                           Tag="VersionAdvanceUseProxyV2"
+                                          Change="CheckBoxChange"
                                           ToolTip="{DynamicResource Instance.Setup.Advanced.UseGlobalProxy.ToolTip}" />
                         <local:MyCheckBox Height="28"
                                           Text="{DynamicResource Setup.Launch.Advanced.DisableJlw}"
                                           x:Name="CheckAdvanceDisableJLW"
                                           IsEnabled="{Binding DisableJlwEnabled}"
                                           Tag="VersionAdvanceDisableJLW"
+                                          Change="CheckBoxChange"
                                           ToolTip="{DynamicResource Setup.Launch.Advanced.DisableJlw.ToolTip}" />
                         <local:MyCheckBox Height="28"
                                           Text="{DynamicResource Setup.Launch.Advanced.DisableLF}"
                                           x:Name="CheckAdvanceDisableLF"
                                           Tag="VersionAdvanceDisableLF"
+                                          Change="CheckBoxChange"
                                           ToolTip="{DynamicResource Setup.Launch.Advanced.DisableLF.ToolTip}" />
                         <local:MyCheckBox Height="28" Text="{DynamicResource Instance.Setup.Advanced.UseDebugLog4j}"
                                           x:Name="CheckUseDebugLog4j2Config"
-                                          Tag="VersionUseDebugLog4j2Config" IsEnabled="{Binding DebugLog4j2Enabled}" />
+                                          Tag="VersionUseDebugLog4j2Config" IsEnabled="{Binding DebugLog4j2Enabled}"
+                                          Change="CheckUseDebugLog4j2Config_CheckChanged" />
                         <local:MyCheckBox Height="28"
                                           Text="{DynamicResource Setup.Launch.Advanced.DisableLwjglUnsafeAgent}"
                                           x:Name="CheckAdvanceDisableLwjglUnsafeAgent"
                                           Tag="VersionAdvanceDisableLwjglUnsafeAgent"
+                                          Change="CheckBoxChange"
                                           ToolTip="{DynamicResource Setup.Launch.Advanced.DisableLwjglUnsafeAgent.ToolTip}" />
                     </StackPanel>
                 </Grid>

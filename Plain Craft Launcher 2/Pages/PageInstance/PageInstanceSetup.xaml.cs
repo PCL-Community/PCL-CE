@@ -31,39 +31,14 @@ public partial class PageInstanceSetup : IPageView
         DialogServiceInstaller.Install(_vm);
         Unloaded += (_, _) => _refreshed = false;
 
-        ComboArgumentIndieV2.SelectionChanged += ComboArgumentIndieV2_SelectionChanged;
-        TextArgumentTitle.TextChanged += TextArgumentTitle_TextChanged;
-        TextArgumentInfo.TextChanged += TextBoxChange;
-        ComboArgumentJava.SelectionChanged += JavaSelectionUpdate;
-
         SliderRamCustom.Change += SliderChange;
         SliderRamInitialCustom.Change += SliderChange;
 
         ComboServerLoginRequire.SelectionChanged += ComboServerLogin_Changed;
-        TextServerAuthServer.TextChanged += TextBoxChange;
-        TextServerAuthServer.LostFocus += TextServerAuthServer_MouseLeave;
-        TextServerAuthRegister.TextChanged += TextBoxChange;
-        TextServerAuthName.TextChanged += TextBoxChange;
-        TextServerEnter.TextChanged += TextBoxChange;
 
         ComboAdvanceRenderer.SelectionChanged += ComboAdvanceRenderer_SelectionChanged;
-        TextAdvanceJvm.TextChanged += TextBoxChange;
-        TextAdvanceGame.TextChanged += TextBoxChange;
-        TextAdvanceClasspathHead.TextChanged += TextBoxChange;
-        TextAdvanceRun.TextChanged += TextAdvanceRun_TextChanged;
-        CheckAdvanceRunWait.Change += CheckBoxChange;
-        CheckAdvanceDisableModUpdate.Change += CheckBoxChange;
-        CheckAdvanceJava.Change += CheckBoxChange;
-        CheckAdvanceAssetsV2.Change += CheckBoxChange;
-        CheckAdvanceUseProxyV2.Change += CheckBoxChange;
-        CheckAdvanceDisableJLW.Change += CheckBoxChange;
-        CheckAdvanceDisableLF.Change += CheckBoxChange;
-        CheckUseDebugLog4j2Config.Change += CheckUseDebugLog4j2Config_CheckChanged;
-        CheckAdvanceDisableLwjglUnsafeAgent.Change += CheckBoxChange;
 
         TextServerEnter.TextChanged += TextServerEnter_Change;
-        ComboArgumentJava.DropDownOpened += ComboArgumentJava_DropDownOpened;
-        CheckArgumentTitleEmpty.Change += CheckArgumentTitleEmpty_Change;
     }
 
     public PageInstanceSetupViewModel ViewModel => _vm;
