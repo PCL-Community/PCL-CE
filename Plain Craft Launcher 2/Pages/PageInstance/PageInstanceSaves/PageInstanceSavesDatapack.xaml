@@ -4,14 +4,14 @@
     xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" x:Class="PCL.PageInstanceSavesDatapack"
-    PanScroll="{Binding ElementName=PanBack}">
+    PanScroll="{Binding ElementName=PanBack}" PageExit="UnselectedAllWithAnimation">
     <Grid>
         <Grid x:Name="PanAllBack">
             <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                                   x:Name="PanBack"
                                   Visibility="{Binding ShowDatapacks, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <StackPanel x:Name="PanMain" Margin="25,10,25,10" Grid.IsSharedSizeScope="True">
-                    <local:MySearchBox Margin="0,15" HintText="{DynamicResource Instance.Resource.Search.Hint}" x:Name="SearchBox" />
+                    <local:MySearchBox Margin="0,15" HintText="{DynamicResource Instance.Resource.Search.Hint}" x:Name="SearchBox" Text="{Binding SearchText, Mode=TwoWay}" PreviewKeyDown="SearchBox_PreviewKeyDown" TextChanged="SearchRun" />
                     <local:MyCard Margin="0,0,0,15" x:Name="PanManage">
                         <WrapPanel Margin="15,8,0,15">
                             <local:MyButton x:Name="BtnManageOpen" MinWidth="110" Text="{DynamicResource Common.Action.OpenFolder}" Padding="13,7" Command="{Binding OpenFolderCommand}"
@@ -20,7 +20,7 @@
                                             Margin="0,7,15,0" HorizontalAlignment="Left" />
                             <local:MyButton x:Name="BtnManageDownload" MinWidth="110" Text="{DynamicResource Instance.Resource.Datapack.DownloadNew}" Padding="13,7" Command="{Binding DownloadCommand}"
                                             Margin="0,7,15,0" HorizontalAlignment="Left" />
-                            <local:MyButton x:Name="BtnManageSelectAll" MinWidth="110" Text="{DynamicResource Instance.Resource.SelectAll}" Padding="13,7"
+                            <local:MyButton x:Name="BtnManageSelectAll" MinWidth="110" Text="{DynamicResource Instance.Resource.SelectAll}" Padding="13,7" Click="BtnManageSelectAll_Click"
                                             Margin="0,7,15,0" HorizontalAlignment="Left" />
                             <local:MyButton x:Name="BtnManageInfoExport" MinWidth="110" Text="{DynamicResource Instance.Resource.ExportInfo}" Padding="13,7" Command="{Binding ExportInfoCommand}" IsEnabled="{Binding ExportInfoEnabled}"
                                             Margin="0,7,15,0" HorizontalAlignment="Left" ToolTip="{DynamicResource Instance.Resource.Datapack.ExportInfo.ToolTip}" />
@@ -31,19 +31,19 @@
                         <StackPanel x:Name="PanFilter" Margin="15,13,0,0" Orientation="Horizontal"
                                     VerticalAlignment="Top" HorizontalAlignment="Left" Height="28">
                             <local:MyRadioButton Tag="0" ColorType="Highlight" VerticalAlignment="Center" Margin="2,0"
-                                                 Text="{Binding FilterAllText}" x:Name="BtnFilterAll" Checked="True" />
+                                                 Text="{Binding FilterAllText}" x:Name="BtnFilterAll" Checked="True" Check="ChangeFilter" />
                             <local:MyRadioButton Tag="1" ColorType="Highlight" VerticalAlignment="Center" Margin="2,0"
-                                                 Text="{Binding FilterEnabledText}" Visibility="{Binding ShowFilterEnabled, Converter={StaticResource BooleanToVisibilityConverter}}" x:Name="BtnFilterEnabled" />
+                                                 Text="{Binding FilterEnabledText}" Visibility="{Binding ShowFilterEnabled, Converter={StaticResource BooleanToVisibilityConverter}}" x:Name="BtnFilterEnabled" Check="ChangeFilter" />
                             <local:MyRadioButton Tag="2" ColorType="Highlight" VerticalAlignment="Center" Margin="2,0"
-                                                 Text="{Binding FilterDisabledText}" Visibility="{Binding ShowFilterDisabled, Converter={StaticResource BooleanToVisibilityConverter}}" x:Name="BtnFilterDisabled" />
+                                                 Text="{Binding FilterDisabledText}" Visibility="{Binding ShowFilterDisabled, Converter={StaticResource BooleanToVisibilityConverter}}" x:Name="BtnFilterDisabled" Check="ChangeFilter" />
                             <local:MyRadioButton Tag="3" ColorType="Highlight" VerticalAlignment="Center" Margin="2,0"
-                                                 Text="{Binding FilterCanUpdateText}" Visibility="{Binding ShowFilterCanUpdate, Converter={StaticResource BooleanToVisibilityConverter}}" x:Name="BtnFilterCanUpdate" />
+                                                 Text="{Binding FilterCanUpdateText}" Visibility="{Binding ShowFilterCanUpdate, Converter={StaticResource BooleanToVisibilityConverter}}" x:Name="BtnFilterCanUpdate" Check="ChangeFilter" />
                             <local:MyRadioButton Tag="4" ColorType="Highlight" VerticalAlignment="Center" Margin="2,0"
-                                                 Text="{Binding FilterErrorText}" Visibility="{Binding ShowFilterError, Converter={StaticResource BooleanToVisibilityConverter}}" x:Name="BtnFilterError" />
+                                                 Text="{Binding FilterErrorText}" Visibility="{Binding ShowFilterError, Converter={StaticResource BooleanToVisibilityConverter}}" x:Name="BtnFilterError" Check="ChangeFilter" />
                         </StackPanel>
                         <StackPanel Margin="0,13,15,0" Orientation="Horizontal" VerticalAlignment="Top"
                                     HorizontalAlignment="Right" Height="28">
-                            <local:MyIconTextButton x:Name="BtnSort" Text="{Binding SortText}"
+                            <local:MyIconTextButton x:Name="BtnSort" Text="{Binding SortText}" Click="BtnSortClick"
                                                     SvgIcon="lucide/arrow-up-down" />
                         </StackPanel>
                         <StackPanel Margin="20,48,18,22" Name="PanList" VerticalAlignment="Top"
@@ -84,30 +84,30 @@
             <TextBlock x:Name="LabSelect" Text="{Binding SelectedText}" HorizontalAlignment="Center" VerticalAlignment="Top"
                        Margin="9" Foreground="{DynamicResource ColorBrush2}" />
             <StackPanel Orientation="Horizontal" Margin="5,28,5,5">
-                <local:MyIconTextButton x:Name="BtnSelectUpdate" Text="{DynamicResource Instance.Resource.Update}"
+                <local:MyIconTextButton x:Name="BtnSelectUpdate" Text="{DynamicResource Instance.Resource.Update}" Click="BtnSelectUpdate_Click"
                                         LogoScale="1"
                                         SvgIcon="lucide/upload"
                                         IsEnabled="{Binding CanUpdate}" />
-                <local:MyIconTextButton x:Name="BtnSelectEnable" Text="{DynamicResource Instance.Resource.Enable}"
+                <local:MyIconTextButton x:Name="BtnSelectEnable" Text="{DynamicResource Instance.Resource.Enable}" Click="BtnSelectEnable_Click"
                                         LogoScale="1.05"
                                         SvgIcon="lucide/circle-check"
                                         IsEnabled="{Binding CanEnable}" />
-                <local:MyIconTextButton x:Name="BtnSelectDisable" Text="{DynamicResource Instance.Resource.Disable}"
+                <local:MyIconTextButton x:Name="BtnSelectDisable" Text="{DynamicResource Instance.Resource.Disable}" Click="BtnSelectDisable_Click"
                                         LogoScale="1"
                                         SvgIcon="lucide/circle-minus"
                                         IsEnabled="{Binding CanDisable}" />
-                <local:MyIconTextButton x:Name="BtnSelectFavorites" Text="{DynamicResource Instance.Resource.Favorite}"
+                <local:MyIconTextButton x:Name="BtnSelectFavorites" Text="{DynamicResource Instance.Resource.Favorite}" Click="BtnSelectFavorites_Click"
                                         LogoScale="1"
                                         SvgIcon="lucide/heart"
                                         IsEnabled="{Binding CanFavoriteAndShare}" />
-                <local:MyIconTextButton x:Name="BtnSelectShare" Text="{DynamicResource Instance.Resource.ShareSelected}"
+                <local:MyIconTextButton x:Name="BtnSelectShare" Text="{DynamicResource Instance.Resource.ShareSelected}" Click="BtnSelectShare_Click"
                                         LogoScale="1"
                                         SvgIcon="lucide/share-2"
                                         IsEnabled="{Binding CanFavoriteAndShare}" />
-                <local:MyIconTextButton x:Name="BtnSelectDelete" Text="{DynamicResource Common.Action.Delete}"
+                <local:MyIconTextButton x:Name="BtnSelectDelete" Text="{DynamicResource Common.Action.Delete}" Click="BtnSelectDelete_Click"
                                         LogoScale="0.96"
                                         SvgIcon="lucide/trash-2" />
-                <local:MyIconTextButton x:Name="BtnSelectCancel" Text="{DynamicResource Instance.Resource.CancelSelection}"
+                <local:MyIconTextButton x:Name="BtnSelectCancel" Text="{DynamicResource Instance.Resource.CancelSelection}" Click="BtnSelectCancel_Click"
                                         LogoScale="0.8"
                                         SvgIcon="lucide/x" />
             </StackPanel>

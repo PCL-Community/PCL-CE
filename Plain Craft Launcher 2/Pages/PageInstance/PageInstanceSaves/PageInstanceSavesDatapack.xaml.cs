@@ -42,26 +42,9 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
         Unloaded += Page_Unloaded;
         Loaded += (_, _) => RefreshOnNavigate();
         LoaderInit();
-        PageExit += UnselectedAllWithAnimation;
         // Handles
         Load.Click += Load_Click;
-        BtnManageSelectAll.Click += BtnManageSelectAll_Click;
         Load.StateChanged += (_, _, _) => UnselectedAllWithAnimation();
-        SearchBox.PreviewKeyDown += SearchBox_PreviewKeyDown;
-        BtnFilterAll.Check += ChangeFilter;
-        BtnFilterCanUpdate.Check += ChangeFilter;
-        BtnFilterDisabled.Check += ChangeFilter;
-        BtnFilterEnabled.Check += ChangeFilter;
-        BtnFilterError.Check += ChangeFilter;
-        BtnSort.Click += BtnSortClick;
-        BtnSelectEnable.Click += BtnSelectEnable_Click;
-        BtnSelectDisable.Click += BtnSelectDisable_Click;
-        BtnSelectUpdate.Click += BtnSelectUpdate_Click;
-        BtnSelectDelete.Click += BtnSelectDelete_Click;
-        BtnSelectCancel.Click += BtnSelectCancel_Click;
-        BtnSelectFavorites.Click += BtnSelectFavorites_Click;
-        BtnSelectShare.Click += BtnSelectShare_Click;
-        SearchBox.TextChanged += SearchRun;
     }
 
     private void Page_Unloaded(object sender, RoutedEventArgs e)
@@ -133,7 +116,6 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
                 _vm.Filter = FilterType.All;
                 SyncFilterRadios();
                 PanBack.ScrollToHome();
-                SearchBox.Text = "";
                 _vm.SearchText = "";
                 RefreshUI();
             });
@@ -192,7 +174,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
             {
                 _vm.Filter = FilterType.All;
                 SyncFilterRadios();
-                SearchBox.Text = "";
+                _vm.SearchText = "";
                 _vm.SetSortMethod(SortMethod.CompName);
                 RefreshUI();
             });
