@@ -44,6 +44,18 @@ public partial class PageSetupUIViewModel : ViewModelBase
 
     [ObservableProperty] private string _customNetText = "";
 
+    [ObservableProperty] private int _darkModeSelectedIndex = -1;
+
+    [ObservableProperty] private int _darkColorSelectedIndex = -1;
+
+    [ObservableProperty] private int _lightColorSelectedIndex = -1;
+
+    [ObservableProperty] private int _blurTypeSelectedIndex = -1;
+
+    [ObservableProperty] private int _backgroundSuitSelectedIndex = 0;
+
+    [ObservableProperty] private int _customPresetSelectedIndex = -1;
+
     public string[] ThemeColors => Basics.IsAprilFool
         ? [Lang.Text("Setup.Ui.Theme.Color.SkyBlue"), Lang.Text("Setup.Ui.Theme.Color.CatBlue"), Lang.Text("Setup.Ui.Theme.Color.CrashBlue"), Lang.Text("Setup.Ui.Theme.Color.Hmcl")]
         : [Lang.Text("Setup.Ui.Theme.Color.SkyBlue"), Lang.Text("Setup.Ui.Theme.Color.CatBlue"), Lang.Text("Setup.Ui.Theme.Color.CrashBlue")];

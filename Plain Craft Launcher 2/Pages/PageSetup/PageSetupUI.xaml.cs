@@ -54,9 +54,9 @@ public partial class PageSetupUI
             // 启动器
             SliderLauncherOpacity.Value = Config.Preference.Theme.WindowOpacity;
             CheckLauncherLogo.Checked = Config.Preference.ShowStartupLogo;
-            ComboDarkMode.SelectedIndex = (int)Config.Preference.Theme.ColorMode;
-            ComboDarkColor.SelectedIndex = (int)Config.Preference.Theme.DarkColor;
-            ComboLightColor.SelectedIndex = (int)Config.Preference.Theme.LightColor;
+            _vm.DarkModeSelectedIndex = (int)Config.Preference.Theme.ColorMode;
+            _vm.DarkColorSelectedIndex = (int)Config.Preference.Theme.DarkColor;
+            _vm.LightColorSelectedIndex = (int)Config.Preference.Theme.LightColor;
             CheckShowLaunchingHint.Checked = Config.Preference.ShowLaunchingHint;
 
             // 字体设置
@@ -66,14 +66,14 @@ public partial class PageSetupUI
             CheckBlur.Checked = Config.Preference.Blur.IsEnabled;
             SliderBlurValue.Value = Config.Preference.Blur.Radius;
             SliderBlurSamplingRate.Value = Config.Preference.Blur.SamplingRate;
-            ComboBlurType.SelectedIndex = Config.Preference.Blur.KernelType;
+            _vm.BlurTypeSelectedIndex = Config.Preference.Blur.KernelType;
             PanBlurValue.Visibility = CheckBlur.Checked == true ? Visibility.Visible : Visibility.Collapsed;
             CheckLockWindowSize.Checked = Config.Preference.LockWindowSize;
 
             // 背景图片
             SliderBackgroundOpacity.Value = Config.Preference.Background.WallpaperOpacity;
             SliderBackgroundBlur.Value = Config.Preference.Background.WallpaperBlurRadius;
-            ComboBackgroundSuit.SelectedIndex = Config.Preference.Background.WallpaperSuitMode;
+            _vm.BackgroundSuitSelectedIndex = Config.Preference.Background.WallpaperSuitMode;
             CheckBackgroundColorful.Checked = Config.Preference.Background.BackgroundColorful;
             var autoPauseVideo = Config.Preference.Background.AutoPauseVideo;
             CheckAutoPauseVideo.Checked = autoPauseVideo;
@@ -104,7 +104,7 @@ public partial class PageSetupUI
             // 主页
             try
             {
-                ComboCustomPreset.SelectedIndex = Config.Preference.Homepage.SelectedPreset;
+                _vm.CustomPresetSelectedIndex = Config.Preference.Homepage.SelectedPreset;
             }
             catch
             {

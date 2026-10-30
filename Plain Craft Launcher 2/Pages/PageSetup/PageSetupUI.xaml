@@ -52,15 +52,17 @@
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Theme.Title}" />
                             <local:MyComboBox Grid.Column="1" x:Name="ComboDarkMode" Tag="UiDarkMode"
-                                              SelectionChanged="ComboChange">
+                                              SelectedIndex="{Binding DarkModeSelectedIndex}" SelectionChanged="ComboChange">
                                 <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Theme.Light}" />
                                 <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Theme.Dark}" />
                                 <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Theme.FollowSystem}" /> <!-- default -->
                             </local:MyComboBox>
                             <TextBlock Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{DynamicResource Setup.Ui.Theme.LightColor}"/>
-                            <local:MyComboBox Grid.Column="3" x:Name="ComboLightColor" Tag="UiLightColor" ItemsSource="{Binding ThemeColors}" SelectionChanged="ThemeColor_Change"/>
+                            <local:MyComboBox Grid.Column="3" x:Name="ComboLightColor" Tag="UiLightColor" ItemsSource="{Binding ThemeColors}"
+                                              SelectedIndex="{Binding LightColorSelectedIndex}" SelectionChanged="ThemeColor_Change"/>
                             <TextBlock Grid.Column="4" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{DynamicResource Setup.Ui.Theme.DarkColor}"/>
-                            <local:MyComboBox Grid.Column="5" x:Name="ComboDarkColor" Tag="UiDarkColor" ItemsSource="{Binding ThemeColors}" SelectionChanged="ThemeColor_Change"/>
+                            <local:MyComboBox Grid.Column="5" x:Name="ComboDarkColor" Tag="UiDarkColor" ItemsSource="{Binding ThemeColors}"
+                                              SelectedIndex="{Binding DarkColorSelectedIndex}" SelectionChanged="ThemeColor_Change"/>
 
                         </Grid>
                         <local:MyCheckBox Text="{DynamicResource Setup.Ui.Basic.ShowLogo}" Margin="-1,0,0,7" Height="22"
@@ -102,7 +104,7 @@
                                            HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Basic.BlurMethod}" />
                                 <local:MyComboBox Grid.Row="2" Grid.Column="1" x:Name="ComboBlurType" Tag="UiBlurType"
                                                   Height="28" MinWidth="100" ToolTip="{DynamicResource Setup.Ui.Basic.BlurMethod.ToolTip}"
-                                                  SelectionChanged="ComboChange">
+                                                  SelectedIndex="{Binding BlurTypeSelectedIndex}" SelectionChanged="ComboChange">
                                     <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Basic.BlurMethod.Gaussian}"
                                                           ToolTip="{DynamicResource Setup.Ui.Basic.BlurMethod.Gaussian.ToolTip}" />
                                     <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Basic.BlurMethod.Box}"
@@ -143,7 +145,7 @@
                         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Background.ContentAdapt}"
                                    Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="ComboBackgroundSuit" Tag="UiBackgroundSuit" Grid.Column="1"
-                                          SelectionChanged="ComboChange">
+                                          SelectedIndex="{Binding BackgroundSuitSelectedIndex}" SelectionChanged="ComboChange">
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Background.Suit.Smart}" IsSelected="True" ToolTip="{DynamicResource Setup.Ui.Background.Suit.Smart.ToolTip}" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Background.Suit.Center}" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Background.Suit.Fit}" ToolTip="{DynamicResource Setup.Ui.Background.Suit.Fit.ToolTip}" />
@@ -339,7 +341,7 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Homepage.PresetLabel}" Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="ComboCustomPreset" Grid.ColumnSpan="2" Tag="UiCustomPreset"
-                                          Grid.Column="1" SelectionChanged="ComboChange">
+                                          Grid.Column="1" SelectedIndex="{Binding CustomPresetSelectedIndex}" SelectionChanged="ComboChange">
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.Trivia}" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.EchoCave}" Visibility="Collapsed" />
                             <local:MyComboBoxItem Content="{DynamicResource Setup.Ui.Homepage.Preset.McNews}" />
