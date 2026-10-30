@@ -3,12 +3,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using PCL.Core.Logging;
+using PCL.Core.UI;
 
 namespace PCL.Core.ViewModel;
 
 /// <summary>统一的异步状态与异常处理基类。</summary>
 public abstract partial class ViewModelBase : ObservableObject
 {
+    public IDialogService Dialog { get; set; } = NullDialogService.Instance;
+
     [ObservableProperty] private AsyncState _state = AsyncState.Idle;
 
     [ObservableProperty] private string? _error;

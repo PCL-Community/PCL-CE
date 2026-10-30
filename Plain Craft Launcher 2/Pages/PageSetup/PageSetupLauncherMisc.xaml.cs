@@ -27,6 +27,7 @@ public partial class PageSetupLauncherMisc : IPageView
     {
         InitializeComponent();
         DataContext = _vm;
+        DialogServiceInstaller.Install(_vm);
         Loaded += PageSetupLink_Loaded;
         Loaded += (_, _) => Refresh();
         Unloaded += PageSetupLauncherMisc_Unloaded;
@@ -259,20 +260,20 @@ public partial class PageSetupLauncherMisc : IPageView
     {
         try
         {
-            var result = await Launcher.MyMsgBoxAsync(
-                Lang.Text("Setup.Misc.System.StopUsingPclCe.Message"),
-                Lang.Text("Setup.Misc.System.StopUsingPclCe.Title"),
-                Lang.Text("Common.Action.Continue"),
-                Lang.Text("Setup.Misc.System.StopUsingPclCe.ContinueAndRemove"),
-                Lang.Text("Common.Action.Cancel"),
+            var result = await _vm.Dialog.ShowAsync(
+                title: Lang.Text("Setup.Misc.System.StopUsingPclCe.Title"),
+                content: Lang.Text("Setup.Misc.System.StopUsingPclCe.Message"),
+                button1: Lang.Text("Common.Action.Continue"),
+                button2: Lang.Text("Setup.Misc.System.StopUsingPclCe.ContinueAndRemove"),
+                button3: Lang.Text("Common.Action.Cancel"),
                 isWarn: true);
 
             if (result >= 3) return;
-            if (await Launcher.MyMsgBoxAsync(
-                    Lang.Text("Setup.Misc.System.StopUsingPclCe.Message.Final"),
-                    Lang.Text("Common.Dialog.Warning"),
-                    Lang.Text("Common.Action.Continue"),
-                    Lang.Text("Common.Action.Cancel"),
+            if (await _vm.Dialog.ShowAsync(
+                    title: Lang.Text("Common.Dialog.Warning"),
+                    content: Lang.Text("Setup.Misc.System.StopUsingPclCe.Message.Final"),
+                    button1: Lang.Text("Common.Action.Continue"),
+                    button2: Lang.Text("Common.Action.Cancel"),
                     isWarn: true) == 1)
                 StopUsingPClCeCore(result == 2);
         }
