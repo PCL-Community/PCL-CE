@@ -57,7 +57,8 @@
                         </local:MyComboBox>
                         <TextBlock VerticalAlignment="Center" Grid.Row="2" HorizontalAlignment="Left" Text="{DynamicResource Instance.Overall.Category.Title}"
                                    Margin="0,0,25,0" />
-                        <local:MyComboBox Grid.Column="1" Grid.Row="2" x:Name="ComboDisplayType">
+                        <local:MyComboBox Grid.Column="1" Grid.Row="2" x:Name="ComboDisplayType"
+                                          IsEnabled="{Binding CardTypeComboEnabled}">
                             <local:MyComboBoxItem Content="{DynamicResource Common.Option.Auto}" IsSelected="True" />
                             <local:MyComboBoxItem Content="{DynamicResource Instance.Overall.Category.Hidden}"
                                                   ToolTip="{DynamicResource Instance.Overall.Category.Hidden.ToolTip}" />
@@ -74,9 +75,11 @@
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                         </Grid.ColumnDefinitions>
                         <local:MyButton x:Name="BtnDisplayRename" Text="{DynamicResource Instance.Overall.Rename}"
+                                        IsEnabled="{Binding RenameButtonEnabled}"
                                         MinWidth="140" Padding="13,0"
                                         Margin="0,0,20,0" />
                         <local:MyButton x:Name="BtnDisplayDesc" Text="{DynamicResource Instance.Overall.EditDescription}"
+                                        IsEnabled="{Binding DescriptionButtonEnabled}"
                                         MinWidth="140" Padding="13,0"
                                         Margin="0,0,20,0" Grid.Column="1" />
                         <local:MyButton x:Name="BtnDisplayStar" Text="{Binding StarText}"
@@ -94,10 +97,13 @@
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                         </Grid.ColumnDefinitions>
                         <local:MyButton x:Name="BtnFolderVersion" Text="{DynamicResource Instance.Overall.Shortcuts.InstanceFolder}" MinWidth="140" Padding="13,0"
+                                        Command="{Binding OpenInstanceFolderCommand}"
                                         Margin="0,0,20,0" />
                         <local:MyButton x:Name="BtnFolderSaves" Text="{DynamicResource Instance.Overall.Shortcuts.SavesFolder}" MinWidth="140" Padding="13,0"
+                                        Command="{Binding OpenSavesFolderCommand}"
                                         Margin="0,0,20,0" Grid.Column="1" />
                         <local:MyButton x:Name="BtnFolderMods" Text="{DynamicResource Instance.Overall.Shortcuts.ModsFolder}" MinWidth="140" Padding="13,0"
+                                        Command="{Binding OpenModsFolderCommand}"
                                         Margin="0,0,20,0" Grid.Column="2"
                                         Visibility="{Binding ModsFolderVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
                     </Grid>
@@ -107,22 +113,28 @@
                 <StackPanel Margin="25,40,25,15">
                     <WrapPanel Margin="0,-5,-20,7">
                         <local:MyButton x:Name="BtnManageScript" Text="{DynamicResource Instance.Overall.Manage.ExportLaunchScript}" MinWidth="140" Padding="13,0"
+                                        Command="{Binding ExportLaunchScriptCommand}"
                                         Margin="0,7,20,0" Height="35" />
                         <local:MyButton x:Name="BtnManageTest" Text="{DynamicResource Instance.Overall.Manage.TestGame}" MinWidth="140" Padding="13,0"
+                                        Command="{Binding TestGameCommand}"
                                         Margin="0,7,20,0"
                                         Height="35" />
                         <local:MyButton x:Name="BtnManageCheck" Text="{DynamicResource Instance.Overall.Manage.RepairFiles}" MinWidth="140" Padding="13,0"
+                                        Command="{Binding CheckFilesCommand}"
                                         Margin="0,7,20,0"
                                         ToolTip="{DynamicResource Instance.Overall.Manage.RepairFiles.ToolTip}"
                                         Height="35" />
                         <local:MyButton x:Name="BtnManageRestore" Text="{DynamicResource Common.Action.Reset}" MinWidth="140" Padding="13,0"
+                                        IsEnabled="{Binding RestoreButtonEnabled}"
                                         Margin="0,7,20,0"
                                         ToolTip="{DynamicResource Instance.Overall.Manage.Reinstall.ToolTip}"
                                         Height="35" />
                         <local:MyButton x:Name="BtnManageDelete" Text="{DynamicResource Instance.Overall.Manage.Delete}" MinWidth="140" Padding="13,0"
+                                        IsEnabled="{Binding DeleteButtonEnabled}"
                                         Margin="0,7,20,0"
                                         ColorType="Red" Height="35" />
                         <local:MyButton x:Name="BtnManagePatch" Text="{DynamicResource Instance.Overall.Manage.PatchCore}" MinWidth="140" Padding="13,0"
+                                        IsEnabled="{Binding PatchButtonEnabled}"
                                         Margin="0,7,20,0"
                                         Height="35" />
                     </WrapPanel>

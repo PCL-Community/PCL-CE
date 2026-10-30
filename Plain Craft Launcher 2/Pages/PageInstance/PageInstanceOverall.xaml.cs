@@ -41,13 +41,7 @@ public partial class PageInstanceOverall : IPageView
         BtnDisplayRename.Click += BtnDisplayRename_Click;
         ComboDisplayLogo.SelectionChanged += ComboDisplayLogo_SelectionChanged;
         BtnDisplayStar.Click += BtnDisplayStar_Click;
-        BtnFolderVersion.Click += BtnFolderVersion_Click;
-        BtnFolderSaves.Click += BtnFolderSaves_Click;
-        BtnFolderMods.Click += BtnFolderMods_Click;
-        BtnManageScript.Click += BtnManageScript_Click;
-        BtnManageCheck.Click += BtnManageCheck_Click;
         BtnManageRestore.Click += BtnManageRestore_Click;
-        BtnManageTest.Click += BtnManageTest_Click;
         BtnManageDelete.Click += BtnManageDelete_Click;
         BtnManagePatch.Click += BtnManagePatch_Click;
     }
@@ -180,8 +174,7 @@ public partial class PageInstanceOverall : IPageView
     // 实例分类
     private async void ComboDisplayType_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        var ctl = sender as Control;
-        if (ctl is not null) ctl.IsEnabled = false;
+        _vm.CardTypeComboEnabled = false;
         try
         {
             if (!(isLoad && !Animations.AniExitsAnyControl()))
@@ -254,15 +247,14 @@ public partial class PageInstanceOverall : IPageView
         }
         finally
         {
-            if (ctl is not null) ctl.IsEnabled = true;
+            _vm.CardTypeComboEnabled = true;
         }
     }
 
     // 更改描述
     private async void BtnDisplayDesc_Click(object sender, MouseButtonEventArgs e)
     {
-        var ctl = sender as Control;
-        if (ctl is not null) ctl.IsEnabled = false;
+        _vm.DescriptionButtonEnabled = false;
         try
         {
             var oldInfo = States.Instance.CustomInfo[PageInstanceLeft.McInstance.PathInstance];
@@ -285,15 +277,14 @@ public partial class PageInstanceOverall : IPageView
         }
         finally
         {
-            if (ctl is not null) ctl.IsEnabled = true;
+            _vm.DescriptionButtonEnabled = true;
         }
     }
 
     // 重命名实例
     private async void BtnDisplayRename_Click(object sender, MouseButtonEventArgs e)
     {
-        var ctl = sender as Control;
-        if (ctl is not null) ctl.IsEnabled = false;
+        _vm.RenameButtonEnabled = false;
         try
         {
             // 确认输入的新名称
@@ -397,7 +388,7 @@ public partial class PageInstanceOverall : IPageView
         }
         finally
         {
-            if (ctl is not null) ctl.IsEnabled = true;
+            _vm.RenameButtonEnabled = true;
         }
     }
 
@@ -483,147 +474,20 @@ public partial class PageInstanceOverall : IPageView
 
     #region 卡片：快捷方式
 
-    // 实例文件夹
-    private void BtnFolderVersion_Click(object sender, MouseButtonEventArgs mouseButtonEventArgs)
-    {
-        OpenVersionFolder(PageInstanceLeft.McInstance);
-    }
-
     public static void OpenVersionFolder(McInstance version)
     {
         PageInstanceOverallViewModel.OpenVersionFolder(version);
-    }
-
-    // 存档文件夹
-    private void BtnFolderSaves_Click(object sender, MouseButtonEventArgs mouseButtonEventArgs)
-    {
-        var folderPath = PageInstanceLeft.McInstance.PathIndie + @"saves\";
-        Directory.CreateDirectory(folderPath);
-        Common.OpenExplorer(folderPath);
-    }
-
-    // Mod 文件夹
-    private void BtnFolderMods_Click(object sender, MouseButtonEventArgs mouseButtonEventArgs)
-    {
-        var folderPath = PageInstanceLeft.McInstance.PathIndie + @"mods\";
-        Directory.CreateDirectory(folderPath);
-        Common.OpenExplorer(folderPath);
     }
 
     #endregion
 
     #region 卡片：管理
 
-    // 导出启动脚本
-    private void BtnManageScript_Click(object sender, MouseButtonEventArgs mouseButtonEventArgs)
-    {
-        try
-        {
-            // 弹窗要求指定脚本的保存位置
-            var savePath = SystemDialogs.SelectSaveFile(Lang.Text("Instance.Overall.Script.SelectSaveTitle"), "启动 " + PageInstanceLeft.McInstance.Name + ".bat",
-                Lang.Text("Instance.Overall.Script.FileFilter"));
-            if (string.IsNullOrEmpty(savePath))
-                return;
-            // 检查中断（等玩家选完弹窗指不定任务就结束了呢……）
-            if (GameLaunch.mcLaunchLoader.State == Common.LoadState.Loading)
-            {
-                HintService.Hint(Lang.Text("Instance.Overall.Script.WaitForLaunchTask"), HintType.Error);
-                return;
-            }
-
-            // 生成脚本
-            if (GameLaunch.McLaunchStart(new GameLaunch.McLaunchOptions
-                    { SaveBatch = savePath, instance = PageInstanceLeft.McInstance }))
-            {
-                if (ProfileService.Current?.ProfileType == PCL.Core.Minecraft.Profile.Models.ProfileType.Offline)
-                    HintService.Hint(Lang.Text("Instance.Overall.Script.Exporting"));
-                else
-                    HintService.Hint(Lang.Text("Instance.Overall.Script.ExportingWarning"));
-            }
-        }
-        catch (Exception ex)
-        {
-            Common.Log(
-                ex,
-                $"导出启动脚本失败（{PageInstanceLeft.McInstance.Name}）",
-                Common.LogLevel.Msgbox,
-                userSummary: Lang.Text("Instance.Overall.Error.OperationFailed"));
-        }
-    }
-
-    // 补全文件
-    private void BtnManageCheck_Click(object sender, MouseButtonEventArgs e)
-    {
-        if (!RestrictedFeaturePolicy.Check("minecraft-repair")) return;
-        try
-        {
-            // 忽略文件检查提示
-            if ((bool)Libraries.ShouldIgnoreFileCheck(PageInstanceLeft.McInstance))
-            {
-                HintService.Hint(Lang.Text("Instance.Overall.Repair.DisableVerificationHint"));
-                return;
-            }
-
-            // 重复任务检查
-            var taskName = PageInstanceLeft.McInstance.Name + " " + Lang.Text("Instance.Overall.Repair.TaskName");
-            foreach (var OngoingLoader in Loading.loaderTaskbar)
-            {
-                if ((OngoingLoader.name ?? "") != (taskName ?? ""))
-                    continue;
-                HintService.Hint(Lang.Text("Instance.Overall.Repair.Processing"), HintType.Error);
-                return;
-            }
-
-            // 启动
-            var loader = new Loading.LoaderCombo<string>(taskName,
-                GameDownload.DlClientFix(PageInstanceLeft.McInstance, true,
-                    GameDownload.AssetsIndexExistsBehaviour.AlwaysDownload));
-            loader.OnStateChanged = _ =>
-            {
-                switch (loader.State)
-                {
-                    case Common.LoadState.Finished:
-                    {
-                        HintService.Hint(
-                            Lang.Text("Instance.Overall.Repair.Success.WithTaskName", taskName), HintType.Success);
-                        break;
-                    }
-                    case Common.LoadState.Failed:
-                    {
-                        HintService.Hint(
-                            Lang.Text("Instance.Overall.Repair.Failed.WithDetail", taskName, loader.Error.ToString()),
-                            HintType.Error);
-                        break;
-                    }
-                    case Common.LoadState.Aborted:
-                    {
-                        HintService.Hint(
-                            Lang.Text("Instance.Overall.Repair.Cancelled.WithTaskName", taskName));
-                        break;
-                    }
-                }
-            };
-            loader.Start(PageInstanceLeft.McInstance.Name);
-            Loading.LoaderTaskbarAdd(loader);
-            Launcher.frmMain.BtnExtraDownload.ShowRefresh();
-            Launcher.frmMain.BtnExtraDownload.Ribble();
-        }
-        catch (Exception ex)
-        {
-            Common.Log(
-                ex,
-                $"尝试补全文件失败（{PageInstanceLeft.McInstance.Name}）",
-                Common.LogLevel.Msgbox,
-                userSummary: Lang.Text("Instance.Overall.Error.OperationFailed"));
-        }
-    }
-
     // 重置
     private async void BtnManageRestore_Click(object sender, MouseButtonEventArgs e)
     {
         if (!RestrictedFeaturePolicy.Check("minecraft-reset")) return;
-        var ctl = sender as Control;
-        if (ctl is not null) ctl.IsEnabled = false;
+        _vm.RestoreButtonEnabled = false;
         try
         {
             var currentVersion = PageInstanceLeft.McInstance.Info;
@@ -693,26 +557,7 @@ public partial class PageInstanceOverall : IPageView
         }
         finally
         {
-            if (ctl is not null) ctl.IsEnabled = true;
-        }
-    }
-
-    // 测试游戏
-    private void BtnManageTest_Click(object sender, MouseButtonEventArgs e)
-    {
-        try
-        {
-            GameLaunch.McLaunchStart(new GameLaunch.McLaunchOptions
-                { instance = PageInstanceLeft.McInstance, IsTest = true });
-            Launcher.frmMain.PageChange(FormMain.PageType.Launch);
-        }
-        catch (Exception ex)
-        {
-            Common.Log(
-                ex,
-                "测试游戏失败",
-                Common.LogLevel.Feedback,
-                userSummary: Lang.Text("Instance.Overall.Error.OperationFailed"));
+            _vm.RestoreButtonEnabled = true;
         }
     }
 
@@ -720,8 +565,7 @@ public partial class PageInstanceOverall : IPageView
     // 修改此代码时，同时修改 PageSelectRight 中的代码
     private async void BtnManageDelete_Click(object sender, MouseButtonEventArgs e)
     {
-        var ctl = sender as Control;
-        if (ctl is not null) ctl.IsEnabled = false;
+        _vm.DeleteButtonEnabled = false;
         try
         {
             var isShiftPressed = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
@@ -798,15 +642,14 @@ public partial class PageInstanceOverall : IPageView
         }
         finally
         {
-            if (ctl is not null) ctl.IsEnabled = true;
+            _vm.DeleteButtonEnabled = true;
         }
     }
 
     // 修补核心
     private async void BtnManagePatch_Click(object sender, MouseButtonEventArgs e)
     {
-        var ctl = sender as Control;
-        if (ctl is not null) ctl.IsEnabled = false;
+        _vm.PatchButtonEnabled = false;
         try
         {
             switch (await Launcher.MyMsgBoxAsync(
@@ -845,7 +688,7 @@ public partial class PageInstanceOverall : IPageView
         }
         finally
         {
-            if (ctl is not null) ctl.IsEnabled = true;
+            _vm.PatchButtonEnabled = true;
         }
     }
 

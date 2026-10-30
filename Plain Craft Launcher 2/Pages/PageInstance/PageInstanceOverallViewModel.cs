@@ -1,6 +1,10 @@
+using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.Minecraft.Profile;
+using PCL.Core.UI;
 using PCL.Core.ViewModel;
 
 namespace PCL;
@@ -13,6 +17,18 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
     [ObservableProperty] private bool _modsFolderVisible = true;
 
     [ObservableProperty] private string _starText = Lang.Text("Instance.Overall.Favorite");
+
+    [ObservableProperty] private bool _cardTypeComboEnabled = true;
+
+    [ObservableProperty] private bool _descriptionButtonEnabled = true;
+
+    [ObservableProperty] private bool _renameButtonEnabled = true;
+
+    [ObservableProperty] private bool _restoreButtonEnabled = true;
+
+    [ObservableProperty] private bool _deleteButtonEnabled = true;
+
+    [ObservableProperty] private bool _patchButtonEnabled = true;
 
     public static IReadOnlyList<InstanceInfoRow> BuildInfoRows(McInstance instance)
     {
@@ -71,6 +87,157 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
             ? Lang.Text("Instance.Overall.Unfavorite")
             : Lang.Text("Instance.Overall.Favorite");
         ModsFolderVisible = instance.Modable;
+    }
+
+    // 实例文件夹
+    [RelayCommand]
+    private void OpenInstanceFolder()
+    {
+        OpenVersionFolder(PageInstanceLeft.McInstance);
+    }
+
+    // 存档文件夹
+    [RelayCommand]
+    private void OpenSavesFolder()
+    {
+        var folderPath = PageInstanceLeft.McInstance.PathIndie + @"saves\";
+        Directory.CreateDirectory(folderPath);
+        Common.OpenExplorer(folderPath);
+    }
+
+    // Mod 文件夹
+    [RelayCommand]
+    private void OpenModsFolder()
+    {
+        var folderPath = PageInstanceLeft.McInstance.PathIndie + @"mods\";
+        Directory.CreateDirectory(folderPath);
+        Common.OpenExplorer(folderPath);
+    }
+
+    // 导出启动脚本
+    [RelayCommand]
+    private void ExportLaunchScript()
+    {
+        try
+        {
+            // 弹窗要求指定脚本的保存位置
+            var savePath = SystemDialogs.SelectSaveFile(Lang.Text("Instance.Overall.Script.SelectSaveTitle"), "启动 " + PageInstanceLeft.McInstance.Name + ".bat",
+                Lang.Text("Instance.Overall.Script.FileFilter"));
+            if (string.IsNullOrEmpty(savePath))
+                return;
+            // 检查中断（等玩家选完弹窗指不定任务就结束了呢……）
+            if (GameLaunch.mcLaunchLoader.State == Common.LoadState.Loading)
+            {
+                HintService.Hint(Lang.Text("Instance.Overall.Script.WaitForLaunchTask"), HintType.Error);
+                return;
+            }
+
+            // 生成脚本
+            if (GameLaunch.McLaunchStart(new GameLaunch.McLaunchOptions
+                    { SaveBatch = savePath, instance = PageInstanceLeft.McInstance }))
+            {
+                if (ProfileService.Current?.ProfileType == PCL.Core.Minecraft.Profile.Models.ProfileType.Offline)
+                    HintService.Hint(Lang.Text("Instance.Overall.Script.Exporting"));
+                else
+                    HintService.Hint(Lang.Text("Instance.Overall.Script.ExportingWarning"));
+            }
+        }
+        catch (Exception ex)
+        {
+            Common.Log(
+                ex,
+                $"导出启动脚本失败（{PageInstanceLeft.McInstance.Name}）",
+                Common.LogLevel.Msgbox,
+                userSummary: Lang.Text("Instance.Overall.Error.OperationFailed"));
+        }
+    }
+
+    // 补全文件
+    [RelayCommand]
+    private void CheckFiles()
+    {
+        if (!RestrictedFeaturePolicy.Check("minecraft-repair")) return;
+        try
+        {
+            // 忽略文件检查提示
+            if ((bool)Libraries.ShouldIgnoreFileCheck(PageInstanceLeft.McInstance))
+            {
+                HintService.Hint(Lang.Text("Instance.Overall.Repair.DisableVerificationHint"));
+                return;
+            }
+
+            // 重复任务检查
+            var taskName = PageInstanceLeft.McInstance.Name + " " + Lang.Text("Instance.Overall.Repair.TaskName");
+            foreach (var OngoingLoader in Loading.loaderTaskbar)
+            {
+                if ((OngoingLoader.name ?? "") != (taskName ?? ""))
+                    continue;
+                HintService.Hint(Lang.Text("Instance.Overall.Repair.Processing"), HintType.Error);
+                return;
+            }
+
+            // 启动
+            var loader = new Loading.LoaderCombo<string>(taskName,
+                GameDownload.DlClientFix(PageInstanceLeft.McInstance, true,
+                    GameDownload.AssetsIndexExistsBehaviour.AlwaysDownload));
+            loader.OnStateChanged = _ =>
+            {
+                switch (loader.State)
+                {
+                    case Common.LoadState.Finished:
+                    {
+                        HintService.Hint(
+                            Lang.Text("Instance.Overall.Repair.Success.WithTaskName", taskName), HintType.Success);
+                        break;
+                    }
+                    case Common.LoadState.Failed:
+                    {
+                        HintService.Hint(
+                            Lang.Text("Instance.Overall.Repair.Failed.WithDetail", taskName, loader.Error.ToString()),
+                            HintType.Error);
+                        break;
+                    }
+                    case Common.LoadState.Aborted:
+                    {
+                        HintService.Hint(
+                            Lang.Text("Instance.Overall.Repair.Cancelled.WithTaskName", taskName));
+                        break;
+                    }
+                }
+            };
+            loader.Start(PageInstanceLeft.McInstance.Name);
+            Loading.LoaderTaskbarAdd(loader);
+            Launcher.frmMain.BtnExtraDownload.ShowRefresh();
+            Launcher.frmMain.BtnExtraDownload.Ribble();
+        }
+        catch (Exception ex)
+        {
+            Common.Log(
+                ex,
+                $"尝试补全文件失败（{PageInstanceLeft.McInstance.Name}）",
+                Common.LogLevel.Msgbox,
+                userSummary: Lang.Text("Instance.Overall.Error.OperationFailed"));
+        }
+    }
+
+    // 测试游戏
+    [RelayCommand]
+    private void TestGame()
+    {
+        try
+        {
+            GameLaunch.McLaunchStart(new GameLaunch.McLaunchOptions
+                { instance = PageInstanceLeft.McInstance, IsTest = true });
+            Launcher.frmMain.PageChange(FormMain.PageType.Launch);
+        }
+        catch (Exception ex)
+        {
+            Common.Log(
+                ex,
+                "测试游戏失败",
+                Common.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Overall.Error.OperationFailed"));
+        }
     }
 }
 
