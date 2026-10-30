@@ -64,11 +64,8 @@ public partial class PageInstanceSavesInfo : IRefreshable, IPageView
             await _vm.LoadAsync();
             if (Launcher.frmInstanceSavesLeft is not null)
                 Launcher.frmInstanceSavesLeft.ViewModel.ShowDatapackTab = _vm.ShowDatapackTab;
-            PanList.Children.Clear();
-            PanList.RowDefinitions.Clear();
             PanSettingsList.Children.Clear();
             PanSettingsList.RowDefinitions.Clear();
-            BuildInfoTable();
             BuildSettings();
         }
         catch (Exception ex)
@@ -78,49 +75,18 @@ public partial class PageInstanceSavesInfo : IRefreshable, IPageView
         }
     }
 
-    private void BuildInfoTable()
+    private void SeedButton_Click(object sender, EventArgs e)
     {
-        foreach (var row in _vm.Rows)
-            AddInfoRow(row);
+        if (sender is not FrameworkElement { Tag: SaveInfoRow row })
+            return;
+        CopySeed(row.Content);
     }
 
-    private void AddInfoRow(SaveInfoRow row)
+    private void ChunkbaseButton_Click(object sender, EventArgs e)
     {
-        var headBlock = new TextBlock { Text = row.Head, Margin = new Thickness(0d, 3d, 0d, 3d) };
-        var contentStack = new StackPanel { Orientation = Orientation.Horizontal };
-
-        if (row.IsSeed && row.Content != Lang.Text("Instance.Saves.Info.GetFailed"))
-        {
-            var seedBtn = new MyTextButton { Text = row.Content, Margin = new Thickness(0d, 3d, 0d, 3d) };
-            var content = row.Content;
-            var versionName = row.VersionName;
-            seedBtn.Click += (_, _) => CopySeed(content);
-            contentStack.Children.Add(seedBtn);
-
-            var chunkbaseBtn = new MyIconButton
-            {
-                SvgIcon = "lucide/external-link",
-                Width = 22d,
-                Height = 22d,
-                ToolTip = Lang.Text("Instance.Saves.Info.Chunkbase.ToolTip")
-            };
-            chunkbaseBtn.Click += (_, _) => PageInstanceSavesInfoViewModel.OpenChunkbase(content, versionName);
-            contentStack.Children.Add(chunkbaseBtn);
-        }
-        else
-        {
-            contentStack.Children.Add(new TextBlock { Text = row.Content, Margin = new Thickness(0d, 3d, 0d, 3d) });
-        }
-
-        PanList.Children.Add(headBlock);
-        PanList.Children.Add(contentStack);
-        var rowDef = new RowDefinition();
-        PanList.RowDefinitions.Add(rowDef);
-        var rowIndex = PanList.RowDefinitions.IndexOf(rowDef);
-        Grid.SetRow(headBlock, rowIndex);
-        Grid.SetColumn(headBlock, 0);
-        Grid.SetRow(contentStack, rowIndex);
-        Grid.SetColumn(contentStack, 2);
+        if (sender is not FrameworkElement { Tag: SaveInfoRow row })
+            return;
+        PageInstanceSavesInfoViewModel.OpenChunkbase(row.Content, row.VersionName);
     }
 
     private static void CopySeed(string content)

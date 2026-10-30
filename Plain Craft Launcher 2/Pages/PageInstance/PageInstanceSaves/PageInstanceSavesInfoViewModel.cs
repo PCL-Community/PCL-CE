@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Humanizer;
 using PCL.Core.App.Localization;
@@ -282,6 +283,17 @@ public class SaveInfoRow(string head, string content, bool isSeed, string? versi
     public bool IsSeed { get; } = isSeed;
 
     public string? VersionName { get; } = versionName;
+
+    /// <summary>种子行复制按钮的可见性。</summary>
+    public Visibility SeedButtonVisibility { get; } =
+        IsCopyableSeed(isSeed, content) ? Visibility.Visible : Visibility.Collapsed;
+
+    /// <summary>普通文本内容的可见性。</summary>
+    public Visibility ContentTextVisibility { get; } =
+        IsCopyableSeed(isSeed, content) ? Visibility.Collapsed : Visibility.Visible;
+
+    private static bool IsCopyableSeed(bool seed, string text) =>
+        seed && text != Lang.Text("Instance.Saves.Info.GetFailed");
 }
 
 /// <summary>存档设置下拉框中的一个选项。</summary>

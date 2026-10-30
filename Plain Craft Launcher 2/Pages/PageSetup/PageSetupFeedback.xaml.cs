@@ -1,5 +1,4 @@
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 using System.Text.Json.Serialization;
 using PCL.Network;
@@ -26,19 +25,6 @@ public partial class PageSetupFeedback : IPageView
 
     private readonly PageSetupFeedbackViewModel _vm = new();
     private bool _refreshed;
-
-    private static readonly Dictionary<string, (Func<PageSetupFeedback, StackPanel> Panel, string Icon)> TagMap = new()
-    {
-        [((long)TagId.Processing).ToString()] = (p => p.PanListProcessing, "Blocks/CommandBlock.png"),
-        [((long)TagId.WaitingProcess).ToString()] = (p => p.PanListWaitingProcess, "Blocks/RedstoneBlock.png"),
-        [((long)TagId.Wait).ToString()] = (p => p.PanListWait, "Blocks/Anvil.png"),
-        [((long)TagId.Pause).ToString()] = (p => p.PanListPause, "Blocks/RedstoneLampOff.png"),
-        [((long)TagId.Upnext).ToString()] = (p => p.PanListUpnext, "Blocks/RedstoneLampOn.png"),
-        [((long)TagId.Completed).ToString()] = (p => p.PanListCompleted, "Blocks/Grass.png"),
-        [((long)TagId.Decline).ToString()] = (p => p.PanListDecline, "Blocks/CobbleStone.png"),
-        [((long)TagId.Ignored).ToString()] = (p => p.PanListIgnored, "Blocks/CobbleStone.png"),
-        [((long)TagId.Duplicate).ToString()] = (p => p.PanListDuplicate, "Blocks/CobbleStone.png"),
-    };
 
     public PageSetupFeedback()
     {
@@ -75,22 +61,6 @@ public partial class PageSetupFeedback : IPageView
         task.output = _vm.FetchFeedbackList();
     }
 
-    private MyListItem CreateFeedbackItem(Feedback item, string logo)
-    {
-        var li = new MyListItem
-        {
-            Title = item.Title,
-            Type = MyListItem.CheckType.Clickable,
-            Info = $"{item.User} | {Lang.Date(item.Time)}",
-            Logo = Common.PathImage + logo,
-            Tags = item.Type
-        };
-
-        li.Click += (_, _) => ShowFeedbackDetail(item);
-
-        return li;
-    }
-
     private void ShowFeedbackDetail(Feedback item)
     {
         var timeSpanText = Lang.TimeSpan(item.Time - DateTime.Now);
@@ -110,24 +80,14 @@ public partial class PageSetupFeedback : IPageView
 
     public void RefreshList()
     {
-        PanListProcessing.Children.Clear();
-        PanListWaitingProcess.Children.Clear();
-        PanListWait.Children.Clear();
-        PanListPause.Children.Clear();
-        PanListUpnext.Children.Clear();
-        PanListCompleted.Children.Clear();
-        PanListDecline.Children.Clear();
-        PanListIgnored.Children.Clear();
-        PanListDuplicate.Children.Clear();
-
         _vm.SetItems(Loader.output);
+    }
 
-        foreach (var entry in _vm.Items)
-        {
-            if (!TagMap.TryGetValue(entry.Tag, out var target))
-                continue;
-            target.Panel(this).Children.Add(CreateFeedbackItem(entry.Feedback, target.Icon));
-        }
+    private void FeedbackItem_Click(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not MyListItem { Tag: SetupFeedbackItemRow row })
+            return;
+        ShowFeedbackDetail(row.Feedback);
     }
 
     private void Feedback_Click(object sender, MouseButtonEventArgs e)

@@ -3,6 +3,13 @@
                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                    xmlns:local="clr-namespace:PCL"
                    PanScroll="{Binding ElementName=PanBack}">
+    <local:MyPageRight.Resources>
+        <DataTemplate x:Key="FeedbackItemTemplate">
+            <local:MyListItem Title="{Binding Title}" Info="{Binding Info}" Logo="{Binding Logo}"
+                              Tags="{Binding Tags}" Type="Clickable" Tag="{Binding}"
+                              Click="FeedbackItem_Click" />
+        </DataTemplate>
+    </local:MyPageRight.Resources>
     <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
         <StackPanel x:Name="PanMain" Margin="25,25,25,25">
             <local:MyCard Title="{DynamicResource Setup.Feedback.Submit.Title}" x:Name="PanInfo">
@@ -26,40 +33,112 @@
             <StackPanel x:Name="PanContent" Margin="0,15,0,0">
                 <local:MyCard Title="{DynamicResource Setup.Feedback.Status.Processing}" Margin="0,0,0,15" x:Name="PanContentProcessing" CanSwap="True"
                               Visibility="{Binding ShowProcessing, Converter={StaticResource BooleanToVisibilityConverter}}">
-                    <StackPanel x:Name="PanListProcessing" Orientation="Vertical" Margin="20,36,18,18" />
+                    <ItemsControl x:Name="PanListProcessing" Margin="20,36,18,18"
+                                  ItemsSource="{Binding ProcessingRows}"
+                                  ItemTemplate="{StaticResource FeedbackItemTemplate}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Vertical" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
                 </local:MyCard>
                 <local:MyCard Title="{DynamicResource Setup.Feedback.Status.WaitingProcess}" Margin="0,0,0,15" x:Name="PanContentWaitingProcess" CanSwap="True"
                               Visibility="{Binding ShowWaitingProcess, Converter={StaticResource BooleanToVisibilityConverter}}">
-                    <StackPanel x:Name="PanListWaitingProcess" Orientation="Vertical" Margin="20,36,18,18" />
+                    <ItemsControl x:Name="PanListWaitingProcess" Margin="20,36,18,18"
+                                  ItemsSource="{Binding WaitingProcessRows}"
+                                  ItemTemplate="{StaticResource FeedbackItemTemplate}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Vertical" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
                 </local:MyCard>
                 <local:MyCard Title="{DynamicResource Setup.Feedback.Status.Waiting}" Margin="0,0,0,15" x:Name="PanContentWait" CanSwap="True"
                               Visibility="{Binding ShowWait, Converter={StaticResource BooleanToVisibilityConverter}}">
-                    <StackPanel x:Name="PanListWait" Orientation="Vertical" Margin="20,36,18,18" />
+                    <ItemsControl x:Name="PanListWait" Margin="20,36,18,18"
+                                  ItemsSource="{Binding WaitRows}"
+                                  ItemTemplate="{StaticResource FeedbackItemTemplate}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Vertical" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
                 </local:MyCard>
                 <local:MyCard Title="{DynamicResource Setup.Feedback.Status.Paused}" Margin="0,0,0,15" x:Name="PanContentPause" CanSwap="True"
                               Visibility="{Binding ShowPause, Converter={StaticResource BooleanToVisibilityConverter}}">
-                    <StackPanel x:Name="PanListPause" Orientation="Vertical" Margin="20,36,18,18" />
+                    <ItemsControl x:Name="PanListPause" Margin="20,36,18,18"
+                                  ItemsSource="{Binding PauseRows}"
+                                  ItemTemplate="{StaticResource FeedbackItemTemplate}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Vertical" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
                 </local:MyCard>
                 <local:MyCard Title="{DynamicResource Setup.Feedback.Status.UpNext}" Margin="0,0,0,15" x:Name="PanContentUpnext" CanSwap="True"
                               Visibility="{Binding ShowUpnext, Converter={StaticResource BooleanToVisibilityConverter}}">
-                    <StackPanel x:Name="PanListUpnext" Orientation="Vertical" Margin="20,36,18,18" />
+                    <ItemsControl x:Name="PanListUpnext" Margin="20,36,18,18"
+                                  ItemsSource="{Binding UpnextRows}"
+                                  ItemTemplate="{StaticResource FeedbackItemTemplate}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Vertical" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
                 </local:MyCard>
                 <local:MyCard Title="{DynamicResource Setup.Feedback.Status.Completed}" Margin="0,0,0,15" x:Name="PanContentCompleted" CanSwap="True"
                               IsSwapped="True"
                               Visibility="{Binding ShowCompleted, Converter={StaticResource BooleanToVisibilityConverter}}">
-                    <StackPanel x:Name="PanListCompleted" Orientation="Vertical" Margin="20,36,18,18" />
+                    <ItemsControl x:Name="PanListCompleted" Margin="20,36,18,18"
+                                  ItemsSource="{Binding CompletedRows}"
+                                  ItemTemplate="{StaticResource FeedbackItemTemplate}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Vertical" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
                 </local:MyCard>
                 <local:MyCard Title="{DynamicResource Setup.Feedback.Status.Declined}" Margin="0,0,0,15" x:Name="PanContentDecline" CanSwap="True" IsSwapped="True"
                               Visibility="{Binding ShowDecline, Converter={StaticResource BooleanToVisibilityConverter}}">
-                    <StackPanel x:Name="PanListDecline" Orientation="Vertical" Margin="20,36,18,18" />
+                    <ItemsControl x:Name="PanListDecline" Margin="20,36,18,18"
+                                  ItemsSource="{Binding DeclineRows}"
+                                  ItemTemplate="{StaticResource FeedbackItemTemplate}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Vertical" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
                 </local:MyCard>
                 <local:MyCard Title="{DynamicResource Setup.Feedback.Status.Ignored}" Margin="0,0,0,15" x:Name="PanContentIgnored" CanSwap="True" IsSwapped="True"
                               Visibility="{Binding ShowIgnored, Converter={StaticResource BooleanToVisibilityConverter}}">
-                    <StackPanel x:Name="PanListIgnored" Orientation="Vertical" Margin="20,36,18,18" />
+                    <ItemsControl x:Name="PanListIgnored" Margin="20,36,18,18"
+                                  ItemsSource="{Binding IgnoredRows}"
+                                  ItemTemplate="{StaticResource FeedbackItemTemplate}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Vertical" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
                 </local:MyCard>
                 <local:MyCard Title="{DynamicResource Setup.Feedback.Status.Duplicate}" Margin="0,0,0,15" x:Name="PanContentDuplicate" CanSwap="True" IsSwapped="True"
                               Visibility="{Binding ShowDuplicate, Converter={StaticResource BooleanToVisibilityConverter}}">
-                    <StackPanel x:Name="PanListDuplicate" Orientation="Vertical" Margin="20,36,18,18" />
+                    <ItemsControl x:Name="PanListDuplicate" Margin="20,36,18,18"
+                                  ItemsSource="{Binding DuplicateRows}"
+                                  ItemTemplate="{StaticResource FeedbackItemTemplate}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Vertical" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
                 </local:MyCard>
             </StackPanel>
             <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="True"
