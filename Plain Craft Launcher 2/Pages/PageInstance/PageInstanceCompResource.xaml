@@ -17,12 +17,14 @@
                             <local:MyButton x:Name="BtnManageBack" MinWidth="110" Text="{DynamicResource Instance.Resource.BackToParent}" Padding="13,7"
                                             Margin="0,7,15,0" HorizontalAlignment="Left" Visibility="{Binding ShowManageBack, Converter={StaticResource BooleanToVisibilityConverter}}" />
                             <local:MyButton x:Name="BtnManageOpen" MinWidth="110" Text="{DynamicResource Common.Action.OpenFolder}" Padding="13,7"
-                                            Margin="0,7,15,0" HorizontalAlignment="Left" ColorType="Highlight" />
+                                            Margin="0,7,15,0" HorizontalAlignment="Left" ColorType="Highlight"
+                                            Command="{Binding OpenFolderCommand}" />
 
                             <local:MyButton x:Name="BtnManageInstall" MinWidth="110" Text="{DynamicResource Instance.Resource.InstallFromFiles}" Padding="13,7"
                                             Margin="0,7,15,0" HorizontalAlignment="Left" />
                             <local:MyButton x:Name="BtnManageDownload" MinWidth="110" Text="{DynamicResource Instance.Resource.DownloadNew}" Padding="13,7"
-                                            Margin="0,7,15,0" HorizontalAlignment="Left" Visibility="{Binding ShowManageDownload, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                            Margin="0,7,15,0" HorizontalAlignment="Left" Visibility="{Binding ShowManageDownload, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                            Command="{Binding DownloadNewCommand}" />
                             <local:MyButton x:Name="BtnManageSelectAll" MinWidth="110" Text="{DynamicResource Instance.Resource.SelectAll}" Padding="13,7"
                                             Margin="0,7,15,0" HorizontalAlignment="Left" />
                             <local:MyButton x:Name="BtnManageInfoExport" MinWidth="110" Text="{DynamicResource Instance.Resource.ExportInfo}" Padding="13,7"
@@ -77,9 +79,10 @@
                         <local:MyButton Height="35" x:Name="BtnHintInstall" MinWidth="130" Text="{DynamicResource Instance.Resource.InstallFromFiles}" Margin="5,0"
                                         Padding="12,0" ColorType="Highlight" />
                         <local:MyButton Height="35" x:Name="BtnHintDownload" MinWidth="130" Text="{DynamicResource Instance.Resource.DownloadNew}" Margin="5,0"
-                                        Padding="12,0" Visibility="{Binding ShowHintDownload, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                        Padding="12,0" Visibility="{Binding ShowHintDownload, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                        Command="{Binding DownloadNewCommand}" />
                         <local:MyButton Height="35" x:Name="BtnHintOpen" MinWidth="130" Text="{DynamicResource Common.Action.OpenFolder}" Margin="5,0"
-                                        Padding="12,0" />
+                                        Padding="12,0" Command="{Binding OpenFolderCommand}" />
                     </WrapPanel>
                 </StackPanel>
             </local:MyCard>

@@ -27,43 +27,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
     // 模组信息缓存 - 解决排序时重复创建FileInfo导致的性能问题
     private readonly Dictionary<string, (DateTime CreationTime, long Length)> modFileInfoCache = new();
 
-    public PageInstanceCompResource()
-    {
-        InitializeComponent();
-        DataContext = _vm;
-        Unloaded += Page_Unloaded;
-        Loaded += (_, _) => PageOther_Loaded();
-        Initialized += (_, _) => LoaderInit();
-        PageExit += UnselectedAllWithAnimation;
-        Load.Click += Load_Click;
-        BtnManageBack.Click += BtnManageBack_Click;
-        BtnHintBack.Click += BtnHintBack_Click;
-        BtnManageOpen.Click += BtnManageOpen_Click;
-        BtnHintOpen.Click += BtnManageOpen_Click;
-        BtnManageSelectAll.Click += BtnManageSelectAll_Click;
-        BtnManageInstall.Click += BtnManageInstall_Click;
-        BtnHintInstall.Click += BtnManageInstall_Click;
-        BtnManageInfoExport.Click += BtnManageInfoExport_Click;
-        BtnManageDownload.Click += BtnManageDownload_Click;
-        BtnHintDownload.Click += BtnManageDownload_Click;
-        Load.StateChanged += (_, _, _) => UnselectedAllWithAnimation();
-        SearchBox.PreviewKeyDown += SearchBox_PreviewKeyDown;
-        BtnFilterAll.Check += ChangeFilter;
-        BtnFilterCanUpdate.Check += ChangeFilter;
-        BtnFilterDisabled.Check += ChangeFilter;
-        BtnFilterEnabled.Check += ChangeFilter;
-        BtnFilterError.Check += ChangeFilter;
-        BtnFilterDuplicate.Check += ChangeFilter;
-        BtnSort.Click += BtnSortClick;
-        BtnSelectEnable.Click += BtnSelectED_Click;
-        BtnSelectDisable.Click += BtnSelectED_Click;
-        BtnSelectUpdate.Click += BtnSelectUpdate_Click;
-        BtnSelectDelete.Click += BtnSelectDelete_Click;
-        BtnSelectCancel.Click += BtnSelectCancel_Click;
-        BtnSelectFavorites.Click += BtnSelectFavorites_Click;
-        BtnSelectShare.Click += BtnSelectShare_Click;
-        SearchBox.TextChanged += SearchRun;
-    }
+    public PageInstanceCompResource() : this(Comp.CompType.Mod) { }
 
     // 获取模组信息（带缓存）
     private (DateTime CreationTime, long Length) GetModFileInfo(string path)
@@ -100,13 +64,11 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
 
     public PageInstanceCompResourceViewModel ViewModel => _vm;
 
-    private readonly Comp.CompType currentCompType = Comp.CompType.Mod;
-
     private readonly MyLocalCompItem.SwipeSelect currentSwipSelect;
 
     public PageInstanceCompResource(Comp.CompType loadCompType)
     {
-        currentCompType = loadCompType;
+        _vm.SetCompType(loadCompType);
         CurrentFolderPath = ""; // 确保文件夹路径被重置为根目录
         currentSwipSelect = new MyLocalCompItem.SwipeSelect { TargetFrm = this };
 
@@ -117,20 +79,20 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
         // 在 InitializeComponent() 调用之后添加任何初始化。
 
         if (new[] { Comp.CompType.Shader, Comp.CompType.ResourcePack, Comp.CompType.Schematic }.Contains(
-                currentCompType))
+                _vm.CompType))
         {
             _vm.ShowSelectEnable = false;
             _vm.ShowSelectDisable = false;
         }
 
         // 投影文件管理页隐藏下载按钮
-        if (currentCompType == Comp.CompType.Schematic)
+        if (_vm.CompType == Comp.CompType.Schematic)
         {
             _vm.ShowManageDownload = false;
             _vm.ShowHintDownload = false;
         }
 
-        if (currentCompType != Comp.CompType.Mod)
+        if (_vm.CompType != Comp.CompType.Mod)
             _vm.ShowManageJarInJar = false;
 
         Unloaded += Page_Unloaded;
@@ -141,13 +103,9 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
         Load.Click += Load_Click;
         BtnManageBack.Click += BtnManageBack_Click;
         BtnHintBack.Click += BtnHintBack_Click;
-        BtnManageOpen.Click += BtnManageOpen_Click;
-        BtnHintOpen.Click += BtnManageOpen_Click;
         BtnManageSelectAll.Click += BtnManageSelectAll_Click;
         BtnManageInstall.Click += BtnManageInstall_Click;
         BtnHintInstall.Click += BtnManageInstall_Click;
-        BtnManageDownload.Click += BtnManageDownload_Click;
-        BtnHintDownload.Click += BtnManageDownload_Click;
         BtnManageInfoExport.Click += BtnManageInfoExport_Click;
         Load.StateChanged += (_, _, _) => UnselectedAllWithAnimation();
         SearchBox.PreviewKeyDown += SearchBox_PreviewKeyDown;
@@ -174,7 +132,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
         res.gameVersion = PageInstanceLeft.McInstance;
         res.frm = this;
         var requireLoaders = new List<Comp.CompLoaderType>();
-        switch (currentCompType)
+        switch (_vm.CompType)
         {
             case Comp.CompType.Mod:
             {
@@ -206,8 +164,8 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
         res.compPath = PageInstanceLeft.McInstance.PathIndie +
                        (PageInstanceLeft.McInstance.Info.HasLabyMod
                            ? Path.Combine("labymod-neo", "fabric", PageInstanceLeft.McInstance.Info.VanillaName)
-                           : "") + LocalComp.GetPathNameByCompType(currentCompType) + @"\";
-        res.compType = currentCompType;
+                           : "") + LocalComp.GetPathNameByCompType(_vm.CompType) + @"\";
+        res.compType = _vm.CompType;
         return res;
     }
 
@@ -244,7 +202,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
         isLoad = true;
 
         // 检查是否为原理图管理界面且首次打开
-        if (currentCompType == Comp.CompType.Schematic && !States.Hint.SchematicFirstTime)
+        if (_vm.CompType == Comp.CompType.Schematic && !States.Hint.SchematicFirstTime)
             // 显示首次打开提示
             Common.RunInUi(() =>
             {
@@ -267,7 +225,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
                 ? Loading.LoaderFolderRunType.ForceRun
                 : Loading.LoaderFolderRunType.RunOnUpdated))
         {
-            Common.Log($"[System] 已刷新 {currentCompType} 列表");
+            Common.Log($"[System] 已刷新 {_vm.CompType} 列表");
             modFileInfoCache.Clear();
 
             Common.RunInUi(() =>
@@ -282,7 +240,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
     // 强制刷新
     private void RefreshSelf()
     {
-        Refresh(currentCompType);
+        Refresh(_vm.CompType);
     }
 
     void IRefreshable.Refresh()
@@ -343,7 +301,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
     private void LoaderInit()
     {
         PageLoaderInit(Load, PanLoad, PanAllBack, null, LocalComp.CompResourceListLoader,
-            _ => LoadUIFromLoaderOutput(), () => currentCompType, false);
+            _ => LoadUIFromLoaderOutput(), () => _vm.CompType, false);
     }
 
     private void Load_Click(object sender, MouseButtonEventArgs e)
@@ -360,7 +318,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
             loadPath = PageInstanceLeft.McInstance.PathIndie +
                        (PageInstanceLeft.McInstance.Info.HasLabyMod
                            ? Path.Combine("labymod-neo", "fabric", PageInstanceLeft.McInstance.Info.VanillaName)
-                           : "") + LocalComp.GetPathNameByCompType(currentCompType) + @"\";
+                           : "") + LocalComp.GetPathNameByCompType(_vm.CompType) + @"\";
         else
             // 加载当前文件夹
             loadPath = CurrentFolderPath;
@@ -375,7 +333,11 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
     /// <summary>
     ///     当前显示的文件夹路径。空字符串表示根目录。
     /// </summary>
-    public string CurrentFolderPath { get; set; } = "";
+    public string CurrentFolderPath
+    {
+        get => _vm.CurrentFolderPath;
+        set => _vm.SetCurrentFolder(value);
+    }
 
     /// <summary>
     ///     进入指定的文件夹。
@@ -439,7 +401,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
             var rootPath = PageInstanceLeft.McInstance.PathIndie +
                            (PageInstanceLeft.McInstance.Info.HasLabyMod
                                ? Path.Combine("labymod-neo", "fabric", PageInstanceLeft.McInstance.Info.VanillaName)
-                               : "") + LocalComp.GetPathNameByCompType(currentCompType) + @"\";
+                               : "") + LocalComp.GetPathNameByCompType(_vm.CompType) + @"\";
             rootPath = Path.GetFullPath(rootPath.TrimEnd('\\'));
 
             // 获取父级路径
@@ -468,7 +430,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
             loadPath = PageInstanceLeft.McInstance.PathIndie +
                        (PageInstanceLeft.McInstance.Info.HasLabyMod
                            ? Path.Combine("labymod-neo", "fabric", PageInstanceLeft.McInstance.Info.VanillaName)
-                           : "") + LocalComp.GetPathNameByCompType(currentCompType) + @"\";
+                           : "") + LocalComp.GetPathNameByCompType(_vm.CompType) + @"\";
         else
             // 加载当前文件夹
             loadPath = CurrentFolderPath;
@@ -507,7 +469,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
             else
             {
                 // 检查是否为投影文件类型且schematics文件夹不存在
-                if (currentCompType == Comp.CompType.Schematic)
+                if (_vm.CompType == Comp.CompType.Schematic)
                 {
                     var schematicsPath = PageInstanceLeft.McInstance.PathIndie + @"schematics\";
                     if (!Directory.Exists(schematicsPath))
@@ -518,7 +480,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
                 }
 
                 // 根据组件类型设置PanEmpty的文本内容
-                if (currentCompType == Comp.CompType.Schematic)
+                if (_vm.CompType == Comp.CompType.Schematic)
                 {
                     // 检查是否在子文件夹中
                     if (!string.IsNullOrEmpty(CurrentFolderPath))
@@ -555,7 +517,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
             var rootPath = PageInstanceLeft.McInstance.PathIndie +
                            (PageInstanceLeft.McInstance.Info.HasLabyMod
                                ? Path.Combine("labymod-neo", "fabric", PageInstanceLeft.McInstance.Info.VanillaName)
-                               : "") + LocalComp.GetPathNameByCompType(currentCompType) + @"\";
+                               : "") + LocalComp.GetPathNameByCompType(_vm.CompType) + @"\";
             rootPath = Path.GetFullPath(rootPath.TrimEnd('\\'));
 
             var itemsToShow = LocalComp.CompResourceListLoader.output.Where(item =>
@@ -583,7 +545,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
         {
             Common.Log(
                 ex,
-                $"加载 {currentCompType} 列表 UI 失败",
+                $"加载 {_vm.CompType} 列表 UI 失败",
                 Common.LogLevel.Feedback,
                 userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
         }
@@ -672,7 +634,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
         ToolTipService.SetVerticalOffset(btnDelete, 30d);
         ToolTipService.SetHorizontalOffset(btnDelete, 2d);
         btnDelete.Click += (ss, ee) => Delete_Click((MyIconButton)ss, ee);
-        if (currentCompType != Comp.CompType.Mod ||
+        if (_vm.CompType != Comp.CompType.Mod ||
             sender.Entry.State == LocalComp.LocalCompFile.LocalFileStatus.Unavailable)
         {
             sender.Buttons = new[] { btnCont, btnOpen, btnDelete };
@@ -841,7 +803,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
                 _vm.CanUpdate = hasUpdate;
 
                 // 针对投影原理图隐藏分享 更新 收藏按钮
-                if (currentCompType == Comp.CompType.Schematic)
+                if (_vm.CompType == Comp.CompType.Schematic)
                 {
                     _vm.ShowSelectUpdate = false;
                     _vm.ShowSelectFavorites = false;
@@ -942,36 +904,6 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
         GoBackToParentFolder();
     }
 
-    private void BtnManageOpen_Click(object sender, EventArgs e)
-    {
-        try
-        {
-            string compFilePath;
-
-            // 如果当前在子文件夹中，则打开当前子文件夹；否则打开根目录
-            if (string.IsNullOrEmpty(CurrentFolderPath))
-                // 打开根目录
-                compFilePath = PageInstanceLeft.McInstance.PathIndie +
-                               (PageInstanceLeft.McInstance.Info.HasLabyMod
-                                   ? Path.Combine("labymod-neo", "fabric", PageInstanceLeft.McInstance.Info.VanillaName)
-                                   : "") + LocalComp.GetPathNameByCompType(currentCompType) + @"\";
-            else
-                // 打开当前子文件夹
-                compFilePath = CurrentFolderPath.EndsWith(@"\") ? CurrentFolderPath : CurrentFolderPath + @"\";
-            Directory.CreateDirectory(compFilePath);
-            Common.OpenExplorer(compFilePath);
-        }
-        catch (Exception ex)
-        {
-            Common.Log(
-                ex,
-                "打开 Mods 文件夹失败",
-                Common.LogLevel.Msgbox,
-                userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
-        }
-    }
-
-
     /// <summary>
     ///     全选。
     /// </summary>
@@ -986,7 +918,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
     private void BtnManageInstall_Click(object sender, MouseButtonEventArgs e)
     {
         string[] fileList = null;
-        switch (currentCompType)
+        switch (_vm.CompType)
         {
             case Comp.CompType.Mod:
             {
@@ -1020,7 +952,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
 
         if (fileList is null || !fileList.Any())
             return;
-        InstallCompFiles(fileList, currentCompType, CurrentFolderPath);
+        InstallCompFiles(fileList, _vm.CompType, CurrentFolderPath);
     }
 
     /// <summary>
@@ -1423,33 +1355,6 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
                 foreach (var child in _FlattenEmbeddedNames(mod.EmbeddedMods))
                     yield return child;
         }
-    }
-
-    /// <summary>
-    ///     下载 Mod。
-    /// </summary>
-    private void BtnManageDownload_Click(object sender, MouseButtonEventArgs e)
-    {
-        switch (currentCompType)
-        {
-            case Comp.CompType.Mod:
-            {
-                Launcher.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadMod);
-                break;
-            }
-            case Comp.CompType.ResourcePack:
-            {
-                Launcher.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadResourcePack);
-                break;
-            }
-            case Comp.CompType.Shader:
-            {
-                Launcher.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadShader);
-                break;
-            }
-        }
-
-        PageComp.targetVersion = PageInstanceLeft.McInstance; // 将当前实例设置为筛选器
     }
 
     /// <summary>
@@ -1909,7 +1814,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
     // 后台内嵌（Jar-in-Jar）解析未完成时，级联反查可能遗漏内嵌依赖，禁用/删除前提示确认
     private bool _ConfirmCascadeReady()
     {
-        if (currentCompType != Comp.CompType.Mod || LocalComp.compJijResolved) return true;
+        if (_vm.CompType != Comp.CompType.Mod || LocalComp.compJijResolved) return true;
         if (Launcher.MyMsgBox(
             Lang.Text("Instance.Resource.Mod.JarInJar.ParsePending.Message"),
             Lang.Text("Instance.Resource.Mod.JarInJar.ParsePending.Title"),
@@ -1947,7 +1852,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
 
     private List<LocalComp.LocalCompFile> _JijFindAffected(List<LocalComp.LocalCompFile> targets)
     {
-        if (currentCompType != Comp.CompType.Mod) return new List<LocalComp.LocalCompFile>();
+        if (_vm.CompType != Comp.CompType.Mod) return new List<LocalComp.LocalCompFile>();
         var output = LocalComp.CompResourceListLoader.output;
         if (output is null) return new List<LocalComp.LocalCompFile>();
         var index = new JarInJarIndex(output, PageInstanceLeft.McInstance?.Info?.VanillaName);
@@ -1980,7 +1885,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
             var modEntity = ModE; // 仅用于去除迭代变量无法修改的限制
             // 用户可能在 Phase 2 尚未完成时选择继续操作。重命名前先同步补齐该项，
             // 否则后台仍持有旧路径实体，而新实体会复制空树并永久丢失本次会话的 JIJ 状态。
-            if (currentCompType == Comp.CompType.Mod && modEntity.JijPending)
+            if (_vm.CompType == Comp.CompType.Mod && modEntity.JijPending)
             {
                 var resolved = false;
                 try
@@ -2130,7 +2035,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
     public void UpdateResource(IEnumerable<LocalComp.LocalCompFile> modList)
     {
         // 更新前警告
-        if (currentCompType == Comp.CompType.Mod && (!States.Hint.UpdateMod || modList.Count() >= 15))
+        if (_vm.CompType == Comp.CompType.Mod && (!States.Hint.UpdateMod || modList.Count() >= 15))
         {
             if (Launcher.MyMsgBox(
                     Lang.Text("Instance.Resource.Update.Warning.Message"),
@@ -2245,7 +2150,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
             var pathMods = PageInstanceLeft.McInstance.PathIndie +
                            (PageInstanceLeft.McInstance.Info.HasLabyMod
                                ? Path.Combine("labymod-neo", "fabric", PageInstanceLeft.McInstance.Info.VanillaName)
-                               : "") + LocalComp.GetPathNameByCompType(currentCompType) + @"\";
+                               : "") + LocalComp.GetPathNameByCompType(_vm.CompType) + @"\";
             loader.OnStateChanged = _ =>
             {
                 // 结果提示
@@ -2514,7 +2419,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
                         PageInstanceLeft.McInstance.Info.HasNeoForge ? Comp.CompLoaderType.NeoForge :
                         PageInstanceLeft.McInstance.Info.HasFabric || moddedLabyMod ? Comp.CompLoaderType.Fabric :
                         Comp.CompLoaderType.Any,
-                        currentCompType, null)
+                        _vm.CompType, null)
                 });
             }
             else
@@ -2541,7 +2446,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
                         try
                         {
                             // 根据当前资源类型计算文件数量
-                            switch (currentCompType)
+                            switch (_vm.CompType)
                             {
                                 case Comp.CompType.Schematic:
                                 {
@@ -2657,7 +2562,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
 
                     modSearchName = modSearchName.Replace("++", "+").Replace("pti+Fine", "ptiFine");
                     // 显示
-                    if (currentCompType == Comp.CompType.Schematic || !Lang.IsChineseMainland)
+                    if (_vm.CompType == Comp.CompType.Schematic || !Lang.IsChineseMainland)
                     {
                         // 投影原理图文件或非中文区域不显示百科搜索选项
                         if (modEntry.Url is null)

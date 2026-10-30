@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App.Localization;
 using PCL.Core.ViewModel;
+using System.IO;
 
 namespace PCL;
 
@@ -53,6 +54,14 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
     [ObservableProperty] private bool _showHintDownload = true;
     [ObservableProperty] private bool _showManageJarInJar = true;
 
+    public Comp.CompType CompType { get; private set; } = Comp.CompType.Mod;
+
+    public string CurrentFolderPath { get; private set; } = "";
+
+    public void SetCompType(Comp.CompType compType) => CompType = compType;
+
+    public void SetCurrentFolder(string path) => CurrentFolderPath = path;
+
     [RelayCommand]
     private void OpenJarInJar()
     {
@@ -71,6 +80,61 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
     {
         Launcher.frmMain.PageChange(FormMain.PageType.Launch);
         Launcher.frmMain.PageChange(FormMain.PageType.InstanceSelect);
+    }
+
+    [RelayCommand]
+    private void DownloadNew()
+    {
+        switch (CompType)
+        {
+            case Comp.CompType.Mod:
+            {
+                Launcher.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadMod);
+                break;
+            }
+            case Comp.CompType.ResourcePack:
+            {
+                Launcher.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadResourcePack);
+                break;
+            }
+            case Comp.CompType.Shader:
+            {
+                Launcher.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadShader);
+                break;
+            }
+        }
+
+        PageComp.targetVersion = PageInstanceLeft.McInstance; // 将当前实例设置为筛选器
+    }
+
+    [RelayCommand]
+    private void OpenFolder()
+    {
+        try
+        {
+            string compFilePath;
+            // 如果当前在子文件夹中，则打开当前子文件夹；否则打开根目录
+            if (string.IsNullOrEmpty(CurrentFolderPath))
+                // 打开根目录
+                compFilePath = PageInstanceLeft.McInstance.PathIndie +
+                               (PageInstanceLeft.McInstance.Info.HasLabyMod
+                                   ? Path.Combine("labymod-neo", "fabric",
+                                       PageInstanceLeft.McInstance.Info.VanillaName)
+                                   : "") + LocalComp.GetPathNameByCompType(CompType) + @"\";
+            else
+                // 打开当前子文件夹
+                compFilePath = CurrentFolderPath.EndsWith(@"\") ? CurrentFolderPath : CurrentFolderPath + @"\";
+            Directory.CreateDirectory(compFilePath);
+            Common.OpenExplorer(compFilePath);
+        }
+        catch (Exception ex)
+        {
+            Common.Log(
+                ex,
+                "打开 Mods 文件夹失败",
+                Common.LogLevel.Msgbox,
+                userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
+        }
     }
 
     [RelayCommand]
