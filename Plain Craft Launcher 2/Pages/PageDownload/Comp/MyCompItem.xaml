@@ -35,10 +35,12 @@
     <StackPanel Grid.Column="3" Grid.ColumnSpan="2" Grid.Row="1" VerticalAlignment="Center" Orientation="Horizontal"
                 IsHitTestVisible="False" SnapsToDevicePixels="False" UseLayoutRounding="False">
         <TextBlock x:Name="LabTitle" TextTrimming="WordEllipsis" FontSize="14"
+                   Text="{Binding ViewModel.TitleText, ElementName=PanBack}"
                    Foreground="{DynamicResource ColorBrush1}" />
         <TextBlock x:Name="LabTitleRaw" TextTrimming="WordEllipsis" FontSize="12"
+                   Text="{Binding ViewModel.SubTitleText, ElementName=PanBack}"
                    Foreground="{StaticResource ColorBrushGray1}" Opacity="0.4" VerticalAlignment="Center"
-                   Visibility="Collapsed" />
+                   Visibility="{Binding ViewModel.SubTitleVisibility, ElementName=PanBack}" />
     </StackPanel>
     <!-- Tag 与 详情 -->
     <StackPanel x:Name="PanTags" Grid.Row="2" Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center"
@@ -48,6 +50,7 @@
         </corelocal:BlurBorder>-->
     </StackPanel>
     <TextBlock x:Name="LabInfo" Grid.Row="2" Grid.Column="4" VerticalAlignment="Center" Margin="0,0,3,0.5"
+               Text="{Binding ViewModel.DescriptionText, ElementName=PanBack}"
                TextTrimming="CharacterEllipsis" FontSize="12" Foreground="{StaticResource ColorBrushGray3}"
                IsHitTestVisible="True" SnapsToDevicePixels="False" UseLayoutRounding="False">
         <TextBlock.ToolTip>

@@ -7,6 +7,10 @@ namespace PCL;
 
 public partial class MyCompItem
 {
+    private readonly MyCompItemViewModel _vm = new();
+
+    public MyCompItemViewModel ViewModel => _vm;
+
     private string _stateLast;
 
     /// <summary>
@@ -114,37 +118,37 @@ public partial class MyCompItem
     // 标题
     public string Title
     {
-        get => LabTitle.Text;
+        get => _vm.TitleText;
         set
         {
-            if ((LabTitle.Text ?? "") == (value ?? ""))
+            if ((_vm.TitleText ?? "") == (value ?? ""))
                 return;
-            LabTitle.Text = value;
+            _vm.TitleText = value;
         }
     }
 
     // 副标题
     public string SubTitle
     {
-        get => LabTitleRaw?.Text ?? "";
+        get => _vm.SubTitleText;
         set
         {
-            if ((LabTitleRaw.Text ?? "") == (value ?? ""))
+            if ((_vm.SubTitleText ?? "") == (value ?? ""))
                 return;
-            LabTitleRaw.Text = value;
-            LabTitleRaw.Visibility = string.IsNullOrEmpty(value) ? Visibility.Collapsed : Visibility.Visible;
+            _vm.SubTitleText = value;
+            _vm.SubTitleVisibility = string.IsNullOrEmpty(value) ? Visibility.Collapsed : Visibility.Visible;
         }
     }
 
     // 描述
     public string Description
     {
-        get => LabInfo.Text;
+        get => _vm.DescriptionText;
         set
         {
-            if ((LabInfo.Text ?? "") == (value ?? ""))
+            if ((_vm.DescriptionText ?? "") == (value ?? ""))
                 return;
-            LabInfo.Text = value;
+            _vm.DescriptionText = value;
         }
     }
 
