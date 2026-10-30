@@ -195,7 +195,7 @@
                                         Grid.Column="1" />
                         <local:MyButton x:Name="BtnBackgroundClear" MinWidth="140" Text="{DynamicResource Setup.Ui.Background.Clear}" Visibility="{Binding BackgroundClearVisibility}"
                                         Padding="13,0" Margin="0,0,20,0" ColorType="Red"
-                                        Click="BtnBackgroundClear_Click" Grid.Column="2" />
+                                        Click="BtnBackgroundClear_Click" IsEnabled="{Binding BackgroundClearEnabled}" Grid.Column="2" />
                     </Grid>
                 </StackPanel>
             </local:MyCard>
@@ -236,7 +236,7 @@
                                         Margin="0,0,20,0" Click="BtnMusicRefresh_Click"
                                         ToolTip="{DynamicResource Setup.Ui.Music.Refresh.ToolTip}" Grid.Column="1" />
                         <local:MyButton x:Name="BtnMusicClear" Text="{DynamicResource Setup.Ui.Music.Clear}" MinWidth="140" Visibility="{Binding MusicClearVisibility}"
-                                        Padding="13,0" Margin="0,0,20,0" ColorType="Red" Click="BtnMusicClear_Click"
+                                        Padding="13,0" Margin="0,0,20,0" ColorType="Red" Click="BtnMusicClear_Click" IsEnabled="{Binding MusicClearEnabled}"
                                         Grid.Column="2" />
                     </Grid>
                 </StackPanel>
@@ -269,7 +269,7 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Logo.TextLabel}" Margin="0,0,25,0" />
                         <local:MyTextBox x:Name="TextLogoText" Tag="UiLogoText" Grid.Column="1" MaxLength="100"
-                                         ValidatedTextChanged="TextBoxChange" />
+                                         ValidatedTextChanged="TextBoxChange" Text="{Binding LogoText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     </Grid>
                     <Grid x:Name="PanLogoChange" Margin="0,14,0,5" Height="35" Visibility="Collapsed">
                         <Grid.ColumnDefinitions>
@@ -326,7 +326,7 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Ui.Homepage.DownloadUrl}" Margin="0,0,25,0" />
                         <local:MyTextBox x:Name="TextCustomNet" Tag="UiCustomNet" Grid.Column="1" MaxHeight="28"
-                                         ValidatedTextChanged="TextBoxChange">
+                                         ValidatedTextChanged="TextBoxChange" Text="{Binding CustomNetText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                             <local:MyTextBox.ValidateRules>
                                 <val:HttpValidator AllowsNullOrEmpty="True" />
                             </local:MyTextBox.ValidateRules>

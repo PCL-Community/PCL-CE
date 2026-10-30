@@ -20,6 +20,8 @@ public partial class PageSetupUIViewModel : ViewModelBase
 
     [ObservableProperty] private Visibility _backgroundClearVisibility = Visibility.Collapsed;
 
+    [ObservableProperty] private bool _backgroundClearEnabled = true;
+
     [ObservableProperty] private Visibility _autoPauseVideoVisibility = Visibility.Visible;
 
     [ObservableProperty] private string _backgroundTitle = Lang.Text("Setup.Ui.Background.TitleDefault");
@@ -30,11 +32,17 @@ public partial class PageSetupUIViewModel : ViewModelBase
 
     [ObservableProperty] private Visibility _musicClearVisibility = Visibility.Collapsed;
 
+    [ObservableProperty] private bool _musicClearEnabled = true;
+
     [ObservableProperty] private string _musicTitle = Lang.Text("Setup.Ui.Music.Title");
 
     [ObservableProperty] private Visibility _featureHideVisibility = Visibility.Visible;
 
     [ObservableProperty] private string _featureHideTitle = Lang.Text("Setup.Ui.FeatureHide.Title");
+
+    [ObservableProperty] private string _logoText = "";
+
+    [ObservableProperty] private string _customNetText = "";
 
     public string[] ThemeColors => Basics.IsAprilFool
         ? [Lang.Text("Setup.Ui.Theme.Color.SkyBlue"), Lang.Text("Setup.Ui.Theme.Color.CatBlue"), Lang.Text("Setup.Ui.Theme.Color.CrashBlue"), Lang.Text("Setup.Ui.Theme.Color.Hmcl")]

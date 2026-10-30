@@ -89,7 +89,7 @@ public partial class PageSetupUI
             CheckLogoLeft.Visibility = RadioLogoType0.Checked ? Visibility.Visible : Visibility.Collapsed;
             PanLogoText.Visibility = RadioLogoType2.Checked ? Visibility.Visible : Visibility.Collapsed;
             PanLogoChange.Visibility = RadioLogoType3.Checked ? Visibility.Visible : Visibility.Collapsed;
-            TextLogoText.Text = Config.Preference.WindowTitleCustomText;
+            _vm.LogoText = Config.Preference.WindowTitleCustomText;
             CheckLogoLeft.Checked = Config.Preference.TopBarLeftAlign;
 
             // 背景音乐
@@ -112,7 +112,7 @@ public partial class PageSetupUI
             }
 
             ((MyRadioBox)FindName("RadioCustomType" + Config.Preference.Homepage.Type)).Checked = true;
-            TextCustomNet.Text = Config.Preference.Homepage.CustomUrl;
+            _vm.CustomNetText = Config.Preference.Homepage.CustomUrl;
             Setup.UiCustomType(Config.Preference.Homepage.Type);
 
             // 功能隐藏
@@ -271,9 +271,7 @@ public partial class PageSetupUI
 
     private async void BtnBackgroundClear_Click(object sender, MouseButtonEventArgs e)
     {
-        var control = sender as FrameworkElement;
-        if (control is not null)
-            control.IsEnabled = false;
+        _vm.BackgroundClearEnabled = false;
         try
         {
             if (!await _vm.ConfirmBackgroundClearAsync())
@@ -289,8 +287,7 @@ public partial class PageSetupUI
         }
         finally
         {
-            if (control is not null)
-                control.IsEnabled = true;
+            _vm.BackgroundClearEnabled = true;
         }
     }
 
@@ -572,9 +569,7 @@ public partial class PageSetupUI
 
     private async void BtnMusicClear_Click(object sender, MouseButtonEventArgs e)
     {
-        var control = sender as FrameworkElement;
-        if (control is not null)
-            control.IsEnabled = false;
+        _vm.MusicClearEnabled = false;
         try
         {
             if (!await _vm.ConfirmMusicClearAsync())
@@ -625,8 +620,7 @@ public partial class PageSetupUI
         }
         finally
         {
-            if (control is not null)
-                control.IsEnabled = true;
+            _vm.MusicClearEnabled = true;
         }
     }
 
