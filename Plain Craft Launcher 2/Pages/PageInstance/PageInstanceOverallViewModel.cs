@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -14,7 +15,11 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
 {
     [ObservableProperty] private string _infoLoadingText = Lang.Text("Instance.Overall.Info.Loading");
 
+    [ObservableProperty] private bool _infoLoadingVisible = true;
+
     [ObservableProperty] private bool _modsFolderVisible = true;
+
+    [ObservableProperty] private bool _modpackVisible;
 
     [ObservableProperty] private string _starText = Lang.Text("Instance.Overall.Favorite");
 
@@ -29,6 +34,15 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
     [ObservableProperty] private bool _deleteButtonEnabled = true;
 
     [ObservableProperty] private bool _patchButtonEnabled = true;
+
+    public ObservableCollection<InstanceInfoRow> InfoRows { get; } = [];
+
+    public void RefreshInfoRows(McInstance instance)
+    {
+        InfoRows.Clear();
+        foreach (var row in BuildInfoRows(instance))
+            InfoRows.Add(row);
+    }
 
     public static IReadOnlyList<InstanceInfoRow> BuildInfoRows(McInstance instance)
     {

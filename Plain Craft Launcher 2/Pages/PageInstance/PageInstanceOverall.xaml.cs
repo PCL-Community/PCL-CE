@@ -123,8 +123,10 @@ public partial class PageInstanceOverall : IPageView
         modpackCompItem = null;
         Common.RunInUi(() =>
         {
-            PanInfo.Children.Clear();
-            PanInfo.Children.Add(new MyLoading { Text = Lang.Text("Instance.Overall.Info.Loading"), Margin = new Thickness(0d, 0d, 0d, 10d) });
+            _vm.InfoLoadingVisible = true;
+            _vm.ModpackVisible = false;
+            PanModpack.Content = null;
+            _vm.InfoRows.Clear();
         });
         var loaders = new List<Loading.LoaderBase>();
         loaders.Add(new Loading.LoaderTask<int, int>(Lang.Text("Instance.Overall.Info.LoadModpackInfoTask"), _ =>
@@ -146,24 +148,10 @@ public partial class PageInstanceOverall : IPageView
         });
         loaders.Add(new Loading.LoaderTask<int, int>(Lang.Text("Instance.Overall.Info.LoadInstanceInfoTask"), _ => Common.RunInUi(() =>
         {
-            var items = PageInstanceOverallViewModel.BuildInfoRows(PageInstanceLeft.McInstance)
-                .Select(row => new MyListItem { Title = row.Title, Info = row.Info, Logo = row.Logo })
-                .ToList();
-            var wrapPanel = new WrapPanel { Margin = new Thickness(0, -5, -20, 7) };
-            foreach (var item in items)
-            {
-                wrapPanel.Children.Add(item);
-                wrapPanel.Children.Add(new TextBlock { Width = 2d });
-            }
-
-            PanInfo.Children.Clear();
-            if (modpackCompItem is not null)
-            {
-                PanInfo.Children.Add(modpackCompItem);
-                PanInfo.Children.Add(new TextBlock());
-            }
-
-            PanInfo.Children.Add(wrapPanel);
+            _vm.RefreshInfoRows(PageInstanceLeft.McInstance);
+            PanModpack.Content = modpackCompItem;
+            _vm.ModpackVisible = modpackCompItem is not null;
+            _vm.InfoLoadingVisible = false;
         })));
         instanceInfoLoader = new Loading.LoaderCombo<int>("Instance Info Loader", loaders) { show = false };
         instanceInfoLoader.Start();

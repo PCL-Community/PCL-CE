@@ -11,8 +11,26 @@
                 <Grid Margin="10,7" Name="PanDisplayItem" />
             </local:MyCard>
             <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Instance.Overall.Info.Title}">
-                <StackPanel x:Name="PanInfo" Margin="15,40,25,5">
-                    <local:MyLoading x:Name="LabInfoLoading" Text="{Binding InfoLoadingText}" Margin="0,0,0,10" />
+                <StackPanel Margin="15,40,25,5">
+                    <local:MyLoading x:Name="LabInfoLoading" Text="{Binding InfoLoadingText}" Margin="0,0,0,10"
+                                     Visibility="{Binding InfoLoadingVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    <StackPanel Visibility="{Binding ModpackVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <ContentControl x:Name="PanModpack" />
+                        <TextBlock />
+                    </StackPanel>
+                    <ItemsControl x:Name="PanInfo" ItemsSource="{Binding InfoRows}" Margin="0,-5,-20,7"
+                                  Visibility="{Binding InfoLoadingVisible, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <local:MyListItem Title="{Binding Title}" Info="{Binding Info}" Logo="{Binding Logo}" Margin="0,0,2,0" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                 </StackPanel>
             </local:MyCard>
             <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Instance.Overall.Personalization.Title}" x:Name="PanDisplay">
