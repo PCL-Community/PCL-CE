@@ -1040,24 +1040,8 @@ public partial class PageToolsGameLink : IPageView
         var displayingProgress = ColumnProgressA.Width.Value;
         if (Math.Round(value - displayingProgress, 3) == 0d)
             return;
-        if (displayingProgress > value)
-        {
-            ColumnProgressA.Width = new GridLength(value, GridUnitType.Star);
-            ColumnProgressB.Width = new GridLength(1d - value, GridUnitType.Star);
-            ModAnimation.AniStop("LobbyController Progress");
-        }
-        else
-        {
-            var newProgress = value == 1d ? 1d : (value - displayingProgress) * 0.2d + displayingProgress;
-            ModAnimation.AniStart(
-                new[]
-                {
-                    ModAnimation.AaGridLengthWidth(ColumnProgressA, newProgress - ColumnProgressA.Width.Value, 300,
-                        ease: new ModAnimation.AniEaseOutFluent()),
-                    ModAnimation.AaGridLengthWidth(ColumnProgressB, 1d - newProgress - ColumnProgressB.Width.Value, 300,
-                        ease: new ModAnimation.AniEaseOutFluent())
-                }, "LobbyController Progress");
-        }
+        ColumnProgressA.Width = new GridLength(value, GridUnitType.Star);
+        ColumnProgressB.Width = new GridLength(1d - value, GridUnitType.Star);
     }
 
     private void CardResized(object sender, SizeChangedEventArgs sizeChangedEventArgs)

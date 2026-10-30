@@ -34,7 +34,7 @@ public partial class PageLoginOfflineViewModel : ViewModelBase
     public void Back()
     {
         ProfileService.IsCreatingProfile = false;
-        ModBase.RunInUi(() => ModMain.frmLaunchLeft?.RefreshPage(true));
+        ModBase.RunInUi(() => ModMain.frmLaunchLeft?.RefreshPage());
     }
 
     [RelayCommand]
@@ -91,7 +91,7 @@ public partial class PageLoginOfflineViewModel : ViewModelBase
             ProfileService.Add(newProfile);
             ProfileService.IsCreatingProfile = false;
             HintService.Hint(Lang.Text("Launch.Account.Profile.Created"), HintType.Success);
-            ModBase.RunInUi(() => ModMain.frmLaunchLeft?.RefreshPage(true));
+            ModBase.RunInUi(() => ModMain.frmLaunchLeft?.RefreshPage());
         }
         catch (Exception ex)
         {

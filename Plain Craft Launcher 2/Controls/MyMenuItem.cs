@@ -10,11 +10,6 @@ namespace PCL;
 
 public class MyMenuItem : MenuItem
 {
-    // 指向动画
-
-    private const int AnimationTimeIn = 100;
-    private const int AnimationTimeOut = 200;
-
     public static readonly DependencyProperty SvgIconProperty = DependencyProperty.Register(
         nameof(SvgIcon),
         typeof(string),
@@ -48,13 +43,13 @@ public class MyMenuItem : MenuItem
             item.UpdateTemplateIcon();
     }
 
-    private (string BackName, string ForeName, int Time) GetVisualState()
+    private (string BackName, string ForeName) GetVisualState()
     {
         if (!IsEnabled)
-            return ("ColorBrushTransparent", "ColorBrushGray5", AnimationTimeOut);
+            return ("ColorBrushTransparent", "ColorBrushGray5");
         if (IsMouseOver)
-            return ("ColorBrush6", "ColorBrush2", AnimationTimeIn);
-        return ("ColorBrushTransparent", "ColorBrush1", AnimationTimeOut);
+            return ("ColorBrush6", "ColorBrush2");
+        return ("ColorBrushTransparent", "ColorBrush1");
     }
 
     private void MyMenuItem_Loaded(object sender, RoutedEventArgs e)
@@ -112,30 +107,14 @@ public class MyMenuItem : MenuItem
 
     private void RefreshColor()
     {
-        var (backName, foreName, time) = GetVisualState();
+        var (backName, foreName) = GetVisualState();
 
         // 重复性验证
         if ((_colorName ?? "") == (backName ?? ""))
             return;
         _colorName = backName;
-        // 触发颜色动画
-        if (IsLoaded && !ModAnimation.AniExitsAnyControl()) // 防止默认属性变更触发动画
-        {
-            // 有动画
-            ModAnimation.AniStart(
-                new[]
-                {
-                    ModAnimation.AaColor(this, BackgroundProperty, backName, time),
-                    ModAnimation.AaColor(this, ForegroundProperty, foreName, time)
-                }, "MyMenuItem Color " + Uuid);
-        }
-        else
-        {
-            // 无动画
-            ModAnimation.AniStop("MyMenuItem Color " + Uuid);
-            SetResourceReference(BackgroundProperty, backName);
-            SetResourceReference(ForegroundProperty, foreName);
-        }
+        SetResourceReference(BackgroundProperty, backName);
+        SetResourceReference(ForegroundProperty, foreName);
     }
 
     private void MyMenuItem_Click(object sender, RoutedEventArgs e)

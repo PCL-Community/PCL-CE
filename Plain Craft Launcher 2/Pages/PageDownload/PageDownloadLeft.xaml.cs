@@ -205,6 +205,7 @@ public partial class PageDownloadLeft : IRefreshable
 
     public PageDownloadLeft()
     {
+        using var scopeCtor = TracePerf.Measure("PageDownloadLeft 构造");
         InitializeComponent();
         ItemInstall.Check += PageCheck;
         ItemMod.Check += PageCheck;
@@ -223,7 +224,7 @@ public partial class PageDownloadLeft : IRefreshable
         ItemLegacyFabric.Check += PageCheck;
         ItemLabyMod.Check += PageCheck;
 
-        AnimatedControl = PanItem;
+        TransitionControl = PanItem;
     }
 
     /// <summary>
@@ -358,7 +359,7 @@ public partial class PageDownloadLeft : IRefreshable
     {
         if (pageID == id)
             return;
-        ModAnimation.AniBeginControl();
+        ModBase.BeginUiUpdate();
         try
         {
             PageChangeRun((MyPageRight)PageGet(id));
@@ -374,32 +375,20 @@ public partial class PageDownloadLeft : IRefreshable
         }
         finally
         {
-            ModAnimation.AniEndControl();
+            ModBase.EndUiUpdate();
         }
     }
 
     private static void PageChangeRun(MyPageRight target)
     {
-        ModAnimation.AniStop("FrmMain PageChangeRight"); // 停止主页面的右页面切换动画，防止它与本动画一起触发多次 PageOnEnter
         if (target.Parent is not null)
             target.SetValue(ContentPresenter.ContentProperty, null);
         ModMain.frmMain.pageRight = target;
         ((MyPageRight)ModMain.frmMain.PanMainRight.Child).PageOnExit();
-        ModAnimation.AniStart(new[]
-        {
-            ModAnimation.AaCode(() =>
-            {
-                ((MyPageRight)ModMain.frmMain.PanMainRight.Child).PageOnForceExit();
-                ModMain.frmMain.PanMainRight.Child = ModMain.frmMain.pageRight;
-                ModMain.frmMain.pageRight.Opacity = 0d;
-            }, 130),
-            ModAnimation.AaCode(() =>
-            {
-                // 延迟触发页面通用动画，以使得在 Loaded 事件中加载的控件得以处理
-                ModMain.frmMain.pageRight.Opacity = 1d;
-                ModMain.frmMain.pageRight.PageOnEnter();
-            }, 30, true)
-        }, "PageLeft PageChange");
+        ((MyPageRight)ModMain.frmMain.PanMainRight.Child).PageOnForceExit();
+        ModMain.frmMain.PanMainRight.Child = ModMain.frmMain.pageRight;
+        ModMain.frmMain.pageRight.Opacity = 1d;
+        ModMain.frmMain.pageRight.PageOnEnter();
     }
 
     #endregion

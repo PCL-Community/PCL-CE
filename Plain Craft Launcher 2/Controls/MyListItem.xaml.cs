@@ -18,7 +18,7 @@ public partial class MyListItem : IMyRadio
 
     public delegate void LogoClickEventHandler(object sender, MouseButtonEventArgs e);
 
-    public bool isMouseOverAnimationEnabled = true;
+    public bool IsMouseOverStyleEnabled = true;
 
     private string stateLast;
 
@@ -40,128 +40,45 @@ public partial class MyListItem : IMyRadio
 
         // 判断当前颜色
         string stateNew;
-        int time;
         if (isMouseDown && !(Type == CheckType.RadioBox && Checked))
-        {
             stateNew = "MouseDown";
-            time = 120;
-        }
-        else if (IsMouseOver && isMouseOverAnimationEnabled)
-        {
+        else if (IsMouseOver && IsMouseOverStyleEnabled)
             stateNew = "MouseOver";
-            time = 120;
-        }
         else
-        {
             stateNew = "Idle";
-            time = 180;
-        }
 
         if ((stateLast ?? "") == (stateNew ?? ""))
             return;
         stateLast = stateNew;
-        // 触发颜色动画
-        if (IsLoaded && !ModAnimation.AniExitsAnyControl()) // 防止默认属性变更触发动画
+
+        if (IsMouseOver && IsMouseOverStyleEnabled)
         {
-            // 有动画
-            var ani = new List<ModAnimation.AniData>();
-            if (IsMouseOver && isMouseOverAnimationEnabled)
+            if (buttonStack is not null)
             {
-                if (buttonStack is not null)
-                {
-                    ani.Add(ModAnimation.AaOpacity(buttonStack, 1d - buttonStack.Opacity, (int)Math.Round(time * 0.7d),
-                        (int)Math.Round(time * 0.3d)));
-                    ani.Add(ModAnimation.AaDouble(
-                        i => ColumnPaddingRight.Width =
-                            new GridLength(Math.Max(0, ColumnPaddingRight.Width.Value + (double)i)),
-                        Math.Max(MinPaddingRight, 5 + Buttons.Count() * 25) - ColumnPaddingRight.Width.Value,
-                        (int)Math.Round(time * 0.3d), (int)Math.Round(time * 0.7d)));
-                }
-
-                ani.AddRange(new[]
-                {
-                    ModAnimation.AaColor(RectBack, Border.BackgroundProperty,
-                        isMouseDown ? "ColorBrush6" : "ColorBrushBg1", time),
-                    ModAnimation.AaOpacity(RectBack, 1d - RectBack.Opacity, time,
-                        ease: new ModAnimation.AniEaseOutFluent())
-                });
-                if (IsScaleAnimationEnabled)
-                {
-                    ani.Add(ModAnimation.AaScaleTransform(RectBack,
-                        1d - ((ScaleTransform)RectBack.RenderTransform).ScaleX, (int)Math.Round(time * 1.6d),
-                        ease: new ModAnimation.AniEaseOutFluent()));
-                    if (isMouseDown)
-                        ani.Add(ModAnimation.AaScaleTransform(this, 0.98d - ((ScaleTransform)RenderTransform).ScaleX,
-                            (int)Math.Round(time * 0.9d), ease: new ModAnimation.AniEaseOutFluent()));
-                    else
-                        ani.Add(ModAnimation.AaScaleTransform(this, 1d - ((ScaleTransform)RenderTransform).ScaleX,
-                            (int)Math.Round(time * 1.2d), ease: new ModAnimation.AniEaseOutFluent()));
-                }
-            }
-            else
-            {
-                if (buttonStack is not null)
-                {
-                    ani.Add(ModAnimation.AaOpacity(buttonStack, -buttonStack.Opacity, (int)Math.Round(time * 0.4d)));
-                    ani.Add(ModAnimation.AaDouble(
-                        i => ColumnPaddingRight.Width =
-                            new GridLength(Math.Max(0, ColumnPaddingRight.Width.Value + (double)i)),
-                        MinPaddingRight - ColumnPaddingRight.Width.Value, (int)Math.Round(time * 0.4d)));
-                }
-
-                ani.Add(ModAnimation.AaOpacity(RectBack, -RectBack.Opacity, time));
-                if (IsScaleAnimationEnabled)
-                    ani.AddRange(new[]
-                    {
-                        ModAnimation.AaColor(RectBack, Border.BackgroundProperty,
-                            isMouseDown ? "ColorBrush6" : "ColorBrush7", time),
-                        ModAnimation.AaScaleTransform(this, 1d - ((ScaleTransform)RenderTransform).ScaleX, time * 3,
-                            ease: new ModAnimation.AniEaseOutFluent()),
-                        ModAnimation.AaScaleTransform(RectBack,
-                            0.996d - ((ScaleTransform)RectBack.RenderTransform).ScaleX, time,
-                            ease: new ModAnimation.AniEaseOutFluent()),
-                        ModAnimation.AaScaleTransform(RectBack, -0.246d, 1, after: true)
-                    });
+                buttonStack.Opacity = 1d;
+                ColumnPaddingRight.Width = new GridLength(Math.Max(MinPaddingRight, 5 + Buttons.Count() * 25));
             }
 
-            ModAnimation.AniStart(ani, "ListItem Color " + Uuid);
+            // 由于鼠标已经移入，所以直接实例化 RectBack
+            RectBack.Background = (Brush)ThemeManager.AppResources[isMouseDown ? "ColorBrush6" : "ColorBrushBg1"];
+            RectBack.Opacity = 1d;
+            RectBack.RenderTransform = new ScaleTransform(1d, 1d);
+            RenderTransform = new ScaleTransform(1d, 1d);
         }
         else
         {
-            // 无动画
-            if (IsMouseOver && isMouseOverAnimationEnabled)
+            if (buttonStack is not null)
             {
-                if (buttonStack is not null)
-                {
-                    buttonStack.Opacity = 1d;
-                    ColumnPaddingRight.Width = new GridLength(Math.Max(MinPaddingRight, 5 + Buttons.Count() * 25));
-                }
-
-                // 由于鼠标已经移入，所以直接实例化 RectBack
-                RectBack.Background = (Brush)ThemeManager.AppResources["ColorBrushBg1"];
-                RectBack.Opacity = 1d;
-                RectBack.RenderTransform = new ScaleTransform(1d, 1d);
-                RenderTransform = new ScaleTransform(1d, 1d);
-            }
-            else
-            {
-                if (buttonStack is not null)
-                {
-                    buttonStack.Opacity = 0d;
-                    ColumnPaddingRight.Width = new GridLength(MinPaddingRight);
-                }
-
-                RenderTransform = new ScaleTransform(1d, 1d);
-                if (_RectBack is not null)
-                {
-                    if (IsScaleAnimationEnabled)
-                        RectBack.RenderTransform = new ScaleTransform(0.75d, 0.75d);
-                    RectBack.Background = (Brush)ThemeManager.AppResources["ColorBrush7"];
-                    RectBack.Opacity = 0d;
-                }
+                buttonStack.Opacity = 0d;
+                ColumnPaddingRight.Width = new GridLength(MinPaddingRight);
             }
 
-            ModAnimation.AniStop("ListItem Color " + Uuid);
+            RenderTransform = new ScaleTransform(1d, 1d);
+            if (_RectBack is not null)
+            {
+                RectBack.Background = (Brush)ThemeManager.AppResources["ColorBrush7"];
+                RectBack.Opacity = 0d;
+            }
         }
     }
 
@@ -193,8 +110,7 @@ public partial class MyListItem : IMyRadio
                 var rect = new Border
                 {
                     Name = "RectBack",
-                    CornerRadius = new CornerRadius(IsScaleAnimationEnabled || Height > 40d ? 6 : 0),
-                    RenderTransform = IsScaleAnimationEnabled ? new ScaleTransform(0.8d, 0.8d) : null,
+                    CornerRadius = new CornerRadius(Height > 40d ? 6 : 0),
                     RenderTransformOrigin = new Point(0.5d, 0.5d),
                     BorderThickness = new Thickness(ModBase.GetWPFSize(1d)),
                     SnapsToDevicePixels = true,
@@ -324,20 +240,6 @@ public partial class MyListItem : IMyRadio
 
     // Uuid
     public int Uuid = ModBase.GetUuid();
-
-    /// <summary>
-    ///     是否启用缩放动画。
-    /// </summary>
-    public bool IsScaleAnimationEnabled
-    {
-        get => field;
-        set
-        {
-            field = value;
-            if (_RectBack is not null)
-                RectBack.CornerRadius = new CornerRadius(value ? 6 : 0);
-        }
-    } = true;
 
     // 边距
     public int PaddingLeft
@@ -704,7 +606,7 @@ public partial class MyListItem : IMyRadio
                     rectCheck = null;
                 }
 
-                SetChecked(false, false, false);
+                SetChecked(false, false);
             }
             // 添加竖条控件
             else if (rectCheck is null)
@@ -758,7 +660,7 @@ public partial class MyListItem : IMyRadio
     public bool Checked
     {
         get => _Checked;
-        set => SetChecked(value, false, value != _Checked); // 仅在值发生变化时触发动画 (#4596)
+        set => SetChecked(value, false); // 仅在值发生变化时刷新 (#4596)
     }
 
     /// <summary>
@@ -766,8 +668,7 @@ public partial class MyListItem : IMyRadio
     /// </summary>
     /// <param name="value">新的 Checked 属性。</param>
     /// <param name="user">是否由用户引发。</param>
-    /// <param name="anime">是否执行动画。</param>
-    public void SetChecked(bool value, bool user, bool anime)
+    public void SetChecked(bool value, bool user)
     {
         try
         {
@@ -872,97 +773,33 @@ public partial class MyListItem : IMyRadio
                 }
             }
 
-            var customHeight = 20d; // 修改左侧神秘动画条的高度
+            var customHeight = 20d; // 修改左侧垂直条的高度
 
-            if (IsLoaded && !ModAnimation.AniExitsAnyControl() && anime) // 防止默认属性变更触发动画
+            if (Checked)
             {
-                var anim = new List<ModAnimation.AniData>();
-                if (Checked)
+                if (rectCheck is not null)
                 {
-                    // 由无变有
-                    if (rectCheck is not null)
-                    {
-                        // 统一静态属性：固定高度、居中对齐、无额外边距
-                        rectCheck.Height = customHeight;
-                        rectCheck.VerticalAlignment = VerticalAlignment.Center;
-                        rectCheck.Margin = new Thickness(-1, 0d, 0d, 0d);
-                        rectCheck.Opacity = 1d;
-
-                        // 初始化缩放中心为正中心
-                        var scale = new ScaleTransform(1d, 0d);
-                        rectCheck.RenderTransformOrigin = new Point(0.5d, 0.5d);
-                        rectCheck.RenderTransform = scale;
-
-                        // 动画：让 ScaleY 从 0 弹性放大到 1
-                        anim.Add(ModAnimation.AaDouble(
-                            i => scale.ScaleY = Math.Max(0d, scale.ScaleY + (double)i),
-                            1d - scale.ScaleY,
-                            300,
-                            ease: new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)
-                        ));
-                    }
-
-                    anim.Add(ModAnimation.AaColor(this, ForegroundProperty,
-                        Height < 40d ? "ColorBrush3" : "ColorBrush2", 200));
-                }
-                else
-                {
-                    // 由有变无
-                    if (rectCheck is not null)
-                    {
-                        if (rectCheck.RenderTransform is not ScaleTransform)
-                        {
-                            rectCheck.RenderTransformOrigin = new Point(0.5d, 0.5d);
-                            rectCheck.RenderTransform = new ScaleTransform(1d, 1d);
-                        }
-
-                        var scale = (ScaleTransform)rectCheck.RenderTransform;
-
-                        // 动画：让 ScaleY 从当前值缩减到 0
-                        anim.Add(ModAnimation.AaDouble(
-                            i => scale.ScaleY = Math.Max(0d, scale.ScaleY + (double)i),
-                            -scale.ScaleY,
-                            120,
-                            ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)
-                        ));
-                        anim.Add(ModAnimation.AaOpacity(rectCheck, -rectCheck.Opacity, 70, 40));
-                    }
-
-                    anim.Add(ModAnimation.AaColor(this, ForegroundProperty, "ColorBrush1", 120));
+                    rectCheck.Height = customHeight; // 应用自定义固定高度
+                    rectCheck.Margin = new Thickness(-1, 0d, 0d, 0d);
+                    rectCheck.Opacity = 1d;
+                    rectCheck.VerticalAlignment = VerticalAlignment.Center; // 居中
+                    rectCheck.RenderTransform = null; // 清除缩放
                 }
 
-                ModAnimation.AniStart(anim, "MyListItem Checked " + Uuid);
+                SetResourceReference(ForegroundProperty, Height < 40d ? "ColorBrush3" : "ColorBrush2");
             }
             else
             {
-                // 不使用动画
-                ModAnimation.AniStop("MyListItem Checked " + Uuid);
-                if (Checked)
+                if (rectCheck is not null)
                 {
-                    if (rectCheck is not null)
-                    {
-                        rectCheck.Height = customHeight; // 应用自定义固定高度
-                        rectCheck.Margin = new Thickness(-1, 0d, 0d, 0d);
-                        rectCheck.Opacity = 1d;
-                        rectCheck.VerticalAlignment = VerticalAlignment.Center; // 居中
-                        rectCheck.RenderTransform = null; // 清除缩放
-                    }
-
-                    SetResourceReference(ForegroundProperty, Height < 40d ? "ColorBrush3" : "ColorBrush2");
+                    rectCheck.Height = 0d;
+                    rectCheck.Margin = new Thickness(-1, 0d, 0d, 0d);
+                    rectCheck.Opacity = 0d;
+                    rectCheck.VerticalAlignment = VerticalAlignment.Center;
+                    rectCheck.RenderTransform = null;
                 }
-                else
-                {
-                    if (rectCheck is not null)
-                    {
-                        rectCheck.Height = 0d;
-                        rectCheck.Margin = new Thickness(-1, 0d, 0d, 0d);
-                        rectCheck.Opacity = 0d;
-                        rectCheck.VerticalAlignment = VerticalAlignment.Center;
-                        rectCheck.RenderTransform = null;
-                    }
 
-                    SetResourceReference(ForegroundProperty, "ColorBrush1");
-                }
+                SetResourceReference(ForegroundProperty, "ColorBrush1");
             }
         }
         catch (Exception ex)
@@ -1076,13 +913,13 @@ public partial class MyListItem : IMyRadio
             {
                 ModBase.Log("[Control] 按下单选列表项：" + Title);
                 if (!Checked)
-                    SetChecked(true, true, true);
+                    SetChecked(true, true);
                 break;
             }
             case CheckType.CheckBox:
             {
                 ModBase.Log("[Control] 按下复选列表项（" + !Checked + "）：" + Title);
-                SetChecked(!Checked, true, true);
+                SetChecked(!Checked, true);
                 break;
             }
         }

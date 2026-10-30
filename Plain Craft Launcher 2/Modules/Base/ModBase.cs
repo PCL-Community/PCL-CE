@@ -2638,7 +2638,7 @@ public static class ModBase
     /// <summary>
     ///     确保在 UI 线程中执行代码。
     ///     如果当前并非 UI 线程，则会阻断当前线程，直至 UI 线程执行完毕。
-    ///     为防止线程互锁，请仅在开始加载动画、从 UI 获取输入时使用！
+    ///     为防止线程互锁，请仅在开始加载、从 UI 获取输入时使用！
     /// </summary>
     public static Output RunInUiWait<Output>(Func<Output> action)
     {
@@ -2650,7 +2650,7 @@ public static class ModBase
     /// <summary>
     ///     确保在 UI 线程中执行代码。
     ///     如果当前并非 UI 线程，则会阻断当前线程，直至 UI 线程执行完毕。
-    ///     为防止线程互锁，请仅在开始加载动画、从 UI 获取输入时使用！
+    ///     为防止线程互锁，请仅在开始加载、从 UI 获取输入时使用！
     /// </summary>
     public static void RunInUiWait(Action action)
     {
@@ -2673,6 +2673,69 @@ public static class ModBase
         else
             System.Windows.Application.Current.Dispatcher.InvokeAsync(action,
                 forceWaitUntilLoaded ? DispatcherPriority.Loaded : DispatcherPriority.Normal);
+    }
+
+    /// <summary>
+    ///     在 UI 线程上延迟执行代码。<paramref name="delayMs" /> 为 0 时立即执行。
+    /// </summary>
+    public static void RunInUiLater(Action action, int delayMs)
+    {
+        if (delayMs <= 0)
+        {
+            RunInUi(action);
+            return;
+        }
+
+        RunInUi(() =>
+        {
+            var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(delayMs) };
+            timer.Tick += (_, _) =>
+            {
+                timer.Stop();
+                action();
+            };
+            timer.Start();
+        });
+    }
+
+    private static int _uiUpdateDepth;
+
+    /// <summary>
+    ///     标记即将进行程序化界面更新。期间由界面控件触发的事件处理器应跳过回写配置等操作。
+    ///     先调用 <see cref="BeginUiUpdate" />，再调用 <see cref="EndUiUpdate" />。
+    /// </summary>
+    public static void BeginUiUpdate()
+    {
+        Interlocked.Increment(ref _uiUpdateDepth);
+    }
+
+    /// <summary>
+    ///     结束程序化界面更新标记。
+    /// </summary>
+    public static void EndUiUpdate()
+    {
+        Interlocked.Decrement(ref _uiUpdateDepth);
+    }
+
+    /// <summary>
+    ///     当前是否处于程序化界面更新中。
+    /// </summary>
+    public static bool IsUiUpdating => _uiUpdateDepth != 0;
+
+    /// <summary>
+    ///     将程序化界面更新标记重置为指定值，返回重置前的值。
+    /// </summary>
+    public static int ResetUiUpdate(int value = 0)
+    {
+        return Interlocked.Exchange(ref _uiUpdateDepth, value);
+    }
+
+    /// <summary>
+    ///     恢复之前保存的程序化界面更新标记。
+    /// </summary>
+    public static int RestoreUiUpdate(int value)
+    {
+        return Interlocked.Add(ref _uiUpdateDepth, value);
     }
 
     /// <summary>

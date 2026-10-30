@@ -201,7 +201,6 @@ public partial class MyLoading
             InnerState = MyLoadingState.Stop;
         InnerState = _State.LoadingState;
         OuterState = _State.LoadingState;
-        AniLoop();
     }
 
     // 用于引发外部事件的状态
@@ -224,7 +223,7 @@ public partial class MyLoading
     }
 
 
-    // 用于引发内部动画事件的状态
+    // 用于引发内部状态事件的状态
     private MyLoadingState _InnerState { get; set; } = MyLoadingState.Unloaded;
 
     private MyLoadingState InnerState
@@ -237,95 +236,30 @@ public partial class MyLoading
             var oldValue = _InnerState;
             _InnerState = value;
             // 引发事件
-            AniLoop();
             if (oldValue == MyLoadingState.Error != (value == MyLoadingState.Error))
-                ErrorAnimation(this, value == MyLoadingState.Error);
+                RefreshErrorVisual(value == MyLoadingState.Error);
         }
     }
 
     #endregion
 
-    #region 动画
+    #region 错误状态外观
 
-    /// <summary>
-    ///     是否需要动画。
-    /// </summary>
-    public bool HasAnimation { get; set; } = true;
-
-    /// <summary>
-    ///     主动画循环是否正在运行中。
-    /// </summary>
-    private bool isLooping;
-
-    private void AniLoop()
-    {
-        // 这坨循环代码也是老屎坑了，救救.jpg
-        if (!HasAnimation || isLooping || !(InnerState == MyLoadingState.Run) || ModAnimation.aniSpeed > 10d ||
-            !IsLoaded)
-            return;
-        isLooping = true;
-        errorAnimationWaiting = true;
-        ModAnimation.AniStart(new[]
-        {
-            ModAnimation.AaRotateTransform(PathPickaxe, -20 - ((RotateTransform)PathPickaxe.RenderTransform).Angle, 350,
-                250, new ModAnimation.AniEaseInBack(ModAnimation.AniEasePower.Weak)),
-            ModAnimation.AaRotateTransform(PathPickaxe, 50d, 900, ease: new ModAnimation.AniEaseOutFluent(),
-                after: true),
-            ModAnimation.AaRotateTransform(PathPickaxe, 25d, 900,
-                ease: new ModAnimation.AniEaseOutElastic(ModAnimation.AniEasePower.Weak)),
-            ModAnimation.AaCode(() =>
-            {
-                PathLeft.Opacity = 1d;
-                PathLeft.Margin = new Thickness(7d, 41d, 0d, 0d);
-                PathRight.Opacity = 1d;
-                PathRight.Margin = new Thickness(14d, 41d, 0d, 0d);
-                errorAnimationWaiting = false;
-            }),
-            ModAnimation.AaOpacity(PathLeft, -1, 100, 50),
-            ModAnimation.AaX(PathLeft, -5, 180, ease: new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaY(PathLeft, -6, 180, ease: new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaOpacity(PathRight, -1, 100, 50),
-            ModAnimation.AaX(PathRight, 5d, 180, ease: new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaY(PathRight, -6, 180, ease: new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaCode(() =>
-            {
-                isLooping = false;
-                AniLoop();
-            }, after: true)
-        }, "MyLoader Loop " + uuid + "/" + ModBase.GetUuid());
-    }
-
-    /// <summary>
-    ///     镐子是否还没挥下去，要求错误动画等待。
-    /// </summary>
-    private bool errorAnimationWaiting;
-
-    private void ErrorAnimation(object sender, bool isError)
+    private void RefreshErrorVisual(bool isError)
     {
         if (isError)
         {
-            // 非错误变为错误
-            var wait = errorAnimationWaiting ? 400 : 0;
-            ModAnimation.AniStart(
-                new[]
-                {
-                    ModAnimation.AaColor(PanBack, ForegroundProperty, "ColorBrushRedLight", 300),
-                    ModAnimation.AaOpacity(PathError, 1d - PathError.Opacity, 100, 300 + wait),
-                    ModAnimation.AaScaleTransform(PathError, 1d - ((ScaleTransform)PathError.RenderTransform).ScaleX,
-                        400, 300 + wait, new ModAnimation.AniEaseOutBack())
-                }, "MyLoader Error " + uuid);
+            PanBack.SetResourceReference(ForegroundProperty, "ColorBrushRedLight");
+            PathError.Opacity = 1d;
+            ((ScaleTransform)PathError.RenderTransform).ScaleX = 1d;
+            ((ScaleTransform)PathError.RenderTransform).ScaleY = 1d;
         }
         else
         {
-            // 错误变为非错误
-            ModAnimation.AniStart(
-                new[]
-                {
-                    ModAnimation.AaOpacity(PathError, -PathError.Opacity, 100),
-                    ModAnimation.AaScaleTransform(PathError, 0.5d - ((ScaleTransform)PathError.RenderTransform).ScaleX,
-                        200),
-                    ModAnimation.AaColor(PanBack, ForegroundProperty, "ColorBrush3", 300)
-                }, "MyLoader Error " + uuid);
+            PanBack.SetResourceReference(ForegroundProperty, "ColorBrush3");
+            PathError.Opacity = 0d;
+            ((ScaleTransform)PathError.RenderTransform).ScaleX = 0.5d;
+            ((ScaleTransform)PathError.RenderTransform).ScaleY = 0.5d;
         }
     }
 

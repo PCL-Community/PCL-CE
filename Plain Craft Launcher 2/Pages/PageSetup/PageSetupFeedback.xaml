@@ -63,7 +63,7 @@
                 </local:MyCard>
             </StackPanel>
             <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="True"
-                          x:Name="PanLoad" UseAnimation="False" Margin="40,50">
+                          x:Name="PanLoad" Margin="40,50">
                 <local:MyLoading Text="{DynamicResource Setup.Feedback.Loading}" Margin="20,20,20,17" x:Name="Load" HorizontalAlignment="Center"
                                  VerticalAlignment="Center" />
             </local:MyCard>

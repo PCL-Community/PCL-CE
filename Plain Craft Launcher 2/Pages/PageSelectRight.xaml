@@ -18,7 +18,7 @@
                 <StackPanel Name="PanMain" Margin="25,2,25,10" Grid.IsSharedSizeScope="True" />
             </local:MyScrollViewer>
             <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" Margin="40" x:Name="PanEmpty"
-                          Visibility="{Binding EmptyPanelVisibility}" UseAnimation="False" Grid.Row="1">
+                          Visibility="{Binding EmptyPanelVisibility}" Grid.Row="1">
                 <StackPanel Margin="20,17">
                     <TextBlock Name="LabEmptyTitle" Margin="0,0,0,9" HorizontalAlignment="Center"
                                Text="{Binding EmptyTitle}"
@@ -35,7 +35,7 @@
                 </StackPanel>
             </local:MyCard>
             <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" Margin="40" x:Name="PanEmptySearch"
-                          Visibility="{Binding EmptySearchPanelVisibility}" UseAnimation="False" Grid.Row="1">
+                          Visibility="{Binding EmptySearchPanelVisibility}" Grid.Row="1">
                 <StackPanel Margin="20,17">
                     <TextBlock Name="LabEmptySearchTitle" Margin="0,0,0,9" HorizontalAlignment="Center"
                                Text="{Binding EmptySearchTitle}"

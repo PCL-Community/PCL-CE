@@ -18,83 +18,28 @@ public partial class MyCompItem
     {
         if (!CanInteraction)
             return;
-        // 判断当前颜色
+        // 判断当前状态
         string stateNew;
-        int time;
         if (IsMouseOver)
-        {
-            if (isMouseDown)
-            {
-                stateNew = "MouseDown";
-                time = 120;
-            }
-            else
-            {
-                stateNew = "MouseOver";
-                time = 120;
-            }
-        }
+            stateNew = isMouseDown ? "MouseDown" : "MouseOver";
         else
-        {
             stateNew = "Idle";
-            time = 180;
-        }
 
         if ((stateLast ?? "") == (stateNew ?? ""))
             return;
         stateLast = stateNew;
-        // 触发颜色动画
-        if (IsLoaded && !ModAnimation.AniExitsAnyControl()) // 防止默认属性变更触发动画
-        {
-            // 有动画
-            var ani = new List<ModAnimation.AniData>();
-            if (IsMouseOver)
-            {
-                if (PanButtons is not null && _HasActionButtons)
-                    ani.Add(ModAnimation.AaOpacity(PanButtons, 1d - PanButtons.Opacity, (int)Math.Round(time * 0.35d),
-                        (int)Math.Round(time * 0.15d)));
-                ani.AddRange(new[]
-                {
-                    ModAnimation.AaColor(RectBack, Border.BackgroundProperty,
-                        isMouseDown ? "ColorBrush6" : "ColorBrushBg1", time),
-                    ModAnimation.AaOpacity(RectBack, 1d - RectBack.Opacity, time,
-                        ease: new ModAnimation.AniEaseOutFluent())
-                });
-                if (isMouseDown)
-                    ani.Add(ModAnimation.AaScaleTransform(RectBack,
-                        0.996d - ((ScaleTransform)RectBack.RenderTransform).ScaleX, (int)Math.Round(time * 1.2d),
-                        ease: new ModAnimation.AniEaseOutFluent()));
-                else
-                    ani.Add(ModAnimation.AaScaleTransform(RectBack,
-                        1d - ((ScaleTransform)RectBack.RenderTransform).ScaleX, (int)Math.Round(time * 1.2d),
-                        ease: new ModAnimation.AniEaseOutFluent()));
-            }
-            else
-            {
-                if (PanButtons is not null && _HasActionButtons)
-                    ani.Add(ModAnimation.AaOpacity(PanButtons, -PanButtons.Opacity, (int)Math.Round(time * 0.4d)));
-                ani.AddRange(new[]
-                {
-                    ModAnimation.AaOpacity(RectBack, -RectBack.Opacity, time),
-                    ModAnimation.AaColor(RectBack, Border.BackgroundProperty,
-                        isMouseDown ? "ColorBrush6" : "ColorBrush7", time),
-                    ModAnimation.AaScaleTransform(RectBack, 0.996d - ((ScaleTransform)RectBack.RenderTransform).ScaleX,
-                        time, ease: new ModAnimation.AniEaseOutFluent()),
-                    ModAnimation.AaScaleTransform(RectBack, -0.196d, 1, after: true)
-                });
-            }
 
-            ModAnimation.AniStart(ani, "CompItem Color " + Uuid);
-        }
-        else
+        if (_RectBack is not null)
         {
-            // 无动画
-            ModAnimation.AniStop("CompItem Color " + Uuid);
-            if (_RectBack is not null)
-                RectBack.Opacity = 0d;
-            if (PanButtons is not null)
-                PanButtons.Opacity = 0d;
+            RectBack.Opacity = IsMouseOver ? 1d : 0d;
+            RectBack.Background = (Brush)ThemeManager.AppResources[IsMouseOver
+                ? isMouseDown ? "ColorBrush6" : "ColorBrushBg1"
+                : "ColorBrush7"];
+            RectBack.RenderTransform = new ScaleTransform(1d, 1d);
         }
+
+        if (PanButtons is not null)
+            PanButtons.Opacity = IsMouseOver && _HasActionButtons ? 1d : 0d;
     }
 
     #region 基础属性

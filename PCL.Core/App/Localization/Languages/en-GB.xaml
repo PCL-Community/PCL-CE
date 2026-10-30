@@ -12,7 +12,6 @@
 
     <!-- Application -->
 
-    <sys:String x:Key="Application.Animation.Error.OperationFailed">An animation operation failed. See the details below.</sys:String>
     <sys:String x:Key="Application.Control.Error.OperationFailed">A user interface control operation failed. See the details below.</sys:String>
     <sys:String x:Key="Application.Control.Loading.Default">Loading...</sys:String>
     <sys:String x:Key="Application.Control.Loading.Failed">Loading failed</sys:String>
@@ -2899,7 +2898,6 @@
 
     <!-- Setup.Misc.Debug -->
 
-    <sys:String x:Key="Setup.Misc.Debug.AnimationSpeed">Animation speed</sys:String>
     <sys:String x:Key="Setup.Misc.Debug.Delay">Add delay</sys:String>
     <sys:String x:Key="Setup.Misc.Debug.Delay.ToolTip">Add random delays at various stages, slowing down loading to test whether certain features work correctly.&#xA;This will seriously affect launcher performance. Not recommended unless specifically needed.</sys:String>
     <sys:String x:Key="Setup.Misc.Debug.Mode">Debug mode</sys:String>

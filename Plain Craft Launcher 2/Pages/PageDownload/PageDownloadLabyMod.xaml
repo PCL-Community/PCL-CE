@@ -27,7 +27,7 @@
                           Title="{DynamicResource Download.Version.VersionList}">
                 <StackPanel x:Name="PanVersions" Margin="20,40,18,20" />
             </local:MyCard>
-            <local:MyCard HorizontalAlignment="Center" SnapsToDevicePixels="True" x:Name="PanLoad" UseAnimation="False"
+            <local:MyCard HorizontalAlignment="Center" SnapsToDevicePixels="True" x:Name="PanLoad"
                           Margin="40,50">
             <local:MyLoading Text="{DynamicResource Download.Version.LabyMod.LoadingList}" Margin="20,20,20,17" x:Name="Load" HorizontalAlignment="Center"
                              VerticalAlignment="Center" />

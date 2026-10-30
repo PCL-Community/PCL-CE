@@ -211,33 +211,21 @@ public class MyTextBox : TextBox
 
     private void ChangeValidateResult(bool isSuccessful, bool isLoaded)
     {
-        if (isLoaded && !ModAnimation.AniExitsAnyControl() && labWrong is not null)
+        if (isLoaded && !ModBase.IsUiUpdating && labWrong is not null)
         {
             if (isSuccessful || !isTextChanged)
             {
                 // 变为正确
                 shownValidateResult = isSuccessful ? ValidateState.Success : ValidateState.FailedButTextNotChanged;
-                ModAnimation.AniStart(
-                    new[]
-                    {
-                        ModAnimation.AaOpacity(labWrong, -labWrong.Opacity, 150),
-                        ModAnimation.AaHeight(labWrong, -labWrong.Height, 150,
-                            ease: new ModAnimation.AniEaseOutFluent()),
-                        ModAnimation.AaCode(() => labWrong.Visibility = Visibility.Collapsed, after: true)
-                    }, "MyTextBox Validate " + Uuid);
+                labWrong.Visibility = Visibility.Collapsed;
+                labWrong.Height = 0d;
             }
             else if (ShowValidateResult)
             {
                 // 变为错误
                 shownValidateResult = ValidateState.FailedAndShowDetail;
                 labWrong.Visibility = Visibility.Visible;
-                ModAnimation.AniStart(
-                    new[]
-                    {
-                        ModAnimation.AaOpacity(labWrong, 1d - labWrong.Opacity, 150),
-                        ModAnimation.AaHeight(labWrong, 21d - labWrong.Height, 150,
-                            ease: new ModAnimation.AniEaseOutFluent())
-                    }, "MyTextBox Validate " + Uuid);
+                labWrong.Height = 21d;
             }
             else
             {
@@ -304,13 +292,12 @@ public class MyTextBox : TextBox
     {
         try
         {
-            // 不对 ComboBox 从属进行动画
+            // 不对 ComboBox 从属进行刷新
             if (TemplatedParent is not null && TemplatedParent is MyComboBox)
                 return;
             // 判断当前颜色
             string foreColorName;
             string backColorName;
-            int animationTime;
             if (IsEnabled)
             {
                 if (IsValidated || !isTextChanged)
@@ -319,55 +306,34 @@ public class MyTextBox : TextBox
                     {
                         foreColorName = "ColorBrush3";
                         backColorName = "ColorBrush7";
-                        animationTime = 10;
                     }
                     else if (IsMouseOver)
                     {
                         foreColorName = "ColorBrush4";
                         backColorName = "ColorBrush7";
-                        animationTime = 100;
                     }
                     else // 未选中
                     {
                         foreColorName = "ColorBrushBg0";
                         backColorName = "ColorBrushHalfWhite";
-                        animationTime = 100;
                     }
                 }
                 else
                 {
                     foreColorName = "ColorBrushRedLight";
                     backColorName = "ColorBrushRedBack";
-                    animationTime = 200;
                 }
             }
             else
             {
                 foreColorName = "ColorBrushGray5";
                 backColorName = "ColorBrushGray6";
-                animationTime = 200;
             }
 
             if (!HasBackground)
                 backColorName = "ColorBrushTransparent";
-            // 触发颜色动画
-            if (IsLoaded && !ModAnimation.AniExitsAnyControl()) // 防止默认属性变更触发动画
-            {
-                // 有动画
-                ModAnimation.AniStart(
-                    new[]
-                    {
-                        ModAnimation.AaColor(this, BorderBrushProperty, foreColorName, animationTime),
-                        ModAnimation.AaColor(this, BackgroundProperty, backColorName, animationTime)
-                    }, "MyTextBox Color " + Uuid);
-            }
-            else
-            {
-                // 无动画
-                ModAnimation.AniStop("MyTextBox Color " + Uuid);
-                SetResourceReference(BorderBrushProperty, foreColorName);
-                SetResourceReference(BackgroundProperty, backColorName);
-            }
+            SetResourceReference(BorderBrushProperty, foreColorName);
+            SetResourceReference(BackgroundProperty, backColorName);
         }
 
         catch (Exception ex)
@@ -381,22 +347,7 @@ public class MyTextBox : TextBox
         var newColor = IsEnabled ? ThemeManager.colorGray1 : ThemeManager.colorGray4;
         if (((SolidColorBrush)Foreground).Color.R == newColor.r)
             return;
-        if (IsLoaded && !ModAnimation.AniExitsAnyControl() && !string.IsNullOrEmpty(Text))
-        {
-            // 有动画
-            ModAnimation.AniStart(
-                new[]
-                {
-                    ModAnimation.AaColor(this, ForegroundProperty, IsEnabled ? "ColorBrushGray1" : "ColorBrushGray4",
-                        200)
-                }, "MyTextBox TextColor " + Uuid);
-        }
-        else
-        {
-            // 无动画
-            ModAnimation.AniStop("MyTextBox TextColor " + Uuid);
-            Foreground = newColor;
-        }
+        Foreground = newColor;
     }
 
     // 在按下回车时触发自定义事件

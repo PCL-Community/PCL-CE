@@ -79,7 +79,7 @@
                     </Image>
                     <Image
                         x:Name="ImgPCLCommunity"
-                        Grid.Row="1"  MouseLeftButtonDown="ImgPCLCommunity_Click"
+                        Grid.Row="1"
                         Margin="3"
                         Source="/Plain Craft Launcher 2;component/Images/Heads/PCL-Community.png" />
                     <local:MyButton

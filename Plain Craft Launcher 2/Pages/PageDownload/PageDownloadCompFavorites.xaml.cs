@@ -337,7 +337,6 @@ public partial class PageDownloadCompFavorites
 
     #region UI 化 - 选择操作
 
-    private int bottomBarShownCount;
 
     private void RefreshBar()
     {
@@ -346,65 +345,35 @@ public partial class PageDownloadCompFavorites
         if (selected)
             _vm.SelectedText = Lang.Text("Download.Comp.Favorites.Hint.SelectedCount", newCount); // 取消所有选择时不更新数字
         // 更新显示状态
-        if (!ModAnimation.AniExitsAnyControl())
+        if (!ModBase.IsUiUpdating)
         {
             PanContentList.Margin = new Thickness(0d, 0d, 0d, selected ? 80 : 0);
             if (selected)
             {
-                // 仅在数量增加时播放出现/跳跃动画
-                if (bottomBarShownCount >= newCount)
-                {
-                    bottomBarShownCount = newCount;
-                    return;
-                }
-
-                bottomBarShownCount = newCount;
-                // 出现/跳跃动画
-                CardSelect.Visibility = Visibility.Visible;
-                ModAnimation.AniStart(
-                    new[]
-                    {
-                        ModAnimation.AaOpacity(CardSelect, 1d - CardSelect.Opacity, 60),
-                        ModAnimation.AaTranslateY(CardSelect, -27 - TransSelect.Y, 120,
-                            ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)),
-                        ModAnimation.AaTranslateY(CardSelect, 3d, 150, 120,
-                            new ModAnimation.AniEaseInoutFluent(ModAnimation.AniEasePower.Weak)),
-                        ModAnimation.AaTranslateY(CardSelect, -1, 90, 270,
-                            new ModAnimation.AniEaseInoutFluent(ModAnimation.AniEasePower.Weak))
-                    }, "CompFavorites Sidebar");
-            }
-            else
-            {
-                // 不重复播放隐藏动画
-                if (bottomBarShownCount == 0)
-                    return;
-                bottomBarShownCount = 0;
-                // 隐藏动画
-                ModAnimation.AniStart(
-                    new[]
-                    {
-                        ModAnimation.AaOpacity(CardSelect, -CardSelect.Opacity, 90),
-                        ModAnimation.AaTranslateY(CardSelect, -10 - TransSelect.Y, 90,
-                            ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
-                        ModAnimation.AaCode(() => CardSelect.Visibility = Visibility.Collapsed, after: true)
-                    }, "CompFavorites Sidebar");
-            }
-        }
-        else
-        {
-            ModAnimation.AniStop("CompFavorites Sidebar");
-            bottomBarShownCount = newCount;
-            if (selected)
-            {
                 CardSelect.Visibility = Visibility.Visible;
                 CardSelect.Opacity = 1d;
-                TransSelect.Y = -25;
+                TransSelect.Y = -25d;
             }
             else
             {
                 CardSelect.Visibility = Visibility.Collapsed;
                 CardSelect.Opacity = 0d;
-                TransSelect.Y = -10;
+                TransSelect.Y = -10d;
+            }
+        }
+        else
+        {
+            if (selected)
+            {
+                CardSelect.Visibility = Visibility.Visible;
+                CardSelect.Opacity = 1d;
+                TransSelect.Y = -25d;
+            }
+            else
+            {
+                CardSelect.Visibility = Visibility.Collapsed;
+                CardSelect.Opacity = 0d;
+                TransSelect.Y = -10d;
             }
         }
     }
@@ -666,7 +635,6 @@ public partial class PageDownloadCompFavorites
             checkLoader.Start(selectedItemList.Select(i => ((ModComp.CompProject)i.Tag).Id).ToList());
             ModLoader.LoaderTaskbarAdd(checkLoader);
             ModMain.frmMain.BtnExtraDownload.ShowRefresh();
-            ModMain.frmMain.BtnExtraDownload.Ribble();
             Items_SetSelectAll(false);
         }
         catch (Exception ex)

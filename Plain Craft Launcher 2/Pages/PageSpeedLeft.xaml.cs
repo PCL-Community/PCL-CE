@@ -124,7 +124,7 @@ public partial class PageSpeedLeft : IPageView
                         {
                             #region 完成，销毁卡片并返回
 
-                            ModAnimation.AniDispose((MyCard)card.Parent, true, _ => TryReturnToHome());
+                            MyCard.DisposeCard((MyCard)card.Parent, true, _ => TryReturnToHome());
                             break;
                         }
 
@@ -306,8 +306,8 @@ public partial class PageSpeedLeft : IPageView
                     card.Children.Add(cancel);
                     cancel.Click += (sender, e) =>
                     {
-                        ModAnimation.AniDispose((MyIconButton)sender, false);
-                        ModAnimation.AniDispose(card, true, _ =>
+                        MyIconButton.DisposeIconButton((MyIconButton)sender, false);
+                        MyCard.DisposeCard(card, true, _ =>
                         {
                             if (ModMain.frmSpeedRight.PanMain.Children.Count == 0 &&
                                 ModMain.frmMain.pageCurrent == FormMain.PageType.TaskManager)

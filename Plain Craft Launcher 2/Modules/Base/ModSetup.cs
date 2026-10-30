@@ -87,8 +87,6 @@ public class ModSetup
         // === System ===
         Config.Debug.EnabledConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
             e => SystemDebugMode((bool)e.Value!)));
-        Config.Debug.AnimationSpeedConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
-            e => SystemDebugAnim((int)e.Value!)));
         Config.Network.HttpProxy.CustomAddressConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
             e => SystemHttpProxy((string)(e.Value ?? ""))));
         Config.Network.HttpProxy.TypeConfig.Observe(new ConfigObserver(ConfigEvent.Changed,
@@ -162,7 +160,6 @@ public class ModSetup
 
         // System
         SystemDebugMode(Config.Debug.Enabled);
-        SystemDebugAnim(Config.Debug.AnimationSpeed);
         SystemHttpProxy(Config.Network.HttpProxy.CustomAddress);
         SystemHttpProxyType(Config.Network.HttpProxy.Type);
         SystemHttpProxyCustomUsername(Config.Network.HttpProxy.CustomUsername);
@@ -605,13 +602,6 @@ public class ModSetup
     public static void SystemDebugMode(bool value)
     {
         ModBase.modeDebug = value;
-    }
-
-    public static void SystemDebugAnim(int value)
-    {
-        ModAnimation.aniSpeed = value >= 30
-            ? 200d
-            : ModBase.MathClamp(value * 0.1d + 0.1d, 0.1d, 3d);
     }
 
     public static void SystemHttpProxy(string value)

@@ -4,7 +4,6 @@
 
     <sys:String x:Key="Meta.Code">ja-JP</sys:String>
     <sys:String x:Key="Meta.Name">日本語（日本）</sys:String>
-    <sys:String x:Key="Application.Animation.Error.OperationFailed">アニメーション操作に失敗しました。エラーデータを見てください。</sys:String>
     <sys:String x:Key="Application.Control.Error.OperationFailed">インターフェースコントロールの操作に失敗しました。エラーデータを確認してください。</sys:String>
     <sys:String x:Key="Application.Control.Loading.Default">読み込み中...</sys:String>
     <sys:String x:Key="Application.Control.Loading.Failed">ロードに失敗しました</sys:String>

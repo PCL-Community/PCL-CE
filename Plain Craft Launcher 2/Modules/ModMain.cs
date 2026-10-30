@@ -149,8 +149,6 @@ public static class ModMain
             {
                 #region 每 7.5s 执行一次的代码
 
-                if (frmMain!.BtnExtraApril_ShowCheck() && aprilDistance != 0)
-                    frmMain.BtnExtraApril.Ribble();
                 // 以未知原因窗口被丢到一边去的修复（Top、Left = -25600），还有 #745
                 ModBase.RunInUi(() =>
                 {
@@ -900,7 +898,7 @@ public static class ModMain
             if (frmLaunchLeft is null || frmLaunchLeft.AprilPosTrans is null || frmMain.lastMouseArg is null)
                 return;
             if (isAprilGiveup || frmMain.pageCurrent != FormMain.PageType.Launch ||
-                ModAnimation.AniExitsAnyControl() || !frmLaunchLeft.BtnLaunch.IsLoaded)
+                ModBase.IsUiUpdating || !frmLaunchLeft.BtnLaunch.IsLoaded)
                 return;
 
             // 计算是否空闲

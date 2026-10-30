@@ -363,7 +363,6 @@ public static class ModLink
                 // Taskbar and UI notification
                 ModLoader.LoaderTaskbarAdd(dlEasyTierLoader);
                 ModMain.frmMain.BtnExtraDownload.ShowRefresh();
-                ModMain.frmMain.BtnExtraDownload.Ribble();
             }
             catch (Exception ex)
             {

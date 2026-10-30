@@ -168,7 +168,6 @@ public partial class PageSelectLeft : IRefreshable
                 // 构建列表项
                 var newItem = new MyListItem
                 {
-                    IsScaleAnimationEnabled = false,
                     Type = MyListItem.CheckType.RadioBox,
                     MinPaddingRight = 30,
                     Title = folder.Name,
@@ -220,7 +219,6 @@ public partial class PageSelectLeft : IRefreshable
             {
                 var itemCreate = new MyListItem
                 {
-                    IsScaleAnimationEnabled = false,
                     Type = MyListItem.CheckType.Clickable,
                     Title = Lang.Text("Select.Folder.CreateNew.Title"),
                     Height = 34,
@@ -236,7 +234,6 @@ public partial class PageSelectLeft : IRefreshable
             // 添加按钮
             var itemAdd = new MyListItem
             {
-                IsScaleAnimationEnabled = false,
                 Type = MyListItem.CheckType.Clickable,
                 Title = Lang.Text("Select.Folder.AddExisting.Title"),
                 Height = 34,
@@ -250,7 +247,6 @@ public partial class PageSelectLeft : IRefreshable
             // 导入整合包
             var itemInstall = new MyListItem
             {
-                IsScaleAnimationEnabled = false,
                 Type = MyListItem.CheckType.Clickable,
                 Title = Lang.Text("Select.Folder.ImportModpack.Title"),
                 Height = 34,

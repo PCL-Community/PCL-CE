@@ -12,7 +12,6 @@
 
     <!-- Application -->
 
-    <sys:String x:Key="Application.Animation.Error.OperationFailed">动画操作失败。请查看错误详情。</sys:String>
     <sys:String x:Key="Application.Control.Error.OperationFailed">界面控件操作失败。请查看错误详情。</sys:String>
     <sys:String x:Key="Application.Control.Loading.Default">加载中...</sys:String>
     <sys:String x:Key="Application.Control.Loading.Failed">加载失败</sys:String>
@@ -3005,7 +3004,6 @@
 
     <!-- Setup.Misc.Debug -->
 
-    <sys:String x:Key="Setup.Misc.Debug.AnimationSpeed">动画速度</sys:String>
     <sys:String x:Key="Setup.Misc.Debug.Delay">添加延迟</sys:String>
     <sys:String x:Key="Setup.Misc.Debug.Delay.ToolTip">在各个环节添加随机的延迟，拖慢加载速度，以测试部分功能是否正常运行。&#xA;这会严重影响启动器运行，若无特殊需要不建议开启。</sys:String>
     <sys:String x:Key="Setup.Misc.Debug.Mode">调试模式</sys:String>

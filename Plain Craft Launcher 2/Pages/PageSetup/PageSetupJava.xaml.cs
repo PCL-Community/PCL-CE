@@ -91,11 +91,11 @@ public partial class PageSetupJava : IPageView
             var item = ItemBuild(entry);
             PanContent.Children.Add(item);
             if (entry.Installation.JavaExePath == currentSetJava)
-                item.SetChecked(true, false, false);
+                item.SetChecked(true, false);
         }
 
         if (string.IsNullOrEmpty(currentSetJava))
-            itemAuto.SetChecked(true, false, false);
+            itemAuto.SetChecked(true, false);
     }
 
     private MyListItem ItemBuild(JavaEntry j)

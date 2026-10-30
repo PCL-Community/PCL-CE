@@ -115,7 +115,7 @@
                                   Stretch="UniformToFill" IsHitTestVisible="False" Visibility="Visible"
                                   MediaEnded="VideoEnded" Volume="0" />
                 </Canvas>
-                <local:AnimatedBackgroundGrid Grid.Row="0" x:Name="PanTitle" Height="48"
+                <local:BackgroundGrid Grid.Row="0" x:Name="PanTitle" Height="48"
                                               MouseLeftButtonDown="FormDragMove"
                                               WindowChrome.IsHitTestVisibleInChrome="True"
                                               BackgroundBrush="{DynamicResource ColorBrush3}">
@@ -182,14 +182,14 @@
                                    VerticalAlignment="Center" Margin="47,1,60,0" HorizontalAlignment="Left"
                                    Foreground="White" FontSize="15" />
                     </Grid>
-                </local:AnimatedBackgroundGrid>
+                </local:BackgroundGrid>
                 <Grid x:Name="PanLeft" Grid.Row="1" HorizontalAlignment="Left" SnapsToDevicePixels="True">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="1*" />
                     </Grid.ColumnDefinitions>
                     <controls:BlurBorder IsHitTestVisible="False">
-                        <local:AnimatedBackgroundGrid x:Name="RectLeftBackground" Width="0"
+                        <local:BackgroundGrid x:Name="RectLeftBackground" Width="0"
                                                       BackgroundBrush="{DynamicResource ColorBrushTransparentBackground}" />
                     </controls:BlurBorder>
                     <Rectangle x:Name="RectLeftShadow" Width="4" HorizontalAlignment="Left" IsHitTestVisible="False"

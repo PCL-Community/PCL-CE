@@ -103,7 +103,6 @@ public partial class PageComp
         ModBase.Log($"[Download] {TypeName}：切换到第 {page + 1} 页");
         ModBase.RunInThread(() =>
         {
-            Thread.Sleep(100); // 等待向上滚的动画结束
             ModBase.RunInUi(() => CardPages.IsEnabled = true);
             loader.Start();
         });

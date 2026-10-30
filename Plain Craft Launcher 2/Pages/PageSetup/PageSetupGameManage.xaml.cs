@@ -31,7 +31,7 @@ public partial class PageSetupGameManage
             return;
         isLoaded = true;
 
-        ModAnimation.AniBeginControl();
+        ModBase.BeginUiUpdate();
         DataContext = _vm;
         Reload();
         SliderLoad();
@@ -49,7 +49,7 @@ public partial class PageSetupGameManage
             RowModManageStyleGap.Height = new GridLength(0);
         }
 
-        ModAnimation.AniEndControl();
+        ModBase.EndUiUpdate();
     }
 
     public void Reload()
@@ -102,21 +102,21 @@ public partial class PageSetupGameManage
     private void CheckBoxChange(object senderRaw, bool user)
     {
         var sender = (MyCheckBox)senderRaw;
-        if (!ModAnimation.AniExitsAnyControl())
+        if (!ModBase.IsUiUpdating)
             SetByTag(sender.Tag?.ToString(), sender.Checked);
     }
 
     private void SliderChange(object senderRaw, bool user)
     {
         var sender = (MySlider)senderRaw;
-        if (!ModAnimation.AniExitsAnyControl())
+        if (!ModBase.IsUiUpdating)
             SetByTag(sender.Tag?.ToString(), sender.Value);
     }
 
     private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
-        if (ModAnimation.AniExitsAnyControl() || sender.SelectedIndex < 0)
+        if (ModBase.IsUiUpdating || sender.SelectedIndex < 0)
             return;
         SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }

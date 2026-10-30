@@ -146,15 +146,6 @@
 
             <local:MyCard x:Name="CardDebug" Margin="0,0,0,15" Title="{DynamicResource Setup.Misc.Debug.Title}" CanSwap="True" IsSwapped="True">
                 <StackPanel Margin="25,40,25,15">
-                    <Grid x:Name="PanDebugAnim" Height="22" Margin="0,0,0,10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
-                            <ColumnDefinition />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.Misc.Debug.AnimationSpeed}" Margin="0,0,25,0" />
-                        <local:MySlider x:Name="SliderDebugAnim" Tag="SystemDebugAnim" MaxValue="30" Grid.Column="1"
-                                        Change="SliderChange" />
-                    </Grid>
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="1.5*" />

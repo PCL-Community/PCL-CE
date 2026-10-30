@@ -29,7 +29,6 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
     private bool _refreshed;
     private bool _syncingFilter;
     private bool isLoad;
-    private int bottomBarShownCount;
 
     public PageInstanceSavesDatapackViewModel ViewModel => _vm;
 
@@ -42,7 +41,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
         Unloaded += Page_Unloaded;
         Loaded += (_, _) => RefreshOnNavigate();
         LoaderInit();
-        PageExit += UnselectedAllWithAnimation;
+        PageExit += UnselectAll;
         // Handles
         Load.Click += Load_Click;
         BtnManageOpen.Click += BtnManageOpen_Click;
@@ -53,7 +52,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
         BtnManageDownload.Click += BtnManageDownload_Click;
         BtnHintDownload.Click += BtnManageDownload_Click;
         BtnManageInfoExport.Click += BtnManageInfoExport_Click;
-        Load.StateChanged += (_, _, _) => UnselectedAllWithAnimation();
+        Load.StateChanged += (_, _, _) => UnselectAll();
         SearchBox.PreviewKeyDown += SearchBox_PreviewKeyDown;
         BtnFilterAll.Check += ChangeFilter;
         BtnFilterCanUpdate.Check += ChangeFilter;
@@ -95,11 +94,11 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
             return;
         _refreshed = true;
 
-        ModAnimation.AniBeginControl();
+        ModBase.BeginUiUpdate();
         _vm.ClearSelection();
         ReloadDatapackFileList();
         ChangeAllSelected(false);
-        ModAnimation.AniEndControl();
+        ModBase.EndUiUpdate();
 
         // 非重复加载部分
         if (isLoad)
@@ -218,7 +217,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
     {
         try
         {
-            ModAnimation.AniBeginControl();
+            ModBase.BeginUiUpdate();
             var newItem = new MyLocalCompItem
             {
                 SnapsToDevicePixels = true,
@@ -230,12 +229,12 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
             newItem.Tags = entry.Tags;
             entry.OnCompUpdate += _ => newItem.Refresh();
             newItem.Refresh();
-            ModAnimation.AniEndControl();
+            ModBase.EndUiUpdate();
             return newItem;
         }
         catch (Exception ex)
         {
-            ModAnimation.AniEndControl();
+            ModBase.EndUiUpdate();
             ModBase.Log(ex, $"创建 UI 项失败：{entry.RawPath}");
             throw;
         }
@@ -310,7 +309,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
         if (PanList is null)
             return;
 
-        ModAnimation.AniBeginControl();
+        ModBase.BeginUiUpdate();
         _vm.Apply();
         if (_vm.VisibleEntries.Count > 0)
         {
@@ -332,7 +331,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
             }
         }
 
-        ModAnimation.AniEndControl();
+        ModBase.EndUiUpdate();
         RefreshBars();
     }
 
@@ -344,66 +343,18 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
         _vm.RefreshBarState();
         var selected = _vm.SelectedCount > 0;
 
-        if (!ModAnimation.AniExitsAnyControl())
+        PanListBack.Margin = new Thickness(0d, 0d, 0d, selected ? 95 : 15);
+        if (selected)
         {
-            PanListBack.Margin = new Thickness(0d, 0d, 0d, selected ? 95 : 15);
-            if (selected)
-            {
-                // 仅在数量增加时播放出现/跳跃动画
-                if (bottomBarShownCount >= _vm.SelectedCount)
-                {
-                    bottomBarShownCount = _vm.SelectedCount;
-                    return;
-                }
-
-                bottomBarShownCount = _vm.SelectedCount;
-                // 出现/跳跃动画
-                CardSelect.Visibility = Visibility.Visible;
-                ModAnimation.AniStart(
-                    new[]
-                    {
-                        ModAnimation.AaOpacity(CardSelect, 1d - CardSelect.Opacity, 60),
-                        ModAnimation.AaTranslateY(CardSelect, -27 - TransSelect.Y, 120,
-                            ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)),
-                        ModAnimation.AaTranslateY(CardSelect, 3d, 150, 120,
-                            new ModAnimation.AniEaseInoutFluent(ModAnimation.AniEasePower.Weak)),
-                        ModAnimation.AaTranslateY(CardSelect, -1, 90, 270,
-                            new ModAnimation.AniEaseInoutFluent(ModAnimation.AniEasePower.Weak))
-                    }, "Datapack Sidebar");
-            }
-            else
-            {
-                // 不重复播放隐藏动画
-                if (bottomBarShownCount == 0)
-                    return;
-                bottomBarShownCount = 0;
-                // 隐藏动画
-                ModAnimation.AniStart(
-                    new[]
-                    {
-                        ModAnimation.AaOpacity(CardSelect, -CardSelect.Opacity, 90),
-                        ModAnimation.AaTranslateY(CardSelect, -10 - TransSelect.Y, 90,
-                            ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
-                        ModAnimation.AaCode(() => CardSelect.Visibility = Visibility.Collapsed, after: true)
-                    }, "Datapack Sidebar");
-            }
+            CardSelect.Visibility = Visibility.Visible;
+            CardSelect.Opacity = 1d;
+            TransSelect.Y = -25d;
         }
         else
         {
-            ModAnimation.AniStop("Datapack Sidebar");
-            bottomBarShownCount = _vm.SelectedCount;
-            if (selected)
-            {
-                CardSelect.Visibility = Visibility.Visible;
-                CardSelect.Opacity = 1d;
-                TransSelect.Y = -25;
-            }
-            else
-            {
-                CardSelect.Visibility = Visibility.Collapsed;
-                CardSelect.Opacity = 0d;
-                TransSelect.Y = -10;
-            }
+            CardSelect.Visibility = Visibility.Collapsed;
+            CardSelect.Opacity = 0d;
+            TransSelect.Y = -10d;
         }
     }
 
@@ -541,7 +492,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
     // 单项切换选择状态
     public void CheckChanged(MyLocalCompItem sender, ModBase.RouteEventArgs e)
     {
-        if (ModAnimation.AniExitsAnyControl())
+        if (ModBase.IsUiUpdating)
             return;
         _vm.SetSelected(sender.Entry.RawPath, sender.Checked);
         RefreshBars();
@@ -550,7 +501,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
     // 切换所有项的选择状态
     private void ChangeAllSelected(bool value)
     {
-        ModAnimation.AniBeginControl();
+        ModBase.BeginUiUpdate();
         _vm.ClearSelection();
         foreach (var Item in datapackItems.Values)
         {
@@ -560,15 +511,15 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
                 _vm.SetSelected(Item.Entry.RawPath, true);
         }
 
-        ModAnimation.AniEndControl();
+        ModBase.EndUiUpdate();
         RefreshBars();
     }
 
-    private void UnselectedAllWithAnimation()
+    private void UnselectAll()
     {
-        var cacheAniControlEnabled = ModAnimation.AniResetControl(0);
+        var cacheAniControlEnabled = ModBase.ResetUiUpdate();
         ChangeAllSelected(false);
-        ModAnimation.AniRestoreControl(cacheAniControlEnabled);
+        ModBase.RestoreUiUpdate(cacheAniControlEnabled);
     }
 
     private void FrmMain_KeyDown(object sender, KeyEventArgs e)

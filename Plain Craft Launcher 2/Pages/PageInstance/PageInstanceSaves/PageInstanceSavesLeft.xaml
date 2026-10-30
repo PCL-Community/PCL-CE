@@ -7,11 +7,11 @@
                   mc:Ignorable="d"
                   d:DesignHeight="450" HorizontalAlignment="Left">
     <StackPanel Margin="0,12,0,0" Name="PanItem">
-        <local:MyListItem x:Name="ItemInfo" IsScaleAnimationEnabled="False" Checked="True" Type="RadioBox" Tag="0"
+        <local:MyListItem x:Name="ItemInfo" Checked="True" Type="RadioBox" Tag="0"
                            MinPaddingRight="35" Height="36" VerticalAlignment="Top" Title="{DynamicResource Instance.Saves.Left.Info}"
                           LogoScale="1"
                           SvgIcon="lucide/info" />
-        <local:MyListItem x:Name="ItemDatapack" Title="{DynamicResource Instance.Saves.Left.Datapack}" IsScaleAnimationEnabled="False" Type="RadioBox" Tag="1"
+        <local:MyListItem x:Name="ItemDatapack" Title="{DynamicResource Instance.Saves.Left.Datapack}" Type="RadioBox" Tag="1"
                           MinPaddingRight="35" Height="36" VerticalAlignment="Top" LogoScale="0.91"
                           Visibility="{Binding ShowDatapackTab, Converter={StaticResource BooleanToVisibilityConverter}}"
                           SvgIcon="lucide/file-archive">
@@ -25,7 +25,7 @@
             </local:MyListItem.Buttons>
         </local:MyListItem>
         <TextBlock Text="{DynamicResource Instance.Saves.Left.QuickActions}" Margin="13,6,5,4" Opacity="0.6" FontSize="12" />
-        <local:MyListItem x:Name="BtnOpenFolder" Title="{DynamicResource Common.Action.OpenFolder}" IsScaleAnimationEnabled="False" Type="RadioBox"
+        <local:MyListItem x:Name="BtnOpenFolder" Title="{DynamicResource Common.Action.OpenFolder}" Type="RadioBox"
                           MinPaddingRight="35" Height="36" VerticalAlignment="Top" LogoScale="0.8"
                           SvgIcon="lucide/folder-open" />
     </StackPanel>

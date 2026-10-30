@@ -58,37 +58,40 @@ public partial class MySkin
     // 事件
     public event ClickEventHandler? Click;
 
-    // 控件动画
+    // 控件交互
     private void PanSkin_MouseEnter(object sender, MouseEventArgs e)
     {
-        ModAnimation.AniStart(ModAnimation.AaOpacity(ShadowSkin, 0.8d - ShadowSkin.Opacity, 200, 100), "Skin Shadow");
+        ShadowSkin.Opacity = 0.8d;
     }
 
     private void PanSkin_MouseLeave(object sender, MouseEventArgs e)
     {
-        ModAnimation.AniStart(ModAnimation.AaOpacity(ShadowSkin, 0.2d - ShadowSkin.Opacity, 200), "Skin Shadow");
+        ShadowSkin.Opacity = 0.2d;
         isSkinMouseDown = false;
-        ModAnimation.AniStart(
-            ModAnimation.AaScaleTransform(this, 1d - ((ScaleTransform)RenderTransform).ScaleX, 60,
-                ease: new ModAnimation.AniEaseOutFluent()), "Skin Scale");
+        ApplyScale(1d);
     }
 
     private void PanSkin_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         isSkinMouseDown = true;
-        ModAnimation.AniStart(
-            ModAnimation.AaScaleTransform(this, 0.9d - ((ScaleTransform)RenderTransform).ScaleX, 60,
-                ease: new ModAnimation.AniEaseOutFluent()), "Skin Scale");
+        ApplyScale(0.9d);
     }
 
     private void PanSkin_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
-        ModAnimation.AniStart(
-            ModAnimation.AaScaleTransform(this, 1d - ((ScaleTransform)RenderTransform).ScaleX, 60,
-                ease: new ModAnimation.AniEaseOutFluent()), "Skin Scale");
+        ApplyScale(1d);
         if (!isSkinMouseDown) return;
         isSkinMouseDown = false;
         Click?.Invoke(sender, e);
+    }
+
+    private void ApplyScale(double scale)
+    {
+        if (RenderTransform is ScaleTransform transform)
+        {
+            transform.ScaleX = scale;
+            transform.ScaleY = scale;
+        }
     }
 
     // 保存皮肤

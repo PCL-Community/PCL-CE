@@ -77,7 +77,7 @@ public partial class PageInstanceSaves : IRefreshable, IPageView
 
     public void Reload()
     {
-        ModAnimation.AniBeginControl();
+        ModBase.BeginUiUpdate();
         try
         {
             PanBack.ScrollToHome();
@@ -85,7 +85,7 @@ public partial class PageInstanceSaves : IRefreshable, IPageView
         }
         finally
         {
-            ModAnimation.AniEndControl();
+            ModBase.EndUiUpdate();
         }
     }
 
@@ -147,7 +147,7 @@ public partial class PageInstanceSaves : IRefreshable, IPageView
     {
         try
         {
-            ModAnimation.AniBeginControl();
+            ModBase.BeginUiUpdate();
             PanList.Children.Clear();
             foreach (var entry in _vm.Saves)
                 PanList.Children.Add(CreateSaveItem(entry));
@@ -159,7 +159,7 @@ public partial class PageInstanceSaves : IRefreshable, IPageView
         }
         finally
         {
-            ModAnimation.AniEndControl();
+            ModBase.EndUiUpdate();
         }
     }
 
@@ -363,7 +363,6 @@ public partial class PageInstanceSaves : IRefreshable, IPageView
         loader.Start(1);
         ModLoader.LoaderTaskbarAdd(loader);
         ModMain.frmMain.BtnExtraDownload.ShowRefresh();
-        ModMain.frmMain.BtnExtraDownload.Ribble();
     }
 
     private void BtnDownloadNew_Click(object sender, MouseButtonEventArgs e)

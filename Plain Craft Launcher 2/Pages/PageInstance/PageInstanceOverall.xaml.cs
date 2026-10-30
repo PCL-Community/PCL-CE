@@ -93,7 +93,7 @@ public partial class PageInstanceOverall : IPageView
     /// </summary>
     private void Reload()
     {
-        ModAnimation.AniBeginControl();
+        ModBase.BeginUiUpdate();
 
         var instance = PageInstanceLeft.McInstance;
         // 刷新设置项目
@@ -121,7 +121,7 @@ public partial class PageInstanceOverall : IPageView
                     break;
                 }
 
-        ModAnimation.AniEndControl();
+        ModBase.EndUiUpdate();
     }
 
     private void GetInstanceInfo()
@@ -184,7 +184,7 @@ public partial class PageInstanceOverall : IPageView
         if (ctl is not null) ctl.IsEnabled = false;
         try
         {
-            if (!(isLoad && !ModAnimation.AniExitsAnyControl()))
+            if (!(isLoad && !ModBase.IsUiUpdating))
                 return;
             if (ComboDisplayType.SelectedIndex != 1)
             {
@@ -404,7 +404,7 @@ public partial class PageInstanceOverall : IPageView
     // 实例图标
     private void ComboDisplayLogo_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (!(isLoad && !ModAnimation.AniExitsAnyControl()))
+        if (!(isLoad && !ModBase.IsUiUpdating))
             return;
         // 选择 自定义 时修改图片
         try
@@ -606,7 +606,6 @@ public partial class PageInstanceOverall : IPageView
             loader.Start(PageInstanceLeft.McInstance.Name);
             ModLoader.LoaderTaskbarAdd(loader);
             ModMain.frmMain.BtnExtraDownload.ShowRefresh();
-            ModMain.frmMain.BtnExtraDownload.Ribble();
         }
         catch (Exception ex)
         {

@@ -74,10 +74,10 @@ public partial class PageInstanceScreenshot : IRefreshable
     /// </summary>
     public async Task ReloadAsync()
     {
-        ModAnimation.AniBeginControl();
+        ModBase.BeginUiUpdate();
         PanBack.ScrollToHome();
         await LoadFileListAsync();
-        ModAnimation.AniEndControl();
+        ModBase.EndUiUpdate();
     }
 
     private void RefreshTip()
@@ -237,8 +237,6 @@ public partial class PageInstanceScreenshot : IRefreshable
                 btnCopy.Click += (s, ev) => BtnCopy_Click((MyIconTextButton)s, ev);
                 stackPanel.Children.Add(btnCopy);
                 PanList.Children.Add(myCard);
-                myCard.Opacity = 0d;
-                ModAnimation.AniStart(new[] { ModAnimation.AaOpacity(myCard, 1d, 200) });
             }
             catch (Exception ex)
             {

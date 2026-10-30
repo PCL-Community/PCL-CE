@@ -199,61 +199,27 @@ public partial class MyLocalCompItem
     public void RefreshColor(object sender, EventArgs e)
     {
         InitLate(sender, e);
-        // 触发颜色动画
-        var time = IsMouseOver ? 120 : 180;
-        var ani = new List<ModAnimation.AniData>();
-        // ButtonStack
+        // 更新按钮栏
         if (buttonStack is not null)
         {
             if (IsMouseOver)
             {
-                ani.Add(ModAnimation.AaOpacity(buttonStack, 1d - buttonStack.Opacity, (int)Math.Round(time * 0.7d),
-                    (int)Math.Round(time * 0.3d)));
-                ani.Add(ModAnimation.AaDouble(
-                    i => ColumnPaddingRight.Width =
-                        new GridLength(Math.Max(0, ColumnPaddingRight.Width.Value + (double)i)),
-                    5 + Buttons.Count() * 25 - ColumnPaddingRight.Width.Value, (int)Math.Round(time * 0.3d),
-                    (int)Math.Round(time * 0.7d)));
+                buttonStack.Opacity = 1d;
+                ColumnPaddingRight.Width = new GridLength(5 + Buttons.Count() * 25);
             }
             else
             {
-                ani.Add(ModAnimation.AaOpacity(buttonStack, -buttonStack.Opacity, (int)Math.Round(time * 0.4d)));
-                ani.Add(ModAnimation.AaDouble(
-                    i => ColumnPaddingRight.Width =
-                        new GridLength(Math.Max(0, ColumnPaddingRight.Width.Value + (double)i)),
-                    4d - ColumnPaddingRight.Width.Value, (int)Math.Round(time * 0.4d)));
+                buttonStack.Opacity = 0d;
+                ColumnPaddingRight.Width = new GridLength(4d);
             }
         }
 
-        // RectBack
-        if (IsMouseOver || Checked)
-        {
-            ani.AddRange(new[]
-            {
-                ModAnimation.AaColor(RectBack, Border.BackgroundProperty, isMouseDown ? "ColorBrush6" : "ColorBrushBg1",
-                    time),
-                ModAnimation.AaOpacity(RectBack, 1d - RectBack.Opacity, time, ease: new ModAnimation.AniEaseOutFluent())
-            });
-            if (isMouseDown)
-                ani.Add(ModAnimation.AaScaleTransform(RectBack,
-                    0.996d - ((ScaleTransform)RectBack.RenderTransform).ScaleX, (int)Math.Round(time * 1.2d),
-                    ease: new ModAnimation.AniEaseOutFluent()));
-            else
-                ani.Add(ModAnimation.AaScaleTransform(RectBack, 1d - ((ScaleTransform)RectBack.RenderTransform).ScaleX,
-                    (int)Math.Round(time * 1.2d), ease: new ModAnimation.AniEaseOutFluent()));
-        }
-        else
-        {
-            ani.AddRange(new[]
-            {
-                ModAnimation.AaOpacity(RectBack, -RectBack.Opacity, time),
-                ModAnimation.AaScaleTransform(RectBack, 0.996d - ((ScaleTransform)RectBack.RenderTransform).ScaleX,
-                    time, ease: new ModAnimation.AniEaseOutFluent()),
-                ModAnimation.AaScaleTransform(RectBack, -0.196d, 1, after: true)
-            });
-        }
-
-        ModAnimation.AniStart(ani, "LocalModItem Color " + Uuid);
+        // 更新背景
+        var showBack = IsMouseOver || Checked;
+        RectBack.Opacity = showBack ? 1d : 0d;
+        if (showBack)
+            RectBack.Background = (Brush)ThemeManager.AppResources[isMouseDown ? "ColorBrush6" : "ColorBrushBg1"];
+        RectBack.RenderTransform = new ScaleTransform(1d, 1d);
     }
 
     // 触发虚拟化内容
@@ -708,64 +674,26 @@ public partial class MyLocalCompItem
                         return;
                 }
 
-                // 更改动画
-                if (this.IsVisibleInWindow(ModMain.frmMain))
+                // 更改显示
+                RectCheck.VerticalAlignment = VerticalAlignment.Center;
+                RectCheck.Margin = new Thickness(-3, 0d, 0d, 0d);
+                if (Checked)
                 {
-                    var anim = new List<ModAnimation.AniData>();
-                    if (Checked)
-                    {
-                        // 由无变有
-                        var delta = 32d - RectCheck.ActualHeight;
-                        anim.Add(ModAnimation.AaHeight(RectCheck, delta * 0.4d, 200,
-                            ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
-                        anim.Add(ModAnimation.AaHeight(RectCheck, delta * 0.6d, 300,
-                            ease: new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)));
-                        anim.Add(ModAnimation.AaOpacity(RectCheck, 1d - RectCheck.Opacity, 30));
-                        RectCheck.VerticalAlignment = VerticalAlignment.Center;
-                        RectCheck.Margin = new Thickness(-3, 0d, 0d, 0d);
-                        anim.Add(ModAnimation.AaColor(LabTitle, TextBlock.ForegroundProperty,
-                            Entry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine
-                                ? "ColorBrush2"
-                                : "ColorBrush5", 200));
-                    }
-                    else
-                    {
-                        // 由有变无
-                        anim.Add(ModAnimation.AaHeight(RectCheck, -RectCheck.ActualHeight, 120,
-                            ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)));
-                        anim.Add(ModAnimation.AaOpacity(RectCheck, -RectCheck.Opacity, 70, 40));
-                        RectCheck.VerticalAlignment = VerticalAlignment.Center;
-                        anim.Add(ModAnimation.AaColor(LabTitle, TextBlock.ForegroundProperty,
-                            LabTitle.TextDecorations is null ? "ColorBrush1" : "ColorBrushGray4", 120));
-                    }
-
-                    ModAnimation.AniStart(anim, "MyLocalCompItem Checked " + Uuid);
+                    RectCheck.Height = 32d;
+                    RectCheck.Opacity = 1d;
+                    LabTitle.SetResourceReference(TextBlock.ForegroundProperty,
+                        Entry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine
+                            ? "ColorBrush2"
+                            : "ColorBrush5");
                 }
                 else
                 {
-                    // 不在窗口上时直接设置
-                    RectCheck.VerticalAlignment = VerticalAlignment.Center;
-                    RectCheck.Margin = new Thickness(-3, 0d, 0d, 0d);
-                    if (Checked)
-                    {
-                        RectCheck.Height = 32d;
-                        RectCheck.Opacity = 1d;
-                        LabTitle.SetResourceReference(TextBlock.ForegroundProperty,
-                            Entry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine
-                                ? "ColorBrush2"
-                                : "ColorBrush5");
-                    }
-                    else
-                    {
-                        RectCheck.Height = 0d;
-                        RectCheck.Opacity = 0d;
-                        LabTitle.SetResourceReference(TextBlock.ForegroundProperty,
-                            Entry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine
-                                ? "ColorBrush1"
-                                : "ColorBrushGray4");
-                    }
-
-                    ModAnimation.AniStop("MyLocalCompItem Checked " + Uuid);
+                    RectCheck.Height = 0d;
+                    RectCheck.Opacity = 0d;
+                    LabTitle.SetResourceReference(TextBlock.ForegroundProperty,
+                        Entry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine
+                            ? "ColorBrush1"
+                            : "ColorBrushGray4");
                 }
             }
             catch (Exception ex)

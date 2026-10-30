@@ -6,7 +6,7 @@
                           Style="{StaticResource ScrollViewerFullMargin}">
         <StackPanel Margin="0,12,0,0" Name="PanItem">
 
-            <local:MyListItem x:Name="ItemInstall" Checked="True" IsScaleAnimationEnabled="False" Type="RadioBox"
+            <local:MyListItem x:Name="ItemInstall" Checked="True" Type="RadioBox"
                               Check="PageCheck"
                               Tag="1" MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Download.Left.Minecraft}"
@@ -24,7 +24,7 @@
 
             <TextBlock Text="{DynamicResource Download.Left.CommunityResources}" Margin="13,10,5,4" Opacity="0.6"
                        FontSize="12" />
-            <local:MyListItem x:Name="ItemMod" Type="RadioBox" IsScaleAnimationEnabled="False" Tag="2"
+            <local:MyListItem x:Name="ItemMod" Type="RadioBox" Tag="2"
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Download.Left.Mod}"
@@ -41,7 +41,7 @@
                 </local:MyListItem.Buttons>
             </local:MyListItem>
 
-            <local:MyListItem x:Name="ItemPack" Type="RadioBox" IsScaleAnimationEnabled="False" Tag="3"
+            <local:MyListItem x:Name="ItemPack" Type="RadioBox" Tag="3"
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Download.Left.Modpack}"
@@ -57,7 +57,7 @@
                     </x:Array>
                 </local:MyListItem.Buttons>
             </local:MyListItem>
-            <local:MyListItem x:Name="ItemDataPack" Type="RadioBox" IsScaleAnimationEnabled="False" Tag="4"
+            <local:MyListItem x:Name="ItemDataPack" Type="RadioBox" Tag="4"
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Download.Left.DataPack}"
@@ -73,7 +73,7 @@
                     </x:Array>
                 </local:MyListItem.Buttons>
             </local:MyListItem>
-            <local:MyListItem x:Name="ItemResourcePack" Type="RadioBox" IsScaleAnimationEnabled="False" Tag="5"
+            <local:MyListItem x:Name="ItemResourcePack" Type="RadioBox" Tag="5"
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Download.Left.ResourcePack}"
@@ -89,7 +89,7 @@
                     </x:Array>
                 </local:MyListItem.Buttons>
             </local:MyListItem>
-            <local:MyListItem x:Name="ItemShader" Type="RadioBox" IsScaleAnimationEnabled="False" Tag="6"
+            <local:MyListItem x:Name="ItemShader" Type="RadioBox" Tag="6"
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Download.Left.Shader}"
@@ -105,7 +105,7 @@
                     </x:Array>
                 </local:MyListItem.Buttons>
             </local:MyListItem>
-            <local:MyListItem x:Name="ItemWorld" Type="RadioBox" IsScaleAnimationEnabled="False" Tag="7"
+            <local:MyListItem x:Name="ItemWorld" Type="RadioBox" Tag="7"
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Download.Left.World}"
@@ -121,7 +121,7 @@
                     </x:Array>
                 </local:MyListItem.Buttons>
             </local:MyListItem>
-            <local:MyListItem x:Name="ItemFavorites" Type="RadioBox" IsScaleAnimationEnabled="False" Tag="8"
+            <local:MyListItem x:Name="ItemFavorites" Type="RadioBox" Tag="8"
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Download.Left.Favorites}"
@@ -138,7 +138,7 @@
             </local:MyListItem>
 
             <TextBlock Text="{DynamicResource Download.Left.Installation}" Margin="13,10,5,4" Opacity="0.6" FontSize="12" />
-            <local:MyListItem x:Name="ItemClient" IsScaleAnimationEnabled="False" Type="RadioBox" Tag="9"
+            <local:MyListItem x:Name="ItemClient" Type="RadioBox" Tag="9"
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Download.Left.Minecraft}"
@@ -154,7 +154,7 @@
                     </x:Array>
                 </local:MyListItem.Buttons>
             </local:MyListItem>
-            <local:MyListItem x:Name="ItemOptiFine" Type="RadioBox" IsScaleAnimationEnabled="False" Tag="10"
+            <local:MyListItem x:Name="ItemOptiFine" Type="RadioBox" Tag="10"
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Download.Left.Optifine}"
@@ -170,7 +170,7 @@
                     </x:Array>
                 </local:MyListItem.Buttons>
             </local:MyListItem>
-            <local:MyListItem x:Name="ItemForge" Type="RadioBox" IsScaleAnimationEnabled="False" Tag="11"
+            <local:MyListItem x:Name="ItemForge" Type="RadioBox" Tag="11"
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Download.Left.Forge}"
@@ -186,7 +186,7 @@
                     </x:Array>
                 </local:MyListItem.Buttons>
             </local:MyListItem>
-            <local:MyListItem x:Name="ItemNeoForge" Type="RadioBox" IsScaleAnimationEnabled="False" Tag="12"
+            <local:MyListItem x:Name="ItemNeoForge" Type="RadioBox" Tag="12"
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Download.Left.NeoForge}"
@@ -202,7 +202,7 @@
                     </x:Array>
                 </local:MyListItem.Buttons>
             </local:MyListItem>
-            <local:MyListItem x:Name="ItemCleanroom" Type="RadioBox" IsScaleAnimationEnabled="False" Tag="13"
+            <local:MyListItem x:Name="ItemCleanroom" Type="RadioBox" Tag="13"
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Download.Left.Cleanroom}"
@@ -218,7 +218,7 @@
                     </x:Array>
                 </local:MyListItem.Buttons>
             </local:MyListItem>
-            <local:MyListItem x:Name="ItemFabric" Type="RadioBox" IsScaleAnimationEnabled="False" Tag="14"
+            <local:MyListItem x:Name="ItemFabric" Type="RadioBox" Tag="14"
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Download.Left.Fabric}"
@@ -234,7 +234,7 @@
                     </x:Array>
                 </local:MyListItem.Buttons>
             </local:MyListItem>
-            <local:MyListItem x:Name="ItemLegacyFabric" Type="RadioBox" IsScaleAnimationEnabled="False" Tag="18"
+            <local:MyListItem x:Name="ItemLegacyFabric" Type="RadioBox" Tag="18"
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Download.Left.LegacyFabric}"
@@ -250,7 +250,7 @@
                     </x:Array>
                 </local:MyListItem.Buttons>
             </local:MyListItem>
-            <local:MyListItem x:Name="ItemLabyMod" Type="RadioBox" IsScaleAnimationEnabled="False" Tag="17"
+            <local:MyListItem x:Name="ItemLabyMod" Type="RadioBox" Tag="17"
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Download.Left.LabyMod}"
@@ -266,7 +266,7 @@
                     </x:Array>
                 </local:MyListItem.Buttons>
             </local:MyListItem>
-            <local:MyListItem x:Name="ItemLiteLoader" Type="RadioBox" IsScaleAnimationEnabled="False" Tag="16"
+            <local:MyListItem x:Name="ItemLiteLoader" Type="RadioBox" Tag="16"
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Download.Left.LiteLoader}"

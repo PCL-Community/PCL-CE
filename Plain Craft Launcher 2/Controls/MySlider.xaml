@@ -23,7 +23,7 @@
                 <ScaleTransform />
             </Ellipse.RenderTransform>
         </Ellipse>
-        <Popup Name="Popup" AllowsTransparency="True" IsHitTestVisible="False" PopupAnimation="Fade"
+        <Popup Name="Popup" AllowsTransparency="True" IsHitTestVisible="False"
                VerticalOffset="38" HorizontalOffset="{Binding Margin.Left, ElementName=ShapeDot}" Placement="Center"
                PlacementRectangle="8,0,0,0">
             <Border BorderBrush="{DynamicResource ColorBrush1}" BorderThickness="1.5" CornerRadius="3" MaxWidth="500"

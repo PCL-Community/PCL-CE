@@ -45,13 +45,6 @@ public partial class PageSetupAboutViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    public void RotateCommunityLogo(object? sender)
-    {
-        if (sender is null) return;
-        ModAnimation.AniStart(new[] { ModAnimation.AaRotateTransform(sender, 360d) });
-    }
-
-    [RelayCommand]
     public async Task LogoClickAsync(object? sender)
     {
         if (!IsLogoClickEnabled || sender is null) return;
@@ -143,11 +136,6 @@ public partial class PageSetupAboutViewModel : ViewModelBase
                 var my = rand.Next(-1, 1);
                 if (my == 0)
                     my = 1;
-                ModAnimation.AniStart(new[]
-                {
-                    ModAnimation.AaTranslateX(sender, mx, 0), ModAnimation.AaTranslateY(sender, my, 0),
-                    ModAnimation.AaTranslateX(sender, -mx, 0, 100), ModAnimation.AaTranslateY(sender, -my, 0, 100)
-                });
             }
         }
         catch (Exception ex)

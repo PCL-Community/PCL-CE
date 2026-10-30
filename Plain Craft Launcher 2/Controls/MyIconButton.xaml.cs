@@ -19,11 +19,7 @@ public partial class MyIconButton
         Custom
     }
 
-    // 务必放在 IsMouseDown 更新之后
-    private const int animationColorIn = 120;
-    private const int animationColorOut = 150;
-
-    //鼠标点击判定（务必放在点击事件之后，以使得 Button_MouseUp 先于 Button_MouseLeave 执行）
+    // 鼠标点击判定（务必放在点击事件之后，以使得 Button_MouseUp 先于 Button_MouseLeave 执行）
     private bool isMouseDown;
 
     // 自定义属性
@@ -106,13 +102,11 @@ public partial class MyIconButton
         set
         {
             field = value;
-            ModAnimation.AniBeginControl();
+            ModBase.BeginUiUpdate();
             RefreshAnim();
-            ModAnimation.AniEndControl();
+            ModBase.EndUiUpdate();
         }
     } = new(Color.FromRgb(128, 128, 128));
-
-    private string ColorAnimationKey => "MyIconButton Color " + Uuid;
 
     // 自定义事件
     public event ClickEventHandler? Click;
@@ -143,18 +137,6 @@ public partial class MyIconButton
             Path.Fill ??= baseFill;
     }
 
-    private void AnimateActiveSvgIconBrush(string resourceKey, int duration)
-    {
-        if (IsUsingSvgIcon)
-            SvgIconControlHelper.AnimateSvgIconBrushTo(ShapeSvgIcon, resourceKey, duration, ColorAnimationKey);
-    }
-
-    private void AnimateActiveSvgIconBrush(ModBase.MyColor color, int duration)
-    {
-        if (IsUsingSvgIcon)
-            SvgIconControlHelper.AnimateSvgIconBrushTo(ShapeSvgIcon, color, duration, ColorAnimationKey);
-    }
-
     private void SetActiveIconResource(string resourceKey)
     {
         SvgIconControlHelper.SetIconResource(Path, ShapeSvgIcon, IsUsingSvgIcon, resourceKey);
@@ -165,171 +147,31 @@ public partial class MyIconButton
         SvgIconControlHelper.SetIconBrush(Path, ShapeSvgIcon, IsUsingSvgIcon, brush);
     }
 
-    private List<ModAnimation.AniData> GetHoverAnimations()
+    private void ApplyHoverTheme()
     {
-        var animations = new List<ModAnimation.AniData>();
         switch (Theme)
         {
             case Themes.Color:
-            {
-                if (IsUsingSvgIcon)
-                    AnimateActiveSvgIconBrush("ColorBrush2", animationColorIn);
-                else
-                    animations.Add(ModAnimation.AaColor(
-                        Path,
-                        Shape.FillProperty,
-                        "ColorBrush2",
-                        animationColorIn));
-
+                SetActiveIconResource("ColorBrush2");
                 break;
-            }
             case Themes.White:
-            {
-                animations.Add(ModAnimation.AaColor(
-                    PanBack,
-                    BackgroundProperty,
-                    new ModBase.MyColor(50d, 255d, 255d, 255d) - PanBack.Background,
-                    animationColorIn));
+                PanBack.Background = new ModBase.MyColor(50d, 255d, 255d, 255d);
                 break;
-            }
             case Themes.Red:
-            {
-                if (IsUsingSvgIcon)
-                    AnimateActiveSvgIconBrush(
-                        new ModBase.MyColor(255d, 76d, 76d),
-                        animationColorIn);
-                else
-                    animations.Add(ModAnimation.AaColor(
-                        Path,
-                        Shape.FillProperty,
-                        new ModBase.MyColor(255d, 76d, 76d) - Path.Fill,
-                        animationColorIn));
+                SetActiveIconBrush(new ModBase.MyColor(255d, 76d, 76d));
                 break;
-            }
             case Themes.Black:
-            {
-                var blackHoverColor = ThemeManager.IsDarkMode
+                SetActiveIconBrush(ThemeManager.IsDarkMode
                     ? new ModBase.MyColor(230d, 255d, 255d, 255d)
-                    : new ModBase.MyColor(230d, 0d, 0d, 0d);
-                if (IsUsingSvgIcon)
-                    AnimateActiveSvgIconBrush(blackHoverColor, animationColorIn);
-                else
-                    animations.Add(ModAnimation.AaColor(
-                        Path,
-                        Shape.FillProperty,
-                        blackHoverColor - Path.Fill,
-                        animationColorIn));
+                    : new ModBase.MyColor(230d, 0d, 0d, 0d));
                 break;
-            }
             case Themes.Custom:
-            {
-                var customHoverColor = new ModBase.MyColor(255d, Foreground);
-                if (IsUsingSvgIcon)
-                    AnimateActiveSvgIconBrush(customHoverColor, animationColorIn);
-                else
-                    animations.Add(ModAnimation.AaColor(
-                        Path,
-                        Shape.FillProperty,
-                        customHoverColor - Path.Fill,
-                        animationColorIn));
+                SetActiveIconBrush(new ModBase.MyColor(255d, Foreground));
                 break;
-            }
         }
-
-        return animations;
     }
 
-    private List<ModAnimation.AniData> GetNormalAnimations()
-    {
-        var animations = new List<ModAnimation.AniData>();
-        switch (Theme)
-        {
-            case Themes.Color:
-            {
-                if (IsUsingSvgIcon)
-                    AnimateActiveSvgIconBrush("ColorBrush4", animationColorOut);
-                else
-                    animations.Add(ModAnimation.AaColor(
-                        Path,
-                        Shape.FillProperty,
-                        "ColorBrush4",
-                        animationColorOut));
-
-                PanBack.Background = GetTransparentBackground();
-                break;
-            }
-            case Themes.White:
-            {
-                var whiteNormalColor = new ModBase.MyColor(234d, 242d, 254d);
-                if (IsUsingSvgIcon)
-                    AnimateActiveSvgIconBrush(whiteNormalColor, animationColorOut);
-                else
-                    animations.Add(ModAnimation.AaColor(
-                        Path,
-                        Shape.FillProperty,
-                        whiteNormalColor,
-                        animationColorOut));
-
-                animations.Add(ModAnimation.AaColor(
-                    PanBack,
-                    BackgroundProperty,
-                    GetTransparentBackground() - PanBack.Background,
-                    animationColorOut));
-                break;
-            }
-            case Themes.Red:
-            {
-                var redNormalColor = new ModBase.MyColor(160d, 255d, 76d, 76d);
-                if (IsUsingSvgIcon)
-                    AnimateActiveSvgIconBrush(redNormalColor, animationColorOut);
-                else
-                    animations.Add(ModAnimation.AaColor(
-                        Path,
-                        Shape.FillProperty,
-                        redNormalColor - Path.Fill,
-                        animationColorOut));
-
-                PanBack.Background = GetTransparentBackground();
-                break;
-            }
-            case Themes.Black:
-            {
-                var blackNormalColor = ThemeManager.IsDarkMode
-                    ? new ModBase.MyColor(160d, 255d, 255d, 255d)
-                    : new ModBase.MyColor(160d, 0d, 0d, 0d);
-                if (IsUsingSvgIcon)
-                    AnimateActiveSvgIconBrush(blackNormalColor, animationColorOut);
-                else
-                    animations.Add(ModAnimation.AaColor(
-                        Path, 
-                        Shape.FillProperty,
-                        blackNormalColor - Path.Fill,
-                        animationColorOut));
-
-                PanBack.Background = GetTransparentBackground();
-                break;
-            }
-            case Themes.Custom:
-            {
-                var customNormalColor = new ModBase.MyColor(160d, Foreground);
-                if (IsUsingSvgIcon)
-                    AnimateActiveSvgIconBrush(customNormalColor, animationColorOut);
-                else
-                    animations.Add(ModAnimation.AaColor(
-                        Path,
-                        Shape.FillProperty,
-                        customNormalColor - Path.Fill,
-                        animationColorOut));
-
-                PanBack.Background = GetTransparentBackground();
-                break;
-            }
-        }
-
-        return animations;
-    }
-
-    private void ApplyNonAnimatedTheme()
+    private void ApplyNormalTheme()
     {
         switch (Theme)
         {
@@ -370,40 +212,17 @@ public partial class MyIconButton
     {
         isMouseDown = true;
         Focus();
-        // 指向
-        ModAnimation.AniStart(
-            ModAnimation.AaScaleTransform(PanBack, 0.8d - ((ScaleTransform)PanBack.RenderTransform).ScaleX,
-                ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
-            "MyIconButton Scale " + Uuid);
     }
 
     private void Button_MouseUp()
     {
-        if (isMouseDown)
-        {
-            isMouseDown = false;
-            ModAnimation.AniStart(
-                new[]
-                {
-                    ModAnimation.AaScaleTransform(PanBack, 1.05d - ((ScaleTransform)PanBack.RenderTransform).ScaleX,
-                        250, ease: new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
-                    ModAnimation.AaScaleTransform(PanBack, -0.05d, 250,
-                        ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong))
-                }, "MyIconButton Scale " + Uuid);
-        }
-
+        isMouseDown = false;
         RefreshAnim(); // 直接刷新颜色以判断是否已触发 MouseLeave
     }
 
     private void Button_MouseLeave()
     {
         isMouseDown = false;
-        ModAnimation.AniStart(
-            new[]
-            {
-                ModAnimation.AaScaleTransform(PanBack, 1d - ((ScaleTransform)PanBack.RenderTransform).ScaleX, 250,
-                    ease: new ModAnimation.AniEaseOutFluent())
-            }, "MyIconButton Scale " + Uuid);
         RefreshAnim(); // 直接刷新颜色以判断是否已触发 MouseLeave
     }
 
@@ -411,45 +230,31 @@ public partial class MyIconButton
     {
         try
         {
-            if (ControlVisualHelpers.ShouldAnimate(this)) // 防止默认属性变更触发动画
-            {
-                EnsureBaseBrushes();
-                ModAnimation.AniStart(IsMouseOver ? GetHoverAnimations() : GetNormalAnimations(), ColorAnimationKey);
-            }
-
+            EnsureBaseBrushes();
+            if (IsMouseOver)
+                ApplyHoverTheme();
             else
-            {
-                ModAnimation.AniStop(ColorAnimationKey);
-                ApplyNonAnimatedTheme();
-            }
+                ApplyNormalTheme();
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新图标按钮动画状态出错");
+            ModBase.Log(ex, "刷新图标按钮状态出错");
         }
     }
-}
 
-public static partial class ModAnimation
-{
-    public static void AniDispose(MyIconButton control, bool removeFromChildren,
-        ParameterizedThreadStart callBack = null)
+    /// <summary>
+    ///     立即移除或隐藏图标按钮。
+    /// </summary>
+    public static void DisposeIconButton(MyIconButton control, bool removeFromChildren,
+        Action<MyIconButton>? callBack = null)
     {
         if (!control.IsHitTestVisible)
             return;
         control.IsHitTestVisible = false;
-        AniStart(new[]
-        {
-            AaScaleTransform(control, -1.5d, 200, ease: new AniEaseInFluent()),
-            AaCode(() =>
-            {
-                if (removeFromChildren)
-                    ((Panel)control.Parent).Children.Remove(control);
-                else
-                    control.Visibility = Visibility.Collapsed;
-                if (callBack is not null)
-                    callBack(control);
-            }, after: true)
-        }, "MyIconButton Dispose " + control.Uuid);
+        if (removeFromChildren)
+            ((Panel)control.Parent).Children.Remove(control);
+        else
+            control.Visibility = Visibility.Collapsed;
+        callBack?.Invoke(control);
     }
 }

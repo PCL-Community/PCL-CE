@@ -15,12 +15,9 @@ namespace PCL;
 
 public partial class PageLaunchLeft
 {
-    private double actualUsedHeight;
-    private double actualUsedWidth;
     private int btnLaunchState;
     private string _btnLaunchLanguage;
     private McInstance btnLaunchVersion;
-    private bool isHeightAnimating;
     public interface ILoginPage { void Reload(); }
 
     private enum LaunchButtonAction
@@ -42,8 +39,7 @@ public partial class PageLaunchLeft
 
     private bool isLoadFinished;
 
-    // 尺寸改变动画
-    private bool isWidthAnimating;
+    // 尺寸改变
     private double showProgress;
 
     private readonly PageLaunchLeftViewModel _vm = new();
@@ -59,8 +55,7 @@ public partial class PageLaunchLeft
         BtnLaunch.Loaded += (_, _) => RefreshButtonsUI();
         BtnCancel.Click += BtnCancel_Click;
         BtnMore.Click += BtnMore_Click;
-        PanLaunchingInfo.SizeChanged += PanLaunchingInfo_SizeChangedW;
-        PanLaunchingInfo.SizeChanged += PanLaunchingInfo_SizeChangedH;
+
         DataContext = _vm;
     }
 
@@ -71,7 +66,7 @@ public partial class PageLaunchLeft
     public void PageLaunchLeft_Loaded(object sender, RoutedEventArgs e)
     {
         if (isLoad)
-            RefreshPage(false);
+            RefreshPage();
 
         AprilPosTrans.X = 0d;
         AprilPosTrans.Y = 0d;
@@ -79,7 +74,7 @@ public partial class PageLaunchLeft
         if (isLoad)
             return;
         isLoad = true;
-        ModAnimation.AniBeginControl();
+        ModBase.BeginUiUpdate();
 
         // 开始按钮
         ModInstanceList.mcInstanceListLoader.LoadingStateChanged += (_, _) => RefreshButtonsUI();
@@ -195,15 +190,15 @@ public partial class PageLaunchLeft
                 ModInstanceList.McMcInstanceSelected = instance; // 绕这一圈是为了避免 McInstanceCheck 触发第二次实例改变
                 isLoadFinished = true;
                 RefreshButtonsUI();
-                RefreshPage(false); // 有可能选择的版本变化了，需要重新刷新
+                RefreshPage(); // 有可能选择的版本变化了，需要重新刷新
                 // If IsProfileVaild() = "" Then McLoginLoader.Start() '自动登录
             });
         }, "Instance Check", ThreadPriority.AboveNormal);
 
         // 改变页面
-        RefreshPage(false);
+        RefreshPage();
 
-        ModAnimation.AniEndControl();
+        ModBase.EndUiUpdate();
     }
 
     // 实例选择按钮
@@ -426,8 +421,6 @@ public partial class PageLaunchLeft
                 }
             } while (false);
 
-            if (ModAnimation.AniIsRun("Launch State Page"))
-                isLaunched = false; // 等待页面切换动画完成
             // 计算应显示的进度
             var actualProgress = ModLaunch.mcLaunchLoaderReal.Progress;
             if (actualProgress >= showProgress)
@@ -456,57 +449,30 @@ public partial class PageLaunchLeft
 
             _vm.ApplyLaunchingDownload(ModNet.NetManager.Speed);
             var shouldShowHint = Config.Preference.ShowLaunchingHint;
-            // 进度改变动画
-            var animList = new List<ModAnimation.AniData>
-            {
-                ModAnimation.AaGridLengthWidth(ProgressLaunchingFinished,
-                    showProgress - ProgressLaunchingFinished.Width.Value, 260,
-                    ease: new ModAnimation.AniEaseOutFluent()),
-                ModAnimation.AaGridLengthWidth(ProgressLaunchingUnfinished,
-                    1d - showProgress - ProgressLaunchingUnfinished.Width.Value, 260,
-                    ease: new ModAnimation.AniEaseOutFluent())
-            };
+            // 更新进度条
+            ProgressLaunchingFinished.Width = new GridLength(showProgress, GridUnitType.Star);
+            ProgressLaunchingUnfinished.Width = new GridLength(1d - showProgress, GridUnitType.Star);
+
             var isDownloadStateChanged =
                 hasLaunchDownloader == (LabLaunchingDownload.Visibility == Visibility.Collapsed);
             if (isDownloadStateChanged)
             {
-                LabLaunchingDownload.Visibility = Visibility.Visible;
-                LabLaunchingDownloadLeft.Visibility = Visibility.Visible;
-                animList.AddRange(new[]
-                {
-                    ModAnimation.AaOpacity(LabLaunchingDownload,
-                        (hasLaunchDownloader ? 1 : 0) - LabLaunchingDownload.Opacity, 100),
-                    ModAnimation.AaOpacity(LabLaunchingDownloadLeft,
-                        (hasLaunchDownloader ? 0.5d : 0d) - LabLaunchingDownloadLeft.Opacity, 100),
-                    ModAnimation.AaCode(() =>
-                    {
-                        if (!hasLaunchDownloader)
-                        {
-                            LabLaunchingDownload.Visibility = Visibility.Collapsed;
-                            LabLaunchingDownloadLeft.Visibility = Visibility.Collapsed;
-                        }
-                    }, 110)
-                });
+                LabLaunchingDownload.Visibility = hasLaunchDownloader ? Visibility.Visible : Visibility.Collapsed;
+                LabLaunchingDownload.Opacity = hasLaunchDownloader ? 1d : 0d;
+                LabLaunchingDownloadLeft.Visibility = hasLaunchDownloader ? Visibility.Visible : Visibility.Collapsed;
+                LabLaunchingDownloadLeft.Opacity = hasLaunchDownloader ? 0.5d : 0d;
             }
 
             var isProgressStateChanged = !isLaunched == (LabLaunchingProgress.Visibility == Visibility.Collapsed);
             if (isProgressStateChanged)
             {
-                LabLaunchingProgress.Visibility = Visibility.Visible;
-                LabLaunchingProgressLeft.Visibility = Visibility.Visible;
-                if (isLaunched && shouldShowHint) PanLaunchingHint.Visibility = Visibility.Visible;
-                animList.AddRange(new[]
-                {
-                    ModAnimation.AaOpacity(LabLaunchingProgress, (!isLaunched ? 1 : 0) - LabLaunchingProgress.Opacity,
-                        100),
-                    ModAnimation.AaOpacity(LabLaunchingProgressLeft,
-                        (!isLaunched ? 0.5d : 0d) - LabLaunchingProgressLeft.Opacity, 100),
-                    ModAnimation.AaOpacity(PanLaunchingHint,
-                        (isLaunched && shouldShowHint ? 1 : 0) - PanLaunchingHint.Opacity, 100)
-                });
+                LabLaunchingProgress.Visibility = isLaunched ? Visibility.Collapsed : Visibility.Visible;
+                LabLaunchingProgress.Opacity = isLaunched ? 0d : 1d;
+                LabLaunchingProgressLeft.Visibility = isLaunched ? Visibility.Collapsed : Visibility.Visible;
+                LabLaunchingProgressLeft.Opacity = isLaunched ? 0d : 0.5d;
+                PanLaunchingHint.Visibility = isLaunched && shouldShowHint ? Visibility.Visible : Visibility.Collapsed;
+                PanLaunchingHint.Opacity = isLaunched && shouldShowHint ? 1d : 0d;
             }
-
-            ModAnimation.AniStart(animList, "Launching Progress");
         }
         catch (Exception ex)
         {
@@ -516,46 +482,6 @@ public partial class PageLaunchLeft
                 ModBase.LogLevel.Feedback,
                 userSummary: Lang.Text("Minecraft.Launch.Error.RefreshInfo"));
         }
-    }
-
-    private void PanLaunchingInfo_SizeChangedW(object sender, SizeChangedEventArgs e)
-    {
-        var deltaWidth = e.NewSize.Width - e.PreviousSize.Width;
-        if (e.PreviousSize.Width == 0d || isWidthAnimating || Math.Abs(deltaWidth) < 1d ||
-            PanLaunchingInfo.ActualWidth == 0d)
-            return;
-        ModAnimation.AniStart(new[]
-        {
-            ModAnimation.AaWidth(PanLaunchingInfo, deltaWidth, 180, ease: new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaCode(() =>
-            {
-                isWidthAnimating = false;
-                PanLaunchingInfo.Width = actualUsedWidth;
-            }, after: true)
-        }, "Launching Info Width");
-        isWidthAnimating = true;
-        actualUsedWidth = PanLaunchingInfo.Width;
-        PanLaunchingInfo.Width = e.PreviousSize.Width;
-    }
-
-    private void PanLaunchingInfo_SizeChangedH(object sender, SizeChangedEventArgs e)
-    {
-        var deltaHeight = e.NewSize.Height - e.PreviousSize.Height;
-        if (e.PreviousSize.Height == 0d || isHeightAnimating || Math.Abs(deltaHeight) < 1d ||
-            PanLaunchingInfo.ActualHeight == 0d)
-            return;
-        ModAnimation.AniStart(new[]
-        {
-            ModAnimation.AaHeight(PanLaunchingInfo, deltaHeight, 180, ease: new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaCode(() =>
-            {
-                isHeightAnimating = false;
-                PanLaunchingInfo.Height = actualUsedHeight;
-            }, after: true)
-        }, "Launching Info Height");
-        isHeightAnimating = true;
-        actualUsedHeight = PanLaunchingInfo.Height;
-        PanLaunchingInfo.Height = e.PreviousSize.Height;
     }
 
     // 启动游戏按钮
@@ -614,7 +540,7 @@ public partial class PageLaunchLeft
         ProgressLaunchingUnfinished.Width = new GridLength(1d, GridUnitType.Star);
         PanLaunchingHint.Opacity = 0d;
         PanLaunchingHint.Visibility = Visibility.Collapsed;
-        PanLaunchingInfo.Width = double.NaN; // 重置宽度改变动画
+        PanLaunchingInfo.Width = double.NaN;
         ModLaunch.mcLaunchProcess = null;
         ModLaunch.mcLaunchWatcher = null;
 
@@ -625,18 +551,11 @@ public partial class PageLaunchLeft
         PanLaunching.IsHitTestVisible = false;
         LoadLaunching.State.LoadingState = MyLoading.MyLoadingState.Run;
         PanLaunching.Visibility = Visibility.Visible;
-        ModAnimation.AniStart(
-            new[]
-            {
-                ModAnimation.AaOpacity(PanInput, 0d, 50),
-                ModAnimation.AaOpacity(PanInput, -PanInput.Opacity, 110, ease: new ModAnimation.AniEaseInFluent(),
-                    after: true),
-                ModAnimation.AaScaleTransform(PanInput, 1.2d - ((ScaleTransform)PanInput.RenderTransform).ScaleX, 160),
-                ModAnimation.AaOpacity(PanLaunching, 1d - PanLaunching.Opacity, 150, 100),
-                ModAnimation.AaScaleTransform(PanLaunching, 1d - ((ScaleTransform)PanLaunching.RenderTransform).ScaleX,
-                    500, 100, new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
-                ModAnimation.AaCode(() => PanLaunching.IsHitTestVisible = true, 150)
-            }, "Launch State Page"); // 略作延迟，这样如果预检测失败，不会出现奇怪的弹一下的动画
+        PanInput.Opacity = 0d;
+        ApplyScale(PanInput, 1.2d);
+        PanLaunching.Opacity = 1d;
+        ApplyScale(PanLaunching, 1d);
+        PanLaunching.IsHitTestVisible = true;
     }
 
     /// <summary>
@@ -649,18 +568,20 @@ public partial class PageLaunchLeft
         PanLaunching.IsHitTestVisible = false;
         LoadLaunching.State.LoadingState = MyLoading.MyLoadingState.Stop;
         PanInput.Visibility = Visibility.Visible;
-        ModAnimation.AniStart(
-            new[]
-            {
-                ModAnimation.AaOpacity(PanLaunching, -PanLaunching.Opacity, 150),
-                ModAnimation.AaScaleTransform(PanLaunching,
-                    0.8d - ((ScaleTransform)PanLaunching.RenderTransform).ScaleX, 150,
-                    ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)),
-                ModAnimation.AaOpacity(PanInput, 1d - PanInput.Opacity, 250, 50),
-                ModAnimation.AaScaleTransform(PanInput, 1d - ((ScaleTransform)PanInput.RenderTransform).ScaleX, 300, 50,
-                    new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
-                ModAnimation.AaCode(() => PanInput.IsHitTestVisible = true, 200)
-            }, "Launch State Page", true);
+        PanLaunching.Opacity = 0d;
+        ApplyScale(PanLaunching, 0.8d);
+        PanInput.Opacity = 1d;
+        ApplyScale(PanInput, 1d);
+        PanInput.IsHitTestVisible = true;
+    }
+
+    private static void ApplyScale(FrameworkElement element, double scale)
+    {
+        if (element.RenderTransform is ScaleTransform transform)
+        {
+            transform.ScaleX = scale;
+            transform.ScaleY = scale;
+        }
     }
 
     #endregion
@@ -728,8 +649,7 @@ public partial class PageLaunchLeft
     ///     切换现有登录页面种类，返回新页面的实例。
     /// </summary>
     /// <param name="type">新页面的种类。</param>
-    /// <param name="anim">是否显示动画。</param>
-    private object PageChange(PageType type, bool anim)
+    private object PageChange(PageType type)
     {
         object pageNew = ModMain.frmLoginMs; // 初始化一个东西，避免在执行时出现异常导致雪崩
         try
@@ -744,37 +664,17 @@ public partial class PageLaunchLeft
 
             #region 切换页面
 
-            ModAnimation.AniStop("FrmLogin PageChange");
+            // 切换页面
             // 清除页面关联性
             if (pageNew is FrameworkElement element && element.Parent is not null)
             {
                 element.SetValue(ContentPresenter.ContentProperty, null);
             }
-            if (anim)
-            {
-                // 动画
-                // 执行动画
-                Dispatcher.Invoke(() => ModAnimation.AniStart(new[]
-                {
-                    ModAnimation.AaOpacity(PanLogin, -PanLogin.Opacity, 100, ease: new ModAnimation.AniEaseOutFluent()),
-                    ModAnimation.AaCode(() =>
-                    {
-                        ModAnimation.AniBeginControl();
-                        PanLogin.Children.Clear();
-                        PanLogin.Children.Add((UIElement)pageNew);
-                        ModAnimation.AniEndControl();
-                    }, 100),
-                    ModAnimation.AaOpacity(PanLogin, 1d, 100, 120, new ModAnimation.AniEaseInFluent())
-                }, "FrmLogin PageChange"), DispatcherPriority.Render);
-            }
-            else
-            {
-                // 无动画
-                ModAnimation.AniBeginControl();
-                PanLogin.Children.Clear();
-                PanLogin.Children.Add((UIElement)pageNew);
-                ModAnimation.AniEndControl();
-            }
+
+            ModBase.BeginUiUpdate();
+            PanLogin.Children.Clear();
+            PanLogin.Children.Add((UIElement)pageNew);
+            ModBase.EndUiUpdate();
 
             #endregion
 
@@ -795,9 +695,8 @@ public partial class PageLaunchLeft
     /// <summary>
     ///     确认当前显示的子页面正确，并刷新该页面。
     /// </summary>
-    /// <param name="anim">是否显示动画</param>
     /// <param name="targetLoginType">目标验证方式，若正在创建档案需填</param>
-    public void RefreshPage(bool anim, ModLaunch.McLoginType targetLoginType = default)
+    public void RefreshPage(ModLaunch.McLoginType targetLoginType = default)
     {
         var type = default(PageType);
         if (targetLoginType != default)
@@ -824,7 +723,7 @@ public partial class PageLaunchLeft
         // 刷新页面
         if (pageCurrent == type)
             return;
-        PageChange(type, anim);
+        PageChange(type);
     }
 
     #endregion

@@ -126,7 +126,6 @@ public static class UpdateManager
                             ModMain.frmMain.BtnExtraUpdateRestart.ToolTip =
                                 Lang.Text("Main.Extra.UpdateRestart.ToolTipWithVersion", ModBase.versionBaseName, version.VersionName);
                             ModMain.frmMain.BtnExtraUpdateRestart.ShowRefresh();
-                            ModMain.frmMain.BtnExtraUpdateRestart.Ribble();
                         });
                     })
                     {
@@ -151,7 +150,6 @@ public static class UpdateManager
                 {
                     ModLoader.LoaderTaskbarAdd(updateLoader);
                     ModMain.frmMain.BtnExtraDownload.ShowRefresh();
-                    ModMain.frmMain.BtnExtraDownload.Ribble();
                 }
             }
             catch (Exception ex)

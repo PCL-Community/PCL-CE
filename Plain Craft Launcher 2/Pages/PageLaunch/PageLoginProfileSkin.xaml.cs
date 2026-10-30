@@ -58,16 +58,14 @@ public partial class PageLoginProfileSkin
     // 显示 / 隐藏控制
     private void ShowPanel(object sender, MouseEventArgs e)
     {
-        ModAnimation.AniStart(ModAnimation.AaOpacity(PanButtons, 1d - PanButtons.Opacity, 120),
-            "PageLoginProfileSkin Button");
+        PanButtons.Opacity = 1d;
     }
 
     private void HidePanel(object sender, EventArgs e)
     {
         if (BtnEdit.ContextMenu.IsOpen || BtnSkin.ContextMenu.IsOpen || PanData.IsMouseOver)
             return;
-        ModAnimation.AniStart(ModAnimation.AaOpacity(PanButtons, -PanButtons.Opacity, 120),
-            "PageLoginProfileSkin Button");
+        PanButtons.Opacity = 0d;
     }
 
     private void MenuAccountOptions_Closed(object sender, RoutedEventArgs e)
@@ -120,7 +118,7 @@ public partial class PageLoginProfileSkin
         ProfileService.Select(null);
         ModBase.RunInUi(() =>
         {
-            ModMain.frmLaunchLeft.RefreshPage(true);
+            ModMain.frmLaunchLeft.RefreshPage();
             ModMain.frmLaunchLeft.BtnLaunch.IsEnabled = false;
         });
     }

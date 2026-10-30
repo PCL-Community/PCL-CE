@@ -22,11 +22,6 @@ public partial class MyIconTextButton
         Highlight
     }
 
-    // 动画
-
-    private const int animationTimeOfMouseIn = 100; // 鼠标指向动画长度
-    private const int animationTimeOfMouseOut = 150; // 鼠标移出动画长度
-
     public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),
         typeof(MyIconTextButton), new PropertyMetadata((sender, e) =>
         {
@@ -162,9 +157,6 @@ public partial class MyIconTextButton
     public event CheckEventHandler? Check;
     public event ChangeEventHandler? Change;
 
-    private string CheckedAnimationKey => "MyIconTextButton Checked " + Uuid;
-    private string ColorAnimationKey => "MyIconTextButton Color " + Uuid;
-
     // 点击事件
 
     public event ClickEventHandler? Click;
@@ -174,34 +166,15 @@ public partial class MyIconTextButton
         return ColorType == ColorState.Highlight ? "ColorBrush3" : "ColorBrush1";
     }
 
-    private void StartForegroundAnimation(string resourceKey, int duration)
+    private void SetForegroundResource(string resourceKey)
     {
-        if (IsUsingSvgIcon)
-        {
-            SvgIconControlHelper.AnimateSvgIconBrushTo(ShapeSvgIcon, resourceKey, duration, CheckedAnimationKey);
-            ModAnimation.AniStart(
-                ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty, resourceKey, duration),
-                CheckedAnimationKey);
-        }
-        else
-        {
-            ModAnimation.AniStart(
-                new[]
-                {
-                    ModAnimation.AaColor(ShapeLogo, Shape.FillProperty, resourceKey, duration),
-                    ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty, resourceKey, duration)
-                }, CheckedAnimationKey);
-        }
+        SvgIconControlHelper.SetIconResource(ShapeLogo, ShapeSvgIcon, IsUsingSvgIcon, resourceKey);
+        LabText.SetResourceReference(TextBlock.ForegroundProperty, resourceKey);
     }
 
-    private void StartBackgroundAnimation(string resourceKey, int duration)
+    private void SetBackgroundResource(string resourceKey)
     {
-        ModAnimation.AniStart(ModAnimation.AaColor(this, BackgroundProperty, resourceKey, duration), ColorAnimationKey);
-    }
-
-    private void StartBackgroundAnimation(ModBase.MyColor delta, int duration)
-    {
-        ModAnimation.AniStart(ModAnimation.AaColor(this, BackgroundProperty, delta, duration), ColorAnimationKey);
+        SetResourceReference(BackgroundProperty, resourceKey);
     }
 
     private void MyIconTextButton_MouseUp()
@@ -231,38 +204,24 @@ public partial class MyIconTextButton
     {
         try
         {
-            if (ControlVisualHelpers.ShouldAnimate(this, e)) // 防止默认属性变更触发动画，若强制不执行动画，则 e 为 False
+            if (isMouseDown)
             {
-                if (isMouseDown)
-                {
-                    StartBackgroundAnimation("ColorBrush6", 70);
-                }
-                else if (IsMouseOver)
-                {
-                    StartForegroundAnimation("ColorBrush3", animationTimeOfMouseIn);
-                    StartBackgroundAnimation("ColorBrushBg1", animationTimeOfMouseIn);
-                }
-                else if (IsEnabled)
-                {
-                    StartForegroundAnimation(GetDefaultForegroundResourceKey(), animationTimeOfMouseOut);
-                    StartBackgroundAnimation(ThemeManager.colorSemiTransparent - Background, animationTimeOfMouseOut);
-                }
-                else
-                {
-                    StartForegroundAnimation("ColorBrushGray5", 100);
-                    StartBackgroundAnimation(ThemeManager.colorSemiTransparent - Background, animationTimeOfMouseOut);
-                }
+                SetBackgroundResource("ColorBrush6");
             }
-
+            else if (IsMouseOver)
+            {
+                SetForegroundResource("ColorBrush3");
+                SetBackgroundResource("ColorBrushBg1");
+            }
+            else if (IsEnabled)
+            {
+                SetForegroundResource(GetDefaultForegroundResourceKey());
+                Background = ThemeManager.colorSemiTransparent;
+            }
             else
             {
-                // 不使用动画
-                ModAnimation.AniStop(CheckedAnimationKey);
-                ModAnimation.AniStop(ColorAnimationKey);
+                SetForegroundResource("ColorBrushGray5");
                 Background = ThemeManager.colorSemiTransparent;
-                var foregroundKey = IsEnabled ? GetDefaultForegroundResourceKey() : "ColorBrushGray5";
-                SvgIconControlHelper.SetIconResource(ShapeLogo, ShapeSvgIcon, IsUsingSvgIcon, foregroundKey);
-                LabText.SetResourceReference(TextBlock.ForegroundProperty, foregroundKey);
             }
         }
         catch (Exception ex)

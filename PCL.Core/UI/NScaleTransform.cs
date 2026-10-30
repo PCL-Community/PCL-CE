@@ -1,7 +1,6 @@
 using System;
 using System.Numerics;
 using System.Windows.Media;
-using PCL.Core.UI.Animation.Core;
 
 namespace PCL.Core.UI;
 
@@ -52,15 +51,14 @@ public struct NScaleTransform :
 
     public NScaleTransform(ScaleTransform scaleTransform)
     {
-        var uiAccessProvider = AnimationService.UIAccessProvider;
-        if (uiAccessProvider.CheckAccess())
+        if (scaleTransform.Dispatcher.CheckAccess())
         {
             _scale = GetVector(scaleTransform);
         }
         else
         {
             Vector4 localScale = default;
-            uiAccessProvider.Invoke(() => localScale = GetVector(scaleTransform));
+            scaleTransform.Dispatcher.Invoke(() => localScale = GetVector(scaleTransform));
             _scale = localScale;
         }
 

@@ -80,7 +80,7 @@ public partial class PageLoginProfile : IPageView
     {
         if (sender is not MyListItem { DataContext: ProfileItem item }) return;
         _vm.Select(item);
-        ModMain.frmLaunchLeft.RefreshPage(true);
+        ModMain.frmLaunchLeft.RefreshPage();
         ModMain.frmLaunchLeft.BtnLaunch.IsEnabled = true;
     }
 

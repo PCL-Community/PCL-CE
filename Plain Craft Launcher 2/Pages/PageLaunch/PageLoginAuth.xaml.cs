@@ -85,7 +85,7 @@ public partial class PageLoginAuth
         _authServerUrl = "";
         TextName.Text = null;
         TextPass.Password = null;
-        ModMain.frmLaunchLeft.RefreshPage(true);
+        ModMain.frmLaunchLeft.RefreshPage();
     }
 
     private void BtnLogin_Click(object sender, EventArgs e)
@@ -140,7 +140,7 @@ public partial class PageLoginAuth
                 switch (ModLaunch.mcLoginAuthLoader.State)
                 {
                     case ModBase.LoadState.Finished:
-                        ModMain.frmLaunchLeft.RefreshPage(true);
+                        ModMain.frmLaunchLeft.RefreshPage();
                         break;
                     case ModBase.LoadState.Aborted:
                         HintService.Hint(Lang.Text("Launch.Account.Auth.Cancelled"));
@@ -206,43 +206,21 @@ public partial class PageLoginAuth
             ? new FrameworkElement[] { PanOAuth, BtnUsePassword, BtnWebsite, BtnBackOAuth }
             : new FrameworkElement[] { TextName, TextNameTitle, TextPass, TextPassTitle, BtnLink, BtnLogin, PanPasswordLinks, BtnBack };
 
-        var animations = new List<ModAnimation.AniData>();
-        if (wasOAuth || !_loginModeInitialized)
+        foreach (var element in oldElements)
         {
-            foreach (var element in oldElements)
-            {
-                if (element.Visibility == Visibility.Visible)
-                    animations.Add(ModAnimation.AaOpacity(element, -element.Opacity, 90));
-            }
+            element.Visibility = Visibility.Collapsed;
+            element.Opacity = 1d;
         }
-
-        animations.Add(ModAnimation.AaCode(() =>
-        {
-            foreach (var element in oldElements)
-            {
-                element.Visibility = Visibility.Collapsed;
-                element.Opacity = 1d;
-            }
-
-            foreach (var element in newElements)
-            {
-                element.Visibility = ReferenceEquals(element, BtnLink) && !_hasRegisterLink
-                    ? Visibility.Collapsed
-                    : Visibility.Visible;
-                element.Opacity = 0d;
-            }
-        }, after: true));
 
         foreach (var element in newElements)
         {
-            var targetOpacity = ReferenceEquals(element, BtnBackOAuth) || ReferenceEquals(element, PanPasswordLinks)
+            element.Visibility = ReferenceEquals(element, BtnLink) && !_hasRegisterLink
+                ? Visibility.Collapsed
+                : Visibility.Visible;
+            element.Opacity = ReferenceEquals(element, BtnBackOAuth) || ReferenceEquals(element, PanPasswordLinks)
                 ? 0.3d
                 : 1d;
-            animations.Add(ModAnimation.AaOpacity(element, targetOpacity, 130, 20,
-                new ModAnimation.AniEaseInFluent()));
         }
-
-        ModAnimation.AniStart(animations, "Profile Authentication Mode");
     }
 
     private void _UpdateOAuthEntryVisibility()
@@ -287,7 +265,7 @@ public partial class PageLoginAuth
             }, existing: null, select: true, token: CancellationToken.None).ConfigureAwait(false);
             ModBase.RunInUi(() =>
             {
-                ModMain.frmLaunchLeft.RefreshPage(true);
+                ModMain.frmLaunchLeft.RefreshPage();
             });
             LogWrapper.Info("Profile","Yggdrasil Connect 登录成功：" + profile.UserName);
         }

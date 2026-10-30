@@ -31,11 +31,6 @@ public partial class PageSetupAbout : IPageView
         if (!_vm.ShowMcmod) RowMcmod.Height = new GridLength(0);
     }
 
-    private void ImgPCLCommunity_Click(object sender, MouseButtonEventArgs e)
-    {
-        _vm.RotateCommunityLogoCommand.Execute(sender);
-    }
-
     private void ImgPCLLogo_Click(object sender, MouseButtonEventArgs e)
     {
         _vm.LogoClickCommand.Execute(sender);

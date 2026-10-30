@@ -47,18 +47,10 @@ public partial class MyMsgAuthServer
 
     private void Load(object sender, EventArgs e)
     {
-        Opacity = 0d;
-        ModAnimation.AniStart(
-            new[]
-        {
-            ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
-                new ModBase.MyColor(90d, 0d, 0d, 0d) - ModMain.frmMain.PanMsgBackground.Background, 200),
-            ModAnimation.AaOpacity(this, 1d, 120, 60),
-            ModAnimation.AaDouble(i => TransformPos.Y += (double)i, -TransformPos.Y, 300, 60,
-                new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
-            ModAnimation.AaDouble(i => TransformRotate.Angle += (double)i, -TransformRotate.Angle, 300, 60,
-                new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
-        }, "MyMsgBox " + _uuid);
+        ModMain.frmMain.PanMsgBackground.Background = new ModBase.MyColor(90d, 0d, 0d, 0d);
+        Opacity = 1d;
+        TransformPos.Y = 0d;
+        TransformRotate.Angle = 0d;
     }
 
     private void Btn1_Click(object sender, MouseButtonEventArgs e)
@@ -87,24 +79,14 @@ public partial class MyMsgAuthServer
         _converter.WaitFrame.Continue = false;
         _converter.CompletionObject.TrySetResult(_converter.Result);
         ComponentDispatcher.PopModal();
-        ModAnimation.AniStart(new[]
+        // 隐藏
+        ModBase.RunInUiLater(() =>
         {
-            ModAnimation.AaCode(() =>
-            {
-                if (!ModMain.WaitingMyMsgBox.Any())
-                    ModAnimation.AniStart(ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground,
-                        BlurBorder.BackgroundProperty,
-                        new ModBase.MyColor(0d, 0d, 0d, 0d) - ModMain.frmMain.PanMsgBackground.Background, 200,
-                        ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
-            }, 30),
-            ModAnimation.AaOpacity(this, -Opacity, 80, 20),
-            ModAnimation.AaDouble(i => TransformPos.Y += (double)i, 20d - TransformPos.Y,
-                150, 0, new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaDouble(i => TransformRotate.Angle += (double)i,
-                6d - TransformRotate.Angle, 150, 0,
-                new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
-            ModAnimation.AaCode(() => ((Grid)Parent).Children.Remove(this), after: true)
-        }, "MyMsgBox " + _uuid);
+            if (!ModMain.WaitingMyMsgBox.Any())
+                ModMain.frmMain.PanMsgBackground.Background = new ModBase.MyColor(0d, 0d, 0d, 0d);
+        }, 30);
+        if (Parent is Grid parentGrid)
+            parentGrid.Children.Remove(this);
     }
 
     private void Drag(object sender, MouseButtonEventArgs e)

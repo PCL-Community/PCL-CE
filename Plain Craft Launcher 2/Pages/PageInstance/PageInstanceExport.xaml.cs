@@ -93,10 +93,10 @@ public partial class PageInstanceExport : IRefreshable, IPageView
         if (_refreshed)
             return;
         _refreshed = true;
-        ModAnimation.AniBeginControl();
+        ModBase.BeginUiUpdate();
         if (_vm.CurrentVersion != (PageInstanceLeft.McInstance.PathInstance ?? ""))
             RefreshAll(); // 切换到了另一个实例，重置页面
-        ModAnimation.AniEndControl();
+        ModBase.EndUiUpdate();
     }
 
     public void RefreshAll()
@@ -1228,7 +1228,6 @@ public partial class PageInstanceExport : IRefreshable, IPageView
         mainLoader.Start();
         ModLoader.LoaderTaskbarAdd(mainLoader);
         ModMain.frmMain.BtnExtraDownload.ShowRefresh();
-        ModMain.frmMain.BtnExtraDownload.Ribble();
         ModMain.frmMain.PageChange(FormMain.PageType.TaskManager);
     }
 

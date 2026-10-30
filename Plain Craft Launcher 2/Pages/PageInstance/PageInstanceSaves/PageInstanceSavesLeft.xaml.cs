@@ -74,7 +74,7 @@ public partial class PageInstanceSavesLeft : IRefreshable
     {
         if (pageID == id)
             return;
-        ModAnimation.AniBeginControl();
+        ModBase.BeginUiUpdate();
         try
         {
             PageChangeRun((MyPageRight)PageGet(id));
@@ -90,31 +90,20 @@ public partial class PageInstanceSavesLeft : IRefreshable
         }
         finally
         {
-            ModAnimation.AniEndControl();
+            ModBase.EndUiUpdate();
         }
     }
 
     private static void PageChangeRun(MyPageRight target)
     {
-        ModAnimation.AniStop("FrmMain PageChangeRight");
         if (target.Parent is not null)
             target.SetValue(ContentPresenter.ContentProperty, null);
         ModMain.frmMain.pageRight = target;
         ((MyPageRight)ModMain.frmMain.PanMainRight.Child).PageOnExit();
-        ModAnimation.AniStart(new[]
-        {
-            ModAnimation.AaCode(() =>
-            {
-                ((MyPageRight)ModMain.frmMain.PanMainRight.Child).PageOnForceExit();
-                ModMain.frmMain.PanMainRight.Child = ModMain.frmMain.pageRight;
-                ModMain.frmMain.pageRight.Opacity = 0d;
-            }, 130),
-            ModAnimation.AaCode(() =>
-            {
-                ModMain.frmMain.pageRight.Opacity = 1d;
-                ModMain.frmMain.pageRight.PageOnEnter();
-            }, 30, true)
-        }, "PageLeft PageChange");
+        ((MyPageRight)ModMain.frmMain.PanMainRight.Child).PageOnForceExit();
+        ModMain.frmMain.PanMainRight.Child = ModMain.frmMain.pageRight;
+        ModMain.frmMain.pageRight.Opacity = 1d;
+        ModMain.frmMain.pageRight.PageOnEnter();
     }
 
     public void RefreshButton_Click(object sender, EventArgs e)

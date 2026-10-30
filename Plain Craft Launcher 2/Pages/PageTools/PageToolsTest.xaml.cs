@@ -173,7 +173,6 @@ public partial class PageToolsTest : IPageView
             loaderCombo.Start();
             ModLoader.LoaderTaskbarAdd(loaderCombo);
             ModMain.frmMain.BtnExtraDownload.ShowRefresh();
-            ModMain.frmMain.BtnExtraDownload.Ribble();
         }
 
         catch (Exception ex)

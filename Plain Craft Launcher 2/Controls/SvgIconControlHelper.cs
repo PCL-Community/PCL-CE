@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using PCL.Core.UI;
 using PCL.Core.UI.Controls.SvgIcon;
 
 namespace PCL;
@@ -43,46 +42,5 @@ internal static class SvgIconControlHelper
             svgIcon.SetResourceReference(SvgIcon.IconBrushProperty, resourceKey);
         else
             legacyIcon.SetResourceReference(Shape.FillProperty, resourceKey);
-    }
-
-    internal static void AnimateSvgIconBrushTo(
-        SvgIcon svgIcon,
-        string resourceKey,
-        int duration,
-        string? animationKey = null)
-    {
-        if (svgIcon.Visibility == Visibility.Visible)
-            svgIcon.AnimateIconBrushTo(
-                ResolveResourceColor(resourceKey),
-                TimeSpan.FromMilliseconds(duration),
-                animationKey: animationKey);
-    }
-
-    internal static void AnimateSvgIconBrushTo(
-        SvgIcon svgIcon,
-        ModBase.MyColor color,
-        int duration,
-        string? animationKey = null)
-    {
-        if (svgIcon.Visibility == Visibility.Visible)
-            svgIcon.AnimateIconBrushTo(
-                new NColor((Color)color),
-                TimeSpan.FromMilliseconds(duration),
-                animationKey: animationKey);
-    }
-
-    private static NColor ResolveResourceColor(string resourceKey)
-    {
-        if (!ThemeManager.AppResources.Contains(resourceKey))
-            return new NColor(resourceKey);
-
-        var resource = ThemeManager.AppResources[resourceKey];
-        return resource switch
-        {
-            SolidColorBrush brush => new NColor(brush),
-            Color color => new NColor(color),
-            Brush brush => new NColor(brush),
-            _ => new NColor(resourceKey)
-        };
     }
 }

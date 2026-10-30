@@ -37,7 +37,7 @@
                         <local:MyHint Text="{DynamicResource Download.Install.Warning.ModOptiFine}" Margin="0,1,0,7"
                                       x:Name="HintModOptiFine" Visibility="{Binding ShowHintModOptiFine, Converter={StaticResource BooleanToVisibilityConverter}}"
                                       IsWarn="False" />
-                        <local:MyCard Margin="0,15,0,0" UseAnimation="False">
+                        <local:MyCard Margin="0,15,0,0">
                             <StackPanel Margin="15,7,15,7">
                                 <local:MyListItem x:Name="ItemSelect" Title="{Binding SelectedTitle}"
                                                   Info="{Binding SelectedInfo}" Logo="{Binding SelectedLogo}"
@@ -406,20 +406,20 @@
                                      SvgIcon="lucide/download" />
         </Grid>
         <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" Margin="40,0" SnapsToDevicePixels="True"
-                      x:Name="PanLoad" UseAnimation="False">
+                      x:Name="PanLoad">
             <local:MyLoading Text="" Margin="20,20,20,17" x:Name="LoadMinecraft" HorizontalAlignment="Center"
                              VerticalAlignment="Center" />
-            <local:MyLoading Visibility="Collapsed" x:Name="LoadOptiFine" HasAnimation="False" />
-            <local:MyLoading Visibility="Collapsed" x:Name="LoadForge" HasAnimation="False" />
-            <local:MyLoading Visibility="Collapsed" x:Name="LoadNeoForge" HasAnimation="False" />
-            <local:MyLoading Visibility="Collapsed" x:Name="LoadCleanroom" HasAnimation="False" />
-            <local:MyLoading Visibility="Collapsed" x:Name="LoadLiteLoader" HasAnimation="False" />
-            <local:MyLoading Visibility="Collapsed" x:Name="LoadFabric" HasAnimation="False" />
-            <local:MyLoading Visibility="Collapsed" x:Name="LoadLegacyFabric" HasAnimation="False" />
-            <local:MyLoading Visibility="Collapsed" x:Name="LoadFabricApi" HasAnimation="False" />
-            <local:MyLoading Visibility="Collapsed" x:Name="LoadLegacyFabricApi" HasAnimation="False" />
-            <local:MyLoading Visibility="Collapsed" x:Name="LoadLabyMod" HasAnimation="False" />
-            <local:MyLoading Visibility="Collapsed" x:Name="LoadOptiFabric" HasAnimation="False" />
+            <local:MyLoading Visibility="Collapsed" x:Name="LoadOptiFine" />
+            <local:MyLoading Visibility="Collapsed" x:Name="LoadForge" />
+            <local:MyLoading Visibility="Collapsed" x:Name="LoadNeoForge" />
+            <local:MyLoading Visibility="Collapsed" x:Name="LoadCleanroom" />
+            <local:MyLoading Visibility="Collapsed" x:Name="LoadLiteLoader" />
+            <local:MyLoading Visibility="Collapsed" x:Name="LoadFabric" />
+            <local:MyLoading Visibility="Collapsed" x:Name="LoadLegacyFabric" />
+            <local:MyLoading Visibility="Collapsed" x:Name="LoadFabricApi" />
+            <local:MyLoading Visibility="Collapsed" x:Name="LoadLegacyFabricApi" />
+            <local:MyLoading Visibility="Collapsed" x:Name="LoadLabyMod" />
+            <local:MyLoading Visibility="Collapsed" x:Name="LoadOptiFabric" />
         </local:MyCard>
     </Grid>
 </local:MyPageRight>

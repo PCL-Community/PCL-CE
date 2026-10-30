@@ -43,14 +43,14 @@ public partial class PageSetupUpdate : IPageView
 
     private void Init()
     {
-        ModAnimation.AniBeginControl();
+        ModBase.BeginUiUpdate();
         TextMirrorCDK.Password = Config.Update.MirrorChyanKey;
 
         ComboSystemUpdateChannel.SelectedIndex = (int)Config.Update.UpdateChannel;
         ComboSystemUpdateMode.SelectedIndex = (int)Config.Update.UpdateMode;
 
         _vm.Reload();
-        ModAnimation.AniEndControl();
+        ModBase.EndUiUpdate();
         CheckUpdate();
     }
 
@@ -211,7 +211,7 @@ public partial class PageSetupUpdate : IPageView
 
     private void ComboSystemUpdateMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (!ModAnimation.AniExitsAnyControl())
+        if (!ModBase.IsUiUpdating)
             Config.Update.UpdateMode = (LauncherAutoUpdateBehavior)ComboSystemUpdateMode.SelectedIndex;
     }
 
@@ -221,7 +221,7 @@ public partial class PageSetupUpdate : IPageView
         if (ctl is not null) ctl.IsEnabled = false;
         try
         {
-            if (ModAnimation.AniExitsAnyControl())
+            if (ModBase.IsUiUpdating)
                 return;
 
             var isCancelled = false;
@@ -275,9 +275,9 @@ public partial class PageSetupUpdate : IPageView
 
             if (isCancelled)
             {
-                ModAnimation.AniBeginControl();
+                ModBase.BeginUiUpdate();
                 ComboSystemUpdateChannel.SelectedItem = e.RemovedItems[0];
-                ModAnimation.AniEndControl();
+                ModBase.EndUiUpdate();
             }
             else
             {

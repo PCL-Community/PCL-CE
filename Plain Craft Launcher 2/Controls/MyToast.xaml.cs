@@ -1,8 +1,9 @@
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Animation;
+using System.Windows.Threading;
 using PCL.Core.App;
 using PCL.Core.UI.Theme;
 
@@ -27,9 +28,6 @@ public partial class MyToast
     /// <summary>拖动释放后，若剩余显示时间不足此值则直接关闭。</summary>
     private const double MinRemainingMs = 300d;
 
-    /// <summary>拖动释放后回到原位的动画时长（毫秒）。</summary>
-    private const int ReturnAnimationMs = 150;
-
     // 拖动状态
     private bool _dragPending;
     private bool _isDragging;
@@ -37,9 +35,11 @@ public partial class MyToast
     private double _dragStartTranslateX;
     private FrameworkElement? _dragReference;
 
-    // 进度条状态
-    private double _progressStartWidth;
-    private double _progressTotalMs;
+    // 自动关闭计时
+    private DispatcherTimer? _hideTimer;
+    private long _hideStartTick;
+    private double _hideDurationMs;
+    private double _pausedRemainingMs = -1d;
 
     public MyToast()
     {
@@ -59,12 +59,7 @@ public partial class MyToast
         {
             ThemeService.ColorModeChanged -= OnThemeChanged;
             ThemeService.ColorThemeChanged -= OnColorThemeChanged;
-            ModAnimation.AniStop($"Toast Show {Uuid}");
-            ModAnimation.AniStop($"Toast Hide {Uuid}");
-            ModAnimation.AniStop($"Toast Dismiss {Uuid}");
-            ModAnimation.AniStop($"Toast Emphasize {Uuid}");
-            ModAnimation.AniStop($"Toast Drag Return {Uuid}");
-            ProgressBar.BeginAnimation(WidthProperty, null);
+            StopHideTimer();
         };
     }
 
@@ -94,66 +89,64 @@ public partial class MyToast
         if (System.Windows.Application.Current.MainWindow is not null)
             MaxWidth = System.Windows.Application.Current.MainWindow.ActualWidth * 0.9;
         Margin = new Thickness(0, 0, 16, 4);
-        Opacity = 0;
 
         Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
         Arrange(new Rect(0, 0, DesiredSize.Width, DesiredSize.Height));
         _targetHeight = Math.Max(ActualHeight, 45d);
-        Height = 0;
 
-        RenderTransform = new TranslateTransform(60, 0);
+        Opacity = 1d;
+        Height = _targetHeight;
+        RenderTransform = new TranslateTransform(0d, 0d);
 
-        ModAnimation.AniStop($"Toast Drag Return {Uuid}");
-        var enterAnimations = new List<ModAnimation.AniData>
-        {
-            ModAnimation.AaTranslateX(this, -60, 400, ease: new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaHeight(this, _targetHeight, 150, ease: new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaOpacity(this, 1, 100)
-        };
-        ModAnimation.AniStart(enterAnimations, $"Toast Show {Uuid}");
-
-        RestartHideAnimation();
+        RestartHideTimer();
     }
 
     public void Emphasize()
     {
-        ModAnimation.AniStop($"Toast Show {Uuid}");
-        ModAnimation.AniStop($"Toast Hide {Uuid}");
-        ModAnimation.AniStop($"Toast Emphasize {Uuid}");
-        ModAnimation.AniStop($"Toast Drag Return {Uuid}");
-        ProgressBar.BeginAnimation(WidthProperty, null);
+        StopHideTimer();
         if (RenderTransform is TranslateTransform tt) tt.X = 0;
         Opacity = 1;
         Height = _targetHeight;
-        ModAnimation.AniStart(new List<ModAnimation.AniData>
-        {
-            ModAnimation.AaTranslateX(this, -8, 70, ease: new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaTranslateX(this, 16, 70, after: true),
-            ModAnimation.AaTranslateX(this, -8, 60, after: true, ease: new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaCode(RestartHideAnimation, after: true),
-        }, $"Toast Emphasize {Uuid}");
+        RestartHideTimer();
     }
 
-    private void RestartHideAnimation()
+    private void RestartHideTimer()
     {
-        StartHideAnimation(DisplayDuration);
-        StartProgressAnimation(DisplayDuration);
+        StartHideTimer(DisplayDuration);
     }
 
-    private void StartHideAnimation(double delayMs)
+    private void StartHideTimer(double delayMs)
     {
-        var delay = (int)Math.Round(delayMs);
-        ModAnimation.AniStart(new List<ModAnimation.AniData>
+        StopHideTimer();
+        _pausedRemainingMs = -1d;
+        var ms = Math.Max(0d, delayMs);
+        _hideDurationMs = ms;
+        _hideStartTick = Stopwatch.GetTimestamp();
+        if (ms <= 0d)
         {
-            ModAnimation.AaTranslateX(this, 60, 200, delay, new ModAnimation.AniEaseInFluent()),
-            ModAnimation.AaOpacity(this, -1, 150, delay),
-            ModAnimation.AaHeight(this, -_targetHeight, 100, ease: new ModAnimation.AniEaseOutFluent(), after: true),
-            ModAnimation.AaCode(() =>
-            {
-                if (Parent is Panel p)
-                    p.Children.Remove(this);
-            }, after: true)
-        }, $"Toast Hide {Uuid}");
+            RemoveSelf();
+            return;
+        }
+
+        _hideTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(ms) };
+        _hideTimer.Tick += (_, _) =>
+        {
+            StopHideTimer();
+            RemoveSelf();
+        };
+        _hideTimer.Start();
+    }
+
+    private void StopHideTimer()
+    {
+        _hideTimer?.Stop();
+        _hideTimer = null;
+    }
+
+    private void RemoveSelf()
+    {
+        if (Parent is Panel panel)
+            panel.Children.Remove(this);
     }
 
     public void Dismiss()
@@ -163,36 +156,8 @@ public partial class MyToast
         _isDragging = false;
         _dragPending = false;
         if (IsMouseCaptured) ReleaseMouseCapture();
-        ModAnimation.AniStop($"Toast Show {Uuid}");
-        ModAnimation.AniStop($"Toast Hide {Uuid}");
-        ModAnimation.AniStop($"Toast Emphasize {Uuid}");
-        ModAnimation.AniStop($"Toast Drag Return {Uuid}");
-        ProgressBar.BeginAnimation(WidthProperty, null);
-        ModAnimation.AniStart(new List<ModAnimation.AniData>
-        {
-            ModAnimation.AaTranslateX(this, 60, 150, ease: new ModAnimation.AniEaseInFluent()),
-            ModAnimation.AaOpacity(this, -1, 100),
-            ModAnimation.AaCode(() =>
-            {
-                if (Parent is Panel p)
-                    p.Children.Remove(this);
-            }, after: true)
-        }, $"Toast Dismiss {Uuid}");
-    }
-
-    private void StartProgressAnimation(double duration)
-    {
-        var totalMs = (int)Math.Round(duration);
-        if (totalMs <= 0)
-            return;
-        var w = ProgressBar.ActualWidth;
-        if (w <= 0) w = 300;
-        ProgressBar.HorizontalAlignment = HorizontalAlignment.Left;
-        ProgressBar.Width = w;
-        _progressStartWidth = w;
-        _progressTotalMs = totalMs;
-        var anim = new DoubleAnimation(w, 0d, TimeSpan.FromMilliseconds(totalMs));
-        ProgressBar.BeginAnimation(WidthProperty, anim);
+        StopHideTimer();
+        RemoveSelf();
     }
 
     private void RootGrid_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -321,12 +286,7 @@ public partial class MyToast
         _isDragging = true;
         _dragPending = false;
 
-        ModAnimation.AniStop($"Toast Show {Uuid}");
-        ModAnimation.AniStop($"Toast Hide {Uuid}");
-        ModAnimation.AniStop($"Toast Emphasize {Uuid}");
-        ModAnimation.AniStop($"Toast Drag Return {Uuid}");
-
-        PauseProgress();
+        PauseHideTimer();
 
         Height = _targetHeight;
         _dragStartTranslateX = (RenderTransform as TranslateTransform)?.X ?? 0d;
@@ -348,8 +308,6 @@ public partial class MyToast
     {
         if (Parent is null || IsDismissing)
             return;
-        var currentX = (RenderTransform as TranslateTransform)?.X ?? 0d;
-        var currentOpacity = Opacity;
 
         var remaining = GetProgressRemainingMs();
         if (remaining < MinRemainingMs)
@@ -358,14 +316,10 @@ public partial class MyToast
             return;
         }
 
-        ResumeProgress(remaining);
-
-        ModAnimation.AniStart(new List<ModAnimation.AniData>
-        {
-            ModAnimation.AaTranslateX(this, -currentX, ReturnAnimationMs, ease: new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaOpacity(this, 1d - currentOpacity, ReturnAnimationMs),
-            ModAnimation.AaCode(() => StartHideAnimation(GetProgressRemainingMs()), after: true)
-        }, $"Toast Drag Return {Uuid}");
+        if (RenderTransform is TranslateTransform tt)
+            tt.X = 0d;
+        Opacity = 1d;
+        ResumeHideTimer(remaining);
     }
 
     private static double ApplyDragResistance(double delta)
@@ -399,32 +353,28 @@ public partial class MyToast
 
     #endregion
 
-    #region 进度条暂停与恢复
+    #region 自动关闭计时暂停与恢复
 
-    private void PauseProgress()
+    private void PauseHideTimer()
     {
-        var currentWidth = ProgressBar.Width;
-        ProgressBar.BeginAnimation(WidthProperty, null);
-        ProgressBar.Width = currentWidth;
+        if (_hideTimer is not null)
+            _pausedRemainingMs = GetProgressRemainingMs();
+        StopHideTimer();
     }
 
-    private void ResumeProgress(double remainingMs)
+    private void ResumeHideTimer(double remainingMs)
     {
         if (remainingMs <= 0)
             return;
-        var currentWidth = ProgressBar.Width;
-        if (currentWidth <= 0)
-            return;
-        var anim = new DoubleAnimation(currentWidth, 0d, TimeSpan.FromMilliseconds(remainingMs));
-        ProgressBar.BeginAnimation(WidthProperty, anim);
+        StartHideTimer(remainingMs);
     }
 
     private double GetProgressRemainingMs()
     {
-        if (_progressStartWidth <= 0)
-            return 0d;
-        var currentWidth = ProgressBar.Width;
-        return _progressTotalMs * (currentWidth / _progressStartWidth);
+        if (_hideTimer is null)
+            return Math.Max(0d, _pausedRemainingMs);
+        var elapsed = (Stopwatch.GetTimestamp() - _hideStartTick) * 1000d / Stopwatch.Frequency;
+        return Math.Max(0d, _hideDurationMs - elapsed);
     }
 
     #endregion

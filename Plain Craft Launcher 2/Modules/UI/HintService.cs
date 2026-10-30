@@ -80,7 +80,7 @@ public static class HintService
                     HintType.Warning => "lucide/triangle-alert",
                     _ => "lucide/info"
                 },
-                DisplayDuration = (800d + ModBase.MathClamp(currentHint.Text.Length, 5d, 23d) * 180d) * ModAnimation.aniSpeed
+                DisplayDuration = 800d + ModBase.MathClamp(currentHint.Text.Length, 5d, 23d) * 180d
             };
 
             ModMain.frmMain.PanHint.Children.Add(toast);

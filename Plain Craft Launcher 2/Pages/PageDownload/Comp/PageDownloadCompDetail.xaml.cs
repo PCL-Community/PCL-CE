@@ -30,7 +30,7 @@ public partial class PageDownloadCompDetail
 
     private void Init()
     {
-        ModAnimation.AniBeginControl();
+        ModBase.BeginUiUpdate();
         _project = ModMain.frmMain.pageCurrent.additional.Value.CompProject;
         PanBack.ScrollToHome();
         // 重启加载器
@@ -52,7 +52,7 @@ public partial class PageDownloadCompDetail
         _vm.ApplyProjectState(_project);
         RefreshFavoriteButton();
 
-        ModAnimation.AniEndControl();
+        ModBase.EndUiUpdate();
     }
 
     // 整合包安装
@@ -125,7 +125,6 @@ public partial class PageDownloadCompDetail
             loader.Start(Path.Combine(ModFolder.mcFolderSelected, "versions", instanceName));
             ModLoader.LoaderTaskbarAdd(loader);
             ModMain.frmMain.BtnExtraDownload.ShowRefresh();
-            ModMain.frmMain.BtnExtraDownload.Ribble();
         }
 
         catch (Exception ex)
@@ -249,7 +248,6 @@ public partial class PageDownloadCompDetail
             loader.Start();
             ModLoader.LoaderTaskbarAdd(loader);
             ModMain.frmMain.BtnExtraDownload.ShowRefresh();
-            ModMain.frmMain.BtnExtraDownload.Ribble();
         }
 
         catch (Exception ex)
@@ -569,7 +567,6 @@ public partial class PageDownloadCompDetail
                     ModLoader.LoaderTaskbarAdd(loader);
 
                     ModMain.frmMain.BtnExtraDownload.ShowRefresh();
-                    ModMain.frmMain.BtnExtraDownload.Ribble();
                 });
             }
             catch (Exception ex)

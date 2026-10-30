@@ -144,7 +144,7 @@ public partial class MyHint
     {
         if (ConfigService.TryGetConfigItemNoType(RelativeSetup, out var item))
             item.SetValueNoType(true);
-        ModAnimation.AniDispose(this, false);
+        DisposeHint(this, false);
     }
 
     private void MyHint_MouseUp(object sender, MouseButtonEventArgs e)
@@ -176,29 +176,25 @@ public partial class MyHint
     {
         ThemeService.ColorModeChanged -= _ThemeChanged;
     }
-}
 
-public static partial class ModAnimation
-{
-    public static void AniDispose(MyHint control, bool removeFromChildren, ParameterizedThreadStart callBack = null)
+    /// <summary>
+    ///     立即移除或隐藏提示条。
+    /// </summary>
+    public static void DisposeHint(MyHint control, bool removeFromChildren, Action<MyHint>? callBack = null)
     {
         if (!control.IsHitTestVisible)
             return;
         control.IsHitTestVisible = false;
-        AniStart(new[]
+        if (removeFromChildren)
         {
-            AaScaleTransform(control, -0.08d, 200, ease: new AniEaseInFluent()),
-            AaOpacity(control, -1, 200, ease: new AniEaseOutFluent()),
-            AaHeight(control, -control.ActualHeight, 150, 100, new AniEaseOutFluent()),
-            AaCode(() =>
-            {
-                if (removeFromChildren)
-                    ((Panel)control.Parent).Children.Remove(control);
-                else
-                    control.Visibility = Visibility.Collapsed;
-                if (callBack is not null)
-                    callBack(control);
-            }, after: true)
-        }, "MyCard Dispose " + control.Uuid);
+            if (control.Parent is not null)
+                ((Panel)control.Parent).Children.Remove(control);
+        }
+        else
+        {
+            control.Visibility = Visibility.Collapsed;
+        }
+
+        callBack?.Invoke(control);
     }
 }

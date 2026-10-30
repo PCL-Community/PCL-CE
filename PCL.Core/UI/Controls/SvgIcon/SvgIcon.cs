@@ -1,11 +1,6 @@
 using System;
-using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Media;
-using PCL.Core.UI.Animation;
-using PCL.Core.UI.Animation.Animatable;
-using PCL.Core.UI.Animation.Core;
-using PCL.Core.UI.Animation.Easings;
 
 namespace PCL.Core.UI.Controls.SvgIcon;
 
@@ -99,25 +94,6 @@ public class SvgIcon : FrameworkElement
         set => SetValue(StretchProperty, value);
     }
 
-    public IAnimation AnimateIconBrushTo(
-        NColor color,
-        TimeSpan? duration = null,
-        IEasing? easing = null,
-        string? animationKey = null)
-    {
-        _EnsureAnimatableIconBrush();
-
-        var animation = new NColorFromToAnimation
-        {
-            Name = animationKey ?? $"SvgIconColor {RuntimeHelpers.GetHashCode(this)}",
-            To = color,
-            Duration = duration ?? TimeSpan.FromMilliseconds(120),
-            Easing = easing ?? CubicEaseOut.Shared
-        };
-
-        return animation.RunFireAndForget(new WpfAnimatable(this, IconBrushProperty));
-    }
-
     protected override Size MeasureOverride(Size availableSize)
     {
         var model = _GetModel();
@@ -180,18 +156,6 @@ public class SvgIcon : FrameworkElement
         var icon = (SvgIcon)dependencyObject;
         icon._model = null;
         icon._modelLoaded = false;
-    }
-
-    private void _EnsureAnimatableIconBrush()
-    {
-        if (IconBrush is SolidColorBrush { IsFrozen: false })
-            return;
-
-        IconBrush = IconBrush switch
-        {
-            SolidColorBrush solidColorBrush => new SolidColorBrush(solidColorBrush.Color),
-            _ => new SolidColorBrush(Colors.Black)
-        };
     }
 
     private static Rect _CalculateTargetRect(Size sourceSize, Size renderSize, Stretch stretch)

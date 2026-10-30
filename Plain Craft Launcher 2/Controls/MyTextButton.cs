@@ -8,23 +8,11 @@ public class MyTextButton : Label
 {
     public delegate void ClickEventHandler(object sender, EventArgs e);
 
-    // 指向动画
-
-    private const int animationTimeIn = 100;
-    private const int animationTimeOut = 200;
-
     public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),
         typeof(MyTextButton), new PropertyMetadata("", (sender, e) =>
         {
             if (Equals(e.OldValue, e.NewValue)) return;
-            var button = (MyTextButton)sender;
-            ModAnimation.AniStart(
-                new[]
-                {
-                    ModAnimation.AaOpacity(button, -button.Opacity, 50),
-                    ModAnimation.AaCode(() => button.Content = e.NewValue, after: true),
-                    ModAnimation.AaOpacity(button, 1d, 170)
-                }, "MyTextButton Text " + button.Uuid);
+            ((MyTextButton)sender).Content = e.NewValue;
         }));
     
     private string colorName;
@@ -61,13 +49,13 @@ public class MyTextButton : Label
 
     public event ClickEventHandler? Click;
 
-    private (string ForeName, int Time) GetVisualState()
+    private string GetVisualState()
     {
         if (isMouseDown)
-            return ("ColorBrush4", 30);
+            return "ColorBrush4";
         if (IsMouseOver)
-            return ("ColorBrush3", animationTimeIn);
-        return ("ColorBrush1", animationTimeOut);
+            return "ColorBrush3";
+        return "ColorBrush1";
     }
 
     private void MyTextButton_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -93,14 +81,12 @@ public class MyTextButton : Label
 
     private void RefreshColor()
     {
-        var (ForeName, Time) = GetVisualState();
+        var foreName = GetVisualState();
 
         // 重复性验证
-        if ((colorName ?? "") == (ForeName ?? ""))
+        if ((colorName ?? "") == (foreName ?? ""))
             return;
-        colorName = ForeName;
-        // 触发颜色动画
-        ControlVisualHelpers.AnimateColorOrSetResource(this, ForegroundProperty, ForeName, Time,
-            "MyTextButton Color " + Uuid, ControlVisualHelpers.ShouldAnimate(this));
+        colorName = foreName;
+        SetResourceReference(ForegroundProperty, foreName);
     }
 }

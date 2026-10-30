@@ -34,7 +34,7 @@ public partial class PageInstanceCompResource : IRefreshable
         Unloaded += Page_Unloaded;
         Loaded += (_, _) => PageOther_Loaded();
         Initialized += (_, _) => LoaderInit();
-        PageExit += UnselectedAllWithAnimation;
+        PageExit += UnselectAll;
         Load.Click += Load_Click;
         BtnManageBack.Click += BtnManageBack_Click;
         BtnHintBack.Click += BtnHintBack_Click;
@@ -48,7 +48,7 @@ public partial class PageInstanceCompResource : IRefreshable
         BtnHintDownload.Click += BtnManageDownload_Click;
         BtnSchematicDownloadMod.Click += BtnSchematicDownloadMod_Click;
         BtnSchematicVersionSelect.Click += BtnSchematicVersionSelect_Click;
-        Load.StateChanged += (_, _, _) => UnselectedAllWithAnimation();
+        Load.StateChanged += (_, _, _) => UnselectAll();
         SearchBox.PreviewKeyDown += SearchBox_PreviewKeyDown;
         BtnFilterAll.Check += ChangeFilter;
         BtnFilterCanUpdate.Check += ChangeFilter;
@@ -140,7 +140,7 @@ public partial class PageInstanceCompResource : IRefreshable
         Unloaded += Page_Unloaded;
         Loaded += (_, _) => PageOther_Loaded();
         LoaderInit();
-        PageExit += UnselectedAllWithAnimation;
+        PageExit += UnselectAll;
         // Handles
         Load.Click += Load_Click;
         BtnManageBack.Click += BtnManageBack_Click;
@@ -155,7 +155,7 @@ public partial class PageInstanceCompResource : IRefreshable
         BtnManageInfoExport.Click += BtnManageInfoExport_Click;
         BtnSchematicDownloadMod.Click += BtnSchematicDownloadMod_Click;
         BtnSchematicVersionSelect.Click += BtnSchematicVersionSelect_Click;
-        Load.StateChanged += (_, _, _) => UnselectedAllWithAnimation();
+        Load.StateChanged += (_, _, _) => UnselectAll();
         SearchBox.PreviewKeyDown += SearchBox_PreviewKeyDown;
         BtnFilterAll.Check += ChangeFilter;
         BtnFilterCanUpdate.Check += ChangeFilter;
@@ -225,11 +225,11 @@ public partial class PageInstanceCompResource : IRefreshable
 
         if (ModMain.frmMain.pageLast.page != FormMain.PageType.CompDetail)
             PanBack.ScrollToHome();
-        ModAnimation.AniBeginControl();
+        ModBase.BeginUiUpdate();
         selectedMods.Clear();
         ReloadCompFileList();
         ChangeAllSelected(false);
-        ModAnimation.AniEndControl();
+        ModBase.EndUiUpdate();
 
         // 非重复加载部分
         if (isLoad)
@@ -586,7 +586,7 @@ public partial class PageInstanceCompResource : IRefreshable
     {
         try
         {
-            ModAnimation.AniBeginControl();
+            ModBase.BeginUiUpdate();
             var newItem = new MyLocalCompItem
             {
                 SnapsToDevicePixels = true,
@@ -599,12 +599,12 @@ public partial class PageInstanceCompResource : IRefreshable
             entry.OnCompUpdate += _ => newItem.Refresh();
             // AddHandler Entry.OnCompUpdate, Sub() RunInUi(Sub() DoSort())
             newItem.Refresh();
-            ModAnimation.AniEndControl();
+            ModBase.EndUiUpdate();
             return newItem;
         }
         catch (Exception ex)
         {
-            ModAnimation.AniEndControl();
+            ModBase.EndUiUpdate();
             ModBase.Log(ex, $"创建 UI 项失败：{entry.RawPath}");
             throw;
         }
@@ -706,7 +706,7 @@ public partial class PageInstanceCompResource : IRefreshable
         }
 
         // 重新列出列表
-        ModAnimation.AniBeginControl();
+        ModBase.BeginUiUpdate();
         if (showingMods.Any())
         {
             PanList.Visibility = Visibility.Visible;
@@ -733,7 +733,7 @@ public partial class PageInstanceCompResource : IRefreshable
             PanList.Visibility = Visibility.Collapsed;
         }
 
-        ModAnimation.AniEndControl();
+        ModBase.EndUiUpdate();
         selectedMods =
             new HashSet<string>(selectedMods.Where(m => showingMods.Any(s => (s.RawPath ?? "") == (m ?? ""))));
         RefreshBars();
@@ -851,71 +851,22 @@ public partial class PageInstanceCompResource : IRefreshable
             }
 
             // 更新显示状态
-            if (!ModAnimation.AniExitsAnyControl())
+            PanListBack.Margin = new Thickness(0d, 0d, 0d, selected ? 95 : 15);
+            if (selected)
             {
-                PanListBack.Margin = new Thickness(0d, 0d, 0d, selected ? 95 : 15);
-                if (selected)
-                {
-                    // 仅在数量增加时播放出现/跳跃动画
-                    if (bottomBarShownCount >= newCount)
-                    {
-                        bottomBarShownCount = newCount;
-                        return;
-                    }
-
-                    bottomBarShownCount = newCount;
-                    // 出现/跳跃动画
-                    CardSelect.Visibility = Visibility.Visible;
-                    ModAnimation.AniStart(
-                        new[]
-                        {
-                            ModAnimation.AaOpacity(CardSelect, 1d - CardSelect.Opacity, 60),
-                            ModAnimation.AaTranslateY(CardSelect, -27 - TransSelect.Y, 120,
-                                ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)),
-                            ModAnimation.AaTranslateY(CardSelect, 3d, 150, 120,
-                                new ModAnimation.AniEaseInoutFluent(ModAnimation.AniEasePower.Weak)),
-                            ModAnimation.AaTranslateY(CardSelect, -1, 90, 270,
-                                new ModAnimation.AniEaseInoutFluent(ModAnimation.AniEasePower.Weak))
-                        }, "Mod Sidebar");
-                }
-                else
-                {
-                    // 不重复播放隐藏动画
-                    if (bottomBarShownCount == 0)
-                        return;
-                    bottomBarShownCount = 0;
-                    // 隐藏动画
-                    ModAnimation.AniStart(
-                        new[]
-                        {
-                            ModAnimation.AaOpacity(CardSelect, -CardSelect.Opacity, 90),
-                            ModAnimation.AaTranslateY(CardSelect, -10 - TransSelect.Y, 90,
-                                ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
-                            ModAnimation.AaCode(() => CardSelect.Visibility = Visibility.Collapsed, after: true)
-                        }, "Mod Sidebar");
-                }
+                CardSelect.Visibility = Visibility.Visible;
+                CardSelect.Opacity = 1d;
+                TransSelect.Y = -25d;
             }
             else
             {
-                ModAnimation.AniStop("Mod Sidebar");
-                bottomBarShownCount = newCount;
-                if (selected)
-                {
-                    CardSelect.Visibility = Visibility.Visible;
-                    CardSelect.Opacity = 1d;
-                    TransSelect.Y = -25;
-                }
-                else
-                {
-                    CardSelect.Visibility = Visibility.Collapsed;
-                    CardSelect.Opacity = 0d;
-                    TransSelect.Y = -10;
-                }
+                CardSelect.Visibility = Visibility.Collapsed;
+                CardSelect.Opacity = 0d;
+                TransSelect.Y = -10d;
             }
         }));
     }
 
-    private int bottomBarShownCount;
 
     #endregion
 
@@ -1474,7 +1425,7 @@ public partial class PageInstanceCompResource : IRefreshable
     // 单项切换选择状态
     public void CheckChanged(MyLocalCompItem sender, ModBase.RouteEventArgs e)
     {
-        if (ModAnimation.AniExitsAnyControl())
+        if (ModBase.IsUiUpdating)
             return;
         // 更新选择了的内容
         var selectedKey = sender.Entry.RawPath;
@@ -1488,7 +1439,7 @@ public partial class PageInstanceCompResource : IRefreshable
     // 切换所有项的选择状态
     private void ChangeAllSelected(bool value)
     {
-        ModAnimation.AniBeginControl();
+        ModBase.BeginUiUpdate();
         selectedMods.Clear();
         foreach (var Item in modItems.Values)
         {
@@ -1499,15 +1450,15 @@ public partial class PageInstanceCompResource : IRefreshable
                 selectedMods.Add(Item.Entry.RawPath);
         }
 
-        ModAnimation.AniEndControl();
+        ModBase.EndUiUpdate();
         RefreshBars();
     }
 
-    private void UnselectedAllWithAnimation()
+    private void UnselectAll()
     {
-        var cacheAniControlEnabled = ModAnimation.AniResetControl(0);
+        var cacheAniControlEnabled = ModBase.ResetUiUpdate();
         ChangeAllSelected(false);
-        ModAnimation.AniRestoreControl(cacheAniControlEnabled);
+        ModBase.RestoreUiUpdate(cacheAniControlEnabled);
     }
 
     private void FrmMain_KeyDown(object sender, KeyEventArgs e) // 若监听自己的事件则在进入页面后需点击右侧控件才可监听到 (#4311)
@@ -2313,7 +2264,6 @@ public partial class PageInstanceCompResource : IRefreshable
             loader.Start();
             ModLoader.LoaderTaskbarAdd(loader);
             ModMain.frmMain.BtnExtraDownload.ShowRefresh();
-            ModMain.frmMain.BtnExtraDownload.Ribble();
             ReloadCompFileList(true);
         }
         catch (Exception ex)

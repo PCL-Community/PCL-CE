@@ -72,9 +72,9 @@ public partial class PageLogRight
 
     private void PageLogRight_Loaded(object sender, RoutedEventArgs e)
     {
-        ModAnimation.AniBeginControl();
+        ModBase.BeginUiUpdate();
         Reload();
-        ModAnimation.AniEndControl();
+        ModBase.EndUiUpdate();
     }
 
     public void Reload()

@@ -1,7 +1,6 @@
 using System;
 using System.Numerics;
 using System.Windows.Media;
-using PCL.Core.UI.Animation.Core;
 
 namespace PCL.Core.UI;
 
@@ -46,15 +45,14 @@ public struct NRotateTransform :
 
     public NRotateTransform(RotateTransform scaleTransform)
     {
-        var uiAccessProvider = AnimationService.UIAccessProvider;
-        if (uiAccessProvider.CheckAccess())
+        if (scaleTransform.Dispatcher.CheckAccess())
         {
             _rotate = GetVector(scaleTransform);
         }
         else
         {
             Vector3 localScale = default;
-            uiAccessProvider.Invoke(() => localScale = GetVector(scaleTransform));
+            scaleTransform.Dispatcher.Invoke(() => localScale = GetVector(scaleTransform));
             _rotate = localScale;
         }
 

@@ -742,7 +742,6 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
             loader.Start();
             ModLoader.LoaderTaskbarAdd(loader);
             ModMain.frmMain.BtnExtraDownload.ShowRefresh();
-            ModMain.frmMain.BtnExtraDownload.Ribble();
             return true;
         }
         catch (Exception ex)

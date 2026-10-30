@@ -409,7 +409,7 @@
 
             <!-- ComboBox -->
             <DataTemplate x:Key="ComboBoxItemTemplateWithDelete">
-                <local:MyListItem Title="{Binding}" FontSize="13" MaxHeight="26" IsScaleAnimationEnabled="False"
+                <local:MyListItem Title="{Binding}" FontSize="13" MaxHeight="26"
                                   Margin="-3,0,0,0">
                     <local:MyListItem.Buttons>
                         <x:Array Type="local:MyIconButton">
@@ -446,7 +446,7 @@
                                 <Popup x:Name="PART_Popup" SnapsToDevicePixels="True" VerticalOffset="-1.5"
                                        AllowsTransparency="True"
                                        IsOpen="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
-                                       Placement="Bottom" PopupAnimation="Fade">
+                                       Placement="Bottom">
                                     <Grid x:Name="PanPopup">
                                         <Border Background="{DynamicResource ColorBrushWhite}" CornerRadius="3" />
                                         <Border x:Name="dropDownBorder" CornerRadius="3"
@@ -492,7 +492,7 @@
                                         <Popup x:Name="PART_Popup" SnapsToDevicePixels="True" VerticalOffset="-1.5"
                                                AllowsTransparency="True"
                                                IsOpen="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
-                                               Placement="Bottom" PopupAnimation="Fade">
+                                               Placement="Bottom">
                                             <Grid x:Name="PanPopup">
                                                 <Border Background="{DynamicResource ColorBrushWhite}" CornerRadius="3" />
                                                 <Border x:Name="dropDownBorder" SnapsToDevicePixels="False"
@@ -535,30 +535,11 @@
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsChecked" Value="True">
-                                    <Trigger.EnterActions>
-                                        <BeginStoryboard>
-                                            <Storyboard Storyboard.TargetName="path"
-                                                        Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)">
-                                                <DoubleAnimation To="180" Duration="0:0:0.2">
-                                                    <DoubleAnimation.EasingFunction>
-                                                        <CircleEase EasingMode="EaseOut" />
-                                                    </DoubleAnimation.EasingFunction>
-                                                </DoubleAnimation>
-                                            </Storyboard>
-                                        </BeginStoryboard>
-                                    </Trigger.EnterActions>
-                                    <Trigger.ExitActions>
-                                        <BeginStoryboard>
-                                            <Storyboard Storyboard.TargetName="path"
-                                                        Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)">
-                                                <DoubleAnimation To="0" Duration="0:0:0.2">
-                                                    <DoubleAnimation.EasingFunction>
-                                                        <CircleEase EasingMode="EaseOut" />
-                                                    </DoubleAnimation.EasingFunction>
-                                                </DoubleAnimation>
-                                            </Storyboard>
-                                        </BeginStoryboard>
-                                    </Trigger.ExitActions>
+                                    <Setter TargetName="path" Property="RenderTransform">
+                                        <Setter.Value>
+                                            <RotateTransform Angle="180" />
+                                        </Setter.Value>
+                                    </Setter>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>

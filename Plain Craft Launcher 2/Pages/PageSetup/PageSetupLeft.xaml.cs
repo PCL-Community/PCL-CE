@@ -49,29 +49,29 @@ public partial class PageSetupLeft : IPageView
             return;
         var hideCfg = Config.Preference.Hide;
         if (!hideCfg.SetupLaunch) 
-            ItemLaunch.SetChecked(true, false, false);
+            ItemLaunch.SetChecked(true, false);
         else if (!hideCfg.SetupJava) 
-            ItemJava.SetChecked(true, false, false);    
+            ItemJava.SetChecked(true, false);    
         else if (!hideCfg.SetupGameManage) 
-            ItemGameManage.SetChecked(true, false, false);
+            ItemGameManage.SetChecked(true, false);
         else if (!hideCfg.SetupGameLink) 
-            ItemGameLink.SetChecked(true, false, false);    
+            ItemGameLink.SetChecked(true, false);    
         else if (!hideCfg.SetupUi) 
-            ItemUI.SetChecked(true, false, false);
+            ItemUI.SetChecked(true, false);
         else if (!hideCfg.SetupLauncherLanguage)
-            ItemLauncherLanguage.SetChecked(true, false, false);
+            ItemLauncherLanguage.SetChecked(true, false);
         else if (!hideCfg.SetupLauncherMisc) 
-            ItemLauncherMisc.SetChecked(true, false, false);
+            ItemLauncherMisc.SetChecked(true, false);
         else if (!hideCfg.SetupAbout) 
-            ItemAbout.SetChecked(true, false, false);   
+            ItemAbout.SetChecked(true, false);   
         else if (!hideCfg.SetupUpdate) 
-            ItemUpdate.SetChecked(true, false, false);
+            ItemUpdate.SetChecked(true, false);
         else if (!hideCfg.SetupFeedback) 
-            ItemFeedback.SetChecked(true, false, false);
+            ItemFeedback.SetChecked(true, false);
         else if (!hideCfg.SetupLog) 
-            ItemLog.SetChecked(true, false, false);
+            ItemLog.SetChecked(true, false);
         else 
-            ItemLaunch.SetChecked(true, false, false);
+            ItemLaunch.SetChecked(true, false);
     }
 
     private void PageOtherLeft_Unloaded(object sender, RoutedEventArgs e)
@@ -84,14 +84,14 @@ public partial class PageSetupLeft : IPageView
         var ctl = sender as Control;
         if (ctl is not null)
             ctl.IsEnabled = false;
-        var aniHeld = false;
+        var uiUpdateHeld = false;
         try
         {
             var id = (FormMain.PageSubType)ModBase.Val(((MyIconButton)sender).Tag);
             if (!await _vm.ConfirmResetAsync(id))
                 return;
-            ModAnimation.AniBeginControl();
-            aniHeld = true;
+            ModBase.BeginUiUpdate();
+            uiUpdateHeld = true;
             switch (id)
             {
                 case FormMain.PageSubType.SetupLaunch:
@@ -151,8 +151,8 @@ public partial class PageSetupLeft : IPageView
         }
         finally
         {
-            if (aniHeld)
-                ModAnimation.AniEndControl();
+            if (uiUpdateHeld)
+                ModBase.EndUiUpdate();
             if (ctl is not null)
                 ctl.IsEnabled = true;
         }
@@ -216,7 +216,7 @@ public partial class PageSetupLeft : IPageView
     public PageSetupLeft()
     {
         InitializeComponent();
-        AnimatedControl = PanItem;
+        TransitionControl = PanItem;
         Loaded += PageSetupLeft_Loaded;
         Unloaded += PageOtherLeft_Unloaded;
     }
@@ -322,7 +322,7 @@ public partial class PageSetupLeft : IPageView
     {
         if (pageID == id)
             return;
-        ModAnimation.AniBeginControl();
+        ModBase.BeginUiUpdate();
         isPageSwitched = true;
         try
         {
@@ -339,32 +339,20 @@ public partial class PageSetupLeft : IPageView
         }
         finally
         {
-            ModAnimation.AniEndControl();
+            ModBase.EndUiUpdate();
         }
     }
 
     private static void PageChangeRun(MyPageRight target)
     {
-        ModAnimation.AniStop("FrmMain PageChangeRight"); // 停止主页面的右页面切换动画，防止它与本动画一起触发多次 PageOnEnter
         if (target.Parent is not null)
             target.SetValue(ContentPresenter.ContentProperty, null);
         ModMain.frmMain.pageRight = target;
         ((MyPageRight)ModMain.frmMain.PanMainRight.Child).PageOnExit();
-        ModAnimation.AniStart(new[]
-        {
-            ModAnimation.AaCode(() =>
-            {
-                ((MyPageRight)ModMain.frmMain.PanMainRight.Child).PageOnForceExit();
-                ModMain.frmMain.PanMainRight.Child = ModMain.frmMain.pageRight;
-                ModMain.frmMain.pageRight.Opacity = 0d;
-            }, 130),
-            ModAnimation.AaCode(() =>
-            {
-                // 延迟触发页面通用动画，以使得在 Loaded 事件中加载的控件得以处理
-                ModMain.frmMain.pageRight.Opacity = 1d;
-                ModMain.frmMain.pageRight.PageOnEnter();
-            }, 30, true)
-        }, "PageLeft PageChange");
+        ((MyPageRight)ModMain.frmMain.PanMainRight.Child).PageOnForceExit();
+        ModMain.frmMain.PanMainRight.Child = ModMain.frmMain.pageRight;
+        ModMain.frmMain.pageRight.Opacity = 1d;
+        ModMain.frmMain.pageRight.PageOnEnter();
     }
 
     #endregion

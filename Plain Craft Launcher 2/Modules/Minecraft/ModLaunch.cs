@@ -258,7 +258,7 @@ public static class ModLaunch
             ModInstanceList.McMcInstanceSelected = currentLaunchOptions.instance;
             States.Game.SelectedInstance = ModInstanceList.McMcInstanceSelected.Name;
             ModMain.frmLaunchLeft.RefreshButtonsUI();
-            ModMain.frmLaunchLeft.RefreshPage(false);
+            ModMain.frmLaunchLeft.RefreshPage();
         }
 
         ModMain.frmMain.AprilGiveup();
@@ -303,7 +303,7 @@ public static class ModLaunch
             }
             case ModBase.LoadState.Loading:
             {
-                // 在预检测结束后再触发动画
+                // 在预检测结束后再切换页面
                 ModMain.frmLaunchRight.LabLog.Text = "";
                 break;
             }
@@ -318,7 +318,7 @@ public static class ModLaunch
     // 实际的启动方法
     private static void McLaunchStart(ModLoader.LoaderTask<McLaunchOptions, object> loader)
     {
-        // 开始动画
+        // 开始切换页面
         ModBase.RunInUiWait(ModMain.frmLaunchLeft.PageChangeToLaunching);
         // 预检测（预检测的错误将直接抛出）
         try
@@ -658,7 +658,7 @@ public static class ModLaunch
         // 尝试加载
         loader.WaitForExit(data.input, mcLoginLoader, data.isForceRestarting);
         data.output = (McLoginResult)((dynamic)loader).output;
-        ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(false)); // 刷新自动填充列表
+        ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage()); // 刷新自动填充列表
         ModBase.Log("[Profile] 选定档案加载完成");
     }
 
@@ -2702,9 +2702,9 @@ public static class ModLaunch
             if (ModMain.frmLogRight is null)
                 ModBase.RunInUiWait(() =>
                 {
-                    ModAnimation.AniBeginControl();
+                    ModBase.BeginUiUpdate();
                     ModMain.frmLogRight = new PageLogRight();
-                    ModAnimation.AniEndControl();
+                    ModBase.EndUiUpdate();
                 });
             ModMain.frmLogLeft.Add(watcher);
             McLaunchLog("已显示游戏实时日志");

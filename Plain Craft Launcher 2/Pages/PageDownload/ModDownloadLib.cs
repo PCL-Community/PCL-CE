@@ -113,7 +113,6 @@ public static class ModDownloadLib
             loader.Start(versionFolder);
             ModLoader.LoaderTaskbarAdd(loader);
             ModMain.frmMain.BtnExtraDownload.ShowRefresh();
-            ModMain.frmMain.BtnExtraDownload.Ribble();
             return loader;
         }
 
@@ -180,7 +179,6 @@ public static class ModDownloadLib
             loader.Start(id);
             ModLoader.LoaderTaskbarAdd(loader);
             ModMain.frmMain.BtnExtraDownload.ShowRefresh();
-            ModMain.frmMain.BtnExtraDownload.Ribble();
         }
 
         catch (Exception ex)
@@ -519,7 +517,6 @@ public static class ModDownloadLib
             loader.Start(id);
             ModLoader.LoaderTaskbarAdd(loader);
             ModMain.frmMain.BtnExtraDownload.ShowRefresh();
-            ModMain.frmMain.BtnExtraDownload.Ribble();
         }
         catch (Exception ex)
         {
@@ -583,7 +580,6 @@ public static class ModDownloadLib
             loader.Start(id);
             ModLoader.LoaderTaskbarAdd(loader);
             ModMain.frmMain.BtnExtraDownload.ShowRefresh();
-            ModMain.frmMain.BtnExtraDownload.Ribble();
         }
         catch (Exception ex)
         {
@@ -659,7 +655,6 @@ public static class ModDownloadLib
             loader.Start(versionFolder);
             ModLoader.LoaderTaskbarAdd(loader);
             ModMain.frmMain.BtnExtraDownload.ShowRefresh();
-            ModMain.frmMain.BtnExtraDownload.Ribble();
         }
 
         catch (Exception ex)
@@ -699,7 +694,6 @@ public static class ModDownloadLib
             loader.Start(downloadInfo);
             ModLoader.LoaderTaskbarAdd(loader);
             ModMain.frmMain.BtnExtraDownload.ShowRefresh();
-            ModMain.frmMain.BtnExtraDownload.Ribble();
         }
 
         catch (Exception ex)
@@ -1339,7 +1333,6 @@ public static class ModDownloadLib
             loader.Start(versionFolder);
             ModLoader.LoaderTaskbarAdd(loader);
             ModMain.frmMain.BtnExtraDownload.ShowRefresh();
-            ModMain.frmMain.BtnExtraDownload.Ribble();
         }
 
         catch (Exception ex)
@@ -1428,7 +1421,6 @@ public static class ModDownloadLib
             loader.Start(downloadInfo);
             ModLoader.LoaderTaskbarAdd(loader);
             ModMain.frmMain.BtnExtraDownload.ShowRefresh();
-            ModMain.frmMain.BtnExtraDownload.Ribble();
         }
 
         catch (Exception ex)
@@ -1687,7 +1679,6 @@ public static class ModDownloadLib
             loader.Start(info);
             ModLoader.LoaderTaskbarAdd(loader);
             ModMain.frmMain.BtnExtraDownload.ShowRefresh();
-            ModMain.frmMain.BtnExtraDownload.Ribble();
         }
 
         catch (Exception ex)
@@ -2899,7 +2890,6 @@ public static class ModDownloadLib
             loader.Start(downloadInfo);
             ModLoader.LoaderTaskbarAdd(loader);
             ModMain.frmMain.BtnExtraDownload.ShowRefresh();
-            ModMain.frmMain.BtnExtraDownload.Ribble();
         }
 
         catch (Exception ex)
@@ -3024,7 +3014,6 @@ public static class ModDownloadLib
             loader.Start(downloadInfo);
             ModLoader.LoaderTaskbarAdd(loader);
             ModMain.frmMain.BtnExtraDownload.ShowRefresh();
-            ModMain.frmMain.BtnExtraDownload.Ribble();
         }
 
         catch (Exception ex)
@@ -3248,7 +3237,6 @@ public static class ModDownloadLib
             loader.Start();
             ModLoader.LoaderTaskbarAdd(loader);
             ModMain.frmMain.BtnExtraDownload.ShowRefresh();
-            ModMain.frmMain.BtnExtraDownload.Ribble();
         }
         catch (Exception ex)
         {
@@ -3296,7 +3284,6 @@ public static class ModDownloadLib
             loader.Start();
             ModLoader.LoaderTaskbarAdd(loader);
             ModMain.frmMain.BtnExtraDownload.ShowRefresh();
-            ModMain.frmMain.BtnExtraDownload.Ribble();
         }
         catch (Exception ex)
         {
@@ -3753,7 +3740,6 @@ public static class ModDownloadLib
             loader.Start(request.targetInstanceFolder);
             ModLoader.LoaderTaskbarAdd(loader);
             ModMain.frmMain.BtnExtraDownload.ShowRefresh();
-            ModMain.frmMain.BtnExtraDownload.Ribble();
             return true;
         }
 

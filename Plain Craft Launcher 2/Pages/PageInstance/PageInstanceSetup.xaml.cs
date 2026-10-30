@@ -97,12 +97,12 @@ public partial class PageInstanceSetup : IPageView
 
         // 重复加载部分
         PanBack.ScrollToHome();
-        RefreshRam(false);
+        RefreshRam();
 
         // 由于各个实例不同，每次都需要重新加载
-        ModAnimation.AniBeginControl();
+        ModBase.BeginUiUpdate();
         Reload();
-        ModAnimation.AniEndControl();
+        ModBase.EndUiUpdate();
 
         // 非重复加载部分
         if (isLoaded)
@@ -214,7 +214,7 @@ public partial class PageInstanceSetup : IPageView
 
     private void RadioBoxChange(object o, ModBase.RouteEventArgs routeEventArgs)
     {
-        if (ModAnimation.AniExitsAnyControl())
+        if (ModBase.IsUiUpdating)
             return;
         if (o is not MyRadioBox { Tag: string tag }) return;
 
@@ -226,7 +226,7 @@ public partial class PageInstanceSetup : IPageView
 
     private void TextBoxChange(object o, TextChangedEventArgs textChangedEventArgs)
     {
-        if (ModAnimation.AniExitsAnyControl())
+        if (ModBase.IsUiUpdating)
             return;
         if (o is not MyTextBox textBox) return;
 
@@ -235,7 +235,7 @@ public partial class PageInstanceSetup : IPageView
 
     private void SliderChange(object o, bool user)
     {
-        if (ModAnimation.AniExitsAnyControl())
+        if (ModBase.IsUiUpdating)
             return;
         if (o is not MySlider slider) return;
 
@@ -244,7 +244,7 @@ public partial class PageInstanceSetup : IPageView
 
     private void ComboChange(MyComboBox sender, object e)
     {
-        if (ModAnimation.AniExitsAnyControl() || sender.SelectedIndex < 0)
+        if (ModBase.IsUiUpdating || sender.SelectedIndex < 0)
             return;
 
         SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
@@ -252,7 +252,7 @@ public partial class PageInstanceSetup : IPageView
 
     private void CheckBoxChange(object sender, bool user)
     {
-        if (ModAnimation.AniExitsAnyControl())
+        if (ModBase.IsUiUpdating)
             return;
         if (sender is not MyCheckBox checkBox) return;
 
@@ -276,7 +276,7 @@ public partial class PageInstanceSetup : IPageView
     /// <summary>
     /// 刷新 UI 上的 RAM 显示。
     /// </summary>
-    public void RefreshRam(bool showAnim)
+    public void RefreshRam()
     {
         if (LabRamGame is null || LabRamUsed is null ||
             ModMain.frmMain.pageCurrent != FormMain.PageType.InstanceSetup ||
@@ -291,36 +291,12 @@ public partial class PageInstanceSetup : IPageView
         var ramUsed = _vm.RamUsed;
         var ramGameActual = _vm.RamGameActual;
         var ramEmpty = _vm.RamEmpty;
-        if (showAnim)
-        {
-            // 宽度动画
-            ModAnimation.AniStart(
-                new[]
-                {
-                    ModAnimation.AaGridLengthWidth(ColumnRamUsed, ramUsed - ColumnRamUsed.Width.Value, 800,
-                        ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
-                    ModAnimation.AaGridLengthWidth(ColumnRamGame, ramGameActual - ColumnRamGame.Width.Value, 800,
-                        ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
-                    ModAnimation.AaGridLengthWidth(ColumnRamEmpty, ramEmpty - ColumnRamEmpty.Width.Value, 800,
-                        ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong))
-                }, "VersionSetup Ram Grid");
-        }
-        else
-        {
-            // 宽度设置
-            ColumnRamUsed.Width = new GridLength(ramUsed, GridUnitType.Star);
-            ColumnRamGame.Width = new GridLength(ramGameActual, GridUnitType.Star);
-            ColumnRamEmpty.Width = new GridLength(ramEmpty, GridUnitType.Star);
-        }
-    }
-
-    private void RefreshRam()
-    {
-        RefreshRam(true);
+        ColumnRamUsed.Width = new GridLength(ramUsed, GridUnitType.Star);
+        ColumnRamGame.Width = new GridLength(ramGameActual, GridUnitType.Star);
+        ColumnRamEmpty.Width = new GridLength(ramEmpty, GridUnitType.Star);
     }
 
     private int ramTextLeft = 2;
-    private int ramTextRight = 1;
 
     /// <summary>
     /// 刷新 UI 上的文本位置。
@@ -353,35 +329,23 @@ public partial class PageInstanceSetup : IPageView
             {
                 case 0:
                 {
-                    ModAnimation.AniStart(
-                        new[]
-                        {
-                            ModAnimation.AaOpacity(LabRamUsed, -LabRamUsed.Opacity, 100),
-                            ModAnimation.AaOpacity(LabRamTotal, -LabRamTotal.Opacity, 100),
-                            ModAnimation.AaOpacity(LabRamUsedTitle, -LabRamUsedTitle.Opacity, 100)
-                        }, "VersionSetup Ram TextLeft");
+                    LabRamUsed.Opacity = 0d;
+                    LabRamTotal.Opacity = 0d;
+                    LabRamUsedTitle.Opacity = 0d;
                     break;
                 }
                 case 1:
                 {
-                    ModAnimation.AniStart(
-                        new[]
-                        {
-                            ModAnimation.AaOpacity(LabRamUsed, 1d - LabRamUsed.Opacity, 100),
-                            ModAnimation.AaOpacity(LabRamTotal, -LabRamTotal.Opacity, 100),
-                            ModAnimation.AaOpacity(LabRamUsedTitle, 0.7d - LabRamUsedTitle.Opacity, 100)
-                        }, "VersionSetup Ram TextLeft");
+                    LabRamUsed.Opacity = 1d;
+                    LabRamTotal.Opacity = 0d;
+                    LabRamUsedTitle.Opacity = 0.7d;
                     break;
                 }
                 case 2:
                 {
-                    ModAnimation.AniStart(
-                        new[]
-                        {
-                            ModAnimation.AaOpacity(LabRamUsed, 1d - LabRamUsed.Opacity, 100),
-                            ModAnimation.AaOpacity(LabRamTotal, 1d - LabRamTotal.Opacity, 100),
-                            ModAnimation.AaOpacity(LabRamUsedTitle, 0.7d - LabRamUsedTitle.Opacity, 100)
-                        }, "VersionSetup Ram TextLeft");
+                    LabRamUsed.Opacity = 1d;
+                    LabRamTotal.Opacity = 1d;
+                    LabRamUsedTitle.Opacity = 0.7d;
                     break;
                 }
             }
@@ -397,47 +361,15 @@ public partial class PageInstanceSetup : IPageView
             right = 1;
         if (right == 0)
         {
-            if (!ModAnimation.AniExitsAnyControl() &&
-                (ramTextRight != right || ModAnimation.AniIsRun("VersionSetup Ram TextRight")))
-            {
-                // 需要动画
-                ModAnimation.AniStart(
-                    new[]
-                    {
-                        ModAnimation.AaX(LabRamGame, totalWidth - labGameWidth - LabRamGame.Margin.Left, 100,
-                            ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)),
-                        ModAnimation.AaX(LabRamGameTitle, totalWidth - labGameTitleWidth - LabRamGameTitle.Margin.Left,
-                            100, ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
-                    }, "VersionSetup Ram TextRight");
-            }
-            else
-            {
-                // 不需要动画
-                LabRamGame.Margin = new Thickness(totalWidth - labGameWidth, 3d, 0d, 0d);
-                LabRamGameTitle.Margin = new Thickness(totalWidth - labGameTitleWidth, 0d, 0d, 5d);
-            }
-        }
-        else if (!ModAnimation.AniExitsAnyControl() &&
-                 (ramTextRight != right || ModAnimation.AniIsRun("VersionSetup Ram TextRight")))
-        {
-            // 需要动画
-            ModAnimation.AniStart(
-                new[]
-                {
-                    ModAnimation.AaX(LabRamGame, 2d + rectUsedWidth - LabRamGame.Margin.Left, 100,
-                        ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)),
-                    ModAnimation.AaX(LabRamGameTitle, 2d + rectUsedWidth - LabRamGameTitle.Margin.Left, 100,
-                        ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
-                }, "VersionSetup Ram TextRight");
+            LabRamGame.Margin = new Thickness(totalWidth - labGameWidth, 3d, 0d, 0d);
+            LabRamGameTitle.Margin = new Thickness(totalWidth - labGameTitleWidth, 0d, 0d, 5d);
         }
         else
         {
-            // 不需要动画
             LabRamGame.Margin = new Thickness(2d + rectUsedWidth, 3d, 0d, 0d);
             LabRamGameTitle.Margin = new Thickness(2d + rectUsedWidth, 0d, 0d, 5d);
         }
 
-        ramTextRight = right;
     }
 
     /// <summary>
@@ -465,7 +397,7 @@ public partial class PageInstanceSetup : IPageView
 
     private void ComboServerLogin_Changed(object sender, SelectionChangedEventArgs e)
     {
-        if (ModAnimation.AniExitsAnyControl() || ComboServerLoginRequire.SelectedIndex < 0)
+        if (ModBase.IsUiUpdating || ComboServerLoginRequire.SelectedIndex < 0)
             return;
         ServerLogin(ComboServerLoginRequire.SelectedIndex);
         if (TextServerAuthServer.IsValidated)
@@ -574,7 +506,7 @@ public partial class PageInstanceSetup : IPageView
         ModBase.RunInNewThread(() =>
         {
             Thread.Sleep(150);
-            ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true, ModLaunch.McLoginType.Auth));
+            ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(ModLaunch.McLoginType.Auth));
         });
     }
 
@@ -685,7 +617,7 @@ public partial class PageInstanceSetup : IPageView
                 IsEnabled = false
             });
             ComboArgumentJava.SelectedIndex = 0;
-            RefreshRam(true);
+            RefreshRam();
             return;
         }
 
@@ -745,7 +677,7 @@ public partial class PageInstanceSetup : IPageView
         }
 
         // === 5. 刷新关联控件 ===
-        RefreshRam(true);
+        RefreshRam();
     }
 
     // 阻止在无效状态下展开下拉框
@@ -767,7 +699,7 @@ public partial class PageInstanceSetup : IPageView
     // 下拉框选择更改处理（保存新格式配置）
     private void JavaSelectionUpdate(object sender, SelectionChangedEventArgs e)
     {
-        if (ModAnimation.AniExitsAnyControl())
+        if (ModBase.IsUiUpdating)
             return;
         if (ComboArgumentJava.SelectedItem is null)
             return;
@@ -826,7 +758,7 @@ public partial class PageInstanceSetup : IPageView
 
 
         ModBase.Log(logMessage);
-        RefreshRam(true);
+        RefreshRam();
     }
 
     #endregion
@@ -842,7 +774,7 @@ public partial class PageInstanceSetup : IPageView
         if (ctl is not null) ctl.IsEnabled = false;
         try
         {
-            if (ModAnimation.AniExitsAnyControl())
+            if (ModBase.IsUiUpdating)
                 return;
             if (isReverting)
                 return;
@@ -900,7 +832,7 @@ public partial class PageInstanceSetup : IPageView
         if (ctl is not null) ctl.IsEnabled = false;
         try
         {
-            if (ModAnimation.AniExitsAnyControl())
+            if (ModBase.IsUiUpdating)
                 return;
 
             var args = e; // 转换事件参数
@@ -941,7 +873,7 @@ public partial class PageInstanceSetup : IPageView
         if (ctl is not null) ctl.IsEnabled = false;
         try
         {
-            if (ModAnimation.AniExitsAnyControl())
+            if (ModBase.IsUiUpdating)
                 return;
             var checkBox = sender as MyCheckBox;
             if (checkBox is null) return;

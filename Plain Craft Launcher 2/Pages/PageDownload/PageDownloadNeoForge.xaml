@@ -26,7 +26,7 @@
                 </StackPanel>
             </local:MyCard>
             <StackPanel Name="PanMain" Margin="20,15,20,5" Grid.IsSharedSizeScope="True" />
-            <local:MyCard HorizontalAlignment="Center" SnapsToDevicePixels="True" x:Name="PanLoad" UseAnimation="False"
+            <local:MyCard HorizontalAlignment="Center" SnapsToDevicePixels="True" x:Name="PanLoad"
                           Margin="40,50">
             <local:MyLoading Text="{DynamicResource Download.Version.NeoForge.LoadingList}" Margin="20,20,20,17" x:Name="Load"
                              HorizontalAlignment="Center" VerticalAlignment="Center" />

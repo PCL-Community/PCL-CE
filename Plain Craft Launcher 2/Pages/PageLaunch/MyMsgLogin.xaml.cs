@@ -199,24 +199,12 @@ public partial class MyMsgLogin
     {
         try
         {
-            // 动画
-            Opacity = 0d;
-            ModAnimation.AniStart(
-                ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
-                    (myConverter.IsWarn
-                        ? new ModBase.MyColor(140d, 80d, 0d, 0d)
-                        : new ModBase.MyColor(90d, 0d, 0d, 0d)) - ModMain.frmMain.PanMsgBackground.Background, 200),
-                "PanMsgBackground Background");
-            ModAnimation.AniStart(
-                new[]
-                {
-                    ModAnimation.AaOpacity(this, 1d, 120, 60),
-                    ModAnimation.AaDouble(i => TransformPos.Y += (double)i,
-                        -TransformPos.Y, 300, 60, new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
-                    ModAnimation.AaDouble(i => TransformRotate.Angle += (double)i,
-                        -TransformRotate.Angle, 300, 60,
-                        new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
-                }, "MyMsgBox " + uuid);
+        ModMain.frmMain.PanMsgBackground.Background = myConverter.IsWarn
+            ? new ModBase.MyColor(140d, 80d, 0d, 0d)
+            : new ModBase.MyColor(90d, 0d, 0d, 0d);
+        Opacity = 1d;
+        TransformPos.Y = 0d;
+        TransformRotate.Angle = 0d;
             // 记录日志
             ModBase.Log($"[Control] 正版验证弹窗：{LabTitle.Text}\r\n{_vm.CaptionText}");
         }
@@ -232,24 +220,14 @@ public partial class MyMsgLogin
 
     private void Close()
     {
-        // 动画
-        ModAnimation.AniStart(new[]
+        // 隐藏
+        ModBase.RunInUiLater(() =>
         {
-            ModAnimation.AaCode(() =>
-            {
-                if (!ModMain.WaitingMyMsgBox.Any())
-                    ModAnimation.AniStart(ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground,
-                        BlurBorder.BackgroundProperty,
-                        new ModBase.MyColor(0d, 0d, 0d, 0d) - ModMain.frmMain.PanMsgBackground.Background, 200,
-                        ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
-            }, 30),
-            ModAnimation.AaOpacity(this, -Opacity, 80, 20),
-            ModAnimation.AaDouble(i => TransformPos.Y += (double)i, 20d - TransformPos.Y,
-                150, 0, new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaDouble(i => TransformRotate.Angle += (double)i,
-                6d - TransformRotate.Angle, 150, 0, new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
-            ModAnimation.AaCode(() => ((Grid)Parent).Children.Remove(this), after: true)
-        }, "MyMsgBox " + uuid);
+            if (!ModMain.WaitingMyMsgBox.Any())
+                ModMain.frmMain.PanMsgBackground.Background = new ModBase.MyColor(0d, 0d, 0d, 0d);
+        }, 30);
+        if (Parent is Grid parentGrid)
+            parentGrid.Children.Remove(this);
     }
 
     // 实现回车和 Esc 的接口（#4857）

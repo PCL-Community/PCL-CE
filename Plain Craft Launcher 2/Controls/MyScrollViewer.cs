@@ -48,11 +48,8 @@ public class MyScrollViewer : ScrollViewer
 
     public void PerformVerticalOffsetDelta(double delta)
     {
-        ModAnimation.AniStart(ModAnimation.AaDouble(animDelta =>
-        {
-            realOffset = ModBase.MathClamp(realOffset + (double)animDelta, 0d, ExtentHeight - ActualHeight);
-            ScrollToVerticalOffset(realOffset);
-        }, delta * DeltaMult, 300, 0, new ModAnimation.AniEaseOutFluent((ModAnimation.AniEasePower)6), false));
+        realOffset = ModBase.MathClamp(realOffset + delta * DeltaMult, 0d, ExtentHeight - ActualHeight);
+        ScrollToVerticalOffset(realOffset);
     }
 
     private void MyScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)

@@ -12,7 +12,6 @@
 
     <!-- Application -->
 
-    <sys:String x:Key="Application.Animation.Error.OperationFailed">L'animation a échoué. Veuillez consulter les détails de l'erreur.</sys:String>
     <sys:String x:Key="Application.Control.Error.OperationFailed">L'opération sur un élément de l'interface a échoué. Veuillez consulter les détails de l'erreur.</sys:String>
     <sys:String x:Key="Application.Control.Loading.Default">Chargement...</sys:String>
     <sys:String x:Key="Application.Control.Loading.Failed">Échec du chargement.</sys:String>

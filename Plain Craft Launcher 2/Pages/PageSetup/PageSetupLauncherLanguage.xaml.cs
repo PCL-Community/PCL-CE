@@ -31,14 +31,14 @@ public partial class PageSetupLauncherLanguage
             return;
         _isLoaded = true;
 
-        ModAnimation.AniBeginControl();
+        ModBase.BeginUiUpdate();
         Reload();
-        ModAnimation.AniEndControl();
+        ModBase.EndUiUpdate();
     }
 
     public void Reload()
     {
-        ModAnimation.AniBeginControl();
+        ModBase.BeginUiUpdate();
         try
         {
             ReloadLanguageCombo();
@@ -47,7 +47,7 @@ public partial class PageSetupLauncherLanguage
         }
         finally
         {
-            ModAnimation.AniEndControl();
+            ModBase.EndUiUpdate();
         }
     }
 
@@ -122,7 +122,7 @@ public partial class PageSetupLauncherLanguage
 
     private void ComboUiLanguage_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (ModAnimation.AniExitsAnyControl())
+        if (ModBase.IsUiUpdating)
             return;
         if (ComboUiLanguage.SelectedItem is not MyComboBoxItem item)
             return;
@@ -138,7 +138,7 @@ public partial class PageSetupLauncherLanguage
 
     private void ComboUiFormatCulture_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (ModAnimation.AniExitsAnyControl())
+        if (ModBase.IsUiUpdating)
             return;
         if (ComboUiFormatCulture.SelectedItem is not MyComboBoxItem item)
             return;

@@ -5,7 +5,6 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
-using System.Windows.Media.Animation;
 using System.Windows.Media.Effects;
 using System.Windows.Threading;
 
@@ -37,14 +36,11 @@ public static class Tooltip
 
     #region Constants
 
-    private const double ScaleClosed = 0.97;
     private const double ShadowBlur = 18;
     private const double ShadowAlpha = 0.15;
     private const int MaxContentWidth = 676;
     private const double TipFontSize = 12.5;
     private const double TipLineHeight = 17;
-    private const int AnimLength = 80;
-    private const int AnimExit = 80;
 
     private static readonly Thickness _InnerPad = new(12, 10, 12, 10);
     private static readonly DropShadowEffect _Shadow = new()
@@ -73,9 +69,6 @@ public static class Tooltip
     private static FrameworkElement? _target;
     private static Popup? _flyout;
     private static Border? _shell;
-    private static ScaleTransform? _scaler;
-    private static Storyboard? _openStory;
-    private static Storyboard? _closeStory;
     private static DispatcherTimer? _latch;
     private static HwndSourceHook? _transparentHook;
 
@@ -98,8 +91,6 @@ public static class Tooltip
         _running = true;
 
         _Shadow.Freeze();
-
-        _PrebuildStoryboards();
 
         EventManager.RegisterClassHandler(typeof(FrameworkElement),
             UIElement.MouseEnterEvent, _OnEnterHandler, true);
@@ -139,33 +130,6 @@ public static class Tooltip
     public static void Dismiss()
     {
         _WindDown();
-    }
-
-    #endregion
-
-    #region Storyboard Setup
-
-    private static void _PrebuildStoryboards()
-    {
-        static DoubleAnimation MakeAnim(double to, string prop, int ms)
-        {
-            var a = new DoubleAnimation(to, new Duration(TimeSpan.FromMilliseconds(ms)))
-            {
-                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
-            };
-            Storyboard.SetTargetProperty(a, new PropertyPath(prop));
-            return a;
-        }
-
-        _openStory = new Storyboard();
-        _openStory.Children.Add(MakeAnim(1, nameof(UIElement.Opacity), AnimLength));
-        _openStory.Children.Add(MakeAnim(1, "RenderTransform.ScaleX", AnimLength));
-        _openStory.Children.Add(MakeAnim(1, "RenderTransform.ScaleY", AnimLength));
-
-        _closeStory = new Storyboard();
-        _closeStory.Children.Add(MakeAnim(0, nameof(UIElement.Opacity), AnimExit));
-        _closeStory.Children.Add(MakeAnim(ScaleClosed, "RenderTransform.ScaleX", AnimExit));
-        _closeStory.Children.Add(MakeAnim(ScaleClosed, "RenderTransform.ScaleY", AnimExit));
     }
 
     #endregion
@@ -403,24 +367,14 @@ public static class Tooltip
             return;
         }
 
-        // Tooltip 已打开时切换到新元素，先淡出旧内容再淡入新内容
+        // Tooltip 已打开时切换到新元素，直接替换内容
         if (_flyout is { IsOpen: true })
         {
             _closing = false;
             _target = target;
             _cursor = pt;
-            var mark = ++_gen;
-            var sb = _closeStory!.Clone();
-            sb.Completed += (_, _) =>
-            {
-                if (mark == _gen)
-                {
-                    _flyout.IsOpen = false;
-                    _PopUp(target, pt);
-                }
-                sb.Remove(_shell!);
-            };
-            _shell!.BeginStoryboard(sb);
+            _flyout.IsOpen = false;
+            _PopUp(target, pt);
             return;
         }
 
@@ -470,13 +424,11 @@ public static class Tooltip
         _RenderInside(target);
 
         _gen++;
-        _shell.BeginStoryboard(_openStory!);
         _flyout.IsOpen = true;
     }
 
     private static void _BuildUi()
     {
-        _scaler = new ScaleTransform(ScaleClosed, ScaleClosed);
         _shell = new Border
         {
             BorderThickness = new Thickness(1),
@@ -484,8 +436,6 @@ public static class Tooltip
             MaxWidth = 700,
             SnapsToDevicePixels = true,
             UseLayoutRounding = true,
-            RenderTransform = _scaler,
-            RenderTransformOrigin = new Point(0, 0),
             Effect = _Shadow
         };
         _shell.SetResourceReference(Border.BackgroundProperty, "ColorBrushWhite");
@@ -620,14 +570,7 @@ public static class Tooltip
             return;
         }
 
-        var mark = ++_gen;
-        var sb = _closeStory!.Clone();
-        sb.Completed += (_, _) =>
-        {
-            if (mark == _gen) _Hush();
-            sb.Remove(_shell);
-        };
-        _shell.BeginStoryboard(sb);
+        _Hush();
     }
 
     private static void _Hush()
@@ -642,16 +585,7 @@ public static class Tooltip
             _flyout.IsOpen = false;
 
         if (_shell is not null)
-        {
-            _shell.BeginAnimation(UIElement.OpacityProperty, null);
             _shell.Child = null;
-        }
-
-        if (_scaler is not null)
-        {
-            _scaler.BeginAnimation(ScaleTransform.ScaleXProperty, null);
-            _scaler.BeginAnimation(ScaleTransform.ScaleYProperty, null);
-        }
     }
 
     #endregion

@@ -33,9 +33,9 @@ public partial class PageSetupUI
         // 重复加载部分
         PanBack.ScrollToHome();
 
-        ModAnimation.AniBeginControl();
+        ModBase.BeginUiUpdate();
         Reload(); // #4826，在每次进入页面时都刷新一下
-        ModAnimation.AniEndControl();
+        ModBase.EndUiUpdate();
 
         // 非重复加载部分
         if (isLoaded)
@@ -201,14 +201,14 @@ public partial class PageSetupUI
     private void SliderChange(object senderRaw, bool user)
     {
         var sender = (MySlider)senderRaw;
-        if (!ModAnimation.AniExitsAnyControl())
+        if (!ModBase.IsUiUpdating)
             SetByTag(sender.Tag?.ToString(), sender.Value);
     }
 
     private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
-        if (ModAnimation.AniExitsAnyControl() || sender.SelectedIndex < 0)
+        if (ModBase.IsUiUpdating || sender.SelectedIndex < 0)
             return;
         SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }
@@ -216,14 +216,14 @@ public partial class PageSetupUI
     private void CheckBoxChange(object senderRaw, bool user)
     {
         var sender = (MyCheckBox)senderRaw;
-        if (!ModAnimation.AniExitsAnyControl())
+        if (!ModBase.IsUiUpdating)
             SetByTag(sender.Tag?.ToString(), sender.Checked);
     }
 
     private void TextBoxChange(object senderRaw, RoutedEventArgs e)
     {
         var sender = (MyTextBox)senderRaw;
-        if (!ModAnimation.AniExitsAnyControl())
+        if (!ModBase.IsUiUpdating)
             SetByTag(sender.Tag?.ToString(), sender.Text);
     }
 
@@ -231,7 +231,7 @@ public partial class PageSetupUI
     {
         var sender = (MyRadioBox)senderRaw;
         var gotCfg = sender.Tag?.ToString()?.Split("/") ?? Array.Empty<string>();
-        if (!ModAnimation.AniExitsAnyControl() && gotCfg.Length >= 2)
+        if (!ModBase.IsUiUpdating && gotCfg.Length >= 2)
             SetByTag(gotCfg[0], int.Parse(gotCfg[1]));
     }
 
@@ -242,12 +242,12 @@ public partial class PageSetupUI
 
     private void ComboFontChange(object sender, SelectionChangedEventArgs e)
     {
-        if (!ModAnimation.AniExitsAnyControl()) Config.Preference.Font = ComboUiFont.SelectedFontTag;
+        if (!ModBase.IsUiUpdating) Config.Preference.Font = ComboUiFont.SelectedFontTag;
     }
 
     private void ComboMotdFontChange(object sender, SelectionChangedEventArgs e)
     {
-        if (!ModAnimation.AniExitsAnyControl()) Config.Preference.MotdFont = ComboUiMotdFont.SelectedFontTag;
+        if (!ModBase.IsUiUpdating) Config.Preference.MotdFont = ComboUiMotdFont.SelectedFontTag;
     }
 
     // 背景图片
@@ -458,7 +458,7 @@ public partial class PageSetupUI
 
     private void RadioLogoType3_Check(object sender, ModBase.RouteEventArgs e)
     {
-        if (!(!ModAnimation.AniExitsAnyControl() && e.raiseByMouse))
+        if (!(!ModBase.IsUiUpdating && e.raiseByMouse))
             return;
         Refresh: ;
 
@@ -633,7 +633,7 @@ public partial class PageSetupUI
     private void CheckMusicStart_Change(object sender, bool user)
     {
         CheckBoxChange(sender, user);
-        if (ModAnimation.AniExitsAnyControl())
+        if (ModBase.IsUiUpdating)
             return;
         if (CheckMusicStart.Checked == true)
             CheckMusicStop.Checked = false;
@@ -641,7 +641,7 @@ public partial class PageSetupUI
 
     private void CheckMusicStop_Change()
     {
-        if (ModAnimation.AniExitsAnyControl())
+        if (ModBase.IsUiUpdating)
             return;
         if (CheckMusicStop.Checked == true)
             CheckMusicStart.Checked = false;
@@ -664,7 +664,7 @@ public partial class PageSetupUI
     private void ThemeColor_Change(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
-        if (ModAnimation.AniExitsAnyControl() || sender.SelectedIndex < 0)
+        if (ModBase.IsUiUpdating || sender.SelectedIndex < 0)
             return;
         SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
         ThemeManager.ThemeRefresh();
@@ -944,7 +944,7 @@ public partial class PageSetupUI
     // 警告提示
     private void HiddenHint(object sender, bool user)
     {
-        if (!ModAnimation.AniExitsAnyControl() && sender is MyCheckBox checkBox && checkBox.Checked == true)
+        if (!ModBase.IsUiUpdating && sender is MyCheckBox checkBox && checkBox.Checked == true)
             HintService.Hint(Lang.Text("Setup.Ui.FeatureHide.TemporaryHint"));
     }
 

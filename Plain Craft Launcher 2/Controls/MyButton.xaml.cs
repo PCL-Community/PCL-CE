@@ -19,8 +19,6 @@ public partial class MyButton
     }
 
     // 自定义事件
-    private const int animationColorIn = 100;
-    private const int animationColorOut = 200;
 
     public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),
         typeof(MyButton), new PropertyMetadata((sender, e) =>
@@ -108,40 +106,14 @@ public partial class MyButton
         };
     }
 
-    private void StartBorderBrushAnimation(string resourceKey, int duration)
-    {
-        ModAnimation.AniStart(
-            new[]
-            {
-                ModAnimation.AaColor(PanFore, BorderBrushProperty, resourceKey, duration)
-            }, "MyButton Color " + Uuid);
-    }
-
     private void RefreshColor(object obj = null, object e = null)
     {
         try
         {
-            if (ControlVisualHelpers.ShouldAnimate(this)) // 防止默认属性变更触发动画
-            {
-                if (IsEnabled)
-                    StartBorderBrushAnimation(GetBorderBrushResourceKey(), IsMouseOver ? animationColorIn : animationColorOut);
-                else
-                    // 不可用（Gray 4）
-                    ModAnimation.AniStart(
-                        new[]
-                        {
-                            ModAnimation.AaColor(PanFore, BorderBrushProperty,
-                                ThemeManager.colorGray4 - PanFore.BorderBrush, animationColorOut)
-                        }, "MyButton Color " + Uuid);
-            }
+            if (IsEnabled)
+                PanFore.SetResourceReference(BorderBrushProperty, GetBorderBrushResourceKey());
             else
-            {
-                ModAnimation.AniStop("MyButton Color " + Uuid);
-                if (IsEnabled)
-                    PanFore.SetResourceReference(BorderBrushProperty, GetBorderBrushResourceKey());
-                else
-                    PanFore.BorderBrush = ThemeManager.colorGray4;
-            }
+                PanFore.BorderBrush = ThemeManager.colorGray4;
         }
         catch (Exception ex)
         {
@@ -164,47 +136,23 @@ public partial class MyButton
     {
         isMouseDown = true;
         Focus();
-        ModAnimation.AniStart(
-            new[]
-            {
-                ModAnimation.AaScaleTransform(PanFore, 0.955d - ((ScaleTransform)PanFore.RenderTransform).ScaleX, 80,
-                    ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.ExtraStrong)),
-                ModAnimation.AaScaleTransform(PanFore, -0.01d, 700, ease: new ModAnimation.AniEaseOutFluent())
-            }, "MyButton Scale " + Uuid);
     }
 
     private void Button_MouseEnter()
     {
-        ModAnimation.AniStart(
-            ModAnimation.AaColor(PanFore, BackgroundProperty,
-                _ColorType == ColorState.Red ? "ColorBrushRedBack" : "ColorBrush7", animationColorIn),
-            "MyButton Background " + Uuid);
+        PanFore.SetResourceReference(BackgroundProperty,
+            _ColorType == ColorState.Red ? "ColorBrushRedBack" : "ColorBrush7");
     }
 
     private void Button_MouseUp()
     {
-        if (!isMouseDown)
-            return;
         isMouseDown = false;
-        ModAnimation.AniStart(
-            new[]
-            {
-                ModAnimation.AaScaleTransform(PanFore, 1d - ((ScaleTransform)PanFore.RenderTransform).ScaleX, 300, 10,
-                    new ModAnimation.AniEaseOutFluent())
-            }, "MyButton Scale " + Uuid);
     }
 
     private void Button_MouseLeave()
     {
         if (!IsMouseOver)
-            ModAnimation.AniStart(
-                ModAnimation.AaColor(PanFore, BackgroundProperty, "ColorBrushHalfWhite", animationColorOut),
-                "MyButton Background " + Uuid);
-        if (!isMouseDown)
-            return;
+            PanFore.SetResourceReference(BackgroundProperty, "ColorBrushHalfWhite");
         isMouseDown = false;
-        ModAnimation.AniStart(
-            ModAnimation.AaScaleTransform(PanFore, 1d - ((ScaleTransform)PanFore.RenderTransform).ScaleX, 800,
-                ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)), "MyButton Scale " + Uuid);
     }
 }

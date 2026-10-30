@@ -1,17 +1,17 @@
 <local:MyPageLeft x:Class="PCL.PageInstanceLeft"
                   xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                  xmlns:local="clr-namespace:PCL" AnimatedControl="{Binding ElementName=PanItem, Mode=OneWay}">
+                  xmlns:local="clr-namespace:PCL" TransitionControl="{Binding ElementName=PanItem, Mode=OneWay}">
     <local:MyScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
                           Style="{StaticResource ScrollViewerFullMargin}">
         <StackPanel Margin="0,12,0,0" x:Name="PanItem">
             <TextBlock Text="{DynamicResource Instance.Left.Game}" Margin="13,6,5,4" Opacity="0.6" FontSize="12" />
-            <local:MyListItem x:Name="ItemOverall" IsScaleAnimationEnabled="False" Checked="True" Type="RadioBox"
+            <local:MyListItem x:Name="ItemOverall" Checked="True" Type="RadioBox"
                               Check="PageCheck"
                               Tag="0" MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Instance.Left.Overview}"
                               SvgIcon="lucide/layout-dashboard" />
-            <local:MyListItem x:Name="ItemSetup" IsScaleAnimationEnabled="False" Tag="1" MinPaddingRight="35"
+            <local:MyListItem x:Name="ItemSetup" Tag="1" MinPaddingRight="35"
                               Check="PageCheck"
                               Height="36" VerticalAlignment="Top" Title="{DynamicResource Instance.Left.Settings}"
                               Type="RadioBox"
@@ -27,7 +27,7 @@
                     </x:Array>
                 </local:MyListItem.Buttons>
             </local:MyListItem>
-            <local:MyListItem x:Name="ItemInstall" IsScaleAnimationEnabled="False" Type="RadioBox" Tag="10"
+            <local:MyListItem x:Name="ItemInstall" Type="RadioBox" Tag="10"
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Instance.Left.Install}"
@@ -44,7 +44,7 @@
                     </x:Array>
                 </local:MyListItem.Buttons>
             </local:MyListItem>
-            <local:MyListItem x:Name="ItemExport" IsScaleAnimationEnabled="False" Type="RadioBox" Tag="2"
+            <local:MyListItem x:Name="ItemExport" Type="RadioBox" Tag="2"
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Instance.Left.Export}"
@@ -63,7 +63,7 @@
             <TextBlock x:Name="TextResource" Text="{DynamicResource Instance.Left.Resources}" Margin="13,6,5,4"
                        Visibility="{Binding TextResourceVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                        Opacity="0.6" FontSize="12" />
-            <local:MyListItem x:Name="ItemWorld" LogoScale="0.95" IsScaleAnimationEnabled="False" Type="RadioBox"
+            <local:MyListItem x:Name="ItemWorld" LogoScale="0.95" Type="RadioBox"
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Instance.Left.Saves}" Tag="3"
@@ -79,7 +79,7 @@
                     </x:Array>
                 </local:MyListItem.Buttons>
             </local:MyListItem>
-            <local:MyListItem x:Name="ItemScreenshot" LogoScale="0.95" IsScaleAnimationEnabled="False" Type="RadioBox"
+            <local:MyListItem x:Name="ItemScreenshot" LogoScale="0.95" Type="RadioBox"
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Instance.Left.Screenshots}" Tag="4"
@@ -95,7 +95,7 @@
                     </x:Array>
                 </local:MyListItem.Buttons>
             </local:MyListItem>
-            <local:MyListItem x:Name="ItemMod" IsScaleAnimationEnabled="False" Type="RadioBox" Tag="5"
+            <local:MyListItem x:Name="ItemMod" Type="RadioBox" Tag="5"
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Instance.Left.Mod}"
@@ -111,13 +111,13 @@
                     </x:Array>
                 </local:MyListItem.Buttons>
             </local:MyListItem>
-            <local:MyListItem x:Name="ItemModDisabled" IsScaleAnimationEnabled="False" Type="RadioBox" Tag="6"
+            <local:MyListItem x:Name="ItemModDisabled" Type="RadioBox" Tag="6"
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Instance.Left.Mod}"
                               Visibility="{Binding ItemModDisabledVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                               SvgIcon="lucide/puzzle" />
-            <local:MyListItem x:Name="ItemResourcePack" LogoScale="0.85" IsScaleAnimationEnabled="False"
+            <local:MyListItem x:Name="ItemResourcePack" LogoScale="0.85"
                               Check="PageCheck"
                               Type="RadioBox" MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Instance.Left.ResourcePacks}"
@@ -134,7 +134,7 @@
                     </x:Array>
                 </local:MyListItem.Buttons>
             </local:MyListItem>
-            <local:MyListItem x:Name="ItemShader" LogoScale="1.15" IsScaleAnimationEnabled="False" Type="RadioBox"
+            <local:MyListItem x:Name="ItemShader" LogoScale="1.15" Type="RadioBox"
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Instance.Left.Shaders}" Tag="8"
@@ -150,7 +150,7 @@
                     </x:Array>
                 </local:MyListItem.Buttons>
             </local:MyListItem>
-            <local:MyListItem x:Name="ItemSchematic" LogoScale="0.85" IsScaleAnimationEnabled="False" Type="RadioBox"
+            <local:MyListItem x:Name="ItemSchematic" LogoScale="0.85" Type="RadioBox"
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Instance.Left.Schematics}" Tag="9"
@@ -166,7 +166,7 @@
                     </x:Array>
                 </local:MyListItem.Buttons>
             </local:MyListItem>
-            <local:MyListItem x:Name="ItemServer" LogoScale="0.85" IsScaleAnimationEnabled="False" Type="RadioBox"
+            <local:MyListItem x:Name="ItemServer" LogoScale="0.85" Type="RadioBox"
                               Check="PageCheck"
                               MinPaddingRight="35" Height="36" VerticalAlignment="Top"
                               Title="{DynamicResource Instance.Left.Servers}" Tag="11"

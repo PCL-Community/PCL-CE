@@ -40,7 +40,7 @@ public partial class PageInstanceInstall
 
     private void LoaderInit()
     {
-        disabledPageAnimControls.Add(BtnSelectStart);
+        disabledPageTransitionControls.Add(BtnSelectStart);
         // PageLoaderInit(LoadMinecraft, PanLoad, PanBack, Nothing, DlClientListLoader, AddressOf LoadMinecraft_OnFinish)
         PageLoaderInit(LoadMinecraft, PanLoad, PanAllBack, null, ModDownload.dlClientListLoader, _ => GetCurrentInfo());
         LoadOptiFine.StateChanged += (_, _, _) => { OptiFine_Loaded(); ReloadSelected(); };
@@ -213,7 +213,7 @@ public partial class PageInstanceInstall
 
     #region 页面切换
 
-    // 页面切换动画
+    // 页面切换
     public bool isInSelectPage;
     private bool isFirstLoaded;
 
@@ -223,7 +223,7 @@ public partial class PageInstanceInstall
             return;
         isInSelectPage = true;
 
-        disabledPageAnimControls.Remove(BtnSelectStart);
+        disabledPageTransitionControls.Remove(BtnSelectStart);
         BtnSelectStart.Show = true;
         autoSelectedFabricApi = false;
         autoSelectedOptiFabric = false;
@@ -252,8 +252,8 @@ public partial class PageInstanceInstall
             HintService.Hint(Lang.Text("Download.Install.Hint.MinecraftBack"));
         }
 
-        // 如果在选择页面按了刷新键，选择页的东西可能会由于动画被隐藏，但不会由于加载结束而再次显示，因此这里需要手动恢复
-        foreach (var Card in GetAllAnimControls(PanSelect))
+        // 如果在选择页面按了刷新键，选择页的东西可能会在切换时被隐藏，但不会由于加载结束而再次显示，因此这里需要手动恢复
+        foreach (var Card in GetAllTransitionControls(PanSelect))
         {
             Card.Opacity = 1d;
             Card.RenderTransform = new TranslateTransform();
@@ -274,59 +274,53 @@ public partial class PageInstanceInstall
         ModDownload.dlLegacyFabricApiLoader.Start();
         ModDownload.dlOptiFabricLoader.Start();
 
-        ModAnimation.AniStart(new[]
+        PanBack.ScrollToHome();
+        OptiFine_Loaded();
+        LiteLoader_Loaded();
+        Forge_Loaded();
+        NeoForge_Loaded();
+        Cleanroom_Loaded();
+        Fabric_Loaded();
+        LegacyFabric_Loaded();
+        FabricApi_Loaded();
+        LegacyFabricApi_Loaded();
+        LabyMod_Loaded();
+        OptiFabric_Loaded();
+        ReloadSelected();
+
+        PanMinecraft.Opacity = 0d;
+        PanMinecraft.Visibility = Visibility.Collapsed;
+        PanSelect.Opacity = 1d;
+        PanBack.IsHitTestVisible = true;
+
+        // 初始化 Binding
+        if (!isFirstLoaded)
         {
-            ModAnimation.AaOpacity(PanMinecraft, -PanMinecraft.Opacity, 100, 10),
-            ModAnimation.AaCode(() =>
-            {
-                PanBack.ScrollToHome();
-                OptiFine_Loaded();
-                LiteLoader_Loaded();
-                Forge_Loaded();
-                NeoForge_Loaded();
-                Cleanroom_Loaded();
-                Fabric_Loaded();
-                LegacyFabric_Loaded();
-                FabricApi_Loaded();
-                LegacyFabricApi_Loaded();
-                LabyMod_Loaded();
-                OptiFabric_Loaded();
-                ReloadSelected();
-            }, after: true),
-            ModAnimation.AaOpacity(PanSelect, 1d - PanSelect.Opacity, 250, 150),
-            ModAnimation.AaCode(() =>
-            {
-                PanMinecraft.Visibility = Visibility.Collapsed;
-                PanBack.IsHitTestVisible = true;
-                // 初始化 Binding
-                if (isFirstLoaded)
-                    return;
-                isFirstLoaded = true;
-                BtnOptiFineClearInner.SetBinding(Shape.FillProperty,
-                    new Binding("Foreground") { Source = CardOptiFine.MainTextBlock, Mode = BindingMode.OneWay });
-                BtnLiteLoaderClearInner.SetBinding(Shape.FillProperty,
-                    new Binding("Foreground") { Source = CardLiteLoader.MainTextBlock, Mode = BindingMode.OneWay });
-                BtnForgeClearInner.SetBinding(Shape.FillProperty,
-                    new Binding("Foreground") { Source = CardForge.MainTextBlock, Mode = BindingMode.OneWay });
-                BtnLegacyFabricClearInner.SetBinding(Shape.FillProperty,
-                    new Binding("Foreground") { Source = CardLegacyFabric.MainTextBlock, Mode = BindingMode.OneWay });
-                BtnNeoForgeClearInner.SetBinding(Shape.FillProperty,
-                    new Binding("Foreground") { Source = CardNeoForge.MainTextBlock, Mode = BindingMode.OneWay });
-                BtnCleanroomClearInner.SetBinding(Shape.FillProperty,
-                    new Binding("Foreground") { Source = CardCleanroom.MainTextBlock, Mode = BindingMode.OneWay });
-                BtnFabricClearInner.SetBinding(Shape.FillProperty,
-                    new Binding("Foreground") { Source = CardFabric.MainTextBlock, Mode = BindingMode.OneWay });
-                BtnLegacyFabricApiClearInner.SetBinding(Shape.FillProperty,
-                    new Binding("Foreground")
-                        { Source = CardLegacyFabricApi.MainTextBlock, Mode = BindingMode.OneWay });
-                BtnFabricApiClearInner.SetBinding(Shape.FillProperty,
-                    new Binding("Foreground") { Source = CardFabricApi.MainTextBlock, Mode = BindingMode.OneWay });
-                BtnLabyModClearInner.SetBinding(Shape.FillProperty,
-                    new Binding("Foreground") { Source = CardLabyMod.MainTextBlock, Mode = BindingMode.OneWay });
-                BtnOptiFabricClearInner.SetBinding(Shape.FillProperty,
-                    new Binding("Foreground") { Source = CardOptiFabric.MainTextBlock, Mode = BindingMode.OneWay });
-            }, after: true)
-        }, "FrmInstanceInstall SelectPageSwitch", true);
+            isFirstLoaded = true;
+            BtnOptiFineClearInner.SetBinding(Shape.FillProperty,
+                new Binding("Foreground") { Source = CardOptiFine.MainTextBlock, Mode = BindingMode.OneWay });
+            BtnLiteLoaderClearInner.SetBinding(Shape.FillProperty,
+                new Binding("Foreground") { Source = CardLiteLoader.MainTextBlock, Mode = BindingMode.OneWay });
+            BtnForgeClearInner.SetBinding(Shape.FillProperty,
+                new Binding("Foreground") { Source = CardForge.MainTextBlock, Mode = BindingMode.OneWay });
+            BtnLegacyFabricClearInner.SetBinding(Shape.FillProperty,
+                new Binding("Foreground") { Source = CardLegacyFabric.MainTextBlock, Mode = BindingMode.OneWay });
+            BtnNeoForgeClearInner.SetBinding(Shape.FillProperty,
+                new Binding("Foreground") { Source = CardNeoForge.MainTextBlock, Mode = BindingMode.OneWay });
+            BtnCleanroomClearInner.SetBinding(Shape.FillProperty,
+                new Binding("Foreground") { Source = CardCleanroom.MainTextBlock, Mode = BindingMode.OneWay });
+            BtnFabricClearInner.SetBinding(Shape.FillProperty,
+                new Binding("Foreground") { Source = CardFabric.MainTextBlock, Mode = BindingMode.OneWay });
+            BtnLegacyFabricApiClearInner.SetBinding(Shape.FillProperty,
+                new Binding("Foreground")
+                    { Source = CardLegacyFabricApi.MainTextBlock, Mode = BindingMode.OneWay });
+            BtnFabricApiClearInner.SetBinding(Shape.FillProperty,
+                new Binding("Foreground") { Source = CardFabricApi.MainTextBlock, Mode = BindingMode.OneWay });
+            BtnLabyModClearInner.SetBinding(Shape.FillProperty,
+                new Binding("Foreground") { Source = CardLabyMod.MainTextBlock, Mode = BindingMode.OneWay });
+            BtnOptiFabricClearInner.SetBinding(Shape.FillProperty,
+                new Binding("Foreground") { Source = CardOptiFabric.MainTextBlock, Mode = BindingMode.OneWay });
+        }
     }
 
     public void ExitSelectPage()
@@ -337,7 +331,7 @@ public partial class PageInstanceInstall
 
         LoadMinecraft_OnFinish();
 
-        disabledPageAnimControls.Add(BtnSelectStart);
+        disabledPageTransitionControls.Add(BtnSelectStart);
         BtnSelectStart.Show = false;
 
         ClearSelected(); // 清除已选择项
@@ -347,17 +341,11 @@ public partial class PageInstanceInstall
         PanBack.IsHitTestVisible = false;
         PanBack.ScrollToHome();
 
-        ModAnimation.AniStart(new[]
-        {
-            ModAnimation.AaOpacity(PanSelect, -PanSelect.Opacity, 90, 10),
-            ModAnimation.AaCode(() => PanBack.ScrollToHome(), after: true),
-            ModAnimation.AaOpacity(PanMinecraft, 1d - PanMinecraft.Opacity, 150, 100),
-            ModAnimation.AaCode(() =>
-            {
-                PanSelect.Visibility = Visibility.Collapsed;
-                PanBack.IsHitTestVisible = true;
-            }, after: true)
-        }, "FrmInstanceInstall SelectPageSwitch");
+        PanSelect.Opacity = 0d;
+        PanSelect.Visibility = Visibility.Collapsed;
+        PanMinecraft.Opacity = 1d;
+        PanBack.ScrollToHome();
+        PanBack.IsHitTestVisible = true;
     }
 
     // 页面切换触发
@@ -923,27 +911,25 @@ public partial class PageInstanceInstall
         selectedAPIName = null;
     }
 
-    // 信息栏动画
+    // 信息栏显示
     private void SetPanelVisibility(Grid panel, bool visible)
     {
         if (Equals(panel.Tag, visible.ToString()))
             return;
         panel.Tag = visible.ToString();
+        var transform = panel.RenderTransform as TranslateTransform;
         if (visible)
-            ModAnimation.AniStart(
-                new[]
-                {
-                    ModAnimation.AaTranslateY(panel, -((TranslateTransform)panel.RenderTransform).Y, 150,
-                        ease: new ModAnimation.AniEaseOutFluent()),
-                    ModAnimation.AaOpacity(panel, 1d - panel.Opacity, 60)
-                }, "PageDownloadInstall Visibility " + panel.Name);
+        {
+            panel.Opacity = 1d;
+            if (transform is not null)
+                transform.Y = 0d;
+        }
         else
-            ModAnimation.AniStart(
-                new[]
-                {
-                    ModAnimation.AaTranslateY(panel, 6d - ((TranslateTransform)panel.RenderTransform).Y, 60),
-                    ModAnimation.AaOpacity(panel, -panel.Opacity, 60)
-                }, "PageDownloadInstall Visibility " + panel.Name);
+        {
+            panel.Opacity = 0d;
+            if (transform is not null)
+                transform.Y = 6d;
+        }
     }
 
     private PageInstanceInstallViewModel.LoaderSelection GetLoaderSelection()

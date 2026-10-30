@@ -84,8 +84,7 @@ public partial class MySearchBox : MyCard
     private void UpdateClearButtonState()
     {
         var hasText = !string.IsNullOrEmpty(TextBox.Text);
-        ModAnimation.AniStart(ModAnimation.AaOpacity(BtnClear, hasText ? 1d - BtnClear.Opacity : -BtnClear.Opacity, 90),
-            "MySearchBox ClearBtn " + uuid);
+        BtnClear.Opacity = hasText ? 1d : 0d;
         BtnClear.IsHitTestVisible = hasText;
     }
 }

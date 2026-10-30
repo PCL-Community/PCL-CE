@@ -76,7 +76,6 @@ public partial class Application
 
             // 设置初始化
             _ = Config.Debug.Enabled;
-            _ = Config.Debug.AnimationSpeed;
             _ = Config.Network.HttpProxy.CustomAddress;
             _ = Config.Network.HttpProxy.CustomUsername;
             _ = Config.Network.HttpProxy.Type;
@@ -100,7 +99,7 @@ public partial class Application
             // 计时
             ModBase.Log("[Start] 第一阶段加载用时：" + (TimeUtils.GetTimeTick() - ModBase.applicationStartTick) + " ms");
             ModBase.applicationStartTick = TimeUtils.GetTimeTick();
-            ModAnimation.AniBeginControl();
+            ModBase.BeginUiUpdate();
         }
         catch (Exception ex)
         {

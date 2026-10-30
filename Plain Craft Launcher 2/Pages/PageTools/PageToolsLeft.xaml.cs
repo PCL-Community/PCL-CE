@@ -14,7 +14,7 @@ public partial class PageToolsLeft
     public PageToolsLeft()
     {
         InitializeComponent();
-        AnimatedControl = PanItem;
+        TransitionControl = PanItem;
         Loaded += PageLinkLeft_Loaded;
         Unloaded += PageOtherLeft_Unloaded;
     }
@@ -35,10 +35,10 @@ public partial class PageToolsLeft
         switch (_vm.ResolveInitialPageId())
         {
             case FormMain.PageSubType.ToolsTest:
-                ItemTest.SetChecked(true, false, false);
+                ItemTest.SetChecked(true, false);
                 break;
             default:
-                ItemGameLink.SetChecked(true, false, false);
+                ItemGameLink.SetChecked(true, false);
                 break;
         }
     }
@@ -117,7 +117,7 @@ public partial class PageToolsLeft
     {
         if (pageID == id)
             return;
-        ModAnimation.AniBeginControl();
+        ModBase.BeginUiUpdate();
         isPageSwitched = true;
         try
         {
@@ -134,32 +134,20 @@ public partial class PageToolsLeft
         }
         finally
         {
-            ModAnimation.AniEndControl();
+            ModBase.EndUiUpdate();
         }
     }
 
     private static void PageChangeRun(MyPageRight target)
     {
-        ModAnimation.AniStop("FrmMain PageChangeRight"); // 停止主页面的右页面切换动画，防止它与本动画一起触发多次 PageOnEnter
         if (target.Parent is not null)
             target.SetValue(ContentPresenter.ContentProperty, null);
         ModMain.frmMain.pageRight = target;
         ((MyPageRight)ModMain.frmMain.PanMainRight.Child).PageOnExit();
-        ModAnimation.AniStart(new[]
-        {
-            ModAnimation.AaCode(() =>
-            {
-                ((MyPageRight)ModMain.frmMain.PanMainRight.Child).PageOnForceExit();
-                ModMain.frmMain.PanMainRight.Child = ModMain.frmMain.pageRight;
-                ModMain.frmMain.pageRight.Opacity = 0d;
-            }, 130),
-            ModAnimation.AaCode(() =>
-            {
-                // 延迟触发页面通用动画，以使得在 Loaded 事件中加载的控件得以处理
-                ModMain.frmMain.pageRight.Opacity = 1d;
-                ModMain.frmMain.pageRight.PageOnEnter();
-            }, 30, true)
-        }, "PageLeft PageChange");
+        ((MyPageRight)ModMain.frmMain.PanMainRight.Child).PageOnForceExit();
+        ModMain.frmMain.PanMainRight.Child = ModMain.frmMain.pageRight;
+        ModMain.frmMain.pageRight.Opacity = 1d;
+        ModMain.frmMain.pageRight.PageOnEnter();
     }
 
     #endregion

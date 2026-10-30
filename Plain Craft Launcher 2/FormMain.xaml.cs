@@ -192,7 +192,7 @@ public partial class FormMain
         // #End If
         Topmost = false;
         if (ModMain.frmStart is not null)
-            ModMain.frmStart.Close(new TimeSpan(0, 0, 0, 0, (int)Math.Round(400d / ModAnimation.aniSpeed)));
+            ModMain.frmStart.Close(new TimeSpan(0, 0, 0, 0, 400));
         // 更改窗口
         // Top = (GetWPFSize(My.Computer.Screen.WorkingArea.Height) - Height) / 2
         // Left = (GetWPFSize(My.Computer.Screen.WorkingArea.Width) - Width) / 2
@@ -200,26 +200,17 @@ public partial class FormMain
         ShowWindowToTop();
         var hwndSource = (HwndSource)PresentationSource.FromVisual(this);
         hwndSource.AddHook(WndProc);
-        ModAnimation.AniStart(new[]
-        {
-            ModAnimation.AaCode(() => ModAnimation.AniEndControl(), 50),
-            ModAnimation.AaOpacity(this, Config.Preference.Theme.WindowOpacity / 1000d + 0.4d - Opacity, 250, 100),
-            ModAnimation.AaDouble(i => TransformPos.Y += (double)i, -TransformPos.Y, 600,
-                100, new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
-            ModAnimation.AaDouble(i => TransformRotate.Angle += (double)i,
-                -TransformRotate.Angle, 500, 100, new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
-            ModAnimation.AaCode(() =>
-            {
-                RenderTransform = null;
-                // 增量动画累加存在浮点误差，残留的微小旋转/位移会导致文字无法对齐像素而发虚
-                PanRoot.RenderTransform = null;
-                isWindowLoadFinished = true;
-                ModBase.Log(
-                    $"[System] DPI：{ModBase.dpi}，系统版本：{Environment.OSVersion.VersionString}，PCL 位置：{Basics.ExecutablePath}");
-            }, after: true)
-        }, "Form Show");
+        ModBase.RunInUiLater(() => ModBase.EndUiUpdate(), 50);
+        Opacity = Config.Preference.Theme.WindowOpacity / 1000d + 0.4d;
+        TransformPos.Y = 0d;
+        TransformRotate.Angle = 0d;
+        RenderTransform = null;
+        // 清除变换，避免残留的微小旋转/位移导致文字无法对齐像素而发虚
+        PanRoot.RenderTransform = null;
+        isWindowLoadFinished = true;
+        ModBase.Log(
+            $"[System] DPI：{ModBase.dpi}，系统版本：{Environment.OSVersion.VersionString}，PCL 位置：{Basics.ExecutablePath}");
         // Timer 启动
-        ModAnimation.AniStart();
         ModMain.TimerMainStart();
         // 特殊版本提示
         ModBase.RunInNewThread(() =>
@@ -306,6 +297,18 @@ public partial class FormMain
         }, "Start Loader", ThreadPriority.BelowNormal);
 
         ModBase.Log($"[Start] 第三阶段加载用时：{TimeUtils.GetTimeTick() - ModBase.applicationStartTick} ms");
+
+        // TEMP-TRACE: 自动切换到下载页以复现卡顿，仅在设置了 PCL_TRACE_AUTO_DOWNLOAD 环境变量时生效
+        TracePerf.StartUiWatchdog();
+        var traceDelay = Environment.GetEnvironmentVariable("PCL_TRACE_AUTO_DOWNLOAD");
+        if (traceDelay is not null)
+            ModBase.RunInNewThread(() =>
+            {
+                Thread.Sleep(int.TryParse(traceDelay, out var ms) ? ms : 6000);
+                ModBase.Log("[Trace] 自动切换到下载页面");
+                ModBase.RunInUi(() => PageChange(PageType.Download, PageSubType.DownloadInstall));
+                ModBase.Log("[Trace] 已请求切换到下载页面");
+            }, "TraceAutoDownload");
     }
 
     // 根据打开次数触发的事件
@@ -529,43 +532,10 @@ public partial class FormMain
             VideoBack.Source = null;
             VideoBack.Close();
             IsHitTestVisible = false;
-            if (RenderTransform is null)
-            {
-                var transformPos = new TranslateTransform(0d, 0d);
-                var transformRotate = new RotateTransform(0d);
-                var transformScale = new ScaleTransform(1d, 1d);
-                transformScale.CenterX = Width / 2d;
-                transformScale.CenterY = Height / 2d;
-                RenderTransform = new TransformGroup
-                    { Children = new TransformCollection([transformRotate, transformPos, transformScale]) };
-                ModAnimation.AniStart(new[]
-                {
-                    ModAnimation.AaOpacity(this, -Opacity, 140, 40,
-                        new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)),
-                    ModAnimation.AaDouble(i =>
-                    {
-                        transformScale.ScaleX += (double)i;
-                        transformScale.ScaleY += (double)i;
-                    }, 0.88d - transformScale.ScaleX, 180),
-                    ModAnimation.AaDouble(i => transformPos.Y += (double)i,
-                        20d - transformPos.Y, 180, 0,
-                        new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)),
-                    ModAnimation.AaDouble(i => transformRotate.Angle += (double)i,
-                        0.6d - transformRotate.Angle, 180, 0,
-                        new ModAnimation.AniEaseInoutFluent(ModAnimation.AniEasePower.Weak)),
-                    ModAnimation.AaCode(() =>
-                    {
-                        IsHitTestVisible = false;
-                        Visibility = Visibility.Collapsed;
-                        ShowInTaskbar = false;
-                    }, 210),
-                    ModAnimation.AaCode(() => EndProgramForce(force: false, isUpdating: isUpdating), 230)
-                }, "Form Close");
-            }
-            else
-            {
-                EndProgramForce(force: false, isUpdating: isUpdating);
-            }
+            IsHitTestVisible = false;
+            Visibility = Visibility.Collapsed;
+            ShowInTaskbar = false;
+            EndProgramForce(force: false, isUpdating: isUpdating);
 
             ModBase.Log("[System] 收到关闭指令");
         });
@@ -580,7 +550,7 @@ public partial class FormMain
         // 关闭联机大厅
         // Await LobbyController.CloseAsync().ConfigureAwait(False)
         ModBase.isProgramEnded = true;
-        ModAnimation.AniBeginControl();
+        ModBase.BeginUiUpdate();
         if (UpdateManager.isUpdateWaitingRestart && !isUpdating)
             UpdateManager.UpdateRestart(false, false);
         if (returnCode == ModBase.ProcessReturnValues.Exception)
@@ -942,7 +912,7 @@ public partial class FormMain
                         ModBase.RunInUi(() =>
                         {
                             PageLoginAuth.draggedAuthServer = authlibServer;
-                            ModMain.frmLaunchLeft.RefreshPage(true, ModLaunch.McLoginType.Auth);
+                            ModMain.frmLaunchLeft.RefreshPage(ModLaunch.McLoginType.Auth);
                         });
                         if (pageCurrent == PageType.InstanceSetup && PageCurrentSub == PageSubType.VersionSetup)
                             // 正在服务器选项页，需要刷新设置项显示
@@ -1679,8 +1649,7 @@ public partial class FormMain
             // 切换到主页面
             PageChangeExit();
             isChangingPage = true; // 防止下面的勾选直接触发了 PageChangeActual
-            ((MyRadioButton)PanTitleSelect.Children[(int)stack.page]).SetChecked(true, true,
-                string.IsNullOrEmpty(PageNameGet(pageCurrent)));
+            ((MyRadioButton)PanTitleSelect.Children[(int)stack.page]).SetChecked(true, true);
             isChangingPage = false;
             switch (stack.page)
             {
@@ -1692,7 +1661,7 @@ public partial class FormMain
                         if (item is MyListItem listItem &&
                             ModBase.Val(listItem.Tag) == (double)subType)
                         {
-                            listItem.SetChecked(true, true, stack == pageCurrent);
+                            listItem.SetChecked(true, true);
                             break;
                         }
 
@@ -1706,7 +1675,7 @@ public partial class FormMain
                         if (item is MyListItem listItem &&
                             ModBase.Val(listItem.Tag) == (double)subType)
                         {
-                            listItem.SetChecked(true, true, stack == pageCurrent);
+                            listItem.SetChecked(true, true);
                             break;
                         }
 
@@ -1729,7 +1698,7 @@ public partial class FormMain
                         if (item is MyListItem listItem &&
                             ModBase.Val(listItem.Tag) == (double)subType)
                         {
-                            listItem.SetChecked(true, true, stack == pageCurrent);
+                            listItem.SetChecked(true, true);
                             break;
                         }
 
@@ -1743,7 +1712,7 @@ public partial class FormMain
                         if (item is MyListItem listItem &&
                             ModBase.Val(listItem.Tag) == (double)subType)
                         {
-                            listItem.SetChecked(true, true, stack == pageCurrent);
+                            listItem.SetChecked(true, true);
                             break;
                         }
 
@@ -1791,7 +1760,7 @@ public partial class FormMain
         _pendingParameter = parameter;
         if (pageCurrent == stack && (PageCurrentSub == subType || (int)subType == -1))
             return;
-        ModAnimation.AniBeginControl();
+        ModBase.BeginUiUpdate();
         try
         {
             #region 子页面处理
@@ -1806,13 +1775,8 @@ public partial class FormMain
             else if (pageStack.Any())
             {
                 // 子页面 → 另一个子页面，更新
-                ModAnimation.AniStart(
-                    new[]
-                    {
-                    ModAnimation.AaOpacity(LabTitleInner, -LabTitleInner.Opacity, 130),
-                    ModAnimation.AaCode(() => LabTitleInner.Text = pageName, after: true),
-                    ModAnimation.AaOpacity(LabTitleInner, 1d, 150, 30)
-                    }, "FrmMain Titlebar SubLayer");
+                LabTitleInner.Opacity = 1d;
+                LabTitleInner.Text = pageName;
                 if (pageStack.Contains(stack))
                     // 返回到更上层的子页面
                     while (pageStack.Contains(stack))
@@ -1828,17 +1792,13 @@ public partial class FormMain
                 PanTitleMain.IsHitTestVisible = false;
                 PanTitleInner.IsHitTestVisible = true;
                 PageNameRefresh(stack);
-                ModAnimation.AniStart(
-                    new[]
-                    {
-                    ModAnimation.AaOpacity(PanTitleMain, -PanTitleMain.Opacity, 150),
-                    ModAnimation.AaX(PanTitleMain, 12d - PanTitleMain.Margin.Left, 150,
-                        ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
-                    ModAnimation.AaOpacity(PanTitleInner, 1d - PanTitleInner.Opacity, 150, 200),
-                    ModAnimation.AaX(PanTitleInner, -PanTitleInner.Margin.Left, 350, 200,
-                        new ModAnimation.AniEaseOutBack()),
-                    ModAnimation.AaCode(() => PanTitleMain.Visibility = Visibility.Collapsed, after: true)
-                    }, "FrmMain Titlebar FirstLayer");
+                PanTitleMain.Opacity = 0d;
+                PanTitleMain.Margin = new Thickness(12d, PanTitleMain.Margin.Top, PanTitleMain.Margin.Right,
+                    PanTitleMain.Margin.Bottom);
+                PanTitleInner.Opacity = 1d;
+                PanTitleInner.Margin = new Thickness(0d, PanTitleInner.Margin.Top, PanTitleInner.Margin.Right,
+                    PanTitleInner.Margin.Bottom);
+                PanTitleMain.Visibility = Visibility.Collapsed;
                 pageStack.Insert(0, pageCurrent);
             }
 
@@ -1857,6 +1817,7 @@ public partial class FormMain
                     }
                 case PageType.Download: // 下载
                     {
+                        using var scopeDownload = TracePerf.Measure("PageChange->Download 页面创建");
                         ModMain.frmDownloadLeft ??= new PageDownloadLeft();
                         if (subType != PageSubType.Default)
                             ModMain.frmDownloadLeft.pageID = subType;
@@ -1961,15 +1922,13 @@ public partial class FormMain
         }
         finally
         {
-            ModAnimation.AniEndControl();
+            ModBase.EndUiUpdate();
         }
     }
 
     private void PageChangeAnim(FrameworkElement targetLeft, FrameworkElement targetRight)
     {
-        ModAnimation.AniStop("FrmMain LeftChange");
-        ModAnimation.AniStop("PageLeft PageChange"); // 停止左边栏变更导致的右页面切换动画，防止它与本动画一起触发多次 PageOnEnter
-        ModAnimation.AniBeginControl();
+        ModBase.BeginUiUpdate();
         try
         {
             // 清除新页面关联性
@@ -1979,70 +1938,61 @@ public partial class FormMain
                 targetRight.SetValue(ContentPresenter.ContentProperty, null);
             pageLeft = (MyPageLeft)targetLeft;
             pageRight = (MyPageRight)targetRight;
-            // 触发页面通用动画
+            // 触发页面通用切换
             (PanMainLeft.Child as IPageView)?.OnNavigatedFrom();
-            ((MyPageLeft)PanMainLeft.Child).TriggerHideAnimation();
+            ((MyPageLeft)PanMainLeft.Child).HidePage();
             (PanMainRight.Child as IPageView)?.OnNavigatedFrom();
             ((MyPageRight)PanMainRight.Child).PageOnExit();
         }
         finally
         {
-            ModAnimation.AniEndControl();
+            ModBase.EndUiUpdate();
         }
-        // 执行动画
-        ModAnimation.AniStart(new[]
+        // 替换左侧页面
+        ModBase.BeginUiUpdate();
+        try
         {
-            ModAnimation.AaCode(() =>
-            {
-                ModAnimation.AniBeginControl();
-                try
-                {
-                    // 把新页面添加进容器
-                    PanMainLeft.Child = pageLeft;
-                    pageLeft.Opacity = 0d;
-                    PanMainLeft.Background = null;
-                }
-                finally
-                {
-                    ModAnimation.AniEndControl();
-                }
-                ModBase.RunInUi(() => PanMainLeft_Resize(PanMainLeft.ActualWidth), true);
-            }, 110),
-            ModAnimation.AaCode(() =>
-            {
-                // 延迟触发页面通用动画，以使得在 Loaded 事件中加载的控件得以处理
-                pageLeft.Opacity = 1d;
-                pageLeft.TriggerShowAnimation();
-                (pageLeft as IPageView)?.OnNavigatedTo(_pendingParameter);
-            }, 30, true)
-        }, "FrmMain PageChangeLeft");
-        ModAnimation.AniStart(new[]
+            // 把新页面添加进容器
+            PanMainLeft.Child = pageLeft;
+            pageLeft.Opacity = 0d;
+            PanMainLeft.Background = null;
+        }
+        finally
         {
-            ModAnimation.AaCode(() =>
-            {
-                ModAnimation.AniBeginControl();
-                try
-                {
-                    ((MyPageRight)PanMainRight.Child).PageOnForceExit();
-                    // 把新页面添加进容器
-                    PanMainRight.Child = pageRight;
-                    pageRight.Opacity = 0d;
-                    PanMainRight.Background = null;
-                }
-                finally
-                {
-                    ModAnimation.AniEndControl();
-                }
-                ModBase.RunInUi(() => BtnExtraBack.ShowRefresh(), true);
-            }, 110),
-            ModAnimation.AaCode(() =>
-            {
-                // 延迟触发页面通用动画，以使得在 Loaded 事件中加载的控件得以处理
-                pageRight.Opacity = 1d;
-                pageRight.PageOnEnter();
-                (pageRight as IPageView)?.OnNavigatedTo(_pendingParameter);
-            }, 30, true)
-        }, "FrmMain PageChangeRight");
+            ModBase.EndUiUpdate();
+        }
+
+        ModBase.RunInUi(() => PanMainLeft_Resize(PanMainLeft.ActualWidth), true);
+
+        // 替换右侧页面
+        ModBase.BeginUiUpdate();
+        try
+        {
+            ((MyPageRight)PanMainRight.Child).PageOnForceExit();
+            // 把新页面添加进容器
+            PanMainRight.Child = pageRight;
+            pageRight.Opacity = 0d;
+            PanMainRight.Background = null;
+        }
+        finally
+        {
+            ModBase.EndUiUpdate();
+        }
+
+        ModBase.RunInUi(() => BtnExtraBack.ShowRefresh(), true);
+
+        // 延迟触发页面通用切换，以使得在 Loaded 事件中加载的控件得以处理
+        ModBase.RunInUiLater(() =>
+        {
+            pageLeft.Opacity = 1d;
+            pageLeft.ShowPage();
+            (pageLeft as IPageView)?.OnNavigatedTo(_pendingParameter);
+
+            pageRight.Opacity = 1d;
+            pageRight.PageOnEnter();
+            (pageRight as IPageView)?.OnNavigatedTo(_pendingParameter);
+        }, 30);
+
         ((NavigationService)Navigation).RaiseNavigated(new RouteKey(pageCurrent.page, PageCurrentSub));
     }
 
@@ -2057,17 +2007,13 @@ public partial class FormMain
             PanTitleMain.Visibility = Visibility.Visible;
             PanTitleMain.IsHitTestVisible = true;
             PanTitleInner.IsHitTestVisible = false;
-            ModAnimation.AniStart(
-                new[]
-                {
-                    ModAnimation.AaOpacity(PanTitleInner, -PanTitleInner.Opacity, 150),
-                    ModAnimation.AaX(PanTitleInner, -18 - PanTitleInner.Margin.Left, 150,
-                        ease: new ModAnimation.AniEaseInFluent()),
-                    ModAnimation.AaOpacity(PanTitleMain, 1d - PanTitleMain.Opacity, 150, 200),
-                    ModAnimation.AaX(PanTitleMain, -PanTitleMain.Margin.Left, 350, 200,
-                        new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
-                    ModAnimation.AaCode(() => PanTitleInner.Visibility = Visibility.Collapsed, after: true)
-                }, "FrmMain Titlebar FirstLayer");
+            PanTitleInner.Opacity = 0d;
+            PanTitleInner.Margin = new Thickness(-18d, PanTitleInner.Margin.Top, PanTitleInner.Margin.Right,
+                PanTitleInner.Margin.Bottom);
+            PanTitleMain.Opacity = 1d;
+            PanTitleMain.Margin = new Thickness(0d, PanTitleMain.Margin.Top, PanTitleMain.Margin.Right,
+                PanTitleMain.Margin.Bottom);
+            PanTitleInner.Visibility = Visibility.Collapsed;
             pageStack.Clear();
         }
         // 主页面 → 主页面，无事发生
@@ -2084,36 +2030,18 @@ public partial class FormMain
     private void PanMainLeft_Resize(double newWidth)
     {
         var delta = newWidth - RectLeftBackground.Width;
-        if (Math.Abs(delta) > 0.1d && !ModAnimation.AniExitsAnyControl())
+        if (Math.Abs(delta) > 0.1d && !ModBase.IsUiUpdating)
         {
             if (PanMain.Opacity < 0.1d)
                 PanMainLeft.IsHitTestVisible = false; // 避免左边栏指向背景未能完美覆盖左边栏
-            if (newWidth > 0d)
-                // 宽度足够，显示
-                ModAnimation.AniStart(
-                    new[]
-                    {
-                        ModAnimation.AaWidth(RectLeftBackground, newWidth - RectLeftBackground.Width, 180,
-                            ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.ExtraStrong)),
-                        ModAnimation.AaOpacity(RectLeftShadow, 1d - RectLeftShadow.Opacity, 180),
-                        ModAnimation.AaCode(() => PanMainLeft.IsHitTestVisible = true, 150)
-                    }, "FrmMain LeftChange", true);
-            else
-                // 宽度不足，隐藏
-                ModAnimation.AniStart(
-                    new[]
-                    {
-                        ModAnimation.AaWidth(RectLeftBackground, -RectLeftBackground.Width, 180,
-                            ease: new ModAnimation.AniEaseOutFluent()),
-                        ModAnimation.AaOpacity(RectLeftShadow, -RectLeftShadow.Opacity, 180),
-                        ModAnimation.AaCode(() => PanMainLeft.IsHitTestVisible = true, 150)
-                    }, "FrmMain LeftChange", true);
+            RectLeftBackground.Width = newWidth > 0d ? newWidth : 0d;
+            RectLeftShadow.Opacity = newWidth > 0d ? 1d : 0d;
+            PanMainLeft.IsHitTestVisible = true;
         }
         else
         {
             RectLeftBackground.Width = newWidth;
             PanMainLeft.IsHitTestVisible = true;
-            ModAnimation.AniStop("FrmMain LeftChange");
         }
     }
 

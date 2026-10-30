@@ -50,10 +50,10 @@ public partial class PageSetupLauncherMisc : IPageView
             return;
         isLoaded = true;
 
-        ModAnimation.AniBeginControl();
+        ModBase.BeginUiUpdate();
         SliderLoad();
         Refresh();
-        ModAnimation.AniEndControl();
+        ModBase.EndUiUpdate();
     }
 
     private void PageSetupLauncherMisc_Unloaded(object sender, RoutedEventArgs e) => _refreshed = false;
@@ -85,7 +85,6 @@ public partial class PageSetupLauncherMisc : IPageView
         CheckNetDohEnable.Checked = Config.Network.EnableDoH;
 
         // 调试选项
-        SliderDebugAnim.Value = Config.Debug.AnimationSpeed;
         CheckDebugSkipCopy.Checked = Config.Debug.DontCopy;
         CheckDebugMode.Checked = Config.Debug.Enabled;
         CheckDebugDelay.Checked = Config.Debug.AddRandomDelay;
@@ -119,7 +118,7 @@ public partial class PageSetupLauncherMisc : IPageView
     private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
-        if (ModAnimation.AniExitsAnyControl() || sender.SelectedIndex < 0)
+        if (ModBase.IsUiUpdating || sender.SelectedIndex < 0)
             return;
         SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }
@@ -128,7 +127,7 @@ public partial class PageSetupLauncherMisc : IPageView
     {
         var sender = (MyRadioBox)senderRaw;
         var gotCfg = sender.Tag?.ToString()?.Split("/") ?? Array.Empty<string>();
-        if (!ModAnimation.AniExitsAnyControl() && gotCfg.Length >= 2)
+        if (!ModBase.IsUiUpdating && gotCfg.Length >= 2)
             SetByTag(gotCfg[0], int.Parse(gotCfg[1]));
     }
 
@@ -136,14 +135,14 @@ public partial class PageSetupLauncherMisc : IPageView
     {
         var sender = (MyCheckBox)senderRaw;
         if (!user) return;
-        if (!ModAnimation.AniExitsAnyControl())
+        if (!ModBase.IsUiUpdating)
             SetByTag(sender.Tag?.ToString(), sender.Checked);
     }
 
     private void SliderChange(object senderRaw, bool user)
     {
         var sender = (MySlider)senderRaw;
-        if (!ModAnimation.AniExitsAnyControl())
+        if (!ModBase.IsUiUpdating)
             SetByTag(sender.Tag?.ToString(), sender.Value);
     }
 
@@ -161,10 +160,6 @@ public partial class PageSetupLauncherMisc : IPageView
     // 滑动条
     private void SliderLoad()
     {
-        SliderDebugAnim.getHintText = new Func<object, object>(v =>
-            (int)v > 29
-                ? Lang.Text("Common.Action.Close")
-                : Lang.Number(Math.Round(Convert.ToDouble(v) / 10 + 0.1d, 1), "N1") + "x");
         // y = 10x + 50 (0 <= x <= 5, 50 <= y <= 100)
         // y = 50x - 150 (5 < x <= 13, 100 < y <= 500)
         // y = 100x - 800 (13 < x <= 28, 500 < y <= 2000)
@@ -190,14 +185,14 @@ public partial class PageSetupLauncherMisc : IPageView
     // 调试模式
     private void CheckDebugMode_Change(object _, bool __)
     {
-        if (!ModAnimation.AniExitsAnyControl())
+        if (!ModBase.IsUiUpdating)
             HintService.Hint(Lang.Text("Setup.Misc.Debug.Mode.Hint"), log: false);
     }
 
     // 自动更新
     private void ComboSystemActivity_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (ModAnimation.AniExitsAnyControl())
+        if (ModBase.IsUiUpdating)
             return;
         if (ComboSystemActivity.SelectedIndex != 2)
             return;

@@ -29,7 +29,7 @@ public partial class PageLoginMsViewModel : ViewModelBase
     public void Back()
     {
         ProfileService.IsCreatingProfile = false;
-        ModBase.RunInUi(() => ModMain.frmLaunchLeft?.RefreshPage(true));
+        ModBase.RunInUi(() => ModMain.frmLaunchLeft?.RefreshPage());
     }
 
     [RelayCommand]
@@ -55,7 +55,7 @@ public partial class PageLoginMsViewModel : ViewModelBase
                 if (ModLaunch.mcLoginMsLoader.State == ModBase.LoadState.Finished)
                 {
                     loginSucceeded = true;
-                    ModBase.RunInUi(() => ModMain.frmLaunchLeft?.RefreshPage(true));
+                    ModBase.RunInUi(() => ModMain.frmLaunchLeft?.RefreshPage());
                 }
                 else if (ModLaunch.mcLoginMsLoader.State == ModBase.LoadState.Aborted)
                 {

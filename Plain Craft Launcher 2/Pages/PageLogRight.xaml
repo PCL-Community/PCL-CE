@@ -28,7 +28,7 @@
             </local:MyCard>
         </Grid>
 
-        <!--<local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" Margin="40" x:Name="PanEmpty" UseAnimation="False">
+        <!--<local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" Margin="40" x:Name="PanEmpty">
             <StackPanel Margin="20,17">
                 <TextBlock Name="LabEmptyTitle" Margin="0,0,0,9" HorizontalAlignment="Center" Text="{DynamicResource LogPage.Empty.Title}" FontSize="19" UseLayoutRounding="True" SnapsToDevicePixels="True" Foreground="{DynamicResource ColorBrush3}" />
                 <Rectangle HorizontalAlignment="Stretch" Height="2" Fill="{DynamicResource ColorBrush3}" />
@@ -37,8 +37,8 @@
         </local:MyCard>-->
 
         <local:MyCard x:Name="CardOperation" Visibility="Visible" Opacity="0"
-                      HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,15,0,10" UseAnimation="False"
-                      HasMouseAnimation="True">
+                      HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,15,0,10"
+>
             <StackPanel Margin="0,6,0,6">
                 <StackPanel x:Name="OperationsContainer" Orientation="Horizontal" Margin="10,8,10,8"
                             HorizontalAlignment="Center">

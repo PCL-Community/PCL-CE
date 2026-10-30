@@ -1213,7 +1213,6 @@ public static class ModModpack
         loader.Start(targetFolder);
         LoaderTaskbarAdd(loader);
         ModMain.frmMain.BtnExtraDownload.ShowRefresh();
-        ModMain.frmMain.BtnExtraDownload.Ribble();
         return loader;
     }
 
@@ -1279,7 +1278,6 @@ public static class ModModpack
         loader.Start(targetFolder);
         LoaderTaskbarAdd(loader);
         ModMain.frmMain.BtnExtraDownload.ShowRefresh();
-        ModMain.frmMain.BtnExtraDownload.Ribble();
         return loader;
     }
 

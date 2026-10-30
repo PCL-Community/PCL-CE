@@ -63,7 +63,7 @@ public partial class PageLogLeft
                 var version = item.Value.version;
                 var newItem = new MyListItem
                 {
-                    IsScaleAnimationEnabled = false, Type = MyListItem.CheckType.RadioBox, MinPaddingRight = 30,
+Type = MyListItem.CheckType.RadioBox, MinPaddingRight = 30,
                     Title = version.Name, Info = _vm.GetItemInfo(item.Value), Height = 40d, Tag = uuid
                 };
                 newItem.Changed += ModMain.frmLogLeft.Version_Change;

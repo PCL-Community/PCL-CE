@@ -126,13 +126,12 @@ public class MyComboBox : ComboBox
         isMouseDown = false;
     }
 
-    // 指向动画
+    // 指向
     public void RefreshColor()
     {
         // 判断当前颜色
         string foreColorName;
         string backColorName;
-        int time;
         if (IsEnabled)
         {
             if (isMouseDown || IsDropDownOpen ||
@@ -140,46 +139,26 @@ public class MyComboBox : ComboBox
             {
                 foreColorName = "ColorBrush3";
                 backColorName = "ColorBrush7";
-                time = 10;
             }
             else if (IsMouseOver)
             {
                 foreColorName = "ColorBrush4";
                 backColorName = "ColorBrush7";
-                time = 100;
             }
             else
             {
                 foreColorName = "ColorBrushBg0";
                 backColorName = "ColorBrushHalfWhite";
-                time = 100;
             }
         }
         else
         {
             foreColorName = "ColorBrushGray5";
             backColorName = "ColorBrushGray6";
-            time = 200;
         }
 
-        // 触发颜色动画
-        if (IsLoaded && !ModAnimation.AniExitsAnyControl()) // 防止默认属性变更触发动画
-        {
-            // 有动画
-            ModAnimation.AniStart(
-                new[]
-                {
-                    ModAnimation.AaColor(this, ForegroundProperty, foreColorName, time),
-                    ModAnimation.AaColor(this, BackgroundProperty, backColorName, time)
-                }, "MyComboBox Color " + Uuid);
-        }
-        else
-        {
-            // 无动画
-            ModAnimation.AniStop("MyComboBox Color " + Uuid);
-            SetResourceReference(ForegroundProperty, foreColorName);
-            SetResourceReference(BackgroundProperty, backColorName);
-        }
+        SetResourceReference(ForegroundProperty, foreColorName);
+        SetResourceReference(BackgroundProperty, backColorName);
     }
 
     private void MyComboBox_DropDownOpened(object sender, EventArgs e)
@@ -233,7 +212,7 @@ public class MyComboBox : ComboBox
     
     private void MyComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (IsLoaded && !ModAnimation.AniExitsAnyControl()) ModMain.RaiseCustomEvent(this);
+        if (IsLoaded && !ModBase.IsUiUpdating) ModMain.RaiseCustomEvent(this);
     }
     
     protected override bool IsItemItsOwnContainerOverride(object item)

@@ -9,9 +9,8 @@ using PCL.Core.UI.Controls;
 
 namespace PCL;
 
-public class MyCard : AnimatedBackgroundGrid
+public class MyCard : BackgroundGrid
 {
-    // 动画
     private const double dropShadowIdleOpacity = 0.07d;
     private const double dropShadowHoverOpacity = 0.4d;
 
@@ -26,7 +25,7 @@ public class MyCard : AnimatedBackgroundGrid
     private bool isLoad;
 
     // UI 建立
-    public MyCard() : base(BlurBorder.BackgroundProperty)
+    public MyCard()
     {
         MainChrome = new MyDropShadow
         {
@@ -44,7 +43,6 @@ public class MyCard : AnimatedBackgroundGrid
         Loaded += (_, _) => Init();
         MouseEnter += MyCard_MouseEnter;
         MouseLeave += MyCard_MouseLeave;
-        SizeChanged += MySizeChanged;
         MouseLeftButtonDown += MyCard_MouseLeftButtonDown;
         MouseLeftButtonUp += MyCard_MouseLeftButtonUp;
         MouseLeave += MyCard_MouseLeave_Swap;
@@ -102,14 +100,11 @@ public class MyCard : AnimatedBackgroundGrid
         }
     }
 
-    protected override SolidColorBrush AnimatableBrush
+    protected override SolidColorBrush SurfaceBrush
     {
         get => (SolidColorBrush)mainBorder.Background;
         set => mainBorder.Background = value;
     }
-
-    protected override FrameworkElement AnimatableElement => mainBorder;
-    public bool HasMouseAnimation { get; set; } = true;
 
     private void Init()
     {
@@ -153,13 +148,7 @@ public class MyCard : AnimatedBackgroundGrid
         {
             MainSwap.RenderTransform = new RotateTransform(SwapLogoRight ? 270 : 0);
             SwapControl.Visibility = Visibility.Collapsed;
-            // 取消由于高度变化被迫触发的高度动画
-            var rawUseAnimation = UseAnimation;
-            UseAnimation = false;
             Height = SwapedHeight;
-            ModAnimation.AniStop("MyCard Height " + uuid);
-            isHeightAnimating = false;
-            ModBase.RunInUi(() => UseAnimation = rawUseAnimation, true);
         }
     }
 
@@ -190,139 +179,32 @@ public class MyCard : AnimatedBackgroundGrid
 
     private void MyCard_MouseEnter(object sender, MouseEventArgs e)
     {
-        if (!HasMouseAnimation)
-            return;
-        var aniList = new List<ModAnimation.AniData>();
-        if (MainTextBlock is not null)
-            aniList.Add(ModAnimation.AaColor(MainTextBlock, TextBlock.ForegroundProperty, "ColorBrush2", 90));
-        if (MainSwap is not null)
-            aniList.Add(ModAnimation.AaColor(MainSwap, Shape.FillProperty, "ColorBrush2", 90));
-        aniList.AddRange(new[]
-        {
-            ModAnimation.AaColor(MainChrome, MyDropShadow.ColorProperty, "ColorObject4", 90),
-            ModAnimation.AaOpacity(MainChrome, dropShadowHoverOpacity - MainChrome.Opacity, 90)
-        });
-        if (!IsAnimating)
-            ModAnimation.AniStart(aniList, "MyCard Mouse " + uuid);
+        SetHoverStyle(true);
     }
 
     private void MyCard_MouseLeave(object sender, MouseEventArgs e)
     {
-        if (!HasMouseAnimation)
-            return;
-        var aniList = new List<ModAnimation.AniData>();
+        SetHoverStyle(false);
+    }
+
+    private void SetHoverStyle(bool isHover)
+    {
         if (MainTextBlock is not null)
-            aniList.Add(ModAnimation.AaColor(MainTextBlock, TextBlock.ForegroundProperty, "ColorBrush1", 90));
+            MainTextBlock.SetResourceReference(TextBlock.ForegroundProperty, isHover ? "ColorBrush2" : "ColorBrush1");
         if (MainSwap is not null)
-            aniList.Add(ModAnimation.AaColor(MainSwap, Shape.FillProperty, "ColorBrush1", 90));
-        aniList.AddRange(new[]
-        {
-            ModAnimation.AaColor(MainChrome, MyDropShadow.ColorProperty, "ColorObject1", 90),
-            ModAnimation.AaOpacity(MainChrome, dropShadowIdleOpacity - MainChrome.Opacity, 90)
-        });
-        if (!IsAnimating)
-            ModAnimation.AniStart(aniList, "MyCard Mouse " + uuid);
+            MainSwap.SetResourceReference(Shape.FillProperty, isHover ? "ColorBrush2" : "ColorBrush1");
+        MainChrome.SetResourceReference(MyDropShadow.ColorProperty, isHover ? "ColorObject4" : "ColorObject1");
+        MainChrome.Opacity = isHover ? dropShadowHoverOpacity : dropShadowIdleOpacity;
     }
 
-    #region 高度改变动画
+    #region 高度改变
 
     /// <summary>
-    ///     是否启用高度改变动画。
-    /// </summary>
-    public bool UseAnimation { get; set; } = true;
-
-    private bool isHeightAnimating;
-    private double actualUsedHeight; // 回滚实际高度（例如 NaN）
-
-    private void MySizeChanged(object sender, SizeChangedEventArgs e)
-    {
-        if (!UseAnimation)
-            return;
-        var deltaHeight = (IsSwapped ? SwapedHeight : e.NewSize.Height) - e.PreviousSize.Height;
-        // 卡片的进入时动画已被页面通用切换动画替代
-        if (e.PreviousSize.Height == 0d || isHeightAnimating || Math.Abs(deltaHeight) < 1d || ActualHeight == 0d)
-            return;
-        StartHeightAnimation(deltaHeight, e.PreviousSize.Height, false);
-    }
-
-    /// <summary>
-    ///     启动卡片高度变化的动画效果
-    ///     根据变化距离的大小采用不同的动画策略：短距离使用简单缓动，长距离使用分段动画
-    /// </summary>
-    /// <param name="delta">高度变化量</param>
-    /// <param name="previousHeight">之前的高度</param>
-    /// <param name="isLoadAnimation">是否为加载动画</param>
-    private void StartHeightAnimation(double delta, double previousHeight, bool isLoadAnimation)
-    {
-        if (isHeightAnimating || ModMain.frmMain is null)
-            return; // 避免 XAML 设计器出错
-
-        var animList = new List<ModAnimation.AniData>();
-        var absDelta = Math.Abs(delta);
-
-        if (absDelta <= 800d)
-        {
-            // 短距离，直接使用 150ms 的缓动动画
-            animList.Add(ModAnimation.AaHeight(this, delta, 150,
-                ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.ExtraStrong)));
-        }
-        else
-        {
-            var easeLength = default(int);
-            int easeTime;
-            int initSpeed; // 到达缓动区前的初速度
-            if (delta < 0d && absDelta - easeLength > 5000d * 0.1d)
-            {
-                // 收回距离过长 (>0.1s)，强制以 100ms 完成匀速段，然后让减速段更长
-                easeLength = 200;
-                easeTime = 150;
-                initSpeed = (int)Math.Round((absDelta - easeLength) / 0.1d);
-            }
-            else if (delta > 0d && absDelta - easeLength > 5000d * 0.6d)
-            {
-                // 展开距离过长 (>0.6s)，以 5000 速度展示 300ms 匀速段，剩下的距离全部归入减速段
-                initSpeed = 5000;
-                easeLength = (int)Math.Round(absDelta - initSpeed * 0.3d);
-                easeTime = 400;
-            }
-            else
-            {
-                // 中程，匀速地快速展开（或收回）
-                easeLength = 150;
-                easeTime = 200;
-                initSpeed = 4000;
-            }
-
-            // 匀速段
-            animList.Add(ModAnimation.AaHeight(this, (absDelta - easeLength) * Math.Sign(delta),
-                (int)Math.Round((absDelta - easeLength) / initSpeed * 1000d)));
-            // 减速段
-            animList.Add(ModAnimation.AaHeight(this, easeLength * Math.Sign(delta), easeTime,
-                ease: new ModAnimation.AniEaseOutFluentWithInitial(initSpeed, easeTime / 1000d, easeLength),
-                after: true));
-        }
-
-        animList.Add(ModAnimation.AaCode(() =>
-        {
-            isHeightAnimating = false;
-            Height = actualUsedHeight;
-            if (IsSwapped && SwapControl is not null)
-                SwapControl.Visibility = Visibility.Collapsed;
-        }, after: true));
-        ModAnimation.AniStart(animList, "MyCard Height " + uuid);
-        isHeightAnimating = true;
-        actualUsedHeight = IsSwapped ? SwapedHeight : Height;
-        Height = previousHeight;
-    }
-
-    /// <summary>
-    ///     通知 MyCard，控件内容已改变，需要中断动画并瞬间更新高度。
+    ///     通知 MyCard，控件内容已改变，需要立即更新高度。
     /// </summary>
     public void TriggerForceResize()
     {
         Height = IsSwapped ? SwapedHeight : double.NaN;
-        ModAnimation.AniStop("MyCard Height " + uuid);
-        isHeightAnimating = false;
     }
 
     #endregion
@@ -363,7 +245,7 @@ public class MyCard : AnimatedBackgroundGrid
                 SwapControl = argstack;
             }
 
-            // 若尚未加载，会在 Loaded 事件中触发无动画的折叠，不需要在这里进行
+            // 若尚未加载，会在 Loaded 事件中触发折叠，不需要在这里进行
             if (!IsLoaded)
                 return;
 
@@ -373,11 +255,7 @@ public class MyCard : AnimatedBackgroundGrid
 
             // 根据折叠状态旋转箭头图标
             // 折叠时箭头指向右侧或向上（根据SwapLogoRight设置），展开时指向下方
-            ModAnimation.AniStart(
-                ModAnimation.AaRotateTransform(MainSwap,
-                    (field ? SwapLogoRight ? 270 : 0 : 180) - ((RotateTransform)MainSwap.RenderTransform).Angle,
-                    250, ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.ExtraStrong)),
-                "MyCard Swap " + uuid, true);
+            ((RotateTransform)MainSwap.RenderTransform).Angle = field ? SwapLogoRight ? 270 : 0 : 180;
         }
     }
 
@@ -447,53 +325,25 @@ public class MyCard : AnimatedBackgroundGrid
     }
 
     #endregion
-}
 
-public static partial class ModAnimation
-{
-    public static void AniDispose(MyCard control, bool removeFromChildren, ParameterizedThreadStart callBack = null)
+    /// <summary>
+    ///     立即移除或隐藏卡片。
+    /// </summary>
+    /// <param name="control">要移除的卡片。</param>
+    /// <param name="removeFromChildren">为 true 时从父容器移除，否则仅隐藏。</param>
+    /// <param name="callBack">移除或隐藏完成后的回调。</param>
+    public static void DisposeCard(MyCard control, bool removeFromChildren, Action<MyCard>? callBack = null)
     {
-        if (control.IsHitTestVisible)
+        if (removeFromChildren)
         {
-            control.IsHitTestVisible = false;
-            AniStart(new[]
-            {
-                AaScaleTransform(control, -0.08d, 200, ease: new AniEaseInFluent()),
-                AaOpacity(control, -1, 200, ease: new AniEaseOutFluent()),
-                AaHeight(control, -control.ActualHeight, 150, 100, new AniEaseOutFluent()),
-                AaCode(() =>
-                {
-                    if (removeFromChildren)
-                    {
-                        if (control.Parent is null)
-                            return;
-                        ((Panel)control.Parent).Children.Remove(control);
-                    }
-                    else
-                    {
-                        control.Visibility = Visibility.Collapsed;
-                    }
-
-                    if (callBack is not null)
-                        callBack(control);
-                }, after: true)
-            }, "MyCard Dispose " + control.uuid);
+            if (control.Parent is not null)
+                ((Panel)control.Parent).Children.Remove(control);
         }
         else
         {
-            if (removeFromChildren)
-            {
-                if (control.Parent is null)
-                    return;
-                ((Panel)control.Parent).Children.Remove(control);
-            }
-            else
-            {
-                control.Visibility = Visibility.Collapsed;
-            }
-
-            if (callBack is not null)
-                callBack(control);
+            control.Visibility = Visibility.Collapsed;
         }
+
+        callBack?.Invoke(control);
     }
 }

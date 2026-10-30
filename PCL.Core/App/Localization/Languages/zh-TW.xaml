@@ -12,7 +12,6 @@
 
     <!-- Application -->
 
-    <sys:String x:Key="Application.Animation.Error.OperationFailed">動畫操作失敗。請檢視錯誤詳情。</sys:String>
     <sys:String x:Key="Application.Control.Error.OperationFailed">介面控制項操作失敗。請檢視錯誤詳情。</sys:String>
     <sys:String x:Key="Application.Control.Loading.Default">載入中……</sys:String>
     <sys:String x:Key="Application.Control.Loading.Failed">載入失敗</sys:String>
@@ -2899,7 +2898,6 @@
 
     <!-- Setup.Misc.Debug -->
 
-    <sys:String x:Key="Setup.Misc.Debug.AnimationSpeed">動畫速度</sys:String>
     <sys:String x:Key="Setup.Misc.Debug.Delay">新增延遲</sys:String>
     <sys:String x:Key="Setup.Misc.Debug.Delay.ToolTip">在各個環節新增隨機的延遲，拖慢載入速度，以測試部分功能是否正常執行。&#xA;這會嚴重影響啟動器執行，若無特殊需要不建議開啟。</sys:String>
     <sys:String x:Key="Setup.Misc.Debug.Mode">除錯模式</sys:String>

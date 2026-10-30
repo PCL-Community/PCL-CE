@@ -214,7 +214,7 @@ public static class ProfileUi
                 await PageLoginAuth.IsOAuthSupportedAsync(server);
             PageLoginAuth.draggedAuthServer = server;
         }
-        ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true, type));
+        ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(type));
     }
 
     private static List<IMyRadio> _GetAvailableProfileSelection(bool includeOthers) => includeOthers
@@ -267,7 +267,7 @@ public static class ProfileUi
                     ProfileService.Update(profile, updated);
                     ProfileService.Select(updated);
                     HintService.Hint(Lang.Text("Launch.Account.Profile.EditPlayerId.Success", updated.UserName), HintType.Success);
-                    ModBase.RunInUi(() => { ModMain.frmLoginProfileSkin?.Reload(); ModMain.frmLaunchLeft.RefreshPage(true); });
+                    ModBase.RunInUi(() => { ModMain.frmLoginProfileSkin?.Reload(); ModMain.frmLaunchLeft.RefreshPage(); });
                 }
                 catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.Forbidden)
                 {
