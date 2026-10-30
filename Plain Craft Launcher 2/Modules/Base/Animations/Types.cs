@@ -76,10 +76,17 @@ public static partial class Animations
     /// </summary>
     public static double aniSpeed = 1d;
 
-    /// <summary>
-    ///     动画组列表。
-    /// </summary>
-    public static ConcurrentDictionary<string, AniGroupEntry> aniGroups = new();
+    // 名称 -> 动画组。始终同步，因此 AniStart 后 AniIsRun 立即为 true。
+    private static readonly Dictionary<string, AniGroupEntry> _aniByName = new(StringComparer.Ordinal);
+
+    // 插入顺序。仅在帧开始时修改，因此帧循环读取时无需加锁。
+    private static readonly List<AniGroupEntry> _aniOrder = [];
+
+    // 当前帧内启动的动画组，在下一帧开始时发布。
+    private static readonly List<AniGroupEntry> _aniPendingAdds = [];
+
+    private static readonly Lock _aniGroupsLock = new();
+    private static bool _aniOrderDirty;
 
     /// <summary>
     ///     上一次记刻的时间。
@@ -89,7 +96,7 @@ public static partial class Animations
     /// <summary>
     ///     动画模块是否正在运行。
     /// </summary>
-    public static bool aniRunning;
+    private static bool aniRunning;
 
     private static readonly object AniControlEnabledLock = new();
 
@@ -136,8 +143,17 @@ public static partial class Animations
     public class AniGroupEntry
     {
         public List<AniData> data = [];
+
+        /// <summary>Stopwatch tick at which the group was started.</summary>
         public long startTick;
-        public int uuid = Common.GetUuid();
+
+        /// <summary>Registry key, used to unregister the group without touching a same-named newcomer.</summary>
+        public string Key = "";
+
+        public int Uuid = Common.GetUuid();
+
+        /// <summary>Set when the group is stopped or finished; the frame loop skips it immediately.</summary>
+        internal volatile bool Dead;
     }
 
     /// <summary>

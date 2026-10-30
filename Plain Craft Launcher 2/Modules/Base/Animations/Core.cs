@@ -1,8 +1,9 @@
-﻿using System.Text;
+﻿﻿using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Utils;
 using PCL.Network;
@@ -14,6 +15,7 @@ public static partial class Animations
     private static int _aniCount;
     private static int _aniFpsCounter;
     private static long _aniFpsTimer;
+    private static bool _aniInFrame;
     private static int _aniFps;
 
     /// <summary>
@@ -21,74 +23,75 @@ public static partial class Animations
     /// </summary>
     public static void AniStart()
     {
-        _aniLastTick = TimeUtils.GetTimeTick();
+        _aniLastTick = Stopwatch.GetTimestamp();
         _aniFpsTimer = _aniLastTick;
         aniRunning = true;
 
-        var minFrameGap = 1000d / (Config.System.AnimationFpsLimit + 1) / 2;
+        Common.RunInUi(() =>
+        {
+            CompositionTarget.Rendering -= _AniOnRendering; // never subscribe twice
+            CompositionTarget.Rendering += _AniOnRendering;
+            Common.Log("[Animation] 动画帧循环已挂载到渲染管线", Common.LogLevel.Developer);
+        });
+    }
 
-        Common.RunInNewThread(
-            () =>
+    /// <summary>
+    ///     Advance the animations by one frame. Raised once per rendered frame, on the UI thread.
+    /// </summary>
+    private static void _AniOnRendering(object? sender, EventArgs e)
+    {
+        if (_aniInFrame) return; // WM_SIZE re-enters this synchronously
+        _aniInFrame = true;
+
+        try
+        {
+            var now = Stopwatch.GetTimestamp();
+            var deltaTick = (int)Math.Round(
+                Common.MathClamp(_AniMs(now - _aniLastTick), 0, 100000) * aniSpeed);
+            _aniLastTick = now;
+
+            if (Common.modeDebug)
             {
-                try
+                if (_AniMs(now - _aniFpsTimer) >= 500d)
                 {
-                    Common.Log("[Animation] 动画线程开始");
-                    while (true)
-                    {
-                        var deltaTime = (long)Math.Round(
-                            Common.MathClamp(
-                                TimeUtils.GetTimeTick() - _aniLastTick,
-                                0,
-                                100000));
-                        if (deltaTime < minFrameGap)
-                        {
-                            Thread.Sleep(1);
-                            continue;
-                        }
-
-                        _aniLastTick = TimeUtils.GetTimeTick();
-                        if (Common.modeDebug)
-                        {
-                            if (Common.MathClamp(_aniLastTick - _aniFpsTimer, 0d, 100000d) >= 500d)
-                            {
-                                _aniFps = _aniFpsCounter;
-                                _aniFpsCounter = 0;
-                                _aniFpsTimer = _aniLastTick;
-                            }
-
-                            _aniFpsCounter += 2;
-                        }
-
-                        Common.RunInUiWait(() =>
-                        {
-                            _aniCount = 0;
-                            AniTimer((int)Math.Round(deltaTime * aniSpeed));
-                            if (RandomUtils.NextInt(0, 64 * (Common.modeDebug ? 5 : 30)) == 0
-                                && (_aniFps is < 62 and > 0
-                                    || _aniCount > 4
-                                    || NetFacade.NetManager.FileRemain != 0))
-                                Common.Log(
-                                    $"[Report] FPS {_aniFps}, "
-                                    + $"动画 {_aniCount}, "
-                                    + $"下载中 {NetFacade.NetManager.FileRemain}"
-                                    + $"（{Common.GetString(NetFacade.NetManager.Speed)}/s）");
-                        });
-                    }
+                    _aniFps = _aniFpsCounter;
+                    _aniFpsCounter = 0;
+                    _aniFpsTimer = now;
                 }
-                catch (OperationCanceledException)
-                {
-                }
-                catch (Exception ex)
-                {
-                    Common.Log(
-                        ex,
-                        "动画帧执行失败",
-                        Common.LogLevel.Critical,
-                        userSummary: Lang.Text("Application.Animation.Error.OperationFailed"));
-                }
-            },
-            "Animation",
-            ThreadPriority.AboveNormal);
+
+                _aniFpsCounter += 2; // 500 ms window -> frames per second
+            }
+
+            if (deltaTick <= 0)
+            {
+                _AniFlushGroups(); // still publish starts and stops, so nothing piles up
+                return;
+            }
+
+            _aniCount = 0;
+            AniTimer(deltaTick);
+
+            if (RandomUtils.NextInt(0, 64 * (Common.modeDebug ? 5 : 30)) == 0
+                && ((_aniFps < 62 && _aniFps > 0)
+                    || _aniCount > 4
+                    || NetFacade.NetManager.FileRemain != 0))
+                Common.Log(
+                    "[Report] FPS " + _aniFps + ", 动画 " + _aniCount + ", 下载中 "
+                    + NetFacade.NetManager.FileRemain + "（"
+                    + Common.GetString(NetFacade.NetManager.Speed) + "/s）");
+        }
+        catch (Exception ex)
+        {
+            Common.Log(
+                ex,
+                "动画帧执行失败",
+                Common.LogLevel.Critical,
+                userSummary: Lang.Text("Application.Animation.Error.OperationFailed"));
+        }
+        finally
+        {
+            _aniInFrame = false;
+        }
     }
 
     /// <summary>
@@ -99,79 +102,33 @@ public static partial class Animations
         try
         {
             if (deltaTick / aniSpeed > 100d)
-                Common.Log($"[Animation] 两个动画帧间隔 {deltaTick} ms", Common.LogLevel.Developer);
-            var i = -1;
-            while (i + 1 < aniGroups.Count)
+                Common.Log(
+                    "[Animation] 两个动画帧间隔 " + deltaTick + " ms",
+                    Common.LogLevel.Developer);
+
+            _AniFlushGroups();
+
+            var groups = _aniOrder;
+            for (var i = 0; i < groups.Count; i++)
             {
-                i += 1;
-                var entry = aniGroups.Values.ElementAtOrDefault(i);
-                if (entry is null)
-                    continue;
-                if (entry.startTick > _aniLastTick)
-                    continue;
-                var canRemoveAfter = true;
-                var ii = 0;
+                var entry = groups[i];
+                if (entry.Dead) continue;
+                if (entry.startTick > _aniLastTick) continue;
 
-                while (ii < entry.data.Count)
+                try
                 {
-                    var anim = entry.data[ii];
-                    if (!anim.isAfter)
-                    {
-                        canRemoveAfter = false;
-                        anim.timeFinished += deltaTick;
-                        if (anim.timeFinished > 0)
-                        {
-                            anim = _AniRun(anim);
-                            _aniCount += 1;
-                        }
-
-                        if (anim.timeFinished >= anim.timeTotal)
-                        {
-                            if (anim.typeMain == AniType.Color
-                                && !string.Equals(
-                                    ((dynamic)anim.obj)[2] as string,
-                                    "",
-                                    StringComparison.Ordinal))
-                                ((dynamic)anim.obj)[0]
-                                    .SetResourceReference(
-                                        ((dynamic)anim.obj)[1],
-                                        ((dynamic)anim.obj)[2]);
-                            entry.data.RemoveAt(ii);
-                            continue;
-                        }
-
-                        entry.data[ii] = anim;
-                    }
-                    else if (canRemoveAfter)
-                    {
-                        canRemoveAfter = false;
-                        anim.isAfter = false;
-                        entry.data[ii] = anim;
-                        continue;
-                    }
-                    else
-                    {
-                        break;
-                    }
-
-                    ii += 1;
+                    _AniRunGroup(entry, deltaTick);
                 }
-
-                if (entry.data.Count != 0) continue;
-
-                for (int current = 0, loopTo = aniGroups.Count - 1;
-                     current <= loopTo;
-                     current++)
-                    if (aniGroups.ElementAt(current).Value.uuid == entry.uuid)
-                    {
-                        aniGroups.Remove(aniGroups.ElementAt(current).Key, out _);
-                        break;
-                    }
-
-                i -= 1;
+                catch (Exception ex)
+                {
+                    Common.Log(
+                        ex,
+                        "动画组执行失败",
+                        Common.LogLevel.Hint,
+                        userSummary: Lang.Text("Application.Animation.Error.OperationFailed"));
+                }
             }
         }
-
         catch (Exception ex)
         {
             Common.Log(
@@ -183,11 +140,107 @@ public static partial class Animations
     }
 
     /// <summary>
+    ///     Apply the changes collected since the last frame.
+    /// </summary>
+    private static void _AniFlushGroups()
+    {
+        lock (_aniGroupsLock)
+        {
+            if (_aniPendingAdds.Count > 0)
+            {
+                foreach (var entry in _aniPendingAdds)
+                    if (!entry.Dead)
+                        _aniOrder.Add(entry);
+                _aniPendingAdds.Clear();
+            }
+
+            if (_aniOrderDirty)
+            {
+                _aniOrder.RemoveAll(static e => e.Dead);
+                _aniOrderDirty = false;
+            }
+        }
+    }
+
+    /// <summary>
+    ///     Advance one animation group.
+    /// </summary>
+    private static void _AniRunGroup(AniGroupEntry entry, int deltaTick)
+    {
+        var data = entry.data;
+        var span = CollectionsMarshal.AsSpan(data);
+        var write = 0;
+        var blocked = false;
+        int read;
+
+        for (read = 0; read < span.Length; read++)
+        {
+            ref var anim = ref span[read];
+
+            if (anim.isAfter)
+            {
+                if (blocked) break;
+                anim.isAfter = false;
+            }
+            blocked = true;
+
+            anim.timeFinished += deltaTick;
+            if (anim.timeFinished > 0)
+            {
+                _AniRun(ref anim);
+                _aniCount++;
+            }
+
+            if (anim.timeFinished >= anim.timeTotal)
+            {
+                _AniFinishColor(ref anim);
+                continue;
+            }
+
+            if (write != read) span[write] = anim;
+            write++;
+        }
+
+        if (write < read) data.RemoveRange(write, read - write);
+        if (data.Count == 0) _AniKillGroup(entry);
+    }
+
+    /// <summary>
+    ///     Release a finished color animation.
+    /// </summary>
+    private static void _AniFinishColor(ref AniData anim)
+    {
+        if (anim.typeMain == AniType.Color &&
+            anim.obj is object[] { Length: >= 3 } target &&
+            target[2] is not string { Length: 0 })
+            ((FrameworkElement)target[0]).SetResourceReference(
+                (DependencyProperty)target[1],
+                target[2]!);
+    }
+
+    /// <summary>
+    ///     Mark a group as dead and unregister it by name.
+    /// </summary>
+    private static void _AniKillGroup(AniGroupEntry entry)
+    {
+        entry.Dead = true;
+        lock (_aniGroupsLock)
+        {
+            if (_aniByName.TryGetValue(entry.Key, out var current)
+                && ReferenceEquals(current, entry))
+                _aniByName.Remove(entry.Key);
+            _aniOrderDirty = true;
+        }
+    }
+
+    /// <summary>Convert a stopwatch tick delta to milliseconds.</summary>
+    private static double _AniMs(long ticks) => ticks * 1000d / Stopwatch.Frequency;
+
+    /// <summary>
     ///     执行一个动画。
     /// </summary>
     /// <param name="ani">要执行的动画对象。</param>
-    /// <returns>执行后的动画数据。</returns>
-    private static AniData _AniRun(AniData ani)
+    private static void _AniRun(ref AniData ani)
     {
         try
         {
@@ -198,7 +251,7 @@ public static partial class Animations
                     break;
 
                 case AniType.Color:
-                    _RunColorAnimation(ani);
+                    _RunColorAnimation(ref ani);
                     break;
 
                 case AniType.Scale:
@@ -234,8 +287,6 @@ public static partial class Animations
                 Common.LogLevel.Hint,
                 userSummary: Lang.Text("Application.Animation.Error.OperationFailed"));
         }
-
-        return ani;
     }
 
     private static double _GetAnimationProgress(AniData ani)
@@ -384,7 +435,7 @@ public static partial class Animations
         }
     }
 
-    private static void _RunColorAnimation(AniData ani)
+    private static void _RunColorAnimation(ref AniData ani)
     {
         dynamic args = ani.obj;
         var element = (FrameworkElement)args[0];
