@@ -9,6 +9,10 @@ public partial class PageDownloadCompFavoritesViewModel : ViewModelBase
 {
     [ObservableProperty] private string _selectedText = "";
 
+    [ObservableProperty] private int _favTargetSelectedIndex = -1;
+
+    [ObservableProperty] private string _searchText = "";
+
     [ObservableProperty] private bool _showHintGetFail;
 
     [ObservableProperty] private bool _showSearchBox = true;

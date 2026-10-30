@@ -16,12 +16,14 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <local:MySearchBox x:Name="PanSearchBox" Grid.Column="0" HintText="{DynamicResource Download.Comp.Favorites.Search.Hint}"
+                                               Text="{Binding SearchText, Mode=TwoWay}"
                                                Visibility="{Binding ShowSearchBox, Converter={StaticResource BooleanToVisibilityConverter}}" />
                             <local:MyCard Margin="15,0,0,0" Height="40" CanSwap="False" Grid.Column="1">
                                 <StackPanel Orientation="Horizontal">
                                     <local:MyComboBox Margin="8,0,-1,0" VerticalAlignment="Center" Height="27"
                                                       x:Name="ComboTargetFav" MaxWidth="160" MinWidth="80"
-                                                      DropDownWidthSync="False" />
+                                                      DropDownWidthSync="False"
+                                                      SelectedIndex="{Binding FavTargetSelectedIndex}" />
                                     <local:MyIconButton LogoScale="1.1" Margin="4,8,5,8" VerticalAlignment="Center"
                                                         x:Name="Btn_ManageTargetFav"
                                                         ToolTip="{DynamicResource Download.Comp.Favorites.Manage}" />

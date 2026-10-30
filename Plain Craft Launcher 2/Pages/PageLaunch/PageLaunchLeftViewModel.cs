@@ -36,6 +36,12 @@ public partial class PageLaunchLeftViewModel : ViewModelBase
 
     [ObservableProperty] private string _launchingHintText = Lang.Text("Launch.Status.Trivia.Placeholder");
 
+    [ObservableProperty] private Visibility _launchingDownloadVisibility = Visibility.Collapsed;
+
+    [ObservableProperty] private Visibility _launchingProgressVisibility = Visibility.Visible;
+
+    [ObservableProperty] private Visibility _launchingHintVisibility = Visibility.Collapsed;
+
     public void ApplyLaunchingHint(bool showHint)
     {
         LaunchingHintText = showHint ? PageLaunchRight.GetRandomHint(true, true) : "";

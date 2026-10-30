@@ -414,11 +414,11 @@ public partial class PageLaunchLeft
                     ease: new Animations.AniEaseOutFluent())
             };
             var isDownloadStateChanged =
-                hasLaunchDownloader == (LabLaunchingDownload.Visibility == Visibility.Collapsed);
+                hasLaunchDownloader == (_vm.LaunchingDownloadVisibility == Visibility.Collapsed);
             if (isDownloadStateChanged)
             {
-                LabLaunchingDownload.Visibility = Visibility.Visible;
-                LabLaunchingDownloadLeft.Visibility = Visibility.Visible;
+                _vm.LaunchingDownloadVisibility = Visibility.Visible;
+                _vm.LaunchingDownloadVisibility = Visibility.Visible;
                 animList.AddRange(new[]
                 {
                     Animations.AaOpacity(LabLaunchingDownload,
@@ -429,19 +429,19 @@ public partial class PageLaunchLeft
                     {
                         if (!hasLaunchDownloader)
                         {
-                            LabLaunchingDownload.Visibility = Visibility.Collapsed;
-                            LabLaunchingDownloadLeft.Visibility = Visibility.Collapsed;
+                            _vm.LaunchingDownloadVisibility = Visibility.Collapsed;
+                            _vm.LaunchingDownloadVisibility = Visibility.Collapsed;
                         }
                     }, 110)
                 });
             }
 
-            var isProgressStateChanged = !isLaunched == (LabLaunchingProgress.Visibility == Visibility.Collapsed);
+            var isProgressStateChanged = !isLaunched == (_vm.LaunchingProgressVisibility == Visibility.Collapsed);
             if (isProgressStateChanged)
             {
-                LabLaunchingProgress.Visibility = Visibility.Visible;
-                LabLaunchingProgressLeft.Visibility = Visibility.Visible;
-                if (isLaunched && shouldShowHint) PanLaunchingHint.Visibility = Visibility.Visible;
+                _vm.LaunchingProgressVisibility = Visibility.Visible;
+                _vm.LaunchingProgressVisibility = Visibility.Visible;
+                if (isLaunched && shouldShowHint) _vm.LaunchingHintVisibility = Visibility.Visible;
                 animList.AddRange(new[]
                 {
                     Animations.AaOpacity(LabLaunchingProgress, (!isLaunched ? 1 : 0) - LabLaunchingProgress.Opacity,
@@ -549,18 +549,18 @@ public partial class PageLaunchLeft
             : Lang.Text("Launch.Status.Title.ExportingScript");
         _vm.LaunchingProgressText = Lang.Number(0d, "P2");
         LabLaunchingProgress.Opacity = 1d;
-        LabLaunchingDownload.Visibility = Visibility.Visible;
+        _vm.LaunchingDownloadVisibility = Visibility.Visible;
         LabLaunchingProgressLeft.Opacity = 0.6d;
-        LabLaunchingDownload.Visibility = Visibility.Visible;
+        _vm.LaunchingDownloadVisibility = Visibility.Visible;
         _vm.ApplyLaunchingDownload(0);
         LabLaunchingDownload.Opacity = 0d;
-        LabLaunchingDownload.Visibility = Visibility.Collapsed;
+        _vm.LaunchingDownloadVisibility = Visibility.Collapsed;
         LabLaunchingDownloadLeft.Opacity = 0d;
-        LabLaunchingDownloadLeft.Visibility = Visibility.Collapsed;
+        _vm.LaunchingDownloadVisibility = Visibility.Collapsed;
         ProgressLaunchingFinished.Width = new GridLength(0d, GridUnitType.Star);
         ProgressLaunchingUnfinished.Width = new GridLength(1d, GridUnitType.Star);
         PanLaunchingHint.Opacity = 0d;
-        PanLaunchingHint.Visibility = Visibility.Collapsed;
+        _vm.LaunchingHintVisibility = Visibility.Collapsed;
         PanLaunchingInfo.Width = double.NaN; // 重置宽度改变动画
         GameLaunch.mcLaunchProcess = null;
         GameLaunch.mcLaunchWatcher = null;

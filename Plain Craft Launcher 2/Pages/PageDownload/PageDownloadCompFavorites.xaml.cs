@@ -136,7 +136,7 @@ public partial class PageDownloadCompFavorites
             ComboTargetFav.Items.Add(item);
         }
 
-        if (ComboTargetFav.SelectedIndex == -1) ComboTargetFav.SelectedIndex = 0; // 默认选择第一个
+        if (_vm.FavTargetSelectedIndex == -1) _vm.FavTargetSelectedIndex = 0; // 默认选择第一个
     }
 
     /// <summary>
@@ -216,7 +216,7 @@ public partial class PageDownloadCompFavorites
         try
         {
             allowSearch = false;
-            PanSearchBox.Text = string.Empty;
+            _vm.SearchText = string.Empty;
             allowSearch = true;
             compItemList.Clear();
             var someGetFail = loader.input.Count != loader.output.Count;
@@ -779,7 +779,7 @@ public partial class PageDownloadCompFavorites
                         Comp.CompFavorites.FavoritesList.Add(Comp.CompFavorites.GetNewFav(newFavName, newFavs));
                         Comp.CompFavorites.Save();
                         RefreshFavTargets();
-                        ComboTargetFav.SelectedIndex = ComboTargetFav.Items.Count - 1;
+                        _vm.FavTargetSelectedIndex = ComboTargetFav.Items.Count - 1;
                         break;
                     }
                     case 2:
@@ -822,7 +822,7 @@ public partial class PageDownloadCompFavorites
                 Comp.CompFavorites.FavoritesList.Add(Comp.CompFavorites.GetNewFav(newFavName, null));
                 Comp.CompFavorites.Save();
                 RefreshFavTargets();
-                ComboTargetFav.SelectedIndex = ComboTargetFav.Items.Count - 1;
+                _vm.FavTargetSelectedIndex = ComboTargetFav.Items.Count - 1;
             }
             catch (Exception ex)
             {
@@ -895,7 +895,7 @@ public partial class PageDownloadCompFavorites
                     Comp.CompFavorites.Save();
                     HintService.Hint(Lang.Text("Download.Comp.Favorites.Hint.Deleted"), HintType.Success);
                     RefreshFavTargets();
-                    ComboTargetFav.SelectedIndex = 0;
+                    _vm.FavTargetSelectedIndex = 0;
                 }
             }
             catch (Exception ex)
@@ -945,7 +945,7 @@ public partial class PageDownloadCompFavorites
 
     #region 搜索
 
-    private bool IsSearching => !string.IsNullOrWhiteSpace(PanSearchBox.Text);
+    private bool IsSearching => !string.IsNullOrWhiteSpace(_vm.SearchText);
 
     private bool allowSearch = true;
     private List<MyListItem> searchResult = new();
@@ -974,7 +974,7 @@ public partial class PageDownloadCompFavorites
             }
 
             // 进行搜索
-            searchResult = Common.Search(queryList, PanSearchBox.Text, Common.MaxLocalSearchDepth, 0.35d).Select(r => r.item).ToList();
+            searchResult = Common.Search(queryList, _vm.SearchText, Common.MaxLocalSearchDepth, 0.35d).Select(r => r.item).ToList();
         }
 
         RefreshContent();
