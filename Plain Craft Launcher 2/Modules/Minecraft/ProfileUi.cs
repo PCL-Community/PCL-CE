@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using PCL.Core.App.Localization;
+using PCL.Core.IO.Net;
 using PCL.Core.Minecraft.IdentityModel;
 using PCL.Core.Minecraft.IdentityModel.OAuth;
 using PCL.Core.Minecraft.Profile;
