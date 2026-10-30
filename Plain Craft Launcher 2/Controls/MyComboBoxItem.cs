@@ -28,8 +28,6 @@ public class MyComboBoxItem : ComboBoxItem
         MouseLeftButtonUp += MyComboBoxItem_MouseLeftButtonUp;
     }
 
-    protected override void OnMouseEnter(MouseEventArgs e) => e.Handled = true;
-
     protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
     {
         base.OnPropertyChanged(e);
@@ -42,18 +40,18 @@ public class MyComboBoxItem : ComboBoxItem
 
     private void RefreshColor()
     {
-        var keyboardCurrent = IsDropDownOpen && IsHighlighted && !IsMouseOver;
+        var keyboardAway = ItemsControl.ItemsControlFromItemContainer(this) is MyComboBox { KeyboardAway: true };
         // 判断当前颜色
         string newBackColorName;
         double newFontOpacity;
         int time;
-        if (keyboardCurrent || (IsSelected && !KeyboardMovedSelection()))
+        if (IsSelected)
         {
             newBackColorName = "ColorBrush6";
             newFontOpacity = 1d;
             time = animationTimeIn;
         }
-        else if (IsMouseOver)
+        else if (IsHighlighted || (IsMouseOver && !keyboardAway))
         {
             newBackColorName = "ColorBrush8";
             newFontOpacity = 1d;
@@ -95,13 +93,6 @@ public class MyComboBoxItem : ComboBoxItem
             Opacity = fontOpacity;
         }
     }
-
-    private bool IsDropDownOpen =>
-        ItemsControl.ItemsControlFromItemContainer(this) is ComboBox { IsDropDownOpen: true };
-
-    private bool KeyboardMovedSelection() =>
-        IsSelected && !IsHighlighted && IsDropDownOpen &&
-        ItemsControl.ItemsControlFromItemContainer(this) is MyComboBox { KeyboardAway: true };
 
     public override string ToString()
     {
