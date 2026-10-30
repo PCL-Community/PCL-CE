@@ -11,6 +11,7 @@ public partial class PageSetupAbout : IPageView
     public PageSetupAbout()
     {
         InitializeComponent();
+        DialogServiceInstaller.Install(_vm);
         Loaded += PageAbout_Loaded;
     }
 

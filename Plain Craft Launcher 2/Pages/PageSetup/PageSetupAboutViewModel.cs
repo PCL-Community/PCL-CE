@@ -69,10 +69,11 @@ public partial class PageSetupAboutViewModel : ViewModelBase
                         HintService.Hint(Lang.Text("Setup.About.EasterEgg.StillClicking"));
                         break;
                     case 25:
-                        if (await Launcher.MyMsgBoxAsync(Lang.Text("Setup.About.EasterEgg.Bored.Message"),
-                                Lang.Text("Setup.About.EasterEgg.Bored.Title"),
-                                Lang.Text("Setup.About.EasterEgg.Bored.Yes"),
-                                Lang.Text("Setup.About.EasterEgg.Bored.No")) == 2)
+                        if (await Dialog.ShowAsync(
+                                title: Lang.Text("Setup.About.EasterEgg.Bored.Title"),
+                                content: Lang.Text("Setup.About.EasterEgg.Bored.Message"),
+                                button1: Lang.Text("Setup.About.EasterEgg.Bored.Yes"),
+                                button2: Lang.Text("Setup.About.EasterEgg.Bored.No")) == 2)
                             HintService.Hint(Lang.Text("Setup.About.EasterEgg.Bored.Response"));
                         break;
                     case 50:
@@ -88,30 +89,31 @@ public partial class PageSetupAboutViewModel : ViewModelBase
                         HintService.Hint(Lang.Text("Setup.About.EasterEgg.NothingBehind"));
                         break;
                     case 150:
-                        switch (await Launcher.MyMsgBoxAsync(Lang.Text("Setup.About.EasterEgg.Tired.Message1"),
-                                    Lang.Text("Setup.About.EasterEgg.Tired.Title1"),
-                                    Lang.Text("Setup.About.EasterEgg.Tired.Exhausted"),
-                                    Lang.Text("Setup.About.EasterEgg.Tired.NotTired")))
+                        switch (await Dialog.ShowAsync(
+                                    title: Lang.Text("Setup.About.EasterEgg.Tired.Title1"),
+                                    content: Lang.Text("Setup.About.EasterEgg.Tired.Message1"),
+                                    button1: Lang.Text("Setup.About.EasterEgg.Tired.Exhausted"),
+                                    button2: Lang.Text("Setup.About.EasterEgg.Tired.NotTired")))
                         {
                             case 1:
                                 HintService.Hint(Lang.Text("Setup.About.EasterEgg.Tired.StopClicking"));
                                 break;
                             case 2:
-                                switch (await Launcher.MyMsgBoxAsync(
-                                            Lang.Text("Setup.About.EasterEgg.Tired.Message2"),
-                                            Lang.Text("Setup.About.EasterEgg.Tired.Title2"),
-                                            Lang.Text("Setup.About.EasterEgg.Tired.Exhausted"),
-                                            Lang.Text("Setup.About.EasterEgg.Tired.NotTired")))
+                                switch (await Dialog.ShowAsync(
+                                            title: Lang.Text("Setup.About.EasterEgg.Tired.Title2"),
+                                            content: Lang.Text("Setup.About.EasterEgg.Tired.Message2"),
+                                            button1: Lang.Text("Setup.About.EasterEgg.Tired.Exhausted"),
+                                            button2: Lang.Text("Setup.About.EasterEgg.Tired.NotTired")))
                                 {
                                     case 1:
                                         HintService.Hint(Lang.Text("Setup.About.EasterEgg.Tired.StopClicking"));
                                         break;
                                     case 2:
-                                        switch (await Launcher.MyMsgBoxAsync(
-                                                    Lang.Text("Setup.About.EasterEgg.Tired.Message3"),
-                                                    Lang.Text("Setup.About.EasterEgg.Tired.Title3"),
-                                                    Lang.Text("Setup.About.EasterEgg.Tired.Exhausted"),
-                                                    Lang.Text("Setup.About.EasterEgg.Tired.ReallyNotTired")))
+                                        switch (await Dialog.ShowAsync(
+                                                    title: Lang.Text("Setup.About.EasterEgg.Tired.Title3"),
+                                                    content: Lang.Text("Setup.About.EasterEgg.Tired.Message3"),
+                                                    button1: Lang.Text("Setup.About.EasterEgg.Tired.Exhausted"),
+                                                    button2: Lang.Text("Setup.About.EasterEgg.Tired.ReallyNotTired")))
                                         {
                                             case 1:
                                                 HintService.Hint(

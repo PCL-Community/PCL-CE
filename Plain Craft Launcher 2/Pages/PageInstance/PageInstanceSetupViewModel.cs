@@ -289,9 +289,11 @@ public partial class PageInstanceSetupViewModel : ViewModelBase
         try
         {
             if (!string.IsNullOrEmpty(ServerAuthServerText) &&
-                ServerAuthServerText != "https://littleskin.cn/api/yggdrasil" && await Launcher.MyMsgBoxAsync(
-                    Lang.Text("Instance.Setup.Server.LittleSkin.Override.Message"),
-                    Lang.Text("Instance.Setup.Server.LittleSkin.Override.Title"), Lang.Text("Instance.Setup.Server.LittleSkin.Override.Continue"), Lang.Text("Common.Action.Cancel")) == 2)
+                ServerAuthServerText != "https://littleskin.cn/api/yggdrasil" && await Dialog.ShowAsync(
+                    title: Lang.Text("Instance.Setup.Server.LittleSkin.Override.Title"),
+                    content: Lang.Text("Instance.Setup.Server.LittleSkin.Override.Message"),
+                    button1: Lang.Text("Instance.Setup.Server.LittleSkin.Override.Continue"),
+                    button2: Lang.Text("Common.Action.Cancel")) == 2)
                 return;
             ServerAuthServerText = "https://littleskin.cn/api/yggdrasil";
             ServerAuthRegisterText = "https://littleskin.cn/auth/register";
@@ -325,9 +327,12 @@ public partial class PageInstanceSetupViewModel : ViewModelBase
         ServerAuthLockEnabled = false;
         try
         {
-            if (await Launcher.MyMsgBoxAsync(
-                    Lang.Text("Instance.Setup.Server.LockLoginMethod.Message"),
-                    Lang.Text("Instance.Setup.Server.LockLoginMethod.Title"), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
+            if (await Dialog.ShowAsync(
+                    title: Lang.Text("Instance.Setup.Server.LockLoginMethod.Title"),
+                    content: Lang.Text("Instance.Setup.Server.LockLoginMethod.Message"),
+                    button1: Lang.Text("Common.Action.Confirm"),
+                    button2: Lang.Text("Common.Action.Cancel"),
+                    isWarn: true) == 1)
             {
                 Config.InstanceAuth.AuthLocked[PageInstanceLeft.McInstance.PathInstance] = true;
                 Launcher.frmInstanceSetup?.Reload();

@@ -59,9 +59,12 @@ public partial class PageLoginProfileViewModel : ViewModelBase
     [RelayCommand]
     public async Task DeleteProfileAsync(PageLoginProfile.ProfileItem item)
     {
-        var result = await Launcher.MyMsgBoxAsync(Lang.Text("Launch.Account.Profile.DeleteConfirm.Message"),
-            Lang.Text("Launch.Account.Profile.DeleteConfirm.Title"), Lang.Text("Common.Action.Continue"),
-            Lang.Text("Common.Action.Cancel"), isWarn: true);
+        var result = await Dialog.ShowAsync(
+            title: Lang.Text("Launch.Account.Profile.DeleteConfirm.Title"),
+            content: Lang.Text("Launch.Account.Profile.DeleteConfirm.Message"),
+            button1: Lang.Text("Common.Action.Continue"),
+            button2: Lang.Text("Common.Action.Cancel"),
+            isWarn: true);
         if (result == 2) return;
         ProfileUi.RemoveProfile(item.Profile);
         await ReloadAsync();
@@ -70,8 +73,10 @@ public partial class PageLoginProfileViewModel : ViewModelBase
     [RelayCommand]
     public async Task EditServerNameAsync(PageLoginProfile.ProfileItem item)
     {
-        var name = await Launcher.MyMsgBoxInputAsync(Lang.Text("Launch.Account.Profile.EditServerName.Title"),
-            Lang.Text("Launch.Account.Profile.EditServerName.Message"), item.Profile.ServerName ?? "");
+        var name = await Dialog.InputAsync(
+            title: Lang.Text("Launch.Account.Profile.EditServerName.Title"),
+            content: Lang.Text("Launch.Account.Profile.EditServerName.Message"),
+            defaultValue: item.Profile.ServerName ?? "");
         if (name is not null) ProfileUi.EditAuthServerName(item.Profile, name);
     }
 

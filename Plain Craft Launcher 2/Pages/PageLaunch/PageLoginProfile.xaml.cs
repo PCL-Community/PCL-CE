@@ -19,6 +19,7 @@ public partial class PageLoginProfile : IPageView
     {
         InitializeComponent();
         DataContext = _vm;
+        DialogServiceInstaller.Install(_vm);
         _vm.PropertyChanged += VmOnPropertyChanged;
         Loaded += (_, _) => Reload();
     }

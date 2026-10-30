@@ -28,6 +28,7 @@ public partial class PageInstanceSetup : IPageView
         Loaded += PageSetupSystem_Loaded;
         InitializeComponent();
         DataContext = _vm;
+        DialogServiceInstaller.Install(_vm);
         Unloaded += (_, _) => _refreshed = false;
 
         ComboArgumentIndieV2.SelectionChanged += ComboArgumentIndieV2_SelectionChanged;
