@@ -31,7 +31,7 @@ internal sealed class CrashReportExporter
         if (File.Exists(targetZipPath))
             File.Delete(targetZipPath);
 
-        ModBase.FeedbackInfo();
+        Common.FeedbackInfo();
 
         var reportFolder = Path.Combine(context.TempFolder, ReportFolderName);
 
@@ -264,9 +264,9 @@ internal sealed class CrashReportExporter
 
         try
         {
-            ModJarInJarCache.UseInstance(instance.PathInstance);
-            ModLocalComp.JijScanContext = new ModJarInJar.ScanContext();
-            var modsFolderName = ModLocalComp.GetPathNameByCompType(ModComp.CompType.Mod);
+            JarInJarCache.UseInstance(instance.PathInstance);
+            LocalComp.jijScanContext = new JarInJar.ScanContext();
+            var modsFolderName = LocalComp.GetPathNameByCompType(Comp.CompType.Mod);
             var modsFolder = instance.Info.HasLabyMod
                 ? Path.Combine(instance.PathIndie, "labymod-neo", "fabric", instance.Info.VanillaName, modsFolderName)
                 : Path.Combine(instance.PathIndie, modsFolderName);
@@ -283,34 +283,38 @@ internal sealed class CrashReportExporter
                     scanFolders.Add(versionSubFolder);
             }
 
-            var allMods = new List<ModLocalComp.LocalCompFile>();
-            var preferredLoader = ModLocalComp.GetPreferredLoader(instance);
+            var allMods = new List<LocalComp.LocalCompFile>();
+            var preferredLoader = LocalComp.GetPreferredLoader(instance);
             foreach (var folder in scanFolders)
                 foreach (var file in Directory.GetFiles(folder))
                 {
-                    if (!ModLocalComp.LocalCompFile.IsModFile(file)) continue;
-                    var mod = new ModLocalComp.LocalCompFile(file);
+                    if (!LocalComp.LocalCompFile.IsModFile(file)) continue;
+                    var mod = new LocalComp.LocalCompFile(file);
                     mod.PreferredLoader = preferredLoader;
                     mod.Load();
-                    if (mod.State != ModLocalComp.LocalCompFile.LocalFileStatus.Unavailable) allMods.Add(mod);
+                    if (mod.State != LocalComp.LocalCompFile.LocalFileStatus.Unavailable)
+                        allMods.Add(mod);
                 }
 
-            var activeMods = allMods.Where(m => m.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine)
+            var activeMods = allMods
+                .Where(m => m.State == LocalComp.LocalCompFile.LocalFileStatus.Fine)
                 .OrderBy(m => m.Name ?? m.FileName, StringComparer.OrdinalIgnoreCase)
                 .ToList();
-            var jij = new ModJarInJarIndex(allMods, instance.Info.VanillaName);
+            var jij = new JarInJarIndex(allMods, instance.Info.VanillaName);
 
             var sb = new StringBuilder();
 
             _AppendDependencyIssues(sb, jij, activeMods);
 
-            var modsByModId = new Dictionary<string, List<ModLocalComp.LocalCompFile>>(StringComparer.OrdinalIgnoreCase);
+            var modsByModId =
+                new Dictionary<string, List<LocalComp.LocalCompFile>>(StringComparer
+                    .OrdinalIgnoreCase);
             foreach (var mod in activeMods)
             {
                 foreach (var id in new[] { mod.ModId }.Concat(mod.ProvidedIds).Where(id => !string.IsNullOrEmpty(id)))
                 {
                     if (!modsByModId.TryGetValue(id, out var list))
-                        modsByModId[id] = list = new List<ModLocalComp.LocalCompFile>();
+                        modsByModId[id] = list = new List<LocalComp.LocalCompFile>();
                     if (!list.Contains(mod)) list.Add(mod);
                 }
             }
@@ -375,7 +379,7 @@ internal sealed class CrashReportExporter
                 sb.AppendLine(Lang.Text("Crash.Report.JarInJarMod.JarInJarNone"));
 
             CrashFileIo.WriteText(Path.Combine(reportFolder, ModInfoFileName), sb.ToString(), Encoding.UTF8);
-            ModJarInJarCache.Flush();
+            JarInJarCache.Flush();
             LogWrapper.Info("Crash", "已导出模组列表及 Jar-in-Jar 信息");
         }
         catch (Exception ex)
@@ -384,15 +388,15 @@ internal sealed class CrashReportExporter
         }
         finally
         {
-            ModLocalComp.JijScanContext = null;
+            LocalComp.jijScanContext = null;
             // 复位本线程的"当前实例"：含 mods 目录不存在的 early return 与异常路径，
             // 否则本线程后续懒加载别实例的 Mod 会被路由进本实例缓存
-            ModJarInJarCache.UseInstance(null);
+            JarInJarCache.UseInstance(null);
         }
     }
 
-    private static void _AppendDependencyIssues(StringBuilder sb, ModJarInJarIndex jij,
-        List<ModLocalComp.LocalCompFile> activeMods)
+    private static void _AppendDependencyIssues(StringBuilder sb, JarInJarIndex jij,
+        List<LocalComp.LocalCompFile> activeMods)
     {
         sb.AppendLine(Lang.Text("Crash.Report.JarInJarMod.WarningSection"));
         var warned = false;
@@ -402,11 +406,11 @@ internal sealed class CrashReportExporter
             var mismatch = new List<string>();
             var disabled = new List<string>();
 
-            void Probe(ModLocalComp.LocalCompFile who, string loader)
+            void Probe(LocalComp.LocalCompFile who, string loader)
             {
-                foreach (var d in ModJarInJarIndex.BuildOwnDependencies(who, loader))
+                foreach (var d in JarInJarIndex.BuildOwnDependencies(who, loader))
                 {
-                    if (ModDependencyIds.IsPlatform(d.DepId) || d.Optional) continue;
+                    if (DependencyIds.IsPlatform(d.DepId) || d.Optional) continue;
                     switch (jij.Analyze(who, d))
                     {
                         case JijDepStatus.Missing:
@@ -455,7 +459,8 @@ internal sealed class CrashReportExporter
         sb.AppendLine().AppendLine("----------------------------").AppendLine();
     }
 
-    private static void _AppendEmbeddedMods(StringBuilder builder, List<ModLocalComp.LocalCompFile> mods, int depth)
+    private static void _AppendEmbeddedMods(StringBuilder builder,
+        List<LocalComp.LocalCompFile> mods, int depth)
     {
         var indent = new string('\t', depth);
         foreach (var mod in mods)

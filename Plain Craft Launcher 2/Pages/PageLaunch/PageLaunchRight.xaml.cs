@@ -1,15 +1,15 @@
-﻿using System.IO;
-using System.Globalization;
+﻿using System.Globalization;
+using System.IO;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Core.UI;
 using PCL.Network;
-using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -18,7 +18,7 @@ public partial class PageLaunchRight : IRefreshable
     public PageLaunchRight()
     {
         InitializeComponent();
-        onlineLoader = new ModLoader.LoaderTask<string, int>(
+        onlineLoader = new Loading.LoaderTask<string, int>(
             Lang.Text("Launch.Homepage.Task.Download"),
             OnlineLoaderSub)
         {
@@ -33,26 +33,26 @@ public partial class PageLaunchRight : IRefreshable
     {
         PanBack.ScrollToHome();
         PanScroll = PanBack; // 不知道为啥不能在 XAML 设置
-        PanLog.Visibility = ModBase.modeDebug ? Visibility.Visible : Visibility.Collapsed;
+        PanLog.Visibility = Common.modeDebug ? Visibility.Visible : Visibility.Collapsed;
         // 社区版提示
         PanHint.Visibility = States.Hint.CEMessage
             ? Visibility.Visible
             : Visibility.Collapsed;
-        LabHint1.Text = Lang.Text("Launch.Right.CommunityHint.Message");
-        LabHint2.Text = Lang.Text("Launch.Right.CommunityHint.HidePrompt");
+        LabHint1.TrySetLocalizedValue("Text", "Launch.Right.CommunityHint.Message");
+        LabHint2.TrySetLocalizedValue("Text", "Launch.Right.CommunityHint.HidePrompt");
         _EnsureHomepageLiveWatcher();
     }
 
     // 暂时关闭快照版提示
     private void BtnHintClose_Click(object sender, EventArgs e)
     {
-        var input = ModMain.MyMsgBoxInput(Lang.Text("Launch.Right.CommunityHint.InputTitle"));
+        var input = Launcher.MyMsgBoxInput(Lang.Text("Launch.Right.CommunityHint.InputTitle"));
         if (string.IsNullOrWhiteSpace(input))
             return;
         input = new string(input.Where(char.IsAsciiLetter).ToArray()).ToLower();
         if (input.Contains("pclcommunity"))
         {
-            ModAnimation.AniDispose(PanHint, true);
+            Animations.AniDispose(PanHint, true);
             States.Hint.CEMessage = false;
         }
         else
@@ -68,7 +68,7 @@ public partial class PageLaunchRight : IRefreshable
     /// </summary>
     private void Refresh()
     {
-        ModBase.RunInNewThread(() =>
+        Common.RunInNewThread(() =>
             {
                 try
                 {
@@ -79,15 +79,15 @@ public partial class PageLaunchRight : IRefreshable
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(
+                    Common.Log(
                         ex,
                         "加载 PCL 主页自定义信息失败",
-                        ModBase.modeDebug
-                            ? ModBase.LogLevel.Msgbox
-                            : ModBase.LogLevel.Hint,
+                        Common.modeDebug
+                            ? Common.LogLevel.Msgbox
+                            : Common.LogLevel.Hint,
                         userSummary: Lang.Text("Launch.Error.OperationFailed"));
                 }
-            }, $"刷新主页 #{ModBase.GetUuid()}");
+            }, $"刷新主页 #{Common.GetUuid()}");
     }
 
     private void RefreshReal()
@@ -101,7 +101,7 @@ public partial class PageLaunchRight : IRefreshable
         {
             // 本地文件
             LogWrapper.Info("[Page] 主页自定义数据来源：本地文件");
-            content = ModBase.ReadFile(Path.Combine(ModBase.exePath, "PCL", "Custom.xaml"));
+            content = Common.ReadFile(Path.Combine(Common.ExePath, "PCL", "Custom.xaml"));
         }
         else if (uiCustomType == 2)
         {
@@ -129,7 +129,7 @@ public partial class PageLaunchRight : IRefreshable
 
                 case 1:
                     LogWrapper.Info("[Page] 主页预设：回声洞 已被移除");
-                    ModMain.MyMsgBox(Lang.Text("Launch.Homepage.Preset.EchoCave.Removed"));
+                    Launcher.MyMsgBox(Lang.Text("Launch.Homepage.Preset.EchoCave.Removed"));
                     return;
 
                 case 2:
@@ -188,7 +188,8 @@ public partial class PageLaunchRight : IRefreshable
 
                 case 7:
                     LogWrapper.Info("[Page] 主页预设：杂志主页");
-                    url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/Ext1nguisher/Custom.xaml";
+                    url =
+                        "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/Ext1nguisher/Custom.xaml";
                     content = LoadFromNetwork(url);
                     break;
 
@@ -200,7 +201,8 @@ public partial class PageLaunchRight : IRefreshable
 
                 case 9:
                     LogWrapper.Info("[Page] 主页预设：Minecraft 更新摘要");
-                    url = "https://raw.gitcode.com/ENC_Euphony/PCL-AI-Summary-HomePage/raw/master/Custom.xaml";
+                    url =
+                        "https://raw.gitcode.com/ENC_Euphony/PCL-AI-Summary-HomePage/raw/master/Custom.xaml";
                     content = LoadFromNetwork(url);
                     break;
                 
@@ -238,16 +240,16 @@ public partial class PageLaunchRight : IRefreshable
                     LogWrapper.Info("[Page] 主页预设：Minecraft 信息流");
                     Dispatcher.Invoke(() =>
                     {
-                        if (ModMain.frmHomepageNews is null)
-                            ModMain.frmHomepageNews = new PageHomepageNewsView();
+                        if (Launcher.frmHomepageNews is null)
+                            Launcher.frmHomepageNews = new PageHomepageNewsView();
                         PanCustom.Children.Clear();
-                        PanCustom.Children.Add(ModMain.frmHomepageNews);
+                        PanCustom.Children.Add(Launcher.frmHomepageNews);
                     });
                     return;
             }
         }
 
-        ModBase.RunInUi(() => LoadContent(content));
+        Common.RunInUi(() => LoadContent(content));
     }
 
     /// <summary>
@@ -257,7 +259,7 @@ public partial class PageLaunchRight : IRefreshable
     {
         if (string.IsNullOrWhiteSpace(url)) return "";
 
-        var cachePath = Path.Combine(ModBase.pathTemp, "Cache", "Custom.xaml");
+        var cachePath = Path.Combine(Common.pathTemp, "Cache", "Custom.xaml");
         var cachedUrl = (string)States.UI.SavedHomepageUrl;
 
         if (url == cachedUrl && File.Exists(cachePath))
@@ -265,12 +267,12 @@ public partial class PageLaunchRight : IRefreshable
             LogWrapper.Info("[Page] 主页自定义数据来源：联网缓存文件");
             // 后台更新缓存
             onlineLoader.Start(url);
-            return ModBase.ReadFile(cachePath);
+            return Common.ReadFile(cachePath);
         }
 
         LogWrapper.Info("[Page] 主页自定义数据来源：联网全新下载");
         HintWrapper.Show(Lang.Text("Launch.Homepage.Loading"));
-        ModBase.RunInUiWait(() => LoadContent("")); // 先清空页面
+        Common.RunInUiWait(() => LoadContent("")); // 先清空页面
         States.UI.SavedHomepageVersion = "";
         onlineLoader.Start(url); // 下载完成后将会再次触发更新
         return "";
@@ -283,7 +285,7 @@ public partial class PageLaunchRight : IRefreshable
         string[]? lines = null;
 
         // 外部文件
-        var externalPath = Path.Combine(ModBase.exePath, "PCL", "hints.txt");
+        var externalPath = Path.Combine(Common.ExePath, "PCL", "hints.txt");
         if (File.Exists(externalPath))
         {
             try
@@ -295,9 +297,9 @@ public partial class PageLaunchRight : IRefreshable
             }
             catch
             {
-                ModBase.Log(
+                Common.Log(
                     Lang.Text("Launch.Homepage.Error.ExternalFile", externalPath),
-                    ModBase.LogLevel.Hint,
+                    Common.LogLevel.Hint,
                     userSummary: Lang.Text("Launch.Homepage.Error.ExternalFile", externalPath));
             }
         }
@@ -319,14 +321,19 @@ public partial class PageLaunchRight : IRefreshable
 
         // 随机返回
         var hint = lines[Random.Shared.Next(lines.Length)];
-        return raw ? hint : hint.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("\"", "&quot;");
+        return raw
+            ? hint
+            : hint.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;")
+                .Replace("\"", "&quot;");
     }
 
     private static string[]? _LoadEmbeddedHints(string langCode)
     {
         try
         {
-            var uri = new Uri($"pack://application:,,,/Plain Craft Launcher 2;component/Resources/hints/{langCode}.txt", UriKind.Absolute);
+            var uri = new Uri(
+                $"pack://application:,,,/Plain Craft Launcher 2;component/Resources/hints/{langCode}.txt",
+                UriKind.Absolute);
             using var stream = Application.GetResourceStream(uri)?.Stream;
             if (stream is null) return null;
             using var reader = new StreamReader(stream);
@@ -343,9 +350,9 @@ public partial class PageLaunchRight : IRefreshable
     }
 
     // 联网获取主页文件
-    private readonly ModLoader.LoaderTask<string, int> onlineLoader;
+    private readonly Loading.LoaderTask<string, int> onlineLoader;
 
-    private void OnlineLoaderSub(ModLoader.LoaderTask<string, int> task)
+    private void OnlineLoaderSub(Loading.LoaderTask<string, int> task)
     {
         var address = task.input; // #3721 中连续触发两次导致内容变化
         try
@@ -378,41 +385,41 @@ public partial class PageLaunchRight : IRefreshable
                 if (!string.IsNullOrEmpty(version) && !string.IsNullOrEmpty(currentVersion) &&
                     (version ?? "") == (currentVersion ?? ""))
                 {
-                    ModBase.Log($"[Page] 当前缓存的主页已为最新，当前版本：{version}，检查源：{versionAddress}");
+                    Common.Log($"[Page] 当前缓存的主页已为最新，当前版本：{version}，检查源：{versionAddress}");
                     needDownload = false;
                 }
                 else
                 {
-                    ModBase.Log($"[Page] 需要下载联网主页，当前版本：{version}，检查源：{versionAddress}");
+                    Common.Log($"[Page] 需要下载联网主页，当前版本：{version}，检查源：{versionAddress}");
                 }
             }
             catch (Exception exx)
             {
-                ModBase.Log(exx, "联网获取主页版本失败", ModBase.LogLevel.Developer);
-                ModBase.Log($"[Page] 无法检查联网主页版本，将直接下载，检查源：{versionAddress}");
+                Common.Log(exx, "联网获取主页版本失败", Common.LogLevel.Developer);
+                Common.Log($"[Page] 无法检查联网主页版本，将直接下载，检查源：{versionAddress}");
             }
 
             // 实际下载
             if (needDownload)
             {
                 var fileContent = Requester.FetchString(address);
-                ModBase.Log($"[Page] 已联网下载主页，内容长度：{fileContent.Length}，来源：{address}");
+                Common.Log($"[Page] 已联网下载主页，内容长度：{fileContent.Length}，来源：{address}");
                 States.UI.SavedHomepageUrl = address;
                 States.UI.SavedHomepageVersion = version;
-                ModBase.WriteFile(ModBase.pathTemp + @"Cache\Custom.xaml", fileContent);
+                Common.WriteFile(Common.pathTemp + @"Cache\Custom.xaml", fileContent);
             }
 
             // 要求刷新
-            ModBase.RunInUi(Refresh); // 不直接调用 Refresh，以防止死循环（#6245）
+            Common.RunInUi(Refresh); // 不直接调用 Refresh，以防止死循环（#6245）
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 Lang.Text("Launch.Homepage.Error.Download", address),
-                ModBase.modeDebug
-                    ? ModBase.LogLevel.Msgbox
-                    : ModBase.LogLevel.Hint,
+                Common.modeDebug
+                    ? Common.LogLevel.Msgbox
+                    : Common.LogLevel.Hint,
                 userSummary: Lang.Text("Launch.Homepage.Error.Download", address));
         }
     }
@@ -423,17 +430,17 @@ public partial class PageLaunchRight : IRefreshable
     /// </summary>
     public void ForceRefresh()
     {
-        ModBase.Log("[Page] 要求强制刷新主页");
+        Common.Log("[Page] 要求强制刷新主页");
         ClearCache();
         // 实际的刷新
-        if (ModMain.frmMain.pageCurrent.page == FormMain.PageType.Launch)
+        if (Launcher.frmMain.pageCurrent.page == FormMain.PageType.Launch)
         {
             PanBack.ScrollToHome();
             Refresh();
         }
         else
         {
-            ModMain.frmMain.PageChange(FormMain.PageType.Launch);
+            Launcher.frmMain.PageChange(FormMain.PageType.Launch);
         }
     }
 
@@ -451,7 +458,7 @@ public partial class PageLaunchRight : IRefreshable
         onlineLoader.input = "";
         States.UI.SavedHomepageUrl = "";
         States.UI.SavedHomepageVersion = "";
-        ModBase.Log("[Page] 已清空主页缓存");
+        Common.Log("[Page] 已清空主页缓存");
     }
 
     /// <summary>
@@ -474,43 +481,49 @@ public partial class PageLaunchRight : IRefreshable
             PanCustom.Children.Clear();
             if (string.IsNullOrWhiteSpace(content))
             {
-                ModBase.Log("[Page] 实例化：清空主页 UI，来源为空");
+                Common.Log("[Page] 实例化：清空主页 UI，来源为空");
                 return;
             }
 
             var loadStartTime = DateTime.Now;
             try
             {
-                content = ModMain.ArgumentReplace(content);
+                content = Launcher.ArgumentReplace(content);
                 while (content.Contains("xmlns"))
-                    content = content.RegexReplace("xmlns[^\"']*(\"|')[^\"']*(\"|')", "").Replace("xmlns", "");
+                    content = content.RegexReplace("xmlns[^\"']*(\"|')[^\"']*(\"|')", "")
+                        .Replace("xmlns", "");
                 content =
                     $"<StackPanel xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xmlns:sys=\"clr-namespace:System;assembly=System.Runtime\" xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\" xmlns:local=\"clr-namespace:PCL;assembly=Plain Craft Launcher 2\">{content}</StackPanel>";
-                ModBase.Log($"[Page] 实例化：加载主页 UI 开始，最终内容长度：{content.Count()}");
-                PanCustom.Children.Add((UIElement)ModBase.GetObjectFromXML(content, out var sanitizeResult));
+                Common.Log($"[Page] 实例化：加载主页 UI 开始，最终内容长度：{content.Count()}");
+                PanCustom.Children.Add(
+                    (UIElement)Common.GetObjectFromXml(content, out var sanitizeResult));
                 _ShowSanitizeHints(sanitizeResult);
                 _ApplyHomepageLivePatchesFromFile();
             }
             catch (Exception ex)
             {
-                if (ModBase.modeDebug)
+                if (Common.modeDebug)
                 {
-                    ModBase.Log(ex, $"加载失败的主页内容：\r\n{content}");
-                    if (ModMain.MyMsgBox(
+                    Common.Log(ex, $"加载失败的主页内容：\r\n{content}");
+                    if (Launcher.MyMsgBox(
                             ex is UnauthorizedAccessException
                                 ? ex.Message
                                 : Lang.Text("Launch.Homepage.LoadFailed.Message", ex),
                             Lang.Text("Launch.Homepage.LoadFailed.Title"),
                             Lang.Text("Launch.Homepage.LoadFailed.Retry"),
-                            Lang.Text("Common.Action.Cancel")) ==
-                        1) goto Refresh; // 防止 SyncLock 死锁
+                            Lang.Text("Common.Action.Cancel")) == 1)
+                    {
+                        // 防止 SyncLock 死锁
+                        ForceRefresh();
+                        return;
+                    }
                 }
                 else
                 {
-                    ModBase.Log(
+                    Common.Log(
                         ex,
                         Lang.Text("Launch.Homepage.LoadFailed.Title"),
-                        ModBase.LogLevel.Hint,
+                        Common.LogLevel.Hint,
                         userSummary: Lang.Text("Launch.Homepage.LoadFailed.Title"));
                 }
 
@@ -518,15 +531,13 @@ public partial class PageLaunchRight : IRefreshable
             }
 
             var loadCostTime = (DateTime.Now - loadStartTime).Milliseconds;
-            ModBase.Log($"[Page] 实例化：加载主页 UI 完成，耗时 {loadCostTime}ms");
+            Common.Log($"[Page] 实例化：加载主页 UI 完成，耗时 {loadCostTime}ms");
             if (loadCostTime > 3000)
-                HintService.Hint(Lang.Text("Launch.Homepage.SlowWarning", Lang.Number(Math.Round(loadCostTime / 1000d, 1), "N1")));
+                HintService.Hint(Lang.Text("Launch.Homepage.SlowWarning",
+                    Lang.Number(Math.Round(loadCostTime / 1000d, 1), "N1")));
         }
 
         return;
-        Refresh: ;
-
-        ForceRefresh();
     }
 
     private int loadedContentHash = -1;
@@ -534,7 +545,8 @@ public partial class PageLaunchRight : IRefreshable
     private static void _ShowSanitizeHints(XamlEventSanitizer.SanitizeResult result)
     {
         foreach (var unsupported in result.UnsupportedTypesFound)
-            HintService.Hint(Lang.Text("Event.Sanitize.UnsupportedTypeHint", unsupported), HintType.Error);
+            HintService.Hint(Lang.Text("Event.Sanitize.UnsupportedTypeHint", unsupported),
+                HintType.Error);
 
         foreach (var unknown in result.UnrecognizedTypes)
             HintService.Hint(Lang.Text("Event.Sanitize.UnknownTypeHint", unknown), HintType.Error);
@@ -543,16 +555,18 @@ public partial class PageLaunchRight : IRefreshable
     private const string homepageLivePatchFileName = "CustomLive.json";
     private const string homepageLiveSupportFileName = "CustomLive.supported.json";
     // Keep the reflection patch surface explicit because patch files are written by external tools.
-    private static readonly Dictionary<string, string> _homepageLiveAllowedProperties = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ["text"] = "Text",
-        ["title"] = "Title",
-        ["info"] = "Info",
-        ["tooltip"] = "ToolTip",
-        ["visibility"] = "Visibility",
-        ["isEnabled"] = "IsEnabled",
-        ["opacity"] = "Opacity"
-    };
+    private static readonly Dictionary<string, string> _homepageLiveAllowedProperties =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["text"] = "Text",
+            ["title"] = "Title",
+            ["info"] = "Info",
+            ["tooltip"] = "ToolTip",
+            ["visibility"] = "Visibility",
+            ["isEnabled"] = "IsEnabled",
+            ["opacity"] = "Opacity"
+        };
+
     private FileSystemWatcher? _homepageLiveWatcher;
     private DispatcherTimer? _homepageLivePatchTimer;
 
@@ -579,7 +593,8 @@ public partial class PageLaunchRight : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "[Page] Failed to start custom homepage live patch watcher", ModBase.LogLevel.Developer);
+            Common.Log(ex, "[Page] Failed to start custom homepage live patch watcher",
+                Common.LogLevel.Developer);
         }
     }
 
@@ -591,7 +606,8 @@ public partial class PageLaunchRight : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "[Page] Failed to dispose custom homepage live patch watcher", ModBase.LogLevel.Developer);
+            Common.Log(ex, "[Page] Failed to dispose custom homepage live patch watcher",
+                Common.LogLevel.Developer);
         }
 
         _homepageLiveWatcher = null;
@@ -607,7 +623,8 @@ public partial class PageLaunchRight : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "[Page] Failed to dispose custom homepage live patch debounce timer", ModBase.LogLevel.Developer);
+            Common.Log(ex, "[Page] Failed to dispose custom homepage live patch debounce timer",
+                Common.LogLevel.Developer);
         }
 
         _DeleteHomepageLiveSupportMarker();
@@ -615,7 +632,7 @@ public partial class PageLaunchRight : IRefreshable
 
     private void _QueueHomepageLivePatchApply()
     {
-        ModBase.RunInUi(() =>
+        Common.RunInUi(() =>
         {
             _homepageLivePatchTimer ??= new DispatcherTimer
             {
@@ -646,14 +663,18 @@ public partial class PageLaunchRight : IRefreshable
         {
             var token = JsonNode.Parse(_ReadHomepageLivePatchFile(file),
                 new JsonNodeOptions { PropertyNameCaseInsensitive = true },
-                new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip,
-                    AllowTrailingCommas = true });
+                new JsonDocumentOptions
+                {
+                    CommentHandling = JsonCommentHandling.Skip,
+                    AllowTrailingCommas = true
+                });
             foreach (var patch in _EnumerateHomepageLivePatches(token))
                 _ApplyHomepageLivePatch(patch);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "[Page] Failed to apply custom homepage live patches", ModBase.LogLevel.Developer);
+            Common.Log(ex, "[Page] Failed to apply custom homepage live patches",
+                Common.LogLevel.Developer);
         }
     }
 
@@ -664,7 +685,8 @@ public partial class PageLaunchRight : IRefreshable
         {
             try
             {
-                using var stream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+                using var stream = new FileStream(file, FileMode.Open, FileAccess.Read,
+                    FileShare.ReadWrite | FileShare.Delete);
                 using var reader = new StreamReader(stream);
                 return reader.ReadToEnd();
             }
@@ -680,7 +702,7 @@ public partial class PageLaunchRight : IRefreshable
 
     private static string _GetHomepageLiveDirectory()
     {
-        return Path.Combine(ModBase.exePath, "PCL");
+        return Path.Combine(Common.ExePath, "PCL");
     }
 
     private static void _WriteHomepageLiveSupportMarker(string directory)
@@ -694,11 +716,13 @@ public partial class PageLaunchRight : IRefreshable
                 ["patchFile"] = homepageLivePatchFileName,
                 ["startedAt"] = DateTime.Now.ToString("O", CultureInfo.InvariantCulture)
             };
-            File.WriteAllText(Path.Combine(directory, homepageLiveSupportFileName), marker.ToJsonString());
+            File.WriteAllText(Path.Combine(directory, homepageLiveSupportFileName),
+                marker.ToJsonString());
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "[Page] Failed to write custom homepage live patch support marker", ModBase.LogLevel.Developer);
+            Common.Log(ex, "[Page] Failed to write custom homepage live patch support marker",
+                Common.LogLevel.Developer);
         }
     }
 
@@ -711,14 +735,18 @@ public partial class PageLaunchRight : IRefreshable
 
             var marker = (JsonObject)JsonNode.Parse(_ReadHomepageLivePatchFile(file),
                 new JsonNodeOptions { PropertyNameCaseInsensitive = true },
-                new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip,
-                    AllowTrailingCommas = true })!;
+                new JsonDocumentOptions
+                {
+                    CommentHandling = JsonCommentHandling.Skip,
+                    AllowTrailingCommas = true
+                })!;
             if (marker["processId"]?.GetValue<int>() == Environment.ProcessId)
                 File.Delete(file);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "[Page] Failed to delete custom homepage live patch support marker", ModBase.LogLevel.Developer);
+            Common.Log(ex, "[Page] Failed to delete custom homepage live patch support marker",
+                Common.LogLevel.Developer);
         }
     }
 
@@ -744,8 +772,11 @@ public partial class PageLaunchRight : IRefreshable
                 if (property.Value is not JsonObject patch) continue;
                 patch = (JsonObject)JsonNode.Parse(patch.ToJsonString(),
                     new JsonNodeOptions { PropertyNameCaseInsensitive = true },
-                    new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip,
-                        AllowTrailingCommas = true })!;
+                    new JsonDocumentOptions
+                    {
+                        CommentHandling = JsonCommentHandling.Skip,
+                        AllowTrailingCommas = true
+                    })!;
                 patch["target"] ??= property.Key;
                 yield return patch;
             }
@@ -788,27 +819,32 @@ public partial class PageLaunchRight : IRefreshable
             _ReplacePanelChildren(panel, childrenXaml);
     }
 
-    private static void _SetPropertyIfPresent(FrameworkElement element, JsonObject patch, string jsonName, string propertyName)
+    private static void _SetPropertyIfPresent(FrameworkElement element, JsonObject patch,
+        string jsonName, string propertyName)
     {
         if (patch.TryGetPropertyValue(jsonName, out var value))
             _TrySetElementProperty(element, propertyName, value?.ToString() ?? "");
     }
 
-    private static bool _TrySetElementProperty(FrameworkElement element, string propertyName, string value)
+    private static bool _TrySetElementProperty(FrameworkElement element, string propertyName,
+        string value)
     {
         if (!_homepageLiveAllowedProperties.TryGetValue(propertyName, out var allowedPropertyName))
         {
-            ModBase.Log($"[Page] Skipped unsupported live patch property {propertyName}", ModBase.LogLevel.Developer);
+            Common.Log($"[Page] Skipped unsupported live patch property {propertyName}",
+                Common.LogLevel.Developer);
             return false;
         }
 
         propertyName = allowedPropertyName;
-        var property = element.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
+        var property = element.GetType()
+            .GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
         if (property == null || !property.CanWrite) return false;
 
         try
         {
-            var propertyType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
+            var propertyType = Nullable.GetUnderlyingType(property.PropertyType) ??
+                               property.PropertyType;
             var trimmedValue = value.Trim();
             object convertedValue;
             if (propertyType == typeof(string))
@@ -817,9 +853,12 @@ public partial class PageLaunchRight : IRefreshable
                 convertedValue = value;
             else if (propertyType == typeof(bool) && bool.TryParse(trimmedValue, out var boolValue))
                 convertedValue = boolValue;
-            else if (propertyType == typeof(int) && int.TryParse(trimmedValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var intValue))
+            else if (propertyType == typeof(int) && int.TryParse(trimmedValue, NumberStyles.Integer,
+                         CultureInfo.InvariantCulture, out var intValue))
                 convertedValue = intValue;
-            else if (propertyType == typeof(double) && double.TryParse(trimmedValue, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var doubleValue))
+            else if (propertyType == typeof(double) && double.TryParse(trimmedValue,
+                         NumberStyles.Float | NumberStyles.AllowThousands,
+                         CultureInfo.InvariantCulture, out var doubleValue))
                 convertedValue = doubleValue;
             else if (propertyType == typeof(Visibility))
             {
@@ -827,7 +866,8 @@ public partial class PageLaunchRight : IRefreshable
                     return false;
                 convertedValue = visibilityValue;
             }
-            else if (propertyType.IsEnum && Enum.TryParse(propertyType, trimmedValue, true, out var enumValue))
+            else if (propertyType.IsEnum &&
+                     Enum.TryParse(propertyType, trimmedValue, true, out var enumValue))
                 convertedValue = enumValue;
             else
                 return false;
@@ -837,21 +877,23 @@ public partial class PageLaunchRight : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, $"[Page] Failed to set live patch property {propertyName}", ModBase.LogLevel.Developer);
+            Common.Log(ex, $"[Page] Failed to set live patch property {propertyName}",
+                Common.LogLevel.Developer);
             return false;
         }
     }
 
     private static void _ReplacePanelChildren(Panel panel, string childrenXaml)
     {
-        var content = ModMain.ArgumentReplace(childrenXaml);
+        var content = Launcher.ArgumentReplace(childrenXaml);
         while (content.Contains("xmlns"))
-            content = content.RegexReplace("xmlns[^\"']*(\"|')[^\"']*(\"|')", "").Replace("xmlns", "");
+            content = content.RegexReplace("xmlns[^\"']*(\"|')[^\"']*(\"|')", "")
+                .Replace("xmlns", "");
 
         var wrapped =
             $"<StackPanel xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xmlns:sys=\"clr-namespace:System;assembly=System.Runtime\" xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\" xmlns:local=\"clr-namespace:PCL;assembly=Plain Craft Launcher 2\">{content}</StackPanel>";
 
-        if (ModBase.GetObjectFromXML(wrapped) is not Panel parsedPanel) return;
+        if (Common.GetObjectFromXml(wrapped) is not Panel parsedPanel) return;
 
         var children = parsedPanel.Children.OfType<UIElement>().ToList();
         parsedPanel.Children.Clear();
@@ -860,7 +902,8 @@ public partial class PageLaunchRight : IRefreshable
             panel.Children.Add(child);
     }
 
-    private static IEnumerable<FrameworkElement> _FindElementsByTag(DependencyObject root, string tag)
+    private static IEnumerable<FrameworkElement> _FindElementsByTag(DependencyObject root,
+        string tag)
     {
         if (root is FrameworkElement element &&
             string.Equals(element.Tag?.ToString(), tag, StringComparison.OrdinalIgnoreCase))

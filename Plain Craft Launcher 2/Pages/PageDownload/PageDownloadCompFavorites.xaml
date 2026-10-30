@@ -1,9 +1,10 @@
-<local:MyPageRight
+﻿<local:MyPageRight
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d" x:Class="PCL.PageDownloadCompFavorites">
+    mc:Ignorable="d" x:Class="PCL.PageDownloadCompFavorites"
+    xmlns:loc="https://ce.pclc.cc/core/localization">
     <Grid>
         <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                               x:Name="PanBack">
@@ -15,7 +16,8 @@
                                 <ColumnDefinition Width="1*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <local:MySearchBox x:Name="PanSearchBox" Grid.Column="0" HintText="{DynamicResource Download.Comp.Favorites.Search.Hint}" />
+                            <local:MySearchBox x:Name="PanSearchBox" Grid.Column="0" HintText="{loc:Loc Download.Comp.Favorites.Search.Hint}"
+                                               Visibility="{Binding ShowSearchBox, Converter={StaticResource BooleanToVisibilityConverter}}" />
                             <local:MyCard Margin="15,0,0,0" Height="40" CanSwap="False" Grid.Column="1">
                                 <StackPanel Orientation="Horizontal">
                                     <local:MyComboBox Margin="8,0,-1,0" VerticalAlignment="Center" Height="27"
@@ -23,14 +25,15 @@
                                                       DropDownWidthSync="False" />
                                     <local:MyIconButton LogoScale="1.1" Margin="4,8,5,8" VerticalAlignment="Center"
                                                         x:Name="Btn_ManageTargetFav"
-                                                        ToolTip="{DynamicResource Download.Comp.Favorites.Manage}" />
+                                                        ToolTip="{loc:Loc Download.Comp.Favorites.Manage}" />
                                 </StackPanel>
                             </local:MyCard>
                         </Grid>
-                        <local:MyHint Text="{DynamicResource Download.Comp.Favorites.GetInfoFailed}" Theme="Yellow"
+                        <local:MyHint Text="{loc:Loc Download.Comp.Favorites.GetInfoFailed}" Theme="Yellow"
                                       Margin="0,0,0,15" x:Name="HintGetFail"
-                                      Visibility="Collapsed" />
-                        <StackPanel x:Name="PanContentList" />
+                                      Visibility="{Binding ShowHintGetFail, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <StackPanel x:Name="PanContentList"
+                                    Visibility="{Binding ShowContentList, Converter={StaticResource BooleanToVisibilityConverter}}" />
                         <!--<local:MyCard x:Name="CardProjectsMod" Title="Mod" IsSwapped="True" CanSwap="True" Margin="0,0,0,15">
                             <StackPanel x:Name="PanProjectsMod" Margin="12,38,12,12" />
                         </local:MyCard>
@@ -40,7 +43,8 @@
                     </StackPanel>
                 </StackPanel>
                 <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" Margin="40"
-                              x:Name="CardNoContent">
+                              x:Name="CardNoContent"
+                              Visibility="{Binding ShowNoContent, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <Grid Margin="20,17">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -55,13 +59,13 @@
                             <ColumnDefinition Width="1*" />
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Row="0" Grid.ColumnSpan="4" Margin="0,0,0,9" HorizontalAlignment="Center"
-                                   Text="{DynamicResource Download.Comp.Favorites.Empty.Title}" FontSize="19"
+                                   Text="{loc:Loc Download.Comp.Favorites.Empty.Title}" FontSize="19"
                                    UseLayoutRounding="True" SnapsToDevicePixels="True"
                                    Foreground="{DynamicResource ColorBrush3}" />
                         <Rectangle Grid.Row="1" Grid.ColumnSpan="4" HorizontalAlignment="Stretch" Height="2"
                                    Fill="{DynamicResource ColorBrush3}" />
                         <TextBlock Grid.Row="2" Grid.ColumnSpan="4" Margin="10,15,10,5"
-                                   Text="{DynamicResource Download.Comp.Favorites.Empty.Description}"
+                                   Text="{loc:Loc Download.Comp.Favorites.Empty.Description}"
                                    TextWrapping="Wrap" />
                     </Grid>
                 </local:MyCard>
@@ -73,31 +77,30 @@
             <local:MyCard.RenderTransform>
                 <TranslateTransform x:Name="TransSelect" Y="-10" />
             </local:MyCard.RenderTransform>
-            <TextBlock x:Name="LabSelect" Text="{DynamicResource Download.Comp.Favorites.Selection.Placeholder}"
-                       HorizontalAlignment="Center" VerticalAlignment="Top"
+            <TextBlock x:Name="LabSelect" Text="{Binding SelectedText}" HorizontalAlignment="Center" VerticalAlignment="Top"
                        Margin="9" Foreground="{DynamicResource ColorBrush2}" />
             <StackPanel Orientation="Horizontal" Margin="5,28,5,5">
                 <local:MyIconTextButton x:Name="Btn_FavoritesCancel"
-                                        Text="{DynamicResource Download.Comp.Favorites.Cancel}"
+                                        Text="{loc:Loc Download.Comp.Favorites.Cancel}"
                                         LogoScale="1"
                                         SvgIcon="lucide/heart-filled" />
                 <local:MyIconTextButton x:Name="Btn_FavoritesShare"
-                                        Text="{DynamicResource Download.Comp.Favorites.Share}"
+                                        Text="{loc:Loc Download.Comp.Favorites.Share}"
                                         LogoScale="1"
                                         SvgIcon="lucide/share-2" />
                 <local:MyIconTextButton x:Name="Btn_FavoritesDownload"
-                                        Text="{DynamicResource Download.Comp.Favorites.Download}"
+                                        Text="{loc:Loc Download.Comp.Favorites.Download}"
                                         LogoScale="1"
                                         SvgIcon="lucide/download" />
                 <local:MyIconTextButton x:Name="Btn_SelectCancel"
-                                        Text="{DynamicResource Download.Comp.Favorites.Deselect}"
+                                        Text="{loc:Loc Download.Comp.Favorites.Deselect}"
                                         LogoScale="0.8"
                                         SvgIcon="lucide/download" />
             </StackPanel>
         </local:MyCard>
         <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="True"
                       x:Name="PanLoad" UseAnimation="False" Margin="40,50">
-            <local:MyLoading Text="{DynamicResource Download.Comp.Favorites.Loading}" Margin="20,20,20,17" x:Name="Load" HorizontalAlignment="Center"
+            <local:MyLoading Text="{loc:Loc Download.Comp.Favorites.Loading}" Margin="20,20,20,17" x:Name="Load" HorizontalAlignment="Center"
                              VerticalAlignment="Center" />
         </local:MyCard>
     </Grid>

@@ -26,7 +26,7 @@ public partial class MyExtraTextButton
     private bool isLeftMouseHeld;
 
     // 自定义属性
-    public int Uuid = ModBase.GetUuid();
+    public int Uuid = Common.GetUuid();
 
     public MyExtraTextButton()
     {
@@ -142,30 +142,33 @@ public partial class MyExtraTextButton
             if (field == value)
                 return;
             field = value;
-            ModBase.RunInUi(() =>
+            Common.RunInUi(() =>
             {
                 if (value)
                 {
                     // 有了
                     Opacity = 0d;
-                    ModAnimation.AniStart(
+                    Animations.AniStart(
                         new[]
                         {
-                            ModAnimation.AaOpacity(this, 1d - Opacity, 80, 50),
-                            ModAnimation.AaScaleTransform(this, 0.15d - ((ScaleTransform)RenderTransform).ScaleX, 400,
-                                50, new ModAnimation.AniEaseOutBack()),
-                            ModAnimation.AaScaleTransform(this, 0.85d, 160, 50, new ModAnimation.AniEaseOutFluent())
+                            Animations.AaOpacity(this, 1d - Opacity, 80, 50),
+                            Animations.AaScaleTransform(this,
+                                0.15d - ((ScaleTransform)RenderTransform).ScaleX, 400,
+                                50, new Animations.AniEaseOutBack()),
+                            Animations.AaScaleTransform(this, 0.85d, 160, 50,
+                                new Animations.AniEaseOutFluent())
                         }, "MyExtraTextButton MainScale " + Uuid);
                 }
                 else
                 {
                     // 没了
-                    ModAnimation.AniStart(
+                    Animations.AniStart(
                         new[]
                         {
-                            ModAnimation.AaOpacity(this, -Opacity, 50, 50),
-                            ModAnimation.AaScaleTransform(this, -((ScaleTransform)RenderTransform).ScaleX, 100,
-                                ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak))
+                            Animations.AaOpacity(this, -Opacity, 50, 50),
+                            Animations.AaScaleTransform(this,
+                                -((ScaleTransform)RenderTransform).ScaleX, 100,
+                                ease: new Animations.AniEaseInFluent(Animations.AniEasePower.Weak))
                         }, "MyExtraTextButton MainScale " + Uuid);
                 }
 
@@ -179,23 +182,25 @@ public partial class MyExtraTextButton
 
     private void StartScaleAnimation(double targetScale, double reboundScale, int reboundDuration = 60)
     {
-        ModAnimation.AniStart(
+        Animations.AniStart(
             new[]
             {
-                ModAnimation.AaScaleTransform(PanScale, targetScale - ((ScaleTransform)PanScale.RenderTransform).ScaleX,
-                    800, ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)),
-                ModAnimation.AaScaleTransform(PanScale, reboundScale, reboundDuration,
-                    ease: new ModAnimation.AniEaseOutFluent())
+                Animations.AaScaleTransform(PanScale,
+                    targetScale - ((ScaleTransform)PanScale.RenderTransform).ScaleX,
+                    800, ease: new Animations.AniEaseOutFluent(Animations.AniEasePower.Strong)),
+                Animations.AaScaleTransform(PanScale, reboundScale, reboundDuration,
+                    ease: new Animations.AniEaseOutFluent())
             }, "MyExtraTextButton Scale " + Uuid);
     }
 
     private void RefreshScaleAfterRelease()
     {
-        ModAnimation.AniStart(
+        Animations.AniStart(
             new[]
             {
-                ModAnimation.AaScaleTransform(PanScale, 1d - ((ScaleTransform)PanScale.RenderTransform).ScaleX, 300,
-                    ease: new ModAnimation.AniEaseOutBack())
+                Animations.AaScaleTransform(PanScale,
+                    1d - ((ScaleTransform)PanScale.RenderTransform).ScaleX, 300,
+                    ease: new Animations.AniEaseOutBack())
             }, "MyExtraTextButton Scale " + Uuid);
     }
 
@@ -203,10 +208,10 @@ public partial class MyExtraTextButton
     private void Button_LeftMouseUp(object sender, MouseButtonEventArgs e)
     {
         if (!isLeftMouseHeld) return;
-        ModBase.Log("[Control] 按下附加图标按钮：" + Text);
+        Common.Log("[Control] 按下附加图标按钮：" + Text);
         Click?.Invoke(sender, e);
         e.Handled = true;
-        ModMain.RaiseCustomEvent(this);
+        Launcher.RaiseCustomEvent(this);
         Button_LeftMouseUp();
     }
 
@@ -235,11 +240,12 @@ public partial class MyExtraTextButton
     private void Button_MouseLeave(object sender, MouseEventArgs e)
     {
         isLeftMouseHeld = false;
-        ModAnimation.AniStart(
+        Animations.AniStart(
             new[]
             {
-                ModAnimation.AaScaleTransform(PanScale, 1d - ((ScaleTransform)PanScale.RenderTransform).ScaleX, 500,
-                    ease: new ModAnimation.AniEaseOutFluent())
+                Animations.AaScaleTransform(PanScale,
+                    1d - ((ScaleTransform)PanScale.RenderTransform).ScaleX, 500,
+                    ease: new Animations.AniEaseOutFluent())
             }, "MyExtraTextButton Scale " + Uuid);
         RefreshColor(); // 直接刷新颜色以判断是否已触发 MouseLeave
     }
@@ -252,18 +258,21 @@ public partial class MyExtraTextButton
             {
                 if (!IsEnabled)
                     // 禁用
-                    ModAnimation.AniStart(
-                        ModAnimation.AaColor(PanColor, BackgroundProperty, "ColorBrushGray4", animationColorIn),
+                    Animations.AniStart(
+                        Animations.AaColor(PanColor, BackgroundProperty, "ColorBrushGray4",
+                            animationColorIn),
                         "MyExtraTextButton Color " + Uuid);
                 else if (IsMouseOver)
                     // 指向
-                    ModAnimation.AniStart(
-                        ModAnimation.AaColor(PanColor, BackgroundProperty, "ColorBrush4", animationColorIn),
+                    Animations.AniStart(
+                        Animations.AaColor(PanColor, BackgroundProperty, "ColorBrush4",
+                            animationColorIn),
                         "MyExtraTextButton Color " + Uuid);
                 else
                     // 普通
-                    ModAnimation.AniStart(
-                        ModAnimation.AaColor(PanColor, BackgroundProperty, "ColorBrush3", animationColorOut),
+                    Animations.AniStart(
+                        Animations.AaColor(PanColor, BackgroundProperty, "ColorBrush3",
+                            animationColorOut),
                         "MyExtraTextButton Color " + Uuid);
             }
 
@@ -277,7 +286,7 @@ public partial class MyExtraTextButton
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新附加图标按钮颜色出错");
+            Common.Log(ex, "刷新附加图标按钮颜色出错");
         }
     }
 }

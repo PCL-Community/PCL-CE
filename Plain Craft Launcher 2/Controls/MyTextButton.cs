@@ -18,12 +18,12 @@ public class MyTextButton : Label
         {
             if (Equals(e.OldValue, e.NewValue)) return;
             var button = (MyTextButton)sender;
-            ModAnimation.AniStart(
+            Animations.AniStart(
                 new[]
                 {
-                    ModAnimation.AaOpacity(button, -button.Opacity, 50),
-                    ModAnimation.AaCode(() => button.Content = e.NewValue, after: true),
-                    ModAnimation.AaOpacity(button, 1d, 170)
+                    Animations.AaOpacity(button, -button.Opacity, 50),
+                    Animations.AaCode(() => button.Content = e.NewValue, after: true),
+                    Animations.AaOpacity(button, 1d, 170)
                 }, "MyTextButton Text " + button.Uuid);
         }));
     
@@ -35,7 +35,7 @@ public class MyTextButton : Label
 
     // 基础
 
-    public int Uuid = ModBase.GetUuid();
+    public int Uuid = Common.GetUuid();
 
     public MyTextButton()
     {
@@ -85,9 +85,9 @@ public class MyTextButton : Label
     {
         if (!isMouseDown) return;
         isMouseDown = false;
-        ModBase.Log("[Control] 按下文本按钮：" + Text);
+        Common.Log("[Control] 按下文本按钮：" + Text);
         Click?.Invoke(this, null);
-        ModMain.RaiseCustomEvent(this);
+        Launcher.RaiseCustomEvent(this);
         e.Handled = true;
     }
 

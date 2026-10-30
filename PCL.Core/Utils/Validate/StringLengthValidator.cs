@@ -1,5 +1,6 @@
 using FluentValidation;
 using FluentValidation.Results;
+using PCL.Core.App.Localization;
 
 namespace PCL.Core.Utils.Validate;
 
@@ -15,9 +16,12 @@ public class StringLengthValidator(int min = 0, int max = int.MaxValue) : Abstra
     private void _BuildRules()
     {
         RuleFor(x => x)
-            .Must(x => x.Length != Max || Max == Min).WithMessage($"长度必须为 {Max} 个字符！")
-            .Must(x => x.Length >= Min).WithMessage($"长度至少为 {Min} 个字符！")
-            .Must(x => x.Length <= Max).WithMessage($"长度最长为 {Max} 个字符！");
+            .Must(x => x.Length != Max || Max == Min)
+            .WithMessage(_ => Lang.Text("Common.Validate.Length.Exact", Max))
+            .Must(x => x.Length >= Min)
+            .WithMessage(_ => Lang.Text("Common.Validate.Length.Min", Min))
+            .Must(x => x.Length <= Max)
+            .WithMessage(_ => Lang.Text("Common.Validate.Length.Max", Max));
     }
 
     protected override bool PreValidate(ValidationContext<string> context, ValidationResult result)

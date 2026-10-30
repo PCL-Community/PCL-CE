@@ -4,8 +4,8 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using FluentValidation;
-
 using PCL.Core.App.Localization;
+
 namespace PCL;
 
 public class MyTextBox : TextBox
@@ -48,7 +48,7 @@ public class MyTextBox : TextBox
 
     // 事件
 
-    public int Uuid = ModBase.GetUuid();
+    public int Uuid = Common.GetUuid();
 
     public MyTextBox()
     {
@@ -165,10 +165,10 @@ public class MyTextBox : TextBox
             if (IsLoaded && labWrong is not null)
                 ChangeValidateResult(IsValidated, true);
             else
-                ModBase.RunInNewThread(() =>
+                Common.RunInNewThread(() =>
                 {
                     Thread.Sleep(30);
-                    ModBase.RunInUi(() => ChangeValidateResult(IsValidated, false));
+                    Common.RunInUi(() => ChangeValidateResult(IsValidated, false));
                 }, "DelayedValidate Change");
         }
 
@@ -178,13 +178,13 @@ public class MyTextBox : TextBox
             if (IsLoaded && labWrong is not null)
                 labWrong.Text = ValidateResult;
             else
-                ModBase.RunInNewThread(() =>
+                Common.RunInNewThread(() =>
                 {
                     var isFinished = false;
                     while (!isFinished)
                     {
                         Thread.Sleep(20);
-                        ModBase.RunInUiWait(() =>
+                        Common.RunInUiWait(() =>
                         {
                             if (labWrong is not null)
                             {
@@ -211,19 +211,20 @@ public class MyTextBox : TextBox
 
     private void ChangeValidateResult(bool isSuccessful, bool isLoaded)
     {
-        if (isLoaded && !ModAnimation.AniExitsAnyControl() && labWrong is not null)
+        if (isLoaded && !Animations.AniExitsAnyControl() && labWrong is not null)
         {
             if (isSuccessful || !isTextChanged)
             {
                 // 变为正确
                 shownValidateResult = isSuccessful ? ValidateState.Success : ValidateState.FailedButTextNotChanged;
-                ModAnimation.AniStart(
+                Animations.AniStart(
                     new[]
                     {
-                        ModAnimation.AaOpacity(labWrong, -labWrong.Opacity, 150),
-                        ModAnimation.AaHeight(labWrong, -labWrong.Height, 150,
-                            ease: new ModAnimation.AniEaseOutFluent()),
-                        ModAnimation.AaCode(() => labWrong.Visibility = Visibility.Collapsed, after: true)
+                        Animations.AaOpacity(labWrong, -labWrong.Opacity, 150),
+                        Animations.AaHeight(labWrong, -labWrong.Height, 150,
+                            ease: new Animations.AniEaseOutFluent()),
+                        Animations.AaCode(() => labWrong.Visibility = Visibility.Collapsed,
+                            after: true)
                     }, "MyTextBox Validate " + Uuid);
             }
             else if (ShowValidateResult)
@@ -231,12 +232,12 @@ public class MyTextBox : TextBox
                 // 变为错误
                 shownValidateResult = ValidateState.FailedAndShowDetail;
                 labWrong.Visibility = Visibility.Visible;
-                ModAnimation.AniStart(
+                Animations.AniStart(
                     new[]
                     {
-                        ModAnimation.AaOpacity(labWrong, 1d - labWrong.Opacity, 150),
-                        ModAnimation.AaHeight(labWrong, 21d - labWrong.Height, 150,
-                            ease: new ModAnimation.AniEaseOutFluent())
+                        Animations.AaOpacity(labWrong, 1d - labWrong.Opacity, 150),
+                        Animations.AaHeight(labWrong, 21d - labWrong.Height, 150,
+                            ease: new Animations.AniEaseOutFluent())
                     }, "MyTextBox Validate " + Uuid);
             }
             else
@@ -270,10 +271,10 @@ public class MyTextBox : TextBox
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 "进行输入验证时出错",
-                ModBase.LogLevel.Critical,
+                Common.LogLevel.Critical,
                 userSummary: Lang.Text("Application.Control.Error.OperationFailed"));
         }
     }
@@ -351,20 +352,20 @@ public class MyTextBox : TextBox
             if (!HasBackground)
                 backColorName = "ColorBrushTransparent";
             // 触发颜色动画
-            if (IsLoaded && !ModAnimation.AniExitsAnyControl()) // 防止默认属性变更触发动画
+            if (IsLoaded && !Animations.AniExitsAnyControl()) // 防止默认属性变更触发动画
             {
                 // 有动画
-                ModAnimation.AniStart(
+                Animations.AniStart(
                     new[]
                     {
-                        ModAnimation.AaColor(this, BorderBrushProperty, foreColorName, animationTime),
-                        ModAnimation.AaColor(this, BackgroundProperty, backColorName, animationTime)
+                        Animations.AaColor(this, BorderBrushProperty, foreColorName, animationTime),
+                        Animations.AaColor(this, BackgroundProperty, backColorName, animationTime)
                     }, "MyTextBox Color " + Uuid);
             }
             else
             {
                 // 无动画
-                ModAnimation.AniStop("MyTextBox Color " + Uuid);
+                Animations.AniStop("MyTextBox Color " + Uuid);
                 SetResourceReference(BorderBrushProperty, foreColorName);
                 SetResourceReference(BackgroundProperty, backColorName);
             }
@@ -372,7 +373,7 @@ public class MyTextBox : TextBox
 
         catch (Exception ex)
         {
-            ModBase.Log(ex, "文本框颜色改变出错");
+            Common.Log(ex, "文本框颜色改变出错");
         }
     }
 
@@ -381,20 +382,21 @@ public class MyTextBox : TextBox
         var newColor = IsEnabled ? ThemeManager.colorGray1 : ThemeManager.colorGray4;
         if (((SolidColorBrush)Foreground).Color.R == newColor.r)
             return;
-        if (IsLoaded && !ModAnimation.AniExitsAnyControl() && !string.IsNullOrEmpty(Text))
+        if (IsLoaded && !Animations.AniExitsAnyControl() && !string.IsNullOrEmpty(Text))
         {
             // 有动画
-            ModAnimation.AniStart(
+            Animations.AniStart(
                 new[]
                 {
-                    ModAnimation.AaColor(this, ForegroundProperty, IsEnabled ? "ColorBrushGray1" : "ColorBrushGray4",
+                    Animations.AaColor(this, ForegroundProperty,
+                        IsEnabled ? "ColorBrushGray1" : "ColorBrushGray4",
                         200)
                 }, "MyTextBox TextColor " + Uuid);
         }
         else
         {
             // 无动画
-            ModAnimation.AniStop("MyTextBox TextColor " + Uuid);
+            Animations.AniStop("MyTextBox TextColor " + Uuid);
             Foreground = newColor;
         }
     }
@@ -402,7 +404,7 @@ public class MyTextBox : TextBox
     // 在按下回车时触发自定义事件
     private void MyTextBox_KeyUp(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Enter) ModMain.RaiseCustomEvent(this);
+        if (e.Key == Key.Enter) Launcher.RaiseCustomEvent(this);
     }
     private enum ValidateState
     {

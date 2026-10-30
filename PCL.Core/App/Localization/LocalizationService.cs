@@ -83,6 +83,12 @@ public sealed partial class LocalizationService
     /// </summary>
     public static event Action? LanguageChanged;
 
+    /// <summary>
+    ///     界面文案修订号。<br/>
+    ///     每次 UI 语言或展示格式生效后递增，供页面判断自己上一次渲染的文案是否已经过期。
+    /// </summary>
+    public static int UiRevision { get; private set; }
+
     [LifecycleStart]
     private static void _Start()
     {
@@ -142,6 +148,7 @@ public sealed partial class LocalizationService
         _SaveConfigIfNeeded(save, normalizedLanguageCode, language, normalizedFormatCultureCode);
 
         _LogInfo($"当前 UI 语言: {language.Code}, 展示格式: {formatCulture.Name}");
+        UiRevision++;
         LanguageChanged?.Invoke();
     }
 

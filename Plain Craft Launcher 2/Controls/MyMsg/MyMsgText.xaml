@@ -31,9 +31,12 @@
                                Padding="7,0,15,0"
                                VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                                DeltaMult="0.7">
-                <TextBlock VerticalAlignment="Top" TextTrimming="None" TextWrapping="Wrap" Name="LabCaption"
-                           FontSize="15" LineHeight="18"
-                           Foreground="{DynamicResource ColorBrush1}" FontWeight="Normal" Padding="1" />
+                <TextBox VerticalAlignment="Top" TextWrapping="Wrap" AcceptsReturn="False" Name="LabCaption"
+                         FontSize="15"
+                         Foreground="{DynamicResource ColorBrush1}" FontFamily="{DynamicResource LaunchFontFamily}"
+                         FontWeight="Normal" Padding="1"
+                         IsReadOnly="True" Background="Transparent" BorderThickness="0" AllowDrop="False"
+                         VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Disabled" />
             </my:MyScrollViewer>
             <StackPanel Grid.Row="4" Name="PanBtn" VerticalAlignment="Top" HorizontalAlignment="Right"
                         Margin="150,0,8,0" Orientation="Horizontal">

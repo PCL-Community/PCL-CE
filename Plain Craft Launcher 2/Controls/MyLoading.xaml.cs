@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using static PCL.MyLoading;
@@ -15,7 +16,7 @@ public partial class MyLoading
 
     public delegate void StateChangedEventHandler(object sender, MyLoadingState newState, MyLoadingState oldState);
 
-    private readonly int uuid = ModBase.GetUuid();
+    private readonly int _uuid = Common.GetUuid();
 
     public bool AutoRun { get; set; } = true;
 
@@ -37,8 +38,8 @@ public partial class MyLoading
     public MyLoading()
     {
         InitializeComponent();
-        SetCurrentValue(TextProperty, Lang.Text("Application.Control.Loading.Default"));
-        SetCurrentValue(TextErrorProperty, Lang.Text("Application.Control.Loading.Failed"));
+        SetCurrentValue(TextProperty, string.Empty);
+        SetCurrentValue(TextErrorProperty, string.Empty);
         SetResourceReference(ForegroundProperty, "ColorBrush3");
         IsErrorChanged += (_, _) => RefreshText();
         Loaded += (_, _) => RefreshText();
@@ -48,7 +49,22 @@ public partial class MyLoading
         MouseLeftButtonUp += Button_MouseUp;
         MouseLeftButtonDown += Button_MouseDown;
         MouseLeave += Button_MouseLeave;
+        BindDefaultLocalizedText();
         MouseLeftButtonUp += Button_MouseLeave;
+    }
+
+    private void BindDefaultLocalizedText()
+    {
+        if (BindingOperations.GetBindingExpression(this, TextProperty) is null)
+            LocalizedText.TryBind(
+                this,
+                nameof(Text),
+                () => Lang.Text("Application.Control.Loading.Default"));
+        if (BindingOperations.GetBindingExpression(this, TextErrorProperty) is null)
+            LocalizedText.TryBind(
+                this,
+                nameof(TextError),
+                () => Lang.Text("Application.Control.Loading.Failed"));
     }
 
     #endregion
@@ -96,7 +112,7 @@ public partial class MyLoading
 
     private void RefreshText()
     {
-        ModBase.RunInUi(() =>
+        Common.RunInUi(() =>
         {
             if (InnerState == MyLoadingState.Error)
             {
@@ -105,17 +121,21 @@ public partial class MyLoading
                     var ex = State.Error;
                     if (ex is null)
                     {
-                        LabText.Text = Lang.Text("Application.Control.Loading.UnknownError");
+                        LabText.TrySetLocalizedValue(
+                            nameof(Text),
+                            "Application.Control.Loading.UnknownError");
                     }
                     else
                     {
                         while (ex.InnerException is not null) ex = ex.InnerException;
-                        LabText.Text = ModBase.StrTrim(ex.Message).ToString();
+                        LabText.Text = Common.StrTrim(ex.Message).ToString();
                         if (new[]
                             {
                                 "远程主机强迫关闭了", "远程方已关闭传输流", "未能解析此远程名称", "由于目标计算机积极拒绝", "操作已超时", "操作超时", "服务器超时", "连接超时"
                             }.Any(s => LabText.Text.Contains(s)))
-                            LabText.Text = Lang.Text("Application.Control.Loading.NetworkUnstable");
+                            LabText.TrySetLocalizedValue(
+                                nameof(Text),
+                                "Application.Control.Loading.NetworkUnstable");
                     }
                 }
                 else
@@ -125,7 +145,11 @@ public partial class MyLoading
             }
             else if (ShowProgress && State.IsLoader)
             {
-                LabText.Text = Text + " - " + Lang.Number(State.Progress, "P0");
+                var progressText = Text;
+                LocalizedText.TryBind(
+                    LabText,
+                    nameof(Text),
+                    () => $"{progressText} - {Lang.Number(State.Progress, "P0")}");
             }
             else
             {
@@ -255,77 +279,82 @@ public partial class MyLoading
     /// <summary>
     ///     主动画循环是否正在运行中。
     /// </summary>
-    private bool isLooping;
+    private bool _isLooping;
 
     private void AniLoop()
     {
         // 这坨循环代码也是老屎坑了，救救.jpg
-        if (!HasAnimation || isLooping || !(InnerState == MyLoadingState.Run) || ModAnimation.aniSpeed > 10d ||
+        if (!HasAnimation || _isLooping || !(InnerState == MyLoadingState.Run) ||
+            Animations.aniSpeed > 10d ||
             !IsLoaded)
             return;
-        isLooping = true;
-        errorAnimationWaiting = true;
-        ModAnimation.AniStart(new[]
+        _isLooping = true;
+        _errorAnimationWaiting = true;
+        Animations.AniStart(new[]
         {
-            ModAnimation.AaRotateTransform(PathPickaxe, -20 - ((RotateTransform)PathPickaxe.RenderTransform).Angle, 350,
-                250, new ModAnimation.AniEaseInBack(ModAnimation.AniEasePower.Weak)),
-            ModAnimation.AaRotateTransform(PathPickaxe, 50d, 900, ease: new ModAnimation.AniEaseOutFluent(),
+            Animations.AaRotateTransform(PathPickaxe,
+                -20 - ((RotateTransform)PathPickaxe.RenderTransform).Angle, 350,
+                250, new Animations.AniEaseInBack(Animations.AniEasePower.Weak)),
+            Animations.AaRotateTransform(PathPickaxe, 50d, 900,
+                ease: new Animations.AniEaseOutFluent(),
                 after: true),
-            ModAnimation.AaRotateTransform(PathPickaxe, 25d, 900,
-                ease: new ModAnimation.AniEaseOutElastic(ModAnimation.AniEasePower.Weak)),
-            ModAnimation.AaCode(() =>
+            Animations.AaRotateTransform(PathPickaxe, 25d, 900,
+                ease: new Animations.AniEaseOutElastic(Animations.AniEasePower.Weak)),
+            Animations.AaCode(() =>
             {
                 PathLeft.Opacity = 1d;
                 PathLeft.Margin = new Thickness(7d, 41d, 0d, 0d);
                 PathRight.Opacity = 1d;
                 PathRight.Margin = new Thickness(14d, 41d, 0d, 0d);
-                errorAnimationWaiting = false;
+                _errorAnimationWaiting = false;
             }),
-            ModAnimation.AaOpacity(PathLeft, -1, 100, 50),
-            ModAnimation.AaX(PathLeft, -5, 180, ease: new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaY(PathLeft, -6, 180, ease: new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaOpacity(PathRight, -1, 100, 50),
-            ModAnimation.AaX(PathRight, 5d, 180, ease: new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaY(PathRight, -6, 180, ease: new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaCode(() =>
+            Animations.AaOpacity(PathLeft, -1, 100, 50),
+            Animations.AaX(PathLeft, -5, 180, ease: new Animations.AniEaseOutFluent()),
+            Animations.AaY(PathLeft, -6, 180, ease: new Animations.AniEaseOutFluent()),
+            Animations.AaOpacity(PathRight, -1, 100, 50),
+            Animations.AaX(PathRight, 5d, 180, ease: new Animations.AniEaseOutFluent()),
+            Animations.AaY(PathRight, -6, 180, ease: new Animations.AniEaseOutFluent()),
+            Animations.AaCode(() =>
             {
-                isLooping = false;
+                _isLooping = false;
                 AniLoop();
             }, after: true)
-        }, "MyLoader Loop " + uuid + "/" + ModBase.GetUuid());
+        }, "MyLoader Loop " + _uuid + "/" + Common.GetUuid());
     }
 
     /// <summary>
     ///     镐子是否还没挥下去，要求错误动画等待。
     /// </summary>
-    private bool errorAnimationWaiting;
+    private bool _errorAnimationWaiting;
 
     private void ErrorAnimation(object sender, bool isError)
     {
         if (isError)
         {
             // 非错误变为错误
-            var wait = errorAnimationWaiting ? 400 : 0;
-            ModAnimation.AniStart(
+            var wait = _errorAnimationWaiting ? 400 : 0;
+            Animations.AniStart(
                 new[]
                 {
-                    ModAnimation.AaColor(PanBack, ForegroundProperty, "ColorBrushRedLight", 300),
-                    ModAnimation.AaOpacity(PathError, 1d - PathError.Opacity, 100, 300 + wait),
-                    ModAnimation.AaScaleTransform(PathError, 1d - ((ScaleTransform)PathError.RenderTransform).ScaleX,
-                        400, 300 + wait, new ModAnimation.AniEaseOutBack())
-                }, "MyLoader Error " + uuid);
+                    Animations.AaColor(PanBack, ForegroundProperty, "ColorBrushRedLight", 300),
+                    Animations.AaOpacity(PathError, 1d - PathError.Opacity, 100, 300 + wait),
+                    Animations.AaScaleTransform(PathError,
+                        1d - ((ScaleTransform)PathError.RenderTransform).ScaleX,
+                        400, 300 + wait, new Animations.AniEaseOutBack())
+                }, "MyLoader Error " + _uuid);
         }
         else
         {
             // 错误变为非错误
-            ModAnimation.AniStart(
+            Animations.AniStart(
                 new[]
                 {
-                    ModAnimation.AaOpacity(PathError, -PathError.Opacity, 100),
-                    ModAnimation.AaScaleTransform(PathError, 0.5d - ((ScaleTransform)PathError.RenderTransform).ScaleX,
+                    Animations.AaOpacity(PathError, -PathError.Opacity, 100),
+                    Animations.AaScaleTransform(PathError,
+                        0.5d - ((ScaleTransform)PathError.RenderTransform).ScaleX,
                         200),
-                    ModAnimation.AaColor(PanBack, ForegroundProperty, "ColorBrush3", 300)
-                }, "MyLoader Error " + uuid);
+                    Animations.AaColor(PanBack, ForegroundProperty, "ColorBrush3", 300)
+                }, "MyLoader Error " + _uuid);
         }
     }
 
@@ -338,17 +367,17 @@ public partial class MyLoading
         Click?.Invoke(sender, e);
     }
 
-    private bool isMouseDown;
+    private bool _isMouseDown;
 
     private void Button_MouseDown(object sender, MouseButtonEventArgs e)
     {
         // 鼠标点击判定（务必放在点击事件之后，以使得 Button_MouseUp 先于 Button_MouseLeave 执行）
-        isMouseDown = true;
+        _isMouseDown = true;
     }
 
     private void Button_MouseLeave(object sender, object e)
     {
-        isMouseDown = false;
+        _isMouseDown = false;
     }
 
     #endregion

@@ -1,11 +1,12 @@
-<Grid x:Class="PCL.MyCompItem"
+﻿<Grid x:Class="PCL.MyCompItem"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="clr-namespace:PCL"
       xmlns:svgIcon="clr-namespace:PCL.Core.UI.Controls.SvgIcon;assembly=PCL.Core"
       x:Name="PanBack" Height="64"
       RenderTransformOrigin="0.5,0.5" Background="{StaticResource ColorBrushSemiTransparent}"
-      SnapsToDevicePixels="True">
+      SnapsToDevicePixels="True"
+      xmlns:loc="https://ce.pclc.cc/core/localization">
     <Grid.ColumnDefinitions>
         <ColumnDefinition Width="7" />
         <ColumnDefinition Width="50" />
@@ -134,7 +135,7 @@
         <!-- 快速下载按钮 -->
         <local:MyIconButton x:Name="BtnDownload" Height="25" Width="25" SvgIcon="lucide/download"
                             Margin="0,0,4,0" Visibility="Collapsed"
-                            ToolTip="{DynamicResource Download.Comp.QuickDownload.Btn.ToolTip}" />
+                            ToolTip="{loc:Loc Download.Comp.QuickDownload.Btn.ToolTip}" />
 
         <!-- 删除收藏按钮 -->
         <local:MyIconButton x:Name="BtnDelete" Height="25" Width="25" SvgIcon="lucide/heart" />

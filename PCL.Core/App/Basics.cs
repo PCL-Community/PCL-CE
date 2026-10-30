@@ -113,7 +113,7 @@ public static class Basics
             catch (ThreadInterruptedException) { LogWrapper.Trace("Thread", $"{threadName.Value}: 已中止"); }
             catch (Exception ex) { LogWrapper.Error(ex, "Thread", $"{threadName.Value}: 抛出异常"); }
         })
-        { Priority = priority };
+        { Priority = priority, IsBackground = true };
         threadName.Value ??= $"Worker#{thread.ManagedThreadId}";
         thread.Name = threadName.Value;
         thread.Start();

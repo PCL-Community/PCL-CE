@@ -1,15 +1,14 @@
-using PCL.Core.Utils;
 using PCL.Network.Loaders;
 
 namespace PCL.Network;
 
 public class DownloadFile
 {
-    public int Id { get; } = ModBase.GetUuid();
+    public int Id { get; } = Common.GetUuid();
     public string LocalPath { get; set; }
     public string LocalName { get; }
     public List<string> Urls { get; }
-    public ModBase.FileChecker? Check { get; }
+    public Common.FileChecker? Check { get; }
     public bool UseBrowserUserAgent { get; }
     public string CustomUserAgent { get; }
     public NetState State { get; set; } = NetState.WaitingToCheck;
@@ -76,12 +75,13 @@ public class DownloadFile
         }
     }
 
-    public DownloadFile(IEnumerable<string> urls, string localPath, ModBase.FileChecker? checker = null,
+    public DownloadFile(IEnumerable<string> urls, string localPath,
+        Common.FileChecker? checker = null,
         bool useBrowserUserAgent = false, string customUserAgent = "")
     {
         Urls = urls.Where(url => !string.IsNullOrWhiteSpace(url)).Distinct().ToList();
         LocalPath = localPath;
-        LocalName = ModBase.GetFileNameFromPath(localPath);
+        LocalName = Common.GetFileNameFromPath(localPath);
         Check = checker;
         UseBrowserUserAgent = useBrowserUserAgent;
         CustomUserAgent = customUserAgent;

@@ -86,6 +86,9 @@ public sealed partial class TelemetryService
     // 错误上报
     public static void ReportException(Exception ex, string plain, LogLevel level)
     {
+        // Building the event parses the whole stack trace, which is wasted work while telemetry is off.
+        if (!SentrySdk.IsEnabled) return;
+
         var sentryEvent = new SentryEvent(ex)
         {
             Level = level.RealLevel() switch

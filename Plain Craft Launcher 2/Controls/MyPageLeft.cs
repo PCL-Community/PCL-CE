@@ -1,6 +1,7 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -9,9 +10,34 @@ public class MyPageLeft : Grid
     public static DependencyProperty AnimatedControlProperty =
         DependencyProperty.Register("AnimatedControl", typeof(FrameworkElement), typeof(MyPageLeft));
 
-    private readonly int uuid = ModBase.GetUuid();
+    private readonly int uuid = Common.GetUuid();
 
     private bool _animatedControlNullWarned;
+
+    public MyPageLeft()
+    {
+        Loaded += (_, _) => RefreshLocalizationIfStale();
+    }
+
+    private void RefreshLocalizationIfStale()
+    {
+        if (_localizationRevision == LocalizationService.UiRevision) return;
+        _localizationRevision = LocalizationService.UiRevision;
+        try
+        {
+            RefreshLocalization();
+        }
+        catch (Exception ex)
+        {
+            Common.Log(ex, "刷新页面本地化文本失败");
+        }
+    }
+
+    protected virtual void RefreshLocalization()
+    {
+    }
+
+    private int _localizationRevision = LocalizationService.UiRevision;
 
     // 执行逐个进入动画的控件
     public FrameworkElement AnimatedControl
@@ -22,7 +48,8 @@ public class MyPageLeft : Grid
             if (res is null && !_animatedControlNullWarned)
             {
                 _animatedControlNullWarned = true;
-                ModBase.Log($"[MyPageLeft] 获取到 AnimatedControl(来自 {Name}) 的值为 null", ModBase.LogLevel.Debug);
+                Common.Log($"[MyPageLeft] 获取到 AnimatedControl(来自 {Name}) 的值为 null",
+                    Common.LogLevel.Debug);
             }
 
             return (FrameworkElement)res;
@@ -42,18 +69,18 @@ public class MyPageLeft : Grid
             }
 
             Opacity = 0d;
-            ModAnimation.AniStart(
+            Animations.AniStart(
                 new[]
                 {
-                    ModAnimation.AaScaleTransform(this, 1d - ((ScaleTransform)RenderTransform).ScaleX,
-                        ease: new ModAnimation.AniEaseOutBack((ModAnimation.AniEasePower)2)),
-                    ModAnimation.AaOpacity(this, 1d, 100)
+                    Animations.AaScaleTransform(this, 1d - ((ScaleTransform)RenderTransform).ScaleX,
+                        ease: new Animations.AniEaseOutBack((Animations.AniEasePower)2)),
+                    Animations.AaOpacity(this, 1d, 100)
                 }, "PageLeft PageChange " + uuid);
         }
         else
         {
             // 逐个进入动画
-            var aniList = new List<ModAnimation.AniData>();
+            var aniList = new List<Animations.AniData>();
             var id = 0;
             var delay = 0;
             foreach (var ElementRaw in GetAllAnimControls(true))
@@ -73,14 +100,15 @@ public class MyPageLeft : Grid
                     element.RenderTransform = new TranslateTransform(-25, 0d);
                     if (element is MyListItem)
                         ((MyListItem)element).isMouseOverAnimationEnabled = false;
-                    aniList.Add(ModAnimation.AaOpacity(element, element is TextBlock ? 0.6d : 1d, 100, delay,
-                        new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
-                    aniList.Add(ModAnimation.AaTranslateX(element, 5d, 200, delay,
-                        new ModAnimation.AniEaseOutFluent()));
-                    aniList.Add(ModAnimation.AaTranslateX(element, 20d, 300, delay,
-                        new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)));
+                    aniList.Add(Animations.AaOpacity(element, element is TextBlock ? 0.6d : 1d, 100,
+                        delay,
+                        new Animations.AniEaseOutFluent(Animations.AniEasePower.Weak)));
+                    aniList.Add(Animations.AaTranslateX(element, 5d, 200, delay,
+                        new Animations.AniEaseOutFluent()));
+                    aniList.Add(Animations.AaTranslateX(element, 20d, 300, delay,
+                        new Animations.AniEaseOutBack(Animations.AniEasePower.Weak)));
                     if (element is MyListItem)
-                        aniList.Add(ModAnimation.AaCode(() =>
+                        aniList.Add(Animations.AaCode(() =>
                         {
                             ((MyListItem)element).isMouseOverAnimationEnabled = true;
                             ((MyListItem)element).RefreshColor(this, new EventArgs());
@@ -90,7 +118,7 @@ public class MyPageLeft : Grid
                 }
             }
 
-            ModAnimation.AniStart(aniList, "PageLeft PageChange " + uuid);
+            Animations.AniStart(aniList, "PageLeft PageChange " + uuid);
         }
     }
 
@@ -105,29 +133,31 @@ public class MyPageLeft : Grid
                 RenderTransformOrigin = new Point(0.5d, 0.5d);
             }
 
-            ModAnimation.AniStart(
+            Animations.AniStart(
                 new[]
                 {
-                    ModAnimation.AaScaleTransform(this, 0.95d - ((ScaleTransform)RenderTransform).ScaleX, 110,
-                        ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
-                    ModAnimation.AaOpacity(this, -Opacity, 80, 30)
+                    Animations.AaScaleTransform(this,
+                        0.95d - ((ScaleTransform)RenderTransform).ScaleX, 110,
+                        ease: new Animations.AniEaseInFluent(Animations.AniEasePower.Weak)),
+                    Animations.AaOpacity(this, -Opacity, 80, 30)
                 }, "PageLeft PageChange " + uuid);
         }
         else
         {
             // 逐个退出动画
-            var aniList = new List<ModAnimation.AniData>();
+            var aniList = new List<Animations.AniData>();
             var id = 0;
             var controls = GetAllAnimControls();
             foreach (var Element in controls)
             {
-                aniList.Add(ModAnimation.AaOpacity(Element, -Element.Opacity, 50,
+                aniList.Add(Animations.AaOpacity(Element, -Element.Opacity, 50,
                     (int)Math.Round(70d / controls.Count * id)));
-                aniList.Add(ModAnimation.AaTranslateX(Element, -6, 50, (int)Math.Round(70d / controls.Count * id)));
+                aniList.Add(Animations.AaTranslateX(Element, -6, 50,
+                    (int)Math.Round(70d / controls.Count * id)));
                 id += 1;
             }
 
-            ModAnimation.AniStart(aniList, "PageLeft PageChange " + uuid);
+            Animations.AniStart(aniList, "PageLeft PageChange " + uuid);
         }
     }
 

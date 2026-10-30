@@ -1,10 +1,11 @@
-<local:MyPageRight
+﻿<local:MyPageRight
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" x:Class="PCL.PageSetupUpdate"
-    PanScroll="{Binding ElementName=PanBack}">
+    PanScroll="{Binding ElementName=PanBack}"
+    xmlns:loc="https://ce.pclc.cc/core/localization">
     <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
         <StackPanel x:Name="PanMain" Margin="25,25,25,10">
             <local:MyCard Height="Auto">
@@ -23,41 +24,41 @@
                             <RowDefinition Height="7" />
                             <RowDefinition Height="28" />
                         </Grid.RowDefinitions>
-                        <TextBlock Text="{DynamicResource Setup.Update.Channel.Title}" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left"
+                        <TextBlock Text="{loc:Loc Setup.Update.Channel.Title}" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left"
                                    Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="ComboSystemUpdateChannel" Tag="SystemUpdateChannel" Grid.Column="1"
                                           Grid.ColumnSpan="3" Grid.Row="0"
                                           SelectionChanged="ComboSystemUpdateBranch_SelectionChanged">
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Update.Channel.Release}"
-                                                  ToolTip="{DynamicResource Setup.Update.Channel.Release.ToolTip}" />
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Update.Channel.Beta}"
-                                                  ToolTip="{DynamicResource Setup.Update.Channel.Beta.ToolTip}" />
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Update.Channel.Dev}"
-                                                  ToolTip="{DynamicResource Setup.Update.Channel.Dev.ToolTip}"
+                            <local:MyComboBoxItem Content="{loc:Loc Setup.Update.Channel.Release}"
+                                                  ToolTip="{loc:Loc Setup.Update.Channel.Release.ToolTip}" />
+                            <local:MyComboBoxItem Content="{loc:Loc Setup.Update.Channel.Beta}"
+                                                  ToolTip="{loc:Loc Setup.Update.Channel.Beta.ToolTip}" />
+                            <local:MyComboBoxItem Content="{loc:Loc Setup.Update.Channel.Dev}"
+                                                  ToolTip="{loc:Loc Setup.Update.Channel.Dev.ToolTip}"
                                                   Visibility="Collapsed" />
                         </local:MyComboBox>
-                        <TextBlock Text="{DynamicResource Setup.Update.Auto.Title}" Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left"
+                        <TextBlock Text="{loc:Loc Setup.Update.Auto.Title}" Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left"
                                    Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="ComboSystemUpdateMode" Tag="SystemUpdateMode" Grid.Column="1"
                                           Grid.ColumnSpan="3" Grid.Row="2"
                                           SelectionChanged="ComboSystemUpdateMode_SelectionChanged">
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Update.Auto.DownloadAndInstall}" ToolTip="{DynamicResource Setup.Update.Auto.DownloadAndInstall.ToolTip}" />
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Update.Auto.DownloadAndNotify}" ToolTip="{DynamicResource Setup.Update.Auto.DownloadAndNotify.ToolTip}" />
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Update.Auto.NotifyOnly}" ToolTip="{DynamicResource Setup.Update.Auto.NotifyOnly.ToolTip}" />
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.Update.Auto.Disabled}" ToolTip="{DynamicResource Setup.Update.Auto.Disabled.ToolTip}" />
+                            <local:MyComboBoxItem Content="{loc:Loc Setup.Update.Auto.DownloadAndInstall}" ToolTip="{loc:Loc Setup.Update.Auto.DownloadAndInstall.ToolTip}" />
+                            <local:MyComboBoxItem Content="{loc:Loc Setup.Update.Auto.DownloadAndNotify}" ToolTip="{loc:Loc Setup.Update.Auto.DownloadAndNotify.ToolTip}" />
+                            <local:MyComboBoxItem Content="{loc:Loc Setup.Update.Auto.NotifyOnly}" ToolTip="{loc:Loc Setup.Update.Auto.NotifyOnly.ToolTip}" />
+                            <local:MyComboBoxItem Content="{loc:Loc Setup.Update.Auto.Disabled}" ToolTip="{loc:Loc Setup.Update.Auto.Disabled.ToolTip}" />
                         </local:MyComboBox>
-                        <TextBlock Text="{DynamicResource Setup.Update.MirrorChyanCdk.Label}" Grid.Row="4" VerticalAlignment="Center"
+                        <TextBlock Text="{loc:Loc Setup.Update.MirrorChyanCdk.Label}" Grid.Row="4" VerticalAlignment="Center"
                                    HorizontalAlignment="Left" Margin="0,0,25,0" />
                         <PasswordBox x:Name="TextMirrorCDK"
-                                      ToolTip="{DynamicResource Setup.Update.MirrorChyanCdk.ToolTip}"
+                                      ToolTip="{loc:Loc Setup.Update.MirrorChyanCdk.ToolTip}"
                                      Grid.Row="4" Grid.Column="1"
                                      PasswordChanged="TextMirrorCDK_PasswordChanged" />
-                        <local:MyButton x:Name="BtnGetMirrorCDK" Text="{DynamicResource Setup.Update.MirrorChyanCdk.Get}" Grid.Column="3" Grid.Row="4"
+                        <local:MyButton x:Name="BtnGetMirrorCDK" Text="{loc:Loc Setup.Update.MirrorChyanCdk.Get}" Grid.Column="3" Grid.Row="4"
                                         ColorType="Highlight" Click="BtnGetMirrorCDK_Click" />
                     </Grid>
                 </StackPanel>
             </local:MyCard>
-            <local:MyCard x:Name="CardUpdate" Margin="0,15">
+            <local:MyCard x:Name="CardUpdate" Margin="0,15" Visibility="{Binding ShowUpdateCard, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <StackPanel Margin="20,20,20,20">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -79,24 +80,24 @@
                         <local:MyImage x:Name="ImgUpdateIcon" Source="https://www.pclc.cc/img/pcl-ce/icon.webp"
                                        Grid.Column="0" Grid.Row="0" Grid.RowSpan="3" Height="50" Width="50"
                                        HorizontalAlignment="Left" VerticalAlignment="Center" />
-                        <TextBlock x:Name="TextUpdateName" Text="PCL CE 2.14.0" FontWeight="Bold" FontSize="20"
+                        <TextBlock x:Name="TextUpdateName" Text="{Binding UpdateNameText, Mode=OneWay}" FontWeight="Bold" FontSize="20"
                                    Grid.Row="0" Grid.Column="2" HorizontalAlignment="Left" VerticalAlignment="Bottom" />
                         <TextBlock x:Name="TextUpdateDesc" Text="by PCL-Community" FontSize="14" Grid.Row="2"
                                    Grid.Column="2" HorizontalAlignment="Left" VerticalAlignment="Top" />
-                        <local:MyButton x:Name="BtnUpdate" Text="{DynamicResource Setup.Update.Install}" ColorType="Highlight" Grid.Row="0"
+                        <local:MyButton x:Name="BtnUpdate" Text="{loc:Loc Setup.Update.Install}" ColorType="Highlight" Grid.Row="0"
                                         Grid.RowSpan="2" Grid.Column="3" HorizontalAlignment="Center"
                                         VerticalAlignment="Center" Width="85" Height="30"
                                         Click="BtnUpdate_Click" />
                         <TextBlock x:Name="TextChangelog"
-                                    Text="{DynamicResource Setup.Update.Changelog.Placeholder}"
+                                    Text="{loc:Loc Setup.Update.Changelog.Placeholder}"
                                    Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="4" TextWrapping="Wrap" />
-                        <local:MyTextButton x:Name="BtnChangelogDetail" Text="{DynamicResource Setup.Update.Changelog.MoreInfo}" FontWeight="Thin"
+                        <local:MyTextButton x:Name="BtnChangelogDetail" Text="{loc:Loc Setup.Update.Changelog.MoreInfo}" FontWeight="Thin"
                                             Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="4" HorizontalAlignment="Left"
                                             VerticalAlignment="Center" Click="BtnChangelogDetail_Click" />
                     </Grid>
                 </StackPanel>
             </local:MyCard>
-            <local:MyCard x:Name="CardCheck" Margin="0,15" Visibility="Collapsed">
+            <local:MyCard x:Name="CardCheck" Margin="0,15" Visibility="{Binding ShowCheckCard, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <StackPanel Margin="20,20,20,20">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -116,20 +117,20 @@
                                Grid.RowSpan="3" Height="50" Width="50" HorizontalAlignment="Left"
                                VerticalAlignment="Center" />
                         <!-- <local:MyImage x:Name="ImgUpdateIcon" FallbackSource="pack://application:,,,/images/icon.ico" Source="https://www.pclc.cc/img/pcl-ce/icon.webp" Grid.Column="0" Grid.Row="0" Grid.RowSpan="3" Height="50" Width="50" HorizontalAlignment="Left" VerticalAlignment="Center"/> -->
-                        <TextBlock x:Name="TextCurrentVersion" Text="PCL CE 2.13.4" FontWeight="Bold" FontSize="20"
+                        <TextBlock x:Name="TextCurrentVersion" Text="{Binding CurrentVersionText, Mode=OneWay}" FontWeight="Bold" FontSize="20"
                                    Grid.Row="0" Grid.Column="2" HorizontalAlignment="Left" VerticalAlignment="Bottom" />
-                        <TextBlock x:Name="TextCurrentDesc" Text="{DynamicResource Setup.Update.Latest}" FontSize="14" Grid.Row="2" Grid.Column="2"
+                        <TextBlock x:Name="TextCurrentDesc" Text="{Binding CurrentDescText, Mode=OneWay}" FontSize="14" Grid.Row="2" Grid.Column="2"
                                    HorizontalAlignment="Left" VerticalAlignment="Top" />
-                        <local:MyButton x:Name="BtnCheckAgain" Text="{DynamicResource Setup.Update.CheckAgain}" ColorType="Highlight" Grid.Row="0"
+                        <local:MyButton x:Name="BtnCheckAgain" Text="{loc:Loc Setup.Update.CheckAgain}" ColorType="Highlight" Grid.Row="0" IsEnabled="{Binding CheckAgainEnabled, Mode=OneWay}"
                                         Grid.RowSpan="2" Grid.Column="3" HorizontalAlignment="Stretch"
                                         VerticalAlignment="Stretch" Click="BtnCheckAgain_OnClick" />
-                        <local:MyButton x:Name="BtnChangelog" Text="{DynamicResource Setup.Update.Changelog.View}" ColorType="Normal" Grid.Row="0"
+                        <local:MyButton x:Name="BtnChangelog" Text="{loc:Loc Setup.Update.Changelog.View}" ColorType="Normal" Grid.Row="0"
                                         Grid.RowSpan="2" Grid.Column="5" HorizontalAlignment="Stretch"
                                         VerticalAlignment="Stretch" Click="BtnChangelog_Click" />
                     </Grid>
                 </StackPanel>
             </local:MyCard>
-            <local:MyCard x:Name="CardOtherOption" Title="{DynamicResource Setup.Update.OtherOptions.Title}" CanSwap="True" IsSwapped="True"
+            <local:MyCard x:Name="CardOtherOption" Title="{loc:Loc Setup.Update.OtherOptions.Title}" CanSwap="True" IsSwapped="True"
                           Visibility="Collapsed">
                 <StackPanel Margin="20,40,20,20">
                     <Grid>
@@ -155,13 +156,13 @@
                                    Grid.Row="0" Grid.Column="2" HorizontalAlignment="Left" VerticalAlignment="Bottom" />
                         <TextBlock x:Name="TextOptionalUpdateDesc" Text="20.0 MiB" FontSize="14" Grid.Row="2"
                                    Grid.Column="2" HorizontalAlignment="Left" VerticalAlignment="Top" />
-                        <local:MyButton x:Name="BtnOptionalUpdate" Text="{DynamicResource Setup.Update.Install}" ColorType="Highlight" Grid.Row="0"
+                        <local:MyButton x:Name="BtnOptionalUpdate" Text="{loc:Loc Setup.Update.Install}" ColorType="Highlight" Grid.Row="0"
                                         Grid.RowSpan="2" Grid.Column="3" HorizontalAlignment="Stretch"
                                         VerticalAlignment="Stretch" />
                         <TextBlock x:Name="TextOptionalChangelog"
-                                    Text="{DynamicResource Setup.Update.OtherOptions.Placeholder}"
+                                    Text="{loc:Loc Setup.Update.OtherOptions.Placeholder}"
                                    Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="4" TextWrapping="Wrap" />
-                        <local:MyTextButton x:Name="BtnOptionalChangelogDetail" Text="{DynamicResource Setup.Update.Changelog.MoreInfo}" FontWeight="Thin"
+                        <local:MyTextButton x:Name="BtnOptionalChangelogDetail" Text="{loc:Loc Setup.Update.Changelog.MoreInfo}" FontWeight="Thin"
                                             Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="4" HorizontalAlignment="Left"
                                             VerticalAlignment="Center" />
                     </Grid>

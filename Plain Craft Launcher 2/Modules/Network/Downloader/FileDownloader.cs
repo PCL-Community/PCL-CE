@@ -72,15 +72,15 @@ public static class FileDownloader
                 {
                     lastException = ex;
                     CleanupTempFiles(localPath);
-                    ModBase.Log(ex, $"[Download] 下载源失败：{url}", ModBase.LogLevel.Debug);
+                    Common.Log(ex, $"[Download] 下载源失败：{url}");
                 }
             }
 
             if (retry >= MaxDownloadRetries)
                 break;
 
-            ModBase.Log(lastException, $"[Download] 重试 {retry + 1}/{MaxDownloadRetries}：{localPath}",
-                ModBase.LogLevel.Debug);
+            Common.Log(lastException,
+                $"[Download] 重试 {retry + 1}/{MaxDownloadRetries}：{localPath}");
             await Task.Delay(RandomUtils.NextInt(300, 500 + retry * 300), cancellationToken).ConfigureAwait(false);
         }
 
@@ -90,7 +90,7 @@ public static class FileDownloader
     private static async Task DownloadSingleAsync(string url, string localPath, bool useBrowserUserAgent,
         string customUserAgent, CancellationToken cancellationToken, bool enableParallelChunks, DownloadFile? trackedFile)
     {
-        ModBase.Log($"[Download] 开始下载：{url} -> {localPath}");
+        Common.Log($"[Download] 开始下载：{url} -> {localPath}");
         CleanupTempFiles(localPath);
 
         var checker = trackedFile?.Check;
@@ -109,7 +109,7 @@ public static class FileDownloader
             if (!File.Exists(localPath))
                 throw new IOException($"分段下载未产生任何文件：{localPath}");
             MarkDownloadCompleted(trackedFile);
-            ModBase.Log($"[Download] 分段下载成功：{localPath}");
+            Common.Log($"[Download] 分段下载成功：{localPath}");
             return;
         }
 
@@ -140,7 +140,7 @@ public static class FileDownloader
         var totalSize = responseContentLength >= 0 ? responseContentLength : manifestExpectedSize;
         if (trackedFile is not null)
         {
-            trackedFile.State = PCL.Network.NetState.Downloading;
+            trackedFile.State = NetState.Downloading;
             trackedFile.TotalSize = totalSize;
             trackedFile.IsUnknownSize = totalSize <= 0;
             trackedFile.DownloadedBytes = 0;
@@ -153,7 +153,8 @@ public static class FileDownloader
         var lastProgressTick = Stopwatch.GetTimestamp();
         await using var input = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
         using var readTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        await using var output = new FileStream(localPath + ModNet.NetDownloadEnd, FileMode.Create, FileAccess.Write,
+        await using var output = new FileStream(localPath + NetFacade.NetDownloadEnd,
+            FileMode.Create, FileAccess.Write,
             FileShare.Read, bufferSize: bufferSize, FileOptions.Asynchronous | FileOptions.SequentialScan);
         using var bufferLease = await DownloadResourceManager.RentBufferAsync(bufferSize, cancellationToken)
             .ConfigureAwait(false);
@@ -207,16 +208,16 @@ public static class FileDownloader
         if (!File.Exists(localPath))
             throw new IOException($"下载未产生任何文件：{localPath}");
         MarkDownloadCompleted(trackedFile);
-        ModBase.Log($"[Download] 顺序下载成功：{localPath}");
+        Common.Log($"[Download] 顺序下载成功：{localPath}");
     }
 
-    private static async Task ValidateTempFileAsync(string localPath, ModBase.FileChecker? checker,
+    private static async Task ValidateTempFileAsync(string localPath, Common.FileChecker? checker,
         CancellationToken cancellationToken)
     {
         if (checker is null)
             return;
 
-        var tempPath = localPath + ModNet.NetDownloadEnd;
+        var tempPath = localPath + NetFacade.NetDownloadEnd;
         var checkResult = string.IsNullOrEmpty(checker.hash)
             ? checker.Check(tempPath)
             : await Task.Run(() => checker.Check(tempPath), cancellationToken).ConfigureAwait(false);
@@ -313,7 +314,7 @@ public static class FileDownloader
 
     private static void PromoteTempFile(string localPath)
     {
-        var tempPath = localPath + ModNet.NetDownloadEnd;
+        var tempPath = localPath + NetFacade.NetDownloadEnd;
         if (File.Exists(localPath) || !File.Exists(tempPath))
             return;
 
@@ -333,7 +334,7 @@ public static class FileDownloader
 
     private static void CleanupTempFiles(string localPath)
     {
-        var tempPath = localPath + ModNet.NetDownloadEnd;
+        var tempPath = localPath + NetFacade.NetDownloadEnd;
         TryDeleteFile(localPath);
         TryDeleteFile(tempPath);
     }

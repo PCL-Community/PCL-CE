@@ -16,6 +16,8 @@ namespace PCL;
 
 public partial class PageLoginAuth
 {
+    private readonly PageLoginAuthViewModel _vm = new();
+
     public static string draggedAuthServer;
     public static bool? draggedAuthServerOAuthSupported;
 
@@ -38,6 +40,7 @@ public partial class PageLoginAuth
     public PageLoginAuth()
     {
         InitializeComponent();
+        DataContext = _vm;
         Loaded += (_, _) => Reload();
         Loaded += (_, _) => ReloadRegisterButton();
         // Handles
@@ -82,7 +85,7 @@ public partial class PageLoginAuth
         _authServerUrl = "";
         TextName.Text = null;
         TextPass.Password = null;
-        ModMain.frmLaunchLeft.RefreshPage(true);
+        Launcher.frmLaunchLeft.RefreshPage(true);
     }
 
     private void BtnLogin_Click(object sender, EventArgs e)
@@ -99,14 +102,7 @@ public partial class PageLoginAuth
             return;
         }
 
-        BtnLogin.IsEnabled = false;
-        BtnOAuth.IsEnabled = false;
-        BtnBack.IsEnabled = false;
-        BtnBackOAuth.IsEnabled = false;
-        BtnUsePassword.IsEnabled = false;
-        BtnUseOAuth.IsEnabled = false;
-        BtnWebsite.IsEnabled = false;
-        BtnPasswordWebsite.IsEnabled = false;
+        _vm.ControlsEnabled = false;
         Dispatcher.BeginInvoke(new Func<Task>(async () =>
         {
             var keepControlsDisabled = false;
@@ -128,35 +124,35 @@ public partial class PageLoginAuth
                     HintService.Hint(Lang.Text("Launch.Account.Auth.EmptyFields"), HintType.Error);
                     return;
                 }
-                var loginData = new ModLaunch.McLoginServer(ModLaunch.McLoginType.Auth)
+                var loginData = new GameLaunch.McLoginServer(GameLaunch.McLoginType.Auth)
                 {
                     BaseUrl = await ApiLocation.TryRequestAsync(_authServerUrl).ConfigureAwait(true),
                     UserName = TextName.Text, Password = TextPass.Password, Description = "Authlib-Injector",
-                    LoginType = ModLaunch.McLoginType.Auth
+                    LoginType = GameLaunch.McLoginType.Auth
                 };
-                ModLaunch.mcLoginAuthLoader.Start(loginData, true);
-                while (ModLaunch.mcLoginAuthLoader.State == ModBase.LoadState.Loading)
+                GameLaunch.mcLoginAuthLoader.Start(loginData, true);
+                while (GameLaunch.mcLoginAuthLoader.State == Common.LoadState.Loading)
                 {
-                    BtnLogin.Text = Lang.Number(ModLaunch.mcLoginAuthLoader.Progress, "P0");
+                    _vm.LoginButtonText = Lang.Number(GameLaunch.mcLoginAuthLoader.Progress, "P0");
                     await Task.Delay(50);
                 }
 
-                switch (ModLaunch.mcLoginAuthLoader.State)
+                switch (GameLaunch.mcLoginAuthLoader.State)
                 {
-                    case ModBase.LoadState.Finished:
-                        ModMain.frmLaunchLeft.RefreshPage(true);
+                    case Common.LoadState.Finished:
+                        Launcher.frmLaunchLeft.RefreshPage(true);
                         break;
-                    case ModBase.LoadState.Aborted:
+                    case Common.LoadState.Aborted:
                         HintService.Hint(Lang.Text("Launch.Account.Auth.Cancelled"));
                         break;
-                    case ModBase.LoadState.Waiting:
-                    case ModBase.LoadState.Loading:
-                    case ModBase.LoadState.Failed:
+                    case Common.LoadState.Waiting:
+                    case Common.LoadState.Loading:
+                    case Common.LoadState.Failed:
                     default:
                     {
-                        if (ModLaunch.mcLoginAuthLoader.Error is null)
+                        if (GameLaunch.mcLoginAuthLoader.Error is null)
                             throw new InvalidOperationException(Lang.Text("Launch.Account.Microsoft.Error.Unknown"));
-                        throw ModLaunch.mcLoginAuthLoader.Error;
+                        throw GameLaunch.mcLoginAuthLoader.Error;
                     }
                 }
             }
@@ -173,10 +169,10 @@ public partial class PageLoginAuth
                 }
                 else
                 {
-                    ModBase.Log(
+                    Common.Log(
                         ex,
                         Lang.Text("Launch.Account.Auth.LoginFailed"),
-                        ModBase.LogLevel.Msgbox,
+                        Common.LogLevel.Msgbox,
                         userSummary: Lang.Text("Launch.Account.Auth.LoginFailed"));
                 }
             }
@@ -190,15 +186,8 @@ public partial class PageLoginAuth
     private void _FinishLoginAttempt()
     {
         ProfileService.IsCreatingProfile = false;
-        BtnLogin.IsEnabled = true;
-        BtnOAuth.IsEnabled = true;
-        BtnBack.IsEnabled = true;
-        BtnBackOAuth.IsEnabled = true;
-        BtnUsePassword.IsEnabled = true;
-        BtnUseOAuth.IsEnabled = true;
-        BtnWebsite.IsEnabled = true;
-        BtnPasswordWebsite.IsEnabled = true;
-        BtnLogin.Text = Lang.Text("Launch.Account.Auth.Login");
+        _vm.ControlsEnabled = true;
+        _vm.LoginButtonText = Lang.Text("Launch.Account.Auth.Login");
     }
 
     private void _SetLoginMode(bool useOAuth)
@@ -217,17 +206,17 @@ public partial class PageLoginAuth
             ? new FrameworkElement[] { PanOAuth, BtnUsePassword, BtnWebsite, BtnBackOAuth }
             : new FrameworkElement[] { TextName, TextNameTitle, TextPass, TextPassTitle, BtnLink, BtnLogin, PanPasswordLinks, BtnBack };
 
-        var animations = new List<ModAnimation.AniData>();
+        var animations = new List<Animations.AniData>();
         if (wasOAuth || !_loginModeInitialized)
         {
             foreach (var element in oldElements)
             {
                 if (element.Visibility == Visibility.Visible)
-                    animations.Add(ModAnimation.AaOpacity(element, -element.Opacity, 90));
+                    animations.Add(Animations.AaOpacity(element, -element.Opacity, 90));
             }
         }
 
-        animations.Add(ModAnimation.AaCode(() =>
+        animations.Add(Animations.AaCode(() =>
         {
             foreach (var element in oldElements)
             {
@@ -249,17 +238,17 @@ public partial class PageLoginAuth
             var targetOpacity = ReferenceEquals(element, BtnBackOAuth) || ReferenceEquals(element, PanPasswordLinks)
                 ? 0.3d
                 : 1d;
-            animations.Add(ModAnimation.AaOpacity(element, targetOpacity, 130, 20,
-                new ModAnimation.AniEaseInFluent()));
+            animations.Add(Animations.AaOpacity(element, targetOpacity, 130, 20,
+                new Animations.AniEaseInFluent()));
         }
 
-        ModAnimation.AniStart(animations, "Profile Authentication Mode");
+        Animations.AniStart(animations, "Profile Authentication Mode");
     }
 
     private void _UpdateOAuthEntryVisibility()
     {
         var isOAuthAvailable = _oauthSupported == true;
-        BtnUseOAuth.Visibility = isOAuthAvailable ? Visibility.Visible : Visibility.Collapsed;
+        _vm.UseOAuthVisibility = isOAuthAvailable ? Visibility.Visible : Visibility.Collapsed;
         BtnPasswordWebsite.SetValue(Grid.ColumnSpanProperty, isOAuthAvailable ? 1 : 3);
     }
 
@@ -268,18 +257,18 @@ public partial class PageLoginAuth
         var server = await ApiLocation.TryRequestAsync(_authServerUrl).ConfigureAwait(true);
         using var response = await HttpRequest.Create(server).SendAsync().ConfigureAwait(true);
         if (!response.IsSuccess) return false;
-        var metadata = (JsonObject)ModBase.GetJson(await response.AsStringAsync().ConfigureAwait(true));
+        var metadata = (JsonObject)Common.GetJson(await response.AsStringAsync().ConfigureAwait(true));
         var discovery = metadata["meta"]?["feature.openid_configuration_url"]?.ToString()
                         ?? metadata["feature.openid_configuration_url"]?.ToString();
         if (string.IsNullOrWhiteSpace(discovery)) return false;
 
         using var discoveryResponse = await HttpRequest.Create(discovery).SendAsync().ConfigureAwait(true);
         if (!discoveryResponse.IsSuccess) return false;
-        var discoveryMetadata = (JsonObject)ModBase.GetJson(await discoveryResponse.AsStringAsync().ConfigureAwait(true));
+        var discoveryMetadata = (JsonObject)Common.GetJson(await discoveryResponse.AsStringAsync().ConfigureAwait(true));
         var clientId = _GetClientId(server, discoveryMetadata);
         if (string.IsNullOrWhiteSpace(clientId)) return false;
 
-        ModBase.Log($"[Profile] Yggdrasil Connect client id resolved for {new Uri(server).Host}", ModBase.LogLevel.Debug);
+        Common.Log($"[Profile] Yggdrasil Connect client id resolved for {new Uri(server).Host}", Common.LogLevel.Debug);
         _ = _CompleteYggdrasilConnectLoginAsync(server, discovery, clientId);
         return true;
     }
@@ -296,9 +285,9 @@ public partial class PageLoginAuth
                 DeviceCodeHandler = ProfileUi.ShowDeviceCodeLoginAsync,
                 ProfileSelector = (candidates, _) => Task.FromResult(_SelectYggdrasilProfile(candidates))
             }, existing: null, select: true, token: CancellationToken.None).ConfigureAwait(false);
-            ModBase.RunInUi(() =>
+            Common.RunInUi(() =>
             {
-                ModMain.frmLaunchLeft.RefreshPage(true);
+                Launcher.frmLaunchLeft.RefreshPage(true);
             });
             LogWrapper.Info("Profile","Yggdrasil Connect 登录成功：" + profile.UserName);
         }
@@ -308,12 +297,12 @@ public partial class PageLoginAuth
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Launch.Account.Auth.LoginFailed"), ModBase.LogLevel.Msgbox,
+            Common.Log(ex, Lang.Text("Launch.Account.Auth.LoginFailed"), Common.LogLevel.Msgbox,
                 userSummary: Lang.Text("Launch.Account.Auth.LoginFailed"));
         }
         finally
         {
-            ModBase.RunInUi(_FinishLoginAttempt);
+            Common.RunInUi(_FinishLoginAttempt);
         }
     }
 
@@ -322,10 +311,10 @@ public partial class PageLoginAuth
         if (candidates.Count == 0) return null;
         if (candidates.Count == 1) return candidates[0];
         AuthenticationCandidate? selected = null;
-        ModBase.RunInUiWait(() =>
+        Common.RunInUiWait(() =>
         {
             var controls = candidates.Select(candidate => (IMyRadio)new MyRadioBox { Text = candidate.Name }).ToList();
-            var index = ModMain.MyMsgBoxSelect(controls, Lang.Text("Launch.Account.Auth.ChangeProfile"));
+            var index = Launcher.MyMsgBoxSelect(controls, Lang.Text("Launch.Account.Auth.ChangeProfile"));
             if (index is >= 0 and < 100000) selected = candidates[index.Value];
         });
         return selected;
@@ -342,14 +331,14 @@ public partial class PageLoginAuth
             var server = await ApiLocation.TryRequestAsync(authServerUrl).ConfigureAwait(false);
             using var response = await HttpRequest.Create(server).SendAsync().ConfigureAwait(false);
             if (!response.IsSuccess) return false;
-            var metadata = (JsonObject)ModBase.GetJson(await response.AsStringAsync().ConfigureAwait(false));
+            var metadata = (JsonObject)Common.GetJson(await response.AsStringAsync().ConfigureAwait(false));
             var discovery = metadata["meta"]?["feature.openid_configuration_url"]?.ToString()
                             ?? metadata["feature.openid_configuration_url"]?.ToString();
             if (string.IsNullOrWhiteSpace(discovery)) return false;
 
             using var discoveryResponse = await HttpRequest.Create(discovery).SendAsync().ConfigureAwait(false);
             if (!discoveryResponse.IsSuccess) return false;
-            var discoveryMetadata = (JsonObject)ModBase.GetJson(await discoveryResponse.AsStringAsync().ConfigureAwait(false));
+            var discoveryMetadata = (JsonObject)Common.GetJson(await discoveryResponse.AsStringAsync().ConfigureAwait(false));
             var clientId = _GetClientId(server, discoveryMetadata);
             var deviceEndpoint = discoveryMetadata["device_authorization_endpoint"]?.ToString();
             var tokenEndpoint = discoveryMetadata["token_endpoint"]?.ToString();
@@ -359,7 +348,7 @@ public partial class PageLoginAuth
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "检测 Yggdrasil Connect 支持失败", ModBase.LogLevel.Debug);
+            Common.Log(ex, "检测 Yggdrasil Connect 支持失败", Common.LogLevel.Debug);
             return false;
         }
     }
@@ -376,14 +365,14 @@ public partial class PageLoginAuth
     private void ComboName_TextChanged(object sender, TextChangedEventArgs e)
     {
         _isRegisterMode = string.IsNullOrEmpty(TextName.Text);
-        BtnLink.Content = _isRegisterMode
+        _vm.RegisterLinkContent = _isRegisterMode
             ? Lang.Text("Launch.Account.Auth.Register")
             : Lang.Text("Launch.Account.Auth.ForgotPassword");
     }
 
     private void Btn_Click(object sender, EventArgs e)
     {
-        ModBase.OpenWebsite(_isRegisterMode
+        Common.OpenWebsite(_isRegisterMode
             ? Config.InstanceAuth.AuthRegisterAddress.ToString()
             : Config.InstanceAuth.AuthRegisterAddress.ToString().Replace("/auth/register", "/auth/forgot"));
     }
@@ -396,7 +385,7 @@ public partial class PageLoginAuth
             Query = "",
             Fragment = ""
         }.Uri;
-        ModBase.OpenWebsite(websiteUri.ToString());
+        Common.OpenWebsite(websiteUri.ToString());
     }
 
     // 切换注册按钮可见性
