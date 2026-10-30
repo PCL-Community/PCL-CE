@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using FluentValidation;
 
 namespace PCL.Core.UI;
 
@@ -16,11 +17,20 @@ public sealed class NullDialogService : IDialogService
         string? button3 = null,
         bool isWarn = false) => Task.FromResult(0);
 
-    public Task<string?> InputAsync(string title, string content, string? defaultValue = null)
+    public Task<string?> InputAsync(
+        string title,
+        string content,
+        string? defaultValue = null,
+        string? hintText = null,
+        IReadOnlyList<IValidator<string>>? validateRules = null,
+        string? button1 = null,
+        string? button2 = null,
+        bool isWarn = false)
         => Task.FromResult<string?>(null);
 
-    public Task<int?> SelectAsync(string title, IReadOnlyList<string> options) => Task.FromResult<int?>(null);
+    public Task<int?> SelectAsync(string title, IReadOnlyList<string> options, string? button2 = null)
+        => Task.FromResult<int?>(null);
 
-    public Task<List<int>> MultiSelectAsync(string title, IReadOnlyList<string> options)
+    public Task<List<int>> MultiSelectAsync(string title, IReadOnlyList<string> options, string? button2 = null)
         => Task.FromResult(new List<int>());
 }

@@ -29,6 +29,7 @@ public partial class PageDownloadCompFavorites
         KeyDown += Page_KeyDown;
         InitializeComponent();
         DataContext = _vm;
+        DialogServiceInstaller.Install(_vm);
         {
 
             // 这是选择收藏夹旁边那个图标按钮
@@ -281,7 +282,7 @@ public partial class PageDownloadCompFavorites
             try
             {
                 CurrentFavTarget.Notes.TryGetValue(compId, out notes);
-                var desiredNote = await Launcher.MyMsgBoxInputAsync(Lang.Text("Download.Comp.Favorites.EditNote"), defaultInput: notes);
+                var desiredNote = await _vm.Dialog.InputAsync(Lang.Text("Download.Comp.Favorites.EditNote"), "", defaultValue: notes);
                 if (desiredNote is not null)
                 {
                     CurrentFavTarget.Notes[compId] = desiredNote;
@@ -492,9 +493,9 @@ public partial class PageDownloadCompFavorites
         if (ctl is not null) ctl.IsEnabled = false;
         try
         {
-            if (1 != await Launcher.MyMsgBoxAsync(
-                    Lang.Text("Download.Comp.Favorites.Dialog.BulkDownload.Content"),
+            if (1 != await _vm.Dialog.ShowAsync(
                     Lang.Text("Download.Comp.Favorites.Dialog.BulkDownload.Title"),
+                    Lang.Text("Download.Comp.Favorites.Dialog.BulkDownload.Content"),
                     Lang.Text("Common.Action.Continue"),
                     Lang.Text("Common.Action.Cancel"), isWarn: true
                 )) return;
@@ -531,10 +532,8 @@ public partial class PageDownloadCompFavorites
             if (hasMod && supportedModLoader.Count > 0)
                 if (supportedModLoader.Count > 0)
                 {
-                    var mSelection = new List<IMyRadio>();
-                    foreach (var i in supportedModLoader)
-                        mSelection.Add(new MyRadioBox { Text = i.ToString() });
-                    var selectedModLoaderStr = await Launcher.MyMsgBoxSelectAsync(mSelection, Lang.Text("Download.Comp.Favorites.Dialog.SelectLoader.Title"), button2: Lang.Text("Common.Action.Cancel"));
+                    var selections = supportedModLoader.Select(i => i.ToString()).ToList();
+                    var selectedModLoaderStr = await _vm.Dialog.SelectAsync(Lang.Text("Download.Comp.Favorites.Dialog.SelectLoader.Title"), selections, button2: Lang.Text("Common.Action.Cancel"));
                     if (selectedModLoaderStr is null)
                         return;
                     desiredModLoader = supportedModLoader[(int)selectedModLoaderStr];
@@ -761,7 +760,7 @@ public partial class PageDownloadCompFavorites
             if (ctl is not null) ctl.IsEnabled = false;
             try
             {
-                var clipData = await Launcher.MyMsgBoxInputAsync(Lang.Text("Download.Comp.Favorites.Dialog.Import.Input"), hintText: Lang.Text("Download.Comp.Favorites.Dialog.Import.Hint"));
+                var clipData = await _vm.Dialog.InputAsync(Lang.Text("Download.Comp.Favorites.Dialog.Import.Input"), "", hintText: Lang.Text("Download.Comp.Favorites.Dialog.Import.Hint"));
                 if (string.IsNullOrWhiteSpace(clipData)) return;
                 var newFavs = Comp.CompFavorites.GetIdsByShareCode(clipData);
                 if (newFavs.Count == 0)
@@ -770,12 +769,12 @@ public partial class PageDownloadCompFavorites
                     return;
                 }
 
-                var userWant = await Launcher.MyMsgBoxAsync(Lang.Text("Download.Comp.Favorites.Dialog.Import.Type"), button1: Lang.Text("Download.Comp.Favorites.Dialog.Import.NewFolder"), button2: Lang.Text("Download.Comp.Favorites.Dialog.Import.CurrentFolder"));
+                var userWant = await _vm.Dialog.ShowAsync(Lang.Text("Common.Dialog.Title"), Lang.Text("Download.Comp.Favorites.Dialog.Import.Type"), Lang.Text("Download.Comp.Favorites.Dialog.Import.NewFolder"), Lang.Text("Download.Comp.Favorites.Dialog.Import.CurrentFolder"));
                 switch (userWant)
                 {
                     case 1:
                     {
-                        var newFavName = await Launcher.MyMsgBoxInputAsync(Lang.Text("Download.Comp.Favorites.Dialog.Import.New"), Lang.Text("Download.Comp.Favorites.Dialog.NewPrompt"));
+                        var newFavName = await _vm.Dialog.InputAsync(Lang.Text("Download.Comp.Favorites.Dialog.Import.New"), Lang.Text("Download.Comp.Favorites.Dialog.NewPrompt"));
                         if (string.IsNullOrWhiteSpace(newFavName)) return;
                         Comp.CompFavorites.FavoritesList.Add(Comp.CompFavorites.GetNewFav(newFavName, newFavs));
                         Comp.CompFavorites.Save();
@@ -817,7 +816,7 @@ public partial class PageDownloadCompFavorites
             if (ctl is not null) ctl.IsEnabled = false;
             try
             {
-                var newFavName = await Launcher.MyMsgBoxInputAsync(Lang.Text("Download.Comp.Favorites.Menu.New"), Lang.Text("Download.Comp.Favorites.Dialog.NewPrompt"));
+                var newFavName = await _vm.Dialog.InputAsync(Lang.Text("Download.Comp.Favorites.Menu.New"), Lang.Text("Download.Comp.Favorites.Dialog.NewPrompt"));
                 if (string.IsNullOrWhiteSpace(newFavName))
                     return;
                 Comp.CompFavorites.FavoritesList.Add(Comp.CompFavorites.GetNewFav(newFavName, null));
@@ -850,7 +849,7 @@ public partial class PageDownloadCompFavorites
             if (ctl is not null) ctl.IsEnabled = false;
             try
             {
-                var newName = await Launcher.MyMsgBoxInputAsync(Lang.Text("Download.Comp.Favorites.Dialog.Rename.Title"), defaultInput: CurrentFavTarget.Name);
+                var newName = await _vm.Dialog.InputAsync(Lang.Text("Download.Comp.Favorites.Dialog.Rename.Title"), "", defaultValue: CurrentFavTarget.Name);
                 if (string.IsNullOrWhiteSpace(newName) || (CurrentFavTarget.Name ?? "") == (newName ?? ""))
                     return;
                 CurrentFavTarget.Name = newName;
@@ -889,7 +888,7 @@ public partial class PageDownloadCompFavorites
                 }
 
                 var content = Lang.Text("Download.Comp.Favorites.Dialog.Delete.Confirm", CurrentFavTarget.Name, CurrentFavTarget.Favs.Count, CurrentFavTarget.Id);
-                var res = await Launcher.MyMsgBoxAsync(content, Lang.Text("Download.Comp.Favorites.Dialog.Delete.Title"), isWarn: true, button1: Lang.Text("Common.Option.No"), button2: Lang.Text("Common.Option.Yes"), button3: Lang.Text("Common.Option.No"));
+                var res = await _vm.Dialog.ShowAsync(Lang.Text("Download.Comp.Favorites.Dialog.Delete.Title"), content, Lang.Text("Common.Option.No"), Lang.Text("Common.Option.Yes"), Lang.Text("Common.Option.No"), isWarn: true);
                 if (res == 2)
                 {
                     Comp.CompFavorites.FavoritesList.Remove(CurrentFavTarget);

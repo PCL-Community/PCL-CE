@@ -33,6 +33,7 @@ public partial class PageInstanceOverall : IPageView
     {
         InitializeComponent();
         DataContext = _vm;
+        DialogServiceInstaller.Install(_vm);
         Loaded += PageSetupLaunch_Loaded;
         Unloaded += (_, _) => _refreshed = false;
         // Handles
@@ -199,8 +200,8 @@ public partial class PageInstanceOverall : IPageView
                 {
                     if (!States.Hint.HideGameInstance)
                     {
-                        if (await Launcher.MyMsgBoxAsync(
-                                Lang.Text("Instance.Overall.Hide.ConfirmMessage"), Lang.Text("Instance.Overall.Hide.ConfirmTitle"), button2: Lang.Text("Common.Action.Cancel")) != 1)
+                        if (await _vm.Dialog.ShowAsync(
+                                Lang.Text("Instance.Overall.Hide.ConfirmTitle"), Lang.Text("Instance.Overall.Hide.ConfirmMessage"), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) != 1)
                         {
                             ComboDisplayType.SelectedIndex = 0;
                             return;
@@ -246,8 +247,8 @@ public partial class PageInstanceOverall : IPageView
         try
         {
             var oldInfo = States.Instance.CustomInfo[PageInstanceLeft.McInstance.PathInstance];
-            var newInfo = await Launcher.MyMsgBoxInputAsync(Lang.Text("Instance.Overall.Description.EditTitle"), Lang.Text("Instance.Overall.Description.EditMessage"), oldInfo,
-                [], Lang.Text("Instance.Overall.Description.Default"));
+            var newInfo = await _vm.Dialog.InputAsync(Lang.Text("Instance.Overall.Description.EditTitle"), Lang.Text("Instance.Overall.Description.EditMessage"), oldInfo,
+                hintText: Lang.Text("Instance.Overall.Description.Default"), validateRules: []);
             if (newInfo is not null && (oldInfo ?? "") != (newInfo ?? ""))
                 States.Instance.CustomInfo[PageInstanceLeft.McInstance.PathInstance] = newInfo;
             PageInstanceLeft.McInstance = new McInstance(PageInstanceLeft.McInstance.Name).Load();
@@ -279,8 +280,8 @@ public partial class PageInstanceOverall : IPageView
             var oldName = PageInstanceLeft.McInstance.Name;
             var oldPath = PageInstanceLeft.McInstance.PathInstance;
             // 修改此部分的同时修改快速安装的实例名检测*
-            var newName = await Launcher.MyMsgBoxInputAsync(Lang.Text("Instance.Overall.Name.EditTitle"), "", oldName,
-                [new FolderNameValidator(GameFolders.mcFolderSelected + "versions", ignoreCase: false)]);
+            var newName = await _vm.Dialog.InputAsync(Lang.Text("Instance.Overall.Name.EditTitle"), "", oldName,
+                validateRules: [new FolderNameValidator(GameFolders.mcFolderSelected + "versions", ignoreCase: false)]);
             if (string.IsNullOrWhiteSpace(newName))
                 return;
             var newPath = Path.Combine(GameFolders.mcFolderSelected, "versions", newName);
@@ -493,8 +494,8 @@ public partial class PageInstanceOverall : IPageView
             }
 
             // 确认操作
-            if (await Launcher.MyMsgBoxAsync(
-                    Lang.Text("Instance.Overall.Reset.ConfirmMessage", PageInstanceLeft.McInstance.Name), Lang.Text("Instance.Overall.Reset.ConfirmTitle"), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) == 2)
+            if (await _vm.Dialog.ShowAsync(
+                    Lang.Text("Instance.Overall.Reset.ConfirmTitle"), Lang.Text("Instance.Overall.Reset.ConfirmMessage", PageInstanceLeft.McInstance.Name), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) == 2)
                 return;
 
             // 备份实例核心文件
@@ -574,10 +575,11 @@ public partial class PageInstanceOverall : IPageView
                 (false, false) => "Instance.Overall.Delete.ConfirmMessage"
             };
 
-            var confirmResult = await Launcher.MyMsgBoxAsync(
-                Lang.Text(confirmMessageKey, PageInstanceLeft.McInstance.Name),
+            var confirmResult = await _vm.Dialog.ShowAsync(
                 Lang.Text("Instance.Overall.Delete.ConfirmTitle"),
-                button2: Lang.Text("Common.Action.Cancel"),
+                Lang.Text(confirmMessageKey, PageInstanceLeft.McInstance.Name),
+                Lang.Text("Common.Action.Confirm"),
+                Lang.Text("Common.Action.Cancel"),
                 isWarn: isIsolatedInstance || isShiftPressed
             );
 
@@ -640,9 +642,9 @@ public partial class PageInstanceOverall : IPageView
         _vm.PatchButtonEnabled = false;
         try
         {
-            switch (await Launcher.MyMsgBoxAsync(
-                        Lang.Text("Instance.Overall.Patch.ConfirmMessage", PageInstanceLeft.McInstance.Name),
-                        Lang.Text("Instance.Overall.Patch.ConfirmTitle"), button2: Lang.Text("Common.Action.Cancel")))
+            switch (await _vm.Dialog.ShowAsync(
+                        Lang.Text("Instance.Overall.Patch.ConfirmTitle"),
+                        Lang.Text("Instance.Overall.Patch.ConfirmMessage", PageInstanceLeft.McInstance.Name), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")))
             {
                 case 1:
                 {

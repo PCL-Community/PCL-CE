@@ -19,6 +19,7 @@ public partial class PageSetupUpdate : IPageView
     {
         InitializeComponent();
         DataContext = _vm;
+        DialogServiceInstaller.Install(_vm);
         Loaded += (_, _) => Refresh();
         Unloaded += PageSetupUpdate_Unloaded;
     }
@@ -194,7 +195,7 @@ public partial class PageSetupUpdate : IPageView
         try
         {
             if (updateInfo is null)
-                await Launcher.MyMsgBoxAsync(Lang.Text("Setup.Update.Changelog.Unavailable"), Lang.Text("Setup.Update.Changelog.Title"));
+                await _vm.Dialog.ShowAsync(Lang.Text("Setup.Update.Changelog.Title"), Lang.Text("Setup.Update.Changelog.Unavailable"), Lang.Text("Common.Action.Confirm"));
             else
                 Launcher.MyMsgBoxMarkdown(updateInfo.Changelog, Lang.Text("Setup.Update.Changelog.Title"));
         }
@@ -233,8 +234,8 @@ public partial class PageSetupUpdate : IPageView
                 }
                 case 1:
                 {
-                    if (await Launcher.MyMsgBoxAsync(Lang.Text("Setup.Update.Channel.Beta.Warning.Message"),
-                            Lang.Text("Setup.Update.Channel.Common.Warning.Title"),
+                    if (await _vm.Dialog.ShowAsync(Lang.Text("Setup.Update.Channel.Common.Warning.Title"),
+                            Lang.Text("Setup.Update.Channel.Beta.Warning.Message"),
                             Lang.Text("Setup.Update.Channel.Common.Warning.Confirm"),
                             Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
                         isCancelled = true;
@@ -244,8 +245,8 @@ public partial class PageSetupUpdate : IPageView
                 }
                 case 2:
                 {
-                    if (await Launcher.MyMsgBoxAsync(Lang.Text("Setup.Update.Channel.Dev.Warning.Message"),
-                            Lang.Text("Setup.Update.Channel.Common.Warning.Title"),
+                    if (await _vm.Dialog.ShowAsync(Lang.Text("Setup.Update.Channel.Common.Warning.Title"),
+                            Lang.Text("Setup.Update.Channel.Dev.Warning.Message"),
                             Lang.Text("Setup.Update.Channel.Common.Warning.Confirm"),
                             Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
                     {
@@ -254,7 +255,7 @@ public partial class PageSetupUpdate : IPageView
                     }
 
                     var confirmText = Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.ExpectedInput");
-                    var ret = await Launcher.MyMsgBoxInputAsync(
+                    var ret = await _vm.Dialog.InputAsync(
                         Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.Title"),
                         Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.Message", confirmText),
                         button1: Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.Submit"),
