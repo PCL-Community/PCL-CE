@@ -5,7 +5,6 @@ using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Core.Minecraft.Saves;
 using PCL.Core.Minecraft.Saves.Editing;
-using PCL.Core.UI;
 
 namespace PCL;
 
@@ -53,7 +52,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
 
             var save = await SaveManager.LoadSaveAsync(PageInstanceSavesLeft.currentSave, ct);
 
-            ModMain.frmInstanceSavesLeft.ItemDatapack.Visibility =
+            Launcher.frmInstanceSavesLeft.ItemDatapack.Visibility =
                 save.VersionId is null or < DataVersionBoundaries._17w47a ? Visibility.Collapsed : Visibility.Visible;
 
             if (save.VersionName is null)
@@ -97,10 +96,10 @@ public partial class PageInstanceSavesInfo : IRefreshable
         catch (OperationCanceledException) { }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 Lang.Text("Instance.Saves.Info.Error.LoadFailed"),
-                ModBase.LogLevel.Msgbox,
+                Common.LogLevel.Msgbox,
                 userSummary: Lang.Text("Instance.Saves.Info.Error.LoadFailed"));
             PanContent.Visibility = Visibility.Collapsed;
             PanSettings.Visibility = Visibility.Collapsed;
@@ -149,10 +148,10 @@ public partial class PageInstanceSavesInfo : IRefreshable
             }
             catch (Exception ex)
             {
-                ModBase.Log(
+                Common.Log(
                     ex,
                     Lang.Text("Instance.Saves.Info.Modify.CheatFailed"),
-                    ModBase.LogLevel.Hint,
+                    Common.LogLevel.Hint,
                     userSummary: Lang.Text("Instance.Saves.Info.Modify.CheatFailed"));
             }
         };
@@ -213,10 +212,10 @@ public partial class PageInstanceSavesInfo : IRefreshable
             }
             catch (Exception ex)
             {
-                ModBase.Log(
+                Common.Log(
                     ex,
                     Lang.Text("Instance.Saves.Info.Modify.DifficultyFailed"),
-                    ModBase.LogLevel.Hint,
+                    Common.LogLevel.Hint,
                     userSummary: Lang.Text("Instance.Saves.Info.Modify.DifficultyFailed"));
             }
         }
@@ -260,14 +259,14 @@ public partial class PageInstanceSavesInfo : IRefreshable
             {
                 try
                 {
-                    ModBase.ClipboardSet(content);
+                    Common.ClipboardSet(content);
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(
+                    Common.Log(
                         ex,
                         Lang.Text("Instance.Saves.Info.Error.ClipboardFailed"),
-                        ModBase.LogLevel.Hint,
+                        Common.LogLevel.Hint,
                         userSummary: Lang.Text("Instance.Saves.Info.Error.ClipboardFailed"));
                 }
             };
@@ -320,18 +319,18 @@ public partial class PageInstanceSavesInfo : IRefreshable
         {
             if (versionName is null)
             {
-                ModBase.Log(
+                Common.Log(
                     Lang.Text("Instance.Saves.Info.Chunkbase.UnknownVersion"),
-                    ModBase.LogLevel.Hint,
+                    Common.LogLevel.Hint,
                     userSummary: Lang.Text("Instance.Saves.Info.Chunkbase.UnknownVersion"));
                 return;
             }
 
             if (versionName.Any(char.IsLetter))
             {
-                ModBase.Log(
+                Common.Log(
                     Lang.Text("Instance.Saves.Info.Chunkbase.PreviewVersion", versionName),
-                    ModBase.LogLevel.Hint,
+                    Common.LogLevel.Hint,
                     userSummary: Lang.Text("Instance.Saves.Info.Chunkbase.PreviewVersion", versionName));
                 return;
             }
@@ -341,15 +340,15 @@ public partial class PageInstanceSavesInfo : IRefreshable
                 : versionName.Contains('.')
                     ? string.Join("_", versionName.Split('.').Take(2))
                     : versionName.Replace(".", "_");
-            ModBase.OpenWebsite(
+            Common.OpenWebsite(
                 $"https://www.chunkbase.com/apps/seed-map#seed={seed}&platform=java_{usedVersion}&dimension=overworld");
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 Lang.Text("Instance.Saves.Info.Error.ChunkbaseFailed"),
-                ModBase.LogLevel.Hint,
+                Common.LogLevel.Hint,
                 userSummary: Lang.Text("Instance.Saves.Info.Error.ChunkbaseFailed"));
         }
     }

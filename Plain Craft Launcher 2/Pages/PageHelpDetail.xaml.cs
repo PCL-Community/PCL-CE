@@ -28,7 +28,7 @@ public partial class PageHelpDetail : IRefreshable
         if (!File.Exists(jsonPath))
             throw new FileNotFoundException("未找到帮助 JSON 文件", jsonPath);
 
-        var json = ModMain.ArgumentReplace(File.ReadAllText(jsonPath), SecurityElement.Escape);
+        var json = Launcher.ArgumentReplace(File.ReadAllText(jsonPath), SecurityElement.Escape);
         using var document = JsonDocument.Parse(json);
         if (!document.RootElement.TryGetProperty("Title", out var titleElement) ||
             titleElement.ValueKind != JsonValueKind.String ||
@@ -49,13 +49,13 @@ public partial class PageHelpDetail : IRefreshable
     private void ApplyContent(HelpContent content)
     {
         // 修改时应同时修改 PageLaunchRight.LoadContent。
-        var xaml = ModMain.ArgumentReplace(content.Xaml);
+        var xaml = Launcher.ArgumentReplace(content.Xaml);
         while (xaml.Contains("xmlns"))
             xaml = xaml.RegexReplace("xmlns[^\"']*(\"|')[^\"']*(\"|')", "").Replace("xmlns", "");
         xaml =
             $"<StackPanel xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xmlns:sys=\"clr-namespace:System;assembly=System.Runtime\" xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\" xmlns:local=\"clr-namespace:PCL;assembly=Plain Craft Launcher 2\">{xaml}</StackPanel>";
 
-        var element = (UIElement)ModBase.GetObjectFromXML(xaml, out var sanitizeResult);
+        var element = (UIElement)Common.GetObjectFromXml(xaml, out var sanitizeResult);
         foreach (var unsupported in sanitizeResult.UnsupportedTypesFound)
             HintService.Hint(Lang.Text("Event.Sanitize.UnsupportedTypeHint", unsupported), HintType.Error);
         foreach (var unknown in sanitizeResult.UnrecognizedTypes)
@@ -64,8 +64,8 @@ public partial class PageHelpDetail : IRefreshable
         _content = content;
         PanCustom.Children.Clear();
         PanCustom.Children.Add(element);
-        if (ModMain.frmMain?.pageCurrent.page == FormMain.PageType.HelpDetail)
-            ModMain.frmMain.PageNameRefresh();
+        if (Launcher.frmMain?.pageCurrent.page == FormMain.PageType.HelpDetail)
+            Launcher.frmMain.PageNameRefresh();
     }
 
     public void Refresh()
@@ -76,10 +76,10 @@ public partial class PageHelpDetail : IRefreshable
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 "刷新帮助详情页失败",
-                ModBase.LogLevel.Msgbox,
+                Common.LogLevel.Msgbox,
                 userSummary: Lang.Text("Event.Error.ExecutionFailed", EventType.OpenHelp, _content.SourcePath));
         }
     }

@@ -2,8 +2,8 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-
 using PCL.Core.App.Localization;
+
 namespace PCL;
 
 public partial class PageDownloadCleanroom
@@ -18,7 +18,8 @@ public partial class PageDownloadCleanroom
 
     private void LoaderInit()
     {
-        PageLoaderInit(Load, PanLoad, PanMain, CardTip, ModDownload.dlCleanroomListLoader, _ => Load_OnFinish());
+        PageLoaderInit(Load, PanLoad, PanMain, CardTip, GameDownload.DlCleanroomListLoader,
+            _ => Load_OnFinish());
     }
 
     private void Init()
@@ -32,7 +33,7 @@ public partial class PageDownloadCleanroom
         try
         {
             // 归类
-            var dict = ModDownload.dlCleanroomListLoader.output.Value.GroupBy(d => d.Inherit)
+            var dict = GameDownload.DlCleanroomListLoader.output.Value.GroupBy(d => d.Inherit)
                 .OrderByDescending(g => g.Key).ToDictionary(g => g.Key, g => g.ToList());
             // 清空当前
             PanMain.Children.Clear();
@@ -56,18 +57,19 @@ public partial class PageDownloadCleanroom
                 newCard.InstallMethod = stack =>
                 {
                     foreach (var item in (IEnumerable)stack.Tag)
-                        stack.Children.Add(ModDownloadLib.CleanroomDownloadListItem(
-                            (ModDownload.DlCleanroomListEntry)item, ModDownloadLib.CleanroomSave_Click, true));
+                        stack.Children.Add(DownloadUi.CleanroomDownloadListItem(
+                            (GameDownload.DlCleanroomListEntry)item, DownloadUi.CleanroomSave_Click,
+                            true));
                 };
                 PanMain.Children.Add(newCard);
             }
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 "可视化 Cleanroom 版本列表出错",
-                ModBase.LogLevel.Feedback,
+                Common.LogLevel.Feedback,
                 userSummary: Lang.Text("Download.Error.OperationFailed"));
         }
     }
@@ -75,6 +77,6 @@ public partial class PageDownloadCleanroom
     // 介绍栏
     private void BtnWeb_Click(object sender, EventArgs e)
     {
-        ModBase.OpenWebsite("https://cleanroommc.com/zh/");
+        Common.OpenWebsite("https://cleanroommc.com/zh/");
     }
 }

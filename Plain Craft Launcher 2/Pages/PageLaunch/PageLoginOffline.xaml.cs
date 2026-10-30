@@ -22,10 +22,10 @@ public partial class PageLoginOffline
     private void BtnBack_Click(object sender, EventArgs e)
     {
         ProfileService.IsCreatingProfile = false;
-        ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true));
+        Common.RunInUi(() => Launcher.frmLaunchLeft.RefreshPage(true));
     }
 
-    private void RadioUuid_Checked(object sender, ModBase.RouteEventArgs e)
+    private void RadioUuid_Checked(object sender, Common.RouteEventArgs e)
     {
         if (RadioUuidCustom.Checked)
         {
@@ -45,7 +45,7 @@ public partial class PageLoginOffline
         var username = TextName.Text;
         var usernameValidateResult = new RegexValidator("^[A-z0-9_]{3,16}$").Validate(username);
         if (!usernameValidateResult.IsValid)
-                if (ModMain.MyMsgBox(
+                if (Launcher.MyMsgBox(
                         Lang.Text("Launch.Account.Offline.InvalidPlayerId.Message"),
                         Lang.Text("Launch.Account.Offline.InvalidPlayerId.Title"), Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel"), isWarn: true, forceWait: true) == 2)
                 return;
@@ -87,6 +87,6 @@ public partial class PageLoginOffline
         ProfileService.Add(newProfile);
         ProfileService.IsCreatingProfile = false;
         HintService.Hint(Lang.Text("Launch.Account.Profile.Created"), HintType.Success);
-        ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true));
+        Common.RunInUi(() => Launcher.frmLaunchLeft.RefreshPage(true));
     }
 }

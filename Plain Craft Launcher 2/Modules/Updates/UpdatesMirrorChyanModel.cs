@@ -1,10 +1,9 @@
-using System.Net.Http;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.IO.Net.Http;
 using PCL.Core.Utils;
 using PCL.Network;
 using PCL.Network.Loaders;
-using PCL.Core.IO.Net.Http;
 
 namespace PCL;
 
@@ -28,7 +27,7 @@ public class UpdatesMirrorChyanModel : IUpdateSource // Mirror 酱的更新格�
                    .GetAwaiter()
                    .GetResult())
         {
-            var ret = (JsonObject)ModBase.GetJson(response.AsString());
+            var ret = (JsonObject)Common.GetJson(response.AsString());
             if ((int)ret["code"] != 0)
                 throw new Exception("Mirror 酱获取数据不成功");
             var data = ret["data"];
@@ -62,10 +61,12 @@ public class UpdatesMirrorChyanModel : IUpdateSource // Mirror 酱的更新格�
         throw new Exception("Mirror 酱无公告系统");
     }
 
-    public List<ModLoader.LoaderBase> GetDownloadLoader(UpdateChannel channel, UpdateArch arch, string output)
+    public List<Loading.LoaderBase> GetDownloadLoader(UpdateChannel channel, UpdateArch arch,
+        string output)
     {
-        var loaders = new List<ModLoader.LoaderBase>();
-        loaders.Add(new ModLoader.LoaderTask<int, List<DownloadFile>>(Lang.Text("Update.Task.GetDownloadInfo"), load =>
+        var loaders = new List<Loading.LoaderBase>();
+        loaders.Add(new Loading.LoaderTask<int, List<DownloadFile>>(
+            Lang.Text("Update.Task.GetDownloadInfo"), load =>
         {
             var ret = (JsonObject)Requester.FetchJson(GetUrl(channel, arch), RequestParam.WithRetry);
             var dlUrl = ret["data"]["url"]?.ToString();

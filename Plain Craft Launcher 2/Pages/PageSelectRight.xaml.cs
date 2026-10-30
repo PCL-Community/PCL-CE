@@ -6,25 +6,23 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.FileIO;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Configuration.Storage;
-using FileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
 using PCL.Core.App.Localization;
-using PCL.Core.UI;
+using FileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
 
 namespace PCL;
 
 public partial class PageSelectRight
 {
-    private const int normalDelay = 75; // 正常输入延迟0.075秒
-    private const int quickDelay = 50; // 清空搜索框延迟0.05秒
-    private bool isRefreshing;
+    private const int NormalDelay = 75; // 正常输入延迟0.075秒
+    private const int QuickDelay = 50; // 清空搜索框延迟0.05秒
+    private bool _isRefreshing;
 
-    private DateTime lastInputTime = DateTime.MinValue;
-    private DispatcherTimer reloadTimer;
+    private DateTime _lastInputTime = DateTime.MinValue;
+    private DispatcherTimer _reloadTimer;
 
     // 窗口属性
     /// <summary>
@@ -44,86 +42,87 @@ public partial class PageSelectRight
     // 窗口基础
     private void PageSelectRight_Loaded(object sender, RoutedEventArgs e)
     {
-        ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
-            ModLoader.LoaderFolderRunType.RunOnUpdated, 1, @"versions\");
+        Loading.LoaderFolderRun(InstanceList.mcInstanceListLoader, GameFolders.mcFolderSelected,
+            Loading.LoaderFolderRunType.RunOnUpdated, 1, @"versions\");
         PanBack.ScrollToHome();
         PanVerSearchBox.TextChanged += (a, b) => PanVerSearchBox_TextChanged(a, (TextChangedEventArgs)b);
 
-        reloadTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(normalDelay) };
-        reloadTimer.Tick += ReloadTimer_Tick;
+        _reloadTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(NormalDelay) };
+        _reloadTimer.Tick += ReloadTimer_Tick;
     }
 
     private void PanVerSearchBox_TextChanged(object sender, TextChangedEventArgs e)
     {
         // 记录最后一次输入时间
-        lastInputTime = DateTime.Now;
+        _lastInputTime = DateTime.Now;
 
-        isRefreshing = false;
+        _isRefreshing = false;
 
         // 动态调整延迟时间
         if (string.IsNullOrWhiteSpace(PanVerSearchBox.Text))
         {
-            if (reloadTimer.Interval.TotalMilliseconds != quickDelay)
-                reloadTimer.Interval = TimeSpan.FromMilliseconds(quickDelay);
+            if (_reloadTimer.Interval.TotalMilliseconds != QuickDelay)
+                _reloadTimer.Interval = TimeSpan.FromMilliseconds(QuickDelay);
         }
-        else if (reloadTimer.Interval.TotalMilliseconds != normalDelay)
+        else if (_reloadTimer.Interval.TotalMilliseconds != NormalDelay)
         {
-            reloadTimer.Interval = TimeSpan.FromMilliseconds(normalDelay);
+            _reloadTimer.Interval = TimeSpan.FromMilliseconds(NormalDelay);
         }
 
 
-        if (!reloadTimer.IsEnabled) reloadTimer.Start();
+        if (!_reloadTimer.IsEnabled) _reloadTimer.Start();
     }
 
     private void ReloadTimer_Tick(object sender, EventArgs e)
     {
         // 检查是否超过当前设定的延迟时间没有新输入
-        var elapsed = (DateTime.Now - lastInputTime).TotalMilliseconds;
-        var currentDelay = reloadTimer.Interval.TotalMilliseconds;
+        var elapsed = (DateTime.Now - _lastInputTime).TotalMilliseconds;
+        var currentDelay = _reloadTimer.Interval.TotalMilliseconds;
 
-        if (elapsed >= currentDelay && ModInstanceList.mcInstanceListLoader.State == ModBase.LoadState.Finished &&
-            !isRefreshing)
+        if (elapsed >= currentDelay &&
+            InstanceList.mcInstanceListLoader.State == Common.LoadState.Finished &&
+            !_isRefreshing)
         {
-            isRefreshing = true;
+            _isRefreshing = true;
 
             // 确保在UI线程执行刷新
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                McInstanceListUI(ModInstanceList.mcInstanceListLoader);
-                isRefreshing = false;
+                McInstanceListUI(InstanceList.mcInstanceListLoader);
+                _isRefreshing = false;
             }));
-            reloadTimer.Stop();
+            _reloadTimer.Stop();
         }
     }
 
     private void PageSelectRight_Unloaded(object sender, RoutedEventArgs e)
     {
         // 清理计时器
-        if (reloadTimer is not null)
+        if (_reloadTimer is not null)
         {
-            reloadTimer.Stop();
-            reloadTimer.Tick -= ReloadTimer_Tick;
-            reloadTimer = null;
+            _reloadTimer.Stop();
+            _reloadTimer.Tick -= ReloadTimer_Tick;
+            _reloadTimer = null;
         }
     }
 
     private void LoaderInit()
     {
-        PageLoaderInit(Load, PanLoad, PanAllBack, null, ModInstanceList.mcInstanceListLoader,
-            a => this.McInstanceListUI((ModLoader.LoaderTask<string, int>)a),
+        PageLoaderInit(Load, PanLoad, PanAllBack, null, InstanceList.mcInstanceListLoader,
+            a => McInstanceListUI((Loading.LoaderTask<string, int>)a),
             autoRun: false);
     }
 
     private void Load_Click(object sender, MouseButtonEventArgs e)
     {
-        if (ModInstanceList.mcInstanceListLoader.State == ModBase.LoadState.Failed)
-            ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
-                ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
+        if (InstanceList.mcInstanceListLoader.State == Common.LoadState.Failed)
+            Loading.LoaderFolderRun(InstanceList.mcInstanceListLoader, GameFolders.mcFolderSelected,
+                Loading.LoaderFolderRunType.ForceRun, 1, @"versions\");
     }
 
     #region 结果 UI 化
 
-    private void McInstanceListUI(ModLoader.LoaderTask<string, int> loader)
+    private void McInstanceListUI(Loading.LoaderTask<string, int> loader)
     {
         try
         {
@@ -134,12 +133,13 @@ public partial class PageSelectRight
             var hasVisibleFolders = false;
             var searchText = PanVerSearchBox.Text.Trim().ToLower(); // 获取搜索框文本
             var hasAnyResults = false;
-            var originalHasInstances = ModInstanceList.mcInstanceList.ToArray().Any(c => c.Value.Count > 0);
+            var originalHasInstances =
+                InstanceList.mcInstanceList.ToArray().Any(c => c.Value.Count > 0);
 
             // 搜索无结果时显示 PanEmptySearch
             PanEmptySearch.Visibility = Visibility.Collapsed; // 默认隐藏
 
-            foreach (var Card in ModInstanceList.mcInstanceList.ToArray())
+            foreach (var Card in InstanceList.mcInstanceList.ToArray())
             {
                 if ((Card.Key == McInstanceCardType.Hidden) ^ showHidden)
                     continue;
@@ -319,7 +319,7 @@ public partial class PageSelectRight
                     }
                 }
                 // 有实例但搜索无结果的情况
-                else if (showHidden && ModInstanceList.mcInstanceList.ToArray().Any(c =>
+                else if (showHidden && InstanceList.mcInstanceList.ToArray().Any(c =>
                              c.Key == McInstanceCardType.Hidden && c.Value.Count > 0))
                 {
                     // 有隐藏实例但搜索无结果 - 显示搜索无结果提示
@@ -366,10 +366,10 @@ public partial class PageSelectRight
 
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 Lang.Text("Select.Instance.Error.UiUpdate"),
-                ModBase.LogLevel.Feedback,
+                Common.LogLevel.Feedback,
                 userSummary: Lang.Text("Select.Instance.Error.UiUpdate"));
         }
     }
@@ -409,10 +409,10 @@ public partial class PageSelectRight
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 Lang.Text("Select.Instance.Error.IconLoad"),
-                ModBase.LogLevel.Hint,
+                Common.LogLevel.Hint,
                 userSummary: Lang.Text("Select.Instance.Error.IconLoad"));
             newItem.Logo = "pack://application:,,,/images/Blocks/RedstoneBlock.png";
         }
@@ -450,9 +450,9 @@ public partial class PageSelectRight
         btnStar.Click += (_, _) =>
         {
             States.Instance.Starred[version.PathInstance] = !version.IsStar;
-            ModInstanceList.mcInstanceListForceRefresh = true;
-            ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
-                ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
+            InstanceList.mcInstanceListForceRefresh = true;
+            Loading.LoaderFolderRun(InstanceList.mcInstanceListLoader, GameFolders.mcFolderSelected,
+                Loading.LoaderFolderRunType.ForceRun, 1, @"versions\");
         };
         var btnOpenFolder = new MyIconButton { LogoScale = 1.1d, SvgIcon = "lucide/folder-open" };
         btnOpenFolder.ToolTip = Lang.Text("Select.Instance.OpenFolder");
@@ -475,13 +475,13 @@ public partial class PageSelectRight
             ToolTipService.SetHorizontalOffset(btnCont, 2d);
             btnCont.Click += (_, _) =>
             {
-                PageInstanceLeft.McInstance = version;
-                ModMain.frmMain.PageChange(FormMain.PageType.InstanceSetup);
+                PageInstanceLeft.mcInstance = version;
+                Launcher.frmMain.PageChange(FormMain.PageType.InstanceSetup);
             };
             sender.MouseRightButtonUp += (_, _) =>
             {
-                PageInstanceLeft.McInstance = version;
-                ModMain.frmMain.PageChange(FormMain.PageType.InstanceSetup);
+                PageInstanceLeft.mcInstance = version;
+                Launcher.frmMain.PageChange(FormMain.PageType.InstanceSetup);
             };
             sender.Buttons = new[] { btnStar, btnOpenFolder, btnDel, btnCont };
         }
@@ -509,9 +509,9 @@ public partial class PageSelectRight
         if (new McInstance(instance.PathInstance).Check())
         {
             // 正常实例
-            ModInstanceList.McMcInstanceSelected = instance;
-            States.Game.SelectedInstance = ModInstanceList.McMcInstanceSelected.Name;
-            ModMain.frmMain.PageBack();
+            InstanceList.McMcInstanceSelected = instance;
+            States.Game.SelectedInstance = InstanceList.McMcInstanceSelected.Name;
+            Launcher.frmMain.PageBack();
         }
         else
         {
@@ -522,7 +522,8 @@ public partial class PageSelectRight
 
     private void BtnDownload_Click(object sender, MouseButtonEventArgs e)
     {
-        ModMain.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadInstall);
+        Launcher.frmMain.PageChange(FormMain.PageType.Download,
+            FormMain.PageSubType.DownloadInstall);
     }
 
     // 修改此代码时，同时修改 PageInstanceOverall 中的代码
@@ -532,23 +533,24 @@ public partial class PageSelectRight
         {
             var isShiftPressed = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
             var isHintIndie = mcInstance.state != McInstanceState.Error &&
-                              (mcInstance.PathIndie ?? "") != (ModFolder.mcFolderSelected ?? "");
+                              (mcInstance.PathIndie ?? "") != (GameFolders.mcFolderSelected ?? "");
             var confirmMsg = isShiftPressed
                 ? Lang.Text("Select.Instance.Delete.ConfirmPermanentMessage", mcInstance.Name)
                 : Lang.Text("Select.Instance.Delete.ConfirmMessage", mcInstance.Name);
             var confirmFullMsg = confirmMsg +
                                  (isHintIndie ? "\r\n" + Lang.Text("Select.Instance.Delete.IsolatedWarning") : "");
-            switch (ModMain.MyMsgBox(confirmFullMsg, Lang.Text("Select.Instance.Delete.ConfirmTitle"),
+            switch (Launcher.MyMsgBox(confirmFullMsg,
+                        Lang.Text("Select.Instance.Delete.ConfirmTitle"),
                         button2: Lang.Text("Common.Action.Cancel"), isWarn: true))
             {
                 case 1:
                 {
-                    ModBase.IniClearCache(Path.Combine(mcInstance.PathIndie, "options.txt"));
+                    Common.IniClearCache(Path.Combine(mcInstance.PathIndie, "options.txt"));
                     ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance)).InvalidateCache(
                         mcInstance.PathInstance);
                     if (isShiftPressed)
                     {
-                        ModBase.DeleteDirectory(mcInstance.PathInstance);
+                        Common.DeleteDirectory(mcInstance.PathInstance);
                         HintService.Hint(Lang.Text("Select.Instance.Delete.PermanentSuccess", mcInstance.Name),
                             HintType.Success);
                     }
@@ -580,37 +582,42 @@ public partial class PageSelectRight
                     card.Title = card.Title.Replace(Lang.Number(parent.Children.Count - 1, "N0"),
                         Lang.Number(parent.Children.Count - 2, "N0")); // 有一个占位符
                     parent.Children.Remove(item);
-                    if (ModInstanceList.McMcInstanceSelected is not null && (mcInstance.PathInstance ?? "") ==
-                        (ModInstanceList.McMcInstanceSelected.PathInstance ?? ""))
+                    if (InstanceList.McMcInstanceSelected is not null &&
+                        (mcInstance.PathInstance ?? "") ==
+                        (InstanceList.McMcInstanceSelected.PathInstance ?? ""))
                         // 删除当前实例就更改选择
-                        ModInstanceList.McMcInstanceSelected = (McInstance)((MyListItem)parent.Children[0]).Tag;
-                    ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
-                        ModLoader.LoaderFolderRunType.UpdateOnly, 1, @"versions\");
+                        InstanceList.McMcInstanceSelected =
+                            (McInstance)((MyListItem)parent.Children[0]).Tag;
+                    Loading.LoaderFolderRun(InstanceList.mcInstanceListLoader,
+                        GameFolders.mcFolderSelected,
+                        Loading.LoaderFolderRunType.UpdateOnly, 1, @"versions\");
                 }
                 else
                 {
                     // 删除后没剩了
-                    ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
-                        ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
+                    Loading.LoaderFolderRun(InstanceList.mcInstanceListLoader,
+                        GameFolders.mcFolderSelected,
+                        Loading.LoaderFolderRunType.ForceRun, 1, @"versions\");
                 }
             }
             else
             {
                 // 同时出现在当前卡片与收藏夹
-                ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
-                    ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
+                Loading.LoaderFolderRun(InstanceList.mcInstanceListLoader,
+                    GameFolders.mcFolderSelected,
+                    Loading.LoaderFolderRunType.ForceRun, 1, @"versions\");
             }
         }
         catch (OperationCanceledException ex)
         {
-            ModBase.Log(ex, $"删除实例 {mcInstance.Name} 被主动取消");
+            Common.Log(ex, $"删除实例 {mcInstance.Name} 被主动取消");
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 Lang.Text("Select.Instance.Error.Delete", mcInstance.Name),
-                ModBase.LogLevel.Msgbox,
+                Common.LogLevel.Msgbox,
                 userSummary: Lang.Text("Select.Instance.Error.Delete", mcInstance.Name));
         }
     }

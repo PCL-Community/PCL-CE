@@ -24,7 +24,7 @@ public partial class PageSetupFeedback
 
     private bool _isLoaded;
 
-    public ModLoader.LoaderTask<bool, List<Feedback>> Loader;
+    public Loading.LoaderTask<bool, List<Feedback>> Loader;
 
     private static readonly Dictionary<string, (Func<PageSetupFeedback, StackPanel> Panel, string Icon)> TagMap = new()
     {
@@ -42,7 +42,7 @@ public partial class PageSetupFeedback
     public PageSetupFeedback()
     {
         InitializeComponent();
-        Loader = new ModLoader.LoaderTask<bool, List<Feedback>>("FeedbackList", FeedbackListGet);
+        Loader = new Loading.LoaderTask<bool, List<Feedback>>("FeedbackList", FeedbackListGet);
         Loaded += PageOtherFeedback_Loaded;
     }
 
@@ -57,7 +57,7 @@ public partial class PageSetupFeedback
         _isLoaded = true;
     }
 
-    public void FeedbackListGet(ModLoader.LoaderTask<bool, List<Feedback>> task)
+    public void FeedbackListGet(Loading.LoaderTask<bool, List<Feedback>> task)
     {
         var list = Requester.FetchJson(
             "https://api.github.com/repos/PCL-Community/PCL2-CE/issues?state=all&sort=created&per_page=200",
@@ -107,7 +107,7 @@ public partial class PageSetupFeedback
             Title = item.Title,
             Type = MyListItem.CheckType.Clickable,
             Info = $"{item.User} | {Lang.Date(item.Time)}",
-            Logo = ModBase.pathImage + logo,
+            Logo = Common.PathImage + logo,
             Tags = item.Type
         };
 
@@ -119,7 +119,7 @@ public partial class PageSetupFeedback
     private void ShowFeedbackDetail(Feedback item)
     {
         var timeSpanText = Lang.TimeSpan(item.Time - DateTime.Now);
-        switch (ModMain.MyMsgBoxMarkdown(
+        switch (Launcher.MyMsgBoxMarkdown(
                     Lang.Text("Setup.Feedback.Item.Submitter", item.User, timeSpanText) + "\n" +
                     Lang.Text("Setup.Feedback.Item.Type", item.Type) + "\n\n" +
                     item.Content,
@@ -127,7 +127,7 @@ public partial class PageSetupFeedback
         {
             case 2:
             {
-                ModBase.OpenWebsite(item.Url);
+                Common.OpenWebsite(item.Url);
                 break;
             }
         }

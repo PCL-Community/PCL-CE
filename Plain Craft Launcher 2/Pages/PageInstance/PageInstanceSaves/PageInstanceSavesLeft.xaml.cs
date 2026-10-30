@@ -10,19 +10,19 @@ public partial class PageInstanceSavesLeft : IRefreshable
     public static string currentSave;
 
     // 初始化
-    private bool isLoad;
+    private bool _isLoad;
 
     private void Page_Loaded(object sender, RoutedEventArgs e)
     {
-        if (isLoad)
+        if (_isLoad)
             return;
-        isLoad = true;
+        _isLoad = true;
     }
 
     private void BtnOpenFolder_Click(object sender, MouseButtonEventArgs e)
     {
         e.Handled = true;
-        ModBase.OpenExplorer($@"{currentSave}\");
+        Common.OpenExplorer($@"{currentSave}\");
     }
 
     #region 龙猫牌 页面管理
@@ -30,7 +30,7 @@ public partial class PageInstanceSavesLeft : IRefreshable
     /// <summary>
     ///     当前页面的编号。从 0 开始计算。
     /// </summary>
-    public FormMain.PageSubType pageID = FormMain.PageSubType.Default;
+    public FormMain.PageSubType PageId = FormMain.PageSubType.Default;
 
     public PageInstanceSavesLeft()
     {
@@ -44,29 +44,29 @@ public partial class PageInstanceSavesLeft : IRefreshable
     /// <summary>
     ///     勾选事件改变页面。
     /// </summary>
-    private void PageCheck(object sender, ModBase.RouteEventArgs e)
+    private void PageCheck(object sender, Common.RouteEventArgs e)
     {
         if (sender is MyListItem item && item.Tag is not null)
-            PageChange((FormMain.PageSubType)ModBase.Val(item.Tag));
+            PageChange((FormMain.PageSubType)Common.Val(item.Tag));
     }
 
     public object PageGet(FormMain.PageSubType id = FormMain.PageSubType.Default)
     {
         if ((int)id == -1)
-            id = pageID;
+            id = PageId;
         switch (id)
         {
             case FormMain.PageSubType.VersionSavesInfo:
             {
-                if (ModMain.frmInstanceSavesInfo is null)
-                    ModMain.frmInstanceSavesInfo = new PageInstanceSavesInfo();
-                return ModMain.frmInstanceSavesInfo;
+                if (Launcher.frmInstanceSavesInfo is null)
+                    Launcher.frmInstanceSavesInfo = new PageInstanceSavesInfo();
+                return Launcher.frmInstanceSavesInfo;
             }
             case FormMain.PageSubType.VersionSavesDatapack:
             {
-                if (ModMain.frmInstanceSavesDatapack is null)
-                    ModMain.frmInstanceSavesDatapack = new PageInstanceSavesDatapack();
-                return ModMain.frmInstanceSavesDatapack;
+                if (Launcher.frmInstanceSavesDatapack is null)
+                    Launcher.frmInstanceSavesDatapack = new PageInstanceSavesDatapack();
+                return Launcher.frmInstanceSavesDatapack;
             }
 
             default:
@@ -81,60 +81,60 @@ public partial class PageInstanceSavesLeft : IRefreshable
     /// </summary>
     public void PageChange(FormMain.PageSubType id)
     {
-        if (pageID == id)
+        if (PageId == id)
             return;
-        ModAnimation.AniBeginControl();
+        Animations.AniBeginControl();
         try
         {
             PageChangeRun((MyPageRight)PageGet(id));
-            pageID = id;
+            PageId = id;
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 Lang.Text("Instance.Saves.Left.SwitchFailed", (int)id),
-                ModBase.LogLevel.Feedback,
+                Common.LogLevel.Feedback,
                 userSummary: Lang.Text("Instance.Saves.Left.SwitchFailed", (int)id));
         }
         finally
         {
-            ModAnimation.AniEndControl();
+            Animations.AniEndControl();
         }
     }
 
     private static void PageChangeRun(MyPageRight target)
     {
-        ModAnimation.AniStop("FrmMain PageChangeRight"); // 停止主页面的右页面切换动画，防止它与本动画一起触发多次 PageOnEnter
+        Animations.AniStop("FrmMain PageChangeRight"); // 停止主页面的右页面切换动画，防止它与本动画一起触发多次 PageOnEnter
         if (target.Parent is not null)
             target.SetValue(ContentPresenter.ContentProperty, null);
-        ModMain.frmMain.pageRight = target;
-        ((MyPageRight)ModMain.frmMain.PanMainRight.Child).PageOnExit();
-        ModAnimation.AniStart(new[]
+        Launcher.frmMain.pageRight = target;
+        ((MyPageRight)Launcher.frmMain.PanMainRight.Child).PageOnExit();
+        Animations.AniStart(new[]
         {
-            ModAnimation.AaCode(() =>
+            Animations.AaCode(() =>
             {
-                ((MyPageRight)ModMain.frmMain.PanMainRight.Child).PageOnForceExit();
-                ModMain.frmMain.PanMainRight.Child = ModMain.frmMain.pageRight;
-                ModMain.frmMain.pageRight.Opacity = 0d;
+                ((MyPageRight)Launcher.frmMain.PanMainRight.Child).PageOnForceExit();
+                Launcher.frmMain.PanMainRight.Child = Launcher.frmMain.pageRight;
+                Launcher.frmMain.pageRight.Opacity = 0d;
             }, 130),
-            ModAnimation.AaCode(() =>
+            Animations.AaCode(() =>
             {
                 // 延迟触发页面通用动画，以使得在 Loaded 事件中加载的控件得以处理
-                ModMain.frmMain.pageRight.Opacity = 1d;
-                ModMain.frmMain.pageRight.PageOnEnter();
+                Launcher.frmMain.pageRight.Opacity = 1d;
+                Launcher.frmMain.pageRight.PageOnEnter();
             }, 30, true)
         }, "PageLeft PageChange");
     }
 
     public void RefreshButton_Click(object sender, EventArgs e) // 由边栏按钮匿名调用
     {
-        Refresh((FormMain.PageSubType)ModBase.Val(((MyIconButton)sender).Tag));
+        Refresh((FormMain.PageSubType)Common.Val(((MyIconButton)sender).Tag));
     }
 
     public void Refresh()
     {
-        Refresh(ModMain.frmMain.PageCurrentSub);
+        Refresh(Launcher.frmMain.PageCurrentSub);
     }
 
     public void Refresh(FormMain.PageSubType subType)
@@ -143,10 +143,10 @@ public partial class PageInstanceSavesLeft : IRefreshable
         {
             case FormMain.PageSubType.VersionSavesDatapack:
             {
-                if (ModMain.frmInstanceSavesDatapack is null)
-                    ModMain.frmInstanceSavesDatapack = new PageInstanceSavesDatapack();
+                if (Launcher.frmInstanceSavesDatapack is null)
+                    Launcher.frmInstanceSavesDatapack = new PageInstanceSavesDatapack();
                 if (ItemDatapack.Checked)
-                    ModMain.frmInstanceSavesDatapack.Refresh();
+                    Launcher.frmInstanceSavesDatapack.Refresh();
                 else
                     ItemDatapack.Checked = true;
 

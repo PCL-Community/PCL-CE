@@ -8,13 +8,13 @@ public partial class PageDownloadLeft : IRefreshable
 {
     public void Refresh()
     {
-        Refresh(ModMain.frmMain.PageCurrentSub);
+        Refresh(Launcher.frmMain.PageCurrentSub);
     }
 
     // 强制刷新
     public void RefreshButton_Click(object sender, EventArgs e) // 由边栏按钮匿名调用
     {
-        Refresh((FormMain.PageSubType)ModBase.Val(((MyIconButton)sender).Tag));
+        Refresh((FormMain.PageSubType)Common.Val(((MyIconButton)sender).Tag));
     }
 
     public void Refresh(FormMain.PageSubType subType)
@@ -23,30 +23,30 @@ public partial class PageDownloadLeft : IRefreshable
         {
             case FormMain.PageSubType.DownloadInstall:
             {
-                ModDownload.dlClientListLoader.Start(isForceRestart: true);
-                ModDownload.dlOptiFineListLoader.Start(isForceRestart: true);
-                ModDownload.dlForgeListLoader.Start(isForceRestart: true);
-                ModDownload.dlNeoForgeListLoader.Start(isForceRestart: true);
-                ModDownload.dlCleanroomListLoader.Start(isForceRestart: true);
-                ModDownload.dlLiteLoaderListLoader.Start(isForceRestart: true);
-                ModDownload.dlFabricListLoader.Start(isForceRestart: true);
-                ModDownload.dlLegacyFabricListLoader.Start(isForceRestart: true);
-                ModDownload.dlFabricApiLoader.Start(isForceRestart: true);
-                ModDownload.dlLegacyFabricApiLoader.Start(isForceRestart: true);
-                ModDownload.dlOptiFabricLoader.Start(isForceRestart: true);
-                ModDownload.dlLabyModListLoader.Start(isForceRestart: true);
+                GameDownload.dlClientListLoader.Start(isForceRestart: true);
+                GameDownload.DlOptiFineListLoader.Start(isForceRestart: true);
+                GameDownload.DlForgeListLoader.Start(isForceRestart: true);
+                GameDownload.DlNeoForgeListLoader.Start(isForceRestart: true);
+                GameDownload.DlCleanroomListLoader.Start(isForceRestart: true);
+                GameDownload.DlLiteLoaderListLoader.Start(isForceRestart: true);
+                GameDownload.DlFabricListLoader.Start(isForceRestart: true);
+                GameDownload.DlLegacyFabricListLoader.Start(isForceRestart: true);
+                GameDownload.DlFabricApiLoader.Start(isForceRestart: true);
+                GameDownload.DlLegacyFabricApiLoader.Start(isForceRestart: true);
+                GameDownload.DlOptiFabricLoader.Start(isForceRestart: true);
+                GameDownload.DlLabyModListLoader.Start(isForceRestart: true);
                 ItemInstall.Checked = true;
                 break;
             }
             case FormMain.PageSubType.DownloadMod:
             {
-                ModComp.compProjectCache.Clear();
-                ModComp.compFilesCache.Clear();
-                if (ModMain.frmDownloadMod is not null)
+                Comp.compProjectCache.Clear();
+                Comp.compFilesCache.Clear();
+                if (Launcher.frmDownloadMod is not null)
                 {
-                    ModMain.frmDownloadMod.Content.storage = new ModComp.CompProjectStorage();
-                    ModMain.frmDownloadMod.Content.page = 0;
-                    ModMain.frmDownloadMod.PageLoaderRestart();
+                    Launcher.frmDownloadMod.Content.storage = new Comp.CompProjectStorage();
+                    Launcher.frmDownloadMod.Content.page = 0;
+                    Launcher.frmDownloadMod.PageLoaderRestart();
                 }
 
                 ItemMod.Checked = true;
@@ -54,13 +54,13 @@ public partial class PageDownloadLeft : IRefreshable
             }
             case FormMain.PageSubType.DownloadPack:
             {
-                ModComp.compProjectCache.Clear();
-                ModComp.compFilesCache.Clear();
-                if (ModMain.frmDownloadPack is not null)
+                Comp.compProjectCache.Clear();
+                Comp.compFilesCache.Clear();
+                if (Launcher.frmDownloadPack is not null)
                 {
-                    ModMain.frmDownloadPack.Content.storage = new ModComp.CompProjectStorage();
-                    ModMain.frmDownloadPack.Content.page = 0;
-                    ModMain.frmDownloadPack.PageLoaderRestart();
+                    Launcher.frmDownloadPack.Content.storage = new Comp.CompProjectStorage();
+                    Launcher.frmDownloadPack.Content.page = 0;
+                    Launcher.frmDownloadPack.PageLoaderRestart();
                 }
 
                 ItemPack.Checked = true;
@@ -68,13 +68,13 @@ public partial class PageDownloadLeft : IRefreshable
             }
             case FormMain.PageSubType.DownloadDataPack:
             {
-                ModComp.compProjectCache.Clear();
-                ModComp.compFilesCache.Clear();
-                if (ModMain.frmDownloadDataPack is not null)
+                Comp.compProjectCache.Clear();
+                Comp.compFilesCache.Clear();
+                if (Launcher.frmDownloadDataPack is not null)
                 {
-                    ModMain.frmDownloadDataPack.Content.storage = new ModComp.CompProjectStorage();
-                    ModMain.frmDownloadDataPack.Content.page = 0;
-                    ModMain.frmDownloadDataPack.PageLoaderRestart();
+                    Launcher.frmDownloadDataPack.Content.storage = new Comp.CompProjectStorage();
+                    Launcher.frmDownloadDataPack.Content.page = 0;
+                    Launcher.frmDownloadDataPack.PageLoaderRestart();
                 }
 
                 ItemDataPack.Checked = true;
@@ -82,13 +82,14 @@ public partial class PageDownloadLeft : IRefreshable
             }
             case FormMain.PageSubType.DownloadResourcePack:
             {
-                ModComp.compProjectCache.Clear();
-                ModComp.compFilesCache.Clear();
-                if (ModMain.frmDownloadResourcePack is not null)
+                Comp.compProjectCache.Clear();
+                Comp.compFilesCache.Clear();
+                if (Launcher.frmDownloadResourcePack is not null)
                 {
-                    ModMain.frmDownloadResourcePack.Content.storage = new ModComp.CompProjectStorage();
-                    ModMain.frmDownloadResourcePack.Content.page = 0;
-                    ModMain.frmDownloadResourcePack.PageLoaderRestart();
+                    Launcher.frmDownloadResourcePack.Content.storage =
+                        new Comp.CompProjectStorage();
+                    Launcher.frmDownloadResourcePack.Content.page = 0;
+                    Launcher.frmDownloadResourcePack.PageLoaderRestart();
                 }
 
                 ItemResourcePack.Checked = true;
@@ -96,13 +97,13 @@ public partial class PageDownloadLeft : IRefreshable
             }
             case FormMain.PageSubType.DownloadShader:
             {
-                ModComp.compProjectCache.Clear();
-                ModComp.compFilesCache.Clear();
-                if (ModMain.frmDownloadShader is not null)
+                Comp.compProjectCache.Clear();
+                Comp.compFilesCache.Clear();
+                if (Launcher.frmDownloadShader is not null)
                 {
-                    ModMain.frmDownloadShader.Content.storage = new ModComp.CompProjectStorage();
-                    ModMain.frmDownloadShader.Content.page = 0;
-                    ModMain.frmDownloadShader.PageLoaderRestart();
+                    Launcher.frmDownloadShader.Content.storage = new Comp.CompProjectStorage();
+                    Launcher.frmDownloadShader.Content.page = 0;
+                    Launcher.frmDownloadShader.PageLoaderRestart();
                 }
 
                 ItemShader.Checked = true;
@@ -110,13 +111,13 @@ public partial class PageDownloadLeft : IRefreshable
             }
             case FormMain.PageSubType.DownloadWorld:
             {
-                ModComp.compProjectCache.Clear();
-                ModComp.compFilesCache.Clear();
-                if (ModMain.frmDownloadWorld is not null)
+                Comp.compProjectCache.Clear();
+                Comp.compFilesCache.Clear();
+                if (Launcher.frmDownloadWorld is not null)
                 {
-                    ModMain.frmDownloadWorld.Content.storage = new ModComp.CompProjectStorage();
-                    ModMain.frmDownloadWorld.Content.page = 0;
-                    ModMain.frmDownloadWorld.PageLoaderRestart();
+                    Launcher.frmDownloadWorld.Content.storage = new Comp.CompProjectStorage();
+                    Launcher.frmDownloadWorld.Content.page = 0;
+                    Launcher.frmDownloadWorld.PageLoaderRestart();
                 }
 
                 ItemWorld.Checked = true;
@@ -124,62 +125,62 @@ public partial class PageDownloadLeft : IRefreshable
             }
             case FormMain.PageSubType.DownloadClient:
             {
-                ModDownload.dlClientListLoader.Start(isForceRestart: true);
+                GameDownload.dlClientListLoader.Start(isForceRestart: true);
                 ItemClient.Checked = true;
                 break;
             }
             case FormMain.PageSubType.DownloadOptiFine:
             {
-                ModDownload.dlOptiFineListLoader.Start(isForceRestart: true);
+                GameDownload.DlOptiFineListLoader.Start(isForceRestart: true);
                 ItemOptiFine.Checked = true;
                 break;
             }
             case FormMain.PageSubType.DownloadForge:
             {
-                ModDownload.dlForgeListLoader.Start(isForceRestart: true);
+                GameDownload.DlForgeListLoader.Start(isForceRestart: true);
                 ItemForge.Checked = true;
                 break;
             }
             case FormMain.PageSubType.DownloadNeoForge:
             {
-                ModDownload.dlNeoForgeListLoader.Start(isForceRestart: true);
+                GameDownload.DlNeoForgeListLoader.Start(isForceRestart: true);
                 ItemNeoForge.Checked = true;
                 break;
             }
             case FormMain.PageSubType.DownloadCleanroom:
             {
-                ModDownload.dlCleanroomListLoader.Start(isForceRestart: true);
+                GameDownload.DlCleanroomListLoader.Start(isForceRestart: true);
                 ItemCleanroom.Checked = true;
                 break;
             }
             case FormMain.PageSubType.DownloadLiteLoader:
             {
-                ModDownload.dlLiteLoaderListLoader.Start(isForceRestart: true);
+                GameDownload.DlLiteLoaderListLoader.Start(isForceRestart: true);
                 ItemLiteLoader.Checked = true;
                 break;
             }
             case FormMain.PageSubType.DownloadFabric:
             {
-                ModDownload.dlFabricListLoader.Start(isForceRestart: true);
+                GameDownload.DlFabricListLoader.Start(isForceRestart: true);
                 ItemFabric.Checked = true;
                 break;
             }
             case FormMain.PageSubType.DownloadLabyMod:
             {
-                ModDownload.dlLabyModListLoader.Start(isForceRestart: true);
+                GameDownload.DlLabyModListLoader.Start(isForceRestart: true);
                 ItemLabyMod.Checked = true;
                 break;
             }
             case FormMain.PageSubType.DownloadLegacyFabric:
             {
-                ModDownload.dlLegacyFabricListLoader.Start(isForceRestart: true);
+                GameDownload.DlLegacyFabricListLoader.Start(isForceRestart: true);
                 ItemLegacyFabric.Checked = true;
                 break;
             }
             case FormMain.PageSubType.DownloadCompFavorites:
             {
-                if (ModMain.frmDownloadCompFavorites is not null)
-                    ModMain.frmDownloadCompFavorites.PageLoaderRestart();
+                if (Launcher.frmDownloadCompFavorites is not null)
+                    Launcher.frmDownloadCompFavorites.PageLoaderRestart();
                 ItemFavorites.Checked = true;
                 break;
             }
@@ -193,7 +194,7 @@ public partial class PageDownloadLeft : IRefreshable
     {
         if (!ItemInstall.Checked)
             return;
-        ModMain.frmDownloadInstall.ExitSelectPage();
+        Launcher.frmDownloadInstall.ExitSelectPage();
     }
 
     #region 页面切换
@@ -201,7 +202,7 @@ public partial class PageDownloadLeft : IRefreshable
     /// <summary>
     ///     当前页面的编号。
     /// </summary>
-    public FormMain.PageSubType pageID = FormMain.PageSubType.DownloadInstall;
+    public FormMain.PageSubType PageId = FormMain.PageSubType.DownloadInstall;
 
     public PageDownloadLeft()
     {
@@ -229,119 +230,119 @@ public partial class PageDownloadLeft : IRefreshable
     /// <summary>
     ///     勾选事件改变页面。
     /// </summary>
-    private void PageCheck(object sender, ModBase.RouteEventArgs e)
+    private void PageCheck(object sender, Common.RouteEventArgs e)
     {
         if (sender is MyListItem { Tag: { } tag })
-            PageChange((FormMain.PageSubType)ModBase.Val(tag));
+            PageChange((FormMain.PageSubType)Common.Val(tag));
     }
 
     public object PageGet(FormMain.PageSubType id)
     {
         if (id == default)
-            id = pageID;
+            id = PageId;
         switch (id)
         {
             case FormMain.PageSubType.DownloadInstall:
             {
-                if (ModMain.frmDownloadInstall is null)
-                    ModMain.frmDownloadInstall = new PageDownloadInstall();
-                return ModMain.frmDownloadInstall;
+                if (Launcher.frmDownloadInstall is null)
+                    Launcher.frmDownloadInstall = new PageDownloadInstall();
+                return Launcher.frmDownloadInstall;
             }
             case FormMain.PageSubType.DownloadMod:
             {
-                if (ModMain.frmDownloadMod is null)
-                    ModMain.frmDownloadMod = new PageDownloadMod();
-                return ModMain.frmDownloadMod;
+                if (Launcher.frmDownloadMod is null)
+                    Launcher.frmDownloadMod = new PageDownloadMod();
+                return Launcher.frmDownloadMod;
             }
             case FormMain.PageSubType.DownloadPack:
             {
-                if (ModMain.frmDownloadPack is null)
-                    ModMain.frmDownloadPack = new PageDownloadPack();
-                return ModMain.frmDownloadPack;
+                if (Launcher.frmDownloadPack is null)
+                    Launcher.frmDownloadPack = new PageDownloadPack();
+                return Launcher.frmDownloadPack;
             }
             case FormMain.PageSubType.DownloadDataPack:
             {
-                if (ModMain.frmDownloadDataPack is null)
-                    ModMain.frmDownloadDataPack = new PageDownloadDataPack();
-                return ModMain.frmDownloadDataPack;
+                if (Launcher.frmDownloadDataPack is null)
+                    Launcher.frmDownloadDataPack = new PageDownloadDataPack();
+                return Launcher.frmDownloadDataPack;
             }
             case FormMain.PageSubType.DownloadResourcePack:
             {
-                if (ModMain.frmDownloadResourcePack is null)
-                    ModMain.frmDownloadResourcePack = new PageDownloadResourcePack();
-                return ModMain.frmDownloadResourcePack;
+                if (Launcher.frmDownloadResourcePack is null)
+                    Launcher.frmDownloadResourcePack = new PageDownloadResourcePack();
+                return Launcher.frmDownloadResourcePack;
             }
             case FormMain.PageSubType.DownloadShader:
             {
-                if (ModMain.frmDownloadShader is null)
-                    ModMain.frmDownloadShader = new PageDownloadShader();
-                return ModMain.frmDownloadShader;
+                if (Launcher.frmDownloadShader is null)
+                    Launcher.frmDownloadShader = new PageDownloadShader();
+                return Launcher.frmDownloadShader;
             }
             case FormMain.PageSubType.DownloadWorld:
             {
-                if (ModMain.frmDownloadWorld is null)
-                    ModMain.frmDownloadWorld = new PageDownloadWorld();
-                return ModMain.frmDownloadWorld;
+                if (Launcher.frmDownloadWorld is null)
+                    Launcher.frmDownloadWorld = new PageDownloadWorld();
+                return Launcher.frmDownloadWorld;
             }
             case FormMain.PageSubType.DownloadCompFavorites:
             {
-                if (ModMain.frmDownloadCompFavorites is null)
-                    ModMain.frmDownloadCompFavorites = new PageDownloadCompFavorites();
-                return ModMain.frmDownloadCompFavorites;
+                if (Launcher.frmDownloadCompFavorites is null)
+                    Launcher.frmDownloadCompFavorites = new PageDownloadCompFavorites();
+                return Launcher.frmDownloadCompFavorites;
             }
             case FormMain.PageSubType.DownloadClient:
             {
-                if (ModMain.frmDownloadClient is null)
-                    ModMain.frmDownloadClient = new PageDownloadClient();
-                return ModMain.frmDownloadClient;
+                if (Launcher.frmDownloadClient is null)
+                    Launcher.frmDownloadClient = new PageDownloadClient();
+                return Launcher.frmDownloadClient;
             }
             case FormMain.PageSubType.DownloadOptiFine:
             {
-                if (ModMain.frmDownloadOptiFine is null)
-                    ModMain.frmDownloadOptiFine = new PageDownloadOptiFine();
-                return ModMain.frmDownloadOptiFine;
+                if (Launcher.frmDownloadOptiFine is null)
+                    Launcher.frmDownloadOptiFine = new PageDownloadOptiFine();
+                return Launcher.frmDownloadOptiFine;
             }
             case FormMain.PageSubType.DownloadForge:
             {
-                if (ModMain.frmDownloadForge is null)
-                    ModMain.frmDownloadForge = new PageDownloadForge();
-                return ModMain.frmDownloadForge;
+                if (Launcher.frmDownloadForge is null)
+                    Launcher.frmDownloadForge = new PageDownloadForge();
+                return Launcher.frmDownloadForge;
             }
             case FormMain.PageSubType.DownloadNeoForge:
             {
-                if (ModMain.frmDownloadNeoForge is null)
-                    ModMain.frmDownloadNeoForge = new PageDownloadNeoForge();
-                return ModMain.frmDownloadNeoForge;
+                if (Launcher.frmDownloadNeoForge is null)
+                    Launcher.frmDownloadNeoForge = new PageDownloadNeoForge();
+                return Launcher.frmDownloadNeoForge;
             }
             case FormMain.PageSubType.DownloadCleanroom:
             {
-                if (ModMain.frmDownloadCleanroom is null)
-                    ModMain.frmDownloadCleanroom = new PageDownloadCleanroom();
-                return ModMain.frmDownloadCleanroom;
+                if (Launcher.frmDownloadCleanroom is null)
+                    Launcher.frmDownloadCleanroom = new PageDownloadCleanroom();
+                return Launcher.frmDownloadCleanroom;
             }
             case FormMain.PageSubType.DownloadLiteLoader:
             {
-                if (ModMain.frmDownloadLiteLoader is null)
-                    ModMain.frmDownloadLiteLoader = new PageDownloadLiteLoader();
-                return ModMain.frmDownloadLiteLoader;
+                if (Launcher.frmDownloadLiteLoader is null)
+                    Launcher.frmDownloadLiteLoader = new PageDownloadLiteLoader();
+                return Launcher.frmDownloadLiteLoader;
             }
             case FormMain.PageSubType.DownloadFabric:
             {
-                if (ModMain.frmDownloadFabric is null)
-                    ModMain.frmDownloadFabric = new PageDownloadFabric();
-                return ModMain.frmDownloadFabric;
+                if (Launcher.frmDownloadFabric is null)
+                    Launcher.frmDownloadFabric = new PageDownloadFabric();
+                return Launcher.frmDownloadFabric;
             }
             case FormMain.PageSubType.DownloadLabyMod:
             {
-                if (ModMain.frmDownloadLabyMod is null)
-                    ModMain.frmDownloadLabyMod = new PageDownloadLabyMod();
-                return ModMain.frmDownloadLabyMod;
+                if (Launcher.frmDownloadLabyMod is null)
+                    Launcher.frmDownloadLabyMod = new PageDownloadLabyMod();
+                return Launcher.frmDownloadLabyMod;
             }
             case FormMain.PageSubType.DownloadLegacyFabric:
             {
-                if (ModMain.frmDownloadLegacyFabric is null)
-                    ModMain.frmDownloadLegacyFabric = new PageDownloadLegacyFabric();
-                return ModMain.frmDownloadLegacyFabric;
+                if (Launcher.frmDownloadLegacyFabric is null)
+                    Launcher.frmDownloadLegacyFabric = new PageDownloadLegacyFabric();
+                return Launcher.frmDownloadLegacyFabric;
             }
 
             default:
@@ -356,48 +357,48 @@ public partial class PageDownloadLeft : IRefreshable
     /// </summary>
     public void PageChange(FormMain.PageSubType id)
     {
-        if (pageID == id)
+        if (PageId == id)
             return;
-        ModAnimation.AniBeginControl();
+        Animations.AniBeginControl();
         try
         {
             PageChangeRun((MyPageRight)PageGet(id));
-            pageID = id;
+            PageId = id;
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 "切换分页面失败（ID " + (int)id + "）",
-                ModBase.LogLevel.Feedback,
+                Common.LogLevel.Feedback,
                 userSummary: Lang.Text("Download.Error.OperationFailed"));
         }
         finally
         {
-            ModAnimation.AniEndControl();
+            Animations.AniEndControl();
         }
     }
 
     private static void PageChangeRun(MyPageRight target)
     {
-        ModAnimation.AniStop("FrmMain PageChangeRight"); // 停止主页面的右页面切换动画，防止它与本动画一起触发多次 PageOnEnter
+        Animations.AniStop("FrmMain PageChangeRight"); // 停止主页面的右页面切换动画，防止它与本动画一起触发多次 PageOnEnter
         if (target.Parent is not null)
             target.SetValue(ContentPresenter.ContentProperty, null);
-        ModMain.frmMain.pageRight = target;
-        ((MyPageRight)ModMain.frmMain.PanMainRight.Child).PageOnExit();
-        ModAnimation.AniStart(new[]
+        Launcher.frmMain.pageRight = target;
+        ((MyPageRight)Launcher.frmMain.PanMainRight.Child).PageOnExit();
+        Animations.AniStart(new[]
         {
-            ModAnimation.AaCode(() =>
+            Animations.AaCode(() =>
             {
-                ((MyPageRight)ModMain.frmMain.PanMainRight.Child).PageOnForceExit();
-                ModMain.frmMain.PanMainRight.Child = ModMain.frmMain.pageRight;
-                ModMain.frmMain.pageRight.Opacity = 0d;
+                ((MyPageRight)Launcher.frmMain.PanMainRight.Child).PageOnForceExit();
+                Launcher.frmMain.PanMainRight.Child = Launcher.frmMain.pageRight;
+                Launcher.frmMain.pageRight.Opacity = 0d;
             }, 130),
-            ModAnimation.AaCode(() =>
+            Animations.AaCode(() =>
             {
                 // 延迟触发页面通用动画，以使得在 Loaded 事件中加载的控件得以处理
-                ModMain.frmMain.pageRight.Opacity = 1d;
-                ModMain.frmMain.pageRight.PageOnEnter();
+                Launcher.frmMain.pageRight.Opacity = 1d;
+                Launcher.frmMain.pageRight.PageOnEnter();
             }, 30, true)
         }, "PageLeft PageChange");
     }

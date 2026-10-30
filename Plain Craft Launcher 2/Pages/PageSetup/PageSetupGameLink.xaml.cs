@@ -34,9 +34,9 @@ public partial class PageSetupGameLink
             return;
         isLoaded = true;
 
-        ModAnimation.AniBeginControl();
+        Animations.AniBeginControl();
         Reload();
-        ModAnimation.AniEndControl();
+        Animations.AniEndControl();
     }
 
     public void Reload()
@@ -80,16 +80,16 @@ public partial class PageSetupGameLink
         try
         {
             Config.Link.Reset();
-            ModBase.Log("[Setup] 已初始化联机页设置");
+            Common.Log("[Setup] 已初始化联机页设置");
             HintService.Hint(Lang.Text("Setup.GameLink.Initialized"), HintType.Success, false);
             Reload();
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 Lang.Text("Setup.GameLink.Error.InitFailed"),
-                ModBase.LogLevel.Msgbox,
+                Common.LogLevel.Msgbox,
                 userSummary: Lang.Text("Setup.GameLink.Error.InitFailed"));
         }
 
@@ -100,20 +100,20 @@ public partial class PageSetupGameLink
     private void TextBoxChange(object senderRaw, TextChangedEventArgs e)
     {
         var sender = (MyTextBox)senderRaw;
-        if (!ModAnimation.AniExitsAnyControl())
+        if (!Animations.AniExitsAnyControl())
             SetByTag(sender.Tag?.ToString(), sender.Text);
     }
 
     private static void ComboBoxChange(MyComboBox sender, object e)
     {
-        if (!ModAnimation.AniExitsAnyControl())
+        if (!Animations.AniExitsAnyControl())
             SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
     private void CheckBoxChange(object senderRaw, bool user)
     {
         var sender = (MyCheckBox)senderRaw;
-        if (!ModAnimation.AniExitsAnyControl())
+        if (!Animations.AniExitsAnyControl())
             SetByTag(sender.Tag?.ToString(), sender.Checked);
     }
 
@@ -122,7 +122,7 @@ public partial class PageSetupGameLink
 
     private void LinkProtocolPerferenceChange(object sender, SelectionChangedEventArgs e)
     {
-        if (!ModAnimation.AniExitsAnyControl())
+        if (!Animations.AniExitsAnyControl())
             try
             {
                 var selection = (LinkProtocolPreference)((MyComboBox)sender).SelectedIndex;
@@ -130,10 +130,10 @@ public partial class PageSetupGameLink
             }
             catch (Exception ex)
             {
-                ModBase.Log(
+                Common.Log(
                     ex,
                     Lang.Text("Setup.GameLink.Error.ConfigChangeFailed"),
-                    ModBase.LogLevel.Hint,
+                    Common.LogLevel.Hint,
                     userSummary: Lang.Text("Setup.GameLink.Error.ConfigChangeFailed"));
             }
     }
@@ -145,10 +145,10 @@ public partial class PageSetupGameLink
         {
             BtnNetTest.IsEnabled = false;
             BtnNetTest.Text = Lang.Text("Setup.GameLink.NetworkTest.Testing");
-            ModBase.RunInNewThread(() =>
+            Common.RunInNewThread(() =>
             {
                 var status = CliNetTest.GetNetStatusAsync().GetAwaiter().GetResult();
-                ModBase.RunInUi(() =>
+                Common.RunInUi(() =>
                 {
                     TextUdpNatType.Text =
                         Lang.Text("Setup.GameLink.NetworkTest.UdpNatType", CliNetTest.GetNatTypeString(status.UdpNatType));
@@ -165,9 +165,9 @@ public partial class PageSetupGameLink
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex,
+            Common.Log(ex,
                 "[Link] 获取网络测试结果失败",
-                ModBase.LogLevel.Hint,
+                Common.LogLevel.Hint,
                 userSummary: Lang.Text("Setup.GameLink.Error.NetworkTestFailed"));
             BtnNetTest.IsEnabled = true;
             BtnNetTest.Text = Lang.Text("Setup.GameLink.NetworkTest.Start");

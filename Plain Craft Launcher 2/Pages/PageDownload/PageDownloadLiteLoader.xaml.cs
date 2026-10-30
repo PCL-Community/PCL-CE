@@ -18,7 +18,8 @@ public partial class PageDownloadLiteLoader
 
     private void LoaderInit()
     {
-        PageLoaderInit(Load, PanLoad, PanMain, CardTip, ModDownload.dlLiteLoaderListLoader, _ => Load_OnFinish());
+        PageLoaderInit(Load, PanLoad, PanMain, CardTip, GameDownload.DlLiteLoaderListLoader,
+            _ => Load_OnFinish());
     }
 
     private void Init()
@@ -32,11 +33,11 @@ public partial class PageDownloadLiteLoader
         try
         {
             // 归类
-            var dict = new Dictionary<string, List<ModDownload.DlLiteLoaderListEntry>>();
+            var dict = new Dictionary<string, List<GameDownload.DlLiteLoaderListEntry>>();
             for (var versionCode = 30; versionCode >= 0; versionCode -= 1)
-                dict.Add("1." + versionCode, new List<ModDownload.DlLiteLoaderListEntry>());
+                dict.Add("1." + versionCode, new List<GameDownload.DlLiteLoaderListEntry>());
             dict.Add(McVersionComparer.UNKNOWN_VERSION_KEY, []);
-            foreach (var Version in ModDownload.dlLiteLoaderListLoader.output.Value)
+            foreach (var Version in GameDownload.DlLiteLoaderListLoader.output.Value)
             {
                 var mainVersion = "1." + Version.Inherit.Split(".")[1];
                 if (dict.ContainsKey(mainVersion))
@@ -71,32 +72,33 @@ public partial class PageDownloadLiteLoader
                 newCard.IsSwapped = true;
                 newCard.InstallMethod = stack =>
                 {
-                    stack.Tag = ((List<ModDownload.DlLiteLoaderListEntry>)stack.Tag).Sort((a, b) =>
+                    stack.Tag = ((List<GameDownload.DlLiteLoaderListEntry>)stack.Tag).Sort((a, b) =>
                         McVersionComparer.CompareVersion(a.Inherit, b.Inherit) == 1);
                     foreach (var item in (IEnumerable)stack.Tag)
-                        stack.Children.Add(ModDownloadLib.LiteLoaderDownloadListItem(
-                            (ModDownload.DlLiteLoaderListEntry)item, ModDownloadLib.LiteLoaderSave_Click, true));
+                        stack.Children.Add(DownloadUi.LiteLoaderDownloadListItem(
+                            (GameDownload.DlLiteLoaderListEntry)item,
+                            DownloadUi.LiteLoaderSave_Click, true));
                 };
                 PanMain.Children.Add(newCard);
             }
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 "可视化 LiteLoader 版本列表出错",
-                ModBase.LogLevel.Feedback,
+                Common.LogLevel.Feedback,
                 userSummary: Lang.Text("Download.Error.OperationFailed"));
         }
     }
 
     public void DownloadStart(MyListItem sender, object e)
     {
-        ModDownloadLib.McDownloadLiteLoader((ModDownload.DlLiteLoaderListEntry)sender.Tag);
+        DownloadUi.McDownloadLiteLoader((GameDownload.DlLiteLoaderListEntry)sender.Tag);
     }
 
     private void BtnWeb_Click(object sender, EventArgs e)
     {
-        ModBase.OpenWebsite("https://www.liteloader.com");
+        Common.OpenWebsite("https://www.liteloader.com");
     }
 }

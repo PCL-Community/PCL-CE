@@ -26,7 +26,7 @@ public class MyMenuItem : MenuItem
 
     // 基础
 
-    public int Uuid = ModBase.GetUuid();
+    public int Uuid = Common.GetUuid();
 
     public MyMenuItem()
     {
@@ -119,20 +119,20 @@ public class MyMenuItem : MenuItem
             return;
         _colorName = backName;
         // 触发颜色动画
-        if (IsLoaded && !ModAnimation.AniExitsAnyControl()) // 防止默认属性变更触发动画
+        if (IsLoaded && !Animations.AniExitsAnyControl()) // 防止默认属性变更触发动画
         {
             // 有动画
-            ModAnimation.AniStart(
+            Animations.AniStart(
                 new[]
                 {
-                    ModAnimation.AaColor(this, BackgroundProperty, backName, time),
-                    ModAnimation.AaColor(this, ForegroundProperty, foreName, time)
+                    Animations.AaColor(this, BackgroundProperty, backName, time),
+                    Animations.AaColor(this, ForegroundProperty, foreName, time)
                 }, "MyMenuItem Color " + Uuid);
         }
         else
         {
             // 无动画
-            ModAnimation.AniStop("MyMenuItem Color " + Uuid);
+            Animations.AniStop("MyMenuItem Color " + Uuid);
             SetResourceReference(BackgroundProperty, backName);
             SetResourceReference(ForegroundProperty, foreName);
         }
@@ -140,6 +140,6 @@ public class MyMenuItem : MenuItem
 
     private void MyMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        ModMain.RaiseCustomEvent(this);
+        Launcher.RaiseCustomEvent(this);
     }
 }

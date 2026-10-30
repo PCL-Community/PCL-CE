@@ -16,7 +16,7 @@ internal sealed class CrashDialogPresenter(CrashAnalysisContext context)
         bool isHandAnalyze,
         List<string>? extraFiles)
     {
-        ModMain.frmMain.ShowWindowToTop();
+        Launcher.frmMain.ShowWindowToTop();
 
         var crashContent = _formatter.Format(context, isHandAnalyze);
         var resultText = crashContent.Text;
@@ -95,9 +95,9 @@ internal sealed class CrashDialogPresenter(CrashAnalysisContext context)
 
     private void _OpenModLoaderInstallPage()
     {
-        PageInstanceLeft.McInstance = context.Instance;
+        PageInstanceLeft.mcInstance = context.Instance;
 
-        ModBase.RunInUi(() => ModMain.frmMain.PageChange(
+        Common.RunInUi(() => Launcher.frmMain.PageChange(
             FormMain.PageType.InstanceSetup,
             FormMain.PageSubType.VersionInstall));
     }
@@ -149,7 +149,7 @@ internal sealed class CrashDialogPresenter(CrashAnalysisContext context)
                 new MsgBoxButtonInfo(
                     Lang.Text("Crash.Export.Failed.CopyDetails"),
                     2,
-                    () => ModBase.ClipboardSet(message, false)));
+                    () => Common.ClipboardSet(message, false)));
         }
     }
 
@@ -168,7 +168,7 @@ internal sealed class CrashDialogPresenter(CrashAnalysisContext context)
     {
         string? fileAddress = null;
 
-        ModBase.RunInUiWait(() => fileAddress = SystemDialogs.SelectSaveFile(
+        Common.RunInUiWait(() => fileAddress = SystemDialogs.SelectSaveFile(
             Lang.Text("Crash.Report.SaveDialog.Title"),
             _GetDefaultReportFileName(),
             Lang.Text("Crash.Report.SaveDialog.Filter")));

@@ -8,7 +8,6 @@ using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Minecraft.Profile;
 using PCL.Core.Minecraft.Profile.Models;
-using PCL.Core.UI;
 
 namespace PCL;
 
@@ -28,7 +27,7 @@ public partial class PageLoginProfile
     public void Reload()
     {
         RefreshProfileList();
-        ModMain.frmLoginProfileSkin = null;
+        Launcher.frmLoginProfileSkin = null;
         // RunInNewThread(Sub()
         // Thread.Sleep(800)
         // RunInUi(Sub() FrmLaunchLeft.RefreshPage(True))
@@ -40,7 +39,7 @@ public partial class PageLoginProfile
     /// </summary>
     public void RefreshProfileList()
     {
-        ModBase.Log("[Profile] 刷新档案列表");
+        Common.Log("[Profile] 刷新档案列表");
         ProfileCollection.Clear();
         ProfileService.Load();
         try
@@ -48,14 +47,14 @@ public partial class PageLoginProfile
             foreach (var p in ProfileService.Profiles)
                 ProfileCollection.Add(new ProfileItem(p));
             HintMicrosoft.Visibility = ProfileService.Profiles.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-            ModBase.Log("[Profile] 档案列表刷新完成");
+            Common.Log("[Profile] 档案列表刷新完成");
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 Lang.Text("Launch.Account.Profile.Error.Read"),
-                ModBase.LogLevel.Feedback,
+                Common.LogLevel.Feedback,
                 userSummary: Lang.Text("Launch.Account.Profile.Error.Read"));
         }
 
@@ -76,7 +75,7 @@ public partial class PageLoginProfile
         {
             Profile = profile;
             Info = ProfileUi.GetProfileInfo(profile);
-            var logoPath = ModBase.pathTemp + $@"Cache\Skin\Head\{profile.SkinHeadId}.png";
+            var logoPath = Common.pathTemp + $@"Cache\Skin\Head\{profile.SkinHeadId}.png";
             if (File.Exists(logoPath) && new FileInfo(logoPath).Length != 0L)
             {
                 Logo = logoPath;
@@ -103,17 +102,17 @@ public partial class PageLoginProfile
         var item = (MyListItem)sender;
         var tag = (McProfile)item.Tag;
         ProfileService.Select(tag);
-        ModBase.Log($"[Profile] 选定档案: {tag.UserName}, 以 {tag.ProfileType} 方式验证");
+        Common.Log($"[Profile] 选定档案: {tag.UserName}, 以 {tag.ProfileType} 方式验证");
 
         // 清除登录验证缓存，确保使用新档案的验证信息
-        ModLaunch.mcLoginMsLoader.State = ModBase.LoadState.Waiting;
-        ModLaunch.mcLoginAuthLoader.State = ModBase.LoadState.Waiting;
-        ModLaunch.mcLoginLegacyLoader.State = ModBase.LoadState.Waiting;
+        GameLaunch.mcLoginMsLoader.State = Common.LoadState.Waiting;
+        GameLaunch.mcLoginAuthLoader.State = Common.LoadState.Waiting;
+        GameLaunch.mcLoginLegacyLoader.State = Common.LoadState.Waiting;
 
-        ModBase.RunInUi(() =>
+        Common.RunInUi(() =>
         {
-            ModMain.frmLaunchLeft.RefreshPage(true);
-            ModMain.frmLaunchLeft.BtnLaunch.IsEnabled = true;
+            Launcher.frmLaunchLeft.RefreshPage(true);
+            Launcher.frmLaunchLeft.BtnLaunch.IsEnabled = true;
         });
     }
 
@@ -156,10 +155,10 @@ public partial class PageLoginProfile
     // 创建档案
     private void BtnNew_Click(object sender, EventArgs e)
     {
-        ModBase.RunInNewThread(() =>
+        Common.RunInNewThread(() =>
         {
             ProfileUi.CreateProfile();
-            ModBase.RunInUi(() => RefreshProfileList());
+            Common.RunInUi(() => RefreshProfileList());
         });
     }
 
@@ -171,25 +170,29 @@ public partial class PageLoginProfile
 
     private void CopyProfileUuid(object sender, EventArgs e)
     {
-        if (sender is MyIconButton { Tag: McProfile profile }) ModBase.ClipboardSet(profile.Uuid);
+        if (sender is MyIconButton { Tag: McProfile profile }) Common.ClipboardSet(profile.Uuid);
     }
 
     // 编辑验证服务器名称
     private void EditProfileServer(object sender, EventArgs e)
     {
         var profile = (McProfile)((MyIconButton)sender).Tag;
-        string name = ModMain.MyMsgBoxInput(Lang.Text("Launch.Account.Profile.EditServerName.Title"), Lang.Text("Launch.Account.Profile.EditServerName.Message"), profile.ServerName);
+        var name = Launcher.MyMsgBoxInput(Lang.Text("Launch.Account.Profile.EditServerName.Title"),
+            Lang.Text("Launch.Account.Profile.EditServerName.Message"), profile.ServerName);
         if (name is not null) ProfileUi.EditAuthServerName(profile, name);
     }
 
     // 删除档案
     private void DeleteProfile(object sender, EventArgs e)
     {
-        if (ModMain.MyMsgBox(Lang.Text("Launch.Account.Profile.DeleteConfirm.Message"), Lang.Text("Launch.Account.Profile.DeleteConfirm.Title"), Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel"), isWarn: true,
+        if (Launcher.MyMsgBox(Lang.Text("Launch.Account.Profile.DeleteConfirm.Message"),
+                Lang.Text("Launch.Account.Profile.DeleteConfirm.Title"),
+                Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel"),
+                isWarn: true,
                 forceWait: true) == 2)
             return;
         ProfileUi.RemoveProfile((McProfile)((MyIconButton)sender).Tag);
-        ModBase.RunInUi(() => RefreshProfileList());
+        Common.RunInUi(() => RefreshProfileList());
     }
 
     

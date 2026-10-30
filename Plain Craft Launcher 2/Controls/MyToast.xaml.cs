@@ -10,7 +10,7 @@ namespace PCL;
 
 public partial class MyToast
 {
-    public int Uuid = ModBase.GetUuid();
+    public int Uuid = Common.GetUuid();
 
     /// <summary>判定为拖动而非点击的最小水平位移（像素）。</summary>
     private const double DragDeadzone = 4d;
@@ -59,11 +59,11 @@ public partial class MyToast
         {
             ThemeService.ColorModeChanged -= OnThemeChanged;
             ThemeService.ColorThemeChanged -= OnColorThemeChanged;
-            ModAnimation.AniStop($"Toast Show {Uuid}");
-            ModAnimation.AniStop($"Toast Hide {Uuid}");
-            ModAnimation.AniStop($"Toast Dismiss {Uuid}");
-            ModAnimation.AniStop($"Toast Emphasize {Uuid}");
-            ModAnimation.AniStop($"Toast Drag Return {Uuid}");
+            Animations.AniStop($"Toast Show {Uuid}");
+            Animations.AniStop($"Toast Hide {Uuid}");
+            Animations.AniStop($"Toast Dismiss {Uuid}");
+            Animations.AniStop($"Toast Emphasize {Uuid}");
+            Animations.AniStop($"Toast Drag Return {Uuid}");
             ProgressBar.BeginAnimation(WidthProperty, null);
         };
     }
@@ -103,34 +103,35 @@ public partial class MyToast
 
         RenderTransform = new TranslateTransform(60, 0);
 
-        ModAnimation.AniStop($"Toast Drag Return {Uuid}");
-        var enterAnimations = new List<ModAnimation.AniData>
+        Animations.AniStop($"Toast Drag Return {Uuid}");
+        var enterAnimations = new List<Animations.AniData>
         {
-            ModAnimation.AaTranslateX(this, -60, 400, ease: new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaHeight(this, _targetHeight, 150, ease: new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaOpacity(this, 1, 100)
+            Animations.AaTranslateX(this, -60, ease: new Animations.AniEaseOutFluent()),
+            Animations.AaHeight(this, _targetHeight, 150, ease: new Animations.AniEaseOutFluent()),
+            Animations.AaOpacity(this, 1, 100)
         };
-        ModAnimation.AniStart(enterAnimations, $"Toast Show {Uuid}");
+        Animations.AniStart(enterAnimations, $"Toast Show {Uuid}");
 
         RestartHideAnimation();
     }
 
     public void Emphasize()
     {
-        ModAnimation.AniStop($"Toast Show {Uuid}");
-        ModAnimation.AniStop($"Toast Hide {Uuid}");
-        ModAnimation.AniStop($"Toast Emphasize {Uuid}");
-        ModAnimation.AniStop($"Toast Drag Return {Uuid}");
+        Animations.AniStop($"Toast Show {Uuid}");
+        Animations.AniStop($"Toast Hide {Uuid}");
+        Animations.AniStop($"Toast Emphasize {Uuid}");
+        Animations.AniStop($"Toast Drag Return {Uuid}");
         ProgressBar.BeginAnimation(WidthProperty, null);
         if (RenderTransform is TranslateTransform tt) tt.X = 0;
         Opacity = 1;
         Height = _targetHeight;
-        ModAnimation.AniStart(new List<ModAnimation.AniData>
+        Animations.AniStart(new List<Animations.AniData>
         {
-            ModAnimation.AaTranslateX(this, -8, 70, ease: new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaTranslateX(this, 16, 70, after: true),
-            ModAnimation.AaTranslateX(this, -8, 60, after: true, ease: new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaCode(RestartHideAnimation, after: true),
+            Animations.AaTranslateX(this, -8, 70, ease: new Animations.AniEaseOutFluent()),
+            Animations.AaTranslateX(this, 16, 70, after: true),
+            Animations.AaTranslateX(this, -8, 60, after: true,
+                ease: new Animations.AniEaseOutFluent()),
+            Animations.AaCode(RestartHideAnimation, after: true)
         }, $"Toast Emphasize {Uuid}");
     }
 
@@ -143,12 +144,13 @@ public partial class MyToast
     private void StartHideAnimation(double delayMs)
     {
         var delay = (int)Math.Round(delayMs);
-        ModAnimation.AniStart(new List<ModAnimation.AniData>
+        Animations.AniStart(new List<Animations.AniData>
         {
-            ModAnimation.AaTranslateX(this, 60, 200, delay, new ModAnimation.AniEaseInFluent()),
-            ModAnimation.AaOpacity(this, -1, 150, delay),
-            ModAnimation.AaHeight(this, -_targetHeight, 100, ease: new ModAnimation.AniEaseOutFluent(), after: true),
-            ModAnimation.AaCode(() =>
+            Animations.AaTranslateX(this, 60, 200, delay, new Animations.AniEaseInFluent()),
+            Animations.AaOpacity(this, -1, 150, delay),
+            Animations.AaHeight(this, -_targetHeight, 100,
+                ease: new Animations.AniEaseOutFluent(), after: true),
+            Animations.AaCode(() =>
             {
                 if (Parent is Panel p)
                     p.Children.Remove(this);
@@ -163,16 +165,16 @@ public partial class MyToast
         _isDragging = false;
         _dragPending = false;
         if (IsMouseCaptured) ReleaseMouseCapture();
-        ModAnimation.AniStop($"Toast Show {Uuid}");
-        ModAnimation.AniStop($"Toast Hide {Uuid}");
-        ModAnimation.AniStop($"Toast Emphasize {Uuid}");
-        ModAnimation.AniStop($"Toast Drag Return {Uuid}");
+        Animations.AniStop($"Toast Show {Uuid}");
+        Animations.AniStop($"Toast Hide {Uuid}");
+        Animations.AniStop($"Toast Emphasize {Uuid}");
+        Animations.AniStop($"Toast Drag Return {Uuid}");
         ProgressBar.BeginAnimation(WidthProperty, null);
-        ModAnimation.AniStart(new List<ModAnimation.AniData>
+        Animations.AniStart(new List<Animations.AniData>
         {
-            ModAnimation.AaTranslateX(this, 60, 150, ease: new ModAnimation.AniEaseInFluent()),
-            ModAnimation.AaOpacity(this, -1, 100),
-            ModAnimation.AaCode(() =>
+            Animations.AaTranslateX(this, 60, 150, ease: new Animations.AniEaseInFluent()),
+            Animations.AaOpacity(this, -1, 100),
+            Animations.AaCode(() =>
             {
                 if (Parent is Panel p)
                     p.Children.Remove(this);
@@ -210,7 +212,7 @@ public partial class MyToast
             _ => 210d
         };
         var res = System.Windows.Application.Current.Resources;
-        var accent = new ModBase.MyColor().FromHSL2(baseHue, 75, 60);
+        var accent = new Common.MyColor().FromHsl2(baseHue, 75, 60);
         var bg = ThemeService.IsDarkMode
             ? new SolidColorBrush(LabColor.FromLch(0.35))
             : (Brush)res["ColorBrushBackground"];
@@ -321,10 +323,10 @@ public partial class MyToast
         _isDragging = true;
         _dragPending = false;
 
-        ModAnimation.AniStop($"Toast Show {Uuid}");
-        ModAnimation.AniStop($"Toast Hide {Uuid}");
-        ModAnimation.AniStop($"Toast Emphasize {Uuid}");
-        ModAnimation.AniStop($"Toast Drag Return {Uuid}");
+        Animations.AniStop($"Toast Show {Uuid}");
+        Animations.AniStop($"Toast Hide {Uuid}");
+        Animations.AniStop($"Toast Emphasize {Uuid}");
+        Animations.AniStop($"Toast Drag Return {Uuid}");
 
         PauseProgress();
 
@@ -360,11 +362,12 @@ public partial class MyToast
 
         ResumeProgress(remaining);
 
-        ModAnimation.AniStart(new List<ModAnimation.AniData>
+        Animations.AniStart(new List<Animations.AniData>
         {
-            ModAnimation.AaTranslateX(this, -currentX, ReturnAnimationMs, ease: new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaOpacity(this, 1d - currentOpacity, ReturnAnimationMs),
-            ModAnimation.AaCode(() => StartHideAnimation(GetProgressRemainingMs()), after: true)
+            Animations.AaTranslateX(this, -currentX, ReturnAnimationMs,
+                ease: new Animations.AniEaseOutFluent()),
+            Animations.AaOpacity(this, 1d - currentOpacity, ReturnAnimationMs),
+            Animations.AaCode(() => StartHideAnimation(GetProgressRemainingMs()), after: true)
         }, $"Toast Drag Return {Uuid}");
     }
 

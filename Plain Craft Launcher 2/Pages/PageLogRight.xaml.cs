@@ -1,3 +1,4 @@
+﻿using System.Globalization;
 using System.IO;
 using System.Windows;
 using System.Windows.Documents;
@@ -5,7 +6,6 @@ using System.Windows.Media;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.UI;
-using System.Globalization;
 
 namespace PCL;
 
@@ -56,26 +56,27 @@ public partial class PageLogRight
 
     private void PageLogRight_Loaded(object sender, RoutedEventArgs e)
     {
-        ModAnimation.AniBeginControl();
+        Animations.AniBeginControl();
         Reload();
-        ModAnimation.AniEndControl();
+        Animations.AniEndControl();
     }
 
     public void Reload()
     {
         // 初始化
-        if (ModMain.frmLogLeft.currentLog is null || ModMain.frmLogLeft.currentUuid <= 0 ||
-            ModMain.frmLogLeft.shownLogs.Count == 0)
+        if (Launcher.frmLogLeft.currentLog is null || Launcher.frmLogLeft.currentUuid <= 0 ||
+            Launcher.frmLogLeft.shownLogs.Count == 0)
         {
-            ModMain.frmMain.PageChange(ModMain.frmMain.pageCurrent);
+            Launcher.frmMain.PageChange(Launcher.frmMain.pageCurrent);
             return;
         }
 
         PanAllBack.Visibility = Visibility.Visible;
         CardOperation.Visibility = Visibility.Visible;
-        BtnOperationKill.IsEnabled = !ModMain.frmLogLeft.currentLog.gameProcess.HasExited;
-        BtnOperationExportStackDump.IsEnabled = !ModMain.frmLogLeft.currentLog.gameProcess.HasExited &&
-                                                !string.IsNullOrWhiteSpace(ModMain.frmLogLeft.currentLog.jStackPath);
+        BtnOperationKill.IsEnabled = !Launcher.frmLogLeft.currentLog.gameProcess.HasExited;
+        BtnOperationExportStackDump.IsEnabled =
+            !Launcher.frmLogLeft.currentLog.gameProcess.HasExited &&
+            !string.IsNullOrWhiteSpace(Launcher.frmLogLeft.currentLog.jStackPath);
         SliderMaxLog.Value = Config.System.MaxGameLog;
         // y = 10x + 50 (0 <= x <= 5, 50 <= y <= 100)
         // y = 50x - 150 (5 < x <= 13, 100 < y <= 500)
@@ -91,10 +92,10 @@ public partial class PageLogRight
             };
         });
         // 绑定日志输出
-        PanLog.Document = ModMain.frmLogLeft.flowDocuments[ModMain.frmLogLeft.currentUuid];
+        PanLog.Document = Launcher.frmLogLeft.flowDocuments[Launcher.frmLogLeft.currentUuid];
         // 绑定事件
-        ModMain.frmLogLeft.currentLog.LogOutput += OnLogOutput;
-        ModMain.frmLogLeft.currentLog.GameExit += OnGameExit;
+        Launcher.frmLogLeft.currentLog.LogOutput += OnLogOutput;
+        Launcher.frmLogLeft.currentLog.GameExit += OnGameExit;
         RefreshLabText();
     }
 
@@ -102,18 +103,23 @@ public partial class PageLogRight
     {
         // 刷新计数器
 
-        labFatal.Text = $"{ModMain.frmLogLeft.currentLog.countFatal} {Lang.Text("LogPage.Level.Fatal")}";
-        labError.Text = $"{ModMain.frmLogLeft.currentLog.countError} {Lang.Text("LogPage.Level.Error")}";
-        labWarn.Text = $"{ModMain.frmLogLeft.currentLog.countWarn} {Lang.Text("LogPage.Level.Warn")}";
-        labInfo.Text = $"{ModMain.frmLogLeft.currentLog.countInfo} {Lang.Text("LogPage.Level.Info")}";
-        labDebug.Text = $"{ModMain.frmLogLeft.currentLog.countDebug} {Lang.Text("LogPage.Level.Debug")}";
+        labFatal.Text =
+            $"{Launcher.frmLogLeft.currentLog.countFatal} {Lang.Text("LogPage.Level.Fatal")}";
+        labError.Text =
+            $"{Launcher.frmLogLeft.currentLog.countError} {Lang.Text("LogPage.Level.Error")}";
+        labWarn.Text =
+            $"{Launcher.frmLogLeft.currentLog.countWarn} {Lang.Text("LogPage.Level.Warn")}";
+        labInfo.Text =
+            $"{Launcher.frmLogLeft.currentLog.countInfo} {Lang.Text("LogPage.Level.Info")}";
+        labDebug.Text =
+            $"{Launcher.frmLogLeft.currentLog.countDebug} {Lang.Text("LogPage.Level.Debug")}";
     }
 
-    private void OnLogOutput(ModWatcher.Watcher sender, ModWatcher.LogOutputEventArgs e)
+    private void OnLogOutput(GameWatcher.Watcher sender, GameWatcher.LogOutputEventArgs e)
     {
-        ModBase.RunInUi(() =>
+        Common.RunInUi(() =>
         {
-            if (ModMain.frmLogLeft.currentLog is not null)
+            if (Launcher.frmLogLeft.currentLog is not null)
             {
                 if (CheckAutoScroll.Checked == true) PanBack.ScrollToBottom();
                 RefreshLabText();
@@ -127,43 +133,44 @@ public partial class PageLogRight
     {
         var sender = (MySlider)o;
         Config.System.MaxGameLog = sender.Value;
-        if (ModMain.frmSetupLauncherMisc is null)
+        if (Launcher.frmSetupLauncherMisc is null)
             return;
-        ModMain.frmSetupLauncherMisc.SliderMaxLog.Value = sender.Value;
+        Launcher.frmSetupLauncherMisc.SliderMaxLog.Value = sender.Value;
     }
-
     #endregion
-
     #region 卡片按钮
 
-    private void BtnOperationClear_Click(object sender, ModBase.RouteEventArgs e)
+
+    private void BtnOperationClear_Click(object sender, Common.RouteEventArgs e)
     {
-        ModMain.frmLogLeft.flowDocuments[ModMain.frmLogLeft.currentUuid].Blocks.Clear();
+        Launcher.frmLogLeft.flowDocuments[Launcher.frmLogLeft.currentUuid].Blocks.Clear();
     }
 
-    private void BtnOperationExport_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnOperationExport_Click(object sender, Common.RouteEventArgs e)
     {
         var savePath = SystemDialogs.SelectSaveFile(Lang.Text("LogPage.Export.SelectLocation"),
-            Lang.Text("LogPage.Export.GameLog.FileName", ModMain.frmLogLeft.currentLog.version.Name),
+            Lang.Text("LogPage.Export.GameLog.FileName",
+                Launcher.frmLogLeft.currentLog.version.Name),
             Lang.Text("LogPage.Export.GameLog.Filter"));
         if (savePath.Length < 3)
             return;
-        File.WriteAllLines(savePath, ModMain.frmLogLeft.currentLog.fullLog);
+        File.WriteAllLines(savePath, Launcher.frmLogLeft.currentLog.fullLog);
         HintService.Hint(Lang.Text("LogPage.Export.Success"), HintType.Success);
-        ModBase.OpenExplorer(savePath);
+        Common.OpenExplorer(savePath);
     }
 
-    private void BtnOperationKill_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnOperationKill_Click(object sender, Common.RouteEventArgs e)
     {
-        if (ModMain.frmLogLeft.currentLog.State <= ModWatcher.Watcher.MinecraftState.Running)
+        if (Launcher.frmLogLeft.currentLog.State <= GameWatcher.Watcher.MinecraftState.Running)
         {
-            ModMain.frmLogLeft.currentLog.Kill();
-            HintService.Hint(Lang.Text("LogPage.Action.GameClosed", ModMain.frmLogLeft.currentLog.version.Name),
+            Launcher.frmLogLeft.currentLog.Kill();
+            HintService.Hint(
+                Lang.Text("LogPage.Action.GameClosed", Launcher.frmLogLeft.currentLog.version.Name),
                 HintType.Success);
         }
     }
 
-    private void BtnOperationExportStackDump_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnOperationExportStackDump_Click(object sender, Common.RouteEventArgs e)
     {
         var formattedDate = DateTime.Now.ToString("G", CultureInfo.InvariantCulture)
             .Replace("/", "-")
@@ -176,24 +183,24 @@ public partial class PageLogRight
             return;
         HintService.Hint(Lang.Text("LogPage.ExportStack.Progress"));
         BtnOperationExportStackDump.IsEnabled = false;
-        ModBase.RunInNewThread(() =>
+        Common.RunInNewThread(() =>
         {
-            var dump = ModMain.frmLogLeft.currentLog.ExportStackDump(savePath);
+            var dump = Launcher.frmLogLeft.currentLog.ExportStackDump();
             File.WriteAllLines(savePath, dump);
-            ModBase.RunInUi(() =>
+            Common.RunInUi(() =>
             {
                 HintService.Hint(Lang.Text("LogPage.ExportStack.Success"), HintType.Success);
                 BtnOperationExportStackDump.IsEnabled = true;
             });
-            ModBase.OpenExplorer(savePath);
+            Common.OpenExplorer(savePath);
         });
     }
 
     private void OnGameExit()
     {
-        ModBase.RunInUi(() => BtnOperationKill.IsEnabled = false);
-        ModBase.RunInUi(() => BtnOperationExportStackDump.IsEnabled = false);
+        Common.RunInUi(() => BtnOperationKill.IsEnabled = false);
+    #endregion
+        Common.RunInUi(() => BtnOperationExportStackDump.IsEnabled = false);
     }
 
-    #endregion
 }

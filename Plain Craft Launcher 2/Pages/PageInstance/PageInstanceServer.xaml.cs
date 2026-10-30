@@ -1,14 +1,12 @@
-﻿using System.Collections.ObjectModel;
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Input;
-using FluentValidation;
 using fNbt;
+using PCL.Core.App.Localization;
 using PCL.Core.Link.McPing;
 using PCL.Core.Link.McPing.Model;
 using PCL.Core.Minecraft;
 using PCL.Core.Utils.Validate;
-using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -76,7 +74,7 @@ public partial class PageInstanceServer : MyPageRight
         // Read NBT file
         var nbtData =
             await NbtFileHandler.ReadTagInNbtFileAsync<NbtList>(
-                Path.Combine(PageInstanceLeft.McInstance.PathIndie, "servers.dat"), "servers");
+                Path.Combine(PageInstanceLeft.mcInstance.PathIndie, "servers.dat"), "servers");
         if (nbtData is null)
         {
             HintService.Hint(Lang.Text("Instance.Server.ReadDataFailed"), HintType.Error);
@@ -89,7 +87,7 @@ public partial class PageInstanceServer : MyPageRight
 
         // Write back to NBT file
         if (!await NbtFileHandler.WriteTagInNbtFileAsync(clonedNbtData,
-                Path.Combine(PageInstanceLeft.McInstance.PathIndie, "servers.dat")))
+                Path.Combine(PageInstanceLeft.mcInstance.PathIndie, "servers.dat")))
         {
             HintService.Hint(Lang.Text("Instance.Server.WriteDataFailed"), HintType.Error);
             return;
@@ -111,7 +109,8 @@ public partial class PageInstanceServer : MyPageRight
     {
         // Read NBT file
         var nbtData =
-            await NbtFileHandler.ReadTagInNbtFileAsync<NbtList>(Path.Combine(PageInstanceLeft.McInstance.PathIndie, "servers.dat"),
+            await NbtFileHandler.ReadTagInNbtFileAsync<NbtList>(
+                Path.Combine(PageInstanceLeft.mcInstance.PathIndie, "servers.dat"),
                 "servers");
         if (nbtData is null)
         {
@@ -137,7 +136,7 @@ public partial class PageInstanceServer : MyPageRight
         // Write updated NBT data
         var clonedNbtData = (NbtList)nbtData.Clone();
         if (!await NbtFileHandler.WriteTagInNbtFileAsync(clonedNbtData,
-                Path.Combine(PageInstanceLeft.McInstance.PathIndie, "servers.dat")))
+                Path.Combine(PageInstanceLeft.mcInstance.PathIndie, "servers.dat")))
         {
             HintService.Hint(Lang.Text("Instance.Server.WriteDataFailed"), HintType.Error);
             return;
@@ -159,26 +158,26 @@ public partial class PageInstanceServer : MyPageRight
     /// </summary>
     public async void RefreshServers()
     {
-        ModBase.Log("刷新服务器列表");
+        Common.Log("刷新服务器列表");
         try
         {
             // 读取服务器信息
             await LoadServersFromFileAsync();
 
             // 在UI线程中更新界面
-            ModBase.RunInUi(() => UpdateServerUi());
+            Common.RunInUi(() => UpdateServerUi());
 
             // 异步ping所有服务器
             PingAllServers();
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 Lang.Text("Instance.Server.RefreshFailed"),
-                ModBase.LogLevel.Feedback,
+                Common.LogLevel.Feedback,
                 userSummary: Lang.Text("Instance.Server.RefreshFailed"));
-            ModBase.RunInUi(() => HintService.Hint(
+            Common.RunInUi(() => HintService.Hint(
                 Lang.Text("Instance.Server.RefreshFailed.WithDetail", ex.ToString()),
                 HintType.Error));
         }
@@ -200,10 +199,10 @@ public partial class PageInstanceServer : MyPageRight
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 Lang.Text("Instance.Server.RefreshFailed"),
-                ModBase.LogLevel.Feedback,
+                Common.LogLevel.Feedback,
                 userSummary: Lang.Text("Instance.Server.RefreshFailed"));
             HintService.Hint(
                 Lang.Text("Instance.Server.RefreshFailed.WithDetail", ex.ToString()),
@@ -235,7 +234,7 @@ public partial class PageInstanceServer : MyPageRight
 
             await serverCard.RefreshServerStatusAsync(false);
 
-            var serversDatPath = Path.Combine(PageInstanceLeft.McInstance.PathIndie, "servers.dat");
+            var serversDatPath = Path.Combine(PageInstanceLeft.mcInstance.PathIndie, "servers.dat");
 
             NbtList nbtData;
             if (!File.Exists(serversDatPath))
@@ -263,12 +262,14 @@ public partial class PageInstanceServer : MyPageRight
 
     public static (string Name, string Address, bool Success) GetServerInfo(MinecraftServerInfo server)
     {
-        var newName = ModMain.MyMsgBoxInput(Lang.Text("Instance.Server.EditTitle"), Lang.Text("Instance.Server.NamePrompt"), server.Name,
+        var newName = Launcher.MyMsgBoxInput(Lang.Text("Instance.Server.EditTitle"),
+            Lang.Text("Instance.Server.NamePrompt"), server.Name,
             [new NullOrWhiteSpaceValidator()]);
 
         if (string.IsNullOrEmpty(newName)) return (string.Empty, string.Empty, false);
 
-        var newAddress = ModMain.MyMsgBoxInput(Lang.Text("Instance.Server.EditTitle"), Lang.Text("Instance.Server.AddressPrompt"), server.Address,
+        var newAddress = Launcher.MyMsgBoxInput(Lang.Text("Instance.Server.EditTitle"),
+            Lang.Text("Instance.Server.AddressPrompt"), server.Address,
             [new NullOrWhiteSpaceValidator()]);
         if (string.IsNullOrEmpty(newAddress)) return (string.Empty, string.Empty, false);
         return (newName, newAddress, true);
@@ -281,7 +282,7 @@ public partial class PageInstanceServer : MyPageRight
     {
         serverList.Clear();
 
-        var serversFile = Path.Combine(PageInstanceLeft.McInstance.PathIndie, "servers.dat");
+        var serversFile = Path.Combine(PageInstanceLeft.mcInstance.PathIndie, "servers.dat");
         if (!File.Exists(serversFile))
             return;
 
@@ -293,7 +294,7 @@ public partial class PageInstanceServer : MyPageRight
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Instance.Server.ReadFileFailed"));
+            Common.Log(ex, Lang.Text("Instance.Server.ReadFileFailed"));
         }
     }
 
@@ -304,7 +305,7 @@ public partial class PageInstanceServer : MyPageRight
     {
         if (serversList is not null)
         {
-            ModBase.Log($"Found {serversList.Count} servers:");
+            Common.Log($"Found {serversList.Count} servers:");
 
             // 遍历 servers 列表中的每个服务器
             for (int i = 0, loopTo = serversList.Count - 1; i <= loopTo; i++)
@@ -318,9 +319,9 @@ public partial class PageInstanceServer : MyPageRight
                     var name = server.Get<NbtString>("name")?.Value ?? "Unknown";
                     var iconBase64 = server.Get<NbtString>("icon")?.Value;
 
-                    ModBase.Log($"服务器 {i + 1}:");
-                    ModBase.Log($"  名字: {name}");
-                    ModBase.Log($"  IP: {ip}");
+                    Common.Log($"服务器 {i + 1}:");
+                    Common.Log($"  名字: {name}");
+                    Common.Log($"  IP: {ip}");
                     // Log($"  Hidden: {If(hidden = 1, "Yes", "No")}")
                     serverList.Add(new MinecraftServerInfo
                     {
@@ -334,7 +335,7 @@ public partial class PageInstanceServer : MyPageRight
         }
         else
         {
-            ModBase.Log("No 'servers' list found in servers.dat.");
+            Common.Log("No 'servers' list found in servers.dat.");
         }
     }
 
@@ -362,14 +363,14 @@ public partial class PageInstanceServer : MyPageRight
     {
         if (serverList.Count == 0)
         {
-            ModBase.Log(Lang.Text("Instance.Server.NoServersFound"));
+            Common.Log(Lang.Text("Instance.Server.NoServersFound"));
             PanNoServer.Visibility = Visibility.Visible;
             PanContent.Visibility = Visibility.Collapsed;
             PanServers.Visibility = Visibility.Collapsed;
             return;
         }
 
-        ModBase.Log(Lang.Text("Instance.Server.FoundServers"));
+        Common.Log(Lang.Text("Instance.Server.FoundServers"));
         PanNoServer.Visibility = Visibility.Collapsed;
         PanContent.Visibility = Visibility.Visible;
         PanServers.Visibility = Visibility.Visible;
@@ -403,7 +404,7 @@ public partial class PageInstanceServer : MyPageRight
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, $"Ping 服务器失败: {currentServer}");
+                        Common.Log(ex, $"Ping 服务器失败: {currentServer}");
                     }
                     finally
                     {
@@ -416,11 +417,11 @@ public partial class PageInstanceServer : MyPageRight
         }
         catch (OperationCanceledException ex)
         {
-            ModBase.Log("PingAllServers 被取消", ModBase.LogLevel.Debug);
+            Common.Log("PingAllServers 被取消", Common.LogLevel.Debug);
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "PingAllServers 失败");
+            Common.Log(ex, "PingAllServers 失败");
         }
     }
 
@@ -435,9 +436,9 @@ public partial class PageInstanceServer : MyPageRight
             using (var query = McPingServiceFactory.CreateService(addr.Host, addr.Ip, addr.Port))
             {
                 McPingResult? result;
-                ModBase.Log("Pinging server: " + server.Address + ":" + addr.Port);
+                Common.Log("Pinging server: " + server.Address + ":" + addr.Port);
                 result = await query.PingAsync(token); // 传递 token
-                ModBase.Log("Ping result: " + (result is not null ? "Success" : "Failed"));
+                Common.Log("Ping result: " + (result is not null ? "Success" : "Failed"));
                 if (result is not null)
                 {
                     server.Status = ServerStatus.Online;
@@ -457,12 +458,12 @@ public partial class PageInstanceServer : MyPageRight
         catch (OperationCanceledException ex)
         {
             server.Status = ServerStatus.Offline;
-            ModBase.Log("Ping 服务器被取消: " + server.Address, ModBase.LogLevel.Debug);
+            Common.Log("Ping 服务器被取消: " + server.Address, Common.LogLevel.Debug);
         }
         catch (Exception ex)
         {
             server.Status = ServerStatus.Offline;
-            ModBase.Log(ex, $"Ping 服务器失败: {server.Address}:{server.Port}");
+            Common.Log(ex, $"Ping 服务器失败: {server.Address}:{server.Port}");
         }
 
         return server;

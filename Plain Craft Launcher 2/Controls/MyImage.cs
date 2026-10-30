@@ -1,12 +1,10 @@
 using System.Collections.Concurrent;
 using System.IO;
-using System.Net;
-using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using PCL.Core.Utils;
 using PCL.Core.IO.Net.Http;
+using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -29,7 +27,7 @@ public class MyImage : Image
             if (string.IsNullOrEmpty(value))
                 value = null;
             if ((field ?? "") == (value ?? ""))
-                return;
+                return; // 属性读取顺序修正：在完成 XAML 属性读取后再触发图片加载（#4868）
             field = value;
             Dispatcher.BeginInvoke(new Func<Task>(async () =>
             {
@@ -40,10 +38,11 @@ public class MyImage : Image
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, $"加载图片失败（{value}）");
+                    Common.Log(ex, $"加载图片失败（{value}）");
                     try
                     {
-                        if (value.StartsWithF(ModBase.pathTemp) && File.Exists(value)) File.Delete(value);
+                        if (value.StartsWithF(Common.pathTemp) && File.Exists(value))
+                            File.Delete(value);
                     }
                     catch
                     {
@@ -103,7 +102,9 @@ public class MyImage : Image
             catch (Exception ex)
             {
                 // 更换备用地址
-                ModBase.Log(ex, $"Online image get fail（source = {url}, fallback = {FallbackSource}）", ModBase.LogLevel.Developer);
+                Common.Log(ex,
+                    $"Online image get fail（source = {url}, fallback = {FallbackSource}）",
+                    Common.LogLevel.Developer);
                 tempPath = GetTempPath(url);
                 tempFile = new FileInfo(tempPath);
                 if (enableCache && tempFile.Exists)
@@ -118,20 +119,20 @@ public class MyImage : Image
 
     public static Task<string> DownloadImageAsync(string url)
     {
-        return _downloadTasks.GetOrAdd(url, key =>
+        return DownloadTasks.GetOrAdd(url, key =>
         {
             var t = DownloadImageInternalAsync(key);
-            t.ContinueWith(_ => _downloadTasks.TryRemove(url, out _));
+            t.ContinueWith(_ => DownloadTasks.TryRemove(url, out _));
             return t;
         });
     }
 
     public static string GetTempPath(string url)
     {
-        return Path.Combine(ModBase.pathTemp, "Cache", "Images", $"{ModBase.GetStringMD5(url)}.png");
+        return Path.Combine(Common.pathTemp, "Cache", "Images", $"{Common.GetStringMd5(url)}.png");
     }
 
-    private static readonly ConcurrentDictionary<string, Task<string>> _downloadTasks = new();
+    private static readonly ConcurrentDictionary<string, Task<string>> DownloadTasks = new();
 
     private static async Task<string> DownloadImageInternalAsync(string url)
     {
@@ -140,7 +141,8 @@ public class MyImage : Image
 
         try
         {
-            Directory.CreateDirectory(ModBase.GetPathFromFullPath(tempPath)); // 重新实现下载，以避免携带 Header（#5072）
+            Directory.CreateDirectory(
+                Common.GetPathFromFullPath(tempPath)); // 重新实现下载，以避免携带 Header
             using (var fs = new FileStream(tempDownloadingPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read))
             {
                 using (var response = await HttpRequest.Create(url)
@@ -164,7 +166,7 @@ public class MyImage : Image
             if (File.Exists(tempPath)) File.Delete(tempPath);
             if (File.Exists(tempDownloadingPath)) File.Delete(tempDownloadingPath);
 
-            ModBase.Log(ex, $"Try to get online image fail (url = {url}, dest = {tempPath})");
+            Common.Log(ex, $"Try to get online image fail (url = {url}, dest = {tempPath})");
             return string.Empty;
         }
     }
@@ -187,7 +189,7 @@ public class MyImage : Image
     ///     若输入以 http 开头的字符串，则会尝试下载图片然后显示，图片会保存为本地缓存。
     ///     支持 WebP 格式的图片。
     /// </summary>
-    public new string Source // 覆写 Image 的 Source 属性
+    public new string? Source // 覆写 Image 的 Source 属性
     {
         get => field;
         set

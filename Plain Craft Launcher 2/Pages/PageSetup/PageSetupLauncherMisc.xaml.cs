@@ -7,18 +7,17 @@ using System.Windows.Input;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Essentials;
-using PCL.Core.App.IoC;
-using PCL.Core.UI;
 using PCL.Core.App.Localization;
+using PCL.Core.UI;
 using PCL.Core.Utils.OS;
 
 namespace PCL;
 
 public partial class PageSetupLauncherMisc
 {
-    private bool isFirstLoad = true;
+    private bool _isFirstLoad = true;
 
-    private new bool isLoaded;
+    private new bool _isLoaded;
 
     public PageSetupLauncherMisc()
     {
@@ -33,14 +32,14 @@ public partial class PageSetupLauncherMisc
         PanBack.ScrollToHome();
 
         // 非重复加载部分
-        if (isLoaded)
+        if (_isLoaded)
             return;
-        isLoaded = true;
+        _isLoaded = true;
 
-        ModAnimation.AniBeginControl();
+        Animations.AniBeginControl();
         SliderLoad();
         Reload();
-        ModAnimation.AniEndControl();
+        Animations.AniEndControl();
     }
 
     public void Reload()
@@ -81,16 +80,16 @@ public partial class PageSetupLauncherMisc
             Config.Network.Reset();
             Config.Debug.Reset();
             Config.System.Reset();
-            ModBase.Log("[Setup] 已初始化启动器-杂项页设置");
+            Common.Log("[Setup] 已初始化启动器-杂项页设置");
             HintService.Hint(Lang.Text("Setup.Misc.Initialized"), HintType.Success, false);
             Reload();
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 Lang.Text("Setup.Misc.Error.InitFailed"),
-                ModBase.LogLevel.Msgbox,
+                Common.LogLevel.Msgbox,
                 userSummary: Lang.Text("Setup.Misc.Error.InitFailed"));
         }
 
@@ -101,15 +100,15 @@ public partial class PageSetupLauncherMisc
     private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
-        if (!ModAnimation.AniExitsAnyControl())
+        if (!Animations.AniExitsAnyControl())
             SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
-    private void RadioBoxChange(object senderRaw, ModBase.RouteEventArgs e)
+    private void RadioBoxChange(object senderRaw, Common.RouteEventArgs e)
     {
         var sender = (MyRadioBox)senderRaw;
         var gotCfg = sender.Tag?.ToString()?.Split("/") ?? Array.Empty<string>();
-        if (!ModAnimation.AniExitsAnyControl() && gotCfg.Length >= 2)
+        if (!Animations.AniExitsAnyControl() && gotCfg.Length >= 2)
             SetByTag(gotCfg[0], int.Parse(gotCfg[1]));
     }
 
@@ -117,14 +116,14 @@ public partial class PageSetupLauncherMisc
     {
         var sender = (MyCheckBox)senderRaw;
         if (!user) return;
-        if (!ModAnimation.AniExitsAnyControl())
+        if (!Animations.AniExitsAnyControl())
             SetByTag(sender.Tag?.ToString(), sender.Checked);
     }
 
     private void SliderChange(object senderRaw, bool user)
     {
         var sender = (MySlider)senderRaw;
-        if (!ModAnimation.AniExitsAnyControl())
+        if (!Animations.AniExitsAnyControl())
             SetByTag(sender.Tag?.ToString(), sender.Value);
     }
 
@@ -172,18 +171,18 @@ public partial class PageSetupLauncherMisc
     // 调试模式
     private void CheckDebugMode_Change(object _, bool __)
     {
-        if (!ModAnimation.AniExitsAnyControl())
+        if (!Animations.AniExitsAnyControl())
             HintService.Hint(Lang.Text("Setup.Misc.Debug.Mode.Hint"), log: false);
     }
 
     // 自动更新
     private void ComboSystemActivity_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (ModAnimation.AniExitsAnyControl())
+        if (Animations.AniExitsAnyControl())
             return;
         if (ComboSystemActivity.SelectedIndex != 2)
             return;
-        if (ModMain.MyMsgBox(
+        if (Launcher.MyMsgBox(
                 Lang.Text("Setup.Misc.System.Announcement.Disabled.Warning.Message"),
                 Lang.Text("Common.Dialog.Warning"),
                 Lang.Text("Setup.Misc.System.Announcement.Disabled.Warning.Confirm"),
@@ -214,12 +213,14 @@ public partial class PageSetupLauncherMisc
     private void BtnSystemSettingExp_Click(object sender, MouseButtonEventArgs e)
     {
         var savePath =
-            SystemDialogs.SelectSaveFile(Lang.Text("Setup.Misc.System.ExportSettings.SaveTitle"), "PCL 全局配置.json", Lang.Text("Setup.Misc.System.ExportSettings.Filter"), ModBase.exePath);
+            SystemDialogs.SelectSaveFile(Lang.Text("Setup.Misc.System.ExportSettings.SaveTitle"),
+                "PCL 全局配置.json", Lang.Text("Setup.Misc.System.ExportSettings.Filter"),
+                Common.ExePath);
         if (string.IsNullOrWhiteSpace(savePath))
             return;
         File.Copy(ConfigService.SharedConfigPath, savePath, true);
         HintService.Hint(Lang.Text("Setup.Misc.System.ExportSettings.Success"), HintType.Success);
-        ModBase.OpenExplorer(savePath);
+        Common.OpenExplorer(savePath);
     }
 
     private void BtnSystemSettingImp_Click(object sender, MouseButtonEventArgs e)
@@ -228,7 +229,9 @@ public partial class PageSetupLauncherMisc
         if (string.IsNullOrWhiteSpace(sourcePath))
             return;
         File.Copy(sourcePath, ConfigService.SharedConfigPath, true);
-        ModMain.MyMsgBox(Lang.Text("Setup.Misc.System.ImportSettings.Success.Message"), button1: Lang.Text("Setup.Misc.System.ImportSettings.Success.Restart"), forceWait: true);
+        Launcher.MyMsgBox(Lang.Text("Setup.Misc.System.ImportSettings.Success.Message"),
+            button1: Lang.Text("Setup.Misc.System.ImportSettings.Success.Restart"),
+            forceWait: true);
         Process.Start(new ProcessStartInfo(Basics.ExecutablePath));
         FormMain.EndProgramForce();
     }
@@ -239,7 +242,7 @@ public partial class PageSetupLauncherMisc
 
     private void BtnSystemStopUsingPclCe_Click(object sender, MouseButtonEventArgs e)
     {
-        var result = ModMain.MyMsgBox(
+        var result = Launcher.MyMsgBox(
             Lang.Text("Setup.Misc.System.StopUsingPclCe.Message"),
             Lang.Text("Setup.Misc.System.StopUsingPclCe.Title"),
             Lang.Text("Common.Action.Continue"),
@@ -249,7 +252,7 @@ public partial class PageSetupLauncherMisc
 
         if (result < 3)
         {
-            if (ModMain.MyMsgBox(
+            if (Launcher.MyMsgBox(
                     Lang.Text("Setup.Misc.System.StopUsingPclCe.Message.Final"),
                     Lang.Text("Common.Dialog.Warning"),
                     Lang.Text("Common.Action.Continue"),

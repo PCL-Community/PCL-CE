@@ -33,9 +33,10 @@ public partial class PageSetupAbout
             return;
         isLoaded = true;
 
-        ItemAboutPcl.Info = ItemAboutPcl.Info.Replace("%VERSION%", ModBase.versionBaseName)
-            .Replace("%VERSIONCODE%", ModBase.versionCode.ToString()).Replace("%BRANCH%", ModBase.versionBranchName)
-            .Replace("%COMMIT_HASH%", ModBase.commitHashShort);
+        ItemAboutPcl.Info = ItemAboutPcl.Info.Replace("%VERSION%", Common.VersionBaseName)
+            .Replace("%VERSIONCODE%", Common.VersionCode.ToString())
+            .Replace("%BRANCH%", Common.VersionBranchName)
+            .Replace("%COMMIT_HASH%", Common.CommitHashShort);
 
         if (!Lang.IsChineseMainland)
         {
@@ -64,13 +65,13 @@ public partial class PageSetupAbout
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Setup.About.Error.LoadContributorsFailed"));
+            Common.Log(ex, Lang.Text("Setup.About.Error.LoadContributorsFailed"));
         }
     }
 
     private void ImgPCLCommunity_Click(object sender, MouseButtonEventArgs e)
     {
-        ModAnimation.AniStart(new[] { ModAnimation.AaRotateTransform(sender, 360d) });
+        Animations.AniStart(new[] { Animations.AaRotateTransform(sender, 360d) });
     }
 
     private void ImgPCLLogo_Click(object sender, MouseButtonEventArgs e)
@@ -92,7 +93,10 @@ public partial class PageSetupAbout
                 }
                 case 25:
                 {
-                    switch (ModMain.MyMsgBox(Lang.Text("Setup.About.EasterEgg.Bored.Message"), Lang.Text("Setup.About.EasterEgg.Bored.Title"), Lang.Text("Setup.About.EasterEgg.Bored.Yes"), Lang.Text("Setup.About.EasterEgg.Bored.No")))
+                    switch (Launcher.MyMsgBox(Lang.Text("Setup.About.EasterEgg.Bored.Message"),
+                                Lang.Text("Setup.About.EasterEgg.Bored.Title"),
+                                Lang.Text("Setup.About.EasterEgg.Bored.Yes"),
+                                Lang.Text("Setup.About.EasterEgg.Bored.No")))
                     {
                         case 2:
                         {
@@ -125,7 +129,10 @@ public partial class PageSetupAbout
                 }
                 case 150:
                 {
-                    switch (ModMain.MyMsgBox(Lang.Text("Setup.About.EasterEgg.Tired.Message1"), Lang.Text("Setup.About.EasterEgg.Tired.Title1"), Lang.Text("Setup.About.EasterEgg.Tired.Exhausted"), Lang.Text("Setup.About.EasterEgg.Tired.NotTired")))
+                    switch (Launcher.MyMsgBox(Lang.Text("Setup.About.EasterEgg.Tired.Message1"),
+                                Lang.Text("Setup.About.EasterEgg.Tired.Title1"),
+                                Lang.Text("Setup.About.EasterEgg.Tired.Exhausted"),
+                                Lang.Text("Setup.About.EasterEgg.Tired.NotTired")))
                     {
                         case 1:
                         {
@@ -134,7 +141,11 @@ public partial class PageSetupAbout
                         }
                         case 2:
                         {
-                            switch (ModMain.MyMsgBox(Lang.Text("Setup.About.EasterEgg.Tired.Message2"), Lang.Text("Setup.About.EasterEgg.Tired.Title2"), Lang.Text("Setup.About.EasterEgg.Tired.Exhausted"), Lang.Text("Setup.About.EasterEgg.Tired.NotTired")))
+                            switch (Launcher.MyMsgBox(
+                                        Lang.Text("Setup.About.EasterEgg.Tired.Message2"),
+                                        Lang.Text("Setup.About.EasterEgg.Tired.Title2"),
+                                        Lang.Text("Setup.About.EasterEgg.Tired.Exhausted"),
+                                        Lang.Text("Setup.About.EasterEgg.Tired.NotTired")))
                             {
                                 case 1:
                                 {
@@ -143,7 +154,12 @@ public partial class PageSetupAbout
                                 }
                                 case 2:
                                 {
-                                    switch (ModMain.MyMsgBox(Lang.Text("Setup.About.EasterEgg.Tired.Message3"), Lang.Text("Setup.About.EasterEgg.Tired.Title3"), Lang.Text("Setup.About.EasterEgg.Tired.Exhausted"), Lang.Text("Setup.About.EasterEgg.Tired.ReallyNotTired")))
+                                    switch (Launcher.MyMsgBox(
+                                                Lang.Text("Setup.About.EasterEgg.Tired.Message3"),
+                                                Lang.Text("Setup.About.EasterEgg.Tired.Title3"),
+                                                Lang.Text("Setup.About.EasterEgg.Tired.Exhausted"),
+                                                Lang.Text(
+                                                    "Setup.About.EasterEgg.Tired.ReallyNotTired")))
                                     {
                                         case 1:
                                         {
@@ -182,10 +198,11 @@ public partial class PageSetupAbout
             var my = rand.Next(-1, 1);
             if (my == 0)
                 my = 1;
-            ModAnimation.AniStart(new[]
+            Animations.AniStart(new[]
             {
-                ModAnimation.AaTranslateX(sender, mx, 0), ModAnimation.AaTranslateY(sender, my, 0),
-                ModAnimation.AaTranslateX(sender, -mx, 0, 100), ModAnimation.AaTranslateY(sender, -my, 0, 100)
+                Animations.AaTranslateX(sender, mx, 0), Animations.AaTranslateY(sender, my, 0),
+                Animations.AaTranslateX(sender, -mx, 0, 100),
+                Animations.AaTranslateY(sender, -my, 0, 100)
             });
         }
     }

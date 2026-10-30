@@ -4,11 +4,11 @@ using System.IO.Compression;
 using System.Windows;
 using System.Windows.Input;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
-using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -118,10 +118,10 @@ public partial class PageSetupLog
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 Lang.Text("Setup.Log.ExportFailed"),
-                ModBase.LogLevel.Hint,
+                Common.LogLevel.Hint,
                 userSummary: Lang.Text("Setup.Log.ExportFailed"));
         }
         finally
@@ -138,7 +138,9 @@ public partial class PageSetupLog
 
     private void ButtonClean_OnClick(object sender, MouseButtonEventArgs e)
     {
-        var r = ModMain.MyMsgBox(Lang.Text("Setup.Log.Clear.Confirm.Message"), Lang.Text("Setup.Log.Clear.Confirm.Title"), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), isWarn: true);
+        var r = Launcher.MyMsgBox(Lang.Text("Setup.Log.Clear.Confirm.Message"),
+            Lang.Text("Setup.Log.Clear.Confirm.Title"), Lang.Text("Common.Action.Confirm"),
+            Lang.Text("Common.Action.Cancel"), isWarn: true);
         if (r != 1)
             return;
         var currentSet = new HashSet<string>(CurrentLogs);

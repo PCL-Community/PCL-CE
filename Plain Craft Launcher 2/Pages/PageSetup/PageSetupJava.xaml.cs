@@ -1,11 +1,10 @@
 ﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.Core.Minecraft;
 using PCL.Core.UI;
-using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -13,12 +12,12 @@ public partial class PageSetupJava
 {
     private bool isLoad = false;
 
-    public ModLoader.LoaderTask<bool, List<JavaEntry>> loader;
+    public Loading.LoaderTask<bool, List<JavaEntry>> loader;
 
     public PageSetupJava()
     {
         InitializeComponent();
-        loader = new ModLoader.LoaderTask<bool, List<JavaEntry>>("JavaPageLoader", Load_GetJavaList);
+        loader = new Loading.LoaderTask<bool, List<JavaEntry>>("JavaPageLoader", Load_GetJavaList);
         Loaded += PageSetupLaunch_Loaded;
     }
 
@@ -32,14 +31,15 @@ public partial class PageSetupJava
         return false;
     }
 
-    private void Load_GetJavaList(ModLoader.LoaderTask<bool, List<JavaEntry>> loader)
+    private void Load_GetJavaList(Loading.LoaderTask<bool, List<JavaEntry>> loader)
     {
         if (loader.input || loader.isForceRestarting)
         {
             JavaService.JavaManager.ScanJavaAsync(force: true).GetAwaiter().GetResult();
             JavaService.JavaManager.CheckAllAvailability();
         }
-        loader.output = ModJava.Javas.GetSortedJavaList();
+
+        loader.output = JavaRuntime.Javas.GetSortedJavaList();
     }
 
     private void OnLoadFinished()
@@ -54,7 +54,7 @@ public partial class PageSetupJava
         itemAuto.Check += (sender, e) => Config.Launch.SelectedJava = "";
         PanContent.Children.Add(itemAuto);
         var currentSetJava = Config.Launch.SelectedJava;
-        foreach (var entry in ModJava.Javas.GetSortedJavaList())
+        foreach (var entry in JavaRuntime.Javas.GetSortedJavaList())
         {
             var item = ItemBuild(entry);
             PanContent.Children.Add(item);
@@ -109,7 +109,7 @@ public partial class PageSetupJava
                 return;
             }
 
-            ModBase.OpenExplorer(j.Installation.JavaFolder);
+            Common.OpenExplorer(j.Installation.JavaFolder);
         };
         var btnInfo = new MyIconButton();
         btnInfo.SvgIcon = "lucide/info";
@@ -122,7 +122,7 @@ public partial class PageSetupJava
                 return;
             }
 
-            ModMain.MyMsgBox(
+            Launcher.MyMsgBox(
                 Lang.Text("Setup.Java.Info.Format",
                     versionTypeDesc,
                     j.Installation.Version.ToString(),
@@ -164,7 +164,7 @@ public partial class PageSetupJava
         {
             try
             {
-                var target = ModJava.Javas.AddOrGet(j.Installation.JavaExePath);
+                var target = JavaRuntime.Javas.AddOrGet(j.Installation.JavaExePath);
                 if (target is null)
                 {
                     HintService.Hint(Lang.Text("Setup.Java.Unavailable"));
@@ -179,14 +179,14 @@ public partial class PageSetupJava
 
                 target.IsEnabled = !target.IsEnabled;
                 UpdateEnableStyle(target.IsEnabled);
-                ModJava.Javas.SaveConfig();
+                JavaRuntime.Javas.SaveConfig();
             }
             catch (Exception ex)
             {
-                ModBase.Log(
+                Common.Log(
                     ex,
                     Lang.Text("Setup.Java.EnableFailed"),
-                    ModBase.LogLevel.Hint,
+                    Common.LogLevel.Hint,
                     userSummary: Lang.Text("Setup.Java.EnableFailed"));
             }
         };
@@ -195,22 +195,22 @@ public partial class PageSetupJava
         return item;
     }
 
-    private void BtnAdd_Click(object sender, ModBase.RouteEventArgs e)
+    private void BtnAdd_Click(object sender, Common.RouteEventArgs e)
     {
         var ret = SystemDialogs.SelectFile(Lang.Text("Setup.Java.SelectFile.Filter"), Lang.Text("Setup.Java.SelectFile.Title"));
         if (string.IsNullOrEmpty(ret) || !File.Exists(ret))
             return;
-        if (ModJava.Javas.Exist(ret))
+        if (JavaRuntime.Javas.Exist(ret))
             HintService.Hint(Lang.Text("Setup.Java.AlreadyExists"));
         else
             Dispatcher.BeginInvoke(new Action(async () =>
             {
                 await Task.Run(() =>
                 {
-                    ModJava.Javas.AddOrGet(ret);
-                    ModJava.Javas.SaveConfig();
+                    JavaRuntime.Javas.AddOrGet(ret);
+                    JavaRuntime.Javas.SaveConfig();
                 });
-                if (ModJava.Javas.Exist(ret))
+                if (JavaRuntime.Javas.Exist(ret))
                 {
                     HintService.Hint(Lang.Text("Setup.Java.Added"), HintType.Success);
                     loader.Start(true, true);

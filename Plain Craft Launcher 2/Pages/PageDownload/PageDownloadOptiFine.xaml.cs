@@ -18,7 +18,8 @@ public partial class PageDownloadOptiFine
 
     private void LoaderInit()
     {
-        PageLoaderInit(Load, PanLoad, PanMain, CardTip, ModDownload.dlOptiFineListLoader, _ => Load_OnFinish());
+        PageLoaderInit(Load, PanLoad, PanMain, CardTip, GameDownload.DlOptiFineListLoader,
+            _ => Load_OnFinish());
     }
 
     private void Init()
@@ -33,11 +34,11 @@ public partial class PageDownloadOptiFine
         {
             const string snapshotKey = "Snapshot";
             // 归类
-            var dict = new Dictionary<string, List<ModDownload.DlOptiFineListEntry>>();
-            dict.Add(snapshotKey, new List<ModDownload.DlOptiFineListEntry>());
+            var dict = new Dictionary<string, List<GameDownload.DlOptiFineListEntry>>();
+            dict.Add(snapshotKey, new List<GameDownload.DlOptiFineListEntry>());
             for (var versionCode = 50; versionCode >= 0; versionCode -= 1)
-                dict.Add("1." + versionCode, new List<ModDownload.DlOptiFineListEntry>());
-            foreach (var Version in ModDownload.dlOptiFineListLoader.output.Value)
+                dict.Add("1." + versionCode, new List<GameDownload.DlOptiFineListEntry>());
+            foreach (var Version in GameDownload.DlOptiFineListLoader.output.Value)
                 if (Version.Inherit.StartsWith("1."))
                 {
                     var mainVersion = "1." + Version.DisplayName.Split(".")[1].Split(" ")[0];
@@ -75,27 +76,28 @@ public partial class PageDownloadOptiFine
                 newCard.IsSwapped = true;
                 newCard.InstallMethod = stack =>
                 {
-                    stack.Tag = ((List<ModDownload.DlOptiFineListEntry>)stack.Tag).Sort((a, b) =>
+                    stack.Tag = ((List<GameDownload.DlOptiFineListEntry>)stack.Tag).Sort((a, b) =>
                         McVersionComparer.CompareVersion(a.DisplayName, b.DisplayName) == 1);
                     foreach (var item in (IEnumerable)stack.Tag)
-                        stack.Children.Add(ModDownloadLib.OptiFineDownloadListItem(
-                            (ModDownload.DlOptiFineListEntry)item, ModDownloadLib.OptiFineSave_Click, true));
+                        stack.Children.Add(DownloadUi.OptiFineDownloadListItem(
+                            (GameDownload.DlOptiFineListEntry)item, DownloadUi.OptiFineSave_Click,
+                            true));
                 };
                 PanMain.Children.Add(newCard);
             }
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 "可视化 OptiFine 版本列表出错",
-                ModBase.LogLevel.Feedback,
+                Common.LogLevel.Feedback,
                 userSummary: Lang.Text("Download.Error.OperationFailed"));
         }
     }
 
     private void BtnWeb_Click(object sender, EventArgs e)
     {
-        ModBase.OpenWebsite("https://www.optifine.net/");
+        Common.OpenWebsite("https://www.optifine.net/");
     }
 }

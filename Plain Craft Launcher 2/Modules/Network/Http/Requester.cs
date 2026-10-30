@@ -1,10 +1,7 @@
-using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.NetworkInformation;
 using System.Text;
-using Downloader;
-using System.Text.Json.Nodes;
 using PCL.Core.IO.Net;
 using PCL.Core.IO.Net.Http;
 
@@ -39,7 +36,7 @@ public static class Requester
 
     public static async Task<JsonNode> FetchJsonAsync(string url, RequestParam param = default)
     {
-        return ModBase.GetJson(await FetchStringAsync(url, param).ConfigureAwait(false));
+        return Common.GetJson(await FetchStringAsync(url, param).ConfigureAwait(false));
     }
 
     public static async Task<T> FetchJsonAsync<T>(string url, RequestParam param = default) where T : JsonNode

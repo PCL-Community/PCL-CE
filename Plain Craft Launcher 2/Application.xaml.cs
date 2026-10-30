@@ -4,7 +4,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Threading;
 using PCL.Core.App;
 using PCL.Core.App.Essentials;
@@ -47,20 +46,20 @@ public partial class Application
                     // 调整显卡设置
                     try
                     {
-                        ModMain.SetGPUPreference(args[1].Trim('"'));
-                        Environment.Exit((int)ModBase.ProcessReturnValues.TaskDone);
+                        Launcher.SetGpuPreference(args[1].Trim('"'));
+                        Environment.Exit((int)Common.ProcessReturnValues.TaskDone);
                     }
                     catch (Exception)
                     {
-                        Environment.Exit((int)ModBase.ProcessReturnValues.Fail);
+                        Environment.Exit((int)Common.ProcessReturnValues.Fail);
                     }
 
             // 初始化文件结构
-            Directory.CreateDirectory(ModBase.exePath + @"PCL\Pictures");
-            Directory.CreateDirectory(ModBase.exePath + @"PCL\Musics");
-            Directory.CreateDirectory(Path.Combine(ModBase.pathTemp, "Cache"));
-            Directory.CreateDirectory(Path.Combine(ModBase.pathTemp, "Download"));
-            Directory.CreateDirectory(ModBase.pathAppdata);
+            Directory.CreateDirectory(Common.ExePath + @"PCL\Pictures");
+            Directory.CreateDirectory(Common.ExePath + @"PCL\Musics");
+            Directory.CreateDirectory(Path.Combine(Common.pathTemp, "Cache"));
+            Directory.CreateDirectory(Path.Combine(Common.pathTemp, "Download"));
+            Directory.CreateDirectory(Common.pathAppdata);
 
             // 设置 ToolTipService 默认值
             ToolTipService.InitialShowDelayProperty.OverrideMetadata(typeof(DependencyObject),
@@ -70,8 +69,8 @@ public partial class Application
             // 设置初始窗口
             if (Config.Preference.ShowStartupLogo)
             {
-                ModMain.frmStart = new SplashScreen(@"Images\icon.ico");
-                ModMain.frmStart.Show(false, true);
+                Launcher.frmStart = new SplashScreen(@"Images\icon.ico");
+                Launcher.frmStart.Show(false, true);
             }
 
             // 设置初始化
@@ -85,22 +84,23 @@ public partial class Application
             _ = Config.Preference.Font;
             var updateBranchCfg = Config.Update.UpdateChannelConfig;
             if (updateBranchCfg.IsDefault())
-                updateBranchCfg.SetValue(ModBase.versionBaseName.Contains("beta")
+                updateBranchCfg.SetValue(Common.VersionBaseName.Contains("beta")
                     ? Core.App.UpdateChannel.Beta
                     : Core.App.UpdateChannel.Release);
 
             // 删除旧日志
             for (var i = 1; i <= 5; i++)
             {
-                var oldLogFile = $@"{ModBase.exePath}PCL\Log-CE{i}.log";
+                var oldLogFile = $@"{Common.ExePath}PCL\Log-CE{i}.log";
                 if (File.Exists(oldLogFile))
                     File.Delete(oldLogFile);
             }
 
             // 计时
-            ModBase.Log("[Start] 第一阶段加载用时：" + (TimeUtils.GetTimeTick() - ModBase.applicationStartTick) + " ms");
-            ModBase.applicationStartTick = TimeUtils.GetTimeTick();
-            ModAnimation.AniBeginControl();
+            Common.Log("[Start] 第一阶段加载用时：" +
+                       (TimeUtils.GetTimeTick() - Common.applicationStartTick) + " ms");
+            Common.applicationStartTick = TimeUtils.GetTimeTick();
+            Animations.AniBeginControl();
         }
         catch (Exception ex)
         {
@@ -114,7 +114,7 @@ public partial class Application
                 Lang.Text("SystemDialog.Startup.InitializationTitle"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
-            FormMain.EndProgramForce(ModBase.ProcessReturnValues.Exception);
+            FormMain.EndProgramForce(Common.ProcessReturnValues.Exception);
         }
     }
 
@@ -127,14 +127,16 @@ public partial class Application
             problemList.Add(Lang.Text("Application.EnvironmentWarning.WindowsVersion"));
         if (SystemInfo.Is32BitSystem)
             problemList.Add(Lang.Text("Application.EnvironmentWarning.System32Bit"));
-        if (ModBase.exePath.Contains(Path.GetTempPath()) || ModBase.exePath.Contains(@"AppData\Local\Temp\"))
+        if (Common.ExePath.Contains(Path.GetTempPath()) ||
+            Common.ExePath.Contains(@"AppData\Local\Temp\"))
             problemList.Add(Lang.Text("Application.EnvironmentWarning.TempFolder"));
-        if (ModBase.exePath.ContainsF("wechat_files", true) || ModBase.exePath.ContainsF("WeChat Files", true) ||
-            ModBase.exePath.ContainsF("Tencent Files", true))
+        if (Common.ExePath.ContainsF("wechat_files", true) ||
+            Common.ExePath.ContainsF("WeChat Files", true) ||
+            Common.ExePath.ContainsF("Tencent Files", true))
             problemList.Add(Lang.Text("Application.EnvironmentWarning.SocialSoftwareFolder"));
         if (problemList.Count == 0) return;
 
-        ModMain.MyMsgBox(
+        Launcher.MyMsgBox(
             Lang.Text("Application.EnvironmentWarning.Message", problemList.Join("\r\n")),
             Lang.Text("Application.EnvironmentWarning.Title"),
             Lang.Text("Application.EnvironmentWarning.IKnow"),
@@ -144,7 +146,7 @@ public partial class Application
     // 结束
     private static void _ApplicationSessionEnding(object sender, SessionEndingCancelEventArgs e)
     {
-        ModMain.frmMain.EndProgram(false);
+        Launcher.frmMain.EndProgram(false);
     }
 
     /**
@@ -155,9 +157,9 @@ public partial class Application
         try
         {
             e.Handled = true;
-            if (ModBase.isProgramEnded) return;
+            if (Common.isProgramEnded) return;
 
-            ModBase.FeedbackInfo();
+            Common.FeedbackInfo();
 
             var detail = e.Exception.ToString();
 
@@ -166,7 +168,7 @@ public partial class Application
                 detail.Contains("MS.Internal.AppModel.ITaskbarList.HrInit") ||
                 detail.Contains("未能加载文件或程序集"))
             {
-                ModBase.OpenWebsite("https://get.dot.net/10");
+                Common.OpenWebsite("https://get.dot.net/10");
                 LogWrapper.Error(
                     e.Exception,
                     Lang.Text("SystemDialog.Startup.DotNetRuntimeOutdated.Message"));
@@ -197,12 +199,12 @@ public partial class Application
     {
         public override void Write(string message)
         {
-            ModBase.Log($"警告，检测到 Binding 失败：{message}");
+            Common.Log($"警告，检测到 Binding 失败：{message}");
         }
 
         public override void WriteLine(string message)
         {
-            ModBase.Log($"警告，检测到 Binding 失败：{message}");
+            Common.Log($"警告，检测到 Binding 失败：{message}");
         }
     }
 }

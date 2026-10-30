@@ -18,7 +18,7 @@ public partial class PageLoginMs
     private void BtnBack_Click(object sender, EventArgs e)
     {
         ProfileService.IsCreatingProfile = false;
-        ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true));
+        Common.RunInUi(() => Launcher.frmLaunchLeft.RefreshPage(true));
     }
 
     private void BtnLogin_Click(object sender, EventArgs e)
@@ -26,31 +26,33 @@ public partial class PageLoginMs
         BtnLogin.IsEnabled = false;
         BtnBack.Visibility = Visibility.Collapsed;
         BtnLogin.Text = Lang.Number(0d, "P0");
-        ModBase.RunInNewThread(() =>
+        Common.RunInNewThread(() =>
         {
             var previousProfile = ProfileService.Current;
             var loginSucceeded = false;
             try
             {
                 ProfileService.Select(null);
-                ModLaunch.mcLoginMsLoader.Start(ProfileUi.GetLoginData(ModLaunch.McLoginType.Ms), true);
-                while (ModLaunch.mcLoginMsLoader.State == ModBase.LoadState.Loading)
+                GameLaunch.mcLoginMsLoader.Start(ProfileUi.GetLoginData(GameLaunch.McLoginType.Ms),
+                    true);
+                while (GameLaunch.mcLoginMsLoader.State == Common.LoadState.Loading)
                 {
-                    ModBase.RunInUi(() => BtnLogin.Text = Lang.Number(ModLaunch.mcLoginMsLoader.Progress, "P0"));
+                    Common.RunInUi(() =>
+                        BtnLogin.Text = Lang.Number(GameLaunch.mcLoginMsLoader.Progress, "P0"));
                     Thread.Sleep(50);
                 }
 
-                if (ModLaunch.mcLoginMsLoader.State == ModBase.LoadState.Finished)
+                if (GameLaunch.mcLoginMsLoader.State == Common.LoadState.Finished)
                 {
                     loginSucceeded = true;
-                    ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true));
+                    Common.RunInUi(() => Launcher.frmLaunchLeft.RefreshPage(true));
                 }
-                else if (ModLaunch.mcLoginMsLoader.State == ModBase.LoadState.Aborted)
+                else if (GameLaunch.mcLoginMsLoader.State == Common.LoadState.Aborted)
                     throw new ThreadInterruptedException();
-                else if (ModLaunch.mcLoginMsLoader.Error is null)
+                else if (GameLaunch.mcLoginMsLoader.Error is null)
                     throw new InvalidOperationException(Lang.Text("Launch.Account.Microsoft.Error.Unknown"));
                 else
-                    throw ModLaunch.mcLoginMsLoader.Error;
+                    throw GameLaunch.mcLoginMsLoader.Error;
             }
             catch (ThreadInterruptedException ex)
             {
@@ -71,25 +73,25 @@ public partial class PageLoginMs
                 }
                 else if (ex is AuthenticationException && ex.Message.ContainsF("SSL/TLS"))
                 {
-                    ModBase.Log(
+                    Common.Log(
                         ex,
                         $"{Lang.Text("Launch.Account.Microsoft.LoginFailed.Message")}\r\n{ex.Message}",
-                        ModBase.LogLevel.Msgbox,
+                        Common.LogLevel.Msgbox,
                         userSummary: Lang.Text("Launch.Account.Microsoft.Error.OperationFailed"));
                 }
                 else
                 {
-                    ModBase.Log(
+                    Common.Log(
                         ex,
                         Lang.Text("Launch.Account.Microsoft.LoginFailed.Title"),
-                        ModBase.LogLevel.Msgbox,
+                        Common.LogLevel.Msgbox,
                         userSummary: Lang.Text("Launch.Account.Microsoft.LoginFailed.Title"));
                 }
             }
             finally
             {
                 ProfileService.IsCreatingProfile = false;
-                ModBase.RunInUi(() =>
+                Common.RunInUi(() =>
                 {
                     BtnLogin.IsEnabled = true;
                     BtnBack.Visibility = Visibility.Visible;

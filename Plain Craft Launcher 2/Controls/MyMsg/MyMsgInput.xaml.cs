@@ -2,17 +2,17 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
+using PCL.Core.App.Localization;
 using PCL.Core.UI.Controls;
 
-using PCL.Core.App.Localization;
 namespace PCL;
 
 public partial class MyMsgInput
 {
-    private readonly ModMain.MyMsgBoxConverter myConverter;
-    private readonly int uuid = ModBase.GetUuid();
+    private readonly Launcher.MyMsgBoxConverter myConverter;
+    private readonly int uuid = Common.GetUuid();
 
-    public MyMsgInput(ModMain.MyMsgBoxConverter converter)
+    public MyMsgInput(Launcher.MyMsgBoxConverter converter)
     {
         try
         {
@@ -28,15 +28,15 @@ public partial class MyMsgInput
             TextArea.ValidateRules = converter.ValidateRules;
             ConfigurePrimaryButton(converter.Button1, converter.IsWarn);
             ConfigureSecondaryButton(converter.Button2);
-            ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
+            ShapeLine.StrokeThickness = Common.GetWpfSize(1d);
         }
 
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 "输入弹窗初始化失败",
-                ModBase.LogLevel.Hint,
+                Common.LogLevel.Hint,
                 userSummary: Lang.Text("Application.Control.MessageBox.Error.OperationFailed"));
         }
 
@@ -45,7 +45,7 @@ public partial class MyMsgInput
 
     private void AppendUniqueNameSuffix(FrameworkElement element)
     {
-        element.Name += ModBase.GetUuid();
+        element.Name += Common.GetUuid();
     }
 
     private void ConfigurePrimaryButton(string text, bool isWarn)
@@ -75,32 +75,34 @@ public partial class MyMsgInput
             TextArea.SelectionStart = TextArea.Text.Length;
             // 动画
             Opacity = 0d;
-            ModAnimation.AniStart(
-                ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
+            Animations.AniStart(
+                Animations.AaColor(Launcher.frmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
                     (myConverter.IsWarn
-                        ? new ModBase.MyColor(140d, 80d, 0d, 0d)
-                        : new ModBase.MyColor(90d, 0d, 0d, 0d)) - ModMain.frmMain.PanMsgBackground.Background, 200),
+                        ? new Common.MyColor(140d, 80d, 0d, 0d)
+                        : new Common.MyColor(90d, 0d, 0d, 0d)) -
+                    Launcher.frmMain.PanMsgBackground.Background, 200),
                 "PanMsgBackground Background");
-            ModAnimation.AniStart(
+            Animations.AniStart(
                 new[]
                 {
-                    ModAnimation.AaOpacity(this, 1d, 120, 60),
-                    ModAnimation.AaDouble(i => TransformPos.Y += (double)i,
-                        -TransformPos.Y, 300, 60, new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
-                    ModAnimation.AaDouble(i => TransformRotate.Angle += (double)i,
+                    Animations.AaOpacity(this, 1d, 120, 60),
+                    Animations.AaDouble(i => TransformPos.Y += (double)i,
+                        -TransformPos.Y, 300, 60,
+                        new Animations.AniEaseOutBack(Animations.AniEasePower.Weak)),
+                    Animations.AaDouble(i => TransformRotate.Angle += (double)i,
                         -TransformRotate.Angle, 300, 60,
-                        new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
+                        new Animations.AniEaseOutFluent(Animations.AniEasePower.Weak))
                 }, "MyMsgBox " + uuid);
             // 记录日志
-            ModBase.Log("[Control] 输入弹窗：" + LabTitle.Text);
+            Common.Log("[Control] 输入弹窗：" + LabTitle.Text);
         }
 
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 "输入弹窗加载失败",
-                ModBase.LogLevel.Hint,
+                Common.LogLevel.Hint,
                 userSummary: Lang.Text("Application.Control.MessageBox.Error.OperationFailed"));
         }
     }
@@ -111,22 +113,24 @@ public partial class MyMsgInput
         myConverter.WaitFrame.Continue = false;
         ComponentDispatcher.PopModal();
         // 动画
-        ModAnimation.AniStart(new[]
+        Animations.AniStart(new[]
         {
-            ModAnimation.AaCode(() =>
+            Animations.AaCode(() =>
             {
-                if (!ModMain.WaitingMyMsgBox.Any())
-                    ModAnimation.AniStart(ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground,
+                if (!Launcher.WaitingMyMsgBox.Any())
+                    Animations.AniStart(Animations.AaColor(Launcher.frmMain.PanMsgBackground,
                         BlurBorder.BackgroundProperty,
-                        new ModBase.MyColor(0d, 0d, 0d, 0d) - ModMain.frmMain.PanMsgBackground.Background, 200,
-                        ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
+                        new Common.MyColor(0d, 0d, 0d, 0d) -
+                        Launcher.frmMain.PanMsgBackground.Background, 200,
+                        ease: new Animations.AniEaseOutFluent(Animations.AniEasePower.Weak)));
             }, 30),
-            ModAnimation.AaOpacity(this, -Opacity, 80, 20),
-            ModAnimation.AaDouble(i => TransformPos.Y += (double)i, 20d - TransformPos.Y,
-                150, 0, new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaDouble(i => TransformRotate.Angle += (double)i,
-                6d - TransformRotate.Angle, 150, 0, new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
-            ModAnimation.AaCode(() => ((Grid)Parent).Children.Remove(this), after: true)
+            Animations.AaOpacity(this, -Opacity, 80, 20),
+            Animations.AaDouble(i => TransformPos.Y += (double)i, 20d - TransformPos.Y,
+                150, 0, new Animations.AniEaseOutFluent()),
+            Animations.AaDouble(i => TransformRotate.Angle += (double)i,
+                6d - TransformRotate.Angle, 150, 0,
+                new Animations.AniEaseInFluent(Animations.AniEasePower.Weak)),
+            Animations.AaCode(() => ((Grid)Parent).Children.Remove(this), after: true)
         }, "MyMsgBox " + uuid);
     }
 
@@ -160,14 +164,14 @@ public partial class MyMsgInput
         {
             if (e.LeftButton == MouseButtonState.Pressed)
                 if (e.GetPosition(ShapeLine).Y <= 2d)
-                    ModMain.frmMain.DragMove();
+                    Launcher.frmMain.DragMove();
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 "拖拽移动失败",
-                ModBase.LogLevel.Hint,
+                Common.LogLevel.Hint,
                 userSummary: Lang.Text("Application.Control.MessageBox.Error.OperationFailed"));
         }
     }

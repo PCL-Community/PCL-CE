@@ -2,7 +2,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using PCL.Network;
 using PCL.Core.App.Localization;
 
 namespace PCL;
@@ -18,7 +17,8 @@ public partial class PageDownloadClient
 
     private void LoaderInit()
     {
-        PageLoaderInit(Load, PanLoad, PanBack, null, ModDownload.dlClientListLoader, _ => Load_OnFinish());
+        PageLoaderInit(Load, PanLoad, PanBack, null, GameDownload.dlClientListLoader,
+            _ => Load_OnFinish());
     }
 
     private void Init()
@@ -44,7 +44,7 @@ public partial class PageDownloadClient
                 _ => new List<JsonObject>()
             );
 
-            var versions = (JsonArray)ModDownload.dlClientListLoader.output.Value["versions"];
+            var versions = (JsonArray)GameDownload.dlClientListLoader.output.Value["versions"];
             foreach (JsonObject Version in versions)
             {
                 var cat = McVersionClassifier.ClassifyVersion(Version);
@@ -80,8 +80,8 @@ public partial class PageDownloadClient
             void PutMethod(StackPanel stack)
             {
                 foreach (var item in (IEnumerable)stack.Tag)
-                    stack.Children.Add(ModDownloadLib.McDownloadListItem((JsonObject)item,
-                        ModDownloadLib.McDownloadMenuSave, true));
+                    stack.Children.Add(DownloadUi.McDownloadListItem((JsonObject)item,
+                        DownloadUi.McDownloadMenuSave, true));
             }
 
             ;
@@ -111,10 +111,10 @@ public partial class PageDownloadClient
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 "可视化 MC 版本列表出错",
-                ModBase.LogLevel.Feedback,
+                Common.LogLevel.Feedback,
                 userSummary: Lang.Text("Download.Error.OperationFailed"));
         }
     }
