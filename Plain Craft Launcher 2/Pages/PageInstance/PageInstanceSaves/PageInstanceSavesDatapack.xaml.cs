@@ -45,14 +45,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
         PageExit += UnselectedAllWithAnimation;
         // Handles
         Load.Click += Load_Click;
-        BtnManageOpen.Click += BtnManageOpen_Click;
-        BtnHintOpen.Click += BtnManageOpen_Click;
         BtnManageSelectAll.Click += BtnManageSelectAll_Click;
-        BtnManageInstall.Click += BtnManageInstall_Click;
-        BtnHintInstall.Click += BtnManageInstall_Click;
-        BtnManageDownload.Click += BtnManageDownload_Click;
-        BtnHintDownload.Click += BtnManageDownload_Click;
-        BtnManageInfoExport.Click += BtnManageInfoExport_Click;
         Load.StateChanged += (_, _, _) => UnselectedAllWithAnimation();
         SearchBox.PreviewKeyDown += SearchBox_PreviewKeyDown;
         BtnFilterAll.Check += ChangeFilter;
@@ -259,7 +252,8 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
         ToolTipService.SetPlacement(btnOpen, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnOpen, 30d);
         ToolTipService.SetHorizontalOffset(btnOpen, 2d);
-        btnOpen.Click += (sender, e) => Open_Click((MyIconButton)sender, e);
+        btnOpen.Command = _vm.OpenFileLocationCommand;
+        btnOpen.CommandParameter = sender.Entry;
 
         var btnCont = new MyIconButton { LogoScale = 1d, SvgIcon = "lucide/info", Tag = sender };
         btnCont.ToolTip = Lang.Text("Instance.Saves.Detail");
@@ -414,23 +408,8 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
     /// <summary>
     ///     打开 datapacks 文件夹。
     /// </summary>
-    private void BtnManageOpen_Click(object sender, EventArgs e)
-    {
-        try
-        {
-            var datapackPath = Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks");
-            Directory.CreateDirectory(datapackPath);
-            Common.OpenExplorer(datapackPath);
-        }
-        catch (Exception ex)
-        {
-            Common.Log(
-                ex,
-                "打开 datapacks 文件夹失败",
-                Common.LogLevel.Msgbox,
-                userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
-        }
-    }
+    private void BtnManageOpen_Click(object sender, EventArgs e) =>
+        _vm.OpenFolderCommand.Execute(null);
 
     /// <summary>
     ///     全选。
@@ -443,33 +422,8 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
     /// <summary>
     ///     安装数据包。
     /// </summary>
-    private async void BtnManageInstall_Click(object sender, MouseButtonEventArgs e)
-    {
-        var ctl = sender as Control;
-        if (ctl is not null) ctl.IsEnabled = false;
-        try
-        {
-            var fileList = SystemDialogs.SelectFiles(
-                Lang.Text("Instance.Saves.Datapack.Install.FileDialog.Filter"),
-                Lang.Text("Instance.Saves.Datapack.Install.FileDialog.Title"));
-            if (fileList is null || fileList.Length == 0)
-                return;
-            await PageInstanceSavesDatapackViewModel.InstallFilesAsync(fileList);
-            Refresh();
-        }
-        catch (Exception ex)
-        {
-            Common.Log(
-                ex,
-                "复制数据包文件失败",
-                Common.LogLevel.Msgbox,
-                userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
-        }
-        finally
-        {
-            if (ctl is not null) ctl.IsEnabled = true;
-        }
-    }
+    private void BtnManageInstall_Click(object sender, MouseButtonEventArgs e) =>
+        _vm.InstallCommand.Execute(null);
 
     /// <summary>
     ///     安装数据包文件。
@@ -482,57 +436,14 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
     /// <summary>
     ///     下载数据包。
     /// </summary>
-    private void BtnManageDownload_Click(object sender, MouseButtonEventArgs e)
-    {
-        var datapackPath = Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks");
-        Directory.CreateDirectory(datapackPath);
-        PageDownloadCompDetail.cachedFolder[Comp.CompType.DataPack] = datapackPath;
-        Launcher.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadDataPack);
-        PageComp.targetVersion = PageInstanceLeft.McInstance; // 将当前实例设置为筛选器
-    }
+    private void BtnManageDownload_Click(object sender, MouseButtonEventArgs e) =>
+        _vm.DownloadCommand.Execute(null);
 
     /// <summary>
     ///     导出信息。
     /// </summary>
-    private async void BtnManageInfoExport_Click(object sender, MouseButtonEventArgs e)
-    {
-        var ctl = sender as Control;
-        if (ctl is not null) ctl.IsEnabled = false;
-        try
-        {
-            var choice = await Launcher.MyMsgBoxAsync(
-                Lang.Text("Instance.Saves.Datapack.Export.Mode.Message"),
-                Lang.Text("Instance.Resource.Export.Mode.Title"), Lang.Text("Instance.Resource.Export.Mode.Txt"),
-                Lang.Text("Instance.Resource.Export.Mode.Csv"), Lang.Text("Common.Action.Cancel"));
-            if (choice is not (1 or 2))
-                return;
-
-            var isCsv = choice == 2;
-            await _vm.EnsureFileInfoAsync(LocalComp.CompResourceListLoader.output.Select(entry => entry.path));
-            var content = _vm.BuildExportContent(isCsv);
-            var savePath = SystemDialogs.SelectSaveFile(
-                Lang.Text("Instance.Resource.Export.SelectSaveLocation"),
-                Common.GetFolderNameFromPath(PageInstanceSavesLeft.currentSave) +
-                (isCsv ? "的数据包信息.csv" : "的数据包信息.txt"),
-                Lang.Text("Instance.Resource.Export.FilesFilter"));
-            if (string.IsNullOrWhiteSpace(savePath))
-                return;
-            await _vm.WriteExportFileAsync(savePath, content);
-            Common.OpenExplorer(savePath);
-        }
-        catch (Exception ex)
-        {
-            Common.Log(
-                ex,
-                "导出数据包信息失败",
-                Common.LogLevel.Msgbox,
-                userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
-        }
-        finally
-        {
-            if (ctl is not null) ctl.IsEnabled = true;
-        }
-    }
+    private void BtnManageInfoExport_Click(object sender, MouseButtonEventArgs e) =>
+        _vm.ExportInfoCommand.Execute(null);
 
     #endregion
 
@@ -1045,22 +956,8 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
     }
 
     // 打开文件所在的位置
-    public void Open_Click(MyIconButton sender, EventArgs e)
-    {
-        try
-        {
-            var listItem = (MyLocalCompItem)sender.Tag;
-            Common.OpenExplorer(listItem.Entry.path);
-        }
-        catch (Exception ex)
-        {
-            Common.Log(
-                ex,
-                "打开数据包文件位置失败",
-                Common.LogLevel.Feedback,
-                userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
-        }
-    }
+    public void Open_Click(MyIconButton sender, EventArgs e) =>
+        _vm.OpenFileLocationCommand.Execute((sender.Tag as MyLocalCompItem)?.Entry);
 
     // 删除
     public void Delete_Click(MyIconButton sender, EventArgs e)

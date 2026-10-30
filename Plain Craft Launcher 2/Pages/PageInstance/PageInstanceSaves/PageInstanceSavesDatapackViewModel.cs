@@ -1,9 +1,11 @@
 using System.IO;
 using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.VisualBasic.FileIO;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI;
 using PCL.Core.ViewModel;
 using PCL.Network;
 using PCL.Network.Loaders;
@@ -85,6 +87,127 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsSearching))]
     private string _searchText = "";
+
+    [ObservableProperty] private bool _installEnabled = true;
+
+    [ObservableProperty] private bool _exportInfoEnabled = true;
+
+    [RelayCommand]
+    private void OpenFolder()
+    {
+        try
+        {
+            var datapackPath = Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks");
+            Directory.CreateDirectory(datapackPath);
+            Common.OpenExplorer(datapackPath);
+        }
+        catch (Exception ex)
+        {
+            Common.Log(
+                ex,
+                "打开 datapacks 文件夹失败",
+                Common.LogLevel.Msgbox,
+                userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
+        }
+    }
+
+    [RelayCommand]
+    private async Task Install()
+    {
+        InstallEnabled = false;
+        try
+        {
+            var fileList = SystemDialogs.SelectFiles(
+                Lang.Text("Instance.Saves.Datapack.Install.FileDialog.Filter"),
+                Lang.Text("Instance.Saves.Datapack.Install.FileDialog.Title"));
+            if (fileList is null || fileList.Length == 0)
+                return;
+            await InstallFilesAsync(fileList);
+            Launcher.frmInstanceSavesDatapack?.ReloadDatapackFileList(true);
+            Common.Log("[Datapack] 刷新数据包列表");
+        }
+        catch (Exception ex)
+        {
+            Common.Log(
+                ex,
+                "复制数据包文件失败",
+                Common.LogLevel.Msgbox,
+                userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
+        }
+        finally
+        {
+            InstallEnabled = true;
+        }
+    }
+
+    [RelayCommand]
+    private void Download()
+    {
+        var datapackPath = Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks");
+        Directory.CreateDirectory(datapackPath);
+        PageDownloadCompDetail.cachedFolder[Comp.CompType.DataPack] = datapackPath;
+        Launcher.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadDataPack);
+        PageComp.targetVersion = PageInstanceLeft.McInstance; // 将当前实例设置为筛选器
+    }
+
+    [RelayCommand]
+    private async Task ExportInfo()
+    {
+        ExportInfoEnabled = false;
+        try
+        {
+            var choice = await Launcher.MyMsgBoxAsync(
+                Lang.Text("Instance.Saves.Datapack.Export.Mode.Message"),
+                Lang.Text("Instance.Resource.Export.Mode.Title"), Lang.Text("Instance.Resource.Export.Mode.Txt"),
+                Lang.Text("Instance.Resource.Export.Mode.Csv"), Lang.Text("Common.Action.Cancel"));
+            if (choice is not (1 or 2))
+                return;
+
+            var isCsv = choice == 2;
+            await EnsureFileInfoAsync(LocalComp.CompResourceListLoader.output.Select(entry => entry.path));
+            var content = BuildExportContent(isCsv);
+            var savePath = SystemDialogs.SelectSaveFile(
+                Lang.Text("Instance.Resource.Export.SelectSaveLocation"),
+                Common.GetFolderNameFromPath(PageInstanceSavesLeft.currentSave) +
+                (isCsv ? "的数据包信息.csv" : "的数据包信息.txt"),
+                Lang.Text("Instance.Resource.Export.FilesFilter"));
+            if (string.IsNullOrWhiteSpace(savePath))
+                return;
+            await WriteExportFileAsync(savePath, content);
+            Common.OpenExplorer(savePath);
+        }
+        catch (Exception ex)
+        {
+            Common.Log(
+                ex,
+                "导出数据包信息失败",
+                Common.LogLevel.Msgbox,
+                userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
+        }
+        finally
+        {
+            ExportInfoEnabled = true;
+        }
+    }
+
+    [RelayCommand]
+    private void OpenFileLocation(LocalComp.LocalCompFile? entry)
+    {
+        if (entry is null)
+            return;
+        try
+        {
+            Common.OpenExplorer(entry.path);
+        }
+        catch (Exception ex)
+        {
+            Common.Log(
+                ex,
+                "打开数据包文件位置失败",
+                Common.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
+        }
+    }
 
     private readonly Dictionary<string, (DateTime CreationTime, long Length)> _fileInfoCache = new();
     private readonly List<LocalComp.LocalCompFile> _visibleEntries = [];
