@@ -301,7 +301,7 @@ public partial class MyRadioButton
 
                 // 保证只有一个单选框选中
 
-                if (Parent is null) return;
+                if (Parent is null && string.IsNullOrEmpty(GroupName)) return;
                 EnsureSingleChecked();
 
                 // 更改动画
