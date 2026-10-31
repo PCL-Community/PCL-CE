@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.IO.Compression;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using PCL.Core.App;
@@ -381,8 +382,19 @@ public static class LauncherCommon
 
     public static string ShortenPath(string longPath, int shortenThreshold = 247)
     {
-        return longPath;
+        if (longPath.Length <= shortenThreshold) return longPath;
+
+        var shortPath = new StringBuilder(260);
+        _ = GetShortPathName(longPath, shortPath, shortPath.Capacity);
+        var result = shortPath.ToString();
+        return string.IsNullOrEmpty(result) ? longPath : result;
     }
+
+    [DllImport("kernel32", EntryPoint = "GetShortPathNameA", CharSet = CharSet.Ansi)]
+    private static extern int GetShortPathName(
+        string lpszLongPath,
+        StringBuilder lpszShortPath,
+        int cchBuffer);
 
     public static string? GetStringFromEnum(Enum enumData)
     {
@@ -433,25 +445,45 @@ public static class LauncherCommon
         Action<double>? progressIncrementHandler = null)
     {
         Directory.CreateDirectory(destDirectory);
-        using var archive = ZipFile.OpenRead(compressFilePath);
+        var fullDestDirectory = Path.GetFullPath(destDirectory);
+        if (!fullDestDirectory.EndsWith(Path.DirectorySeparatorChar.ToString()))
+            fullDestDirectory += Path.DirectorySeparatorChar;
+
+        if (compressFilePath.EndsWith(".gz", StringComparison.OrdinalIgnoreCase))
+        {
+            using var compressedFile = new FileStream(compressFilePath, FileMode.Open, FileAccess.Read);
+            using var decompressStream = new GZipStream(compressedFile, CompressionMode.Decompress);
+            var fileName = Path.GetFileName(compressFilePath);
+            if (fileName.EndsWith(".gz", StringComparison.OrdinalIgnoreCase)) fileName = fileName[..^3];
+            if (fileName.EndsWith(".tar", StringComparison.OrdinalIgnoreCase)) fileName = fileName[..^4];
+            using var extractFileStream = new FileStream(
+                Path.Combine(fullDestDirectory, fileName.ToLowerInvariant()),
+                FileMode.OpenOrCreate,
+                FileAccess.Write);
+            decompressStream.CopyTo(extractFileStream);
+            progressIncrementHandler?.Invoke(1d);
+            return;
+        }
+
+        using var archive = ZipFile.Open(
+            compressFilePath,
+            ZipArchiveMode.Read,
+            encoding ?? Encoding.GetEncoding("GB18030"));
         var total = archive.Entries.Count;
-        var done = 0;
         foreach (var entry in archive.Entries)
         {
-            var path = Path.Combine(destDirectory, entry.FullName);
-            if (string.IsNullOrEmpty(entry.Name))
-            {
-                Directory.CreateDirectory(path);
-            }
-            else
-            {
-                var directory = Path.GetDirectoryName(path);
-                if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
-                entry.ExtractToFile(path, true);
-            }
+            if (total > 0) progressIncrementHandler?.Invoke(1d / total);
 
-            done += 1;
-            if (total > 0) progressIncrementHandler?.Invoke((double)done / total);
+            var path = Path.GetFullPath(Path.Combine(fullDestDirectory, entry.FullName));
+            if (!path.StartsWith(fullDestDirectory, StringComparison.OrdinalIgnoreCase))
+                throw new Exception(
+                    $"解压文件 {entry.FullName} 错误：解压路径 {path} 不在目标目录 {fullDestDirectory} 内");
+
+            if (entry.FullName.EndsWith('/') || entry.FullName.EndsWith('\\')) continue;
+
+            var directory = Path.GetDirectoryName(path);
+            if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
+            entry.ExtractToFile(path, true);
         }
     }
 
