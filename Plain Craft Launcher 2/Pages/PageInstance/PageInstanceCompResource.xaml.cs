@@ -50,6 +50,13 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
     }
 
     // 页面关闭时清理缓存
+    private void Page_Loaded(object sender, RoutedEventArgs e) => PageOther_Loaded();
+
+    private void PageExit_UnselectedAll() => UnselectedAllWithAnimation();
+
+    private void Load_StateChanged(object sender, MyLoading.MyLoadingState newState, MyLoading.MyLoadingState oldState) =>
+        UnselectedAllWithAnimation();
+
     private void Page_Unloaded(object sender, RoutedEventArgs e)
     {
         _refreshed = false;
@@ -78,52 +85,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
 
         // 在 InitializeComponent() 调用之后添加任何初始化。
 
-        if (new[] { Comp.CompType.Shader, Comp.CompType.ResourcePack, Comp.CompType.Schematic }.Contains(
-                _vm.CompType))
-        {
-            _vm.ShowSelectEnable = false;
-            _vm.ShowSelectDisable = false;
-        }
-
-        // 投影文件管理页隐藏下载按钮
-        if (_vm.CompType == Comp.CompType.Schematic)
-        {
-            _vm.ShowManageDownload = false;
-            _vm.ShowHintDownload = false;
-        }
-
-        if (_vm.CompType != Comp.CompType.Mod)
-            _vm.ShowManageJarInJar = false;
-
-        Unloaded += Page_Unloaded;
-        Loaded += (_, _) => PageOther_Loaded();
         LoaderInit();
-        PageExit += UnselectedAllWithAnimation;
-        // Handles
-        Load.Click += Load_Click;
-        BtnManageBack.Click += BtnManageBack_Click;
-        BtnHintBack.Click += BtnHintBack_Click;
-        BtnManageSelectAll.Click += BtnManageSelectAll_Click;
-        BtnManageInstall.Click += BtnManageInstall_Click;
-        BtnHintInstall.Click += BtnManageInstall_Click;
-        BtnManageInfoExport.Click += BtnManageInfoExport_Click;
-        Load.StateChanged += (_, _, _) => UnselectedAllWithAnimation();
-        SearchBox.PreviewKeyDown += SearchBox_PreviewKeyDown;
-        BtnFilterAll.Check += ChangeFilter;
-        BtnFilterCanUpdate.Check += ChangeFilter;
-        BtnFilterDisabled.Check += ChangeFilter;
-        BtnFilterEnabled.Check += ChangeFilter;
-        BtnFilterError.Check += ChangeFilter;
-        BtnFilterDuplicate.Check += ChangeFilter;
-        BtnSort.Click += BtnSortClick;
-        BtnSelectEnable.Click += BtnSelectED_Click;
-        BtnSelectDisable.Click += BtnSelectED_Click;
-        BtnSelectUpdate.Click += BtnSelectUpdate_Click;
-        BtnSelectDelete.Click += BtnSelectDelete_Click;
-        BtnSelectCancel.Click += BtnSelectCancel_Click;
-        BtnSelectFavorites.Click += BtnSelectFavorites_Click;
-        BtnSelectShare.Click += BtnSelectShare_Click;
-        SearchBox.TextChanged += SearchRun;
     }
 
     private LocalComp.CompLocalLoaderData GetRequireLoaderData()
@@ -219,9 +181,6 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
             }, true);
 
         Launcher.frmMain.KeyDown += FrmMain_KeyDown;
-        // 调整按钮边距（这玩意儿没法从 XAML 改）
-        foreach (MyRadioButton Btn in PanFilter.Children)
-            Btn.LabText.Margin = new Thickness(-2, 0d, 8d, 0d);
     }
 
     /// <summary>
@@ -898,7 +857,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
     /// <summary>
     ///     打开 Mods 文件夹。
     /// </summary>
-    private void BtnManageBack_Click(object sender, EventArgs e)
+    private void BtnManageBack_Click(object sender, MouseButtonEventArgs e)
     {
         GoBackToParentFolder();
     }

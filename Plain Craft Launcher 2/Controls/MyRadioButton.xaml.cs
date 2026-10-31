@@ -40,6 +40,21 @@ public partial class MyRadioButton
             if (sender is MyRadioButton rb && rb.LabText is not null) rb.LabText.Text = (string)e.NewValue;
         }));
 
+    /// <summary>文本内边距，用于个别位置微调排版。</summary>
+    public Thickness LabTextMargin
+    {
+        get => (Thickness)GetValue(LabTextMarginProperty);
+        set => SetValue(LabTextMarginProperty, value);
+    }
+
+    public static readonly DependencyProperty LabTextMarginProperty = DependencyProperty.Register(
+        nameof(LabTextMargin), typeof(Thickness), typeof(MyRadioButton),
+        new PropertyMetadata(new Thickness(8, 0, 12, 0),
+            (sender, e) =>
+            {
+                if (sender is MyRadioButton rb && rb.LabText is not null) rb.LabText.Margin = (Thickness)e.NewValue;
+            }));
+
     private static readonly Dictionary<object, List<WeakReference<MyRadioButton>>> GroupRegistry =
         new(GroupKeyComparer.Instance);
 
@@ -181,7 +196,7 @@ public partial class MyRadioButton
 
         LogoHost.Height = 16;
         LogoHost.Margin = new Thickness(12, 0, 0, 0);
-        LabText.Margin = new Thickness(8, 0, 12, 0);
+        LabText.Margin = LabTextMargin;
     }
 
     public double LogoScale

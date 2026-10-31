@@ -62,7 +62,26 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
 
     public string CurrentFolderPath { get; private set; } = "";
 
-    public void SetCompType(Comp.CompType compType) => CompType = compType;
+    public void SetCompType(Comp.CompType compType)
+    {
+        CompType = compType;
+
+        // 按资源类型收窄可用操作
+        if (compType is Comp.CompType.Shader or Comp.CompType.ResourcePack or Comp.CompType.Schematic)
+        {
+            ShowSelectEnable = false;
+            ShowSelectDisable = false;
+        }
+
+        // 投影文件管理页隐藏下载按钮
+        if (compType == Comp.CompType.Schematic)
+        {
+            ShowManageDownload = false;
+            ShowHintDownload = false;
+        }
+
+        if (compType != Comp.CompType.Mod) ShowManageJarInJar = false;
+    }
 
     public void SetCurrentFolder(string path) => CurrentFolderPath = path;
 
