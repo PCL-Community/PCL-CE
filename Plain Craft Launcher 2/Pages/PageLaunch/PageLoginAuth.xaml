@@ -63,7 +63,7 @@
             <local:MyTextButton x:Name="BtnWebsite" IsEnabled="{Binding ControlsEnabled}" Text="{DynamicResource Launch.Account.Microsoft.Website}"
                                 Grid.Column="0" Click="BtnWebsite_Click" />
             <local:MyTextButton x:Name="BtnUsePassword" IsEnabled="{Binding ControlsEnabled}" Text="{DynamicResource Launch.Account.Auth.UsePassword}"
-                                Grid.Column="2" />
+                                Grid.Column="2" Click="BtnUsePassword_Click" />
         </Grid>
     </Grid>
     <local:MyTextBox Grid.Row="4" Grid.Column="1" Height="28" x:Name="TextName" />
@@ -84,7 +84,7 @@
         <local:MyTextButton x:Name="BtnPasswordWebsite" IsEnabled="{Binding ControlsEnabled}" Text="{DynamicResource Launch.Account.Microsoft.Website}"
                             Grid.Column="0" Click="BtnWebsite_Click" />
         <local:MyTextButton x:Name="BtnUseOAuth" IsEnabled="{Binding ControlsEnabled}" Visibility="{Binding UseOAuthVisibility}" Text="{DynamicResource Launch.Account.Auth.UseOAuth}"
-                            Grid.Column="2" />
+                            Grid.Column="2" Click="BtnUseOAuth_Click" />
     </Grid>
     <local:MyButton x:Name="BtnBack" IsEnabled="{Binding ControlsEnabled}" Grid.Row="9" Grid.Column="1" Width="50" Margin="-100,0,0,0" ColorType="Normal"
                     Text="{DynamicResource Launch.Account.Auth.Back}" HorizontalAlignment="Center" Click="BtnBackButton_Click" />

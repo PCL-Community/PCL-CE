@@ -46,10 +46,10 @@
                     <WrapPanel Margin="15,8,0,15">
                         <local:MyButton x:Name="BtnBack" MinWidth="110"
                                         Text="{DynamicResource Instance.Resource.BackToParent}" Padding="13,7"
-                                        Margin="0,7,15,0" HorizontalAlignment="Left" ColorType="Highlight" />
+                                        Margin="0,7,15,0" HorizontalAlignment="Left" ColorType="Highlight" Click="BtnBack_Click" />
                         <local:MyButton x:Name="BtnRefresh" MinWidth="110"
                                         Text="{DynamicResource Common.Action.Refresh}" Padding="13,7"
-                                        Margin="0,7,15,0" HorizontalAlignment="Left" />
+                                        Margin="0,7,15,0" HorizontalAlignment="Left" Click="BtnRefresh_Click" />
                         <TextBlock VerticalAlignment="Center" Margin="0,7,15,0" TextWrapping="Wrap"
                                    Foreground="{DynamicResource ColorBrush2}"
                                    Text="{DynamicResource Instance.Resource.Mod.JarInJar.Message}" />
@@ -57,7 +57,7 @@
                 </local:MyCard>
 
                 <local:MySearchBox Margin="0,0,0,15" x:Name="SearchBox"
-                                   HintText="{DynamicResource Instance.Resource.Mod.JarInJar.Search.Hint}" />
+                                   HintText="{DynamicResource Instance.Resource.Mod.JarInJar.Search.Hint}" TextChanged="SearchBox_TextChanged" />
 
                 <local:MyCard x:Name="CardWarnings" Margin="0,0,0,15"
                               Visibility="{Binding CardWarningsVisibility}">
@@ -136,7 +136,7 @@
                            TextWrapping="Wrap" HorizontalAlignment="Center" />
                 <local:MyButton Height="35" x:Name="BtnEmptyBack" MinWidth="130"
                                 Text="{DynamicResource Instance.Resource.BackToParent}" Margin="5,20,5,5"
-                                Padding="12,0" HorizontalAlignment="Center" ColorType="Highlight" />
+                                Padding="12,0" HorizontalAlignment="Center" ColorType="Highlight" Click="BtnEmptyBack_Click" />
             </StackPanel>
         </local:MyCard>
         <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" Margin="40,0" SnapsToDevicePixels="True"

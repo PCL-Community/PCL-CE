@@ -42,9 +42,11 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
         Unloaded += Page_Unloaded;
         Loaded += (_, _) => RefreshOnNavigate();
         LoaderInit();
-        // Handles
-        Load.StateChanged += (_, _, _) => UnselectedAllWithAnimation();
     }
+
+    // Handles
+    private void Load_StateChanged(object sender, MyLoading.MyLoadingState state, MyLoading.MyLoadingState oldState) =>
+        UnselectedAllWithAnimation();
 
     private void Page_Unloaded(object sender, RoutedEventArgs e)
     {

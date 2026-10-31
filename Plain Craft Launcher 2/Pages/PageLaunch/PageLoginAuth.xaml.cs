@@ -44,10 +44,12 @@ public partial class PageLoginAuth
         DataContext = _vm;
         Loaded += (_, _) => Reload();
         Loaded += (_, _) => ReloadRegisterButton();
-        // Handles
-        BtnUsePassword.Click += (_, _) => _SetLoginMode(false);
-        BtnUseOAuth.Click += (_, _) => _SetLoginMode(true);
     }
+
+    // Handles
+    private void BtnUsePassword_Click(object sender, EventArgs e) => _SetLoginMode(false);
+
+    private void BtnUseOAuth_Click(object sender, EventArgs e) => _SetLoginMode(true);
 
     private void Reload()
     {

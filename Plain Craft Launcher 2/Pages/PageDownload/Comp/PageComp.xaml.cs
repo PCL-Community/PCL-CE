@@ -209,8 +209,9 @@ public partial class PageComp
         IsVisibleChanged += PageComp_IsVisibleChanged;
         InitializeComponent();
         DataContext = _vm;
-        PanSearchBox.Search += (_, _) => StartNewSearch();
     }
+
+    private void PanSearchBox_Search(object sender, EventArgs e) => StartNewSearch();
 
     private void PageCompControls_Inited(object sender, EventArgs e)
     {

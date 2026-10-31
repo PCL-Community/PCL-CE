@@ -54,10 +54,11 @@ public partial class PageLaunchLeft
         Loaded += PageLaunchLeft_Loaded;
         WeakLanguageChanged.Add(this, OnLanguageChanged);
         // Handles
-        BtnLaunch.Loaded += (_, _) => RefreshButtonsUI();
         PanLaunchingInfo.SizeChanged += PanLaunchingInfo_SizeChangedH;
         DataContext = _vm;
     }
+
+    private void BtnLaunch_Loaded(object sender, RoutedEventArgs e) => RefreshButtonsUI();
 
     public PageLaunchLeftViewModel ViewModel => _vm;
 

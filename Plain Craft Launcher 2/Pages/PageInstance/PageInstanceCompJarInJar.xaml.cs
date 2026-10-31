@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using PCL.Core.App.Localization;
 using CompFile = PCL.LocalComp.LocalCompFile;
@@ -22,16 +23,20 @@ public partial class PageInstanceCompJarInJar : IPageView
     {
         InitializeComponent();
         DataContext = _vm;
-        BtnBack.Click += (_, _) => GoBack();
-        BtnEmptyBack.Click += (_, _) => GoBack();
-        BtnRefresh.Click += (_, _) => RefreshList();
-        SearchBox.TextChanged += (_, _) =>
-        {
-            _search = (SearchBox.Text ?? "").Trim();
-            RefreshList();
-        };
         Loaded += (_, _) => RefreshOnNavigate();
         Unloaded += (_, _) => _refreshed = false;
+    }
+
+    private void BtnBack_Click(object sender, MouseButtonEventArgs e) => GoBack();
+
+    private void BtnEmptyBack_Click(object sender, MouseButtonEventArgs e) => GoBack();
+
+    private void BtnRefresh_Click(object sender, MouseButtonEventArgs e) => RefreshList();
+
+    private void SearchBox_TextChanged(object sender, EventArgs e)
+    {
+        _search = (SearchBox.Text ?? "").Trim();
+        RefreshList();
     }
 
     public PageInstanceCompJarInJarViewModel ViewModel => _vm;

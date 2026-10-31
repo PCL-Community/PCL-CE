@@ -31,25 +31,6 @@ public partial class PageDownloadInstall : IPageView
         PanScroll = PanBack;
         _vm.LoadingText = Lang.Text("Download.Version.LoadingList");
         WeakLanguageChanged.Add(this, OnLanguageChanged);
-        BtnBack.Click += (_, _) => ExitSelectPage();
-        CardOptiFine.Swap += (_, _) => ReloadSelected();
-        LoadOptiFine.StateChanged += (_, _, _) => ReloadSelected();
-        CardForge.Swap += (_, _) => ReloadSelected();
-        LoadForge.StateChanged += (_, _, _) => ReloadSelected();
-        CardNeoForge.Swap += (_, _) => ReloadSelected();
-        LoadNeoForge.StateChanged += (_, _, _) => ReloadSelected();
-        CardFabric.Swap += (_, _) => ReloadSelected();
-        LoadFabric.StateChanged += (_, _, _) => ReloadSelected();
-        CardFabricApi.Swap += (_, _) => ReloadSelected();
-        LoadFabricApi.StateChanged += (_, _, _) => ReloadSelected();
-        CardOptiFabric.Swap += (_, _) => ReloadSelected();
-        LoadOptiFabric.StateChanged += (_, _, _) => ReloadSelected();
-        CardLiteLoader.Swap += (_, _) => ReloadSelected();
-        LoadLiteLoader.StateChanged += (_, _, _) => ReloadSelected();
-        LoadCleanroom.StateChanged += (_, _, _) => ReloadSelected();
-        CardCleanroom.Swap += (_, _) => ReloadSelected();
-        LoadLabyMod.StateChanged += (_, _, _) => ReloadSelected();
-        CardLabyMod.Swap += (_, _) => ReloadSelected();
         LoadOptiFine.StateChanged += (_, _, _) => OptiFine_Loaded();
         LoadLiteLoader.StateChanged += (_, _, _) => LiteLoader_Loaded();
         LoadForge.StateChanged += (_, _, _) => Forge_Loaded();
@@ -57,12 +38,23 @@ public partial class PageDownloadInstall : IPageView
         LoadCleanroom.StateChanged += (_, _, _) => Cleanroom_Loaded();
         LoadFabric.StateChanged += (_, _, _) => Fabric_Loaded();
         LoadFabricApi.StateChanged += (_, _, _) => FabricApi_Loaded();
-        LoadLegacyFabric.StateChanged += (_, _, _) => LegacyFabric_Loaded();
-        LoadLegacyFabricApi.StateChanged += (_, _, _) => LegacyFabricApi_Loaded();
         LoadOptiFabric.StateChanged += (_, _, _) => OptiFabric_Loaded();
         LoadLabyMod.StateChanged += (_, _, _) => LabyMod_Loaded();
-        BtnStart.Click += (_, _) => BtnStart_Click();
     }
+
+    private void Card_Swap(object sender, Common.RouteEventArgs e) => ReloadSelected();
+
+    private void Load_State(object sender, MyLoading.MyLoadingState state, MyLoading.MyLoadingState oldState) =>
+        ReloadSelected();
+
+    private void LoadLegacyFabric_StateChanged(object sender, MyLoading.MyLoadingState state,
+        MyLoading.MyLoadingState oldState) => LegacyFabric_Loaded();
+
+    private void LoadLegacyFabricApi_StateChanged(object sender, MyLoading.MyLoadingState state,
+        MyLoading.MyLoadingState oldState) => LegacyFabricApi_Loaded();
+
+    private void BtnStart_OnClick(object sender, MouseButtonEventArgs e) => BtnStart_Click();
+
     private static void OnLanguageChanged(PageDownloadInstall page) => page._OnLanguageChanged();
 
     private void LoaderInit()

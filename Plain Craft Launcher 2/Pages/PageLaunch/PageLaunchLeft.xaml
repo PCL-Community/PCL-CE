@@ -39,7 +39,7 @@
                 </TransformGroup>
             </Grid.RenderTransform>
             <local:MyButton x:Name="BtnLaunch" Height="54" Margin="20,0" Text="{Binding LaunchButtonText}" ColorType="Highlight"
-                            Click="BtnLaunch_Click"
+                            Click="BtnLaunch_Click" Loaded="BtnLaunch_Loaded"
                             Padding="30,0,30,15" IsEnabled="{Binding IsLaunchButtonEnabled, Mode=TwoWay}" />
             <TextBlock x:Name="LabVersion" Text="{Binding VersionNameText}" Margin="35,0,35,10" IsHitTestVisible="False"
                        VerticalAlignment="Bottom" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"
