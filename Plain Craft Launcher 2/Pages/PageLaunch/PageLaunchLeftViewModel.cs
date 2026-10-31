@@ -62,7 +62,7 @@ public partial class PageLaunchLeftViewModel : ViewModelBase
     [RelayCommand]
     private void SelectInstance()
     {
-        if (GameLaunch.mcLaunchLoader.State == Common.LoadState.Loading)
+        if (GameLaunch.mcLaunchLoader.State == LoadState.Loading)
             return;
         Launcher.frmMain.PageChange(FormMain.PageType.InstanceSelect);
     }
@@ -98,7 +98,7 @@ public partial class PageLaunchLeftViewModel : ViewModelBase
     [RelayCommand]
     private void OpenInstanceSettings()
     {
-        if (GameLaunch.mcLaunchLoader.State == Common.LoadState.Loading)
+        if (GameLaunch.mcLaunchLoader.State == LoadState.Loading)
             return;
         InstanceList.McMcInstanceSelected.Load();
         PageInstanceLeft.McInstance = InstanceList.McMcInstanceSelected;

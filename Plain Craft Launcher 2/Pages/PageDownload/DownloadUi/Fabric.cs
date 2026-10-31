@@ -42,7 +42,7 @@ public static partial class DownloadUi
             loaders.Add(
                 new LoaderDownload(
                     Lang.Text("Minecraft.Download.Stage.DownloadMainFile"),
-                    [new DownloadFile([.. address], target, new Common.FileChecker(1024 * 64))]
+                    [new DownloadFile([.. address], target, new FileChecker(1024 * 64))]
                 )
                 {
                     ProgressWeight = 15d

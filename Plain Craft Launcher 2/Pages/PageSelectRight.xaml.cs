@@ -50,7 +50,7 @@ public partial class PageSelectRight : IPageView
 
     protected override void RefreshLocalization()
     {
-        if (InstanceList.mcInstanceListLoader.State != Common.LoadState.Finished)
+        if (InstanceList.mcInstanceListLoader.State != LoadState.Finished)
             return;
         var savedOffset = PanBack.VerticalOffset;
         McInstanceListUI(InstanceList.mcInstanceListLoader);
@@ -114,7 +114,7 @@ public partial class PageSelectRight : IPageView
         var elapsed = (DateTime.Now - lastInputTime).TotalMilliseconds;
         var currentDelay = reloadTimer.Interval.TotalMilliseconds;
 
-        if (elapsed >= currentDelay && InstanceList.mcInstanceListLoader.State == Common.LoadState.Finished &&
+        if (elapsed >= currentDelay && InstanceList.mcInstanceListLoader.State == LoadState.Finished &&
             !isRefreshing)
         {
             isRefreshing = true;

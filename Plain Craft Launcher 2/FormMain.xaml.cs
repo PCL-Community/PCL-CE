@@ -8,7 +8,6 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using PCL.Core.App;
-using PCL.Core.Minecraft.Profile;
 using PCL.Core.App.IoC;
 using PCL.Core.App.Localization;
 using PCL.Core.UI.Hints;
@@ -183,12 +182,16 @@ public partial class FormMain
 
         ThemeManager.ThemeRefresh();
         Setup.ApplyAll();
-        Lifecycle.CurrentApplication.Resources["BlurSamplingRate"] = Config.Preference.Blur.SamplingRate * 0.01d;
-        Lifecycle.CurrentApplication.Resources["BlurType"] = Config.Preference.Blur.KernelType;
+        Lifecycle.CurrentApplication.SetResource(
+            "BlurSamplingRate",
+            Config.Preference.Blur.SamplingRate * 0.01d);
+        Lifecycle.CurrentApplication.SetResource("BlurType", Config.Preference.Blur.KernelType);
         if (Config.Preference.Blur.IsEnabled)
-            Lifecycle.CurrentApplication.Resources["BlurRadius"] = Config.Preference.Blur.Radius * 1.0d;
+            Lifecycle.CurrentApplication.SetResource(
+                "BlurRadius",
+                Config.Preference.Blur.Radius * 1.0d);
         else
-            Lifecycle.CurrentApplication.Resources["BlurRadius"] = 0.0d;
+            Lifecycle.CurrentApplication.SetResource("BlurRadius", 0.0d);
 
         // #If DEBUG Then
         // MinHeight = 50
@@ -359,7 +362,7 @@ public partial class FormMain
             Config.Launch.GameWindowMode = GameWindowSizeMode.Default;
 
         // 更新后展示社区版提示
-        UpdateManager.ShowCEAnnounce();
+        UpdateManager.ShowCeAnnounce();
         // 输出更新日志
         if (lastVersionCode <= 0)
             return;
@@ -1226,7 +1229,7 @@ public partial class FormMain
                     Modpack.ModpackInstall(filePath);
                     return;
                 }
-                catch (Common.CancelledException ex)
+                catch (CancelledException ex)
                 {
                     return; // 用户主动取消
                 }

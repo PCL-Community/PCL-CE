@@ -1,0 +1,94 @@
+﻿using System.IO.Compression;
+using System.Text;
+using PCL.Core.App.Localization;
+using static PCL.Loading;
+
+namespace PCL;
+
+public static partial class Modpack
+{
+    private static LoaderCombo<string> InstallPackHmcl(
+        string fileAddress,
+        ZipArchive archive,
+        string archiveBaseFolder)
+    {
+        var json = _ReadHmclManifest(archive, archiveBaseFolder);
+        var instanceName = _ResolveModpackInstanceName(null, json["name"]?.ToString() ?? "");
+        var installTemp = LauncherCommon.GetTempFolder("Modpack");
+        var installLoaders = new List<LoaderBase>
+        {
+            _CreateHmclExtractLoader(fileAddress, archiveBaseFolder, instanceName, installTemp)
+        };
+
+        if (json["gameVersion"] is null)
+            throw new Exception(Lang.Text("Minecraft.Download.Modpack.MissingGameVersion.Hmcl"));
+        var request = new McInstallRequest
+        {
+            targetInstanceName = instanceName,
+            targetInstanceFolder = $@"{GameFolders.mcFolderSelected}versions\{instanceName}\",
+            minecraftName = json["gameVersion"]!.ToString()
+        };
+        var mergeLoaders = ModpackUi.CreateInstallLoader(request);
+        var loaders = _CreateModpackInstallLoaderList(installLoaders, mergeLoaders);
+
+        var loaderName = Lang.Text("Minecraft.Download.Modpack.Task.HmclInstall", instanceName);
+        var loaderIdentifier = $"Modpack:Hmcl:{instanceName}";
+        if (loaderTaskbar.Any(l => l.Identifier == loaderIdentifier))
+        {
+            LauncherUi.Interaction?.ShowHint(
+                Lang.Text("Minecraft.Download.Modpack.Installing"),
+                NotificationType.Error);
+            throw new CancelledException();
+        }
+
+        var loader = new LoaderCombo<string>(loaderName, loaders)
+        {
+            OnStateChanged = ModpackUi.OnInstallStateChanged,
+            Identifier = loaderIdentifier
+        };
+        loader.Start(request.targetInstanceFolder);
+        LoaderTaskbarAdd(loader);
+        CompUi.Current?.RefreshDownloadButton();
+        LauncherCommon.RunInUi(() => CompNavigation.ShowTaskManager());
+        return loader;
+    }
+
+    private static JsonObject _ReadHmclManifest(ZipArchive archive, string archiveBaseFolder)
+    {
+        try
+        {
+            return (JsonObject)
+                LauncherCommon.GetJson(
+                    LauncherCommon.ReadFile(
+                        archive.GetEntry($"{archiveBaseFolder}modpack.json")!.Open(),
+                        Encoding.UTF8));
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("HMCL 整合包安装信息存在问题", ex);
+        }
+    }
+
+    private static LoaderBase _CreateHmclExtractLoader(
+        string fileAddress,
+        string archiveBaseFolder,
+        string instanceName,
+        string installTemp)
+    {
+        return new LoaderTask<string, int>(
+            Lang.Text("Minecraft.Download.Modpack.Stage.ExtractModpack"),
+            task =>
+            {
+                ExtractModpackFiles(installTemp, fileAddress, task, 0.6d);
+                CopyOverrideDirectory(
+                    Path.Combine(installTemp, archiveBaseFolder, "minecraft"),
+                    Path.Combine(GameFolders.mcFolderSelected!, "versions", instanceName),
+                    task,
+                    0.4d);
+            })
+        {
+            ProgressWeight = new FileInfo(fileAddress).Length / 1024d / 1024d / 6d,
+            block = false
+        };
+    }
+}

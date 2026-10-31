@@ -47,7 +47,7 @@ public static partial class DownloadUi
                     var sources = _GetOptiFineDownloadSources(downloadInfo, task);
                     task.output =
                     [
-                        new DownloadFile([.. sources], target, new Common.FileChecker(300 * 1024))
+                        new DownloadFile([.. sources], target, new FileChecker(300 * 1024))
                     ];
                 }
             )
@@ -249,13 +249,13 @@ public static partial class DownloadUi
             var targetLoaders = clientDownloadLoader
                 .GetLoaderList()
                 .Where(l => l.Identifier is McDownloadClientLibId or McDownloadClientJsonId)
-                .Where(l => l.State != Common.LoadState.Finished)
+                .Where(l => l.State != LoadState.Finished)
                 .ToList();
             if (targetLoaders.Any())
                 Common.Log("[Download] OptiFine 安装正在等待原版文件下载完成");
             while (targetLoaders.Any() && !task.IsAborted)
             {
-                targetLoaders = [.. targetLoaders.Where(l => l.State != Common.LoadState.Finished)];
+                targetLoaders = [.. targetLoaders.Where(l => l.State != LoadState.Finished)];
                 Thread.Sleep(50);
             }
 
@@ -304,7 +304,7 @@ public static partial class DownloadUi
                             new DownloadFile(
                                 [.. sources],
                                 targetFolder,
-                                new Common.FileChecker(64 * 1024))
+                                new FileChecker(64 * 1024))
                         ];
                     }
                 )

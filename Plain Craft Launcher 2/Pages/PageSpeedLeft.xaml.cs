@@ -99,7 +99,7 @@ public partial class PageSpeedLeft : IPageView
                 {
                     switch (loader.State)
                     {
-                        case Common.LoadState.Failed:
+                        case LoadState.Failed:
                         {
                             #region 失败，更新卡片
 
@@ -122,7 +122,7 @@ public partial class PageSpeedLeft : IPageView
 
                         #endregion
 
-                        case Common.LoadState.Finished:
+                        case LoadState.Finished:
                         {
                             #region 完成，销毁卡片并返回
 
@@ -132,8 +132,8 @@ public partial class PageSpeedLeft : IPageView
 
                         #endregion
 
-                        case Common.LoadState.Loading:
-                        case Common.LoadState.Waiting:
+                        case LoadState.Loading:
+                        case LoadState.Waiting:
                         {
                             #region 进度不同，更新卡片
 
@@ -154,7 +154,7 @@ public partial class PageSpeedLeft : IPageView
                                     {
                                         switch (SubTask.State)
                                         {
-                                            case Common.LoadState.Waiting:
+                                            case LoadState.Waiting:
                                             {
                                                 if ((string)((FrameworkElement)card.Children[row * 2]).Tag != "Waiting")
                                                 {
@@ -168,7 +168,7 @@ public partial class PageSpeedLeft : IPageView
 
                                                 break;
                                             }
-                                            case Common.LoadState.Loading:
+                                            case LoadState.Loading:
                                             {
                                                 if ((string)((FrameworkElement)card.Children[row * 2]).Tag != "Loading")
                                                 {
@@ -185,7 +185,7 @@ public partial class PageSpeedLeft : IPageView
 
                                                 break;
                                             }
-                                            case Common.LoadState.Finished:
+                                            case LoadState.Finished:
                                             {
                                                 if ((string)((FrameworkElement)card.Children[row * 2]).Tag != "Finished")
                                                 {
@@ -227,7 +227,7 @@ public partial class PageSpeedLeft : IPageView
                         userSummary: Lang.Text("Speed.Error.OperationFailed"));
                 }
             }
-            else if (!(loader.State == Common.LoadState.Aborted || loader.State == Common.LoadState.Finished))
+            else if (!(loader.State == LoadState.Aborted || loader.State == LoadState.Finished))
             {
                 try
                 {
@@ -250,18 +250,18 @@ public partial class PageSpeedLeft : IPageView
                     {
                         switch (SubTask.State)
                         {
-                            case Common.LoadState.Waiting:
+                            case LoadState.Waiting:
                             {
                                 cardXAML +=
                                     $"<Path Stretch=\"Uniform\" Tag=\"Waiting\" Data=\"F1 M5,0 a5,5 360 1 0 0,0.0001 m15,0 a5,5 360 1 0 0,0.0001 m15,0 a5,5 360 1 0 0,0.0001 Z\" Width=\"18\" HorizontalAlignment=\"Center\" Grid.Column=\"0\" Grid.Row=\"{row}\" Fill=\"{{DynamicResource ColorBrush3}}\" Margin=\"0,7,0,0\" VerticalAlignment=\"Top\" Height=\"6\"/>";
                                 break;
                             }
-                            case Common.LoadState.Loading:
+                            case LoadState.Loading:
                             {
                                 cardXAML += $"<TextBlock Text=\"{Lang.Number(SubTask.Progress, "P0")}\" Tag=\"Loading\" HorizontalAlignment=\"Center\" Grid.Column=\"0\" Grid.Row=\"{row}\" Foreground=\"{{DynamicResource ColorBrush3}}\" />";
                                 break;
                             }
-                            case Common.LoadState.Finished:
+                            case LoadState.Finished:
                             {
                                 cardXAML +=
                                     $"<Path Stretch=\"Uniform\" Tag=\"Finished\" Data=\"F1 M 23.7501,33.25L 34.8334,44.3333L 52.2499,22.1668L 56.9999,26.9168L 34.8334,53.8333L 19.0001,38L 23.7501,33.25 Z\" Height=\"16\" Width=\"15\" HorizontalAlignment=\"Center\" Grid.Column=\"0\" Grid.Row=\"{row}\" Fill=\"{{DynamicResource ColorBrush3}}\" Margin=\"0,3,0,0\" VerticalAlignment=\"Top\"/>";
@@ -321,7 +321,7 @@ public partial class PageSpeedLeft : IPageView
                         Common.RunInThread(() => loader.Abort());
                     };
                     // 如果已经失败，再刷新一次，修改成失败的控件
-                    if (loader.State == Common.LoadState.Failed)
+                    if (loader.State == LoadState.Failed)
                     {
                         card.Tag = null; // 避免重复导致刷新无效
                         TaskRefresh(loader);

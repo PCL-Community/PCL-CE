@@ -1,0 +1,12 @@
+using System.Windows.Markup;
+
+[assembly: XmlnsDefinition("https://ce.pclc.cc/core/ui/animation", "PCL.Core.UI.Animation")]
+[assembly: XmlnsDefinition("https://ce.pclc.cc/core/ui/animation", "PCL.Core.UI.Animation.Core")]
+[assembly: XmlnsDefinition("https://ce.pclc.cc/core/ui/animation", "PCL.Core.UI.Animation.Easings")]
+[assembly: XmlnsPrefix("https://ce.pclc.cc/core/ui/animation", "ani")]
+
+[assembly: XmlnsDefinition("https://ce.pclc.cc/core/localization", "PCL.Core.App.Localization")]
+[assembly: XmlnsPrefix("https://ce.pclc.cc/core/localization", "loc")]
+
+[assembly: XmlnsDefinition("https://ce.pclc.cc/core/utils/validate", "PCL.Core.Utils.Validate")]
+[assembly: XmlnsPrefix("https://ce.pclc.cc/core/utils/validate", "val")]

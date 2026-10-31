@@ -907,7 +907,7 @@ public partial class PageInstanceExport : IRefreshable, IPageView
             loaders.Add(new Loading.LoaderTask<int, int>(Lang.Text("Instance.Export.Task.DownloadPclRelease"),
                 loader =>
                 {
-                    UpdateManager.DownloadLatestPCL(loader);
+                    UpdateManager.DownloadLatestPcl(loader);
                     Common.CopyFile(Path.Combine(Common.pathTemp, "CE-Latest.exe"),
                         Path.Combine(cacheFolder, "Plain Craft Launcher.exe"));
                 })

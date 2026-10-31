@@ -257,7 +257,7 @@ public partial class MyCompItem
         if (PanButtons.Opacity > 0d && Tag is Comp.CompProject)
         {
             var project = (Comp.CompProject)Tag;
-            Comp.CompFavorites.ShowMenu(project, (UIElement)sender, () => RefreshFavoriteStatus());
+            CompFavoritesUi.ShowMenu(project, (UIElement)sender, () => RefreshFavoriteStatus());
         }
     }
 

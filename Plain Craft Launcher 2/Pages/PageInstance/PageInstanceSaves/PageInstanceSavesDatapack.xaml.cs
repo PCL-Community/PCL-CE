@@ -41,7 +41,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
     }
 
     // Handles
-    private void Load_StateChanged(object sender, MyLoading.MyLoadingState state, MyLoading.MyLoadingState oldState) =>
+    private void Load_StateChanged(object sender, LoadingState state, LoadingState oldState) =>
         UnselectedAllWithAnimation();
 
     private void Page_Unloaded(object sender, RoutedEventArgs e)
@@ -138,7 +138,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
 
     private void Load_Click(object sender, MouseButtonEventArgs e)
     {
-        if (LocalComp.CompResourceListLoader.State == Common.LoadState.Failed)
+        if (LocalComp.CompResourceListLoader.State == LoadState.Failed)
             LoaderRun(Loading.LoaderFolderRunType.ForceRun);
     }
 
@@ -839,7 +839,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
     {
         var selected = LocalComp.CompResourceListLoader.output
             .Where(m => _vm.SelectedDatapacks.Contains(m.RawPath) && m.Comp is not null).Select(i => i.Comp).ToList();
-        Comp.CompFavorites.ShowMenu(selected, (UIElement)sender);
+        CompFavoritesUi.ShowMenu(selected, (UIElement)sender);
     }
 
     // 分享
@@ -981,34 +981,34 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
             if (_vm.IsSearching)
             {
                 // 构造请求
-                var queryList = new List<Common.SearchEntry<LocalComp.LocalCompFile>>();
+                var queryList = new List<SearchService.SearchEntry<LocalComp.LocalCompFile>>();
                 foreach (var Entry in LocalComp.CompResourceListLoader.output)
                 {
-                    var searchSource = new List<Common.SearchSource>();
-                    searchSource.Add(new Common.SearchSource(Entry.Name, 1d));
-                    searchSource.Add(new Common.SearchSource(Entry.FileName, 1d));
+                    var searchSource = new List<SearchService.SearchSource>();
+                    searchSource.Add(new SearchService.SearchSource(Entry.Name, 1d));
+                    searchSource.Add(new SearchService.SearchSource(Entry.FileName, 1d));
                     if (Entry.Version is not null)
-                        searchSource.Add(new Common.SearchSource(Entry.Version, 0.2d));
+                        searchSource.Add(new SearchService.SearchSource(Entry.Version, 0.2d));
                     if (Entry.Description is not null && !string.IsNullOrEmpty(Entry.Description))
-                        searchSource.Add(new Common.SearchSource(Entry.Description, 0.4d));
+                        searchSource.Add(new SearchService.SearchSource(Entry.Description, 0.4d));
                     if (Entry.Comp is not null)
                     {
                         if ((Entry.Comp.RawName ?? "") != (Entry.Name ?? ""))
-                            searchSource.Add(new Common.SearchSource(Entry.Comp.RawName, 1d));
+                            searchSource.Add(new SearchService.SearchSource(Entry.Comp.RawName, 1d));
                         if ((Entry.Comp.TranslatedName ?? "") != (Entry.Comp.RawName ?? ""))
-                            searchSource.Add(new Common.SearchSource(Entry.Comp.TranslatedName, 1d));
+                            searchSource.Add(new SearchService.SearchSource(Entry.Comp.TranslatedName, 1d));
                         if ((Entry.Comp.Description ?? "") != (Entry.Description ?? ""))
-                            searchSource.Add(new Common.SearchSource(Entry.Comp.Description, 0.4d));
-                        searchSource.Add(new Common.SearchSource(string.Join("", Entry.Comp.Tags), 0.2d));
+                            searchSource.Add(new SearchService.SearchSource(Entry.Comp.Description, 0.4d));
+                        searchSource.Add(new SearchService.SearchSource(string.Join("", Entry.Comp.Tags), 0.2d));
                     }
 
-                    queryList.Add(new Common.SearchEntry<LocalComp.LocalCompFile>
+                    queryList.Add(new SearchService.SearchEntry<LocalComp.LocalCompFile>
                     { item = Entry, searchSource = searchSource });
                 }
 
                 // 进行搜索
                 _vm.SetSearchResult(
-                    Common.Search(queryList, SearchBox.Text, Common.MaxLocalSearchDepth, 0.35d)
+                    SearchService.Search(queryList, SearchBox.Text, SearchService.MaxLocalSearchDepth, 0.35d)
                         .Select(r => r.item).ToList());
             }
 

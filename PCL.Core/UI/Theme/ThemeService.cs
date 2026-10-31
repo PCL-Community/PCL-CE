@@ -2,6 +2,7 @@ using System;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.IoC;
+using PCL.Core.UI.Threading;
 
 namespace PCL.Core.UI.Theme;
 
@@ -45,7 +46,7 @@ public sealed partial class ThemeService
             // trigger color refresh
             if (Lifecycle.CurrentState > LifecycleState.Loading)
             {
-                Lifecycle.CurrentApplication.Dispatcher.BeginInvoke(() =>
+                UiDispatcher.Post(() =>
                 {
                     ApplyColorResources();
                     ColorThemeChanged?.Invoke(CurrentTheme);
@@ -118,7 +119,7 @@ public sealed partial class ThemeService
         _LogStatus();
         if (Lifecycle.CurrentState > LifecycleState.Loading)
         {
-            Lifecycle.CurrentApplication.Dispatcher.BeginInvoke(_RefreshAll);
+            UiDispatcher.Post(_RefreshAll);
         }
     }
 

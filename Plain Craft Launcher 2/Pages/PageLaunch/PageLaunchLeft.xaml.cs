@@ -149,14 +149,14 @@ public partial class PageLaunchLeft : IPageView
                     var installLoader = Modpack.ModpackInstall(packInstallPath);
                     Common.Log("[Launch] 自动安装整合包已开始：" + packInstallPath);
                     installLoader.WaitForExit();
-                    if (installLoader.State == Common.LoadState.Finished)
+                    if (installLoader.State == LoadState.Finished)
                     {
                         Common.Log("[Launch] 自动安装整合包成功，清理安装包：" + packInstallPath);
                         if (File.Exists(packInstallPath))
                             File.Delete(packInstallPath);
                     }
                 }
-                catch (Common.CancelledException ex)
+                catch (CancelledException ex)
                 {
                     Common.Log(ex, "自动安装整合包被用户取消：" + packInstallPath);
                 }
@@ -178,7 +178,7 @@ public partial class PageLaunchLeft : IPageView
                 // 无效的实例
                 Common.Log("[Launch] 当前选择的 Minecraft 实例无效：" + (instance is null ? "null" : instance.PathInstance),
                     instance is null ? Common.LogLevel.Normal : Common.LogLevel.Debug);
-                if (InstanceList.mcInstanceListLoader.State != Common.LoadState.Finished)
+                if (InstanceList.mcInstanceListLoader.State != LoadState.Finished)
                     Loading.LoaderFolderRun(InstanceList.mcInstanceListLoader, GameFolders.mcFolderSelected,
                         Loading.LoaderFolderRunType.ForceRun, 1, @"versions\", true);
                 if (InstanceList.mcInstanceList.Count == 0 ||
@@ -215,7 +215,7 @@ public partial class PageLaunchLeft : IPageView
     // 启动按钮
     public void LaunchButtonClick()
     {
-        if (GameLaunch.mcLaunchLoader.State == Common.LoadState.Loading || !BtnLaunch.IsEnabled ||
+        if (GameLaunch.mcLaunchLoader.State == LoadState.Loading || !BtnLaunch.IsEnabled ||
             (Launcher.frmMain.pageRight is not null &&
              Launcher.frmMain.pageRight.PageState != MyPageRight.PageStates.ContentStay &&
              Launcher.frmMain.pageRight.PageState != MyPageRight.PageStates.ContentEnter))
@@ -259,8 +259,8 @@ public partial class PageLaunchLeft : IPageView
             return;
         // 获取当前状态
         int currentState;
-        if (!isLoadFinished || InstanceList.mcInstanceListLoader.State == Common.LoadState.Loading ||
-            GameFolders.McFolderListLoader.State == Common.LoadState.Loading)
+        if (!isLoadFinished || InstanceList.mcInstanceListLoader.State == LoadState.Loading ||
+            GameFolders.McFolderListLoader.State == LoadState.Loading)
         {
             currentState = 0;
         }
@@ -354,7 +354,7 @@ public partial class PageLaunchLeft : IPageView
     {
         try
         {
-            if (GameLaunch.mcLaunchLoaderReal.State == Common.LoadState.Aborted)
+            if (GameLaunch.mcLaunchLoaderReal.State == LoadState.Aborted)
                 return;
             // 阶段状态获取
             var isLaunched = false; // 是否已经启动游戏，只是在等待窗口
@@ -364,7 +364,7 @@ public partial class PageLaunchLeft : IPageView
                 {
                     var exitTry = false;
                     foreach (var Loader in GameLaunch.mcLaunchLoaderReal.GetLoaderList(false))
-                        if (Loader.State == Common.LoadState.Loading || Loader.State == Common.LoadState.Waiting)
+                        if (Loader.State == LoadState.Loading || Loader.State == LoadState.Waiting)
                         {
                             if (!ReferenceEquals(_launchingStageLoader, Loader))
                             {
@@ -420,7 +420,7 @@ public partial class PageLaunchLeft : IPageView
             {
                 foreach (var Loader in NetFacade.NetManager.Tasks)
                     if (Loader.RealParent?.Identifier == GameLaunch.LaunchStageRootId &&
-                        Loader.State == Common.LoadState.Loading)
+                        Loader.State == LoadState.Loading)
                         hasLaunchDownloader = true;
             }
             catch (Exception ex)
@@ -611,7 +611,7 @@ public partial class PageLaunchLeft : IPageView
         // 初始化其他页面
         PanInput.IsHitTestVisible = false;
         PanLaunching.IsHitTestVisible = false;
-        LoadLaunching.State.LoadingState = MyLoading.MyLoadingState.Run;
+        LoadLaunching.State.LoadingState = LoadingState.Run;
         PanLaunching.Visibility = Visibility.Visible;
         Animations.AniStart(
             new[]
@@ -635,7 +635,7 @@ public partial class PageLaunchLeft : IPageView
         if (PageGet(pageCurrent) is ILoginPage loginPage) loginPage.Reload();
         PanInput.IsHitTestVisible = false;
         PanLaunching.IsHitTestVisible = false;
-        LoadLaunching.State.LoadingState = MyLoading.MyLoadingState.Stop;
+        LoadLaunching.State.LoadingState = LoadingState.Stop;
         PanInput.Visibility = Visibility.Visible;
         Animations.AniStart(
             new[]
