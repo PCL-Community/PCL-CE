@@ -145,12 +145,14 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                             <RowDefinition />
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left"
                                    Text="{loc:Loc Tools.Test.Achievement.ItemId}" Margin="0,0,25,0" />
                         <local:MyTextBox Grid.Column="1" Grid.Row="0" Grid.ColumnSpan="2"
-                                         x:Name="AchievementBlockTextBox" MaxLength="50" Margin="0,10">
+                                         x:Name="AchievementBlockTextBox" MaxLength="50" Margin="0,10"
+                                         TextChanged="_AchievementInput_TextChanged">
                             <local:MyTextBox.ValidateRules>
                                 <val:RegexValidator Pattern="^[a-z0-9_]+$"
                                                     ErrorKey="Tools.Test.Achievement.InvalidId" />
@@ -160,7 +162,8 @@
                         <TextBlock Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Left"
                                    Text="{loc:Loc Tools.Test.Achievement.Name}" Margin="0,0,25,0" />
                         <local:MyTextBox Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2"
-                                         x:Name="AchievementTitleTextBox" MaxLength="50">
+                                         x:Name="AchievementTitleTextBox" MaxLength="50"
+                                         TextChanged="_AchievementInput_TextChanged">
                             <local:MyTextBox.ValidateRules>
                                 <val:NullOrEmptyValidator />
                             </local:MyTextBox.ValidateRules>
@@ -169,7 +172,8 @@
                         <TextBlock Grid.Column="0" Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left"
                                    Text="{loc:Loc Tools.Test.Achievement.Line1}" Margin="0,0,25,0" />
                         <local:MyTextBox Grid.Column="1" Grid.Row="2" Grid.ColumnSpan="2"
-                                         x:Name="AchievementString1TextBox" MaxLength="50" Margin="0,10">
+                                         x:Name="AchievementString1TextBox" MaxLength="50" Margin="0,10"
+                                         TextChanged="_AchievementInput_TextChanged">
                             <local:MyTextBox.ValidateRules>
                                 <val:NullOrEmptyValidator />
                             </local:MyTextBox.ValidateRules>
@@ -178,7 +182,20 @@
                         <TextBlock Grid.Column="0" Grid.Row="3" VerticalAlignment="Center" HorizontalAlignment="Left"
                                    Text="{loc:Loc Tools.Test.Achievement.Line2}" Margin="0,0,25,0" />
                         <local:MyTextBox Grid.Column="1" Grid.Row="3" Grid.ColumnSpan="2"
-                                         x:Name="AchievementString2TextBox" MaxLength="50" />
+                                         x:Name="AchievementString2TextBox" MaxLength="50"
+                                         TextChanged="_AchievementInput_TextChanged" />
+
+                        <TextBlock Grid.Column="0" Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left"
+                                   Text="{loc:Loc Tools.Test.Achievement.Font}" Margin="0,0,25,0" />
+                        <local:MyComboBox Grid.Column="1" Grid.Row="4" Grid.ColumnSpan="2" Height="26"
+                                          MaxDropDownHeight="320" Margin="0,10"
+                                          x:Name="ComboAchievementFont">
+                            <local:MyComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Content}" FontFamily="{Binding FontFamily}" />
+                                </DataTemplate>
+                            </local:MyComboBox.ItemTemplate>
+                        </local:MyComboBox>
                     </Grid>
                     <Grid Margin="0,15,0,10">
                         <Grid.RowDefinitions>
@@ -199,7 +216,11 @@
                                         IsEnabled="{Binding AchievementButtonsEnabled}"
                                         Click="BtnAchievementSave_Click" />
                     </Grid>
-                    <Image x:Name="AchievementImage" Width="320" Height="64" Stretch="Uniform"
+                    <local:MyLoading x:Name="LoadAchievement" Margin="0,5,0,10" HorizontalAlignment="Center"
+                                     Text="{loc:Loc Tools.Test.Achievement.Loading}"
+                                     AutoRun="False" Visibility="Collapsed" />
+                    <Image x:Name="AchievementImage" Width="320" Stretch="Uniform"
+                           HorizontalAlignment="Left"
                            Visibility="{Binding AchievementImageVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 </StackPanel>
             </local:MyCard>
