@@ -22,6 +22,8 @@ using PCL.Network.Loaders;
 using PCL.Core.App.Localization;
 using PCL.Core.UI.Hints;
 using System.Globalization;
+using Media = System.Windows.Media;
+using Point = System.Windows.Point;
 
 namespace PCL;
 
@@ -31,6 +33,35 @@ public partial class PageToolsTest : IPageView
     private bool _refreshed;
     private Bitmap currentSkinBitmap;
     private Bitmap generatedHeadBitmap;
+    private bool _isRenderingAchievement;
+    private bool _achievementFontInitialized; 
+
+    private static readonly Media.FontFamily AchievementFontFamily = new(
+        new Uri("pack://application:,,,/"),
+        "./Resources/#PCL English, Microsoft YaHei UI, Segoe UI");
+
+    /// <summary>
+    ///     在线物品图标源（本地资源取不到时按顺序依次尝试）。
+    /// </summary>
+    private static readonly string[] OnlineIconSources =
+    {
+        "https://blockrender.dev/render/item/{0}.png?size=256",
+        "https://mcitemgallery.com/images-v2/1.21.1/{0}.png"
+    };
+
+    private const string BarrierIconResource = "pack://application:,,,/Resources/AchievementBarrier.png";
+
+    private const string OnlineBarrierUrl =
+        "https://blockrender.dev/render/item/barrier.png?size=256"; //在线屏障图标地址 内置资源加载失败显示图标
+
+    private static BitmapSource? _builtInBarrier; //内置屏障图标的缓存，避免每次渲染都重新解码。
+    private static bool _builtInBarrierLoadFailed; //内置屏障图标已确认加载失败，不再重复尝试。
+
+    /// <summary>
+    ///     在线图标缓存（物品 ID → 位图），避免同一物品被反复请求。
+    /// </summary>
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, BitmapSource>
+        OnlineIconCache = new();
 
     private int headSize = 64;
     private string skinPath = "";
@@ -40,7 +71,17 @@ public partial class PageToolsTest : IPageView
         InitializeComponent();
         DataContext = _vm;
         CmbHeadSize.SelectionChanged += CmbHeadSize_SelectionChanged;
-        Loaded += (_, _) => RefreshOnNavigate();
+        // 成就卡片默认是折叠的，字体列表等它展开再枚举：一次要遍历本机几百个字体，进页面就做会拖慢导航
+        ComboAchievementFont.IsVisibleChanged += (_, _) =>
+        {
+            if (ComboAchievementFont.IsVisible) _ = _InitAchievementFontComboAsync();
+        };
+        Loaded += (_, _) =>
+        {
+            RefreshOnNavigate();
+            // 卡片若本来就是展开状态，可见性不会再变化，这里补一次初始化
+            if (ComboAchievementFont.IsVisible) _ = _InitAchievementFontComboAsync();
+        };
         Unloaded += (_, _) => _refreshed = false;
     }
 
@@ -510,119 +551,755 @@ public partial class PageToolsTest : IPageView
         return Lang.Text(key);
     }
 
-    private async void BtnAchievementPreview_Click(object sender, MouseButtonEventArgs e)
+    private void _AchievementInput_TextChanged(object sender, TextChangedEventArgs e)
     {
-        var url = GetAchievementUrl();
-        Common.Log("[Net] 获取网络结果" + url);
-        await LoadImageAsync(url);
+        if (sender is MyTextBox box) box.Validate();
+
+        StartButtonRefresh();
     }
 
-    private async Task LoadImageAsync(string imageUrl)
+    /// <summary>
+    ///     异步枚举系统字体并填充字体下拉框。
+    /// </summary>
+    /// <remarks>
+    ///     枚举要遍历本机全部字体族，机器上装了几百个字体时在 UI 线程直接跑会明显卡住页面切换，
+    ///     所以枚举放到后台线程，只有创建控件项那一步回到 UI 线程；整个列表只初始化一次。
+    /// </remarks>
+    private async Task _InitAchievementFontComboAsync()
     {
-        var client = NetworkService.GetClient();
+        if (_achievementFontInitialized) return;
+        _achievementFontInitialized = true; // 先占位，避免展开动画期间重复触发
+
+        ComboAchievementFont.IsEnabled = false;
         try
         {
-            var response = await client.GetAsync(imageUrl);
-            if (response.IsSuccessStatusCode)
-                using (var stream = await response.Content.ReadAsStreamAsync())
-                {
-                    var bitmapImage = new BitmapImage();
-                    bitmapImage.BeginInit();
-                    bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmapImage.StreamSource = stream;
-                    bitmapImage.EndInit();
-                    bitmapImage.Freeze();
+            var families = await Task.Run(() => Media.Fonts.SystemFontFamilies
+                .Where(f => !string.IsNullOrWhiteSpace(f.Source))
+                .GroupBy(f => f.Source)
+                .Select(g => g.First())
+                .Select(f => (Source: f.Source, Display: _GetFontDisplayName(f)))
+                .OrderBy(f => f.Display, StringComparer.CurrentCulture)
+                .ToList());
 
-                    Dispatcher.Invoke(() =>
-                    {
-                        AchievementImage.Source = bitmapImage;
-                        _vm.AchievementImageVisible = true;
-                    });
+            var items = new List<MyComboBoxItem>(families.Count + 1)
+            {
+                // 首项固定是内置字体：Tag 留空时 ResolveAchievementFont 会退回 AchievementFontFamily，
+                // 这样用户没主动选字体时，渲染结果与这台机器装了哪些字体无关
+                new MyComboBoxItem
+                {
+                    Content = Lang.Text("Common.Option.Default"),
+                    FontFamily = AchievementFontFamily
                 }
-            else if (response.StatusCode == HttpStatusCode.NotFound)
-                Dispatcher.Invoke(() =>
+            };
+            foreach (var (source, display) in families)
+            {
+                var item = new MyComboBoxItem
                 {
-                    Common.Log("获取成就图片失败（404）");
-                    HintService.Show(Hints.Error(Lang.Text("Tools.Test.Achievement.FetchFailed")));
-                });
+                    Content = display,
+                    Tag = source // Tag 保存真正的字体族名，渲染时用它构造 FontFamily
+                };
+                try
+                {
+                    // 让每一项用自己的字体渲染，下拉列表里能直接看到字体效果
+                    item.FontFamily = new Media.FontFamily(source);
+                }
+                catch
+                {
+                    // 个别字体构造失败时保持默认字体显示，不影响选择
+                }
 
-            else
-                Dispatcher.Invoke(() => Common.Log("获取成就图片失败（" + (int)response.StatusCode + "）"));
+                items.Add(item);
+            }
+
+            ComboAchievementFont.ItemsSource = items;
+            ComboAchievementFont.SelectedIndex = 0;
         }
-
         catch (Exception ex)
         {
-            Dispatcher.Invoke(() => Common.Log(ex, "获取成就图片失败"));
+            Common.Log(ex, "枚举系统字体失败");
+        }
+        finally
+        {
+            ComboAchievementFont.IsEnabled = true;
+        }
+    }
+
+    /// <summary>
+    ///     取字体族的本地化显示名。
+    /// </summary>
+    /// <param name="family">字体族。</param>
+    /// <returns>当前界面语言下的字体名；没有本地化名时退回字体族名（通常为英文）。</returns>
+    private static string _GetFontDisplayName(Media.FontFamily family)
+    {
+        try
+        {
+            // 注意：FamilyNames 的键是 XmlLanguage 而不是 CultureInfo
+            var names = family.FamilyNames;
+            var current = System.Windows.Markup.XmlLanguage.GetLanguage(
+                CultureInfo.CurrentUICulture.IetfLanguageTag);
+
+            if (names.TryGetValue(current, out var localized) && !string.IsNullOrWhiteSpace(localized))
+                return localized;
+
+            // 当前语言没有对应条目时，退一步找一个中文名
+            foreach (var pair in names)
+                if (pair.Key.IetfLanguageTag.StartsWith("zh", StringComparison.OrdinalIgnoreCase)
+                    && !string.IsNullOrWhiteSpace(pair.Value))
+                    return pair.Value;
+        }
+        catch
+        {
+            // 忽略，退回 Source
+        }
+
+        return family.Source;
+    }
+
+    private async void BtnAchievementPreview_Click(object sender, MouseButtonEventArgs e)
+    {
+        if (_isRenderingAchievement) return;
+
+        LoadAchievement.State.LoadingState = MyLoading.MyLoadingState.Run;
+        LoadAchievement.Visibility = Visibility.Visible;
+        _isRenderingAchievement = true;
+        StartButtonRefresh(); // 立刻禁用两个按钮，避免重复触发
+        try
+        {
+            await Task.Yield();
+            var itemId = AchievementBlockTextBox.Text.Trim();
+            var rawTitle = AchievementTitleTextBox.Text;
+            var rawLine1 = AchievementString1TextBox.Text;
+            var rawLine2 = AchievementString2TextBox.Text;
+
+            var (icon, notFound) = await _LoadAchievementIconAsync(itemId);
+            if (notFound && !string.IsNullOrEmpty(itemId))
+                HintService.Show(Hints.Info(Lang.Text("Tools.Test.Achievement.IconNotFound", itemId)));
+
+            AchievementImage.Source = _RenderAchievementImage(icon, itemId, rawTitle, rawLine1, rawLine2);
+            _vm.AchievementImageVisible = true;
+        }
+        catch (Exception ex)
+        {
+            Common.Log(ex, "渲染成就图片失败");
+            HintService.Show(Hints.Error(Lang.Text("Tools.Test.Achievement.FetchFailed")));
+        }
+        finally
+        {
+            LoadAchievement.State.LoadingState = MyLoading.MyLoadingState.Stop;
+            LoadAchievement.Visibility = Visibility.Collapsed;
+            _isRenderingAchievement = false;
+            StartButtonRefresh();
         }
     }
 
     private async void BtnAchievementSave_Click(object sender, MouseButtonEventArgs e)
     {
-        var url = GetAchievementUrl();
-        await DownloadImageToLocalAsync(url);
-    }
+        if (_isRenderingAchievement) return;
 
-    private async Task DownloadImageToLocalAsync(string imageUrl)
-    {
-        var savePath = Common.pathTemp + @"Download\" + Common.GetHash(imageUrl) + ".png";
-        var client = NetworkService.GetClient();
+        LoadAchievement.State.LoadingState = MyLoading.MyLoadingState.Run;
+        LoadAchievement.Visibility = Visibility.Visible;
+        _isRenderingAchievement = true;
+        StartButtonRefresh(); // 立刻禁用两个按钮，避免重复触发
         try
         {
-            // 异步发送 GET 请求
-            var response = await client.GetAsync(imageUrl);
+            await Task.Yield(); // 先把加载指示绘制出来
+            var itemId = AchievementBlockTextBox.Text.Trim();
+            var rawTitle = AchievementTitleTextBox.Text;
+            var rawLine1 = AchievementString1TextBox.Text;
+            var rawLine2 = AchievementString2TextBox.Text;
 
-            // 如果响应状态码是成功的，则继续
-            if (response.IsSuccessStatusCode)
+            var (icon, notFound) = await _LoadAchievementIconAsync(itemId);
+
+            if (notFound && !string.IsNullOrEmpty(itemId))
+                HintService.Show(Hints.Info(Lang.Text("Tools.Test.Achievement.IconNotFound", itemId)));
+
+            var encoder = new PngBitmapEncoder();
+            encoder.Frames.Add(BitmapFrame.Create(
+                _RenderAchievementImage(icon, itemId, rawTitle, rawLine1, rawLine2)));
+
+            using var buffer = new MemoryStream();
+            encoder.Save(buffer);
+            buffer.Position = 0;
+
+            var path = SystemDialogs.SelectSaveFile(Lang.Text("Tools.Test.Achievement.Save"),
+                _SanitizeFileName(_StripMinecraftCodes(rawTitle)) + ".png",
+                Lang.Text("Tools.Test.Achievement.FileFilter"));
+            if (string.IsNullOrEmpty(path))
             {
-                // 异步读取响应内容为字节流
-                var imageBytes = await response.Content.ReadAsByteArrayAsync();
-
-                // 将字节写入本地文件
-                File.WriteAllBytes(savePath, imageBytes);
-
-                var path =
-                    SystemDialogs.SelectSaveFile(Lang.Text("Tools.Test.Achievement.Save"), AchievementTitleTextBox.Text + ".png", Lang.Text("Tools.Test.Achievement.FileFilter"));
-                if (string.IsNullOrEmpty(path))
-                {
-                    Common.Log("用户取消了保存操作");
-                    File.Delete(savePath);
-                    return;
-                }
-
-                Common.CopyFile(savePath, path);
-                File.Delete(savePath);
-                HintService.Show(Hints.Success(Lang.Text("Tools.Test.Achievement.Saved")));
+                Common.Log("用户取消了保存操作");
+                return;
             }
-            // 下载成功，返回 True
-            else if (response.StatusCode == HttpStatusCode.NotFound)
+
+            using (var file = File.Create(path))
             {
-                // 捕获 404 错误
-                Common.Log("获取成就图片失败（404）");
-                HintService.Show(Hints.Error(Lang.Text("Tools.Test.Achievement.FetchFailed")));
+                buffer.CopyTo(file);
+            }
+
+            HintService.Show(Hints.Success(Lang.Text("Tools.Test.Achievement.Saved")));
+        }
+        catch (Exception ex)
+        {
+            Common.Log(ex, "保存成就图片失败");
+            HintService.Show(Hints.Error(Lang.Text("Tools.Test.Achievement.FetchFailed")));
+        }
+        finally
+        {
+            LoadAchievement.State.LoadingState = MyLoading.MyLoadingState.Stop;
+            LoadAchievement.Visibility = Visibility.Collapsed;
+            _isRenderingAchievement = false;
+            StartButtonRefresh();
+        }
+    }
+
+    private static readonly Media.Color[] AchievementIconPalette =
+    {
+        Media.Color.FromRgb(0x8B, 0x8B, 0x8B), // 石头灰
+        Media.Color.FromRgb(0x8B, 0x5A, 0x2B), // 木头棕
+        Media.Color.FromRgb(0x4C, 0x8B, 0x3C), // 草绿
+        Media.Color.FromRgb(0x4A, 0x6B, 0x9C), // 水蓝
+        Media.Color.FromRgb(0xA0, 0x3C, 0x3C), // 红石红
+        Media.Color.FromRgb(0xC8, 0xA8, 0x3C), // 金
+        Media.Color.FromRgb(0x6B, 0x4A, 0x8B), // 紫水晶
+        Media.Color.FromRgb(0x3C, 0x3C, 0x3C), // 煤炭黑
+        Media.Color.FromRgb(0xDC, 0xDC, 0xDC), // 铁白
+        Media.Color.FromRgb(0x8B, 0x3C, 0x6B), // 品红
+        Media.Color.FromRgb(0x2E, 0x7A, 0x7A), // 青绿
+        Media.Color.FromRgb(0x9C, 0x6B, 0x3C) // 铜
+    };
+
+    private Media.FontFamily ResolveAchievementFont()
+    {
+        var name = (ComboAchievementFont.SelectedItem as MyComboBoxItem)?.Tag as string;
+        if (string.IsNullOrWhiteSpace(name))
+            return AchievementFontFamily;
+
+        try
+        {
+            return new Media.FontFamily(name);
+        }
+        catch
+        {
+            return AchievementFontFamily;
+        }
+    }
+
+    private BitmapSource _RenderAchievementImage(BitmapSource? icon, string itemId, string rawTitle,
+        string rawLine1, string rawLine2)
+    {
+        const double contentWidth = 320;
+        const double minContentHeight = 64;
+        const double borderWidth = 2;
+        const double cornerRadius = 5;
+        const double padding = 12;
+        const double iconSize = 32;
+        const double textSpacing = 4;
+        const double titleYAdjust = -3; // 修正像素字体的基线偏移
+        const double fontSize = 16;
+        const int superSample = 3;
+
+        var backgroundColor = Media.Color.FromArgb(220, 42, 42, 42);
+        var borderDarkColor = Media.Color.FromArgb(255, 25, 25, 25);
+        var borderLightColor = Media.Color.FromArgb(255, 85, 85, 85);
+        var shadowColor = Media.Color.FromArgb(255, 10, 10, 10);
+        var titleColor = Media.Color.FromArgb(255, 0xFF, 0xFF, 0x55);
+        var descColor = Media.Color.FromArgb(255, 255, 255, 255);
+
+        var title = _TruncateText(_StripMinecraftCodes(rawTitle));
+        var line1 = _TruncateText(_StripMinecraftCodes(rawLine1));
+        var line2 = _TruncateText(_StripMinecraftCodes(rawLine2));
+
+        var description = line1.Length == 0 ? line2
+            : line2.Length == 0 ? line1
+            : line1 + "\n" + line2;
+
+        var typeface = new Media.Typeface(ResolveAchievementFont(), FontStyles.Normal, FontWeights.Normal,
+            FontStretches.Normal);
+
+        var textX = padding + iconSize + padding;
+        var maxTextWidth = contentWidth - textX - padding;
+
+        List<Media.FormattedText> MakeLines(string text, Media.Color color)
+        {
+            var lines = new List<Media.FormattedText>();
+            foreach (var line in _WrapTextByWidth(text, typeface, fontSize, maxTextWidth, superSample).Split('\n'))
+            {
+                lines.Add(new Media.FormattedText(line, CultureInfo.CurrentUICulture, _GetFlowDirection(line),
+                    typeface, fontSize, new Media.SolidColorBrush(color), superSample)
+                {
+                    MaxTextWidth = maxTextWidth,
+                    Trimming = TextTrimming.None // 已经手动断好行，不需要再省略
+                });
+            }
+
+            return lines;
+        }
+
+        var titleLines = MakeLines(title, titleColor);
+        var titleShadowLines = MakeLines(title, shadowColor);
+        var descLines = string.IsNullOrEmpty(description) ? null : MakeLines(description, descColor);
+        var descShadowLines = descLines is null ? null : MakeLines(description, shadowColor);
+
+        // 卡片高度：最小高度与「文字总高 + 上下内边距」取较大者
+        var titleHeight = titleLines.Sum(line => line.Height);
+        var descHeight = descLines?.Sum(line => line.Height) ?? 0;
+        var totalTextHeight = titleHeight + (descLines != null ? textSpacing + descHeight : 0);
+        var contentHeight = Math.Max(minContentHeight, totalTextHeight + padding * 2);
+
+        var totalWidth = contentWidth + borderWidth * 2;
+        var totalHeight = contentHeight + borderWidth * 2;
+
+        var visual = new Media.DrawingVisual();
+        // 本地贴图是 16×16 的像素图，放大时用最近邻才不会糊；在线源是 256×256 的渲染图，
+        // 缩到 32×32 若仍用最近邻会丢掉 7/8 的像素，边缘全是锯齿，需要高质量插值。
+        Media.RenderOptions.SetBitmapScalingMode(visual,
+            icon is not null && icon.PixelWidth > iconSize
+                ? Media.BitmapScalingMode.HighQuality
+                : Media.BitmapScalingMode.NearestNeighbor);
+
+        using (Media.DrawingContext dc = visual.RenderOpen())
+        {
+            // ---- 1. 三层圆角边框：深色外框 → 浅色次层 → 半透明内容底 ----
+            var outerRadius = cornerRadius + borderWidth;
+            dc.DrawRoundedRectangle(new Media.SolidColorBrush(borderDarkColor), null,
+                new Rect(0, 0, totalWidth, totalHeight), outerRadius, outerRadius);
+            dc.DrawRoundedRectangle(new Media.SolidColorBrush(borderLightColor), null,
+                new Rect(1, 1, totalWidth - 2, totalHeight - 2), outerRadius - 1, outerRadius - 1);
+            dc.DrawRoundedRectangle(new Media.SolidColorBrush(backgroundColor), null,
+                new Rect(borderWidth, borderWidth, contentWidth, contentHeight), cornerRadius, cornerRadius);
+
+            // ---- 2. 图标：优先用真实贴图，取不到时画一个由物品 ID 决定颜色的占位方块 ----
+            var iconRect = new Rect(padding + borderWidth, (totalHeight - iconSize) / 2, iconSize, iconSize);
+            if (icon != null)
+                dc.DrawImage(icon, iconRect);
+            else
+                _DrawAchievementIcon(dc, iconRect.TopLeft, iconSize, itemId);
+
+            // ---- 3. 文字（整体垂直居中，每行带 1px 右下偏移的阴影）----
+            // 每行都从同一个 x 开始绘制；段落自己的对齐（LTR 靠左、RTL 靠右）由 FormattedText 负责。
+            void DrawLines(List<Media.FormattedText> lines, List<Media.FormattedText> shadows, double startY)
+            {
+                var y = startY;
+                for (var i = 0; i < lines.Count; i++)
+                {
+                    dc.DrawText(shadows[i], new Point(textX + borderWidth + 1, y + 1));
+                    dc.DrawText(lines[i], new Point(textX + borderWidth, y));
+                    y += lines[i].Height;
+                }
+            }
+
+            var textStartY = (totalHeight - totalTextHeight) / 2;
+            DrawLines(titleLines, titleShadowLines, textStartY + titleYAdjust);
+            if (descLines != null && descShadowLines != null)
+                DrawLines(descLines, descShadowLines, textStartY + titleHeight + textSpacing);
+        }
+
+        var target = new RenderTargetBitmap(
+            (int)Math.Ceiling(totalWidth * superSample), (int)Math.Ceiling(totalHeight * superSample),
+            96 * superSample, 96 * superSample, Media.PixelFormats.Pbgra32);
+        target.Render(visual);
+        target.Freeze();
+        return target;
+    }
+
+    /// <summary>
+    ///     按像素宽度把文本手动断行（逐字符累加测量）。
+    /// </summary>
+    private static string _WrapTextByWidth(string text, Media.Typeface typeface, double fontSize, double maxWidth,
+        int pixelsPerDip)
+    {
+        if (string.IsNullOrEmpty(text)) return text;
+
+        var result = new System.Text.StringBuilder(text.Length + 8);
+        var current = "";
+
+        foreach (var rune in text.EnumerateRunes())
+        {
+            if (rune.Value == '\n')
+            {
+                result.Append(current).Append('\n');
+                current = "";
+                continue;
+            }
+
+            var candidate = current + rune.ToString();
+            if (current.Length > 0
+                && _MeasureTextWidth(candidate, typeface, fontSize, pixelsPerDip) > maxWidth)
+            {
+                result.Append(current).Append('\n');
+                current = rune.ToString();
             }
             else
             {
-                // 处理其他非成功状态码
-                Common.Log("获取成就图片失败（" + (int)response.StatusCode + "）");
+                current = candidate;
             }
         }
 
-        catch (Exception ex)
+        result.Append(current);
+        return result.ToString();
+    }
+
+    /// <summary>
+    ///     按文本内容判断书写方向。
+    /// </summary>
+    private static FlowDirection _GetFlowDirection(string text)
+    {
+        foreach (var rune in text.EnumerateRunes())
         {
-            // 捕获所有其他异常（如网络连接问题）
-            Common.Log(ex, "获取成就图片失败");
+            if (rune.Value is >= 0x0590 and <= 0x08FF
+                or >= 0xFB1D and <= 0xFDFD
+                or >= 0xFE70 and <= 0xFEFF)
+                return FlowDirection.RightToLeft;
+            if (System.Text.Rune.IsLetter(rune))
+                return FlowDirection.LeftToRight;
+        }
+
+        return FlowDirection.LeftToRight;
+    }
+
+    /// <summary>
+    ///     测量一段文本的显示宽度。
+    /// </summary>
+    private static double _MeasureTextWidth(string text, Media.Typeface typeface, double fontSize, int pixelsPerDip)
+    {
+        var formatted = new Media.FormattedText(
+            text, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, typeface, fontSize,
+            Media.Brushes.Black, pixelsPerDip);
+
+        return formatted.WidthIncludingTrailingWhitespace;
+    }
+
+    /// <summary>
+    ///     文本超出长度上限时截取前若干字符并追加省略号。
+    /// </summary>
+    private static string _TruncateText(string text)
+    {
+        const int maxLength = 67;
+        if (string.IsNullOrEmpty(text) || text.Length <= maxLength) return text;
+
+        var builder = new System.Text.StringBuilder(maxLength + 3);
+        foreach (var rune in text.EnumerateRunes())
+        {
+            if (builder.Length + rune.Utf16SequenceLength > maxLength) break;
+            builder.Append(rune.ToString());
+        }
+
+        return builder.Append("...").ToString();
+    }
+
+    /// <summary>
+    ///     移除 Minecraft 颜色代码（形如 §c、§l）。
+    /// </summary>
+    private static string _StripMinecraftCodes(string text)
+    {
+        if (string.IsNullOrEmpty(text) || !text.Contains('§'))
+            return text;
+
+        var builder = new System.Text.StringBuilder(text.Length);
+        for (var i = 0; i < text.Length; i++)
+        {
+            if (text[i] == '§')
+            {
+                i++; // 连同后一个字符一起跳过
+                continue;
+            }
+
+            builder.Append(text[i]);
+        }
+
+        return builder.ToString();
+    }
+
+    /// <summary>
+    ///     把文本转换成可用作文件名的形式。
+    /// </summary>
+    private static string _SanitizeFileName(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return "achievement";
+
+        var builder = new System.Text.StringBuilder(text.Length);
+        foreach (var c in text)
+            if (Array.IndexOf(Path.GetInvalidFileNameChars(), c) < 0 && c is not ('\r' or '\n'))
+                builder.Append(c);
+
+        var name = builder.ToString().Trim().TrimEnd('.');
+        if (name.Length > 50) name = name[..50].TrimEnd();
+        return string.IsNullOrEmpty(name) ? "achievement" : name;
+    }
+
+    /// <summary>
+    ///     定位实例实际启用的客户端 JAR，先跟 jar 覆盖字段，再沿继承链向上查找。
+    /// </summary>
+    private static string? _ResolveClientJarPath(McInstance instance)
+    {
+        // 父实例要靠游戏文件夹拼路径，没选文件夹时直接放弃，交给在线源兜底
+        var folder = GameFolders.mcFolderSelected;
+        if (string.IsNullOrEmpty(folder)) return null;
+
+        var current = instance;
+        // 继承链可能是自引用或成环（inheritsFrom 指向自己、或两个实例互指），按「实例目录 + 名字」去重：
+        // 同一个实例再次出现说明已经绕回来了，必须停下，否则这里会无限 new McInstance 卡死 UI 线程
+        var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        while (current is not null)
+        {
+            if (!visited.Add(current.PathInstance + current.Name)) break;
+
+            var jarName = current.JsonObject["jar"]?.ToString();
+            var target = current;
+            if (!string.IsNullOrEmpty(jarName) && jarName != current.Name)
+            {
+                try
+                {
+                    target = new McInstance(jarName);
+                }
+                catch
+                {
+                    target = current; // jar 字段指向的实例缺失时退回自身
+                }
+            }
+
+            var jar = target.PathInstance + target.Name + ".jar";
+            if (File.Exists(jar)) return jar;
+
+            if (string.IsNullOrEmpty(current.InheritInstanceName)) break;
+            try
+            {
+                current = new McInstance(Path.Combine(folder, "versions", current.InheritInstanceName));
+            }
+            catch
+            {
+                break; // 父实例信息异常时停止向上查找，交给在线源兜底
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    ///     从客户端 JAR 中读出指定物品贴图的原始字节。
+    /// </summary>
+    private static byte[]? _ReadJarEntryBytes(string jarPath, string itemId)
+    {
+        try
+        {
+            using var jar = new System.IO.Compression.ZipArchive(
+                new FileStream(jarPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+            foreach (var folder in new[] { "item", "block", "items", "blocks" })
+            {
+                var entry = jar.GetEntry($"assets/minecraft/textures/{folder}/{itemId}.png");
+                if (entry is null) continue;
+
+                using var entryStream = entry.Open();
+                using var buffer = new MemoryStream();
+                entryStream.CopyTo(buffer);
+                return buffer.ToArray();
+            }
+        }
+        catch
+        {
+            // 任何异常都静默退回内置图标，不能因为找不到贴图就让整张图生成失败
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    ///     把图片字节解码为冻结的位图。
+    /// </summary>
+    private static BitmapSource? _DecodeIcon(byte[] bytes)
+    {
+        try
+        {
+            using var stream = new MemoryStream(bytes);
+            var bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.CacheOption = BitmapCacheOption.OnLoad; // 一次性读入内存，避免文件句柄被占用
+            bitmap.StreamSource = stream;
+            bitmap.EndInit();
+            bitmap.Freeze();
+            return bitmap;
+        }
+        catch
+        {
+            return null;
         }
     }
 
-    private string GetAchievementUrl()
+    /// <summary>
+    ///     在限定时间内下载指定地址的字节内容。
+    /// </summary>
+    private static byte[]? _DownloadBytes(string url)
     {
-        var block = AchievementBlockTextBox.Text.Trim();
-        var title = AchievementTitleTextBox.Text.Replace(" ", "..");
-        var str1 = AchievementString1TextBox.Text.Replace(" ", "..");
-        var str2 = AchievementString2TextBox.Text.Replace(" ", "..");
-        var url = $"https://minecraft-api.com/api/achivements/{block}/{title}/{str1}";
-        if (!string.IsNullOrEmpty(str2)) url += $"/{str2}";
-        return url;
+        try
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            var bytes = NetworkService.GetClient()
+                .GetByteArrayAsync(url, cts.Token)
+                .GetAwaiter().GetResult();
+            return bytes is { Length: > 0 } ? bytes : null;
+        }
+        catch (OperationCanceledException)
+        {
+            Common.Log("在线图标获取超时：" + url);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Common.Log(ex, "在线图标获取失败：" + url);
+            return null;
+        }
+    }
+
+    private async Task<(BitmapSource? Icon, bool NotFound)> _LoadAchievementIconAsync(string itemId)
+    {
+        // 实例解析与 JAR 定位留在 UI 线程（要访问实例列表），
+        // 打开 JAR、拷贝字节放到后台，避免实例所在磁盘较慢时卡住界面和加载动画
+        string? jarPath = null;
+        if (!string.IsNullOrWhiteSpace(itemId) && !string.IsNullOrEmpty(GameFolders.mcFolderSelected))
+        {
+            var instance = InstanceList.McMcInstanceSelected;
+            if (instance is not null) jarPath = _ResolveClientJarPath(instance);
+        }
+
+        if (jarPath is not null)
+        {
+            var path = jarPath;
+            var localBytes = await Task.Run(() => _ReadJarEntryBytes(path, itemId));
+            var local = localBytes is null ? null : _DecodeIcon(localBytes);
+            if (local != null) return (local, false);
+        }
+
+        var online = await Task.Run(() => _TryLoadOnlineIcon(itemId));
+        if (online != null) return (online, false);
+
+        // 仍然取不到：换成屏障图标明确表示「这个物品没有图标」，
+        // 同时把 NotFound 标记传出去让调用方提示；
+        // 连屏障都加载失败时返回 null，由调用方绘制内置立方体兜底
+        var barrier = _TryLoadBuiltInBarrier() ?? await Task.Run(_LoadOnlineBarrier);
+        return (barrier, true);
+    }
+
+    /// <summary>
+    ///     加载随程序内置的屏障图标。
+    /// </summary>
+    /// <returns>屏障图标；资源缺失时返回 null。</returns>
+    private static BitmapSource? _TryLoadBuiltInBarrier()
+    {
+        if (_builtInBarrier != null) return _builtInBarrier;
+        if (_builtInBarrierLoadFailed) return null;
+
+        try
+        {
+            var bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.UriSource = new Uri(BarrierIconResource);
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.EndInit();
+            bitmap.Freeze();
+
+            _builtInBarrier = bitmap;
+            return bitmap;
+        }
+        catch (Exception ex)
+        {
+            Common.Log(ex, "内置屏障图标加载失败");
+            _builtInBarrierLoadFailed = true;
+            return null;
+        }
+    }
+
+    /// <summary>
+    ///     从在线源加载屏障图标。
+    /// </summary>
+    /// <returns>屏障图标；请求失败时返回 null。</returns>
+    private static BitmapSource? _LoadOnlineBarrier()
+    {
+        var bytes = _DownloadBytes(OnlineBarrierUrl);
+        return bytes is null ? null : _DecodeIcon(bytes);
+    }
+
+    /// <summary>
+    ///     从在线图标源获取物品图标（本机资源不可用时的兜底）。
+    /// </summary>
+    /// <param name="itemId">物品 ID。</param>
+    /// <returns>图标位图；所有源都失败时返回 null。</returns>
+    private static BitmapSource? _TryLoadOnlineIcon(string itemId)
+    {
+        if (string.IsNullOrWhiteSpace(itemId)) return null;
+        if (OnlineIconCache.TryGetValue(itemId, out var cached)) return cached;
+
+        foreach (var template in OnlineIconSources)
+        {
+            var url = string.Format(template, Uri.EscapeDataString(itemId));
+            var bytes = _DownloadBytes(url);
+            if (bytes is null) continue;
+
+            var bitmap = _DecodeIcon(bytes);
+            if (bitmap is null) continue;
+
+            OnlineIconCache[itemId] = bitmap;
+            return bitmap;
+        }
+
+        return null;
+    }
+
+    private static void _DrawAchievementIcon(Media.DrawingContext dc, System.Windows.Point origin, double size,
+        string itemId)
+    {
+        var baseColor = _PickAchievementIconColor(itemId);
+        var halfWidth = size / 2;
+        var quarterHeight = size / 4;
+
+        var top = new Point(origin.X + halfWidth, origin.Y);
+        var rightTop = new Point(origin.X + size, origin.Y + quarterHeight);
+        var rightBottom = new Point(origin.X + size, origin.Y + size - quarterHeight);
+        var bottom = new Point(origin.X + halfWidth, origin.Y + size);
+        var leftBottom = new Point(origin.X, origin.Y + size - quarterHeight);
+        var leftTop = new Point(origin.X, origin.Y + quarterHeight);
+        var center = new Point(origin.X + halfWidth, origin.Y + halfWidth);
+
+        var edgePen = new Media.Pen(new Media.SolidColorBrush(_ShadeAchievementColor(baseColor, 0.55)), 1);
+
+        _FillAchievementPolygon(dc, new[] { top, rightTop, center, leftTop },
+            _ShadeAchievementColor(baseColor, 1.25), edgePen); // 顶面
+        _FillAchievementPolygon(dc, new[] { leftTop, center, bottom, leftBottom },
+            _ShadeAchievementColor(baseColor, 1.0), edgePen); // 左面
+        _FillAchievementPolygon(dc, new[] { center, rightTop, rightBottom, bottom },
+            _ShadeAchievementColor(baseColor, 0.75), edgePen); // 右面
+    }
+
+    private static void _FillAchievementPolygon(Media.DrawingContext dc, System.Windows.Point[] points,
+        Media.Color color, Media.Pen pen)
+    {
+        var geometry = new Media.StreamGeometry();
+        using (Media.StreamGeometryContext ctx = geometry.Open())
+        {
+            ctx.BeginFigure(points[0], true, true);
+            for (var i = 1; i < points.Length; i++)
+                ctx.LineTo(points[i], true, false);
+        }
+
+        geometry.Freeze();
+        dc.DrawGeometry(new Media.SolidColorBrush(color), pen, geometry);
+    }
+
+    private static Media.Color _ShadeAchievementColor(Media.Color color, double factor)
+    {
+        return Media.Color.FromRgb(
+            (byte)Math.Clamp(color.R * factor, 0, 255),
+            (byte)Math.Clamp(color.G * factor, 0, 255),
+            (byte)Math.Clamp(color.B * factor, 0, 255));
+    }
+
+    private static Media.Color _PickAchievementIconColor(string itemId)
+    {
+        if (string.IsNullOrEmpty(itemId))
+            return AchievementIconPalette[0];
+
+        var hash = 0;
+        foreach (var c in itemId)
+            hash = hash * 31 + c;
+        return AchievementIconPalette[(hash & 0x7FFFFFFF) % AchievementIconPalette.Length];
     }
 
     private int GetHeadSize() => CmbHeadSize.SelectedIndex switch

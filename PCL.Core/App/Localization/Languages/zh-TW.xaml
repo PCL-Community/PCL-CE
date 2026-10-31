@@ -3428,14 +3428,17 @@
     <sys:String x:Key="Tools.Test.Achievement.FetchFailed">取得進度圖片失敗，請檢查文字是否包含特殊字元</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.FileFilter">PNG 圖片 (*.png)|*.png</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.InvalidId">請輸入正確的物品 ID！</sys:String>
-    <sys:String x:Key="Tools.Test.Achievement.ItemId">物品名（ID）</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.ItemId">物品 ID（自動匹配圖示）</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.IconNotFound">未能取得物品「{0}」的圖示：該物品 ID 可能不存在，或目前網路不可用</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Line1">第一行</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Line2">第二行（可選）</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Name">進度名</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Preview">預覽進度影像</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Save">儲存圖片</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Saved">自訂進度圖片已儲存！</sys:String>
-    <sys:String x:Key="Tools.Test.Achievement.Title">自訂進度圖片生成器 (僅支援英文)</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.Title">自訂進度圖片生成器</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.Font">字型</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.Loading">正在取得物品圖示…</sys:String>
 
     <!-- Tools.Test.Avatar -->
 
