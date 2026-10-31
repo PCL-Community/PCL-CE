@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Interop;
+using System.Windows.Threading;
 using FluentValidation;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
@@ -18,6 +20,8 @@ public sealed class DialogService : IDialogService
     private readonly Queue<DialogViewModel> _queue = new();
     private readonly Lock _lock = new();
     private DialogViewModel? _current;
+
+    private const int MaxPresentRetries = 40;
 
     /// <summary>界面层注册的呈现器。</summary>
     public IDialogPresenter? Presenter { get; set; }
@@ -62,6 +66,25 @@ public sealed class DialogService : IDialogService
             Pump();
         });
 
+        if (!request.ForceWait || dialog.IsClosed) return dialog;
+
+        void PumpFrame()
+        {
+            if (dialog.IsClosed || !dialog.WaitFrame.Continue) return;
+            ComponentDispatcher.PushModal();
+            try
+            {
+                Dispatcher.PushFrame(dialog.WaitFrame);
+            }
+            finally
+            {
+                ComponentDispatcher.PopModal();
+            }
+        }
+
+        if (UiDispatcher.CheckAccess()) PumpFrame();
+        else UiDispatcher.Invoke(PumpFrame);
+
         return dialog;
     }
 
@@ -88,9 +111,29 @@ public sealed class DialogService : IDialogService
         }
 
         if (presenter.IsAvailable)
+        {
             presenter.Present(next);
-        else
+            return;
+        }
+
+        // 上一个弹窗的退场动画期间界面仍被占用，稍后重试，避免误退化到原生弹窗
+        next.PresentAttempts++;
+        if (next.PresentAttempts > MaxPresentRetries)
+        {
             presenter.ShowFallback(next);
+            return;
+        }
+
+        lock (_lock)
+        {
+            _current = null;
+            var pending = _queue.ToArray();
+            _queue.Clear();
+            _queue.Enqueue(next);
+            foreach (var item in pending) _queue.Enqueue(item);
+        }
+
+        _ = Task.Delay(150).ContinueWith(_ => UiDispatcher.Post(Pump), TaskScheduler.Default);
     }
 
     internal void OnDialogClosed(DialogViewModel dialog)

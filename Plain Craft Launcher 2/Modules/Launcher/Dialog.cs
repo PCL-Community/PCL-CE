@@ -7,6 +7,8 @@ using Microsoft.VisualBasic;
 using PCL.Core.App.Localization;
 using PCL.Core.Minecraft.IdentityModel.OAuth;
 using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
+using CoreDialogService = PCL.Core.UI.Dialogs.DialogService;
 
 namespace PCL;
 
@@ -107,29 +109,26 @@ public static partial class Launcher
         IReadOnlyDictionary<string, string> presets,
         string? title = null)
     {
-        var converter = new MyMsgBoxConverter
-        {
-            Type = MyMsgBoxType.AuthServer,
-            Title = title ?? Lang.Text("Launch.Account.Auth.SelectServer"),
-            Button1 = GetDefaultConfirmText(),
-            Button2 = GetDefaultCancelText(),
-            AuthServerDefault = defaultServer,
-            AuthServerPresets = presets,
-            ForceWait = true
-        };
-        WaitingMyMsgBox.Add(converter);
-        if (Common.RunInUi())
-            MyMsgBoxTick();
         if (frmMain is null)
         {
-            WaitingMyMsgBox.Remove(converter);
             Common.Log(
                 "[Control] 主窗体加载完成前出现意料外的异步验证服务器弹窗",
                 Common.LogLevel.Debug);
             return string.Empty;
         }
 
-        return (await converter.CompletionObject.Task as string) ?? string.Empty;
+        var result = await CoreDialogService.Instance.ShowAsync(new AuthServerDialogRequest
+        {
+            Title = title ?? Lang.Text("Launch.Account.Auth.SelectServer"),
+            DefaultServer = defaultServer,
+            Presets = presets,
+            Buttons = DialogButtons.From(
+                DialogButton.Create(GetDefaultConfirmText()),
+                DialogButton.Create(GetDefaultCancelText())),
+            HighLight = false,
+            ForceWait = false
+        });
+        return result.IsConfirmed ? result.InputText ?? string.Empty : string.Empty;
     }
 
     public static async Task<int> MyMsgBoxAsync(
@@ -145,24 +144,8 @@ public static partial class Launcher
         button1 ??= GetDefaultConfirmText();
         button2 ??= "";
         button3 ??= "";
-        var converter = new MyMsgBoxConverter
-        {
-            Type = MyMsgBoxType.Text,
-            Button1 = button1,
-            Button2 = button2,
-            Button3 = button3,
-            Text = caption,
-            IsWarn = isWarn,
-            Title = title,
-            HighLight = highLight,
-            ForceWait = true
-        };
-        WaitingMyMsgBox.Add(converter);
-        if (Common.RunInUi())
-            MyMsgBoxTick();
         if (frmMain is null)
         {
-            WaitingMyMsgBox.Remove(converter);
             Common.Log(
                 "[Control] 主窗体加载完成前出现意料外的异步等待弹窗："
                 + $"{button1},{button2},{button3}",
@@ -170,7 +153,16 @@ public static partial class Launcher
             return 1;
         }
 
-        return await converter.Completion.Task ?? 0;
+        var result = await CoreDialogService.Instance.ShowAsync(new TextDialogRequest
+        {
+            Title = title,
+            Content = caption,
+            Buttons = BuildButtons(button1, button2, button3),
+            IsWarn = isWarn,
+            HighLight = highLight,
+            ForceWait = false
+        });
+        return result.Button;
     }
 
     public static async Task<string?> MyMsgBoxInputAsync(
@@ -185,25 +177,8 @@ public static partial class Launcher
     {
         button1 ??= GetDefaultConfirmText();
         button2 ??= GetDefaultCancelText();
-        var converter = new MyMsgBoxConverter
-        {
-            Text = text,
-            HintText = hintText,
-            Type = MyMsgBoxType.Input,
-            ValidateRules = validateRules ?? [],
-            Button1 = button1,
-            Button2 = button2,
-            Content = defaultInput,
-            IsWarn = isWarn,
-            Title = title,
-            ForceWait = true
-        };
-        WaitingMyMsgBox.Add(converter);
-        if (Common.RunInUi())
-            MyMsgBoxTick();
         if (frmMain is null)
         {
-            WaitingMyMsgBox.Remove(converter);
             Common.Log(
                 "[Control] 主窗体加载完成前出现意料外的异步输入弹窗："
                 + $"{button1},{button2}",
@@ -211,7 +186,19 @@ public static partial class Launcher
             return null;
         }
 
-        return await converter.CompletionObject.Task as string;
+        var result = await CoreDialogService.Instance.ShowAsync(new InputDialogRequest
+        {
+            Title = title,
+            Content = text,
+            DefaultValue = defaultInput,
+            HintText = hintText,
+            ValidateRules = validateRules ?? [],
+            Buttons = BuildButtons(button1, button2, null),
+            IsWarn = isWarn,
+            HighLight = false,
+            ForceWait = false
+        });
+        return result.IsConfirmed ? result.InputText : null;
     }
 
     public static async Task<int?> MyMsgBoxSelectAsync(
@@ -224,22 +211,8 @@ public static partial class Launcher
         title ??= GetDefaultDialogTitle();
         button1 ??= GetDefaultConfirmText();
         button2 ??= "";
-        var converter = new MyMsgBoxConverter
-        {
-            Type = MyMsgBoxType.Select,
-            Button1 = button1,
-            Button2 = button2,
-            Content = selections,
-            IsWarn = isWarn,
-            Title = title,
-            ForceWait = true
-        };
-        WaitingMyMsgBox.Add(converter);
-        if (Common.RunInUi())
-            MyMsgBoxTick();
         if (frmMain is null)
         {
-            WaitingMyMsgBox.Remove(converter);
             Common.Log(
                 "[Control] 主窗体加载完成前出现意料外的异步选择弹窗："
                 + $"{button1},{button2}",
@@ -247,7 +220,16 @@ public static partial class Launcher
             return null;
         }
 
-        return await converter.CompletionObject.Task as int?;
+        var result = await CoreDialogService.Instance.ShowAsync(new SelectDialogRequest
+        {
+            Title = title,
+            Options = ToDialogOptions(selections),
+            Buttons = BuildButtons(button1, button2, null),
+            IsWarn = isWarn,
+            HighLight = false,
+            ForceWait = false
+        });
+        return result.IsConfirmed ? result.SelectedIndex : null;
     }
 
     public static async Task<List<int>> MyMsgBoxMultiSelectAsync(
@@ -260,23 +242,8 @@ public static partial class Launcher
         title ??= GetDefaultDialogTitle();
         button1 ??= GetDefaultConfirmText();
         button2 ??= "";
-        var converter = new MyMsgBoxConverter
-        {
-            Type = MyMsgBoxType.Select,
-            MultiSelect = true,
-            Button1 = button1,
-            Button2 = button2,
-            Content = selections,
-            IsWarn = isWarn,
-            Title = title,
-            ForceWait = true
-        };
-        WaitingMyMsgBox.Add(converter);
-        if (Common.RunInUi())
-            MyMsgBoxTick();
         if (frmMain is null)
         {
-            WaitingMyMsgBox.Remove(converter);
             Common.Log(
                 "[Control] 主窗体加载完成前出现意料外的异步多选弹窗："
                 + $"{button1},{button2}",
@@ -284,7 +251,25 @@ public static partial class Launcher
             return [];
         }
 
-        return (await converter.CompletionObject.Task as List<int>) ?? [];
+        var result = await CoreDialogService.Instance.ShowAsync(new SelectDialogRequest
+        {
+            Title = title,
+            Options = ToDialogOptions(selections),
+            MultiSelect = true,
+            Buttons = BuildButtons(button1, button2, null),
+            IsWarn = isWarn,
+            HighLight = false,
+            ForceWait = false
+        });
+        return result.IsConfirmed ? result.SelectedIndices?.ToList() ?? [] : [];
+    }
+
+    /// <summary>
+    ///     显示正版验证弹窗，弹窗的结果由请求中的回调处理，不会阻塞调用方。
+    /// </summary>
+    public static void ShowDeviceCodeLogin(DialogRequest request)
+    {
+        ShowWithoutWaiting(request);
     }
 
     private static string GetDefaultDialogTitle() => Lang.Text("Common.Dialog.Title");
@@ -292,6 +277,63 @@ public static partial class Launcher
     private static string GetDefaultConfirmText() => Lang.Text("Common.Action.Confirm");
 
     private static string GetDefaultCancelText() => Lang.Text("Common.Action.Cancel");
+
+    private static DialogButtons BuildButtons(
+        string? button1,
+        string? button2,
+        string? button3,
+        Action? button1Action = null,
+        Action? button2Action = null,
+        Action? button3Action = null)
+    {
+        return DialogButtons.From(
+            DialogButton.Create(button1, button1Action),
+            DialogButton.Create(button2, button2Action),
+            DialogButton.Create(button3, button3Action));
+    }
+
+    private static List<DialogOption> ToDialogOptions(IEnumerable<IMyRadio> selections)
+    {
+        return selections.Select(item => item switch
+        {
+            MyListItem listItem => new DialogOption
+            {
+                Text = listItem.Title,
+                Description = listItem.Info,
+                Image = listItem.Logo,
+                ImageScale = listItem.LogoScale,
+                IsChecked = listItem.Checked,
+                Tag = listItem
+            },
+            MyRadioBox radioBox => new DialogOption
+            {
+                Text = radioBox.Text,
+                IsChecked = radioBox.Checked,
+                Tag = radioBox
+            },
+            _ => new DialogOption
+            {
+                Text = item.ToString() ?? "",
+                Tag = item
+            }
+        }).ToList();
+    }
+
+    private static void ShowWithoutWaiting(DialogRequest request)
+    {
+        try
+        {
+            CoreDialogService.Instance.Show(request);
+        }
+        catch (Exception ex)
+        {
+            Common.Log(
+                ex,
+                "显示弹窗失败",
+                Common.LogLevel.Feedback,
+                userSummary: Lang.Text("Main.Error.OperationFailed"));
+        }
+    }
 
     private static int ShowTextDialog(
         string caption,
@@ -312,110 +354,36 @@ public static partial class Launcher
         button2 ??= "";
         button3 ??= "";
 
-        var converter = new MyMsgBoxConverter
-        {
-            Type = type,
-            Button1 = button1,
-            Button2 = button2,
-            Button3 = button3,
-            Text = caption,
-            IsWarn = isWarn,
-            Title = title,
-            HighLight = highLight,
-            ForceWait = true,
-            Button1Action = button1Action,
-            Button2Action = button2Action,
-            Button3Action = button3Action
-        };
-
-        WaitingMyMsgBox.Add(converter);
-
-        if (Common.RunInUi())
-            MyMsgBoxTick();
+        var buttons = BuildButtons(button1, button2, button3, button1Action, button2Action, button3Action);
+        DialogRequest request = type == MyMsgBoxType.Markdown
+            ? new MarkdownDialogRequest
+            {
+                Title = title,
+                Content = caption,
+                Buttons = buttons,
+                IsWarn = isWarn,
+                HighLight = highLight,
+                ForceWait = forceWait
+            }
+            : new TextDialogRequest
+            {
+                Title = title,
+                Content = caption,
+                Buttons = buttons,
+                IsWarn = isWarn,
+                HighLight = highLight,
+                ForceWait = forceWait
+            };
 
         if (button2.Length == 0 && !forceWait)
+        {
+            ShowWithoutWaiting(request);
             return 1;
-
-        if (frmMain is null || (frmMain.PanMsg is null && Common.RunInUi()))
-        {
-            WaitingMyMsgBox.Remove(converter);
-            ShowFallbackTextDialog(
-                converter,
-                caption,
-                title,
-                button1,
-                button2,
-                button3,
-                isWarn);
-        }
-        else
-        {
-            WaitForDialog(converter);
         }
 
-        Common.Log($"[Control] 普通弹框返回：{converter.Result ?? "null"}");
-        return converter.Result is int result ? result : 0;
-    }
-
-    private static void ShowFallbackTextDialog(
-        MyMsgBoxConverter converter,
-        string caption,
-        string title,
-        string button1,
-        string button2,
-        string button3,
-        bool isWarn)
-    {
-        var iconStyle = isWarn
-            ? MsgBoxStyle.Critical
-            : MsgBoxStyle.Question;
-
-        if (button2.Length > 0)
-        {
-            var buttonStyle = button3.Length > 0
-                ? MsgBoxStyle.YesNoCancel
-                : MsgBoxStyle.YesNo;
-
-            var rawResult = Interaction.MsgBox(
-                caption,
-                (MsgBoxStyle)((int)buttonStyle + (int)iconStyle),
-                title);
-
-            converter.Result = rawResult switch
-            {
-                MsgBoxResult.Yes => 1,
-                MsgBoxResult.No => 2,
-                MsgBoxResult.Cancel => 3,
-                _ => converter.Result
-            };
-        }
-        else
-        {
-            Interaction.MsgBox(
-                caption,
-                (MsgBoxStyle)((int)MsgBoxStyle.OkOnly + (int)iconStyle),
-                title);
-
-            converter.Result = 1;
-        }
-
-        Common.Log(
-            $"[Control] 主窗体加载完成前出现意料外的等待弹窗：{button1},{button2},{button3}",
-            Common.LogLevel.Debug);
-    }
-
-    private static void WaitForDialog(MyMsgBoxConverter converter)
-    {
-        try
-        {
-            frmMain?.DragStop();
-            ComponentDispatcher.PushModal();
-            Dispatcher.PushFrame(converter.WaitFrame);
-        }
-        finally
-        {
-            ComponentDispatcher.PopModal();
-        }
+        var result = CoreDialogService.Instance.Show(request).Result;
+        Common.Log($"[Control] 普通弹框返回：{result?.Button.ToString() ?? "null"}");
+        return result?.Button ?? 0;
     }
 
     /// <summary>
@@ -442,24 +410,21 @@ public static partial class Launcher
         button1 ??= Lang.Text("Common.Action.Confirm");
         button2 ??= Lang.Text("Common.Action.Cancel");
 
-        var converter = new MyMsgBoxConverter
+        var result = CoreDialogService.Instance.Show(new InputDialogRequest
         {
-            Text = text,
+            Title = title,
+            Content = text,
+            DefaultValue = defaultInput,
             HintText = hintText,
-            Type = MyMsgBoxType.Input,
             ValidateRules = validateRules ?? [],
-            Button1 = button1,
-            Button2 = button2,
-            Content = defaultInput,
+            Buttons = BuildButtons(button1, button2, null),
             IsWarn = isWarn,
-            Title = title
-        };
+            HighLight = false,
+            ForceWait = true
+        }).Result;
 
-        WaitingMyMsgBox.Add(converter);
-        WaitForDialog(converter);
-
-        Common.Log($"[Control] 输入弹框返回：{converter.Result}");
-        return converter.Result?.ToString() ?? string.Empty;
+        Common.Log($"[Control] 输入弹框返回：{result?.InputText ?? "null"}");
+        return result?.InputText ?? string.Empty;
     }
 
     public static string MyMsgBoxAuthServer(
@@ -467,21 +432,20 @@ public static partial class Launcher
         IReadOnlyDictionary<string, string> presets,
         string? title = null)
     {
-        var converter = new MyMsgBoxConverter
+        var result = CoreDialogService.Instance.Show(new AuthServerDialogRequest
         {
-            Type = MyMsgBoxType.AuthServer,
             Title = title ?? Lang.Text("Launch.Account.Auth.SelectServer"),
-            Button1 = Lang.Text("Common.Action.Confirm"),
-            Button2 = Lang.Text("Common.Action.Cancel"),
-            AuthServerDefault = defaultServer,
-            AuthServerPresets = presets,
+            DefaultServer = defaultServer,
+            Presets = presets,
+            Buttons = BuildButtons(
+                Lang.Text("Common.Action.Confirm"),
+                Lang.Text("Common.Action.Cancel"),
+                null),
+            HighLight = false,
             ForceWait = true
-        };
+        }).Result;
 
-        WaitingMyMsgBox.Add(converter);
-        WaitForDialog(converter);
-
-        return converter.Result?.ToString() ?? string.Empty;
+        return result?.InputText ?? string.Empty;
     }
 
     /// <summary>
@@ -502,21 +466,18 @@ public static partial class Launcher
         button1 ??= Lang.Text("Common.Action.Confirm");
         button2 ??= "";
 
-        var converter = new MyMsgBoxConverter
+        var result = CoreDialogService.Instance.Show(new SelectDialogRequest
         {
-            Type = MyMsgBoxType.Select,
-            Button1 = button1,
-            Button2 = button2,
-            Content = selections,
+            Title = title,
+            Options = ToDialogOptions(selections),
+            Buttons = BuildButtons(button1, button2, null),
             IsWarn = isWarn,
-            Title = title
-        };
+            HighLight = false,
+            ForceWait = true
+        }).Result;
 
-        WaitingMyMsgBox.Add(converter);
-        WaitForDialog(converter);
-
-        Common.Log($"[Control] 选择弹框返回：{converter.Result ?? "null"}");
-        return (int?)converter.Result;
+        Common.Log($"[Control] 选择弹框返回：{result?.SelectedIndex?.ToString() ?? "null"}");
+        return result?.SelectedIndex;
     }
 
     /// <summary>
@@ -538,79 +499,20 @@ public static partial class Launcher
         button1 ??= Lang.Text("Common.Action.Confirm");
         button2 ??= "";
 
-        var converter = new MyMsgBoxConverter
+        var result = CoreDialogService.Instance.Show(new SelectDialogRequest
         {
-            Type = MyMsgBoxType.Select,
+            Title = title,
+            Options = ToDialogOptions(selections),
             MultiSelect = true,
-            Button1 = button1,
-            Button2 = button2,
-            Content = selections,
+            Buttons = BuildButtons(button1, button2, null),
             IsWarn = isWarn,
-            Title = title
-        };
+            HighLight = false,
+            ForceWait = true
+        }).Result;
 
-        WaitingMyMsgBox.Add(converter);
-        WaitForDialog(converter);
-
-        Common.Log($"[Control] 多选弹框返回：{converter.Result ?? "null"}");
-        return (List<int>?)converter.Result;
-    }
-
-    public static void MyMsgBoxTick()
-    {
-        try
-        {
-            var main = frmMain;
-            if (main?.PanMsg is null || main.WindowState == WindowState.Minimized)
-                return;
-            // Core 弹窗服务正在显示时不再处理遗留队列
-            if (PCL.Core.UI.Dialogs.DialogService.Instance.IsShowing)
-                return;
-
-            var messagePanel = main.PanMsg;
-            var background = main.PanMsgBackground;
-
-            if (messagePanel.Children.Count > 0)
-            {
-                background.Visibility = Visibility.Visible;
-                return;
-            }
-
-            if (WaitingMyMsgBox.Count == 0)
-            {
-                if (background.Visibility != Visibility.Collapsed)
-                    background.Visibility = Visibility.Collapsed;
-
-                return;
-            }
-
-            background.Visibility = Visibility.Visible;
-
-            var converter = WaitingMyMsgBox[0];
-            UIElement? dialog = converter.Type switch
-            {
-                MyMsgBoxType.Input => new MyMsgInput(converter),
-                MyMsgBoxType.Select => new MyMsgSelect(converter),
-                MyMsgBoxType.AuthServer => new MyMsgAuthServer(converter),
-                MyMsgBoxType.Text => new MyMsgText(converter),
-                MyMsgBoxType.Login => new MyMsgLogin(converter),
-                MyMsgBoxType.Markdown => new MyMsgMarkdown(converter),
-                _ => null
-            };
-
-            if (dialog is not null)
-                messagePanel.Children.Add(dialog);
-
-            WaitingMyMsgBox.RemoveAt(0);
-        }
-        catch (Exception ex)
-        {
-            Common.Log(
-                ex,
-                "处理等待中的弹窗失败",
-                Common.LogLevel.Feedback,
-                userSummary: Lang.Text("Main.Error.OperationFailed"));
-        }
+        var indices = result?.SelectedIndices;
+        Common.Log($"[Control] 多选弹框返回：{(indices is null ? "null" : string.Join(",", indices))}");
+        return indices?.ToList();
     }
 
     public static void MsgBoxWrapper_OnShow(
@@ -623,26 +525,17 @@ public static partial class Launcher
     {
         var buttonList = buttons.Take(3).ToArray();
 
-        var buttonText1 = buttonList.Length < 1
-            ? Lang.Text("Common.Action.Confirm")
-            : buttonList[0].Context;
-        var buttonAction1 = buttonList.Length < 1
-            ? null
-            : buttonList[0].OnClick;
+        var buttonText1 = buttonList.Length > 0 && !string.IsNullOrEmpty(buttonList[0].Context)
+            ? buttonList[0].Context
+            : Lang.Text("Common.Action.Confirm");
+        var buttonText2 = buttonList.Length > 1 && !string.IsNullOrEmpty(buttonList[1].Context)
+            ? buttonList[1].Context
+            : Lang.Text("Common.Action.Cancel");
+        var buttonText3 = buttonList.Length > 2 ? buttonList[2].Context : "";
 
-        var buttonText2 = buttonList.Length < 2
-            ? Lang.Text("Common.Action.Cancel")
-            : buttonList[1].Context;
-        var buttonAction2 = buttonList.Length < 2
-            ? null
-            : buttonList[1].OnClick;
-
-        var buttonText3 = buttonList.Length < 3
-            ? ""
-            : buttonList[2].Context;
-        var buttonAction3 = buttonList.Length < 3
-            ? null
-            : buttonList[2].OnClick;
+        var buttonAction1 = buttonList.Length > 0 ? buttonList[0].OnClick : null;
+        var buttonAction2 = buttonList.Length > 1 ? buttonList[1].OnClick : null;
+        var buttonAction3 = buttonList.Length > 2 ? buttonList[2].OnClick : null;
 
         var isWarn = theme is MsgBoxTheme.Warning or MsgBoxTheme.Error;
 
@@ -657,101 +550,5 @@ public static partial class Launcher
             button1Action: buttonAction1,
             button2Action: buttonAction2,
             button3Action: buttonAction3);
-    }
-
-    /// <summary>
-    ///     存储弹窗信息的转换器。
-    /// </summary>
-    public class MyMsgBoxConverter
-    {
-        public string AuthServerDefault = "";
-
-        public IReadOnlyDictionary<string, string>? AuthServerPresets;
-
-        public string Button1 = "";
-
-        /// <summary>
-        ///     点击第一个按钮将执行该方法，不关闭弹窗。
-        /// </summary>
-        public Action? Button1Action;
-
-        public string Button2 = "";
-
-        /// <summary>
-        ///     点击第二个按钮将执行该方法，不关闭弹窗。
-        /// </summary>
-        public Action? Button2Action;
-
-        public string Button3 = "";
-
-        /// <summary>
-        ///     点击第三个按钮将执行该方法，不关闭弹窗。
-        /// </summary>
-        public Action? Button3Action;
-
-        public Action<object>? CompletionHandler;
-
-        /// <summary>
-        ///     输入模式：文本框的文本。
-        ///     选择模式：需要放进去的 List(Of MyListItem)。
-        ///     登录模式：登录步骤 1 中返回的 JSON。
-        /// </summary>
-        public object? Content;
-
-        /// <summary>
-        ///     Optional provider-specific device-code polling callback used by OAuth providers other than
-        ///     Microsoft.
-        /// </summary>
-        public Func<JsonObject, CancellationToken, Task<AuthorizeResult?>>? DeviceCodePoll;
-
-        public bool ForceWait;
-
-        /// <summary>
-        ///     有多个按钮时，是否给第一个按钮加高亮。
-        /// </summary>
-        public bool HighLight;
-
-        /// <summary>
-        ///     输入模式：提示文本。
-        /// </summary>
-        public string HintText = "";
-
-        /// <summary>
-        ///     弹窗是否已经关闭。
-        /// </summary>
-        public bool IsExited = false;
-
-        public bool IsWarn;
-
-        public Func<AuthorizeResult, CancellationToken, Task>? LoginResultHandler;
-
-        /// <summary>
-        ///     选择模式：是否允许勾选多个选项
-        /// </summary>
-        public bool MultiSelect;
-
-        /// <summary>
-        ///     输入模式：输入的文本。若点击了 非 第一个按钮，则为 Nothing。
-        ///     选择模式：点击的按钮编号，从 1 开始。
-        ///     登录模式：字符串数组 {AccessToken, RefreshToken} 或一个 Exception。
-        /// </summary>
-        public object? Result;
-
-        public string? Text;
-        public string? Title;
-        public MyMsgBoxType Type;
-
-        /// <summary>
-        ///     输入模式：输入验证规则。
-        /// </summary>
-        public Collection<IValidator<string>>? ValidateRules;
-
-        public readonly TaskCompletionSource<int?> Completion =
-            new(TaskCreationOptions.RunContinuationsAsynchronously);
-
-        public readonly TaskCompletionSource<object?> CompletionObject =
-            new(TaskCreationOptions.RunContinuationsAsynchronously);
-
-        public DispatcherFrame WaitFrame = new(true);
     }
 }

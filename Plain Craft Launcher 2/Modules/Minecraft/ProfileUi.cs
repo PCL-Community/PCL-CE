@@ -14,6 +14,7 @@ using PCL.Core.Minecraft.IdentityModel.OAuth;
 using PCL.Core.Minecraft.Profile;
 using PCL.Core.Minecraft.Profile.Authentication;
 using PCL.Core.Minecraft.Profile.Models;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
@@ -129,11 +130,13 @@ public static class ProfileUi
     {
         token.ThrowIfCancellationRequested();
         var completion = new TaskCompletionSource<AuthorizeResult?>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var converter = new Launcher.MyMsgBoxConverter
+        var request = new LoginDialogRequest
         {
-            Content = JsonSerializer.SerializeToNode(context.Data, JsonCompat.SerializerOptions)!.AsObject(),
+            Title = Lang.Text("Launch.Account.LoginDialog.MinecraftLogin"),
+            // 登录弹窗使用自绘按钮，与旧实现一样不提供按钮组
+            Buttons = default,
             ForceWait = true,
-            Type = Launcher.MyMsgBoxType.Login,
+            Data = JsonSerializer.SerializeToNode(context.Data, JsonCompat.SerializerOptions)!.AsObject(),
             DeviceCodePoll = (_, pollToken) => context.PollAsync(pollToken),
             LoginResultHandler = (oauth, _) =>
             {
@@ -145,7 +148,7 @@ public static class ProfileUi
                 if (result is Exception ex) completion.TrySetException(ex);
             }
         };
-        Launcher.WaitingMyMsgBox.Add(converter);
+        Launcher.ShowDeviceCodeLogin(request);
         return completion.Task;
     }
 

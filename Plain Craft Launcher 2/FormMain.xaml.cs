@@ -793,7 +793,7 @@ public partial class FormMain
     private void FormMain_MouseDown(object sender, MouseButtonEventArgs e)
     {
         // 鼠标侧键返回上一级
-        if (Launcher.frmMain!.PanMsg.Children.Count > 0 || Launcher.WaitingMyMsgBox.Any())
+        if (Launcher.frmMain!.PanMsg.Children.Count > 0)
             return; // 弹窗中（#5513）
         if (e.ChangedButton == MouseButton.XButton1 || e.ChangedButton == MouseButton.XButton2)
             TriggerPageBack();

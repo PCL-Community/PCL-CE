@@ -1,9 +1,9 @@
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Interop;
 using System.Windows.Threading;
 using PCL.Core.App.Localization;
 using PCL.Core.UI.Controls;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
 
@@ -11,18 +11,18 @@ namespace PCL;
 
 public partial class MyMsgAuthServer
 {
-    private readonly Launcher.MyMsgBoxConverter _converter;
+    private readonly DialogViewModel _dialog;
     private readonly int _uuid = Common.GetUuid();
 
-    public MyMsgAuthServer(Launcher.MyMsgBoxConverter converter)
+    public MyMsgAuthServer(DialogViewModel dialog)
     {
         InitializeComponent();
-        _converter = converter;
-        LabTitle.Text = converter.Title;
-        Btn1.Text = converter.Button1;
-        Btn2.Text = converter.Button2;
-        ComboServer.Text = converter.AuthServerDefault;
-        foreach (var preset in converter.AuthServerPresets ?? new Dictionary<string, string>())
+        _dialog = dialog;
+        LabTitle.Text = dialog.Title;
+        Btn1.Text = dialog.ButtonText(1);
+        Btn2.Text = dialog.ButtonText(2);
+        ComboServer.Text = dialog.DefaultServer;
+        foreach (var preset in dialog.Presets)
             ComboServer.Items.Add(new MyComboBoxItem { Content = preset.Key, Tag = preset.Value });
         ComboServer.SelectionChanged += (_, _) =>
         {
@@ -68,29 +68,25 @@ public partial class MyMsgAuthServer
             HintService.Hint(Lang.Text("Launch.Account.Auth.InvalidServer"), HintType.Error);
             return;
         }
-        _converter.IsExited = true;
-        _converter.Result = server;
+        _dialog.InputText = server;
+        _dialog.CloseByButton(1);
         _Close();
     }
 
     private void Btn2_Click(object sender, MouseButtonEventArgs e)
     {
-        if (_converter.IsExited) return;
-        _converter.IsExited = true;
-        _converter.Result = null;
+        if (_dialog.IsClosed) return;
+        _dialog.Close(DialogResult.Cancel);
         _Close();
     }
 
     private void _Close()
     {
-        _converter.WaitFrame.Continue = false;
-        _converter.CompletionObject.TrySetResult(_converter.Result);
-        ComponentDispatcher.PopModal();
         Animations.AniStart(new[]
         {
             Animations.AaCode(() =>
             {
-                if (!Launcher.WaitingMyMsgBox.Any())
+                if (!PCL.Core.UI.Dialogs.DialogService.Instance.IsShowing && !PCL.Core.UI.Dialogs.DialogService.Instance.HasPending)
                     Animations.AniStart(Animations.AaColor(Launcher.frmMain.PanMsgBackground,
                         BlurBorder.BackgroundProperty,
                         new Common.MyColor(0d, 0d, 0d, 0d) -

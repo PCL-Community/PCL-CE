@@ -4,6 +4,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
+using System.Threading;
+using System.Text.Json.Nodes;
+using FluentValidation;
+using PCL.Core.Minecraft.IdentityModel.OAuth;
 
 namespace PCL.Core.UI.Dialogs;
 
@@ -79,7 +83,45 @@ public sealed partial class DialogViewModel : ObservableObject
     /// <summary>同步入口用于等待弹窗关闭的消息泵。</summary>
     public DispatcherFrame WaitFrame { get; } = new(true);
 
+    internal int PresentAttempts;
+
     /// <summary>已勾选的项索引（多选模式）。</summary>
+    public string TextContent => Request switch
+    {
+        TextDialogRequest text => text.Content,
+        MarkdownDialogRequest markdown => markdown.Content,
+        InputDialogRequest input => input.Content,
+        _ => ""
+    };
+
+    public string InputDefaultValue => (Request as InputDialogRequest)?.DefaultValue ?? "";
+
+    public string? HintText => (Request as InputDialogRequest)?.HintText;
+
+    public IReadOnlyList<IValidator<string>> ValidateRules =>
+        (Request as InputDialogRequest)?.ValidateRules ?? [];
+
+    public string DefaultServer => (Request as AuthServerDialogRequest)?.DefaultServer ?? "";
+
+    public IReadOnlyDictionary<string, string> Presets =>
+        (Request as AuthServerDialogRequest)?.Presets ?? new Dictionary<string, string>();
+
+    public JsonObject? LoginData => (Request as LoginDialogRequest)?.Data;
+
+    public Func<JsonObject, CancellationToken, Task<AuthorizeResult?>>? DeviceCodePoll =>
+        (Request as LoginDialogRequest)?.DeviceCodePoll;
+
+    public Func<AuthorizeResult, CancellationToken, Task>? LoginResultHandler =>
+        (Request as LoginDialogRequest)?.LoginResultHandler;
+
+    public Action<object?>? CompletionHandler => (Request as LoginDialogRequest)?.CompletionHandler;
+
+    public string ButtonText(int button) =>
+        button >= 1 && button <= Buttons.Length ? Buttons[button - 1].Text ?? "" : "";
+
+    public Action? ButtonAction(int button) =>
+        button >= 1 && button <= Buttons.Length ? Buttons[button - 1].OnClick : null;
+
     public IReadOnlyList<int> GetCheckedIndices()
         => Options.Where(option => option.IsChecked).Select(option => option.Index).ToList();
 

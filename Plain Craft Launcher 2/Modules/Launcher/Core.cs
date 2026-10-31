@@ -81,11 +81,6 @@ public static partial class Launcher
     private static int _timer150Count;
 
     /// <summary>
-    ///     等待显示的弹窗。
-    /// </summary>
-    public static List<MyMsgBoxConverter> WaitingMyMsgBox { get; } = [];
-
-    /// <summary>
     ///     主时钟回调，每约 50ms 执行一次。
     /// </summary>
     private static void TimerMain()
@@ -93,7 +88,6 @@ public static partial class Launcher
         try
         {
             HintService.Tick();
-            MyMsgBoxTick();
             frmMain!.DragTick();
             Loading.LoaderTaskbarProgressRefresh();
         }

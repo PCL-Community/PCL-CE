@@ -1,33 +1,30 @@
-using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Interop;
 using PCL.Core.UI.Controls;
+using PCL.Core.UI.Dialogs;
 
 using PCL.Core.App.Localization;
 namespace PCL;
 
 public partial class MyMsgSelect
 {
-    private readonly Launcher.MyMsgBoxConverter myConverter;
+    private readonly DialogViewModel myDialog;
     private readonly int uuid = Common.GetUuid();
 
-    private int selectedIndex = -1;
-
-    public MyMsgSelect(Launcher.MyMsgBoxConverter converter)
+    public MyMsgSelect(DialogViewModel dialog)
     {
         try
         {
             InitializeComponent();
             AppendUniqueNameSuffix(Btn1);
             AppendUniqueNameSuffix(Btn2);
-            myConverter = converter;
-            LabTitle.Text = converter.Title;
-            ConfigurePrimaryButton(converter.Button1, converter.IsWarn);
-            ConfigureSecondaryButton(converter.Button2);
+            myDialog = dialog;
+            LabTitle.Text = dialog.Title;
+            ConfigurePrimaryButton(dialog.ButtonText(1), dialog.IsWarn);
+            ConfigureSecondaryButton(dialog.ButtonText(2));
             ShapeLine.StrokeThickness = Common.GetWpfSize(1d);
-            InitializeSelectionList(converter.Content);
+            InitializeSelectionList();
         }
 
         catch (Exception ex)
@@ -67,35 +64,35 @@ public partial class MyMsgSelect
         Btn2.Visibility = string.IsNullOrEmpty(text) ? Visibility.Collapsed : Visibility.Visible;
     }
 
-    private void InitializeSelectionList(object content)
+    private void InitializeSelectionList()
     {
         // 添加选择控件
         Btn1.IsEnabled = false;
-        foreach (var rawContent in (IEnumerable)content)
+        foreach (var state in myDialog.Options)
         {
-            // 1. Initialize and get the actual element
-            // Note: We use a new variable because 'foreach' variables are read-only
-            var selectionContent = MyVirtualizingElement.TryInit((FrameworkElement)rawContent);
-
-            // 2. Interface casting and event subscription
-            if (selectionContent is IMyRadio selection)
-            {
-                PanSelection.Children.Add((UIElement)selection);
-                selection.Check += (sender, e) => OnChecked((IMyRadio)sender, e);
-                selection.Changed += (_, _) => _UpdateCheckedState();
-
-                // 3. Property configuration based on specific type
-                if (selection is MyListItem listItem)
+            IMyRadio selection;
+            if (myDialog.MultiSelect || state.Description is not null || state.Image is not null)
+                selection = new MyListItem
                 {
-                    listItem.Type =
-                        myConverter.MultiSelect ? MyListItem.CheckType.CheckBox : MyListItem.CheckType.RadioBox;
-                    listItem.MinHeight = 24.0;
-                }
-                else if (selection is MyRadioBox radioBox)
+                    Title = state.Text,
+                    Info = state.Description ?? "",
+                    Logo = state.Image ?? "",
+                    LogoScale = state.ImageScale,
+                    Checked = state.IsChecked,
+                    Type = myDialog.MultiSelect ? MyListItem.CheckType.CheckBox : MyListItem.CheckType.RadioBox,
+                    Tag = state,
+                    MinHeight = 24d
+                };
+            else
+                selection = new MyRadioBox
                 {
-                    radioBox.MinHeight = 24.0;
-                }
-            }
+                    Text = state.Text,
+                    Tag = state,
+                    MinHeight = 24d
+                };
+            PanSelection.Children.Add((UIElement)selection);
+            selection.Check += (_, _) => OnChecked(state);
+            selection.Changed += (_, _) => _UpdateCheckedState();
         }
     }
 
@@ -110,7 +107,7 @@ public partial class MyMsgSelect
             Opacity = 0d;
             Animations.AniStart(
                 Animations.AaColor(Launcher.frmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
-                    (myConverter.IsWarn
+                    (myDialog.IsWarn
                         ? new Common.MyColor(140d, 80d, 0d, 0d)
                         : new Common.MyColor(90d, 0d, 0d, 0d)) -
                     Launcher.frmMain.PanMsgBackground.Background, 200),
@@ -142,16 +139,12 @@ public partial class MyMsgSelect
 
     private void Close()
     {
-        // 结束线程阻塞
-        myConverter.WaitFrame.Continue = false;
-        myConverter.CompletionObject.TrySetResult(myConverter.Result);
-        ComponentDispatcher.PopModal();
         // 动画
         Animations.AniStart(new[]
         {
             Animations.AaCode(() =>
             {
-                if (!Launcher.WaitingMyMsgBox.Any())
+                if (!PCL.Core.UI.Dialogs.DialogService.Instance.IsShowing && !PCL.Core.UI.Dialogs.DialogService.Instance.HasPending)
                     Animations.AniStart(Animations.AaColor(Launcher.frmMain.PanMsgBackground,
                         BlurBorder.BackgroundProperty,
                         new Common.MyColor(0d, 0d, 0d, 0d) -
@@ -170,55 +163,55 @@ public partial class MyMsgSelect
 
     public void Btn1_Click(object sender, MouseButtonEventArgs e)
     {
-        if (myConverter.IsExited)
+        if (myDialog.IsClosed)
             return;
-        if (myConverter.MultiSelect)
+        if (myDialog.MultiSelect)
         {
-            var indices = new List<int>();
-            for (var i = 0; i < PanSelection.Children.Count; i++)
-                if (PanSelection.Children[i] is MyListItem { Checked: true })
-                    indices.Add(i);
-            if (indices.Count == 0)
+            _UpdateCheckedState();
+            if (myDialog.GetCheckedIndices() is not { Count: > 0 })
                 return;
-            myConverter.IsExited = true;
-            myConverter.Result = indices;
+            myDialog.CloseByButton(1);
         }
         else
         {
-            if (selectedIndex == -1)
+            if (myDialog.SelectedIndex < 0)
                 return;
-            myConverter.IsExited = true;
-            myConverter.Result = selectedIndex;
+            myDialog.CloseByButton(1);
         }
         Close();
     }
 
     public void Btn2_Click(object sender, MouseButtonEventArgs e)
     {
-        if (myConverter.IsExited)
+        if (myDialog.IsClosed)
             return;
-        myConverter.IsExited = true;
-        myConverter.Result = null;
+        myDialog.Close(DialogResult.Cancel);
         Close();
     }
 
-    private void OnChecked(IMyRadio sender, EventArgs e)
+    private void OnChecked(DialogOptionState state)
     {
-        if (myConverter.MultiSelect)
+        if (myDialog.MultiSelect)
             return;
         Btn1.IsEnabled = true;
-        selectedIndex = PanSelection.Children.IndexOf((UIElement)sender);
+        myDialog.Select(state.Index);
     }
 
     private void _UpdateCheckedState()
     {
         // 多选
-        if (!myConverter.MultiSelect)
+        if (!myDialog.MultiSelect)
             return;
         var checkedCount = 0;
         foreach (var child in PanSelection.Children)
-            if (child is MyListItem { Checked: true })
+        {
+            if (child is not MyListItem item)
+                continue;
+            if (item.Tag is DialogOptionState state)
+                state.IsChecked = item.Checked;
+            if (item.Checked)
                 checkedCount += 1;
+        }
         Btn1.IsEnabled = checkedCount > 0;
     }
 

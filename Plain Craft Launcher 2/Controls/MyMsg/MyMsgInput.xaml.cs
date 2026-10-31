@@ -4,30 +4,31 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using PCL.Core.App.Localization;
 using PCL.Core.UI.Controls;
+using PCL.Core.UI.Dialogs;
 
 namespace PCL;
 
 public partial class MyMsgInput
 {
-    private readonly Launcher.MyMsgBoxConverter myConverter;
+    private readonly DialogViewModel myDialog;
     private readonly int uuid = Common.GetUuid();
 
-    public MyMsgInput(Launcher.MyMsgBoxConverter converter)
+    public MyMsgInput(DialogViewModel dialog)
     {
         try
         {
             InitializeComponent();
             AppendUniqueNameSuffix(Btn1);
             AppendUniqueNameSuffix(Btn2);
-            myConverter = converter;
-            LabTitle.Text = converter.Title;
-            LabText.Text = converter.Text;
-            PanText.Visibility = string.IsNullOrEmpty(converter.Text) ? Visibility.Collapsed : Visibility.Visible;
-            TextArea.Text = (string)converter.Content;
-            TextArea.HintText = converter.HintText;
-            TextArea.ValidateRules = converter.ValidateRules;
-            ConfigurePrimaryButton(converter.Button1, converter.IsWarn);
-            ConfigureSecondaryButton(converter.Button2);
+            myDialog = dialog;
+            LabTitle.Text = dialog.Title;
+            LabText.Text = dialog.TextContent;
+            PanText.Visibility = string.IsNullOrEmpty(dialog.TextContent) ? Visibility.Collapsed : Visibility.Visible;
+            TextArea.Text = dialog.InputDefaultValue;
+            TextArea.HintText = dialog.HintText ?? "";
+            TextArea.ValidateRules = [.. dialog.ValidateRules];
+            ConfigurePrimaryButton(dialog.ButtonText(1), dialog.IsWarn);
+            ConfigureSecondaryButton(dialog.ButtonText(2));
             ShapeLine.StrokeThickness = Common.GetWpfSize(1d);
         }
 
@@ -77,7 +78,7 @@ public partial class MyMsgInput
             Opacity = 0d;
             Animations.AniStart(
                 Animations.AaColor(Launcher.frmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
-                    (myConverter.IsWarn
+                    (myDialog.IsWarn
                         ? new Common.MyColor(140d, 80d, 0d, 0d)
                         : new Common.MyColor(90d, 0d, 0d, 0d)) -
                     Launcher.frmMain.PanMsgBackground.Background, 200),
@@ -110,15 +111,12 @@ public partial class MyMsgInput
     private void Close()
     {
         // 结束线程阻塞
-        myConverter.WaitFrame.Continue = false;
-        myConverter.CompletionObject.TrySetResult(myConverter.Result);
-        ComponentDispatcher.PopModal();
         // 动画
         Animations.AniStart(new[]
         {
             Animations.AaCode(() =>
             {
-                if (!Launcher.WaitingMyMsgBox.Any())
+                if (!PCL.Core.UI.Dialogs.DialogService.Instance.IsShowing && !PCL.Core.UI.Dialogs.DialogService.Instance.HasPending)
                     Animations.AniStart(Animations.AaColor(Launcher.frmMain.PanMsgBackground,
                         BlurBorder.BackgroundProperty,
                         new Common.MyColor(0d, 0d, 0d, 0d) -
@@ -138,19 +136,18 @@ public partial class MyMsgInput
     public void Btn1_Click(object sender, MouseButtonEventArgs e)
     {
         TextArea.Validate(); // #5773
-        if (myConverter.IsExited || !TextArea.IsValidated)
+        if (myDialog.IsClosed || !TextArea.IsValidated)
             return;
-        myConverter.IsExited = true;
-        myConverter.Result = TextArea.Text;
+        myDialog.InputText = TextArea.Text;
+        myDialog.CloseByButton(1);
         Close();
     }
 
     public void Btn2_Click(object sender, MouseButtonEventArgs e)
     {
-        if (myConverter.IsExited)
+        if (myDialog.IsClosed)
             return;
-        myConverter.IsExited = true;
-        myConverter.Result = null;
+        myDialog.CloseByButton(2);
         Close();
     }
 
