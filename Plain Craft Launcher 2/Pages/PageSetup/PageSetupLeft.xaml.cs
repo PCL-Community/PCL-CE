@@ -2,6 +2,7 @@
 using System.Windows.Controls;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.UI.Dialogs;
 
 namespace PCL;
@@ -205,7 +206,7 @@ public partial class PageSetupLeft : IPageView
             }
         }
 
-        HintService.Hint(Lang.Text("Setup.Left.Refreshing"), log: false);
+        HintService.Show(Hints.Info(Lang.Text("Setup.Left.Refreshing"), log: false));
     }
 
     #region 页面切换

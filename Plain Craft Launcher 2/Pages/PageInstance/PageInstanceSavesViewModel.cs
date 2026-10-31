@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.VisualBasic.FileIO;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.ViewModel;
 
 namespace PCL;
@@ -131,7 +132,7 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
                 {
                     if (Directory.Exists(worldPath + GetFolderNameFromPath(i)))
                     {
-                        HintService.Hint(Lang.Text("Instance.Saves.DuplicateFolder", GetFolderNameFromPath(i)));
+                        HintService.Show(Hints.Info(Lang.Text("Instance.Saves.DuplicateFolder", GetFolderNameFromPath(i))));
                     }
                     else
                     {
@@ -141,7 +142,7 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
                 }
                 else
                 {
-                    HintService.Hint(Lang.Text("Instance.Saves.SourceNotFolder"));
+                    HintService.Show(Hints.Info(Lang.Text("Instance.Saves.SourceNotFolder")));
                 }
             }
             catch (Exception ex)
@@ -189,12 +190,12 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
             if (Directory.Exists(folder))
             {
                 Clipboard.SetFileDropList(new StringCollection { folder });
-                HintService.Hint(Lang.Text("Instance.Saves.CopiedToClipboard"));
-                HintService.Hint(Lang.Text("Instance.Saves.CopyPasteWarning"));
+                HintService.Show(Hints.Info(Lang.Text("Instance.Saves.CopiedToClipboard")));
+                HintService.Show(Hints.Info(Lang.Text("Instance.Saves.CopyPasteWarning")));
             }
             else
             {
-                HintService.Hint(Lang.Text("Instance.Saves.FolderNotFound"));
+                HintService.Show(Hints.Info(Lang.Text("Instance.Saves.FolderNotFound")));
             }
         }
         catch (Exception ex)

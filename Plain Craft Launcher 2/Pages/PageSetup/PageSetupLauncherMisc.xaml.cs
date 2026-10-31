@@ -11,6 +11,7 @@ using PCL.Core.App.IoC;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Utils.OS;
 
 namespace PCL;
@@ -102,7 +103,7 @@ public partial class PageSetupLauncherMisc : IPageView
             Config.Debug.Reset();
             Config.System.Reset();
             Common.Log("[Setup] 已初始化启动器-杂项页设置");
-            HintService.Hint(Lang.Text("Setup.Misc.Initialized"), HintType.Success, false);
+            HintService.Show(Hints.Success(Lang.Text("Setup.Misc.Initialized"), log: false));
             Reload();
         }
         catch (Exception ex)
@@ -186,14 +187,14 @@ public partial class PageSetupLauncherMisc : IPageView
     // 硬件加速
     private void Check_DisableHardwareAcceleration(object _, bool __)
     {
-        HintService.Hint(Lang.Text("Setup.Misc.HardwareAcceleration.RestartNotice"));
+        HintService.Show(Hints.Info(Lang.Text("Setup.Misc.HardwareAcceleration.RestartNotice")));
     }
 
     // 调试模式
     private void CheckDebugMode_Change(object _, bool __)
     {
         if (!Animations.AniExitsAnyControl())
-            HintService.Hint(Lang.Text("Setup.Misc.Debug.Mode.Hint"), log: false);
+            HintService.Show(Hints.Info(Lang.Text("Setup.Misc.Debug.Mode.Hint"), log: false));
     }
 
     // 自动更新
@@ -243,7 +244,7 @@ public partial class PageSetupLauncherMisc : IPageView
         if (string.IsNullOrWhiteSpace(savePath))
             return;
         File.Copy(ConfigService.SharedConfigPath, savePath, true);
-        HintService.Hint(Lang.Text("Setup.Misc.System.ExportSettings.Success"), HintType.Success);
+        HintService.Show(Hints.Success(Lang.Text("Setup.Misc.System.ExportSettings.Success")));
         Common.OpenExplorer(savePath);
     }
 

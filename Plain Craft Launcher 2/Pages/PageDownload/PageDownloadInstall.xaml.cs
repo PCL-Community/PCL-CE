@@ -10,6 +10,7 @@ using PCL.Core.App;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils.Validate;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 
 namespace PCL;
 
@@ -184,7 +185,7 @@ public partial class PageDownloadInstall : IPageView
         if (!States.Hint.InstallPageBack)
         {
             States.Hint.InstallPageBack = true;
-            HintService.Hint(Lang.Text("Download.Install.Hint.MinecraftBack"));
+            HintService.Show(Hints.Info(Lang.Text("Download.Install.Hint.MinecraftBack")));
         }
 
         // 如果在选择页面按了刷新键，选择页的东西可能会由于动画被隐藏，但不会由于加载结束而再次显示，因此这里需要手动恢复

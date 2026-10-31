@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Minecraft;
 using PCL.Core.UI;
 using PCL.Core.Utils;
@@ -179,9 +180,7 @@ public static partial class DownloadUi
                 if ((ongoingLoader.name ?? "")
                     != (Lang.Text("Minecraft.Download.Stage.MinecraftDownload", id) ?? ""))
                     continue;
-                HintService.Hint(
-                    Lang.Text("Minecraft.Download.Error.InstanceDownloading"),
-                    HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Minecraft.Download.Error.InstanceDownloading")));
                 return;
             }
 

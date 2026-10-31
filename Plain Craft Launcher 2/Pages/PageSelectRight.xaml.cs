@@ -13,6 +13,7 @@ using PCL.Core.App.Configuration;
 using PCL.Core.App.Configuration.Storage;
 using FileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
 
@@ -558,15 +559,13 @@ public partial class PageSelectRight : IPageView
                     if (isShiftPressed)
                     {
                         Common.DeleteDirectory(mcInstance.PathInstance);
-                        HintService.Hint(Lang.Text("Select.Instance.Delete.PermanentSuccess", mcInstance.Name),
-                            HintType.Success);
+                        HintService.Show(Hints.Success(Lang.Text("Select.Instance.Delete.PermanentSuccess", mcInstance.Name)));
                     }
                     else
                     {
                         FileSystem.DeleteDirectory(mcInstance.PathInstance, UIOption.AllDialogs,
                             RecycleOption.SendToRecycleBin);
-                        HintService.Hint(Lang.Text("Select.Instance.Delete.RecycleBinSuccess", mcInstance.Name),
-                            HintType.Success);
+                        HintService.Show(Hints.Success(Lang.Text("Select.Instance.Delete.RecycleBinSuccess", mcInstance.Name)));
                     }
 
                     break;

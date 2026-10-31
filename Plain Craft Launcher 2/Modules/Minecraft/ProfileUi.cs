@@ -7,6 +7,7 @@ using System.Text.Json.Nodes;
 using System.Threading;
 using System.Windows;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.IO.Net;
 using PCL.Core.Logging;
 using PCL.Core.Minecraft.IdentityModel;
@@ -349,7 +350,7 @@ public static class ProfileUi
                     updated.UserName = result["name"]?.ToString() ?? username;
                     ProfileService.Update(profile, updated);
                     ProfileService.Select(updated);
-                    HintService.Hint(Lang.Text("Launch.Account.Profile.EditPlayerId.Success", updated.UserName), HintType.Success);
+                    HintService.Show(Hints.Success(Lang.Text("Launch.Account.Profile.EditPlayerId.Success", updated.UserName)));
                     Common.RunInUi(() => { Launcher.frmLoginProfileSkin?.Reload(); Launcher.frmLaunchLeft.RefreshPage(true); });
                 }
                 catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.Forbidden)
@@ -442,7 +443,7 @@ public static class ProfileUi
         updated.Uuid = newUuid;
         ProfileService.Update(current, updated);
         ProfileService.Select(updated);
-        HintService.Hint(Lang.Text("Launch.Account.Profile.Saved"), HintType.Success);
+        HintService.Show(Hints.Success(Lang.Text("Launch.Account.Profile.Saved")));
     }
 
     public static void EditAuthServerName(McProfile profile, string serverName)
@@ -453,13 +454,13 @@ public static class ProfileUi
         updated.ServerName = serverName;
         ProfileService.Update(current, updated);
         if (ReferenceEquals(ProfileService.Current, current)) ProfileService.Select(updated);
-        HintService.Hint(Lang.Text("Launch.Account.Profile.Saved"), HintType.Success);
+        HintService.Show(Hints.Success(Lang.Text("Launch.Account.Profile.Saved")));
     }
 
     public static void RemoveProfile(McProfile profile)
     {
         ProfileService.Remove(profile);
-        HintService.Hint(Lang.Text("Launch.Account.Profile.Deleted"), HintType.Success);
+        HintService.Show(Hints.Success(Lang.Text("Launch.Account.Profile.Deleted")));
     }
 
     public static string GetOfflineUuid(string userName, bool isSplited = false, bool isLegacy = false)
@@ -556,7 +557,7 @@ public static class ProfileUi
     {
         if (Interlocked.Exchange(ref _isMsSkinChanging, 1) != 0)
         {
-            HintService.Hint(Lang.Text("Launch.Skin.Change.Busy"));
+            HintService.Show(Hints.Info(Lang.Text("Launch.Skin.Change.Busy")));
             return;
         }
 
@@ -570,7 +571,7 @@ public static class ProfileUi
         if (GameLaunch.mcLoginLoader.State == Common.LoadState.Failed)
         {
             Interlocked.Exchange(ref _isMsSkinChanging, 0);
-            HintService.Hint(Lang.Text("Launch.Skin.Change.LoginFailed"), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Launch.Skin.Change.LoginFailed")));
             return;
         }
         var skinInfo = Skin.McSkinSelect();
@@ -579,7 +580,7 @@ public static class ProfileUi
             Interlocked.Exchange(ref _isMsSkinChanging, 0);
             return;
         }
-        HintService.Hint(Lang.Text("Launch.Skin.Change.Starting"));
+        HintService.Show(Hints.Info(Lang.Text("Launch.Skin.Change.Starting")));
         Common.RunInNewThread(() =>
         {
             try
@@ -608,7 +609,7 @@ public static class ProfileUi
                         if (hasRetriedAuthentication)
                             throw new IdentityModelAuthenticationException("invalid_token", "Microsoft authentication remained invalid.");
                         hasRetriedAuthentication = true;
-                        HintService.Hint(Lang.Text("Launch.Skin.Change.Reauthenticating"));
+                        HintService.Show(Hints.Info(Lang.Text("Launch.Skin.Change.Reauthenticating")));
                         GameLaunch.mcLoginMsLoader.Start(GetLoginData(), true);
                         continue;
                     }

@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Link.Scaffolding.EasyTier;
 using PCL.Core.ViewModel;
 
@@ -54,7 +55,7 @@ public partial class PageSetupGameLinkViewModel : ViewModelBase
         {
             Config.Link.Reset();
             Common.Log("[Setup] 已初始化联机页设置");
-            HintService.Hint(Lang.Text("Setup.GameLink.Initialized"), HintType.Success, false);
+            HintService.Show(Hints.Success(Lang.Text("Setup.GameLink.Initialized"), log: false));
             Reload();
         }
         catch (Exception ex)

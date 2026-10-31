@@ -7,6 +7,7 @@ using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.Utils.OS;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.UI.Dialogs;
 
 namespace PCL;
@@ -132,7 +133,7 @@ public partial class PageSetupLaunch : IPageView
         {
             Config.Launch.Reset();
             Common.Log("[Setup] 已初始化启动设置");
-            HintService.Hint(Lang.Text("Setup.Launch.Initialized"), HintType.Success, false);
+            HintService.Show(Hints.Success(Lang.Text("Setup.Launch.Initialized"), log: false));
         }
         catch (Exception ex)
         {

@@ -16,6 +16,7 @@ using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Utils;
 
 namespace PCL;
@@ -95,9 +96,7 @@ public partial class PageToolsGameLink : IPageView
 
     private async void OnServerExceptionHandler(Exception ex)
     {
-        Common.RunInUi(() => HintService.Hint(
-            Lang.Text("Tools.GameLink.Error.ServerMessage", ex.Message),
-            HintType.Error));
+        Common.RunInUi(() => HintService.Show(Hints.Error(Lang.Text("Tools.GameLink.Error.ServerMessage", ex.Message))));
 
         try
         {
@@ -113,7 +112,7 @@ public partial class PageToolsGameLink : IPageView
         catch (Exception secEx)
         {
             Common.Log(secEx, "Occurred an exception when exit server.");
-            HintService.Hint(Lang.Text("Tools.GameLink.Error.ServerExit"), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Tools.GameLink.Error.ServerExit")));
         }
     }
 
@@ -159,7 +158,7 @@ public partial class PageToolsGameLink : IPageView
             {
                 States.Link.NaidRefreshTokenConfig.Reset();
                 States.Link.LinkEulaConfig.Reset();
-                HintService.Hint(Lang.Text("Tools.GameLink.Eula.Disabled"));
+                HintService.Show(Hints.Info(Lang.Text("Tools.GameLink.Eula.Disabled")));
                 CurrentSubpage = Subpages.PanEula;
             }
         }
@@ -210,7 +209,7 @@ public partial class PageToolsGameLink : IPageView
         catch (Exception ex)
         {
             Common.Log(ex, "Occurred an exception when exit server.");
-            HintService.Hint(Lang.Text("Tools.GameLink.Error.ServerExit"), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Tools.GameLink.Error.ServerExit")));
         }
     }
 
@@ -700,7 +699,7 @@ public partial class PageToolsGameLink : IPageView
                 if (expireTime.CompareTo(DateTime.Now) < 0)
                 {
                     States.Link.NaidRefreshToken = "";
-                    HintService.Hint(Lang.Text("Tools.GameLink.Natayark.TokenExpired"), HintType.Error);
+                    HintService.Show(Hints.Error(Lang.Text("Tools.GameLink.Natayark.TokenExpired")));
                     return;
                 }
 
@@ -789,7 +788,7 @@ public partial class PageToolsGameLink : IPageView
                     WebServer.StartNaidAuthorize(() =>
                     {
                         Common.RunInUi(() => _vm.NatayarkUserEnabled = true);
-                        HintService.Hint(Lang.Text("Tools.GameLink.Natayark.LoginComplete"), HintType.Success);
+                        HintService.Show(Hints.Success(Lang.Text("Tools.GameLink.Natayark.LoginComplete")));
                         ReloadNaidData();
                     });
                 }
@@ -806,7 +805,7 @@ public partial class PageToolsGameLink : IPageView
                 States.Link.NaidRefreshToken = "";
                 _vm.NatayarkUserNameText = Lang.Text("Tools.GameLink.Natayark.Login");
                 Common.Log("[Link] 已退出登录 Natayark Network");
-                HintService.Hint(Lang.Text("Tools.GameLink.Natayark.LogoutComplete"), HintType.Success, false);
+                HintService.Show(Hints.Success(Lang.Text("Tools.GameLink.Natayark.LogoutComplete"), log: false));
             }
         }
         catch (Exception ex)
@@ -877,7 +876,7 @@ public partial class PageToolsGameLink : IPageView
                     if (res is not null && res.Version.Protocol != 0)
                         await CreateLobbyAsync(port);
                     else
-                        HintService.Hint(Lang.Text("Tools.GameLink.Create.NotMcPort"), HintType.Error);
+                        HintService.Show(Hints.Error(Lang.Text("Tools.GameLink.Create.NotMcPort")));
                 }
         }
         catch (Exception ex)
@@ -895,7 +894,7 @@ public partial class PageToolsGameLink : IPageView
     {
         if (ComboWorldList.SelectedItem is null)
         {
-            HintService.Hint(Lang.Text("Tools.GameLink.Create.NoWorld"));
+            HintService.Show(Hints.Info(Lang.Text("Tools.GameLink.Create.NoWorld")));
             return;
         }
 

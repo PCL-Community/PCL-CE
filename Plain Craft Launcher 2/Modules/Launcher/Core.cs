@@ -87,7 +87,6 @@ public static partial class Launcher
     {
         try
         {
-            HintService.Tick();
             frmMain!.DragTick();
             Loading.LoaderTaskbarProgressRefresh();
         }

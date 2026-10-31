@@ -6,6 +6,7 @@ using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Configuration.Storage;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Utils;
 using static PCL.Loading;
 
@@ -53,7 +54,7 @@ public static partial class Modpack
         var loaderName = Lang.Text("Minecraft.Download.Modpack.Task.MmcInstall", instanceName);
         if (loaderTaskbar.Any(l => (l.name ?? "") == (loaderName ?? "")))
         {
-            HintService.Hint(Lang.Text("Minecraft.Download.Modpack.Installing"), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Minecraft.Download.Modpack.Installing")));
             throw new Common.CancelledException();
         }
 

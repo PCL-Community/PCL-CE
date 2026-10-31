@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.UI;
 
 namespace PCL;
@@ -101,7 +102,7 @@ public partial class PageLogLeft : IPageView
             if (_vm.ShouldShowMaxLinesHint)
             {
                 States.Hint.MaxGameLog = true;
-                HintService.Hint(Lang.Text("LogPage.MaxLines.Hint", 500));
+                HintService.Show(Hints.Info(Lang.Text("LogPage.MaxLines.Hint", 500)));
             }
 
             isLoading -= 1;

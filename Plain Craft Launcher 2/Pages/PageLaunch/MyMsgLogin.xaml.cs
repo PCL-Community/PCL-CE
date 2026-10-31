@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.UI.Controls;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils;
@@ -125,7 +126,7 @@ public partial class MyMsgLogin
                     }
                 }
                 LogWrapper.Info("Profile",$"令牌过期时间：{resultJson.ExpiresIn} 秒");
-                HintService.Hint(Lang.Text("Launch.Account.LoginDialog.Success"), HintType.Success);
+                HintService.Show(Hints.Success(Lang.Text("Launch.Account.LoginDialog.Success")));
                 Finished(new[] { resultJson.AccessToken ?? string.Empty, resultJson.RefreshToken ?? string.Empty });
                 return;
             }

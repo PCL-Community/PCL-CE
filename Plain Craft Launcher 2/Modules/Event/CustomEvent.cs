@@ -2,6 +2,7 @@
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils.OS;
 using PCL.Network;
@@ -120,7 +121,7 @@ namespace PCL
                 });
                 return;
             }
-            HintService.Hint(Lang.Text("Event.OpenUrl.Opening", arg));
+            HintService.Show(Hints.Info(Lang.Text("Event.OpenUrl.Opening", arg)));
             Common.RunInThread(() => Common.OpenWebsite(arg));
         }
 
@@ -171,7 +172,7 @@ namespace PCL
                     instance = new McInstance(args[0])
                 };
                 if (GameLaunch.McLaunchStart(launchOptions))
-                    HintService.Hint(Lang.Text("Event.LaunchGame.Starting", args[0]));
+                    HintService.Show(Hints.Info(Lang.Text("Event.LaunchGame.Starting", args[0])));
             });
         }
 
@@ -192,10 +193,10 @@ namespace PCL
             {
                 Common.RunInUiWait(() => refreshable.Refresh());
                 if (string.IsNullOrEmpty(arg))
-                    HintService.Hint(Lang.Text("Event.Refresh.Success"), HintType.Success);
+                    HintService.Show(Hints.Success(Lang.Text("Event.Refresh.Success")));
             }
             else
-                HintService.Hint(Lang.Text("Event.Refresh.NotSupported"), HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Event.Refresh.NotSupported")));
         }
 
         /// <summary>
@@ -233,10 +234,10 @@ namespace PCL
         private static void _ShowHint(string arg, EventType _)
         {
             var args = SplitArgs(arg);
-            var hintType = args.Length == 1
-                ? HintType.Info
-                : (HintType)Enum.Parse(typeof(HintType), NormalizeHintTypeName(args[1]), true);
-            HintService.Hint(FixNewlines(args[0]), hintType);
+            var hintKind = args.Length == 1
+                ? HintKind.Info
+                : (HintKind)Enum.Parse(typeof(HintKind), NormalizeHintTypeName(args[1]), true);
+            HintService.Show(new HintRequest { Message = FixNewlines(args[0]), Kind = hintKind });
         }
 
         /// <summary>
@@ -244,8 +245,8 @@ namespace PCL
         /// </summary>
         private static string NormalizeHintTypeName(string name) => name.ToLowerInvariant() switch
         {
-            "finish" => nameof(HintType.Success),
-            "critical" => nameof(HintType.Error),
+            "finish" => nameof(HintKind.Success),
+            "critical" => nameof(HintKind.Error),
             _ => name
         };
 
@@ -319,14 +320,14 @@ namespace PCL
                 item.SetValueNoType(args[1], InstanceList.McMcInstanceSelected?.PathInstance);
             }
             if (args.Length == 2)
-                HintService.Hint(Lang.Text("Event.Setting.Written", args[0], args[1]), HintType.Success);
+                HintService.Show(Hints.Success(Lang.Text("Event.Setting.Written", args[0], args[1])));
         }
         private static bool CanWriteSettingFromCustomEvent(string key)
         {
             if (!SecuritySensitiveSettingKeys.Contains(key))
                 return true;
             Common.Log($"[Control] 已阻止自定义事件写入高危设置：{key}", Common.LogLevel.Developer);
-            HintService.Hint(Lang.Text("Event.Safety.DangerousSettingBlocked", key), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Event.Safety.DangerousSettingBlocked", key)));
             return false;
         }
 
@@ -341,7 +342,7 @@ namespace PCL
             States.CustomVariables[args[0]] = args[1];
             States.CustomVariables = States.CustomVariables; // 触发 ConfigPropertyChanged
             if (args.Length == 2)
-                HintService.Hint(Lang.Text("Event.Variable.Written", args[0], args[1]), HintType.Success);
+                HintService.Show(Hints.Success(Lang.Text("Event.Variable.Written", args[0], args[1])));
         }
 
         /// <summary>

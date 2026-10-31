@@ -7,6 +7,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Logging;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
@@ -64,7 +65,7 @@ public partial class PageLaunchRight : IRefreshable
         }
         else
         {
-            HintService.Hint(Lang.Text("Launch.Right.CommunityHint.WrongInput"));
+            HintService.Show(Hints.Info(Lang.Text("Launch.Right.CommunityHint.WrongInput")));
         }
     }
 
@@ -548,8 +549,8 @@ public partial class PageLaunchRight : IRefreshable
             var loadCostTime = (DateTime.Now - loadStartTime).Milliseconds;
             Common.Log($"[Page] 实例化：加载主页 UI 完成，耗时 {loadCostTime}ms");
             if (loadCostTime > 3000)
-                HintService.Hint(Lang.Text("Launch.Homepage.SlowWarning",
-                    Lang.Number(Math.Round(loadCostTime / 1000d, 1), "N1")));
+                HintService.Show(Hints.Info(Lang.Text("Launch.Homepage.SlowWarning",
+                    Lang.Number(Math.Round(loadCostTime / 1000d, 1), "N1"))));
         }
 
         return;
@@ -560,11 +561,10 @@ public partial class PageLaunchRight : IRefreshable
     private static void _ShowSanitizeHints(XamlEventSanitizer.SanitizeResult result)
     {
         foreach (var unsupported in result.UnsupportedTypesFound)
-            HintService.Hint(Lang.Text("Event.Sanitize.UnsupportedTypeHint", unsupported),
-                HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Event.Sanitize.UnsupportedTypeHint", unsupported)));
 
         foreach (var unknown in result.UnrecognizedTypes)
-            HintService.Hint(Lang.Text("Event.Sanitize.UnknownTypeHint", unknown), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Event.Sanitize.UnknownTypeHint", unknown)));
     }
 
     private const string homepageLivePatchFileName = "CustomLive.json";

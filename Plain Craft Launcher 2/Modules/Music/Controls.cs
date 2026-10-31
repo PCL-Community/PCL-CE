@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Windows.Controls;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 
 namespace PCL;
 
@@ -72,7 +73,7 @@ public static partial class Music
     {
         if (musicNAudio is null)
         {
-            HintService.Hint(Lang.Text("Music.Error.NotStarted"), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Music.Error.NotStarted")));
             return;
         }
 
@@ -104,23 +105,19 @@ public static partial class Music
         if (musicAllList?.Count is 1)
         {
             MusicStartPlay(_musicCurrent);
-            HintService.Hint(
-                Lang.Text("Music.Hint.Replaying", Common.GetFileNameFromPath(_musicCurrent)),
-                HintType.Success);
+            HintService.Show(Hints.Success(Lang.Text("Music.Hint.Replaying", Common.GetFileNameFromPath(_musicCurrent))));
         }
         else
         {
             var addr = DequeueNextMusicAddress();
             if (addr is null)
             {
-                HintService.Hint(Lang.Text("Music.Error.NoAvailable"), HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Music.Error.NoAvailable")));
             }
             else
             {
                 MusicStartPlay(addr);
-                HintService.Hint(
-                    Lang.Text("Music.Hint.Playing", Common.GetFileNameFromPath(addr)),
-                    HintType.Success);
+                HintService.Show(Hints.Success(Lang.Text("Music.Hint.Playing", Common.GetFileNameFromPath(addr))));
             }
         }
 

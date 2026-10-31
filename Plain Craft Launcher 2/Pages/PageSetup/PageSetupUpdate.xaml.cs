@@ -4,6 +4,7 @@ using System.Windows.Input;
 using PCL.Core.App;
 using PCL.Core.Utils;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils.OS;
 
@@ -293,7 +294,7 @@ public partial class PageSetupUpdate : IPageView
                     }
                     else
                     {
-                        HintService.Hint(Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.WrongInput"));
+                        HintService.Show(Hints.Info(Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.WrongInput")));
                         isCancelled = true;
                     }
                     break;

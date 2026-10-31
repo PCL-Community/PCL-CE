@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils;
 
@@ -71,9 +72,7 @@ public static class GameFolders
 
             if (!folder.Contains('>') || !folder.EndsWithF(@"\"))
             {
-                HintService.Hint(
-                    Lang.Text("Select.Folder.Invalid", folder),
-                    HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Select.Folder.Invalid", folder)));
                 continue;
             }
 

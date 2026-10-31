@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.IO;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.ViewModel;
@@ -76,7 +77,7 @@ public partial class PageToolsTestViewModel : ViewModelBase
             var shortcutPath = choice == 2 ? desktop : start;
             var locationName = choice == 2 ? desktopName : startName;
             Files.CreateShortcut(shortcutPath, Basics.ExecutablePath);
-            HintService.Hint(Lang.Text("Tools.Test.Shortcut.Created", locationName), HintType.Success);
+            HintService.Show(Hints.Success(Lang.Text("Tools.Test.Shortcut.Created", locationName)));
         }
         catch (Exception ex)
         {

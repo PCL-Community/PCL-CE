@@ -2,6 +2,7 @@
 using System.IO;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.IO;
 using PCL.Core.Minecraft;
 using PCL.Core.Minecraft.Java.UserPreference;
@@ -99,12 +100,11 @@ public static partial class JavaRuntime
 
                 if (!IsVersionSuitable(candidate.Installation.Version, minVersion, maxVersion)
                     || !IsAllowedMajor(candidate, compatibleMajors))
-                    HintService.Hint(
-                        _GetJavaRangeWarning(
+                    HintService.Show(Hints.Info(_GetJavaRangeWarning(
                             "Minecraft.Launch.Java.Compatibility.InstanceSelectedOutOfRange",
                             candidate.Installation.Version,
                             minVersion,
-                            maxVersion));
+                            maxVersion)));
 
                 Common.Log(
                     $"[Java] 返回实例 '{relatedInstance.Name}' 指定的 Java: {candidate}");
@@ -131,13 +131,11 @@ public static partial class JavaRuntime
 
                 if (!IsVersionSuitable(candidate.Installation.Version, minVersion, maxVersion)
                     || !IsAllowedMajor(candidate, compatibleMajors))
-                    HintService.Hint(
-                        _GetJavaRangeWarning(
+                    HintService.Show(Hints.Error(_GetJavaRangeWarning(
                             "Minecraft.Launch.Java.Compatibility.RelativePathSelectedOutOfRange",
                             candidate.Installation.Version,
                             minVersion,
-                            maxVersion),
-                        HintType.Error);
+                            maxVersion)));
 
                 Common.Log(
                     $"[Java] 返回实例 '{relatedInstance.Name}' 相对路径指定的 Java ({relativePath.RelativePath}): {candidate}");
@@ -193,12 +191,11 @@ public static partial class JavaRuntime
         }
 
         if (!versionSuitable)
-            HintService.Hint(
-                _GetJavaRangeWarning(
+            HintService.Show(Hints.Info(_GetJavaRangeWarning(
                     "Minecraft.Launch.Java.Compatibility.GlobalSelectedOutOfRange",
                     candidate.Installation.Version,
                     minVersion,
-                    maxVersion));
+                    maxVersion)));
 
         Common.Log($"[Java] 返回全局指定的 Java: {candidate}");
         selected = candidate;

@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Network.Loaders;
 
 namespace PCL;
@@ -39,12 +40,10 @@ public static partial class DownloadUi
         if (File.Exists(Path.Combine(instanceFolder, $"{request.targetInstanceName}.json"))
             && !ignoreDump)
         {
-            HintService.Hint(
-                Lang.Text(
+            HintService.Show(Hints.Error(Lang.Text(
                     "Minecraft.Download.Error.InstanceAlreadyExists",
                     request.targetInstanceName,
-                    ""),
-                HintType.Error);
+                    "")));
             throw new Common.CancelledException();
         }
 

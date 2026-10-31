@@ -14,6 +14,7 @@ using PCL.Network;
 using PCL.Network.Loaders;
 using FileSystem = Microsoft.VisualBasic.FileSystem;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using SortMethod = PCL.PageInstanceSavesDatapackViewModel.DatapackSortMethod;
 using FilterType = PCL.PageInstanceSavesDatapackViewModel.DatapackFilterType;
 
@@ -690,7 +691,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
         }
         else
         {
-            HintService.Hint(Lang.Text("Instance.Saves.Datapack.ToggleWarning"), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Instance.Saves.Datapack.ToggleWarning")));
             ReloadDatapackFileList(true);
         }
 
@@ -793,7 +794,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
             RefreshBars();
             if (!outcome.IsSuccessful)
             {
-                HintService.Hint(Lang.Text("Instance.Saves.Datapack.Delete.FileOccupied"), HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Instance.Saves.Datapack.Delete.FileOccupied")));
                 ReloadDatapackFileList(true);
                 return;
             }
@@ -806,25 +807,17 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
             if (isShiftPressed)
             {
                 if (outcome.Deleted.Count == 1)
-                    HintService.Hint(
-                        Lang.Text("Instance.Saves.Datapack.Delete.PermanentSingle", outcome.Deleted[0].FileName),
-                        HintType.Success);
+                    HintService.Show(Hints.Success(Lang.Text("Instance.Saves.Datapack.Delete.PermanentSingle", outcome.Deleted[0].FileName)));
                 else
-                    HintService.Hint(
-                        Lang.Text("Instance.Saves.Datapack.Delete.PermanentMultiple", outcome.Deleted.Count),
-                        HintType.Success);
+                    HintService.Show(Hints.Success(Lang.Text("Instance.Saves.Datapack.Delete.PermanentMultiple", outcome.Deleted.Count)));
             }
             else if (outcome.Deleted.Count == 1)
             {
-                HintService.Hint(
-                    Lang.Text("Instance.Saves.Datapack.Delete.RecycleSingle", outcome.Deleted[0].FileName),
-                    HintType.Success);
+                HintService.Show(Hints.Success(Lang.Text("Instance.Saves.Datapack.Delete.RecycleSingle", outcome.Deleted[0].FileName)));
             }
             else
             {
-                HintService.Hint(
-                    Lang.Text("Instance.Saves.Datapack.Delete.RecycleMultiple", outcome.Deleted.Count),
-                    HintType.Success);
+                HintService.Show(Hints.Success(Lang.Text("Instance.Saves.Datapack.Delete.RecycleMultiple", outcome.Deleted.Count)));
             }
 
             LoaderRun(Loading.LoaderFolderRunType.UpdateOnly);

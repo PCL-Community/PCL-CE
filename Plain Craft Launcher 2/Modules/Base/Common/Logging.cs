@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.VisualBasic;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Logging;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils.OS;
@@ -88,7 +89,7 @@ public static partial class Common
 
         if (level == LogLevel.Debug)
         {
-            HintService.Hint($"[Debug] {text}", HintType.Info, false);
+            HintService.Show(Hints.Info($"[Debug] {text}", log: false));
             return;
         }
 
@@ -147,7 +148,7 @@ public static partial class Common
 
         if (level == LogLevel.Debug)
         {
-            HintService.Hint($"[Debug] {desc}：{ex}", HintType.Info, false);
+            HintService.Show(Hints.Info($"[Debug] {desc}：{ex}", log: false));
             return;
         }
 
@@ -182,7 +183,7 @@ public static partial class Common
         switch (level)
         {
             case LogLevel.Hint:
-                HintService.Hint(message, HintType.Error, false);
+                HintService.Show(Hints.Error(message, log: false));
                 break;
 
             case LogLevel.Msgbox:

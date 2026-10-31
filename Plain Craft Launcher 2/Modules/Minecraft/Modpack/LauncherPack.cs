@@ -2,6 +2,7 @@
 using System.IO;
 using System.IO.Compression;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
 using static PCL.Loading;
@@ -50,9 +51,7 @@ public static partial class Modpack
         if (Directory.GetFileSystemEntries(targetFolder).Length <= 0)
             return targetFolder;
 
-        HintService.Hint(
-            Lang.Text("Minecraft.Download.Modpack.TargetFolderMustBeEmpty"),
-            HintType.Error);
+        HintService.Show(Hints.Error(Lang.Text("Minecraft.Download.Modpack.TargetFolderMustBeEmpty")));
         throw new Common.CancelledException();
     }
 

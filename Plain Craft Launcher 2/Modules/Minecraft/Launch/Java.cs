@@ -1,4 +1,5 @@
 ﻿using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Minecraft;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils;
@@ -337,7 +338,7 @@ public static partial class GameLaunch
             return;
         }
 
-        HintService.Hint(Lang.Text("Minecraft.Launch.Error.NoJava"), HintType.Error);
+        HintService.Show(Hints.Error(Lang.Text("Minecraft.Launch.Error.NoJava")));
         throw new Exception("$$");
     }
 

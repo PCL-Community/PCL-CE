@@ -9,6 +9,7 @@ using PCL.Core.UI.Dialogs;
 using PCL.Network;
 using PCL.Network.Loaders;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 
 namespace PCL;
 
@@ -540,7 +541,7 @@ public partial class PageDownloadCompFavorites : IPageView
             // 检查是否有共同支持的 Loading
             if (hasMod && supportedModLoader.Count == 0)
             {
-                HintService.Hint(Lang.Text("Download.Comp.Favorites.Hint.SelectLoader"), HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Download.Comp.Favorites.Hint.SelectLoader")));
                 return;
             }
 
@@ -565,7 +566,7 @@ public partial class PageDownloadCompFavorites : IPageView
                     desiredModLoader = supportedModLoader[(int)selectedModLoaderStr];
                 }
 
-            HintService.Hint(Lang.Text("Download.Comp.Favorites.Hint.LoadingVersions"));
+            HintService.Show(Hints.Info(Lang.Text("Download.Comp.Favorites.Hint.LoadingVersions")));
             // 输入 Ids，输出合适版本
             var getInfoAndDownloadLoader = new List<Loading.LoaderBase>();
             getInfoAndDownloadLoader.Add(new Loading.LoaderTask<List<string>, List<DownloadFile>>(
@@ -625,7 +626,7 @@ public partial class PageDownloadCompFavorites : IPageView
                     // Log(SuitVersion.Join(","))
                     if (suitVersion.Count == 0)
                     {
-                        HintService.Hint(Lang.Text("Download.Comp.Favorites.Hint.NoResource"), HintType.Error);
+                        HintService.Show(Hints.Error(Lang.Text("Download.Comp.Favorites.Hint.NoResource")));
                         ts.Abort();
                         return;
                     }
@@ -649,7 +650,7 @@ public partial class PageDownloadCompFavorites : IPageView
                     if (selectedVersion is null) ts.Abort();
                 });
                 string selectedVersionStr = suitVersion[(int)selectedVersion];
-                HintService.Hint(Lang.Text("Download.Comp.Favorites.Hint.SelectSaveLocation", selectedVersionStr));
+                HintService.Show(Hints.Info(Lang.Text("Download.Comp.Favorites.Hint.SelectSaveLocation", selectedVersionStr)));
                 var saveFolder = SystemDialogs.SelectFolder();
                 if (string.IsNullOrWhiteSpace(saveFolder))
                 {
@@ -805,7 +806,7 @@ public partial class PageDownloadCompFavorites : IPageView
                 var newFavs = Comp.CompFavorites.GetIdsByShareCode(clipData);
                 if (newFavs.Count == 0)
                 {
-                    HintService.Hint(Lang.Text("Download.Comp.Favorites.Hint.NothingShared"));
+                    HintService.Show(Hints.Info(Lang.Text("Download.Comp.Favorites.Hint.NothingShared")));
                     return;
                 }
 
@@ -949,7 +950,7 @@ public partial class PageDownloadCompFavorites : IPageView
             {
                 if (Comp.CompFavorites.FavoritesList.Count == 1)
                 {
-                    HintService.Hint(Lang.Text("Download.Comp.Favorites.Hint.LastCollection"));
+                    HintService.Show(Hints.Info(Lang.Text("Download.Comp.Favorites.Hint.LastCollection")));
                     return;
                 }
 
@@ -968,7 +969,7 @@ public partial class PageDownloadCompFavorites : IPageView
                 {
                     Comp.CompFavorites.FavoritesList.Remove(CurrentFavTarget);
                     Comp.CompFavorites.Save();
-                    HintService.Hint(Lang.Text("Download.Comp.Favorites.Hint.Deleted"), HintType.Success);
+                    HintService.Show(Hints.Success(Lang.Text("Download.Comp.Favorites.Hint.Deleted")));
                     RefreshFavTargets();
                     _vm.FavTargetSelectedIndex = 0;
                 }
@@ -1019,7 +1020,7 @@ public partial class PageDownloadCompFavorites : IPageView
                     foreach (var Id in failIds)
                         CurrentFavTarget.Favs.Remove(Id);
                     Comp.CompFavorites.Save();
-                    HintService.Hint(Lang.Text("Download.Comp.Favorites.Hint.Removed"), HintType.Success);
+                    HintService.Show(Hints.Success(Lang.Text("Download.Comp.Favorites.Hint.Removed")));
                 })),
             ForceWait = true
         });

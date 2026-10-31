@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 
 namespace PCL;
 
@@ -47,7 +48,7 @@ public static partial class DownloadUi
     {
         var message = $"远程版本名{reason}：{childFolderName}";
         Common.Log($"[Download] {message}");
-        HintService.Hint(message, HintType.Error);
+        HintService.Show(Hints.Error(message));
         throw new Common.CancelledException();
     }
 }

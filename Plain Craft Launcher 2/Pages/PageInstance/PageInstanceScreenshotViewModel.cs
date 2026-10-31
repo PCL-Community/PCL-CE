@@ -4,6 +4,7 @@ using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.ViewModel;
 
 namespace PCL;
@@ -50,7 +51,7 @@ public partial class PageInstanceScreenshotViewModel : ViewModelBase
                 {
                     Common.Log("[Screenshot] 尝试复制" + path + "到剪贴板");
                     Clipboard.SetImage(new BitmapImage(new Uri(path)));
-                    HintService.Hint(Lang.Text("Instance.Screenshot.CopiedToClipboard"));
+                    HintService.Show(Hints.Info(Lang.Text("Instance.Screenshot.CopiedToClipboard")));
                     tryTime = 6;
                     return;
                 }
@@ -60,11 +61,11 @@ public partial class PageInstanceScreenshotViewModel : ViewModelBase
                     Common.Log(ex, $"[Screenshot]第 {tryTime} 次复制尝试失败");
                 }
 
-            HintService.Hint(Lang.Text("Instance.Screenshot.CopyFailed"), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Instance.Screenshot.CopyFailed")));
         }
         else
         {
-            HintService.Hint(Lang.Text("Instance.Screenshot.FileNotFound"));
+            HintService.Show(Hints.Info(Lang.Text("Instance.Screenshot.FileNotFound")));
         }
     }
 }

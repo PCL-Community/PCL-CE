@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.IO.Compression;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils;
 using PCL.Network;
@@ -69,7 +70,7 @@ public static partial class Modpack
         var loaderName = Lang.Text("Minecraft.Download.Modpack.Task.ModrinthInstall", instanceName);
         if (loaderTaskbar.Any(l => (l.name ?? "") == (loaderName ?? "")))
         {
-            HintService.Hint(Lang.Text("Minecraft.Download.Modpack.Installing"), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Minecraft.Download.Modpack.Installing")));
             throw new Common.CancelledException();
         }
 
@@ -138,13 +139,11 @@ public static partial class Modpack
                     throw new Exception(Lang.Text("Minecraft.Download.Modpack.QuiltUnsupported"));
 
                 default:
-                    HintService.Hint(
-                        Lang.Text(
+                    HintService.Show(Hints.Error(Lang.Text(
                             "Minecraft.Download.Modpack.UnknownLoader",
                             entry.Key,
                             entry.Value
-                        ),
-                        HintType.Error);
+                        )));
                     break;
             }
 

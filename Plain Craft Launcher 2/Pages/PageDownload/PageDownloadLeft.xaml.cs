@@ -1,6 +1,7 @@
 ﻿using System.Windows.Controls;
 using System.Windows.Input;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 
 namespace PCL;
 
@@ -186,7 +187,7 @@ public partial class PageDownloadLeft : IRefreshable
             }
         }
 
-        HintService.Hint(Lang.Text("Download.Left.Hint.Refreshing"), log: false);
+        HintService.Show(Hints.Info(Lang.Text("Download.Left.Hint.Refreshing"), log: false));
     }
 
     // 点击返回

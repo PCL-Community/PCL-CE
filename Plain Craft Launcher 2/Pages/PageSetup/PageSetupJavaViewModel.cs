@@ -1,5 +1,6 @@
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Minecraft;
 using PCL.Core.ViewModel;
 
@@ -38,7 +39,7 @@ public class PageSetupJavaViewModel : ViewModelBase
     {
         if (entry.Installation.IsStillAvailable)
             return true;
-        HintService.Hint(Lang.Text("Setup.Java.Unavailable"));
+        HintService.Show(Hints.Info(Lang.Text("Setup.Java.Unavailable")));
         return false;
     }
 
@@ -46,7 +47,7 @@ public class PageSetupJavaViewModel : ViewModelBase
     {
         if (!entry.Installation.IsStillAvailable)
         {
-            HintService.Hint(Lang.Text("Setup.Java.Unavailable"));
+            HintService.Show(Hints.Info(Lang.Text("Setup.Java.Unavailable")));
             return true;
         }
 
@@ -56,7 +57,7 @@ public class PageSetupJavaViewModel : ViewModelBase
             return true;
         }
 
-        HintService.Hint(Lang.Text("Setup.Java.EnableBeforeSelect"));
+        HintService.Show(Hints.Info(Lang.Text("Setup.Java.EnableBeforeSelect")));
         return false;
     }
 
@@ -67,13 +68,13 @@ public class PageSetupJavaViewModel : ViewModelBase
             var target = JavaRuntime.Javas.AddOrGet(entry.Installation.JavaExePath);
             if (target is null)
             {
-                HintService.Hint(Lang.Text("Setup.Java.Unavailable"));
+                HintService.Show(Hints.Info(Lang.Text("Setup.Java.Unavailable")));
                 return null;
             }
 
             if (target.IsEnabled && Config.Launch.SelectedJava == target.Installation.JavaExePath)
             {
-                HintService.Hint(Lang.Text("Setup.Java.DeselectBeforeDisable"));
+                HintService.Show(Hints.Info(Lang.Text("Setup.Java.DeselectBeforeDisable")));
                 return null;
             }
 

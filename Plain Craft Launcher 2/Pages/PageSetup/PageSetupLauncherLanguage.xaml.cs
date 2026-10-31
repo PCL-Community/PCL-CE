@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 
 namespace PCL;
 
@@ -67,7 +68,7 @@ public partial class PageSetupLauncherLanguage : IPageView
             Config.Preference.Localization.FormatCultureConfig.SetDefaultValue();
             LocalizationService.ApplyFromConfig();
             Common.Log("[Setup] 已初始化启动器-语言页设置");
-            HintService.Hint(Lang.Text("Setup.Language.Reset.Success"), HintType.Success, false);
+            HintService.Show(Hints.Success(Lang.Text("Setup.Language.Reset.Success"), log: false));
             Reload();
         }
         catch (Exception ex)
@@ -140,7 +141,7 @@ public partial class PageSetupLauncherLanguage : IPageView
             return;
 
         Config.Preference.Localization.Language = value;
-        HintService.Hint(Lang.Text("Setup.Language.Changed"), HintType.Success, false);
+        HintService.Show(Hints.Success(Lang.Text("Setup.Language.Changed"), log: false));
         Reload();
     }
 
@@ -156,7 +157,7 @@ public partial class PageSetupLauncherLanguage : IPageView
             return;
 
         Config.Preference.Localization.FormatCulture = value;
-        HintService.Hint(Lang.Text("Setup.Language.Changed"), HintType.Success, false);
+        HintService.Show(Hints.Success(Lang.Text("Setup.Language.Changed"), log: false));
         Reload();
     }
 

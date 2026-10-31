@@ -6,6 +6,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Threading;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 
 namespace PCL;
 
@@ -57,7 +58,7 @@ public partial class PageInstanceSaves : IRefreshable, IPageView
         if (Launcher.frmInstanceSaves is not null)
             Launcher.frmInstanceSaves.Reload();
         Launcher.frmInstanceLeft.ItemWorld.Checked = true;
-        HintService.Hint(Lang.Text("Instance.Saves.Status.Refreshing"), log: false);
+        HintService.Show(Hints.Info(Lang.Text("Instance.Saves.Status.Refreshing"), log: false));
     }
 
     private void PageSetupLaunch_Loaded(object sender, RoutedEventArgs e)
@@ -196,7 +197,7 @@ public partial class PageInstanceSaves : IRefreshable, IPageView
             {
                 if (await _vm.DeleteSaveAsync(curFolder))
                 {
-                    HintService.Hint(Lang.Text("Instance.Saves.DeletedToRecycleBin"));
+                    HintService.Show(Hints.Info(Lang.Text("Instance.Saves.DeletedToRecycleBin")));
                     RemoveItem(worldItem);
                     return;
                 }
@@ -308,7 +309,7 @@ public partial class PageInstanceSaves : IRefreshable, IPageView
             {
                 var copied = PageInstanceSavesViewModel.CopySaveFolders(files, worldPath);
                 if (copied > 0)
-                    HintService.Hint(Lang.Text("Instance.Saves.PastedCount", copied.ToString()), HintType.Success);
+                    HintService.Show(Hints.Success(Lang.Text("Instance.Saves.PastedCount", copied.ToString())));
                 Common.RunInUi(() => Reload());
             })
         };

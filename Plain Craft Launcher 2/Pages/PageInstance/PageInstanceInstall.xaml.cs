@@ -8,6 +8,7 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils;
@@ -122,7 +123,7 @@ public partial class PageInstanceInstall : IPageView
         // Quilt 实例无法通过安装管线重装/修改（已移除 Quilt 安装支持）
         if (PageInstanceLeft.McInstance.Info.HasQuilt)
         {
-            HintService.Hint(Lang.Text("Instance.Overall.Reset.QuiltUnsupported"));
+            HintService.Show(Hints.Info(Lang.Text("Instance.Overall.Reset.QuiltUnsupported")));
             return;
         }
 
@@ -270,7 +271,7 @@ public partial class PageInstanceInstall : IPageView
         if (!(bool)States.Hint.InstallPageBack)
         {
             States.Hint.InstallPageBack = true;
-            HintService.Hint(Lang.Text("Download.Install.Hint.MinecraftBack"));
+            HintService.Show(Hints.Info(Lang.Text("Download.Install.Hint.MinecraftBack")));
         }
 
         // 如果在选择页面按了刷新键，选择页的东西可能会由于动画被隐藏，但不会由于加载结束而再次显示，因此这里需要手动恢复

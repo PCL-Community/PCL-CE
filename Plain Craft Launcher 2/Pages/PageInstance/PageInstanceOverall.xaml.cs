@@ -15,6 +15,7 @@ using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils.Validate;
 using FileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 
 namespace PCL;
 
@@ -371,7 +372,7 @@ public partial class PageInstanceOverall : IPageView
             }
 
             // 刷新与提示
-            HintService.Hint(Lang.Text("Instance.Overall.Name.RenameSuccess"), HintType.Success);
+            HintService.Show(Hints.Success(Lang.Text("Instance.Overall.Name.RenameSuccess")));
             PageInstanceLeft.McInstance = new McInstance(newName).Load();
             if (InstanceList.McMcInstanceSelected is not null &&
                 InstanceList.McMcInstanceSelected.Equals(PageInstanceLeft.McInstance))
@@ -496,13 +497,13 @@ public partial class PageInstanceOverall : IPageView
             if (!(currentVersion.Drop == 99) &&
                 McVersionComparer.CompareVersion(currentVersion.VanillaName, "1.5.2") == -1 && currentVersion.HasForge)
             {
-                HintService.Hint(Lang.Text("Instance.Overall.Reset.NotSupported"));
+                HintService.Show(Hints.Info(Lang.Text("Instance.Overall.Reset.NotSupported")));
                 return;
             }
 
             if (currentVersion.HasQuilt)
             {
-                HintService.Hint(Lang.Text("Instance.Overall.Reset.QuiltUnsupported"));
+                HintService.Show(Hints.Info(Lang.Text("Instance.Overall.Reset.QuiltUnsupported")));
                 return;
             }
 
@@ -612,15 +613,13 @@ public partial class PageInstanceOverall : IPageView
                     if (isShiftPressed)
                     {
                         Common.DeleteDirectory(instancePath);
-                        HintService.Hint(Lang.Text("Instance.Overall.Delete.PermanentSuccess", instanceName),
-                            HintType.Success);
+                        HintService.Show(Hints.Success(Lang.Text("Instance.Overall.Delete.PermanentSuccess", instanceName)));
                     }
                     else
                     {
                         FileSystem.DeleteDirectory(instancePath, UIOption.OnlyErrorDialogs,
                             RecycleOption.SendToRecycleBin);
-                        HintService.Hint(Lang.Text("Instance.Overall.Delete.RecycleBinSuccess", instanceName),
-                            HintType.Success);
+                        HintService.Show(Hints.Success(Lang.Text("Instance.Overall.Delete.RecycleBinSuccess", instanceName)));
                     }
 
                     break;
@@ -671,13 +670,13 @@ public partial class PageInstanceOverall : IPageView
                     var userInput = SystemDialogs.SelectFile(Lang.Text("Instance.Overall.Patch.SelectFile.Filter"), Lang.Text("Instance.Overall.Patch.SelectFile.Title"));
                     if (userInput is null || string.IsNullOrWhiteSpace(userInput))
                         return;
-                    HintService.Hint(Lang.Text("Instance.Overall.Patch.Patching"));
+                    HintService.Show(Hints.Info(Lang.Text("Instance.Overall.Patch.Patching")));
                     Common.RunInNewThread(() =>
                     {
                         var core = new GameCore(PageInstanceLeft.McInstance.PathInstance + PageInstanceLeft.McInstance.Name +
                                                 ".jar");
                         core.AddToCore(userInput);
-                        HintService.Hint(Lang.Text("Instance.Overall.Patch.Success"), HintType.Success);
+                        HintService.Show(Hints.Success(Lang.Text("Instance.Overall.Patch.Success")));
                         Config.Instance.DisableAssetVerifyV2[PageInstanceLeft.McInstance.PathInstance] = true;
                     });
                     break;

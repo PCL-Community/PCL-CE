@@ -3,6 +3,7 @@ using System.IO;
 using System.IO.Compression;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Logging;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
@@ -62,7 +63,7 @@ public partial class PageSetupLogViewModel : ViewModelBase
         var cleaned = await RunAsync(ct => Task.Run(() => DeleteInactiveLogs(currentSet), ct));
         if (cleaned is not true)
             return false;
-        HintService.Hint(Lang.Text("Setup.Log.Clear.Success"), HintType.Success);
+        HintService.Show(Hints.Success(Lang.Text("Setup.Log.Clear.Success")));
         return true;
     }
 
@@ -81,7 +82,7 @@ public partial class PageSetupLogViewModel : ViewModelBase
             return;
         var written = await RunAsync(ct => Task.Run(() => WriteZip(selectedPath, tempDirName, sourceFiles), ct));
         if (written is true)
-            HintService.Hint(Lang.Text("Setup.Log.ExportSuccess"), HintType.Success);
+            HintService.Show(Hints.Success(Lang.Text("Setup.Log.ExportSuccess")));
     }
 
     private List<SetupLogEntry> BuildEntries()

@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Minecraft.Profile;
 using PCL.Core.UI;
 using PCL.Core.ViewModel;
@@ -142,7 +143,7 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
             // 检查中断（等玩家选完弹窗指不定任务就结束了呢……）
             if (GameLaunch.mcLaunchLoader.State == Common.LoadState.Loading)
             {
-                HintService.Hint(Lang.Text("Instance.Overall.Script.WaitForLaunchTask"), HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Instance.Overall.Script.WaitForLaunchTask")));
                 return;
             }
 
@@ -151,9 +152,9 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
                     { SaveBatch = savePath, instance = PageInstanceLeft.McInstance }))
             {
                 if (ProfileService.Current?.ProfileType == PCL.Core.Minecraft.Profile.Models.ProfileType.Offline)
-                    HintService.Hint(Lang.Text("Instance.Overall.Script.Exporting"));
+                    HintService.Show(Hints.Info(Lang.Text("Instance.Overall.Script.Exporting")));
                 else
-                    HintService.Hint(Lang.Text("Instance.Overall.Script.ExportingWarning"));
+                    HintService.Show(Hints.Info(Lang.Text("Instance.Overall.Script.ExportingWarning")));
             }
         }
         catch (Exception ex)
@@ -176,7 +177,7 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
             // 忽略文件检查提示
             if ((bool)Libraries.ShouldIgnoreFileCheck(PageInstanceLeft.McInstance))
             {
-                HintService.Hint(Lang.Text("Instance.Overall.Repair.DisableVerificationHint"));
+                HintService.Show(Hints.Info(Lang.Text("Instance.Overall.Repair.DisableVerificationHint")));
                 return;
             }
 
@@ -186,7 +187,7 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
             {
                 if ((OngoingLoader.name ?? "") != (taskName ?? ""))
                     continue;
-                HintService.Hint(Lang.Text("Instance.Overall.Repair.Processing"), HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Instance.Overall.Repair.Processing")));
                 return;
             }
 
@@ -200,21 +201,17 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
                 {
                     case Common.LoadState.Finished:
                     {
-                        HintService.Hint(
-                            Lang.Text("Instance.Overall.Repair.Success.WithTaskName", taskName), HintType.Success);
+                        HintService.Show(Hints.Success(Lang.Text("Instance.Overall.Repair.Success.WithTaskName", taskName)));
                         break;
                     }
                     case Common.LoadState.Failed:
                     {
-                        HintService.Hint(
-                            Lang.Text("Instance.Overall.Repair.Failed.WithDetail", taskName, loader.Error.ToString()),
-                            HintType.Error);
+                        HintService.Show(Hints.Error(Lang.Text("Instance.Overall.Repair.Failed.WithDetail", taskName, loader.Error.ToString())));
                         break;
                     }
                     case Common.LoadState.Aborted:
                     {
-                        HintService.Hint(
-                            Lang.Text("Instance.Overall.Repair.Cancelled.WithTaskName", taskName));
+                        HintService.Show(Hints.Info(Lang.Text("Instance.Overall.Repair.Cancelled.WithTaskName", taskName)));
                         break;
                     }
                 }

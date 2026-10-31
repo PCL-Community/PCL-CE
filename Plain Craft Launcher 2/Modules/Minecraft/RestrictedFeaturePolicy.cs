@@ -1,4 +1,5 @@
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.App.Region;
 
 namespace PCL;
@@ -17,9 +18,9 @@ internal static class RestrictedFeaturePolicy
         Common.Log($"[RegionPolicy] 已阻止功能 {feature}，判定原因：{assessment.Reason}");
         if (showHint)
         {
-            HintService.Hint(Lang.Text(assessment.Classification == RegionClassification.Unknown
+            HintService.Show(Hints.Error(Lang.Text(assessment.Classification == RegionClassification.Unknown
                 ? "Region.Feature.Unknown"
-                : "Region.Feature.Restricted"), HintType.Error);
+                : "Region.Feature.Restricted")));
         }
         return false;
     }

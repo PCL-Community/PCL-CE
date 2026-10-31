@@ -2,6 +2,7 @@
 using System.IO.Compression;
 using System.Text;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using static PCL.Loading;
 
 namespace PCL;
@@ -35,7 +36,7 @@ public static partial class Modpack
         var loaderName = Lang.Text("Minecraft.Download.Modpack.Task.HmclInstall", instanceName);
         if (loaderTaskbar.Any(l => (l.name ?? "") == (loaderName ?? "")))
         {
-            HintService.Hint(Lang.Text("Minecraft.Download.Modpack.Installing"), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Minecraft.Download.Modpack.Installing")));
             throw new Common.CancelledException();
         }
 

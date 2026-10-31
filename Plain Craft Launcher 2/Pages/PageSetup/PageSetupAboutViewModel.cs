@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.IO.Net.Http;
 using PCL.Core.Utils;
@@ -64,10 +65,10 @@ public partial class PageSetupAboutViewModel : ViewModelBase
                 switch (_clickCount)
                 {
                     case 5:
-                        HintService.Hint(Lang.Text("Setup.About.EasterEgg.NiceClick"));
+                        HintService.Show(Hints.Info(Lang.Text("Setup.About.EasterEgg.NiceClick")));
                         break;
                     case 15:
-                        HintService.Hint(Lang.Text("Setup.About.EasterEgg.StillClicking"));
+                        HintService.Show(Hints.Info(Lang.Text("Setup.About.EasterEgg.StillClicking")));
                         break;
                     case 25:
                         var boredResult = await Dialog.ShowAsync(new TextDialogRequest
@@ -79,19 +80,19 @@ public partial class PageSetupAboutViewModel : ViewModelBase
                                 DialogButton.Create(Lang.Text("Setup.About.EasterEgg.Bored.No")))
                         });
                         if (boredResult.Button == 2)
-                            HintService.Hint(Lang.Text("Setup.About.EasterEgg.Bored.Response"));
+                            HintService.Show(Hints.Info(Lang.Text("Setup.About.EasterEgg.Bored.Response")));
                         break;
                     case 50:
-                        HintService.Hint(Lang.Text("Setup.About.EasterEgg.Encouragement"));
+                        HintService.Show(Hints.Info(Lang.Text("Setup.About.EasterEgg.Encouragement")));
                         break;
                     case 75:
-                        HintService.Hint(Lang.Text("Setup.About.EasterEgg.HiddenTheme"));
+                        HintService.Show(Hints.Info(Lang.Text("Setup.About.EasterEgg.HiddenTheme")));
                         break;
                     case 100:
-                        HintService.Hint(Lang.Text("Setup.About.EasterEgg.StillStaring"));
+                        HintService.Show(Hints.Info(Lang.Text("Setup.About.EasterEgg.StillStaring")));
                         break;
                     case 130:
-                        HintService.Hint(Lang.Text("Setup.About.EasterEgg.NothingBehind"));
+                        HintService.Show(Hints.Info(Lang.Text("Setup.About.EasterEgg.NothingBehind")));
                         break;
                     case 150:
                         var tiredResult1 = await Dialog.ShowAsync(new TextDialogRequest
@@ -105,7 +106,7 @@ public partial class PageSetupAboutViewModel : ViewModelBase
                         switch (tiredResult1.Button)
                         {
                             case 1:
-                                HintService.Hint(Lang.Text("Setup.About.EasterEgg.Tired.StopClicking"));
+                                HintService.Show(Hints.Info(Lang.Text("Setup.About.EasterEgg.Tired.StopClicking")));
                                 break;
                             case 2:
                                 var tiredResult2 = await Dialog.ShowAsync(new TextDialogRequest
@@ -119,7 +120,7 @@ public partial class PageSetupAboutViewModel : ViewModelBase
                                 switch (tiredResult2.Button)
                                 {
                                     case 1:
-                                        HintService.Hint(Lang.Text("Setup.About.EasterEgg.Tired.StopClicking"));
+                                        HintService.Show(Hints.Info(Lang.Text("Setup.About.EasterEgg.Tired.StopClicking")));
                                         break;
                                     case 2:
                                         var tiredResult3 = await Dialog.ShowAsync(new TextDialogRequest
@@ -133,12 +134,10 @@ public partial class PageSetupAboutViewModel : ViewModelBase
                                         switch (tiredResult3.Button)
                                         {
                                             case 1:
-                                                HintService.Hint(
-                                                    Lang.Text("Setup.About.EasterEgg.Tired.StopClicking"));
+                                                HintService.Show(Hints.Info(Lang.Text("Setup.About.EasterEgg.Tired.StopClicking")));
                                                 break;
                                             case 2:
-                                                HintService.Hint(
-                                                    Lang.Text("Setup.About.EasterEgg.Tired.FinallyGiveUp"));
+                                                HintService.Show(Hints.Info(Lang.Text("Setup.About.EasterEgg.Tired.FinallyGiveUp")));
                                                 break;
                                         }
 
@@ -150,7 +149,7 @@ public partial class PageSetupAboutViewModel : ViewModelBase
 
                         break;
                     case 200:
-                        HintService.Hint(Lang.Text("Setup.About.EasterEgg.ClickDisabled"));
+                        HintService.Show(Hints.Info(Lang.Text("Setup.About.EasterEgg.ClickDisabled")));
                         IsLogoClickEnabled = false;
                         return;
                 }

@@ -10,6 +10,7 @@ using PCL.Core.Minecraft;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils.Validate;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 
 namespace PCL;
 
@@ -88,7 +89,7 @@ public partial class PageInstanceServer : MyPageRight, IPageView
         var index = PanServers.Children.IndexOf((UIElement)sender);
         if (index < 0)
         {
-            HintService.Hint(Lang.Text("Instance.Server.IndexNotFound"), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Instance.Server.IndexNotFound")));
             return;
         }
 
@@ -97,7 +98,7 @@ public partial class PageInstanceServer : MyPageRight, IPageView
                 Path.Combine(PageInstanceLeft.McInstance.PathIndie, "servers.dat"), "servers");
         if (nbtData is null)
         {
-            HintService.Hint(Lang.Text("Instance.Server.ReadDataFailed"), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Instance.Server.ReadDataFailed")));
             return;
         }
 
@@ -107,7 +108,7 @@ public partial class PageInstanceServer : MyPageRight, IPageView
         if (!await NbtFileHandler.WriteTagInNbtFileAsync(clonedNbtData,
                 Path.Combine(PageInstanceLeft.McInstance.PathIndie, "servers.dat")))
         {
-            HintService.Hint(Lang.Text("Instance.Server.WriteDataFailed"), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Instance.Server.WriteDataFailed")));
             return;
         }
 
@@ -117,7 +118,7 @@ public partial class PageInstanceServer : MyPageRight, IPageView
 
         PanServers.Children.Remove((UIElement)sender);
 
-        HintService.Hint(Lang.Text("Instance.Server.Removed"), HintType.Success);
+        HintService.Show(Hints.Success(Lang.Text("Instance.Server.Removed")));
     }
 
     private async void EditServer(object sender, ServerCard.ResultEventArgs e)
@@ -127,14 +128,14 @@ public partial class PageInstanceServer : MyPageRight, IPageView
                 "servers");
         if (nbtData is null)
         {
-            HintService.Hint(Lang.Text("Instance.Server.ReadDataFailed"), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Instance.Server.ReadDataFailed")));
             return;
         }
 
         var index = PanServers.Children.IndexOf((UIElement)sender);
         if (index < 0 || index >= nbtData.Count)
         {
-            HintService.Hint(Lang.Text("Instance.Server.IndexNotFound"), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Instance.Server.IndexNotFound")));
             return;
         }
 
@@ -147,7 +148,7 @@ public partial class PageInstanceServer : MyPageRight, IPageView
         if (!await NbtFileHandler.WriteTagInNbtFileAsync(clonedNbtData,
                 Path.Combine(PageInstanceLeft.McInstance.PathIndie, "servers.dat")))
         {
-            HintService.Hint(Lang.Text("Instance.Server.WriteDataFailed"), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Instance.Server.WriteDataFailed")));
             return;
         }
 
@@ -158,7 +159,7 @@ public partial class PageInstanceServer : MyPageRight, IPageView
 
         await serverCard.RefreshServerStatusAsync(true);
 
-        HintService.Hint(Lang.Text("Instance.Server.Updated"), HintType.Success);
+        HintService.Show(Hints.Success(Lang.Text("Instance.Server.Updated")));
     }
 
     public async void RefreshServers()
@@ -179,9 +180,7 @@ public partial class PageInstanceServer : MyPageRight, IPageView
                 Lang.Text("Instance.Server.RefreshFailed"),
                 Common.LogLevel.Feedback,
                 userSummary: Lang.Text("Instance.Server.RefreshFailed"));
-            Common.RunInUi(() => HintService.Hint(
-                Lang.Text("Instance.Server.RefreshFailed.WithDetail", ex.ToString()),
-                HintType.Error));
+            Common.RunInUi(() => HintService.Show(Hints.Error(Lang.Text("Instance.Server.RefreshFailed.WithDetail", ex.ToString()))));
         }
     }
 
@@ -189,12 +188,12 @@ public partial class PageInstanceServer : MyPageRight, IPageView
     {
         if ((DateTime.Now - _lastRefresh).TotalMilliseconds < debounceInterval)
         {
-            HintService.Hint(Lang.Text("Instance.Server.NoFrequentRefresh"));
+            HintService.Show(Hints.Info(Lang.Text("Instance.Server.NoFrequentRefresh")));
             return;
         }
 
         _lastRefresh = DateTime.Now;
-        HintService.Hint(Lang.Text("Instance.Server.RefreshingList"));
+        HintService.Show(Hints.Info(Lang.Text("Instance.Server.RefreshingList")));
         try
         {
             RefreshServers();
@@ -206,9 +205,7 @@ public partial class PageInstanceServer : MyPageRight, IPageView
                 Lang.Text("Instance.Server.RefreshFailed"),
                 Common.LogLevel.Feedback,
                 userSummary: Lang.Text("Instance.Server.RefreshFailed"));
-            HintService.Hint(
-                Lang.Text("Instance.Server.RefreshFailed.WithDetail", ex.ToString()),
-                HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Instance.Server.RefreshFailed.WithDetail", ex.ToString())));
         }
     }
 

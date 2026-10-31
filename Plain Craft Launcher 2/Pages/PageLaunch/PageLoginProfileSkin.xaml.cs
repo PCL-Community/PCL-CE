@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Input;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Minecraft.Profile;
 using PCL.Core.Minecraft.Profile.Models;
 
@@ -119,7 +120,7 @@ public partial class PageLoginProfileSkin : IPageView
         }
         else
         {
-            HintService.Hint(Lang.Text("Launch.Account.ProfileSkin.PasswordUnsupported"));
+            HintService.Show(Hints.Info(Lang.Text("Launch.Account.ProfileSkin.PasswordUnsupported")));
         }
     }
 
@@ -151,7 +152,7 @@ public partial class PageLoginProfileSkin : IPageView
             Common.OpenWebsite(profile.Server.BeforeFirst("api/yggdrasil/authserver") +
                                 "user/closet");
         else
-                HintService.Hint(Lang.Text("Launch.Account.ProfileSkin.SkinUnsupported"));
+                HintService.Show(Hints.Info(Lang.Text("Launch.Account.ProfileSkin.SkinUnsupported")));
     }
 
     // 保存皮肤
@@ -177,7 +178,7 @@ public partial class PageLoginProfileSkin : IPageView
             Common.OpenWebsite(profile.Server.BeforeFirst("api/yggdrasil/authserver") +
                                 "user/closet");
         else
-            HintService.Hint(Lang.Text("Launch.Account.ProfileSkin.CapeUnsupported"));
+            HintService.Show(Hints.Info(Lang.Text("Launch.Account.ProfileSkin.CapeUnsupported")));
     }
 
     #endregion

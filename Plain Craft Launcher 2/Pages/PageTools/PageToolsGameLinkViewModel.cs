@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Link.Lobby;
 using PCL.Core.ViewModel;
 
@@ -120,7 +121,7 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
         if (!string.IsNullOrEmpty(lobbyId))
             JoinLobbyId = lobbyId;
         else
-            HintService.Hint(Lang.Text("Tools.GameLink.Join.InvalidText"));
+            HintService.Show(Hints.Info(Lang.Text("Tools.GameLink.Join.InvalidText")));
     }
 
     [RelayCommand]

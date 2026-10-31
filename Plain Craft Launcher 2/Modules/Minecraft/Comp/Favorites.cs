@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Utils;
 
 namespace PCL;
@@ -150,22 +151,18 @@ public static partial class Comp
                         if (hasFavs)
                         {
                             i.Favs.Remove(project.Id);
-                            HintService.Hint(
-                                Lang.Text(
+                            HintService.Show(Hints.Success(Lang.Text(
                                     "Download.Comp.Detail.Favorites.Remove",
                                     project.TranslatedName,
-                                    i.Name),
-                                HintType.Success);
+                                    i.Name)));
                         }
                         else
                         {
                             i.Favs.Add(project.Id);
-                            HintService.Hint(
-                                Lang.Text(
+                            HintService.Show(Hints.Success(Lang.Text(
                                     "Download.Comp.Detail.Favorites.Add",
                                     project.TranslatedName,
-                                    i.Name),
-                                HintType.Success);
+                                    i.Name)));
                         }
 
                         Save();
@@ -215,15 +212,13 @@ public static partial class Comp
                         Save();
                         var successCount = i.Favs.Count - count;
                         var failedCount = project.Count - successCount;
-                        HintService.Hint(
-                            Lang.Text(
+                        HintService.Show(Hints.Success(Lang.Text(
                                 failedCount > 0
                                     ? "Download.Comp.Detail.Favorites.BulkAddWithFailures"
                                     : "Download.Comp.Detail.Favorites.BulkAdd",
                                 successCount,
                                 i.Name,
-                                failedCount),
-                            HintType.Success);
+                                failedCount)));
                     }
                     catch (Exception ex)
                     {

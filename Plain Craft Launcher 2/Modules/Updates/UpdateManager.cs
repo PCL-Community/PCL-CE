@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils;
 using PCL.Core.Utils.OS;
@@ -175,7 +176,7 @@ public static class UpdateManager
             {
                 Common.Log(ex, "[Update] 获取启动器更新失败");
                 if (type != UpdateEnums.UpdateType.Silent)
-                    HintService.Hint(Lang.Text("Update.Error.FetchFailed"), HintType.Error);
+                    HintService.Show(Hints.Error(Lang.Text("Update.Error.FetchFailed")));
             }
         });
     }

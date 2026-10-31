@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.IO.Compression;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils;
 using PCL.Network;
@@ -65,7 +66,7 @@ public static partial class Modpack
             instanceName);
         if (loaderTaskbar.Any(l => (l.name ?? "") == (loaderName ?? "")))
         {
-            HintService.Hint(Lang.Text("Minecraft.Download.Modpack.Installing"), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Minecraft.Download.Modpack.Installing")));
             throw new Common.CancelledException();
         }
 
@@ -182,10 +183,9 @@ public static partial class Modpack
         {
             if (modEntry["projectID"] is null || modEntry["fileID"] is null)
             {
-                HintService.Hint(
-                    Lang.Text(
+                HintService.Show(Hints.Info(Lang.Text(
                         "Minecraft.Download.Modpack.ModMissingRequiredInfoSkipped",
-                        modEntry));
+                        modEntry)));
                 continue;
             }
 

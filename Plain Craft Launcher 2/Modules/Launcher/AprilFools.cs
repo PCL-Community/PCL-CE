@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Input;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Utils;
 
 namespace PCL;
@@ -230,6 +231,6 @@ public static partial class Launcher
         };
 
         if (message is not null)
-            HintService.Hint(message);
+            HintService.Show(Hints.Info(message));
     }
 }

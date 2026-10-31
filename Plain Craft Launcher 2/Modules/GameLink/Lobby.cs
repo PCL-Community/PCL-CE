@@ -1,5 +1,6 @@
 ﻿using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Link.EasyTier;
 using PCL.Core.Link.Lobby;
 using PCL.Core.Link.Natayark;
@@ -13,14 +14,14 @@ public static partial class GameLink
     {
         if (!LobbyInfoProvider.IsLobbyAvailable)
         {
-            HintService.Hint(Lang.Text("Link.Mod.LobbyUnavailable"), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Link.Mod.LobbyUnavailable")));
             return false;
         }
 
         if (ProfileService.Current is not null)
             if (ProfileService.Current.UserName.Contains('|'))
             {
-                HintService.Hint(Lang.Text("Link.Mod.InvalidPlayerId"));
+                HintService.Show(Hints.Info(Lang.Text("Link.Mod.InvalidPlayerId")));
                 return false;
             }
 
@@ -28,7 +29,7 @@ public static partial class GameLink
         {
             if (string.IsNullOrWhiteSpace(States.Link.NaidRefreshToken))
             {
-                HintService.Hint(Lang.Text("Link.Mod.LoginFirst"), HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Link.Mod.LoginFirst")));
                 return false;
             }
 
@@ -42,7 +43,7 @@ public static partial class GameLink
             catch (Exception)
             {
                 Common.Log("[Link] 刷新 Natayark ID 信息失败，需要重新登录");
-                HintService.Hint(Lang.Text("Link.Mod.ReLoginRequired"), HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Link.Mod.ReLoginRequired")));
                 return false;
             }
 
@@ -57,20 +58,20 @@ public static partial class GameLink
 
             if (string.IsNullOrWhiteSpace(NatayarkProfileManager.NaidProfile.Username))
             {
-                HintService.Hint(Lang.Text("Link.Mod.NaidFetchFailed"), HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Link.Mod.NaidFetchFailed")));
                 return false;
             }
 
             if (LobbyInfoProvider.RequiresRealName
                 && !NatayarkProfileManager.NaidProfile.IsRealNamed)
             {
-                HintService.Hint(Lang.Text("Link.Mod.RealNameRequired"), HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Link.Mod.RealNameRequired")));
                 return false;
             }
 
             if (NatayarkProfileManager.NaidProfile.Status != 0)
             {
-                HintService.Hint(Lang.Text("Link.Mod.AccountBanned"), HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Link.Mod.AccountBanned")));
                 return false;
             }
         }
@@ -78,13 +79,13 @@ public static partial class GameLink
         if (string.IsNullOrWhiteSpace(Config.Link.Username)
             && string.IsNullOrWhiteSpace(NatayarkProfileManager.NaidProfile.Username))
         {
-            HintService.Hint(Lang.Text("Link.Mod.UsernameOrLogin"), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Link.Mod.UsernameOrLogin")));
             return false;
         }
 
         if (ETController.Precheck() == 1)
         {
-            HintService.Hint(Lang.Text("Link.Mod.DownloadingDeps"));
+            HintService.Show(Hints.Info(Lang.Text("Link.Mod.DownloadingDeps")));
             DownloadEasyTier();
             return false;
         }
@@ -93,10 +94,10 @@ public static partial class GameLink
             switch (dlEasyTierLoader.State)
             {
                 case Common.LoadState.Loading:
-                    HintService.Hint(Lang.Text("Link.Mod.EasyTierNotReady"));
+                    HintService.Show(Hints.Info(Lang.Text("Link.Mod.EasyTierNotReady")));
                     return false;
                 case Common.LoadState.Failed or Common.LoadState.Aborted:
-                    HintService.Hint(Lang.Text("Link.Mod.DownloadingEasyTier"));
+                    HintService.Show(Hints.Info(Lang.Text("Link.Mod.DownloadingEasyTier")));
                     DownloadEasyTier();
                     return false;
             }

@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Threading;
 using Microsoft.VisualBasic;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Logging;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Threading;
@@ -524,7 +525,7 @@ public static partial class Common
                 }
 
             if (success && showSuccessHint)
-                RunInUi(() => HintService.Hint(Lang.Text("Common.Hint.Copied"), HintType.Success));
+                RunInUi(() => HintService.Show(Hints.Success(Lang.Text("Common.Hint.Copied"))));
         });
     }
 
@@ -591,7 +592,7 @@ public static partial class Common
                     }
             }
 
-            HintService.Hint(Lang.Text("Common.Hint.FilesPasted", copiedFiles, copiedFolders));
+            HintService.Show(Hints.Info(Lang.Text("Common.Hint.FilesPasted", copiedFiles, copiedFolders)));
         }
         catch (Exception ex)
         {

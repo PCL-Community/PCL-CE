@@ -7,6 +7,7 @@ using System.Windows.Media.Imaging;
 using Microsoft.VisualBasic.FileIO;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using SearchOption = System.IO.SearchOption;
 
 namespace PCL;
@@ -58,7 +59,7 @@ public partial class PageInstanceScreenshot : IRefreshable, IPageView
         if (Launcher.frmInstanceScreenshot is not null)
             await Launcher.frmInstanceScreenshot.ReloadAsync();
         Launcher.frmInstanceLeft.ItemScreenshot.Checked = true;
-        HintService.Hint(Lang.Text("Instance.Saves.Status.Refreshing"), log: false);
+        HintService.Show(Hints.Info(Lang.Text("Instance.Saves.Status.Refreshing"), log: false));
     }
 
     private void PageSetupLaunch_Loaded(object sender, RoutedEventArgs e)
@@ -298,7 +299,7 @@ public partial class PageInstanceScreenshot : IRefreshable, IPageView
             FileSystem.DeleteFile(path, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
             RemoveItem(path);
             RefreshTip();
-            HintService.Hint(Lang.Text("Instance.Screenshot.Deleted"));
+            HintService.Show(Hints.Info(Lang.Text("Instance.Screenshot.Deleted")));
         }
         catch (Exception ex)
         {

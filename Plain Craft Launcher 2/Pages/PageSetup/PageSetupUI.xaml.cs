@@ -7,6 +7,7 @@ using PCL.Core.App.Configuration;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 
 namespace PCL;
 
@@ -203,7 +204,7 @@ public partial class PageSetupUI : IPageView
         {
             Config.Preference.Reset();
             Common.Log("[Setup] 已初始化个性化设置！");
-            HintService.Hint(Lang.Text("Setup.Ui.Initialized"), HintType.Success, false);
+            HintService.Show(Hints.Success(Lang.Text("Setup.Ui.Initialized"), log: false));
         }
         catch (Exception ex)
         {
@@ -298,7 +299,7 @@ public partial class PageSetupUI : IPageView
                 return;
             Common.DeleteDirectory(Common.ExePath + @"PCL\Pictures");
             BackgroundRefresh(false, true);
-            HintService.Hint(Lang.Text("Setup.Ui.Background.Clear.Success"), HintType.Success);
+            HintService.Show(Hints.Success(Lang.Text("Setup.Ui.Background.Clear.Success")));
         }
         catch (Exception ex)
         {
@@ -369,13 +370,13 @@ public partial class PageSetupUI : IPageView
                     if (Launcher.frmMain.ImgBack.Visibility == Visibility.Collapsed)
                     {
                         if (isHint)
-                            HintService.Hint(Lang.Text("Setup.Ui.Background.NoAvailableContent"), HintType.Error);
+                            HintService.Show(Hints.Error(Lang.Text("Setup.Ui.Background.NoAvailableContent")));
                     }
                     else
                     {
                         Launcher.frmMain.ImgBack.Visibility = Visibility.Collapsed;
                         if (isHint)
-                            HintService.Hint(Lang.Text("Setup.Ui.Background.Cleared"), HintType.Success);
+                            HintService.Show(Hints.Success(Lang.Text("Setup.Ui.Background.Cleared")));
                     }
                 }
 
@@ -396,8 +397,7 @@ public partial class PageSetupUI : IPageView
                         _ = Config.Preference.Background.WallpaperSuitMode;
                         Launcher.frmMain.ImgBack.Visibility = Visibility.Visible;
                         if (isHint)
-                                HintService.Hint(Lang.Text("Setup.Ui.Background.Refresh.Success", Common.GetFileNameFromPath(address)), HintType.Success,
-                                false);
+                                HintService.Show(Hints.Success(Lang.Text("Setup.Ui.Background.Refresh.Success", Common.GetFileNameFromPath(address)), log: false));
                     }
                     catch (Exception ex)
                     {
@@ -406,13 +406,12 @@ public partial class PageSetupUI : IPageView
                             Launcher.frmMain.VideoBack.MediaFailed += videoHandler;
                             Common.Log(ex, "[UI] 加载背景图片失败" + address);
                             if (Common.modeDebug)
-                                HintService.Hint(Lang.Text("Setup.Ui.Background.ImageLoadFailed", address));
+                                HintService.Show(Hints.Info(Lang.Text("Setup.Ui.Background.ImageLoadFailed", address)));
                             Launcher.frmMain.ImgBack.Visibility = Visibility.Visible;
                             Launcher.frmMain.VideoBack.Source = new Uri(address, UriKind.Absolute);
                             VideoBackground.VideoPlay();
                             if (isHint)
-                            HintService.Hint(Lang.Text("Setup.Ui.Background.Refresh.Success", Common.GetFileNameFromPath(address)), HintType.Success,
-                                    false);
+                            HintService.Show(Hints.Success(Lang.Text("Setup.Ui.Background.Refresh.Success", Common.GetFileNameFromPath(address)), log: false));
                         }
                         catch (Exception playEx)
                         {
@@ -555,7 +554,7 @@ public partial class PageSetupUI : IPageView
         {
             File.Delete(Common.ExePath + @"PCL\Logo.png");
             RadioLogoType1.SetChecked(true, true);
-            HintService.Hint(Lang.Text("Setup.Ui.Logo.Clear.Success"), HintType.Success);
+            HintService.Show(Hints.Success(Lang.Text("Setup.Ui.Logo.Clear.Success")));
         }
         catch (Exception ex)
         {
@@ -596,7 +595,7 @@ public partial class PageSetupUI : IPageView
                 return;
             Common.RunInThread(() =>
             {
-                HintService.Hint(Lang.Text("Setup.Ui.Music.Deleting"));
+                HintService.Show(Hints.Info(Lang.Text("Setup.Ui.Music.Deleting")));
                 // 停止播放音乐
                 Music.musicNAudio = null;
                 Music.musicWaitingList = new List<string>();
@@ -607,7 +606,7 @@ public partial class PageSetupUI : IPageView
                 {
                     Common.DeleteDirectory(Common.ExePath + @"PCL\Musics");
                     // DisableSMTCSupport()
-                    HintService.Hint(Lang.Text("Setup.Ui.Music.Delete.Success"), HintType.Success);
+                    HintService.Show(Hints.Success(Lang.Text("Setup.Ui.Music.Delete.Success")));
                 }
                 catch (Exception ex)
                 {
@@ -666,7 +665,7 @@ public partial class PageSetupUI : IPageView
     private void BtnCustomRefresh_Click(object sender, MouseButtonEventArgs e)
     {
         Launcher.frmLaunchRight.ForceRefresh();
-        HintService.Hint(Lang.Text("Setup.Ui.Homepage.Refresh.Success"), HintType.Success);
+        HintService.Show(Hints.Success(Lang.Text("Setup.Ui.Homepage.Refresh.Success")));
     }
 
     private void BtnCustomTutorial_Click(object sender, MouseButtonEventArgs e)
@@ -959,7 +958,7 @@ public partial class PageSetupUI : IPageView
     private void HiddenHint(object sender, bool user)
     {
         if (!Animations.AniExitsAnyControl() && sender is MyCheckBox checkBox && checkBox.Checked == true)
-            HintService.Hint(Lang.Text("Setup.Ui.FeatureHide.TemporaryHint"));
+            HintService.Show(Hints.Info(Lang.Text("Setup.Ui.FeatureHide.TemporaryHint")));
     }
 
     #endregion

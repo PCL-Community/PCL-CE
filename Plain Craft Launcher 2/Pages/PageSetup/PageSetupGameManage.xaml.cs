@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils;
 
@@ -93,7 +94,7 @@ public partial class PageSetupGameManage : IPageView
             Config.Download.Reset();
             Config.Tool.Reset();
             Common.Log("[Setup] 已初始化其他页设置");
-            HintService.Hint(Lang.Text("Setup.GameManage.Initialized"), HintType.Success, false);
+            HintService.Show(Hints.Success(Lang.Text("Setup.GameManage.Initialized"), log: false));
         }
         catch (Exception ex)
         {

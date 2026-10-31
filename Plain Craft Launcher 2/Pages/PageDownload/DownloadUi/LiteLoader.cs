@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
 using PCL.Network;
@@ -21,9 +22,7 @@ public static partial class DownloadUi
                 .ToList()
                 .Any(ongoingLoader => (ongoingLoader.name ?? "") == (Lang.Text("Minecraft.Download.Stage.LiteLoaderDownload", id) ?? "")))
             {
-                HintService.Hint(
-                    Lang.Text("Minecraft.Download.Error.InstanceDownloading"),
-                    HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Minecraft.Download.Error.InstanceDownloading")));
                 return;
             }
 
@@ -88,9 +87,7 @@ public static partial class DownloadUi
 
             if (_IsLiteLoaderDownloading(id))
             {
-                HintService.Hint(
-                    Lang.Text("Minecraft.Download.Error.InstanceDownloading"),
-                    HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Minecraft.Download.Error.InstanceDownloading")));
                 return;
             }
 

@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using FluentValidation;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Logging;
 using PCL.Core.Minecraft.ResourceProject;
 using PCL.Core.UI;
@@ -124,14 +125,13 @@ public partial class PageDownloadCompDetail : IPageView
                     {
                         case Common.LoadState.Failed:
                         {
-                            HintService.Hint(
-                                Lang.Text("Download.Comp.Detail.Task.Failed", myLoader.name,
-                                    myLoader.Error.ToString()), HintType.Error);
+                            HintService.Show(Hints.Error(Lang.Text("Download.Comp.Detail.Task.Failed", myLoader.name,
+                                    myLoader.Error.ToString())));
                             break;
                         }
                         case Common.LoadState.Aborted:
                         {
-                            HintService.Hint(Lang.Text("Download.Comp.Detail.Task.Cancelled", myLoader.name));
+                            HintService.Show(Hints.Info(Lang.Text("Download.Comp.Detail.Task.Cancelled", myLoader.name)));
                             break;
                         }
                         case Common.LoadState.Loading:
@@ -217,7 +217,7 @@ public partial class PageDownloadCompDetail : IPageView
                 var needLoad = InstanceList.mcInstanceListLoader.State != Common.LoadState.Finished;
                 if (needLoad)
                 {
-                    HintService.Hint(Lang.Text("Download.Comp.Detail.FindingApplicableInstance"));
+                    HintService.Show(Hints.Info(Lang.Text("Download.Comp.Detail.FindingApplicableInstance")));
                     Loading.LoaderFolderRun(InstanceList.mcInstanceListLoader, GameFolders.mcFolderSelected,
                         Loading.LoaderFolderRunType.ForceRun, 1, @"versions\", true);
                 }
@@ -238,7 +238,7 @@ public partial class PageDownloadCompDetail : IPageView
                 {
                     defaultFolder = GameFolders.mcFolderSelected;
                     if (needLoad)
-                        HintService.Hint(Lang.Text("Download.Comp.Detail.NoApplicableInstance"));
+                        HintService.Show(Hints.Info(Lang.Text("Download.Comp.Detail.NoApplicableInstance")));
                     else
                         Common.Log("[Comp] 由于当前实例不兼容，使用当前的 MC 文件夹作为默认下载位置");
                 }
@@ -377,7 +377,7 @@ public partial class PageDownloadCompDetail : IPageView
                         var needLoad = InstanceList.mcInstanceListLoader.State != Common.LoadState.Finished;
                         if (needLoad)
                         {
-                            HintService.Hint(Lang.Text("Download.Comp.Detail.FindingApplicableInstance"));
+                            HintService.Show(Hints.Info(Lang.Text("Download.Comp.Detail.FindingApplicableInstance")));
                             Loading.LoaderFolderRun(InstanceList.mcInstanceListLoader, GameFolders.mcFolderSelected,
                                 Loading.LoaderFolderRunType.ForceRun, 1, "versions\\", true);
                         }
@@ -400,7 +400,7 @@ public partial class PageDownloadCompDetail : IPageView
                         {
                             defaultFolder = GameFolders.mcFolderSelected;
                             if (needLoad)
-                                HintService.Hint(Lang.Text("Download.Comp.Detail.NoApplicableInstance"));
+                                HintService.Show(Hints.Info(Lang.Text("Download.Comp.Detail.NoApplicableInstance")));
                             else
                                 Common.Log("[Comp] 由于当前实例不兼容，使用当前的 MC 文件夹作为默认下载位置");
                         }
@@ -640,7 +640,7 @@ public partial class PageDownloadCompDetail : IPageView
             control.IsEnabled = false;
         try
         {
-            HintService.Hint(Lang.Text("Download.Comp.Detail.DescriptionTranslating", _project.TranslatedName));
+            HintService.Show(Hints.Info(Lang.Text("Download.Comp.Detail.DescriptionTranslating", _project.TranslatedName)));
             var chineseDescription = await _project.ChineseDescription;
             if (chineseDescription is null)
                 return;

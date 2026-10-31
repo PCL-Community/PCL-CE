@@ -3,6 +3,7 @@ using System.IO.Compression;
 using System.Text;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils.Validate;
@@ -85,9 +86,7 @@ public static partial class Modpack
         if (!targetFolder.Contains('!') && !targetFolder.Contains(';'))
             return;
 
-        HintService.Hint(
-            Lang.Text("Minecraft.Download.Modpack.InvalidGamePathChars", targetFolder),
-            HintType.Error);
+        HintService.Show(Hints.Error(Lang.Text("Minecraft.Download.Modpack.InvalidGamePathChars", targetFolder)));
         throw new Common.CancelledException();
     }
 

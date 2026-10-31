@@ -3,6 +3,7 @@ using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Configuration.Storage;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 
 namespace PCL;
 
@@ -20,17 +21,13 @@ public static partial class DownloadUi
         switch (loader.State)
         {
             case Common.LoadState.Finished:
-                HintService.Hint(
-                    $"{loader.name}{Lang.Text("Common.Status.Success")}",
-                    HintType.Success);
+                HintService.Show(Hints.Success($"{loader.name}{Lang.Text("Common.Status.Success")}"));
                 break;
             case Common.LoadState.Failed:
-                HintService.Hint(
-                    $"{loader.name}{Lang.Text("Common.Status.Failure")}{loader.Error.Message}",
-                    HintType.Error);
+                HintService.Show(Hints.Error($"{loader.name}{Lang.Text("Common.Status.Failure")}{loader.Error.Message}"));
                 break;
             case Common.LoadState.Aborted:
-                HintService.Hint($"{loader.name}{Lang.Text("Common.Status.Cancelled")}");
+                HintService.Show(Hints.Info($"{loader.name}{Lang.Text("Common.Status.Cancelled")}"));
                 break;
             case Common.LoadState.Waiting:
             case Common.LoadState.Loading:
@@ -56,14 +53,12 @@ public static partial class DownloadUi
             }
             case Common.LoadState.Failed:
             {
-                HintService.Hint(
-                    $"{loader.name}{Lang.Text("Common.Status.Failure")}{loader.Error.Message}",
-                    HintType.Error);
+                HintService.Show(Hints.Error($"{loader.name}{Lang.Text("Common.Status.Failure")}{loader.Error.Message}"));
                 break;
             }
             case Common.LoadState.Aborted:
             {
-                HintService.Hint($"{loader.name}{Lang.Text("Common.Status.Cancelled")}");
+                HintService.Show(Hints.Info($"{loader.name}{Lang.Text("Common.Status.Cancelled")}"));
                 break;
             }
             case Common.LoadState.Loading:
@@ -99,7 +94,7 @@ public static partial class DownloadUi
 
         Common.WriteIni($"{GameFolders.mcFolderSelected}PCL.ini", "InstanceCache", "");
         Common.DeleteDirectory($"{((Loading.LoaderCombo)loader).input}PCLInstallBackups\\");
-        HintService.Hint($"{loader.name}{Lang.Text("Common.Status.Success")}", HintType.Success);
+        HintService.Show(Hints.Success($"{loader.name}{Lang.Text("Common.Status.Success")}"));
     }
 
     private static void _RestoreOrClearInstallFolder(

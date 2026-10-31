@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Logging;
 
 namespace PCL;
@@ -18,7 +19,7 @@ public static partial class GameWatcher
             if (!Config.Launch.DisableCrashAnalysis)
             {
                 WatcherLog(Lang.Text("Watcher.Crash.Detected"));
-                HintService.Hint(Lang.Text("Watcher.Crash.Hint"));
+                HintService.Show(Hints.Info(Lang.Text("Watcher.Crash.Hint")));
 
                 Common.FeedbackInfo();
                 Common.RunInNewThread(

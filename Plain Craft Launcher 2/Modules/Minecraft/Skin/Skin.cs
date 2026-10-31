@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Minecraft.Profile;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
@@ -38,18 +39,16 @@ public static class Skin
             var image = new MyBitmap(fileName);
             if (image.pic.Width != 64 || image.pic.Height is not (32 or 64))
             {
-                HintService.Hint(Lang.Text("Launch.Skin.InvalidSize"), HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Launch.Skin.InvalidSize")));
                 return InvalidSkinInfo();
             }
 
             var fileInfo = new FileInfo(fileName);
             if (fileInfo.Length > 24 * 1024)
             {
-                HintService.Hint(
-                    Lang.Text(
+                HintService.Show(Hints.Error(Lang.Text(
                         "Launch.Skin.FileTooLarge",
-                        Lang.Number(fileInfo.Length / 1024d, "N2")),
-                    HintType.Error);
+                        Lang.Number(fileInfo.Length / 1024d, "N2"))));
                 return InvalidSkinInfo();
             }
         }
@@ -83,7 +82,7 @@ public static class Skin
                 LocalFile = fileName
             };
 
-        HintService.Hint(Lang.Text("Launch.Skin.Model.UnknownHint"));
+        HintService.Show(Hints.Info(Lang.Text("Launch.Skin.Model.UnknownHint")));
         return InvalidSkinInfo();
     }
 

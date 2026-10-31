@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.IO.Net.Http;
 using PCL.Core.Logging;
 using PCL.Core.Minecraft.Yggdrasil;
@@ -91,13 +92,13 @@ public partial class PageLoginAuth
     {
         if (string.IsNullOrWhiteSpace(_authServerUrl))
         {
-            HintService.Hint(Lang.Text("Launch.Account.Auth.EmptyFields"), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Launch.Account.Auth.EmptyFields")));
             return;
         }
 
         if (!_authServerUrl.IsMatch(RegexPatterns.HttpUri))
         {
-            HintService.Hint(Lang.Text("Launch.Account.Auth.InvalidServer"), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Launch.Account.Auth.InvalidServer")));
             return;
         }
 
@@ -112,7 +113,7 @@ public partial class PageLoginAuth
                 {
                     if (!await _TryStartYggdrasilConnectAsync().ConfigureAwait(true))
                     {
-                        HintService.Hint(Lang.Text("Launch.Account.Auth.LoginFailed"), HintType.Error);
+                        HintService.Show(Hints.Error(Lang.Text("Launch.Account.Auth.LoginFailed")));
                         return;
                     }
                     keepControlsDisabled = true;
@@ -120,7 +121,7 @@ public partial class PageLoginAuth
                 }
                 if (string.IsNullOrWhiteSpace(TextName.Text) || string.IsNullOrWhiteSpace(TextPass.Password))
                 {
-                    HintService.Hint(Lang.Text("Launch.Account.Auth.EmptyFields"), HintType.Error);
+                    HintService.Show(Hints.Error(Lang.Text("Launch.Account.Auth.EmptyFields")));
                     return;
                 }
                 var loginData = new GameLaunch.McLoginServer(GameLaunch.McLoginType.Auth)
@@ -142,7 +143,7 @@ public partial class PageLoginAuth
                         Launcher.frmLaunchLeft.RefreshPage(true);
                         break;
                     case Common.LoadState.Aborted:
-                        HintService.Hint(Lang.Text("Launch.Account.Auth.Cancelled"));
+                        HintService.Show(Hints.Info(Lang.Text("Launch.Account.Auth.Cancelled")));
                         break;
                     case Common.LoadState.Waiting:
                     case Common.LoadState.Loading:
@@ -162,9 +163,7 @@ public partial class PageLoginAuth
                 }
                 else if (ex.Message.StartsWith("$"))
                 {
-                    HintService.Hint(
-                        Lang.Text("Launch.Account.Auth.LoginFailed.WithDetail",ex.Message.TrimStart('$')),
-                        HintType.Error);
+                    HintService.Show(Hints.Error(Lang.Text("Launch.Account.Auth.LoginFailed.WithDetail",ex.Message.TrimStart('$'))));
                 }
                 else
                 {
@@ -292,7 +291,7 @@ public partial class PageLoginAuth
         }
         catch (ThreadInterruptedException)
         {
-            HintService.Hint(Lang.Text("Launch.Account.Auth.Cancelled"));
+            HintService.Show(Hints.Info(Lang.Text("Launch.Account.Auth.Cancelled")));
         }
         catch (Exception ex)
         {

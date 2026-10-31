@@ -1,4 +1,5 @@
 ﻿using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.UI;
 
 namespace PCL;
@@ -14,9 +15,7 @@ public static partial class DownloadUi
                 (ongoingLoader.name ?? "")
                 != (Lang.Text("Minecraft.Download.Stage.OptiFineDownload", displayName) ?? "")))
             return false;
-        HintService.Hint(
-            Lang.Text("Minecraft.Download.Error.InstanceDownloading"),
-            HintType.Error);
+        HintService.Show(Hints.Error(Lang.Text("Minecraft.Download.Error.InstanceDownloading")));
         return true;
     }
 

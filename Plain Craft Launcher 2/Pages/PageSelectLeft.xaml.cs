@@ -5,6 +5,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Logging;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
@@ -384,7 +385,7 @@ public partial class PageSelectLeft : IRefreshable, IPageView
                 if (!Common.CheckPermission(folderPath))
                 {
                     if (!showHint) throw new Exception("PCL 没有访问文件夹的权限：" + folderPath);
-                    HintService.Hint(Lang.Text("Select.Folder.AccessDenied"), HintType.Error);
+                    HintService.Show(Hints.Error(Lang.Text("Select.Folder.AccessDenied")));
                     return;
                 }
 
@@ -407,14 +408,14 @@ public partial class PageSelectLeft : IRefreshable, IPageView
                     isAdded = true;
                     if (folder.Split(">")[0] == displayName)
                     {
-                        if (showHint) HintService.Hint(Lang.Text("Select.Folder.AlreadyInList"));
+                        if (showHint) HintService.Show(Hints.Info(Lang.Text("Select.Folder.AlreadyInList")));
                         return;
                     }
 
                     folders[i] = $"{displayName}>{folderPath}";
                     isReplace = true;
                     if (showHint)
-                        HintService.Hint(Lang.Text("Select.Folder.NameUpdated", displayName), HintType.Success);
+                        HintService.Show(Hints.Success(Lang.Text("Select.Folder.NameUpdated", displayName)));
                     break;
                 }
 
@@ -423,7 +424,7 @@ public partial class PageSelectLeft : IRefreshable, IPageView
                 States.Game.SelectedFolder = folderPath.Replace(Common.ExePath, "$");
                 GameFolders.McFolderListLoader.Start(isForceRestart: true);
                 if (isReplace) return;
-                if (showHint) HintService.Hint(Lang.Text("Select.Folder.Added", displayName), HintType.Success);
+                if (showHint) HintService.Show(Hints.Success(Lang.Text("Select.Folder.Added", displayName)));
                 var modFolder = new DirectoryInfo(folderPath + @"mods\");
                 if (!(modFolder.Exists && modFolder.EnumerateFiles().Count() >= 3)) return;
                 var versionFolder = new DirectoryInfo(folderPath + @"versions\");
@@ -514,11 +515,9 @@ public partial class PageSelectLeft : IRefreshable, IPageView
 
             // 保存
             States.Game.Folders = folders.Count == 0 ? "" : folders.ToArray().Join("|");
-            HintService.Hint(
-                folder.Type == GameFolders.McFolder.Types.Custom
+            HintService.Show(Hints.Success(folder.Type == GameFolders.McFolder.Types.Custom
                     ? Lang.Text("Select.Folder.RemoveSuccess", name)
-                    : Lang.Text("Select.Folder.RestoreSuccess"),
-                HintType.Success);
+                    : Lang.Text("Select.Folder.RestoreSuccess")));
             GameFolders.McFolderListLoader.Start(isForceRestart: true);
         }
 
@@ -592,11 +591,11 @@ public partial class PageSelectLeft : IRefreshable, IPageView
         {
             try
             {
-                HintService.Hint(inProgress);
+                HintService.Show(Hints.Info(inProgress));
                 Common.DeleteDirectory(folder.Location);
                 if (isClearing)
                     Directory.CreateDirectory(folder.Location);
-                HintService.Hint(success, HintType.Success);
+                HintService.Show(Hints.Success(success));
             }
             catch (Exception ex)
             {
@@ -684,7 +683,7 @@ public partial class PageSelectLeft : IRefreshable, IPageView
             // 如果没有添加过，则添加进去（因为修改了默认项的名称）
             if (!isAdded)
                 folders.Add($"{newName}>{folder.Location}");
-            HintService.Hint(Lang.Text("Select.Folder.NameUpdated", newName), HintType.Success);
+            HintService.Show(Hints.Success(Lang.Text("Select.Folder.NameUpdated", newName)));
             // 保存
             States.Game.Folders = folders.ToArray().Join("|");
             GameFolders.McFolderListLoader.Start(isForceRestart: true);
@@ -707,7 +706,7 @@ public partial class PageSelectLeft : IRefreshable, IPageView
         // 检查是否有下载任务
         if (NetFacade.HasDownloadingTask(true))
         {
-            HintService.Hint(Lang.Text("Select.Folder.SwitchBlockedByDownload"), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Select.Folder.SwitchBlockedByDownload")));
             e.handled = true;
             return;
         }

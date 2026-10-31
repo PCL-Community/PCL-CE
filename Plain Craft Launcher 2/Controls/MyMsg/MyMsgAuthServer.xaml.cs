@@ -2,6 +2,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.UI.Controls;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils;
@@ -65,7 +66,7 @@ public partial class MyMsgAuthServer
         var server = ComboServer.Text?.Trim();
         if (string.IsNullOrWhiteSpace(server) || !server.IsMatch(RegexPatterns.HttpUri))
         {
-            HintService.Hint(Lang.Text("Launch.Account.Auth.InvalidServer"), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Launch.Account.Auth.InvalidServer")));
             return;
         }
         _dialog.InputText = server;

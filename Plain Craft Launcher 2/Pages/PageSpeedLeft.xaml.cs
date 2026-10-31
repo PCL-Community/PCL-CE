@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.UI.Threading;
 
 namespace PCL;
@@ -112,7 +113,7 @@ public partial class PageSpeedLeft : IPageView
                             tb.MouseLeftButtonDown += (sender, _) =>
                             {
                                 Common.ClipboardSet(((TextBlock)sender).Text, false);
-                                HintService.Hint(Lang.Text("Speed.Error.Copied"), HintType.Success);
+                                HintService.Show(Hints.Success(Lang.Text("Speed.Error.Copied")));
                             };
                             card.Children.Add(tb);
                             break;

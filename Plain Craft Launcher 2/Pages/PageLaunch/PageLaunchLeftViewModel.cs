@@ -3,6 +3,7 @@ using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.ViewModel;
 
 namespace PCL;
@@ -103,7 +104,7 @@ public partial class PageLaunchLeftViewModel : ViewModelBase
         PageInstanceLeft.McInstance = InstanceList.McMcInstanceSelected;
         if (File.Exists(InstanceList.McMcInstanceSelected.PathInstance + ".pclignore"))
         {
-            HintService.Hint(Lang.Text("Launch.Home.Instance.InstallingCannotSetup"), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Launch.Home.Instance.InstallingCannotSetup")));
             return;
         }
 

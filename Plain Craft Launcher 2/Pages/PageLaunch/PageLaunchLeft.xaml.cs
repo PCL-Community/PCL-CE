@@ -6,6 +6,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Minecraft.Profile;
 using PCL.Core.Minecraft.Profile.Models;
 using PCL.Core.Utils;
@@ -237,7 +238,7 @@ public partial class PageLaunchLeft : IPageView
             {
                 if (File.Exists(InstanceList.McMcInstanceSelected.PathInstance + ".pclignore"))
                 {
-                    HintService.Hint(Lang.Text("Launch.Home.Instance.InstallingCannotLaunch"), HintType.Error);
+                    HintService.Show(Hints.Error(Lang.Text("Launch.Home.Instance.InstallingCannotLaunch")));
                     return;
                 }
 

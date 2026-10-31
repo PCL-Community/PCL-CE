@@ -16,6 +16,7 @@ using PCL.Network.Loaders;
 using FileSystem = Microsoft.VisualBasic.FileSystem;
 using SearchOption = System.IO.SearchOption;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Utils;
 using SortMethod = PCL.PageInstanceCompResourceViewModel.SortMethod;
 
@@ -302,7 +303,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
             }
         }
 
-        HintService.Hint(Lang.Text("Instance.Left.Refreshing"), log: false);
+        HintService.Show(Hints.Info(Lang.Text("Instance.Left.Refreshing"), log: false));
     }
 
     private void LoaderInit()
@@ -355,7 +356,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
         {
             if (string.IsNullOrEmpty(folderPath) || !Directory.Exists(folderPath))
             {
-                HintService.Hint(Lang.Text("Instance.Saves.Folder.NotFound"), HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Instance.Saves.Folder.NotFound")));
                 return;
             }
 
@@ -1081,7 +1082,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
         // 检查回收站：回收站中的文件有错误的文件名
         if (filePathList.First().Contains(@":\$RECYCLE.BIN\"))
         {
-            HintService.Hint(Lang.Text("Instance.Resource.Install.RestoreFromRecycleBin"), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Instance.Resource.Install.RestoreFromRecycleBin")));
             return;
         }
 
@@ -1145,8 +1146,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
         // 检查文件扩展名
         if (!validExtensions.Contains(extension))
         {
-            HintService.Hint(Lang.Text("Instance.Resource.Install.UnsupportedFormat", extension, compTypeName, string.Join(", ", validExtensions)),
-                HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Instance.Resource.Install.UnsupportedFormat", extension, compTypeName, string.Join(", ", validExtensions))));
             return;
         }
 
@@ -1156,7 +1156,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
         if (compType == Comp.CompType.Mod && (Launcher.frmMain.pageCurrent == FormMain.PageType.InstanceSelect ||
                                                  targetInstance is null || !targetInstance.Modable))
         {
-            HintService.Hint(Lang.Text("Instance.Resource.Install.SelectModableInstance"));
+            HintService.Show(Hints.Info(Lang.Text("Instance.Resource.Install.SelectModableInstance")));
             return;
         }
 
@@ -1226,9 +1226,9 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
             }
 
             if (filePathList.Count() == 1)
-                HintService.Hint(Lang.Text("Instance.Resource.Install.SuccessSingle", Common.GetFileNameFromPath(filePathList.First())), HintType.Success);
+                HintService.Show(Hints.Success(Lang.Text("Instance.Resource.Install.SuccessSingle", Common.GetFileNameFromPath(filePathList.First()))));
             else
-                HintService.Hint(Lang.Text("Instance.Resource.Install.SuccessMultiple", filePathList.Count(), compTypeName), HintType.Success);
+                HintService.Show(Hints.Success(Lang.Text("Instance.Resource.Install.SuccessMultiple", filePathList.Count(), compTypeName)));
 
             // 刷新列表
             if (Launcher.frmMain.pageCurrent == FormMain.PageType.InstanceSetup &&
@@ -1874,7 +1874,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
         LocalComp.compJijResolved = completed;
         Launcher.frmInstanceModJarInJar?.OnJijResolved();
         if (!completed)
-            HintService.Hint(Lang.Text("Instance.Resource.Ed.ToggleFailed"), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Instance.Resource.Ed.ToggleFailed")));
         return completed;
     }
 
@@ -1936,7 +1936,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
                 }
                 if (!resolved)
                 {
-                    HintService.Hint(Lang.Text("Instance.Resource.Ed.ToggleFailed"), HintType.Error);
+                    HintService.Show(Hints.Error(Lang.Text("Instance.Resource.Ed.ToggleFailed")));
                     isSuccessful = false;
                     continue;
                 }
@@ -2046,7 +2046,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
         }
         else
         {
-            HintService.Hint(Lang.Text("Instance.Resource.Ed.ToggleFailed"), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Instance.Resource.Ed.ToggleFailed")));
             ReloadCompFileList(true);
         }
 
@@ -2210,13 +2210,13 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
                             }
                             case 1:
                             {
-                                HintService.Hint(Lang.Text("Instance.Resource.Update.SuccessSingle", finishedFileNames.Single()), HintType.Success);
+                                HintService.Show(Hints.Success(Lang.Text("Instance.Resource.Update.SuccessSingle", finishedFileNames.Single())));
                                 break;
                             }
 
                             default:
                             {
-                                HintService.Hint(Lang.Text("Instance.Resource.Update.SuccessMultiple", finishedFileNames.Count), HintType.Success);
+                                HintService.Show(Hints.Success(Lang.Text("Instance.Resource.Update.SuccessMultiple", finishedFileNames.Count)));
                                 break;
                             }
                         }
@@ -2225,12 +2225,12 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
                     }
                     case Common.LoadState.Failed:
                     {
-                        HintService.Hint(Lang.Text("Instance.Resource.Update.Failed", loader.Error.Message), HintType.Error);
+                        HintService.Show(Hints.Error(Lang.Text("Instance.Resource.Update.Failed", loader.Error.Message)));
                         break;
                     }
                     case Common.LoadState.Aborted:
                     {
-                        HintService.Hint(Lang.Text("Instance.Resource.Update.Aborted"));
+                        HintService.Show(Hints.Info(Lang.Text("Instance.Resource.Update.Aborted")));
                         break;
                     }
 
@@ -2357,7 +2357,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
             RefreshBars();
             if (!isSuccessful)
             {
-                HintService.Hint(Lang.Text("Instance.Resource.Delete.Failed"), HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Instance.Resource.Delete.Failed")));
                 ReloadCompFileList(true);
             }
             else if (PanList.Children.Count == 0)
@@ -2375,17 +2375,17 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
             if (isShiftPressed)
             {
                 if (modList.Count() == 1)
-                    HintService.Hint(Lang.Text("Instance.Resource.Delete.PermanentSingle", modList.Single().FileName), HintType.Success);
+                    HintService.Show(Hints.Success(Lang.Text("Instance.Resource.Delete.PermanentSingle", modList.Single().FileName)));
                 else
-                    HintService.Hint(Lang.Text("Instance.Resource.Delete.PermanentMultiple", modList.Count()), HintType.Success);
+                    HintService.Show(Hints.Success(Lang.Text("Instance.Resource.Delete.PermanentMultiple", modList.Count())));
             }
             else if (modList.Count() == 1)
             {
-                HintService.Hint(Lang.Text("Instance.Resource.Delete.RecycleSingle", modList.Single().FileName), HintType.Success);
+                HintService.Show(Hints.Success(Lang.Text("Instance.Resource.Delete.RecycleSingle", modList.Single().FileName)));
             }
             else
             {
-                HintService.Hint(Lang.Text("Instance.Resource.Delete.RecycleMultiple", modList.Count()), HintType.Success);
+                HintService.Show(Hints.Success(Lang.Text("Instance.Resource.Delete.RecycleMultiple", modList.Count())));
             }
         }
         catch (OperationCanceledException ex)
@@ -2707,7 +2707,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
     private void ShowSchematicInfoAsync(LocalComp.LocalCompFile modEntry)
     {
         // 显示加载提示
-        HintService.Hint(Lang.Text("Instance.Resource.Item.Info.LoadingDetail"));
+        HintService.Show(Hints.Info(Lang.Text("Instance.Resource.Item.Info.LoadingDetail")));
 
         // 在后台线程中加载NBT数据
         // 确保 NBT 数据已加载

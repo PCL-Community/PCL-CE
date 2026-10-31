@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils.Validate;
@@ -45,7 +46,7 @@ public partial class PageSelectLeftViewModel : ViewModelBase
     {
         if (NetFacade.HasDownloadingTask())
         {
-            HintService.Hint(Lang.Text("Select.Folder.CannotCreateWhileDownloading"), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Select.Folder.CannotCreateWhileDownloading")));
             return;
         }
 
@@ -55,7 +56,7 @@ public partial class PageSelectLeftViewModel : ViewModelBase
             Directory.CreateDirectory(Common.ExePath + @".minecraft\versions\");
             States.Game.SelectedFolder = @"$.minecraft\";
             GameFolders.McFolderLauncherProfilesJsonCreate(Common.ExePath + @".minecraft\");
-            HintService.Hint(Lang.Text("Select.Folder.CreateSuccess"), HintType.Success);
+            HintService.Show(Hints.Success(Lang.Text("Select.Folder.CreateSuccess")));
         }
 
         GameFolders.McFolderListLoader.Start(isForceRestart: true);
@@ -67,7 +68,7 @@ public partial class PageSelectLeftViewModel : ViewModelBase
         var newFolder = "";
         if (NetFacade.HasDownloadingTask())
         {
-            HintService.Hint(Lang.Text("Select.Folder.CannotAddWhileDownloading"), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Select.Folder.CannotAddWhileDownloading")));
             return;
         }
 
@@ -78,7 +79,7 @@ public partial class PageSelectLeftViewModel : ViewModelBase
                 return;
             if (newFolder.Contains('!') || newFolder.Contains(';'))
             {
-                HintService.Hint(Lang.Text("Select.Folder.InvalidPathChars"), HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Select.Folder.InvalidPathChars")));
                 return;
             }
 

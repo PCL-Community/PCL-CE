@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using Humanizer;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Minecraft.Saves;
 using PCL.Core.Minecraft.Saves.Editing;
 using PCL.Core.ViewModel;
@@ -169,7 +170,7 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
 
         if (applied is not true)
             return;
-        HintService.Hint(Lang.Text("Instance.Saves.Info.Modify.CheatSuccess"), HintType.Success);
+        HintService.Show(Hints.Success(Lang.Text("Instance.Saves.Info.Modify.CheatSuccess")));
     }
 
     public async Task ApplyDifficultyAsync(string folder, int difficulty, bool isHardcore, bool lockChecked)
@@ -204,7 +205,7 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
 
         if (applied is not true)
             return;
-        HintService.Hint(Lang.Text("Instance.Saves.Info.Modify.DifficultySuccess"), HintType.Success);
+        HintService.Show(Hints.Success(Lang.Text("Instance.Saves.Info.Modify.DifficultySuccess")));
     }
 
     public static string GameModeName(GameMode mode)

@@ -7,6 +7,7 @@ using System.Windows.Input;
 using PCL.Core.App;
 using PCL.Core.UI;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils;
 
@@ -616,7 +617,7 @@ public partial class PageInstanceExport : IRefreshable, IPageView
             configLines.AddRange(GetExtraFileLines());
             // 结束
             Common.WriteFile(configPath, configLines.Join("\r\n"));
-            HintService.Hint(Lang.Text("Instance.Export.SaveSuccess", configPath), HintType.Success);
+            HintService.Show(Hints.Success(Lang.Text("Instance.Export.SaveSuccess", configPath)));
             Common.OpenExplorer(configPath);
         }
         catch (Exception ex)
@@ -647,7 +648,7 @@ public partial class PageInstanceExport : IRefreshable, IPageView
 
             if (segments.Length == 0)
             {
-                HintService.Hint(Lang.Text("Instance.Export.Config.Invalid"), HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Instance.Export.Config.Invalid")));
                 return;
             }
 
@@ -688,7 +689,7 @@ public partial class PageInstanceExport : IRefreshable, IPageView
                 extraFiles = null;
 
             // 提示成功
-            HintService.Hint(Lang.Text("Instance.Export.ReadSuccess", configPath), HintType.Success);
+            HintService.Show(Hints.Success(Lang.Text("Instance.Export.ReadSuccess", configPath)));
         }
 
         catch (Exception ex)
@@ -972,7 +973,7 @@ public partial class PageInstanceExport : IRefreshable, IPageView
                     if (Directory.Exists(Line))
                         Common.CopyDirectory(Line, Path.Combine(baseFolder, Common.GetFolderNameFromPath(Line)) + @"\");
                     else
-                        HintService.Hint(Lang.Text("Instance.Export.Config.FolderNotFound", Line), HintType.Error);
+                        HintService.Show(Hints.Error(Lang.Text("Instance.Export.Config.FolderNotFound", Line)));
                 }
                 else if (File.Exists(Line))
                 {
@@ -980,7 +981,7 @@ public partial class PageInstanceExport : IRefreshable, IPageView
                 }
                 else
                 {
-                    HintService.Hint(Lang.Text("Instance.Export.Config.FileNotFound", Line), HintType.Error);
+                    HintService.Show(Hints.Error(Lang.Text("Instance.Export.Config.FileNotFound", Line)));
                 }
 
             loader.Progress = 0.97d;

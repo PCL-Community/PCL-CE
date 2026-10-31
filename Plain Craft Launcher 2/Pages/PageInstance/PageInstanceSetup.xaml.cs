@@ -13,6 +13,7 @@ using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils.OS;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Utils;
 
 namespace PCL;
@@ -442,19 +443,19 @@ public partial class PageInstanceSetup : IPageView
             if (_vm.ServerAuthServerText.EndsWithF("/"))
             {
                 _vm.ServerAuthServerText = $"{_vm.ServerAuthServerText}api/yggdrasil";
-                HintService.Hint(Lang.Text("Instance.Setup.Server.AuthServer.AutoFormatted"));
+                HintService.Show(Hints.Info(Lang.Text("Instance.Setup.Server.AuthServer.AutoFormatted")));
             }
             else
             {
                 _vm.ServerAuthServerText = $"{_vm.ServerAuthServerText}/api/yggdrasil";
-                HintService.Hint(Lang.Text("Instance.Setup.Server.AuthServer.AutoFormatted"));
+                HintService.Show(Hints.Info(Lang.Text("Instance.Setup.Server.AuthServer.AutoFormatted")));
             }
         }
 
         if (_vm.ServerAuthServerText.EndsWithF("/api/yggdrasil/"))
         {
             _vm.ServerAuthServerText = _vm.ServerAuthServerText.BeforeLast("/");
-            HintService.Hint(Lang.Text("Instance.Setup.Server.AuthServer.AutoFormatted"));
+            HintService.Show(Hints.Info(Lang.Text("Instance.Setup.Server.AuthServer.AutoFormatted")));
         }
 
         comboServerLoginLast = ComboServerLoginRequire.SelectedIndex;
@@ -704,7 +705,7 @@ public partial class PageInstanceSetup : IPageView
             // 验证路径是否在启动器目录内
             if (!Files.IsPathWithinDirectory(relativePath, Basics.ExecutableDirectory))
             {
-                HintService.Hint(Lang.Text("Instance.Setup.Options.Java.PathOutOfRange"), HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Instance.Setup.Options.Java.PathOutOfRange")));
                 return;
             }
 

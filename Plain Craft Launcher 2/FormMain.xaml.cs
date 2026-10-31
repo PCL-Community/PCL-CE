@@ -11,6 +11,7 @@ using PCL.Core.App;
 using PCL.Core.Minecraft.Profile;
 using PCL.Core.App.IoC;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Logging;
 using PCL.Core.Minecraft;
 using PCL.Core.UI;
@@ -99,7 +100,6 @@ public partial class FormMain
         AddHandler(DragDrop.DragEnterEvent, new DragEventHandler(HandleDrag), true);
         AddHandler(DragDrop.DragOverEvent, new DragEventHandler(HandleDrag), true);
         // 注册 Hint 事件
-        HintWrapper.OnShow += HintService.HintWrapper_OnShow;
         // 加载 UI
         InitializeComponent();
         Opacity = 0d;
@@ -144,7 +144,7 @@ public partial class FormMain
         Launcher.frmLaunchRight.PageState = MyPageRight.PageStates.ContentStay;
         // 调试模式提醒
         if (Common.modeDebug)
-            HintService.Hint(Lang.Text("Main.DebugMode.Hint"));
+            HintService.Show(Hints.Info(Lang.Text("Main.DebugMode.Hint")));
         // 尽早执行的加载池
         GameFolders.McFolderListLoader
             .Start(0); // 为了让下载已存在文件检测可以正常运行，必须跑一次；为了让启动按钮尽快可用，需要尽早执行；为了与 PageLaunchLeft 联动，需要为 0 而不是 GetUuid
@@ -789,9 +789,9 @@ public partial class FormMain
         {
             PageSetupUI.HiddenForceShow = !PageSetupUI.HiddenForceShow;
             if (PageSetupUI.HiddenForceShow)
-                HintService.Hint(Lang.Text("Main.HiddenFeature.Disabled"), HintType.Success);
+                HintService.Show(Hints.Success(Lang.Text("Main.HiddenFeature.Disabled")));
             else
-                HintService.Hint(Lang.Text("Main.HiddenFeature.Enabled"), HintType.Success);
+                HintService.Show(Hints.Success(Lang.Text("Main.HiddenFeature.Enabled")));
             PageSetupUI.HiddenRefresh();
             return;
         }
@@ -810,7 +810,7 @@ public partial class FormMain
         if (e.Key == Key.Enter && pageCurrent == PageType.Launch)
         {
             if (Launcher.isAprilEnabled && !Launcher.isAprilGiveup)
-                HintService.Hint(Lang.Text("Main.April.Nope"));
+                HintService.Show(Hints.Info(Lang.Text("Main.April.Nope")));
             else
                 Launcher.frmLaunchLeft.LaunchButtonClick();
         }
@@ -962,7 +962,7 @@ public partial class FormMain
                         Common.Log("[System] Authlib 拖拽：" + authlibServer);
                         if (!new HttpValidator().Validate(authlibServer).IsValid)
                         {
-                            HintService.Hint(Lang.Text("Main.FileDrag.AuthlibInvalid", authlibServer), HintType.Error);
+                            HintService.Show(Hints.Error(Lang.Text("Main.FileDrag.AuthlibInvalid", authlibServer)));
                             return;
                         }
 
@@ -1003,7 +1003,7 @@ public partial class FormMain
                 var filePathRaw = e.Data.GetData(DataFormats.FileDrop);
                 if (filePathRaw is null) // #2690
                 {
-                    HintService.Hint(Lang.Text("Main.FileDrag.ExtractFirst"), HintType.Error);
+                    HintService.Show(Hints.Error(Lang.Text("Main.FileDrag.ExtractFirst")));
                     return;
                 }
 
@@ -1032,13 +1032,13 @@ public partial class FormMain
             // 基础检查
             if (Directory.Exists(filePathList.First()) && !File.Exists(filePathList.First()))
             {
-                HintService.Hint(Lang.Text("Main.FileDrag.FileOnly"), HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Main.FileDrag.FileOnly")));
                 return;
             }
 
             if (!File.Exists(filePathList.First()))
             {
-                HintService.Hint(Lang.Text("Main.FileDrag.FileNotFound", filePathList.First()), HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Main.FileDrag.FileNotFound", filePathList.First())));
                 return;
             }
 
@@ -1057,7 +1057,7 @@ public partial class FormMain
                 // 允许同类型的 Mod 文件或投影文件批量拖拽
                 else
                 {
-                    HintService.Hint(Lang.Text("Main.FileDrag.SameTypeOnly"), HintType.Error);
+                    HintService.Show(Hints.Error(Lang.Text("Main.FileDrag.SameTypeOnly")));
                     return;
                 }
             }
@@ -1082,7 +1082,7 @@ public partial class FormMain
                 {
                     Config.Preference.Homepage.Type = 1;
                     Launcher.frmLaunchRight.ForceRefresh();
-                    HintService.Hint(Lang.Text("Main.FileDrag.HomepageLoaded"), HintType.Success);
+                    HintService.Show(Hints.Success(Lang.Text("Main.FileDrag.HomepageLoaded")));
                 });
                 return;
             }
@@ -1115,7 +1115,7 @@ public partial class FormMain
                         var destLevelDat = Path.Combine(destFolder, "level.dat");
                         if (Directory.Exists(destFolder))
                         {
-                            HintService.Hint(Lang.Text("Main.FileDrag.SameFolderExists", destFolder), HintType.Error);
+                            HintService.Show(Hints.Error(Lang.Text("Main.FileDrag.SameFolderExists", destFolder)));
                             return;
                         }
 
@@ -1126,7 +1126,7 @@ public partial class FormMain
                             var saveRoot = SaveImportHelper.GetSaveRootDirectory(extractFolder);
                             if (saveRoot is null)
                             {
-                                HintService.Hint(Lang.Text("Main.FileDrag.SaveNotFound"), HintType.Error);
+                                HintService.Show(Hints.Error(Lang.Text("Main.FileDrag.SaveNotFound")));
                                 return;
                             }
 
@@ -1135,7 +1135,7 @@ public partial class FormMain
                             {
                                 if (Directory.Exists(destFolder))
                                     Common.DeleteDirectory(destFolder, true);
-                                HintService.Hint(Lang.Text("Main.FileDrag.SaveInvalid"), HintType.Error);
+                                HintService.Show(Hints.Error(Lang.Text("Main.FileDrag.SaveInvalid")));
                                 return;
                             }
                         }
@@ -1156,8 +1156,7 @@ public partial class FormMain
                                 Common.DeleteDirectory(extractFolder, true);
                         }
 
-                        HintService.Hint(Lang.Text("Main.FileDrag.Imported", Path.GetFileNameWithoutExtension(filePath)),
-                            HintType.Success);
+                        HintService.Show(Hints.Success(Lang.Text("Main.FileDrag.Imported", Path.GetFileNameWithoutExtension(filePath))));
                         if (Launcher.frmInstanceSaves is not null)
                             Common.RunInUi(() => Launcher.frmInstanceSaves.Reload());
                         return;
@@ -1168,12 +1167,12 @@ public partial class FormMain
                                        Common.GetFileNameFromPath(filePath);
                         if (File.Exists(destFile))
                         {
-                            HintService.Hint(Lang.Text("Main.FileDrag.SameFileExists", destFile), HintType.Error);
+                            HintService.Show(Hints.Error(Lang.Text("Main.FileDrag.SameFileExists", destFile)));
                             return;
                         }
 
                         Common.CopyFile(filePath, destFile);
-                        HintService.Hint(Lang.Text("Main.FileDrag.Imported", Common.GetFileNameFromPath(filePath)), HintType.Success);
+                        HintService.Show(Hints.Success(Lang.Text("Main.FileDrag.Imported", Common.GetFileNameFromPath(filePath))));
                         if (Launcher.frmInstanceResourcePack is not null)
                             Common.RunInUi(() => Launcher.frmInstanceResourcePack.ReloadCompFileList());
                         return;
@@ -1184,12 +1183,12 @@ public partial class FormMain
                                        Common.GetFileNameFromPath(filePath);
                         if (File.Exists(destFile))
                         {
-                            HintService.Hint(Lang.Text("Main.FileDrag.SameFileExists", destFile), HintType.Error);
+                            HintService.Show(Hints.Error(Lang.Text("Main.FileDrag.SameFileExists", destFile)));
                             return;
                         }
 
                         Common.CopyFile(filePath, destFile);
-                        HintService.Hint(Lang.Text("Main.FileDrag.Imported", Common.GetFileNameFromPath(filePath)), HintType.Success);
+                        HintService.Show(Hints.Success(Lang.Text("Main.FileDrag.Imported", Common.GetFileNameFromPath(filePath))));
                         if (Launcher.frmInstanceShader is not null)
                             Common.RunInUi(() => Launcher.frmInstanceShader.ReloadCompFileList());
                         return;
@@ -1205,13 +1204,13 @@ public partial class FormMain
                                Common.GetFileNameFromPath(filePath);
                 if (File.Exists(destFile))
                 {
-                    HintService.Hint(Lang.Text("Main.FileDrag.SameFileExists", destFile), HintType.Error);
+                    HintService.Show(Hints.Error(Lang.Text("Main.FileDrag.SameFileExists", destFile)));
                     return;
                 }
 
                 Directory.CreateDirectory(PageInstanceLeft.McInstance.PathIndie + @"schematics\");
                 Common.CopyFile(filePath, destFile);
-                HintService.Hint(Lang.Text("Main.FileDrag.Imported", Common.GetFileNameFromPath(filePath)), HintType.Success);
+                HintService.Show(Hints.Success(Lang.Text("Main.FileDrag.Imported", Common.GetFileNameFromPath(filePath))));
                 if (Launcher.frmInstanceSchematic is not null)
                     Common.RunInUi(() => Launcher.frmInstanceSchematic.ReloadCompFileList());
                 return;
@@ -1262,7 +1261,7 @@ public partial class FormMain
             } while (false);
 
             // 未知操作
-            HintService.Hint(Lang.Text("Main.FileDrag.UnknownOperation"));
+            HintService.Show(Hints.Info(Lang.Text("Main.FileDrag.UnknownOperation")));
         }, "文件拖拽");
     }
 
@@ -2243,7 +2242,7 @@ public partial class FormMain
     {
         if (Launcher.isAprilEnabled && !Launcher.isAprilGiveup)
         {
-            HintService.Hint("=D", HintType.Success);
+            HintService.Show(Hints.Success("=D"));
             Launcher.isAprilGiveup = true;
             Launcher.frmLaunchLeft.AprilScaleTrans.ScaleX = 1d;
             Launcher.frmLaunchLeft.AprilScaleTrans.ScaleY = 1d;
@@ -2270,7 +2269,7 @@ public partial class FormMain
                 GameLaunch.mcLaunchLoaderReal.Abort();
             foreach (var Watcher in GameWatcher.mcWatcherList)
                 Watcher.Kill();
-            HintService.Hint(Lang.Text("Main.ShutdownMinecraft.Success"), HintType.Success);
+            HintService.Show(Hints.Success(Lang.Text("Main.ShutdownMinecraft.Success")));
         }
         catch (Exception ex)
         {

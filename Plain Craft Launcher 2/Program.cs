@@ -38,6 +38,7 @@ internal static class Program
         };
         // 注册 Core 弹窗服务的界面呈现器
         DialogPresenter.Install();
+        HintPresenter.Install();
         // From dotnet/wpf #2393: fix tablet devices broken on .NET Core 3.0+
 
         _ = Tablet.TabletDevices;

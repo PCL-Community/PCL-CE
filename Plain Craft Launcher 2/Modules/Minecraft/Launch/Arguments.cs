@@ -2,6 +2,7 @@
 using System.IO;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Utils.OS;
 
 namespace PCL;
@@ -368,9 +369,7 @@ public static partial class GameLaunch
             else
                 finalArguments += $" --server {server} --port 25565";
             if (mc.Info.HasOptiFine)
-                HintService.Hint(
-                    Lang.Text("Minecraft.Launch.Error.OptiFineAutoJoinWarning"),
-                    HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Minecraft.Launch.Error.OptiFineAutoJoinWarning")));
         }
 
         return finalArguments;

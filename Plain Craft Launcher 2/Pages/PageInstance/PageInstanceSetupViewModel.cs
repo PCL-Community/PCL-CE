@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.Minecraft;
 using PCL.Core.Utils;
@@ -297,7 +298,7 @@ public partial class PageInstanceSetupViewModel : ViewModelBase
             Config.InstanceAuth.Reset(PageInstanceLeft.McInstance.PathInstance);
         Config.Instance.Reset(PageInstanceLeft.McInstance.PathInstance);
         Common.Log("[Setup] 已初始化实例独立设置");
-        HintService.Hint(Lang.Text("Instance.Setup.Initialize.Success"), HintType.Success, false);
+        HintService.Show(Hints.Success(Lang.Text("Instance.Setup.Initialize.Success"), log: false));
     }
 
     [RelayCommand]

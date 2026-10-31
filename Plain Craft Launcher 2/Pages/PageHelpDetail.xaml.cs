@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Windows;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 
 namespace PCL;
 
@@ -64,9 +65,9 @@ public partial class PageHelpDetail : IRefreshable, IPageView
 
         var element = (UIElement)Common.GetObjectFromXml(xaml, out var sanitizeResult);
         foreach (var unsupported in sanitizeResult.UnsupportedTypesFound)
-            HintService.Hint(Lang.Text("Event.Sanitize.UnsupportedTypeHint", unsupported), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Event.Sanitize.UnsupportedTypeHint", unsupported)));
         foreach (var unknown in sanitizeResult.UnrecognizedTypes)
-            HintService.Hint(Lang.Text("Event.Sanitize.UnknownTypeHint", unknown), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Event.Sanitize.UnknownTypeHint", unknown)));
 
         PanCustom.Children.Clear();
         PanCustom.Children.Add(element);

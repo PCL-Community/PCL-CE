@@ -2,6 +2,7 @@
 using System.Text;
 using System.Windows;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.UI;
 using PCL.Network;
 using PCL.Network.Loaders;
@@ -28,9 +29,7 @@ public static partial class DownloadUi
                 .Any(ongoingLoader => (ongoingLoader.name ?? "")
                     == (Lang.Text("Minecraft.Download.Stage.MinecraftServerDownload", id) ?? "")))
             {
-                HintService.Hint(
-                    Lang.Text("Minecraft.Download.Error.ServerDownloading"),
-                    HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Minecraft.Download.Error.ServerDownloading")));
                 return;
             }
 
@@ -99,9 +98,7 @@ public static partial class DownloadUi
             if (new DirectoryInfo(versionFolder).GetFileSystemInfos().Length == 0)
                 Directory.Delete(versionFolder);
             task.output = [];
-            HintService.Hint(
-                Lang.Text("Minecraft.Download.Error.NoOfficialServerDownload", id),
-                HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Minecraft.Download.Error.NoOfficialServerDownload", id)));
             Thread.Sleep(2000);
             task.Abort();
             return task.output;

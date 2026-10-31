@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.VisualBasic.FileIO;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.ViewModel;
@@ -500,15 +501,14 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
             var extension = filePathList[0].AfterLast(".").ToLower();
             if (extension != "zip")
             {
-                HintService.Hint(
-                    Lang.Text("Instance.Resource.Install.UnsupportedFormat", extension,
-                        Lang.Text("Download.Comp.Type.DataPack"), "zip"), HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Instance.Resource.Install.UnsupportedFormat", extension,
+                        Lang.Text("Download.Comp.Type.DataPack"), "zip")));
                 return;
             }
 
             if (filePathList[0].Contains(@":\$RECYCLE.BIN\"))
             {
-                HintService.Hint(Lang.Text("Instance.Resource.Install.RestoreFromRecycleBin"), HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Instance.Resource.Install.RestoreFromRecycleBin")));
                 return;
             }
 
@@ -553,13 +553,11 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
             });
 
             if (filePathList.Count == 1)
-                HintService.Hint(
-                    Lang.Text("Instance.Resource.Install.SuccessSingle",
-                        Common.GetFileNameFromPath(filePathList[0])), HintType.Success);
+                HintService.Show(Hints.Success(Lang.Text("Instance.Resource.Install.SuccessSingle",
+                        Common.GetFileNameFromPath(filePathList[0]))));
             else
-                HintService.Hint(
-                    Lang.Text("Instance.Resource.Install.SuccessMultiple", filePathList.Count,
-                        Lang.Text("Download.Comp.Type.DataPack")), HintType.Success);
+                HintService.Show(Hints.Success(Lang.Text("Instance.Resource.Install.SuccessMultiple", filePathList.Count,
+                        Lang.Text("Download.Comp.Type.DataPack"))));
 
             if (Launcher.frmMain.pageCurrent == FormMain.PageType.InstanceSetup &&
                 Launcher.frmMain.PageCurrentSub == FormMain.PageSubType.VersionSavesDatapack)
@@ -750,9 +748,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
             }
 
             if (skippedUnsafeFileCount > 0)
-                HintService.Hint(
-                    Lang.Text("Instance.Saves.Datapack.Update.UnsafeFilesSkipped", skippedUnsafeFileCount),
-                    HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Instance.Saves.Datapack.Update.UnsafeFilesSkipped", skippedUnsafeFileCount)));
             if (!fileList.Any())
                 return false;
 
@@ -822,17 +818,13 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                             }
                             case 1:
                             {
-                                HintService.Hint(
-                                    Lang.Text("Instance.Resource.Update.SuccessSingle", finishedFileNames.Single()),
-                                    HintType.Success);
+                                HintService.Show(Hints.Success(Lang.Text("Instance.Resource.Update.SuccessSingle", finishedFileNames.Single())));
                                 break;
                             }
 
                             default:
                             {
-                                HintService.Hint(
-                                    Lang.Text("Instance.Resource.Update.SuccessMultiple", finishedFileNames.Count),
-                                    HintType.Success);
+                                HintService.Show(Hints.Success(Lang.Text("Instance.Resource.Update.SuccessMultiple", finishedFileNames.Count)));
                                 break;
                             }
                         }
@@ -841,13 +833,12 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                     }
                     case Common.LoadState.Failed:
                     {
-                        HintService.Hint(Lang.Text("Instance.Resource.Update.Failed", loader.Error.Message),
-                            HintType.Error);
+                        HintService.Show(Hints.Error(Lang.Text("Instance.Resource.Update.Failed", loader.Error.Message)));
                         break;
                     }
                     case Common.LoadState.Aborted:
                     {
-                        HintService.Hint(Lang.Text("Instance.Resource.Update.Aborted"));
+                        HintService.Show(Hints.Info(Lang.Text("Instance.Resource.Update.Aborted")));
                         break;
                     }
 

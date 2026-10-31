@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.ViewModel;
 
 namespace PCL;
@@ -26,6 +27,6 @@ public partial class PageInstanceSavesLeftViewModel : ViewModelBase
 
     public static void HintRefreshing()
     {
-        HintService.Hint(Lang.Text("Instance.Saves.Left.Refreshing"));
+        HintService.Show(Hints.Info(Lang.Text("Instance.Saves.Left.Refreshing")));
     }
 }

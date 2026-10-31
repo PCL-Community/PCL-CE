@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.UI.Dialogs;
 
 namespace PCL;
@@ -41,8 +42,7 @@ public static partial class Comp
                                     }).Result?.Button
                                     == 1)
                                 {
-                                    HintService.Hint(
-                                        Lang.Text("Download.Comp.Detail.Clipboard.Fetching"));
+                                    HintService.Show(Hints.Info(Lang.Text("Download.Comp.Detail.Clipboard.Fetching")));
 
                                     var ids = new List<string>
                                     {
@@ -53,10 +53,8 @@ public static partial class Comp
 
                                     if (compProjects.Count == 0)
                                     {
-                                        HintService.Hint(
-                                            Lang.Text(
-                                                "Download.Comp.Detail.Clipboard.InvalidContent"),
-                                            HintType.Error);
+                                        HintService.Show(Hints.Error(Lang.Text(
+                                                "Download.Comp.Detail.Clipboard.InvalidContent")));
                                         return;
                                     }
 

@@ -5,6 +5,7 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.UI;
 using System.Globalization;
 
@@ -174,7 +175,7 @@ public partial class PageLogRight : IPageView
         if (savePath.Length < 3)
             return;
         File.WriteAllLines(savePath, Launcher.frmLogLeft.currentLog.fullLog);
-        HintService.Hint(Lang.Text("LogPage.Export.Success"), HintType.Success);
+        HintService.Show(Hints.Success(Lang.Text("LogPage.Export.Success")));
         Common.OpenExplorer(savePath);
     }
 
@@ -183,8 +184,7 @@ public partial class PageLogRight : IPageView
         if (Launcher.frmLogLeft.currentLog.State <= GameWatcher.Watcher.MinecraftState.Running)
         {
             Launcher.frmLogLeft.currentLog.Kill();
-            HintService.Hint(Lang.Text("LogPage.Action.GameClosed", Launcher.frmLogLeft.currentLog.version.Name),
-                HintType.Success);
+            HintService.Show(Hints.Success(Lang.Text("LogPage.Action.GameClosed", Launcher.frmLogLeft.currentLog.version.Name)));
         }
     }
 
@@ -199,7 +199,7 @@ public partial class PageLogRight : IPageView
             Lang.Text("LogPage.ExportStack.Filter"));
         if (savePath.Length < 3)
             return;
-        HintService.Hint(Lang.Text("LogPage.ExportStack.Progress"));
+        HintService.Show(Hints.Info(Lang.Text("LogPage.ExportStack.Progress")));
         _vm.IsExportStackDumpEnabled = false;
         Common.RunInNewThread(() =>
         {
@@ -207,7 +207,7 @@ public partial class PageLogRight : IPageView
             File.WriteAllLines(savePath, dump);
             Common.RunInUi(() =>
             {
-                HintService.Hint(Lang.Text("LogPage.ExportStack.Success"), HintType.Success);
+                HintService.Show(Hints.Success(Lang.Text("LogPage.ExportStack.Success")));
                 _vm.IsExportStackDumpEnabled = true;
             });
             Common.OpenExplorer(savePath);

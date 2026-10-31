@@ -20,6 +20,7 @@ using PCL.Core.Utils.Validate;
 using PCL.Network;
 using PCL.Network.Loaders;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using System.Globalization;
 
 namespace PCL;
@@ -105,7 +106,7 @@ public partial class PageToolsTest : IPageView
             {
                 case Common.LoadState.Finished:
                 {
-                    HintService.Hint(Lang.Text("Tools.Test.CustomDownload.Finished", loader.name), HintType.Success);
+                    HintService.Show(Hints.Success(Lang.Text("Tools.Test.CustomDownload.Finished", loader.name)));
                     Console.Beep();
                     break;
                 }
@@ -121,7 +122,7 @@ public partial class PageToolsTest : IPageView
                 }
                 case Common.LoadState.Aborted:
                 {
-                    HintService.Hint(Lang.Text("Tools.Test.CustomDownload.Aborted", loader.name));
+                    HintService.Show(Hints.Info(Lang.Text("Tools.Test.CustomDownload.Aborted", loader.name)));
                     break;
                 }
             }
@@ -250,7 +251,7 @@ public partial class PageToolsTest : IPageView
                 {
                     if (NetFacade.HasDownloadingTask())
                     {
-                        HintService.Hint(Lang.Text("Tools.Test.Clean.WaitForDownload"));
+                        HintService.Show(Hints.Info(Lang.Text("Tools.Test.Clean.WaitForDownload")));
                         return;
                     }
 
@@ -315,12 +316,12 @@ public partial class PageToolsTest : IPageView
                     }
                     else
                     {
-                        HintService.Hint(Lang.Text("Tools.Test.Clean.NoFiles"));
+                        HintService.Show(Hints.Info(Lang.Text("Tools.Test.Clean.NoFiles")));
                     }
                 }
                 else
                 {
-                    HintService.Hint(Lang.Text("Tools.Test.Clean.CloseGameFirst"));
+                    HintService.Show(Hints.Info(Lang.Text("Tools.Test.Clean.CloseGameFirst")));
                 }
             }
             catch (Exception ex)
@@ -426,14 +427,14 @@ public partial class PageToolsTest : IPageView
     private void BtnSkinSave_Click(object sender, MouseButtonEventArgs e)
     {
         var id = TextSkinID.Text;
-        HintService.Hint(Lang.Text("Tools.Test.Skin.Fetching"));
+        HintService.Show(Hints.Info(Lang.Text("Tools.Test.Skin.Fetching")));
         Common.RunInNewThread(() =>
         {
             try
             {
                 if (id.Length < 3)
                 {
-                    HintService.Hint(Lang.Text("Tools.Test.Skin.InvalidId"));
+                    HintService.Show(Hints.Info(Lang.Text("Tools.Test.Skin.InvalidId")));
                 }
                 else
                 {
@@ -444,7 +445,7 @@ public partial class PageToolsTest : IPageView
                     {
                         var path = SystemDialogs.SelectSaveFile(Lang.Text("Tools.Test.Skin.Save"), $"{id}.png", Lang.Text("Tools.Test.Skin.FileFilter"));
                         Common.CopyFile(result, path);
-                        HintService.Hint(Lang.Text("Tools.Test.Skin.Saved", id), HintType.Success);
+                        HintService.Show(Hints.Success(Lang.Text("Tools.Test.Skin.Saved", id)));
                     });
                 }
             }
@@ -452,7 +453,7 @@ public partial class PageToolsTest : IPageView
             {
                 if (ex.ToString().Contains("429"))
                 {
-                    HintService.Hint(Lang.Text("Tools.Test.Skin.TooFrequent"), HintType.Error);
+                    HintService.Show(Hints.Error(Lang.Text("Tools.Test.Skin.TooFrequent")));
                     Common.Log($"获取正版皮肤失败（{id}）：获取皮肤太过频繁，请 5 分钟后再试！");
                 }
                 else
@@ -539,7 +540,7 @@ public partial class PageToolsTest : IPageView
                 Dispatcher.Invoke(() =>
                 {
                     Common.Log("获取成就图片失败（404）");
-                    HintService.Hint(Lang.Text("Tools.Test.Achievement.FetchFailed"), HintType.Error);
+                    HintService.Show(Hints.Error(Lang.Text("Tools.Test.Achievement.FetchFailed")));
                 });
 
             else
@@ -587,14 +588,14 @@ public partial class PageToolsTest : IPageView
 
                 Common.CopyFile(savePath, path);
                 File.Delete(savePath);
-                HintService.Hint(Lang.Text("Tools.Test.Achievement.Saved"), HintType.Success);
+                HintService.Show(Hints.Success(Lang.Text("Tools.Test.Achievement.Saved")));
             }
             // 下载成功，返回 True
             else if (response.StatusCode == HttpStatusCode.NotFound)
             {
                 // 捕获 404 错误
                 Common.Log("获取成就图片失败（404）");
-                HintService.Hint(Lang.Text("Tools.Test.Achievement.FetchFailed"), HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Tools.Test.Achievement.FetchFailed")));
             }
             else
             {
@@ -649,7 +650,7 @@ public partial class PageToolsTest : IPageView
 
             if (currentSkinBitmap.Width != currentSkinBitmap.Height)
             {
-                HintService.Hint(Lang.Text("Tools.Test.Avatar.InvalidSize"), HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Tools.Test.Avatar.InvalidSize")));
                 _vm.SkinPreviewVisible = false;
                 return;
             }
@@ -660,13 +661,13 @@ public partial class PageToolsTest : IPageView
             ImgHair.Source = null;
 
             _vm.SkinPreviewVisible = true;
-            HintService.Hint(Lang.Text("Tools.Test.Avatar.Generated"), HintType.Success);
+            HintService.Show(Hints.Success(Lang.Text("Tools.Test.Avatar.Generated")));
         }
 
         catch (Exception ex)
         {
             Common.Log(ex, "生成头像失败");
-            HintService.Hint(Lang.Text("Tools.Test.Avatar.GenerateFailed", ex.Message), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Tools.Test.Avatar.GenerateFailed", ex.Message)));
             _vm.SkinPreviewVisible = false;
         }
     }
@@ -730,7 +731,7 @@ public partial class PageToolsTest : IPageView
     {
         if (generatedHeadBitmap is null)
         {
-            HintService.Hint(Lang.Text("Tools.Test.Avatar.SelectFirst"), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Tools.Test.Avatar.SelectFirst")));
             return;
         }
 
@@ -740,7 +741,7 @@ public partial class PageToolsTest : IPageView
             return;
 
         generatedHeadBitmap.Save(savePath, ImageFormat.Png);
-        HintService.Hint(Lang.Text("Tools.Test.Avatar.Saved"), HintType.Success);
+        HintService.Show(Hints.Success(Lang.Text("Tools.Test.Avatar.Saved")));
     }
 
     private void CmbHeadSize_SelectionChanged(object sender, SelectionChangedEventArgs e)
