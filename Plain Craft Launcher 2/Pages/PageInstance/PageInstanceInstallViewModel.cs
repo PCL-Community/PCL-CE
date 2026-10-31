@@ -222,4 +222,13 @@ public partial class PageInstanceInstallViewModel : ViewModelBase
 
         return string.Join("  |  ", parts);
     }
+
+    /// <summary>Fabric API 版本列表。</summary>
+    public System.Collections.ObjectModel.ObservableCollection<FabricApiVersionRow> FabricApiVersions { get; } = [];
+
+    public void SetFabricApiVersions(IEnumerable<FabricApiVersionRow> rows)
+    {
+        FabricApiVersions.Clear();
+        foreach (var row in rows) FabricApiVersions.Add(row);
+    }
 }

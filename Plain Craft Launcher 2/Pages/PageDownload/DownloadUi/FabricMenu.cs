@@ -52,23 +52,35 @@ public static partial class DownloadUi
         Common.OpenWebsite("https://fabricmc.net/blog");
     }
 
-    public static MyListItem FabricApiDownloadListItem(
-        Comp.CompFile entry,
-        MyListItem.ClickEventHandler onClick)
+    public static FabricApiVersionRow FabricApiVersionRowBuild(Comp.CompFile entry)
     {
-        var newItem = new MyListItem
+        return new FabricApiVersionRow
         {
             Title = entry.DisplayName.Split("]")[1]
                 .Replace("Fabric API ", "")
                 .Replace(" build ", ".")
                 .Trim(),
+            Info = entry.StatusDescription
+                   + Lang.Text("Download.Version.ReleaseDate", Lang.Date(entry.ReleaseDate, "g")),
+            Logo = $"{Common.PathImage}Blocks/Fabric.png",
+            Entry = entry
+        };
+    }
+
+    public static MyListItem FabricApiDownloadListItem(
+        Comp.CompFile entry,
+        MyListItem.ClickEventHandler onClick)
+    {
+        var row = FabricApiVersionRowBuild(entry);
+        var newItem = new MyListItem
+        {
+            Title = row.Title,
             SnapsToDevicePixels = true,
             Height = 42d,
             Type = MyListItem.CheckType.Clickable,
-            Tag = entry,
-            Info = entry.StatusDescription
-                + Lang.Text("Download.Version.ReleaseDate", Lang.Date(entry.ReleaseDate, "g")),
-            Logo = $"{Common.PathImage}Blocks/Fabric.png"
+            Tag = row.Entry,
+            Info = row.Info,
+            Logo = row.Logo
         };
         newItem.Click += onClick;
         return newItem;

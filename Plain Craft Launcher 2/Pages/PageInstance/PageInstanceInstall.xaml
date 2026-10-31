@@ -219,7 +219,22 @@
                                       Margin="0,12,0,0" x:Name="CardFabricApi" Visibility="{Binding ShowFabricApiCard, Converter={StaticResource BooleanToVisibilityConverter}}"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True"
                                       PreviewSwap="CardFabricApi_PreviewSwap">
-                            <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanFabricApi" />
+                            <ItemsControl Margin="20,40,18,15" VerticalAlignment="Top" x:Name="PanFabricApi"
+                                          ItemsSource="{Binding FabricApiVersions}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <local:MyListItem Title="{Binding Title}" Info="{Binding Info}"
+                                                          Logo="{Binding Logo}" Tag="{Binding Entry}"
+                                                          Type="Clickable" Height="42" SnapsToDevicePixels="True"
+                                                          Click="FabricApi_Selected" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
                             <Grid x:Name="PanFabricApiInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
                                   Tag="True">
                                 <Grid.RenderTransform>

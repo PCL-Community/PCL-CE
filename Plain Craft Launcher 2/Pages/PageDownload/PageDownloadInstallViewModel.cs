@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -143,4 +144,13 @@ public partial class PageDownloadInstallViewModel : ViewModelBase
     [ObservableProperty] private Brush _labyModForeground = ThemeManager.colorGray1;
 
     [ObservableProperty] private Brush _optiFabricForeground = ThemeManager.colorGray1;
+
+    /// <summary>Fabric API 版本列表。</summary>
+    public ObservableCollection<FabricApiVersionRow> FabricApiVersions { get; } = [];
+
+    public void SetFabricApiVersions(IEnumerable<FabricApiVersionRow> rows)
+    {
+        FabricApiVersions.Clear();
+        foreach (var row in rows) FabricApiVersions.Add(row);
+    }
 }

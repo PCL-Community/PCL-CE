@@ -2055,22 +2055,22 @@ public partial class PageInstanceInstall : IPageView
                 return;
             versions = versions.OrderByDescending(v => v.ReleaseDate).ToList();
             // 可视化
-            PanFabricApi.Children.Clear();
+            var rows = new List<FabricApiVersionRow>();
             foreach (var version in versions)
             {
                 if (!IsFabricApiCompatible(version))
                     continue;
-                PanFabricApi.Children.Add(
-                    DownloadUi.FabricApiDownloadListItem(version,
-                        (a, b) => this.FabricApi_Selected((dynamic)a, b)));
+                rows.Add(DownloadUi.FabricApiVersionRowBuild(version));
             }
 
+            _vm.SetFabricApiVersions(rows);
+
             // 自动选择 Fabric API
-            if (!autoSelectedFabricApi)
+            if (!autoSelectedFabricApi && rows.Count > 0)
             {
                 autoSelectedFabricApi = true;
-                Common.Log($"[Download] 已自动选择 Fabric API：{((MyListItem)PanFabricApi.Children[0]).Title}");
-                FabricApi_Selected((MyListItem)PanFabricApi.Children[0], null);
+                Common.Log($"[Download] 已自动选择 Fabric API：{rows[0].Title}");
+                SelectFabricApi(rows[0].Entry);
             }
         }
         catch (Exception ex)
@@ -2084,9 +2084,14 @@ public partial class PageInstanceInstall : IPageView
     }
 
     // 选择与清除
-    private void FabricApi_Selected(MyListItem sender, EventArgs e)
+    private void FabricApi_Selected(object sender, MouseButtonEventArgs e)
     {
-        selectedFabricApi = (Comp.CompFile)sender.Tag;
+        SelectFabricApi((Comp.CompFile)((MyListItem)sender).Tag);
+    }
+
+    private void SelectFabricApi(Comp.CompFile entry)
+    {
+        selectedFabricApi = entry;
         selectedAPIName = "Fabric API";
         CardFabricApi.IsSwapped = true;
         ReloadSelected();
