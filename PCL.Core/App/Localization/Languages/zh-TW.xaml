@@ -1212,6 +1212,7 @@
     <sys:String x:Key="Instance.Saves.CopyPasteWarning">注意！在貼上之前進行刪除操作會導致存檔遺失！</sys:String>
     <sys:String x:Key="Instance.Saves.CopySave">複製存檔</sys:String>
     <sys:String x:Key="Instance.Saves.CreationTime">建立時間：{0}，最後修改時間：{1}</sys:String>
+    <sys:String x:Key="Instance.Saves.Delete.Confirm">確定要將存檔 {0} 移至資源回收筒嗎？</sys:String>
     <sys:String x:Key="Instance.Saves.DeleteFailed">刪除存檔失敗！</sys:String>
     <sys:String x:Key="Instance.Saves.DeletedToRecycleBin">已將存檔移至資源回收筒！</sys:String>
     <sys:String x:Key="Instance.Saves.Deleting">刪除中……</sys:String>

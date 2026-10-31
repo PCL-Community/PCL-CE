@@ -1292,6 +1292,7 @@
     <sys:String x:Key="Instance.Saves.CopyPasteWarning">注意！在粘贴之前进行删除操作会导致存档丢失！</sys:String>
     <sys:String x:Key="Instance.Saves.CopySave">复制存档</sys:String>
     <sys:String x:Key="Instance.Saves.CreationTime">创建时间：{0}，最后修改时间：{1}</sys:String>
+    <sys:String x:Key="Instance.Saves.Delete.Confirm">确定要将存档 {0} 移至回收站吗？</sys:String>
     <sys:String x:Key="Instance.Saves.DeleteFailed">删除存档失败！</sys:String>
     <sys:String x:Key="Instance.Saves.DeletedToRecycleBin">已将存档移至回收站！</sys:String>
     <sys:String x:Key="Instance.Saves.Deleting">删除中……</sys:String>

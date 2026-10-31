@@ -568,9 +568,23 @@ public partial class PageSelectRight
                         mcInstance.PathInstance);
                     if (isShiftPressed)
                     {
-                        Common.DeleteDirectory(mcInstance.PathInstance);
-                        HintService.Hint(Lang.Text("Select.Instance.Delete.PermanentSuccess", mcInstance.Name),
-                            HintType.Success);
+                        // 永久删除不可恢复，而确认框的强度与普通删除完全相同，
+                        // 按住 Shift 误点“确定”就会直接销毁实例。
+                        // 这里要求用户在确认框关闭时仍然按住 Shift，否则降级为送回收站。
+                        var stillHoldShift = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
+                        if (stillHoldShift)
+                        {
+                            Common.DeleteDirectory(mcInstance.PathInstance);
+                            HintService.Hint(Lang.Text("Select.Instance.Delete.PermanentSuccess", mcInstance.Name),
+                                HintType.Success);
+                        }
+                        else
+                        {
+                            FileSystem.DeleteDirectory(mcInstance.PathInstance, UIOption.AllDialogs,
+                                RecycleOption.SendToRecycleBin);
+                            HintService.Hint(Lang.Text("Select.Instance.Delete.RecycleBinSuccess", mcInstance.Name),
+                                HintType.Success);
+                        }
                     }
                     else
                     {

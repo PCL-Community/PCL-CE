@@ -13,7 +13,56 @@ namespace PCL;
 
 public static partial class Common
 {
-    public static readonly int Dpi = (int)Math.Round(Graphics.FromHwnd(nint.Zero).DpiX);
+    private static int _dpiFallback = _GetSystemDpi();
+
+    /// <summary>
+    /// 主窗口所在显示器的 DPI。<br/>
+    /// 进程在 app.manifest 中声明为 PerMonitorV2，因此不能像原先那样把系统 DPI 缓存进
+    /// 一个 <c>readonly</c> 字段：双屏不同缩放、或拖动窗口到另一块屏幕后，缓存值必然失真，
+    /// 并连带影响窗口尺寸换算（<see cref="ArgumentsGame"/>）与提示文本渲染。
+    /// </summary>
+    public static int Dpi
+    {
+        get
+        {
+            var dpi = _GetMainWindowDpi();
+            if (dpi > 0) _dpiFallback = dpi;
+            return _dpiFallback;
+        }
+    }
+
+    /// <summary>
+    /// 读取主窗口当前所在显示器的 DPI，窗口尚未创建时返回 0。
+    /// </summary>
+    private static int _GetMainWindowDpi()
+    {
+        try
+        {
+            var window = Application.Current?.MainWindow;
+            if (window is null) return 0;
+
+            return (int)Math.Round(VisualTreeHelper.GetDpi(window).PixelsPerInchX);
+        }
+        catch (Exception)
+        {
+            return 0;
+        }
+    }
+
+    /// <summary>
+    /// 系统 DPI，仅在主窗口尚未创建时用作回退值。
+    /// </summary>
+    private static int _GetSystemDpi()
+    {
+        try
+        {
+            return (int)Math.Round(Graphics.FromHwnd(nint.Zero).DpiX);
+        }
+        catch (Exception)
+        {
+            return 96;
+        }
+    }
 
     private static readonly int UiThreadId = Environment.CurrentManagedThreadId;
 

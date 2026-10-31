@@ -197,6 +197,14 @@ public partial class PageInstanceSaves : IRefreshable, IPageView
         btnDelete.TrySetLocalizedValue("ToolTip", "Common.Action.Delete");
         btnDelete.Click += async (_, _) =>
         {
+            // 删除存档此前单击垃圾桶即执行，没有任何确认步骤
+            if (Launcher.MyMsgBox(
+                    Lang.Text("Instance.Saves.Delete.Confirm", Path.GetFileName(curFolder)),
+                    Lang.Text("Common.Dialog.Warning"),
+                    button2: Lang.Text("Common.Action.Cancel"),
+                    isWarn: true) != 1)
+                return;
+
             worldItem.IsEnabled = false;
             LocalizedText.TryBind(worldItem, "Info", () => Lang.Text("Instance.Saves.Deleting"));
             try
