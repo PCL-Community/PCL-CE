@@ -5,25 +5,42 @@ using PCL.Core.Minecraft;
 [TestClass]
 public class MavenTest
 {
+    private const string UriBase = "https://copytiao.github.io/maven/copytiao/";
+    private const string PathBase = "C:/Users/copytiao/AppData/Roaming/.minecraft/library/maven";
+
     [TestMethod]
     public void ParsePathAndUri()
     {
-        string[] mavenId = ["io.github.copytiao:pclce:0.6.2","io.github.copytiao:pclce:jar:0.6.2",
-        "io.github.copytiao:pclce:snapshot:0.6.2",
-        "io.github.copytiao:pclce:jar:snapshot:0.6.2"];
-        foreach(var id in mavenId)
+        // 坐标 → 期望的相对路径。断言具体值而不是「非空 + 语法合法」，
+        // 否则 Resolve 返回未拼接的基地址或错误的制品位置时用例依然会通过。
+        (string Id, string ExpectedPath)[] cases =
+        [
+            ("io.github.copytiao:pclce:0.6.2",
+                "/io/github/copytiao/pclce/pclce-0.6.2.jar"),
+            ("io.github.copytiao:pclce:jar:0.6.2",
+                "/io/github/copytiao/pclce/pclce-0.6.2.jar"),
+            // 非通用 packaging：按 classifier 处理
+            ("io.github.copytiao:pclce:snapshot:0.6.2",
+                "/io/github/copytiao/pclce/pclce-snapshot-0.6.2.jar"),
+            // 五段式：group:artifact:packaging:classifier:version
+            ("io.github.copytiao:pclce:jar:snapshot:0.6.2",
+                "/io/github/copytiao/pclce/pclce-snapshot-0.6.2.jar")
+        ];
+
+        foreach (var (id, expectedPath) in cases)
         {
             var maven = new MavenArtifact(id);
-            var uri = maven.Resolve("https://copytiao.github.io/maven/copytiao/");
-            var path = maven.Resolve("C:/Users/copytiao/AppData/Roaming/.minecraft/library/maven");
-            Console.WriteLine($"Uri: {uri}");
-            Console.WriteLine($"Path: {path}");
+            var uri = maven.Resolve(UriBase);
+            var path = maven.Resolve(PathBase);
+            Console.WriteLine($"{id}\n  Uri : {uri}\n  Path: {path}");
 
-            Assert.IsFalse(string.IsNullOrWhiteSpace(uri), $"坐标 {id} 解析出的 Uri 为空");
-            Assert.IsFalse(string.IsNullOrWhiteSpace(path), $"坐标 {id} 解析出的 Path 为空");
-            Assert.IsTrue(Uri.IsWellFormedUriString(uri, UriKind.Absolute), $"坐标 {id} 解析出的 Uri 不是绝对地址");
+            Assert.AreEqual("https://copytiao.github.io/maven/copytiao" + expectedPath, uri,
+                $"坐标 {id} 解析出的 Uri 不符");
+            Assert.AreEqual(PathBase + expectedPath, path,
+                $"坐标 {id} 解析出的 Path 不符");
         }
     }
+
     [TestMethod]
     public void ParseInvalidId()
     {

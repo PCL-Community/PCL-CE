@@ -51,9 +51,12 @@ jobs:
           dotnet-version: 10.0.x
 
       - name: Run Tests
+        # LiveNetwork 分类的用例会真实访问 Cloudflare DoH 与公共 DNS 记录，
+        # 受 runner 出网策略与对端可用性影响，失败与应用代码无关，故从单元测试作业中排除。
         run: >
           dotnet test "PCL.Core.Test/PCL.Core.Test.csproj"
           -p:Configuration=CI
+          --filter "TestCategory!=LiveNetwork"
           --logger "trx;LogFileName=test-results.trx"
           --results-directory ./test-results
           --nologo

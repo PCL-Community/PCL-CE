@@ -1212,6 +1212,7 @@
     <sys:String x:Key="Instance.Saves.CopyPasteWarning">Warning! Deleting before pasting will cause save loss!</sys:String>
     <sys:String x:Key="Instance.Saves.CopySave">Copy save</sys:String>
     <sys:String x:Key="Instance.Saves.CreationTime">Created: {0}, last modified: {1}</sys:String>
+    <sys:String x:Key="Instance.Saves.Delete.Confirm">Are you sure you want to move the save {0} to the recycle bin?</sys:String>
     <sys:String x:Key="Instance.Saves.DeleteFailed">Failed to delete save!</sys:String>
     <sys:String x:Key="Instance.Saves.DeletedToRecycleBin">Save moved to recycle bin!</sys:String>
     <sys:String x:Key="Instance.Saves.Deleting">Deleting...</sys:String>

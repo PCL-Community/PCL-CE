@@ -8,6 +8,7 @@ using PCL.Core.IO.Net.Http;
 namespace PCL.Core.Test.Network;
 
 [TestClass]
+[TestCategory("LiveNetwork")]
 public class DohConnection
 {
     [TestMethod]
