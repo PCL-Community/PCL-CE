@@ -7,6 +7,7 @@ using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.Utils.OS;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Dialogs;
 
 namespace PCL;
 
@@ -590,11 +591,14 @@ public partial class PageSetupLaunch : IPageView
         var removedItem = sizeChangedEventArgs.RemovedItems.Count > 0 ? sizeChangedEventArgs.RemovedItems[0] : null;
         try
         {
-            if (await _vm.Dialog.ShowAsync(
-                    title: Lang.Text("Setup.Launch.Options.Visibility.CloseImmediately.Warning.Title"),
-                    content: Lang.Text("Setup.Launch.Options.Visibility.CloseImmediately.Warning.Message"),
-                    button1: Lang.Text("Setup.Launch.Options.Visibility.CloseImmediately.Warning.Continue"),
-                    button2: Lang.Text("Common.Action.Cancel")) == 2 &&
+            if ((await _vm.Dialog.ShowAsync(new TextDialogRequest
+            {
+                Title = Lang.Text("Setup.Launch.Options.Visibility.CloseImmediately.Warning.Title"),
+                Content = Lang.Text("Setup.Launch.Options.Visibility.CloseImmediately.Warning.Message"),
+                Buttons = DialogButtons.From(
+                    DialogButton.Create(Lang.Text("Setup.Launch.Options.Visibility.CloseImmediately.Warning.Continue")),
+                    DialogButton.Create(Lang.Text("Common.Action.Cancel")))
+            })).Button == 2 &&
                 removedItem is not null)
                 ComboArgumentVisibie.SelectedItem = removedItem;
         }
@@ -612,10 +616,12 @@ public partial class PageSetupLaunch : IPageView
             return;
         try
         {
-            await _vm.Dialog.ShowAsync(
-                title: Lang.Text("Common.Dialog.Title"),
-                content: Lang.Text("Setup.Launch.Options.InstanceIsolation.DefaultPolicyHint"),
-                button1: Lang.Text("Common.Action.Confirm"));
+            await _vm.Dialog.ShowAsync(new TextDialogRequest
+            {
+                Title = Lang.Text("Common.Dialog.Title"),
+                Content = Lang.Text("Setup.Launch.Options.InstanceIsolation.DefaultPolicyHint"),
+                Buttons = DialogButtons.Ok
+            });
         }
         catch (Exception ex)
         {
@@ -659,12 +665,15 @@ public partial class PageSetupLaunch : IPageView
                 : null;
             try
             {
-                if (await _vm.Dialog.ShowAsync(
-                        title: Lang.Text("Common.Dialog.Warning"),
-                        content: Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Message"),
-                        button1: Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm"),
-                        button2: Lang.Text("Common.Action.Cancel"),
-                        isWarn: true) == 2)
+                if ((await _vm.Dialog.ShowAsync(new TextDialogRequest
+                {
+                    Title = Lang.Text("Common.Dialog.Warning"),
+                    Content = Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Message"),
+                    Buttons = DialogButtons.From(
+                        DialogButton.Create(Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm")),
+                        DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                    IsWarn = true
+                })).Button == 2)
                 {
                     if (removedItem is not null)
                         ComboAdvanceRenderer.SelectedItem = removedItem;

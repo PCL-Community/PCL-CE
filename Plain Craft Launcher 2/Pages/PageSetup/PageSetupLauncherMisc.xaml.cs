@@ -9,6 +9,7 @@ using PCL.Core.App.Configuration;
 using PCL.Core.App.Essentials;
 using PCL.Core.App.IoC;
 using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.App.Localization;
 using PCL.Core.Utils.OS;
 
@@ -202,11 +203,16 @@ public partial class PageSetupLauncherMisc : IPageView
             return;
         if (ComboSystemActivity.SelectedIndex != 2)
             return;
-        if (Launcher.MyMsgBox(
-                Lang.Text("Setup.Misc.System.Announcement.Disabled.Warning.Message"),
-                Lang.Text("Common.Dialog.Warning"),
-                Lang.Text("Setup.Misc.System.Announcement.Disabled.Warning.Confirm"),
-                Lang.Text("Common.Action.Cancel"), isWarn: true) ==
+        if (_vm.Dialog.Show(new TextDialogRequest
+        {
+            Title = Lang.Text("Common.Dialog.Warning"),
+            Content = Lang.Text("Setup.Misc.System.Announcement.Disabled.Warning.Message"),
+            Buttons = DialogButtons.From(
+                DialogButton.Create(Lang.Text("Setup.Misc.System.Announcement.Disabled.Warning.Confirm")),
+                DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+            IsWarn = true,
+            ForceWait = true
+        }).Result?.Button ==
             2) ComboSystemActivity.SelectedItem = e.RemovedItems[0];
     }
 
@@ -247,7 +253,14 @@ public partial class PageSetupLauncherMisc : IPageView
         if (string.IsNullOrWhiteSpace(sourcePath))
             return;
         File.Copy(sourcePath, ConfigService.SharedConfigPath, true);
-        Launcher.MyMsgBox(Lang.Text("Setup.Misc.System.ImportSettings.Success.Message"), button1: Lang.Text("Setup.Misc.System.ImportSettings.Success.Restart"), forceWait: true);
+        _vm.Dialog.Show(new TextDialogRequest
+        {
+            Title = Lang.Text("Common.Dialog.Title"),
+            Content = Lang.Text("Setup.Misc.System.ImportSettings.Success.Message"),
+            Buttons = DialogButtons.From(
+                DialogButton.Create(Lang.Text("Setup.Misc.System.ImportSettings.Success.Restart"))),
+            ForceWait = true
+        });
         Process.Start(new ProcessStartInfo(Basics.ExecutablePath));
         FormMain.EndProgramForce();
     }
@@ -260,21 +273,25 @@ public partial class PageSetupLauncherMisc : IPageView
     {
         try
         {
-            var result = await _vm.Dialog.ShowAsync(
-                title: Lang.Text("Setup.Misc.System.StopUsingPclCe.Title"),
-                content: Lang.Text("Setup.Misc.System.StopUsingPclCe.Message"),
-                button1: Lang.Text("Common.Action.Continue"),
-                button2: Lang.Text("Setup.Misc.System.StopUsingPclCe.ContinueAndRemove"),
-                button3: Lang.Text("Common.Action.Cancel"),
-                isWarn: true);
+            var result = (await _vm.Dialog.ShowAsync(new TextDialogRequest
+            {
+                Title = Lang.Text("Setup.Misc.System.StopUsingPclCe.Title"),
+                Content = Lang.Text("Setup.Misc.System.StopUsingPclCe.Message"),
+                Buttons = DialogButtons.From(
+                    DialogButton.Create(Lang.Text("Common.Action.Continue")),
+                    DialogButton.Create(Lang.Text("Setup.Misc.System.StopUsingPclCe.ContinueAndRemove")),
+                    DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                IsWarn = true
+            })).Button;
 
             if (result >= 3) return;
-            if (await _vm.Dialog.ShowAsync(
-                    title: Lang.Text("Common.Dialog.Warning"),
-                    content: Lang.Text("Setup.Misc.System.StopUsingPclCe.Message.Final"),
-                    button1: Lang.Text("Common.Action.Continue"),
-                    button2: Lang.Text("Common.Action.Cancel"),
-                    isWarn: true) == 1)
+            if ((await _vm.Dialog.ShowAsync(new TextDialogRequest
+            {
+                Title = Lang.Text("Common.Dialog.Warning"),
+                Content = Lang.Text("Setup.Misc.System.StopUsingPclCe.Message.Final"),
+                Buttons = DialogButtons.ContinueCancel,
+                IsWarn = true
+            })).IsConfirmed)
                 StopUsingPClCeCore(result == 2);
         }
         catch (Exception ex)

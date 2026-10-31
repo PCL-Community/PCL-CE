@@ -7,6 +7,7 @@ using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
 
@@ -464,10 +465,13 @@ public partial class PageSelectLeft : IRefreshable, IPageView
             var folder =
                 (GameFolders.McFolder)((MyListItem)((Popup)((ContextMenu)((MyMenuItem)sender).Parent).Parent)
                     .PlacementTarget).Tag;
-            switch (await Launcher.MyMsgBoxAsync(
-                        Lang.Text("Select.Folder.Cleanup.Message"),
-                        Lang.Text("Select.Folder.Cleanup.Title"), Lang.Text("Common.Action.Delete"),
-                        Lang.Text("Select.Folder.Cleanup.Keep"), Lang.Text("Common.Action.Cancel")))
+            switch ((await DialogService.Instance.ShowAsync(new TextDialogRequest
+            {
+                Title = Lang.Text("Select.Folder.Cleanup.Title"),
+                Content = Lang.Text("Select.Folder.Cleanup.Message"),
+                Buttons = DialogButtons.Create("Common.Action.Delete", "Select.Folder.Cleanup.Keep", "Common.Action.Cancel"),
+                ForceWait = false
+            })).Button)
             {
                 case 1:
                 {
@@ -553,14 +557,23 @@ public partial class PageSelectLeft : IRefreshable, IPageView
 
         try
         {
-            if (await Launcher.MyMsgBoxAsync(firstWarning, Lang.Text("Select.Folder.Delete.WarningTitle"),
-                    Lang.Text("Common.Action.Cancel"), Lang.Text("Common.Action.Confirm"),
-                    Lang.Text("Common.Action.Cancel")) != 2)
+            if ((await DialogService.Instance.ShowAsync(new TextDialogRequest
+            {
+                Title = Lang.Text("Select.Folder.Delete.WarningTitle"),
+                Content = firstWarning,
+                Buttons = DialogButtons.Create("Common.Action.Cancel", "Common.Action.Confirm", "Common.Action.Cancel"),
+                ForceWait = false
+            })).Button != 2)
                 return;
 
-            if (await Launcher.MyMsgBoxAsync(finalWarning, Lang.Text("Select.Folder.Delete.WarningTitle"),
-                    confirmTitle, Lang.Text("Common.Action.Cancel"),
-                    isWarn: true) != 1)
+            if ((await DialogService.Instance.ShowAsync(new TextDialogRequest
+            {
+                Title = Lang.Text("Select.Folder.Delete.WarningTitle"),
+                Content = finalWarning,
+                Buttons = DialogButtons.From(DialogButton.Create(confirmTitle), DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                IsWarn = true,
+                ForceWait = false
+            })).Button != 1)
                 return;
         }
         catch (Exception ex)
@@ -635,11 +648,19 @@ public partial class PageSelectLeft : IRefreshable, IPageView
         try
         {
             // 获取输入
-            var newName = await Launcher.MyMsgBoxInputAsync(Lang.Text("Select.Folder.Rename.Title"), "", folder.Name,
-            [
-                new NullOrWhiteSpaceValidator(), new StringLengthValidator(1, 30),
-                new BlacklistValidator([">", "|"])
-            ]);
+            var newNameResult = await DialogService.Instance.ShowAsync(new InputDialogRequest
+            {
+                Title = Lang.Text("Select.Folder.Rename.Title"),
+                DefaultValue = folder.Name,
+                ValidateRules = [
+                    new NullOrWhiteSpaceValidator(), new StringLengthValidator(1, 30),
+                    new BlacklistValidator([">", "|"])
+                ],
+                Buttons = DialogButtons.OkCancel,
+                HighLight = false,
+                ForceWait = false
+            });
+            var newName = newNameResult.IsConfirmed ? newNameResult.InputText : null;
             if (string.IsNullOrWhiteSpace(newName))
                 return;
             // 修改自定义名

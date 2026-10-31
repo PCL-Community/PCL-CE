@@ -7,6 +7,7 @@ using System.Windows.Threading;
 using Microsoft.VisualBasic;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Threading;
 using PCL.Core.Utils.OS;
 
@@ -458,9 +459,13 @@ public static partial class Common
             var message = ExceptionDetails.Compose(
                 Lang.Text("SystemDialog.Browser.OpenFailed.Message", url),
                 ex);
-            Launcher.MyMsgBox(
-                message,
-                Lang.Text("SystemDialog.Browser.OpenFailed.Title"));
+            DialogService.Instance.Show(new TextDialogRequest
+            {
+                Title = Lang.Text("SystemDialog.Browser.OpenFailed.Title"),
+                Content = message,
+                Buttons = DialogButtons.Ok,
+                ForceWait = true
+            });
         }
     }
 

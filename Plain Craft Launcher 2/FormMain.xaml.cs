@@ -14,6 +14,7 @@ using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Core.Minecraft;
 using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Theme;
 using PCL.Core.Utils;
 using PCL.Core.Utils.OS;
@@ -45,8 +46,13 @@ public partial class FormMain
                 changelog = Common.ReadFile(changelogFile);
             else
                 changelog = Lang.Text("Main.UpdateLog.Empty");
-            if (Launcher.MyMsgBoxMarkdown(changelog,
-                    Lang.Text("Main.UpdateLog.Title", Common.VersionBranchName, Common.VersionBaseName), Lang.Text("Common.Action.Confirm"), Lang.Text("Main.UpdateLog.FullChangelog")) ==
+            if ((DialogService.Instance.Show(new MarkdownDialogRequest
+            {
+                Title = Lang.Text("Main.UpdateLog.Title", Common.VersionBranchName, Common.VersionBaseName),
+                Content = changelog,
+                Buttons = DialogButtons.Create("Common.Action.Confirm", "Main.UpdateLog.FullChangelog"),
+                ForceWait = true
+            }).Result?.Button ?? 0) ==
                 2) Common.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases");
         }, "UpdateLog Output");
     }
@@ -92,8 +98,6 @@ public partial class FormMain
         // 注册拖拽事件（不能直接加 Handles，否则没用；#6340）
         AddHandler(DragDrop.DragEnterEvent, new DragEventHandler(HandleDrag), true);
         AddHandler(DragDrop.DragOverEvent, new DragEventHandler(HandleDrag), true);
-        // 注册 MsgBox 事件
-        MsgBoxWrapper.OnShow += Launcher.MsgBoxWrapper_OnShow;
         // 注册 Hint 事件
         HintWrapper.OnShow += HintService.HintWrapper_OnShow;
         // 加载 UI
@@ -240,21 +244,31 @@ public partial class FormMain
                     var hint = Lang.Text("Main.SpecialVersion.CiHint");
 #endif
 
-                    Launcher.MyMsgBox(
-                        $"{hint}{"\r\n"}{"\r\n"}{Lang.Text("Main.SpecialVersion.HideHintNotice")}",
-                        Lang.Text("Main.SpecialVersion.Title"), Lang.Text("Main.SpecialVersion.IUnderstand"), Lang.Text("Main.SpecialVersion.OpenDownloadPageAndExit"), isWarn: true, button2Action: () =>
+                    DialogService.Instance.Show(new TextDialogRequest
+                    {
+                        Title = Lang.Text("Main.SpecialVersion.Title"),
+                        Content = $"{hint}{"\r\n"}{"\r\n"}{Lang.Text("Main.SpecialVersion.HideHintNotice")}",
+                        Buttons = DialogButtons.From(DialogButton.Create(Lang.Text("Main.SpecialVersion.IUnderstand")), DialogButton.Create(Lang.Text("Main.SpecialVersion.OpenDownloadPageAndExit"), () =>
                         {
                             Common.OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/latest");
                             EndProgram(false);
-                        });
+                        })),
+                        IsWarn = true,
+                        ForceWait = true
+                    });
                 }
 
 
 #endif
                 // EULA 提示
                 if (!States.System.LauncherEula)
-                    switch (Launcher.MyMsgBox(Lang.Text("Main.Eula.Message"), Lang.Text("Main.Eula.Title"), Lang.Text("Common.Action.Agree"), Lang.Text("Common.Action.Decline"), Lang.Text("Main.Eula.View"),
-                                button3Action: () => Common.OpenWebsite("https://shimo.im/docs/rGrd8pY8xWkt6ryW")))
+                    switch ((DialogService.Instance.Show(new TextDialogRequest
+                    {
+                        Title = Lang.Text("Main.Eula.Title"),
+                        Content = Lang.Text("Main.Eula.Message"),
+                        Buttons = DialogButtons.From(DialogButton.Create(Lang.Text("Common.Action.Agree")), DialogButton.Create(Lang.Text("Common.Action.Decline")), DialogButton.Create(Lang.Text("Main.Eula.View"), () => Common.OpenWebsite("https://shimo.im/docs/rGrd8pY8xWkt6ryW"))),
+                        ForceWait = true
+                    }).Result?.Button ?? 0))
                     {
                         case 1:
                             {
@@ -271,9 +285,13 @@ public partial class FormMain
                 // 遥测提示
                 if (Config.System.TelemetryConfig.IsDefault())
                 {
-                    var selection = Launcher.MyMsgBox(
-                                Lang.Text("Main.Telemetry.Message"),
-                                Lang.Text("Main.Telemetry.Title"), Lang.Text("Common.Action.Agree"), Lang.Text("Common.Action.Decline"));
+                    var selection = (DialogService.Instance.Show(new TextDialogRequest
+                    {
+                        Title = Lang.Text("Main.Telemetry.Title"),
+                        Content = Lang.Text("Main.Telemetry.Message"),
+                        Buttons = DialogButtons.AgreeDecline,
+                        ForceWait = true
+                    }).Result?.Button ?? 0);
                     Config.System.TelemetryConfig.SetValue(selection == 1, forceNewValue: true);
                 }
                 // 启动加载器池
@@ -353,7 +371,13 @@ public partial class FormMain
         if (lastVersionCode < 521 && Config.Preference.Homepage.SelectedPreset >= 3)
         {
             Config.Preference.Homepage.SelectedPreset = 0;
-            Launcher.MyMsgBox(Lang.Text("Main.HomepageReset.Content"), Lang.Text("Main.HomepageReset.Title"));
+            DialogService.Instance.Show(new TextDialogRequest
+            {
+                Title = Lang.Text("Main.HomepageReset.Title"),
+                Content = Lang.Text("Main.HomepageReset.Content"),
+                Buttons = DialogButtons.Ok,
+                ForceWait = true
+            });
         }
     }
 
@@ -507,7 +531,13 @@ public partial class FormMain
         // 发出警告
         if (sendWarning && NetFacade.HasDownloadingTask())
         {
-            if (Launcher.MyMsgBox(Lang.Text("Main.Exit.HasDownloadingTask"), Lang.Text("Common.Dialog.Title"), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) == 1)
+            if ((DialogService.Instance.Show(new TextDialogRequest
+            {
+                Title = Lang.Text("Common.Dialog.Title"),
+                Content = Lang.Text("Main.Exit.HasDownloadingTask"),
+                Buttons = DialogButtons.OkCancel,
+                ForceWait = true
+            }).Result?.Button ?? 0) == 1)
                 // 强行结束下载任务
                 Common.RunInNewThread(() =>
                 {
@@ -936,8 +966,13 @@ public partial class FormMain
                             return;
                         }
 
-                        if (Launcher.MyMsgBox(Lang.Text("Main.FileDrag.CreateAuthlibProfile", authlibServer), Lang.Text("Main.FileDrag.CreateAuthlibProfileTitle"),
-                                Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) == 2)
+                        if ((DialogService.Instance.Show(new TextDialogRequest
+                        {
+                            Title = Lang.Text("Main.FileDrag.CreateAuthlibProfileTitle"),
+                            Content = Lang.Text("Main.FileDrag.CreateAuthlibProfile", authlibServer),
+                            Buttons = DialogButtons.OkCancel,
+                            ForceWait = true
+                        }).Result?.Button ?? 0) == 2)
                             return;
                         Common.RunInUi(() =>
                         {
@@ -1033,7 +1068,13 @@ public partial class FormMain
             {
                 Common.Log("[System] 文件后缀为 XAML，作为主页加载");
                 if (File.Exists(Common.ExePath + @"PCL\Custom.xaml"))
-                    if (Launcher.MyMsgBox(Lang.Text("Main.FileDrag.HomepageExists"), Lang.Text("Main.FileDrag.OverwriteTitle"), Lang.Text("Common.Action.Overwrite"), Lang.Text("Common.Action.Cancel")) == 2)
+                    if ((DialogService.Instance.Show(new TextDialogRequest
+                    {
+                        Title = Lang.Text("Main.FileDrag.OverwriteTitle"),
+                        Content = Lang.Text("Main.FileDrag.HomepageExists"),
+                        Buttons = DialogButtons.Create("Common.Action.Overwrite", "Common.Action.Cancel"),
+                        ForceWait = true
+                    }).Result?.Button ?? 0) == 2)
                         return;
 
                 Common.CopyFile(filePath, Common.ExePath + @"PCL\Custom.xaml");

@@ -13,6 +13,7 @@ using PCL.Core.App.Tools;
 using PCL.Core.IO;
 using PCL.Core.IO.Net;
 using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Secret;
 using PCL.Core.Utils.Validate;
@@ -195,9 +196,22 @@ public partial class PageToolsTest : IPageView
             var title = Lang.Text("Tools.Test.Luck.MsgboxTitle", Lang.Date(DateTime.Now, "d"));
 
             if (luckValue >= 60)
-                await Launcher.MyMsgBoxAsync(Lang.Text("Tools.Test.Luck.MessageGood", luckValue, rating), title);
+                await DialogService.Instance.ShowAsync(new TextDialogRequest
+                {
+                    Title = title,
+                    Content = Lang.Text("Tools.Test.Luck.MessageGood", luckValue, rating),
+                    Buttons = DialogButtons.Ok,
+                    ForceWait = false
+                });
             else
-                await Launcher.MyMsgBoxAsync(Lang.Text("Tools.Test.Luck.MessageBad", luckValue, rating), title, isWarn: luckValue <= 30);
+                await DialogService.Instance.ShowAsync(new TextDialogRequest
+                {
+                    Title = title,
+                    Content = Lang.Text("Tools.Test.Luck.MessageBad", luckValue, rating),
+                    Buttons = DialogButtons.Ok,
+                    IsWarn = luckValue <= 30,
+                    ForceWait = false
+                });
         }
         catch (Exception ex)
         {
@@ -243,12 +257,13 @@ public partial class PageToolsTest : IPageView
                     if (!GameFolders.mcFolderList.Any()) GameFolders.McFolderListLoader.Start();
                     if (States.Hint.CleanJunkFile <= 2)
                     {
-                        if (Launcher.MyMsgBox(
-                                Lang.Text("Tools.Test.Clean.ConfirmMessage"),
-                                Lang.Text("Tools.Test.Clean.ConfirmTitle"),
-                                Lang.Text("Common.Action.Confirm"),
-                                Lang.Text("Common.Action.Cancel")
-                            ) == 2) return;
+                        if ((DialogService.Instance.Show(new TextDialogRequest
+                        {
+                            Title = Lang.Text("Tools.Test.Clean.ConfirmTitle"),
+                            Content = Lang.Text("Tools.Test.Clean.ConfirmMessage"),
+                            Buttons = DialogButtons.OkCancel,
+                            ForceWait = true
+                        }).Result?.Button ?? 0) == 2) return;
                         States.Hint.CleanJunkFile += 1;
                     }
 
@@ -288,8 +303,13 @@ public partial class PageToolsTest : IPageView
                     num += Common.DeleteDirectory(Path.Combine(SystemPaths.DriveLetter, "ProgramData", "PCL"), true);
                     if (num != 0)
                     {
-                        Launcher.MyMsgBox(Lang.Text("Tools.Test.Clean.ClearedMessage", num),
-                            Lang.Text("Tools.Test.Clean.Cleared"), Lang.Text("Common.Action.Confirm"), "", "", false, true, true);
+                        DialogService.Instance.Show(new TextDialogRequest
+                        {
+                            Title = Lang.Text("Tools.Test.Clean.Cleared"),
+                            Content = Lang.Text("Tools.Test.Clean.ClearedMessage", num),
+                            Buttons = DialogButtons.Ok,
+                            ForceWait = true
+                        });
                         Process.Start(new ProcessStartInfo(Basics.ExecutablePath));
                         FormMain.EndProgramForce();
                     }

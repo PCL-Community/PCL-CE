@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.IO.Net.Http;
 using PCL.Core.Utils;
 using PCL.Core.ViewModel;
@@ -69,11 +70,15 @@ public partial class PageSetupAboutViewModel : ViewModelBase
                         HintService.Hint(Lang.Text("Setup.About.EasterEgg.StillClicking"));
                         break;
                     case 25:
-                        if (await Dialog.ShowAsync(
-                                title: Lang.Text("Setup.About.EasterEgg.Bored.Title"),
-                                content: Lang.Text("Setup.About.EasterEgg.Bored.Message"),
-                                button1: Lang.Text("Setup.About.EasterEgg.Bored.Yes"),
-                                button2: Lang.Text("Setup.About.EasterEgg.Bored.No")) == 2)
+                        var boredResult = await Dialog.ShowAsync(new TextDialogRequest
+                        {
+                            Title = Lang.Text("Setup.About.EasterEgg.Bored.Title"),
+                            Content = Lang.Text("Setup.About.EasterEgg.Bored.Message"),
+                            Buttons = DialogButtons.From(
+                                DialogButton.Create(Lang.Text("Setup.About.EasterEgg.Bored.Yes")),
+                                DialogButton.Create(Lang.Text("Setup.About.EasterEgg.Bored.No")))
+                        });
+                        if (boredResult.Button == 2)
                             HintService.Hint(Lang.Text("Setup.About.EasterEgg.Bored.Response"));
                         break;
                     case 50:
@@ -89,31 +94,43 @@ public partial class PageSetupAboutViewModel : ViewModelBase
                         HintService.Hint(Lang.Text("Setup.About.EasterEgg.NothingBehind"));
                         break;
                     case 150:
-                        switch (await Dialog.ShowAsync(
-                                    title: Lang.Text("Setup.About.EasterEgg.Tired.Title1"),
-                                    content: Lang.Text("Setup.About.EasterEgg.Tired.Message1"),
-                                    button1: Lang.Text("Setup.About.EasterEgg.Tired.Exhausted"),
-                                    button2: Lang.Text("Setup.About.EasterEgg.Tired.NotTired")))
+                        var tiredResult1 = await Dialog.ShowAsync(new TextDialogRequest
+                        {
+                            Title = Lang.Text("Setup.About.EasterEgg.Tired.Title1"),
+                            Content = Lang.Text("Setup.About.EasterEgg.Tired.Message1"),
+                            Buttons = DialogButtons.From(
+                                DialogButton.Create(Lang.Text("Setup.About.EasterEgg.Tired.Exhausted")),
+                                DialogButton.Create(Lang.Text("Setup.About.EasterEgg.Tired.NotTired")))
+                        });
+                        switch (tiredResult1.Button)
                         {
                             case 1:
                                 HintService.Hint(Lang.Text("Setup.About.EasterEgg.Tired.StopClicking"));
                                 break;
                             case 2:
-                                switch (await Dialog.ShowAsync(
-                                            title: Lang.Text("Setup.About.EasterEgg.Tired.Title2"),
-                                            content: Lang.Text("Setup.About.EasterEgg.Tired.Message2"),
-                                            button1: Lang.Text("Setup.About.EasterEgg.Tired.Exhausted"),
-                                            button2: Lang.Text("Setup.About.EasterEgg.Tired.NotTired")))
+                                var tiredResult2 = await Dialog.ShowAsync(new TextDialogRequest
+                                {
+                                    Title = Lang.Text("Setup.About.EasterEgg.Tired.Title2"),
+                                    Content = Lang.Text("Setup.About.EasterEgg.Tired.Message2"),
+                                    Buttons = DialogButtons.From(
+                                        DialogButton.Create(Lang.Text("Setup.About.EasterEgg.Tired.Exhausted")),
+                                        DialogButton.Create(Lang.Text("Setup.About.EasterEgg.Tired.NotTired")))
+                                });
+                                switch (tiredResult2.Button)
                                 {
                                     case 1:
                                         HintService.Hint(Lang.Text("Setup.About.EasterEgg.Tired.StopClicking"));
                                         break;
                                     case 2:
-                                        switch (await Dialog.ShowAsync(
-                                                    title: Lang.Text("Setup.About.EasterEgg.Tired.Title3"),
-                                                    content: Lang.Text("Setup.About.EasterEgg.Tired.Message3"),
-                                                    button1: Lang.Text("Setup.About.EasterEgg.Tired.Exhausted"),
-                                                    button2: Lang.Text("Setup.About.EasterEgg.Tired.ReallyNotTired")))
+                                        var tiredResult3 = await Dialog.ShowAsync(new TextDialogRequest
+                                        {
+                                            Title = Lang.Text("Setup.About.EasterEgg.Tired.Title3"),
+                                            Content = Lang.Text("Setup.About.EasterEgg.Tired.Message3"),
+                                            Buttons = DialogButtons.From(
+                                                DialogButton.Create(Lang.Text("Setup.About.EasterEgg.Tired.Exhausted")),
+                                                DialogButton.Create(Lang.Text("Setup.About.EasterEgg.Tired.ReallyNotTired")))
+                                        });
+                                        switch (tiredResult3.Button)
                                         {
                                             case 1:
                                                 HintService.Hint(

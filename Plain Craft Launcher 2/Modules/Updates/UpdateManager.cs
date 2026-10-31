@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils;
 using PCL.Core.Utils.OS;
 
@@ -94,13 +95,16 @@ public static class UpdateManager
                 {
                     Common.RunInUi(() =>
                     {
-                        if (Launcher.MyMsgBox(
-                                Lang.Text("Update.Available", Common.VersionBaseName,
+                        if (DialogService.Instance.Show(new TextDialogRequest
+                            {
+                                Title = Lang.Text("Update.Title"),
+                                Content = Lang.Text("Update.Available", Common.VersionBaseName,
                                     version.VersionName),
-                                Lang.Text("Update.Title"),
-                                Lang.Text("Update.Action"),
-                                Lang.Text("Common.Action.Cancel")
-                            ) == 1)
+                                Buttons = DialogButtons.From(
+                                    DialogButton.Create(Lang.Text("Update.Action")),
+                                    DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                                ForceWait = true
+                            }).Result?.Button == 1)
                             Launcher.frmMain.PageChange(FormMain.PageType.Setup,
                                 FormMain.PageSubType.SetupUpdate);
                     });
@@ -202,13 +206,14 @@ public static class UpdateManager
         catch (Win32Exception ex)
         {
             Common.Log(ex, "自动更新时触发 Win32 错误，疑似被拦截");
-            Launcher.MyMsgBox(
-                Lang.Text("Update.Error.UpdateBlockedMessage", Common.ExePath),
-                Lang.Text("Update.Error.UpdateBlocked"),
-                Lang.Text("Common.Action.Confirm"),
-                "",
-                "",
-                true);
+            DialogService.Instance.Show(new TextDialogRequest
+            {
+                Title = Lang.Text("Update.Error.UpdateBlocked"),
+                Content = Lang.Text("Update.Error.UpdateBlockedMessage", Common.ExePath),
+                Buttons = DialogButtons.Ok,
+                IsWarn = true,
+                ForceWait = true
+            });
         }
     }
 
@@ -286,8 +291,13 @@ public static class UpdateManager
     /// <param name="IsUpdate">是否为更新时启动</param>
     public static void ShowCEAnnounce()
     {
-        Launcher.MyMsgBox(Lang.Text("Update.CommunityNotice.Body"),
-            Lang.Text("Update.CommunityNotice.Title"),
-            Lang.Text("Update.CommunityNotice.Confirm"));
+        DialogService.Instance.Show(new TextDialogRequest
+        {
+            Title = Lang.Text("Update.CommunityNotice.Title"),
+            Content = Lang.Text("Update.CommunityNotice.Body"),
+            Buttons = DialogButtons.From(
+                DialogButton.Create(Lang.Text("Update.CommunityNotice.Confirm"))),
+            ForceWait = true
+        });
     }
 }

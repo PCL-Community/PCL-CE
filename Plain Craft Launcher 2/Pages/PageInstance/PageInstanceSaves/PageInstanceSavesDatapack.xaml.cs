@@ -8,6 +8,7 @@ using System.Windows.Threading;
 using Microsoft.VisualBasic.FileIO;
 using PCL.Core.App;
 using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Theme;
 using PCL.Network;
 using PCL.Network.Loaders;
@@ -727,11 +728,14 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
             // 更新前警告
             if (!States.Hint.FunctionDatapackUpdate || list.Count >= 15)
             {
-                if (1 != await Launcher.MyMsgBoxAsync(
-                        Lang.Text("Instance.Saves.Datapack.Update.Warning.Message"),
-                        Lang.Text("Instance.Saves.Datapack.Update.Warning.Title"),
-                        Lang.Text("Instance.Saves.Datapack.Update.Warning.Confirm"),
-                        Lang.Text("Common.Action.Cancel"), isWarn: true))
+                if (1 != (await DialogService.Instance.ShowAsync(new TextDialogRequest
+                {
+                    Title = Lang.Text("Instance.Saves.Datapack.Update.Warning.Title"),
+                    Content = Lang.Text("Instance.Saves.Datapack.Update.Warning.Message"),
+                    Buttons = DialogButtons.Create("Instance.Saves.Datapack.Update.Warning.Confirm", "Common.Action.Cancel"),
+                    IsWarn = true,
+                    ForceWait = false
+                })).Button)
                     return;
                 States.Hint.FunctionDatapackUpdate = true;
             }
@@ -875,11 +879,15 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
             // 加载失败信息
             if (datapackEntry.State == LocalComp.LocalCompFile.LocalFileStatus.Unavailable)
             {
-                await Launcher.MyMsgBoxAsync(
-                    Lang.Text(
+                await DialogService.Instance.ShowAsync(new TextDialogRequest
+                {
+                    Title = Lang.Text("Instance.Saves.Datapack.Info.ReadFailedTitle"),
+                    Content = Lang.Text(
                         "Instance.Saves.Datapack.Info.ReadFailed.WithDetail",
                         datapackEntry.FileUnavailableReason.ToString()),
-                    Lang.Text("Instance.Saves.Datapack.Info.ReadFailedTitle"));
+                    Buttons = DialogButtons.Ok,
+                    ForceWait = false
+                });
                 return;
             }
 
@@ -920,11 +928,20 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
 
                 // 显示详情信息
                 if (datapackEntry.Url is null)
-                    await Launcher.MyMsgBoxAsync(contentLines.Join("\r\n"), datapackEntry.Name,
-                        Lang.Text("Instance.Resource.Item.Info.Return"));
-                else if (1 == await Launcher.MyMsgBoxAsync(contentLines.Join("\r\n"), datapackEntry.Name,
-                             Lang.Text("Instance.Resource.Item.Info.OpenWebsite"),
-                             Lang.Text("Instance.Resource.Item.Info.Return")))
+                    await DialogService.Instance.ShowAsync(new TextDialogRequest
+                    {
+                        Title = datapackEntry.Name,
+                        Content = contentLines.Join("\r\n"),
+                        Buttons = DialogButtons.Create("Instance.Resource.Item.Info.Return"),
+                        ForceWait = false
+                    });
+                else if (1 == (await DialogService.Instance.ShowAsync(new TextDialogRequest
+                {
+                    Title = datapackEntry.Name,
+                    Content = contentLines.Join("\r\n"),
+                    Buttons = DialogButtons.Create("Instance.Resource.Item.Info.OpenWebsite", "Instance.Resource.Item.Info.Return"),
+                    ForceWait = false
+                })).Button)
                     Common.OpenWebsite(datapackEntry.Url);
             }
         }

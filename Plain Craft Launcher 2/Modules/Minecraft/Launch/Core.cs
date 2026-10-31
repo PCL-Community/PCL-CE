@@ -3,6 +3,7 @@ using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Minecraft.Profile;
 using PCL.Core.Minecraft.Profile.Models;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils;
 
 namespace PCL;
@@ -47,12 +48,16 @@ public static partial class GameLaunch
             || instance.PathInstance.IsAscii())
             return;
 
-        var userChoice = Launcher.MyMsgBox(
-            Lang.Text("Minecraft.Launch.Precheck.NonAsciiPath.Message", instance.Name),
-            Lang.Text("Minecraft.Launch.Precheck.NonAsciiPath.Title"),
-            Lang.Text("Minecraft.Launch.Precheck.NonAsciiPath.Continue"),
-            Lang.Text("Minecraft.Launch.Precheck.NonAsciiPath.Back"),
-            Lang.Text("Common.Hint.DoNotShowAgain"));
+        var userChoice = DialogService.Instance.Show(new TextDialogRequest
+        {
+            Title = Lang.Text("Minecraft.Launch.Precheck.NonAsciiPath.Title"),
+            Content = Lang.Text("Minecraft.Launch.Precheck.NonAsciiPath.Message", instance.Name),
+            Buttons = DialogButtons.From(
+                DialogButton.Create(Lang.Text("Minecraft.Launch.Precheck.NonAsciiPath.Continue")),
+                DialogButton.Create(Lang.Text("Minecraft.Launch.Precheck.NonAsciiPath.Back")),
+                DialogButton.Create(Lang.Text("Common.Hint.DoNotShowAgain"))),
+            ForceWait = true
+        }).Result?.Button;
         States.Hint.NonAsciiGamePath = userChoice switch
         {
             2 => throw new Exception("$$"),
@@ -177,12 +182,15 @@ public static partial class GameLaunch
                 if (!DonateHintLaunchCounts.Contains(States.System.LaunchCount))
                     return;
 
-                if (Launcher.MyMsgBox(
-                        Lang.Text("Minecraft.Launch.Donate.Message", States.System.LaunchCount),
-                        Lang.Text("Minecraft.Launch.Donate.Title", States.System.LaunchCount),
-                        Lang.Text("Minecraft.Launch.Donate.Support"),
-                        Lang.Text("Minecraft.Launch.Donate.Decline")
-                    ) == 1)
+                if (DialogService.Instance.Show(new TextDialogRequest
+                    {
+                        Title = Lang.Text("Minecraft.Launch.Donate.Title", States.System.LaunchCount),
+                        Content = Lang.Text("Minecraft.Launch.Donate.Message", States.System.LaunchCount),
+                        Buttons = DialogButtons.From(
+                            DialogButton.Create(Lang.Text("Minecraft.Launch.Donate.Support")),
+                            DialogButton.Create(Lang.Text("Minecraft.Launch.Donate.Decline"))),
+                        ForceWait = true
+                    }).Result?.Button == 1)
                 {
                     Common.OpenWebsite("https://afdian.com/a/LTCat");
                 }
@@ -198,27 +206,34 @@ public static partial class GameLaunch
 
         if (Lang.IsFeaturesUnrestricted)
         {
-            if (Launcher.MyMsgBox(
-                    Lang.Text("Minecraft.Launch.PurchaseHint.Message"),
-                    Lang.Text("Minecraft.Launch.PurchaseHint.Title"),
-                    Lang.Text("Minecraft.Launch.PurchaseHint.Purchase"),
-                    Lang.Text("Minecraft.Launch.PurchaseHint.Later")
-                )
-                == 1)
+            if (DialogService.Instance.Show(new TextDialogRequest
+                {
+                    Title = Lang.Text("Minecraft.Launch.PurchaseHint.Title"),
+                    Content = Lang.Text("Minecraft.Launch.PurchaseHint.Message"),
+                    Buttons = DialogButtons.From(
+                        DialogButton.Create(Lang.Text("Minecraft.Launch.PurchaseHint.Purchase")),
+                        DialogButton.Create(Lang.Text("Minecraft.Launch.PurchaseHint.Later"))),
+                    ForceWait = true
+                }).Result
+                ?.Button == 1)
                 Common.OpenWebsite(
                     "https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj");
             return;
         }
 
-        switch (Launcher.MyMsgBox(
-                    Lang.Text("Minecraft.Launch.AccountVerification.Message"),
-                    Lang.Text("Minecraft.Launch.AccountVerification.Title"),
-                    Lang.Text("Minecraft.Launch.AccountVerification.Purchase"),
-                    Lang.Text("Minecraft.Launch.AccountVerification.Demo"),
-                    Lang.Text("Minecraft.Launch.AccountVerification.Back"),
-                    button1Action: () =>
-                        Common.OpenWebsite(
-                            "https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj")))
+        switch (DialogService.Instance.Show(new TextDialogRequest
+                {
+                    Title = Lang.Text("Minecraft.Launch.AccountVerification.Title"),
+                    Content = Lang.Text("Minecraft.Launch.AccountVerification.Message"),
+                    Buttons = DialogButtons.From(
+                        DialogButton.Create(Lang.Text("Minecraft.Launch.AccountVerification.Purchase"),
+                            () =>
+                                Common.OpenWebsite(
+                                    "https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj")),
+                        DialogButton.Create(Lang.Text("Minecraft.Launch.AccountVerification.Demo")),
+                        DialogButton.Create(Lang.Text("Minecraft.Launch.AccountVerification.Back"))),
+                    ForceWait = true
+                }).Result?.Button)
         {
             case 2:
                 HintService.Hint(Lang.Text("Minecraft.Launch.DemoMode"), HintType.Error);
@@ -561,14 +576,18 @@ public static partial class GameLaunch
             if (currentEx.Message.StartsWithF("$"))
             {
                 if (currentEx.Message != "$$")
-                    Launcher.MyMsgBox(
-                        Lang.Text(
+                    DialogService.Instance.Show(new TextDialogRequest
+                    {
+                        Title = currentLaunchOptions?.SaveBatch is null
+                            ? Lang.Text("Launch.Error.Title")
+                            : Lang.Text("Launch.Error.ExportScriptTitle"),
+                        Content = Lang.Text(
                             "Minecraft.Launch.Error.SpecialMessage.WithDetail",
                             currentEx.Message.TrimStart('$')
                         ),
-                        currentLaunchOptions?.SaveBatch is null
-                            ? Lang.Text("Launch.Error.Title")
-                            : Lang.Text("Launch.Error.ExportScriptTitle"));
+                        Buttons = DialogButtons.Ok,
+                        ForceWait = true
+                    });
                 return;
             }
 

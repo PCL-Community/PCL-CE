@@ -1,6 +1,5 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using FluentValidation;
+using PCL.Core.UI.Dialogs;
 
 namespace PCL.Core.UI;
 
@@ -9,28 +8,16 @@ public sealed class NullDialogService : IDialogService
 {
     public static readonly NullDialogService Instance = new();
 
-    public Task<int> ShowAsync(
-        string title,
-        string content,
-        string button1,
-        string? button2 = null,
-        string? button3 = null,
-        bool isWarn = false) => Task.FromResult(0);
+    public DialogViewModel Show(DialogRequest request)
+    {
+        var dialog = new DialogViewModel(request);
+        dialog.Close(DialogResult.None);
+        return dialog;
+    }
 
-    public Task<string?> InputAsync(
-        string title,
-        string content,
-        string? defaultValue = null,
-        string? hintText = null,
-        IReadOnlyList<IValidator<string>>? validateRules = null,
-        string? button1 = null,
-        string? button2 = null,
-        bool isWarn = false)
-        => Task.FromResult<string?>(null);
-
-    public Task<int?> SelectAsync(string title, IReadOnlyList<string> options, string? button2 = null)
-        => Task.FromResult<int?>(null);
-
-    public Task<List<int>> MultiSelectAsync(string title, IReadOnlyList<string> options, string? button2 = null)
-        => Task.FromResult(new List<int>());
+    public Task<DialogResult> ShowAsync(DialogRequest request)
+    {
+        Show(request);
+        return Task.FromResult(DialogResult.None);
+    }
 }

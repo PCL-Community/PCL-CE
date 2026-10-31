@@ -1,4 +1,5 @@
 ﻿using PCL.Core.App.Localization;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils;
 
 namespace PCL;
@@ -28,15 +29,20 @@ public static partial class GameDownload
                 $"{Lang.Text("Minecraft.Update.NewVersion", versionName)}\r\n{((DateTime.Now - time).TotalDays > 1d
                     ? Lang.Text("Minecraft.Update.UpdateTime") + Lang.Date(time)
                     : Lang.Text("Minecraft.Update.UpdatedAt") + Lang.TimeSpan(time - DateTime.Now))}";
-            var msgResult = Launcher.MyMsgBox(
-                msgBoxText,
-                Lang.Text("Minecraft.Update.Title"),
-                Lang.Text("Common.Action.Confirm"),
-                Lang.Text("Common.Action.Download"),
-                (DateTime.Now - time).TotalHours > 3d
-                    ? Lang.Text("Common.Action.UpdateLog")
-                    : "",
-                button3Action: () => DownloadUi.McUpdateLogShow(version));
+            var msgResult = DialogService.Instance.Show(new TextDialogRequest
+            {
+                Title = Lang.Text("Minecraft.Update.Title"),
+                Content = msgBoxText,
+                Buttons = DialogButtons.From(
+                    DialogButton.Create(Lang.Text("Common.Action.Confirm")),
+                    DialogButton.Create(Lang.Text("Common.Action.Download")),
+                    DialogButton.Create(
+                        (DateTime.Now - time).TotalHours > 3d
+                            ? Lang.Text("Common.Action.UpdateLog")
+                            : "",
+                        () => DownloadUi.McUpdateLogShow(version))),
+                ForceWait = true
+            }).Result?.Button;
             if (msgResult == 2)
                 Common.RunInUi(() =>
                 {

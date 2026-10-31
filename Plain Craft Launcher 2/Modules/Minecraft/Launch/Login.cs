@@ -4,6 +4,7 @@ using PCL.Core.Minecraft.IdentityModel;
 using PCL.Core.Minecraft.Profile;
 using PCL.Core.Minecraft.Profile.Authentication;
 using PCL.Core.Minecraft.Profile.Models;
+using PCL.Core.UI.Dialogs;
 
 namespace PCL;
 
@@ -178,13 +179,16 @@ public static partial class GameLaunch
             if (!isLaunching)
                 return;
             reuseCachedProfile =
-                Launcher.MyMsgBox(
-                    Lang.Text("Minecraft.Launch.Login.RefreshAccountFailed.Message"),
-                    Lang.Text("Minecraft.Launch.Login.RefreshAccountFailed.Title"),
-                    Lang.Text("Minecraft.Launch.Login.Continue"),
-                    Lang.Text("Common.Action.Cancel")
-                )
-                == 1;
+                DialogService.Instance.Show(new TextDialogRequest
+                    {
+                        Title = Lang.Text("Minecraft.Launch.Login.RefreshAccountFailed.Title"),
+                        Content = Lang.Text("Minecraft.Launch.Login.RefreshAccountFailed.Message"),
+                        Buttons = DialogButtons.From(
+                            DialogButton.Create(Lang.Text("Minecraft.Launch.Login.Continue")),
+                            DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                        ForceWait = true
+                    }).Result
+                    ?.Button == 1;
         });
         return Task.FromResult(reuseCachedProfile);
     }
@@ -266,9 +270,14 @@ public static partial class GameLaunch
                     Text = item.Name
                 })
                 .ToList();
-            var index = Launcher.MyMsgBoxSelect(
-                controls,
-                Lang.Text("Minecraft.Launch.Login.Auth.SelectProfile"));
+            var index = DialogService.Instance.Show(new SelectDialogRequest
+            {
+                Title = Lang.Text("Minecraft.Launch.Login.Auth.SelectProfile"),
+                Options = PCL.DialogOptions.From(controls),
+                Buttons = DialogButtons.Ok,
+                HighLight = false,
+                ForceWait = true
+            }).Result?.SelectedIndex;
             if (index is >= 0 and < 100000)
                 selected = candidates[index.Value];
         });

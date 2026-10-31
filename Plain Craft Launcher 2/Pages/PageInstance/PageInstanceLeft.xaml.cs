@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Dialogs;
 
 namespace PCL;
 
@@ -126,11 +127,14 @@ public partial class PageInstanceLeft : IRefreshable, IPageView
             control.IsEnabled = false;
         try
         {
-            var choice = await Launcher.MyMsgBoxAsync(
-                PageInstanceLeftViewModel.GetResetConfirmMessage(),
-                PageInstanceLeftViewModel.GetResetConfirmTitle(),
-                button2: PageInstanceLeftViewModel.GetCancelText(),
-                isWarn: true);
+            var choice = (await DialogService.Instance.ShowAsync(new TextDialogRequest
+            {
+                Title = PageInstanceLeftViewModel.GetResetConfirmTitle(),
+                Content = PageInstanceLeftViewModel.GetResetConfirmMessage(),
+                Buttons = DialogButtons.From(DialogButton.Create(Lang.Text("Common.Action.Confirm")), DialogButton.Create(PageInstanceLeftViewModel.GetCancelText())),
+                IsWarn = true,
+                ForceWait = false
+            })).Button;
             if (choice != 1)
                 return;
             if (Launcher.frmInstanceSetup is null)

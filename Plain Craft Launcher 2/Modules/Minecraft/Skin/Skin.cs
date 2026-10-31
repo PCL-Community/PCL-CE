@@ -4,6 +4,7 @@ using System.Text;
 using PCL.Core.App.Localization;
 using PCL.Core.Minecraft.Profile;
 using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
 using PCL.Network;
 
 namespace PCL;
@@ -62,13 +63,17 @@ public static class Skin
             return InvalidSkinInfo();
         }
 
-        var isSlim = Launcher.MyMsgBox(
-            Lang.Text("Launch.Skin.Model.SelectMessage"),
-            Lang.Text("Launch.Skin.Model.SelectTitle"),
-            Lang.Text("Launch.Skin.Model.Steve"),
-            Lang.Text("Launch.Skin.Model.Alex"),
-            Lang.Text("Common.Option.IDontKnow"),
-            highLight: false);
+        var isSlim = DialogService.Instance.Show(new TextDialogRequest
+        {
+            Title = Lang.Text("Launch.Skin.Model.SelectTitle"),
+            Content = Lang.Text("Launch.Skin.Model.SelectMessage"),
+            Buttons = DialogButtons.From(
+                DialogButton.Create(Lang.Text("Launch.Skin.Model.Steve")),
+                DialogButton.Create(Lang.Text("Launch.Skin.Model.Alex")),
+                DialogButton.Create(Lang.Text("Common.Option.IDontKnow"))),
+            HighLight = false,
+            ForceWait = true
+        }).Result?.Button;
 
         if (isSlim != 3)
             return new McSkinInfo

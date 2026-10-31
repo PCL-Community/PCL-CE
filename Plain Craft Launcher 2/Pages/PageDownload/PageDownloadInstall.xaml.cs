@@ -7,6 +7,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using PCL.Core.App;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils.Validate;
 using PCL.Core.App.Localization;
 
@@ -2324,12 +2325,13 @@ public partial class PageDownloadInstall : IPageView
         if (_selectedLoaderType is not null &&
             (Config.Launch.IndieSolutionV2 == 0 ||
              Config.Launch.IndieSolutionV2 == 2))
-            if (Launcher.MyMsgBox(
-                    Lang.Text("Download.Install.InstanceIsolation.Warning.Message"),
-                    Lang.Text("Download.Install.InstanceIsolation.Warning.Title"),
-                    Lang.Text("Download.Install.InstanceIsolation.Warning.Cancel"),
-                    Lang.Text("Download.Install.InstanceIsolation.Warning.Continue")
-                ) == 1)
+            if ((DialogService.Instance.Show(new TextDialogRequest
+            {
+                Title = Lang.Text("Download.Install.InstanceIsolation.Warning.Title"),
+                Content = Lang.Text("Download.Install.InstanceIsolation.Warning.Message"),
+                Buttons = DialogButtons.Create("Download.Install.InstanceIsolation.Warning.Cancel", "Download.Install.InstanceIsolation.Warning.Continue"),
+                ForceWait = true
+            }).Result?.Button ?? 0) == 1)
                 return;
 
         // 提交安装申请

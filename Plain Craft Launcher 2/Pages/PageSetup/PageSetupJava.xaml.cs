@@ -6,6 +6,7 @@ using PCL.Core.App;
 using PCL.Core.Minecraft;
 using PCL.Core.UI;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Dialogs;
 
 namespace PCL;
 
@@ -134,9 +135,13 @@ public partial class PageSetupJava : IPageView
                 if (!PageSetupJavaViewModel.EnsureAvailable(j))
                     return;
 
-                await Launcher.MyMsgBoxAsync(
-                    PageSetupJavaViewModel.BuildInfoMessage(j),
-                    Lang.Text("Setup.Java.Info.Title"));
+                await DialogService.Instance.ShowAsync(new TextDialogRequest
+                {
+                    Title = Lang.Text("Setup.Java.Info.Title"),
+                    Content = PageSetupJavaViewModel.BuildInfoMessage(j),
+                    Buttons = DialogButtons.Ok,
+                    ForceWait = false
+                });
             }
             catch (Exception ex)
             {

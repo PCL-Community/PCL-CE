@@ -5,6 +5,7 @@ using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
 using PCL.Core.ViewModel;
@@ -48,9 +49,13 @@ public partial class PageSetupLogViewModel : ViewModelBase
 
     public async Task<bool> CleanAsync()
     {
-        var result = await Launcher.MyMsgBoxAsync(Lang.Text("Setup.Log.Clear.Confirm.Message"),
-            Lang.Text("Setup.Log.Clear.Confirm.Title"), Lang.Text("Common.Action.Confirm"),
-            Lang.Text("Common.Action.Cancel"), isWarn: true);
+        var result = (await Dialog.ShowAsync(new TextDialogRequest
+        {
+            Title = Lang.Text("Setup.Log.Clear.Confirm.Title"),
+            Content = Lang.Text("Setup.Log.Clear.Confirm.Message"),
+            Buttons = DialogButtons.OkCancel,
+            IsWarn = true
+        })).Button;
         if (result != 1)
             return false;
         var currentSet = new HashSet<string>(CurrentLogs);

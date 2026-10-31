@@ -8,6 +8,7 @@ using System.Windows.Media;
 using PCL.Core.App.Localization;
 using PCL.Core.Minecraft.Profile;
 using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
 using PCL.Network;
 
 namespace PCL;
@@ -440,9 +441,14 @@ public partial class MySkin
                                 LogoScale = 0.8d
                             });
 
-                        selId = Launcher.MyMsgBoxSelect(selectionControl,
-                            Lang.Text("Launch.Skin.Cape.SelectTitle"),
-                            Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"));
+                        selId = (DialogService.Instance.Show(new SelectDialogRequest
+                        {
+                            Title = Lang.Text("Launch.Skin.Cape.SelectTitle"),
+                            Options = PCL.DialogOptions.From(selectionControl),
+                            Buttons = DialogButtons.OkCancel,
+                            HighLight = false,
+                            ForceWait = true
+                        }).Result?.SelectedIndex);
                     }
                     catch (Exception ex)
                     {

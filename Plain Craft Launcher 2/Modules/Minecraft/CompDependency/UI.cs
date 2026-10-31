@@ -1,5 +1,6 @@
 ﻿using PCL.Core.App.Localization;
 using PCL.Core.Minecraft.ResourceProject;
+using PCL.Core.UI.Dialogs;
 using CompFileStatus = PCL.Comp.CompFileStatus;
 using CompLoaderType = PCL.Comp.CompLoaderType;
 
@@ -23,13 +24,16 @@ public static partial class CompDependency
                     dep.ProjectId,
                     dep.Reason)));
             var message = Lang.Text("Download.Comp.Dependency.Unresolved.Message", dependencies);
-            var selectedButton = Launcher.MyMsgBox(
-                message,
-                Lang.Text("Download.Comp.Dependency.Unresolved.Title"),
-                Lang.Text("Download.Comp.Dependency.Unresolved.ContinueWithoutDependencies"),
-                Lang.Text("Common.Action.Cancel"),
-                isWarn: true,
-                forceWait: true);
+            var selectedButton = DialogService.Instance.Show(new TextDialogRequest
+            {
+                Title = Lang.Text("Download.Comp.Dependency.Unresolved.Title"),
+                Content = message,
+                Buttons = DialogButtons.From(
+                    DialogButton.Create(Lang.Text("Download.Comp.Dependency.Unresolved.ContinueWithoutDependencies")),
+                    DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                IsWarn = true,
+                ForceWait = true
+            }).Result?.Button;
 
             return selectedButton == 1
                 ? Comp.CompDepsInstallTypes.Unresolved
@@ -47,13 +51,16 @@ public static partial class CompDependency
                     install.File.DisplayName,
                     install.File.Version)));
             var message = Lang.Text("Download.Comp.Dependency.Install.Message", dependencies);
-            var dialogResult = Launcher.MyMsgBox(
-                message,
-                Lang.Text("Download.Comp.Dependency.Install.Title"),
-                Lang.Text("Download.Comp.Dependency.Install.WithDependencies"),
-                Lang.Text("Download.Comp.Dependency.Install.WithoutDependencies"),
-                Lang.Text("Download.Comp.Dependency.Install.Cancel"),
-                forceWait: true);
+            var dialogResult = DialogService.Instance.Show(new TextDialogRequest
+            {
+                Title = Lang.Text("Download.Comp.Dependency.Install.Title"),
+                Content = message,
+                Buttons = DialogButtons.From(
+                    DialogButton.Create(Lang.Text("Download.Comp.Dependency.Install.WithDependencies")),
+                    DialogButton.Create(Lang.Text("Download.Comp.Dependency.Install.WithoutDependencies")),
+                    DialogButton.Create(Lang.Text("Download.Comp.Dependency.Install.Cancel"))),
+                ForceWait = true
+            }).Result?.Button;
 
             return dialogResult switch
             {

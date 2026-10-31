@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using PCL.Core.App.Localization;
 using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Theme;
 
 namespace PCL;
@@ -221,11 +222,13 @@ public partial class ServerCard
 
     private void BtnRemove_Click(object sender, RoutedEventArgs e)
     {
-        if (Launcher.MyMsgBox(
-                Lang.Text("Instance.Server.Card.RemoveConfirmMessage", server.Name, server.Address),
-                Lang.Text("Instance.Server.Card.RemoveConfirmTitle"), Lang.Text("Common.Action.Confirm"),
-                Lang.Text("Common.Action.Cancel")
-            ) == 1) RemoveServer?.Invoke(this, EventArgs.Empty);
+        if ((DialogService.Instance.Show(new TextDialogRequest
+        {
+            Title = Lang.Text("Instance.Server.Card.RemoveConfirmTitle"),
+            Content = Lang.Text("Instance.Server.Card.RemoveConfirmMessage", server.Name, server.Address),
+            Buttons = DialogButtons.OkCancel,
+            ForceWait = true
+        }).Result?.Button ?? 0) == 1) RemoveServer?.Invoke(this, EventArgs.Empty);
     }
 
     public class ResultEventArgs : EventArgs

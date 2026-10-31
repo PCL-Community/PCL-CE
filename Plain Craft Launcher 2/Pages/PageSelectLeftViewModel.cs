@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils.Validate;
 using PCL.Core.ViewModel;
 using PCL.Network;
@@ -87,9 +88,18 @@ public partial class PageSelectLeftViewModel : ViewModelBase
                 : splitedNames.Last();
             if (defaultName.Length > 40)
                 defaultName = defaultName[..39];
-            var newName = await Launcher.MyMsgBoxInputAsync(Lang.Text("Select.Folder.InputDisplayName.Title"),
-                Lang.Text("Select.Folder.InputDisplayName.Message"), defaultName,
-                [new NullOrWhiteSpaceValidator(), new StringLengthValidator(), new BlacklistValidator([">", "|"])]);
+            var newNameDialog = await Dialog.ShowAsync(new InputDialogRequest
+            {
+                Title = Lang.Text("Select.Folder.InputDisplayName.Title"),
+                Content = Lang.Text("Select.Folder.InputDisplayName.Message"),
+                DefaultValue = defaultName,
+                ValidateRules =
+                [
+                    new NullOrWhiteSpaceValidator(), new StringLengthValidator(), new BlacklistValidator([">", "|"])
+                ],
+                HighLight = false
+            });
+            var newName = newNameDialog.IsConfirmed ? newNameDialog.InputText : null;
             if (string.IsNullOrWhiteSpace(newName))
                 return;
             PageSelectLeft.AddFolder(newFolder, newName, true);

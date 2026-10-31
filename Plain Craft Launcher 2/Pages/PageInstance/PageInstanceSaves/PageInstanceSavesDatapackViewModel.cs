@@ -6,6 +6,7 @@ using Microsoft.VisualBasic.FileIO;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.ViewModel;
 using PCL.Network;
 using PCL.Network.Loaders;
@@ -156,10 +157,15 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
         ExportInfoEnabled = false;
         try
         {
-            var choice = await Launcher.MyMsgBoxAsync(
-                Lang.Text("Instance.Saves.Datapack.Export.Mode.Message"),
-                Lang.Text("Instance.Resource.Export.Mode.Title"), Lang.Text("Instance.Resource.Export.Mode.Txt"),
-                Lang.Text("Instance.Resource.Export.Mode.Csv"), Lang.Text("Common.Action.Cancel"));
+            var choice = (await Dialog.ShowAsync(new TextDialogRequest
+            {
+                Title = Lang.Text("Instance.Resource.Export.Mode.Title"),
+                Content = Lang.Text("Instance.Saves.Datapack.Export.Mode.Message"),
+                Buttons = DialogButtons.From(
+                    DialogButton.Create(Lang.Text("Instance.Resource.Export.Mode.Txt")),
+                    DialogButton.Create(Lang.Text("Instance.Resource.Export.Mode.Csv")),
+                    DialogButton.Create(Lang.Text("Common.Action.Cancel")))
+            })).Button;
             if (choice is not (1 or 2))
                 return;
 
@@ -510,10 +516,12 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
 
             if (!(Launcher.frmMain.pageCurrent == FormMain.PageType.InstanceSetup &&
                   Launcher.frmMain.PageCurrentSub == FormMain.PageSubType.VersionSavesDatapack))
-                if (1 != await Launcher.MyMsgBoxAsync(
-                        Lang.Text("Instance.Saves.Datapack.Install.Message"),
-                        Lang.Text("Instance.Saves.Datapack.Install.Title"), Lang.Text("Common.Action.Confirm"),
-                        Lang.Text("Common.Action.Cancel")))
+                if (!(await DialogService.Instance.ShowAsync(new TextDialogRequest
+                {
+                    Title = Lang.Text("Instance.Saves.Datapack.Install.Title"),
+                    Content = Lang.Text("Instance.Saves.Datapack.Install.Message"),
+                    Buttons = DialogButtons.OkCancel
+                })).IsConfirmed)
                     return;
 
             var datapackFolder = GetDatapackFolderPath();
@@ -524,10 +532,14 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                 var destFile = datapackFolder + newFileName;
 
                 if (File.Exists(destFile))
-                    if (1 != await Launcher.MyMsgBoxAsync(
-                            Lang.Text("Instance.Resource.Install.OverwriteConfirm.Message", newFileName),
-                            Lang.Text("Instance.Resource.Install.OverwriteConfirm.Title"),
-                            Lang.Text("Common.Action.Overwrite"), Lang.Text("Common.Action.Cancel")))
+                    if (!(await DialogService.Instance.ShowAsync(new TextDialogRequest
+                    {
+                        Title = Lang.Text("Instance.Resource.Install.OverwriteConfirm.Title"),
+                        Content = Lang.Text("Instance.Resource.Install.OverwriteConfirm.Message", newFileName),
+                        Buttons = DialogButtons.From(
+                            DialogButton.Create(Lang.Text("Common.Action.Overwrite")),
+                            DialogButton.Create(Lang.Text("Common.Action.Cancel")))
+                    })).IsConfirmed)
                         continue;
 
                 copyList.Add((filePath, destFile));
@@ -584,9 +596,12 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                 {
                     if (File.Exists(newPath))
                     {
-                        await Launcher.MyMsgBoxAsync(
-                            Lang.Text("Instance.Saves.Datapack.Replace.FileNameConflict",
-                                Common.GetFileNameFromPath(newPath)));
+                        await Dialog.ShowAsync(new TextDialogRequest
+                        {
+                            Title = Lang.Text("Common.Dialog.Title"),
+                            Content = Lang.Text("Instance.Saves.Datapack.Replace.FileNameConflict", Common.GetFileNameFromPath(newPath)),
+                            Buttons = DialogButtons.Ok
+                        });
                         continue;
                     }
 

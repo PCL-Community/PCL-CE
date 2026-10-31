@@ -9,6 +9,7 @@ using PCL.Core.Minecraft.Yggdrasil;
 using PCL.Core.Minecraft.Profile;
 using PCL.Core.Minecraft.Profile.Authentication;
 using PCL.Core.Minecraft.Profile.Models;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.Validate;
@@ -312,7 +313,14 @@ public partial class PageLoginAuth
         Common.RunInUiWait(() =>
         {
             var controls = candidates.Select(candidate => (IMyRadio)new MyRadioBox { Text = candidate.Name }).ToList();
-            var index = Launcher.MyMsgBoxSelect(controls, Lang.Text("Launch.Account.Auth.ChangeProfile"));
+            var index = (DialogService.Instance.Show(new SelectDialogRequest
+            {
+                Title = Lang.Text("Launch.Account.Auth.ChangeProfile"),
+                Options = PCL.DialogOptions.From(controls),
+                Buttons = DialogButtons.Ok,
+                HighLight = false,
+                ForceWait = true
+            }).Result?.SelectedIndex);
             if (index is >= 0 and < 100000) selected = candidates[index.Value];
         });
         return selected;

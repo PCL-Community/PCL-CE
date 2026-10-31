@@ -3,6 +3,7 @@ using System.Text;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
 using PCL.Network.Loaders;
 
 namespace PCL;
@@ -57,11 +58,16 @@ public static partial class Comp
                                         "Download.Comp.QuickDownload.ChooseMethod.AskPath")
                                 }
                             };
-                            return Launcher.MyMsgBoxSelect(
-                                options,
-                                Lang.Text("Download.Comp.QuickDownload.ChooseMethod.Title"),
-                                Lang.Text("Common.Action.Continue"),
-                                Lang.Text("Common.Action.Cancel"));
+                            return DialogService.Instance.Show(new SelectDialogRequest
+                            {
+                                Title = Lang.Text("Download.Comp.QuickDownload.ChooseMethod.Title"),
+                                Options = PCL.DialogOptions.From(options),
+                                Buttons = DialogButtons.From(
+                                    DialogButton.Create(Lang.Text("Common.Action.Continue")),
+                                    DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                                HighLight = false,
+                                ForceWait = true
+                            }).Result?.SelectedIndex;
                         });
                         if (choice is null) return;
                         behavior = choice.Value + 1;
@@ -188,11 +194,17 @@ public static partial class Comp
                     Title = v.Name
                 })
                 .ToList();
-            return Launcher.MyMsgBoxMultiSelect(
-                options,
-                Lang.Text("Download.Comp.QuickDownload.ChooseInstance.Title"),
-                Lang.Text("Common.Action.Continue"),
-                Lang.Text("Common.Action.Cancel"));
+            return DialogService.Instance.Show(new SelectDialogRequest
+            {
+                Title = Lang.Text("Download.Comp.QuickDownload.ChooseInstance.Title"),
+                Options = PCL.DialogOptions.From(options),
+                MultiSelect = true,
+                Buttons = DialogButtons.From(
+                    DialogButton.Create(Lang.Text("Common.Action.Continue")),
+                    DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                HighLight = false,
+                ForceWait = true
+            }).Result?.SelectedIndices?.ToList();
         });
         if (indices is null) return null;
         return [.. indices.Select(i => compatible[i])];

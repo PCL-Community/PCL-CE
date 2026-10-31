@@ -2,6 +2,7 @@
 using System.Windows.Controls;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Dialogs;
 
 namespace PCL;
 
@@ -164,8 +165,13 @@ public partial class PageSetupLeft : IPageView
         {
             if (!Common.CanFeedback(true))
                 return;
-            switch (Launcher.MyMsgBox(Lang.Text("Setup.Left.Feedback.Message"), Lang.Text("Setup.Left.Feedback.Title"),
-                        Lang.Text("Setup.Left.Feedback.SubmitNew"), Lang.Text("Setup.Left.Feedback.ViewList"), Lang.Text("Common.Action.Cancel")))
+            switch ((DialogService.Instance.Show(new TextDialogRequest
+            {
+                Title = Lang.Text("Setup.Left.Feedback.Title"),
+                Content = Lang.Text("Setup.Left.Feedback.Message"),
+                Buttons = DialogButtons.Create("Setup.Left.Feedback.SubmitNew", "Setup.Left.Feedback.ViewList", "Common.Action.Cancel"),
+                ForceWait = true
+            }).Result?.Button ?? 0))
             {
                 case 1:
                 {

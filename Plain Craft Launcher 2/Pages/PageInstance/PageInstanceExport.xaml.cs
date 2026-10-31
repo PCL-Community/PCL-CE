@@ -7,6 +7,7 @@ using System.Windows.Input;
 using PCL.Core.App;
 using PCL.Core.UI;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils;
 
 namespace PCL;
@@ -838,10 +839,13 @@ public partial class PageInstanceExport : IRefreshable, IPageView
             catch (Exception ex)
             {
                 Common.Log(ex, $"无法使用配置文件中指定的导出路径（{configPackPath}）");
-                if (await Launcher.MyMsgBoxAsync(
-                        Lang.Text("Instance.Export.PackPathInvalid.WithDetail", configPackPath, ex.ToString()),
-                        Lang.Text("Instance.Export.PackPathInvalid.Title"), Lang.Text("Common.Action.Confirm"),
-                        Lang.Text("Common.Action.Cancel")) == 2)
+                if ((await DialogService.Instance.ShowAsync(new TextDialogRequest
+                {
+                    Title = Lang.Text("Instance.Export.PackPathInvalid.Title"),
+                    Content = Lang.Text("Instance.Export.PackPathInvalid.WithDetail", configPackPath, ex.ToString()),
+                    Buttons = DialogButtons.OkCancel,
+                    ForceWait = false
+                })).Button == 2)
                     return;
             }
 
@@ -1119,18 +1123,24 @@ public partial class PageInstanceExport : IRefreshable, IPageView
                     // 若失败，确认是否继续
                     if (failedExceptions.Count == 1)
                     {
-                        if (Launcher.MyMsgBox(
-                                Lang.Text("Instance.Export.NetCheckPartialFailed.Message"),
-                                Lang.Text("Instance.Export.NetCheckPartialFailed.Title"),
-                                Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel")) == 2)
+                        if ((DialogService.Instance.Show(new TextDialogRequest
+                        {
+                            Title = Lang.Text("Instance.Export.NetCheckPartialFailed.Title"),
+                            Content = Lang.Text("Instance.Export.NetCheckPartialFailed.Message"),
+                            Buttons = DialogButtons.ContinueCancel,
+                            ForceWait = true
+                        }).Result?.Button ?? 0) == 2)
                             throw failedExceptions.First();
                     }
                     else if (failedExceptions.Count > 1)
                     {
-                        if (Launcher.MyMsgBox(
-                                Lang.Text("Instance.Export.NetCheckAllFailed.Message"),
-                                Lang.Text("Instance.Export.NetCheckAllFailed.Title"),
-                                Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel")) == 2)
+                        if ((DialogService.Instance.Show(new TextDialogRequest
+                        {
+                            Title = Lang.Text("Instance.Export.NetCheckAllFailed.Title"),
+                            Content = Lang.Text("Instance.Export.NetCheckAllFailed.Message"),
+                            Buttons = DialogButtons.ContinueCancel,
+                            ForceWait = true
+                        }).Result?.Button ?? 0) == 2)
                             throw failedExceptions.First();
                     }
                 })

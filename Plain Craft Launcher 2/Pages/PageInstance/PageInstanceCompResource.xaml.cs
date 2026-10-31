@@ -9,6 +9,7 @@ using Microsoft.VisualBasic.FileIO;
 using PCL.Core.App;
 using PCL.Core.Logging;
 using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Theme;
 using PCL.Network;
 using PCL.Network.Loaders;
@@ -206,7 +207,13 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
             // 显示首次打开提示
             Common.RunInUi(() =>
             {
-                Launcher.MyMsgBox(Lang.Text("Instance.Saves.Folder.DoubleClickHint.Message"), Lang.Text("Instance.Saves.Folder.DoubleClickHint.Title"), Lang.Text("Common.Action.GotIt"));
+                DialogService.Instance.Show(new TextDialogRequest
+                {
+                    Title = Lang.Text("Instance.Saves.Folder.DoubleClickHint.Title"),
+                    Content = Lang.Text("Instance.Saves.Folder.DoubleClickHint.Message"),
+                    Buttons = DialogButtons.GotIt,
+                    ForceWait = true
+                });
                 States.Hint.SchematicFirstTime = true;
             }, true);
 
@@ -993,7 +1000,13 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
 
         if (!isModPage)
         {
-            if (Launcher.MyMsgBox(Lang.Text("Instance.Resource.Install.ModConfirm.Message", targetInstance.Name), Lang.Text("Instance.Resource.Install.ModConfirm.Title"), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) !=
+            if ((DialogService.Instance.Show(new TextDialogRequest
+            {
+                Title = Lang.Text("Instance.Resource.Install.ModConfirm.Title"),
+                Content = Lang.Text("Instance.Resource.Install.ModConfirm.Message", targetInstance.Name),
+                Buttons = DialogButtons.OkCancel,
+                ForceWait = true
+            }).Result?.Button ?? 0) !=
                 1) return true;
         }
 
@@ -1175,9 +1188,13 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
 
         if (!(Launcher.frmMain.pageCurrent == FormMain.PageType.InstanceSetup &&
               Launcher.frmMain.PageCurrentSub == currentPage))
-            if (Launcher.MyMsgBox(
-                    Lang.Text("Instance.Resource.Install.GenericConfirm.Message", compTypeName, targetInstance.Name),
-                    Lang.Text("Instance.Resource.Install.GenericConfirm.Title", compTypeName), Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel")) != 1)
+            if ((DialogService.Instance.Show(new TextDialogRequest
+            {
+                Title = Lang.Text("Instance.Resource.Install.GenericConfirm.Title", compTypeName),
+                Content = Lang.Text("Instance.Resource.Install.GenericConfirm.Message", compTypeName, targetInstance.Name),
+                Buttons = DialogButtons.OkCancel,
+                ForceWait = true
+            }).Result?.Button ?? 0) != 1)
                 return;
 
         // 执行安装
@@ -1196,7 +1213,13 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
 
                 var destFile = compFolder + newFileName;
                 if (File.Exists(destFile))
-                    if (Launcher.MyMsgBox(Lang.Text("Instance.Resource.Install.OverwriteConfirm.Message", newFileName), Lang.Text("Instance.Resource.Install.OverwriteConfirm.Title"), Lang.Text("Common.Action.Overwrite"), Lang.Text("Common.Action.Cancel")) != 1)
+                    if ((DialogService.Instance.Show(new TextDialogRequest
+                    {
+                        Title = Lang.Text("Instance.Resource.Install.OverwriteConfirm.Title"),
+                        Content = Lang.Text("Instance.Resource.Install.OverwriteConfirm.Message", newFileName),
+                        Buttons = DialogButtons.Create("Common.Action.Overwrite", "Common.Action.Cancel"),
+                        ForceWait = true
+                    }).Result?.Button ?? 0) != 1)
                         continue;
 
                 Common.CopyFile(FilePath, destFile);
@@ -1277,8 +1300,13 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
     private void BtnManageInfoExport_Click(object sender, MouseButtonEventArgs e)
     {
         var choice =
-            Launcher.MyMsgBox(
-                Lang.Text("Instance.Resource.Export.Mode.Message"), Lang.Text("Instance.Resource.Export.Mode.Title"), Lang.Text("Instance.Resource.Export.Mode.Txt"), Lang.Text("Instance.Resource.Export.Mode.Csv"), Lang.Text("Common.Action.Cancel"));
+            (DialogService.Instance.Show(new TextDialogRequest
+            {
+                Title = Lang.Text("Instance.Resource.Export.Mode.Title"),
+                Content = Lang.Text("Instance.Resource.Export.Mode.Message"),
+                Buttons = DialogButtons.Create("Instance.Resource.Export.Mode.Txt", "Instance.Resource.Export.Mode.Csv", "Common.Action.Cancel"),
+                ForceWait = true
+            }).Result?.Button ?? 0);
 
         void ExportText(string content, string fileName)
         {
@@ -1811,10 +1839,14 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
     private bool _ConfirmCascadeReady()
     {
         if (_vm.CompType != Comp.CompType.Mod || LocalComp.compJijResolved) return true;
-        if (Launcher.MyMsgBox(
-            Lang.Text("Instance.Resource.Mod.JarInJar.ParsePending.Message"),
-            Lang.Text("Instance.Resource.Mod.JarInJar.ParsePending.Title"),
-            Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel"), isWarn: true) != 1)
+        if ((DialogService.Instance.Show(new TextDialogRequest
+        {
+            Title = Lang.Text("Instance.Resource.Mod.JarInJar.ParsePending.Title"),
+            Content = Lang.Text("Instance.Resource.Mod.JarInJar.ParsePending.Message"),
+            Buttons = DialogButtons.ContinueCancel,
+            IsWarn = true,
+            ForceWait = true
+        }).Result?.Button ?? 0) != 1)
             return false;
 
         // “继续”表示先同步补齐整份列表，再重新构建级联索引；不能在残缺 output 上直接计算 affected。
@@ -1858,19 +1890,25 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
     // 级联选择弹窗；返回 0=仅此项 / 1=连带禁用 /（删除时）2=连带删除；null=取消
     private int? _AskJijCascade(List<LocalComp.LocalCompFile> affected, bool isDelete)
     {
-        var sels = new List<IMyRadio>
+        var sels = new List<DialogOption>
         {
-            new MyRadioBox { Text = Lang.Text("Instance.Resource.Mod.JarInJar.Cascade.OnlySelf") },
-            new MyRadioBox { Text = Lang.Text("Instance.Resource.Mod.JarInJar.Cascade.WithDisable") }
+            new DialogOption { Text = Lang.Text("Instance.Resource.Mod.JarInJar.Cascade.OnlySelf") },
+            new DialogOption { Text = Lang.Text("Instance.Resource.Mod.JarInJar.Cascade.WithDisable") }
         };
         if (isDelete)
-            sels.Add(new MyRadioBox { Text = Lang.Text("Instance.Resource.Mod.JarInJar.Cascade.WithDelete") });
+            sels.Add(new DialogOption { Text = Lang.Text("Instance.Resource.Mod.JarInJar.Cascade.WithDelete") });
 
-        return Launcher.MyMsgBoxSelect(sels,
-            Lang.Text(isDelete
+        return (DialogService.Instance.Show(new SelectDialogRequest
+        {
+            Title = Lang.Text(isDelete
                 ? "Instance.Resource.Mod.JarInJar.Cascade.DeleteTitle"
                 : "Instance.Resource.Mod.JarInJar.Cascade.DisableTitle", affected.Count),
-            Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"), true);
+            Options = sels,
+            Buttons = DialogButtons.OkCancel,
+            IsWarn = true,
+            HighLight = false,
+            ForceWait = true
+        }).Result?.SelectedIndex);
     }
 
     private bool EDModsCore(IEnumerable<LocalComp.LocalCompFile> modList, bool isEnable)
@@ -1922,9 +1960,13 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
                         // 同时存在两个名称的 Mod
                         if ((Common.GetFileMd5(modEntity.path) ?? "") != (Common.GetFileMd5(newPath) ?? ""))
                         {
-                            Launcher.MyMsgBox(
-                                Lang.Text("Instance.Resource.Ed.FileConflict.Message", newPath, modEntity.path),
-                                Lang.Text("Instance.Resource.Ed.FileConflict"));
+                            DialogService.Instance.Show(new TextDialogRequest
+                            {
+                                Title = Lang.Text("Instance.Resource.Ed.FileConflict"),
+                                Content = Lang.Text("Instance.Resource.Ed.FileConflict.Message", newPath, modEntity.path),
+                                Buttons = DialogButtons.Ok,
+                                ForceWait = true
+                            });
                             isSuccessful = false;
                             continue;
                         }
@@ -2033,9 +2075,14 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
         // 更新前警告
         if (_vm.CompType == Comp.CompType.Mod && (!States.Hint.UpdateMod || modList.Count() >= 15))
         {
-            if (Launcher.MyMsgBox(
-                    Lang.Text("Instance.Resource.Update.Warning.Message"),
-                    Lang.Text("Instance.Resource.Update.Warning.Title"), Lang.Text("Instance.Resource.Update.Warning.Confirm"), Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
+            if ((DialogService.Instance.Show(new TextDialogRequest
+            {
+                Title = Lang.Text("Instance.Resource.Update.Warning.Title"),
+                Content = Lang.Text("Instance.Resource.Update.Warning.Message"),
+                Buttons = DialogButtons.Create("Instance.Resource.Update.Warning.Confirm", "Common.Action.Cancel"),
+                IsWarn = true,
+                ForceWait = true
+            }).Result?.Button ?? 0) == 1)
                 States.Hint.UpdateMod = true;
             else
                 return;
@@ -2397,10 +2444,14 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
             // 加载失败信息
             if (modEntry.State == LocalComp.LocalCompFile.LocalFileStatus.Unavailable)
             {
-                await Launcher.MyMsgBoxAsync(
-                    Lang.Text("Instance.Resource.Item.Info.FailedMessage.WithDetail",
+                await DialogService.Instance.ShowAsync(new TextDialogRequest
+                {
+                    Title = Lang.Text("Instance.Resource.Item.Info.FailedTitle"),
+                    Content = Lang.Text("Instance.Resource.Item.Info.FailedMessage.WithDetail",
                         modEntry.FileUnavailableReason.ToString()),
-                    Lang.Text("Instance.Resource.Item.Info.FailedTitle"));
+                    Buttons = DialogButtons.Ok,
+                    ForceWait = false
+                });
                 return;
             }
 
@@ -2537,7 +2588,13 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
                 if (modEntry.IsFolder)
                 {
                     // 文件夹只显示基本信息，不提供搜索功能
-                    await Launcher.MyMsgBoxAsync(contentLines.Join("\r\n"), modEntry.Name, Lang.Text("Instance.Resource.Item.Info.Return"));
+                    await DialogService.Instance.ShowAsync(new TextDialogRequest
+                    {
+                        Title = modEntry.Name,
+                        Content = contentLines.Join("\r\n"),
+                        Buttons = DialogButtons.Create("Instance.Resource.Item.Info.Return"),
+                        ForceWait = false
+                    });
                 }
                 else
                 {
@@ -2562,20 +2619,43 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
                     {
                         // 投影原理图文件或非中文区域不显示百科搜索选项
                         if (modEntry.Url is null)
-                            await Launcher.MyMsgBoxAsync(contentLines.Join("\r\n"), modEntry.Name, Lang.Text("Instance.Resource.Item.Info.Return"));
-                        else if (await Launcher.MyMsgBoxAsync(contentLines.Join("\r\n"), modEntry.Name, Lang.Text("Instance.Resource.Item.Info.OpenWebsite"), Lang.Text("Instance.Resource.Item.Info.Return")) ==
+                            await DialogService.Instance.ShowAsync(new TextDialogRequest
+                            {
+                                Title = modEntry.Name,
+                                Content = contentLines.Join("\r\n"),
+                                Buttons = DialogButtons.Create("Instance.Resource.Item.Info.Return"),
+                                ForceWait = false
+                            });
+                        else if ((await DialogService.Instance.ShowAsync(new TextDialogRequest
+                        {
+                            Title = modEntry.Name,
+                            Content = contentLines.Join("\r\n"),
+                            Buttons = DialogButtons.Create("Instance.Resource.Item.Info.OpenWebsite", "Instance.Resource.Item.Info.Return"),
+                            ForceWait = false
+                        })).Button ==
                                  1) Common.OpenWebsite(modEntry.Url);
                     }
                     // 其他资源类型保留百科搜索功能
                     else if (modEntry.Url is null)
                     {
-                        if (await Launcher.MyMsgBoxAsync(contentLines.Join("\r\n"), modEntry.Name, Lang.Text("Instance.Resource.Item.Info.McMod"), Lang.Text("Instance.Resource.Item.Info.Return")) == 1)
+                        if ((await DialogService.Instance.ShowAsync(new TextDialogRequest
+                        {
+                            Title = modEntry.Name,
+                            Content = contentLines.Join("\r\n"),
+                            Buttons = DialogButtons.Create("Instance.Resource.Item.Info.McMod", "Instance.Resource.Item.Info.Return"),
+                            ForceWait = false
+                        })).Button == 1)
                             Common.OpenWebsite("https://www.mcmod.cn/s?key=" + modSearchName + "&site=all&filter=0");
                     }
                     else
                     {
-                        switch (await Launcher.MyMsgBoxAsync(contentLines.Join("\r\n"), modEntry.Name, Lang.Text("Instance.Resource.Item.Info.OpenWebsite"), Lang.Text("Instance.Resource.Item.Info.McMod"),
-                                    Lang.Text("Instance.Resource.Item.Info.Return")))
+                        switch ((await DialogService.Instance.ShowAsync(new TextDialogRequest
+                        {
+                            Title = modEntry.Name,
+                            Content = contentLines.Join("\r\n"),
+                            Buttons = DialogButtons.Create("Instance.Resource.Item.Info.OpenWebsite", "Instance.Resource.Item.Info.McMod", "Instance.Resource.Item.Info.Return"),
+                            ForceWait = false
+                        })).Button)
                         {
                             case 1:
                             {
@@ -2860,8 +2940,20 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
     {
         // 投影原理图文件不显示百科搜索选项
         if (modEntry.Url is null)
-            Launcher.MyMsgBox(contentLines.Join("\r\n"), modEntry.Name, Lang.Text("Instance.Resource.Item.Info.Return"));
-        else if (Launcher.MyMsgBox(contentLines.Join("\r\n"), modEntry.Name, Lang.Text("Instance.Resource.Item.Info.OpenWebsite"), Lang.Text("Instance.Resource.Item.Info.Return")) == 1)
+            DialogService.Instance.Show(new TextDialogRequest
+            {
+                Title = modEntry.Name,
+                Content = contentLines.Join("\r\n"),
+                Buttons = DialogButtons.Create("Instance.Resource.Item.Info.Return"),
+                ForceWait = true
+            });
+        else if ((DialogService.Instance.Show(new TextDialogRequest
+        {
+            Title = modEntry.Name,
+            Content = contentLines.Join("\r\n"),
+            Buttons = DialogButtons.Create("Instance.Resource.Item.Info.OpenWebsite", "Instance.Resource.Item.Info.Return"),
+            ForceWait = true
+        }).Result?.Button ?? 0) == 1)
             Common.OpenWebsite(modEntry.Url);
     }
 

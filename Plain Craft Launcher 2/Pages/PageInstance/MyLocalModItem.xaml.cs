@@ -6,6 +6,7 @@ using System.Windows.Media;
 using Microsoft.VisualBasic;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils.Exts;
 
 namespace PCL;
@@ -320,10 +321,13 @@ public partial class MyLocalCompItem
     // 触发更新
     private void BtnUpdate_Click(object sender, EventArgs e)
     {
-        switch (Launcher.MyMsgBox(
-                    $"{Lang.Text("Instance.Resource.Item.UpdateConfirm.Message", Entry.Name)}\r\n\r\n{GetUpdateCompareDescription()}",
-                    Lang.Text("Instance.Resource.Item.UpdateConfirm.Title"),
-                    Lang.Text("Instance.Resource.Item.Update"), Lang.Text("Instance.Resource.Item.ViewChangelog"), Lang.Text("Common.Action.Cancel")))
+        switch ((DialogService.Instance.Show(new TextDialogRequest
+        {
+            Title = Lang.Text("Instance.Resource.Item.UpdateConfirm.Title"),
+            Content = $"{Lang.Text("Instance.Resource.Item.UpdateConfirm.Message", Entry.Name)}\r\n\r\n{GetUpdateCompareDescription()}",
+            Buttons = DialogButtons.Create("Instance.Resource.Item.Update", "Instance.Resource.Item.ViewChangelog", "Common.Action.Cancel"),
+            ForceWait = true
+        }).Result?.Button ?? 0))
         {
             case 1: // 更新
             {

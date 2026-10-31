@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.IO;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.ViewModel;
 
 namespace PCL;
@@ -61,10 +62,15 @@ public partial class PageToolsTestViewModel : ViewModelBase
             var startName = Lang.Text("Tools.Test.Shortcut.StartMenu");
             var desktop = Paths.GetSpecialPath(Environment.SpecialFolder.Desktop, shortcutName);
             var start = Paths.GetSpecialPath(Environment.SpecialFolder.StartMenu, @"Programs\" + shortcutName);
-            var choice =
-                await Launcher.MyMsgBoxAsync(
-                    Lang.Text("Tools.Test.Shortcut.ConfirmMessage", desktopName, desktop, startName, start),
-                    Lang.Text("Tools.Test.Shortcut.SelectLocation"), Lang.Text("Common.Action.Cancel"), desktopName, startName);
+            var choice = (await Dialog.ShowAsync(new TextDialogRequest
+            {
+                Title = Lang.Text("Tools.Test.Shortcut.SelectLocation"),
+                Content = Lang.Text("Tools.Test.Shortcut.ConfirmMessage", desktopName, desktop, startName, start),
+                Buttons = DialogButtons.From(
+                    DialogButton.Create(Lang.Text("Common.Action.Cancel")),
+                    DialogButton.Create(desktopName),
+                    DialogButton.Create(startName))
+            })).Button;
             if (choice == 1)
                 return;
             var shortcutPath = choice == 2 ? desktop : start;
@@ -89,7 +95,12 @@ public partial class PageToolsTestViewModel : ViewModelBase
         LaunchCountEnabled = false;
         try
         {
-            await Launcher.MyMsgBoxAsync(Lang.Text("Tools.Test.LaunchCount.Message", States.System.LaunchCount), Lang.Text("Tools.Test.LaunchCount.Title"));
+            await Dialog.ShowAsync(new TextDialogRequest
+            {
+                Title = Lang.Text("Tools.Test.LaunchCount.Title"),
+                Content = Lang.Text("Tools.Test.LaunchCount.Message", States.System.LaunchCount),
+                Buttons = DialogButtons.Ok
+            });
         }
         catch (Exception ex)
         {

@@ -7,6 +7,7 @@ using fNbt;
 using PCL.Core.Link.McPing;
 using PCL.Core.Link.McPing.Model;
 using PCL.Core.Minecraft;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils.Validate;
 using PCL.Core.App.Localization;
 
@@ -264,14 +265,29 @@ public partial class PageInstanceServer : MyPageRight, IPageView
 
     public static (string Name, string Address, bool Success) GetServerInfo(MinecraftServerInfo server)
     {
-        var newName = Launcher.MyMsgBoxInput(Lang.Text("Instance.Server.EditTitle"), Lang.Text("Instance.Server.NamePrompt"), server.Name,
-            [new NullOrWhiteSpaceValidator()]);
+        var newName = (DialogService.Instance.Show(new InputDialogRequest
+        {
+            Title = Lang.Text("Instance.Server.EditTitle"),
+            Content = Lang.Text("Instance.Server.NamePrompt"),
+            DefaultValue = server.Name,
+            ValidateRules = [new NullOrWhiteSpaceValidator()],
+            Buttons = DialogButtons.OkCancel,
+            HighLight = false,
+            ForceWait = true
+        }).Result?.InputText ?? "");
 
         if (string.IsNullOrEmpty(newName)) return (string.Empty, string.Empty, false);
 
-        var newAddress = Launcher.MyMsgBoxInput(Lang.Text("Instance.Server.EditTitle"),
-            Lang.Text("Instance.Server.AddressPrompt"), server.Address,
-            [new NullOrWhiteSpaceValidator()]);
+        var newAddress = (DialogService.Instance.Show(new InputDialogRequest
+        {
+            Title = Lang.Text("Instance.Server.EditTitle"),
+            Content = Lang.Text("Instance.Server.AddressPrompt"),
+            DefaultValue = server.Address,
+            ValidateRules = [new NullOrWhiteSpaceValidator()],
+            Buttons = DialogButtons.OkCancel,
+            HighLight = false,
+            ForceWait = true
+        }).Result?.InputText ?? "");
         if (string.IsNullOrEmpty(newAddress)) return (string.Empty, string.Empty, false);
         return (newName, newAddress, true);
     }

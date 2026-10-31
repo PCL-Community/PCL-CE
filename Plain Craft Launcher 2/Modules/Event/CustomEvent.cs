@@ -2,6 +2,7 @@
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils.OS;
 using PCL.Network;
 
@@ -35,9 +36,13 @@ namespace PCL
                 if (ActionMap.TryGetValue(type, out var action))
                     action(arg, type);
                 else
-                    Launcher.MyMsgBox(
-                        Lang.Text("Event.Error.UnknownType", type.ToString()),
-                        Lang.Text("Event.Error.Title"));
+                    DialogService.Instance.Show(new TextDialogRequest
+                    {
+                        Title = Lang.Text("Event.Error.Title"),
+                        Content = Lang.Text("Event.Error.UnknownType", type.ToString()),
+                        Buttons = DialogButtons.Ok,
+                        ForceWait = true
+                    });
             }
             catch (Exception ex)
             {
@@ -106,8 +111,13 @@ namespace PCL
             arg = arg.Replace('\\', '/');
             if (!arg.Contains("://") || arg.StartsWithF("file", true))
             {
-                Launcher.MyMsgBox(Lang.Text("Event.Error.UrlRequired"),
-                    Lang.Text("Event.Error.Title"));
+                DialogService.Instance.Show(new TextDialogRequest
+                {
+                    Title = Lang.Text("Event.Error.Title"),
+                    Content = Lang.Text("Event.Error.UrlRequired"),
+                    Buttons = DialogButtons.Ok,
+                    ForceWait = true
+                });
                 return;
             }
             HintService.Hint(Lang.Text("Event.OpenUrl.Opening", arg));
@@ -207,10 +217,14 @@ namespace PCL
             var args = SplitArgs(arg);
             if (args.Length == 1)
                 throw new ArgumentException(Lang.Text("Event.Error.MissingArgs", type.ToString(), "Title|Content"));
-            Launcher.MyMsgBox(
-                FixNewlines(args[1]),
-                FixNewlines(args[0]),
-                args.Length > 2 ? args[2] : Lang.Text("Common.Action.Confirm"));
+            DialogService.Instance.Show(new TextDialogRequest
+            {
+                Title = FixNewlines(args[0]),
+                Content = FixNewlines(args[1]),
+                Buttons = DialogButtons.From(
+                    DialogButton.Create(args.Length > 2 ? args[2] : Lang.Text("Common.Action.Confirm"))),
+                ForceWait = true
+            });
         }
 
         /// <summary>
@@ -266,8 +280,13 @@ namespace PCL
             args[0] = args[0].Replace('\\', '/');
             if (!args[0].StartsWithF("http://", true) && !args[0].StartsWithF("https://", true))
             {
-                Launcher.MyMsgBox(Lang.Text("Event.Error.DownloadUrlRequired"),
-                    Lang.Text("Event.Error.Title"));
+                DialogService.Instance.Show(new TextDialogRequest
+                {
+                    Title = Lang.Text("Event.Error.Title"),
+                    Content = Lang.Text("Event.Error.DownloadUrlRequired"),
+                    Buttons = DialogButtons.Ok,
+                    ForceWait = true
+                });
                 return;
             }
             if (!EventSafetyConfirm(Lang.Text("Event.Download.Confirm", args[0])))
@@ -455,12 +474,16 @@ namespace PCL
             if (States.Hint.HomepageCommand)
                 return true;
 
-            return Launcher.MyMsgBox(
-                Lang.Text("Event.Safety.ConfirmMessage", message),
-                Lang.Text("Event.Safety.Title"),
-                Lang.Text("Common.Action.Continue"),
-                Lang.Text("Event.Safety.ContinueAlways"),
-                Lang.Text("Common.Action.Cancel")) switch
+            return DialogService.Instance.Show(new TextDialogRequest
+            {
+                Title = Lang.Text("Event.Safety.Title"),
+                Content = Lang.Text("Event.Safety.ConfirmMessage", message),
+                Buttons = DialogButtons.From(
+                    DialogButton.Create(Lang.Text("Common.Action.Continue")),
+                    DialogButton.Create(Lang.Text("Event.Safety.ContinueAlways")),
+                    DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                ForceWait = true
+            }).Result?.Button switch
             {
                 1 => true,
                 2 => States.Hint.HomepageCommand = true,

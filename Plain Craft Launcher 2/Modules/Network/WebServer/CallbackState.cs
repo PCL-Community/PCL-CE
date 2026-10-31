@@ -1,6 +1,7 @@
 ﻿using PCL.Core.App;
 using PCL.Core.Link.Natayark;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Dialogs;
 
 namespace PCL;
 
@@ -71,7 +72,14 @@ public static partial class WebServer
                 OAuthCompleteStatus? status;
                 if (!success)
                 {
-                    Launcher.MyMsgBox(content, isWarn: true);
+                    DialogService.Instance.Show(new TextDialogRequest
+                    {
+                        Title = Lang.Text("Common.Dialog.Title"),
+                        Content = content,
+                        Buttons = DialogButtons.Ok,
+                        IsWarn = true,
+                        ForceWait = true
+                    });
                     completeCallback?.Invoke();
                     return null;
                 }

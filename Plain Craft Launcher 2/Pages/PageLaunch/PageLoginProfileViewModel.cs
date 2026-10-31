@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.Minecraft.Profile;
 using PCL.Core.ViewModel;
 
@@ -59,13 +60,14 @@ public partial class PageLoginProfileViewModel : ViewModelBase
     [RelayCommand]
     public async Task DeleteProfileAsync(PageLoginProfile.ProfileItem item)
     {
-        var result = await Dialog.ShowAsync(
-            title: Lang.Text("Launch.Account.Profile.DeleteConfirm.Title"),
-            content: Lang.Text("Launch.Account.Profile.DeleteConfirm.Message"),
-            button1: Lang.Text("Common.Action.Continue"),
-            button2: Lang.Text("Common.Action.Cancel"),
-            isWarn: true);
-        if (result == 2) return;
+        var result = await Dialog.ShowAsync(new TextDialogRequest
+        {
+            Title = Lang.Text("Launch.Account.Profile.DeleteConfirm.Title"),
+            Content = Lang.Text("Launch.Account.Profile.DeleteConfirm.Message"),
+            Buttons = DialogButtons.ContinueCancel,
+            IsWarn = true
+        });
+        if (result.Button == 2) return;
         ProfileUi.RemoveProfile(item.Profile);
         await ReloadAsync();
     }
@@ -73,10 +75,15 @@ public partial class PageLoginProfileViewModel : ViewModelBase
     [RelayCommand]
     public async Task EditServerNameAsync(PageLoginProfile.ProfileItem item)
     {
-        var name = await Dialog.InputAsync(
-            title: Lang.Text("Launch.Account.Profile.EditServerName.Title"),
-            content: Lang.Text("Launch.Account.Profile.EditServerName.Message"),
-            defaultValue: item.Profile.ServerName ?? "");
+        var nameResult = await Dialog.ShowAsync(new InputDialogRequest
+        {
+            Title = Lang.Text("Launch.Account.Profile.EditServerName.Title"),
+            Content = Lang.Text("Launch.Account.Profile.EditServerName.Message"),
+            DefaultValue = item.Profile.ServerName ?? "",
+            Buttons = DialogButtons.OkCancel,
+            HighLight = false
+        });
+        var name = nameResult.IsConfirmed ? nameResult.InputText : null;
         if (name is not null) ProfileUi.EditAuthServerName(item.Profile, name);
     }
 

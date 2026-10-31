@@ -12,6 +12,7 @@ using PCL.Core.Link.Natayark;
 using PCL.Core.Link.Scaffolding.Client.Models;
 using PCL.Core.Link.Scaffolding.EasyTier;
 using PCL.Core.Logging;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
 using PCL.Core.App.Localization;
@@ -148,13 +149,13 @@ public partial class PageToolsGameLink : IPageView
         _vm.EulaStopEnabled = false;
         try
         {
-            if (await _vm.Dialog.ShowAsync(
-                    title: Lang.Text("Tools.GameLink.Eula.RevokeTitle"),
-                    content: Lang.Text("Tools.GameLink.Eula.RevokeConfirm"),
-                    button1: Lang.Text("Common.Action.Confirm"),
-                    button2: Lang.Text("Common.Action.Cancel"),
-                    isWarn: true
-                ) == 1)
+            if ((await _vm.Dialog.ShowAsync(new TextDialogRequest
+            {
+                Title = Lang.Text("Tools.GameLink.Eula.RevokeTitle"),
+                Content = Lang.Text("Tools.GameLink.Eula.RevokeConfirm"),
+                Buttons = DialogButtons.OkCancel,
+                IsWarn = true
+            })).IsConfirmed)
             {
                 States.Link.NaidRefreshTokenConfig.Reset();
                 States.Link.LinkEulaConfig.Reset();
@@ -231,7 +232,13 @@ public partial class PageToolsGameLink : IPageView
             _vm.PlayerRows.Clear();
             CurrentSubpage = Subpages.PanSelect;
         });
-        Launcher.MyMsgBox(Lang.Text("Tools.GameLink.Exit.Disbanded"), Lang.Text("Tools.GameLink.Exit.DisbandedTitle"));
+        _vm.Dialog.Show(new TextDialogRequest
+        {
+            Title = Lang.Text("Tools.GameLink.Exit.DisbandedTitle"),
+            Content = Lang.Text("Tools.GameLink.Exit.Disbanded"),
+            Buttons = DialogButtons.Ok,
+            ForceWait = true
+        });
     }
 
 
@@ -662,10 +669,12 @@ public partial class PageToolsGameLink : IPageView
         try
         {
             var info = (GameLinkPlayerRow)((MyListItem)sender).Tag;
-            await _vm.Dialog.ShowAsync(
-                title: Lang.Text("Tools.GameLink.Player.InfoTitle", info.Name),
-                content: Lang.Text("Tools.GameLink.Player.InfoMessage", info.Name, info.Vendor),
-                button1: Lang.Text("Common.Action.Confirm"));
+            await _vm.Dialog.ShowAsync(new TextDialogRequest
+            {
+                Title = Lang.Text("Tools.GameLink.Player.InfoTitle", info.Name),
+                Content = Lang.Text("Tools.GameLink.Player.InfoMessage", info.Name, info.Vendor),
+                Buttons = DialogButtons.Ok
+            });
         }
         catch (Exception ex)
         {
@@ -765,11 +774,14 @@ public partial class PageToolsGameLink : IPageView
             if (string.IsNullOrWhiteSpace(States.Link.NaidRefreshToken))
             {
                 // 当前未登录，显示登录选项
-                if (await _vm.Dialog.ShowAsync(
-                        title: Lang.Text("Tools.GameLink.Natayark.LoginTitle"),
-                        content: Lang.Text("Tools.GameLink.Natayark.LoginPrompt"),
-                        button1: Lang.Text("Tools.GameLink.Natayark.Continue"),
-                        button2: Lang.Text("Common.Action.Cancel")) == 1)
+                if ((await _vm.Dialog.ShowAsync(new TextDialogRequest
+                {
+                    Title = Lang.Text("Tools.GameLink.Natayark.LoginTitle"),
+                    Content = Lang.Text("Tools.GameLink.Natayark.LoginPrompt"),
+                    Buttons = DialogButtons.From(
+                        DialogButton.Create(Lang.Text("Tools.GameLink.Natayark.Continue")),
+                        DialogButton.Create(Lang.Text("Common.Action.Cancel")))
+                })).IsConfirmed)
                 {
                     _vm.NatayarkUserNameText = Lang.Text("Tools.GameLink.Natayark.BrowserContinue");
                     _vm.NatayarkUserNameOpacity = 0.6d;
@@ -783,11 +795,12 @@ public partial class PageToolsGameLink : IPageView
                 }
             }
             // 当前已登录，显示登出选项
-            else if (await _vm.Dialog.ShowAsync(
-                         title: Lang.Text("Tools.GameLink.Natayark.LogoutTitle"),
-                         content: Lang.Text("Tools.GameLink.Natayark.LogoutConfirm"),
-                         button1: Lang.Text("Common.Action.Confirm"),
-                         button2: Lang.Text("Common.Action.Cancel")) == 1)
+            else if ((await _vm.Dialog.ShowAsync(new TextDialogRequest
+            {
+                Title = Lang.Text("Tools.GameLink.Natayark.LogoutTitle"),
+                Content = Lang.Text("Tools.GameLink.Natayark.LogoutConfirm"),
+                Buttons = DialogButtons.OkCancel
+            })).IsConfirmed)
             {
                 States.Link.NaidRefreshTokenConfig.Reset();
                 States.Link.NaidRefreshToken = "";
@@ -848,10 +861,14 @@ public partial class PageToolsGameLink : IPageView
         {
             _vm.InputPortEnabled = false;
             if (!GameLink.LobbyPrecheck()) return;
-            var input = await _vm.Dialog.InputAsync(
-                title: Lang.Text("Tools.GameLink.Create.EnterPort"),
-                content: "",
-                validateRules: [new IntValidator(65535, 1024)]);
+            var inputDialog = await _vm.Dialog.ShowAsync(new InputDialogRequest
+            {
+                Title = Lang.Text("Tools.GameLink.Create.EnterPort"),
+                Content = "",
+                ValidateRules = [new IntValidator(65535, 1024)],
+                HighLight = false
+            });
+            var input = inputDialog.IsConfirmed ? inputDialog.InputText : null;
             int port;
             if (int.TryParse(input, out port))
                 using (var ping = McPingServiceFactory.CreateService("127.0.0.1", port, 5000))
@@ -1061,15 +1078,15 @@ public partial class PageToolsGameLink : IPageView
         _vm.FinishExitEnabled = false;
         try
         {
-            if (await _vm.Dialog.ShowAsync(
-                    title: Lang.Text("Tools.GameLink.Exit.ConfirmTitle"),
-                    content: Lang.Text(LobbyService.IsHost
-                        ? "Tools.GameLink.Exit.ConfirmMessageWithHost"
-                        : "Tools.GameLink.Exit.ConfirmMessage"),
-                    button1: Lang.Text("Common.Action.Confirm"),
-                    button2: Lang.Text("Common.Action.Cancel"),
-                    isWarn: true
-                ) == 1)
+            if ((await _vm.Dialog.ShowAsync(new TextDialogRequest
+            {
+                Title = Lang.Text("Tools.GameLink.Exit.ConfirmTitle"),
+                Content = Lang.Text(LobbyService.IsHost
+                    ? "Tools.GameLink.Exit.ConfirmMessageWithHost"
+                    : "Tools.GameLink.Exit.ConfirmMessage"),
+                Buttons = DialogButtons.OkCancel,
+                IsWarn = true
+            })).IsConfirmed)
             {
                 CurrentSubpage = Subpages.PanSelect;
                 _vm.FinishExitText = Lang.Text("Tools.GameLink.Finish.Exit");
@@ -1098,11 +1115,15 @@ public partial class PageToolsGameLink : IPageView
         var port = LobbyInfoProvider.McForward?.LocalEndPoint?.Port;
         if (port == null) return;
         var ip = $"127.0.0.1:{port}";
-        Launcher.MyMsgBox(Lang.Text("Tools.GameLink.CopyIp.Message", ip),
-            Lang.Text("Tools.GameLink.CopyIp.Title"),
-            Lang.Text("Common.Action.Copy"),
-            Lang.Text("Tools.GameLink.CopyIp.Back"),
-            button1Action: () => Common.ClipboardSet(ip));
+        _vm.Dialog.Show(new TextDialogRequest
+        {
+            Title = Lang.Text("Tools.GameLink.CopyIp.Title"),
+            Content = Lang.Text("Tools.GameLink.CopyIp.Message", ip),
+            Buttons = DialogButtons.From(
+                DialogButton.Create(Lang.Text("Common.Action.Copy"), () => Common.ClipboardSet(ip)),
+                DialogButton.Create(Lang.Text("Tools.GameLink.CopyIp.Back"))),
+            ForceWait = true
+        });
     }
 
     #endregion

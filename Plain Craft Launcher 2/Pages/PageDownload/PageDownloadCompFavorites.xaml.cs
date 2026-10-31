@@ -5,6 +5,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
 using PCL.Network;
 using PCL.Network.Loaders;
 using PCL.Core.App.Localization;
@@ -293,7 +294,12 @@ public partial class PageDownloadCompFavorites : IPageView
             try
             {
                 CurrentFavTarget.Notes.TryGetValue(compId, out notes);
-                var desiredNote = await _vm.Dialog.InputAsync(Lang.Text("Download.Comp.Favorites.EditNote"), "", defaultValue: notes);
+                var desiredNoteResult = await _vm.Dialog.ShowAsync(new InputDialogRequest
+                {
+                    Title = Lang.Text("Download.Comp.Favorites.EditNote"),
+                    DefaultValue = notes ?? ""
+                });
+                var desiredNote = desiredNoteResult.IsConfirmed ? desiredNoteResult.InputText : null;
                 if (desiredNote is not null)
                 {
                     CurrentFavTarget.Notes[compId] = desiredNote;
@@ -503,12 +509,13 @@ public partial class PageDownloadCompFavorites : IPageView
         _vm.IsBulkDownloadEnabled = false;
         try
         {
-            if (1 != await _vm.Dialog.ShowAsync(
-                    Lang.Text("Download.Comp.Favorites.Dialog.BulkDownload.Title"),
-                    Lang.Text("Download.Comp.Favorites.Dialog.BulkDownload.Content"),
-                    Lang.Text("Common.Action.Continue"),
-                    Lang.Text("Common.Action.Cancel"), isWarn: true
-                )) return;
+            if (!(await _vm.Dialog.ShowAsync(new TextDialogRequest
+            {
+                Title = Lang.Text("Download.Comp.Favorites.Dialog.BulkDownload.Title"),
+                Content = Lang.Text("Download.Comp.Favorites.Dialog.BulkDownload.Content"),
+                Buttons = DialogButtons.ContinueCancel,
+                IsWarn = true
+            })).IsConfirmed) return;
             var supportedModLoader = new List<Comp.CompLoaderType>();
             var loaderFirstSet = true;
             var hasMod = false;
@@ -543,7 +550,16 @@ public partial class PageDownloadCompFavorites : IPageView
                 if (supportedModLoader.Count > 0)
                 {
                     var selections = supportedModLoader.Select(i => i.ToString()).ToList();
-                    var selectedModLoaderStr = await _vm.Dialog.SelectAsync(Lang.Text("Download.Comp.Favorites.Dialog.SelectLoader.Title"), selections, button2: Lang.Text("Common.Action.Cancel"));
+                    var selectedModLoaderDialog = await _vm.Dialog.ShowAsync(new SelectDialogRequest
+                    {
+                        Title = Lang.Text("Download.Comp.Favorites.Dialog.SelectLoader.Title"),
+                        Options = selections.Select(x => new DialogOption { Text = x }).ToList(),
+                        Buttons = DialogButtons.OkCancel,
+                        HighLight = false
+                    });
+                    var selectedModLoaderStr = selectedModLoaderDialog.IsConfirmed
+                        ? selectedModLoaderDialog.SelectedIndex
+                        : null;
                     if (selectedModLoaderStr is null)
                         return;
                     desiredModLoader = supportedModLoader[(int)selectedModLoaderStr];
@@ -622,7 +638,14 @@ public partial class PageDownloadCompFavorites : IPageView
                     List<IMyRadio> selection = [];
                     foreach (var i in suitVersion)
                         selection.Add(new MyRadioBox { Text = i });
-                    selectedVersion = Launcher.MyMsgBoxSelect(selection, Lang.Text("Download.Comp.Favorites.Dialog.SelectVersion.Title"), button2: Lang.Text("Common.Action.Cancel"));
+                    selectedVersion = _vm.Dialog.Show(new SelectDialogRequest
+                    {
+                        Title = Lang.Text("Download.Comp.Favorites.Dialog.SelectVersion.Title"),
+                        Options = DialogOptions.From(selection),
+                        Buttons = DialogButtons.OkCancel,
+                        HighLight = false,
+                        ForceWait = true
+                    }).Result?.SelectedIndex;
                     if (selectedVersion is null) ts.Abort();
                 });
                 string selectedVersionStr = suitVersion[(int)selectedVersion];
@@ -770,7 +793,14 @@ public partial class PageDownloadCompFavorites : IPageView
             if (ctl is not null) ctl.IsEnabled = false;
             try
             {
-                var clipData = await _vm.Dialog.InputAsync(Lang.Text("Download.Comp.Favorites.Dialog.Import.Input"), "", hintText: Lang.Text("Download.Comp.Favorites.Dialog.Import.Hint"));
+                var clipDataDialog = await _vm.Dialog.ShowAsync(new InputDialogRequest
+                {
+                    Title = Lang.Text("Download.Comp.Favorites.Dialog.Import.Input"),
+                    Content = "",
+                    HintText = Lang.Text("Download.Comp.Favorites.Dialog.Import.Hint"),
+                    HighLight = false
+                });
+                var clipData = clipDataDialog.IsConfirmed ? clipDataDialog.InputText : null;
                 if (string.IsNullOrWhiteSpace(clipData)) return;
                 var newFavs = Comp.CompFavorites.GetIdsByShareCode(clipData);
                 if (newFavs.Count == 0)
@@ -779,12 +809,25 @@ public partial class PageDownloadCompFavorites : IPageView
                     return;
                 }
 
-                var userWant = await _vm.Dialog.ShowAsync(Lang.Text("Common.Dialog.Title"), Lang.Text("Download.Comp.Favorites.Dialog.Import.Type"), Lang.Text("Download.Comp.Favorites.Dialog.Import.NewFolder"), Lang.Text("Download.Comp.Favorites.Dialog.Import.CurrentFolder"));
+                var userWant = (await _vm.Dialog.ShowAsync(new TextDialogRequest
+                {
+                    Title = Lang.Text("Common.Dialog.Title"),
+                    Content = Lang.Text("Download.Comp.Favorites.Dialog.Import.Type"),
+                    Buttons = DialogButtons.From(
+                        DialogButton.Create(Lang.Text("Download.Comp.Favorites.Dialog.Import.NewFolder")),
+                        DialogButton.Create(Lang.Text("Download.Comp.Favorites.Dialog.Import.CurrentFolder")))
+                })).Button;
                 switch (userWant)
                 {
                     case 1:
                     {
-                        var newFavName = await _vm.Dialog.InputAsync(Lang.Text("Download.Comp.Favorites.Dialog.Import.New"), Lang.Text("Download.Comp.Favorites.Dialog.NewPrompt"));
+                        var newFavNameDialog = await _vm.Dialog.ShowAsync(new InputDialogRequest
+                        {
+                            Title = Lang.Text("Download.Comp.Favorites.Dialog.Import.New"),
+                            Content = Lang.Text("Download.Comp.Favorites.Dialog.NewPrompt"),
+                            HighLight = false
+                        });
+                        var newFavName = newFavNameDialog.IsConfirmed ? newFavNameDialog.InputText : null;
                         if (string.IsNullOrWhiteSpace(newFavName)) return;
                         Comp.CompFavorites.FavoritesList.Add(Comp.CompFavorites.GetNewFav(newFavName, newFavs));
                         Comp.CompFavorites.Save();
@@ -826,7 +869,13 @@ public partial class PageDownloadCompFavorites : IPageView
             if (ctl is not null) ctl.IsEnabled = false;
             try
             {
-                var newFavName = await _vm.Dialog.InputAsync(Lang.Text("Download.Comp.Favorites.Menu.New"), Lang.Text("Download.Comp.Favorites.Dialog.NewPrompt"));
+                var newFavNameDialog = await _vm.Dialog.ShowAsync(new InputDialogRequest
+                {
+                    Title = Lang.Text("Download.Comp.Favorites.Menu.New"),
+                    Content = Lang.Text("Download.Comp.Favorites.Dialog.NewPrompt"),
+                    HighLight = false
+                });
+                var newFavName = newFavNameDialog.IsConfirmed ? newFavNameDialog.InputText : null;
                 if (string.IsNullOrWhiteSpace(newFavName))
                     return;
                 Comp.CompFavorites.FavoritesList.Add(Comp.CompFavorites.GetNewFav(newFavName, null));
@@ -859,7 +908,14 @@ public partial class PageDownloadCompFavorites : IPageView
             if (ctl is not null) ctl.IsEnabled = false;
             try
             {
-                var newName = await _vm.Dialog.InputAsync(Lang.Text("Download.Comp.Favorites.Dialog.Rename.Title"), "", defaultValue: CurrentFavTarget.Name);
+                var newNameDialog = await _vm.Dialog.ShowAsync(new InputDialogRequest
+                {
+                    Title = Lang.Text("Download.Comp.Favorites.Dialog.Rename.Title"),
+                    Content = "",
+                    DefaultValue = CurrentFavTarget.Name,
+                    HighLight = false
+                });
+                var newName = newNameDialog.IsConfirmed ? newNameDialog.InputText : null;
                 if (string.IsNullOrWhiteSpace(newName) || (CurrentFavTarget.Name ?? "") == (newName ?? ""))
                     return;
                 CurrentFavTarget.Name = newName;
@@ -898,7 +954,16 @@ public partial class PageDownloadCompFavorites : IPageView
                 }
 
                 var content = Lang.Text("Download.Comp.Favorites.Dialog.Delete.Confirm", CurrentFavTarget.Name, CurrentFavTarget.Favs.Count, CurrentFavTarget.Id);
-                var res = await _vm.Dialog.ShowAsync(Lang.Text("Download.Comp.Favorites.Dialog.Delete.Title"), content, Lang.Text("Common.Option.No"), Lang.Text("Common.Option.Yes"), Lang.Text("Common.Option.No"), isWarn: true);
+                var res = (await _vm.Dialog.ShowAsync(new TextDialogRequest
+                {
+                    Title = Lang.Text("Download.Comp.Favorites.Dialog.Delete.Title"),
+                    Content = content,
+                    Buttons = DialogButtons.From(
+                        DialogButton.Create(Lang.Text("Common.Option.No")),
+                        DialogButton.Create(Lang.Text("Common.Option.Yes")),
+                        DialogButton.Create(Lang.Text("Common.Option.No"))),
+                    IsWarn = true
+                })).Button;
                 if (res == 2)
                 {
                     Comp.CompFavorites.FavoritesList.Remove(CurrentFavTarget);
@@ -941,14 +1006,23 @@ public partial class PageDownloadCompFavorites : IPageView
         var failIds = loader.input.Except(loader.output.Select(i => i.Id).ToList()).ToList();
         foreach (var Id in failIds)
             content += $" - {Id}" + "\r\n";
-        Launcher.MyMsgBox(content, Lang.Text("Download.Comp.Favorites.Dialog.GetFailed.Title"), button2: Lang.Text("Download.Comp.Favorites.Dialog.GetFailed.CopyIds"), button3: Lang.Text("Download.Comp.Favorites.Dialog.GetFailed.Remove"),
-            button2Action: () => Common.ClipboardSet(failIds.Join("\r\n")), button3Action: () =>
-            {
-                foreach (var Id in failIds)
-                    CurrentFavTarget.Favs.Remove(Id);
-                Comp.CompFavorites.Save();
-                HintService.Hint(Lang.Text("Download.Comp.Favorites.Hint.Removed"), HintType.Success);
-            });
+        _vm.Dialog.Show(new TextDialogRequest
+        {
+            Title = Lang.Text("Download.Comp.Favorites.Dialog.GetFailed.Title"),
+            Content = content,
+            Buttons = DialogButtons.From(
+                DialogButton.Create(Lang.Text("Common.Action.Confirm")),
+                DialogButton.Create(Lang.Text("Download.Comp.Favorites.Dialog.GetFailed.CopyIds"),
+                    () => Common.ClipboardSet(failIds.Join("\r\n"))),
+                DialogButton.Create(Lang.Text("Download.Comp.Favorites.Dialog.GetFailed.Remove"), () =>
+                {
+                    foreach (var Id in failIds)
+                        CurrentFavTarget.Favs.Remove(Id);
+                    Comp.CompFavorites.Save();
+                    HintService.Hint(Lang.Text("Download.Comp.Favorites.Hint.Removed"), HintType.Success);
+                })),
+            ForceWait = true
+        });
     }
 
     #endregion

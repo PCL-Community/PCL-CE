@@ -11,6 +11,7 @@ using PCL.Core.App.IoC;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Core.UI.Controls;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils;
 using PCL.Core.Utils.OS;
 
@@ -136,11 +137,14 @@ public partial class Application
             problemList.Add(Lang.Text("Application.EnvironmentWarning.SocialSoftwareFolder"));
         if (problemList.Count == 0) return;
 
-        Launcher.MyMsgBox(
-            Lang.Text("Application.EnvironmentWarning.Message", problemList.Join("\r\n")),
-            Lang.Text("Application.EnvironmentWarning.Title"),
-            Lang.Text("Application.EnvironmentWarning.IKnow"),
-            isWarn: true);
+        DialogService.Instance.Show(new TextDialogRequest
+        {
+            Title = Lang.Text("Application.EnvironmentWarning.Title"),
+            Content = Lang.Text("Application.EnvironmentWarning.Message", problemList.Join("\r\n")),
+            Buttons = DialogButtons.Create("Application.EnvironmentWarning.IKnow"),
+            IsWarn = true,
+            ForceWait = true
+        });
     }
 
     // 结束

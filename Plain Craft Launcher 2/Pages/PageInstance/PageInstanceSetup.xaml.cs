@@ -10,6 +10,7 @@ using PCL.Core.IO;
 using PCL.Core.Minecraft;
 using PCL.Core.Minecraft.Java.UserPreference;
 using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils.OS;
 using PCL.Core.App.Localization;
 using PCL.Core.Utils;
@@ -742,12 +743,15 @@ public partial class PageInstanceSetup : IPageView
                 return;
             if (isReverting)
                 return;
-            if (await _vm.Dialog.ShowAsync(
-                    title: Lang.Text("Common.Dialog.Warning"),
-                    content: Lang.Text("Instance.Setup.Options.InstanceIsolation.Message"),
-                    button1: Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm"),
-                    button2: Lang.Text("Common.Action.Cancel"),
-                    isWarn: true) == 2)
+            if ((await _vm.Dialog.ShowAsync(new TextDialogRequest
+            {
+                Title = Lang.Text("Common.Dialog.Warning"),
+                Content = Lang.Text("Instance.Setup.Options.InstanceIsolation.Message"),
+                Buttons = DialogButtons.From(
+                    DialogButton.Create(Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm")),
+                    DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                IsWarn = true
+            })).Button == 2)
             {
                 isReverting = true;
                 ComboArgumentIndieV2.SelectedItem = e.RemovedItems[0];
@@ -805,12 +809,15 @@ public partial class PageInstanceSetup : IPageView
 
             if (!States.Hint.Renderer && ComboAdvanceRenderer.SelectedIndex != 0)
             {
-                if (await _vm.Dialog.ShowAsync(
-                        title: Lang.Text("Common.Dialog.Warning"),
-                        content: Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Message"),
-                        button1: Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm"),
-                        button2: Lang.Text("Common.Action.Cancel"),
-                        isWarn: true) == 2)
+                if ((await _vm.Dialog.ShowAsync(new TextDialogRequest
+                {
+                    Title = Lang.Text("Common.Dialog.Warning"),
+                    Content = Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Message"),
+                    Buttons = DialogButtons.From(
+                        DialogButton.Create(Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm")),
+                        DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                    IsWarn = true
+                })).Button == 2)
                 {
                     ComboAdvanceRenderer.SelectedItem = args.RemovedItems[0];
                 }
@@ -848,12 +855,15 @@ public partial class PageInstanceSetup : IPageView
 
             if (checkBox.Checked.GetValueOrDefault() && !States.Hint.DebugLog4j2Config)
             {
-                if (await _vm.Dialog.ShowAsync(
-                        title: Lang.Text("Common.Dialog.Warning"),
-                        content: Lang.Text("Instance.Setup.Advanced.UseDebugLog4j.Message"),
-                        button1: Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm"),
-                        button2: Lang.Text("Common.Action.Cancel"),
-                        isWarn: true) == 2)
+                if ((await _vm.Dialog.ShowAsync(new TextDialogRequest
+                {
+                    Title = Lang.Text("Common.Dialog.Warning"),
+                    Content = Lang.Text("Instance.Setup.Advanced.UseDebugLog4j.Message"),
+                    Buttons = DialogButtons.From(
+                        DialogButton.Create(Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm")),
+                        DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                    IsWarn = true
+                })).Button == 2)
                 {
                     checkBox.Checked = false;
                 }

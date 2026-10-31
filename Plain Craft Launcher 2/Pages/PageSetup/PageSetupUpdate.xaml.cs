@@ -4,6 +4,7 @@ using System.Windows.Input;
 using PCL.Core.App;
 using PCL.Core.Utils;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils.OS;
 
 namespace PCL;
@@ -194,9 +195,20 @@ public partial class PageSetupUpdate : IPageView
         try
         {
             if (updateInfo is null)
-                await _vm.Dialog.ShowAsync(Lang.Text("Setup.Update.Changelog.Title"), Lang.Text("Setup.Update.Changelog.Unavailable"), Lang.Text("Common.Action.Confirm"));
+                await _vm.Dialog.ShowAsync(new TextDialogRequest
+                {
+                    Title = Lang.Text("Setup.Update.Changelog.Title"),
+                    Content = Lang.Text("Setup.Update.Changelog.Unavailable"),
+                    Buttons = DialogButtons.Ok
+                });
             else
-                Launcher.MyMsgBoxMarkdown(updateInfo.Changelog, Lang.Text("Setup.Update.Changelog.Title"));
+                _vm.Dialog.Show(new MarkdownDialogRequest
+                {
+                    Title = Lang.Text("Setup.Update.Changelog.Title"),
+                    Content = updateInfo.Changelog ?? "",
+                    Buttons = DialogButtons.Ok,
+                    ForceWait = true
+                });
         }
         catch (Exception ex)
         {
@@ -232,10 +244,15 @@ public partial class PageSetupUpdate : IPageView
                 }
                 case 1:
                 {
-                    if (await _vm.Dialog.ShowAsync(Lang.Text("Setup.Update.Channel.Common.Warning.Title"),
-                            Lang.Text("Setup.Update.Channel.Beta.Warning.Message"),
-                            Lang.Text("Setup.Update.Channel.Common.Warning.Confirm"),
-                            Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
+                    if ((await _vm.Dialog.ShowAsync(new TextDialogRequest
+                    {
+                        Title = Lang.Text("Setup.Update.Channel.Common.Warning.Title"),
+                        Content = Lang.Text("Setup.Update.Channel.Beta.Warning.Message"),
+                        Buttons = DialogButtons.From(
+                            DialogButton.Create(Lang.Text("Setup.Update.Channel.Common.Warning.Confirm")),
+                            DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                        IsWarn = true
+                    })).Button == 2)
                         isCancelled = true;
                     else
                         CheckUpdate();
@@ -243,21 +260,32 @@ public partial class PageSetupUpdate : IPageView
                 }
                 case 2:
                 {
-                    if (await _vm.Dialog.ShowAsync(Lang.Text("Setup.Update.Channel.Common.Warning.Title"),
-                            Lang.Text("Setup.Update.Channel.Dev.Warning.Message"),
-                            Lang.Text("Setup.Update.Channel.Common.Warning.Confirm"),
-                            Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
+                    if ((await _vm.Dialog.ShowAsync(new TextDialogRequest
+                    {
+                        Title = Lang.Text("Setup.Update.Channel.Common.Warning.Title"),
+                        Content = Lang.Text("Setup.Update.Channel.Dev.Warning.Message"),
+                        Buttons = DialogButtons.From(
+                            DialogButton.Create(Lang.Text("Setup.Update.Channel.Common.Warning.Confirm")),
+                            DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                        IsWarn = true
+                    })).Button == 2)
                     {
                         isCancelled = true;
                         break;
                     }
 
                     var confirmText = Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.ExpectedInput");
-                    var ret = await _vm.Dialog.InputAsync(
-                        Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.Title"),
-                        Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.Message", confirmText),
-                        button1: Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.Submit"),
-                        button2: Lang.Text("Common.Action.Cancel"), isWarn: true);
+                    var retDialog = await _vm.Dialog.ShowAsync(new InputDialogRequest
+                    {
+                        Title = Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.Title"),
+                        Content = Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.Message", confirmText),
+                        Buttons = DialogButtons.From(
+                            DialogButton.Create(Lang.Text("Setup.Update.Channel.Dev.FinalConfirm.Submit")),
+                            DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                        IsWarn = true,
+                        HighLight = false
+                    });
+                    var ret = retDialog.IsConfirmed ? retDialog.InputText : null;
 
                     if (ret == confirmText)
                     {

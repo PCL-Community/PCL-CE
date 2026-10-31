@@ -14,6 +14,7 @@ using PCL.Core.App.Configuration.Storage;
 using FileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
 using PCL.Core.App.Localization;
 using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
 
 namespace PCL;
 
@@ -540,8 +541,14 @@ public partial class PageSelectRight : IPageView
                 : Lang.Text("Select.Instance.Delete.ConfirmMessage", mcInstance.Name);
             var confirmFullMsg = confirmMsg +
                                  (isHintIndie ? "\r\n" + Lang.Text("Select.Instance.Delete.IsolatedWarning") : "");
-            switch (Launcher.MyMsgBox(confirmFullMsg, Lang.Text("Select.Instance.Delete.ConfirmTitle"),
-                        button2: Lang.Text("Common.Action.Cancel"), isWarn: true))
+            switch ((DialogService.Instance.Show(new TextDialogRequest
+            {
+                Title = Lang.Text("Select.Instance.Delete.ConfirmTitle"),
+                Content = confirmFullMsg,
+                Buttons = DialogButtons.OkCancel,
+                IsWarn = true,
+                ForceWait = true
+            }).Result?.Button ?? 0))
             {
                 case 1:
                 {

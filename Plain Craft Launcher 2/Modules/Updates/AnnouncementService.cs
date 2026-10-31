@@ -1,5 +1,6 @@
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Dialogs;
 
 namespace PCL;
 
@@ -24,22 +25,28 @@ public static class AnnouncementService
         {
             foreach (var item in showAnnounce)
             {
-                Launcher.MyMsgBox(item.Detail, item.Title,
-                    item.Btn1 is null ? "" : item.Btn1.Text,
-                    item.Btn2 is null ? "" : item.Btn2.Text,
-                    Lang.Text("Common.Action.Close"),
-                    button1Action: () =>
-                    {
-                        if (EventTypeMapper.TryParse(
-                                item.Btn1.Command, out var eventType))
-                            CustomEvent.Raise(eventType, item.Btn1.CommandParameter);
-                    },
-                    button2Action: () =>
-                    {
-                        if (EventTypeMapper.TryParse(
-                                item.Btn2.Command, out var eventType))
-                            CustomEvent.Raise(eventType, item.Btn2.CommandParameter);
-                    });
+                DialogService.Instance.Show(new TextDialogRequest
+                {
+                    Title = item.Title,
+                    Content = item.Detail,
+                    Buttons = DialogButtons.From(
+                        DialogButton.Create(item.Btn1 is null ? "" : item.Btn1.Text,
+                            () =>
+                            {
+                                if (EventTypeMapper.TryParse(
+                                        item.Btn1.Command, out var eventType))
+                                    CustomEvent.Raise(eventType, item.Btn1.CommandParameter);
+                            }),
+                        DialogButton.Create(item.Btn2 is null ? "" : item.Btn2.Text,
+                            () =>
+                            {
+                                if (EventTypeMapper.TryParse(
+                                        item.Btn2.Command, out var eventType))
+                                    CustomEvent.Raise(eventType, item.Btn2.CommandParameter);
+                            }),
+                        DialogButton.Create(Lang.Text("Common.Action.Close"))),
+                    ForceWait = true
+                });
             }
         });
 

@@ -11,6 +11,7 @@ using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Core.Minecraft.ResourceProject;
 using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
@@ -88,8 +89,16 @@ public partial class PageDownloadCompDetail : IPageView
             var validate = new FolderNameValidator(GameFolders.mcFolderSelected + "versions");
             if (!validate.Validate(packName).IsValid)
                 packName = "";
-            var instanceName = await Launcher.MyMsgBoxInputAsync(Lang.Text("Download.Comp.Detail.InputInstanceName"), "",
-                packName, [validate]);
+            var instanceNameResult = await DialogService.Instance.ShowAsync(new InputDialogRequest
+            {
+                Title = Lang.Text("Download.Comp.Detail.InputInstanceName"),
+                DefaultValue = packName,
+                ValidateRules = [validate],
+                Buttons = DialogButtons.OkCancel,
+                HighLight = false,
+                ForceWait = false
+            });
+            var instanceName = instanceNameResult.IsConfirmed ? instanceNameResult.InputText : null;
             if (string.IsNullOrEmpty(instanceName))
                 return;
 
@@ -547,12 +556,14 @@ public partial class PageDownloadCompDetail : IPageView
                             var message = ExceptionDetails.Compose(
                                 Lang.Text("Download.Comp.Dependency.ResolveFailed.Message"),
                                 depEx);
-                            Launcher.MyMsgBox(
-                                message,
-                                Lang.Text("Download.Comp.Dependency.ResolveFailed.Title"),
-                                Lang.Text("Download.Comp.Dependency.ResolveFailed.Continue"),
-                                isWarn: true,
-                                forceWait: true);
+                            DialogService.Instance.Show(new TextDialogRequest
+                            {
+                                Title = Lang.Text("Download.Comp.Dependency.ResolveFailed.Title"),
+                                Content = message,
+                                Buttons = DialogButtons.Create("Download.Comp.Dependency.ResolveFailed.Continue"),
+                                IsWarn = true,
+                                ForceWait = true
+                            });
                         }
                     }
 
@@ -633,8 +644,14 @@ public partial class PageDownloadCompDetail : IPageView
             var chineseDescription = await _project.ChineseDescription;
             if (chineseDescription is null)
                 return;
-            await Launcher.MyMsgBoxAsync(Lang.Text("Download.Comp.Detail.DescriptionTranslationResult",
-                _project.Description, chineseDescription));
+            await DialogService.Instance.ShowAsync(new TextDialogRequest
+            {
+                Title = Lang.Text("Common.Dialog.Title"),
+                Content = Lang.Text("Download.Comp.Detail.DescriptionTranslationResult",
+                    _project.Description, chineseDescription),
+                Buttons = DialogButtons.Ok,
+                ForceWait = false
+            });
         }
         catch (Exception ex)
         {

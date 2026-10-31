@@ -3,6 +3,7 @@ using System.Windows.Input;
 using System.Text.Json.Serialization;
 using PCL.Network;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Dialogs;
 
 namespace PCL;
 
@@ -64,11 +65,15 @@ public partial class PageSetupFeedback : IPageView
     private void ShowFeedbackDetail(Feedback item)
     {
         var timeSpanText = Lang.TimeSpan(item.Time - DateTime.Now);
-        switch (Launcher.MyMsgBoxMarkdown(
-                    Lang.Text("Setup.Feedback.Item.Submitter", item.User, timeSpanText) + "\n" +
-                    Lang.Text("Setup.Feedback.Item.Type", item.Type) + "\n\n" +
-                    item.Content,
-                    $"#{item.Id} {item.Title}", button2: Lang.Text("Setup.Feedback.Item.ViewDetail")))
+        switch ((DialogService.Instance.Show(new MarkdownDialogRequest
+        {
+            Title = $"#{item.Id} {item.Title}",
+            Content = Lang.Text("Setup.Feedback.Item.Submitter", item.User, timeSpanText) + "\n" +
+                      Lang.Text("Setup.Feedback.Item.Type", item.Type) + "\n\n" +
+                      item.Content,
+            Buttons = DialogButtons.Create("Common.Action.Confirm", "Setup.Feedback.Item.ViewDetail"),
+            ForceWait = true
+        }).Result?.Button ?? 0))
         {
             case 2:
             {

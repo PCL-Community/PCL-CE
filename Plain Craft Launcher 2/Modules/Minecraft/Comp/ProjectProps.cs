@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Dialogs;
 using PCL.Network;
 
 namespace PCL;
@@ -82,10 +83,14 @@ public static partial class Comp
             {
                 if (ex.Message.Contains("404"))
                 {
-                    Launcher.MyMsgBox(
-                        Lang.Text("Download.Comp.Detail.DescriptionNoTranslation"),
-                        Lang.Text("Download.Comp.Detail.DescriptionTranslationFailed"),
-                        Lang.Text("Download.Comp.Detail.KnownButton"));
+                    DialogService.Instance.Show(new TextDialogRequest
+                    {
+                        Title = Lang.Text("Download.Comp.Detail.DescriptionTranslationFailed"),
+                        Content = Lang.Text("Download.Comp.Detail.DescriptionNoTranslation"),
+                        Buttons = DialogButtons.From(
+                            DialogButton.Create(Lang.Text("Download.Comp.Detail.KnownButton"))),
+                        ForceWait = true
+                    });
                     return null;
                 }
 

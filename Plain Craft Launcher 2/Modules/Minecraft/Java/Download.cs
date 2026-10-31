@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using PCL.Core.App.Localization;
 using PCL.Core.IO;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils.OS;
 using PCL.Network;
 using PCL.Network.Loaders;
@@ -27,16 +28,24 @@ public static partial class JavaRuntime
         bool forcedManualDownload = false)
     {
         if (!forcedManualDownload)
-            return Launcher.MyMsgBox(
-                    Lang.Text("Minecraft.Launch.Java.AutoDownload.Message", versionDescription),
-                    Lang.Text("Minecraft.Launch.Java.AutoDownload.Title"),
-                    Lang.Text("Minecraft.Launch.Java.AutoDownload.Action"),
-                    Lang.Text("Common.Action.Cancel"))
-                == 1;
+            return DialogService.Instance.Show(new TextDialogRequest
+                {
+                    Title = Lang.Text("Minecraft.Launch.Java.AutoDownload.Title"),
+                    Content = Lang.Text("Minecraft.Launch.Java.AutoDownload.Message", versionDescription),
+                    Buttons = DialogButtons.From(
+                        DialogButton.Create(Lang.Text("Minecraft.Launch.Java.AutoDownload.Action")),
+                        DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                    ForceWait = true
+                }).Result
+                ?.Button == 1;
 
-        Launcher.MyMsgBox(
-            Lang.Text("Minecraft.Launch.Java.NotFound.Manual.Message", versionDescription),
-            Lang.Text("Minecraft.Launch.Java.NotFound.Title"));
+        DialogService.Instance.Show(new TextDialogRequest
+        {
+            Title = Lang.Text("Minecraft.Launch.Java.NotFound.Title"),
+            Content = Lang.Text("Minecraft.Launch.Java.NotFound.Manual.Message", versionDescription),
+            Buttons = DialogButtons.Ok,
+            ForceWait = true
+        });
 
         return false;
     }

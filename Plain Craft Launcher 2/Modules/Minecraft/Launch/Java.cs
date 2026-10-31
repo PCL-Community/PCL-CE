@@ -1,5 +1,6 @@
 ﻿using PCL.Core.App.Localization;
 using PCL.Core.Minecraft;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils;
 
 namespace PCL;
@@ -400,28 +401,40 @@ public static partial class GameLaunch
 
         if (maxVer < new Version(1, 8))
         {
-            Launcher.MyMsgBox(
-                InstanceList.McMcInstanceSelected!.Info.HasForge
+            DialogService.Instance.Show(new TextDialogRequest
+            {
+                Title = Lang.Text("Minecraft.Launch.Java.NotFound.Title"),
+                Content = InstanceList.McMcInstanceSelected!.Info.HasForge
                     ? Lang.Text("Minecraft.Launch.Java.NeedLegacyJavaFixerOrJava7")
                     : Lang.Text("Minecraft.Launch.Java.NeedJava7"),
-                Lang.Text("Minecraft.Launch.Java.NotFound.Title"));
+                Buttons = DialogButtons.Ok,
+                ForceWait = true
+            });
             throw new Exception("$$");
         }
 
         if (minVer > new Version(1, 8, 0, 140)
             && maxVer < new Version(1, 8, 0, 321))
         {
-            Launcher.MyMsgBox(
-                Lang.Text("Minecraft.Launch.Java.NeedJava8U141ToU320"),
-                Lang.Text("Minecraft.Launch.Java.NotFound.Title"));
+            DialogService.Instance.Show(new TextDialogRequest
+            {
+                Title = Lang.Text("Minecraft.Launch.Java.NotFound.Title"),
+                Content = Lang.Text("Minecraft.Launch.Java.NeedJava8U141ToU320"),
+                Buttons = DialogButtons.Ok,
+                ForceWait = true
+            });
             throw new Exception("$$");
         }
 
         if (minVer > new Version(1, 8, 0, 140))
         {
-            Launcher.MyMsgBox(
-                Lang.Text("Minecraft.Launch.Java.NeedJava8U141OrLater"),
-                Lang.Text("Minecraft.Launch.Java.NotFound.Title"));
+            DialogService.Instance.Show(new TextDialogRequest
+            {
+                Title = Lang.Text("Minecraft.Launch.Java.NotFound.Title"),
+                Content = Lang.Text("Minecraft.Launch.Java.NeedJava8U141OrLater"),
+                Buttons = DialogButtons.Ok,
+                ForceWait = true
+            });
             throw new Exception("$$");
         }
 

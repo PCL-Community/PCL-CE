@@ -3,6 +3,7 @@ using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.ViewModel;
 
 namespace PCL;
@@ -115,14 +116,24 @@ public partial class PageSetupUIViewModel : ViewModelBase
 
     public async Task<bool> ConfirmBackgroundClearAsync()
     {
-        return await Launcher.MyMsgBoxAsync(Lang.Text("Setup.Ui.Background.Clear.Confirm.Message"),
-            Lang.Text("Common.Dialog.Warning"), button2: Lang.Text("Common.Action.Cancel"), isWarn: true) == 1;
+        return (await Dialog.ShowAsync(new TextDialogRequest
+        {
+            Title = Lang.Text("Common.Dialog.Warning"),
+            Content = Lang.Text("Setup.Ui.Background.Clear.Confirm.Message"),
+            Buttons = DialogButtons.OkCancel,
+            IsWarn = true
+        })).IsConfirmed;
     }
 
     public async Task<bool> ConfirmMusicClearAsync()
     {
-        return await Launcher.MyMsgBoxAsync(Lang.Text("Setup.Ui.Music.Clear.Confirm.Message"),
-            Lang.Text("Common.Dialog.Warning"), button2: Lang.Text("Common.Action.Cancel"), isWarn: true) == 1;
+        return (await Dialog.ShowAsync(new TextDialogRequest
+        {
+            Title = Lang.Text("Common.Dialog.Warning"),
+            Content = Lang.Text("Setup.Ui.Music.Clear.Confirm.Message"),
+            Buttons = DialogButtons.OkCancel,
+            IsWarn = true
+        })).IsConfirmed;
     }
 
     public static object FormatMusicVolumeHint(object value)

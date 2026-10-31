@@ -46,36 +46,70 @@ public static class ProfileUi
             switch (normalizedError)
             {
                 case "xsts_2148916227":
-                    Launcher.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Microsoft.Banned"),
-                        Lang.Text("Minecraft.Launch.Login.Failed"), Lang.Text("Minecraft.Launch.Login.IKnow"), isWarn: true);
+                    DialogService.Instance.Show(new TextDialogRequest
+                    {
+                        Title = Lang.Text("Minecraft.Launch.Login.Failed"),
+                        Content = Lang.Text("Minecraft.Launch.Login.Microsoft.Banned"),
+                        Buttons = DialogButtons.From(
+                            DialogButton.Create(Lang.Text("Minecraft.Launch.Login.IKnow"))),
+                        IsWarn = true,
+                        ForceWait = true
+                    });
                     break;
                 case "xsts_2148916233":
-                    if (Launcher.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Microsoft.XboxNotRegistered"),
-                            Lang.Text("Minecraft.Launch.Login.Hint"), Lang.Text("Minecraft.Launch.Login.Register"),
-                            Lang.Text("Common.Action.Cancel")) == 1)
+                    if (DialogService.Instance.Show(new TextDialogRequest
+                        {
+                            Title = Lang.Text("Minecraft.Launch.Login.Hint"),
+                            Content = Lang.Text("Minecraft.Launch.Login.Microsoft.XboxNotRegistered"),
+                            Buttons = DialogButtons.From(
+                                DialogButton.Create(Lang.Text("Minecraft.Launch.Login.Register")),
+                                DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                            ForceWait = true
+                        }).Result?.Button == 1)
                         Common.OpenWebsite("https://signup.live.com/signup");
                     break;
                 case "xsts_2148916235":
-                    Launcher.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Microsoft.RegionBlocked"),
-                        Lang.Text("Minecraft.Launch.Login.Failed"), Lang.Text("Minecraft.Launch.Login.IKnow"));
+                    DialogService.Instance.Show(new TextDialogRequest
+                    {
+                        Title = Lang.Text("Minecraft.Launch.Login.Failed"),
+                        Content = Lang.Text("Minecraft.Launch.Login.Microsoft.RegionBlocked"),
+                        Buttons = DialogButtons.From(
+                            DialogButton.Create(Lang.Text("Minecraft.Launch.Login.IKnow"))),
+                        ForceWait = true
+                    });
                     break;
                 case "xsts_2148916238":
-                    if (Launcher.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.Message"),
-                            Lang.Text("Minecraft.Launch.Login.Hint"),
-                            Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.AgeOver13"),
-                            Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.AgeUnder13"),
-                            Lang.Text("Common.Option.IDontKnow")) == 1)
+                    if (DialogService.Instance.Show(new TextDialogRequest
+                        {
+                            Title = Lang.Text("Minecraft.Launch.Login.Hint"),
+                            Content = Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.Message"),
+                            Buttons = DialogButtons.From(
+                                DialogButton.Create(Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.AgeOver13")),
+                                DialogButton.Create(Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.AgeUnder13")),
+                                DialogButton.Create(Lang.Text("Common.Option.IDontKnow"))),
+                            ForceWait = true
+                        }).Result?.Button == 1)
                     {
                         Common.OpenWebsite("https://account.live.com/editprof.aspx");
-                        Launcher.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Microsoft.ChangeBirthDate.Message"),
-                            Lang.Text("Minecraft.Launch.Login.Hint"));
+                        DialogService.Instance.Show(new TextDialogRequest
+                        {
+                            Title = Lang.Text("Minecraft.Launch.Login.Hint"),
+                            Content = Lang.Text("Minecraft.Launch.Login.Microsoft.ChangeBirthDate.Message"),
+                            Buttons = DialogButtons.Ok,
+                            ForceWait = true
+                        });
                     }
                     else
                     {
                         Common.OpenWebsite(
                             "https://support.microsoft.com/zh-cn/account-billing/如何更改-microsoft-帐户上的出生日期-837badbc-999e-54d2-2617-d19206b9540a");
-                        Launcher.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Microsoft.ChangeBirthDate.SupportMessage"),
-                            Lang.Text("Minecraft.Launch.Login.Hint"));
+                        DialogService.Instance.Show(new TextDialogRequest
+                        {
+                            Title = Lang.Text("Minecraft.Launch.Login.Hint"),
+                            Content = Lang.Text("Minecraft.Launch.Login.Microsoft.ChangeBirthDate.SupportMessage"),
+                            Buttons = DialogButtons.Ok,
+                            ForceWait = true
+                        });
                     }
 
                     break;
@@ -95,10 +129,15 @@ public static class ProfileUi
 
         Common.RunInUiWait(() =>
         {
-            if (Launcher.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Microsoft.NotPurchased"),
-                    Lang.Text("Minecraft.Launch.Login.Failed"),
-                    Lang.Text("Minecraft.Launch.Login.Microsoft.PurchaseMinecraft"),
-                    Lang.Text("Common.Action.Cancel")) == 1)
+            if (DialogService.Instance.Show(new TextDialogRequest
+                {
+                    Title = Lang.Text("Minecraft.Launch.Login.Failed"),
+                    Content = Lang.Text("Minecraft.Launch.Login.Microsoft.NotPurchased"),
+                    Buttons = DialogButtons.From(
+                        DialogButton.Create(Lang.Text("Minecraft.Launch.Login.Microsoft.PurchaseMinecraft")),
+                        DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                    ForceWait = true
+                }).Result?.Button == 1)
                 Common.OpenWebsite(
                     "https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj");
         });
@@ -116,10 +155,15 @@ public static class ProfileUi
 
         Common.RunInUiWait(() =>
         {
-            if (Launcher.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Microsoft.CreateProfile.Message"),
-                    Lang.Text("Minecraft.Launch.Login.Failed"),
-                    Lang.Text("Minecraft.Launch.Login.Microsoft.CreateProfile.Button"),
-                    Lang.Text("Common.Action.Cancel")) == 1)
+            if (DialogService.Instance.Show(new TextDialogRequest
+                {
+                    Title = Lang.Text("Minecraft.Launch.Login.Failed"),
+                    Content = Lang.Text("Minecraft.Launch.Login.Microsoft.CreateProfile.Message"),
+                    Buttons = DialogButtons.From(
+                        DialogButton.Create(Lang.Text("Minecraft.Launch.Login.Microsoft.CreateProfile.Button")),
+                        DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                    ForceWait = true
+                }).Result?.Button == 1)
                 Common.OpenWebsite("https://www.minecraft.net/zh-hans/msaprofile/mygames/editprofile");
         });
         return true;
@@ -194,8 +238,17 @@ public static class ProfileUi
     public static async Task CreateProfileAsync()
     {
         var includeOthers = Common.RunInUiWait(CanCreateOtherProfile);
-        var selected = await Launcher.MyMsgBoxSelectAsync(_GetAvailableProfileSelection(includeOthers),
-            Lang.Text("Launch.Account.Profile.Create.SelectAuthType.Title"), Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel"));
+        var selectedDialog = await DialogService.Instance.ShowAsync(new SelectDialogRequest
+        {
+            Title = Lang.Text("Launch.Account.Profile.Create.SelectAuthType.Title"),
+            Options = PCL.DialogOptions.From(_GetAvailableProfileSelection(includeOthers)),
+            Buttons = DialogButtons.From(
+                DialogButton.Create(Lang.Text("Common.Action.Continue")),
+                DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+            HighLight = false,
+            ForceWait = false
+        });
+        var selected = selectedDialog.IsConfirmed ? selectedDialog.SelectedIndex : null;
         if (selected is null) return;
         ProfileService.IsCreatingProfile = true;
         var type = selected.Value switch
@@ -206,8 +259,16 @@ public static class ProfileUi
         };
         if (type == GameLaunch.McLoginType.Auth)
         {
-            var server = await Launcher.MyMsgBoxAuthServerAsync(
-                PageLoginAuth.DefaultAuthServer, PageLoginAuth.PredefinedAuthServers);
+            var serverDialog = await DialogService.Instance.ShowAsync(new AuthServerDialogRequest
+            {
+                Title = Lang.Text("Launch.Account.Auth.SelectServer"),
+                DefaultServer = PageLoginAuth.DefaultAuthServer,
+                Presets = PageLoginAuth.PredefinedAuthServers,
+                Buttons = DialogButtons.OkCancel,
+                HighLight = false,
+                ForceWait = false
+            });
+            var server = serverDialog.IsConfirmed ? serverDialog.InputText ?? "" : "";
             if (string.IsNullOrWhiteSpace(server))
             {
                 ProfileService.IsCreatingProfile = false;
@@ -236,16 +297,29 @@ public static class ProfileUi
         if (profile is null) return;
         if (profile.ProfileType == ProfileType.Microsoft)
         {
-            string? username = null;
-            username = await Launcher.MyMsgBoxInputAsync(
-                Lang.Text("Launch.Account.Profile.EditPlayerId.Title"),
-                Lang.Text("Launch.Account.Profile.EditPlayerId.MicrosoftWarning"), profile.UserName,
-                [new StringLengthValidator(3, 16), new RegexValidator("([A-z]|[0-9]|_)+")],
-                Lang.Text("Launch.Account.Profile.EditPlayerId.Hint"), Lang.Text("Common.Action.Confirm"));
+            var usernameDialog = await DialogService.Instance.ShowAsync(new InputDialogRequest
+            {
+                Title = Lang.Text("Launch.Account.Profile.EditPlayerId.Title"),
+                Content = Lang.Text("Launch.Account.Profile.EditPlayerId.MicrosoftWarning"),
+                DefaultValue = profile.UserName,
+                ValidateRules = [new StringLengthValidator(3, 16), new RegexValidator("([A-z]|[0-9]|_)+")],
+                HintText = Lang.Text("Launch.Account.Profile.EditPlayerId.Hint"),
+                Buttons = DialogButtons.OkCancel,
+                HighLight = false,
+                ForceWait = false
+            });
+            var username = usernameDialog.IsConfirmed ? usernameDialog.InputText : null;
             if (string.IsNullOrWhiteSpace(username)) return;
-            if (await Launcher.MyMsgBoxAsync(Lang.Text("Launch.Account.Profile.EditPlayerId.Confirm.Message"),
-                    Lang.Text("Launch.Account.Profile.EditPlayerId.Confirm.Title"), Lang.Text("Common.Action.Continue"),
-                    Lang.Text("Common.Action.Cancel"), isWarn: true) == 2) return;
+            if ((await DialogService.Instance.ShowAsync(new TextDialogRequest
+                {
+                    Title = Lang.Text("Launch.Account.Profile.EditPlayerId.Confirm.Title"),
+                    Content = Lang.Text("Launch.Account.Profile.EditPlayerId.Confirm.Message"),
+                    Buttons = DialogButtons.From(
+                        DialogButton.Create(Lang.Text("Common.Action.Continue")),
+                        DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                    IsWarn = true,
+                    ForceWait = false
+                })).Button == 2) return;
             Common.RunInNewThread(() =>
             {
                 try
@@ -256,10 +330,16 @@ public static class ProfileUi
                     var status = check["status"]?.ToString();
                     if (status is "DUPLICATE" or "NOT_ALLOWED")
                     {
-                        Launcher.MyMsgBox(status == "DUPLICATE"
+                        DialogService.Instance.Show(new TextDialogRequest
+                        {
+                            Title = Lang.Text("Launch.Account.Profile.EditPlayerId.Failed.Title"),
+                            Content = status == "DUPLICATE"
                                 ? Lang.Text("Launch.Account.Profile.EditPlayerId.Duplicate")
                                 : Lang.Text("Launch.Account.Profile.EditPlayerId.NotAllowed"),
-                            Lang.Text("Launch.Account.Profile.EditPlayerId.Failed.Title"), Lang.Text("Common.Action.Confirm"), isWarn: true);
+                            Buttons = DialogButtons.Ok,
+                            IsWarn = true,
+                            ForceWait = true
+                        });
                         return;
                     }
                     var result = (JsonObject)Common.GetJson(Requester.Fetch(
@@ -274,8 +354,13 @@ public static class ProfileUi
                 }
                 catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.Forbidden)
                 {
-                    Launcher.MyMsgBox(Lang.Text("Launch.Account.Profile.EditPlayerId.Cooldown"),
-                        Lang.Text("Launch.Account.Profile.EditPlayerId.Failed.Title"), Lang.Text("Common.Action.Confirm"));
+                    DialogService.Instance.Show(new TextDialogRequest
+                    {
+                        Title = Lang.Text("Launch.Account.Profile.EditPlayerId.Failed.Title"),
+                        Content = Lang.Text("Launch.Account.Profile.EditPlayerId.Cooldown"),
+                        Buttons = DialogButtons.Ok,
+                        ForceWait = true
+                    });
                 }
                 catch (Exception ex)
                 {
@@ -292,10 +377,17 @@ public static class ProfileUi
             return;
         }
 
-        string? newName = null;
-        newName = await Launcher.MyMsgBoxInputAsync(Lang.Text("Launch.Account.Profile.EditPlayerId.Title"),
-            defaultInput: profile.UserName, validateRules: [new StringLengthValidator(3, 16), new RegexValidator("([A-z]|[0-9]|_)+")],
-            hintText: Lang.Text("Launch.Account.Profile.EditPlayerId.Hint"), button1: Lang.Text("Common.Action.Confirm"), button2: Lang.Text("Common.Action.Cancel"));
+        var newNameDialog = await DialogService.Instance.ShowAsync(new InputDialogRequest
+        {
+            Title = Lang.Text("Launch.Account.Profile.EditPlayerId.Title"),
+            DefaultValue = profile.UserName,
+            ValidateRules = [new StringLengthValidator(3, 16), new RegexValidator("([A-z]|[0-9]|_)+")],
+            HintText = Lang.Text("Launch.Account.Profile.EditPlayerId.Hint"),
+            Buttons = DialogButtons.OkCancel,
+            HighLight = false,
+            ForceWait = false
+        });
+        var newName = newNameDialog.IsConfirmed ? newNameDialog.InputText : null;
         if (!string.IsNullOrWhiteSpace(newName)) EditOfflineUuid(profile, GetOfflineUuid(newName));
     }
 
@@ -310,19 +402,39 @@ public static class ProfileUi
         if (newUuid is null)
         {
             int? type = null;
-            type = await Launcher.MyMsgBoxSelectAsync([
-                new MyRadioBox { Text = Lang.Text("Launch.Account.Profile.Uuid.Standard") },
-                new MyRadioBox { Text = Lang.Text("Launch.Account.Profile.Uuid.Legacy") },
-                new MyRadioBox { Text = Lang.Text("Common.Option.Customize") }],
-                Lang.Text("Launch.Account.Profile.Uuid.SelectType.Title"), Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel"));
+            var typeDialog = await DialogService.Instance.ShowAsync(new SelectDialogRequest
+            {
+                Title = Lang.Text("Launch.Account.Profile.Uuid.SelectType.Title"),
+                Options =
+                [
+                    new DialogOption { Text = Lang.Text("Launch.Account.Profile.Uuid.Standard") },
+                    new DialogOption { Text = Lang.Text("Launch.Account.Profile.Uuid.Legacy") },
+                    new DialogOption { Text = Lang.Text("Common.Option.Customize") }
+                ],
+                Buttons = DialogButtons.From(
+                    DialogButton.Create(Lang.Text("Common.Action.Continue")),
+                    DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                HighLight = false,
+                ForceWait = false
+            });
+            type = typeDialog.IsConfirmed ? typeDialog.SelectedIndex : null;
             if (type is null) return;
             newUuid = type switch
             {
                 0 => GetOfflineUuid(current.UserName),
                 1 => GetOfflineUuid(current.UserName, isLegacy: true),
-                _ => await Launcher.MyMsgBoxInputAsync(Lang.Text("Launch.Account.Profile.Uuid.ChangeTitle", current.UserName), defaultInput: current.Uuid,
-                    hintText: Lang.Text("Launch.Account.Profile.Uuid.Hint"), validateRules: [new StringLengthValidator(32, 32), new RegexValidator("([A-z]|[0-9]){32}", Lang.Text("Launch.Account.Profile.Uuid.InvalidChars"))],
-                    button1: Lang.Text("Common.Action.Continue"), button2: Lang.Text("Common.Action.Cancel"))
+                _ => (await DialogService.Instance.ShowAsync(new InputDialogRequest
+                    {
+                        Title = Lang.Text("Launch.Account.Profile.Uuid.ChangeTitle", current.UserName),
+                        DefaultValue = current.Uuid,
+                        HintText = Lang.Text("Launch.Account.Profile.Uuid.Hint"),
+                        ValidateRules = [new StringLengthValidator(32, 32), new RegexValidator("([A-z]|[0-9]){32}", Lang.Text("Launch.Account.Profile.Uuid.InvalidChars"))],
+                        Buttons = DialogButtons.OkCancel,
+                        HighLight = false,
+                        ForceWait = false
+                    })) is { IsConfirmed: true } confirm
+                    ? confirm.InputText
+                    : null
             };
         }
         if (string.IsNullOrWhiteSpace(newUuid)) return;

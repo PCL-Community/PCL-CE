@@ -9,6 +9,7 @@ using System.Windows.Shapes;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils;
 
 namespace PCL;
@@ -129,17 +130,23 @@ public partial class PageInstanceInstall : IPageView
         if (_selectedLoaderType is not null &&
             (Config.Launch.IndieSolutionV2 == 0 ||
              Config.Launch.IndieSolutionV2 == 2))
-            if (Launcher.MyMsgBox(
-                    Lang.Text("Download.Install.InstanceIsolation.Warning.Message"), Lang.Text("Download.Install.InstanceIsolation.Warning.Title"), Lang.Text("Download.Install.InstanceIsolation.Warning.Cancel"), Lang.Text("Download.Install.InstanceIsolation.Warning.Continue")) == 1)
+            if ((DialogService.Instance.Show(new TextDialogRequest
+            {
+                Title = Lang.Text("Download.Install.InstanceIsolation.Warning.Title"),
+                Content = Lang.Text("Download.Install.InstanceIsolation.Warning.Message"),
+                Buttons = DialogButtons.Create("Download.Install.InstanceIsolation.Warning.Cancel", "Download.Install.InstanceIsolation.Warning.Continue"),
+                ForceWait = true
+            }).Result?.Button ?? 0) == 1)
                 return;
 
         if (_installAction == InstallAction.Reset)
-            if (Launcher.MyMsgBox(
-                    Lang.Text("Instance.Install.Reset.Message"),
-                    Lang.Text("Instance.Install.Reset.Title"),
-                    Lang.Text("Common.Action.Continue"),
-                    Lang.Text("Common.Action.Cancel")
-                ) == 2)
+            if ((DialogService.Instance.Show(new TextDialogRequest
+            {
+                Title = Lang.Text("Instance.Install.Reset.Title"),
+                Content = Lang.Text("Instance.Install.Reset.Message"),
+                Buttons = DialogButtons.ContinueCancel,
+                ForceWait = true
+            }).Result?.Button ?? 0) == 2)
                 return;
 
         // 删除 LabyMod Neo 文件

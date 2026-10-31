@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Dialogs;
 
 namespace PCL;
 
@@ -30,13 +31,14 @@ public static partial class Comp
                         System.Windows.Application.Current.Dispatcher.BeginInvoke(
                             new Func<Task>(async () =>
                             {
-                                if (Launcher.MyMsgBox(
-                                        Lang.Text(
+                                if (DialogService.Instance.Show(new TextDialogRequest
+                                    {
+                                        Title = Lang.Text("Download.Comp.Detail.Clipboard.Detected.Title"),
+                                        Content = Lang.Text(
                                             "Download.Comp.Detail.Clipboard.Detected.Message"),
-                                        Lang.Text("Download.Comp.Detail.Clipboard.Detected.Title"),
-                                        Lang.Text("Common.Action.Confirm"),
-                                        Lang.Text("Common.Action.Cancel"),
-                                        forceWait: true)
+                                        Buttons = DialogButtons.OkCancel,
+                                        ForceWait = true
+                                    }).Result?.Button
                                     == 1)
                                 {
                                     HintService.Hint(

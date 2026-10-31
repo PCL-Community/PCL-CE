@@ -3,6 +3,7 @@ using System.IO;
 using System.IO.Compression;
 using PCL.Core.App.Localization;
 using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
 using static PCL.Loading;
 
 namespace PCL;
@@ -32,11 +33,14 @@ public static partial class Modpack
 
     private static string _SelectLauncherPackTargetFolder()
     {
-        Launcher.MyMsgBox(
-            Lang.Text("Minecraft.Download.Modpack.SelectEmptyFolder.Message"),
-            Lang.Text("Common.Action.Install"),
-            Lang.Text("Common.Action.Continue"),
-            forceWait: true);
+        DialogService.Instance.Show(new TextDialogRequest
+        {
+            Title = Lang.Text("Common.Action.Install"),
+            Content = Lang.Text("Minecraft.Download.Modpack.SelectEmptyFolder.Message"),
+            Buttons = DialogButtons.From(
+                DialogButton.Create(Lang.Text("Common.Action.Continue"))),
+            ForceWait = true
+        });
         var targetFolder = SystemDialogs.SelectFolder(
             Lang.Text("Minecraft.Download.Modpack.SelectTargetFolder.Title"));
 
@@ -66,13 +70,16 @@ public static partial class Modpack
         if (launcher is not null)
         {
             Common.Log($"[Modpack] 找到压缩包中附带的启动器：{launcher}");
-            if (Launcher.MyMsgBox(
-                    Lang.Text("Minecraft.Download.Modpack.BundledLauncher.Message", launcher),
-                    Lang.Text("Minecraft.Download.Modpack.BundledLauncher.Title"),
-                    Lang.Text("Minecraft.Download.Modpack.BundledLauncher.UseBundled"),
-                    Lang.Text("Minecraft.Download.Modpack.BundledLauncher.DoNotUse")
-                )
-                == 1)
+            if (DialogService.Instance.Show(new TextDialogRequest
+                {
+                    Title = Lang.Text("Minecraft.Download.Modpack.BundledLauncher.Title"),
+                    Content = Lang.Text("Minecraft.Download.Modpack.BundledLauncher.Message", launcher),
+                    Buttons = DialogButtons.From(
+                        DialogButton.Create(Lang.Text("Minecraft.Download.Modpack.BundledLauncher.UseBundled")),
+                        DialogButton.Create(Lang.Text("Minecraft.Download.Modpack.BundledLauncher.DoNotUse"))),
+                    ForceWait = true
+                }).Result
+                ?.Button == 1)
             {
                 Common.OpenExplorer(targetFolder);
                 Common.ShellOnly(launcher, "--wait");

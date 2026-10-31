@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App.Localization;
 using PCL.Core.Minecraft.Profile;
 using PCL.Core.Minecraft.Profile.Models;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils.Validate;
 using PCL.Core.ViewModel;
 
@@ -48,10 +49,13 @@ public partial class PageLoginOfflineViewModel : ViewModelBase
             var username = UserName;
             if (!new RegexValidator("^[A-z0-9_]{3,16}$").Validate(username).IsValid)
             {
-                var result = await Launcher.MyMsgBoxAsync(
-                    Lang.Text("Launch.Account.Offline.InvalidPlayerId.Message"),
-                    Lang.Text("Launch.Account.Offline.InvalidPlayerId.Title"),
-                    Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel"), isWarn: true);
+                var result = (await Dialog.ShowAsync(new TextDialogRequest
+                {
+                    Title = Lang.Text("Launch.Account.Offline.InvalidPlayerId.Title"),
+                    Content = Lang.Text("Launch.Account.Offline.InvalidPlayerId.Message"),
+                    Buttons = DialogButtons.ContinueCancel,
+                    IsWarn = true
+                })).Button;
                 if (result == 2) return;
             }
 

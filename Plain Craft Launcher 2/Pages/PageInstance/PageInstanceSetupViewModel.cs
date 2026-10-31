@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.Minecraft;
 using PCL.Core.Utils;
 using PCL.Core.Utils.OS;
@@ -305,12 +306,19 @@ public partial class PageInstanceSetupViewModel : ViewModelBase
         try
         {
             if (!string.IsNullOrEmpty(ServerAuthServerText) &&
-                ServerAuthServerText != "https://littleskin.cn/api/yggdrasil" && await Dialog.ShowAsync(
-                    title: Lang.Text("Instance.Setup.Server.LittleSkin.Override.Title"),
-                    content: Lang.Text("Instance.Setup.Server.LittleSkin.Override.Message"),
-                    button1: Lang.Text("Instance.Setup.Server.LittleSkin.Override.Continue"),
-                    button2: Lang.Text("Common.Action.Cancel")) == 2)
-                return;
+                ServerAuthServerText != "https://littleskin.cn/api/yggdrasil")
+            {
+                var overrideResult = await Dialog.ShowAsync(new TextDialogRequest
+                {
+                    Title = Lang.Text("Instance.Setup.Server.LittleSkin.Override.Title"),
+                    Content = Lang.Text("Instance.Setup.Server.LittleSkin.Override.Message"),
+                    Buttons = DialogButtons.From(
+                        DialogButton.Create(Lang.Text("Instance.Setup.Server.LittleSkin.Override.Continue")),
+                        DialogButton.Create(Lang.Text("Common.Action.Cancel")))
+                });
+                if (overrideResult.Button == 2)
+                    return;
+            }
             ServerAuthServerText = "https://littleskin.cn/api/yggdrasil";
             ServerAuthRegisterText = "https://littleskin.cn/auth/register";
             ServerAuthNameText = Lang.Text("Instance.Setup.Server.LittleSkin.Name");
@@ -343,12 +351,14 @@ public partial class PageInstanceSetupViewModel : ViewModelBase
         ServerAuthLockEnabled = false;
         try
         {
-            if (await Dialog.ShowAsync(
-                    title: Lang.Text("Instance.Setup.Server.LockLoginMethod.Title"),
-                    content: Lang.Text("Instance.Setup.Server.LockLoginMethod.Message"),
-                    button1: Lang.Text("Common.Action.Confirm"),
-                    button2: Lang.Text("Common.Action.Cancel"),
-                    isWarn: true) == 1)
+            var lockResult = await Dialog.ShowAsync(new TextDialogRequest
+            {
+                Title = Lang.Text("Instance.Setup.Server.LockLoginMethod.Title"),
+                Content = Lang.Text("Instance.Setup.Server.LockLoginMethod.Message"),
+                Buttons = DialogButtons.OkCancel,
+                IsWarn = true
+            });
+            if (lockResult.Button == 1)
             {
                 Config.InstanceAuth.AuthLocked[PageInstanceLeft.McInstance.PathInstance] = true;
                 Launcher.frmInstanceSetup?.Reload();
