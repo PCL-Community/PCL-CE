@@ -581,7 +581,16 @@ public partial class PageToolsTest : IPageView
                 .OrderBy(f => f.Display, StringComparer.CurrentCulture)
                 .ToList());
 
-            var items = new List<MyComboBoxItem>(families.Count);
+            var items = new List<MyComboBoxItem>(families.Count + 1)
+            {
+                // 首项固定是内置字体：Tag 留空时 ResolveAchievementFont 会退回 AchievementFontFamily，
+                // 这样用户没主动选字体时，渲染结果与这台机器装了哪些字体无关
+                new MyComboBoxItem
+                {
+                    Content = Lang.Text("Common.Option.Default"),
+                    FontFamily = AchievementFontFamily
+                }
+            };
             foreach (var (source, display) in families)
             {
                 var item = new MyComboBoxItem
@@ -603,7 +612,7 @@ public partial class PageToolsTest : IPageView
             }
 
             ComboAchievementFont.ItemsSource = items;
-            if (items.Count > 0) ComboAchievementFont.SelectedIndex = 0;
+            ComboAchievementFont.SelectedIndex = 0;
         }
         catch (Exception ex)
         {
