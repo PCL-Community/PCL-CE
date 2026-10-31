@@ -83,7 +83,7 @@ public static partial class Comp
             {
                 if (ex.Message.Contains("404"))
                 {
-                    DialogService.Instance.Show(new TextDialogRequest
+                    _ = DialogService.Instance.ShowAsync(new TextDialogRequest
                     {
                         Title = Lang.Text("Download.Comp.Detail.DescriptionTranslationFailed"),
                         Content = Lang.Text("Download.Comp.Detail.DescriptionNoTranslation"),

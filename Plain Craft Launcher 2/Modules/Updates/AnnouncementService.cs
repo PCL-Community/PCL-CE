@@ -25,7 +25,7 @@ public static class AnnouncementService
         {
             foreach (var item in showAnnounce)
             {
-                DialogService.Instance.Show(new TextDialogRequest
+                _ = DialogService.Instance.ShowAsync(new TextDialogRequest
                 {
                     Title = item.Title,
                     Content = item.Detail,

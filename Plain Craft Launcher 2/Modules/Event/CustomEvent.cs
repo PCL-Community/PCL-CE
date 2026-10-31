@@ -217,7 +217,7 @@ namespace PCL
             var args = SplitArgs(arg);
             if (args.Length == 1)
                 throw new ArgumentException(Lang.Text("Event.Error.MissingArgs", type.ToString(), "Title|Content"));
-            DialogService.Instance.Show(new TextDialogRequest
+            _ = DialogService.Instance.ShowAsync(new TextDialogRequest
             {
                 Title = FixNewlines(args[0]),
                 Content = FixNewlines(args[1]),

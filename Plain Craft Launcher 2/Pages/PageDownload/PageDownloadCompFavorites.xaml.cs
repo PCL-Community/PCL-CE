@@ -1006,7 +1006,7 @@ public partial class PageDownloadCompFavorites : IPageView
         var failIds = loader.input.Except(loader.output.Select(i => i.Id).ToList()).ToList();
         foreach (var Id in failIds)
             content += $" - {Id}" + "\r\n";
-        _vm.Dialog.Show(new TextDialogRequest
+        _ = _vm.Dialog.ShowAsync(new TextDialogRequest
         {
             Title = Lang.Text("Download.Comp.Favorites.Dialog.GetFailed.Title"),
             Content = content,

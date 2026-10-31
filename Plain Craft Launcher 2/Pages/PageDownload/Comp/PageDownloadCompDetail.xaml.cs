@@ -556,7 +556,7 @@ public partial class PageDownloadCompDetail : IPageView
                             var message = ExceptionDetails.Compose(
                                 Lang.Text("Download.Comp.Dependency.ResolveFailed.Message"),
                                 depEx);
-                            DialogService.Instance.Show(new TextDialogRequest
+                            _ = DialogService.Instance.ShowAsync(new TextDialogRequest
                             {
                                 Title = Lang.Text("Download.Comp.Dependency.ResolveFailed.Title"),
                                 Content = message,

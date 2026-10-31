@@ -33,7 +33,7 @@ public static partial class Modpack
 
     private static string _SelectLauncherPackTargetFolder()
     {
-        DialogService.Instance.Show(new TextDialogRequest
+        _ = DialogService.Instance.ShowAsync(new TextDialogRequest
         {
             Title = Lang.Text("Common.Action.Install"),
             Content = Lang.Text("Minecraft.Download.Modpack.SelectEmptyFolder.Message"),

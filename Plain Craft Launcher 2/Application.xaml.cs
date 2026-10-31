@@ -137,7 +137,7 @@ public partial class Application
             problemList.Add(Lang.Text("Application.EnvironmentWarning.SocialSoftwareFolder"));
         if (problemList.Count == 0) return;
 
-        DialogService.Instance.Show(new TextDialogRequest
+        _ = DialogService.Instance.ShowAsync(new TextDialogRequest
         {
             Title = Lang.Text("Application.EnvironmentWarning.Title"),
             Content = Lang.Text("Application.EnvironmentWarning.Message", problemList.Join("\r\n")),

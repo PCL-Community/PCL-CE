@@ -1115,7 +1115,7 @@ public partial class PageToolsGameLink : IPageView
         var port = LobbyInfoProvider.McForward?.LocalEndPoint?.Port;
         if (port == null) return;
         var ip = $"127.0.0.1:{port}";
-        _vm.Dialog.Show(new TextDialogRequest
+        _ = _vm.Dialog.ShowAsync(new TextDialogRequest
         {
             Title = Lang.Text("Tools.GameLink.CopyIp.Title"),
             Content = Lang.Text("Tools.GameLink.CopyIp.Message", ip),

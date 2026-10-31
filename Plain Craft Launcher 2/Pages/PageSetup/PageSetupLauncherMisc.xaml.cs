@@ -253,7 +253,7 @@ public partial class PageSetupLauncherMisc : IPageView
         if (string.IsNullOrWhiteSpace(sourcePath))
             return;
         File.Copy(sourcePath, ConfigService.SharedConfigPath, true);
-        _vm.Dialog.Show(new TextDialogRequest
+        _ = _vm.Dialog.ShowAsync(new TextDialogRequest
         {
             Title = Lang.Text("Common.Dialog.Title"),
             Content = Lang.Text("Setup.Misc.System.ImportSettings.Success.Message"),

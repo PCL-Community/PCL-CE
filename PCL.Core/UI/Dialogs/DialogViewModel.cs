@@ -85,6 +85,12 @@ public sealed partial class DialogViewModel : ObservableObject
 
     internal int PresentAttempts;
 
+    /// <summary>为无分支弹窗（单按钮）预先填入结果，使调用方可立即读取而无需等待。</summary>
+    internal void PresetResult(DialogResult result)
+    {
+        Result = result;
+    }
+
     /// <summary>已勾选的项索引（多选模式）。</summary>
     public string TextContent => Request switch
     {

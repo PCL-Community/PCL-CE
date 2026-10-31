@@ -291,7 +291,7 @@ public static class UpdateManager
     /// <param name="IsUpdate">是否为更新时启动</param>
     public static void ShowCEAnnounce()
     {
-        DialogService.Instance.Show(new TextDialogRequest
+        _ = DialogService.Instance.ShowAsync(new TextDialogRequest
         {
             Title = Lang.Text("Update.CommunityNotice.Title"),
             Content = Lang.Text("Update.CommunityNotice.Body"),

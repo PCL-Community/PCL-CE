@@ -46,7 +46,7 @@ public static class ProfileUi
             switch (normalizedError)
             {
                 case "xsts_2148916227":
-                    DialogService.Instance.Show(new TextDialogRequest
+                    _ = DialogService.Instance.ShowAsync(new TextDialogRequest
                     {
                         Title = Lang.Text("Minecraft.Launch.Login.Failed"),
                         Content = Lang.Text("Minecraft.Launch.Login.Microsoft.Banned"),
@@ -69,7 +69,7 @@ public static class ProfileUi
                         Common.OpenWebsite("https://signup.live.com/signup");
                     break;
                 case "xsts_2148916235":
-                    DialogService.Instance.Show(new TextDialogRequest
+                    _ = DialogService.Instance.ShowAsync(new TextDialogRequest
                     {
                         Title = Lang.Text("Minecraft.Launch.Login.Failed"),
                         Content = Lang.Text("Minecraft.Launch.Login.Microsoft.RegionBlocked"),

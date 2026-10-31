@@ -162,7 +162,7 @@ public partial class PageSetupGameManage : IPageView
         if (!States.Hint.LargeDownloadThread)
         {
             States.Hint.LargeDownloadThread = true;
-            _vm.Dialog.Show(new TextDialogRequest
+            _ = _vm.Dialog.ShowAsync(new TextDialogRequest
             {
                 Title = Lang.Text("Common.Dialog.Warning"),
                 Content = Lang.Text("Setup.GameManage.Download.Threads.TooManyWarning.Message"),

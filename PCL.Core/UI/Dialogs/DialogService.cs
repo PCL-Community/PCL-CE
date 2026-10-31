@@ -47,26 +47,13 @@ public sealed class DialogService : IDialogService
     /// <summary>提交弹窗请求并立即返回其状态对象。</summary>
     public DialogViewModel Show(DialogRequest request)
     {
-        var dialog = new DialogViewModel(request);
+        var dialog = Enqueue(request);
 
-        if (!UiDispatcher.IsAvailable)
-        {
-            LogWrapper.Warn((Exception?)null, "界面不可用，弹窗请求被丢弃：" + request.Title);
-            dialog.Close(DialogResult.None);
-            return dialog;
-        }
+        // 单按钮弹窗没有可选分支，显示后立即返回，避免阻塞调用线程。
+        var waitable = request.Buttons.Length > 1;
+        if (!waitable) dialog.PresetResult(new DialogResult(1));
 
-        UiDispatcher.Invoke(() =>
-        {
-            lock (_lock)
-            {
-                _queue.Enqueue(dialog);
-            }
-
-            Pump();
-        });
-
-        if (!request.ForceWait || dialog.IsClosed) return dialog;
+        if (!waitable || !request.ForceWait || dialog.IsClosed) return dialog;
 
         void PumpFrame()
         {
@@ -88,7 +75,36 @@ public sealed class DialogService : IDialogService
         return dialog;
     }
 
-    public Task<DialogResult> ShowAsync(DialogRequest request) => Show(request).Completion.Task;
+    /// <summary>排队并交给呈现器，不等待结果。界面不可用时立即以 <see cref="DialogResult.None" /> 关闭。</summary>
+    private DialogViewModel Enqueue(DialogRequest request)
+    {
+        var dialog = new DialogViewModel(request);
+
+        if (!UiDispatcher.IsAvailable)
+        {
+            LogWrapper.Warn((Exception?)null, "界面不可用，弹窗请求被丢弃：" + request.Title);
+            dialog.Close(DialogResult.None);
+            return dialog;
+        }
+
+        UiDispatcher.Invoke(() =>
+        {
+            lock (_lock)
+            {
+                _queue.Enqueue(dialog);
+            }
+
+            Pump();
+        });
+
+        return dialog;
+    }
+
+    public async Task<DialogResult> ShowAsync(DialogRequest request)
+    {
+        var dialog = Enqueue(request);
+        return await dialog.Completion.Task.ConfigureAwait(false);
+    }
 
     /// <summary>取出队首弹窗并交给呈现器。必须在 UI 线程调用。</summary>
     public void Pump()
