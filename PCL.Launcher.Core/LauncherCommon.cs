@@ -155,15 +155,34 @@ public static class LauncherCommon
         else action();
     }
 
-    /// <summary>在新线程中执行代码。</summary>
-    public static void RunInNewThread(Action action, string name = "Launcher")
+    /// <summary>在新线程中执行代码；线程内异常不会终止进程。</summary>
+    public static Thread RunInNewThread(
+        Action action,
+        string name = "Launcher",
+        ThreadPriority priority = ThreadPriority.Normal)
     {
-        var thread = new Thread(() => action())
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                action();
+            }
+            catch (ThreadInterruptedException)
+            {
+                Log($"{name}：线程已中止");
+            }
+            catch (Exception ex)
+            {
+                Log(ex, $"{name}：线程执行失败", LauncherLogLevel.Feedback);
+            }
+        })
         {
             IsBackground = true,
-            Name = name
+            Name = name,
+            Priority = priority
         };
         thread.Start();
+        return thread;
     }
 
     /// <summary>获取打包资源流；资源不存在时返回 <c>null</c>。</summary>
