@@ -79,7 +79,7 @@
         <!-- 验证 -->
         <PackageReference Include="FluentValidation" Version="12.1.1" />
     </ItemGroup>
-    <!-- 信不过巨硬的智障代码，手动包含需要的文件 -->
+    <!-- 显式声明编译项，避免 SDK 默认通配符把不需要的文件一并纳入 -->
     <PropertyGroup>
         <EnableDefaultItems>false</EnableDefaultItems>
         <EnableDefaultCompileItems>false</EnableDefaultCompileItems>

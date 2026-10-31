@@ -66,7 +66,24 @@
 
 ### 测试要求
 
-- 提交前请在本地编译通过确保无误后提交
+提交前请在本地完成以下检查，并在 PR 描述中写明实际执行的命令与结果：
+
+```bash
+# 1. 还原依赖
+dotnet restore
+
+# 2. 编译整个解决方案（包含测试工程）
+dotnet build "Plain Craft Launcher 2.slnx"
+
+# 3. 运行测试（需要 Windows 环境，测试工程目标框架为 net10.0-windows）
+dotnet test "PCL.Core.Test/PCL.Core.Test.csproj"
+
+# 4. 检查代码格式
+dotnet format "Plain Craft Launcher 2.slnx" --verify-no-changes
+```
+
+- 修改生产代码时，请同步新增或修改 `PCL.Core.Test` 中对应的测试
+- 仅通过编译不视为完成，测试失败或格式检查未通过时请勿提交 PR
 
 ### Angular 规范
 
@@ -98,7 +115,7 @@
 4. `docs`：对文档进行修改
 5. `feat`：增加新的特性
 6. `fix`：修复 bug
-7. `pref`：提高性能的代码更改
+7. `perf`：提高性能的代码更改
 8. `refactor`：既不修复 bug 也不是添加特性的代码重构
 9. `style`：不影响代码含义的修改，比如空格、格式化、缺失的分号等
 10. `test`：增加缺失的测试或者修正已存在的测试

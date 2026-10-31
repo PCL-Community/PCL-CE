@@ -30,10 +30,13 @@
         <Copyright>Copyright © 龙腾猫跃 2016. All Rights Reserved.</Copyright>
         <AssemblyVersion>2.15.1.0</AssemblyVersion>
         <FileVersion>2.15.1.0</FileVersion>
-        <NoWarn>
-            41999;42016;42017;42018;42019;42020;42021;42022;42032;42036;42314;
-            VSTHRD002;VSTHRD003;VSTHRD110;VSTHRD200
-        </NoWarn>
+        <!--
+            此前这里压制了 41999/42016-42036/42314（VB.NET 编译器警告编号）与
+            VSTHRD002/VSTHRD003/VSTHRD110/VSTHRD200（Microsoft.VisualStudio.Threading.Analyzers）。
+            前一组在 C# 项目里永远不会产生；后一组对应的分析器从未被引用，压制同样无效。
+            保留无效编号会让“已经检查过”的错觉延续下去，故移除；如需启用该类检查，
+            请先为 PCL.Core 与主程序引入 Microsoft.VisualStudio.Threading.Analyzers。
+        -->
         <DefaultItemExcludes>$(DefaultItemExcludes);$(ProjectDir)**\*.vb</DefaultItemExcludes>
         <CETCompat>false</CETCompat>
     </PropertyGroup>
@@ -98,7 +101,7 @@
         <Import Include="System.Windows.Media" />
         <Import Include="System.Windows.Media.Imaging" />
     </ItemGroup>
-    <!-- 信不过巨硬的智障代码，手动包含需要的文件 -->
+    <!-- 显式声明编译项，避免 SDK 默认通配符把不需要的文件一并纳入 -->
     <PropertyGroup>
         <EnableDefaultItems>false</EnableDefaultItems>
         <EnableDefaultCompileItems>false</EnableDefaultCompileItems>

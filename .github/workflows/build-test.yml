@@ -13,7 +13,6 @@ on:
       - '**/*.md'
       - '**/LICENSE'
       - '**/LICENCE'
-      - 'PCL.Core.Test/**'
       - '.github/ISSUE_TEMPLATE/**'
       - '.github/FUNDING.yml'
   pull_request:
@@ -36,3 +35,33 @@ jobs:
       configuration: ${{ matrix.configuration }}
       architecture: ${{ matrix.architecture }}
     secrets: inherit
+
+  test:
+    name: Test
+    # 测试工程目标框架为 net10.0-windows 且引用 WPF，必须使用 Windows runner 才能执行
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Run Tests
+        run: >
+          dotnet test "PCL.Core.Test/PCL.Core.Test.csproj"
+          -p:Configuration=CI
+          --logger "trx;LogFileName=test-results.trx"
+          --results-directory ./test-results
+          --nologo
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: test-results
+          path: test-results/**
+          if-no-files-found: ignore
