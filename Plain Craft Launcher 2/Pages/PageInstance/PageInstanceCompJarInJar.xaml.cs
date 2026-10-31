@@ -10,12 +10,13 @@ using CompFile = PCL.LocalComp.LocalCompFile;
 
 namespace PCL;
 
-public partial class PageInstanceCompJarInJar
+public partial class PageInstanceCompJarInJar : IPageView
 {
     private readonly PageInstanceCompJarInJarViewModel _vm = new();
     private JarInJarIndex _index = null!;
     private string? _instanceMc;
     private string _search = "";
+    private bool _refreshed;
 
     public PageInstanceCompJarInJar()
     {
@@ -29,10 +30,28 @@ public partial class PageInstanceCompJarInJar
             _search = (SearchBox.Text ?? "").Trim();
             RefreshList();
         };
-        Loaded += (_, _) => RefreshList();
+        Loaded += (_, _) => RefreshOnNavigate();
+        Unloaded += (_, _) => _refreshed = false;
     }
 
     public PageInstanceCompJarInJarViewModel ViewModel => _vm;
+
+    public void OnNavigatedTo(object? parameter)
+    {
+        RefreshOnNavigate();
+    }
+
+    public void OnNavigatedFrom()
+    {
+    }
+
+    private void RefreshOnNavigate()
+    {
+        if (_refreshed)
+            return;
+        _refreshed = true;
+        RefreshList();
+    }
 
     private bool _Match(CompFile m)
     {

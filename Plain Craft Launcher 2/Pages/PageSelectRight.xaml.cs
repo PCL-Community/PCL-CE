@@ -17,12 +17,13 @@ using PCL.Core.UI;
 
 namespace PCL;
 
-public partial class PageSelectRight
+public partial class PageSelectRight : IPageView
 {
     private readonly PageSelectRightViewModel _vm = new();
     private const int normalDelay = 75; // 正常输入延迟0.075秒
     private const int quickDelay = 50; // 清空搜索框延迟0.05秒
     private bool isRefreshing;
+    private bool _refreshed;
 
     private DateTime lastInputTime = DateTime.MinValue;
     private DispatcherTimer reloadTimer;
@@ -46,13 +47,30 @@ public partial class PageSelectRight
     // 窗口基础
     private void PageSelectRight_Loaded(object sender, RoutedEventArgs e)
     {
-        Loading.LoaderFolderRun(InstanceList.mcInstanceListLoader, GameFolders.mcFolderSelected,
-            Loading.LoaderFolderRunType.RunOnUpdated, 1, @"versions\");
-        PanBack.ScrollToHome();
+        RefreshOnNavigate();
         PanVerSearchBox.TextChanged += (a, b) => PanVerSearchBox_TextChanged(a, (TextChangedEventArgs)b);
 
         reloadTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(normalDelay) };
         reloadTimer.Tick += ReloadTimer_Tick;
+    }
+
+    public void OnNavigatedTo(object? parameter)
+    {
+        RefreshOnNavigate();
+    }
+
+    public void OnNavigatedFrom()
+    {
+    }
+
+    private void RefreshOnNavigate()
+    {
+        if (_refreshed)
+            return;
+        _refreshed = true;
+        Loading.LoaderFolderRun(InstanceList.mcInstanceListLoader, GameFolders.mcFolderSelected,
+            Loading.LoaderFolderRunType.RunOnUpdated, 1, @"versions\");
+        PanBack.ScrollToHome();
     }
 
     private void PanVerSearchBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -100,6 +118,7 @@ public partial class PageSelectRight
 
     private void PageSelectRight_Unloaded(object sender, RoutedEventArgs e)
     {
+        _refreshed = false;
         // 清理计时器
         if (reloadTimer is not null)
         {

@@ -12,15 +12,17 @@ using PCL.Network;
 
 namespace PCL;
 
-public partial class PageSelectLeft : IRefreshable
+public partial class PageSelectLeft : IRefreshable, IPageView
 {
     private readonly PageSelectLeftViewModel _vm = new();
     private List<GameFolders.McFolder> mcFolderListLast;
+    private bool _refreshed;
 
     public PageSelectLeft()
     {
         Initialized += PageSelectLeft_Initialized;
         Loaded += PageSelectLeft_Loaded;
+        Unloaded += (_, _) => _refreshed = false;
         InitializeComponent();
         DataContext = _vm;
     }
@@ -40,6 +42,23 @@ public partial class PageSelectLeft : IRefreshable
 
     private void PageSelectLeft_Loaded(object sender, RoutedEventArgs e)
     {
+        RefreshOnNavigate();
+    }
+
+    public void OnNavigatedTo(object? parameter)
+    {
+        RefreshOnNavigate();
+    }
+
+    public void OnNavigatedFrom()
+    {
+    }
+
+    private void RefreshOnNavigate()
+    {
+        if (_refreshed)
+            return;
+        _refreshed = true;
         if (_vm.IsFirstLoad)
             McFolderListUI(); // 若已经执行完成，触发首次加载
         _vm.IsFirstLoad = false;

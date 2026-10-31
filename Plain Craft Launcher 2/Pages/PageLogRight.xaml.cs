@@ -10,7 +10,7 @@ using System.Globalization;
 
 namespace PCL;
 
-public partial class PageLogRight
+public partial class PageLogRight : IPageView
 {
     public Run labDebug;
     public Run labError;
@@ -20,10 +20,13 @@ public partial class PageLogRight
 
     private readonly PageLogRightViewModel _vm = new();
 
+    private bool _refreshed;
+
     public PageLogRight()
     {
         Initialized += (_, _) => Init();
         Loaded += PageLogRight_Loaded;
+        Unloaded += PageLogRight_Unloaded;
         InitializeComponent();
         DataContext = _vm;
     }
@@ -72,6 +75,28 @@ public partial class PageLogRight
 
     private void PageLogRight_Loaded(object sender, RoutedEventArgs e)
     {
+        RefreshOnNavigate();
+    }
+
+    private void PageLogRight_Unloaded(object sender, RoutedEventArgs e)
+    {
+        _refreshed = false;
+    }
+
+    public void OnNavigatedTo(object? parameter)
+    {
+        RefreshOnNavigate();
+    }
+
+    public void OnNavigatedFrom()
+    {
+    }
+
+    private void RefreshOnNavigate()
+    {
+        if (_refreshed)
+            return;
+        _refreshed = true;
         Animations.AniBeginControl();
         Reload();
         Animations.AniEndControl();

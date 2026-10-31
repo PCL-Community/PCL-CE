@@ -10,9 +10,11 @@ using PCL.Core.App.Localization;
 
 namespace PCL;
 
-public partial class PageSetupUI
+public partial class PageSetupUI : IPageView
 {
     private readonly PageSetupUIViewModel _vm = new();
+
+    private bool _refreshed;
 
     public PageSetupUIViewModel ViewModel => _vm;
 
@@ -26,16 +28,12 @@ public partial class PageSetupUI
         DataContext = _vm;
         Loaded += PageSetupUI_Loaded;
         Loaded += (_, _) => HiddenRefresh();
+        Unloaded += (_, _) => _refreshed = false;
     }
 
     private void PageSetupUI_Loaded(object sender, RoutedEventArgs e)
     {
-        // 重复加载部分
-        PanBack.ScrollToHome();
-
-        Animations.AniBeginControl();
-        Reload(); // #4826，在每次进入页面时都刷新一下
-        Animations.AniEndControl();
+        RefreshOnNavigate();
 
         // 非重复加载部分
         if (isLoaded)
@@ -45,6 +43,28 @@ public partial class PageSetupUI
         SliderLoad();
 
         _vm.ShowLauncherHint();
+    }
+
+    public void OnNavigatedTo(object? parameter)
+    {
+        RefreshOnNavigate();
+    }
+
+    public void OnNavigatedFrom()
+    {
+    }
+
+    private void RefreshOnNavigate()
+    {
+        if (_refreshed)
+            return;
+        _refreshed = true;
+        // 重复加载部分
+        PanBack.ScrollToHome();
+
+        Animations.AniBeginControl();
+        Reload(); // #4826，在每次进入页面时都刷新一下
+        Animations.AniEndControl();
     }
 
     public void Reload()

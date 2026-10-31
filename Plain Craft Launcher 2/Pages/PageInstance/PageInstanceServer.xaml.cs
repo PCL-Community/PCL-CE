@@ -12,7 +12,7 @@ using PCL.Core.App.Localization;
 
 namespace PCL;
 
-public partial class PageInstanceServer : MyPageRight
+public partial class PageInstanceServer : MyPageRight, IPageView
 {
     private const int debounceInterval = 2000;
 
@@ -25,18 +25,32 @@ public partial class PageInstanceServer : MyPageRight
 
     private DateTime _lastRefresh = DateTime.MinValue;
 
+    private bool _refreshed;
+
     public PageInstanceServer()
     {
         InitializeComponent();
         DataContext = _vm;
         Loaded += PageLoaded;
+        Unloaded += (_, _) => _refreshed = false;
         IsVisibleChanged += PageInstanceServer_IsVisibleChanged;
     }
 
     public PageInstanceServerViewModel ViewModel => _vm;
 
-    private async void PageLoaded(object e, RoutedEventArgs sender)
+    private void PageLoaded(object e, RoutedEventArgs sender) => RefreshOnNavigate();
+
+    public void OnNavigatedTo(object? parameter) => RefreshOnNavigate();
+
+    public void OnNavigatedFrom()
     {
+    }
+
+    private async void RefreshOnNavigate()
+    {
+        if (_refreshed)
+            return;
+        _refreshed = true;
         serverList.Clear();
         serverCardList.Clear();
         PanServers.Children.Clear();

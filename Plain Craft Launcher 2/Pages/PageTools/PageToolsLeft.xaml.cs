@@ -4,7 +4,7 @@ using System.Windows.Controls;
 using PCL.Core.App.Localization;
 namespace PCL;
 
-public partial class PageToolsLeft
+public partial class PageToolsLeft : IPageView
 {
     private readonly PageToolsLeftViewModel _vm = new();
 
@@ -20,6 +20,20 @@ public partial class PageToolsLeft
     }
 
     private void PageLinkLeft_Loaded(object sender, RoutedEventArgs e)
+    {
+        RefreshNavigation();
+    }
+
+    public void OnNavigatedTo(object? parameter)
+    {
+        RefreshNavigation();
+    }
+
+    public void OnNavigatedFrom()
+    {
+    }
+
+    private void RefreshNavigation()
     {
         var isHiddenPage = _vm.IsHiddenPage(ItemGameLink.Checked, ItemTest.Checked, PageSetupUI.HiddenForceShow);
 

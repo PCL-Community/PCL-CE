@@ -7,7 +7,7 @@ using PCL.Core.UI;
 
 namespace PCL;
 
-public partial class PageLogLeft
+public partial class PageLogLeft : IPageView
 {
     public GameWatcher.Watcher currentLog;
     public int currentUuid;
@@ -16,6 +16,8 @@ public partial class PageLogLeft
     public List<KeyValuePair<int, GameWatcher.Watcher>> shownLogs = new();
 
     private readonly PageLogLeftViewModel _vm = new();
+
+    private bool _refreshed;
 
     public PageLogLeft()
     {
@@ -29,12 +31,30 @@ public partial class PageLogLeft
 
     private void PageLogLeft_Loaded(object sender, RoutedEventArgs e)
     {
+        RefreshOnNavigate();
+    }
+
+    public void OnNavigatedTo(object? parameter)
+    {
+        RefreshOnNavigate();
+    }
+
+    public void OnNavigatedFrom()
+    {
+    }
+
+    private void RefreshOnNavigate()
+    {
+        if (_refreshed)
+            return;
+        _refreshed = true;
         Reload();
         Launcher.frmMain.BtnExtraLog.ShowRefresh();
     }
 
     private void PageLogLeft_Unloaded(object sender, RoutedEventArgs e)
     {
+        _refreshed = false;
         Launcher.frmMain.BtnExtraLog.ShowRefresh();
     }
 
