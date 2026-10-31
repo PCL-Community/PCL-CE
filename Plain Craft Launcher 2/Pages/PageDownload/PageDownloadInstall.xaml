@@ -31,7 +31,8 @@
                             <local:MyTextBox Margin="93,0,16,0" Padding="-1,0" MinHeight="30" FontSize="15"
                                              VerticalAlignment="Center" x:Name="TextSelectName" MaxLength="70"
                                              Text="{Binding InstanceName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                             HasBackground="False" />
+                                             HasBackground="False" TextChanged="TextSelectName_TextChanged"
+                                             ValidateChanged="TextSelectName_ValidateChanged" KeyDown="TextSelectName_KeyDown" />
                         </local:MyCard>
                         <local:MyHint Text="{DynamicResource Download.Install.Warning.FabricApi}" Margin="0,10,0,0" x:Name="HintFabricAPI" Visibility="{Binding ShowHintFabricAPI, Converter={StaticResource BooleanToVisibilityConverter}}"
                                       Theme="Red" />
@@ -46,7 +47,7 @@
                         <local:MyHint Text="{DynamicResource Download.Install.Warning.ModOptiFine}" Margin="0,10,0,0" x:Name="HintModOptiFine" Visibility="{Binding ShowHintModOptiFine, Converter={StaticResource BooleanToVisibilityConverter}}"
                                       Theme="Yellow" />
                         <local:MyCard Title="{DynamicResource Common.Installation.Forge}" Height="40" Margin="0,12,0,0" x:Name="CardForge" Visibility="{Binding ShowForgeCard, Converter={StaticResource BooleanToVisibilityConverter}}" IsSwapped="True"
-                                      CanSwap="True" SwapLogoRight="True">
+                                      CanSwap="True" SwapLogoRight="True" PreviewSwap="CardForge_PreviewSwap">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanForge" />
                             <Grid x:Name="PanForgeInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
                                   Tag="True">
@@ -64,7 +65,7 @@
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
                             <Grid x:Name="BtnForgeClear" Visibility="{Binding ShowForgeClear, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Width="30" HorizontalAlignment="Right"
-                                  VerticalAlignment="Top" Margin="0,5,32,0"
+                                  VerticalAlignment="Top" Margin="0,5,32,0" MouseLeftButtonUp="Forge_Clear"
                                   Background="{StaticResource ColorBrushSemiTransparent}">
                                 <Path x:Name="BtnForgeClearInner" Height="10" Width="10" Stretch="Uniform"
                                       Fill="{StaticResource ColorBrushGray1}" HorizontalAlignment="Center"
@@ -73,7 +74,7 @@
                             </Grid>
                         </local:MyCard>
                         <local:MyCard Title="{DynamicResource Common.Installation.Cleanroom}" Height="40" Margin="0,12,0,0" x:Name="CardCleanroom" Visibility="{Binding ShowCleanroomCard, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True">
+                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True" PreviewSwap="CardCleanroom_PreviewSwap">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanCleanroom" />
                             <Grid x:Name="PanCleanroomInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
                                   Tag="True">
@@ -91,7 +92,7 @@
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
                             <Grid x:Name="BtnCleanroomClear" Visibility="{Binding ShowCleanroomClear, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Width="30" HorizontalAlignment="Right"
-                                  VerticalAlignment="Top" Margin="0,5,32,0"
+                                  VerticalAlignment="Top" Margin="0,5,32,0" MouseLeftButtonUp="Cleanroom_Clear"
                                   Background="{StaticResource ColorBrushSemiTransparent}">
                                 <Path x:Name="BtnCleanroomClearInner" Height="10" Width="10" Stretch="Uniform"
                                       Fill="{StaticResource ColorBrushGray1}" HorizontalAlignment="Center"
@@ -100,7 +101,7 @@
                             </Grid>
                         </local:MyCard>
                         <local:MyCard Title="{DynamicResource Common.Installation.NeoForge}" Height="40" Margin="0,12,0,0" x:Name="CardNeoForge" Visibility="{Binding ShowNeoForgeCard, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True">
+                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True" PreviewSwap="CardNeoForge_PreviewSwap">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanNeoForge" />
                             <Grid x:Name="PanNeoForgeInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
                                   Tag="True">
@@ -118,7 +119,7 @@
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
                             <Grid x:Name="BtnNeoForgeClear" Visibility="{Binding ShowNeoForgeClear, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Width="30" HorizontalAlignment="Right"
-                                  VerticalAlignment="Top" Margin="0,5,32,0"
+                                  VerticalAlignment="Top" Margin="0,5,32,0" MouseLeftButtonUp="NeoForge_Clear"
                                   Background="{StaticResource ColorBrushSemiTransparent}">
                                 <Path x:Name="BtnNeoForgeClearInner" Height="10" Width="10" Stretch="Uniform"
                                       Fill="{StaticResource ColorBrushGray1}" HorizontalAlignment="Center"
@@ -127,7 +128,7 @@
                             </Grid>
                         </local:MyCard>
                         <local:MyCard Title="{DynamicResource Common.Installation.Fabric}" Height="40" Margin="0,12,0,0" x:Name="CardFabric" Visibility="{Binding ShowFabricCard, Converter={StaticResource BooleanToVisibilityConverter}}" IsSwapped="True"
-                                      CanSwap="True" SwapLogoRight="True">
+                                      CanSwap="True" SwapLogoRight="True" PreviewSwap="CardFabric_PreviewSwap">
                             <StackPanel Margin="20,40,18,0" VerticalAlignment="Top" Name="PanFabric" />
                             <Grid x:Name="PanFabricInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
                                   Tag="True">
@@ -145,7 +146,7 @@
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
                             <Grid x:Name="BtnFabricClear" Visibility="{Binding ShowFabricClear, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Width="30" HorizontalAlignment="Right"
-                                  VerticalAlignment="Top" Margin="0,5,32,0"
+                                  VerticalAlignment="Top" Margin="0,5,32,0" MouseLeftButtonUp="Fabric_Clear"
                                   Background="{StaticResource ColorBrushSemiTransparent}">
                                 <Path x:Name="BtnFabricClearInner" Height="10" Width="10" Stretch="Uniform"
                                       Fill="{StaticResource ColorBrushGray1}" HorizontalAlignment="Center"
@@ -154,7 +155,7 @@
                             </Grid>
                         </local:MyCard>
                         <local:MyCard Title="{DynamicResource Common.Installation.LegacyFabric}" Height="40" Margin="0,12,0,0" x:Name="CardLegacyFabric" Visibility="{Binding ShowLegacyFabricCard, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True">
+                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True" PreviewSwap="CardLegacyFabric_PreviewSwap">
                             <StackPanel Margin="20,40,18,0" VerticalAlignment="Top" Name="PanLegacyFabric" />
                             <Grid x:Name="PanLegacyFabricInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
                                   Tag="True">
@@ -172,7 +173,7 @@
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
                             <Grid x:Name="BtnLegacyFabricClear" Visibility="{Binding ShowLegacyFabricClear, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Width="30" HorizontalAlignment="Right"
-                                  VerticalAlignment="Top" Margin="0,5,32,0"
+                                  VerticalAlignment="Top" Margin="0,5,32,0" MouseLeftButtonUp="LegacyFabric_Clear"
                                   Background="{StaticResource ColorBrushSemiTransparent}">
                                 <Path x:Name="BtnLegacyFabricClearInner" Height="10" Width="10" Stretch="Uniform"
                                       Fill="{StaticResource ColorBrushGray1}" HorizontalAlignment="Center"
@@ -181,7 +182,7 @@
                             </Grid>
                         </local:MyCard>
                         <local:MyCard Title="{DynamicResource Common.Installation.FabricApi}" Height="40" Margin="0,12,0,0" x:Name="CardFabricApi" Visibility="{Binding ShowFabricApiCard, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True">
+                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True" PreviewSwap="CardFabricApi_PreviewSwap">
                             <ItemsControl Margin="20,40,18,15" VerticalAlignment="Top" x:Name="PanFabricApi"
                                           ItemsSource="{Binding FabricApiVersions}">
                                 <ItemsControl.ItemsPanel>
@@ -214,7 +215,7 @@
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
                             <Grid x:Name="BtnFabricApiClear" Visibility="{Binding ShowFabricApiClear, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Width="30" HorizontalAlignment="Right"
-                                  VerticalAlignment="Top" Margin="0,5,32,0"
+                                  VerticalAlignment="Top" Margin="0,5,32,0" MouseLeftButtonUp="FabricApi_Clear"
                                   Background="{StaticResource ColorBrushSemiTransparent}">
                                 <Path x:Name="BtnFabricApiClearInner" Height="10" Width="10" Stretch="Uniform"
                                       Fill="{StaticResource ColorBrushGray1}" HorizontalAlignment="Center"
@@ -223,7 +224,7 @@
                             </Grid>
                         </local:MyCard>
                         <local:MyCard Title="{DynamicResource Common.Installation.LegacyFabricApi}" Height="40" Margin="0,12,0,0"
-                                      x:Name="CardLegacyFabricApi" Visibility="{Binding ShowLegacyFabricApiCard, Converter={StaticResource BooleanToVisibilityConverter}}" IsSwapped="True" CanSwap="True" SwapLogoRight="True">
+                                      x:Name="CardLegacyFabricApi" Visibility="{Binding ShowLegacyFabricApiCard, Converter={StaticResource BooleanToVisibilityConverter}}" IsSwapped="True" CanSwap="True" SwapLogoRight="True" PreviewSwap="CardLegacyFabricApi_PreviewSwap">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanLegacyFabricApi" />
                             <Grid x:Name="PanLegacyFabricApiInfo" Height="18" Margin="132,11,15,0"
                                   VerticalAlignment="Top" Tag="True">
@@ -241,7 +242,7 @@
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
                             <Grid x:Name="BtnLegacyFabricApiClear" Visibility="{Binding ShowLegacyFabricApiClear, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Width="30" HorizontalAlignment="Right"
-                                  VerticalAlignment="Top" Margin="0,5,32,0"
+                                  VerticalAlignment="Top" Margin="0,5,32,0" MouseLeftButtonUp="LegacyFabricApi_Clear"
                                   Background="{StaticResource ColorBrushSemiTransparent}">
                                 <Path x:Name="BtnLegacyFabricApiClearInner" Height="10" Width="10" Stretch="Uniform"
                                       Fill="{StaticResource ColorBrushGray1}" HorizontalAlignment="Center"
@@ -250,7 +251,7 @@
                             </Grid>
                         </local:MyCard>
                         <local:MyCard Title="{DynamicResource Common.Installation.LabyMod}" Height="40" Margin="0,12,0,0" x:Name="CardLabyMod" Visibility="{Binding ShowLabyModCard, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True">
+                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True" PreviewSwap="CardLabyMod_PreviewSwap">
                             <StackPanel Margin="20,40,18,0" VerticalAlignment="Top" Name="PanLabyMod" />
                             <Grid x:Name="PanLabyModInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
                                   Tag="True">
@@ -268,7 +269,7 @@
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
                             <Grid x:Name="BtnLabyModClear" Visibility="{Binding ShowLabyModClear, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Width="30" HorizontalAlignment="Right"
-                                  VerticalAlignment="Top" Margin="0,5,32,0"
+                                  VerticalAlignment="Top" Margin="0,5,32,0" MouseLeftButtonUp="LabyMod_Clear"
                                   Background="{StaticResource ColorBrushSemiTransparent}">
                                 <Path x:Name="BtnLabyModClearInner" Height="10" Width="10" Stretch="Uniform"
                                       Fill="{StaticResource ColorBrushGray1}" HorizontalAlignment="Center"
@@ -277,7 +278,7 @@
                             </Grid>
                         </local:MyCard>
                         <local:MyCard Title="{DynamicResource Common.Installation.OptiFine}" Height="40" Margin="0,12,0,0" x:Name="CardOptiFine" Visibility="{Binding ShowOptiFineCard, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True">
+                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True" PreviewSwap="CardOptiFine_PreviewSwap">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top">
                                 <StackPanel Name="PanOptiFine" />
                             </StackPanel>
@@ -297,7 +298,7 @@
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
                             <Grid x:Name="BtnOptiFineClear" Visibility="{Binding ShowOptiFineClear, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Width="30" HorizontalAlignment="Right"
-                                  VerticalAlignment="Top" Margin="0,5,32,0"
+                                  VerticalAlignment="Top" Margin="0,5,32,0" MouseLeftButtonUp="OptiFine_Clear"
                                   Background="{StaticResource ColorBrushSemiTransparent}">
                                 <Path x:Name="BtnOptiFineClearInner" Height="10" Width="10" Stretch="Uniform"
                                       Fill="{StaticResource ColorBrushGray1}" HorizontalAlignment="Center"
@@ -306,7 +307,7 @@
                             </Grid>
                         </local:MyCard>
                         <local:MyCard Title="{DynamicResource Common.Installation.OptiFabric}" Height="40" Margin="0,12,0,0" x:Name="CardOptiFabric" Visibility="{Binding ShowOptiFabricCard, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True">
+                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True" PreviewSwap="CardOptiFabric_PreviewSwap">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanOptiFabric" />
                             <Grid x:Name="PanOptiFabricInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
                                   Tag="True">
@@ -324,7 +325,7 @@
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
                             <Grid x:Name="BtnOptiFabricClear" Visibility="{Binding ShowOptiFabricClear, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Width="30" HorizontalAlignment="Right"
-                                  VerticalAlignment="Top" Margin="0,5,32,0"
+                                  VerticalAlignment="Top" Margin="0,5,32,0" MouseLeftButtonUp="OptiFabric_Clear"
                                   Background="{StaticResource ColorBrushSemiTransparent}">
                                 <Path x:Name="BtnOptiFabricClearInner" Height="10" Width="10" Stretch="Uniform"
                                       Fill="{StaticResource ColorBrushGray1}" HorizontalAlignment="Center"
@@ -333,7 +334,7 @@
                             </Grid>
                         </local:MyCard>
                         <local:MyCard Title="{DynamicResource Common.Installation.LiteLoader}" Height="40" Margin="0,12,0,0" x:Name="CardLiteLoader" Visibility="{Binding ShowLiteLoaderCard, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True">
+                                      IsSwapped="True" CanSwap="True" SwapLogoRight="True" PreviewSwap="CardLiteLoader_PreviewSwap">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanLiteLoader" />
                             <Grid x:Name="PanLiteLoaderInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top"
                                   Tag="True">
@@ -351,7 +352,7 @@
                                            TextTrimming="CharacterEllipsis" Grid.Column="1" />
                             </Grid>
                             <Grid x:Name="BtnLiteLoaderClear" Visibility="{Binding ShowLiteLoaderClear, Converter={StaticResource BooleanToVisibilityConverter}}" Height="30" Width="30" HorizontalAlignment="Right"
-                                  VerticalAlignment="Top" Margin="0,5,32,0"
+                                  VerticalAlignment="Top" Margin="0,5,32,0" MouseLeftButtonUp="LiteLoader_Clear"
                                   Background="{StaticResource ColorBrushSemiTransparent}">
                                 <Path x:Name="BtnLiteLoaderClearInner" Height="10" Width="10" Stretch="Uniform"
                                       Fill="{StaticResource ColorBrushGray1}" HorizontalAlignment="Center"

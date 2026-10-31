@@ -165,9 +165,6 @@ public partial class MyCompItem
         MouseLeftButtonDown += RefreshColor;
         MouseLeftButtonUp += RefreshColor;
         // Handles
-        LabInfo.MouseEnter += LabInfo_MouseEnter;
-        BtnDelete.Click += BtnDelete_Click;
-        BtnDownload.Click += _BtnDownload_Click;
     }
 
     // 指向时扩展描述

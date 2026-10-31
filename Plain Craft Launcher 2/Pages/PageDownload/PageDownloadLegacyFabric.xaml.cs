@@ -1,4 +1,5 @@
-﻿using PCL.Core.App.Localization;
+﻿using System.Windows.Input;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -9,7 +10,6 @@ public partial class PageDownloadLegacyFabric
         Initialized += (_, _) => LoaderInit();
         Loaded += (_, _) => Init();
         InitializeComponent();
-        BtnWeb.Click += BtnWeb_Click;
     }
 
     private void LoaderInit()
@@ -52,7 +52,7 @@ public partial class PageDownloadLegacyFabric
         DownloadUi.McDownloadLegacyFabricLoaderSave((JsonObject)sender.Tag);
     }
 
-    private void BtnWeb_Click(object sender, EventArgs e)
+    private void BtnWeb_Click(object sender, MouseButtonEventArgs e)
     {
         Common.OpenWebsite("https://legacyfabric.net/");
     }

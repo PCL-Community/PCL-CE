@@ -36,10 +36,8 @@ public partial class PageDownloadCompFavorites
             // 还有一个很扯淡的点，同样自定义的 MyButton 能在 XAML 直接设置 Click 事件
             // 到 MyIconButton 就不行了，死活跑不了，也不知道是不是漏了什么依赖属性没写
             Btn_ManageTargetFav.SvgIcon = "lucide/settings";
-            Btn_ManageTargetFav.Click += Manage_Click;
         }
         // Handles
-        Load.StateChanged += Load_State;
         WeakLanguageChanged.Add(this, OnLanguageChanged);
     }
     private static void OnLanguageChanged(PageDownloadCompFavorites page) => Common.RunInUi(page._RefreshCategoryTitles);

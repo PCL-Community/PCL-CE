@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.IO.Net.Http;
@@ -44,15 +45,8 @@ public partial class PageLoginAuth
         Loaded += (_, _) => Reload();
         Loaded += (_, _) => ReloadRegisterButton();
         // Handles
-        BtnBack.Click += BtnBack_Click;
-        BtnBackOAuth.Click += BtnBack_Click;
-        BtnLogin.Click += BtnLogin_Click;
-        BtnOAuth.Click += BtnLogin_Click;
         BtnUsePassword.Click += (_, _) => _SetLoginMode(false);
         BtnUseOAuth.Click += (_, _) => _SetLoginMode(true);
-        BtnWebsite.Click += BtnWebsite_Click;
-        BtnPasswordWebsite.Click += BtnWebsite_Click;
-        BtnLink.Click += Btn_Click;
     }
 
     private void Reload()
@@ -88,7 +82,9 @@ public partial class PageLoginAuth
         Launcher.frmLaunchLeft.RefreshPage(true);
     }
 
-    private void BtnLogin_Click(object sender, EventArgs e)
+    private void BtnBackButton_Click(object sender, MouseButtonEventArgs e) => BtnBack_Click(sender, e);
+
+    private void BtnLogin_Click(object sender, MouseButtonEventArgs e)
     {
         if (string.IsNullOrWhiteSpace(_authServerUrl))
         {

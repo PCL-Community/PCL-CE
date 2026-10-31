@@ -49,7 +49,7 @@
             <TextBlock Text="科技" Foreground="{DynamicResource ColorBrush2}" FontSize="11" />
         </corelocal:BlurBorder>-->
     </StackPanel>
-    <TextBlock x:Name="LabInfo" Grid.Row="2" Grid.Column="4" VerticalAlignment="Center" Margin="0,0,3,0.5"
+    <TextBlock x:Name="LabInfo" Grid.Row="2" Grid.Column="4" VerticalAlignment="Center" Margin="0,0,3,0.5" MouseEnter="LabInfo_MouseEnter"
                Text="{Binding ViewModel.DescriptionText, ElementName=PanBack}"
                TextTrimming="CharacterEllipsis" FontSize="12" Foreground="{StaticResource ColorBrushGray3}"
                IsHitTestVisible="True" SnapsToDevicePixels="False" UseLayoutRounding="False">
@@ -135,12 +135,12 @@
                 Margin="0,0,5,0" SnapsToDevicePixels="False" UseLayoutRounding="False" Opacity="0">
 
         <!-- 快速下载按钮 -->
-        <local:MyIconButton x:Name="BtnDownload" Height="25" Width="25" SvgIcon="lucide/download"
+        <local:MyIconButton x:Name="BtnDownload" Height="25" Width="25" SvgIcon="lucide/download" Click="_BtnDownload_Click"
                             Margin="0,0,4,0" Visibility="Collapsed"
                             ToolTip="{DynamicResource Download.Comp.QuickDownload.Btn.ToolTip}" />
 
         <!-- 删除收藏按钮 -->
-        <local:MyIconButton x:Name="BtnDelete" Height="25" Width="25" SvgIcon="lucide/heart" />
+        <local:MyIconButton x:Name="BtnDelete" Height="25" Width="25" SvgIcon="lucide/heart" Click="BtnDelete_Click" />
 
     </StackPanel>
 </Grid>

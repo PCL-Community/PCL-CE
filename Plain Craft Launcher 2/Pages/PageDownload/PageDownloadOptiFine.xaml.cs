@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using PCL.Core.App.Localization;
 
@@ -13,7 +14,6 @@ public partial class PageDownloadOptiFine
         Initialized += (_, _) => LoaderInit();
         Loaded += (_, _) => Init();
         InitializeComponent();
-        BtnWeb.Click += BtnWeb_Click;
     }
 
     private void LoaderInit()
@@ -96,7 +96,7 @@ public partial class PageDownloadOptiFine
         }
     }
 
-    private void BtnWeb_Click(object sender, EventArgs e)
+    private void BtnWeb_Click(object sender, MouseButtonEventArgs e)
     {
         Common.OpenWebsite("https://www.optifine.net/");
     }

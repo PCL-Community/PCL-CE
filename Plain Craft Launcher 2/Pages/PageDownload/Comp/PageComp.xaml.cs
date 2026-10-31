@@ -209,14 +209,7 @@ public partial class PageComp
         IsVisibleChanged += PageComp_IsVisibleChanged;
         InitializeComponent();
         DataContext = _vm;
-        Load.StateChanged += Load_State;
-        BtnPageFirst.Click += BtnPageFirst_Click;
-        BtnPageLeft.Click += BtnPageLeft_Click;
-        BtnPageRight.Click += BtnPageRight_Click;
         PanSearchBox.Search += (_, _) => StartNewSearch();
-        PanSearchBox.KeyDown += EnterTrigger;
-        TextSearchVersion.KeyDown += EnterTrigger;
-        BtnSearchReset.Click += (_, _) => ResetFilter();
     }
 
     private void PageCompControls_Inited(object sender, EventArgs e)

@@ -5,7 +5,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" x:Class="PCL.PageInstanceScreenshot"
     PanScroll="{Binding ElementName=PanBack}" Grid.IsSharedSizeScope="True">
-    <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
+    <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack" ScrollChanged="RequireAppend">
         <Grid>
             <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" Margin="40" x:Name="PanNoPic"
                           Visibility="{Binding ShowContent, Converter={StaticResource InverseBooleanToVisibilityConverter}}">

@@ -54,8 +54,8 @@
                      Visibility="{Binding ShowCustomUuid, Converter={StaticResource BooleanToVisibilityConverter}}"
                      ToolTip="{DynamicResource Launch.Account.Offline.Uuid.Custom.Input.ToolTip}" />
     <local:MyButton x:Name="BtnBack" Grid.Row="9" Grid.Column="1" Width="50" Margin="-100,-40,0,40" ColorType="Normal"
-                    Text="{DynamicResource Launch.Account.Offline.Back}" HorizontalAlignment="Center" />
+                    Text="{DynamicResource Launch.Account.Offline.Back}" HorizontalAlignment="Center" Click="BtnBack_Click" />
     <local:MyButton x:Name="BtnLogin" Grid.Row="9" Grid.Column="1" Width="50" Margin="20,-40,0,40"
                     ColorType="Highlight" Text="{DynamicResource Launch.Account.Offline.Create}"
-                    HorizontalAlignment="Center" />
+                    HorizontalAlignment="Center" Click="BtnLogin_Click" />
 </Grid>

@@ -40,6 +40,7 @@
     <!-- 标题 -->
     <Grid
         x:Name="PanTitle"
+        SizeChanged="PanTitle_SizeChanged"
         Grid.Row="1"
         Grid.Column="3"
         Grid.ColumnSpan="2"
@@ -91,7 +92,9 @@
             ToolTipService.InitialShowDelay="100"
             ToolTipService.Placement="Right"
             ToolTipService.VerticalOffset="-9"
-            Visibility="{Binding ViewModel.UpdateVisibility, ElementName=PanBack}" />
+            Visibility="{Binding ViewModel.UpdateVisibility, ElementName=PanBack}"
+            Click="BtnUpdate_Click"
+            PreviewMouseRightButtonUp="BtnUpdate_PreviewMouseRightButtonUp" />
     </Grid>
     <!-- Tag 与 详情 -->
     <StackPanel

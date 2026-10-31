@@ -14,7 +14,6 @@ public partial class PageDownloadForge
         Initialized += (_, _) => LoaderInit();
         Loaded += (_, _) => Init();
         InitializeComponent();
-        BtnWeb.Click += BtnWeb_Click;
     }
 
     private void LoaderInit()
@@ -117,7 +116,7 @@ public partial class PageDownloadForge
     }
 
     // 介绍栏
-    private void BtnWeb_Click(object sender, EventArgs e)
+    private void BtnWeb_Click(object sender, MouseButtonEventArgs e)
     {
         Common.OpenWebsite("https://files.minecraftforge.net");
     }

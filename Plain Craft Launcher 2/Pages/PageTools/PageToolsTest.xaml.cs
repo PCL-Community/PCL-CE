@@ -37,7 +37,6 @@ public partial class PageToolsTest : IPageView
     {
         InitializeComponent();
         DataContext = _vm;
-        BtnSelectSkin.Click += BtnSelectSkin_Click;
         CmbHeadSize.SelectionChanged += CmbHeadSize_SelectionChanged;
         Loaded += (_, _) => RefreshOnNavigate();
         Unloaded += (_, _) => _refreshed = false;
@@ -610,7 +609,7 @@ public partial class PageToolsTest : IPageView
         _ => 64
     };
 
-    private void BtnSelectSkin_Click(object sender, RoutedEventArgs e)
+    private void BtnSelectSkin_Click(object sender, MouseButtonEventArgs e)
     {
         var filePath = SystemDialogs.SelectFile(Lang.Text("Tools.Test.Avatar.FileFilter"),
             Lang.Text("Tools.Test.Avatar.SelectSkinFile"));

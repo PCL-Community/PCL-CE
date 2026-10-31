@@ -23,7 +23,7 @@
             Margin="4,0,0,0" />
         <local:MyButton Text="{Binding LoginText}" x:Name="BtnLogin" ColorType="Highlight"
                         IsEnabled="{Binding IsLoginEnabled}"
-                        Height="28" Width="100" Margin="0,0,0,0" Grid.Row="2" Grid.Column="0" />
+                        Height="28" Width="100" Margin="0,0,0,0" Grid.Row="2" Grid.Column="0" Click="BtnLogin_Click" />
         <Grid Grid.Row="4" Grid.ColumnSpan="2" Opacity="0.3" Margin="2,30,2,0" HorizontalAlignment="Center">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
@@ -42,6 +42,6 @@
         <local:MyTextButton x:Name="BtnBack" Text="{DynamicResource Launch.Account.Back}" Grid.Row="5"
                             Grid.ColumnSpan="2" HorizontalAlignment="Center"
                             Visibility="{Binding IsBackVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
-                            Margin="0,60,0,0" Opacity="0.3" />
+                            Margin="0,60,0,0" Opacity="0.3" Click="BtnBack_Click" />
     </Grid>
 </StackPanel>

@@ -28,7 +28,6 @@ public partial class PageInstanceScreenshot : IRefreshable
         InitializeComponent();
         DataContext = _vm;
         Loaded += PageSetupLaunch_Loaded;
-        PanBack.ScrollChanged += RequireAppend;
     }
 
     public PageInstanceScreenshotViewModel ViewModel => _vm;

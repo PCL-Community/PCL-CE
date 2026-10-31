@@ -227,7 +227,7 @@
                         </Grid.ColumnDefinitions>
                         <local:MyButton x:Name="BtnSelectSkin" Grid.Column="1"
                                         Text="{DynamicResource Tools.Test.Avatar.SelectSkin}" Width="140" Height="35"
-                                        Margin="0,0,10,0" />
+                                        Margin="0,0,10,0" Click="BtnSelectSkin_Click" />
                         <local:MyButton Grid.Column="2" Text="{DynamicResource Tools.Test.Avatar.Save}" Width="140"
                                         Height="35" Click="BtnSaveHead_Click" />
                     </Grid>

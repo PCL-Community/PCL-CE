@@ -29,11 +29,11 @@
             <TextBlock Grid.Row="2" Grid.ColumnSpan="4" Margin="10,15,10,5"
                        Text="{DynamicResource Instance.Resource.Mod.Disabled.Message}"
                        TextWrapping="Wrap" />
-            <local:MyButton Grid.Row="3" Grid.Column="1" Height="35" HorizontalAlignment="Center" x:Name="BtnDownload"
+            <local:MyButton Grid.Row="3" Grid.Column="1" Height="35" HorizontalAlignment="Center" x:Name="BtnDownload" Click="BtnDownload_Click" Loaded="BtnDownload_Loaded"
                             Visibility="{Binding BtnDownloadVisibility}"
                             MinWidth="140" Text="{DynamicResource Instance.Resource.Mod.Disabled.GoDownload}"
                             Margin="10,10,10,0" Padding="13,0" ColorType="Highlight" />
-            <local:MyButton Grid.Row="3" Grid.Column="2" Height="35" HorizontalAlignment="Center" x:Name="BtnVersion"
+            <local:MyButton Grid.Row="3" Grid.Column="2" Height="35" HorizontalAlignment="Center" x:Name="BtnVersion" Click="BtnVersion_Click"
                             MinWidth="140" Text="{DynamicResource Instance.Resource.Mod.Disabled.SelectInstance}"
                             Margin="10,10,10,0" Padding="13,0" />
         </Grid>

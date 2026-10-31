@@ -11,7 +11,7 @@
     </local:MyScrollViewer.Resources>
     <StackPanel Orientation="Vertical" Margin="25">
         <StackPanel x:Name="PanAlways">
-            <local:MySearchBox x:Name="PanSearchBox" Margin="0,0,0,15" SearchButtonVisibility="Visible" HintText="{DynamicResource Download.Comp.Search.Hint}" />
+            <local:MySearchBox x:Name="PanSearchBox" Margin="0,0,0,15" SearchButtonVisibility="Visible" HintText="{DynamicResource Download.Comp.Search.Hint}" KeyDown="EnterTrigger" />
             <local:MyCard Margin="0,0,0,15">
                 <Grid Margin="7" HorizontalAlignment="Stretch">
                     <Grid.ColumnDefinitions>
@@ -61,7 +61,7 @@
                                Text="{DynamicResource Download.Comp.Filter.Version}" Margin="5,0,5,0"
                                Grid.Row="2" />
                     <local:MyComboBox x:Name="TextSearchVersion" Grid.Row="2" Grid.Column="1" IsEditable="True"
-                                      MaxDropDownHeight="320">
+                                      MaxDropDownHeight="320" KeyDown="EnterTrigger">
                         <local:MyComboBoxItem Content="{DynamicResource Download.Comp.Filter.Version.Any}"
                                               IsSelected="True" />
                         <local:MyComboBoxItem Content="1.21.11" />
@@ -107,7 +107,7 @@
                         <local:MyIconButton x:Name="BtnSearchReset"
                                             SvgIcon="lucide/rotate-ccw"
                                             ToolTip="{DynamicResource Download.Comp.Filter.Reset}" LogoScale="0.9"
-                                            Margin="3,0,0,0" />
+                                            Margin="3,0,0,0" Click="BtnSearchReset_Click" />
                         <local:MyIconButton x:Name="BtnSearchInstallModPack"
                                             SvgIcon="lucide/download"
                                             Command="{Binding InstallModPackCommand}"
@@ -132,16 +132,16 @@
                 <StackPanel Orientation="Horizontal" Height="23" Margin="10,7">
                     <local:MyIconButton x:Name="BtnPageFirst" IsEnabled="{Binding CanGoFirst}"
                                         Opacity="{Binding FirstOpacity}" Margin="0,0.5,5,0.5"
-                                        SvgIcon="lucide/chevrons-left" />
+                                        SvgIcon="lucide/chevrons-left" Click="BtnPageFirst_Click" />
                     <local:MyIconButton x:Name="BtnPageLeft" IsEnabled="{Binding CanGoLeft}"
                                         Opacity="{Binding LeftOpacity}" Margin="0,0,5,0"
-                                        SvgIcon="lucide/chevron-left" />
+                                        SvgIcon="lucide/chevron-left" Click="BtnPageLeft_Click" />
                     <TextBlock x:Name="LabPage" Text="{Binding PageText}"
                                Margin="8,0,13,0" FontSize="15" VerticalAlignment="Center"
                                Foreground="{DynamicResource ColorBrush3}" />
                     <local:MyIconButton x:Name="BtnPageRight" IsEnabled="{Binding CanGoRight}"
                                         Opacity="{Binding RightOpacity}" Margin="0,0,30,0"
-                                        SvgIcon="lucide/chevron-right" />
+                                        SvgIcon="lucide/chevron-right" Click="BtnPageRight_Click" />
                 </StackPanel>
             </local:MyCard>
         </StackPanel>
@@ -149,7 +149,7 @@
                       x:Name="PanLoad" UseAnimation="False" Margin="40,50">
             <local:MyLoading Margin="20,20,20,17" x:Name="Load" HorizontalAlignment="Center"
                              VerticalAlignment="Center"
-                             Text="{Binding LoadingText}" />
+                             Text="{Binding LoadingText}" StateChanged="Load_State" />
         </local:MyCard>
     </StackPanel>
 </local:MyScrollViewer>

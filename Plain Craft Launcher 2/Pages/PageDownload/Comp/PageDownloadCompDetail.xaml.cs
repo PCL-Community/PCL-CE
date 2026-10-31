@@ -595,34 +595,34 @@ public partial class PageDownloadCompDetail : IPageView
         }, "Download CompDetail Save");
     }
 
-    private void BtnIntroWeb_Click(object sender, EventArgs e)
+    private void BtnIntroWeb_Click(object sender, Common.RouteEventArgs e)
     {
         Common.OpenWebsite(_project.Website);
     }
 
-    private void BtnIntroWiki_Click(object sender, EventArgs e)
+    private void BtnIntroWiki_Click(object sender, Common.RouteEventArgs e)
     {
         Common.OpenWebsite("https://www.mcmod.cn/class/" + _project.WikiId + ".html");
     }
 
-    private void BtnIntroCopy_Click(object sender, EventArgs e)
+    private void BtnIntroCopy_Click(object sender, Common.RouteEventArgs e)
     {
         Common.ClipboardSet(_compItem.LabTitle.Text + _compItem.LabTitleRaw.Text);
     }
 
-    private void BtnFavorites_Click(object sender, EventArgs e)
+    private void BtnFavorites_Click(object sender, Common.RouteEventArgs e)
     {
         Comp.CompFavorites.ShowMenu(_project, (UIElement)sender, RefreshFavoriteButton);
     }
 
-    private void BtnIntroLinkCopy_Click(object sender, EventArgs e)
+    private void BtnIntroLinkCopy_Click(object sender, Common.RouteEventArgs e)
     {
         Comp.CompClipboard.currentText = _project.Website;
         Common.ClipboardSet(_project.Website);
     }
 
     // 翻译简介
-    private async void BtnTranslate_Click(object sender, EventArgs e)
+    private async void BtnTranslate_Click(object sender, Common.RouteEventArgs e)
     {
         var control = sender as FrameworkElement;
         if (control is not null)
@@ -694,13 +694,6 @@ public partial class PageDownloadCompDetail : IPageView
         InitializeComponent();
         DataContext = _vm;
         _vm.FilterSelectionChanged = UpdateFilterResult;
-        Load.StateChanged += Load_State;
-        BtnIntroWeb.Click += BtnIntroWeb_Click;
-        BtnIntroWiki.Click += BtnIntroWiki_Click;
-        BtnIntroCopy.Click += BtnIntroCopy_Click;
-        BtnFavorites.Click += BtnFavorites_Click;
-        BtnIntroLinkCopy.Click += BtnIntroLinkCopy_Click;
-        BtnTranslate.Click += BtnTranslate_Click;
     }
 
     public PageDownloadCompDetailViewModel ViewModel => _vm;

@@ -52,7 +52,7 @@
                Fill="{DynamicResource ColorBrush2}" Opacity="0.7" Width="40" Stretch="Uniform"
               Grid.ColumnSpan="2" HorizontalAlignment="Center" Margin="4,0,0,0" />
         <local:MyButton x:Name="BtnOAuth" IsEnabled="{Binding ControlsEnabled}" Text="{DynamicResource Launch.Account.Auth.OAuthLogin}"
-                        ColorType="Highlight" Height="28" Width="120" Grid.Row="2" Grid.ColumnSpan="2"
+                        ColorType="Highlight" Height="28" Width="120" Grid.Row="2" Grid.ColumnSpan="2" Click="BtnLogin_Click"
                         HorizontalAlignment="Center" />
         <Grid Grid.Row="4" Grid.ColumnSpan="2" Opacity="0.3" Margin="2,30,2,0" HorizontalAlignment="Center">
             <Grid.ColumnDefinitions>
@@ -61,7 +61,7 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <local:MyTextButton x:Name="BtnWebsite" IsEnabled="{Binding ControlsEnabled}" Text="{DynamicResource Launch.Account.Microsoft.Website}"
-                                Grid.Column="0" />
+                                Grid.Column="0" Click="BtnWebsite_Click" />
             <local:MyTextButton x:Name="BtnUsePassword" IsEnabled="{Binding ControlsEnabled}" Text="{DynamicResource Launch.Account.Auth.UsePassword}"
                                 Grid.Column="2" />
         </Grid>
@@ -73,7 +73,7 @@
     <local:MyTextButton Margin="0,12,2,0" x:Name="BtnLink" Content="{Binding RegisterLinkContent}"
                         Grid.Row="7" HorizontalAlignment="Right"
                         Grid.Column="1" Padding="20,0,0,0" HorizontalContentAlignment="Right" FontSize="13"
-                        VerticalContentAlignment="Center" Visibility="Collapsed" />
+                        VerticalContentAlignment="Center" Visibility="Collapsed" Click="Btn_Click" />
     <Grid x:Name="PanPasswordLinks" Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2"
           Opacity="0.3" Margin="2,20,2,0" HorizontalAlignment="Center" Visibility="Collapsed">
         <Grid.ColumnDefinitions>
@@ -82,15 +82,15 @@
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <local:MyTextButton x:Name="BtnPasswordWebsite" IsEnabled="{Binding ControlsEnabled}" Text="{DynamicResource Launch.Account.Microsoft.Website}"
-                            Grid.Column="0" />
+                            Grid.Column="0" Click="BtnWebsite_Click" />
         <local:MyTextButton x:Name="BtnUseOAuth" IsEnabled="{Binding ControlsEnabled}" Visibility="{Binding UseOAuthVisibility}" Text="{DynamicResource Launch.Account.Auth.UseOAuth}"
                             Grid.Column="2" />
     </Grid>
     <local:MyButton x:Name="BtnBack" IsEnabled="{Binding ControlsEnabled}" Grid.Row="9" Grid.Column="1" Width="50" Margin="-100,0,0,0" ColorType="Normal"
-                    Text="{DynamicResource Launch.Account.Auth.Back}" HorizontalAlignment="Center" />
+                    Text="{DynamicResource Launch.Account.Auth.Back}" HorizontalAlignment="Center" Click="BtnBackButton_Click" />
     <local:MyTextButton x:Name="BtnBackOAuth" IsEnabled="{Binding ControlsEnabled}" Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="2"
-                        Margin="0" Text="{DynamicResource Launch.Account.Back}"
+                        Margin="0" Text="{DynamicResource Launch.Account.Back}" Click="BtnBack_Click"
                         HorizontalAlignment="Center" Opacity="0.3" Visibility="Collapsed" />
     <local:MyButton x:Name="BtnLogin" IsEnabled="{Binding ControlsEnabled}" Grid.Row="9" Grid.Column="1" Width="50" Margin="20,0,0,0" ColorType="Highlight"
-                    Text="{Binding LoginButtonText}" HorizontalAlignment="Center" />
+                    Text="{Binding LoginButtonText}" HorizontalAlignment="Center" Click="BtnLogin_Click" />
 </Grid>

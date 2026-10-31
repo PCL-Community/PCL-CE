@@ -19,8 +19,6 @@ public partial class PageInstanceSavesLeft : IRefreshable
         DataContext = _vm;
         Loaded += Page_Loaded;
         ItemInfo.Check += PageCheck;
-        ItemDatapack.Check += PageCheck;
-        BtnOpenFolder.Click += BtnOpenFolder_Click;
     }
 
     public PageInstanceSavesLeftViewModel ViewModel => _vm;

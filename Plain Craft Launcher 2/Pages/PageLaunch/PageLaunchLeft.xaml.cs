@@ -54,9 +54,7 @@ public partial class PageLaunchLeft
         Loaded += PageLaunchLeft_Loaded;
         WeakLanguageChanged.Add(this, OnLanguageChanged);
         // Handles
-        BtnLaunch.Click += BtnLaunch_Click;
         BtnLaunch.Loaded += (_, _) => RefreshButtonsUI();
-        PanLaunchingInfo.SizeChanged += PanLaunchingInfo_SizeChangedW;
         PanLaunchingInfo.SizeChanged += PanLaunchingInfo_SizeChangedH;
         DataContext = _vm;
     }

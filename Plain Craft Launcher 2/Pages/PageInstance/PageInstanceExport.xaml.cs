@@ -58,13 +58,6 @@ public partial class PageInstanceExport : IRefreshable, IPageView
         DataContext = _vm;
         Loaded += PageInstanceExport_Loaded;
         Unloaded += (_, _) => _refreshed = false;
-        CardOptions.MouseLeftButtonDown += CardOptions_MouseLeftButtonDown;
-        BtnAdvancedExport.Click += ExportConfig;
-        BtnAdvancedImport.Click += ImportConfig;
-        BtnExport.Click += StartExport;
-        TextExportName.GotFocus += TextExportName_GotFocus;
-        CheckAdvancedModrinth.Change += CheckAdvancedModrinth_Change;
-        CheckAdvancedInclude.Change += CheckAdvancedInclude_Change;
     }
 
     void IRefreshable.Refresh()

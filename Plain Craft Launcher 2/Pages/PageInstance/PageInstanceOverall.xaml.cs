@@ -38,13 +38,7 @@ public partial class PageInstanceOverall : IPageView
         Unloaded += (_, _) => _refreshed = false;
         // Handles
         ComboDisplayType.SelectionChanged += ComboDisplayType_SelectionChanged;
-        BtnDisplayDesc.Click += BtnDisplayDesc_Click;
-        BtnDisplayRename.Click += BtnDisplayRename_Click;
         ComboDisplayLogo.SelectionChanged += ComboDisplayLogo_SelectionChanged;
-        BtnDisplayStar.Click += BtnDisplayStar_Click;
-        BtnManageRestore.Click += BtnManageRestore_Click;
-        BtnManageDelete.Click += BtnManageDelete_Click;
-        BtnManagePatch.Click += BtnManagePatch_Click;
     }
 
     public PageInstanceOverallViewModel ViewModel => _vm;

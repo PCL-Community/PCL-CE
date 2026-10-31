@@ -30,7 +30,7 @@
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left"
                                    Text="{DynamicResource Instance.Export.PackName}" Margin="0,0,20,0" />
-                        <local:MyTextBox Grid.Row="0" Grid.Column="1" x:Name="TextExportName" MaxLength="100"
+                        <local:MyTextBox Grid.Row="0" Grid.Column="1" x:Name="TextExportName" MaxLength="100" GotFocus="TextExportName_GotFocus"
                                          Text="{Binding ExportName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                          HintText="{Binding ExportNameHint}" />
                         <TextBlock Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Left"
@@ -41,7 +41,7 @@
                                          HintText="{Binding ExportVersionHint}" />
                     </Grid>
                 </local:MyCard>
-                <local:MyCard Margin="0,0,0,15" x:Name="CardOptions" MinHeight="39">
+                <local:MyCard Margin="0,0,0,15" x:Name="CardOptions" MinHeight="39" MouseLeftButtonDown="CardOptions_MouseLeftButtonDown">
                     <local:MyIconTextButton x:Name="BtnOverrideCancel" Height="24" HorizontalAlignment="Right"
                                             VerticalAlignment="Center" Margin="0,0,5,0"
                                             IsHitTestVisible="False" Opacity="0.5"
@@ -282,10 +282,10 @@
                                 <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                                 <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                             </Grid.ColumnDefinitions>
-                            <local:MyButton Grid.Column="0" x:Name="BtnAdvancedImport" MinWidth="140"
+                            <local:MyButton Grid.Column="0" x:Name="BtnAdvancedImport" MinWidth="140" Click="ImportConfig"
                                             Text="{DynamicResource Instance.Export.Advanced.ImportConfig}"
                                             Padding="13,0" Margin="0,0,20,0" ColorType="Highlight" />
-                            <local:MyButton Grid.Column="1" x:Name="BtnAdvancedExport" MinWidth="140"
+                            <local:MyButton Grid.Column="1" x:Name="BtnAdvancedExport" MinWidth="140" Click="ExportConfig"
                                             Text="{DynamicResource Instance.Export.Advanced.ExportConfig}"
                                             Padding="13,0" Margin="0,0,20,0" />
                         </Grid>
@@ -294,7 +294,7 @@
             </StackPanel>
         </local:MyScrollViewer>
         <local:MyExtraTextButton HorizontalAlignment="Center" VerticalAlignment="Bottom"
-                                 x:Name="BtnExport" Text="{DynamicResource Instance.Export.StartExport}"
+                                 x:Name="BtnExport" Text="{DynamicResource Instance.Export.StartExport}" Click="StartExport"
                                  LogoScale="1.1"
                                  SvgIcon="lucide/package" />
     </Grid>

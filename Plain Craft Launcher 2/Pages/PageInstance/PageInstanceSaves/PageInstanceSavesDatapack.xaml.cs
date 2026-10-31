@@ -43,7 +43,6 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
         Loaded += (_, _) => RefreshOnNavigate();
         LoaderInit();
         // Handles
-        Load.Click += Load_Click;
         Load.StateChanged += (_, _, _) => UnselectedAllWithAnimation();
     }
 

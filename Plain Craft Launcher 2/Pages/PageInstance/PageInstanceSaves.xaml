@@ -55,7 +55,7 @@
 
                 <local:MySearchBox Margin="0,15" HintText="{DynamicResource Instance.Saves.SearchHint}"
                                    Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                   x:Name="SearchBox" />
+                                   x:Name="SearchBox" TextChanged="SearchRun" />
 
                 <local:MyCard Margin="0,0,0,15" Title="{DynamicResource Instance.Saves.QuickActions}">
                     <Grid Height="35" Margin="25,40,15,20">

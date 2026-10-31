@@ -24,10 +24,6 @@ public partial class MyMsgLogin
         DataContext = _vm;
         // Handles
         Loaded += Load;
-        Btn1.Click += Btn1_Click;
-        Btn3.Click += Btn3_Click;
-        PanBorder.MouseLeftButtonDown += Drag;
-        LabTitle.MouseLeftButtonDown += Drag;
     }
 
     private void Finished(object result)

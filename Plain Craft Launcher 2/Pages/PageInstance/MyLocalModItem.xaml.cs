@@ -578,9 +578,6 @@ public partial class MyLocalCompItem
         MouseLeftButtonUp += RefreshColor;
         Changed += RefreshColor;
         // Handles
-        BtnUpdate.PreviewMouseRightButtonUp += BtnUpdate_PreviewMouseRightButtonUp;
-        BtnUpdate.Click += BtnUpdate_Click;
-        PanTitle.SizeChanged += PanTitle_SizeChanged;
     }
 
     private void Button_MouseUp(object sender, MouseButtonEventArgs e)

@@ -1,11 +1,11 @@
-using System.Collections.ObjectModel;
-using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Humanizer;
 using PCL.Core.App.Localization;
 using PCL.Core.Minecraft.Saves;
 using PCL.Core.Minecraft.Saves.Editing;
 using PCL.Core.ViewModel;
+using System.Collections.ObjectModel;
+using System.Windows;
 
 namespace PCL;
 
@@ -73,7 +73,8 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
 
         Reset();
         try
-        {            var save = await SaveManager.LoadSaveAsync(PageInstanceSavesLeft.currentSave, ct);
+        {
+            var save = await SaveManager.LoadSaveAsync(PageInstanceSavesLeft.currentSave, ct).ConfigureAwait(false);
 
             ShowDatapackTab = save.VersionId is not null and >= DataVersionBoundaries._17w47a;
 
@@ -143,13 +144,13 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
         {
             try
             {
-                await WriteLock.WaitAsync(ct);
+                await WriteLock.WaitAsync(ct).ConfigureAwait(false);
                 try
                 {
                     await SaveManager.ApplyChangesAsync(folder, new SaveChanges
                     {
                         AllowCommands = new Editable<bool>(value == 1)
-                    });
+                    }, ct).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -164,7 +165,7 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
                     userSummary: Lang.Text("Instance.Saves.Info.Modify.CheatFailed"));
                 return false;
             }
-        }, ct));
+        }, ct)).ConfigureAwait(true);
 
         if (applied is not true)
             return;
@@ -177,14 +178,14 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
         {
             try
             {
-                await WriteLock.WaitAsync(ct);
+                await WriteLock.WaitAsync(ct).ConfigureAwait(false);
                 try
                 {
                     await SaveManager.ApplyChangesAsync(folder, new SaveChanges
                     {
                         Difficulty = new Editable<Difficulty>((Difficulty)difficulty),
                         LockDifficulty = new Editable<bool>(!isHardcore && lockChecked)
-                    });
+                    }, ct).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -199,7 +200,7 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
                     userSummary: Lang.Text("Instance.Saves.Info.Modify.DifficultyFailed"));
                 return false;
             }
-        }, ct));
+        }, ct)).ConfigureAwait(true);
 
         if (applied is not true)
             return;

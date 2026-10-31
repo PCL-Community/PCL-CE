@@ -36,10 +36,6 @@ public partial class MySkin
         MouseLeftButtonDown += PanSkin_MouseLeftButtonDown;
         MouseLeftButtonUp += PanSkin_MouseLeftButtonUp;
         // Handles
-        BtnSkinSave.Click += BtnSkinSave_Click;
-        BtnSkinSave.Checked += BtnSkinSave_Checked;
-        BtnSkinRefresh.Click += RefreshClick;
-        BtnSkinCape.Click += BtnSkinCape_Click;
     }
 
     public string Address

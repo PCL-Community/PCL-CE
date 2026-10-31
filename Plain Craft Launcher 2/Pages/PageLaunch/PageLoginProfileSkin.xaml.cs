@@ -16,11 +16,6 @@ public partial class PageLoginProfileSkin
         DataContext = _vm;
         Loaded += (_, _) => Reload();
         // Handles
-        PanData.MouseEnter += ShowPanel;
-        PanData.MouseLeave += HidePanel;
-        BtnSkin.Click += BtnSkin_Click;
-        BtnEdit.Click += BtnEdit_Click;
-        BtnSelect.Click += ChangeProfile;
     }
 
     public PageLoginProfileSkinViewModel ViewModel => _vm;
@@ -62,7 +57,7 @@ public partial class PageLoginProfileSkin
             "PageLoginProfileSkin Button");
     }
 
-    private void HidePanel(object sender, EventArgs e)
+    private void HidePanel(object sender, MouseEventArgs? e)
     {
         if (BtnEdit.ContextMenu.IsOpen || BtnSkin.ContextMenu.IsOpen || PanData.IsMouseOver)
             return;
@@ -72,7 +67,7 @@ public partial class PageLoginProfileSkin
 
     private void MenuAccountOptions_Closed(object sender, RoutedEventArgs e)
     {
-        HidePanel(sender, e);
+        HidePanel(sender, null);
     }
 
     // 皮肤与披风子菜单

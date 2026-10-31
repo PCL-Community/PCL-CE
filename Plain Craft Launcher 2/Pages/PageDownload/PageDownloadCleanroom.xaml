@@ -19,7 +19,7 @@
                         </Grid.ColumnDefinitions>
                         <local:MyButton x:Name="BtnWeb" Grid.Column="0" MinWidth="140"
                                         Text="{DynamicResource Download.Version.OpenWebsite}" Padding="13,0"
-                                        Margin="0,0,20,0" HorizontalAlignment="Left" ColorType="Highlight" />
+                                        Margin="0,0,20,0" HorizontalAlignment="Left" ColorType="Highlight" Click="BtnWeb_Click" />
                     </Grid>
                 </StackPanel>
             </local:MyCard>

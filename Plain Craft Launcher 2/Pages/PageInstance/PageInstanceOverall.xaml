@@ -92,15 +92,15 @@
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                         </Grid.ColumnDefinitions>
-                        <local:MyButton x:Name="BtnDisplayRename" Text="{DynamicResource Instance.Overall.Rename}"
+                        <local:MyButton x:Name="BtnDisplayRename" Text="{DynamicResource Instance.Overall.Rename}" Click="BtnDisplayRename_Click"
                                         IsEnabled="{Binding RenameButtonEnabled}"
                                         MinWidth="140" Padding="13,0"
                                         Margin="0,0,20,0" />
-                        <local:MyButton x:Name="BtnDisplayDesc" Text="{DynamicResource Instance.Overall.EditDescription}"
+                        <local:MyButton x:Name="BtnDisplayDesc" Text="{DynamicResource Instance.Overall.EditDescription}" Click="BtnDisplayDesc_Click"
                                         IsEnabled="{Binding DescriptionButtonEnabled}"
                                         MinWidth="140" Padding="13,0"
                                         Margin="0,0,20,0" Grid.Column="1" />
-                        <local:MyButton x:Name="BtnDisplayStar" Text="{Binding StarText}"
+                        <local:MyButton x:Name="BtnDisplayStar" Text="{Binding StarText}" Click="BtnDisplayStar_Click"
                                         MinWidth="140" Padding="13,0"
                                         Margin="0,0,20,0" Grid.Column="2" />
                     </Grid>
@@ -142,16 +142,16 @@
                                         Margin="0,7,20,0"
                                         ToolTip="{DynamicResource Instance.Overall.Manage.RepairFiles.ToolTip}"
                                         Height="35" />
-                        <local:MyButton x:Name="BtnManageRestore" Text="{DynamicResource Common.Action.Reset}" MinWidth="140" Padding="13,0"
+                        <local:MyButton x:Name="BtnManageRestore" Text="{DynamicResource Common.Action.Reset}" MinWidth="140" Padding="13,0" Click="BtnManageRestore_Click"
                                         IsEnabled="{Binding RestoreButtonEnabled}"
                                         Margin="0,7,20,0"
                                         ToolTip="{DynamicResource Instance.Overall.Manage.Reinstall.ToolTip}"
                                         Height="35" />
-                        <local:MyButton x:Name="BtnManageDelete" Text="{DynamicResource Instance.Overall.Manage.Delete}" MinWidth="140" Padding="13,0"
+                        <local:MyButton x:Name="BtnManageDelete" Text="{DynamicResource Instance.Overall.Manage.Delete}" MinWidth="140" Padding="13,0" Click="BtnManageDelete_Click"
                                         IsEnabled="{Binding DeleteButtonEnabled}"
                                         Margin="0,7,20,0"
                                         ColorType="Red" Height="35" />
-                        <local:MyButton x:Name="BtnManagePatch" Text="{DynamicResource Instance.Overall.Manage.PatchCore}" MinWidth="140" Padding="13,0"
+                        <local:MyButton x:Name="BtnManagePatch" Text="{DynamicResource Instance.Overall.Manage.PatchCore}" MinWidth="140" Padding="13,0" Click="BtnManagePatch_Click"
                                         IsEnabled="{Binding PatchButtonEnabled}"
                                         Margin="0,7,20,0"
                                         Height="35" />

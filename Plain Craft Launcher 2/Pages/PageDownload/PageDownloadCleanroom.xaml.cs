@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using PCL.Core.App.Localization;
 
@@ -13,7 +14,6 @@ public partial class PageDownloadCleanroom
         Initialized += (_, _) => LoaderInit();
         Loaded += (_, _) => Init();
         InitializeComponent();
-        BtnWeb.Click += BtnWeb_Click;
     }
 
     private void LoaderInit()
@@ -75,7 +75,7 @@ public partial class PageDownloadCleanroom
     }
 
     // 介绍栏
-    private void BtnWeb_Click(object sender, EventArgs e)
+    private void BtnWeb_Click(object sender, MouseButtonEventArgs e)
     {
         Common.OpenWebsite("https://cleanroommc.com/zh/");
     }

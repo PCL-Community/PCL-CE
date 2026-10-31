@@ -28,7 +28,6 @@ public partial class PageInstanceSaves : IRefreshable, IPageView
         Unloaded += Page_Unloaded;
         fileSystemRefreshTimer.Tick += FileSystemRefreshTimer_Tick;
         searchTimer.Tick += SearchTimer_Tick;
-        SearchBox.TextChanged += SearchRun;
     }
 
     public PageInstanceSavesViewModel ViewModel => _vm;

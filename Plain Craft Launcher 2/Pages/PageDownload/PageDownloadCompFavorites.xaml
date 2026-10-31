@@ -28,7 +28,7 @@
                                                       SelectionChanged="ComboTargetFav_Selected" />
                                     <local:MyIconButton LogoScale="1.1" Margin="4,8,5,8" VerticalAlignment="Center"
                                                         x:Name="Btn_ManageTargetFav"
-                                                        ToolTip="{DynamicResource Download.Comp.Favorites.Manage}" />
+                                                        ToolTip="{DynamicResource Download.Comp.Favorites.Manage}" Click="Manage_Click" />
                                 </StackPanel>
                             </local:MyCard>
                         </Grid>
@@ -111,7 +111,7 @@
         <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="True"
                       x:Name="PanLoad" UseAnimation="False" Margin="40,50">
             <local:MyLoading Text="{DynamicResource Download.Comp.Favorites.Loading}" Margin="20,20,20,17" x:Name="Load" HorizontalAlignment="Center"
-                             VerticalAlignment="Center" />
+                             VerticalAlignment="Center" StateChanged="Load_State" />
         </local:MyCard>
     </Grid>
 </local:MyPageRight>
