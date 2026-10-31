@@ -3,7 +3,7 @@ using System.Windows.Input;
 
 namespace PCL;
 
-public partial class PageInstanceModDisabled
+public partial class PageInstanceModDisabled : IPageView
 {
     private readonly PageInstanceModDisabledViewModel _vm = new();
     private bool _refreshed;
@@ -14,6 +14,15 @@ public partial class PageInstanceModDisabled
         DataContext = _vm;
         Loaded += (_, _) => RefreshOnNavigate();
         Unloaded += (_, _) => _refreshed = false;
+    }
+
+    public void OnNavigatedTo(object? parameter)
+    {
+        RefreshOnNavigate();
+    }
+
+    public void OnNavigatedFrom()
+    {
     }
 
     public PageInstanceModDisabledViewModel ViewModel => _vm;

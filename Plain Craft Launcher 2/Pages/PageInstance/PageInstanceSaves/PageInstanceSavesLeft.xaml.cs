@@ -4,7 +4,7 @@ using System.Windows.Input;
 
 namespace PCL;
 
-public partial class PageInstanceSavesLeft : IRefreshable
+public partial class PageInstanceSavesLeft : IRefreshable, IPageView
 {
     public static string currentSave;
 
@@ -19,6 +19,14 @@ public partial class PageInstanceSavesLeft : IRefreshable
         DataContext = _vm;
         Loaded += Page_Loaded;
         ItemInfo.Check += PageCheck;
+    }
+
+    public void OnNavigatedTo(object? parameter)
+    {
+    }
+
+    public void OnNavigatedFrom()
+    {
     }
 
     public PageInstanceSavesLeftViewModel ViewModel => _vm;

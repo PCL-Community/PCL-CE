@@ -7,7 +7,7 @@ using PCL.Core.Utils;
 
 namespace PCL;
 
-public partial class PageSetupGameManage
+public partial class PageSetupGameManage : IPageView
 {
     private readonly PageSetupGameManageViewModel _vm = new();
 
@@ -17,6 +17,14 @@ public partial class PageSetupGameManage
     {
         InitializeComponent();
         Loaded += PageSetupSystem_Loaded;
+    }
+
+    public void OnNavigatedTo(object? parameter)
+    {
+    }
+
+    public void OnNavigatedFrom()
+    {
     }
 
     public PageSetupGameManageViewModel ViewModel => _vm;

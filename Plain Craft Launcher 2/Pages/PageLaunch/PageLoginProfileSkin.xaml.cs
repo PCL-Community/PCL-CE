@@ -6,16 +6,36 @@ using PCL.Core.Minecraft.Profile.Models;
 
 namespace PCL;
 
-public partial class PageLoginProfileSkin
+public partial class PageLoginProfileSkin : IPageView
 {
     private readonly PageLoginProfileSkinViewModel _vm = new();
+
+    private bool _refreshed;
 
     public PageLoginProfileSkin()
     {
         InitializeComponent();
         DataContext = _vm;
-        Loaded += (_, _) => Reload();
+        Loaded += (_, _) => RefreshOnNavigate();
+        Unloaded += (_, _) => _refreshed = false;
         // Handles
+    }
+
+    public void OnNavigatedTo(object? parameter)
+    {
+        RefreshOnNavigate();
+    }
+
+    public void OnNavigatedFrom()
+    {
+    }
+
+    private void RefreshOnNavigate()
+    {
+        if (_refreshed)
+            return;
+        _refreshed = true;
+        Reload();
     }
 
     public PageLoginProfileSkinViewModel ViewModel => _vm;

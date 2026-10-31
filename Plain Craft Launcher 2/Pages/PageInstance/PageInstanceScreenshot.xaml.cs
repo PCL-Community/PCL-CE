@@ -11,7 +11,7 @@ using SearchOption = System.IO.SearchOption;
 
 namespace PCL;
 
-public partial class PageInstanceScreenshot : IRefreshable
+public partial class PageInstanceScreenshot : IRefreshable, IPageView
 {
     private bool _AppendLock;
     private int _Offset;
@@ -22,12 +22,23 @@ public partial class PageInstanceScreenshot : IRefreshable
 
     private bool isLoad;
     private string screenshotPath;
+    private bool _refreshed;
 
     public PageInstanceScreenshot()
     {
         InitializeComponent();
         DataContext = _vm;
         Loaded += PageSetupLaunch_Loaded;
+        Unloaded += (_, _) => _refreshed = false;
+    }
+
+    public void OnNavigatedTo(object? parameter)
+    {
+        RefreshOnNavigate();
+    }
+
+    public void OnNavigatedFrom()
+    {
     }
 
     public PageInstanceScreenshotViewModel ViewModel => _vm;
@@ -52,6 +63,14 @@ public partial class PageInstanceScreenshot : IRefreshable
 
     private void PageSetupLaunch_Loaded(object sender, RoutedEventArgs e)
     {
+        RefreshOnNavigate();
+    }
+
+    private void RefreshOnNavigate()
+    {
+        if (_refreshed)
+            return;
+        _refreshed = true;
         // 重复加载部分
         PanBack.ScrollToHome();
         screenshotPath = PageInstanceLeft.McInstance.PathIndie + @"screenshots\";

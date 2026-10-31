@@ -6,7 +6,7 @@ using PCL.Core.App.Localization;
 
 namespace PCL;
 
-public partial class PageSetupLauncherLanguage
+public partial class PageSetupLauncherLanguage : IPageView
 {
     private readonly PageSetupLauncherLanguageViewModel _vm = new();
 
@@ -17,6 +17,14 @@ public partial class PageSetupLauncherLanguage
         InitializeComponent();
         DataContext = _vm;
         Loaded += PageSetupLauncherLanguage_Loaded;
+    }
+
+    public void OnNavigatedTo(object? parameter)
+    {
+    }
+
+    public void OnNavigatedFrom()
+    {
     }
 
     public PageSetupLauncherLanguageViewModel ViewModel => _vm;

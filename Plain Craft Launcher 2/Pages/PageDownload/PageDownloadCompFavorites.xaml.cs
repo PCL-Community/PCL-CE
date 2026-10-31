@@ -11,12 +11,14 @@ using PCL.Core.App.Localization;
 
 namespace PCL;
 
-public partial class PageDownloadCompFavorites
+public partial class PageDownloadCompFavorites : IPageView
 {
     private readonly List<MyListItem> compItemList = new();
     private List<MyListItem> selectedItemList = new();
 
     private readonly PageDownloadCompFavoritesViewModel _vm = new();
+
+    private bool _refreshed;
 
     public PageDownloadCompFavoritesViewModel ViewModel => _vm;
 
@@ -26,6 +28,7 @@ public partial class PageDownloadCompFavorites
             CompFavoritesGet, inputDelegate: LoaderInput);
         Initialized += PageDownloadCompFavorites_Inited;
         Loaded += PageDownloadCompFavorites_Loaded;
+        Unloaded += (_, _) => _refreshed = false;
         InitializeComponent();
         DataContext = _vm;
         DialogServiceInstaller.Install(_vm);
@@ -40,6 +43,16 @@ public partial class PageDownloadCompFavorites
         // Handles
         WeakLanguageChanged.Add(this, OnLanguageChanged);
     }
+
+    public void OnNavigatedTo(object? parameter)
+    {
+        RefreshOnNavigate();
+    }
+
+    public void OnNavigatedFrom()
+    {
+    }
+
     private static void OnLanguageChanged(PageDownloadCompFavorites page) => Common.RunInUi(page._RefreshCategoryTitles);
 
     private Comp.CompFavorites.FavData CurrentFavTarget
@@ -71,6 +84,14 @@ public partial class PageDownloadCompFavorites
 
     private void PageDownloadCompFavorites_Loaded(object sender, EventArgs e)
     {
+        RefreshOnNavigate();
+    }
+
+    private void RefreshOnNavigate()
+    {
+        if (_refreshed)
+            return;
+        _refreshed = true;
         Items_SetSelectAll(false);
         RefreshBar();
         if (loader.input is not null && !loader.input.Count.Equals(CurrentFavTarget.Favs.Count)) RefreshFavTargets();
