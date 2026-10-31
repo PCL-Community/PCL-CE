@@ -975,6 +975,7 @@
     <sys:String x:Key="Instance.Overall.Shortcuts.InstanceFolder">Instance folder</sys:String>
     <sys:String x:Key="Instance.Overall.Shortcuts.ModsFolder">Mods folder</sys:String>
     <sys:String x:Key="Instance.Overall.Shortcuts.SavesFolder">Saves folder</sys:String>
+    <sys:String x:Key="Instance.Overall.Shortcuts.ConfigFolder">Config folder</sys:String>
     <sys:String x:Key="Instance.Overall.Shortcuts.Title">Shortcuts</sys:String>
     <sys:String x:Key="Instance.Overall.Unfavorite">Unfavourite</sys:String>
 
@@ -1059,6 +1060,10 @@
     <sys:String x:Key="Instance.Resource.EmptyFolder.Description">You can install resources from previously downloaded files</sys:String>
     <sys:String x:Key="Instance.Resource.EmptyFolder.Title">This folder is empty</sys:String>
     <sys:String x:Key="Instance.Resource.Enable">Enable</sys:String>
+    <sys:String x:Key="Instance.Resource.OpenConfigFolder">Config</sys:String>
+    <sys:String x:Key="Instance.Resource.ConfigFolder.NotExists">Mod {0} has not generated a config folder, opened instance config directory</sys:String>
+    <sys:String x:Key="Instance.Resource.ConfigFolder.FileSelected">Mod {0} has not generated a config folder, selected config file</sys:String>
+    <sys:String x:Key="Instance.Resource.ConfigFolder.NoModId">Cannot identify mod ID for {0}, unable to open config folder</sys:String>
     <sys:String x:Key="Instance.Resource.Error.OperationFailed">A resource management operation failed. See the details below.</sys:String>
     <sys:String x:Key="Instance.Resource.Export.FilesFilter">Text file (*.txt)|*.txt|CSV file (*.csv)|*.csv</sys:String>
     <sys:String x:Key="Instance.Resource.Export.Mode.Csv">CSV format</sys:String>

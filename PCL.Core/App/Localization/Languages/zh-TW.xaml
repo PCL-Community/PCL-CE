@@ -975,6 +975,7 @@
     <sys:String x:Key="Instance.Overall.Shortcuts.InstanceFolder">實例資料夾</sys:String>
     <sys:String x:Key="Instance.Overall.Shortcuts.ModsFolder">模組資料夾</sys:String>
     <sys:String x:Key="Instance.Overall.Shortcuts.SavesFolder">存檔資料夾</sys:String>
+    <sys:String x:Key="Instance.Overall.Shortcuts.ConfigFolder">設定資料夾</sys:String>
     <sys:String x:Key="Instance.Overall.Shortcuts.Title">捷徑</sys:String>
     <sys:String x:Key="Instance.Overall.Unfavorite">從我的最愛中移除</sys:String>
 
@@ -1059,6 +1060,10 @@
     <sys:String x:Key="Instance.Resource.EmptyFolder.Description">你可以從已經下載好的檔案安裝資源</sys:String>
     <sys:String x:Key="Instance.Resource.EmptyFolder.Title">該資料夾為空</sys:String>
     <sys:String x:Key="Instance.Resource.Enable">啟用</sys:String>
+    <sys:String x:Key="Instance.Resource.OpenConfigFolder">設定</sys:String>
+    <sys:String x:Key="Instance.Resource.ConfigFolder.NotExists">模組 {0} 尚未生成設定資料夾，已打開實例設定目錄</sys:String>
+    <sys:String x:Key="Instance.Resource.ConfigFolder.FileSelected">模組 {0} 尚未生成設定資料夾，已選中設定檔案</sys:String>
+    <sys:String x:Key="Instance.Resource.ConfigFolder.NoModId">無法識別模組 {0} 的 ID，無法打開設定資料夾</sys:String>
     <sys:String x:Key="Instance.Resource.Error.OperationFailed">資源管理操作失敗。請檢視錯誤詳情。</sys:String>
     <sys:String x:Key="Instance.Resource.Export.FilesFilter">文字檔案(*.txt)|*.txt|CSV 檔案(*.csv)|*.csv</sys:String>
     <sys:String x:Key="Instance.Resource.Export.Mode.Csv">CSV 格式</sys:String>

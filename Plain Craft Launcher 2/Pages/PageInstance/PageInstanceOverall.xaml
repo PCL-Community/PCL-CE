@@ -114,6 +114,7 @@
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                         </Grid.ColumnDefinitions>
                         <local:MyButton x:Name="BtnFolderVersion" Text="{loc:Loc Instance.Overall.Shortcuts.InstanceFolder}" MinWidth="140" Padding="13,0"
                                         Command="{Binding OpenInstanceFolderCommand}"
@@ -125,6 +126,9 @@
                                         Command="{Binding OpenModsFolderCommand}"
                                         Margin="0,0,20,0" Grid.Column="2"
                                         Visibility="{Binding ModsFolderVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <local:MyButton x:Name="BtnFolderConfig" Text="{loc:Loc Instance.Overall.Shortcuts.ConfigFolder}" MinWidth="140" Padding="13,0"
+                                        Command="{Binding OpenConfigFolderCommand}"
+                                        Margin="0,0,20,0" Grid.Column="3" />
                     </Grid>
                 </StackPanel>
             </local:MyCard>

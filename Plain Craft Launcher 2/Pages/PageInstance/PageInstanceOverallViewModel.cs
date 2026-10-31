@@ -138,6 +138,54 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
         Common.OpenExplorer(folderPath);
     }
 
+    // 配置文件夹
+    [RelayCommand]
+    private void OpenConfigFolder()
+    {
+        try
+        {
+            var instance = PageInstanceLeft.McInstance;
+            string configPath;
+
+            if (instance.Info.HasLabyMod)
+            {
+                var vanillaName = instance.Info.VanillaName;
+                if (string.IsNullOrWhiteSpace(vanillaName) ||
+                    vanillaName.Contains("..") ||
+                    vanillaName.Contains('\\') ||
+                    vanillaName.Contains('/'))
+                {
+                    Common.Log("LabyMod 版本名称无效: " + vanillaName, Common.LogLevel.Hint,
+                        userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
+                    return;
+                }
+
+                configPath = Path.Combine(instance.PathIndie, "labymod-neo", "fabric", vanillaName, "config");
+            }
+            else
+            {
+                configPath = Path.Combine(instance.PathIndie, "config");
+            }
+
+            var fullPath = Path.GetFullPath(configPath);
+            var instanceRoot = Path.GetFullPath(instance.PathIndie);
+            if (!fullPath.StartsWith(instanceRoot, StringComparison.OrdinalIgnoreCase))
+            {
+                Common.Log("配置文件夹路径验证失败", Common.LogLevel.Hint,
+                    userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
+                return;
+            }
+
+            Directory.CreateDirectory(configPath);
+            Common.OpenExplorer(configPath + @"\");
+        }
+        catch (Exception ex)
+        {
+            Common.Log(ex, "打开配置文件夹失败", Common.LogLevel.Hint,
+                userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
+        }
+    }
+
     // 导出启动脚本
     [RelayCommand]
     private void ExportLaunchScript()

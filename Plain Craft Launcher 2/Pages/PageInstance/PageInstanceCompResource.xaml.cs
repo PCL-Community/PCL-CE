@@ -621,7 +621,21 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
             ToolTipService.SetVerticalOffset(btnED, 30d);
             ToolTipService.SetHorizontalOffset(btnED, 2d);
             btnED.Click += (ss, ee) => ED_Click((MyIconButton)ss, ee);
-            sender.Buttons = new[] { btnCont, btnOpen, btnED, btnDelete };
+            
+            if (!sender.Entry.IsFolder)
+            {
+                var btnSetting = new MyIconButton { LogoScale = 1d, SvgIcon = "lucide/settings", Tag = sender };
+                btnSetting.ToolTip = Lang.Text("Instance.Resource.OpenConfigFolder");
+                ToolTipService.SetPlacement(btnSetting, PlacementMode.Center);
+                ToolTipService.SetVerticalOffset(btnSetting, 30d);
+                ToolTipService.SetHorizontalOffset(btnSetting, 2d);
+                btnSetting.Click += (ss, ee) => Setting_Click((MyIconButton)ss, ee);
+                sender.Buttons = new[] { btnCont, btnOpen, btnSetting, btnED, btnDelete };
+            }
+            else
+            {
+                sender.Buttons = new[] { btnCont, btnOpen, btnED, btnDelete };
+            }
         }
     }
 
@@ -2644,6 +2658,88 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
     // 打开文件所在的位置
     public void Open_Click(MyIconButton sender, EventArgs e) =>
         _vm.OpenFileLocationCommand.Execute((sender.Tag as MyLocalCompItem)?.Entry);
+
+    // 打开配置文件夹
+    public void Setting_Click(MyIconButton sender, EventArgs e)
+    {
+        try
+        {
+            var listItem = (MyLocalCompItem)sender.Tag;
+            var modId = listItem.Entry.ModId;
+            if (string.IsNullOrEmpty(modId) ||
+                modId.Contains("..") ||
+                modId.Contains('\\') ||
+                modId.Contains('/'))
+            {
+                HintService.Show(Hints.Info(Lang.Text("Instance.Resource.ConfigFolder.NoModId", listItem.Entry.Name)));
+                return;
+            }
+
+            var modFilePath = listItem.Entry.path;
+            var modsFolderPath = Path.GetDirectoryName(modFilePath);
+
+            string configFolderBase = "";
+            if (modsFolderPath != null)
+            {
+                var modsIndex = modsFolderPath.LastIndexOf(@"\mods", StringComparison.OrdinalIgnoreCase);
+                if (modsIndex >= 0)
+                    configFolderBase = modsFolderPath.Substring(0, modsIndex) + @"\config";
+                else if (modsFolderPath.Contains(@"labymod-neo\fabric"))
+                {
+                    var labymodIndex = modsFolderPath.IndexOf(@"labymod-neo\fabric", StringComparison.Ordinal);
+                    if (labymodIndex > 0)
+                    {
+                        var instancePath = modsFolderPath.Substring(0, labymodIndex - 1);
+                        var relativeMods = modsFolderPath.Substring(labymodIndex);
+                        configFolderBase = instancePath + relativeMods.Replace(@"\mods", @"\config", StringComparison.Ordinal);
+                    }
+                }
+            }
+
+            var configFolder = configFolderBase + @"\" + modId + @"\";
+            if (Directory.Exists(configFolder))
+            {
+                Common.OpenExplorer(configFolder);
+            }
+            else
+            {
+                var configDir = configFolderBase + @"\";
+                Directory.CreateDirectory(configDir);
+
+                var allFiles = Directory.GetFiles(configDir, modId + "*");
+                var configFiles = allFiles.Where(f =>
+                {
+                    var name = Path.GetFileNameWithoutExtension(f);
+                    if (!name.StartsWith(modId, StringComparison.OrdinalIgnoreCase))
+                        return false;
+                    if (name.Length == modId.Length)
+                        return true;
+                    var nextChar = name[modId.Length];
+                    return nextChar == '-' || nextChar == '.';
+                }).Where(f =>
+                {
+                    var ext = Path.GetExtension(f).ToLowerInvariant();
+                    return ext is ".toml" or ".json" or ".cfg" or ".conf" or ".properties" or ".yml" or ".yaml";
+                }).ToArray();
+
+                if (configFiles.Length > 0)
+                {
+                    HintService.Show(Hints.Info(Lang.Text("Instance.Resource.ConfigFolder.FileSelected", listItem.Entry.Name ?? modId)));
+                    Common.OpenExplorer(configFiles[0]);
+                }
+                else
+                {
+                    HintService.Show(Hints.Info(Lang.Text("Instance.Resource.ConfigFolder.NotExists", listItem.Entry.Name ?? modId)));
+                    Common.OpenExplorer(configDir);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Common.Log(ex, "打开模组配置文件夹失败", Common.LogLevel.Hint,
+                userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
+        }
+    }
 
     // 删除
     public void Delete_Click(MyIconButton sender, EventArgs e)

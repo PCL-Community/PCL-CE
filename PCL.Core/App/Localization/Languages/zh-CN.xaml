@@ -1014,6 +1014,7 @@
     <sys:String x:Key="Instance.Overall.Shortcuts.InstanceFolder">实例文件夹</sys:String>
     <sys:String x:Key="Instance.Overall.Shortcuts.ModsFolder">模组文件夹</sys:String>
     <sys:String x:Key="Instance.Overall.Shortcuts.SavesFolder">存档文件夹</sys:String>
+    <sys:String x:Key="Instance.Overall.Shortcuts.ConfigFolder">配置文件夹</sys:String>
     <sys:String x:Key="Instance.Overall.Shortcuts.Title">快捷方式</sys:String>
     <sys:String x:Key="Instance.Overall.Unfavorite">从收藏夹中移除</sys:String>
 
@@ -1098,6 +1099,10 @@
     <sys:String x:Key="Instance.Resource.EmptyFolder.Description">你可以从已经下载好的文件安装资源</sys:String>
     <sys:String x:Key="Instance.Resource.EmptyFolder.Title">该文件夹为空</sys:String>
     <sys:String x:Key="Instance.Resource.Enable">启用</sys:String>
+    <sys:String x:Key="Instance.Resource.OpenConfigFolder">配置</sys:String>
+    <sys:String x:Key="Instance.Resource.ConfigFolder.NotExists">模组 {0} 尚未生成配置文件夹，已打开实例配置目录</sys:String>
+    <sys:String x:Key="Instance.Resource.ConfigFolder.FileSelected">模组 {0} 尚未生成配置文件夹，已选中配置文件</sys:String>
+    <sys:String x:Key="Instance.Resource.ConfigFolder.NoModId">无法识别模组 {0} 的 ID，无法打开配置文件夹</sys:String>
     <sys:String x:Key="Instance.Resource.Error.OperationFailed">资源管理操作失败。请查看错误详情。</sys:String>
     <sys:String x:Key="Instance.Resource.Export.FilesFilter">文本文件(*.txt)|*.txt|CSV 文件(*.csv)|*.csv</sys:String>
     <sys:String x:Key="Instance.Resource.Export.Mode.Csv">CSV 格式</sys:String>
