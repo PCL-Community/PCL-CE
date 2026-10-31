@@ -131,7 +131,7 @@ public partial class PageLoginAuth
                     LoginType = GameLaunch.McLoginType.Auth
                 };
                 GameLaunch.mcLoginAuthLoader.Start(loginData, true);
-                while (GameLaunch.mcLoginAuthLoader.State == Common.LoadState.Loading)
+                while (GameLaunch.mcLoginAuthLoader.State == LoadState.Loading)
                 {
                     _vm.LoginButtonText = Lang.Number(GameLaunch.mcLoginAuthLoader.Progress, "P0");
                     await Task.Delay(50);
@@ -139,15 +139,15 @@ public partial class PageLoginAuth
 
                 switch (GameLaunch.mcLoginAuthLoader.State)
                 {
-                    case Common.LoadState.Finished:
+                    case LoadState.Finished:
                         Launcher.frmLaunchLeft.RefreshPage(true);
                         break;
-                    case Common.LoadState.Aborted:
+                    case LoadState.Aborted:
                         HintService.Show(Hints.Info(Lang.Text("Launch.Account.Auth.Cancelled")));
                         break;
-                    case Common.LoadState.Waiting:
-                    case Common.LoadState.Loading:
-                    case Common.LoadState.Failed:
+                    case LoadState.Waiting:
+                    case LoadState.Loading:
+                    case LoadState.Failed:
                     default:
                     {
                         if (GameLaunch.mcLoginAuthLoader.Error is null)

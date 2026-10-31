@@ -53,7 +53,7 @@ public partial class PageSelectRightViewModel : ViewModelBase
     [RelayCommand]
     private void RetryLoad()
     {
-        if (InstanceList.mcInstanceListLoader.State == Common.LoadState.Failed)
+        if (InstanceList.mcInstanceListLoader.State == LoadState.Failed)
             Loading.LoaderFolderRun(InstanceList.mcInstanceListLoader, GameFolders.mcFolderSelected,
                 Loading.LoaderFolderRunType.ForceRun, 1, @"versions\");
     }

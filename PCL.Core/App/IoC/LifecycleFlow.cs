@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
+using PCL.Core.Platform;
 
 namespace PCL.Core.App.IoC;
 
@@ -95,9 +95,9 @@ partial class Lifecycle
     private static readonly object _ExitLock = new();
 
     /// <summary>
-    /// WPF 应用程序容器，在 <see cref="LifecycleState.BeforeLoading"/> 阶段为空值
+    ///     应用程序容器，在 <see cref="LifecycleState.BeforeLoading" /> 阶段为空值
     /// </summary>
-    public static Application CurrentApplication { get; set; } = null!;
+    public static IApplicationHost CurrentApplication { get; set; } = null!;
 
     /// <summary>
     /// 是否正在关闭程序

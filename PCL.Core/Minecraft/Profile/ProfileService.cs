@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -23,6 +23,9 @@ public partial class ProfileService
 {
     private static readonly ProfileManagement<McProfile> _profiles = new();
     private static readonly object _saveLock = new();
+    private static readonly object _loadStateLock = new();
+    private static Task? _loadTask;
+    private static bool _loadStarted;
     private static bool _canPersist = true;
 
     public static IReadOnlyList<McProfile> Profiles => _profiles.GetAll();
@@ -34,7 +37,25 @@ public partial class ProfileService
     [LifecycleStart]
     private static Task _Start()
     {
-        Load();
+        lock (_loadStateLock)
+        {
+            if (!_loadStarted)
+            {
+                _loadStarted = true;
+                _loadTask = Task.Run(() =>
+                {
+                    try
+                    {
+                        Load();
+                    }
+                    catch (Exception ex)
+                    {
+                        Context.Error("后台加载档案失败", ex);
+                    }
+                });
+            }
+        }
+
         return Task.CompletedTask;
     }
 
@@ -297,7 +318,29 @@ public partial class ProfileService
 
     private static void _EnsureLoaded()
     {
-        if (!IsLoaded) Load();
+        if (IsLoaded) return;
+
+        Task? task;
+        lock (_loadStateLock) task = _loadTask;
+        if (task is not null)
+        {
+            try
+            {
+                task.Wait(TimeSpan.FromSeconds(2));
+            }
+            catch
+            {
+                // ignored
+            }
+
+            if (IsLoaded) return;
+            Context.Warn("档案加载未完成，暂以空档案继续");
+            _canPersist = false;
+            _profiles.LoadFromString("{\"lastUsed\":-1,\"profiles\":[]}");
+            return;
+        }
+
+        Load();
     }
 
     private static bool _TryLoad(string? json)

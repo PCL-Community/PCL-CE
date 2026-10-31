@@ -102,7 +102,7 @@ public partial class PageSetupJava : IPageView
 
     protected override void RefreshLocalization()
     {
-        if (loader.State == Common.LoadState.Finished)
+        if (loader.State == LoadState.Finished)
         {
             var savedOffset = PanBack.VerticalOffset;
             OnLoadFinished();

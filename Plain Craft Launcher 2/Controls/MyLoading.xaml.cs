@@ -3,7 +3,6 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
-using static PCL.MyLoading;
 using PCL.Core.App.Localization;
 
 namespace PCL;
@@ -14,7 +13,10 @@ public partial class MyLoading
 
     public delegate void IsErrorChangedEventHandler(object sender, bool isError);
 
-    public delegate void StateChangedEventHandler(object sender, MyLoadingState newState, MyLoadingState oldState);
+    public delegate void StateChangedEventHandler(
+        object sender,
+        LoadingState newState,
+        LoadingState oldState);
 
     private readonly int _uuid = Common.GetUuid();
 
@@ -114,7 +116,7 @@ public partial class MyLoading
     {
         Common.RunInUi(() =>
         {
-            if (InnerState == MyLoadingState.Error)
+            if (InnerState == LoadingState.Error)
             {
                 if (TextErrorInherit && State.IsLoader)
                 {
@@ -162,15 +164,6 @@ public partial class MyLoading
 
     #region 状态改变
 
-    // 状态枚举
-    public enum MyLoadingState
-    {
-        Unloaded = -1,
-        Run = 0,
-        Stop = 1,
-        Error = 2
-    }
-
     // 用于外部改变的公开状态
     private ILoadingTrigger _State
     {
@@ -215,23 +208,23 @@ public partial class MyLoading
         {
             _State = new MyLoadingStateSimulator();
             if (AutoRun)
-                _State.LoadingState = MyLoadingState.Run;
+                _State.LoadingState = LoadingState.Run;
         }
     }
 
     private void RefreshState()
     {
-        if (_State.LoadingState == MyLoadingState.Run && !IsLoaded)
-            InnerState = MyLoadingState.Stop;
+        if (_State.LoadingState == LoadingState.Run && !IsLoaded)
+            InnerState = LoadingState.Stop;
         InnerState = _State.LoadingState;
         OuterState = _State.LoadingState;
         AniLoop();
     }
 
     // 用于引发外部事件的状态
-    private MyLoadingState _OuterState { get; set; } = MyLoadingState.Unloaded;
+    private LoadingState _OuterState { get; set; } = LoadingState.Unloaded;
 
-    private MyLoadingState OuterState
+    private LoadingState OuterState
     {
         get => _OuterState;
         set
@@ -242,16 +235,16 @@ public partial class MyLoading
             _OuterState = value;
             // 引发事件
             StateChanged?.Invoke(this, value, oldValue);
-            if (oldValue == MyLoadingState.Error != (value == MyLoadingState.Error))
-                IsErrorChanged?.Invoke(this, value == MyLoadingState.Error);
+            if (oldValue == LoadingState.Error != (value == LoadingState.Error))
+                IsErrorChanged?.Invoke(this, value == LoadingState.Error);
         }
     }
 
 
     // 用于引发内部动画事件的状态
-    private MyLoadingState _InnerState { get; set; } = MyLoadingState.Unloaded;
+    private LoadingState _InnerState { get; set; } = LoadingState.Unloaded;
 
-    private MyLoadingState InnerState
+    private LoadingState InnerState
     {
         get => _InnerState;
         set
@@ -262,8 +255,8 @@ public partial class MyLoading
             _InnerState = value;
             // 引发事件
             AniLoop();
-            if (oldValue == MyLoadingState.Error != (value == MyLoadingState.Error))
-                ErrorAnimation(this, value == MyLoadingState.Error);
+            if (oldValue == LoadingState.Error != (value == LoadingState.Error))
+                ErrorAnimation(this, value == LoadingState.Error);
         }
     }
 
@@ -284,7 +277,10 @@ public partial class MyLoading
     private void AniLoop()
     {
         // 这坨循环代码也是老屎坑了，救救.jpg
-        if (!HasAnimation || _isLooping || !(InnerState == MyLoadingState.Run) ||
+        if (!HasAnimation
+            || _isLooping
+            || InnerState != LoadingState.Run
+            ||
             Animations.aniSpeed > 10d ||
             !IsLoaded)
             return;
@@ -418,46 +414,4 @@ public partial class MyLoading
     }
 
     #endregion
-}
-
-public interface ILoadingTrigger
-{
-    delegate void LoadingStateChangedEventHandler(MyLoadingState newState, MyLoadingState oldState);
-
-    delegate void ProgressChangedEventHandler(double newProgress, double oldProgress);
-
-    bool IsLoader { get; }
-
-    double Progress { get; }
-    Exception? Error { get; }
-
-    MyLoadingState LoadingState { get; set; }
-    event LoadingStateChangedEventHandler? LoadingStateChanged;
-    event ProgressChangedEventHandler? ProgressChanged;
-}
-
-public class MyLoadingStateSimulator : ILoadingTrigger
-{
-    private MyLoadingState _LoadingState { get; set; } = MyLoadingState.Unloaded;
-
-    public MyLoadingState LoadingState
-    {
-        get => _LoadingState;
-        set
-        {
-            if (_LoadingState == value)
-                return;
-            var oldState = _LoadingState;
-            _LoadingState = value;
-            LoadingStateChanged?.Invoke(value, oldState);
-        }
-    }
-
-    public bool IsLoader { get; } = false;
-
-    public double Progress => 0;
-    public Exception? Error => null;
-
-    public event ILoadingTrigger.LoadingStateChangedEventHandler? LoadingStateChanged;
-    public event ILoadingTrigger.ProgressChangedEventHandler? ProgressChanged;
 }

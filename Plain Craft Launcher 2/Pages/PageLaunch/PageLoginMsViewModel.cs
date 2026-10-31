@@ -47,18 +47,18 @@ public partial class PageLoginMsViewModel : ViewModelBase
             {
                 ProfileService.Select(null);
                 GameLaunch.mcLoginMsLoader.Start(ProfileUi.GetLoginData(GameLaunch.McLoginType.Ms), true);
-                while (GameLaunch.mcLoginMsLoader.State == Common.LoadState.Loading)
+                while (GameLaunch.mcLoginMsLoader.State == LoadState.Loading)
                 {
                     Common.RunInUi(() => LoginText = Lang.Number(GameLaunch.mcLoginMsLoader.Progress, "P0"));
                     Thread.Sleep(50);
                 }
 
-                if (GameLaunch.mcLoginMsLoader.State == Common.LoadState.Finished)
+                if (GameLaunch.mcLoginMsLoader.State == LoadState.Finished)
                 {
                     loginSucceeded = true;
                     Common.RunInUi(() => Launcher.frmLaunchLeft?.RefreshPage(true));
                 }
-                else if (GameLaunch.mcLoginMsLoader.State == Common.LoadState.Aborted)
+                else if (GameLaunch.mcLoginMsLoader.State == LoadState.Aborted)
                 {
                     throw new ThreadInterruptedException();
                 }

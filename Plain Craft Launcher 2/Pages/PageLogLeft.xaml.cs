@@ -1,6 +1,7 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Media;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.UI.Hints;
@@ -129,6 +130,19 @@ public partial class PageLogLeft : IPageView
         }
     }
 
+    private static SolidColorBrush GetColor(GameLogLevel level)
+    {
+        var name = level switch
+        {
+            GameLogLevel.Debug => "ColorBrushDebug",
+            GameLogLevel.Warn => "ColorBrushWarn",
+            GameLogLevel.Error => "ColorBrushError",
+            GameLogLevel.Fatal => "ColorBrushFatal",
+            _ => ThemeManager.IsDarkMode ? "ColorBrushInfoDark" : "ColorBrushInfo"
+        };
+        return System.Windows.Application.Current.Resources[name] as SolidColorBrush ?? Brushes.White;
+    }
+
     private void OnLogOutput(GameWatcher.Watcher sender, GameWatcher.LogOutputEventArgs e)
     {
         foreach (var Item in shownLogs)
@@ -142,7 +156,8 @@ public partial class PageLogLeft : IPageView
                     margin = new Thickness(0d);
                 Common.RunInUi(() =>
                 {
-                    var paragraph = new Paragraph(new Run(e.logText)) { Foreground = e.color, Margin = margin };
+                    var paragraph = new Paragraph(new Run(e.logText))
+                        { Foreground = GetColor(e.Level), Margin = margin };
                     flowDocuments[uuid].Blocks.Add(paragraph);
                     var maxLog = _vm.GetMaxLogCount();
 

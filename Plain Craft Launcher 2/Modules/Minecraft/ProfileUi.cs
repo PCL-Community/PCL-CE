@@ -568,7 +568,7 @@ public static class ProfileUi
             return;
         }
         var profileId = profile.ProfileId;
-        if (GameLaunch.mcLoginLoader.State == Common.LoadState.Failed)
+        if (GameLaunch.mcLoginLoader.State == LoadState.Failed)
         {
             Interlocked.Exchange(ref _isMsSkinChanging, 0);
             HintService.Show(Hints.Error(Lang.Text("Launch.Skin.Change.LoginFailed")));
@@ -588,9 +588,9 @@ public static class ProfileUi
                 var hasRetriedAuthentication = false;
                 while (true)
                 {
-                    if (GameLaunch.mcLoginMsLoader.State == Common.LoadState.Loading) GameLaunch.mcLoginMsLoader.WaitForExit();
-                    if (GameLaunch.mcLoginMsLoader.State != Common.LoadState.Finished) GameLaunch.mcLoginMsLoader.WaitForExit(GetLoginData());
-                    if (GameLaunch.mcLoginMsLoader.State != Common.LoadState.Finished)
+                    if (GameLaunch.mcLoginMsLoader.State == LoadState.Loading) GameLaunch.mcLoginMsLoader.WaitForExit();
+                    if (GameLaunch.mcLoginMsLoader.State != LoadState.Finished) GameLaunch.mcLoginMsLoader.WaitForExit(GetLoginData());
+                    if (GameLaunch.mcLoginMsLoader.State != LoadState.Finished)
                         throw new InvalidOperationException("Microsoft login failed");
                     var latestProfile = ProfileService.Profiles.FirstOrDefault(item => item.ProfileId == profileId)
                                         ?? throw new InvalidOperationException("Microsoft profile no longer exists.");

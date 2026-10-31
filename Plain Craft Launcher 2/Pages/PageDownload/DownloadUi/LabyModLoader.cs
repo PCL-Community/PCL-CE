@@ -42,7 +42,7 @@ public static partial class DownloadUi
                                 $"https://releases.r2.labymod.net/api/v1/download/manifest/labymod4/{labyModChannel}/{minecraftName}/{labyModCommitRef}.json"
                             ],
                             Path.Combine(versionFolder, $"{id}.json"),
-                            new Common.FileChecker(isJson: true)
+                            new FileChecker(isJson: true)
                         )
                     ];
                     task.Progress = 1d;

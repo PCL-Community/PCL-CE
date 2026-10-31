@@ -226,7 +226,7 @@ public partial class MyToast
         var res = System.Windows.Application.Current.Resources;
         var accent = new Common.MyColor().FromHsl2(baseHue, 75, 60);
         var bg = ThemeService.IsDarkMode
-            ? new SolidColorBrush(LabColor.FromLch(0.35))
+            ? new SolidColorBrush(LabColor.FromLch(0.35).ToWpfColor())
             : (Brush)res["ColorBrushBackground"];
         var text = (SolidColorBrush)res["ColorBrushGray1"];
         var accentBrush = new SolidColorBrush(accent);

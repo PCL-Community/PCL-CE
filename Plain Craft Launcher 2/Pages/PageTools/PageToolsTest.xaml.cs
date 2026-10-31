@@ -104,13 +104,13 @@ public partial class PageToolsTest : IPageView
         {
             switch (loader.State)
             {
-                case Common.LoadState.Finished:
+                case LoadState.Finished:
                 {
                     HintService.Show(Hints.Success(Lang.Text("Tools.Test.CustomDownload.Finished", loader.name)));
                     Console.Beep();
                     break;
                 }
-                case Common.LoadState.Failed:
+                case LoadState.Failed:
                 {
                     Common.Log(
                         loader.Error,
@@ -120,7 +120,7 @@ public partial class PageToolsTest : IPageView
                     Console.Beep();
                     break;
                 }
-                case Common.LoadState.Aborted:
+                case LoadState.Aborted:
                 {
                     HintService.Show(Hints.Info(Lang.Text("Tools.Test.CustomDownload.Aborted", loader.name)));
                     break;
@@ -250,7 +250,7 @@ public partial class PageToolsTest : IPageView
         {
             try
             {
-                if (!GameWatcher.hasRunningMinecraft && GameLaunch.mcLaunchLoader.State != Common.LoadState.Loading)
+                if (!GameWatcher.hasRunningMinecraft && GameLaunch.mcLaunchLoader.State != LoadState.Loading)
                 {
                     if (NetFacade.HasDownloadingTask())
                     {

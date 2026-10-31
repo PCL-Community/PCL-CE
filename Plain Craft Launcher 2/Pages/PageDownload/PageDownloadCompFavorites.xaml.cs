@@ -444,11 +444,11 @@ public partial class PageDownloadCompFavorites : IPageView
     }
 
     // 自动重试
-    private void Load_State(object sender, MyLoading.MyLoadingState state, MyLoading.MyLoadingState oldState)
+    private void Load_State(object sender, LoadingState state, LoadingState oldState)
     {
         switch (loader.State)
         {
-            case Common.LoadState.Failed:
+            case LoadState.Failed:
             {
                 var errorMessage = "";
                 if (loader.Error is not null)
@@ -1042,24 +1042,24 @@ public partial class PageDownloadCompFavorites : IPageView
         if (IsSearching)
         {
             // 构造请求
-            var queryList = new List<Common.SearchEntry<MyListItem>>();
+            var queryList = new List<SearchService.SearchEntry<MyListItem>>();
             foreach (var Item in compItemList)
             {
                 if (Item.Tag is not Comp.CompProject)
                     continue;
                 var entry = (Comp.CompProject)Item.Tag;
-                var searchSource = new List<Common.SearchSource>();
-                searchSource.Add(new Common.SearchSource(entry.RawName, 1d));
+                var searchSource = new List<SearchService.SearchSource>();
+                searchSource.Add(new SearchService.SearchSource(entry.RawName, 1d));
                 if (entry.Description is not null && !string.IsNullOrEmpty(entry.Description))
-                    searchSource.Add(new Common.SearchSource(entry.Description, 0.4d));
+                    searchSource.Add(new SearchService.SearchSource(entry.Description, 0.4d));
                 if ((entry.TranslatedName ?? "") != (entry.RawName ?? ""))
-                    searchSource.Add(new Common.SearchSource(entry.TranslatedName, 1d));
-                searchSource.Add(new Common.SearchSource(string.Join("", entry.Tags), 0.2d));
-                queryList.Add(new Common.SearchEntry<MyListItem> { item = Item, searchSource = searchSource });
+                    searchSource.Add(new SearchService.SearchSource(entry.TranslatedName, 1d));
+                searchSource.Add(new SearchService.SearchSource(string.Join("", entry.Tags), 0.2d));
+                queryList.Add(new SearchService.SearchEntry<MyListItem> { item = Item, searchSource = searchSource });
             }
 
             // 进行搜索
-            searchResult = Common.Search(queryList, _vm.SearchText, Common.MaxLocalSearchDepth, 0.35d).Select(r => r.item).ToList();
+            searchResult = SearchService.Search(queryList, _vm.SearchText, SearchService.MaxLocalSearchDepth, 0.35d).Select(r => r.item).ToList();
         }
 
         RefreshContent();

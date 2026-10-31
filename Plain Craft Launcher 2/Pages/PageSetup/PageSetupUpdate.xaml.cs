@@ -64,8 +64,8 @@ public partial class PageSetupUpdate : IPageView
             // 修复：使用 dynamic 绕过命名空间重名导致的编译期类型冲突，
             // 或者你可以尝试替换为 PCL.Core.App.SemVer.Parse(Common.VersionBaseName)
             if (await UpdateManager.remoteServer.IsLatestAsync(
-                    UpdateManager.IsCurrentVersionBeta ? UpdateChannel.beta : UpdateChannel.stable,
-                    SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64,
+                    UpdateManager.IsCurrentVersionBeta ? UpdateChannel.Beta : UpdateChannel.Stable,
+                    SystemInfo.IsArm64System ? UpdateArch.Arm64 : UpdateArch.X64,
                     SemVer.Parse(Common.VersionBaseName),
                     Common.VersionCode))
             {
@@ -103,8 +103,8 @@ public partial class PageSetupUpdate : IPageView
                 {
                     updateInfo = UpdateManager.remoteServer.GetLatestVersion(
                         UpdateManager.IsCurrentVersionBeta
-                            ? UpdateChannel.beta
-                            : UpdateChannel.stable, SystemInfo.IsArm64System ? UpdateArch.arm64 : UpdateArch.x64);
+                            ? UpdateChannel.Beta
+                            : UpdateChannel.Stable, SystemInfo.IsArm64System ? UpdateArch.Arm64 : UpdateArch.X64);
                     _vm.UpdateNameText = "PCL CE " + VersionNameFormat(updateInfo.VersionName);
                     var summary = updateInfo.Changelog.Between("<summary>", "</summary>");
                     if (!updateInfo.Changelog.Contains("<summary>") || string.IsNullOrWhiteSpace(summary.Trim()))
@@ -135,7 +135,7 @@ public partial class PageSetupUpdate : IPageView
                     return;
                 }
 
-                if (UpdateManager.updateLoader is not null && UpdateManager.updateLoader.State == Common.LoadState.Loading)
+                if (UpdateManager.updateLoader is not null && UpdateManager.updateLoader.State == LoadState.Loading)
                 {
                     BtnUpdate_Timer();
                     BtnUpdate.IsEnabled = false;
@@ -176,7 +176,7 @@ public partial class PageSetupUpdate : IPageView
 
     public void BtnUpdate_Timer()
     {
-        while (UpdateManager.updateLoader is not null && UpdateManager.updateLoader.State == Common.LoadState.Loading)
+        while (UpdateManager.updateLoader is not null && UpdateManager.updateLoader.State == LoadState.Loading)
         {
             Common.RunInUi(() => BtnUpdate.Text = Lang.Number(UpdateManager.updateLoader.Progress, "P2"));
             Thread.Sleep(200);

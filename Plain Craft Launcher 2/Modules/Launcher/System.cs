@@ -171,7 +171,7 @@ public static partial class Launcher
     {
         var loginLoader = GameLaunch.mcLoginLoader;
 
-        if (loginLoader.State != Common.LoadState.Finished)
+        if (loginLoader.State != LoadState.Finished)
         {
             text = text.Replace("{user}", replacer(null));
             text = text.Replace("{uuid}", replacer(null));

@@ -20,17 +20,17 @@ public static partial class DownloadUi
         var loader = (Loading.LoaderBase)loaderObj;
         switch (loader.State)
         {
-            case Common.LoadState.Finished:
+            case LoadState.Finished:
                 HintService.Show(Hints.Success($"{loader.name}{Lang.Text("Common.Status.Success")}"));
                 break;
-            case Common.LoadState.Failed:
+            case LoadState.Failed:
                 HintService.Show(Hints.Error($"{loader.name}{Lang.Text("Common.Status.Failure")}{loader.Error.Message}"));
                 break;
-            case Common.LoadState.Aborted:
+            case LoadState.Aborted:
                 HintService.Show(Hints.Info($"{loader.name}{Lang.Text("Common.Status.Cancelled")}"));
                 break;
-            case Common.LoadState.Waiting:
-            case Common.LoadState.Loading:
+            case LoadState.Waiting:
+            case LoadState.Loading:
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
@@ -46,26 +46,26 @@ public static partial class DownloadUi
         var combo = (Loading.LoaderCombo)loader;
         switch (loader.State)
         {
-            case Common.LoadState.Finished:
+            case LoadState.Finished:
             {
                 _HandleInstallFinished(loader);
                 break;
             }
-            case Common.LoadState.Failed:
+            case LoadState.Failed:
             {
                 HintService.Show(Hints.Error($"{loader.name}{Lang.Text("Common.Status.Failure")}{loader.Error.Message}"));
                 break;
             }
-            case Common.LoadState.Aborted:
+            case LoadState.Aborted:
             {
                 HintService.Show(Hints.Info($"{loader.name}{Lang.Text("Common.Status.Cancelled")}"));
                 break;
             }
-            case Common.LoadState.Loading:
+            case LoadState.Loading:
             {
                 return;
             }
-            case Common.LoadState.Waiting:
+            case LoadState.Waiting:
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
@@ -102,7 +102,7 @@ public static partial class DownloadUi
         Loading.LoaderCombo combo)
     {
         var backupFolder = $"{combo.input}PCLInstallBackups\\";
-        if (loader.State != Common.LoadState.Finished && Directory.Exists(backupFolder))
+        if (loader.State != LoadState.Finished && Directory.Exists(backupFolder))
         {
             Common.CopyDirectory(backupFolder, combo.input?.ToString() ?? "");
             File.Delete($"{combo.input}.pclignore");
@@ -118,8 +118,8 @@ public static partial class DownloadUi
     {
         try
         {
-            if (((Loading.LoaderBase)loader).State is not (Common.LoadState.Failed
-                or Common.LoadState.Aborted))
+            if (((Loading.LoaderBase)loader).State is not (LoadState.Failed
+                or LoadState.Aborted))
                 return;
 
             Thread.Sleep(1000); // 防止存在尚未完全释放的文件，导致清理失败（例如整合包安装）
@@ -153,7 +153,7 @@ public static partial class DownloadUi
             _StartMcInstallLoader(request, subLoaders, type);
             return true;
         }
-        catch (Common.CancelledException)
+        catch (CancelledException)
         {
             return false;
         }
@@ -213,113 +213,6 @@ public static partial class DownloadUi
     /// <summary>
     ///     安装请求。
     /// </summary>
-    public class McInstallRequest
-    {
-        /// <summary>
-        ///     欲下载的 Cleanroom。
-        /// </summary>
-        public GameDownload.DlCleanroomListEntry? cleanroomEntry = null;
-
-        /// <summary>
-        ///     欲下载的 Cleanroom 版本名。
-        /// </summary>
-        public string? cleanroomVersion;
-
-        /// <summary>
-        ///     欲下载的 Fabric API 信息。
-        /// </summary>
-        public Comp.CompFile? fabricApi = null;
-
-        /// <summary>
-        ///     欲下载的 Fabric Loader 版本名。
-        /// </summary>
-        public string? fabricVersion = null;
-
-        /// <summary>
-        ///     欲下载的 Forge。
-        /// </summary>
-        public GameDownload.DlForgeVersionEntry? forgeEntry = null;
-
-        /// <summary>
-        ///     欲下载的 Forge 版本名。接受例如 36.1.4 / 14.23.5.2859 / 1.19-41.1.0 的输入。
-        /// </summary>
-        public string? forgeVersion;
-
-        /// <summary>
-        ///     欲下载的 LabyMod 通道。
-        /// </summary>
-        public string? labyModChannel = null;
-
-        /// <summary>
-        ///     欲下载的 LabyMod 版本。
-        /// </summary>
-        public string? labyModCommitRef = null;
-
-        /// <summary>
-        ///     欲下载的 Legacy Fabric API 信息。
-        /// </summary>
-        public Comp.CompFile? legacyFabricApi = null;
-
-        /// <summary>
-        ///     欲下载的 Legacy Fabric Loader 版本名。
-        /// </summary>
-        public string? legacyFabricVersion = null;
-
-        /// <summary>
-        ///     欲下载的 LiteLoader 详细信息。
-        /// </summary>
-        public GameDownload.DlLiteLoaderListEntry? liteLoaderEntry = null;
-
-        /// <summary>
-        ///     可选。欲下载的 Minecraft Json 地址。
-        /// </summary>
-        public string? minecraftJson = null;
-
-        /// <summary>
-        ///     必填。欲下载的 Minecraft 的版本名。
-        /// </summary>
-        public string? minecraftName = null;
-
-        /// <summary>
-        ///     若 MMC 整合包安装包含特殊参数，则填写此项。
-        /// </summary>
-        public Modpack.MmcPackInfo? mmcPackInfo = null;
-
-        /// <summary>
-        ///     欲下载的 NeoForge。
-        /// </summary>
-        public GameDownload.DlNeoForgeListEntry? neoForgeEntry = null;
-
-        /// <summary>
-        ///     欲下载的 NeoForge 版本名。
-        /// </summary>
-        public string? neoForgeVersion;
-
-        /// <summary>
-        ///     欲下载的 OptiFabric 信息。
-        /// </summary>
-        public Comp.CompFile? optiFabric = null;
-
-        /// <summary>
-        ///     欲下载的 OptiFine 详细信息。
-        /// </summary>
-        public GameDownload.DlOptiFineListEntry? optiFineEntry;
-
-        /// <summary>
-        ///     欲下载的 OptiFine 版本名。例如 HD_U_F6_pre1。
-        /// </summary>
-        public string? optiFineVersion;
-
-        /// <summary>
-        ///     必填。安装目标文件夹。
-        /// </summary>
-        public required string targetInstanceFolder;
-
-        /// <summary>
-        ///     必填。安装目标实例名称。
-        /// </summary>
-        public required string targetInstanceName;
-    }
 
     private sealed class McInstallFolders
     {
