@@ -57,11 +57,15 @@ public sealed class DialogService : IDialogService
 
         void PumpFrame()
         {
-            if (dialog.IsClosed || !dialog.WaitFrame.Continue) return;
+            if (dialog.IsClosed) return;
+
+            var frame = dialog.WaitFrame;
+            if (!frame.Continue) return;
+
             ComponentDispatcher.PushModal();
             try
             {
-                Dispatcher.PushFrame(dialog.WaitFrame);
+                Dispatcher.PushFrame(frame);
             }
             finally
             {
@@ -69,8 +73,10 @@ public sealed class DialogService : IDialogService
             }
         }
 
+        // DispatcherFrame 只能由界面线程创建与驱动：
+        // 界面线程直接泵帧；后台线程改为等待 Completion，避免跨线程驱动消息泵。
         if (UiDispatcher.CheckAccess()) PumpFrame();
-        else UiDispatcher.Invoke(PumpFrame);
+        else dialog.Completion.Task.GetAwaiter().GetResult();
 
         return dialog;
     }
