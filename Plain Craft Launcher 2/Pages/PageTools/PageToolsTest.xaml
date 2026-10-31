@@ -162,7 +162,7 @@
                         <TextBlock Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Left"
                                    Text="{loc:Loc Tools.Test.Achievement.Name}" Margin="0,0,25,0" />
                         <local:MyTextBox Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2"
-                                         x:Name="AchievementTitleTextBox" MaxLength="50"
+                                         x:Name="AchievementTitleTextBox"
                                          TextChanged="_AchievementInput_TextChanged">
                             <local:MyTextBox.ValidateRules>
                                 <val:NullOrEmptyValidator />
@@ -172,7 +172,7 @@
                         <TextBlock Grid.Column="0" Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left"
                                    Text="{loc:Loc Tools.Test.Achievement.Line1}" Margin="0,0,25,0" />
                         <local:MyTextBox Grid.Column="1" Grid.Row="2" Grid.ColumnSpan="2"
-                                         x:Name="AchievementString1TextBox" MaxLength="50" Margin="0,10"
+                                         x:Name="AchievementString1TextBox" Margin="0,10"
                                          TextChanged="_AchievementInput_TextChanged">
                             <local:MyTextBox.ValidateRules>
                                 <val:NullOrEmptyValidator />
@@ -182,7 +182,7 @@
                         <TextBlock Grid.Column="0" Grid.Row="3" VerticalAlignment="Center" HorizontalAlignment="Left"
                                    Text="{loc:Loc Tools.Test.Achievement.Line2}" Margin="0,0,25,0" />
                         <local:MyTextBox Grid.Column="1" Grid.Row="3" Grid.ColumnSpan="2"
-                                         x:Name="AchievementString2TextBox" MaxLength="50"
+                                         x:Name="AchievementString2TextBox"
                                          TextChanged="_AchievementInput_TextChanged" />
 
                         <TextBlock Grid.Column="0" Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left"
