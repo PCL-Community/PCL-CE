@@ -90,8 +90,7 @@ public partial class FormMain
 
         _ = Config.Preference.Theme.ThemeSelected;
         // 注册拖拽事件（不能直接加 Handles，否则没用；#6340）
-        AddHandler(DragDrop.DragEnterEvent, new DragEventHandler(HandleDrag), true);
-        AddHandler(DragDrop.DragOverEvent, new DragEventHandler(HandleDrag), true);
+        AddHandler(DragDrop.DragEnterEvent, new DragEventHandler(HandleDragEnter), true);
         // 注册 MsgBox 事件
         MsgBoxWrapper.OnShow += Launcher.MsgBoxWrapper_OnShow;
         // 注册 Hint 事件
@@ -865,41 +864,38 @@ public partial class FormMain
         }
     }
 
-    private IDataObject _HandleDrag_PrevData;
-    private DragDropEffects _HandleDrag_PrevEffects;
 
     // 文件拖放
-    private void HandleDrag(object sender, DragEventArgs e)
+    private void HandleDragEnter(object sender, DragEventArgs e)
     {
         try
         {
-            if (e.Handled && e.Effects != DragDropEffects.None)
-                return;
-            // 缓存
-            e.Handled = true;
-            if (ReferenceEquals(e.Data, _HandleDrag_PrevData))
-            {
-                e.Effects = _HandleDrag_PrevEffects;
-                return;
-            }
-
-            // 确定拖放效果
             e.Effects = DragDropEffects.None;
             if (e.Data.GetDataPresent(DataFormats.Text))
             {
-                var str = (string)e.Data.GetData(DataFormats.Text);
-                if (str.StartsWithF("authlib-injector:yggdrasil-server:"))
-                    e.Effects = DragDropEffects.Copy;
-                else if (str.StartsWithF("file:///")) e.Effects = DragDropEffects.Copy;
+                try
+                {
+                    Uri uri = new((string)e.Data.GetData(DataFormats.Text));
+                    if (uri.IsFile || uri.Scheme == "authlib-injector" || !uri.IsUnc)
+                    {
+                        e.Effects = DragDropEffects.Copy;
+                        e.Handled = true;
+                        return;
+                    }
+                }
+                catch (UriFormatException)
+                {
+                    ModBase.Log("[System] 跳过" + e.Data.GetData(DataFormats.Text) + "，无效的URI");
+                }
             }
-            else if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
                 var files = (string[])e.Data.GetData(DataFormats.FileDrop);
-                if (files is not null && files.Length > 0) e.Effects = DragDropEffects.Link;
+                if (files is not null && files.Length > 0)
+                    e.Effects = DragDropEffects.Link;
+                e.Handled = true;
             }
 
-            _HandleDrag_PrevData = e.Data;
-            _HandleDrag_PrevEffects = e.Effects;
             Common.Log("[System] 设置拖放类型：" + Common.GetStringFromEnum(e.Effects));
         }
         catch (Exception ex)
@@ -916,20 +912,41 @@ public partial class FormMain
     {
         try
         {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                var filePathRaw = e.Data.GetData(DataFormats.FileDrop);
+                // 获取文件并检查
+                if (filePathRaw is null) // #2690
+                {
+                    HintService.Hint(Lang.Text("Main.FileDrag.ExtractFirst"), HintType.Error);
+                }
+                else
+                {
+                    e.Handled = true;
+                    e.Effects = DragDropEffects.Link;
+                    FileDrag((IEnumerable<string>)filePathRaw);
+                    return;
+                }
+            }
             if (e.Data.GetDataPresent(DataFormats.Text))
             {
                 // 获取文本
                 try
                 {
-                    var str = (string)e.Data.GetData(DataFormats.Text);
-                    Common.Log("[System] 接受文本拖拽：" + str);
-                    if (str.StartsWithF("authlib-injector:yggdrasil-server:"))
+                    Common.Log("[System] 接受文本拖拽：" + e.Data.GetData(DataFormats.Text);
+                    Uri uri = new((string)e.Data.GetData(DataFormats.Text));
+                    if (uri.IsFile && !uri.IsUnc)
+                    {
+                        // 文件拖拽（例如从浏览器下载窗口拖入）
+                        var filePath = uri.LocalPath;
+                        FileDrag(new List<string> { filePath });
+                        return; // prevent repeated handling (some apps provide both file and text data)
+                    }
+                    else if (uri.AbsoluteUri.StartsWith("authlib-injector:yggdrasil-server:"))
                     {
                         // Authlib 拖拽
-                        e.Handled = true;
-                        e.Effects = DragDropEffects.Copy;
-                        var authlibServer =
-                            WebUtility.UrlDecode(str.Substring("authlib-injector:yggdrasil-server:".Length));
+                        var authlibServer = 
+                            WebUtility.UrlDecode(uri.AbsoluteUri["authlib-injector:yggdrasil-server:".Length..]);
                         Common.Log("[System] Authlib 拖拽：" + authlibServer);
                         if (!new HttpValidator().Validate(authlibServer).IsValid)
                         {
@@ -947,35 +964,14 @@ public partial class FormMain
                         });
                         if (pageCurrent == PageType.InstanceSetup && PageCurrentSub == PageSubType.VersionSetup)
                             // 正在服务器选项页，需要刷新设置项显示
-                            Launcher.frmInstanceSetup.Reload();
-                    }
-                    else if (str.StartsWithF("file:///"))
-                    {
-                        // 文件拖拽（例如从浏览器下载窗口拖入）
-                        var filePath = WebUtility.UrlDecode(str).Substring("file:///".Length).Replace("/", @"\");
-                        e.Handled = true;
-                        e.Effects = DragDropEffects.Copy;
-                        FileDrag(new List<string> { filePath });
+                            ModMain.frmInstanceSetup.Reload();
+                        return;
                     }
                 }
                 catch (Exception ex)
                 {
                     Common.Log(ex, "无法接取文本拖拽事件", Common.LogLevel.Developer);
                 }
-            }
-            else if (e.Data.GetDataPresent(DataFormats.FileDrop))
-            {
-                // 获取文件并检查
-                var filePathRaw = e.Data.GetData(DataFormats.FileDrop);
-                if (filePathRaw is null) // #2690
-                {
-                    HintService.Hint(Lang.Text("Main.FileDrag.ExtractFirst"), HintType.Error);
-                    return;
-                }
-
-                e.Handled = true;
-                e.Effects = DragDropEffects.Link;
-                FileDrag((IEnumerable<string>)filePathRaw);
             }
         }
         catch (Exception ex)
