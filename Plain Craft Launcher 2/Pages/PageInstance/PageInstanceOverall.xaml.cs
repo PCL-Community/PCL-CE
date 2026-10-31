@@ -1,21 +1,18 @@
-﻿using System.Collections.ObjectModel;
+using Microsoft.VisualBasic.FileIO;
+using PCL.Core.App;
+using PCL.Core.App.Configuration;
+using PCL.Core.App.Configuration.Storage;
+using PCL.Core.App.Localization;
+using PCL.Core.Minecraft;
+using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
+using PCL.Core.UI.Hints;
+using PCL.Core.Utils.Validate;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using FluentValidation;
-using Microsoft.VisualBasic.FileIO;
-using PCL.Core.App;
-using PCL.Core.Minecraft.Profile;
-using PCL.Core.App.Configuration;
-using PCL.Core.App.Configuration.Storage;
-using PCL.Core.Minecraft;
-using PCL.Core.UI;
-using PCL.Core.UI.Dialogs;
-using PCL.Core.Utils.Validate;
 using FileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
-using PCL.Core.App.Localization;
-using PCL.Core.UI.Hints;
 
 namespace PCL;
 
@@ -201,7 +198,7 @@ public partial class PageInstanceOverall : IPageView
                             Title = Lang.Text("Instance.Overall.Hide.ConfirmTitle"),
                             Content = Lang.Text("Instance.Overall.Hide.ConfirmMessage"),
                             Buttons = DialogButtons.OkCancel
-                        })).IsConfirmed)
+                        }).ConfigureAwait(true)).IsConfirmed)
                         {
                             ComboDisplayType.SelectedIndex = 0;
                             return;
@@ -254,7 +251,7 @@ public partial class PageInstanceOverall : IPageView
                 DefaultValue = oldInfo ?? "",
                 HintText = Lang.Text("Instance.Overall.Description.Default"),
                 HighLight = false
-            });
+            }).ConfigureAwait(true);
             var newInfo = newInfoDialog.IsConfirmed ? newInfoDialog.InputText : null;
             if (newInfo is not null && (oldInfo ?? "") != (newInfo ?? ""))
                 States.Instance.CustomInfo[PageInstanceLeft.McInstance.PathInstance] = newInfo;
@@ -294,7 +291,7 @@ public partial class PageInstanceOverall : IPageView
                 DefaultValue = oldName ?? "",
                 ValidateRules = [new FolderNameValidator(GameFolders.mcFolderSelected + "versions", ignoreCase: false)],
                 HighLight = false
-            });
+            }).ConfigureAwait(true);
             var newName = newNameDialog.IsConfirmed ? newNameDialog.InputText : null;
             if (string.IsNullOrWhiteSpace(newName))
                 return;
@@ -494,7 +491,7 @@ public partial class PageInstanceOverall : IPageView
         try
         {
             var currentVersion = PageInstanceLeft.McInstance.Info;
-            if (!(currentVersion.Drop == 99) &&
+            if (currentVersion.Drop != 99 &&
                 McVersionComparer.CompareVersion(currentVersion.VanillaName, "1.5.2") == -1 && currentVersion.HasForge)
             {
                 HintService.Show(Hints.Info(Lang.Text("Instance.Overall.Reset.NotSupported")));
@@ -513,7 +510,7 @@ public partial class PageInstanceOverall : IPageView
                 Title = Lang.Text("Instance.Overall.Reset.ConfirmTitle"),
                 Content = Lang.Text("Instance.Overall.Reset.ConfirmMessage", PageInstanceLeft.McInstance.Name),
                 Buttons = DialogButtons.OkCancel
-            })).Button == 2)
+            }).ConfigureAwait(true)).Button == 2)
                 return;
 
             // 备份实例核心文件
@@ -538,7 +535,7 @@ public partial class PageInstanceOverall : IPageView
                     : null,
                 forgeEntry = currentVersion.HasForge
                     ? new GameDownload.DlForgeVersionEntry(currentVersion.Forge, null, currentVersion.VanillaName)
-                        { Category = "installer" }
+                    { Category = "installer" }
                     : null,
                 forgeVersion = currentVersion.HasForge ? currentVersion.Forge : null,
                 neoForgeVersion = currentVersion.HasNeoForge ? currentVersion.NeoForge : null,
@@ -599,35 +596,35 @@ public partial class PageInstanceOverall : IPageView
                 Content = Lang.Text(confirmMessageKey, PageInstanceLeft.McInstance.Name),
                 Buttons = DialogButtons.OkCancel,
                 IsWarn = isIsolatedInstance || isShiftPressed
-            })).Button;
+            }).ConfigureAwait(true)).Button;
 
             switch (confirmResult)
             {
                 case 1:
-                {
-                    var instancePath = PageInstanceLeft.McInstance.PathInstance;
-                    var instanceName = PageInstanceLeft.McInstance.Name;
-                    Common.IniClearCache(Path.Combine(PageInstanceLeft.McInstance.PathIndie, "options.txt"));
-                    ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance)).InvalidateCache(
-                        instancePath);
-                    if (isShiftPressed)
                     {
-                        Common.DeleteDirectory(instancePath);
-                        HintService.Show(Hints.Success(Lang.Text("Instance.Overall.Delete.PermanentSuccess", instanceName)));
-                    }
-                    else
-                    {
-                        FileSystem.DeleteDirectory(instancePath, UIOption.OnlyErrorDialogs,
-                            RecycleOption.SendToRecycleBin);
-                        HintService.Show(Hints.Success(Lang.Text("Instance.Overall.Delete.RecycleBinSuccess", instanceName)));
-                    }
+                        var instancePath = PageInstanceLeft.McInstance.PathInstance;
+                        var instanceName = PageInstanceLeft.McInstance.Name;
+                        Common.IniClearCache(Path.Combine(PageInstanceLeft.McInstance.PathIndie, "options.txt"));
+                        ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance)).InvalidateCache(
+                            instancePath);
+                        if (isShiftPressed)
+                        {
+                            Common.DeleteDirectory(instancePath);
+                            HintService.Show(Hints.Success(Lang.Text("Instance.Overall.Delete.PermanentSuccess", instanceName)));
+                        }
+                        else
+                        {
+                            FileSystem.DeleteDirectory(instancePath, UIOption.OnlyErrorDialogs,
+                                RecycleOption.SendToRecycleBin);
+                            HintService.Show(Hints.Success(Lang.Text("Instance.Overall.Delete.RecycleBinSuccess", instanceName)));
+                        }
 
-                    break;
-                }
+                        break;
+                    }
                 case 2:
-                {
-                    return;
-                }
+                    {
+                        return;
+                    }
             }
 
             Loading.LoaderFolderRun(InstanceList.mcInstanceListLoader, GameFolders.mcFolderSelected,
@@ -663,28 +660,28 @@ public partial class PageInstanceOverall : IPageView
                 Title = Lang.Text("Instance.Overall.Patch.ConfirmTitle"),
                 Content = Lang.Text("Instance.Overall.Patch.ConfirmMessage", PageInstanceLeft.McInstance.Name),
                 Buttons = DialogButtons.OkCancel
-            })).Button)
+            }).ConfigureAwait(true)).Button)
             {
                 case 1:
-                {
-                    var userInput = SystemDialogs.SelectFile(Lang.Text("Instance.Overall.Patch.SelectFile.Filter"), Lang.Text("Instance.Overall.Patch.SelectFile.Title"));
-                    if (userInput is null || string.IsNullOrWhiteSpace(userInput))
-                        return;
-                    HintService.Show(Hints.Info(Lang.Text("Instance.Overall.Patch.Patching")));
-                    Common.RunInNewThread(() =>
                     {
-                        var core = new GameCore(PageInstanceLeft.McInstance.PathInstance + PageInstanceLeft.McInstance.Name +
-                                                ".jar");
-                        core.AddToCore(userInput);
-                        HintService.Show(Hints.Success(Lang.Text("Instance.Overall.Patch.Success")));
-                        Config.Instance.DisableAssetVerifyV2[PageInstanceLeft.McInstance.PathInstance] = true;
-                    });
-                    break;
-                }
+                        var userInput = SystemDialogs.SelectFile(Lang.Text("Instance.Overall.Patch.SelectFile.Filter"), Lang.Text("Instance.Overall.Patch.SelectFile.Title"));
+                        if (userInput is null || string.IsNullOrWhiteSpace(userInput))
+                            return;
+                        HintService.Show(Hints.Info(Lang.Text("Instance.Overall.Patch.Patching")));
+                        Common.RunInNewThread(() =>
+                        {
+                            var core = new GameCore(PageInstanceLeft.McInstance.PathInstance + PageInstanceLeft.McInstance.Name +
+                                                    ".jar");
+                            core.AddToCore(userInput);
+                            HintService.Show(Hints.Success(Lang.Text("Instance.Overall.Patch.Success")));
+                            Config.Instance.DisableAssetVerifyV2[PageInstanceLeft.McInstance.PathInstance] = true;
+                        });
+                        break;
+                    }
                 case 2:
-                {
-                    return;
-                }
+                    {
+                        return;
+                    }
             }
         }
         catch (Exception ex)

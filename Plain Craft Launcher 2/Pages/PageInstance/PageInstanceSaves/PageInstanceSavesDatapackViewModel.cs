@@ -1,16 +1,15 @@
-using System.IO;
-using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.VisualBasic.FileIO;
-using PCL.Core.App;
 using PCL.Core.App.Localization;
-using PCL.Core.UI.Hints;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
+using PCL.Core.UI.Hints;
 using PCL.Core.ViewModel;
 using PCL.Network;
 using PCL.Network.Loaders;
+using System.IO;
+using System.Text;
 using FileSystem = Microsoft.VisualBasic.FileSystem;
 
 namespace PCL;
@@ -122,7 +121,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
             var fileList = SystemDialogs.SelectFiles(
                 Lang.Text("Instance.Saves.Datapack.Install.FileDialog.Filter"),
                 Lang.Text("Instance.Saves.Datapack.Install.FileDialog.Title"));
-            if (fileList is null || fileList.Length == 0)
+            if (fileList.Length == 0)
                 return;
             await InstallFilesAsync(fileList);
             Launcher.frmInstanceSavesDatapack?.ReloadDatapackFileList(true);
@@ -166,12 +165,12 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                     DialogButton.Create(Lang.Text("Instance.Resource.Export.Mode.Txt")),
                     DialogButton.Create(Lang.Text("Instance.Resource.Export.Mode.Csv")),
                     DialogButton.Create(Lang.Text("Common.Action.Cancel")))
-            })).Button;
+            }).ConfigureAwait(true)).Button;
             if (choice is not (1 or 2))
                 return;
 
             var isCsv = choice == 2;
-            await EnsureFileInfoAsync(LocalComp.CompResourceListLoader.output.Select(entry => entry.path));
+            await EnsureFileInfoAsync(LocalComp.CompResourceListLoader.output.Select(entry => entry.path)).ConfigureAwait(true);
             var content = BuildExportContent(isCsv);
             var savePath = SystemDialogs.SelectSaveFile(
                 Lang.Text("Instance.Resource.Export.SelectSaveLocation"),
@@ -180,7 +179,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                 Lang.Text("Instance.Resource.Export.FilesFilter"));
             if (string.IsNullOrWhiteSpace(savePath))
                 return;
-            await WriteExportFileAsync(savePath, content);
+            await WriteExportFileAsync(savePath, content).ConfigureAwait(true);
             Common.OpenExplorer(savePath);
         }
         catch (Exception ex)
@@ -334,30 +333,30 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
         switch (Filter)
         {
             case DatapackFilterType.All:
-            {
-                return true;
-            }
+                {
+                    return true;
+                }
             case DatapackFilterType.Enabled:
-            {
-                return checkingDatapack.State == LocalComp.LocalCompFile.LocalFileStatus.Fine;
-            }
+                {
+                    return checkingDatapack.State == LocalComp.LocalCompFile.LocalFileStatus.Fine;
+                }
             case DatapackFilterType.Disabled:
-            {
-                return checkingDatapack.State == LocalComp.LocalCompFile.LocalFileStatus.Disabled;
-            }
+                {
+                    return checkingDatapack.State == LocalComp.LocalCompFile.LocalFileStatus.Disabled;
+                }
             case DatapackFilterType.CanUpdate:
-            {
-                return checkingDatapack.CanUpdate;
-            }
+                {
+                    return checkingDatapack.CanUpdate;
+                }
             case DatapackFilterType.Unavailable:
-            {
-                return checkingDatapack.State == LocalComp.LocalCompFile.LocalFileStatus.Unavailable;
-            }
+                {
+                    return checkingDatapack.State == LocalComp.LocalCompFile.LocalFileStatus.Unavailable;
+                }
 
             default:
-            {
-                return false;
-            }
+                {
+                    return false;
+                }
         }
     }
 
@@ -372,26 +371,26 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
         switch (method)
         {
             case DatapackSortMethod.FileName:
-            {
-                return Lang.Text("Instance.Resource.Sort.FileName");
-            }
+                {
+                    return Lang.Text("Instance.Resource.Sort.FileName");
+                }
             case DatapackSortMethod.CompName:
-            {
-                return Lang.Text("Instance.Resource.Sort.ResourceName");
-            }
+                {
+                    return Lang.Text("Instance.Resource.Sort.ResourceName");
+                }
             case DatapackSortMethod.CreateTime:
-            {
-                return Lang.Text("Instance.Resource.Sort.AddTime");
-            }
+                {
+                    return Lang.Text("Instance.Resource.Sort.AddTime");
+                }
             case DatapackSortMethod.DatapackFileSize:
-            {
-                return Lang.Text("Instance.Resource.Sort.FileSize");
-            }
+                {
+                    return Lang.Text("Instance.Resource.Sort.FileSize");
+                }
 
             default:
-            {
-                return Lang.Text("Instance.Resource.Sort.ResourceName");
-            }
+                {
+                    return Lang.Text("Instance.Resource.Sort.ResourceName");
+                }
         }
     }
 
@@ -400,48 +399,48 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
         switch (method)
         {
             case DatapackSortMethod.FileName:
-            {
-                return (a, b) => string.Compare(a.FileName, b.FileName, StringComparison.OrdinalIgnoreCase);
-            }
+                {
+                    return (a, b) => string.Compare(a.FileName, b.FileName, StringComparison.OrdinalIgnoreCase);
+                }
             case DatapackSortMethod.CompName:
-            {
-                return (a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
-            }
+                {
+                    return (a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
+                }
             case DatapackSortMethod.CreateTime:
-            {
-                return (a, b) =>
                 {
-                    var aDate = GetDatapackFileInfo(a.path).CreationTime;
-                    var bDate = GetDatapackFileInfo(b.path).CreationTime;
-                    if (aDate == DateTime.MinValue && bDate == DateTime.MinValue)
-                        return string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
+                    return (a, b) =>
+                    {
+                        var aDate = GetDatapackFileInfo(a.path).CreationTime;
+                        var bDate = GetDatapackFileInfo(b.path).CreationTime;
+                        if (aDate == DateTime.MinValue && bDate == DateTime.MinValue)
+                            return string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
 
-                    if (aDate == DateTime.MinValue) return 1;
+                        if (aDate == DateTime.MinValue) return 1;
 
-                    if (bDate == DateTime.MinValue) return -1;
-                    return bDate.CompareTo(aDate);
-                };
-            }
+                        if (bDate == DateTime.MinValue) return -1;
+                        return bDate.CompareTo(aDate);
+                    };
+                }
             case DatapackSortMethod.DatapackFileSize:
-            {
-                return (a, b) =>
                 {
-                    var aSize = GetDatapackFileInfo(a.path).Length;
-                    var bSize = GetDatapackFileInfo(b.path).Length;
-                    if (aSize == 0L && bSize == 0L)
-                        return string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
+                    return (a, b) =>
+                    {
+                        var aSize = GetDatapackFileInfo(a.path).Length;
+                        var bSize = GetDatapackFileInfo(b.path).Length;
+                        if (aSize == 0L && bSize == 0L)
+                            return string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
 
-                    if (aSize == 0L) return 1;
+                        if (aSize == 0L) return 1;
 
-                    if (bSize == 0L) return -1;
-                    return bSize.CompareTo(aSize);
-                };
-            }
+                        if (bSize == 0L) return -1;
+                        return bSize.CompareTo(aSize);
+                    };
+                }
 
             default:
-            {
-                return (a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
-            }
+                {
+                    return (a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
+                }
         }
     }
 
@@ -453,7 +452,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
         {
             var fileInfo = new FileInfo(path);
             var newItem = (fileInfo.CreationTime, fileInfo.Length);
-            if (!_fileInfoCache.ContainsKey(path)) _fileInfoCache.Add(path, newItem);
+            _fileInfoCache.TryAdd(path, newItem);
             return newItem;
         }
         catch (Exception ex)
@@ -468,10 +467,10 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
         _fileInfoCache.Clear();
     }
 
-    public async Task EnsureFileInfoAsync(IEnumerable<string> paths)
+    public Task EnsureFileInfoAsync(IEnumerable<string> paths)
     {
-        var pathList = paths.Where(path => path is not null).Distinct().ToList();
-        await RunAsync(ct => Task.Run(() =>
+        var pathList = paths.Where(path => !string.IsNullOrEmpty(path)).Distinct().ToList();
+        return RunAsync(ct => Task.Run(() =>
         {
             foreach (var path in pathList)
                 GetDatapackFileInfo(path);
@@ -521,7 +520,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                     Title = Lang.Text("Instance.Saves.Datapack.Install.Title"),
                     Content = Lang.Text("Instance.Saves.Datapack.Install.Message"),
                     Buttons = DialogButtons.OkCancel
-                })).IsConfirmed)
+                }).ConfigureAwait(true)).IsConfirmed)
                     return;
 
             var datapackFolder = GetDatapackFolderPath();
@@ -537,9 +536,9 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                         Title = Lang.Text("Instance.Resource.Install.OverwriteConfirm.Title"),
                         Content = Lang.Text("Instance.Resource.Install.OverwriteConfirm.Message", newFileName),
                         Buttons = DialogButtons.From(
-                            DialogButton.Create(Lang.Text("Common.Action.Overwrite")),
-                            DialogButton.Create(Lang.Text("Common.Action.Cancel")))
-                    })).IsConfirmed)
+                                DialogButton.Create(Lang.Text("Common.Action.Overwrite")),
+                                DialogButton.Create(Lang.Text("Common.Action.Cancel")))
+                    }).ConfigureAwait(true)).IsConfirmed)
                         continue;
 
                 copyList.Add((filePath, destFile));
@@ -550,7 +549,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                 Directory.CreateDirectory(datapackFolder);
                 foreach (var (source, destination) in copyList)
                     Common.CopyFile(source, destination);
-            });
+            }).ConfigureAwait(true);
 
             if (filePathList.Count == 1)
                 HintService.Show(Hints.Success(Lang.Text("Instance.Resource.Install.SuccessSingle",
@@ -599,7 +598,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                             Title = Lang.Text("Common.Dialog.Title"),
                             Content = Lang.Text("Instance.Saves.Datapack.Replace.FileNameConflict", Common.GetFileNameFromPath(newPath)),
                             Buttons = DialogButtons.Ok
-                        });
+                        }).ConfigureAwait(true);
                         continue;
                     }
 
@@ -677,7 +676,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
             {
                 failure = ex;
             }
-        }, ct));
+        }, ct)).ConfigureAwait(true);
 
         if (failure is not null)
             return new DatapackDeleteOutcome(deleted, false, false, failure);
@@ -727,9 +726,9 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
             var tempRoot = Path.Combine(Common.pathTemp, "DownloadedComp");
             var datapackRoot = GetDatapackFolderPath();
             var skippedUnsafeFileCount = 0;
-            foreach (var Entry in list)
+            foreach (var entry in list)
             {
-                var file = Entry.UpdateFile;
+                var file = entry.UpdateFile;
                 if (!file.Available)
                     continue;
                 if (!TryGetSafeDatapackUpdateFileName(file, out var safeFileName) ||
@@ -744,7 +743,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                 fileList.Add(file.ToNetFile(tempAddress, Comp.DownloadReason.Update,
                     file.RawGameVersions.FirstOrDefault()));
                 fileCopyList[tempAddress] = realAddress;
-                updateEntryList.Add(Entry);
+                updateEntryList.Add(entry);
             }
 
             if (skippedUnsafeFileCount > 0)
@@ -756,39 +755,39 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
             var finishedFileNames = new List<string>();
             installLoaders.Add(
                 new LoaderDownload(Lang.Text("Instance.Saves.Datapack.Update.Task.DownloadFiles"), fileList)
-                    { ProgressWeight = updateEntryList.Count * 1.5d });
+                { ProgressWeight = updateEntryList.Count * 1.5d });
 
             installLoaders.Add(new Loading.LoaderTask<int, int>(
                 Lang.Text("Instance.Saves.Datapack.Update.Task.ReplaceFiles"), _ =>
                 {
                     try
                     {
-                        foreach (var Entry in updateEntryList)
-                            if (File.Exists(Entry.path))
-                                Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(Entry.path, UIOption.AllDialogs,
+                        foreach (var entry in updateEntryList)
+                            if (File.Exists(entry.path))
+                                Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(entry.path, UIOption.AllDialogs,
                                     RecycleOption.SendToRecycleBin);
                             else
-                                Common.Log($"[DatapackUpdate] 未找到更新前的数据包文件，跳过对它的删除：{Entry.path}",
+                                Common.Log($"[DatapackUpdate] 未找到更新前的数据包文件，跳过对它的删除：{entry.path}",
                                     Common.LogLevel.Debug);
 
-                        foreach (var Entry in fileCopyList)
+                        foreach (var entry in fileCopyList)
                         {
-                            if (File.Exists(Entry.Value))
+                            if (File.Exists(entry.Value))
                             {
-                                Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(Entry.Value, UIOption.AllDialogs,
+                                Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(entry.Value, UIOption.AllDialogs,
                                     RecycleOption.SendToRecycleBin);
-                                Common.Log($"[Datapack] 更新后的数据包文件已存在，将会把它放入回收站：{Entry.Value}",
+                                Common.Log($"[Datapack] 更新后的数据包文件已存在，将会把它放入回收站：{entry.Value}",
                                     Common.LogLevel.Debug);
                             }
 
-                            if (Directory.Exists(Common.GetPathFromFullPath(Entry.Value)))
+                            if (Directory.Exists(Common.GetPathFromFullPath(entry.Value)))
                             {
-                                File.Move(Entry.Key, Entry.Value);
-                                finishedFileNames.Add(Common.GetFileNameFromPath(Entry.Value));
+                                File.Move(entry.Key, entry.Value);
+                                finishedFileNames.Add(Common.GetFileNameFromPath(entry.Value));
                             }
                             else
                             {
-                                Common.Log($"[Datapack] 更新后的目标文件夹已被删除：{Entry.Value}", Common.LogLevel.Debug);
+                                Common.Log($"[Datapack] 更新后的目标文件夹已被删除：{entry.Value}", Common.LogLevel.Debug);
                             }
                         }
                     }
@@ -808,44 +807,44 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                 switch (loader.State)
                 {
                     case Common.LoadState.Finished:
-                    {
-                        switch (finishedFileNames.Count)
                         {
-                            case 0:
+                            switch (finishedFileNames.Count)
                             {
-                                Common.Log("[DatapackUpdate] 没有数据包被成功更新");
-                                break;
-                            }
-                            case 1:
-                            {
-                                HintService.Show(Hints.Success(Lang.Text("Instance.Resource.Update.SuccessSingle", finishedFileNames.Single())));
-                                break;
+                                case 0:
+                                    {
+                                        Common.Log("[DatapackUpdate] 没有数据包被成功更新");
+                                        break;
+                                    }
+                                case 1:
+                                    {
+                                        HintService.Show(Hints.Success(Lang.Text("Instance.Resource.Update.SuccessSingle", finishedFileNames.Single())));
+                                        break;
+                                    }
+
+                                default:
+                                    {
+                                        HintService.Show(Hints.Success(Lang.Text("Instance.Resource.Update.SuccessMultiple", finishedFileNames.Count)));
+                                        break;
+                                    }
                             }
 
-                            default:
-                            {
-                                HintService.Show(Hints.Success(Lang.Text("Instance.Resource.Update.SuccessMultiple", finishedFileNames.Count)));
-                                break;
-                            }
+                            break;
+                        }
+                    case Common.LoadState.Failed:
+                        {
+                            HintService.Show(Hints.Error(Lang.Text("Instance.Resource.Update.Failed", loader.Error.Message)));
+                            break;
+                        }
+                    case Common.LoadState.Aborted:
+                        {
+                            HintService.Show(Hints.Info(Lang.Text("Instance.Resource.Update.Aborted")));
+                            break;
                         }
 
-                        break;
-                    }
-                    case Common.LoadState.Failed:
-                    {
-                        HintService.Show(Hints.Error(Lang.Text("Instance.Resource.Update.Failed", loader.Error.Message)));
-                        break;
-                    }
-                    case Common.LoadState.Aborted:
-                    {
-                        HintService.Show(Hints.Info(Lang.Text("Instance.Resource.Update.Aborted")));
-                        break;
-                    }
-
                     default:
-                    {
-                        return;
-                    }
+                        {
+                            return;
+                        }
                 }
 
                 Common.Log($"[DatapackUpdate] 已从正在进行数据包更新的文件夹列表移除：{pathDatapacks}");
@@ -855,9 +854,9 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                 {
                     try
                     {
-                        foreach (var TempFile in fileCopyList.Keys)
-                            if (File.Exists(TempFile))
-                                File.Delete(TempFile);
+                        foreach (var tempFile in fileCopyList.Keys)
+                            if (File.Exists(tempFile))
+                                File.Delete(tempFile);
                     }
                     catch (Exception ex)
                     {
@@ -898,9 +897,9 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
         return string.Join("\r\n", exportContent);
     }
 
-    public async Task WriteExportFileAsync(string savePath, string content)
+    public Task WriteExportFileAsync(string savePath, string content)
     {
-        await RunAsync(ct => Task.Run(() => File.WriteAllText(savePath, content, Encoding.UTF8), ct));
+        return RunAsync(ct => Task.Run(() => File.WriteAllText(savePath, content, Encoding.UTF8), ct));
     }
 
     private static bool TryGetSafeDatapackUpdateFileName(Comp.CompFile file, out string fileName)
@@ -912,7 +911,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
         if (!fileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
             return false;
 
-        if (fileName.IndexOfAny(new[] { '\\', '/', ':' }) >= 0)
+        if (fileName.IndexOfAny(['\\', '/', ':']) >= 0)
             return false;
 
         if (fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)

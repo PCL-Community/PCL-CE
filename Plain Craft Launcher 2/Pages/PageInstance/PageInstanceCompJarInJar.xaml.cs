@@ -1,12 +1,9 @@
-using System;
-using System.Collections.Generic;
+using PCL.Core.App.Localization;
 using System.IO;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using PCL.Core.App.Localization;
 using CompFile = PCL.LocalComp.LocalCompFile;
 
 namespace PCL;
@@ -35,7 +32,7 @@ public partial class PageInstanceCompJarInJar : IPageView
 
     private void SearchBox_TextChanged(object sender, EventArgs e)
     {
-        _search = (SearchBox.Text ?? "").Trim();
+        _search = (SearchBox.Text).Trim();
         RefreshList();
     }
 
@@ -83,7 +80,7 @@ public partial class PageInstanceCompJarInJar : IPageView
 
     private void RefreshList()
     {
-        var output = LocalComp.CompResourceListLoader.output;
+        var output = LocalComp.CompResourceListLoader.output!;
         if (!_OutputBelongsToCurrentInstance(output))
         {
             GoBack();
@@ -93,7 +90,7 @@ public partial class PageInstanceCompJarInJar : IPageView
         var allMods = output
             .Where(m => !m.IsFolder && m.State != CompFile.LocalFileStatus.Unavailable)
             .ToList();
-        _instanceMc = PageInstanceLeft.McInstance?.Info?.VanillaName;
+        _instanceMc = PageInstanceLeft.McInstance.Info.VanillaName;
         _index = new JarInJarIndex(allMods, _instanceMc);
         _vm.HideLoading();
 
@@ -156,11 +153,13 @@ public partial class PageInstanceCompJarInJar : IPageView
     private MyCard _MakeCard(string title, IEnumerable<object> rows, string templateKey)
     {
         var card = new MyCard
-            { Title = title, CanSwap = true, Margin = new Thickness(0, 0, 0, 10) };
+        { Title = title, CanSwap = true, Margin = new Thickness(0, 0, 0, 10) };
         var content = new ItemsControl
         {
-            Margin = new Thickness(20, MyCard.SwapedHeight, 18, 30), VerticalAlignment = VerticalAlignment.Top,
-            ItemsSource = rows, ItemTemplate = (DataTemplate)FindResource(templateKey)
+            Margin = new Thickness(20, MyCard.SwapedHeight, 18, 30),
+            VerticalAlignment = VerticalAlignment.Top,
+            ItemsSource = rows,
+            ItemTemplate = (DataTemplate)FindResource(templateKey)
         };
         card.Children.Add(content);
         card.SwapControl = content;
@@ -190,20 +189,20 @@ public partial class PageInstanceCompJarInJar : IPageView
             _vm.WarningRows.Add(new JijNoticeRow
             {
                 Text = Lang.Text("Instance.Resource.Mod.JarInJar.Warning.Missing", name, string.Join(", ", missing)),
-                Foreground = _BrushError
+                Foreground = BrushError
             });
         if (mismatch.Count > 0)
             _vm.WarningRows.Add(new JijNoticeRow
             {
                 Text = Lang.Text("Instance.Resource.Mod.JarInJar.Warning.VersionMismatch", name,
                     string.Join(", ", mismatch)),
-                Foreground = _BrushWarn
+                Foreground = BrushWarn
             });
         if (disabled.Count > 0)
             _vm.WarningRows.Add(new JijNoticeRow
             {
                 Text = Lang.Text("Instance.Resource.Mod.JarInJar.Warning.Disabled", name, string.Join(", ", disabled)),
-                Foreground = _BrushWarn
+                Foreground = BrushWarn
             });
     }
 
@@ -212,7 +211,7 @@ public partial class PageInstanceCompJarInJar : IPageView
         Severity = Lang.Text(hard
             ? "Instance.Resource.Mod.JarInJar.Conflict.Incompatible"
             : "Instance.Resource.Mod.JarInJar.Conflict.Discouraged"),
-        SeverityBrush = hard ? _BrushError : _BrushWarn,
+        SeverityBrush = hard ? BrushError : BrushWarn,
         Pair = "  " + Lang.Text("Instance.Resource.Mod.JarInJar.Conflict.Pair", _DisplayName(a), _DisplayName(b))
     };
 
@@ -240,7 +239,7 @@ public partial class PageInstanceCompJarInJar : IPageView
 
     private void AppendTreeRows(List<JijTreeRow> rows, List<CompFile> embedded, int depth, HashSet<CompFile> selected)
     {
-        if (embedded is null) return;
+        if (embedded is { Count: 0 }) return;
 
         var ungrouped = embedded.Where(e => string.IsNullOrEmpty(e.ModId)).ToList();
         foreach (var g in embedded.Where(e => !string.IsNullOrEmpty(e.ModId))
@@ -287,7 +286,8 @@ public partial class PageInstanceCompJarInJar : IPageView
         var isIncompatible = !isCurrent && kind == McConstraintMatcher.MatchKind.Incompatible;
         return new JijTreeRow
         {
-            Margin = new Thickness(8 + depth * 20, 2, 0, 2), Name = "• " + _DisplayName(e),
+            Margin = new Thickness(8 + depth * 20, 2, 0, 2),
+            Name = "• " + _DisplayName(e),
             Version = ver is null ? "" : "  (" + ver + ")",
             Loader = string.IsNullOrEmpty(e.JijLoader) ? "" : "  [" + e.JijLoader + "]",
             McVersion = mc is null ? "" : "  (MC " + mc + ")",
@@ -300,7 +300,7 @@ public partial class PageInstanceCompJarInJar : IPageView
                 : isIncompatible
                     ? "  " + Lang.Text("Instance.Resource.Mod.JarInJar.Bundled.Incompatible")
                     : "",
-            StatusBrush = isCurrent ? _BrushOk : isIncompatible ? _BrushWarn : null
+            StatusBrush = isCurrent ? BrushOk : isIncompatible ? BrushWarn : null
         };
     }
 
@@ -333,10 +333,10 @@ public partial class PageInstanceCompJarInJar : IPageView
 
     private static Brush _StatusBrush(JijDepStatus status) => status switch
     {
-        JijDepStatus.Installed => _BrushOk,
-        JijDepStatus.Disabled => _BrushWarn,
-        JijDepStatus.VersionMismatch => _BrushWarn,
-        _ => _BrushError
+        JijDepStatus.Installed => BrushOk,
+        JijDepStatus.Disabled => BrushWarn,
+        JijDepStatus.VersionMismatch => BrushWarn,
+        _ => BrushError
     };
 
     #endregion
@@ -347,7 +347,7 @@ public partial class PageInstanceCompJarInJar : IPageView
     private static bool _OutputBelongsToCurrentInstance(List<CompFile> output)
     {
         var inst = PageInstanceLeft.McInstance;
-        if (inst is null || output is null) return false;
+        if (output is { Count: 0 }) return false;
         try
         {
             var input = LocalComp.CompResourceListLoader.input;
@@ -385,9 +385,9 @@ public partial class PageInstanceCompJarInJar : IPageView
         return string.IsNullOrWhiteSpace(m.Name) ? m.FileName : m.Name;
     }
 
-    private static readonly Brush _BrushOk = new SolidColorBrush(Color.FromRgb(0x4C, 0xAF, 0x50));
-    private static readonly Brush _BrushWarn = new SolidColorBrush(Color.FromRgb(0xFF, 0x98, 0x00));
-    private static readonly Brush _BrushError = new SolidColorBrush(Color.FromRgb(0xE5, 0x39, 0x35));
+    private static readonly Brush BrushOk = new SolidColorBrush(Color.FromRgb(0x4C, 0xAF, 0x50));
+    private static readonly Brush BrushWarn = new SolidColorBrush(Color.FromRgb(0xFF, 0x98, 0x00));
+    private static readonly Brush BrushError = new SolidColorBrush(Color.FromRgb(0xE5, 0x39, 0x35));
 
     #endregion
 }

@@ -1,20 +1,19 @@
-﻿using System.IO;
-using System.Text.Json;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Threading;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
+using PCL.Core.App.Localization;
 using PCL.Core.IO;
 using PCL.Core.Minecraft;
 using PCL.Core.Minecraft.Java.UserPreference;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
-using PCL.Core.Utils.OS;
-using PCL.Core.App.Localization;
 using PCL.Core.UI.Hints;
 using PCL.Core.Utils;
+using PCL.Core.Utils.OS;
+using System.IO;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Threading;
 
 namespace PCL;
 
@@ -83,7 +82,7 @@ public partial class PageInstanceSetup : IPageView
         var timer = new DispatcherTimer { Interval = new TimeSpan(0, 0, 0, 1) };
         timer.Tick += (_, _) => RefreshRam();
         timer.Start();
-        RectRamGame.SizeChanged += (s, e) => RefreshRamText();
+        RectRamGame.SizeChanged += (_, _) => RefreshRamText();
     }
 
     public void Reload()
@@ -94,7 +93,7 @@ public partial class PageInstanceSetup : IPageView
             TextArgumentTitle.Text = Config.Instance.Title[PageInstanceLeft.McInstance.PathInstance];
             CheckArgumentTitleEmpty.Checked = Config.Instance.UseGlobalTitle[PageInstanceLeft.McInstance.PathInstance];
             _vm.ArgumentInfoText = Config.Instance.TypeInfo[PageInstanceLeft.McInstance.PathInstance];
-            var _unused = PageInstanceLeft.McInstance.PathIndie; // 触发自动判定
+            var unused = PageInstanceLeft.McInstance.PathIndie; // 触发自动判定
             ComboArgumentIndieV2.SelectedIndex = Config.Instance.IndieV2[PageInstanceLeft.McInstance.PathInstance] ? 0 : 1;
             _vm.RefreshTitleEmptyHint(TextArgumentTitle.Text);
             _vm.RefreshTitleHint(CheckArgumentTitleEmpty.Checked == true);
@@ -110,7 +109,7 @@ public partial class PageInstanceSetup : IPageView
             // 服务器
             _vm.ServerEnterText = Config.Instance.ServerToEnter[PageInstanceLeft.McInstance.PathInstance];
             ComboServerLoginRequire.SelectedIndex = Config.InstanceAuth.LoginRequirementSolution[PageInstanceLeft.McInstance.PathInstance];
-            comboServerLoginLast = ComboServerLoginRequire.SelectedIndex;
+            _comboServerLoginLast = ComboServerLoginRequire.SelectedIndex;
             _vm.ServerAuthServerText = Config.InstanceAuth.AuthServerAddress[PageInstanceLeft.McInstance.PathInstance];
             _vm.ServerAuthNameText = Config.InstanceAuth.AuthServerDisplayName[PageInstanceLeft.McInstance.PathInstance];
             _vm.ServerAuthRegisterText = Config.InstanceAuth.AuthRegisterAddress[PageInstanceLeft.McInstance.PathInstance];
@@ -214,7 +213,7 @@ public partial class PageInstanceSetup : IPageView
             return;
         if (sender is not MyCheckBox checkBox) return;
 
-        SetByTag(checkBox.Tag?.ToString(), checkBox.Checked.GetValueOrDefault());
+        SetByTag(checkBox.Tag?.ToString(), checkBox.Checked ?? false);
     }
 
     // 切换到全局设置
@@ -307,38 +306,38 @@ public partial class PageInstanceSetup : IPageView
             switch (left)
             {
                 case 0:
-                {
-                    Animations.AniStart(
-                        new[]
-                        {
+                    {
+                        Animations.AniStart(
+                            new[]
+                            {
                             Animations.AaOpacity(LabRamUsed, -LabRamUsed.Opacity, 100),
                             Animations.AaOpacity(LabRamTotal, -LabRamTotal.Opacity, 100),
                             Animations.AaOpacity(LabRamUsedTitle, -LabRamUsedTitle.Opacity, 100)
-                        }, "VersionSetup Ram TextLeft");
-                    break;
-                }
+                            }, "VersionSetup Ram TextLeft");
+                        break;
+                    }
                 case 1:
-                {
-                    Animations.AniStart(
-                        new[]
-                        {
+                    {
+                        Animations.AniStart(
+                            new[]
+                            {
                             Animations.AaOpacity(LabRamUsed, 1d - LabRamUsed.Opacity, 100),
                             Animations.AaOpacity(LabRamTotal, -LabRamTotal.Opacity, 100),
                             Animations.AaOpacity(LabRamUsedTitle, 0.7d - LabRamUsedTitle.Opacity, 100)
-                        }, "VersionSetup Ram TextLeft");
-                    break;
-                }
+                            }, "VersionSetup Ram TextLeft");
+                        break;
+                    }
                 case 2:
-                {
-                    Animations.AniStart(
-                        new[]
-                        {
+                    {
+                        Animations.AniStart(
+                            new[]
+                            {
                             Animations.AaOpacity(LabRamUsed, 1d - LabRamUsed.Opacity, 100),
                             Animations.AaOpacity(LabRamTotal, 1d - LabRamTotal.Opacity, 100),
                             Animations.AaOpacity(LabRamUsedTitle, 0.7d - LabRamUsedTitle.Opacity, 100)
-                        }, "VersionSetup Ram TextLeft");
-                    break;
-                }
+                            }, "VersionSetup Ram TextLeft");
+                        break;
+                    }
             }
         }
 
@@ -416,7 +415,7 @@ public partial class PageInstanceSetup : IPageView
     #region 服务器
 
     // 全局
-    private int comboServerLoginLast;
+    private int _comboServerLoginLast;
 
     private void ComboServerLogin_Changed(object sender, SelectionChangedEventArgs e)
     {
@@ -427,9 +426,9 @@ public partial class PageInstanceSetup : IPageView
         if ((ComboServerLoginRequire.SelectedIndex == 2 || ComboServerLoginRequire.SelectedIndex == 3) &&
             !TextServerAuthServer.IsValidated)
             return;
-        if (comboServerLoginLast == ComboServerLoginRequire.SelectedIndex)
+        if (_comboServerLoginLast == ComboServerLoginRequire.SelectedIndex)
             return;
-        comboServerLoginLast = ComboServerLoginRequire.SelectedIndex;
+        _comboServerLoginLast = ComboServerLoginRequire.SelectedIndex;
         Config.InstanceAuth.LoginRequirementSolution[PageInstanceLeft.McInstance.PathInstance] = ComboServerLoginRequire.SelectedIndex;
     }
 
@@ -458,7 +457,7 @@ public partial class PageInstanceSetup : IPageView
             HintService.Show(Hints.Info(Lang.Text("Instance.Setup.Server.AuthServer.AutoFormatted")));
         }
 
-        comboServerLoginLast = ComboServerLoginRequire.SelectedIndex;
+        _comboServerLoginLast = ComboServerLoginRequire.SelectedIndex;
         ComboChange(ComboServerLoginRequire, null);
     }
 
@@ -479,7 +478,7 @@ public partial class PageInstanceSetup : IPageView
 
     private void TextServerEnter_Change(object sender, TextChangedEventArgs e)
     {
-        if (sender is MyTextBox textBox) _vm.ServerEnterText = textBox.Text.Replace("：", ":");
+        if (sender is MyTextBox textBox) _vm.ServerEnterText = textBox.Text.Replace('：', ':');
     }
 
     #endregion
@@ -552,7 +551,7 @@ public partial class PageInstanceSetup : IPageView
         ComboArgumentJava.Items.Add(relativePathItem);
 
         // === 2. 添加所有可用 Java 运行时 ===
-        MyComboBoxItem selectedItem = null;
+        MyComboBoxItem? selectedItem = null;
         try
         {
             foreach (var curJava in JavaRuntime.Javas.GetSortedJavaList())
@@ -589,12 +588,7 @@ public partial class PageInstanceSetup : IPageView
         }
 
         // === 3. 根据当前偏好设置选中项（优先使用新格式 preference） ===
-        if (preference is null)
-        {
-            // 自动选择
-            selectedItem = ComboArgumentJava.Items[1] as MyComboBoxItem;
-        }
-        else if (preference is UseGlobalPreference)
+        if (preference is UseGlobalPreference)
         {
             selectedItem = ComboArgumentJava.Items[0] as MyComboBoxItem;
         }
@@ -602,14 +596,12 @@ public partial class PageInstanceSetup : IPageView
         {
             selectedItem = ComboArgumentJava.Items[2] as MyComboBoxItem;
         }
-        else if (preference is ExistingJava)
+        else if (preference is ExistingJava existPref)
         {
-            var existPref = (ExistingJava)preference;
             // 在 Java 列表中查找匹配项（从索引 3 开始）
             for (int i = 3, loopTo = ComboArgumentJava.Items.Count - 1; i <= loopTo; i++)
             {
-                var item = ComboArgumentJava.Items[i] as MyComboBoxItem;
-                if (item is not null && item.Tag is JavaEntry)
+                if (ComboArgumentJava.Items[i] is MyComboBoxItem { Tag: JavaEntry } item)
                 {
                     var javaEntry = (JavaEntry)item.Tag;
                     if (string.Equals(javaEntry.Installation.JavaExePath, existPref.JavaExePath,
@@ -656,10 +648,9 @@ public partial class PageInstanceSetup : IPageView
             return;
         }
 
-        var firstItem = ComboArgumentJava.Items[0] as MyComboBoxItem;
-        if (firstItem is not null &&
-        ((string)firstItem.Content == Lang.Text("Instance.Setup.Options.Java.NoRuntime") ||
-        (string)firstItem.Content == Lang.Text("Instance.Setup.Options.Java.LoadFailed")))
+        if (ComboArgumentJava.Items[0] is MyComboBoxItem firstItem &&
+            ((string)firstItem.Content == Lang.Text("Instance.Setup.Options.Java.NoRuntime") ||
+             (string)firstItem.Content == Lang.Text("Instance.Setup.Options.Java.LoadFailed")))
             ComboArgumentJava.IsDropDownOpen = false;
     }
 
@@ -668,12 +659,10 @@ public partial class PageInstanceSetup : IPageView
     {
         if (Animations.AniExitsAnyControl())
             return;
-        if (ComboArgumentJava.SelectedItem is null)
-            return;
 
-        var selectedItem = ComboArgumentJava.SelectedItem as MyComboBoxItem;
-        if (selectedItem is null || (selectedItem.Tag is null &&
-        (string)selectedItem.Content != Lang.Text("Instance.Setup.Options.Java.AutoSelect")))
+        if (ComboArgumentJava.SelectedItem is not MyComboBoxItem selectedItem ||
+            (selectedItem.Tag is null &&
+                                                                                  (string)selectedItem.Content != Lang.Text("Instance.Setup.Options.Java.AutoSelect")))
             return;
 
         JavaPreference preference = default;
@@ -712,9 +701,8 @@ public partial class PageInstanceSetup : IPageView
             preference = new UseRelativePath(relativePath);
             logMessage = $"[Java] 修改实例 Java 选择设置：相对路径 | {relativePath}";
         }
-        else if (selectedItem.Tag is JavaEntry)
+        else if (selectedItem.Tag is JavaEntry javaEntry)
         {
-            var javaEntry = (JavaEntry)selectedItem.Tag;
             preference = new ExistingJava(javaEntry.Installation.JavaExePath);
             logMessage = $"[Java] 修改实例 Java 选择设置：{javaEntry}";
         }
@@ -733,7 +721,7 @@ public partial class PageInstanceSetup : IPageView
     #region 其他设置
 
     // 版本隔离警告
-    private bool isReverting;
+    private bool _isReverting;
 
     private async void ComboArgumentIndieV2_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
@@ -742,21 +730,21 @@ public partial class PageInstanceSetup : IPageView
         {
             if (Animations.AniExitsAnyControl())
                 return;
-            if (isReverting)
+            if (_isReverting)
                 return;
             if ((await _vm.Dialog.ShowAsync(new TextDialogRequest
             {
                 Title = Lang.Text("Common.Dialog.Warning"),
                 Content = Lang.Text("Instance.Setup.Options.InstanceIsolation.Message"),
                 Buttons = DialogButtons.From(
-                    DialogButton.Create(Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm")),
-                    DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                        DialogButton.Create(Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm")),
+                        DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
                 IsWarn = true
-            })).Button == 2)
+            }).ConfigureAwait(true)).Button == 2)
             {
-                isReverting = true;
+                _isReverting = true;
                 ComboArgumentIndieV2.SelectedItem = e.RemovedItems[0];
-                isReverting = false;
+                _isReverting = false;
             }
             else
             {
@@ -779,13 +767,13 @@ public partial class PageInstanceSetup : IPageView
     private void CheckArgumentTitleEmpty_Change(object sender, bool e)
     {
         _vm.RefreshTitleHint(CheckArgumentTitleEmpty.Checked == true);
-        CheckBoxChange(sender,e);
+        CheckBoxChange(sender, e);
     }
 
     private void TextArgumentTitle_TextChanged(object sender, TextChangedEventArgs e)
     {
         _vm.RefreshTitleEmptyHint(TextArgumentTitle.Text);
-        TextBoxChange(sender,e);
+        TextBoxChange(sender, e);
     }
 
     #endregion
@@ -795,7 +783,7 @@ public partial class PageInstanceSetup : IPageView
     private void TextAdvanceRun_TextChanged(object sender, TextChangedEventArgs e)
     {
         _vm.RefreshRunWait(TextAdvanceRun.Text);
-        TextBoxChange(sender,e);
+        TextBoxChange(sender, e);
     }
 
     private async void ComboAdvanceRenderer_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -815,10 +803,10 @@ public partial class PageInstanceSetup : IPageView
                     Title = Lang.Text("Common.Dialog.Warning"),
                     Content = Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Message"),
                     Buttons = DialogButtons.From(
-                        DialogButton.Create(Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm")),
-                        DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                            DialogButton.Create(Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm")),
+                            DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
                     IsWarn = true
-                })).Button == 2)
+                }).ConfigureAwait(true)).Button == 2)
                 {
                     ComboAdvanceRenderer.SelectedItem = args.RemovedItems[0];
                 }
@@ -854,17 +842,17 @@ public partial class PageInstanceSetup : IPageView
             var checkBox = sender as MyCheckBox;
             if (checkBox is null) return;
 
-            if (checkBox.Checked.GetValueOrDefault() && !States.Hint.DebugLog4j2Config)
+            if ((checkBox.Checked ?? false) && !States.Hint.DebugLog4j2Config)
             {
                 if ((await _vm.Dialog.ShowAsync(new TextDialogRequest
                 {
                     Title = Lang.Text("Common.Dialog.Warning"),
                     Content = Lang.Text("Instance.Setup.Advanced.UseDebugLog4j.Message"),
                     Buttons = DialogButtons.From(
-                        DialogButton.Create(Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm")),
-                        DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                            DialogButton.Create(Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm")),
+                            DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
                     IsWarn = true
-                })).Button == 2)
+                }).ConfigureAwait(true)).Button == 2)
                 {
                     checkBox.Checked = false;
                 }

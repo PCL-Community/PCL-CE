@@ -1,16 +1,13 @@
-using System.Collections.ObjectModel;
+using fNbt;
+using PCL.Core.App.Localization;
+using PCL.Core.Link.McPing;
+using PCL.Core.Minecraft;
+using PCL.Core.UI.Dialogs;
+using PCL.Core.UI.Hints;
+using PCL.Core.Utils.Validate;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
-using FluentValidation;
-using fNbt;
-using PCL.Core.Link.McPing;
-using PCL.Core.Link.McPing.Model;
-using PCL.Core.Minecraft;
-using PCL.Core.UI.Dialogs;
-using PCL.Core.Utils.Validate;
-using PCL.Core.App.Localization;
-using PCL.Core.UI.Hints;
 
 namespace PCL;
 
@@ -95,7 +92,7 @@ public partial class PageInstanceServer : MyPageRight, IPageView
 
         var nbtData =
             await NbtFileHandler.ReadTagInNbtFileAsync<NbtList>(
-                Path.Combine(PageInstanceLeft.McInstance.PathIndie, "servers.dat"), "servers");
+                Path.Combine(PageInstanceLeft.McInstance.PathIndie, "servers.dat"), "servers").ConfigureAwait(true);
         if (nbtData is null)
         {
             HintService.Show(Hints.Error(Lang.Text("Instance.Server.ReadDataFailed")));
@@ -106,7 +103,7 @@ public partial class PageInstanceServer : MyPageRight, IPageView
         var clonedNbtData = (NbtList)nbtData.Clone();
 
         if (!await NbtFileHandler.WriteTagInNbtFileAsync(clonedNbtData,
-                Path.Combine(PageInstanceLeft.McInstance.PathIndie, "servers.dat")))
+                Path.Combine(PageInstanceLeft.McInstance.PathIndie, "servers.dat")).ConfigureAwait(true))
         {
             HintService.Show(Hints.Error(Lang.Text("Instance.Server.WriteDataFailed")));
             return;
@@ -125,7 +122,7 @@ public partial class PageInstanceServer : MyPageRight, IPageView
     {
         var nbtData =
             await NbtFileHandler.ReadTagInNbtFileAsync<NbtList>(Path.Combine(PageInstanceLeft.McInstance.PathIndie, "servers.dat"),
-                "servers");
+                "servers").ConfigureAwait(true);
         if (nbtData is null)
         {
             HintService.Show(Hints.Error(Lang.Text("Instance.Server.ReadDataFailed")));
@@ -146,7 +143,7 @@ public partial class PageInstanceServer : MyPageRight, IPageView
 
         var clonedNbtData = (NbtList)nbtData.Clone();
         if (!await NbtFileHandler.WriteTagInNbtFileAsync(clonedNbtData,
-                Path.Combine(PageInstanceLeft.McInstance.PathIndie, "servers.dat")))
+                Path.Combine(PageInstanceLeft.McInstance.PathIndie, "servers.dat")).ConfigureAwait(true))
         {
             HintService.Show(Hints.Error(Lang.Text("Instance.Server.WriteDataFailed")));
             return;
@@ -157,7 +154,7 @@ public partial class PageInstanceServer : MyPageRight, IPageView
         serverCard.server.Name = e.Param1;
         serverCard.server.Address = e.Param2;
 
-        await serverCard.RefreshServerStatusAsync(true);
+        await serverCard.RefreshServerStatusAsync(true).ConfigureAwait(true);
 
         HintService.Show(Hints.Success(Lang.Text("Instance.Server.Updated")));
     }
@@ -167,9 +164,9 @@ public partial class PageInstanceServer : MyPageRight, IPageView
         Common.Log("刷新服务器列表");
         try
         {
-            await LoadServersFromFileAsync();
+            await LoadServersFromFileAsync().ConfigureAwait(true);
 
-            Common.RunInUi(() => UpdateServerUi());
+            Common.RunInUi(UpdateServerUi);
 
             PingAllServers();
         }
@@ -212,7 +209,7 @@ public partial class PageInstanceServer : MyPageRight, IPageView
     private async void BtnAddServer_Click(object sender, MouseButtonEventArgs e)
     {
         var result = GetServerInfo(new MinecraftServerInfo
-            { Name = Lang.Text("Instance.Server.DefaultName"), Address = "" });
+        { Name = Lang.Text("Instance.Server.DefaultName"), Address = "" });
         if (result.Success)
         {
             var newServer = new MinecraftServerInfo
@@ -232,7 +229,7 @@ public partial class PageInstanceServer : MyPageRight, IPageView
             serverCardList.Add(serverCard);
             PanServers.Children.Add(serverCard);
 
-            await serverCard.RefreshServerStatusAsync(false);
+            await serverCard.RefreshServerStatusAsync(false).ConfigureAwait(true);
 
             var serversDatPath = Path.Combine(PageInstanceLeft.McInstance.PathIndie, "servers.dat");
 
@@ -244,18 +241,20 @@ public partial class PageInstanceServer : MyPageRight, IPageView
             }
             else
             {
-                nbtData = await NbtFileHandler.ReadTagInNbtFileAsync<NbtList>(serversDatPath, "servers");
+                nbtData = await NbtFileHandler.ReadTagInNbtFileAsync<NbtList>(serversDatPath, "servers").ConfigureAwait(true);
             }
 
             if (nbtData is not null)
             {
-                var server = new NbtCompound();
-                server["name"] = new NbtString("name", result.Name);
-                server["ip"] = new NbtString("ip", result.Address);
+                var server = new NbtCompound
+                {
+                    ["name"] = new NbtString("name", result.Name),
+                    ["ip"] = new NbtString("ip", result.Address)
+                };
                 if (nbtData.Count == 0) nbtData.ListType = NbtTagType.Compound;
                 nbtData.Add(server);
                 var clonedNbtData = (NbtList)nbtData.Clone();
-                await NbtFileHandler.WriteTagInNbtFileAsync(clonedNbtData, serversDatPath);
+                await NbtFileHandler.WriteTagInNbtFileAsync(clonedNbtData, serversDatPath).ConfigureAwait(true);
             }
         }
     }
@@ -299,7 +298,7 @@ public partial class PageInstanceServer : MyPageRight, IPageView
 
         try
         {
-            var nbtData = await NbtFileHandler.ReadTagInNbtFileAsync<NbtList>(serversFile, "servers");
+            var nbtData = await NbtFileHandler.ReadTagInNbtFileAsync<NbtList>(serversFile, "servers").ConfigureAwait(true);
             ParseServersFromNBT(nbtData);
         }
         catch (Exception ex)
@@ -308,7 +307,7 @@ public partial class PageInstanceServer : MyPageRight, IPageView
         }
     }
 
-    private void ParseServersFromNBT(NbtList serversList)
+    private void ParseServersFromNBT(NbtList? serversList)
     {
         if (serversList is not null)
         {
@@ -316,8 +315,7 @@ public partial class PageInstanceServer : MyPageRight, IPageView
 
             for (int i = 0, loopTo = serversList.Count - 1; i <= loopTo; i++)
             {
-                var server = serversList[i] as NbtCompound;
-                if (server is not null)
+                if (serversList[i] is NbtCompound server)
                 {
                     var ip = server.Get<NbtString>("ip")?.Value ?? "Unknown";
                     var name = server.Get<NbtString>("name")?.Value ?? "Unknown";
@@ -366,11 +364,8 @@ public partial class PageInstanceServer : MyPageRight, IPageView
 
     private async void PingAllServers()
     {
-        if (_cts is not null)
-        {
-            _cts.Cancel();
-            _cts.Dispose();
-        }
+        await _cts.CancelAsync().ConfigureAwait(true);
+        _cts.Dispose();
 
         _cts = new CancellationTokenSource();
         var token = _cts.Token;
@@ -383,12 +378,12 @@ public partial class PageInstanceServer : MyPageRight, IPageView
             foreach (var server in snapshot)
             {
                 var currentServer = server;
-                await semaphore.WaitAsync(token);
+                await semaphore.WaitAsync(token).ConfigureAwait(true);
                 tasks.Add(Task.Run(async () =>
                 {
                     try
                     {
-                        await currentServer.RefreshServerStatusAsync(false, token);
+                        await currentServer.RefreshServerStatusAsync(false, token).ConfigureAwait(true);
                     }
                     catch (Exception ex)
                     {
@@ -401,9 +396,9 @@ public partial class PageInstanceServer : MyPageRight, IPageView
                 }, token));
             }
 
-            await Task.WhenAll(tasks);
+            await Task.WhenAll(tasks).ConfigureAwait(true);
         }
-        catch (OperationCanceledException ex)
+        catch (OperationCanceledException)
         {
             Common.Log("PingAllServers 被取消", Common.LogLevel.Debug);
         }
@@ -417,19 +412,18 @@ public partial class PageInstanceServer : MyPageRight, IPageView
     {
         try
         {
-            var addr = await ServerAddressResolver.GetResolvedServerAddressAsync(server.Address, token);
+            var addr = await ServerAddressResolver.GetResolvedServerAddressAsync(server.Address, token).ConfigureAwait(true);
             using (var query = McPingServiceFactory.CreateService(addr.Host, addr.Ip, addr.Port))
             {
-                McPingResult? result;
                 Common.Log("Pinging server: " + server.Address + ":" + addr.Port);
-                result = await query.PingAsync(token);
+                var result = await query.PingAsync(token).ConfigureAwait(true);
                 Common.Log("Ping result: " + (result is not null ? "Success" : "Failed"));
                 if (result is not null)
                 {
                     server.Status = ServerStatus.Online;
                     server.PlayerCount = result.Players.Online;
                     server.MaxPlayers = result.Players.Max;
-                    server.Description = result.Description ?? string.Empty;
+                    server.Description = result.Description;
                     server.Version = result.Version.Name;
                     server.Ping = (int)result.Latency;
                     server.Icon = result.Favicon;
@@ -440,7 +434,7 @@ public partial class PageInstanceServer : MyPageRight, IPageView
                 }
             }
         }
-        catch (OperationCanceledException ex)
+        catch (OperationCanceledException)
         {
             server.Status = ServerStatus.Offline;
             Common.Log("Ping 服务器被取消: " + server.Address, Common.LogLevel.Debug);

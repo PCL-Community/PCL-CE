@@ -1,15 +1,13 @@
-using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
-using PCL.Core.UI.Hints;
 using PCL.Core.UI.Dialogs;
-using PCL.Core.Minecraft;
-using PCL.Core.Utils;
+using PCL.Core.UI.Hints;
 using PCL.Core.Utils.OS;
 using PCL.Core.ViewModel;
+using System.IO;
 
 namespace PCL;
 
@@ -316,7 +314,7 @@ public partial class PageInstanceSetupViewModel : ViewModelBase
                     Buttons = DialogButtons.From(
                         DialogButton.Create(Lang.Text("Instance.Setup.Server.LittleSkin.Override.Continue")),
                         DialogButton.Create(Lang.Text("Common.Action.Cancel")))
-                });
+                }).ConfigureAwait(true);
                 if (overrideResult.Button == 2)
                     return;
             }
@@ -358,7 +356,7 @@ public partial class PageInstanceSetupViewModel : ViewModelBase
                 Content = Lang.Text("Instance.Setup.Server.LockLoginMethod.Message"),
                 Buttons = DialogButtons.OkCancel,
                 IsWarn = true
-            });
+            }).ConfigureAwait(true);
             if (lockResult.Button == 1)
             {
                 Config.InstanceAuth.AuthLocked[PageInstanceLeft.McInstance.PathInstance] = true;

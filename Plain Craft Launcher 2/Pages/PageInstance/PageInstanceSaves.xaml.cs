@@ -1,12 +1,11 @@
-using System.Collections.Specialized;
+using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Threading;
-using PCL.Core.App.Localization;
-using PCL.Core.UI.Hints;
 
 namespace PCL;
 
@@ -171,18 +170,18 @@ public partial class PageInstanceSaves : IRefreshable, IPageView
             Logo = entry.Logo,
             Title = entry.Title,
             Info = entry.Info,
-            Type = MyListItem.CheckType.Clickable
+            Type = MyListItem.CheckType.Clickable,
+            Command = _vm.OpenDetailsCommand,
+            CommandParameter = curFolder
         };
-        worldItem.Command = _vm.OpenDetailsCommand;
-        worldItem.CommandParameter = curFolder;
 
         var btnOpen = new MyIconButton
         {
             SvgIcon = "lucide/folder-open",
-            ToolTip = Lang.Text("Common.Action.Open")
+            ToolTip = Lang.Text("Common.Action.Open"),
+            Command = _vm.OpenSaveFolderCommand,
+            CommandParameter = curFolder
         };
-        btnOpen.Command = _vm.OpenSaveFolderCommand;
-        btnOpen.CommandParameter = curFolder;
 
         var btnDelete = new MyIconButton
         {
@@ -195,7 +194,7 @@ public partial class PageInstanceSaves : IRefreshable, IPageView
             worldItem.Info = Lang.Text("Instance.Saves.Deleting");
             try
             {
-                if (await _vm.DeleteSaveAsync(curFolder))
+                if (await _vm.DeleteSaveAsync(curFolder).ConfigureAwait(true))
                 {
                     HintService.Show(Hints.Info(Lang.Text("Instance.Saves.DeletedToRecycleBin")));
                     RemoveItem(worldItem);
@@ -215,26 +214,26 @@ public partial class PageInstanceSaves : IRefreshable, IPageView
         var btnCopy = new MyIconButton
         {
             SvgIcon = "lucide/copy",
-            ToolTip = Lang.Text("Common.Action.Copy")
+            ToolTip = Lang.Text("Common.Action.Copy"),
+            Command = _vm.CopySaveCommand,
+            CommandParameter = curFolder
         };
-        btnCopy.Command = _vm.CopySaveCommand;
-        btnCopy.CommandParameter = curFolder;
 
         var btnInfo = new MyIconButton
         {
             SvgIcon = "lucide/info",
-            ToolTip = Lang.Text("Instance.Saves.Details")
+            ToolTip = Lang.Text("Instance.Saves.Details"),
+            Command = _vm.OpenDetailsCommand,
+            CommandParameter = curFolder
         };
-        btnInfo.Command = _vm.OpenDetailsCommand;
-        btnInfo.CommandParameter = curFolder;
 
         var btnLaunch = new MyIconButton
         {
             SvgIcon = "lucide/play",
-            ToolTip = Lang.Text("Instance.Saves.QuickPlay")
+            ToolTip = Lang.Text("Instance.Saves.QuickPlay"),
+            Command = _vm.LaunchSaveCommand,
+            CommandParameter = curFolder
         };
-        btnLaunch.Command = _vm.LaunchSaveCommand;
-        btnLaunch.CommandParameter = curFolder;
 
         worldItem.Buttons = _vm.QuickPlayEnabled
             ? [btnOpen, btnDelete, btnCopy, btnInfo, btnLaunch]
@@ -244,8 +243,7 @@ public partial class PageInstanceSaves : IRefreshable, IPageView
 
     private void SetupFileSystemWatcher()
     {
-        if (fileSystemWatcher is not null)
-            fileSystemWatcher.Dispose();
+        fileSystemWatcher?.Dispose();
 
         var worldPath = _vm.WorldPath;
         if (!Directory.Exists(worldPath))
@@ -272,7 +270,7 @@ public partial class PageInstanceSaves : IRefreshable, IPageView
     private void FileSystemRefreshTimer_Tick(object sender, EventArgs e)
     {
         fileSystemRefreshTimer.Stop();
-        Common.RunInUi(() => Reload(), true);
+        Common.RunInUi(Reload, true);
     }
 
     private void Page_Unloaded(object sender, RoutedEventArgs e)
@@ -310,7 +308,7 @@ public partial class PageInstanceSaves : IRefreshable, IPageView
                 var copied = PageInstanceSavesViewModel.CopySaveFolders(files, worldPath);
                 if (copied > 0)
                     HintService.Show(Hints.Success(Lang.Text("Instance.Saves.PastedCount", copied.ToString())));
-                Common.RunInUi(() => Reload());
+                Common.RunInUi(Reload);
             })
         };
         var loader = new Loading.LoaderCombo<int>(

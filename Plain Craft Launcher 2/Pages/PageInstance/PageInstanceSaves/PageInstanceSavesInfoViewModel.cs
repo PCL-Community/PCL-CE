@@ -1,9 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using Humanizer;
 using PCL.Core.App.Localization;
-using PCL.Core.UI.Hints;
 using PCL.Core.Minecraft.Saves;
 using PCL.Core.Minecraft.Saves.Editing;
+using PCL.Core.UI.Hints;
 using PCL.Core.ViewModel;
 using System.Collections.ObjectModel;
 using System.Windows;
@@ -240,10 +240,10 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
             }
 
             var usedVersion = versionName.StartsWith("1.21")
-                ? versionName.Replace(".", "_")
+                ? versionName.Replace('.', '_')
                 : versionName.Contains('.')
                     ? string.Join("_", versionName.Split('.').Take(2))
-                    : versionName.Replace(".", "_");
+                    : versionName.Replace('.', '_');
             Common.OpenWebsite(
                 $"https://www.chunkbase.com/apps/seed-map#seed={seed}&platform=java_{usedVersion}&dimension=overworld");
         }

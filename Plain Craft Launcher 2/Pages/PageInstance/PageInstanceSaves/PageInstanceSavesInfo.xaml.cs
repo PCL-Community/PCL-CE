@@ -1,6 +1,6 @@
+using PCL.Core.App.Localization;
 using System.Windows;
 using System.Windows.Controls;
-using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -61,7 +61,7 @@ public partial class PageInstanceSavesInfo : IRefreshable, IPageView
     {
         try
         {
-            await _vm.LoadAsync();
+            await _vm.LoadAsync().ConfigureAwait(true);
             if (Launcher.frmInstanceSavesLeft is not null)
                 Launcher.frmInstanceSavesLeft.ViewModel.ShowDatapackTab = _vm.ShowDatapackTab;
             PanSettingsList.Children.Clear();
@@ -129,7 +129,7 @@ public partial class PageInstanceSavesInfo : IRefreshable, IPageView
             {
                 if (combo.SelectedValue is null)
                     return;
-                await _vm.ApplyAllowCommandsAsync(folder, (int)combo.SelectedValue);
+                await _vm.ApplyAllowCommandsAsync(folder, (int)combo.SelectedValue).ConfigureAwait(true);
             }
             catch (Exception ex)
             {
@@ -180,7 +180,7 @@ public partial class PageInstanceSavesInfo : IRefreshable, IPageView
                 if (combo.SelectedValue is null)
                     return;
                 await _vm.ApplyDifficultyAsync(folder, (int)combo.SelectedValue, isHardcore,
-                    lockCheckBox.Checked == true);
+                    lockCheckBox.Checked == true).ConfigureAwait(true);
             }
             catch (Exception ex)
             {

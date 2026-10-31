@@ -1,22 +1,16 @@
+using PCL.Core.App;
+using PCL.Core.App.Localization;
+using PCL.Core.UI.Dialogs;
+using PCL.Core.UI.Hints;
+using PCL.Core.UI.Theme;
 using System.IO;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Threading;
-using Microsoft.VisualBasic.FileIO;
-using PCL.Core.App;
-using PCL.Core.UI;
-using PCL.Core.UI.Dialogs;
-using PCL.Core.UI.Theme;
-using PCL.Network;
-using PCL.Network.Loaders;
-using FileSystem = Microsoft.VisualBasic.FileSystem;
-using PCL.Core.App.Localization;
-using PCL.Core.UI.Hints;
-using SortMethod = PCL.PageInstanceSavesDatapackViewModel.DatapackSortMethod;
 using FilterType = PCL.PageInstanceSavesDatapackViewModel.DatapackFilterType;
+using SortMethod = PCL.PageInstanceSavesDatapackViewModel.DatapackSortMethod;
 
 namespace PCL;
 
@@ -496,31 +490,31 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
             switch (_vm.Filter)
             {
                 case FilterType.All:
-                {
-                    BtnFilterAll.Checked = true;
-                    break;
-                }
+                    {
+                        BtnFilterAll.Checked = true;
+                        break;
+                    }
                 case FilterType.Enabled:
-                {
-                    BtnFilterEnabled.Checked = true;
-                    break;
-                }
+                    {
+                        BtnFilterEnabled.Checked = true;
+                        break;
+                    }
                 case FilterType.Disabled:
-                {
-                    BtnFilterDisabled.Checked = true;
-                    break;
-                }
+                    {
+                        BtnFilterDisabled.Checked = true;
+                        break;
+                    }
                 case FilterType.CanUpdate:
-                {
-                    BtnFilterCanUpdate.Checked = true;
-                    break;
-                }
+                    {
+                        BtnFilterCanUpdate.Checked = true;
+                        break;
+                    }
 
                 default:
-                {
-                    BtnFilterError.Checked = true;
-                    break;
-                }
+                    {
+                        BtnFilterError.Checked = true;
+                        break;
+                    }
             }
         }
         finally
@@ -1009,7 +1003,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
                     }
 
                     queryList.Add(new Common.SearchEntry<LocalComp.LocalCompFile>
-                        { item = Entry, searchSource = searchSource });
+                    { item = Entry, searchSource = searchSource });
                 }
 
                 // 进行搜索

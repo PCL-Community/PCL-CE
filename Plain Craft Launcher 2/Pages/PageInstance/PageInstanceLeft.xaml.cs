@@ -1,7 +1,7 @@
-using System.Windows;
-using System.Windows.Controls;
 using PCL.Core.App.Localization;
 using PCL.Core.UI.Dialogs;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace PCL;
 
@@ -56,67 +56,67 @@ public partial class PageInstanceLeft : IRefreshable, IPageView
         switch (subType)
         {
             case FormMain.PageSubType.VersionMod:
-            {
-                PageInstanceCompResource.Refresh(Comp.CompType.Mod);
-                break;
-            }
+                {
+                    PageInstanceCompResource.Refresh(Comp.CompType.Mod);
+                    break;
+                }
             case FormMain.PageSubType.VersionScreenshot:
-            {
-                _ = PageInstanceScreenshot.RefreshAsync();
-                break;
-            }
+                {
+                    _ = PageInstanceScreenshot.RefreshAsync();
+                    break;
+                }
             case FormMain.PageSubType.VersionWorld:
-            {
-                PageInstanceSaves.Refresh();
-                break;
-            }
+                {
+                    PageInstanceSaves.Refresh();
+                    break;
+                }
             case FormMain.PageSubType.VersionResourcePack:
-            {
-                PageInstanceCompResource.Refresh(Comp.CompType.ResourcePack);
-                break;
-            }
+                {
+                    PageInstanceCompResource.Refresh(Comp.CompType.ResourcePack);
+                    break;
+                }
             case FormMain.PageSubType.VersionShader:
-            {
-                PageInstanceCompResource.Refresh(Comp.CompType.Shader);
-                break;
-            }
+                {
+                    PageInstanceCompResource.Refresh(Comp.CompType.Shader);
+                    break;
+                }
             case FormMain.PageSubType.VersionSchematic:
-            {
-                PageInstanceCompResource.Refresh(Comp.CompType.Schematic);
-                break;
-            }
+                {
+                    PageInstanceCompResource.Refresh(Comp.CompType.Schematic);
+                    break;
+                }
             case FormMain.PageSubType.VersionInstall:
-            {
-                GameDownload.dlClientListLoader.Start(isForceRestart: true);
-                GameDownload.DlOptiFineListLoader.Start(isForceRestart: true);
-                GameDownload.DlForgeListLoader.Start(isForceRestart: true);
-                GameDownload.DlNeoForgeListLoader.Start(isForceRestart: true);
-                GameDownload.DlCleanroomListLoader.Start(isForceRestart: true);
-                GameDownload.DlLiteLoaderListLoader.Start(isForceRestart: true);
-                GameDownload.DlFabricListLoader.Start(isForceRestart: true);
-                GameDownload.DlFabricApiLoader.Start(isForceRestart: true);
-                GameDownload.DlLegacyFabricListLoader.Start(isForceRestart: true);
-                GameDownload.DlLegacyFabricApiLoader.Start(isForceRestart: true);
-                GameDownload.DlOptiFabricLoader.Start(isForceRestart: true);
-                GameDownload.DlLabyModListLoader.Start(isForceRestart: true);
-                ItemInstall.Checked = true;
-                Launcher.frmInstanceInstall.GetCurrentInfo();
-                break;
-            }
+                {
+                    GameDownload.dlClientListLoader.Start(isForceRestart: true);
+                    GameDownload.DlOptiFineListLoader.Start(isForceRestart: true);
+                    GameDownload.DlForgeListLoader.Start(isForceRestart: true);
+                    GameDownload.DlNeoForgeListLoader.Start(isForceRestart: true);
+                    GameDownload.DlCleanroomListLoader.Start(isForceRestart: true);
+                    GameDownload.DlLiteLoaderListLoader.Start(isForceRestart: true);
+                    GameDownload.DlFabricListLoader.Start(isForceRestart: true);
+                    GameDownload.DlFabricApiLoader.Start(isForceRestart: true);
+                    GameDownload.DlLegacyFabricListLoader.Start(isForceRestart: true);
+                    GameDownload.DlLegacyFabricApiLoader.Start(isForceRestart: true);
+                    GameDownload.DlOptiFabricLoader.Start(isForceRestart: true);
+                    GameDownload.DlLabyModListLoader.Start(isForceRestart: true);
+                    ItemInstall.Checked = true;
+                    Launcher.frmInstanceInstall.GetCurrentInfo();
+                    break;
+                }
             case FormMain.PageSubType.VersionExport:
-            {
-                if (Launcher.frmInstanceExport is not null)
-                    Launcher.frmInstanceExport.RefreshAll();
-                ItemExport.Checked = true;
-                break;
-            }
+                {
+                    if (Launcher.frmInstanceExport is not null)
+                        Launcher.frmInstanceExport.RefreshAll();
+                    ItemExport.Checked = true;
+                    break;
+                }
             case FormMain.PageSubType.VersionServer:
-            {
-                if (Launcher.frmInstanceServer is not null)
-                    Launcher.frmInstanceServer.RefreshServers();
-                ItemServer.Checked = true;
-                break;
-            }
+                {
+                    if (Launcher.frmInstanceServer is not null)
+                        Launcher.frmInstanceServer.RefreshServers();
+                    ItemServer.Checked = true;
+                    break;
+                }
         }
     }
 
@@ -134,7 +134,7 @@ public partial class PageInstanceLeft : IRefreshable, IPageView
                 Buttons = DialogButtons.From(DialogButton.Create(Lang.Text("Common.Action.Confirm")), DialogButton.Create(PageInstanceLeftViewModel.GetCancelText())),
                 IsWarn = true,
                 ForceWait = false
-            })).Button;
+            }).ConfigureAwait(true)).Button;
             if (choice != 1)
                 return;
             if (Launcher.frmInstanceSetup is null)
@@ -167,88 +167,75 @@ public partial class PageInstanceLeft : IRefreshable, IPageView
         switch (id)
         {
             case FormMain.PageSubType.VersionOverall:
-            {
-                if (Launcher.frmInstanceOverall is null)
-                    Launcher.frmInstanceOverall = new PageInstanceOverall();
-                return Launcher.frmInstanceOverall;
-            }
+                {
+                    Launcher.frmInstanceOverall ??= new PageInstanceOverall();
+                    return Launcher.frmInstanceOverall;
+                }
             case FormMain.PageSubType.VersionMod:
-            {
-                if (Launcher.frmInstanceMod is null)
-                    Launcher.frmInstanceMod = new PageInstanceCompResource(Comp.CompType.Mod);
-                return Launcher.frmInstanceMod;
-            }
+                {
+                    Launcher.frmInstanceMod ??= new PageInstanceCompResource(Comp.CompType.Mod);
+                    return Launcher.frmInstanceMod;
+                }
             case FormMain.PageSubType.VersionModDisabled:
-            {
-                if (Launcher.frmInstanceModDisabled is null)
-                    Launcher.frmInstanceModDisabled = new PageInstanceModDisabled();
-                return Launcher.frmInstanceModDisabled;
-            }
+                {
+                    Launcher.frmInstanceModDisabled ??= new PageInstanceModDisabled();
+                    return Launcher.frmInstanceModDisabled;
+                }
             case FormMain.PageSubType.VersionModJarInJar:
-            {
-                if (Launcher.frmInstanceModJarInJar is null)
-                    Launcher.frmInstanceModJarInJar = new PageInstanceCompJarInJar();
-                return Launcher.frmInstanceModJarInJar;
-            }
+                {
+                    Launcher.frmInstanceModJarInJar ??= new PageInstanceCompJarInJar();
+                    return Launcher.frmInstanceModJarInJar;
+                }
             case FormMain.PageSubType.VersionSetup:
-            {
-                if (Launcher.frmInstanceSetup is null)
-                    Launcher.frmInstanceSetup = new PageInstanceSetup();
-                return Launcher.frmInstanceSetup;
-            }
+                {
+                    Launcher.frmInstanceSetup ??= new PageInstanceSetup();
+                    return Launcher.frmInstanceSetup;
+                }
             case FormMain.PageSubType.VersionWorld:
-            {
-                if (Launcher.frmInstanceSaves is null)
-                    Launcher.frmInstanceSaves = new PageInstanceSaves();
-                return Launcher.frmInstanceSaves;
-            }
+                {
+                    Launcher.frmInstanceSaves ??= new PageInstanceSaves();
+                    return Launcher.frmInstanceSaves;
+                }
             case FormMain.PageSubType.VersionScreenshot:
-            {
-                if (Launcher.frmInstanceScreenshot is null)
-                    Launcher.frmInstanceScreenshot = new PageInstanceScreenshot();
-                return Launcher.frmInstanceScreenshot;
-            }
+                {
+                    Launcher.frmInstanceScreenshot ??= new PageInstanceScreenshot();
+                    return Launcher.frmInstanceScreenshot;
+                }
             case FormMain.PageSubType.VersionResourcePack:
-            {
-                if (Launcher.frmInstanceResourcePack is null)
-                    Launcher.frmInstanceResourcePack = new PageInstanceCompResource(Comp.CompType.ResourcePack);
-                return Launcher.frmInstanceResourcePack;
-            }
+                {
+                    Launcher.frmInstanceResourcePack ??= new PageInstanceCompResource(Comp.CompType.ResourcePack);
+                    return Launcher.frmInstanceResourcePack;
+                }
             case FormMain.PageSubType.VersionShader:
-            {
-                if (Launcher.frmInstanceShader is null)
-                    Launcher.frmInstanceShader = new PageInstanceCompResource(Comp.CompType.Shader);
-                return Launcher.frmInstanceShader;
-            }
+                {
+                    Launcher.frmInstanceShader ??= new PageInstanceCompResource(Comp.CompType.Shader);
+                    return Launcher.frmInstanceShader;
+                }
             case FormMain.PageSubType.VersionSchematic:
-            {
-                if (Launcher.frmInstanceSchematic is null)
-                    Launcher.frmInstanceSchematic = new PageInstanceCompResource(Comp.CompType.Schematic);
-                return Launcher.frmInstanceSchematic;
-            }
+                {
+                    Launcher.frmInstanceSchematic ??= new PageInstanceCompResource(Comp.CompType.Schematic);
+                    return Launcher.frmInstanceSchematic;
+                }
             case FormMain.PageSubType.VersionInstall:
-            {
-                if (Launcher.frmInstanceInstall is null)
-                    Launcher.frmInstanceInstall = new PageInstanceInstall();
-                return Launcher.frmInstanceInstall;
-            }
+                {
+                    Launcher.frmInstanceInstall ??= new PageInstanceInstall();
+                    return Launcher.frmInstanceInstall;
+                }
             case FormMain.PageSubType.VersionExport:
-            {
-                if (Launcher.frmInstanceExport is null)
-                    Launcher.frmInstanceExport = new PageInstanceExport();
-                return Launcher.frmInstanceExport;
-            }
+                {
+                    Launcher.frmInstanceExport ??= new PageInstanceExport();
+                    return Launcher.frmInstanceExport;
+                }
             case FormMain.PageSubType.VersionServer:
-            {
-                if (Launcher.frmInstanceServer is null)
-                    Launcher.frmInstanceServer = new PageInstanceServer();
-                return Launcher.frmInstanceServer;
-            }
+                {
+                    Launcher.frmInstanceServer ??= new PageInstanceServer();
+                    return Launcher.frmInstanceServer;
+                }
 
             default:
-            {
-                throw new Exception(PageInstanceLeftViewModel.GetUnknownSubPageMessage(id));
-            }
+                {
+                    throw new Exception(PageInstanceLeftViewModel.GetUnknownSubPageMessage(id));
+                }
         }
     }
 

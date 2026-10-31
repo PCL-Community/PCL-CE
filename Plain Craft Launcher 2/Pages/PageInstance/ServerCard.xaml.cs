@@ -1,11 +1,11 @@
-﻿using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using PCL.Core.App.Localization;
-using PCL.Core.UI.Hints;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
+using PCL.Core.UI.Hints;
 using PCL.Core.UI.Theme;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 
 namespace PCL;
 
@@ -109,26 +109,26 @@ public partial class ServerCard
         switch (ping)
         {
             case var @case when 0 <= @case && @case <= 99:
-            {
-                return "signal_5"; // 5 条信号
-            }
+                {
+                    return "signal_5"; // 5 条信号
+                }
             case var case1 when 100 <= case1 && case1 <= 299:
-            {
-                return "signal_4"; // 4 条信号
-            }
+                {
+                    return "signal_4"; // 4 条信号
+                }
             case var case2 when 300 <= case2 && case2 <= 599:
-            {
-                return "signal_3"; // 3 条信号
-            }
+                {
+                    return "signal_3"; // 3 条信号
+                }
             case var case3 when 600 <= case3 && case3 <= 999:
-            {
-                return "signal_2"; // 2 条信号
-            }
+                {
+                    return "signal_2"; // 2 条信号
+                }
 
             default:
-            {
-                return "signal_1"; // 1 条信号
-            }
+                {
+                    return "signal_1"; // 1 条信号
+                }
         }
     }
 
@@ -158,7 +158,7 @@ public partial class ServerCard
             };
             GameLaunch.McLaunchStart(launchOptions);
             Launcher.frmMain.PageChange(new FormMain.PageStackData
-                { page = FormMain.PageType.Launch });
+            { page = FormMain.PageType.Launch });
             HintService.Show(Hints.Info(Lang.Text("Instance.Server.Card.ConnectingTo", server.Name)));
         }
         catch (Exception ex)
@@ -194,7 +194,7 @@ public partial class ServerCard
     /// </summary>
     private async void BtnRefresh_Click(object sender, RoutedEventArgs e)
     {
-        await Task.Run(async () => await RefreshServerStatusAsync(true));
+        await Task.Run(async () => await RefreshServerStatusAsync(true)).ConfigureAwait(true);
     }
 
     /// <summary>
