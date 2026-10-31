@@ -91,8 +91,12 @@ public class YamlFileProvider : CommonFileProvider, IEnumerableKeyProvider
                 return fallback!;
             }
 
-            LogWrapper.Warn(ex, $"配置项 '{key}' 无法解析为 {typeof(T).Name}，已返回默认值。当前值: {graphStr}");
-            return default!;
+            // 不要返回 default(T)：那会让调用方（FileConfigStorage.OnAccess）认为读取成功，
+            // 于是 ConfigItem 声明的默认值永远不会生效，得到 0 / false / null 这类静默的非法配置。
+            // 抛出存储层可识别的异常，使其走清理分支并回落到声明默认值。
+            LogWrapper.Warn(ex, $"配置项 '{key}' 无法解析为 {typeof(T).Name}，已丢弃该值并使用默认值。当前值: {graphStr}");
+            throw new FormatException(
+                $"配置项 '{key}' 的值 '{graphStr}' 无法转换为 {typeof(T).Name}", ex);
         }
     }
 

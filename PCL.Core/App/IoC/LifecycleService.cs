@@ -9,6 +9,21 @@ namespace PCL.Core.App.IoC;
 
 partial class Lifecycle
 {
+    /// <summary>
+    /// 当前正处于 <c>Start</c> 阶段的服务项。<br/>
+    /// 该集合用于判定 <see cref="LifecycleContext.DeclareStopped"/> 的调用是否合法。
+    /// 不能再用「运行表里是否仍是占位对象」来间接推断：占位对象现已按服务项独立创建，
+    /// 其 <c>Identifier</c> 与服务项自身一致，原判据会恒成立并错误地抛异常。
+    /// </summary>
+    private static readonly ConcurrentDictionary<ILifecycleService, byte> _StartingServices = [];
+
+    /// <summary>
+    /// 启动超时后被放弃的服务项。<br/>
+    /// 这些任务仍在后台运行，必须阻止它们在生命周期推进后继续登记运行状态或触发回调，
+    /// 否则后续状态会在依赖未就绪时执行（例如 ConfigService 未就绪时 ProfileService 即开始加载）。
+    /// </summary>
+    private static readonly ConcurrentDictionary<ILifecycleService, byte> _AbandonedServices = [];
+
     private static readonly ConcurrentDictionary<string, LifecycleServiceInfo> _RunningServiceInfoMap = [];
     private static readonly ConcurrentStack<ILifecycleService> _StartedServiceStack = [];
     private static readonly Dictionary<string, ILifecycleService> _ManualServiceMap = [];
@@ -95,6 +110,7 @@ partial class Lifecycle
             _RunningServiceInfoMap[service.Identifier] = new LifecycleServiceInfo(service, state);
         }
         // 运行服务项并添加到正在运行列表
+        _StartingServices[service] = 0;
         return service.SupportAsync ? Task.Run(AsyncCall) : AsyncCall();
         async Task AsyncCall()
         {
@@ -111,6 +127,12 @@ partial class Lifecycle
                     ServiceDeclaredStopped?.Invoke(service.Identifier);
                     Context.Trace($"{name} 已中止");
                 }
+                else if (_AbandonedServices.ContainsKey(service))
+                {
+                    // 生命周期已因超时停止推进，此处不能再登记运行状态：
+                    // 否则关闭流程会在一个"从未被认为启动过"的服务上执行 Stop，或让它参与后续依赖解析
+                    Context.Warn($"{name} 启动超时后才完成，已忽略其运行状态登记");
+                }
                 else
                 {
                     // 若该服务未声明自己已结束运行，将其添加到正在运行列表
@@ -125,6 +147,11 @@ partial class Lifecycle
                 // 存储异常并停止服务
                 _UpdateLastException(service, ex);
                 _StopService(service, false);
+            }
+            finally
+            {
+                // StartAsync 已返回（无论成功失败），此后不再允许声明「启动阶段自行结束」
+                _StartingServices.TryRemove(service, out _);
             }
             // 若日志服务已启动则清空日志缓冲
             if (logService is null) return;
@@ -167,46 +194,55 @@ partial class Lifecycle
     }
 
     /// <summary>
-    /// 单个服务项启动的最长等待时间。超过该时间仍未完成则放弃等待并告警，
+    /// 单个服务项启动的最长等待时间。超过该时间仍未完成则中止本次状态推进，
     /// 避免某个服务项异常挂起导致整个启动流程静默卡死。
     /// </summary>
     private static readonly TimeSpan ServiceStartTimeout = TimeSpan.FromSeconds(60);
 
-    private static void _InitializeAndStartStateServices(LifecycleState state)
+    /// <summary>
+    /// 启动指定状态下的所有服务项。
+    /// </summary>
+    /// <returns>
+    /// 是否全部服务项均在超时前完成启动。返回 <c>false</c> 时调用方必须停止推进后续状态：
+    /// 继续推进会让后续状态在依赖尚未就绪时执行。
+    /// </returns>
+    private static bool _InitializeAndStartStateServices(LifecycleState state)
     {
         var types = _GetServiceTypes(state);
-        if (types.Length == 0) return; // 跳过空列表
+        if (types.Length == 0) return true; // 跳过空列表
         var asyncInstances = new List<ILifecycleService>();
         // 运行非异步启动服务并存储异步启动服务
         foreach (var service in types)
         {
             var instance = _CreateService(service);
             if (instance.SupportAsync) asyncInstances.Add(instance);
-            else _WaitSyncServiceStart(instance);
-            if (_hasRequestedStopLoading) return; // 若请求停止加载则提前结束
+            else if (!_WaitSyncServiceStart(instance)) return false;
+            if (_hasRequestedStopLoading) return true; // 若请求停止加载则提前结束
         }
         // 运行异步启动服务并等待所有服务启动完成
         var pending = asyncInstances.Select(static instance => _StartServiceTask(instance)).ToArray();
-        if (!Task.WaitAll(pending, ServiceStartTimeout))
-            Context.Warn($"状态 {state} 中有服务项未在 {ServiceStartTimeout.TotalSeconds} 秒内完成启动，已继续后续流程");
+        if (Task.WaitAll(pending, ServiceStartTimeout)) return true;
+
+        // 超时：任务仍在后台运行，必须显式放弃它们，否则它们会在生命周期推进后
+        // 继续登记运行状态、触发 ServiceStarted 回调，使后续状态看到错误的依赖状态
+        foreach (var instance in asyncInstances) _AbandonedServices[instance] = 0;
+        Context.Error(
+            $"状态 {state} 中有服务项未在 {ServiceStartTimeout.TotalSeconds} 秒内完成启动，已停止推进后续状态。" +
+            "请检查上方日志中该服务项的启动记录。");
+        return false;
     }
 
     /// <summary>
     /// 等待非异步服务项完成启动。<br/>
-    /// 这类服务项必须在当前线程同步完成启动，其中主窗体服务等实现依赖 STA 线程语义；
-    /// 但若某个实现内部产生了真正的异步等待，它的 <c>ConfigureAwait(true)</c> 后续回调会被排队回
-    /// 当前（通常正被阻塞的）线程，此时无限期阻塞即为死锁。
-    /// 因此这里仅在存在同步上下文时做有时限的等待，超时后放弃等待并告警，而不是静默挂死。
+    /// 这类服务项必须在当前线程同步完成启动，其中主窗体服务等实现依赖 STA 线程语义，
+    /// 因此不能像异步服务那样丢到线程池。但等待必须有时限：若某个实现内部产生了真正的异步等待，
+    /// 它的 <c>ConfigureAwait(true)</c> 后续回调会被排队回当前（正被阻塞的）线程，
+    /// 无限制阻塞即死锁；无线程亲和性时则会让启动流程永久挂起。
     /// </summary>
-    private static void _WaitSyncServiceStart(ILifecycleService service)
+    /// <returns>是否在超时前完成启动。</returns>
+    private static bool _WaitSyncServiceStart(ILifecycleService service)
     {
         var task = _StartServiceTask(service);
-        if (task.IsCompleted || SynchronizationContext.Current is null)
-        {
-            // 无线程亲和性要求时走无上下文阻塞，不会产生回调排队问题
-            task.ConfigureAwait(false).GetAwaiter().GetResult();
-            return;
-        }
 
         bool finished;
         try
@@ -215,15 +251,18 @@ partial class Lifecycle
         }
         catch (AggregateException ex)
         {
-            // 启动异常已由 _StartServiceTask 内部记录，此处仅避免其向调用方传播
+            // 启动异常已由 _StartServiceTask 内部记录并触发停止，此处不重复处理
             Context.Debug($"{_ServiceName(service)} 启动过程中抛出异常：{ex.InnerException?.Message}");
-            return;
+            return true;
         }
 
-        if (!finished)
-            Context.Warn(
-                $"{_ServiceName(service)} 标记为非异步启动，但未在当前线程同步完成。已放弃等待以避免死锁，" +
-                "请将该服务的 asyncStart 参数改为 true。");
+        if (finished) return true;
+
+        _AbandonedServices[service] = 0;
+        Context.Error(
+            $"{_ServiceName(service)} 标记为非异步启动，但未在 {ServiceStartTimeout.TotalSeconds} 秒内完成，" +
+            "已停止推进后续状态。若该服务确需异步启动，请将其 asyncStart 参数改为 true。");
+        return false;
     }
 
     private static void _StartStateFlow(LifecycleState start, LifecycleState? end = null, bool count = true)
@@ -235,12 +274,14 @@ partial class Lifecycle
             DateTime? countStart = count ? DateTime.Now : null; //开始计时
             var state = (LifecycleState)index;
             _NextState(state);
-            _InitializeAndStartStateServices(state);
+            var started = _InitializeAndStartStateServices(state);
             if (countStart is { } s)
             {
                 var countSpan = DateTime.Now - s; // 结束计时
                 _LogStateCount(countSpan, state);
             }
+            // 有服务项未能启动时不再推进：后续状态可能依赖它们（如 ProfileService 依赖 ConfigService）
+            if (!started) return;
             index++;
         }
     }

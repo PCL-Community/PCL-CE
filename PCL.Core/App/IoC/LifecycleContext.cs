@@ -66,8 +66,11 @@ partial class Lifecycle
         },
         onDeclareStopped: () =>
         {
-            var identifier = self.Identifier;
-            if (GetServiceInfo(identifier)?.Identifier == identifier)
+            // 只有正处于 Start 阶段的服务项可以声明自己已结束运行。
+            // 原先用「运行表中记录的 Identifier 是否与自身不同」间接判断启动阶段，
+            // 但占位记录现按服务独立创建、其 Identifier 与自身一致，该判据会恒成立，
+            // 导致 UpdateService、PromoteService 等正常调用一律抛异常，改为显式跟踪。
+            if (!_StartingServices.ContainsKey(self))
                 throw new InvalidOperationException("只能在服务启动阶段调用");
             _DeclaredStoppedServices.TryAdd(self, 0);
         },

@@ -36,9 +36,12 @@ public class MavenArtifact(string mavenId)
                 {
                     return $"/{packageIds[0].Replace(".","/")}/{packageIds[1]}/{packageIds[1]}-{packageIds[3]}.{packageIds[2]}";
                 }
-                return $"/{packageIds[0].Replace(".","/")}/{packageId[1]}/{packageIds[1]}-{packageIds[2]}-{packageIds[3]}.jar";
+                // 此处原为 packageId[1]，取到的是原始字符串的第二个「字符」而非第二个坐标段
+                return $"/{packageIds[0].Replace(".","/")}/{packageIds[1]}/{packageIds[1]}-{packageIds[2]}-{packageIds[3]}.jar";
             case 5:
-                return $"{packageIds[0].Replace(".","/")}/{packageIds[1]}/{packageIds[1]}-{packageIds[3]}-{packageId[4]}.{packageId[2]}";
+                // 此处原为 packageId[2] / packageId[4]（同样是字符索引），且缺少前导斜杠，
+                // 导致拼接本地路径时缺少分隔符
+                return $"/{packageIds[0].Replace(".","/")}/{packageIds[1]}/{packageIds[1]}-{packageIds[3]}-{packageIds[4]}.{packageIds[2]}";
             default:
                 throw new FormatException($"Invalid maven package id: Length is {packageIds.Length}");
         }

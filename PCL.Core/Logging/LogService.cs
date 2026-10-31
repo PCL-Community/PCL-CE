@@ -1,8 +1,10 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Threading;
 using PCL.Core.App;
 using PCL.Core.App.Essentials;
 using PCL.Core.App.IoC;
@@ -133,11 +135,17 @@ public class LogService : ILifecycleLogService
 
     private static long _lastFatalDialogStamp;
 
+    /// <summary>等待致命错误弹窗真正显示的最长时间。</summary>
+    private static readonly TimeSpan FatalDialogWaitTimeout = TimeSpan.FromSeconds(60);
+
     /// <summary>
-    /// 在 UI 线程上弹出致命错误提示，并按 <see cref="FatalDialogThrottleMs"/> 节流。<br/>
+    /// 弹出致命错误提示，并按 <see cref="FatalDialogThrottleMs"/> 节流。<br/>
     /// 这里不能直接调用 <see cref="MessageBox.Show(string, string, MessageBoxButton, MessageBoxImage)"/>：
     /// 该方法会同步阻塞调用线程，而 <see cref="ActionLevel.MsgBoxFatal"/> 往往来自日志消费线程，
-    /// 阻塞该线程会让后续日志全部积压；启动期级联失败时还会叠出十余个模态框。
+    /// 阻塞该线程会让后续日志全部积压；启动期级联失败时还会叠出十余个模态框。<br/>
+    /// 但也不能只把弹窗丢进队列就返回：<see cref="LifecycleContext"/> 在日志回调返回后会立即执行
+    /// <c>_FatalExit()</c>，进程可能在 Dispatcher 执行到该回调之前就已退出，
+    /// 使启动期的致命错误（如配置文件损坏）退化成"静默退出"。因此必须等弹窗真正显示后再返回。
     /// </summary>
     private static void _ShowFatalMessageBox(string message)
     {
@@ -155,7 +163,21 @@ public class LogService : ILifecycleLogService
             return;
         }
 
-        dispatcher.BeginInvoke(() => MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Error));
+        try
+        {
+            var operation = dispatcher.InvokeAsync(
+                () => MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Error),
+                DispatcherPriority.Send);
+            // 等待用户关闭弹窗（或超时），确保调用方随后的进程退出不会抢在提示之前发生
+            var status = operation.Wait(FatalDialogWaitTimeout);
+            if (status != DispatcherOperationStatus.Completed)
+                Trace.WriteLine("[LogService] 致命错误弹窗未在超时前关闭，继续执行退出流程");
+        }
+        catch (Exception ex)
+        {
+            // Dispatcher 已关闭或无法投递时退化为直接调用，至少让提示出现在日志中
+            Trace.WriteLine($"[LogService] 致命错误弹窗显示失败：{ex.Message}");
+        }
     }
 
     /// <summary>

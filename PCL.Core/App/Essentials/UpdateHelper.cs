@@ -15,25 +15,40 @@ public static class UpdateHelper
     /// <param name="target">目标文件路径</param>
     public static Exception? Replace(string source, string target)
     {
-        string backup;
+        string backup, staging;
         try
         {
             source = Path.GetFullPath(source);
             target = Path.GetFullPath(target);
             // 备份名必须基于已归一化的目标路径，否则相对路径会算出错误的备份位置
             backup = $"{target}.bak.{DateTime.Now.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture)}";
+            // 先写到临时名，确认完整后再原子改名，避免磁盘写满时留下半截文件被当成有效备份
+            staging = $"{backup}.tmp";
         }
         catch (Exception ex)
         {
             return ex;
         }
 
+        // 备份阶段与替换阶段必须分开处理：
+        // 备份失败时原目标文件仍然完好，此时若走回滚分支，_TryRestoreBackup 会删掉完好的原文件
+        // 并把半截备份移到它的位置——比不更新更糟。
         try
         {
-            // 备份目标文件
-            File.Copy(target, backup);
+            File.Copy(target, staging, true);
+            if (new FileInfo(staging).Length != new FileInfo(target).Length)
+                throw new IOException("备份文件大小与源文件不一致，可能写入不完整");
+            File.Move(staging, backup);
             if (!File.Exists(backup)) throw new FileNotFoundException("备份目标文件失败", backup);
+        }
+        catch (Exception ex)
+        {
+            _TryDeleteFile(staging);
+            return ex;
+        }
 
+        try
+        {
             // 删除原文件并等待文件删除事件
             using (var watcher = new FileSystemWatcher(Basics.GetParentPathOrEmpty(target), Path.GetFileName(target)))
             using (var deletedEvent = new ManualResetEventSlim(false))
@@ -50,6 +65,7 @@ public static class UpdateHelper
         }
         catch (Exception ex)
         {
+            // 此处备份一定已完整生成，回滚是安全的
             _TryRestoreBackup(backup, target);
             return ex;
         }
@@ -69,6 +85,21 @@ public static class UpdateHelper
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// 删除可能残留的中间文件，失败仅记录。
+    /// </summary>
+    private static void _TryDeleteFile(string path)
+    {
+        try
+        {
+            if (File.Exists(path)) File.Delete(path);
+        }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"[UpdateHelper] 临时文件 '{path}' 清理失败：{ex.Message}");
+        }
     }
 
     /// <summary>
