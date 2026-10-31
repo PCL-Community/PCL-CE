@@ -21,7 +21,7 @@ public class MyComboBoxItem : ComboBoxItem
     {
         Style = (Style)FindResource("MyComboBoxItem");
         Unselected += (_, _) => RefreshColor();
-        MouseMove += (_, _) => RefreshColor();
+        MouseMove += OnMouseMove;
         MouseLeave += (_, _) => RefreshColor();
         Selected += (_, _) => RefreshColor();
         IsEnabledChanged += (_, _) => RefreshColor();
@@ -51,7 +51,7 @@ public class MyComboBoxItem : ComboBoxItem
             newFontOpacity = 1d;
             time = animationTimeIn;
         }
-        else if (IsHighlighted || (IsMouseOver && !keyboardAway))
+        else if (keyboardAway ? IsHighlighted : IsMouseOver)
         {
             newBackColorName = "ColorBrush8";
             newFontOpacity = 1d;
@@ -92,6 +92,17 @@ public class MyComboBoxItem : ComboBoxItem
             SetResourceReference(BackgroundProperty, backColorName);
             Opacity = fontOpacity;
         }
+    }
+
+    private void OnMouseMove(object sender, MouseEventArgs e)
+    {
+        if (ItemsControl.ItemsControlFromItemContainer(this) is MyComboBox { KeyboardAway: true } box)
+        {
+            box.KeyboardAway = false;
+            if (Keyboard.FocusedElement is MyComboBoxItem item)
+                item.RefreshColor();
+        }
+        RefreshColor();
     }
 
     public override string ToString()
