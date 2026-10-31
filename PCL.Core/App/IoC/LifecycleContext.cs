@@ -69,7 +69,7 @@ partial class Lifecycle
             var identifier = self.Identifier;
             if (GetServiceInfo(identifier)?.Identifier == identifier)
                 throw new InvalidOperationException("只能在服务启动阶段调用");
-            _DeclaredStoppedServices.Add(self);
+            _DeclaredStoppedServices.TryAdd(self, 0);
         },
         onRequestStopLoading: () =>
         {

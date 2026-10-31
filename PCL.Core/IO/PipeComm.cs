@@ -71,13 +71,22 @@ public static class PipeComm
                         }
                         clientProcess = Process.GetProcessById(clientProcessId);
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        if (allowedProcessId is not null)
+                        // 无法确认客户端身份时必须按失败处理：
+                        // 原先在 allowedProcessId 为 null 时直接放行，等于白名单形同虚设。
+                        LogWrapper.Warn(ex, "Pipe", $"{identifier}: 无法获取客户端进程信息，已拒绝本次连接");
+                        hasNextLoop = true;
+                        try
                         {
-                            hasNextLoop = true;
-                            throw;
+                            pipe.Disconnect();
                         }
+                        catch (InvalidOperationException)
+                        {
+                            // 已断开则忽略
+                        }
+
+                        continue;
                     }
                     connected = true;
                     LogWrapper.Debug("Pipe", $"{identifier}: {clientProcessId} 已连接");
@@ -110,8 +119,8 @@ public static class PipeComm
                 }
                 catch (InvalidOperationException)
                 {
-                    // 由于没妈的巨硬给的 IsConnected 不一定是准确的，需要运行 Disconnect() 确保管道断开连接
-                    // 如果已经断开会抛出 InvalidOperationException 这里直接忽略掉
+                    // IsConnected 在部分状态下返回值不可靠，需显式调用 Disconnect() 确保管道断开；
+                    // 若已断开则抛出 InvalidOperationException，此处直接忽略。
                 }
                 connected = false;
                 _PipeLogDebug($"{identifier}: 已断开连接");

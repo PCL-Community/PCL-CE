@@ -12,7 +12,9 @@ partial class Lifecycle
     private static readonly ConcurrentDictionary<string, LifecycleServiceInfo> _RunningServiceInfoMap = [];
     private static readonly ConcurrentStack<ILifecycleService> _StartedServiceStack = [];
     private static readonly Dictionary<string, ILifecycleService> _ManualServiceMap = [];
-    private static readonly HashSet<ILifecycleService> _DeclaredStoppedServices = [];
+    // 该集合会在任意服务线程上写入（LifecycleContext.DeclareStopped），
+    // 与启动流程线程上的读取并发，因此必须使用线程安全容器。
+    private static readonly ConcurrentDictionary<ILifecycleService, byte> _DeclaredStoppedServices = [];
     private static readonly ConcurrentDictionary<string, Exception> _ServiceLastExceptionMap = [];
 
     /// <summary>
@@ -86,8 +88,11 @@ partial class Lifecycle
                 Context.Warn($"{name} 标识符重复，已跳过");
                 return Task.CompletedTask;
             }
-            // 先找个东西占着防止异步加载中检测逻辑失效
-            _RunningServiceInfoMap[service.Identifier] = _SystemServiceInfo;
+            // 先找个东西占着防止异步加载中检测逻辑失效。
+            // 必须为每个服务创建独立记录：原先统一指向共享的 _SystemServiceInfo，
+            // 一旦其中任意一项被 _RemoveRunningInstance 调用 MarkAsStopped()，
+            // 就会把 "system" 这个伪服务一起标记为已停止。
+            _RunningServiceInfoMap[service.Identifier] = new LifecycleServiceInfo(service, state);
         }
         // 运行服务项并添加到正在运行列表
         return service.SupportAsync ? Task.Run(AsyncCall) : AsyncCall();
@@ -100,9 +105,9 @@ partial class Lifecycle
                 await service.StartAsync().ConfigureAwait(!service.SupportAsync);
                 var serviceInfo = new LifecycleServiceInfo(service, state);
                 Context.Debug($"{name} 启动成功");
-                if (_DeclaredStoppedServices.Contains(service))
+                if (_DeclaredStoppedServices.ContainsKey(service))
                 {
-                    _DeclaredStoppedServices.Remove(service);
+                    _DeclaredStoppedServices.TryRemove(service, out _);
                     ServiceDeclaredStopped?.Invoke(service.Identifier);
                     Context.Trace($"{name} 已中止");
                 }
@@ -161,6 +166,12 @@ partial class Lifecycle
         Context.Debug($"状态 {state} 共用时 {Math.Round(count.TotalMilliseconds)} ms");
     }
 
+    /// <summary>
+    /// 单个服务项启动的最长等待时间。超过该时间仍未完成则放弃等待并告警，
+    /// 避免某个服务项异常挂起导致整个启动流程静默卡死。
+    /// </summary>
+    private static readonly TimeSpan ServiceStartTimeout = TimeSpan.FromSeconds(60);
+
     private static void _InitializeAndStartStateServices(LifecycleState state)
     {
         var types = _GetServiceTypes(state);
@@ -171,11 +182,48 @@ partial class Lifecycle
         {
             var instance = _CreateService(service);
             if (instance.SupportAsync) asyncInstances.Add(instance);
-            else _StartServiceTask(instance).ConfigureAwait(false).GetAwaiter().GetResult();
+            else _WaitSyncServiceStart(instance);
             if (_hasRequestedStopLoading) return; // 若请求停止加载则提前结束
         }
         // 运行异步启动服务并等待所有服务启动完成
-        Task.WaitAll(asyncInstances.Select(instance => _StartServiceTask(instance)).ToArray());
+        var pending = asyncInstances.Select(static instance => _StartServiceTask(instance)).ToArray();
+        if (!Task.WaitAll(pending, ServiceStartTimeout))
+            Context.Warn($"状态 {state} 中有服务项未在 {ServiceStartTimeout.TotalSeconds} 秒内完成启动，已继续后续流程");
+    }
+
+    /// <summary>
+    /// 等待非异步服务项完成启动。<br/>
+    /// 这类服务项必须在当前线程同步完成启动，其中主窗体服务等实现依赖 STA 线程语义；
+    /// 但若某个实现内部产生了真正的异步等待，它的 <c>ConfigureAwait(true)</c> 后续回调会被排队回
+    /// 当前（通常正被阻塞的）线程，此时无限期阻塞即为死锁。
+    /// 因此这里仅在存在同步上下文时做有时限的等待，超时后放弃等待并告警，而不是静默挂死。
+    /// </summary>
+    private static void _WaitSyncServiceStart(ILifecycleService service)
+    {
+        var task = _StartServiceTask(service);
+        if (task.IsCompleted || SynchronizationContext.Current is null)
+        {
+            // 无线程亲和性要求时走无上下文阻塞，不会产生回调排队问题
+            task.ConfigureAwait(false).GetAwaiter().GetResult();
+            return;
+        }
+
+        bool finished;
+        try
+        {
+            finished = task.Wait(ServiceStartTimeout);
+        }
+        catch (AggregateException ex)
+        {
+            // 启动异常已由 _StartServiceTask 内部记录，此处仅避免其向调用方传播
+            Context.Debug($"{_ServiceName(service)} 启动过程中抛出异常：{ex.InnerException?.Message}");
+            return;
+        }
+
+        if (!finished)
+            Context.Warn(
+                $"{_ServiceName(service)} 标记为非异步启动，但未在当前线程同步完成。已放弃等待以避免死锁，" +
+                "请将该服务的 asyncStart 参数改为 true。");
     }
 
     private static void _StartStateFlow(LifecycleState start, LifecycleState? end = null, bool count = true)

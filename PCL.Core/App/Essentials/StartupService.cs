@@ -114,7 +114,13 @@ public sealed partial class StartupService
     private static void _ParseCommandLineArgs()
     {
         IEnumerable<SubcommandDefinition> subcommands = [
-            ("update", [("execute"), ("success"), ("failed")]),
+            // update 接收的是位置参数（旧进程 ID、目标、来源、是否重启），不是子命令；
+            // update_finished / update_failed 是更新完成后由新版本进程回传的结果子命令。
+            // 此前这里把 execute/success/failed 声明成 update 的子命令，与实际用法不符，
+            // 且完全没有声明 update_finished 与 update_failed。
+            ("update", []),
+            ("update_finished", []),
+            ("update_failed", []),
             ("activate", []),
             ("promote", []),
         ];

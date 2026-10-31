@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -77,15 +78,81 @@ public class YamlFileProvider : CommonFileProvider, IEnumerableKeyProvider
         {
             return _Deserializer.Deserialize<T>(parser);
         }
+        catch (Exception ex)
+        {
+            // 兜底分支必须比正常分支更不可能失败。
+            // 原先的 (T)(object)graphStr 只对 bool 与 string 成立：T 为 int/double/DateTime 时
+            // 会在 catch 内部再抛 InvalidCastException 并逃逸出整个 Get，
+            // 而且 Set() 已经把错误值写回了配置文件。
+            var graphStr = result.ToString();
+            if (_TryConvert(graphStr, out T? fallback))
+            {
+                Set(key, fallback!);
+                return fallback!;
+            }
+
+            LogWrapper.Warn(ex, $"配置项 '{key}' 无法解析为 {typeof(T).Name}，已返回默认值。当前值: {graphStr}");
+            return default!;
+        }
+    }
+
+    /// <summary>
+    /// 尝试把 YAML 标量的文本表示转换为 <typeparamref name="T"/>，失败时不抛异常。
+    /// </summary>
+    private static bool _TryConvert<T>(string? raw, out T? value)
+    {
+        value = default;
+        if (string.IsNullOrWhiteSpace(raw)) return false;
+
+        var type = typeof(T);
+        var targetType = Nullable.GetUnderlyingType(type) ?? type;
+        var text = raw.Trim();
+
+        try
+        {
+            if (targetType == typeof(string))
+            {
+                value = (T)(object)raw;
+                return true;
+            }
+
+            if (targetType == typeof(bool))
+            {
+                switch (text.ToLowerInvariant())
+                {
+                    case "true" or "1" or "yes" or "on":
+                        value = (T)(object)true;
+                        return true;
+                    case "false" or "0" or "no" or "off":
+                        value = (T)(object)false;
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+
+            if (targetType.IsEnum)
+            {
+                if (!Enum.TryParse(targetType, text, true, out var parsed)) return false;
+                value = (T)parsed;
+                return true;
+            }
+
+            if (targetType == typeof(Guid))
+            {
+                if (!Guid.TryParse(text, out var guid)) return false;
+                value = (T)(object)guid;
+                return true;
+            }
+
+            var converted = Convert.ChangeType(text, targetType, CultureInfo.InvariantCulture);
+            if (converted is null) return false;
+            value = (T)converted;
+            return true;
+        }
         catch (Exception)
         {
-            var type = typeof(T);
-            var graphStr = result.ToString();
-            var fallback = (type == typeof(bool))
-                ? (T)(object)(graphStr.ToLowerInvariant() is "true" or "1")
-                : (T)(object)graphStr;
-            Set(key, fallback);
-            return fallback;
+            return false;
         }
     }
 

@@ -121,15 +121,41 @@ public class LogService : ILifecycleLogService
                     "SystemDialog.Fatal.Message.WithFeedbackGuidance",
                     _ComposeUserError(plain, entry.Exception));
 
-                MessageBox.Show(
-                    message,
-                    Lang.Text("SystemDialog.Fatal.Title"),
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                _ShowFatalMessageBox(message);
 
                 break;
             }
         }
+    }
+
+    /// <summary>连续致命错误的弹窗节流窗口。</summary>
+    private const long FatalDialogThrottleMs = 5000;
+
+    private static long _lastFatalDialogStamp;
+
+    /// <summary>
+    /// 在 UI 线程上弹出致命错误提示，并按 <see cref="FatalDialogThrottleMs"/> 节流。<br/>
+    /// 这里不能直接调用 <see cref="MessageBox.Show(string, string, MessageBoxButton, MessageBoxImage)"/>：
+    /// 该方法会同步阻塞调用线程，而 <see cref="ActionLevel.MsgBoxFatal"/> 往往来自日志消费线程，
+    /// 阻塞该线程会让后续日志全部积压；启动期级联失败时还会叠出十余个模态框。
+    /// </summary>
+    private static void _ShowFatalMessageBox(string message)
+    {
+        var stamp = Environment.TickCount64;
+        var lastStamp = Interlocked.Read(ref _lastFatalDialogStamp);
+        if (stamp - lastStamp < FatalDialogThrottleMs) return;
+        if (Interlocked.CompareExchange(ref _lastFatalDialogStamp, stamp, lastStamp) != lastStamp) return;
+
+        var title = Lang.Text("SystemDialog.Fatal.Title");
+        var dispatcher = Application.Current?.Dispatcher;
+
+        if (dispatcher is null || dispatcher.CheckAccess())
+        {
+            MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Error);
+            return;
+        }
+
+        dispatcher.BeginInvoke(() => MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Error));
     }
 
     /// <summary>
