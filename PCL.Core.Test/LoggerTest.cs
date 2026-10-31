@@ -98,9 +98,19 @@ public class LoggerTest
         var logger = new Logger(new LoggerConfiguration(folder, MinLogLevel: LogLevel.Trace));
 
         logger.Info("before-dispose");
+
+        var files = logger.CurrentLogFiles;
+
+        // 重复 Dispose 不应抛异常
         await logger.DisposeAsync();
         await logger.DisposeAsync();
+
+        // 释放之后再写入不应崩溃，也不应再写入任何日志文件
         logger.Info("after-dispose");
+
+        var content = _ReadAll(files);
+        StringAssert.Contains(content, "before-dispose");
+        Assert.IsFalse(content.Contains("after-dispose"), "释放后写入的日志不应再落盘");
     }
 
     [TestMethod]

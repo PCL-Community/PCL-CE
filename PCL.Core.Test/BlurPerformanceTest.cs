@@ -17,7 +17,19 @@ public class BlurTest
     [TestMethod]
     public void TestBlur()
     {
-        BlurPerformanceTest.RunComprehensiveTest();
+        var result = BlurPerformanceTest.RunComprehensiveTest();
+
+        // 不断言具体耗时（依机器而定，会引入不稳定），只断言测量结果本身有效
+        Assert.IsNotNull(result, "性能测试未返回结果");
+        Assert.IsTrue(result.OriginalBlurTime > 0, "原生 BlurEffect 未测得有效耗时");
+        Assert.AreEqual(5, result.OptimizedResults.Count, "优化采样率组数与预期不符");
+
+        foreach (var optimized in result.OptimizedResults)
+        {
+            Assert.IsTrue(optimized.SamplingRate > 0, "采样率必须大于 0");
+            Assert.IsTrue(optimized.AverageTime > 0, $"采样率 {optimized.SamplingRate:P0} 未测得有效耗时");
+            Assert.IsTrue(double.IsFinite(optimized.PerformanceImprovement), "性能提升比例不是有效数值");
+        }
     }
 }
 

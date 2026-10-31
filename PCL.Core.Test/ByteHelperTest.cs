@@ -18,7 +18,9 @@ public class ByteHelperTest
         wathcer.Start();
         for (int i = 0; i < maxTestCount; i++)
         {
-            ByteStream.GetReadableLength(random.Next(1024, 10240000));
+            var length = random.Next(1024, 10240000);
+            var text = ByteStream.GetReadableLength(length);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(text), $"格式化 {length} 字节返回了空文本");
         }
         wathcer.Stop();
         Console.WriteLine($"Took {wathcer.ElapsedMilliseconds} ms to format {maxTestCount} data size.");

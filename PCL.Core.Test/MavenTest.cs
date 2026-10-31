@@ -14,8 +14,14 @@ public class MavenTest
         foreach(var id in mavenId)
         {
             var maven = new MavenArtifact(id);
-            Console.WriteLine($"Uri: {maven.Resolve("https://copytiao.github.io/maven/copytiao/")}");
-            Console.WriteLine($"Path: {maven.Resolve("C:/Users/copytiao/AppData/Roaming/.minecraft/library/maven")}");
+            var uri = maven.Resolve("https://copytiao.github.io/maven/copytiao/");
+            var path = maven.Resolve("C:/Users/copytiao/AppData/Roaming/.minecraft/library/maven");
+            Console.WriteLine($"Uri: {uri}");
+            Console.WriteLine($"Path: {path}");
+
+            Assert.IsFalse(string.IsNullOrWhiteSpace(uri), $"坐标 {id} 解析出的 Uri 为空");
+            Assert.IsFalse(string.IsNullOrWhiteSpace(path), $"坐标 {id} 解析出的 Path 为空");
+            Assert.IsTrue(Uri.IsWellFormedUriString(uri, UriKind.Absolute), $"坐标 {id} 解析出的 Uri 不是绝对地址");
         }
     }
     [TestMethod]
@@ -27,14 +33,10 @@ public class MavenTest
         ];
         foreach(var id in badIds)
         {
-            try
-            {
-                var package = new MavenArtifact(id);
-                package.Resolve("");
-            }catch(FormatException ex)
-            {
-                Console.WriteLine($"Debug Output: {Environment.NewLine}{ex}");
-            }
+            // 非法坐标必须被拒绝；此前该用例只是把异常打印出来，无论是否抛出都会“通过”
+            Assert.ThrowsExactly<FormatException>(
+                () => new MavenArtifact(id).Resolve(""),
+                $"非法 Maven 坐标 {id} 未被拒绝");
         }
     }
 }

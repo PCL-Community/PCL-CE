@@ -46,7 +46,9 @@ public class DiffTest
         const string diffFile = @"";
         const string outFile = @"";
         if (string.IsNullOrEmpty(from) || string.IsNullOrEmpty(outFile) || string.IsNullOrEmpty(diffFile))
-            return;
+            // 这是一个需要手工提供样本文件的调试用例，直接 return 会被当成“通过”，
+            // 从而掩盖它其实从未执行过的事实。
+            Assert.Inconclusive("需要手工指定 from/diffFile/outFile 样本文件后才能运行");
         var diff = new BsDiff();
         File.WriteAllBytes(outFile, await diff.ApplyAsync(File.ReadAllBytes(from), File.ReadAllBytes(diffFile)));
     }

@@ -11,6 +11,10 @@ public class LobbyCodeGenerateTest
     public void GenerateTest()
     {
         var code = LobbyCodeGenerator.Generate();
+
+        Assert.IsNotNull(code, "生成的房间码为 null");
+        Assert.IsFalse(string.IsNullOrWhiteSpace(code.FullCode), "生成的房间码全文为空");
+        Assert.IsFalse(string.IsNullOrWhiteSpace(code.FullCode.Trim()), "生成的房间码全文只包含空白字符");
     }
 
     [TestMethod]
