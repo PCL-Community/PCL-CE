@@ -47,7 +47,8 @@ public class AsyncDebounce(CancellationToken cancelToken = default) : IDisposabl
         CancellationTokenSource? capturedCts;
         Task? runningToAwait;
 
-#pragma warning disable VSTHRD103 // 禁用检查 避免智障警告
+        // 此处需要在锁内原子地替换当前的取消源与任务引用，无法改用 SemaphoreSlim（会把整段逻辑改成异步状态机）
+#pragma warning disable VSTHRD103
         lock (_resetLock)
         {
             // 只取消，不在这里 Dispose

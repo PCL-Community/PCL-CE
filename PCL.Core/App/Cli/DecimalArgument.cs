@@ -35,7 +35,9 @@ public class DecimalArgument : CommandArgument<decimal>
             else if (type == typeof(nint)) Unsafe.As<T, nint>(ref value) = checked((nint)Convert.ToInt64(Value));
             else if (type == typeof(nuint)) Unsafe.As<T, nuint>(ref value) = checked((nuint)Convert.ToUInt64(Value));
             else return false;
-#pragma warning disable CS8762 // The analyzer sucks.
+            // Unsafe.As 直接改写 ref 参数的存储，可空性分析无法跟踪这条写入路径。
+            // 已由上方类型检查保证 T 为可容纳数值的基元类型，返回 true 时 value 必然已被赋值。
+#pragma warning disable CS8762 // 见上方说明：Unsafe.As 写入对可空性分析不可见
             return true;
 #pragma warning restore CS8762
         }

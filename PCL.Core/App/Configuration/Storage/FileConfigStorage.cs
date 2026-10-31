@@ -100,7 +100,10 @@ public class FileConfigStorage : ConfigStorage
         object? argument)
     {
         if (key is not string strKey) throw new NotSupportedException($"Key '{key}' is not supported");
-#pragma warning disable CS8762 // Parameter must have a non-null value when exiting in some condition.
+        // CS8762：本方法有多个返回 false 的分支，而 [NotNullWhen(true)] 要求“返回 true 时 value 非空”。
+        // 编译器无法沿 switch 的所有路径证明这一点（value 的可空性与 TValue 的泛型约束相关），
+        // 逐个分支补 value = value! 反而会掩盖真正的空引用问题，故在此集中抑制并说明原因。
+#pragma warning disable CS8762 // 见上方说明：泛型 + 多返回路径导致的可空性误报
         switch (action)
         {
             case StorageAction.Get:

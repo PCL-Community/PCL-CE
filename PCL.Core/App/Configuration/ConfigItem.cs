@@ -103,7 +103,7 @@ public class ConfigItem<TValue>(
     /// <returns>已设置的配置值或默认值</returns>
     public TValue GetValue(object? argument = null)
     {
-        TValue? value = default; // 这个初始化是多余的，但是煞笔巨硬不初始化会报错
+        TValue? value = default; // 显式初始化以满足 nullable 分析要求，后续分支会覆盖该值
         var exists = EnableCache && _valueCache.TryRead(out value, argument);
         var newValue = false;
         if (!exists)
@@ -255,8 +255,8 @@ public class ConfigItem<TValue>(
 }
 
 /// <summary>
-/// <see cref="ConfigItem{TValue}"/> 的非泛型方法抽象层，用于手动解决巨硬
-/// 2025 年仍未支持的极其先进的隐式去泛型化。
+/// <see cref="ConfigItem{TValue}"/> 的非泛型方法抽象层，用于在 C# 尚不支持
+/// 隐式去泛型化的情况下统一访问泛型配置项。
 /// </summary>
 // ReSharper disable once InconsistentNaming
 public interface ConfigItem

@@ -83,7 +83,8 @@ public abstract class CommandArgument<TValue> : CommandArgument
         if (typeof(T) == typeof(string))
         {
             Unsafe.As<T, string>(ref value) = ValueText;
-#pragma warning disable CS8762 // The analyzer sucks.
+            // Unsafe.As 直接改写 ref 参数的存储，可空性分析无法跟踪这条写入路径。
+#pragma warning disable CS8762 // 见上方说明：Unsafe.As 写入对可空性分析不可见
             return true;
 #pragma warning restore CS8762
         }

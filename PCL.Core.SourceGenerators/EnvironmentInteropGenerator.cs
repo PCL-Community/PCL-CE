@@ -16,8 +16,8 @@ public class EnvironmentInteropGenerator : IIncrementalGenerator
     {
         var secretProvider = context.CompilationProvider.Select(static (_, _) =>
         {
-            // 判断 PCL_WRITE_SECRET 是否存在并遍历转换环境变量
-            // 打死也不会用 MSBuild Properties 这种非人类设计出来的垃圾
+            // 判断 PCL_WRITE_SECRET 是否存在并遍历转换环境变量。
+            // 此处必须直接读取进程环境变量：MSBuild 属性在增量构建与设计时构建中不可靠。
 #pragma warning disable RS1035
             var envs = Environment.GetEnvironmentVariables();
 #pragma warning restore RS1035
@@ -54,7 +54,9 @@ public class EnvironmentInteropGenerator : IIncrementalGenerator
         sb.AppendLine("    {");
 
         foreach (var (key, value) in secretPairs)
-            sb.AppendLine($"        [\"{key}\"] = {_ToVerbatimString(value)},");
+            // 键与值都必须转义：键原先直接插入到 " \"{key}\" " 中，
+            // 一旦环境变量名含有引号或反斜杠，生成的文件就会语法错误甚至被注入任意代码。
+            sb.AppendLine($"        [{_ToVerbatimString(key)}] = {_ToVerbatimString(value)},");
 
         sb.AppendLine("    };");
         sb.AppendLine("}");
