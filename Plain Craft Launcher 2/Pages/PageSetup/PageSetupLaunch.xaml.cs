@@ -229,16 +229,22 @@ public partial class PageSetupLaunch : IPageView
         Launcher.frmMain.PageChange(FormMain.PageType.InstanceSetup, FormMain.PageSubType.VersionSetup);
     }
 
+    /// <summary>判断下拉框的选中变更是否来自用户操作（展开下拉或键盘选择），而非页面刷新时的绑定回写。</summary>
+    private static bool IsUserSelecting(ComboBox combo) => combo.IsDropDownOpen || combo.IsKeyboardFocusWithin;
+
     private void ComboAdvanceRenderer_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        // 先记录变更前的配置值：页面刷新时绑定回写 SelectedIndex 同样会触发本事件，只有用户真正切换时才提示
+        var previousValue = Config.Launch.Renderer;
         ComboChange(sender, e);
-        ComboAdvanceRenderer_SelectionChanged((MyComboBox)sender, e);
+        ComboAdvanceRenderer_SelectionChanged((MyComboBox)sender, e, previousValue);
     }
 
     private void ComboArgumentIndie_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        var previousValue = Config.Launch.IndieSolutionV2;
         ComboChange(sender, e);
-        ComboArgumentIndie_SelectionChanged(sender, e);
+        ComboArgumentIndie_SelectionChanged(sender, e, previousValue);
     }
 
     #region 游戏内存
@@ -584,10 +590,13 @@ public partial class PageSetupLaunch : IPageView
     // 可见性选择直接关闭的警告
     private async void ComboArgumentVisibie_SelectionChanged(object sender, SelectionChangedEventArgs sizeChangedEventArgs)
     {
+        // 先记录变更前的配置值：页面刷新时绑定回写 SelectedIndex 同样会触发本事件，只有用户真正切换时才提示
+        var previousValue = (int)Config.Launch.LauncherVisibility;
         ComboChange(sender, sizeChangedEventArgs);
         if (Animations.AniExitsAnyControl())
             return;
-        if (ComboArgumentVisibie.SelectedIndex != 0)
+        if (ComboArgumentVisibie.SelectedIndex != 0 || !IsUserSelecting(ComboArgumentVisibie) ||
+            ComboArgumentVisibie.SelectedIndex == previousValue)
             return;
         var removedItem = sizeChangedEventArgs.RemovedItems.Count > 0 ? sizeChangedEventArgs.RemovedItems[0] : null;
         try
@@ -611,9 +620,14 @@ public partial class PageSetupLaunch : IPageView
     }
 
     // 实例隔离提示
-    private async void ComboArgumentIndie_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private async void ComboArgumentIndie_SelectionChanged(object sender, SelectionChangedEventArgs e,
+        int previousValue)
     {
         if (Animations.AniExitsAnyControl())
+            return;
+        // 只有用户主动操作（下拉展开或键盘选择）且值确实发生变化时才提示；页面刷新时的绑定回写一律忽略
+        if (sender is not MyComboBox { SelectedIndex: >= 0 } combo || !IsUserSelecting(combo) ||
+            combo.SelectedIndex == previousValue)
             return;
         try
         {
@@ -655,9 +669,12 @@ public partial class PageSetupLaunch : IPageView
         Reload();
     }
 
-    private async void ComboAdvanceRenderer_SelectionChanged(MyComboBox sender, object e)
+    private async void ComboAdvanceRenderer_SelectionChanged(MyComboBox sender, object e, int previousValue)
     {
         if (Animations.AniExitsAnyControl())
+            return;
+        if (ComboAdvanceRenderer.SelectedIndex < 0 || !IsUserSelecting(ComboAdvanceRenderer) ||
+            ComboAdvanceRenderer.SelectedIndex == previousValue)
             return;
         if (!States.Hint.Renderer && ComboAdvanceRenderer.SelectedIndex != 0)
         {
