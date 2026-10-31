@@ -11,6 +11,9 @@ public static class UiDispatcher
 {
     public static bool CheckAccess() => Application.Current?.Dispatcher.CheckAccess() ?? false;
 
+    /// <summary>界面是否仍可交互（应用已创建且未开始关闭）。</summary>
+    public static bool IsAvailable => Application.Current?.Dispatcher is { HasShutdownStarted: false };
+
     public static void Post(Action action)
     {
         var dispatcher = Application.Current?.Dispatcher;

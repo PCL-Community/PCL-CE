@@ -10,7 +10,7 @@ namespace PCL.Core.ViewModel;
 /// <summary>统一的异步状态与异常处理基类。</summary>
 public abstract partial class ViewModelBase : ObservableObject
 {
-    public IDialogService Dialog { get; set; } = NullDialogService.Instance;
+    public IDialogService Dialog { get; set; } = PCL.Core.UI.Dialogs.DialogService.Instance;
 
     [ObservableProperty] private AsyncState _state = AsyncState.Idle;
 

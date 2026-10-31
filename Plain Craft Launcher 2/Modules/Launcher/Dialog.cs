@@ -563,6 +563,9 @@ public static partial class Launcher
             var main = frmMain;
             if (main?.PanMsg is null || main.WindowState == WindowState.Minimized)
                 return;
+            // Core 弹窗服务正在显示时不再处理遗留队列
+            if (PCL.Core.UI.Dialogs.DialogService.Instance.IsShowing)
+                return;
 
             var messagePanel = main.PanMsg;
             var background = main.PanMsgBackground;
