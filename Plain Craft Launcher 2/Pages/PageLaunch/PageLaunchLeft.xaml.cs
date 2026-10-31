@@ -13,7 +13,7 @@ using PCL.Network;
 
 namespace PCL;
 
-public partial class PageLaunchLeft
+public partial class PageLaunchLeft : IPageView
 {
     private double actualUsedHeight;
     private double actualUsedWidth;
@@ -63,6 +63,15 @@ public partial class PageLaunchLeft
     public PageLaunchLeftViewModel ViewModel => _vm;
 
     private static void OnLanguageChanged(PageLaunchLeft page) => Common.RunInUi(page.RefreshButtonsUI);
+
+    // 常驻左侧页面，刷新由 Loaded 完成，导航钩子无需额外动作。
+    public void OnNavigatedTo(object? parameter)
+    {
+    }
+
+    public void OnNavigatedFrom()
+    {
+    }
 
     public void PageLaunchLeft_Loaded(object sender, RoutedEventArgs e)
     {
