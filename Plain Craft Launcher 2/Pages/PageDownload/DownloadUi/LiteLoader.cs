@@ -145,7 +145,9 @@ public static partial class DownloadUi
         if (!downloadInfo.IsLegacy)
             return
             [
-                $"http://jenkins.liteloader.com/job/LiteLoaderInstaller%20{inherit}/lastSuccessfulBuild/artifact/{(inherit == "1.8" ? "ant/dist/" : "build/libs/")}{downloadInfo.FileName}"
+                // 直连 HTTPS：原先写死 http:// 会先走一段明文再被 301 到 https，
+                // 攻击者可在跳转前替换响应内容，而本文件随后会被当作安装器执行。
+                $"https://jenkins.liteloader.com/job/LiteLoaderInstaller%20{inherit}/lastSuccessfulBuild/artifact/{(inherit == "1.8" ? "ant/dist/" : "build/libs/")}{downloadInfo.FileName}"
             ];
 
         return inherit switch

@@ -6,10 +6,12 @@ using PCL.Core.IO.Net.Http.Cache;
 using PCL.Core.IO.Storage.Cache;
 using PCL.Core.Logging;
 using Polly;
+using Polly.Retry;
 using System;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading.Tasks;
 
 namespace PCL.Core.IO.Net;
 
@@ -172,23 +174,41 @@ public partial class NetworkService
     /// </summary>
     /// <param name="retry">最大重试次数</param>
     /// <param name="retryPolicy">定义重试器行为</param>
-    /// <returns>AsyncPolicy</returns>
-    public static AsyncPolicy GetRetryPolicy(int retry = 3, Func<int, TimeSpan>? retryPolicy = null)
+    /// <returns>结果为 <see cref="HttpResponseMessage"/> 的重试策略</returns>
+    /// <remarks>
+    /// 返回泛型策略而非 <see cref="AsyncPolicy"/>：5xx 必须按结果匹配（HttpClient 默认不对非成功状态码抛异常），
+    /// 一旦使用 <c>OrResult</c>，Polly 的策略类型即退化为 <see cref="AsyncRetryPolicy{TResult}"/>，
+    /// 与非泛型 <see cref="AsyncPolicy"/> 分属两套平行体系，无法隐式转换。
+    /// </remarks>
+    public static AsyncRetryPolicy<HttpResponseMessage> GetRetryPolicy(
+        int retry = 3,
+        Func<int, TimeSpan>? retryPolicy = null)
     {
         retryPolicy ??= _DefaultSleepDurationProvider;
 
-        return Policy
+        return Policy<HttpResponseMessage>
             .Handle<HttpRequestException>()
+            // 4xx 属于确定性失败，重试不会得到不同结果，不在此列。
+            .OrResult(static response => (int)response.StatusCode >= 500)
+            // 超时在 .NET 5+ 表现为 InnerException 为 TimeoutException 的 TaskCanceledException；
+            // 用户主动取消不带该内部异常，不应重试。
+            .Or<TaskCanceledException>(static ex => ex.InnerException is TimeoutException)
             .WaitAndRetryAsync(
                 retry,
-                attempt => retryPolicy.Invoke(attempt),
-                onRetry: (exception, timeSpan, retryAttempt, _) =>
+                retryPolicy,
+                onRetry: static (outcome, timeSpan, retryAttempt, _) =>
                 {
+                    // 被丢弃的 5xx 响应同样占用连接，重试前必须释放。
+                    if (outcome.Exception is null)
+                        outcome.Result?.Dispose();
+
+                    var reason = outcome.Exception?.Message
+                                 ?? (outcome.Result is { } response
+                                     ? $"HTTP {(int)response.StatusCode} {response.StatusCode}"
+                                     : "未知原因");
                     LogWrapper.Debug(
-                        exception,
                         "Network",
-                        $"HTTP 请求失败，正在进行第 {retryAttempt} 次重试，等待 {timeSpan.TotalMilliseconds} 毫秒。"
-                        );
+                        $"HTTP 请求失败（{reason}），正在进行第 {retryAttempt} 次重试，等待 {timeSpan.TotalMilliseconds:0} 毫秒。");
                 });
     }
 

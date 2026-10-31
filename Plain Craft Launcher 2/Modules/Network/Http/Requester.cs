@@ -1,3 +1,5 @@
+using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.NetworkInformation;
@@ -72,24 +74,58 @@ public static class Requester
     private static async Task<string> FetchAsync(string url, FetchParam param, int retries)
     {
         var urls = new[] { url, param.FallbackUrl }.Where(u => !string.IsNullOrWhiteSpace(u)).Cast<string>().ToList();
+        var maxAttempts = Math.Max(1, retries);
         Exception? lastException = null;
         foreach (var currentUrl in urls)
         {
-            for (var attempt = 0; attempt < Math.Max(1, retries); attempt++)
+            for (var attempt = 0; attempt < maxAttempts; attempt++)
             {
                 try
                 {
                     return await FetchOnceAsync(currentUrl, param).ConfigureAwait(false);
                 }
-                catch (Exception ex)
+                catch (HttpResponseException ex) when (!IsTransient(ex))
+                {
+                    // 4xx 等确定性失败：同一地址重试不会有不同结果，直接换下一个地址
+                    lastException = ex;
+                    break;
+                }
+                catch (Exception ex) when (IsTransient(ex))
                 {
                     lastException = ex;
+                    if (attempt + 1 < maxAttempts)
+                        await Task.Delay(_GetRetryDelay(attempt)).ConfigureAwait(false);
                 }
             }
         }
 
         throw lastException ?? new HttpRequestException("请求失败");
     }
+
+    /// <summary>
+    /// 判断异常是否属于值得重试的瞬态故障。
+    /// </summary>
+    private static bool IsTransient(Exception ex) => ex switch
+    {
+        HttpResponseException { Response: not null } wrapped => IsTransientStatus(wrapped.Response!.StatusCode),
+        HttpResponseException => true,
+        HttpRequestException => true,
+        TaskCanceledException => true,
+        IOException => true,
+        _ => false
+    };
+
+    private static bool IsTransientStatus(HttpStatusCode status) =>
+        (int)status >= 500
+        || status == HttpStatusCode.RequestTimeout
+        || status == HttpStatusCode.TooManyRequests;
+
+    /// <summary>
+    /// 指数退避加抖动，避免故障期间大量客户端同步重试造成惊群。
+    /// </summary>
+    private static TimeSpan _GetRetryDelay(int attempt) =>
+        TimeSpan.FromMilliseconds(
+            Math.Min(4000, 500 * Math.Pow(2, attempt)) * (0.8 + Random.Shared.NextDouble() * 0.4));
 
     private static async Task<string> FetchOnceAsync(string url, FetchParam param)
     {
