@@ -34,7 +34,10 @@ public partial class PageDownloadFabric
                 PanVersions.Children.Add(
                     DownloadUi.FabricDownloadListItem((JsonObject)Version,
                         (sender, e) => Fabric_Selected((MyListItem)sender, e)));
-            CardVersions.Title = Lang.Text("Download.Version.VersionListCount", versions.Count);
+            LocalizedText.TryBind(
+                CardVersions,
+                "Title",
+                () => Lang.Text("Download.Version.VersionListCount", versions.Count));
         }
         catch (Exception ex)
         {

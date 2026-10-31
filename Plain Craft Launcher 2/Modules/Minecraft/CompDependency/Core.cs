@@ -70,6 +70,8 @@ public static partial class CompDependency
             var gameVersions = localFile
                     .CompFile?.GameVersions
                     ?.Where(static version => !string.IsNullOrWhiteSpace(version))
+                    .Select(Comp.NormalizeGameVersion)
+                    .Where(static version => !string.IsNullOrWhiteSpace(version))
                     .ToList()
                 ?? [];
             var loaders = ToLoaderNames(localFile.CompFile?.ModLoaders);
@@ -147,6 +149,9 @@ public static partial class CompDependency
                     GameVersions = compFile
                             .GameVersions
                             ?.Where(static version =>
+                                !string.IsNullOrWhiteSpace(version))
+                            .Select(Comp.NormalizeGameVersion)
+                            .Where(static version =>
                                 !string.IsNullOrWhiteSpace(version))
                             .ToList()
                         ?? [],

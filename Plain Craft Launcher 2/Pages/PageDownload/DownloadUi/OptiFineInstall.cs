@@ -332,51 +332,52 @@ public static partial class DownloadUi
             task.Progress = 0.7d;
             var inheritInstance =
                 new McInstance(Path.Combine(mcFolder, "versions", inherit));
-            var releaseDate = string.IsNullOrEmpty(downloadInfo.ReleaseTime)
-                ? inheritInstance.releaseTime.ToString(
-                    "yyyy'-'MM'-'dd",
-                    CultureInfo.InvariantCulture)
-                : downloadInfo.ReleaseTime.Replace("/", "-");
-            var optiFineLibraryVersion = nameFile
+            var releaseDate = (downloadInfo.ReleaseTime ?? inheritInstance.releaseTime)
+                .ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+            var optiFineVersion = nameFile
                 .Replace("OptiFine_", "")
                 .Replace(".jar", "")
                 .Replace("preview_", "");
-            var json =
-                $$"""
-                  {
-                      "id": "{{id}}",
-                      "inheritsFrom": "{{downloadInfo.Inherit}}",
-                      "time": "{{releaseDate}}T23:33:33+08:00",
-                      "releaseTime": "{{releaseDate}}T23:33:33+08:00",
-                      "type": "release",
-                      "libraries": [
-                          {"name": "optifine:OptiFine:{{optiFineLibraryVersion}}"},
-                          {"name": "net.minecraft:launchwrapper:1.12"}
-                      ],
-                      "mainClass": "net.minecraft.launchwrapper.Launch",
-                  """;
+            var jsonObject = new Dictionary<string, object?>
+            {
+                ["id"] = id,
+                ["inheritsFrom"] = downloadInfo.Inherit,
+                ["time"] = $"{releaseDate}T23:33:33+08:00",
+                ["releaseTime"] = $"{releaseDate}T23:33:33+08:00",
+                ["type"] = "release",
+                ["libraries"] = new object[]
+                {
+                    new { name = $"optifine:OptiFine:{optiFineVersion}" },
+                    new { name = "net.minecraft:launchwrapper:1.12" }
+                },
+                ["mainClass"] = "net.minecraft.launchwrapper.Launch"
+            };
             task.Progress = 0.8d;
             if (inheritInstance.IsOldJson)
-                json +=
-                    $$"""
-
-                          "minimumLauncherVersion": 18,
-                          "minecraftArguments": "{{inheritInstance.JsonObject["minecraftArguments"]}}  --tweakClass optifine.OptiFineTweaker"
-                      }
-                      """;
+            {
+                jsonObject["minimumLauncherVersion"] = 18;
+                jsonObject["minecraftArguments"] =
+                    $"{inheritInstance.JsonObject["minecraftArguments"]}  --tweakClass optifine.OptiFineTweaker";
+            }
             else
-                json +=
-                    """
+            {
+                jsonObject["minimumLauncherVersion"] = "21";
+                jsonObject["arguments"] = new
+                {
+                    game = (string[])
+                    [
+                        "--tweakClass",
+                        "optifine.OptiFineTweaker"
+                    ]
+                };
+            }
 
-                        "minimumLauncherVersion": "21",
-                        "arguments": {
-                            "game": [
-                                "--tweakClass",
-                                "optifine.OptiFineTweaker"
-                            ]
-                        }
-                    }
-                    """;
+            var json = JsonSerializer.Serialize(
+                jsonObject,
+                new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                });
             Common.WriteFile(Path.Combine(versionFolder, $"{id}.json"), json);
         }
         catch (Exception ex)

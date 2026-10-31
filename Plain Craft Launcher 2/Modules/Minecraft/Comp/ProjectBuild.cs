@@ -1,5 +1,4 @@
-﻿using PCL.Core.App.Localization;
-using PCL.Core.Utils;
+﻿using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -407,10 +406,11 @@ public static partial class Comp
 
         private static void _AddTag(List<string> tags, string langKey)
         {
-            var tag = Lang.Text(langKey);
+            if (string.IsNullOrWhiteSpace(langKey))
+                return;
 
-            if (!tags.Contains(tag))
-                tags.Add(tag);
+            if (!tags.Contains(langKey))
+                tags.Add(langKey);
         }
 
         private sealed class CompProjectBuildResult

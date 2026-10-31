@@ -51,6 +51,14 @@ public partial class PageInstanceOverall : IPageView
     {
     }
 
+    protected override void RefreshLocalization()
+    {
+        // 重建信息卡片前记录滚动位置，避免切语言时跳回顶部
+        var savedOffset = PanBack.VerticalOffset;
+        Reload();
+        Dispatcher.BeginInvoke(new Action(() => PanBack.ScrollToVerticalOffset(savedOffset)));
+    }
+
     private void PageSetupLaunch_Loaded(object sender, RoutedEventArgs e)
     {
         RefreshOnNavigate();

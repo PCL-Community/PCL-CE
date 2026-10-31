@@ -1,15 +1,16 @@
-<local:MyPageRight
+﻿<local:MyPageRight
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" x:Class="PCL.PageSetupGameLink"
-    PanScroll="{Binding ElementName=PanBack}">
+    PanScroll="{Binding ElementName=PanBack}"
+    xmlns:loc="https://ce.pclc.cc/core/localization">
     <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
         <StackPanel x:Name="PanMain" Margin="25,10">
             <local:MyCard Margin="0,15" Title="EasyTier">
                 <StackPanel Margin="25,40,25,15" Orientation="Vertical">
-                    <local:MyHint Text="{DynamicResource Setup.GameLink.RestartRequired}" Theme="Yellow" Margin="0,0,0,10" />
+                    <local:MyHint Text="{loc:Loc Setup.GameLink.RestartRequired}" Theme="Yellow" Margin="0,0,0,10" />
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" SharedSizeGroup="TextBlock" />
@@ -36,11 +37,11 @@
                             <!--<RowDefinition Height="4" />
                         <RowDefinition Height="35" />-->
                         </Grid.RowDefinitions>
-                        <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameLink.Username}"
+                        <TextBlock Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{loc:Loc Setup.GameLink.Username}"
                                    Margin="0,0,25,0" />
                         <local:MyTextBox x:Name="TextLinkUsername" Grid.Row="0" Grid.ColumnSpan="2" Tag="LinkUsername"
                                          Grid.Column="2" TextChanged="TextBoxChange" Text="{Binding LinkUsername, Mode=OneWay}"
-                                         ToolTip="{DynamicResource Setup.GameLink.Username.ToolTip}" />
+                                         ToolTip="{loc:Loc Setup.GameLink.Username.ToolTip}" />
                         <!--<TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="自定义节点" Margin="0,0,25,0" />
                     <local:MyTextBox x:Name="TextLinkRelay" Grid.Row="2" Grid.ColumnSpan="2" Tag="LinkRelayServer" Grid.Column="2" HintText="一般应以 tcp:// 或 udp:// 开头；若有多个，请使用英文分号分割">
                         <local:MyTextBox.ValidateRules>
@@ -61,35 +62,35 @@
                         <local:MyComboBoxItem Content="自有节点 + 社区节点 协助中继" ToolTip="除自有节点外，添加由 PCL CE 挑选的部分 EasyTier 社区提供的节点。&#xa;这些节点由社区志愿者部署，可能可以提供更快的连接速度。"/>
                         <local:MyComboBoxItem Content="不使用预设节点中继 (谨慎选择)" ToolTip="不使用任何预设节点中继数据。&#xa;联机双方将需要添加至少一个相同的自定义节点才可以连接。&#xa;这要求你具备一定技术能力且有特殊需要，在绝大多数情况下不要选择此选项！"/>
                     </local:MyComboBox>-->
-                        <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{DynamicResource Setup.GameLink.Protocol.Preference}" />
+                        <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{loc:Loc Setup.GameLink.Protocol.Preference}" />
                         <local:MyComboBox x:Name="ComboPreferProtocol" Tag="LinkProtocolPreference" Grid.Row="2"
                                           SelectionChanged="LinkProtocolPerferenceChange"
                                           SelectedIndex="{Binding PreferProtocolIndex, Mode=OneWay}"
                                           Grid.Column="2">
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.GameLink.Protocol.Tcp}" ToolTip="{DynamicResource Setup.GameLink.Protocol.Tcp.ToolTip}" />
-                            <local:MyComboBoxItem Content="{DynamicResource Setup.GameLink.Protocol.Udp}" ToolTip="{DynamicResource Setup.GameLink.Protocol.Udp.ToolTip}" />
+                            <local:MyComboBoxItem Content="{loc:Loc Setup.GameLink.Protocol.Tcp}" ToolTip="{loc:Loc Setup.GameLink.Protocol.Tcp.ToolTip}" />
+                            <local:MyComboBoxItem Content="{loc:Loc Setup.GameLink.Protocol.Udp}" ToolTip="{loc:Loc Setup.GameLink.Protocol.Udp.ToolTip}" />
                         </local:MyComboBox>
                         <local:MyCheckBox x:Name="CheckLatencyFirstMode" Tag="LinkLatencyFirstMode" Grid.Row="4"
-                                          Grid.ColumnSpan="3" Text="{DynamicResource Setup.GameLink.LatencyFirstMode}" Change="CheckBoxChange"
+                                          Grid.ColumnSpan="3" Text="{loc:Loc Setup.GameLink.LatencyFirstMode}" Change="CheckBoxChange"
                                           Checked="{Binding LatencyFirstMode, Mode=OneWay}"
-                                          ToolTip="{DynamicResource Setup.GameLink.LatencyFirstMode.ToolTip}" />
+                                          ToolTip="{loc:Loc Setup.GameLink.LatencyFirstMode.ToolTip}" />
                         <local:MyCheckBox x:Name="CheckTryPunchSym" Tag="LinkTryPunchSym" Grid.Row="5"
-                                          Grid.ColumnSpan="3" Text="{DynamicResource Setup.GameLink.PortGuessNat}" Change="CheckBoxChange"
+                                          Grid.ColumnSpan="3" Text="{loc:Loc Setup.GameLink.PortGuessNat}" Change="CheckBoxChange"
                                           Checked="{Binding TryPunchSym, Mode=OneWay}"
-                                          ToolTip="{DynamicResource Setup.GameLink.PortGuessNat.ToolTip}" />
+                                          ToolTip="{loc:Loc Setup.GameLink.PortGuessNat.ToolTip}" />
                         <local:MyCheckBox x:Name="CheckEnableIPv6" Tag="LinkEnableIPv6" Grid.Row="6"
-                                          Grid.ColumnSpan="3" Text="{DynamicResource Setup.GameLink.EnableIPv6}" Change="CheckBoxChange"
+                                          Grid.ColumnSpan="3" Text="{loc:Loc Setup.GameLink.EnableIPv6}" Change="CheckBoxChange"
                                           Checked="{Binding EnableIPv6, Mode=OneWay}"
-                                          ToolTip="{DynamicResource Setup.GameLink.EnableIPv6.ToolTip}" />
+                                          ToolTip="{loc:Loc Setup.GameLink.EnableIPv6.ToolTip}" />
                         <local:MyCheckBox x:Name="CheckEnableCliOutput" Tag="LinkEnableCliOutput" Grid.Row="7"
-                                          Grid.ColumnSpan="3" Text="{DynamicResource Setup.GameLink.CliDebugOutput}" Change="CheckBoxChange"
+                                          Grid.ColumnSpan="3" Text="{loc:Loc Setup.GameLink.CliDebugOutput}" Change="CheckBoxChange"
                                           Checked="{Binding EnableCliOutput, Mode=OneWay}"
-                                          ToolTip="{DynamicResource Setup.GameLink.CliDebugOutput.ToolTip}" />
+                                          ToolTip="{loc:Loc Setup.GameLink.CliDebugOutput.ToolTip}" />
                         <!--<local:MyButton Grid.Row="17" HorizontalAlignment="Left" Grid.ColumnSpan="3" Width="120" Text="社区节点列表" EventType="打开网页" EventData="https://uptime.easytier.cn/" ColorType="Highlight" ToolTip="查看 EasyTier 社区提供的节点。&#xa;你也可以在此页面提交自己的节点，以帮助整个社区优化连接。"/>-->
                     </Grid>
                 </StackPanel>
             </local:MyCard>
-            <local:MyCard Margin="10" Title="{DynamicResource Setup.GameLink.NetworkTest.Title}" Visibility="Collapsed">
+            <local:MyCard Margin="10" Title="{loc:Loc Setup.GameLink.NetworkTest.Title}" Visibility="Collapsed">
                 <StackPanel Margin="25,40,25,15" Orientation="Vertical">
                     <Grid>
                         <Grid.ColumnDefinitions>

@@ -14,7 +14,7 @@ namespace PCL.Core.App.Localization;
 ///     </p>
 ///     <p>
 ///         <see cref="Lang" /> 用于代码中读取本地化文本资源，以及按照当前展示区域性格式化文本参数、日期时间和数值。
-///         它面向 C# 代码侧调用；XAML 中的静态文本优先使用 <c>DynamicResource</c>，
+///         它面向 C# 代码侧调用；XAML 中的静态文本优先使用 <see cref="LocExtension" />，
 ///         XAML 绑定值的格式化优先使用 <see cref="LocalizationFormatConverter" />。
 ///     </p>
 ///     <p>
@@ -82,7 +82,7 @@ public static class Lang
     /// </param>
     /// <returns>
     ///     找到资源时返回本地化文本；
-    ///     未找到资源时，调试构建返回 <c>!key!</c>，发布构建返回 <paramref name="key" /> 本身。
+    ///     未找到资源时，调试构建返回 <c>!key!</c> 以便一眼识别缺失项，发布构建返回空字符串。
     /// </returns>
     /// <exception cref="ArgumentException">
     ///     <paramref name="key" /> 为空、空字符串或空白字符串。
@@ -97,7 +97,7 @@ public static class Lang
 #if DEBUG
         return $"!{key}!";
 #else
-        return key;
+        return string.Empty;
 #endif
     }
 

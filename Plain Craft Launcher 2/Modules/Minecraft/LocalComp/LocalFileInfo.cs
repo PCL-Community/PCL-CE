@@ -194,15 +194,15 @@ public static partial class LocalComp
                 field = [];
                 if (IsFolder)
                 {
-                    field.Add("文件夹");
+                    field.Add("Instance.Resource.Item.FolderTag");
                     return field;
                 }
 
                 var tag = Path.GetExtension(RawPath).ToLower() switch
                 {
-                    ".litematic" => "原理图",
-                    ".schem" or ".schematic" => "Schematic结构",
-                    ".nbt" => "原版结构",
+                    ".litematic" => "Instance.Resource.Item.LitematicTag",
+                    ".schem" or ".schematic" => "Instance.Resource.Item.SchematicTag",
+                    ".nbt" => "Instance.Resource.Item.StructureTag",
                     _ => null
                 };
                 if (tag is not null)

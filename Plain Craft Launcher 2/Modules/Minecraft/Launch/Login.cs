@@ -26,7 +26,9 @@ public static partial class GameLaunch
         {
             reloadTimeout = 1,
             ProgressWeight = 15d,
-            block = false
+            block = false,
+            Identifier = LaunchStageLoginId,
+            DisplayNameFactory = () => Lang.Text("Minecraft.Launch.Stage.Login")
         };
 
     public static Loading.LoaderTask<McLoginMs, McLoginResult> mcLoginMsLoader =

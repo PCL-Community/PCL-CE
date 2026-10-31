@@ -21,9 +21,9 @@ public static partial class InstanceList
             results.Clear();
             Common.Log(
                 ex,
-                Lang.Text("Select.instance.Error.Classify"),
+                Lang.Text("Select.Instance.Error.Classify"),
                 Common.LogLevel.Feedback,
-                userSummary: Lang.Text("Select.instance.Error.Classify"));
+                userSummary: Lang.Text("Select.Instance.Error.Classify"));
         }
 
         results = new[]

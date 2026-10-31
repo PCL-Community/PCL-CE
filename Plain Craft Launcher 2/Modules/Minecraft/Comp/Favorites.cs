@@ -131,16 +131,22 @@ public static partial class Comp
                 var hasFavs = i.Favs.Contains(project.Id);
                 if (hasFavs)
                 {
-                    item.Header = Lang.Text(
-                        "Download.Comp.Detail.Favorites.UnfavoriteContextMenu",
-                        i.Name);
+                    LocalizedText.TryBind(
+                        item,
+                        "Header",
+                        () => Lang.Text(
+                            "Download.Comp.Detail.Favorites.UnfavoriteContextMenu",
+                            i.Name));
                     item.SvgIcon = "lucide/heart-filled";
                 }
                 else
                 {
-                    item.Header = Lang.Text(
-                        "Download.Comp.Detail.Favorites.FavoriteContextMenu",
-                        i.Name);
+                    LocalizedText.TryBind(
+                        item,
+                        "Header",
+                        () => Lang.Text(
+                            "Download.Comp.Detail.Favorites.FavoriteContextMenu",
+                            i.Name));
                     item.SvgIcon = "lucide/heart";
                 }
 
@@ -195,11 +201,14 @@ public static partial class Comp
                 var item = new MyMenuItem
                 {
                     MaxWidth = 240d,
-                    Header = Lang.Text(
-                        "Download.Comp.Detail.Favorites.FavoriteContextMenu",
-                        i.Name),
                     SvgIcon = "lucide/heart"
                 };
+                LocalizedText.TryBind(
+                    item,
+                    "Header",
+                    () => Lang.Text(
+                        "Download.Comp.Detail.Favorites.FavoriteContextMenu",
+                        i.Name));
                 item.Click += (_, _) =>
                 {
                     try

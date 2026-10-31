@@ -54,13 +54,16 @@ public partial class PageDownloadLiteLoader
                 if (!Pair.Value.Any())
                     continue;
                 // 增加卡片
-                var newCard = new MyCard
-                {
-                    Title = (Pair.Key == McVersionComparer.UNKNOWN_VERSION_KEY
-                        ? Lang.Text("Minecraft.Version.Unknown")
-                        : Pair.Key) + " (" + Pair.Value.Count + ")",
-                    Margin = new Thickness(0d, 0d, 0d, 15d)
-                };
+                var isUnknown = Pair.Key == McVersionComparer.UNKNOWN_VERSION_KEY;
+                var versionGroup = Pair.Key;
+                var count = Pair.Value.Count;
+                var newCard = new MyCard { Margin = new Thickness(0d, 0d, 0d, 15d) };
+                LocalizedText.TryBind(
+                    newCard,
+                    "Title",
+                    () => isUnknown
+                        ? $"{Lang.Text("Minecraft.Version.Unknown")} ({count})"
+                        : $"{versionGroup} ({count})");
                 var newStack = new StackPanel
                 {
                     Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),

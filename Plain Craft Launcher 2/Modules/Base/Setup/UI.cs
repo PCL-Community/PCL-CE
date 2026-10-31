@@ -187,7 +187,7 @@ public partial class Setup
                     ? "Setup.Ui.Homepage.LocalFile.Hint"
                     : "Setup.Ui.Homepage.NetUpdate.Hint";
 
-                ui.HintCustom.Text = Lang.Text(hintKey);
+                ui.HintCustom.TrySetLocalizedValue("Text", hintKey);
 
                 CustomEventService.SetEventType(
                     ui.HintCustom,

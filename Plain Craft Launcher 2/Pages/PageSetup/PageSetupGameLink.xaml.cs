@@ -26,6 +26,8 @@ public partial class PageSetupGameLink : IPageView
     {
     }
 
+    protected override void RefreshLocalization() => _vm.RefreshLocalization();
+
     private void PageSetupLink_Loaded(object sender, RoutedEventArgs e) => Refresh();
 
     private void PageSetupLink_Unloaded(object sender, RoutedEventArgs e) => _refreshed = false;

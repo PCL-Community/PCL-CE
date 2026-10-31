@@ -39,6 +39,13 @@ public partial class PageSetupLog : IPageView
         LoadList();
     }
 
+    protected override void RefreshLocalization()
+    {
+        var savedOffset = PanBack.VerticalOffset;
+        LoadList();
+        Dispatcher.BeginInvoke(new Action(() => PanBack.ScrollToVerticalOffset(savedOffset)));
+    }
+
     public void LoadList() => _ = LoadListAsync();
 
     private async Task LoadListAsync()

@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using PCL.Core.App.Localization;
+using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -117,7 +118,7 @@ public static partial class Common
                     }
                     catch (Exception ex)
                     {
-                        throw new Exception(Lang.Text("Common.Error.InvalidJson"), ex);
+                        throw new InvalidJsonException(ex);
                     }
                 }
 

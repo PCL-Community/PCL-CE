@@ -13,22 +13,6 @@ public static partial class DownloadUi
         bool isSaveOnly
     )
     {
-        var infoParts = new List<string>
-        {
-            entry.IsPreview
-                ? Lang.Text("Download.Version.Type.Preview")
-                : Lang.Text("Download.Version.Type.Release")
-        };
-
-        if (!string.IsNullOrEmpty(entry.ReleaseTime))
-            infoParts.Add(Lang.Text("Download.Version.ReleaseDate", entry.ReleaseTime));
-
-        if (entry.RequiredForgeVersion is null)
-            infoParts.Add(Lang.Text("Download.Version.Optifine.IncompatibleForge"));
-        else if (!string.IsNullOrEmpty(entry.RequiredForgeVersion))
-            infoParts.Add(
-                Lang.Text("Download.Version.Optifine.CompatibleForge", entry.RequiredForgeVersion));
-
         var newItem = new MyListItem
         {
             Title = entry.DisplayName ?? "",
@@ -36,9 +20,29 @@ public static partial class DownloadUi
             Height = 42d,
             Type = MyListItem.CheckType.Clickable,
             Tag = entry,
-            Info = string.Join("  |  ", infoParts),
             Logo = $"{Common.PathImage}Blocks/GrassPath.png"
         };
+        LocalizedText.TryBind(newItem, "Info", () =>
+        {
+            var infoParts = new List<string>
+            {
+                entry.IsPreview
+                    ? Lang.Text("Download.Version.Type.Preview")
+                    : Lang.Text("Download.Version.Type.Release")
+            };
+
+            if (entry.ReleaseTime is not null)
+                infoParts.Add(Lang.Text("Download.Version.ReleaseDate",
+                    Lang.Date(entry.ReleaseTime.Value, "d")));
+
+            if (entry.RequiredForgeVersion is null)
+                infoParts.Add(Lang.Text("Download.Version.Optifine.IncompatibleForge"));
+            else if (!string.IsNullOrEmpty(entry.RequiredForgeVersion))
+                infoParts.Add(Lang.Text("Download.Version.Optifine.CompatibleForge",
+                    entry.RequiredForgeVersion));
+
+            return string.Join("  |  ", infoParts);
+        });
 
         newItem.Click += onClick;
         newItem.ContentHandler = isSaveOnly ? OptiFineSaveContMenuBuild : OptiFineContMenuBuild;
@@ -47,12 +51,7 @@ public static partial class DownloadUi
 
     private static void OptiFineSaveContMenuBuild(object sender, EventArgs e)
     {
-        var btnInfo = new MyIconButton
-        {
-            LogoScale = 1.05d,
-            SvgIcon = "lucide/info",
-            ToolTip = Lang.Text("Download.Version.Changelog")
-        };
+        var btnInfo = CreateChangelogButton();
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
@@ -65,20 +64,12 @@ public static partial class DownloadUi
 
     private static void OptiFineContMenuBuild(object sender, EventArgs e)
     {
-        var btnSave = new MyIconButton
-        {
-            SvgIcon = "lucide/save",
-            ToolTip = Lang.Text("Download.Version.SaveAs")
-        };
+        var btnSave = new MyIconButton { SvgIcon = "lucide/save" };
+        McDownloadContMenuLocalize(btnSave, "Download.Version.SaveAs");
         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnSave, 30d);
         ToolTipService.SetHorizontalOffset(btnSave, 2d);
-        var btnInfo = new MyIconButton
-        {
-            LogoScale = 1.05d,
-            SvgIcon = "lucide/info",
-            ToolTip = Lang.Text("Download.Version.Changelog")
-        };
+        var btnInfo = CreateChangelogButton();
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);

@@ -20,33 +20,34 @@ public static partial class Comp
         _AddDependencyBar(
             stack,
             deps,
-            Lang.Text("Download.Comp.Detail.FileList.RequiredDependencies"),
+            "Download.Comp.Detail.FileList.RequiredDependencies",
             false);
         _AddDependencyBar(
             stack,
             optionalDeps,
-            Lang.Text("Download.Comp.Detail.FileList.OptionalDependencies"),
+            "Download.Comp.Detail.FileList.OptionalDependencies",
             true);
 
-        stack.Children.Add(
-            new TextBlock
-            {
-                Text = Lang.Text("Download.Comp.Detail.FileList.VersionList"),
-                FontSize = 14d,
-                HorizontalAlignment = HorizontalAlignment.Left,
-                Margin = new Thickness(6d, 12d, 0d, 5d)
-            });
+        var versionListTitle = new TextBlock
+        {
+            FontSize = 14d,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Margin = new Thickness(6d, 12d, 0d, 5d)
+        };
+        versionListTitle.TrySetLocalizedValue("Text", "Download.Comp.Detail.FileList.VersionList");
+        stack.Children.Add(versionListTitle);
     }
 
     /// <summary>
     ///     将一组前置依赖（按工程 ID）渲染为一个可折叠栏并加入 <paramref name="stack" />。
     ///     仅保留在 compProjectCache 中有信息的前置；若过滤后为空则不添加任何折叠栏。
     /// </summary>
+    /// <param name="titleKey">折叠栏标题的本地化资源键。</param>
     /// <param name="collapsed">是否默认收起。前置 item 全部加入即可，靠 MyVirtualizingElement 在可见时才实例化。</param>
     private static void _AddDependencyBar(
         StackPanel stack,
         List<string>? depIds,
-        string title,
+        string titleKey,
         bool collapsed)
     {
         if (depIds is null || depIds.Count == 0)
@@ -64,9 +65,13 @@ public static partial class Comp
 
         var bar = new MyCollapseBar
         {
-            Title = $"{title} ({projects.Count})",
             IsCollapsed = collapsed
         };
+        var projectCount = projects.Count;
+        LocalizedText.TryBind(
+            bar,
+            "Title",
+            () => $"{Lang.Text(titleKey)} ({projectCount})");
         foreach (var project in projects)
             bar.ContentPanel.Children.Add(
                 project.ToCompItem(false, false));

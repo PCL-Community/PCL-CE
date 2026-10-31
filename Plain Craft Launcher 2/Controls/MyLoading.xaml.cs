@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using static PCL.MyLoading;
@@ -37,8 +38,8 @@ public partial class MyLoading
     public MyLoading()
     {
         InitializeComponent();
-        SetCurrentValue(TextProperty, Lang.Text("Application.Control.Loading.Default"));
-        SetCurrentValue(TextErrorProperty, Lang.Text("Application.Control.Loading.Failed"));
+        SetCurrentValue(TextProperty, string.Empty);
+        SetCurrentValue(TextErrorProperty, string.Empty);
         SetResourceReference(ForegroundProperty, "ColorBrush3");
         IsErrorChanged += (_, _) => RefreshText();
         Loaded += (_, _) => RefreshText();
@@ -48,7 +49,22 @@ public partial class MyLoading
         MouseLeftButtonUp += Button_MouseUp;
         MouseLeftButtonDown += Button_MouseDown;
         MouseLeave += Button_MouseLeave;
+        BindDefaultLocalizedText();
         MouseLeftButtonUp += Button_MouseLeave;
+    }
+
+    private void BindDefaultLocalizedText()
+    {
+        if (BindingOperations.GetBindingExpression(this, TextProperty) is null)
+            LocalizedText.TryBind(
+                this,
+                nameof(Text),
+                () => Lang.Text("Application.Control.Loading.Default"));
+        if (BindingOperations.GetBindingExpression(this, TextErrorProperty) is null)
+            LocalizedText.TryBind(
+                this,
+                nameof(TextError),
+                () => Lang.Text("Application.Control.Loading.Failed"));
     }
 
     #endregion
@@ -105,7 +121,9 @@ public partial class MyLoading
                     var ex = State.Error;
                     if (ex is null)
                     {
-                        LabText.Text = Lang.Text("Application.Control.Loading.UnknownError");
+                        LabText.TrySetLocalizedValue(
+                            nameof(Text),
+                            "Application.Control.Loading.UnknownError");
                     }
                     else
                     {
@@ -115,7 +133,9 @@ public partial class MyLoading
                             {
                                 "远程主机强迫关闭了", "远程方已关闭传输流", "未能解析此远程名称", "由于目标计算机积极拒绝", "操作已超时", "操作超时", "服务器超时", "连接超时"
                             }.Any(s => LabText.Text.Contains(s)))
-                            LabText.Text = Lang.Text("Application.Control.Loading.NetworkUnstable");
+                            LabText.TrySetLocalizedValue(
+                                nameof(Text),
+                                "Application.Control.Loading.NetworkUnstable");
                     }
                 }
                 else
@@ -125,7 +145,11 @@ public partial class MyLoading
             }
             else if (ShowProgress && State.IsLoader)
             {
-                LabText.Text = Text + " - " + Lang.Number(State.Progress, "P0");
+                var progressText = Text;
+                LocalizedText.TryBind(
+                    LabText,
+                    nameof(Text),
+                    () => $"{progressText} - {Lang.Number(State.Progress, "P0")}");
             }
             else
             {

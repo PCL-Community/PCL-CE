@@ -126,7 +126,7 @@ public static partial class GameDownload
                 var entry = new DlOptiFineListEntry
                 {
                     DisplayName = name[i].Replace("HD U ", "").Replace(".0 ", " "),
-                    ReleaseTime = Lang.Date(releaseDate, "d"),
+                    ReleaseTime = releaseDate,
                     IsPreview = name[i].ContainsF("pre", true),
                     Inherit = name[i].Split(" ")[0],
                     NameFile =
@@ -175,7 +175,7 @@ public static partial class GameDownload
                             + (token["type"]?.ToString() ?? "").Replace("HD_U", "").Replace("_", " ")
                             + " "
                             + (token["patch"]?.ToString() ?? "")).Replace(".0 ", " "),
-                    ReleaseTime = "",
+                    ReleaseTime = null,
                     IsPreview = (token["patch"]?.ToString() ?? "").ContainsF("pre", true),
                     Inherit = token["mcversion"]?.ToString() ?? "",
                     NameFile = token["filename"]?.ToString() ?? "",
@@ -251,9 +251,10 @@ public static partial class GameDownload
         public string? NameVersion;
 
         /// <summary>
-        ///     发布时间，格式为“yyyy/mm/dd”。OptiFine 源无此数据。
+        ///     发布时间。OptiFine 源（BMCLAPI）无此数据，为 <see langword="null" />。<br/>
+        ///     该字段保存原始时间，展示时请使用 <see cref="Lang.Date" /> 按当前区域性格式化。
         /// </summary>
-        public string? ReleaseTime;
+        public DateTime? ReleaseTime;
 
         /// <summary>
         ///     需要的最低 Forge 版本。空字符串为无限制，Nothing 为不兼容，“28.1.56” 表示版本号，“1161” 表示版本号的最后一位。
@@ -265,7 +266,7 @@ public static partial class GameDownload
             bool isPreview = false,
             string? nameFile = null,
             string? nameVersion = null,
-            string? releaseTime = null,
+            DateTime? releaseTime = null,
             string? requiredForgeVersion = null,
             string? inherit = null)
         {

@@ -1,5 +1,6 @@
 ﻿using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.Utils;
 using PCL.Network;
 
 namespace PCL;
@@ -435,9 +436,7 @@ public static partial class GameDownload
                         loaderList[ii].Key.input = default;
                         if (loaderList[ii].Key.Error is null) continue;
                         if (errorInfo is null
-                            || loaderList[ii]
-                                .Key.Error.Message
-                                .Contains(Lang.Text("Minecraft.Download.Error.NotFound")))
+                            || loaderList[ii].Key.Error is NotFoundException)
                             errorInfo = loaderList[ii].Key.Error;
                     }
 

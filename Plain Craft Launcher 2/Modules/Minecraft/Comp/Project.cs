@@ -1,6 +1,4 @@
-﻿using PCL.Core.App.Localization;
-
-namespace PCL;
+﻿namespace PCL;
 
 public static partial class Comp
 {
@@ -58,7 +56,7 @@ public static partial class Comp
         public readonly string Slug;
 
         /// <summary>
-        ///     描述性标签的内容。已转换为中文。
+        ///     描述性标签的资源键列表，未翻译。显示时由标签面板按当前语言实时求值。
         /// </summary>
         public readonly List<string> Tags;
 
@@ -97,10 +95,9 @@ public static partial class Comp
             if (!data.ContainsKey("Tags"))
             {
                 if (result.Tags.Count == 0)
-                    result.Tags.Add(Lang.Text("Download.Comp.Category.Other"));
+                    result.Tags.Add("Download.Comp.Category.Other");
 
                 result.Tags = [.. result.Tags.Distinct()];
-                result.Tags.Sort();
 
                 result.ModLoaders =
                 [

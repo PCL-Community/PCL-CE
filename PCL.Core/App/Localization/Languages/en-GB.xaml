@@ -1135,6 +1135,9 @@
 
     <sys:String x:Key="Instance.Resource.Item.ErrorSuffix"> [Error]</sys:String>
     <sys:String x:Key="Instance.Resource.Item.FolderTag">Folder</sys:String>
+    <sys:String x:Key="Instance.Resource.Item.LitematicTag">Litematica schematic</sys:String>
+    <sys:String x:Key="Instance.Resource.Item.SchematicTag">Schematic structure</sys:String>
+    <sys:String x:Key="Instance.Resource.Item.StructureTag">Vanilla structure</sys:String>
     <sys:String x:Key="Instance.Resource.Item.InfoUnavailable">Unable to get information</sys:String>
     <sys:String x:Key="Instance.Resource.Item.OpenChangelogFailed">Failed to open changelog</sys:String>
     <sys:String x:Key="Instance.Resource.Item.Update">Update</sys:String>

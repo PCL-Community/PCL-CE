@@ -40,10 +40,21 @@ public partial class PageSelectRight : IPageView
     {
         InitializeComponent();
         DataContext = _vm;
-        PanVerSearchBox.HintText = Lang.Text("Select.Instance.Search.Hint");
+        PanVerSearchBox.SetLocalizedValue(
+            MySearchBox.HintTextProperty,
+            "Select.Instance.Search.Hint");
         Loaded += PageSelectRight_Loaded;
         Unloaded += PageSelectRight_Unloaded;
         LoaderInit();
+    }
+
+    protected override void RefreshLocalization()
+    {
+        if (InstanceList.mcInstanceListLoader.State != Common.LoadState.Finished)
+            return;
+        var savedOffset = PanBack.VerticalOffset;
+        McInstanceListUI(InstanceList.mcInstanceListLoader);
+        Dispatcher.BeginInvoke(new Action(() => PanBack.ScrollToVerticalOffset(savedOffset)));
     }
 
     // 窗口基础
@@ -171,12 +182,12 @@ public partial class PageSelectRight : IPageView
 
                 #region 确认卡片名称
 
-                var cardName = "";
+                string cardNameKey;
                 switch (Card.Key)
                 {
                     case McInstanceCardType.OriginalLike:
                     {
-                        cardName = Lang.Text("Select.Instance.Card.Regular");
+                        cardNameKey = "Select.Instance.Card.Regular";
                         break;
                     }
                     case McInstanceCardType.API:
@@ -211,47 +222,47 @@ public partial class PageSelectRight : IPageView
                         if ((isLiteExists ? 1 : 0) + (isForgeExists ? 1 : 0) + (isFabricExists ? 1 : 0) +
                             (isNeoForgeExists ? 1 : 0) + (isQuiltExists ? 1 : 0) + (isCleanroomExists ? 1 : 0) +
                             (isLabyModExists ? 1 : 0) > 1)
-                            cardName = Lang.Text("Select.Instance.Card.Modable");
+                            cardNameKey = "Select.Instance.Card.Modable";
                         else if (isForgeExists)
-                            cardName = Lang.Text("Select.Instance.Card.Forge");
+                            cardNameKey = "Select.Instance.Card.Forge";
                         else if (isNeoForgeExists)
-                            cardName = Lang.Text("Select.Instance.Card.NeoForge");
+                            cardNameKey = "Select.Instance.Card.NeoForge";
                         else if (isCleanroomExists)
-                            cardName = Lang.Text("Select.Instance.Card.Cleanroom");
+                            cardNameKey = "Select.Instance.Card.Cleanroom";
                         else if (isLabyModExists)
-                            cardName = Lang.Text("Select.Instance.Card.LabyMod");
+                            cardNameKey = "Select.Instance.Card.LabyMod";
                         else if (isLiteExists)
-                            cardName = Lang.Text("Select.Instance.Card.LiteLoader");
+                            cardNameKey = "Select.Instance.Card.LiteLoader";
                         else if (isQuiltExists)
-                            cardName = Lang.Text("Select.Instance.Card.Quilt");
+                            cardNameKey = "Select.Instance.Card.Quilt";
                         else
-                            cardName = Lang.Text("Select.Instance.Card.Fabric");
+                            cardNameKey = "Select.Instance.Card.Fabric";
 
                         break;
                     }
                     case McInstanceCardType.Error:
                     {
-                        cardName = Lang.Text("Select.Instance.Card.Error");
+                        cardNameKey = "Select.Instance.Card.Error";
                         break;
                     }
                     case McInstanceCardType.Hidden:
                     {
-                        cardName = Lang.Text("Select.Instance.Card.Hidden");
+                        cardNameKey = "Select.Instance.Card.Hidden";
                         break;
                     }
                     case McInstanceCardType.Rubbish:
                     {
-                        cardName = Lang.Text("Select.Instance.Card.LessUsed");
+                        cardNameKey = "Select.Instance.Card.LessUsed";
                         break;
                     }
                     case McInstanceCardType.Star:
                     {
-                        cardName = Lang.Text("Select.Instance.Card.Favorites");
+                        cardNameKey = "Select.Instance.Card.Favorites";
                         break;
                     }
                     case McInstanceCardType.Fool:
                     {
-                        cardName = Lang.Text("Select.Instance.Card.AprilFools");
+                        cardNameKey = "Select.Instance.Card.AprilFools";
                         break;
                     }
 
@@ -263,9 +274,18 @@ public partial class PageSelectRight : IPageView
 
                 #endregion
 
-                // 建立控件
-                var cardTitle = $"{cardName}{(Card.Key == McInstanceCardType.Star ? "" : $" ({Lang.Number(filteredInstances.Count, "N0")})")}";
-                var newCard = new MyCard { Title = cardTitle, Margin = new Thickness(0d, 0d, 0d, 15d) };
+                var cardType = Card.Key;
+                var cardCount = filteredInstances.Count;
+                var newCard = new MyCard
+                {
+                    Margin = new Thickness(0d, 0d, 0d, 15d),
+                    Tag = (Key: cardNameKey, Type: cardType)
+                };
+                LocalizedText.TryBind(
+                    newCard,
+                    "Title",
+                    () =>
+                        $"{Lang.Text(cardNameKey)}{(cardType == McInstanceCardType.Star ? "" : $" ({Lang.Number(cardCount, "N0")})")}");
                 var newStack = new StackPanel
                 {
                     Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
@@ -387,28 +407,33 @@ public partial class PageSelectRight : IPageView
     {
         var newItem = new MyListItem
         {
-            Title = mcInstance.Name, Info = mcInstance.Desc, Height = 42d, Tag = mcInstance, SnapsToDevicePixels = true,
+            Title = mcInstance.Name,
+            Height = 42d,
+            Tag = mcInstance,
+            SnapsToDevicePixels = true,
             Type = MyListItem.CheckType.Clickable
         };
+        LocalizedText.TryBind(newItem, "Info", () => mcInstance.Desc);
         var instanceInfo = mcInstance.Info;
         var tags = new List<string>();
-        tags.Add(instanceInfo.VanillaName);
+        tags.Add(McInstanceInfo.GetVanillaNameDisplay(instanceInfo.VanillaName));
         if (instanceInfo.HasForge)
-            tags.Add("Forge " + instanceInfo.Forge);
+            tags.Add("Forge" + McInstanceInfo.FormatVersion(instanceInfo.Forge));
         else if (instanceInfo.HasNeoForge)
-            tags.Add("NeoForge " + instanceInfo.NeoForge);
+            tags.Add("NeoForge" + McInstanceInfo.FormatVersion(instanceInfo.NeoForge));
         else if (instanceInfo.HasCleanroom)
-            tags.Add("Cleanroom " + instanceInfo.Cleanroom);
+            tags.Add("Cleanroom" + McInstanceInfo.FormatVersion(instanceInfo.Cleanroom));
         else if (instanceInfo.HasLabyMod)
-            tags.Add("LabyMod " + instanceInfo.LabyMod);
+            tags.Add("LabyMod" + McInstanceInfo.FormatVersion(instanceInfo.LabyMod));
         else if (instanceInfo.HasQuilt)
-            tags.Add("Quilt " + instanceInfo.Quilt);
-        else if (instanceInfo.HasFabric) tags.Add("Fabric " + instanceInfo.Fabric);
+            tags.Add("Quilt" + McInstanceInfo.FormatVersion(instanceInfo.Quilt));
+        else if (instanceInfo.HasFabric)
+            tags.Add("Fabric" + McInstanceInfo.FormatVersion(instanceInfo.Fabric));
         if (instanceInfo.HasLiteLoader)
             tags.Add("LiteLoader");
         if (instanceInfo.HasOptiFine)
-            tags.Add("OptiFine " + instanceInfo.OptiFine);
-        newItem.Tags = tags;
+            tags.Add("OptiFine" + McInstanceInfo.FormatVersion(instanceInfo.OptiFine));
+        newItem.PlainTags = tags;
         try
         {
             if (mcInstance.Logo.EndsWith(@"PCL\Logo.png"))
@@ -439,7 +464,7 @@ public partial class PageSelectRight : IPageView
         var btnStar = new MyIconButton();
         if (version.IsStar)
         {
-            btnStar.ToolTip = Lang.Text("Select.Instance.Unfavorite");
+            btnStar.TrySetLocalizedValue("ToolTip", "Select.Instance.Unfavorite");
             ToolTipService.SetPlacement(btnStar, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(btnStar, 30d);
             ToolTipService.SetHorizontalOffset(btnStar, 2d);
@@ -448,7 +473,7 @@ public partial class PageSelectRight : IPageView
         }
         else
         {
-            btnStar.ToolTip = Lang.Text("Select.Instance.Favorite");
+            btnStar.TrySetLocalizedValue("ToolTip", "Select.Instance.Favorite");
             ToolTipService.SetPlacement(btnStar, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(btnStar, 30d);
             ToolTipService.SetHorizontalOffset(btnStar, 2d);
@@ -464,13 +489,13 @@ public partial class PageSelectRight : IPageView
                 Loading.LoaderFolderRunType.ForceRun, 1, @"versions\");
         };
         var btnOpenFolder = new MyIconButton { LogoScale = 1.1d, SvgIcon = "lucide/folder-open" };
-        btnOpenFolder.ToolTip = Lang.Text("Select.Instance.OpenFolder");
+        btnOpenFolder.TrySetLocalizedValue("ToolTip", "Select.Instance.OpenFolder");
         ToolTipService.SetPlacement(btnOpenFolder, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnOpenFolder, 30d);
         ToolTipService.SetHorizontalOffset(btnOpenFolder, 2d);
         btnOpenFolder.Click += (_, _) => PageInstanceOverall.OpenVersionFolder(version);
         var btnDel = new MyIconButton { LogoScale = 1.1d, SvgIcon = "lucide/trash-2" };
-        btnDel.ToolTip = Lang.Text("Common.Action.Delete");
+        btnDel.TrySetLocalizedValue("ToolTip", "Common.Action.Delete");
         ToolTipService.SetPlacement(btnDel, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnDel, 30d);
         ToolTipService.SetHorizontalOffset(btnDel, 2d);
@@ -478,7 +503,7 @@ public partial class PageSelectRight : IPageView
         if (version.state != McInstanceState.Error)
         {
             var btnCont = new MyIconButton { LogoScale = 1.1d, SvgIcon = "lucide/settings" };
-            btnCont.ToolTip = Lang.Text("Select.Instance.Settings");
+            btnCont.TrySetLocalizedValue("ToolTip", "Select.Instance.Settings");
             ToolTipService.SetPlacement(btnCont, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(btnCont, 30d);
             ToolTipService.SetHorizontalOffset(btnCont, 2d);
@@ -497,7 +522,7 @@ public partial class PageSelectRight : IPageView
         else
         {
             var btnCont = new MyIconButton { LogoScale = 1.15d, SvgIcon = "lucide/folder-open" };
-            btnCont.ToolTip = Lang.Text("Common.Action.OpenFolder");
+            btnCont.TrySetLocalizedValue("ToolTip", "Common.Action.OpenFolder");
             ToolTipService.SetPlacement(btnCont, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(btnCont, 30d);
             ToolTipService.SetHorizontalOffset(btnCont, 2d);
@@ -585,9 +610,19 @@ public partial class PageSelectRight : IPageView
                 {
                     // 删除后还有剩
                     var card = (MyCard)parent.Parent;
-                    card.Title = card.Title.Replace(Lang.Number(parent.Children.Count - 1, "N0"),
-                        Lang.Number(parent.Children.Count - 2, "N0")); // 有一个占位符
                     parent.Children.Remove(item);
+                    if (card.Tag is ValueTuple<string, McInstanceCardType> cardInfo)
+                    {
+                        var newCount = parent.Children.Count - 1; // 有一个占位符
+                        var infoKey = cardInfo.Item1;
+                        var infoType = cardInfo.Item2;
+                        LocalizedText.TryBind(
+                            card,
+                            "Title",
+                            () => $"{Lang.Text(infoKey)}{(infoType == McInstanceCardType.Star
+                                ? ""
+                                : $" ({Lang.Number(newCount, "N0")})")}");
+                    }
                     if (InstanceList.McMcInstanceSelected is not null && (mcInstance.PathInstance ?? "") ==
                         (InstanceList.McMcInstanceSelected.PathInstance ?? ""))
                         // 删除当前实例就更改选择

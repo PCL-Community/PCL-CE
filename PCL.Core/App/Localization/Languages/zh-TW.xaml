@@ -1135,6 +1135,9 @@
 
     <sys:String x:Key="Instance.Resource.Item.ErrorSuffix"> [錯誤]</sys:String>
     <sys:String x:Key="Instance.Resource.Item.FolderTag">資料夾</sys:String>
+    <sys:String x:Key="Instance.Resource.Item.LitematicTag">投影原理圖</sys:String>
+    <sys:String x:Key="Instance.Resource.Item.SchematicTag">Schematic 結構</sys:String>
+    <sys:String x:Key="Instance.Resource.Item.StructureTag">原版結構</sys:String>
     <sys:String x:Key="Instance.Resource.Item.InfoUnavailable">存在錯誤，無法取得資訊</sys:String>
     <sys:String x:Key="Instance.Resource.Item.OpenChangelogFailed">開啟更新紀錄出現錯誤</sys:String>
     <sys:String x:Key="Instance.Resource.Item.Update">更新</sys:String>

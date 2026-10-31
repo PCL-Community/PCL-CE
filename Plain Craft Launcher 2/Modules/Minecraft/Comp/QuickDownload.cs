@@ -326,7 +326,7 @@ public static partial class Comp
 
         if (file.Type is CompType.Mod or CompType.DataPack)
             if (file.GameVersions.Any(v => v.Contains('.'))
-                && !file.GameVersions.Any(v => v.Contains('.') && v == version.Info.VanillaName))
+                && !ContainsGameVersion(file.GameVersions, version.Info.VanillaName))
                 return false;
 
         return allowedLoaders.Count == 0

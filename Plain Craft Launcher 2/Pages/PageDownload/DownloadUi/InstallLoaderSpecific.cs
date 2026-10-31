@@ -116,7 +116,10 @@ public static partial class DownloadUi
                         request.forgeVersion is null
                         && request.neoForgeVersion is null
                         && request.fabricVersion is null
-                        && request.liteLoaderEntry is null
+                        && request.liteLoaderEntry is null,
+                    Identifier = DownloadIdentifier(
+                        "OptiFine",
+                        request.optiFineEntry.NameVersion)
                 }
             );
         }
@@ -141,7 +144,10 @@ public static partial class DownloadUi
                         request.forgeVersion is null
                         && request.neoForgeVersion is null
                         && request.fabricVersion is null
-                        && request.liteLoaderEntry is null
+                        && request.liteLoaderEntry is null,
+                    Identifier = DownloadIdentifier(
+                        "OptiFine",
+                        request.optiFineEntry.NameVersion)
                 }
             );
     }

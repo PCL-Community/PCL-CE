@@ -64,7 +64,8 @@ public static partial class Modpack
         var loaderName = Lang.Text(
             "Minecraft.Download.Modpack.Task.CurseForgeInstall",
             instanceName);
-        if (loaderTaskbar.Any(l => (l.name ?? "") == (loaderName ?? "")))
+        var loaderIdentifier = $"Modpack:CurseForge:{instanceName}";
+        if (loaderTaskbar.Any(l => l.Identifier == loaderIdentifier))
         {
             HintService.Show(Hints.Error(Lang.Text("Minecraft.Download.Modpack.Installing")));
             throw new Common.CancelledException();
@@ -72,7 +73,8 @@ public static partial class Modpack
 
         var loader = new LoaderCombo<string>(loaderName, loaders)
         {
-            OnStateChanged = DownloadUi.McInstallState
+            OnStateChanged = DownloadUi.McInstallState,
+            Identifier = loaderIdentifier
         };
         loader.Start(request.targetInstanceFolder);
         LoaderTaskbarAdd(loader);

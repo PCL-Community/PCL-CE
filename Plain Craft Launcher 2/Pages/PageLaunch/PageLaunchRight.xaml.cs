@@ -40,8 +40,8 @@ public partial class PageLaunchRight : IRefreshable
         PanHint.Visibility = States.Hint.CEMessage
             ? Visibility.Visible
             : Visibility.Collapsed;
-        LabHint1.Text = Lang.Text("Launch.Right.CommunityHint.Message");
-        LabHint2.Text = Lang.Text("Launch.Right.CommunityHint.HidePrompt");
+        LabHint1.TrySetLocalizedValue("Text", "Launch.Right.CommunityHint.Message");
+        LabHint2.TrySetLocalizedValue("Text", "Launch.Right.CommunityHint.HidePrompt");
         _EnsureHomepageLiveWatcher();
     }
 

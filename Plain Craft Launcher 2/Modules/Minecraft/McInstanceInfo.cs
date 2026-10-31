@@ -8,19 +8,19 @@ namespace PCL;
     public class McInstanceInfo
     {
         /// <summary>
-        ///     Cleanroom 版本号，如 0.2.4-alpha。
+        ///     Cleanroom 版本号，如 0.2.4-alpha。未安装或无法确定时为 <see langword="null" />。
         /// </summary>
-        public string Cleanroom = "";
+        public string? Cleanroom;
 
         /// <summary>
-        ///     Fabric 版本号，如 0.7.2.175。
+        ///     Fabric 版本号，如 0.7.2.175。未安装或无法确定时为 <see langword="null" />。
         /// </summary>
-        public string Fabric = "";
+        public string? Fabric;
 
         /// <summary>
-        ///     Forge 版本号，如 31.1.2、14.23.5.2847。
+        ///     Forge 版本号，如 31.1.2、14.23.5.2847。未安装或无法确定时为 <see langword="null" />。
         /// </summary>
-        public string Forge = "";
+        public string? Forge;
 
         // Cleanroom
 
@@ -87,29 +87,29 @@ namespace PCL;
         public bool HasQuilt;
 
         /// <summary>
-        ///     LabyMod 版本号，如 4.2.59。
+        ///     LabyMod 版本号，如 4.2.59。未安装或无法确定时为 <see langword="null" />。
         /// </summary>
-        public string LabyMod = "";
+        public string? LabyMod;
 
         /// <summary>
-        ///     Fabric 版本号，如 0.7.2.175。
+        ///     Legacy Fabric 版本号，如 0.7.2.175。未安装或无法确定时为 <see langword="null" />。
         /// </summary>
-        public string LegacyFabric = "";
+        public string? LegacyFabric;
 
         /// <summary>
-        ///     NeoForge 版本号，如 21.0.2-beta、47.1.79。
+        ///     NeoForge 版本号，如 21.0.2-beta、47.1.79。未安装或无法确定时为 <see langword="null" />。
         /// </summary>
-        public string NeoForge = "";
+        public string? NeoForge;
 
         /// <summary>
-        ///     OptiFine 版本号，如 C8、C9_pre10。
+        ///     OptiFine 版本号，如 C8、C9_pre10。未安装或无法确定时为 <see langword="null" />。
         /// </summary>
-        public string OptiFine = "";
+        public string? OptiFine;
 
         /// <summary>
-        ///     Quilt 版本号，如 0.26.1-beta.1、0.26.0。
+        ///     Quilt 版本号，如 0.26.1-beta.1、0.26.0。未安装或无法确定时为 <see langword="null" />。
         /// </summary>
-        public string Quilt = "";
+        public string? Quilt;
 
         /// <summary>
         ///     指示原版版本号是否可靠（不是通过猜测获取）。
@@ -150,7 +150,11 @@ namespace PCL;
         {
             get
             {
-                if (string.IsNullOrEmpty(OptiFine) || OptiFine == Lang.Text("Minecraft.Version.Unknown"))
+                if (string.IsNullOrEmpty(OptiFine))
+                    return 0;
+                // 合法 OptiFine 版本形如 C8、C9_pre10、G5；
+                // 旧版本缓存可能保存本地化的「未知版本」文本，不能把首字符当作版本字母参与排序。
+                if (OptiFine.Length < 2 || !char.IsAsciiLetter(OptiFine[0]) || !char.IsAsciiDigit(OptiFine[1]))
                     return 0;
                 // 字母编号，如 G2 中的 G（7）
                 var result = char.ToUpperInvariant(OptiFine.First()) - 'A' + 1;
@@ -198,10 +202,13 @@ namespace PCL;
             {
                 if (!HasForgelike)
                     return 0;
-                if ((string.IsNullOrEmpty(Forge) || Forge == Lang.Text("Minecraft.Version.Unknown")) &&
-                    (string.IsNullOrEmpty(NeoForge) || NeoForge == Lang.Text("Minecraft.Version.Unknown")))
+                var forgelikeVersion = !string.IsNullOrEmpty(Forge) ? Forge : NeoForge;
+                if (string.IsNullOrEmpty(forgelikeVersion))
                     return 0;
-                var segments = (HasForge ? Forge : NeoForge).RegexSearch(@"\d+");
+                var segments = forgelikeVersion.RegexSearch(@"\d+");
+                // 旧版本缓存可能保存了本地化的「未知版本」文本，不含数字，不能进入下面的索引逻辑
+                if (segments.Count == 0)
+                    return 0;
                 switch (segments.Count)
                 {
                     case var @case when @case > 4:
@@ -244,28 +251,23 @@ namespace PCL;
         /// </summary>
         public override string ToString()
         {
-            string toStringRet = default;
-            toStringRet = "";
+            var toStringRet = "";
             if (HasForge)
-                toStringRet += ", Forge" + (Forge == Lang.Text("Minecraft.Version.Unknown") ? "" : " " + Forge);
+                toStringRet += ", Forge" + FormatVersion(Forge);
             if (HasNeoForge)
-                toStringRet += ", NeoForge" +
-                               (NeoForge == Lang.Text("Minecraft.Version.Unknown") ? "" : " " + NeoForge);
+                toStringRet += ", NeoForge" + FormatVersion(NeoForge);
             if (HasCleanroom)
-                toStringRet += ", Cleanroom" +
-                               (Cleanroom == Lang.Text("Minecraft.Version.Unknown") ? "" : " " + Cleanroom);
+                toStringRet += ", Cleanroom" + FormatVersion(Cleanroom);
             if (HasFabric)
-                toStringRet += ", Fabric" + (Fabric == Lang.Text("Minecraft.Version.Unknown") ? "" : " " + Fabric);
+                toStringRet += ", Fabric" + FormatVersion(Fabric);
             if (HasLegacyFabric)
-                toStringRet += ", LegacyFabric" +
-                               (LegacyFabric == Lang.Text("Minecraft.Version.Unknown") ? "" : " " + LegacyFabric);
+                toStringRet += ", LegacyFabric" + FormatVersion(LegacyFabric);
             if (HasQuilt)
-                toStringRet += ", Quilt" + (Quilt == Lang.Text("Minecraft.Version.Unknown") ? "" : " " + Quilt);
+                toStringRet += ", Quilt" + FormatVersion(Quilt);
             if (HasLabyMod)
-                toStringRet += ", LabyMod" + (LabyMod == Lang.Text("Minecraft.Version.Unknown") ? "" : " " + LabyMod);
+                toStringRet += ", LabyMod" + FormatVersion(LabyMod);
             if (HasOptiFine)
-                toStringRet += ", OptiFine" +
-                               (OptiFine == Lang.Text("Minecraft.Version.Unknown") ? "" : " " + OptiFine);
+                toStringRet += ", OptiFine" + FormatVersion(OptiFine);
             if (HasLiteLoader)
                 toStringRet += ", LiteLoader";
             if (string.IsNullOrEmpty(toStringRet)) return Lang.Text("Minecraft.Version.Vanilla") + " " + VanillaName;
@@ -274,6 +276,18 @@ namespace PCL;
         }
 
         // Helpers
+
+        /// <summary>
+        ///     将加载器版本号格式化为描述文本中的一段，例如 <c>" 47.2.0"</c>。
+        ///     版本号未知时返回空字符串，便于调用方直接拼接。
+        /// </summary>
+        /// <param name="version">加载器版本号，可能为 <see langword="null" /> 或空。</param>
+        /// <param name="normalize">是否把版本号中的 <c>-</c> 与 <c>_</c> 替换为空格，用于 OptiFine 这类版本号。</param>
+        internal static string FormatVersion(string? version, bool normalize = false)
+        {
+            if (string.IsNullOrEmpty(version)) return "";
+            return " " + (normalize ? version.Replace("-", " ").Replace("_", " ") : version);
+        }
 
         /// <summary>
         ///     版本字符串是否符合 Minecraft 原版格式，例如 1.x、26.x。
@@ -330,6 +344,19 @@ namespace PCL;
             if (major == 2) return 50; //2.0愚人节
 
             return -1;
+        }
+
+        public const string UnknownVanillaName = "Unknown";
+
+        /// <summary>
+        ///     获取原版版本名用于展示；无法识别时返回当前语言的「未知版本」。
+        /// </summary>
+        /// <param name="vanillaName">原版版本名。</param>
+        public static string GetVanillaNameDisplay(string? vanillaName)
+        {
+            return string.IsNullOrEmpty(vanillaName) || vanillaName == UnknownVanillaName
+                ? Lang.Text("Minecraft.Version.Unknown")
+                : vanillaName;
         }
 
         /// <summary>

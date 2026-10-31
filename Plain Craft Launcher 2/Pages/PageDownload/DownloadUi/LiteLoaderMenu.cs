@@ -13,16 +13,6 @@ public static partial class DownloadUi
         bool isSaveOnly
     )
     {
-        var infoParts = new List<string>
-        {
-            entry.IsPreview
-                ? Lang.Text("Download.Version.Type.Preview")
-                : Lang.Text("Download.Version.Type.Stable")
-        };
-
-        if (!string.IsNullOrEmpty(entry.ReleaseTime))
-            infoParts.Add(Lang.Text("Download.Version.ReleaseDate", entry.ReleaseTime));
-
         var newItem = new MyListItem
         {
             Title = entry.Inherit ?? "",
@@ -30,9 +20,23 @@ public static partial class DownloadUi
             Height = 42d,
             Type = MyListItem.CheckType.Clickable,
             Tag = entry,
-            Info = string.Join("  |  ", infoParts),
             Logo = $"{Common.PathImage}Blocks/Egg.png"
         };
+        LocalizedText.TryBind(newItem, "Info", () =>
+        {
+            var infoParts = new List<string>
+            {
+                entry.IsPreview
+                    ? Lang.Text("Download.Version.Type.Preview")
+                    : Lang.Text("Download.Version.Type.Stable")
+            };
+
+            if (entry.ReleaseTime is not null)
+                infoParts.Add(Lang.Text("Download.Version.ReleaseDate",
+                    Lang.Date(entry.ReleaseTime.Value, "g")));
+
+            return string.Join("  |  ", infoParts);
+        });
 
         newItem.Click += onClick;
         newItem.ContentHandler = isSaveOnly ? LiteLoaderSaveContMenuBuild : LiteLoaderContMenuBuild;
@@ -47,12 +51,8 @@ public static partial class DownloadUi
         }
         else
         {
-            var btnList = new MyIconButton
-            {
-                SvgIcon = "lucide/list",
-                ToolTip = Lang.Text("Download.Version.ViewAllVersions"),
-                Tag = sender
-            };
+            var btnList = new MyIconButton { SvgIcon = "lucide/list", Tag = sender };
+            McDownloadContMenuLocalize(btnList, "Download.Version.ViewAllVersions");
             ToolTipService.SetPlacement(btnList, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(btnList, 30d);
             ToolTipService.SetHorizontalOffset(btnList, 2d);
@@ -63,12 +63,8 @@ public static partial class DownloadUi
 
     private static void LiteLoaderContMenuBuild(MyListItem sender, EventArgs e)
     {
-        var btnSave = new MyIconButton
-        {
-            SvgIcon = "lucide/save",
-            ToolTip = Lang.Text("Download.Version.SaveInstaller"),
-            Tag = sender
-        };
+        var btnSave = new MyIconButton { SvgIcon = "lucide/save", Tag = sender };
+        McDownloadContMenuLocalize(btnSave, "Download.Version.SaveInstaller");
         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnSave, 30d);
         ToolTipService.SetHorizontalOffset(btnSave, 2d);
@@ -79,12 +75,8 @@ public static partial class DownloadUi
         }
         else
         {
-            var btnList = new MyIconButton
-            {
-                SvgIcon = "lucide/list",
-                ToolTip = Lang.Text("Download.Version.ViewAllVersions"),
-                Tag = sender
-            };
+            var btnList = new MyIconButton { SvgIcon = "lucide/list", Tag = sender };
+            McDownloadContMenuLocalize(btnList, "Download.Version.ViewAllVersions");
             ToolTipService.SetPlacement(btnList, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(btnList, 30d);
             ToolTipService.SetHorizontalOffset(btnList, 2d);

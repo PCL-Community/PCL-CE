@@ -165,7 +165,7 @@ public static partial class LocalComp
         {
             Common.RunInUiWait(() =>
             {
-                data.frm?.Load.Text = Lang.Text("Instance.Resource.Update.WaitingForUpdate");
+                data.frm?.Load.TrySetLocalizedValue("Text", "Instance.Resource.Update.WaitingForUpdate");
             });
 
             while (PageInstanceCompResource.updatingVersions.Contains(data.compPath))
@@ -180,7 +180,7 @@ public static partial class LocalComp
         {
             Common.RunInUiWait(() =>
             {
-                data.frm?.Load.Text = Lang.Text("Instance.Resource.List.Loading");
+                data.frm?.Load.TrySetLocalizedValue("Text", "Instance.Resource.List.Loading");
             });
         }
 

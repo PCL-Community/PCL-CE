@@ -61,34 +61,43 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
             rows.Add(new InstanceInfoRow(Lang.Text("Instance.Overall.Info.ModpackVersion"),
                 States.Instance.ModpackVersion[instance.PathInstance],
                 "pack://application:,,,/images/Blocks/CommandBlock.png"));
-        rows.Add(new InstanceInfoRow("Minecraft", instanceInfo.VanillaName,
+        rows.Add(new InstanceInfoRow("Minecraft", McInstanceInfo.GetVanillaNameDisplay(instanceInfo.VanillaName),
             "pack://application:,,,/images/Blocks/Grass.png"));
         if (instanceInfo.HasForge)
-            rows.Add(new InstanceInfoRow("Forge", instanceInfo.Forge, "pack://application:,,,/images/Blocks/Anvil.png"));
+            rows.Add(new InstanceInfoRow("Forge", FormatLoaderVersion(instanceInfo.Forge),
+                "pack://application:,,,/images/Blocks/Anvil.png"));
         if (instanceInfo.HasNeoForge)
-            rows.Add(new InstanceInfoRow("NeoForge", instanceInfo.NeoForge,
+            rows.Add(new InstanceInfoRow("NeoForge", FormatLoaderVersion(instanceInfo.NeoForge),
                 "pack://application:,,,/images/Blocks/NeoForge.png"));
         if (instanceInfo.HasCleanroom)
-            rows.Add(new InstanceInfoRow("Cleanroom", instanceInfo.Cleanroom,
+            rows.Add(new InstanceInfoRow("Cleanroom", FormatLoaderVersion(instanceInfo.Cleanroom),
                 "pack://application:,,,/images/Blocks/Cleanroom.png"));
         if (instanceInfo.HasFabric)
-            rows.Add(new InstanceInfoRow("Fabric", instanceInfo.Fabric,
+            rows.Add(new InstanceInfoRow("Fabric", FormatLoaderVersion(instanceInfo.Fabric),
                 "pack://application:,,,/images/Blocks/Fabric.png"));
         if (instanceInfo.HasQuilt)
-            rows.Add(new InstanceInfoRow("Quilt", instanceInfo.Quilt, "pack://application:,,,/images/Blocks/Quilt.png"));
+            rows.Add(new InstanceInfoRow("Quilt", FormatLoaderVersion(instanceInfo.Quilt),
+                "pack://application:,,,/images/Blocks/Quilt.png"));
         if (instanceInfo.HasOptiFine)
-            rows.Add(new InstanceInfoRow("OptiFine", instanceInfo.OptiFine,
+            rows.Add(new InstanceInfoRow("OptiFine", FormatLoaderVersion(instanceInfo.OptiFine),
                 "pack://application:,,,/images/Blocks/GrassPath.png"));
         if (instanceInfo.HasLiteLoader)
             rows.Add(new InstanceInfoRow("LiteLoader", Lang.Text("Instance.Overall.Info.Installed"),
                 "pack://application:,,,/images/Blocks/Egg.png"));
         if (instanceInfo.HasLegacyFabric)
-            rows.Add(new InstanceInfoRow("Legacy Fabric", instanceInfo.LegacyFabric,
+            rows.Add(new InstanceInfoRow("Legacy Fabric", FormatLoaderVersion(instanceInfo.LegacyFabric),
                 "pack://application:,,,/images/Blocks/Fabric.png"));
         if (instanceInfo.HasLabyMod)
-            rows.Add(new InstanceInfoRow("LabyMod", instanceInfo.LabyMod,
+            rows.Add(new InstanceInfoRow("LabyMod", FormatLoaderVersion(instanceInfo.LabyMod),
                 "pack://application:,,,/images/Blocks/LabyMod.png"));
         return rows;
+    }
+
+    private static string FormatLoaderVersion(string? version)
+    {
+        return string.IsNullOrEmpty(version)
+            ? Lang.Text("Minecraft.Version.Unknown")
+            : version;
     }
 
     public static void OpenVersionFolder(McInstance version)

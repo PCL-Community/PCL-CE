@@ -101,9 +101,9 @@ public static partial class GameDownload
                     FileName =
                         $"liteloader-installer-{key}{(key is "1.8" or "1.9" ? ".0" : "")}-00-SNAPSHOT.jar",
                     Md5 = (string?)realEntry["md5"],
-                    ReleaseTime =
-                        TimeUtils.FormatUnixTimestamp(
-                            long.Parse(realEntry["timestamp"]?.ToString() ?? "0")),
+                    ReleaseTime = TimeUtils
+                        .FromUnixTimestamp(long.Parse(realEntry["timestamp"]?.ToString() ?? "0"))
+                        .LocalDateTime,
                     jsonToken = realEntry
                 });
             }
@@ -150,9 +150,9 @@ public static partial class GameDownload
                     FileName =
                         $"liteloader-installer-{key}{(key is "1.8" or "1.9" ? ".0" : "")}-00-SNAPSHOT.jar",
                     Md5 = (string?)realEntry["md5"],
-                    ReleaseTime =
-                        TimeUtils.FormatUnixTimestamp(
-                            long.Parse(realEntry["timestamp"]?.ToString() ?? "0")),
+                    ReleaseTime = TimeUtils
+                        .FromUnixTimestamp(long.Parse(realEntry["timestamp"]?.ToString() ?? "0"))
+                        .LocalDateTime,
                     jsonToken = realEntry
                 });
             }
@@ -205,7 +205,7 @@ public static partial class GameDownload
         bool isLegacy = false,
         bool isPreview = false,
         string? md5 = null,
-        string? releaseTime = null,
+        DateTime? releaseTime = null,
         JsonNode? jsonToken = null)
     {
         /// <summary>
@@ -234,9 +234,10 @@ public static partial class GameDownload
         public string? Md5 = md5;
 
         /// <summary>
-        ///     发布时间，格式为“yyyy/mm/dd HH:mm”。
+        ///     发布时间。<br/>
+        ///     该字段保存原始时间，展示时请使用 <see cref="Lang.Date" /> 按当前区域性格式化。
         /// </summary>
-        public string? ReleaseTime = releaseTime;
+        public DateTime? ReleaseTime = releaseTime;
 
         /// <summary>
         ///     对应的 Json 项。

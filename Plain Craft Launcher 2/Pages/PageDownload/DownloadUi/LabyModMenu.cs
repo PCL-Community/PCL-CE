@@ -11,23 +11,26 @@ public static partial class DownloadUi
         JsonObject entry,
         MyListItem.ClickEventHandler onClick)
     {
+        var isSnapshot = entry["channel"]?.ToString().Contains("snapshot") == true;
         var newItem = new MyListItem
         {
-            Title =
-                $"{entry["version"]} {(
-                    (entry["channel"]?.ToString() ?? "").Contains("snapshot")
-                        ? Lang.Text("Download.Version.Type.Snapshot")
-                        : Lang.Text("Download.Version.Type.Stable")
-                )}",
             SnapsToDevicePixels = true,
             Height = 42d,
             Type = MyListItem.CheckType.Clickable,
             Tag = entry,
-            Info = (entry["channel"]?.ToString() ?? "").Contains("snapshot")
-                ? Lang.Text("Download.Version.Type.Snapshot")
-                : Lang.Text("Download.Version.Type.Stable"),
             Logo = $"{Common.PathImage}Blocks/LabyMod.png"
         };
+        newItem.SetLocalizedValue(
+            MyListItem.InfoProperty,
+            isSnapshot
+                ? "Download.Version.Type.Snapshot"
+                : "Download.Version.Type.Stable");
+        LocalizedText.TryBind(
+            newItem,
+            "Title",
+            () => entry["version"] + " " + (isSnapshot
+                ? Lang.Text("Download.Version.Type.Snapshot")
+                : Lang.Text("Download.Version.Type.Stable")));
         newItem.Click += onClick;
         newItem.ContentHandler = LabyModContMenuBuild;
         return newItem;
@@ -35,21 +38,13 @@ public static partial class DownloadUi
 
     private static void LabyModContMenuBuild(object sender, EventArgs e)
     {
-        var btnSave = new MyIconButton
-        {
-            SvgIcon = "lucide/save",
-            ToolTip = Lang.Text("Download.Version.SaveAs")
-        };
+        var btnSave = new MyIconButton { SvgIcon = "lucide/save" };
+        McDownloadContMenuLocalize(btnSave, "Download.Version.SaveAs");
         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnSave, 30d);
         ToolTipService.SetHorizontalOffset(btnSave, 2d);
         btnSave.Click += (a, b) => LabyModSave_Click(a, (dynamic)b);
-        var btnInfo = new MyIconButton
-        {
-            LogoScale = 1.05d,
-            SvgIcon = "lucide/info",
-            ToolTip = Lang.Text("Download.Version.Changelog")
-        };
+        var btnInfo = CreateChangelogButton();
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);

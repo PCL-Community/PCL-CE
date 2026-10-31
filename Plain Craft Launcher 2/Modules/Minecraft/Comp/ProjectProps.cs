@@ -158,14 +158,12 @@ public static partial class Comp
         }
 
         /// <summary>
-        ///     将当前工程信息实例化为控件。
+        ///     按当前界面语言生成卡片下边栏的版本描述文本。
         /// </summary>
-        /// <param name="showQuickDownload">是否在卡片右侧显示快速下载按钮（仅搜索结果页应传 true）。</param>
-        /// <exception cref="ArgumentNullException"></exception>
-        public MyVirtualizingElement<MyCompItem> ToCompItem(
-            bool showMcVersionDesc,
-            bool showLoaderDesc,
-            bool showQuickDownload = false)
+        /// <param name="showMcVersionDesc">是否显示 Minecraft 版本范围（也会显示加载器全名）。</param>
+        /// <param name="showLoaderDesc">是否显示加载器描述。</param>
+        /// <returns>应当显示的版本描述；两者都为 <see langword="false" /> 时返回空字符串。</returns>
+        private string BuildVersionDescription(bool showMcVersionDesc, bool showLoaderDesc)
         {
             var gameVersionDescription = _BuildGameVersionDescription();
 
@@ -187,6 +185,26 @@ public static partial class Comp
                 _ => _GetMultiLoaderDesc(modLoadersForDesc)
             };
 
+            return (showMcVersionDesc, showLoaderDesc) switch
+            {
+                (true, true) =>
+                    $"{(string.IsNullOrEmpty(partDesc) ? "" : $"{partDesc} ")}{gameVersionDescription}",
+                (true, false) => gameVersionDescription,
+                (false, true) => fullDesc,
+                _ => ""
+            };
+        }
+
+        /// <summary>
+        ///     将当前工程信息实例化为控件。
+        /// </summary>
+        /// <param name="showQuickDownload">是否在卡片右侧显示快速下载按钮（仅搜索结果页应传 true）。</param>
+        /// <exception cref="ArgumentNullException"></exception>
+        public MyVirtualizingElement<MyCompItem> ToCompItem(
+            bool showMcVersionDesc,
+            bool showLoaderDesc,
+            bool showQuickDownload = false)
+        {
             return new MyVirtualizingElement<MyCompItem>(() =>
             {
                 var newItem = new MyCompItem
@@ -204,18 +222,16 @@ public static partial class Comp
                 else
                     newItem.SubTitle = title.Value;
 
+                // 传未翻译的资源键，由 MyCompItem 按当前语言渲染，切换语言后自动刷新。
                 newItem.Tags = Tags;
                 newItem.Description = Description.Replace("\r", "").Replace("\n", "");
                 newItem.ShowDownloadBtn = showQuickDownload;
 
-                newItem.LabVersion.Text = (showMcVersionDesc, showLoaderDesc) switch
-                {
-                    (true, true) =>
-                        $"{(string.IsNullOrEmpty(partDesc) ? "" : $"{partDesc} ")}{gameVersionDescription}",
-                    (true, false) => gameVersionDescription,
-                    (false, true) => fullDesc,
-                    _ => ""
-                };
+                // 下边栏逻辑切换：版本描述随语言实时求值
+                LocalizedText.TryBind(
+                    newItem.LabVersion,
+                    "Text",
+                    () => BuildVersionDescription(showMcVersionDesc, showLoaderDesc));
 
                 if (!showMcVersionDesc && !showLoaderDesc)
                 {
@@ -231,7 +247,12 @@ public static partial class Comp
 
                 if (LastUpdate is not null)
                 {
-                    newItem.LabTime.Text = Lang.TimeSpan(LastUpdate.Value - DateTime.Now, 1);
+                    // 相对时间依赖“现在”，且格式随展示区域性变化，按需求值
+                    var lastUpdate = LastUpdate.Value;
+                    LocalizedText.TryBind(
+                        newItem.LabTime,
+                        "Text",
+                        () => Lang.TimeSpan(lastUpdate - DateTime.Now, 1));
                 }
                 else
                 {
@@ -241,7 +262,11 @@ public static partial class Comp
                             newItem.ColumnTime3.Width = new GridLength(0);
                 }
 
-                newItem.LabDownload.Text = Lang.CompactNumber(DownloadCount);
+                // 下载量数值缩写
+                LocalizedText.TryBind(
+                    newItem.LabDownload,
+                    "Text",
+                    () => Lang.CompactNumber(DownloadCount));
 
                 return newItem;
             })

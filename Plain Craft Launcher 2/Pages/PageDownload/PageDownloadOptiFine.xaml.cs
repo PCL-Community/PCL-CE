@@ -60,11 +60,16 @@ public partial class PageDownloadOptiFine
                 if (!Pair.Value.Any())
                     continue;
                 // 增加卡片
-                var title = Pair.Key == snapshotKey
-                    ? Lang.Text("Download.Version.Optifine.Snapshot")
-                    : Pair.Key;
-                var newCard = new MyCard
-                    { Title = title + " (" + Pair.Value.Count + ")", Margin = new Thickness(0d, 0d, 0d, 15d) };
+                var isSnapshot = Pair.Key == snapshotKey;
+                var versionGroup = Pair.Key;
+                var count = Pair.Value.Count;
+                var newCard = new MyCard { Margin = new Thickness(0d, 0d, 0d, 15d) };
+                LocalizedText.TryBind(
+                    newCard,
+                    "Title",
+                    () => isSnapshot
+                        ? $"{Lang.Text("Download.Version.Optifine.Snapshot")} ({count})"
+                        : $"{versionGroup} ({count})");
                 var newStack = new StackPanel
                 {
                     Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),

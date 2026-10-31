@@ -51,7 +51,8 @@ public partial class PageDownloadForge
                 newCard.SwapControl = newStack;
                 newCard.InstallMethod = stack =>
                 {
-                    var loadingPickaxe = new MyLoading { Text = Lang.Text("Download.Version.Forge.LoadingList"), Margin = new Thickness(5d) };
+                    var loadingPickaxe = new MyLoading { Margin = new Thickness(5d) };
+                    loadingPickaxe.TrySetLocalizedValue("Text", "Download.Version.Forge.LoadingList");
                     var loader =
                         new Loading.LoaderTask<string, List<GameDownload.DlForgeVersionEntry>>(
                             "DlForgeVersion Main",

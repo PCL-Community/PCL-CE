@@ -1,9 +1,10 @@
-<local:MyPageLeft x:Class="PCL.PageLaunchLeft"
+﻿<local:MyPageLeft x:Class="PCL.PageLaunchLeft"
                   xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                   xmlns:local="clr-namespace:PCL"
+                   xmlns:loc="https://ce.pclc.cc/core/localization"
                   mc:Ignorable="d" x:Name="PanBack"
                   d:DesignHeight="417.2" Width="300">
     <Grid Name="PanInput" RenderTransformOrigin="0.5,0.5">
@@ -24,12 +25,12 @@
         <Grid.RenderTransform>
             <ScaleTransform />
         </Grid.RenderTransform>
-        <local:MyButton Grid.Row="3" Grid.Column="2" x:Name="BtnInstance" Height="35" Margin="0,10,10,0" Text="{DynamicResource Launch.Home.SelectInstance}"
+        <local:MyButton Grid.Row="3" Grid.Column="2" x:Name="BtnInstance" Height="35" Margin="0,10,10,0" Text="{loc:Loc Launch.Home.SelectInstance}"
                         IsEnabled="{Binding IsInstanceButtonEnabled}" Visibility="{Binding InstanceButtonVisibility}"
                         Command="{Binding SelectInstanceCommand}" />
         <local:MyButton Grid.Row="3" Grid.Column="3" x:Name="BtnMore" Visibility="{Binding MoreButtonVisibility}" Height="35"
                         Command="{Binding OpenInstanceSettingsCommand}"
-                        Margin="0,10,10,0" TextPadding="36" Text="{DynamicResource Launch.Home.InstanceSettings}" />
+                        Margin="0,10,10,0" TextPadding="36" Text="{loc:Loc Launch.Home.InstanceSettings}" />
         <Grid Grid.ColumnSpan="5" Grid.Row="1" Margin="20,0" VerticalAlignment="Center" x:Name="PanLogin" />
         <Grid Grid.ColumnSpan="5" Grid.Row="2" RenderTransformOrigin="0.5,0.5">
             <Grid.RenderTransform>
@@ -110,20 +111,20 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="{DynamicResource Launch.Status.CurrentStep}" Grid.Row="0" Grid.Column="1"
+                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="{loc:Loc Launch.Status.CurrentStep}" Grid.Row="0" Grid.Column="1"
                            HorizontalAlignment="Right" Opacity="0.5" />
                 <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="{Binding LaunchingStageText}" Grid.Row="0" Grid.Column="3"
                            HorizontalAlignment="Left" Name="LabLaunchingStage" />
-                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="{DynamicResource Launch.Status.LoginMethod}" Grid.Row="1" Grid.Column="1"
+                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="{loc:Loc Launch.Status.LoginMethod}" Grid.Row="1" Grid.Column="1"
                            HorizontalAlignment="Right" Opacity="0.5" />
                 <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="{Binding LaunchingMethodText}" Grid.Row="1" Grid.Column="3"
                            HorizontalAlignment="Left" MaxWidth="160" TextWrapping="WrapWithOverflow"
                            Name="LabLaunchingMethod" />
-                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="{DynamicResource Launch.Status.LaunchProgress}" Grid.Row="2" Grid.Column="1"
+                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="{loc:Loc Launch.Status.LaunchProgress}" Grid.Row="2" Grid.Column="1"
                            HorizontalAlignment="Right" Opacity="0.5" Name="LabLaunchingProgressLeft" Visibility="{Binding LaunchingProgressVisibility}" />
                 <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="{Binding LaunchingProgressText}" Grid.Row="2" Grid.Column="3"
                            HorizontalAlignment="Left" Name="LabLaunchingProgress" Visibility="{Binding LaunchingProgressVisibility}" />
-                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="{DynamicResource Launch.Status.DownloadSpeed}" Grid.Row="3" Grid.Column="1"
+                <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="{loc:Loc Launch.Status.DownloadSpeed}" Grid.Row="3" Grid.Column="1"
                            HorizontalAlignment="Right" Opacity="0" Name="LabLaunchingDownloadLeft"
                            Visibility="{Binding LaunchingDownloadVisibility}" />
                 <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="{Binding LaunchingDownloadText}" Grid.Row="3" Grid.Column="3"
@@ -143,7 +144,7 @@
                             </CombinedGeometry>
                         </Border.Clip>
                     </Border>
-                    <TextBlock FontSize="12.5" Text="{DynamicResource Launch.Status.Trivia}" HorizontalAlignment="Center" VerticalAlignment="Top"
+                    <TextBlock FontSize="12.5" Text="{loc:Loc Launch.Status.Trivia}" HorizontalAlignment="Center" VerticalAlignment="Top"
                                Opacity="0.5" />
                     <TextBlock x:Name="LabLaunchingHint" FontSize="12.5" Text="{Binding LaunchingHintText}"
                                Margin="11,21,11,10" TextWrapping="Wrap" HorizontalAlignment="Center" MaxHeight="54"
@@ -153,6 +154,6 @@
         </StackPanel>
         <local:MyButton Grid.Row="4" x:Name="BtnCancel" Height="35" Margin="20,0,20,20" VerticalAlignment="Bottom"
                         Command="{Binding CancelLaunchCommand}"
-                        Text="{DynamicResource Common.Action.Cancel}" />
+                        Text="{loc:Loc Common.Action.Cancel}" />
     </Grid>
 </local:MyPageLeft>

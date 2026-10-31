@@ -28,6 +28,6 @@ public partial class MySkinViewModel : ViewModelBase
         var safeName = capeAlias.Replace("-", "").Replace(" ", "").Replace("'", "");
         var key = $"Launch.Skin.Cape.Name.{safeName}";
         var name = Lang.Text(key);
-        return name == $"!{key}!" || name == key ? capeAlias : name;
+        return string.IsNullOrEmpty(name) || name == $"!{key}!" || name == key ? capeAlias : name;
     }
 }

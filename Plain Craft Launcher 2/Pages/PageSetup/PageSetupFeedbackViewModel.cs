@@ -88,7 +88,7 @@ public partial class PageSetupFeedbackViewModel : ViewModelBase
             item.User = issue["user"]!["login"]!.ToString();
             item.Id = issue["number"]!.ToString();
 
-            var issueType = Lang.Text("Setup.Feedback.Uncategorized");
+            var issueType = "";
             var typeToken = issue["type"];
             if (typeToken is not null && typeToken.GetValueKind() == JsonValueKind.Object)
             {

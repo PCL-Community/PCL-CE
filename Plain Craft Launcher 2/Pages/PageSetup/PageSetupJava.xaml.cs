@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -81,10 +81,10 @@ public partial class PageSetupJava : IPageView
         PanContent.Children.Clear();
         var itemAuto = new MyListItem
         {
-            Type = MyListItem.CheckType.RadioBox,
-            Title = Lang.Text("Setup.Java.AutoSelect.Title"),
-            Info = Lang.Text("Setup.Java.AutoSelect.Info")
+            Type = MyListItem.CheckType.RadioBox
         };
+        itemAuto.TrySetLocalizedValue("Title", "Setup.Java.AutoSelect.Title");
+        itemAuto.TrySetLocalizedValue("Info", "Setup.Java.AutoSelect.Info");
         itemAuto.Check += (sender, e) => Config.Launch.SelectedJava = "";
         PanContent.Children.Add(itemAuto);
         var currentSetJava = Config.Launch.SelectedJava;
@@ -98,6 +98,16 @@ public partial class PageSetupJava : IPageView
 
         if (string.IsNullOrEmpty(currentSetJava))
             itemAuto.SetChecked(true, false, false);
+    }
+
+    protected override void RefreshLocalization()
+    {
+        if (loader.State == Common.LoadState.Finished)
+        {
+            var savedOffset = PanBack.VerticalOffset;
+            OnLoadFinished();
+            Dispatcher.BeginInvoke(new Action(() => PanBack.ScrollToVerticalOffset(savedOffset)));
+        }
     }
 
     private MyListItem ItemBuild(JavaEntry j)
@@ -115,7 +125,7 @@ public partial class PageSetupJava : IPageView
         };
         var btnOpenFolder = new MyIconButton();
         btnOpenFolder.SvgIcon = "lucide/folder-open";
-        btnOpenFolder.ToolTip = Lang.Text("Common.Action.Open");
+        btnOpenFolder.TrySetLocalizedValue("ToolTip", "Common.Action.Open");
         btnOpenFolder.Click += (sender, e) =>
         {
             if (!PageSetupJavaViewModel.EnsureAvailable(j))
@@ -125,7 +135,7 @@ public partial class PageSetupJava : IPageView
         };
         var btnInfo = new MyIconButton();
         btnInfo.SvgIcon = "lucide/info";
-        btnInfo.ToolTip = Lang.Text("Setup.Java.Detail.ToolTip");
+        btnInfo.TrySetLocalizedValue("ToolTip", "Setup.Java.Detail.ToolTip");
         btnInfo.Click += async (sender, e) =>
         {
             var control = sender as Control;
@@ -175,14 +185,14 @@ public partial class PageSetupJava : IPageView
                 item.LabTitle.TextDecorations = null;
                 item.LabTitle.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrush1");
                 btnEnableSwitch.SvgIcon = "lucide/circle-minus";
-                btnEnableSwitch.ToolTip = Lang.Text("Setup.Java.Disable");
+                btnEnableSwitch.TrySetLocalizedValue("ToolTip", "Setup.Java.Disable");
             }
             else
             {
                 item.LabTitle.TextDecorations = TextDecorations.Strikethrough;
                 item.LabTitle.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrushGray4");
                 btnEnableSwitch.SvgIcon = "lucide/circle-check";
-                btnEnableSwitch.ToolTip = Lang.Text("Setup.Java.Enable");
+                btnEnableSwitch.TrySetLocalizedValue("ToolTip", "Setup.Java.Enable");
             }
         }
 

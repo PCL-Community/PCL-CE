@@ -42,7 +42,10 @@ public partial class PageDownloadLabyMod
                 (a, b) => this.LabyMod_Production_Selected((MyListItem)a, b)));
             PanVersions.Children.Add(DownloadUi.LabyModDownloadListItem(snapshotEntry,
                 (a, b) => this.LabyMod_Snapshot_Selected((MyListItem)a, b)));
-            CardVersions.Title = Lang.Text("Download.Version.VersionListCount", versions.Count);
+            LocalizedText.TryBind(
+                CardVersions,
+                "Title",
+                () => Lang.Text("Download.Version.VersionListCount", versions.Count));
         }
         catch (Exception ex)
         {

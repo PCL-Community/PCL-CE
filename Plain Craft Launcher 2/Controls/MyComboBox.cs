@@ -84,6 +84,8 @@ public class MyComboBox : ComboBox
 
     public bool DropDownWidthSync { get; set; } = true;
 
+    internal bool KeyboardAway;
+
     public ContentPresenter ContentPresenter => (ContentPresenter)Template.FindName("PART_Content", this);
     public event TextChangedEventHandler? TextChanged;
 
@@ -184,6 +186,7 @@ public class MyComboBox : ComboBox
 
     private void MyComboBox_DropDownOpened(object sender, EventArgs e)
     {
+        KeyboardAway = false;
         realWidth = Width;
         if (DropDownWidthSync)
             Width = ActualWidth;
@@ -207,6 +210,7 @@ public class MyComboBox : ComboBox
     private void MyComboBox_DropDownClosed(object sender, EventArgs e)
     {
         Width = realWidth;
+        KeyboardAway = false;
     }
 
     private void MyComboBox_TextChanged(object sender, TextChangedEventArgs e)

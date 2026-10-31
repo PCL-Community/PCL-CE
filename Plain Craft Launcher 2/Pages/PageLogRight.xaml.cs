@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Documents;
@@ -37,15 +37,17 @@ public partial class PageLogRight : IPageView
     public void Init()
     {
         PanLogCard.Inlines.Clear();
-        PanLogCard.Inlines.Add(new Run(Lang.Text("LogPage.Title")));
+        var titleRun = new Run();
+        titleRun.TrySetLocalizedValue("Text", "LogPage.Title");
+        PanLogCard.Inlines.Add(titleRun);
         PanLogCard.Inlines.Add(new Run(" | "));
-        labDebug = new Run($"0 {Lang.Text("LogPage.Level.Debug")}")
-            { Foreground = (Brush)System.Windows.Application.Current.Resources["ColorBrushDebug"] };
-        labDebug.SetBinding(Run.TextProperty,
-            new Binding(nameof(PageLogRightViewModel.DebugCountText)) { Source = _vm });
+        labDebug = new Run
+        {
+            Foreground = (Brush)System.Windows.Application.Current.Resources["ColorBrushDebug"]
+        };
         PanLogCard.Inlines.Add(labDebug);
         PanLogCard.Inlines.Add(new Run(" | "));
-        labInfo = new Run($"0 {Lang.Text("LogPage.Level.Info")}")
+        labInfo = new Run
         {
             Foreground =
                 (Brush)System.Windows.Application.Current.Resources[
@@ -55,23 +57,24 @@ public partial class PageLogRight : IPageView
             new Binding(nameof(PageLogRightViewModel.InfoCountText)) { Source = _vm });
         PanLogCard.Inlines.Add(labInfo);
         PanLogCard.Inlines.Add(new Run(" | "));
-        labWarn = new Run($"0 {Lang.Text("LogPage.Level.Warn")}")
-            { Foreground = (Brush)System.Windows.Application.Current.Resources["ColorBrushWarn"] };
-        labWarn.SetBinding(Run.TextProperty,
-            new Binding(nameof(PageLogRightViewModel.WarnCountText)) { Source = _vm });
+        labWarn = new Run
+        {
+            Foreground = (Brush)System.Windows.Application.Current.Resources["ColorBrushWarn"]
+        };
         PanLogCard.Inlines.Add(labWarn);
         PanLogCard.Inlines.Add(new Run(" | "));
-        labError = new Run($"0 {Lang.Text("LogPage.Level.Error")}")
-            { Foreground = (Brush)System.Windows.Application.Current.Resources["ColorBrushError"] };
-        labError.SetBinding(Run.TextProperty,
-            new Binding(nameof(PageLogRightViewModel.ErrorCountText)) { Source = _vm });
+        labError = new Run
+        {
+            Foreground = (Brush)System.Windows.Application.Current.Resources["ColorBrushError"]
+        };
         PanLogCard.Inlines.Add(labError);
         PanLogCard.Inlines.Add(new Run(" | "));
-        labFatal = new Run($"0 {Lang.Text("LogPage.Level.Fatal")}")
-            { Foreground = (Brush)System.Windows.Application.Current.Resources["ColorBrushFatal"] };
-        labFatal.SetBinding(Run.TextProperty,
-            new Binding(nameof(PageLogRightViewModel.FatalCountText)) { Source = _vm });
+        labFatal = new Run
+        {
+            Foreground = (Brush)System.Windows.Application.Current.Resources["ColorBrushFatal"]
+        };
         PanLogCard.Inlines.Add(labFatal);
+        RefreshLabText();
     }
 
     private void PageLogRight_Loaded(object sender, RoutedEventArgs e)
@@ -131,8 +134,32 @@ public partial class PageLogRight : IPageView
     private void RefreshLabText()
     {
         // 刷新计数器
+        LocalizedText.TryBind(
+            labFatal,
+            "Text",
+            () => $"{GetCount(log => log.countFatal)} {Lang.Text("LogPage.Level.Fatal")}");
+        LocalizedText.TryBind(
+            labError,
+            "Text",
+            () => $"{GetCount(log => log.countError)} {Lang.Text("LogPage.Level.Error")}");
+        LocalizedText.TryBind(
+            labWarn,
+            "Text",
+            () => $"{GetCount(log => log.countWarn)} {Lang.Text("LogPage.Level.Warn")}");
+        LocalizedText.TryBind(
+            labInfo,
+            "Text",
+            () => $"{GetCount(log => log.countInfo)} {Lang.Text("LogPage.Level.Info")}");
+        LocalizedText.TryBind(
+            labDebug,
+            "Text",
+            () => $"{GetCount(log => log.countDebug)} {Lang.Text("LogPage.Level.Debug")}");
+    }
 
-        _vm.RefreshCounters();
+    private static uint GetCount(Func<GameWatcher.Watcher, uint> selector)
+    {
+        var log = Launcher.frmLogLeft?.currentLog;
+        return log is null ? 0u : selector(log);
     }
 
     private void OnLogOutput(GameWatcher.Watcher sender, GameWatcher.LogOutputEventArgs e)

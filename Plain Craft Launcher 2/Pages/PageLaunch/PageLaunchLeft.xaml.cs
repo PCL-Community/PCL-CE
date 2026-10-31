@@ -34,10 +34,6 @@ public partial class PageLaunchLeft : IPageView
 
     private LaunchButtonAction _launchButtonAction;
 
-    private static string StageWaitWindow => Lang.Text("Minecraft.Launch.Stage.WaitWindow");
-    private static string StageEnd => Lang.Text("Minecraft.Launch.Stage.End");
-    private static string StageRoot => Lang.Text("Minecraft.Launch.Stage.Root");
-
     // 加载当前实例
     private bool isLoad;
 
@@ -47,6 +43,10 @@ public partial class PageLaunchLeft : IPageView
     private bool isWidthAnimating;
     private double showProgress;
 
+    /// <summary>
+    ///     当前正在显示名称的启动阶段加载器。用于避免每次刷新都重建绑定。
+    /// </summary>
+    private Loading.LoaderBase? _launchingStageLoader;
     private readonly PageLaunchLeftViewModel _vm = new();
 
     public PageLaunchLeft()
@@ -366,14 +366,27 @@ public partial class PageLaunchLeft : IPageView
                     foreach (var Loader in GameLaunch.mcLaunchLoaderReal.GetLoaderList(false))
                         if (Loader.State == Common.LoadState.Loading || Loader.State == Common.LoadState.Waiting)
                         {
-                            _vm.LaunchingStageText = Loader.name;
-                            isLaunched = Loader.name == StageWaitWindow || Loader.name == StageEnd;
+                            if (!ReferenceEquals(_launchingStageLoader, Loader))
+                            {
+                                _launchingStageLoader = Loader;
+                                var stageLoader = Loader;
+                                LocalizedText.TryBind(
+                                    LabLaunchingStage,
+                                    "Text",
+                                    () => stageLoader.DisplayName);
+                            }
+
+                            isLaunched = Loader.Identifier is
+                                GameLaunch.LaunchStageWaitWindowId or
+                                GameLaunch.LaunchStageEndId;
                             exitTry = true;
                             break;
                         }
 
                     if (exitTry) break;
-                    _vm.LaunchingStageText = Lang.Text("Launch.Status.Completed");
+                    LabLaunchingStage.TrySetLocalizedValue(
+                        "Text",
+                        "Launch.Status.Completed");
                 }
                 catch (Exception ex)
                 {
@@ -393,14 +406,20 @@ public partial class PageLaunchLeft : IPageView
             if (isLaunched)
                 showProgress = 1d; // 如果已经完成了，就不卖关子了
             // 文本
-            _vm.LaunchingTitleText = isLaunched ? Lang.Text("Launch.Status.Title.Launched") :
-                GameLaunch.currentLaunchOptions.SaveBatch is null ? Lang.Text("Launch.Status.Title.Launching") : Lang.Text("Launch.Status.Title.ExportingScript");
-            _vm.ApplyLaunchingProgress(showProgress);
+            LocalizedText.TryBind(
+                LabLaunchingTitle,
+                "Text",
+                () => isLaunched
+                    ? Lang.Text("Launch.Status.Title.Launched")
+                    : GameLaunch.currentLaunchOptions?.SaveBatch is null
+                        ? Lang.Text("Launch.Status.Title.Launching")
+                        : Lang.Text("Launch.Status.Title.ExportingScript"));
+            LabLaunchingProgress.Text = Lang.Number(showProgress, "P2");
             var hasLaunchDownloader = false;
             try
             {
                 foreach (var Loader in NetFacade.NetManager.Tasks)
-                    if (Loader.RealParent is not null && Loader.RealParent.name == StageRoot &&
+                    if (Loader.RealParent?.Identifier == GameLaunch.LaunchStageRootId &&
                         Loader.State == Common.LoadState.Loading)
                         hasLaunchDownloader = true;
             }
@@ -532,31 +551,38 @@ public partial class PageLaunchLeft : IPageView
         {
             case ProfileType.Offline:
             {
-                _vm.LaunchingMethodText = Lang.Text("Launch.Account.Type.Offline");
+                LabLaunchingMethod.TrySetLocalizedValue("Text", "Launch.Account.Type.Offline");
                 break;
             }
             case ProfileType.Microsoft:
             {
-                _vm.LaunchingMethodText = Lang.Text("Launch.Account.Type.Microsoft");
+                LabLaunchingMethod.TrySetLocalizedValue("Text", "Launch.Account.Type.Microsoft");
                 break;
             }
             case ProfileType.Authlib:
             case ProfileType.YggdrasilConnect:
             {
-                _vm.LaunchingMethodText = Lang.Text("Launch.Account.Type.ThirdParty") + (!string.IsNullOrEmpty(ProfileService.Current?.ServerName)
-                    ? " / " + ProfileService.Current.ServerName
-                    : "");
+                LocalizedText.TryBind(
+                    LabLaunchingMethod,
+                    "Text",
+                    () => Lang.Text("Launch.Account.Type.ThirdParty") +
+                          (!string.IsNullOrEmpty(ProfileService.Current?.ServerName)
+                              ? " / " + ProfileService.Current.ServerName
+                              : ""));
                 break;
             }
         }
 
         // 初始化页面
-        _vm.LaunchingNameText = InstanceList.McMcInstanceSelected.Name;
-        _vm.LaunchingStageText = Lang.Text("Common.Action.Initialize");
-        _vm.LaunchingTitleText = GameLaunch.currentLaunchOptions?.SaveBatch is null
-            ? Lang.Text("Launch.Status.Title.Launching")
-            : Lang.Text("Launch.Status.Title.ExportingScript");
-        _vm.LaunchingProgressText = Lang.Number(0d, "P2");
+        LabLaunchingName.Text = InstanceList.McMcInstanceSelected.Name;
+        LabLaunchingStage.TrySetLocalizedValue("Text", "Common.Action.Initialize");
+        LocalizedText.TryBind(
+            LabLaunchingTitle,
+            "Text",
+            () => GameLaunch.currentLaunchOptions?.SaveBatch is null
+                ? Lang.Text("Launch.Status.Title.Launching")
+                : Lang.Text("Launch.Status.Title.ExportingScript"));
+        LabLaunchingProgress.Text = Lang.Number(0d, "P2");
         LabLaunchingProgress.Opacity = 1d;
         _vm.LaunchingDownloadVisibility = Visibility.Visible;
         LabLaunchingProgressLeft.Opacity = 0.6d;
@@ -574,7 +600,13 @@ public partial class PageLaunchLeft : IPageView
         GameLaunch.mcLaunchProcess = null;
         GameLaunch.mcLaunchWatcher = null;
 
-        _vm.ApplyLaunchingHint(Config.Preference.ShowLaunchingHint);
+        var shouldShowHint = Config.Preference.ShowLaunchingHint;
+        LocalizedText.TryBind(
+            LabLaunchingHint,
+            "Text",
+            () => shouldShowHint
+                ? PageLaunchRight.GetRandomHint(true, true)
+                : "");
 
         // 初始化其他页面
         PanInput.IsHitTestVisible = false;

@@ -59,10 +59,8 @@ public static partial class InstanceList
                         var instance = new McInstance(versionFolder);
                         instanceList.Add(instance);
                         var instanceCfg = States.Instance;
-                        instance.Desc = instanceCfg.CustomInfo[instance.PathInstance];
-
-                        if (string.IsNullOrEmpty(instance.Desc))
-                            instance.Desc = instanceCfg.Info[instance.PathInstance];
+                        instance.CustomDesc = instanceCfg.CustomInfo[instance.PathInstance];
+                        var hasCachedInfo = false;
 
                         if (!instanceCfg.LogoPathConfig.IsDefault(instance.PathInstance))
                             instance.Logo = instanceCfg.LogoPath[instance.PathInstance];
@@ -102,32 +100,40 @@ public static partial class InstanceList
                                 vanilla = new Version(
                                     instanceCfg.VanillaVersion[instance.PathInstance])
                             };
-                            instanceInfo.HasFabric = instanceInfo.Fabric.Length != 0;
-                            instanceInfo.HasLegacyFabric = instanceInfo.LegacyFabric.Length != 0;
-                            instanceInfo.HasQuilt = instanceInfo.Quilt.Length != 0;
-                            instanceInfo.HasForge = instanceInfo.Forge.Length != 0;
-                            instanceInfo.HasNeoForge = instanceInfo.NeoForge.Length != 0;
-                            instanceInfo.HasCleanroom = instanceInfo.Cleanroom.Length != 0;
-                            instanceInfo.HasOptiFine = instanceInfo.OptiFine.Length != 0;
+                            instanceInfo.HasFabric = !string.IsNullOrEmpty(instanceInfo.Fabric);
+                            instanceInfo.HasLegacyFabric =
+                                !string.IsNullOrEmpty(instanceInfo.LegacyFabric);
+                            instanceInfo.HasQuilt = !string.IsNullOrEmpty(instanceInfo.Quilt);
+                            instanceInfo.HasForge = !string.IsNullOrEmpty(instanceInfo.Forge);
+                            instanceInfo.HasNeoForge = !string.IsNullOrEmpty(instanceInfo.NeoForge);
+                            instanceInfo.HasCleanroom =
+                                !string.IsNullOrEmpty(instanceInfo.Cleanroom);
+                            instanceInfo.HasOptiFine = !string.IsNullOrEmpty(instanceInfo.OptiFine);
                             instance.Info = instanceInfo;
+                            hasCachedInfo = true;
                         }
 
                         if (instance.state == McInstanceState.Error)
                         {
-                            var oldDesc = instance.Desc;
-
+                            // 重新获取实例错误信息。
                             instance.state = McInstanceState.Original;
                             instance.Check();
-
-                            var customInfo = States.Instance.CustomInfo[instance.PathInstance];
-                            if (instance.state == McInstanceState.Original
-                                || (string.IsNullOrEmpty(customInfo)
-                                    && (oldDesc ?? "") != (instance.Desc ?? "")))
+                            if (instance.state == McInstanceState.Original)
                             {
                                 Common.Log(
-                                    $"[Minecraft] 实例 {instance.Name} 的错误状态已变更，新的状态为：{instance.Desc}");
+                                    $"[Minecraft] 实例 {instance.Name} 的错误状态已解除，重新加载缓存");
                                 return null;
                             }
+                        }
+                        else
+                        {
+                            if (!hasCachedInfo)
+                            {
+                                Common.Log($"[Minecraft] 实例 {instance.Name} 缺少缓存信息，重新加载");
+                                return null;
+                            }
+
+                            instance.MarkDescriptionLoaded();
                         }
 
                         if (string.IsNullOrEmpty(instance.Logo))

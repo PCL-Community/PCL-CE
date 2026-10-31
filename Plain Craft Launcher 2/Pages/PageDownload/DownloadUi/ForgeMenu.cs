@@ -36,27 +36,35 @@ public static partial class DownloadUi
         if (recommendedVersion is not null)
         {
             var recommended = ForgeDownloadListItem(recommendedVersion, onClick, isSaveOnly);
-            recommended.Info = Lang.Text("Download.Version.Type.Recommended")
-                + (string.IsNullOrEmpty(recommended.Info) ? "" : $"  |  {recommended.Info}");
+            LocalizedText.TryBind(
+                recommended,
+                "Info",
+                () => Lang.Text("Download.Version.Type.Recommended") + "  |  " +
+                      Lang.Text("Download.Version.Type.Stable"));
             stack.Children.Add(recommended);
         }
 
         if (freshVersion is not null)
         {
             var fresh = ForgeDownloadListItem(freshVersion, onClick, isSaveOnly);
-            fresh.Info = Lang.Text("Download.Version.Latest.Title")
-                + (string.IsNullOrEmpty(fresh.Info) ? "" : $"  |  {fresh.Info}");
+            LocalizedText.TryBind(
+                fresh,
+                "Info",
+                () => Lang.Text("Download.Version.Latest.Title") + "  |  " +
+                      Lang.Text("Download.Version.Type.Stable"));
             stack.Children.Add(fresh);
         }
 
-        stack.Children.Add(
-            new TextBlock
-            {
-                Text = Lang.Text("Download.Version.AllVersions", entries.Count),
-                HorizontalAlignment = HorizontalAlignment.Left,
-                Margin = new Thickness(6d, 13d, 0d, 4d)
-            }
-        );
+        var allVersionsLabel = new TextBlock
+        {
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Margin = new Thickness(6d, 13d, 0d, 4d)
+        };
+        LocalizedText.TryBind(
+            allVersionsLabel,
+            "Text",
+            () => Lang.Text("Download.Version.AllVersions", entries.Count));
+        stack.Children.Add(allVersionsLabel);
     }
 
     public static MyListItem ForgeDownloadListItem(
@@ -64,14 +72,6 @@ public static partial class DownloadUi
         MyListItem.ClickEventHandler onClick,
         bool isSaveOnly)
     {
-        var infoParts = new List<string>();
-
-        if (!string.IsNullOrEmpty(entry.ReleaseTime))
-            infoParts.Add(Lang.Text("Download.Version.ReleaseDate", entry.ReleaseTime));
-
-        if (Common.modeDebug)
-            infoParts.Add(Lang.Text("Download.Version.Forge.Type", entry.Category));
-
         var newItem = new MyListItem
         {
             Title = entry.VersionName,
@@ -79,9 +79,19 @@ public static partial class DownloadUi
             Height = 42d,
             Type = MyListItem.CheckType.Clickable,
             Tag = entry,
-            Info = string.Join("  |  ", infoParts),
             Logo = $"{Common.PathImage}Blocks/Anvil.png"
         };
+        LocalizedText.TryBind(newItem, "Info", () =>
+        {
+            var infoParts = new List<string>();
+            if (entry.ReleaseTime is not null)
+                infoParts.Add(Lang.Text(
+                    "Download.Version.ReleaseDate",
+                    Lang.Date(entry.ReleaseTime.Value, "g")));
+            if (Common.modeDebug)
+                infoParts.Add(Lang.Text("Download.Version.Forge.Type", entry.Category));
+            return string.Join("  |  ", infoParts);
+        });
 
         newItem.Click += onClick;
         if (isSaveOnly)
@@ -93,21 +103,13 @@ public static partial class DownloadUi
 
     private static void ForgeContMenuBuild(MyListItem sender, EventArgs e)
     {
-        var btnSave = new MyIconButton
-        {
-            SvgIcon = "lucide/save",
-            ToolTip = Lang.Text("Download.Version.SaveAs")
-        };
+        var btnSave = new MyIconButton { SvgIcon = "lucide/save" };
+        McDownloadContMenuLocalize(btnSave, "Download.Version.SaveAs");
         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnSave, 30d);
         ToolTipService.SetHorizontalOffset(btnSave, 2d);
         btnSave.Click += (ss, ee) => ForgeSave_Click(ss, (dynamic)ee);
-        var btnInfo = new MyIconButton
-        {
-            LogoScale = 1.05d,
-            SvgIcon = "lucide/info",
-            ToolTip = Lang.Text("Download.Version.Changelog")
-        };
+        var btnInfo = CreateChangelogButton();
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
@@ -117,12 +119,7 @@ public static partial class DownloadUi
 
     private static void ForgeSaveContMenuBuild(MyListItem sender, EventArgs e)
     {
-        var btnInfo = new MyIconButton
-        {
-            LogoScale = 1.05d,
-            SvgIcon = "lucide/info",
-            ToolTip = Lang.Text("Download.Version.Changelog")
-        };
+        var btnInfo = CreateChangelogButton();
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);

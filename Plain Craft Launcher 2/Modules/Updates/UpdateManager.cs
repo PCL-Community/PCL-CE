@@ -137,9 +137,13 @@ public static class UpdateManager
                         isUpdateWaitingRestart = true;
                         Common.RunInUi(() =>
                         {
-                            Launcher.frmMain.BtnExtraUpdateRestart.ToolTip =
-                                Lang.Text("Main.Extra.UpdateRestart.ToolTipWithVersion",
-                                    Common.VersionBaseName, version.VersionName);
+                            LocalizedText.TryBind(
+                                Launcher.frmMain.BtnExtraUpdateRestart,
+                                "ToolTip",
+                                () => Lang.Text(
+                                    "Main.Extra.UpdateRestart.ToolTipWithVersion",
+                                    Common.VersionBaseName,
+                                    version.VersionName));
                             Launcher.frmMain.BtnExtraUpdateRestart.ShowRefresh();
                             Launcher.frmMain.BtnExtraUpdateRestart.Ribble();
                         });
@@ -153,8 +157,9 @@ public static class UpdateManager
                     if (Launcher.frmSetupUpdate is not null)
                         Common.RunInUi(() =>
                         {
-                            Launcher.frmSetupUpdate.BtnUpdate.Text =
-                                Lang.Text("Update.Task.RestartInstall");
+                            Launcher.frmSetupUpdate.BtnUpdate.TrySetLocalizedValue(
+                                "Text",
+                                "Update.Task.RestartInstall");
                             Launcher.frmSetupUpdate.BtnUpdate.IsEnabled = true;
                         });
                 })

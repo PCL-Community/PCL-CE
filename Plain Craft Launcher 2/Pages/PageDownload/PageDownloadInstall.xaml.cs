@@ -1060,7 +1060,7 @@ public partial class PageDownloadInstall : IPageView
 
             var card = new MyCard
             {
-                Title = $"{McVersionClassifier.GetCategoryDisplayName(category)} ({versions.Count})",
+                Title = $"{Lang.Text(McVersionClassifier.GetCategoryKey(category))} ({versions.Count})",
                 Margin = new Thickness(0d, 0d, 0d, 15d)
             };
 

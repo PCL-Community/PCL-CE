@@ -1,6 +1,7 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -12,6 +13,31 @@ public class MyPageLeft : Grid
     private readonly int uuid = Common.GetUuid();
 
     private bool _animatedControlNullWarned;
+
+    public MyPageLeft()
+    {
+        Loaded += (_, _) => RefreshLocalizationIfStale();
+    }
+
+    private void RefreshLocalizationIfStale()
+    {
+        if (_localizationRevision == LocalizationService.UiRevision) return;
+        _localizationRevision = LocalizationService.UiRevision;
+        try
+        {
+            RefreshLocalization();
+        }
+        catch (Exception ex)
+        {
+            Common.Log(ex, "刷新页面本地化文本失败");
+        }
+    }
+
+    protected virtual void RefreshLocalization()
+    {
+    }
+
+    private int _localizationRevision = LocalizationService.UiRevision;
 
     // 执行逐个进入动画的控件
     public FrameworkElement AnimatedControl

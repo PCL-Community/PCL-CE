@@ -35,29 +35,35 @@ public static partial class DownloadUi
         if (freshStableVersion is not null)
         {
             var fresh = NeoForgeDownloadListItem(freshStableVersion, onClick, isSaveOnly);
-            fresh.Info = string.IsNullOrEmpty(fresh.Info)
-                ? Lang.Text("Download.Version.Fresh.Stable")
-                : $"{Lang.Text("Download.Version.Fresh.Latest")}  |  {fresh.Info}";
+            LocalizedText.TryBind(
+                fresh,
+                "Info",
+                () => Lang.Text("Download.Version.Fresh.Latest") + "  |  " +
+                      Lang.Text("Download.Version.Type.Stable"));
             stack.Children.Add(fresh);
         }
 
         if (freshBetaVersion is not null)
         {
             var fresh = NeoForgeDownloadListItem(freshBetaVersion, onClick, isSaveOnly);
-            fresh.Info = string.IsNullOrEmpty(fresh.Info)
-                ? Lang.Text("Download.Version.Fresh.Development")
-                : $"{Lang.Text("Download.Version.Fresh.Latest")}  |  {fresh.Info}";
+            LocalizedText.TryBind(
+                fresh,
+                "Info",
+                () => Lang.Text("Download.Version.Fresh.Latest") + "  |  " +
+                      Lang.Text("Download.Version.Type.Preview"));
             stack.Children.Add(fresh);
         }
 
-        stack.Children.Add(
-            new TextBlock
-            {
-                Text = Lang.Text("Download.Version.AllVersions", entries.Count),
-                HorizontalAlignment = HorizontalAlignment.Left,
-                Margin = new Thickness(6d, 13d, 0d, 4d)
-            }
-        );
+        var allVersionsLabel = new TextBlock
+        {
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Margin = new Thickness(6d, 13d, 0d, 4d)
+        };
+        LocalizedText.TryBind(
+            allVersionsLabel,
+            "Text",
+            () => Lang.Text("Download.Version.AllVersions", entries.Count));
+        stack.Children.Add(allVersionsLabel);
     }
 
     public static MyListItem NeoForgeDownloadListItem(
@@ -73,11 +79,13 @@ public static partial class DownloadUi
             Height = 42d,
             Type = MyListItem.CheckType.Clickable,
             Tag = info,
-            Info = info.IsBeta
-                ? Lang.Text("Download.Version.Type.Preview")
-                : Lang.Text("Download.Version.Type.Stable"),
             Logo = $"{Common.PathImage}Blocks/NeoForge.png"
         };
+        newItem.SetLocalizedValue(
+            MyListItem.InfoProperty,
+            info.IsBeta
+                ? "Download.Version.Type.Preview"
+                : "Download.Version.Type.Stable");
         newItem.Click += onClick;
         if (isSaveOnly)
             newItem.ContentHandler = NeoForgeSaveContMenuBuild;
@@ -88,21 +96,13 @@ public static partial class DownloadUi
 
     private static void NeoForgeContMenuBuild(MyListItem sender, EventArgs e)
     {
-        var btnSave = new MyIconButton
-        {
-            SvgIcon = "lucide/save",
-            ToolTip = Lang.Text("Download.Version.SaveAs")
-        };
+        var btnSave = new MyIconButton { SvgIcon = "lucide/save" };
+        McDownloadContMenuLocalize(btnSave, "Download.Version.SaveAs");
         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnSave, 30d);
         ToolTipService.SetHorizontalOffset(btnSave, 2d);
         btnSave.Click += (sender, e) => NeoForgeSave_Click(sender, (RoutedEventArgs)e);
-        var btnInfo = new MyIconButton
-        {
-            LogoScale = 1.05d,
-            SvgIcon = "lucide/info",
-            ToolTip = Lang.Text("Download.Version.Changelog")
-        };
+        var btnInfo = CreateChangelogButton();
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
@@ -112,12 +112,7 @@ public static partial class DownloadUi
 
     private static void NeoForgeSaveContMenuBuild(MyListItem sender, EventArgs e)
     {
-        var btnInfo = new MyIconButton
-        {
-            LogoScale = 1.05d,
-            SvgIcon = "lucide/info",
-            ToolTip = Lang.Text("Download.Version.Changelog")
-        };
+        var btnInfo = CreateChangelogButton();
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
@@ -164,20 +159,24 @@ public static partial class DownloadUi
         if (freshBetaVersion is not null)
         {
             var fresh = CleanroomDownloadListItem(freshBetaVersion, onClick, isSaveOnly);
-            fresh.Info = string.IsNullOrEmpty(fresh.Info)
-                ? Lang.Text("Download.Version.Fresh.Development")
-                : $"{Lang.Text("Download.Version.Fresh.Latest")}  |  {fresh.Info}";
+            LocalizedText.TryBind(
+                fresh,
+                "Info",
+                () => Lang.Text("Download.Version.Fresh.Latest") + "  |  " +
+                      Lang.Text("Download.Version.Type.Preview"));
             stack.Children.Add(fresh);
         }
 
-        stack.Children.Add(
-            new TextBlock
-            {
-                Text = Lang.Text("Download.Version.AllVersions", entries.Count),
-                HorizontalAlignment = HorizontalAlignment.Left,
-                Margin = new Thickness(6d, 13d, 0d, 4d)
-            }
-        );
+        var allVersionsLabel = new TextBlock
+        {
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Margin = new Thickness(6d, 13d, 0d, 4d)
+        };
+        LocalizedText.TryBind(
+            allVersionsLabel,
+            "Text",
+            () => Lang.Text("Download.Version.AllVersions", entries.Count));
+        stack.Children.Add(allVersionsLabel);
     }
 
     public static MyListItem CleanroomDownloadListItem(
@@ -193,11 +192,13 @@ public static partial class DownloadUi
             Height = 42d,
             Type = MyListItem.CheckType.Clickable,
             Tag = info,
-            Info = info.IsBeta
-                ? Lang.Text("Download.Version.Type.Preview")
-                : Lang.Text("Download.Version.Type.Stable"),
             Logo = $"{Common.PathImage}Blocks/Cleanroom.png"
         };
+        newItem.SetLocalizedValue(
+            MyListItem.InfoProperty,
+            info.IsBeta
+                ? "Download.Version.Type.Preview"
+                : "Download.Version.Type.Stable");
         newItem.Click += onClick;
         if (isSaveOnly)
             newItem.ContentHandler = CleanroomSaveContMenuBuild;
@@ -208,21 +209,13 @@ public static partial class DownloadUi
 
     private static void CleanroomContMenuBuild(MyListItem sender, EventArgs e)
     {
-        var btnSave = new MyIconButton
-        {
-            SvgIcon = "lucide/save",
-            ToolTip = Lang.Text("Download.Version.SaveAs")
-        };
+        var btnSave = new MyIconButton { SvgIcon = "lucide/save" };
+        McDownloadContMenuLocalize(btnSave, "Download.Version.SaveAs");
         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnSave, 30d);
         ToolTipService.SetHorizontalOffset(btnSave, 2d);
         btnSave.Click += (sender, e) => CleanroomSave_Click(sender, (RoutedEventArgs)e);
-        var btnInfo = new MyIconButton
-        {
-            LogoScale = 1.05d,
-            SvgIcon = "lucide/info",
-            ToolTip = Lang.Text("Download.Version.Changelog")
-        };
+        var btnInfo = CreateChangelogButton();
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
@@ -232,12 +225,7 @@ public static partial class DownloadUi
 
     private static void CleanroomSaveContMenuBuild(MyListItem sender, EventArgs e)
     {
-        var btnInfo = new MyIconButton
-        {
-            LogoScale = 1.05d,
-            SvgIcon = "lucide/info",
-            ToolTip = Lang.Text("Download.Version.Changelog")
-        };
+        var btnInfo = CreateChangelogButton();
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);

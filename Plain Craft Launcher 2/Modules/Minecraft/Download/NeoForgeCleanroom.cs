@@ -195,7 +195,7 @@ public static partial class GameDownload
             .OrderByDescending(a => a)
             .ToList(); // 这个版本虽然在版本列表中，但不能下载
         return versions.Count == 0
-            ? throw new Exception(Lang.Text("Minecraft.Download.Error.NotFound"))
+            ? throw new NotFoundException()
             : versions;
     }
 

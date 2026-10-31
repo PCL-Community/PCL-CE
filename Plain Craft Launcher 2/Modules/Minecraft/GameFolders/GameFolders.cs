@@ -30,6 +30,21 @@ public static class GameFolders
         _ => McFolderListLoadSub(),
         priority: ThreadPriority.AboveNormal);
 
+    /// <summary>
+    ///     旧版本把内置文件夹的译文直接写进了配置，升级后需要把这些译文迁移回资源键，
+    ///     否则内置文件夹名称会永远停留在升级时的语言。
+    /// </summary>
+    private static readonly Dictionary<string, string> LegacyBuiltinFolderNames =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["当前文件夹"] = "Select.Folder.CurrentFolder",
+            ["目前資料夾"] = "Select.Folder.CurrentFolder",
+            ["Current folder"] = "Select.Folder.CurrentFolder",
+            ["官方启动器文件夹"] = "Select.Folder.OfficialLauncherFolder",
+            ["官方啟動器資料夾"] = "Select.Folder.OfficialLauncherFolder",
+            ["Official launcher folder"] = "Select.Folder.OfficialLauncherFolder"
+        };
+
     private static void McFolderListLoadSub()
     {
         try
@@ -114,12 +129,10 @@ public static class GameFolders
         {
             if (Directory.Exists($@"{Common.ExePath}versions\"))
                 originalMcFolderList.Add(
-                    new McFolder
-                    {
-                        Name = Lang.Text("Select.Folder.CurrentFolder"),
-                        Location = Common.ExePath,
-                        Type = McFolder.Types.Original
-                    });
+                    McFolder.CreateBuiltin(
+                        "Select.Folder.CurrentFolder",
+                        Common.ExePath,
+                        McFolder.Types.Original));
             foreach (var folder in new DirectoryInfo(Common.ExePath).GetDirectories())
             {
                 if (!Directory.Exists(Path.Combine(folder.FullName, "versions"))
@@ -148,12 +161,10 @@ public static class GameFolders
                 || mojangPath != currentMcFolderList[0].Location)
             && Directory.Exists(Path.Combine(mojangPath, "versions")))
             originalMcFolderList.Add(
-                new McFolder
-                {
-                    Name = Lang.Text("Select.Folder.OfficialLauncherFolder"),
-                    Location = mojangPath,
-                    Type = McFolder.Types.Original
-                });
+                McFolder.CreateBuiltin(
+                    "Select.Folder.OfficialLauncherFolder",
+                    mojangPath,
+                    McFolder.Types.Original));
 
         return originalMcFolderList;
     }
@@ -168,7 +179,19 @@ public static class GameFolders
             foreach (var cacheFolder in cacheMcFolderList.Where(cacheFolder =>
                          (cacheFolder.Location ?? "") == (newOriginalFolder.Location ?? "")))
             {
-                cacheFolder.Type = (cacheFolder.Name ?? "") != (newOriginalFolder.Name ?? "")
+                var newOriginalName = newOriginalFolder.Name ?? "";
+                // 旧版本保存的是译文；仅当它确实是该内置文件夹的旧译名时才迁移，
+                // 以免覆盖用户手动改过的名称。
+                if (newOriginalName.StartsWith(
+                        McFolder.BuiltinNamePrefix,
+                        StringComparison.Ordinal) &&
+                    LegacyBuiltinFolderNames.TryGetValue(
+                        cacheFolder.Name ?? "",
+                        out var legacyKey) &&
+                    newOriginalName == McFolder.BuiltinNamePrefix + legacyKey)
+                    cacheFolder.Name = newOriginalName;
+
+                cacheFolder.Type = (cacheFolder.Name ?? "") != newOriginalName
                     ? McFolder.Types.RenamedOriginal
                     : McFolder.Types.Original;
                 unAdded = false;
@@ -196,12 +219,10 @@ public static class GameFolders
 
         Directory.CreateDirectory($@"{Common.ExePath}.minecraft\versions\");
         cacheMcFolderList.Add(
-            new McFolder
-            {
-                Name = Lang.Text("Select.Folder.CurrentFolder"),
-                Location = $@"{Common.ExePath}.minecraft\",
-                Type = McFolder.Types.Original
-            });
+            McFolder.CreateBuiltin(
+                "Select.Folder.CurrentFolder",
+                $@"{Common.ExePath}.minecraft\",
+                McFolder.Types.Original));
     }
 
     /// <summary>
@@ -264,8 +285,44 @@ public static class GameFolders
         /// </summary>
         public string Location = location ?? "";
 
+        /// <summary>
+        ///     文件夹的显示名称。<br/>
+        ///     若是内置文件夹，该字段保存本地化资源键（以 <c>$</c> 开头），显示时请使用 <see cref="DisplayName" />。
+        /// </summary>
         public string Name = name ?? "";
+
         public Types Type = type;
+
+        /// <summary>
+        ///     内置文件夹名称的资源键前缀，用于区分「资源键」与「用户自定义名称」。
+        /// </summary>
+        internal const string BuiltinNamePrefix = "$";
+
+        /// <summary>
+        ///     当前语言下的显示名称。内置文件夹会按当前语言实时翻译。
+        /// </summary>
+        public string DisplayName =>
+            Name.Length > BuiltinNamePrefix.Length &&
+            Name.StartsWith(BuiltinNamePrefix, StringComparison.Ordinal)
+                ? Lang.Text(Name[BuiltinNamePrefix.Length..])
+                : Name;
+
+        /// <summary>
+        ///     创建一个使用内置名称的文件夹。<br/>
+        ///     写入 <see cref="Name" /> 的是资源键（带前缀），因此可以安全持久化。
+        /// </summary>
+        /// <param name="nameKey">内置名称的本地化资源键。</param>
+        /// <param name="location">文件夹路径。</param>
+        /// <param name="type">文件夹类型。</param>
+        public static McFolder CreateBuiltin(string nameKey, string location, Types type)
+        {
+            return new McFolder
+            {
+                Name = BuiltinNamePrefix + nameKey,
+                Location = location,
+                Type = type
+            };
+        }
 
         public override bool Equals(object? obj)
         {

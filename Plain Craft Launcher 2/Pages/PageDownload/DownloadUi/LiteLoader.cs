@@ -20,7 +20,7 @@ public static partial class DownloadUi
 
             if (Loading.loaderTaskbar
                 .ToList()
-                .Any(ongoingLoader => (ongoingLoader.name ?? "") == (Lang.Text("Minecraft.Download.Stage.LiteLoaderDownload", id) ?? "")))
+                .Any(ongoingLoader => ongoingLoader.Identifier == DownloadIdentifier("LiteLoader", id)))
             {
                 HintService.Show(Hints.Error(Lang.Text("Minecraft.Download.Error.InstanceDownloading")));
                 return;
@@ -54,7 +54,8 @@ public static partial class DownloadUi
                 McDownloadLiteLoaderLoader(downloadInfo)
             )
             {
-                OnStateChanged = McInstallState
+                OnStateChanged = McInstallState,
+                Identifier = DownloadIdentifier("LiteLoader", id)
             };
             loader.Start(versionFolder);
             Loading.LoaderTaskbarAdd(loader);
@@ -111,7 +112,8 @@ public static partial class DownloadUi
                 loaders
             )
             {
-                OnStateChanged = LoaderStateChangedHintOnly
+                OnStateChanged = LoaderStateChangedHintOnly,
+                Identifier = DownloadIdentifier("LiteLoader", id)
             };
             loader.Start(downloadInfo);
             Loading.LoaderTaskbarAdd(loader);
@@ -132,8 +134,7 @@ public static partial class DownloadUi
     private static bool _IsLiteLoaderDownloading(string? id)
     {
         return Loading.loaderTaskbar.Any(loader =>
-            (loader.name ?? "")
-            == (Lang.Text("Minecraft.Download.Stage.LiteLoaderDownload", id) ?? "")
+            loader.Identifier == DownloadIdentifier("LiteLoader", id)
         );
     }
 
@@ -213,9 +214,12 @@ public static partial class DownloadUi
                                 "id", versionName
                             }
                         };
-                        var releaseDate = DateTime.Parse(
-                            downloadInfo.ReleaseTime ?? "",
-                            Lang.Culture);
+                        var releaseDate = downloadInfo.ReleaseTime
+                                          ?? new McInstance(Path.Combine(
+                                                  mcFolder,
+                                                  "versions",
+                                                  downloadInfo.Inherit ?? ""))
+                                              .releaseTime;
                         versionJson.Add("time", releaseDate);
                         versionJson.Add("releaseTime", releaseDate);
                         versionJson.Add("type", "release");

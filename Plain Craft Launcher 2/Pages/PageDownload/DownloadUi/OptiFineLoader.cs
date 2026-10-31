@@ -248,9 +248,7 @@ public static partial class DownloadUi
 
             var targetLoaders = clientDownloadLoader
                 .GetLoaderList()
-                .Where(l =>
-                    (l.name ?? "") == McDownloadClientLibName
-                    || (l.name ?? "") == McDownloadClientJsonName)
+                .Where(l => l.Identifier is McDownloadClientLibId or McDownloadClientJsonId)
                 .Where(l => l.State != Common.LoadState.Finished)
                 .ToList();
             if (targetLoaders.Any())

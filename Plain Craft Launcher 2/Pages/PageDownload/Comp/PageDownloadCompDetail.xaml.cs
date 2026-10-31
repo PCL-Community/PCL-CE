@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.ObjectModel;
 using System.Diagnostics.Eventing.Reader;
@@ -23,6 +24,11 @@ namespace PCL;
 
 public partial class PageDownloadCompDetail : IPageView
 {
+    internal static string GetVersionGroupTitleForLog(string groupKey)
+    {
+        return (groupKey ?? "").Replace("\0", "/", StringComparison.Ordinal);
+    }
+
     private readonly PageDownloadCompDetailViewModel _vm = new();
 
     // 资源下载；整合包另存为

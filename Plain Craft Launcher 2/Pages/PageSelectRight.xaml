@@ -1,7 +1,8 @@
-<local:MyPageRight
+﻿<local:MyPageRight
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:PCL"
+                   xmlns:loc="https://ce.pclc.cc/core/localization" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" x:Class="PCL.PageSelectRight"
     PanScroll="{Binding ElementName=PanBack}">
@@ -12,7 +13,7 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <local:MySearchBox x:Name="PanVerSearchBox" Margin="25,15,25,12" VerticalAlignment="Top"
-                                Visibility="{Binding SearchBoxVisibility}" Grid.Row="0" ToolTip="{DynamicResource Select.Instance.Search.ToolTip}" />
+                                Visibility="{Binding SearchBoxVisibility}" Grid.Row="0" ToolTip="{loc:Loc Select.Instance.Search.ToolTip}" />
             <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                                   Visibility="{Binding BackVisibility}" x:Name="PanBack" Grid.Row="1">
                 <StackPanel Name="PanMain" Margin="25,2,25,10" Grid.IsSharedSizeScope="True" />
@@ -30,7 +31,7 @@
                                TextWrapping="Wrap" />
                     <local:MyButton Height="35" HorizontalAlignment="Center" x:Name="BtnEmptyDownload" MinWidth="140"
                                     Command="{Binding DownloadCommand}"
-                                    Text="{DynamicResource Select.Instance.Empty.Download}" Margin="0,10,0,0"
+                                    Text="{loc:Loc Select.Instance.Empty.Download}" Margin="0,10,0,0"
                                     Visibility="{Binding EmptyDownloadVisibility}" Padding="13,0" ColorType="Highlight" />
                 </StackPanel>
             </local:MyCard>
@@ -48,7 +49,7 @@
         </Grid>
         <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="True"
                       x:Name="PanLoad" Margin="40">
-        <local:MyLoading Text="{DynamicResource Select.Instance.Loading}" Margin="20,20,20,17" x:Name="Load" HorizontalAlignment="Center"
+        <local:MyLoading Text="{loc:Loc Select.Instance.Loading}" Margin="20,20,20,17" x:Name="Load" HorizontalAlignment="Center"
                          Command="{Binding RetryLoadCommand}"
                          VerticalAlignment="Center" IsHitTestVisible="False" AutoRun="False" />
         </local:MyCard>

@@ -419,14 +419,9 @@ public partial class MySkin
                 {
                     try
                     {
-                        var selectionControl = new List<IMyRadio>
-                        {
-                            new MyListItem
-                            {
-                                Title = Lang.Text("Launch.Skin.Cape.None"),
-                                Info = "Null"
-                            }
-                        };
+                        var noneCapeItem = new MyListItem { Info = "Null" };
+                        noneCapeItem.TrySetLocalizedValue("Title", "Launch.Skin.Cape.None");
+                        var selectionControl = new List<IMyRadio> { noneCapeItem };
                         selectionControl.AddRange(from Cape in skinData["capes"].AsArray()
                             let CapeAlias = Cape["alias"].ToString()
                             let CapeName = MySkinViewModel.GetCapeDisplayName(CapeAlias)

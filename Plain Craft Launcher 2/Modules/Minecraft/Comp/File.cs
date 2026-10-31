@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Text;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using PCL.Core.App.Localization;
@@ -40,7 +41,10 @@ public static partial class Comp
         public readonly bool FromCurseForge;
 
         /// <summary>
-        ///     支持的游戏版本列表。类型包括："26.1.5"，"26.1"，"26.1 预览版"，"1.18.5"，"1.18"，"1.18 预览版"，"21w15a"，"未知版本"。
+        ///     支持的游戏版本列表。<br/>
+        ///     该列表只保存语言中立的原始版本标识（例如 "26.1.5"、"1.18.5"、"1.18-pre1"、"21w15a"），
+        ///     以及无法识别时的 <see cref="UnknownGameVersion" />；
+        ///     需要展示给用户时请通过 <see cref="Comp.FormatGameVersion" /> 按当前语言求值。
         /// </summary>
         public readonly List<string> GameVersions;
 
@@ -79,6 +83,21 @@ public static partial class Comp
         ///     未经处理的支持的游戏版本列表。
         /// </summary>
         public readonly List<string> RawGameVersions;
+
+        /// <summary>
+        ///     无法识别版本时使用的占位标记。该值语言中立，显示时请通过 <see cref="Comp.FormatGameVersion" /> 求值。
+        /// </summary>
+        internal const string UnknownGameVersion = "\0unknown";
+
+        /// <summary>
+        ///     远古版本（如 b1.x）使用的占位标记。该值语言中立，显示时请通过 <see cref="Comp.FormatGameVersion" /> 求值。
+        /// </summary>
+        internal const string AncientGameVersion = "\0ancient";
+
+        /// <summary>
+        ///     预发布版本在 <see cref="GameVersions" /> 中的后缀标记。该值语言中立，显示时请通过 <see cref="Comp.FormatGameVersion" /> 求值。
+        /// </summary>
+        internal const string PreviewVersionSuffix = "-pre";
 
         /// <summary>
         ///     该文件的所有可选依赖工程的原始 ID。
@@ -309,9 +328,7 @@ public static partial class Comp
         {
             var gameVersions = rawGameVersions
                 .Where(McInstanceInfo.IsFormatFit)
-                .Select(version => version.Replace(
-                    "-snapshot",
-                    Lang.Text("Download.Comp.Detail.CompItem.PreviewSuffix")))
+                .Select(NormalizeGameVersion)
                 .Distinct()
                 .ToList();
 
@@ -328,7 +345,7 @@ public static partial class Comp
                     gameVersions = [.. gameVersions];
                     break;
                 default:
-                    gameVersions = [Lang.Text("Download.Comp.Detail.CompItem.UnknownVersion")];
+                    gameVersions = [UnknownGameVersion];
                     break;
             }
 
@@ -478,14 +495,8 @@ public static partial class Comp
             CompType type)
         {
             var gameVersions = rawGameVersions
-                .Where(version => version.Contains("."))
-                .Select(version =>
-                    version.Contains("-")
-                        ? version.BeforeFirst("-")
-                        + Lang.Text("Download.Comp.Detail.CompItem.PreviewSuffix")
-                        : version.StartsWithF("b1.")
-                            ? Lang.Text("Download.Comp.Detail.CompItem.AncientVersion")
-                            : version)
+                .Where(version => version.Contains('.'))
+                .Select(NormalizeGameVersion)
                 .Distinct()
                 .ToList();
 
@@ -505,7 +516,7 @@ public static partial class Comp
                         .ToList();
                     gameVersions = snapshots.Count > 0
                         ? snapshots
-                        : [Lang.Text("Download.Comp.Detail.CompItem.UnknownVersion")];
+                        : [UnknownGameVersion];
                     break;
                 }
             }
@@ -693,10 +704,9 @@ public static partial class Comp
                 Height = 42,
                 Type = MyListItem.CheckType.Clickable,
                 Tag = this,
-                Info = string.Join("  |  ", BuildListItemInfo(title)),
                 Logo = GetStatusLogo()
             };
-
+            LocalizedText.TryBind(item, "Info", () => BuildInfoText(title));
             item.Click += onClick;
 
             if (onSaveClick is not null)
@@ -735,7 +745,7 @@ public static partial class Comp
                 info.Add(
                     Lang.Text(
                         "Download.Comp.Detail.FileList.GameVersion",
-                        string.Join("、", GameVersions)));
+                        string.Join("、", GameVersions.Select(FormatGameVersion))));
 
             if (DownloadCount > 0)
                 info.Add(
@@ -754,6 +764,15 @@ public static partial class Comp
             return info;
         }
 
+        /// <summary>
+        ///     构造版本项的副文本（含相对时间、发布状态等），按当前语言求值。
+        /// </summary>
+        /// <param name="title">已确定的显示标题。</param>
+        private string BuildInfoText(string title)
+        {
+            return string.Join("  |  ", BuildListItemInfo(title));
+        }
+
         private string GetStatusLogo()
         {
             return Status switch
@@ -769,9 +788,11 @@ public static partial class Comp
         {
             var button = new MyIconButton
             {
-                SvgIcon = "lucide/save",
-                ToolTip = Lang.Text("Download.Version.SaveAs")
+                SvgIcon = "lucide/save"
             };
+            button.SetLocalizedValue(
+                FrameworkElement.ToolTipProperty,
+                "Download.Version.SaveAs");
 
             ToolTipService.SetPlacement(button, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(button, 30);

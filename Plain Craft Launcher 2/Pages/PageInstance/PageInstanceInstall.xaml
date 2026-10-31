@@ -1,10 +1,11 @@
-<local:MyPageRight
+﻿<local:MyPageRight
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" x:Class="PCL.PageInstanceInstall"
-    PanScroll="{Binding ElementName=PanBack}">
+    PanScroll="{Binding ElementName=PanBack}"
+    xmlns:loc="https://ce.pclc.cc/core/localization">
     <Grid>
         <Grid x:Name="PanAllBack">
             <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
@@ -21,20 +22,20 @@
                         <StackPanel.RenderTransform>
                             <TranslateTransform />
                         </StackPanel.RenderTransform>
-                        <local:MyHint Text="{DynamicResource Download.Install.Warning.LegacyOptiFabric}"
+                        <local:MyHint Text="{loc:Loc Download.Install.Warning.LegacyOptiFabric}"
                                       Margin="0,10,0,0" x:Name="HintLegacyOptiFabric" Visibility="{Binding ShowHintLegacyOptiFabric, Converter={StaticResource BooleanToVisibilityConverter}}" Theme="Yellow" />
-                        <local:MyHint Text="{DynamicResource Download.Install.Warning.LegacyFabricApi}"
+                        <local:MyHint Text="{loc:Loc Download.Install.Warning.LegacyFabricApi}"
                                       Margin="0,10,0,0"
                                       x:Name="HintLegacyFabricAPI" Visibility="{Binding ShowHintLegacyFabricAPI, Converter={StaticResource BooleanToVisibilityConverter}}" Theme="Red" />
-                        <local:MyHint Text="{DynamicResource Download.Install.Warning.FabricApi}"
+                        <local:MyHint Text="{loc:Loc Download.Install.Warning.FabricApi}"
                                        Margin="0,1,0,7"
                                        x:Name="HintFabricAPI" Visibility="{Binding ShowHintFabricAPI, Converter={StaticResource BooleanToVisibilityConverter}}" IsWarn="True" />
-                        <local:MyHint Text="{DynamicResource Download.Install.Warning.OptiFabric}"
+                        <local:MyHint Text="{loc:Loc Download.Install.Warning.OptiFabric}"
                                       Margin="0,1,0,7"
                                       x:Name="HintOptiFabric" Visibility="{Binding ShowHintOptiFabric, Converter={StaticResource BooleanToVisibilityConverter}}" IsWarn="True" />
-                        <local:MyHint Text="{DynamicResource Download.Install.Warning.OptiFabricOld}"
+                        <local:MyHint Text="{loc:Loc Download.Install.Warning.OptiFabricOld}"
                                       Margin="0,1,0,7" x:Name="HintOptiFabricOld" Visibility="{Binding ShowHintOptiFabricOld, Converter={StaticResource BooleanToVisibilityConverter}}" IsWarn="False" />
-                        <local:MyHint Text="{DynamicResource Download.Install.Warning.ModOptiFine}" Margin="0,1,0,7"
+                        <local:MyHint Text="{loc:Loc Download.Install.Warning.ModOptiFine}" Margin="0,1,0,7"
                                       x:Name="HintModOptiFine" Visibility="{Binding ShowHintModOptiFine, Converter={StaticResource BooleanToVisibilityConverter}}"
                                       IsWarn="False" />
                         <local:MyCard Margin="0,15,0,0" UseAnimation="False">
@@ -45,7 +46,7 @@
                                                   SnapsToDevicePixels="True" Type="None" />
                             </StackPanel>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.Installation.Minecraft}" Height="40" Margin="0,15,0,0"
+                        <local:MyCard Title="{loc:Loc Common.Installation.Minecraft}" Height="40" Margin="0,15,0,0"
                                       x:Name="CardMinecraft"
                                       PreviewSwap="CardMinecraft_PreviewSwap">
                             <Grid x:Name="PanMinecraftInfo" Height="18" Margin="132,11,15,0" VerticalAlignment="Top">
@@ -68,11 +69,11 @@
                                     Grid.Column="2" Fill="{StaticResource ColorBrushGray4}" Margin="0,1,6,0"
                                     RenderTransformOrigin="0.5,0.5" />
                                 <TextBlock VerticalAlignment="Center"
-                                           Text="{DynamicResource Instance.Install.Action.ModifyLabel}" Grid.Column="3"
+                                           Text="{loc:Loc Instance.Install.Action.ModifyLabel}" Grid.Column="3"
                                            Foreground="{StaticResource ColorBrushGray4}" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.Installation.Forge}" Height="40" Margin="0,12,0,0"
+                        <local:MyCard Title="{loc:Loc Common.Installation.Forge}" Height="40" Margin="0,12,0,0"
                                       x:Name="CardForge" Visibility="{Binding ShowForgeCard, Converter={StaticResource BooleanToVisibilityConverter}}" IsSwapped="True"
                                       CanSwap="True" SwapLogoRight="True" PreviewSwap="CardForge_PreviewSwap">
                             <StackPanel Margin="20,40,18,15" VerticalAlignment="Top" Name="PanForge" />
@@ -100,7 +101,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.Installation.Cleanroom}" Height="40"
+                        <local:MyCard Title="{loc:Loc Common.Installation.Cleanroom}" Height="40"
                                       Margin="0,12,0,0" x:Name="CardCleanroom" Visibility="{Binding ShowCleanroomCard, Converter={StaticResource BooleanToVisibilityConverter}}"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True"
                                       PreviewSwap="CardCleanroom_PreviewSwap">
@@ -129,7 +130,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.Installation.NeoForge}" Height="40"
+                        <local:MyCard Title="{loc:Loc Common.Installation.NeoForge}" Height="40"
                                       Margin="0,12,0,0" x:Name="CardNeoForge" Visibility="{Binding ShowNeoForgeCard, Converter={StaticResource BooleanToVisibilityConverter}}"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True"
                                       PreviewSwap="CardNeoForge_PreviewSwap">
@@ -158,7 +159,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.Installation.Fabric}" Height="40" Margin="0,12,0,0"
+                        <local:MyCard Title="{loc:Loc Common.Installation.Fabric}" Height="40" Margin="0,12,0,0"
                                       x:Name="CardFabric" Visibility="{Binding ShowFabricCard, Converter={StaticResource BooleanToVisibilityConverter}}" IsSwapped="True"
                                       CanSwap="True" SwapLogoRight="True" PreviewSwap="CardFabric_PreviewSwap">
                             <StackPanel Margin="20,40,18,0" VerticalAlignment="Top" Name="PanFabric" />
@@ -186,7 +187,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.Installation.LegacyFabric}" Height="40"
+                        <local:MyCard Title="{loc:Loc Common.Installation.LegacyFabric}" Height="40"
                                       Margin="0,12,0,0" x:Name="CardLegacyFabric" Visibility="{Binding ShowLegacyFabricCard, Converter={StaticResource BooleanToVisibilityConverter}}"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True"
                                       PreviewSwap="CardLegacyFabric_PreviewSwap">
@@ -215,7 +216,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.Installation.FabricApi}" Height="40"
+                        <local:MyCard Title="{loc:Loc Common.Installation.FabricApi}" Height="40"
                                       Margin="0,12,0,0" x:Name="CardFabricApi" Visibility="{Binding ShowFabricApiCard, Converter={StaticResource BooleanToVisibilityConverter}}"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True"
                                       PreviewSwap="CardFabricApi_PreviewSwap">
@@ -259,7 +260,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.Installation.LegacyFabricApi}" Height="40"
+                        <local:MyCard Title="{loc:Loc Common.Installation.LegacyFabricApi}" Height="40"
                                       Margin="0,12,0,0"
                                       x:Name="CardLegacyFabricApi" Visibility="{Binding ShowLegacyFabricApiCard, Converter={StaticResource BooleanToVisibilityConverter}}" IsSwapped="True" CanSwap="True" SwapLogoRight="True"
                                       PreviewSwap="CardLegacyFabricApi_PreviewSwap">
@@ -288,7 +289,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.Installation.LabyMod}" Height="40" Margin="0,12,0,0"
+                        <local:MyCard Title="{loc:Loc Common.Installation.LabyMod}" Height="40" Margin="0,12,0,0"
                                       x:Name="CardLabyMod" Visibility="{Binding ShowLabyModCard, Converter={StaticResource BooleanToVisibilityConverter}}"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True"
                                       PreviewSwap="CardLabyMod_PreviewSwap">
@@ -318,7 +319,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.Installation.OptiFine}" Height="40"
+                        <local:MyCard Title="{loc:Loc Common.Installation.OptiFine}" Height="40"
                                       Margin="0,12,0,0" x:Name="CardOptiFine" Visibility="{Binding ShowOptiFineCard, Converter={StaticResource BooleanToVisibilityConverter}}"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True"
                                       PreviewSwap="CardOptiFine_PreviewSwap">
@@ -350,7 +351,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.Installation.OptiFabric}" Height="40"
+                        <local:MyCard Title="{loc:Loc Common.Installation.OptiFabric}" Height="40"
                                       Margin="0,12,0,0" x:Name="CardOptiFabric" Visibility="{Binding ShowOptiFabricCard, Converter={StaticResource BooleanToVisibilityConverter}}"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True"
                                       PreviewSwap="CardOptiFabric_PreviewSwap">
@@ -379,7 +380,7 @@
                                       Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
                             </Grid>
                         </local:MyCard>
-                        <local:MyCard Title="{DynamicResource Common.Installation.LiteLoader}" Height="40"
+                        <local:MyCard Title="{loc:Loc Common.Installation.LiteLoader}" Height="40"
                                       Margin="0,12,0,0" x:Name="CardLiteLoader" Visibility="{Binding ShowLiteLoaderCard, Converter={StaticResource BooleanToVisibilityConverter}}"
                                       PreviewSwap="CardLiteLoader_PreviewSwap"
                                       IsSwapped="True" CanSwap="True" SwapLogoRight="True">

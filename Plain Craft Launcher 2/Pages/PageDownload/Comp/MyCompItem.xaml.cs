@@ -195,31 +195,10 @@ public partial class MyCompItem
     // Tag
     public List<string> Tags
     {
-        set
-        {
-            PanTags.Children.Clear();
-            PanTags.Visibility = value.Any() ? Visibility.Visible : Visibility.Collapsed;
-            foreach (var tagText in value)
-            {
-                var newTag = new Border
-                {
-                    Background = new SolidColorBrush(Color.FromArgb(17, 0, 0, 0)),
-                    Padding = new Thickness(3d, 1d, 3d, 1d),
-                    CornerRadius = new CornerRadius(3d),
-                    Margin = new Thickness(0d, 0d, 3d, 0d),
-                    SnapsToDevicePixels = true,
-                    UseLayoutRounding = false
-                };
-                var tagTextBlock = new TextBlock
-                {
-                    Text = tagText,
-                    Foreground = new SolidColorBrush(Color.FromRgb(134, 134, 134)),
-                    FontSize = 11d
-                };
-                newTag.Child = tagTextBlock;
-                PanTags.Children.Add(newTag);
-            }
-        }
+        set => TagPanelHelper.FillLocalized(
+            PanTags,
+            value,
+            new SolidColorBrush(Color.FromRgb(134, 134, 134)));
     }
 
     // ‘收藏按钮
@@ -296,9 +275,10 @@ public partial class MyCompItem
         if (Launcher.frmMain.pageCurrent.page == FormMain.PageType.CompDetail)
         {
             foreach (MyCard Card in Launcher.frmDownloadCompDetail.PanResults.Children)
-                if (!string.IsNullOrEmpty(Card.Title) && !Card.IsSwapped)
-                    titles.Add(Card.Title);
-            Common.Log("[Comp] 记录当前已展开的卡片：" + string.Join("、", titles));
+                if (Card.Tag is string cardKey && !string.IsNullOrEmpty(cardKey) && !Card.IsSwapped)
+                    titles.Add(cardKey);
+            Common.Log(
+                $"[Comp] 记录当前已展开的卡片：{string.Join("、", titles.Select(PageDownloadCompDetail.GetVersionGroupTitleForLog))}");
             var additional = Launcher.frmMain.pageCurrent.additional.Value;
             Launcher.frmMain.pageCurrent.additional = additional with { ExpandedTitles = titles };
         }

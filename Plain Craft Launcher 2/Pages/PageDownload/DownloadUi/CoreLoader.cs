@@ -48,7 +48,7 @@ public static partial class DownloadUi
             );
         loaders.Add(
             new LoaderDownload(
-                McDownloadClientJsonName,
+                Lang.Text("Minecraft.Download.Stage.VanillaJsonDownload"),
                 [
                     new DownloadFile(
                         GameDownload.DlSourceLauncherOrMetaGet(jsonUrl ?? ""),
@@ -58,7 +58,8 @@ public static partial class DownloadUi
                 ]
             )
             {
-                ProgressWeight = 3d
+                ProgressWeight = 3d,
+                Identifier = McDownloadClientJsonId
             }
         );
 
@@ -106,10 +107,13 @@ public static partial class DownloadUi
             }
         };
         loaders.Add(
-            new Loading.LoaderCombo<string>(McDownloadClientLibName, loadersLib)
+            new Loading.LoaderCombo<string>(
+                Lang.Text("Minecraft.Download.Stage.VanillaLibrariesDownload"),
+                loadersLib)
             {
                 block = false,
-                ProgressWeight = 14d
+                ProgressWeight = 14d,
+                Identifier = McDownloadClientLibId
             });
 
         var loadersAssets = new List<Loading.LoaderBase>

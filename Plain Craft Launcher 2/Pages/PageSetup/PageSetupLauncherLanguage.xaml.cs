@@ -85,10 +85,15 @@ public partial class PageSetupLauncherLanguage : IPageView
     {
         ComboUiLanguage.Items.Clear();
         var autoLanguage = LocalizationService.ResolveLanguage(LocalizationService.Auto);
-        ComboUiLanguage.Items.Add(CreateLanguageComboItem(
-            Lang.Text("Setup.Language.UiLanguage.Auto", GetLanguageDisplay(autoLanguage)),
+        var autoLanguageItem = CreateLanguageComboItem(
+            string.Empty,
             LocalizationService.Auto,
-            autoLanguage));
+            autoLanguage);
+        LocalizedText.TryBind(
+            autoLanguageItem,
+            "Content",
+            () => Lang.Text("Setup.Language.UiLanguage.Auto", GetLanguageDisplay(autoLanguage)));
+        ComboUiLanguage.Items.Add(autoLanguageItem);
 
         foreach (var language in LocalizationService.SupportedLanguages)
             ComboUiLanguage.Items.Add(CreateLanguageComboItem(
@@ -100,16 +105,22 @@ public partial class PageSetupLauncherLanguage : IPageView
     private void ReloadFormatCultureCombo()
     {
         ComboUiFormatCulture.Items.Clear();
-        ComboUiFormatCulture.Items.Add(new MyComboBoxItem
+        var autoFormatItem = new MyComboBoxItem
         {
-            Content = Lang.Text("Setup.Language.FormatCulture.Auto"),
             Tag = LocalizationService.Auto
-        });
-        ComboUiFormatCulture.Items.Add(new MyComboBoxItem
+        };
+        autoFormatItem.TrySetLocalizedValue(
+            "Content",
+            "Setup.Language.FormatCulture.Auto");
+        ComboUiFormatCulture.Items.Add(autoFormatItem);
+        var followLanguageFormatItem = new MyComboBoxItem
         {
-            Content = Lang.Text("Setup.Language.FormatCulture.FollowLanguage"),
             Tag = LocalizationService.FormatCultureFollowLanguage
-        });
+        };
+        followLanguageFormatItem.TrySetLocalizedValue(
+            "Content",
+            "Setup.Language.FormatCulture.FollowLanguage");
+        ComboUiFormatCulture.Items.Add(followLanguageFormatItem);
 
         foreach (var culture in PageSetupLauncherLanguageViewModel.GetBuiltInFormatCultures())
             ComboUiFormatCulture.Items.Add(new MyComboBoxItem

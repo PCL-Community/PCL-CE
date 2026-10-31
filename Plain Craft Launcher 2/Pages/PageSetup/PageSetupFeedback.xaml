@@ -1,7 +1,8 @@
-<local:MyPageRight x:Class="PCL.PageSetupFeedback"
+﻿<local:MyPageRight x:Class="PCL.PageSetupFeedback"
                    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                    xmlns:local="clr-namespace:PCL"
+                   xmlns:loc="https://ce.pclc.cc/core/localization"
                    PanScroll="{Binding ElementName=PanBack}">
     <local:MyPageRight.Resources>
         <DataTemplate x:Key="FeedbackItemTemplate">
@@ -12,10 +13,10 @@
     </local:MyPageRight.Resources>
     <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
         <StackPanel x:Name="PanMain" Margin="25,25,25,25">
-            <local:MyCard Title="{DynamicResource Setup.Feedback.Submit.Title}" x:Name="PanInfo">
+            <local:MyCard Title="{loc:Loc Setup.Feedback.Submit.Title}" x:Name="PanInfo">
                 <StackPanel Orientation="Vertical" Margin="20,40,18,22">
                     <TextBlock
-                        Text="{DynamicResource Setup.Feedback.Submit.Description}"
+                        Text="{loc:Loc Setup.Feedback.Submit.Description}"
                         TextWrapping="Wrap" />
                     <Grid Margin="0,15,0,0" Height="35">
                         <Grid.ColumnDefinitions>
@@ -24,14 +25,14 @@
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                         </Grid.ColumnDefinitions>
-                        <local:MyButton x:Name="BtnManageOpen" Grid.Column="0" MinWidth="140" Text="{DynamicResource Setup.Feedback.Submit.Open}"
+                        <local:MyButton x:Name="BtnManageOpen" Grid.Column="0" MinWidth="140" Text="{loc:Loc Setup.Feedback.Submit.Open}"
                                         Padding="13,0" Margin="0,0,20,0" HorizontalAlignment="Left"
                                         ColorType="Highlight" Click="Feedback_Click" />
                     </Grid>
                 </StackPanel>
             </local:MyCard>
             <StackPanel x:Name="PanContent" Margin="0,15,0,0">
-                <local:MyCard Title="{DynamicResource Setup.Feedback.Status.Processing}" Margin="0,0,0,15" x:Name="PanContentProcessing" CanSwap="True"
+                <local:MyCard Title="{loc:Loc Setup.Feedback.Status.Processing}" Margin="0,0,0,15" x:Name="PanContentProcessing" CanSwap="True"
                               Visibility="{Binding ShowProcessing, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <ItemsControl x:Name="PanListProcessing" Margin="20,36,18,18"
                                   ItemsSource="{Binding ProcessingRows}"
@@ -43,7 +44,7 @@
                         </ItemsControl.ItemsPanel>
                     </ItemsControl>
                 </local:MyCard>
-                <local:MyCard Title="{DynamicResource Setup.Feedback.Status.WaitingProcess}" Margin="0,0,0,15" x:Name="PanContentWaitingProcess" CanSwap="True"
+                <local:MyCard Title="{loc:Loc Setup.Feedback.Status.WaitingProcess}" Margin="0,0,0,15" x:Name="PanContentWaitingProcess" CanSwap="True"
                               Visibility="{Binding ShowWaitingProcess, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <ItemsControl x:Name="PanListWaitingProcess" Margin="20,36,18,18"
                                   ItemsSource="{Binding WaitingProcessRows}"
@@ -55,7 +56,7 @@
                         </ItemsControl.ItemsPanel>
                     </ItemsControl>
                 </local:MyCard>
-                <local:MyCard Title="{DynamicResource Setup.Feedback.Status.Waiting}" Margin="0,0,0,15" x:Name="PanContentWait" CanSwap="True"
+                <local:MyCard Title="{loc:Loc Setup.Feedback.Status.Waiting}" Margin="0,0,0,15" x:Name="PanContentWait" CanSwap="True"
                               Visibility="{Binding ShowWait, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <ItemsControl x:Name="PanListWait" Margin="20,36,18,18"
                                   ItemsSource="{Binding WaitRows}"
@@ -67,7 +68,7 @@
                         </ItemsControl.ItemsPanel>
                     </ItemsControl>
                 </local:MyCard>
-                <local:MyCard Title="{DynamicResource Setup.Feedback.Status.Paused}" Margin="0,0,0,15" x:Name="PanContentPause" CanSwap="True"
+                <local:MyCard Title="{loc:Loc Setup.Feedback.Status.Paused}" Margin="0,0,0,15" x:Name="PanContentPause" CanSwap="True"
                               Visibility="{Binding ShowPause, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <ItemsControl x:Name="PanListPause" Margin="20,36,18,18"
                                   ItemsSource="{Binding PauseRows}"
@@ -79,7 +80,7 @@
                         </ItemsControl.ItemsPanel>
                     </ItemsControl>
                 </local:MyCard>
-                <local:MyCard Title="{DynamicResource Setup.Feedback.Status.UpNext}" Margin="0,0,0,15" x:Name="PanContentUpnext" CanSwap="True"
+                <local:MyCard Title="{loc:Loc Setup.Feedback.Status.UpNext}" Margin="0,0,0,15" x:Name="PanContentUpnext" CanSwap="True"
                               Visibility="{Binding ShowUpnext, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <ItemsControl x:Name="PanListUpnext" Margin="20,36,18,18"
                                   ItemsSource="{Binding UpnextRows}"
@@ -91,7 +92,7 @@
                         </ItemsControl.ItemsPanel>
                     </ItemsControl>
                 </local:MyCard>
-                <local:MyCard Title="{DynamicResource Setup.Feedback.Status.Completed}" Margin="0,0,0,15" x:Name="PanContentCompleted" CanSwap="True"
+                <local:MyCard Title="{loc:Loc Setup.Feedback.Status.Completed}" Margin="0,0,0,15" x:Name="PanContentCompleted" CanSwap="True"
                               IsSwapped="True"
                               Visibility="{Binding ShowCompleted, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <ItemsControl x:Name="PanListCompleted" Margin="20,36,18,18"
@@ -104,7 +105,7 @@
                         </ItemsControl.ItemsPanel>
                     </ItemsControl>
                 </local:MyCard>
-                <local:MyCard Title="{DynamicResource Setup.Feedback.Status.Declined}" Margin="0,0,0,15" x:Name="PanContentDecline" CanSwap="True" IsSwapped="True"
+                <local:MyCard Title="{loc:Loc Setup.Feedback.Status.Declined}" Margin="0,0,0,15" x:Name="PanContentDecline" CanSwap="True" IsSwapped="True"
                               Visibility="{Binding ShowDecline, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <ItemsControl x:Name="PanListDecline" Margin="20,36,18,18"
                                   ItemsSource="{Binding DeclineRows}"
@@ -116,7 +117,7 @@
                         </ItemsControl.ItemsPanel>
                     </ItemsControl>
                 </local:MyCard>
-                <local:MyCard Title="{DynamicResource Setup.Feedback.Status.Ignored}" Margin="0,0,0,15" x:Name="PanContentIgnored" CanSwap="True" IsSwapped="True"
+                <local:MyCard Title="{loc:Loc Setup.Feedback.Status.Ignored}" Margin="0,0,0,15" x:Name="PanContentIgnored" CanSwap="True" IsSwapped="True"
                               Visibility="{Binding ShowIgnored, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <ItemsControl x:Name="PanListIgnored" Margin="20,36,18,18"
                                   ItemsSource="{Binding IgnoredRows}"
@@ -128,7 +129,7 @@
                         </ItemsControl.ItemsPanel>
                     </ItemsControl>
                 </local:MyCard>
-                <local:MyCard Title="{DynamicResource Setup.Feedback.Status.Duplicate}" Margin="0,0,0,15" x:Name="PanContentDuplicate" CanSwap="True" IsSwapped="True"
+                <local:MyCard Title="{loc:Loc Setup.Feedback.Status.Duplicate}" Margin="0,0,0,15" x:Name="PanContentDuplicate" CanSwap="True" IsSwapped="True"
                               Visibility="{Binding ShowDuplicate, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <ItemsControl x:Name="PanListDuplicate" Margin="20,36,18,18"
                                   ItemsSource="{Binding DuplicateRows}"
@@ -143,7 +144,7 @@
             </StackPanel>
             <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="True"
                           x:Name="PanLoad" UseAnimation="False" Margin="40,50">
-                <local:MyLoading Text="{DynamicResource Setup.Feedback.Loading}" Margin="20,20,20,17" x:Name="Load" HorizontalAlignment="Center"
+                <local:MyLoading Text="{loc:Loc Setup.Feedback.Loading}" Margin="20,20,20,17" x:Name="Load" HorizontalAlignment="Center"
                                  VerticalAlignment="Center" />
             </local:MyCard>
         </StackPanel>

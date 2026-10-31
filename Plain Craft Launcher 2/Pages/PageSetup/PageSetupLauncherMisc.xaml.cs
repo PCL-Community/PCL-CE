@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Windows;
@@ -200,7 +200,7 @@ public partial class PageSetupLauncherMisc : IPageView
     // 自动更新
     private void ComboSystemActivity_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (Animations.AniExitsAnyControl())
+        if (Animations.AniExitsAnyControl() || sender is not MyComboBox combo || (!combo.IsDropDownOpen && !Keyboard.IsKeyDown(Key.Enter)))
             return;
         if (ComboSystemActivity.SelectedIndex != 2)
             return;

@@ -13,6 +13,18 @@ public static partial class GameLaunch
 {
     public const string MesaLoaderWindowsVersion = "26.0.4";
 
+    public const string LaunchStageLoginId = "Launch:Login";
+    public const string LaunchStageGetJavaId = "Launch:GetJava";
+    public const string LaunchStageCompleteFilesId = "Launch:CompleteFiles";
+    public const string LaunchStageGetArgumentsId = "Launch:GetArguments";
+    public const string LaunchStageExtractNativesId = "Launch:ExtractNatives";
+    public const string LaunchStagePreLaunchId = "Launch:PreLaunch";
+    public const string LaunchStageCustomCommandId = "Launch:CustomCommand";
+    public const string LaunchStageStartProcessId = "Launch:StartProcess";
+    public const string LaunchStageWaitWindowId = "Launch:WaitWindow";
+    public const string LaunchStageEndId = "Launch:End";
+    public const string LaunchStageRootId = "Launch:Root";
+
     private static void McLaunchPrecheck()
     {
         if (Config.Debug.AddRandomDelay)
@@ -442,7 +454,9 @@ public static partial class GameLaunch
 
         return new Loading.LoaderCombo<object>(Lang.Text("Minecraft.Launch.Stage.Root"), loaders)
         {
-            show = false
+            show = false,
+            Identifier = LaunchStageRootId,
+            DisplayNameFactory = () => Lang.Text("Minecraft.Launch.Stage.Root")
         };
     }
 
@@ -455,7 +469,9 @@ public static partial class GameLaunch
                 McLaunchJava)
             {
                 ProgressWeight = 4d,
-                block = false
+                block = false,
+                Identifier = LaunchStageGetJavaId,
+                DisplayNameFactory = () => Lang.Text("Minecraft.Launch.Stage.GetJava")
             },
             mcLoginLoader,
             new Loading.LoaderCombo<string>(
@@ -468,13 +484,17 @@ public static partial class GameLaunch
                         GameDownload.AssetsIndexExistsBehaviour.DownloadInBackground))
             {
                 ProgressWeight = 15d,
-                show = false
+                show = false,
+                Identifier = LaunchStageCompleteFilesId,
+                DisplayNameFactory = () => Lang.Text("Minecraft.Launch.Stage.CompleteFiles")
             },
             new Loading.LoaderTask<string, List<Libraries.McLibToken>>(
                 Lang.Text("Minecraft.Launch.Stage.GetArguments"),
                 McLaunchArgumentMain)
             {
-                ProgressWeight = 2d
+                ProgressWeight = 2d,
+                Identifier = LaunchStageGetArgumentsId,
+                DisplayNameFactory = () => Lang.Text("Minecraft.Launch.Stage.GetArguments")
             }
         ];
     }
@@ -487,37 +507,49 @@ public static partial class GameLaunch
                 Lang.Text("Minecraft.Launch.Stage.ExtractNatives"),
                 McLaunchNatives)
             {
-                ProgressWeight = 2d
+                ProgressWeight = 2d,
+                Identifier = LaunchStageExtractNativesId,
+                DisplayNameFactory = () => Lang.Text("Minecraft.Launch.Stage.ExtractNatives")
             },
             new Loading.LoaderTask<int, int>(
                 Lang.Text("Minecraft.Launch.Stage.PreLaunch"),
                 _ => McLaunchPrerun())
             {
-                ProgressWeight = 1d
+                ProgressWeight = 1d,
+                Identifier = LaunchStagePreLaunchId,
+                DisplayNameFactory = () => Lang.Text("Minecraft.Launch.Stage.PreLaunch")
             },
             new Loading.LoaderTask<int, int>(
                 Lang.Text("Minecraft.Launch.Stage.CustomCommand"),
                 McLaunchCustom)
             {
-                ProgressWeight = 1d
+                ProgressWeight = 1d,
+                Identifier = LaunchStageCustomCommandId,
+                DisplayNameFactory = () => Lang.Text("Minecraft.Launch.Stage.CustomCommand")
             },
             new Loading.LoaderTask<int, Process>(
                 Lang.Text("Minecraft.Launch.Stage.StartProcess"),
                 McLaunchRun)
             {
-                ProgressWeight = 2d
+                ProgressWeight = 2d,
+                Identifier = LaunchStageStartProcessId,
+                DisplayNameFactory = () => Lang.Text("Minecraft.Launch.Stage.StartProcess")
             },
             new Loading.LoaderTask<Process, int>(
                 Lang.Text("Minecraft.Launch.Stage.WaitWindow"),
                 McLaunchWait)
             {
-                ProgressWeight = 1d
+                ProgressWeight = 1d,
+                Identifier = LaunchStageWaitWindowId,
+                DisplayNameFactory = () => Lang.Text("Minecraft.Launch.Stage.WaitWindow")
             },
             new Loading.LoaderTask<int, int>(
                 Lang.Text("Minecraft.Launch.Stage.End"),
                 _ => McLaunchEnd())
             {
-                ProgressWeight = 1d
+                ProgressWeight = 1d,
+                Identifier = LaunchStageEndId,
+                DisplayNameFactory = () => Lang.Text("Minecraft.Launch.Stage.End")
             }
         ];
     }

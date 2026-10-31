@@ -279,29 +279,16 @@ public partial class MyListItem : IMyRadio
     {
         var list = new List<string>();
         if (value is string str) list = str.Split("|").ToList();
-        if (value is List<string>) list = (List<string>)value;
-        PanTags.Children.Clear();
-        PanTags.Visibility = list.Any() ? Visibility.Visible : Visibility.Collapsed;
-        foreach (var TagText in list)
-        {
-            var newTag = new Border
-            {
-                Background = new SolidColorBrush(Color.FromArgb(17, 0, 0, 0)),
-                Padding = new Thickness(3d, 1d, 3d, 1d),
-                CornerRadius = new CornerRadius(3d),
-                Margin = new Thickness(0d, 0d, 3d, 0d),
-                SnapsToDevicePixels = true,
-                UseLayoutRounding = false
-            };
-            var tagTextBlock = new TextBlock
-            {
-                Text = TagText,
-                Foreground = new SolidColorBrush(Color.FromRgb(134, 134, 134)),
-                FontSize = 11d
-            };
-            newTag.Child = tagTextBlock;
-            PanTags.Children.Add(newTag);
-        }
+        if (value is List<string> strings) list = strings;
+        TagPanelHelper.FillLocalized(PanTags, list, new SolidColorBrush(Color.FromRgb(134, 134, 134)));
+    }
+
+    /// <summary>
+    ///     已成型的标签文本，不做本地化求值，语言变更后不会改变。
+    /// </summary>
+    public IEnumerable<string>? PlainTags
+    {
+        set => TagPanelHelper.FillPlain(PanTags, value, new SolidColorBrush(Color.FromRgb(134, 134, 134)));
     }
 
     // 副文本

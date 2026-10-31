@@ -221,7 +221,7 @@ public static partial class GameDownload
         catch (Exception ex)
         {
             if (ex.Message.Contains("(404)"))
-                throw new Exception(Lang.Text("Minecraft.Download.Error.NotFound"));
+                throw new NotFoundException();
 
             throw;
         }
@@ -246,7 +246,7 @@ public static partial class GameDownload
         }
 
         if (versions.Count == 0)
-            throw new Exception(Lang.Text("Minecraft.Download.Error.NotFound"));
+            throw new NotFoundException();
         loader.output = versions;
     }
 
@@ -302,7 +302,7 @@ public static partial class GameDownload
             releaseTimeOriginal,
             null,
             DateTimeStyles.AssumeUniversal);
-        var releaseTime = Lang.Date(releaseDate.ToLocalTime(), "g");
+        var releaseTime = releaseDate.ToLocalTime();
 
         var artifact = _ParseOfficialForgeArtifact(versionCode);
         if (artifact is null)
@@ -372,7 +372,7 @@ public static partial class GameDownload
         }
 
         if (versions.Count == 0)
-            throw new Exception(Lang.Text("Minecraft.Download.Error.NotFound"));
+            throw new NotFoundException();
         loader.output = versions;
     }
 
@@ -393,7 +393,7 @@ public static partial class GameDownload
                 Hash = artifact.Hash,
                 Category = artifact.Category,
                 IsRecommended = (recommended ?? "") == name,
-                ReleaseTime = Lang.Date(token["modified"].ToObject<DateTime>().ToLocalTime(), "g")
+                ReleaseTime = token["modified"].ToObject<DateTime>().ToLocalTime()
             }
         ];
     }
@@ -558,9 +558,10 @@ public static partial class GameDownload
         public bool IsRecommended;
 
         /// <summary>
-        ///     发布时间，格式为“yyyy/MM/dd HH:mm”。
+        ///     发布时间。<br/>
+        ///     该字段保存原始时间，展示时请使用 <see cref="Lang.Date" /> 按当前区域性格式化。
         /// </summary>
-        public string ReleaseTime = "";
+        public DateTime? ReleaseTime;
 
         public DlForgeVersionEntry(
             string version,

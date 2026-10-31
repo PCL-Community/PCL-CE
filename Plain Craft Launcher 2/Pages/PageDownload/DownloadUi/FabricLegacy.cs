@@ -27,9 +27,8 @@ public static partial class DownloadUi
             if (Loading
                 .loaderTaskbar
                 .ToList()
-                .Any(ongoingLoader => (ongoingLoader.name ?? "")
-                    == (Lang.Text("Minecraft.Download.Stage.LegacyFabricInstallerDownload", version)
-                        ?? "")))
+                .Any(ongoingLoader =>
+                    ongoingLoader.Identifier == DownloadIdentifier("LegacyFabricInstaller", version)))
             {
                 HintService.Show(Hints.Error(Lang.Text("Minecraft.Download.Error.InstanceDownloading")));
                 return;
@@ -54,7 +53,8 @@ public static partial class DownloadUi
                 loaders
             )
             {
-                OnStateChanged = LoaderStateChangedHintOnly
+                OnStateChanged = LoaderStateChangedHintOnly,
+                Identifier = DownloadIdentifier("LegacyFabricInstaller", version)
             };
             loader.Start(downloadInfo);
             Loading.LoaderTaskbarAdd(loader);

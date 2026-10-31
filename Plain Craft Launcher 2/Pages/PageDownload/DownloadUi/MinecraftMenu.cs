@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Globalization;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -40,23 +41,42 @@ public static partial class DownloadUi
         };
         if (entry["lore"] is null)
         {
-            var releaseDate = entry["releaseTime"]?.ToObject<DateTime>() ?? default;
-            if (formattedVersion != versionId)
-                newItem.Info = $"{Lang.Date(releaseDate, "g")} | {entry["id"]}";
-            else
-                newItem.Info = Lang.Date(releaseDate, "g");
-        }
-        else if (formattedVersion != versionId)
-        {
-            newItem.Info = $"{entry["lore"]} | {entry["id"]}";
+            var releaseTime = entry["releaseTime"].ToObject<DateTime>();
+            LocalizedText.TryBind(
+                newItem,
+                "Info",
+                () => formattedVersion != versionId
+                    ? $"{Lang.Date(releaseTime, "g")} | {versionId}"
+                    : Lang.Date(releaseTime, "g"));
         }
         else
         {
-            newItem.Info = entry["lore"]?.ToString() ?? "";
+            var loreKey = entry["lore"].ToString();
+            var loreRawArgs = (entry["loreArgs"] as JsonArray)
+                ?.Select(object? (node) => node?.ToString())
+                .ToArray() ?? [];
+            var isDateArg = (string)entry["loreArgsType"] == "date";
+            LocalizedText.TryBind(
+                newItem,
+                "Info",
+                () =>
+                {
+                    var loreArgs = isDateArg &&
+                                   loreRawArgs.Length == 1 &&
+                                   DateTime.TryParse(
+                                       loreRawArgs[0]?.ToString(),
+                                       CultureInfo.InvariantCulture,
+                                       DateTimeStyles.RoundtripKind, out var loreDate)
+                        ? [Lang.Date(loreDate, "g")]
+                        : loreRawArgs;
+                    return formattedVersion != versionId
+                        ? $"{Lang.Text(loreKey, loreArgs)} | {versionId}"
+                        : Lang.Text(loreKey, loreArgs);
+                });
         }
 
         if ((entry["url"]?.ToString() ?? "").Contains("unlisted-versions-of-minecraft"))
-            newItem.Tags = Lang.Text("Download.Source.Tag.Uvmc");
+            newItem.Tags = "Download.Source.Tag.Uvmc";
         newItem.Click += onClick;
         if (isSaveOnly)
             newItem.ContentHandler = McDownloadSaveMenuBuild;
@@ -67,22 +87,13 @@ public static partial class DownloadUi
 
     private static void McDownloadSaveMenuBuild(object sender, EventArgs _)
     {
-        var btnInfo = new MyIconButton
-        {
-            LogoScale = 1.05d,
-            SvgIcon = "lucide/info",
-            ToolTip = Lang.Text("Download.Version.Changelog")
-        };
+        var btnInfo = CreateChangelogButton();
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
         btnInfo.Click += (ss, ee) => McDownloadMenuLog(ss, (dynamic)ee);
-        var btnServer = new MyIconButton
-        {
-            LogoScale = 1d,
-            SvgIcon = "lucide/server",
-            ToolTip = Lang.Text("Download.Version.DownloadServer")
-        };
+        var btnServer = new MyIconButton { LogoScale = 1d, SvgIcon = "lucide/server" };
+        McDownloadContMenuLocalize(btnServer, "Download.Version.DownloadServer");
         ToolTipService.SetPlacement(btnServer, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnServer, 30d);
         ToolTipService.SetHorizontalOffset(btnServer, 2d);
@@ -96,31 +107,19 @@ public static partial class DownloadUi
 
     private static void McDownloadMenuBuild(object sender, EventArgs e)
     {
-        var btnSave = new MyIconButton
-        {
-            SvgIcon = "lucide/save",
-            ToolTip = Lang.Text("Download.Version.SaveAs")
-        };
+        var btnSave = new MyIconButton { SvgIcon = "lucide/save" };
+        McDownloadContMenuLocalize(btnSave, "Download.Version.SaveAs");
         ToolTipService.SetPlacement(btnSave, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnSave, 30d);
         ToolTipService.SetHorizontalOffset(btnSave, 2d);
         btnSave.Click += (a, b) => McDownloadMenuSave(a, (dynamic)b);
-        var btnInfo = new MyIconButton
-        {
-            LogoScale = 1.05d,
-            SvgIcon = "lucide/info",
-            ToolTip = Lang.Text("Download.Version.Changelog")
-        };
+        var btnInfo = CreateChangelogButton();
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
         btnInfo.Click += (a, b) => McDownloadMenuLog(a, (dynamic)b);
-        var btnServer = new MyIconButton
-        {
-            LogoScale = 1d,
-            SvgIcon = "lucide/server",
-            ToolTip = Lang.Text("Download.Version.DownloadServer")
-        };
+        var btnServer = new MyIconButton { LogoScale = 1d, SvgIcon = "lucide/server" };
+        McDownloadContMenuLocalize(btnServer, "Download.Version.DownloadServer");
         ToolTipService.SetPlacement(btnServer, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnServer, 30d);
         ToolTipService.SetHorizontalOffset(btnServer, 2d);
@@ -177,8 +176,7 @@ public static partial class DownloadUi
 
             foreach (var ongoingLoader in Loading.loaderTaskbar.ToList())
             {
-                if ((ongoingLoader.name ?? "")
-                    != (Lang.Text("Minecraft.Download.Stage.MinecraftDownload", id) ?? ""))
+                if (ongoingLoader.Identifier != McDownloadStageId(id))
                     continue;
                 HintService.Show(Hints.Error(Lang.Text("Minecraft.Download.Error.InstanceDownloading")));
                 return;
@@ -220,7 +218,8 @@ public static partial class DownloadUi
                 Lang.Text("Minecraft.Download.Stage.MinecraftDownload", id),
                 loaders)
             {
-                OnStateChanged = LoaderStateChangedHintOnly
+                OnStateChanged = LoaderStateChangedHintOnly,
+                Identifier = McDownloadStageId(id)
             };
             loader.Start(id);
             Loading.LoaderTaskbarAdd(loader);

@@ -172,10 +172,15 @@ public static partial class GameLaunch
         if (!info.HasCleanroom)
             return;
 
-        if (!Version.TryParse(info.Cleanroom.Split('-')[0], out var cleanroomVersion))
-            throw new FormatException($"无法解析 Cleanroom 版本号：{info.Cleanroom}");
-
-        if (cleanroomVersion < new Version(0, 5, 0, 0))
+        var cleanroomVersionText = info.Cleanroom;
+        if (string.IsNullOrEmpty(cleanroomVersionText)
+            || !Version.TryParse(cleanroomVersionText.Split('-')[0], out var cleanroomVersion))
+        {
+            Common.Log(
+                $"[Launch] 无法解析 Cleanroom 版本号，跳过 Java 版本限制：{cleanroomVersionText ?? "null"}",
+                Common.LogLevel.Debug);
+        }
+        else if (cleanroomVersion < new Version(0, 5, 0, 0))
         {
             if (Common.modeDebug)
                 Common.Log("[Launch] [Debug] Cleanroom 版本低于 0.5，要求至少 Java 21");

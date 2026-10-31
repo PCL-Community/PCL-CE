@@ -1,7 +1,8 @@
-<Grid x:Class="PCL.MyMsgLogin"
+﻿<Grid x:Class="PCL.MyMsgLogin"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="clr-namespace:PCL"
+                   xmlns:loc="https://ce.pclc.cc/core/localization"
       xmlns:controls="clr-namespace:PCL.Core.UI.Controls;assembly=PCL.Core"
       RenderTransformOrigin="0,0.5" UseLayoutRounding="True" SnapsToDevicePixels="True" MinWidth="400"
       HorizontalAlignment="Center" VerticalAlignment="Center" Margin="25">
@@ -28,7 +29,7 @@
             </Grid.RowDefinitions>
             <TextBlock Grid.Row="0" FontSize="23" TextTrimming="None" Foreground="{DynamicResource ColorBrush2}"
                        HorizontalAlignment="Left" Name="LabTitle" Margin="7,-1,70,9"
-                       Text="{DynamicResource Launch.Account.LoginDialog.Title}"
+                       Text="{loc:Loc Launch.Account.LoginDialog.Title}"
                        VerticalAlignment="Top" SnapsToDevicePixels="False" UseLayoutRounding="False"
                        MouseLeftButtonDown="Drag" />
             <Rectangle x:Name="ShapeLine" Grid.Row="1" Height="2" Fill="{Binding Foreground, ElementName=LabTitle}" />
@@ -44,17 +45,17 @@
             <StackPanel Grid.Row="4" Name="PanBtn" VerticalAlignment="Top" HorizontalAlignment="Right"
                         Margin="150,0,8,0" Orientation="Horizontal">
                 <local:MyButton ColorType="Normal" x:FieldModifier="public"
-                                Text="{DynamicResource Launch.Account.LoginDialog.ReopenWebpage}" x:Name="Btn1" Click="Btn1_Click"
+                                Text="{loc:Loc Launch.Account.LoginDialog.ReopenWebpage}" x:Name="Btn1" Click="Btn1_Click"
                                 Margin="12,0,0,0" TextPadding="7" SnapsToDevicePixels="False" Padding="5,0"
                                 UseLayoutRounding="False"
                                 local:CustomEventService.EventType="OpenUrl" />
                 <local:MyButton ColorType="Normal" x:FieldModifier="public"
-                                Text="{DynamicResource Launch.Account.LoginDialog.CopyCode}" x:Name="Btn2"
+                                Text="{loc:Loc Launch.Account.LoginDialog.CopyCode}" x:Name="Btn2"
                                 Margin="12,0,0,0" TextPadding="7" SnapsToDevicePixels="False" Padding="5,0"
                                 UseLayoutRounding="False"
                                 local:CustomEventService.EventType="CopyText" />
                 <local:MyButton ColorType="Normal" x:FieldModifier="public"
-                                Text="{DynamicResource Common.Action.Cancel}" x:Name="Btn3" Margin="12,0,0,0"
+                                Text="{loc:Loc Common.Action.Cancel}" x:Name="Btn3" Margin="12,0,0,0"
                                 TextPadding="7" SnapsToDevicePixels="False" Padding="5,0" UseLayoutRounding="False"
                                 Click="Btn3_Click" />
             </StackPanel>

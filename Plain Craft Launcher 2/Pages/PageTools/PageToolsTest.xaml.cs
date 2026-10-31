@@ -170,7 +170,10 @@ public partial class PageToolsTest : IPageView
                 loaderdownload = new LoaderDownloadUnc(Lang.Text("Tools.Test.CustomDownload.LoaderName", fileName),
                     new Tuple<string, string>(url, folder + fileName));
             var loaderCombo = new Loading.LoaderCombo<int>(Lang.Text("Tools.Test.CustomDownload.LoaderTitle", uuid), new[] { loaderdownload })
-                { OnStateChanged = a => DownloadState((Loading.LoaderCombo<int>)a) };
+            {
+                OnStateChanged = a => DownloadState((Loading.LoaderCombo<int>)a),
+                Identifier = "CustomDownload:" + uuid
+            };
             loaderCombo.Start();
             Loading.LoaderTaskbarAdd(loaderCombo);
             Launcher.frmMain.BtnExtraDownload.ShowRefresh();

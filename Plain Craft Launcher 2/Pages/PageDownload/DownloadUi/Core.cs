@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Windows;
 using PCL.Core.App.Localization;
 using PCL.Core.UI.Hints;
 
@@ -16,11 +17,35 @@ public static partial class DownloadUi
     /// </summary>
     private static readonly object VanillaSyncLock = new();
 
-    private static readonly string McDownloadClientLibName =
-        Lang.Text("Minecraft.Download.Stage.VanillaLibrariesDownload");
+    private const string McDownloadStageIdPrefix = "McDownload:";
 
-    private static readonly string McDownloadClientJsonName =
-        Lang.Text("Minecraft.Download.Stage.VanillaJsonDownload");
+    private static string McDownloadStageId(string id)
+    {
+        return McDownloadStageIdPrefix + id;
+    }
+
+    private static string DownloadIdentifier(string kind, string? key)
+    {
+        return $"Download:{kind}:{key}";
+    }
+
+    private const string McDownloadClientLibId = "VanillaLibrariesDownload";
+
+    private const string McDownloadClientJsonId = "VanillaJsonDownload";
+
+    private static MyIconButton CreateChangelogButton(
+        double logoScale = 1.05d,
+        string toolTipKey = "Download.Version.Changelog")
+    {
+        var button = new MyIconButton { LogoScale = logoScale, SvgIcon = "lucide/info" };
+        button.SetLocalizedValue(FrameworkElement.ToolTipProperty, toolTipKey);
+        return button;
+    }
+
+    private static void McDownloadContMenuLocalize(MyIconButton button, string toolTipKey)
+    {
+        button.SetLocalizedValue(FrameworkElement.ToolTipProperty, toolTipKey);
+    }
 
     /// <summary>
     ///     将远程元数据提供的名称作为单个目录名拼接到缓存目录下，并阻止路径穿越。

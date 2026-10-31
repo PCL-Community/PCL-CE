@@ -1,7 +1,8 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
+using PCL.Core.App.Localization;
 using static PCL.Loading;
 
 namespace PCL;
@@ -136,6 +137,26 @@ public class MyPageRight : AdornerDecorator
         }; // 点击重试事件
     }
 
+    private void RefreshLocalizationIfStale()
+    {
+        if (_localizationRevision == LocalizationService.UiRevision) return;
+        _localizationRevision = LocalizationService.UiRevision;
+        try
+        {
+            RefreshLocalization();
+        }
+        catch (Exception ex)
+        {
+            Common.Log(ex, "刷新页面本地化文本失败");
+        }
+    }
+
+    protected virtual void RefreshLocalization()
+    {
+    }
+
+    private int _localizationRevision = LocalizationService.UiRevision;
+
     // 重试
     public void PageLoaderRestart(object input = null, bool isForceRestart = true) // 由外部调用的重试
     {
@@ -167,6 +188,7 @@ public class MyPageRight : AdornerDecorator
     {
         if (Common.modeDebug)
             Common.Log("[UI] 已触发 PageOnEnter");
+        RefreshLocalizationIfStale();
         PageEnter?.Invoke();
         switch (PageState)
         {

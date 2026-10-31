@@ -911,7 +911,7 @@ public static class Files {
                     using var document = JsonDocument.Parse(content, JsonCompat.DocumentOptions);
                     // 简单验证 JSON 有效性
                 } catch (JsonException ex) {
-                    throw new Exception(Lang.Text("Common.Error.InvalidJson"), ex);
+                    throw new InvalidJsonException(ex);
                 }
             }
 

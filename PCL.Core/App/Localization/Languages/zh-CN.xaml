@@ -1170,6 +1170,9 @@
 
     <sys:String x:Key="Instance.Resource.Item.ErrorSuffix"> [错误]</sys:String>
     <sys:String x:Key="Instance.Resource.Item.FolderTag">文件夹</sys:String>
+    <sys:String x:Key="Instance.Resource.Item.LitematicTag">投影原理图</sys:String>
+    <sys:String x:Key="Instance.Resource.Item.SchematicTag">Schematic 结构</sys:String>
+    <sys:String x:Key="Instance.Resource.Item.StructureTag">原版结构</sys:String>
     <sys:String x:Key="Instance.Resource.Item.InfoUnavailable">存在错误，无法获取信息</sys:String>
     <sys:String x:Key="Instance.Resource.Item.OpenChangelogFailed">打开更新日志出现错误</sys:String>
     <sys:String x:Key="Instance.Resource.Item.Update">更新</sys:String>

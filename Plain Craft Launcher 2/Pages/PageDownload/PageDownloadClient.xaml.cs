@@ -58,16 +58,28 @@ public partial class PageDownloadClient
 
             PanMain.Children.Clear();
 
-            var cardInfo = new MyCard { Title = Lang.Text("Download.Version.Latest.Title"), Margin = new Thickness(0d, 0d, 0d, 15d) };
+            var cardInfo = new MyCard
+            {
+                Margin = new Thickness(0d, 0d, 0d, 15d)
+            };
+            LocalizedText.TryBind(
+                cardInfo,
+                "Title",
+                () => Lang.Text("Download.Version.Latest.Title"));
             var topestVersions = new List<JsonObject>();
             var release = (JsonObject)dict[McVersionCategory.Release][0].DeepClone();
-            release["lore"] = Lang.Text("Download.Version.Latest.Release", Lang.Date(McVersionClassifier.GetReleaseTime(release), "g"));
+            release["lore"] = "Download.Version.Latest.Release";
+            release["loreArgs"] = new JsonArray(
+                McVersionClassifier.GetReleaseTime(release).ToString("O"));
+            release["loreArgsType"] = "date";
             topestVersions.Add(release);
             if (McVersionClassifier.GetReleaseTime(dict[McVersionCategory.Release][0]) < McVersionClassifier.GetReleaseTime(dict[McVersionCategory.Snapshot][0]))
             {
                 var snapshot = (JsonObject)dict[McVersionCategory.Snapshot][0].DeepClone();
-                snapshot["lore"] = Lang.Text("Download.Version.Latest.Development",
-                                   Lang.Date(McVersionClassifier.GetReleaseTime(snapshot), "g"));
+                snapshot["lore"] = "Download.Version.Latest.Development";
+                snapshot["loreArgs"] = new JsonArray(
+                    McVersionClassifier.GetReleaseTime(snapshot).ToString("O"));
+                snapshot["loreArgsType"] = "date";
                 topestVersions.Add(snapshot);
             }
 
@@ -94,8 +106,13 @@ public partial class PageDownloadClient
                 if (!Pair.Value.Any())
                     continue;
 
-                var newCard = new MyCard
-                    { Title = McVersionClassifier.GetCategoryDisplayName(Pair.Key) + " (" + Pair.Value.Count + ")", Margin = new Thickness(0d, 0d, 0d, 15d) };
+                var newCard = new MyCard { Margin = new Thickness(0d, 0d, 0d, 15d) };
+                var categoryKey = McVersionClassifier.GetCategoryKey(Pair.Key);
+                var categoryCount = Pair.Value.Count;
+                LocalizedText.TryBind(
+                    newCard,
+                    "Title",
+                    () => $"{Lang.Text(categoryKey)} ({categoryCount})");
                 var newStack = new StackPanel
                 {
                     Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),

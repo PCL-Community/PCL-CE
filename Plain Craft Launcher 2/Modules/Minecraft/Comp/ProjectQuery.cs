@@ -638,7 +638,7 @@ public static partial class Comp
                 .Select(j => new CompProject(j))
                 .Where(p =>
                     !(request.type == CompType.ResourcePack
-                        && p.Tags.Contains(Lang.Text("Download.Comp.Type.DataPack"))))
+                        && p.Tags.Contains("Download.Comp.Type.DataPack")))
                 .ToList();
             lock (resultsLock)
             {
