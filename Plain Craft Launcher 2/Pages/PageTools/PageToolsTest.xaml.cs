@@ -71,7 +71,17 @@ public partial class PageToolsTest : IPageView
         InitializeComponent();
         DataContext = _vm;
         CmbHeadSize.SelectionChanged += CmbHeadSize_SelectionChanged;
-        Loaded += (_, _) => RefreshOnNavigate();
+        // 成就卡片默认是折叠的，字体列表等它展开再枚举：一次要遍历本机几百个字体，进页面就做会拖慢导航
+        ComboAchievementFont.IsVisibleChanged += (_, _) =>
+        {
+            if (ComboAchievementFont.IsVisible) _ = _InitAchievementFontComboAsync();
+        };
+        Loaded += (_, _) =>
+        {
+            RefreshOnNavigate();
+            // 卡片若本来就是展开状态，可见性不会再变化，这里补一次初始化
+            if (ComboAchievementFont.IsVisible) _ = _InitAchievementFontComboAsync();
+        };
         Unloaded += (_, _) => _refreshed = false;
     }
 
@@ -107,7 +117,6 @@ public partial class PageToolsTest : IPageView
         TextDownloadFolder.Validate();
         TextDownloadName.Validate();
         TextDownloadUrl.Validate();
-        if (!_achievementFontInitialized) _InitAchievementFontCombo();
         StartButtonRefresh();
     }
 
@@ -549,35 +558,61 @@ public partial class PageToolsTest : IPageView
         StartButtonRefresh();
     }
 
-    private void _InitAchievementFontCombo()
+    /// <summary>
+    ///     异步枚举系统字体并填充字体下拉框。
+    /// </summary>
+    /// <remarks>
+    ///     枚举要遍历本机全部字体族，机器上装了几百个字体时在 UI 线程直接跑会明显卡住页面切换，
+    ///     所以枚举放到后台线程，只有创建控件项那一步回到 UI 线程；整个列表只初始化一次。
+    /// </remarks>
+    private async Task _InitAchievementFontComboAsync()
     {
-        var items = new List<MyComboBoxItem>();
-        foreach (var family in Media.Fonts.SystemFontFamilies// 并让每一项用自己的字体渲染，这样下拉列表里能直接看到字体效果
-                     .Where(f => !string.IsNullOrWhiteSpace(f.Source))
-                     .GroupBy(f => f.Source)
-                     .Select(g => g.First())
-                     .OrderBy(_GetFontDisplayName, StringComparer.CurrentCulture))
+        if (_achievementFontInitialized) return;
+        _achievementFontInitialized = true; // 先占位，避免展开动画期间重复触发
+
+        ComboAchievementFont.IsEnabled = false;
+        try
         {
-            var item = new MyComboBoxItem
+            var families = await Task.Run(() => Media.Fonts.SystemFontFamilies
+                .Where(f => !string.IsNullOrWhiteSpace(f.Source))
+                .GroupBy(f => f.Source)
+                .Select(g => g.First())
+                .Select(f => (Source: f.Source, Display: _GetFontDisplayName(f)))
+                .OrderBy(f => f.Display, StringComparer.CurrentCulture)
+                .ToList());
+
+            var items = new List<MyComboBoxItem>(families.Count);
+            foreach (var (source, display) in families)
             {
-                Content = _GetFontDisplayName(family),
-                Tag = family.Source // Tag 保存真正的字体族名，渲染时用它构造 FontFamily
-            };
-            try
-            {
-                item.FontFamily = family;
-            }
-            catch
-            {
-                // 个别字体构造失败时保持默认字体显示，不影响选择
+                var item = new MyComboBoxItem
+                {
+                    Content = display,
+                    Tag = source // Tag 保存真正的字体族名，渲染时用它构造 FontFamily
+                };
+                try
+                {
+                    // 让每一项用自己的字体渲染，下拉列表里能直接看到字体效果
+                    item.FontFamily = new Media.FontFamily(source);
+                }
+                catch
+                {
+                    // 个别字体构造失败时保持默认字体显示，不影响选择
+                }
+
+                items.Add(item);
             }
 
-            items.Add(item);
+            ComboAchievementFont.ItemsSource = items;
+            if (items.Count > 0) ComboAchievementFont.SelectedIndex = 0;
         }
-
-        ComboAchievementFont.ItemsSource = items;
-        ComboAchievementFont.SelectedIndex = 0;
-        _achievementFontInitialized = true;
+        catch (Exception ex)
+        {
+            Common.Log(ex, "枚举系统字体失败");
+        }
+        finally
+        {
+            ComboAchievementFont.IsEnabled = true;
+        }
     }
 
     /// <summary>
@@ -992,8 +1027,13 @@ public partial class PageToolsTest : IPageView
         if (string.IsNullOrEmpty(folder)) return null;
 
         var current = instance;
+        // 继承链可能是自引用或成环（inheritsFrom 指向自己、或两个实例互指），按「实例目录 + 名字」去重：
+        // 同一个实例再次出现说明已经绕回来了，必须停下，否则这里会无限 new McInstance 卡死 UI 线程
+        var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         while (current is not null)
         {
+            if (!visited.Add(current.PathInstance + current.Name)) break;
+
             var jarName = current.JsonObject["jar"]?.ToString();
             var target = current;
             if (!string.IsNullOrEmpty(jarName) && jarName != current.Name)
