@@ -84,4 +84,12 @@ public sealed class WpfUiDispatcher : IUiDispatcher
             return Task.FromException<T>(ex);
         }
     }
+
+    public IUiModalFrame CreateModalFrame()
+    {
+        var dispatcher = Application.Current?.Dispatcher;
+        if (dispatcher is null || dispatcher.HasShutdownStarted || !dispatcher.CheckAccess())
+            return new NoopModalFrame();
+        return new WpfModalFrame();
+    }
 }

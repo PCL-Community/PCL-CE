@@ -25,4 +25,7 @@ public interface IUiDispatcher
 
     /// <summary>在 UI 线程异步执行操作并返回结果；UI 不可用时返回默认值。</summary>
     Task<T> InvokeAsync<T>(Func<T> func);
+
+    /// <summary>创建模态消息泵，供同步弹窗等待使用；必须在 UI 线程调用。</summary>
+    IUiModalFrame CreateModalFrame();
 }

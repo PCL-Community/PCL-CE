@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Threading;
+using PCL.Core.Platform;
 
 namespace PCL.Core.UI.Dialogs;
 
@@ -73,10 +73,8 @@ public sealed partial class DialogViewModel : ObservableObject
     internal TaskCompletionSource<DialogResult> Completion { get; } =
         new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-    private DispatcherFrame? _waitFrame;
-
-    /// <summary>同步入口用于等待弹窗关闭的消息泵。首次访问时必须位于界面线程。</summary>
-    public DispatcherFrame WaitFrame => _waitFrame ??= new DispatcherFrame(true);
+    /// <summary>同步入口用于等待弹窗关闭的模态消息泵。</summary>
+    internal IUiModalFrame? WaitFrame { get; set; }
 
     internal int PresentAttempts;
 
@@ -141,7 +139,7 @@ public sealed partial class DialogViewModel : ObservableObject
 
         Result = result;
         IsClosed = true;
-        if (_waitFrame is { } frame) frame.Continue = false;
+        WaitFrame?.Exit();
         Completion.TrySetResult(result);
         DialogService.Instance.OnDialogClosed(this);
     }

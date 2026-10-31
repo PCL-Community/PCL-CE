@@ -47,4 +47,10 @@ public static class UiDispatcher
     {
         return Dispatcher?.InvokeAsync(func) ?? Task.FromResult(default(T)!);
     }
+
+    /// <summary>创建模态消息泵；UI 不可用时返回 null。</summary>
+    public static IUiModalFrame? CreateModalFrame()
+    {
+        return Dispatcher?.CreateModalFrame();
+    }
 }
