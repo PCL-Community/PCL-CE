@@ -1,14 +1,14 @@
-﻿using System.IO;
+using PCL.Core.App;
+using PCL.Core.App.Configuration;
+using PCL.Core.App.Localization;
+using PCL.Core.UI.Dialogs;
+using PCL.Core.UI.Hints;
+using PCL.Core.Utils.OS;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
-using PCL.Core.App;
-using PCL.Core.App.Configuration;
-using PCL.Core.Utils.OS;
-using PCL.Core.App.Localization;
-using PCL.Core.UI.Hints;
-using PCL.Core.UI.Dialogs;
 
 namespace PCL;
 
@@ -360,38 +360,38 @@ public partial class PageSetupLaunch : IPageView
             switch (left)
             {
                 case 0:
-                {
-                    Animations.AniStart(
-                        new[]
-                        {
+                    {
+                        Animations.AniStart(
+                            new[]
+                            {
                             Animations.AaOpacity(LabRamUsed, -LabRamUsed.Opacity, 100),
                             Animations.AaOpacity(LabRamTotal, -LabRamTotal.Opacity, 100),
                             Animations.AaOpacity(LabRamUsedTitle, -LabRamUsedTitle.Opacity, 100)
-                        }, "SetupLaunch Ram TextLeft");
-                    break;
-                }
+                            }, "SetupLaunch Ram TextLeft");
+                        break;
+                    }
                 case 1:
-                {
-                    Animations.AniStart(
-                        new[]
-                        {
+                    {
+                        Animations.AniStart(
+                            new[]
+                            {
                             Animations.AaOpacity(LabRamUsed, 1d - LabRamUsed.Opacity, 100),
                             Animations.AaOpacity(LabRamTotal, -LabRamTotal.Opacity, 100),
                             Animations.AaOpacity(LabRamUsedTitle, 0.7d - LabRamUsedTitle.Opacity, 100)
-                        }, "SetupLaunch Ram TextLeft");
-                    break;
-                }
+                            }, "SetupLaunch Ram TextLeft");
+                        break;
+                    }
                 case 2:
-                {
-                    Animations.AniStart(
-                        new[]
-                        {
+                    {
+                        Animations.AniStart(
+                            new[]
+                            {
                             Animations.AaOpacity(LabRamUsed, 1d - LabRamUsed.Opacity, 100),
                             Animations.AaOpacity(LabRamTotal, 1d - LabRamTotal.Opacity, 100),
                             Animations.AaOpacity(LabRamUsedTitle, 0.7d - LabRamUsedTitle.Opacity, 100)
-                        }, "SetupLaunch Ram TextLeft");
-                    break;
-                }
+                            }, "SetupLaunch Ram TextLeft");
+                        break;
+                    }
             }
         }
 
@@ -606,9 +606,9 @@ public partial class PageSetupLaunch : IPageView
                 Title = Lang.Text("Setup.Launch.Options.Visibility.CloseImmediately.Warning.Title"),
                 Content = Lang.Text("Setup.Launch.Options.Visibility.CloseImmediately.Warning.Message"),
                 Buttons = DialogButtons.From(
-                    DialogButton.Create(Lang.Text("Setup.Launch.Options.Visibility.CloseImmediately.Warning.Continue")),
-                    DialogButton.Create(Lang.Text("Common.Action.Cancel")))
-            })).Button == 2 &&
+                        DialogButton.Create(Lang.Text("Setup.Launch.Options.Visibility.CloseImmediately.Warning.Continue")),
+                        DialogButton.Create(Lang.Text("Common.Action.Cancel")))
+            }).ConfigureAwait(true)).Button == 2 &&
                 removedItem is not null)
                 ComboArgumentVisibie.SelectedItem = removedItem;
         }
@@ -636,7 +636,7 @@ public partial class PageSetupLaunch : IPageView
                 Title = Lang.Text("Common.Dialog.Title"),
                 Content = Lang.Text("Setup.Launch.Options.InstanceIsolation.DefaultPolicyHint"),
                 Buttons = DialogButtons.Ok
-            });
+            }).ConfigureAwait(true);
         }
         catch (Exception ex)
         {
