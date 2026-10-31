@@ -169,12 +169,7 @@ public partial class MyExtraButton
     public bool Show
     {
         get => (bool)GetValue(ShowProperty);
-        set
-        {
-            if (Show == value)
-                return;
-            SetValue(ShowProperty, value);
-        }
+        set => Common.RunInUi(() => SetValue(ShowProperty, value));
     }
 
     private static void OnShowChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
