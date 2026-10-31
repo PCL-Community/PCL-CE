@@ -1,30 +1,19 @@
+using PCL.Core.App.Localization;
 using System;
 using System.Collections.Generic;
-using PCL.Core.App.Localization;
 
 namespace PCL.Core.UI.Dialogs;
 
 /// <summary>固定三个位置的弹窗按钮组。</summary>
-public readonly struct DialogButtons
+public readonly struct DialogButtons(DialogButton first, DialogButton second = default, DialogButton third = default)
 {
     public const int Capacity = 3;
 
-    private readonly DialogButton _first;
-    private readonly DialogButton _second;
-    private readonly DialogButton _third;
-
-    public DialogButtons(DialogButton first, DialogButton second = default, DialogButton third = default)
-    {
-        _first = first;
-        _second = second;
-        _third = third;
-    }
-
     public DialogButton this[int index] => index switch
     {
-        0 => _first,
-        1 => _second,
-        2 => _third,
+        0 => first,
+        1 => second,
+        2 => third,
         _ => throw new ArgumentOutOfRangeException(nameof(index))
     };
 
@@ -33,15 +22,15 @@ public readonly struct DialogButtons
     {
         get
         {
-            if (_first.IsEmpty) return 0;
-            if (_second.IsEmpty) return 1;
-            return _third.IsEmpty ? 2 : 3;
+            if (first.IsEmpty) return 0;
+            if (second.IsEmpty) return 1;
+            return third.IsEmpty ? 2 : 3;
         }
     }
 
-    public bool IsEmpty => _first.IsEmpty;
+    public bool IsEmpty => first.IsEmpty;
 
-    public DialogButton[] ToArray() => [_first, _second, _third];
+    public DialogButton[] ToArray() => [first, second, third];
 
     public static DialogButtons From(params DialogButton[] buttons)
     {

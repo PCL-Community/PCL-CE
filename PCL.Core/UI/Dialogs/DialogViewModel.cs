@@ -1,29 +1,22 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using FluentValidation;
+using PCL.Core.Minecraft.IdentityModel.OAuth;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Nodes;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
-using CommunityToolkit.Mvvm.ComponentModel;
-using System.Threading;
-using System.Text.Json.Nodes;
-using FluentValidation;
-using PCL.Core.Minecraft.IdentityModel.OAuth;
 
 namespace PCL.Core.UI.Dialogs;
 
 /// <summary>可勾选选项的响应式状态。</summary>
-public sealed partial class DialogOptionState : ObservableObject
+public sealed partial class DialogOptionState(DialogOption option, int index) : ObservableObject
 {
-    public DialogOptionState(DialogOption option, int index)
-    {
-        Option = option;
-        Index = index;
-        _isChecked = option.IsChecked;
-    }
+    public DialogOption Option { get; } = option;
 
-    public DialogOption Option { get; }
-
-    public int Index { get; }
+    public int Index { get; } = index;
 
     public string Text => Option.Text;
 
@@ -33,7 +26,7 @@ public sealed partial class DialogOptionState : ObservableObject
 
     public double ImageScale => Option.ImageScale;
 
-    [ObservableProperty] private bool _isChecked;
+    [ObservableProperty] private bool _isChecked = option.IsChecked;
 }
 
 /// <summary>弹窗的响应式状态，供 UI 绑定与 Core 派发结果。</summary>

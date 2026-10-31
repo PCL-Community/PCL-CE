@@ -1,3 +1,5 @@
+using PCL.Core.Logging;
+using PCL.Core.UI.Threading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -5,10 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Interop;
 using System.Windows.Threading;
-using FluentValidation;
-using PCL.Core.App.Localization;
-using PCL.Core.Logging;
-using PCL.Core.UI.Threading;
 
 namespace PCL.Core.UI.Dialogs;
 
@@ -47,7 +45,7 @@ public sealed class DialogService : IDialogService
     /// <summary>提交弹窗请求并立即返回其状态对象。</summary>
     public DialogViewModel Show(DialogRequest request)
     {
-        var dialog = Enqueue(request);
+        var dialog = _Enqueue(request);
 
         // 单按钮弹窗没有可选分支，显示后立即返回，避免阻塞调用线程。
         var waitable = request.Buttons.Length > 1;
@@ -82,7 +80,7 @@ public sealed class DialogService : IDialogService
     }
 
     /// <summary>排队并交给呈现器，不等待结果。界面不可用时立即以 <see cref="DialogResult.None" /> 关闭。</summary>
-    private DialogViewModel Enqueue(DialogRequest request)
+    private DialogViewModel _Enqueue(DialogRequest request)
     {
         var dialog = new DialogViewModel(request);
 
@@ -106,10 +104,10 @@ public sealed class DialogService : IDialogService
         return dialog;
     }
 
-    public async Task<DialogResult> ShowAsync(DialogRequest request)
+    public Task<DialogResult> ShowAsync(DialogRequest request)
     {
-        var dialog = Enqueue(request);
-        return await dialog.Completion.Task.ConfigureAwait(false);
+        var dialog = _Enqueue(request);
+        return dialog.Completion.Task;
     }
 
     /// <summary>取出队首弹窗并交给呈现器。必须在 UI 线程调用。</summary>
