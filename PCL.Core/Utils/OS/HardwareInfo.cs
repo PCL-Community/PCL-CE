@@ -20,6 +20,7 @@ public static class HardwareInfo
     /// </summary>
     public static IReadOnlyList<GPUInfo> GPUs { get; private set; } = [];
 
+    // TODO: macOS 未实现（无 /proc、/sys），CPU 名称保持 Unknown、GPU 为空、内存回退 GC；需补 sysctl/system_profiler 实现。
     private static readonly Lazy<long> _SystemMemorySize = new(_GetSystemMemorySize);
 
     /// <summary>

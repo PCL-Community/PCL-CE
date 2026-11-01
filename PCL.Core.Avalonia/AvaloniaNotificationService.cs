@@ -42,6 +42,7 @@ public sealed class AvaloniaNotificationService : ISystemNotificationService
         }
     }
 
+    // TODO: macOS 没有 DBus，当前会退化到应用内浮层；应改为 osascript display notification。
     private static bool _TrySendDesktopNotification(string title, string message)
     {
         if (!HasSessionBus) return false;

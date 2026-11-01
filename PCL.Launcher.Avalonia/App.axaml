@@ -4,5 +4,6 @@
              RequestedThemeVariant="Default">
     <Application.Styles>
         <FluentTheme />
+        <StyleInclude Source="avares://PCL.Launcher.Avalonia/UI/Styles/PageStyles.axaml" />
     </Application.Styles>
 </Application>

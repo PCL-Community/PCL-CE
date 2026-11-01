@@ -5,7 +5,7 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:sys="clr-namespace:System;assembly=mscorlib"
       xmlns:local="clr-namespace:PCL"
-      xmlns:val="https://ce.pclc.cc/core/utils/validate"
+      xmlns:val="clr-namespace:PCL.Core.Utils.Validate;assembly=PCL.Core"
       mc:Ignorable="d"
       d:DesignHeight="450" d:DesignWidth="800"
       xmlns:loc="https://ce.pclc.cc/core/localization">

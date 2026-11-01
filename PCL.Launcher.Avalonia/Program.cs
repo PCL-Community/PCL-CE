@@ -1,5 +1,6 @@
 using Avalonia;
 using PCL.Avalonia.UI;
+using PCL.Avalonia.UI.Seams;
 using PCL.Avalonia.Views;
 using PCL.Core.App.Essentials;
 using PCL.Core.App.IoC;
@@ -26,6 +27,8 @@ internal static class Program
         // 注册 Core 弹窗与提示的 Avalonia 呈现器
         AvaloniaDialogPresenter.Install();
         AvaloniaHintPresenter.Install();
+        // 注册业务层 UI seam 的 Avalonia 实现
+        UiSeamRegistration.Register();
         // 启动 PCL.Core 生命周期
         Lifecycle.OnInitialize();
     }

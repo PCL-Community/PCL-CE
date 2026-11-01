@@ -1,5 +1,8 @@
 using Avalonia.Controls;
 using Avalonia.Threading;
+using PCL.Avalonia.UI.Animations;
+using PCL.Avalonia.Views.Pages;
+using PCL.Core.Logging;
 
 namespace PCL.Avalonia.Navigation;
 
@@ -23,14 +26,41 @@ public static class PageRouter
         Navigate(() => page);
     }
 
-    public static void Navigate(Func<Control> pageFactory)
+    public static void Navigate(string key, object? parameter = null)
+    {
+        Navigate(() => _CreateFromRegistry(key, parameter));
+    }
+
+    public static void Navigate(Func<Control?> pageFactory)
+    {
+        if (_host is null) return;
+
+        if (Dispatcher.UIThread.CheckAccess()) _Show(pageFactory);
+        else Dispatcher.UIThread.Post(() => _Show(pageFactory));
+    }
+
+    private static Control? _CreateFromRegistry(string key, object? parameter)
+    {
+        if (!PageRegistry.TryCreate(key, out var page))
+        {
+            LogWrapper.Warn("UI", $"未注册的页面键：{key}");
+            return null;
+        }
+
+        (page as IPageView)?.OnNavigatedTo(parameter);
+        return page;
+    }
+
+    private static void _Show(Func<Control?> pageFactory)
     {
         var host = _host;
         if (host is null) return;
 
-        if (Dispatcher.UIThread.CheckAccess())
-            host.Content = pageFactory();
-        else
-            Dispatcher.UIThread.Post(() => host.Content = pageFactory());
+        (host.Content as IPageView)?.OnNavigatedFrom();
+        var page = pageFactory();
+        if (page is null) return;
+
+        host.Content = page;
+        _ = AnimationService.FadeInAsync(page);
     }
 }

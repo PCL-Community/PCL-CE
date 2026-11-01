@@ -3,12 +3,13 @@ using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
+using PCL.Core.App.Localization;
 using PCL.Core.Platform;
 
 namespace PCL.Core.Avalonia;
 
-/// <summary>基于 Avalonia 窗口的应用级对话框实现。</summary>
-public sealed class AvaloniaDialogService : IDialogService
+/// <summary>基于 Avalonia 窗口的致命错误对话框实现。</summary>
+public sealed class AvaloniaDialogService : IFatalDialogService
 {
     public void ShowFatal(string message, string caption)
     {
@@ -50,7 +51,7 @@ public sealed class AvaloniaDialogService : IDialogService
 
         var button = new Button
         {
-            Content = "确定",
+            Content = Lang.Text("Common.Action.Confirm"),
             HorizontalAlignment = HorizontalAlignment.Right,
             Margin = new Thickness(16),
             MinWidth = 96

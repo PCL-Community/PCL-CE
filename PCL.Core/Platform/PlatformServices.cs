@@ -11,8 +11,8 @@ public static class PlatformServices
     /// <summary>文件/文件夹对话框实现。</summary>
     public static IFileDialogService? FileDialogs { get; set; }
 
-    /// <summary>应用级对话框实现。</summary>
-    public static IDialogService? DialogService { get; set; }
+    /// <summary>致命错误对话框实现。</summary>
+    public static IFatalDialogService? DialogService { get; set; }
 
     /// <summary>程序打包资源访问实现。</summary>
     public static IResourceStore? ResourceStore { get; set; }

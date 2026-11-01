@@ -23,6 +23,10 @@
         <ProjectReference Include="..\PCL.Core\PCL.Core.csproj" />
     </ItemGroup>
     <ItemGroup>
+        <!-- RunAnimation 的 TriggerAction 需要它；PCL.Core 不再引用 WPF 专用包，WPF 头经本项目传递获得 -->
+        <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.142" />
+    </ItemGroup>
+    <ItemGroup>
         <Resource Include="UI\Assets\IconPacks\**\*.svg" />
         <Resource Include="UI\Assets\Shaders\*.ps" />
     </ItemGroup>

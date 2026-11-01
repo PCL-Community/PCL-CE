@@ -6,6 +6,7 @@ namespace PCL.Core.Avalonia;
 /// <summary>
 ///     Unix 系统代理：优先读取环境变量，其次读取 GNOME gsettings 的 manual 代理配置。
 /// </summary>
+// TODO: 尚未读取 KDE Plasma（kioslaverc）与 libproxy 的代理配置，GNOME 以外的桌面可能漏掉系统代理。
 public sealed class UnixSystemProxyProvider : ISystemProxyProvider
 {
     private static readonly string[] _HttpProxyEnv = ["http_proxy", "HTTP_PROXY"];

@@ -22,4 +22,8 @@
     <ItemGroup>
         <ProjectReference Include="..\PCL.Core\PCL.Core.csproj" />
     </ItemGroup>
+    <ItemGroup>
+        <!-- 语言资源字典：由 WPF 语言 XAML 机械转换而来（仅命名空间差异），作为 Avalonia 资源随程序集打包 -->
+        <AvaloniaResource Include="Localization\Languages\*.axaml" />
+    </ItemGroup>
 </Project>

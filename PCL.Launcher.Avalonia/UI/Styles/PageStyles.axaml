@@ -1,0 +1,185 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Styles.Resources>
+        <!-- 与 WPF 端 Application.xaml 调色板对应的页面资源，保证迁移页面与现有视觉一致 -->
+        <SolidColorBrush x:Key="PageBrushText"
+                         Color="#FF343D4A" />
+        <SolidColorBrush x:Key="PageBrushTextSecondary"
+                         Color="#FF8C8C8C" />
+        <SolidColorBrush x:Key="PageBrushBackground"
+                         Color="#FFFBFBFB" />
+        <SolidColorBrush x:Key="PageBrushCard"
+                         Color="#FFFFFFFF" />
+        <SolidColorBrush x:Key="PageBrushCardBorder"
+                         Color="#22808080" />
+        <SolidColorBrush x:Key="PageBrushDivider"
+                         Color="#22808080" />
+        <SolidColorBrush x:Key="PageBrushAccent"
+                         Color="#FF1370F3" />
+        <SolidColorBrush x:Key="PageBrushAccentHover"
+                         Color="#FF4890F5" />
+        <SolidColorBrush x:Key="PageBrushAccentLight"
+                         Color="#FFE0EAFD" />
+        <SolidColorBrush x:Key="PageBrushItemHover"
+                         Color="#14808080" />
+        <SolidColorBrush x:Key="PageBrushItemChecked"
+                         Color="#FFEAF2FE" />
+        <SolidColorBrush x:Key="PageBrushError"
+                         Color="#FFE74C3C" />
+        <SolidColorBrush x:Key="PageBrushWarn"
+                         Color="#FFF39C12" />
+        <SolidColorBrush x:Key="PageBrushFatal"
+                         Color="#FFC23616" />
+        <SolidColorBrush x:Key="PageBrushDebug"
+                         Color="#FF95A5A6" />
+    </Styles.Resources>
+
+    <Style Selector="UserControl">
+        <Setter Property="Background"
+                Value="{StaticResource PageBrushBackground}" />
+    </Style>
+
+    <Style Selector="TextBlock">
+        <Setter Property="FontSize"
+                Value="13" />
+        <Setter Property="Foreground"
+                Value="{StaticResource PageBrushText}" />
+        <Setter Property="TextTrimming"
+                Value="CharacterEllipsis" />
+    </Style>
+    <Style Selector="TextBlock.PageTitle">
+        <Setter Property="FontSize"
+                Value="20" />
+        <Setter Property="FontWeight"
+                Value="SemiBold" />
+        <Setter Property="Margin"
+                Value="0,0,0,14" />
+    </Style>
+    <Style Selector="TextBlock.SectionTitle">
+        <Setter Property="FontSize"
+                Value="12" />
+        <Setter Property="Opacity"
+                Value="0.6" />
+        <Setter Property="Margin"
+                Value="13,18,5,4" />
+    </Style>
+    <Style Selector="TextBlock.RowTitle">
+        <Setter Property="FontSize"
+                Value="14" />
+        <Setter Property="TextTrimming"
+                Value="CharacterEllipsis" />
+    </Style>
+    <Style Selector="TextBlock.RowInfo">
+        <Setter Property="FontSize"
+                Value="12" />
+        <Setter Property="Foreground"
+                Value="{StaticResource PageBrushTextSecondary}" />
+    </Style>
+    <Style Selector="TextBlock.Hint">
+        <Setter Property="FontSize"
+                Value="12" />
+        <Setter Property="Foreground"
+                Value="{StaticResource PageBrushTextSecondary}" />
+        <Setter Property="TextWrapping"
+                Value="Wrap" />
+    </Style>
+
+    <Style Selector="Border.Card">
+        <Setter Property="Background"
+                Value="{StaticResource PageBrushCard}" />
+        <Setter Property="BorderBrush"
+                Value="{StaticResource PageBrushCardBorder}" />
+        <Setter Property="BorderThickness"
+                Value="1" />
+        <Setter Property="CornerRadius"
+                Value="6" />
+        <Setter Property="BoxShadow"
+                Value="0 2 8 0 #1A000000" />
+    </Style>
+    <Style Selector="Border.PageListItem">
+        <Setter Property="Background"
+                Value="Transparent" />
+        <Setter Property="CornerRadius"
+                Value="6" />
+        <Setter Property="Padding"
+                Value="8,6" />
+        <Setter Property="Margin"
+                Value="4,1" />
+    </Style>
+    <Style Selector="Border.PageListItem:pointerover">
+        <Setter Property="Background"
+                Value="{StaticResource PageBrushItemHover}" />
+    </Style>
+    <Style Selector="Border.PageListItem.Checked">
+        <Setter Property="Background"
+                Value="{StaticResource PageBrushItemChecked}" />
+    </Style>
+
+    <Style Selector="Button">
+        <Setter Property="Padding"
+                Value="14,6" />
+        <Setter Property="CornerRadius"
+                Value="4" />
+        <Setter Property="Background"
+                Value="{StaticResource PageBrushAccent}" />
+        <Setter Property="Foreground"
+                Value="#FFFFFFFF" />
+        <Setter Property="BorderThickness"
+                Value="0" />
+        <Setter Property="HorizontalContentAlignment"
+                Value="Center" />
+        <Setter Property="VerticalContentAlignment"
+                Value="Center" />
+    </Style>
+    <Style Selector="Button:pointerover">
+        <Setter Property="Background"
+                Value="{StaticResource PageBrushAccentHover}" />
+    </Style>
+    <Style Selector="Button.PageIconButton">
+        <Setter Property="Padding"
+                Value="0" />
+        <Setter Property="Width"
+                Value="28" />
+        <Setter Property="Height"
+                Value="28" />
+        <Setter Property="Background"
+                Value="Transparent" />
+        <Setter Property="Foreground"
+                Value="{StaticResource PageBrushTextSecondary}" />
+        <Setter Property="FontSize"
+                Value="15" />
+    </Style>
+    <Style Selector="Button.PageIconButton:pointerover">
+        <Setter Property="Background"
+                Value="{StaticResource PageBrushItemHover}" />
+        <Setter Property="Foreground"
+                Value="{StaticResource PageBrushText}" />
+    </Style>
+    <Style Selector="Button.PageLinkButton">
+        <Setter Property="Padding"
+                Value="4,2" />
+        <Setter Property="Background"
+                Value="Transparent" />
+        <Setter Property="Foreground"
+                Value="{StaticResource PageBrushAccent}" />
+    </Style>
+    <Style Selector="Button.PageLinkButton:pointerover">
+        <Setter Property="Background"
+                Value="{StaticResource PageBrushAccentLight}" />
+        <Setter Property="Foreground"
+                Value="{StaticResource PageBrushAccent}" />
+    </Style>
+
+    <Style Selector="RadioButton">
+        <Setter Property="MinWidth"
+                Value="0" />
+        <Setter Property="Padding"
+                Value="0" />
+        <Setter Property="VerticalAlignment"
+                Value="Center" />
+    </Style>
+    <Style Selector="MenuItem">
+        <Setter Property="FontSize"
+                Value="13" />
+    </Style>
+</Styles>

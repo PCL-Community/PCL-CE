@@ -46,6 +46,10 @@ public sealed class AvaloniaApplicationHost : IApplicationHost
         Dispatcher.UIThread.UnhandledException += (_, e) =>
             DispatcherUnhandledException?.Invoke(e.Exception);
 
+        // 语言资源字典必须在加载流程的 Lang.Text 调用前进入应用资源
+        if (PlatformServices.Localization is AvaloniaLocalizationBackend localization)
+            localization.EnsureBaseLanguage();
+
         Startup?.Invoke();
     }
 
