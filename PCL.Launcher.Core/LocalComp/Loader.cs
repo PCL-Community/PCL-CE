@@ -259,7 +259,10 @@ public static partial class LocalComp
 
     private static bool ShouldSkipResourceFile(FileInfo file, string rawName)
     {
-        if ((file.DirectoryName ?? "").Equals(rawName, StringComparison.CurrentCultureIgnoreCase))
+        // 输入路径可能带结尾分隔符（如 "...\mods\"），而 FileInfo.DirectoryName 不带，比较前统一去掉
+        var fileFolder = (file.DirectoryName ?? "").TrimEnd('\\', '/');
+        var targetFolder = rawName.TrimEnd('\\', '/');
+        if (fileFolder.Equals(targetFolder, StringComparison.CurrentCultureIgnoreCase))
             return false;
 
         return !(LauncherState.SelectedInstance is not null
