@@ -236,7 +236,34 @@
                     </Setter.Value>
                 </Setter>
             </Style>
-            <Style TargetType="local:PageComp" BasedOn="{StaticResource {x:Type local:MyScrollViewer}}" />
+            <!-- 虚拟化列表的滚动宿主：使用原生像素滚动，避免平滑滚轮动画逐帧改变偏移量导致容器反复 realize/remove -->
+            <Style x:Key="VirtualizedScrollViewer" TargetType="local:MyScrollViewer"
+                   BasedOn="{StaticResource {x:Type local:MyScrollViewer}}">
+                <Setter Property="CanContentScroll" Value="True" />
+                <Setter Property="EnableSmoothWheel" Value="False" />
+                <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+            </Style>
+            <!-- 虚拟化列表：原生 VirtualizingStackPanel + 容器回收。
+                 必须作为 CanContentScroll=True 的滚动宿主的直接内容才能拿到视口并虚拟化。 -->
+            <Style x:Key="VirtualizedItemsControl" TargetType="ItemsControl">
+                <Setter Property="VirtualizingPanel.IsVirtualizing" Value="True" />
+                <Setter Property="VirtualizingPanel.IsVirtualizingWhenGrouping" Value="True" />
+                <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling" />
+                <Setter Property="VirtualizingPanel.ScrollUnit" Value="Pixel" />
+                <Setter Property="VirtualizingPanel.CacheLength" Value="1,1" />
+                <Setter Property="VirtualizingPanel.CacheLengthUnit" Value="Page" />
+                <Setter Property="ItemsPanel">
+                    <Setter.Value>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel VirtualizingPanel.IsVirtualizing="True"
+                                                    VirtualizingPanel.VirtualizationMode="Recycling"
+                                                    VirtualizingPanel.ScrollUnit="Pixel"
+                                                    VirtualizingPanel.CacheLength="1,1"
+                                                    VirtualizingPanel.CacheLengthUnit="Page" />
+                        </ItemsPanelTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
             <Style TargetType="ScrollViewer" x:Key="ScrollViewerFullMargin">
                 <Setter Property="OverridesDefaultStyle" Value="True" />
                 <Setter Property="CanContentScroll" Value="False" />

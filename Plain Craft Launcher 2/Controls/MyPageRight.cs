@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
@@ -57,10 +57,21 @@ public class MyPageRight : AdornerDecorator
             if (field == value)
                 return;
             field = value;
+            // 通知等待退出动画结束的加载器线程：页面已离开退出状态（或已进入退出状态）
+            if (value is PageStates.PageExit or PageStates.ContentExit)
+                _pageExitDone.Reset();
+            else
+                _pageExitDone.Set();
             if (Common.modeDebug)
                 Common.Log("[UI] 页面状态切换为 " + Common.GetStringFromEnum(value));
         }
     } = PageStates.Empty;
+
+    /// <summary>
+    ///     页面是否处于退出动画中。用于让加载器线程等待退出动画结束，而不是忙等。
+    ///     初始为已置位（没有退出动画在进行）。
+    /// </summary>
+    private readonly ManualResetEventSlim _pageExitDone = new(true);
 
     #region 加载器
 
@@ -100,10 +111,15 @@ public class MyPageRight : AdornerDecorator
         if (finishedInvoke is not null)
             realLoader.PreviewFinish += _ =>
             {
-                while (PageState == PageStates.PageExit || PageState == PageStates.ContentExit)
-                    Thread.Sleep(10); // 不在退出动画时执行 UI 线程操作，避免退出动画被重置
+                // 不在退出动画时执行 UI 线程操作，避免退出动画被重置。
+                // 使用事件等待代替 Thread.Sleep 忙等：加载器线程在后台等待，不会阻塞 UI 线程。
+                _pageExitDone.Wait(TimeSpan.FromSeconds(2));
                 Common.RunInUiWait(() => finishedInvoke(realLoader));
-                Thread.Sleep(20); // 由于大量初始化控件会导致掉帧，延迟触发 State 改变事件
+                // 让 UI 线程完成一次布局与渲染后再触发 State 改变事件，避免大量控件初始化导致的掉帧。
+                // 使用 Render 优先级排队（低于 Normal），因此会排在 finishedInvoke 引发的布局之后。
+                if (!Common.RunInUi())
+                    System.Windows.Application.Current?.Dispatcher.Invoke(() => { },
+                        System.Windows.Threading.DispatcherPriority.Render);
             };
         realLoader.OnStateChangedUi += (loader, newState, oldState) =>
             Common.RunInUi(() => PageLoaderState(loader, newState, oldState));
