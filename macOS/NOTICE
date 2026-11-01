@@ -1,0 +1,33 @@
+PCL Mac - experimental independent native macOS port
+
+Original project: Plain Craft Launcher (PCL)
+Original author: 龙腾猫跃
+Original author support: https://meloong.com/afd/a/LTCat
+Source repository: https://github.com/Meloong-Git/PCL
+Source revision: 93ede5d9e638c99fcec853a9ba1eecd91ceee7f5
+Pinned source: https://github.com/Meloong-Git/PCL/tree/93ede5d9e638c99fcec853a9ba1eecd91ceee7f5
+
+This is a third-party SwiftUI implementation. It is not an official macOS
+release from the original PCL author and is not integrated with the CE C# core.
+The original PCL author and contributors retain their respective rights.
+
+macOS/LICENCE preserves the original LICENCE file from the revision above,
+including its reference to the PCL distribution terms and its repository
+usage guide. These terms have not been replaced by the root Apache License.
+
+Source-derived resources include images from Plain Craft Launcher 2/Images/,
+Font.ttf from Plain Craft Launcher 2/Resources/Font.ttf, and icons converted
+from original XAML path geometry. The source-map.json files under Resources/
+record the original XAML paths and geometry hashes. AppIcon.icns is derived
+from the original PCL artwork. Original contributor attribution, including
+HerobrineXia, is also retained in the application's About page.
+
+OfflineLogin.swift separately records its GetStableHashCode implementation
+reference from MeloongCore at revision
+4c60c2962c3b50bc3fe96ed5dd9259b980173580:
+https://github.com/Meloong-Git/MeloongCore/blob/4c60c2962c3b50bc3fe96ed5dd9259b980173580/Shared/Extensions/StringExtensions.cs#L392-L396
+
+Individual third-party images, logos, skins and Font.ttf may have separate
+rights and terms. Maintainer review of those terms and the distribution scope
+is pending. This notice records provenance; it does not grant permissions or
+assert authorization to relicense any third-party resource.

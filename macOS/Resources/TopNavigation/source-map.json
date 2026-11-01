@@ -1,0 +1,78 @@
+{
+  "Launch": {
+    "source": "Plain Craft Launcher 2/FormMain.xaml",
+    "sourceElement": "BtnTitleSelect0",
+    "sourceLine": 121,
+    "sourceLogoScale": 0.9,
+    "sourceGeometrySHA256": "0cb42ac4f552780bb95cde1021489861065227ce6411ac03205e697fadd4354b",
+    "pdfSHA256": "3e9b869c57633edb74fea1c7c07f55c36eb66510054dfd1ec441977797474f22",
+    "geometryBounds": [
+      43.9,
+      35.599999999999994,
+      157.2,
+      164.5
+    ],
+    "pdfCommands": 19,
+    "sourceBaseSize": 16,
+    "macBaseSize": 20,
+    "macLayoutScale": 1.25,
+    "fillRule": "evenOdd"
+  },
+  "Download": {
+    "source": "Plain Craft Launcher 2/FormMain.xaml",
+    "sourceElement": "BtnTitleSelect1",
+    "sourceLine": 123,
+    "sourceLogoScale": 0.9,
+    "sourceGeometrySHA256": "d84f2be88b4ad7507cebcee834bd7e344b615679d23f14a7db7fe5cb6263cd7b",
+    "pdfSHA256": "ab6cf2ede336e0f5788a64f352696a8c93f23b776b0841ffa33a839bc28b20d1",
+    "geometryBounds": [
+      43.0,
+      39.0,
+      986.0,
+      983.0
+    ],
+    "pdfCommands": 38,
+    "sourceBaseSize": 16,
+    "macBaseSize": 20,
+    "macLayoutScale": 1.25,
+    "fillRule": "evenOdd"
+  },
+  "Settings": {
+    "source": "Plain Craft Launcher 2/FormMain.xaml",
+    "sourceElement": "BtnTitleSelect3",
+    "sourceLine": 127,
+    "sourceLogoScale": 1.1,
+    "sourceGeometrySHA256": "98ec5f90dcb5dca409f2092c7611c9939e99753848daa922848468756433632c",
+    "pdfSHA256": "0a8aca24b5356dfa9c2b94ff7273e44f14e0aee1c60b23707f9e871b71ce1e6a",
+    "geometryBounds": [
+      76.22500000000001,
+      125.79999999999998,
+      953.3749999999998,
+      898.4
+    ],
+    "pdfCommands": 48,
+    "sourceBaseSize": 16,
+    "macBaseSize": 20,
+    "macLayoutScale": 1.25,
+    "fillRule": "evenOdd"
+  },
+  "More": {
+    "source": "Plain Craft Launcher 2/FormMain.xaml",
+    "sourceElement": "BtnTitleSelect4",
+    "sourceLine": 129,
+    "sourceLogoScale": 0.93,
+    "sourceGeometrySHA256": "9b78cf19a3d742b56db4ebc6e5801adc498a18fe2137d2f7bb9e76b15fdeab78",
+    "pdfSHA256": "b9ee974361bbb9574ccb8da206611ea9650d7c33c318d1939d180c730c80d9b5",
+    "geometryBounds": [
+      0.0,
+      0.0,
+      1024.0,
+      1023.0179115033519
+    ],
+    "pdfCommands": 64,
+    "sourceBaseSize": 16,
+    "macBaseSize": 20,
+    "macLayoutScale": 1.25,
+    "fillRule": "evenOdd"
+  }
+}

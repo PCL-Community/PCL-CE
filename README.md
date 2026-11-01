@@ -57,9 +57,12 @@ PCL CE 是基于 PCL 开源代码二次开发的社区版本，包括了主线�
 PCL CE 始终建议使用最新版本的操作系统以获得最佳体验。    
 你仍然可以尝试在不受支持的系统上使用 PCL CE，但可能会遇到很多额外问题。
 
+原生 macOS 实验移植位于 [macOS/](macOS/README.md)，使用 SwiftUI 独立构建，与 CE 的 C# 核心尚未集成。功能范围、构建方法与限制见该目录说明。
+
 ## 🔒 许可证
 
 - `Plain Craft Launcher 2/` 使用 [自定义许可证](https://github.com/PCL-Community/PCL-CE/blob/dev/Plain%20Craft%20Launcher%202/LICENCE)
+- `macOS/` 保留原 PCL 的[许可与使用指南](macOS/LICENCE)，来源及第三方资源说明见 [NOTICE](macOS/NOTICE)，不适用下列 Apache 许可声明。
 - `其余所有目录` 使用 [Apache License 2.0](https://github.com/PCL-Community/PCL-CE/blob/dev/LICENSE)
 
 ## 🌟 统计数据

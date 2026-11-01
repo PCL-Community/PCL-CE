@@ -192,6 +192,12 @@
 
    Licensed under some custom terms discribed in the 'Plain Craft Launcher 2/LICENCE' file.
 
+   SPECIAL DIRECTORY: macOS/
+
+   The original PCL terms and usage guide are preserved in 'macOS/LICENCE'.
+   See 'macOS/NOTICE' for source attribution and third-party resource notes.
+   The Apache License below does not relicense this directory or its resources.
+
    ALL THE OTHER DIRECTORIES
 
    Licensed under the Apache License, Version 2.0 (the "License");

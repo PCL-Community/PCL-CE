@@ -1,0 +1,65 @@
+name: PCLMac
+options:
+  bundleIdPrefix: app.pcl.swiftui
+  deploymentTarget:
+    macOS: "14.0"
+packages:
+  PCLCore:
+    path: .
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+targets:
+  PCLMac:
+    type: application
+    platform: macOS
+    sources:
+      - Sources/PCLMac
+      - path: Resources
+        buildPhase: resources
+        excludes:
+          - Info.plist
+          - Skins
+          - ReleaseTypes
+          - VersionActions
+          - InstanceNavigation
+          - TopNavigation
+          - SourceIcons
+      - path: Resources/Skins
+        type: folder
+        buildPhase: resources
+      - path: Resources/ReleaseTypes
+        type: folder
+        buildPhase: resources
+      - path: Resources/VersionActions
+        type: folder
+        buildPhase: resources
+      - path: Resources/InstanceNavigation
+        type: folder
+        buildPhase: resources
+      - path: Resources/TopNavigation
+        type: folder
+        buildPhase: resources
+      - path: Resources/SourceIcons
+        type: folder
+        buildPhase: resources
+      - path: LICENCE
+        buildPhase: resources
+    dependencies:
+      - package: PCLCore
+        product: PCLCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.pcl.swiftui.thirdparty
+        PRODUCT_NAME: PCL Mac版
+        EXECUTABLE_NAME: PCL-SwiftUI
+        INFOPLIST_FILE: Resources/Info.plist
+        CODE_SIGN_STYLE: Automatic
+        ENABLE_APP_SANDBOX: NO
+        COMBINE_HIDPI_IMAGES: YES
+schemes:
+  PCLMac:
+    build:
+      targets:
+        PCLMac: all

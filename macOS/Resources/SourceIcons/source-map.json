@@ -1,0 +1,1140 @@
+{
+  "Vanilla": {
+    "source": "Plain Craft Launcher 2/Pages/PageDownload/PageDownloadLeft.xaml",
+    "sourceSelector": "ItemInstall.Logo",
+    "sourceLine": 9,
+    "sourceScale": 1.0,
+    "sourceGeometrySHA256": "d84ee02888607bc2b667b40b51c150d446ae408a07d9cec11cbea66941cfc93b",
+    "pdfSHA256": "35988eeda415423f6c7c54d05ef66db82d275b59b2da124e2e43cf7230817539",
+    "geometryBounds": [
+      0.024512839247435678,
+      0.0,
+      702.3999999999997,
+      801.7
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Vanilla.pdf"
+  },
+  "Mod": {
+    "source": "Plain Craft Launcher 2/Pages/PageDownload/PageDownloadLeft.xaml",
+    "sourceSelector": "ItemMod.Logo",
+    "sourceLine": 18,
+    "sourceScale": 0.97,
+    "sourceGeometrySHA256": "07f70682c71bbd58c4ca42337816ae418c7e5dc4e7e6d2bbc57612eafe14912b",
+    "pdfSHA256": "320946403863db7c025eff0b6b559a6eb4531e9d639a9f78fc01822fedabfcb2",
+    "geometryBounds": [
+      164.3485265463886,
+      110.59199999999998,
+      963.5840000000001,
+      912.9085706153814
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Mod.pdf"
+  },
+  "Modpack": {
+    "source": "Plain Craft Launcher 2/Pages/PageDownload/PageDownloadLeft.xaml",
+    "sourceSelector": "ItemPack.Logo",
+    "sourceLine": 26,
+    "sourceScale": 0.98,
+    "sourceGeometrySHA256": "59b91d6b22e96a8272390df933f7db0a426d62bc8c517241ac900b04caee1598",
+    "pdfSHA256": "5613df635cdc8d200a4b3bff74a97a7115b055111d9a9fd04c92f612da8c85a3",
+    "geometryBounds": [
+      -0.0005585785660315164,
+      0.09995655950524451,
+      1021.0178296202487,
+      995.0024384901847
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Modpack.pdf"
+  },
+  "Datapack": {
+    "source": "Plain Craft Launcher 2/Pages/PageDownload/PageDownloadLeft.xaml",
+    "sourceSelector": "ItemDataPack.Logo",
+    "sourceLine": 34,
+    "sourceScale": 0.96,
+    "sourceGeometrySHA256": "127c0a77cc0f9ed0dffab579420392054a1c745cf910c9939d6458b263c92dbb",
+    "pdfSHA256": "a9607059739d9b4c7cf751ebfb6d2422f2e81581394edb770970e645cc2e1439",
+    "geometryBounds": [
+      113.5,
+      112.0,
+      909.5,
+      909.0
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Datapack.pdf"
+  },
+  "Resourcepack": {
+    "source": "Plain Craft Launcher 2/Pages/PageDownload/PageDownloadLeft.xaml",
+    "sourceSelector": "ItemResourcePack.Logo",
+    "sourceLine": 42,
+    "sourceScale": 0.81,
+    "sourceGeometrySHA256": "0657503de2a1d9c4ac08f371b7d68625f48fda3e90e6f521451c419fd79fdc40",
+    "pdfSHA256": "3c5082dd4e0931050b0b1c0f39fad78dc379f8f9d49cfcce959f7219653cd4f3",
+    "geometryBounds": [
+      64.6,
+      130.6,
+      960.4,
+      895.9
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Resourcepack.pdf"
+  },
+  "Shader": {
+    "source": "Plain Craft Launcher 2/Pages/PageDownload/PageDownloadLeft.xaml",
+    "sourceSelector": "ItemShader.Logo",
+    "sourceLine": 50,
+    "sourceScale": 1.04,
+    "sourceGeometrySHA256": "aa7e601768a06b3908e5cabd84192febf6a08f10e09eb90ee11a46fea103250a",
+    "pdfSHA256": "b397c113f7389d0fe66282f62ddac7da6e14379b5a37a99d8d7591d212650d01",
+    "geometryBounds": [
+      0.0,
+      0.0,
+      1022.0,
+      1022.0
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Shader.pdf"
+  },
+  "SetupLaunch": {
+    "source": "Plain Craft Launcher 2/Pages/PageSetup/PageSetupLeft.xaml",
+    "sourceSelector": "ItemLaunch.Logo",
+    "sourceLine": 8,
+    "sourceScale": 0.8,
+    "sourceGeometrySHA256": "0cb42ac4f552780bb95cde1021489861065227ce6411ac03205e697fadd4354b",
+    "pdfSHA256": "3e9b869c57633edb74fea1c7c07f55c36eb66510054dfd1ec441977797474f22",
+    "geometryBounds": [
+      43.9,
+      35.599999999999994,
+      157.2,
+      164.5
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "SetupLaunch.pdf"
+  },
+  "Online": {
+    "source": "Plain Craft Launcher 2/Pages/PageSetup/PageSetupLeft.xaml",
+    "sourceSelector": "ItemLink.Logo",
+    "sourceLine": 16,
+    "sourceScale": 0.77,
+    "sourceGeometrySHA256": "475154fc487fe60bcdf7fd2ccb421e96f843dcddf8f339caf6318fdd0aee7e03",
+    "pdfSHA256": "87319e93af6b9eb6fb495d9bd393984f8248510033f37422785feaf0996cf9f1",
+    "geometryBounds": [
+      101.99962755485475,
+      208.0,
+      922.1510000000001,
+      817.0
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Online.pdf"
+  },
+  "Personalize": {
+    "source": "Plain Craft Launcher 2/Pages/PageSetup/PageSetupLeft.xaml",
+    "sourceSelector": "ItemUI.Logo",
+    "sourceLine": 24,
+    "sourceScale": 0.9,
+    "sourceGeometrySHA256": "65fcdba6ba676252cb1ffdc2bbfc6c4f526693f9472eb7f7ade01b59702aacbf",
+    "pdfSHA256": "f5e22e2ccf0879bfacca27d6c08b87d2426405810ae303ce0c4141daa15b8ee6",
+    "geometryBounds": [
+      -0.050474778268672305,
+      -1.3288302172710001e-05,
+      1125.799599640647,
+      1023.9000000000001
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Personalize.pdf"
+  },
+  "SetupOther": {
+    "source": "Plain Craft Launcher 2/Pages/PageSetup/PageSetupLeft.xaml",
+    "sourceSelector": "ItemSystem.Logo",
+    "sourceLine": 32,
+    "sourceScale": 0.8,
+    "sourceGeometrySHA256": "9b78cf19a3d742b56db4ebc6e5801adc498a18fe2137d2f7bb9e76b15fdeab78",
+    "pdfSHA256": "b9ee974361bbb9574ccb8da206611ea9650d7c33c318d1939d180c730c80d9b5",
+    "geometryBounds": [
+      0.0,
+      0.0,
+      1024.0,
+      1023.0179115033519
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "SetupOther.pdf"
+  },
+  "Help": {
+    "source": "Plain Craft Launcher 2/Pages/PageOther/PageOtherLeft.xaml",
+    "sourceSelector": "ItemHelp.Logo",
+    "sourceLine": 7,
+    "sourceScale": 0.97,
+    "sourceGeometrySHA256": "3377fb49cd22af8aad2f4d941c891465ea52b05c349c00c18021c9ea28ae3795",
+    "pdfSHA256": "71f2b78cb4f5a3768421ce750b35b3358b7057676852b361d58dce7da0b9fdd9",
+    "geometryBounds": [
+      101.30000000000001,
+      100.9,
+      928.7000403905158,
+      928.3
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Help.pdf"
+  },
+  "About": {
+    "source": "Plain Craft Launcher 2/Pages/PageOther/PageOtherLeft.xaml",
+    "sourceSelector": "ItemAbout.Logo",
+    "sourceLine": 15,
+    "sourceScale": 0.98,
+    "sourceGeometrySHA256": "cf234d44e6b687f321998092de6a3d9e221c020b0f5e278c921ac00188a46663",
+    "pdfSHA256": "1521afed27c0bfff00562d97813010b0cbc53f600d805a00f17c7c7d5d8ef784",
+    "geometryBounds": [
+      0.0,
+      0.0,
+      1024.0,
+      1024.0
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "About.pdf"
+  },
+  "Tools": {
+    "source": "Plain Craft Launcher 2/Pages/PageOther/PageOtherLeft.xaml",
+    "sourceSelector": "ItemTest.Logo",
+    "sourceLine": 17,
+    "sourceScale": 0.97,
+    "sourceGeometrySHA256": "59b91d6b22e96a8272390df933f7db0a426d62bc8c517241ac900b04caee1598",
+    "pdfSHA256": "5613df635cdc8d200a4b3bff74a97a7115b055111d9a9fd04c92f612da8c85a3",
+    "geometryBounds": [
+      -0.0005585785660315164,
+      0.09995655950524451,
+      1021.0178296202487,
+      995.0024384901847
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Tools.pdf"
+  },
+  "Feedback": {
+    "source": "Plain Craft Launcher 2/Pages/PageOther/PageOtherLeft.xaml",
+    "sourceSelector": "ItemFeedback.Logo",
+    "sourceLine": 19,
+    "sourceScale": 0.9,
+    "sourceGeometrySHA256": "4b84daf254e54b2fce3cd6b5c6ccced738f0b05930c3c8e7a9124699ce6a5e31",
+    "pdfSHA256": "4b138ae15bd75c92eaa32bf9cd6dcb0e633042f47a2b781dd4a241ff9fd22484",
+    "geometryBounds": [
+      42.666667000000004,
+      42.679048907736586,
+      981.333333,
+      981.333333
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Feedback.pdf"
+  },
+  "Vote": {
+    "source": "Plain Craft Launcher 2/Pages/PageOther/PageOtherLeft.xaml",
+    "sourceSelector": "ItemVote.Logo",
+    "sourceLine": 21,
+    "sourceScale": 0.92,
+    "sourceGeometrySHA256": "dc7c700c9358cacab3a5ee2fff69a3939b788065100960da17db9609baac873d",
+    "pdfSHA256": "60af112dadb4a6e45fb589abce76714955310910174faa3d82755edad7b1c794",
+    "geometryBounds": [
+      0.0,
+      0.0,
+      1024.0,
+      1024.0
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Vote.pdf"
+  },
+  "AccountPremium": {
+    "source": "Plain Craft Launcher 2/Pages/PageLaunch/PageLaunchLeft.xaml",
+    "sourceSelector": "RadioLoginType5.Logo",
+    "sourceLine": 52,
+    "sourceScale": 1.0,
+    "sourceGeometrySHA256": "3110e35d1eb790e26abdf6fefe8241c21f0ba5af41b644a3b327f9d492177a30",
+    "pdfSHA256": "d6ec91932d6be9acc04c14709bd719c698c62ab40bb65e9c40d1eb795ebbbb46",
+    "geometryBounds": [
+      71.90005,
+      0.0,
+      952.09995,
+      1023.4882560000001
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "AccountPremium.pdf"
+  },
+  "AccountOffline": {
+    "source": "Plain Craft Launcher 2/Pages/PageLaunch/PageLaunchLeft.xaml",
+    "sourceSelector": "RadioLoginType0.Logo",
+    "sourceLine": 54,
+    "sourceScale": 0.85,
+    "sourceGeometrySHA256": "7aaaca266fbc69dcf68a66744fe9f9b60ca2fd43f5c815d390e49735c78a697d",
+    "pdfSHA256": "3ac90c9fc6d9969b0c02155c9d698455f50859d5bd579bdbe1e42eef28862277",
+    "geometryBounds": [
+      10.330352999999953,
+      10.33035300000001,
+      1013.669647,
+      1013.669647
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "AccountOffline.pdf"
+  },
+  "GameVersion": {
+    "source": "Plain Craft Launcher 2/Pages/PageDownload/Resource/MyResourceItem.xaml",
+    "sourceSelector": "PathVersion.Data",
+    "sourceLine": 70,
+    "sourceScale": 1.0,
+    "sourceGeometrySHA256": "98ec5f90dcb5dca409f2092c7611c9939e99753848daa922848468756433632c",
+    "pdfSHA256": "0a8aca24b5356dfa9c2b94ff7273e44f14e0aee1c60b23707f9e871b71ce1e6a",
+    "geometryBounds": [
+      76.22500000000001,
+      125.79999999999998,
+      953.3749999999998,
+      898.4
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "GameVersion.pdf"
+  },
+  "Download": {
+    "source": "Plain Craft Launcher 2/Pages/PageDownload/Resource/MyResourceItem.xaml",
+    "sourceSelector": "PathDownload.Data",
+    "sourceLine": 74,
+    "sourceScale": 1.0,
+    "sourceGeometrySHA256": "d84f2be88b4ad7507cebcee834bd7e344b615679d23f14a7db7fe5cb6263cd7b",
+    "pdfSHA256": "ab6cf2ede336e0f5788a64f352696a8c93f23b776b0841ffa33a839bc28b20d1",
+    "geometryBounds": [
+      43.0,
+      39.0,
+      986.0,
+      983.0
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Download.pdf"
+  },
+  "Date": {
+    "source": "Plain Craft Launcher 2/Pages/PageDownload/Resource/MyResourceItem.xaml",
+    "sourceSelector": "PathTime.Data",
+    "sourceLine": 77,
+    "sourceScale": 1.0,
+    "sourceGeometrySHA256": "6ea94cb57554d844a69c0b8eb81b22f9aa81da69a66a7a9360d46d6226731205",
+    "pdfSHA256": "0db7d48053e3822080f21a7086d18c8ea07702d7f741bd73c2f72153b3913293",
+    "geometryBounds": [
+      210.5,
+      78.5,
+      820.5,
+      946.0
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Date.pdf"
+  },
+  "Globe": {
+    "source": "Plain Craft Launcher 2/Pages/PageDownload/Resource/MyResourceItem.xaml",
+    "sourceSelector": "PathSource.Data",
+    "sourceLine": 80,
+    "sourceScale": 1.0,
+    "sourceGeometrySHA256": "58fcd74545dc5e6e268ff192c806e49653f29bcd72a022f5a877c89cb356b35d",
+    "pdfSHA256": "41f56509aad0486fcd5d6c76a970177c378dbb1db551bcb5191191786d3a4ef9",
+    "geometryBounds": [
+      142.0,
+      143.0,
+      880.0,
+      881.0
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Globe.pdf"
+  },
+  "PageFirst": {
+    "source": "Plain Craft Launcher 2/Pages/PageDownload/Resource/PageResource.xaml",
+    "sourceSelector": "BtnPageFirst.Logo",
+    "sourceLine": 81,
+    "sourceScale": 1.0,
+    "sourceGeometrySHA256": "4455322ac08cfe15bd3c8f3a889784c9a8406cf834f995b6ebbebd3443a12fef",
+    "pdfSHA256": "03a9f1f9ed4798c2b448c7be65f0f48f92474b6ce5474de3eccfc51573bf4605",
+    "geometryBounds": [
+      212.35200000000003,
+      257.0153550219108,
+      807.9483079010772,
+      765.2816409010768
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "PageFirst.pdf"
+  },
+  "PagePrevious": {
+    "source": "Plain Craft Launcher 2/Pages/PageDownload/Resource/PageResource.xaml",
+    "sourceSelector": "BtnPageLeft.Logo",
+    "sourceLine": 83,
+    "sourceScale": 1.0,
+    "sourceGeometrySHA256": "d224e04837747a7e2396aa774aa102e11d3b322adfae233b2820aadc5e72caf5",
+    "pdfSHA256": "445b432156dff4d17f1577a6659f42a7e1b69ff372452f565bf295e4d1d9a7b3",
+    "geometryBounds": [
+      306.474667,
+      206.04964802596436,
+      663.7776409010771,
+      834.4443079010769
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "PagePrevious.pdf"
+  },
+  "PageNext": {
+    "source": "Plain Craft Launcher 2/Pages/PageDownload/Resource/PageResource.xaml",
+    "sourceSelector": "BtnPageRight.Logo",
+    "sourceLine": 87,
+    "sourceScale": 1.0,
+    "sourceGeometrySHA256": "7845bdac538aa90028436a8be969f533ae708e2c373c8ab09334049069189414",
+    "pdfSHA256": "dd1ac4689857aa6bf2d59422e07af9188bbbdf306ceaa00707c752f1221c92a0",
+    "geometryBounds": [
+      391.2836920989236,
+      206.04964802596413,
+      748.5866669999999,
+      834.4443079010763
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "PageNext.pdf"
+  },
+  "PageLast": {
+    "source": "Plain Craft Launcher 2/Pages/PageDownload/Resource/PageResource.xaml",
+    "sourceSelector": "BtnPageFirst.Logo",
+    "sourceLine": 81,
+    "sourceScale": 1.0,
+    "aliasOf": "PageFirst",
+    "rotation": 180,
+    "sourceGeometrySHA256": "4455322ac08cfe15bd3c8f3a889784c9a8406cf834f995b6ebbebd3443a12fef",
+    "pdfSHA256": "d107934e25d77499fd832a96e6897a4aff75fbe4a6d807188a4489f855425dfb",
+    "geometryBounds": [
+      -807.9483079010772,
+      -765.2816409010768,
+      -212.3520000000001,
+      -257.01535502191075
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "PageLast.pdf"
+  },
+  "Delete": {
+    "source": "Plain Craft Launcher 2/Modules/Base/ModBase.vb",
+    "sourceSelector": "Public Const IconButtonDelete As String = \"([^\"]+)\"",
+    "sourceLine": 102,
+    "sourceGeometrySHA256": "354efc2bc38e6586e0d363634a2d3b58e89d25f6ce5e187c1f3d931cbd2eab88",
+    "pdfSHA256": "b5f3e23cac1b80edc04c7484344874fe56b51bcf57b9ccc6dd170dd1a60644be",
+    "geometryBounds": [
+      0.0730000000000004,
+      0.0,
+      1023.9270000000001,
+      1023.1949999999999
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Delete.pdf"
+  },
+  "Favorite": {
+    "source": "Plain Craft Launcher 2/Modules/Base/ModBase.vb",
+    "sourceSelector": "Public Const IconButtonLikeLine As String = \"([^\"]+)\"",
+    "sourceLine": 94,
+    "sourceGeometrySHA256": "c4a6c3ab5a0a369db369bfa6d22110f5be8bdd59026fd944b7a116546b6edd3f",
+    "pdfSHA256": "466fbf0c79d264ffc510cf5c996ec327360e1e675716e2d45450c0e21832de40",
+    "geometryBounds": [
+      85.27628277046408,
+      170.68679153569616,
+      938.7237172295361,
+      896.0007131420947
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Favorite.pdf"
+  },
+  "FavoriteFilled": {
+    "source": "Plain Craft Launcher 2/Modules/Base/ModBase.vb",
+    "sourceSelector": "Public Const IconButtonLikeFill As String = \"([^\"]+)\"",
+    "sourceLine": 98,
+    "sourceGeometrySHA256": "0aedee4942e5fce9742fe11aad7e60304f93f86ed518674c246e108d33d304a0",
+    "pdfSHA256": "d8343715bf4b9396ae44ddaf23487c53b939ae4e9ddb121bed275976557f4941",
+    "geometryBounds": [
+      76.311,
+      155.54199999999997,
+      945.3009999999999,
+      868.386
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "FavoriteFilled.pdf"
+  },
+  "Refresh": {
+    "source": "Plain Craft Launcher 2/Modules/Base/ModBase.vb",
+    "sourceSelector": "Public Const IconButtonRefresh As String = \"([^\"]+)\"",
+    "sourceLine": 126,
+    "sourceGeometrySHA256": "8516c6b294173a013881adc7680014330e3cb7add676f0b6cb5dd562c1a7ec33",
+    "pdfSHA256": "b5b3ca95866000c664dfe973633d5c1665d0ffe6bdd522eec5fbf28c32a5fe4d",
+    "geometryBounds": [
+      76.9,
+      76.6,
+      946.9000000000001,
+      947.4
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Refresh.pdf"
+  },
+  "Settings": {
+    "source": "Plain Craft Launcher 2/Modules/Base/ModBase.vb",
+    "sourceSelector": "Public Const IconButtonSetup As String = \"([^\"]+)\"",
+    "sourceLine": 118,
+    "sourceGeometrySHA256": "d1079b584c3c5bcfd418d1347c882987eb1970b4e13bcaae976155e794274f1e",
+    "pdfSHA256": "2b82a250013a6d7253c4dbdbc854ef2a6cb2175618be627ccb80648eaeb34198",
+    "geometryBounds": [
+      0.0,
+      20.901988370617715,
+      1025.7066670000002,
+      1001.8133330000001
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Settings.pdf"
+  },
+  "Info": {
+    "source": "Plain Craft Launcher 2/Modules/Base/ModBase.vb",
+    "sourceSelector": "Public Const IconButtonInfo As String = \"([^\"]+)\"",
+    "sourceLine": 134,
+    "sourceGeometrySHA256": "c112ca5ebac9bcff82f4c006481486af96503b5f4959e3780ae6a75ea04deadf",
+    "pdfSHA256": "18423448edaf0228e45f35ffb3c087b21cf26a8a4360eeaa05d6d4762a0828df",
+    "geometryBounds": [
+      0.0,
+      0.0,
+      1024.0,
+      1024.0
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Info.pdf"
+  },
+  "OpenFile": {
+    "source": "Plain Craft Launcher 2/Modules/Base/ModBase.vb",
+    "sourceSelector": "Public Const IconButtonOpen As String = \"([^\"]+)\"",
+    "sourceLine": 142,
+    "sourceGeometrySHA256": "e858830bb2ef041c54db46cf32350400f29891fd30d5df4b33209caafb943ea2",
+    "pdfSHA256": "1040f4fb71e3d04dff56d0f8a96a1fce6647e0cc52c8d92b1e253f61b06571d4",
+    "geometryBounds": [
+      46.545455,
+      139.40453845464546,
+      977.4545449999999,
+      884.4925775951033
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "OpenFile.pdf"
+  },
+  "Disable": {
+    "source": "Plain Craft Launcher 2/Modules/Base/ModBase.vb",
+    "sourceSelector": "Public Const IconButtonStop As String = \"([^\"]+)\"",
+    "sourceLine": 106,
+    "sourceGeometrySHA256": "e5b7edd5e40e40aa43ce6f6ba11c30a1e7647c63178253c174825461bd9ee1e5",
+    "pdfSHA256": "10c44af0970d7bc60f08bcbbf5ddc0370ea23ab465e75da734947781ef5a1914",
+    "geometryBounds": [
+      33.60000000000002,
+      41.6,
+      982.4,
+      990.4
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Disable.pdf"
+  },
+  "Enable": {
+    "source": "Plain Craft Launcher 2/Modules/Base/ModBase.vb",
+    "sourceSelector": "Public Const IconButtonCheck As String = \"([^\"]+)\"",
+    "sourceLine": 110,
+    "sourceGeometrySHA256": "14f77bafc66b6ae1b7ec6ca44a78d970e012ac35dcc4dbcdd9ad37f3129b2ed8",
+    "pdfSHA256": "a11a6fcef39505cbf9806c4bf1a89060b8e466f6790743d3272d0684bd4eb856",
+    "geometryBounds": [
+      0.0,
+      0.0,
+      1024.0,
+      1024.0
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Enable.pdf"
+  },
+  "Account": {
+    "source": "Plain Craft Launcher 2/Modules/Base/ModBase.vb",
+    "sourceSelector": "Public Const IconButtonUser As String = \"([^\"]+)\"",
+    "sourceLine": 166,
+    "sourceGeometrySHA256": "05803c336117c5038069f1a8751ee750667bff7a53e86cc2ad6d3056c7475e4a",
+    "pdfSHA256": "487d4e232dbb6564bc2a15b66679b00a35bbe5ebfa980e908c63c4600c28c31d",
+    "geometryBounds": [
+      98.74499999999995,
+      64.24799999999999,
+      925.2549999999999,
+      949.404
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Account.pdf"
+  },
+  "Log": {
+    "source": "Plain Craft Launcher 2/Modules/Base/ModBase.vb",
+    "sourceSelector": "Public Const IconButtonList As String = \"([^\"]+)\"",
+    "sourceLine": 138,
+    "sourceGeometrySHA256": "5cac2899d2e0c9801c5789cf8e29c83d1e62012185023909d7c517a3351f81d5",
+    "pdfSHA256": "9c17a09390d3200b1d1f0104eb0ad43a431343851140eaa5e86324f1a1565ace",
+    "geometryBounds": [
+      64.0,
+      96.0,
+      1024.0,
+      928.0
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Log.pdf"
+  },
+  "Update": {
+    "source": "Plain Craft Launcher 2/Modules/Base/ModBase.vb",
+    "sourceSelector": "Public Const IconButtonArrowUp As String = \"([^\"]+)\"",
+    "sourceLine": 146,
+    "sourceGeometrySHA256": "1380cc1d8a5aa516236853812c938a04fbb17cb58d523f4b505e18e77e002868",
+    "pdfSHA256": "d47cdb9de92f6ba98eaf263aa5c5e54b112e2ba7ba2b8866e64c7ffbb1a1f7bc",
+    "geometryBounds": [
+      181.0,
+      170.0,
+      843.0,
+      853.0
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Update.pdf"
+  },
+  "ArrowLeft": {
+    "source": "Plain Craft Launcher 2/Pages/PageDownload/PageDownloadInstall.xaml",
+    "sourceSelector": "BtnBack.Logo",
+    "sourceLine": 65,
+    "sourceScale": 0.87,
+    "sourceGeometrySHA256": "646a8b8a582d562412fe9cec3fba4ca18727b3da8f4448b107120f8dc144e355",
+    "pdfSHA256": "6c1056b8cc736c769207ca6bac7217e4a9e8ba467e7b46f74a1aec9c9dca23ca",
+    "geometryBounds": [
+      0.0,
+      0.0,
+      1170.0,
+      1022.75
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "ArrowLeft.pdf"
+  },
+  "Skin": {
+    "source": "Plain Craft Launcher 2/Pages/PageLaunch/PageLoginMsSkin.xaml",
+    "sourceSelector": "BtnSkin.Logo",
+    "sourceLine": 22,
+    "sourceScale": 1.08,
+    "sourceGeometrySHA256": "d9308230d586b7ac97d30ed30fa0669ab1a77452e955f86e9f4969786ed382ff",
+    "pdfSHA256": "1c9b085332e027b7a43a28e4a58cea6da277674ceb2f38bbecb6462b5a991165",
+    "geometryBounds": [
+      -0.009254927631182075,
+      0.07679332010606184,
+      1126.3224405625679,
+      1024.0
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Skin.pdf"
+  },
+  "TaskManager": {
+    "source": "Plain Craft Launcher 2/FormMain.xaml",
+    "sourceSelector": "BtnExtraDownload.Logo",
+    "sourceLine": 173,
+    "sourceScale": 1.1,
+    "sourceGeometrySHA256": "b2dad29ac15a07f63358b32eec5fd678bf49a19d48c01a7509b07ee7a7244a65",
+    "pdfSHA256": "c9128942b1281c05bf8dc2a61bc9ca80ffdd4edf1f83ca41ca162fdb2fe0157d",
+    "geometryBounds": [
+      187.73325,
+      215.04025000000001,
+      853.3330000000001,
+      853.3330000000001
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "TaskManager.pdf"
+  },
+  "Export": {
+    "source": "Plain Craft Launcher 2/Pages/PageInstance/PageInstanceExport.xaml",
+    "sourceSelector": "BtnExport.Logo",
+    "sourceLine": 312,
+    "sourceScale": 1.1,
+    "sourceGeometrySHA256": "59b91d6b22e96a8272390df933f7db0a426d62bc8c517241ac900b04caee1598",
+    "pdfSHA256": "5613df635cdc8d200a4b3bff74a97a7115b055111d9a9fd04c92f612da8c85a3",
+    "geometryBounds": [
+      -0.0005585785660315164,
+      0.09995655950524451,
+      1021.0178296202487,
+      995.0024384901847
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Export.pdf"
+  },
+  "Folder": {
+    "source": "Plain Craft Launcher 2/Pages/PageSelectLeft.xaml.vb",
+    "sourceSelector": "Dim ItemCreate As New MyListItem.*?\\.Logo = \"([^\"]+)\"",
+    "sourceLine": 95,
+    "sourceGeometrySHA256": "ac5cf0c091d964d75c5efc4ce96e8cd151b32206d5f67340f15fb86429a62b97",
+    "pdfSHA256": "2fbfb079138118f92f6e18e41a5dab668ef72fac679d95c772267a9d1808b87f",
+    "geometryBounds": [
+      69.36272652560892,
+      128.12816899999999,
+      952.204328,
+      891.4439859999999
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Folder.pdf"
+  },
+  "AddFolder": {
+    "source": "Plain Craft Launcher 2/Pages/PageSelectLeft.xaml.vb",
+    "sourceSelector": "Dim ItemAdd As New MyListItem.*?\\.Logo = \"([^\"]+)\"",
+    "sourceLine": 103,
+    "sourceGeometrySHA256": "d3235f3d70640224fe3123b127c7b5e369a790b44a9e311eda3139c3c7a9b88c",
+    "pdfSHA256": "d7c06e0bfab9e509335bd5fb835f0af30cacfade71b66ab096201fd446638ea3",
+    "geometryBounds": [
+      67.12,
+      68.06499999999997,
+      957.397,
+      954.412
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "AddFolder.pdf"
+  },
+  "ImportPack": {
+    "source": "Plain Craft Launcher 2/Pages/PageSelectLeft.xaml.vb",
+    "sourceSelector": "Dim ItemInstall As New MyListItem.*?\\.Logo = \"([^\"]+)\"",
+    "sourceLine": 110,
+    "sourceGeometrySHA256": "1240ced81b8483b26537015c2583aaa97c3d2fd777e407db8c3a6a86272ecd0e",
+    "pdfSHA256": "3fe1e5ad6859eb44eb7f6eb9650953c39baf5c5863cdd533af88383685e2c255",
+    "geometryBounds": [
+      35.84,
+      40.96,
+      987.64891894265,
+      983.04
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "ImportPack.pdf"
+  },
+  "Search": {
+    "source": "Plain Craft Launcher 2/Controls/MySearchBox.xaml",
+    "sourceSelector": "<Path\\b[^>]*\\bData=\"([^\"]+)\"",
+    "sourceLine": 12,
+    "sourceGeometrySHA256": "b576cbc248c8b88879ea6d63a9bf394cfb372c35c636184acfb44dafed4b24ae",
+    "pdfSHA256": "6e117a4168f6375da26a84fa874763b4fa46d17a2db975e51fcd48a0ffc93cd1",
+    "geometryBounds": [
+      -0.0031999999999996476,
+      -0.015999999999994685,
+      1023.1327999999999,
+      1023.1679999999999
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Search.pdf"
+  },
+  "Clear": {
+    "source": "Plain Craft Launcher 2/Controls/MySearchBox.xaml",
+    "sourceSelector": "BtnClear.Logo",
+    "sourceLine": 13,
+    "sourceScale": 0.75,
+    "sourceGeometrySHA256": "089ea0ef50dd217916362e226b8226b89d98675510b3ea5afe3b4235ba93d2b8",
+    "pdfSHA256": "1a9fa61421676f5cf28eb13a5f2e7e4c35f3c730d2fe619652be121fb908b94c",
+    "geometryBounds": [
+      0.0,
+      0.0,
+      20.0,
+      20.0
+    ],
+    "fillRule": "nonzero",
+    "template": true,
+    "resource": "Clear.pdf"
+  },
+  "Close": {
+    "source": "Plain Craft Launcher 2/Controls/MySearchBox.xaml",
+    "sourceSelector": "BtnClear.Logo",
+    "sourceLine": 13,
+    "sourceScale": 0.75,
+    "aliasOf": "Clear",
+    "sourceGeometrySHA256": "089ea0ef50dd217916362e226b8226b89d98675510b3ea5afe3b4235ba93d2b8",
+    "pdfSHA256": "1a9fa61421676f5cf28eb13a5f2e7e4c35f3c730d2fe619652be121fb908b94c",
+    "geometryBounds": [
+      0.0,
+      0.0,
+      20.0,
+      20.0
+    ],
+    "fillRule": "nonzero",
+    "template": true,
+    "resource": "Close.pdf"
+  },
+  "TaskCancel": {
+    "source": "Plain Craft Launcher 2/Controls/MySearchBox.xaml",
+    "sourceSelector": "BtnClear.Logo",
+    "sourceLine": 13,
+    "sourceScale": 0.75,
+    "aliasOf": "Clear",
+    "sourceGeometrySHA256": "089ea0ef50dd217916362e226b8226b89d98675510b3ea5afe3b4235ba93d2b8",
+    "pdfSHA256": "1a9fa61421676f5cf28eb13a5f2e7e4c35f3c730d2fe619652be121fb908b94c",
+    "geometryBounds": [
+      0.0,
+      0.0,
+      20.0,
+      20.0
+    ],
+    "fillRule": "nonzero",
+    "template": true,
+    "resource": "TaskCancel.pdf"
+  },
+  "Check": {
+    "source": "Plain Craft Launcher 2/Controls/MyCheckBox.xaml",
+    "sourceSelector": "ShapeCheck.Data",
+    "sourceLine": 9,
+    "sourceScale": 1.0,
+    "sourceGeometrySHA256": "4c347a83bcdb809510284e82be51aef270d986f0c4fbd03e621d47779ec5a8b6",
+    "pdfSHA256": "65f64c2459b9b1195a74bd68575d43ea25dbb9fdf75ac4bfbcb6afc851a27693",
+    "geometryBounds": [
+      0.0,
+      1.5,
+      12.0,
+      10.5
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Check.pdf"
+  },
+  "SelectionCheck": {
+    "source": "Plain Craft Launcher 2/Controls/MyCheckBox.xaml",
+    "sourceSelector": "ShapeCheck.Data",
+    "sourceLine": 9,
+    "sourceScale": 1.0,
+    "aliasOf": "Check",
+    "sourceGeometrySHA256": "4c347a83bcdb809510284e82be51aef270d986f0c4fbd03e621d47779ec5a8b6",
+    "pdfSHA256": "65f64c2459b9b1195a74bd68575d43ea25dbb9fdf75ac4bfbcb6afc851a27693",
+    "geometryBounds": [
+      0.0,
+      1.5,
+      12.0,
+      10.5
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "SelectionCheck.pdf"
+  },
+  "ChevronDown": {
+    "source": "Plain Craft Launcher 2/Controls/MyCard.vb",
+    "sourceSelector": "ConvertFromString\\(\"([^\"]+)\"\\)",
+    "sourceLine": 88,
+    "sourceGeometrySHA256": "73eb49e19112362b5295e5c2a49a9c40a8f06dabdf407f835135947a5fd5ed4f",
+    "pdfSHA256": "e0fd8ccc34e66dfffb3108c0a1709241b2558cb60773af69ce32038adfd0b33a",
+    "geometryBounds": [
+      0.0,
+      4.0,
+      20.0,
+      16.0
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "ChevronDown.pdf"
+  },
+  "ChevronUp": {
+    "source": "Plain Craft Launcher 2/Controls/MyCard.vb",
+    "sourceSelector": "ConvertFromString\\(\"([^\"]+)\"\\)",
+    "sourceLine": 88,
+    "aliasOf": "ChevronDown",
+    "rotation": 180,
+    "sourceGeometrySHA256": "73eb49e19112362b5295e5c2a49a9c40a8f06dabdf407f835135947a5fd5ed4f",
+    "pdfSHA256": "247b22343aa4d31a5ab45061e7d43e2080c79f12a4f0e4c38f3b0ed22c9fdaae",
+    "geometryBounds": [
+      -20.0,
+      -15.999999999999998,
+      -7.347880794884119e-16,
+      -3.999999999999998
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "ChevronUp.pdf"
+  },
+  "ChevronLeft": {
+    "source": "Plain Craft Launcher 2/Controls/MyCard.vb",
+    "sourceSelector": "ConvertFromString\\(\"([^\"]+)\"\\)",
+    "sourceLine": 88,
+    "aliasOf": "ChevronDown",
+    "rotation": 90,
+    "sourceGeometrySHA256": "73eb49e19112362b5295e5c2a49a9c40a8f06dabdf407f835135947a5fd5ed4f",
+    "pdfSHA256": "cb865cbb7e072cdad20100bb2d124ebb906ec8eee01f387e9e7b0f7fe4624ccc",
+    "geometryBounds": [
+      -16.0,
+      3.6739403974420594e-16,
+      -3.999999999999999,
+      20.0
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "ChevronLeft.pdf"
+  },
+  "ChevronRight": {
+    "source": "Plain Craft Launcher 2/Controls/MyCard.vb",
+    "sourceSelector": "ConvertFromString\\(\"([^\"]+)\"\\)",
+    "sourceLine": 88,
+    "aliasOf": "ChevronDown",
+    "rotation": 270,
+    "sourceGeometrySHA256": "73eb49e19112362b5295e5c2a49a9c40a8f06dabdf407f835135947a5fd5ed4f",
+    "pdfSHA256": "36fb651af263f3bf63e6a29f6c445e423bd8e68232982e6ca63100c8348aa701",
+    "geometryBounds": [
+      3.999999999999997,
+      -20.0,
+      15.999999999999998,
+      -1.102182119232618e-15
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "ChevronRight.pdf"
+  },
+  "Restore": {
+    "source": "Plain Craft Launcher 2/Pages/PageDownload/PageDownloadInstall.xaml",
+    "sourceSelector": "<sys:String x:Key=\"ModifyRestoreLogo\">([^<]+)</sys:String>",
+    "sourceLine": 39,
+    "sourceGeometrySHA256": "763b447bfb3ab744874f431ee89af11cc6fa631ff059d8496baf069aad839221",
+    "pdfSHA256": "131246019c5e883b7071989ac8838700ffd06901f0de8ef1750fd1aa96bdfdb2",
+    "geometryBounds": [
+      2.828749068553879,
+      2.828749068553879,
+      21.18,
+      21.18
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Restore.pdf"
+  },
+  "Reset": {
+    "source": "Plain Craft Launcher 2/Pages/PageDownload/PageDownloadInstall.xaml",
+    "sourceSelector": "<sys:String x:Key=\"ModifyRestoreLogo\">([^<]+)</sys:String>",
+    "sourceLine": 39,
+    "aliasOf": "Restore",
+    "sourceGeometrySHA256": "763b447bfb3ab744874f431ee89af11cc6fa631ff059d8496baf069aad839221",
+    "pdfSHA256": "131246019c5e883b7071989ac8838700ffd06901f0de8ef1750fd1aa96bdfdb2",
+    "geometryBounds": [
+      2.828749068553879,
+      2.828749068553879,
+      21.18,
+      21.18
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Reset.pdf"
+  },
+  "ArrowRight": {
+    "source": "Plain Craft Launcher 2/Pages/PageDownload/PageDownloadInstall.xaml",
+    "sourceSelector": "<Style x:Key=\"ModifyCompareArrow\".*?<Setter Property=\"Data\" Value=\"([^\"]+)\"",
+    "sourceLine": 28,
+    "stroke": 1.4,
+    "roundCaps": true,
+    "sourceGeometrySHA256": "05b3478f3d0214d0fd69d9215356f36fd8ba24821762507b2432aa19ff9d847c",
+    "pdfSHA256": "2e10479753ddd6355efaf5c1b3e7f174776083db019603f6d4ce1b8c6ae73889",
+    "geometryBounds": [
+      2.3,
+      2.3,
+      13.7,
+      11.7
+    ],
+    "fillRule": "stroke",
+    "template": true,
+    "resource": "ArrowRight.pdf"
+  },
+  "TaskSuccess": {
+    "source": "Plain Craft Launcher 2/Pages/PageSpeedLeft.xaml.vb",
+    "sourceSelector": "Tag=\"\"Finished\"\" Data=\"\"([^\"]+)\"\"",
+    "sourceLine": 130,
+    "sourceGeometrySHA256": "e895054b98a651b5701560b7a38f0c9a91c059e65f278b145bf18c6f9571949f",
+    "pdfSHA256": "d0e6ed463e21214c15a16c4d8ba68ffc121f473b04a09264d77d66b340d3c5ae",
+    "geometryBounds": [
+      19.0001,
+      22.1668,
+      56.9999,
+      53.8333
+    ],
+    "fillRule": "nonzero",
+    "template": true,
+    "resource": "TaskSuccess.pdf"
+  },
+  "TaskFailure": {
+    "source": "Plain Craft Launcher 2/Pages/PageSpeedLeft.xaml.vb",
+    "sourceSelector": "Tag=\"\"Failed\"\" Data=\"\"([^\"]+)\"\"",
+    "sourceLine": 91,
+    "sourceGeometrySHA256": "d01db96c4f7b989b6fd3c986aadc10cf77f0d951045d7b088241ca6aa839255e",
+    "pdfSHA256": "94994b29bc9b80a1a8c120e6f451dfa2486872dc5dc31b2d08032af7166b4744",
+    "geometryBounds": [
+      0.0,
+      0.0,
+      20.0,
+      20.0
+    ],
+    "fillRule": "nonzero",
+    "template": true,
+    "resource": "TaskFailure.pdf"
+  },
+  "TaskWaiting": {
+    "source": "Plain Craft Launcher 2/Pages/PageSpeedLeft.xaml.vb",
+    "sourceSelector": "Tag=\"\"Waiting\"\" Data=\"\"([^\"]+)\"\"",
+    "sourceLine": 118,
+    "sourceGeometrySHA256": "05bf5e678d6d1e3a6f5f78f177b70f179ec8d7265da636790d724245a787c813",
+    "pdfSHA256": "d4baaa5e29a5042a76f83787274597bee985621120ac5fbd564de1e622013f3c",
+    "geometryBounds": [
+      -4.99999999975,
+      -4.999950000000019,
+      35.0,
+      5.000250000000018
+    ],
+    "fillRule": "nonzero",
+    "template": true,
+    "resource": "TaskWaiting.pdf"
+  },
+  "Warning": {
+    "source": "Plain Craft Launcher 2/Pages/PageSpeedLeft.xaml.vb",
+    "sourceSelector": "Tag=\"\"Failed\"\" Data=\"\"([^\"]+)\"\"",
+    "sourceLine": 91,
+    "aliasOf": "TaskFailure",
+    "sourceGeometrySHA256": "d01db96c4f7b989b6fd3c986aadc10cf77f0d951045d7b088241ca6aa839255e",
+    "pdfSHA256": "94994b29bc9b80a1a8c120e6f451dfa2486872dc5dc31b2d08032af7166b4744",
+    "geometryBounds": [
+      0.0,
+      0.0,
+      20.0,
+      20.0
+    ],
+    "fillRule": "nonzero",
+    "template": true,
+    "resource": "Warning.pdf"
+  },
+  "Launch": {
+    "source": "Plain Craft Launcher 2/Pages/PageSetup/PageSetupLeft.xaml",
+    "sourceSelector": "ItemLaunch.Logo",
+    "sourceLine": 8,
+    "sourceScale": 0.8,
+    "aliasOf": "SetupLaunch",
+    "sourceGeometrySHA256": "0cb42ac4f552780bb95cde1021489861065227ce6411ac03205e697fadd4354b",
+    "pdfSHA256": "3e9b869c57633edb74fea1c7c07f55c36eb66510054dfd1ec441977797474f22",
+    "geometryBounds": [
+      43.9,
+      35.599999999999994,
+      157.2,
+      164.5
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Launch.pdf"
+  },
+  "Homepage": {
+    "source": "Plain Craft Launcher 2/Pages/PageDownload/Resource/MyResourceItem.xaml",
+    "sourceSelector": "PathSource.Data",
+    "sourceLine": 80,
+    "sourceScale": 1.0,
+    "aliasOf": "Globe",
+    "sourceGeometrySHA256": "58fcd74545dc5e6e268ff192c806e49653f29bcd72a022f5a877c89cb356b35d",
+    "pdfSHA256": "41f56509aad0486fcd5d6c76a970177c378dbb1db551bcb5191191786d3a4ef9",
+    "geometryBounds": [
+      142.0,
+      143.0,
+      880.0,
+      881.0
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Homepage.pdf"
+  },
+  "Add": {
+    "source": "Plain Craft Launcher 2/Pages/PageSelectLeft.xaml.vb",
+    "sourceSelector": "Dim ItemAdd As New MyListItem.*?\\.Logo = \"([^\"]+)\"",
+    "sourceLine": 103,
+    "aliasOf": "AddFolder",
+    "sourceGeometrySHA256": "d3235f3d70640224fe3123b127c7b5e369a790b44a9e311eda3139c3c7a9b88c",
+    "pdfSHA256": "d7c06e0bfab9e509335bd5fb835f0af30cacfade71b66ab096201fd446638ea3",
+    "geometryBounds": [
+      67.12,
+      68.06499999999997,
+      957.397,
+      954.412
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Add.pdf"
+  },
+  "Circle": {
+    "source": "Plain Craft Launcher 2/Controls/MyRadioBox.xaml",
+    "sourceSelector": "ShapeBorder Ellipse Width=18 Height=18 StrokeThickness=1.1",
+    "sourceLine": 7,
+    "viewport": [
+      -0.55,
+      -0.55,
+      18.55,
+      18.55
+    ],
+    "derivedFromEllipse": true,
+    "sourceGeometrySHA256": "46ead705c53853005c7f4181d66cd5837c380a8e9fa93a56c7715143cbfdd4d0",
+    "pdfSHA256": "890f34acf589f1222817e859e5d46eac313949631bfb370137e506a3bfb2e6b1",
+    "geometryBounds": [
+      -0.55,
+      -0.55,
+      18.55,
+      18.55
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "Circle.pdf"
+  },
+  "CircleFilled": {
+    "source": "Plain Craft Launcher 2/Controls/MyRadioBox.xaml.vb",
+    "sourceSelector": "Checked ShapeDot.Width=9 and settled ShapeBorder=18, original18px viewport",
+    "sourceLine": 136,
+    "viewport": [
+      -0.55,
+      -0.55,
+      18.55,
+      18.55
+    ],
+    "derivedFromEllipse": true,
+    "sourceGeometrySHA256": "41a8f4cb23ace1803813d3c5b94cf89882f05f1bc7a03906f50a8c1c1054c297",
+    "pdfSHA256": "fc46ab28f83dfc1f3f8e4ba9efcab68ae57c99fed6086fd7def6edec02c0c040",
+    "geometryBounds": [
+      -0.55,
+      -0.55,
+      18.55,
+      18.55
+    ],
+    "fillRule": "evenOdd",
+    "template": true,
+    "resource": "CircleFilled.pdf"
+  },
+  "DefaultMod": {
+    "source": "Plain Craft Launcher 2/Images/Icons/NoIcon.png",
+    "sourceLine": 1,
+    "resource": "DefaultMod.png",
+    "sha256": "9fc701416380cce10945da27d152811954b20a9bb52613644b1767f0f95d84d1",
+    "template": false
+  },
+  "ModDisabled": {
+    "source": "Plain Craft Launcher 2/Images/Icons/Disabled.png",
+    "sourceLine": 1,
+    "resource": "ModDisabled.png",
+    "sha256": "d7c63435c574f5a1a89ecf8aa49c64d83d691ed85407bb8a5acd2f5a4a0ae7b0",
+    "template": false
+  }
+}

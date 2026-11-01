@@ -1,0 +1,37 @@
+{
+  "Overview": {
+    "source": "Plain Craft Launcher 2/Pages/PageInstance/PageInstanceLeft.xaml",
+    "geometrySHA256": "eed01954b94edf0ea2578e171fb251c35a46fa6f2994291d7fad8d9d09c467f3",
+    "pdfSHA256": "1d1aa5e5779b32e282125d74ee90c6f90c8139f81caad9b867e1a35c657dc56c"
+  },
+  "LaunchSettings": {
+    "source": "Plain Craft Launcher 2/Pages/PageInstance/PageInstanceLeft.xaml",
+    "geometrySHA256": "dcad86fd1c18d6a292c21dc153508aac622e7afe4f0b272e0155da93ed804a1c",
+    "pdfSHA256": "02ded5ae0e13de707baae16899a3842b23a0e91d1625c03e5050f30ab273b619"
+  },
+  "Modify": {
+    "source": "Plain Craft Launcher 2/Pages/PageInstance/PageInstanceLeft.xaml",
+    "geometrySHA256": "8fea1caf84158f2df284d77e506d20ddd170a1ef6dbdc55be88e72de5345030e",
+    "pdfSHA256": "1d3f0754b8d1956b6eefac0daee60ada67e3e94cc4eb2c52b72a111e2942ae04"
+  },
+  "Mods": {
+    "source": "Plain Craft Launcher 2/Pages/PageInstance/PageInstanceLeft.xaml",
+    "geometrySHA256": "07f70682c71bbd58c4ca42337816ae418c7e5dc4e7e6d2bbc57612eafe14912b",
+    "pdfSHA256": "320946403863db7c025eff0b6b559a6eb4531e9d639a9f78fc01822fedabfcb2"
+  },
+  "Export": {
+    "source": "Plain Craft Launcher 2/Pages/PageInstance/PageInstanceLeft.xaml",
+    "geometrySHA256": "59b91d6b22e96a8272390df933f7db0a426d62bc8c517241ac900b04caee1598",
+    "pdfSHA256": "5613df635cdc8d200a4b3bff74a97a7115b055111d9a9fd04c92f612da8c85a3"
+  },
+  "Reset": {
+    "source": "Plain Craft Launcher 2/Pages/PageInstance/PageInstanceLeft.xaml",
+    "geometrySHA256": "ee7162604d421a612e86fcaac9884df0c02f0f2a86a546ba5047e6459144998c",
+    "pdfSHA256": "c224dae61eae5dd4efdc7b5188afe6423965ac5f94662fa130d6f4aac5ae30da"
+  },
+  "Refresh": {
+    "source": "Plain Craft Launcher 2/Pages/PageInstance/PageInstanceLeft.xaml",
+    "geometrySHA256": "8516c6b294173a013881adc7680014330e3cb7add676f0b6cb5dd562c1a7ec33",
+    "pdfSHA256": "b5b3ca95866000c664dfe973633d5c1665d0ffe6bdd522eec5fbf28c32a5fe4d"
+  }
+}

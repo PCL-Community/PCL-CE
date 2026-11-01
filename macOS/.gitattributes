@@ -1,0 +1,7 @@
+*.pdf binary
+*.png binary
+*.jpg binary
+*.icns binary
+*.ico binary
+*.ttf binary
+LICENCE text eol=lf

@@ -1,0 +1,50 @@
+{
+  "Favorite": {
+    "sourceConstant": "IconButtonLikeLine",
+    "sourcePathSHA256": "c4a6c3ab5a0a369db369bfa6d22110f5be8bdd59026fd944b7a116546b6edd3f",
+    "pdfSHA256": "466fbf0c79d264ffc510cf5c996ec327360e1e675716e2d45450c0e21832de40",
+    "geometryBounds": [
+      85.27628277046408,
+      170.68679153569616,
+      938.7237172295361,
+      896.0007131420947
+    ],
+    "pdfCommands": 45
+  },
+  "FavoriteFilled": {
+    "sourceConstant": "IconButtonLikeFill",
+    "sourcePathSHA256": "0aedee4942e5fce9742fe11aad7e60304f93f86ed518674c246e108d33d304a0",
+    "pdfSHA256": "d8343715bf4b9396ae44ddaf23487c53b939ae4e9ddb121bed275976557f4941",
+    "geometryBounds": [
+      76.311,
+      155.54199999999997,
+      945.3009999999999,
+      868.386
+    ],
+    "pdfCommands": 13
+  },
+  "Delete": {
+    "sourceConstant": "IconButtonDelete",
+    "sourcePathSHA256": "354efc2bc38e6586e0d363634a2d3b58e89d25f6ce5e187c1f3d931cbd2eab88",
+    "pdfSHA256": "b5f3e23cac1b80edc04c7484344874fe56b51bcf57b9ccc6dd170dd1a60644be",
+    "geometryBounds": [
+      0.0730000000000004,
+      0.0,
+      1023.9270000000001,
+      1023.1949999999999
+    ],
+    "pdfCommands": 82
+  },
+  "Settings": {
+    "sourceConstant": "IconButtonSetup",
+    "sourcePathSHA256": "d1079b584c3c5bcfd418d1347c882987eb1970b4e13bcaae976155e794274f1e",
+    "pdfSHA256": "2b82a250013a6d7253c4dbdbc854ef2a6cb2175618be627ccb80648eaeb34198",
+    "geometryBounds": [
+      0.0,
+      20.901988370617715,
+      1025.7066670000002,
+      1001.8133330000001
+    ],
+    "pdfCommands": 113
+  }
+}
