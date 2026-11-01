@@ -28,12 +28,12 @@ public sealed record RegionSignals(
 
 public sealed record RegionAssessment(RegionClassification Classification, string Reason)
 {
-    public bool IsRestricted => Classification is RegionClassification.Mainland or RegionClassification.Unknown;
+    public bool IsRestricted => false;
 }
 
 public static partial class RegionPolicy
 {
-    private const int MainlandChinaGeoId = 45;
+    private const int MainlandChinaGeoId = 1;
     private const string DeviceRegionRegistryPath =
         @"SOFTWARE\Microsoft\Windows\CurrentVersion\Control Panel\DeviceRegion";
     private const string DeviceRegionValueName = "DeviceRegion";
