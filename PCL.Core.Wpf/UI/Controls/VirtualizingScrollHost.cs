@@ -299,7 +299,7 @@ public class VirtualizingScrollHost : Decorator, IScrollInfo
     public Rect MakeVisible(Visual visual, Rect rectangle)
     {
         var inner = Inner;
-        return inner is not null ? inner.MakeVisible(visual, rectangle) : rectangle;
+        return inner?.MakeVisible(visual, rectangle) ?? rectangle;
     }
 
     private void ScrollBy(double delta)
