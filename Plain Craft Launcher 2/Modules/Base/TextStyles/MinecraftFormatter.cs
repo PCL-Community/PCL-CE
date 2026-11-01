@@ -1,4 +1,5 @@
-﻿using System.Text;
+using System.Collections.Concurrent;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -15,6 +16,20 @@ internal static partial class TextStyles
 
         private static readonly Random Random = new();
 
+        /// <summary>颜色画刷缓存，避免每段文本都新建并冻结一个画刷。</summary>
+        private static readonly ConcurrentDictionary<Color, SolidColorBrush> BrushCache = new();
+
+        private static SolidColorBrush GetCachedBrush(string color)
+        {
+            var parsed = (Color)new Common.MyColor(color);
+            return BrushCache.GetOrAdd(parsed, static c =>
+            {
+                var brush = new SolidColorBrush(c);
+                brush.Freeze();
+                return brush;
+            });
+        }
+
         /// <summary>
         /// Minecraft 文本格式化代码，用于显示不同颜色的文本
         /// </summary>
@@ -27,6 +42,11 @@ internal static partial class TextStyles
                 Common.Log("[Style] SetColorfulTextLab: lab is null");
                 return;
             }
+
+            // 原文未变化时无需重建 Inlines（虚拟化列表滚动时会重复触发同一项）
+            if (lab.Tag is string lastText && lastText == text && lab.Inlines.Count > 0)
+                return;
+            lab.Tag = text;
 
             lab.Inlines.Clear();
 
@@ -114,7 +134,7 @@ internal static partial class TextStyles
                         lab.Inlines.Add(curRun);
                     }
 
-                    curRun.Foreground = new SolidColorBrush(new Common.MyColor(color!));
+                    curRun.Foreground = GetCachedBrush(color!);
                     curRun.FontWeight = hasBlodProperty ? FontWeights.Bold : FontWeights.Normal;
                     curRun.FontStyle = hasItalicProperty ? FontStyles.Italic : FontStyles.Normal;
                     curRun.TextDecorations = hasStrickThroughProperty

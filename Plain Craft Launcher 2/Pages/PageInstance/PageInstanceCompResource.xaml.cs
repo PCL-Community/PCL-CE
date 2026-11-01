@@ -8,6 +8,7 @@ using PCL.Core.UI.Hints;
 using PCL.Core.UI.Theme;
 using PCL.Network;
 using PCL.Network.Loaders;
+using System.ComponentModel;
 using System.IO;
 using System.Text;
 using System.Windows;
@@ -21,7 +22,7 @@ using SortMethod = PCL.PageInstanceCompResourceViewModel.SortMethod;
 
 namespace PCL;
 
-public partial class PageInstanceCompResource : IRefreshable, IPageView
+public partial class PageInstanceCompResource : IRefreshable, IPageView, ILocalModItemHost
 {
     #region 模组信息缓存
 
@@ -417,15 +418,97 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
     #region UI 化
 
     /// <summary>
-    ///     已加载的 Mod UI 缓存，不确保按显示顺序排列。Key 为 Mod 的 RawPath。
+    ///     已加载的 Mod 条目缓存，不确保按显示顺序排列。Key 为 Mod 的 RawPath。
     /// </summary>
-    public Dictionary<string, MyLocalCompItem> modItems = new();
+    public Dictionary<string, MyLocalModItemViewModel> modItems = new();
+
+    #region 条目 ViewModel 宿主
+
+    Comp.CompType ILocalModItemHost.CompType => _vm.CompType;
+
+    MyLocalCompItem.SwipeSelect ILocalModItemHost.SwipeState => currentSwipSelect;
+
+    void ILocalModItemHost.OpenFileLocation(LocalComp.LocalCompFile entry) =>
+        _vm.OpenFileLocationCommand.Execute(entry);
+
+    void ILocalModItemHost.ShowInfo(LocalComp.LocalCompFile entry) => Info_Click(entry);
+
+    void ILocalModItemHost.Delete(LocalComp.LocalCompFile entry) => DeleteMods([entry]);
+
+    void ILocalModItemHost.ToggleEnabled(LocalComp.LocalCompFile entry) =>
+        EDMods([entry], entry.State == LocalComp.LocalCompFile.LocalFileStatus.Disabled);
+
+    void ILocalModItemHost.EnterFolder(string path) => EnterFolderWithCheck(path);
+
+    void ILocalModItemHost.SwipeStart(MyLocalModItemViewModel item)
+    {
+        var index = _vm.Mods.IndexOf(item);
+        if (index < 0)
+            return;
+        currentSwipSelect.Start = index;
+        currentSwipSelect.End = index;
+        currentSwipSelect.Swiping = true;
+        currentSwipSelect.SwipeToState = !item.IsChecked;
+    }
+
+    void ILocalModItemHost.SwipeMove(MyLocalModItemViewModel item, bool isPressed)
+    {
+        if (!isPressed)
+        {
+            currentSwipSelect.Swiping = false;
+            return;
+        }
+
+        var index = _vm.Mods.IndexOf(item);
+        var count = _vm.Mods.Count;
+        if (index < 0 || count == 0)
+        {
+            currentSwipSelect.Swiping = false;
+            return;
+        }
+
+        currentSwipSelect.Start =
+            (int)Math.Round(Common.MathClamp(Math.Min(currentSwipSelect.Start, index), 0d, count - 1));
+        currentSwipSelect.End =
+            (int)Math.Round(Common.MathClamp(Math.Max(currentSwipSelect.End, index), 0d, count - 1));
+        if (currentSwipSelect.Start == currentSwipSelect.End)
+            return;
+
+        // 批量更新时暂停逐项同步，最后统一刷新底栏
+        Animations.AniBeginControl();
+        try
+        {
+            var state = currentSwipSelect.SwipeToState;
+            for (var i = currentSwipSelect.Start; i <= currentSwipSelect.End; i++)
+            {
+                var target = _vm.Mods[i];
+                if (target.IsChecked == state)
+                    continue;
+                target.IsChecked = state;
+                if (target.Entry is null)
+                    continue;
+                if (state)
+                    selectedMods.Add(target.Entry.RawPath);
+                else
+                    selectedMods.Remove(target.Entry.RawPath);
+            }
+        }
+        finally
+        {
+            Animations.AniEndControl();
+        }
+
+        RefreshBars();
+    }
+
+    #endregion
 
     /// <summary>
     ///     将加载器结果的 Mod 列表加载为 UI。
     /// </summary>
     private void LoadUIFromLoaderOutput()
     {
+        _vm.IsLoading = true;
         try
         {
             // 判断应该显示哪一个页面
@@ -481,6 +564,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
 
             // 修改缓存
             modItems.Clear();
+            _vm.Mods.Clear(); // 同步清空列表集合，避免加载期间仍显示上一次的结果
             var rootPath = PageInstanceLeft.McInstance.PathIndie +
                            (PageInstanceLeft.McInstance.Info.HasLabyMod
                                ? Path.Combine("labymod-neo", "fabric", PageInstanceLeft.McInstance.Info.VanillaName)
@@ -498,7 +582,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
             }).ToList();
 
             foreach (var ModEntity in itemsToShow)
-                modItems[ModEntity.RawPath] = BuildLocalCompItem(ModEntity);
+                modItems[ModEntity.RawPath] = BuildLocalModItemViewModel(ModEntity);
             // 显示结果
             Common.RunInUi(() =>
             {
@@ -516,113 +600,43 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
                 Common.LogLevel.Feedback,
                 userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
         }
+        finally
+        {
+            _vm.IsLoading = false;
+        }
     }
 
-    private MyLocalCompItem BuildLocalCompItem(LocalComp.LocalCompFile entry)
+    /// <summary>
+    ///     为加载器结果创建条目 ViewModel；控件由 DataTemplate 按需生成。
+    /// </summary>
+    private MyLocalModItemViewModel BuildLocalModItemViewModel(LocalComp.LocalCompFile entry)
     {
+        Animations.AniBeginControl();
         try
         {
-            Animations.AniBeginControl();
-            var newItem = new MyLocalCompItem
-            {
-                SnapsToDevicePixels = true,
-                Entry = entry,
-                buttonHandler = BuildLocalCompItemBtnHandler,
-                Checked = selectedMods.Contains(entry.RawPath)
-            };
-            newItem.CurrentSwipe = currentSwipSelect;
-            newItem.Tags = entry.Tags;
-            entry.OnCompUpdate += _ => newItem.Refresh();
-            // AddHandler Entry.OnCompUpdate, Sub() RunInUi(Sub() DoSort())
-            newItem.Refresh();
-            Animations.AniEndControl();
-            return newItem;
+            var item = new MyLocalModItemViewModel();
+            item.PropertyChanged += OnModItemPropertyChanged;
+            item.Initialize(entry, this);
+            entry.OnCompUpdate += _ => item.Refresh();
+            return item;
         }
         catch (Exception ex)
         {
-            Animations.AniEndControl();
-            Common.Log(ex, $"创建 UI 项失败：{entry.RawPath}");
+            Common.Log(ex, $"创建列表项失败：{entry.RawPath}");
             throw;
+        }
+        finally
+        {
+            Animations.AniEndControl();
         }
     }
 
-    private void BuildLocalCompItemBtnHandler(MyLocalCompItem sender, EventArgs e)
+    private void OnModItemPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        // 点击事件
-        sender.Changed += (ss, ee) => CheckChanged((MyLocalCompItem)ss, ee);
-        if (sender.Entry.IsFolder)
-        {
-            // 文件夹项的点击事件：双击进入文件夹，单击切换选中状态
-            var lastClickTime = DateTime.MinValue;
-            sender.Click += (sss, _) =>
-            {
-                var ss = (MyLocalCompItem)sss;
-                var currentTime = DateTime.Now;
-                var timeDiff = (currentTime - lastClickTime).TotalMilliseconds;
-
-                if (timeDiff <= 300d)
-                    // 300ms内双击，进入文件夹
-                    EnterFolderWithCheck(ss.Entry.ActualPath);
-                else
-                    // 单击切换选中状态
-                    ss.Checked = !ss.Checked;
-
-                lastClickTime = currentTime;
-            };
-        }
-        else
-        {
-            // 文件项的点击事件：切换选中状态
-            sender.Click += (sss, _) =>
-            {
-                var ss = (MyLocalCompItem)sss;
-                ss.Checked = !ss.Checked;
-            };
-        }
-
-        // 图标按钮
-        var btnOpen = new MyIconButton { LogoScale = 1.05d, SvgIcon = "lucide/folder-open", Tag = sender };
-        btnOpen.ToolTip = Lang.Text("Instance.Saves.OpenFileLocation");
-        ToolTipService.SetPlacement(btnOpen, PlacementMode.Center);
-        ToolTipService.SetVerticalOffset(btnOpen, 30d);
-        ToolTipService.SetHorizontalOffset(btnOpen, 2d);
-        btnOpen.Command = _vm.OpenFileLocationCommand;
-        btnOpen.CommandParameter = sender.Entry;
-        var btnCont = new MyIconButton { LogoScale = 1d, SvgIcon = "lucide/info", Tag = sender };
-        btnCont.ToolTip = Lang.Text("Instance.Saves.Detail");
-        ToolTipService.SetPlacement(btnCont, PlacementMode.Center);
-        ToolTipService.SetVerticalOffset(btnCont, 30d);
-        ToolTipService.SetHorizontalOffset(btnCont, 2d);
-        btnCont.Click += Info_Click;
-        sender.MouseRightButtonUp += Info_Click;
-        var btnDelete = new MyIconButton { LogoScale = 1d, SvgIcon = "lucide/trash-2", Tag = sender };
-        btnDelete.ToolTip = Lang.Text("Common.Action.Delete");
-        ToolTipService.SetPlacement(btnDelete, PlacementMode.Center);
-        ToolTipService.SetVerticalOffset(btnDelete, 30d);
-        ToolTipService.SetHorizontalOffset(btnDelete, 2d);
-        btnDelete.Click += (ss, ee) => Delete_Click((MyIconButton)ss, ee);
-        if (_vm.CompType != Comp.CompType.Mod ||
-            sender.Entry.State == LocalComp.LocalCompFile.LocalFileStatus.Unavailable)
-        {
-            sender.Buttons = new[] { btnCont, btnOpen, btnDelete };
-        }
-        else
-        {
-            var btnED = new MyIconButton
-            {
-                LogoScale = 1d,
-                SvgIcon = sender.Entry.State == LocalComp.LocalCompFile.LocalFileStatus.Fine
-                    ? "lucide/circle-minus"
-                    : "lucide/circle-check",
-                Tag = sender
-            };
-            btnED.ToolTip = sender.Entry.State == LocalComp.LocalCompFile.LocalFileStatus.Fine ? Lang.Text("Instance.Resource.Disable") : Lang.Text("Instance.Resource.Enable");
-            ToolTipService.SetPlacement(btnED, PlacementMode.Center);
-            ToolTipService.SetVerticalOffset(btnED, 30d);
-            ToolTipService.SetHorizontalOffset(btnED, 2d);
-            btnED.Click += (ss, ee) => ED_Click((MyIconButton)ss, ee);
-            sender.Buttons = new[] { btnCont, btnOpen, btnED, btnDelete };
-        }
+        if (e.PropertyName != nameof(MyLocalModItemViewModel.IsChecked))
+            return;
+        if (sender is MyLocalModItemViewModel item)
+            CheckChanged(item);
     }
 
     /// <summary>
@@ -632,8 +646,10 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
     {
         if (PanList is null)
             return;
-        var showingMods = (IsSearching ? searchResult : modItems.Values.Select(i => i.Entry))
-            .Where(m => CanPassFilter(m)).ToList();
+        var showingMods = (IsSearching
+                ? searchResult
+                : modItems.Values.Select(i => i.Entry).OfType<LocalComp.LocalCompFile>())
+            .Where(CanPassFilter).ToList();
 
         // 对显示的资源进行排序，确保文件夹置顶
         if (showingMods.Any())
@@ -642,33 +658,22 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
             showingMods.Sort((a, b) => sortMethod(a, b));
         }
 
-        // 重新列出列表
+        // 更新 VM 集合；集合内部按实例复用，控件由虚拟化列表按需生成
         Animations.AniBeginControl();
         _vm.ShowItemList = showingMods.Any();
-        if (showingMods.Any())
+        var visibleItems = new List<MyLocalModItemViewModel>(showingMods.Count);
+        foreach (var targetMod in showingMods)
         {
-            PanList.Children.Clear();
-            foreach (var TargetMod in showingMods)
-            {
-                if (!modItems.ContainsKey(TargetMod.RawPath))
-                    continue;
-                var item = modItems[TargetMod.RawPath];
-
-                // 确保元素没有父容器，避免重复添加异常
-                if (item.Parent is not null) ((Panel)item.Parent).Children.Remove(item);
-
-                TextStyles.MinecraftFormatter.SetColorfulTextLab(item.LabTitle.Text, item.LabTitle,
-                    ThemeService.IsDarkMode);
-                TextStyles.MinecraftFormatter.SetColorfulTextLab(item.LabInfo.Text, item.LabInfo,
-                    ThemeService.IsDarkMode);
-                item.Checked = selectedMods.Contains(TargetMod.RawPath); // 更新选中状态
-                PanList.Children.Add(item);
-            }
+            if (targetMod?.RawPath is null || !modItems.TryGetValue(targetMod.RawPath, out var item))
+                continue;
+            item.IsChecked = selectedMods.Contains(targetMod.RawPath); // 更新选中状态
+            visibleItems.Add(item);
         }
 
+        _vm.ReplaceMods(visibleItems);
         Animations.AniEndControl();
         selectedMods =
-            new HashSet<string>(selectedMods.Where(m => showingMods.Any(s => (s.RawPath ?? "") == (m ?? ""))));
+            new HashSet<string>(selectedMods.Where(m => showingMods.Any(s => (s?.RawPath ?? "") == (m ?? ""))));
         RefreshBars();
     }
 
@@ -689,7 +694,10 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
             var disabledCount = 0;
             var updateCount = 0;
             var unavalialeCount = 0;
-            var itemSource = (IsSearching ? searchResult : modItems.Values.Select(i => i.Entry)).ToArray();
+            var itemSource = (IsSearching
+                    ? searchResult
+                    : modItems.Values.Select(i => i.Entry).OfType<LocalComp.LocalCompFile>())
+                .ToArray();
             await Task.Run(() =>
             {
                 foreach (var item in itemSource)
@@ -872,7 +880,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
     /// </summary>
     private void BtnManageSelectAll_Click(object sender, MouseButtonEventArgs e)
     {
-        ChangeAllSelected(selectedMods.Count < PanList.Children.Count);
+        ChangeAllSelected(selectedMods.Count < _vm.Mods.Count);
     }
 
     /// <summary>
@@ -1362,13 +1370,15 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
     public HashSet<string> selectedMods = new();
 
     // 单项切换选择状态
-    public void CheckChanged(MyLocalCompItem sender, Common.RouteEventArgs e)
+    public void CheckChanged(MyLocalModItemViewModel sender)
     {
         if (Animations.AniExitsAnyControl())
             return;
+        if (sender.Entry is null)
+            return;
         // 更新选择了的内容
         var selectedKey = sender.Entry.RawPath;
-        if (sender.Checked)
+        if (sender.IsChecked)
             selectedMods.Add(selectedKey);
         else
             selectedMods.Remove(selectedKey);
@@ -1380,12 +1390,13 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
     {
         Animations.AniBeginControl();
         selectedMods.Clear();
+        var visibleItems = new HashSet<MyLocalModItemViewModel>(_vm.Mods);
         foreach (var Item in modItems.Values)
         {
             // #4992，Mod 从过滤器看可能不应在列表中，但因为刚切换状态所以依然保留在列表中，所以应该从列表 UI 判断，而非从过滤器判断
-            var shouldSelected = value && PanList.Children.Contains(Item);
-            Item.Checked = shouldSelected;
-            if (shouldSelected)
+            var shouldSelected = value && visibleItems.Contains(Item);
+            Item.IsChecked = shouldSelected;
+            if (shouldSelected && Item.Entry is not null)
                 selectedMods.Add(Item.Entry.RawPath);
         }
 
@@ -1527,7 +1538,6 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
     {
         Filter = (FilterType)Convert.ToInt32(sender.Tag);
         RefreshUI();
-        DoSort();
     }
 
     #endregion
@@ -1573,26 +1583,8 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
         {
             try
             {
-                if (PanList is null || PanList.Children.Count < 2)
-                    return;
-
-                // 将子元素转换为可排序的列表
-                var items = PanList.Children.OfType<MyLocalCompItem>().ToList();
-                var method = GetSortMethod(currentSortMethod);
-
-                // 分离有效和无效项（保持原始相对顺序）
-                var invalid = items.Where(i =>
-                    i.Entry is null || (currentSortMethod == SortMethod.TagNums && i.Entry.Comp is null &&
-                                        !i.Entry.IsFolder)).ToList();
-                var valid = items.Except(invalid).ToList();
-                // 仅对有效项进行排序
-                valid.Sort((x, y) => method(x.Entry, y.Entry));
-                // 合并保持无效项的原始顺序
-                items = valid.Concat(invalid).ToList();
-
-                // 批量更新UI元素
-                PanList.Children.Clear();
-                items.ForEach(i => PanList.Children.Add(i));
+                // 排序逻辑已合并到 RefreshUI：顺序在 code-behind 算好后交给 VM 集合，由虚拟化列表重排
+                RefreshUI();
             }
 
             catch (Exception ex)
@@ -1976,17 +1968,11 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
                 searchResult.Insert(indexOfResult, newModEntity);
             }
 
-            // 更改 UI 中的列表
+            // 更改 UI 中的列表：换入新的 VM，RefreshUI 会按 RawPath 复用其余项
             try
             {
-                var newItem = BuildLocalCompItem(newModEntity);
-                modItems[modEntity.RawPath] = newItem;
-                var indexOfUi = PanList.Children.IndexOf(PanList.Children.OfType<MyLocalCompItem>()
-                    .FirstOrDefault(i => ReferenceEquals(i.Entry, modEntity)));
-                if (indexOfUi == -1)
-                    continue; // 因为未知原因 Mod 的状态已经切换完了
-                PanList.Children.RemoveAt(indexOfUi);
-                PanList.Children.Insert(indexOfUi, newItem);
+                modItems.Remove(modEntity.RawPath);
+                modItems[newModEntity.RawPath] = BuildLocalModItemViewModel(newModEntity);
             }
             catch (Exception ex)
             {
@@ -1998,7 +1984,8 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
             }
         }
 
-        Dispatcher.Invoke(() => PanList.UpdateLayout(), DispatcherPriority.Background);
+        // 集合更新后由 WPF 自行安排布局，无需手动 UpdateLayout（原实现用于强制同步布局）
+        RefreshUI();
         if (isSuccessful)
         {
             RefreshBars();
@@ -2306,11 +2293,8 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
                 // 更改 Loader 和 UI 中的列表
                 LocalComp.CompResourceListLoader.output.Remove(ModEntity);
                 searchResult?.Remove(ModEntity);
-                modItems.Remove(ModEntity.RawPath);
-                var indexOfUi = PanList.Children.IndexOf(PanList.Children.OfType<MyLocalCompItem>()
-                    .FirstOrDefault(i => i.Entry.Equals(ModEntity)));
-                if (indexOfUi >= 0)
-                    PanList.Children.RemoveAt(indexOfUi);
+                if (modItems.Remove(ModEntity.RawPath, out var removedItem))
+                    _vm.Mods.Remove(removedItem);
             }
 
             RefreshBars();
@@ -2319,7 +2303,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
                 HintService.Show(Hints.Error(Lang.Text("Instance.Resource.Delete.Failed")));
                 ReloadCompFileList(true);
             }
-            else if (PanList.Children.Count == 0)
+            else if (_vm.Mods.Count == 0)
             {
                 ReloadCompFileList(true); // 删除了全部项目
             }
@@ -2395,9 +2379,21 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
     // 详情
     public async void Info_Click(object sender, EventArgs e)
     {
+        var modEntry = sender is MyLocalCompItem listItem
+            ? listItem.Entry
+            : (sender is MyIconButton iconButton ? iconButton.Tag as MyLocalCompItem : null)?.Entry;
+        if (modEntry is null)
+            return;
+        await ShowInfoAsync(modEntry);
+    }
+
+    // 详情（供条目 ViewModel 调用）
+    private void Info_Click(LocalComp.LocalCompFile modEntry) => _ = ShowInfoAsync(modEntry);
+
+    private async Task ShowInfoAsync(LocalComp.LocalCompFile modEntry)
+    {
         try
         {
-            var modEntry = ((MyLocalCompItem)(sender is MyIconButton iconButton ? iconButton.Tag : sender)).Entry;
             // 判断该 LabyMod 是否支持安装 Fabric Mod
             var moddedLabyMod = PageInstanceLeft.McInstance.Info.HasLabyMod && PageInstanceLeft.McInstance.Modable;
             // 加载失败信息
