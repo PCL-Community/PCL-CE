@@ -243,6 +243,9 @@
                 <Setter Property="EnableSmoothWheel" Value="False" />
                 <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
             </Style>
+            <!-- PageComp 自身派生自 MyScrollViewer，隐式样式不会继承基类键，这里显式派生一次，
+                 否则会套用 WPF 默认模板（内部是普通 ScrollBar，MyScrollViewer.Load 会强转失败） -->
+            <Style TargetType="local:PageComp" BasedOn="{StaticResource {x:Type local:MyScrollViewer}}" />
             <!-- 虚拟化列表：原生 VirtualizingStackPanel + 容器回收。
                  必须作为 CanContentScroll=True 的滚动宿主的直接内容才能拿到视口并虚拟化。 -->
             <Style x:Key="VirtualizedItemsControl" TargetType="ItemsControl">

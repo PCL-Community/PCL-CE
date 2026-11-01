@@ -9,107 +9,100 @@
     PanScroll="{Binding ElementName=PanBack}"
     Loaded="Page_Loaded" Unloaded="Page_Unloaded" PageExit="PageExit_UnselectedAll">
     <Grid>
-        <!-- 页面内容：搜索框 / 管理卡 / 列表卡 三行；只有列表区域滚动 -->
+        <!-- 页面内容：整页滚动；列表由虚拟化面板按当前可视区实例化，滚动体验与改造前一致 -->
         <!-- 注意：PanAllBack 的可见性由 MyPageRight.PageLoaderInit 管理，不能绑定 ShowList，否则绑定会被 SetValue 覆盖 -->
         <Grid x:Name="PanAllBack">
             <Grid Visibility="{Binding ShowList, Converter={StaticResource BooleanToVisibilityConverter}}">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-            <local:MySearchBox Grid.Row="0" Margin="25,25,25,0" HintText="{loc:Loc Instance.Resource.Search.Hint}" x:Name="SearchBox" PreviewKeyDown="SearchBox_PreviewKeyDown" TextChanged="SearchRun"
-                               Text="{Binding SearchText}" />
-            <local:MyCard Grid.Row="1" Margin="25,15,25,0" x:Name="PanManage">
-                <WrapPanel Margin="15,8,0,15">
-                    <local:MyButton x:Name="BtnManageBack" Click="BtnManageBack_Click" MinWidth="110" Text="{loc:Loc Instance.Resource.BackToParent}" Padding="13,7"
-                                    Margin="0,7,15,0" HorizontalAlignment="Left" Visibility="{Binding ShowManageBack, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                    <local:MyButton x:Name="BtnManageOpen" MinWidth="110" Text="{loc:Loc Common.Action.OpenFolder}" Padding="13,7"
-                                    Margin="0,7,15,0" HorizontalAlignment="Left" ColorType="Highlight"
-                                    Command="{Binding OpenFolderCommand}" />
-
-                    <local:MyButton x:Name="BtnManageInstall" Click="BtnManageInstall_Click" MinWidth="110" Text="{loc:Loc Instance.Resource.InstallFromFiles}" Padding="13,7"
-                                    Margin="0,7,15,0" HorizontalAlignment="Left" />
-                    <local:MyButton x:Name="BtnManageDownload" MinWidth="110" Text="{loc:Loc Instance.Resource.DownloadNew}" Padding="13,7"
-                                    Margin="0,7,15,0" HorizontalAlignment="Left" Visibility="{Binding ShowManageDownload, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                    Command="{Binding DownloadNewCommand}" />
-                    <local:MyButton x:Name="BtnManageSelectAll" Click="BtnManageSelectAll_Click" MinWidth="110" Text="{loc:Loc Instance.Resource.SelectAll}" Padding="13,7"
-                                    Margin="0,7,15,0" HorizontalAlignment="Left" />
-                    <local:MyButton x:Name="BtnManageInfoExport" Click="BtnManageInfoExport_Click" MinWidth="110" Text="{loc:Loc Instance.Resource.ExportInfo}" Padding="13,7"
-                                    Margin="0,7,15,0" HorizontalAlignment="Left" ToolTip="{loc:Loc Instance.Resource.ExportInfo.ToolTip}" />
-                    <local:MyButton x:Name="BtnManageJarInJar" MinWidth="110" Text="{loc:Loc Instance.Resource.Mod.JarInJar.Entry}" Padding="13,7"
-                                    Margin="0,7,15,0" HorizontalAlignment="Left" ToolTip="{loc:Loc Instance.Resource.Mod.JarInJar.Entry.ToolTip}" Visibility="{Binding ShowManageJarInJar, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                    Command="{Binding OpenJarInJarCommand}" />
-                    <local:MyButton x:Name="BtnManageCheck" MinWidth="110" Text="{loc:Loc Instance.Resource.CheckMods}" Padding="13,7"
-                                    Margin="0,7,15,0" HorizontalAlignment="Left"
-                                    ToolTip="{loc:Loc Instance.Resource.CheckMods.ToolTip}"
-                                    Visibility="Collapsed" />
-                </WrapPanel>
-            </local:MyCard>
-            <Grid Grid.Row="2" Margin="25,15,25,0">
-                <local:MyCard x:Name="PanListBack" Opacity="0" Margin="{Binding ListBackMargin}" Title=" "
-                              MinHeight="55">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-                        <!-- 筛选与排序 -->
-                        <Grid Grid.Row="0">
-                            <StackPanel x:Name="PanFilter" Margin="15,13,0,0" Orientation="Horizontal"
-                                        VerticalAlignment="Top" HorizontalAlignment="Left" Height="28">
-                                <local:MyRadioButton Tag="0" ColorType="Highlight" VerticalAlignment="Center" Margin="2,0"
-                                                     Text="{Binding FilterAllText}" x:Name="BtnFilterAll" LabTextMargin="-2,0,8,0" Check="ChangeFilter" Checked="True" />
-                                <local:MyRadioButton Tag="1" ColorType="Highlight" VerticalAlignment="Center" Margin="2,0"
-                                                     Text="{Binding FilterEnabledText}" x:Name="BtnFilterEnabled" LabTextMargin="-2,0,8,0" Check="ChangeFilter" Visibility="{Binding ShowFilterEnabled, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                                <local:MyRadioButton Tag="2" ColorType="Highlight" VerticalAlignment="Center" Margin="2,0"
-                                                     Text="{Binding FilterDisabledText}" x:Name="BtnFilterDisabled" LabTextMargin="-2,0,8,0" Check="ChangeFilter" Visibility="{Binding ShowFilterDisabled, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                                <local:MyRadioButton Tag="3" ColorType="Highlight" VerticalAlignment="Center" Margin="2,0"
-                                                     Text="{Binding FilterCanUpdateText}" x:Name="BtnFilterCanUpdate" LabTextMargin="-2,0,8,0" Check="ChangeFilter" Visibility="{Binding ShowFilterCanUpdate, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                                <local:MyRadioButton Tag="4" ColorType="Highlight" VerticalAlignment="Center" Margin="2,0"
-                                                     Text="{Binding FilterErrorText}" x:Name="BtnFilterError" LabTextMargin="-2,0,8,0" Check="ChangeFilter" Visibility="{Binding ShowFilterError, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                                <local:MyRadioButton Tag="5" ColorType="Highlight" VerticalAlignment="Center" Margin="2,0"
-                                                     Text="{Binding FilterDuplicateText}" x:Name="BtnFilterDuplicate" LabTextMargin="-2,0,8,0" Check="ChangeFilter" Visibility="{Binding ShowFilterDuplicate, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                            </StackPanel>
-                            <StackPanel Margin="0,13,15,0" Orientation="Horizontal" VerticalAlignment="Top"
-                                        HorizontalAlignment="Right" Height="28">
-                                <local:MyIconTextButton x:Name="BtnSort" Click="BtnSortClick" Text="{Binding SortText}"
-                                                        SvgIcon="lucide/arrow-up-down" />
-                            </StackPanel>
-                        </Grid>
-                        <!-- 列表区域：独立滚动，启用原生虚拟化与容器回收 -->
-                        <local:MyScrollViewer
-                            x:Name="PanBack"
-                            Grid.Row="1"
-                            Margin="0,10,0,22"
-                            HorizontalScrollBarVisibility="Disabled"
-                            Style="{StaticResource VirtualizedScrollViewer}">
-                            <!-- WPF 只把 IScrollInfo 交给 ScrollViewer 的直接内容，ItemsControl 外面必须包一层桥接容器，
-                                 否则虚拟化面板拿不到可视区尺寸（详见 VirtualizingScrollHost 的注释） -->
-                            <core:VirtualizingScrollHost>
-                            <ItemsControl
-                                x:Name="PanList"
-                                Style="{StaticResource VirtualizedItemsControl}"
-                                Grid.IsSharedSizeScope="True"
-                                Margin="20,0,18,0"
-                                ItemsSource="{Binding Mods}"
-                                Visibility="{Binding ShowItemList, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                <ItemsControl.ItemContainerStyle>
-                                    <Style TargetType="ContentPresenter">
-                                        <Setter Property="HorizontalAlignment" Value="Stretch" />
-                                    </Style>
-                                </ItemsControl.ItemContainerStyle>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <local:MyLocalCompItem ViewModel="{Binding}" />
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                            </core:VirtualizingScrollHost>
-                        </local:MyScrollViewer>
-                    </Grid>
-                </local:MyCard>
-            </Grid>
+                <local:MyScrollViewer x:Name="PanBack" VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="25,25,25,25">
+                        <local:MySearchBox Margin="0,0,0,15" HintText="{loc:Loc Instance.Resource.Search.Hint}" x:Name="SearchBox"
+                                           PreviewKeyDown="SearchBox_PreviewKeyDown" TextChanged="SearchRun"
+                                           Text="{Binding SearchText}" />
+                        <local:MyCard Margin="0,0,0,15" x:Name="PanManage">
+                            <WrapPanel Margin="15,8,0,15">
+                                <local:MyButton x:Name="BtnManageBack" Click="BtnManageBack_Click" MinWidth="110" Text="{loc:Loc Instance.Resource.BackToParent}" Padding="13,7"
+                                                Margin="0,7,15,0" HorizontalAlignment="Left" Visibility="{Binding ShowManageBack, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                <local:MyButton x:Name="BtnManageOpen" MinWidth="110" Text="{loc:Loc Common.Action.OpenFolder}" Padding="13,7"
+                                                Margin="0,7,15,0" HorizontalAlignment="Left" ColorType="Highlight"
+                                                Command="{Binding OpenFolderCommand}" />
+                                <local:MyButton x:Name="BtnManageInstall" Click="BtnManageInstall_Click" MinWidth="110" Text="{loc:Loc Instance.Resource.InstallFromFiles}" Padding="13,7"
+                                                Margin="0,7,15,0" HorizontalAlignment="Left" />
+                                <local:MyButton x:Name="BtnManageDownload" MinWidth="110" Text="{loc:Loc Instance.Resource.DownloadNew}" Padding="13,7"
+                                                Margin="0,7,15,0" HorizontalAlignment="Left" Visibility="{Binding ShowManageDownload, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                                Command="{Binding DownloadNewCommand}" />
+                                <local:MyButton x:Name="BtnManageSelectAll" Click="BtnManageSelectAll_Click" MinWidth="110" Text="{loc:Loc Instance.Resource.SelectAll}" Padding="13,7"
+                                                Margin="0,7,15,0" HorizontalAlignment="Left" />
+                                <local:MyButton x:Name="BtnManageInfoExport" Click="BtnManageInfoExport_Click" MinWidth="110" Text="{loc:Loc Instance.Resource.ExportInfo}" Padding="13,7"
+                                                Margin="0,7,15,0" HorizontalAlignment="Left" ToolTip="{loc:Loc Instance.Resource.ExportInfo.ToolTip}" />
+                                <local:MyButton x:Name="BtnManageJarInJar" MinWidth="110" Text="{loc:Loc Instance.Resource.Mod.JarInJar.Entry}" Padding="13,7"
+                                                Margin="0,7,15,0" HorizontalAlignment="Left" ToolTip="{loc:Loc Instance.Resource.Mod.JarInJar.Entry.ToolTip}" Visibility="{Binding ShowManageJarInJar, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                                Command="{Binding OpenJarInJarCommand}" />
+                                <local:MyButton x:Name="BtnManageCheck" MinWidth="110" Text="{loc:Loc Instance.Resource.CheckMods}" Padding="13,7"
+                                                Margin="0,7,15,0" HorizontalAlignment="Left"
+                                                ToolTip="{loc:Loc Instance.Resource.CheckMods.ToolTip}"
+                                                Visibility="Collapsed" />
+                            </WrapPanel>
+                        </local:MyCard>
+                        <local:MyCard x:Name="PanListBack" Opacity="0" Margin="{Binding ListBackMargin}" Title=" "
+                                      MinHeight="55">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <!-- 筛选与排序 -->
+                                <Grid Grid.Row="0">
+                                    <StackPanel x:Name="PanFilter" Margin="15,13,0,0" Orientation="Horizontal"
+                                                VerticalAlignment="Top" HorizontalAlignment="Left" Height="28">
+                                        <local:MyRadioButton Tag="0" ColorType="Highlight" VerticalAlignment="Center" Margin="2,0"
+                                                             Text="{Binding FilterAllText}" x:Name="BtnFilterAll" LabTextMargin="-2,0,8,0" Check="ChangeFilter" Checked="True" />
+                                        <local:MyRadioButton Tag="1" ColorType="Highlight" VerticalAlignment="Center" Margin="2,0"
+                                                             Text="{Binding FilterEnabledText}" x:Name="BtnFilterEnabled" LabTextMargin="-2,0,8,0" Check="ChangeFilter" Visibility="{Binding ShowFilterEnabled, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                        <local:MyRadioButton Tag="2" ColorType="Highlight" VerticalAlignment="Center" Margin="2,0"
+                                                             Text="{Binding FilterDisabledText}" x:Name="BtnFilterDisabled" LabTextMargin="-2,0,8,0" Check="ChangeFilter" Visibility="{Binding ShowFilterDisabled, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                        <local:MyRadioButton Tag="3" ColorType="Highlight" VerticalAlignment="Center" Margin="2,0"
+                                                             Text="{Binding FilterCanUpdateText}" x:Name="BtnFilterCanUpdate" LabTextMargin="-2,0,8,0" Check="ChangeFilter" Visibility="{Binding ShowFilterCanUpdate, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                        <local:MyRadioButton Tag="4" ColorType="Highlight" VerticalAlignment="Center" Margin="2,0"
+                                                             Text="{Binding FilterErrorText}" x:Name="BtnFilterError" LabTextMargin="-2,0,8,0" Check="ChangeFilter" Visibility="{Binding ShowFilterError, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                        <local:MyRadioButton Tag="5" ColorType="Highlight" VerticalAlignment="Center" Margin="2,0"
+                                                             Text="{Binding FilterDuplicateText}" x:Name="BtnFilterDuplicate" LabTextMargin="-2,0,8,0" Check="ChangeFilter" Visibility="{Binding ShowFilterDuplicate, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                    </StackPanel>
+                                    <StackPanel Margin="0,13,15,0" Orientation="Horizontal" VerticalAlignment="Top"
+                                                HorizontalAlignment="Right" Height="28">
+                                        <local:MyIconTextButton x:Name="BtnSort" Click="BtnSortClick" Text="{Binding SortText}"
+                                                                SvgIcon="lucide/arrow-up-down" />
+                                    </StackPanel>
+                                </Grid>
+                                <!-- 列表：跟随整页滚动，虚拟化面板只实例化当前可视区域内的条目 -->
+                                <core:VirtualizingScrollHost Grid.Row="1" Margin="20,10,18,22">
+                                    <ItemsControl
+                                        x:Name="PanList"
+                                        Style="{StaticResource VirtualizedItemsControl}"
+                                        Grid.IsSharedSizeScope="True"
+                                        ItemsSource="{Binding Mods}"
+                                        Visibility="{Binding ShowItemList, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <core:VirtualizingWrapPanel ItemWidth="NaN" />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemContainerStyle>
+                                            <Style TargetType="ContentPresenter">
+                                                <Setter Property="HorizontalAlignment" Value="Stretch" />
+                                            </Style>
+                                        </ItemsControl.ItemContainerStyle>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <local:MyLocalCompItem ViewModel="{Binding}" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </core:VirtualizingScrollHost>
+                            </Grid>
+                        </local:MyCard>
+                    </StackPanel>
+                </local:MyScrollViewer>
             </Grid>
         </Grid>
         <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" Margin="40" x:Name="PanEmpty"

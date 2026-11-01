@@ -25,7 +25,7 @@ public partial class PageComp
     /// <summary>
     ///     列表区域的滚动控件。外层页面通过 MyPageRight.PanScroll 绑定它，以支持「返回顶部」。
     /// </summary>
-    public MyScrollViewer ListScroll => ListScrollControl;
+    public MyScrollViewer ListScroll => this;
 
     // 结果 UI 化
     private void Load_OnFinish()
@@ -59,7 +59,7 @@ public partial class PageComp
             _vm.ApplyErrorState(storage);
 
             // 强制返回顶部
-            ListScrollControl.ScrollToTop();
+            ScrollToTop();
         }
         catch (Exception ex)
         {
@@ -251,7 +251,7 @@ public partial class PageComp
             // 如果已经完成请求，则重新开始
             if (isLoaderInited)
                 StartNewSearch();
-            ListScrollControl.ScrollToHome();
+            ScrollToHome();
         }
 
         // 加载器初始化
