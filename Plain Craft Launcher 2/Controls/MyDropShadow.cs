@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -20,10 +21,27 @@ public class MyDropShadow : Decorator
         new FrameworkPropertyMetadata(new CornerRadius(), FrameworkPropertyMetadataOptions.AffectsRender, ClearBrushes),
         IsCornerRadiusValid);
 
-    private static Brush[] _commonBrushes;
-    private static CornerRadius _commonCornerRadius;
-    private static readonly object _resourceAccess = new();
+    // 静态 Brush 缓存：key = (颜色, 圆角, 阴影半径)。
+    // 原先只缓存第一组参数，其余组合每个实例都会各自创建 9 个 Brush，卡片一多分配量就很可观。
+    private const int MaxBrushCacheSize = 32;
+
+    private static readonly ConcurrentDictionary<(Color Color, CornerRadius Radius, double ShadowRadius), Brush[]>
+        _brushCache = new();
+
+    // 实例级回退缓存：静态缓存已满（或并发写入失败）时使用，避免同一实例每帧重复创建。
     private Brush[] _brushes;
+    private (Color Color, CornerRadius Radius, double ShadowRadius) _brushesKey;
+
+    // 渲染缓存：RenderSize / DPI / 相关 DP 未变化时复用 GuidelineSet 与中心几何，
+    // 避免每次 OnRender 都重新分配数组、GuidelineSet 与 PathGeometry。
+    private bool _renderCacheValid;
+    private Size _cachedRenderSize;
+    private double _cachedDpiScale;
+    private double _cachedShadowRadius;
+    private GuidelineSet _cachedGuidelineSet;
+    private double[] _cachedGuidelineX;
+    private double[] _cachedGuidelineY;
+    private PathGeometry? _cachedCenterGeometry;
 
     /// <summary>
     ///     阴影颜色。
@@ -83,21 +101,10 @@ public class MyDropShadow : Decorator
             cornerRadius.BottomLeft = Math.Min(cornerRadius.BottomLeft, maxRadius);
             cornerRadius.BottomRight = Math.Min(cornerRadius.BottomRight, maxRadius);
             var brushes = GetBrushes(color, cornerRadius);
-            var centerTop = shadowBounds.Top + ShadowRadius;
-            var centerLeft = shadowBounds.Left + ShadowRadius;
-            var centerRight = shadowBounds.Right - ShadowRadius;
-            var centerBottom = shadowBounds.Bottom - ShadowRadius;
-            var guidelineSetX = new[]
-            {
-                centerLeft, centerLeft + cornerRadius.TopLeft, centerRight - cornerRadius.TopRight,
-                centerLeft + cornerRadius.BottomLeft, centerRight - cornerRadius.BottomRight, centerRight
-            };
-            var guidelineSetY = new[]
-            {
-                centerTop, centerTop + cornerRadius.TopLeft, centerTop + cornerRadius.TopRight,
-                centerBottom - cornerRadius.BottomLeft, centerBottom - cornerRadius.BottomRight, centerBottom
-            };
-            drawingContext.PushGuidelineSet(new GuidelineSet(guidelineSetX, guidelineSetY));
+            EnsureRenderCache(cornerRadius);
+            var guidelineSetX = _cachedGuidelineX;
+            var guidelineSetY = _cachedGuidelineY;
+            drawingContext.PushGuidelineSet(_cachedGuidelineSet);
             cornerRadius.TopLeft += ShadowRadius;
             cornerRadius.TopRight += ShadowRadius;
             cornerRadius.BottomLeft += ShadowRadius;
@@ -145,75 +152,129 @@ public class MyDropShadow : Decorator
                 cornerRadius.BottomRight);
             drawingContext.DrawRectangle(brushes[(int)Placement.BottomRight], null, bottomRight);
 
-            if (cornerRadius.TopLeft == ShadowRadius && cornerRadius.TopLeft == cornerRadius.TopRight &&
-                cornerRadius.TopLeft == cornerRadius.BottomLeft && cornerRadius.TopLeft == cornerRadius.BottomRight)
+            if (_cachedCenterGeometry is null)
             {
                 var center = new Rect(guidelineSetX[0], guidelineSetY[0], centerWidth, centerHeight);
                 drawingContext.DrawRectangle(brushes[(int)Placement.Center], null, center);
             }
             else
             {
-                var figure = new PathFigure();
-
-                if (cornerRadius.TopLeft > ShadowRadius)
-                {
-                    figure.StartPoint = new Point(guidelineSetX[1], guidelineSetY[0]);
-                    figure.Segments.Add(new LineSegment(new Point(guidelineSetX[1], guidelineSetY[1]), true));
-                    figure.Segments.Add(new LineSegment(new Point(guidelineSetX[0], guidelineSetY[1]), true));
-                }
-                else
-                {
-                    figure.StartPoint = new Point(guidelineSetX[0], guidelineSetY[0]);
-                }
-
-                if (cornerRadius.BottomLeft > ShadowRadius)
-                {
-                    figure.Segments.Add(new LineSegment(new Point(guidelineSetX[0], guidelineSetY[3]), true));
-                    figure.Segments.Add(new LineSegment(new Point(guidelineSetX[3], guidelineSetY[3]), true));
-                    figure.Segments.Add(new LineSegment(new Point(guidelineSetX[3], guidelineSetY[5]), true));
-                }
-                else
-                {
-                    figure.Segments.Add(new LineSegment(new Point(guidelineSetX[0], guidelineSetY[5]), true));
-                }
-
-                if (cornerRadius.BottomRight > ShadowRadius)
-                {
-                    figure.Segments.Add(new LineSegment(new Point(guidelineSetX[4], guidelineSetY[5]), true));
-                    figure.Segments.Add(new LineSegment(new Point(guidelineSetX[4], guidelineSetY[4]), true));
-                    figure.Segments.Add(new LineSegment(new Point(guidelineSetX[5], guidelineSetY[4]), true));
-                }
-                else
-                {
-                    figure.Segments.Add(new LineSegment(new Point(guidelineSetX[5], guidelineSetY[5]), true));
-                }
-
-                if (cornerRadius.TopRight > ShadowRadius)
-                {
-                    figure.Segments.Add(new LineSegment(new Point(guidelineSetX[5], guidelineSetY[2]), true));
-                    figure.Segments.Add(new LineSegment(new Point(guidelineSetX[2], guidelineSetY[2]), true));
-                    figure.Segments.Add(new LineSegment(new Point(guidelineSetX[2], guidelineSetY[0]), true));
-                }
-                else
-                {
-                    figure.Segments.Add(new LineSegment(new Point(guidelineSetX[5], guidelineSetY[0]), true));
-                }
-
-                figure.IsClosed = true;
-                figure.Freeze();
-                var geometry = new PathGeometry();
-                geometry.Figures.Add(figure);
-                geometry.Freeze();
-                drawingContext.DrawGeometry(brushes[(int)Placement.Center], null, geometry);
+                drawingContext.DrawGeometry(brushes[(int)Placement.Center], null, _cachedCenterGeometry);
             }
 
             drawingContext.Pop();
         }
     }
 
+    /// <summary>
+    ///     重建 GuidelineSet 与中心几何缓存。
+    ///     仅在 RenderSize、DPI 或相关依赖属性变化时执行，其余时候直接复用上次的结果，
+    ///     省掉每次 OnRender 都要分配的两个数组、一个 GuidelineSet 和一条 PathGeometry。
+    /// </summary>
+    private void EnsureRenderCache(CornerRadius cornerRadius)
+    {
+        // 圆角是按 DIP 计算的，DPI 变化会让像素对齐结果改变，因此必须让缓存失效。
+        var dpiScale = VisualTreeHelper.GetDpi(this).DpiScaleX;
+        var shadowRadius = ShadowRadius;
+
+        if (_renderCacheValid && _cachedRenderSize == RenderSize && _cachedDpiScale == dpiScale &&
+            _cachedShadowRadius == shadowRadius)
+            return;
+
+        var shadowBounds = new Rect(0d, 0d, RenderSize.Width, RenderSize.Height);
+        var centerTop = shadowBounds.Top + shadowRadius;
+        var centerLeft = shadowBounds.Left + shadowRadius;
+        var centerRight = shadowBounds.Right - shadowRadius;
+        var centerBottom = shadowBounds.Bottom - shadowRadius;
+        var guidelineSetX = new[]
+        {
+            centerLeft, centerLeft + cornerRadius.TopLeft, centerRight - cornerRadius.TopRight,
+            centerLeft + cornerRadius.BottomLeft, centerRight - cornerRadius.BottomRight, centerRight
+        };
+        var guidelineSetY = new[]
+        {
+            centerTop, centerTop + cornerRadius.TopLeft, centerTop + cornerRadius.TopRight,
+            centerBottom - cornerRadius.BottomLeft, centerBottom - cornerRadius.BottomRight, centerBottom
+        };
+        var guidelineSet = new GuidelineSet(guidelineSetX, guidelineSetY);
+        guidelineSet.Freeze();
+        var topLeftRadius = cornerRadius.TopLeft + shadowRadius;
+        var topRightRadius = cornerRadius.TopRight + shadowRadius;
+        var bottomLeftRadius = cornerRadius.BottomLeft + shadowRadius;
+        var bottomRightRadius = cornerRadius.BottomRight + shadowRadius;
+        PathGeometry? centerGeometry = null;
+
+        if (!(topLeftRadius == shadowRadius && topLeftRadius == topRightRadius &&
+              topLeftRadius == bottomLeftRadius && topLeftRadius == bottomRightRadius))
+        {
+            var figure = new PathFigure();
+
+            if (topLeftRadius > shadowRadius)
+            {
+                figure.StartPoint = new Point(guidelineSetX[1], guidelineSetY[0]);
+                figure.Segments.Add(new LineSegment(new Point(guidelineSetX[1], guidelineSetY[1]), true));
+                figure.Segments.Add(new LineSegment(new Point(guidelineSetX[0], guidelineSetY[1]), true));
+            }
+            else
+            {
+                figure.StartPoint = new Point(guidelineSetX[0], guidelineSetY[0]);
+            }
+
+            if (bottomLeftRadius > shadowRadius)
+            {
+                figure.Segments.Add(new LineSegment(new Point(guidelineSetX[0], guidelineSetY[3]), true));
+                figure.Segments.Add(new LineSegment(new Point(guidelineSetX[3], guidelineSetY[3]), true));
+                figure.Segments.Add(new LineSegment(new Point(guidelineSetX[3], guidelineSetY[5]), true));
+            }
+            else
+            {
+                figure.Segments.Add(new LineSegment(new Point(guidelineSetX[0], guidelineSetY[5]), true));
+            }
+
+            if (bottomRightRadius > shadowRadius)
+            {
+                figure.Segments.Add(new LineSegment(new Point(guidelineSetX[4], guidelineSetY[5]), true));
+                figure.Segments.Add(new LineSegment(new Point(guidelineSetX[4], guidelineSetY[4]), true));
+                figure.Segments.Add(new LineSegment(new Point(guidelineSetX[5], guidelineSetY[4]), true));
+            }
+            else
+            {
+                figure.Segments.Add(new LineSegment(new Point(guidelineSetX[5], guidelineSetY[5]), true));
+            }
+
+            if (topRightRadius > shadowRadius)
+            {
+                figure.Segments.Add(new LineSegment(new Point(guidelineSetX[5], guidelineSetY[2]), true));
+                figure.Segments.Add(new LineSegment(new Point(guidelineSetX[2], guidelineSetY[2]), true));
+                figure.Segments.Add(new LineSegment(new Point(guidelineSetX[2], guidelineSetY[0]), true));
+            }
+            else
+            {
+                figure.Segments.Add(new LineSegment(new Point(guidelineSetX[5], guidelineSetY[0]), true));
+            }
+
+            figure.IsClosed = true;
+            figure.Freeze();
+            centerGeometry = new PathGeometry();
+            centerGeometry.Figures.Add(figure);
+            centerGeometry.Freeze();
+        }
+
+        _cachedGuidelineX = guidelineSetX;
+        _cachedGuidelineY = guidelineSetY;
+        _cachedGuidelineSet = guidelineSet;
+        _cachedCenterGeometry = centerGeometry;
+        _cachedRenderSize = RenderSize;
+        _cachedDpiScale = dpiScale;
+        _cachedShadowRadius = shadowRadius;
+        _renderCacheValid = true;
+    }
+
     private static void ClearBrushes(DependencyObject o, DependencyPropertyChangedEventArgs e)
     {
-        ((MyDropShadow)o)._brushes = null;
+        var dropShadow = (MyDropShadow)o;
+        dropShadow._brushes = null;
+        dropShadow._renderCacheValid = false;
     }
 
     private GradientStopCollection CreateStops(Color c, double cornerRadius)
@@ -335,25 +396,31 @@ public class MyDropShadow : Decorator
 
     private Brush[] GetBrushes(Color c, CornerRadius cornerRadius)
     {
-        if (_commonBrushes is null)
-            lock (_resourceAccess)
-            {
-                if (_commonBrushes is null)
-                {
-                    _commonBrushes = CreateBrushes(c, cornerRadius);
-                    _commonCornerRadius = cornerRadius;
-                }
-            }
+        // 静态缓存：同一组 (颜色, 圆角, 阴影半径) 的 Brush 可以被所有实例共享，
+        // 卡片一多时也不会每个实例都重复创建 9 个 Brush。
+        var key = (c, cornerRadius, ShadowRadius);
 
-        if (c == ((SolidColorBrush)_commonBrushes[(int)Placement.Center]).Color && cornerRadius == _commonCornerRadius)
+        if (_brushCache.TryGetValue(key, out var cached))
         {
             _brushes = null;
-            return _commonBrushes;
+            return cached;
         }
 
-        if (_brushes is null) _brushes = CreateBrushes(c, cornerRadius);
+        // 实例级缓存命中时直接复用，避免同一实例每帧重建
+        if (_brushes is not null && _brushesKey == key) return _brushes;
 
-        return _brushes;
+        var brushes = CreateBrushes(c, cornerRadius);
+
+        // 静态缓存已满时不再新增，退回实例级缓存，避免字典无限增长
+        if (_brushCache.Count < MaxBrushCacheSize && _brushCache.TryAdd(key, brushes))
+        {
+            _brushes = null;
+            return brushes;
+        }
+
+        _brushes = brushes;
+        _brushesKey = key;
+        return brushes;
     }
 
     private enum Placement

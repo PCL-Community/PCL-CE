@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace PCL;
 
@@ -44,17 +45,25 @@ public class AnimatedBackgroundGrid : Grid
         set => SetValue(BackgroundBrushProperty, value);
     }
 
+    // 主题切换时所有实例共享同一个 300ms 计时器，
+    // 避免每个实例各自起一个 Task.Delay（卡片多时会同时存在大量计时器与续延）。
+    private static readonly List<(AnimatedBackgroundGrid Grid, SolidColorBrush Brush)> _pendingFinishes = new();
+    private static DispatcherTimer? _finishTimer;
+    private static Dispatcher? _finishTimerDispatcher;
+
     private static void _BackgroundBrushChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         var grid = (AnimatedBackgroundGrid)d;
         var brush = (SolidColorBrush)e.NewValue;
+
+        // 不可见或未加载的实例不参与动画，直接赋值即可
         if (!(grid.IsLoaded && grid.IsVisible))
         {
             grid.AnimatableBrush = brush;
             return;
         }
 
-        grid.Dispatcher.BeginInvoke(new Func<Task>(async () =>
+        grid.Dispatcher.BeginInvoke(new Action(() =>
         {
             grid.IsAnimating = true;
             Animations.AniStart(
@@ -63,10 +72,55 @@ public class AnimatedBackgroundGrid : Grid
                     Animations.AaColor(grid.AnimatableElement, grid._animatableBrushProperty,
                         new Common.MyColor(brush) - grid.AnimatableBrush, 300)
                 }, "MyCard Theme " + grid.uuid);
-            await Task.Delay(300);
+            _ScheduleFinish(grid, brush);
+        }));
+    }
+
+    private static void _ScheduleFinish(AnimatedBackgroundGrid grid, SolidColorBrush brush)
+    {
+        // 同一实例重复触发时只保留最新的目标颜色
+        for (var i = 0; i < _pendingFinishes.Count; i++)
+        {
+            if (!ReferenceEquals(_pendingFinishes[i].Grid, grid)) continue;
+            _pendingFinishes[i] = (grid, brush);
+            _EnsureFinishTimer(grid.Dispatcher);
+            return;
+        }
+
+        _pendingFinishes.Add((grid, brush));
+        _EnsureFinishTimer(grid.Dispatcher);
+    }
+
+    private static void _EnsureFinishTimer(Dispatcher dispatcher)
+    {
+        if (_finishTimer is null || !ReferenceEquals(_finishTimerDispatcher, dispatcher))
+        {
+            _finishTimer?.Stop();
+            _finishTimer = new DispatcherTimer(DispatcherPriority.Normal, dispatcher)
+            {
+                Interval = TimeSpan.FromMilliseconds(300)
+            };
+            _finishTimer.Tick += _OnFinishTimerTick;
+            _finishTimerDispatcher = dispatcher;
+        }
+
+        // 一轮主题切换内所有实例几乎同时触发，共用从首次触发开始计时的 300ms 窗口
+        if (!_finishTimer.IsEnabled) _finishTimer.Start();
+    }
+
+    private static void _OnFinishTimerTick(object? sender, EventArgs e)
+    {
+        _finishTimer?.Stop();
+        if (_pendingFinishes.Count == 0) return;
+
+        var pending = _pendingFinishes.ToArray();
+        _pendingFinishes.Clear();
+
+        foreach (var (grid, brush) in pending)
+        {
             grid.AnimatableBrush = brush;
             grid.IsAnimating = false;
-        }));
+        }
     }
 
     private void Init()

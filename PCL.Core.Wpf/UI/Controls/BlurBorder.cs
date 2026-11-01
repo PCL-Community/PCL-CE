@@ -87,6 +87,16 @@ public class BlurBorder : Border
 
     private readonly Stack<UIElement> _panelStack = new();
 
+    // 当前订阅了 LayoutUpdated 的父级。显式记录以便父级变更时准确退订，避免内存泄漏。
+    private UIElement? _layoutParent;
+
+    // 上一次触发渲染时的父级尺寸与本元素相对可视树根元素的位置。
+    // 父级 LayoutUpdated 会在每次布局传递时触发（与父级是否真的变化无关），
+    // 用它过滤掉无意义的强制渲染。
+    private bool _hasLayoutSnapshot;
+    private Size _lastParentSize;
+    private Point _lastParentOffset;
+
     /// <summary>
     ///     A geometry to clip the content of this border correctly
     /// </summary>
@@ -169,19 +179,106 @@ public class BlurBorder : Border
             oldParent.LayoutUpdated -= ParentLayoutUpdated;
         }
 
-        if (Parent is UIElement newParent)
+        // 显式退订已记录的父级，防止 Parent 与可视父级不一致时留下悬挂订阅
+        if (_layoutParent is not null)
         {
-            newParent.LayoutUpdated += ParentLayoutUpdated;
+            _layoutParent.LayoutUpdated -= ParentLayoutUpdated;
+            _layoutParent = null;
         }
+
+        UpdateLayoutSubscription();
+    }
+
+    /// <summary>
+    ///     按需订阅父级的 <see cref="UIElement.LayoutUpdated" />。
+    ///     模糊关闭（BlurRadius &lt;= 0）时完全不需要跟随父级布局重绘，
+    ///     否则卡片一多，父级每次布局都会触发 O(N) 次强制渲染。
+    /// </summary>
+    private void UpdateLayoutSubscription()
+    {
+        var parent = Parent as UIElement;
+        var shouldSubscribe = parent is not null && BlurRadius > 0;
+
+        // 父级变更或不再需要订阅时，先退订旧父级，避免事件悬挂导致内存泄漏
+        if (_layoutParent is not null && (!shouldSubscribe || !ReferenceEquals(_layoutParent, parent)))
+        {
+            _layoutParent.LayoutUpdated -= ParentLayoutUpdated;
+            _layoutParent = null;
+            _hasLayoutSnapshot = false;
+        }
+
+        if (!shouldSubscribe || _layoutParent is not null) return;
+
+        _layoutParent = parent;
+        _layoutParent!.LayoutUpdated += ParentLayoutUpdated;
+        _hasLayoutSnapshot = false;
     }
 
     private void ParentLayoutUpdated(object? sender, EventArgs e)
     {
         // cannot use 'InvalidateVisual' here, because it will cause infinite loop
 
+        // 只有父级尺寸或本元素在父级中的相对位置变化时才重新渲染背景模糊
+        if (!HasLayoutChanged()) return;
+
         BackgroundPresenter.ForceRender(this);
 
         // Debug.WriteLine("Parent layout updated, forcing render of BackgroundPresenter.");
+    }
+
+    /// <summary>
+    ///     判断父级布局是否发生了会影响模糊结果的变化，并顺带刷新快照。
+    /// </summary>
+    private bool HasLayoutChanged()
+    {
+        if (_layoutParent is null) return true;
+
+        var parentSize = _layoutParent.RenderSize;
+
+        // Parent 不一定是可视树上的祖先（控件模板里的元素常见），所以位移统一沿可视树换算。
+        // 参照物取可视树的根元素而不是直接父级：模糊采样的是窗口背景，
+        // 祖先整体平移时直接父级的尺寸与相对位置都可能不变，只看父级会漏掉这类变化。
+        DependencyObject root = this;
+        var rootParent = VisualTreeHelper.GetParent(root);
+
+        if (rootParent is null)
+        {
+            // 尚未连接到可视树，保守起见按「已变化」处理
+            _hasLayoutSnapshot = false;
+            return true;
+        }
+
+        while (rootParent is not null)
+        {
+            root = rootParent;
+            rootParent = VisualTreeHelper.GetParent(root);
+        }
+
+        if (root is not UIElement rootElement)
+        {
+            _hasLayoutSnapshot = false;
+            return true;
+        }
+
+        Point offset;
+
+        try
+        {
+            offset = TranslatePoint(new Point(0d, 0d), rootElement);
+        }
+        catch (InvalidOperationException)
+        {
+            // 无法换算坐标时保守起见按「已变化」处理
+            _hasLayoutSnapshot = false;
+            return true;
+        }
+
+        if (_hasLayoutSnapshot && _lastParentSize == parentSize && _lastParentOffset == offset) return false;
+
+        _hasLayoutSnapshot = true;
+        _lastParentSize = parentSize;
+        _lastParentOffset = offset;
+        return true;
     }
 
     private static Geometry? CalculateContentClip(Border border)
@@ -292,6 +389,16 @@ public class BlurBorder : Border
         DependencyObject d,
         DependencyPropertyChangedEventArgs e)
     {
+        if (d is BlurBorder blurBorder)
+        {
+            // BlurRadius 由 Application.xaml 的隐式样式通过 DynamicResource 设置，
+            // 可能晚于 OnVisualParentChanged 生效，所以在这里按需订阅/退订父级 LayoutUpdated。
+            if (e.Property == BlurRadiusProperty) blurBorder.UpdateLayoutSubscription();
+
+            BackgroundPresenter.ForceRender(blurBorder);
+            return;
+        }
+
         if (d is UIElement element)
         {
             BackgroundPresenter.ForceRender(element);

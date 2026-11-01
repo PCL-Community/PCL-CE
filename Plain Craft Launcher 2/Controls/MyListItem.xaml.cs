@@ -71,11 +71,9 @@ public partial class MyListItem : IMyRadio
                     ani.Add(Animations.AaOpacity(buttonStack, 1d - buttonStack.Opacity,
                         (int)Math.Round(time * 0.7d),
                         (int)Math.Round(time * 0.3d)));
-                    ani.Add(Animations.AaDouble(
-                        i => ColumnPaddingRight.Width =
-                            new GridLength(Math.Max(0, ColumnPaddingRight.Width.Value + (double)i)),
-                        Math.Max(MinPaddingRight, 5 + Buttons.Count() * 25) - ColumnPaddingRight.Width.Value,
-                        (int)Math.Round(time * 0.3d), (int)Math.Round(time * 0.7d)));
+                    // 列宽变化会让整个 Grid 重新 measure，因此不再逐帧动画，
+                    // 直接在状态切换时一次性设为最终值，只保留透明度与缩放动画
+                    ColumnPaddingRight.Width = new GridLength(Math.Max(MinPaddingRight, 5 + Buttons.Count() * 25));
                 }
 
                 ani.AddRange(new[]
@@ -88,15 +86,15 @@ public partial class MyListItem : IMyRadio
                 if (IsScaleAnimationEnabled)
                 {
                     ani.Add(Animations.AaScaleTransform(RectBack,
-                        1d - ((ScaleTransform)RectBack.RenderTransform).ScaleX, (int)Math.Round(time * 1.6d),
+                        1d - RectBackScale.ScaleX, (int)Math.Round(time * 1.6d),
                         ease: new Animations.AniEaseOutFluent()));
                     if (_isMouseDown)
                         ani.Add(Animations.AaScaleTransform(this,
-                            0.98d - ((ScaleTransform)RenderTransform).ScaleX,
+                            0.98d - PanBackScale.ScaleX,
                             (int)Math.Round(time * 0.9d), ease: new Animations.AniEaseOutFluent()));
                     else
                         ani.Add(Animations.AaScaleTransform(this,
-                            1d - ((ScaleTransform)RenderTransform).ScaleX,
+                            1d - PanBackScale.ScaleX,
                             (int)Math.Round(time * 1.2d), ease: new Animations.AniEaseOutFluent()));
                 }
             }
@@ -106,10 +104,8 @@ public partial class MyListItem : IMyRadio
                 {
                     ani.Add(Animations.AaOpacity(buttonStack, -buttonStack.Opacity,
                         (int)Math.Round(time * 0.4d)));
-                    ani.Add(Animations.AaDouble(
-                        i => ColumnPaddingRight.Width =
-                            new GridLength(Math.Max(0, ColumnPaddingRight.Width.Value + (double)i)),
-                        MinPaddingRight - ColumnPaddingRight.Width.Value, (int)Math.Round(time * 0.4d)));
+                    // 同上：一次性恢复最小内边距
+                    ColumnPaddingRight.Width = new GridLength(MinPaddingRight);
                 }
 
                 ani.Add(Animations.AaOpacity(RectBack, -RectBack.Opacity, time));
@@ -119,10 +115,10 @@ public partial class MyListItem : IMyRadio
                         Animations.AaColor(RectBack, Border.BackgroundProperty,
                             _isMouseDown ? "ColorBrush6" : "ColorBrush7", time),
                         Animations.AaScaleTransform(this,
-                            1d - ((ScaleTransform)RenderTransform).ScaleX, time * 3,
+                            1d - PanBackScale.ScaleX, time * 3,
                             ease: new Animations.AniEaseOutFluent()),
                         Animations.AaScaleTransform(RectBack,
-                            0.996d - ((ScaleTransform)RectBack.RenderTransform).ScaleX, time,
+                            0.996d - RectBackScale.ScaleX, time,
                             ease: new Animations.AniEaseOutFluent()),
                         Animations.AaScaleTransform(RectBack, -0.246d, 1, after: true)
                     });
@@ -144,8 +140,13 @@ public partial class MyListItem : IMyRadio
                 // 由于鼠标已经移入，所以直接实例化 RectBack
                 RectBack.Background = (Brush)ThemeManager.AppResources["ColorBrushBg1"];
                 RectBack.Opacity = 1d;
-                RectBack.RenderTransform = new ScaleTransform(1d, 1d);
-                RenderTransform = new ScaleTransform(1d, 1d);
+                // 复用变换实例，只改数值，避免每次状态切换都新建 ScaleTransform
+                var rectScale = RectBackScale;
+                rectScale.ScaleX = 1d;
+                rectScale.ScaleY = 1d;
+                var itemScale = PanBackScale;
+                itemScale.ScaleX = 1d;
+                itemScale.ScaleY = 1d;
             }
             else
             {
@@ -155,18 +156,70 @@ public partial class MyListItem : IMyRadio
                     ColumnPaddingRight.Width = new GridLength(MinPaddingRight);
                 }
 
-                RenderTransform = new ScaleTransform(1d, 1d);
+                var itemScale = PanBackScale;
+                itemScale.ScaleX = 1d;
+                itemScale.ScaleY = 1d;
                 if (_rectBack is not null)
                 {
                     if (IsScaleAnimationEnabled)
-                        RectBack.RenderTransform = new ScaleTransform(0.75d, 0.75d);
-                    RectBack.Background = (Brush)ThemeManager.AppResources["ColorBrush7"];
-                    RectBack.Opacity = 0d;
+                    {
+                        var backScale = _rectBack.RenderTransform as ScaleTransform;
+                        if (backScale is null)
+                        {
+                            backScale = new ScaleTransform(1d, 1d);
+                            _rectBack.RenderTransform = backScale;
+                        }
+
+                        backScale.ScaleX = 0.75d;
+                        backScale.ScaleY = 0.75d;
+                    }
+
+                    _rectBack.Background = (Brush)ThemeManager.AppResources["ColorBrush7"];
+                    _rectBack.Opacity = 0d;
                 }
             }
 
             Animations.AniStop("ListItem Color " + Uuid);
         }
+    }
+
+    /// <summary>
+    ///     RectBack 的缩放变换。复用一个实例，避免每次状态切换都新建 ScaleTransform。
+    /// </summary>
+    private ScaleTransform RectBackScale
+    {
+        get
+        {
+            if (RectBack.RenderTransform is ScaleTransform scale) return scale;
+            scale = new ScaleTransform(1d, 1d);
+            RectBack.RenderTransform = scale;
+            return scale;
+        }
+    }
+
+    /// <summary>
+    ///     列表项自身的缩放变换（XAML 中已存在）。复用一个实例，避免每次状态切换都新建 ScaleTransform。
+    /// </summary>
+    private ScaleTransform PanBackScale
+    {
+        get
+        {
+            if (RenderTransform is ScaleTransform scale) return scale;
+            scale = new ScaleTransform(1d, 1d);
+            RenderTransform = scale;
+            return scale;
+        }
+    }
+
+    /// <summary>
+    ///     rectCheck 的缩放变换。复用一个实例，避免每次勾选/取消勾选都新建 ScaleTransform。
+    /// </summary>
+    private ScaleTransform GetRectCheckScale()
+    {
+        if (rectCheck.RenderTransform is ScaleTransform scale) return scale;
+        scale = new ScaleTransform(1d, 1d);
+        rectCheck.RenderTransform = scale;
+        return scale;
     }
 
     private void MyListItem_Loaded(object sender, RoutedEventArgs e)
@@ -1017,10 +1070,11 @@ public partial class MyListItem : IMyRadio
                     rectCheck.Margin = new Thickness(-1, 0d, 0d, 0d);
                     rectCheck.Opacity = 1d;
 
-                    // 初始化缩放中心为正中心
-                    var scale = new ScaleTransform(1d, 0d);
+                    // 初始化缩放中心为正中心；复用变换实例，只把 ScaleY 复位到 0
+                    var scale = GetRectCheckScale();
                     rectCheck.RenderTransformOrigin = new Point(0.5d, 0.5d);
-                    rectCheck.RenderTransform = scale;
+                    scale.ScaleX = 1d;
+                    scale.ScaleY = 0d;
 
                     // 动画：让 ScaleY 从 0 弹性放大到 1
                     anim.Add(Animations.AaDouble(
@@ -1039,13 +1093,9 @@ public partial class MyListItem : IMyRadio
                 // 由有变无
                 if (rectCheck is not null)
                 {
-                    if (rectCheck.RenderTransform is not ScaleTransform)
-                    {
-                        rectCheck.RenderTransformOrigin = new Point(0.5d, 0.5d);
-                        rectCheck.RenderTransform = new ScaleTransform(1d, 1d);
-                    }
-
-                    var scale = (ScaleTransform)rectCheck.RenderTransform;
+                    // 复用变换实例，避免每次取消勾选都新建 ScaleTransform
+                    var scale = GetRectCheckScale();
+                    rectCheck.RenderTransformOrigin = new Point(0.5d, 0.5d);
 
                     // 动画：让 ScaleY 从当前值缩减到 0
                     anim.Add(Animations.AaDouble(
