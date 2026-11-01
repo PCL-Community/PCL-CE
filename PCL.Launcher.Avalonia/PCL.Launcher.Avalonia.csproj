@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <!-- PCL 的 Avalonia 界面层：目标为跨平台 net10.0，WPF 工程保持冻结。 -->
+    <PropertyGroup>
+        <AssemblyTitle>PCL.Launcher.Avalonia</AssemblyTitle>
+        <AssemblyName>PCL.Launcher.Avalonia</AssemblyName>
+        <Description>PCL 的 Avalonia 界面层</Description>
+        <Company>PCL Community</Company>
+        <Product>PCL.Launcher.Avalonia</Product>
+        <RootNamespace>PCL.Avalonia</RootNamespace>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <LangVersion>14.0</LangVersion>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Configurations>Debug;CI;Release;Beta</Configurations>
+        <Platforms>AnyCPU;x64;ARM64</Platforms>
+        <PlatformTarget>$(Platform)</PlatformTarget>
+        <NoWarn>$(NoWarn);CS9113</NoWarn>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="Avalonia" Version="12.1.4" />
+        <PackageReference Include="Avalonia.Desktop" Version="12.1.4" />
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.4" />
+        <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.4" />
+        <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3">
+            <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
+            <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
+        </PackageReference>
+    </ItemGroup>
+    <ItemGroup>
+        <!-- 复用 WPF 头的构建元数据，PCL.Core 通过入口程序集的清单资源读取 -->
+        <EmbeddedResource Include="..\Plain Craft Launcher 2\metadata.json" Link="metadata.json">
+            <LogicalName>PCL.metadata.json</LogicalName>
+        </EmbeddedResource>
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\PCL.Core.Avalonia\PCL.Core.Avalonia.csproj" />
+        <ProjectReference Include="..\PCL.Launcher.Core\PCL.Launcher.Core.csproj" />
+    </ItemGroup>
+</Project>

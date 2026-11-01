@@ -169,7 +169,7 @@ public static partial class GameLaunch
         return new Dictionary<string, string>
         {
             {
-                "${classpath_separator}", ";"
+                "${classpath_separator}", Path.PathSeparator.ToString()
             },
             {
                 "${natives_directory}", LauncherCommon.ShortenPath(GetNativesFolder())
@@ -295,7 +295,9 @@ public static partial class GameLaunch
             else
                 cpStrings.Add(library.LocalPath);
 
-        foreach (var library in Config.Instance.ClasspathHead[instance.PathInstance].Split(";"))
+        foreach (var library in Config
+                     .Instance.ClasspathHead[instance.PathInstance]
+                     .Split(Path.PathSeparator))
         {
             if (string.IsNullOrWhiteSpace(library))
                 continue;
@@ -305,7 +307,9 @@ public static partial class GameLaunch
         if (optiFineCp is not null)
             cpStrings.Insert(cpStrings.Count - 2, optiFineCp);
 
-        return cpStrings.Select(c => LauncherCommon.ShortenPath(c)).Join(";");
+        return cpStrings
+            .Select(c => LauncherCommon.ShortenPath(c))
+            .Join(Path.PathSeparator.ToString());
     }
 
     public struct GameWindowSize(double width, double height)

@@ -439,11 +439,7 @@ public static partial class GameLaunch
             (noJavaw ? installation.JavaExePath : installation.JavawExePath)
             ?? installation.JavaExePath);
 
-        var paths = new List<string>((startInfo.EnvironmentVariables["Path"] ?? "").Split(";"))
-        {
-            LauncherCommon.ShortenPath(installation.JavaFolder)
-        };
-        startInfo.EnvironmentVariables["Path"] = paths.Distinct().ToList().Join(";");
+        _PrependJavaFolderToPathVariable(startInfo, installation.JavaFolder);
         startInfo.EnvironmentVariables["appdata"] = LauncherCommon.ShortenPath(
             GameFolders.mcFolderSelected!);
 
@@ -455,6 +451,36 @@ public static partial class GameLaunch
         startInfo.CreateNoWindow = noJavaw;
         startInfo.Arguments = _mcLaunchArgument;
         return startInfo;
+    }
+
+    /// <summary>
+    ///     将 Java 目录添加到游戏进程的 PATH 环境变量开头。
+    ///     Windows 使用 "Path" 与 ";"，其余平台使用 "PATH" 与 Path.PathSeparator。
+    /// </summary>
+    private static void _PrependJavaFolderToPathVariable(
+        ProcessStartInfo startInfo,
+        string javaFolder)
+    {
+        var separator = Path.PathSeparator;
+        var javaFolderPath = LauncherCommon.ShortenPath(javaFolder);
+        if (OperatingSystem.IsWindows())
+        {
+            var paths = new List<string>(
+                (startInfo.EnvironmentVariables["Path"] ?? "").Split(separator))
+            {
+                javaFolderPath
+            };
+            startInfo.EnvironmentVariables["Path"] =
+                paths.Distinct().ToList().Join(separator.ToString());
+            return;
+        }
+
+        startInfo.Environment.TryGetValue("PATH", out var currentPath);
+        var unixPaths = new List<string>((currentPath ?? "").Split(separator))
+        {
+            javaFolderPath
+        };
+        startInfo.Environment["PATH"] = unixPaths.Distinct().ToList().Join(separator.ToString());
     }
 
     private static void _ApplyProcessPriority(Process gameProcess)

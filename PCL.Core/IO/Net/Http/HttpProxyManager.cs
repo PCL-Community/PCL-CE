@@ -22,16 +22,31 @@ public class HttpProxyManager : IWebProxy, IDisposable
 
     private readonly object _lock = new();
     private ProxyMode _mode = ProxyMode.SystemProxy;
-    private readonly WebProxy _customWebProxy = new() { BypassProxyOnLocal = true };
-    private readonly WebProxy _systemWebProxy = new() { BypassProxyOnLocal = true };
-    private const string ProxyRegPathFull = @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings";
-    private const string ProxyRegPath = @"Software\Microsoft\Windows\CurrentVersion\Internet Settings";
-    private readonly RegistryChangeMonitor _proxyMonitor = new(ProxyRegPath);
+
+    private readonly WebProxy _customWebProxy = new()
+    {
+        BypassProxyOnLocal = true
+    };
+
+    private readonly WebProxy _systemWebProxy = new()
+    {
+        BypassProxyOnLocal = true
+    };
+
+    private const string ProxyRegPathFull =
+        @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings";
+
+    private const string ProxyRegPath =
+        @"Software\Microsoft\Windows\CurrentVersion\Internet Settings";
+
+    private readonly RegistryChangeMonitor? _proxyMonitor =
+        OperatingSystem.IsWindows() ? new RegistryChangeMonitor(ProxyRegPath) : null;
 
     private HttpProxyManager()
     {
         RefreshSystemProxy(); // 初始化系统代理
-        _proxyMonitor.Changed += _OnSystemProxyChanged;
+        if (_proxyMonitor is not null)
+            _proxyMonitor.Changed += _OnSystemProxyChanged;
     }
 
     private void _OnSystemProxyChanged(object? sender, EventArgs e)
@@ -56,11 +71,14 @@ public class HttpProxyManager : IWebProxy, IDisposable
         if (proxyString.Contains('='))
         {
             var items = new List<ProxyItem>();
-            foreach (var segment in proxyString.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            foreach (var segment in proxyString.Split(
+                         ';',
+                         StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
             {
                 if (_ParseKeyValueSegment(segment) is { } item)
                     items.Add(item);
             }
+
             return [.. items];
         }
 
@@ -87,7 +105,8 @@ public class HttpProxyManager : IWebProxy, IDisposable
         if (address.IsNullOrWhiteSpace()) return null;
 
         // 能解析出主机名的地址，规范化为 host:port
-        if (Uri.TryCreate(address, new UriCreationOptions(), out var uri) && !uri.Host.IsNullOrEmpty())
+        if (Uri.TryCreate(address, new UriCreationOptions(), out var uri)
+            && !uri.Host.IsNullOrEmpty())
         {
             var hostPort = uri.Port > 0 ? $"{uri.Host}:{uri.Port}" : uri.Host;
             return new ProxyItem(protocol ?? _ParseProtocol(uri.Scheme), hostPort);
@@ -113,22 +132,35 @@ public class HttpProxyManager : IWebProxy, IDisposable
         {
             try
             {
+                if (!OperatingSystem.IsWindows())
+                {
+                    // 非 Windows 平台没有注册表系统代理配置，视为未启用系统代理
+                    _systemWebProxy.Address = null;
+                    return;
+                }
+
                 // read from reg
-                var isSystemProxyEnabled = (int)(Registry.GetValue(ProxyRegPathFull, "ProxyEnable", 0) ?? 0);
-                var systemProxyString = Registry.GetValue(ProxyRegPathFull, "ProxyServer", string.Empty) as string;
+                var isSystemProxyEnabled =
+                    (int)(Registry.GetValue(ProxyRegPathFull, "ProxyEnable", 0) ?? 0);
+                var systemProxyString = Registry.GetValue(
+                    ProxyRegPathFull,
+                    "ProxyServer",
+                    string.Empty) as string;
 
                 // parse
                 var proxies = _GetProxyFromString(systemProxyString);
 
                 // 仅当系统代理已启用且存在有效的 HTTP 代理时才应用
-                var selectedProxy = proxies.FirstOrDefault(static x => x.Protocol == ProxyProtocol.Http);
+                var selectedProxy =
+                    proxies.FirstOrDefault(static x => x.Protocol == ProxyProtocol.Http);
                 _systemWebProxy.Address = selectedProxy is null
                     || selectedProxy.Address.IsNullOrEmpty()
                     || isSystemProxyEnabled == 0
                         ? null
                         : new Uri($"http://{selectedProxy.Address}");
 
-                LogWrapper.Info("Proxy",
+                LogWrapper.Info(
+                    "Proxy",
                     $"已从操作系统更新代理设置，系统代理状态：{isSystemProxyEnabled}|{systemProxyString}");
             }
             catch (Exception ex)
@@ -140,25 +172,67 @@ public class HttpProxyManager : IWebProxy, IDisposable
 
     public ProxyMode Mode
     {
-        get { lock (_lock) return _mode; }
-        set { lock (_lock) _mode = value; }
+        get
+        {
+            lock (_lock)
+            {
+                return _mode;
+            }
+        }
+        set
+        {
+            lock (_lock)
+            {
+                _mode = value;
+            }
+        }
     }
 
     public Uri? CustomProxyAddress
     {
-        get { lock (_lock) return _customWebProxy.Address; }
-        set { lock (_lock) _customWebProxy.Address = value; }
+        get
+        {
+            lock (_lock)
+            {
+                return _customWebProxy.Address;
+            }
+        }
+        set
+        {
+            lock (_lock)
+            {
+                _customWebProxy.Address = value;
+            }
+        }
     }
 
     public ICredentials? CustomProxyCredentials
     {
-        get { lock (_lock) return _customWebProxy.Credentials; }
-        set { lock (_lock) _customWebProxy.Credentials = value; }
+        get
+        {
+            lock (_lock)
+            {
+                return _customWebProxy.Credentials;
+            }
+        }
+        set
+        {
+            lock (_lock)
+            {
+                _customWebProxy.Credentials = value;
+            }
+        }
     }
 
     public bool BypassOnLocal
     {
-        get { lock (_lock) return field; }
+        get
+        {
+            lock (_lock)
+            {
+                return field;
+            }
+        }
         set
         {
             lock (_lock)
@@ -220,7 +294,7 @@ public class HttpProxyManager : IWebProxy, IDisposable
 
     public void Dispose()
     {
-        _proxyMonitor.Dispose();
+        _proxyMonitor?.Dispose();
         GC.SuppressFinalize(this);
     }
 }

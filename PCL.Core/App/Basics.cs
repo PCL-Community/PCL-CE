@@ -22,7 +22,8 @@ public static class Basics
     /// 启动器元数据。
     /// </summary>
     public static MetadataModel Metadata { get; } = JsonSerializer.Deserialize<MetadataModel>(
-        Assembly.GetEntryAssembly()!.GetManifestResourceStream("PCL.metadata.json")!, JsonCompat.SerializerOptions)!;
+        Assembly.GetEntryAssembly()!.GetManifestResourceStream("PCL.metadata.json")!,
+        JsonCompat.SerializerOptions)!;
 
     /// <summary>
     /// 版本名称。
@@ -66,7 +67,8 @@ public static class Basics
     /// <summary>
     /// 当前进程可执行文件所在的目录。若有需求，请使用 <see cref="Path.Combine(string[])"/> 而不是自行拼接路径。
     /// </summary>
-    public static string ExecutableDirectory { get; } = GetParentPath(ExecutablePath) ?? CurrentDirectory;
+    public static string ExecutableDirectory { get; } =
+        GetParentPath(ExecutablePath) ?? CurrentDirectory;
 
     /// <summary>
     /// 当前进程可执行文件的名称，含扩展名。
@@ -76,7 +78,8 @@ public static class Basics
     /// <summary>
     /// 当前进程可执行文件的名称，不含扩展名。
     /// </summary>
-    public static string ExecutableNameWithoutExtension { get; } = Path.GetFileNameWithoutExtension(ExecutablePath);
+    public static string ExecutableNameWithoutExtension { get; } =
+        Path.GetFileNameWithoutExtension(ExecutablePath);
 
     /// <summary>
     /// 当前进程包括第一个参数（文件名）的完整命令行参数。
@@ -104,16 +107,31 @@ public static class Basics
     /// <param name="name">线程名，默认为 <c>WorkerThread@[ThreadId]</c></param>
     /// <param name="priority">线程优先级</param>
     /// <returns>新创建的线程实例</returns>
-    public static Thread RunInNewThread(Action action, string? name = null, ThreadPriority priority = ThreadPriority.Normal)
+    public static Thread RunInNewThread(
+        Action action,
+        string? name = null,
+        ThreadPriority priority = ThreadPriority.Normal)
     {
         var threadName = new AtomicVariable<string>(name);
         var thread = new Thread(() =>
         {
-            try { action(); }
-            catch (ThreadInterruptedException) { LogWrapper.Trace("Thread", $"{threadName.Value}: 已中止"); }
-            catch (Exception ex) { LogWrapper.Error(ex, "Thread", $"{threadName.Value}: 抛出异常"); }
+            try
+            {
+                action();
+            }
+            catch (ThreadInterruptedException)
+            {
+                LogWrapper.Trace("Thread", $"{threadName.Value}: 已中止");
+            }
+            catch (Exception ex)
+            {
+                LogWrapper.Error(ex, "Thread", $"{threadName.Value}: 抛出异常");
+            }
         })
-        { Priority = priority, IsBackground = true };
+        {
+            Priority = priority,
+            IsBackground = true
+        };
         threadName.Value ??= $"Worker#{thread.ManagedThreadId}";
         thread.Name = threadName.Value;
         thread.Start();
@@ -129,7 +147,10 @@ public static class Basics
     /// </summary>
     /// <param name="path">路径文本</param>
     /// <returns>父路径文本，可能为 <c>null</c></returns>
-    public static string? GetParentPath(string path) => Path.GetDirectoryName(path) ?? Path.GetPathRoot(path);
+    public static string? GetParentPath(string path)
+    {
+        return Path.GetDirectoryName(path) ?? Path.GetPathRoot(path);
+    }
 
     /// <summary>
     /// 获取某个路径的父路径/目录。
@@ -143,7 +164,10 @@ public static class Basics
     /// </summary>
     /// <param name="path">路径文本</param>
     /// <returns>父路径文本，或默认 (<see cref="CurrentDirectory"/>)</returns>
-    public static string GetParentPathOrDefault(string path) => GetParentPath(path) ?? CurrentDirectory;
+    public static string GetParentPathOrDefault(string path)
+    {
+        return GetParentPath(path) ?? CurrentDirectory;
+    }
 
     /// <summary>
     /// 以默认方式打开一个路径 (文件或目录)
@@ -164,14 +188,16 @@ public static class Basics
         }
         catch (Win32Exception ex) when (ex.NativeErrorCode == 1155 && File.Exists(path))
         {
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = "notepad.exe",
-                Arguments = $"\"{path}\"",
-                UseShellExecute = false
-            });
+            Process.Start(
+                new ProcessStartInfo
+                {
+                    FileName = "notepad.exe",
+                    Arguments = $"\"{path}\"",
+                    UseShellExecute = false
+                });
         }
     }
+
     #endregion
 
     #region 应用程序操作
@@ -187,8 +213,24 @@ public static class Basics
         return PlatformServices.ResourceStore?.GetResourceStream(path);
     }
 
-    private const string AssemblyImagePath = "pack://application:,,,/Plain Craft Launcher 2;component/Images/";
-    public static string GetAppImagePath(string imageName) => AssemblyImagePath + imageName;
+    /// <summary>
+    ///     获取程序内嵌图片的根 URI，具体 URI 方案由 UI 层注册的资源访问实现决定。
+    /// </summary>
+    /// <returns>图片根 URI（以 <c>/</c> 结尾）；未注册资源访问实现时为空字符串</returns>
+    public static string GetAppImageRootUri()
+    {
+        return PlatformServices.ResourceStore?.GetImageRootUri() ?? string.Empty;
+    }
+
+    /// <summary>
+    ///     获取程序内嵌图片的 URI。
+    /// </summary>
+    /// <param name="imageName">相对于图片根目录的图片路径，例如 "Icons/NoIcon.png"</param>
+    /// <returns>图片 URI；未注册资源访问实现时原样返回 <paramref name="imageName" /></returns>
+    public static string GetAppImagePath(string imageName)
+    {
+        return PlatformServices.ResourceStore?.GetImageUri(imageName) ?? imageName;
+    }
 
     #endregion
 }

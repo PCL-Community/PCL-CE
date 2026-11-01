@@ -1,9 +1,9 @@
-using Microsoft.Win32;
-using PCL.Core.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.Win32;
+using PCL.Core.Logging;
 
 namespace PCL.Core.Minecraft.Java.Scanner;
 
@@ -47,10 +47,11 @@ public class RegistryJavaScanner : IJavaScanner
             {
                 using var subKey = regKey.OpenSubKey(subKeyName);
                 var javaHome = subKey?.GetValue("JavaHome") as string;
-                if (string.IsNullOrEmpty(javaHome) ||
-                    Path.GetInvalidPathChars().Any(c => javaHome.Contains(c))) continue;
+                if (string.IsNullOrEmpty(javaHome)
+                    || Path.GetInvalidPathChars().Any(javaHome.Contains)) continue;
 
-                var javaExePath = Path.Combine(javaHome, "bin", "java.exe");
+                var javaExePath =
+                    JavaExecutableLayout.GetJavaExePath(Path.Combine(javaHome, "bin"));
                 if (File.Exists(javaExePath)) results.Add(javaExePath);
             }
         }
@@ -67,10 +68,11 @@ public class RegistryJavaScanner : IJavaScanner
             {
                 using var subKey = brandKey.OpenSubKey(subKeyName);
                 var installPath = subKey?.GetValue("InstallationPath") as string;
-                if (string.IsNullOrEmpty(installPath) ||
-                    Path.GetInvalidPathChars().Any(c => installPath.Contains(c))) continue;
+                if (string.IsNullOrEmpty(installPath)
+                    || Path.GetInvalidPathChars().Any(installPath.Contains)) continue;
 
-                var javaExePath = Path.Combine(installPath, "bin", "java.exe");
+                var javaExePath =
+                    JavaExecutableLayout.GetJavaExePath(Path.Combine(installPath, "bin"));
                 if (File.Exists(javaExePath)) results.Add(javaExePath);
             }
         }

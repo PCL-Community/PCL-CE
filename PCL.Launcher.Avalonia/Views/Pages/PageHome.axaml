@@ -1,0 +1,29 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="PCL.Avalonia.Views.Pages.PageHome">
+    <Grid RowDefinitions="Auto,*"
+          Margin="24">
+        <StackPanel Grid.Row="0"
+                    Spacing="6">
+            <TextBlock Name="WelcomeText"
+                       FontSize="24"
+                       FontWeight="Bold"
+                       Text="PCL Community Edition" />
+            <TextBlock FontSize="13"
+                       Opacity="0.7"
+                       Text="Avalonia 接口层已就绪，页面与业务功能正在迁移中。" />
+        </StackPanel>
+        <Border Grid.Row="1"
+                Margin="0,20,0,0"
+                CornerRadius="8"
+                BorderThickness="1"
+                BorderBrush="#22808080"
+                Background="#0C808080">
+            <TextBlock Margin="20"
+                       VerticalAlignment="Center"
+                       TextWrapping="Wrap"
+                       Opacity="0.8"
+                       Text="主页占位：后续将迁移首页、实例列表与下载页。" />
+        </Border>
+    </Grid>
+</UserControl>

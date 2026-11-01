@@ -1,10 +1,10 @@
-using PCL.Core.App;
-using PCL.Core.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using PCL.Core.App;
+using PCL.Core.Logging;
 
 namespace PCL.Core.Minecraft.Java.Scanner;
 
@@ -17,7 +17,8 @@ public class DefaultPathsScanner : IJavaScanner
         try
         {
             var searchRoots = _GetSearchRoots();
-            LogWrapper.Info($"[Java] 对下列目录进行广度关键词搜索:{Environment.NewLine}{string.Join(Environment.NewLine, searchRoots)}");
+            LogWrapper.Info(
+                $"[Java] 对下列目录进行广度关键词搜索:{Environment.NewLine}{string.Join(Environment.NewLine, searchRoots)}");
 
             foreach (var root in searchRoots)
             {
@@ -34,7 +35,10 @@ public class DefaultPathsScanner : IJavaScanner
     {
         var roots = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".minecraft", "runtime"),
+            Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                ".minecraft",
+                "runtime"),
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
             Path.Combine(Basics.ExecutableDirectory, "PCL")
@@ -42,8 +46,13 @@ public class DefaultPathsScanner : IJavaScanner
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            var keyFolders = new[] { "Program Files", "Program Files (x86)" };
-            var drives = DriveInfo.GetDrives()
+            var keyFolders = new[]
+            {
+                "Program Files",
+                "Program Files (x86)"
+            };
+            var drives = DriveInfo
+                .GetDrives()
                 .Where(d => d.DriveType.Equals(DriveType.Fixed) && d.IsReady)
                 .Select(d => d.Name);
 
@@ -57,21 +66,29 @@ public class DefaultPathsScanner : IJavaScanner
                 // 根目录关键词搜索
                 try
                 {
-                    var rootDirs = Directory.EnumerateDirectories(drive)
+                    var rootDirs = Directory
+                        .EnumerateDirectories(drive)
                         .Where(dir => JavaConsts.MostPossibleKeywords.Any(k =>
                             Path.GetFileName(dir).Contains(k, StringComparison.OrdinalIgnoreCase)));
 
                     foreach (var dir in rootDirs)
                         roots.Add(dir);
                 }
-                catch (UnauthorizedAccessException) { /* 忽略无权限目录 */ }
-                catch (IOException) { /* 忽略IO错误 */ }
+                catch (UnauthorizedAccessException)
+                {
+                    /* 忽略无权限目录 */
+                }
+                catch (IOException)
+                {
+                    /* 忽略IO错误 */
+                }
             }
         }
         else
         {
             var programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-            var programFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+            var programFilesX86 =
+                Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
 
             if (!string.IsNullOrEmpty(programFiles) && Directory.Exists(programFiles))
                 roots.Add(programFiles);
@@ -98,7 +115,7 @@ public class DefaultPathsScanner : IJavaScanner
             {
                 foreach (var subDir in Directory.EnumerateDirectories(current))
                 {
-                    var javaExe = Path.Combine(subDir, "java.exe");
+                    var javaExe = JavaExecutableLayout.GetJavaExePath(subDir);
                     if (File.Exists(javaExe))
                     {
                         results.Add(javaExe);
@@ -109,7 +126,9 @@ public class DefaultPathsScanner : IJavaScanner
                         queue.Enqueue((subDir, depth + 1));
                 }
             }
-            catch (Exception ex) when (ex is UnauthorizedAccessException or IOException or DirectoryNotFoundException)
+            catch (Exception ex) when (ex is UnauthorizedAccessException
+                                           or IOException
+                                           or DirectoryNotFoundException)
             {
                 LogWrapper.Debug($"跳过目录 {current}: {ex.Message}");
             }
@@ -152,6 +171,7 @@ public class DefaultPathsScanner : IJavaScanner
                 return false;
             }
         }
+
         return hasDigit;
     }
 }

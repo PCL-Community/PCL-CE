@@ -8,9 +8,8 @@ public static class LauncherPaths
     /// <summary>Mesa Loader Windows 版本。</summary>
     public const string MesaLoaderWindowsVersion = "26.0.4";
 
-    /// <summary>程序内嵌图片根路径。</summary>
-    public const string ImageRoot =
-        "pack://application:,,,/Plain Craft Launcher 2;component/Images/";
+    /// <summary>程序内嵌图片根路径，具体 URI 方案由 UI 层注册的资源访问实现决定。</summary>
+    public static string ImageRoot => Basics.GetAppImageRootUri();
 
     /// <summary>程序可执行文件所在目录，以“\”结尾。</summary>
     public static string ExecutableDirectory { get; } =

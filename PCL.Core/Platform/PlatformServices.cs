@@ -17,6 +17,9 @@ public static class PlatformServices
     /// <summary>程序打包资源访问实现。</summary>
     public static IResourceStore? ResourceStore { get; set; }
 
+    /// <summary>游戏窗口交互实现；非 Windows 平台不注册时业务层会跳过窗口相关操作。</summary>
+    public static IWindowInterop? WindowInterop { get; set; }
+
     /// <summary>本地化 UI 后端实现。</summary>
     public static ILocalizationBackend? Localization { get; set; }
 

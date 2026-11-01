@@ -6,9 +6,15 @@ namespace PCL;
 
 public static partial class GameLaunch
 {
+    /// <summary>
+    ///     各平台需要解压的 Natives 动态库后缀。Windows 仅解压 .dll，其余平台还需 .so 与 .dylib。
+    /// </summary>
+    private static readonly string[] NativeLibraryExtensions =
+        OperatingSystem.IsWindows() ? [".dll"] : [".dll", ".so", ".dylib"];
+
     private static void McLaunchNatives(Loading.LoaderTask<List<Libraries.McLibToken>, int> loader)
     {
-        var target = $@"{GetNativesFolder()}\";
+        var target = $"{GetNativesFolder()}{Path.DirectorySeparatorChar}";
         Directory.CreateDirectory(target);
 
         McLaunchLog("正在解压 Natives 文件");
@@ -42,7 +48,7 @@ public static partial class GameLaunch
             foreach (var entry in zip.Entries)
             {
                 var fileName = entry.FullName;
-                if (!fileName.EndsWithF(".dll", true))
+                if (!NativeLibraryExtensions.Any(extension => fileName.EndsWithF(extension, true)))
                     continue;
 
                 var filePath = target + fileName;

@@ -8,9 +8,9 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using PCL.Core.App.Cli;
 using PCL.Core.App.IoC;
+using PCL.Core.Utils;
 using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Secret;
-using PCL.Core.Utils;
 
 namespace PCL.Core.App.Essentials;
 
@@ -28,7 +28,10 @@ public delegate void CommandHandler(CommandLine model, bool isCallback);
 [LifecycleScope("startup", "基本信息", false)]
 public sealed partial class StartupService
 {
-    private static Exception _GetUninitializedException() => new InvalidOperationException("Not initialized");
+    private static Exception _GetUninitializedException()
+    {
+        return new InvalidOperationException("Not initialized");
+    }
 
     /// <summary>
     /// 解析后的命令行模型实例
@@ -46,7 +49,8 @@ public sealed partial class StartupService
     /// <summary>
     /// 未处理的子命令
     /// </summary>
-    public static IReadOnlyDictionary<string, CommandLine> UnhandledCommands => _UnhandledCommandMap.AsReadOnly();
+    public static IReadOnlyDictionary<string, CommandLine> UnhandledCommands =>
+        _UnhandledCommandMap.AsReadOnly();
 
     /// <summary>
     /// 处理一个子命令
@@ -68,6 +72,7 @@ public sealed partial class StartupService
             isCallback = true;
         }
         else if (registerCallback) _HandleCallbackMap.TryAdd(command, handler);
+
         lock (_UnhandledCommandMap)
         {
             _UnhandledCommandMap.TryGetValue(command, out var model);
@@ -76,8 +81,15 @@ public sealed partial class StartupService
             foreach (var x in _UnhandledCommandMap.Keys.Where(x => x.StartsWith(command)).ToList())
                 _UnhandledCommandMap.Remove(x);
             // run handler
-            try { handler(model, isCallback); }
-            catch (Exception ex) { Context.Warn($"Exception thrown while handle command: {command}", ex); }
+            try
+            {
+                handler(model, isCallback);
+            }
+            catch (Exception ex)
+            {
+                Context.Warn($"Exception thrown while handle command: {command}", ex);
+            }
+
             return true;
         }
     }
@@ -86,22 +98,57 @@ public sealed partial class StartupService
     private static void _LogBasicInfo()
     {
         var info = new StringBuilder();
-        info.Append("\n版本: ").Append(Basics.Metadata.Version).Append(" (").Append(GetArchitectureName(RuntimeInformation.ProcessArchitecture)).Append(')');
+        info
+            .Append("\n版本: ")
+            .Append(Basics.Metadata.Version)
+            .Append(" (")
+            .Append(GetArchitectureName(RuntimeInformation.ProcessArchitecture))
+            .Append(')');
         info.Append("\n路径: ").Append(Basics.ExecutablePath);
         info.Append("\n命令行参数:");
         if (Basics.CommandLineArguments.Length == 0) info.Append(" []");
-        else foreach (var x in Basics.CommandLineArguments) info.Append("\n - ").Append(x);
-        info.Append("\n系统版本: ").Append(Environment.OSVersion.Version).Append(" (").Append(GetArchitectureName(RuntimeInformation.OSArchitecture)).Append(')');
-        var memory = KernelInterop.GetPhysicalMemoryBytes();
+        else
+            foreach (var x in Basics.CommandLineArguments)
+                info.Append("\n - ").Append(x);
+        info
+            .Append("\n系统版本: ")
+            .Append(Environment.OSVersion.Version)
+            .Append(" (")
+            .Append(GetArchitectureName(RuntimeInformation.OSArchitecture))
+            .Append(')');
         const int memoryDiv = 1024 * 1024;
-        info.Append("\n可用内存: ").Append(memory.Available / memoryDiv).Append('/').Append(memory.Total / memoryDiv).Append(" MiB");
+        if (OperatingSystem.IsWindows())
+        {
+            var memory = KernelInterop.GetPhysicalMemoryBytes();
+            info
+                .Append("\n可用内存: ")
+                .Append(memory.Available / memoryDiv)
+                .Append('/')
+                .Append(memory.Total / memoryDiv)
+                .Append(" MiB");
+        }
+        else
+        {
+            // 非 Windows 平台没有 GlobalMemoryStatusEx，使用 GC 报告的可用内存作为近似值
+            info
+                .Append("\n可用内存: ")
+                .Append(GC.GetGCMemoryInfo().TotalAvailableMemoryBytes / memoryDiv)
+                .Append(" MiB");
+        }
+
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         var cp = Encoding.GetEncoding(0);
-        info.Append("\n默认代码页: ").Append(cp.EncodingName).Append(" (").Append(cp.CodePage).Append(')');
-        info.Append("\n管理员身份: ").Append(ProcessInterop.IsAdmin());
+        info
+            .Append("\n默认代码页: ")
+            .Append(cp.EncodingName)
+            .Append(" (")
+            .Append(cp.CodePage)
+            .Append(')');
+        info.Append("\n管理员身份: ").Append(OperatingSystem.IsWindows() && ProcessInterop.IsAdmin());
         info.Append("\n识别码: ").Append(Identify.LauncherId);
         Context.Info(info.ToString());
         return;
+
         string GetArchitectureName(Architecture arch) => arch switch
         {
             Architecture.X64 => "x64",
@@ -113,7 +160,8 @@ public sealed partial class StartupService
     [LifecycleStart]
     private static void _ParseCommandLineArgs()
     {
-        IEnumerable<SubcommandDefinition> subcommands = [
+        IEnumerable<SubcommandDefinition> subcommands =
+        [
             ("update", [("execute"), ("success"), ("failed")]),
             ("activate", []),
             ("promote", []),
@@ -129,6 +177,7 @@ public sealed partial class StartupService
             prefix.Append(c.Subcommand.CommandText);
             c = c.Subcommand;
         }
+
         _UnhandledCommandMap.Remove("", out c!);
         CommandLine = c;
     }
@@ -139,7 +188,9 @@ public sealed partial class StartupService
         if (content is null) return RpcResponse.Err("Must provide valid JSON model");
         try
         {
-            var models = JsonSerializer.Deserialize<Dictionary<string, CommandLine>>(content, JsonCompat.SerializerOptions);
+            var models = JsonSerializer.Deserialize<Dictionary<string, CommandLine>>(
+                content,
+                JsonCompat.SerializerOptions);
             if (models is null) return RpcResponse.Err("Invalid JSON: empty/null content");
             Task.Run(() =>
             {
@@ -154,6 +205,7 @@ public sealed partial class StartupService
         {
             return RpcResponse.Err($"Invalid JSON: {ex.Message}");
         }
+
         return RpcResponse.EmptySuccess;
     }
 }
