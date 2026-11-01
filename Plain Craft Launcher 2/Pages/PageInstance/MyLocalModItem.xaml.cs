@@ -1,34 +1,39 @@
-﻿using System.Windows;
+using Microsoft.VisualBasic;
+using PCL.Core.App;
+using PCL.Core.App.Localization;
+using PCL.Core.UI.Dialogs;
+using PCL.Core.Utils.Exts;
+using System.IO;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using Microsoft.VisualBasic;
-using PCL.Core.App;
-using PCL.Core.Utils;
-using PCL.Core.Utils.Exts;
-using PCL.Core.App.Localization;
 
 namespace PCL;
 
 public partial class MyLocalCompItem
 {
+    private readonly MyLocalModItemViewModel _vm = new();
+
+    public MyLocalModItemViewModel ViewModel => _vm;
+
     private string? _displayVersion;
 
     private string GetUpdateCompareDescription()
     {
         _displayVersion = null;
-        var currentName = Entry.compFile.FileName.Replace(".jar", "");
+        var currentName = Entry.CompFile.FileName.Replace(".jar", "");
         var newestName = Entry.UpdateFile.FileName.Replace(".jar", "");
         // 简化名称对比
         var currentSegs = currentName.Split('-').ToList();
         var newestSegs = newestName.Split('-').ToList();
         var shortened = false;
-        foreach (var Seg in currentSegs.ToList())
+        foreach (var seg in currentSegs.ToList())
         {
-            if (!newestSegs.Contains(Seg))
+            if (!newestSegs.Contains(seg))
                 continue;
-            currentSegs.Remove(Seg);
-            newestSegs.Remove(Seg);
+            currentSegs.Remove(seg);
+            newestSegs.Remove(seg);
             shortened = true;
         }
 
@@ -40,7 +45,7 @@ public partial class MyLocalCompItem
         }
 
         return
-            Lang.Text("Instance.Resource.Item.UpdateCompare", currentName, Lang.TimeSpan(Entry.compFile.ReleaseDate - DateTime.Now), newestName, Lang.TimeSpan(Entry.UpdateFile.ReleaseDate - DateTime.Now));
+            Lang.Text("Instance.Resource.Item.UpdateCompare", currentName, Lang.TimeSpan(Entry.CompFile.ReleaseDate - DateTime.Now), newestName, Lang.TimeSpan(Entry.UpdateFile.ReleaseDate - DateTime.Now));
     }
 
     public void Refresh()
@@ -50,12 +55,12 @@ public partial class MyLocalCompItem
             // 更新
             if (Entry.CanUpdate)
             {
-                BtnUpdate.Visibility = Visibility.Visible;
-                BtnUpdate.ToolTip = $"{GetUpdateCompareDescription()}\r\n{Lang.Text("Instance.Resource.Item.UpdateToolTip")}";
+                _vm.UpdateVisibility = Visibility.Visible;
+                _vm.UpdateToolTip = $"{GetUpdateCompareDescription()}\r\n{Lang.Text("Instance.Resource.Item.UpdateToolTip")}";
             }
             else
             {
-                BtnUpdate.Visibility = Visibility.Collapsed;
+                _vm.UpdateVisibility = Visibility.Collapsed;
                 _displayVersion = null;
             }
 
@@ -67,24 +72,24 @@ public partial class MyLocalCompItem
             else
                 switch (Entry.State)
                 {
-                    case ModLocalComp.LocalCompFile.LocalFileStatus.Fine:
-                    {
-                        descFileName = ModBase.GetFileNameWithoutExtentionFromPath(Entry.path);
-                        break;
-                    }
-                    case ModLocalComp.LocalCompFile.LocalFileStatus.Disabled:
-                    {
-                        descFileName =
-                            ModBase.GetFileNameWithoutExtentionFromPath(Entry.path.Replace(".disabled", "")
-                                .Replace(".old", "")); // McMod.McModState.Unavailable
-                        break;
-                    }
+                    case LocalComp.LocalCompFile.LocalFileStatus.Fine:
+                        {
+                            descFileName = Path.GetFileNameWithoutExtension(Entry.path);
+                            break;
+                        }
+                    case LocalComp.LocalCompFile.LocalFileStatus.Disabled:
+                        {
+                            descFileName =
+                                Path.GetFileNameWithoutExtension(Entry.path.Replace(".disabled", "")
+                                    .Replace(".old", "")); // McMod.McModState.Unavailable
+                            break;
+                        }
 
                     default:
-                    {
-                        descFileName = ModBase.GetFileNameFromPath(Entry.path);
-                        break;
-                    }
+                        {
+                            descFileName = Common.GetFileNameFromPath(Entry.path);
+                            break;
+                        }
                 }
 
             string newDescription;
@@ -109,7 +114,7 @@ public partial class MyLocalCompItem
                 }
                 else
                 {
-                    var titles = await Task.Run(() => compTemp.GetControlTitle(false));
+                    var titles = await Task.Run(() => compTemp.GetControlTitle(false)).ConfigureAwait(true);
                     newDescription = titles.Key + titles.Value;
                 }
 
@@ -128,7 +133,7 @@ public partial class MyLocalCompItem
                 }
                 else
                 {
-                    var titles = await Task.Run(() => compTemp.GetControlTitle(false));
+                    var titles = await Task.Run(() => compTemp.GetControlTitle(false)).ConfigureAwait(true);
                     Title = titles.Key;
                     SubTitle = titles.Value + (displayVersion is null ? "" : "  |  " + displayVersion);
                 }
@@ -145,27 +150,31 @@ public partial class MyLocalCompItem
             Description = newDescription;
             if (Checked)
                 LabTitle.SetResourceReference(TextBlock.ForegroundProperty,
-                    Entry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine ? "ColorBrush2" : "ColorBrush5");
+                    Entry.State == LocalComp.LocalCompFile.LocalFileStatus.Fine
+                        ? "ColorBrush2"
+                        : "ColorBrush5");
             else
                 LabTitle.SetResourceReference(TextBlock.ForegroundProperty,
-                    Entry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine ? "ColorBrush1" : "ColorBrushGray4");
+                    Entry.State == LocalComp.LocalCompFile.LocalFileStatus.Fine
+                        ? "ColorBrush1"
+                        : "ColorBrushGray4");
             // 主 Logo
             Logo = Entry.GetLogo();
 
             // 图标右下角的 Logo
-            if (Entry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine)
+            if (Entry.State == LocalComp.LocalCompFile.LocalFileStatus.Fine)
             {
-                if (imgState is not null)
+                if (_imgState is not null)
                 {
-                    Children.Remove(imgState);
-                    imgState = null;
+                    Children.Remove(_imgState);
+                    _imgState = null;
                 }
             }
             else
             {
-                if (imgState is null)
+                if (_imgState is null)
                 {
-                    imgState = new Image
+                    _imgState = new Image
                     {
                         Width = 20d,
                         Height = 20d,
@@ -174,24 +183,24 @@ public partial class MyLocalCompItem
                         HorizontalAlignment = HorizontalAlignment.Right,
                         VerticalAlignment = VerticalAlignment.Bottom
                     };
-                    RenderOptions.SetBitmapScalingMode(imgState, BitmapScalingMode.HighQuality);
-                    SetColumn(imgState, 1);
-                    SetRow(imgState, 1);
-                    SetRowSpan(imgState, 2);
-                    Children.Add(imgState);
+                    RenderOptions.SetBitmapScalingMode(_imgState, BitmapScalingMode.HighQuality);
+                    SetColumn(_imgState, 1);
+                    SetRow(_imgState, 1);
+                    SetRowSpan(_imgState, 2);
+                    Children.Add(_imgState);
                     // <Image x:Name="ImgState" RenderOptions.BitmapScalingMode="HighQuality" Width="16" Height="16" Margin="0,0,-3,-1"
                     // Grid.Column="1" Grid.Row="1" Grid.RowSpan="2" IsHitTestVisible="False"
                     // HorizontalAlignment="Right" VerticalAlignment="Bottom"
                     // Source="/Images/Icons/Unavailable.png" />
                 }
 
-                imgState.Source = new MyBitmap(ModBase.pathImage + $"Icons/{Entry.State}.png");
+                _imgState.Source = new MyBitmap(Common.PathImage + $"Icons/{Entry.State}.png");
             }
 
             // 标签
             if (Entry.IsFolder)
                 // 为文件夹添加标签
-                Tags = new List<string> { Lang.Text("Instance.Resource.Item.FolderTag") };
+                Tags = [Lang.Text("Instance.Resource.Item.FolderTag")];
             else if (Entry.Comp is not null) Tags = Entry.Comp.Tags;
         }));
     }
@@ -201,15 +210,16 @@ public partial class MyLocalCompItem
         InitLate(sender, e);
         // 触发颜色动画
         var time = IsMouseOver ? 120 : 180;
-        var ani = new List<ModAnimation.AniData>();
+        var ani = new List<Animations.AniData>();
         // ButtonStack
         if (buttonStack is not null)
         {
             if (IsMouseOver)
             {
-                ani.Add(ModAnimation.AaOpacity(buttonStack, 1d - buttonStack.Opacity, (int)Math.Round(time * 0.7d),
+                ani.Add(Animations.AaOpacity(buttonStack, 1d - buttonStack.Opacity,
+                    (int)Math.Round(time * 0.7d),
                     (int)Math.Round(time * 0.3d)));
-                ani.Add(ModAnimation.AaDouble(
+                ani.Add(Animations.AaDouble(
                     i => ColumnPaddingRight.Width =
                         new GridLength(Math.Max(0, ColumnPaddingRight.Width.Value + (double)i)),
                     5 + Buttons.Count() * 25 - ColumnPaddingRight.Width.Value, (int)Math.Round(time * 0.3d),
@@ -217,8 +227,9 @@ public partial class MyLocalCompItem
             }
             else
             {
-                ani.Add(ModAnimation.AaOpacity(buttonStack, -buttonStack.Opacity, (int)Math.Round(time * 0.4d)));
-                ani.Add(ModAnimation.AaDouble(
+                ani.Add(Animations.AaOpacity(buttonStack, -buttonStack.Opacity,
+                    (int)Math.Round(time * 0.4d)));
+                ani.Add(Animations.AaDouble(
                     i => ColumnPaddingRight.Width =
                         new GridLength(Math.Max(0, ColumnPaddingRight.Width.Value + (double)i)),
                     4d - ColumnPaddingRight.Width.Value, (int)Math.Round(time * 0.4d)));
@@ -228,32 +239,34 @@ public partial class MyLocalCompItem
         // RectBack
         if (IsMouseOver || Checked)
         {
-            ani.AddRange(new[]
-            {
-                ModAnimation.AaColor(RectBack, Border.BackgroundProperty, isMouseDown ? "ColorBrush6" : "ColorBrushBg1",
+            ani.AddRange([
+                Animations.AaColor(RectBack, Border.BackgroundProperty,
+                    _isMouseDown ? "ColorBrush6" : "ColorBrushBg1",
                     time),
-                ModAnimation.AaOpacity(RectBack, 1d - RectBack.Opacity, time, ease: new ModAnimation.AniEaseOutFluent())
-            });
-            if (isMouseDown)
-                ani.Add(ModAnimation.AaScaleTransform(RectBack,
+                Animations.AaOpacity(RectBack, 1d - RectBack.Opacity, time,
+                    ease: new Animations.AniEaseOutFluent())
+            ]);
+            if (_isMouseDown)
+                ani.Add(Animations.AaScaleTransform(RectBack,
                     0.996d - ((ScaleTransform)RectBack.RenderTransform).ScaleX, (int)Math.Round(time * 1.2d),
-                    ease: new ModAnimation.AniEaseOutFluent()));
+                    ease: new Animations.AniEaseOutFluent()));
             else
-                ani.Add(ModAnimation.AaScaleTransform(RectBack, 1d - ((ScaleTransform)RectBack.RenderTransform).ScaleX,
-                    (int)Math.Round(time * 1.2d), ease: new ModAnimation.AniEaseOutFluent()));
+                ani.Add(Animations.AaScaleTransform(RectBack,
+                    1d - ((ScaleTransform)RectBack.RenderTransform).ScaleX,
+                    (int)Math.Round(time * 1.2d), ease: new Animations.AniEaseOutFluent()));
         }
         else
         {
-            ani.AddRange(new[]
-            {
-                ModAnimation.AaOpacity(RectBack, -RectBack.Opacity, time),
-                ModAnimation.AaScaleTransform(RectBack, 0.996d - ((ScaleTransform)RectBack.RenderTransform).ScaleX,
-                    time, ease: new ModAnimation.AniEaseOutFluent()),
-                ModAnimation.AaScaleTransform(RectBack, -0.196d, 1, after: true)
-            });
+            ani.AddRange([
+                Animations.AaOpacity(RectBack, -RectBack.Opacity, time),
+                Animations.AaScaleTransform(RectBack,
+                    0.996d - ((ScaleTransform)RectBack.RenderTransform).ScaleX,
+                    time, ease: new Animations.AniEaseOutFluent()),
+                Animations.AaScaleTransform(RectBack, -0.196d, 1, after: true)
+            ]);
         }
 
-        ModAnimation.AniStart(ani, "LocalModItem Color " + Uuid);
+        Animations.AniStart(ani, "LocalModItem Color " + Uuid);
     }
 
     // 触发虚拟化内容
@@ -279,79 +292,84 @@ public partial class MyLocalCompItem
         {
             if (!Information.IsNumeric(Entry.Comp.Id))
             {
-                var modrinthUrl = Entry.changelogUrls.FirstOrDefault(x => x.Contains("modrinth.com"));
+                var modrinthUrl = Entry.ChangelogUrls.FirstOrDefault(x => x.Contains("modrinth.com"));
                 if (modrinthUrl is not null)
                 {
-                    ModBase.OpenWebsite(modrinthUrl);
+                    Common.OpenWebsite(modrinthUrl);
                     return;
                 }
             }
             else
             {
-                var curseForgeUrl = Entry.changelogUrls.FirstOrDefault(x => x.Contains("curseforge.com"));
+                var curseForgeUrl = Entry.ChangelogUrls.FirstOrDefault(x => x.Contains("curseforge.com"));
                 if (curseForgeUrl is not null)
                 {
-                    ModBase.OpenWebsite(curseForgeUrl);
+                    Common.OpenWebsite(curseForgeUrl);
                     return;
                 }
             }
         }
 
-        ModBase.Log(
+        Common.Log(
             Lang.Text("Instance.Resource.Item.OpenChangelogFailed"),
-            ModBase.LogLevel.Hint,
+            Common.LogLevel.Hint,
             userSummary: Lang.Text("Instance.Resource.Item.OpenChangelogFailed"));
     }
 
     // 触发更新
     private void BtnUpdate_Click(object sender, EventArgs e)
     {
-        switch (ModMain.MyMsgBox(
-                    $"{Lang.Text("Instance.Resource.Item.UpdateConfirm.Message", Entry.Name)}\r\n\r\n{GetUpdateCompareDescription()}",
-                    Lang.Text("Instance.Resource.Item.UpdateConfirm.Title"),
-                    Lang.Text("Instance.Resource.Item.Update"), Lang.Text("Instance.Resource.Item.ViewChangelog"), Lang.Text("Common.Action.Cancel")))
+        switch ((DialogService.Instance.Show(new TextDialogRequest
+        {
+            Title = Lang.Text("Instance.Resource.Item.UpdateConfirm.Title"),
+            Content = $"{Lang.Text("Instance.Resource.Item.UpdateConfirm.Message", Entry.Name)}\r\n\r\n{GetUpdateCompareDescription()}",
+            Buttons = DialogButtons.Create("Instance.Resource.Item.Update", "Instance.Resource.Item.ViewChangelog", "Common.Action.Cancel"),
+            ForceWait = true
+        }).Result?.Button ?? 0))
         {
             case 1: // 更新
-            {
-                switch (Entry.Comp.Type)
                 {
-                    case ModComp.CompType.Mod:
+                    switch (Entry.Comp.Type)
                     {
-                        ModMain.frmInstanceMod ??= new PageInstanceCompResource(ModComp.CompType.Mod);
-                        ModMain.frmInstanceMod.UpdateResource(new[] { Entry });
-                        break;
+                        case Comp.CompType.Mod:
+                            {
+                                Launcher.frmInstanceMod ??= new PageInstanceCompResource(Comp.CompType.Mod);
+                                Launcher.frmInstanceMod.UpdateResource([Entry]);
+                                break;
+                            }
+                        case Comp.CompType.ResourcePack:
+                            {
+                                Launcher.frmInstanceResourcePack ??=
+                                    new PageInstanceCompResource(Comp.CompType.ResourcePack);
+                                Launcher.frmInstanceResourcePack.UpdateResource([Entry]);
+                                break;
+                            }
+                        case Comp.CompType.Shader:
+                            {
+                                Launcher.frmInstanceShader ??=
+                                    new PageInstanceCompResource(Comp.CompType.Shader);
+                                Launcher.frmInstanceShader.UpdateResource([Entry]);
+                                break;
+                            }
+                        case Comp.CompType.DataPack:
+                            {
+                                Launcher.frmInstanceSavesDatapack ??= new PageInstanceSavesDatapack();
+                                Launcher.frmInstanceSavesDatapack.UpdateResource([Entry]);
+                                break;
+                            }
                     }
-                    case ModComp.CompType.ResourcePack:
-                    {
-                        ModMain.frmInstanceResourcePack ??= new PageInstanceCompResource(ModComp.CompType.ResourcePack);
-                        ModMain.frmInstanceResourcePack.UpdateResource(new[] { Entry });
-                        break;
-                    }
-                    case ModComp.CompType.Shader:
-                    {
-                        ModMain.frmInstanceShader ??= new PageInstanceCompResource(ModComp.CompType.Shader);
-                        ModMain.frmInstanceShader.UpdateResource(new[] { Entry });
-                        break;
-                    }
-                    case ModComp.CompType.DataPack:
-                    {
-                        ModMain.frmInstanceSavesDatapack ??= new PageInstanceSavesDatapack();
-                        ModMain.frmInstanceSavesDatapack.UpdateResource(new[] { Entry });
-                        break;
-                    }
-                }
 
-                break;
-            }
+                    break;
+                }
             case 2: // 查看更新日志
-            {
-                ShowUpdateLog();
-                break;
-            }
+                {
+                    ShowUpdateLog();
+                    break;
+                }
             case 3: // 取消
-            {
-                break;
-            }
+                {
+                    break;
+                }
         }
     }
 
@@ -362,73 +380,73 @@ public partial class MyLocalCompItem
         // 1：压缩 Subtitle：Auto - 1* - (Auto) - 0
         // 2：继续压缩 Title：1* - 0 - (Auto) - 0
         var currentCompressLevel =
-            ColumnExtend.Width.IsStar ? 0 : ColumnTitle.Width.IsStar ? 2 : 1; // Subtitle 可能是 Collapsed
-        var newCompressLevel = default(int);
+            _vm.ColumnExtendWidth.IsStar ? 0 : _vm.ColumnTitleWidth.IsStar ? 2 : 1; // Subtitle 可能是 Collapsed
+        var newCompressLevel = 0;
         switch (currentCompressLevel)
         {
             case 0:
-            {
-                if (ColumnExtend.ActualWidth < 0.5d)
-                    newCompressLevel = LabSubtitle.Visibility == Visibility.Collapsed ? 2 : 1;
-                else
-                    return;
+                {
+                    if (ColumnExtend.ActualWidth < 0.5d)
+                        newCompressLevel = LabSubtitle.Visibility == Visibility.Collapsed ? 2 : 1;
+                    else
+                        return;
 
-                break;
-            }
+                    break;
+                }
             case 1:
-            {
-                if (ColumnSubtitle.ActualWidth < 0.5d)
-                    newCompressLevel = 2;
-                else if (!LabSubtitle.IsTextTrimmed())
-                    newCompressLevel = 0;
-                else
-                    return;
+                {
+                    if (ColumnSubtitle.ActualWidth < 0.5d)
+                        newCompressLevel = 2;
+                    else if (!LabSubtitle.IsTextTrimmed())
+                        newCompressLevel = 0;
+                    else
+                        return;
 
-                break;
-            }
+                    break;
+                }
             case 2:
-            {
-                if (!LabTitle.IsTextTrimmed())
-                    newCompressLevel = LabSubtitle.Visibility == Visibility.Collapsed ? 0 : 1;
-                else
-                    return;
+                {
+                    if (!LabTitle.IsTextTrimmed())
+                        newCompressLevel = LabSubtitle.Visibility == Visibility.Collapsed ? 0 : 1;
+                    else
+                        return;
 
-                break;
-            }
+                    break;
+                }
         }
 
         switch (newCompressLevel)
         {
             case 0:
-            {
-                // 全部舒展：Auto - Auto - (Auto) - 1*
-                ColumnTitle.Width = GridLength.Auto;
-                ColumnSubtitle.Width = GridLength.Auto;
-                ColumnExtend.Width = new GridLength(1d, GridUnitType.Star);
-                break;
-            }
+                {
+                    // 全部舒展：Auto - Auto - (Auto) - 1*
+                    _vm.ColumnTitleWidth = GridLength.Auto;
+                    _vm.ColumnSubtitleWidth = GridLength.Auto;
+                    _vm.ColumnExtendWidth = new GridLength(1d, GridUnitType.Star);
+                    break;
+                }
             case 1:
-            {
-                // 压缩 Subtitle：Auto - 1* - (Auto) - 0
-                ColumnTitle.Width = GridLength.Auto;
-                ColumnSubtitle.Width = new GridLength(1d, GridUnitType.Star);
-                ColumnExtend.Width = new GridLength(0d, GridUnitType.Pixel);
-                break;
-            }
+                {
+                    // 压缩 Subtitle：Auto - 1* - (Auto) - 0
+                    _vm.ColumnTitleWidth = GridLength.Auto;
+                    _vm.ColumnSubtitleWidth = new GridLength(1d, GridUnitType.Star);
+                    _vm.ColumnExtendWidth = new GridLength(0d, GridUnitType.Pixel);
+                    break;
+                }
             case 2:
-            {
-                // 继续压缩 Title：1* - 0 - (Auto) - 0
-                ColumnTitle.Width = new GridLength(1d, GridUnitType.Star);
-                ColumnSubtitle.Width = new GridLength(0d, GridUnitType.Pixel);
-                ColumnExtend.Width = new GridLength(0d, GridUnitType.Pixel);
-                break;
-            }
+                {
+                    // 继续压缩 Title：1* - 0 - (Auto) - 0
+                    _vm.ColumnTitleWidth = new GridLength(1d, GridUnitType.Star);
+                    _vm.ColumnSubtitleWidth = new GridLength(0d, GridUnitType.Pixel);
+                    _vm.ColumnExtendWidth = new GridLength(0d, GridUnitType.Pixel);
+                    break;
+                }
         }
     }
 
     #region 基础属性
 
-    public int Uuid = ModBase.GetUuid();
+    public readonly int Uuid = Common.GetUuid();
 
     // Logo
     public string Logo
@@ -440,59 +458,59 @@ public partial class MyLocalCompItem
     // 标题
     public string Title
     {
-        get => field;
+        get;
         set
         {
             var rawValue = value;
             switch (Entry.State)
             {
-                case ModLocalComp.LocalCompFile.LocalFileStatus.Fine:
-                {
-                    LabTitle.TextDecorations = null;
-                    break;
-                }
-                case ModLocalComp.LocalCompFile.LocalFileStatus.Disabled:
-                {
-                    LabTitle.TextDecorations = TextDecorations.Strikethrough;
-                    break;
-                }
-                case ModLocalComp.LocalCompFile.LocalFileStatus.Unavailable:
-                {
-                    LabTitle.TextDecorations = TextDecorations.Strikethrough;
-                    value += Lang.Text("Instance.Resource.Item.ErrorSuffix");
-                    break;
-                }
+                case LocalComp.LocalCompFile.LocalFileStatus.Fine:
+                    {
+                        LabTitle.TextDecorations = null;
+                        break;
+                    }
+                case LocalComp.LocalCompFile.LocalFileStatus.Disabled:
+                    {
+                        LabTitle.TextDecorations = TextDecorations.Strikethrough;
+                        break;
+                    }
+                case LocalComp.LocalCompFile.LocalFileStatus.Unavailable:
+                    {
+                        LabTitle.TextDecorations = TextDecorations.Strikethrough;
+                        value += Lang.Text("Instance.Resource.Item.ErrorSuffix");
+                        break;
+                    }
             }
 
-            if ((LabTitle.Text ?? "") == (value ?? ""))
+            if (_vm.TitleText == value)
                 return;
-            LabTitle.Text = value;
+            _vm.TitleText = value;
             field = rawValue;
         }
     }
 
     // 副标题
-    public string SubTitle
+    public string? SubTitle
     {
-        get => LabSubtitle?.Text ?? "";
+        get => _vm.SubTitleText;
         set
         {
-            if ((LabSubtitle.Text ?? "") == (value ?? ""))
+            if (_vm.SubTitleText == (value ?? ""))
                 return;
-            LabSubtitle.Text = value;
-            LabSubtitle.Visibility = string.IsNullOrEmpty(value) ? Visibility.Collapsed : Visibility.Visible;
+            _vm.SubTitleText = value;
+            _vm.SubTitleVisibility = string.IsNullOrEmpty(value) ? Visibility.Collapsed : Visibility.Visible;
         }
     }
 
     // 描述
     public string Description
     {
-        get => LabInfo.Text;
+        get => _vm.DescriptionText;
         set
         {
-            if ((LabInfo.Text ?? "") == (value ?? ""))
+            if ((_vm.DescriptionText ?? "") == (value ?? ""))
                 return;
-            LabInfo.Text = value;
+            _vm.DescriptionText = value;
         }
     }
 
@@ -502,8 +520,8 @@ public partial class MyLocalCompItem
         set
         {
             PanTags.Children.Clear();
-            PanTags.Visibility = value.Any() ? Visibility.Visible : Visibility.Collapsed;
-            foreach (var TagText in value)
+            _vm.TagsVisibility = value.Any() ? Visibility.Visible : Visibility.Collapsed;
+            foreach (var tagText in value)
             {
                 var newTag = new Border
                 {
@@ -516,7 +534,7 @@ public partial class MyLocalCompItem
                 };
                 var tagTextBlock = new TextBlock
                 {
-                    Text = TagText,
+                    Text = tagText,
                     Foreground = new SolidColorBrush(ThemeManager.IsDarkMode
                         ? Color.FromArgb(88, 255, 255, 255)
                         : Color.FromArgb(88, 136, 136, 136)),
@@ -529,9 +547,9 @@ public partial class MyLocalCompItem
     }
 
     // 相关联的 Mod
-    public ModLocalComp.LocalCompFile Entry
+    public LocalComp.LocalCompFile Entry
     {
-        get => (ModLocalComp.LocalCompFile)Tag;
+        get => (LocalComp.LocalCompFile)Tag;
         set => Tag = value;
     }
 
@@ -562,39 +580,34 @@ public partial class MyLocalCompItem
         MouseLeftButtonUp += RefreshColor;
         Changed += RefreshColor;
         // Handles
-        BtnUpdate.PreviewMouseRightButtonUp += BtnUpdate_PreviewMouseRightButtonUp;
-        BtnUpdate.Click += BtnUpdate_Click;
-        PanTitle.SizeChanged += PanTitle_SizeChanged;
     }
 
     private void Button_MouseUp(object sender, MouseButtonEventArgs e)
     {
-        if (isMouseDown)
+        if (_isMouseDown)
         {
             Click?.Invoke(sender, e);
             if (e.Handled)
                 return;
-            ModBase.Log("[Control] 按下本地 Mod 列表项：" + LabTitle.Text);
+            Common.Log("[Control] 按下本地 Mod 列表项：" + LabTitle.Text);
         }
     }
 
     // 鼠标点击判定
-    private bool isMouseDown;
+    private bool _isMouseDown;
 
     private void Button_MouseDown(object sender, MouseButtonEventArgs e)
     {
         if (!IsMouseDirectlyOver)
             return;
-        isMouseDown = true;
-        if (buttonStack is not null)
-            buttonStack.IsHitTestVisible = false;
+        _isMouseDown = true;
+        buttonStack?.IsHitTestVisible = false;
     }
 
     private void Button_MouseLeave(object sender, object e)
     {
-        isMouseDown = false;
-        if (buttonStack is not null)
-            buttonStack.IsHitTestVisible = true;
+        _isMouseDown = false;
+        buttonStack?.IsHitTestVisible = true;
     }
 
     // 滑动选中
@@ -605,7 +618,7 @@ public partial class MyLocalCompItem
 
         public bool Swiping
         {
-            get => field;
+            get;
             set
             {
                 field = value;
@@ -654,9 +667,11 @@ public partial class MyLocalCompItem
         var elements = ((StackPanel)Parent).Children;
         var index = elements.IndexOf(this);
         CurrentSwipe.Start =
-            (int)Math.Round(ModBase.MathClamp(Math.Min(CurrentSwipe.Start, index), 0d, elements.Count - 1));
+            (int)Math.Round(Common.MathClamp(Math.Min(CurrentSwipe.Start, index), 0d,
+                elements.Count - 1));
         CurrentSwipe.End =
-            (int)Math.Round(ModBase.MathClamp(Math.Max(CurrentSwipe.End, index), 0d, elements.Count - 1));
+            (int)Math.Round(Common.MathClamp(Math.Max(CurrentSwipe.End, index), 0d,
+                elements.Count - 1));
         // 勾选所有范围中的项
         if (CurrentSwipe.Start == CurrentSwipe.End)
             return;
@@ -671,11 +686,11 @@ public partial class MyLocalCompItem
     // 勾选状态
     public event CheckEventHandler? Check;
 
-    public delegate void CheckEventHandler(object sender, ModBase.RouteEventArgs e);
+    public delegate void CheckEventHandler(object sender, Common.RouteEventArgs e);
 
     public event ChangedEventHandler? Changed;
 
-    public delegate void ChangedEventHandler(object sender, ModBase.RouteEventArgs e);
+    public delegate void ChangedEventHandler(object sender, Common.RouteEventArgs e);
 
     public bool Checked
     {
@@ -689,11 +704,11 @@ public partial class MyLocalCompItem
                 if (value == field)
                     return;
                 field = value;
-                var ChangedEventArgs = new ModBase.RouteEventArgs();
+                var changedEventArgs = new Common.RouteEventArgs();
                 if (IsInitialized)
                 {
-                    Changed?.Invoke(this, ChangedEventArgs);
-                    if (ChangedEventArgs.handled)
+                    Changed?.Invoke(this, changedEventArgs);
+                    if (changedEventArgs.handled)
                     {
                         field = rawValue;
                         return;
@@ -702,44 +717,44 @@ public partial class MyLocalCompItem
 
                 if (value)
                 {
-                    var checkEventArgs = new ModBase.RouteEventArgs();
+                    var checkEventArgs = new Common.RouteEventArgs();
                     Check?.Invoke(this, checkEventArgs);
                     if (checkEventArgs.handled)
                         return;
                 }
 
                 // 更改动画
-                if (this.IsVisibleInWindow(ModMain.frmMain))
+                if (this.IsVisibleInWindow(Launcher.frmMain))
                 {
-                    var anim = new List<ModAnimation.AniData>();
+                    var anim = new List<Animations.AniData>();
                     if (Checked)
                     {
                         // 由无变有
                         var delta = 32d - RectCheck.ActualHeight;
-                        anim.Add(ModAnimation.AaHeight(RectCheck, delta * 0.4d, 200,
-                            ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
-                        anim.Add(ModAnimation.AaHeight(RectCheck, delta * 0.6d, 300,
-                            ease: new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)));
-                        anim.Add(ModAnimation.AaOpacity(RectCheck, 1d - RectCheck.Opacity, 30));
+                        anim.Add(Animations.AaHeight(RectCheck, delta * 0.4d, 200,
+                            ease: new Animations.AniEaseOutFluent(Animations.AniEasePower.Weak)));
+                        anim.Add(Animations.AaHeight(RectCheck, delta * 0.6d, 300,
+                            ease: new Animations.AniEaseOutBack(Animations.AniEasePower.Weak)));
+                        anim.Add(Animations.AaOpacity(RectCheck, 1d - RectCheck.Opacity, 30));
                         RectCheck.VerticalAlignment = VerticalAlignment.Center;
                         RectCheck.Margin = new Thickness(-3, 0d, 0d, 0d);
-                        anim.Add(ModAnimation.AaColor(LabTitle, TextBlock.ForegroundProperty,
-                            Entry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine
+                        anim.Add(Animations.AaColor(LabTitle, TextBlock.ForegroundProperty,
+                            Entry.State == LocalComp.LocalCompFile.LocalFileStatus.Fine
                                 ? "ColorBrush2"
                                 : "ColorBrush5", 200));
                     }
                     else
                     {
                         // 由有变无
-                        anim.Add(ModAnimation.AaHeight(RectCheck, -RectCheck.ActualHeight, 120,
-                            ease: new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)));
-                        anim.Add(ModAnimation.AaOpacity(RectCheck, -RectCheck.Opacity, 70, 40));
+                        anim.Add(Animations.AaHeight(RectCheck, -RectCheck.ActualHeight, 120,
+                            ease: new Animations.AniEaseInFluent(Animations.AniEasePower.Weak)));
+                        anim.Add(Animations.AaOpacity(RectCheck, -RectCheck.Opacity, 70, 40));
                         RectCheck.VerticalAlignment = VerticalAlignment.Center;
-                        anim.Add(ModAnimation.AaColor(LabTitle, TextBlock.ForegroundProperty,
+                        anim.Add(Animations.AaColor(LabTitle, TextBlock.ForegroundProperty,
                             LabTitle.TextDecorations is null ? "ColorBrush1" : "ColorBrushGray4", 120));
                     }
 
-                    ModAnimation.AniStart(anim, "MyLocalCompItem Checked " + Uuid);
+                    Animations.AniStart(anim, "MyLocalCompItem Checked " + Uuid);
                 }
                 else
                 {
@@ -751,7 +766,7 @@ public partial class MyLocalCompItem
                         RectCheck.Height = 32d;
                         RectCheck.Opacity = 1d;
                         LabTitle.SetResourceReference(TextBlock.ForegroundProperty,
-                            Entry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine
+                            Entry.State == LocalComp.LocalCompFile.LocalFileStatus.Fine
                                 ? "ColorBrush2"
                                 : "ColorBrush5");
                     }
@@ -760,17 +775,17 @@ public partial class MyLocalCompItem
                         RectCheck.Height = 0d;
                         RectCheck.Opacity = 0d;
                         LabTitle.SetResourceReference(TextBlock.ForegroundProperty,
-                            Entry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Fine
+                            Entry.State == LocalComp.LocalCompFile.LocalFileStatus.Fine
                                 ? "ColorBrush1"
                                 : "ColorBrushGray4");
                     }
 
-                    ModAnimation.AniStop("MyLocalCompItem Checked " + Uuid);
+                    Animations.AniStop("MyLocalCompItem Checked " + Uuid);
                 }
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, "设置 Checked 失败");
+                Common.Log(ex, "设置 Checked 失败");
             }
         }
     }
@@ -780,7 +795,7 @@ public partial class MyLocalCompItem
     #region 后加载内容
 
     // 右下角状态指示图标
-    private Image imgState;
+    private Image? _imgState;
 
     // 指向背景
     public Border RectBack
@@ -795,7 +810,7 @@ public partial class MyLocalCompItem
                     CornerRadius = new CornerRadius(3d),
                     RenderTransform = new ScaleTransform(0.8d, 0.8d),
                     RenderTransformOrigin = new Point(0.5d, 0.5d),
-                    BorderThickness = new Thickness(ModBase.GetWPFSize(1d)),
+                    BorderThickness = new Thickness(Common.GetWpfSize(1d)),
                     SnapsToDevicePixels = true,
                     IsHitTestVisible = false,
                     Opacity = 0d
@@ -816,11 +831,12 @@ public partial class MyLocalCompItem
     }
 
     // 按钮
-    public Action<MyLocalCompItem, EventArgs> buttonHandler;
-    public FrameworkElement buttonStack;
+    public Action<MyLocalCompItem, EventArgs>? buttonHandler;
+    public FrameworkElement? buttonStack;
+
     public IEnumerable<MyIconButton> Buttons
     {
-        get => field;
+        get;
         set
         {
             field = value;
@@ -847,13 +863,13 @@ public partial class MyLocalCompItem
             SetColumnSpan(buttonStack, 10);
             SetRowSpan(buttonStack, 10);
             // 构造按钮
-            foreach (var Btn in value)
+            foreach (var btn in value)
             {
-                if (Btn.Height.Equals(double.NaN))
-                    Btn.Height = 25d;
-                if (Btn.Width.Equals(double.NaN))
-                    Btn.Width = 25d;
-                ((StackPanel)buttonStack).Children.Add(Btn);
+                if (btn.Height.Equals(double.NaN))
+                    btn.Height = 25d;
+                if (btn.Width.Equals(double.NaN))
+                    btn.Width = 25d;
+                ((StackPanel)buttonStack).Children.Add(btn);
             }
 
             Children.Add(buttonStack);

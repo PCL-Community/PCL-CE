@@ -1,0 +1,236 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using PCL.Core.App.Localization;
+using PCL.Core.ViewModel;
+using System.IO;
+using System.Windows;
+
+namespace PCL;
+
+/// <summary>实例资源管理页（模组、资源包、光影、投影原理图）的视图模型。</summary>
+public partial class PageInstanceCompResourceViewModel : ViewModelBase
+{
+    public enum SortMethod
+    {
+        FileName,
+        CompName,
+        TagNums,
+        CreateTime,
+        ModFileSize
+    }
+
+    [ObservableProperty] private string _filterAllText = "";
+    [ObservableProperty] private string _filterEnabledText = "";
+    [ObservableProperty] private string _filterDisabledText = "";
+    [ObservableProperty] private string _filterCanUpdateText = "";
+    [ObservableProperty] private string _filterErrorText = "";
+    [ObservableProperty] private string _filterDuplicateText = "";
+    [ObservableProperty] private bool _showFilterEnabled = true;
+    [ObservableProperty] private bool _showFilterDisabled = true;
+    [ObservableProperty] private bool _showFilterCanUpdate = true;
+    [ObservableProperty] private bool _showFilterError = true;
+    [ObservableProperty] private bool _showFilterDuplicate = true;
+    [ObservableProperty] private bool _showManageBack;
+    [ObservableProperty] private string _sortText = "";
+
+    [ObservableProperty] private bool _showList = true;
+    [ObservableProperty] private bool _showItemList = true;
+    [ObservableProperty] private Thickness _listBackMargin = new(0d, 0d, 0d, 14d);
+    [ObservableProperty] private string _searchText = "";
+    [ObservableProperty] private bool _showEmpty = true;
+    [ObservableProperty] private bool _showSchematicEmpty;
+    [ObservableProperty] private string _emptyTitle = "";
+    [ObservableProperty] private string _emptyDescription = "";
+    [ObservableProperty] private bool _showHintBack;
+
+    [ObservableProperty] private string _selectedText = "";
+    [ObservableProperty] private bool _canEnable = true;
+    [ObservableProperty] private bool _canDisable = true;
+    [ObservableProperty] private bool _canUpdate = true;
+    [ObservableProperty] private bool _canFavoriteAndShare = true;
+    [ObservableProperty] private bool _showSelectUpdate = true;
+    [ObservableProperty] private bool _showSelectEnable = true;
+    [ObservableProperty] private bool _showSelectDisable = true;
+    [ObservableProperty] private bool _showSelectFavorites = true;
+    [ObservableProperty] private bool _showSelectShare = true;
+
+    [ObservableProperty] private bool _showManageDownload = true;
+    [ObservableProperty] private bool _showHintDownload = true;
+    [ObservableProperty] private bool _showManageJarInJar = true;
+
+    public Comp.CompType CompType { get; private set; } = Comp.CompType.Mod;
+
+    public string CurrentFolderPath { get; private set; } = "";
+
+    public void SetCompType(Comp.CompType compType)
+    {
+        CompType = compType;
+
+        // 按资源类型收窄可用操作
+        if (compType is Comp.CompType.Shader or Comp.CompType.ResourcePack or Comp.CompType.Schematic)
+        {
+            ShowSelectEnable = false;
+            ShowSelectDisable = false;
+        }
+
+        // 投影文件管理页隐藏下载按钮
+        if (compType == Comp.CompType.Schematic)
+        {
+            ShowManageDownload = false;
+            ShowHintDownload = false;
+        }
+
+        if (compType != Comp.CompType.Mod) ShowManageJarInJar = false;
+    }
+
+    public void SetCurrentFolder(string path) => CurrentFolderPath = path;
+
+    [RelayCommand]
+    private void OpenJarInJar()
+    {
+        Launcher.frmInstanceLeft?.PageChange(FormMain.PageSubType.VersionModJarInJar);
+    }
+
+    [RelayCommand]
+    private void SchematicDownloadMod()
+    {
+        Launcher.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadMod);
+        PageComp.targetVersion = PageInstanceLeft.McInstance; // 将当前实例设置为筛选器
+    }
+
+    [RelayCommand]
+    private void SchematicVersionSelect()
+    {
+        Launcher.frmMain.PageChange(FormMain.PageType.Launch);
+        Launcher.frmMain.PageChange(FormMain.PageType.InstanceSelect);
+    }
+
+    [RelayCommand]
+    private void DownloadNew()
+    {
+        switch (CompType)
+        {
+            case Comp.CompType.Mod:
+            {
+                Launcher.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadMod);
+                break;
+            }
+            case Comp.CompType.ResourcePack:
+            {
+                Launcher.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadResourcePack);
+                break;
+            }
+            case Comp.CompType.Shader:
+            {
+                Launcher.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadShader);
+                break;
+            }
+        }
+
+        PageComp.targetVersion = PageInstanceLeft.McInstance; // 将当前实例设置为筛选器
+    }
+
+    [RelayCommand]
+    private void OpenFolder()
+    {
+        try
+        {
+            string compFilePath;
+            // 如果当前在子文件夹中，则打开当前子文件夹；否则打开根目录
+            if (string.IsNullOrEmpty(CurrentFolderPath))
+                // 打开根目录
+                compFilePath = PageInstanceLeft.McInstance.PathIndie +
+                               (PageInstanceLeft.McInstance.Info.HasLabyMod
+                                   ? Path.Combine("labymod-neo", "fabric",
+                                       PageInstanceLeft.McInstance.Info.VanillaName)
+                                   : "") + LocalComp.GetPathNameByCompType(CompType) + @"\";
+            else
+                // 打开当前子文件夹
+                compFilePath = CurrentFolderPath.EndsWith(@"\") ? CurrentFolderPath : CurrentFolderPath + @"\";
+            Directory.CreateDirectory(compFilePath);
+            Common.OpenExplorer(compFilePath);
+        }
+        catch (Exception ex)
+        {
+            Common.Log(
+                ex,
+                "打开 Mods 文件夹失败",
+                Common.LogLevel.Msgbox,
+                userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
+        }
+    }
+
+    [RelayCommand]
+    private void OpenFileLocation(LocalComp.LocalCompFile? entry)
+    {
+        if (entry is null)
+            return;
+        try
+        {
+            // 对于文件夹使用实际路径，对于文件使用原路径
+            var targetPath = entry.IsFolder ? entry.ActualPath : entry.path;
+            Common.OpenExplorer(targetPath);
+        }
+        catch (Exception ex)
+        {
+            Common.Log(
+                ex,
+                "打开资源文件位置失败",
+                Common.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
+        }
+    }
+
+    public static string GetSortName(SortMethod method)
+    {
+        switch (method)
+        {
+            case SortMethod.FileName:
+            {
+                return Lang.Text("Instance.Resource.Sort.FileName");
+            }
+            case SortMethod.CompName:
+            {
+                return Lang.Text("Instance.Resource.Sort.ResourceName");
+            }
+            case SortMethod.TagNums:
+            {
+                return Lang.Text("Instance.Resource.Sort.TagCount");
+            }
+            case SortMethod.CreateTime:
+            {
+                return Lang.Text("Instance.Resource.Sort.AddTime");
+            }
+            case SortMethod.ModFileSize:
+            {
+                return Lang.Text("Instance.Resource.Sort.FileSize");
+            }
+
+            default:
+            {
+                return Lang.Text("Instance.Resource.Sort.ResourceName");
+            }
+        }
+    }
+
+    public void ShowListPanel()
+    {
+        ShowList = true;
+        ShowEmpty = false;
+        ShowSchematicEmpty = false;
+    }
+
+    public void ShowSchematicEmptyPanel()
+    {
+        ShowList = false;
+        ShowEmpty = false;
+        ShowSchematicEmpty = true;
+    }
+
+    public void ShowEmptyPanel()
+    {
+        ShowList = false;
+        ShowEmpty = true;
+        ShowSchematicEmpty = false;
+    }
+}

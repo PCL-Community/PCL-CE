@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Shapes;
@@ -14,7 +15,7 @@ public partial class MyIconTextButton
 
     public delegate void CheckEventHandler(object sender, bool raiseByMouse);
 
-    public delegate void ClickEventHandler(object sender, ModBase.RouteEventArgs e);
+    public delegate void ClickEventHandler(object sender, Common.RouteEventArgs e);
 
     public enum ColorState
     {
@@ -41,7 +42,25 @@ public partial class MyIconTextButton
 
     // 基础
 
-    public int Uuid = ModBase.GetUuid();
+    public int Uuid = Common.GetUuid();
+
+    public static readonly DependencyProperty CommandProperty = DependencyProperty.Register(nameof(Command),
+        typeof(ICommand), typeof(MyIconTextButton), new PropertyMetadata(null));
+
+    public ICommand? Command
+    {
+        get => (ICommand?)GetValue(CommandProperty);
+        set => SetValue(CommandProperty, value);
+    }
+
+    public static readonly DependencyProperty CommandParameterProperty = DependencyProperty.Register(
+        nameof(CommandParameter), typeof(object), typeof(MyIconTextButton), new PropertyMetadata(null));
+
+    public object? CommandParameter
+    {
+        get => GetValue(CommandParameterProperty);
+        set => SetValue(CommandParameterProperty, value);
+    }
 
     public MyIconTextButton()
     {
@@ -179,40 +198,43 @@ public partial class MyIconTextButton
         if (IsUsingSvgIcon)
         {
             SvgIconControlHelper.AnimateSvgIconBrushTo(ShapeSvgIcon, resourceKey, duration, CheckedAnimationKey);
-            ModAnimation.AniStart(
-                ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty, resourceKey, duration),
+            Animations.AniStart(
+                Animations.AaColor(LabText, TextBlock.ForegroundProperty, resourceKey, duration),
                 CheckedAnimationKey);
         }
         else
         {
-            ModAnimation.AniStart(
+            Animations.AniStart(
                 new[]
                 {
-                    ModAnimation.AaColor(ShapeLogo, Shape.FillProperty, resourceKey, duration),
-                    ModAnimation.AaColor(LabText, TextBlock.ForegroundProperty, resourceKey, duration)
+                    Animations.AaColor(ShapeLogo, Shape.FillProperty, resourceKey, duration),
+                    Animations.AaColor(LabText, TextBlock.ForegroundProperty, resourceKey, duration)
                 }, CheckedAnimationKey);
         }
     }
 
     private void StartBackgroundAnimation(string resourceKey, int duration)
     {
-        ModAnimation.AniStart(ModAnimation.AaColor(this, BackgroundProperty, resourceKey, duration), ColorAnimationKey);
+        Animations.AniStart(Animations.AaColor(this, BackgroundProperty, resourceKey, duration),
+            ColorAnimationKey);
     }
 
-    private void StartBackgroundAnimation(ModBase.MyColor delta, int duration)
+    private void StartBackgroundAnimation(Common.MyColor delta, int duration)
     {
-        ModAnimation.AniStart(ModAnimation.AaColor(this, BackgroundProperty, delta, duration), ColorAnimationKey);
+        Animations.AniStart(Animations.AaColor(this, BackgroundProperty, delta, duration),
+            ColorAnimationKey);
     }
 
     private void MyIconTextButton_MouseUp()
     {
         if (!isMouseDown)
             return;
-        ModBase.Log("[Control] 按下带图标按钮：" + Text);
+        Common.Log("[Control] 按下带图标按钮：" + Text);
         isMouseDown = false;
-        Click?.Invoke(this, new ModBase.RouteEventArgs(true));
-        ModMain.RaiseCustomEvent(this);
+        Click?.Invoke(this, new Common.RouteEventArgs(true));
+        Launcher.RaiseCustomEvent(this);
         RefreshColor();
+        ExecuteCommand();
     }
 
     private void MyIconTextButton_MouseDown()
@@ -257,8 +279,8 @@ public partial class MyIconTextButton
             else
             {
                 // 不使用动画
-                ModAnimation.AniStop(CheckedAnimationKey);
-                ModAnimation.AniStop(ColorAnimationKey);
+                Animations.AniStop(CheckedAnimationKey);
+                Animations.AniStop(ColorAnimationKey);
                 Background = ThemeManager.colorSemiTransparent;
                 var foregroundKey = IsEnabled ? GetDefaultForegroundResourceKey() : "ColorBrushGray5";
                 SvgIconControlHelper.SetIconResource(ShapeLogo, ShapeSvgIcon, IsUsingSvgIcon, foregroundKey);
@@ -267,7 +289,25 @@ public partial class MyIconTextButton
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新带图标按钮颜色出错");
+            Common.Log(ex, "刷新带图标按钮颜色出错");
+        }
+    }
+
+    private bool _isCommandRunning;
+
+    private void ExecuteCommand()
+    {
+        var command = Command;
+        if (_isCommandRunning || command is null || !command.CanExecute(CommandParameter))
+            return;
+        _isCommandRunning = true;
+        try
+        {
+            command.Execute(CommandParameter);
+        }
+        finally
+        {
+            _isCommandRunning = false;
         }
     }
 }

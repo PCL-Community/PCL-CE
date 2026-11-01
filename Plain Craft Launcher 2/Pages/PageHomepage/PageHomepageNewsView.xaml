@@ -1,4 +1,4 @@
-<local:MyPageRight
+﻿<local:MyPageRight
     x:Class="PCL.PageHomepageNewsView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -9,7 +9,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="clr-namespace:PCL.Core.ViewModel.Homepage;assembly=PCL.Core"
     MinWidth="150"
-    mc:Ignorable="d">
+    mc:Ignorable="d"
+    xmlns:loc="https://ce.pclc.cc/core/localization">
     <local:MyPageRight.DataContext>
         <vm:NewsViewModel />
     </local:MyPageRight.DataContext>
@@ -100,7 +101,7 @@
                                 Margin="0,5,5,0"
                                 HorizontalAlignment="Right"
                                 Foreground="{DynamicResource ColorBrushGray2}"
-                                Text="{DynamicResource Launch.Homepage.News.ViewDetail}">
+                                Text="{loc:Loc Launch.Homepage.News.ViewDetail}">
                                 <i:Interaction.Triggers>
                                     <i:EventTrigger EventName="Click">
                                         <i:InvokeCommandAction
@@ -126,7 +127,8 @@
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
             Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
-            <local:MyLoading Text="{DynamicResource Launch.Homepage.News.Loading}" x:Name="Load" Margin="20,20,20,17" />
+            <local:MyLoading Text="{loc:Loc Launch.Homepage.News.Loading}" x:Name="Load"
+                             Margin="20,20,20,17" />
         </local:MyCard>
     </Grid>
 </local:MyPageRight>

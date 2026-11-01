@@ -12,7 +12,7 @@ public class UpdatesRandomModel : IUpdateSource // 社区自己的更新系统�
     {
         _sources = sources;
         var rand = new Random(DateTime.Now.Millisecond);
-        _randIndex = rand.Next(0, _sources.Count() - 1);
+        _randIndex = rand.Next(0, _sources.Count());
     }
 
     public string SourceName
@@ -46,7 +46,8 @@ public class UpdatesRandomModel : IUpdateSource // 社区自己的更新系统�
         return _sources.ElementAt(_randIndex).GetAnnouncementList();
     }
 
-    public List<ModLoader.LoaderBase> GetDownloadLoader(UpdateChannel channel, UpdateArch arch, string output)
+    public List<Loading.LoaderBase> GetDownloadLoader(UpdateChannel channel, UpdateArch arch,
+        string output)
     {
         return _sources.ElementAt(_randIndex).GetDownloadLoader(channel, arch, output);
     }

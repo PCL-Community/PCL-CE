@@ -1,4 +1,5 @@
-﻿using PCL.Core.App.Localization;
+﻿using System.Windows.Input;
+using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -9,12 +10,12 @@ public partial class PageDownloadFabric
         Initialized += (_, _) => LoaderInit();
         Loaded += (_, _) => Init();
         InitializeComponent();
-        BtnWeb.Click += BtnWeb_Click;
     }
 
     private void LoaderInit()
     {
-        PageLoaderInit(Load, PanLoad, CardVersions, CardTip, ModDownload.dlFabricListLoader, _ => Load_OnFinish());
+        PageLoaderInit(Load, PanLoad, CardVersions, CardTip, GameDownload.DlFabricListLoader,
+            _ => Load_OnFinish());
     }
 
     private void Init()
@@ -27,31 +28,34 @@ public partial class PageDownloadFabric
         // 结果数据化
         try
         {
-            var versions = (JsonArray)ModDownload.dlFabricListLoader.output.Value["installer"];
+            var versions = (JsonArray)GameDownload.DlFabricListLoader.output.Value["installer"];
             PanVersions.Children.Clear();
             foreach (var Version in versions)
                 PanVersions.Children.Add(
-                    ModDownloadLib.FabricDownloadListItem((JsonObject)Version,
+                    DownloadUi.FabricDownloadListItem((JsonObject)Version,
                         (sender, e) => Fabric_Selected((MyListItem)sender, e)));
-            CardVersions.Title = Lang.Text("Download.Version.VersionListCount", versions.Count);
+            LocalizedText.TryBind(
+                CardVersions,
+                "Title",
+                () => Lang.Text("Download.Version.VersionListCount", versions.Count));
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 "可视化 Fabric 版本列表出错",
-                ModBase.LogLevel.Feedback,
+                Common.LogLevel.Feedback,
                 userSummary: Lang.Text("Download.Error.OperationFailed"));
         }
     }
 
     private void Fabric_Selected(MyListItem sender, EventArgs e)
     {
-        ModDownloadLib.McDownloadFabricLoaderSave((JsonObject)sender.Tag);
+        DownloadUi.McDownloadFabricLoaderSave((JsonObject)sender.Tag);
     }
 
-    private void BtnWeb_Click(object sender, EventArgs e)
+    private void BtnWeb_Click(object sender, MouseButtonEventArgs e)
     {
-        ModBase.OpenWebsite("https://www.fabricmc.net");
+        Common.OpenWebsite("https://www.fabricmc.net");
     }
 }

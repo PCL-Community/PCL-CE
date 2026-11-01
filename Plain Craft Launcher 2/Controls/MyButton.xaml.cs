@@ -41,7 +41,25 @@ public partial class MyButton
     
 
     // 自定义属性
-    public int Uuid = ModBase.GetUuid();
+    public int Uuid = Common.GetUuid();
+
+    public static readonly DependencyProperty CommandProperty = DependencyProperty.Register(nameof(Command),
+        typeof(ICommand), typeof(MyButton), new PropertyMetadata(null));
+
+    public ICommand? Command
+    {
+        get => (ICommand?)GetValue(CommandProperty);
+        set => SetValue(CommandProperty, value);
+    }
+
+    public static readonly DependencyProperty CommandParameterProperty = DependencyProperty.Register(
+        nameof(CommandParameter), typeof(object), typeof(MyButton), new PropertyMetadata(null));
+
+    public object? CommandParameter
+    {
+        get => GetValue(CommandParameterProperty);
+        set => SetValue(CommandParameterProperty, value);
+    }
 
     public MyButton()
     {
@@ -110,10 +128,10 @@ public partial class MyButton
 
     private void StartBorderBrushAnimation(string resourceKey, int duration)
     {
-        ModAnimation.AniStart(
+        Animations.AniStart(
             new[]
             {
-                ModAnimation.AaColor(PanFore, BorderBrushProperty, resourceKey, duration)
+                Animations.AaColor(PanFore, BorderBrushProperty, resourceKey, duration)
             }, "MyButton Color " + Uuid);
     }
 
@@ -127,16 +145,16 @@ public partial class MyButton
                     StartBorderBrushAnimation(GetBorderBrushResourceKey(), IsMouseOver ? animationColorIn : animationColorOut);
                 else
                     // 不可用（Gray 4）
-                    ModAnimation.AniStart(
+                    Animations.AniStart(
                         new[]
                         {
-                            ModAnimation.AaColor(PanFore, BorderBrushProperty,
+                            Animations.AaColor(PanFore, BorderBrushProperty,
                                 ThemeManager.colorGray4 - PanFore.BorderBrush, animationColorOut)
                         }, "MyButton Color " + Uuid);
             }
             else
             {
-                ModAnimation.AniStop("MyButton Color " + Uuid);
+                Animations.AniStop("MyButton Color " + Uuid);
                 if (IsEnabled)
                     PanFore.SetResourceReference(BorderBrushProperty, GetBorderBrushResourceKey());
                 else
@@ -145,7 +163,7 @@ public partial class MyButton
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新按钮颜色出错");
+            Common.Log(ex, "刷新按钮颜色出错");
         }
     }
 
@@ -155,28 +173,31 @@ public partial class MyButton
     {
         if (!isMouseDown)
             return;
-        ModBase.Log("[Control] 按下按钮：" + Text);
+        Common.Log("[Control] 按下按钮：" + Text);
         Click?.Invoke(sender, e);
-        ModMain.RaiseCustomEvent(this);
+        Launcher.RaiseCustomEvent(this);
+        ExecuteCommand();
     }
 
     private void Button_MouseDown(object sender, MouseButtonEventArgs e)
     {
         isMouseDown = true;
         Focus();
-        ModAnimation.AniStart(
+        Animations.AniStart(
             new[]
             {
-                ModAnimation.AaScaleTransform(PanFore, 0.955d - ((ScaleTransform)PanFore.RenderTransform).ScaleX, 80,
-                    ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.ExtraStrong)),
-                ModAnimation.AaScaleTransform(PanFore, -0.01d, 700, ease: new ModAnimation.AniEaseOutFluent())
+                Animations.AaScaleTransform(PanFore,
+                    0.955d - ((ScaleTransform)PanFore.RenderTransform).ScaleX, 80,
+                    ease: new Animations.AniEaseOutFluent(Animations.AniEasePower.ExtraStrong)),
+                Animations.AaScaleTransform(PanFore, -0.01d, 700,
+                    ease: new Animations.AniEaseOutFluent())
             }, "MyButton Scale " + Uuid);
     }
 
     private void Button_MouseEnter()
     {
-        ModAnimation.AniStart(
-            ModAnimation.AaColor(PanFore, BackgroundProperty,
+        Animations.AniStart(
+            Animations.AaColor(PanFore, BackgroundProperty,
                 _ColorType == ColorState.Red ? "ColorBrushRedBack" : "ColorBrush7", animationColorIn),
             "MyButton Background " + Uuid);
     }
@@ -186,24 +207,47 @@ public partial class MyButton
         if (!isMouseDown)
             return;
         isMouseDown = false;
-        ModAnimation.AniStart(
+        Animations.AniStart(
             new[]
             {
-                ModAnimation.AaScaleTransform(PanFore, 1d - ((ScaleTransform)PanFore.RenderTransform).ScaleX, 300, 10,
-                    new ModAnimation.AniEaseOutFluent())
+                Animations.AaScaleTransform(PanFore,
+                    1d - ((ScaleTransform)PanFore.RenderTransform).ScaleX, 300, 10,
+                    new Animations.AniEaseOutFluent())
             }, "MyButton Scale " + Uuid);
     }
 
     private void Button_MouseLeave()
     {
-        ModAnimation.AniStart(
-            ModAnimation.AaColor(PanFore, BackgroundProperty, "ColorBrushHalfWhite", animationColorOut),
-            "MyButton Background " + Uuid);
+        if (!IsMouseOver)
+            Animations.AniStart(
+                Animations.AaColor(PanFore, BackgroundProperty, "ColorBrushHalfWhite",
+                    animationColorOut),
+                "MyButton Background " + Uuid);
         if (!isMouseDown)
             return;
         isMouseDown = false;
-        ModAnimation.AniStart(
-            ModAnimation.AaScaleTransform(PanFore, 1d - ((ScaleTransform)PanFore.RenderTransform).ScaleX, 800,
-                ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Strong)), "MyButton Scale " + Uuid);
+        Animations.AniStart(
+            Animations.AaScaleTransform(PanFore,
+                1d - ((ScaleTransform)PanFore.RenderTransform).ScaleX, 800,
+                ease: new Animations.AniEaseOutFluent(Animations.AniEasePower.Strong)),
+            "MyButton Scale " + Uuid);
+    }
+
+    private bool _isCommandRunning;
+
+    private void ExecuteCommand()
+    {
+        var command = Command;
+        if (_isCommandRunning || command is null || !command.CanExecute(CommandParameter))
+            return;
+        _isCommandRunning = true;
+        try
+        {
+            command.Execute(CommandParameter);
+        }
+        finally
+        {
+            _isCommandRunning = false;
+        }
     }
 }

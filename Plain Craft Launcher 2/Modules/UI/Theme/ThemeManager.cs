@@ -14,25 +14,27 @@ public static class ThemeManager
 
     public static ResourceDictionary AppResources => System.Windows.Application.Current.Resources;
 
-    public static ModBase.MyColor colorGray1 = new(AppResources["ColorObjectGray1"]);
-    public static ModBase.MyColor colorGray4 = new(AppResources["ColorObjectGray4"]);
-    public static ModBase.MyColor colorGray5 = new(AppResources["ColorObjectGray5"]);
-    public static ModBase.MyColor colorSemiTransparent = new(AppResources["ColorBrushSemiTransparent"]);
+    public static Common.MyColor colorGray1 = new(AppResources["ColorObjectGray1"]);
+    public static Common.MyColor colorGray4 = new(AppResources["ColorObjectGray4"]);
+    public static Common.MyColor colorGray5 = new(AppResources["ColorObjectGray5"]);
+
+    public static Common.MyColor colorSemiTransparent =
+        new(AppResources["ColorBrushSemiTransparent"]);
 
     public static void ThemeRefresh(int newTheme = -1)
     {
-        colorGray1 = new ModBase.MyColor(AppResources["ColorObjectGray1"]);
-        colorGray4 = new ModBase.MyColor(AppResources["ColorObjectGray4"]);
-        colorGray5 = new ModBase.MyColor(AppResources["ColorObjectGray5"]);
-        colorSemiTransparent = new ModBase.MyColor(AppResources["ColorBrushSemiTransparent"]);
+        colorGray1 = new Common.MyColor(AppResources["ColorObjectGray1"]);
+        colorGray4 = new Common.MyColor(AppResources["ColorObjectGray4"]);
+        colorGray5 = new Common.MyColor(AppResources["ColorObjectGray5"]);
+        colorSemiTransparent = new Common.MyColor(AppResources["ColorBrushSemiTransparent"]);
         ThemeRefreshMain();
     }
 
     public static void ThemeRefreshMain()
     {
-        ModBase.RunInUi(() =>
+        Common.RunInUi(() =>
         {
-            if (!ModMain.frmMain.IsLoaded) return;
+            if (!Launcher.frmMain.IsLoaded) return;
             RefreshBackground();
             RefreshAllContextMenuThemes();
         });
@@ -60,14 +62,15 @@ public static class ThemeManager
                 { Offset = 0.4d, Color = LabColor.FromLch(0.96d * darkLight, tone.C7, hue) });
             brush.GradientStops.Add(new GradientStop
                 { Offset = 1.1d, Color = LabColor.FromLch(0.84d * darkLight, tone.C5, hue2) });
-            ModMain.frmMain.PanForm.Background = brush;
+            Launcher.frmMain.PanForm.Background = brush;
         }
         else
         {
-            ModMain.frmMain.PanForm.Background = (Brush)System.Windows.Application.Current.Resources["ColorBrushBackground"];
+            Launcher.frmMain.PanForm.Background =
+                (Brush)System.Windows.Application.Current.Resources["ColorBrushBackground"];
         }
 
-        ModMain.frmMain.PanForm.Background.Freeze();
+        Launcher.frmMain.PanForm.Background.Freeze();
     }
 
     // 通用ContextMenu主题刷新
@@ -87,7 +90,7 @@ public static class ThemeManager
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "刷新ContextMenu主题时出错");
+            Common.Log(ex, "刷新ContextMenu主题时出错");
         }
     }
 

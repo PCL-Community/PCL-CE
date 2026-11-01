@@ -7,6 +7,7 @@ using System.Text.Json.Nodes;
 using System.Threading;
 using System.Windows;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.IO.Net;
 using PCL.Core.Logging;
 using PCL.Core.Minecraft.IdentityModel;
@@ -14,6 +15,7 @@ using PCL.Core.Minecraft.IdentityModel.OAuth;
 using PCL.Core.Minecraft.Profile;
 using PCL.Core.Minecraft.Profile.Authentication;
 using PCL.Core.Minecraft.Profile.Models;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
@@ -40,41 +42,75 @@ public static class ProfileUi
         if (normalizedError is not ("xsts_2148916227" or "xsts_2148916233" or "xsts_2148916235" or "xsts_2148916238"))
             return false;
 
-        ModBase.RunInUiWait(() =>
+        Common.RunInUiWait(() =>
         {
             switch (normalizedError)
             {
                 case "xsts_2148916227":
-                    ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Microsoft.Banned"),
-                        Lang.Text("Minecraft.Launch.Login.Failed"), Lang.Text("Minecraft.Launch.Login.IKnow"), isWarn: true);
+                    _ = DialogService.Instance.ShowAsync(new TextDialogRequest
+                    {
+                        Title = Lang.Text("Minecraft.Launch.Login.Failed"),
+                        Content = Lang.Text("Minecraft.Launch.Login.Microsoft.Banned"),
+                        Buttons = DialogButtons.From(
+                            DialogButton.Create(Lang.Text("Minecraft.Launch.Login.IKnow"))),
+                        IsWarn = true,
+                        ForceWait = true
+                    });
                     break;
                 case "xsts_2148916233":
-                    if (ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Microsoft.XboxNotRegistered"),
-                            Lang.Text("Minecraft.Launch.Login.Hint"), Lang.Text("Minecraft.Launch.Login.Register"),
-                            Lang.Text("Common.Action.Cancel")) == 1)
-                        ModBase.OpenWebsite("https://signup.live.com/signup");
+                    if (DialogService.Instance.Show(new TextDialogRequest
+                        {
+                            Title = Lang.Text("Minecraft.Launch.Login.Hint"),
+                            Content = Lang.Text("Minecraft.Launch.Login.Microsoft.XboxNotRegistered"),
+                            Buttons = DialogButtons.From(
+                                DialogButton.Create(Lang.Text("Minecraft.Launch.Login.Register")),
+                                DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                            ForceWait = true
+                        }).Result?.Button == 1)
+                        Common.OpenWebsite("https://signup.live.com/signup");
                     break;
                 case "xsts_2148916235":
-                    ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Microsoft.RegionBlocked"),
-                        Lang.Text("Minecraft.Launch.Login.Failed"), Lang.Text("Minecraft.Launch.Login.IKnow"));
+                    _ = DialogService.Instance.ShowAsync(new TextDialogRequest
+                    {
+                        Title = Lang.Text("Minecraft.Launch.Login.Failed"),
+                        Content = Lang.Text("Minecraft.Launch.Login.Microsoft.RegionBlocked"),
+                        Buttons = DialogButtons.From(
+                            DialogButton.Create(Lang.Text("Minecraft.Launch.Login.IKnow"))),
+                        ForceWait = true
+                    });
                     break;
                 case "xsts_2148916238":
-                    if (ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.Message"),
-                            Lang.Text("Minecraft.Launch.Login.Hint"),
-                            Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.AgeOver13"),
-                            Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.AgeUnder13"),
-                            Lang.Text("Common.Option.IDontKnow")) == 1)
+                    if (DialogService.Instance.Show(new TextDialogRequest
+                        {
+                            Title = Lang.Text("Minecraft.Launch.Login.Hint"),
+                            Content = Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.Message"),
+                            Buttons = DialogButtons.From(
+                                DialogButton.Create(Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.AgeOver13")),
+                                DialogButton.Create(Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.AgeUnder13")),
+                                DialogButton.Create(Lang.Text("Common.Option.IDontKnow"))),
+                            ForceWait = true
+                        }).Result?.Button == 1)
                     {
-                        ModBase.OpenWebsite("https://account.live.com/editprof.aspx");
-                        ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Microsoft.ChangeBirthDate.Message"),
-                            Lang.Text("Minecraft.Launch.Login.Hint"));
+                        Common.OpenWebsite("https://account.live.com/editprof.aspx");
+                        DialogService.Instance.Show(new TextDialogRequest
+                        {
+                            Title = Lang.Text("Minecraft.Launch.Login.Hint"),
+                            Content = Lang.Text("Minecraft.Launch.Login.Microsoft.ChangeBirthDate.Message"),
+                            Buttons = DialogButtons.Ok,
+                            ForceWait = true
+                        });
                     }
                     else
                     {
-                        ModBase.OpenWebsite(
+                        Common.OpenWebsite(
                             "https://support.microsoft.com/zh-cn/account-billing/如何更改-microsoft-帐户上的出生日期-837badbc-999e-54d2-2617-d19206b9540a");
-                        ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Microsoft.ChangeBirthDate.SupportMessage"),
-                            Lang.Text("Minecraft.Launch.Login.Hint"));
+                        DialogService.Instance.Show(new TextDialogRequest
+                        {
+                            Title = Lang.Text("Minecraft.Launch.Login.Hint"),
+                            Content = Lang.Text("Minecraft.Launch.Login.Microsoft.ChangeBirthDate.SupportMessage"),
+                            Buttons = DialogButtons.Ok,
+                            ForceWait = true
+                        });
                     }
 
                     break;
@@ -92,13 +128,18 @@ public static class ProfileUi
         if (!string.Equals(exception.Error, "minecraft_not_owned", StringComparison.OrdinalIgnoreCase))
             return false;
 
-        ModBase.RunInUiWait(() =>
+        Common.RunInUiWait(() =>
         {
-            if (ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Microsoft.NotPurchased"),
-                    Lang.Text("Minecraft.Launch.Login.Failed"),
-                    Lang.Text("Minecraft.Launch.Login.Microsoft.PurchaseMinecraft"),
-                    Lang.Text("Common.Action.Cancel")) == 1)
-                ModBase.OpenWebsite(
+            if (DialogService.Instance.Show(new TextDialogRequest
+                {
+                    Title = Lang.Text("Minecraft.Launch.Login.Failed"),
+                    Content = Lang.Text("Minecraft.Launch.Login.Microsoft.NotPurchased"),
+                    Buttons = DialogButtons.From(
+                        DialogButton.Create(Lang.Text("Minecraft.Launch.Login.Microsoft.PurchaseMinecraft")),
+                        DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                    ForceWait = true
+                }).Result?.Button == 1)
+                Common.OpenWebsite(
                     "https://www.xbox.com/zh-cn/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj");
         });
         return true;
@@ -113,13 +154,18 @@ public static class ProfileUi
         if (!string.Equals(exception.Error, "profile_not_created", StringComparison.OrdinalIgnoreCase))
             return false;
 
-        ModBase.RunInUiWait(() =>
+        Common.RunInUiWait(() =>
         {
-            if (ModMain.MyMsgBox(Lang.Text("Minecraft.Launch.Login.Microsoft.CreateProfile.Message"),
-                    Lang.Text("Minecraft.Launch.Login.Failed"),
-                    Lang.Text("Minecraft.Launch.Login.Microsoft.CreateProfile.Button"),
-                    Lang.Text("Common.Action.Cancel")) == 1)
-                ModBase.OpenWebsite("https://www.minecraft.net/zh-hans/msaprofile/mygames/editprofile");
+            if (DialogService.Instance.Show(new TextDialogRequest
+                {
+                    Title = Lang.Text("Minecraft.Launch.Login.Failed"),
+                    Content = Lang.Text("Minecraft.Launch.Login.Microsoft.CreateProfile.Message"),
+                    Buttons = DialogButtons.From(
+                        DialogButton.Create(Lang.Text("Minecraft.Launch.Login.Microsoft.CreateProfile.Button")),
+                        DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                    ForceWait = true
+                }).Result?.Button == 1)
+                Common.OpenWebsite("https://www.minecraft.net/zh-hans/msaprofile/mygames/editprofile");
         });
         return true;
     }
@@ -129,11 +175,13 @@ public static class ProfileUi
     {
         token.ThrowIfCancellationRequested();
         var completion = new TaskCompletionSource<AuthorizeResult?>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var converter = new ModMain.MyMsgBoxConverter
+        var request = new LoginDialogRequest
         {
-            Content = JsonSerializer.SerializeToNode(context.Data, JsonCompat.SerializerOptions)!.AsObject(),
+            Title = Lang.Text("Launch.Account.LoginDialog.MinecraftLogin"),
+            // 登录弹窗使用自绘按钮，与旧实现一样不提供按钮组
+            Buttons = default,
             ForceWait = true,
-            Type = ModMain.MyMsgBoxType.Login,
+            Data = JsonSerializer.SerializeToNode(context.Data, JsonCompat.SerializerOptions)!.AsObject(),
             DeviceCodePoll = (_, pollToken) => context.PollAsync(pollToken),
             LoginResultHandler = (oauth, _) =>
             {
@@ -145,22 +193,22 @@ public static class ProfileUi
                 if (result is Exception ex) completion.TrySetException(ex);
             }
         };
-        ModMain.WaitingMyMsgBox.Add(converter);
+        Launcher.ShowDeviceCodeLogin(request);
         return completion.Task;
     }
 
     public static object McLoginMojangUuid(string name, bool throwOnNotFound)
     {
-        if (string.IsNullOrWhiteSpace(name)) return ModBase.StrFill("", "0", 32);
-        var uuid = ModBase.ReadIni(ModBase.pathTemp + @"Cache\Uuid\Mojang.ini", name);
+        if (string.IsNullOrWhiteSpace(name)) return Common.StrFill("", "0", 32);
+        var uuid = Common.ReadIni(Common.pathTemp + @"Cache\Uuid\Mojang.ini", name);
         if (uuid?.Length == 32) return uuid;
         try
         {
             JsonObject? json = null;
             var finished = false;
-            ModBase.RunInNewThread(() =>
+            Common.RunInNewThread(() =>
             {
-                try { json = (JsonObject)ModNet.NetGetCodeByRequestRetry("https://api.mojang.com/users/profiles/minecraft/" + name, isJson: true); }
+                try { json = (JsonObject)NetFacade.NetGetCodeByRequestRetry("https://api.mojang.com/users/profiles/minecraft/" + name, isJson: true); }
                 catch { }
                 finally { finished = true; }
             }, $"{name} Uuid Get");
@@ -170,12 +218,12 @@ public static class ProfileUi
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "从官网获取正版 UUID 失败（" + name + "）");
+            Common.Log(ex, "从官网获取正版 UUID 失败（" + name + "）");
             if (!throwOnNotFound && ex is FileNotFoundException) uuid = GetOfflineUuid(name, isLegacy: true);
             else throw;
         }
         if (uuid.Length != 32) throw new FormatException("获取的正版 UUID 长度不足（" + uuid + "）");
-        ModBase.WriteIni(ModBase.pathTemp + @"Cache\Uuid\Mojang.ini", name, uuid);
+        Common.WriteIni(Common.pathTemp + @"Cache\Uuid\Mojang.ini", name, uuid);
         return uuid;
     }
 
@@ -188,38 +236,50 @@ public static class ProfileUi
 #endif
     }
 
-    public static void CreateProfile()
+    public static async Task CreateProfileAsync()
     {
-        int? selected = null;
-        ModBase.RunInUiWait(() =>
+        var includeOthers = Common.RunInUiWait(CanCreateOtherProfile);
+        var selectedDialog = await DialogService.Instance.ShowAsync(new SelectDialogRequest
         {
-            var includeOthers = CanCreateOtherProfile();
-            selected = ModMain.MyMsgBoxSelect(_GetAvailableProfileSelection(includeOthers),
-                Lang.Text("Launch.Account.Profile.Create.SelectAuthType.Title"), Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel"));
+            Title = Lang.Text("Launch.Account.Profile.Create.SelectAuthType.Title"),
+            Options = PCL.DialogOptions.From(_GetAvailableProfileSelection(includeOthers)),
+            Buttons = DialogButtons.From(
+                DialogButton.Create(Lang.Text("Common.Action.Continue")),
+                DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+            HighLight = false,
+            ForceWait = false
         });
+        var selected = selectedDialog.IsConfirmed ? selectedDialog.SelectedIndex : null;
         if (selected is null) return;
         ProfileService.IsCreatingProfile = true;
         var type = selected.Value switch
         {
-            0 => ModLaunch.McLoginType.Ms,
-            1 => ModLaunch.McLoginType.Auth,
-            _ => ModLaunch.McLoginType.Legacy
+            0 => GameLaunch.McLoginType.Ms,
+            1 => GameLaunch.McLoginType.Auth,
+            _ => GameLaunch.McLoginType.Legacy
         };
-        if (type == ModLaunch.McLoginType.Auth)
+        if (type == GameLaunch.McLoginType.Auth)
         {
-            string? server = null;
-            ModBase.RunInUiWait(() => server = ModMain.MyMsgBoxAuthServer(
-                PageLoginAuth.DefaultAuthServer, PageLoginAuth.PredefinedAuthServers));
+            var serverDialog = await DialogService.Instance.ShowAsync(new AuthServerDialogRequest
+            {
+                Title = Lang.Text("Launch.Account.Auth.SelectServer"),
+                DefaultServer = PageLoginAuth.DefaultAuthServer,
+                Presets = PageLoginAuth.PredefinedAuthServers,
+                Buttons = DialogButtons.OkCancel,
+                HighLight = false,
+                ForceWait = false
+            });
+            var server = serverDialog.IsConfirmed ? serverDialog.InputText ?? "" : "";
             if (string.IsNullOrWhiteSpace(server))
             {
                 ProfileService.IsCreatingProfile = false;
                 return;
             }
             PageLoginAuth.draggedAuthServerOAuthSupported =
-                PageLoginAuth.IsOAuthSupportedAsync(server).GetAwaiter().GetResult();
+                await PageLoginAuth.IsOAuthSupportedAsync(server);
             PageLoginAuth.draggedAuthServer = server;
         }
-        ModBase.RunInUi(() => ModMain.frmLaunchLeft.RefreshPage(true, type));
+        Common.RunInUi(() => Launcher.frmLaunchLeft.RefreshPage(true, type));
     }
 
     private static List<IMyRadio> _GetAvailableProfileSelection(bool includeOthers) => includeOthers
@@ -230,56 +290,82 @@ public static class ProfileUi
         ]
         : [new MyListItem { Title = Lang.Text("Launch.Account.Type.Microsoft"), Type = MyListItem.CheckType.RadioBox, SvgIcon = "lucide/shield-check" }];
 
-    public static void EditProfileId()
+    public static void EditProfileId() => _ = EditProfileIdAsync();
+
+    private static async Task EditProfileIdAsync()
     {
         var profile = ProfileService.Current;
         if (profile is null) return;
         if (profile.ProfileType == ProfileType.Microsoft)
         {
-            string? username = null;
-            ModBase.RunInUiWait(() => username = ModMain.MyMsgBoxInput(
-                Lang.Text("Launch.Account.Profile.EditPlayerId.Title"),
-                Lang.Text("Launch.Account.Profile.EditPlayerId.MicrosoftWarning"), profile.UserName,
-                [new StringLengthValidator(3, 16), new RegexValidator("([A-z]|[0-9]|_)+")],
-                Lang.Text("Launch.Account.Profile.EditPlayerId.Hint"), Lang.Text("Common.Action.Confirm")));
+            var usernameDialog = await DialogService.Instance.ShowAsync(new InputDialogRequest
+            {
+                Title = Lang.Text("Launch.Account.Profile.EditPlayerId.Title"),
+                Content = Lang.Text("Launch.Account.Profile.EditPlayerId.MicrosoftWarning"),
+                DefaultValue = profile.UserName,
+                ValidateRules = [new StringLengthValidator(3, 16), new RegexValidator("([A-z]|[0-9]|_)+")],
+                HintText = Lang.Text("Launch.Account.Profile.EditPlayerId.Hint"),
+                Buttons = DialogButtons.OkCancel,
+                HighLight = false,
+                ForceWait = false
+            });
+            var username = usernameDialog.IsConfirmed ? usernameDialog.InputText : null;
             if (string.IsNullOrWhiteSpace(username)) return;
-            if (ModMain.MyMsgBox(Lang.Text("Launch.Account.Profile.EditPlayerId.Confirm.Message"),
-                    Lang.Text("Launch.Account.Profile.EditPlayerId.Confirm.Title"), Lang.Text("Common.Action.Continue"),
-                    Lang.Text("Common.Action.Cancel"), isWarn: true) == 2) return;
-            ModBase.RunInNewThread(() =>
+            if ((await DialogService.Instance.ShowAsync(new TextDialogRequest
+                {
+                    Title = Lang.Text("Launch.Account.Profile.EditPlayerId.Confirm.Title"),
+                    Content = Lang.Text("Launch.Account.Profile.EditPlayerId.Confirm.Message"),
+                    Buttons = DialogButtons.From(
+                        DialogButton.Create(Lang.Text("Common.Action.Continue")),
+                        DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                    IsWarn = true,
+                    ForceWait = false
+                })).Button == 2) return;
+            Common.RunInNewThread(() =>
             {
                 try
                 {
-                    var check = (JsonObject)ModBase.GetJson(Requester.Fetch(
+                    var check = (JsonObject)Common.GetJson(Requester.Fetch(
                         $"https://api.minecraftservices.com/minecraft/profile/name/{username}/available",
                         new FetchParam { Headers = new Dictionary<string, string> { ["Authorization"] = "Bearer " + profile.AccessToken } }));
                     var status = check["status"]?.ToString();
                     if (status is "DUPLICATE" or "NOT_ALLOWED")
                     {
-                        ModMain.MyMsgBox(status == "DUPLICATE"
+                        DialogService.Instance.Show(new TextDialogRequest
+                        {
+                            Title = Lang.Text("Launch.Account.Profile.EditPlayerId.Failed.Title"),
+                            Content = status == "DUPLICATE"
                                 ? Lang.Text("Launch.Account.Profile.EditPlayerId.Duplicate")
                                 : Lang.Text("Launch.Account.Profile.EditPlayerId.NotAllowed"),
-                            Lang.Text("Launch.Account.Profile.EditPlayerId.Failed.Title"), Lang.Text("Common.Action.Confirm"), isWarn: true);
+                            Buttons = DialogButtons.Ok,
+                            IsWarn = true,
+                            ForceWait = true
+                        });
                         return;
                     }
-                    var result = (JsonObject)ModBase.GetJson(Requester.Fetch(
+                    var result = (JsonObject)Common.GetJson(Requester.Fetch(
                         $"https://api.minecraftservices.com/minecraft/profile/name/{username}",
                         new FetchParam { Method = "PUT", ContentType = "application/json", Headers = new Dictionary<string, string> { ["Authorization"] = "Bearer " + profile.AccessToken } }));
                     var updated = profile.Clone();
                     updated.UserName = result["name"]?.ToString() ?? username;
                     ProfileService.Update(profile, updated);
                     ProfileService.Select(updated);
-                    HintService.Hint(Lang.Text("Launch.Account.Profile.EditPlayerId.Success", updated.UserName), HintType.Success);
-                    ModBase.RunInUi(() => { ModMain.frmLoginProfileSkin?.Reload(); ModMain.frmLaunchLeft.RefreshPage(true); });
+                    HintService.Show(Hints.Success(Lang.Text("Launch.Account.Profile.EditPlayerId.Success", updated.UserName)));
+                    Common.RunInUi(() => { Launcher.frmLoginProfileSkin?.Reload(); Launcher.frmLaunchLeft.RefreshPage(true); });
                 }
                 catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.Forbidden)
                 {
-                    ModMain.MyMsgBox(Lang.Text("Launch.Account.Profile.EditPlayerId.Cooldown"),
-                        Lang.Text("Launch.Account.Profile.EditPlayerId.Failed.Title"), Lang.Text("Common.Action.Confirm"));
+                    DialogService.Instance.Show(new TextDialogRequest
+                    {
+                        Title = Lang.Text("Launch.Account.Profile.EditPlayerId.Failed.Title"),
+                        Content = Lang.Text("Launch.Account.Profile.EditPlayerId.Cooldown"),
+                        Buttons = DialogButtons.Ok,
+                        ForceWait = true
+                    });
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(ex, Lang.Text("Launch.Account.Profile.Error.ChangeId"), ModBase.LogLevel.Msgbox,
+                    Common.Log(ex, Lang.Text("Launch.Account.Profile.Error.ChangeId"), Common.LogLevel.Msgbox,
                         userSummary: Lang.Text("Launch.Account.Profile.Error.ChangeId"));
                 }
             });
@@ -288,18 +374,28 @@ public static class ProfileUi
         if (profile.ProfileType == ProfileType.Authlib || profile.ProfileType == ProfileType.YggdrasilConnect)
         {
             if (!string.IsNullOrWhiteSpace(profile.Server))
-                ModBase.OpenWebsite(profile.Server.Replace("/api/yggdrasil/authserver", "/user/profile"));
+                Common.OpenWebsite(profile.Server.Replace("/api/yggdrasil/authserver", "/user/profile"));
             return;
         }
 
-        string? newName = null;
-        ModBase.RunInUiWait(() => newName = ModMain.MyMsgBoxInput(Lang.Text("Launch.Account.Profile.EditPlayerId.Title"),
-            defaultInput: profile.UserName, validateRules: [new StringLengthValidator(3, 16), new RegexValidator("([A-z]|[0-9]|_)+")],
-            hintText: Lang.Text("Launch.Account.Profile.EditPlayerId.Hint"), button1: Lang.Text("Common.Action.Confirm"), button2: Lang.Text("Common.Action.Cancel")));
+        var newNameDialog = await DialogService.Instance.ShowAsync(new InputDialogRequest
+        {
+            Title = Lang.Text("Launch.Account.Profile.EditPlayerId.Title"),
+            DefaultValue = profile.UserName,
+            ValidateRules = [new StringLengthValidator(3, 16), new RegexValidator("([A-z]|[0-9]|_)+")],
+            HintText = Lang.Text("Launch.Account.Profile.EditPlayerId.Hint"),
+            Buttons = DialogButtons.OkCancel,
+            HighLight = false,
+            ForceWait = false
+        });
+        var newName = newNameDialog.IsConfirmed ? newNameDialog.InputText : null;
         if (!string.IsNullOrWhiteSpace(newName)) EditOfflineUuid(profile, GetOfflineUuid(newName));
     }
 
-    public static void EditOfflineUuid(McProfile profile, string? uuid = null)
+    public static void EditOfflineUuid(McProfile profile, string? uuid = null) =>
+        _ = EditOfflineUuidAsync(profile, uuid);
+
+    private static async Task EditOfflineUuidAsync(McProfile profile, string? uuid = null)
     {
         var current = ProfileService.Profiles.FirstOrDefault(p => p.ProfileId == profile.ProfileId);
         if (current is null) return;
@@ -307,19 +403,39 @@ public static class ProfileUi
         if (newUuid is null)
         {
             int? type = null;
-            ModBase.RunInUiWait(() => type = ModMain.MyMsgBoxSelect([
-                new MyRadioBox { Text = Lang.Text("Launch.Account.Profile.Uuid.Standard") },
-                new MyRadioBox { Text = Lang.Text("Launch.Account.Profile.Uuid.Legacy") },
-                new MyRadioBox { Text = Lang.Text("Common.Option.Customize") }],
-                Lang.Text("Launch.Account.Profile.Uuid.SelectType.Title"), Lang.Text("Common.Action.Continue"), Lang.Text("Common.Action.Cancel")));
+            var typeDialog = await DialogService.Instance.ShowAsync(new SelectDialogRequest
+            {
+                Title = Lang.Text("Launch.Account.Profile.Uuid.SelectType.Title"),
+                Options =
+                [
+                    new DialogOption { Text = Lang.Text("Launch.Account.Profile.Uuid.Standard") },
+                    new DialogOption { Text = Lang.Text("Launch.Account.Profile.Uuid.Legacy") },
+                    new DialogOption { Text = Lang.Text("Common.Option.Customize") }
+                ],
+                Buttons = DialogButtons.From(
+                    DialogButton.Create(Lang.Text("Common.Action.Continue")),
+                    DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                HighLight = false,
+                ForceWait = false
+            });
+            type = typeDialog.IsConfirmed ? typeDialog.SelectedIndex : null;
             if (type is null) return;
             newUuid = type switch
             {
                 0 => GetOfflineUuid(current.UserName),
                 1 => GetOfflineUuid(current.UserName, isLegacy: true),
-                _ => ModMain.MyMsgBoxInput(Lang.Text("Launch.Account.Profile.Uuid.ChangeTitle", current.UserName), defaultInput: current.Uuid,
-                    hintText: Lang.Text("Launch.Account.Profile.Uuid.Hint"), validateRules: [new StringLengthValidator(32, 32), new RegexValidator("([A-z]|[0-9]){32}", Lang.Text("Launch.Account.Profile.Uuid.InvalidChars"))],
-                    button1: Lang.Text("Common.Action.Continue"), button2: Lang.Text("Common.Action.Cancel"))
+                _ => (await DialogService.Instance.ShowAsync(new InputDialogRequest
+                    {
+                        Title = Lang.Text("Launch.Account.Profile.Uuid.ChangeTitle", current.UserName),
+                        DefaultValue = current.Uuid,
+                        HintText = Lang.Text("Launch.Account.Profile.Uuid.Hint"),
+                        ValidateRules = [new StringLengthValidator(32, 32), new RegexValidator("([A-z]|[0-9]){32}", Lang.Text("Launch.Account.Profile.Uuid.InvalidChars"))],
+                        Buttons = DialogButtons.OkCancel,
+                        HighLight = false,
+                        ForceWait = false
+                    })) is { IsConfirmed: true } confirm
+                    ? confirm.InputText
+                    : null
             };
         }
         if (string.IsNullOrWhiteSpace(newUuid)) return;
@@ -327,7 +443,7 @@ public static class ProfileUi
         updated.Uuid = newUuid;
         ProfileService.Update(current, updated);
         ProfileService.Select(updated);
-        HintService.Hint(Lang.Text("Launch.Account.Profile.Saved"), HintType.Success);
+        HintService.Show(Hints.Success(Lang.Text("Launch.Account.Profile.Saved")));
     }
 
     public static void EditAuthServerName(McProfile profile, string serverName)
@@ -338,20 +454,20 @@ public static class ProfileUi
         updated.ServerName = serverName;
         ProfileService.Update(current, updated);
         if (ReferenceEquals(ProfileService.Current, current)) ProfileService.Select(updated);
-        HintService.Hint(Lang.Text("Launch.Account.Profile.Saved"), HintType.Success);
+        HintService.Show(Hints.Success(Lang.Text("Launch.Account.Profile.Saved")));
     }
 
     public static void RemoveProfile(McProfile profile)
     {
         ProfileService.Remove(profile);
-        HintService.Hint(Lang.Text("Launch.Account.Profile.Deleted"), HintType.Success);
+        HintService.Show(Hints.Success(Lang.Text("Launch.Account.Profile.Deleted")));
     }
 
     public static string GetOfflineUuid(string userName, bool isSplited = false, bool isLegacy = false)
     {
         if (isLegacy)
         {
-            var fullUuid = ModBase.StrFill(userName.Length.ToString("X"), "0", 16) + ModBase.StrFill(ModBase.GetHash(userName).ToString("X"), "0", 16);
+            var fullUuid = Common.StrFill(userName.Length.ToString("X"), "0", 16) + Common.StrFill(Common.GetHash(userName).ToString("X"), "0", 16);
             var value = fullUuid.Substring(0, 12) + "3" + fullUuid.Substring(13, 3) + "9" + fullUuid.Substring(17, 15);
             return value;
         }
@@ -390,22 +506,22 @@ public static class ProfileUi
         return string.IsNullOrWhiteSpace(profile.Description) ? info : $"{info}，{profile.Description}";
     }
 
-    public static ModLaunch.McLoginData GetLoginData(ModLaunch.McLoginType targetAuthType = default)
+    public static GameLaunch.McLoginData GetLoginData(GameLaunch.McLoginType targetAuthType = default)
     {
         var profile = ProfileService.Current;
         if (profile is null)
         {
             return targetAuthType switch
             {
-                ModLaunch.McLoginType.Ms => new ModLaunch.McLoginMs(),
-                ModLaunch.McLoginType.Auth => new ModLaunch.McLoginServer(ModLaunch.McLoginType.Auth) { Description = "Authlib-Injector", IsExist = false },
-                _ => new ModLaunch.McLoginLegacy()
+                GameLaunch.McLoginType.Ms => new GameLaunch.McLoginMs(),
+                GameLaunch.McLoginType.Auth => new GameLaunch.McLoginServer(GameLaunch.McLoginType.Auth) { Description = "Authlib-Injector", IsExist = false },
+                _ => new GameLaunch.McLoginLegacy()
             };
         }
         return profile.ProfileType switch
         {
-            ProfileType.Microsoft => new ModLaunch.McLoginMs(),
-            ProfileType.Authlib => new ModLaunch.McLoginServer(ModLaunch.McLoginType.Auth)
+            ProfileType.Microsoft => new GameLaunch.McLoginMs(),
+            ProfileType.Authlib => new GameLaunch.McLoginServer(GameLaunch.McLoginType.Auth)
             {
                 BaseUrl = profile.Server,
                 UserName = profile.LoginName,
@@ -413,7 +529,7 @@ public static class ProfileUi
                 Description = profile.ServerName ?? "Authlib-Injector",
                 IsExist = true
             },
-            ProfileType.YggdrasilConnect => new ModLaunch.McLoginServer(ModLaunch.McLoginType.Auth)
+            ProfileType.YggdrasilConnect => new GameLaunch.McLoginServer(GameLaunch.McLoginType.Auth)
             {
                 BaseUrl = profile.Server,
                 Description = profile.ServerName ?? "Yggdrasil Connect",
@@ -421,7 +537,7 @@ public static class ProfileUi
                 ProviderType = ProfileType.YggdrasilConnect,
                 DiscoveryAddress = profile.DiscoveryAddress
             },
-            _ => new ModLaunch.McLoginLegacy { UserName = profile.UserName, Uuid = profile.Uuid }
+            _ => new GameLaunch.McLoginLegacy { UserName = profile.UserName, Uuid = profile.Uuid }
         };
     }
 
@@ -432,7 +548,7 @@ public static class ProfileUi
         if (profile.ProfileType != ProfileType.Offline) return string.Empty;
         if (string.IsNullOrWhiteSpace(profile.UserName)) return Lang.Text("Launch.Account.Profile.Validation.EmptyUsername");
         if (profile.UserName.Contains('"')) return Lang.Text("Launch.Account.Profile.Validation.QuoteInUsername");
-        if (ModInstanceList.McMcInstanceSelected is not null && ModInstanceList.McMcInstanceSelected.Info.Drop >= 203 && profile.UserName.Trim().Length > 16)
+        if (InstanceList.McMcInstanceSelected is not null && InstanceList.McMcInstanceSelected.Info.Drop >= 203 && profile.UserName.Trim().Length > 16)
             return Lang.Text("Launch.Account.Profile.Validation.UsernameTooLong");
         return string.Empty;
     }
@@ -441,7 +557,7 @@ public static class ProfileUi
     {
         if (Interlocked.Exchange(ref _isMsSkinChanging, 1) != 0)
         {
-            HintService.Hint(Lang.Text("Launch.Skin.Change.Busy"));
+            HintService.Show(Hints.Info(Lang.Text("Launch.Skin.Change.Busy")));
             return;
         }
 
@@ -452,36 +568,36 @@ public static class ProfileUi
             return;
         }
         var profileId = profile.ProfileId;
-        if (ModLaunch.mcLoginLoader.State == ModBase.LoadState.Failed)
+        if (GameLaunch.mcLoginLoader.State == Common.LoadState.Failed)
         {
             Interlocked.Exchange(ref _isMsSkinChanging, 0);
-            HintService.Hint(Lang.Text("Launch.Skin.Change.LoginFailed"), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Launch.Skin.Change.LoginFailed")));
             return;
         }
-        var skinInfo = ModSkin.McSkinSelect();
-        if (!skinInfo.IsVaild)
+        var skinInfo = Skin.McSkinSelect();
+        if (!skinInfo.IsValid)
         {
             Interlocked.Exchange(ref _isMsSkinChanging, 0);
             return;
         }
-        HintService.Hint(Lang.Text("Launch.Skin.Change.Starting"));
-        ModBase.RunInNewThread(() =>
+        HintService.Show(Hints.Info(Lang.Text("Launch.Skin.Change.Starting")));
+        Common.RunInNewThread(() =>
         {
             try
             {
                 var hasRetriedAuthentication = false;
                 while (true)
                 {
-                    if (ModLaunch.mcLoginMsLoader.State == ModBase.LoadState.Loading) ModLaunch.mcLoginMsLoader.WaitForExit();
-                    if (ModLaunch.mcLoginMsLoader.State != ModBase.LoadState.Finished) ModLaunch.mcLoginMsLoader.WaitForExit(GetLoginData());
-                    if (ModLaunch.mcLoginMsLoader.State != ModBase.LoadState.Finished)
+                    if (GameLaunch.mcLoginMsLoader.State == Common.LoadState.Loading) GameLaunch.mcLoginMsLoader.WaitForExit();
+                    if (GameLaunch.mcLoginMsLoader.State != Common.LoadState.Finished) GameLaunch.mcLoginMsLoader.WaitForExit(GetLoginData());
+                    if (GameLaunch.mcLoginMsLoader.State != Common.LoadState.Finished)
                         throw new InvalidOperationException("Microsoft login failed");
                     var latestProfile = ProfileService.Profiles.FirstOrDefault(item => item.ProfileId == profileId)
                                         ?? throw new InvalidOperationException("Microsoft profile no longer exists.");
                     using var contents = new MultipartFormDataContent
                     {
                         { new StringContent(skinInfo.IsSlim ? "slim" : "classic"), "variant" },
-                        { new ByteArrayContent(ModBase.ReadFileBytes(skinInfo.LocalFile)), "file", ModBase.GetFileNameFromPath(skinInfo.LocalFile) }
+                        { new ByteArrayContent(Common.ReadFileBytes(skinInfo.LocalFile)), "file", Common.GetFileNameFromPath(skinInfo.LocalFile) }
                     };
                     var result = Requester.Fetch("https://api.minecraftservices.com/minecraft/profile/skins", new FetchParam
                     {
@@ -493,11 +609,11 @@ public static class ProfileUi
                         if (hasRetriedAuthentication)
                             throw new IdentityModelAuthenticationException("invalid_token", "Microsoft authentication remained invalid.");
                         hasRetriedAuthentication = true;
-                        HintService.Hint(Lang.Text("Launch.Skin.Change.Reauthenticating"));
-                        ModLaunch.mcLoginMsLoader.Start(GetLoginData(), true);
+                        HintService.Show(Hints.Info(Lang.Text("Launch.Skin.Change.Reauthenticating")));
+                        GameLaunch.mcLoginMsLoader.Start(GetLoginData(), true);
                         continue;
                     }
-                    var json = (JsonObject)ModBase.GetJson(result);
+                    var json = (JsonObject)Common.GetJson(result);
                     var active = json["skins"]?.AsArray().FirstOrDefault(s => s?["state"]?.ToString() == "ACTIVE")?.AsObject();
                     if (active?["url"] is not null) MySkin.ReloadCache(active["url"]!.ToString(), latestProfile.Uuid);
                     else throw new InvalidDataException(json["errorMessage"]?.ToString() ?? result);
@@ -506,7 +622,7 @@ public static class ProfileUi
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, Lang.Text("Launch.Account.Profile.Error.ChangeSkin"), ModBase.LogLevel.Hint,
+                Common.Log(ex, Lang.Text("Launch.Account.Profile.Error.ChangeSkin"), Common.LogLevel.Hint,
                     userSummary: Lang.Text("Launch.Account.Profile.Error.ChangeSkin"));
             }
             finally

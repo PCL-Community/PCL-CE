@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using PCL.Core.App.Localization;
 
@@ -22,20 +23,26 @@ public static class McVersionComparer
     ///     无法比较两个预发布版的大小。
     ///     支持的格式：未知版本, 26.1-snapshot-1，1.13.2, 1.7.10-pre4, 1.8_pre, 1.14 Pre-Release 2, 1.14.4 C6
     /// </summary>
-    public static int CompareVersion(string left, string right)
+    public static int CompareVersion(string? left, string? right)
     {
-        if (left == Lang.Text("Minecraft.Version.Unknown") || right == Lang.Text("Minecraft.Version.Unknown"))
+        var leftUnknown = string.IsNullOrEmpty(left) ||
+                          string.Equals(
+                              left,
+                              McInstanceInfo.UnknownVanillaName,
+                              StringComparison.OrdinalIgnoreCase);
+        var rightUnknown = string.IsNullOrEmpty(right) ||
+                           string.Equals(
+                               right,
+                               McInstanceInfo.UnknownVanillaName,
+                               StringComparison.OrdinalIgnoreCase);
+        if (leftUnknown || rightUnknown)
         {
-            if (left == Lang.Text("Minecraft.Version.Unknown") && right != Lang.Text("Minecraft.Version.Unknown"))
-                return 1;
-            if (left == Lang.Text("Minecraft.Version.Unknown") && right == Lang.Text("Minecraft.Version.Unknown"))
-                return 0;
-            if (left != Lang.Text("Minecraft.Version.Unknown") && right == Lang.Text("Minecraft.Version.Unknown"))
-                return -1;
+            if (leftUnknown && rightUnknown) return 0;
+            return leftUnknown ? 1 : -1;
         }
 
-        left = left.ToLowerInvariant();
-        right = right.ToLowerInvariant();
+        left = left!.ToLowerInvariant();
+        right = right!.ToLowerInvariant();
         var lefts = left.Replace("快照", "snapshot").Replace("预览版", "pre").RegexSearch("[a-z]+|[0-9]+");
         var rights = right.Replace("快照", "snapshot").Replace("预览版", "pre").RegexSearch("[a-z]+|[0-9]+");
         var i = 0;
@@ -54,7 +61,10 @@ public static class McVersionComparer
             var leftValue = lefts.Count - 1 < i ? "0" : lefts[i];
             var rightValue = rights.Count - 1 < i ? "0" : rights[i];
             if ((leftValue ?? "") == (rightValue ?? ""))
-                goto NextEntry;
+            {
+                i += 1;
+                continue;
+            }
             if (leftValue == "rc")
                 leftValue = (-1).ToString();
             if (leftValue == "pre")
@@ -63,7 +73,7 @@ public static class McVersionComparer
                 leftValue = (-3).ToString();
             if (leftValue == "experimental")
                 leftValue = (-4).ToString();
-            var leftValValue = ModBase.Val(leftValue);
+            var leftValValue = Common.Val(leftValue);
             if (rightValue == "rc")
                 rightValue = (-1).ToString();
             if (rightValue == "pre")
@@ -72,7 +82,7 @@ public static class McVersionComparer
                 rightValue = (-3).ToString();
             if (rightValue == "experimental")
                 rightValue = (-4).ToString();
-            var rightValValue = ModBase.Val(rightValue);
+            var rightValValue = Common.Val(rightValue);
             if (leftValValue == 0d && rightValValue == 0d)
             {
                 // 如果没有数值则直接比较字符串
@@ -90,8 +100,6 @@ public static class McVersionComparer
             {
                 return -1;
             }
-
-            NextEntry: ;
 
             i += 1;
         }

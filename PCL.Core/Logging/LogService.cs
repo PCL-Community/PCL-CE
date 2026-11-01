@@ -11,6 +11,13 @@ using PCL.Core.UI;
 
 namespace PCL.Core.Logging;
 
+/// <summary>
+/// The single lifecycle log service. It owns the <see cref="Logger" /> instance, bridges both logging
+/// entry points (<c>LogWrapper</c> and <c>LifecycleContext</c>) into it, forwards unhandled exceptions to
+/// telemetry, and translates <see cref="ActionLevel" /> values into user-visible hints, message boxes and
+/// fatal exits. Level filtering is delegated to <see cref="Logger" /> so it can never suppress those
+/// side effects.
+/// </summary>
 [LifecycleService(LifecycleState.Loading, Priority = int.MaxValue)]
 public class LogService : ILifecycleLogService
 {
@@ -31,6 +38,10 @@ public class LogService : ILifecycleLogService
     public string Name => "日志服务";
     public bool SupportAsync => false;
 
+    /// <summary>
+    /// Creates the <see cref="Logger" /> and subscribes to <see cref="LogWrapper" />. Runs at the highest
+    /// priority in the <see cref="LifecycleState.Loading" /> phase so that every later service is logged.
+    /// </summary>
     public Task StartAsync()
     {
         Context.Trace("正在初始化 Logger 实例");
@@ -42,6 +53,10 @@ public class LogService : ILifecycleLogService
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// Detaches from <see cref="LogWrapper" /> and flushes the pending queue. The logger swallows its own
+    /// failures and bounds the wait, so this never blocks process shutdown indefinitely.
+    /// </summary>
     public async Task StopAsync()
     {
         if (_wrapperRegistered)
@@ -50,27 +65,23 @@ public class LogService : ILifecycleLogService
             await _logger.DisposeAsync().ConfigureAwait(false);
     }
 
-    public void OnLog(LifecycleLogItem item)
+    /// <summary>Entry point for logs raised through a <see cref="LifecycleContext" />.</summary>
+    public void OnLog(LifecycleLogItem item) => _LogAction(item.ToLogEntry(), item.ActionLevel);
+
+    /// <summary>
+    /// Handles one log item: reports the exception to telemetry, enqueues the entry for the file writer,
+    /// then performs the action required by <paramref name="actionLevel" />. The three steps are
+    /// independent, which is what keeps <see cref="LoggerConfiguration.MinLogLevel" /> from silencing
+    /// hints, message boxes or fatal exits.
+    /// </summary>
+    private static void _LogAction(in LogEntry entry, ActionLevel actionLevel)
     {
-        _LogAction(item.Level, item.ActionLevel, item.ComposeMessage(), item.Message, item.Exception);
-    }
+        if (entry.Exception is not null)
+            TelemetryService.ReportException(entry.Exception, entry.Message, entry.Level);
 
-    private static void _LogAction(
-        LogLevel level,
-        ActionLevel actionLevel,
-        string formatted,
-        string plain,
-        Exception? ex)
-    {
-        if (ex is not null)
-            TelemetryService.ReportException(ex, plain, level);
+        _logger?.Enqueue(entry);
 
-        // log
-#if !TRACE
-    if (actionLevel != ActionLevel.TraceLog)
-#endif
-        Logger.Log(formatted);
-
+        var plain = entry.Message;
         switch (actionLevel)
         {
             case <= ActionLevel.NormalLog:
@@ -90,11 +101,11 @@ public class LogService : ILifecycleLogService
                     ? MsgBoxTheme.Error
                     : MsgBoxTheme.Info;
 
-                var caption = ex is null
+                var caption = entry.Exception is null
                     ? null
                     : Lang.Text("SystemDialog.Error.Unexpected.Title");
 
-                var message = _ComposeUserError(plain, ex);
+                var message = _ComposeUserError(plain, entry.Exception);
 
                 if (actionLevel == ActionLevel.MsgBoxErr)
                     message = Lang.Text("SystemDialog.Error.Message.WithLogExportGuidance", message);
@@ -108,7 +119,7 @@ public class LogService : ILifecycleLogService
             {
                 var message = Lang.Text(
                     "SystemDialog.Fatal.Message.WithFeedbackGuidance",
-                    _ComposeUserError(plain, ex));
+                    _ComposeUserError(plain, entry.Exception));
 
                 MessageBox.Show(
                     message,
@@ -121,7 +132,10 @@ public class LogService : ILifecycleLogService
         }
     }
 
-
+    /// <summary>
+    /// Builds the user-facing error text: the plain message, with the exception details appended when one
+    /// is present. Falls back to a localized generic message for an empty message.
+    /// </summary>
     private static string _ComposeUserError(string plain, Exception? exception)
     {
         var summary = string.IsNullOrWhiteSpace(plain)
@@ -133,22 +147,26 @@ public class LogService : ILifecycleLogService
             : ExceptionDetails.Compose(summary, exception);
     }
 
+    /// <summary>
+    /// Converts a <see cref="LogWrapper" /> callback into a <see cref="LogEntry" />. Only field reads
+    /// happen here - the module prefix, thread label and timestamp are all produced by the consumer.
+    /// </summary>
     private static void _OnWrapperLog(
         LogLevel level,
         string msg,
         string? module,
         Exception? ex)
     {
-        var thread = Thread.CurrentThread.Name ?? $"#{Environment.CurrentManagedThreadId}";
-        if (module is not null) module = $"[{module}] ";
-        var result = $"[{DateTime.Now:HH:mm:ss.fff}] [{level.PrintName()}] [{thread}] {module}{msg}";
-        _LogAction(
-            level,
-            level.DefaultActionLevel(),
-            ex is null
-                ? result
-                : $"{result}\n{ex}",
-            msg,
-            ex);
+        _LogAction(new LogEntry
+        {
+            Level = level,
+            Message = msg,
+            Time = DateTime.Now,
+            SourceName = module,
+            ThreadName = Thread.CurrentThread.Name,
+            ThreadId = Environment.CurrentManagedThreadId,
+            TaskId = Task.CurrentId ?? 0,
+            Exception = ex
+        }, level.DefaultActionLevel());
     }
 }

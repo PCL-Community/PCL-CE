@@ -18,7 +18,7 @@ public class MyCollapseBar : StackPanel
 
     private const double HeaderHeight = 30d;
 
-    private readonly int _uuid = ModBase.GetUuid();
+    private readonly int _uuid = Common.GetUuid();
     private readonly TextBlock _titleBlock;
     private readonly Path _triangle;
     private readonly StackPanel _contentPanel;
@@ -82,10 +82,10 @@ public class MyCollapseBar : StackPanel
 
             var target = value ? 0d : 180d;
             if (IsLoaded)
-                ModAnimation.AniStart(
-                    ModAnimation.AaRotateTransform(_triangle,
+                Animations.AniStart(
+                    Animations.AaRotateTransform(_triangle,
                         target - ((RotateTransform)_triangle.RenderTransform).Angle, 250,
-                        ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.ExtraStrong)),
+                        ease: new Animations.AniEaseOutFluent(Animations.AniEasePower.ExtraStrong)),
                     "MyCollapseBar " + _uuid, true);
             else
                 ((RotateTransform)_triangle.RenderTransform).Angle = target;
@@ -108,18 +108,18 @@ public class MyCollapseBar : StackPanel
 
     private void CollapseWithAnimation()
     {
-        ModAnimation.AniStop("MyCollapseBar Height " + _uuid);
+        Animations.AniStop("MyCollapseBar Height " + _uuid);
         RestoreParentCardOnInterrupt();
         SilenceParentCard();
 
         var fullHeight = ActualHeight;
         Height = fullHeight;
 
-        ModAnimation.AniStart(new List<ModAnimation.AniData>
+        Animations.AniStart(new List<Animations.AniData>
         {
-            ModAnimation.AaHeight(this, HeaderHeight - fullHeight, 200,
-                ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.ExtraStrong)),
-            ModAnimation.AaCode(() =>
+            Animations.AaHeight(this, HeaderHeight - fullHeight, 200,
+                ease: new Animations.AniEaseOutFluent(Animations.AniEasePower.ExtraStrong)),
+            Animations.AaCode(() =>
             {
                 _contentPanel.Visibility = Visibility.Collapsed;
                 Height = double.NaN;
@@ -130,7 +130,7 @@ public class MyCollapseBar : StackPanel
 
     private void ExpandWithAnimation()
     {
-        ModAnimation.AniStop("MyCollapseBar Height " + _uuid);
+        Animations.AniStop("MyCollapseBar Height " + _uuid);
         RestoreParentCardOnInterrupt();
         SilenceParentCard();
 
@@ -140,11 +140,11 @@ public class MyCollapseBar : StackPanel
         var fullHeight = DesiredSize.Height;
         Height = HeaderHeight;
 
-        ModAnimation.AniStart(new List<ModAnimation.AniData>
+        Animations.AniStart(new List<Animations.AniData>
         {
-            ModAnimation.AaHeight(this, fullHeight - HeaderHeight, 200,
-                ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.ExtraStrong)),
-            ModAnimation.AaCode(() =>
+            Animations.AaHeight(this, fullHeight - HeaderHeight, 200,
+                ease: new Animations.AniEaseOutFluent(Animations.AniEasePower.ExtraStrong)),
+            Animations.AaCode(() =>
             {
                 Height = double.NaN;
                 RestoreParentCard();

@@ -2,8 +2,8 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-
 using PCL.Core.App.Localization;
+
 namespace PCL;
 
 public partial class PageDownloadNeoForge
@@ -17,7 +17,8 @@ public partial class PageDownloadNeoForge
 
     private void LoaderInit()
     {
-        PageLoaderInit(Load, PanLoad, PanMain, CardTip, ModDownload.dlNeoForgeListLoader, _ => Load_OnFinish());
+        PageLoaderInit(Load, PanLoad, PanMain, CardTip, GameDownload.DlNeoForgeListLoader,
+            _ => Load_OnFinish());
     }
 
     private void Init()
@@ -31,7 +32,7 @@ public partial class PageDownloadNeoForge
         try
         {
             // 归类
-            var dict = ModDownload.dlNeoForgeListLoader.output.Value.GroupBy(d => d.Inherit)
+            var dict = GameDownload.DlNeoForgeListLoader.output.Value.GroupBy(d => d.Inherit)
                 .OrderByDescending(g => g.Key).ToDictionary(g => g.Key, g => g.ToList());
             // 清空当前
             PanMain.Children.Clear();
@@ -55,18 +56,19 @@ public partial class PageDownloadNeoForge
                 newCard.InstallMethod = stack =>
                 {
                     foreach (var item in (IEnumerable)stack.Tag)
-                        stack.Children.Add(ModDownloadLib.NeoForgeDownloadListItem(
-                            (ModDownload.DlNeoForgeListEntry)item, ModDownloadLib.NeoForgeSave_Click, true));
+                        stack.Children.Add(DownloadUi.NeoForgeDownloadListItem(
+                            (GameDownload.DlNeoForgeListEntry)item, DownloadUi.NeoForgeSave_Click,
+                            true));
                 };
                 PanMain.Children.Add(newCard);
             }
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 "可视化 NeoForge 版本列表出错",
-                ModBase.LogLevel.Feedback,
+                Common.LogLevel.Feedback,
                 userSummary: Lang.Text("Download.Error.OperationFailed"));
         }
     }

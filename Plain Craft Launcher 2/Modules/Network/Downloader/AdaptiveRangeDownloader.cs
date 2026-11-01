@@ -1,5 +1,3 @@
-using Microsoft.Win32.SafeHandles;
-using System.Buffers;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
@@ -7,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Channels;
+using Microsoft.Win32.SafeHandles;
 
 namespace PCL.Network;
 
@@ -36,7 +35,7 @@ internal sealed class AdaptiveRangeDownloader
         DownloadFile? trackedFile)
     {
         _url = url;
-        _tempPath = localPath + ModNet.NetDownloadEnd;
+        _tempPath = localPath + NetFacade.NetDownloadEnd;
         _useBrowserUserAgent = useBrowserUserAgent;
         _customUserAgent = customUserAgent;
         _trackedFile = trackedFile;
@@ -68,7 +67,7 @@ internal sealed class AdaptiveRangeDownloader
         }
         catch (RangeNotSupportedException ex)
         {
-            ModBase.Log(ex, $"[Download] 下载源不支持可靠的 Range，改用顺序下载：{url}", ModBase.LogLevel.Debug);
+            Common.Log(ex, $"[Download] 下载源不支持可靠的 Range，改用顺序下载：{url}");
             return false;
         }
     }
@@ -103,8 +102,9 @@ internal sealed class AdaptiveRangeDownloader
         });
 
         var segmentCount = EnqueueInitialSegments(segments.Writer, totalSize);
-        var workerCount = Math.Min(segmentCount, Math.Clamp(ModNet.NetTaskSingleFileConnectionLimit, 1,
-            ModNet.NetTaskSingleFileConnectionLimitMax));
+        var workerCount = Math.Min(segmentCount, Math.Clamp(
+            NetFacade.NetTaskSingleFileConnectionLimit, 1,
+            NetFacade.NetTaskSingleFileConnectionLimitMax));
         using var linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         await using var output = new FileStream(_tempPath, FileMode.Create, FileAccess.Write, FileShare.Read,
             bufferSize: 1, FileOptions.Asynchronous | FileOptions.RandomAccess);
@@ -244,7 +244,7 @@ internal sealed class AdaptiveRangeDownloader
                         {
                             if (TryRecover(segment, ex))
                             {
-                                ModBase.Log(ex, $"[Download] 分段下载缓慢或失败，正在重试：{_owner._url}", ModBase.LogLevel.Debug);
+                                Common.Log(ex, $"[Download] 分段下载缓慢或失败，正在重试：{_owner._url}");
                                 await Task.Delay(Random.Shared.Next(250, 1001), _cancellation.Token).ConfigureAwait(false);
                                 continue;
                             }
@@ -374,7 +374,7 @@ internal sealed class AdaptiveRangeDownloader
 
         private bool IsSignificantlySlow(DownloadSegment segment, long attemptBytes, long startedAt, long now)
         {
-            if (ModNet.NetTaskSpeedLimitHigh > 0 || segment.Remaining < MinimumRestartRemaining)
+            if (NetFacade.NetTaskSpeedLimitHigh > 0 || segment.Remaining < MinimumRestartRemaining)
                 return false;
 
             var elapsedSeconds = (double)(now - startedAt) / Stopwatch.Frequency;

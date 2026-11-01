@@ -32,12 +32,24 @@ partial class Lifecycle
         service: self,
         onLog: item =>
         {
+            ILifecycleLogService? service;
             lock (_PendingLogs)
             {
-                if (_logService is null) _PendingLogs.Add(item);
-                else _PushLog(item, _logService);
+                service = _logService;
+                if (service is null) _AddPendingLog(item);
             }
-            if (item.ActionLevel == ActionLevel.MsgBoxFatal) _FatalExit();
+
+            try
+            {
+                // Must run outside the lock: a log item may open a modal window and start a nested
+                // message loop, which would block every other thread that tries to write a log.
+                if (service is not null) _PushLog(item, service);
+            }
+            finally
+            {
+                // A fatal item must terminate the process even when logging itself failed.
+                if (item.ActionLevel == ActionLevel.MsgBoxFatal) _FatalExit();
+            }
         },
         onRequestExit: statusCode =>
         {

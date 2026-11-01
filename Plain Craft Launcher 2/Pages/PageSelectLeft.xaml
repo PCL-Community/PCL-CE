@@ -10,7 +10,7 @@
                 <RowDefinition />
                 <RowDefinition Height="5" />
             </Grid.RowDefinitions>
-            <local:MyScrollViewer DeltaMult="0.7" Grid.Row="1" MaxWidth="300" MinWidth="250"
+            <local:MyScrollViewer DeltaMult="0.7" Grid.Row="1" MaxWidth="300" MinWidth="250" x:Name="PanScroll"
                                   VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                                   Style="{StaticResource ScrollViewerFullMargin}">
                 <StackPanel x:Name="PanList" />

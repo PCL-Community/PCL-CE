@@ -41,7 +41,7 @@ public class UpdatesWrapperModel : IUpdateSource
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, $"[Update] {item.SourceName} 暂不可用");
+                Common.Log(ex, $"[Update] {item.SourceName} 暂不可用");
             }
 
         return _versionSource is not null;
@@ -59,7 +59,7 @@ public class UpdatesWrapperModel : IUpdateSource
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, $"[Update] 缓存的版本源 {_versionSource.SourceName} 不可用");
+                        Common.Log(ex, $"[Update] 缓存的版本源 {_versionSource.SourceName} 不可用");
                     }
 
                 var ret = item.GetLatestVersion(channel, arch);
@@ -68,10 +68,10 @@ public class UpdatesWrapperModel : IUpdateSource
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, $"[Update] {item.SourceName} 无法获取最新版本信息");
+                Common.Log(ex, $"[Update] {item.SourceName} 无法获取最新版本信息");
             }
 
-        ModBase.Log("[Update] 错误！所有的版本源都无法使用！");
+        Common.Log("[Update] 错误！所有的版本源都无法使用！");
         throw new Exception(Lang.Text("Update.Task.GetVersionInfoFailed"));
     }
 
@@ -87,7 +87,7 @@ public class UpdatesWrapperModel : IUpdateSource
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, $"[Update] 缓存的版本源 {_versionSource.SourceName} 不可用");
+                        Common.Log(ex, $"[Update] 缓存的版本源 {_versionSource.SourceName} 不可用");
                     }
 
                 var ret = item.IsLatest(channel, arch, currentVersion, currentVersionCode);
@@ -96,10 +96,10 @@ public class UpdatesWrapperModel : IUpdateSource
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, $"[Update] {item.SourceName} 无法获取最新版本信息");
+                Common.Log(ex, $"[Update] {item.SourceName} 无法获取最新版本信息");
             }
 
-        ModBase.Log("[Update] 错误！所有的版本源都无法使用！");
+        Common.Log("[Update] 错误！所有的版本源都无法使用！");
         throw new Exception(Lang.Text("Update.Task.GetVersionInfoFailed"));
     }
 
@@ -115,7 +115,7 @@ public class UpdatesWrapperModel : IUpdateSource
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, $"[Update] 缓存的公告源 {_announcementSource.SourceName} 不可用");
+                        Common.Log(ex, $"[Update] 缓存的公告源 {_announcementSource.SourceName} 不可用");
                     }
 
                 var ret = item.GetAnnouncementList();
@@ -124,14 +124,15 @@ public class UpdatesWrapperModel : IUpdateSource
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, $"[Update] {item.SourceName} 无法获取最新公告信息");
+                Common.Log(ex, $"[Update] {item.SourceName} 无法获取最新公告信息");
             }
 
-        ModBase.Log("[Update] 错误！所有的公告源都无法使用！");
+        Common.Log("[Update] 错误！所有的公告源都无法使用！");
         throw new Exception(Lang.Text("Update.Task.GetAnnouncementFailed"));
     }
 
-    public List<ModLoader.LoaderBase> GetDownloadLoader(UpdateChannel channel, UpdateArch arch, string output)
+    public List<Loading.LoaderBase> GetDownloadLoader(UpdateChannel channel, UpdateArch arch,
+        string output)
     {
         foreach (var item in _sources)
             try
@@ -143,7 +144,7 @@ public class UpdatesWrapperModel : IUpdateSource
                     }
                     catch (Exception ex)
                     {
-                        ModBase.Log(ex, $"[Update] 缓存的版本源 {_versionSource.SourceName} 不可用");
+                        Common.Log(ex, $"[Update] 缓存的版本源 {_versionSource.SourceName} 不可用");
                     }
 
                 var ret = item.GetDownloadLoader(channel, arch, output);
@@ -152,10 +153,10 @@ public class UpdatesWrapperModel : IUpdateSource
             }
             catch (Exception ex)
             {
-                ModBase.Log(ex, $"[Update] {item.SourceName} 无法获取最新版本信息");
+                Common.Log(ex, $"[Update] {item.SourceName} 无法获取最新版本信息");
             }
 
-        ModBase.Log("[Update] 错误！所有的版本源都无法使用！");
+        Common.Log("[Update] 错误！所有的版本源都无法使用！");
         throw new Exception(Lang.Text("Update.Task.GetVersionInfoFailed"));
     }
 

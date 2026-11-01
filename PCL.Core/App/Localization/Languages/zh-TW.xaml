@@ -1135,6 +1135,9 @@
 
     <sys:String x:Key="Instance.Resource.Item.ErrorSuffix"> [錯誤]</sys:String>
     <sys:String x:Key="Instance.Resource.Item.FolderTag">資料夾</sys:String>
+    <sys:String x:Key="Instance.Resource.Item.LitematicTag">投影原理圖</sys:String>
+    <sys:String x:Key="Instance.Resource.Item.SchematicTag">Schematic 結構</sys:String>
+    <sys:String x:Key="Instance.Resource.Item.StructureTag">原版結構</sys:String>
     <sys:String x:Key="Instance.Resource.Item.InfoUnavailable">存在錯誤，無法取得資訊</sys:String>
     <sys:String x:Key="Instance.Resource.Item.OpenChangelogFailed">開啟更新紀錄出現錯誤</sys:String>
     <sys:String x:Key="Instance.Resource.Item.Update">更新</sys:String>
@@ -2946,8 +2949,6 @@
     <sys:String x:Key="Setup.Misc.System.ImportSettings.SelectTitle">選擇設定檔</sys:String>
     <sys:String x:Key="Setup.Misc.System.ImportSettings.Success.Message">設定匯入成功！請重啟 PCL CE 以應用設定……</sys:String>
     <sys:String x:Key="Setup.Misc.System.ImportSettings.Success.Restart">重啟</sys:String>
-    <sys:String x:Key="Setup.Misc.System.MaxFps">最高動畫幀率</sys:String>
-    <sys:String x:Key="Setup.Misc.System.MaxFps.ToolTip">如果你停用了硬體加速，那麼建議你調低最高動畫幀率以防止過多的資源佔用</sys:String>
     <sys:String x:Key="Setup.Misc.System.MaxLogLines">即時日誌行數</sys:String>
     <sys:String x:Key="Setup.Misc.System.MaxLogLines.ToolTip">即時日誌功能中最大顯示行數，超過該值會自動刪除舊的日誌。</sys:String>
     <sys:String x:Key="Setup.Misc.System.MaxLogLines.Unlimited">無限制</sys:String>
