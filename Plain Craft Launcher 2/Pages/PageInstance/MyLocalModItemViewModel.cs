@@ -274,6 +274,7 @@ public partial class MyLocalModItemViewModel : ViewModelBase
                 ? TextDecorations.Strikethrough
                 : null;
             SubTitleText = subTitle;
+            // TEMP-DIAG2
             SubTitleVisibility = string.IsNullOrEmpty(subTitle) ? Visibility.Collapsed : Visibility.Visible;
             DescriptionText = newDescription;
 
@@ -370,15 +371,17 @@ public partial class MyLocalModItemViewModel : ViewModelBase
             userSummary: Lang.Text("Instance.Resource.Item.OpenChangelogFailed"));
     }
 
-    /// <summary>替换标签文本。</summary>
+    /// <summary>替换标签文本。标签可能是本地化资源键，需要先翻译再展示。</summary>
     public void SetTags(IEnumerable<string>? tags)
     {
         Tags.Clear();
         if (tags is not null)
-            foreach (var tag in tags)
+            foreach (var tag in tags.Where(t => !string.IsNullOrWhiteSpace(t)).Distinct())
             {
-                var text = tag;
-                Tags.Add(LocalizedText.Create(() => text));
+                var key = tag;
+                if (string.IsNullOrEmpty(Lang.Text(key)))
+                    continue;
+                Tags.Add(LocalizedText.Create(() => Lang.Text(key)));
             }
 
         TagsVisibility = Tags.Count > 0 ? Visibility.Visible : Visibility.Collapsed;

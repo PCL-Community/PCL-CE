@@ -3,6 +3,7 @@ using PCL.Core.Utils.Exts;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -45,6 +46,8 @@ public partial class MyLocalCompItem
         InitializeComponent();
         // 无参构造时创建默认 VM，避免设计器与其他直接构造控件的调用点崩溃
         ViewModel = new MyLocalModItemViewModel();
+        // 虚拟化容器会被回收复用：DataContext 变化（含首次绑定）时同步到 ViewModel
+        DataContextChanged += OnDataContextChangedForViewModel;
         PreviewMouseLeftButtonUp += Button_MouseUp;
         PreviewMouseLeftButtonDown += Button_MouseDown;
         MouseLeave += Button_MouseLeave;
@@ -60,6 +63,15 @@ public partial class MyLocalCompItem
         MouseLeftButtonUp += RefreshColor;
         Changed += RefreshColor;
         MouseRightButtonUp += Button_MouseRightButtonUp;
+    }
+
+    /// <summary>
+    ///     容器复用或首次绑定时，把 DataContext 中的条目 VM 同步到 <see cref="ViewModel" />。
+    /// </summary>
+    private void OnDataContextChangedForViewModel(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        if (e.NewValue is MyLocalModItemViewModel vm && !ReferenceEquals(vm, ViewModel))
+            ViewModel = vm;
     }
 
     private void OnViewModelChanged(MyLocalModItemViewModel? oldValue, MyLocalModItemViewModel? newValue)
@@ -84,23 +96,51 @@ public partial class MyLocalCompItem
                  or nameof(MyLocalModItemViewModel.ShowEnabledButton))
             UpdateEnabledButton();
         else if (e.PropertyName == nameof(MyLocalModItemViewModel.TitleText))
-            ApplyColorfulText(LabTitle, ViewModel.TitleText);
+            ApplyTitleText();
         else if (e.PropertyName == nameof(MyLocalModItemViewModel.SubTitleText))
-            ApplyColorfulText(LabSubtitle, ViewModel.SubTitleText);
+            ApplySubTitleText();
         else if (e.PropertyName == nameof(MyLocalModItemViewModel.DescriptionText))
-            ApplyColorfulText(LabInfo, ViewModel.DescriptionText);
+            ApplyDescriptionText();
     }
 
     /// <summary>
-    ///     还原 Mod 名称中的 Minecraft 颜色代码（§a 之类）。
-    ///     Text 绑定只能显示纯文本，因此含颜色代码时改为用 Inlines 渲染；虚拟化容器回收后必须清空 Inlines 让绑定重新生效。
+    ///     设置文本块的文本，并还原 Minecraft 颜色代码（§a 之类）。
+    ///     统一走 Inlines：Text 与 Inlines 混用时 TextBlock 内部文本可能不同步，表现为 Text 有值但测量宽度为 0（文本不显示）。
     /// </summary>
-    private static void ApplyColorfulText(TextBlock block, string? text)
+    private static void SetBlockText(TextBlock block, string text)
     {
-        if (!string.IsNullOrEmpty(text) && text.Contains('§'))
+        // 统一走 Inlines：Text 与 Inlines 混用时 TextBlock 的内部文本可能不同步（表现为文本有值但测量宽度为 0）
+        block.Inlines.Clear();
+        if (string.IsNullOrEmpty(text))
+            return;
+        if (text.Contains('§'))
+        {
             TextStyles.MinecraftFormatter.SetColorfulTextLab(text, block, PCL.Core.UI.Theme.ThemeService.IsDarkMode);
-        else if (block.Inlines.Count > 0)
-            block.Inlines.Clear();
+            return;
+        }
+
+        block.Inlines.Add(new Run(text));
+    }
+
+    /// <summary>把 VM 的标题应用到控件（虚拟化容器复用时不依赖 XAML 绑定）。</summary>
+    private void ApplyTitleText()
+    {
+        SetBlockText(LabTitle, ViewModel?.TitleText ?? "");
+        // TextBlock 的文本在文本树被布局后修改时，Auto 列可能仍保留旧的 0 宽度，需显式使标题网格重新测量
+        LabTitle.InvalidateMeasure();
+        PanTitle.InvalidateMeasure();
+    }
+
+    /// <summary>把 VM 的副标题应用到控件。</summary>
+    private void ApplySubTitleText()
+    {
+        SetBlockText(LabSubtitle, ViewModel?.SubTitleText ?? "");
+    }
+
+    /// <summary>把 VM 的描述应用到控件。</summary>
+    private void ApplyDescriptionText()
+    {
+        SetBlockText(LabInfo, ViewModel?.DescriptionText ?? "");
     }
 
     private void UpdateEnabledButton()
@@ -129,13 +169,10 @@ public partial class MyLocalCompItem
         ApplyCheckedVisual(false);
         ResetVisualState();
         UpdateEnabledButton();
-        // Text 绑定在本回调之后才生效，故延后一拍再处理颜色代码
-        Dispatcher.BeginInvoke(() =>
-        {
-            ApplyColorfulText(LabTitle, vm.TitleText);
-            ApplyColorfulText(LabSubtitle, vm.SubTitleText);
-            ApplyColorfulText(LabInfo, vm.DescriptionText);
-        }, System.Windows.Threading.DispatcherPriority.Loaded);
+        // 首次绑定时同步填充文本（绑定丢失或容器复用时同样生效）
+        ApplyTitleText();
+        ApplySubTitleText();
+        ApplyDescriptionText();
     }
 
     /// <summary>重置悬停相关视觉状态，避免回收后的容器残留上一项的效果。</summary>
