@@ -239,7 +239,7 @@ public static partial class Libraries
                         false,
                         true,
                         customMcFolder)
-                    .Replace(@"\", "/");
+                    .Replace(Path.DirectorySeparatorChar, '/');
 
             var hint = library["hint"]?.ToString();
             var isLocal = hint is not null && hint == "local";
@@ -293,8 +293,10 @@ public static partial class Libraries
     {
         string localPath;
         if (isLocal && targetMcInstance is not null)
-            localPath =
-                $@"{targetMcInstance.PathInstance}libraries\{name.AfterFirst(":").Replace(":", "-")}.jar";
+            localPath = Path.Combine(
+                targetMcInstance.PathInstance,
+                "libraries",
+                $"{name.AfterFirst(":").Replace(":", "-")}.jar");
         else
             localPath = McLibGet(name, customMcFolder: customMcFolder);
 

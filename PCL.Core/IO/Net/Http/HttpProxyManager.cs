@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using Microsoft.Win32;
 using PCL.Core.Logging;
+using PCL.Core.Platform;
 using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.OS;
 
@@ -134,8 +135,24 @@ public class HttpProxyManager : IWebProxy, IDisposable
             {
                 if (!OperatingSystem.IsWindows())
                 {
-                    // 非 Windows 平台没有注册表系统代理配置，视为未启用系统代理
-                    _systemWebProxy.Address = null;
+                    // 非 Windows 从平台服务读取系统代理（环境变量 / 桌面环境设置）
+                    var platformProxies = PlatformServices.SystemProxy?.GetSystemProxies() ?? [];
+                    ProxyItem? platformProxy = null;
+                    foreach (var entry in platformProxies)
+                    {
+                        var parsed = _ParseAddress(entry.Address, _ParseProtocol(entry.Protocol));
+                        if (parsed is not { Protocol: ProxyProtocol.Http }) continue;
+                        platformProxy = parsed;
+                        break;
+                    }
+
+                    _systemWebProxy.Address = platformProxy is null
+                        || platformProxy.Address.IsNullOrEmpty()
+                            ? null
+                            : new Uri($"http://{platformProxy.Address}");
+                    LogWrapper.Info(
+                        "Proxy",
+                        $"已从操作系统更新代理设置，系统代理来源：{string.Join(";", platformProxies.Select(static x => $"{x.Protocol}={x.Address}"))}");
                     return;
                 }
 

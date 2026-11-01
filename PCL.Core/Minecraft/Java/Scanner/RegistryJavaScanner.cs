@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Versioning;
 using Microsoft.Win32;
 using PCL.Core.Logging;
 
 namespace PCL.Core.Minecraft.Java.Scanner;
 
+[SupportedOSPlatform("windows")]
 public class RegistryJavaScanner : IJavaScanner
 {
     private static readonly string[] _RegistryPaths =

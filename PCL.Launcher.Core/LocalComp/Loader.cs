@@ -281,7 +281,7 @@ public static partial class LocalComp
 
     private static JsonObject LoadLocalModInfoCache()
     {
-        var cachePath = $@"{LauncherPaths.Temp}Cache\LocalComp.json";
+        var cachePath = Path.Combine(LauncherPaths.Temp, "Cache", "LocalComp.json");
         var cache = new JsonObject();
 
         try

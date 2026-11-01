@@ -127,9 +127,17 @@ public sealed partial class StartupService
                 .Append(memory.Total / memoryDiv)
                 .Append(" MiB");
         }
+        else if (HardwareInfo.TryReadLinuxMemory(out var totalMiB, out var availableMiB))
+        {
+            info
+                .Append("\n可用内存: ")
+                .Append(availableMiB)
+                .Append('/')
+                .Append(totalMiB)
+                .Append(" MiB");
+        }
         else
         {
-            // 非 Windows 平台没有 GlobalMemoryStatusEx，使用 GC 报告的可用内存作为近似值
             info
                 .Append("\n可用内存: ")
                 .Append(GC.GetGCMemoryInfo().TotalAvailableMemoryBytes / memoryDiv)
@@ -144,7 +152,12 @@ public sealed partial class StartupService
             .Append(" (")
             .Append(cp.CodePage)
             .Append(')');
-        info.Append("\n管理员身份: ").Append(OperatingSystem.IsWindows() && ProcessInterop.IsAdmin());
+        info
+            .Append("\n管理员身份: ")
+            .Append(
+                OperatingSystem.IsWindows()
+                    ? ProcessInterop.IsAdmin()
+                    : Environment.IsPrivilegedProcess);
         info.Append("\n识别码: ").Append(Identify.LauncherId);
         Context.Info(info.ToString());
         return;
@@ -162,9 +175,9 @@ public sealed partial class StartupService
     {
         IEnumerable<SubcommandDefinition> subcommands =
         [
-            ("update", [("execute"), ("success"), ("failed")]),
+            ("update", ["execute", "success", "failed"]),
             ("activate", []),
-            ("promote", []),
+            ("promote", [])
         ];
         Context.Debug("正在解析命令行参数...");
         var c = CommandLine.Parse(Basics.FullCommandLineArguments, subcommands);

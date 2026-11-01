@@ -117,20 +117,30 @@ public static class GameAssets
         var indexName = McAssetsGetIndexName(mcInstance);
         try
         {
-            if (GameFolders.mcFolderSelected is null)
+            var mcFolder = GameFolders.mcFolderSelected;
+            if (mcFolder is null)
                 throw new InvalidOperationException("尚未选择 Minecraft 文件夹");
-            if (!File.Exists($@"{GameFolders.mcFolderSelected}assets\indexes\{indexName}.json"))
+            if (!File.Exists(
+                    Path.Combine(
+                        mcFolder,
+                        "assets",
+                        "indexes",
+                        $"{indexName}.json")))
                 throw new FileNotFoundException(
                     Lang.Text("Minecraft.Error.AssetIndexNotFound"),
                     Path.Combine(
-                        GameFolders.mcFolderSelected,
+                        mcFolder,
                         "assets",
                         "indexes",
                         $"{indexName}.json"));
             var result = new List<McAssetsToken>();
             var json = (JsonObject)LauncherCommon.GetJson(
                 LauncherCommon.ReadFile(
-                    $@"{GameFolders.mcFolderSelected}assets\indexes\{indexName}.json"));
+                    Path.Combine(
+                        mcFolder,
+                        "assets",
+                        "indexes",
+                        $"{indexName}.json")));
 
             var objects = json["objects"]?.AsObject()
                 ?? throw new InvalidOperationException("资源索引缺少 objects 字段");
@@ -143,17 +153,17 @@ public static class GameAssets
                     localPath = Path.Combine(
                         mcInstance.PathIndie,
                         "resources",
-                        file.Key.Replace("/", @"\"));
+                        file.Key.Replace('/', Path.DirectorySeparatorChar));
                 else if (json["virtual"]?.ToObject<bool>() == true)
                     localPath = Path.Combine(
-                        GameFolders.mcFolderSelected,
+                        mcFolder,
                         "assets",
                         "virtual",
                         "legacy",
-                        file.Key.Replace("/", @"\"));
+                        file.Key.Replace('/', Path.DirectorySeparatorChar));
                 else
                     localPath = Path.Combine(
-                        GameFolders.mcFolderSelected,
+                        mcFolder,
                         "assets",
                         "objects",
                         McAssetsHashPrefix(hash),

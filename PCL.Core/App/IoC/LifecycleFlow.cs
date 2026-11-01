@@ -52,6 +52,7 @@ partial class Lifecycle
             if (_ManualServiceMap.TryAdd(identifier, instance)) continue;
             Context.Warn($"{_ServiceName(instance, LifecycleState.Manual)} 标识符重复，已跳过");
         }
+
         // 运行预加载服务
         _StartStateFlow(LifecycleState.BeforeLoading);
         if (_hasRequestedStopLoading) return;
@@ -111,6 +112,21 @@ partial class Lifecycle
 
     private static void _FatalExit()
     {
+        // BeforeLoading 阶段应用容器尚未创建，Shutdown 会抛 InvalidOperationException 掩盖原始错误
+        if (CurrentState == LifecycleState.BeforeLoading)
+        {
+            try
+            {
+                _Exit(-1);
+            }
+            catch
+            {
+                Environment.Exit(-1);
+            }
+
+            return;
+        }
+
         ForceShutdown(-1);
     }
 
@@ -121,12 +137,14 @@ partial class Lifecycle
             if (HasShutdownStarted) return;
             HasShutdownStarted = true;
         }
+
         // 结束 Running 计时
         if (_countRunningStart is { } start)
         {
             var countSpan = DateTime.Now - start;
             _LogStateCount(countSpan, LifecycleState.Running);
         }
+
         // 开始 Exiting 状态
         _StartStateFlow(LifecycleState.Exiting, count: false);
         // 停止服务
@@ -135,7 +153,8 @@ partial class Lifecycle
         while (_StartedServiceStack.TryPop(out var service))
         {
             // 跳过已标记为停止的服务
-            if (_RunningServiceInfoMap.TryGetValue(service.Identifier, out var info) && info.IsStopped) continue;
+            if (_RunningServiceInfoMap.TryGetValue(service.Identifier, out var info)
+                && info.IsStopped) continue;
             // 跳过日志服务
             if (service is ILifecycleLogService ls)
             {
@@ -143,9 +162,11 @@ partial class Lifecycle
                 logService = ls;
                 continue;
             }
+
             // 执行停止流程
             _StopService(service, service.SupportAsync);
         }
+
         _WaitStoppingServiceTasks();
         if (logService is not null)
         {
@@ -154,12 +175,15 @@ partial class Lifecycle
             logService.StopAsync().ConfigureAwait(false).GetAwaiter().GetResult();
             Console.WriteLine("[Lifecycle] Log service stopped");
         }
+
         _SavePendingLogs();
         if (_hasRequestedRestart && _requestRestartService is { } s)
         {
-            Console.WriteLine($"[Lifecycle] Requested by '{s.Identifier}', restarting the program...");
+            Console.WriteLine(
+                $"[Lifecycle] Requested by '{s.Identifier}', restarting the program...");
             _RunCurrentExecutable(_requestRestartArguments);
         }
+
         // 退出程序
         Console.WriteLine($"[Lifecycle] Exiting program with status: {statusCode}");
         // 执行正常退出
@@ -185,7 +209,11 @@ partial class Lifecycle
         Context.Info(force ? "开始强制关闭程序" : "正在关闭程序");
         IsForceShutdown = force;
         if (force) _Exit(statusCode);
-        else new Thread(() => _Exit(statusCode)) { Name = "Lifecycle/Shutdown" }.Start();
+        else
+            new Thread(() => _Exit(statusCode))
+            {
+                Name = "Lifecycle/Shutdown"
+            }.Start();
     }
 
     /// <summary>

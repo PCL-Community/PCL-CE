@@ -32,6 +32,10 @@
         <EmbeddedResource Include="..\Plain Craft Launcher 2\metadata.json" Link="metadata.json">
             <LogicalName>PCL.metadata.json</LogicalName>
         </EmbeddedResource>
+        <!-- 启动链资源（辅助 jar、日志配置、数据库模板等），与 WPF 头共用同一份文件 -->
+        <EmbeddedResource Include="..\Plain Craft Launcher 2\Resources\*.*">
+            <LogicalName>PCL.Resources.%(Filename)%(Extension)</LogicalName>
+        </EmbeddedResource>
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\PCL.Core.Avalonia\PCL.Core.Avalonia.csproj" />

@@ -1,4 +1,5 @@
 using Avalonia;
+using PCL.Avalonia.UI;
 using PCL.Avalonia.Views;
 using PCL.Core.App.Essentials;
 using PCL.Core.App.IoC;
@@ -22,6 +23,9 @@ internal static class Program
             new AvaloniaApplicationHost(() => builder.StartWithClassicDesktopLifetime(args));
         // 主窗体
         MainWindowService.Loading = () => new AvaloniaWindowHost(new MainWindow());
+        // 注册 Core 弹窗与提示的 Avalonia 呈现器
+        AvaloniaDialogPresenter.Install();
+        AvaloniaHintPresenter.Install();
         // 启动 PCL.Core 生命周期
         Lifecycle.OnInitialize();
     }

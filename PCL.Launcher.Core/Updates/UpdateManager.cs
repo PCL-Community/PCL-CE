@@ -97,8 +97,10 @@ public static class UpdateManager
         string? receivedKey = null,
         bool forceValidated = false)
     {
-        var dlTargetPath =
-            $@"{LauncherPaths.ExecutableDirectory}PCL\Plain Craft Launcher Community Edition.exe";
+        var dlTargetPath = Path.Combine(
+            LauncherPaths.ExecutableDirectory,
+            "PCL",
+            "Plain Craft Launcher Community Edition.exe");
         LauncherCommon.RunInNewThread(() =>
         {
             try
@@ -232,8 +234,10 @@ public static class UpdateManager
     {
         try
         {
-            var fileName = LauncherPaths.ExecutableDirectory
-                + @"PCL\Plain Craft Launcher Community Edition.exe";
+            var fileName = Path.Combine(
+                LauncherPaths.ExecutableDirectory,
+                "PCL",
+                "Plain Craft Launcher Community Edition.exe");
             if (!File.Exists(fileName))
             {
                 LauncherCommon.Log("[System] 更新失败：未找到更新文件");

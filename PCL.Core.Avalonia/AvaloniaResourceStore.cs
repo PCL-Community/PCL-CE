@@ -22,6 +22,23 @@ public sealed class AvaloniaResourceStore : IResourceStore
         if (string.IsNullOrEmpty(assemblyName)) return null;
 
         var normalized = path.Replace('\\', '/').TrimStart('/');
+
+        // WPF 头直接使用 pack:// 清单资源；Avalonia 头按 PCL.Resources.xxx 的清单名打包
+        var entryAssembly = Assembly.GetEntryAssembly();
+        if (entryAssembly is not null)
+        {
+            var manifestPath = normalized.Replace('/', '.');
+            foreach (var candidate in new[]
+                     {
+                         $"PCL.{manifestPath}",
+                         $"{assemblyName}.{manifestPath}",
+                         manifestPath,
+                         normalized
+                     })
+                if (entryAssembly.GetManifestResourceStream(candidate) is { } stream)
+                    return stream;
+        }
+
         try
         {
             var uri = new Uri($"avares://{assemblyName}/{normalized}");

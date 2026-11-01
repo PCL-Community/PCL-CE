@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using Microsoft.Win32;
 
 namespace PCL.Core.App.Region;
@@ -28,19 +30,20 @@ public sealed record RegionSignals(
 
 public sealed record RegionAssessment(RegionClassification Classification, string Reason)
 {
-    public bool IsRestricted => Classification is RegionClassification.Mainland or RegionClassification.Unknown;
+    public bool IsRestricted =>
+        Classification is RegionClassification.Mainland or RegionClassification.Unknown;
 }
 
 public static partial class RegionPolicy
 {
     private const int MainlandChinaGeoId = 45;
+
     private const string DeviceRegionRegistryPath =
         @"SOFTWARE\Microsoft\Windows\CurrentVersion\Control Panel\DeviceRegion";
-    private const string DeviceRegionValueName = "DeviceRegion";
-    private static readonly RegistryView[] DeviceRegionRegistryViews =
-        [RegistryView.Registry64, RegistryView.Registry32];
 
-    private static readonly HashSet<string> ChinaTimeZones = new(StringComparer.OrdinalIgnoreCase)
+    private const string DeviceRegionValueName = "DeviceRegion";
+
+    private static readonly HashSet<string> _ChinaTimeZones = new(StringComparer.OrdinalIgnoreCase)
     {
         "China Standard Time",
         "Asia/Shanghai",
@@ -51,69 +54,222 @@ public static partial class RegionPolicy
     {
         ArgumentNullException.ThrowIfNull(signals);
 
-        if (signals.GeoNameAvailable && IsChinaGeoName(signals.GeoName))
-            return new(RegionClassification.Mainland, "geo-cn");
+        if (signals.GeoNameAvailable && _IsChinaGeoName(signals.GeoName))
+            return new RegionAssessment(RegionClassification.Mainland, "geo-cn");
 
         // 设备安装（OOBE）时选择的区域，独立于之后可修改的用户区域设置
-        if (signals.DeviceRegionAvailable && IsChinaDeviceRegion(signals.DeviceRegionGeoId))
-            return new(RegionClassification.Mainland, "device-region-cn");
+        if (signals.DeviceRegionAvailable && _IsChinaDeviceRegion(signals.DeviceRegionGeoId))
+            return new RegionAssessment(RegionClassification.Mainland, "device-region-cn");
 
-        var chinaTimeZone = signals.TimeZoneAvailable &&
-                            signals.TimeZoneId is not null &&
-                            ChinaTimeZones.Contains(signals.TimeZoneId);
-        var hasChinaLocale = signals.UserLocaleAvailable && IsChinaLocale(signals.UserLocaleName);
-        var hasChinaPreferredLanguage = signals.PreferredUiLanguagesAvailable &&
-                                        IsChinaLocale(signals.PreferredUiLanguages.FirstOrDefault());
+        var chinaTimeZone = signals is { TimeZoneAvailable: true, TimeZoneId: not null }
+            && _ChinaTimeZones.Contains(signals.TimeZoneId);
+        var hasChinaLocale = signals.UserLocaleAvailable && _IsChinaLocale(signals.UserLocaleName);
+        var hasChinaPreferredLanguage = signals.PreferredUiLanguagesAvailable
+            && _IsChinaLocale(signals.PreferredUiLanguages.FirstOrDefault());
 
         if (chinaTimeZone && (hasChinaLocale || hasChinaPreferredLanguage))
-            return new(RegionClassification.Mainland, "china-time-zone-and-locale");
+            return new RegionAssessment(
+                RegionClassification.Mainland,
+                "china-time-zone-and-locale");
 
-        if (signals.GeoNameAvailable && IsValidCountryCode(signals.GeoName) &&
-            !IsChinaGeoName(signals.GeoName))
-            return new(RegionClassification.Other, "geo-other");
+        if (signals.GeoNameAvailable
+            && _IsValidCountryCode(signals.GeoName)
+            && !_IsChinaGeoName(signals.GeoName))
+            return new RegionAssessment(RegionClassification.Other, "geo-other");
 
-        var hasExplicitOtherLocale = signals.UserLocaleAvailable && IsExplicitOtherLocale(signals.UserLocaleName) ||
-                                     signals.PreferredUiLanguagesAvailable &&
-                                     IsExplicitOtherLocale(signals.PreferredUiLanguages.FirstOrDefault());
-        if (!signals.GeoNameAvailable && signals.TimeZoneAvailable && !chinaTimeZone && hasExplicitOtherLocale)
-            return new(RegionClassification.Other, "other-time-zone-and-locale");
+        var hasExplicitOtherLocale =
+            (signals.UserLocaleAvailable && _IsExplicitOtherLocale(signals.UserLocaleName))
+            || (signals.PreferredUiLanguagesAvailable
+                && _IsExplicitOtherLocale(signals.PreferredUiLanguages.FirstOrDefault()));
+        return signals.GeoNameAvailable switch
+        {
+            false when signals.TimeZoneAvailable
+                && !chinaTimeZone
+                && hasExplicitOtherLocale =>
+                new RegionAssessment(
+                    RegionClassification.Other,
+                    "other-time-zone-and-locale"),
 
-        if (!signals.GeoNameAvailable && !signals.PreferredUiLanguagesAvailable &&
-            !signals.UserLocaleAvailable && !signals.TimeZoneAvailable)
-            return new(RegionClassification.Unknown, "signals-unavailable");
+            false when signals is
+                {
+                    PreferredUiLanguagesAvailable: false,
+                    UserLocaleAvailable: false,
+                    TimeZoneAvailable: false
+                } =>
+                new RegionAssessment(
+                    RegionClassification.Unknown,
+                    "signals-unavailable"),
 
-        return new(RegionClassification.Unknown, "insufficient-signals");
+            _ =>
+                new RegionAssessment(
+                    RegionClassification.Unknown,
+                    "insufficient-signals")
+        };
     }
 
     public static RegionSignals ReadWindowsSignals()
     {
-        var geoName = TryReadGeoName(out var geoAvailable);
-        var languages = TryReadPreferredUiLanguages(out var languagesAvailable);
-        var locale = TryReadUserLocale(out var localeAvailable);
-        var deviceRegion = TryReadDeviceRegion(out var deviceRegionAvailable);
-        string? timeZone = null;
-        var timeZoneAvailable = false;
+        if (!OperatingSystem.IsWindows())
+        {
+            // Linux/macOS 没有 Windows 的 GeoID 与设备区域注册表概念（设备区域不可抗力），
+            // 用 LANG/LC_ALL 等环境变量与系统时区提供等价的区域信号。
+            var unixLocale = _TryReadUnixLocale(out var unixLocaleAvailable);
+            var unixLanguages = _TryReadUnixUiLanguages(out var unixLanguagesAvailable);
+            var unixGeoName = _TryReadUnixGeoName(out var unixGeoAvailable);
+            var unixTimeZone = _TryReadLocalTimeZone(out var unixTimeZoneAvailable);
+            return new RegionSignals(
+                unixGeoName,
+                unixGeoAvailable,
+                unixLanguages,
+                unixLanguagesAvailable,
+                unixLocale,
+                unixLocaleAvailable,
+                unixTimeZone,
+                unixTimeZoneAvailable);
+        }
+
+        var geoName = _TryReadGeoName(out var geoAvailable);
+        var languages = _TryReadPreferredUiLanguages(out var languagesAvailable);
+        var locale = _TryReadUserLocale(out var localeAvailable);
+        var deviceRegion = _TryReadDeviceRegion(out var deviceRegionAvailable);
+        var timeZone = _TryReadLocalTimeZone(out var timeZoneAvailable);
+
+        return new RegionSignals(
+            geoName,
+            geoAvailable,
+            languages,
+            languagesAvailable,
+            locale,
+            localeAvailable,
+            timeZone,
+            timeZoneAvailable,
+            deviceRegion,
+            deviceRegionAvailable);
+    }
+
+    private static string? _TryReadLocalTimeZone(out bool available)
+    {
+        available = false;
         try
         {
-            timeZone = TimeZoneInfo.Local.Id;
-            timeZoneAvailable = !string.IsNullOrWhiteSpace(timeZone);
+            var timeZone = TimeZoneInfo.Local.Id;
+            if (!string.IsNullOrWhiteSpace(timeZone))
+            {
+                available = true;
+                return timeZone;
+            }
         }
         catch
         {
+            // 继续尝试 /etc/timezone
         }
 
-        return new RegionSignals(geoName, geoAvailable, languages, languagesAvailable,
-            locale, localeAvailable, timeZone, timeZoneAvailable,
-            deviceRegion, deviceRegionAvailable);
+        if (OperatingSystem.IsLinux())
+            try
+            {
+                var timeZone = File.ReadAllText("/etc/timezone").Trim();
+                if (timeZone.Length > 0 && !timeZone.Contains(' ') && timeZone.Contains('/'))
+                {
+                    available = true;
+                    return timeZone;
+                }
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                // 没有 /etc/timezone 时保持时区信号不可用
+            }
+
+        return null;
     }
 
-    private static bool IsChinaGeoName(string? name) =>
-        string.Equals(name, "CN", StringComparison.OrdinalIgnoreCase) || name == "156";
+    private static string? _TryReadUnixLocale(out bool available)
+    {
+        available = false;
+        string[] variables = ["LC_ALL", "LC_MESSAGES", "LANG"];
+        foreach (var name in variables)
+        {
+            var normalized = _NormalizeUnixLocale(Environment.GetEnvironmentVariable(name));
+            if (normalized is null) continue;
+            available = true;
+            return normalized;
+        }
+
+        // 未显式设置 locale 变量时，.NET 会按系统配置初始化 CurrentUICulture
+        var cultureName = CultureInfo.CurrentUICulture.Name;
+        if (string.IsNullOrWhiteSpace(cultureName)) return null;
+        available = true;
+        return cultureName;
+    }
+
+    private static IReadOnlyList<string> _TryReadUnixUiLanguages(out bool available)
+    {
+        available = false;
+        var languagesVariable = Environment.GetEnvironmentVariable("LANGUAGE");
+        if (!string.IsNullOrWhiteSpace(languagesVariable))
+        {
+            var languages = languagesVariable
+                .Split(':', StringSplitOptions.RemoveEmptyEntries)
+                .Select(_NormalizeUnixLocale)
+                .Where(language => language is not null)
+                .Select(language => language!)
+                .ToArray();
+            if (languages.Length > 0)
+            {
+                available = true;
+                return languages;
+            }
+        }
+
+        var locale = _TryReadUnixLocale(out var localeAvailable);
+        available = localeAvailable;
+        return locale is null ? [] : [locale];
+    }
+
+    private static string? _TryReadUnixGeoName(out bool available)
+    {
+        available = false;
+        var locale = _TryReadUnixLocale(out var localeAvailable);
+        if (!localeAvailable || locale is null) return null;
+
+        // 从 locale 的区域段推断国家/地区代码，例如 zh_CN.UTF-8 -> zh-CN -> CN
+        var segments = locale.Split('-');
+        for (var index = segments.Length - 1; index > 0; index--)
+        {
+            var segment = segments[index];
+            if (segment.Length != 2 || !segment.All(char.IsAsciiLetter)) continue;
+            available = true;
+            return segment.ToUpperInvariant();
+        }
+
+        return null;
+    }
+
+    private static string? _NormalizeUnixLocale(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return null;
+        var value = raw.Trim();
+        var modifierIndex = value.IndexOf('.');
+        if (modifierIndex >= 0) value = value[..modifierIndex];
+        var variantIndex = value.IndexOf('@');
+        if (variantIndex >= 0) value = value[..variantIndex];
+        if (value.Length == 0
+            || value.Equals("C", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("POSIX", StringComparison.OrdinalIgnoreCase)) return null;
+        return value.Replace('_', '-');
+    }
+
+    private static bool _IsChinaGeoName(string? name)
+    {
+        return string.Equals(name, "CN", StringComparison.OrdinalIgnoreCase) || name == "156";
+    }
 
     // Windows GeoID 与 ISO 3166 数字码不同，45 才是中国大陆
-    private static bool IsChinaDeviceRegion(int? geoId) => geoId == MainlandChinaGeoId;
+    private static bool _IsChinaDeviceRegion(int? geoId)
+    {
+        return geoId == MainlandChinaGeoId;
+    }
 
-    private static bool IsValidCountryCode(string? name)
+    private static bool _IsValidCountryCode(string? name)
     {
         if (string.IsNullOrWhiteSpace(name) || name.Length != 2 || !name.All(char.IsAsciiLetter))
             return false;
@@ -128,15 +284,20 @@ public static partial class RegionPolicy
         }
     }
 
-    private static bool IsChinaLocale(string? localeName)
+    private static bool _IsChinaLocale(string? localeName)
     {
         if (string.IsNullOrWhiteSpace(localeName)) return false;
         try
         {
-            return string.Equals(CultureInfo.GetCultureInfo(localeName.Replace('_', '-')).Name,
-                "zh-CN", StringComparison.OrdinalIgnoreCase) ||
-                   CultureInfo.GetCultureInfo(localeName.Replace('_', '-')).Name.EndsWith("-CN",
-                       StringComparison.OrdinalIgnoreCase);
+            return string.Equals(
+                    CultureInfo.GetCultureInfo(localeName.Replace('_', '-')).Name,
+                    "zh-CN",
+                    StringComparison.OrdinalIgnoreCase)
+                || CultureInfo
+                    .GetCultureInfo(localeName.Replace('_', '-'))
+                    .Name.EndsWith(
+                        "-CN",
+                        StringComparison.OrdinalIgnoreCase);
         }
         catch (CultureNotFoundException)
         {
@@ -144,15 +305,17 @@ public static partial class RegionPolicy
         }
     }
 
-    private static bool IsExplicitOtherLocale(string? localeName)
+    private static bool _IsExplicitOtherLocale(string? localeName)
     {
         if (string.IsNullOrWhiteSpace(localeName)) return false;
         try
         {
             var culture = CultureInfo.GetCultureInfo(localeName.Replace('_', '-'));
-            return !culture.IsNeutralCulture &&
-                   !string.Equals(new RegionInfo(culture.Name).TwoLetterISORegionName, "CN",
-                       StringComparison.OrdinalIgnoreCase);
+            return !culture.IsNeutralCulture
+                && !string.Equals(
+                    new RegionInfo(culture.Name).TwoLetterISORegionName,
+                    "CN",
+                    StringComparison.OrdinalIgnoreCase);
         }
         catch (Exception ex) when (ex is CultureNotFoundException or ArgumentException)
         {
@@ -160,7 +323,7 @@ public static partial class RegionPolicy
         }
     }
 
-    private static unsafe string? TryReadGeoName(out bool available)
+    private static unsafe string? _TryReadGeoName(out bool available)
     {
         available = false;
         try
@@ -174,15 +337,16 @@ public static partial class RegionPolicy
                 available = true;
                 return new string(buffer, 0, length - 1);
             }
-            return TryReadLegacyGeoName(out available);
+
+            return _TryReadLegacyGeoName(out available);
         }
         catch
         {
-            return TryReadLegacyGeoName(out available);
+            return _TryReadLegacyGeoName(out available);
         }
     }
 
-    private static unsafe string? TryReadLegacyGeoName(out bool available)
+    private static unsafe string? _TryReadLegacyGeoName(out bool available)
     {
         available = false;
         try
@@ -203,7 +367,7 @@ public static partial class RegionPolicy
         }
     }
 
-    private static unsafe IReadOnlyList<string> TryReadPreferredUiLanguages(out bool available)
+    private static unsafe IReadOnlyList<string> _TryReadPreferredUiLanguages(out bool available)
     {
         available = false;
         try
@@ -211,12 +375,12 @@ public static partial class RegionPolicy
             uint count = 0;
             uint chars = 0;
             _ = GetUserPreferredUILanguages(8, &count, null, &chars); // MUI_LANGUAGE_NAME
-            if (chars == 0 || chars > 32768) return Array.Empty<string>();
+            if (chars is 0 or > 32768) return [];
             var buffer = Marshal.AllocHGlobal(checked((int)chars * sizeof(char)));
             try
             {
                 if (GetUserPreferredUILanguages(8, &count, (char*)buffer, &chars) == 0)
-                    return Array.Empty<string>();
+                    return [];
                 var values = new string((char*)buffer, 0, checked((int)chars));
                 available = true;
                 return values.Split('\0', StringSplitOptions.RemoveEmptyEntries);
@@ -228,11 +392,11 @@ public static partial class RegionPolicy
         }
         catch
         {
-            return Array.Empty<string>();
+            return [];
         }
     }
 
-    private static unsafe string? TryReadUserLocale(out bool available)
+    private static unsafe string? _TryReadUserLocale(out bool available)
     {
         available = false;
         try
@@ -251,10 +415,12 @@ public static partial class RegionPolicy
         }
     }
 
-    private static int? TryReadDeviceRegion(out bool available)
+    [SupportedOSPlatform("windows")]
+    private static int? _TryReadDeviceRegion(out bool available)
     {
         available = false;
-        foreach (var view in DeviceRegionRegistryViews)
+        RegistryView[] views = [RegistryView.Registry64, RegistryView.Registry32];
+        foreach (var view in views)
         {
             try
             {
@@ -278,15 +444,25 @@ public static partial class RegionPolicy
     private static unsafe partial int GetUserDefaultGeoName(char* geoName, int geoNameCount);
 
     [LibraryImport("kernel32.dll", EntryPoint = "GetUserDefaultLocaleName")]
-    private static unsafe partial int GetUserDefaultLocaleName(char* localeName, int localeNameCount);
+    private static unsafe partial int GetUserDefaultLocaleName(
+        char* localeName,
+        int localeNameCount);
 
     [LibraryImport("kernel32.dll", EntryPoint = "GetUserPreferredUILanguages")]
-    private static unsafe partial int GetUserPreferredUILanguages(uint flags, uint* languageCount,
-        char* languageBuffer, uint* bufferChars);
+    private static unsafe partial int GetUserPreferredUILanguages(
+        uint flags,
+        uint* languageCount,
+        char* languageBuffer,
+        uint* bufferChars);
 
     [LibraryImport("kernel32.dll", EntryPoint = "GetUserGeoID")]
     private static partial int GetUserGeoID(int geoClass);
 
     [LibraryImport("kernel32.dll", EntryPoint = "GetGeoInfoW")]
-    private static unsafe partial int GetGeoInfoW(int location, int geoType, char* geoData, int dataSize, int flags);
+    private static unsafe partial int GetGeoInfoW(
+        int location,
+        int geoType,
+        char* geoData,
+        int dataSize,
+        int flags);
 }

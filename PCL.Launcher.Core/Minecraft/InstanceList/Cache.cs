@@ -38,7 +38,8 @@ public static partial class InstanceList
                     if (string.IsNullOrEmpty(folder))
                         continue;
 
-                    var versionFolder = $@"{path}versions\{folder}\";
+                    var versionFolder =
+                        Path.Combine(path, "versions", folder) + Path.DirectorySeparatorChar;
                     if (File.Exists($"{versionFolder}.pclignore"))
                     {
                         if (_isFirstMcInstanceListLoad)

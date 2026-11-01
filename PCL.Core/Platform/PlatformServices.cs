@@ -28,4 +28,13 @@ public static class PlatformServices
 
     /// <summary>剪贴板访问实现。</summary>
     public static IClipboardService? Clipboard { get; set; }
+
+    /// <summary>系统代理查询实现；未注册时按无系统代理处理。</summary>
+    public static ISystemProxyProvider? SystemProxy { get; set; }
+
+    /// <summary>系统深浅色查询实现；未注册时非 Windows 平台按浅色处理。</summary>
+    public static ISystemThemeProvider? SystemTheme { get; set; }
+
+    /// <summary>系统通知实现；未注册时非 Windows 平台仅记录日志。</summary>
+    public static ISystemNotificationService? Notification { get; set; }
 }

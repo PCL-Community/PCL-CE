@@ -103,7 +103,7 @@ public static partial class GameLaunch
     }
 
     /// <summary>
-    ///     获取 Natives 文件夹路径，不以 \ 结尾。
+    ///     获取 Natives 文件夹路径，不以路径分隔符结尾。
     /// </summary>
     private static string GetNativesFolder()
     {
@@ -119,6 +119,8 @@ public static partial class GameLaunch
             "natives");
         return result.IsAscii()
             ? result
-            : Path.Combine(SystemPaths.DriveLetter, "ProgramData", "PCL", "natives");
+            : OperatingSystem.IsWindows()
+                ? Path.Combine(SystemPaths.DriveLetter, "ProgramData", "PCL", "natives")
+                : Path.Combine(Path.GetTempPath(), "PCLCE", "natives");
     }
 }

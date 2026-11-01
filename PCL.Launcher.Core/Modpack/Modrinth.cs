@@ -48,7 +48,9 @@ public static partial class Modpack
         var request = new McInstallRequest
         {
             targetInstanceName = instanceName,
-            targetInstanceFolder = $@"{GameFolders.mcFolderSelected}versions\{instanceName}\",
+            targetInstanceFolder =
+                Path.Combine(GameFolders.mcFolderSelected!, "versions", instanceName)
+                + Path.DirectorySeparatorChar,
             minecraftName = loaderVersions.MinecraftVersion,
             forgeVersion = loaderVersions.ForgeVersion,
             neoForgeVersion = loaderVersions.NeoForgeVersion,
@@ -203,11 +205,17 @@ public static partial class Modpack
                 .Select(x => Comp.CompFile.HandleCurseForgeDownloadUrls(x.ToString()))
                 .ToList();
             urls = [.. urls.SelectMany(GameDownload.DlSourceModDownloadGet)];
-            var targetPath =
-                $@"{GameFolders.mcFolderSelected}versions\{instanceName}\{file["path"]}";
+            var targetPath = Path.Combine(
+                GameFolders.mcFolderSelected!,
+                "versions",
+                instanceName,
+                $"{file["path"]}");
             if (!Path
                     .GetFullPath(targetPath)
-                    .StartsWithF($@"{GameFolders.mcFolderSelected}versions\{instanceName}\", true))
+                    .StartsWithF(
+                        Path.Combine(GameFolders.mcFolderSelected!, "versions", instanceName)
+                        + Path.DirectorySeparatorChar,
+                        true))
             {
                 LaunchUi.ShowMessageBox(
                     Lang.Text("Minecraft.Download.Modpack.PathOutsideInstance.Message", targetPath),

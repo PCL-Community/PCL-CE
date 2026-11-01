@@ -567,7 +567,10 @@ public static partial class Comp
 
             return new DownloadFile(
                 HandleModrinthDownloadUrls(DownloadUrls, reason, version, modLoader),
-                localAddress + (localAddress.EndsWithF(@"\") ? CompFileNameSanitize(FileName) : ""),
+                localAddress
+                + (localAddress.EndsWithF(Path.DirectorySeparatorChar.ToString())
+                    ? CompFileNameSanitize(FileName)
+                    : ""),
                 new FileChecker(hash: Hash),
                 true);
         }

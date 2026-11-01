@@ -176,6 +176,24 @@ public static class Basics
     /// <param name="workingDirectory">执行工作目录</param>
     public static void OpenPath(string path, string? workingDirectory = null)
     {
+        if (!OperatingSystem.IsWindows())
+        {
+            // 非 Windows 没有 UseShellExecute 的文件关联启动，交给桌面环境的默认打开程序
+            var opener = OperatingSystem.IsMacOS() ? "open" : "xdg-open";
+            Process.Start(
+                new ProcessStartInfo(opener)
+                {
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    WorkingDirectory = workingDirectory ?? CurrentDirectory,
+                    ArgumentList =
+                    {
+                        path
+                    }
+                });
+            return;
+        }
+
         var psi = new ProcessStartInfo(path)
         {
             WorkingDirectory = workingDirectory ?? CurrentDirectory,

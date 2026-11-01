@@ -24,9 +24,10 @@ public sealed class AvaloniaClipboardService : IClipboardService
                 .Select(item => item?.Path is { IsAbsoluteUri: true, Scheme: "file" } uri
                     ? uri.LocalPath
                     : null)
+                .OfType<string>()
                 .Where(path => !string.IsNullOrEmpty(path))
                 .ToArray();
-            return paths.Length == 0 ? null : paths!;
+            return paths.Length == 0 ? null : paths;
         }
         catch (Exception ex)
         {

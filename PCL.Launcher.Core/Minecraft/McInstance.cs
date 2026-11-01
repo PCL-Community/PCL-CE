@@ -58,14 +58,16 @@ public class McInstance
     public McInstanceState state = McInstanceState.Error;
 
     /// <summary></summary>
-    /// <param name="name">实例名，或实例文件夹的完整路径（不规定是否以 \ 结尾）。</param>
+    /// <param name="name">实例名，或实例文件夹的完整路径（不规定是否以路径分隔符结尾）。</param>
     public McInstance(string name)
     {
         PathInstance =
-            (name.Contains(":")
+            (Path.IsPathRooted(name)
                 ? name
                 : Path.Combine(LauncherPaths.MinecraftFolder, "versions", name))
-            + (name.EndsWithF(@"\") ? "" : @"\");
+            + (name.EndsWithF(Path.DirectorySeparatorChar.ToString())
+                ? ""
+                : Path.DirectorySeparatorChar.ToString());
     }
 
     /// <summary>
@@ -92,12 +94,12 @@ public class McInstance
     }
 
     /// <summary>
-    ///     该实例的实例文件夹，以“\”结尾。
+    ///     该实例的实例文件夹，以路径分隔符结尾。
     /// </summary>
     public string PathInstance { get; }
 
     /// <summary>
-    ///     应用版本隔离后，该实例所对应的 Minecraft 根文件夹，以“\”结尾。
+    ///     应用版本隔离后，该实例所对应的 Minecraft 根文件夹，以路径分隔符结尾。
     /// </summary>
     public string PathIndie
     {
@@ -120,8 +122,8 @@ public class McInstance
                     }
 
                     // 若实例文件夹下包含 mods 或 saves 文件夹，则自动开启版本隔离
-                    var modFolder = new DirectoryInfo(PathInstance + @"mods\");
-                    var saveFolder = new DirectoryInfo(PathInstance + @"saves\");
+                    var modFolder = new DirectoryInfo(Path.Combine(PathInstance, "mods"));
+                    var saveFolder = new DirectoryInfo(Path.Combine(PathInstance, "saves"));
                     if ((modFolder.Exists && modFolder.EnumerateFiles().Any())
                         || (saveFolder.Exists && saveFolder.EnumerateDirectories().Any()))
                     {
@@ -443,7 +445,7 @@ public class McInstance
             ;
             if (field is null)
             {
-                var jsonPath = PathInstance + Name + ".json";
+                var jsonPath = Path.Combine(PathInstance, $"{Name}.json");
                 if (!File.Exists(jsonPath))
                 {
                     // 如果文件夹下只有一个 JSON 文件，则将其作为实例 JSON
@@ -754,8 +756,8 @@ public class McInstance
         // 检查权限
         try
         {
-            Directory.CreateDirectory(PathInstance + @"PCL\");
-            LauncherCommon.CheckPermissionWithException(PathInstance + @"PCL\");
+            Directory.CreateDirectory(Path.Combine(PathInstance, "PCL"));
+            LauncherCommon.CheckPermissionWithException(Path.Combine(PathInstance, "PCL"));
         }
         catch (Exception ex)
         {
@@ -945,17 +947,19 @@ public class McInstance
 
             // 确定实例图标
             Logo = States.Instance.LogoPath[PathInstance];
-            // 实例目录中实际存在的自带图标文件（整合包安装或用户设置时复制的 PCL\Logo.png）是最高优先级的依据：
+            // 实例目录中实际存在的自带图标文件（整合包安装或用户设置时复制到 PCL 文件夹的 Logo.png）是最高优先级的依据：
             // 即使配置中的 Logo / LogoCustom 丢失或被默认图标覆盖，也能恢复自定义图标并修正配置
             var hasCustomLogoFile = File.Exists(Path.Combine(PathInstance, "PCL", "Logo.png"));
             if (hasCustomLogoFile)
             {
-                Logo = @"PCL\Logo.png";
+                Logo = Path.Combine("PCL", "Logo.png");
                 if (!States.Instance.IsLogoCustom[PathInstance])
                     States.Instance.IsLogoCustom[PathInstance] = true;
             }
             else if (States.Instance.IsLogoCustom[PathInstance]
-                     && Logo?.EndsWith(@"PCL\Logo.png", StringComparison.OrdinalIgnoreCase) == true)
+                     && Logo.EndsWith(
+                         Path.Combine("PCL", "Logo.png"),
+                         StringComparison.OrdinalIgnoreCase))
             {
                 // 自定义图标文件已不存在，清理失效的自定义标记并回退到默认图标
                 States.Instance.IsLogoCustom[PathInstance] = false;

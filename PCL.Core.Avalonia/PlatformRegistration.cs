@@ -17,5 +17,8 @@ public static class PlatformRegistration
         PlatformServices.Localization = new AvaloniaLocalizationBackend();
         PlatformServices.Theme = new AvaloniaThemeBackend();
         PlatformServices.Clipboard = new AvaloniaClipboardService();
+        PlatformServices.SystemProxy = new UnixSystemProxyProvider();
+        PlatformServices.SystemTheme = new AvaloniaSystemThemeProvider();
+        PlatformServices.Notification = new AvaloniaNotificationService();
     }
 }

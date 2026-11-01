@@ -4,6 +4,7 @@ namespace PCL.Core.IO;
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.Versioning;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -18,6 +19,7 @@ public static class Directories {
     /// <param name="path">要检查的文件夹路径。</param>
     /// <param name="cancellationToken">取消操作的令牌。</param>
     /// <returns>如果拥有读写权限且文件夹存在，返回 true；否则返回 false。</returns>
+    [SupportedOSPlatform("windows")]
     public static async Task<bool> CheckPermissionAsync(string? path, CancellationToken cancellationToken = default) {
         try {
             if (string.IsNullOrWhiteSpace(path)) {
@@ -88,6 +90,7 @@ public static class Directories {
     /// <exception cref="DirectoryNotFoundException">文件夹不存在。</exception>
     /// <exception cref="UnauthorizedAccessException">无访问权限。</exception>
     /// <exception cref="OperationCanceledException">操作被取消。</exception>
+    [SupportedOSPlatform("windows")]
     public static async Task CheckPermissionWithExceptionAsync(string? path, CancellationToken cancellationToken = default) {
         if (string.IsNullOrWhiteSpace(path)) {
             throw new ArgumentNullException(nameof(path), "文件夹路径不能为空！");
