@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -7,9 +8,21 @@ namespace PCL;
 
 public partial class MyCompItem
 {
-    private readonly MyCompItemViewModel _vm = new();
+    /// <summary>未显式指定 ViewModel 时使用的默认实例，保证旧调用点（直接设置 CLR 属性）仍然可用。</summary>
+    private readonly MyCompItemViewModel _defaultVm = new();
 
-    public MyCompItemViewModel ViewModel => _vm;
+    public static readonly DependencyProperty ViewModelProperty = DependencyProperty.Register(
+        nameof(ViewModel), typeof(MyCompItemViewModel), typeof(MyCompItem),
+        new PropertyMetadata(null, (d, e) => ((MyCompItem)d).OnViewModelChanged((MyCompItemViewModel?)e.NewValue)));
+
+    /// <summary>条目数据。列表虚拟化时会随容器复用而重新赋值。</summary>
+    public MyCompItemViewModel ViewModel
+    {
+        get => (MyCompItemViewModel?)GetValue(ViewModelProperty) ?? _defaultVm;
+        set => SetValue(ViewModelProperty, value);
+    }
+
+    private MyCompItemViewModel? _boundVm;
 
     private string _stateLast;
 
@@ -118,37 +131,37 @@ public partial class MyCompItem
     // 标题
     public string Title
     {
-        get => _vm.TitleText;
+        get => ViewModel.TitleText;
         set
         {
-            if ((_vm.TitleText ?? "") == (value ?? ""))
+            if ((ViewModel.TitleText ?? "") == (value ?? ""))
                 return;
-            _vm.TitleText = value;
+            ViewModel.TitleText = value;
         }
     }
 
     // 副标题
     public string SubTitle
     {
-        get => _vm.SubTitleText;
+        get => ViewModel.SubTitleText;
         set
         {
-            if ((_vm.SubTitleText ?? "") == (value ?? ""))
+            if ((ViewModel.SubTitleText ?? "") == (value ?? ""))
                 return;
-            _vm.SubTitleText = value;
-            _vm.SubTitleVisibility = string.IsNullOrEmpty(value) ? Visibility.Collapsed : Visibility.Visible;
+            ViewModel.SubTitleText = value;
+            ViewModel.SubTitleVisibility = string.IsNullOrEmpty(value) ? Visibility.Collapsed : Visibility.Visible;
         }
     }
 
     // 描述
     public string Description
     {
-        get => _vm.DescriptionText;
+        get => ViewModel.DescriptionText;
         set
         {
-            if ((_vm.DescriptionText ?? "") == (value ?? ""))
+            if ((ViewModel.DescriptionText ?? "") == (value ?? ""))
                 return;
-            _vm.DescriptionText = value;
+            ViewModel.DescriptionText = value;
         }
     }
 
@@ -165,6 +178,76 @@ public partial class MyCompItem
         MouseLeftButtonDown += RefreshColor;
         MouseLeftButtonUp += RefreshColor;
         // Handles
+    }
+
+    /// <summary>
+    ///     ViewModel 变更时重新把数据应用到控件上。<br/>
+    ///     虚拟化容器回收后，同一个控件会被复用来显示另一条数据，因此这里必须重置所有视觉状态。
+    /// </summary>
+    private void OnViewModelChanged(MyCompItemViewModel? vm)
+    {
+        if (_boundVm is not null)
+            _boundVm.PropertyChanged -= OnViewModelPropertyChanged;
+        _boundVm = vm;
+        if (vm is null)
+            return;
+        vm.PropertyChanged += OnViewModelPropertyChanged;
+        ApplyViewModel(vm);
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (_boundVm is null)
+            return;
+        if (e.PropertyName == nameof(MyCompItemViewModel.FavoriteIcon))
+            BtnDelete.SvgIcon = _boundVm.FavoriteIcon;
+    }
+
+    private void ApplyViewModel(MyCompItemViewModel vm)
+    {
+        // 重置 hover 状态，避免容器复用后残留上一个条目的悬停视觉
+        _stateLast = null;
+        _isMouseDown = false;
+        Animations.AniStop("CompItem Color " + Uuid);
+        if (_rectBack is not null)
+            _rectBack.Opacity = 0d;
+        if (PanButtons is not null)
+            PanButtons.Opacity = 0d;
+
+        Tag = vm.Project;
+        vm.Project?.ApplyLogoToMyImage(PathLogo);
+        Tags = vm.Tags ?? [];
+
+        LabSource.Text = vm.SourceText;
+        LocalizedText.Bind(LabVersion, TextBlock.TextProperty, () => vm.VersionText.Value);
+        LocalizedText.Bind(LabTime, TextBlock.TextProperty, () => vm.TimeText.Value);
+        LocalizedText.Bind(LabDownload, TextBlock.TextProperty, () => vm.DownloadText.Value);
+
+        BtnDelete.SvgIcon = vm.FavoriteIcon;
+        BtnDelete.Visibility = vm.ShowFavoriteButton ? Visibility.Visible : Visibility.Collapsed;
+        BtnDownload.Visibility = vm.ShowDownloadButton ? Visibility.Visible : Visibility.Collapsed;
+        _UpdatePanButtons();
+
+        ApplyVersionVisibility(vm.ShowVersion);
+        ApplyTimeVisibility(vm.ShowTime);
+    }
+
+    private void ApplyVersionVisibility(bool show)
+    {
+        SvgIconVersion.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+        LabVersion.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+        ColumnVersion1.Width = show ? GridLength.Auto : new GridLength(0d);
+        ColumnVersion2.MaxWidth = show ? double.PositiveInfinity : 0d;
+        ColumnVersion3.Width = show ? new GridLength(0.25d, GridUnitType.Star) : new GridLength(0d);
+    }
+
+    private void ApplyTimeVisibility(bool show)
+    {
+        SvgIconTime.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+        LabTime.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+        ColumnTime1.Width = show ? GridLength.Auto : new GridLength(0d);
+        ColumnTime2.Width = show ? GridLength.Auto : new GridLength(0d);
+        ColumnTime3.Width = show ? new GridLength(0.25d, GridUnitType.Star) : new GridLength(0d);
     }
 
     // 指向时扩展描述
@@ -237,10 +320,9 @@ public partial class MyCompItem
     /// </summary>
     public void RefreshFavoriteStatus()
     {
-        if (Tag is not Comp.CompProject project) return;
-
-        var isFavourite = Comp.CompFavorites.IsFavourite(project.Id);
-        BtnDelete.SvgIcon = isFavourite ? "lucide/heart-filled" : "lucide/heart";
+        if (ViewModel.Project is null && Tag is Comp.CompProject project)
+            ViewModel.Project = project;
+        ViewModel.RefreshFavoriteStatus();
     }
     #endregion
     #region 点击
@@ -274,8 +356,8 @@ public partial class MyCompItem
         var titles = new List<string>();
         if (Launcher.frmMain.pageCurrent.page == FormMain.PageType.CompDetail)
         {
-            foreach (MyCard Card in Launcher.frmDownloadCompDetail.PanResults.Children)
-                if (Card.Tag is string cardKey && !string.IsNullOrEmpty(cardKey) && !Card.IsSwapped)
+            foreach (var group in Launcher.frmDownloadCompDetail.ViewModel.FileGroups)
+                if (group.Title is { Length: > 0 } cardKey && !group.IsSwapped)
                     titles.Add(cardKey);
             Common.Log(
                 $"[Comp] 记录当前已展开的卡片：{string.Join("、", titles.Select(PageDownloadCompDetail.GetVersionGroupTitleForLog))}");

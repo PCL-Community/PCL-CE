@@ -4,7 +4,7 @@
     xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" x:Class="PCL.PageDownloadPack"
-    PanScroll="{Binding ElementName=Content}"
+    PanScroll="{Binding ElementName=Content, Path=ListScroll}"
     xmlns:loc="https://ce.pclc.cc/core/localization">
     <local:PageComp x:Name="Content" PageType="ModPack">
         <local:MyComboBoxItem Tag="" Content="{loc:Loc Common.Option.All}" IsSelected="True" />

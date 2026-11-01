@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Markup;
@@ -22,31 +22,44 @@ public partial class PageComp
 
     public PageCompViewModel ViewModel => _vm;
 
+    /// <summary>
+    ///     列表区域的滚动控件。外层页面通过 MyPageRight.PanScroll 绑定它，以支持「返回顶部」。
+    /// </summary>
+    public MyScrollViewer ListScroll => ListScrollControl;
+
     // 结果 UI 化
     private void Load_OnFinish()
     {
         try
         {
             Common.Log($"[Comp] 开始可视化{TypeNameSpaced}列表，已储藏 {storage.results.Count} 个结果，当前在第 {page + 1} 页");
-            // 列表项
-            PanProjects.Children.Clear();
-            var index = Math.Min(page * pageSize, storage.results.Count - 1);
-            foreach (var result in storage.results.GetRange(index, Math.Min(storage.results.Count - index, pageSize)))
+            // 列表项：一次性替换集合，由虚拟化面板按需创建容器
+            var startIndex = page * pageSize;
+            var count = startIndex >= storage.results.Count
+                ? 0
+                : Math.Min(storage.results.Count - startIndex, pageSize);
+            var items = new List<MyCompItemViewModel>(count);
+            if (count > 0)
             {
-                var showQuickDownload = result.Type != Comp.CompType.ModPack &&
-                                        result.Type != Comp.CompType.DataPack;
-                PanProjects.Children.Add(result.ToCompItem(loader.input.gameVersion is null,
-                    loader.input.modLoader == Comp.CompLoaderType.Any &&
-                    (PageType == Comp.CompType.Mod || PageType == Comp.CompType.ModPack),
-                    showQuickDownload));
+                var showMcVersionDesc = loader.input.gameVersion is null;
+                var showLoaderDesc = loader.input.modLoader == Comp.CompLoaderType.Any &&
+                                     (PageType == Comp.CompType.Mod || PageType == Comp.CompType.ModPack);
+                foreach (var result in storage.results.GetRange(startIndex, count))
+                {
+                    var showQuickDownload = result.Type != Comp.CompType.ModPack &&
+                                            result.Type != Comp.CompType.DataPack;
+                    items.Add(result.ToCompItemViewModel(showMcVersionDesc, showLoaderDesc, showQuickDownload));
+                }
             }
+
+            _vm.ReplaceProjects(items);
             // 页码
             _vm.ApplyPagerState(page, storage);
             // 错误信息
             _vm.ApplyErrorState(storage);
 
             // 强制返回顶部
-            ScrollToTop();
+            ListScrollControl.ScrollToTop();
         }
         catch (Exception ex)
         {
@@ -95,18 +108,16 @@ public partial class PageComp
         ChangePage(page + 1);
     }
 
-    private void ChangePage(int newPage)
+    private async void ChangePage(int newPage)
     {
         CardPages.IsEnabled = false;
         page = newPage;
         Launcher.frmMain.BackToTop();
         Common.Log($"[Download] {TypeName}：切换到第 {page + 1} 页");
-        Common.RunInThread(() =>
-        {
-            Thread.Sleep(100); // 等待向上滚的动画结束
-            Common.RunInUi(() => CardPages.IsEnabled = true);
-            loader.Start();
-        });
+        // 等待返回顶部的平滑滚动动画结束，避免加载完成后滚动位置错乱
+        await Task.Delay(150);
+        CardPages.IsEnabled = true;
+        loader.Start();
     }
 
     /// <summary>
@@ -116,9 +127,7 @@ public partial class PageComp
     {
         try
         {
-            foreach (var item in PanProjects.Children)
-                if (item is MyCompItem)
-                    ((MyCompItem)item).RefreshFavoriteStatus();
+            _vm.RefreshAllFavoriteStatus();
         }
         catch (Exception ex)
         {
@@ -242,7 +251,7 @@ public partial class PageComp
             // 如果已经完成请求，则重新开始
             if (isLoaderInited)
                 StartNewSearch();
-            ScrollToHome();
+            ListScrollControl.ScrollToHome();
         }
 
         // 加载器初始化

@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App.Localization;
@@ -8,6 +9,9 @@ namespace PCL;
 /// <summary>资源下载页组件卡片的视图模型。</summary>
 public partial class PageCompViewModel : ViewModelBase
 {
+    /// <summary>当前页展示的资源条目。整体替换以只触发一次集合变更通知。</summary>
+    [ObservableProperty] private ObservableCollection<MyCompItemViewModel> _projects = [];
+
     [ObservableProperty] private string _pageText = "1";
 
     [ObservableProperty] private bool _canGoFirst;
@@ -69,5 +73,18 @@ public partial class PageCompViewModel : ViewModelBase
     {
         IsErrorVisible = storage.errorMessage is not null;
         ErrorMessage = storage.errorMessage ?? string.Empty;
+    }
+
+    /// <summary>整体替换当前页条目。仅在数据到达时调用一次，避免逐项增删引起的多次布局传递。</summary>
+    public void ReplaceProjects(IReadOnlyList<MyCompItemViewModel> projects)
+    {
+        Projects = new ObservableCollection<MyCompItemViewModel>(projects);
+    }
+
+    /// <summary>刷新所有条目的收藏图标。</summary>
+    public void RefreshAllFavoriteStatus()
+    {
+        foreach (var project in Projects)
+            project.RefreshFavoriteStatus();
     }
 }
