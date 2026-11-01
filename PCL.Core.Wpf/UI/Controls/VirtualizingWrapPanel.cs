@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -207,7 +208,25 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo, IVirtualizi
 
     protected override void OnItemsChanged(object sender, ItemsChangedEventArgs args)
     {
-        base.OnItemsChanged(sender, args);
+        // 集合变化后，生成器已经自己完成了位置映射的更新，
+        // 面板需要把「对应的旧子元素」同步摘掉，否则下次 CleanUpItems 按子元素序号推出的位置会是过期的，
+        // 调用 ItemContainerGenerator.Remove 时会在内部映射里取到 null（表现为 NRE）。
+        switch (args.Action)
+        {
+            case NotifyCollectionChangedAction.Remove:
+            case NotifyCollectionChangedAction.Replace:
+                if (args.ItemUICount > 0)
+                    RemoveInternalChildRange(args.Position.Index, args.ItemUICount);
+                break;
+            case NotifyCollectionChangedAction.Move:
+                if (args.ItemUICount > 0)
+                    RemoveInternalChildRange(args.OldPosition.Index, args.ItemUICount);
+                break;
+            case NotifyCollectionChangedAction.Reset:
+                RemoveInternalChildRange(0, InternalChildren.Count);
+                break;
+        }
+
         _realizedFirstIndex = -1;
         _realizedLastIndex = -1;
         InvalidateMeasure();
@@ -285,8 +304,27 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo, IVirtualizi
             var itemIndex = generator.IndexFromGeneratorPosition(position);
             if (itemIndex >= minDesiredIndex && itemIndex <= maxDesiredIndex)
                 continue;
-            generator.Remove(position, 1);
+
+            // itemIndex < 0 说明这个子元素已经不在生成器的映射里（集合刚变化过），
+            // 此时再调用 Remove 会因为内部映射为 null 而抛 NRE，直接摘掉视觉元素即可。
+            if (itemIndex >= 0)
+            {
+                try
+                {
+                    generator.Remove(position, 1);
+                }
+                catch (InvalidOperationException)
+                {
+                    // 生成器状态与面板不同步时不应让整个界面崩溃，摘掉子元素后等待下一次重新实例化。
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                }
+            }
+
             RemoveInternalChildRange(childIndex, 1);
+            if (itemIndex >= 0 && itemIndex < _realizedFirstIndex)
+                _realizedFirstIndex--;
         }
     }
 
