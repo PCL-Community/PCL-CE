@@ -1,4 +1,4 @@
-using fNbt;
+﻿using fNbt;
 using PCL.Core.App.Localization;
 using PCL.Core.Link.McPing;
 using PCL.Core.Minecraft;
@@ -20,7 +20,7 @@ public partial class PageInstanceServer : MyPageRight, IPageView
 
     private readonly PageInstanceServerViewModel _vm = new();
 
-    private CancellationTokenSource _cts;
+    private CancellationTokenSource? _cts;
 
     private DateTime _lastRefresh = DateTime.MinValue;
 
@@ -364,8 +364,11 @@ public partial class PageInstanceServer : MyPageRight, IPageView
 
     private async void PingAllServers()
     {
-        await _cts.CancelAsync().ConfigureAwait(true);
-        _cts.Dispose();
+        if (_cts is not null)
+        {
+            await _cts.CancelAsync();
+            _cts.Dispose();
+        }
 
         _cts = new CancellationTokenSource();
         var token = _cts.Token;
