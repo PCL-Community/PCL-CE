@@ -10,6 +10,7 @@ using PCL.Core.App;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils.Validate;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Controls;
 using PCL.Core.UI.Hints;
 
 namespace PCL;
@@ -1013,10 +1014,9 @@ public partial class PageDownloadInstall : IPageView
         if (latestRelease is not null)
         {
             var release = (JsonObject)latestRelease.DeepClone();
-            release["lore"] = Lang.Text(
-                "Download.Version.Latest.Release",
-                Lang.Date(McVersionClassifier.GetReleaseTime(release), "g")
-            );
+            release["lore"] = "Download.Version.Latest.Release";
+            release["loreArgs"] = new JsonArray(McVersionClassifier.GetReleaseTime(release).ToString("O"));
+            release["loreArgsType"] = "date";
             latestVersions.Add(release);
         }
 
@@ -1025,10 +1025,9 @@ public partial class PageDownloadInstall : IPageView
                 McVersionClassifier.GetReleaseTime(latestSnapshot)))
         {
             var snapshot = (JsonObject)latestSnapshot.DeepClone();
-            snapshot["lore"] = Lang.Text(
-                "Download.Version.Latest.Development",
-                Lang.Date(McVersionClassifier.GetReleaseTime(snapshot), "g")
-            );
+            snapshot["lore"] = "Download.Version.Latest.Development";
+            snapshot["loreArgs"] = new JsonArray(McVersionClassifier.GetReleaseTime(snapshot).ToString("O"));
+            snapshot["loreArgsType"] = "date";
             latestVersions.Add(snapshot);
         }
 
@@ -1041,10 +1040,7 @@ public partial class PageDownloadInstall : IPageView
             Margin = new Thickness(0d, 15d, 0d, 15d)
         };
 
-        var panInfo = _CreateVersionStack(latestVersions);
-        MyCard.StackInstall(ref panInfo, _StackInstall);
-
-        cardInfo.Children.Add(panInfo);
+        cardInfo.Children.Add(_CreateVersionStack(latestVersions));
         PanMinecraft.Children.Insert(0, cardInfo);
     }
 
@@ -1068,36 +1064,57 @@ public partial class PageDownloadInstall : IPageView
 
             card.Children.Add(stack);
             card.SwapControl = stack;
-
-            // 不能使用 AddressOf，这导致了 #535，原因完全不明，疑似是编译器 Bug
-            card.InstallMethod = _StackInstall;
             card.IsSwapped = true;
 
             PanMinecraft.Children.Add(card);
         }
     }
 
-    private static StackPanel _CreateVersionStack(IEnumerable<JsonObject> versions)
+    /// <summary>
+    ///     构建一列版本行。外层仍是 <see cref="StackPanel" />（<see cref="MyCard" /> 的折叠机制要求如此），
+    ///     内部改为「虚拟化宿主 + 绑定数据的列表」：只有展开并滚动到可视带的行走会被创建。
+    /// </summary>
+    private StackPanel _CreateVersionStack(IEnumerable<JsonObject> versions)
     {
-        return new StackPanel
+        var items = versions.Select(GameVersionItemViewModel.FromEntry).ToList();
+
+        var list = new ItemsControl
+        {
+            ItemsSource = items,
+            ItemTemplate = (DataTemplate)FindResource("InstallVersionItemTemplate"),
+            ItemsPanel = (ItemsPanelTemplate)FindResource("InstallVersionItemPanel")
+        };
+        VirtualizingPanel.SetIsVirtualizing(list, true);
+        VirtualizingPanel.SetVirtualizationMode(list, VirtualizationMode.Recycling);
+        VirtualizingPanel.SetScrollUnit(list, ScrollUnit.Pixel);
+
+        var host = new VirtualizingScrollHost { Child = list };
+
+        var stack = new StackPanel
         {
             Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
             VerticalAlignment = VerticalAlignment.Top,
-            RenderTransform = new TranslateTransform(0d, 0d),
-            Tag = versions
+            RenderTransform = new TranslateTransform(0d, 0d)
         };
+        stack.Children.Add(host);
+        return stack;
     }
 
-    private static void _StackInstall(StackPanel stack)
+    /// <summary>点击版本行：进入该版本的加载器选择页。</summary>
+    private void InstallVersionItem_Click(object sender, MouseButtonEventArgs e)
     {
-        foreach (var item in (IEnumerable)stack.Tag)
-            stack.Children.Add(
-                DownloadUi.McDownloadListItem(
-                    (JsonObject)item,
-                    (sender, e) => Launcher.frmDownloadInstall.MinecraftSelected((MyListItem)sender, e),
-                    false
-                )
-            );
+        if (sender is MyListItem item)
+            MinecraftSelected(item, e);
+    }
+
+    /// <summary>
+    ///     列表项由 DataTemplate 生成，而 <see cref="MyListItem.ContentHandler" /> 不是依赖属性、无法绑定，
+    ///     因此在首次进入可视树时做一次性代码映射。
+    /// </summary>
+    private void InstallVersionItem_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (sender is MyListItem item)
+            DownloadUi.McDownloadListItemAttachMenu(item);
     }
 
     /// <summary>
