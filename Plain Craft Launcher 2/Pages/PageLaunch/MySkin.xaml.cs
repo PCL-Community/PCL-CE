@@ -100,10 +100,10 @@ public partial class MySkin
     public static void Save(Loading.LoaderTask<Common.EqualableList<string>, string> loader)
     {
         var address = loader.output;
-        if (loader.State != Common.LoadState.Finished)
+        if (loader.State != LoadState.Finished)
         {
             HintService.Show(Hints.Error(Lang.Text("Launch.Skin.Fetching")));
-            if (loader.State != Common.LoadState.Loading)
+            if (loader.State != LoadState.Loading)
                 loader.Start();
             return;
         }
@@ -288,7 +288,7 @@ public partial class MySkin
     {
         var hasLoaderRunning =
             PageLaunchLeft.skinLoaders.Any(skinLoader =>
-                skinLoader.State == Common.LoadState.Loading);
+                skinLoader.State == LoadState.Loading);
 
         if (Launcher.frmLaunchLeft is not null && hasLoaderRunning)
             // 由于 Abort 不是实时的，暂时不会释放文件，会导致删除报错，故只能取消执行
@@ -364,7 +364,7 @@ public partial class MySkin
             return;
         }
 
-        if (GameLaunch.mcLoginMsLoader.State == Common.LoadState.Failed)
+        if (GameLaunch.mcLoginMsLoader.State == LoadState.Failed)
         {
             HintService.Show(Hints.Error(Lang.Text("Launch.Skin.Cape.LoginFailed")));
             return;
@@ -378,9 +378,9 @@ public partial class MySkin
             try
             {
                 // 获取登录信息
-                if (GameLaunch.mcLoginMsLoader.State != Common.LoadState.Finished)
+                if (GameLaunch.mcLoginMsLoader.State != LoadState.Finished)
                     GameLaunch.mcLoginMsLoader.WaitForExit(ProfileUi.GetLoginData());
-                if (GameLaunch.mcLoginMsLoader.State != Common.LoadState.Finished)
+                if (GameLaunch.mcLoginMsLoader.State != LoadState.Finished)
                 {
                     HintService.Show(Hints.Error(Lang.Text("Launch.Skin.Cape.LoginFailed")));
                     return;

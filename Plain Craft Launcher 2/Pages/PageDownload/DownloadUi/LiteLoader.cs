@@ -100,7 +100,7 @@ public static partial class DownloadUi
                         new DownloadFile(
                             _GetLiteLoaderDownloadAddresses(downloadInfo),
                             target,
-                            new Common.FileChecker(1024 * 1024))
+                            new FileChecker(1024 * 1024))
                     ]
                 )
                 {

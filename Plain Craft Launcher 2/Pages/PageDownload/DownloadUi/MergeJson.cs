@@ -22,7 +22,7 @@ public static partial class DownloadUi
         string? labyModFolder = null,
         string? labyModChannel = null,
         string? liteLoaderFolder = null,
-        Modpack.MmcPackInfo? mmcPackInfo = null,
+        MmcPackInfo? mmcPackInfo = null,
         string? legacyFabricFolder = null
     )
     {

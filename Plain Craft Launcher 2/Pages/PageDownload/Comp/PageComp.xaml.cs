@@ -59,11 +59,11 @@ public partial class PageComp
     }
 
     // 自动重试
-    private void Load_State(object sender, MyLoading.MyLoadingState state, MyLoading.MyLoadingState oldState)
+    private void Load_State(object sender, LoadingState state, LoadingState oldState)
     {
         switch (loader.State)
         {
-            case Common.LoadState.Failed:
+            case LoadState.Failed:
             {
                 var errorMessage = "";
                 if (loader.Error is not null)

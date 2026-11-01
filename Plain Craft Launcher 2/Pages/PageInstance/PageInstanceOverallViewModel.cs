@@ -150,7 +150,7 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
             if (string.IsNullOrEmpty(savePath))
                 return;
             // 检查中断（等玩家选完弹窗指不定任务就结束了呢……）
-            if (GameLaunch.mcLaunchLoader.State == Common.LoadState.Loading)
+            if (GameLaunch.mcLaunchLoader.State == LoadState.Loading)
             {
                 HintService.Show(Hints.Error(Lang.Text("Instance.Overall.Script.WaitForLaunchTask")));
                 return;
@@ -208,17 +208,17 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
             {
                 switch (loader.State)
                 {
-                    case Common.LoadState.Finished:
+                    case LoadState.Finished:
                     {
                         HintService.Show(Hints.Success(Lang.Text("Instance.Overall.Repair.Success.WithTaskName", taskName)));
                         break;
                     }
-                    case Common.LoadState.Failed:
+                    case LoadState.Failed:
                     {
                         HintService.Show(Hints.Error(Lang.Text("Instance.Overall.Repair.Failed.WithDetail", taskName, loader.Error.ToString())));
                         break;
                     }
-                    case Common.LoadState.Aborted:
+                    case LoadState.Aborted:
                     {
                         HintService.Show(Hints.Info(Lang.Text("Instance.Overall.Repair.Cancelled.WithTaskName", taskName)));
                         break;

@@ -4,7 +4,7 @@
     xmlns:local="clr-namespace:PCL"
                    xmlns:loc="https://ce.pclc.cc/core/localization" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:svgIcon="clr-namespace:PCL.Core.UI.Controls.SvgIcon;assembly=PCL.Core"
+    xmlns:svgIcon="clr-namespace:PCL.Core.UI.Controls.SvgIcon;assembly=PCL.Core.Wpf"
     mc:Ignorable="d" x:Class="PCL.PageToolsGameLink"
     d:DesignWidth="800" d:DesignHeight="800">
     <Grid>

@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Windows;
 using Humanizer;
 using PCL.Core.App.IoC;
 using PCL.Core.IO;
+using PCL.Core.Platform;
 
 namespace PCL.Core.App.Localization;
 
@@ -31,15 +31,17 @@ namespace PCL.Core.App.Localization;
 /// </summary>
 public static class Lang
 {
-    private static readonly HashSet<string> _UnrestrictedTimeZones = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "China Standard Time"
-    };
+    private static readonly HashSet<string> _UnrestrictedTimeZones =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            "China Standard Time"
+        };
 
-    private static readonly HashSet<string> _UnrestrictedCultures = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "zh-CN"
-    };
+    private static readonly HashSet<string> _UnrestrictedCultures =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            "zh-CN"
+        };
 
     /// <summary>
     ///     当前代码侧本地化格式化使用的展示区域性。
@@ -50,18 +52,17 @@ public static class Lang
     ///     当前功能是否不受限制。
     /// </summary>
     public static bool IsFeaturesUnrestricted =>
-        Config.Debug.AllowRestrictedFeature ||
-        (
-            _UnrestrictedTimeZones.Contains(TimeZoneInfo.Local.Id) &&
-            (_UnrestrictedCultures.Contains(CultureInfo.CurrentCulture.Name) ||
-             _UnrestrictedCultures.Contains(CultureInfo.CurrentUICulture.Name))
+        Config.Debug.AllowRestrictedFeature
+        || (
+            _UnrestrictedTimeZones.Contains(TimeZoneInfo.Local.Id)
+            && (_UnrestrictedCultures.Contains(CultureInfo.CurrentCulture.Name)
+                || _UnrestrictedCultures.Contains(CultureInfo.CurrentUICulture.Name))
         );
-    
+
     /// <summary>
-    ///     当前展示区域性 <see cref="Culture"/> 是否为 <c>zh-CN</c>。
+    ///     当前展示区域性 <see cref="Culture" /> 是否为 <c>zh-CN</c>。
     /// </summary>
-    public static bool IsChineseMainland =>
-        Culture.Name == "zh-CN";
+    public static bool IsChineseMainland => Culture.Name == "zh-CN";
 
     /// <summary>
     ///     同步展示区域性。该方法由 <see cref="LocalizationService" /> 在语言或展示格式变化时调用。
@@ -91,8 +92,10 @@ public static class Lang
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
 
-        if (Application.Current?.TryFindResource(key) is string text) return text;
-        if (_LifecycleSafeFindResource(key) is string fallbackText) return fallbackText;
+        if (PlatformServices.Localization?.TryFindResource(key) is { } text)
+            return text;
+        if (_LifecycleSafeFindResource(key) is string fallbackText)
+            return fallbackText;
 
 #if DEBUG
         return $"!{key}!";
@@ -178,8 +181,11 @@ public static class Lang
     ///     返回值会包含相对于当前时间的过去或未来语义。
     /// </returns>
     public static string TimeSpan(
-        TimeSpan span, int precision = 2, bool addAffixes = true,
-        TimeUnit maxUnit = TimeUnit.Year, TimeUnit minUnit = TimeUnit.Hour)
+        TimeSpan span,
+        int precision = 2,
+        bool addAffixes = true,
+        TimeUnit maxUnit = TimeUnit.Year,
+        TimeUnit minUnit = TimeUnit.Hour)
     {
         var isPast = span.TotalMilliseconds < 0;
         if (isPast) span = span.Negate();
@@ -233,11 +239,14 @@ public static class Lang
         if (_IsEastAsianCulture(Culture.Name))
             return absValue switch
             {
-                > 1_000_000_000_000d => Text("Common.Format.Number.Digit3",
+                > 1_000_000_000_000d => Text(
+                    "Common.Format.Number.Digit3",
                     Number(sign * absValue / 1_000_000_000_000d, "N2")),
-                > 100_000_000d => Text("Common.Format.Number.Digit2",
+                > 100_000_000d => Text(
+                    "Common.Format.Number.Digit2",
                     Number(sign * absValue / 100_000_000d, "N2")),
-                > 100_000d => Text("Common.Format.Number.Digit1",
+                > 100_000d => Text(
+                    "Common.Format.Number.Digit1",
                     Number(sign * Math.Round(absValue / 10_000d), "N0")),
                 _ => Number(value, "N0")
             };
@@ -245,11 +254,14 @@ public static class Lang
         // 使用 3 位进位
         return absValue switch
         {
-            > 1_000_000_000d => Text("Common.Format.Number.Digit3",
+            > 1_000_000_000d => Text(
+                "Common.Format.Number.Digit3",
                 Number(sign * absValue / 1_000_000_000d, "N2")),
-            > 1_000_000d => Text("Common.Format.Number.Digit2",
+            > 1_000_000d => Text(
+                "Common.Format.Number.Digit2",
                 Number(sign * absValue / 1_000_000d, "N2")),
-            > 10_000d => Text("Common.Format.Number.Digit1",
+            > 10_000d => Text(
+                "Common.Format.Number.Digit1",
                 Number(sign * Math.Round(absValue / 1_000d), "N0")),
             _ => Number(value, "N0")
         };
@@ -268,15 +280,15 @@ public static class Lang
 
     private static bool _IsEastAsianCulture(string cultureName)
     {
-        return cultureName.StartsWith("zh", StringComparison.OrdinalIgnoreCase) ||
-               cultureName is "ja-JP" or "ko-KR" or "lzh";
+        return cultureName.StartsWith("zh", StringComparison.OrdinalIgnoreCase)
+            || cultureName is "ja-JP" or "ko-KR" or "lzh";
     }
 
     private static object? _LifecycleSafeFindResource(string key)
     {
         try
         {
-            return Lifecycle.CurrentApplication.TryFindResource(key);
+            return Lifecycle.CurrentApplication?.TryFindResource(key);
         }
         catch (InvalidOperationException)
         {

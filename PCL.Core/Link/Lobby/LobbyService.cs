@@ -14,8 +14,8 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 using PCL.Core.App.IoC;
+using PCL.Core.Platform;
 using PCL.Core.UI;
 using PCL.Core.Link.McPing;
 
@@ -552,7 +552,8 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
 
     private static async Task _RunInUiAsync(Action action)
     {
-        await Application.Current.Dispatcher.InvokeAsync(action);
+        if (PlatformServices.UiDispatcher is { } dispatcher)
+            await dispatcher.InvokeAsync(action);
     }
 }
 

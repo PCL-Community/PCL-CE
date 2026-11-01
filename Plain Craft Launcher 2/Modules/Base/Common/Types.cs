@@ -1,4 +1,4 @@
-﻿using System.Windows.Media;
+using System.Windows.Media;
 using Brush = System.Windows.Media.Brush;
 using Color = System.Windows.Media.Color;
 using ColorConverter = System.Windows.Media.ColorConverter;
@@ -7,18 +7,6 @@ namespace PCL;
 
 public static partial class Common
 {
-    /// <summary>
-    ///     模块加载状态枚举。
-    /// </summary>
-    public enum LoadState
-    {
-        Waiting,
-        Loading,
-        Finished,
-        Failed,
-        Aborted
-    }
-
     /// <summary>
     ///     执行返回值。
     /// </summary>

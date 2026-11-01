@@ -40,7 +40,7 @@ public static partial class DownloadUi
                         new DownloadFile(
                             GameDownload.DlSourceLauncherOrMetaGet(jsonUrl),
                             Path.Combine(versionFolder, $"{id}.json"),
-                            new Common.FileChecker(canUseExistsFile: false, isJson: true)
+                            new FileChecker(canUseExistsFile: false, isJson: true)
                         )
                     ]
                 )
@@ -105,7 +105,7 @@ public static partial class DownloadUi
         }
 
         var jarUrl = serverDownload["url"]?.ToString() ?? "";
-        var checker = new Common.FileChecker(
+        var checker = new FileChecker(
             1024L,
             (long?)serverDownload["size"] ?? -1,
             serverDownload["sha1"]?.ToString() ?? ""

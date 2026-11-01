@@ -806,7 +806,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
             {
                 switch (loader.State)
                 {
-                    case Common.LoadState.Finished:
+                    case LoadState.Finished:
                         {
                             switch (finishedFileNames.Count)
                             {
@@ -830,12 +830,12 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
 
                             break;
                         }
-                    case Common.LoadState.Failed:
+                    case LoadState.Failed:
                         {
                             HintService.Show(Hints.Error(Lang.Text("Instance.Resource.Update.Failed", loader.Error.Message)));
                             break;
                         }
-                    case Common.LoadState.Aborted:
+                    case LoadState.Aborted:
                         {
                             HintService.Show(Hints.Info(Lang.Text("Instance.Resource.Update.Aborted")));
                             break;

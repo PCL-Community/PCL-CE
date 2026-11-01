@@ -74,6 +74,6 @@ public static partial class DownloadUi
         var message = $"远程版本名{reason}：{childFolderName}";
         Common.Log($"[Download] {message}");
         HintService.Show(Hints.Error(message));
-        throw new Common.CancelledException();
+        throw new CancelledException();
     }
 }

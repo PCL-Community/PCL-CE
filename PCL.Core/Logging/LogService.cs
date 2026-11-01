@@ -1,7 +1,12 @@
+using System;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using PCL.Core.App;
 using PCL.Core.App.Essentials;
 using PCL.Core.App.IoC;
 using PCL.Core.App.Localization;
+using PCL.Core.Platform;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
 using System;
@@ -119,8 +124,9 @@ public class LogService : ILifecycleLogService
                         ForceWait = false
                     });
 
-                    break;
-                }
+                PlatformServices.DialogService?.ShowFatal(
+                    message,
+                    Lang.Text("SystemDialog.Fatal.Title"));
 
             // fatal message box
             case ActionLevel.MsgBoxFatal:

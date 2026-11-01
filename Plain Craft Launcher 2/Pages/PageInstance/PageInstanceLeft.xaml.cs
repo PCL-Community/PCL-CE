@@ -94,10 +94,10 @@ public partial class PageInstanceLeft : IRefreshable, IPageView
                     GameDownload.DlCleanroomListLoader.Start(isForceRestart: true);
                     GameDownload.DlLiteLoaderListLoader.Start(isForceRestart: true);
                     GameDownload.DlFabricListLoader.Start(isForceRestart: true);
-                    GameDownload.DlFabricApiLoader.Start(isForceRestart: true);
+                    CompDownloadLoaders.DlFabricApiLoader.Start(isForceRestart: true);
                     GameDownload.DlLegacyFabricListLoader.Start(isForceRestart: true);
-                    GameDownload.DlLegacyFabricApiLoader.Start(isForceRestart: true);
-                    GameDownload.DlOptiFabricLoader.Start(isForceRestart: true);
+                    CompDownloadLoaders.DlLegacyFabricApiLoader.Start(isForceRestart: true);
+                    CompDownloadLoaders.DlOptiFabricLoader.Start(isForceRestart: true);
                     GameDownload.DlLabyModListLoader.Start(isForceRestart: true);
                     ItemInstall.Checked = true;
                     Launcher.frmInstanceInstall.GetCurrentInfo();

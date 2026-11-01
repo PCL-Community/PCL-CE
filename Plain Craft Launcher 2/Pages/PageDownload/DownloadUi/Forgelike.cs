@@ -102,7 +102,7 @@ public static partial class DownloadUi
                             url
                         ],
                         target,
-                        new Common.FileChecker(64 * 1024)
+                        new FileChecker(64 * 1024)
                     )
                 );
                 break;
@@ -112,7 +112,7 @@ public static partial class DownloadUi
             {
                 var cleanroom = (GameDownload.DlCleanroomListEntry)info;
                 var url = $"{cleanroom.UrlBase}-installer.jar";
-                files.Add(new DownloadFile([url], target, new Common.FileChecker(64 * 1024)));
+                files.Add(new DownloadFile([url], target, new FileChecker(64 * 1024)));
                 break;
             }
 
@@ -132,7 +132,7 @@ public static partial class DownloadUi
                             $"https://files.minecraftforge.net/maven/net/minecraftforge/forge/{fileName}"
                         ],
                         target,
-                        new Common.FileChecker(64 * 1024, hash: forge.Hash)
+                        new FileChecker(64 * 1024, hash: forge.Hash)
                     )
                 );
                 break;

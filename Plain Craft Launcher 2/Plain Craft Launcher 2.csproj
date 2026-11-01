@@ -79,6 +79,8 @@
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\PCL.Core\PCL.Core.csproj" />
+        <ProjectReference Include="..\PCL.Core.Wpf\PCL.Core.Wpf.csproj" />
+        <ProjectReference Include="..\PCL.Launcher.Core\PCL.Launcher.Core.csproj" />
     </ItemGroup>
     <ItemGroup>
         <Using Include="System.Text.Json" />

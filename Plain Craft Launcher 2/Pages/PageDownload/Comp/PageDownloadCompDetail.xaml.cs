@@ -129,18 +129,18 @@ public partial class PageDownloadCompDetail : IPageView
                 {
                     switch (myLoader.State)
                     {
-                        case Common.LoadState.Failed:
+                        case LoadState.Failed:
                         {
                             HintService.Show(Hints.Error(Lang.Text("Download.Comp.Detail.Task.Failed", myLoader.name,
                                     myLoader.Error.ToString())));
                             break;
                         }
-                        case Common.LoadState.Aborted:
+                        case LoadState.Aborted:
                         {
                             HintService.Show(Hints.Info(Lang.Text("Download.Comp.Detail.Task.Cancelled", myLoader.name)));
                             break;
                         }
-                        case Common.LoadState.Loading:
+                        case LoadState.Loading:
                         {
                             return; // 不重新加载版本列表
                         }
@@ -220,7 +220,7 @@ public partial class PageDownloadCompDetail : IPageView
             else
             {
                 // 查找所有可能的实例
-                var needLoad = InstanceList.mcInstanceListLoader.State != Common.LoadState.Finished;
+                var needLoad = InstanceList.mcInstanceListLoader.State != LoadState.Finished;
                 if (needLoad)
                 {
                     HintService.Show(Hints.Info(Lang.Text("Download.Comp.Detail.FindingApplicableInstance")));
@@ -380,7 +380,7 @@ public partial class PageDownloadCompDetail : IPageView
                     else
                     {
                         // 查找所有可能的实例
-                        var needLoad = InstanceList.mcInstanceListLoader.State != Common.LoadState.Finished;
+                        var needLoad = InstanceList.mcInstanceListLoader.State != LoadState.Finished;
                         if (needLoad)
                         {
                             HintService.Show(Hints.Info(Lang.Text("Download.Comp.Detail.FindingApplicableInstance")));
@@ -629,7 +629,7 @@ public partial class PageDownloadCompDetail : IPageView
 
     private void BtnFavorites_Click(object sender, Common.RouteEventArgs e)
     {
-        Comp.CompFavorites.ShowMenu(_project, (UIElement)sender, RefreshFavoriteButton);
+        CompFavoritesUi.ShowMenu(_project, (UIElement)sender, RefreshFavoriteButton);
     }
 
     private void BtnIntroLinkCopy_Click(object sender, Common.RouteEventArgs e)
@@ -747,11 +747,11 @@ public partial class PageDownloadCompDetail : IPageView
     private Comp.CompType _pageType;
 
     // 自动重试
-    private void Load_State(object sender, MyLoading.MyLoadingState state, MyLoading.MyLoadingState oldState)
+    private void Load_State(object sender, LoadingState state, LoadingState oldState)
     {
         switch (_compFileLoader.State)
         {
-            case Common.LoadState.Failed:
+            case LoadState.Failed:
             {
                 var errorMessage = "";
                 if (_compFileLoader.Error is not null)
@@ -1049,7 +1049,7 @@ public partial class PageDownloadCompDetail : IPageView
 
                         default:
                         {
-                            Comp.CompFilesCardPreload(stack, list);
+                            CompCardUi.CompFilesCardPreload(stack, list);
                             foreach (var item in list)
                                 stack.Children.Add(item.ToListItem(Launcher.frmDownloadCompDetail.Save_Click,
                                     badDisplayName: badDisplayName));

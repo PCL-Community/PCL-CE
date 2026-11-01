@@ -27,7 +27,7 @@ public static partial class DownloadUi
 
     private static JsonObject? _CreateMergedOutputJson(
         JsonObject? minecraftJson,
-        Modpack.MmcPackInfo? mmcPackInfo)
+        MmcPackInfo? mmcPackInfo)
     {
         if (mmcPackInfo is null)
             return minecraftJson;
