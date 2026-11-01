@@ -7,12 +7,25 @@ using System.Windows.Media;
 namespace PCL.Core.UI.Controls;
 
 /// <summary>
+///     由外部滚动容器（如 <see cref="VirtualizingScrollHost" />）告知当前可视区域的面板。
+///     <para>用于列表跟随整页滚动的场景：面板自身不滚动，只按外部给出的可视带实例化与排列条目。</para>
+/// </summary>
+public interface IVirtualizingScrollBand
+{
+    /// <summary>设置外部可视带。<paramref name="offset" /> 是可视带顶部相对面板内容顶部的位置。</summary>
+    void SetExternalViewport(double offset, double viewportHeight);
+
+    /// <summary>取消外部模式，恢复由 ScrollOwner 驱动的自持滚动。</summary>
+    void ClearExternalViewport();
+}
+
+/// <summary>
 ///     支持行虚拟化与容器回收的换行面板。
 ///     <para>与 <see cref="WrapPanel" /> 的布局一致，但只有当前可视区域（以及上下各 <see cref="CacheRows" /> 行缓存）内的条目会被实例化。</para>
 ///     <para>要求所有条目尺寸一致：宽度由 <see cref="ItemWidth" /> 决定，高度留空时按首个条目自动测量一次。</para>
 ///     <para>与 <see cref="VirtualizingStackPanel" /> 相同，只有作为 <see cref="ScrollViewer" /> 的直接内容且 CanContentScroll=true 时才会虚拟化。</para>
 /// </summary>
-public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
+public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo, IVirtualizingScrollBand
 {
     /// <summary>一行滚动的像素数（与 WPF 默认行高一致）。</summary>
     private const double LineDelta = 16d;
@@ -28,6 +41,9 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
     private ScrollViewer? _scrollOwner;
     private Size _extent;
     private Size _viewport;
+    private bool _externalMode;
+    private double _externalOffset;
+    private double _externalViewportHeight;
 
     #region 依赖属性
 
@@ -107,8 +123,8 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
             return default;
         }
 
-        var itemWidth = GetItemWidth();
         var viewportWidth = GetViewportWidth(availableSize);
+        var itemWidth = ResolveItemWidth(viewportWidth);
         // 自动高度需要先实例化一个条目来测量，此时还不知道可视范围
         var itemHeight = GetItemHeight(itemWidth);
 
@@ -120,16 +136,22 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
         var extentHeight = rows * rowHeight - (VerticalSpacing > 0d ? VerticalSpacing : 0d);
         _extent = new Size(Math.Min(viewportWidth, _columns * columnStride), Math.Max(0d, extentHeight));
 
-        var viewportHeight = GetViewportHeight(availableSize, _extent.Height);
+        // 外部滚动模式：可视带由 VirtualizingScrollHost 给出，面板自身不滚动
+        var external = _externalMode && _externalViewportHeight > 0d;
+        var viewportHeight = external
+            ? _externalViewportHeight
+            : GetViewportHeight(availableSize, _extent.Height);
         _viewport = new Size(viewportWidth, viewportHeight);
-        CoerceOffset();
+        if (!external)
+            CoerceOffset();
 
+        var bandOffset = external ? Math.Max(0d, _externalOffset) : _offsetY;
         int firstRow;
         int lastRow;
-        if (ShouldVirtualize())
+        if (external || ShouldVirtualize())
         {
-            firstRow = Math.Max(0, (int)Math.Floor(_offsetY / rowHeight) - CacheRows);
-            lastRow = Math.Min(rows - 1, (int)Math.Ceiling((_offsetY + viewportHeight) / rowHeight) + CacheRows - 1);
+            firstRow = Math.Max(0, (int)Math.Floor(bandOffset / rowHeight) - CacheRows);
+            lastRow = Math.Min(rows - 1, (int)Math.Ceiling((bandOffset + viewportHeight) / rowHeight) + CacheRows - 1);
         }
         else
         {
@@ -143,6 +165,10 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
 
         _scrollOwner?.InvalidateScrollInfo();
 
+        // 外部模式下必须报告完整高度，整页滚动才能滚到底
+        if (external)
+            return new Size(_extent.Width, _extent.Height);
+
         return new Size(_extent.Width,
             double.IsInfinity(availableSize.Height) ? _extent.Height : Math.Min(viewportHeight, _extent.Height));
     }
@@ -152,7 +178,8 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
         if (InternalChildren.Count == 0)
             return finalSize;
 
-        var itemWidth = GetItemWidth();
+        var viewportWidth = finalSize.Width > 0d ? finalSize.Width : _viewport.Width;
+        var itemWidth = ResolveItemWidth(viewportWidth);
         var itemHeight = GetItemHeight(itemWidth);
         var columnStride = itemWidth + HorizontalSpacing;
         var rowHeight = itemHeight + VerticalSpacing;
@@ -160,6 +187,8 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
         // 列整体居中，与原先 WrapPanel 由父控件居中的观感保持一致
         var usedWidth = columns * columnStride - (HorizontalSpacing > 0d ? HorizontalSpacing : 0d);
         var offsetX = Math.Max(0d, (finalSize.Width - usedWidth) / 2d);
+        // 外部模式下条目按绝对位置排列，滚动由整页负责
+        var baseOffset = _externalMode ? 0d : _offsetY;
 
         var generator = ItemContainerGenerator;
         for (var childIndex = 0; childIndex < InternalChildren.Count; childIndex++)
@@ -170,7 +199,7 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
                 itemIndex = childIndex;
             var row = itemIndex / columns;
             var column = itemIndex % columns;
-            child.Arrange(new Rect(offsetX + column * columnStride, row * rowHeight - _offsetY, itemWidth, itemHeight));
+            child.Arrange(new Rect(offsetX + column * columnStride, row * rowHeight - baseOffset, itemWidth, itemHeight));
         }
 
         return finalSize;
@@ -186,7 +215,7 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
 
     protected override void BringIndexIntoView(int index)
     {
-        var itemHeight = GetItemHeight(GetItemWidth());
+        var itemHeight = GetItemHeight(ResolveItemWidth(_viewport.Width));
         var rowHeight = itemHeight + VerticalSpacing;
         var row = index / Math.Max(1, _columns);
         var rowTop = row * rowHeight;
@@ -293,6 +322,42 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
         _autoItemHeight = double.IsNaN(ItemHeight) ? height : ItemHeight;
         return _autoItemHeight;
     }
+
+    #endregion
+
+    #region 外部可视带
+
+    /// <summary>由外部滚动容器设置可视带：面板自身不滚动，只实例化该带内的条目。</summary>
+    public void SetExternalViewport(double offset, double viewportHeight)
+    {
+        var previousOffset = _externalMode ? _externalOffset : _offsetY;
+        var previousHeight = _externalMode ? _externalViewportHeight : _viewport.Height;
+        _externalMode = true;
+        _externalOffset = offset;
+        _externalViewportHeight = Math.Max(0d, viewportHeight);
+        if (Math.Abs(previousOffset - _externalOffset) < 0.5d &&
+            Math.Abs(previousHeight - _externalViewportHeight) < 0.5d)
+            return;
+        // 可视带变了：已实例化的行通常仍覆盖新范围，只需重新排列；否则要重新实例化
+        if (IsCoveredByRealizedRange(_externalOffset))
+            InvalidateArrange();
+        else
+            InvalidateMeasure();
+    }
+
+    /// <summary>取消外部模式，恢复由 ScrollOwner 驱动的自持滚动。</summary>
+    public void ClearExternalViewport()
+    {
+        if (!_externalMode)
+            return;
+        _externalMode = false;
+        _externalOffset = 0d;
+        _externalViewportHeight = 0d;
+        InvalidateMeasure();
+    }
+
+    /// <summary>当前是否处于外部可视带模式。</summary>
+    public bool IsExternalViewportMode => _externalMode;
 
     #endregion
 
@@ -421,10 +486,13 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
         return owner?.Items.Count ?? 0;
     }
 
-    private double GetItemWidth()
+    private double ResolveItemWidth(double viewportWidth)
     {
         var width = ItemWidth;
-        return double.IsNaN(width) || width <= 0d ? 200d : width;
+        if (!double.IsNaN(width) && width > 0d)
+            return width;
+        // NaN 表示铺满可视宽度（单列列表，如资源列表）
+        return viewportWidth > 0d ? viewportWidth : 1d;
     }
 
     private double GetItemHeight(double itemWidth)

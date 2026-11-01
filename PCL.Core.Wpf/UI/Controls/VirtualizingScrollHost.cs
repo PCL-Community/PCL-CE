@@ -14,13 +14,19 @@ namespace PCL.Core.UI.Controls;
 ///         因此仅将虚拟化面板放进 ItemsPanel 时面板永远拿不到 ScrollOwner，也就无法知道可视区尺寸（不会虚拟化）。
 ///     </para>
 ///     <para>
-///         把 ItemsControl 包在本容器中即可：ScrollViewer 会把本容器当作 IScrollInfo，
-///         本容器再把 ScrollOwner 与滚动通知转发给内部的虚拟化面板。
+///         用法一（列表自持滚动）：把 ItemsControl 包在本容器中，且本容器作为 ScrollViewer 的直接内容。
+///         ScrollViewer 会把本容器当作 IScrollInfo，本容器再把 ScrollOwner 与滚动通知转发给内部的虚拟化面板。
+///     </para>
+///     <para>
+///         用法二（跟随整页滚动）：把本容器放进页面的 StackPanel 中。此时本容器拿不到 ScrollOwner，
+///         但仍能找到祖先 ScrollViewer，并把「当前可视带」告诉内部面板：面板只实例化可视区内的行、
+///         按绝对坐标排列，完整高度照常返回，页面滚动保持原样。
 ///     </para>
 /// </summary>
 public class VirtualizingScrollHost : Decorator, IScrollInfo
 {
     private ScrollViewer? _scrollOwner;
+    private ScrollViewer? _pageScrollViewer;
     private IScrollInfo? _inner;
     private Size _extent;
     private Size _viewport;
@@ -28,13 +34,38 @@ public class VirtualizingScrollHost : Decorator, IScrollInfo
     private bool _canHorizontallyScroll;
     private bool _canVerticallyScroll = true;
 
+    public VirtualizingScrollHost()
+    {
+        Loaded += (_, _) => AttachPageScrollViewer();
+        Unloaded += (_, _) => DetachPageScrollViewer();
+        SizeChanged += (_, _) => UpdatePageBand();
+    }
+
     /// <summary>内部虚拟化面板（延迟查找：ItemsPresenter 要在首次测量时才创建面板）。</summary>
     private IScrollInfo? Inner => _inner ??= FindScrollInfo();
+
+    /// <summary>是否处于「跟随整页滚动」模式：自己不是 ScrollViewer 的直接内容，但存在祖先 ScrollViewer。</summary>
+    private bool IsPageScrollMode => _scrollOwner is null && _pageScrollViewer is not null;
 
     #region 布局
 
     protected override Size MeasureOverride(Size availableSize)
     {
+        // 跟随整页滚动：面板自身不滚动，只需要知道「当前可视带」，完整高度照常返回
+        if (_pageScrollViewer is null)
+            AttachPageScrollViewer();
+        if (IsPageScrollMode)
+        {
+            var pageConstraint = new Size(availableSize.Width, double.PositiveInfinity);
+            UpdatePageBand();
+            Child?.Measure(pageConstraint);
+            // 内部虚拟化面板要到首次测量时才由 ItemsControl 的模板创建，此前的 UpdatePageBand 找不到它；
+            // 这里再同步一次可视带并重新测量，避免首帧按「全部实例化」布局
+            UpdatePageBand();
+            Child?.Measure(pageConstraint);
+            return Child?.DesiredSize ?? default;
+        }
+
         var constraint = availableSize;
         // 已知可视高度时按可视高度测量，面板才能算出可视行数。
         if (_scrollOwner is not null && _scrollOwner.ViewportHeight > 0d && double.IsInfinity(availableSize.Height))
@@ -70,6 +101,81 @@ public class VirtualizingScrollHost : Decorator, IScrollInfo
         inner.CanVerticallyScroll = _canVerticallyScroll;
         inner.CanHorizontallyScroll = _canHorizontallyScroll;
     }
+
+    #region 跟随整页滚动
+
+    private void AttachPageScrollViewer()
+    {
+        var viewer = FindAncestorScrollViewer();
+        if (ReferenceEquals(viewer, _pageScrollViewer))
+            return;
+        DetachPageScrollViewer();
+        _pageScrollViewer = viewer;
+        if (viewer is null)
+            return;
+        viewer.ScrollChanged += PageScrollViewer_ScrollChanged;
+        viewer.SizeChanged += PageScrollViewer_SizeChanged;
+        UpdatePageBand();
+    }
+
+    private void DetachPageScrollViewer()
+    {
+        if (_pageScrollViewer is null)
+            return;
+        _pageScrollViewer.ScrollChanged -= PageScrollViewer_ScrollChanged;
+        _pageScrollViewer.SizeChanged -= PageScrollViewer_SizeChanged;
+        _pageScrollViewer = null;
+    }
+
+    private void PageScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e) => UpdatePageBand();
+
+    private void PageScrollViewer_SizeChanged(object sender, SizeChangedEventArgs e) => UpdatePageBand();
+
+    /// <summary>找到最近的祖先 ScrollViewer（页面级滚动通常由它负责）。</summary>
+    private ScrollViewer? FindAncestorScrollViewer()
+    {
+        for (DependencyObject? current = VisualTreeHelper.GetParent(this);
+             current is not null;
+             current = VisualTreeHelper.GetParent(current))
+            if (current is ScrollViewer viewer)
+                return viewer;
+        return null;
+    }
+
+    /// <summary>把祖先 ScrollViewer 的可视带换算到本容器的坐标系，并交给内部虚拟化面板。</summary>
+    private void UpdatePageBand()
+    {
+        if (!IsPageScrollMode || Inner is not IVirtualizingScrollBand band)
+            return;
+
+        var viewer = _pageScrollViewer!;
+        var viewportHeight = viewer.ViewportHeight > 0d
+            ? viewer.ViewportHeight
+            : ActualHeight > 0d ? ActualHeight : 600d;
+
+        double topInViewport;
+        try
+        {
+            topInViewport = TransformToAncestor(viewer).Transform(new Point(0d, 0d)).Y;
+        }
+        catch (InvalidOperationException)
+        {
+            // 尚未接入可视树，先按列表顶端估算，等布局完成后的 ScrollChanged / SizeChanged 会再修正
+            band.SetExternalViewport(0d, viewportHeight);
+            return;
+        }
+        catch (ArgumentException)
+        {
+            band.SetExternalViewport(0d, viewportHeight);
+            return;
+        }
+
+        // 本容器内容顶部在滚动内容中的位置；可视带顶部相对本容器的位置可能为负（可视带还在上方的头部）
+        var topInContent = viewer.VerticalOffset + topInViewport;
+        band.SetExternalViewport(viewer.VerticalOffset - topInContent, viewportHeight);
+    }
+
+    #endregion
 
     private IScrollInfo? FindScrollInfo()
     {
@@ -108,6 +214,9 @@ public class VirtualizingScrollHost : Decorator, IScrollInfo
             if (ReferenceEquals(_scrollOwner, value))
                 return;
             _scrollOwner = value;
+            // 作为 ScrollViewer 直接内容时由面板自持滚动，需要退出「跟随整页滚动」模式
+            if (value is not null && Inner is IVirtualizingScrollBand band)
+                band.ClearExternalViewport();
             SyncInner();
             InvalidateMeasure();
         }
