@@ -4,6 +4,7 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:local="clr-namespace:PCL"
+      xmlns:core="clr-namespace:PCL.Core.UI.Controls;assembly=PCL.Core.Wpf"
       xmlns:loc="https://ce.pclc.cc/core/localization"
       mc:Ignorable="d">
     <Grid.Resources>
@@ -137,6 +138,9 @@
                           Theme="Yellow" Margin="0,0,0,15" />
             <local:MyCard x:Name="CardProjects" Grid.Row="1" UseAnimation="False">
                 <local:MyScrollViewer x:Name="ListScrollControl" Style="{StaticResource VirtualizedScrollViewer}">
+                    <!-- WPF 只把 IScrollInfo 交给 ScrollViewer 的直接内容，ItemsControl 外面必须包一层桥接容器，
+                         否则虚拟化面板拿不到可视区尺寸（详见 VirtualizingScrollHost 的注释） -->
+                    <core:VirtualizingScrollHost>
                     <ItemsControl x:Name="PanProjects" Style="{StaticResource VirtualizedItemsControl}"
                                   ItemsSource="{Binding Projects}" Margin="12">
                         <ItemsControl.ItemTemplate>
@@ -145,6 +149,7 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
+                    </core:VirtualizingScrollHost>
                 </local:MyScrollViewer>
             </local:MyCard>
             <local:MyCard Margin="0,15,0,0" Grid.Row="2" x:Name="CardPages" HorizontalAlignment="Center"

@@ -24,7 +24,8 @@ public partial class PageInstanceScreenshot : IRefreshable, IPageView
 
     private readonly PageInstanceScreenshotViewModel _vm = new();
 
-    private int _Offset;
+    /// <summary>下一次增量装填从 fileList 的哪个下标开始；删除文件后也不会重复或跳过条目。</summary>
+    private int _nextFileIndex;
     private bool _allLoaded;
     private int _appendDebounceVersion;
     private CancellationTokenSource? _loadCts;
@@ -178,7 +179,7 @@ public partial class PageInstanceScreenshot : IRefreshable, IPageView
         token.ThrowIfCancellationRequested();
 
         fileList = list;
-        _Offset = 0;
+        _nextFileIndex = 0;
         _allLoaded = false;
         _appendDebounceVersion += 1;
         _vm.Screenshots.Clear();
@@ -192,7 +193,7 @@ public partial class PageInstanceScreenshot : IRefreshable, IPageView
             return;
         }
 
-        await ListAppendAsync(token, 20, 0);
+        await ListAppendAsync(token);
     }
 
     private void RequireAppend(object sender, ScrollChangedEventArgs e)
@@ -226,25 +227,20 @@ public partial class PageInstanceScreenshot : IRefreshable, IPageView
         }
     }
 
-    private async Task ListAppendAsync(CancellationToken token, int count = 20, int offset = -1)
+    private async Task ListAppendAsync(CancellationToken token, int count = 20)
     {
         if (_appendTask is { IsCompleted: false })
             return; // 已有装填在进行中
-        var task = AppendBatchAsync(token, count, offset);
+        var task = AppendBatchAsync(token, count);
         _appendTask = task;
         await task;
     }
 
-    private async Task AppendBatchAsync(CancellationToken token, int count, int offset)
+    private async Task AppendBatchAsync(CancellationToken token, int count)
     {
         token.ThrowIfCancellationRequested();
-        if (offset < 0)
-            offset = ++_Offset;
-        else
-            _Offset = offset;
-
         var files = fileList;
-        var start = count * offset;
+        var start = _nextFileIndex;
         if (start >= files.Count)
         {
             _allLoaded = true;
@@ -267,6 +263,11 @@ public partial class PageInstanceScreenshot : IRefreshable, IPageView
             item.Thumbnail = thumbnails[i];
             _vm.Screenshots.Add(item);
         }
+
+        // 游标按本批扫描过的文件数推进，被校验跳过的文件不会重复扫描
+        _nextFileIndex = Math.Min(files.Count, start + count);
+        if (_nextFileIndex >= files.Count)
+            _allLoaded = true;
     }
 
     private static List<ScreenshotItemViewModel> CreateBatch(List<string> files, int start, int count,
@@ -397,7 +398,14 @@ public partial class PageInstanceScreenshot : IRefreshable, IPageView
         try
         {
             FileSystem.DeleteFile(path, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
-            fileList.Remove(path);
+            var fileIndex = fileList.IndexOf(path);
+            if (fileIndex >= 0)
+            {
+                fileList.RemoveAt(fileIndex);
+                if (fileIndex < _nextFileIndex)
+                    _nextFileIndex = Math.Max(0, _nextFileIndex - 1);
+            }
+
             _vm.Screenshots.Remove(item);
             RefreshTip();
             HintService.Show(Hints.Info(Lang.Text("Instance.Screenshot.Deleted")));
