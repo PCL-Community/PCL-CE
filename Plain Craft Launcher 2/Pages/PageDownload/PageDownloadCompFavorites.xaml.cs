@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -15,8 +16,8 @@ namespace PCL;
 
 public partial class PageDownloadCompFavorites : IPageView
 {
-    private readonly List<MyListItem> compItemList = new();
-    private List<MyListItem> selectedItemList = new();
+    private readonly List<FavoriteItemViewModel> compItemList = new();
+    private List<FavoriteItemViewModel> selectedItemList = new();
 
     private readonly PageDownloadCompFavoritesViewModel _vm = new();
 
@@ -123,15 +124,11 @@ public partial class PageDownloadCompFavorites : IPageView
 
     #region UI 化 - 自适应卡片
 
-    public class CompListItemContainer // 用来存储自动依据类型生成的卡片及其相关信息
-    {
-        public MyCard Card { get; set; }
-        public StackPanel ContentList { get; set; }
-        public string Title { get; set; }
-        public int CompType { get; set; }
-    }
-
-    private readonly List<CompListItemContainer> itemList = new();
+    /// <summary>
+    ///     当前参与显示的分组缓存。按工程类型复用同一个分组实例，
+    ///     以免每次刷新都重建 MyCard 而丢失用户的展开/折叠状态。
+    /// </summary>
+    private readonly List<FavoriteGroupViewModel> _groupCache = new();
 
     /// <summary>
     ///     刷新收藏夹列表
@@ -153,69 +150,60 @@ public partial class PageDownloadCompFavorites : IPageView
     }
 
     /// <summary>
-    ///     返回适合当前工程项目的卡片记录
+    ///     按当前数据源重建分组，并整体替换 VM 上的分组集合。
     /// </summary>
-    /// <param name="type">工程项目类型</param>
-    /// <returns></returns>
-    private CompListItemContainer GetSuitListContainer(int type)
-    {
-        if (itemList.Any(e => e.CompType.Equals(type))) return itemList.First(e => e.CompType.Equals(type));
-
-        var newItem = new CompListItemContainer
-        {
-            Card = new MyCard
-            {
-                CanSwap = true,
-                Margin = new Thickness(0d, 0d, 0d, 15d)
-            },
-            ContentList = new StackPanel
-            {
-                Orientation = Orientation.Vertical,
-                Margin = new Thickness(12d, 38d, 12d, 12d)
-            },
-            CompType = type
-        };
-        newItem.Title = PageDownloadCompFavoritesViewModel.GetCategoryTitleFormat(type);
-
-        newItem.Card.Title = string.Format(newItem.Title, 0);
-        newItem.Card.Children.Add(newItem.ContentList);
-        itemList.Add(newItem);
-        return newItem;
-    }
-
     private void RefreshContent()
     {
-        foreach (var item in itemList) // 清除逻辑父子关系
-            item.ContentList.Children.Clear();
-        PanContentList.Children.Clear();
         var dataSource = IsSearching ? searchResult : compItemList;
+
+        // 按类型分组，并保持各分组首次出现的顺序（与原逐个塞入卡片的顺序一致）
+        var order = new List<int>();
+        var grouped = new Dictionary<int, List<FavoriteItemViewModel>>();
         foreach (var item in dataSource)
-            GetSuitListContainer(IsSearching ? -1 : (int)((Comp.CompProject)item.Tag).Type).ContentList.Children
-                .Add(item);
-        foreach (var item in itemList)
         {
-            if (item.ContentList.Children.Count == 0)
-                continue;
-            PanContentList.Children.Add(item.Card);
+            var type = IsSearching ? -1 : item.Type;
+            if (!grouped.TryGetValue(type, out var list))
+            {
+                grouped[type] = list = new List<FavoriteItemViewModel>();
+                order.Add(type);
+            }
+
+            list.Add(item);
         }
+
+        var newGroups = new List<FavoriteGroupViewModel>();
+        foreach (var type in order)
+        {
+            // 复用分组实例，避免刷新时重建 MyCard 而丢失卡片的展开状态
+            var group = _groupCache.FirstOrDefault(e => e.CompType == type);
+            if (group is null)
+            {
+                group = new FavoriteGroupViewModel(type);
+                _groupCache.Add(group);
+            }
+
+            group.SetItems(grouped[type]); // 空分组由 SetItems 置为 Collapsed
+            newGroups.Add(group);
+        }
+
+        _groupCache.Clear();
+        _groupCache.AddRange(newGroups);
+
+        // 分组集合整体替换，只触发一次集合变更通知；分组未变时不动集合，以免重建卡片
+        if (_vm.Groups.SequenceEqual(newGroups))
+            return;
+        _vm.Groups = new ObservableCollection<FavoriteGroupViewModel>(newGroups);
     }
 
     private void _RefreshCategoryTitles()
     {
-        foreach (var item in itemList)
-            item.Title = PageDownloadCompFavoritesViewModel.GetCategoryTitleFormat(item.CompType);
         RefreshCardTitle();
     }
 
     private void RefreshCardTitle()
     {
-        foreach (var item in itemList)
-            item.Card.Title = string.Format(item.Title,
-                compItemList.Where(e => (int)((Comp.CompProject)e.Tag).Type == item.CompType).Count());
-        if (!itemList.Any(e => e.CompType.Equals(-1)))
-            return;
-        var searchItem = itemList.First(e => e.CompType.Equals(-1));
-        if (searchItem is not null) searchItem.Card.Title = string.Format(searchItem.Title, searchResult.Count);
+        foreach (var group in _vm.Groups)
+            group.RefreshTitle();
     }
 
     #endregion
@@ -225,7 +213,7 @@ public partial class PageDownloadCompFavorites : IPageView
     // 结果 UI 化
     private void Load_OnFinish()
     {
-        itemList.Clear();
+        _groupCache.Clear();
         try
         {
             allowSearch = false;
@@ -236,9 +224,8 @@ public partial class PageDownloadCompFavorites : IPageView
             _vm.ShowHintGetFail = someGetFail;
             foreach (var item in loader.output)
             {
-                var compItem = item.ToListItem();
-                ListItemBuild(compItem);
-                compItemList.Add(compItem);
+                CurrentFavTarget.Notes.TryGetValue(item.Id, out var note);
+                compItemList.Add(new FavoriteItemViewModel(item, note));
             }
 
             if (compItemList.Any()) // 有收藏
@@ -270,16 +257,26 @@ public partial class PageDownloadCompFavorites : IPageView
         }
     }
 
-    private void ListItemBuild(MyListItem compItem)
+    /// <summary>
+    ///     条目控件生成后做一次性映射：备注 Run、编辑/删除按钮、右键菜单这些无法用 XAML 绑定表达的部分在此补齐。
+    /// </summary>
+    private void FavoriteItem_Loaded(object sender, RoutedEventArgs e)
     {
-        compItem.Type = MyListItem.CheckType.CheckBox;
-        var compId = ((Comp.CompProject)compItem.Tag).Id;
+        if (sender is not MyListItem compItem || compItem.DataContext is not FavoriteItemViewModel item)
+            return;
+        if (compItem.Tag is not null)
+            return; // 已经映射过
+        compItem.Tag = item.Project; // 与原 ToListItem() 的 Tag 语义保持一致
+        var compId = item.Project.Id;
         // ----备注----
-        var notes = "";
-        CurrentFavTarget.Notes.TryGetValue(compId, out notes);
         var noteItem = new Run { Foreground = new SolidColorBrush(Color.FromRgb(0, 184, 148)) };
-        if (!string.IsNullOrWhiteSpace(notes)) noteItem.Text = $" ({notes})";
+        noteItem.Text = item.NoteText;
         compItem.LabTitle.Inlines.Add(noteItem);
+        item.PropertyChanged += (_, args) =>
+        {
+            if (args.PropertyName == nameof(FavoriteItemViewModel.NoteText))
+                noteItem.Text = item.NoteText;
+        };
         // ----添加按钮----
         // 修改备注按钮
         var btn_EditNote = new MyIconButton();
@@ -288,13 +285,13 @@ public partial class PageDownloadCompFavorites : IPageView
         ToolTipService.SetPlacement(btn_EditNote, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btn_EditNote, 30d);
         ToolTipService.SetHorizontalOffset(btn_EditNote, 2d);
-        btn_EditNote.Click += async (sender, e) =>
+        btn_EditNote.Click += async (button, e2) =>
         {
-            var ctl = sender as Control;
+            var ctl = button as UIElement;
             if (ctl is not null) ctl.IsEnabled = false;
             try
             {
-                CurrentFavTarget.Notes.TryGetValue(compId, out notes);
+                CurrentFavTarget.Notes.TryGetValue(compId, out var notes);
                 var desiredNoteResult = await _vm.Dialog.ShowAsync(new InputDialogRequest
                 {
                     Title = Lang.Text("Download.Comp.Favorites.EditNote"),
@@ -304,7 +301,7 @@ public partial class PageDownloadCompFavorites : IPageView
                 if (desiredNote is not null)
                 {
                     CurrentFavTarget.Notes[compId] = desiredNote;
-                    noteItem.Text = string.IsNullOrWhiteSpace(desiredNote) ? "" : $" ({desiredNote})";
+                    item.SetNote(desiredNote); // 备注文本由 NoteText 绑定与 PropertyChanged 同步
                     Comp.CompFavorites.Save();
                 }
             }
@@ -330,9 +327,9 @@ public partial class PageDownloadCompFavorites : IPageView
         ToolTipService.SetPlacement(btn_Delete, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btn_Delete, 30d);
         ToolTipService.SetHorizontalOffset(btn_Delete, 2d);
-        btn_Delete.Click += (sender, e) =>
+        btn_Delete.Click += (_, _) =>
         {
-            Items_CancelFavorites(compItem);
+            Items_CancelFavorites(item);
             RefreshContent();
             RefreshCardTitle();
             RefreshBar();
@@ -340,14 +337,13 @@ public partial class PageDownloadCompFavorites : IPageView
         compItem.Buttons = [btn_EditNote, btn_Delete];
         // ---操作逻辑---
         // 右键查看详细信息界面
-        if (compItem.Tag is Comp.CompProject)
-            compItem.MouseRightButtonUp += (_, _) => Launcher.frmMain.PageChange(
-                new FormMain.PageStackData
-                {
-                    page = FormMain.PageType.CompDetail,
-                    additional = ((Comp.CompProject)compItem.Tag, new List<string>(), string.Empty, Comp.CompLoaderType.Any,
-                        ((Comp.CompProject)compItem.Tag).Type, null)
-                });
+        compItem.MouseRightButtonUp += (_, _) => Launcher.frmMain.PageChange(
+            new FormMain.PageStackData
+            {
+                page = FormMain.PageType.CompDetail,
+                additional = (item.Project, new List<string>(), string.Empty, Comp.CompLoaderType.Any,
+                    item.Project.Type, null)
+            });
         // ---其它事件---
         compItem.Changed += ItemCheckStatusChanged;
     }
@@ -435,11 +431,12 @@ public partial class PageDownloadCompFavorites : IPageView
     // 选中状态改变
     private void ItemCheckStatusChanged(object sender, Common.RouteEventArgs e)
     {
-        var senderItem = (MyListItem)sender;
-        if (selectedItemList.Contains(senderItem))
-            selectedItemList.Remove(senderItem);
-        if (senderItem.Checked)
-            selectedItemList.Add(senderItem);
+        if (sender is not MyListItem { DataContext: FavoriteItemViewModel item })
+            return;
+        if (selectedItemList.Contains(item))
+            selectedItemList.Remove(item);
+        if (item.IsChecked)
+            selectedItemList.Add(item);
         RefreshBar();
     }
 
@@ -491,7 +488,7 @@ public partial class PageDownloadCompFavorites : IPageView
         try
         {
             Common.ClipboardSet(
-                Comp.CompFavorites.GetShareCode(selectedItemList.Select(i => ((Comp.CompProject)i.Tag).Id)
+                Comp.CompFavorites.GetShareCode(selectedItemList.Select(i => i.Project.Id)
                     .ToHashSet()));
             Items_SetSelectAll(false);
         }
@@ -522,7 +519,7 @@ public partial class PageDownloadCompFavorites : IPageView
             var hasMod = false;
             foreach (var Item in selectedItemList) // 获取共同支持的 Loading
             {
-                var proj = (Comp.CompProject)Item.Tag;
+                var proj = Item.Project;
                 if (proj.Type == Comp.CompType.Mod)
                 {
                     hasMod = true;
@@ -696,7 +693,7 @@ public partial class PageDownloadCompFavorites : IPageView
                 OnStateChanged = DownloadUi.LoaderStateChangedHintOnly
             };
 
-            checkLoader.Start(selectedItemList.Select(i => ((Comp.CompProject)i.Tag).Id).ToList());
+            checkLoader.Start(selectedItemList.Select(i => i.Project.Id).ToList());
             Loading.LoaderTaskbarAdd(checkLoader);
             Launcher.frmMain.BtnExtraDownload.ShowRefresh();
             Launcher.frmMain.BtnExtraDownload.Ribble();
@@ -720,14 +717,14 @@ public partial class PageDownloadCompFavorites : IPageView
     {
         if (IsSearching)
             foreach (var Item in searchResult)
-                Item.Checked = targetStatus;
+                Item.IsChecked = targetStatus;
         else
             foreach (var Item in compItemList)
-                Item.Checked = targetStatus;
-        selectedItemList = compItemList.Where(e => e.Checked).ToList();
+                Item.IsChecked = targetStatus;
+        selectedItemList = compItemList.Where(e => e.IsChecked).ToList();
     }
 
-    private void Items_CancelFavorites(MyListItem item)
+    private void Items_CancelFavorites(FavoriteItemViewModel item)
     {
         try
         {
@@ -736,7 +733,7 @@ public partial class PageDownloadCompFavorites : IPageView
                 selectedItemList.Remove(item);
             if (searchResult.Contains(item))
                 searchResult.Remove(item);
-            CurrentFavTarget.Favs.Remove(((Comp.CompProject)item.Tag).Id);
+            CurrentFavTarget.Favs.Remove(item.Project.Id);
             Comp.CompFavorites.Save();
             if (!compItemList.Any())
                 Launcher.frmDownloadCompFavorites.PageLoaderRestart();
@@ -993,9 +990,12 @@ public partial class PageDownloadCompFavorites : IPageView
         body.IsOpen = true;
     }
 
-    private void ComboTargetFav_Selected(object sender, RoutedEventArgs e)
+    private void ComboTargetFav_Selected(object sender, SelectionChangedEventArgs e)
     {
         if (ComboTargetFav.SelectedItem is null)
+            return;
+        // 初次填充下拉项时也会触发 SelectionChanged，此时尚未完成加载，不应重启加载器
+        if (!allowSearch)
             return;
         Items_SetSelectAll(false);
         loader.Start(isForceRestart: true);
@@ -1033,7 +1033,7 @@ public partial class PageDownloadCompFavorites : IPageView
     private bool IsSearching => !string.IsNullOrWhiteSpace(_vm.SearchText);
 
     private bool allowSearch = true;
-    private List<MyListItem> searchResult = new();
+    private List<FavoriteItemViewModel> searchResult = new();
 
     public void SearchRun(object sender, EventArgs e)
     {
@@ -1042,12 +1042,10 @@ public partial class PageDownloadCompFavorites : IPageView
         if (IsSearching)
         {
             // 构造请求
-            var queryList = new List<SearchService.SearchEntry<MyListItem>>();
+            var queryList = new List<SearchService.SearchEntry<FavoriteItemViewModel>>();
             foreach (var Item in compItemList)
             {
-                if (Item.Tag is not Comp.CompProject)
-                    continue;
-                var entry = (Comp.CompProject)Item.Tag;
+                var entry = Item.Project;
                 var searchSource = new List<SearchService.SearchSource>();
                 searchSource.Add(new SearchService.SearchSource(entry.RawName, 1d));
                 if (entry.Description is not null && !string.IsNullOrEmpty(entry.Description))
@@ -1055,7 +1053,8 @@ public partial class PageDownloadCompFavorites : IPageView
                 if ((entry.TranslatedName ?? "") != (entry.RawName ?? ""))
                     searchSource.Add(new SearchService.SearchSource(entry.TranslatedName, 1d));
                 searchSource.Add(new SearchService.SearchSource(string.Join("", entry.Tags), 0.2d));
-                queryList.Add(new SearchService.SearchEntry<MyListItem> { item = Item, searchSource = searchSource });
+                queryList.Add(new SearchService.SearchEntry<FavoriteItemViewModel>
+                    { item = Item, searchSource = searchSource });
             }
 
             // 进行搜索

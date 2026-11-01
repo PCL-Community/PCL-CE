@@ -985,99 +985,34 @@ public partial class PageDownloadCompDetail : IPageView
         // 3. 渲染 UI
         try
         {
-            PanResults.Children.Clear();
             var additional = Launcher.frmMain.pageCurrent.additional;
             var additionalTitles = additional is not null
                 ? additional.Value.ExpandedTitles
                 : new List<string>();
 
+            var cardCount = dict.Count(pair => pair.Value.Count > 0);
+            var groups = new List<CompFileGroupViewModel>();
             foreach (var pair in dict)
             {
                 if (pair.Value.Count == 0)
                     continue;
 
-                // 创建卡片组件
-                var newCard = new MyCard
-                {
-                    Title = pair.Key,
-                    Margin = new Thickness(0d, 0d, 0d, 15d)
-                };
+                // 展开逻辑：目标分组默认展开，单卡片时也展开
+                var isTarget = (pair.Key ?? "") == (targetCardName ?? "") || additionalTitles.Contains(pair.Key);
+                var isSwapped = !(isTarget || cardCount == 1);
 
-                // 闭包引用：避免在 Sub 内做高耗时操作
-                var files = pair.Value;
-                var currentKey = pair.Key;
+                // 特殊提示：仅「其他」分组显示
+                var showRecognitionHint = pair.Key == Lang.Text("Download.Comp.Detail.VersionGroup.Other");
 
-                var newStack = new StackPanel
-                {
-                    Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
-                    VerticalAlignment = VerticalAlignment.Top,
-                    Tag = files
-                };
-
-                newCard.Children.Add(newStack);
-                newCard.SwapControl = newStack;
-
-                // 延迟加载安装项的逻辑
-                newCard.InstallMethod = stack =>
-                {
-                    var list = (List<Comp.CompFile>)stack.Tag;
-                    // 排序和去重检查
-                    list.Sort((a, b) => b.ReleaseDate.CompareTo(a.ReleaseDate));
-                    var distinctCount = list.Select(f => f.DisplayName).Distinct().Count();
-                    var badDisplayName = distinctCount != list.Count;
-
-                    // 批量添加子项
-                    switch (_project.Type)
-                    {
-                        case Comp.CompType.ModPack:
-                        {
-                            foreach (var item in list)
-                                stack.Children.Add(item.ToListItem(
-                                    (sender, e) => Launcher.frmDownloadCompDetail.Install_Click((MyListItem)sender, e),
-                                    Launcher.frmDownloadCompDetail.Save_Click, badDisplayName));
-                            break;
-                        }
-                        case Comp.CompType.World:
-                        {
-                            foreach (var item in list)
-                                stack.Children.Add(item.ToListItem(
-                                    (sender, e) =>
-                                        Launcher.frmDownloadCompDetail.InstallWorld_Click((MyListItem)sender, e),
-                                    Launcher.frmDownloadCompDetail.Save_Click, badDisplayName));
-                            break;
-                        }
-
-                        default:
-                        {
-                            CompCardUi.CompFilesCardPreload(stack, list);
-                            foreach (var item in list)
-                                stack.Children.Add(item.ToListItem(Launcher.frmDownloadCompDetail.Save_Click,
-                                    badDisplayName: badDisplayName));
-                            break;
-                        }
-                    }
-                };
-
-                PanResults.Children.Add(newCard);
-
-                // 展开逻辑
-                if ((currentKey ?? "") == (targetCardName ?? "") || additionalTitles.Contains(newCard.Title))
-                    newCard.StackInstall();
-                else
-                    newCard.IsSwapped = true;
-
-                // 特殊提示
-                if (currentKey == Lang.Text("Download.Comp.Detail.VersionGroup.Other"))
-                    newStack.Children.Add(new MyHint
-                    {
-                        Text = Lang.Text("Download.Comp.Detail.VersionRecognitionDelayHint"),
-                        Theme = MyHint.Themes.Yellow,
-                        Margin = new Thickness(5d, 0d, 0d, 8d)
-                    });
+                groups.Add(CompFileGroupViewModel.Create(
+                    pair.Key, pair.Value, _project.Type, isSwapped, showRecognitionHint,
+                    (sender, e) => Launcher.frmDownloadCompDetail.Install_Click((MyListItem)sender, e),
+                    (sender, e) => Launcher.frmDownloadCompDetail.InstallWorld_Click((MyListItem)sender, e),
+                    Launcher.frmDownloadCompDetail.Save_Click));
             }
 
-            // 单卡片自动展开
-            if (PanResults.Children.Count == 1) ((MyCard)PanResults.Children[0]).IsSwapped = false;
+            // 整体替换集合，只触发一次集合变更通知
+            _vm.FileGroups = new ObservableCollection<CompFileGroupViewModel>(groups);
         }
 
         catch (Exception ex)
@@ -1088,6 +1023,29 @@ public partial class PageDownloadCompDetail : IPageView
                 Common.LogLevel.Feedback,
                 userSummary: Lang.Text("Download.Comp.Error.OperationFailed"));
         }
+    }
+
+    /// <summary>
+    ///     依赖栏与「版本列表」标题的一次性映射：其中包含依赖工程条目与本地化文案，无法用纯绑定表达。
+    /// </summary>
+    private void FileDependencies_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (sender is not StackPanel panel || panel.DataContext is not CompFileGroupViewModel group) return;
+        if (panel.Tag is not null) return;
+        panel.Tag = group;
+        // 依赖栏只在普通资源中显示，整合包与世界保持与改造前一致
+        if (_project.Type is Comp.CompType.ModPack or Comp.CompType.World) return;
+        CompCardUi.CompFilesCardPreload(panel, group.Files);
+    }
+
+    /// <summary>
+    ///     文件条目的一次性映射：MyVirtualizingElement 要求父级是 Panel，且其 Info 依赖 LocalizedText 延迟绑定。
+    /// </summary>
+    private void CompFileItem_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (sender is not StackPanel panel || panel.DataContext is not CompFileItemViewModel item) return;
+        if (panel.Children.Count > 0) return;
+        panel.Children.Add(item.Element);
     }
 
     /// <summary>

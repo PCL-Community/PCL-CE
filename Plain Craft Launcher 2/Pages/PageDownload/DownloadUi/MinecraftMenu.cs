@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -20,69 +20,35 @@ public static partial class DownloadUi
         MyListItem.ClickEventHandler onClick,
         bool isSaveOnly)
     {
-        var logo = (entry["type"]?.ToString() ?? "") switch
-        {
-            "release" => $"{Common.PathImage}Blocks/Grass.png",
-            "snapshot" or "pending" => $"{Common.PathImage}Blocks/CommandBlock.png",
-            "special" => $"{Common.PathImage}Blocks/GoldBlock.png",
-            _ => $"{Common.PathImage}Blocks/CobbleStone.png"
-        };
-
-        var versionId = entry["id"]?.ToString() ?? "";
-        var formattedVersion = McFormatter.FormatVersion(versionId).Replace("_", " ");
+        // 与版本列表的 DataTemplate 共用同一套映射，避免控件工厂与数据模板各写一份格式化逻辑
+        var row = GameVersionItemViewModel.FromEntry(entry);
         var newItem = new MyListItem
         {
-            Logo = logo,
+            Logo = row.Logo,
             SnapsToDevicePixels = true,
-            Title = formattedVersion,
+            Title = row.Title,
             Height = 42d,
             Type = MyListItem.CheckType.Clickable,
-            Tag = entry
+            Tag = row.Entry
         };
-        if (entry["lore"] is null)
-        {
-            var releaseTime = entry["releaseTime"].ToObject<DateTime>();
-            LocalizedText.TryBind(
-                newItem,
-                "Info",
-                () => formattedVersion != versionId
-                    ? $"{Lang.Date(releaseTime, "g")} | {versionId}"
-                    : Lang.Date(releaseTime, "g"));
-        }
-        else
-        {
-            var loreKey = entry["lore"].ToString();
-            var loreRawArgs = (entry["loreArgs"] as JsonArray)
-                ?.Select(object? (node) => node?.ToString())
-                .ToArray() ?? [];
-            var isDateArg = (string)entry["loreArgsType"] == "date";
-            LocalizedText.TryBind(
-                newItem,
-                "Info",
-                () =>
-                {
-                    var loreArgs = isDateArg &&
-                                   loreRawArgs.Length == 1 &&
-                                   DateTime.TryParse(
-                                       loreRawArgs[0]?.ToString(),
-                                       CultureInfo.InvariantCulture,
-                                       DateTimeStyles.RoundtripKind, out var loreDate)
-                        ? [Lang.Date(loreDate, "g")]
-                        : loreRawArgs;
-                    return formattedVersion != versionId
-                        ? $"{Lang.Text(loreKey, loreArgs)} | {versionId}"
-                        : Lang.Text(loreKey, loreArgs);
-                });
-        }
-
-        if ((entry["url"]?.ToString() ?? "").Contains("unlisted-versions-of-minecraft"))
-            newItem.Tags = "Download.Source.Tag.Uvmc";
+        LocalizedText.TryBind(newItem, "Info", () => row.Info.Value);
+        if (row.Tags is not null)
+            newItem.Tags = row.Tags;
         newItem.Click += onClick;
-        if (isSaveOnly)
-            newItem.ContentHandler = McDownloadSaveMenuBuild;
-        else
-            newItem.ContentHandler = McDownloadMenuBuild;
+        McDownloadListItemAttachMenu(newItem, isSaveOnly);
         return newItem;
+    }
+
+    /// <summary>
+    ///     为版本列表项挂上懒加载的右键菜单。<br />
+    ///     <see cref="MyListItem.ContentHandler" /> 不是依赖属性，XAML 数据模板无法直接设置，需在 code-behind 里调用。
+    /// </summary>
+    public static void McDownloadListItemAttachMenu(MyListItem item, bool isSaveOnly = true)
+    {
+        if (isSaveOnly)
+            item.ContentHandler = McDownloadSaveMenuBuild;
+        else
+            item.ContentHandler = McDownloadMenuBuild;
     }
 
     private static void McDownloadSaveMenuBuild(object sender, EventArgs _)

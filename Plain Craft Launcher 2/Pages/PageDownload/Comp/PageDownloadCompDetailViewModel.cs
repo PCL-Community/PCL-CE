@@ -23,6 +23,9 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
 
     [ObservableProperty] private bool _isFavorite;
 
+    /// <summary>文件列表的版本分组，整体替换以只触发一次集合变更通知。</summary>
+    [ObservableProperty] private ObservableCollection<CompFileGroupViewModel> _fileGroups = [];
+
     public ObservableCollection<CompFilterChip> InstanceFilterLabelChips { get; } = [];
 
     public ObservableCollection<CompFilterChip> ModLoaderFilterLabelChips { get; } = [];

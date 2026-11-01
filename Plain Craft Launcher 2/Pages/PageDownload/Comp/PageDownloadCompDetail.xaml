@@ -1,4 +1,4 @@
-﻿<local:MyPageRight
+<local:MyPageRight
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:PCL"
@@ -118,7 +118,54 @@
                         </StackPanel>
                     </StackPanel>
                 </local:MyCard>
-                <StackPanel Name="PanResults" />
+                <!--
+                    文件列表：每个版本分组一张 MyCard，由 VM 的 FileGroups 驱动。
+                    整页滚动由外层 MyScrollViewer 负责，所以这里的 ItemsPanel 用普通 StackPanel，
+                    不做虚拟化——真正的虚拟化由每个文件条目自身的 MyVirtualizingElement 完成
+                    （折叠的分组不会实例化条目，因此不需要在分组层再虚拟化）。
+                -->
+                <ItemsControl Name="PanResults" ItemsSource="{Binding FileGroups}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Vertical" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <local:MyCard Title="{Binding Title}" Margin="0,0,0,15" CanSwap="True"
+                                          IsSwapped="{Binding IsSwapped, Mode=TwoWay}">
+                                <StackPanel Orientation="Vertical" VerticalAlignment="Top">
+                                    <StackPanel.Margin>
+                                        <Thickness Left="20" Top="{x:Static local:MyCard.SwapedHeight}" Right="18"
+                                                   Bottom="0" />
+                                    </StackPanel.Margin>
+                                    <!--
+                                        依赖栏与「版本列表」标题由 code-behind 在 Loaded 时一次性填充：
+                                        其内容包含依赖工程条目与本地化文案，无法用纯绑定表达。
+                                    -->
+                                    <StackPanel x:Name="PanFileDependencies" Loaded="FileDependencies_Loaded" />
+                                    <ItemsControl ItemsSource="{Binding Items}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <StackPanel Orientation="Vertical" />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <!-- MyVirtualizingElement 要求父级是 Panel，故用宿主 StackPanel 承接惰性元素 -->
+                                                <StackPanel Loaded="CompFileItem_Loaded" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <Border Height="18" />
+                                    <local:MyHint Text="{loc:Loc Download.Comp.Detail.VersionRecognitionDelayHint}"
+                                                  Theme="Yellow" Margin="5,0,0,8"
+                                                  Visibility="{Binding RecognitionHintVisibility}" />
+                                </StackPanel>
+                            </local:MyCard>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
             </StackPanel>
             <local:MyCard Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center"
                           SnapsToDevicePixels="True" x:Name="PanLoad" UseAnimation="False" Margin="0,0,0,8">
