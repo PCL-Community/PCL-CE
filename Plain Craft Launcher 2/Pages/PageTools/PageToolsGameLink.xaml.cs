@@ -993,7 +993,7 @@ public partial class PageToolsGameLink : IPageView
     #region PanLoad | 加载中页面
 
     // 承接状态切换的 UI 改变
-    private void OnLoadStateChanged(Loading.LoaderBase loader, Common.LoadState newState, Common.LoadState oldState)
+    private void OnLoadStateChanged(Loading.LoaderBase loader, LoadState newState, LoadState oldState)
     {
     }
 
@@ -1015,7 +1015,7 @@ public partial class PageToolsGameLink : IPageView
     // 承接重试
     private void CardLoad_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
-        if (initLoader.State != Common.LoadState.Failed)
+        if (initLoader.State != LoadState.Failed)
             return;
         initLoader.Start(isForceRestart: true);
     }
@@ -1023,14 +1023,14 @@ public partial class PageToolsGameLink : IPageView
     // 取消加载
     private void CancelLoad(object sender, EventArgs eventArgs)
     {
-        if (initLoader.State == Common.LoadState.Loading)
+        if (initLoader.State == LoadState.Loading)
         {
             CurrentSubpage = Subpages.PanSelect;
             initLoader.Abort();
         }
         else
         {
-            initLoader.State = Common.LoadState.Waiting;
+            initLoader.State = LoadState.Waiting;
         }
     }
 

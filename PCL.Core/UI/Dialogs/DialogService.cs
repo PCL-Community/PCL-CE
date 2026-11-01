@@ -5,8 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Interop;
-using System.Windows.Threading;
 
 namespace PCL.Core.UI.Dialogs;
 
@@ -57,17 +55,17 @@ public sealed class DialogService : IDialogService
         {
             if (dialog.IsClosed) return;
 
-            var frame = dialog.WaitFrame;
-            if (!frame.Continue) return;
+            var frame = UiDispatcher.CreateModalFrame();
+            if (frame is null) return;
 
-            ComponentDispatcher.PushModal();
+            dialog.WaitFrame = frame;
             try
             {
-                Dispatcher.PushFrame(frame);
+                frame.Run();
             }
             finally
             {
-                ComponentDispatcher.PopModal();
+                dialog.WaitFrame = null;
             }
         }
 

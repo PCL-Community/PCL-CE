@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
-using System.Windows;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.IoC;
+using PCL.Core.Platform;
 
 namespace PCL.Core.App.Localization;
 
@@ -31,16 +31,13 @@ public sealed partial class LocalizationService
     /// </summary>
     public const string DefaultLanguageCode = "zh-CN";
 
-    private const string AssemblyResourcePrefix = "/PCL.Core;component/App/Localization/Languages/";
-
     private static readonly LocalizationLanguage _DefaultLanguage = new(
         DefaultLanguageCode,
         "简体中文（中国大陆）",
         "zh-CN",
         LocalizationFontProfile.SimplifiedChinese);
 
-    private static ResourceDictionary? _baseLanguageDictionary;
-    private static ResourceDictionary? _currentLanguageDictionary;
+    private static bool _isLanguageResourcesApplied;
     private static CultureInfo _systemFormatCulture = CultureInfo.CurrentCulture;
     private static CultureInfo _systemUiCulture = CultureInfo.CurrentUICulture;
 
@@ -52,7 +49,8 @@ public sealed partial class LocalizationService
     /// <summary>
     ///     当前 UI 展示格式所使用的区域性。
     /// </summary>
-    public static CultureInfo CurrentFormatCulture { get; private set; } = CultureInfo.CurrentCulture;
+    public static CultureInfo CurrentFormatCulture { get; private set; } =
+        CultureInfo.CurrentCulture;
 
     /// <summary>
     ///     受支持的 UI 语言。
@@ -69,25 +67,26 @@ public sealed partial class LocalizationService
     ];
 
     [RegisterConfigEvent]
-    public static ConfigEventRegistry OnLanguageConfigChanged => new(
-        [
-            Config.Preference.Localization.LanguageConfig,
-            Config.Preference.Localization.FormatCultureConfig
-        ],
-        trigger: ConfigEvent.Update,
-        handler: _ => ApplyFromConfig()
-    );
+    public static ConfigEventRegistry OnLanguageConfigChanged =>
+        new(
+            [
+                Config.Preference.Localization.LanguageConfig,
+                Config.Preference.Localization.FormatCultureConfig
+            ],
+            trigger: ConfigEvent.Update,
+            handler: _ => ApplyFromConfig()
+        );
+
+    /// <summary>
+    ///     界面文案修订号。<br />
+    ///     每次 UI 语言或展示格式生效后递增，供页面判断自己上一次渲染的文案是否已经过期。
+    /// </summary>
+    public static int UiRevision { get; private set; }
 
     /// <summary>
     ///     语言或展示格式更改后触发。
     /// </summary>
     public static event Action? LanguageChanged;
-
-    /// <summary>
-    ///     界面文案修订号。<br/>
-    ///     每次 UI 语言或展示格式生效后递增，供页面判断自己上一次渲染的文案是否已经过期。
-    /// </summary>
-    public static int UiRevision { get; private set; }
 
     [LifecycleStart]
     private static void _Start()
@@ -120,19 +119,34 @@ public sealed partial class LocalizationService
     /// <param name="languageCode">UI 语言代码，auto 表示跟随系统语言。</param>
     /// <param name="formatCultureCode">展示格式区域性，auto 表示跟随系统区域格式。</param>
     /// <param name="save">是否写回配置。</param>
-    public static void Apply(string languageCode, string formatCultureCode = Auto, bool save = true)
+    public static void Apply(
+        string languageCode,
+        string formatCultureCode = Auto,
+        bool save = true)
     {
         var normalizedLanguageCode = _NormalizeConfigValue(languageCode);
         var language = ResolveLanguage(normalizedLanguageCode);
         var uiCulture = CultureInfo.GetCultureInfo(language.CultureName);
-        var formatCulture = _ResolveFormatCulture(formatCultureCode, uiCulture, out var normalizedFormatCultureCode);
+        var formatCulture = _ResolveFormatCulture(
+            formatCultureCode,
+            uiCulture,
+            out var normalizedFormatCultureCode);
 
-        var isLanguageChanged = !string.Equals(CurrentLanguage.Code, language.Code, StringComparison.OrdinalIgnoreCase);
-        var isFormatCultureChanged = !string.Equals(CurrentFormatCulture.Name, formatCulture.Name,
+        var isLanguageChanged = !string.Equals(
+            CurrentLanguage.Code,
+            language.Code,
             StringComparison.OrdinalIgnoreCase);
-        if (_baseLanguageDictionary is not null && !isLanguageChanged && !isFormatCultureChanged)
+        var isFormatCultureChanged = !string.Equals(
+            CurrentFormatCulture.Name,
+            formatCulture.Name,
+            StringComparison.OrdinalIgnoreCase);
+        if (_isLanguageResourcesApplied && !isLanguageChanged && !isFormatCultureChanged)
         {
-            _SaveConfigIfNeeded(save, normalizedLanguageCode, language, normalizedFormatCultureCode);
+            _SaveConfigIfNeeded(
+                save,
+                normalizedLanguageCode,
+                language,
+                normalizedFormatCultureCode);
             return;
         }
 
@@ -140,7 +154,7 @@ public sealed partial class LocalizationService
         _ApplyLanguageResources(language.Code, uiCulture, formatCulture);
 
         CurrentLanguage = language;
-        LocalizationFontService.ApplyLaunchFont(
+        PlatformServices.Localization?.ApplyLaunchFont(
             ConfigService.IsInitialized ? Config.Preference.Font : null,
             language);
         CurrentFormatCulture = formatCulture;
@@ -169,21 +183,28 @@ public sealed partial class LocalizationService
     /// </summary>
     public static LocalizationLanguage ResolveLanguage(string? languageCode)
     {
-        if (string.IsNullOrWhiteSpace(languageCode) ||
-            string.Equals(languageCode, Auto, StringComparison.OrdinalIgnoreCase)) return _ResolveSystemLanguage();
+        if (string.IsNullOrWhiteSpace(languageCode)
+            || string.Equals(languageCode, Auto, StringComparison.OrdinalIgnoreCase))
+            return _ResolveSystemLanguage();
 
         var normalizedCode = _NormalizeCultureCode(languageCode);
         return SupportedLanguages.FirstOrDefault(language =>
-                   string.Equals(language.Code, normalizedCode, StringComparison.OrdinalIgnoreCase))
-               ?? _DefaultLanguage;
+                string.Equals(language.Code, normalizedCode, StringComparison.OrdinalIgnoreCase))
+            ?? _DefaultLanguage;
     }
 
-    private static void _SaveConfigIfNeeded(bool save, string normalizedLanguageCode, LocalizationLanguage language,
+    private static void _SaveConfigIfNeeded(
+        bool save,
+        string normalizedLanguageCode,
+        LocalizationLanguage language,
         string normalizedFormatCultureCode)
     {
         if (!save || !ConfigService.IsInitialized) return;
 
-        var configLanguageCode = string.Equals(normalizedLanguageCode, Auto, StringComparison.OrdinalIgnoreCase)
+        var configLanguageCode = string.Equals(
+            normalizedLanguageCode,
+            Auto,
+            StringComparison.OrdinalIgnoreCase)
             ? Auto
             : language.Code;
         if (Config.Preference.Localization.Language != configLanguageCode)
@@ -201,21 +222,26 @@ public sealed partial class LocalizationService
 
         var neutral = _systemUiCulture.TwoLetterISOLanguageName;
         return SupportedLanguages.FirstOrDefault(language =>
-                   language.Code.StartsWith(neutral + "-", StringComparison.OrdinalIgnoreCase))
-               ?? _DefaultLanguage;
+                language.Code.StartsWith(neutral + "-", StringComparison.OrdinalIgnoreCase))
+            ?? _DefaultLanguage;
     }
 
-    private static CultureInfo _ResolveFormatCulture(string? formatCultureCode, CultureInfo uiCulture,
+    private static CultureInfo _ResolveFormatCulture(
+        string? formatCultureCode,
+        CultureInfo uiCulture,
         out string normalizedCode)
     {
-        if (string.IsNullOrWhiteSpace(formatCultureCode) ||
-            string.Equals(formatCultureCode, Auto, StringComparison.OrdinalIgnoreCase))
+        if (string.IsNullOrWhiteSpace(formatCultureCode)
+            || string.Equals(formatCultureCode, Auto, StringComparison.OrdinalIgnoreCase))
         {
             normalizedCode = Auto;
             return _systemFormatCulture;
         }
 
-        if (string.Equals(formatCultureCode, FormatCultureFollowLanguage, StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(
+                formatCultureCode,
+                FormatCultureFollowLanguage,
+                StringComparison.OrdinalIgnoreCase))
         {
             normalizedCode = FormatCultureFollowLanguage;
             return uiCulture;
@@ -247,50 +273,32 @@ public sealed partial class LocalizationService
         Lang.SyncCulture(formatCulture);
     }
 
-    private static void _ApplyLanguageResources(string languageCode, CultureInfo uiCulture, CultureInfo formatCulture)
+    private static void _ApplyLanguageResources(
+        string languageCode,
+        CultureInfo uiCulture,
+        CultureInfo formatCulture)
     {
-        var app = Application.Current ?? Lifecycle.CurrentApplication;
-
-        if (!app.Dispatcher.CheckAccess())
+        var backend = PlatformServices.Localization;
+        if (backend is null)
         {
-            app.Dispatcher.Invoke(() =>
-            {
-                _ApplyCultures(uiCulture, formatCulture);
-                _ApplyLanguageResourcesCore(app, languageCode);
-            });
+            _ApplyCultures(uiCulture, formatCulture);
+            _isLanguageResourcesApplied = true;
             return;
         }
 
-        _ApplyLanguageResourcesCore(app, languageCode);
-    }
-
-    private static void _ApplyLanguageResourcesCore(Application app, string languageCode)
-    {
-        var dictionaries = app.Resources.MergedDictionaries;
-
-        if (_baseLanguageDictionary is not null) dictionaries.Remove(_baseLanguageDictionary);
-        if (_currentLanguageDictionary is not null) dictionaries.Remove(_currentLanguageDictionary);
-
-        _baseLanguageDictionary = _LoadLanguageDictionary(DefaultLanguageCode);
-        dictionaries.Add(_baseLanguageDictionary);
-
-        if (string.Equals(languageCode, DefaultLanguageCode, StringComparison.OrdinalIgnoreCase))
+        void Apply()
         {
-            _currentLanguageDictionary = null;
+            _ApplyCultures(uiCulture, formatCulture);
+            backend.ApplyLanguageResources(
+                DefaultLanguageCode,
+                string.Equals(languageCode, DefaultLanguageCode, StringComparison.OrdinalIgnoreCase)
+                    ? null
+                    : languageCode);
+            _isLanguageResourcesApplied = true;
         }
-        else
-        {
-            _currentLanguageDictionary = _LoadLanguageDictionary(languageCode);
-            dictionaries.Add(_currentLanguageDictionary);
-        }
-    }
 
-    private static ResourceDictionary _LoadLanguageDictionary(string languageCode)
-    {
-        return new ResourceDictionary
-        {
-            Source = new Uri($"{AssemblyResourcePrefix}{languageCode}.xaml", UriKind.Relative)
-        };
+        if (backend.CheckAccess()) Apply();
+        else backend.Invoke(Apply);
     }
 
     private static string _NormalizeConfigValue(string? value)

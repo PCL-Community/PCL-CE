@@ -82,16 +82,18 @@ public partial class PageDownloadForge
     // Forge 版本列表加载
     public void Forge_Click(MyLoading sender, MouseButtonEventArgs e)
     {
-        if (sender.State.LoadingState == MyLoading.MyLoadingState.Error)
+        if (sender.State.LoadingState == LoadingState.Error)
             ((Loading.LoaderTask<string, List<GameDownload.DlForgeVersionEntry>>)sender.State)
                 .Start(
                 isForceRestart: true);
     }
 
-    public void Forge_StateChanged(MyLoading sender, MyLoading.MyLoadingState newState,
-        MyLoading.MyLoadingState oldState)
+    public void Forge_StateChanged(
+        MyLoading sender,
+        LoadingState newState,
+        LoadingState oldState)
     {
-        if (newState != MyLoading.MyLoadingState.Stop)
+        if (newState != LoadingState.Stop)
             return;
 
         var card = (MyCard)((FrameworkElement)sender.Parent).Parent;

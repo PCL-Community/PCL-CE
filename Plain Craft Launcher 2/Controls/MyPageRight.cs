@@ -127,13 +127,13 @@ public class MyPageRight : AdornerDecorator
             }
         }
 
-        if (_pageLoader.State == Common.LoadState.Finished && finishedInvoke is not null)
+        if (_pageLoader.State == LoadState.Finished && finishedInvoke is not null)
             Common.RunInUiWait(() => finishedInvoke(realLoader)); // 加载器已提前完成，直接触发事件
         // 设置加载环
         _pageLoaderUi.State = realLoader;
         _pageLoaderUi.Click += (_, _) =>
         {
-            if (realLoader.State == Common.LoadState.Failed) PageLoaderRestart();
+            if (realLoader.State == LoadState.Failed) PageLoaderRestart();
         }; // 点击重试事件
     }
 
@@ -194,15 +194,15 @@ public class MyPageRight : AdornerDecorator
         {
             case PageStates.Empty:
             {
-                if (_pageLoader is null || _pageLoader.State == Common.LoadState.Finished ||
-                    _pageLoader.State == Common.LoadState.Waiting ||
-                    _pageLoader.State == Common.LoadState.Aborted)
+                if (_pageLoader is null || _pageLoader.State == LoadState.Finished ||
+                    _pageLoader.State == LoadState.Waiting ||
+                    _pageLoader.State == LoadState.Aborted)
                 {
                     // 如果加载器在进入页面时不启动（例如联机），那么在此时就会有 State = Waiting
                     PageState = PageStates.ContentEnter;
                     TriggerEnterAnimation(_panAlways, (FrameworkElement)(_panContent ?? Child));
                 }
-                else if (_pageLoader.State == Common.LoadState.Loading)
+                else if (_pageLoader.State == LoadState.Loading)
                 {
                     PageState = PageStates.LoaderWait;
                     Animations.AniStart(Animations.AaCode(PageOnLoaderWaitFinished, 400),
@@ -219,14 +219,14 @@ public class MyPageRight : AdornerDecorator
             case PageStates.ContentExit:
             {
                 // 和上面的一样，但是不管 PanAlways
-                if (_pageLoader is null || _pageLoader.State == Common.LoadState.Finished ||
-                    _pageLoader.State == Common.LoadState.Waiting ||
-                    _pageLoader.State == Common.LoadState.Aborted)
+                if (_pageLoader is null || _pageLoader.State == LoadState.Finished ||
+                    _pageLoader.State == LoadState.Waiting ||
+                    _pageLoader.State == LoadState.Aborted)
                 {
                     PageState = PageStates.ContentEnter;
                     TriggerEnterAnimation((FrameworkElement)(_panContent ?? Child));
                 }
-                else if (_pageLoader.State == Common.LoadState.Loading)
+                else if (_pageLoader.State == LoadState.Loading)
                 {
                     PageState = PageStates.LoaderWait;
                     Animations.AniStart(Animations.AaCode(PageOnLoaderWaitFinished, 400),
@@ -343,7 +343,7 @@ public class MyPageRight : AdornerDecorator
     {
         if (Common.modeDebug)
             Common.Log("[UI] 已触发 PageOnContentExit");
-        if (_pageLoader is not null && _pageLoader.State == Common.LoadState.Loading)
+        if (_pageLoader is not null && _pageLoader.State == LoadState.Loading)
             throw new Exception("在调用 PageOnContentExit 时，加载器不能为 Loading 状态");
         // Loading 的加载器可能触发进一步变化，难以预测会触发子页面的动画还是加载器完成的动画
         switch (PageState)
@@ -485,7 +485,7 @@ public class MyPageRight : AdornerDecorator
         {
             case PageStates.LoaderStayForce:
             {
-                if (_pageLoader.State == Common.LoadState.Finished)
+                if (_pageLoader.State == LoadState.Finished)
                 {
                     PageState = PageStates.LoaderExit;
                     TriggerExitAnimation(_panLoader);
@@ -509,15 +509,15 @@ public class MyPageRight : AdornerDecorator
     /// <summary>
     ///     全局加载状态已改变。
     /// </summary>
-    private void PageLoaderState(object sender, Common.LoadState newState,
-        Common.LoadState oldState)
+    private void PageLoaderState(object sender, LoadState newState,
+        LoadState oldState)
     {
         switch (newState)
         {
-            case Common.LoadState.Failed:
-            case Common.LoadState.Loading:
+            case LoadState.Failed:
+            case LoadState.Loading:
             {
-                if (oldState == Common.LoadState.Failed || oldState == Common.LoadState.Loading)
+                if (oldState == LoadState.Failed || oldState == LoadState.Loading)
                     return;
                 if (Common.modeDebug)
                     Common.Log("[UI] 已触发 PageLoaderState (Start/Refresh)");
@@ -541,11 +541,11 @@ public class MyPageRight : AdornerDecorator
 
                 break;
             }
-            case Common.LoadState.Finished:
-            case Common.LoadState.Aborted:
-            case Common.LoadState.Waiting:
+            case LoadState.Finished:
+            case LoadState.Aborted:
+            case LoadState.Waiting:
             {
-                if (oldState != Common.LoadState.Failed && oldState != Common.LoadState.Loading)
+                if (oldState != LoadState.Failed && oldState != LoadState.Loading)
                     return;
                 if (Common.modeDebug)
                     Common.Log("[UI] 已触发 PageLoaderState (Stop/Abort)");

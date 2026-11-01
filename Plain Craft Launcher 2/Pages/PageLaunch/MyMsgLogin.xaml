@@ -3,7 +3,7 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="clr-namespace:PCL"
                    xmlns:loc="https://ce.pclc.cc/core/localization"
-      xmlns:controls="clr-namespace:PCL.Core.UI.Controls;assembly=PCL.Core"
+      xmlns:controls="clr-namespace:PCL.Core.UI.Controls;assembly=PCL.Core.Wpf"
       RenderTransformOrigin="0,0.5" UseLayoutRounding="True" SnapsToDevicePixels="True" MinWidth="400"
       HorizontalAlignment="Center" VerticalAlignment="Center" Margin="25">
     <Grid.RenderTransform>

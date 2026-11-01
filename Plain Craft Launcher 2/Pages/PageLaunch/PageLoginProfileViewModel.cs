@@ -97,8 +97,8 @@ public partial class PageLoginProfileViewModel : ViewModelBase
     {
         ProfileService.Select(item.Profile);
         Common.Log($"[Profile] 选定档案: {item.Profile.UserName}, 以 {item.Profile.ProfileType} 方式验证");
-        GameLaunch.mcLoginMsLoader.State = Common.LoadState.Waiting;
-        GameLaunch.mcLoginAuthLoader.State = Common.LoadState.Waiting;
-        GameLaunch.mcLoginLegacyLoader.State = Common.LoadState.Waiting;
+        GameLaunch.mcLoginMsLoader.State = LoadState.Waiting;
+        GameLaunch.mcLoginAuthLoader.State = LoadState.Waiting;
+        GameLaunch.mcLoginLegacyLoader.State = LoadState.Waiting;
     }
 }

@@ -4,9 +4,9 @@
              xmlns:local="clr-namespace:PCL"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:behaviors="clr-namespace:PCL.Controls.Behaviors"
-             xmlns:controls="clr-namespace:PCL.Core.UI.Controls;assembly=PCL.Core"
-             xmlns:cvt="clr-namespace:PCL.Core.UI.Converters;assembly=PCL.Core"
-             xmlns:localization="clr-namespace:PCL.Core.App.Localization;assembly=PCL.Core"
+             xmlns:controls="clr-namespace:PCL.Core.UI.Controls;assembly=PCL.Core.Wpf"
+             xmlns:cvt="clr-namespace:PCL.Core.UI.Converters;assembly=PCL.Core.Wpf"
+             xmlns:localization="clr-namespace:PCL.Core.App.Localization;assembly=PCL.Core.Wpf"
              ShutdownMode="OnExplicitShutdown">
     <Application.Resources>
         <ResourceDictionary>

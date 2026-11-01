@@ -264,15 +264,15 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
         List<string> showingSaves;
         if (searching)
         {
-            var queryList = new List<Common.SearchEntry<string>>();
+            var queryList = new List<SearchService.SearchEntry<string>>();
             foreach (var saveFolder in _saveFolders)
             {
                 var folderName = GetFolderNameFromPath(saveFolder);
-                var searchSource = new List<Common.SearchSource> { new(folderName, 1d) };
-                queryList.Add(new Common.SearchEntry<string> { item = saveFolder, searchSource = searchSource });
+                var searchSource = new List<SearchService.SearchSource> { new(folderName, 1d) };
+                queryList.Add(new SearchService.SearchEntry<string> { item = saveFolder, searchSource = searchSource });
             }
 
-            showingSaves = Common.Search(queryList, query, Common.MaxLocalSearchDepth, 0.35d)
+            showingSaves = SearchService.Search(queryList, query, SearchService.MaxLocalSearchDepth, 0.35d)
                 .Select(r => r.item).ToList();
         }
         else

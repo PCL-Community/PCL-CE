@@ -93,10 +93,10 @@ public static partial class GameLink
         if (dlEasyTierLoader is not null)
             switch (dlEasyTierLoader.State)
             {
-                case Common.LoadState.Loading:
+                case LoadState.Loading:
                     HintService.Show(Hints.Info(Lang.Text("Link.Mod.EasyTierNotReady")));
                     return false;
-                case Common.LoadState.Failed or Common.LoadState.Aborted:
+                case LoadState.Failed or LoadState.Aborted:
                     HintService.Show(Hints.Info(Lang.Text("Link.Mod.DownloadingEasyTier")));
                     DownloadEasyTier();
                     return false;

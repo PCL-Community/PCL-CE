@@ -54,7 +54,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
 
     private void PageExit_UnselectedAll() => UnselectedAllWithAnimation();
 
-    private void Load_StateChanged(object sender, MyLoading.MyLoadingState newState, MyLoading.MyLoadingState oldState) =>
+    private void Load_StateChanged(object sender, LoadingState newState, LoadingState oldState) =>
         UnselectedAllWithAnimation();
 
     private void Page_Unloaded(object sender, RoutedEventArgs e)
@@ -273,7 +273,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
 
     private void Load_Click(object sender, MouseButtonEventArgs e)
     {
-        if (LocalComp.CompResourceListLoader.State == Common.LoadState.Failed)
+        if (LocalComp.CompResourceListLoader.State == LoadState.Failed)
             LoaderRun(Loading.LoaderFolderRunType.ForceRun);
     }
 
@@ -2158,7 +2158,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
                 // 结果提示
                 switch (loader.State)
                 {
-                    case Common.LoadState.Finished:
+                    case LoadState.Finished:
                         {
                             switch (finishedFileNames.Count)
                             {
@@ -2182,12 +2182,12 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
 
                             break;
                         }
-                    case Common.LoadState.Failed:
+                    case LoadState.Failed:
                         {
                             HintService.Show(Hints.Error(Lang.Text("Instance.Resource.Update.Failed", loader.Error.Message)));
                             break;
                         }
-                    case Common.LoadState.Aborted:
+                    case LoadState.Aborted:
                         {
                             HintService.Show(Hints.Info(Lang.Text("Instance.Resource.Update.Aborted")));
                             break;
@@ -2376,7 +2376,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
     {
         var selected = LocalComp.CompResourceListLoader.output
             .Where(m => selectedMods.Contains(m.RawPath) && m.Comp is not null).Select(i => i.Comp).ToList();
-        Comp.CompFavorites.ShowMenu(selected, (UIElement)sender);
+        CompFavoritesUi.ShowMenu(selected, (UIElement)sender);
     }
 
     // 分享
@@ -2961,32 +2961,32 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView
     private List<LocalComp.LocalCompFile> GetSearchResult(string query)
     {
         // 构造请求
-        var queryList = new List<Common.SearchEntry<LocalComp.LocalCompFile>>();
+        var queryList = new List<SearchService.SearchEntry<LocalComp.LocalCompFile>>();
         foreach (var entry in LocalComp.CompResourceListLoader.output.AsReadOnly())
         {
-            var searchSource = new List<Common.SearchSource>();
-            searchSource.Add(new Common.SearchSource(entry.Name, 1d));
-            searchSource.Add(new Common.SearchSource(entry.FileName, 1d));
-            if (entry.Version is not null) searchSource.Add(new Common.SearchSource(entry.Version, 0.2d));
+            var searchSource = new List<SearchService.SearchSource>();
+            searchSource.Add(new SearchService.SearchSource(entry.Name, 1d));
+            searchSource.Add(new SearchService.SearchSource(entry.FileName, 1d));
+            if (entry.Version is not null) searchSource.Add(new SearchService.SearchSource(entry.Version, 0.2d));
             if (entry.Description is not null && !string.IsNullOrEmpty(entry.Description))
-                searchSource.Add(new Common.SearchSource(entry.Description, 0.4d));
+                searchSource.Add(new SearchService.SearchSource(entry.Description, 0.4d));
             if (entry.Comp is not null)
             {
                 if ((entry.Comp.RawName ?? "") != (entry.Name ?? ""))
-                    searchSource.Add(new Common.SearchSource(entry.Comp.RawName, 1d));
+                    searchSource.Add(new SearchService.SearchSource(entry.Comp.RawName, 1d));
                 if ((entry.Comp.TranslatedName ?? "") != (entry.Comp.RawName ?? ""))
-                    searchSource.Add(new Common.SearchSource(entry.Comp.TranslatedName, 1d));
+                    searchSource.Add(new SearchService.SearchSource(entry.Comp.TranslatedName, 1d));
                 if ((entry.Comp.Description ?? "") != (entry.Description ?? ""))
-                    searchSource.Add(new Common.SearchSource(entry.Comp.Description, 0.4d));
-                searchSource.Add(new Common.SearchSource(string.Join("", entry.Comp.Tags), 0.2d));
+                    searchSource.Add(new SearchService.SearchSource(entry.Comp.Description, 0.4d));
+                searchSource.Add(new SearchService.SearchSource(string.Join("", entry.Comp.Tags), 0.2d));
             }
 
-            queryList.Add(new Common.SearchEntry<LocalComp.LocalCompFile>
+            queryList.Add(new SearchService.SearchEntry<LocalComp.LocalCompFile>
             { item = entry, searchSource = searchSource });
         }
 
         // 进行搜索
-        return Common.Search(queryList, query, Common.MaxLocalSearchDepth, 0.35d).Select(r => r.item).ToList();
+        return SearchService.Search(queryList, query, SearchService.MaxLocalSearchDepth, 0.35d).Select(r => r.item).ToList();
     }
 
     #endregion
