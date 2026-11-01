@@ -208,7 +208,8 @@ public class MyImage : Image
     public new static readonly DependencyProperty SourceProperty = DependencyProperty.Register("Source", typeof(string),
         typeof(MyImage), new PropertyMetadata((sender, e) =>
         {
-            if (sender is not null) ((MyImage)sender).Source = e.NewValue.ToString();
+            // e.NewValue 可能为 null（绑定的源暂时为空，例如列表容器回收时的中间态），此时不能直接调用 ToString()
+            if (sender is not null) ((MyImage)sender).Source = e.NewValue?.ToString();
         }));
 
     /// <summary>
