@@ -15,7 +15,7 @@ public sealed class DialogService : IDialogService
 {
     public static DialogService Instance { get; } = new();
 
-    private readonly Queue<DialogViewModel> _queue = new();
+    private readonly Queue<DialogViewModel> _queue = [];
     private readonly Lock _lock = new();
     private DialogViewModel? _current;
 

@@ -1,13 +1,14 @@
-using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows;
 using PCL.Core.App;
 using PCL.Core.App.Essentials;
 using PCL.Core.App.IoC;
 using PCL.Core.App.Localization;
 using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
+using System;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows;
 
 namespace PCL.Core.Logging;
 
@@ -96,39 +97,46 @@ public class LogService : ILifecycleLogService
 
             // message box
             case ActionLevel.MsgBox or ActionLevel.MsgBoxErr:
-            {
-                var theme = actionLevel == ActionLevel.MsgBoxErr
-                    ? MsgBoxTheme.Error
-                    : MsgBoxTheme.Info;
+                {
+                    var isWarn = actionLevel == ActionLevel.MsgBoxErr;
 
-                var caption = entry.Exception is null
-                    ? null
-                    : Lang.Text("SystemDialog.Error.Unexpected.Title");
+                    var caption = entry.Exception is null
+                        ? null
+                        : Lang.Text("SystemDialog.Error.Unexpected.Title");
 
-                var message = _ComposeUserError(plain, entry.Exception);
+                    var message = _ComposeUserError(plain, entry.Exception);
 
-                if (actionLevel == ActionLevel.MsgBoxErr)
-                    message = Lang.Text("SystemDialog.Error.Message.WithLogExportGuidance", message);
+                    if (actionLevel == ActionLevel.MsgBoxErr)
+                        message = Lang.Text("SystemDialog.Error.Message.WithLogExportGuidance", message);
 
-                MsgBoxWrapper.Show(message, caption, theme, false);
-                break;
-            }
+                    //MsgBoxWrapper.Show(message, caption, theme, false);
+
+                    DialogService.Instance.Show(new TextDialogRequest
+                    {
+                        Title = caption,
+                        Content = message,
+                        IsWarn = isWarn,
+                        ForceWait = false
+                    });
+
+                    break;
+                }
 
             // fatal message box
             case ActionLevel.MsgBoxFatal:
-            {
-                var message = Lang.Text(
-                    "SystemDialog.Fatal.Message.WithFeedbackGuidance",
-                    _ComposeUserError(plain, entry.Exception));
+                {
+                    var message = Lang.Text(
+                        "SystemDialog.Fatal.Message.WithFeedbackGuidance",
+                        _ComposeUserError(plain, entry.Exception));
 
-                MessageBox.Show(
-                    message,
-                    Lang.Text("SystemDialog.Fatal.Title"),
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                    MessageBox.Show(
+                        message,
+                        Lang.Text("SystemDialog.Fatal.Title"),
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
 
-                break;
-            }
+                    break;
+                }
         }
     }
 
