@@ -23,7 +23,9 @@
         <ProjectReference Include="..\PCL.Core\PCL.Core.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <!-- 语言资源字典：由 WPF 语言 XAML 机械转换而来（仅命名空间差异），作为界面资源随程序集打包 -->
-        <AvaloniaResource Include="Localization\Languages\*.axaml" />
+        <!-- 语言资源字典：由 WPF 语言 XAML 机械转换而来（仅命名空间差异），文件归属中立的 PCL.Localization，此处链接为界面资源 -->
+        <AvaloniaResource Include="..\PCL.Localization\Languages\*.axaml">
+            <Link>Localization\Languages\%(Filename)%(Extension)</Link>
+        </AvaloniaResource>
     </ItemGroup>
 </Project>
