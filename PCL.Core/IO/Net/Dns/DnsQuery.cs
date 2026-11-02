@@ -42,14 +42,12 @@ public class DnsQuery : IDisposable
             new HttpClient(proxyHandler)
             {
                 BaseAddress = new Uri("https://cloudflare-dns.com/")
-            },
-            new HttpClient(proxyHandler)
-            {
-                BaseAddress = new Uri("https://dns.google/")
             }
         ];
+        // 权重竞速：候选集取权重前 2，权重随成功/失败动态涨落，
+        // 被阻断或劣质的上游会自动跌出候选集
         _resolver = new DnsCachingClient(
-            new WeightedDnsRacerClient(_httpClients.Length, _httpClients.Select(static x => new DnsHttpClient(x)).ToArray<IDnsClient>()),
+            new WeightedDnsRacerClient(2, _httpClients.Select(static x => new DnsHttpClient(x)).ToArray<IDnsClient>()),
             new MemoryCache("DoH Query Cache"));
     }
 
@@ -64,7 +62,10 @@ public class DnsQuery : IDisposable
         }
         catch (OperationCanceledException) when (!cts.IsCancellationRequested)
         {
-            // 仅 DoH 超时（非调用方取消）：交由调用方按需回退
+            // 仅 DoH 超时（非调用方取消）：交由调用方按需回退。
+            // 已知权衡：系统 DNS 在受干扰网络下可能返回被污染的结果
+            // （无任何解析方案可独立验证 IP 真伪），但它是 DoH 全部
+            // 不可用时唯一可用的来源，且多数常用域名不受影响
             LogWrapper.Warn(ModuleName, $"DoH query timeout for {host}, use system default DNS");
             return null;
         }
