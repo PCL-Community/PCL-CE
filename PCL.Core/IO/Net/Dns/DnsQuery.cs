@@ -42,10 +42,14 @@ public class DnsQuery : IDisposable
             new HttpClient(proxyHandler)
             {
                 BaseAddress = new Uri("https://cloudflare-dns.com/")
+            },
+            new HttpClient(proxyHandler)
+            {
+                BaseAddress = new Uri("https://dns.google/")
             }
         ];
         _resolver = new DnsCachingClient(
-            new WeightedDnsRacerClient(2, _httpClients.Select(static x => new DnsHttpClient(x)).ToArray<IDnsClient>()),
+            new WeightedDnsRacerClient(_httpClients.Length, _httpClients.Select(static x => new DnsHttpClient(x)).ToArray<IDnsClient>()),
             new MemoryCache("DoH Query Cache"));
     }
 
@@ -53,7 +57,15 @@ public class DnsQuery : IDisposable
     {
         try
         {
-            return await _resolver.Query(DnsQueryFactory.CreateQuery(host, qType), cts);
+            // DoH 独立超时：超时视为解析失败并回落系统 DNS，避免拖死上层下载
+            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cts);
+            timeoutCts.CancelAfter(TimeSpan.FromSeconds(5));
+            return await _resolver.Query(DnsQueryFactory.CreateQuery(host, qType), timeoutCts.Token);
+        }
+        catch (OperationCanceledException) when (!cts.IsCancellationRequested)
+        {
+            LogWrapper.Warn(ModuleName, $"DoH query timeout for {host}, use system default DNS");
+            return null;
         }
         catch (TaskCanceledException)
         {
