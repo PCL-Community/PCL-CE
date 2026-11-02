@@ -52,7 +52,7 @@ public sealed class WeightedDnsRacerClient : IDnsClient
         for (var i = 0; i < candidateIndexes.Length; i++)
         {
             var index = candidateIndexes[i];
-            var task = _QueryScoredAsync(index, _clients[index].Client, query, cts.Token);
+            var task = _QueryScoredAsync(index, _clients[index].Client, query, cts, ct);
             task.Forget();
             tasks[i] = task;
         }
@@ -64,9 +64,7 @@ public sealed class WeightedDnsRacerClient : IDnsClient
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         {
-            // 内建超时：悬挂到超时的候选视为失败并扣分
-            for (var i = 0; i < tasks.Length; i++)
-                if (tasks[i].IsCanceled) _Record(candidateIndexes[i], -FailurePenalty);
+            // 内建超时：悬挂候选已在 _QueryScoredAsync 内扣分
             throw;
         }
         catch (Exception ex) when (ct.IsCancellationRequested)
@@ -92,8 +90,10 @@ public sealed class WeightedDnsRacerClient : IDnsClient
     // ServFail/Refused 等错误状态不算"成功"——应继续竞速等待其他可能给出
     // 正确应答的上游；NoError（含空应答）与 NXDomain 是明确的否定/肯定结果，
     // 视为有效应答立即采用，避免普通域名的 SRV/否定查询被拖到整体超时
-    private async Task<DnsMessage> _QueryScoredAsync(int index, IDnsClient client, DnsMessage query, CancellationToken ct)
+    private async Task<DnsMessage> _QueryScoredAsync(
+        int index, IDnsClient client, DnsMessage query, CancellationTokenSource timeoutCts, CancellationToken callerCt)
     {
+        var ct = timeoutCts.Token;
         try
         {
             var response = await client.Query(query, ct).ConfigureAwait(false);
@@ -104,9 +104,13 @@ public sealed class WeightedDnsRacerClient : IDnsClient
             _Record(index, +SuccessReward);
             return response;
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested && !callerCt.IsCancellationRequested)
         {
-            // 取消不扣分：内建超时由 Query 顶层统一处理
+            // 内建超时取消：悬挂候选扣分。
+            // 在 wrapper 内扣分而不是在顶层检查 Task.IsCanceled——
+            // OCE 的令牌与任务令牌不匹配时任务会进入 Faulted 而非
+            // Canceled 状态，仅按任务状态判断会漏掉部分悬挂上游
+            _Record(index, -FailurePenalty);
             throw;
         }
         catch (Exception)

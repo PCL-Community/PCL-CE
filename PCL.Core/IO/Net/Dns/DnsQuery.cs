@@ -88,11 +88,6 @@ public class DnsQuery : IDisposable
             ]
         );
 
-        // 任一地址族查询失败/超时：整体回落系统 DNS，
-        // 避免遗漏仅通过该地址族可达的主机
-        if (queryResponse.Any(static x => x is null))
-            return await _SystemResolveAsync(host, cts);
-
         var addresses = queryResponse
             .Where(static x => x is not null)
             .SelectMany(static x => x!.Answers)
