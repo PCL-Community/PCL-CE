@@ -245,10 +245,12 @@ public static class Tooltip
             if (_target is not null)
             {
                 _cursor = Mouse.GetPosition(_target);
-                if (_IsCursorPlaced(_target) && _flyout is { IsOpen: true })
+                if (!_PointInside(_target, _cursor))
+                    _WindDown();
+                else if (_IsCursorPlaced(_target) && _flyout is { IsOpen: true })
                     _PlaceNear(_target, _cursor);
             }
-            else if (_flyout is { IsOpen: true, PlacementTarget: FrameworkElement ft }
+            else if (!_closing && _flyout is { IsOpen: true, PlacementTarget: FrameworkElement ft }
                      && _IsCursorPlaced(ft))
             {
                 _cursor = Mouse.GetPosition(ft);
