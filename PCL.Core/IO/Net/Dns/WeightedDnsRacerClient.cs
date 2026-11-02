@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Ae.Dns.Protocol;
+using Ae.Dns.Protocol.Enums;
 using PCL.Core.Utils.Exts;
 
 namespace PCL.Core.IO.Net.Dns;
@@ -39,7 +40,7 @@ public sealed class WeightedDnsRacerClient : IDnsClient
 
         for (var i = 0; i < candidates.Length; i++)
         {
-            var task = candidates[i].Client.Query(query, cts.Token);
+            var task = _QueryValidatedAsync(candidates[i].Client, query, cts.Token);
             task.Forget();
             tasks[i] = task;
         }
@@ -69,6 +70,19 @@ public sealed class WeightedDnsRacerClient : IDnsClient
 
         cts.Cancel();
         return await winnerTask.ConfigureAwait(false);
+    }
+
+    // ServFail/Refused 等错误状态不算"成功"——应继续竞速等待其他可能给出
+    // 正确应答的上游；NoError（含空应答）与 NXDomain 是明确的否定/肯定结果，
+    // 视为有效应答立即采用，避免普通域名的 SRV/否定查询被拖到整体超时
+    private static async Task<DnsMessage> _QueryValidatedAsync(IDnsClient client, DnsMessage query, CancellationToken ct)
+    {
+        var response = await client.Query(query, ct).ConfigureAwait(false);
+        if (response.Header?.ResponseCode is not (DnsResponseCode.NoError or DnsResponseCode.NXDomain)
+            || response.Answers is null)
+            throw new InvalidOperationException(
+                $"Unusable DNS response (code: {response.Header?.ResponseCode}).");
+        return response;
     }
 
     public void Dispose()
