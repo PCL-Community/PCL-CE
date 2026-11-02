@@ -52,7 +52,7 @@ public sealed class WeightedDnsRacerClient : IDnsClient
         for (var i = 0; i < candidateIndexes.Length; i++)
         {
             var index = candidateIndexes[i];
-            var task = _QueryScoredAsync(index, _clients[index].Client, query, cts, ct);
+            var task = _QueryScoredAsync(index, _clients[index].Client, query, timeoutCts, cts.Token);
             task.Forget();
             tasks[i] = task;
         }
@@ -91,12 +91,11 @@ public sealed class WeightedDnsRacerClient : IDnsClient
     // 正确应答的上游；NoError（含空应答）与 NXDomain 是明确的否定/肯定结果，
     // 视为有效应答立即采用，避免普通域名的 SRV/否定查询被拖到整体超时
     private async Task<DnsMessage> _QueryScoredAsync(
-        int index, IDnsClient client, DnsMessage query, CancellationTokenSource timeoutCts, CancellationToken callerCt)
+        int index, IDnsClient client, DnsMessage query, CancellationTokenSource timeoutCts, CancellationToken linkedCt)
     {
-        var ct = timeoutCts.Token;
         try
         {
-            var response = await client.Query(query, ct).ConfigureAwait(false);
+            var response = await client.Query(query, linkedCt).ConfigureAwait(false);
             if (response.Header?.ResponseCode is not (DnsResponseCode.NoError or DnsResponseCode.NXDomain)
                 || response.Answers is null)
                 throw new InvalidOperationException(
@@ -104,12 +103,10 @@ public sealed class WeightedDnsRacerClient : IDnsClient
             _Record(index, +SuccessReward);
             return response;
         }
-        catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested && !callerCt.IsCancellationRequested)
+        catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested)
         {
-            // 内建超时取消：悬挂候选扣分。
-            // 在 wrapper 内扣分而不是在顶层检查 Task.IsCanceled——
-            // OCE 的令牌与任务令牌不匹配时任务会进入 Faulted 而非
-            // Canceled 状态，仅按任务状态判断会漏掉部分悬挂上游
+            // 内建超时取消：悬挂候选扣分（调用方主动取消时 timeoutCts
+            // 未到期，不走此分支）
             _Record(index, -FailurePenalty);
             throw;
         }
