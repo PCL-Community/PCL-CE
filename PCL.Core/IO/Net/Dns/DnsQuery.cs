@@ -42,10 +42,14 @@ public class DnsQuery : IDisposable
             new HttpClient(proxyHandler)
             {
                 BaseAddress = new Uri("https://cloudflare-dns.com/")
+            },
+            new HttpClient(proxyHandler)
+            {
+                BaseAddress = new Uri("https://dns.google/")
             }
         ];
         _resolver = new DnsCachingClient(
-            new WeightedDnsRacerClient(2, _httpClients.Select(static x => new DnsHttpClient(x)).ToArray<IDnsClient>()),
+            new WeightedDnsRacerClient(_httpClients.Length, _httpClients.Select(static x => new DnsHttpClient(x)).ToArray<IDnsClient>()),
             new MemoryCache("DoH Query Cache"));
     }
 
@@ -53,10 +57,20 @@ public class DnsQuery : IDisposable
     {
         try
         {
-            return await _resolver.Query(DnsQueryFactory.CreateQuery(host, qType), cts);
+            // DoH 独立超时：超时视为解析失败并回落系统 DNS，避免拖死上层下载
+            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cts);
+            timeoutCts.CancelAfter(TimeSpan.FromSeconds(5));
+            return await _resolver.Query(DnsQueryFactory.CreateQuery(host, qType), timeoutCts.Token);
         }
-        catch (TaskCanceledException)
+        catch (OperationCanceledException) when (!cts.IsCancellationRequested)
         {
+            // 仅 DoH 超时（非调用方取消）：交由调用方按需回退
+            LogWrapper.Warn(ModuleName, $"DoH query timeout for {host}, use system default DNS");
+            return null;
+        }
+        catch (OperationCanceledException)
+        {
+            // 调用方主动取消：必须向上传播，不能被吞成"无结果"
             throw;
         }
         catch (Exception ex)
@@ -76,19 +90,43 @@ public class DnsQuery : IDisposable
             ]
         );
 
-        if (queryResponse.All(static x => x is null))
-        {
-            LogWrapper.Warn(ModuleName, $"Failed to query IP for host {host} using DoH, use system default DNS");
-            return await System.Net.Dns.GetHostAddressesAsync(host, cts);
-        }
+        // 任一地址族查询失败/超时：整体回落系统 DNS，
+        // 避免遗漏仅通过该地址族可达的主机
+        if (queryResponse.Any(static x => x is null))
+            return await _SystemResolveAsync(host, cts);
 
-        return queryResponse.Where(static x => x is not null)
+        var addresses = queryResponse
+            .Where(static x => x is not null)
             .SelectMany(static x => x!.Answers)
             .Where(static x => x.Type is DnsQueryType.A or DnsQueryType.AAAA)
             .Select(static x => x.Resource as DnsIpAddressResource)
             .Where(static x => x is not null)
             .Select(static x => x!.IPAddress)
             .ToArray();
+
+        // DoH 成功应答但无任何地址记录（域名不存在或无 A/AAAA）：
+        // 回退系统 DNS 判定，避免把 NXDOMAIN 误报为"解析成功但无地址"
+        if (addresses.Length == 0)
+            return await _SystemResolveAsync(host, cts);
+
+        return addresses;
+    }
+
+    private static async Task<IPAddress[]> _SystemResolveAsync(string host, CancellationToken ct)
+    {
+        try
+        {
+            return await System.Net.Dns.GetHostAddressesAsync(host, ct);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Warn(ModuleName, $"System DNS resolution failed for {host}: {ex.Message}");
+            return [];
+        }
     }
 
     public void Dispose()
