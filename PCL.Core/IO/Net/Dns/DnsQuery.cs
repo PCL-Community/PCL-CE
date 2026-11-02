@@ -56,16 +56,13 @@ public class DnsQuery : IDisposable
     {
         try
         {
-            // 竞速超时由 WeightedDnsRacerClient 内建管理，超时时已对
+            // 竞速超时由 WeightedDnsRacerClient 内建管理，超时已对
             // 悬挂上游扣分并向此抛出取消异常
             return await _resolver.Query(DnsQueryFactory.CreateQuery(host, qType), cts);
         }
         catch (OperationCanceledException) when (!cts.IsCancellationRequested)
         {
-            // 仅竞速超时（非调用方取消）：交由调用方按需回退。
-            // 已知权衡：系统 DNS 在受干扰网络下可能返回被污染的结果
-            // （无任何解析方案可独立验证 IP 真伪），但它是 DoH 全部
-            // 不可用时唯一可用的来源，且多数常用域名不受影响
+            // 竞速超时，回落系统 DNS。系统DNS可能返回污染结果，作为可能可用的方式
             LogWrapper.Warn(ModuleName, $"DoH query timeout for {host}, use system default DNS");
             return null;
         }
@@ -106,8 +103,7 @@ public class DnsQuery : IDisposable
             .ToArray();
 
         // 任一地址族失败/超时，或应答中无任何地址记录时回落系统 DNS；
-        // 若系统解析也拿不到地址，则保留 DoH 已成功部分的结果，
-        // 避免"半成功的 DoH"被整体丢弃
+        // 系统解析也拿不到地址时保留 DoH 已成功部分
         if (queryResponse.Any(static x => x is null) || addresses.Length == 0)
         {
             var system = await _SystemResolveAsync(host, cts);

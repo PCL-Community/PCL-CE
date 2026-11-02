@@ -10,9 +10,7 @@ namespace PCL.Core.IO.Net.Dns;
 
 public sealed class WeightedDnsRacerClient : IDnsClient
 {
-    // 成功小幅加分、失败大幅扣分：坏上游（被阻断、持续报错）会迅速跌出
-    // 候选集，权重自动收敛到当前环境下的可用上游；环境变化（如上游恢复）
-    // 后跌到谷底的上游仍可凭随机 tiebreak 重新获得竞速机会
+    // 成功小幅加分、失败大幅扣分，坏上游会自动跌出候选集
     private const int SuccessReward = 1;
     private const int FailurePenalty = 10;
     private const int WeightFloor = -100;
@@ -38,8 +36,7 @@ public sealed class WeightedDnsRacerClient : IDnsClient
         int[] candidateIndexes;
         lock (_lock)
         {
-            // 权重降序取候选集；并列时随机排序，保证初始同权重的上游
-            // 都能轮流参与竞速，避免列表末尾的上游被饿死
+            // 并列权重随机排序，避免同权重的上游被饿死
             candidateIndexes = _clients
                 .Select(static (_, i) => i)
                 .OrderByDescending(i => _clients[i].Weight)
@@ -67,16 +64,14 @@ public sealed class WeightedDnsRacerClient : IDnsClient
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         {
-            // 内建超时触发（调用方令牌未取消）：所有未完成的候选都视为
-            // 本次失败并扣分——悬挂到超时的上游正是需要被洗出候选集的对象
+            // 内建超时：悬挂到超时的候选视为失败并扣分
             for (var i = 0; i < tasks.Length; i++)
                 if (tasks[i].IsCanceled) _Record(candidateIndexes[i], -FailurePenalty);
             throw;
         }
         catch (Exception ex) when (ct.IsCancellationRequested)
         {
-            // 调用方取消：传播取消语义（含被 AggregateException 包装的情况），
-            // 不转换成"查询未命中"
+            // 传播调用方取消（含被 AggregateException 包装的情况）
             throw new OperationCanceledException("DNS query canceled by caller.", ex, ct);
         }
         if (winnerTask is null) throw new InvalidOperationException("All queries failed.");
@@ -111,13 +106,11 @@ public sealed class WeightedDnsRacerClient : IDnsClient
         }
         catch (OperationCanceledException)
         {
-            // 取消不在此处扣分：内建超时由 Query 顶层统一处理，
-            // 赢家清理与调用方取消则不代表该上游不可用
+            // 取消不扣分：内建超时由 Query 顶层统一处理
             throw;
         }
         catch (Exception)
         {
-            // 真实失败（响应错误/异常）扣分
             _Record(index, -FailurePenalty);
             throw;
         }
