@@ -19,15 +19,17 @@ public sealed class WeightedDnsRacerClient : IDnsClient
 
     private readonly (IDnsClient Client, int Weight)[] _clients;
     private readonly int _concurrentCount;
+    private readonly TimeSpan _queryTimeout;
     private readonly object _lock = new();
     private readonly Random _random = new();
 
-    public WeightedDnsRacerClient(int concurrentCount, params IDnsClient[] clients)
+    public WeightedDnsRacerClient(int concurrentCount, TimeSpan queryTimeout, params IDnsClient[] clients)
     {
         if (clients is null || clients.Length < concurrentCount)
             throw new ArgumentException("Not enough clients.");
 
         _concurrentCount = concurrentCount;
+        _queryTimeout = queryTimeout;
         _clients = clients.Select(static c => (Client: c, Weight: 0)).ToArray();
     }
 
@@ -46,7 +48,8 @@ public sealed class WeightedDnsRacerClient : IDnsClient
                 .ToArray();
         }
 
-        using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        using var timeoutCts = new CancellationTokenSource(_queryTimeout);
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct, timeoutCts.Token);
         var tasks = new Task<DnsMessage>[candidateIndexes.Length];
 
         for (var i = 0; i < candidateIndexes.Length; i++)
@@ -57,7 +60,25 @@ public sealed class WeightedDnsRacerClient : IDnsClient
             tasks[i] = task;
         }
 
-        var winnerTask = await tasks.WhenAnySuccessAsync().ConfigureAwait(false);
+        Task<DnsMessage> winnerTask;
+        try
+        {
+            winnerTask = await tasks.WhenAnySuccessAsync().ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+        {
+            // 内建超时触发（调用方令牌未取消）：所有未完成的候选都视为
+            // 本次失败并扣分——悬挂到超时的上游正是需要被洗出候选集的对象
+            for (var i = 0; i < tasks.Length; i++)
+                if (tasks[i].IsCanceled) _Record(candidateIndexes[i], -FailurePenalty);
+            throw;
+        }
+        catch (Exception ex) when (ct.IsCancellationRequested)
+        {
+            // 调用方取消：传播取消语义（含被 AggregateException 包装的情况），
+            // 不转换成"查询未命中"
+            throw new OperationCanceledException("DNS query canceled by caller.", ex, ct);
+        }
         if (winnerTask is null) throw new InvalidOperationException("All queries failed.");
 
         cts.Cancel();
@@ -88,10 +109,15 @@ public sealed class WeightedDnsRacerClient : IDnsClient
             _Record(index, +SuccessReward);
             return response;
         }
-        catch (Exception ex) when (ex is not OperationCanceledException || !ct.IsCancellationRequested)
+        catch (OperationCanceledException)
         {
-            // 真实失败（响应错误/异常）扣分；因赢家已产生或调用方取消
-            // 而被取消的不扣分——那不代表该上游不可用
+            // 取消不在此处扣分：内建超时由 Query 顶层统一处理，
+            // 赢家清理与调用方取消则不代表该上游不可用
+            throw;
+        }
+        catch (Exception)
+        {
+            // 真实失败（响应错误/异常）扣分
             _Record(index, -FailurePenalty);
             throw;
         }

@@ -45,9 +45,10 @@ public class DnsQuery : IDisposable
             }
         ];
         // 权重竞速：候选集取权重前 2，权重随成功/失败动态涨落，
-        // 被阻断或劣质的上游会自动跌出候选集
+        // 被阻断或劣质的上游会自动跌出候选集；5 秒超时由竞速器内建
         _resolver = new DnsCachingClient(
-            new WeightedDnsRacerClient(2, _httpClients.Select(static x => new DnsHttpClient(x)).ToArray<IDnsClient>()),
+            new WeightedDnsRacerClient(2, TimeSpan.FromSeconds(5),
+                _httpClients.Select(static x => new DnsHttpClient(x)).ToArray<IDnsClient>()),
             new MemoryCache("DoH Query Cache"));
     }
 
@@ -55,14 +56,13 @@ public class DnsQuery : IDisposable
     {
         try
         {
-            // DoH 独立超时：超时视为解析失败并回落系统 DNS，避免拖死上层下载
-            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cts);
-            timeoutCts.CancelAfter(TimeSpan.FromSeconds(5));
-            return await _resolver.Query(DnsQueryFactory.CreateQuery(host, qType), timeoutCts.Token);
+            // 竞速超时由 WeightedDnsRacerClient 内建管理，超时时已对
+            // 悬挂上游扣分并向此抛出取消异常
+            return await _resolver.Query(DnsQueryFactory.CreateQuery(host, qType), cts);
         }
         catch (OperationCanceledException) when (!cts.IsCancellationRequested)
         {
-            // 仅 DoH 超时（非调用方取消）：交由调用方按需回退。
+            // 仅竞速超时（非调用方取消）：交由调用方按需回退。
             // 已知权衡：系统 DNS 在受干扰网络下可能返回被污染的结果
             // （无任何解析方案可独立验证 IP 真伪），但它是 DoH 全部
             // 不可用时唯一可用的来源，且多数常用域名不受影响
@@ -105,10 +105,14 @@ public class DnsQuery : IDisposable
             .Select(static x => x!.IPAddress)
             .ToArray();
 
-        // DoH 成功应答但无任何地址记录（域名不存在或无 A/AAAA）：
-        // 回退系统 DNS 判定，避免把 NXDOMAIN 误报为"解析成功但无地址"
-        if (addresses.Length == 0)
-            return await _SystemResolveAsync(host, cts);
+        // 任一地址族失败/超时，或应答中无任何地址记录时回落系统 DNS；
+        // 若系统解析也拿不到地址，则保留 DoH 已成功部分的结果，
+        // 避免"半成功的 DoH"被整体丢弃
+        if (queryResponse.Any(static x => x is null) || addresses.Length == 0)
+        {
+            var system = await _SystemResolveAsync(host, cts);
+            return system.Length > 0 ? system : addresses;
+        }
 
         return addresses;
     }
