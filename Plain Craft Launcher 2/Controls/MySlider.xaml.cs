@@ -207,7 +207,7 @@ public partial class MySlider
                 1d);
         var newValue = (int)Math.Round(percent * MaxValue);
         if (newValue != Value) Value = newValue;
-        if (Launcher.frmMain.PanMsg.Children.Count == 0) RefreshPopup(); // 改值可能同步弹出对话框，此时不能让提示 Popup 盖在对话框上
+        if (Launcher.frmMain.PanMsg.Children.Count == 0) RefreshPopup();
     }
     
     private void OnDragMouseMove(object sender, MouseEventArgs e)
