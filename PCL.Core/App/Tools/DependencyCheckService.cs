@@ -1,14 +1,14 @@
 using System;
 using System.Diagnostics;
+using PCL.Core.App.IoC;
+using PCL.Core.App.Localization;
+using PCL.Core.UI.Dialogs;
+using PCL.Core.Utils;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
-using PCL.Core.App.IoC;
-using PCL.Core.App.Localization;
-using PCL.Core.UI;
-using PCL.Core.Utils;
 
 namespace PCL.Core.App.Tools;
 
@@ -49,14 +49,15 @@ public sealed partial class DependencyCheckService
         if (!await _CheckPackageAsync(packageId))
         {
             Context.Info($"检测到依赖缺失 (package-id = {packageId})");
-            var selection = MsgBoxWrapper.Show(
-                Lang.Text("Tools.Test.Dependency.MissingMessage", packageName),
-                buttons:
-                [
-                    Lang.Text("Common.Action.Confirm"),
-                    Lang.Text("Tools.Test.Dependency.Later")
-                ]);
-            if (selection == 1) _LaunchMsStore(storeId);
+            var result = await DialogService.Instance.ShowAsync(new TextDialogRequest
+            {
+                Title = Lang.Text("Tools.Test.Dependency.MissingTitle"),
+                Content = Lang.Text("Tools.Test.Dependency.MissingMessage", packageName),
+                Buttons = DialogButtons.From(
+                    DialogButton.Create(Lang.Text("Common.Action.Confirm")),
+                    DialogButton.Create(Lang.Text("Tools.Test.Dependency.Later")))
+            }).ConfigureAwait(false);
+            if (result.Button == 1) _LaunchMsStore(storeId);
         }
     }
 

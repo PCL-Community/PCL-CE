@@ -303,7 +303,11 @@ public partial class PageComp
                 modLoader = Comp.CompLoaderType.Any; // 此时，视作没有筛选 Mod Loader（因为部分老 Mod 没有设置自己支持的加载器）
         }
 
-        request.searchText = PanSearchBox.Text;
+        request.searchText = PanSearchBox.Text.Trim();
+        if (request.searchText.RegexCheck(@"\|.*[\u4e00-\u9fff]"))
+            request.searchText = request.searchText.BeforeFirst("|").Trim();
+        else if (request.searchText.RegexCheck(@"[\u4e00-\u9fff].*\|"))
+            request.searchText = request.searchText.AfterFirst("|").Trim();
         request.gameVersion = gameVersion;
         var selectedTag = (ComboSearchTag.SelectedItem as FrameworkElement)?.Tag?.ToString();
         var loaderTag = (ComboSearchShaderLoader.SelectedItem as FrameworkElement)?.Tag?.ToString();

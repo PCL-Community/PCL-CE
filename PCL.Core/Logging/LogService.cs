@@ -8,6 +8,7 @@ using PCL.Core.App.IoC;
 using PCL.Core.App.Localization;
 using PCL.Core.Platform;
 using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
 
 namespace PCL.Core.Logging;
 
@@ -97,9 +98,7 @@ public class LogService : ILifecycleLogService
             // message box
             case ActionLevel.MsgBox or ActionLevel.MsgBoxErr:
             {
-                var theme = actionLevel == ActionLevel.MsgBoxErr
-                    ? MsgBoxTheme.Error
-                    : MsgBoxTheme.Info;
+                var isWarn = actionLevel == ActionLevel.MsgBoxErr;
 
                 var caption = entry.Exception is null
                     ? null
@@ -110,10 +109,17 @@ public class LogService : ILifecycleLogService
                 if (actionLevel == ActionLevel.MsgBoxErr)
                     message = Lang.Text("SystemDialog.Error.Message.WithLogExportGuidance", message);
 
-                MsgBoxWrapper.Show(message, caption, theme, false);
+                DialogService.Instance.Show(new TextDialogRequest
+                {
+                    Title = caption ?? Lang.Text("SystemDialog.Error.Unexpected.Title"),
+                    Content = message,
+                    IsWarn = isWarn,
+                    ForceWait = false
+                });
+
                 break;
             }
-
+                
             // fatal message box
             case ActionLevel.MsgBoxFatal:
             {
