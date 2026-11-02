@@ -346,3 +346,5 @@ MaskFiles/
 # macOS
 
 **/.DS_Store
+# 本地构建与运行产物
+artifact/
