@@ -9,7 +9,7 @@ using PCL.Core.UI.Hints;
 
 namespace PCL.UI.Seams;
 
-/// <summary>加载框架通知：任务列表/下载按钮尚未迁移，暂仅记录日志。</summary>
+/// <summary>加载框架通知：任务列表与下载按钮尚未接入界面，暂仅记录日志。</summary>
 public sealed class LoadingUiBridge : ILoadingUi
 {
     public void TaskAdded(Loading.LoaderBase loader)
@@ -39,11 +39,11 @@ public sealed class LoadingUiBridge : ILoadingUi
 
     public void UpdateTaskbar(TaskbarProgressState state, double progress)
     {
-        // 任务栏进度依赖各平台窗口 API，Avalonia 尚无对应封装
+        // 任务栏进度依赖各平台窗口 API，当前没有可用的跨平台封装
     }
 }
 
-/// <summary>本地资源（Comp）页面尚未迁移。</summary>
+/// <summary>本地资源（Comp）页面尚未接入界面。</summary>
 public sealed class CompLocalUiBridge : ICompLocalUi
 {
     public void OnJijResolved()
@@ -82,7 +82,7 @@ public sealed class CompLocalUiBridge : ICompLocalUi
     }
 }
 
-/// <summary>整合包安装页尚未迁移，安装加载器暂不创建。</summary>
+/// <summary>整合包安装页尚未接入界面，安装加载器暂不创建。</summary>
 public sealed class ModpackUiBridge : IModpackUi
 {
     public List<Loading.LoaderBase> CreateInstallLoader(McInstallRequest request)
@@ -102,7 +102,7 @@ public sealed class ModpackUiBridge : IModpackUi
     }
 }
 
-/// <summary>登录档案相关页面尚未迁移。</summary>
+/// <summary>登录档案相关页面尚未接入界面。</summary>
 public sealed class ProfileUiBridge : IProfileUi
 {
     public GameLaunch.McLoginData? GetLoginData()
@@ -138,7 +138,7 @@ public sealed class ProfileUiBridge : IProfileUi
     }
 }
 
-/// <summary>业务层日志打码：与 WPF 端使用同一套规则。</summary>
+/// <summary>业务层日志打码：遮盖用户目录中的用户名，并把 AccessToken 首尾 5 位之外的部分替换为掩码字符。</summary>
 public sealed class LogFilterBridge : ILogFilter
 {
     public string FilterUserName(string raw, char filterChar)
@@ -192,7 +192,7 @@ public sealed class LogFilterBridge : ILogFilter
     }
 }
 
-/// <summary>区域限制功能：与 WPF 端一致，限制判定交给 RegionPolicy。</summary>
+/// <summary>区域限制功能：判定交给 RegionPolicy，命中限制时提示并拒绝调用。</summary>
 public sealed class RestrictedFeaturesBridge : IRestrictedFeatures
 {
     public bool IsRestricted => _Assess().IsRestricted;
@@ -223,7 +223,7 @@ public sealed class RestrictedFeaturesBridge : IRestrictedFeatures
     }
 }
 
-/// <summary>实例内存设置：与 WPF 端 PageInstanceSetup/PageSetupLaunch 的取值规则一致。</summary>
+/// <summary>实例内存设置：按实例级或全局内存方案换算分配值与初始堆，32 位 Java 下上限 1 GB。</summary>
 public sealed class MemorySettingsBridge : IMemorySettings
 {
     private const double BytesPerGigabyte = 1024d * 1024d * 1024d;
@@ -245,7 +245,7 @@ public sealed class MemorySettingsBridge : IMemorySettings
 
     public double? GetInitialRam(McInstance version, bool? is32BitJava = null)
     {
-        // 与 WPF 端 PageInstanceSetupViewModel.GetInitialRam 一致：先排除锁定内存与自定义 -Xms
+        // 锁定内存或 JVM 参数自带 -Xms 时不再给出初始堆
         if (Config.Launch.LockMemory) return null;
         if (_HasCustomXms(version)) return null;
 
@@ -275,7 +275,7 @@ public sealed class MemorySettingsBridge : IMemorySettings
         return Math.Min(_GetRamFromTick(initialTick), GetRam(version, is32BitJava));
     }
 
-    /// <summary>与 WPF 端 PageSetupLaunch.HasCustomXms 一致：实例级 JVM 参数优先，为空时跟随全局。</summary>
+    /// <summary>判断 JVM 参数是否自带 -Xms：实例级参数优先，为空时取全局参数。</summary>
     private static bool _HasCustomXms(McInstance version)
     {
         var instanceArgs = version is null ? "" : Config.Instance.JvmArgs[version.PathInstance];
@@ -356,7 +356,7 @@ public sealed class MemorySettingsBridge : IMemorySettings
     }
 }
 
-/// <summary>崩溃分析器仍在 WPF 工具包中，界面侧先记录日志。</summary>
+/// <summary>崩溃分析：当前只记录一条 seam 缺失日志，不产出分析结果。</summary>
 public sealed class CrashAnalysisSeam : ICrashAnalysisService
 {
     public void Analyze(
@@ -370,7 +370,7 @@ public sealed class CrashAnalysisSeam : ICrashAnalysisService
     }
 }
 
-/// <summary>Comp 详情/任务管理页尚未迁移。</summary>
+/// <summary>Comp 详情与任务管理页尚未接入界面。</summary>
 public sealed class CompNavigationBridge : ICompNavigationService
 {
     public void ShowCompDetail(Comp.CompProject project)
@@ -389,7 +389,7 @@ public sealed class CompNavigationBridge : ICompNavigationService
     }
 }
 
-/// <summary>自定义事件涉及的页面操作尚未迁移。</summary>
+/// <summary>自定义事件涉及的页面操作尚未接入界面。</summary>
 public sealed class EventUiBridge : IEventUi
 {
     public bool RefreshPage()
@@ -428,7 +428,7 @@ public sealed class EventUiBridge : IEventUi
     }
 }
 
-/// <summary>游戏启动前后的音乐/视频控制尚未迁移。</summary>
+/// <summary>游戏启动前后的音乐与视频控制尚未接入界面。</summary>
 public sealed class MediaServiceBridge : IMediaService
 {
     public void PauseMusic()
@@ -444,7 +444,7 @@ public sealed class MediaServiceBridge : IMediaService
     }
 }
 
-/// <summary>下载过程的客户端更新提示尚未迁移到界面下载页。</summary>
+/// <summary>下载过程的客户端更新提示尚未接到界面下载页。</summary>
 public sealed class DownloadInteractionBridge : IDownloadUserInteraction
 {
     public void ShowClientUpdateHint(string versionName, JsonObject json)

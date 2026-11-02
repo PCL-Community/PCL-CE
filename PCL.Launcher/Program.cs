@@ -2,6 +2,7 @@ using Avalonia;
 using PCL.Core.App.Essentials;
 using PCL.Core.App.IoC;
 using PCL.Core.UI;
+using PCL.Core.UI.Animation;
 using PCL.UI;
 using PCL.UI.Seams;
 using PCL.Views;
@@ -19,6 +20,8 @@ internal static class Program
         var builder = BuildAvaloniaApp();
         // PCL.Core 通过 PlatformServices 与 UI 解耦，需在生命周期启动前注册界面实现
         PlatformRegistration.Register();
+        // 动画引擎注册到生命周期（惰性启动兜底）
+        AnimationRegistration.Register();
         // 预加载任务：创建界面应用容器，消息循环由该容器启动
         ApplicationService.Loading = () =>
             new ApplicationHost(() => builder.StartWithClassicDesktopLifetime(args));

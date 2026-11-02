@@ -1,0 +1,56 @@
+<Grid xmlns="https://github.com/avaloniaui"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:svg="using:PCL.UI.Controls.SvgIcon"
+      x:Class="PCL.UI.Controls.MyExtraButton"
+      Width="40"
+      Height="0"
+      RenderTransformOrigin="0.5,0.5"
+      ToolTip.Placement="Left"
+      ToolTip.VerticalOffset="16"
+      ToolTip.HorizontalOffset="-8">
+    <Grid.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://PCL.Launcher/UI/Styles/Controls/ButtonPalette.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Grid.Resources>
+    <Grid.Styles>
+        <StyleInclude Source="avares://PCL.Launcher/UI/Styles/Controls/MyExtraButton.axaml" />
+    </Grid.Styles>
+    <Grid.RenderTransform>
+        <ScaleTransform ScaleX="0"
+                        ScaleY="0" />
+    </Grid.RenderTransform>
+    <Border x:Name="PanClick"
+            CornerRadius="1000"
+            Background="Transparent" />
+    <Grid x:Name="PanScale"
+          Margin="0,10,0,0"
+          IsHitTestVisible="False"
+          RenderTransformOrigin="0.5,0.5">
+        <Grid.RenderTransform>
+            <ScaleTransform />
+        </Grid.RenderTransform>
+        <Border x:Name="PanColor"
+                CornerRadius="1000" />
+        <Border x:Name="PanProgress"
+                CornerRadius="1000"
+                ClipToBounds="True"
+                IsVisible="False"
+                Background="{DynamicResource ButtonBrushProgressBack}" />
+        <Grid x:Name="IconHost"
+              Margin="12"
+              RenderTransformOrigin="0.5,0.5">
+            <Grid.RenderTransform>
+                <ScaleTransform />
+            </Grid.RenderTransform>
+            <Path x:Name="Path"
+                  Stretch="Uniform" />
+            <svg:SvgIcon x:Name="ShapeSvgIcon"
+                         Stretch="Uniform"
+                         IsVisible="False"
+                         IconBrush="{Binding Fill, ElementName=Path}" />
+        </Grid>
+    </Grid>
+</Grid>

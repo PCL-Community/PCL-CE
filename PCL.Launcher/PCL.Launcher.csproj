@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-    <!-- PCL 的界面层：目标为跨平台 net10.0，WPF 工程保持冻结。 -->
+    <!-- PCL 的界面层：跨平台 net10.0。 -->
     <PropertyGroup>
         <AssemblyTitle>PCL</AssemblyTitle>
         <AssemblyName>PCL.Launcher</AssemblyName>
@@ -28,14 +28,21 @@
         </PackageReference>
     </ItemGroup>
     <ItemGroup>
-        <!-- 复用 WPF 头的构建元数据，PCL.Core 通过入口程序集的清单资源读取 -->
+        <!-- 构建元数据位于 Plain Craft Launcher 2/metadata.json，PCL.Core 通过入口程序集的清单资源读取 -->
         <EmbeddedResource Include="..\Plain Craft Launcher 2\metadata.json" Link="metadata.json">
             <LogicalName>PCL.metadata.json</LogicalName>
         </EmbeddedResource>
-        <!-- 启动链资源（辅助 jar、日志配置、数据库模板等），与 WPF 头共用同一份文件 -->
+        <!-- 启动链资源（辅助 jar、日志配置、数据库模板等），直接引用 Plain Craft Launcher 2/Resources 下的文件 -->
         <EmbeddedResource Include="..\Plain Craft Launcher 2\Resources\*.*">
             <LogicalName>PCL.Resources.%(Filename)%(Extension)</LogicalName>
         </EmbeddedResource>
+    </ItemGroup>
+    <ItemGroup>
+        <!-- SVG 图标资源：SvgIconLoader 通过 avares://PCL.Launcher/Assets/IconPacks/{pack}/{name}.svg 读取 -->
+        <AvaloniaResource Include="Assets/IconPacks/**" />
+        <!-- 控件图片与字体：MyImage 占位图、服务器卡片背景、启动器内置字体 -->
+        <AvaloniaResource Include="Assets/Images/**" />
+        <AvaloniaResource Include="Assets/Fonts/**" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\PCL.Core.UI\PCL.Core.UI.csproj" />

@@ -1,0 +1,39 @@
+<Border xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:svg="using:PCL.UI.Controls.SvgIcon"
+        x:Class="PCL.UI.Controls.MyIconTextButton">
+    <Border.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://PCL.Launcher/UI/Styles/Controls/ButtonPalette.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Border.Resources>
+    <Border.Styles>
+        <StyleInclude Source="avares://PCL.Launcher/UI/Styles/Controls/MyIconTextButton.axaml" />
+    </Border.Styles>
+    <StackPanel Orientation="Horizontal">
+        <Grid x:Name="LogoHost"
+              Width="16"
+              Height="16"
+              Margin="12,0,0,0"
+              HorizontalAlignment="Left"
+              VerticalAlignment="Center"
+              RenderTransformOrigin="0.5,0.5">
+            <Grid.RenderTransform>
+                <ScaleTransform />
+            </Grid.RenderTransform>
+            <Path x:Name="ShapeLogo"
+                  HorizontalAlignment="Stretch"
+                  VerticalAlignment="Stretch"
+                  Stretch="Uniform" />
+            <svg:SvgIcon x:Name="ShapeSvgIcon"
+                         Stretch="Uniform"
+                         IsVisible="False"
+                         IconBrush="{Binding Fill, ElementName=ShapeLogo}" />
+        </Grid>
+        <TextBlock x:Name="LabText"
+                   Margin="7,0,12,1"
+                   VerticalAlignment="Center" />
+    </StackPanel>
+</Border>

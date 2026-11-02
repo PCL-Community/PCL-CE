@@ -1,0 +1,30 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="using:PCL.UI.Controls">
+    <!--
+        MyIconTextButton：带图标胶囊按钮，ColorType 通过 color-* 类切换（Black/Highlight）。
+        背景、文字与图标颜色由代码插值；这里只保留常态基线。
+    -->
+    <Style Selector="ui|MyIconTextButton">
+        <Setter Property="Background"
+                Value="Transparent" />
+        <Setter Property="CornerRadius"
+                Value="13.5" />
+        <Setter Property="MinHeight"
+                Value="27" />
+        <Setter Property="MaxHeight"
+                Value="27" />
+        <Setter Property="HorizontalAlignment"
+                Value="Center" />
+        <Setter Property="VerticalAlignment"
+                Value="Center" />
+    </Style>
+    <Style Selector="ui|MyIconTextButton TextBlock#LabText">
+        <Setter Property="Foreground"
+                Value="{DynamicResource PageBrushText}" />
+    </Style>
+    <Style Selector="ui|MyIconTextButton Path#ShapeLogo">
+        <Setter Property="Fill"
+                Value="{DynamicResource PageBrushText}" />
+    </Style>
+</Styles>

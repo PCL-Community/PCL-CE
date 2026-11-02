@@ -5,5 +5,11 @@
     <Application.Styles>
         <FluentTheme />
         <StyleInclude Source="avares://PCL.Launcher/UI/Styles/PageStyles.axaml" />
+        <!-- 控件样式：按钮/输入/反馈控件各自的样式聚合入口；按钮控件在自身 Styles 中已包含 -->
+        <StyleInclude Source="avares://PCL.Launcher/UI/Styles/Controls/Inputs.axaml" />
+        <StyleInclude Source="avares://PCL.Launcher/UI/Styles/Controls/Feedback.axaml" />
+        <StyleInclude Source="avares://PCL.Launcher/UI/Styles/Controls/MyCard.axaml" />
+        <!-- 滚动条与滚动容器的 ControlTheme：控件按类型查找，必须由全局样式提供 -->
+        <StyleInclude Source="avares://PCL.Launcher/UI/Styles/Controls/ScrollBars.axaml" />
     </Application.Styles>
 </Application>

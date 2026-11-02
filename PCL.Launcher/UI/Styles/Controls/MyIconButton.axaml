@@ -1,0 +1,24 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="using:PCL.UI.Controls">
+    <!--
+        MyIconButton：圆形图标按钮，主题通过 theme-* 类切换（Color/White/Black/Red/Custom）。
+        图标填充与 White 主题的悬停底色由代码插值；这里只保留常态基线。
+    -->
+    <Style Selector="ui|MyIconButton">
+        <Setter Property="Background"
+                Value="Transparent" />
+        <Setter Property="CornerRadius"
+                Value="1000" />
+        <Setter Property="Focusable"
+                Value="True" />
+    </Style>
+    <Style Selector="ui|MyIconButton Path">
+        <Setter Property="Fill"
+                Value="{DynamicResource PageBrushAccentHover}" />
+    </Style>
+    <Style Selector="ui|MyIconButton:disabled">
+        <Setter Property="Background"
+                Value="Transparent" />
+    </Style>
+</Styles>

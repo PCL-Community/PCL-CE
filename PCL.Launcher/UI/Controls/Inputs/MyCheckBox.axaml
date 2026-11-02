@@ -1,0 +1,56 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="PCL.UI.Controls.MyCheckBox"
+             Background="Transparent"
+             Focusable="True"
+             MinWidth="20"
+             MinHeight="20">
+    <!-- 文本 + 三态形状层；形状颜色跟随方框边框画刷，状态切换由代码驱动动画。 -->
+    <Grid>
+        <TextBlock x:Name="LabTextElement"
+                   Margin="26,0,0,0"
+                   FontSize="13"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Center"
+                   IsHitTestVisible="False" />
+        <Border x:Name="ShapeBorderElement"
+                Width="18"
+                Height="18"
+                Margin="1,0,0,0"
+                BorderThickness="1.1"
+                CornerRadius="3"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                IsHitTestVisible="False" />
+        <Path x:Name="ShapeCheckElement"
+              Width="12"
+              Height="12"
+              Margin="4,0,0,0"
+              HorizontalAlignment="Left"
+              VerticalAlignment="Center"
+              RenderTransformOrigin="0.5,0.5"
+              IsHitTestVisible="False"
+              Fill="{Binding BorderBrush, ElementName=ShapeBorderElement}"
+              Data="M0,6L1.5,4.5 4.5,7.5 10.5,1.5 12,3 4.5,10.5 0,6z">
+            <Path.RenderTransform>
+                <ScaleTransform ScaleX="0"
+                                ScaleY="0" />
+            </Path.RenderTransform>
+        </Path>
+        <Border x:Name="ShapeIndeterminateElement"
+                Width="10"
+                Height="10"
+                Margin="5,0,0,0"
+                CornerRadius="2"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                RenderTransformOrigin="0.5,0.5"
+                Background="{Binding BorderBrush, ElementName=ShapeBorderElement}"
+                IsHitTestVisible="False">
+            <Border.RenderTransform>
+                <ScaleTransform ScaleX="0"
+                                ScaleY="0" />
+            </Border.RenderTransform>
+        </Border>
+    </Grid>
+</UserControl>

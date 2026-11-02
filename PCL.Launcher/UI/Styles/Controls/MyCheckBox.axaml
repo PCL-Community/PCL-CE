@@ -1,0 +1,24 @@
+<!--
+    MyCheckBox 的样式覆盖：三态复选框的尺寸、可聚焦性与禁用透明度。
+    状态颜色由控件代码按 PageBrush* 动态资源驱动，并在状态切换时播放过渡。
+-->
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="using:PCL.UI.Controls">
+
+    <Style Selector="ui|MyCheckBox">
+        <Setter Property="MinWidth"
+                Value="20" />
+        <Setter Property="MinHeight"
+                Value="20" />
+        <Setter Property="Background"
+                Value="Transparent" />
+        <Setter Property="Focusable"
+                Value="True" />
+    </Style>
+
+    <Style Selector="ui|MyCheckBox:disabled">
+        <Setter Property="Opacity"
+                Value="0.6" />
+    </Style>
+</Styles>

@@ -12,9 +12,9 @@ using PCL.Core.UI.Hints;
 namespace PCL.UI.Seams;
 
 /// <summary>把业务层 seam 的通用交互落到界面的弹窗与提示服务。</summary>
-// TODO: 本文件与 UiSeamPassive 中仍有大量 seam 是"最小实现/日志占位"：任务栏进度、下载按钮、
+// TODO(FIX-SH-01): 本文件与 UiSeamPassive 中仍有多处 seam 只记录日志、没有界面行为：任务栏进度、下载按钮、
 // 更新重启按钮、登录/皮肤页、Comp 详情与本地资源、整合包安装加载器、崩溃分析器、媒体控制、
-// 页面导航等。它们不是等价实现，需在对应页面/控件迁移后替换为真实实现并删除 no-op 分支。
+// 页面导航等。补齐界面实现后应替换这些分支，并删除对应的 LogMissing 调用。
 internal static class UiSeamInteraction
 {
     internal static void Hint(string text, NotificationType type)
@@ -217,7 +217,7 @@ public sealed class UserInteractionBridge : IUserInteraction
     }
 }
 
-/// <summary>更新流程的通知桥接；页面未迁移的部分仅记录日志。</summary>
+/// <summary>更新流程的通知桥接；界面未实现的部分仅记录日志。</summary>
 public sealed class UpdateUiBridge : IUpdateUi
 {
     public int ShowMessageBox(
@@ -280,7 +280,7 @@ public sealed class UpdateUiBridge : IUpdateUi
     }
 }
 
-/// <summary>公告按钮动作桥接：事件业务尚未迁移到界面层。</summary>
+/// <summary>公告按钮动作桥接：事件业务尚未接入界面层。</summary>
 public sealed class AnnouncementActionsBridge : IAnnouncementActionHandler
 {
     public void Execute(string command, string? parameter)

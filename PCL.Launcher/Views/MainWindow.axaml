@@ -18,5 +18,27 @@
                 Classes="WindowSurface">
             <ContentControl Name="PageHost" />
         </Border>
+        <StackPanel Name="PanHint"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Margin="0,0,0,20" />
+        <!-- 弹窗遮罩层：位于提示层之上，显示时挡住底层交互；对话框容器居中央，超过窗口高度时可滚动 -->
+        <Panel Name="PanDialogLayer"
+               IsVisible="False"
+               Opacity="0">
+            <Border Name="BorDialogMask"
+                    Background="#80000000" />
+            <ScrollViewer Name="SclDialogHost"
+                          Width="520"
+                          MaxHeight="640"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center"
+                          HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Auto">
+                <Panel Name="PanDialogHost"
+                       HorizontalAlignment="Stretch"
+                       VerticalAlignment="Center" />
+            </ScrollViewer>
+        </Panel>
     </Grid>
 </Window>

@@ -1,0 +1,34 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="PCL.UI.Controls.MyRadioBox"
+             Background="Transparent"
+             Focusable="True"
+             MinWidth="20"
+             MinHeight="20">
+    <!-- 文本 + 圆环 + 圆点；圆点颜色跟随圆环描边，状态切换由代码驱动动画。 -->
+    <Grid>
+        <TextBlock x:Name="LabTextElement"
+                   Margin="26,0,0,0"
+                   FontSize="13"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Center"
+                   IsHitTestVisible="False" />
+        <Ellipse x:Name="ShapeBorderElement"
+                 Width="18"
+                 Height="18"
+                 Margin="1,0,0,0"
+                 StrokeThickness="1.1"
+                 HorizontalAlignment="Left"
+                 VerticalAlignment="Center"
+                 IsHitTestVisible="False" />
+        <Ellipse x:Name="ShapeDotElement"
+                 Width="0"
+                 Height="0"
+                 Margin="10,0,0,0"
+                 Opacity="0"
+                 Fill="{Binding Stroke, ElementName=ShapeBorderElement}"
+                 HorizontalAlignment="Left"
+                 VerticalAlignment="Center"
+                 IsHitTestVisible="False" />
+    </Grid>
+</UserControl>

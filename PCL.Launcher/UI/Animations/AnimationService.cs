@@ -1,18 +1,16 @@
 using Avalonia;
-using Avalonia.Animation;
-using Avalonia.Animation.Easings;
-using Avalonia.Styling;
+using Avalonia.Threading;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
+using static PCL.Animations;
 
 namespace PCL.UI.Animations;
 
 /// <summary>
-///     与 WPF 端动画速度设置保持一致的动画辅助。
-///     时长按 <see cref="Config.Debug" /> 中动画速度折算，速度越大时长越短。
+///     按配置里的动画速度折算时长的淡入淡出辅助。
+///     动画由 <see cref="PCL.Animations" /> 播放；时长取 <see cref="Config.Debug" /> 的动画速度做除数，速度越大时长越短，
+///     速度为 0 或达到 30 以上时直接跳到终值。
 /// </summary>
-// TODO: 尚未移植 WPF 的动画引擎与 Animations API（控件级过渡、页面转场、展开/收起等），
-// 当前仅有速度映射与页面淡入；后续页面迁移时按控件/页面需求补齐原语，不移植 WPF 引擎本身。
 public static class AnimationService
 {
     private const int DefaultSpeedValue = 9;
@@ -42,45 +40,38 @@ public static class AnimationService
         return FadeAsync(target, target.Opacity, 0d, baseMilliseconds);
     }
 
-    public static async Task FadeAsync(
+    public static Task FadeAsync(
         Visual target,
         double from,
         double to,
         double baseMilliseconds = 180)
     {
+        // AnimationSpeed = 0 或 >= 30 时立即完成
         if (!IsEnabled || Speed >= 200d)
         {
             target.Opacity = to;
-            return;
+            return Task.CompletedTask;
         }
 
-        var animation = new Animation
-        {
-            Duration = Duration(baseMilliseconds),
-            Easing = new CubicEaseOut(),
-            FillMode = FillMode.Forward,
-            Children =
-            {
-                new KeyFrame
-                {
-                    Cue = new Cue(0d),
-                    Setters =
-                    {
-                        new Setter(Visual.OpacityProperty, from)
-                    }
-                },
-                new KeyFrame
-                {
-                    Cue = new Cue(1d),
-                    Setters =
-                    {
-                        new Setter(Visual.OpacityProperty, to)
-                    }
-                }
-            }
-        };
+        var duration = Math.Max(1, (int)Math.Round(baseMilliseconds / Speed));
+        var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        await animation.RunAsync(target);
-        target.Opacity = to;
+        if (Dispatcher.UIThread.CheckAccess())
+            Start();
+        else
+            Dispatcher.UIThread.Post(Start);
+
+        return tcs.Task;
+
+        void Start()
+        {
+            target.Opacity = from;
+            AniStart(
+                new List<AniData>
+                {
+                    AaOpacity(target, to - from, duration, 0, new AniEaseOutFluent()),
+                    AaCode(() => tcs.TrySetResult(), after: true)
+                });
+        }
     }
 }
