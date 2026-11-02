@@ -2411,11 +2411,6 @@
     <sys:String x:Key="Music.Error.PropertyChangeUnsupported">无法播放 {0}：PCL CE 不支持播放过程中变更音频属性的文件。</sys:String>
     <sys:String x:Key="Music.Error.UnsupportedFormat">无法播放 {0}：PCL CE 可能不支持此格式，请转换为 .wav、.mp3 或 .flac。</sys:String>
 
-    <!-- Region -->
-
-    <sys:String x:Key="Region.Feature.Restricted">Minecraft 下载、补全与整合包安装功能在你所在的国家或地区不可用。</sys:String>
-    <sys:String x:Key="Region.Feature.Unknown">无法获取区域信息，暂时无法使用 Minecraft 下载、补全与整合包安装功能。</sys:String>
-
     <!-- Select -->
 
     <sys:String x:Key="Select.Error.OperationFailed">实例选择操作失败。请查看错误详情。</sys:String>

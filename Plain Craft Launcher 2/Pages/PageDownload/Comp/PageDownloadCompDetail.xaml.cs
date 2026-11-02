@@ -78,7 +78,6 @@ public partial class PageDownloadCompDetail : IPageView
     // 整合包安装
     public async void Install_Click(MyListItem sender, EventArgs e)
     {
-        if (!RestrictedFeaturePolicy.Check("online-modpack-install")) return;
         var control = sender as FrameworkElement;
         if (control is not null)
             control.IsEnabled = false;

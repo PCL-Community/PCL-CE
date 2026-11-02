@@ -19,8 +19,6 @@ public static partial class DownloadUi
         string id,
         string? jsonUrl = null)
     {
-        if (!RestrictedFeaturePolicy.Check("minecraft-client-download"))
-            return null;
         try
         {
             var versionFolder = Path.Combine(GameFolders.mcFolderSelected ?? "", "versions", id);

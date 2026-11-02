@@ -366,58 +366,6 @@ public static partial class GameDownload
             && Math.Abs((File.GetLastWriteTime(path).Date - DateTime.Now.Date).TotalDays) < 1d;
     }
 
-    /// <summary>
-    ///     只读取本地文件，判断实例是否可以在不下载 Minecraft 文件的情况下启动。
-    /// </summary>
-    public static bool McClientFilesAvailableLocally(McInstance instance)
-    {
-        try
-        {
-            if (!instance.IsLoaded)
-                instance.Load();
-            return File.Exists(Path.Combine(instance.PathInstance, $"{instance.Name}.json"))
-                && _HasAllLocalLibraries(instance)
-                && _HasAllLocalAssets(instance);
-        }
-        catch (Exception ex)
-        {
-            LauncherCommon.Log(ex, "本地检查 Minecraft 文件失败");
-            return false;
-        }
-    }
-
-    private static bool _HasAllLocalLibraries(McInstance instance)
-    {
-        foreach (var library in Libraries.McLibListGet(instance, true))
-        {
-            if (library.IsLocal)
-                continue;
-
-            var checker = new FileChecker(
-                1,
-                library.size > 0 ? library.size : -1,
-                library.Sha1);
-            if (checker.Check(library.LocalPath) is not null)
-                return false;
-        }
-
-        return true;
-    }
-
-    private static bool _HasAllLocalAssets(McInstance instance)
-    {
-        return GameAssets
-            .McAssetsListGet(instance)
-            .All(asset =>
-            {
-                if (!File.Exists(asset.localPath))
-                    return false;
-
-                var length = new FileInfo(asset.localPath).Length;
-                return length > 0 && (asset.size <= 0 || length == asset.size);
-            });
-    }
-
     private static void DlClientListMain(Loading.LoaderTask<string, DlClientListResult> loader)
     {
         DlSourceLoader(

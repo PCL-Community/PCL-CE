@@ -155,8 +155,6 @@ public static partial class DownloadUi
 
     public static void McDownloadMenuSave(object sender, RoutedEventArgs e)
     {
-        if (!RestrictedFeaturePolicy.Check("minecraft-client-save"))
-            return;
         var element = (FrameworkElement)sender;
         MyListItem version;
         if (element is MyListItem s1)

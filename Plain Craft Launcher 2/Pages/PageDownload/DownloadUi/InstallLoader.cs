@@ -16,7 +16,6 @@ public static partial class DownloadUi
         bool dontFixLibraries = false,
         bool ignoreDump = false)
     {
-        RestrictedFeaturePolicy.ThrowIfRestricted("minecraft-install");
         // 安装 Mod 加载器的文件夹不能包含空格
         var tempMcFolder = Launcher.RequestTaskTempFolder(
             request.optiFineEntry is not null

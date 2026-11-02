@@ -2321,7 +2321,6 @@ public partial class PageDownloadInstall : IPageView
 
     private void BtnStart_Click()
     {
-        if (!RestrictedFeaturePolicy.Check("minecraft-install")) return;
         // 确认版本隔离
         if (_selectedLoaderType is not null &&
             (Config.Launch.IndieSolutionV2 == 0 ||
