@@ -1,24 +1,23 @@
 namespace PCL.Core.Platform;
 
 /// <summary>
-///     主题资源后端。WPF/Avalonia 分别创建各自的颜色与画刷对象。
+///     主题资源后端：由界面层把 Core 计算出的颜色写入自己的资源体系。
 /// </summary>
 public interface IThemeBackend
 {
-    /// <summary>
-    ///     写入一个颜色或画刷资源。
-    /// </summary>
-    /// <param name="key">资源键。</param>
-    /// <param name="alpha">ScRGB alpha（0–1）。</param>
-    /// <param name="red">ScRGB 红色分量（0–1）。</param>
-    /// <param name="green">ScRGB 绿色分量（0–1）。</param>
-    /// <param name="blue">ScRGB 蓝色分量（0–1）。</param>
-    /// <param name="asBrush">为 <c>true</c> 时写入画刷，否则写入颜色。</param>
+    /// <summary>写入一个颜色资源（ScRGB 分量，0–1）。</summary>
     void SetColorResource(
         string key,
         float alpha,
         float red,
         float green,
-        float blue,
-        bool asBrush);
+        float blue);
+
+    /// <summary>写入一个画刷资源（ScRGB 分量，0–1）。</summary>
+    void SetBrushResource(
+        string key,
+        float alpha,
+        float red,
+        float green,
+        float blue);
 }

@@ -51,8 +51,8 @@ public class CatColorResource
         var backend = PlatformServices.Theme;
         if (backend is null) return;
         if (ApplyToColor)
-            backend.SetColorResource($"{ColorPrefix}{Suffix}", Alpha, Red, Green, Blue, false);
+            backend.SetColorResource($"{ColorPrefix}{Suffix}", Alpha, Red, Green, Blue);
         if (ApplyToBrush)
-            backend.SetColorResource($"{BrushPrefix}{Suffix}", Alpha, Red, Green, Blue, true);
+            backend.SetBrushResource($"{BrushPrefix}{Suffix}", Alpha, Red, Green, Blue);
     }
 }

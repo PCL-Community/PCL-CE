@@ -1,10 +1,9 @@
 using System;
-using PCL.Core.App.Localization;
 
 namespace PCL.Core.Platform;
 
 /// <summary>
-///     本地化的 UI 后端。WPF/Avalonia 分别实现资源字典加载、资源查找与字体应用。
+///     本地化的 UI 后端：负责资源字典加载、资源查找，以及本地化文本在界面线程上的读取。
 /// </summary>
 public interface ILocalizationBackend
 {
@@ -22,7 +21,4 @@ public interface ILocalizationBackend
     ///     <paramref name="baseLanguageCode" /> 与可选的 <paramref name="currentLanguageCode" />。
     /// </summary>
     void ApplyLanguageResources(string baseLanguageCode, string? currentLanguageCode);
-
-    /// <summary>应用启动器 UI 字体。</summary>
-    void ApplyLaunchFont(string? customFontName, LocalizationLanguage? language);
 }

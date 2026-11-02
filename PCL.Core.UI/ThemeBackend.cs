@@ -13,16 +13,36 @@ public sealed class ThemeBackend : IThemeBackend
         float alpha,
         float red,
         float green,
-        float blue,
-        bool asBrush)
+        float blue)
     {
-        var color = Color.FromArgb(
+        SetResource(key, _CreateColor(alpha, red, green, blue));
+    }
+
+    public void SetBrushResource(
+        string key,
+        float alpha,
+        float red,
+        float green,
+        float blue)
+    {
+        SetResource(key, new SolidColorBrush(_CreateColor(alpha, red, green, blue)));
+    }
+
+    private static Color _CreateColor(
+        float alpha,
+        float red,
+        float green,
+        float blue)
+    {
+        return Color.FromArgb(
             _ToByte(alpha),
             _ToSrgbByte(red),
             _ToSrgbByte(green),
             _ToSrgbByte(blue));
-        object value = asBrush ? new SolidColorBrush(color) : color;
+    }
 
+    private static void SetResource(string key, object value)
+    {
         if (Application.Current is { } app) app.Resources[key] = value;
         else Lifecycle.CurrentApplication?.SetResource(key, value);
     }

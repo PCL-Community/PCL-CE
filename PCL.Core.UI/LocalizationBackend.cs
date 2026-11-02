@@ -5,6 +5,8 @@ using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.Threading;
+using PCL.Core.App;
+using PCL.Core.App.Configuration;
 using PCL.Core.App.IoC;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
@@ -145,13 +147,15 @@ public sealed class LocalizationBackend : ILocalizationBackend
         }
     }
 
-    public void ApplyLaunchFont(string? customFontName, LocalizationLanguage? language)
+    public LocalizationBackend()
     {
-        _pendingFontName = customFontName;
-        if (CheckAccess())
-            _ApplyLaunchFont();
-        else
-            Invoke(_ApplyLaunchFont);
+        LocalizationService.LanguageChanged += _OnLanguageChanged;
+    }
+
+    private void _OnLanguageChanged()
+    {
+        _pendingFontName = ConfigService.IsInitialized ? Config.Preference.Font : null;
+        Invoke(_ApplyLaunchFont);
     }
 
     private void _ApplyLaunchFont()

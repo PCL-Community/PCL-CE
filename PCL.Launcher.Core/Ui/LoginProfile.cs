@@ -7,7 +7,7 @@ namespace PCL;
 /// <summary>登录档案 UI 交互。</summary>
 public interface IProfileUi
 {
-    object? GetLoginData();
+    GameLaunch.McLoginData? GetLoginData();
     string IsProfileValid();
 
     Task<AuthorizeResult?> ShowDeviceCodeLoginAsync(
@@ -23,7 +23,7 @@ public static class LoginProfile
 {
     public static IProfileUi? Current { get; set; }
 
-    public static object? GetLoginData()
+    public static GameLaunch.McLoginData? GetLoginData()
     {
         return Current?.GetLoginData();
     }

@@ -85,13 +85,13 @@ public sealed class CompLocalUiBridge : ICompLocalUi
 /// <summary>整合包安装页尚未迁移，安装加载器暂不创建。</summary>
 public sealed class ModpackUiBridge : IModpackUi
 {
-    public List<Loading.LoaderBase> CreateInstallLoader(object request)
+    public List<Loading.LoaderBase> CreateInstallLoader(McInstallRequest request)
     {
         UiSeamInteraction.LogMissing(nameof(CreateInstallLoader));
         return [];
     }
 
-    public void OnInstallStateChanged(object loader)
+    public void OnInstallStateChanged(Loading.LoaderBase loader)
     {
         UiSeamInteraction.LogMissing(nameof(OnInstallStateChanged));
     }
@@ -105,7 +105,7 @@ public sealed class ModpackUiBridge : IModpackUi
 /// <summary>登录档案相关页面尚未迁移。</summary>
 public sealed class ProfileUiBridge : IProfileUi
 {
-    public object? GetLoginData()
+    public GameLaunch.McLoginData? GetLoginData()
     {
         return null;
     }
@@ -373,7 +373,7 @@ public sealed class CrashAnalysisSeam : ICrashAnalysisService
 /// <summary>Comp 详情/任务管理页尚未迁移。</summary>
 public sealed class CompNavigationBridge : ICompNavigationService
 {
-    public void ShowCompDetail(object project)
+    public void ShowCompDetail(Comp.CompProject project)
     {
         UiSeamInteraction.LogMissing(nameof(ShowCompDetail));
     }
