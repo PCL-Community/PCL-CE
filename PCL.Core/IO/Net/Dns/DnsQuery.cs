@@ -98,11 +98,13 @@ public class DnsQuery : IDisposable
             .ToArray();
 
         // 任一地址族失败/超时，或应答中无任何地址记录时回落系统 DNS；
-        // 系统解析也拿不到地址时保留 DoH 已成功部分
+        // 系统结果与 DoH 已成功部分合并去重，避免丢失可用地址族
         if (queryResponse.Any(static x => x is null) || addresses.Length == 0)
         {
             var system = await _SystemResolveAsync(host, cts);
-            return system.Length > 0 ? system : addresses;
+            return addresses.Length == 0
+                ? system
+                : addresses.Union(system).ToArray();
         }
 
         return addresses;
