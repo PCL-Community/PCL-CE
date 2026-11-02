@@ -11,6 +11,11 @@ public static class LogFilter
 {
     public static ILogFilter? Current { get; set; }
 
+    /// <summary>
+    ///     当前登录结果（尚未登录时为 <c>null</c>）。只读，供 UI 层日志打码等场景使用。
+    /// </summary>
+    public static GameLaunch.McLoginResult? CurrentLogin => GameLaunch.mcLoginLoader.output;
+
     public static string FilterUserName(string raw, char filterChar)
     {
         return Current?.FilterUserName(raw, filterChar) ?? raw;

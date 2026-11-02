@@ -16,6 +16,6 @@
         <Build Solution="*|*" Project="false" />
     </Project>
     <Project Path="Plain Craft Launcher 2\Plain Craft Launcher 2.csproj" Type="C#" />
-    <Project Path="PCL.Core.Avalonia\PCL.Core.Avalonia.csproj" Type="C#" />
-    <Project Path="PCL.Launcher.Avalonia\PCL.Launcher.Avalonia.csproj" Type="C#" />
+    <Project Path="PCL.Core.UI\PCL.Core.UI.csproj" Type="C#" />
+    <Project Path="PCL.Launcher\PCL.Launcher.csproj" Type="C#" />
 </Solution>

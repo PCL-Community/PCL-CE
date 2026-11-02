@@ -2,7 +2,7 @@ namespace PCL.Core.Platform;
 
 /// <summary>
 ///     游戏窗口交互。具体实现由 UI 层注册到 <see cref="PlatformServices.WindowInterop" />；
-///     未注册（例如非 Windows 平台）时业务层会跳过窗口相关操作。
+///     未注册或当前桌面环境不支持时，业务层会跳过窗口相关操作。
 /// </summary>
 public interface IWindowInterop
 {

@@ -1,9 +1,0 @@
-<Application xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="PCL.Avalonia.App"
-             RequestedThemeVariant="Default">
-    <Application.Styles>
-        <FluentTheme />
-        <StyleInclude Source="avares://PCL.Launcher.Avalonia/UI/Styles/PageStyles.axaml" />
-    </Application.Styles>
-</Application>
