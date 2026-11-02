@@ -1,4 +1,7 @@
-﻿using System;
+using PCL.Core.App.Localization;
+using PCL.Core.Logging;
+using PCL.Core.UI.Dialogs;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -7,9 +10,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using PCL.Core.App.Localization;
-using PCL.Core.Logging;
-using PCL.Core.UI;
 
 namespace PCL.Core.App.Configuration.Storage;
 
@@ -77,10 +77,17 @@ public class FileConfigStorage : ConfigStorage
                     LogWrapper.Error(ex, "Config", "配置文件保存失败");
                     var summary = Lang.Text("Config.Error.SaveFailed.Message", File.FilePath);
                     var message = ExceptionDetails.Compose(summary, ex);
-                    MsgBoxWrapper.Show(
-                        message,
-                        Lang.Text("Config.Error.SaveFailed.Title"),
-                        MsgBoxTheme.Error);
+                    //MsgBoxWrapper.Show(
+                    //    message,
+                    //    Lang.Text("Config.Error.SaveFailed.Title"),
+                    //    MsgBoxTheme.Error);
+
+                    DialogService.Instance.Show(new TextDialogRequest
+                    {
+                        Title = Lang.Text("Config.Error.SaveFailed.Title"),
+                        Content = message,
+                        IsWarn = true
+                    });
                 }
             }
         });
