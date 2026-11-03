@@ -198,14 +198,18 @@ public sealed class ResourceUpdateRecycleBin
         {
             RecoverPendingOperations();
             if (!_TryReadRecord(updatedPath, out var record, out var originalPath, out var backupPath, out var recordPath))
-                throw new IOException("没有找到该资源对应的旧版，或当前资源已被修改。");
+                throw new IOException("没有找到该资源对应的旧版，或当前资源或其备份已被修改。");
             updatedPath = _GetResourcePath(updatedPath);
             if (!_SamePath(originalPath, updatedPath) && (File.Exists(originalPath) || Directory.Exists(originalPath)))
                 throw new IOException("旧版的原文件名已被占用，请先处理同名文件：" + originalPath);
 
             var stagedPath = Path.Combine(Path.GetDirectoryName(updatedPath)!,
                 ".pcl-undo-" + Guid.NewGuid().ToString("N") + ".tmp");
-            record.OriginalHash = _HashFile(backupPath);
+            // 仅旧记录可能缺少旧版哈希，不能用当前备份覆盖更新时记录的校验值。
+            if (string.IsNullOrEmpty(record.OriginalHash))
+                record.OriginalHash = _HashFile(backupPath);
+            else if (!_Matches(backupPath, record.OriginalHash))
+                throw new IOException("资源旧版备份已被修改，无法撤回。");
             var transactionPath = _WriteTransaction(new PendingOperation
             {
                 Operation = "Undo", Record = record, ResourcePath = Path.GetRelativePath(_GameDirectory, updatedPath),
@@ -290,7 +294,8 @@ public sealed class ResourceUpdateRecycleBin
             }
             if (candidates.Count != 1) return false;
             (record, recordPath, originalPath, backupPath) = candidates[0];
-            return _HashFile(updatedPath) == record.UpdatedHash;
+            return _HashFile(updatedPath) == record.UpdatedHash &&
+                (string.IsNullOrEmpty(record.OriginalHash) || _Matches(backupPath, record.OriginalHash));
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException or ArgumentException)
         {

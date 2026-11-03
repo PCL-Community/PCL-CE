@@ -189,6 +189,80 @@ public class ResourceUpdateRecycleBinTest
     }
 
     [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public void ModifiedBackupHidesUndoAndPreservesInstalledResource(bool sameName)
+    {
+        var old = _Write("mods/old.jar", "old");
+        var updated = sameName ? old : Path.Combine(_root, "mods/new.jar");
+        _bin.Replace(old, updated, _Write("download/new.jar", "new"));
+        Assert.IsTrue(_bin.CanUndo(updated));
+        var backup = Path.Combine(_root, "recycle/mods/old.jar");
+        var recordPath = Directory.GetFiles(Path.Combine(_root, "recycle/.records"), "*.json").Single();
+        var record = File.ReadAllText(recordPath);
+
+        // 模拟显示撤回按钮后备份损坏，执行时必须重新校验。
+        File.WriteAllText(backup, "corrupt backup");
+        var reopened = new ResourceUpdateRecycleBin(_root);
+        Assert.IsFalse(reopened.CanUndo(updated));
+        Assert.ThrowsExactly<IOException>(() => reopened.Undo(updated));
+        Assert.AreEqual("new", File.ReadAllText(updated));
+        Assert.AreEqual("corrupt backup", File.ReadAllText(backup));
+        Assert.AreEqual(record, File.ReadAllText(recordPath));
+        Assert.AreEqual(0, Directory.GetFiles(_root, ".pcl-undo-*", SearchOption.AllDirectories).Length);
+        Assert.AreEqual(0, Directory.GetFiles(Path.Combine(_root, "recycle/.transactions"), "*.json").Length);
+        if (!sameName) Assert.IsFalse(File.Exists(old));
+
+        File.WriteAllText(backup, "old");
+        Assert.IsTrue(reopened.CanUndo(updated));
+        reopened.Undo(updated);
+        Assert.AreEqual("old", File.ReadAllText(old));
+    }
+
+    [TestMethod]
+    [DataRow("missing")]
+    [DataRow("empty")]
+    [DataRow("null")]
+    public void LegacyRecordWithoutOriginalHashCanStillUndo(string hashState)
+    {
+        var old = _Write("mods/old.jar", "old");
+        var updated = Path.Combine(_root, "mods/new.jar");
+        _bin.Replace(old, updated, _Write("download/new.jar", "new"));
+        var recordPath = Directory.GetFiles(Path.Combine(_root, "recycle/.records"), "*.json").Single();
+        var record = JsonNode.Parse(File.ReadAllText(recordPath))!.AsObject();
+        if (hashState == "missing") record.Remove("OriginalHash");
+        else record["OriginalHash"] = hashState == "null" ? null : "";
+        File.WriteAllText(recordPath, record.ToJsonString());
+
+        var reopened = new ResourceUpdateRecycleBin(_root);
+        Assert.IsTrue(reopened.CanUndo(updated));
+        reopened.Undo(updated);
+        Assert.AreEqual("old", File.ReadAllText(old));
+        Assert.IsFalse(File.Exists(updated));
+        Assert.IsFalse(File.Exists(recordPath));
+    }
+
+    [TestMethod]
+    [DataRow("invalid")]
+    [DataRow("0000000000000000000000000000000000000000000000000000000000000000")]
+    public void InvalidOriginalHashIsNotTreatedAsLegacyRecord(string hash)
+    {
+        var old = _Write("mods/old.jar", "old");
+        var updated = Path.Combine(_root, "mods/new.jar");
+        _bin.Replace(old, updated, _Write("download/new.jar", "new"));
+        var recordPath = Directory.GetFiles(Path.Combine(_root, "recycle/.records"), "*.json").Single();
+        var record = JsonNode.Parse(File.ReadAllText(recordPath))!;
+        record["OriginalHash"] = hash;
+        File.WriteAllText(recordPath, record.ToJsonString());
+
+        Assert.IsFalse(_bin.CanUndo(updated));
+        Assert.ThrowsExactly<IOException>(() => _bin.Undo(updated));
+        Assert.AreEqual("new", File.ReadAllText(updated));
+        Assert.AreEqual("old", File.ReadAllText(Path.Combine(_root, "recycle/mods/old.jar")));
+        Assert.AreEqual(hash, JsonNode.Parse(File.ReadAllText(recordPath))!["OriginalHash"]!.GetValue<string>());
+    }
+
+    [TestMethod]
     public void UnsafeRecordCannotRestoreOutsideGameDirectory()
     {
         var old = _Write("mods/old.jar", "old");
