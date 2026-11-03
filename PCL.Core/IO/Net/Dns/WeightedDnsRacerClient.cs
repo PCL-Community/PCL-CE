@@ -52,7 +52,7 @@ public sealed class WeightedDnsRacerClient : IDnsClient
         for (var i = 0; i < candidateIndexes.Length; i++)
         {
             var index = candidateIndexes[i];
-            var task = _QueryScoredAsync(index, _clients[index].Client, query, timeoutCts, cts.Token);
+            var task = _QueryScoredAsync(index, _clients[index].Client, query, timeoutCts, ct, cts.Token);
             task.Forget();
             tasks[i] = task;
         }
@@ -91,7 +91,12 @@ public sealed class WeightedDnsRacerClient : IDnsClient
     // 正确应答的上游；NoError（含空应答）与 NXDomain 是明确的否定/肯定结果，
     // 视为有效应答立即采用，避免普通域名的 SRV/否定查询被拖到整体超时
     private async Task<DnsMessage> _QueryScoredAsync(
-        int index, IDnsClient client, DnsMessage query, CancellationTokenSource timeoutCts, CancellationToken linkedCt)
+        int index,
+        IDnsClient client,
+        DnsMessage query,
+        CancellationTokenSource timeoutCts,
+        CancellationToken callerCt,
+        CancellationToken linkedCt)
     {
         try
         {
@@ -103,11 +108,15 @@ public sealed class WeightedDnsRacerClient : IDnsClient
             _Record(index, +SuccessReward);
             return response;
         }
-        catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested)
+        catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested && !callerCt.IsCancellationRequested)
         {
-            // 内建超时取消：悬挂候选扣分（调用方主动取消时 timeoutCts
-            // 未到期，不走此分支）
+            // 内建超时取消：悬挂候选扣分
             _Record(index, -FailurePenalty);
+            throw;
+        }
+        catch (OperationCanceledException)
+        {
+            // 赢家产生后的清理取消 / 调用方取消：不代表上游不可用，不扣分
             throw;
         }
         catch (Exception)
