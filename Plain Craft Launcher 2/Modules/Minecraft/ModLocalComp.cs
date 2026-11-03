@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using fNbt;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.Minecraft;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.Hash;
@@ -1898,6 +1899,16 @@ public static class ModLocalComp
                 }
 
                 loader.input.frm.LoaderRun(LoaderFolderRunType.UpdateOnly);
+            }
+
+            // 在后台枚举前恢复中断的更新，避免将缺失或暂存状态显示为资源列表。
+            try
+            {
+                new ResourceUpdateRecycleBin(loader.input.gameVersion.PathIndie).RecoverPendingOperations();
+            }
+            catch (Exception ex)
+            {
+                ModBase.Log(ex, "恢复中断的资源更新失败，已保留文件和恢复日志", ModBase.LogLevel.Hint);
             }
 
             // 获取 Mod 文件夹下的可用文件列表
