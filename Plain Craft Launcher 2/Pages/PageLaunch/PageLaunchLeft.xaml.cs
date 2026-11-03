@@ -106,8 +106,6 @@ public partial class PageLaunchLeft : IPageView
                 packInstallPath = Path.Combine(Common.ExePath, "modpack.zip");
             if (File.Exists(Path.Combine(Common.ExePath, "modpack.mrpack")))
                 packInstallPath = Path.Combine(Common.ExePath, "modpack.mrpack");
-            if (packInstallPath is not null && !RestrictedFeaturePolicy.Check("auto-modpack-install"))
-                packInstallPath = null;
             if (packInstallPath is not null)
             {
                 Common.Log("[Launch] 需自动安装整合包：" + packInstallPath, Common.LogLevel.Debug);

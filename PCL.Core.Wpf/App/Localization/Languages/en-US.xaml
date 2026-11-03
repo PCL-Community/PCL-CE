@@ -2411,11 +2411,6 @@
     <sys:String x:Key="Music.Error.PropertyChangeUnsupported">Failed to play {0}: PCL CE does not support files that change audio properties during playback.</sys:String>
     <sys:String x:Key="Music.Error.UnsupportedFormat">Failed to play {0}: PCL CE may not support this format. Convert it to .wav, .mp3, or .flac.</sys:String>
 
-    <!-- Region -->
-
-    <sys:String x:Key="Region.Feature.Restricted">Minecraft downloads, repairs, and modpack installation are unavailable in your country or region.</sys:String>
-    <sys:String x:Key="Region.Feature.Unknown">Could not determine region info. Minecraft downloads, repairs, and modpack installation are temporarily unavailable.</sys:String>
-
     <!-- Select -->
 
     <sys:String x:Key="Select.Error.OperationFailed">An instance selection operation failed. See the details below.</sys:String>

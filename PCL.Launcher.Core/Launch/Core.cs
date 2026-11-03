@@ -389,15 +389,7 @@ public static partial class GameLaunch
 
         try
         {
-            var skipClientDownloads = RestrictedFeatures.IsRestricted;
-            if (skipClientDownloads
-                && !GameDownload.McClientFilesAvailableLocally(InstanceList.McMcInstanceSelected!))
-            {
-                RestrictedFeatures.Check("minecraft-launch-missing-files");
-                throw new CancelledException();
-            }
-
-            var launchLoader = _CreateLaunchLoader(skipClientDownloads);
+            var launchLoader = _CreateLaunchLoader();
             if (mcLoginLoader.State == LoadState.Finished)
                 mcLoginLoader.State = LoadState.Waiting;
             mcLaunchLoaderReal = launchLoader;
@@ -433,10 +425,10 @@ public static partial class GameLaunch
         }
     }
 
-    private static Loading.LoaderCombo<object> _CreateLaunchLoader(bool skipClientDownloads)
+    private static Loading.LoaderCombo<object> _CreateLaunchLoader()
     {
         var loaders = new List<Loading.LoaderBase>();
-        loaders.AddRange(_CreateGameFileLoaders(skipClientDownloads));
+        loaders.AddRange(_CreateGameFileLoaders());
         loaders.AddRange(_CreateProcessLoaders());
 
         return new Loading.LoaderCombo<object>(Lang.Text("Minecraft.Launch.Stage.Root"), loaders)
@@ -447,7 +439,7 @@ public static partial class GameLaunch
         };
     }
 
-    private static List<Loading.LoaderBase> _CreateGameFileLoaders(bool skipClientDownloads)
+    private static List<Loading.LoaderBase> _CreateGameFileLoaders()
     {
         return
         [
@@ -463,12 +455,10 @@ public static partial class GameLaunch
             mcLoginLoader,
             new Loading.LoaderCombo<string>(
                 Lang.Text("Minecraft.Launch.Stage.CompleteFiles"),
-                skipClientDownloads
-                    ? []
-                    : GameDownload.DlClientFix(
-                        InstanceList.McMcInstanceSelected!,
-                        false,
-                        GameDownload.AssetsIndexExistsBehaviour.DownloadInBackground))
+                GameDownload.DlClientFix(
+                    InstanceList.McMcInstanceSelected!,
+                    false,
+                    GameDownload.AssetsIndexExistsBehaviour.DownloadInBackground))
             {
                 ProgressWeight = 15d,
                 show = false,
