@@ -300,15 +300,6 @@ public partial class PageComp
         var gameVersion = TextSearchVersion.Text == Lang.Text("Download.Comp.Filter.Version.AllInputAvailable") ? null :
             TextSearchVersion.Text.Contains(".") || TextSearchVersion.Text.Contains("w") ? TextSearchVersion.Text :
             null;
-        var modLoader = Comp.CompLoaderType.Any;
-        if (PageType == Comp.CompType.Mod || PageType == Comp.CompType.ModPack) // 只有 Mod 考虑加载器
-        {
-            modLoader = (Comp.CompLoaderType)Common.Val(((MyComboBoxItem)ComboSearchLoader.SelectedItem).Tag);
-            if (gameVersion is not null && gameVersion.Contains(".") && Common.Val(gameVersion.Split(".")[1]) < 14d &&
-                modLoader == Comp.CompLoaderType.Forge) // 1.14-
-                                                        // 选择了 Forge
-                modLoader = Comp.CompLoaderType.Any; // 此时，视作没有筛选 Mod Loader（因为部分老 Mod 没有设置自己支持的加载器）
-        }
 
         request.searchText = PanSearchBox.Text;
         request.gameVersion = gameVersion;
@@ -320,10 +311,12 @@ public partial class PageComp
                 ? selectedTag
                 : selectedTag + loaderTag
             : selectedTag;
-        request.modLoader =
-            (Comp.CompLoaderType)(PageType == Comp.CompType.Mod || PageType == Comp.CompType.ModPack
-                ? Common.Val(((MyComboBoxItem)ComboSearchLoader.SelectedItem).Tag)
-                : (double)Comp.CompLoaderType.Any);
+        // 只有 Mod 与整合包才考虑加载器。1.14- 的 Forge 特例（老 Mod 常常没有声明自己支持的加载器）
+        // 统一由 Comp.CompProjectsGet 处理，见 ProjectQuery._FetchProjectResults 的 isOldForgeRequest，
+        // 这里不要再重复判断，否则两处的版本判定会漂移。
+        request.modLoader = PageType is Comp.CompType.Mod or Comp.CompType.ModPack
+            ? (Comp.CompLoaderType)Common.Val(((MyComboBoxItem)ComboSearchLoader.SelectedItem).Tag)
+            : Comp.CompLoaderType.Any;
         request.source = (Comp.CompSourceType)Common.Val(((MyComboBoxItem)ComboSearchSource.SelectedItem).Tag);
         request.sort = (Comp.CompSortType)Common.Val(((MyComboBoxItem)ComboSearchSort.SelectedItem).Tag);
         return request;
