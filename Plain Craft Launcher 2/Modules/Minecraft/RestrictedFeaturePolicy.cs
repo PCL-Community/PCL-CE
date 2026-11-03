@@ -17,11 +17,7 @@ internal static class RestrictedFeaturePolicy
 
         LauncherCommon.Log($"[RegionPolicy] 已阻止功能 {feature}，判定原因：{assessment.Reason}");
         if (showHint)
-        {
-            HintService.Show(Hints.Error(Lang.Text(assessment.Classification == RegionClassification.Unknown
-                ? "Region.Feature.Unknown"
-                : "Region.Feature.Restricted")));
-        }
+            HintService.Show(Hints.Error(Lang.Text("Region.Feature.Restricted")));
         return false;
     }
 
