@@ -1,10 +1,10 @@
+using PCL.Core.IO.Net.Http;
+using PCL.Core.Utils;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using PCL.Core.IO.Net.Http;
-using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -49,7 +49,6 @@ public class MyImage : Image
                     }
                 }
             })); // 在这里先触发可能的文件读取，尽量避免在 UI 线程中读取文件
-            // ignored
         }
     }
 
@@ -208,7 +207,6 @@ public class MyImage : Image
     public new static readonly DependencyProperty SourceProperty = DependencyProperty.Register("Source", typeof(string),
         typeof(MyImage), new PropertyMetadata((sender, e) =>
         {
-            // e.NewValue 可能为 null（绑定的源暂时为空，例如列表容器回收时的中间态），此时不能直接调用 ToString()
             if (sender is not null) ((MyImage)sender).Source = e.NewValue?.ToString();
         }));
 

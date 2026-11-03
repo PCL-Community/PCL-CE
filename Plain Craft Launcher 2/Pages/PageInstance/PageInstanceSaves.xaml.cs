@@ -94,8 +94,6 @@ public partial class PageInstanceSaves : IRefreshable, IPageView
         {
             await _vm.EnsureWorldFolderAsync();
             await _vm.LoadListAsync();
-            // 只让出一次调度器：在 Loaded 优先级上排队，会让已排队的布局/渲染先跑完，
-            // 效果等同于强制两次 UpdateLayout，但不会额外插入一次同步布局传递。
             await Dispatcher.Yield(DispatcherPriority.Loaded);
             RebuildList();
         }
@@ -132,7 +130,6 @@ public partial class PageInstanceSaves : IRefreshable, IPageView
         try
         {
             await _vm.SearchAsync();
-            // 同上：单次让出调度器代替连续两次 UpdateLayout
             await Dispatcher.Yield(DispatcherPriority.Loaded);
             RebuildList();
         }

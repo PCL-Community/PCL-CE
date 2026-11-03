@@ -1,13 +1,12 @@
-using System.IO;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using Microsoft.VisualBasic.FileIO;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.UI.Hints;
+using System.IO;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media.Imaging;
 using SearchOption = System.IO.SearchOption;
 
 namespace PCL;
@@ -167,7 +166,6 @@ public partial class PageInstanceScreenshot : IRefreshable, IPageView
         var list = new List<string>();
         if (Directory.Exists(path))
         {
-            // 目录枚举与按创建时间排序都放到后台线程，避免截图数量较多时阻塞 UI
             list = await Task.Run(
                 () => allowedSuffix
                     .SelectMany(suffix => Directory.EnumerateFiles(path, suffix, SearchOption.TopDirectoryOnly))
@@ -247,24 +245,21 @@ public partial class PageInstanceScreenshot : IRefreshable, IPageView
             return;
         }
 
-        // 文件校验与条目创建放到后台线程
         var batch = await Task.Run(() => CreateBatch(files, start, count, screenshotPath, token), token);
         token.ThrowIfCancellationRequested();
-        // 并行解码缩略图，并发上限由 _decodeSemaphore 控制
+
         var thumbnails = await DecodeThumbnailsAsync(batch, token);
         token.ThrowIfCancellationRequested();
 
-        // 回到 UI 线程后按原顺序一次性更新集合
         for (var i = 0; i < batch.Count; i++)
         {
             var item = batch[i];
             if (thumbnails[i] is null)
-                continue; // 与原实现一致：解码失败的文件不生成条目
+                continue;
             item.Thumbnail = thumbnails[i];
             _vm.Screenshots.Add(item);
         }
 
-        // 游标按本批扫描过的文件数推进，被校验跳过的文件不会重复扫描
         _nextFileIndex = Math.Min(files.Count, start + count);
         if (_nextFileIndex >= files.Count)
             _allLoaded = true;
@@ -350,7 +345,7 @@ public partial class PageInstanceScreenshot : IRefreshable, IPageView
         if (sender is not MyCard card)
             return;
         if (card.Tag is true)
-            return; // 已经播放过，避免重复进入可视树时重播
+            return; // 已经播放过
         card.Tag = true;
         card.Opacity = 0d;
         Animations.AniStart(new[] { Animations.AaOpacity(card, 1d, 200) });
@@ -387,7 +382,7 @@ public partial class PageInstanceScreenshot : IRefreshable, IPageView
                 Lang.Text("Instance.Screenshot.OpenFailed"),
                 Common.LogLevel.Hint,
                 userSummary: Lang.Text("Instance.Screenshot.OpenFailed"));
-        } // 使用系统默认程序打开
+        }
     }
 
     private void BtnDelete_Click(object sender, Common.RouteEventArgs e)

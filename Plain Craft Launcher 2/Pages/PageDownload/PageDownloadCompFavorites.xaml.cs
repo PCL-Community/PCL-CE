@@ -1,3 +1,9 @@
+using PCL.Core.App.Localization;
+using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
+using PCL.Core.UI.Hints;
+using PCL.Network;
+using PCL.Network.Loaders;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -5,12 +11,6 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using PCL.Core.UI;
-using PCL.Core.UI.Dialogs;
-using PCL.Network;
-using PCL.Network.Loaders;
-using PCL.Core.App.Localization;
-using PCL.Core.UI.Hints;
 
 namespace PCL;
 
@@ -76,7 +76,6 @@ public partial class PageDownloadCompFavorites : IPageView
 
     #region 加载器信息
 
-    // 加载器信息
     public Loading.LoaderTask<List<string>, List<Comp.CompProject>> loader;
 
     private void PageDownloadCompFavorites_Inited(object sender, EventArgs e)
@@ -156,7 +155,6 @@ public partial class PageDownloadCompFavorites : IPageView
     {
         var dataSource = IsSearching ? searchResult : compItemList;
 
-        // 按类型分组，并保持各分组首次出现的顺序（与原逐个塞入卡片的顺序一致）
         var order = new List<int>();
         var grouped = new Dictionary<int, List<FavoriteItemViewModel>>();
         foreach (var item in dataSource)
@@ -174,7 +172,6 @@ public partial class PageDownloadCompFavorites : IPageView
         var newGroups = new List<FavoriteGroupViewModel>();
         foreach (var type in order)
         {
-            // 复用分组实例，避免刷新时重建 MyCard 而丢失卡片的展开状态
             var group = _groupCache.FirstOrDefault(e => e.CompType == type);
             if (group is null)
             {
@@ -189,7 +186,6 @@ public partial class PageDownloadCompFavorites : IPageView
         _groupCache.Clear();
         _groupCache.AddRange(newGroups);
 
-        // 分组集合整体替换，只触发一次集合变更通知；分组未变时不动集合，以免重建卡片
         if (_vm.Groups.SequenceEqual(newGroups))
             return;
         _vm.Groups = new ObservableCollection<FavoriteGroupViewModel>(newGroups);
@@ -210,7 +206,6 @@ public partial class PageDownloadCompFavorites : IPageView
 
     #region UI 化 - 加载主逻辑
 
-    // 结果 UI 化
     private void Load_OnFinish()
     {
         _groupCache.Clear();
@@ -266,9 +261,9 @@ public partial class PageDownloadCompFavorites : IPageView
             return;
         if (compItem.Tag is not null)
             return; // 已经映射过
-        compItem.Tag = item.Project; // 与原 ToListItem() 的 Tag 语义保持一致
+        compItem.Tag = item.Project;
         var compId = item.Project.Id;
-        // ----备注----
+
         var noteItem = new Run { Foreground = new SolidColorBrush(Color.FromRgb(0, 184, 148)) };
         noteItem.Text = item.NoteText;
         compItem.LabTitle.Inlines.Add(noteItem);
@@ -277,8 +272,8 @@ public partial class PageDownloadCompFavorites : IPageView
             if (args.PropertyName == nameof(FavoriteItemViewModel.NoteText))
                 noteItem.Text = item.NoteText;
         };
-        // ----添加按钮----
-        // 修改备注按钮
+
+        // 添加按钮
         var btn_EditNote = new MyIconButton();
         btn_EditNote.SvgIcon = "lucide/pencil";
         btn_EditNote.ToolTip = Lang.Text("Download.Comp.Favorites.EditNote");
@@ -301,7 +296,7 @@ public partial class PageDownloadCompFavorites : IPageView
                 if (desiredNote is not null)
                 {
                     CurrentFavTarget.Notes[compId] = desiredNote;
-                    item.SetNote(desiredNote); // 备注文本由 NoteText 绑定与 PropertyChanged 同步
+                    item.SetNote(desiredNote);
                     Comp.CompFavorites.Save();
                 }
             }
@@ -318,6 +313,7 @@ public partial class PageDownloadCompFavorites : IPageView
                 if (ctl is not null) ctl.IsEnabled = true;
             }
         };
+
         // 删除按钮
         var btn_Delete = new MyIconButton
         {
@@ -335,8 +331,8 @@ public partial class PageDownloadCompFavorites : IPageView
             RefreshBar();
         };
         compItem.Buttons = [btn_EditNote, btn_Delete];
-        // ---操作逻辑---
-        // 右键查看详细信息界面
+
+        // 操作逻辑
         compItem.MouseRightButtonUp += (_, _) => Launcher.frmMain.PageChange(
             new FormMain.PageStackData
             {
@@ -344,7 +340,8 @@ public partial class PageDownloadCompFavorites : IPageView
                 additional = (item.Project, new List<string>(), string.Empty, Comp.CompLoaderType.Any,
                     item.Project.Type, null)
             });
-        // ---其它事件---
+
+        // 其它事件
         compItem.Changed += ItemCheckStatusChanged;
     }
 
@@ -428,7 +425,6 @@ public partial class PageDownloadCompFavorites : IPageView
 
     #region 事件
 
-    // 选中状态改变
     private void ItemCheckStatusChanged(object sender, Common.RouteEventArgs e)
     {
         if (sender is not MyListItem { DataContext: FavoriteItemViewModel item })
@@ -440,24 +436,23 @@ public partial class PageDownloadCompFavorites : IPageView
         RefreshBar();
     }
 
-    // 自动重试
     private void Load_State(object sender, LoadingState state, LoadingState oldState)
     {
         switch (loader.State)
         {
             case LoadState.Failed:
-            {
-                var errorMessage = "";
-                if (loader.Error is not null)
-                    errorMessage = loader.Error.Message;
-                if (errorMessage.Contains(Lang.Text("Common.Error.InvalidJson")))
                 {
-                    Common.Log("[Download] 下载的工程列表 JSON 文件损坏，已自动重试", Common.LogLevel.Debug);
-                    PageLoaderRestart();
-                }
+                    var errorMessage = "";
+                    if (loader.Error is not null)
+                        errorMessage = loader.Error.Message;
+                    if (errorMessage.Contains(Lang.Text("Common.Error.InvalidJson")))
+                    {
+                        Common.Log("[Download] 下载的工程列表 JSON 文件损坏，已自动重试", Common.LogLevel.Debug);
+                        PageLoaderRestart();
+                    }
 
-                break;
-            }
+                    break;
+                }
         }
     }
 
@@ -818,28 +813,28 @@ public partial class PageDownloadCompFavorites : IPageView
                 switch (userWant)
                 {
                     case 1:
-                    {
-                        var newFavNameDialog = await _vm.Dialog.ShowAsync(new InputDialogRequest
                         {
-                            Title = Lang.Text("Download.Comp.Favorites.Dialog.Import.New"),
-                            Content = Lang.Text("Download.Comp.Favorites.Dialog.NewPrompt"),
-                            HighLight = false
-                        });
-                        var newFavName = newFavNameDialog.IsConfirmed ? newFavNameDialog.InputText : null;
-                        if (string.IsNullOrWhiteSpace(newFavName)) return;
-                        Comp.CompFavorites.FavoritesList.Add(Comp.CompFavorites.GetNewFav(newFavName, newFavs));
-                        Comp.CompFavorites.Save();
-                        RefreshFavTargets();
-                        _vm.FavTargetSelectedIndex = ComboTargetFav.Items.Count - 1;
-                        break;
-                    }
+                            var newFavNameDialog = await _vm.Dialog.ShowAsync(new InputDialogRequest
+                            {
+                                Title = Lang.Text("Download.Comp.Favorites.Dialog.Import.New"),
+                                Content = Lang.Text("Download.Comp.Favorites.Dialog.NewPrompt"),
+                                HighLight = false
+                            });
+                            var newFavName = newFavNameDialog.IsConfirmed ? newFavNameDialog.InputText : null;
+                            if (string.IsNullOrWhiteSpace(newFavName)) return;
+                            Comp.CompFavorites.FavoritesList.Add(Comp.CompFavorites.GetNewFav(newFavName, newFavs));
+                            Comp.CompFavorites.Save();
+                            RefreshFavTargets();
+                            _vm.FavTargetSelectedIndex = ComboTargetFav.Items.Count - 1;
+                            break;
+                        }
                     case 2:
-                    {
-                        newFavs.ToList().ForEach(x => CurrentFavTarget.Favs.Add(x));
-                        Comp.CompFavorites.Save();
-                        loader.Start(isForceRestart: true);
-                        break;
-                    }
+                        {
+                            newFavs.ToList().ForEach(x => CurrentFavTarget.Favs.Add(x));
+                            Comp.CompFavorites.Save();
+                            loader.Start(isForceRestart: true);
+                            break;
+                        }
                 }
             }
             catch (Exception ex)
@@ -1054,7 +1049,7 @@ public partial class PageDownloadCompFavorites : IPageView
                     searchSource.Add(new SearchService.SearchSource(entry.TranslatedName, 1d));
                 searchSource.Add(new SearchService.SearchSource(string.Join("", entry.Tags), 0.2d));
                 queryList.Add(new SearchService.SearchEntry<FavoriteItemViewModel>
-                    { item = Item, searchSource = searchSource });
+                { item = Item, searchSource = searchSource });
             }
 
             // 进行搜索

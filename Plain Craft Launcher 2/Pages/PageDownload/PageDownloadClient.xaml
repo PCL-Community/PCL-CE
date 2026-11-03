@@ -10,14 +10,7 @@
         <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                               x:Name="PanBack">
             <StackPanel Orientation="Vertical" Margin="5" Grid.IsSharedSizeScope="True">
-                <!--  顶部“最新版本”卡片：只有一张卡，不是列表，仍由 code-behind 构建  -->
                 <StackPanel Name="PanLatest" Margin="20,20,20,0" />
-                <!--
-                    版本分组列表：每个版本分类一张可折叠 MyCard，条目由 Items 集合 + DataTemplate 生成。
-                    这里刻意不启用虚拟化（普通 StackPanel 作为 ItemsPanel）：分类卡片默认折叠，折叠状态下
-                    组内容不参与布局，条目控件要等首次展开时才会创建，已保留改造前“展开时才装填”的懒加载语义；
-                    且单个分类的条目数量可控，再套一层虚拟化只会额外引入容器回收的复杂度。
-                -->
                 <ItemsControl Name="PanMain" Margin="20,0,20,5" ItemsSource="{Binding Groups}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -26,7 +19,6 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type local:GameVersionGroupViewModel}">
-                            <!--  Height 取 MyCard.SwapedHeight；CanSwap 让 MyCard 自行把第 4 个 child（下方 ItemsControl）接管为 SwapControl  -->
                             <local:MyCard Title="{Binding Title.Value}" Height="40" Margin="0,0,0,15" CanSwap="True"
                                           IsSwapped="{Binding IsExpanded, Converter={StaticResource InverseBooleanConverter}, Mode=TwoWay}">
                                 <ItemsControl Margin="20,40,18,18" VerticalAlignment="Top" Visibility="Collapsed"
@@ -41,7 +33,6 @@
                                     </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate DataType="{x:Type local:GameVersionItemViewModel}">
-                                            <!--  右键菜单（ContentHandler）不是依赖属性，由 VersionItem_Loaded 做一次性代码映射  -->
                                             <local:MyListItem Title="{Binding Title}" Info="{Binding Info.Value}"
                                                               Logo="{Binding Logo}" Tags="{Binding Tags}"
                                                               Tag="{Binding Entry}" Type="Clickable" Height="42"

@@ -154,7 +154,6 @@ public partial class MyLocalModItemViewModel : ViewModelBase
     {
         if (Entry is null)
             return;
-        // 与原实现一致：在 UI 线程延后计算，避免阻塞列表构建
         var dispatcher = Application.Current?.Dispatcher;
         if (dispatcher is null)
             return;

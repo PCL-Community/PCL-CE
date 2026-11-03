@@ -1,7 +1,7 @@
+using PCL.Core.App.Localization;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Threading;
-using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -24,7 +24,6 @@ internal static partial class TextStyles
 
         public TimerRun(TimeSpan interval = default, bool autoStart = false)
         {
-            // 不在构造时创建 DispatcherTimer：绝大多数 TimerRun 只用于显示颜色文本，永远不需要计时
             UpdateInterval = interval == TimeSpan.Zero
                 ? TimeSpan.FromSeconds(1d)
                 : interval;

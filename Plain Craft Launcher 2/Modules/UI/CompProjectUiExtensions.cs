@@ -1,6 +1,5 @@
-using System.Windows;
-using System.Windows.Controls;
 using PCL.Core.App.Localization;
+using System.Windows;
 
 namespace PCL;
 

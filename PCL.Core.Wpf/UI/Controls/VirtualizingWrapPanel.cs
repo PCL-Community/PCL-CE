@@ -208,9 +208,6 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo, IVirtualizi
 
     protected override void OnItemsChanged(object sender, ItemsChangedEventArgs args)
     {
-        // 集合变化后，生成器已经自己完成了位置映射的更新，
-        // 面板需要把「对应的旧子元素」同步摘掉，否则下次 CleanUpItems 按子元素序号推出的位置会是过期的，
-        // 调用 ItemContainerGenerator.Remove 时会在内部映射里取到 null（表现为 NRE）。
         switch (args.Action)
         {
             case NotifyCollectionChangedAction.Remove:
@@ -283,7 +280,6 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo, IVirtualizi
                     generator.PrepareItemContainer(child);
                 }
 
-                // 尺寸固定，测量代价低；回收的容器也会在这里按新槽位重新测量
                 child.Measure(itemSize);
             }
         }
@@ -305,8 +301,6 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo, IVirtualizi
             if (itemIndex >= minDesiredIndex && itemIndex <= maxDesiredIndex)
                 continue;
 
-            // itemIndex < 0 说明这个子元素已经不在生成器的映射里（集合刚变化过），
-            // 此时再调用 Remove 会因为内部映射为 null 而抛 NRE，直接摘掉视觉元素即可。
             if (itemIndex >= 0)
             {
                 try
@@ -315,7 +309,6 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo, IVirtualizi
                 }
                 catch (InvalidOperationException)
                 {
-                    // 生成器状态与面板不同步时不应让整个界面崩溃，摘掉子元素后等待下一次重新实例化。
                 }
                 catch (ArgumentOutOfRangeException)
                 {
@@ -376,7 +369,7 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo, IVirtualizi
         if (Math.Abs(previousOffset - _externalOffset) < 0.5d &&
             Math.Abs(previousHeight - _externalViewportHeight) < 0.5d)
             return;
-        // 可视带变了：已实例化的行通常仍覆盖新范围，只需重新排列；否则要重新实例化
+
         if (IsCoveredByRealizedRange(_externalOffset))
             InvalidateArrange();
         else

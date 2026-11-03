@@ -1,3 +1,4 @@
+using PCL.Core.UI.Controls.SvgIcon;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -6,7 +7,6 @@ using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using PCL.Core.UI.Controls.SvgIcon;
 
 namespace PCL;
 
@@ -273,13 +273,19 @@ public partial class MyListItem : IMyRadio
         }
     }
 
-    // 按钮
+    /// <summary>
+    /// 按钮
+    /// </summary>
     public FrameworkElement buttonStack;
 
-    // 图标
+    /// <summary>
+    /// 图标
+    /// </summary>
     public FrameworkElement pathLogo;
 
-    // 勾选条
+    /// <summary>
+    /// 勾选条
+    /// </summary>
     public Border rectCheck;
 
 
@@ -344,8 +350,9 @@ public partial class MyListItem : IMyRadio
         set => TagPanelHelper.FillPlain(PanTags, value, new SolidColorBrush(Color.FromRgb(134, 134, 134)));
     }
 
-    // 副文本
-
+    /// <summary>
+    /// 副文本
+    /// </summary>
     public TextBlock LabInfo
     {
         get
@@ -381,7 +388,6 @@ public partial class MyListItem : IMyRadio
 
     #region 自定义属性
 
-    // Uuid
     public int Uuid = Common.GetUuid();
 
     /// <summary>
@@ -412,7 +418,9 @@ public partial class MyListItem : IMyRadio
             RectBack.CornerRadius = new CornerRadius(value ? 6 : 0);
     }
 
-    // 边距
+    /// <summary>
+    /// 边距
+    /// </summary>
     public int PaddingLeft
     {
         get => (int)GetValue(PaddingLeftProperty);
@@ -440,7 +448,6 @@ public partial class MyListItem : IMyRadio
     /// </summary>
     public int MinPaddingRight { get; set; } = 4;
 
-    // 按钮
 
     public IEnumerable<MyIconButton> Buttons
     {
@@ -474,58 +481,62 @@ public partial class MyListItem : IMyRadio
         switch (value.Count())
         {
             case 0:
-            {
-                break;
-            }
+                {
+                    break;
+                }
             // 没有按钮，不添加新的
             case 1:
-            {
-                // 只有一个按钮
-                foreach (var Btn in value)
                 {
-                    if (Btn.Height.Equals(double.NaN))
-                        Btn.Height = 25d;
-                    if (Btn.Width.Equals(double.NaN))
-                        Btn.Width = 25d;
-                    Btn.Opacity = 0d;
-                    Btn.Margin = new Thickness(0d, 0d, 5d, 0d);
-                    Btn.SnapsToDevicePixels = false;
-                    Btn.HorizontalAlignment = HorizontalAlignment.Right;
-                    Btn.VerticalAlignment = VerticalAlignment.Center;
-                    Btn.UseLayoutRounding = false;
-                    SetColumnSpan(Btn, 10);
-                    SetRowSpan(Btn, 10);
-                    Children.Add(Btn);
-                    buttonStack = Btn;
-                }
+                    // 只有一个按钮
+                    foreach (var Btn in value)
+                    {
+                        if (Btn.Height.Equals(double.NaN))
+                            Btn.Height = 25d;
+                        if (Btn.Width.Equals(double.NaN))
+                            Btn.Width = 25d;
+                        Btn.Opacity = 0d;
+                        Btn.Margin = new Thickness(0d, 0d, 5d, 0d);
+                        Btn.SnapsToDevicePixels = false;
+                        Btn.HorizontalAlignment = HorizontalAlignment.Right;
+                        Btn.VerticalAlignment = VerticalAlignment.Center;
+                        Btn.UseLayoutRounding = false;
+                        SetColumnSpan(Btn, 10);
+                        SetRowSpan(Btn, 10);
+                        Children.Add(Btn);
+                        buttonStack = Btn;
+                    }
 
-                break;
-            }
+                    break;
+                }
 
             default:
-            {
-                // 有复数按钮，使用 StackPanel
-                buttonStack = new StackPanel
                 {
-                    Opacity = 0d, Margin = new Thickness(0d, 0d, 5d, 0d), SnapsToDevicePixels = false,
-                    Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right,
-                    VerticalAlignment = VerticalAlignment.Center, UseLayoutRounding = false
-                };
-                SetColumnSpan(buttonStack, 10);
-                SetRowSpan(buttonStack, 10);
-                // 构造按钮
-                foreach (var Btn in value)
-                {
-                    if (Btn.Height.Equals(double.NaN))
-                        Btn.Height = 25d;
-                    if (Btn.Width.Equals(double.NaN))
-                        Btn.Width = 25d;
-                    ((StackPanel)buttonStack).Children.Add(Btn);
-                }
+                    // 有复数按钮，使用 StackPanel
+                    buttonStack = new StackPanel
+                    {
+                        Opacity = 0d,
+                        Margin = new Thickness(0d, 0d, 5d, 0d),
+                        SnapsToDevicePixels = false,
+                        Orientation = Orientation.Horizontal,
+                        HorizontalAlignment = HorizontalAlignment.Right,
+                        VerticalAlignment = VerticalAlignment.Center,
+                        UseLayoutRounding = false
+                    };
+                    SetColumnSpan(buttonStack, 10);
+                    SetRowSpan(buttonStack, 10);
+                    // 构造按钮
+                    foreach (var Btn in value)
+                    {
+                        if (Btn.Height.Equals(double.NaN))
+                            Btn.Height = 25d;
+                        if (Btn.Width.Equals(double.NaN))
+                            Btn.Width = 25d;
+                        ((StackPanel)buttonStack).Children.Add(Btn);
+                    }
 
-                Children.Add(buttonStack);
-                break;
-            }
+                    Children.Add(buttonStack);
+                    break;
+                }
         }
     }
 
@@ -591,7 +602,6 @@ public partial class MyListItem : IMyRadio
         control.LabInfo.Visibility = string.IsNullOrEmpty(value) ? Visibility.Collapsed : Visibility.Visible;
     }
 
-    // 图片
     public string Logo
     {
         get => (string)GetValue(LogoProperty);
@@ -642,12 +652,10 @@ public partial class MyListItem : IMyRadio
 
     private void UpdateLogo(string logo)
     {
-        // 删除旧 Logo
         if (pathLogo is not null)
             Children.Remove(pathLogo);
         pathLogo = null;
 
-        // 添加新 Logo
         if (IsUsingSvgIcon)
         {
             pathLogo = new SvgIcon
@@ -780,7 +788,6 @@ public partial class MyListItem : IMyRadio
         }
     }
 
-    // 图标的点击
     /// <summary>
     ///     该 Logo 是否可用点击触发事件。需要在 Logo 属性之前设置。
     /// </summary>
@@ -788,7 +795,6 @@ public partial class MyListItem : IMyRadio
 
     private bool _isLogoDown;
 
-    // 勾选选项
     public enum CheckType
     {
         None,
@@ -854,7 +860,9 @@ public partial class MyListItem : IMyRadio
         }
     }
 
-    // 适应尺寸
+    /// <summary>
+    /// 适应尺寸
+    /// </summary>
     private void OnSizeChanged()
     {
         var logo = Logo;
@@ -879,7 +887,9 @@ public partial class MyListItem : IMyRadio
         LabTitle.Margin = new Thickness(4d, 0d, 0d, Height < 40d ? 0 : 2);
     }
 
-    // 勾选状态
+    /// <summary>
+    /// 勾选状态
+    /// </summary>
     public static readonly DependencyProperty CheckedProperty = DependencyProperty.Register(nameof(Checked),
         typeof(bool), typeof(MyListItem), new FrameworkPropertyMetadata(false,
             FrameworkPropertyMetadataOptions.BindsTwoWayByDefault,
@@ -1018,37 +1028,37 @@ public partial class MyListItem : IMyRadio
         switch (checkedCount)
         {
             case 0:
-            {
-                // 没有任何单选框被选中，选择第一个
-                radioboxList[0].Checked = true;
-                break;
-            }
+                {
+                    // 没有任何单选框被选中，选择第一个
+                    radioboxList[0].Checked = true;
+                    break;
+                }
             case var @case when @case > 1:
-            {
-                // 选中项目多于 1 个
-                if (Checked)
                 {
-                    // 如果本控件选中，则取消其他所有控件的选中
-                    foreach (var Control in radioboxList)
-                        if (Control.Checked && !Control.Equals(this))
-                            Control.Checked = false;
-                }
-                else
-                {
-                    // 如果本控件未选中，则只保留第一个选中的控件
-                    var firstChecked = false;
-                    foreach (var Control in radioboxList)
-                        if (Control.Checked)
-                        {
-                            if (firstChecked)
-                                Control.Checked = false; // 修改 Checked 会自动触发 Change 事件，所以不用额外触发
-                            else
-                                firstChecked = true;
-                        }
-                }
+                    // 选中项目多于 1 个
+                    if (Checked)
+                    {
+                        // 如果本控件选中，则取消其他所有控件的选中
+                        foreach (var Control in radioboxList)
+                            if (Control.Checked && !Control.Equals(this))
+                                Control.Checked = false;
+                    }
+                    else
+                    {
+                        // 如果本控件未选中，则只保留第一个选中的控件
+                        var firstChecked = false;
+                        foreach (var Control in radioboxList)
+                            if (Control.Checked)
+                            {
+                                if (firstChecked)
+                                    Control.Checked = false; // 修改 Checked 会自动触发 Change 事件，所以不用额外触发
+                                else
+                                    firstChecked = true;
+                            }
+                    }
 
-                break;
-            }
+                    break;
+                }
         }
     }
 
@@ -1161,7 +1171,9 @@ public partial class MyListItem : IMyRadio
         }
     }
 
-    // 前景色绑定
+    /// <summary>
+    /// 前景色绑定
+    /// </summary>
     public Brush Foreground
     {
         get => (Brush)GetValue(ForegroundProperty);
@@ -1207,9 +1219,11 @@ public partial class MyListItem : IMyRadio
         set => SetValue(CheckCommandParameterProperty, value);
     }
 
-    // 菜单与按钮绑定
+    /// <summary>
+    /// 菜单与按钮绑定
+    /// </summary>
     public Action<MyListItem, EventArgs> ContentHandler { get; set; }
-    
+
     /// <summary>
     /// 图标可选的圆角。仅当 Logo 为位图（MyImage 或 Canvas）时生效。
     /// 当所有角的圆角半径均 ≥ 0 时，应用圆角效果；否则不应用。
@@ -1238,8 +1252,8 @@ public partial class MyListItem : IMyRadio
         if (pathLogo is Canvas) _canvasClipHandlerAdded = false;
         ApplyLogoCornerRadius();
     }
-    
-    private bool IsLogoCornerRadiusEnabled() => 
+
+    private bool IsLogoCornerRadiusEnabled() =>
         LogoCornerRadius is { TopLeft: >= 0, TopRight: >= 0, BottomLeft: >= 0, BottomRight: >= 0 };
 
     private void UpdateCanvasClip(Canvas c)
@@ -1277,7 +1291,7 @@ public partial class MyListItem : IMyRadio
     private void OnCanvasLogoSizeChanged(object? sender, SizeChangedEventArgs e)
     {
         if (sender is not Canvas { ActualWidth: > 0, ActualHeight: > 0 } canvas) return;
-    
+
         UpdateCanvasClip(canvas);
         canvas.SizeChanged -= OnCanvasLogoSizeChanged;
         _canvasClipHandlerAdded = false;
@@ -1309,27 +1323,26 @@ public partial class MyListItem : IMyRadio
         switch (Type)
         {
             case CheckType.Clickable:
-            {
-                Common.Log("[Control] 按下单击列表项：" + Title);
-                break;
-            }
+                {
+                    Common.Log("[Control] 按下单击列表项：" + Title);
+                    break;
+                }
             case CheckType.RadioBox:
-            {
-                Common.Log("[Control] 按下单选列表项：" + Title);
-                if (!Checked)
-                    SetChecked(true, true, true);
-                break;
-            }
+                {
+                    Common.Log("[Control] 按下单选列表项：" + Title);
+                    if (!Checked)
+                        SetChecked(true, true, true);
+                    break;
+                }
             case CheckType.CheckBox:
-            {
-                Common.Log("[Control] 按下复选列表项（" + !Checked + "）：" + Title);
-                SetChecked(!Checked, true, true);
-                break;
-            }
+                {
+                    Common.Log("[Control] 按下复选列表项（" + !Checked + "）：" + Title);
+                    SetChecked(!Checked, true, true);
+                    break;
+                }
         }
     }
 
-    // 鼠标点击判定
     private bool _isMouseDown;
 
     private void Button_MouseDown(object sender, MouseButtonEventArgs e)

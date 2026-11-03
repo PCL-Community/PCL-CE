@@ -1,10 +1,10 @@
+using PCL.Core.UI.Effects;
 using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
-using PCL.Core.UI.Effects;
 
 // 该部分源码来自或修改于 https://github.com/OrgEleCho/EleCho.WpfSuite
 // 项目: EleCho.WpfSuite
@@ -90,9 +90,6 @@ public class BlurBorder : Border
     // 当前订阅了 LayoutUpdated 的父级。显式记录以便父级变更时准确退订，避免内存泄漏。
     private UIElement? _layoutParent;
 
-    // 上一次触发渲染时的父级尺寸与本元素相对可视树根元素的位置。
-    // 父级 LayoutUpdated 会在每次布局传递时触发（与父级是否真的变化无关），
-    // 用它过滤掉无意义的强制渲染。
     private bool _hasLayoutSnapshot;
     private Size _lastParentSize;
     private Point _lastParentOffset;
@@ -235,9 +232,6 @@ public class BlurBorder : Border
 
         var parentSize = _layoutParent.RenderSize;
 
-        // Parent 不一定是可视树上的祖先（控件模板里的元素常见），所以位移统一沿可视树换算。
-        // 参照物取可视树的根元素而不是直接父级：模糊采样的是窗口背景，
-        // 祖先整体平移时直接父级的尺寸与相对位置都可能不变，只看父级会漏掉这类变化。
         DependencyObject root = this;
         var rootParent = VisualTreeHelper.GetParent(root);
 
@@ -292,7 +286,7 @@ public class BlurBorder : Border
 
         if (!(contentWidth > 0 && contentHeight > 0))
             return null;
-        
+
         var rect = new Rect(0, 0, contentWidth, contentHeight);
         var radii = new Radii(cornerRadius, borderThickness, false);
 

@@ -45,8 +45,6 @@ public class AnimatedBackgroundGrid : Grid
         set => SetValue(BackgroundBrushProperty, value);
     }
 
-    // 主题切换时所有实例共享同一个 300ms 计时器，
-    // 避免每个实例各自起一个 Task.Delay（卡片多时会同时存在大量计时器与续延）。
     private static readonly List<(AnimatedBackgroundGrid Grid, SolidColorBrush Brush)> _pendingFinishes = new();
     private static DispatcherTimer? _finishTimer;
     private static Dispatcher? _finishTimerDispatcher;

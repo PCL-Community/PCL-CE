@@ -5,7 +5,6 @@ using PCL.Core.Logging;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
-using PCL.Core.UI.Theme;
 using PCL.Network;
 using PCL.Network.Loaders;
 using System.ComponentModel;
@@ -26,12 +25,13 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView, ILocalM
 {
     #region 模组信息缓存
 
-    // 模组信息缓存 - 解决排序时重复创建FileInfo导致的性能问题
     private readonly Dictionary<string, (DateTime CreationTime, long Length)> modFileInfoCache = [];
 
     public PageInstanceCompResource() : this(Comp.CompType.Mod) { }
 
-    // 获取模组信息（带缓存）
+    /// <summary>
+    /// 获取模组信息
+    /// </summary>
     private (DateTime CreationTime, long Length) GetModFileInfo(string path)
     {
         if (modFileInfoCache.TryGetValue(path, out var cacheItem)) return cacheItem;
@@ -50,7 +50,6 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView, ILocalM
         }
     }
 
-    // 页面关闭时清理缓存
     private void Page_Loaded(object sender, RoutedEventArgs e) => PageOther_Loaded();
 
     private void PageExit_UnselectedAll() => UnselectedAllWithAnimation();
@@ -80,11 +79,8 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView, ILocalM
         CurrentFolderPath = ""; // 确保文件夹路径被重置为根目录
         currentSwipSelect = new MyLocalCompItem.SwipeSelect { TargetFrm = this };
 
-        // 此调用是设计器所必需的。
         InitializeComponent();
         DataContext = _vm;
-
-        // 在 InitializeComponent() 调用之后添加任何初始化。
 
         LoaderInit();
     }
@@ -205,7 +201,6 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView, ILocalM
         }
     }
 
-    // 强制刷新
     private void RefreshSelf()
     {
         Refresh(_vm.CompType);
@@ -658,7 +653,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView, ILocalM
             showingMods.Sort((a, b) => sortMethod(a, b));
         }
 
-        // 更新 VM 集合；集合内部按实例复用，控件由虚拟化列表按需生成
+        // 更新 VM 集合
         Animations.AniBeginControl();
         _vm.ShowItemList = showingMods.Any();
         var visibleItems = new List<MyLocalModItemViewModel>(showingMods.Count);
@@ -684,9 +679,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView, ILocalM
     {
         Dispatcher.BeginInvoke(new Func<Task>(async () =>
         {
-            // -----------------
             // 顶部栏
-            // -----------------
 
             // 计数
             var anyCount = 0;
@@ -735,9 +728,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView, ILocalM
             else
                 _vm.ShowManageBack = false;
 
-            // -----------------
             // 底部栏
-            // -----------------
 
             // 计数
             var newCount = selectedMods.Count;
@@ -1369,7 +1360,6 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView, ILocalM
     /// </summary>
     public HashSet<string> selectedMods = new();
 
-    // 单项切换选择状态
     public void CheckChanged(MyLocalModItemViewModel sender)
     {
         if (Animations.AniExitsAnyControl())
@@ -1385,7 +1375,6 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView, ILocalM
         RefreshBars();
     }
 
-    // 切换所有项的选择状态
     private void ChangeAllSelected(bool value)
     {
         Animations.AniBeginControl();
@@ -1533,7 +1522,6 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView, ILocalM
         }
     }
 
-    // 点击筛选项触发的改变
     private void ChangeFilter(MyRadioButton sender, bool raiseByMouse)
     {
         Filter = (FilterType)Convert.ToInt32(sender.Tag);
@@ -1583,7 +1571,6 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView, ILocalM
         {
             try
             {
-                // 排序逻辑已合并到 RefreshUI：顺序在 code-behind 算好后交给 VM 集合，由虚拟化列表重排
                 RefreshUI();
             }
 
@@ -1733,7 +1720,6 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView, ILocalM
 
     #region 下边栏
 
-    // 启用 / 禁用
     private void BtnSelectED_Click(object sender, Common.RouteEventArgs e)
     {
         EDMods(LocalComp.CompResourceListLoader.output.Where(m => selectedMods.Contains(m.RawPath)).ToList(),
@@ -1786,9 +1772,9 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView, ILocalM
         DeleteModsCore(list, isShiftPressed);
     }
 
-    // 后台内嵌（Jar-in-Jar）解析未完成时，级联反查可能遗漏内嵌依赖，禁用/删除前提示确认
     private bool _ConfirmCascadeReady()
     {
+        // 后台内嵌（Jar-in-Jar）解析未完成时，级联反查可能遗漏内嵌依赖，禁用/删除前提示确认
         if (_vm.CompType != Comp.CompType.Mod || LocalComp.compJijResolved) return true;
         if ((DialogService.Instance.Show(new TextDialogRequest
         {
@@ -1838,7 +1824,11 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView, ILocalM
         return index.FindAffected(targets);
     }
 
-    // 级联选择弹窗；返回 0=仅此项 / 1=连带禁用 /（删除时）2=连带删除；null=取消
+    /// <summary>
+    /// 级联选择弹窗
+    /// </summary>
+    /// <returns>返回 0=仅此项 / 1=连带禁用 /（删除时）2=连带删除；null=取消</returns>
+
     private int? _AskJijCascade(List<LocalComp.LocalCompFile> affected, bool isDelete)
     {
         var sels = new List<DialogOption>
@@ -1868,6 +1858,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView, ILocalM
         foreach (var ModE in modList)
         {
             var modEntity = ModE; // 仅用于去除迭代变量无法修改的限制
+
             // 用户可能在 Phase 2 尚未完成时选择继续操作。重命名前先同步补齐该项，
             // 否则后台仍持有旧路径实体，而新实体会复制空树并永久丢失本次会话的 JIJ 状态。
             if (_vm.CompType == Comp.CompType.Mod && modEntity.JijPending)
@@ -1953,7 +1944,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView, ILocalM
             // 更改 Loader 中的列表
             var newModEntity = new LocalComp.LocalCompFile(newPath);
             newModEntity.FromJson(modEntity.ToJson());
-            newModEntity.CopyLoadedStateFrom(modEntity); // 仅改名未改内容，复用已解析元数据，免得 UI 线程重新解压
+            newModEntity.CopyLoadedStateFrom(modEntity);
             if (LocalComp.CompResourceListLoader.output.Contains(modEntity))
             {
                 var indexOfLoader = LocalComp.CompResourceListLoader.output.IndexOf(modEntity);
@@ -1968,7 +1959,6 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView, ILocalM
                 searchResult.Insert(indexOfResult, newModEntity);
             }
 
-            // 更改 UI 中的列表：换入新的 VM，RefreshUI 会按 RawPath 复用其余项
             try
             {
                 modItems.Remove(modEntity.RawPath);
@@ -1984,7 +1974,6 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView, ILocalM
             }
         }
 
-        // 集合更新后由 WPF 自行安排布局，无需手动 UpdateLayout（原实现用于强制同步布局）
         RefreshUI();
         if (isSuccessful)
         {
@@ -2000,7 +1989,6 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView, ILocalM
         return isSuccessful;
     }
 
-    // 更新
     private void BtnSelectUpdate_Click(object sender, Common.RouteEventArgs e)
     {
         var updateList = LocalComp.CompResourceListLoader.output
@@ -2218,7 +2206,6 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView, ILocalM
         }
     }
 
-    // 删除
     private void BtnSelectDelete_Click(object sender, Common.RouteEventArgs e)
     {
         DeleteMods(LocalComp.CompResourceListLoader.output.Where(m => selectedMods.Contains(m.RawPath)));
@@ -2376,7 +2363,6 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView, ILocalM
 
     #region 单个资源项
 
-    // 详情
     public async void Info_Click(object sender, EventArgs e)
     {
         var modEntry = sender is MyLocalCompItem listItem
@@ -2387,7 +2373,6 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView, ILocalM
         await ShowInfoAsync(modEntry);
     }
 
-    // 详情（供条目 ViewModel 调用）
     private void Info_Click(LocalComp.LocalCompFile modEntry) => _ = ShowInfoAsync(modEntry);
 
     private async Task ShowInfoAsync(LocalComp.LocalCompFile modEntry)

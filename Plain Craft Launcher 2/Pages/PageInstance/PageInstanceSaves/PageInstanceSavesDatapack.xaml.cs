@@ -677,7 +677,6 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
             return;
         }
 
-        // 让出一次调度器（Background 优先级）代替同步的 Dispatcher.Invoke + UpdateLayout：
         // 排队中的布局/渲染会先执行完，这里不需要再插入一次同步布局传递。
         await Dispatcher.Yield(DispatcherPriority.Background);
 

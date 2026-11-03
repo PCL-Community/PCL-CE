@@ -61,9 +61,8 @@ public partial class MyCompItem
             return;
         _stateLast = stateNew;
         // 触发颜色动画
-        if (IsLoaded && !Animations.AniExitsAnyControl()) // 防止默认属性变更触发动画
+        if (IsLoaded && !Animations.AniExitsAnyControl())
         {
-            // 有动画
             var ani = new List<Animations.AniData>();
             if (IsMouseOver)
             {
@@ -108,7 +107,6 @@ public partial class MyCompItem
         }
         else
         {
-            // 无动画
             Animations.AniStop("CompItem Color " + Uuid);
             if (_rectBack is not null)
                 RectBack.Opacity = 0d;
@@ -121,14 +119,12 @@ public partial class MyCompItem
 
     public int Uuid = Common.GetUuid();
 
-    // Logo
     public string Logo
     {
         get => PathLogo.Source;
         set => PathLogo.Source = value;
     }
 
-    // 标题
     public string Title
     {
         get => ViewModel.TitleText;
@@ -140,7 +136,6 @@ public partial class MyCompItem
         }
     }
 
-    // 副标题
     public string SubTitle
     {
         get => ViewModel.SubTitleText;
@@ -153,7 +148,6 @@ public partial class MyCompItem
         }
     }
 
-    // 描述
     public string Description
     {
         get => ViewModel.DescriptionText;
@@ -250,7 +244,6 @@ public partial class MyCompItem
         ColumnTime3.Width = show ? new GridLength(0.25d, GridUnitType.Star) : new GridLength(0d);
     }
 
-    // 指向时扩展描述
     private void LabInfo_MouseEnter(object sender, MouseEventArgs e)
     {
         if (IsTextTrimmed(LabInfo))
@@ -275,7 +268,6 @@ public partial class MyCompItem
         return formattedText.Width > textBlock.ActualWidth;
     }
 
-    // Tag
     public List<string> Tags
     {
         set => TagPanelHelper.FillLocalized(
@@ -284,7 +276,6 @@ public partial class MyCompItem
             new SolidColorBrush(Color.FromRgb(134, 134, 134)));
     }
 
-    // ‘收藏按钮
     public bool ShowFavoriteBtn
     {
         get => BtnDelete.Visibility == Visibility.Visible;
@@ -295,7 +286,6 @@ public partial class MyCompItem
         }
     }
 
-    // 快速下载按钮
     public bool ShowDownloadBtn
     {
         get => BtnDownload.Visibility == Visibility.Visible;
@@ -327,9 +317,6 @@ public partial class MyCompItem
     #endregion
     #region 点击
 
-
-
-    // 触发点击事件
     public event ClickEventHandler? Click;
 
     public delegate void ClickEventHandler(object sender, MouseButtonEventArgs e);
@@ -351,7 +338,6 @@ public partial class MyCompItem
 
     private void MyCompItem_Click(MyCompItem sender, EventArgs e)
     {
-        // 记录当前展开的卡片标题
         // 记录当前展开的卡片标题（#2712）
         var titles = new List<string>();
         if (Launcher.frmMain.pageCurrent.page == FormMain.PageType.CompDetail)
@@ -382,44 +368,44 @@ public partial class MyCompItem
                 switch (Launcher.frmMain.PageCurrentSub)
                 {
                     case FormMain.PageSubType.DownloadMod:
-                    {
-                        targetType = Comp.CompType.Mod;
-                        targetVersion = Launcher.frmDownloadMod.Content.loader.input.gameVersion;
-                        targetLoader = Launcher.frmDownloadMod.Content.loader.input.modLoader;
-                        break;
-                    }
+                        {
+                            targetType = Comp.CompType.Mod;
+                            targetVersion = Launcher.frmDownloadMod.Content.loader.input.gameVersion;
+                            targetLoader = Launcher.frmDownloadMod.Content.loader.input.modLoader;
+                            break;
+                        }
                     case FormMain.PageSubType.DownloadPack:
-                    {
-                        targetType = Comp.CompType.ModPack;
-                        targetVersion = Launcher.frmDownloadPack.Content.loader.input.gameVersion;
-                        break;
-                    }
+                        {
+                            targetType = Comp.CompType.ModPack;
+                            targetVersion = Launcher.frmDownloadPack.Content.loader.input.gameVersion;
+                            break;
+                        }
                     case FormMain.PageSubType.DownloadDataPack:
-                    {
-                        targetType = Comp.CompType.DataPack;
-                        targetVersion = Launcher.frmDownloadDataPack.Content.loader.input
-                            .gameVersion;
-                        break;
-                    }
+                        {
+                            targetType = Comp.CompType.DataPack;
+                            targetVersion = Launcher.frmDownloadDataPack.Content.loader.input
+                                .gameVersion;
+                            break;
+                        }
                     case FormMain.PageSubType.DownloadResourcePack:
-                    {
-                        targetType = Comp.CompType.ResourcePack;
-                        targetVersion = Launcher.frmDownloadResourcePack.Content.loader.input
-                            .gameVersion;
-                        break;
-                    }
+                        {
+                            targetType = Comp.CompType.ResourcePack;
+                            targetVersion = Launcher.frmDownloadResourcePack.Content.loader.input
+                                .gameVersion;
+                            break;
+                        }
                     case FormMain.PageSubType.DownloadShader:
-                    {
-                        targetType = Comp.CompType.Shader;
-                        targetVersion = Launcher.frmDownloadShader.Content.loader.input.gameVersion;
-                        break;
-                    }
+                        {
+                            targetType = Comp.CompType.Shader;
+                            targetVersion = Launcher.frmDownloadShader.Content.loader.input.gameVersion;
+                            break;
+                        }
                     case FormMain.PageSubType.DownloadWorld:
-                    {
-                        targetType = Comp.CompType.World;
-                        targetVersion = Launcher.frmDownloadWorld.Content.loader.input.gameVersion;
-                        break;
-                    }
+                        {
+                            targetType = Comp.CompType.World;
+                            targetVersion = Launcher.frmDownloadWorld.Content.loader.input.gameVersion;
+                            break;
+                        }
                 }
             }
         }
@@ -445,10 +431,8 @@ public partial class MyCompItem
         });
     }
 
-    // 鼠标点击判定
     private bool _isMouseDown;
 
-    // 触发点击事件
     private void Button_MouseUp(object sender, MouseButtonEventArgs e)
     {
         if (!_isMouseDown)
@@ -488,16 +472,19 @@ public partial class MyCompItem
         _isMouseDown = false;
     }
 
-    // 判断点击是否落在某个操作按钮（收藏 / 下载）上
+    /// <summary>
+    /// 判断点击是否落在某个操作按钮（收藏 / 下载）上
+    /// </summary>
     private bool _IsClickOnActionButton(FrameworkElement button, Point clickPosition)
     {
         if (button is null || button.Visibility != Visibility.Visible) return false;
         var bounds = new Rect(button.TranslatePoint(new Point(0d, 0d), this), button.RenderSize);
-    #endregion
-    #region 后加载指向背景
+
         return bounds.Contains(clickPosition);
     }
 
+    #endregion
+    #region 后加载指向背景
 
     private Border _rectBack;
 
@@ -528,10 +515,10 @@ public partial class MyCompItem
                 // IsHitTestVisible = "False" Opacity="0" BorderThickness="1"
                 // Grid.ColumnSpan = "4" Background="{DynamicResource ColorBrush7}" BorderBrush="{DynamicResource ColorBrush6}"/>-->
             }
-    #endregion
 
             return _rectBack;
         }
     }
 
+    #endregion
 }

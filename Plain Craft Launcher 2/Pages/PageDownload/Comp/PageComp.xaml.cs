@@ -1,8 +1,8 @@
+using PCL.Core.App.Localization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Markup;
-using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -27,13 +27,12 @@ public partial class PageComp
     /// </summary>
     public MyScrollViewer ListScroll => this;
 
-    // 结果 UI 化
     private void Load_OnFinish()
     {
         try
         {
             Common.Log($"[Comp] 开始可视化{TypeNameSpaced}列表，已储藏 {storage.results.Count} 个结果，当前在第 {page + 1} 页");
-            // 列表项：一次性替换集合，由虚拟化面板按需创建容器
+
             var startIndex = page * pageSize;
             var count = startIndex >= storage.results.Count
                 ? 0
@@ -71,24 +70,23 @@ public partial class PageComp
         }
     }
 
-    // 自动重试
     private void Load_State(object sender, LoadingState state, LoadingState oldState)
     {
         switch (loader.State)
         {
             case LoadState.Failed:
-            {
-                var errorMessage = "";
-                if (loader.Error is not null)
-                    errorMessage = loader.Error.Message;
-                if (errorMessage.Contains(Lang.Text("Common.Error.InvalidJson")))
                 {
-                    Common.Log($"[Download] 下载的{TypeNameSpaced}列表 json 文件损坏，已自动重试", Common.LogLevel.Debug);
-                    ((MyPageRight)Parent).PageLoaderRestart();
-                }
+                    var errorMessage = "";
+                    if (loader.Error is not null)
+                        errorMessage = loader.Error.Message;
+                    if (errorMessage.Contains(Lang.Text("Common.Error.InvalidJson")))
+                    {
+                        Common.Log($"[Download] 下载的{TypeNameSpaced}列表 json 文件损坏，已自动重试", Common.LogLevel.Debug);
+                        ((MyPageRight)Parent).PageLoaderRestart();
+                    }
 
-                break;
-            }
+                    break;
+                }
         }
     }
 
@@ -205,7 +203,6 @@ public partial class PageComp
     /// </summary>
     public static McInstance targetVersion;
 
-    // 在点击 MyCompItem 时会获取 Loader 的输入，以使资源详情页面可以应用相同的筛选项
     public Loading.LoaderTask<Comp.CompProjectRequest, int> loader;
 
     private bool isLoaderInited;
@@ -213,7 +210,8 @@ public partial class PageComp
     public PageComp()
     {
         loader = new Loading.LoaderTask<Comp.CompProjectRequest, int>(Lang.Text("Download.Comp.List.Source.ResourceFetch", "XXX"), Comp.CompProjectsGet,
-            inputDelegate: LoaderInput) { reloadTimeout = 60 * 1000 };
+            inputDelegate: LoaderInput)
+        { reloadTimeout = 60 * 1000 };
         Loaded += PageCompControls_Inited;
         IsVisibleChanged += PageComp_IsVisibleChanged;
         InitializeComponent();
@@ -308,7 +306,7 @@ public partial class PageComp
             modLoader = (Comp.CompLoaderType)Common.Val(((MyComboBoxItem)ComboSearchLoader.SelectedItem).Tag);
             if (gameVersion is not null && gameVersion.Contains(".") && Common.Val(gameVersion.Split(".")[1]) < 14d &&
                 modLoader == Comp.CompLoaderType.Forge) // 1.14-
-                                                           // 选择了 Forge
+                                                        // 选择了 Forge
                 modLoader = Comp.CompLoaderType.Any; // 此时，视作没有筛选 Mod Loader（因为部分老 Mod 没有设置自己支持的加载器）
         }
 
@@ -351,7 +349,6 @@ public partial class PageComp
             StartNewSearch();
     }
 
-    // 重置按钮
     private void ResetFilter()
     {
         PanSearchBox.Text = "";
@@ -362,7 +359,7 @@ public partial class PageComp
         ComboSearchLoader.SelectedIndex = 0;
         ComboSearchShaderLoader.SelectedIndex = 0;
         ComboSearchSort.SelectedIndex = 0;
-        loader.lastFinishedTime = 0L; // 要求强制重新开始
+        loader.lastFinishedTime = 0L;
     }
 
     private void BtnSearchReset_Click(object sender, EventArgs e)

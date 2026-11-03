@@ -1,8 +1,8 @@
+using PCL.Core.App.Localization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
-using PCL.Core.App.Localization;
 using static PCL.Loading;
 
 namespace PCL;
@@ -12,16 +12,55 @@ public class MyPageRight : AdornerDecorator
     // 当前状态
     public enum PageStates
     {
-        Empty, // 默认状态，页面全空
-        LoaderWait, // 加载环初始等待
-        LoaderEnter, // 加载环进入动画
-        LoaderStayForce, // 加载环正常显示（强制等待）
-        LoaderStay, // 加载环正常显示
-        LoaderExit, // 加载环退出动画
-        ContentEnter, // 内容进入动画
-        ContentStay, // 内容正常显示
-        ContentExit, // 刷新导致的全部退出动画，或页面内容退出（子页面更改）导致的全部退出动画
-        PageExit // 切换页面导致的全部退出动画
+        /// <summary>
+        /// 默认状态，页面全空
+        /// </summary>
+        Empty,
+
+        /// <summary>
+        /// 加载环初始等待
+        /// </summary>
+        LoaderWait,
+
+        /// <summary>
+        /// 加载环进入动画
+        /// </summary>
+        LoaderEnter,
+
+        /// <summary>
+        /// 加载环正常显示（强制等待）
+        /// </summary>
+        LoaderStayForce,
+
+        /// <summary>
+        /// 加载环正常显示
+        /// </summary>
+        LoaderStay,
+
+        /// <summary>
+        /// 加载环退出动画
+        /// </summary>
+        LoaderExit,
+
+        /// <summary>
+        /// 内容进入动画
+        /// </summary>
+        ContentEnter,
+
+        /// <summary>
+        /// 内容正常显示
+        /// </summary>
+        ContentStay,
+
+        /// <summary>
+        /// 刷新导致的全部退出动画，或页面内容退出（子页面更改）导致的全部退出动画
+        /// </summary>
+        ContentExit,
+
+        /// <summary>
+        /// 切换页面导致的全部退出动画
+        /// </summary>
+        PageExit
     }
 
     private static readonly DependencyProperty PanScrollProperty =
@@ -31,7 +70,9 @@ public class MyPageRight : AdornerDecorator
 
     public int pageUuid = Common.GetUuid();
 
-    // “返回顶部” 按钮检测的滚动区域
+    /// <summary>
+    /// “返回顶部” 按钮检测的滚动区域
+    /// </summary>
     public MyScrollViewer PanScroll
     {
         get
@@ -83,7 +124,6 @@ public class MyPageRight : AdornerDecorator
     private FrameworkElement? _panAlways;
     private bool _pageLoaderAutoRun;
 
-    // 初始化
     /// <summary>
     ///     表明页面存在需要在后台执行的加载器。
     /// </summary>
@@ -112,9 +152,9 @@ public class MyPageRight : AdornerDecorator
             realLoader.PreviewFinish += _ =>
             {
                 // 不在退出动画时执行 UI 线程操作，避免退出动画被重置。
-                // 使用事件等待代替 Thread.Sleep 忙等：加载器线程在后台等待，不会阻塞 UI 线程。
                 _pageExitDone.Wait(TimeSpan.FromSeconds(2));
                 Common.RunInUiWait(() => finishedInvoke(realLoader));
+
                 // 让 UI 线程完成一次布局与渲染后再触发 State 改变事件，避免大量控件初始化导致的掉帧。
                 // 使用 Render 优先级排队（低于 Normal），因此会排在 finishedInvoke 引发的布局之后。
                 if (!Common.RunInUi())
@@ -173,8 +213,7 @@ public class MyPageRight : AdornerDecorator
 
     private int _localizationRevision = LocalizationService.UiRevision;
 
-    // 重试
-    public void PageLoaderRestart(object input = null, bool isForceRestart = true) // 由外部调用的重试
+    public void PageLoaderRestart(object input = null, bool isForceRestart = true)
     {
         if (!_pageLoaderAutoRun)
             return;
@@ -195,7 +234,6 @@ public class MyPageRight : AdornerDecorator
 
     #region 事件
 
-    // 外部触发的事件
     /// <summary>
     ///     需要切换到当前页面，并且原本的 Loaded 事件已执行完成。
     ///     需要根据加载器状态，从 Empty 切换到 ContentEnter、LoaderWait、LoaderEnter。
@@ -209,63 +247,63 @@ public class MyPageRight : AdornerDecorator
         switch (PageState)
         {
             case PageStates.Empty:
-            {
-                if (_pageLoader is null || _pageLoader.State == LoadState.Finished ||
-                    _pageLoader.State == LoadState.Waiting ||
-                    _pageLoader.State == LoadState.Aborted)
                 {
-                    // 如果加载器在进入页面时不启动（例如联机），那么在此时就会有 State = Waiting
-                    PageState = PageStates.ContentEnter;
-                    TriggerEnterAnimation(_panAlways, (FrameworkElement)(_panContent ?? Child));
-                }
-                else if (_pageLoader.State == LoadState.Loading)
-                {
-                    PageState = PageStates.LoaderWait;
-                    Animations.AniStart(Animations.AaCode(PageOnLoaderWaitFinished, 400),
-                        "PageRight PageChange " + pageUuid);
-                }
-                else // PageLoader.State = LoadState.Failed
-                {
-                    PageState = PageStates.LoaderEnter;
-                    TriggerEnterAnimation(_panAlways, _panLoader);
-                }
+                    if (_pageLoader is null || _pageLoader.State == LoadState.Finished ||
+                        _pageLoader.State == LoadState.Waiting ||
+                        _pageLoader.State == LoadState.Aborted)
+                    {
+                        // 如果加载器在进入页面时不启动（例如联机），那么在此时就会有 State = Waiting
+                        PageState = PageStates.ContentEnter;
+                        TriggerEnterAnimation(_panAlways, (FrameworkElement)(_panContent ?? Child));
+                    }
+                    else if (_pageLoader.State == LoadState.Loading)
+                    {
+                        PageState = PageStates.LoaderWait;
+                        Animations.AniStart(Animations.AaCode(PageOnLoaderWaitFinished, 400),
+                            "PageRight PageChange " + pageUuid);
+                    }
+                    else // PageLoader.State = LoadState.Failed
+                    {
+                        PageState = PageStates.LoaderEnter;
+                        TriggerEnterAnimation(_panAlways, _panLoader);
+                    }
 
-                break;
-            }
+                    break;
+                }
             case PageStates.ContentExit:
-            {
-                // 和上面的一样，但是不管 PanAlways
-                if (_pageLoader is null || _pageLoader.State == LoadState.Finished ||
-                    _pageLoader.State == LoadState.Waiting ||
-                    _pageLoader.State == LoadState.Aborted)
                 {
-                    PageState = PageStates.ContentEnter;
-                    TriggerEnterAnimation((FrameworkElement)(_panContent ?? Child));
-                }
-                else if (_pageLoader.State == LoadState.Loading)
-                {
-                    PageState = PageStates.LoaderWait;
-                    Animations.AniStart(Animations.AaCode(PageOnLoaderWaitFinished, 400),
-                        "PageRight PageChange " + pageUuid);
-                }
-                else // PageLoader.State = LoadState.Failed
-                {
-                    PageState = PageStates.LoaderEnter;
-                    TriggerEnterAnimation(_panLoader);
-                }
+                    // 和上面的一样，但是不管 PanAlways
+                    if (_pageLoader is null || _pageLoader.State == LoadState.Finished ||
+                        _pageLoader.State == LoadState.Waiting ||
+                        _pageLoader.State == LoadState.Aborted)
+                    {
+                        PageState = PageStates.ContentEnter;
+                        TriggerEnterAnimation((FrameworkElement)(_panContent ?? Child));
+                    }
+                    else if (_pageLoader.State == LoadState.Loading)
+                    {
+                        PageState = PageStates.LoaderWait;
+                        Animations.AniStart(Animations.AaCode(PageOnLoaderWaitFinished, 400),
+                            "PageRight PageChange " + pageUuid);
+                    }
+                    else // PageLoader.State = LoadState.Failed
+                    {
+                        PageState = PageStates.LoaderEnter;
+                        TriggerEnterAnimation(_panLoader);
+                    }
 
-                break;
-            }
+                    break;
+                }
             case PageStates.ContentEnter: // 重复调用 PageOnEnter，直接忽略
-            {
-                break;
-            }
+                {
+                    break;
+                }
 
             default:
-            {
-                throw new Exception("在状态为 " + Common.GetStringFromEnum(PageState) +
-                                    " 时触发了 PageOnEnter 事件。");
-            }
+                {
+                    throw new Exception("在状态为 " + Common.GetStringFromEnum(PageState) +
+                                        " 时触发了 PageOnEnter 事件。");
+                }
         }
     }
 
@@ -286,38 +324,38 @@ public class MyPageRight : AdornerDecorator
         {
             case PageStates.ContentEnter:
             case PageStates.ContentStay:
-            {
-                PageState = PageStates.PageExit;
-                TriggerExitAnimation(_panAlways, (FrameworkElement)(_panContent ?? Child));
-                break;
-            }
+                {
+                    PageState = PageStates.PageExit;
+                    TriggerExitAnimation(_panAlways, (FrameworkElement)(_panContent ?? Child));
+                    break;
+                }
             case PageStates.LoaderEnter:
             case PageStates.LoaderStayForce:
             case PageStates.LoaderStay:
-            {
-                PageState = PageStates.PageExit;
-                TriggerExitAnimation(_panAlways, _panLoader);
-                break;
-            }
+                {
+                    PageState = PageStates.PageExit;
+                    TriggerExitAnimation(_panAlways, _panLoader);
+                    break;
+                }
             case PageStates.LoaderWait:
-            {
-                PageState = PageStates.PageExit;
-                TriggerExitAnimation(_panAlways);
-                break;
-            }
+                {
+                    PageState = PageStates.PageExit;
+                    TriggerExitAnimation(_panAlways);
+                    break;
+                }
             case PageStates.LoaderExit:
             case PageStates.ContentExit:
-            {
-                PageState = PageStates.PageExit;
-                if (_panAlways is not null)
-                    TriggerExitAnimation(_panAlways, (FrameworkElement)(_panContent ?? Child));
-                break;
-            }
+                {
+                    PageState = PageStates.PageExit;
+                    if (_panAlways is not null)
+                        TriggerExitAnimation(_panAlways, (FrameworkElement)(_panContent ?? Child));
+                    break;
+                }
             case PageStates.PageExit:
             case PageStates.Empty:
-            {
-                break;
-            }
+                {
+                    break;
+                }
         }
     }
 
@@ -366,34 +404,33 @@ public class MyPageRight : AdornerDecorator
         {
             case PageStates.ContentEnter:
             case PageStates.ContentStay:
-            {
-                PageState = PageStates.ContentExit;
-                TriggerExitAnimation(_panContent);
-                break;
-            }
+                {
+                    PageState = PageStates.ContentExit;
+                    TriggerExitAnimation(_panContent);
+                    break;
+                }
             case PageStates.LoaderExit:
-            {
-                PageState = PageStates.ContentExit;
-                break;
-            }
+                {
+                    PageState = PageStates.ContentExit;
+                    break;
+                }
             case PageStates.LoaderEnter:
             case PageStates.LoaderStayForce:
             case PageStates.LoaderStay:
-            {
-                PageState = PageStates.ContentExit;
-                TriggerExitAnimation(_panLoader);
-                break;
-            }
+                {
+                    PageState = PageStates.ContentExit;
+                    TriggerExitAnimation(_panLoader);
+                    break;
+                }
             case PageStates.LoaderWait:
             case PageStates.Empty:
-            {
-                PageOnEnter();
-                break;
-            }
+                {
+                    PageOnEnter();
+                    break;
+                }
         }
     }
 
-    // 内部触发的事件
     /// <summary>
     ///     逐个进入动画已执行完成。
     ///     需要根据目前状态，从 ContentEnter 切换到 ContentStay，或从 LoaderEnter 切换到 LoaderStayForce。
@@ -405,23 +442,23 @@ public class MyPageRight : AdornerDecorator
         switch (PageState)
         {
             case PageStates.ContentEnter:
-            {
-                PageState = PageStates.ContentStay;
-                break;
-            }
+                {
+                    PageState = PageStates.ContentStay;
+                    break;
+                }
             case PageStates.LoaderEnter:
-            {
-                PageState = PageStates.LoaderStayForce;
-                Animations.AniStart(Animations.AaCode(PageOnLoaderStayFinished, 400),
-                    "PageRight PageChange " + pageUuid);
-                break;
-            }
+                {
+                    PageState = PageStates.LoaderStayForce;
+                    Animations.AniStart(Animations.AaCode(PageOnLoaderStayFinished, 400),
+                        "PageRight PageChange " + pageUuid);
+                    break;
+                }
 
             default:
-            {
-                throw new Exception("在状态为 " + Common.GetStringFromEnum(PageState) +
-                                    " 时触发了 PageOnEnterAnimationFinished 事件。");
-            }
+                {
+                    throw new Exception("在状态为 " + Common.GetStringFromEnum(PageState) +
+                                        " 时触发了 PageOnEnterAnimationFinished 事件。");
+                }
         }
     }
 
@@ -436,27 +473,27 @@ public class MyPageRight : AdornerDecorator
         switch (PageState)
         {
             case PageStates.PageExit:
-            {
-                PageState = PageStates.Empty;
-                break;
-            }
+                {
+                    PageState = PageStates.Empty;
+                    break;
+                }
             case PageStates.ContentExit:
-            {
-                PageOnEnter();
-                break;
-            }
+                {
+                    PageOnEnter();
+                    break;
+                }
             case PageStates.LoaderExit:
-            {
-                PageState = PageStates.ContentEnter;
-                TriggerEnterAnimation(_panContent);
-                break;
-            }
+                {
+                    PageState = PageStates.ContentEnter;
+                    TriggerEnterAnimation(_panContent);
+                    break;
+                }
 
             default:
-            {
-                throw new Exception("在状态为 " + Common.GetStringFromEnum(PageState) +
-                                    " 时触发了 PageOnExitAnimationFinished 事件。");
-            }
+                {
+                    throw new Exception("在状态为 " + Common.GetStringFromEnum(PageState) +
+                                        " 时触发了 PageOnExitAnimationFinished 事件。");
+                }
         }
     }
 
@@ -471,21 +508,21 @@ public class MyPageRight : AdornerDecorator
         switch (PageState)
         {
             case PageStates.LoaderWait:
-            {
-                PageState = PageStates.LoaderEnter;
-                if (_panAlways is not null && _panAlways.Visibility == Visibility.Collapsed)
-                    TriggerEnterAnimation(_panAlways, _panLoader);
-                else
-                    TriggerEnterAnimation(_panLoader);
+                {
+                    PageState = PageStates.LoaderEnter;
+                    if (_panAlways is not null && _panAlways.Visibility == Visibility.Collapsed)
+                        TriggerEnterAnimation(_panAlways, _panLoader);
+                    else
+                        TriggerEnterAnimation(_panLoader);
 
-                break;
-            }
+                    break;
+                }
 
             default:
-            {
-                throw new Exception("在状态为 " + Common.GetStringFromEnum(PageState) +
-                                    " 时触发了 PageOnLoaderWaitFinished 事件。");
-            }
+                {
+                    throw new Exception("在状态为 " + Common.GetStringFromEnum(PageState) +
+                                        " 时触发了 PageOnLoaderWaitFinished 事件。");
+                }
         }
     }
 
@@ -500,25 +537,25 @@ public class MyPageRight : AdornerDecorator
         switch (PageState)
         {
             case PageStates.LoaderStayForce:
-            {
-                if (_pageLoader.State == LoadState.Finished)
                 {
-                    PageState = PageStates.LoaderExit;
-                    TriggerExitAnimation(_panLoader);
-                }
-                else
-                {
-                    PageState = PageStates.LoaderStay;
-                }
+                    if (_pageLoader.State == LoadState.Finished)
+                    {
+                        PageState = PageStates.LoaderExit;
+                        TriggerExitAnimation(_panLoader);
+                    }
+                    else
+                    {
+                        PageState = PageStates.LoaderStay;
+                    }
 
-                break;
-            }
+                    break;
+                }
 
             default:
-            {
-                throw new Exception("在状态为 " + Common.GetStringFromEnum(PageState) +
-                                    " 时触发了 PageOnLoaderWaitFinished 事件。");
-            }
+                {
+                    throw new Exception("在状态为 " + Common.GetStringFromEnum(PageState) +
+                                        " 时触发了 PageOnLoaderWaitFinished 事件。");
+                }
         }
     }
 
@@ -532,63 +569,63 @@ public class MyPageRight : AdornerDecorator
         {
             case LoadState.Failed:
             case LoadState.Loading:
-            {
-                if (oldState == LoadState.Failed || oldState == LoadState.Loading)
-                    return;
-                if (Common.modeDebug)
-                    Common.Log("[UI] 已触发 PageLoaderState (Start/Refresh)");
-                // （重新）开始运行
-                // 需要从部分状态切换到 ReloadExit
-                switch (PageState)
                 {
-                    case PageStates.ContentEnter:
-                    case PageStates.ContentStay:
+                    if (oldState == LoadState.Failed || oldState == LoadState.Loading)
+                        return;
+                    if (Common.modeDebug)
+                        Common.Log("[UI] 已触发 PageLoaderState (Start/Refresh)");
+                    // （重新）开始运行
+                    // 需要从部分状态切换到 ReloadExit
+                    switch (PageState)
                     {
-                        PageState = PageStates.ContentExit;
-                        TriggerExitAnimation(_panContent);
-                        break;
+                        case PageStates.ContentEnter:
+                        case PageStates.ContentStay:
+                            {
+                                PageState = PageStates.ContentExit;
+                                TriggerExitAnimation(_panContent);
+                                break;
+                            }
+                        case PageStates.LoaderExit:
+                            {
+                                PageState = PageStates.ContentExit;
+                                break;
+                            }
                     }
-                    case PageStates.LoaderExit:
-                    {
-                        PageState = PageStates.ContentExit;
-                        break;
-                    }
-                }
 
-                break;
-            }
+                    break;
+                }
             case LoadState.Finished:
             case LoadState.Aborted:
             case LoadState.Waiting:
-            {
-                if (oldState != LoadState.Failed && oldState != LoadState.Loading)
-                    return;
-                if (Common.modeDebug)
-                    Common.Log("[UI] 已触发 PageLoaderState (Stop/Abort)");
-                // 运行结束
-                // 需要从 LoaderWait 切换到 ContentEnter，或从 LoaderStay 切换到 LoaderExit
-                switch (PageState)
                 {
-                    case PageStates.LoaderWait:
+                    if (oldState != LoadState.Failed && oldState != LoadState.Loading)
+                        return;
+                    if (Common.modeDebug)
+                        Common.Log("[UI] 已触发 PageLoaderState (Stop/Abort)");
+                    // 运行结束
+                    // 需要从 LoaderWait 切换到 ContentEnter，或从 LoaderStay 切换到 LoaderExit
+                    switch (PageState)
                     {
-                        PageState = PageStates.ContentEnter;
-                        if (_panAlways is not null && _panAlways.Visibility == Visibility.Collapsed)
-                            TriggerEnterAnimation(_panAlways, _panContent);
-                        else
-                            TriggerEnterAnimation(_panContent);
+                        case PageStates.LoaderWait:
+                            {
+                                PageState = PageStates.ContentEnter;
+                                if (_panAlways is not null && _panAlways.Visibility == Visibility.Collapsed)
+                                    TriggerEnterAnimation(_panAlways, _panContent);
+                                else
+                                    TriggerEnterAnimation(_panContent);
 
-                        break;
+                                break;
+                            }
+                        case PageStates.LoaderStay:
+                            {
+                                PageState = PageStates.LoaderExit;
+                                TriggerExitAnimation(_panLoader);
+                                break;
+                            }
                     }
-                    case PageStates.LoaderStay:
-                    {
-                        PageState = PageStates.LoaderExit;
-                        TriggerExitAnimation(_panLoader);
-                        break;
-                    }
+
+                    break;
                 }
-
-                break;
-            }
         }
     }
 
@@ -596,7 +633,6 @@ public class MyPageRight : AdornerDecorator
 
     #region 动画
 
-    // 逐个进入动画
     public void TriggerEnterAnimation(params FrameworkElement[] elements)
     {
         var realElements = elements.Where(e => e is not null);
@@ -650,25 +686,24 @@ public class MyPageRight : AdornerDecorator
         Animations.AniStart(aniList, "PageRight PageChange " + pageUuid, true);
     }
 
-    // 逐个退出动画
     public void TriggerExitAnimation(params FrameworkElement[] elements)
     {
         var realElements = elements.Where(e => e is not null);
         var aniList = new List<Animations.AniData>();
         var delay = 0;
         foreach (var Element in realElements)
-        foreach (var Control in GetAllAnimControls(Element))
-            if (Control is MyExtraTextButton)
-            {
-                ((MyExtraTextButton)Control).Show = false;
-            }
-            else
-            {
-                Control.IsHitTestVisible = false;
-                aniList.Add(Animations.AaOpacity(Control, -1, 70, delay));
-                aniList.Add(Animations.AaTranslateY(Control, -6, 70, delay));
-                delay += 15;
-            }
+            foreach (var Control in GetAllAnimControls(Element))
+                if (Control is MyExtraTextButton)
+                {
+                    ((MyExtraTextButton)Control).Show = false;
+                }
+                else
+                {
+                    Control.IsHitTestVisible = false;
+                    aniList.Add(Animations.AaOpacity(Control, -1, 70, delay));
+                    aniList.Add(Animations.AaTranslateY(Control, -6, 70, delay));
+                    delay += 15;
+                }
 
         // 滚动条动画
         var scroll = GetFirstScrollViewer(realElements);
@@ -718,9 +753,9 @@ public class MyPageRight : AdornerDecorator
         }
         else if (element is ContentControl)
         {
-                var content = ((ContentControl)element).Content;
-                if (content is FrameworkElement)
-                    _GetAllAnimControls((FrameworkElement)content, ref allControls, ignoreInvisibility);
+            var content = ((ContentControl)element).Content;
+            if (content is FrameworkElement)
+                _GetAllAnimControls((FrameworkElement)content, ref allControls, ignoreInvisibility);
         }
         else if (element is Panel)
         {
@@ -730,7 +765,6 @@ public class MyPageRight : AdornerDecorator
         }
     }
 
-    // 查找列表中的第一个滚动条
     private MyScrollBar GetFirstScrollViewer(IEnumerable<FrameworkElement> elements)
     {
         foreach (var Element in elements)

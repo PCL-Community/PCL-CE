@@ -51,7 +51,6 @@ public class VirtualizingScrollHost : Decorator, IScrollInfo
 
     protected override Size MeasureOverride(Size availableSize)
     {
-        // 跟随整页滚动：面板自身不滚动，只需要知道「当前可视带」，完整高度照常返回
         if (_pageScrollViewer is null)
             AttachPageScrollViewer();
         if (IsPageScrollMode)
@@ -59,15 +58,14 @@ public class VirtualizingScrollHost : Decorator, IScrollInfo
             var pageConstraint = new Size(availableSize.Width, double.PositiveInfinity);
             UpdatePageBand();
             Child?.Measure(pageConstraint);
-            // 内部虚拟化面板要到首次测量时才由 ItemsControl 的模板创建，此前的 UpdatePageBand 找不到它；
-            // 这里再同步一次可视带并重新测量，避免首帧按「全部实例化」布局
+
             UpdatePageBand();
             Child?.Measure(pageConstraint);
             return Child?.DesiredSize ?? default;
         }
 
         var constraint = availableSize;
-        // 已知可视高度时按可视高度测量，面板才能算出可视行数。
+
         if (_scrollOwner is not null && _scrollOwner.ViewportHeight > 0d && double.IsInfinity(availableSize.Height))
             constraint = new Size(availableSize.Width, _scrollOwner.ViewportHeight);
 
@@ -160,7 +158,6 @@ public class VirtualizingScrollHost : Decorator, IScrollInfo
         }
         catch (InvalidOperationException)
         {
-            // 尚未接入可视树，先按列表顶端估算，等布局完成后的 ScrollChanged / SizeChanged 会再修正
             band.SetExternalViewport(0d, viewportHeight);
             return;
         }
@@ -170,7 +167,6 @@ public class VirtualizingScrollHost : Decorator, IScrollInfo
             return;
         }
 
-        // 本容器内容顶部在滚动内容中的位置；可视带顶部相对本容器的位置可能为负（可视带还在上方的头部）
         var topInContent = viewer.VerticalOffset + topInViewport;
         band.SetExternalViewport(viewer.VerticalOffset - topInContent, viewportHeight);
     }
@@ -214,9 +210,10 @@ public class VirtualizingScrollHost : Decorator, IScrollInfo
             if (ReferenceEquals(_scrollOwner, value))
                 return;
             _scrollOwner = value;
-            // 作为 ScrollViewer 直接内容时由面板自持滚动，需要退出「跟随整页滚动」模式
+
             if (value is not null && Inner is IVirtualizingScrollBand band)
                 band.ClearExternalViewport();
+
             SyncInner();
             InvalidateMeasure();
         }

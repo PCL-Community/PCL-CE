@@ -1,15 +1,13 @@
-using System.Globalization;
+using PCL.Core.App.Localization;
+using PCL.Core.Minecraft;
+using PCL.Core.UI;
+using PCL.Core.UI.Hints;
+using PCL.Network;
+using PCL.Network.Loaders;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using PCL.Core.App.Localization;
-using PCL.Core.UI.Hints;
-using PCL.Core.Minecraft;
-using PCL.Core.UI;
-using PCL.Core.Utils;
-using PCL.Network;
-using PCL.Network.Loaders;
 
 namespace PCL;
 
@@ -20,7 +18,6 @@ public static partial class DownloadUi
         MyListItem.ClickEventHandler onClick,
         bool isSaveOnly)
     {
-        // 与版本列表的 DataTemplate 共用同一套映射，避免控件工厂与数据模板各写一份格式化逻辑
         var row = GameVersionItemViewModel.FromEntry(entry);
         var newItem = new MyListItem
         {

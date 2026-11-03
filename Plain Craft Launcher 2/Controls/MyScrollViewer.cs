@@ -1,14 +1,14 @@
+using PCL.Core.UI.Controls;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using PCL.Core.UI.Controls;
 
 namespace PCL;
 
 public class MyScrollViewer : ScrollViewer
 {
     /// <summary>
-    ///     是否启用平滑滚轮动画（逐帧调用 <see cref="ScrollToVerticalOffset" />）。<br />
+    ///     是否启用平滑滚轮动画（逐帧调用 <see cref="ScrollViewer.ScrollToVerticalOffset" />）。<br />
     ///     虚拟化列表中请设为 <see langword="false" />：逐帧改变偏移量会让虚拟化面板每帧都 realize/remove 容器，
     ///     既浪费 CPU 也会让滚动时的容器回收失效。
     /// </summary>

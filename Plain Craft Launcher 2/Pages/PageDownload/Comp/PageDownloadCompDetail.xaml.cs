@@ -1,24 +1,19 @@
-using System;
-using System.Collections;
-using System.Collections.ObjectModel;
-using System.Diagnostics.Eventing.Reader;
-using System.IO;
-using System.Text;
-using System.Windows;
-using System.Windows.Controls;
 using FluentValidation;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
-using PCL.Core.UI.Hints;
 using PCL.Core.Logging;
 using PCL.Core.Minecraft.ResourceProject;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
-using PCL.Core.Utils;
+using PCL.Core.UI.Hints;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
 using PCL.Network.Loaders;
-using Control = System.Windows.Forms.Control;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Text;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace PCL;
 
@@ -32,7 +27,7 @@ public partial class PageDownloadCompDetail : IPageView
     private readonly PageDownloadCompDetailViewModel _vm = new();
 
     // 资源下载；整合包另存为
-    public static Dictionary<Comp.CompType, string> cachedFolder = new(); // 仅在本次缓存的下载文件夹
+    public static Dictionary<Comp.CompType, string> cachedFolder = new();
     private MyCompItem _compItem;
     private bool _isFirstInit = true;
     private bool _refreshed;
@@ -55,7 +50,6 @@ public partial class PageDownloadCompDetail : IPageView
         PanBack.ScrollToHome();
         // 重启加载器
         if (_isFirstInit)
-            // 在 Me.Initialized 已经初始化了加载器，不再重复初始化
             _isFirstInit = false;
         else
             PageLoaderRestart(isForceRestart: true);
@@ -116,11 +110,12 @@ public partial class PageDownloadCompDetail : IPageView
             var logoFileAddress = MyImage.GetTempPath(_compItem.Logo);
             loaders.Add(new LoaderDownload(Lang.Text("Download.Comp.Detail.DownloadModpackFile"),
                     new List<DownloadFile> { file.ToNetFile(target, Comp.DownloadReason.ModPack) })
-                { ProgressWeight = 10d, block = true });
+            { ProgressWeight = 10d, block = true });
             loaders.Add(new Loading.LoaderTask<int, int>(Lang.Text("Download.Comp.Detail.PrepareModpackInstall"),
                 _ => Modpack.ModpackInstall(target, instanceName,
                     System.IO.File.Exists(logoFileAddress) ? logoFileAddress : null, file.ProjectId,
-                    true)) { ProgressWeight = 0.1d });
+                    true))
+            { ProgressWeight = 0.1d });
 
             // 启动
             var loader = new Loading.LoaderCombo<string>(loaderName, loaders)
@@ -130,20 +125,20 @@ public partial class PageDownloadCompDetail : IPageView
                     switch (myLoader.State)
                     {
                         case LoadState.Failed:
-                        {
-                            HintService.Show(Hints.Error(Lang.Text("Download.Comp.Detail.Task.Failed", myLoader.name,
-                                    myLoader.Error.ToString())));
-                            break;
-                        }
+                            {
+                                HintService.Show(Hints.Error(Lang.Text("Download.Comp.Detail.Task.Failed", myLoader.name,
+                                        myLoader.Error.ToString())));
+                                break;
+                            }
                         case LoadState.Aborted:
-                        {
-                            HintService.Show(Hints.Info(Lang.Text("Download.Comp.Detail.Task.Cancelled", myLoader.name)));
-                            break;
-                        }
+                            {
+                                HintService.Show(Hints.Info(Lang.Text("Download.Comp.Detail.Task.Cancelled", myLoader.name)));
+                                break;
+                            }
                         case LoadState.Loading:
-                        {
-                            return; // 不重新加载版本列表
-                        }
+                            {
+                                return; // 不重新加载版本列表
+                            }
                     }
 
                     DownloadUi.McInstallFailedClearFolder(myLoader);
@@ -264,15 +259,16 @@ public partial class PageDownloadCompDetail : IPageView
                     {
                         file.ToNetFile(target, Comp.DownloadReason.Standalone, file.RawGameVersions.FirstOrDefault())
                     })
-                { ProgressWeight = 10d, block = true });
+            { ProgressWeight = 10d, block = true });
             loaders.Add(new Loading.LoaderTask<int, int>(Lang.Text("Download.Comp.Detail.InstallWorld"),
-                _ => Common.ExtractFile(target, targetPath, Encoding.UTF8)) { ProgressWeight = 0.1d, block = true });
+                _ => Common.ExtractFile(target, targetPath, Encoding.UTF8))
+            { ProgressWeight = 0.1d, block = true });
             loaders.Add(new Loading.LoaderTask<int, int>(Lang.Text("Download.Comp.Detail.CleanCache"),
                 _ => System.IO.File.Delete(target)));
 
             // 启动
             var loader = new Loading.LoaderCombo<int>(loaderName, loaders)
-                { OnStateChanged = DownloadUi.LoaderStateChangedHintOnly };
+            { OnStateChanged = DownloadUi.LoaderStateChangedHintOnly };
             loader.Start();
             Loading.LoaderTaskbarAdd(loader);
             Launcher.frmMain.BtnExtraDownload.ShowRefresh();
@@ -638,7 +634,6 @@ public partial class PageDownloadCompDetail : IPageView
         Common.ClipboardSet(_project.Website);
     }
 
-    // 翻译简介
     private async void BtnTranslate_Click(object sender, Common.RouteEventArgs e)
     {
         var control = sender as FrameworkElement;
@@ -721,7 +716,6 @@ public partial class PageDownloadCompDetail : IPageView
 
     public PageDownloadCompDetailViewModel ViewModel => _vm;
 
-    // 初始化加载器信息
     private void PageDownloadCompDetail_Inited(object sender, EventArgs e)
     {
         LoadTargetFromAdditional();
@@ -746,30 +740,35 @@ public partial class PageDownloadCompDetail : IPageView
     /// </summary>
     private Comp.CompType _pageType;
 
-    // 自动重试
     private void Load_State(object sender, LoadingState state, LoadingState oldState)
     {
         switch (_compFileLoader.State)
         {
             case LoadState.Failed:
-            {
-                var errorMessage = "";
-                if (_compFileLoader.Error is not null)
-                    errorMessage = _compFileLoader.Error.Message;
-                if (errorMessage.Contains(Lang.Text("Common.Error.InvalidJson")))
                 {
-                    Common.Log("[Comp] 下载的文件 Json 列表损坏，已自动重试", Common.LogLevel.Debug);
-                    PageLoaderRestart();
-                }
+                    var errorMessage = "";
+                    if (_compFileLoader.Error is not null)
+                        errorMessage = _compFileLoader.Error.Message;
+                    if (errorMessage.Contains(Lang.Text("Common.Error.InvalidJson")))
+                    {
+                        Common.Log("[Comp] 下载的文件 Json 列表损坏，已自动重试", Common.LogLevel.Debug);
+                        PageLoaderRestart();
+                    }
 
-                break;
-            }
+                    break;
+                }
         }
     }
 
-    private bool groupedDrop; // 是否按 Drop 筛选（1.21 / 1.20 / 1.19 / ...）而非小版本号（1.21.1 / 1.21 / 1.20.4 / ...）
+    /// <summary>
+    /// 是否按 Drop 筛选（1.21 / 1.20 / 1.19 / ...）而非小版本号（1.21.1 / 1.21 / 1.20.4 / ...）
+    /// </summary>
+    private bool groupedDrop;
 
-    private bool groupedOld; // 是否折叠远古版本为一个选项
+    /// <summary>
+    /// 是否折叠远古版本为一个选项
+    /// </summary>
+    private bool groupedOld;
 
     private void Load_OnFinish()
     {
@@ -888,7 +887,6 @@ public partial class PageDownloadCompDetail : IPageView
                 _vm.SetModLoaderFilter(modLoaderToCheck);
         }
 
-        // 更新筛选结果（文件列表 UI 化）
         UpdateFilterResult();
     }
 
@@ -901,20 +899,19 @@ public partial class PageDownloadCompDetail : IPageView
         var instanceFilter = _vm.InstanceFilterValue;
         var modLoaderFilter = _vm.ModLoaderFilterValue;
 
-        // 1. 预处理基础变量
+        // 预处理基础变量
         var targetVersionText = _targetLoader != Comp.CompLoaderType.Any ? _targetLoader + " " : "";
         var targetCardName = !string.IsNullOrEmpty(_targetInstance) || _targetLoader != Comp.CompLoaderType.Any
             ? Lang.Text("Download.Comp.Detail.SelectedVersion", targetVersionText, _targetInstance)
             : "";
 
-        // 使用 HashSet 提高查询性能 O(1)
         var supportedLoaders =
             new HashSet<Comp.CompLoaderType>(Enum.GetValues(typeof(Comp.CompLoaderType))
                 .Cast<Comp.CompLoaderType>());
         var ignoreQuilt = Config.Download.Comp.IgnoreQuilt;
         var hasMultipleLoaders = _project.ModLoaders.Count > 1;
 
-        // 2. 核心数据归类 (使用 Dictionary 配合 HashSet 去重)
+        // 核心数据归类 (使用 Dictionary 配合 HashSet 去重)
         var dict = new SortedDictionary<string, List<Comp.CompFile>>(
             new PageDownloadCompDetailViewModel.CardSorter(targetCardName));
         dict.Add(Lang.Text("Download.Comp.Detail.VersionGroup.Other"), new List<Comp.CompFile>());
@@ -982,7 +979,7 @@ public partial class PageDownloadCompDetail : IPageView
             }
         }
 
-        // 3. 渲染 UI
+        // 渲染 UI
         try
         {
             var additional = Launcher.frmMain.pageCurrent.additional;
@@ -997,11 +994,9 @@ public partial class PageDownloadCompDetail : IPageView
                 if (pair.Value.Count == 0)
                     continue;
 
-                // 展开逻辑：目标分组默认展开，单卡片时也展开
                 var isTarget = (pair.Key ?? "") == (targetCardName ?? "") || additionalTitles.Contains(pair.Key);
                 var isSwapped = !(isTarget || cardCount == 1);
 
-                // 特殊提示：仅「其他」分组显示
                 var showRecognitionHint = pair.Key == Lang.Text("Download.Comp.Detail.VersionGroup.Other");
 
                 groups.Add(CompFileGroupViewModel.Create(
@@ -1011,7 +1006,6 @@ public partial class PageDownloadCompDetail : IPageView
                     Launcher.frmDownloadCompDetail.Save_Click));
             }
 
-            // 整体替换集合，只触发一次集合变更通知
             _vm.FileGroups = new ObservableCollection<CompFileGroupViewModel>(groups);
         }
 
@@ -1033,7 +1027,6 @@ public partial class PageDownloadCompDetail : IPageView
         if (sender is not StackPanel panel || panel.DataContext is not CompFileGroupViewModel group) return;
         if (panel.Tag is not null) return;
         panel.Tag = group;
-        // 依赖栏只在普通资源中显示，整合包与世界保持与改造前一致
         if (_project.Type is Comp.CompType.ModPack or Comp.CompType.World) return;
         CompCardUi.CompFilesCardPreload(panel, group.Files);
     }
@@ -1060,7 +1053,6 @@ public partial class PageDownloadCompDetail : IPageView
             checker.Add(key, new HashSet<Comp.CompFile>());
         }
 
-        // 使用 HashSet.Add 判断是否重复，比 List.Contains 快得多
         if (checker[key].Add(version)) dict[key].Add(version);
     }
 

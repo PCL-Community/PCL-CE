@@ -1,9 +1,9 @@
+using PCL.Core.App.Localization;
 using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -37,7 +37,6 @@ public partial class PageDownloadClient
             if (GameDownload.dlClientListLoader.output.Value?["versions"] is not JsonArray versions)
                 return;
 
-            // 结果数据化：分类与条目都由 VM 提供，界面交给 DataTemplate 生成
             var classified = PageDownloadClientViewModel.ClassifyVersions(versions);
             _vm.SetGroups(classified);
             RenderLatestVersionCard(classified);

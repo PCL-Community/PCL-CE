@@ -1,8 +1,8 @@
-using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App.Localization;
 using PCL.Core.ViewModel;
+using System.Collections.ObjectModel;
 
 namespace PCL;
 
@@ -62,7 +62,6 @@ public partial class PageCompViewModel : ViewModelBase
         FirstOpacity = currentPage > 1 ? 1d : 0.2d;
         CanGoLeft = currentPage > 0;
         LeftOpacity = currentPage > 0 ? 1d : 0.2d;
-        // 由于 WPF 的未知 bug，读取到的 IsEnabled 可能是错误的值（#3319）
         CanGoRight = storage.results.Count > PageComp.pageSize * (currentPage + 1) ||
                      storage.curseForgeOffset < storage.curseForgeTotal ||
                      storage.modrinthOffset < storage.modrinthTotal;

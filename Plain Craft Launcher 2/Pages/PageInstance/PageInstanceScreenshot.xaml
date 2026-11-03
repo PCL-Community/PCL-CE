@@ -8,11 +8,15 @@
     mc:Ignorable="d" x:Class="PCL.PageInstanceScreenshot"
     PanScroll="{Binding ElementName=PanBack}" Grid.IsSharedSizeScope="True">
     <Grid>
-        <!-- 整页滚动：列表跟随页面一起滚动，虚拟化面板只实例化当前可视区域内的卡片 -->
-        <local:MyScrollViewer x:Name="PanBack" VerticalScrollBarVisibility="Auto"
-                              HorizontalScrollBarVisibility="Disabled" ScrollChanged="RequireAppend">
+        <local:MyScrollViewer x:Name="PanBack"
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              ScrollChanged="RequireAppend">
             <Grid>
-                <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" Margin="40" x:Name="PanNoPic"
+                <local:MyCard HorizontalAlignment="Center"
+                              VerticalAlignment="Center"
+                              Margin="40"
+                              x:Name="PanNoPic"
                               Visibility="{Binding ShowContent, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
                     <Grid Margin="20,17">
                         <Grid.RowDefinitions>
@@ -27,67 +31,110 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="1*" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Row="0" Grid.ColumnSpan="4" Margin="0,0,0,9" HorizontalAlignment="Center"
-                                   Text="{loc:Loc Instance.Screenshot.Empty.Title}" FontSize="19"
-                                   UseLayoutRounding="True" SnapsToDevicePixels="True"
+                        <TextBlock Grid.Row="0"
+                                   Grid.ColumnSpan="4"
+                                   Margin="0,0,0,9"
+                                   HorizontalAlignment="Center"
+                                   Text="{loc:Loc Instance.Screenshot.Empty.Title}"
+                                   FontSize="19"
+                                   UseLayoutRounding="True"
+                                   SnapsToDevicePixels="True"
                                    Foreground="{DynamicResource ColorBrush3}" />
-                        <Rectangle Grid.Row="1" Grid.ColumnSpan="4" HorizontalAlignment="Stretch" Height="2"
+                        <Rectangle Grid.Row="1"
+                                   Grid.ColumnSpan="4"
+                                   HorizontalAlignment="Stretch"
+                                   Height="2"
                                    Fill="{DynamicResource ColorBrush3}" />
-                        <TextBlock Grid.Row="2" Grid.ColumnSpan="4" Margin="10,15,10,5"
-                                   Text="{loc:Loc Instance.Screenshot.Empty.Message}" TextWrapping="Wrap" />
-                        <local:MyButton Grid.Row="3" Grid.Column="1" Height="35" HorizontalAlignment="Center"
-                                        x:Name="BtnOpenFolderTop" MinWidth="140" Command="{Binding OpenFolderCommand}"
-                                        Text="{loc:Loc Instance.Screenshot.OpenFolder}" Margin="10,10,10,0"
-                                        Padding="13,0" ColorType="Highlight" />
+                        <TextBlock Grid.Row="2"
+                                   Grid.ColumnSpan="4"
+                                   Margin="10,15,10,5"
+                                   Text="{loc:Loc Instance.Screenshot.Empty.Message}"
+                                   TextWrapping="Wrap" />
+                        <local:MyButton Grid.Row="3"
+                                        Grid.Column="1"
+                                        Height="35"
+                                        HorizontalAlignment="Center"
+                                        x:Name="BtnOpenFolderTop"
+                                        MinWidth="140"
+                                        Command="{Binding OpenFolderCommand}"
+                                        Text="{loc:Loc Instance.Screenshot.OpenFolder}"
+                                        Margin="10,10,10,0"
+                                        Padding="13,0"
+                                        ColorType="Highlight" />
                     </Grid>
                 </local:MyCard>
-                <StackPanel Margin="10,25,10,10" x:Name="PanContent" Orientation="Vertical"
+                <StackPanel Margin="10,25,10,10"
+                            x:Name="PanContent"
+                            Orientation="Vertical"
                             Visibility="{Binding ShowContent, Converter={StaticResource BooleanToVisibilityConverter}}">
-                    <local:MyCard Margin="15,0,15,15" Title="{loc:Loc Instance.Screenshot.QuickActions}">
-                        <Grid Height="35" Margin="25,40,15,20">
+                    <local:MyCard Margin="15,0,15,15"
+                                  Title="{loc:Loc Instance.Screenshot.QuickActions}">
+                        <Grid Height="35"
+                              Margin="25,40,15,20">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
-                                <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
+                                <ColumnDefinition Width="Auto"
+                                                  SharedSizeGroup="Button" />
+                                <ColumnDefinition Width="Auto"
+                                                  SharedSizeGroup="Button" />
                             </Grid.ColumnDefinitions>
-                            <local:MyButton Grid.Column="0" MinWidth="140"
-                                            Text="{loc:Loc Instance.Screenshot.OpenFolder}" Padding="13,0"
+                            <local:MyButton Grid.Column="0"
+                                            MinWidth="140"
+                                            Text="{loc:Loc Instance.Screenshot.OpenFolder}"
+                                            Padding="13,0"
                                             Margin="0,0,20,0"
-                                            HorizontalAlignment="Left" x:Name="BtnOpenFolder" ColorType="Highlight" Command="{Binding OpenFolderCommand}" />
+                                            HorizontalAlignment="Left"
+                                            x:Name="BtnOpenFolder"
+                                            ColorType="Highlight"
+                                            Command="{Binding OpenFolderCommand}" />
                         </Grid>
                     </local:MyCard>
-                    <!-- 截图列表：新增/删除条目由 ObservableCollection 驱动，虚拟化面板只创建可视区域内的卡片，
-                         滚动到页面底部附近时增量装填（见 RequireAppend） -->
                     <core:VirtualizingScrollHost Margin="8,0,8,25">
-                        <ItemsControl ItemsSource="{Binding Screenshots}" VirtualizingPanel.IsVirtualizing="True"
-                                      VirtualizingPanel.VirtualizationMode="Recycling" VirtualizingPanel.ScrollUnit="Pixel">
+                        <ItemsControl ItemsSource="{Binding Screenshots}"
+                                      VirtualizingPanel.IsVirtualizing="True"
+                                      VirtualizingPanel.VirtualizationMode="Recycling"
+                                      VirtualizingPanel.ScrollUnit="Pixel">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <core:VirtualizingWrapPanel ItemWidth="214" HorizontalSpacing="0" VerticalSpacing="0" />
+                                    <core:VirtualizingWrapPanel ItemWidth="214"
+                                                                HorizontalSpacing="0"
+                                                                VerticalSpacing="0" />
                                 </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <local:MyCard Margin="7" ToolTip="{Binding DisplayName}" Loaded="ScreenshotCard_Loaded">
+                                    <local:MyCard Margin="7"
+                                                  ToolTip="{Binding DisplayName}"
+                                                  Loaded="ScreenshotCard_Loaded">
                                         <Grid>
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="9" />
                                                 <RowDefinition Height="120" />
                                                 <RowDefinition Height="Auto" />
                                             </Grid.RowDefinitions>
-                                            <Image Grid.Row="1" Source="{Binding Thumbnail}" Stretch="Uniform" Cursor="Hand"
+                                            <Image Grid.Row="1"
+                                                   Source="{Binding Thumbnail}"
+                                                   Stretch="Uniform"
+                                                   Cursor="Hand"
                                                    MouseLeftButtonDown="ScreenshotImage_MouseLeftButtonDown" />
-                                            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center"
+                                            <StackPanel Grid.Row="2"
+                                                        Orientation="Horizontal"
+                                                        HorizontalAlignment="Center"
                                                         Margin="3,5,3,5">
-                                                <!-- SvgIcon 不是依赖属性，无法绑定，改在 Loaded 中按名称赋值 -->
-                                                <local:MyIconTextButton x:Name="BtnOpen" Text="{loc:Loc Common.Action.Open}"
-                                                                        LogoScale="0.8" Loaded="ScreenshotIconButton_Loaded"
+                                                <local:MyIconTextButton x:Name="BtnOpen"
+                                                                        Text="{loc:Loc Common.Action.Open}"
+                                                                        LogoScale="0.8"
+                                                                        Loaded="ScreenshotIconButton_Loaded"
                                                                         Command="{Binding DataContext.OpenScreenshotCommand, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"
                                                                         CommandParameter="{Binding FilePath}" />
-                                                <local:MyIconTextButton x:Name="BtnDelete" Text="{loc:Loc Common.Action.Delete}"
-                                                                        LogoScale="0.8" Loaded="ScreenshotIconButton_Loaded"
+                                                <local:MyIconTextButton x:Name="BtnDelete"
+                                                                        Text="{loc:Loc Common.Action.Delete}"
+                                                                        LogoScale="0.8"
+                                                                        Loaded="ScreenshotIconButton_Loaded"
                                                                         Click="BtnDelete_Click" />
-                                                <local:MyIconTextButton x:Name="BtnCopy" Text="{loc:Loc Common.Action.Copy}"
-                                                                        LogoScale="0.8" Loaded="ScreenshotIconButton_Loaded"
+                                                <local:MyIconTextButton x:Name="BtnCopy"
+                                                                        Text="{loc:Loc Common.Action.Copy}"
+                                                                        LogoScale="0.8"
+                                                                        Loaded="ScreenshotIconButton_Loaded"
                                                                         Command="{Binding DataContext.CopyScreenshotCommand, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"
                                                                         CommandParameter="{Binding FilePath}" />
                                             </StackPanel>
@@ -100,7 +147,6 @@
                 </StackPanel>
             </Grid>
         </local:MyScrollViewer>
-        <!-- 加载中的等待动画：覆盖整个页面，首次枚举与装填期间可见 -->
         <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="True"
                       x:Name="PanLoad" UseAnimation="False" Margin="40,50"
                       Visibility="{Binding PanLoadVisibility}">

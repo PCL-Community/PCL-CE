@@ -7,11 +7,6 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" x:Class="PCL.PageDownloadInstall">
     <local:MyPageRight.Resources>
-        <!--
-            版本行由 DataTemplate 生成，映射逻辑复用 GameVersionItemViewModel；
-            展开后的列表套 VirtualizingScrollHost，只实例化当前可视带内的行，
-            避免「远古版」这类上百条的分类一次性建满控件。
-        -->
         <DataTemplate x:Key="InstallVersionItemTemplate" DataType="{x:Type local:GameVersionItemViewModel}">
             <local:MyListItem Title="{Binding Title}" Info="{Binding Info.Value}" Logo="{Binding Logo}"
                               Tags="{Binding Tags}" Tag="{Binding Entry}" Type="Clickable" Height="42"

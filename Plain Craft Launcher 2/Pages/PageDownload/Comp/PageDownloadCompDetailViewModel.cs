@@ -1,12 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App.Localization;
 using PCL.Core.ViewModel;
+using System.Collections.ObjectModel;
+using System.Windows;
 
 namespace PCL;
 
@@ -97,7 +94,12 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
         IsFavorite = Comp.CompFavorites.IsFavourite(projectId);
     }
 
-    // 筛选类型相同的结果（Modrinth 会返回 Mod、服务端插件、数据包混合的列表）
+    /// <summary>
+    /// 筛选类型相同的结果（Modrinth 会返回 Mod、服务端插件、数据包混合的列表）
+    /// </summary>
+    /// <param name="results"></param>
+    /// <param name="pageType"></param>
+    /// <returns></returns>
     public static List<Comp.CompFile> FilterResults(List<Comp.CompFile> results, Comp.CompType pageType)
     {
         if (pageType == Comp.CompType.Any)
@@ -116,7 +118,6 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
         return results;
     }
 
-    // 结果 UI 化
     public sealed class CardSorter : IComparer<string>
     {
         public readonly string topmost = "";

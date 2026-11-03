@@ -1,9 +1,9 @@
+using PCL.Core.UI.Controls;
 using System.Collections.Concurrent;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using PCL.Core.UI.Controls;
 
 namespace PCL;
 
@@ -43,7 +43,6 @@ internal static partial class TextStyles
                 return;
             }
 
-            // 原文未变化时无需重建 Inlines（虚拟化列表滚动时会重复触发同一项）
             if (lab.Tag is string lastText && lastText == text && lab.Inlines.Count > 0)
                 return;
             lab.Tag = text;
@@ -81,48 +80,48 @@ internal static partial class TextStyles
                         {
                             case 'k':
                             case 'K':
-                            {
-                                isRandomText = true;
-                                if (!string.IsNullOrEmpty(curRun.Text))
                                 {
-                                    curRun = new TimerRun();
-                                    lab.Inlines.Add(curRun);
-                                }
+                                    isRandomText = true;
+                                    if (!string.IsNullOrEmpty(curRun.Text))
+                                    {
+                                        curRun = new TimerRun();
+                                        lab.Inlines.Add(curRun);
+                                    }
 
-                                curRun.AutoStart = true;
-                                randomTextRuns.Add(curRun);
-                                break;
-                            }
+                                    curRun.AutoStart = true;
+                                    randomTextRuns.Add(curRun);
+                                    break;
+                                }
                             case 'l':
-                            {
-                                hasBlodProperty = true;
-                                break;
-                            }
+                                {
+                                    hasBlodProperty = true;
+                                    break;
+                                }
                             case 'o':
-                            {
-                                hasItalicProperty = true;
-                                break;
-                            }
+                                {
+                                    hasItalicProperty = true;
+                                    break;
+                                }
                             case 'n':
-                            {
-                                hasStrickThroughProperty = true;
-                                break;
-                            }
+                                {
+                                    hasStrickThroughProperty = true;
+                                    break;
+                                }
                             case 'm':
-                            {
-                                hasDeleteLineProperty = true;
-                                break;
-                            }
+                                {
+                                    hasDeleteLineProperty = true;
+                                    break;
+                                }
                             case 'r':
-                            {
-                                color = isDarkMode ? "#FFFFFF" : "#888888";
-                                hasBlodProperty = false;
-                                hasItalicProperty = false;
-                                hasStrickThroughProperty = false;
-                                hasDeleteLineProperty = false;
-                                isRandomText = false;
-                                break;
-                            }
+                                {
+                                    color = isDarkMode ? "#FFFFFF" : "#888888";
+                                    hasBlodProperty = false;
+                                    hasItalicProperty = false;
+                                    hasStrickThroughProperty = false;
+                                    hasDeleteLineProperty = false;
+                                    isRandomText = false;
+                                    break;
+                                }
                         }
                     }
 

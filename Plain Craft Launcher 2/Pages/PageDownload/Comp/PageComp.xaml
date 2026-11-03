@@ -11,7 +11,7 @@
         <BooleanToVisibilityConverter x:Key="VisibilityConverter" />
     </local:MyScrollViewer.Resources>
     <StackPanel Margin="25,25,25,25">
-    <!-- 固定头部：搜索与筛选 -->
+    <!-- 搜索与筛选 -->
     <StackPanel x:Name="PanAlways" Orientation="Vertical">
         <local:MySearchBox x:Name="PanSearchBox" Margin="0,0,0,15" SearchButtonVisibility="Visible" HintText="{loc:Loc Download.Comp.Search.Hint}" KeyDown="EnterTrigger" Search="PanSearchBox_Search" />
         <local:MyCard Margin="0,0,0,15">
@@ -132,7 +132,6 @@
                       Text="{Binding ErrorMessage}"
                       Theme="Yellow" Margin="0,0,0,15" />
         <local:MyCard x:Name="CardProjects" Grid.Row="1" UseAnimation="False">
-            <!-- 列表跟随整页滚动：虚拟化面板只实例化当前可视区域内的条目 -->
             <core:VirtualizingScrollHost Margin="12">
                 <ItemsControl x:Name="PanProjects" Style="{StaticResource VirtualizedItemsControl}"
                               ItemsSource="{Binding Projects}">

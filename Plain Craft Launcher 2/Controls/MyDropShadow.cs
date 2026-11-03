@@ -21,19 +21,14 @@ public class MyDropShadow : Decorator
         new FrameworkPropertyMetadata(new CornerRadius(), FrameworkPropertyMetadataOptions.AffectsRender, ClearBrushes),
         IsCornerRadiusValid);
 
-    // 静态 Brush 缓存：key = (颜色, 圆角, 阴影半径)。
-    // 原先只缓存第一组参数，其余组合每个实例都会各自创建 9 个 Brush，卡片一多分配量就很可观。
     private const int MaxBrushCacheSize = 32;
 
     private static readonly ConcurrentDictionary<(Color Color, CornerRadius Radius, double ShadowRadius), Brush[]>
         _brushCache = new();
 
-    // 实例级回退缓存：静态缓存已满（或并发写入失败）时使用，避免同一实例每帧重复创建。
     private Brush[] _brushes;
     private (Color Color, CornerRadius Radius, double ShadowRadius) _brushesKey;
 
-    // 渲染缓存：RenderSize / DPI / 相关 DP 未变化时复用 GuidelineSet 与中心几何，
-    // 避免每次 OnRender 都重新分配数组、GuidelineSet 与 PathGeometry。
     private bool _renderCacheValid;
     private Size _cachedRenderSize;
     private double _cachedDpiScale;
@@ -78,12 +73,6 @@ public class MyDropShadow : Decorator
                  double.IsNaN(cr.BottomRight) || double.IsInfinity(cr.TopLeft) || double.IsInfinity(cr.TopRight) ||
                  double.IsInfinity(cr.BottomLeft) || double.IsInfinity(cr.BottomRight));
     }
-
-
-    // =======================================
-    // 渲染
-    // =======================================
-
 
     protected override void OnRender(DrawingContext drawingContext)
     {
@@ -396,8 +385,6 @@ public class MyDropShadow : Decorator
 
     private Brush[] GetBrushes(Color c, CornerRadius cornerRadius)
     {
-        // 静态缓存：同一组 (颜色, 圆角, 阴影半径) 的 Brush 可以被所有实例共享，
-        // 卡片一多时也不会每个实例都重复创建 9 个 Brush。
         var key = (c, cornerRadius, ShadowRadius);
 
         if (_brushCache.TryGetValue(key, out var cached))
@@ -406,12 +393,10 @@ public class MyDropShadow : Decorator
             return cached;
         }
 
-        // 实例级缓存命中时直接复用，避免同一实例每帧重建
         if (_brushes is not null && _brushesKey == key) return _brushes;
 
         var brushes = CreateBrushes(c, cornerRadius);
 
-        // 静态缓存已满时不再新增，退回实例级缓存，避免字典无限增长
         if (_brushCache.Count < MaxBrushCacheSize && _brushCache.TryAdd(key, brushes))
         {
             _brushes = null;

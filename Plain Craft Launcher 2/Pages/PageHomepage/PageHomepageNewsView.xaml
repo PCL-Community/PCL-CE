@@ -23,8 +23,6 @@
                                          LayoutMode="AutoFit"
                                          MaxItemWidth="240"
                                          RowSpacing="14" />
-                <!-- 注意：WaterfallPanel 是普通 Panel，不实现 IScrollInfo / ItemContainerGenerator，
-                     因此这里不能靠 VirtualizingPanel.* 属性实现虚拟化，写上也只是空操作。 -->
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>

@@ -9,8 +9,6 @@
     PanScroll="{Binding ElementName=PanBack}"
     Loaded="Page_Loaded" Unloaded="Page_Unloaded" PageExit="PageExit_UnselectedAll">
     <Grid>
-        <!-- 页面内容：整页滚动；列表由虚拟化面板按当前可视区实例化，滚动体验与改造前一致 -->
-        <!-- 注意：PanAllBack 的可见性由 MyPageRight.PageLoaderInit 管理，不能绑定 ShowList，否则绑定会被 SetValue 覆盖 -->
         <Grid x:Name="PanAllBack">
             <Grid Visibility="{Binding ShowList, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <local:MyScrollViewer x:Name="PanBack" VerticalScrollBarVisibility="Auto"
@@ -74,7 +72,7 @@
                                                                 SvgIcon="lucide/arrow-up-down" />
                                     </StackPanel>
                                 </Grid>
-                                <!-- 列表：跟随整页滚动，虚拟化面板只实例化当前可视区域内的条目 -->
+                                <!-- 列表 -->
                                 <core:VirtualizingScrollHost Grid.Row="1" Margin="20,10,18,22">
                                     <ItemsControl
                                         x:Name="PanList"
