@@ -258,7 +258,7 @@ public partial class PageComp
         isLoaderInited = true;
         ((MyPageRight)Parent).PageLoaderInit(Load, PanLoad, PanContent, PanAlways, loader, _ => Load_OnFinish(),
             LoaderInput);
-        // 将最高 Drop 加入筛选
+
         if (GameDownload.AllDrops is not null && GameDownload.AllDrops.Count != 0 && GameDownload.AllDrops.First() > 250)
         {
             var highestVersion = McInstanceInfo.DropToVersion(GameDownload.AllDrops.First());
@@ -267,7 +267,6 @@ public partial class PageComp
                 TextSearchVersion.Items.Insert(1, new MyComboBoxItem { Content = highestVersion });
         }
 
-        // 根据页面类型控制加载器选择的显示
         if (PageType == Comp.CompType.Shader)
         {
             _vm.IsLoaderLabelVisible = true;
@@ -290,7 +289,6 @@ public partial class PageComp
 
     private void PageComp_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
-        // 当页面变为可见时刷新收藏按钮状态
         if (IsVisible) RefreshAllFavoriteStatus();
     }
 
@@ -311,9 +309,6 @@ public partial class PageComp
                 ? selectedTag
                 : selectedTag + loaderTag
             : selectedTag;
-        // 只有 Mod 与整合包才考虑加载器。1.14- 的 Forge 特例（老 Mod 常常没有声明自己支持的加载器）
-        // 统一由 Comp.CompProjectsGet 处理，见 ProjectQuery._FetchProjectResults 的 isOldForgeRequest，
-        // 这里不要再重复判断，否则两处的版本判定会漂移。
         request.modLoader = PageType is Comp.CompType.Mod or Comp.CompType.ModPack
             ? (Comp.CompLoaderType)Common.Val(((MyComboBoxItem)ComboSearchLoader.SelectedItem).Tag)
             : Comp.CompLoaderType.Any;
