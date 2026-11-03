@@ -1898,7 +1898,7 @@ public static class ModLocalComp
                     });
                 }
 
-                loader.input.frm.LoaderRun(LoaderFolderRunType.UpdateOnly);
+                LoaderFolderRun(loader, loader.input.compPath, LoaderFolderRunType.UpdateOnly);
             }
 
             // 在后台枚举前恢复中断的更新，避免将缺失或暂存状态显示为资源列表。
