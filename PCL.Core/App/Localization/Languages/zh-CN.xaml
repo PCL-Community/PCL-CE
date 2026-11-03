@@ -1198,6 +1198,7 @@
 
     <sys:String x:Key="Instance.Resource.Update">更新</sys:String>
     <sys:String x:Key="Instance.Resource.Update.Aborted">资源更新已中止！</sys:String>
+    <sys:String x:Key="Instance.Resource.Update.BatchResult">更新完成：成功 {0} 个，失败 {1} 个。失败资源：{2}</sys:String>
     <sys:String x:Key="Instance.Resource.Update.Failed">资源更新失败：{0}</sys:String>
     <sys:String x:Key="Instance.Resource.Update.SuccessMultiple">已成功更新 {0} 个资源！</sys:String>
     <sys:String x:Key="Instance.Resource.Update.SuccessSingle">已成功更新 {0}！</sys:String>

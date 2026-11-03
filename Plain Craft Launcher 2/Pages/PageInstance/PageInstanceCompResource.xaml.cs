@@ -2179,22 +2179,18 @@ public partial class PageInstanceCompResource : IRefreshable
             // 构造加载器
             var installLoaders = new List<ModLoader.LoaderBase>();
             var finishedFileNames = new List<string>();
+            var failedFileNames = new List<string>();
             installLoaders.Add(new LoaderDownload(Lang.Text("Instance.Resource.Update.Task.DownloadFiles"), fileList)
                 { ProgressWeight = modList.Count() * 1.5d }); // 每个 Mod 需要 1.5s
             installLoaders.Add(new ModLoader.LoaderTask<int, int>(
                 Lang.Text("Instance.Resource.Update.Task.ReplaceFiles"), _ =>
             {
-                try
+                var result = recycleBin.ReplaceMany(replacements);
+                finishedFileNames.AddRange(result.UpdatedPaths.Select(ModBase.GetFileNameFromPath));
+                foreach (var failure in result.Failures)
                 {
-                    foreach (var replacement in replacements)
-                    {
-                        recycleBin.Replace(replacement.Original, replacement.Updated, replacement.Downloaded);
-                        finishedFileNames.Add(ModBase.GetFileNameFromPath(replacement.Updated));
-                    }
-                }
-                catch (OperationCanceledException ex)
-                {
-                    ModBase.Log(ex, "替换旧版资源文件时被主动取消");
+                    failedFileNames.Add(ModBase.GetFileNameFromPath(failure.Key));
+                    ModBase.Log(failure.Value, "资源更新替换失败：" + failure.Key);
                 }
             }));
             // 结束处理
@@ -2212,26 +2208,13 @@ public partial class PageInstanceCompResource : IRefreshable
                 {
                     case ModBase.LoadState.Finished:
                     {
-                        switch (finishedFileNames.Count)
-                        {
-                            case 0: // 一般是由于 Mod 文件被占用，然后玩家主动取消
-                            {
-                                ModBase.Log("[CompUpdate] 没有资源被成功更新");
-                                break;
-                            }
-                            case 1:
-                            {
-                                HintService.Hint(Lang.Text("Instance.Resource.Update.SuccessSingle", finishedFileNames.Single()), HintType.Success);
-                                break;
-                            }
-
-                            default:
-                            {
-                                HintService.Hint(Lang.Text("Instance.Resource.Update.SuccessMultiple", finishedFileNames.Count), HintType.Success);
-                                break;
-                            }
-                        }
-
+                        if (failedFileNames.Count > 0)
+                            HintService.Hint(Lang.Text("Instance.Resource.Update.BatchResult", finishedFileNames.Count,
+                                failedFileNames.Count, string.Join(", ", failedFileNames)), HintType.Error);
+                        else if (finishedFileNames.Count == 1)
+                            HintService.Hint(Lang.Text("Instance.Resource.Update.SuccessSingle", finishedFileNames.Single()), HintType.Success);
+                        else if (finishedFileNames.Count > 1)
+                            HintService.Hint(Lang.Text("Instance.Resource.Update.SuccessMultiple", finishedFileNames.Count), HintType.Success);
                         break;
                     }
                     case ModBase.LoadState.Failed:
@@ -2261,6 +2244,7 @@ public partial class PageInstanceCompResource : IRefreshable
                         foreach (var TempFile in fileCopyList.Keys)
                             if (File.Exists(TempFile))
                                 File.Delete(TempFile);
+                        if (Directory.Exists(tempRoot)) Directory.Delete(tempRoot, true);
                     }
                     catch (Exception ex)
                     {
