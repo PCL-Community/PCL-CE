@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App.Localization;
 using PCL.Core.ViewModel;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
 
@@ -85,6 +86,36 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
 
     public void SetCurrentFolder(string path) => CurrentFolderPath = path;
 
+    /// <summary>列表当前显示的条目。排序与筛选在 code-behind 中算好后交给该集合。</summary>
+    public ObservableCollection<MyLocalModItemViewModel> Mods { get; } = new();
+
+    /// <summary>是否正在加载列表；供需要区分加载态与空态的界面使用。</summary>
+    [ObservableProperty] private bool _isLoading;
+
+    /// <summary>
+    ///     用目标顺序替换列表内容。<br />
+    ///     只做增删与移动，复用传入的 ViewModel 实例，避免同一文件重复解码图片。
+    /// </summary>
+    public void ReplaceMods(IReadOnlyList<MyLocalModItemViewModel> items)
+    {
+        // 移除不再显示的项
+        var wanted = new HashSet<MyLocalModItemViewModel>(items);
+        for (var i = Mods.Count - 1; i >= 0; i--)
+            if (!wanted.Contains(Mods[i]))
+                Mods.RemoveAt(i);
+
+        // 按目标顺序插入或移动
+        for (var i = 0; i < items.Count; i++)
+        {
+            var item = items[i];
+            var index = Mods.IndexOf(item);
+            if (index < 0)
+                Mods.Insert(i, item);
+            else if (index != i)
+                Mods.Move(index, i);
+        }
+    }
+
     [RelayCommand]
     private void OpenJarInJar()
     {
@@ -94,14 +125,14 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
     [RelayCommand]
     private void SchematicDownloadMod()
     {
-        Launcher.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadMod);
+        Launcher.frmMain!.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadMod);
         PageComp.targetVersion = PageInstanceLeft.McInstance; // 将当前实例设置为筛选器
     }
 
     [RelayCommand]
     private void SchematicVersionSelect()
     {
-        Launcher.frmMain.PageChange(FormMain.PageType.Launch);
+        Launcher.frmMain!.PageChange(FormMain.PageType.Launch);
         Launcher.frmMain.PageChange(FormMain.PageType.InstanceSelect);
     }
 
@@ -111,20 +142,20 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
         switch (CompType)
         {
             case Comp.CompType.Mod:
-            {
-                Launcher.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadMod);
-                break;
-            }
+                {
+                    Launcher.frmMain!.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadMod);
+                    break;
+                }
             case Comp.CompType.ResourcePack:
-            {
-                Launcher.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadResourcePack);
-                break;
-            }
+                {
+                    Launcher.frmMain!.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadResourcePack);
+                    break;
+                }
             case Comp.CompType.Shader:
-            {
-                Launcher.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadShader);
-                break;
-            }
+                {
+                    Launcher.frmMain!.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadShader);
+                    break;
+                }
         }
 
         PageComp.targetVersion = PageInstanceLeft.McInstance; // 将当前实例设置为筛选器
@@ -186,30 +217,30 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
         switch (method)
         {
             case SortMethod.FileName:
-            {
-                return Lang.Text("Instance.Resource.Sort.FileName");
-            }
+                {
+                    return Lang.Text("Instance.Resource.Sort.FileName");
+                }
             case SortMethod.CompName:
-            {
-                return Lang.Text("Instance.Resource.Sort.ResourceName");
-            }
+                {
+                    return Lang.Text("Instance.Resource.Sort.ResourceName");
+                }
             case SortMethod.TagNums:
-            {
-                return Lang.Text("Instance.Resource.Sort.TagCount");
-            }
+                {
+                    return Lang.Text("Instance.Resource.Sort.TagCount");
+                }
             case SortMethod.CreateTime:
-            {
-                return Lang.Text("Instance.Resource.Sort.AddTime");
-            }
+                {
+                    return Lang.Text("Instance.Resource.Sort.AddTime");
+                }
             case SortMethod.ModFileSize:
-            {
-                return Lang.Text("Instance.Resource.Sort.FileSize");
-            }
+                {
+                    return Lang.Text("Instance.Resource.Sort.FileSize");
+                }
 
             default:
-            {
-                return Lang.Text("Instance.Resource.Sort.ResourceName");
-            }
+                {
+                    return Lang.Text("Instance.Resource.Sort.ResourceName");
+                }
         }
     }
 

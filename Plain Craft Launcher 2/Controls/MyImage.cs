@@ -1,10 +1,10 @@
+using PCL.Core.IO.Net.Http;
+using PCL.Core.Utils;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using PCL.Core.IO.Net.Http;
-using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -19,37 +19,46 @@ public class MyImage : Image
     /// <summary>
     ///     实际被呈现的图片地址。
     /// </summary>
-    public string ActualSource
+    public string? ActualSource
     {
-        get => field;
+        get;
         set
         {
-            if (string.IsNullOrEmpty(value))
-                value = null;
-            if ((field ?? "") == (value ?? ""))
-                return; // 属性读取顺序修正：在完成 XAML 属性读取后再触发图片加载（#4868）
+            value = string.IsNullOrEmpty(value) ? null : value;
+
+            if (field == value)
+                return;
+
             field = value;
+            var path = value;
+
             Dispatcher.BeginInvoke(new Func<Task>(async () =>
             {
                 try
                 {
-                    ImageSource bitmap = value is null ? null : await Task.Run(() => new MyBitmap(value));
+                    ImageSource? bitmap = null;
+                    if (path is { } p)
+                        bitmap = await Task.Run(() => new MyBitmap(p)).ConfigureAwait(true);
+
                     base.Source = bitmap;
                 }
                 catch (Exception ex)
                 {
-                    Common.Log(ex, $"加载图片失败（{value}）");
+                    Common.Log(ex, $"加载图片失败（{path ?? "<null>"}）");
                     try
                     {
-                        if (value.StartsWithF(Common.pathTemp) && File.Exists(value))
-                            File.Delete(value);
+                        if (path is not null
+                            && path.StartsWithF(Common.pathTemp)
+                            && File.Exists(path))
+                        {
+                            File.Delete(path);
+                        }
                     }
                     catch
                     {
                     }
                 }
-            })); // 在这里先触发可能的文件读取，尽量避免在 UI 线程中读取文件
-            // ignored
+            }));
         }
     }
 
@@ -85,18 +94,17 @@ public class MyImage : Image
                 // 下载
                 ActualSource = LoadingSource;
 
-                var resp = await DownloadImageAsync(url);
+                var resp = await DownloadImageAsync(url).ConfigureAwait(true);
                 if (!string.IsNullOrEmpty(resp))
                 {
                     ActualSource = resp;
                     return;
                 }
 
-                resp = await DownloadImageAsync(FallbackSource);
+                resp = await DownloadImageAsync(FallbackSource).ConfigureAwait(true);
                 if (!string.IsNullOrEmpty(resp))
                 {
                     ActualSource = resp;
-                    return;
                 }
             }
             catch (Exception ex)
@@ -111,7 +119,7 @@ public class MyImage : Image
                 {
                     ActualSource = tempPath;
                     if (DateTime.Now - tempFile.LastWriteTime < fileCacheExpiredTime)
-                        return;
+                        return; // 这里是完全冗余的，不过我懒得管了
                 }
             }
         }));
@@ -122,7 +130,7 @@ public class MyImage : Image
         return DownloadTasks.GetOrAdd(url, key =>
         {
             var t = DownloadImageInternalAsync(key);
-            t.ContinueWith(_ => DownloadTasks.TryRemove(url, out _));
+            t.ContinueWith(_ => DownloadTasks.TryRemove(url, out var _));
             return t;
         });
     }
@@ -132,7 +140,7 @@ public class MyImage : Image
         return Path.Combine(Common.pathTemp, "Cache", "Images", $"{Common.GetStringMd5(url)}.png");
     }
 
-    private static readonly ConcurrentDictionary<string, Task<string>> DownloadTasks = new();
+    private static readonly ConcurrentDictionary<string, Task<string>> DownloadTasks = [];
 
     private static async Task<string> DownloadImageInternalAsync(string url)
     {
@@ -143,17 +151,17 @@ public class MyImage : Image
         {
             Directory.CreateDirectory(
                 Common.GetPathFromFullPath(tempPath)); // 重新实现下载，以避免携带 Header
-            using (var fs = new FileStream(tempDownloadingPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read))
+            await using (var fs = new FileStream(tempDownloadingPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read))
             {
                 using (var response = await HttpRequest.Create(url)
-                           .SendAsync(addMetedata: false))
+                           .SendAsync(addMetedata: false).ConfigureAwait(false))
                 {
                     response.EnsureSuccessStatusCode();
 
-                    using (var nfs = await response.AsStreamAsync())
+                    await using (var nfs = await response.AsStreamAsync().ConfigureAwait(false))
                     {
                         fs.SetLength(0L);
-                        await nfs.CopyToAsync(fs);
+                        await nfs.CopyToAsync(fs).ConfigureAwait(false);
                     }
                 }
             }
@@ -181,8 +189,8 @@ public class MyImage : Image
         set => SetValue(EnableCacheProperty, value);
     }
 
-    public new static readonly DependencyProperty EnableCacheProperty =
-        DependencyProperty.Register("EnableCache", typeof(bool), typeof(MyImage), new PropertyMetadata(true));
+    public static readonly DependencyProperty EnableCacheProperty =
+        DependencyProperty.Register(nameof(EnableCache), typeof(bool), typeof(MyImage), new PropertyMetadata(true));
 
     /// <summary>
     ///     与 Image 的 Source 类似。
@@ -191,7 +199,7 @@ public class MyImage : Image
     /// </summary>
     public new string? Source // 覆写 Image 的 Source 属性
     {
-        get => field;
+        get;
         set
         {
             if (string.IsNullOrEmpty(value))
@@ -205,10 +213,10 @@ public class MyImage : Image
         }
     } = "";
 
-    public new static readonly DependencyProperty SourceProperty = DependencyProperty.Register("Source", typeof(string),
+    public new static readonly DependencyProperty SourceProperty = DependencyProperty.Register(nameof(Source), typeof(string),
         typeof(MyImage), new PropertyMetadata((sender, e) =>
         {
-            if (sender is not null) ((MyImage)sender).Source = e.NewValue.ToString();
+            ((MyImage)sender)?.Source = e.NewValue?.ToString();
         }));
 
     /// <summary>
@@ -227,7 +235,7 @@ public class MyImage : Image
     }
     private static readonly DependencyProperty CornerRadiusProperty =
         DependencyProperty.Register(
-            "CornerRadius",
+            nameof(CornerRadius),
             typeof(CornerRadius),
             typeof(MyImage),
             new FrameworkPropertyMetadata(
@@ -243,7 +251,7 @@ public class MyImage : Image
     private void UpdateClip() // Handles Me.SizeChanged will be added separately
     {
         if (ActualWidth > 0 && ActualHeight > 0 &&
-            CornerRadius.TopLeft >= 0 && CornerRadius.TopRight >= 0)
+            CornerRadius is { TopLeft: >= 0, TopRight: >= 0 })
         {
             Clip = new RectangleGeometry(
                 new Rect(0, 0, ActualWidth, ActualHeight),

@@ -1,10 +1,22 @@
-﻿<local:MyPageRight
+<local:MyPageRight
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:PCL"
+    xmlns:core="clr-namespace:PCL.Core.UI.Controls;assembly=PCL.Core.Wpf"
                    xmlns:loc="https://ce.pclc.cc/core/localization" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" x:Class="PCL.PageDownloadInstall">
+    <local:MyPageRight.Resources>
+        <DataTemplate x:Key="InstallVersionItemTemplate" DataType="{x:Type local:GameVersionItemViewModel}">
+            <local:MyListItem Title="{Binding Title}" Info="{Binding Info.Value}" Logo="{Binding Logo}"
+                              Tags="{Binding Tags}" Tag="{Binding Entry}" Type="Clickable" Height="42"
+                              SnapsToDevicePixels="True" Click="InstallVersionItem_Click"
+                              Loaded="InstallVersionItem_Loaded" />
+        </DataTemplate>
+        <ItemsPanelTemplate x:Key="InstallVersionItemPanel">
+            <core:VirtualizingWrapPanel ItemWidth="NaN" HorizontalSpacing="0" VerticalSpacing="0" />
+        </ItemsPanelTemplate>
+    </local:MyPageRight.Resources>
     <Grid>
         <Grid Name="PanAllBack">
             <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"

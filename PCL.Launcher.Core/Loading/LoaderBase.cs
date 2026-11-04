@@ -1,4 +1,4 @@
-﻿using PCL.Core.App;
+using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Utils;
 
@@ -54,6 +54,11 @@ public static partial class Loading
         public bool block = true;
 
         public bool hasOnStateChangedThread;
+
+        /// <summary>
+        ///     等待加载器结束的异步等待者，用于 <see cref="WaitForExitAsync" /> 与 <see cref="WaitForExitTimeAsync" />。
+        /// </summary>
+        private readonly List<TaskCompletionSource> _exitWaiters = [];
 
         /// <summary>
         ///     当前加载器是否由 IsForceRestart 强制调起。
@@ -138,6 +143,8 @@ public static partial class Loading
                 if (value == LoadState.Finished && Config.Debug.AddRandomDelay)
                     Thread.Sleep(RandomUtils.NextInt(100, 2000));
                 field = value;
+                if (IsExitState(value))
+                    CompleteExitWaiters();
                 LauncherCommon.Log(
                     $"[Loader] 加载器 {name} 状态改变：{LauncherCommon.GetStringFromEnum(value)}");
                 LauncherCommon.RunInUi(() =>
@@ -263,11 +270,11 @@ public static partial class Loading
                 case LoadState.Loading:
                 case LoadState.Failed:
                 default:
-                {
-                    if (Error is null)
-                        throw new InvalidOperationException("未知错误！");
-                    throw Error;
-                }
+                    {
+                        if (Error is null)
+                            throw new InvalidOperationException("未知错误！");
+                        throw Error;
+                    }
             }
         }
 
@@ -306,10 +313,10 @@ public static partial class Loading
                 case LoadState.Loading:
                 case LoadState.Failed:
                 default:
-                {
-                    if (Error is null) throw new InvalidOperationException("未知错误！");
-                    throw Error;
-                }
+                    {
+                        if (Error is null) throw new InvalidOperationException("未知错误！");
+                        throw Error;
+                    }
             }
         }
 
@@ -317,6 +324,177 @@ public static partial class Loading
         {
             var @base = obj as LoaderBase;
             return @base is not null && Uuid == @base.Uuid;
+        }
+
+        /// <summary>
+        ///     该状态是否代表加载器已经结束（无论成功与否）。
+        /// </summary>
+        private static bool IsExitState(LoadState state)
+        {
+            return state is LoadState.Finished or LoadState.Failed or LoadState.Aborted;
+        }
+
+        /// <summary>
+        ///     注册一个等待加载器结束的异步等待者。
+        ///     若加载器已经结束，则返回的等待者会立即完成。
+        /// </summary>
+        private TaskCompletionSource RegisterExitWaiter()
+        {
+            var waiter = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            lock (lockState)
+            {
+                if (IsExitState(State))
+                    waiter.TrySetResult();
+                else
+                    _exitWaiters.Add(waiter);
+            }
+
+            return waiter;
+        }
+
+        private void UnregisterExitWaiter(TaskCompletionSource waiter)
+        {
+            lock (lockState)
+                _exitWaiters.Remove(waiter);
+        }
+
+        /// <summary>
+        ///     加载器结束时唤醒全部等待者。由 <see cref="State" /> 的 setter 调用。
+        /// </summary>
+        private void CompleteExitWaiters()
+        {
+            TaskCompletionSource[] waiters;
+            lock (lockState)
+            {
+                if (_exitWaiters.Count == 0)
+                    return;
+                waiters = _exitWaiters.ToArray();
+                _exitWaiters.Clear();
+            }
+
+            foreach (var waiter in waiters)
+                waiter.TrySetResult();
+        }
+
+        /// <summary>
+        ///     等待加载器结束，并在结束后按状态抛出对应异常。<br />
+        ///     不会阻塞调用线程，可以在 UI 线程中安全使用。
+        /// </summary>
+        /// <param name="input">传递给加载器的输入。</param>
+        /// <param name="loaderToSyncProgress">需要同步进度的加载器，可以为 <see langword="null" />。</param>
+        /// <param name="isForceRestart">是否强制重新执行。</param>
+        /// <param name="cancellationToken">取消等待。取消不会中止加载器本身，只会让本方法抛出 <see cref="OperationCanceledException" />。</param>
+        public async Task WaitForExitAsync(
+            object? input = null,
+            LoaderBase? loaderToSyncProgress = null,
+            bool isForceRestart = false,
+            CancellationToken cancellationToken = default)
+        {
+            var waiter = RegisterExitWaiter();
+            try
+            {
+                Start(input, isForceRestart);
+                await WaitForWaiterAsync(waiter, loaderToSyncProgress, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            finally
+            {
+                UnregisterExitWaiter(waiter);
+            }
+
+            ThrowIfExitFailed();
+        }
+
+        /// <summary>
+        ///     等待加载器结束，直到结束、抛出异常或超时。<br />
+        ///     不会阻塞调用线程，可以在 UI 线程中安全使用。
+        /// </summary>
+        /// <param name="timeout">等待的超时时间，以毫秒为单位。</param>
+        /// <param name="input">传递给加载器的输入。</param>
+        /// <param name="timeoutMessage">若执行超时，将会抛出的异常信息。</param>
+        /// <param name="loaderToSyncProgress">需要同步进度的加载器，可以为 <see langword="null" />。</param>
+        /// <param name="isForceRestart">是否强制重新执行。</param>
+        /// <param name="cancellationToken">取消等待。取消不会中止加载器本身，只会让本方法抛出 <see cref="OperationCanceledException" />。</param>
+        public async Task WaitForExitTimeAsync(
+            int timeout,
+            object? input = null,
+            string timeoutMessage = WaitForExitTimeoutMessage,
+            LoaderBase? loaderToSyncProgress = null,
+            bool isForceRestart = false,
+            CancellationToken cancellationToken = default)
+        {
+            var waiter = RegisterExitWaiter();
+            try
+            {
+                Start(input, isForceRestart);
+                var waitTask = WaitForWaiterAsync(waiter, loaderToSyncProgress, cancellationToken);
+                var completed = await Task.WhenAny(waitTask, Task.Delay(timeout, cancellationToken))
+                    .ConfigureAwait(false);
+                if (completed != waitTask)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    throw new TimeoutException(timeoutMessage);
+                }
+
+                await waitTask.ConfigureAwait(false);
+            }
+            finally
+            {
+                UnregisterExitWaiter(waiter);
+            }
+
+            ThrowIfExitFailed();
+        }
+
+        private async Task WaitForWaiterAsync(
+            TaskCompletionSource waiter,
+            LoaderBase? loaderToSyncProgress,
+            CancellationToken cancellationToken)
+        {
+            void SyncProgress(double value, double oldValue)
+            {
+                if (loaderToSyncProgress is null)
+                    return;
+                LauncherCommon.RunInUi(() => loaderToSyncProgress.Progress = value);
+            }
+
+            if (loaderToSyncProgress is not null)
+            {
+                ProgressChanged += SyncProgress;
+                loaderToSyncProgress.Progress = Progress;
+            }
+
+            try
+            {
+                await waiter.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                if (loaderToSyncProgress is not null)
+                    ProgressChanged -= SyncProgress;
+            }
+        }
+
+        private void ThrowIfExitFailed()
+        {
+            switch (State)
+            {
+                case LoadState.Finished:
+                    break;
+
+                case LoadState.Aborted:
+                    throw new OperationCanceledException("加载器执行已中断。");
+
+                case LoadState.Waiting:
+                case LoadState.Loading:
+                case LoadState.Failed:
+                default:
+                    {
+                        if (Error is null)
+                            throw new InvalidOperationException("未知错误！");
+                        throw Error;
+                    }
+            }
         }
     }
 }
