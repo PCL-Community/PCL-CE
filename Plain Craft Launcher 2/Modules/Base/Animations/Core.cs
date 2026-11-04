@@ -75,13 +75,10 @@ public static partial class Animations
             AniTimer(deltaTick);
 
             if (RandomUtils.NextInt(0, 64 * (Common.modeDebug ? 5 : 30)) == 0
-                && ((_aniFps < 62 && _aniFps > 0)
+                && (_aniFps is < 62 and > 0
                     || _aniCount > 4
                     || NetFacade.NetManager.FileRemain != 0))
-                Common.Log(
-                    "[Report] FPS " + _aniFps + ", 动画 " + _aniCount + ", 下载中 "
-                    + NetFacade.NetManager.FileRemain + "（"
-                    + Common.GetString(NetFacade.NetManager.Speed) + "/s）");
+                Common.Log($"[Report] FPS {_aniFps}, 动画 {_aniCount}, 下载中 {NetFacade.NetManager.FileRemain}（{Common.GetString(NetFacade.NetManager.Speed)}/s）");
         }
         catch (Exception ex)
         {
@@ -112,9 +109,8 @@ public static partial class Animations
             _AniFlushGroups();
 
             var groups = _aniOrder;
-            for (var i = 0; i < groups.Count; i++)
+            foreach (var entry in groups)
             {
-                var entry = groups[i];
                 if (entry.Dead) continue;
                 if (entry.startTick > _aniLastTick) continue;
 
@@ -218,7 +214,7 @@ public static partial class Animations
             target[2] is not string { Length: 0 })
             ((FrameworkElement)target[0]).SetResourceReference(
                 (DependencyProperty)target[1],
-                target[2]!);
+                target[2]);
     }
 
     /// <summary>
@@ -336,7 +332,7 @@ public static partial class Animations
             case AniTypeSub.Width:
                 {
                     var element = (FrameworkElement)ani.obj;
-                    var width = double.IsNaN(element.Width)
+                    var width = element.Width is double.NaN
                         ? element.ActualWidth
                         : element.Width;
 
@@ -347,7 +343,7 @@ public static partial class Animations
             case AniTypeSub.Height:
                 {
                     var element = (FrameworkElement)ani.obj;
-                    var height = double.IsNaN(element.Height)
+                    var height = element.Height is double.NaN
                         ? element.ActualHeight
                         : element.Height;
 
@@ -479,7 +475,7 @@ public static partial class Animations
     ///     value 为整条动画共用、始终未被冻结的 SolidColorBrush。
     ///     用 ConditionalWeakTable 是为了让动画结束后缓存随 obj 一起被回收，不会造成泄漏。
     /// </summary>
-    private static readonly ConditionalWeakTable<object, SolidColorBrush> _aniColorBrushes = new();
+    private static readonly ConditionalWeakTable<object, SolidColorBrush> AniColorBrushes = new();
 
     private static void _RunColorAnimation(ref AniData ani)
     {
@@ -504,7 +500,7 @@ public static partial class Animations
         }
         else
         {
-            var brush = _aniColorBrushes.GetValue(ani.obj!, _ => new SolidColorBrush());
+            var brush = AniColorBrushes.GetValue(ani.obj!, _ => new SolidColorBrush());
             // 先更新颜色再挂到元素上，避免首帧出现一次透明色
             brush.Color = color;
             if (!ReferenceEquals(valueLast, brush))

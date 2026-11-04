@@ -154,10 +154,8 @@ public partial class MyLocalModItemViewModel : ViewModelBase
     {
         if (Entry is null)
             return;
-        var dispatcher = Application.Current?.Dispatcher;
-        if (dispatcher is null)
-            return;
-        dispatcher.BeginInvoke(new Func<Task>(RefreshAsync));
+        var dispatcher = System.Windows.Application.Current?.Dispatcher;
+        dispatcher?.BeginInvoke(new Func<Task>(RefreshAsync));
     }
 
     private async Task RefreshAsync()

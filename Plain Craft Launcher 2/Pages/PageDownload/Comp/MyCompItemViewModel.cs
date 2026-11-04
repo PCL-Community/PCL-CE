@@ -1,7 +1,6 @@
-using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
-using PCL.Core.App.Localization;
 using PCL.Core.ViewModel;
+using System.Windows;
 
 namespace PCL;
 

@@ -125,14 +125,14 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
     [RelayCommand]
     private void SchematicDownloadMod()
     {
-        Launcher.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadMod);
+        Launcher.frmMain!.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadMod);
         PageComp.targetVersion = PageInstanceLeft.McInstance; // 将当前实例设置为筛选器
     }
 
     [RelayCommand]
     private void SchematicVersionSelect()
     {
-        Launcher.frmMain.PageChange(FormMain.PageType.Launch);
+        Launcher.frmMain!.PageChange(FormMain.PageType.Launch);
         Launcher.frmMain.PageChange(FormMain.PageType.InstanceSelect);
     }
 
@@ -142,20 +142,20 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
         switch (CompType)
         {
             case Comp.CompType.Mod:
-            {
-                Launcher.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadMod);
-                break;
-            }
+                {
+                    Launcher.frmMain!.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadMod);
+                    break;
+                }
             case Comp.CompType.ResourcePack:
-            {
-                Launcher.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadResourcePack);
-                break;
-            }
+                {
+                    Launcher.frmMain!.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadResourcePack);
+                    break;
+                }
             case Comp.CompType.Shader:
-            {
-                Launcher.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadShader);
-                break;
-            }
+                {
+                    Launcher.frmMain!.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadShader);
+                    break;
+                }
         }
 
         PageComp.targetVersion = PageInstanceLeft.McInstance; // 将当前实例设置为筛选器
@@ -217,30 +217,30 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
         switch (method)
         {
             case SortMethod.FileName:
-            {
-                return Lang.Text("Instance.Resource.Sort.FileName");
-            }
+                {
+                    return Lang.Text("Instance.Resource.Sort.FileName");
+                }
             case SortMethod.CompName:
-            {
-                return Lang.Text("Instance.Resource.Sort.ResourceName");
-            }
+                {
+                    return Lang.Text("Instance.Resource.Sort.ResourceName");
+                }
             case SortMethod.TagNums:
-            {
-                return Lang.Text("Instance.Resource.Sort.TagCount");
-            }
+                {
+                    return Lang.Text("Instance.Resource.Sort.TagCount");
+                }
             case SortMethod.CreateTime:
-            {
-                return Lang.Text("Instance.Resource.Sort.AddTime");
-            }
+                {
+                    return Lang.Text("Instance.Resource.Sort.AddTime");
+                }
             case SortMethod.ModFileSize:
-            {
-                return Lang.Text("Instance.Resource.Sort.FileSize");
-            }
+                {
+                    return Lang.Text("Instance.Resource.Sort.FileSize");
+                }
 
             default:
-            {
-                return Lang.Text("Instance.Resource.Sort.ResourceName");
-            }
+                {
+                    return Lang.Text("Instance.Resource.Sort.ResourceName");
+                }
         }
     }
 

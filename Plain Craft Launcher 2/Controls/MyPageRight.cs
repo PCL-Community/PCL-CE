@@ -64,7 +64,7 @@ public class MyPageRight : AdornerDecorator
     }
 
     private static readonly DependencyProperty PanScrollProperty =
-    DependencyProperty.Register("PanScroll", typeof(MyScrollViewer), typeof(MyPageRight));
+    DependencyProperty.Register(nameof(PanScroll), typeof(MyScrollViewer), typeof(MyPageRight));
 
     private bool _panScrollNullWarned;
 
@@ -73,19 +73,18 @@ public class MyPageRight : AdornerDecorator
     /// <summary>
     /// “返回顶部” 按钮检测的滚动区域
     /// </summary>
-    public MyScrollViewer PanScroll
+    public MyScrollViewer? PanScroll
     {
         get
         {
-            var res = GetValue((DependencyProperty)PanScrollProperty);
+            var res = GetValue(PanScrollProperty);
             if (res is null && !_panScrollNullWarned)
             {
                 _panScrollNullWarned = true;
-                Common.Log($"[MyPageRight] 获取到 PanScroll(来自 {Name}) 的值为 null",
-                    Common.LogLevel.Debug);
+                Common.Log($"[MyPageRight] 获取到 PanScroll(来自 {Name}) 的值为 null", Common.LogLevel.Debug);
             }
 
-            return (MyScrollViewer)res;
+            return res as MyScrollViewer;
         }
         set => SetValue(PanScrollProperty, value);
     }
@@ -116,11 +115,11 @@ public class MyPageRight : AdornerDecorator
 
     #region 加载器
 
-    private LoaderBase _pageLoader;
+    private LoaderBase? _pageLoader;
     private Func<object>? _pageLoaderInputInvoke;
     private MyLoading? _pageLoaderUi;
-    private FrameworkElement _panLoader;
-    private FrameworkElement _panContent;
+    private FrameworkElement? _panLoader;
+    private FrameworkElement? _panContent;
     private FrameworkElement? _panAlways;
     private bool _pageLoaderAutoRun;
 
@@ -133,15 +132,18 @@ public class MyPageRight : AdornerDecorator
     /// <param name="panAlways">无论是否在加载总是要显示的容器。可以为 Nothing。</param>
     /// <param name="realLoader">在工作线程执行的加载器。</param>
     /// <param name="finishedInvoke">当加载器执行完成，在 UI 线程触发的 UI 初始化事件。</param>
-    public void PageLoaderInit(MyLoading loaderUi, FrameworkElement panLoader,
-        FrameworkElement _panContent,
-        FrameworkElement? panAlways, LoaderBase realLoader,
+    public void PageLoaderInit(MyLoading loaderUi,
+        FrameworkElement panLoader,
+        FrameworkElement panContent,
+        FrameworkElement? panAlways,
+        LoaderBase realLoader,
         Action<LoaderBase>? finishedInvoke = null,
-        Func<object>? inputInvoke = null, bool autoRun = true)
+        Func<object>? inputInvoke = null,
+        bool autoRun = true)
     {
         // 初始化参数
         _panLoader = panLoader;
-        this._panContent = _panContent;
+        this._panContent = panContent;
         _panAlways = panAlways;
         _pageLoader = realLoader;
         _pageLoaderUi = loaderUi;
@@ -165,7 +167,7 @@ public class MyPageRight : AdornerDecorator
             Common.RunInUi(() => PageLoaderState(loader, newState, oldState));
         // 隐藏 UI
         panLoader.Visibility = Visibility.Collapsed;
-        _panContent.Visibility = Visibility.Collapsed;
+        panContent.Visibility = Visibility.Collapsed;
         panAlways?.Visibility = Visibility.Collapsed;
         // 初次运行加载器
         if (_pageLoaderAutoRun)
@@ -213,7 +215,7 @@ public class MyPageRight : AdornerDecorator
 
     private int _localizationRevision = LocalizationService.UiRevision;
 
-    public void PageLoaderRestart(object input = null, bool isForceRestart = true)
+    public void PageLoaderRestart(object? input = null, bool isForceRestart = true)
     {
         if (!_pageLoaderAutoRun)
             return;
@@ -226,7 +228,7 @@ public class MyPageRight : AdornerDecorator
         {
             if (input is null && _pageLoaderInputInvoke is not null)
                 input = _pageLoaderInputInvoke;
-            _pageLoader.Start(input, isForceRestart);
+            _pageLoader?.Start(input, isForceRestart);
         }
     }
 
@@ -610,6 +612,9 @@ public class MyPageRight : AdornerDecorator
                             {
                                 PageState = PageStates.ContentEnter;
                                 if (_panAlways is not null && _panAlways.Visibility == Visibility.Collapsed)
+#pragma warning disable CS8604 // 引用类型参数可能为 null。
+                                    // at there, this method will check nullable
+                                    // so we ignore the warning
                                     TriggerEnterAnimation(_panAlways, _panContent);
                                 else
                                     TriggerEnterAnimation(_panContent);
@@ -620,6 +625,7 @@ public class MyPageRight : AdornerDecorator
                             {
                                 PageState = PageStates.LoaderExit;
                                 TriggerExitAnimation(_panLoader);
+#pragma warning restore CS8604 // 引用类型参数可能为 null。
                                 break;
                             }
                     }
@@ -635,9 +641,10 @@ public class MyPageRight : AdornerDecorator
 
     public void TriggerEnterAnimation(params FrameworkElement[] elements)
     {
-        var realElements = elements.Where(e => e is not null);
-        foreach (var Element in realElements)
-            Element.Visibility = Visibility.Visible; // 页面均处于默认的隐藏状态
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+        var realElements = elements.Where(e => e is not null).ToArray();
+        foreach (var element in realElements)
+            element.Visibility = Visibility.Visible; // 页面均处于默认的隐藏状态
         var aniList = new List<Animations.AniData>();
         var delay = 0;
         // 基础动画
@@ -652,9 +659,9 @@ public class MyPageRight : AdornerDecorator
             }
 
             foreach (var Control in GetAllAnimControls(Element))
-                if (Control is MyExtraTextButton)
+                if (Control is MyExtraTextButton button)
                 {
-                    ((MyExtraTextButton)Control).Show = true;
+                    button.Show = true;
                 }
                 else
                 {
@@ -682,26 +689,28 @@ public class MyPageRight : AdornerDecorator
         }
 
         // 结束
-        aniList.Add(Animations.AaCode(() => PageOnEnterAnimationFinished(), after: true));
+        aniList.Add(Animations.AaCode(PageOnEnterAnimationFinished, after: true));
         Animations.AniStart(aniList, "PageRight PageChange " + pageUuid, true);
     }
 
     public void TriggerExitAnimation(params FrameworkElement[] elements)
     {
-        var realElements = elements.Where(e => e is not null);
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+        // element has the possibility to be null
+        var realElements = elements.Where(e => e is not null).ToArray();
         var aniList = new List<Animations.AniData>();
         var delay = 0;
-        foreach (var Element in realElements)
-            foreach (var Control in GetAllAnimControls(Element))
-                if (Control is MyExtraTextButton)
+        foreach (var element in realElements)
+            foreach (var control in GetAllAnimControls(element))
+                if (control is MyExtraTextButton button)
                 {
-                    ((MyExtraTextButton)Control).Show = false;
+                    button.Show = false;
                 }
                 else
                 {
-                    Control.IsHitTestVisible = false;
-                    aniList.Add(Animations.AaOpacity(Control, -1, 70, delay));
-                    aniList.Add(Animations.AaTranslateY(Control, -6, 70, delay));
+                    control.IsHitTestVisible = false;
+                    aniList.Add(Animations.AaOpacity(control, -1, 70, delay));
+                    aniList.Add(Animations.AaTranslateY(control, -6, 70, delay));
                     delay += 15;
                 }
 
@@ -719,8 +728,8 @@ public class MyPageRight : AdornerDecorator
         // 结束
         aniList.Add(Animations.AaCode(() =>
         {
-            foreach (var Element in realElements)
-                Element.Visibility = Visibility.Collapsed;
+            foreach (var element in realElements)
+                element.Visibility = Visibility.Collapsed;
             PageOnExitAnimationFinished();
         }, after: true));
         Animations.AniStart(aniList, "PageRight PageChange " + pageUuid);
@@ -741,47 +750,45 @@ public class MyPageRight : AdornerDecorator
         return allControls.Except(disabledPageAnimControls);
     }
 
-    private void _GetAllAnimControls(FrameworkElement element, ref List<FrameworkElement> allControls,
-        bool ignoreInvisibility)
+    private static void _GetAllAnimControls(FrameworkElement element, ref List<FrameworkElement> allControls, bool ignoreInvisibility)
     {
         if (!ignoreInvisibility && element.Visibility == Visibility.Collapsed)
             return;
-        if (element is MyCard || element is MyHint || element is MyExtraTextButton || element is TextBlock ||
-            element is MyTextButton)
+        if (element is MyCard or MyHint or MyExtraTextButton or TextBlock or MyTextButton)
         {
             allControls.Add(element);
         }
-        else if (element is ContentControl)
+        else if (element is ContentControl control)
         {
-            var content = ((ContentControl)element).Content;
-            if (content is FrameworkElement)
-                _GetAllAnimControls((FrameworkElement)content, ref allControls, ignoreInvisibility);
+            var content = control.Content;
+            if (content is FrameworkElement frameworkElement)
+                _GetAllAnimControls(frameworkElement, ref allControls, ignoreInvisibility);
         }
-        else if (element is Panel)
+        else if (element is Panel panel)
         {
-            foreach (var Element2 in ((Panel)element).Children)
-                if (Element2 is FrameworkElement)
-                    _GetAllAnimControls((FrameworkElement)Element2, ref allControls, ignoreInvisibility);
+            foreach (var element2 in panel.Children)
+                if (element2 is FrameworkElement)
+                    _GetAllAnimControls((FrameworkElement)element2, ref allControls, ignoreInvisibility);
         }
     }
 
-    private MyScrollBar GetFirstScrollViewer(IEnumerable<FrameworkElement> elements)
+    private static MyScrollBar? GetFirstScrollViewer(IEnumerable<FrameworkElement> elements)
     {
-        foreach (var Element in elements)
+        foreach (var element in elements)
         {
-            if (Element is MyScrollViewer Viewer)
+            if (element is MyScrollViewer viewer)
             {
-                if (Viewer.ComputedVerticalScrollBarVisibility != Visibility.Visible)
+                if (viewer.ComputedVerticalScrollBarVisibility != Visibility.Visible)
                     continue;
-                return Viewer.scrollBar;
+                return viewer.scrollBar;
             }
 
-            foreach (var Control in LogicalTreeHelper.GetChildren(Element))
-                if (Control is MyScrollViewer ChildViewer)
+            foreach (var control in LogicalTreeHelper.GetChildren(element))
+                if (control is MyScrollViewer childViewer)
                 {
-                    if (ChildViewer.ComputedVerticalScrollBarVisibility != Visibility.Visible)
+                    if (childViewer.ComputedVerticalScrollBarVisibility != Visibility.Visible)
                         return null;
-                    return ChildViewer.scrollBar;
+                    return childViewer.scrollBar;
                 }
         }
 

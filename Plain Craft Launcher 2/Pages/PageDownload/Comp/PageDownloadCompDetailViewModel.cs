@@ -106,7 +106,7 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
         {
             results = results.Where(r => r.Type != Comp.CompType.Plugin).ToList();
         }
-        else if (pageType == Comp.CompType.Shader || pageType == Comp.CompType.ResourcePack)
+        else if (pageType is Comp.CompType.Shader or Comp.CompType.ResourcePack)
         {
         }
         // 不筛选光影和资源包，否则原版光影会因为是资源包格式而被过滤（Meloong-Git/#6473）
@@ -118,15 +118,8 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
         return results;
     }
 
-    public sealed class CardSorter : IComparer<string>
+    public sealed class CardSorter(string topmost = "") : IComparer<string>
     {
-        public readonly string topmost = "";
-
-        public CardSorter(string topmost = "")
-        {
-            this.topmost = topmost ?? "";
-        }
-
         public int Compare(string? x, string? y)
         {
             var sx = x ?? "";
@@ -140,8 +133,8 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
             if (sy == topmost)
                 return 1;
             // 特殊版本
-            var isXSpecial = !sx.Contains(".");
-            var isYSpecial = !sy.Contains(".");
+            var isXSpecial = !sx.Contains('.');
+            var isYSpecial = !sy.Contains('.');
             if (isXSpecial && isYSpecial)
                 return string.Compare(sx, sy, StringComparison.Ordinal);
             if (isXSpecial)
@@ -160,14 +153,9 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
 }
 
 /// <summary>资源详情页筛选器中的单个选项。</summary>
-public sealed partial class CompFilterOption : ObservableObject
+public sealed partial class CompFilterOption(string text) : ObservableObject
 {
-    public CompFilterOption(string text)
-    {
-        Text = text;
-    }
-
-    public string Text { get; }
+    public string Text { get; } = text;
 
     [ObservableProperty] private bool _isSelected;
 }

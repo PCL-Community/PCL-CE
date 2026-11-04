@@ -85,7 +85,7 @@ public class BlurBorder : Border
             typeof(BlurBorder),
             new FrameworkPropertyMetadata(0.9, propertyChangedCallback: OnRenderPropertyChanged));
 
-    private readonly Stack<UIElement> _panelStack = new();
+    private readonly Stack<UIElement> _panelStack = [];
 
     // 当前订阅了 LayoutUpdated 的父级。显式记录以便父级变更时准确退订，避免内存泄漏。
     private UIElement? _layoutParent;
@@ -329,17 +329,11 @@ public class BlurBorder : Border
         if (drawingVisual.Drawing is not null)
         {
             var layoutClip = CalculateLayoutClip(RenderSize, BorderThickness, CornerRadius);
-            if (layoutClip is not null)
-            {
-                dc.PushClip(layoutClip);
-            }
+            dc.PushClip(layoutClip);
 
             BackgroundPresenter.DrawVisual(dc, drawingVisual, default);
 
-            if (layoutClip is not null)
-            {
-                dc.Pop();
-            }
+            dc.Pop();
         }
 
         base.OnRender(dc);
@@ -554,7 +548,7 @@ public class BlurBorder : Border
         }
     }
 
-    internal static Geometry? CalculateLayoutClip(
+    internal static Geometry CalculateLayoutClip(
         Size layoutSlotSize,
         Thickness borderThickness,
         CornerRadius cornerRadius)

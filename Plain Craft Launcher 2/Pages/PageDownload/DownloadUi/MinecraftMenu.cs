@@ -133,7 +133,7 @@ public static partial class DownloadUi
             var id = version.Title;
             var jsonUrl = ((JsonObject)version.Tag)["url"]!.ToString();
             var versionFolder = SystemDialogs.SelectFolder();
-            if (!versionFolder.Contains(@"\"))
+            if (!versionFolder.Contains('\\'))
                 return;
             versionFolder = Path.Combine(versionFolder, id);
 

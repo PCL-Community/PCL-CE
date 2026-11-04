@@ -55,14 +55,14 @@ public partial class PageCompViewModel : ViewModelBase
     public void ApplyPagerState(int currentPage, Comp.CompProjectStorage storage)
     {
         PageText = Lang.Number(currentPage + 1, "N0");
-        IsPagerVisible = storage.results.Count > PageComp.pageSize ||
+        IsPagerVisible = storage.results.Count > PageComp.PageSize ||
                          storage.curseForgeOffset < storage.curseForgeTotal ||
                          storage.modrinthOffset < storage.modrinthTotal;
         CanGoFirst = currentPage > 1;
         FirstOpacity = currentPage > 1 ? 1d : 0.2d;
         CanGoLeft = currentPage > 0;
         LeftOpacity = currentPage > 0 ? 1d : 0.2d;
-        CanGoRight = storage.results.Count > PageComp.pageSize * (currentPage + 1) ||
+        CanGoRight = storage.results.Count > PageComp.PageSize * (currentPage + 1) ||
                      storage.curseForgeOffset < storage.curseForgeTotal ||
                      storage.modrinthOffset < storage.modrinthTotal;
         RightOpacity = CanGoRight ? 1d : 0.2d;

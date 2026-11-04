@@ -270,11 +270,11 @@ public static partial class Loading
                 case LoadState.Loading:
                 case LoadState.Failed:
                 default:
-                {
-                    if (Error is null)
-                        throw new InvalidOperationException("未知错误！");
-                    throw Error;
-                }
+                    {
+                        if (Error is null)
+                            throw new InvalidOperationException("未知错误！");
+                        throw Error;
+                    }
             }
         }
 
@@ -313,10 +313,10 @@ public static partial class Loading
                 case LoadState.Loading:
                 case LoadState.Failed:
                 default:
-                {
-                    if (Error is null) throw new InvalidOperationException("未知错误！");
-                    throw Error;
-                }
+                    {
+                        if (Error is null) throw new InvalidOperationException("未知错误！");
+                        throw Error;
+                    }
             }
         }
 
@@ -489,11 +489,11 @@ public static partial class Loading
                 case LoadState.Loading:
                 case LoadState.Failed:
                 default:
-                {
-                    if (Error is null)
-                        throw new InvalidOperationException("未知错误！");
-                    throw Error;
-                }
+                    {
+                        if (Error is null)
+                            throw new InvalidOperationException("未知错误！");
+                        throw Error;
+                    }
             }
         }
     }

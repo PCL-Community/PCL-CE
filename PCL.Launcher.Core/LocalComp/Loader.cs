@@ -268,7 +268,7 @@ public static partial class LocalComp
             && LauncherState.SelectedInstance.Info.HasForge
             && LauncherState.SelectedInstance.Info.Drop < 130
             && (file.Directory?.Name ?? "")
-            == (LauncherState.SelectedInstance.Info.VanillaName ?? ""));
+            == (LauncherState.SelectedInstance.Info.VanillaName));
     }
 
     private static void UpdateResourceListProgress(

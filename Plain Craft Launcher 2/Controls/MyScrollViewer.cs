@@ -50,7 +50,7 @@ public class MyScrollViewer : ScrollViewer
             return;
 
         var src = e.Source;
-        if (Content is FrameworkElement element && element.TemplatedParent is null)
+        if (Content is FrameworkElement { TemplatedParent: null })
         {
             switch (src)
             {
@@ -72,11 +72,9 @@ public class MyScrollViewer : ScrollViewer
     {
         Animations.AniStart(Animations.AaDouble(animDelta =>
         {
-            realOffset = Common.MathClamp(realOffset + (double)animDelta, 0d,
-                ExtentHeight - ActualHeight);
+            realOffset = Common.MathClamp(realOffset + (double)animDelta!, 0d, ExtentHeight - ActualHeight);
             ScrollToVerticalOffset(realOffset);
-        }, delta * DeltaMult, 300, 0, new Animations.AniEaseOutFluent((Animations.AniEasePower)6),
-        false));
+        }, delta * DeltaMult, 300, 0, new Animations.AniEaseOutFluent((Animations.AniEasePower)6)));
     }
 
     private void MyScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
@@ -89,12 +87,12 @@ public class MyScrollViewer : ScrollViewer
 
     private void MyScrollViewer_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
-        Launcher.frmMain.BtnExtraBack.ShowRefresh();
+        Launcher.frmMain!.BtnExtraBack.ShowRefresh();
     }
 
     private void Load()
     {
-        scrollBar = (MyScrollBar)GetTemplateChild("PART_VerticalScrollBar");
+        scrollBar = (MyScrollBar)GetTemplateChild("PART_VerticalScrollBar")!;
     }
 
     private void MyScrollViewer_PreviewGotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)

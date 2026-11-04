@@ -7,35 +7,34 @@ namespace PCL;
 
 public class MyDropShadow : Decorator
 {
-    public static readonly DependencyProperty ColorProperty = DependencyProperty.Register("Color", typeof(Color),
+    public static readonly DependencyProperty ColorProperty = DependencyProperty.Register(nameof(Color), typeof(Color),
         typeof(MyDropShadow),
         new FrameworkPropertyMetadata(Color.FromArgb(0x71, 0x0, 0x0, 0x0),
             FrameworkPropertyMetadataOptions.AffectsRender, ClearBrushes));
 
-    public static readonly DependencyProperty ShadowRadiusProperty = DependencyProperty.Register("ShadowRadius",
+    public static readonly DependencyProperty ShadowRadiusProperty = DependencyProperty.Register(nameof(ShadowRadius),
         typeof(double), typeof(MyDropShadow),
         new FrameworkPropertyMetadata(5d, FrameworkPropertyMetadataOptions.AffectsRender, ClearBrushes));
 
-    public static readonly DependencyProperty CornerRadiusProperty = DependencyProperty.Register("CornerRadius",
+    public static readonly DependencyProperty CornerRadiusProperty = DependencyProperty.Register(nameof(CornerRadius),
         typeof(CornerRadius), typeof(MyDropShadow),
         new FrameworkPropertyMetadata(new CornerRadius(), FrameworkPropertyMetadataOptions.AffectsRender, ClearBrushes),
         IsCornerRadiusValid);
 
     private const int MaxBrushCacheSize = 32;
 
-    private static readonly ConcurrentDictionary<(Color Color, CornerRadius Radius, double ShadowRadius), Brush[]>
-        _brushCache = new();
+    private static readonly ConcurrentDictionary<(Color Color, CornerRadius Radius, double ShadowRadius), Brush[]> BrushCache = [];
 
-    private Brush[] _brushes;
+    private Brush[]? _brushes;
     private (Color Color, CornerRadius Radius, double ShadowRadius) _brushesKey;
 
     private bool _renderCacheValid;
     private Size _cachedRenderSize;
     private double _cachedDpiScale;
     private double _cachedShadowRadius;
-    private GuidelineSet _cachedGuidelineSet;
-    private double[] _cachedGuidelineX;
-    private double[] _cachedGuidelineY;
+    private GuidelineSet? _cachedGuidelineSet;
+    private double[]? _cachedGuidelineX;
+    private double[]? _cachedGuidelineY;
     private PathGeometry? _cachedCenterGeometry;
 
     /// <summary>
@@ -69,8 +68,8 @@ public class MyDropShadow : Decorator
     {
         var cr = (CornerRadius)value;
         return !(cr.TopLeft < 0.0d || cr.TopRight < 0.0d || cr.BottomLeft < 0.0d || cr.BottomRight < 0.0d ||
-                 double.IsNaN(cr.TopLeft) || double.IsNaN(cr.TopRight) || double.IsNaN(cr.BottomLeft) ||
-                 double.IsNaN(cr.BottomRight) || double.IsInfinity(cr.TopLeft) || double.IsInfinity(cr.TopRight) ||
+                 cr.TopLeft is double.NaN || cr.TopRight is double.NaN || cr.BottomLeft is double.NaN ||
+                 cr.BottomRight is double.NaN || double.IsInfinity(cr.TopLeft) || double.IsInfinity(cr.TopRight) ||
                  double.IsInfinity(cr.BottomLeft) || double.IsInfinity(cr.BottomRight));
     }
 
@@ -80,79 +79,82 @@ public class MyDropShadow : Decorator
         var shadowBounds = new Rect(0d, 0d, RenderSize.Width, RenderSize.Height);
         var color = Color;
 
-        if (shadowBounds.Width > 0d && shadowBounds.Height > 0d && color.A > 0)
+        if (shadowBounds is not { Width: > 0d, Height: > 0d } || color.A <= 0) return;
+
+        var centerWidth = shadowBounds.Right - shadowBounds.Left - 2d * ShadowRadius;
+        var centerHeight = shadowBounds.Bottom - shadowBounds.Top - 2d * ShadowRadius;
+        var maxRadius = Math.Min(centerWidth * 0.5d, centerHeight * 0.5d);
+        cornerRadius.TopLeft = Math.Min(cornerRadius.TopLeft, maxRadius);
+        cornerRadius.TopRight = Math.Min(cornerRadius.TopRight, maxRadius);
+        cornerRadius.BottomLeft = Math.Min(cornerRadius.BottomLeft, maxRadius);
+        cornerRadius.BottomRight = Math.Min(cornerRadius.BottomRight, maxRadius);
+        var brushes = GetBrushes(color, cornerRadius);
+
+        EnsureRenderCache(cornerRadius);
+        ArgumentNullException.ThrowIfNull(_cachedGuidelineX);
+        ArgumentNullException.ThrowIfNull(_cachedGuidelineY);
+
+        var guidelineSetX = _cachedGuidelineX;
+        var guidelineSetY = _cachedGuidelineY;
+        drawingContext.PushGuidelineSet(_cachedGuidelineSet);
+        cornerRadius.TopLeft += ShadowRadius;
+        cornerRadius.TopRight += ShadowRadius;
+        cornerRadius.BottomLeft += ShadowRadius;
+        cornerRadius.BottomRight += ShadowRadius;
+        var topLeft = new Rect(shadowBounds.Left, shadowBounds.Top, cornerRadius.TopLeft, cornerRadius.TopLeft);
+        drawingContext.DrawRectangle(brushes[(int)Placement.TopLeft], null, topLeft);
+        var topWidth = guidelineSetX[2] - guidelineSetX[1];
+
+        if (topWidth > 0d)
         {
-            var centerWidth = shadowBounds.Right - shadowBounds.Left - 2d * ShadowRadius;
-            var centerHeight = shadowBounds.Bottom - shadowBounds.Top - 2d * ShadowRadius;
-            var maxRadius = Math.Min(centerWidth * 0.5d, centerHeight * 0.5d);
-            cornerRadius.TopLeft = Math.Min(cornerRadius.TopLeft, maxRadius);
-            cornerRadius.TopRight = Math.Min(cornerRadius.TopRight, maxRadius);
-            cornerRadius.BottomLeft = Math.Min(cornerRadius.BottomLeft, maxRadius);
-            cornerRadius.BottomRight = Math.Min(cornerRadius.BottomRight, maxRadius);
-            var brushes = GetBrushes(color, cornerRadius);
-            EnsureRenderCache(cornerRadius);
-            var guidelineSetX = _cachedGuidelineX;
-            var guidelineSetY = _cachedGuidelineY;
-            drawingContext.PushGuidelineSet(_cachedGuidelineSet);
-            cornerRadius.TopLeft += ShadowRadius;
-            cornerRadius.TopRight += ShadowRadius;
-            cornerRadius.BottomLeft += ShadowRadius;
-            cornerRadius.BottomRight += ShadowRadius;
-            var topLeft = new Rect(shadowBounds.Left, shadowBounds.Top, cornerRadius.TopLeft, cornerRadius.TopLeft);
-            drawingContext.DrawRectangle(brushes[(int)Placement.TopLeft], null, topLeft);
-            var topWidth = guidelineSetX[2] - guidelineSetX[1];
-
-            if (topWidth > 0d)
-            {
-                var top = new Rect(guidelineSetX[1], shadowBounds.Top, topWidth, ShadowRadius);
-                drawingContext.DrawRectangle(brushes[(int)Placement.Top], null, top);
-            }
-
-            var topRight = new Rect(guidelineSetX[2], shadowBounds.Top, cornerRadius.TopRight, cornerRadius.TopRight);
-            drawingContext.DrawRectangle(brushes[(int)Placement.TopRight], null, topRight);
-            var leftHeight = guidelineSetY[3] - guidelineSetY[1];
-
-            if (leftHeight > 0d)
-            {
-                var left = new Rect(shadowBounds.Left, guidelineSetY[1], ShadowRadius, leftHeight);
-                drawingContext.DrawRectangle(brushes[(int)Placement.Left], null, left);
-            }
-
-            var rightHeight = guidelineSetY[4] - guidelineSetY[2];
-
-            if (rightHeight > 0d)
-            {
-                var right = new Rect(guidelineSetX[5], guidelineSetY[2], ShadowRadius, rightHeight);
-                drawingContext.DrawRectangle(brushes[(int)Placement.Right], null, right);
-            }
-
-            var bottomLeft = new Rect(shadowBounds.Left, guidelineSetY[3], cornerRadius.BottomLeft,
-                cornerRadius.BottomLeft);
-            drawingContext.DrawRectangle(brushes[(int)Placement.BottomLeft], null, bottomLeft);
-            var bottomWidth = guidelineSetX[4] - guidelineSetX[3];
-
-            if (bottomWidth > 0d)
-            {
-                var bottom = new Rect(guidelineSetX[3], guidelineSetY[5], bottomWidth, ShadowRadius);
-                drawingContext.DrawRectangle(brushes[(int)Placement.Bottom], null, bottom);
-            }
-
-            var bottomRight = new Rect(guidelineSetX[4], guidelineSetY[4], cornerRadius.BottomRight,
-                cornerRadius.BottomRight);
-            drawingContext.DrawRectangle(brushes[(int)Placement.BottomRight], null, bottomRight);
-
-            if (_cachedCenterGeometry is null)
-            {
-                var center = new Rect(guidelineSetX[0], guidelineSetY[0], centerWidth, centerHeight);
-                drawingContext.DrawRectangle(brushes[(int)Placement.Center], null, center);
-            }
-            else
-            {
-                drawingContext.DrawGeometry(brushes[(int)Placement.Center], null, _cachedCenterGeometry);
-            }
-
-            drawingContext.Pop();
+            var top = new Rect(guidelineSetX[1], shadowBounds.Top, topWidth, ShadowRadius);
+            drawingContext.DrawRectangle(brushes[(int)Placement.Top], null, top);
         }
+
+        var topRight = new Rect(guidelineSetX[2], shadowBounds.Top, cornerRadius.TopRight, cornerRadius.TopRight);
+        drawingContext.DrawRectangle(brushes[(int)Placement.TopRight], null, topRight);
+        var leftHeight = guidelineSetY[3] - guidelineSetY[1];
+
+        if (leftHeight > 0d)
+        {
+            var left = new Rect(shadowBounds.Left, guidelineSetY[1], ShadowRadius, leftHeight);
+            drawingContext.DrawRectangle(brushes[(int)Placement.Left], null, left);
+        }
+
+        var rightHeight = guidelineSetY[4] - guidelineSetY[2];
+
+        if (rightHeight > 0d)
+        {
+            var right = new Rect(guidelineSetX[5], guidelineSetY[2], ShadowRadius, rightHeight);
+            drawingContext.DrawRectangle(brushes[(int)Placement.Right], null, right);
+        }
+
+        var bottomLeft = new Rect(shadowBounds.Left, guidelineSetY[3], cornerRadius.BottomLeft,
+            cornerRadius.BottomLeft);
+        drawingContext.DrawRectangle(brushes[(int)Placement.BottomLeft], null, bottomLeft);
+        var bottomWidth = guidelineSetX[4] - guidelineSetX[3];
+
+        if (bottomWidth > 0d)
+        {
+            var bottom = new Rect(guidelineSetX[3], guidelineSetY[5], bottomWidth, ShadowRadius);
+            drawingContext.DrawRectangle(brushes[(int)Placement.Bottom], null, bottom);
+        }
+
+        var bottomRight = new Rect(guidelineSetX[4], guidelineSetY[4], cornerRadius.BottomRight,
+            cornerRadius.BottomRight);
+        drawingContext.DrawRectangle(brushes[(int)Placement.BottomRight], null, bottomRight);
+
+        if (_cachedCenterGeometry is null)
+        {
+            var center = new Rect(guidelineSetX[0], guidelineSetY[0], centerWidth, centerHeight);
+            drawingContext.DrawRectangle(brushes[(int)Placement.Center], null, center);
+        }
+        else
+        {
+            drawingContext.DrawGeometry(brushes[(int)Placement.Center], null, _cachedCenterGeometry);
+        }
+
+        drawingContext.Pop();
     }
 
     /// <summary>
@@ -166,7 +168,8 @@ public class MyDropShadow : Decorator
         var dpiScale = VisualTreeHelper.GetDpi(this).DpiScaleX;
         var shadowRadius = ShadowRadius;
 
-        if (_renderCacheValid && _cachedRenderSize == RenderSize && _cachedDpiScale == dpiScale &&
+        if (_renderCacheValid && _cachedRenderSize == RenderSize &&
+            _cachedDpiScale == dpiScale &&
             _cachedShadowRadius == shadowRadius)
             return;
 
@@ -175,16 +178,24 @@ public class MyDropShadow : Decorator
         var centerLeft = shadowBounds.Left + shadowRadius;
         var centerRight = shadowBounds.Right - shadowRadius;
         var centerBottom = shadowBounds.Bottom - shadowRadius;
-        var guidelineSetX = new[]
-        {
-            centerLeft, centerLeft + cornerRadius.TopLeft, centerRight - cornerRadius.TopRight,
-            centerLeft + cornerRadius.BottomLeft, centerRight - cornerRadius.BottomRight, centerRight
-        };
-        var guidelineSetY = new[]
-        {
-            centerTop, centerTop + cornerRadius.TopLeft, centerTop + cornerRadius.TopRight,
-            centerBottom - cornerRadius.BottomLeft, centerBottom - cornerRadius.BottomRight, centerBottom
-        };
+        double[] guidelineSetX =
+        [
+            centerLeft,
+            centerLeft + cornerRadius.TopLeft,
+            centerRight - cornerRadius.TopRight,
+            centerLeft + cornerRadius.BottomLeft,
+            centerRight - cornerRadius.BottomRight,
+            centerRight
+        ];
+        double[] guidelineSetY =
+        [
+            centerTop,
+            centerTop + cornerRadius.TopLeft,
+            centerTop + cornerRadius.TopRight,
+            centerBottom - cornerRadius.BottomLeft,
+            centerBottom - cornerRadius.BottomRight,
+            centerBottom
+        ];
         var guidelineSet = new GuidelineSet(guidelineSetX, guidelineSetY);
         guidelineSet.Freeze();
         var topLeftRadius = cornerRadius.TopLeft + shadowRadius;
@@ -193,8 +204,10 @@ public class MyDropShadow : Decorator
         var bottomRightRadius = cornerRadius.BottomRight + shadowRadius;
         PathGeometry? centerGeometry = null;
 
-        if (!(topLeftRadius == shadowRadius && topLeftRadius == topRightRadius &&
-              topLeftRadius == bottomLeftRadius && topLeftRadius == bottomRightRadius))
+        if (topLeftRadius != shadowRadius ||
+              topLeftRadius != topRightRadius ||
+              topLeftRadius != bottomLeftRadius ||
+              topLeftRadius != bottomRightRadius)
         {
             var figure = new PathFigure();
 
@@ -304,12 +317,8 @@ public class MyDropShadow : Decorator
         var bottom = new LinearGradientBrush(sideStops, new Point(0d, 0d), new Point(0d, 1d));
         bottom.Freeze();
         brushes[(int)Placement.Bottom] = bottom;
-        GradientStopCollection topLeftStops;
 
-        if (cornerRadius.TopLeft == 0d)
-            topLeftStops = sideStops;
-        else
-            topLeftStops = CreateStops(c, cornerRadius.TopLeft);
+        var topLeftStops = cornerRadius.TopLeft == 0d ? sideStops : CreateStops(c, cornerRadius.TopLeft);
 
         var topLeft = new RadialGradientBrush(topLeftStops)
         {
@@ -387,7 +396,7 @@ public class MyDropShadow : Decorator
     {
         var key = (c, cornerRadius, ShadowRadius);
 
-        if (_brushCache.TryGetValue(key, out var cached))
+        if (BrushCache.TryGetValue(key, out var cached))
         {
             _brushes = null;
             return cached;
@@ -397,7 +406,7 @@ public class MyDropShadow : Decorator
 
         var brushes = CreateBrushes(c, cornerRadius);
 
-        if (_brushCache.Count < MaxBrushCacheSize && _brushCache.TryAdd(key, brushes))
+        if (BrushCache.Count < MaxBrushCacheSize && BrushCache.TryAdd(key, brushes))
         {
             _brushes = null;
             return brushes;

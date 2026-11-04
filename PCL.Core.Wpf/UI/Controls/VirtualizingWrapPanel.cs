@@ -51,7 +51,7 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo, IVirtualizi
     public static readonly DependencyProperty ItemWidthProperty = DependencyProperty.Register(
         nameof(ItemWidth), typeof(double), typeof(VirtualizingWrapPanel),
         new FrameworkPropertyMetadata(200d, FrameworkPropertyMetadataOptions.AffectsMeasure),
-        value => value is double width && (double.IsNaN(width) || width > 0d));
+        value => value is double and (double.NaN or > 0d));
 
     /// <summary>每个条目的槽位宽度（含条目自身外边距）。</summary>
     public double ItemWidth
@@ -63,7 +63,7 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo, IVirtualizi
     public static readonly DependencyProperty ItemHeightProperty = DependencyProperty.Register(
         nameof(ItemHeight), typeof(double), typeof(VirtualizingWrapPanel),
         new FrameworkPropertyMetadata(double.NaN, FrameworkPropertyMetadataOptions.AffectsMeasure),
-        value => value is double height && (double.IsNaN(height) || height > 0d));
+        value => value is double and (double.NaN or > 0d));
 
     /// <summary>每个条目的槽位高度（含条目自身外边距）。为 NaN 时按首个条目自动测量。</summary>
     public double ItemHeight
@@ -75,7 +75,7 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo, IVirtualizi
     public static readonly DependencyProperty HorizontalSpacingProperty = DependencyProperty.Register(
         nameof(HorizontalSpacing), typeof(double), typeof(VirtualizingWrapPanel),
         new FrameworkPropertyMetadata(0d, FrameworkPropertyMetadataOptions.AffectsMeasure),
-        value => value is double spacing && spacing >= 0d);
+        value => value is >= 0d);
 
     /// <summary>条目之间的水平间距。</summary>
     public double HorizontalSpacing
@@ -87,7 +87,7 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo, IVirtualizi
     public static readonly DependencyProperty VerticalSpacingProperty = DependencyProperty.Register(
         nameof(VerticalSpacing), typeof(double), typeof(VirtualizingWrapPanel),
         new FrameworkPropertyMetadata(0d, FrameworkPropertyMetadataOptions.AffectsMeasure),
-        value => value is double spacing && spacing >= 0d);
+        value => value is >= 0d);
 
     /// <summary>条目之间的垂直间距。</summary>
     public double VerticalSpacing
@@ -99,7 +99,7 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo, IVirtualizi
     public static readonly DependencyProperty CacheRowsProperty = DependencyProperty.Register(
         nameof(CacheRows), typeof(int), typeof(VirtualizingWrapPanel),
         new FrameworkPropertyMetadata(1, FrameworkPropertyMetadataOptions.AffectsMeasure),
-        value => value is int rows && rows >= 0);
+        value => value is >= 0);
 
     /// <summary>可视区域上下额外保留的行数，用于减少快速滚动时的反复实例化。</summary>
     public int CacheRows
@@ -329,7 +329,7 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo, IVirtualizi
             return 0d;
         var startPosition = generator.GeneratorPositionFromIndex(0);
         var childIndex = startPosition.Offset == 0 ? startPosition.Index : startPosition.Index + 1;
-        var height = 0d;
+        double height;
         using (generator.StartAt(startPosition, GeneratorDirection.Forward, true))
         {
             var child = generator.GenerateNext(out var newlyRealized) as UIElement;
@@ -348,9 +348,9 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo, IVirtualizi
             height = child.DesiredSize.Height;
         }
 
-        if (double.IsNaN(height) || height <= 0d)
+        if (height is double.NaN or <= 0d)
             return 0d;
-        _autoItemHeight = double.IsNaN(ItemHeight) ? height : ItemHeight;
+        _autoItemHeight = ItemHeight is double.NaN ? height : ItemHeight;
         return _autoItemHeight;
     }
 
@@ -476,7 +476,7 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo, IVirtualizi
             InvalidateMeasure(); // 需要实例化新的行
     }
 
-    public Rect MakeVisible(Visual visual, Rect rectangle)
+    public Rect MakeVisible(Visual? visual, Rect rectangle)
     {
         if (rectangle.IsEmpty || visual is null)
             return Rect.Empty;
@@ -520,7 +520,7 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo, IVirtualizi
     private double ResolveItemWidth(double viewportWidth)
     {
         var width = ItemWidth;
-        if (!double.IsNaN(width) && width > 0d)
+        if (width is not double.NaN && width > 0d)
             return width;
         // NaN 表示铺满可视宽度（单列列表，如资源列表）
         return viewportWidth > 0d ? viewportWidth : 1d;
@@ -529,9 +529,9 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo, IVirtualizi
     private double GetItemHeight(double itemWidth)
     {
         var configured = ItemHeight;
-        if (!double.IsNaN(configured) && configured > 0d)
+        if (configured is not double.NaN && configured > 0d)
             return configured;
-        if (!double.IsNaN(_autoItemHeight) && _autoItemHeight > 0d)
+        if (_autoItemHeight is not double.NaN && _autoItemHeight > 0d)
             return _autoItemHeight;
         return MeasureFirstItemHeight(itemWidth);
     }
@@ -554,8 +554,8 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo, IVirtualizi
             return false;
         if (_columns <= 0 || _viewport.Height <= 0d)
             return false;
-        var itemHeight = double.IsNaN(ItemHeight) ? _autoItemHeight : ItemHeight;
-        if (double.IsNaN(itemHeight) || itemHeight <= 0d)
+        var itemHeight = ItemHeight is double.NaN ? _autoItemHeight : ItemHeight;
+        if (itemHeight is double.NaN or <= 0d)
             return false;
         var rowHeight = itemHeight + VerticalSpacing;
         if (rowHeight <= 0d)

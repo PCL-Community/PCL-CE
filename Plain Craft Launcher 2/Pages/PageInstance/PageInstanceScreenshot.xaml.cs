@@ -31,10 +31,10 @@ public partial class PageInstanceScreenshot : IRefreshable, IPageView
     private int _loadGeneration;
     private Task? _appendTask;
 
-    private List<string> fileList = new();
+    private List<string> _fileList = [];
 
-    private bool isLoad;
-    private string screenshotPath;
+    private bool _isLoad;
+    private string _screenshotPath;
     private bool _refreshed;
 
     public PageInstanceScreenshot()
@@ -79,8 +79,8 @@ public partial class PageInstanceScreenshot : IRefreshable, IPageView
     public static async Task RefreshAsync()
     {
         if (Launcher.frmInstanceScreenshot is not null)
-            await Launcher.frmInstanceScreenshot.ReloadAsync();
-        Launcher.frmInstanceLeft.ItemScreenshot.Checked = true;
+            await Launcher.frmInstanceScreenshot.ReloadAsync().ConfigureAwait(true);
+        Launcher.frmInstanceLeft!.ItemScreenshot.Checked = true;
         HintService.Show(Hints.Info(Lang.Text("Instance.Saves.Status.Refreshing"), log: false));
     }
 
@@ -96,15 +96,15 @@ public partial class PageInstanceScreenshot : IRefreshable, IPageView
         _refreshed = true;
         // 重复加载部分
         PanBack.ScrollToHome();
-        screenshotPath = PageInstanceLeft.McInstance.PathIndie + @"screenshots\";
-        if (!Directory.Exists(screenshotPath))
-            Directory.CreateDirectory(screenshotPath);
+        _screenshotPath = PageInstanceLeft.McInstance.PathIndie + @"screenshots\";
+        if (!Directory.Exists(_screenshotPath))
+            Directory.CreateDirectory(_screenshotPath);
         Dispatcher.BeginInvoke(new Func<Task>(ReloadAsync));
 
         // 非重复加载部分
-        if (isLoad)
+        if (_isLoad)
             return;
-        isLoad = true;
+        _isLoad = true;
     }
 
     /// <summary>
@@ -122,7 +122,7 @@ public partial class PageInstanceScreenshot : IRefreshable, IPageView
         {
             PanBack.ScrollToHome();
             _vm.PanLoadVisibility = Visibility.Visible;
-            await LoadFileListAsync(token);
+            await LoadFileListAsync(token).ConfigureAwait(true);
         }
         catch (OperationCanceledException)
         {
@@ -154,29 +154,29 @@ public partial class PageInstanceScreenshot : IRefreshable, IPageView
 
     private void RefreshTip()
     {
-        _vm.RefreshTip(fileList.Count);
+        _vm.RefreshTip(_fileList.Count);
     }
 
-    private static string[] allowedSuffix = { "*.png", "*.jpg", "*.jpeg", "*.bmp", "*.webp", "*.tiff" };
+    private static readonly string[] AllowedSuffix = ["*.png", "*.jpg", "*.jpeg", "*.bmp", "*.webp", "*.tiff"];
 
     private async Task LoadFileListAsync(CancellationToken token)
     {
         Common.Log("[Screenshot] 刷新截图文件");
-        var path = screenshotPath;
+        var path = _screenshotPath;
         var list = new List<string>();
         if (Directory.Exists(path))
         {
             list = await Task.Run(
-                () => allowedSuffix
+                () => AllowedSuffix
                     .SelectMany(suffix => Directory.EnumerateFiles(path, suffix, SearchOption.TopDirectoryOnly))
-                    .OrderByDescending(f => File.GetCreationTime(f))
+                    .OrderByDescending(File.GetCreationTime)
                     .ToList(),
-                token);
+                token).ConfigureAwait(true);
         }
 
         token.ThrowIfCancellationRequested();
 
-        fileList = list;
+        _fileList = list;
         _nextFileIndex = 0;
         _allLoaded = false;
         _appendDebounceVersion += 1;
@@ -184,19 +184,19 @@ public partial class PageInstanceScreenshot : IRefreshable, IPageView
         RefreshTip();
         //FileList = FileList.Where(e => !e.ContainsF(@"\debug\")).ToList(); // 排除资源包调试输出
         //FileList.Sort((a, b) => new FileInfo(a).CreationTime > new FileInfo(b).CreationTime);
-        Common.Log("[Screenshot] 共发现 " + fileList.Count + " 个截图文件");
-        if (fileList.Count == 0)
+        Common.Log($"[Screenshot] 共发现 {_fileList.Count} 个截图文件");
+        if (_fileList.Count == 0)
         {
             _allLoaded = true;
             return;
         }
 
-        await ListAppendAsync(token);
+        await ListAppendAsync(token).ConfigureAwait(true);
     }
 
     private void RequireAppend(object sender, ScrollChangedEventArgs e)
     {
-        if (fileList.Count == 0 || _allLoaded || _appendTask is { IsCompleted: false })
+        if (_fileList.Count == 0 || _allLoaded || _appendTask is { IsCompleted: false })
             return;
         // 预留半屏的预取余量，让装填在滚动到底部之前就开始
         if (PanBack.VerticalOffset + PanBack.ViewportHeight < PanBack.ExtentHeight - PanBack.ViewportHeight * 0.5)
@@ -210,7 +210,7 @@ public partial class PageInstanceScreenshot : IRefreshable, IPageView
     {
         try
         {
-            await Task.Delay(AppendDebounceMilliseconds, token);
+            await Task.Delay(AppendDebounceMilliseconds, token).ConfigureAwait(true);
             if (version != _appendDebounceVersion)
                 return;
             await ListAppendAsync(token);
@@ -231,13 +231,13 @@ public partial class PageInstanceScreenshot : IRefreshable, IPageView
             return; // 已有装填在进行中
         var task = AppendBatchAsync(token, count);
         _appendTask = task;
-        await task;
+        await task.ConfigureAwait(true);
     }
 
     private async Task AppendBatchAsync(CancellationToken token, int count)
     {
         token.ThrowIfCancellationRequested();
-        var files = fileList;
+        var files = _fileList;
         var start = _nextFileIndex;
         if (start >= files.Count)
         {
@@ -245,10 +245,10 @@ public partial class PageInstanceScreenshot : IRefreshable, IPageView
             return;
         }
 
-        var batch = await Task.Run(() => CreateBatch(files, start, count, screenshotPath, token), token);
+        var batch = await Task.Run(() => CreateBatch(files, start, count, _screenshotPath, token), token).ConfigureAwait(true);
         token.ThrowIfCancellationRequested();
 
-        var thumbnails = await DecodeThumbnailsAsync(batch, token);
+        var thumbnails = await DecodeThumbnailsAsync(batch, token).ConfigureAwait(true);
         token.ThrowIfCancellationRequested();
 
         for (var i = 0; i < batch.Count; i++)
@@ -293,18 +293,18 @@ public partial class PageInstanceScreenshot : IRefreshable, IPageView
         return batch;
     }
 
-    private async Task<BitmapImage?[]> DecodeThumbnailsAsync(List<ScreenshotItemViewModel> batch,
+    private Task<BitmapImage?[]> DecodeThumbnailsAsync(List<ScreenshotItemViewModel> batch,
         CancellationToken token)
     {
         var tasks = new Task<BitmapImage?>[batch.Count];
         for (var i = 0; i < batch.Count; i++)
             tasks[i] = DecodeThumbnailAsync(batch[i].FilePath, token);
-        return await Task.WhenAll(tasks);
+        return Task.WhenAll(tasks);
     }
 
     private async Task<BitmapImage?> DecodeThumbnailAsync(string path, CancellationToken token)
     {
-        await _decodeSemaphore.WaitAsync(token);
+        await _decodeSemaphore.WaitAsync(token).ConfigureAwait(true);
         try
         {
             return await Task.Run(() =>
@@ -322,7 +322,7 @@ public partial class PageInstanceScreenshot : IRefreshable, IPageView
                 }
 
                 return bitmapImage;
-            }, token);
+            }, token).ConfigureAwait(true);
         }
         catch (OperationCanceledException)
         {
@@ -393,10 +393,10 @@ public partial class PageInstanceScreenshot : IRefreshable, IPageView
         try
         {
             FileSystem.DeleteFile(path, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
-            var fileIndex = fileList.IndexOf(path);
+            var fileIndex = _fileList.IndexOf(path);
             if (fileIndex >= 0)
             {
-                fileList.RemoveAt(fileIndex);
+                _fileList.RemoveAt(fileIndex);
                 if (fileIndex < _nextFileIndex)
                     _nextFileIndex = Math.Max(0, _nextFileIndex - 1);
             }

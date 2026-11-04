@@ -7,7 +7,7 @@ namespace PCL;
 
 public class AnimatedBackgroundGrid : Grid
 {
-    public static readonly DependencyProperty BackgroundBrushProperty = DependencyProperty.Register("BackgroundBrush",
+    public static readonly DependencyProperty BackgroundBrushProperty = DependencyProperty.Register(nameof(BackgroundBrush),
         typeof(SolidColorBrush), typeof(AnimatedBackgroundGrid),
         new PropertyMetadata(new SolidColorBrush(Color.FromArgb(0, 0, 0, 0)), _BackgroundBrushChanged));
 
@@ -33,11 +33,7 @@ public class AnimatedBackgroundGrid : Grid
         set => Background = value;
     }
 
-    protected bool IsAnimating
-    {
-        get => field;
-        private set => field = value;
-    }
+    protected bool IsAnimating { get; private set; }
 
     public SolidColorBrush BackgroundBrush
     {
@@ -45,7 +41,7 @@ public class AnimatedBackgroundGrid : Grid
         set => SetValue(BackgroundBrushProperty, value);
     }
 
-    private static readonly List<(AnimatedBackgroundGrid Grid, SolidColorBrush Brush)> _pendingFinishes = new();
+    private static readonly List<(AnimatedBackgroundGrid Grid, SolidColorBrush Brush)> PendingFinishes = [];
     private static DispatcherTimer? _finishTimer;
     private static Dispatcher? _finishTimerDispatcher;
 
@@ -55,7 +51,7 @@ public class AnimatedBackgroundGrid : Grid
         var brush = (SolidColorBrush)e.NewValue;
 
         // 不可见或未加载的实例不参与动画，直接赋值即可
-        if (!(grid.IsLoaded && grid.IsVisible))
+        if (grid is not { IsLoaded: true, IsVisible: true })
         {
             grid.AnimatableBrush = brush;
             return;
@@ -77,15 +73,15 @@ public class AnimatedBackgroundGrid : Grid
     private static void _ScheduleFinish(AnimatedBackgroundGrid grid, SolidColorBrush brush)
     {
         // 同一实例重复触发时只保留最新的目标颜色
-        for (var i = 0; i < _pendingFinishes.Count; i++)
+        for (var i = 0; i < PendingFinishes.Count; i++)
         {
-            if (!ReferenceEquals(_pendingFinishes[i].Grid, grid)) continue;
-            _pendingFinishes[i] = (grid, brush);
+            if (!ReferenceEquals(PendingFinishes[i].Grid, grid)) continue;
+            PendingFinishes[i] = (grid, brush);
             _EnsureFinishTimer(grid.Dispatcher);
             return;
         }
 
-        _pendingFinishes.Add((grid, brush));
+        PendingFinishes.Add((grid, brush));
         _EnsureFinishTimer(grid.Dispatcher);
     }
 
@@ -109,10 +105,10 @@ public class AnimatedBackgroundGrid : Grid
     private static void _OnFinishTimerTick(object? sender, EventArgs e)
     {
         _finishTimer?.Stop();
-        if (_pendingFinishes.Count == 0) return;
+        if (PendingFinishes.Count == 0) return;
 
-        var pending = _pendingFinishes.ToArray();
-        _pendingFinishes.Clear();
+        var pending = PendingFinishes.ToArray();
+        PendingFinishes.Clear();
 
         foreach (var (grid, brush) in pending)
         {

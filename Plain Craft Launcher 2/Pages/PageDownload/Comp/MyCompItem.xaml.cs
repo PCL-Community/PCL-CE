@@ -24,7 +24,7 @@ public partial class MyCompItem
 
     private MyCompItemViewModel? _boundVm;
 
-    private string _stateLast;
+    private string? _stateLast;
 
     /// <summary>
     /// 是否允许交互。目前仅用于 PageDownloadCompDetail 的顶部栏展示：若关闭碰撞检测，则无法展开 Tooltip。
@@ -57,7 +57,7 @@ public partial class MyCompItem
             time = 180;
         }
 
-        if ((_stateLast ?? "") == (stateNew ?? ""))
+        if (_stateLast == stateNew)
             return;
         _stateLast = stateNew;
         // 触发颜色动画
@@ -66,17 +66,16 @@ public partial class MyCompItem
             var ani = new List<Animations.AniData>();
             if (IsMouseOver)
             {
-                if (PanButtons is not null && _HasActionButtons)
+                if (PanButtons is not null && HasActionButtons)
                     ani.Add(Animations.AaOpacity(PanButtons, 1d - PanButtons.Opacity,
                         (int)Math.Round(time * 0.35d),
                         (int)Math.Round(time * 0.15d)));
-                ani.AddRange(new[]
-                {
+                ani.AddRange([
                     Animations.AaColor(RectBack, Border.BackgroundProperty,
                         _isMouseDown ? "ColorBrush6" : "ColorBrushBg1", time),
                     Animations.AaOpacity(RectBack, 1d - RectBack.Opacity, time,
                         ease: new Animations.AniEaseOutFluent())
-                });
+                ]);
                 if (_isMouseDown)
                     ani.Add(Animations.AaScaleTransform(RectBack,
                         0.996d - ((ScaleTransform)RectBack.RenderTransform).ScaleX, (int)Math.Round(time * 1.2d),
@@ -88,11 +87,10 @@ public partial class MyCompItem
             }
             else
             {
-                if (PanButtons is not null && _HasActionButtons)
+                if (PanButtons is not null && HasActionButtons)
                     ani.Add(Animations.AaOpacity(PanButtons, -PanButtons.Opacity,
                         (int)Math.Round(time * 0.4d)));
-                ani.AddRange(new[]
-                {
+                ani.AddRange([
                     Animations.AaOpacity(RectBack, -RectBack.Opacity, time),
                     Animations.AaColor(RectBack, Border.BackgroundProperty,
                         _isMouseDown ? "ColorBrush6" : "ColorBrush7", time),
@@ -100,7 +98,7 @@ public partial class MyCompItem
                         0.996d - ((ScaleTransform)RectBack.RenderTransform).ScaleX,
                         time, ease: new Animations.AniEaseOutFluent()),
                     Animations.AaScaleTransform(RectBack, -0.196d, 1, after: true)
-                });
+                ]);
             }
 
             Animations.AniStart(ani, "CompItem Color " + Uuid);
@@ -110,8 +108,7 @@ public partial class MyCompItem
             Animations.AniStop("CompItem Color " + Uuid);
             if (_rectBack is not null)
                 RectBack.Opacity = 0d;
-            if (PanButtons is not null)
-                PanButtons.Opacity = 0d;
+            PanButtons?.Opacity = 0d;
         }
     }
 
@@ -130,7 +127,7 @@ public partial class MyCompItem
         get => ViewModel.TitleText;
         set
         {
-            if ((ViewModel.TitleText ?? "") == (value ?? ""))
+            if (ViewModel.TitleText == value)
                 return;
             ViewModel.TitleText = value;
         }
@@ -141,7 +138,7 @@ public partial class MyCompItem
         get => ViewModel.SubTitleText;
         set
         {
-            if ((ViewModel.SubTitleText ?? "") == (value ?? ""))
+            if (ViewModel.SubTitleText == value)
                 return;
             ViewModel.SubTitleText = value;
             ViewModel.SubTitleVisibility = string.IsNullOrEmpty(value) ? Visibility.Collapsed : Visibility.Visible;
@@ -153,7 +150,7 @@ public partial class MyCompItem
         get => ViewModel.DescriptionText;
         set
         {
-            if ((ViewModel.DescriptionText ?? "") == (value ?? ""))
+            if (ViewModel.DescriptionText == value)
                 return;
             ViewModel.DescriptionText = value;
         }
@@ -203,10 +200,8 @@ public partial class MyCompItem
         _stateLast = null;
         _isMouseDown = false;
         Animations.AniStop("CompItem Color " + Uuid);
-        if (_rectBack is not null)
-            _rectBack.Opacity = 0d;
-        if (PanButtons is not null)
-            PanButtons.Opacity = 0d;
+        _rectBack?.Opacity = 0d;
+        PanButtons?.Opacity = 0d;
 
         Tag = vm.Project;
         vm.Project?.ApplyLogoToMyImage(PathLogo);
@@ -297,12 +292,11 @@ public partial class MyCompItem
     }
 
     /// <summary>右侧是否存在任意可见的操作按钮（收藏 / 下载），用于决定悬停时是否淡入按钮区。</summary>
-    private bool _HasActionButtons => ShowFavoriteBtn || ShowDownloadBtn;
+    private bool HasActionButtons => ShowFavoriteBtn || ShowDownloadBtn;
 
     private void _UpdatePanButtons()
     {
-        if (PanButtons is null) return;
-        PanButtons.Visibility = _HasActionButtons ? Visibility.Visible : Visibility.Collapsed;
+        PanButtons?.Visibility = HasActionButtons ? Visibility.Visible : Visibility.Collapsed;
     }
 
     /// <summary>
@@ -326,7 +320,7 @@ public partial class MyCompItem
         if (PanButtons.Opacity > 0d && Tag is Comp.CompProject)
         {
             var project = (Comp.CompProject)Tag;
-            CompFavoritesUi.ShowMenu(project, (UIElement)sender, () => RefreshFavoriteStatus());
+            CompFavoritesUi.ShowMenu(project, (UIElement)sender, RefreshFavoriteStatus);
         }
     }
 
@@ -340,20 +334,20 @@ public partial class MyCompItem
     {
         // 记录当前展开的卡片标题（#2712）
         var titles = new List<string>();
-        if (Launcher.frmMain.pageCurrent.page == FormMain.PageType.CompDetail)
+        if (Launcher.frmMain!.pageCurrent.page == FormMain.PageType.CompDetail)
         {
-            foreach (var group in Launcher.frmDownloadCompDetail.ViewModel.FileGroups)
-                if (group.Title is { Length: > 0 } cardKey && !group.IsSwapped)
+            foreach (var group in Launcher.frmDownloadCompDetail!.ViewModel.FileGroups)
+                if (group is { Title: { Length: > 0 } cardKey, IsSwapped: false })
                     titles.Add(cardKey);
             Common.Log(
                 $"[Comp] 记录当前已展开的卡片：{string.Join("、", titles.Select(PageDownloadCompDetail.GetVersionGroupTitleForLog))}");
-            var additional = Launcher.frmMain.pageCurrent.additional.Value;
+            var additional = Launcher.frmMain.pageCurrent.additional!.Value;
             Launcher.frmMain.pageCurrent.additional = additional with { ExpandedTitles = titles };
         }
 
         // 打开详情页
         var targetType = default(Comp.CompType);
-        string targetVersion = null;
+        string? targetVersion = null;
         var targetLoader = Comp.CompLoaderType.Any;
         if (Launcher.frmMain.pageCurrent.page == FormMain.PageType.Download)
         {
@@ -370,40 +364,40 @@ public partial class MyCompItem
                     case FormMain.PageSubType.DownloadMod:
                         {
                             targetType = Comp.CompType.Mod;
-                            targetVersion = Launcher.frmDownloadMod.Content.loader.input.gameVersion;
+                            targetVersion = Launcher.frmDownloadMod!.Content.loader.input!.gameVersion;
                             targetLoader = Launcher.frmDownloadMod.Content.loader.input.modLoader;
                             break;
                         }
                     case FormMain.PageSubType.DownloadPack:
                         {
                             targetType = Comp.CompType.ModPack;
-                            targetVersion = Launcher.frmDownloadPack.Content.loader.input.gameVersion;
+                            targetVersion = Launcher.frmDownloadPack!.Content.loader.input!.gameVersion;
                             break;
                         }
                     case FormMain.PageSubType.DownloadDataPack:
                         {
                             targetType = Comp.CompType.DataPack;
-                            targetVersion = Launcher.frmDownloadDataPack.Content.loader.input
+                            targetVersion = Launcher.frmDownloadDataPack!.Content.loader.input!
                                 .gameVersion;
                             break;
                         }
                     case FormMain.PageSubType.DownloadResourcePack:
                         {
                             targetType = Comp.CompType.ResourcePack;
-                            targetVersion = Launcher.frmDownloadResourcePack.Content.loader.input
+                            targetVersion = Launcher.frmDownloadResourcePack!.Content.loader.input!
                                 .gameVersion;
                             break;
                         }
                     case FormMain.PageSubType.DownloadShader:
                         {
                             targetType = Comp.CompType.Shader;
-                            targetVersion = Launcher.frmDownloadShader.Content.loader.input.gameVersion;
+                            targetVersion = Launcher.frmDownloadShader!.Content.loader.input!.gameVersion;
                             break;
                         }
                     case FormMain.PageSubType.DownloadWorld:
                         {
                             targetType = Comp.CompType.World;
-                            targetVersion = Launcher.frmDownloadWorld.Content.loader.input.gameVersion;
+                            targetVersion = Launcher.frmDownloadWorld!.Content.loader.input!.gameVersion;
                             break;
                         }
                 }
@@ -418,7 +412,7 @@ public partial class MyCompItem
         {
             // 从详情页进入（查看前置）
             targetType = Comp.CompType.Any; // 允许任意类别
-            var additional = Launcher.frmMain.pageCurrent.additional.Value;
+            var additional = Launcher.frmMain.pageCurrent.additional!.Value;
             targetVersion = additional.TargetVersion;
             targetLoader = additional.TargetLoader;
         }
@@ -426,8 +420,7 @@ public partial class MyCompItem
         Launcher.frmMain.PageChange(new FormMain.PageStackData
         {
             page = FormMain.PageType.CompDetail,
-            additional = ((Comp.CompProject)sender.Tag, new List<string>(), targetVersion,
-                targetLoader, targetType, null)
+            additional = ((Comp.CompProject)sender.Tag, [], targetVersion, targetLoader, targetType, null)!
         });
     }
 
@@ -475,7 +468,7 @@ public partial class MyCompItem
     /// <summary>
     /// 判断点击是否落在某个操作按钮（收藏 / 下载）上
     /// </summary>
-    private bool _IsClickOnActionButton(FrameworkElement button, Point clickPosition)
+    private bool _IsClickOnActionButton(FrameworkElement? button, Point clickPosition)
     {
         if (button is null || button.Visibility != Visibility.Visible) return false;
         var bounds = new Rect(button.TranslatePoint(new Point(0d, 0d), this), button.RenderSize);
@@ -486,7 +479,7 @@ public partial class MyCompItem
     #endregion
     #region 后加载指向背景
 
-    private Border _rectBack;
+    private Border? _rectBack;
 
     public Border RectBack
     {

@@ -17,7 +17,7 @@ internal static partial class TextStyles
         private static readonly Random Random = new();
 
         /// <summary>颜色画刷缓存，避免每段文本都新建并冻结一个画刷。</summary>
-        private static readonly ConcurrentDictionary<Color, SolidColorBrush> BrushCache = new();
+        private static readonly ConcurrentDictionary<Color, SolidColorBrush> BrushCache = [];
 
         private static SolidColorBrush GetCachedBrush(string color)
         {
