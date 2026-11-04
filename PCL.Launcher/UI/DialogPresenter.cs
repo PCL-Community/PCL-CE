@@ -5,10 +5,12 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using Avalonia.Threading;
 using PCL.Core.UI.Dialogs;
 using PCL.UI.Animations;
 using PCL.UI.Dialogs;
+using MyColor = PCL.UI.Controls.Common.MyColor;
 
 namespace PCL.UI;
 
@@ -19,20 +21,18 @@ namespace PCL.UI;
 /// </summary>
 public sealed class DialogPresenter : IDialogPresenter
 {
-    /// <summary>遮罩层淡入的基准时长（毫秒），实际时长按动画速度折算。</summary>
-    private const int FadeInMilliseconds = 120;
-
     /// <summary>遮罩层淡出的基准时长（毫秒），实际时长按动画速度折算。</summary>
     private const int FadeOutMilliseconds = 150;
 
     /// <summary>遮罩层内承载弹窗视图的容器名称。</summary>
     private const string DialogHostName = "PanDialogHost";
 
-    /// <summary>遮罩层淡入淡出的动画组名；重新淡入时先停掉尚未结束的淡出。</summary>
-    private const string LayerFadeKey = "Dialog Layer Fade";
+    private const string MaskAnimationKey = "Dialog Mask";
 
     /// <summary>遮罩层内按显示顺序堆叠的弹窗，后加入的盖在之前的上面。</summary>
     private readonly List<OverlayDialog> _dialogs = [];
+
+    private readonly List<DispatcherTimer> _exitTimers = [];
 
     /// <summary>走独立窗口的弹窗，仅在主窗口或遮罩层不可用时使用。</summary>
     private readonly Dictionary<DialogViewModel, Window> _windows = [];
@@ -42,6 +42,8 @@ public sealed class DialogPresenter : IDialogPresenter
 
     private Panel? _host;
     private Panel? _layer;
+    private Border? _mask;
+    private EventHandler<PointerPressedEventArgs>? _maskDragHandler;
 
     /// <summary>淡出动画未按时结束时的兜底定时器，防止遮罩一直挡住界面。</summary>
     private DispatcherTimer? _releaseTimer;
@@ -167,6 +169,17 @@ public sealed class DialogPresenter : IDialogPresenter
         _layer = layer;
         _host = window.FindControl<Panel>(DialogHostName)
             ?? layer.FindControl<Panel>(DialogHostName);
+        _mask = window.FindControl<Border>("BorDialogMask")
+            ?? layer.FindControl<Border>("BorDialogMask");
+        if (_mask is not null)
+        {
+            _maskDragHandler ??= (_, e) =>
+            {
+                if (e.GetCurrentPoint(_mask).Properties.IsLeftButtonPressed)
+                    window.BeginMoveDrag(e);
+            };
+            _mask.PointerPressed += _maskDragHandler;
+        }
 
         // 遮罩显示期间 Tab 只在遮罩层内循环，焦点不会被底层页面接走
         KeyboardNavigation.SetTabNavigation(layer, KeyboardNavigationMode.Cycle);
@@ -255,7 +268,6 @@ public sealed class DialogPresenter : IDialogPresenter
     /// <summary>把新建的弹窗控件放到容器最上层，显示遮罩并淡入。</summary>
     private void _PresentInLayer(Panel layer, Panel host, DialogViewModel dialog)
     {
-        // 上一次淡出还没走完就来了新弹窗：先把待移除的视图收掉
         if (_closing is not null) _FinishClosing();
 
         var view = CreateDialogView(dialog);
@@ -263,15 +275,14 @@ public sealed class DialogPresenter : IDialogPresenter
         _dialogs.Add(entry);
         entry.Attach();
 
-        // 先显示遮罩再挂视图，视图挂上后即处于可见状态，可以正常取得焦点
         layer.IsVisible = true;
+        layer.Opacity = 1d;
         _releasing = false;
         host.Children.Add(view);
 
-        _FadeLayer(layer, 1d, FadeInMilliseconds, () => layer.Opacity = 1d);
+        _AnimateMask(dialog.IsWarn, true);
     }
 
-    /// <summary>移除遮罩层内的弹窗；最后一个弹窗移除时遮罩淡出，结束后隐藏遮罩层。</summary>
     private void _DismissFromLayer(DialogViewModel dialog)
     {
         var entry = _dialogs.FirstOrDefault(item => ReferenceEquals(item.Dialog, dialog));
@@ -280,23 +291,23 @@ public sealed class DialogPresenter : IDialogPresenter
         _dialogs.Remove(entry);
         entry.Detach();
 
-        // 还有弹窗盖在遮罩上，遮罩保持显示，直接移除这一层
         if (_dialogs.Count > 0)
         {
-            _RemoveFromLayer(entry);
+            _PlayExitAndRemove(entry);
             return;
         }
 
         _closing = entry;
         _releasing = true;
-        if (_layer is { } layer)
-            _FadeLayer(layer, 0d, FadeOutMilliseconds, _FinishClosing);
-        else
+
+        entry.View.PlayExitAnimation();
+        _AnimateMask(false, false);
+
+        if (_layer is null)
             _FinishClosing();
 
-        // 窗口最小化等情况下渲染帧可能停摆，淡出动画收不到回调，用定时器保证遮罩最终释放
         if (_closing is not null)
-            _StartReleaseTimer(_GetFadeDuration(FadeOutMilliseconds) + 100);
+            _StartReleaseTimer(FadeOutMilliseconds + 100);
     }
 
     private void _StartReleaseTimer(int milliseconds)
@@ -339,9 +350,10 @@ public sealed class DialogPresenter : IDialogPresenter
         _releasing = false;
         if (_layer is not { } layer) return;
 
-        PCL.Animations.AniStop(LayerFadeKey);
+        PCL.Animations.AniStop(MaskAnimationKey);
+        _SetMaskColor(0, 0, 0, 0);
         layer.IsVisible = false;
-        layer.Opacity = 0d;
+        layer.Opacity = 1d;
     }
 
     /// <summary>把显示失败的弹窗从容器里摘掉，不留残余视图和事件订阅。</summary>
@@ -357,9 +369,10 @@ public sealed class DialogPresenter : IDialogPresenter
         // 挂载失败的弹窗可能已经把遮罩显示出来，容器空了就一并复位，避免遮罩一直挡住界面
         if (_dialogs.Count > 0 || _layer is not { } layer) return;
 
-        PCL.Animations.AniStop(LayerFadeKey);
+        PCL.Animations.AniStop(MaskAnimationKey);
+        _SetMaskColor(0, 0, 0, 0);
         layer.IsVisible = false;
-        layer.Opacity = 0d;
+        layer.Opacity = 1d;
         _releasing = false;
     }
 
@@ -369,37 +382,84 @@ public sealed class DialogPresenter : IDialogPresenter
             parent.Children.Remove(entry.View);
     }
 
-    /// <summary>按目标透明度播放遮罩层淡入淡出；动画关闭或控件未接入视觉树时直接跳到终值。</summary>
-    private void _FadeLayer(
-        Panel layer,
-        double target,
-        int baseMilliseconds,
-        Action? completed = null)
+    private void _PlayExitAndRemove(OverlayDialog entry)
     {
-        PCL.Animations.AniStop(LayerFadeKey);
+        var duration = _GetFadeDuration(150);
+        var removed = false;
 
-        var duration = _GetFadeDuration(baseMilliseconds);
-        if (duration <= 0
-            || !_CanAnimate(layer)
-            || Math.Abs(layer.Opacity - target) <= 0.001d)
+        entry.View.PlayExitAnimation(Remove);
+        if (duration <= 0) return;
+
+        var timer = new DispatcherTimer
         {
-            layer.Opacity = target;
-            completed?.Invoke();
+            Interval = TimeSpan.FromMilliseconds(duration + 100)
+        };
+        timer.Tick += (_, _) =>
+        {
+            timer.Stop();
+            _exitTimers.Remove(timer);
+            Remove();
+        };
+        _exitTimers.Add(timer);
+        timer.Start();
+        return;
+
+        void Remove()
+        {
+            if (removed) return;
+            removed = true;
+            _RemoveFromLayer(entry);
+        }
+    }
+
+    private void _StopExitTimers()
+    {
+        foreach (var timer in _exitTimers.ToArray())
+        {
+            timer.Stop();
+            _exitTimers.Remove(timer);
+        }
+    }
+
+    /// <summary>按目标透明度播放遮罩层淡入淡出；动画关闭或控件未接入视觉树时直接跳到终值。</summary>
+    private void _AnimateMask(bool warn, bool show)
+    {
+        if (_mask is not { } mask) return;
+
+        PCL.Animations.AniStop(MaskAnimationKey);
+        var target = show
+            ? warn ? new MyColor(140d, 80d, 0d, 0d) : new MyColor(90d, 0d, 0d, 0d)
+            : new MyColor(0d, 0d, 0d, 0d);
+        var duration = _GetFadeDuration(200);
+
+        if (duration <= 0 || !_CanAnimate(mask))
+        {
+            _SetMaskColor(
+                (byte)Math.Round(target.a),
+                (byte)Math.Round(target.r),
+                (byte)Math.Round(target.g),
+                (byte)Math.Round(target.b));
             return;
         }
 
-        var animations = new List<PCL.Animations.AniData>
-        {
-            PCL.Animations.AaOpacity(
-                layer,
-                target - layer.Opacity,
-                duration,
-                ease: new PCL.Animations.AniEaseOutFluent())
-        };
-        if (completed is not null)
-            animations.Add(PCL.Animations.AaCode(completed, after: true));
+        var current = new MyColor(mask.Background);
+        PCL.Animations.AniStart(
+            new List<PCL.Animations.AniData>
+            {
+                PCL.Animations.AaColor(
+                    mask,
+                    Border.BackgroundProperty,
+                    target - current,
+                    duration,
+                    ease: new PCL.Animations.AniEaseOutFluent())
+            },
+            MaskAnimationKey);
+    }
 
-        PCL.Animations.AniStart(animations, LayerFadeKey);
+    private void _SetMaskColor(byte a, byte r, byte g, byte b)
+    {
+        if (_mask is { } mask)
+            mask.Background = new SolidColorBrush(Color.FromArgb(a, r, g, b));
     }
 
     private static int _GetFadeDuration(int baseMilliseconds)
@@ -420,7 +480,8 @@ public sealed class DialogPresenter : IDialogPresenter
     {
         // 主窗口关闭后遮罩再没有落点：结束淡出动画，弹窗按取消收尾，避免调用方一直等待结果
         _StopReleaseTimer();
-        PCL.Animations.AniStop(LayerFadeKey);
+        _StopExitTimers();
+        PCL.Animations.AniStop(MaskAnimationKey);
 
         var dialogs = _dialogs.ToArray();
         _dialogs.Clear();
@@ -437,7 +498,8 @@ public sealed class DialogPresenter : IDialogPresenter
         if (_layer is { } layer)
         {
             layer.IsVisible = false;
-            layer.Opacity = 0d;
+            layer.Opacity = 1d;
+            _SetMaskColor(0, 0, 0, 0);
         }
 
         _Detach();
@@ -446,6 +508,7 @@ public sealed class DialogPresenter : IDialogPresenter
     private void _Detach()
     {
         _StopReleaseTimer();
+        _StopExitTimers();
 
         if (_window is not null)
             _window.Closed -= _OnMainWindowClosed;
@@ -453,6 +516,9 @@ public sealed class DialogPresenter : IDialogPresenter
         _window = null;
         _layer = null;
         _host = null;
+        if (_mask is not null && _maskDragHandler is not null)
+            _mask.PointerPressed -= _maskDragHandler;
+        _mask = null;
     }
 
     #endregion
@@ -542,7 +608,7 @@ public sealed class DialogPresenter : IDialogPresenter
         DialogTheme.BindBrush(
             window,
             TemplatedControl.BackgroundProperty,
-            "PageBrushWindowFallback");
+            "ColorBrushBackground");
 
         var view = CreateDialogView(dialog);
         window.Content = view;

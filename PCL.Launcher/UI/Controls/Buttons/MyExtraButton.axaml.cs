@@ -49,22 +49,26 @@ public partial class MyExtraButton : Grid
     public static readonly StyledProperty<bool> ShowProperty =
         AvaloniaProperty.Register<MyExtraButton, bool>(nameof(Show));
 
-    /// <summary>显示判定回调，返回 true 时 <see cref="Show" /> 置为 true。</summary>
-    public ShowCheckDelegate? showCheck;
+    private static int _uuidSeed;
+
+    private static int _ribbleSeed;
 
     /// <summary>动画键使用的唯一编号。</summary>
     public readonly int Uuid = Interlocked.Increment(ref _uuidSeed);
 
-    private static int _uuidSeed;
     private readonly RectangleGeometry _rectProgress = new(new Rect(0d, 5d, 40d, 35d));
     private bool _isCommandRunning;
     private bool _isLeftMouseHeld;
     private bool _isRightClickCommandRunning;
     private bool _isRightMouseHeld;
 
+    public ShowCheckDelegate? showCheck;
+
     public MyExtraButton()
     {
         InitializeComponent();
+
+        Tooltip.Enable();
 
         PanProgress.Clip = _rectProgress;
         PanClick.PointerPressed += _OnPointerPressed;
@@ -76,10 +80,6 @@ public partial class MyExtraButton : Grid
         Unloaded += (_, _) => _StopAnimations();
         ApplyLogoScale();
     }
-
-    public event ClickEventHandler? Click;
-
-    public event RightClickEventHandler? RightClick;
 
     /// <summary>是否允许右键点击。</summary>
     public bool CanRightClick { get; set; }
@@ -147,6 +147,10 @@ public partial class MyExtraButton : Grid
 
     private string ColorKey => ButtonAnimation.Name("MyExtraButton Color", Uuid);
 
+    public event ClickEventHandler? Click;
+
+    public event RightClickEventHandler? RightClick;
+
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
@@ -179,10 +183,10 @@ public partial class MyExtraButton : Grid
             return;
 
         var key = !IsEnabled
-            ? "PageBrushDebug"
+            ? "ColorBrushGray4"
             : IsPointerOver
-                ? "PageBrushAccentHover"
-                : "PageBrushAccent";
+                ? "ColorBrush4"
+                : "ColorBrush3";
 
         ButtonAnimation.ApplyColor(
             PanColor,
@@ -209,7 +213,7 @@ public partial class MyExtraButton : Grid
         if (!ButtonAnimation.CanAnimate(this))
             return;
 
-        var color = ButtonAnimation.ThemeColor(this, "ButtonBrushRibble");
+        var color = ButtonAnimation.ThemeColor(this, "ColorBrush5");
         if (color is null)
             return;
 
@@ -240,8 +244,6 @@ public partial class MyExtraButton : Grid
             },
             $"MyExtraButton Ribble {Interlocked.Increment(ref _ribbleSeed)}");
     }
-
-    private static int _ribbleSeed;
 
     private void _ApplyProgress(double value)
     {
@@ -490,10 +492,10 @@ public partial class MyExtraButton : Grid
 
         if (e.InitialPressMouseButton != MouseButton.Right || !_isRightMouseHeld)
             return;
-        
+
         if (!CanRightClick)
             return;
-        
+
         LogWrapper.Debug(
             $"[Control] 右键按下附加按钮{(string.IsNullOrEmpty(tipText) ? "" : $"：{tipText}")}");
         _isRightMouseHeld = false;

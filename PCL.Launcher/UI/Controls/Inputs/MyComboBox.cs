@@ -7,6 +7,7 @@ using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.VisualTree;
 using FluentValidation;
+using Path = Avalonia.Controls.Shapes.Path;
 
 namespace PCL.UI.Controls;
 
@@ -30,6 +31,7 @@ public class MyComboBox : ComboBox
     public int Uuid = InputTheme.NewUuid();
 
     private ContentPresenter? _contentPresenter;
+    private Path? _dropDownGlyph;
     private TextBox? _editableTextBox;
 
     // 键盘导航标记：下拉列表展开后由方向键等按键置位，指针进入列表或按下鼠标时清除。
@@ -85,6 +87,8 @@ public class MyComboBox : ComboBox
 
     private string EditableForegroundKey =>
         InputAnimation.Key("MyComboBox EditableForeground", Uuid);
+
+    private string GlyphKey => InputAnimation.Key("MyComboBox Glyph", Uuid);
 
     // 自定义属性
 
@@ -151,7 +155,30 @@ public class MyComboBox : ComboBox
 
     private void StopAnimations()
     {
-        InputAnimation.Stop(ForegroundKey, BackgroundKey, EditableForegroundKey);
+        InputAnimation.Stop(ForegroundKey, BackgroundKey, EditableForegroundKey, GlyphKey);
+    }
+
+    private void RefreshGlyphRotation(bool animate)
+    {
+        if (_dropDownGlyph?.RenderTransform is not RotateTransform rotate)
+            return;
+
+        var target = IsDropDownOpen ? 180d : 0d;
+        if (!animate || !InputAnimation.CanAnimate(this))
+        {
+            PCL.Animations.AniStop(GlyphKey);
+            rotate.Angle = target;
+            return;
+        }
+
+        PCL.Animations.AniStart(
+            PCL.Animations.AaRotateTransform(
+                _dropDownGlyph,
+                target - rotate.Angle,
+                200,
+                ease: new PCL.Animations.AniEaseOutFluent(
+                    PCL.Animations.AniEasePower.Strong)),
+            GlyphKey);
     }
 
     /// <summary>
@@ -178,9 +205,13 @@ public class MyComboBox : ComboBox
             _editableTextBox = null;
         }
 
-        _contentPresenter = e.NameScope.Find<ContentPresenter>("PART_ContentPresenter")
+        // 用非泛型查找再转换：泛型 Find<T> 在模板部件类型不匹配时会抛异常（Avalonia 12 行为），
+        // 这里改为安全回退，避免模板与代码类型不一致时直接让整个界面线程崩溃。
+        _contentPresenter = e.NameScope.Find("PART_ContentPresenter") as ContentPresenter
             ?? this.GetVisualDescendants().OfType<ContentPresenter>().FirstOrDefault();
         _popup = e.NameScope.Find<Popup>("PART_Popup");
+        _dropDownGlyph = e.NameScope.Find<Path>("DropDownGlyph");
+        RefreshGlyphRotation(false);
 
         try
         {
@@ -193,6 +224,7 @@ public class MyComboBox : ComboBox
                 // 可编辑文本框由 MyTextBox 承担：外壳配色交给组合框，校验规则与错误层沿用 MyTextBox。
                 editable.HasBackground = false;
                 editable.BorderThickness = new Thickness(0d);
+                editable.HintText = HintText;
                 editable.ValidateRules = ValidateRules;
             }
 
@@ -247,18 +279,18 @@ public class MyComboBox : ComboBox
             }
             else
             {
-                foregroundKey = InputTheme.DividerKey;
-                foregroundFallback = InputTheme.Divider(this);
-                backgroundKey = InputTheme.ItemHoverKey;
-                backgroundFallback = InputTheme.ItemHover(this);
+                foregroundKey = InputTheme.IdleBorderKey;
+                foregroundFallback = InputTheme.IdleBorder(this);
+                backgroundKey = InputTheme.IdleBackgroundKey;
+                backgroundFallback = InputTheme.IdleBackground(this);
                 time = 100;
             }
         }
         else
         {
-            foregroundKey = InputTheme.TextSecondaryKey;
+            foregroundKey = InputTheme.DisabledBorderKey;
             foregroundFallback = InputTheme.TextSecondary(this);
-            backgroundKey = InputTheme.ItemHoverKey;
+            backgroundKey = InputTheme.DisabledBackgroundKey;
             backgroundFallback = InputTheme.DisabledBackground(this);
             time = 200;
         }
@@ -469,6 +501,8 @@ public class MyComboBox : ComboBox
             var hint = change.NewValue as string ?? string.Empty;
             PlaceholderText = hint;
             _editableTextBox?.PlaceholderText = hint;
+            if (_editableTextBox is MyTextBox editableText)
+                editableText.HintText = hint;
         }
         else if (change.Property == IsEditableProperty)
         {
@@ -478,6 +512,10 @@ public class MyComboBox : ComboBox
         else if (change.Property == IsEnabledProperty)
         {
             RefreshColor();
+        }
+        else if (change.Property == IsDropDownOpenProperty)
+        {
+            RefreshGlyphRotation(true);
         }
         else if (change.Property == TagProperty)
         {

@@ -39,8 +39,7 @@ public class MyToast : Border
     private const int ReturnAnimationMs = 150;
 
     private static int _uuidSeed;
-    private readonly Button _btnClose;
-    private readonly SvgIconControl _iconClose;
+    private readonly MyIconButton _btnClose;
     private readonly Rectangle _progressBar;
 
     private readonly Grid _rootGrid;
@@ -99,28 +98,15 @@ public class MyToast : Border
             FontWeight = FontWeight.Bold,
             TextTrimming = TextTrimming.CharacterEllipsis
         };
-        _iconClose = new SvgIconControl
-        {
-            Icon = "lucide/x",
-            Width = 12d,
-            Height = 12d,
-            StrokeThickness = 2d,
-            Stretch = Stretch.Uniform
-        };
-        _btnClose = new Button
+        _btnClose = new MyIconButton
         {
             Name = "BtnClose",
-            Content = _iconClose,
+            SvgIcon = "lucide/x",
+            Theme = MyIconButton.Themes.Custom,
             Width = 20d,
             Height = 20d,
             Margin = new Thickness(8d, 0d, 0d, 0d),
-            HorizontalContentAlignment = HorizontalAlignment.Center,
-            VerticalContentAlignment = VerticalAlignment.Center,
-            Background = Brushes.Transparent,
-            BorderThickness = new Thickness(0d),
-            Padding = new Thickness(0d),
-            Focusable = false,
-            Cursor = new Cursor(StandardCursorType.Hand)
+            Focusable = false
         };
         _btnClose.Click += (_, _) => Dismiss();
 
@@ -195,7 +181,16 @@ public class MyToast : Border
 
     public bool IsDismissing { get; private set; }
 
-    private double DisplayDuration => Hint.DisplayDuration;
+    private double DisplayDuration
+    {
+        get
+        {
+            var speed = PCL.Animations.AniSpeed;
+            if (speed <= 0d) return 0d;
+            if (speed >= 200d) return Hint.DisplayDuration;
+            return Hint.DisplayDuration * speed;
+        }
+    }
 
     private string ShowKey => $"Toast Show {Uuid}";
 
@@ -529,14 +524,14 @@ public class MyToast : Border
             _ => 210d
         };
         var accent = new SolidColorBrush((Color)new MyColor().FromHsl2(baseHue, 75d, 60d));
-        var background = FeedbackTheme.GetBrush(this, "PageBrushCard", Brushes.White);
-        var text = FeedbackTheme.GetBrush(this, "PageBrushText", Brushes.Black);
+        var background = FeedbackTheme.GetBrush(this, "ColorBrushBackground", Brushes.White);
+        var text = FeedbackTheme.GetBrush(this, "ColorBrushGray1", Brushes.Black);
 
         Background = background;
         BorderBrush = background;
         _titleText.Foreground = text;
         _progressBar.Fill = accent;
-        _iconClose.IconBrush = text;
+        _btnClose.Foreground = text;
         _toastIcon.Icon = Hint.Icon;
         _toastIcon.IconBrush = accent;
         _toastIcon.StrokeThickness = 0d;

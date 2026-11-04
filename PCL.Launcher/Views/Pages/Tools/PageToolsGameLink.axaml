@@ -1,0 +1,368 @@
+<ui:MyPageRight xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:ui="using:PCL.UI.Controls"
+                xmlns:svg="using:PCL.UI.Controls.SvgIcon"
+                xmlns:loc="using:PCL.Core.UI"
+                x:Class="PCL.Views.Pages.Tools.PageToolsGameLink">
+    <Grid>
+        <Grid x:Name="PanLoad"
+              IsVisible="False">
+            <ui:MyCard x:Name="CardLoad"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center">
+                <Grid ColumnDefinitions="30,Auto,25,Auto,*,Auto,20"
+                      RowDefinitions="18,Auto,Auto,*,23">
+                    <ui:MyLoading x:Name="Load"
+                                  Grid.Row="1"
+                                  Grid.RowSpan="3"
+                                  Grid.Column="1"
+                                  Margin="0,0,0,-30"
+                                  HorizontalAlignment="Center"
+                                  IsHitTestVisible="False"
+                                  Text="" />
+                    <TextBlock x:Name="LabLoadTitle"
+                               Grid.Row="1"
+                               Grid.Column="3"
+                               Grid.ColumnSpan="2"
+                               Margin="0,0,25,1"
+                               VerticalAlignment="Center"
+                               FontSize="19"
+                               IsHitTestVisible="False" />
+                    <TextBlock x:Name="LabLoadDesc"
+                               Grid.Row="2"
+                               Grid.Column="3"
+                               Grid.ColumnSpan="3"
+                               MaxWidth="400"
+                               MaxHeight="220"
+                               Margin="0,5,10,-5"
+                               VerticalAlignment="Center"
+                               FontSize="14"
+                               Foreground="{DynamicResource ColorBrushGray3}"
+                               IsHitTestVisible="False"
+                               LineHeight="19"
+                               TextWrapping="Wrap" />
+                    <ui:MyIconButton x:Name="BtnLoadCancel"
+                                     Grid.Row="1"
+                                     Grid.Column="5"
+                                     Width="28"
+                                     Height="28"
+                                     VerticalAlignment="Top"
+                                     LogoScale="0.72"
+                                     Opacity="0.5"
+                                     SvgIcon="lucide/x"
+                                     ToolTip.Tip="{loc:Loc Common.Action.Cancel}" />
+                </Grid>
+            </ui:MyCard>
+        </Grid>
+
+        <ui:MyScrollViewer x:Name="PanContent"
+                           HorizontalScrollBarVisibility="Disabled"
+                           VerticalScrollBarVisibility="Auto">
+            <Grid Margin="10"
+                  RowDefinitions="Auto,*,Auto">
+                <ui:MyHint x:Name="HintAnnounce"
+                           Grid.Row="0"
+                           Margin="10"
+                           MinHeight="36"
+                           MaxHeight="64"
+                           HorizontalAlignment="Stretch"
+                           IsVisible="False"
+                           Theme="Blue" />
+
+                <StackPanel x:Name="PanEula"
+                            Grid.Row="1"
+                            HorizontalAlignment="Stretch"
+                            Orientation="Vertical">
+                    <ui:MyCard Margin="10"
+                               Title="{loc:Loc Tools.GameLink.Agreement.Title}">
+                        <StackPanel Margin="20,40,18,18">
+                            <TextBlock Margin="0,0,0,10"
+                                       Text="{loc:Loc Tools.GameLink.Agreement.Description}"
+                                       TextWrapping="Wrap" />
+                            <ui:MyListItem x:Name="ItemEulaPrivacy"
+                                           Title="{loc:Loc Tools.GameLink.Agreement.PrivacyPolicy}"
+                                           Info="{loc:Loc Tools.GameLink.Agreement.PrivacyPolicyInfo}"
+                                           Type="Clickable" />
+                            <ui:MyListItem x:Name="ItemEulaTerms"
+                                           Title="{loc:Loc Tools.GameLink.Agreement.NatayarkTerms}"
+                                           Info="{loc:Loc Tools.GameLink.Agreement.NatayarkTermsInfo}"
+                                           Type="Clickable" />
+                            <TextBlock Margin="0,10,0,0"
+                                       Text="{loc:Loc Tools.GameLink.Agreement.Body}"
+                                       TextWrapping="Wrap" />
+                            <ui:MyButton x:Name="BtnEulaAgree"
+                                         Margin="0,10,0,0"
+                                         Padding="13,8"
+                                         HorizontalAlignment="Center"
+                                         ColorType="Highlight"
+                                         Text="{loc:Loc Tools.GameLink.Agreement.Accept}" />
+                        </StackPanel>
+                    </ui:MyCard>
+                </StackPanel>
+
+                <StackPanel x:Name="PanSelect"
+                            Grid.Row="1"
+                            IsVisible="False"
+                            HorizontalAlignment="Stretch"
+                            Orientation="Vertical">
+                    <StackPanel Margin="10,4"
+                                HorizontalAlignment="Right"
+                                Orientation="Horizontal">
+                        <ui:MyCard x:Name="CardAccount">
+                            <StackPanel Background="{DynamicResource ColorBrushSemiTransparent}"
+                                        Orientation="Horizontal">
+                                <svg:SvgIcon Width="14"
+                                             Height="14"
+                                             Margin="12,0,7,0"
+                                             VerticalAlignment="Center"
+                                             Icon="lucide/user"
+                                             IconBrush="{DynamicResource ColorBrushGray1}"
+                                             Stretch="Uniform" />
+                                <TextBlock x:Name="LabNatayarkUserName"
+                                           Margin="0,0,12,0"
+                                           VerticalAlignment="Center"
+                                           Foreground="{DynamicResource ColorBrushGray1}"
+                                           Text="{loc:Loc Tools.GameLink.Natayark.Loading}" />
+                            </StackPanel>
+                        </ui:MyCard>
+                    </StackPanel>
+
+                    <ui:MyCard x:Name="CardJoin"
+                               Margin="10"
+                               Title="{loc:Loc Tools.GameLink.Join.Title}">
+                        <StackPanel Margin="10,30,10,10">
+                            <TextBlock Margin="10,10,10,-2"
+                                       FontSize="14"
+                                       LineHeight="23"
+                                       Text="{loc:Loc Tools.GameLink.Join.Description}"
+                                       TextWrapping="Wrap" />
+                            <Grid Margin="10"
+                                  Height="28"
+                                  ColumnDefinitions="*,Auto,Auto,Auto">
+                                <ui:MyTextBox x:Name="TxtJoinCode"
+                                              Grid.Column="0"
+                                              MaxLength="64"
+                                              HintText="{loc:Loc Tools.GameLink.Join.IdHint}" />
+                                <ui:MyButton x:Name="BtnClearCode"
+                                             Grid.Column="1"
+                                             Width="50"
+                                             Margin="10,0,0,0"
+                                             Text="{loc:Loc Tools.GameLink.Join.Clear}" />
+                                <ui:MyButton x:Name="BtnPasteCode"
+                                             Grid.Column="2"
+                                             Width="50"
+                                             Margin="10,0,0,0"
+                                             Text="{loc:Loc Tools.GameLink.Join.Paste}" />
+                                <ui:MyButton x:Name="BtnJoin"
+                                             Grid.Column="3"
+                                             Width="50"
+                                             Margin="10,0,0,0"
+                                             ColorType="Highlight"
+                                             Text="{loc:Loc Tools.GameLink.Join.Action}" />
+                            </Grid>
+                        </StackPanel>
+                    </ui:MyCard>
+
+                    <ui:MyCard x:Name="CardCreate"
+                               Margin="10"
+                               Title="{loc:Loc Tools.GameLink.Create.Title}">
+                        <StackPanel Margin="10,30,10,10">
+                            <TextBlock Margin="10,10,10,0"
+                                       FontSize="14"
+                                       LineHeight="23"
+                                       Text="{loc:Loc Tools.GameLink.Create.Description}"
+                                       TextWrapping="Wrap" />
+                            <Grid Margin="10"
+                                  Height="28"
+                                  ColumnDefinitions="*,Auto,Auto,Auto">
+                                <ui:MyComboBox x:Name="ComboWorld"
+                                               Grid.Column="0"
+                                               HintText="{loc:Loc Tools.GameLink.Create.NoWorld}" />
+                                <ui:MyButton x:Name="BtnInputPort"
+                                             Grid.Column="1"
+                                             Width="80"
+                                             Margin="10,0,0,0"
+                                             Text="{loc:Loc Tools.GameLink.Create.ManualInput}" />
+                                <ui:MyButton x:Name="BtnRefreshWorlds"
+                                             Grid.Column="2"
+                                             Width="50"
+                                             Margin="10,0,0,0"
+                                             Text="{loc:Loc Common.Action.Refresh}" />
+                                <ui:MyButton x:Name="BtnCreate"
+                                             Grid.Column="3"
+                                             Width="50"
+                                             Margin="10,0,0,0"
+                                             ColorType="Highlight"
+                                             Text="{loc:Loc Tools.GameLink.Create.Action}" />
+                            </Grid>
+                        </StackPanel>
+                    </ui:MyCard>
+                </StackPanel>
+
+                <Grid x:Name="PanFinish"
+                      Grid.Row="1"
+                      IsVisible="False"
+                      RowDefinitions="Auto,Auto,Auto,*"
+                      ColumnDefinitions="Auto,*">
+                    <ui:MyCard Grid.Row="0"
+                               Grid.ColumnSpan="2"
+                               Margin="10"
+                               Title="{loc:Loc Tools.GameLink.Finish.InfoTitle}">
+                        <StackPanel Margin="10,35,10,10"
+                                    Orientation="Vertical">
+                            <StackPanel x:Name="PanFinishQuality"
+                                        Margin="5"
+                                        Orientation="Horizontal">
+                                <ui:MyIconButton Width="14"
+                                                 Height="14"
+                                                 Margin="0,0,7,0"
+                                                 IsEnabled="False"
+                                                 LogoScale="1"
+                                                 SvgIcon="lucide/globe" />
+                                <TextBlock x:Name="LabFinishQuality"
+                                           Margin="0,0,12,0"
+                                           VerticalAlignment="Center"
+                                           Foreground="{DynamicResource ColorBrushGray1}" />
+                            </StackPanel>
+                            <StackPanel x:Name="PanFinishPing"
+                                        Margin="5"
+                                        Orientation="Horizontal">
+                                <ui:MyIconButton Width="14"
+                                                 Height="14"
+                                                 Margin="0,0,7,0"
+                                                 IsEnabled="False"
+                                                 LogoScale="1"
+                                                 SvgIcon="lucide/activity" />
+                                <TextBlock x:Name="LabFinishPing"
+                                           VerticalAlignment="Center"
+                                           Foreground="{DynamicResource ColorBrushGray1}" />
+                            </StackPanel>
+                            <StackPanel Margin="5"
+                                        Orientation="Horizontal">
+                                <ui:MyIconButton Width="14"
+                                                 Height="14"
+                                                 Margin="0,0,7,0"
+                                                 IsEnabled="False"
+                                                 LogoScale="1"
+                                                 SvgIcon="lucide/send" />
+                                <TextBlock x:Name="LabFinishId"
+                                           VerticalAlignment="Center"
+                                           Foreground="{DynamicResource ColorBrushGray1}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </ui:MyCard>
+
+                    <ui:MyCard Grid.Row="1"
+                               Grid.ColumnSpan="2"
+                               Margin="10">
+                        <StackPanel Margin="10,10,10,10"
+                                    Orientation="Horizontal">
+                            <StackPanel Margin="5"
+                                        Background="{DynamicResource ColorBrushSemiTransparent}"
+                                        Orientation="Horizontal">
+                                <ui:MyIconButton Width="14"
+                                                 Height="14"
+                                                 Margin="12,0,7,0"
+                                                 IsEnabled="False"
+                                                 LogoScale="1"
+                                                 SvgIcon="lucide/user" />
+                                <TextBlock x:Name="LabConnectUserName"
+                                           Margin="0,0,12,0"
+                                           VerticalAlignment="Center"
+                                           Foreground="{DynamicResource ColorBrushGray1}" />
+                            </StackPanel>
+                            <TextBlock Margin="10,8.8,10,8"
+                                       Opacity="0.3"
+                                       Text="|" />
+                            <StackPanel Margin="5"
+                                        Background="{DynamicResource ColorBrushSemiTransparent}"
+                                        Orientation="Horizontal">
+                                <ui:MyIconButton Width="13"
+                                                 Height="13"
+                                                 Margin="12,0,7,0"
+                                                 IsEnabled="False"
+                                                 LogoScale="1"
+                                                 SvgIcon="lucide/shield" />
+                                <TextBlock x:Name="LabConnectUserType"
+                                           Margin="0,0,12,0"
+                                           VerticalAlignment="Center"
+                                           Foreground="{DynamicResource ColorBrushGray1}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </ui:MyCard>
+
+                    <ui:MyCard Grid.Row="2"
+                               Grid.ColumnSpan="2"
+                               Margin="10"
+                               Title="{loc:Loc Tools.GameLink.Finish.Actions}">
+                        <StackPanel Margin="10,35,10,10"
+                                    Orientation="Vertical">
+                            <ui:MyIconTextButton x:Name="BtnFinishCopyIp"
+                                                 Margin="-2,1"
+                                                 HorizontalAlignment="Left"
+                                                 IsVisible="False"
+                                                 SvgIcon="lucide/copy"
+                                                 Text="{loc:Loc Tools.GameLink.Finish.CopyVirtualIp}" />
+                            <ui:MyIconTextButton x:Name="BtnFinishCopy"
+                                                 Margin="-2,1"
+                                                 HorizontalAlignment="Left"
+                                                 SvgIcon="lucide/copy"
+                                                 Text="{loc:Loc Tools.GameLink.Finish.CopyLobbyId}" />
+                            <ui:MyIconTextButton x:Name="BtnFinishExit"
+                                                 Margin="-2,1"
+                                                 HorizontalAlignment="Left"
+                                                 SvgIcon="lucide/power"
+                                                 Text="{loc:Loc Tools.GameLink.Finish.Exit}" />
+                        </StackPanel>
+                    </ui:MyCard>
+
+                    <ui:MyCard x:Name="CardPlayerList"
+                               Grid.Row="0"
+                               Grid.RowSpan="4"
+                               Grid.Column="1"
+                               MinWidth="300"
+                               Margin="10"
+                               Title="{loc:Loc Tools.GameLink.Member.ListLoading}">
+                        <StackPanel x:Name="StackPlayerList"
+                                    Margin="5,35,6,8" />
+                    </ui:MyCard>
+                </Grid>
+
+                <ui:MyCard x:Name="PanFooter"
+                           Grid.Row="2"
+                           Margin="10">
+                    <StackPanel Margin="8"
+                                HorizontalAlignment="Stretch"
+                                Opacity="0.75"
+                                Orientation="Vertical">
+                        <StackPanel Margin="15,6"
+                                    HorizontalAlignment="Center"
+                                    Orientation="Horizontal">
+                            <ui:MyTextButton x:Name="BtnLinkReport"
+                                             Text="{loc:Loc Tools.GameLink.Link.Report}" />
+                            <TextBlock Text=" | " />
+                            <ui:MyTextButton x:Name="BtnLinkTerms"
+                                             Text="{loc:Loc Tools.GameLink.Link.Terms}" />
+                            <TextBlock Text=" | " />
+                            <ui:MyTextButton x:Name="BtnLinkPrivacy"
+                                             Text="{loc:Loc Tools.GameLink.Link.Privacy}" />
+                            <TextBlock Text=" | " />
+                            <ui:MyTextButton x:Name="BtnEulaStop"
+                                             Text="{loc:Loc Tools.GameLink.Link.Disable}" />
+                        </StackPanel>
+                        <StackPanel Margin="15,6"
+                                    HorizontalAlignment="Center"
+                                    Orientation="Horizontal">
+                            <TextBlock Text="{loc:Loc Tools.GameLink.Link.Friends}" />
+                            <ui:MyTextButton x:Name="BtnLinkEasyTier"
+                                             Text="{loc:Loc Tools.GameLink.Link.EasyTier}" />
+                            <TextBlock Text=" | " />
+                            <ui:MyTextButton x:Name="BtnLinkPysio"
+                                             Text="Pysio's Home" />
+                        </StackPanel>
+                    </StackPanel>
+                </ui:MyCard>
+            </Grid>
+        </ui:MyScrollViewer>
+    </Grid>
+</ui:MyPageRight>

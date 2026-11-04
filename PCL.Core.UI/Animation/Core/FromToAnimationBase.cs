@@ -108,9 +108,9 @@ public class FromToAnimationBase<T> : AnimationBase, IFromToAnimation
                 ? ValueProcessorManager.DefaultValue<T>()
                 : _startValue;
 
-        // 计算总帧数
-        TotalFrames = (int)Math.Round(
-            Duration.TotalSeconds * AnimationService.Fps / AnimationService.Scale);
+        TotalFrames = Math.Max(
+            1,
+            (int)Math.Round(Duration.TotalSeconds * AnimationService.Fps));
 
         // 设置状态
         Status = AnimationStatus.Running;

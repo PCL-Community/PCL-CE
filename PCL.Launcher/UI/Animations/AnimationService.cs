@@ -2,14 +2,13 @@ using Avalonia;
 using Avalonia.Threading;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
-using static PCL.Animations;
 
 namespace PCL.UI.Animations;
 
 /// <summary>
 ///     按配置里的动画速度折算时长的淡入淡出辅助。
-///     动画由 <see cref="PCL.Animations" /> 播放；时长取 <see cref="Config.Debug" /> 的动画速度做除数，速度越大时长越短，
-///     速度为 0 或达到 30 以上时直接跳到终值。
+///     动画由 <see cref="PCL.Animations" /> 播放；速度倍率统一取 <see cref="PCL.Animations.AniSpeed" />
+///     （配置 0 表示无动画，30 及以上表示瞬时），速度越大时长越短。
 /// </summary>
 public static class AnimationService
 {
@@ -18,16 +17,16 @@ public static class AnimationService
     public static int SpeedValue =>
         ConfigService.IsInitialized ? Config.Debug.AnimationSpeed : DefaultSpeedValue;
 
-    public static bool IsEnabled => SpeedValue > 0;
+    public static bool IsEnabled => Speed > 0d;
 
-    public static double Speed =>
-        SpeedValue >= 30
-            ? 200d
-            : Math.Clamp(SpeedValue * 0.1d + 0.1d, 0.1d, 3d);
+    public static double Speed => PCL.Animations.AniSpeed;
 
     public static TimeSpan Duration(double baseMilliseconds)
     {
-        return TimeSpan.FromMilliseconds(baseMilliseconds / Speed);
+        var speed = Speed;
+        return speed <= 0d
+            ? TimeSpan.Zero
+            : TimeSpan.FromMilliseconds(baseMilliseconds / speed);
     }
 
     public static Task FadeInAsync(Visual target, double baseMilliseconds = 180)
@@ -46,14 +45,14 @@ public static class AnimationService
         double to,
         double baseMilliseconds = 180)
     {
-        // AnimationSpeed = 0 或 >= 30 时立即完成
-        if (!IsEnabled || Speed >= 200d)
+        var speed = Speed;
+        if (speed is <= 0d or >= 200d)
         {
             target.Opacity = to;
             return Task.CompletedTask;
         }
 
-        var duration = Math.Max(1, (int)Math.Round(baseMilliseconds / Speed));
+        var duration = Math.Max(1, (int)Math.Round(baseMilliseconds / speed));
         var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
         if (Dispatcher.UIThread.CheckAccess())
@@ -66,11 +65,16 @@ public static class AnimationService
         void Start()
         {
             target.Opacity = from;
-            AniStart(
-                new List<AniData>
+            PCL.Animations.AniStart(
+                new List<PCL.Animations.AniData>
                 {
-                    AaOpacity(target, to - from, duration, 0, new AniEaseOutFluent()),
-                    AaCode(() => tcs.TrySetResult(), after: true)
+                    PCL.Animations.AaOpacity(
+                        target,
+                        to - from,
+                        duration,
+                        0,
+                        new PCL.Animations.AniEaseOutFluent()),
+                    PCL.Animations.AaCode(() => tcs.TrySetResult(), after: true)
                 });
         }
     }

@@ -1,101 +1,78 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Styles.Resources>
-        <ResourceDictionary>
-            <!--
-                页面配色按 Light/Dark 主题成对提供：页面文本直接压在窗口材质上，
-                浅色主题用深色文字、深色主题用浅色文字，避免系统切换主题后内容不可读。
-            -->
-            <ResourceDictionary.ThemeDictionaries>
-                <ResourceDictionary x:Key="Light">
-                    <SolidColorBrush x:Key="PageBrushText"
-                                     Color="#FF343D4A" />
-                    <SolidColorBrush x:Key="PageBrushTextSecondary"
-                                     Color="#FF8C8C8C" />
-                    <SolidColorBrush x:Key="PageBrushWindowSurface"
-                                     Color="#B8FBFBFB" />
-                    <SolidColorBrush x:Key="PageBrushWindowFallback"
-                                     Color="#FFFBFBFB" />
-                    <SolidColorBrush x:Key="PageBrushCard"
-                                     Color="#FFFFFFFF" />
-                    <SolidColorBrush x:Key="PageBrushCardBorder"
-                                     Color="#22808080" />
-                    <SolidColorBrush x:Key="PageBrushDivider"
-                                     Color="#22808080" />
-                    <SolidColorBrush x:Key="PageBrushAccent"
-                                     Color="#FF1370F3" />
-                    <SolidColorBrush x:Key="PageBrushAccentHover"
-                                     Color="#FF4890F5" />
-                    <SolidColorBrush x:Key="PageBrushAccentLight"
-                                     Color="#FFE0EAFD" />
-                    <SolidColorBrush x:Key="PageBrushItemHover"
-                                     Color="#14808080" />
-                    <SolidColorBrush x:Key="PageBrushItemChecked"
-                                     Color="#FFEAF2FE" />
-                    <SolidColorBrush x:Key="PageBrushError"
-                                     Color="#FFE74C3C" />
-                    <SolidColorBrush x:Key="PageBrushWarn"
-                                     Color="#FFF39C12" />
-                    <SolidColorBrush x:Key="PageBrushFatal"
-                                     Color="#FFC23616" />
-                    <SolidColorBrush x:Key="PageBrushDebug"
-                                     Color="#FF95A5A6" />
-                </ResourceDictionary>
-                <ResourceDictionary x:Key="Dark">
-                    <SolidColorBrush x:Key="PageBrushText"
-                                     Color="#FFEDEDF2" />
-                    <SolidColorBrush x:Key="PageBrushTextSecondary"
-                                     Color="#FF9E9EA8" />
-                    <SolidColorBrush x:Key="PageBrushWindowSurface"
-                                     Color="#B81C1C1C" />
-                    <SolidColorBrush x:Key="PageBrushWindowFallback"
-                                     Color="#FF1F1F1F" />
-                    <SolidColorBrush x:Key="PageBrushCard"
-                                     Color="#FF2A2A2A" />
-                    <SolidColorBrush x:Key="PageBrushCardBorder"
-                                     Color="#22FFFFFF" />
-                    <SolidColorBrush x:Key="PageBrushDivider"
-                                     Color="#22FFFFFF" />
-                    <SolidColorBrush x:Key="PageBrushAccent"
-                                     Color="#FF5AA2FF" />
-                    <SolidColorBrush x:Key="PageBrushAccentHover"
-                                     Color="#FF7FB8FF" />
-                    <SolidColorBrush x:Key="PageBrushAccentLight"
-                                     Color="#333E6BB8" />
-                    <SolidColorBrush x:Key="PageBrushItemHover"
-                                     Color="#1AFFFFFF" />
-                    <SolidColorBrush x:Key="PageBrushItemChecked"
-                                     Color="#332F6BD6" />
-                    <SolidColorBrush x:Key="PageBrushError"
-                                     Color="#FFFF6B5A" />
-                    <SolidColorBrush x:Key="PageBrushWarn"
-                                     Color="#FFFFC04D" />
-                    <SolidColorBrush x:Key="PageBrushFatal"
-                                     Color="#FFFF7A6B" />
-                    <SolidColorBrush x:Key="PageBrushDebug"
-                                     Color="#FFB0B0B8" />
-                </ResourceDictionary>
-            </ResourceDictionary.ThemeDictionaries>
-        </ResourceDictionary>
-    </Styles.Resources>
-
     <!--
-        页面内容不再统一铺不透明底色：窗口根保持透明承接系统材质，
-        由主窗口的 WindowSurface 壳层提供半透明承托，页面自身透明。
+        页面配色全部来自 ThemeService 计算并写入 Application.Resources 的核心键：
+        ColorBrush1..8、ColorBrushBg0/Bg1、ColorBrushGray1..8、ColorBrushBackground、
+        ColorBrushTransparentBackground、ColorBrushHalfWhite/SemiWhite/White 等。
+        本文件只做键引用，不定义任何颜色值；主题切换由 ThemeBackend 改写核心键后，
+        DynamicResource 自动把新值推给已渲染控件。
     -->
     <Style Selector="Border.WindowSurface">
         <Setter Property="Background"
-                Value="{DynamicResource PageBrushWindowSurface}" />
+                Value="{DynamicResource ColorBrushTransparentBackground}" />
+    </Style>
+
+    <!-- 系统没有可用材质时使用不透明底色，避免文字压在桌面或纯透明背景上。 -->
+    <Style Selector="Border.WindowSurface.Opaque">
+        <Setter Property="Background"
+                Value="{DynamicResource ColorBrushBackground}" />
     </Style>
 
     <Style Selector="TextBlock">
+        <Setter Property="FontFamily"
+                Value="{DynamicResource LaunchFontFamily}" />
         <Setter Property="FontSize"
                 Value="13" />
         <Setter Property="Foreground"
-                Value="{DynamicResource PageBrushText}" />
+                Value="{DynamicResource ColorBrush1}" />
         <Setter Property="TextTrimming"
                 Value="CharacterEllipsis" />
     </Style>
+    <Style Selector="Button">
+        <Setter Property="FontFamily"
+                Value="{DynamicResource LaunchFontFamily}" />
+    </Style>
+    <Style Selector="ToggleButton">
+        <Setter Property="FontFamily"
+                Value="{DynamicResource LaunchFontFamily}" />
+    </Style>
+    <Style Selector="RepeatButton">
+        <Setter Property="FontFamily"
+                Value="{DynamicResource LaunchFontFamily}" />
+    </Style>
+    <Style Selector="CheckBox">
+        <Setter Property="FontFamily"
+                Value="{DynamicResource LaunchFontFamily}" />
+    </Style>
+    <Style Selector="RadioButton">
+        <Setter Property="FontFamily"
+                Value="{DynamicResource LaunchFontFamily}" />
+    </Style>
+    <Style Selector="TextBox">
+        <Setter Property="FontFamily"
+                Value="{DynamicResource LaunchFontFamily}" />
+    </Style>
+    <Style Selector="ComboBox">
+        <Setter Property="FontFamily"
+                Value="{DynamicResource LaunchFontFamily}" />
+    </Style>
+    <Style Selector="ComboBoxItem">
+        <Setter Property="FontFamily"
+                Value="{DynamicResource LaunchFontFamily}" />
+    </Style>
+    <Style Selector="ListBoxItem">
+        <Setter Property="FontFamily"
+                Value="{DynamicResource LaunchFontFamily}" />
+    </Style>
+    <Style Selector="MenuItem">
+        <Setter Property="FontFamily"
+                Value="{DynamicResource LaunchFontFamily}" />
+    </Style>
+    <Style Selector="SelectableTextBlock">
+        <Setter Property="FontFamily"
+                Value="{DynamicResource LaunchFontFamily}" />
+    </Style>
+
     <Style Selector="TextBlock.PageTitle">
         <Setter Property="FontSize"
                 Value="20" />
@@ -122,28 +99,26 @@
         <Setter Property="FontSize"
                 Value="12" />
         <Setter Property="Foreground"
-                Value="{DynamicResource PageBrushTextSecondary}" />
+                Value="{DynamicResource ColorBrushGray3}" />
     </Style>
     <Style Selector="TextBlock.Hint">
         <Setter Property="FontSize"
                 Value="12" />
         <Setter Property="Foreground"
-                Value="{DynamicResource PageBrushTextSecondary}" />
+                Value="{DynamicResource ColorBrushGray3}" />
         <Setter Property="TextWrapping"
                 Value="Wrap" />
     </Style>
 
     <Style Selector="Border.Card">
         <Setter Property="Background"
-                Value="{DynamicResource PageBrushCard}" />
-        <Setter Property="BorderBrush"
-                Value="{DynamicResource PageBrushCardBorder}" />
+                Value="{DynamicResource ColorBrushTransparentBackground}" />
         <Setter Property="BorderThickness"
-                Value="1" />
+                Value="0" />
         <Setter Property="CornerRadius"
-                Value="6" />
+                Value="5" />
         <Setter Property="BoxShadow"
-                Value="0 2 8 0 #1A000000" />
+                Value="0 0 3 0 #12000000" />
     </Style>
     <Style Selector="Border.PageListItem">
         <Setter Property="Background"
@@ -157,11 +132,11 @@
     </Style>
     <Style Selector="Border.PageListItem:pointerover">
         <Setter Property="Background"
-                Value="{DynamicResource PageBrushItemHover}" />
+                Value="{DynamicResource ColorBrushBg1}" />
     </Style>
     <Style Selector="Border.PageListItem.Checked">
         <Setter Property="Background"
-                Value="{DynamicResource PageBrushItemChecked}" />
+                Value="{DynamicResource ColorBrush7}" />
     </Style>
 
     <Style Selector="Button">
@@ -170,9 +145,9 @@
         <Setter Property="CornerRadius"
                 Value="4" />
         <Setter Property="Background"
-                Value="{DynamicResource PageBrushAccent}" />
+                Value="{DynamicResource ColorBrush3}" />
         <Setter Property="Foreground"
-                Value="#FFFFFFFF" />
+                Value="{DynamicResource ColorBrushWhite}" />
         <Setter Property="BorderThickness"
                 Value="0" />
         <Setter Property="HorizontalContentAlignment"
@@ -182,7 +157,7 @@
     </Style>
     <Style Selector="Button:pointerover">
         <Setter Property="Background"
-                Value="{DynamicResource PageBrushAccentHover}" />
+                Value="{DynamicResource ColorBrush4}" />
     </Style>
     <Style Selector="Button.PageIconButton">
         <Setter Property="Padding"
@@ -194,15 +169,15 @@
         <Setter Property="Background"
                 Value="Transparent" />
         <Setter Property="Foreground"
-                Value="{DynamicResource PageBrushTextSecondary}" />
+                Value="{DynamicResource ColorBrushGray3}" />
         <Setter Property="FontSize"
                 Value="15" />
     </Style>
     <Style Selector="Button.PageIconButton:pointerover">
         <Setter Property="Background"
-                Value="{DynamicResource PageBrushItemHover}" />
+                Value="{DynamicResource ColorBrushBg1}" />
         <Setter Property="Foreground"
-                Value="{DynamicResource PageBrushText}" />
+                Value="{DynamicResource ColorBrush1}" />
     </Style>
     <Style Selector="Button.PageLinkButton">
         <Setter Property="Padding"
@@ -210,13 +185,13 @@
         <Setter Property="Background"
                 Value="Transparent" />
         <Setter Property="Foreground"
-                Value="{DynamicResource PageBrushAccent}" />
+                Value="{DynamicResource ColorBrush3}" />
     </Style>
     <Style Selector="Button.PageLinkButton:pointerover">
         <Setter Property="Background"
-                Value="{DynamicResource PageBrushAccentLight}" />
+                Value="{DynamicResource ColorBrush7}" />
         <Setter Property="Foreground"
-                Value="{DynamicResource PageBrushAccent}" />
+                Value="{DynamicResource ColorBrush3}" />
     </Style>
 
     <Style Selector="RadioButton">

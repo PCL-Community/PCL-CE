@@ -1,0 +1,168 @@
+<ui:MyPageRight xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:ui="using:PCL.UI.Controls"
+                xmlns:loc="using:PCL.Core.UI"
+                x:Class="PCL.Views.Pages.Setup.PageSetupUpdate">
+    <ui:MyScrollViewer x:Name="PanBack"
+                       HorizontalScrollBarVisibility="Disabled"
+                       VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="25,25,25,10">
+            <ui:MyCard>
+                <StackPanel Margin="20,15,20,15">
+                    <Grid ColumnDefinitions="Auto,*,8,75"
+                          RowDefinitions="28,7,28,7,28">
+                        <TextBlock Grid.Row="0"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,25,0"
+                                   Text="{loc:Loc Setup.Update.Channel.Title}" />
+                        <ui:MyComboBox x:Name="ComboSystemUpdateChannel"
+                                       Grid.Row="0"
+                                       Grid.Column="1"
+                                       Grid.ColumnSpan="3"
+                                       HorizontalAlignment="Stretch">
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Update.Channel.Release}"
+                                               ToolTip.Tip="{loc:Loc Setup.Update.Channel.Release.ToolTip}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Update.Channel.Beta}"
+                                               ToolTip.Tip="{loc:Loc Setup.Update.Channel.Beta.ToolTip}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Update.Channel.Dev}"
+                                               ToolTip.Tip="{loc:Loc Setup.Update.Channel.Dev.ToolTip}"
+                                               IsVisible="False" />
+                        </ui:MyComboBox>
+
+                        <TextBlock Grid.Row="2"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,25,0"
+                                   Text="{loc:Loc Setup.Update.Auto.Title}" />
+                        <ui:MyComboBox x:Name="ComboSystemUpdateMode"
+                                       Grid.Row="2"
+                                       Grid.Column="1"
+                                       Grid.ColumnSpan="3"
+                                       HorizontalAlignment="Stretch">
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Update.Auto.DownloadAndInstall}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Update.Auto.DownloadAndNotify}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Update.Auto.NotifyOnly}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Update.Auto.Disabled}" />
+                        </ui:MyComboBox>
+
+                        <TextBlock Grid.Row="4"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,25,0"
+                                   Text="{loc:Loc Setup.Update.MirrorChyanCdk.Label}" />
+                        <ui:MyPasswordBox x:Name="TextMirrorCDK"
+                                         Grid.Row="4"
+                                         Grid.Column="1"
+                                         ToolTip.Tip="{loc:Loc Setup.Update.MirrorChyanCdk.ToolTip}" />
+                        <ui:MyButton x:Name="BtnGetMirrorCDK"
+                                     Grid.Row="4"
+                                     Grid.Column="3"
+                                     Padding="13,0"
+                                     ColorType="Highlight"
+                                     Text="{loc:Loc Setup.Update.MirrorChyanCdk.Get}" />
+                    </Grid>
+                </StackPanel>
+            </ui:MyCard>
+
+            <ui:MyCard x:Name="CardUpdate"
+                       Margin="0,15"
+                       IsVisible="False">
+                <StackPanel Margin="20,20,20,20">
+                    <Grid ColumnDefinitions="50,10,*,85"
+                          RowDefinitions="29,1,20,8,Auto,10,Auto">
+                        <ui:MyImage x:Name="ImgUpdateIcon"
+                                    Grid.Row="0"
+                                    Grid.RowSpan="3"
+                                    Grid.Column="0"
+                                    Width="50"
+                                    Height="50"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    Source="https://www.pclc.cc/img/pcl-ce/icon.webp" />
+                        <TextBlock x:Name="TextUpdateName"
+                                   Grid.Row="0"
+                                   Grid.Column="2"
+                                   FontWeight="Bold"
+                                   FontSize="20"
+                                   HorizontalAlignment="Left"
+                                   VerticalAlignment="Bottom" />
+                        <TextBlock x:Name="TextUpdateDesc"
+                                   Grid.Row="2"
+                                   Grid.Column="2"
+                                   FontSize="14"
+                                   Text="by PCL-Community"
+                                   HorizontalAlignment="Left"
+                                   VerticalAlignment="Top" />
+                        <ui:MyButton x:Name="BtnUpdate"
+                                     Grid.Row="0"
+                                     Grid.RowSpan="2"
+                                     Grid.Column="3"
+                                     Width="85"
+                                     Height="30"
+                                     HorizontalAlignment="Center"
+                                     VerticalAlignment="Center"
+                                     ColorType="Highlight"
+                                     Text="{loc:Loc Setup.Update.Install}" />
+                        <TextBlock x:Name="TextChangelog"
+                                   Grid.Row="4"
+                                   Grid.Column="0"
+                                   Grid.ColumnSpan="4"
+                                   TextWrapping="Wrap" />
+                        <ui:MyTextButton x:Name="BtnChangelogDetail"
+                                         Grid.Row="6"
+                                         Grid.Column="0"
+                                         Grid.ColumnSpan="4"
+                                         FontWeight="Thin"
+                                         HorizontalAlignment="Left"
+                                         VerticalAlignment="Center"
+                                         Text="{loc:Loc Setup.Update.Changelog.MoreInfo}" />
+                    </Grid>
+                </StackPanel>
+            </ui:MyCard>
+
+            <ui:MyCard x:Name="CardCheck"
+                       Margin="0,15">
+                <StackPanel Margin="20,20,20,20">
+                    <Grid ColumnDefinitions="50,10,*,80,10,100"
+                          RowDefinitions="29,1,20">
+                        <Image Grid.Row="0"
+                               Grid.RowSpan="3"
+                               Grid.Column="0"
+                               Width="50"
+                               Height="50"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Center"
+                               Source="avares://PCL.Launcher/Assets/Images/icon.png" />
+                        <TextBlock x:Name="TextCurrentVersion"
+                                   Grid.Row="0"
+                                   Grid.Column="2"
+                                   FontWeight="Bold"
+                                   FontSize="20"
+                                   HorizontalAlignment="Left"
+                                   VerticalAlignment="Bottom" />
+                        <TextBlock x:Name="TextCurrentDesc"
+                                   Grid.Row="2"
+                                   Grid.Column="2"
+                                   FontSize="14"
+                                   HorizontalAlignment="Left"
+                                   VerticalAlignment="Top" />
+                        <ui:MyButton x:Name="BtnCheckAgain"
+                                     Grid.Row="0"
+                                     Grid.RowSpan="2"
+                                     Grid.Column="3"
+                                     HorizontalAlignment="Stretch"
+                                     VerticalAlignment="Stretch"
+                                     ColorType="Highlight"
+                                     Text="{loc:Loc Setup.Update.CheckAgain}" />
+                        <ui:MyButton x:Name="BtnChangelog"
+                                     Grid.Row="0"
+                                     Grid.RowSpan="2"
+                                     Grid.Column="5"
+                                     HorizontalAlignment="Stretch"
+                                     VerticalAlignment="Stretch"
+                                     ColorType="Normal"
+                                     Text="{loc:Loc Setup.Update.Changelog.View}" />
+                    </Grid>
+                </StackPanel>
+            </ui:MyCard>
+        </StackPanel>
+    </ui:MyScrollViewer>
+</ui:MyPageRight>

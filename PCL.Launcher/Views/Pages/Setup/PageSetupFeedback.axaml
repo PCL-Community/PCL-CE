@@ -1,0 +1,38 @@
+<ui:MyPageRight xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:ui="using:PCL.UI.Controls"
+                xmlns:loc="using:PCL.Core.UI"
+                x:Class="PCL.Views.Pages.Setup.PageSetupFeedback">
+    <ui:MyScrollViewer x:Name="PanBack"
+                       HorizontalScrollBarVisibility="Disabled"
+                       VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="25,25,25,25">
+            <ui:MyCard Title="{loc:Loc Setup.Feedback.Submit.Title}">
+                <StackPanel Margin="20,40,18,22"
+                            Spacing="15">
+                    <TextBlock TextWrapping="Wrap"
+                               Text="{loc:Loc Setup.Feedback.Submit.Description}" />
+                    <ui:MyButton Height="35"
+                                 x:Name="BtnManageOpen"
+                                 MinWidth="140"
+                                 Padding="13,0"
+                                 HorizontalAlignment="Left"
+                                 ColorType="Highlight"
+                                 Text="{loc:Loc Setup.Feedback.Submit.Open}" />
+                </StackPanel>
+            </ui:MyCard>
+            <StackPanel x:Name="PanContent"
+                        Margin="0,15,0,0" />
+            <ui:MyCard x:Name="PanLoad"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Margin="40,50">
+                <ui:MyLoading x:Name="Load"
+                              Margin="20,20,20,17"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"
+                              Text="{loc:Loc Setup.Feedback.Loading}" />
+            </ui:MyCard>
+        </StackPanel>
+    </ui:MyScrollViewer>
+</ui:MyPageRight>

@@ -1,0 +1,210 @@
+<ui:MyPageLeft xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:ui="using:PCL.UI.Controls"
+                xmlns:loc="using:PCL.Core.UI"
+                x:Class="PCL.Views.Pages.Launch.PageLaunchLeft"
+                Width="300">
+    <Grid x:Name="PanInput"
+          RenderTransformOrigin="0.5,0.5"
+          RowDefinitions="Auto,*,Auto,Auto,20"
+          ColumnDefinitions="Auto,20,*,Auto,10">
+        <Grid.RenderTransform>
+            <ScaleTransform />
+        </Grid.RenderTransform>
+
+        <Grid x:Name="PanLogin"
+              Grid.Row="1"
+              Grid.ColumnSpan="5"
+              Margin="20,0"
+              VerticalAlignment="Center" />
+
+        <Grid x:Name="PanLaunch"
+              Grid.Row="2"
+              Grid.ColumnSpan="5"
+              RenderTransformOrigin="0.5,0.5">
+            <ui:MyButton x:Name="BtnLaunch"
+                         Height="54"
+                         Margin="20,0"
+                         Padding="30,0,30,15"
+                         ColorType="Highlight"
+                         Text="{loc:Loc Launch.Home.Button.Loading}" />
+            <TextBlock x:Name="LabVersion"
+                       Margin="35,0,35,10"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Bottom"
+                       FontSize="11"
+                       Foreground="{DynamicResource ColorBrushGray3}"
+                       IsHitTestVisible="False"
+                       TextTrimming="CharacterEllipsis" />
+        </Grid>
+
+        <ui:MyButton x:Name="BtnInstance"
+                     Grid.Row="3"
+                     Grid.Column="2"
+                     Height="35"
+                     Margin="0,10,10,0"
+                     Text="{loc:Loc Launch.Home.SelectInstance}" />
+        <ui:MyButton x:Name="BtnMore"
+                     Grid.Row="3"
+                     Grid.Column="3"
+                     Height="35"
+                     Margin="0,10,10,0"
+                     TextPadding="36"
+                     IsVisible="False"
+                     Text="{loc:Loc Launch.Home.InstanceSettings}" />
+    </Grid>
+
+    <Grid x:Name="PanLaunching"
+          IsVisible="False"
+          Opacity="0"
+          RenderTransformOrigin="0.5,0.5"
+          RowDefinitions="*,Auto,Auto,*,Auto">
+        <Grid.RenderTransform>
+            <ScaleTransform ScaleX="0.8" ScaleY="0.8" />
+        </Grid.RenderTransform>
+
+        <ui:MyDropShadow x:Name="ShadowLaunching"
+                         Grid.Row="1"
+                         Margin="0,-7,0,0"
+                         Opacity="0.15"
+                         ShadowRadius="3">
+        <StackPanel RenderTransformOrigin="0.5,0.5">
+            <ui:MyLoading x:Name="LoadLaunching"
+                          AutoRun="False"
+                          Height="50"
+                          Margin="0,10,0,5" />
+            <TextBlock x:Name="LabLaunchingTitle"
+                       Margin="15,10,15,0"
+                       HorizontalAlignment="Center"
+                       FontSize="20"
+                       Foreground="{DynamicResource ColorBrush3}">
+                <TextBlock.RenderTransform>
+                    <SkewTransform AngleX="-3" />
+                </TextBlock.RenderTransform>
+            </TextBlock>
+            <TextBlock x:Name="LabLaunchingName"
+                       Margin="40,5,40,0"
+                       HorizontalAlignment="Center"
+                       FontSize="13.5"
+                       Foreground="{DynamicResource ColorBrush3}">
+                <TextBlock.RenderTransform>
+                    <SkewTransform AngleX="-3" />
+                </TextBlock.RenderTransform>
+            </TextBlock>
+
+            <Grid x:Name="GridLaunchProgress"
+                  Height="4"
+                  Margin="30,12,30,27">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="0*" />
+                    <ColumnDefinition Width="1*" />
+                </Grid.ColumnDefinitions>
+                <Rectangle x:Name="ProgressFinished"
+                           Grid.Column="0" />
+                <Rectangle Grid.Column="1"
+                           Fill="{DynamicResource ColorBrush6}"
+                           Opacity="0.6" />
+            </Grid>
+
+            <Grid x:Name="PanLaunchingInfo"
+                  HorizontalAlignment="Center"
+                  RowDefinitions="Auto,Auto,Auto,Auto"
+                  ColumnDefinitions="*,Auto,15,Auto,*">
+                <TextBlock Grid.Row="0"
+                           Grid.Column="1"
+                           Margin="0,0,0,5"
+                           HorizontalAlignment="Right"
+                           FontSize="12.5"
+                           Opacity="0.5"
+                           Text="{loc:Loc Launch.Status.CurrentStep}" />
+                <TextBlock x:Name="LabLaunchingStage"
+                           Grid.Row="0"
+                           Grid.Column="3"
+                           Margin="0,0,0,5"
+                           HorizontalAlignment="Left"
+                           FontSize="12.5" />
+                <TextBlock Grid.Row="1"
+                           Grid.Column="1"
+                           Margin="0,0,0,5"
+                           HorizontalAlignment="Right"
+                           FontSize="12.5"
+                           Opacity="0.5"
+                           Text="{loc:Loc Launch.Status.LoginMethod}" />
+                <TextBlock x:Name="LabLaunchingMethod"
+                           Grid.Row="1"
+                           Grid.Column="3"
+                           Margin="0,0,0,5"
+                           HorizontalAlignment="Left"
+                           MaxWidth="160"
+                           FontSize="12.5"
+                           TextWrapping="Wrap" />
+                <TextBlock x:Name="LabLaunchingProgressLeft"
+                           Grid.Row="2"
+                           Grid.Column="1"
+                           Margin="0,0,0,5"
+                           HorizontalAlignment="Right"
+                           FontSize="12.5"
+                           Opacity="0.5"
+                           Text="{loc:Loc Launch.Status.LaunchProgress}" />
+                <TextBlock x:Name="LabLaunchingProgress"
+                           Grid.Row="2"
+                           Grid.Column="3"
+                           Margin="0,0,0,5"
+                           HorizontalAlignment="Left"
+                           FontSize="12.5" />
+                <TextBlock x:Name="LabLaunchingDownloadLeft"
+                           Grid.Row="3"
+                           Grid.Column="1"
+                           Margin="0,0,0,5"
+                           HorizontalAlignment="Right"
+                           FontSize="12.5"
+                           Opacity="0"
+                           Text="{loc:Loc Launch.Status.DownloadSpeed}" />
+                <TextBlock x:Name="LabLaunchingDownload"
+                           Grid.Row="3"
+                           Grid.Column="3"
+                           Margin="0,0,0,5"
+                           HorizontalAlignment="Left"
+                           FontSize="12.5"
+                           Opacity="0" />
+
+                <Grid x:Name="PanLaunchingHint"
+                      Grid.Row="2"
+                      Grid.RowSpan="2"
+                      Grid.ColumnSpan="5"
+                      Width="260"
+                      Margin="0,16,0,2"
+                      HorizontalAlignment="Center"
+                      IsVisible="False"
+                      Opacity="0">
+                    <Border x:Name="HintBorder"
+                            Margin="0,8,0,0"
+                            BorderThickness="1"
+                            CornerRadius="3"
+                            BorderBrush="{DynamicResource ColorBrushGray1}"
+                            Opacity="0.5" />
+                    <TextBlock HorizontalAlignment="Center"
+                               VerticalAlignment="Top"
+                               FontSize="12.5"
+                               Opacity="0.5"
+                               Text="{loc:Loc Launch.Status.Trivia}" />
+                    <TextBlock x:Name="LabLaunchingHint"
+                               Margin="11,21,11,10"
+                               MaxHeight="54"
+                               HorizontalAlignment="Center"
+                               FontSize="12.5"
+                               TextWrapping="Wrap"
+                               TextTrimming="CharacterEllipsis" />
+                </Grid>
+            </Grid>
+        </StackPanel>
+        </ui:MyDropShadow>
+
+        <ui:MyButton x:Name="BtnCancel"
+                     Grid.Row="4"
+                     Height="35"
+                     Margin="20,0,20,20"
+                     VerticalAlignment="Bottom"
+                     Text="{loc:Loc Common.Action.Cancel}" />
+    </Grid>
+</ui:MyPageLeft>

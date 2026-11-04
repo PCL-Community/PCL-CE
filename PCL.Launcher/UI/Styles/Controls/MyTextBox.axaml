@@ -1,8 +1,8 @@
 <!--
-    MyTextBox 的模板与样式：
-    模板沿用 Fluent TextBox 的结构（PART_BorderElement / PART_ScrollViewer / PART_TextPresenter），
-    并在输入区下方增加错误文本行 PART_Error，由控件代码控制高度 0～21 与透明度。
-    焦点/悬停/验证配色由控件代码按 PageBrush* 动态资源驱动；invalid 类作为外部样式判断验证状态的入口保留。
+    MyTextBox 的模板与样式：按 WPF Application.xaml:309-363 的自绘模板重写。
+    上行为输入区（Border + 内嵌 ScrollViewer，提示文案作为覆盖层），下行为错误文本行 PART_Error；
+    边框/底色/文字颜色由控件代码按核心 ColorBrush* 动态资源驱动，主题只提供 WPF 的初始值与尺寸。
+    Avalonia 的 TextBox 要求模板内保留 PART_ScrollViewer 与 PART_TextPresenter；错误层名称 PART_Error 由控件代码查找。
 -->
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -11,27 +11,29 @@
         <ControlTheme x:Key="{x:Type ui:MyTextBox}"
                       TargetType="ui:MyTextBox">
             <Setter Property="Foreground"
-                    Value="{DynamicResource TextControlForeground}" />
+                    Value="{DynamicResource ColorBrush1}" />
             <Setter Property="Background"
-                    Value="{DynamicResource TextControlBackground}" />
-            <Setter Property="CaretBrush"
-                    Value="{DynamicResource TextControlForeground}" />
+                    Value="{DynamicResource ColorBrushHalfWhite}" />
             <Setter Property="BorderBrush"
-                    Value="{DynamicResource TextControlBorderBrush}" />
-            <Setter Property="SelectionBrush"
-                    Value="{DynamicResource TextControlSelectionHighlightColor}" />
-            <Setter Property="PlaceholderForeground"
-                    Value="{DynamicResource TextControlPlaceholderForeground}" />
+                    Value="{DynamicResource ColorBrushBg0}" />
             <Setter Property="BorderThickness"
-                    Value="{DynamicResource TextControlBorderThemeThickness}" />
+                    Value="1" />
             <Setter Property="CornerRadius"
-                    Value="{DynamicResource ControlCornerRadius}" />
+                    Value="3" />
+            <Setter Property="CaretBrush"
+                    Value="{DynamicResource ColorBrush1}" />
+            <Setter Property="SelectionBrush"
+                    Value="{DynamicResource ColorBrush3}" />
+            <Setter Property="PlaceholderForeground"
+                    Value="{DynamicResource ColorBrushGray4}" />
             <Setter Property="MinHeight"
-                    Value="{DynamicResource TextControlThemeMinHeight}" />
-            <Setter Property="MinWidth"
-                    Value="{DynamicResource TextControlThemeMinWidth}" />
-            <Setter Property="Padding"
-                    Value="{DynamicResource TextControlThemePadding}" />
+                    Value="28" />
+            <Setter Property="FontSize"
+                    Value="13" />
+            <Setter Property="VerticalContentAlignment"
+                    Value="Center" />
+            <Setter Property="HorizontalContentAlignment"
+                    Value="Left" />
             <Setter Property="FocusAdorner"
                     Value="{x:Null}" />
             <Setter Property="ScrollViewer.IsScrollChainingEnabled"
@@ -41,87 +43,68 @@
             <Setter Property="Template">
                 <ControlTemplate>
                     <DataValidationErrors>
-                        <Grid RowDefinitions="*,Auto">
-                            <Panel Grid.Row="0">
-                                <Border Name="PART_BorderElement"
+                        <Grid RowDefinitions="Auto,Auto">
+                            <Panel Grid.Row="0"
+                                   MinHeight="28">
+                                <Border x:Name="PART_BorderElement"
                                         Background="{TemplateBinding Background}"
                                         BorderBrush="{TemplateBinding BorderBrush}"
                                         BorderThickness="{TemplateBinding BorderThickness}"
-                                        CornerRadius="{TemplateBinding CornerRadius}"
-                                        MinWidth="{TemplateBinding MinWidth}"
-                                        MinHeight="{TemplateBinding MinHeight}" />
+                                        CornerRadius="{TemplateBinding CornerRadius}" />
 
-                                <Border Margin="{TemplateBinding BorderThickness}">
-                                    <Grid ColumnDefinitions="Auto,*,Auto">
-                                        <ContentPresenter Grid.Column="0"
-                                                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                                                          Content="{TemplateBinding InnerLeftContent}" />
-                                        <DockPanel x:Name="PART_InnerDockPanel"
-                                                   Grid.Column="1"
-                                                   Margin="{TemplateBinding Padding}">
-                                            <TextBlock Name="PART_FloatingPlaceholder"
-                                                       Foreground="{TemplateBinding PlaceholderForeground}"
-                                                       IsVisible="False"
-                                                       Text="{TemplateBinding PlaceholderText}"
-                                                       DockPanel.Dock="Top" />
+                                <ScrollViewer Name="PART_ScrollViewer"
+                                              Margin="5,0,0,0"
+                                              Cursor="IBeam"
+                                              HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
+                                              VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}"
+                                              IsScrollChainingEnabled="{TemplateBinding (ScrollViewer.IsScrollChainingEnabled)}"
+                                              AllowAutoHide="{TemplateBinding (ScrollViewer.AllowAutoHide)}"
+                                              BringIntoViewOnFocusChange="{TemplateBinding (ScrollViewer.BringIntoViewOnFocusChange)}">
+                                    <Panel>
+                                        <TextPresenter Name="PART_TextPresenter"
+                                                       Text="{TemplateBinding Text, Mode=TwoWay}"
+                                                       CaretBlinkInterval="{TemplateBinding CaretBlinkInterval}"
+                                                       CaretIndex="{TemplateBinding CaretIndex}"
+                                                       SelectionStart="{TemplateBinding SelectionStart}"
+                                                       SelectionEnd="{TemplateBinding SelectionEnd}"
+                                                       TextAlignment="{TemplateBinding TextAlignment}"
+                                                       TextWrapping="{TemplateBinding TextWrapping}"
+                                                       LineHeight="{TemplateBinding LineHeight}"
+                                                       LetterSpacing="{TemplateBinding LetterSpacing}"
+                                                       PasswordChar="{TemplateBinding PasswordChar}"
+                                                       RevealPassword="{TemplateBinding RevealPassword}"
+                                                       SelectionBrush="{TemplateBinding SelectionBrush}"
+                                                       SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
+                                                       CaretBrush="{TemplateBinding CaretBrush}"
+                                                       HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                       VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                                    </Panel>
+                                </ScrollViewer>
 
-                                            <ScrollViewer Name="PART_ScrollViewer"
-                                                          HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
-                                                          VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}"
-                                                          IsScrollChainingEnabled="{TemplateBinding (ScrollViewer.IsScrollChainingEnabled)}"
-                                                          AllowAutoHide="{TemplateBinding (ScrollViewer.AllowAutoHide)}"
-                                                          BringIntoViewOnFocusChange="{TemplateBinding (ScrollViewer.BringIntoViewOnFocusChange)}">
-                                                <Panel>
-                                                    <TextBlock Name="PART_Placeholder"
-                                                               Foreground="{TemplateBinding PlaceholderForeground}"
-                                                               Opacity="{DynamicResource TextControlPlaceholderOpacity}"
-                                                               Text="{TemplateBinding PlaceholderText}"
-                                                               TextAlignment="{TemplateBinding TextAlignment}"
-                                                               TextWrapping="{TemplateBinding TextWrapping}"
-                                                               HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                                               VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
-                                                        <TextBlock.IsVisible>
-                                                            <MultiBinding Converter="{x:Static BoolConverters.And}">
-                                                                <Binding ElementName="PART_TextPresenter"
-                                                                         Path="PreeditText"
-                                                                         Converter="{x:Static StringConverters.IsNullOrEmpty}" />
-                                                                <Binding RelativeSource="{RelativeSource TemplatedParent}"
-                                                                         Path="Text"
-                                                                         Converter="{x:Static StringConverters.IsNullOrEmpty}" />
-                                                            </MultiBinding>
-                                                        </TextBlock.IsVisible>
-                                                    </TextBlock>
-
-                                                    <TextPresenter Name="PART_TextPresenter"
-                                                                   Text="{TemplateBinding Text, Mode=TwoWay}"
-                                                                   CaretBlinkInterval="{TemplateBinding CaretBlinkInterval}"
-                                                                   CaretIndex="{TemplateBinding CaretIndex}"
-                                                                   SelectionStart="{TemplateBinding SelectionStart}"
-                                                                   SelectionEnd="{TemplateBinding SelectionEnd}"
-                                                                   TextAlignment="{TemplateBinding TextAlignment}"
-                                                                   TextWrapping="{TemplateBinding TextWrapping}"
-                                                                   LineHeight="{TemplateBinding LineHeight}"
-                                                                   LetterSpacing="{TemplateBinding LetterSpacing}"
-                                                                   PasswordChar="{TemplateBinding PasswordChar}"
-                                                                   RevealPassword="{TemplateBinding RevealPassword}"
-                                                                   SelectionBrush="{TemplateBinding SelectionBrush}"
-                                                                   SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
-                                                                   CaretBrush="{TemplateBinding CaretBrush}"
-                                                                   HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                                                   VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                                                </Panel>
-                                                <ScrollViewer.Styles>
-                                                    <Style Selector="ScrollContentPresenter#PART_ContentPresenter">
-                                                        <Setter Property="Cursor"
-                                                                Value="IBeam" />
-                                                    </Style>
-                                                </ScrollViewer.Styles>
-                                            </ScrollViewer>
-                                        </DockPanel>
-                                        <ContentPresenter Grid.Column="2"
-                                                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                                                          Content="{TemplateBinding InnerRightContent}" />
-                                    </Grid>
+                                <Border Margin="{TemplateBinding Padding}"
+                                        IsHitTestVisible="False"
+                                        HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                        VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                        BorderThickness="0">
+                                    <TextBlock Name="PART_Placeholder"
+                                               Margin="7,0,0,0"
+                                               Padding="{TemplateBinding BorderThickness}"
+                                               FontSize="{TemplateBinding FontSize}"
+                                               Foreground="{TemplateBinding PlaceholderForeground}"
+                                               Text="{TemplateBinding PlaceholderText}"
+                                               TextAlignment="{TemplateBinding TextAlignment}"
+                                               TextWrapping="{TemplateBinding TextWrapping}">
+                                        <TextBlock.IsVisible>
+                                            <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                                <Binding ElementName="PART_TextPresenter"
+                                                         Path="PreeditText"
+                                                         Converter="{x:Static StringConverters.IsNullOrEmpty}" />
+                                                <Binding RelativeSource="{RelativeSource TemplatedParent}"
+                                                         Path="Text"
+                                                         Converter="{x:Static StringConverters.IsNullOrEmpty}" />
+                                            </MultiBinding>
+                                        </TextBlock.IsVisible>
+                                    </TextBlock>
                                 </Border>
                             </Panel>
 
@@ -129,6 +112,7 @@
                             <TextBlock Name="PART_Error"
                                        Grid.Row="1"
                                        Height="0"
+                                       Margin="0,0,0,-3"
                                        Opacity="0"
                                        IsVisible="False"
                                        IsHitTestVisible="False"
@@ -142,76 +126,12 @@
                     </DataValidationErrors>
                 </ControlTemplate>
             </Setter>
-
-            <!-- 禁用状态 -->
-            <Style Selector="^:disabled">
-                <Setter Property="Foreground"
-                        Value="{DynamicResource TextControlForegroundDisabled}" />
-                <Style Selector="^ /template/ Border#PART_BorderElement">
-                    <Setter Property="Background"
-                            Value="{DynamicResource TextControlBackgroundDisabled}" />
-                    <Setter Property="BorderBrush"
-                            Value="{DynamicResource TextControlBorderBrushDisabled}" />
-                </Style>
-            </Style>
-
-            <!-- 指针悬停状态 -->
-            <Style Selector="^:pointerover">
-                <Setter Property="Foreground"
-                        Value="{DynamicResource TextControlForegroundPointerOver}" />
-                <Style Selector="^ /template/ Border#PART_BorderElement">
-                    <Setter Property="BorderBrush"
-                            Value="{DynamicResource TextControlBorderBrushPointerOver}" />
-                    <Setter Property="Background"
-                            Value="{DynamicResource TextControlBackgroundPointerOver}" />
-                </Style>
-            </Style>
-
-            <!-- 焦点状态 -->
-            <Style Selector="^:focus">
-                <Setter Property="Foreground"
-                        Value="{DynamicResource TextControlForegroundFocused}" />
-                <Style Selector="^ /template/ Border#PART_BorderElement">
-                    <Setter Property="Background"
-                            Value="{DynamicResource TextControlBackgroundFocused}" />
-                    <Setter Property="BorderBrush"
-                            Value="{DynamicResource TextControlBorderBrushFocused}" />
-                    <Setter Property="BorderThickness"
-                            Value="{DynamicResource TextControlBorderThemeThicknessFocused}" />
-                </Style>
-            </Style>
-
-            <Style Selector="^:error /template/ Border#PART_BorderElement">
-                <Setter Property="BorderBrush"
-                        Value="{DynamicResource SystemControlErrorTextForegroundBrush}" />
-            </Style>
-
-            <Style Selector="^ /template/ TextBlock#PART_FloatingPlaceholder">
-                <Setter Property="Cursor"
-                        Value="IBeam" />
-            </Style>
-
-            <Style Selector="^[UseFloatingPlaceholder=true]:not(:empty) /template/ TextBlock#PART_FloatingPlaceholder">
-                <Setter Property="IsVisible"
-                        Value="True" />
-            </Style>
         </ControlTheme>
     </Styles.Resources>
-
-    <Style Selector="ui|MyTextBox">
-        <Setter Property="MinHeight"
-                Value="28" />
-        <Setter Property="FontSize"
-                Value="13" />
-        <Setter Property="VerticalContentAlignment"
-                Value="Center" />
-        <Setter Property="CornerRadius"
-                Value="3" />
-    </Style>
 
     <!-- 验证失败时的边框基线；控件代码会在动画结束后恢复同一资源 -->
     <Style Selector="ui|MyTextBox.invalid">
         <Setter Property="BorderBrush"
-                Value="{DynamicResource PageBrushError}" />
+                Value="{DynamicResource ColorBrushError}" />
     </Style>
 </Styles>

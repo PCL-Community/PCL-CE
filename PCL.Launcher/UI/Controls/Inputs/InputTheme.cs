@@ -8,22 +8,35 @@ namespace PCL.UI.Controls;
 
 /// <summary>
 ///     输入/选择控件共用的主题画刷解析。
-///     颜色统一取自 <c>UI/Styles/PageStyles.axaml</c> 的 <c>PageBrush*</c> 动态资源；
+///     颜色统一取自 ThemeService 写入的核心 <c>ColorBrush*</c> 动态资源；
 ///     控件尚未挂进可视树或资源缺失时使用调用方给出的回退画刷。
 /// </summary>
 internal static class InputTheme
 {
-    internal const string TextKey = "PageBrushText";
-    internal const string TextSecondaryKey = "PageBrushTextSecondary";
-    internal const string AccentKey = "PageBrushAccent";
-    internal const string AccentHoverKey = "PageBrushAccentHover";
-    internal const string AccentLightKey = "PageBrushAccentLight";
-    internal const string ItemHoverKey = "PageBrushItemHover";
-    internal const string ItemCheckedKey = "PageBrushItemChecked";
-    internal const string CardKey = "PageBrushCard";
-    internal const string CardBorderKey = "PageBrushCardBorder";
-    internal const string DividerKey = "PageBrushDivider";
-    internal const string ErrorKey = "PageBrushError";
+    internal const string TextKey = "ColorBrush1";
+    internal const string TextSecondaryKey = "ColorBrushGray3";
+    internal const string AccentKey = "ColorBrush3";
+    internal const string AccentHoverKey = "ColorBrush4";
+    internal const string AccentLightKey = "ColorBrush7";
+    internal const string ItemHoverKey = "ColorBrushBg1";
+    internal const string ItemCheckedKey = "ColorBrush7";
+    internal const string CardKey = "ColorBrushWhite";
+    internal const string CardBorderKey = "ColorBrushGray6";
+    internal const string DividerKey = "ColorBrushGray5";
+    internal const string IdleBorderKey = "ColorBrushBg0";
+    internal const string IdleBackgroundKey = "ColorBrushHalfWhite";
+    internal const string DisabledBorderKey = "ColorBrushGray5";
+    internal const string DisabledBackgroundKey = "ColorBrushGray6";
+    internal const string ErrorKey = "ColorBrushRedLight";
+    internal const string ErrorBackgroundKey = "ColorBrushRedBack";
+    internal const string SemiTransparentKey = "ColorBrushSemiTransparent";
+    internal const string CheckFillKey = "ColorBrushHalfWhite";
+    internal const string CheckPressedKey = "ColorBrushBg1";
+    internal const string CheckedKey = "ColorBrush2";
+    internal const string HoverKey = "ColorBrush3";
+    internal const string DisabledTextKey = "ColorBrushGray4";
+    internal const string ComboSelectedKey = "ColorBrush6";
+    internal const string ComboHoverKey = "ColorBrush8";
 
     private static int _uuidSeed;
 
@@ -123,9 +136,34 @@ internal static class InputTheme
         return Brush(element, ErrorKey, Brushes.OrangeRed);
     }
 
+    public static IBrush ErrorBackground(StyledElement element)
+    {
+        return Brush(element, ErrorBackgroundKey, Brushes.MistyRose);
+    }
+
     public static IBrush DisabledBackground(StyledElement element)
     {
-        return Brush(element, ItemHoverKey, Brushes.Transparent);
+        return Brush(element, DisabledBackgroundKey, Brushes.Transparent);
+    }
+
+    public static IBrush IdleBorder(StyledElement element)
+    {
+        return Brush(element, IdleBorderKey, Brushes.LightSteelBlue);
+    }
+
+    public static IBrush IdleBackground(StyledElement element)
+    {
+        return Brush(element, IdleBackgroundKey, Brushes.WhiteSmoke);
+    }
+
+    public static Color ColorOf(StyledElement element, string key, Color fallback)
+    {
+        return TryColor(element, key, out var color) ? (Color)color : fallback;
+    }
+
+    public static Color ColorOf(IBrush? brush, Color fallback)
+    {
+        return brush is ISolidColorBrush solid ? solid.Color : fallback;
     }
 
     /// <summary>

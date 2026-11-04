@@ -2,21 +2,26 @@ using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Threading;
+using Microsoft.Win32;
 using PCL.Core.App;
 using PCL.Core.App.IoC;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
+using PCL.Navigation;
+using PCL.Views.Shell;
 
 namespace PCL.UI.Seams;
 
-/// <summary>把业务层 seam 的通用交互落到界面的弹窗与提示服务。</summary>
-// TODO(FIX-SH-01): 本文件与 UiSeamPassive 中仍有多处 seam 只记录日志、没有界面行为：任务栏进度、下载按钮、
-// 更新重启按钮、登录/皮肤页、Comp 详情与本地资源、整合包安装加载器、崩溃分析器、媒体控制、
-// 页面导航等。补齐界面实现后应替换这些分支，并删除对应的 LogMissing 调用。
+/// <summary>把业务层 seam 的通用交互落到界面的弹窗、提示与导航服务。</summary>
 internal static class UiSeamInteraction
 {
+    internal static Window? MainWindow =>
+        (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
+        ?.MainWindow;
+
     internal static void Hint(string text, NotificationType type)
     {
         HintService.Show(
@@ -170,13 +175,59 @@ internal static class UiSeamInteraction
                         : argument));
     }
 
-    internal static Window? MainWindow =>
-        (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
-        ?.MainWindow;
-
-    internal static void LogMissing(string feature)
+    /// <summary>把动作调度到 UI 线程；界面尚未就绪时直接执行，由动作自身处理空窗口。</summary>
+    internal static void RunOnUi(Action action)
     {
-        LogWrapper.Debug("UI", $"seam {feature} 暂无界面实现，本次调用已忽略");
+        if (Dispatcher.UIThread.CheckAccess()) action();
+        else Dispatcher.UIThread.Post(action);
+    }
+
+    internal static void WarnMissing(string feature, string todoId)
+    {
+        LogWrapper.Warn(
+            "Seam",
+            $"seam {feature} 的界面宿主尚未接入（{todoId}），本次调用已跳过；需要页面/壳登记对应 SeamContracts 接口");
+    }
+
+    internal static void NotImplemented(string feature, string todoId)
+    {
+        LogWrapper.Warn(
+            "Seam",
+            $"seam {feature} 尚未实现（TODO({todoId})），本次调用已忽略");
+    }
+
+    internal static bool TryShellAction(
+        string feature,
+        string todoId,
+        Action<ISeamShellActions> action)
+    {
+        var shell = SeamHosts.Shell;
+        if (shell is not null)
+        {
+            RunOnUi(() => action(shell));
+            return true;
+        }
+
+        WarnMissing(feature, todoId);
+        return false;
+    }
+
+    internal static void RefreshDownloadButton(string feature)
+    {
+        if (SeamHosts.Shell is { } shell)
+        {
+            RunOnUi(shell.RefreshDownloadButton);
+            return;
+        }
+
+        var panel = ExtraButtonsPanel.Current;
+        if (panel is not null)
+        {
+            RunOnUi(panel.RefreshDownloadButton);
+            return;
+        }
+
+        WarnMissing(feature, "SEAM-SHELL");
     }
 }
 
@@ -217,7 +268,7 @@ public sealed class UserInteractionBridge : IUserInteraction
     }
 }
 
-/// <summary>更新流程的通知桥接；界面未实现的部分仅记录日志。</summary>
+/// <summary>更新流程的通知桥接：更新页导航、重启按钮、下载按钮与设置页按钮都接到真实界面。</summary>
 public sealed class UpdateUiBridge : IUpdateUi
 {
     public int ShowMessageBox(
@@ -250,22 +301,33 @@ public sealed class UpdateUiBridge : IUpdateUi
 
     public void NavigateSetupUpdate()
     {
-        UiSeamInteraction.LogMissing(nameof(NavigateSetupUpdate));
+        PageRouter.Navigate(PageType.Setup, PageSubType.SetupUpdate);
     }
 
     public void ShowUpdateRestartButton(string tooltip)
     {
-        UiSeamInteraction.LogMissing(nameof(ShowUpdateRestartButton));
+        UiSeamInteraction.TryShellAction(
+            nameof(ShowUpdateRestartButton),
+            "SEAM-SHELL",
+            shell => shell.ShowUpdateRestartButton(tooltip));
     }
 
     public void RefreshDownloadButton()
     {
-        UiSeamInteraction.LogMissing(nameof(RefreshDownloadButton));
+        UiSeamInteraction.RefreshDownloadButton(nameof(RefreshDownloadButton));
     }
 
     public void UpdateSetupButton(string text, bool enabled)
     {
-        UiSeamInteraction.LogMissing(nameof(UpdateSetupButton));
+        var page = SeamHosts.SetupUpdatePage
+            ?? PageRouter.CurrentPage as ISeamSetupUpdatePage;
+        if (page is null)
+        {
+            UiSeamInteraction.WarnMissing(nameof(UpdateSetupButton), "SEAM-SETUP");
+            return;
+        }
+
+        UiSeamInteraction.RunOnUi(() => page.SetUpdateButton(text, enabled));
     }
 
     public void ExitApplication(bool restart)
@@ -280,16 +342,28 @@ public sealed class UpdateUiBridge : IUpdateUi
     }
 }
 
-/// <summary>公告按钮动作桥接：事件业务尚未接入界面层。</summary>
+/// <summary>公告按钮动作桥接：把公告里的命令交给自定义事件分发。</summary>
 public sealed class AnnouncementActionsBridge : IAnnouncementActionHandler
 {
     public void Execute(string command, string? parameter)
     {
-        UiSeamInteraction.LogMissing($"AnnouncementAction({command})");
+        if (!EventTypeMapper.TryParse(command, out var eventType))
+        {
+            LogWrapper.Warn("Seam", $"公告动作命令无法识别：{command}");
+            return;
+        }
+
+        if (EventTypeMapper.IsUnsupportedType(command))
+        {
+            LogWrapper.Warn("Seam", $"公告动作命令在当前版本不支持：{command}");
+            return;
+        }
+
+        CustomEvent.Raise(eventType, parameter ?? "");
     }
 }
 
-/// <summary>启动流程通知桥接；启动页已有基础承载，其余交互记录日志。</summary>
+/// <summary>启动流程通知桥接：导航、日志与页面状态都转发到启动页/日志页宿主。</summary>
 public sealed class LaunchUiBridge : ILaunchUi
 {
     public int ShowMessageBox(
@@ -314,7 +388,50 @@ public sealed class LaunchUiBridge : ILaunchUi
 
     public void SetGpuPreference(string javaExePath, bool preference)
     {
-        // 非 Windows 由启动进程的环境变量处理 GPU 偏好，无需修改可执行文件
+        if (!OperatingSystem.IsWindows())
+        {
+            LogWrapper.Debug(
+                "Seam",
+                $"当前平台不支持写入 GPU 偏好（{javaExePath}），已跳过");
+            return;
+        }
+
+        try
+        {
+            const string registryKey = @"Software\Microsoft\DirectX\UserGpuPreferences";
+            const string highPerformance = "GpuPreference=2;";
+            const string defaultPreference = "GpuPreference=0;";
+            var currentIsHighPerformance = false;
+            using (var readOnlyKey = Registry.CurrentUser.OpenSubKey(
+                       registryKey,
+                       false))
+            {
+                if (readOnlyKey is null)
+                {
+                    Registry.CurrentUser.CreateSubKey(registryKey);
+                }
+                else
+                {
+                    var currentValue = readOnlyKey.GetValue(javaExePath)?.ToString();
+                    currentIsHighPerformance = currentValue == highPerformance;
+                }
+            }
+
+            if (currentIsHighPerformance == preference) return;
+            using var writeKey = Registry.CurrentUser.OpenSubKey(
+                registryKey,
+                true);
+            writeKey?.SetValue(
+                javaExePath,
+                preference ? highPerformance : defaultPreference);
+            LogWrapper.Info(
+                "Seam",
+                $"已调整程序 {javaExePath} 的显卡设置为高性能：{preference}");
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Warn(ex, "Seam", $"写入 GPU 偏好失败：{javaExePath}");
+        }
     }
 
     public int? ShowSelect(string caption, IReadOnlyList<string> options)
@@ -329,47 +446,101 @@ public sealed class LaunchUiBridge : ILaunchUi
 
     public void PrepareLaunchNavigation()
     {
-        UiSeamInteraction.LogMissing(nameof(PrepareLaunchNavigation));
+        PageRouter.Navigate(PageType.Launch);
     }
 
     public void RefreshLaunchButtons()
     {
-        UiSeamInteraction.LogMissing(nameof(RefreshLaunchButtons));
+        if (SeamHosts.LaunchPage is { } page)
+        {
+            UiSeamInteraction.RunOnUi(page.RefreshLaunchButtons);
+            return;
+        }
+
+        UiSeamInteraction.WarnMissing(nameof(RefreshLaunchButtons), "SEAM-LAUNCH");
     }
 
     public void RefreshLaunchPage(bool show)
     {
-        UiSeamInteraction.LogMissing(nameof(RefreshLaunchPage));
+        if (SeamHosts.LaunchPage is { } page)
+        {
+            UiSeamInteraction.RunOnUi(() => page.RefreshLaunchPage(show));
+            return;
+        }
+
+        UiSeamInteraction.WarnMissing(nameof(RefreshLaunchPage), "SEAM-LAUNCH");
     }
 
     public void AppendLaunchLog(string text)
     {
         LogWrapper.Info("Launch", text);
+        if (SeamHosts.LaunchLog is { } sink)
+        {
+            UiSeamInteraction.RunOnUi(() => sink.AppendLaunchLog(text));
+            return;
+        }
+
+        UiSeamInteraction.WarnMissing(nameof(AppendLaunchLog), "SEAM-LAUNCH");
     }
 
     public void ClearLaunchLog()
     {
-        UiSeamInteraction.LogMissing(nameof(ClearLaunchLog));
+        if (SeamHosts.LaunchLog is { } sink)
+        {
+            UiSeamInteraction.RunOnUi(sink.ClearLaunchLog);
+            return;
+        }
+
+        UiSeamInteraction.WarnMissing(nameof(ClearLaunchLog), "SEAM-LAUNCH");
     }
 
     public void ShowLoginPage()
     {
-        UiSeamInteraction.LogMissing(nameof(ShowLoginPage));
+        if (SeamHosts.LaunchPage is { } page)
+        {
+            UiSeamInteraction.RunOnUi(page.ShowLogin);
+            return;
+        }
+
+        UiSeamInteraction.WarnMissing(nameof(ShowLoginPage), "SEAM-LAUNCH");
     }
 
     public void ShowLaunchingPage()
     {
-        UiSeamInteraction.LogMissing(nameof(ShowLaunchingPage));
+        if (SeamHosts.LaunchPage is { } page)
+        {
+            UiSeamInteraction.RunOnUi(page.ShowLaunching);
+            return;
+        }
+
+        UiSeamInteraction.WarnMissing(nameof(ShowLaunchingPage), "SEAM-LAUNCH");
     }
 
     public void RefreshLaunching()
     {
-        UiSeamInteraction.LogMissing(nameof(RefreshLaunching));
+        if (SeamHosts.LaunchPage is { } page)
+        {
+            UiSeamInteraction.RunOnUi(page.RefreshLaunching);
+            return;
+        }
+
+        UiSeamInteraction.WarnMissing(nameof(RefreshLaunching), "SEAM-LAUNCH");
     }
 
     public void AttachLogPage(GameWatcher.Watcher watcher)
     {
-        UiSeamInteraction.LogMissing(nameof(AttachLogPage));
+        // 导航与登记必须同处 UI 线程：宿主在导航过程中实例化日志页并登记 SeamHosts.GameLog
+        UiSeamInteraction.RunOnUi(() =>
+        {
+            PageRouter.Navigate(PageType.GameLog);
+            if (SeamHosts.GameLog is { } sink)
+            {
+                sink.AttachWatcher(watcher);
+                return;
+            }
+
+            UiSeamInteraction.WarnMissing(nameof(AttachLogPage), "SEAM-LOG");
+        });
     }
 
     public void SetMainWindowState(LaunchWindowState state)
@@ -393,7 +564,7 @@ public sealed class LaunchUiBridge : ILaunchUi
     }
 }
 
-/// <summary>Comp 业务的选择/输入弹窗桥接。</summary>
+/// <summary>Comp 业务的选择/输入弹窗与下载按钮桥接。</summary>
 public sealed class CompUiBridge : ICompUi
 {
     public int? ShowSelect(
@@ -423,12 +594,34 @@ public sealed class CompUiBridge : ICompUi
 
     public void RefreshDownloadButton()
     {
-        UiSeamInteraction.LogMissing(nameof(RefreshDownloadButton));
+        UiSeamInteraction.RefreshDownloadButton(nameof(RefreshDownloadButton));
     }
 
     public void LoaderStateChangedHintOnly(Loading.LoaderBase loader)
     {
-        UiSeamInteraction.LogMissing(nameof(LoaderStateChangedHintOnly));
+        switch (loader.State)
+        {
+            case LoadState.Finished:
+                UiSeamInteraction.Hint(
+                    $"{loader.DisplayName}{Lang.Text("Common.Status.Success")}",
+                    NotificationType.Success);
+                break;
+            case LoadState.Failed:
+                UiSeamInteraction.Hint(
+                    $"{loader.DisplayName}{Lang.Text("Common.Status.Failure")}{loader.Error?.Message}",
+                    NotificationType.Error);
+                break;
+            case LoadState.Aborted:
+                UiSeamInteraction.Hint(
+                    $"{loader.DisplayName}{Lang.Text("Common.Status.Cancelled")}",
+                    NotificationType.Info);
+                break;
+            case LoadState.Waiting:
+            case LoadState.Loading:
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(loader));
+        }
     }
 
     public int ShowDialog(
@@ -443,12 +636,15 @@ public sealed class CompUiBridge : ICompUi
     }
 }
 
-/// <summary>游戏监视器的通知桥接。</summary>
+/// <summary>游戏监视器与关闭按钮的通知桥接。</summary>
 public sealed class WatcherUiBridge : IWatcherUi
 {
     public void RefreshShutdownButton()
     {
-        UiSeamInteraction.LogMissing(nameof(RefreshShutdownButton));
+        UiSeamInteraction.TryShellAction(
+            nameof(RefreshShutdownButton),
+            "SEAM-SHELL",
+            shell => shell.RefreshShutdownButton());
     }
 
     public void ExitApplication()
@@ -467,7 +663,7 @@ public sealed class WatcherUiBridge : IWatcherUi
 
     public void ShowFeedback()
     {
-        UiSeamInteraction.LogMissing(nameof(ShowFeedback));
+        PageRouter.Navigate(PageType.Setup, PageSubType.SetupFeedback);
     }
 
     public void ShowHint(string text, NotificationType type = NotificationType.Info)

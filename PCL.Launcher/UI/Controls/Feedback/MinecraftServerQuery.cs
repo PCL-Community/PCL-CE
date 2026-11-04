@@ -70,9 +70,9 @@ public class MinecraftServerQuery : Grid
                 DestinationRect = new RelativeRect(0d, 0d, 124d, 124d, RelativeUnit.Absolute)
             };
         else
-            FeedbackTheme.BindDynamic(_serverInfo, Border.BackgroundProperty, "PageBrushCard");
+            FeedbackTheme.BindDynamic(_serverInfo, Border.BackgroundProperty, "ColorBrushWhite");
 
-        FeedbackTheme.BindDynamic(_serverInfo, Border.BorderBrushProperty, "PageBrushCardBorder");
+        FeedbackTheme.BindDynamic(_serverInfo, Border.BorderBrushProperty, "ColorBrushGray6");
         SetRow(_serverInfo, 1);
         SetColumnSpan(_serverInfo, 2);
 

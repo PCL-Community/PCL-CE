@@ -19,10 +19,16 @@ internal static class ContainerAnimation
     /// <summary>控件当前是否适合播放动画：已加载、存在 TopLevel、未被页面切换抑制、动画未关闭。</summary>
     internal static bool CanAnimate(Control control)
     {
+        return CanAnimatePage(control)
+            && !PCL.Animations.AniExitsAnyControl();
+    }
+
+    /// <summary>页面级显式动画：只检查动画总开关/加载状态，不受 AniBeginControl 抑制。</summary>
+    internal static bool CanAnimatePage(Control control)
+    {
         return IsEnabled
             && control.IsLoaded
-            && TopLevel.GetTopLevel(control) is not null
-            && !PCL.Animations.AniExitsAnyControl();
+            && TopLevel.GetTopLevel(control) is not null;
     }
 
     /// <summary>把画刷转成可插值的颜色；非纯色画刷按透明处理。</summary>

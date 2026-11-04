@@ -8,13 +8,6 @@
       ToolTip.Placement="Left"
       ToolTip.VerticalOffset="16"
       ToolTip.HorizontalOffset="-8">
-    <Grid.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceInclude Source="avares://PCL.Launcher/UI/Styles/Controls/ButtonPalette.axaml" />
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
-    </Grid.Resources>
     <Grid.Styles>
         <StyleInclude Source="avares://PCL.Launcher/UI/Styles/Controls/MyExtraButton.axaml" />
     </Grid.Styles>
@@ -33,12 +26,14 @@
             <ScaleTransform />
         </Grid.RenderTransform>
         <Border x:Name="PanColor"
-                CornerRadius="1000" />
+                CornerRadius="1000"
+                BoxShadow="0 0 10 0 #33000000" />
         <Border x:Name="PanProgress"
                 CornerRadius="1000"
                 ClipToBounds="True"
                 IsVisible="False"
-                Background="{DynamicResource ButtonBrushProgressBack}" />
+                Opacity="0.18"
+                Background="{DynamicResource ColorBrushWhite}" />
         <Grid x:Name="IconHost"
               Margin="12"
               RenderTransformOrigin="0.5,0.5">

@@ -1,3 +1,4 @@
+using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PCL.Core.Utils.Validate;
 
@@ -40,6 +41,8 @@ public class FileNameValidatorTest
     [DataRow("关注初音未来初音ミクHatsuneMiku0831谢谢喵!!!", true)]
     public void TestFileNameValidateWithParentFolder(string fileName, bool expected)
     {
+        if (!OperatingSystem.IsWindows())
+            Assert.Inconclusive("父目录存在性测试依赖 Windows 路径");
         var validator = new FileNameValidator("C:\\Windows");
         var result = validator.Validate(fileName);
         if (!result.IsValid)

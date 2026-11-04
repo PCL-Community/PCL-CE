@@ -4,9 +4,8 @@ using PCL.Core.Platform;
 namespace PCL.Core.UI;
 
 /// <summary>
-///     Unix 系统代理：优先读取环境变量，其次读取 GNOME gsettings 的 manual 代理配置。
+///     Unix 系统代理：环境变量优先，其次 GNOME gsettings、KDE kioslaverc，最后尝试 libproxy。
 /// </summary>
-// TODO: 尚未读取 KDE Plasma（kioslaverc）与 libproxy 的代理配置，GNOME 以外的桌面可能漏掉系统代理。
 public sealed class UnixSystemProxyProvider : ISystemProxyProvider
 {
     private static readonly string[] _HttpProxyEnv = ["http_proxy", "HTTP_PROXY"];
@@ -23,7 +22,11 @@ public sealed class UnixSystemProxyProvider : ISystemProxyProvider
         if (!string.IsNullOrWhiteSpace(https)) proxies.Add(new SystemProxyEntry("https", https));
         if (proxies.Count > 0) return proxies;
 
-        return _ReadGnomeProxies();
+        var gnome = _ReadGnomeProxies();
+        if (gnome.Count > 0) return gnome;
+
+        var kde = _ReadKdeProxies();
+        return kde.Count > 0 ? kde : _ReadLibProxy();
     }
 
     private static string? _ReadEnv(IEnumerable<string> names)
@@ -59,6 +62,71 @@ public sealed class UnixSystemProxyProvider : ISystemProxyProvider
                 new SystemProxyEntry(
                     protocol,
                     int.TryParse(port?.Trim(), out var p) ? $"{host}:{p}" : host));
+        }
+    }
+
+    private static IReadOnlyList<SystemProxyEntry> _ReadKdeProxies()
+    {
+        if (!OperatingSystem.IsLinux()) return [];
+        try
+        {
+            var configHome = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
+            if (string.IsNullOrWhiteSpace(configHome))
+            {
+                var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                configHome = Path.Combine(home, ".config");
+            }
+
+            var path = Path.Combine(configHome, "kioslaverc");
+            return File.Exists(path)
+                ? KdeProxyConfigParser.Parse(File.ReadAllText(path))
+                : [];
+        }
+        catch (Exception)
+        {
+            return [];
+        }
+    }
+
+    private static IReadOnlyList<SystemProxyEntry> _ReadLibProxy()
+    {
+        if (!OperatingSystem.IsLinux()) return [];
+        try
+        {
+            using var process = Process.Start(
+                new ProcessStartInfo
+                {
+                    FileName = "proxy",
+                    Arguments = "http://example.com",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                });
+            if (process is null) return [];
+            if (!process.WaitForExit(1500))
+            {
+                process.Kill(true);
+                return [];
+            }
+
+            if (process.ExitCode != 0) return [];
+            var output = process.StandardOutput.ReadToEnd().Trim();
+            if (output.Length == 0
+                || output.StartsWith("direct://", StringComparison.OrdinalIgnoreCase))
+                return [];
+
+            var separator = output.IndexOf("://", StringComparison.Ordinal);
+            if (separator < 0) return [];
+            var protocol = output.StartsWith("socks", StringComparison.OrdinalIgnoreCase)
+                ? "socks"
+                : "http";
+            var address = output[(separator + 3)..].TrimEnd('/');
+            return address.Length == 0 ? [] : [new SystemProxyEntry(protocol, address)];
+        }
+        catch (Exception)
+        {
+            return [];
         }
     }
 

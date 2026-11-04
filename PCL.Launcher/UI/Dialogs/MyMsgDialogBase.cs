@@ -19,7 +19,20 @@ namespace PCL.UI.Dialogs;
 /// </summary>
 public abstract class MyMsgDialogBase : UserControl
 {
-    private const double BodyMaxHeight = 400d;
+    private const double EnterAngle = -4d;
+
+    private const double EnterOffsetY = 40d;
+
+    private const double ExitAngle = 6d;
+
+    private const double ExitOffsetY = 20d;
+
+    private const int EnterDuration = 300;
+
+    private const int ExitDuration = 150;
+
+    private readonly MyScrollViewer _bodyScroll;
+    private readonly MyButton[] _buttons;
 
     private readonly ContentControl _footerHost = new()
     {
@@ -29,17 +42,21 @@ public abstract class MyMsgDialogBase : UserControl
         VerticalContentAlignment = VerticalAlignment.Top
     };
 
-    private readonly MyScrollViewer _bodyScroll;
-    private readonly MyButton[] _buttons;
+    private readonly RotateTransform _rotate = new(EnterAngle);
+    private readonly TranslateTransform _translate = new(0d, EnterOffsetY);
+
+    private bool _hasPlayedEnter;
 
     protected MyMsgDialogBase(DialogViewModel dialog)
     {
+        using var controlScope = PCL.Animations.SuspendControl();
+
         Dialog = dialog;
         Focusable = true;
         HorizontalContentAlignment = HorizontalAlignment.Stretch;
         VerticalContentAlignment = VerticalAlignment.Stretch;
 
-        var titleBrushKey = dialog.IsWarn ? "PageBrushError" : "PageBrushText";
+        var titleBrushKey = dialog.IsWarn ? "ColorBrushRedLight" : "ColorBrush2";
 
         LabTitle = new TextBlock
         {
@@ -65,7 +82,6 @@ public abstract class MyMsgDialogBase : UserControl
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
             HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
-            MaxHeight = BodyMaxHeight,
             Margin = new Thickness(0d, 0d, 0d, 17d),
             Padding = new Thickness(7d, 0d, 15d, 0d),
             DeltaMult = 0.7d
@@ -116,10 +132,11 @@ public abstract class MyMsgDialogBase : UserControl
         var card = new Border
         {
             CornerRadius = new CornerRadius(DialogTheme.CardCornerRadius),
-            BoxShadow = BoxShadows.Parse("0 2 20 0 #66000000"),
+            BorderThickness = new Thickness(0d),
+            BoxShadow = BoxShadows.Parse("0 2 20 0 #CC3C3C3C"),
             Child = main
         };
-        DialogTheme.BindBrush(card, Border.BackgroundProperty, "PageBrushCard");
+        DialogTheme.BindBrush(card, Border.BackgroundProperty, "ColorBrushBackground");
 
         var root = new Grid
         {
@@ -131,14 +148,103 @@ public abstract class MyMsgDialogBase : UserControl
         root.Children.Add(card);
         Content = root;
 
+        RenderTransformOrigin = new RelativePoint(0d, 0.5d, RelativeUnit.Relative);
+        var transformGroup = new TransformGroup();
+        transformGroup.Children.Add(_rotate);
+        transformGroup.Children.Add(_translate);
+        RenderTransform = transformGroup;
+        Opacity = 0d;
+        Loaded += _OnDialogLoaded;
+
         AddHandler(KeyDownEvent, OnDialogKeyDown, RoutingStrategies.Tunnel);
     }
+
+    public bool IsExiting { get; private set; }
 
     /// <summary>当前弹窗状态。</summary>
     protected DialogViewModel Dialog { get; }
 
     /// <summary>标题行。</summary>
     protected TextBlock LabTitle { get; }
+
+    private void _OnDialogLoaded(object? sender, RoutedEventArgs e)
+    {
+        Loaded -= _OnDialogLoaded;
+        PlayEnterAnimation();
+    }
+
+    public void PlayEnterAnimation()
+    {
+        if (_hasPlayedEnter) return;
+        _hasPlayedEnter = true;
+
+        if (!_CanAnimateDialog())
+        {
+            Opacity = 1d;
+            _rotate.Angle = 0d;
+            _translate.Y = 0d;
+            return;
+        }
+
+        PCL.Animations.AniStart(
+            new List<PCL.Animations.AniData>
+            {
+                PCL.Animations.AaOpacity(this, 1d, 120, 60),
+                PCL.Animations.AaDouble(
+                    delta => _translate.Y += delta,
+                    -_translate.Y,
+                    EnterDuration,
+                    60,
+                    new PCL.Animations.AniEaseOutBack(PCL.Animations.AniEasePower.Weak)),
+                PCL.Animations.AaDouble(
+                    delta => _rotate.Angle += delta,
+                    -_rotate.Angle,
+                    EnterDuration,
+                    60,
+                    new PCL.Animations.AniEaseOutFluent(PCL.Animations.AniEasePower.Weak))
+            },
+            "MyMsg Enter " + GetHashCode());
+    }
+
+    public void PlayExitAnimation(Action? completed = null)
+    {
+        if (IsExiting) return;
+        IsExiting = true;
+
+        if (!_CanAnimateDialog())
+        {
+            completed?.Invoke();
+            return;
+        }
+
+        PCL.Animations.AniStart(
+            new List<PCL.Animations.AniData>
+            {
+                PCL.Animations.AaOpacity(this, -Opacity, 80, 20),
+                PCL.Animations.AaDouble(
+                    delta => _translate.Y += delta,
+                    ExitOffsetY - _translate.Y,
+                    ExitDuration,
+                    0,
+                    new PCL.Animations.AniEaseOutFluent()),
+                PCL.Animations.AaDouble(
+                    delta => _rotate.Angle += delta,
+                    ExitAngle - _rotate.Angle,
+                    ExitDuration,
+                    0,
+                    new PCL.Animations.AniEaseInFluent(PCL.Animations.AniEasePower.Weak)),
+                PCL.Animations.AaCode(() => completed?.Invoke(), after: true)
+            },
+            "MyMsg Exit " + GetHashCode());
+    }
+
+    private bool _CanAnimateDialog()
+    {
+        return PCL.Animations.AniSpeed > 0d
+            && IsLoaded
+            && TopLevel.GetTopLevel(this) is not null
+            && !PCL.Animations.AniExitsAnyControl();
+    }
 
     /// <summary>取第 <paramref name="number" /> 个按钮（从 1 开始）。</summary>
     protected MyButton Button(int number)

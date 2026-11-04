@@ -16,7 +16,7 @@ namespace PCL.UI.Controls;
 ///     单选按钮：圆角药丸 + 可选图标 + 文本，支持 <see cref="ColorState.White" /> /
 ///     <see cref="ColorState.Highlight" /> 两种配色、<see cref="GroupName" /> 分组互斥与
 ///     <see cref="Check" /> 事件。
-///     勾选、悬停、按下与禁用状态经 <c>PCL.Animations</c> 过渡；动画关闭时直接落到终值。
+///     勾选、悬停与按下状态经 <c>PCL.Animations</c> 过渡；动画关闭时直接落到终值。
 /// </summary>
 public partial class MyRadioButton : UserControl
 {
@@ -44,6 +44,9 @@ public partial class MyRadioButton : UserControl
         AvaloniaProperty.Register<MyRadioButton, Thickness>(
             nameof(LabTextMargin),
             new Thickness(8d, 0d, 12d, 0d));
+
+    public new static readonly StyledProperty<Thickness> PaddingProperty =
+        AvaloniaProperty.Register<MyRadioButton, Thickness>(nameof(Padding));
 
     public static readonly StyledProperty<bool> CheckedProperty =
         AvaloniaProperty.Register<MyRadioButton, bool>(
@@ -79,6 +82,7 @@ public partial class MyRadioButton : UserControl
     public MyRadioButton()
     {
         InitializeComponent();
+        PanBackElement.Padding = Padding;
         RefreshLogoHostVisibility();
 
         Loaded += (_, _) =>
@@ -190,6 +194,12 @@ public partial class MyRadioButton : UserControl
     {
         get => GetValue(LabTextMarginProperty);
         set => SetValue(LabTextMarginProperty, value);
+    }
+
+    public new Thickness Padding
+    {
+        get => GetValue(PaddingProperty);
+        set => SetValue(PaddingProperty, value);
     }
 
     public ColorState ColorType
@@ -496,63 +506,75 @@ public partial class MyRadioButton : UserControl
             if (PanBackElement is null || LabTextElement is null)
                 return;
 
-            Opacity = IsEnabled ? 1d : 0.5d;
+            var accent = InputTheme.ColorOf(
+                this,
+                "ColorObject3",
+                InputTheme.ColorOf(InputTheme.Accent(this), Colors.DodgerBlue));
+            var semiTransparent = InputTheme.ColorOf(
+                this,
+                InputTheme.SemiTransparentKey,
+                Colors.Transparent);
+            var pressTint = InputTheme.ColorOf(
+                this,
+                "ColorObject8",
+                InputTheme.ColorOf(InputTheme.ItemChecked(this), Colors.AliceBlue));
 
             Color background;
             Color foreground;
             int time;
 
-            if (!IsEnabled)
+            if (ColorType == ColorState.White)
             {
-                background = Colors.Transparent;
-                foreground = ToColor(InputTheme.TextSecondary(this));
-                time = AnimationTimeOfMouseOut;
-            }
-            else if (ColorType == ColorState.White)
-            {
+                foreground = Colors.White;
                 if (Checked)
                 {
-                    background = ToColor(InputTheme.Card(this));
-                    foreground = ToColor(InputTheme.Accent(this));
+                    background = Colors.White;
+                    foreground = accent;
                     time = AnimationTimeOfCheck;
                 }
                 else if (_isMouseDown)
                 {
-                    background = ToColor(InputTheme.WithAlpha(InputTheme.ItemChecked(this), 0x78));
-                    foreground = Colors.White;
+                    background = WithAlpha(pressTint, 0x78);
                     time = AnimationTimeOfPress;
                 }
                 else if (IsPointerOver)
                 {
-                    background = ToColor(InputTheme.WithAlpha(InputTheme.ItemChecked(this), 0x32));
-                    foreground = Colors.White;
+                    background = WithAlpha(pressTint, 0x32);
                     time = AnimationTimeOfMouseIn;
                 }
                 else
                 {
-                    background = Colors.Transparent;
-                    foreground = Colors.White;
+                    background = semiTransparent;
                     time = AnimationTimeOfMouseOut;
                 }
             }
             else
             {
+                foreground = accent;
                 if (Checked)
                 {
-                    background = ToColor(InputTheme.Accent(this));
+                    background = accent;
                     foreground = Colors.White;
                     time = AnimationTimeOfCheck;
                 }
-                else if (_isMouseDown || IsPointerOver)
+                else if (_isMouseDown)
                 {
-                    background = ToColor(InputTheme.AccentLight(this));
-                    foreground = ToColor(InputTheme.Accent(this));
+                    background = InputTheme.ColorOf(
+                        this,
+                        "ColorBrush6",
+                        InputTheme.ColorOf(InputTheme.AccentLight(this), Colors.AliceBlue));
+                    time = AnimationTimeOfMouseIn;
+                }
+                else if (IsPointerOver)
+                {
+                    background = InputTheme.ColorOf(
+                        InputTheme.AccentLight(this),
+                        Colors.AliceBlue);
                     time = AnimationTimeOfMouseIn;
                 }
                 else
                 {
-                    background = Colors.Transparent;
-                    foreground = ToColor(InputTheme.Accent(this));
+                    background = semiTransparent;
                     time = AnimationTimeOfMouseOut;
                 }
             }
@@ -594,9 +616,9 @@ public partial class MyRadioButton : UserControl
         }
     }
 
-    private static Color ToColor(IBrush? brush)
+    private static Color WithAlpha(Color color, byte alpha)
     {
-        return brush is ISolidColorBrush solid ? solid.Color : Colors.Transparent;
+        return Color.FromArgb(alpha, color.R, color.G, color.B);
     }
 
     // 属性变更处理
@@ -632,9 +654,10 @@ public partial class MyRadioButton : UserControl
             if (LabTextElement is not null && change.NewValue is Thickness margin)
                 LabTextElement.Margin = margin;
         }
-        else if (change.Property == IsEnabledProperty)
+        else if (change.Property == PaddingProperty)
         {
-            RefreshColor();
+            if (PanBackElement is not null && change.NewValue is Thickness padding)
+                PanBackElement.Padding = padding;
         }
     }
 

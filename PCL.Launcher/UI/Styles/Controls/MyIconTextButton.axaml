@@ -21,10 +21,10 @@
     </Style>
     <Style Selector="ui|MyIconTextButton TextBlock#LabText">
         <Setter Property="Foreground"
-                Value="{DynamicResource PageBrushText}" />
+                Value="{DynamicResource ColorBrush1}" />
     </Style>
     <Style Selector="ui|MyIconTextButton Path#ShapeLogo">
         <Setter Property="Fill"
-                Value="{DynamicResource PageBrushText}" />
+                Value="{DynamicResource ColorBrush1}" />
     </Style>
 </Styles>

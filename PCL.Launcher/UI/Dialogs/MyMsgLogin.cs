@@ -24,11 +24,11 @@ public sealed class MyMsgLogin : MyMsgDialogBase
 {
     private readonly CancellationTokenSource _cancellation = new();
     private readonly SelectableTextBlock _caption;
+    private bool _completed;
+    private bool _started;
+    private string _userCode = string.Empty;
 
     private string _website = string.Empty;
-    private string _userCode = string.Empty;
-    private bool _started;
-    private bool _completed;
 
     public MyMsgLogin(DialogViewModel dialog) : base(dialog)
     {
@@ -44,7 +44,7 @@ public sealed class MyMsgLogin : MyMsgDialogBase
             LineHeight = 18d,
             VerticalAlignment = VerticalAlignment.Top
         };
-        DialogTheme.BindBrush(_caption, TextBlock.ForegroundProperty, "PageBrushText");
+        DialogTheme.BindBrush(_caption, TextBlock.ForegroundProperty, "ColorBrush1");
         SetBody(_caption);
 
         Loaded += (_, _) => StartFlow();

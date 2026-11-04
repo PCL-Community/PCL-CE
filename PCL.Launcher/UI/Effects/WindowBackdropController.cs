@@ -5,11 +5,12 @@ using PCL.Core.Logging;
 namespace PCL.UI.Effects;
 
 /// <summary>
-///     按 Mica、Acrylic、Blur、透明、不透明的顺序请求窗口背景效果，由系统选择可用的最高档。
+///     按平台可用性请求窗口透明材质：优先系统模糊材质，其次纯透明，最后不透明。
+///     窗口本身保持透明，未获支持时由 <c>TransparencyBackgroundFallback</c> 使用主题背景色兜底。
 /// </summary>
 public static class WindowBackdropController
 {
-    private static readonly WindowTransparencyLevel[] _FallbackChain =
+    private static readonly WindowTransparencyLevel[] FallbackChain =
     [
         WindowTransparencyLevel.Mica,
         WindowTransparencyLevel.AcrylicBlur,
@@ -18,25 +19,30 @@ public static class WindowBackdropController
         WindowTransparencyLevel.None
     ];
 
-    private static WindowTransparencyLevel CurrentLevel { get; set; }
+    private static bool _levelApplied;
+
+    public static WindowTransparencyLevel CurrentLevel { get; private set; }
 
     public static void Apply(Window window)
     {
-        window.TransparencyLevelHint = _FallbackChain;
-        // 窗口必须保持透明，系统材质才能从窗口下方透出；
-        // 内容可读性由 WindowSurface 壳层与主题色负责，不能用整窗不透明底色遮挡材质。
+        window.TransparencyLevelHint = FallbackChain;
         window.Background = Brushes.Transparent;
 
-        window.Opened += (_, _) => _LogLevel(window);
+        window.Opened += (_, _) => _ApplyLevel(window);
         window.PropertyChanged += (_, e) =>
         {
-            if (e.Property == TopLevel.ActualTransparencyLevelProperty) _LogLevel(window);
+            if (e.Property == TopLevel.ActualTransparencyLevelProperty)
+                _ApplyLevel(window);
         };
     }
 
-    private static void _LogLevel(Window window)
+    private static void _ApplyLevel(Window window)
     {
-        CurrentLevel = window.ActualTransparencyLevel;
-        LogWrapper.Info("UI", $"窗口背景效果: {CurrentLevel}");
+        var level = window.ActualTransparencyLevel;
+        if (_levelApplied && level == CurrentLevel) return;
+
+        _levelApplied = true;
+        CurrentLevel = level;
+        LogWrapper.Info("UI", $"窗口背景效果: {level}");
     }
 }

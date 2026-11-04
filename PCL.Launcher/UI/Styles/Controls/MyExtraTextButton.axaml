@@ -1,14 +1,13 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="using:PCL.UI.Controls">
-    <!-- MyExtraTextButton：侧边栏文字按钮，PanColor 为该按钮的常态底色。 -->
     <Style Selector="ui|MyExtraTextButton Border#PanColor">
         <Setter Property="Background"
-                Value="{DynamicResource PageBrushAccent}" />
+                Value="{DynamicResource ColorBrush3}" />
     </Style>
     <!-- 悬停/禁用底色由 MyExtraTextButton.axaml.cs 用动画接管，这里只保留常态基线。 -->
     <Style Selector="ui|MyExtraTextButton Path">
         <Setter Property="Fill"
-                Value="{DynamicResource ButtonBrushIconWhite}" />
+                Value="{DynamicResource ColorBrush8}" />
     </Style>
 </Styles>

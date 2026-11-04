@@ -1,0 +1,84 @@
+<ui:MyPageRight xmlns="https://github.com/avaloniaui"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:ui="using:PCL.UI.Controls"
+                 xmlns:loc="using:PCL.Core.UI"
+                 x:Class="PCL.Views.Pages.Select.PageSelectRight">
+    <Grid>
+        <Grid x:Name="PanAllBack"
+              RowDefinitions="Auto,*">
+            <ui:MySearchBox x:Name="PanVerSearchBox"
+                            Grid.Row="0"
+                            Margin="25,15,25,12"
+                            VerticalAlignment="Top" />
+            <ui:MyScrollViewer x:Name="PanBack"
+                               Grid.Row="1"
+                               VerticalScrollBarVisibility="Auto"
+                               HorizontalScrollBarVisibility="Disabled">
+                <StackPanel x:Name="PanMain"
+                            Margin="25,2,25,10" />
+            </ui:MyScrollViewer>
+
+            <ui:MyCard x:Name="PanEmpty"
+                       UseAnimation="False"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Margin="40"
+                       IsVisible="False">
+                <StackPanel Margin="20,17">
+                    <TextBlock x:Name="LabEmptyTitle"
+                               Margin="0,0,0,9"
+                               HorizontalAlignment="Center"
+                               FontSize="19"
+                               Foreground="{DynamicResource ColorBrush3}" />
+                    <Rectangle Height="2"
+                               HorizontalAlignment="Stretch"
+                               Fill="{DynamicResource ColorBrush3}" />
+                    <TextBlock x:Name="LabEmptyContent"
+                               Margin="10,15,10,5"
+                               TextWrapping="Wrap" />
+                    <ui:MyButton x:Name="BtnEmptyDownload"
+                                 Height="35"
+                                 MinWidth="140"
+                                 Padding="13,0"
+                                 Margin="0,10,0,0"
+                                 HorizontalAlignment="Center"
+                                 ColorType="Highlight"
+                                 Text="{loc:Loc Select.Instance.Empty.Download}" />
+                </StackPanel>
+            </ui:MyCard>
+
+            <ui:MyCard x:Name="PanEmptySearch"
+                       UseAnimation="False"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Margin="40"
+                       IsVisible="False">
+                <StackPanel Margin="20,17">
+                    <TextBlock x:Name="LabEmptySearchTitle"
+                               Margin="0,0,0,9"
+                               HorizontalAlignment="Center"
+                               FontSize="19"
+                               Foreground="{DynamicResource ColorBrush3}" />
+                    <Rectangle Height="2"
+                               HorizontalAlignment="Stretch"
+                               Fill="{DynamicResource ColorBrush3}" />
+                    <TextBlock x:Name="LabEmptySearchContent"
+                               Margin="10,15,10,5"
+                               TextWrapping="Wrap" />
+                </StackPanel>
+            </ui:MyCard>
+        </Grid>
+
+        <ui:MyCard x:Name="PanLoad"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Margin="40">
+            <ui:MyLoading x:Name="Load"
+                          Text="{loc:Loc Select.Instance.Loading}"
+                          Margin="20,20,20,17"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center"
+                          AutoRun="False" />
+        </ui:MyCard>
+    </Grid>
+</ui:MyPageRight>

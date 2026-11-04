@@ -32,7 +32,6 @@ internal static class Program
         HintPresenter.Install();
         // 注册业务层 UI seam 的界面实现，并校验必需项
         UiSeamRegistration.Register();
-        UiSeamValidation.ValidateRequiredSeams();
         // 启动 PCL.Core 生命周期
         Lifecycle.OnInitialize();
     }

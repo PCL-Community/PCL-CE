@@ -10,8 +10,8 @@ namespace PCL.UI.Controls;
 ///     按钮族（AN-3c）动画接线的共用辅助。
 ///     集中“是否播放动画”的判断：控件已加载、存在 TopLevel、未被页面切换抑制，
 ///     且动画服务未关闭（<c>Config.Debug.AnimationSpeed = 0</c> 时直接落到终值，
-///     而不是让引擎把动画拉长 10 倍）。颜色统一从 <c>PageBrush*</c> / <c>ButtonBrush*</c>
-///     动态资源解析，不在控件里写死颜色。
+///     而不是让引擎把动画拉长 10 倍）。颜色统一从核心 <c>ColorBrush*</c> 动态资源解析，
+///     不在控件里写死颜色。
 /// </summary>
 internal static class ButtonAnimation
 {

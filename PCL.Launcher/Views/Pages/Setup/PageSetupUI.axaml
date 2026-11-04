@@ -1,0 +1,485 @@
+<ui:MyPageRight xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:ui="using:PCL.UI.Controls"
+                xmlns:loc="using:PCL.Core.UI"
+                x:Class="PCL.Views.Pages.Setup.PageSetupUI">
+    <ui:MyScrollViewer x:Name="PanBack"
+                       HorizontalScrollBarVisibility="Disabled"
+                       VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="25,10">
+            <ui:MyCard x:Name="CardLauncher"
+                       Margin="0,15"
+                       Title="{loc:Loc Setup.Ui.Basic.Title}">
+                <StackPanel Margin="25,40,25,10">
+                    <Grid Margin="0,0,0,6"
+                          ColumnDefinitions="Auto,*,30,Auto,*,*">
+                        <TextBlock VerticalAlignment="Center"
+                                   Margin="0,0,20,0"
+                                   Text="{loc:Loc Setup.Ui.Basic.Opacity}" />
+                        <ui:MySlider x:Name="SliderLauncherOpacity"
+                                     Grid.Column="1"
+                                     Grid.ColumnSpan="5"
+                                     MaxValue="600"
+                                     ValueByKey="10" />
+                    </Grid>
+
+                    <Border x:Name="PanLauncherHide"
+                            Margin="0,5,0,12"
+                            CornerRadius="4"
+                            Background="{DynamicResource ColorBrushToolTip}">
+                        <StackPanel Margin="20"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
+                            <TextBlock FontSize="13"
+                                       TextWrapping="Wrap"
+                                       Text="{loc:Loc Setup.Ui.Basic.BlueHint}" />
+                            <ui:MyButton x:Name="BtnLauncherDonate"
+                                         Height="35"
+                                         MinWidth="140"
+                                         Margin="0,9,0,0"
+                                         Padding="13,0"
+                                         HorizontalAlignment="Center"
+                                         ColorType="Highlight"
+                                         Text="{loc:Loc Setup.Ui.Basic.GetSnapshot}" />
+                        </StackPanel>
+                    </Border>
+
+                    <Grid Height="28"
+                          Margin="0,0,0,7"
+                          ColumnDefinitions="Auto,*,92,*,*,*">
+                        <TextBlock Grid.Column="0"
+                                   VerticalAlignment="Center"
+                                   Text="{loc:Loc Setup.Ui.Theme.Title}" />
+                        <ui:MyComboBox x:Name="ComboDarkMode"
+                                       Grid.Column="1"
+                                       HorizontalAlignment="Stretch">
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Theme.Light}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Theme.Dark}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Theme.FollowSystem}" />
+                        </ui:MyComboBox>
+                        <TextBlock Grid.Column="2"
+                                   VerticalAlignment="Center"
+                                   HorizontalAlignment="Center"
+                                   Text="{loc:Loc Setup.Ui.Theme.LightColor}" />
+                        <ui:MyComboBox x:Name="ComboLightColor"
+                                       Grid.Column="3"
+                                       HorizontalAlignment="Stretch" />
+                        <TextBlock Grid.Column="4"
+                                   VerticalAlignment="Center"
+                                   HorizontalAlignment="Center"
+                                   Text="{loc:Loc Setup.Ui.Theme.DarkColor}" />
+                        <ui:MyComboBox x:Name="ComboDarkColor"
+                                       Grid.Column="5"
+                                       HorizontalAlignment="Stretch" />
+                    </Grid>
+
+                    <ui:MyCheckBox x:Name="CheckLauncherLogo"
+                                   Height="22"
+                                   Margin="-1,0,0,7"
+                                   Text="{loc:Loc Setup.Ui.Basic.ShowLogo}" />
+                    <ui:MyCheckBox x:Name="CheckLockWindowSize"
+                                   Height="22"
+                                   Margin="-1,0,0,7"
+                                   Text="{loc:Loc Setup.Ui.Basic.LockWindow}" />
+                    <ui:MyCheckBox x:Name="CheckShowLaunchingHint"
+                                   Height="22"
+                                   Margin="-1,0,0,7"
+                                   Text="{loc:Loc Setup.Ui.Basic.ShowTriviaHint}" />
+
+                    <StackPanel x:Name="PanelBlur"
+                                Margin="0,0,0,10">
+                        <ui:MyCheckBox x:Name="CheckBlur"
+                                       Height="22"
+                                       Text="{loc:Loc Setup.Ui.Basic.AdvancedMaterial}"
+                                       ToolTip.Tip="{loc:Loc Setup.Ui.Basic.AdvancedMaterial.ToolTip}" />
+                        <Grid x:Name="PanBlurValue"
+                              Margin="0,10,0,0"
+                              ColumnDefinitions="Auto,Auto,Auto,*"
+                              RowDefinitions="*,10,*">
+                            <TextBlock Grid.Row="0"
+                                       Grid.Column="0"
+                                       VerticalAlignment="Center"
+                                       Text="{loc:Loc Setup.Ui.Basic.BlurRadius}" />
+                            <ui:MySlider x:Name="SliderBlurValue"
+                                         Grid.Row="0"
+                                         Grid.Column="1"
+                                         Grid.ColumnSpan="3"
+                                         MaxValue="40"
+                                         ValueByKey="10"
+                                         ToolTip.Tip="{loc:Loc Setup.Ui.Basic.BlurRadius.ToolTip}" />
+                            <TextBlock Grid.Row="2"
+                                       Grid.Column="0"
+                                       VerticalAlignment="Center"
+                                       Text="{loc:Loc Setup.Ui.Basic.BlurMethod}" />
+                            <ui:MyComboBox x:Name="ComboBlurType"
+                                           Grid.Row="2"
+                                           Grid.Column="1"
+                                           Height="28"
+                                           MinWidth="100"
+                                           ToolTip.Tip="{loc:Loc Setup.Ui.Basic.BlurMethod.ToolTip}">
+                                <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Basic.BlurMethod.Gaussian}" />
+                                <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Basic.BlurMethod.Box}" />
+                            </ui:MyComboBox>
+                            <TextBlock Grid.Row="2"
+                                       Grid.Column="2"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Center"
+                                       Text="{loc:Loc Setup.Ui.Basic.BlurSamplingRate}" />
+                            <ui:MySlider x:Name="SliderBlurSamplingRate"
+                                         Grid.Row="2"
+                                         Grid.Column="3"
+                                         MaxValue="100"
+                                         ValueByKey="5"
+                                         ToolTip.Tip="{loc:Loc Setup.Ui.Basic.BlurSamplingRate.ToolTip}" />
+                        </Grid>
+                    </StackPanel>
+                </StackPanel>
+            </ui:MyCard>
+
+            <ui:MyCard x:Name="CardFont"
+                       Margin="0,0,0,15"
+                       Title="{loc:Loc Setup.Ui.Font.Title}">
+                <Grid Margin="25,40,25,15"
+                      ColumnDefinitions="Auto,25,*"
+                      RowDefinitions="30,10,30">
+                    <TextBlock Grid.Row="0"
+                               VerticalAlignment="Center"
+                               Text="{loc:Loc Setup.Ui.Font.Global}" />
+                    <ui:FontSelector x:Name="ComboUiFont"
+                                     Grid.Row="0"
+                                     Grid.Column="2"
+                                     Tooltip="{loc:Loc Setup.Ui.Font.Global.ToolTip}" />
+                    <TextBlock Grid.Row="2"
+                               VerticalAlignment="Center"
+                               Text="{loc:Loc Setup.Ui.Font.Motd}" />
+                    <ui:FontSelector x:Name="ComboUiMotdFont"
+                                     Grid.Row="2"
+                                     Grid.Column="2"
+                                     Tooltip="{loc:Loc Setup.Ui.Font.Motd.ToolTip}" />
+                </Grid>
+            </ui:MyCard>
+
+            <ui:MyCard x:Name="CardBackground"
+                       Margin="0,0,0,15"
+                       Title="{loc:Loc Setup.Ui.Background.TitleDefault}">
+                <StackPanel Margin="25,40,25,20">
+                    <Grid x:Name="PanBackgroundSuit"
+                          Height="28"
+                          Margin="0,0,0,10"
+                          ColumnDefinitions="Auto,*">
+                        <TextBlock VerticalAlignment="Center"
+                                   Margin="0,0,25,0"
+                                   Text="{loc:Loc Setup.Ui.Background.ContentAdapt}" />
+                        <ui:MyComboBox x:Name="ComboBackgroundSuit"
+                                       Grid.Column="1"
+                                       HorizontalAlignment="Stretch">
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Background.Suit.Smart}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Background.Suit.Center}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Background.Suit.Fit}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Background.Suit.Stretch}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Background.Suit.Tile}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Background.Suit.TopLeft}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Background.Suit.TopRight}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Background.Suit.BottomLeft}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Background.Suit.BottomRight}" />
+                        </ui:MyComboBox>
+                    </Grid>
+                    <Grid x:Name="PanBackgroundOpacity"
+                          Height="22"
+                          Margin="0,0,0,7"
+                          ColumnDefinitions="Auto,*">
+                        <TextBlock VerticalAlignment="Center"
+                                   Margin="0,0,25,0"
+                                   Text="{loc:Loc Setup.Ui.Basic.Opacity2}" />
+                        <ui:MySlider x:Name="SliderBackgroundOpacity"
+                                     Grid.Column="1"
+                                     MaxValue="1000"
+                                     ValueByKey="10" />
+                    </Grid>
+                    <Grid x:Name="PanBackgroundBlur"
+                          Height="22"
+                          Margin="0,0,0,10"
+                          ColumnDefinitions="Auto,*">
+                        <TextBlock VerticalAlignment="Center"
+                                   Margin="0,0,25,0"
+                                   Text="{loc:Loc Setup.Ui.Background.Blur}" />
+                        <ui:MySlider x:Name="SliderBackgroundBlur"
+                                     Grid.Column="1"
+                                     MaxValue="40"
+                                     ToolTip.Tip="{loc:Loc Setup.Ui.Background.Blur.ToolTip}" />
+                    </Grid>
+                    <ui:MyCheckBox x:Name="CheckAutoPauseVideo"
+                                   Height="22"
+                                   Margin="-1,0,0,8"
+                                   Text="{loc:Loc Setup.Ui.Background.PauseVideo}"
+                                   ToolTip.Tip="{loc:Loc Setup.Ui.Background.PauseVideo.ToolTip}" />
+                    <ui:MyCheckBox x:Name="CheckBackgroundColorful"
+                                   Height="22"
+                                   Margin="-1,0,0,8"
+                                   Text="{loc:Loc Setup.Ui.Background.ColorOverlay}" />
+                    <Grid Height="35"
+                          Margin="0,2,0,0"
+                          ColumnDefinitions="Auto,Auto,Auto">
+                        <ui:MyButton x:Name="BtnBackgroundOpen"
+                                     MinWidth="140"
+                                     Margin="0,0,20,0"
+                                     Padding="13,0"
+                                     Text="{loc:Loc Common.Action.OpenFolder}"
+                                     ToolTip.Tip="{loc:Loc Setup.Ui.Background.OpenFolder.ToolTip}" />
+                        <ui:MyButton x:Name="BtnBackgroundRefresh"
+                                     Grid.Column="1"
+                                     MinWidth="140"
+                                     Margin="0,0,20,0"
+                                     Padding="13,0"
+                                     Text="{loc:Loc Setup.Ui.Background.Refresh}"
+                                     ToolTip.Tip="{loc:Loc Setup.Ui.Background.Refresh.ToolTip}" />
+                        <ui:MyButton x:Name="BtnBackgroundClear"
+                                     Grid.Column="2"
+                                     MinWidth="140"
+                                     Margin="0,0,20,0"
+                                     Padding="13,0"
+                                     ColorType="Red"
+                                     Text="{loc:Loc Setup.Ui.Background.Clear}" />
+                    </Grid>
+                </StackPanel>
+            </ui:MyCard>
+
+            <ui:MyCard x:Name="CardMusic"
+                       Margin="0,0,0,15"
+                       Title="{loc:Loc Setup.Ui.Music.Title}">
+                <StackPanel Margin="25,42,25,20">
+                    <Grid x:Name="PanMusicVolume"
+                          Height="22"
+                          Margin="0,0,0,10"
+                          ColumnDefinitions="Auto,*">
+                        <TextBlock VerticalAlignment="Center"
+                                   Margin="0,0,25,0"
+                                   Text="{loc:Loc Setup.Ui.Music.Volume}" />
+                        <ui:MySlider x:Name="SliderMusicVolume"
+                                     Grid.Column="1"
+                                     MaxValue="1000"
+                                     ValueByKey="10" />
+                    </Grid>
+                    <StackPanel x:Name="PanMusicDetail"
+                                Margin="-1,0,0,3">
+                        <ui:MyCheckBox x:Name="CheckMusicRandom"
+                                       Height="22"
+                                       Margin="0,0,0,5"
+                                       Text="{loc:Loc Setup.Ui.Music.Shuffle}" />
+                        <ui:MyCheckBox x:Name="CheckMusicAuto"
+                                       Height="22"
+                                       Margin="0,0,0,5"
+                                       Text="{loc:Loc Setup.Ui.Music.AutoStart}" />
+                        <ui:MyCheckBox x:Name="CheckMusicStart"
+                                       Height="22"
+                                       Margin="0,0,0,5"
+                                       Text="{loc:Loc Setup.Ui.Music.StartInGame}" />
+                        <ui:MyCheckBox x:Name="CheckMusicStop"
+                                       Height="22"
+                                       Margin="0,0,0,5"
+                                       Text="{loc:Loc Setup.Ui.Music.StopInGame}" />
+                        <ui:MyCheckBox x:Name="CheckMusicSMTC"
+                                       Height="22"
+                                       Margin="0,0,0,5"
+                                       Text="{loc:Loc Setup.Ui.Music.Smtc}"
+                                       ToolTip.Tip="{loc:Loc Setup.Ui.Music.Smtc.ToolTip}" />
+                    </StackPanel>
+                    <Grid Height="35"
+                          ColumnDefinitions="Auto,Auto,Auto">
+                        <ui:MyButton x:Name="BtnMusicOpen"
+                                     MinWidth="140"
+                                     Margin="0,0,20,0"
+                                     Padding="13,0"
+                                     Text="{loc:Loc Common.Action.OpenFolder}"
+                                     ToolTip.Tip="{loc:Loc Setup.Ui.Music.OpenFolder.ToolTip}" />
+                        <ui:MyButton x:Name="BtnMusicRefresh"
+                                     Grid.Column="1"
+                                     MinWidth="140"
+                                     Margin="0,0,20,0"
+                                     Padding="13,0"
+                                     Text="{loc:Loc Setup.Ui.Music.Refresh}"
+                                     ToolTip.Tip="{loc:Loc Setup.Ui.Music.Refresh.ToolTip}" />
+                        <ui:MyButton x:Name="BtnMusicClear"
+                                     Grid.Column="2"
+                                     MinWidth="140"
+                                     Margin="0,0,20,0"
+                                     Padding="13,0"
+                                     ColorType="Red"
+                                     Text="{loc:Loc Setup.Ui.Music.Clear}" />
+                    </Grid>
+                </StackPanel>
+            </ui:MyCard>
+
+            <ui:MyCard x:Name="CardLogo"
+                       Margin="0,0,0,15"
+                       Title="{loc:Loc Setup.Ui.Logo.Title}">
+                <StackPanel Margin="25,40,25,15">
+                    <Grid Margin="-1,0,0,0"
+                          ColumnDefinitions="*,*,*,*,0.2*">
+                        <ui:MyRadioBox x:Name="RadioLogoType0"
+                                       Grid.Column="0"
+                                       Height="22"
+                                       Text="{loc:Loc Setup.Ui.Logo.None}" />
+                        <ui:MyRadioBox x:Name="RadioLogoType1"
+                                       Grid.Column="1"
+                                       Height="22"
+                                       Text="{loc:Loc Common.Option.Default}" />
+                        <ui:MyRadioBox x:Name="RadioLogoType2"
+                                       Grid.Column="2"
+                                       Height="22"
+                                       Text="{loc:Loc Setup.Ui.Logo.Text}" />
+                        <ui:MyRadioBox x:Name="RadioLogoType3"
+                                       Grid.Column="3"
+                                       Height="22"
+                                       Text="{loc:Loc Setup.Ui.Logo.Image}" />
+                    </Grid>
+                    <ui:MyCheckBox x:Name="CheckLogoLeft"
+                                   Height="22"
+                                   Margin="-1,8,0,3"
+                                   IsVisible="False"
+                                   Text="{loc:Loc Setup.Ui.Logo.LeftAlign}" />
+                    <Grid x:Name="PanLogoText"
+                          Margin="0,14,0,5"
+                          ColumnDefinitions="Auto,*"
+                          IsVisible="False">
+                        <TextBlock VerticalAlignment="Center"
+                                   Margin="0,0,25,0"
+                                   Text="{loc:Loc Setup.Ui.Logo.TextLabel}" />
+                        <ui:MyTextBox x:Name="TextLogoText"
+                                      Grid.Column="1"
+                                      MaxLength="100" />
+                    </Grid>
+                    <Grid x:Name="PanLogoChange"
+                          Height="35"
+                          Margin="0,14,0,5"
+                          ColumnDefinitions="Auto,Auto"
+                          IsVisible="False">
+                        <ui:MyButton x:Name="BtnLogoChange"
+                                     MinWidth="140"
+                                     Margin="0,0,20,0"
+                                     Padding="13,0"
+                                     Text="{loc:Loc Setup.Ui.Logo.ChangeImage}" />
+                        <ui:MyButton x:Name="BtnLogoDelete"
+                                     Grid.Column="1"
+                                     MinWidth="140"
+                                     Margin="0,0,20,0"
+                                     Padding="13,0"
+                                     ColorType="Red"
+                                     Text="{loc:Loc Setup.Ui.Logo.ClearImage}" />
+                    </Grid>
+                </StackPanel>
+            </ui:MyCard>
+
+            <ui:MyCard x:Name="CardCustom"
+                       Margin="0,0,0,15"
+                       Title="{loc:Loc Setup.Ui.Homepage.Title}">
+                <StackPanel Margin="25,40,25,15">
+                    <Grid Margin="-1,0,0,0"
+                          ColumnDefinitions="*,*,*,*,0.2*">
+                        <ui:MyRadioBox x:Name="RadioCustomType0"
+                                       Grid.Column="0"
+                                       Height="22"
+                                       Text="{loc:Loc Setup.Ui.Homepage.Blank}" />
+                        <ui:MyRadioBox x:Name="RadioCustomType3"
+                                       Grid.Column="1"
+                                       Height="22"
+                                       Text="{loc:Loc Setup.Ui.Homepage.Preset}" />
+                        <ui:MyRadioBox x:Name="RadioCustomType1"
+                                       Grid.Column="2"
+                                       Height="22"
+                                       Text="{loc:Loc Setup.Ui.Homepage.LocalFile}" />
+                        <ui:MyRadioBox x:Name="RadioCustomType2"
+                                       Grid.Column="3"
+                                       Height="22"
+                                       Text="{loc:Loc Setup.Ui.Homepage.NetUpdate}" />
+                    </Grid>
+                    <ui:MyHint x:Name="HintCustom"
+                               Margin="0,15,0,-4"
+                               Theme="Blue"
+                               Text="{loc:Loc Setup.Ui.Homepage.HintReferToModSetup}" />
+                    <ui:MyHint x:Name="HintCustomWarn"
+                               Margin="0,15,0,6"
+                               Theme="Yellow"
+                               CanClose="True"
+                               RelativeSetup="HintCustomWarn"
+                               Text="{loc:Loc Setup.Ui.Homepage.NetWarning}" />
+                    <Grid x:Name="PanCustomLocal"
+                          Height="35"
+                          Margin="0,10,0,5"
+                          ColumnDefinitions="Auto,Auto,Auto"
+                          IsVisible="False">
+                        <ui:MyButton x:Name="BtnCustomRefresh"
+                                     Grid.Column="0"
+                                     MinWidth="140"
+                                     Margin="0,0,20,0"
+                                     Padding="13,0"
+                                     HorizontalAlignment="Left"
+                                     ColorType="Highlight"
+                                     Text="{loc:Loc Setup.Ui.Homepage.Refresh}" />
+                        <ui:MyButton x:Name="BtnCustomTutorial"
+                                     Grid.Column="1"
+                                     MinWidth="140"
+                                     Margin="0,0,20,0"
+                                     Padding="13,0"
+                                     HorizontalAlignment="Left"
+                                     Text="{loc:Loc Setup.Ui.Homepage.Tutorial}" />
+                    </Grid>
+                    <Grid x:Name="PanCustomNet"
+                          Margin="0,10,0,5"
+                          ColumnDefinitions="Auto,*"
+                          IsVisible="False">
+                        <TextBlock VerticalAlignment="Center"
+                                   Margin="0,0,25,0"
+                                   Text="{loc:Loc Setup.Ui.Homepage.DownloadUrl}" />
+                        <ui:MyTextBox x:Name="TextCustomNet"
+                                      Grid.Column="1"
+                                      MaxHeight="28" />
+                    </Grid>
+                    <Grid x:Name="PanCustomPreset"
+                          Height="28"
+                          Margin="0,12,10,5"
+                          ColumnDefinitions="Auto,*"
+                          IsVisible="False">
+                        <TextBlock VerticalAlignment="Center"
+                                   Margin="0,0,25,0"
+                                   Text="{loc:Loc Setup.Ui.Homepage.PresetLabel}" />
+                        <ui:MyComboBox x:Name="ComboCustomPreset"
+                                       Grid.Column="1"
+                                       HorizontalAlignment="Stretch">
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.Trivia}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.EchoCave}"
+                                               IsVisible="False" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.McNews}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.DailyModpack}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.McSkin}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.OpenBmclapi}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.PclManual}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.Magazine}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.GitHub}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.McUpdateSummary}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.NewsToday}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.MinecraftKnowledge}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.ModpackRecommendation}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.Bangumi}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.PclAnnouncement}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.McOfficialFeed}" />
+                        </ui:MyComboBox>
+                    </Grid>
+                </StackPanel>
+            </ui:MyCard>
+
+            <ui:MyCard x:Name="CardSwitch"
+                       Margin="0,0,0,15"
+                       Title="{loc:Loc Setup.Ui.FeatureHide.Title}">
+                <StackPanel Margin="25,38,15,15">
+                    <TextBlock Margin="0,1,0,1"
+                               TextWrapping="Wrap"
+                               Text="{loc:Loc Setup.Ui.FeatureHide.Description}" />
+                    <Grid x:Name="PanHideGrid"
+                          ColumnDefinitions="Auto,18,0.8*,0.9*,0.8*,0.8*,1*,1*"
+                          RowDefinitions="4,30,30,30,30,30,30,30,Auto" />
+                </StackPanel>
+            </ui:MyCard>
+        </StackPanel>
+    </ui:MyScrollViewer>
+</ui:MyPageRight>

@@ -479,12 +479,17 @@ public partial class MyCheckBox : UserControl
 
     private void AnimateBackground(int time, bool animate)
     {
-        var key = _mouseDowned ? InputTheme.AccentLightKey : InputTheme.ItemHoverKey;
+        var key = _mouseDowned || IsPointerOver
+            ? InputTheme.CheckPressedKey
+            : InputTheme.CheckFillKey;
         InputAnimation.Color(
             ShapeBorderElement,
             Border.BackgroundProperty,
             key,
-            _mouseDowned ? InputTheme.AccentLight(this) : InputTheme.ItemHover(this),
+            InputTheme.Brush(
+                this,
+                key,
+                _mouseDowned || IsPointerOver ? Brushes.LightBlue : Brushes.WhiteSmoke),
             time,
             BackgroundKey,
             animate);
@@ -500,28 +505,19 @@ public partial class MyCheckBox : UserControl
         var hover = IsPointerOver;
 
         string borderKey;
-        IBrush borderFallback;
         if (!IsEnabled)
-        {
-            borderKey = InputTheme.TextSecondaryKey;
-            borderFallback = InputTheme.TextSecondary(this);
-        }
+            borderKey = InputTheme.DisabledTextKey;
         else if (isChecked == true)
-        {
-            borderKey = InputTheme.AccentKey;
-            borderFallback = InputTheme.Accent(this);
-        }
+            borderKey = InputTheme.CheckedKey;
         else if (hover)
-        {
-            borderKey = InputTheme.AccentHoverKey;
-            borderFallback = InputTheme.AccentHover(this);
-        }
+            borderKey = InputTheme.HoverKey;
         else
-        {
             borderKey = InputTheme.TextKey;
-            borderFallback = InputTheme.Text(this);
-        }
 
+        var borderFallback = InputTheme.Brush(
+            this,
+            borderKey,
+            !IsEnabled ? Brushes.Gray : hover ? Brushes.DodgerBlue : Brushes.Black);
         InputAnimation.Color(
             ShapeBorderElement,
             Border.BorderBrushProperty,
@@ -532,20 +528,15 @@ public partial class MyCheckBox : UserControl
             animate);
 
         var textKey = !IsEnabled
-            ? InputTheme.TextSecondaryKey
+            ? InputTheme.DisabledTextKey
             : hover
-                ? InputTheme.AccentHoverKey
+                ? InputTheme.HoverKey
                 : InputTheme.TextKey;
-        var textFallback = !IsEnabled
-            ? InputTheme.TextSecondary(this)
-            : hover
-                ? InputTheme.AccentHover(this)
-                : InputTheme.Text(this);
         InputAnimation.Color(
             LabTextElement,
             TextBlock.ForegroundProperty,
             textKey,
-            textFallback,
+            InputTheme.Brush(this, textKey, Brushes.Black),
             Math.Max(time, 1),
             TextColorKey,
             animate);

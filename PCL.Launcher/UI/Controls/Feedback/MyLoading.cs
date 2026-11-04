@@ -75,6 +75,8 @@ public class MyLoading : Grid
     private readonly object _stateLock = new();
 
     private readonly int _uuid = Interlocked.Increment(ref _uuidSeed);
+
+    private bool _applyingThemeColors;
     private SolidColorBrush _foregroundBrush = new(Colors.Black);
     private bool _foregroundIsThemeOwned = true;
     private bool _isCommandRunning;
@@ -104,6 +106,7 @@ public class MyLoading : Grid
             Data = Geometry.Parse(PickaxeData),
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Top,
+            RenderTransformOrigin = new RelativePoint(0d, 0d, RelativeUnit.Relative),
             RenderTransform = new RotateTransform
             {
                 Angle = 55d,
@@ -583,7 +586,7 @@ public class MyLoading : Grid
         _foregroundIsThemeOwned = true;
         var target = FeedbackAnimation.ThemeColor(
             this,
-            isError ? "PageBrushError" : "PageBrushText");
+            isError ? "ColorBrushError" : "ColorBrush1");
         var wait = _errorAnimationWaiting ? 400 : 0;
 
         if (target is null || !FeedbackAnimation.CanAnimate(this))
@@ -647,13 +650,30 @@ public class MyLoading : Grid
 
     private void _ApplyThemeColors()
     {
+        if (_applyingThemeColors) return;
+        _applyingThemeColors = true;
+        try
+        {
+            _ApplyThemeColorsCore();
+        }
+        finally
+        {
+            _applyingThemeColors = false;
+        }
+    }
+
+    private void _ApplyThemeColorsCore()
+    {
         if (_foregroundIsThemeOwned)
         {
             var brush = InnerState == LoadingState.Error
-                ? FeedbackTheme.GetBrush(this, "PageBrushError", Brushes.Red)
-                : FeedbackTheme.GetBrush(this, "PageBrushText", Brushes.Black);
+                ? FeedbackTheme.GetBrush(this, "ColorBrushError", Brushes.Red)
+                : FeedbackTheme.GetBrush(this, "ColorBrush1", Brushes.Black);
             _foregroundBrush = brush as SolidColorBrush ?? new SolidColorBrush(Colors.Black);
-            SetCurrentValue(ForegroundProperty, _foregroundBrush);
+
+            // 只有画刷真的变化时才写自身属性，避免触发多余的属性变更与重入
+            if (!ReferenceEquals(Foreground, _foregroundBrush))
+                SetCurrentValue(ForegroundProperty, _foregroundBrush);
         }
         else
         {
@@ -703,6 +723,9 @@ public class MyLoading : Grid
         }
         else if (change.Property == ForegroundProperty)
         {
+            if (_foregroundIsThemeOwned && ReferenceEquals(change.NewValue, _foregroundBrush))
+                return;
+
             if (!_suppressDefaultTracking
                 && change.NewValue is SolidColorBrush brush
                 && !ReferenceEquals(brush, _foregroundBrush))

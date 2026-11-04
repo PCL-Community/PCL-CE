@@ -11,14 +11,14 @@
           IsHitTestVisible="False">
         <Border x:Name="LineBackElement"
                 Width="0"
-                Height="4"
+                Height="1"
                 Opacity="0.3"
                 CornerRadius="2"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Center" />
         <Border x:Name="LineForeElement"
                 Width="0"
-                Height="4"
+                Height="2"
                 CornerRadius="2"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Center" />
@@ -34,12 +34,17 @@
             </Ellipse.RenderTransform>
         </Ellipse>
         <Popup x:Name="PopupElement"
+               Placement="Center"
+               VerticalOffset="38"
+               IsLightDismissEnabled="False"
                IsOpen="False">
             <Border x:Name="HintBorderElement"
                     MaxWidth="500"
+                    Margin="0,0,4,4"
                     Padding="7,5"
                     BorderThickness="1.5"
-                    CornerRadius="3">
+                    CornerRadius="3"
+                    BoxShadow="0 4 4 0 #66000000">
                 <TextBlock x:Name="TextHintElement"
                            FontSize="12"
                            TextWrapping="Wrap" />

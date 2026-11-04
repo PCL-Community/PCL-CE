@@ -19,7 +19,7 @@ public sealed class MyMsgText : MyMsgDialogBase
             Padding = new Thickness(1d),
             VerticalAlignment = VerticalAlignment.Top
         };
-        DialogTheme.BindBrush(caption, TextBlock.ForegroundProperty, "PageBrushText");
+        DialogTheme.BindBrush(caption, TextBlock.ForegroundProperty, "ColorBrush1");
         SetBody(caption);
     }
 }

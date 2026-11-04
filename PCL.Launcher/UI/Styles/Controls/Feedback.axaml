@@ -1,6 +1,6 @@
 <!--
     反馈与辅助控件的公共样式：控件通过 FeedbackTheme.AttachStyles 挂到自身样式表上。
-    颜色全部走 PageStyles.axaml 的 PageBrush* 动态资源；控件代码中已按主题解析的颜色（提示条主色、
+    颜色全部走 ThemeService 写入 Application.Resources 的核心 ColorBrush* 键；控件代码中已按主题解析的颜色（提示条主色、
     Toast 背景等）不在这里重复设置，避免本地值覆盖样式。
 -->
 <Styles xmlns="https://github.com/avaloniaui"

@@ -40,10 +40,7 @@ public static partial class Animations
 
             anim.timeFinished += deltaTick;
             if (anim.timeFinished > 0)
-            {
                 _AniRun(ref anim);
-                _aniCount++;
-            }
 
             if (anim.timeFinished >= anim.timeTotal)
             {
@@ -72,7 +69,6 @@ public static partial class Animations
 
         try
         {
-            element.SetValue(property, _ConvertColorValue(_FindResource(resourceKey), property));
             ThemeResourceRestorer.Restore(element, property, resourceKey);
         }
         catch (Exception ex)
@@ -269,6 +265,33 @@ public static partial class Animations
 
     #endregion
 
+    #region Scale
+
+    private static void _RunScaleAnimation(AniData ani)
+    {
+        if (ani.obj is not Control element || ani.value is not MyRect scale) return;
+
+        var progressDelta = _GetAnimationDelta(ani);
+
+        var marginX = MathPercent(0d, scale.Left, progressDelta);
+        var marginY = MathPercent(0d, scale.Top, progressDelta);
+        var widthDelta = MathPercent(0d, scale.Width, progressDelta);
+        var heightDelta = MathPercent(0d, scale.Height, progressDelta);
+
+        var margin = element.Margin;
+
+        element.Margin = new Thickness(
+            margin.Left + marginX,
+            margin.Top + marginY,
+            margin.Right + marginX,
+            margin.Bottom + marginY);
+
+        element.Width = Math.Max(_GetEffectiveWidth(element) + widthDelta, 0d);
+        element.Height = Math.Max(_GetEffectiveHeight(element) + heightDelta, 0d);
+    }
+
+    #endregion
+
     #region Color
 
     private static void _RunColorAnimation(ref AniData ani)
@@ -329,33 +352,6 @@ public static partial class Animations
         if (typeof(IBrush).IsAssignableFrom(propertyType)) return new SolidColorBrush(color);
         if (propertyType == typeof(MyColor)) return new MyColor(color);
         return color;
-    }
-
-    #endregion
-
-    #region Scale
-
-    private static void _RunScaleAnimation(AniData ani)
-    {
-        if (ani.obj is not Control element || ani.value is not MyRect scale) return;
-
-        var progressDelta = _GetAnimationDelta(ani);
-
-        var marginX = MathPercent(0d, scale.Left, progressDelta);
-        var marginY = MathPercent(0d, scale.Top, progressDelta);
-        var widthDelta = MathPercent(0d, scale.Width, progressDelta);
-        var heightDelta = MathPercent(0d, scale.Height, progressDelta);
-
-        var margin = element.Margin;
-
-        element.Margin = new Thickness(
-            margin.Left + marginX,
-            margin.Top + marginY,
-            margin.Right + marginX,
-            margin.Bottom + marginY);
-
-        element.Width = Math.Max(_GetEffectiveWidth(element) + widthDelta, 0d);
-        element.Height = Math.Max(_GetEffectiveHeight(element) + heightDelta, 0d);
     }
 
     #endregion
@@ -426,9 +422,12 @@ public static partial class Animations
     {
         if (ani.obj is not Visual element) return;
 
+        var center = new RelativePoint(0.5d, 0.5d, RelativeUnit.Relative);
+        if (element.RenderTransformOrigin != center)
+            element.RenderTransformOrigin = center;
+
         if (element.RenderTransform is not ScaleTransform transform)
         {
-            element.RenderTransformOrigin = new RelativePoint(0.5d, 0.5d, RelativeUnit.Relative);
             transform = new ScaleTransform(1d, 1d);
             element.RenderTransform = transform;
         }
@@ -443,9 +442,12 @@ public static partial class Animations
     {
         if (ani.obj is not Visual element) return;
 
+        var center = new RelativePoint(0.5d, 0.5d, RelativeUnit.Relative);
+        if (element.RenderTransformOrigin != center)
+            element.RenderTransformOrigin = center;
+
         if (element.RenderTransform is not RotateTransform transform)
         {
-            element.RenderTransformOrigin = new RelativePoint(0.5d, 0.5d, RelativeUnit.Relative);
             transform = new RotateTransform(0d);
             element.RenderTransform = transform;
         }

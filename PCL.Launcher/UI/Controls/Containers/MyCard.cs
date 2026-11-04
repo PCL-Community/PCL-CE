@@ -20,13 +20,12 @@ namespace PCL.UI.Controls;
 /// </summary>
 public class MyCard : Grid
 {
-    // 动画
     private const double DropShadowIdleOpacity = 0.07d;
     private const double DropShadowHoverOpacity = 0.4d;
 
-    // 标题/箭头悬停变色与主题切换的颜色过渡时长（毫秒）。
-    private const int TitleColorTime = 120;
-    private const int ThemeColorTime = 180;
+    private const int TitleColorTime = 90;
+    private const int ShadowColorTime = 90;
+    private const int ThemeColorTime = 300;
 
     public static readonly StyledProperty<string> TitleProperty =
         AvaloniaProperty.Register<MyCard, string>(nameof(Title), string.Empty);
@@ -53,7 +52,7 @@ public class MyCard : Grid
 
     private static int _uuidSeed;
 
-    private readonly Border _mainBorder;
+    private readonly BlurBorder _mainBorder;
     private readonly Grid _mainGrid;
 
     public readonly int uuid = Interlocked.Increment(ref _uuidSeed);
@@ -65,18 +64,19 @@ public class MyCard : Grid
 
     private TextBlock? _mainTextBlock;
 
-    // UI 建立
     public MyCard()
     {
-        MainChrome = new Border
+        MainChrome = new MyDropShadow
         {
+            Margin = new Thickness(-3d, -3d, -3d, -4d),
+            ShadowRadius = 3d,
             CornerRadius = new CornerRadius(5d),
-            Background = Brushes.Transparent,
-            BoxShadow = _CreateShadow(DropShadowIdleOpacity),
+            Opacity = DropShadowIdleOpacity,
             IsHitTestVisible = false
         };
+        ContainerTheme.BindDynamic(MainChrome, MyDropShadow.ColorProperty, "ColorObject1");
         Children.Insert(0, MainChrome);
-        _mainBorder = new Border
+        _mainBorder = new BlurBorder
         {
             CornerRadius = new CornerRadius(5d),
             IsHitTestVisible = false
@@ -93,8 +93,7 @@ public class MyCard : Grid
         PointerReleased += _OnPointerReleased;
     }
 
-    /// <summary>阴影宿主，用 <see cref="Border.BoxShadow" /> 实现。</summary>
-    public Border MainChrome { get; }
+    public MyDropShadow MainChrome { get; }
 
     public Control? BorderChild
     {
@@ -161,6 +160,8 @@ public class MyCard : Grid
         if (_isLoad)
             return;
         _isLoad = true;
+
+        using var controlScope = SuspendControl();
 
         if (_mainTextBlock is null)
         {
@@ -463,11 +464,51 @@ public class MyCard : Grid
 
         // 未加载时由 Loaded 处理无动画折叠，这里直接返回。
         if (!IsLoaded)
+        {
+            SwapControl.IsVisible = !value;
+            Height = value ? SwapedHeight : double.NaN;
             return;
+        }
 
-        // 更新控件的可见性和高度
-        SwapControl.IsVisible = !value;
-        TriggerForceResize();
+        if (value)
+        {
+            // 折叠时先保留内容，让高度动画可见，动画结束后再隐藏。
+            SwapControl.IsVisible = true;
+            var start = Bounds.Height > 0d ? Bounds.Height : SwapedHeight;
+            if (ContainerAnimation.CanAnimate(this) && start > SwapedHeight)
+            {
+                _isHeightAnimating = true;
+                Height = start;
+                AniStart(
+                    new List<AniData>
+                    {
+                        AaHeight(
+                            this,
+                            SwapedHeight - start,
+                            200,
+                            ease: new AniEaseOutFluent(AniEasePower.ExtraStrong)),
+                        AaCode(
+                            () =>
+                            {
+                                _isHeightAnimating = false;
+                                Height = SwapedHeight;
+                                if (IsSwapped) SwapControl.IsVisible = false;
+                            },
+                            after: true)
+                    },
+                    HeightAnimationKey);
+            }
+            else
+            {
+                SwapControl.IsVisible = false;
+                Height = SwapedHeight;
+            }
+        }
+        else
+        {
+            SwapControl.IsVisible = true;
+            TriggerForceResize();
+        }
 
         // 根据折叠状态旋转箭头图标：折叠时指向右侧或向上（根据 SwapLogoRight 设置），展开时指向下方
         if (_mainSwap is not null)
@@ -496,7 +537,7 @@ public class MyCard : Grid
     private void _OnPointerEntered(object? sender, PointerEventArgs e)
     {
         if (HasMouseAnimation)
-            AnimateShadow(DropShadowHoverOpacity);
+            AnimateShadow(true);
 
         AnimateTitleColors(true);
     }
@@ -505,7 +546,7 @@ public class MyCard : Grid
     {
         _isSwapMouseDown = false;
         if (HasMouseAnimation)
-            AnimateShadow(DropShadowIdleOpacity);
+            AnimateShadow(false);
 
         AnimateTitleColors(true);
     }
@@ -622,58 +663,22 @@ public class MyCard : Grid
     /// <param name="callBack">动画结束后在 UI 线程执行的回调，参数为本卡片。</param>
     public void AniDispose(bool removeFromChildren, Action<MyCard>? callBack = null)
     {
+        if (_isDisposing) return;
         _isDisposing = true;
+
         AniStop(HeightAnimationKey);
         _isHeightAnimating = false;
 
-        // 已经不可交互（例如正在被页面移除）时不再播放动画
-        if (!IsHitTestVisible || !IsLoaded || !ContainerAnimation.IsEnabled)
-        {
-            FinishDispose(removeFromChildren, callBack);
-            return;
-        }
-
-        IsHitTestVisible = false;
-        var scale = ContainerAnimation.EnsureScale(this);
-        AniStart(
-            new List<AniData>
-            {
-                AaScaleTransform(this, 0.92d - scale.ScaleX, 200, ease: new AniEaseInFluent()),
-                AaOpacity(this, -Opacity, 200, ease: new AniEaseOutFluent()),
-                AaHeight(this, -Bounds.Height, 150, 100, new AniEaseOutFluent()),
-                AaCode(() => FinishDispose(removeFromChildren, callBack), after: true)
-            },
+        PCL.Animations.AniDispose(
+            this,
+            removeFromChildren,
+            _ => callBack?.Invoke(this),
+            0.92d,
+            true,
             DisposeAnimationKey);
     }
 
     private string DisposeAnimationKey => $"MyCard Dispose {uuid}";
-
-    private void FinishDispose(bool removeFromChildren, Action<MyCard>? callBack)
-    {
-        // 父级不是面板时退化为隐藏，避免卡片留在可视树上
-        if (!removeFromChildren || !TryRemoveFromParent())
-            IsVisible = false;
-
-        callBack?.Invoke(this);
-    }
-
-    private bool TryRemoveFromParent()
-    {
-        switch (Parent)
-        {
-            case Panel panel:
-                panel.Children.Remove(this);
-                return true;
-            case Decorator decorator when ReferenceEquals(decorator.Child, this):
-                decorator.Child = null;
-                return true;
-            case ContentControl contentControl when ReferenceEquals(contentControl.Content, this):
-                contentControl.Content = null;
-                return true;
-            default:
-                return false;
-        }
-    }
 
     #endregion
 
@@ -728,7 +733,7 @@ public class MyCard : Grid
         var hover = IsPointerOver && HasMouseAnimation;
         var brush = ContainerTheme.Brush(
             this,
-            hover ? "PageBrushAccent" : "PageBrushText",
+            hover ? "ColorBrush2" : "ColorBrush1",
             hover ? Brushes.DodgerBlue : Brushes.Black);
 
         AnimateBrush(
@@ -801,7 +806,7 @@ public class MyCard : Grid
 
     private IBrush _ResolveTextBrush()
     {
-        if (this.TryFindResource("PageBrushText", out var resource) && resource is IBrush brush)
+        if (this.TryFindResource("ColorBrush1", out var resource) && resource is IBrush brush)
             return brush;
 
         return Brushes.Black;
@@ -809,48 +814,32 @@ public class MyCard : Grid
 
     private IBrush _ResolveCardBrush()
     {
-        if (this.TryFindResource("PageBrushCard", out var resource) && resource is IBrush brush)
+        if (this.TryFindResource("ColorBrushTransparentBackground", out var resource)
+            && resource is IBrush brush)
             return brush;
 
         return Brushes.Transparent;
     }
 
-    private static BoxShadows _CreateShadow(double opacity)
+    private void AnimateShadow(bool hover)
     {
-        var alpha = (byte)Math.Clamp(Math.Round(255d * opacity), 0d, 255d);
-        return new BoxShadows(
-            new BoxShadow
-            {
-                Blur = 8d,
-                OffsetY = 1d,
-                Spread = 0d,
-                Color = Color.FromArgb(alpha, 0, 0, 0)
-            });
-    }
+        var colorKey = hover ? "ColorObject4" : "ColorObject1";
+        var targetOpacity = hover ? DropShadowHoverOpacity : DropShadowIdleOpacity;
 
-    private double _shadowOpacity = DropShadowIdleOpacity;
-
-    private void _ApplyShadow(double opacity)
-    {
-        _shadowOpacity = opacity;
-        MainChrome.BoxShadow = _CreateShadow(opacity);
-    }
-
-    /// <summary>阴影浓度过渡（90 ms）；动画关闭或控件未加载时直接落到终值。</summary>
-    private void AnimateShadow(double target)
-    {
-        if (!ContainerAnimation.CanAnimate(this))
+        if (!ContainerAnimation.CanAnimate(this) || !this.TryFindResource(colorKey, out _))
         {
             AniStop(MouseAnimationKey);
-            _ApplyShadow(target);
+            ContainerTheme.BindDynamic(MainChrome, MyDropShadow.ColorProperty, colorKey);
+            MainChrome.Opacity = targetOpacity;
             return;
         }
 
         AniStart(
-            AaDouble(
-                delta => _ApplyShadow(Math.Clamp(_shadowOpacity + delta, 0d, 1d)),
-                target - _shadowOpacity,
-                90),
+            new List<AniData>
+            {
+                AaColor(MainChrome, MyDropShadow.ColorProperty, colorKey, ShadowColorTime),
+                AaOpacity(MainChrome, targetOpacity - MainChrome.Opacity, ShadowColorTime)
+            },
             MouseAnimationKey);
     }
 

@@ -1,9 +1,12 @@
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
+using PCL.Core.Logging;
 using PCL.Core.UI.Animation;
 using PCL.Core.UI.Animation.Animatable;
+using PCL.Core.UI.Animation.Core;
 using PCL.Core.UI.Animation.Easings;
 using PCL.UI.Controls.Common;
 
@@ -39,6 +42,12 @@ public class SvgIcon : Control
     public static readonly StyledProperty<Stretch> StretchProperty =
         AvaloniaProperty.Register<SvgIcon, Stretch>(nameof(Stretch), Stretch.Uniform);
 
+    private string? _colorAnimationName;
+
+    private long _colorAnimationStartStamp;
+
+    private double _colorAnimationTargetMilliseconds;
+
     private SvgIconModel? _model;
     private bool _modelLoaded;
 
@@ -55,7 +64,7 @@ public class SvgIcon : Control
     }
 
     /// <summary>
-    ///     未显式设置时使用页面文本色（<c>PageBrushText</c>），找不到资源时回退为黑色。
+    ///     未显式设置时使用页面文本色（<c>ColorBrush1</c>），找不到资源时回退为黑色。
     /// </summary>
     public IBrush? IconBrush
     {
@@ -83,6 +92,8 @@ public class SvgIcon : Control
 
     /// <summary>
     ///     把图标颜色过渡到目标颜色，默认耗时 120 ms，缓动为 CubicEaseOut。
+    ///     同名动画开始前先经 <see cref="AnimationService.CancelAnimationByName" /> 取消旧动画，
+    ///     过渡结束会写一条带目标时长与实测时长的 Debug 日志。
     /// </summary>
     public void AnimateIconBrushTo(
         MyColor color,
@@ -90,14 +101,47 @@ public class SvgIcon : Control
         object? easing = null,
         string? animationKey = null)
     {
+        var name = animationKey ?? $"SvgIconColor {RuntimeHelpers.GetHashCode(this)}";
+        var targetDuration = duration ?? TimeSpan.FromMilliseconds(120);
+
+        AnimationService.CancelAnimationByName(name);
+
+        _colorAnimationName = name;
+        _colorAnimationStartStamp = Stopwatch.GetTimestamp();
+        _colorAnimationTargetMilliseconds = targetDuration.TotalMilliseconds;
+
+        IAnimation? running = null;
         var animation = new NColorFromToAnimation
         {
-            Name = animationKey ?? $"SvgIconColor {RuntimeHelpers.GetHashCode(this)}",
+            Name = name,
             To = (Color)color,
-            Duration = duration ?? TimeSpan.FromMilliseconds(120),
+            Duration = targetDuration,
             Easing = easing as IEasing ?? new CubicEaseOut()
         };
-        animation.RunFireAndForget(new AvaloniaAnimatable(this, IconBrushProperty));
+        animation.Completed += (_, _) => _OnColorAnimationCompleted(name, running);
+        running = animation.RunFireAndForget(new AvaloniaAnimatable(this, IconBrushProperty));
+    }
+
+    public void StopColorAnimation()
+    {
+        var name = _colorAnimationName;
+        if (name is null) return;
+
+        _colorAnimationName = null;
+        AnimationService.CancelAnimationByName(name);
+    }
+
+    private void _OnColorAnimationCompleted(string name, IAnimation? animation)
+    {
+        if (!string.Equals(_colorAnimationName, name, StringComparison.Ordinal)) return;
+
+        var elapsed = Stopwatch.GetElapsedTime(_colorAnimationStartStamp).TotalMilliseconds;
+        var status = animation?.Status;
+        _colorAnimationName = null;
+        LogWrapper.Debug(
+            "Animation",
+            $"[SvgIcon] 颜色过渡结束 目标={_colorAnimationTargetMilliseconds:F0}ms "
+            + $"实测={elapsed:F1}ms 状态={status}");
     }
 
     protected override Size MeasureOverride(Size availableSize)
@@ -190,6 +234,7 @@ public class SvgIcon : Control
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
         ActualThemeVariantChanged -= _OnActualThemeVariantChanged;
+        StopColorAnimation();
         base.OnDetachedFromVisualTree(e);
     }
 
@@ -200,8 +245,12 @@ public class SvgIcon : Control
 
     private IBrush _GetFallbackIconBrush()
     {
-        if (this.TryFindResource("PageBrushText", out var resource) && resource is IBrush brush)
+        if (this.TryFindResource("ColorBrush1", out var resource) && resource is IBrush brush)
             return brush;
+
+        if (this.TryFindResource("ColorBrush1", out var fallback)
+            && fallback is IBrush fallbackBrush)
+            return fallbackBrush;
 
         return Brushes.Black;
     }

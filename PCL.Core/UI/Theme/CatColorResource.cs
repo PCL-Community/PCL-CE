@@ -1,4 +1,3 @@
-using PCL.Core.App.IoC;
 using PCL.Core.Platform;
 
 namespace PCL.Core.UI.Theme;
@@ -44,7 +43,8 @@ public class CatColorResource
     public bool ApplyToColor { get; init; } = false;
 
     /// <summary>
-    ///     应用该颜色到 WPF 资源字典中，仅可在 <see cref="LifecycleState.Loaded" /> 及后面的阶段调用。
+    ///     应用该颜色到界面框架的应用资源字典（由 <see cref="PlatformServices.Theme" /> 实现）；
+    ///     应用容器尚未创建时后端会先暂存，待容器就绪后回填。
     /// </summary>
     public void Apply()
     {

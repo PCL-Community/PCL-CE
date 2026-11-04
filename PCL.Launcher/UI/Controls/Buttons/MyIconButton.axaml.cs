@@ -5,6 +5,7 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Input;
 using Avalonia.Media;
 using PCL.Core.Logging;
+using PCL.Core.UI.Theme;
 using PCL.UI.Controls.Common;
 
 namespace PCL.UI.Controls;
@@ -14,7 +15,7 @@ namespace PCL.UI.Controls;
 ///     数据（<see cref="Logo" />）或 SVG 图标（<see cref="SvgIcon" />）。
 ///     图标填充与 White 主题的悬停底色由 <c>PCL.Animations</c> 插值，其余主题的
 ///     底色保持透明；Custom 主题按 <see cref="Foreground" /> 计算透明度。
-///     从父容器移除时由 <see cref="AniDispose" /> 先缩放淡出再移除。
+///     从父容器移除时由 <see cref="AniDispose" /> 先缩放收起再移除。
 /// </summary>
 public partial class MyIconButton : Border
 {
@@ -29,6 +30,9 @@ public partial class MyIconButton : Border
         Custom
     }
 
+    private const int AnimationColorIn = 120;
+    private const int AnimationColorOut = 150;
+
     public static readonly StyledProperty<ICommand?> CommandProperty =
         AvaloniaProperty.Register<MyIconButton, ICommand?>(nameof(Command));
 
@@ -38,14 +42,9 @@ public partial class MyIconButton : Border
     public static readonly StyledProperty<IBrush?> ForegroundProperty =
         AvaloniaProperty.Register<MyIconButton, IBrush?>(nameof(Foreground));
 
-    /// <summary>动画键使用的唯一编号。</summary>
-    public readonly int Uuid = Interlocked.Increment(ref _uuidSeed);
-
     private static int _uuidSeed;
 
-    // 悬停/离开的配色渐变时长（毫秒）。
-    private const int AnimationColorIn = 120;
-    private const int AnimationColorOut = 150;
+    public readonly int Uuid = Interlocked.Increment(ref _uuidSeed);
 
     private bool _isCommandRunning;
     private bool _isMouseDown;
@@ -74,9 +73,6 @@ public partial class MyIconButton : Border
             PCL.Animations.AniStop(DisposeKey);
         };
     }
-
-    /// <summary>点击完成时触发。</summary>
-    public event ClickEventHandler? Click;
 
     /// <summary>旧版 Path 图标数据（SVG path 语法）。</summary>
     public string Logo
@@ -171,6 +167,8 @@ public partial class MyIconButton : Border
 
     private string DisposeKey => ButtonAnimation.Name("MyIconButton Dispose", Uuid);
 
+    public event ClickEventHandler? Click;
+
     protected override Size MeasureOverride(Size availableSize)
     {
         var measured = base.MeasureOverride(availableSize);
@@ -188,8 +186,6 @@ public partial class MyIconButton : Border
 
         if (change.Property == ForegroundProperty)
             RefreshAnim();
-        else if (change.Property == IsEnabledProperty)
-            RefreshAnim(false);
     }
 
     private void _ApplyIconVisibility()
@@ -239,23 +235,25 @@ public partial class MyIconButton : Border
                 return;
             }
 
-            var key = !IsEnabled
-                ? "PageBrushDebug"
-                : _theme switch
-                {
-                    Themes.White => "ButtonBrushIconWhite",
-                    Themes.Black => IsPointerOver
-                        ? "ButtonBrushBlackIconHover"
-                        : "ButtonBrushBlackIcon",
-                    Themes.Red => IsPointerOver ? "PageBrushError" : "ButtonBrushRedIcon",
-                    _ => IsPointerOver ? "ButtonBrushAccentDeep" : "PageBrushAccentHover"
-                };
+            var (key, literal) = _theme switch
+            {
+                Themes.White => (string.Empty, new MyColor(234d, 242d, 254d)),
+                Themes.Black => (string.Empty, ThemeService.IsDarkMode
+                    ? new MyColor(IsPointerOver ? 230d : 160d, 255d, 255d, 255d)
+                    : new MyColor(IsPointerOver ? 230d : 160d, 0d, 0d, 0d)),
+                Themes.Red => IsPointerOver
+                    ? ("ColorBrushRedLight", null)
+                    : ("ColorBrushRedLight", AlphaThemeColor("ColorBrushRedLight", 160d)),
+                _ => IsPointerOver
+                    ? ("ColorBrush2", null)
+                    : ("ColorBrush4", null)
+            };
 
             ButtonAnimation.ApplyColor(
                 Path,
                 Shape.FillProperty,
                 key,
-                null,
+                literal,
                 time,
                 animate,
                 FillKey);
@@ -264,6 +262,12 @@ public partial class MyIconButton : Border
         {
             LogWrapper.Debug(ex, "MyIconButton", "刷新图标按钮颜色出错");
         }
+    }
+
+    private MyColor? AlphaThemeColor(string key, double alpha)
+    {
+        var color = ButtonAnimation.ThemeColor(this, key);
+        return color is null ? null : new MyColor(alpha, (Color)color);
     }
 
     /// <summary>
@@ -277,8 +281,8 @@ public partial class MyIconButton : Border
             ButtonAnimation.ApplyColor(
                 PanBack,
                 BackgroundProperty,
-                "ButtonBrushWhiteHover",
-                null,
+                string.Empty,
+                new MyColor(50d, 255d, 255d, 255d),
                 time,
                 animate,
                 BackgroundKey);
@@ -367,78 +371,6 @@ public partial class MyIconButton : Border
         RefreshAnim();
     }
 
-    #region 收起与移除
-
-    private bool _isDisposing;
-
-    /// <summary>
-    ///     收起按钮并从父容器移除：先把内层缩到 0.8、整体淡出，动画结束后再移除。
-    ///     动画关闭、控件未加载或重复调用时立即收尾。
-    /// </summary>
-    /// <param name="removeFromChildren">为 <see langword="true" /> 时从父容器移除，否则仅隐藏。</param>
-    /// <param name="callBack">收尾后在 UI 线程执行的回调，参数为本按钮。</param>
-    public void AniDispose(bool removeFromChildren = true, Action<MyIconButton>? callBack = null)
-    {
-        if (_isDisposing)
-            return;
-        _isDisposing = true;
-
-        if (!ButtonAnimation.CanAnimate(this))
-        {
-            FinishDispose(removeFromChildren, callBack);
-            return;
-        }
-
-        IsHitTestVisible = false;
-        PCL.Animations.AniStart(
-            new List<PCL.Animations.AniData>
-            {
-                PCL.Animations.AaScaleTransform(
-                    this,
-                    0.8d - ButtonAnimation.CurrentScale(this),
-                    200,
-                    ease: new PCL.Animations.AniEaseInFluent()),
-                PCL.Animations.AaOpacity(
-                    this,
-                    -Opacity,
-                    180,
-                    ease: new PCL.Animations.AniEaseOutFluent()),
-                PCL.Animations.AaCode(
-                    () => FinishDispose(removeFromChildren, callBack),
-                    after: true)
-            },
-            DisposeKey);
-    }
-
-    private void FinishDispose(bool removeFromChildren, Action<MyIconButton>? callBack)
-    {
-        // 父级不是面板时退化为隐藏，避免按钮留在可视树上
-        if (!removeFromChildren || !TryRemoveFromParent())
-            IsVisible = false;
-
-        callBack?.Invoke(this);
-    }
-
-    private bool TryRemoveFromParent()
-    {
-        switch (Parent)
-        {
-            case Panel panel:
-                panel.Children.Remove(this);
-                return true;
-            case Decorator decorator when ReferenceEquals(decorator.Child, this):
-                decorator.Child = null;
-                return true;
-            case ContentControl contentControl when ReferenceEquals(contentControl.Content, this):
-                contentControl.Content = null;
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    #endregion
-
     private void ExecuteCommand()
     {
         var command = Command;
@@ -454,4 +386,68 @@ public partial class MyIconButton : Border
             _isCommandRunning = false;
         }
     }
+
+    #region 收起与移除
+
+    private bool _isDisposing;
+
+    /// <summary>
+    ///     收起按钮并从父容器移除：整体缩放增量 −1.5（200 ms，<c>AniEaseInFluent</c>）后移除或隐藏，不做淡出。
+    ///     已不可交互、动画关闭或控件未加载时立即收尾。
+    /// </summary>
+    /// <param name="removeFromChildren">为 <see langword="true" /> 时从父容器移除，否则仅隐藏。</param>
+    /// <param name="callBack">收尾后在 UI 线程执行的回调，参数为本按钮。</param>
+    public void AniDispose(bool removeFromChildren = true, Action<MyIconButton>? callBack = null)
+    {
+        if (_isDisposing || !IsHitTestVisible)
+            return;
+        _isDisposing = true;
+        IsHitTestVisible = false;
+
+        if (PCL.Animations.AniSpeed <= 0d
+            || !IsLoaded
+            || TopLevel.GetTopLevel(this) is null
+            || PCL.Animations.AniExitsAnyControl())
+        {
+            Finish();
+            return;
+        }
+
+        if (RenderTransform is not ScaleTransform transform)
+        {
+            RenderTransformOrigin = RelativePoint.Center;
+            transform = new ScaleTransform(1d, 1d);
+            RenderTransform = transform;
+        }
+
+        PCL.Animations.AniStart(
+            new List<PCL.Animations.AniData>
+            {
+                PCL.Animations.AaScaleTransform(
+                    this,
+                    -1.5d - transform.ScaleX,
+                    200,
+                    ease: new PCL.Animations.AniEaseInFluent()),
+                PCL.Animations.AaCode(Finish, after: true)
+            },
+            DisposeKey);
+        return;
+
+        void Finish()
+        {
+            if (removeFromChildren)
+            {
+                if (!PCL.Animations.TryRemoveFromParent(this))
+                    IsVisible = false;
+            }
+            else
+            {
+                IsVisible = false;
+            }
+
+            callBack?.Invoke(this);
+        }
+    }
+
+    #endregion
 }

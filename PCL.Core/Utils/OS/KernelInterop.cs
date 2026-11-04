@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -9,110 +12,47 @@ namespace PCL.Core.Utils.OS;
 
 public static partial class KernelInterop
 {
-    // ReSharper disable InconsistentNaming, UnusedMember.Local
-
-    [LibraryImport("kernel32.dll", EntryPoint = "GetCurrentThreadId", SetLastError = true)]
-    private static partial uint _GetCurrentThreadId();
-
-    [LibraryImport("kernel32.dll", EntryPoint = "ExitProcess", SetLastError = false)]
-    private static partial void _ExitProcess(uint statusCode);
-
-    [LibraryImport("kernel32.dll", EntryPoint = "GetNamedPipeClientProcessId", SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool _GetNamedPipeClientProcessId(IntPtr pipeHandle, out uint clientProcessId);
-
-    [LibraryImport("kernel32.dll", EntryPoint = "GetLogicalProcessorInformationEx", SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool _GetLogicalProcessorInformationEx(
-        LOGICAL_PROCESSOR_RELATIONSHIP relationshipType,
-        IntPtr buffer,
-        ref uint returnLength);
-
-    private const int ERROR_INSUFFICIENT_BUFFER = 122;
-    
-    private enum LOGICAL_PROCESSOR_RELATIONSHIP : uint
-    {
-        RelationProcessorCore    = 0,
-        RelationNumaNode         = 1,
-        RelationCache            = 2,
-        RelationProcessorPackage = 3,
-        RelationGroup            = 4,
-        RelationAll              = 0xffff
-    }
-
-    private static MEMORYSTATUSEX CreateStatus() => new() { dwLength = (uint)Marshal.SizeOf<MEMORYSTATUSEX>() };
-
-    [LibraryImport("kernel32.dll", SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool GlobalMemoryStatusEx(ref MEMORYSTATUSEX lpBuffer);
-
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-    private struct MEMORYSTATUSEX
-    {
-        public uint dwLength;
-        public uint dwMemoryLoad;
-        public ulong ullTotalPhys;
-        public ulong ullAvailPhys;
-        public ulong ullTotalPageFile;
-        public ulong ullAvailPageFile;
-        public ulong ullTotalVirtual;
-        public ulong ullAvailVirtual;
-        public ulong ullAvailExtendedVirtual;
-    }
-
-    private const int ERROR_ACCESS_DENIED = 5;
-
-    [LibraryImport("kernel32.dll", EntryPoint = "AllocConsole")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool _AllocConsole();
-
-    [LibraryImport("kernel32.dll", EntryPoint = "FreeConsole")]
-    private static partial void _FreeConsole();
-
-    [LibraryImport("kernel32.dll", EntryPoint = "GetConsoleWindow")]
-    private static partial nint _GetConsoleWindow();
-    
-    [LibraryImport("kernel32.dll")]
-    internal static partial uint GetACP();
-
-    // ReSharper restore InconsistentNaming, UnusedMember.Local
-
-    private static void _ThrowLastWin32Error(int? errorCode = null) => throw new Win32Exception(errorCode ?? Marshal.GetLastWin32Error());
-
     /// <summary>
-    /// 获取当前线程的 Win32 Thread ID。若无特殊情况请用 <see cref="Thread.ManagedThreadId"/> 而不是这个方法。
+    ///     获取当前线程的 Win32 Thread ID。若无特殊情况请用 <see cref="Thread.ManagedThreadId" /> 而不是这个方法。
     /// </summary>
     public static uint CurrentNativeThreadId => _GetCurrentThreadId();
 
-    /// <summary>
-    /// 直接结束当前进程。若无特殊情况请使用 <see cref="PCL.Core.App.IoC.Lifecycle.Shutdown"/>
-    /// </summary>
-    /// <param name="statusCode">退出状态码 (返回值)</param>
-    public static void ExitProcess(int statusCode = 0) => _ExitProcess((uint)statusCode);
+    private static void _ThrowLastWin32Error(int? errorCode = null)
+    {
+        throw new Win32Exception(errorCode ?? Marshal.GetLastWin32Error());
+    }
 
     /// <summary>
-    /// 获取指定命名管道当前连接的客户端进程 ID
+    ///     直接结束当前进程。若无特殊情况请使用 <see cref="PCL.Core.App.IoC.Lifecycle.Shutdown" />
+    /// </summary>
+    /// <param name="statusCode">退出状态码 (返回值)</param>
+    public static void ExitProcess(int statusCode = 0)
+    {
+        _ExitProcess((uint)statusCode);
+    }
+
+    /// <summary>
+    ///     获取指定命名管道当前连接的客户端进程 ID
     /// </summary>
     /// <param name="pipeHandle">命名管道句柄</param>
     /// <returns>获取到的进程 ID</returns>
     public static uint GetNamedPipeClientProcessId(IntPtr pipeHandle)
     {
-        if (!_GetNamedPipeClientProcessId(pipeHandle, out var clientProcessId)) _ThrowLastWin32Error();
+        if (!_GetNamedPipeClientProcessId(pipeHandle, out var clientProcessId))
+            _ThrowLastWin32Error();
         return clientProcessId;
     }
 
     /// <summary>
-    /// 获取仅包含性能核（P-core）的逻辑处理器数量。
-    /// 在不支持 EfficiencyClass（旧 OS 或非混合架构）时，会退回到 Environment.ProcessorCount。
+    ///     获取仅包含性能核（P-core）的逻辑处理器数量。
+    ///     在不支持 EfficiencyClass（旧 OS 或非混合架构）时，会退回到 Environment.ProcessorCount。
     /// </summary>
     public static int GetPerformanceLogicalProcessorCount()
     {
         var cores = QueryProcessorCoreRelationships();
         if (cores.Count == 0)
-        {
             // 不支持 EfficiencyClass
             return Environment.ProcessorCount;
-        }
 
         // 原理：性能核的 EfficiencyClass 一定比能效核大
         var maxEff = cores.Max(c => c.EfficiencyClass);
@@ -130,19 +70,14 @@ public static partial class KernelInterop
                 cnt += (int)(v & 1);
                 v >>= 1;
             }
+
             return cnt;
         }
     }
 
     /// <summary>
-    /// 仅承载 EfficiencyClass 和 Mask 的简单 CPU 核心信息
+    ///     枚举 RelationProcessorCore 返回的所有物理核心关系信息
     /// </summary>
-    public sealed record ProcessorCore(byte EfficiencyClass, ulong Mask);
-
-    /// <summary>
-    /// 枚举 RelationProcessorCore 返回的所有物理核心关系信息
-    /// </summary>
-    // Partly generated by o4-mini-high (20250709)
     public static List<ProcessorCore> QueryProcessorCoreRelationships()
     {
         uint returnedLength = 0;
@@ -153,9 +88,7 @@ public static partial class KernelInterop
                 IntPtr.Zero,
                 ref returnedLength)
             && Marshal.GetLastWin32Error() != ERROR_INSUFFICIENT_BUFFER)
-        {
             throw new Win32Exception(Marshal.GetLastWin32Error());
-        }
 
         var list = new List<ProcessorCore>();
         var buffer = Marshal.AllocHGlobal((int)returnedLength);
@@ -165,9 +98,7 @@ public static partial class KernelInterop
                     LOGICAL_PROCESSOR_RELATIONSHIP.RelationProcessorCore,
                     buffer,
                     ref returnedLength))
-            {
                 throw new Win32Exception(Marshal.GetLastWin32Error());
-            }
 
             var ptr = buffer;
             var end = IntPtr.Add(buffer, (int)returnedLength);
@@ -199,7 +130,9 @@ public static partial class KernelInterop
                     {
                         var affinityPtr = IntPtr.Add(maskBase, i * groupAffinitySize);
                         // 只读取 Mask 部分，统计位数
-                        var mask = (IntPtr.Size == 8 ? (ulong)Marshal.ReadInt64(affinityPtr) : (uint)Marshal.ReadInt32(affinityPtr));
+                        var mask = IntPtr.Size == 8
+                            ? (ulong)Marshal.ReadInt64(affinityPtr)
+                            : (uint)Marshal.ReadInt32(affinityPtr);
                         list.Add(new ProcessorCore(efficiencyClass, mask));
                     }
                 }
@@ -217,39 +150,162 @@ public static partial class KernelInterop
     }
 
     /// <summary>
-    /// 获取系统可用物理内存 (<c>ullAvailPhys</c>) 的字节数
+    ///     获取系统可用物理内存 (<c>ullAvailPhys</c>) 的字节数
     /// </summary>
     public static ulong GetAvailablePhysicalMemoryBytes()
     {
-        var status = CreateStatus();
-        if (!GlobalMemoryStatusEx(ref status)) _ThrowLastWin32Error();
-        return status.ullAvailPhys;
+        return GetPhysicalMemoryBytes().Available;
     }
 
     /// <summary>
-    /// 获取系统可用物理内存 (<c>ullAvailPhys</c>) 和总物理内存 (<c>ullTotalPhys</c>) 的字节数
+    ///     获取系统可用物理内存 (<c>ullAvailPhys</c>) 和总物理内存 (<c>ullTotalPhys</c>) 的字节数
     /// </summary>
     public static (ulong Total, ulong Available) GetPhysicalMemoryBytes()
     {
-        var status = CreateStatus();
-        if (!GlobalMemoryStatusEx(ref status)) _ThrowLastWin32Error();
-        return (status.ullTotalPhys, status.ullAvailPhys);
+        if (OperatingSystem.IsWindows())
+        {
+            var status = CreateStatus();
+            if (!GlobalMemoryStatusEx(ref status)) _ThrowLastWin32Error();
+            return (status.ullTotalPhys, status.ullAvailPhys);
+        }
+
+        if (OperatingSystem.IsLinux())
+            return _ReadLinuxMemory();
+
+        if (OperatingSystem.IsMacOS())
+            return _ReadMacMemory();
+
+        return (0UL, 0UL);
     }
 
     /// <summary>
-    /// 获取以百分比表示的系统内存占用 (范围 0.0 ~ 100.0)
+    ///     获取以百分比表示的系统内存占用 (范围 0.0 ~ 100.0)
     /// </summary>
     public static double GetMemoryLoadPercent()
     {
-        var status = CreateStatus();
-        if (!GlobalMemoryStatusEx(ref status)) _ThrowLastWin32Error();
-        return status.dwMemoryLoad;
+        if (OperatingSystem.IsWindows())
+        {
+            var status = CreateStatus();
+            if (!GlobalMemoryStatusEx(ref status)) _ThrowLastWin32Error();
+            return status.dwMemoryLoad;
+        }
+
+        var (total, available) = GetPhysicalMemoryBytes();
+        return total == 0UL ? 0d : Math.Clamp((total - available) * 100d / total, 0d, 100d);
+    }
+
+    private static (ulong Total, ulong Available) _ReadLinuxMemory()
+    {
+        try
+        {
+            var total = 0UL;
+            var available = 0UL;
+            var free = 0UL;
+            var buffers = 0UL;
+            var cached = 0UL;
+
+            foreach (var line in File.ReadLines("/proc/meminfo"))
+            {
+                var separator = line.IndexOf(':');
+                if (separator <= 0) continue;
+
+                var key = line[..separator];
+                var valueText = line[(separator + 1)..].Trim().Split(' ')[0];
+                if (!ulong.TryParse(
+                        valueText,
+                        NumberStyles.Integer,
+                        CultureInfo.InvariantCulture,
+                        out var value))
+                    continue;
+
+                value *= 1024UL;
+                switch (key)
+                {
+                    case "MemTotal": total = value; break;
+                    case "MemAvailable": available = value; break;
+                    case "MemFree": free = value; break;
+                    case "Buffers": buffers = value; break;
+                    case "Cached": cached = value; break;
+                }
+            }
+
+            if (available == 0UL)
+                available = free + buffers + cached;
+            return (total, Math.Min(available, total));
+        }
+        catch
+        {
+            return (0UL, 0UL);
+        }
+    }
+
+    private static (ulong Total, ulong Available) _ReadMacMemory()
+    {
+        try
+        {
+            var totalText = _RunAndRead("sysctl", "-n hw.memsize");
+            if (!ulong.TryParse(
+                    totalText.Trim(),
+                    NumberStyles.Integer,
+                    CultureInfo.InvariantCulture,
+                    out var total))
+                return (0UL, 0UL);
+
+            var vmStat = _RunAndRead("vm_stat");
+            var pageSize = 4096UL;
+            var pageSizeLine =
+                vmStat.Split('\n').FirstOrDefault(line => line.Contains("page size of"));
+            if (pageSizeLine is not null)
+            {
+                var digits = new string(pageSizeLine.Where(char.IsDigit).ToArray());
+                if (ulong.TryParse(digits, out var parsedPageSize) && parsedPageSize > 0)
+                    pageSize = parsedPageSize;
+            }
+
+            var pages = 0UL;
+            foreach (var line in vmStat.Split('\n'))
+                if (line.StartsWith("Pages free:", StringComparison.Ordinal)
+                    || line.StartsWith("Pages inactive:", StringComparison.Ordinal)
+                    || line.StartsWith("Pages speculative:", StringComparison.Ordinal))
+                {
+                    var digits = new string(line.Where(char.IsDigit).ToArray());
+                    if (ulong.TryParse(digits, out var count))
+                        pages += count;
+                }
+
+            var available = Math.Min(total, pages * pageSize);
+            return (total, available);
+        }
+        catch
+        {
+            return (0UL, 0UL);
+        }
+    }
+
+    private static string _RunAndRead(string fileName, params string[] arguments)
+    {
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = fileName,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true
+        };
+        foreach (var argument in arguments)
+            startInfo.ArgumentList.Add(argument);
+
+        using var process = Process.Start(startInfo);
+        if (process is null) return string.Empty;
+        var output = process.StandardOutput.ReadToEnd();
+        process.WaitForExit(1000);
+        return output;
     }
 
     /// <summary>
-    /// 为当前进程新建终端窗口。<br/>
-    /// 若进程已拥有终端窗口，该方法将无任何作用。若有需要，可在调用前使用
-    /// <see cref="GetConsoleWindow"/> 来确认进程是否存在关联的终端窗口。
+    ///     为当前进程新建终端窗口。<br />
+    ///     若进程已拥有终端窗口，该方法将无任何作用。若有需要，可在调用前使用
+    ///     <see cref="GetConsoleWindow" /> 来确认进程是否存在关联的终端窗口。
     /// </summary>
     public static void AllocateConsole()
     {
@@ -259,14 +315,103 @@ public static partial class KernelInterop
     }
 
     /// <summary>
-    /// 释放当前进程的终端窗口。<br/>
-    /// 若进程不存在关联的终端窗口，该方法将无任何作用。
+    ///     释放当前进程的终端窗口。<br />
+    ///     若进程不存在关联的终端窗口，该方法将无任何作用。
     /// </summary>
-    public static void FreeConsole() => _FreeConsole();
+    public static void FreeConsole()
+    {
+        _FreeConsole();
+    }
 
     /// <summary>
-    /// 获取当前进程关联的终端窗口句柄。
+    ///     获取当前进程关联的终端窗口句柄。
     /// </summary>
-    /// <returns>代表终端窗口的 HWND，若当前进程无关联的终端窗口，则该值为 <see cref="nint.Zero"/></returns>
-    public static nint GetConsoleWindow() => _GetConsoleWindow();
+    /// <returns>代表终端窗口的 HWND，若当前进程无关联的终端窗口，则该值为 <see cref="nint.Zero" /></returns>
+    public static nint GetConsoleWindow()
+    {
+        return _GetConsoleWindow();
+    }
+
+    /// <summary>
+    ///     仅承载 EfficiencyClass 和 Mask 的简单 CPU 核心信息
+    /// </summary>
+    public sealed record ProcessorCore(byte EfficiencyClass, ulong Mask);
+    // ReSharper disable InconsistentNaming, UnusedMember.Local
+
+    [LibraryImport("kernel32.dll", EntryPoint = "GetCurrentThreadId", SetLastError = true)]
+    private static partial uint _GetCurrentThreadId();
+
+    [LibraryImport("kernel32.dll", EntryPoint = "ExitProcess", SetLastError = false)]
+    private static partial void _ExitProcess(uint statusCode);
+
+    [LibraryImport("kernel32.dll", EntryPoint = "GetNamedPipeClientProcessId", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool _GetNamedPipeClientProcessId(
+        IntPtr pipeHandle,
+        out uint clientProcessId);
+
+    [LibraryImport(
+        "kernel32.dll",
+        EntryPoint = "GetLogicalProcessorInformationEx",
+        SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool _GetLogicalProcessorInformationEx(
+        LOGICAL_PROCESSOR_RELATIONSHIP relationshipType,
+        IntPtr buffer,
+        ref uint returnLength);
+
+    private const int ERROR_INSUFFICIENT_BUFFER = 122;
+
+    private enum LOGICAL_PROCESSOR_RELATIONSHIP : uint
+    {
+        RelationProcessorCore = 0,
+        RelationNumaNode = 1,
+        RelationCache = 2,
+        RelationProcessorPackage = 3,
+        RelationGroup = 4,
+        RelationAll = 0xffff
+    }
+
+    private static MEMORYSTATUSEX CreateStatus()
+    {
+        return new MEMORYSTATUSEX
+        {
+            dwLength = (uint)Marshal.SizeOf<MEMORYSTATUSEX>()
+        };
+    }
+
+    [LibraryImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool GlobalMemoryStatusEx(ref MEMORYSTATUSEX lpBuffer);
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    private struct MEMORYSTATUSEX
+    {
+        public uint dwLength;
+        public uint dwMemoryLoad;
+        public ulong ullTotalPhys;
+        public ulong ullAvailPhys;
+        public ulong ullTotalPageFile;
+        public ulong ullAvailPageFile;
+        public ulong ullTotalVirtual;
+        public ulong ullAvailVirtual;
+        public ulong ullAvailExtendedVirtual;
+    }
+
+    private const int ERROR_ACCESS_DENIED = 5;
+
+    [LibraryImport("kernel32.dll", EntryPoint = "AllocConsole")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool _AllocConsole();
+
+    [LibraryImport("kernel32.dll", EntryPoint = "FreeConsole")]
+    private static partial void _FreeConsole();
+
+    [LibraryImport("kernel32.dll", EntryPoint = "GetConsoleWindow")]
+    private static partial nint _GetConsoleWindow();
+
+    [LibraryImport("kernel32.dll")]
+    internal static partial uint GetACP();
+
+    // ReSharper restore InconsistentNaming, UnusedMember.Local
 }

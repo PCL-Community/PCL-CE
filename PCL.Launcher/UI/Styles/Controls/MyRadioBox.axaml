@@ -1,6 +1,6 @@
 <!--
     MyRadioBox 的样式覆盖：单选方块的尺寸、可聚焦性与禁用透明度。
-    状态颜色由控件代码按 PageBrush* 动态资源驱动，并在状态切换时播放过渡。
+    状态颜色由控件代码按核心 ColorBrush* 动态资源驱动，并在状态切换时播放过渡。
 -->
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -15,10 +15,5 @@
                 Value="Transparent" />
         <Setter Property="Focusable"
                 Value="True" />
-    </Style>
-
-    <Style Selector="ui|MyRadioBox:disabled">
-        <Setter Property="Opacity"
-                Value="0.6" />
     </Style>
 </Styles>

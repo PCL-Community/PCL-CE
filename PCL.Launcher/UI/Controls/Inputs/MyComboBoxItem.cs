@@ -66,13 +66,13 @@ public class MyComboBoxItem : ComboBoxItem
 
         if (IsSelected)
         {
-            newBackColorName = InputTheme.ItemCheckedKey;
+            newBackColorName = InputTheme.ComboSelectedKey;
             newFontOpacity = 1d;
             time = AnimationTimeIn;
         }
         else if (keyboardNavigation ? IsFocused : IsPointerOver)
         {
-            newBackColorName = InputTheme.ItemHoverKey;
+            newBackColorName = InputTheme.ComboHoverKey;
             newFontOpacity = 1d;
             time = AnimationTimeIn;
         }

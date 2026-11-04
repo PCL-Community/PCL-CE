@@ -35,6 +35,8 @@ public class MySearchBox : MyCard
 
     public MySearchBox()
     {
+        using var controlScope = PCL.Animations.SuspendControl();
+
         Height = 40d;
 
         TextBox = new MyTextBox
@@ -124,9 +126,6 @@ public class MySearchBox : MyCard
         set => SetValue(TextProperty, value);
     }
 
-    /// <summary>
-    ///     兼容旧调用点的搜索按钮可见性别名。
-    /// </summary>
     public bool SearchButtonVisibility
     {
         get => IsSearchButtonVisible;

@@ -65,8 +65,10 @@ public class FolderPathValidator(bool useMinecraftCharCheck) : FileSystemValidat
     {
         if (string.IsNullOrWhiteSpace(path)) return [];
 
-        var fullPath = new DirectoryInfo(path).FullName;
-        return fullPath[Path.GetPathRoot(fullPath)!.Length..]
+        var normalized = path.Replace('\\', '/').Replace('/', Path.DirectorySeparatorChar);
+        if (normalized.Length >= 2 && char.IsLetter(normalized[0]) && normalized[1] == ':')
+            normalized = normalized[2..];
+        return normalized
             .TrimEnd(Path.DirectorySeparatorChar)
             .Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries);
     }

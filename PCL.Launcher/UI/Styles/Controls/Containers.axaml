@@ -1,6 +1,6 @@
 <!--
     容器与列表控件的样式覆盖层。
-    颜色全部走 UI/Styles/PageStyles.axaml 的 PageBrush* 动态资源；
+    颜色全部走 ThemeService 写入 Application.Resources 的核心 ColorBrush* 键；
     控件构造函数通过 ContainerTheme.AttachStyles 引入本文件，这里给出视觉默认值。
 -->
 <Styles xmlns="https://github.com/avaloniaui"
@@ -21,24 +21,24 @@
 
     <Style Selector="ui|MyListItem TextBlock.ListItemTitle">
         <Setter Property="Foreground"
-                Value="{DynamicResource PageBrushText}" />
+                Value="{DynamicResource ColorBrush1}" />
     </Style>
 
     <Style Selector="ui|MyListItem Border.ListItemBack">
         <Setter Property="Background"
-                Value="{DynamicResource PageBrushAccentLight}" />
+                Value="{DynamicResource ColorBrush7}" />
         <Setter Property="BorderBrush"
-                Value="{DynamicResource PageBrushItemChecked}" />
+                Value="{DynamicResource ColorBrush7}" />
     </Style>
 
     <Style Selector="ui|MyListItem Border.ListItemCheck">
         <Setter Property="Background"
-                Value="{DynamicResource PageBrushAccent}" />
+                Value="{DynamicResource ColorBrush3}" />
     </Style>
 
     <Style Selector="ui|MyListItem TextBlock.ListItemTagText">
         <Setter Property="Foreground"
-                Value="{DynamicResource PageBrushTextSecondary}" />
+                Value="{DynamicResource ColorBrushGray3}" />
         <Setter Property="FontSize"
                 Value="11" />
     </Style>
@@ -57,12 +57,12 @@
     <!-- 折叠栏 -->
     <Style Selector="ui|MyCollapseBar TextBlock.CollapseTitle">
         <Setter Property="Foreground"
-                Value="{DynamicResource PageBrushText}" />
+                Value="{DynamicResource ColorBrush1}" />
     </Style>
 
     <Style Selector="ui|MyCollapseBar Path.CollapseTriangle">
         <Setter Property="Fill"
-                Value="{DynamicResource PageBrushText}" />
+                Value="{DynamicResource ColorBrush1}" />
     </Style>
 
     <!-- 页面壳 -->

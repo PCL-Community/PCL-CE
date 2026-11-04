@@ -19,11 +19,26 @@ public static class Basics
     #region 基本信息
 
     /// <summary>
-    /// 启动器元数据。
+    /// 启动器元数据。资源由入口程序集打包；测试宿主等场景回退到已加载程序集查找。
     /// </summary>
-    public static MetadataModel Metadata { get; } = JsonSerializer.Deserialize<MetadataModel>(
-        Assembly.GetEntryAssembly()!.GetManifestResourceStream("PCL.metadata.json")!,
-        JsonCompat.SerializerOptions)!;
+    public static MetadataModel Metadata { get; } = _LoadMetadata();
+
+    private static MetadataModel _LoadMetadata()
+    {
+        const string resourceName = "PCL.metadata.json";
+        var stream = Assembly.GetEntryAssembly()?.GetManifestResourceStream(resourceName)
+            ?? typeof(Basics).Assembly.GetManifestResourceStream(resourceName);
+        if (stream is null)
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                stream = assembly.GetManifestResourceStream(resourceName);
+                if (stream is not null) break;
+            }
+
+        return stream is null
+            ? throw new InvalidOperationException($"未找到启动器元数据资源：{resourceName}")
+            : JsonSerializer.Deserialize<MetadataModel>(stream, JsonCompat.SerializerOptions)!;
+    }
 
     /// <summary>
     /// 版本名称。

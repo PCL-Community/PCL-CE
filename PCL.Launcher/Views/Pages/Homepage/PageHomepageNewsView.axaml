@@ -1,0 +1,29 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="using:PCL.UI.Controls"
+             xmlns:loc="using:PCL.Core.UI"
+             x:Class="PCL.Views.Pages.Homepage.PageHomepageNewsView">
+    <Grid MinWidth="150">
+        <ui:WaterfallPanel x:Name="PanNews"
+                           Margin="0,0,0,10"
+                           ColumnSpacing="14"
+                           LayoutMode="AutoFit"
+                           MaxItemWidth="240"
+                           RowSpacing="14" />
+
+        <TextBlock x:Name="LabError"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Top"
+                   Foreground="{DynamicResource ColorBrushRedLight}"
+                   TextWrapping="Wrap" />
+
+        <ui:MyCard x:Name="PanLoad"
+                   Margin="32"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center">
+            <ui:MyLoading x:Name="Load"
+                          Margin="20,20,20,17"
+                          Text="{loc:Loc Launch.Homepage.News.Loading}" />
+        </ui:MyCard>
+    </Grid>
+</UserControl>

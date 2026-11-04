@@ -6,6 +6,7 @@ using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 using FluentValidation;
+using PCL.UI.Controls.Behaviors;
 
 namespace PCL.UI.Controls;
 
@@ -61,14 +62,22 @@ public class MyTextBox : TextBox
     /// </summary>
     public List<EventHandler<TextChangedEventArgs>> changedEventList = [];
 
+    static MyTextBox()
+    {
+        ClipboardInterceptor.Enable();
+    }
+
     public MyTextBox()
     {
-        BorderThickness = new Thickness(1d);
-        FontSize = 13d;
-        MinHeight = 28d;
-        CornerRadius = new CornerRadius(3d);
-        VerticalContentAlignment = VerticalAlignment.Center;
-        SelectionBrush = InputTheme.Accent(this);
+        using (PCL.Animations.SuspendControl())
+        {
+            BorderThickness = new Thickness(1d);
+            FontSize = 13d;
+            MinHeight = 28d;
+            CornerRadius = new CornerRadius(3d);
+            VerticalContentAlignment = VerticalAlignment.Center;
+            SelectionBrush = InputTheme.Accent(this);
+        }
 
         TextChanged += OnTextChanged;
 
@@ -357,9 +366,9 @@ public class MyTextBox : TextBox
 
             if (!IsEnabled)
             {
-                borderKey = InputTheme.TextSecondaryKey;
+                borderKey = InputTheme.DisabledBorderKey;
                 borderFallback = InputTheme.TextSecondary(this);
-                backgroundKey = InputTheme.ItemHoverKey;
+                backgroundKey = InputTheme.DisabledBackgroundKey;
                 backgroundFallback = InputTheme.DisabledBackground(this);
                 time = AnimationTimeOfDisabled;
             }
@@ -383,10 +392,10 @@ public class MyTextBox : TextBox
                 }
                 else
                 {
-                    borderKey = InputTheme.DividerKey;
-                    borderFallback = InputTheme.Divider(this);
-                    backgroundKey = InputTheme.ItemHoverKey;
-                    backgroundFallback = InputTheme.ItemHover(this);
+                    borderKey = InputTheme.IdleBorderKey;
+                    borderFallback = InputTheme.IdleBorder(this);
+                    backgroundKey = InputTheme.IdleBackgroundKey;
+                    backgroundFallback = InputTheme.IdleBackground(this);
                     time = AnimationTimeOfMouseOut;
                 }
             }
@@ -394,7 +403,7 @@ public class MyTextBox : TextBox
             {
                 borderKey = InputTheme.ErrorKey;
                 borderFallback = InputTheme.Error(this);
-                backgroundFallback = InputTheme.WithAlpha(InputTheme.Error(this), 0x2E);
+                backgroundFallback = InputTheme.ErrorBackground(this);
                 backgroundLiteral = ToColor(backgroundFallback);
                 time = AnimationTimeOfError;
             }

@@ -39,7 +39,7 @@ public sealed class MyMsgInput : MyMsgDialogBase
                 FontSize = DialogTheme.BodyFontSize,
                 LineHeight = DialogTheme.BodyLineHeight
             };
-            DialogTheme.BindBrush(caption, TextBlock.ForegroundProperty, "PageBrushText");
+            DialogTheme.BindBrush(caption, TextBlock.ForegroundProperty, "ColorBrush1");
             SetBody(caption);
         }
 

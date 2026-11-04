@@ -274,8 +274,8 @@ public partial class MySlider : UserControl
 
         if (!IsEnabled)
         {
-            key = InputTheme.TextSecondaryKey;
-            fallback = InputTheme.TextSecondary(this);
+            key = "ColorBrushGray5";
+            fallback = InputTheme.Brush(this, key, Brushes.LightGray);
             time = 200;
         }
         else if (_isDragging || IsPointerOver)
@@ -286,8 +286,8 @@ public partial class MySlider : UserControl
         }
         else
         {
-            key = InputTheme.DividerKey;
-            fallback = InputTheme.Divider(this);
+            key = InputTheme.IdleBorderKey;
+            fallback = InputTheme.IdleBorder(this);
             time = 100;
         }
 
@@ -316,7 +316,7 @@ public partial class MySlider : UserControl
             DotStrokeKey,
             animate);
 
-        LineBackElement.Background = InputTheme.Divider(this);
+        LineBackElement.Background = InputTheme.Brush(this, InputTheme.IdleBorderKey, Brushes.LightSteelBlue);
         if (HintBorderElement is not null)
         {
             HintBorderElement.BorderBrush = InputTheme.Text(this);

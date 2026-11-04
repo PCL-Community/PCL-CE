@@ -12,27 +12,22 @@ namespace PCL;
 /// </summary>
 public static partial class Animations
 {
-    private static int _aniCount;
-    private static int _aniFpsCounter;
-    private static long _aniFpsTimer;
     private static bool _aniInFrame;
-    private static int _aniFps;
     private static AvaloniaRenderingClock? _aniClock;
 
     /// <summary>
-    ///     动画模块是否正在运行。
+    ///     动画模块的帧循环是否正在运行。
     /// </summary>
-    public static bool IsRunning => _aniRunning;
+    public static bool IsRunning => _aniClock?.IsRunning == true;
 
     /// <summary>
-    ///     开始动画执行。
+    ///     开始动画执行。帧循环与动画引擎共用同一个帧源，不会另建定时器。
     /// </summary>
     public static void AniStart()
     {
         if (_aniRunning) return;
 
         _aniLastTick = Stopwatch.GetTimestamp();
-        _aniFpsTimer = _aniLastTick;
         _aniRunning = true;
 
         RunOnUi(() =>
@@ -44,7 +39,7 @@ public static partial class Animations
             }
 
             _aniClock.Start();
-            LogWrapper.Debug("Animation", "[Animation] 动画帧循环已启动");
+            LogWrapper.Debug("Animation", "[Animation] 动画帧循环已启动（与动画引擎共用帧源）");
         });
     }
 
@@ -84,18 +79,17 @@ public static partial class Animations
         try
         {
             var now = Stopwatch.GetTimestamp();
-            var deltaTick = (int)Math.Round(
-                Math.Clamp(_AniMs(now - _aniLastTick), 0d, 100000d) * AniSpeed);
-            _aniLastTick = now;
-
-            if (_AniMs(now - _aniFpsTimer) >= 500d)
+            var speed = AniSpeed;
+            if (speed <= 0d)
             {
-                _aniFps = _aniFpsCounter;
-                _aniFpsCounter = 0;
-                _aniFpsTimer = now;
+                _AniFlushGroups();
+                _AniFinishAllGroupsInstantly();
+                return;
             }
 
-            _aniFpsCounter += 2; // 500 ms window -> frames per second
+            var deltaTick = (int)Math.Round(
+                Math.Clamp(_AniMs(now - _aniLastTick), 0d, 100000d) * speed);
+            _aniLastTick = now;
 
             if (deltaTick <= 0)
             {
@@ -103,7 +97,6 @@ public static partial class Animations
                 return;
             }
 
-            _aniCount = 0;
             AniTimer(deltaTick);
         }
         catch (Exception ex)
@@ -124,7 +117,8 @@ public static partial class Animations
     {
         try
         {
-            if (deltaTick / AniSpeed > 100d)
+            var speed = AniSpeed;
+            if (speed > 0d && deltaTick / speed > 100d)
                 LogWrapper.Debug("Animation", $"[Animation] 两个动画帧间隔 {deltaTick} ms");
 
             _AniFlushGroups();

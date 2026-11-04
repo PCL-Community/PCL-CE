@@ -6,13 +6,6 @@
       Margin="20"
       RenderTransformOrigin="0.5,0.5"
       ToolTip.Placement="Left">
-    <Grid.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceInclude Source="avares://PCL.Launcher/UI/Styles/Controls/ButtonPalette.axaml" />
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
-    </Grid.Resources>
     <Grid.Styles>
         <StyleInclude Source="avares://PCL.Launcher/UI/Styles/Controls/MyExtraTextButton.axaml" />
     </Grid.Styles>
@@ -29,7 +22,8 @@
         <Grid.RenderTransform>
             <ScaleTransform />
         </Grid.RenderTransform>
-        <Border x:Name="PanColor" />
+        <Border x:Name="PanColor"
+                BoxShadow="0 0 10 0 #33000000" />
         <StackPanel Orientation="Horizontal"
                     Margin="20,0">
             <Grid x:Name="IconHost"
@@ -50,7 +44,7 @@
                        Margin="12,0,0,0.8"
                        VerticalAlignment="Center"
                        FontSize="16"
-                       Foreground="{DynamicResource ButtonBrushIconWhite}" />
+                       Foreground="{DynamicResource ColorBrush8}" />
         </StackPanel>
     </Grid>
 </Grid>

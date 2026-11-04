@@ -3690,4 +3690,30 @@
     <sys:String x:Key="Watcher.WindowLoaded">Minecraft window loaded: {0} ({1})</sys:String>
     <sys:String x:Key="Watcher.WindowMaximized">Minecraft window maximized: {0}</sys:String>
 
+    <sys:String x:Key="Tools.Test.Dependency.MissingTitle">Missing dependency</sys:String>
+    <sys:String x:Key="Instance.Export.Task.Prefix">Export instance</sys:String>
+    <sys:String x:Key="Application.Loading.Status.Preparing">準備中</sys:String>
+    <sys:String x:Key="Download.Feature.Migrating">正在遷移</sys:String>
+    <sys:String x:Key="Download.Feature.Migrating.Description">正在遷移下載資料，請稍候。</sys:String>
+    <sys:String x:Key="Download.Install.Finished">安裝完成</sys:String>
+    <sys:String x:Key="Download.Install.InstanceLocation">實例位置</sys:String>
+    <sys:String x:Key="Download.Install.InstanceName">實例名稱</sys:String>
+    <sys:String x:Key="Download.Install.Loader.Unsupported">不支援的載入器</sys:String>
+    <sys:String x:Key="Download.Install.NameInvalid">實例名稱無效</sys:String>
+    <sys:String x:Key="Download.Install.NoFolder">未選擇資料夾</sys:String>
+    <sys:String x:Key="Download.Install.Section.Instance">實例</sys:String>
+    <sys:String x:Key="Download.Install.Section.Loader">載入器</sys:String>
+    <sys:String x:Key="Download.Install.Section.Version">版本</sys:String>
+    <sys:String x:Key="Download.Install.Title">安裝</sys:String>
+    <sys:String x:Key="Instance.Saves.Datapack.Delete.ConfirmTitle">刪除資料包</sys:String>
+    <sys:String x:Key="Instance.Saves.Delete.ConfirmTitle">刪除存檔</sys:String>
+    <sys:String x:Key="Instance.Saves.DeletedPermanent">已永久刪除</sys:String>
+    <sys:String x:Key="PageLaunch.Homepage.Custom.Error.Missing">自訂主頁檔案不存在</sys:String>
+    <sys:String x:Key="PageLaunch.Homepage.Custom.Source">來源</sys:String>
+    <sys:String x:Key="PageLaunch.Homepage.Custom.Title">自訂主頁</sys:String>
+    <sys:String x:Key="PageLaunch.Homepage.Custom.Unsupported">暫不支援此主頁</sys:String>
+    <sys:String x:Key="PageLaunch.Login.ProfileEdit.Unavailable">目前帳戶不支援修改名稱</sys:String>
+    <sys:String x:Key="PageLaunch.Login.SkinUpload.Unavailable">目前帳戶不支援更換皮膚</sys:String>
+    <sys:String x:Key="Select.Instance.Delete.RecycleBinUnavailable">資源回收筒不可用，將永久刪除</sys:String>
+    <sys:String x:Key="Tools.GameLink.Unavailable.NatTest">NAT 檢測不可用</sys:String>
 </ResourceDictionary>

@@ -1,0 +1,64 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="using:PCL.UI.Controls"
+             xmlns:launch="using:PCL.Views.Pages.Launch"
+             xmlns:loc="using:PCL.Core.UI"
+             x:Class="PCL.Views.Pages.Launch.PageLoginProfileSkin">
+    <Grid RowDefinitions="80,Auto,*"
+          ColumnDefinitions="34,*,34">
+        <StackPanel Grid.Row="1"
+                    Grid.Column="1"
+                    VerticalAlignment="Top">
+            <launch:MySkin x:Name="Skin"
+                           Margin="0,0,0,10"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Top"
+                           HasCape="False"
+                           IsHitTestVisible="False" />
+            <TextBlock x:Name="TextName"
+                       Margin="8,0"
+                       HorizontalAlignment="Center"
+                       FontSize="16"
+                       TextTrimming="CharacterEllipsis" />
+            <TextBlock x:Name="TextType"
+                       Margin="8,4,8,5"
+                       HorizontalAlignment="Center"
+                       FontSize="12"
+                       Foreground="{DynamicResource ColorBrushGray4}"
+                       TextTrimming="CharacterEllipsis" />
+        </StackPanel>
+
+        <ui:MyCard x:Name="PanButtons"
+                   Grid.Row="2"
+                   Grid.Column="1"
+                   Margin="0,8,0,0"
+                   HorizontalAlignment="Center"
+                   CornerRadius="5"
+                   Opacity="0">
+            <StackPanel Margin="10,3,9,3"
+                        Orientation="Horizontal">
+                <ui:MyIconButton x:Name="BtnSkin"
+                                 Width="24"
+                                 Height="24"
+                                 LogoScale="1.08"
+                                 SvgIcon="lucide/shirt"
+                                 ToolTip.Tip="{loc:Loc Launch.Account.ProfileSkin.SkinsAndCapes}" />
+                <ui:MyIconButton x:Name="BtnEdit"
+                                 Width="24"
+                                 Height="24"
+                                 Margin="9,0,0,0"
+                                 IsVisible="False"
+                                 LogoScale="1.1"
+                                 SvgIcon="lucide/pencil"
+                                 ToolTip.Tip="{loc:Loc Launch.Account.ProfileSkin.EditProfile}" />
+                <ui:MyIconButton x:Name="BtnSelect"
+                                 Width="24"
+                                 Height="24"
+                                 Margin="9,0,0,0"
+                                 LogoScale="1.15"
+                                 SvgIcon="lucide/arrow-right-left"
+                                 ToolTip.Tip="{loc:Loc Launch.Account.ProfileSkin.SwitchProfile}" />
+            </StackPanel>
+        </ui:MyCard>
+    </Grid>
+</UserControl>

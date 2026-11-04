@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Threading;
 using PCL.Core.App.Localization;
+using PCL.Views.Pages;
 using static PCL.Animations;
 
 namespace PCL.UI.Controls;
@@ -12,7 +13,7 @@ namespace PCL.UI.Controls;
 ///     页面状态机（Empty/LoaderWait/LoaderEnter/.../PageExit）决定何时播放入场、退场与加载环等待；
 ///     所有转场挂在“PageRight PageChange”动画键下，快速切换时旧回调随动画组一起丢弃。
 /// </summary>
-public class MyPageRight : Decorator
+public class MyPageRight : Decorator, IPageView
 {
     // 当前状态
     public enum PageStates
@@ -67,6 +68,14 @@ public class MyPageRight : Decorator
                 LauncherCommon.Log("[UI] 页面状态切换为 " + LauncherCommon.GetStringFromEnum(value));
         }
     } = PageStates.Empty;
+
+    public virtual void OnNavigatedTo(object? parameter)
+    {
+    }
+
+    public virtual void OnNavigatedFrom()
+    {
+    }
 
     #region 加载器
 
@@ -157,6 +166,11 @@ public class MyPageRight : Decorator
 
     protected virtual void RefreshLocalization()
     {
+    }
+
+    public void ApplyLocalizationChanged()
+    {
+        RefreshLocalizationIfStale();
     }
 
     private int _localizationRevision = LocalizationService.UiRevision;
@@ -749,7 +763,7 @@ public class MyPageRight : Decorator
             element.IsVisible = true; // 页面均处于默认的隐藏状态
 
         // 动画关闭、控件未加载或页面已被强制退出：直接落到终值，状态机同步推进
-        if (!ContainerAnimation.CanAnimate(this))
+        if (!ContainerAnimation.CanAnimatePage(this))
         {
             AniStop(PageChangeAnimationKey);
             foreach (var element in realElements)
@@ -841,7 +855,7 @@ public class MyPageRight : Decorator
     {
         var realElements = elements.Where(e => e is not null).Cast<Control>().ToList();
 
-        if (!ContainerAnimation.CanAnimate(this))
+        if (!ContainerAnimation.CanAnimatePage(this))
         {
             AniStop(PageChangeAnimationKey);
             foreach (var control in realElements.SelectMany(element => GetAllAnimControls(element)))

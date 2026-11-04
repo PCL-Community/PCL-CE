@@ -1,0 +1,49 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="using:PCL.UI.Controls"
+             xmlns:loc="using:PCL.Core.UI"
+             x:Class="PCL.Views.Pages.Launch.PageLoginProfile">
+    <Grid RowDefinitions="Auto,Auto,10,*,10,Auto,20">
+        <ui:MyHint x:Name="HintSelect"
+                   Grid.Row="0"
+                   Margin="0,10,0,0"
+                   Theme="Blue"
+                   Text="{loc:Loc Launch.Account.Profile.SelectHint}"
+                   CanClose="True"
+                   RelativeSetup="HintProfileSelect" />
+        <ui:MyHint x:Name="HintCreate"
+                   Grid.Row="0"
+                   Margin="0,10,0,0"
+                   Theme="Blue"
+                   IsVisible="False"
+                   Text="{loc:Loc Launch.Account.Profile.CreateAndSelectHint}" />
+        <ui:MyHint x:Name="HintMicrosoft"
+                   Grid.Row="1"
+                   Margin="0,10,0,0"
+                   Theme="Yellow"
+                   IsVisible="False"
+                   Text="{loc:Loc Launch.Account.Profile.RequireMicrosoftHint}" />
+
+        <ui:MyScrollViewer Grid.Row="3"
+                           MaxHeight="300"
+                           Margin="10,0,10,0">
+            <StackPanel x:Name="PanProfiles" />
+        </ui:MyScrollViewer>
+
+        <ui:MyCard Grid.Row="5"
+                   Margin="0,0,4,0"
+                   HorizontalAlignment="Center"
+                   CornerRadius="5">
+            <StackPanel Margin="10,3,0,3"
+                        Orientation="Horizontal">
+                <ui:MyIconButton x:Name="BtnNew"
+                                 Width="24"
+                                 Height="24"
+                                 Margin="0,0.5,9,0"
+                                 LogoScale="1.08"
+                                 SvgIcon="lucide/user-plus"
+                                 ToolTip.Tip="{loc:Loc Launch.Account.Profile.Create}" />
+            </StackPanel>
+        </ui:MyCard>
+    </Grid>
+</UserControl>

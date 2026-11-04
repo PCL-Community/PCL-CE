@@ -10,11 +10,8 @@ using PCL.Core.Logging;
 namespace PCL.UI.Controls;
 
 /// <summary>
-///     PCL 标准按钮：外层 <see cref="Border" /> 负责命中测试与焦点，内层 <c>PanFore</c>
-///     承载边框、底色与缩放，因此悬停/按下反馈只作用于按钮自身的内容区。
-///     公开属性、点击语义与配色状态见 <see cref="ColorType" />。
-///     颜色取自样式表中的 <c>PageBrush*</c> / <c>ButtonBrush*</c> 动态资源；
-///     <c>Config.Debug.AnimationSpeed = 0</c> 时直接落到终值。
+///     PCL 标准按钮：外层 <see cref="Border" /> 负责命中测试与焦点，内层 <c>PanFore</c> 承载边框、底色与缩放。
+///     颜色取自核心 <c>ColorBrush*</c> 动态资源；动画关闭时直接落到终值。
 /// </summary>
 public partial class MyButton : Border
 {
@@ -50,16 +47,19 @@ public partial class MyButton : Border
     public new static readonly StyledProperty<Thickness> PaddingProperty =
         AvaloniaProperty.Register<MyButton, Thickness>(nameof(Padding));
 
+    private static int _uuidSeed;
+
     /// <summary>动画键使用的唯一编号。</summary>
     public readonly int Uuid = Interlocked.Increment(ref _uuidSeed);
 
-    private static int _uuidSeed;
     private ColorState _colorType = ColorState.Normal;
     private bool _isCommandRunning;
     private bool _isMouseDown;
 
     public MyButton()
     {
+        using var controlScope = PCL.Animations.SuspendControl();
+
         InitializeComponent();
 
         PanFore.Padding = Padding;
@@ -82,9 +82,6 @@ public partial class MyButton : Border
         ActualThemeVariantChanged += (_, _) => RefreshColor(false);
         Unloaded += (_, _) => _StopAnimations();
     }
-
-    /// <summary>点击完成时触发，参数为释放事件。</summary>
-    public event ClickEventHandler? Click;
 
     public InlineCollection Inlines => LabText.Inlines!;
 
@@ -147,6 +144,8 @@ public partial class MyButton : Border
 
     private string BorderKey => ButtonAnimation.Name("MyButton Border", Uuid);
 
+    public event ClickEventHandler? Click;
+
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
@@ -168,25 +167,22 @@ public partial class MyButton : Border
         Classes.Set("color-red", _colorType == ColorState.Red);
     }
 
-    /// <summary>当前状态对应的背景/边框资源键。</summary>
     private (string Background, string Border) GetColorKeys()
     {
         if (!IsEnabled)
-            return ("ButtonBrushChrome", "PageBrushDebug");
+            return ("ColorBrushHalfWhite", "ColorBrushGray4");
 
         if (_colorType == ColorState.Red)
-            return ("ButtonBrushRedBack", IsPointerOver ? "PageBrushError" : "PageBrushFatal");
+            return (IsPointerOver ? "ColorBrushRedBack" : "ColorBrushHalfWhite",
+                IsPointerOver ? "ColorBrushRedLight" : "ColorBrushRedDark");
 
         if (_colorType == ColorState.Highlight)
-            return (IsPointerOver ? "PageBrushAccentLight" : "PageBrushItemChecked",
-                IsPointerOver ? "PageBrushAccent" : "ButtonBrushAccentDeep");
-
-        if (_isMouseDown)
-            return ("ButtonBrushChromePressed", "PageBrushAccent");
+            return (IsPointerOver ? "ColorBrush7" : "ColorBrushHalfWhite",
+                IsPointerOver ? "ColorBrush3" : "ColorBrush2");
 
         return IsPointerOver
-            ? ("PageBrushAccentLight", "PageBrushAccent")
-            : ("ButtonBrushChrome", "PageBrushText");
+            ? ("ColorBrush7", "ColorBrush3")
+            : ("ColorBrushHalfWhite", "ColorBrush1");
     }
 
     /// <summary>按当前悬停/按下/禁用状态刷新配色；<paramref name="animate" /> 为 false 时直接赋终值。</summary>

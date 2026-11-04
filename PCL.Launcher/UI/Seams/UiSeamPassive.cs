@@ -1,140 +1,432 @@
+using System.Text.Json;
 using System.Text.Json.Nodes;
+using Avalonia.Threading;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.App.Region;
+using PCL.Core.Logging;
+using PCL.Core.Minecraft;
 using PCL.Core.Minecraft.IdentityModel;
 using PCL.Core.Minecraft.IdentityModel.OAuth;
+using PCL.Core.Minecraft.Profile;
 using PCL.Core.Minecraft.Profile.Authentication;
+using PCL.Core.Minecraft.Profile.Models;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
+using PCL.Core.Utils;
+using PCL.Navigation;
+using PCL.UI.Controls;
+using PCL.UI.SystemIntegration;
+using PCL.Views.Shell;
 
 namespace PCL.UI.Seams;
 
-/// <summary>加载框架通知：任务列表与下载按钮尚未接入界面，暂仅记录日志。</summary>
+/// <summary>加载框架通知：下载按钮、任务栏进度与任务管理页事件。</summary>
 public sealed class LoadingUiBridge : ILoadingUi
 {
+    private static bool _taskHostWarned;
+
     public void TaskAdded(Loading.LoaderBase loader)
     {
-        UiSeamInteraction.LogMissing(nameof(TaskAdded));
+        NotifyTaskPage(host => host.OnTaskAdded(loader), nameof(TaskAdded));
+        RefreshDownloadButtonDelayed();
     }
 
     public void TaskRemoved(Loading.LoaderBase loader)
     {
-        UiSeamInteraction.LogMissing(nameof(TaskRemoved));
+        NotifyTaskPage(host => host.OnTaskRemoved(loader), nameof(TaskRemoved));
+        RefreshDownloadButtonDelayed();
     }
 
     public void TaskRefreshed(Loading.LoaderBase loader)
     {
-        UiSeamInteraction.LogMissing(nameof(TaskRefreshed));
+        NotifyTaskPage(host => host.OnTaskRefreshed(loader), nameof(TaskRefreshed));
+        RefreshDownloadButtonDelayed();
     }
 
     public void RefreshDownloadButton()
     {
-        UiSeamInteraction.LogMissing(nameof(RefreshDownloadButton));
+        ExtraButtonsPanel.Current?.RefreshDownloadButton();
     }
 
     public void UpdateButtonProgress(double progress)
     {
-        UiSeamInteraction.LogMissing(nameof(UpdateButtonProgress));
+        ExtraButtonsPanel.Current?.UpdateButtonProgress(progress);
     }
 
     public void UpdateTaskbar(TaskbarProgressState state, double progress)
     {
-        // 任务栏进度依赖各平台窗口 API，当前没有可用的跨平台封装
+        TaskbarProgress.Update(state, progress);
+    }
+
+    /// <summary>任务列表事件在业务线程触发，统一投递到 UI 线程，确保页面读到最新的任务栏列表。</summary>
+    private static void NotifyTaskPage(Action<ISeamTaskListPage> action, string feature)
+    {
+        var host = SeamHosts.TaskListPage;
+        if (host is null)
+        {
+            if (_taskHostWarned) return;
+            _taskHostWarned = true;
+            UiSeamInteraction.WarnMissing(feature, "SEAM-TASK");
+            return;
+        }
+
+        Dispatcher.UIThread.Post(() => action(host));
+    }
+
+    private static void RefreshDownloadButtonDelayed()
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (SeamHosts.Shell is { } shell) shell.RefreshDownloadButton();
+            else ExtraButtonsPanel.Current?.RefreshDownloadButton();
+        });
     }
 }
 
-/// <summary>本地资源（Comp）页面尚未接入界面。</summary>
+/// <summary>本地资源（Comp）加载与页面状态的桥接。</summary>
 public sealed class CompLocalUiBridge : ICompLocalUi
 {
     public void OnJijResolved()
     {
-        UiSeamInteraction.LogMissing(nameof(OnJijResolved));
+        LauncherCommon.RunInUi(() =>
+        {
+            if (PageRouter.CurrentPage is ISeamCompLocalPage page) page.RefreshModList();
+            else UiSeamInteraction.WarnMissing(nameof(OnJijResolved), "SEAM-COMPLOCAL");
+        });
     }
 
     public bool IsUpdating(string compPath)
     {
-        return false;
+        return CompLocalUpdateRegistry.IsUpdating(compPath);
     }
 
     public void RefreshModList()
     {
-        UiSeamInteraction.LogMissing(nameof(RefreshModList));
+        LauncherCommon.RunInUi(() =>
+        {
+            if (PageRouter.CurrentPage is ISeamCompLocalPage page) page.RefreshModList();
+            else UiSeamInteraction.WarnMissing(nameof(RefreshModList), "SEAM-COMPLOCAL");
+        });
     }
 
     public void SetLoadProgress(object? page, bool visible)
     {
-        UiSeamInteraction.LogMissing(nameof(SetLoadProgress));
+        if (page is not ISeamCompLocalPage localPage)
+        {
+            UiSeamInteraction.WarnMissing(nameof(SetLoadProgress), "SEAM-COMPLOCAL");
+            return;
+        }
+
+        UiSeamInteraction.RunOnUi(() => localPage.LoadProgressVisible = visible);
     }
 
     public void SetLoadText(object? page, string key)
     {
-        UiSeamInteraction.LogMissing(nameof(SetLoadText));
+        if (page is not ISeamCompLocalPage localPage)
+        {
+            UiSeamInteraction.WarnMissing(nameof(SetLoadText), "SEAM-COMPLOCAL");
+            return;
+        }
+
+        UiSeamInteraction.RunOnUi(() => localPage.SetLoadText(key));
     }
 
     public void UpdateOnly(object? page)
     {
-        UiSeamInteraction.LogMissing(nameof(UpdateOnly));
+        if (page is not ISeamCompLocalPage localPage)
+        {
+            UiSeamInteraction.WarnMissing(nameof(UpdateOnly), "SEAM-COMPLOCAL");
+            return;
+        }
+
+        UiSeamInteraction.RunOnUi(localPage.UpdateOnly);
     }
 
     public string? GetCurrentFolderPath(object? page)
     {
+        if (page is ISeamCompLocalPage localPage) return localPage.CurrentFolderPath;
+        UiSeamInteraction.WarnMissing(nameof(GetCurrentFolderPath), "SEAM-COMPLOCAL");
         return null;
     }
 }
 
-/// <summary>整合包安装页尚未接入界面，安装加载器暂不创建。</summary>
+/// <summary>整合包安装与文件夹列表的桥接。</summary>
 public sealed class ModpackUiBridge : IModpackUi
 {
     public List<Loading.LoaderBase> CreateInstallLoader(McInstallRequest request)
     {
-        UiSeamInteraction.LogMissing(nameof(CreateInstallLoader));
-        return [];
+        return McInstallPipeline.CreateInstallLoader(request);
     }
 
     public void OnInstallStateChanged(Loading.LoaderBase loader)
     {
-        UiSeamInteraction.LogMissing(nameof(OnInstallStateChanged));
+        var combo = loader as Loading.LoaderCombo;
+        switch (loader.State)
+        {
+            case LoadState.Finished:
+                HandleInstallFinished(loader, combo);
+                UiSeamInteraction.Hint(
+                    $"{loader.DisplayName}{Lang.Text("Common.Status.Success")}",
+                    NotificationType.Success);
+                break;
+            case LoadState.Failed:
+                UiSeamInteraction.Hint(
+                    $"{loader.DisplayName}{Lang.Text("Common.Status.Failure")}{loader.Error?.Message}",
+                    NotificationType.Error);
+                break;
+            case LoadState.Aborted:
+                UiSeamInteraction.Hint(
+                    $"{loader.DisplayName}{Lang.Text("Common.Status.Cancelled")}",
+                    NotificationType.Info);
+                break;
+            case LoadState.Loading:
+                return;
+            case LoadState.Waiting:
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(loader));
+        }
+
+        // 成功时清理备份；失败或取消时只回滚本次安装创建的路径（必要时从 PCLInstallBackups 还原）
+        McInstallRecovery.HandleTerminalState(loader, combo?.input?.ToString() ?? "");
+        Loading.LoaderFolderRun(
+            InstanceList.mcInstanceListLoader,
+            GameFolders.mcFolderSelected ?? "",
+            Loading.LoaderFolderRunType.ForceRun,
+            1,
+            "versions" + Path.DirectorySeparatorChar);
     }
 
     public void AddFolder(string folderPath, string displayName, bool showHint)
     {
-        UiSeamInteraction.LogMissing(nameof(AddFolder));
+        PCL.Views.Pages.Select.PageSelectLeft.AddFolder(folderPath, displayName, showHint);
+    }
+
+    private static void HandleInstallFinished(Loading.LoaderBase loader, Loading.LoaderCombo? combo)
+    {
+        var instanceFolder = combo?.input?.ToString() ?? "";
+        var instanceName = Path.GetFileName(Path.TrimEndingDirectorySeparator(instanceFolder));
+        var mcFolder = GameFolders.mcFolderSelected;
+        if (string.IsNullOrEmpty(mcFolder) || string.IsNullOrEmpty(instanceName))
+            return;
+        var pclIni = Path.Combine(mcFolder, "PCL.ini");
+        if (Config.Download.AutoSelectInstance)
+            LauncherCommon.WriteIni(pclIni, "Version", instanceName);
+        LauncherCommon.WriteIni(pclIni, "InstanceCache", "");
     }
 }
 
-/// <summary>登录档案相关页面尚未接入界面。</summary>
+/// <summary>登录档案相关的界面桥接：档案校验、设备码登录与微软登录错误处理。</summary>
 public sealed class ProfileUiBridge : IProfileUi
 {
     public GameLaunch.McLoginData? GetLoginData()
     {
-        return null;
+        var profile = ProfileService.Current;
+        if (profile is null) return new GameLaunch.McLoginLegacy();
+        return profile.ProfileType switch
+        {
+            ProfileType.Microsoft => new GameLaunch.McLoginMs(),
+            ProfileType.Authlib => new GameLaunch.McLoginServer(GameLaunch.McLoginType.Auth)
+            {
+                BaseUrl = profile.Server,
+                UserName = profile.LoginName,
+                Password = profile.Password,
+                Description = profile.ServerName ?? "Authlib-Injector",
+                IsExist = true
+            },
+            ProfileType.YggdrasilConnect => new GameLaunch.McLoginServer(
+                GameLaunch.McLoginType.Auth)
+            {
+                BaseUrl = profile.Server,
+                Description = profile.ServerName ?? "Yggdrasil Connect",
+                IsExist = true,
+                ProviderType = ProfileType.YggdrasilConnect,
+                DiscoveryAddress = profile.DiscoveryAddress
+            },
+            _ => new GameLaunch.McLoginLegacy
+            {
+                UserName = profile.UserName,
+                Uuid = profile.Uuid
+            }
+        };
     }
 
     public string IsProfileValid()
     {
-        return "";
+        var profile = ProfileService.Current;
+        if (profile is null) return Lang.Text("Minecraft.Launch.Precheck.NoProfile");
+        if (profile.ProfileType != ProfileType.Offline) return string.Empty;
+        if (string.IsNullOrWhiteSpace(profile.UserName))
+            return Lang.Text("Launch.Account.Profile.Validation.EmptyUsername");
+        if (profile.UserName.Contains('"'))
+            return Lang.Text("Launch.Account.Profile.Validation.QuoteInUsername");
+        if (InstanceList.McMcInstanceSelected is { } instance
+            && instance.Info.Drop >= 203
+            && profile.UserName.Trim().Length > 16)
+            return Lang.Text("Launch.Account.Profile.Validation.UsernameTooLong");
+        return string.Empty;
     }
 
     public Task<AuthorizeResult?> ShowDeviceCodeLoginAsync(
         DeviceCodeAuthenticationContext context,
         CancellationToken token)
     {
-        return Task.FromResult<AuthorizeResult?>(null);
+        token.ThrowIfCancellationRequested();
+        var completion = new TaskCompletionSource<AuthorizeResult?>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        var request = new LoginDialogRequest
+        {
+            Title = Lang.Text("Launch.Account.LoginDialog.MinecraftLogin"),
+            Buttons = default,
+            Data = JsonSerializer.SerializeToNode(context.Data, JsonCompat.SerializerOptions)!
+                .AsObject(),
+            DeviceCodePoll = (_, pollToken) => context.PollAsync(pollToken),
+            LoginResultHandler = (oauth, _) =>
+            {
+                completion.TrySetResult(oauth);
+                return Task.CompletedTask;
+            },
+            CompletionHandler = result =>
+            {
+                if (result is Exception exception) completion.TrySetException(exception);
+            }
+        };
+        DialogService.Instance.Show(request);
+        return completion.Task;
     }
 
     public bool HandleMicrosoftXstsError(IdentityModelAuthenticationException exception)
     {
-        return false;
+        if (exception.Error is not { } error
+            || !error.StartsWith("xsts_", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        var normalizedError = error.ToLowerInvariant();
+        if (normalizedError is not ("xsts_2148916227"
+            or "xsts_2148916233"
+            or "xsts_2148916235"
+            or "xsts_2148916238"))
+            return false;
+
+        LauncherCommon.RunInUiWait(() =>
+        {
+            switch (normalizedError)
+            {
+                case "xsts_2148916227":
+                    _ = DialogService.Instance.ShowAsync(
+                        new TextDialogRequest
+                        {
+                            Title = Lang.Text("Minecraft.Launch.Login.Failed"),
+                            Content = Lang.Text("Minecraft.Launch.Login.Microsoft.Banned"),
+                            Buttons = DialogButtons.From(
+                                DialogButton.Create(Lang.Text("Minecraft.Launch.Login.IKnow"))),
+                            IsWarn = true
+                        });
+                    break;
+                case "xsts_2148916233":
+                    if (UiSeamInteraction.Message(
+                            Lang.Text("Minecraft.Launch.Login.Microsoft.XboxNotRegistered"),
+                            Lang.Text("Minecraft.Launch.Login.Hint"),
+                            Lang.Text("Minecraft.Launch.Login.Register"),
+                            Lang.Text("Common.Action.Cancel"))
+                        == 1)
+                        UiSeamInteraction.OpenWebsite("https://signup.live.com/signup");
+                    break;
+                case "xsts_2148916235":
+                    _ = DialogService.Instance.ShowAsync(
+                        new TextDialogRequest
+                        {
+                            Title = Lang.Text("Minecraft.Launch.Login.Failed"),
+                            Content = Lang.Text("Minecraft.Launch.Login.Microsoft.RegionBlocked"),
+                            Buttons = DialogButtons.From(
+                                DialogButton.Create(Lang.Text("Minecraft.Launch.Login.IKnow")))
+                        });
+                    break;
+                case "xsts_2148916238":
+                    if (UiSeamInteraction.Message(
+                            Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.Message"),
+                            Lang.Text("Minecraft.Launch.Login.Hint"),
+                            Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.AgeOver13"),
+                            Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.AgeUnder13"),
+                            Lang.Text("Common.Option.IDontKnow"))
+                        == 1)
+                    {
+                        UiSeamInteraction.OpenWebsite("https://account.live.com/editprof.aspx");
+                        _ = DialogService.Instance.ShowAsync(
+                            new TextDialogRequest
+                            {
+                                Title = Lang.Text("Minecraft.Launch.Login.Hint"),
+                                Content = Lang.Text(
+                                    "Minecraft.Launch.Login.Microsoft.ChangeBirthDate.Message"),
+                                Buttons = DialogButtons.Ok
+                            });
+                    }
+                    else
+                    {
+                        UiSeamInteraction.OpenWebsite(
+                            "https://support.microsoft.com/zh-cn/account-billing/"
+                            + "如何更改-microsoft-帐户上的出生日期-837badbc-999e-54d2-2617-d19206b9540a");
+                        _ = DialogService.Instance.ShowAsync(
+                            new TextDialogRequest
+                            {
+                                Title = Lang.Text("Minecraft.Launch.Login.Hint"),
+                                Content = Lang.Text(
+                                    "Minecraft.Launch.Login.Microsoft.ChangeBirthDate.SupportMessage"),
+                                Buttons = DialogButtons.Ok
+                            });
+                    }
+
+                    break;
+            }
+        });
+        return true;
     }
 
     public bool HandleMicrosoftNotOwnedError(IdentityModelAuthenticationException exception)
     {
-        return false;
+        if (!string.Equals(
+                exception.Error,
+                "minecraft_not_owned",
+                StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        LauncherCommon.RunInUiWait(() =>
+        {
+            if (UiSeamInteraction.Message(
+                    Lang.Text("Minecraft.Launch.Login.Microsoft.NotPurchased"),
+                    Lang.Text("Minecraft.Launch.Login.Failed"),
+                    Lang.Text("Minecraft.Launch.Login.Microsoft.PurchaseMinecraft"),
+                    Lang.Text("Common.Action.Cancel"))
+                == 1)
+                UiSeamInteraction.OpenWebsite(
+                    "https://www.xbox.com/zh-cn/games/store/"
+                    + "minecraft-java-bedrock-edition-for-pc/9nxp44l49shj");
+        });
+        return true;
     }
 
-    public bool HandleMicrosoftCreateProfileError(IdentityModelAuthenticationException exception)
+    public bool HandleMicrosoftCreateProfileError(
+        IdentityModelAuthenticationException exception)
     {
-        return false;
+        if (!string.Equals(
+                exception.Error,
+                "profile_not_created",
+                StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        LauncherCommon.RunInUiWait(() =>
+        {
+            if (UiSeamInteraction.Message(
+                    Lang.Text("Minecraft.Launch.Login.Microsoft.CreateProfile.Message"),
+                    Lang.Text("Minecraft.Launch.Login.Failed"),
+                    Lang.Text("Minecraft.Launch.Login.Microsoft.CreateProfile.Button"),
+                    Lang.Text("Common.Action.Cancel"))
+                == 1)
+                UiSeamInteraction.OpenWebsite(
+                    "https://www.minecraft.net/zh-hans/msaprofile/mygames/editprofile");
+        });
+        return true;
     }
 }
 
@@ -228,28 +520,45 @@ public sealed class MemorySettingsBridge : IMemorySettings
 {
     private const double BytesPerGigabyte = 1024d * 1024d * 1024d;
 
-    public double GetRam(McInstance version, bool? is32BitJava = null)
+    public double GetRam(McInstance? version, bool? is32BitJava = null)
     {
         var instancePath = version?.PathInstance;
-        var ramGive = Config.Instance.MemorySolution[instancePath] switch
+        double ramGive;
+        if (string.IsNullOrEmpty(instancePath))
         {
-            2 => _GetGlobalRam(version),
-            1 => _GetRamFromTick(Config.Instance.CustomMemorySize[instancePath]),
-            _ => _GetAutoRam(version)
-        };
+            LogWrapper.Debug("Seam", "内存设置缺少实例上下文，使用全局内存配置");
+            ramGive = Config.Launch.MemoryAllocationMode == 0
+                ? _GetAutoRam(null)
+                : _GetRamFromTick(Config.Launch.CustomMemorySize);
+        }
+        else
+        {
+            ramGive = Config.Instance.MemorySolution[instancePath] switch
+            {
+                2 => _GetGlobalRam(version),
+                1 => _GetRamFromTick(Config.Instance.CustomMemorySize[instancePath]),
+                _ => _GetAutoRam(version)
+            };
+        }
 
         var is32Bit = is32BitJava ?? !JavaRuntime.IsGameSet64BitJava(version);
         if (is32Bit) ramGive = Math.Min(1d, ramGive);
         return ramGive;
     }
 
-    public double? GetInitialRam(McInstance version, bool? is32BitJava = null)
+    public double? GetInitialRam(McInstance? version, bool? is32BitJava = null)
     {
         // 锁定内存或 JVM 参数自带 -Xms 时不再给出初始堆
         if (Config.Launch.LockMemory) return null;
         if (_HasCustomXms(version)) return null;
 
         var instancePath = version?.PathInstance;
+        if (string.IsNullOrEmpty(instancePath))
+        {
+            LogWrapper.Debug("Seam", "初始内存设置缺少实例上下文，使用全局内存配置");
+            return _GetGlobalInitialRam(null, is32BitJava);
+        }
+
         return Config.Instance.MemorySolution[instancePath] switch
         {
             2 => _GetGlobalInitialRam(version, is32BitJava),
@@ -259,7 +568,7 @@ public sealed class MemorySettingsBridge : IMemorySettings
     }
 
     /// <summary>全局内存方案（MemorySolution == 2）的初始堆：使用全局设置，仅在手动分配模式下生效。</summary>
-    private double? _GetGlobalInitialRam(McInstance version, bool? is32BitJava)
+    private double? _GetGlobalInitialRam(McInstance? version, bool? is32BitJava)
     {
         if (Config.Launch.MemoryAllocationMode != 1) return null;
         var initialTick = Config.Launch.CustomInitialMemorySize;
@@ -267,32 +576,36 @@ public sealed class MemorySettingsBridge : IMemorySettings
         return Math.Min(_GetRamFromTick(initialTick), GetRam(version, is32BitJava));
     }
 
-    /// <summary>实例级内存方案（MemorySolution == 1）的初始堆。</summary>
-    private double? _GetInstanceInitialRam(McInstance version, bool? is32BitJava)
+    private double? _GetInstanceInitialRam(McInstance? version, bool? is32BitJava)
     {
-        var initialTick = Config.Instance.CustomInitialMemorySize[version?.PathInstance];
+        var instancePath = version?.PathInstance;
+        if (string.IsNullOrEmpty(instancePath)) return null;
+        var initialTick = Config.Instance.CustomInitialMemorySize[instancePath];
         if (initialTick <= 0) return null;
         return Math.Min(_GetRamFromTick(initialTick), GetRam(version, is32BitJava));
     }
 
     /// <summary>判断 JVM 参数是否自带 -Xms：实例级参数优先，为空时取全局参数。</summary>
-    private static bool _HasCustomXms(McInstance version)
+    private static bool _HasCustomXms(McInstance? version)
     {
-        var instanceArgs = version is null ? "" : Config.Instance.JvmArgs[version.PathInstance];
+        var instancePath = version?.PathInstance;
+        var instanceArgs = string.IsNullOrEmpty(instancePath)
+            ? ""
+            : Config.Instance.JvmArgs[instancePath];
         var effectiveArgs =
             string.IsNullOrEmpty(instanceArgs) ? Config.Launch.JvmArgs : instanceArgs;
         return !string.IsNullOrEmpty(effectiveArgs)
             && effectiveArgs.Contains("-Xms", StringComparison.OrdinalIgnoreCase);
     }
 
-    private static double _GetGlobalRam(McInstance version)
+    private static double _GetGlobalRam(McInstance? version)
     {
         return Config.Launch.MemoryAllocationMode == 0
             ? _GetAutoRam(version)
             : _GetRamFromTick(Config.Launch.CustomMemorySize);
     }
 
-    private static double _GetAutoRam(McInstance version)
+    private static double _GetAutoRam(McInstance? version)
     {
         var ramAvailable = Math.Round(
                 GC.GetGCMemoryInfo().TotalAvailableMemoryBytes / BytesPerGigabyte * 10)
@@ -356,7 +669,7 @@ public sealed class MemorySettingsBridge : IMemorySettings
     }
 }
 
-/// <summary>崩溃分析：当前只记录一条 seam 缺失日志，不产出分析结果。</summary>
+/// <summary>崩溃分析：收集日志、分析原因并弹出真实结果弹窗，可导出错误报告。</summary>
 public sealed class CrashAnalysisSeam : ICrashAnalysisService
 {
     public void Analyze(
@@ -366,90 +679,206 @@ public sealed class CrashAnalysisSeam : ICrashAnalysisService
         IReadOnlyList<string> logs,
         IReadOnlyList<string> outputPaths)
     {
-        UiSeamInteraction.LogMissing(nameof(Analyze));
+        try
+        {
+            // 稍等游戏进程收尾，保证崩溃日志已落盘
+            Thread.Sleep(2000);
+            var runner = new CrashSeamRunner(pid);
+            runner.Collect(pathIndie, [.. logs]);
+            runner.Prepare();
+            runner.Analyze(version);
+            runner.Output(false, [.. outputPaths]);
+        }
+        catch (Exception ex)
+        {
+            LauncherCommon.Log(ex, "[Watcher] 崩溃分析失败");
+        }
     }
 }
 
-/// <summary>Comp 详情与任务管理页尚未接入界面。</summary>
+/// <summary>Comp 详情与二级页面的导航桥接。</summary>
 public sealed class CompNavigationBridge : ICompNavigationService
 {
     public void ShowCompDetail(Comp.CompProject project)
     {
-        UiSeamInteraction.LogMissing(nameof(ShowCompDetail));
+        PageRouter.Navigate(PageType.CompDetail, PageSubType.Default, project);
     }
 
     public void ShowTaskManager()
     {
-        UiSeamInteraction.LogMissing(nameof(ShowTaskManager));
+        PageRouter.Navigate(PageType.TaskManager);
     }
 
     public void ShowInstanceSelect()
     {
-        UiSeamInteraction.LogMissing(nameof(ShowInstanceSelect));
+        PageRouter.Navigate(PageType.InstanceSelect);
     }
 }
 
-/// <summary>自定义事件涉及的页面操作尚未接入界面。</summary>
+/// <summary>自定义事件涉及的页面/工具操作。</summary>
 public sealed class EventUiBridge : IEventUi
 {
     public bool RefreshPage()
     {
-        return false;
+        var refreshed = false;
+        LauncherCommon.RunInUiWait(() =>
+        {
+            if (PageRouter.CurrentPage is not IRefreshable refreshable) return;
+            refreshable.Refresh();
+            refreshed = true;
+        });
+        return refreshed;
     }
 
     public void ShowDailyFortune()
     {
-        UiSeamInteraction.LogMissing(nameof(ShowDailyFortune));
+        PCL.Views.Pages.Tools.PageToolsTest.ShowDailyFortune();
     }
 
     public void ClearTrash()
     {
-        UiSeamInteraction.LogMissing(nameof(ClearTrash));
+        PCL.Views.Pages.Tools.PageToolsTest.ClearTrash();
     }
 
     public void SwitchPage(string pageType, string? subType)
     {
-        UiSeamInteraction.LogMissing(nameof(SwitchPage));
+        if (!Enum.TryParse<PageType>(pageType, true, out var page))
+        {
+            LogWrapper.Warn("Seam", $"自定义事件切换页面失败：无法识别页面类型 {pageType}");
+            return;
+        }
+
+        var sub = PageSubType.Default;
+        if (!string.IsNullOrEmpty(subType)
+            && !Enum.TryParse(subType, true, out sub))
+        {
+            LogWrapper.Warn("Seam", $"自定义事件切换页面失败：无法识别子页面类型 {subType}");
+            return;
+        }
+
+        PageRouter.Navigate(page, sub);
     }
 
     public void StartModpackInstall()
     {
-        UiSeamInteraction.LogMissing(nameof(StartModpackInstall));
+        Modpack.ModpackInstall();
     }
 
     public void StartCustomDownload(string url, string savePath, string? fileName)
     {
-        UiSeamInteraction.LogMissing(nameof(StartCustomDownload));
+        PCL.Views.Pages.Tools.PageToolsTest.StartCustomDownload(url, fileName, savePath);
     }
 
     public void OpenHelp(string location)
     {
-        UiSeamInteraction.LogMissing(nameof(OpenHelp));
+        try
+        {
+            var title = PCL.Views.Pages.PageHelpDetail.ReadTitle(location);
+            PageRouter.Navigate(
+                new PageStackData(
+                    PageType.HelpDetail,
+                    PageSubType.Default,
+                    location,
+                    string.IsNullOrEmpty(title) ? null : title));
+        }
+        catch (Exception ex)
+        {
+            LauncherCommon.Log(
+                ex,
+                Lang.Text("Event.Error.ExecutionFailed", "OpenHelp", location),
+                LauncherLogLevel.Msgbox,
+                userSummary: Lang.Text("Event.Error.ExecutionFailed", "OpenHelp", location));
+        }
     }
 }
 
-/// <summary>游戏启动前后的音乐与视频控制尚未接入界面。</summary>
+/// <summary>游戏启动前后的音乐与视频控制；当前版本没有可用的播放引擎，仅在有宿主时转发。</summary>
 public sealed class MediaServiceBridge : IMediaService
 {
+    private static bool _unavailableWarned;
+
     public void PauseMusic()
     {
+        if (SeamHosts.Media is { } host) host.PauseMusic();
+        else WarnUnavailable();
     }
 
     public void ResumeMusic()
     {
+        if (SeamHosts.Media is { } host) host.ResumeMusic();
+        else WarnUnavailable();
     }
 
     public void SetVideoGaming(bool gaming)
     {
+        if (SeamHosts.Media is { } host) host.SetVideoGaming(gaming);
+        else WarnUnavailable();
+    }
+
+    private static void WarnUnavailable()
+    {
+        if (_unavailableWarned) return;
+        _unavailableWarned = true;
+        LogWrapper.Warn(
+            "Seam",
+            "音乐/背景视频控制不可用（TODO(SEAM-3)：播放引擎未迁移），本次调用已跳过");
     }
 }
 
-/// <summary>下载过程的客户端更新提示尚未接到界面下载页。</summary>
+/// <summary>下载过程的客户端更新提示：消息框 + 跳转下载页 + 打开更新日志。</summary>
 public sealed class DownloadInteractionBridge : IDownloadUserInteraction
 {
     public void ShowClientUpdateHint(string versionName, JsonObject json)
     {
-        UiSeamInteraction.LogMissing(nameof(ShowClientUpdateHint));
+        try
+        {
+            JsonNode? version = null;
+            foreach (var token in json["versions"]?.AsArray() ?? [])
+                if (token?["id"] is not null && token["id"]?.ToString() == versionName)
+                {
+                    version = token;
+                    break;
+                }
+
+            if (version is null) return;
+            var time = version["releaseTime"]?.ToObject<DateTime>() ?? DateTime.Now;
+            var elapsed = DateTime.Now - time;
+            var message =
+                $"{Lang.Text("Minecraft.Update.NewVersion", versionName)}\r\n"
+                + (elapsed.TotalDays > 1d
+                    ? Lang.Text("Minecraft.Update.UpdateTime") + Lang.Date(time)
+                    : Lang.Text("Minecraft.Update.UpdatedAt")
+                    + Lang.TimeSpan(time - DateTime.Now));
+            var result = UiSeamInteraction.Message(
+                message,
+                Lang.Text("Minecraft.Update.Title"),
+                Lang.Text("Common.Action.Confirm"),
+                Lang.Text("Common.Action.Download"),
+                (DateTime.Now - time).TotalHours > 3d
+                    ? Lang.Text("Common.Action.UpdateLog")
+                    : "",
+                button3Action: () => OpenUpdateLog(version));
+            if (result == 2)
+                PageRouter.Navigate(
+                    PageType.Download,
+                    PageSubType.DownloadInstall,
+                    versionName);
+        }
+        catch (Exception ex)
+        {
+            LauncherCommon.Log(
+                ex,
+                Lang.Text("Minecraft.Error.UpdateNotify", versionName),
+                LauncherLogLevel.Feedback,
+                userSummary: Lang.Text("Minecraft.Error.UpdateNotify", versionName));
+        }
+    }
+
+    private static void OpenUpdateLog(JsonNode version)
+    {
+        var wikiName = McFormatter.GetWikiUrlSuffix(version["id"]?.ToString() ?? "");
+        var wikiUrl = $"{McFormatter.GetWikiBaseUrl()}/{wikiName.TrimStart('/')}";
+        UiSeamInteraction.OpenWebsite(wikiUrl);
     }
 }
 

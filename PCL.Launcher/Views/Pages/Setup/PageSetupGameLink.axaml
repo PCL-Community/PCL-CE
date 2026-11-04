@@ -1,0 +1,67 @@
+<ui:MyPageRight xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:ui="using:PCL.UI.Controls"
+                xmlns:loc="using:PCL.Core.UI"
+                x:Class="PCL.Views.Pages.Setup.PageSetupGameLink">
+    <ui:MyScrollViewer x:Name="PanBack"
+                       HorizontalScrollBarVisibility="Disabled"
+                       VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="25,10">
+            <ui:MyCard Margin="0,15"
+                       Title="EasyTier">
+                <StackPanel Margin="25,40,25,15"
+                            Orientation="Vertical">
+                    <ui:MyHint Margin="0,0,0,10"
+                               Theme="Yellow"
+                               Text="{loc:Loc Setup.GameLink.RestartRequired}" />
+                    <Grid ColumnDefinitions="Auto,8,*"
+                          RowDefinitions="28,8,28,4,28,28,28,28">
+                        <TextBlock Grid.Row="0"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,25,0"
+                                   Text="{loc:Loc Setup.GameLink.Username}" />
+                        <ui:MyTextBox x:Name="TextLinkUsername"
+                                      Grid.Row="0"
+                                      Grid.Column="2"
+                                      ToolTip.Tip="{loc:Loc Setup.GameLink.Username.ToolTip}" />
+
+                        <TextBlock Grid.Row="2"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,25,0"
+                                   Text="{loc:Loc Setup.GameLink.Protocol.Preference}" />
+                        <ui:MyComboBox x:Name="ComboPreferProtocol"
+                                       Grid.Row="2"
+                                       Grid.Column="2"
+                                       HorizontalAlignment="Stretch">
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameLink.Protocol.Tcp}"
+                                               ToolTip.Tip="{loc:Loc Setup.GameLink.Protocol.Tcp.ToolTip}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameLink.Protocol.Udp}"
+                                               ToolTip.Tip="{loc:Loc Setup.GameLink.Protocol.Udp.ToolTip}" />
+                        </ui:MyComboBox>
+
+                        <ui:MyCheckBox x:Name="CheckLatencyFirstMode"
+                                       Grid.Row="4"
+                                       Grid.ColumnSpan="3"
+                                       Text="{loc:Loc Setup.GameLink.LatencyFirstMode}"
+                                       ToolTip.Tip="{loc:Loc Setup.GameLink.LatencyFirstMode.ToolTip}" />
+                        <ui:MyCheckBox x:Name="CheckTryPunchSym"
+                                       Grid.Row="5"
+                                       Grid.ColumnSpan="3"
+                                       Text="{loc:Loc Setup.GameLink.PortGuessNat}"
+                                       ToolTip.Tip="{loc:Loc Setup.GameLink.PortGuessNat.ToolTip}" />
+                        <ui:MyCheckBox x:Name="CheckEnableIPv6"
+                                       Grid.Row="6"
+                                       Grid.ColumnSpan="3"
+                                       Text="{loc:Loc Setup.GameLink.EnableIPv6}"
+                                       ToolTip.Tip="{loc:Loc Setup.GameLink.EnableIPv6.ToolTip}" />
+                        <ui:MyCheckBox x:Name="CheckEnableCliOutput"
+                                       Grid.Row="7"
+                                       Grid.ColumnSpan="3"
+                                       Text="{loc:Loc Setup.GameLink.CliDebugOutput}"
+                                       ToolTip.Tip="{loc:Loc Setup.GameLink.CliDebugOutput.ToolTip}" />
+                    </Grid>
+                </StackPanel>
+            </ui:MyCard>
+        </StackPanel>
+    </ui:MyScrollViewer>
+</ui:MyPageRight>

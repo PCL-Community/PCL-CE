@@ -7,11 +7,18 @@ namespace PCL.Core.Utils.Validate;
 
 public abstract class FileSystemValidator : AbstractValidator<string>
 {
+    private static readonly char[] _WindowsInvalidChars =
+        ['/', '\\', ':', '*', '?', '"', '<', '>', '|', '\0'];
+
     protected static string? CheckInvalidStrings(string input, string[] extraInvalidStrings)
     {
         if (string.IsNullOrEmpty(input)) return null;
 
-        var invalidStrings = Path.GetInvalidFileNameChars().Select(c => c.ToString());
+        var invalidStrings = Path
+            .GetInvalidFileNameChars()
+            .Concat(_WindowsInvalidChars)
+            .Distinct()
+            .Select(c => c.ToString());
         invalidStrings = invalidStrings.Concat(extraInvalidStrings);
 
         var found = invalidStrings

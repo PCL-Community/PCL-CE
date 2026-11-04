@@ -159,7 +159,7 @@ internal static class MyMsgMarkdownRenderer
             TextWrapping = TextWrapping.Wrap,
             VerticalAlignment = VerticalAlignment.Top
         };
-        DialogTheme.BindBrush(code, TextBlock.ForegroundProperty, "PageBrushText");
+        DialogTheme.BindBrush(code, TextBlock.ForegroundProperty, "ColorBrush1");
 
         var border = new Border
         {
@@ -167,7 +167,7 @@ internal static class MyMsgMarkdownRenderer
             Padding = new Thickness(8d, 6d),
             Child = code
         };
-        DialogTheme.BindBrush(border, Border.BackgroundProperty, "PageBrushItemHover");
+        DialogTheme.BindBrush(border, Border.BackgroundProperty, "ColorBrushBg1");
         return border;
     }
 
@@ -242,7 +242,7 @@ internal static class MyMsgMarkdownRenderer
             Padding = new Thickness(10d, 2d, 0d, 2d),
             Child = content
         };
-        DialogTheme.BindBrush(bar, Border.BorderBrushProperty, "PageBrushDivider");
+        DialogTheme.BindBrush(bar, Border.BorderBrushProperty, "ColorBrushGray5");
         return bar;
     }
 
@@ -253,7 +253,7 @@ internal static class MyMsgMarkdownRenderer
             Height = 1d,
             Margin = new Thickness(0d, 4d)
         };
-        DialogTheme.BindBrush(line, Border.BackgroundProperty, "PageBrushDivider");
+        DialogTheme.BindBrush(line, Border.BackgroundProperty, "ColorBrushGray5");
         return line;
     }
 
@@ -345,7 +345,7 @@ internal static class MyMsgMarkdownRenderer
                 Margin = new Thickness(0d, 0d, 6d, 0d),
                 VerticalAlignment = VerticalAlignment.Top
             };
-            DialogTheme.BindBrush(bullet, TextBlock.ForegroundProperty, "PageBrushTextSecondary");
+            DialogTheme.BindBrush(bullet, TextBlock.ForegroundProperty, "ColorBrushGray3");
 
             var content = new StackPanel
             {
@@ -510,8 +510,8 @@ internal static class MyMsgMarkdownRenderer
             Child = cell,
             VerticalAlignment = VerticalAlignment.Stretch
         };
-        DialogTheme.BindBrush(border, Border.BorderBrushProperty, "PageBrushDivider");
-        if (header) DialogTheme.BindBrush(border, Border.BackgroundProperty, "PageBrushItemHover");
+        DialogTheme.BindBrush(border, Border.BorderBrushProperty, "ColorBrushGray5");
+        if (header) DialogTheme.BindBrush(border, Border.BackgroundProperty, "ColorBrushBg1");
         Grid.SetRow(border, row);
         Grid.SetColumn(border, column);
         grid.Children.Add(border);
@@ -604,7 +604,7 @@ internal static class MyMsgMarkdownRenderer
         DialogTheme.BindBrush(
             placeholderText,
             TextBlock.ForegroundProperty,
-            "PageBrushTextSecondary");
+            "ColorBrushGray3");
 
         var placeholder = new Border
         {
@@ -613,7 +613,7 @@ internal static class MyMsgMarkdownRenderer
             MinWidth = 140d,
             Child = placeholderText
         };
-        DialogTheme.BindBrush(placeholder, Border.BackgroundProperty, "PageBrushItemHover");
+        DialogTheme.BindBrush(placeholder, Border.BackgroundProperty, "ColorBrushBg1");
         ToolTip.SetTip(
             placeholder,
             string.IsNullOrWhiteSpace(alt) ? source : alt.Trim() + " · " + source);
@@ -711,27 +711,6 @@ internal static class MyMsgMarkdownRenderer
         return source.Length <= 60 ? source : source[..60] + "…";
     }
 
-    /// <summary>按可用宽度等比例缩放的图片控件。</summary>
-    private sealed class MarkdownImage : Image
-    {
-        protected override Size MeasureOverride(Size availableSize)
-        {
-            var source = Source;
-            if (source is null || source.Size.Width <= 0d || source.Size.Height <= 0d)
-                return base.MeasureOverride(availableSize);
-
-            var availableWidth = double.IsInfinity(availableSize.Width)
-                ? source.Size.Width
-                : Math.Max(1d, availableSize.Width);
-            var scale = Math.Min(
-                1d,
-                Math.Min(
-                    availableWidth / source.Size.Width,
-                    ImageMaxHeight / source.Size.Height));
-            return new Size(source.Size.Width * scale, source.Size.Height * scale);
-        }
-    }
-
     // =======================================
     // 内联文本
     // =======================================
@@ -746,7 +725,7 @@ internal static class MyMsgMarkdownRenderer
             TextWrapping = TextWrapping.Wrap,
             VerticalAlignment = VerticalAlignment.Top
         };
-        DialogTheme.BindBrush(block, TextBlock.ForegroundProperty, "PageBrushText");
+        DialogTheme.BindBrush(block, TextBlock.ForegroundProperty, "ColorBrush1");
         return block;
     }
 
@@ -851,7 +830,7 @@ internal static class MyMsgMarkdownRenderer
                     DialogTheme.BindBrush(
                         code,
                         TextElement.BackgroundProperty,
-                        "PageBrushItemHover");
+                        "ColorBrushBg1");
                     target.Add(code);
                     position += codeText.Length;
                     index = codeEnd + 1;
@@ -976,7 +955,7 @@ internal static class MyMsgMarkdownRenderer
         bool bold,
         bool italic,
         bool strike,
-        string brushKey = "PageBrushText")
+        string brushKey = "ColorBrush1")
     {
         var run = new Run
         {
@@ -1001,8 +980,8 @@ internal static class MyMsgMarkdownRenderer
         {
             TextDecorations = TextDecorations.Underline
         };
-        DialogTheme.BindBrush(span, TextElement.ForegroundProperty, "PageBrushAccent");
-        var run = CreateRun(display, fontSize, bold, italic, strike, "PageBrushAccent");
+        DialogTheme.BindBrush(span, TextElement.ForegroundProperty, "ColorBrush3");
+        var run = CreateRun(display, fontSize, bold, italic, strike, "ColorBrush3");
         if (strike) run.TextDecorations = TextDecorations.Strikethrough;
         span.Inlines!.Add(run);
         return span;
@@ -1056,6 +1035,27 @@ internal static class MyMsgMarkdownRenderer
         }
 
         UiSeamInteraction.OpenWebsite(url);
+    }
+
+    /// <summary>按可用宽度等比例缩放的图片控件。</summary>
+    private sealed class MarkdownImage : Image
+    {
+        protected override Size MeasureOverride(Size availableSize)
+        {
+            var source = Source;
+            if (source is null || source.Size.Width <= 0d || source.Size.Height <= 0d)
+                return base.MeasureOverride(availableSize);
+
+            var availableWidth = double.IsInfinity(availableSize.Width)
+                ? source.Size.Width
+                : Math.Max(1d, availableSize.Width);
+            var scale = Math.Min(
+                1d,
+                Math.Min(
+                    availableWidth / source.Size.Width,
+                    ImageMaxHeight / source.Size.Height));
+            return new Size(source.Size.Width * scale, source.Size.Height * scale);
+        }
     }
 
     private sealed class LinkSpan(

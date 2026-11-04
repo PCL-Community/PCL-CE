@@ -4,10 +4,11 @@
     <!--
         外层 PanBack 只负责命中测试与焦点，可见配色与缩放都落在内层 PanFore 上。
         悬停/按下/禁用的过渡由 MyButton.axaml.cs 逐帧插值，这里只提供初始配色。
+        颜色取自主题核心键（见 PCL.Core/UI/Theme/ThemeService.cs 的资源计算）。
     -->
     <Style Selector="ui|MyButton">
         <Setter Property="Background"
-                Value="{DynamicResource ButtonBrushSemiTransparent}" />
+                Value="{DynamicResource ColorBrushSemiTransparent}" />
         <Setter Property="BorderThickness"
                 Value="0" />
         <Setter Property="Focusable"
@@ -21,20 +22,20 @@
         <Setter Property="BorderThickness"
                 Value="1" />
         <Setter Property="BorderBrush"
-                Value="{DynamicResource PageBrushText}" />
+                Value="{DynamicResource ColorBrush1}" />
         <Setter Property="Background"
-                Value="{DynamicResource ButtonBrushChrome}" />
+                Value="{DynamicResource ColorBrushHalfWhite}" />
     </Style>
     <Style Selector="ui|MyButton.color-highlight > Border#PanFore">
         <Setter Property="Background"
-                Value="{DynamicResource PageBrushItemChecked}" />
+                Value="{DynamicResource ColorBrushHalfWhite}" />
         <Setter Property="BorderBrush"
-                Value="{DynamicResource ButtonBrushAccentDeep}" />
+                Value="{DynamicResource ColorBrush2}" />
     </Style>
     <Style Selector="ui|MyButton.color-red > Border#PanFore">
         <Setter Property="Background"
-                Value="{DynamicResource ButtonBrushRedBack}" />
+                Value="{DynamicResource ColorBrushHalfWhite}" />
         <Setter Property="BorderBrush"
-                Value="{DynamicResource PageBrushFatal}" />
+                Value="{DynamicResource ColorBrushRedDark}" />
     </Style>
 </Styles>

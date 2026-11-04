@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using PCL.Core.App.Localization;
+using PCL.Views.Pages;
 using static PCL.Animations;
 
 namespace PCL.UI.Controls;
@@ -11,7 +12,7 @@ namespace PCL.UI.Controls;
 ///     未设置 <see cref="AnimatedControl" /> 时退化为整栏缩放淡入。
 ///     语言切换后 <see cref="RefreshLocalization" /> 会在下次加载时重刷页面文本。
 /// </summary>
-public class MyPageLeft : Grid
+public class MyPageLeft : Grid, IPageView
 {
     public static readonly StyledProperty<Control?> AnimatedControlProperty =
         AvaloniaProperty.Register<MyPageLeft, Control?>(nameof(AnimatedControl));
@@ -46,6 +47,14 @@ public class MyPageLeft : Grid
         set => SetValue(AnimatedControlProperty, value);
     }
 
+    public virtual void OnNavigatedTo(object? parameter)
+    {
+    }
+
+    public virtual void OnNavigatedFrom()
+    {
+    }
+
     private void RefreshLocalizationIfStale()
     {
         if (_localizationRevision == LocalizationService.UiRevision)
@@ -65,6 +74,11 @@ public class MyPageLeft : Grid
     {
     }
 
+    public void ApplyLocalizationChanged()
+    {
+        RefreshLocalizationIfStale();
+    }
+
     public void TriggerShowAnimation()
     {
         var animationKey = "PageLeft PageChange " + _uuid;
@@ -73,7 +87,7 @@ public class MyPageLeft : Grid
         {
             // 缩放动画：0.96 放大到 1，同时淡入
             var scale = ContainerAnimation.EnsureScale(this, 0.96d, 0.96d);
-            if (!ContainerAnimation.CanAnimate(this))
+            if (!ContainerAnimation.CanAnimatePage(this))
             {
                 AniStop(animationKey);
                 scale.ScaleX = 1d;
@@ -97,7 +111,7 @@ public class MyPageLeft : Grid
         }
 
         // 动画关闭或控件未加载：直接落到终值
-        if (!ContainerAnimation.CanAnimate(this))
+        if (!ContainerAnimation.CanAnimatePage(this))
         {
             AniStop(animationKey);
             foreach (var element in GetAllAnimControls(true))
@@ -172,7 +186,7 @@ public class MyPageLeft : Grid
         {
             // 缩放动画：1 缩到 0.95，同时淡出
             var scale = ContainerAnimation.EnsureScale(this);
-            if (!ContainerAnimation.CanAnimate(this))
+            if (!ContainerAnimation.CanAnimatePage(this))
             {
                 AniStop(animationKey);
                 scale.ScaleX = 1d;
@@ -197,7 +211,7 @@ public class MyPageLeft : Grid
 
         var controls = GetAllAnimControls();
 
-        if (!ContainerAnimation.CanAnimate(this) || controls.Count == 0)
+        if (!ContainerAnimation.CanAnimatePage(this) || controls.Count == 0)
         {
             AniStop(animationKey);
             foreach (var element in controls)

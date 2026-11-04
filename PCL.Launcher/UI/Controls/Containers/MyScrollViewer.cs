@@ -4,6 +4,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
+using PCL.Views.Shell;
 using static PCL.Animations;
 
 namespace PCL.UI.Controls;
@@ -15,17 +16,19 @@ namespace PCL.UI.Controls;
 public class MyScrollViewer : ScrollViewer
 {
     private const double WheelScrollStep = 120d; // 一个滚轮刻度对应的像素数
+
+    public static readonly StyledProperty<Thickness> ScrollBarMarginProperty =
+        AvaloniaProperty.Register<MyScrollViewer, Thickness>(nameof(ScrollBarMargin));
     private const int WheelAnimationTime = 300;
     private const string VerticalBarPartName = "PART_VerticalScrollBar";
     private const string HorizontalBarPartName = "PART_HorizontalScrollBar";
 
     private double _realOffset;
 
-    /// <summary>模板中的垂直滚动条；模板应用后可用。</summary>
-    public MyScrollBar? scrollBar;
-
     /// <summary>模板中的水平滚动条；模板应用后可用。</summary>
     public MyScrollBar? horizontalScrollBar;
+
+    public MyScrollBar? scrollBar;
 
     public MyScrollViewer()
     {
@@ -42,6 +45,16 @@ public class MyScrollViewer : ScrollViewer
         };
     }
 
+    public double DeltaMult { get; set; } = 1d;
+
+    public Thickness ScrollBarMargin
+    {
+        get => GetValue(ScrollBarMarginProperty);
+        set => SetValue(ScrollBarMarginProperty, value);
+    }
+
+    private double MaximumOffset => Math.Max(0d, Extent.Height - Viewport.Height);
+
     /// <summary>
     ///     焦点控件通过 <see cref="ScrollViewer.BringIntoViewOnFocusChange" /> 附加属性关闭了自动滚动时
     ///     （例如 <see cref="MySlider" />），不把该控件滚入视野；其余控件保持滚入视野的默认行为。
@@ -53,11 +66,6 @@ public class MyScrollViewer : ScrollViewer
 
         base.OnGotFocus(e);
     }
-
-    /// <summary>滚轮滚动倍率。</summary>
-    public double DeltaMult { get; set; } = 1d;
-
-    private double MaximumOffset => Math.Max(0d, Extent.Height - Viewport.Height);
 
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
@@ -111,7 +119,7 @@ public class MyScrollViewer : ScrollViewer
         e.Handled = true;
         PerformVerticalOffsetDelta(-e.Delta.Y * WheelScrollStep);
 
-        // TODO(FIX-F-01): 滚轮滚动时关闭已弹出的提示；界面层尚无全局 Tooltip 服务。
+        Tooltip.Dismiss();
     }
 
     private bool IsInnerScrollSource(object? source)
@@ -139,6 +147,6 @@ public class MyScrollViewer : ScrollViewer
 
     private void NotifyBackButtonRefresh()
     {
-        // TODO(FIX-F-02): 通知主窗口“返回顶部”按钮刷新显隐；该按钮尚未迁移。
+        ExtraButtonsPanel.Current?.RefreshBackButton();
     }
 }

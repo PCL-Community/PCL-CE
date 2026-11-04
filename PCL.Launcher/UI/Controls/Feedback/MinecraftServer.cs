@@ -194,7 +194,7 @@ public class MinecraftServer : Grid
         _hasLatencyColor = MotdTextRenderer.TryGetColor(latencyColor, out var color);
         _labServerLatency.Foreground = _hasLatencyColor
             ? new SolidColorBrush(color)
-            : FeedbackTheme.GetBrush(this, "PageBrushText", Brushes.Black);
+            : FeedbackTheme.GetBrush(this, "ColorBrush1", Brushes.Black);
 
         // 玩家列表提示
         if (result.Players.Samples is { Count: > 0 } samples)
@@ -208,7 +208,7 @@ public class MinecraftServer : Grid
 
     private void _ApplyTextColors()
     {
-        var text = FeedbackTheme.GetBrush(this, "PageBrushText", Brushes.Black);
+        var text = Brushes.White;
         if (!_isErrorText)
             _labServerDesc.Foreground = text;
         _labServerPlayer.Foreground = text;

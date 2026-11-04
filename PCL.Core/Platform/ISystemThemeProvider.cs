@@ -1,3 +1,5 @@
+using System;
+
 namespace PCL.Core.Platform;
 
 /// <summary>
@@ -10,4 +12,7 @@ public interface ISystemThemeProvider
 
     /// <summary>系统当前是否使用深色模式。</summary>
     bool IsDarkMode { get; }
+
+    /// <summary>系统深浅色变化通知；由实现保证在 UI 线程触发。</summary>
+    event EventHandler? ThemeChanged;
 }

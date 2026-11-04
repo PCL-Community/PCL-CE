@@ -68,39 +68,7 @@ public static partial class Animations
         GridLengthWidth
     }
 
-    private const int DefaultSpeedValue = 9;
-
     private static double? _aniSpeedOverride;
-
-    /// <summary>
-    ///     动画速度。最大为 200。
-    ///     默认跟随 <see cref="Config.Debug" /> 中的动画速度设置（默认 9 → 1.0）。
-    /// </summary>
-    public static double AniSpeed
-    {
-        get =>
-            _aniSpeedOverride
-            ?? (ConfigService.IsInitialized ? _MapSpeedValue(Config.Debug.AnimationSpeed) : 1d);
-        set => _aniSpeedOverride = value;
-    }
-
-    /// <summary>
-    ///     将配置中的动画速度（0-30+）映射为播放倍率。
-    /// </summary>
-    public static double _MapSpeedValue(int value)
-    {
-        return value >= 30
-            ? 200d
-            : Math.Clamp(value * 0.1d + 0.1d, 0.1d, 3d);
-    }
-
-    /// <summary>
-    ///     清除显式设置的速度，恢复跟随配置。
-    /// </summary>
-    public static void AniResetSpeed()
-    {
-        _aniSpeedOverride = null;
-    }
 
     // 名称 -> 动画组。始终同步，因此 AniStart 后 AniIsRun 立即为 true。
     private static readonly Dictionary<string, AniGroupEntry> AniByName =
@@ -135,6 +103,36 @@ public static partial class Animations
     /// </summary>
     private static int _aniUuid;
 
+    public static double AniSpeed
+    {
+        get =>
+            _aniSpeedOverride
+            ?? (ConfigService.IsInitialized ? MapSpeedValue(Config.Debug.AnimationSpeed) : 1d);
+        set => _aniSpeedOverride = value;
+    }
+
+    public static bool IsAnimationEnabled => AniSpeed > 0d;
+
+    public static double MapSpeedValue(int value)
+    {
+        if (value <= 0) return 0d;
+
+        return value >= 30
+            ? 200d
+            : Math.Clamp(value * 0.1d + 0.1d, 0.1d, 3d);
+    }
+
+    public static void AniResetSpeed()
+    {
+        _aniSpeedOverride = null;
+    }
+
+    public static IDisposable SuspendControl()
+    {
+        AniBeginControl();
+        return new ControlSuspension();
+    }
+
     public static void AniBeginControl()
     {
         Interlocked.Add(ref _aniControlEnabled, 1);
@@ -166,20 +164,50 @@ public static partial class Animations
         return Interlocked.Add(ref _aniControlEnabled, restoreValue);
     }
 
+    internal static int GetUuid()
+    {
+        return Interlocked.Increment(ref _aniUuid);
+    }
+
+    internal static List<T> GetFullList<T>(IList data)
+    {
+        var result = new List<T>();
+        for (int i = 0, loopTo = data.Count - 1; i <= loopTo; i++)
+            if (data[i] is ICollection collection)
+                result.AddRange((IEnumerable<T>)collection);
+            else
+                result.Add((T)data[i]!);
+        return result;
+    }
+
+    internal static string? GetStringFromEnum(Enum enumData)
+    {
+        return Enum.GetName(enumData.GetType(), enumData);
+    }
+
+    private sealed class ControlSuspension : IDisposable
+    {
+        private bool _disposed;
+
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
+            AniEndControl();
+        }
+    }
+
     public class AniGroupEntry
     {
-        public List<AniData> data = [];
-
-        /// <summary>Stopwatch tick at which the group was started.</summary>
-        public long startTick;
+        internal volatile bool Dead;
 
         /// <summary>Registry key, used to unregister the group without touching a same-named newcomer.</summary>
         public string Key = "";
 
         public int Uuid = GetUuid();
+        public List<AniData> data = [];
 
-        /// <summary>Set when the group is stopped or finished; the frame loop skips it immediately.</summary>
-        internal volatile bool Dead;
+        public long startTick;
     }
 
     /// <summary>
@@ -242,36 +270,6 @@ public static partial class Animations
             return
                 $"{GetStringFromEnum(typeMain)} | {timeFinished}/{timeTotal}({Math.Round(timePercent * 100d)}%){(obj is null ? "" : " | " + obj + "(" + obj.GetType().Name + ")")}";
         }
-    }
-
-    /// <summary>
-    ///     生成一个程序内不会重复的序号（伪 Uuid）。
-    /// </summary>
-    internal static int GetUuid()
-    {
-        return Interlocked.Increment(ref _aniUuid);
-    }
-
-    /// <summary>
-    ///     将元素与 List 的混合体拆分为元素组。
-    /// </summary>
-    internal static List<T> GetFullList<T>(IList data)
-    {
-        var result = new List<T>();
-        for (int i = 0, loopTo = data.Count - 1; i <= loopTo; i++)
-            if (data[i] is ICollection collection)
-                result.AddRange((IEnumerable<T>)collection);
-            else
-                result.Add((T)data[i]!);
-        return result;
-    }
-
-    /// <summary>
-    ///     返回一个枚举对应的字符串。
-    /// </summary>
-    internal static string? GetStringFromEnum(Enum enumData)
-    {
-        return Enum.GetName(enumData.GetType(), enumData);
     }
 
     /// <summary>

@@ -10,11 +10,12 @@ public sealed class ResourceStore : IResourceStore
     /// <summary>入口程序集资源清单名的固定前缀，与入口 csproj 的 LogicalName 约定一致。</summary>
     private const string ManifestRoot = "PCL.";
 
-    /// <summary>图片资源根 URI，界面框架使用 <c>avares://</c> 方案。</summary>
+    private const string AssetRoot = "Assets/";
+
     public string GetImageRootUri()
     {
-        var assemblyName = Assembly.GetEntryAssembly()?.GetName().Name ?? "PCL";
-        return $"avares://{assemblyName}/Images/";
+        var assemblyName = Assembly.GetEntryAssembly()?.GetName().Name ?? "PCL.Launcher";
+        return $"avares://{assemblyName}/{AssetRoot}Images/";
     }
 
     public Stream? GetResourceStream(string path)
@@ -34,9 +35,20 @@ public sealed class ResourceStore : IResourceStore
                 return stream;
         }
 
+        if (TryOpenAvares(assemblyName, normalized) is { } direct)
+            return direct;
+        if (!normalized.StartsWith(AssetRoot, StringComparison.OrdinalIgnoreCase)
+            && TryOpenAvares(assemblyName, AssetRoot + normalized) is { } asset)
+            return asset;
+
+        return null;
+    }
+
+    private static Stream? TryOpenAvares(string assemblyName, string path)
+    {
         try
         {
-            var uri = new Uri($"avares://{assemblyName}/{normalized}");
+            var uri = new Uri($"avares://{assemblyName}/{path}");
             return AssetLoader.Exists(uri) ? AssetLoader.Open(uri) : null;
         }
         catch (Exception)

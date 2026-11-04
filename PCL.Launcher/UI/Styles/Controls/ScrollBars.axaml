@@ -41,7 +41,7 @@
             <Setter Property="MinHeight"
                     Value="8" />
             <Setter Property="Foreground"
-                    Value="{DynamicResource PageBrushAccentHover}" />
+                    Value="{DynamicResource ColorBrush4}" />
             <Setter Property="Opacity"
                     Value="0.5" />
 
@@ -50,7 +50,7 @@
                         Value="8" />
                 <Setter Property="Template">
                     <ControlTemplate>
-                        <Border Background="{TemplateBinding Background}"
+                        <Border Background="{DynamicResource ColorBrushSemiTransparent}"
                                 CornerRadius="2">
                             <Track Name="PART_Track"
                                    Minimum="{TemplateBinding Minimum}"
@@ -83,7 +83,7 @@
                         Value="8" />
                 <Setter Property="Template">
                     <ControlTemplate>
-                        <Border Background="{TemplateBinding Background}"
+                        <Border Background="{DynamicResource ColorBrushSemiTransparent}"
                                 CornerRadius="2">
                             <Track Name="PART_Track"
                                    Minimum="{TemplateBinding Minimum}"
@@ -140,10 +140,12 @@
                         </ScrollContentPresenter>
                         <ui:MyScrollBar Name="PART_HorizontalScrollBar"
                                         Orientation="Horizontal"
+                                        Margin="{TemplateBinding ScrollBarMargin}"
                                         Grid.Row="1"
                                         Grid.Column="0" />
                         <ui:MyScrollBar Name="PART_VerticalScrollBar"
                                         Orientation="Vertical"
+                                        Margin="{TemplateBinding ScrollBarMargin}"
                                         Grid.Row="0"
                                         Grid.Column="1" />
                     </Grid>

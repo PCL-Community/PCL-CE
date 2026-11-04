@@ -15,7 +15,7 @@
     </Style>
     <Style Selector="ui|MyIconButton Path">
         <Setter Property="Fill"
-                Value="{DynamicResource PageBrushAccentHover}" />
+                Value="{DynamicResource ColorBrush4}" />
     </Style>
     <Style Selector="ui|MyIconButton:disabled">
         <Setter Property="Background"

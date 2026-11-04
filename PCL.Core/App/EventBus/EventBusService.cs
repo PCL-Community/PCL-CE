@@ -1,4 +1,3 @@
-using PCL.Core.App.IoC;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -6,6 +5,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using PCL.Core.App.IoC;
+using PCL.Core.Logging;
 
 namespace PCL.Core.App.EventBus;
 
@@ -14,7 +15,13 @@ namespace PCL.Core.App.EventBus;
 public sealed partial class EventBusService
 {
     private static readonly ConcurrentDictionary<string,
-        ConcurrentDictionary<Type, ConcurrentDictionary<Guid, (Func<EventDataBase, Task> Handler, WeakReference<object>? OwnerRef)>>> _Channels = [];
+        ConcurrentDictionary<
+            Type,
+            ConcurrentDictionary<
+                Guid,
+                (
+                Func<EventDataBase, Task> Handler,
+                WeakReference<object>? OwnerRef)>>> _Channels = [];
 
     /// <summary>
     /// 0 = running, 1 = stopping/closed
@@ -30,12 +37,14 @@ public sealed partial class EventBusService
             var channelCount = _Channels.Count;
             var handlerCount = _Channels.Values.Sum(c => c.Values.Sum(h => h.Count));
             _Channels.Clear();
-            Context.Info($"EventBus stopping: cleared {channelCount} channels and {handlerCount} handlers.");
+            LogWrapper.Info(
+                "EventBus",
+                $"EventBus stopping: cleared {channelCount} channels and {handlerCount} handlers.");
             return Task.CompletedTask;
         }
         catch (Exception exception)
         {
-            Context.Error($"Exception while stopping EventBus: {exception}");
+            LogWrapper.Error(exception, "EventBus", "Exception while stopping EventBus");
             return Task.FromException(exception);
         }
     }
@@ -44,9 +53,11 @@ public sealed partial class EventBusService
     /// Publish an event to a channel. All handlers subscribed to this channel with compatible event data type will be invoked.
     /// </summary>
     /// <exception cref="InvalidOperationException">EventBus is stopping</exception>
-    public static Task PublishAsync<TEventData>(string channelName, TEventData data) where TEventData : EventDataBase
+    public static Task PublishAsync<TEventData>(string channelName, TEventData data)
+        where TEventData : EventDataBase
     {
-        if (Volatile.Read(ref _isStopping) != 0) throw new InvalidOperationException("EventBus is stopping");
+        if (Volatile.Read(ref _isStopping) != 0)
+            throw new InvalidOperationException("EventBus is stopping");
         return _CallChannelAsync(channelName, data);
     }
 
@@ -57,17 +68,20 @@ public sealed partial class EventBusService
     /// <exception cref="InvalidOperationException">EventBus is stopping</exception>
     /// <exception cref="InvalidOperationException">Failed to create channel</exception>
     /// <exception cref="ArgumentNullException"><paramref name="channel"/> is <see langword="null"/></exception>
-    public static IDisposable Subscribe<TEventData>(string channel, IEventHandler<TEventData> handler, bool disposeOwnerOnUnsubscribe = false)
+    public static IDisposable Subscribe<TEventData>(
+        string channel,
+        IEventHandler<TEventData> handler,
+        bool disposeOwnerOnUnsubscribe = false)
         where TEventData : EventDataBase
     {
-        if (Volatile.Read(ref _isStopping) != 0) throw new InvalidOperationException("EventBus is stopping");
+        if (Volatile.Read(ref _isStopping) != 0)
+            throw new InvalidOperationException("EventBus is stopping");
         if (string.IsNullOrWhiteSpace(channel)) throw new ArgumentNullException(nameof(channel));
         if (handler is null) throw new ArgumentNullException(nameof(handler));
 
         if (!_Channels.TryGetValue(channel, out var dataHandler))
         {
-            Context.Trace($"Channel {channel} not found.");
-            //throw new InvalidOperationException("No channel found for the given channel identification.");
+            LogWrapper.Trace("EventBus", $"Channel {channel} not found.");
 
             // create channel if not exist
             var success = AddChannel(channel);
@@ -95,17 +109,25 @@ public sealed partial class EventBusService
                 dataHandler.TryRemove(dataType, out _);
             }
 
-            // disposal responsibility: if this subscription requested owner disposal, try to dispose target if still alive
-            if (disposeOwnerOnUnsubscribe &&
-                ownerRef.TryGetTarget(out var tgt) &&
-                tgt is IDisposable d)
+            if (disposeOwnerOnUnsubscribe
+                && ownerRef.TryGetTarget(out var tgt)
+                && tgt is IDisposable d)
             {
-                // check if any remaining subscription in this channel still references the same owner
-                var stillReferenced = dataHandler.Values.Any(dict => dict.Values.Any(e => e.OwnerRef is not null && e.OwnerRef.TryGetTarget(out var other) && ReferenceEquals(other, tgt)));
+                var stillReferenced = dataHandler.Values.Any(dict => dict.Values.Any(e =>
+                    e.OwnerRef is not null
+                    && e.OwnerRef.TryGetTarget(out var other)
+                    && ReferenceEquals(other, tgt)));
 
                 if (stillReferenced) return;
 
-                try { d.Dispose(); } catch (Exception ex) { Context.Error($"Exception disposing subscription owner: {ex}"); }
+                try
+                {
+                    d.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    LogWrapper.Error(ex, "EventBus", "Exception disposing subscription owner");
+                }
             }
         });
 
@@ -115,6 +137,7 @@ public sealed partial class EventBusService
             {
                 return typed.HandleEventAsync((TEventData)ev);
             }
+
             return Task.CompletedTask;
         }
     }
@@ -128,14 +151,14 @@ public sealed partial class EventBusService
     public static IDisposable Subscribe<TEventData>(string channel, Func<TEventData, Task> handler)
         where TEventData : EventDataBase
     {
-        if (Volatile.Read(ref _isStopping) != 0) throw new InvalidOperationException("EventBus is stopping");
+        if (Volatile.Read(ref _isStopping) != 0)
+            throw new InvalidOperationException("EventBus is stopping");
         if (string.IsNullOrWhiteSpace(channel)) throw new ArgumentNullException(nameof(channel));
         if (handler is null) throw new ArgumentNullException(nameof(handler));
 
         if (!_Channels.TryGetValue(channel, out var dataHandler))
         {
-            Context.Trace($"Channel {channel} not found.");
-            //throw new InvalidOperationException("No channel found for the given channel identification.");
+            LogWrapper.Trace("EventBus", $"Channel {channel} not found.");
 
             // create channel if not exist
             var success = AddChannel(channel);
@@ -143,7 +166,6 @@ public sealed partial class EventBusService
             {
                 throw new InvalidOperationException("Failed to create channel.");
             }
-
         }
 
         dataHandler ??= _Channels[channel]; // ensure dataHandler is not null here
@@ -169,7 +191,10 @@ public sealed partial class EventBusService
     /// <summary>
     /// 创建 channel（显式）
     /// </summary>
-    public static bool AddChannel(string name) => !string.IsNullOrWhiteSpace(name) && _Channels.TryAdd(name, []);
+    public static bool AddChannel(string name)
+    {
+        return !string.IsNullOrWhiteSpace(name) && _Channels.TryAdd(name, []);
+    }
 
     /// <summary>
     /// Remove a channel and all its handlers. Use with caution.
@@ -183,15 +208,18 @@ public sealed partial class EventBusService
     {
         if (!_Channels.TryGetValue(channel, out var eventHandlers))
         {
-            Context.Error($"Channel {channel} not found.");
-            throw new InvalidOperationException("No channel found for the given channel identification.");
+            LogWrapper.Error("EventBus", $"Channel {channel} not found.");
+            throw new InvalidOperationException(
+                "No channel found for the given channel identification.");
         }
 
         return _CallEventHandlerAsync(data, eventHandlers);
     }
 
-    private static Task _CallEventHandlerAsync<TEventData>(TEventData data,
-        ConcurrentDictionary<Type, ConcurrentDictionary<Guid, (Func<EventDataBase, Task> Handler, WeakReference<object>? OwnerRef)>> dataHandlers)
+    private static Task _CallEventHandlerAsync<TEventData>(
+        TEventData data,
+        ConcurrentDictionary<Type, ConcurrentDictionary<Guid, (Func<EventDataBase, Task> Handler,
+            WeakReference<object>? OwnerRef)>> dataHandlers)
         where TEventData : EventDataBase
     {
         var eventType = data.GetType();
@@ -214,6 +242,7 @@ public sealed partial class EventBusService
                             continue;
                         }
                     }
+
                     matching.Add(entry.Handler);
                 }
             }
@@ -221,35 +250,36 @@ public sealed partial class EventBusService
 
         if (matching.Count == 0)
         {
-            Context.Trace($"No handler found for event data type {eventType.Name}");
+            LogWrapper.Trace("EventBus", $"No handler found for event data type {eventType.Name}");
             return Task.CompletedTask;
-            // will not throw Exception
-            //throw new InvalidOperationException("No handler found for the given event data type.");
         }
 
-        var tasks = matching.Select(async h =>
-        {
-            try
+        var tasks = matching
+            .Select(async h =>
             {
-                await h(data).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                Context.Error($"Event handler threw an exception: {ex}");
-            }
-        }).ToImmutableArray();
+                try
+                {
+                    await h(data).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    LogWrapper.Error(ex, "EventBus", "Event handler threw an exception");
+                }
+            })
+            .ToImmutableArray();
 
         return Task.WhenAll(tasks);
     }
-
-
 
     private sealed class Subscription : IDisposable
     {
         private Action? _dispose;
 
         /// <exception cref="ArgumentNullException">The dispose action is null.</exception>
-        public Subscription(Action dispose) => _dispose = dispose ?? throw new ArgumentNullException(nameof(dispose));
+        public Subscription(Action dispose)
+        {
+            _dispose = dispose ?? throw new ArgumentNullException(nameof(dispose));
+        }
 
         /// <exception cref="Exception">A delegate callback throws an exception.</exception>
         public void Dispose()

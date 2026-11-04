@@ -1,0 +1,254 @@
+<ui:MyPageRight xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:ui="using:PCL.UI.Controls"
+                xmlns:loc="using:PCL.Core.UI"
+                x:Class="PCL.Views.Pages.Tools.PageToolsTest">
+    <ui:MyScrollViewer x:Name="PanBack"
+                       HorizontalScrollBarVisibility="Disabled"
+                       VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="25,10">
+            <ui:MyCard Margin="0,15,0,0"
+                       Title="{loc:Loc Tools.Test.Title}">
+                <StackPanel Margin="25,40,25,15"
+                            Spacing="10">
+                    <TextBlock TextWrapping="Wrap"
+                               Opacity="0.75"
+                               Text="{loc:Loc Tools.Test.CeNotice}" />
+                    <WrapPanel ItemWidth="150"
+                               ItemHeight="34">
+                        <ui:MyButton x:Name="BtnClean"
+                                     Margin="0,0,10,10"
+                                     ColorType="Highlight"
+                                     Text="{loc:Loc Tools.Test.Clean.Title}"
+                                     ToolTip.Tip="{loc:Loc Tools.Test.Clean.ToolTip}" />
+                        <ui:MyButton x:Name="BtnLuck"
+                                     Margin="0,0,10,10"
+                                     Text="{loc:Loc Tools.Test.Luck.Title}" />
+                        <ui:MyButton x:Name="BtnLaunchCount"
+                                     Margin="0,0,10,10"
+                                     Text="{loc:Loc Tools.Test.LaunchCount.Title}" />
+                        <ui:MyButton x:Name="BtnShortcut"
+                                     Margin="0,0,10,10"
+                                     Text="{loc:Loc Tools.Test.Shortcut.Title}"
+                                     ToolTip.Tip="{loc:Loc Tools.Test.Shortcut.ToolTip}" />
+                        <ui:MyButton x:Name="BtnCrash"
+                                     Margin="0,0,10,10"
+                                     ColorType="Red"
+                                     IsVisible="False"
+                                     Text="{loc:Loc Tools.Test.Crash.Title}" />
+                    </WrapPanel>
+                </StackPanel>
+            </ui:MyCard>
+
+            <ui:MyCard Margin="0,0,0,15"
+                       Title="{loc:Loc Tools.Test.CustomDownload.Title}">
+                <StackPanel Margin="25,40,25,20"
+                            Orientation="Vertical">
+                    <TextBlock Text="{loc:Loc Tools.Test.CustomDownload.Description}"
+                               TextWrapping="Wrap" />
+                    <Grid Margin="0,10,0,0"
+                          ColumnDefinitions="Auto,*,Auto"
+                          RowDefinitions="Auto,Auto,Auto,Auto"
+                          ColumnSpacing="25"
+                          RowSpacing="10">
+                        <TextBlock Grid.Row="0"
+                                   Grid.Column="0"
+                                   VerticalAlignment="Center"
+                                   Text="{loc:Loc Tools.Test.CustomDownload.Url}" />
+                        <ui:MyTextBox x:Name="TextDownloadUrl"
+                                      Grid.Row="0"
+                                      Grid.Column="1"
+                                      Grid.ColumnSpan="2" />
+
+                        <TextBlock Grid.Row="1"
+                                   Grid.Column="0"
+                                   VerticalAlignment="Center"
+                                   Text="{loc:Loc Tools.Test.CustomDownload.SaveTo}" />
+                        <ui:MyTextBox x:Name="TextDownloadFolder"
+                                      Grid.Row="1"
+                                      Grid.Column="1" />
+                        <ui:MyTextButton x:Name="BtnDownloadSelectFolder"
+                                         Grid.Row="1"
+                                         Grid.Column="2"
+                                         VerticalAlignment="Center"
+                                         Text="{loc:Loc Tools.Test.CustomDownload.Select}" />
+
+                        <TextBlock Grid.Row="2"
+                                   Grid.Column="0"
+                                   VerticalAlignment="Center"
+                                   Text="{loc:Loc Tools.Test.CustomDownload.FileName}" />
+                        <ui:MyTextBox x:Name="TextDownloadName"
+                                      Grid.Row="2"
+                                      Grid.Column="1"
+                                      Grid.ColumnSpan="2" />
+
+                        <Grid Grid.Row="3"
+                              Grid.Column="0"
+                              Grid.ColumnSpan="3"
+                              Margin="0,5,0,0"
+                              ColumnDefinitions="*,*">
+                            <ui:MyButton x:Name="BtnDownloadStart"
+                                         Grid.Column="0"
+                                         Width="140"
+                                         Margin="0,0,15,0"
+                                         HorizontalAlignment="Right"
+                                         ColorType="Highlight"
+                                         Text="{loc:Loc Tools.Test.CustomDownload.Start}" />
+                            <ui:MyButton x:Name="BtnDownloadOpen"
+                                         Grid.Column="1"
+                                         Width="140"
+                                         Margin="0,0,15,0"
+                                         HorizontalAlignment="Left"
+                                         Text="{loc:Loc Common.Action.OpenFolder}" />
+                        </Grid>
+                    </Grid>
+                </StackPanel>
+            </ui:MyCard>
+
+            <ui:MyCard x:Name="CardSkin"
+                       Margin="0,0,0,15"
+                       Title="{loc:Loc Tools.Test.Skin.Title}">
+                <StackPanel Margin="25,40,25,15">
+                    <Grid Margin="0,14,0,2"
+                          ColumnDefinitions="Auto,*"
+                          RowDefinitions="Auto,Auto"
+                          ColumnSpacing="25"
+                          RowSpacing="14">
+                        <TextBlock Grid.Row="0"
+                                   Grid.Column="0"
+                                   VerticalAlignment="Center"
+                                   Text="{loc:Loc Tools.Test.Skin.PlayerName}" />
+                        <ui:MyTextBox x:Name="TextSkinID"
+                                      Grid.Row="0"
+                                      Grid.Column="1"
+                                      MaxLength="50" />
+                        <ui:MyButton x:Name="BtnSkinSave"
+                                     Grid.Row="1"
+                                     Grid.Column="0"
+                                     MinWidth="140"
+                                     Padding="13,0"
+                                     HorizontalAlignment="Left"
+                                     Text="{loc:Loc Tools.Test.Skin.Save}" />
+                    </Grid>
+                </StackPanel>
+            </ui:MyCard>
+
+            <ui:MyCard Margin="0,0,0,15"
+                       Title="{loc:Loc Tools.Test.ServerQuery.Title}">
+                <ui:MinecraftServerQuery Margin="15,40,15,15" />
+            </ui:MyCard>
+
+            <ui:MyCard Margin="0,0,0,15"
+                       Title="{loc:Loc Tools.Test.Achievement.Title}">
+                <StackPanel Margin="25,40,25,15">
+                    <Grid Margin="0,4,0,2"
+                          ColumnDefinitions="Auto,*,Auto"
+                          RowDefinitions="Auto,Auto,Auto,Auto"
+                          ColumnSpacing="25"
+                          RowSpacing="10">
+                        <TextBlock Grid.Row="0"
+                                   Grid.Column="0"
+                                   VerticalAlignment="Center"
+                                   Text="{loc:Loc Tools.Test.Achievement.ItemId}" />
+                        <ui:MyTextBox x:Name="TextAchievementItem"
+                                      Grid.Row="0"
+                                      Grid.Column="1"
+                                      Grid.ColumnSpan="2"
+                                      MaxLength="50" />
+
+                        <TextBlock Grid.Row="1"
+                                   Grid.Column="0"
+                                   VerticalAlignment="Center"
+                                   Text="{loc:Loc Tools.Test.Achievement.Name}" />
+                        <ui:MyTextBox x:Name="TextAchievementTitle"
+                                      Grid.Row="1"
+                                      Grid.Column="1"
+                                      Grid.ColumnSpan="2"
+                                      MaxLength="50" />
+
+                        <TextBlock Grid.Row="2"
+                                   Grid.Column="0"
+                                   VerticalAlignment="Center"
+                                   Text="{loc:Loc Tools.Test.Achievement.Line1}" />
+                        <ui:MyTextBox x:Name="TextAchievementLine1"
+                                      Grid.Row="2"
+                                      Grid.Column="1"
+                                      Grid.ColumnSpan="2"
+                                      MaxLength="50" />
+
+                        <TextBlock Grid.Row="3"
+                                   Grid.Column="0"
+                                   VerticalAlignment="Center"
+                                   Text="{loc:Loc Tools.Test.Achievement.Line2}" />
+                        <ui:MyTextBox x:Name="TextAchievementLine2"
+                                      Grid.Row="3"
+                                      Grid.Column="1"
+                                      Grid.ColumnSpan="2"
+                                      MaxLength="50" />
+                    </Grid>
+                    <Grid Margin="0,15,0,10"
+                          ColumnDefinitions="*,*">
+                        <ui:MyButton x:Name="BtnAchievementPreview"
+                                     Grid.Column="0"
+                                     Width="140"
+                                     Margin="0,0,15,0"
+                                     HorizontalAlignment="Right"
+                                     ColorType="Highlight"
+                                     Text="{loc:Loc Tools.Test.Achievement.Preview}" />
+                        <ui:MyButton x:Name="BtnAchievementSave"
+                                     Grid.Column="1"
+                                     Width="140"
+                                     Margin="0,0,15,0"
+                                     HorizontalAlignment="Left"
+                                     Text="{loc:Loc Tools.Test.Achievement.Save}" />
+                    </Grid>
+                    <ui:MyImage x:Name="ImgAchievement"
+                                Width="320"
+                                Height="64"
+                                HorizontalAlignment="Center"
+                                IsVisible="False"
+                                Stretch="Uniform" />
+                </StackPanel>
+            </ui:MyCard>
+
+            <ui:MyCard Margin="0,0,0,15"
+                       Title="{loc:Loc Tools.Test.Avatar.Title}">
+                <StackPanel Margin="25,40,25,20"
+                            Orientation="Vertical">
+                    <Grid Margin="0,0,0,10"
+                          ColumnDefinitions="Auto,180">
+                        <TextBlock VerticalAlignment="Center"
+                                   Margin="0,0,10,0"
+                                   Text="{loc:Loc Tools.Test.Avatar.Size}" />
+                        <ui:MyComboBox x:Name="CmbHeadSize"
+                                       Grid.Column="1"
+                                       Height="26" />
+                    </Grid>
+                    <Grid ColumnDefinitions="*,Auto,Auto,*">
+                        <ui:MyButton x:Name="BtnSelectSkin"
+                                     Grid.Column="1"
+                                     Width="140"
+                                     Height="35"
+                                     Margin="0,0,10,0"
+                                     Text="{loc:Loc Tools.Test.Avatar.SelectSkin}" />
+                        <ui:MyButton x:Name="BtnSaveHead"
+                                     Grid.Column="2"
+                                     Width="140"
+                                     Height="35"
+                                     Text="{loc:Loc Tools.Test.Avatar.Save}" />
+                    </Grid>
+                    <Border x:Name="BorderSkinPreview"
+                            Margin="0,15,0,0"
+                            Padding="10"
+                            HorizontalAlignment="Center"
+                            IsVisible="False">
+                        <Image x:Name="ImgHead"
+                               Width="80"
+                               Height="80"
+                               Stretch="Uniform" />
+                    </Border>
+                </StackPanel>
+            </ui:MyCard>
+        </StackPanel>
+    </ui:MyScrollViewer>
+</ui:MyPageRight>

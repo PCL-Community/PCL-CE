@@ -3,29 +3,27 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
+using PCL.Core.Logging;
 
 namespace PCL.UI.Controls.Behaviors;
 
 /// <summary>
 ///     为 TextBox 提供带异常保护的复制/剪切/粘贴路径；外部程序占用剪贴板时不抛出未处理异常。
+///     <see cref="Enable" /> 会为所有 TextBox 全局挂载保护；未启用时只对显式设置
+///     <see cref="EnableSafeClipboardProperty" /> 的文本框生效。
 /// </summary>
 public sealed class ClipboardInterceptor
 {
+    private const string Module = "UI.Clipboard";
+
     public static readonly AttachedProperty<bool> EnableSafeClipboardProperty =
         AvaloniaProperty.RegisterAttached<ClipboardInterceptor, TextBox, bool>(
             "EnableSafeClipboard");
 
     private static readonly ConditionalWeakTable<TextBox, State> States = new();
 
-    public static void SetEnableSafeClipboard(TextBox textBox, bool value)
-    {
-        textBox.SetValue(EnableSafeClipboardProperty, value);
-    }
-
-    public static bool GetEnableSafeClipboard(TextBox textBox)
-    {
-        return textBox.GetValue(EnableSafeClipboardProperty);
-    }
+    private static bool _enabled;
+    private static IDisposable? _attachSubscription;
 
     static ClipboardInterceptor()
     {
@@ -38,9 +36,47 @@ public sealed class ClipboardInterceptor
         });
     }
 
+    public static void Enable()
+    {
+        if (_enabled) return;
+
+        _enabled = true;
+        _attachSubscription = Control.LoadedEvent.AddClassHandler<TextBox>(
+            (textBox, _) => Attach(textBox),
+            RoutingStrategies.Direct | RoutingStrategies.Bubble,
+            true);
+
+        if (OperatingSystem.IsWindows())
+            LogWrapper.Debug(Module, "[Clipboard] 已全局挂载文本框剪贴板安全拦截（Windows）");
+        else
+            LogWrapper.Warn(
+                Module,
+                "[Clipboard] 非 Windows 平台：系统剪贴板异常保护降级为 Avalonia 事件层尽力拦截");
+    }
+
+    public static void Disable()
+    {
+        if (!_enabled) return;
+
+        _enabled = false;
+        _attachSubscription?.Dispose();
+        _attachSubscription = null;
+    }
+
+    public static void SetEnableSafeClipboard(TextBox textBox, bool value)
+    {
+        textBox.SetValue(EnableSafeClipboardProperty, value);
+    }
+
+    public static bool GetEnableSafeClipboard(TextBox textBox)
+    {
+        return textBox.GetValue(EnableSafeClipboardProperty);
+    }
+
     private static void Attach(TextBox textBox)
     {
         if (States.TryGetValue(textBox, out _)) return;
+
         var state = new State();
         States.Add(textBox, state);
         textBox.CopyingToClipboard += state.OnCopying;
@@ -51,6 +87,7 @@ public sealed class ClipboardInterceptor
     private static void Detach(TextBox textBox)
     {
         if (!States.TryGetValue(textBox, out var state)) return;
+
         textBox.CopyingToClipboard -= state.OnCopying;
         textBox.CuttingToClipboard -= state.OnCutting;
         textBox.PastingFromClipboard -= state.OnPasting;
@@ -72,6 +109,7 @@ public sealed class ClipboardInterceptor
 
             var clipboard = GetClipboard(textBox);
             if (clipboard is null) return;
+
             try
             {
                 await clipboard.SetTextAsync(textBox.SelectedText);
@@ -79,7 +117,7 @@ public sealed class ClipboardInterceptor
             }
             catch (Exception ex)
             {
-                await Console.Error.WriteLineAsync($"[UI] 复制失败：{ex.Message}");
+                LogWrapper.Debug(ex, Module, "复制失败");
             }
         }
 
@@ -90,6 +128,7 @@ public sealed class ClipboardInterceptor
 
             var clipboard = GetClipboard(textBox);
             if (clipboard is null) return;
+
             try
             {
                 await clipboard.SetTextAsync(textBox.SelectedText);
@@ -98,25 +137,28 @@ public sealed class ClipboardInterceptor
             }
             catch (Exception ex)
             {
-                await Console.Error.WriteLineAsync($"[UI] 剪切失败：{ex.Message}");
+                LogWrapper.Debug(ex, Module, "剪切失败");
             }
         }
 
         public async void OnPasting(object? sender, RoutedEventArgs e)
         {
             if (sender is not TextBox textBox) return;
+
             var clipboard = GetClipboard(textBox);
             if (clipboard is null) return;
+
             try
             {
                 var text = await clipboard.TryGetTextAsync();
                 if (string.IsNullOrEmpty(text)) return;
+
                 textBox.SelectedText = text;
                 e.Handled = true;
             }
             catch (Exception ex)
             {
-                await Console.Error.WriteLineAsync($"[UI] 粘贴失败：{ex.Message}");
+                LogWrapper.Debug(ex, Module, "粘贴失败");
             }
         }
     }

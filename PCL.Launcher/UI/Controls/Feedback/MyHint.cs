@@ -8,6 +8,8 @@ using Avalonia.Metadata;
 using Avalonia.Threading;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Theme;
+using PCL.UI.Controls.Common;
 
 namespace PCL.UI.Controls;
 
@@ -44,6 +46,8 @@ public class MyHint : Border
 
     public MyHint()
     {
+        using var controlScope = PCL.Animations.SuspendControl();
+
         CornerRadius = new CornerRadius(2d);
         BorderThickness = new Thickness(3d, 0d, 0d, 0d);
         HorizontalAlignment = HorizontalAlignment.Stretch;
@@ -99,11 +103,7 @@ public class MyHint : Border
         {
             _unwatchTheme?.Invoke();
             _unwatchTheme = null;
-            PCL.Animations.AniStop(ExpandKey);
             PCL.Animations.AniStop(DisposeKey);
-            // 停掉动画后恢复自然高度与不透明度，避免控件复用时停留在过渡中间态。
-            Height = double.NaN;
-            Opacity = 1d;
         };
 
         PointerReleased += _OnPointerReleased;
@@ -115,99 +115,25 @@ public class MyHint : Border
 
     private void UpdateUi()
     {
-        var accentKey = Theme switch
+        var hue = Theme switch
         {
-            Themes.Blue => "PageBrushAccent",
-            Themes.Yellow => "PageBrushWarn",
-            _ => "PageBrushError"
-        };
-        var fallback = Theme switch
-        {
-            Themes.Blue => Color.FromRgb(0x00, 0x78, 0xD4),
-            Themes.Yellow => Color.FromRgb(0xC8, 0x8A, 0x00),
-            _ => Color.FromRgb(0xD1, 0x35, 0x35)
+            Themes.Blue => 210d,
+            Themes.Yellow => 40d,
+            _ => 355d
         };
 
-        var accent = FeedbackTheme.GetColor(this, accentKey, fallback);
-        var isDark = FeedbackTheme.IsDarkTheme(this);
-        Background = FeedbackTheme.Tint(accent, isDark ? 0.20d : 0.10d);
-        BorderBrush = new SolidColorBrush(accent);
-        _labText.Foreground = new SolidColorBrush(accent);
-        _btnClose.Foreground = new SolidColorBrush(accent);
+        var tone = ThemeService.CurrentTone;
+        var background = new MyColor().FromHsl2(hue, 90d, tone.L7 * 100d);
+        var foreground = new MyColor().FromHsl2(hue, 90d, tone.L2 * 100d);
+
+        Background = new SolidColorBrush((Color)background);
+        BorderBrush = new SolidColorBrush((Color)foreground);
+        _labText.Foreground = new SolidColorBrush((Color)foreground);
+        _btnClose.Foreground = new SolidColorBrush((Color)foreground);
         _btnClose.RefreshAnim();
 
         // 读取 HasBorder 会按当前上边框判断是否补齐其余三边
         HasBorder = HasBorder;
-    }
-
-    #endregion
-
-    #region 展开
-
-    /// <summary>
-    ///     从隐藏切换为可见时的高度与透明度展开，避免显隐生硬。
-    /// </summary>
-    private void _AnimateExpand()
-    {
-        if (!IsVisible)
-            return;
-
-        // 允许提示条在关闭过程中被重新显示。
-        _isClosing = false;
-        IsHitTestVisible = true;
-
-        if (!IsLoaded || !FeedbackAnimation.CanAnimate(this))
-        {
-            Height = double.NaN;
-            Opacity = 1d;
-            return;
-        }
-
-        var savedHeight = Height;
-        Height = double.NaN;
-        // 用当前已排版的宽度测量，保证换行后的自然高度而不是单行高度。
-        var availableWidth = Bounds.Width > 0d ? Bounds.Width : double.PositiveInfinity;
-        Measure(new Size(availableWidth, double.PositiveInfinity));
-        var targetHeight = DesiredSize.Height;
-        Height = savedHeight;
-
-        if (targetHeight <= 1d)
-        {
-            Height = double.NaN;
-            Opacity = 1d;
-            return;
-        }
-
-        PCL.Animations.AniStop(DisposeKey);
-        Height = 0d;
-        Opacity = 0d;
-        if (RenderTransform is not ScaleTransform)
-        {
-            RenderTransformOrigin = RelativePoint.Center;
-            RenderTransform = new ScaleTransform(0.96d, 0.96d);
-        }
-
-        PCL.Animations.AniStart(
-            new List<PCL.Animations.AniData>
-            {
-                PCL.Animations.AaHeight(
-                    this,
-                    targetHeight,
-                    220,
-                    ease: new PCL.Animations.AniEaseOutFluent()),
-                PCL.Animations.AaOpacity(
-                    this,
-                    1d,
-                    220,
-                    ease: new PCL.Animations.AniEaseOutFluent()),
-                PCL.Animations.AaScaleTransform(
-                    this,
-                    1d - FeedbackAnimation.CurrentScale(this),
-                    220,
-                    ease: new PCL.Animations.AniEaseOutFluent()),
-                PCL.Animations.AaCode(() => Height = double.NaN, after: true)
-            },
-            ExpandKey);
     }
 
     #endregion
@@ -221,7 +147,7 @@ public class MyHint : Border
         else if (change.Property == TextProperty)
             _labText.Text = change.NewValue as string ?? string.Empty;
         else if (change.Property == IsVisibleProperty && change.NewValue is true)
-            Dispatcher.UIThread.Post(_AnimateExpand);
+            _isClosing = false;
     }
 
     #region 边框
@@ -285,8 +211,6 @@ public class MyHint : Border
     /// </summary>
     public string RelativeSetup { get; set; } = string.Empty;
 
-    private string ExpandKey => FeedbackAnimation.Name("MyHint Expand", Uuid);
-
     private string DisposeKey => FeedbackAnimation.Name("MyHint Dispose", Uuid);
 
     private void _OnLoaded()
@@ -308,8 +232,31 @@ public class MyHint : Border
     }
 
     /// <summary>
-    ///     关闭提示条：轻微缩小、淡出、高度收拢后隐藏。动画关闭时立即隐藏。
+    ///     关闭提示条：轻微缩小、淡出、高度收拢后隐藏；动画关闭或已不可交互时立即隐藏。
     /// </summary>
+    /// <param name="callBack">收起完成后在 UI 线程执行的回调，参数为本提示条。</param>
+    public void AniDispose(Action<MyHint>? callBack = null)
+    {
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            Dispatcher.UIThread.Post(() => AniDispose(callBack));
+            return;
+        }
+
+        if (_isClosing)
+            return;
+
+        _isClosing = true;
+
+        PCL.Animations.AniDispose(
+            this,
+            false,
+            _ => callBack?.Invoke(this),
+            0.92d,
+            true,
+            DisposeKey);
+    }
+
     public void Close()
     {
         if (!Dispatcher.UIThread.CheckAccess())
@@ -318,47 +265,7 @@ public class MyHint : Border
             return;
         }
 
-        if (_isClosing)
-            return;
-
-        _isClosing = true;
-        PCL.Animations.AniStop(ExpandKey);
-        if (!IsHitTestVisible)
-        {
-            IsVisible = false;
-            return;
-        }
-
-        IsHitTestVisible = false;
-
-        if (!FeedbackAnimation.CanAnimate(this))
-        {
-            IsVisible = false;
-            return;
-        }
-
-        PCL.Animations.AniStart(
-            new List<PCL.Animations.AniData>
-            {
-                PCL.Animations.AaScaleTransform(
-                    this,
-                    -0.08d,
-                    200,
-                    ease: new PCL.Animations.AniEaseInFluent()),
-                PCL.Animations.AaOpacity(
-                    this,
-                    -Opacity,
-                    200,
-                    ease: new PCL.Animations.AniEaseOutFluent()),
-                PCL.Animations.AaHeight(
-                    this,
-                    -Bounds.Height,
-                    150,
-                    100,
-                    new PCL.Animations.AniEaseOutFluent()),
-                PCL.Animations.AaCode(() => IsVisible = false, after: true)
-            },
-            DisposeKey);
+        AniDispose();
     }
 
     #endregion

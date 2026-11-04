@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:PCL.Core.UI"
              x:Class="PCL.Views.Pages.PageLoading">
     <Grid>
         <StackPanel HorizontalAlignment="Center"
@@ -18,7 +19,7 @@
                        FontSize="13"
                        Opacity="0.75"
                        HorizontalAlignment="Center"
-                       Text="正在启动…" />
+                       Text="{loc:Loc Application.Loading.Status.Preparing}" />
         </StackPanel>
     </Grid>
 </UserControl>

@@ -2,43 +2,91 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:shell="using:PCL.Views.Shell"
+        xmlns:ui="using:PCL.UI.Controls"
         mc:Ignorable="d"
-        d:DesignWidth="1000"
-        d:DesignHeight="640"
+        d:DesignWidth="850"
+        d:DesignHeight="500"
         x:Class="PCL.Views.MainWindow"
-        Width="1000"
-        Height="640"
-        MinWidth="800"
-        MinHeight="520"
+        Width="850"
+        Height="500"
+        MinWidth="810"
+        MinHeight="470"
         WindowStartupLocation="CenterScreen"
-        TransparencyBackgroundFallback="{DynamicResource PageBrushWindowFallback}"
-        Title="PCL Community Edition">
-    <Grid>
-        <Border Name="WindowSurface"
-                Classes="WindowSurface">
-            <ContentControl Name="PageHost" />
-        </Border>
-        <StackPanel Name="PanHint"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Bottom"
-                    Margin="0,0,0,20" />
-        <!-- 弹窗遮罩层：位于提示层之上，显示时挡住底层交互；对话框容器居中央，超过窗口高度时可滚动 -->
-        <Panel Name="PanDialogLayer"
-               IsVisible="False"
-               Opacity="0">
-            <Border Name="BorDialogMask"
-                    Background="#80000000" />
-            <ScrollViewer Name="SclDialogHost"
-                          Width="520"
-                          MaxHeight="640"
-                          HorizontalAlignment="Center"
-                          VerticalAlignment="Center"
-                          HorizontalScrollBarVisibility="Disabled"
-                          VerticalScrollBarVisibility="Auto">
-                <Panel Name="PanDialogHost"
-                       HorizontalAlignment="Stretch"
-                       VerticalAlignment="Center" />
-            </ScrollViewer>
-        </Panel>
+        WindowDecorations="None"
+        Background="Transparent"
+        CanResize="True"
+        TransparencyBackgroundFallback="{DynamicResource ColorBrushBackground}"
+        Title="Plain Craft Launcher Community Edition ">
+    <Grid x:Name="PanRoot"
+          Background="Transparent">
+        <ui:MyDropShadow Color="#21000000"
+                         ShadowRadius="10"
+                         CornerRadius="6">
+            <Border x:Name="PanBack"
+                    Margin="10"
+                    CornerRadius="6"
+                    ClipToBounds="True">
+                <Grid x:Name="PanForm"
+                      RowDefinitions="Auto,*">
+                    <Grid x:Name="ImgBack"
+                          Grid.Row="1"
+                          ClipToBounds="True"
+                          IsHitTestVisible="False">
+                        <Image x:Name="ImgBackImage"
+                               Stretch="UniformToFill"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+                    </Grid>
+                    <shell:TitleBar x:Name="TitleBar"
+                                    Grid.Row="0" />
+                    <Grid x:Name="PanMain"
+                          Grid.Row="1"
+                          ColumnDefinitions="Auto,*">
+                        <Border x:Name="RectLeftBackground"
+                                Grid.Column="0"
+                                Width="0"
+                                HorizontalAlignment="Left"
+                                Background="{DynamicResource ColorBrushTransparentBackground}"
+                                IsHitTestVisible="False"
+                                BoxShadow="4 0 6 0 #0A000000" />
+                        <ContentControl x:Name="PageLeftHost"
+                                        Grid.Column="0"
+                                        HorizontalAlignment="Left"
+                                        IsVisible="False" />
+                        <ContentControl x:Name="PageRightHost"
+                                        Grid.Column="1" />
+                    </Grid>
+                    <Grid x:Name="PanHintAnchor"
+                          Grid.RowSpan="2"
+                          Panel.ZIndex="1"
+                          HorizontalAlignment="Right"
+                          VerticalAlignment="Bottom">
+                        <StackPanel x:Name="PanHint"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Bottom" />
+                    </Grid>
+                    <shell:ExtraButtonsPanel x:Name="PanExtraButtons"
+                                             Grid.Row="1" />
+                    <Panel x:Name="PanDialogLayer"
+                           Grid.RowSpan="2"
+                           IsVisible="False"
+                           Opacity="0">
+                        <Border x:Name="BorDialogMask"
+                                Background="#00000000" />
+                        <ScrollViewer x:Name="SclDialogHost"
+                                      MinWidth="400"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      HorizontalScrollBarVisibility="Disabled"
+                                      VerticalScrollBarVisibility="Auto">
+                            <Panel x:Name="PanDialogHost"
+                                   HorizontalAlignment="Stretch"
+                                   VerticalAlignment="Center" />
+                        </ScrollViewer>
+                    </Panel>
+                </Grid>
+            </Border>
+        </ui:MyDropShadow>
     </Grid>
 </Window>

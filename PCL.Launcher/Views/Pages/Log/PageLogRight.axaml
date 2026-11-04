@@ -1,0 +1,78 @@
+<ui:MyPageRight xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:ui="using:PCL.UI.Controls"
+                xmlns:loc="using:PCL.Core.UI"
+                x:Class="PCL.Views.Pages.Log.PageLogRight">
+    <Grid>
+        <Grid x:Name="PanAllBack">
+            <ui:MyCard x:Name="PanLogCard"
+                       Margin="16,16,16,100">
+                <ui:MyScrollViewer x:Name="PanBack"
+                                   Margin="12,40,12,20"
+                                   VerticalScrollBarVisibility="Auto"
+                                   HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel x:Name="PanLog" />
+                </ui:MyScrollViewer>
+            </ui:MyCard>
+        </Grid>
+
+        <TextBlock x:Name="LabEmpty"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   TextWrapping="Wrap"
+                   MaxWidth="360"
+                   TextAlignment="Center"
+                   IsVisible="False"
+                   Text="{loc:Loc LogPage.Empty.Description}" />
+
+        <ui:MyCard x:Name="CardOperation"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Bottom"
+                   Margin="0,15,0,10"
+                   IsVisible="False">
+            <StackPanel Margin="0,2,0,6">
+                <StackPanel Orientation="Horizontal"
+                            Margin="10,4,10,4"
+                            HorizontalAlignment="Center"
+                            Spacing="10">
+                    <ui:MyCheckBox x:Name="CheckAutoScroll"
+                                   VerticalAlignment="Center"
+                                   Checked="True"
+                                   Text="{loc:Loc LogPage.Action.Scroll}" />
+                    <ui:MyIconTextButton x:Name="BtnOperationExport"
+                                         LogoScale="1"
+                                         SvgIcon="lucide/save"
+                                         Text="{loc:Loc LogPage.Action.Export}" />
+                    <ui:MyIconTextButton x:Name="BtnOperationClear"
+                                         LogoScale="1.1"
+                                         SvgIcon="lucide/trash-2"
+                                         Text="{loc:Loc LogPage.Action.Clear}" />
+                    <ui:MyIconTextButton x:Name="BtnOperationKill"
+                                         LogoScale="0.85"
+                                         SvgIcon="lucide/x"
+                                         Text="{loc:Loc LogPage.Action.KillProcess}" />
+                    <ui:MyIconTextButton x:Name="BtnOperationExportStackDump"
+                                         LogoScale="0.85"
+                                         SvgIcon="lucide/package"
+                                         Text="{loc:Loc LogPage.Action.ExportStack}" />
+                </StackPanel>
+                <Grid VerticalAlignment="Center"
+                      Margin="12,0,12,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0"
+                               HorizontalAlignment="Left"
+                               Margin="0,0,25,0"
+                               Text="{loc:Loc LogPage.MaxLines.Title}" />
+                    <ui:MySlider x:Name="SliderMaxLog"
+                                 Grid.Column="1"
+                                 HorizontalAlignment="Stretch"
+                                 MaxValue="29"
+                                 Value="13" />
+                </Grid>
+            </StackPanel>
+        </ui:MyCard>
+    </Grid>
+</ui:MyPageRight>

@@ -29,10 +29,11 @@ public partial class MyExtraTextButton : Grid
     public static readonly StyledProperty<object?> CommandParameterProperty =
         AvaloniaProperty.Register<MyExtraTextButton, object?>(nameof(CommandParameter));
 
+    private static int _uuidSeed;
+
     /// <summary>动画键使用的唯一编号。</summary>
     public readonly int Uuid = Interlocked.Increment(ref _uuidSeed);
 
-    private static int _uuidSeed;
     private bool _isCommandRunning;
     private bool _isLeftMouseHeld;
     private bool _show;
@@ -58,8 +59,6 @@ public partial class MyExtraTextButton : Grid
         RefreshIconHostVisibility();
         _SyncCornerRadius();
     }
-
-    public event ClickEventHandler? Click;
 
     /// <summary>旧版 Path 图标数据（SVG path 语法）。</summary>
     public string Logo
@@ -163,6 +162,8 @@ public partial class MyExtraTextButton : Grid
     private string MainScaleKey => ButtonAnimation.Name("MyExtraTextButton MainScale", Uuid);
 
     private string ColorKey => ButtonAnimation.Name("MyExtraTextButton Color", Uuid);
+
+    public event ClickEventHandler? Click;
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
@@ -338,10 +339,10 @@ public partial class MyExtraTextButton : Grid
             return;
 
         var key = !IsEnabled
-            ? "PageBrushDebug"
+            ? "ColorBrushGray4"
             : IsPointerOver
-                ? "PageBrushAccentHover"
-                : "PageBrushAccent";
+                ? "ColorBrush4"
+                : "ColorBrush3";
 
         ButtonAnimation.ApplyColor(
             PanColor,

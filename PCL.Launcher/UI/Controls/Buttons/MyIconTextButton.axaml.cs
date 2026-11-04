@@ -41,10 +41,11 @@ public partial class MyIconTextButton : Border
     public static readonly StyledProperty<object?> CommandParameterProperty =
         AvaloniaProperty.Register<MyIconTextButton, object?>(nameof(CommandParameter));
 
+    private static int _uuidSeed;
+
     /// <summary>动画键使用的唯一编号。</summary>
     public readonly int Uuid = Interlocked.Increment(ref _uuidSeed);
 
-    private static int _uuidSeed;
     private bool _hasLegacyLogo;
     private bool _isCommandRunning;
     private bool _isMouseDown;
@@ -72,12 +73,6 @@ public partial class MyIconTextButton : Border
             PCL.Animations.AniStop(IconKey);
         };
     }
-
-    public event CheckEventHandler? Check;
-
-    public event ChangeEventHandler? Change;
-
-    public event ClickEventHandler? Click;
 
     /// <summary>旧版 Path 图标数据（SVG path 语法）。</summary>
     public string Logo
@@ -172,6 +167,12 @@ public partial class MyIconTextButton : Border
 
     private string IconKey => ButtonAnimation.Name("MyIconTextButton Icon", Uuid);
 
+    public event CheckEventHandler? Check;
+
+    public event ChangeEventHandler? Change;
+
+    public event ClickEventHandler? Click;
+
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
@@ -202,18 +203,18 @@ public partial class MyIconTextButton : Border
             return;
 
         var foreground = !IsEnabled
-            ? "PageBrushDebug"
+            ? "ColorBrushGray5"
             : IsPointerOver || ColorType == ColorState.Highlight
-                ? "PageBrushAccent"
-                : "PageBrushText";
+                ? "ColorBrush3"
+                : "ColorBrush1";
 
         var background = !IsEnabled
-            ? null
+            ? "ColorBrushTransparent"
             : _isMouseDown
-                ? "ButtonBrushChromePressed"
+                ? "ColorBrush6"
                 : IsPointerOver
-                    ? "PageBrushAccentLight"
-                    : null;
+                    ? "ColorBrushBg1"
+                    : "ColorBrushSemiTransparent";
 
         var time = _isMouseDown ? 70 : IsPointerOver ? 100 : 150;
 

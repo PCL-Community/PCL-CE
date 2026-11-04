@@ -1,6 +1,6 @@
 <!--
     MyRadioButton 的样式覆盖：圆角药丸单选按钮的尺寸与对齐。
-    状态颜色由控件代码按 PageBrush* 动态资源驱动，并在状态切换时播放过渡。
+    状态颜色由控件代码按核心 ColorBrush* 动态资源驱动，并在状态切换时播放过渡。
 -->
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"

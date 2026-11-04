@@ -9,7 +9,7 @@ namespace PCL.UI.Controls;
 
 /// <summary>
 ///     容器类控件共用的主题取值辅助。
-///     颜色统一取自 UI/Styles/PageStyles.axaml 中的 PageBrush* 资源；
+///     颜色统一取自 ThemeService 写入 Application.Resources 的核心 ColorBrush* 键；
 ///     样式表放在 UI/Styles/Controls/Containers.axaml，需要视觉默认值的控件在构造函数中调用
 ///     <see cref="AttachStyles" /> 引入。
 /// </summary>
@@ -51,55 +51,61 @@ internal static class ContainerTheme
             : fallback;
     }
 
-    /// <summary>主文本颜色（PageBrushText）。</summary>
     public static IBrush Text(StyledElement element)
     {
-        return Brush(element, "PageBrushText", Brushes.Black);
+        return Brush(element, "ColorBrush1", Brushes.Black);
     }
 
-    /// <summary>次级文本颜色（PageBrushTextSecondary）。</summary>
     public static IBrush TextSecondary(StyledElement element)
     {
-        return Brush(element, "PageBrushTextSecondary", Brushes.Gray);
+        return Brush(element, "ColorBrushGray3", Brushes.Gray);
     }
 
-    /// <summary>强调色（PageBrushAccent）。</summary>
     public static IBrush Accent(StyledElement element)
     {
-        return Brush(element, "PageBrushAccent", Brushes.DodgerBlue);
+        return Brush(element, "ColorBrush3", Brushes.DodgerBlue);
     }
 
-    /// <summary>强调色悬停态（PageBrushAccentHover）。</summary>
     public static IBrush AccentHover(StyledElement element)
     {
-        return Brush(element, "PageBrushAccentHover", Brushes.DeepSkyBlue);
+        return Brush(element, "ColorBrush4", Brushes.DeepSkyBlue);
     }
 
-    /// <summary>浅强调色背景（PageBrushAccentLight）。</summary>
     public static IBrush AccentLight(StyledElement element)
     {
-        return Brush(element, "PageBrushAccentLight", Brushes.AliceBlue);
+        return Brush(element, "ColorBrush7", Brushes.AliceBlue);
     }
 
-    /// <summary>列表项悬停底色（PageBrushItemHover）。</summary>
     public static IBrush ItemHover(StyledElement element)
     {
-        return Brush(element, "PageBrushItemHover", Brushes.Transparent);
+        return Brush(element, "ColorBrushBg1", Brushes.Transparent);
     }
 
-    /// <summary>选中项底色（PageBrushItemChecked）。</summary>
+    public static IBrush ItemPressed(StyledElement element)
+    {
+        return Brush(element, "ColorBrush6", Brushes.LightBlue);
+    }
+
     public static IBrush ItemChecked(StyledElement element)
     {
-        return Brush(element, "PageBrushItemChecked", Brushes.AliceBlue);
+        return Brush(element, "ColorBrush7", Brushes.AliceBlue);
     }
 
-    /// <summary>分隔线与弱化描边（PageBrushDivider）。</summary>
+    public static IBrush CheckedTextStrong(StyledElement element)
+    {
+        return Brush(element, "ColorBrush2", Brushes.DodgerBlue);
+    }
+
+    public static IBrush CheckedTextWeak(StyledElement element)
+    {
+        return Brush(element, "ColorBrush3", Brushes.DeepSkyBlue);
+    }
+
     public static IBrush Divider(StyledElement element)
     {
-        return Brush(element, "PageBrushDivider", Brushes.LightGray);
+        return Brush(element, "ColorBrushGray5", Brushes.LightGray);
     }
 
-    /// <summary>把属性绑定到 PageBrush* 动态资源；资源随主题切换自动刷新。</summary>
     public static void BindDynamic(AvaloniaObject target, AvaloniaProperty property, string key)
     {
         _ = target.Bind(property, new DynamicResourceExtension(key));

@@ -3,30 +3,19 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Threading;
+using PCL.Core.Logging;
 using PCL.Core.Platform;
 
 namespace PCL.Core.UI;
 
 /// <summary>
-///     Linux / macOS 系统通知：通过 freedesktop 的 <c>org.freedesktop.Notifications</c> 服务
-///     （GNOME、KDE Plasma 等桌面环境均实现）发送；通知服务不可用时退回应用内浮层。
+///     系统通知：Windows 走 Toast，Linux 走 freedesktop Notifications，macOS 走 osascript；
+///     通知服务不可用时退回应用内浮层。
 /// </summary>
 public sealed class NotificationService : ISystemNotificationService
 {
     private const string AppName = "PCL Community Edition";
     private const int ExpireTimeMs = 5000;
-
-    public bool IsAvailable => HasSessionBus || Application.Current is not null;
-
-    public void Show(string title, string message)
-    {
-        if (OperatingSystem.IsWindows()) return;
-
-        if (_TrySendDesktopNotification(title, message)) return;
-
-        if (Application.Current is null) return;
-        Dispatcher.UIThread.Post(() => _ShowFallbackToast(title, message));
-    }
 
     private static bool HasSessionBus
     {
@@ -42,7 +31,42 @@ public sealed class NotificationService : ISystemNotificationService
         }
     }
 
-    // TODO: macOS 没有 DBus，当前会退化到应用内浮层；应改为 osascript display notification。
+    public bool IsAvailable => HasSessionBus || Application.Current is not null;
+
+    public void Show(string title, string message)
+    {
+        if (OperatingSystem.IsWindows())
+            try
+            {
+                ToastNotification.SendToast(message, title);
+                return;
+            }
+            catch (Exception ex)
+            {
+                LogWrapper.Warn("UI", $"Windows Toast 通知发送失败，改用应用内提示：{ex.Message}");
+            }
+
+        if (OperatingSystem.IsMacOS() && _TrySendMacNotification(title, message)) return;
+
+        if (_TrySendDesktopNotification(title, message)) return;
+
+        if (Application.Current is null) return;
+        Dispatcher.UIThread.Post(() => _ShowFallbackToast(title, message));
+    }
+
+    private static bool _TrySendMacNotification(string title, string message)
+    {
+        var script = $"display notification \"{Escape(message)}\" with title \"{Escape(title)}\"";
+        return _TryRun("osascript", ["-e", script]);
+
+        static string Escape(string text)
+        {
+            return text
+                .Replace("\\", "\\\\", StringComparison.Ordinal)
+                .Replace("\"", "\\\"", StringComparison.Ordinal);
+        }
+    }
+
     private static bool _TrySendDesktopNotification(string title, string message)
     {
         if (!HasSessionBus) return false;
@@ -88,10 +112,10 @@ public sealed class NotificationService : ISystemNotificationService
 
             using var process = Process.Start(startInfo);
             if (process is null) return false;
-            
+
             if (process.WaitForExit(3000))
                 return process.ExitCode == 0;
-            
+
             process.Kill(true);
             return false;
         }

@@ -26,6 +26,8 @@ public class DoHQueryTest
     [TestMethod]
     public async Task TestSrvQuery()
     {
+        if (Environment.GetEnvironmentVariable("PCL_TEST_NETWORK") != "1")
+            Assert.Inconclusive("需要外网 DNS；设置 PCL_TEST_NETWORK=1 运行该集成测试");
         var query = DnsQuery.Instance;
         var addr = await query.QueryAsync("_minecraft._tcp.mc.hdeda6e85.nyat.app", DnsQueryType.SRV, TestContext.CancellationTokenSource.Token);
         Assert.IsNotNull(addr);

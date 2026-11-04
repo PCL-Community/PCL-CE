@@ -11,7 +11,7 @@ namespace PCL.UI.Controls;
 
 /// <summary>
 ///     反馈类控件共用的主题取值辅助。
-///     颜色统一取自 <c>PCL.Launcher/UI/Styles/PageStyles.axaml</c> 的 <c>PageBrush*</c> 资源，
+///     颜色统一取自 ThemeService 写入的核心 <c>ColorBrush*</c> 资源，
 ///     保证深浅色主题切换时跟随页面配色，不在控件内硬编码页面颜色。
 /// </summary>
 internal static class FeedbackTheme
@@ -47,6 +47,8 @@ internal static class FeedbackTheme
 
     /// <summary>
     ///     从资源字典读取画刷，找不到时回退到 <paramref name="fallback" />。
+    ///     返回的是主题字典里的共享实例，同一主题下重复调用不会分配新画刷；
+    ///     调用方不要修改返回画刷，需要不同透明度时用 <see cref="Tint" /> 另建。
     /// </summary>
     public static IBrush GetBrush(StyledElement owner, string key, IBrush fallback)
     {
@@ -66,7 +68,7 @@ internal static class FeedbackTheme
     }
 
     /// <summary>
-    ///     把属性绑定到 <c>PageBrush*</c> 动态资源；资源随主题切换自动刷新。
+    ///     把属性绑定到核心 <c>ColorBrush*</c> 动态资源；资源随主题切换自动刷新。
     /// </summary>
     public static void BindDynamic(AvaloniaObject target, AvaloniaProperty property, string key)
     {

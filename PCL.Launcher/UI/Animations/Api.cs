@@ -1,14 +1,18 @@
 using System.Collections;
 using System.Diagnostics;
+using PCL.Core.Logging;
 
 namespace PCL;
 
 public static partial class Animations
 {
+    private const int InstantDeltaTick = 1_000_000_000;
+
     /// <summary>
     ///     Start an animation group. A group already running under the same name is stopped first, and the
     ///     new one is appended after the existing groups, so it wins whenever both animate the same
-    ///     property.
+    ///     property. When <see cref="AniSpeed" /> is 0 the group is applied to its final state
+    ///     immediately instead of being animated.
     /// </summary>
     /// <param name="aniGroup">Animations built by the <c>Aa*</c> helpers; nested lists are flattened.</param>
     /// <param name="name">
@@ -21,6 +25,13 @@ public static partial class Animations
     /// </param>
     public static void AniStart(IList aniGroup, string name = "", bool refreshTime = false)
     {
+        if (AniSpeed <= 0d)
+        {
+            var instantData = GetFullList<AniData>(aniGroup);
+            RunOnUi(() => _AniRunInstant(instantData));
+            return;
+        }
+
         AniStart();
 
         if (refreshTime)
@@ -98,5 +109,46 @@ public static partial class Animations
         {
             return AniByName.ContainsKey(name);
         }
+    }
+
+    private static void _AniRunInstant(List<AniData> data)
+    {
+        if (data.Count == 0) return;
+
+        var entry = new AniGroupEntry
+        {
+            data = data,
+            startTick = Stopwatch.GetTimestamp()
+        };
+
+        try
+        {
+            for (var pass = 0; pass <= data.Count + 1 && data.Count > 0; pass++)
+                _AniRunGroup(entry, InstantDeltaTick);
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Warn(ex, "Animation", "瞬时完成动画组失败");
+        }
+        finally
+        {
+            entry.Dead = true;
+        }
+    }
+
+    private static void _AniFinishAllGroupsInstantly()
+    {
+        var groups = AniOrder;
+        foreach (var entry in groups.Where(entry => !entry.Dead))
+            try
+            {
+                for (var pass = 0; pass <= entry.data.Count + 1 && entry.data.Count > 0; pass++)
+                    _AniRunGroup(entry, InstantDeltaTick);
+            }
+            catch (Exception ex)
+            {
+                LogWrapper.Warn(ex, "Animation", "瞬时完成动画组失败");
+                entry.Dead = true;
+            }
     }
 }

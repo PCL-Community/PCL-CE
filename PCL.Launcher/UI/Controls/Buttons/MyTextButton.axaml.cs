@@ -24,18 +24,14 @@ public partial class MyTextButton : Label
     public static readonly StyledProperty<object?> CommandParameterProperty =
         AvaloniaProperty.Register<MyTextButton, object?>(nameof(CommandParameter));
 
+    private static int _uuidSeed;
+
     /// <summary>动画键使用的唯一编号。</summary>
     public readonly int Uuid = Interlocked.Increment(ref _uuidSeed);
 
-    /// <summary>鼠标是否处于按下状态。</summary>
-    public bool isMouseDown;
-
-    private static int _uuidSeed;
     private bool _isCommandRunning;
 
-    private string ColorKey => ButtonAnimation.Name("MyTextButton Color", Uuid);
-
-    private string TextKey => ButtonAnimation.Name("MyTextButton Text", Uuid);
+    public bool isMouseDown;
 
     public MyTextButton()
     {
@@ -57,7 +53,9 @@ public partial class MyTextButton : Label
         };
     }
 
-    public event ClickEventHandler? Click;
+    private string ColorKey => ButtonAnimation.Name("MyTextButton Color", Uuid);
+
+    private string TextKey => ButtonAnimation.Name("MyTextButton Text", Uuid);
 
     public InlineCollection Inlines => LabText.Inlines!;
 
@@ -78,6 +76,8 @@ public partial class MyTextButton : Label
         get => GetValue(CommandParameterProperty);
         set => SetValue(CommandParameterProperty, value);
     }
+
+    public event ClickEventHandler? Click;
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
@@ -120,12 +120,12 @@ public partial class MyTextButton : Label
             return;
 
         var (key, time) = !IsEnabled
-            ? ("PageBrushDebug", 200)
+            ? ("ColorBrush1", 200)
             : isMouseDown
-                ? ("PageBrushAccentHover", 30)
+                ? ("ColorBrush4", 30)
                 : IsPointerOver
-                    ? ("PageBrushAccent", 100)
-                    : ("PageBrushText", 200);
+                    ? ("ColorBrush3", 100)
+                    : ("ColorBrush1", 200);
 
         ButtonAnimation.ApplyColor(
             LabText,

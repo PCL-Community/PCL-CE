@@ -18,14 +18,10 @@ public sealed class WindowHost : IWindowHost
 
     public Window Window { get; }
 
-    public event Action? Loaded;
+    private static IClassicDesktopStyleApplicationLifetime? DesktopLifetime =>
+        Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
 
-    private void _RaiseLoaded()
-    {
-        if (_isLoadedRaised) return;
-        _isLoadedRaised = true;
-        Loaded?.Invoke();
-    }
+    public event Action? Loaded;
 
     public void Show()
     {
@@ -40,6 +36,8 @@ public sealed class WindowHost : IWindowHost
 
     public void Activate()
     {
+        if (!Window.IsVisible) Window.Show();
+        if (Window.WindowState == WindowState.Minimized) Window.WindowState = WindowState.Normal;
         Window.Activate();
     }
 
@@ -56,6 +54,10 @@ public sealed class WindowHost : IWindowHost
         set => Window.Topmost = value;
     }
 
-    private static IClassicDesktopStyleApplicationLifetime? DesktopLifetime =>
-        Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
+    private void _RaiseLoaded()
+    {
+        if (_isLoadedRaised) return;
+        _isLoadedRaised = true;
+        Loaded?.Invoke();
+    }
 }

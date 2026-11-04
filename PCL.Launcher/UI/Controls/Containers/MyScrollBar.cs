@@ -15,8 +15,8 @@ namespace PCL.UI.Controls;
 /// </summary>
 public class MyScrollBar : ScrollBar
 {
-    private const string AccentKey = "PageBrushAccent";
-    private const string AccentHoverKey = "PageBrushAccentHover";
+    private const string AccentKey = "ColorBrush3";
+    private const string AccentHoverKey = "ColorBrush4";
     private const string ThumbPartName = "PART_Thumb";
 
     /// <summary>动画组名使用的唯一编号。</summary>

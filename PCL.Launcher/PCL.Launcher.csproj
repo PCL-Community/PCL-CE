@@ -16,6 +16,14 @@
         <Platforms>AnyCPU;x64;ARM64</Platforms>
         <PlatformTarget>$(Platform)</PlatformTarget>
         <NoWarn>$(NoWarn);CS9113</NoWarn>
+        <!-- 版本号与 Plain Craft Launcher 2/metadata.json 的 version.base 保持一致（运行期展示仍读 metadata.json） -->
+        <Version>2.15.1</Version>
+        <AssemblyVersion>2.15.1.0</AssemblyVersion>
+        <FileVersion>2.15.1.0</FileVersion>
+        <InformationalVersion>2.15.1</InformationalVersion>
+        <!-- Windows 可执行文件图标与清单：由 SDK 在生成 Win32 宿主时使用，非 Windows 目标构建时忽略 -->
+        <ApplicationIcon>Assets/Images/icon.ico</ApplicationIcon>
+        <ApplicationManifest>app.manifest</ApplicationManifest>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Avalonia" Version="12.1.4" />
@@ -36,11 +44,21 @@
         <EmbeddedResource Include="..\Plain Craft Launcher 2\Resources\*.*">
             <LogicalName>PCL.Resources.%(Filename)%(Extension)</LogicalName>
         </EmbeddedResource>
+        <!-- 游戏内提示文本：WPF 侧按 Resources/hints/{语言}.txt 读取，这里使用同一相对路径的清单名 -->
+        <EmbeddedResource Include="..\Plain Craft Launcher 2\Resources\hints\*.txt">
+            <LogicalName>PCL.Resources.hints.%(Filename)%(Extension)</LogicalName>
+        </EmbeddedResource>
+    </ItemGroup>
+    <ItemGroup>
+        <!-- 许可证文件随输出复制，沿用 WPF 版把 LICENCE 放进输出目录的分发方式 -->
+        <Content Include="..\LICENSE" Link="LICENSE" CopyToOutputDirectory="PreserveNewest" />
+        <Content Include="..\PCL.Launcher.Core\LICENCE" Link="LICENCE.PCL.Launcher.Core" CopyToOutputDirectory="PreserveNewest" />
+        <Content Include="..\Plain Craft Launcher 2\LICENCE" Link="LICENCE.PCL" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
     <ItemGroup>
         <!-- SVG 图标资源：SvgIconLoader 通过 avares://PCL.Launcher/Assets/IconPacks/{pack}/{name}.svg 读取 -->
         <AvaloniaResource Include="Assets/IconPacks/**" />
-        <!-- 控件图片与字体：MyImage 占位图、服务器卡片背景、启动器内置字体 -->
+        <!-- 控件图片与字体：MyImage 占位图、方块/皮肤/头像图标、启动器内置字体 -->
         <AvaloniaResource Include="Assets/Images/**" />
         <AvaloniaResource Include="Assets/Fonts/**" />
     </ItemGroup>

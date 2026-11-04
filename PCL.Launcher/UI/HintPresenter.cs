@@ -153,8 +153,6 @@ public sealed class HintPresenter : IHintPresenter
 
     private double _GetBottomMargin()
     {
-        // TODO(FIX-E-01): 主窗口尚无右下角附加按钮面板，提示层固定按 20 像素底边留白；
-        // 面板补齐后改为按面板高度 + 20 计算，避免提示压住按钮。
         var extraButtons = _window?.FindControl<Control>("PanExtraButtons");
         var extraHeight = extraButtons?.Bounds.Height ?? 0d;
         return extraHeight > 0d ? extraHeight + LayerBottomMargin : LayerBottomMargin;

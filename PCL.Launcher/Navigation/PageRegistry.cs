@@ -1,74 +1,112 @@
-using Avalonia.Controls;
-using PCL.Views.Pages;
+using System.Reflection;
+using PCL.Core.Logging;
 
 namespace PCL.Navigation;
 
 /// <summary>
-///     页面键。命名与 WPF 端 PageXxx 类名一一对应（去掉 Page 前缀），
-///     迁移期间可直接按类名找到对应 WPF 页面。
-/// </summary>
-public static class PageKeys
-{
-    public const string Home = "Home";
-    public const string Loading = "Loading";
-    public const string SpeedRight = "SpeedRight";
-    public const string LogLeft = "LogLeft";
-    public const string SelectLeft = "SelectLeft";
-    public const string HelpDetail = "HelpDetail";
-    public const string DownloadClient = "DownloadClient";
-}
-
-/// <summary>
-///     页面键 → 页面工厂的注册表。路由层只依赖键，不直接构造页面，
-///     后续迁移的新页面在此登记即可被导航到。
+///     页面宿主注册表：在首次使用时扫描程序集中的 <see cref="IPageHost" /> 实现并实例化，
+///     新增页面只需在页面目录实现宿主，不需要修改此文件。
 /// </summary>
 public static class PageRegistry
 {
-    private static readonly Dictionary<string, Func<Control>> Factories =
-        new(StringComparer.Ordinal);
+    private static readonly Dictionary<PageType, IPageHost> Hosts = new();
+    private static readonly Lock Lock = new();
+    private static bool _initialized;
 
-    static PageRegistry()
+    public static IReadOnlyList<IPageHost> All
     {
-        Register(PageKeys.Home, () => new PageHome());
-        Register(PageKeys.Loading, () => new PageLoading());
-        Register(PageKeys.SpeedRight, () => new PageSpeedRight());
-        Register(PageKeys.LogLeft, () => new PageLogLeft());
-        Register(PageKeys.SelectLeft, () => new PageSelectLeft());
-        Register(PageKeys.HelpDetail, () => new PageHelpDetail());
-        Register(PageKeys.DownloadClient, () => new PageDownloadClient());
-    }
-
-    /// <summary>当前已注册的全部页面键。</summary>
-    public static IReadOnlyCollection<string> Keys => Factories.Keys;
-
-    public static void Register(string key, Func<Control> factory)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(key);
-        ArgumentNullException.ThrowIfNull(factory);
-        Factories[key] = factory;
-    }
-
-    public static bool IsRegistered(string key)
-    {
-        return Factories.ContainsKey(key);
-    }
-
-    public static bool TryCreate(string key, out Control page)
-    {
-        if (!Factories.TryGetValue(key, out var factory))
+        get
         {
-            page = null!;
-            return false;
+            lock (Lock)
+            {
+                EnsureInitializedCore();
+                return Hosts.OrderBy(pair => (int)pair.Key).Select(pair => pair.Value).ToList();
+            }
+        }
+    }
+
+    public static void Register(IPageHost host)
+    {
+        ArgumentNullException.ThrowIfNull(host);
+        lock (Lock)
+        {
+            EnsureInitializedCore();
+            Hosts[host.Page] = host;
+        }
+    }
+
+    public static IPageHost? GetHost(PageType page)
+    {
+        lock (Lock)
+        {
+            EnsureInitializedCore();
+            return Hosts.GetValueOrDefault(page);
+        }
+    }
+
+    public static bool IsRegistered(PageType page)
+    {
+        return GetHost(page) is not null;
+    }
+
+    public static PageType PageOfTab(MainTab tab)
+    {
+        return tab switch
+        {
+            MainTab.Launch => PageType.Launch,
+            MainTab.Download => PageType.Download,
+            MainTab.Setup => PageType.Setup,
+            MainTab.Tools => PageType.Tools,
+            _ => PageType.Launch
+        };
+    }
+
+    public static MainTab? TabOfPage(PageType page)
+    {
+        return page switch
+        {
+            PageType.Launch => MainTab.Launch,
+            PageType.Download => MainTab.Download,
+            PageType.Setup => MainTab.Setup,
+            PageType.Tools => MainTab.Tools,
+            _ => null
+        };
+    }
+
+    private static void EnsureInitializedCore()
+    {
+        if (_initialized) return;
+        _initialized = true;
+
+        var assembly = typeof(PageRegistry).Assembly;
+        Type[] types;
+        try
+        {
+            types = assembly.GetTypes();
+        }
+        catch (ReflectionTypeLoadException ex)
+        {
+            types = ex.Types.Where(type => type is not null).Cast<Type>().ToArray();
         }
 
-        page = factory();
-        return true;
-    }
+        foreach (var type in types.OrderBy(type => type.FullName, StringComparer.Ordinal))
+        {
+            if (type.IsAbstract || type.IsInterface || !type.IsClass) continue;
+            if (!typeof(IPageHost).IsAssignableFrom(type)) continue;
+            if (type.GetConstructor(Type.EmptyTypes) is null) continue;
+            try
+            {
+                var host = (IPageHost)Activator.CreateInstance(type)!;
+                if (!Hosts.TryAdd(host.Page, host))
+                    LogWrapper.Warn("UI", $"页面宿主重复注册：{host.Page}（{type.Name}）");
+            }
+            catch (Exception ex)
+            {
+                LogWrapper.Error(ex, "UI", $"创建页面宿主失败：{type.FullName}");
+            }
+        }
 
-    public static Control Create(string key)
-    {
-        return TryCreate(key, out var page)
-            ? page
-            : throw new KeyNotFoundException($"未注册的页面键：{key}");
+        if (Hosts.Count == 0)
+            LogWrapper.Error("UI", "未发现任何页面宿主，界面将无法导航");
     }
 }

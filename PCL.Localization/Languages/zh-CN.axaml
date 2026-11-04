@@ -3690,4 +3690,30 @@
     <sys:String x:Key="Watcher.WindowLoaded">Minecraft 窗口已加载：{0}（{1}）</sys:String>
     <sys:String x:Key="Watcher.WindowMaximized">已最大化 Minecraft 窗口：{0}</sys:String>
 
+    <sys:String x:Key="Tools.Test.Dependency.MissingTitle">缺少依赖</sys:String>
+    <sys:String x:Key="Instance.Export.Task.Prefix">导出实例</sys:String>
+    <sys:String x:Key="Application.Loading.Status.Preparing">准备中</sys:String>
+    <sys:String x:Key="Download.Feature.Migrating">正在迁移</sys:String>
+    <sys:String x:Key="Download.Feature.Migrating.Description">正在迁移下载数据，请稍候。</sys:String>
+    <sys:String x:Key="Download.Install.Finished">安装完成</sys:String>
+    <sys:String x:Key="Download.Install.InstanceLocation">实例位置</sys:String>
+    <sys:String x:Key="Download.Install.InstanceName">实例名称</sys:String>
+    <sys:String x:Key="Download.Install.Loader.Unsupported">不支持的加载器</sys:String>
+    <sys:String x:Key="Download.Install.NameInvalid">实例名称无效</sys:String>
+    <sys:String x:Key="Download.Install.NoFolder">未选择文件夹</sys:String>
+    <sys:String x:Key="Download.Install.Section.Instance">实例</sys:String>
+    <sys:String x:Key="Download.Install.Section.Loader">加载器</sys:String>
+    <sys:String x:Key="Download.Install.Section.Version">版本</sys:String>
+    <sys:String x:Key="Download.Install.Title">安装</sys:String>
+    <sys:String x:Key="Instance.Saves.Datapack.Delete.ConfirmTitle">删除数据包</sys:String>
+    <sys:String x:Key="Instance.Saves.Delete.ConfirmTitle">删除存档</sys:String>
+    <sys:String x:Key="Instance.Saves.DeletedPermanent">已永久删除</sys:String>
+    <sys:String x:Key="PageLaunch.Homepage.Custom.Error.Missing">自定义主页文件不存在</sys:String>
+    <sys:String x:Key="PageLaunch.Homepage.Custom.Source">来源</sys:String>
+    <sys:String x:Key="PageLaunch.Homepage.Custom.Title">自定义主页</sys:String>
+    <sys:String x:Key="PageLaunch.Homepage.Custom.Unsupported">暂不支持此主页</sys:String>
+    <sys:String x:Key="PageLaunch.Login.ProfileEdit.Unavailable">当前账户不支持修改名称</sys:String>
+    <sys:String x:Key="PageLaunch.Login.SkinUpload.Unavailable">当前账户不支持更换皮肤</sys:String>
+    <sys:String x:Key="Select.Instance.Delete.RecycleBinUnavailable">回收站不可用，将永久删除</sys:String>
+    <sys:String x:Key="Tools.GameLink.Unavailable.NatTest">NAT 检测不可用</sys:String>
 </ResourceDictionary>

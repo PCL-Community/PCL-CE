@@ -1,0 +1,26 @@
+<ui:MyPageRight xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:ui="using:PCL.UI.Controls"
+                x:Class="PCL.Views.Pages.Download.PageDownloadClient">
+    <Grid>
+        <ui:MyScrollViewer x:Name="PanBack"
+                           HorizontalScrollBarVisibility="Disabled"
+                           VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="5">
+                <StackPanel x:Name="PanMain"
+                            Margin="20,20,20,5" />
+            </StackPanel>
+        </ui:MyScrollViewer>
+        <ui:MyCard x:Name="PanLoad"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Margin="40,0"
+                   IsVisible="False"
+                   UseAnimation="False">
+            <ui:MyLoading x:Name="Load"
+                          Margin="20,20,20,17"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center" />
+        </ui:MyCard>
+    </Grid>
+</ui:MyPageRight>

@@ -6,7 +6,6 @@ using PCL.Core.UI.Animation.Animatable;
 using PCL.Core.UI.Animation.Clock;
 using PCL.Core.UI.Animation.UIAccessProvider;
 using PCL.Core.UI.Animation.ValueProcessor;
-using PCL.Core.Utils.Threading;
 
 namespace PCL.Core.UI.Animation.Core;
 
@@ -22,7 +21,9 @@ public sealed class AnimationService : GeneralService
 
     private static readonly ConcurrentDictionary<string, IAnimation> NamedAnimations = new();
     private static IClock _clock = null!;
-    private static AsyncCountResetEvent _resetEvent = null!;
+
+    private static TaskCompletionSource _nextTick = null!;
+
     private static int _taskCount;
     private static CancellationTokenSource _cts = null!;
     private static IUiAccessProvider? _uiAccessProvider;
@@ -31,7 +32,6 @@ public sealed class AnimationService : GeneralService
     private static bool _initialized;
 
     public static int Fps { get; set; } = 60;
-    public static double Scale { get; set; } = 0.1d;
 
     /// <summary>
     ///     UI 线程访问器。未启动动画服务时也可安全获取。
@@ -62,9 +62,8 @@ public sealed class AnimationService : GeneralService
         // 根据核心数量来确定动画计算 Task 数量
         _taskCount = Environment.ProcessorCount;
 
-        // 初始化 CancellationTokenSource 与 ResetEvent
         _cts = new CancellationTokenSource();
-        _resetEvent = new AsyncCountResetEvent();
+        _nextTick = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
         // 注册 ValueProcessor
         _RegisterValueProcessors();
@@ -122,10 +121,18 @@ public sealed class AnimationService : GeneralService
             _clock.Stop();
         }
 
-        // 将 ResetEvent 释放
         try
         {
-            _resetEvent.Dispose();
+            _animationChannel?.Writer.TryComplete();
+            _frameChannel?.Writer.TryComplete();
+        }
+        catch
+        {
+        }
+
+        try
+        {
+            Volatile.Read(ref _nextTick)?.TrySetCanceled();
         }
         catch
         {
@@ -138,8 +145,9 @@ public sealed class AnimationService : GeneralService
 
     private static void ClockOnTick(object? sender, long e)
     {
-        // 通知所有等待的动画计算 Task 进行下一帧计算
-        _resetEvent.Set(_taskCount);
+        var next = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var previous = Interlocked.Exchange(ref _nextTick, next);
+        previous?.TrySetResult();
     }
 
     private static async Task _AnimationComputeTaskAsync()
@@ -169,6 +177,7 @@ public sealed class AnimationService : GeneralService
                 if (animationEntry.Animation.Status is AnimationStatus.Canceled
                     or AnimationStatus.Completed)
                 {
+                    // TODO(AN-2)：Completed 在计算线程触发，订阅者改 UI 需自行 Dispatcher.UIThread.Post
                     animationEntry.Animation.RaiseCompleted();
 
                     if (!string.IsNullOrEmpty(animationEntry.Animation.Name))
@@ -201,7 +210,7 @@ public sealed class AnimationService : GeneralService
     {
         try
         {
-            await _resetEvent.WaitAsync();
+            await Volatile.Read(ref _nextTick).Task;
             return true;
         }
         catch (ObjectDisposedException)

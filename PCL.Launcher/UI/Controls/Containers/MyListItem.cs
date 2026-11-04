@@ -39,10 +39,9 @@ public class MyListItem : Grid, IMyRadio
         ContainerTheme.AttachStyles(this);
 
         Height = 42d;
-        Background = Brushes.Transparent;
+        ContainerTheme.BindDynamic(this, BackgroundProperty, "ColorBrushSemiTransparent");
         RenderTransformOrigin = RelativePoint.Center;
-        // 未选中时的文字颜色跟随页面主题；选中时由 ApplyCheckedForeground 覆盖为按高度分档的强调色
-        ContainerTheme.BindDynamic(this, ForegroundProperty, "PageBrushText");
+        ContainerTheme.BindDynamic(this, ForegroundProperty, "ColorBrush1");
 
         ColumnDefinitions = new ColumnDefinitions("2,0,4,Auto,*,4");
         RowDefinitions = new RowDefinitions("*,Auto,Auto,*");
@@ -365,7 +364,7 @@ public class MyListItem : Grid, IMyRadio
                 IsHitTestVisible = false,
                 Opacity = 0d,
                 Background = ContainerTheme.AccentLight(this),
-                BorderBrush = ContainerTheme.ItemChecked(this)
+                BorderBrush = ContainerTheme.ItemPressed(this)
             };
             rect.Classes.Add("ListItemBack");
             SetColumnSpan(rect, 999);
@@ -430,7 +429,7 @@ public class MyListItem : Grid, IMyRadio
                 Margin = new Thickness(4d, 0d, 0d, 0d),
                 Opacity = 0.6d
             };
-            ContainerTheme.BindDynamic(lab, TextBlock.ForegroundProperty, "PageBrushTextSecondary");
+            ContainerTheme.BindDynamic(lab, TextBlock.ForegroundProperty, "ColorBrushGray3");
             SetColumn(lab, 4);
             SetRow(lab, 2);
             Children.Add(lab);
@@ -527,8 +526,8 @@ public class MyListItem : Grid, IMyRadio
                     Border.BackgroundProperty,
                     ContainerAnimation.ColorOf(
                         stateNew == "MouseDown"
-                            ? ContainerTheme.ItemChecked(this)
-                            : ContainerTheme.AccentLight(this)),
+                            ? ContainerTheme.ItemPressed(this)
+                            : ContainerTheme.ItemHover(this)),
                     time));
             ani.Add(AaOpacity(back, 1d - back.Opacity, time, ease: new AniEaseOutFluent()));
 
@@ -625,7 +624,7 @@ public class MyListItem : Grid, IMyRadio
                     scale.ScaleY = 0.75d;
                 }
 
-                _rectBack.Background = ContainerTheme.AccentLight(this);
+                _rectBack.Background = ContainerTheme.ItemHover(this);
                 _rectBack.Opacity = 0d;
             }
 
@@ -641,8 +640,8 @@ public class MyListItem : Grid, IMyRadio
 
         var back = RectBack; // 鼠标移入时才实例化
         back.Background = stateNew == "MouseDown"
-            ? ContainerTheme.ItemChecked(this)
-            : ContainerTheme.AccentLight(this);
+            ? ContainerTheme.ItemPressed(this)
+            : ContainerTheme.ItemHover(this);
         back.Opacity = 1d;
         var backScale = ContainerAnimation.EnsureScale(back);
         backScale.ScaleX = 1d;
@@ -1141,8 +1140,8 @@ public class MyListItem : Grid, IMyRadio
     /// </summary>
     private IBrush CheckedForeground =>
         Height < 40d
-            ? ContainerTheme.AccentHover(this)
-            : ContainerTheme.Accent(this);
+            ? ContainerTheme.CheckedTextWeak(this)
+            : ContainerTheme.CheckedTextStrong(this);
 
     private void ApplyCheckedForeground()
     {
@@ -1150,7 +1149,7 @@ public class MyListItem : Grid, IMyRadio
         if (Checked)
             Foreground = CheckedForeground;
         else
-            ContainerTheme.BindDynamic(this, ForegroundProperty, "PageBrushText");
+            ContainerTheme.BindDynamic(this, ForegroundProperty, "ColorBrush1");
     }
 
     private void ExecuteCheckCommand()
@@ -1422,7 +1421,7 @@ public class MyListItem : Grid, IMyRadio
     {
         ApplyCheckedForeground();
         if (_rectBack is { Opacity: <= 0d })
-            _rectBack.Background = ContainerTheme.AccentLight(this);
+            _rectBack.Background = ContainerTheme.ItemHover(this);
     }
 
     #endregion

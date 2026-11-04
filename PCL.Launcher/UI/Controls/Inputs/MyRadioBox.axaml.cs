@@ -451,12 +451,17 @@ public partial class MyRadioBox : UserControl, IMyRadio
 
     private void AnimateBackground(int time, bool animate)
     {
-        var key = _mouseDowned ? InputTheme.AccentLightKey : InputTheme.ItemHoverKey;
+        var key = _mouseDowned || IsPointerOver
+            ? InputTheme.CheckPressedKey
+            : InputTheme.CheckFillKey;
         InputAnimation.Color(
             ShapeBorderElement,
             Shape.FillProperty,
             key,
-            _mouseDowned ? InputTheme.AccentLight(this) : InputTheme.ItemHover(this),
+            InputTheme.Brush(
+                this,
+                key,
+                _mouseDowned || IsPointerOver ? Brushes.LightBlue : Brushes.WhiteSmoke),
             Math.Max(time, 1),
             BackgroundKey,
             animate);
@@ -470,53 +475,32 @@ public partial class MyRadioBox : UserControl, IMyRadio
         var animate = time > 0 && InputAnimation.CanAnimate(this);
         var hover = IsPointerOver;
 
-        string borderKey;
-        IBrush borderFallback;
-        if (!IsEnabled)
-        {
-            borderKey = InputTheme.TextSecondaryKey;
-            borderFallback = InputTheme.TextSecondary(this);
-        }
-        else if (Checked)
-        {
-            borderKey = InputTheme.AccentKey;
-            borderFallback = InputTheme.Accent(this);
-        }
-        else if (hover)
-        {
-            borderKey = InputTheme.AccentHoverKey;
-            borderFallback = InputTheme.AccentHover(this);
-        }
-        else
-        {
-            borderKey = InputTheme.TextKey;
-            borderFallback = InputTheme.Text(this);
-        }
-
+        var borderKey = !IsEnabled
+            ? InputTheme.DisabledTextKey
+            : Checked
+                ? InputTheme.CheckedKey
+                : hover
+                    ? InputTheme.HoverKey
+                    : InputTheme.TextKey;
         InputAnimation.Color(
             ShapeBorderElement,
             Shape.StrokeProperty,
             borderKey,
-            borderFallback,
+            InputTheme.Brush(this, borderKey, Brushes.Black),
             Math.Max(time, 1),
             BorderColorKey,
             animate);
 
         var textKey = !IsEnabled
-            ? InputTheme.TextSecondaryKey
+            ? InputTheme.DisabledTextKey
             : hover
-                ? InputTheme.AccentHoverKey
+                ? InputTheme.HoverKey
                 : InputTheme.TextKey;
-        var textFallback = !IsEnabled
-            ? InputTheme.TextSecondary(this)
-            : hover
-                ? InputTheme.AccentHover(this)
-                : InputTheme.Text(this);
         InputAnimation.Color(
             LabTextElement,
             TextBlock.ForegroundProperty,
             textKey,
-            textFallback,
+            InputTheme.Brush(this, textKey, Brushes.Black),
             Math.Max(time, 1),
             TextColorKey,
             animate);

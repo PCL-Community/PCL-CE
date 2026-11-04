@@ -8,13 +8,13 @@
     -->
     <Style Selector="ui|MyTextButton">
         <Setter Property="Background"
-                Value="Transparent" />
+                Value="{DynamicResource ColorBrushSemiTransparent}" />
         <Setter Property="Padding"
                 Value="0" />
     </Style>
     <Style Selector="ui|MyTextButton TextBlock#LabText">
         <Setter Property="Foreground"
-                Value="{DynamicResource PageBrushText}" />
+                Value="{DynamicResource ColorBrush1}" />
     </Style>
     <!-- 悬停/按下/禁用的文字色过渡由 MyTextButton.axaml.cs 用动画接管，样式只提供常态基线。 -->
 </Styles>

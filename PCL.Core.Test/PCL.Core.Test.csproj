@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>net10.0-windows</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
         <OutputType>Library</OutputType>
         <LangVersion>14.0</LangVersion>
         <Nullable>enable</Nullable>
@@ -13,8 +13,7 @@
         <Copyright>Copyright © PCL Community 2025</Copyright>
         <AssemblyVersion>1.0.0.0</AssemblyVersion>
         <FileVersion>1.0.0.0</FileVersion>
-        <EnableWindowsTargeting>true</EnableWindowsTargeting>
-        <UseWPF>true</UseWPF>
+        <!-- 测试工程在 Linux 上以 net10.0 运行；WPF 专属的性能测试通过下方 Compile Remove 隔离。 -->
     </PropertyGroup>
     <PropertyGroup>
         <DebugSymbols>true</DebugSymbols>
@@ -51,10 +50,19 @@
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\PCL.Core\PCL.Core.csproj" />
+        <ProjectReference Include="..\PCL.Core.UI\PCL.Core.UI.csproj" />
         <ProjectReference Include="..\PCL.Launcher.Core\PCL.Launcher.Core.csproj" />
-        <ProjectReference Include="..\PCL.Core.Wpf\PCL.Core.Wpf.csproj" />
+        <ProjectReference Include="..\PCL.Launcher\PCL.Launcher.csproj" />
     </ItemGroup>
     <ItemGroup>
+        <!-- 启动器元数据：测试宿主不是入口程序集，按 PCL.metadata.json 清单名嵌入后由 PCL.Core 回退查找 -->
+        <EmbeddedResource Include="..\Plain Craft Launcher 2\metadata.json" Link="metadata.json">
+            <LogicalName>PCL.metadata.json</LogicalName>
+        </EmbeddedResource>
+    </ItemGroup>
+    <ItemGroup>
+        <!-- WPF BlurEffect 性能基准只在 Windows/WPF 下有意义，隔离出 Linux 测试构建 -->
+        <Compile Remove="BlurPerformanceTest.cs" />
         <Compile Remove="Net\**" />
     </ItemGroup>
     <ItemGroup>
