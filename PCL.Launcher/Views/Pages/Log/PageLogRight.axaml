@@ -11,19 +11,17 @@
                                    Margin="12,40,12,20"
                                    VerticalScrollBarVisibility="Auto"
                                    HorizontalScrollBarVisibility="Disabled">
-                    <StackPanel x:Name="PanLog" />
+                    <ItemsControl x:Name="PanLog"
+                                  Background="Transparent">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <VirtualizingStackPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
                 </ui:MyScrollViewer>
             </ui:MyCard>
         </Grid>
-
-        <TextBlock x:Name="LabEmpty"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   TextWrapping="Wrap"
-                   MaxWidth="360"
-                   TextAlignment="Center"
-                   IsVisible="False"
-                   Text="{loc:Loc LogPage.Empty.Description}" />
 
         <ui:MyCard x:Name="CardOperation"
                    HorizontalAlignment="Center"

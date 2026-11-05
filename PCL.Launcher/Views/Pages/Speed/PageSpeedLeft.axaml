@@ -11,8 +11,21 @@
                Text="{loc:Loc Speed.Progress.Total}" />
     <Rectangle Grid.Row="2"
                Height="2"
-               Margin="25,7"
-               Fill="{DynamicResource ColorBrushGray6}" />
+               Margin="25,7">
+        <Rectangle.Fill>
+            <LinearGradientBrush StartPoint="0%,50%"
+                                 EndPoint="100%,50%">
+                <GradientStop Offset="0"
+                              Color="Transparent" />
+                <GradientStop Offset="0.02"
+                              Color="{DynamicResource ColorObject3}" />
+                <GradientStop Offset="0.98"
+                              Color="{DynamicResource ColorObject3}" />
+                <GradientStop Offset="1"
+                              Color="Transparent" />
+            </LinearGradientBrush>
+        </Rectangle.Fill>
+    </Rectangle>
     <TextBlock Grid.Row="3"
                x:Name="LabProgress"
                HorizontalAlignment="Center"
@@ -25,8 +38,21 @@
                Text="{loc:Loc Speed.Progress.Speed}" />
     <Rectangle Grid.Row="6"
                Height="2"
-               Margin="25,7"
-               Fill="{DynamicResource ColorBrushGray6}" />
+               Margin="25,7">
+        <Rectangle.Fill>
+            <LinearGradientBrush StartPoint="0%,50%"
+                                 EndPoint="100%,50%">
+                <GradientStop Offset="0"
+                              Color="Transparent" />
+                <GradientStop Offset="0.02"
+                              Color="{DynamicResource ColorObject3}" />
+                <GradientStop Offset="0.98"
+                              Color="{DynamicResource ColorObject3}" />
+                <GradientStop Offset="1"
+                              Color="Transparent" />
+            </LinearGradientBrush>
+        </Rectangle.Fill>
+    </Rectangle>
     <TextBlock Grid.Row="7"
                x:Name="LabSpeed"
                HorizontalAlignment="Center"
@@ -40,8 +66,21 @@
                Text="{loc:Loc Speed.Progress.RemainingFiles}" />
     <Rectangle Grid.Row="10"
                Height="2"
-               Margin="25,7"
-               Fill="{DynamicResource ColorBrushGray6}" />
+               Margin="25,7">
+        <Rectangle.Fill>
+            <LinearGradientBrush StartPoint="0%,50%"
+                                 EndPoint="100%,50%">
+                <GradientStop Offset="0"
+                              Color="Transparent" />
+                <GradientStop Offset="0.02"
+                              Color="{DynamicResource ColorObject3}" />
+                <GradientStop Offset="0.98"
+                              Color="{DynamicResource ColorObject3}" />
+                <GradientStop Offset="1"
+                              Color="Transparent" />
+            </LinearGradientBrush>
+        </Rectangle.Fill>
+    </Rectangle>
     <TextBlock Grid.Row="11"
                x:Name="LabFile"
                HorizontalAlignment="Center"
@@ -55,8 +94,21 @@
                Text="{loc:Loc Speed.Progress.RemainingThreads}" />
     <Rectangle Grid.Row="14"
                Height="2"
-               Margin="25,7"
-               Fill="{DynamicResource ColorBrushGray6}" />
+               Margin="25,7">
+        <Rectangle.Fill>
+            <LinearGradientBrush StartPoint="0%,50%"
+                                 EndPoint="100%,50%">
+                <GradientStop Offset="0"
+                              Color="Transparent" />
+                <GradientStop Offset="0.02"
+                              Color="{DynamicResource ColorObject3}" />
+                <GradientStop Offset="0.98"
+                              Color="{DynamicResource ColorObject3}" />
+                <GradientStop Offset="1"
+                              Color="Transparent" />
+            </LinearGradientBrush>
+        </Rectangle.Fill>
+    </Rectangle>
     <TextBlock Grid.Row="15"
                x:Name="LabThread"
                HorizontalAlignment="Center"

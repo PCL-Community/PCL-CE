@@ -36,10 +36,12 @@ internal sealed class PageDownloadCompPage : MyPageRight, IPageView, IRefreshabl
 
     public void Refresh()
     {
+        _comp.ScrollViewer.ScrollToHome();
+        _comp.RefreshFavoriteStatuses();
         _comp.RefreshSearch();
     }
 
-    private void OnCompDetailRequested(CompDetailParameter context)
+    private static void OnCompDetailRequested(CompDetailParameter context)
     {
         try
         {

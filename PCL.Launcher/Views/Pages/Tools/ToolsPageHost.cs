@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using PCL.Core.App.Localization;
 using PCL.Navigation;
 
 namespace PCL.Views.Pages.Tools;
@@ -27,7 +28,9 @@ public sealed class ToolsPageHost : IPageHost
 
     public string GetTitle(PageStackData stack)
     {
-        return string.Empty;
+        return NormalizeSubPage(stack.SubType) == PageSubType.ToolsTest
+            ? Lang.Text("Tools.Left.Utilities.Title")
+            : Lang.Text("Tools.Left.Lobby");
     }
 
     public Control? GetLeft(PageStackData stack)
@@ -56,8 +59,8 @@ public sealed class ToolsPageHost : IPageHost
     {
         if (sub is not (PageSubType.ToolsGameLink or PageSubType.ToolsTest))
             sub = PageSubType.ToolsGameLink;
-        if (PageToolsLeft.IsSubPageHidden(sub))
-            return PageToolsLeft.FirstVisible();
-        return sub;
+        return PageToolsLeft.IsSubPageHidden(sub)
+            ? PageToolsLeft.FirstVisible()
+            : sub;
     }
 }

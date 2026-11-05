@@ -1,3 +1,4 @@
+using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -25,6 +26,7 @@ public sealed class MyCompItem : Grid
     private readonly TextBlock _labVersion;
     private readonly MyImage _logo;
     private readonly StackPanel _panButtons;
+    private readonly StackPanel _panTags;
 
     public MyCompItem(
         Comp.CompProject project,
@@ -109,15 +111,26 @@ public sealed class MyCompItem : Grid
             Text = description,
             FontSize = 12d,
             VerticalAlignment = VerticalAlignment.Center,
-            TextTrimming = TextTrimming.CharacterEllipsis
+            TextTrimming = TextTrimming.CharacterEllipsis,
+            Margin = new Thickness(0d, 0d, 3d, 0.5d)
         };
         BindDynamic(_labDescription, TextBlock.ForegroundProperty, "ColorBrushGray3");
-        if (!string.IsNullOrEmpty(description))
-            ToolTip.SetTip(_labDescription, description);
-        SetColumn(_labDescription, 3);
-        SetColumnSpan(_labDescription, 2);
+        _labDescription.PointerEntered += (_, _) => UpdateDescriptionToolTip();
+        SetColumn(_labDescription, 4);
         SetRow(_labDescription, 2);
         Children.Add(_labDescription);
+
+        _panTags = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(-1d, 0d, 1d, 0d),
+            IsVisible = false
+        };
+        SetColumn(_panTags, 3);
+        SetRow(_panTags, 2);
+        Children.Add(_panTags);
+        Tags = project.Tags;
 
         _labVersion = CreateStatText(
             project.BuildVersionDescription(showMcVersionDesc, showLoaderDesc));
@@ -128,16 +141,85 @@ public sealed class MyCompItem : Grid
                 : string.Empty);
         _labSource = CreateStatText(project.FromCurseForge ? "CurseForge" : "Modrinth");
 
+        var statsColumns = new ColumnDefinitions();
+        statsColumns.Add(
+            new ColumnDefinition
+            {
+                Width = GridLength.Auto
+            });
+        statsColumns.Add(
+            new ColumnDefinition
+            {
+                Width = GridLength.Auto,
+                SharedSizeGroup = "CompItemVersion"
+            });
+        statsColumns.Add(
+            new ColumnDefinition
+            {
+                Width = new GridLength(0.25d, GridUnitType.Star)
+            });
+        statsColumns.Add(
+            new ColumnDefinition
+            {
+                Width = GridLength.Auto
+            });
+        statsColumns.Add(
+            new ColumnDefinition
+            {
+                Width = GridLength.Auto,
+                SharedSizeGroup = "LabDownload"
+            });
+        statsColumns.Add(
+            new ColumnDefinition
+            {
+                Width = new GridLength(0.25d, GridUnitType.Star)
+            });
+        statsColumns.Add(
+            new ColumnDefinition
+            {
+                Width = GridLength.Auto
+            });
+        statsColumns.Add(
+            new ColumnDefinition
+            {
+                Width = GridLength.Auto,
+                MinWidth = 57d,
+                SharedSizeGroup = "CompItemTime"
+            });
+        statsColumns.Add(
+            new ColumnDefinition
+            {
+                Width = new GridLength(0.25d, GridUnitType.Star)
+            });
+        statsColumns.Add(
+            new ColumnDefinition
+            {
+                Width = GridLength.Auto
+            });
+        statsColumns.Add(
+            new ColumnDefinition
+            {
+                Width = GridLength.Auto,
+                SharedSizeGroup = "CompItemSource"
+            });
+        statsColumns.Add(
+            new ColumnDefinition
+            {
+                Width = new GridLength(0.25d, GridUnitType.Star)
+            });
+
         var panStats = new Grid
         {
             VerticalAlignment = VerticalAlignment.Center,
             IsHitTestVisible = false,
-            ColumnDefinitions = new ColumnDefinitions(
-                "Auto,Auto,0.25*,Auto,Auto,0.25*,Auto,Auto,0.25*,Auto,Auto,0.25*")
+            ColumnDefinitions = statsColumns
         };
-        AddStat(panStats, 0, 1, "lucide/layout-list", _labVersion);
-        AddStat(panStats, 3, 4, "lucide/download", _labDownload);
-        AddStat(panStats, 6, 7, "lucide/arrow-up-from-line", _labTime);
+        if (showMcVersionDesc || showLoaderDesc)
+            AddStat(panStats, 0, 1, "lucide/layout-list", _labVersion);
+        if (!string.IsNullOrEmpty(_labDownload.Text))
+            AddStat(panStats, 3, 4, "lucide/download", _labDownload);
+        if (project.LastUpdate is not null)
+            AddStat(panStats, 6, 7, "lucide/arrow-up-from-line", _labTime);
         AddStat(panStats, 9, 10, "lucide/globe", _labSource);
         SetColumn(panStats, 3);
         SetColumnSpan(panStats, 2);
@@ -195,7 +277,8 @@ public sealed class MyCompItem : Grid
         PointerEntered += (_, _) =>
         {
             _hoverBack.Opacity = 1d;
-            _panButtons.Opacity = 1d;
+            if (ShowFavoriteBtn || ShowDownloadBtn)
+                _panButtons.Opacity = 1d;
         };
         PointerExited += (_, _) =>
         {
@@ -216,16 +299,66 @@ public sealed class MyCompItem : Grid
 
     public bool CanInteraction { get; set; } = true;
 
+    /// <summary>标签列表，内容为本地化资源键。</summary>
+    public IEnumerable<string>? Tags
+    {
+        set =>
+            TagPanelHelper.FillLocalized(
+                _panTags,
+                value,
+                new SolidColorBrush(Color.FromRgb(134, 134, 134)));
+    }
+
     public bool ShowDownloadBtn
     {
         get => _btnDownload.IsVisible;
-        set => _btnDownload.IsVisible = value;
+        set
+        {
+            _btnDownload.IsVisible = value;
+            UpdatePanButtons();
+        }
     }
 
     public bool ShowFavoriteBtn
     {
         get => _btnFavorite.IsVisible;
-        set => _btnFavorite.IsVisible = value;
+        set
+        {
+            _btnFavorite.IsVisible = value;
+            UpdatePanButtons();
+        }
+    }
+
+    private void UpdatePanButtons()
+    {
+        _panButtons.IsVisible = ShowFavoriteBtn || ShowDownloadBtn;
+    }
+
+    private void UpdateDescriptionToolTip()
+    {
+        var text = _labDescription.Text;
+        if (string.IsNullOrEmpty(text) || _labDescription.Bounds.Width <= 0d)
+        {
+            ToolTip.SetTip(_labDescription, null);
+            return;
+        }
+
+        var formatted = new FormattedText(
+            text,
+            CultureInfo.CurrentCulture,
+            FlowDirection.LeftToRight,
+            new Typeface(
+                _labDescription.FontFamily,
+                _labDescription.FontStyle,
+                _labDescription.FontWeight,
+                _labDescription.FontStretch),
+            _labDescription.FontSize,
+            _labDescription.Foreground);
+        ToolTip.SetTip(
+            _labDescription,
+            formatted.WidthIncludingTrailingWhitespace > _labDescription.Bounds.Width + 0.5d
+                ? text
+                : null);
     }
 
     public event Action<MyCompItem>? Click;
@@ -288,6 +421,7 @@ public sealed class MyCompItem : Grid
         }
         catch (Exception)
         {
+            // ignored
         }
     }
 

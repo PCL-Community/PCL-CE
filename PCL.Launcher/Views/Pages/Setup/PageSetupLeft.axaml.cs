@@ -1,7 +1,6 @@
 using Avalonia.Controls;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
-using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
 using PCL.Navigation;
 using PCL.UI.Controls;
@@ -13,6 +12,7 @@ public partial class PageSetupLeft : MyPageLeft
 {
     private readonly List<(TextBlock Title, Func<bool> IsCategoryHidden)> _categories = [];
     private readonly List<(PageSubType Sub, MyListItem Item, Func<bool> IsHidden)> _items = [];
+    private readonly PageSetupLeftViewModel _viewModel = new();
     private bool _isSynchronizing;
     private Func<PageSubType, Control?>? _pageProvider;
 
@@ -87,6 +87,7 @@ public partial class PageSetupLeft : MyPageLeft
 
     public void Select(PageSubType sub)
     {
+        _viewModel.PageId = sub;
         _isSynchronizing = true;
         try
         {
@@ -105,53 +106,35 @@ public partial class PageSetupLeft : MyPageLeft
     {
         try
         {
+            var forceShow = HiddenFeatureState.ForceShow;
             foreach (var (_, item, isHidden) in _items)
-                item.IsVisible = !isHidden();
+                item.IsVisible = forceShow || !isHidden();
             foreach (var (title, isCategoryHidden) in _categories)
                 title.IsVisible = !isCategoryHidden();
+            PanItem.IsVisible =
+                HiddenFeatureState.ForceShow
+                || PageSetupLeftViewModel.CountVisiblePages(false) >= 2;
         }
         catch (Exception)
         {
+            // ignored
         }
+    }
+
+    protected override void RefreshLocalization()
+    {
+        AttachRowButtons();
+        ApplyHiddenState();
     }
 
     public static PageSubType FirstVisible()
     {
-        var hide = Config.Preference.Hide;
-        if (!hide.SetupLaunch) return PageSubType.SetupLaunch;
-        if (!hide.SetupJava) return PageSubType.SetupJava;
-        if (!hide.SetupGameManage) return PageSubType.SetupGameManage;
-        if (!hide.SetupGameLink) return PageSubType.SetupGameLink;
-        if (!hide.SetupUi) return PageSubType.SetupUI;
-        if (!hide.SetupLauncherLanguage) return PageSubType.SetupLauncherLanguage;
-        if (!hide.SetupLauncherMisc) return PageSubType.SetupLauncherMisc;
-        if (!hide.SetupAbout) return PageSubType.SetupAbout;
-        if (!hide.SetupUpdate) return PageSubType.SetupUpdate;
-        if (!hide.SetupFeedback) return PageSubType.SetupFeedback;
-        if (!hide.SetupLog) return PageSubType.SetupLog;
-        return PageSubType.SetupLaunch;
+        return PageSetupLeftViewModel.FirstVisible();
     }
 
     public static bool IsSubPageHidden(PageSubType sub)
     {
-        if (HiddenFeatureState.ForceShow)
-            return false;
-        var hide = Config.Preference.Hide;
-        return sub switch
-        {
-            PageSubType.SetupLaunch => hide.SetupLaunch,
-            PageSubType.SetupJava => hide.SetupJava,
-            PageSubType.SetupGameManage => hide.SetupGameManage,
-            PageSubType.SetupGameLink => hide.SetupGameLink,
-            PageSubType.SetupUI => hide.SetupUi,
-            PageSubType.SetupLauncherLanguage => hide.SetupLauncherLanguage,
-            PageSubType.SetupLauncherMisc => hide.SetupLauncherMisc,
-            PageSubType.SetupAbout => hide.SetupAbout,
-            PageSubType.SetupUpdate => hide.SetupUpdate,
-            PageSubType.SetupFeedback => hide.SetupFeedback,
-            PageSubType.SetupLog => hide.SetupLog,
-            _ => false
-        };
+        return !HiddenFeatureState.ForceShow && PageSetupLeftViewModel.IsSubPageHidden(sub);
     }
 
     public static void NotifyHiddenSettingChanged()
@@ -166,7 +149,7 @@ public partial class PageSetupLeft : MyPageLeft
         PageSelected?.Invoke(sub);
     }
 
-    private bool AllHidden(params PageSubType[] subs)
+    private static bool AllHidden(params PageSubType[] subs)
     {
         return subs.All(IsSubPageHidden);
     }
@@ -177,29 +160,27 @@ public partial class PageSetupLeft : MyPageLeft
     {
         ItemLaunch.Buttons =
         [
-            CreateResetButton(PageSubType.SetupLaunch, "Setup.Left.Reset.Launch.Message")
+            CreateResetButton(PageSubType.SetupLaunch)
         ];
         ItemGameManage.Buttons =
         [
-            CreateResetButton(PageSubType.SetupGameManage, "Setup.Left.Reset.GameManage.Message")
+            CreateResetButton(PageSubType.SetupGameManage)
         ];
         ItemGameLink.Buttons =
         [
-            CreateResetButton(PageSubType.SetupGameLink, "Setup.Left.Reset.GameLink.Message")
+            CreateResetButton(PageSubType.SetupGameLink)
         ];
         ItemUI.Buttons =
         [
-            CreateResetButton(PageSubType.SetupUI, "Setup.Left.Reset.Ui.Message")
+            CreateResetButton(PageSubType.SetupUI)
         ];
         ItemLauncherLanguage.Buttons =
         [
-            CreateResetButton(
-                PageSubType.SetupLauncherLanguage,
-                "Setup.Left.Reset.Language.Message")
+            CreateResetButton(PageSubType.SetupLauncherLanguage)
         ];
         ItemLauncherMisc.Buttons =
         [
-            CreateResetButton(PageSubType.SetupLauncherMisc, "Setup.Left.Reset.Misc.Message")
+            CreateResetButton(PageSubType.SetupLauncherMisc)
         ];
         ItemJava.Buttons =
         [
@@ -211,7 +192,7 @@ public partial class PageSetupLeft : MyPageLeft
         ];
     }
 
-    private MyIconButton CreateResetButton(PageSubType sub, string messageKey)
+    private MyIconButton CreateResetButton(PageSubType sub)
     {
         var button = new MyIconButton
         {
@@ -221,7 +202,10 @@ public partial class PageSetupLeft : MyPageLeft
             SvgIcon = "lucide/rotate-ccw"
         };
         ToolTip.SetTip(button, Lang.Text("Common.Action.Initialize"));
-        button.Click += async (_, _) => await ResetPageAsync(sub, messageKey, button);
+        ToolTip.SetPlacement(button, PlacementMode.Right);
+        ToolTip.SetShowDelay(button, 200);
+        ToolTip.SetVerticalOffset(button, -1);
+        button.Click += async (_, _) => await ResetPageAsync(sub, button);
         return button;
     }
 
@@ -235,24 +219,19 @@ public partial class PageSetupLeft : MyPageLeft
             SvgIcon = "lucide/refresh-cw"
         };
         ToolTip.SetTip(button, Lang.Text("Common.Action.Refresh"));
+        ToolTip.SetPlacement(button, PlacementMode.Right);
+        ToolTip.SetShowDelay(button, 200);
+        ToolTip.SetVerticalOffset(button, -1);
         button.Click += (_, _) => RefreshPage(sub);
         return button;
     }
 
-    private async Task ResetPageAsync(PageSubType sub, string messageKey, MyIconButton button)
+    private async Task ResetPageAsync(PageSubType sub, MyIconButton button)
     {
         button.IsEnabled = false;
         try
         {
-            var result = await DialogService.Instance.ShowAsync(
-                new TextDialogRequest
-                {
-                    Title = Lang.Text("Setup.Left.Reset.Title"),
-                    Content = Lang.Text(messageKey),
-                    Buttons = DialogButtons.OkCancel,
-                    IsWarn = true
-                });
-            if (!result.IsConfirmed) return;
+            if (!await _viewModel.ConfirmResetAsync(sub)) return;
 
             var page = _pageProvider?.Invoke(sub);
             if (page is ISetupResetPage resettable)

@@ -29,9 +29,12 @@ internal sealed class PageDownloadCompFavorites : MyPageRight, IPageView, IRefre
     private readonly MyCard _cardSelect;
     private readonly Dictionary<int, CategoryCard> _cards = new();
     private readonly MyComboBox _comboGroups;
+    private readonly StackPanel _contentStack;
     private readonly MyHint _hintGetFail;
     private readonly List<(MyListItem Item, Comp.CompProject Project)> _itemList = [];
     private readonly TextBlock _labSelected;
+    private readonly MyLoading _load;
+    private readonly MyCard _loadCard;
     private readonly StackPanel _panCards;
     private readonly MySearchBox _searchBox;
     private readonly List<MyListItem> _selectedItems = [];
@@ -101,8 +104,10 @@ internal sealed class PageDownloadCompFavorites : MyPageRight, IPageView, IRefre
             Theme = MyHint.Themes.Yellow,
             Margin = new Thickness(0d, 0d, 0d, 15d),
             IsVisible = false,
-            Text = Lang.Text("Download.Comp.Favorites.GetInfoFailed")
+            Text = Lang.Text("Download.Comp.Favorites.GetInfoFailed"),
+            Cursor = new Cursor(StandardCursorType.Hand)
         };
+        _hintGetFail.PointerReleased += (_, _) => ShowGetFailedDialog();
 
         _panCards = new StackPanel();
         _cardEmpty = new MyCard
@@ -127,6 +132,7 @@ internal sealed class PageDownloadCompFavorites : MyPageRight, IPageView, IRefre
         {
             Margin = new Thickness(25d)
         };
+        _contentStack = contentStack;
         contentStack.Children.Add(searchRow);
         contentStack.Children.Add(_hintGetFail);
         contentStack.Children.Add(_panCards);
@@ -170,7 +176,7 @@ internal sealed class PageDownloadCompFavorites : MyPageRight, IPageView, IRefre
             Lang.Text("Download.Comp.Favorites.Download"),
             () => _ = BatchDownloadAsync());
         _btnDeselect = CreateActionButton(
-            "lucide/check",
+            "lucide/download",
             Lang.Text("Download.Comp.Favorites.Deselect"),
             () => SetAllSelected(false));
         selectButtons.Children.Add(_btnCancelFavorite);
@@ -179,12 +185,31 @@ internal sealed class PageDownloadCompFavorites : MyPageRight, IPageView, IRefre
         selectButtons.Children.Add(_btnDeselect);
         _cardSelect.Children.Add(selectButtons);
 
+        _load = new MyLoading
+        {
+            Margin = new Thickness(20d, 20d, 20d, 17d),
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            Text = Lang.Text("Download.Comp.Favorites.Loading")
+        };
+        _loadCard = new MyCard
+        {
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(40d, 50d, 40d, 50d),
+            UseAnimation = false,
+            IsVisible = false
+        };
+        _loadCard.Children.Add(_load);
+
         var root = new Grid();
         root.Children.Add(scroll);
+        root.Children.Add(_loadCard);
         root.Children.Add(_cardSelect);
         Child = root;
         PanScroll = scroll;
 
+        KeyDown += OnPageKeyDown;
         LocalizationService.LanguageChanged += OnLanguageChanged;
         AttachedToVisualTree += (_, _) => InitOnce();
     }
@@ -238,16 +263,43 @@ internal sealed class PageDownloadCompFavorites : MyPageRight, IPageView, IRefre
         {
             reloadTimeout = 60 * 1000
         };
-        _loader.OnStateChangedUi += OnLoaderStateChanged;
         RefreshGroupCombo();
-        Reload();
+        PageLoaderInit(
+            _load,
+            _loadCard,
+            _contentStack,
+            null,
+            _loader,
+            _ => RenderProjects(),
+            () => 0);
+        _loader.OnStateChangedUi += (_, newState, _) =>
+        {
+            if (newState != LoadState.Failed || _autoRetried)
+                return;
+            if (_loader.Error?.Message.Contains(
+                    Lang.Text("Common.Error.InvalidJson"),
+                    StringComparison.OrdinalIgnoreCase)
+                != true)
+                return;
+            _autoRetried = true;
+            PageLoaderRestart(0);
+        };
     }
 
     private void OnLanguageChanged()
     {
+        var selectedIds = _selectedItems
+            .Select(item => item.tag)
+            .OfType<Comp.CompProject>()
+            .Select(project => project.Id)
+            .ToHashSet();
         _searchBox.HintText = Lang.Text("Download.Comp.Favorites.Search.Hint");
         _cardEmpty.Title = Lang.Text("Download.Comp.Favorites.Empty.Title");
+        if (_cardEmpty.Children.Count > 0
+            && _cardEmpty.Children[0] is TextBlock emptyDescription)
+            emptyDescription.Text = Lang.Text("Download.Comp.Favorites.Empty.Description");
         _hintGetFail.Text = Lang.Text("Download.Comp.Favorites.GetInfoFailed");
+        _load.Text = Lang.Text("Download.Comp.Favorites.Loading");
         _btnCancelFavorite.Text = Lang.Text("Download.Comp.Favorites.Cancel");
         _btnShare.Text = Lang.Text("Download.Comp.Favorites.Share");
         _btnDownload.Text = Lang.Text("Download.Comp.Favorites.Download");
@@ -255,6 +307,9 @@ internal sealed class PageDownloadCompFavorites : MyPageRight, IPageView, IRefre
         ToolTip.SetTip(_btnManage, Lang.Text("Download.Comp.Favorites.Manage"));
         _cards.Clear();
         RenderProjects();
+        if (selectedIds.Count <= 0) return;
+        foreach (var entry in _itemList.Where(entry => selectedIds.Contains(entry.Project.Id)))
+            entry.Item.Checked = true;
     }
 
     private sealed class CategoryCard
@@ -307,61 +362,13 @@ internal sealed class PageDownloadCompFavorites : MyPageRight, IPageView, IRefre
         _panCards.Children.Clear();
         _cards.Clear();
         _itemList.Clear();
+        _selectedItems.Clear();
         SetAllSelected(false);
         _cardEmpty.IsVisible = false;
-        var group = GetSelectedGroup();
-        if (group is null || group.Favs.Count == 0)
-        {
-            _loader.output = [];
-            RenderProjects();
-            return;
-        }
-
-        _loader.Start(0, true);
-    }
-
-    private void OnLoaderStateChanged(
-        Loading.LoaderBase sender,
-        LoadState newState,
-        LoadState oldState)
-    {
-        switch (newState)
-        {
-            case LoadState.Finished:
-                RenderProjects();
-                break;
-
-            case LoadState.Failed:
-                if (!_autoRetried
-                    && sender.Error?.Message.Contains(
-                        Lang.Text("Common.Error.InvalidJson"),
-                        StringComparison.OrdinalIgnoreCase)
-                    == true)
-                {
-                    _autoRetried = true;
-                    _loader?.Start(0, true);
-                    return;
-                }
-
-                _panCards.Children.Clear();
-                _cardEmpty.IsVisible = false;
-                _panCards.Children.Add(
-                    new MyHint
-                    {
-                        Theme = MyHint.Themes.Yellow,
-                        Text = sender.Error?.Message
-                            ?? Lang.Text("Download.Comp.Error.OperationFailed")
-                    });
-                break;
-
-            case LoadState.Waiting:
-            case LoadState.Loading:
-            case LoadState.Aborted:
-                break;
-
-            default:
-                throw new ArgumentOutOfRangeException(nameof(newState), newState, null);
-        }
+        _hintGetFail.IsVisible = false;
+        _searchBox.Text = "";
+        _autoRetried = false;
+        PageLoaderRestart(0);
     }
 
     private void ShowManageMenu()
@@ -626,36 +633,68 @@ internal sealed class PageDownloadCompFavorites : MyPageRight, IPageView, IRefre
             _cards.Clear();
             var projects = _loader?.output ?? [];
             var group = GetSelectedGroup();
-            _hintGetFail.IsVisible = group is not null && projects.Count < group.Favs.Count;
+            _hintGetFail.IsVisible =
+                group is not null && projects.Count < group.Favs.Count;
+            _panCards.Margin = new Thickness(0d);
 
             var searchText = _searchBox.Text.Trim();
             var isSearching = searchText.Length > 0;
             if (isSearching)
+            {
+                var entries = new List<SearchService.SearchEntry<Comp.CompProject>>();
+                foreach (var project in projects)
+                {
+                    var sources = new List<SearchService.SearchSource>
+                    {
+                        new(project.RawName)
+                    };
+                    if (!string.IsNullOrEmpty(project.Description))
+                        sources.Add(new SearchService.SearchSource(project.Description, 0.4d));
+                    if ((project.TranslatedName ?? "") != (project.RawName ?? ""))
+                        sources.Add(new SearchService.SearchSource(project.TranslatedName));
+                    sources.Add(
+                        new SearchService.SearchSource(
+                            string.Join("", project.Tags ?? []),
+                            0.2d));
+                    entries.Add(
+                        new SearchService.SearchEntry<Comp.CompProject>
+                        {
+                            item = project,
+                            searchSource = sources
+                        });
+                }
+
                 projects =
                 [
-                    .. projects
-                        .Where(project =>
-                            project.TranslatedName.Contains(
-                                searchText,
-                                StringComparison.OrdinalIgnoreCase)
-                            || project.RawName.Contains(
-                                searchText,
-                                StringComparison.OrdinalIgnoreCase)
-                            || (project.Description ?? string.Empty)
-                            .Contains(searchText, StringComparison.OrdinalIgnoreCase))
+                    .. SearchService
+                        .Search(entries, searchText, SearchService.MaxLocalSearchDepth, 0.35d)
+                        .Select(result => result.item)
+                        .OfType<Comp.CompProject>()
                 ];
+            }
 
-            _cardEmpty.IsVisible = projects.Count == 0;
+            var hasAnyFavorites = (_loader?.output?.Count ?? 0) > 0;
+            _searchBox.IsVisible = hasAnyFavorites || isSearching;
+            _cardEmpty.IsVisible = projects.Count == 0 && !isSearching;
+            _cardEmpty.Title = Lang.Text("Download.Comp.Favorites.Empty.Title");
+
             foreach (var project in projects)
                 GetCategoryCard(isSearching ? -1 : (int)project.Type)
                     .List.Children.Add(BuildItem(project));
 
-            foreach (var card in _cards.Values)
+            foreach (var card in _cards.Values.Where(card => card.List.Children.Count != 0))
             {
-                if (card.List.Children.Count == 0) continue;
                 card.Card.Title = card.TitleFormat(card.List.Children.Count);
                 _panCards.Children.Add(card.Card);
             }
+
+            if (isSearching && projects.Count == 0)
+                _panCards.Children.Add(
+                    new TextBlock
+                    {
+                        Text = Lang.Text("Download.Comp.List.NoResults"),
+                        Margin = new Thickness(4d, 6d, 4d, 6d)
+                    });
 
             RefreshSelectionBar();
         }
@@ -704,7 +743,7 @@ internal sealed class PageDownloadCompFavorites : MyPageRight, IPageView, IRefre
                 .Replace("\r", string.Empty)
                 .Replace("\n", string.Empty),
             Logo = string.IsNullOrEmpty(project.LogoUrl)
-                ? LauncherPaths.ImageRoot + "Icons/NoIcon.png"
+                ? $"{LauncherPaths.ImageRoot}Icons/NoIcon.png"
                 : project.LogoUrl,
             LogoCornerRadius = new CornerRadius(6d),
             Tags = project.Tags,
@@ -765,9 +804,61 @@ internal sealed class PageDownloadCompFavorites : MyPageRight, IPageView, IRefre
     {
         var count = _selectedItems.Count;
         _cardSelect.IsVisible = count > 0;
+        _panCards.Margin = new Thickness(0d, 0d, 0d, count > 0 ? 80d : 0d);
         if (count > 0)
             _labSelected.Text = Lang.Text("Download.Comp.Favorites.Hint.SelectedCount", count);
         _btnDownload.IsEnabled = count > 0;
+    }
+
+    private void OnPageKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.A)
+            return;
+        if (!e.KeyModifiers.HasFlag(KeyModifiers.Control))
+            return;
+        SetAllSelected(true);
+        e.Handled = true;
+    }
+
+    private void ShowGetFailedDialog()
+    {
+        var group = GetSelectedGroup();
+        if (group is null) return;
+        var loadedIds = (_loader?.output ?? [])
+            .Select(project => project.Id)
+            .ToHashSet();
+        var failedIds = group.Favs.Where(id => !loadedIds.Contains(id)).Distinct().ToList();
+        if (failedIds.Count == 0) return;
+
+        var content = Lang.Text("Download.Comp.Favorites.Dialog.GetFailed.Content")
+            + Environment.NewLine
+            + Environment.NewLine
+            + string.Join(Environment.NewLine, failedIds.Select(id => $" - {id}"));
+        _ = DialogService.Instance.ShowAsync(
+            new TextDialogRequest
+            {
+                Title = Lang.Text("Download.Comp.Favorites.Dialog.GetFailed.Title"),
+                Content = content,
+                Buttons = DialogButtons.From(
+                    DialogButton.Create(Lang.Text("Common.Action.Confirm")),
+                    DialogButton.Create(
+                        Lang.Text("Download.Comp.Favorites.Dialog.GetFailed.CopyIds"),
+                        () => PlatformServices.Clipboard?.SetText(
+                            string.Join(Environment.NewLine, failedIds))),
+                    DialogButton.Create(
+                        Lang.Text("Download.Comp.Favorites.Dialog.GetFailed.Remove"),
+                        () =>
+                        {
+                            foreach (var id in failedIds)
+                                group.Favs.Remove(id);
+                            Comp.CompFavorites.Save();
+                            HintService.Show(
+                                Hints.Success(
+                                    Lang.Text("Download.Comp.Favorites.Hint.Removed")));
+                            Reload();
+                        })),
+                ForceWait = true
+            });
     }
 
     private void SetAllSelected(bool selected)
@@ -826,14 +917,18 @@ internal sealed class PageDownloadCompFavorites : MyPageRight, IPageView, IRefre
             _loader?.Start(0, true);
     }
 
-    private void OnProjectClicked(Comp.CompProject project)
+    private static void OnProjectClicked(Comp.CompProject project)
     {
         try
         {
             PageRouter.Navigate(
                 PageType.CompDetail,
                 PageSubType.Default,
-                new CompDetailParameter(project, Comp.CompType.Any, null, Comp.CompLoaderType.Any));
+                new CompDetailParameter(
+                    project,
+                    project.Type,
+                    null,
+                    Comp.CompLoaderType.Any));
         }
         catch (Exception ex)
         {
@@ -1042,18 +1137,13 @@ internal sealed class PageDownloadCompFavorites : MyPageRight, IPageView, IRefre
                 continue;
             }
 
-            files = project.Type switch
-            {
-                Comp.CompType.Mod =>
+            files = project.Type == Comp.CompType.Mod
+                ?
                 [
-                    .. files
-                        .Where(file => desiredLoader == Comp.CompLoaderType.Any
-                            || file.ModLoaders.Contains(desiredLoader))
-                ],
-                Comp.CompType.Shader or Comp.CompType.ResourcePack => files,
-                _ => [.. files.Where(file => file.Type == project.Type)]
-            };
-            if (files.Count == 0) continue;
+                    .. files.Where(file => desiredLoader == Comp.CompLoaderType.Any
+                        || file.ModLoaders.Contains(desiredLoader))
+                ]
+                : files;
             projectFiles[project] = files;
 
             var versions = files.SelectMany(file => file.GameVersions).Distinct().ToList();

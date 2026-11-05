@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Layout;
 using Avalonia.Threading;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
@@ -12,7 +11,6 @@ using PCL.Core.Utils.Validate;
 using PCL.Network;
 using PCL.UI.Controls;
 using PCL.UI.Controls.Common;
-using PCL.Views.Pages;
 
 namespace PCL.Views.Pages.Select;
 
@@ -23,22 +21,22 @@ namespace PCL.Views.Pages.Select;
 /// </summary>
 public partial class PageSelectLeft : MyPageLeft, IRefreshable
 {
+    private const double DragThreshold = 8d;
+
     private static readonly DataFormat<GameFolders.McFolder> FolderFormat =
         DataFormat.CreateInProcessFormat<GameFolders.McFolder>("pcl/select/mcfolder");
 
-    private const double DragThreshold = 8d;
-
     private readonly List<(GameFolders.McFolder Folder, MyListItem Item)> _rows = [];
-
-    private bool _isBuilding;
-    private bool _isFirstLoad = true;
-    private bool _refreshed;
-    private List<GameFolders.McFolder>? _mcFolderListLast;
-
-    private PointerPressedEventArgs? _dragTrigger;
     private GameFolders.McFolder? _dragFolder;
     private Point _dragOrigin;
+
+    private PointerPressedEventArgs? _dragTrigger;
+
+    private bool _isBuilding;
     private bool _isDragging;
+    private bool _isFirstLoad = true;
+    private List<GameFolders.McFolder>? _mcFolderListLast;
+    private bool _refreshed;
 
     public PageSelectLeft()
     {
@@ -47,6 +45,11 @@ public partial class PageSelectLeft : MyPageLeft, IRefreshable
         GameFolders.McFolderListLoader.PreviewFinish += _ => Dispatcher.UIThread.Post(RefreshList);
         AttachedToVisualTree += (_, _) => RefreshOnNavigate();
         DetachedFromVisualTree += (_, _) => _refreshed = false;
+    }
+
+    public void Refresh()
+    {
+        RefreshCurrent();
     }
 
     public override void OnNavigatedTo(object? parameter)
@@ -58,16 +61,11 @@ public partial class PageSelectLeft : MyPageLeft, IRefreshable
     {
     }
 
-    public void Refresh()
-    {
-        RefreshCurrent();
-    }
-
     protected override void RefreshLocalization()
     {
         _mcFolderListLast = null;
         if (_refreshed)
-            McFolderListUI();
+            McFolderListUi();
     }
 
     private void RefreshOnNavigate()
@@ -76,17 +74,17 @@ public partial class PageSelectLeft : MyPageLeft, IRefreshable
             return;
         _refreshed = true;
         if (_isFirstLoad)
-            McFolderListUI();
+            McFolderListUi();
         _isFirstLoad = false;
     }
 
     private void RefreshList()
     {
         if (_refreshed)
-            McFolderListUI();
+            McFolderListUi();
     }
 
-    private void McFolderListUI()
+    private void McFolderListUi()
     {
         try
         {
@@ -106,18 +104,28 @@ public partial class PageSelectLeft : MyPageLeft, IRefreshable
             PanList.Children.Add(CreateSectionTitle(Lang.Text("Select.Folder.AddOrImport")));
             if (!Directory.Exists(Path.Combine(LauncherPaths.ExecutableDirectory, ".minecraft")))
                 PanList.Children.Add(
-                    CreateActionItem("Select.Folder.CreateNew.Title", "lucide/folder-plus", CreateFolder));
+                    CreateActionItem(
+                        "Select.Folder.CreateNew.Title",
+                        "lucide/folder-plus",
+                        "Select.Folder.CreateNew.ToolTip",
+                        CreateFolder));
             PanList.Children.Add(
                 CreateActionItem(
                     "Select.Folder.AddExisting.Title",
                     "lucide/folder-input",
+                    "Select.Folder.AddExisting.ToolTip",
                     () => _ = AddExistingFolderAsync()));
             PanList.Children.Add(
                 CreateActionItem(
                     "Select.Folder.ImportModpack.Title",
                     "lucide/package-plus",
+                    "Select.Folder.ImportModpack.ToolTip",
                     Modpack.ModpackInstall));
-            PanList.Children.Add(new Border { Height = 10 });
+            PanList.Children.Add(
+                new Border
+                {
+                    Height = 10
+                });
 
             var selected = GameFolders.mcFolderList.FirstOrDefault(folder =>
                 folder.Location == GameFolders.mcFolderSelected);
@@ -169,16 +177,19 @@ public partial class PageSelectLeft : MyPageLeft, IRefreshable
         item.Changed += (sender, e) => FolderChanged((MyListItem)sender, e);
         AttachDragHandlers(item, folder);
 
+        var contextMenu = CreateContextMenu(folder);
+        item.ContextMenu = contextMenu;
         var menu = new MyIconButton
         {
             SvgIcon = "lucide/settings",
             LogoScale = 1.1
         };
-        menu.Click += (_, _) => OpenContextMenu(folder, item);
+        menu.Click += (_, _) => contextMenu.Open(item);
         item.Buttons = [menu];
 
         _rows.Add((folder, item));
-        LauncherCommon.Log($"[Minecraft] 有效的 Minecraft 文件夹：{folder.DisplayName} > {folder.Location}");
+        LauncherCommon.Log(
+            $"[Minecraft] 有效的 Minecraft 文件夹：{folder.DisplayName} > {folder.Location}");
         return item;
     }
 
@@ -192,7 +203,11 @@ public partial class PageSelectLeft : MyPageLeft, IRefreshable
         return title;
     }
 
-    private static Control CreateActionItem(string titleKey, string svgIcon, Action action)
+    private static Control CreateActionItem(
+        string titleKey,
+        string svgIcon,
+        string toolTipKey,
+        Action action)
     {
         var item = new MyListItem
         {
@@ -203,6 +218,8 @@ public partial class PageSelectLeft : MyPageLeft, IRefreshable
             LogoScale = 0.9,
             SvgIcon = svgIcon
         };
+        ToolTip.SetTip(item, Lang.Text(toolTipKey));
+        ToolTip.SetPlacement(item, PlacementMode.Right);
         item.Click += (_, _) => action();
         return item;
     }
@@ -229,7 +246,10 @@ public partial class PageSelectLeft : MyPageLeft, IRefreshable
         DragDrop.AddDropHandler(item, OnItemDrop);
     }
 
-    private void OnItemPointerPressed(MyListItem item, GameFolders.McFolder folder, PointerPressedEventArgs e)
+    private void OnItemPointerPressed(
+        MyListItem item,
+        GameFolders.McFolder folder,
+        PointerPressedEventArgs e)
     {
         if (!e.GetCurrentPoint(item).Properties.IsLeftButtonPressed)
             return;
@@ -335,17 +355,23 @@ public partial class PageSelectLeft : MyPageLeft, IRefreshable
 
     #region 右键菜单
 
-    private void OpenContextMenu(GameFolders.McFolder folder, Control anchor)
+    private ContextMenu CreateContextMenu(GameFolders.McFolder folder)
     {
         var items = new List<MyMenuItem>();
 
-        void AddItem(string headerKey, string svgIcon, Action action, bool enabled = true)
+        void AddItem(
+            string headerKey,
+            string svgIcon,
+            Action action,
+            bool enabled = true,
+            bool visible = true)
         {
             var item = new MyMenuItem
             {
                 Header = Lang.Text(headerKey),
                 SvgIcon = svgIcon,
-                IsEnabled = enabled
+                IsEnabled = enabled,
+                IsVisible = visible
             };
             item.Click += (_, _) => action();
             items.Add(item);
@@ -353,25 +379,40 @@ public partial class PageSelectLeft : MyPageLeft, IRefreshable
 
         var index = GameFolders.mcFolderList.IndexOf(folder);
         if (folder.Type == GameFolders.McFolder.Types.RenamedOriginal)
-            AddItem("Select.Folder.RestoreName", "lucide/rotate-ccw", () => RestoreFolderName(folder));
+            AddItem(
+                "Select.Folder.RestoreName",
+                "lucide/rotate-ccw",
+                () => RestoreFolderName(folder));
         AddItem("Select.Folder.Rename", "lucide/pencil", () => _ = RenameFolderAsync(folder));
-        AddItem("Select.Folder.MoveUp", "lucide/move-up", () => MoveFolder(folder, -1), index > 0);
+        AddItem(
+            "Select.Folder.MoveUp",
+            "lucide/move-up",
+            () => MoveFolder(folder, -1),
+            index > 0,
+            index > 0);
         AddItem(
             "Select.Folder.MoveDown",
             "lucide/move-down",
             () => MoveFolder(folder, 1),
+            index >= 0 && index < GameFolders.mcFolderList.Count - 1,
             index >= 0 && index < GameFolders.mcFolderList.Count - 1);
         AddItem("Common.Action.Open", "lucide/folder-open", () => Basics.OpenPath(folder.Location));
-        AddItem("Common.Action.Refresh", "lucide/refresh-cw", () => RefreshCurrent(folder.Location));
+        AddItem(
+            "Common.Action.Refresh",
+            "lucide/refresh-cw",
+            () => RefreshCurrent(folder.Location));
         if (folder.Type == GameFolders.McFolder.Types.Custom)
-            AddItem("Select.Folder.RemoveFromList", "lucide/list-x", () => _ = RemoveFolderAsync(folder));
+            AddItem(
+                "Select.Folder.RemoveFromList",
+                "lucide/list-x",
+                () => _ = RemoveFolderAsync(folder));
         AddItem(GetDeleteMenuKey(folder), "lucide/trash-2", () => _ = DeleteFolderAsync(folder));
 
         var menu = new ContextMenu
         {
             ItemsSource = items
         };
-        menu.Open(anchor);
+        return menu;
     }
 
     private static string GetDeleteMenuKey(GameFolders.McFolder folder)
@@ -417,13 +458,15 @@ public partial class PageSelectLeft : MyPageLeft, IRefreshable
 
         var separator = Path.DirectorySeparatorChar;
         var location = folder.Location;
-        var minecraftFolder = Path.Combine(LauncherPaths.ExecutableDirectory, ".minecraft") + separator;
+        var minecraftFolder =
+            Path.Combine(LauncherPaths.ExecutableDirectory, ".minecraft") + separator;
         var mojangFolder = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 ".minecraft")
             + separator;
         string name;
-        if (location == minecraftFolder || location == LauncherPaths.ExecutableDirectory + separator)
+        if (location == minecraftFolder
+            || location == LauncherPaths.ExecutableDirectory + separator)
             name = GameFolders.McFolder.BuiltinNamePrefix + "Select.Folder.CurrentFolder";
         else if (location == mojangFolder)
             name = GameFolders.McFolder.BuiltinNamePrefix + "Select.Folder.OfficialLauncherFolder";

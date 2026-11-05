@@ -1,9 +1,14 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:ui="using:PCL.UI.Controls"
-             xmlns:loc="using:PCL.Core.UI"
-             x:Class="PCL.Views.Pages.Launch.PageLoginMs">
-    <Grid Margin="0,10,0,0"
+<StackPanel xmlns="https://github.com/avaloniaui"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+            xmlns:ui="using:PCL.UI.Controls"
+            xmlns:loc="using:PCL.Core.UI"
+            mc:Ignorable="d"
+            x:Class="PCL.Views.Pages.Launch.PageLoginMs"
+            d:DesignWidth="302.4">
+    <Grid x:Name="PanEmpty"
+          Margin="0,10,0,0"
           ColumnDefinitions="*,Auto"
           RowDefinitions="Auto,25,Auto,Auto,Auto">
         <Path Grid.Row="0"
@@ -20,7 +25,9 @@
                      Grid.Column="0"
                      Width="100"
                      Height="28"
-                     ColorType="Highlight" />
+                     Margin="0"
+                     ColorType="Highlight"
+                     Text="{loc:Loc Launch.Account.Microsoft.Start}" />
         <Grid Grid.Row="4"
               Grid.ColumnSpan="2"
               Margin="2,30,2,0"
@@ -35,11 +42,11 @@
                              Text="{loc:Loc Launch.Account.Microsoft.Website}" />
         </Grid>
         <ui:MyTextButton x:Name="BtnBack"
-                         Grid.Row="4"
+                         Grid.Row="5"
                          Grid.ColumnSpan="2"
                          Margin="0,60,0,0"
                          HorizontalAlignment="Center"
                          Opacity="0.3"
                          Text="{loc:Loc Launch.Account.Back}" />
     </Grid>
-</UserControl>
+</StackPanel>

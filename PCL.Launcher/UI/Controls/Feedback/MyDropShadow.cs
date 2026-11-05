@@ -24,6 +24,10 @@ public class MyDropShadow : Decorator
             nameof(CornerRadius),
             validate: IsCornerRadiusValid);
 
+    /// <summary>中心是否保持透明。窗口壳需要透明中心，卡片阴影仍使用实心中心。</summary>
+    public static readonly StyledProperty<bool> CenterTransparentProperty =
+        AvaloniaProperty.Register<MyDropShadow, bool>(nameof(CenterTransparent));
+
     private static IBrush[]? _commonBrushes;
     private static CornerRadius _commonCornerRadius;
     private static readonly Lock ResourceAccess = new();
@@ -31,7 +35,11 @@ public class MyDropShadow : Decorator
 
     static MyDropShadow()
     {
-        AffectsRender<MyDropShadow>(ColorProperty, ShadowRadiusProperty, CornerRadiusProperty);
+        AffectsRender<MyDropShadow>(
+            ColorProperty,
+            ShadowRadiusProperty,
+            CornerRadiusProperty,
+            CenterTransparentProperty);
     }
 
     /// <summary>
@@ -59,6 +67,12 @@ public class MyDropShadow : Decorator
     {
         get => GetValue(CornerRadiusProperty);
         set => SetValue(CornerRadiusProperty, value);
+    }
+
+    public bool CenterTransparent
+    {
+        get => GetValue(CenterTransparentProperty);
+        set => SetValue(CenterTransparentProperty, value);
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -112,6 +126,12 @@ public class MyDropShadow : Decorator
             Math.Min(cornerRadius.BottomLeft, maxRadius));
 
         var brushes = GetBrushes(color, cornerRadius);
+        if (CenterTransparent)
+        {
+            brushes = (IBrush[])brushes.Clone();
+            brushes[(int)Placement.Center] = new SolidColorBrush(Colors.Transparent);
+        }
+
         var centerTop = shadowBounds.Top + ShadowRadius;
         var centerLeft = shadowBounds.Left + ShadowRadius;
         var centerRight = shadowBounds.Right - ShadowRadius;

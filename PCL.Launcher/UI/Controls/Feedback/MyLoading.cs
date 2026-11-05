@@ -586,7 +586,7 @@ public class MyLoading : Grid
         _foregroundIsThemeOwned = true;
         var target = FeedbackAnimation.ThemeColor(
             this,
-            isError ? "ColorBrushError" : "ColorBrush1");
+            isError ? "ColorBrushError" : "ColorBrush3");
         var wait = _errorAnimationWaiting ? 400 : 0;
 
         if (target is null || !FeedbackAnimation.CanAnimate(this))
@@ -668,7 +668,7 @@ public class MyLoading : Grid
         {
             var brush = InnerState == LoadingState.Error
                 ? FeedbackTheme.GetBrush(this, "ColorBrushError", Brushes.Red)
-                : FeedbackTheme.GetBrush(this, "ColorBrush1", Brushes.Black);
+                : FeedbackTheme.GetBrush(this, "ColorBrush3", Brushes.DodgerBlue);
             _foregroundBrush = brush as SolidColorBrush ?? new SolidColorBrush(Colors.Black);
 
             // 只有画刷真的变化时才写自身属性，避免触发多余的属性变更与重入

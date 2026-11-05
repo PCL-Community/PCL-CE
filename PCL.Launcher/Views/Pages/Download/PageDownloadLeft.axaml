@@ -10,6 +10,7 @@
                     Margin="0,12,0,0">
             <ui:MyListItem x:Name="ItemInstall"
                            Height="36"
+                           Checked="True"
                            IsScaleAnimationEnabled="False"
                            LogoScale="1"
                            MinPaddingRight="35"

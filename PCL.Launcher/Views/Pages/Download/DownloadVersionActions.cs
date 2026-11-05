@@ -5,6 +5,7 @@ using PCL.Core.App.Localization;
 using PCL.Core.Minecraft;
 using PCL.Core.UI;
 using PCL.Core.UI.Hints;
+using PCL.Core.Utils.Codecs;
 using PCL.Network;
 using PCL.Network.Loaders;
 
@@ -15,11 +16,18 @@ internal static class DownloadVersionActions
     private const string SaveIdentifierPrefix = "McDownloadSave:";
     private const string ServerIdentifierPrefix = "McDownloadServer:";
 
-    public static void SaveVersion(JsonObject version)
+    /// <summary>
+    ///     另存 Minecraft 版本。
+    /// </summary>
+    /// <param name="version">版本清单项。</param>
+    /// <param name="title">列表中显示的标题；与原版 PCL 一致，用于实例文件夹名。</param>
+    public static void SaveVersion(JsonObject version, string title)
     {
+        if (!RestrictedFeatures.Check("minecraft-client-save"))
+            return;
         try
         {
-            var id = version["id"]?.ToString() ?? "";
+            var id = string.IsNullOrEmpty(title) ? version["id"]?.ToString() ?? "" : title;
             var jsonUrl = version["url"]?.ToString() ?? "";
             if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(jsonUrl))
                 return;
@@ -85,11 +93,11 @@ internal static class DownloadVersionActions
         }
     }
 
-    public static void SaveServer(JsonObject version)
+    public static void SaveServer(JsonObject version, string title)
     {
         try
         {
-            var id = version["id"]?.ToString() ?? "";
+            var id = string.IsNullOrEmpty(title) ? version["id"]?.ToString() ?? "" : title;
             var jsonUrl = version["url"]?.ToString() ?? "";
             if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(jsonUrl))
                 return;
@@ -211,13 +219,14 @@ internal static class DownloadVersionActions
             instance.Load();
 
         var serverDownload = instance.JsonObject["downloads"]?["server"];
-        if (serverDownload is null || serverDownload["url"] is null)
+        if (serverDownload?["url"] is null)
         {
             TryDeleteFile(jsonPath);
             TryDeleteEmptyFolder(versionFolder);
             HintService.Show(
                 Hints.Error(
                     Lang.Text("Minecraft.Download.Error.NoOfficialServerDownload", id)));
+            Thread.Sleep(2000);
             task.Abort();
             return [];
         }
@@ -251,7 +260,7 @@ internal static class DownloadVersionActions
         LauncherCommon.WriteFile(
             Path.Combine(versionFolder, "Launch Server.bat"),
             bat.ReplaceLineEndings("\r\n"),
-            Encoding.UTF8);
+            Encoding.Default.Equals(Encoding.UTF8) ? Encoding.UTF8 : Encodings.GB18030);
         TryDeleteFile(jsonPath);
         return files;
     }

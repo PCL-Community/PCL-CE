@@ -1,12 +1,15 @@
 <ui:MyPageRight xmlns="https://github.com/avaloniaui"
                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:conv="using:Avalonia.Data.Converters"
                 xmlns:ui="using:PCL.UI.Controls"
                 xmlns:loc="using:PCL.Core.UI"
+                x:CompileBindings="False"
                 x:Class="PCL.Views.Pages.Setup.PageSetupAbout">
     <ui:MyScrollViewer x:Name="PanBack"
                        HorizontalScrollBarVisibility="Disabled"
                        VerticalScrollBarVisibility="Auto">
-        <StackPanel Margin="25,10">
+        <StackPanel Margin="25,10"
+                    Grid.IsSharedSizeScope="True">
             <ui:MyCard Margin="0,15"
                        Title="{loc:Loc Setup.About.Title}">
                 <Grid Margin="21,40,21,16"
@@ -25,7 +28,8 @@
                                 Height="34"
                                 Margin="3"
                                 VerticalAlignment="Center"
-                                Source="avares://PCL.Launcher/Assets/Images/Heads/PCL-Community.png" />
+                                Source="avares://PCL.Launcher/Assets/Images/Heads/PCL-Community.png"
+                                PointerPressed="ImgPCLCommunity_PointerPressed" />
                     <ui:MyImage x:Name="ImgPCLLogo"
                                 Grid.Row="2"
                                 Width="34"
@@ -33,7 +37,9 @@
                                 Margin="3"
                                 CornerRadius="17"
                                 VerticalAlignment="Center"
-                                Source="avares://PCL.Launcher/Assets/Images/Heads/Logo-CE.png" />
+                                IsHitTestVisible="{Binding IsLogoClickEnabled}"
+                                Source="avares://PCL.Launcher/Assets/Images/Heads/Logo-CE.png"
+                                PointerPressed="ImgPCLLogo_PointerPressed" />
 
                     <ui:MyListItem Grid.Row="0"
                                    Grid.Column="1"
@@ -51,7 +57,8 @@
                                    Grid.Row="2"
                                    Grid.Column="1"
                                    Margin="-5,0,15,0"
-                                   IsHitTestVisible="False" />
+                                   IsHitTestVisible="False"
+                                   Info="{Binding AboutInfo}" />
 
                     <ui:MyButton x:Name="BtnSponsorOriginalAuthor"
                                  Grid.Row="0"
@@ -87,7 +94,6 @@
                                 Source="avares://PCL.Launcher/Assets/Images/Heads/bangbang93.png" />
                     <ui:MyListItem Grid.Row="0"
                                    Grid.Column="1"
-                                   Grid.ColumnSpan="2"
                                    Margin="-5,0,0,0"
                                    IsHitTestVisible="False"
                                    Info="{loc:Loc Setup.About.SpecialThanks.Info.Bmclapi}"
@@ -110,7 +116,6 @@
                     <ui:MyListItem x:Name="ItemMcmod"
                                    Grid.Row="1"
                                    Grid.Column="1"
-                                   Grid.ColumnSpan="2"
                                    Margin="-5,0,0,0"
                                    IsHitTestVisible="False"
                                    Info="{loc:Loc Setup.About.SpecialThanks.Info.Mcmod}"
@@ -131,7 +136,6 @@
                                 Source="avares://PCL.Launcher/Assets/Images/Heads/Pysio.jpg" />
                     <ui:MyListItem Grid.Row="2"
                                    Grid.Column="1"
-                                   Grid.ColumnSpan="2"
                                    Margin="-5,0,0,0"
                                    IsHitTestVisible="False"
                                    Info="{loc:Loc Setup.About.SpecialThanks.Info.Cloud}"
@@ -152,7 +156,6 @@
                                 Source="avares://PCL.Launcher/Assets/Images/Heads/Yunmoan.jpg" />
                     <ui:MyListItem Grid.Row="3"
                                    Grid.Column="1"
-                                   Grid.ColumnSpan="2"
                                    Margin="-5,0,0,0"
                                    IsHitTestVisible="False"
                                    Info="{loc:Loc Setup.About.SpecialThanks.Info.Cloud}"
@@ -173,7 +176,6 @@
                                 Source="avares://PCL.Launcher/Assets/Images/Heads/EasyTier.png" />
                     <ui:MyListItem Grid.Row="4"
                                    Grid.Column="1"
-                                   Grid.ColumnSpan="2"
                                    Margin="-5,0,0,0"
                                    IsHitTestVisible="False"
                                    Info="{loc:Loc Setup.About.SpecialThanks.Info.LinkModule}"
@@ -317,9 +319,55 @@
                        Title="{loc:Loc Setup.About.Licenses.Title}"
                        CanSwap="True"
                        IsSwapped="True">
-                <StackPanel x:Name="PanLicenses"
-                            Margin="25,42,23,4"
-                            Spacing="4" />
+                <ItemsControl x:Name="PanLicenses"
+                              Margin="25,42,23,4"
+                              ItemsSource="{Binding Licenses}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"
+                                                      SharedSizeGroup="LicenseName" />
+                                    <ColumnDefinition Width="20" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="60" />
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.Row="0"
+                                           Grid.Column="0"
+                                           FontWeight="Bold"
+                                           TextWrapping="Wrap"
+                                           Text="{Binding Name}" />
+                                <TextBlock Grid.Row="0"
+                                           Grid.Column="2"
+                                           Grid.ColumnSpan="2"
+                                           TextWrapping="Wrap"
+                                           Text="{Binding Information}" />
+                                <ui:MyButton Grid.Row="1"
+                                             Grid.Column="2"
+                                             MinWidth="140"
+                                             Margin="0,7,20,18"
+                                             HorizontalAlignment="Left"
+                                             Padding="13,0"
+                                             IsVisible="{Binding WebsiteUri, Converter={x:Static conv:ObjectConverters.IsNotNull}}"
+                                             Click="LicenseWebsite_Click"
+                                             Text="{loc:Loc Setup.About.Licenses.ViewWebsite}" />
+                                <ui:MyButton Grid.Row="1"
+                                             Grid.Column="3"
+                                             MinWidth="140"
+                                             Margin="0,7,20,18"
+                                             HorizontalAlignment="Left"
+                                             Padding="13,0"
+                                             IsVisible="{Binding LicenseUri, Converter={x:Static conv:ObjectConverters.IsNotNull}}"
+                                             Click="LicenseUri_Click"
+                                             Text="{loc:Loc Setup.About.Licenses.ViewLicense}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
             </ui:MyCard>
         </StackPanel>
     </ui:MyScrollViewer>

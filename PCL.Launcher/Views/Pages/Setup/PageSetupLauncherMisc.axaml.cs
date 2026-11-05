@@ -1,8 +1,8 @@
 using System.Diagnostics;
 using System.Text;
+using Avalonia.Controls;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
-using PCL.Core.App.Essentials;
 using PCL.Core.App.Localization;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
@@ -14,6 +14,7 @@ namespace PCL.Views.Pages.Setup;
 
 /// <summary>
 ///     启动器杂项设置页：公告显示、日志上限、网络代理与调试选项。
+///     配置状态由 <see cref="PageSetupLauncherMiscViewModel" /> 持有，页面处理系统级文件操作与重启。
 /// </summary>
 public partial class PageSetupLauncherMisc : MyPageRight, ISetupResetPage
 {
@@ -24,6 +25,7 @@ public partial class PageSetupLauncherMisc : MyPageRight, ISetupResetPage
     {
         InitializeComponent();
         PanScroll = PanBack;
+        DataContext = ViewModel;
 
         SliderMaxLog.getHintText = new Func<object, object>(FormatMaxLogHint);
         SliderDebugAnim.getHintText = new Func<object, object>(FormatAnimationSpeedHint);
@@ -58,15 +60,7 @@ public partial class PageSetupLauncherMisc : MyPageRight, ISetupResetPage
         RadioHttpProxyType1.Check += (_, _) => WriteProxyType(1);
         RadioHttpProxyType2.Check += (_, _) => WriteProxyType(2);
 
-        BtnApplyHttpProxy.Click += (_, _) =>
-        {
-            Config.Network.HttpProxy.CustomAddress = TextSystemHttpProxy.Text ?? string.Empty;
-            Config.Network.HttpProxy.CustomUsername =
-                TextSystemHttpProxyCustomUsername.Text ?? string.Empty;
-            Config.Network.HttpProxy.CustomPassword =
-                TextSystemHttpProxyCustomPassword.Text ?? string.Empty;
-            HintService.Show(Hints.Success(Lang.Text("Setup.Misc.Network.Proxy.Apply")));
-        };
+        BtnApplyHttpProxy.Click += (_, _) => ViewModel.ApplyHttpProxy();
         BtnSystemSettingExp.Click += (_, _) => ExportSettings();
         BtnSystemSettingImp.Click += async (_, _) => await ImportSettingsAsync();
         BtnSystemStopUsingPclCe.Click += async (_, _) => await StopUsingPclCeAsync();
@@ -78,6 +72,8 @@ public partial class PageSetupLauncherMisc : MyPageRight, ISetupResetPage
             Reload();
         };
     }
+
+    public PageSetupLauncherMiscViewModel ViewModel { get; } = new();
 
     public void Reset()
     {
@@ -110,18 +106,24 @@ public partial class PageSetupLauncherMisc : MyPageRight, ISetupResetPage
     {
     }
 
+    protected override void RefreshLocalization()
+    {
+        if (!_loaded) return;
+        Reload();
+        RefreshTelemetryToolTip();
+    }
+
     public void Reload()
     {
         _reloading = true;
         try
         {
-            ComboSystemActivity.SelectedIndex = Math.Clamp(States.System.AnnounceSolution, 0, 2);
+            ViewModel.Reload();
             SliderMaxLog.Value = Config.System.MaxGameLog;
             CheckSystemDisableHardwareAcceleration.Checked =
                 Config.System.DisableHardwareAcceleration;
             CheckSystemTelemetry.Checked =
-                !TelemetryService.IsBuildUntrusted && Config.System.Telemetry;
-            CheckSystemTelemetry.IsEnabled = !TelemetryService.IsBuildUntrusted;
+                !ViewModel.IsBuildUntrusted && Config.System.Telemetry;
 
             CheckNetDohEnable.Checked = Config.Network.EnableDoH;
             var proxyType = Math.Clamp(Config.Network.HttpProxy.Type, 0, 2);
@@ -133,9 +135,6 @@ public partial class PageSetupLauncherMisc : MyPageRight, ISetupResetPage
             };
             radios[proxyType].SetChecked(true, false);
             PanHttpProxyCustom.IsVisible = proxyType == 2;
-            TextSystemHttpProxy.Text = Config.Network.HttpProxy.CustomAddress;
-            TextSystemHttpProxyCustomUsername.Text = Config.Network.HttpProxy.CustomUsername;
-            TextSystemHttpProxyCustomPassword.Text = Config.Network.HttpProxy.CustomPassword;
 
             SliderDebugAnim.Value = Config.Debug.AnimationSpeed;
             CheckDebugSkipCopy.Checked = Config.Debug.DontCopy;
@@ -145,6 +144,26 @@ public partial class PageSetupLauncherMisc : MyPageRight, ISetupResetPage
         finally
         {
             _reloading = false;
+        }
+
+        RefreshTelemetryToolTip();
+    }
+
+    private void RefreshTelemetryToolTip()
+    {
+        if (ViewModel.IsBuildUntrusted)
+        {
+            ToolTip.SetTip(
+                CheckSystemTelemetry,
+                Lang.Text("Setup.Misc.System.Telemetry.Unavailable"));
+            ToolTip.SetShowOnDisabled(CheckSystemTelemetry, true);
+        }
+        else
+        {
+            ToolTip.SetTip(
+                CheckSystemTelemetry,
+                Lang.Text("Setup.Misc.System.Telemetry.ToolTip"));
+            ToolTip.SetShowOnDisabled(CheckSystemTelemetry, false);
         }
     }
 
@@ -187,13 +206,22 @@ public partial class PageSetupLauncherMisc : MyPageRight, ISetupResetPage
             if (!result.IsConfirmed)
             {
                 _reloading = true;
-                ComboSystemActivity.SelectedIndex = States.System.AnnounceSolution;
-                _reloading = false;
+                try
+                {
+                    ComboSystemActivity.SelectedIndex =
+                        Math.Clamp(States.System.AnnounceSolution, 0, 2);
+                }
+                finally
+                {
+                    _reloading = false;
+                }
+
                 return;
             }
         }
 
         States.System.AnnounceSolution = index;
+        ViewModel.ActivityIndex = index;
     }
 
     private static void ExportSettings()
@@ -223,8 +251,13 @@ public partial class PageSetupLauncherMisc : MyPageRight, ISetupResetPage
                 {
                     Title = Lang.Text("Common.Dialog.Title"),
                     Content = Lang.Text("Setup.Misc.System.ImportSettings.Success.Message"),
-                    Buttons = DialogButtons.Ok
+                    Buttons = DialogButtons.From(
+                        DialogButton.Create(
+                            Lang.Text("Setup.Misc.System.ImportSettings.Success.Restart"))),
+                    ForceWait = true
                 });
+            // 导入的配置需要重启后生效；与 WPF 一样立即重启启动器。
+            UiSeamInteraction.Restart();
         }
         catch (Exception ex)
         {
@@ -257,7 +290,7 @@ public partial class PageSetupLauncherMisc : MyPageRight, ISetupResetPage
 
     #region 停止使用 PCL CE
 
-    private async Task StopUsingPclCeAsync()
+    private static async Task StopUsingPclCeAsync()
     {
         try
         {
@@ -357,6 +390,7 @@ public partial class PageSetupLauncherMisc : MyPageRight, ISetupResetPage
         }
 
         UiSeamInteraction.Shutdown();
+        return;
 
         static void DeleteFiles(IEnumerable<string> paths)
         {
@@ -368,6 +402,7 @@ public partial class PageSetupLauncherMisc : MyPageRight, ISetupResetPage
                 }
                 catch (Exception)
                 {
+                    // ignored
                 }
         }
     }

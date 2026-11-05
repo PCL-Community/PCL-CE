@@ -13,11 +13,11 @@ namespace PCL.Views.Pages.Tools;
 /// </summary>
 public partial class PageToolsLeft : MyPageLeft
 {
+    private readonly MyIconButton _btnRefresh;
     private readonly List<(TextBlock Title, Func<bool> IsCategoryHidden)> _categories = [];
     private readonly List<(PageSubType Sub, MyListItem Item, Func<bool> IsHidden)> _items = [];
+    private bool _hiddenStateSubscribed;
     private bool _isSynchronizing;
-
-    private readonly MyIconButton _btnRefresh;
 
     public PageToolsLeft()
     {
@@ -40,6 +40,7 @@ public partial class PageToolsLeft : MyPageLeft
             LogoScale = 0.85
         };
         ToolTip.SetTip(_btnRefresh, Lang.Text("Common.Action.Refresh"));
+        ToolTip.SetPlacement(_btnRefresh, PlacementMode.Right);
         _btnRefresh.Click += (_, _) =>
         {
             Select(PageSubType.ToolsGameLink);
@@ -48,8 +49,23 @@ public partial class PageToolsLeft : MyPageLeft
         };
         ItemGameLink.Buttons = [_btnRefresh];
 
-        HiddenFeatureState.Changed += ApplyHiddenState;
-        Loaded += (_, _) => ApplyHiddenState();
+        AttachedToVisualTree += (_, _) =>
+        {
+            if (!_hiddenStateSubscribed)
+            {
+                HiddenFeatureState.Changed += ApplyHiddenState;
+                _hiddenStateSubscribed = true;
+            }
+
+            ApplyHiddenState();
+        };
+        DetachedFromVisualTree += (_, _) =>
+        {
+            if (!_hiddenStateSubscribed)
+                return;
+            HiddenFeatureState.Changed -= ApplyHiddenState;
+            _hiddenStateSubscribed = false;
+        };
     }
 
     protected override void RefreshLocalization()

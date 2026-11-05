@@ -1,23 +1,21 @@
-using System.IO;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
-using Rectangle = Avalonia.Controls.Shapes.Rectangle;
 using Avalonia.Threading;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
-using PCL.Core.Logging;
 using PCL.Core.Minecraft.Profile;
 using PCL.Core.Minecraft.Profile.Models;
-using PCL.Core.Utils.Exts;
-using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
+using PCL.Core.UI.Theme;
+using PCL.Core.Utils.Exts;
 using PCL.Navigation;
 using PCL.Network;
 using PCL.UI.Controls;
 using PCL.UI.Seams;
 using PCL.Views.Pages.Homepage;
 using PCL.Views.Shell;
+using Rectangle = Avalonia.Controls.Shapes.Rectangle;
 using static PCL.Animations;
 
 namespace PCL.Views.Pages.Launch;
@@ -30,24 +28,6 @@ namespace PCL.Views.Pages.Launch;
 /// </summary>
 public partial class PageLaunchLeft : MyPageLeft, ISeamLaunchPage, IShellShortcutTarget
 {
-    private enum LaunchButtonAction
-    {
-        Loading,
-        Launch,
-        Download,
-        Disabled
-    }
-
-    private enum LaunchPageKind
-    {
-        None,
-        Auth,
-        Ms,
-        Profile,
-        ProfileSkin,
-        Offline
-    }
-
     private readonly MyButton _btnCancel;
     private readonly MyButton _btnInstance;
     private readonly MyButton _btnLaunch;
@@ -59,30 +39,30 @@ public partial class PageLaunchLeft : MyPageLeft, ISeamLaunchPage, IShellShortcu
     private readonly TextBlock _labLaunchingStage;
     private readonly TextBlock _labVersion;
     private readonly MyLoading _loadLaunching;
-    private readonly Rectangle _progressFinished;
+    private readonly List<KeyValuePair<LaunchPageKind, Control>> _loginPages = [];
     private readonly Grid _panInput;
     private readonly Grid _panLaunch;
     private readonly Grid _panLaunching;
     private readonly Grid _panLaunchingHint;
     private readonly Grid _panLaunchingInfo;
     private readonly Grid _panLogin;
+    private readonly Rectangle _progressFinished;
+    private double _actualUsedHeight = double.NaN;
+    private double _actualUsedWidth = double.NaN;
 
     private bool _isFirstLoad;
+    private bool _isInfoHeightAnimating;
+
+    private bool _isInfoWidthAnimating;
     private bool _isLoadFinished;
-    private bool _isShowingLaunching;
-    private int _launchButtonState = -1;
-    private string? _launchButtonLanguage;
     private LaunchButtonAction _launchButtonAction = LaunchButtonAction.Loading;
+    private string? _launchButtonLanguage;
+    private ScaleTransform? _launchButtonScale;
+    private int _launchButtonState = -1;
     private McInstance? _launchButtonVersion;
     private Loading.LoaderBase? _launchingStageLoader;
     private LaunchPageKind _loginPageCurrent = LaunchPageKind.None;
-    private readonly List<KeyValuePair<LaunchPageKind, Control>> _loginPages = [];
     private double _showProgress;
-
-    private bool _isInfoWidthAnimating;
-    private bool _isInfoHeightAnimating;
-    private double _actualUsedWidth = double.NaN;
-    private double _actualUsedHeight = double.NaN;
 
     public PageLaunchLeft()
     {
@@ -106,15 +86,13 @@ public partial class PageLaunchLeft : MyPageLeft, ISeamLaunchPage, IShellShortcu
         _labLaunchingHint = this.FindControl<TextBlock>("LabLaunchingHint")!;
         _gridProgress = this.FindControl<Grid>("GridLaunchProgress")!;
         _loadLaunching = this.FindControl<MyLoading>("LoadLaunching")!;
+        _loadLaunching.Text = string.Empty;
 
         _progressFinished = this.FindControl<Rectangle>("ProgressFinished")!;
         RefreshProgressGradient();
         ActualThemeVariantChanged += (_, _) => RefreshProgressGradient();
-
-        ContainerTheme.BindDynamic(
-            this.FindControl<MyDropShadow>("ShadowLaunching")!,
-            MyDropShadow.ColorProperty,
-            "ColorObject2");
+        ThemeService.ColorModeChanged += (_, _) => RefreshProgressGradient();
+        ThemeService.ColorThemeChanged += _ => RefreshProgressGradient();
 
         this.FindControl<Border>("HintBorder")!.Clip = new CombinedGeometry(
             GeometryCombineMode.Exclude,
@@ -123,16 +101,7 @@ public partial class PageLaunchLeft : MyPageLeft, ISeamLaunchPage, IShellShortcu
 
         _labVersion.RenderTransformOrigin = new RelativePoint(0.5d, -0.2d, RelativeUnit.Relative);
         _labVersion.RenderTransform = new ScaleTransform(1d, 1d);
-        _btnLaunch.PointerPressed += (_, _) => AniStart(
-            AaScaleTransform(
-                _labVersion,
-                0.955d - GetVersionScale().ScaleX,
-                80,
-                ease: new AniEaseOutFluent(AniEasePower.ExtraStrong)),
-            "Launch Version Scale");
-        _btnLaunch.PointerReleased += (_, _) => AniStart(
-            AaScaleTransform(_labVersion, 1d - GetVersionScale().ScaleX, 80, ease: new AniEaseOutFluent()),
-            "Launch Version Scale");
+        AttachVersionScale();
 
         _panLaunchingInfo.SizeChanged += OnLaunchingInfoSizeChanged;
 
@@ -153,6 +122,8 @@ public partial class PageLaunchLeft : MyPageLeft, ISeamLaunchPage, IShellShortcu
             if (_isFirstLoad)
                 RefreshPage(false);
             InitializePage();
+            AttachVersionScale();
+            ResetAprilState();
             RefreshButtonsUI();
             RefreshProgressGradient();
         };
@@ -160,7 +131,7 @@ public partial class PageLaunchLeft : MyPageLeft, ISeamLaunchPage, IShellShortcu
 
     public static PageLaunchLeft? Current { get; private set; }
 
-    public bool IsShowingLaunching => _isShowingLaunching;
+    public bool IsShowingLaunching { get; private set; }
 
     public override void OnNavigatedTo(object? parameter)
     {
@@ -170,6 +141,24 @@ public partial class PageLaunchLeft : MyPageLeft, ISeamLaunchPage, IShellShortcu
 
     public override void OnNavigatedFrom()
     {
+    }
+
+    private enum LaunchButtonAction
+    {
+        Loading,
+        Launch,
+        Download,
+        Disabled
+    }
+
+    private enum LaunchPageKind
+    {
+        None,
+        Auth,
+        Ms,
+        Profile,
+        ProfileSkin,
+        Offline
     }
 
     #region 本地化
@@ -216,7 +205,7 @@ public partial class PageLaunchLeft : MyPageLeft, ISeamLaunchPage, IShellShortcu
 
     private string GetLaunchingTitleText()
     {
-        return _isShowingLaunching && _showProgress >= 1d
+        return IsShowingLaunching && _showProgress >= 1d
             ? Lang.Text("Launch.Status.Title.Launched")
             : GameLaunch.currentLaunchOptions?.SaveBatch is null
                 ? Lang.Text("Launch.Status.Title.Launching")
@@ -266,19 +255,29 @@ public partial class PageLaunchLeft : MyPageLeft, ISeamLaunchPage, IShellShortcu
         }
 
         RefreshPage(false);
-        LauncherCommon.RunInNewThread(LoadInstanceAsync, "Instance Check", ThreadPriority.AboveNormal);
+        LauncherCommon.RunInNewThread(
+            LoadInstanceAsync,
+            "Instance Check",
+            ThreadPriority.AboveNormal);
     }
 
     /// <summary>
     ///     后台确认游戏文件夹与当前实例，完成后在 UI 线程刷新按钮与账号区。
     /// </summary>
-    // TODO(FIX-P3-16): 启动时自动安装 modpack.zip/.mrpack 的流程未移植（依赖整合包安装与文件夹添加接口）。
     private void LoadInstanceAsync()
     {
         McInstance? instance = null;
         try
         {
+            // 自动整合包安装：先切换到启动器目录下的 .minecraft，再在确认文件夹后执行安装。
+            var packInstallPath = ResolveAutoModpackPath();
+            if (packInstallPath is not null)
+                PrepareAutoModpackFolder();
+
             var folderPath = ResolveMinecraftFolder();
+
+            if (packInstallPath is not null)
+                InstallAutoModpack(packInstallPath);
 
             var selection = States.Game.SelectedInstance;
             if (!string.IsNullOrEmpty(selection))
@@ -307,6 +306,82 @@ public partial class PageLaunchLeft : MyPageLeft, ISeamLaunchPage, IShellShortcu
             RefreshButtonsUI();
             RefreshPage(false);
         });
+    }
+
+    private static string? ResolveAutoModpackPath()
+    {
+        var executableDirectory = LauncherPaths.ExecutableDirectory;
+        var zipPath = Path.Combine(executableDirectory, "modpack.zip");
+        var mrpackPath = Path.Combine(executableDirectory, "modpack.mrpack");
+        string? installPath = null;
+        if (File.Exists(zipPath))
+            installPath = zipPath;
+        if (File.Exists(mrpackPath))
+            installPath = mrpackPath;
+        if (installPath is not null && !RestrictedFeatures.Check("auto-modpack-install"))
+            installPath = null;
+        return installPath;
+    }
+
+    private static void PrepareAutoModpackFolder()
+    {
+        var separator = Path.DirectorySeparatorChar;
+        var folder = Path.Combine(LauncherPaths.ExecutableDirectory, ".minecraft") + separator;
+        States.Game.SelectedFolder = "$.minecraft" + separator;
+        if (!Directory.Exists(folder))
+        {
+            Directory.CreateDirectory(folder);
+            Directory.CreateDirectory(Path.Combine(folder, "versions"));
+            GameFolders.McFolderLauncherProfilesJsonCreate(folder);
+        }
+
+        var displayName = GetFolderDisplayName(folder);
+        var folders = (States.Game.Folders ?? "")
+            .Split('|', StringSplitOptions.RemoveEmptyEntries)
+            .ToList();
+        if (!folders.Any(entry => entry.EndsWith(">" + folder, StringComparison.OrdinalIgnoreCase)))
+            folders.Add($"{displayName}>{folder}");
+        States.Game.Folders = string.Join("|", folders);
+        GameFolders.mcFolderSelected = folder;
+    }
+
+    private static string GetFolderDisplayName(string folder)
+    {
+        var separator = Path.DirectorySeparatorChar;
+        var trimmed = folder.TrimEnd(separator);
+        var name = Path.GetFileName(trimmed) ?? "";
+        if (name == ".minecraft")
+            name = Path.GetFileName(Path.GetDirectoryName(trimmed) ?? "") ?? "";
+        if (string.IsNullOrWhiteSpace(name))
+            name = "Minecraft";
+        return name.Length > 40 ? name[..39] : name;
+    }
+
+    private static void InstallAutoModpack(string installPath)
+    {
+        try
+        {
+            LauncherCommon.Log("[Launch] 需自动安装整合包：" + installPath);
+            var installLoader = Modpack.ModpackInstall(installPath);
+            installLoader.WaitForExit();
+            if (installLoader.State == LoadState.Finished && File.Exists(installPath))
+            {
+                LauncherCommon.Log("[Launch] 自动安装整合包成功，清理安装包：" + installPath);
+                File.Delete(installPath);
+            }
+        }
+        catch (CancelledException ex)
+        {
+            LauncherCommon.Log(ex, "自动安装整合包被用户取消：" + installPath);
+        }
+        catch (Exception ex)
+        {
+            LauncherCommon.Log(
+                ex,
+                Lang.Text("Select.Folder.Error.InstallPack", installPath),
+                LauncherLogLevel.Feedback,
+                userSummary: Lang.Text("Select.Folder.Error.InstallPack", installPath));
+        }
     }
 
     private static string ResolveMinecraftFolder()
@@ -358,11 +433,11 @@ public partial class PageLaunchLeft : MyPageLeft, ISeamLaunchPage, IShellShortcu
     {
         McInstance? first = null;
         foreach (var list in InstanceList.mcInstanceList.Values)
-            foreach (var instance in list)
-            {
-                first ??= instance;
-                break;
-            }
+        foreach (var instance in list)
+        {
+            first ??= instance;
+            break;
+        }
 
         return first is null || first.Logo.Contains("RedstoneBlock") ? null : first;
     }
@@ -374,9 +449,7 @@ public partial class PageLaunchLeft : MyPageLeft, ISeamLaunchPage, IShellShortcu
     public void RefreshButtonsUI()
     {
         int currentState;
-        if (!_isLoadFinished
-            || InstanceList.mcInstanceListLoader.State == LoadState.Loading
-            || GameFolders.McFolderListLoader.State == LoadState.Loading)
+        if (!_isLoadFinished)
             currentState = 0;
         else if (InstanceList.McMcInstanceSelected is null)
             currentState = Config.Preference.Hide.PageDownload ? 1 : 2;
@@ -421,7 +494,8 @@ public partial class PageLaunchLeft : MyPageLeft, ISeamLaunchPage, IShellShortcu
             2 => true,
             _ => ProfileService.Current is not null
         };
-        var instanceButtonVisible = !Config.Preference.Hide.FunctionSelect || HiddenFeatureState.ForceShow;
+        var instanceButtonVisible =
+            !Config.Preference.Hide.FunctionSelect || HiddenFeatureState.ForceShow;
         _btnInstance.IsVisible = instanceButtonVisible;
         _btnMore.IsVisible = currentState == 3 && instanceButtonVisible;
     }
@@ -438,7 +512,8 @@ public partial class PageLaunchLeft : MyPageLeft, ISeamLaunchPage, IShellShortcu
                     return;
                 if (File.Exists(InstanceList.McMcInstanceSelected.PathInstance + ".pclignore"))
                 {
-                    HintService.Show(Hints.Error(Lang.Text("Launch.Home.Instance.InstallingCannotLaunch")));
+                    HintService.Show(
+                        Hints.Error(Lang.Text("Launch.Home.Instance.InstallingCannotLaunch")));
                     return;
                 }
 
@@ -447,17 +522,22 @@ public partial class PageLaunchLeft : MyPageLeft, ISeamLaunchPage, IShellShortcu
             case LaunchButtonAction.Download:
                 PageRouter.Navigate(PageType.Download, PageSubType.DownloadInstall);
                 break;
+            case LaunchButtonAction.Loading:
+            case LaunchButtonAction.Disabled:
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
         }
     }
 
-    private void SelectInstance()
+    private static void SelectInstance()
     {
         if (GameLaunch.mcLaunchLoader.State == LoadState.Loading)
             return;
         PageRouter.Navigate(PageType.InstanceSelect);
     }
 
-    private void OpenInstanceSettings()
+    private static void OpenInstanceSettings()
     {
         if (GameLaunch.mcLaunchLoader.State == LoadState.Loading)
             return;
@@ -518,26 +598,51 @@ public partial class PageLaunchLeft : MyPageLeft, ISeamLaunchPage, IShellShortcu
         return this.TryFindResource(key, out var value) && value is Color color ? color : fallback;
     }
 
-    private ScaleTransform GetVersionScale()
+    /// <summary>
+    ///     让版本号跟随启动按钮内层控件的真实缩放，包含按下、松开与悬停动画。
+    /// </summary>
+    private void AttachVersionScale()
     {
-        if (_labVersion.RenderTransform is ScaleTransform scale)
-            return scale;
-        scale = new ScaleTransform(1d, 1d);
-        _labVersion.RenderTransform = scale;
-        return scale;
+        if (_btnLaunch.RealRenderTransform is not ScaleTransform scale)
+            return;
+        if (ReferenceEquals(scale, _launchButtonScale))
+            return;
+
+        if (_launchButtonScale is not null)
+            _launchButtonScale.PropertyChanged -= OnLaunchButtonScaleChanged;
+        _launchButtonScale = scale;
+        _launchButtonScale.PropertyChanged += OnLaunchButtonScaleChanged;
+        ApplyVersionScale();
+    }
+
+    private void OnLaunchButtonScaleChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property == ScaleTransform.ScaleXProperty
+            || e.Property == ScaleTransform.ScaleYProperty)
+            ApplyVersionScale();
+    }
+
+    private void ApplyVersionScale()
+    {
+        if (_labVersion.RenderTransform is not ScaleTransform scale)
+            return;
+        scale.ScaleX = _launchButtonScale?.ScaleX ?? 1d;
+        scale.ScaleY = _launchButtonScale?.ScaleY ?? 1d;
     }
 
     private void OnLaunchingInfoSizeChanged(object? sender, SizeChangedEventArgs e)
     {
         var deltaWidth = e.NewSize.Width - e.PreviousSize.Width;
-        if (e.PreviousSize.Width > 0d && !_isInfoWidthAnimating && Math.Abs(deltaWidth) >= 1d
+        if (e.PreviousSize.Width > 0d
+            && !_isInfoWidthAnimating
+            && Math.Abs(deltaWidth) >= 1d
             && _panLaunchingInfo.Bounds.Width > 0d)
         {
             _isInfoWidthAnimating = true;
             _actualUsedWidth = _panLaunchingInfo.Width;
             var previousWidth = e.PreviousSize.Width;
             AniStart(
-                new AniData[]
+                new[]
                 {
                     AaWidth(_panLaunchingInfo, deltaWidth, 180, ease: new AniEaseOutFluent()),
                     AaCode(
@@ -553,14 +658,16 @@ public partial class PageLaunchLeft : MyPageLeft, ISeamLaunchPage, IShellShortcu
         }
 
         var deltaHeight = e.NewSize.Height - e.PreviousSize.Height;
-        if (e.PreviousSize.Height > 0d && !_isInfoHeightAnimating && Math.Abs(deltaHeight) >= 1d
+        if (e.PreviousSize.Height > 0d
+            && !_isInfoHeightAnimating
+            && Math.Abs(deltaHeight) >= 1d
             && _panLaunchingInfo.Bounds.Height > 0d)
         {
             _isInfoHeightAnimating = true;
             _actualUsedHeight = _panLaunchingInfo.Height;
             var previousHeight = e.PreviousSize.Height;
             AniStart(
-                new AniData[]
+                new[]
                 {
                     AaHeight(_panLaunchingInfo, deltaHeight, 180, ease: new AniEaseOutFluent()),
                     AaCode(
@@ -582,17 +689,22 @@ public partial class PageLaunchLeft : MyPageLeft, ISeamLaunchPage, IShellShortcu
 
     public void PageChangeToLaunching()
     {
-        _isShowingLaunching = true;
+        IsShowingLaunching = true;
         _showProgress = 0d;
         _launchingStageLoader = null;
         _labLaunchingName.Text = InstanceList.McMcInstanceSelected?.Name ?? "";
         _labLaunchingStage.Text = Lang.Text("Common.Action.Initialize");
         _labLaunchingProgress.Text = Lang.Number(0d, "P2");
-        _labLaunchingHint.Text = "";
+        _labLaunchingHint.Text = Config.Preference.ShowLaunchingHint
+            ? HomepageHints.GetRandomHint(true, true)
+            : "";
         _gridProgress.ColumnDefinitions[0].Width = new GridLength(0d, GridUnitType.Star);
         _gridProgress.ColumnDefinitions[1].Width = new GridLength(1d, GridUnitType.Star);
         _labLaunchingProgress.IsVisible = true;
-        this.FindControl<TextBlock>("LabLaunchingProgressLeft")!.IsVisible = true;
+        _labLaunchingProgress.Opacity = 1d;
+        var progressLeft = this.FindControl<TextBlock>("LabLaunchingProgressLeft")!;
+        progressLeft.IsVisible = true;
+        progressLeft.Opacity = 0.6d;
         this.FindControl<TextBlock>("LabLaunchingDownload")!.Opacity = 0d;
         this.FindControl<TextBlock>("LabLaunchingDownloadLeft")!.Opacity = 0d;
         _panLaunchingHint.IsVisible = false;
@@ -613,6 +725,7 @@ public partial class PageLaunchLeft : MyPageLeft, ISeamLaunchPage, IShellShortcu
 
         _panInput.IsHitTestVisible = false;
         _panLaunching.IsHitTestVisible = false;
+        _loadLaunching.Text = string.Empty;
         _loadLaunching.State.LoadingState = LoadingState.Run;
         _panLaunching.IsVisible = true;
 
@@ -635,7 +748,9 @@ public partial class PageLaunchLeft : MyPageLeft, ISeamLaunchPage, IShellShortcu
 
     public void PageChangeToLogin()
     {
-        _isShowingLaunching = false;
+        IsShowingLaunching = false;
+        if (FindLoginPage(_loginPageCurrent) is null)
+            RefreshPage(false);
         if (FindLoginPage(_loginPageCurrent) is ILoginPage loginPage)
             loginPage.Reload();
         _panInput.IsHitTestVisible = false;
@@ -673,7 +788,7 @@ public partial class PageLaunchLeft : MyPageLeft, ISeamLaunchPage, IShellShortcu
             return;
         }
 
-        if (!_isShowingLaunching)
+        if (!IsShowingLaunching)
             return;
         var launchLoader = GameLaunch.mcLaunchLoaderReal;
         if (launchLoader is null || launchLoader.State == LoadState.Aborted)
@@ -737,7 +852,10 @@ public partial class PageLaunchLeft : MyPageLeft, ISeamLaunchPage, IShellShortcu
                     new List<AniData>
                     {
                         AaOpacity(downloadText, downloadOpacity - downloadText.Opacity, 100),
-                        AaOpacity(downloadLeft, (hasLaunchDownloader ? 0.5d : 0d) - downloadLeft.Opacity, 100)
+                        AaOpacity(
+                            downloadLeft,
+                            (hasLaunchDownloader ? 0.5d : 0d) - downloadLeft.Opacity,
+                            100)
                     },
                     "Launching Download");
 
@@ -751,7 +869,10 @@ public partial class PageLaunchLeft : MyPageLeft, ISeamLaunchPage, IShellShortcu
                 }
 
                 AniStart(
-                    AaOpacity(_panLaunchingHint, (shouldShowHint ? 1d : 0d) - _panLaunchingHint.Opacity, 100),
+                    AaOpacity(
+                        _panLaunchingHint,
+                        (shouldShowHint ? 1d : 0d) - _panLaunchingHint.Opacity,
+                        100),
                     "Launching Hint");
                 if (!shouldShowHint)
                     _panLaunchingHint.IsVisible = false;
@@ -899,15 +1020,20 @@ public partial class PageLaunchLeft : MyPageLeft, ISeamLaunchPage, IShellShortcu
         {
             LauncherCommon.Log(
                 ex,
-                Lang.Text("Launch.Account.Error.SwitchPage", LauncherCommon.GetStringFromEnum(kind) ?? ""),
+                Lang.Text(
+                    "Launch.Account.Error.SwitchPage",
+                    LauncherCommon.GetStringFromEnum(kind) ?? ""),
                 LauncherLogLevel.Feedback,
-                userSummary: Lang.Text("Launch.Account.Error.SwitchPage", LauncherCommon.GetStringFromEnum(kind) ?? ""));
+                userSummary: Lang.Text(
+                    "Launch.Account.Error.SwitchPage",
+                    LauncherCommon.GetStringFromEnum(kind) ?? ""));
         }
     }
 
     private void SwapLoginPage(Control pageNew)
     {
         AniBeginControl();
+        _panLogin.Opacity = 1d;
         _panLogin.Children.Clear();
         _panLogin.Children.Add(pageNew);
         (pageNew as ILoginPage)?.Reload();
@@ -966,11 +1092,20 @@ public partial class PageLaunchLeft : MyPageLeft, ISeamLaunchPage, IShellShortcu
 
     private void ResetAprilState()
     {
-        if (_panLaunch.RenderTransform is ScaleTransform scale)
-        {
-            scale.ScaleX = 1d;
-            scale.ScaleY = 1d;
-        }
+        if (_panLaunch.RenderTransform is not TransformGroup group)
+            return;
+        foreach (var transform in group.Children)
+            switch (transform)
+            {
+                case ScaleTransform scale:
+                    scale.ScaleX = 1d;
+                    scale.ScaleY = 1d;
+                    break;
+                case TranslateTransform translate:
+                    translate.X = 0d;
+                    translate.Y = 0d;
+                    break;
+            }
     }
 
     private void OnAuthlibServerDropped(string server)

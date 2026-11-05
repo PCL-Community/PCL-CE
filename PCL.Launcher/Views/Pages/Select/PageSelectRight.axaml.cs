@@ -2,15 +2,16 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Layout;
-using Avalonia.Media;
 using Avalonia.Threading;
 using PCL.Core.App;
+using PCL.Core.App.Configuration;
+using PCL.Core.App.Configuration.Storage;
 using PCL.Core.App.Localization;
 using PCL.Core.IO;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
 using PCL.Navigation;
 using PCL.UI.Controls;
-using PCL.Views.Pages;
 using PCL.Views.Shell;
 
 namespace PCL.Views.Pages.Select;
@@ -24,16 +25,12 @@ public partial class PageSelectRight : MyPageRight, IRefreshable, IShellShortcut
 {
     private const int NormalDelay = 75;
     private const int QuickDelay = 50;
-
-    public static PageSelectRight? Current { get; private set; }
-
-    private bool _isRefreshing;
-    private bool _refreshed;
-    private DateTime _lastInputTime = DateTime.MinValue;
-    private DispatcherTimer? _reloadTimer;
     private bool _isLoadInitialized;
 
-    public bool ShowHidden { get; set; }
+    private bool _isRefreshing;
+    private DateTime _lastInputTime = DateTime.MinValue;
+    private bool _refreshed;
+    private DispatcherTimer? _reloadTimer;
 
     public PageSelectRight()
     {
@@ -46,6 +43,27 @@ public partial class PageSelectRight : MyPageRight, IRefreshable, IShellShortcut
         BtnEmptyDownload.Click += (_, _) =>
             PageRouter.Navigate(PageType.Download, PageSubType.DownloadInstall);
         DetachedFromVisualTree += (_, _) => StopReloadTimer();
+    }
+
+    public static PageSelectRight? Current { get; private set; }
+
+    public bool ShowHidden { get; set; }
+
+    public void Refresh()
+    {
+        RefreshInstances(true);
+    }
+
+    public bool ToggleHiddenInstances()
+    {
+        ShowHidden = !ShowHidden;
+        RefreshInstances(true);
+        return true;
+    }
+
+    public bool LaunchGame()
+    {
+        return false;
     }
 
     private void EnsureLoaderInitialized()
@@ -83,20 +101,6 @@ public partial class PageSelectRight : MyPageRight, IRefreshable, IShellShortcut
     public override void OnNavigatedFrom()
     {
     }
-
-    public void Refresh()
-    {
-        RefreshInstances(true);
-    }
-
-    public bool ToggleHiddenInstances()
-    {
-        ShowHidden = !ShowHidden;
-        RefreshInstances(true);
-        return true;
-    }
-
-    public bool LaunchGame() => false;
 
     private void RefreshOnNavigate()
     {
@@ -152,12 +156,11 @@ public partial class PageSelectRight : MyPageRight, IRefreshable, IShellShortcut
                 return;
 
             _isRefreshing = true;
-            Dispatcher.UIThread.Post(
-                () =>
-                {
-                    McInstanceListUi(InstanceList.mcInstanceListLoader);
-                    _isRefreshing = false;
-                });
+            Dispatcher.UIThread.Post(() =>
+            {
+                McInstanceListUi(InstanceList.mcInstanceListLoader);
+                _isRefreshing = false;
+            });
             timer.Stop();
         };
         return timer;
@@ -184,15 +187,17 @@ public partial class PageSelectRight : MyPageRight, IRefreshable, IShellShortcut
 
             var hasAnyResults = false;
             var searchText = PanVerSearchBox.Text?.Trim().ToLower() ?? string.Empty;
-            var originalHasInstances = InstanceList.mcInstanceList
+            var originalHasInstances = InstanceList
+                .mcInstanceList
                 .ToArray()
                 .Any(card => card.Value.Count > 0);
 
             foreach (var card in InstanceList.mcInstanceList.ToArray())
             {
-                if ((card.Key == McInstanceCardType.Hidden) != ShowHidden)
+                if (card.Key == McInstanceCardType.Hidden != ShowHidden)
                     continue;
-                var filtered = card.Value
+                var filtered = card
+                    .Value
                     .Where(instance => MatchesSearch(instance, searchText))
                     .ToList();
                 if (filtered.Count == 0)
@@ -212,9 +217,9 @@ public partial class PageSelectRight : MyPageRight, IRefreshable, IShellShortcut
                     newCard,
                     "Title",
                     () => $"{Lang.Text(cardNameKey)}"
-                          + (cardType == McInstanceCardType.Star
-                              ? ""
-                              : $" ({Lang.Number(cardCount, "N0")})"));
+                        + (cardType == McInstanceCardType.Star
+                            ? ""
+                            : $" ({Lang.Number(cardCount, "N0")})"));
 
                 var stack = new StackPanel
                 {
@@ -231,7 +236,8 @@ public partial class PageSelectRight : MyPageRight, IRefreshable, IShellShortcut
                         panel.Children.Add(CreateInstanceItem(instance));
                 }
 
-                if (card.Key is McInstanceCardType.Rubbish or McInstanceCardType.Error
+                if (card.Key is McInstanceCardType.Rubbish
+                    or McInstanceCardType.Error
                     or McInstanceCardType.Fool)
                 {
                     newCard.IsSwapped = true;
@@ -258,22 +264,69 @@ public partial class PageSelectRight : MyPageRight, IRefreshable, IShellShortcut
                 return;
             }
 
-            if (ShowHidden)
+            // 完全没有实例：显示空态；隐藏实例模式下提示无隐藏实例。
+            if (!originalHasInstances)
             {
-                ShowEmptySearch(
-                    Lang.Text("Select.Instance.Hidden.EmptySearchTitle"),
-                    Lang.Text("Select.Instance.Search.EmptyInput"),
-                    originalHasInstances);
+                PanAllBack.IsVisible = false;
+                PanVerSearchBox.IsVisible = false;
+                PanEmptySearch.IsVisible = false;
+                PanEmpty.IsVisible = true;
+                if (ShowHidden)
+                {
+                    LabEmptyTitle.Text = Lang.Text("Select.Instance.Hidden.EmptyTitle");
+                    LabEmptyContent.Text = Lang.Text("Select.Instance.Hidden.EmptyMessage");
+                    BtnEmptyDownload.IsVisible = false;
+                }
+                else
+                {
+                    LabEmptyTitle.Text = Lang.Text("Select.Instance.Empty.Title");
+                    LabEmptyContent.Text = Lang.Text("Select.Instance.Empty.Message");
+                    BtnEmptyDownload.IsVisible =
+                        HiddenFeatureState.ForceShow || !Config.Preference.Hide.PageDownload;
+                }
+
                 return;
             }
 
-            PanVerSearchBox.IsVisible = false;
-            PanEmptySearch.IsVisible = false;
-            PanEmpty.IsVisible = true;
-            LabEmptyTitle.Text = Lang.Text("Select.Instance.Empty.Title");
-            LabEmptyContent.Text = Lang.Text("Select.Instance.Empty.Message");
-            BtnEmptyDownload.IsVisible = true;
-            PanAllBack.IsVisible = false;
+            if (ShowHidden)
+            {
+                var hasHiddenInstances = InstanceList
+                    .mcInstanceList
+                    .ToArray()
+                    .Any(card => card.Key == McInstanceCardType.Hidden && card.Value.Count > 0);
+                if (hasHiddenInstances)
+                {
+                    PanAllBack.IsVisible = true;
+                    PanVerSearchBox.IsVisible = true;
+                    PanEmpty.IsVisible = false;
+                    PanEmptySearch.IsVisible = true;
+                    LabEmptySearchTitle.Text = Lang.Text("Select.Instance.Hidden.EmptySearchTitle");
+                    LabEmptySearchContent.Text = string.IsNullOrWhiteSpace(searchText)
+                        ? Lang.Text("Select.Instance.Search.EmptyInput")
+                        : Lang.Text("Select.Instance.Search.NoHiddenResult", searchText);
+                }
+                else
+                {
+                    PanAllBack.IsVisible = false;
+                    PanVerSearchBox.IsVisible = false;
+                    PanEmpty.IsVisible = true;
+                    PanEmptySearch.IsVisible = false;
+                    LabEmptyTitle.Text = Lang.Text("Select.Instance.Hidden.EmptyTitle");
+                    LabEmptyContent.Text = Lang.Text("Select.Instance.Hidden.EmptyMessage");
+                    BtnEmptyDownload.IsVisible = false;
+                }
+
+                return;
+            }
+
+            PanAllBack.IsVisible = true;
+            PanVerSearchBox.IsVisible = true;
+            PanEmpty.IsVisible = false;
+            PanEmptySearch.IsVisible = true;
+            LabEmptySearchTitle.Text = Lang.Text("Select.Instance.EmptySearch.Title");
+            LabEmptySearchContent.Text = string.IsNullOrWhiteSpace(searchText)
+                ? Lang.Text("Select.Instance.Search.EmptyInput")
+                : Lang.Text("Select.Instance.Search.NoResult", searchText);
         }
         catch (Exception ex)
         {
@@ -283,16 +336,6 @@ public partial class PageSelectRight : MyPageRight, IRefreshable, IShellShortcut
                 LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Select.Instance.Error.UiUpdate"));
         }
-    }
-
-    private void ShowEmptySearch(string title, string content, bool keepList)
-    {
-        PanAllBack.IsVisible = keepList;
-        PanVerSearchBox.IsVisible = keepList;
-        PanEmpty.IsVisible = false;
-        PanEmptySearch.IsVisible = true;
-        LabEmptySearchTitle.Text = title;
-        LabEmptySearchContent.Text = content;
     }
 
     private static string GetCardNameKey(McInstanceCardType type, List<McInstance> instances)
@@ -346,9 +389,13 @@ public partial class PageSelectRight : MyPageRight, IRefreshable, IShellShortcut
         if (string.IsNullOrEmpty(searchText))
             return true;
         return (instance.Name ?? "").ToLower().Contains(searchText)
-               || (instance.Desc ?? "").ToLower().Contains(searchText)
-               || instance.GetDefaultDescription().Replace(",", "").ToLower().Trim()
-                   .Contains(searchText);
+            || (instance.Desc ?? "").ToLower().Contains(searchText)
+            || instance
+                .GetDefaultDescription()
+                .Replace(",", "")
+                .ToLower()
+                .Trim()
+                .Contains(searchText);
     }
 
     private static MyListItem CreateInstanceItem(McInstance instance)
@@ -508,7 +555,7 @@ public partial class PageSelectRight : MyPageRight, IRefreshable, IShellShortcut
         try
         {
             var isHintIndie = instance.state != McInstanceState.Error
-                              && (instance.PathIndie ?? "") != (GameFolders.mcFolderSelected ?? "");
+                && (instance.PathIndie ?? "") != (GameFolders.mcFolderSelected ?? "");
             // Shift 直接永久删除；否则优先走系统回收站。平台或所在卷没有回收站时，
             // 确认文案必须改写成“永久删除、不可恢复”，不能沿用“已移至回收站”的说法。
             var canRecycle = !permanent && RecycleBin.IsSupported(instance.PathInstance);
@@ -520,19 +567,30 @@ public partial class PageSelectRight : MyPageRight, IRefreshable, IShellShortcut
                         : "Select.Instance.Delete.ConfirmMessage",
                     instance.Name);
             var confirmFullMsg = confirmMsg
-                                 + (isHintIndie
-                                     ? "\n" + Lang.Text("Select.Instance.Delete.IsolatedWarning")
-                                     : "");
-            var dialog = await PCL.Core.UI.Dialogs.DialogService.Instance.ShowAsync(
-                new PCL.Core.UI.Dialogs.TextDialogRequest
+                + (isHintIndie
+                    ? "\n" + Lang.Text("Select.Instance.Delete.IsolatedWarning")
+                    : "");
+            var dialog = await DialogService.Instance.ShowAsync(
+                new TextDialogRequest
                 {
                     Title = Lang.Text("Select.Instance.Delete.ConfirmTitle"),
                     Content = confirmFullMsg,
-                    Buttons = PCL.Core.UI.Dialogs.DialogButtons.OkCancel,
+                    Buttons = DialogButtons.OkCancel,
                     IsWarn = true
                 });
             if (dialog.Button != 1)
                 return;
+
+            try
+            {
+                if (ConfigService.GetProvider(ConfigSource.GameInstance) is
+                    DynamicCacheConfigStorage storage)
+                    storage.InvalidateCache(instance.PathInstance);
+            }
+            catch (Exception ex)
+            {
+                LauncherCommon.Log(ex, "清除实例配置缓存失败");
+            }
 
             LaunchLogCache(instance);
             LauncherCommon.IniClearCache(Path.Combine(instance.PathIndie ?? "", "options.txt"));
@@ -545,7 +603,9 @@ public partial class PageSelectRight : MyPageRight, IRefreshable, IShellShortcut
                         LauncherCommon.DeleteDirectory(instance.PathInstance);
                         HintService.Show(
                             Hints.Success(
-                                Lang.Text("Select.Instance.Delete.PermanentSuccess", instance.Name)));
+                                Lang.Text(
+                                    "Select.Instance.Delete.PermanentSuccess",
+                                    instance.Name)));
                     }
                     catch (Exception ex)
                     {
@@ -589,10 +649,13 @@ public partial class PageSelectRight : MyPageRight, IRefreshable, IShellShortcut
         {
             case RecycleBin.Outcome.Moved:
                 HintService.Show(
-                    Hints.Success(Lang.Text("Select.Instance.Delete.RecycleBinSuccess", instance.Name)));
+                    Hints.Success(
+                        Lang.Text("Select.Instance.Delete.RecycleBinSuccess", instance.Name)));
                 return true;
             case RecycleBin.Outcome.Failed:
-                throw new IOException(error ?? Lang.Text("Select.Instance.Error.Delete", instance.Name));
+                throw new IOException(
+                    error ?? Lang.Text("Select.Instance.Error.Delete", instance.Name));
+            case RecycleBin.Outcome.Unsupported:
             default:
                 return false;
         }

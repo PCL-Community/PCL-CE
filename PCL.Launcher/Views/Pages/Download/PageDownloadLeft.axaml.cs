@@ -44,6 +44,12 @@ public partial class PageDownloadLeft : MyPageLeft, IPageView, IRefreshable
             item.Check += (_, _) => OnItemChecked(sub, item);
             item.Buttons = [CreateRefreshButton(sub)];
         }
+
+        ItemInstall.Click += (_, _) =>
+        {
+            if (_current == PageSubType.DownloadInstall && ItemInstall.Checked)
+                InstallItemReselected?.Invoke();
+        };
     }
 
     public override void OnNavigatedTo(object? parameter)
@@ -56,12 +62,39 @@ public partial class PageDownloadLeft : MyPageLeft, IPageView, IRefreshable
 
     public void Refresh()
     {
+        ClearCompCachesIfNeeded(_current);
         RefreshRequested?.Invoke(_current);
+    }
+
+    private static void ClearCompCachesIfNeeded(PageSubType sub)
+    {
+        if (sub is not (PageSubType.DownloadMod
+            or PageSubType.DownloadPack
+            or PageSubType.DownloadDataPack
+            or PageSubType.DownloadResourcePack
+            or PageSubType.DownloadShader
+            or PageSubType.DownloadWorld))
+            return;
+        Comp.compProjectCache.Clear();
+        Comp.compFilesCache.Clear();
+    }
+
+    protected override void RefreshLocalization()
+    {
+        foreach (var (_, item) in _items)
+        {
+            if (item.Buttons?.FirstOrDefault() is not { } button)
+                continue;
+            ToolTip.SetTip(button, Lang.Text("Common.Action.Refresh"));
+        }
     }
 
     public event Action<PageSubType>? PageSelected;
 
     public event Action<PageSubType>? RefreshRequested;
+
+    /// <summary>再次点击已经选中的「Minecraft」项时触发，用于退出安装配置阶段。</summary>
+    public event Action? InstallItemReselected;
 
     public void Select(PageSubType sub)
     {

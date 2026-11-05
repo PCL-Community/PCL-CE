@@ -127,6 +127,10 @@
                 </ControlTemplate>
             </Setter>
         </ControlTheme>
+
+        <ControlTheme x:Key="{x:Type ui:MyPasswordBox}"
+                      TargetType="ui:MyPasswordBox"
+                      BasedOn="{StaticResource {x:Type ui:MyTextBox}}" />
     </Styles.Resources>
 
     <!-- 验证失败时的边框基线；控件代码会在动画结束后恢复同一资源 -->

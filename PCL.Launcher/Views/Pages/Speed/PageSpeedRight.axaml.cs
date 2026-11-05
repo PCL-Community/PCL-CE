@@ -92,10 +92,8 @@ public partial class PageSpeedRight : MyPageRight, IRefreshable
         {
             var loaders = Loading.loaderTaskbar.ToList();
             var alive = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var loader in loaders)
+            foreach (var loader in loaders.Where(loader => loader.show))
             {
-                if (!loader.show)
-                    continue;
                 alive.Add(loader.name);
                 UpdateOrCreate(loader);
             }
@@ -137,6 +135,9 @@ public partial class PageSpeedRight : MyPageRight, IRefreshable
                     RemoveCard(loader.name);
                     return;
 
+                case LoadState.Waiting:
+                case LoadState.Loading:
+                case LoadState.Aborted:
                 default:
                     BuildProgress(existing, loader);
                     return;
@@ -148,15 +149,15 @@ public partial class PageSpeedRight : MyPageRight, IRefreshable
 
         var card = new MyCard
         {
-            Title = loader.DisplayName,
+            Title = loader.name,
             Margin = new Thickness(0d, 0d, 0d, 15d),
             UseAnimation = false,
             HasMouseAnimation = false
         };
         var grid = new Grid
         {
-            Margin = new Thickness(14d, MyCard.SwapedHeight, 15d, 12d),
-            ColumnDefinitions = new ColumnDefinitions("40,*")
+            Margin = new Thickness(14d, 40d, 15d, 10d),
+            ColumnDefinitions = new ColumnDefinitions("50,*")
         };
         var taskCard = new TaskCard
         {
@@ -171,7 +172,7 @@ public partial class PageSpeedRight : MyPageRight, IRefreshable
             SvgIcon = "lucide/x",
             Width = 25d,
             Height = 25d,
-            Margin = new Thickness(0d, 9d, 9d, 0d),
+            Margin = new Thickness(0d, 10d, 10d, 0d),
             LogoScale = 1.1d,
             HorizontalAlignment = HorizontalAlignment.Right,
             VerticalAlignment = VerticalAlignment.Top
@@ -193,14 +194,14 @@ public partial class PageSpeedRight : MyPageRight, IRefreshable
     private static void BuildProgress(TaskCard card, Loading.LoaderBase loader)
     {
         var subtasks = GetSubtasks(loader);
-        RebuildGrid(card, subtasks.Count);
+        RebuildGrid(card, subtasks.Count, new GridLength(26d));
         for (var row = 0; row < subtasks.Count; row++)
         {
             var subtask = subtasks[row];
             card.Grid.Children.Add(CreateSubtaskStateIcon(subtask, row));
             var label = new TextBlock
             {
-                Text = subtask.DisplayName,
+                Text = subtask.name,
                 VerticalAlignment = VerticalAlignment.Center
             };
             Grid.SetColumn(label, 1);
@@ -298,12 +299,13 @@ public partial class PageSpeedRight : MyPageRight, IRefreshable
         return control;
     }
 
-    private static void RebuildGrid(TaskCard card, int rowCount)
+    private static void RebuildGrid(TaskCard card, int rowCount, GridLength? rowHeight = null)
     {
         card.Grid.Children.Clear();
         card.Grid.RowDefinitions.Clear();
         for (var i = 0; i < rowCount; i++)
-            card.Grid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+            card.Grid.RowDefinitions.Add(
+                new RowDefinition(rowHeight ?? GridLength.Auto));
     }
 
     private void CancelLoader(Loading.LoaderBase loader, TaskCard card)

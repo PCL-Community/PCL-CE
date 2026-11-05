@@ -1,8 +1,13 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:ui="using:PCL.UI.Controls"
              xmlns:loc="using:PCL.Core.UI"
-             x:Class="PCL.Views.Pages.Launch.PageLoginOffline">
+             mc:Ignorable="d"
+             x:CompileBindings="False"
+             x:Class="PCL.Views.Pages.Launch.PageLoginOffline"
+             d:DesignWidth="317.6">
     <Grid Margin="0,0,0,-2"
           RowDefinitions="Auto,10,Auto,30,Auto,10,Auto,50,Auto,30"
           ColumnDefinitions="50,*">
@@ -15,6 +20,7 @@
                       Grid.Row="0"
                       Grid.Column="1"
                       Height="28"
+                      Text="{Binding UserName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                       ToolTip.Tip="{loc:Loc Launch.Account.Offline.PlayerId.ToolTip}" />
 
         <TextBlock Grid.Row="2"
@@ -63,6 +69,7 @@
                       Grid.Column="1"
                       Height="28"
                       IsVisible="False"
+                      Text="{Binding Uuid, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                       ToolTip.Tip="{loc:Loc Launch.Account.Offline.Uuid.Custom.Input.ToolTip}" />
 
         <ui:MyButton x:Name="BtnBack"

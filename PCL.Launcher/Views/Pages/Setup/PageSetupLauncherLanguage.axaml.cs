@@ -1,4 +1,3 @@
-using System.Globalization;
 using Avalonia.Threading;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
@@ -9,8 +8,7 @@ namespace PCL.Views.Pages.Setup;
 
 /// <summary>
 ///     语言设置页：界面语言、区域格式与多语言横幅。
-///     语言写入 <c>Config.Preference.Localization.Language</c> 后由 <c>LocalizationService</c> 重新加载语言资源，
-///     XAML 中的 <c>{loc:Loc}</c> 绑定与代码侧 <c>Lang.Text</c> 文本随即刷新。
+///     选择状态由 <see cref="PageSetupLauncherLanguageViewModel" /> 负责，页面构建带本地化名称的下拉项。
 /// </summary>
 public partial class PageSetupLauncherLanguage : MyPageRight, ISetupResetPage
 {
@@ -21,6 +19,7 @@ public partial class PageSetupLauncherLanguage : MyPageRight, ISetupResetPage
     {
         InitializeComponent();
         PanScroll = PanBack;
+        DataContext = ViewModel;
 
         ComboUiLanguage.SelectionChanged += (_, _) => OnLanguageChanged();
         ComboUiFormatCulture.SelectionChanged += (_, _) => OnFormatCultureChanged();
@@ -29,8 +28,6 @@ public partial class PageSetupLauncherLanguage : MyPageRight, ISetupResetPage
         BtnSubmitPullRequest.Click += (_, _) =>
             Basics.OpenPath("https://github.com/PCL-Community/PCL-CE/pulls");
 
-        LocalizationService.LanguageChanged += OnLanguageChangedExternally;
-
         Loaded += (_, _) =>
         {
             if (_loaded) return;
@@ -38,6 +35,8 @@ public partial class PageSetupLauncherLanguage : MyPageRight, ISetupResetPage
             Reload();
         };
     }
+
+    public PageSetupLauncherLanguageViewModel ViewModel { get; } = new();
 
     public void Reset()
     {
@@ -61,7 +60,8 @@ public partial class PageSetupLauncherLanguage : MyPageRight, ISetupResetPage
 
     public override void OnNavigatedTo(object? parameter)
     {
-        Reload();
+        PanBack.ScrollToHome();
+        if (_loaded) Reload();
     }
 
     public override void OnNavigatedFrom()
@@ -75,6 +75,7 @@ public partial class PageSetupLauncherLanguage : MyPageRight, ISetupResetPage
         {
             ReloadLanguageCombo();
             ReloadFormatCultureCombo();
+            ViewModel.Reload();
         }
         finally
         {
@@ -84,8 +85,7 @@ public partial class PageSetupLauncherLanguage : MyPageRight, ISetupResetPage
 
     protected override void RefreshLocalization()
     {
-        if (!_loaded) return;
-        Reload();
+        if (_loaded) Reload();
     }
 
     private void ReloadLanguageCombo()
@@ -95,7 +95,9 @@ public partial class PageSetupLauncherLanguage : MyPageRight, ISetupResetPage
         ComboUiLanguage.Items.Add(
             new MyComboBoxItem
             {
-                Content = Lang.Text("Setup.Language.UiLanguage.Auto", autoLanguage.NativeName),
+                Content = Lang.Text(
+                    "Setup.Language.UiLanguage.Auto",
+                    autoLanguage.NativeName),
                 Tag = LocalizationService.Auto,
                 FontFamily = LaunchFonts.BuildRepresentativeFontFamily(autoLanguage)
             });
@@ -108,7 +110,8 @@ public partial class PageSetupLauncherLanguage : MyPageRight, ISetupResetPage
                     FontFamily = LaunchFonts.BuildRepresentativeFontFamily(language)
                 });
 
-        var configValue = NormalizeConfigValue(Config.Preference.Localization.Language);
+        var configValue = PageSetupLauncherLanguageViewModel.NormalizeConfigValue(
+            Config.Preference.Localization.Language);
         ComboUiLanguage.SelectedIndex = ResolveLanguageIndex(configValue);
     }
 
@@ -128,43 +131,26 @@ public partial class PageSetupLauncherLanguage : MyPageRight, ISetupResetPage
                 Tag = LocalizationService.FormatCultureFollowLanguage
             });
 
-        var index = 2;
-        foreach (var culture in GetBuiltInFormatCultures())
-        {
+        foreach (var culture in PageSetupLauncherLanguageViewModel.GetBuiltInFormatCultures())
             ComboUiFormatCulture.Items.Add(
                 new MyComboBoxItem
                 {
                     Content = culture.NativeName,
                     Tag = culture.Name
                 });
-            index++;
-        }
 
-        var configValue = NormalizeConfigValue(Config.Preference.Localization.FormatCulture);
-        var target = -1;
-        for (var i = 0; i < ComboUiFormatCulture.ItemCount; i++)
-            if (ComboUiFormatCulture.Items[i] is MyComboBoxItem item
-                && string.Equals(
-                    item.Tag?.ToString(),
-                    configValue,
-                    StringComparison.OrdinalIgnoreCase))
-            {
-                target = i;
-                break;
-            }
-
-        if (target < 0 && TryGetCulture(configValue, out var customCulture))
-        {
+        var configValue = PageSetupLauncherLanguageViewModel.NormalizeConfigValue(
+            Config.Preference.Localization.FormatCulture);
+        if (!IsFormatCultureItemExisting(configValue)
+            && PageSetupLauncherLanguageViewModel.TryGetCulture(configValue, out var customCulture))
             ComboUiFormatCulture.Items.Add(
                 new MyComboBoxItem
                 {
                     Content = customCulture.NativeName,
                     Tag = customCulture.Name
                 });
-            target = ComboUiFormatCulture.ItemCount - 1;
-        }
 
-        ComboUiFormatCulture.SelectedIndex = target < 0 ? 0 : target;
+        ComboUiFormatCulture.SelectedIndex = ResolveFormatCultureIndex(configValue);
     }
 
     private void OnLanguageChanged()
@@ -179,6 +165,7 @@ public partial class PageSetupLauncherLanguage : MyPageRight, ISetupResetPage
             return;
         Config.Preference.Localization.Language = value;
         HintService.Show(Hints.Success(Lang.Text("Setup.Language.Changed"), false));
+        Dispatcher.UIThread.Post(Reload);
     }
 
     private void OnFormatCultureChanged()
@@ -193,41 +180,7 @@ public partial class PageSetupLauncherLanguage : MyPageRight, ISetupResetPage
             return;
         Config.Preference.Localization.FormatCulture = value;
         HintService.Show(Hints.Success(Lang.Text("Setup.Language.Changed"), false));
-    }
-
-    private void OnLanguageChangedExternally()
-    {
-        if (_reloading) return;
         Dispatcher.UIThread.Post(Reload);
-    }
-
-    private static IEnumerable<CultureInfo> GetBuiltInFormatCultures()
-    {
-        var used = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var language in LocalizationService.SupportedLanguages)
-        {
-            var culture = CultureInfo.GetCultureInfo(language.CultureName);
-            if (used.Add(culture.Name)) yield return culture;
-        }
-    }
-
-    private static string NormalizeConfigValue(string? value)
-    {
-        return string.IsNullOrWhiteSpace(value) ? LocalizationService.Auto : value;
-    }
-
-    private static bool TryGetCulture(string value, out CultureInfo culture)
-    {
-        try
-        {
-            culture = CultureInfo.GetCultureInfo(value);
-            return true;
-        }
-        catch (CultureNotFoundException)
-        {
-            culture = CultureInfo.InvariantCulture;
-            return false;
-        }
     }
 
     private static int ResolveLanguageIndex(string configValue)
@@ -247,5 +200,33 @@ public partial class PageSetupLauncherLanguage : MyPageRight, ISetupResetPage
         }
 
         return 0;
+    }
+
+    private static int ResolveFormatCultureIndex(string configValue)
+    {
+        if (string.Equals(
+                configValue,
+                LocalizationService.FormatCultureFollowLanguage,
+                StringComparison.OrdinalIgnoreCase))
+            return 1;
+        var index = 2;
+        foreach (var culture in PageSetupLauncherLanguageViewModel.GetBuiltInFormatCultures())
+        {
+            if (string.Equals(culture.Name, configValue, StringComparison.OrdinalIgnoreCase))
+                return index;
+            index++;
+        }
+
+        return PageSetupLauncherLanguageViewModel.TryGetCulture(configValue, out _) ? index : 0;
+    }
+
+    private bool IsFormatCultureItemExisting(string tag)
+    {
+        return ComboUiFormatCulture
+            .Items.OfType<MyComboBoxItem>()
+            .Any(item => string.Equals(
+                item.Tag?.ToString(),
+                tag,
+                StringComparison.OrdinalIgnoreCase));
     }
 }

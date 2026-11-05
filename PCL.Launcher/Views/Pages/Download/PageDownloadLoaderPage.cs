@@ -4,7 +4,6 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Layout;
 using Avalonia.Media;
-using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.UI;
 using PCL.Core.UI.Hints;
@@ -82,10 +81,10 @@ internal static class DownloadLoaderMeta
             DownloadLoaderKind.OptiFine => "https://www.optifine.net/",
             DownloadLoaderKind.Forge => "https://files.minecraftforge.net",
             DownloadLoaderKind.NeoForge => "https://neoforged.net/",
-            DownloadLoaderKind.Cleanroom => "https://github.com/CleanroomMC/Cleanroom",
-            DownloadLoaderKind.Fabric => "https://fabricmc.net",
+            DownloadLoaderKind.Cleanroom => "https://cleanroommc.com/zh/",
+            DownloadLoaderKind.Fabric => "https://www.fabricmc.net",
             DownloadLoaderKind.LegacyFabric => "https://legacyfabric.net/",
-            DownloadLoaderKind.LabyMod => "https://labymod.net/",
+            DownloadLoaderKind.LabyMod => "https://labymod.net",
             _ => "https://www.liteloader.com"
         };
     }
@@ -104,29 +103,97 @@ internal static class DownloadLoaderMeta
             _ => GameDownload.DlLiteLoaderListLoader
         };
     }
+
+    public static bool UsesVersionCard(DownloadLoaderKind kind)
+    {
+        return kind is DownloadLoaderKind.Fabric
+            or DownloadLoaderKind.LegacyFabric
+            or DownloadLoaderKind.LabyMod;
+    }
 }
 
 /// <summary>
 ///     加载器下载子页：展示简介与官方版本列表，点击版本可保存对应的安装器 Jar。
-///     列表与安装器下载使用业务层的真实加载器完成，不依赖安装管线。
+///     结构按 WPF 页面区分：Fabric / Legacy Fabric / LabyMod 使用单一版本卡片，
+///     Forge / NeoForge / Cleanroom / OptiFine / LiteLoader 使用按 MC 版本分组的可折叠卡片。
 /// </summary>
 internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefreshable
 {
+    private readonly MyButton _btnWebsite;
     private readonly MyCard _cardTip;
+    private readonly MyCard _cardVersions;
+    private readonly Dictionary<string, List<GameDownload.DlForgeVersionEntry>> _forgeCache = [];
     private readonly DownloadLoaderKind _kind;
+    private readonly TextBlock _labIntro;
     private readonly MyLoading _load;
     private readonly MyScrollViewer _panBack;
     private readonly MyCard _panLoad;
     private readonly StackPanel _panMain;
+    private readonly StackPanel _panVersions;
+    private bool _finished;
 
     public PageDownloadLoaderPage(DownloadLoaderKind kind)
     {
         _kind = kind;
 
+        _labIntro = new TextBlock
+        {
+            Text = Lang.Text(DownloadLoaderMeta.GetDescriptionKey(kind)),
+            TextWrapping = TextWrapping.Wrap,
+            Margin = new Thickness(0d, 0d, 0d, 11d)
+        };
+        _btnWebsite = new MyButton
+        {
+            MinWidth = 140d,
+            Padding = new Thickness(13d, 0d, 13d, 0d),
+            Margin = new Thickness(0d, 0d, 20d, 0d),
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Text = Lang.Text("Download.Version.OpenWebsite"),
+            ColorType = MyButton.ColorState.Highlight
+        };
+        var website = DownloadLoaderMeta.GetWebsite(kind);
+        _btnWebsite.Click += (_, _) => LauncherUi.Interaction?.OpenWebsite(website);
+
+        var buttonGrid = new Grid
+        {
+            Height = 35d,
+            ColumnDefinitions = new ColumnDefinitions("Auto")
+        };
+        buttonGrid.ColumnDefinitions[0].SharedSizeGroup = "Button";
+        buttonGrid.Children.Add(_btnWebsite);
+
+        var tipStack = new StackPanel
+        {
+            Margin = new Thickness(25d, 40d, 15d, 20d)
+        };
+        tipStack.Children.Add(_labIntro);
+        tipStack.Children.Add(buttonGrid);
+
+        _cardTip = new MyCard
+        {
+            Margin = new Thickness(20d, 20d, 20d, 0d),
+            Title = Lang.Text(DownloadLoaderMeta.GetTitleKey(kind))
+        };
+        _cardTip.Children.Add(tipStack);
+        Grid.SetIsSharedSizeScope(_cardTip, true);
+
+        _panVersions = new StackPanel
+        {
+            Margin = new Thickness(20d, 40d, 18d, 20d)
+        };
+        _cardVersions = new MyCard
+        {
+            Margin = new Thickness(20d, 15d, 20d, 20d),
+            Title = Lang.Text("Download.Version.VersionList")
+        };
+        _cardVersions.Children.Add(_panVersions);
+
         _panMain = new StackPanel
         {
-            Margin = new Thickness(20d, 15d, 20d, 20d)
+            Margin = new Thickness(20d, 15d, 20d, 5d)
         };
+        Grid.SetIsSharedSizeScope(_panMain, true);
+
         _load = new MyLoading
         {
             Margin = new Thickness(20d, 20d, 20d, 17d),
@@ -137,18 +204,28 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
         {
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Top,
-            Margin = new Thickness(40d, 50d, 40d, 0d),
+            Margin = new Thickness(40d, 50d, 40d, 50d),
             UseAnimation = false
         };
         _panLoad.Children.Add(_load);
-        _cardTip = CreateIntroCard(kind);
 
         var stack = new StackPanel
         {
             Margin = new Thickness(5d)
         };
         stack.Children.Add(_cardTip);
-        stack.Children.Add(_panMain);
+        Control content;
+        if (DownloadLoaderMeta.UsesVersionCard(kind))
+        {
+            stack.Children.Add(_cardVersions);
+            content = _cardVersions;
+        }
+        else
+        {
+            stack.Children.Add(_panMain);
+            content = _panMain;
+        }
+
         stack.Children.Add(_panLoad);
 
         _panBack = new MyScrollViewer
@@ -163,7 +240,7 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
         PageLoaderInit(
             _load,
             _panLoad,
-            _panMain,
+            content,
             _cardTip,
             DownloadLoaderMeta.GetListLoader(kind),
             _ => OnLoadFinished());
@@ -187,58 +264,75 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
     {
         _load.Text = Lang.Text(DownloadLoaderMeta.GetLoadingKey(_kind));
         _cardTip.Title = Lang.Text(DownloadLoaderMeta.GetTitleKey(_kind));
-    }
-
-    private static MyCard CreateIntroCard(DownloadLoaderKind kind)
-    {
-        var card = new MyCard
-        {
-            Margin = new Thickness(20d, 20d, 20d, 0d),
-            Title = Lang.Text(DownloadLoaderMeta.GetTitleKey(kind))
-        };
-        var panel = new StackPanel
-        {
-            Margin = new Thickness(25d, 40d, 15d, 20d),
-            Spacing = 11d
-        };
-        panel.Children.Add(
-            new TextBlock
-            {
-                Text = Lang.Text(DownloadLoaderMeta.GetDescriptionKey(kind)),
-                TextWrapping = TextWrapping.Wrap
-            });
-        var websiteButton = new MyButton
-        {
-            MinWidth = 140d,
-            Padding = new Thickness(13d, 0d, 13d, 0d),
-            HorizontalAlignment = HorizontalAlignment.Left,
-            Text = Lang.Text("Download.Version.OpenWebsite"),
-            ColorType = MyButton.ColorState.Highlight
-        };
-        var website = DownloadLoaderMeta.GetWebsite(kind);
-        websiteButton.Click += (_, _) => LauncherUi.Interaction?.OpenWebsite(website);
-        panel.Children.Add(websiteButton);
-        card.Children.Add(panel);
-        return card;
+        _labIntro.Text = Lang.Text(DownloadLoaderMeta.GetDescriptionKey(_kind));
+        _btnWebsite.Text = Lang.Text("Download.Version.OpenWebsite");
+        if (_finished)
+            OnLoadFinished();
     }
 
     private void OnLoadFinished()
     {
+        _finished = true;
         try
         {
+            if (DownloadLoaderMeta.UsesVersionCard(_kind))
+            {
+                _panVersions.Children.Clear();
+                switch (_kind)
+                {
+                    case DownloadLoaderKind.Fabric:
+                        BuildFabricVersions(false);
+                        break;
+                    case DownloadLoaderKind.LegacyFabric:
+                        BuildFabricVersions(true);
+                        break;
+                    case DownloadLoaderKind.LabyMod:
+                        BuildLabyModVersions();
+                        break;
+                    case DownloadLoaderKind.OptiFine:
+                    case DownloadLoaderKind.Forge:
+                    case DownloadLoaderKind.NeoForge:
+                    case DownloadLoaderKind.Cleanroom:
+                    case DownloadLoaderKind.LiteLoader:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+
+                return;
+            }
+
             _panMain.Children.Clear();
+            _forgeCache.Clear();
             switch (_kind)
             {
-                case DownloadLoaderKind.Fabric:
-                case DownloadLoaderKind.LegacyFabric:
-                    BuildInstallerJsonList();
+                case DownloadLoaderKind.Forge:
+                    BuildForgeMcList();
                     break;
                 case DownloadLoaderKind.NeoForge:
-                    BuildForgelikeList(GameDownload.DlNeoForgeListLoader.output.Value);
+                    BuildForgelikeGroups(
+                        GameDownload.DlNeoForgeListLoader.output.Value,
+                        entry => entry.Inherit,
+                        BuildNeoForgeRows);
+                    break;
+                case DownloadLoaderKind.Cleanroom:
+                    BuildForgelikeGroups(
+                        GameDownload.DlCleanroomListLoader.output.Value,
+                        entry => entry.Inherit,
+                        BuildCleanroomRows);
+                    break;
+                case DownloadLoaderKind.OptiFine:
+                    BuildOptiFineGroups();
+                    break;
+                case DownloadLoaderKind.LiteLoader:
+                    BuildLiteLoaderGroups();
+                    break;
+                case DownloadLoaderKind.Fabric:
+                case DownloadLoaderKind.LegacyFabric:
+                case DownloadLoaderKind.LabyMod:
                     break;
                 default:
-                    BuildSimpleList();
-                    break;
+                    throw new ArgumentOutOfRangeException();
             }
         }
         catch (Exception ex)
@@ -248,475 +342,62 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
         }
     }
 
-    private void BuildInstallerJsonList()
+    #region Fabric / Legacy Fabric
+
+    private void BuildFabricVersions(bool isLegacy)
     {
-        var result = _kind == DownloadLoaderKind.Fabric
-            ? GameDownload.DlFabricListLoader.output.Value
-            : GameDownload.DlLegacyFabricListLoader.output.Value;
+        var result = isLegacy
+            ? GameDownload.DlLegacyFabricListLoader.output.Value
+            : GameDownload.DlFabricListLoader.output.Value;
         if (result?["installer"] is not JsonArray installers)
             return;
 
-        var card = new MyCard
-        {
-            Margin = new Thickness(0d, 0d, 0d, 15d),
-            Title = Lang.Text("Download.Version.VersionListCount", installers.Count)
-        };
-        var stack = new StackPanel
-        {
-            Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d)
-        };
+        _cardVersions.Title = Lang.Text(
+            "Download.Version.VersionListCount",
+            installers.Count);
         foreach (var node in installers)
         {
             if (node is not JsonObject entry)
                 continue;
-            var version = entry["version"]?.ToString()?.Replace("+build", "") ?? "";
+            var rawVersion = entry["version"]?.ToString() ?? string.Empty;
+            var title = isLegacy ? rawVersion : rawVersion.Replace("+build", "");
+            var isStable = entry["stable"]?.GetValue<bool>() == true;
             var item = new MyListItem
             {
-                Title = version,
+                Title = title,
                 Height = 42d,
                 Type = MyListItem.CheckType.Clickable,
-                Logo = LauncherPaths.ImageRoot + "Blocks/Fabric.png",
-                LogoScale = 0.9,
-                Info = entry["stable"]?.GetValue<bool>() == true
-                    ? Lang.Text("Download.Version.Type.Stable")
-                    : Lang.Text("Download.Version.Type.Preview"),
-                tag = entry
+                Logo = $"{LauncherPaths.ImageRoot}Blocks/Fabric.png",
+                Info = Lang.Text(
+                    isStable
+                        ? "Download.Version.Type.Stable"
+                        : "Download.Version.Type.Preview")
             };
             item.Click += (_, _) => SaveInstaller(
                 [entry["url"]?.ToString() ?? ""],
-                LauncherCommon.GetFileNameFromPath(entry["url"]?.ToString() ?? version),
-                _kind == DownloadLoaderKind.Fabric
-                    ? "Download.Version.Installer.Fabric.Filter"
-                    : "Download.Version.Installer.LegacyFabric.Filter");
-            stack.Children.Add(item);
-        }
-
-        card.Children.Add(stack);
-        _panMain.Children.Add(card);
-    }
-
-    private void BuildForgelikeList(List<GameDownload.DlNeoForgeListEntry> entries)
-    {
-        if (entries is null)
-            return;
-        foreach (var group in entries
-                     .GroupBy(entry => entry.Inherit)
-                     .OrderByDescending(group => group.Key))
-        {
-            var card = new MyCard
+                LauncherCommon.GetFileNameFromPath(entry["url"]?.ToString() ?? title),
+                isLegacy
+                    ? "Download.Version.Installer.LegacyFabric.Filter"
+                    : "Download.Version.Installer.Fabric.Filter");
+            if (!isLegacy)
             {
-                Margin = new Thickness(0d, 0d, 0d, 15d),
-                Title = $"{group.Key} ({group.Count()})"
-            };
-            var stack = new StackPanel
-            {
-                Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d)
-            };
-            foreach (var entry in group)
-            {
-                var item = new MyListItem
+                var infoButton = new MyIconButton
                 {
-                    Title = entry.VersionName,
-                    Height = 42d,
-                    Type = MyListItem.CheckType.Clickable,
-                    Logo = LauncherPaths.ImageRoot + "Blocks/NeoForge.png",
-                    LogoScale = 0.9,
-                    Info = entry.IsBeta
-                        ? Lang.Text("Download.Version.Type.Preview")
-                        : Lang.Text("Download.Version.Type.Stable")
+                    SvgIcon = "lucide/info",
+                    LogoScale = 1.05d,
+                    Theme = MyIconButton.Themes.Custom
                 };
-                var captured = entry;
-                item.Click += (_, _) => SaveInstaller(
-                    [$"{captured.UrlBase}-installer.jar"],
-                    $"neoforge-{captured.ApiName}-installer.jar",
-                    null);
-                stack.Children.Add(item);
+                ToolTip.SetTip(infoButton, Lang.Text("Download.Version.Changelog"));
+                infoButton.Click += (_, _) =>
+                    LauncherUi.Interaction?.OpenWebsite("https://fabricmc.net/blog");
+                item.Buttons = [infoButton];
             }
 
-            card.Children.Add(stack);
-            _panMain.Children.Add(card);
+            _panVersions.Children.Add(item);
         }
     }
 
-    private void BuildSimpleList()
-    {
-        switch (_kind)
-        {
-            case DownloadLoaderKind.OptiFine:
-            {
-                foreach (var group in GameDownload
-                             .DlOptiFineListLoader.output.Value
-                             .GroupBy(entry => entry.Inherit ?? "")
-                             .OrderByDescending(group => group.Key))
-                {
-                    var card = new MyCard
-                    {
-                        Margin = new Thickness(0d, 0d, 0d, 15d),
-                        Title = $"{group.Key} ({group.Count()})"
-                    };
-                    var stack = new StackPanel
-                    {
-                        Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d)
-                    };
-                    foreach (var entry in group)
-                    {
-                        var item = new MyListItem
-                        {
-                            Title = entry.DisplayName ?? entry.NameFile ?? "",
-                            Height = 42d,
-                            Type = MyListItem.CheckType.Clickable,
-                            Logo = LauncherPaths.ImageRoot + "Blocks/GrassPath.png",
-                            LogoScale = 0.9,
-                            Info = entry.IsPreview
-                                ? Lang.Text("Download.Version.Type.Preview")
-                                : Lang.Text("Download.Version.Type.Release")
-                        };
-                        var captured = entry;
-                        item.Click += (_, _) => SaveOptiFine(captured);
-                        stack.Children.Add(item);
-                    }
-
-                    card.Children.Add(stack);
-                    _panMain.Children.Add(card);
-                }
-
-                break;
-            }
-            case DownloadLoaderKind.Cleanroom:
-            {
-                foreach (var group in GameDownload
-                             .DlCleanroomListLoader.output.Value
-                             .GroupBy(entry => entry.Inherit)
-                             .OrderByDescending(group => group.Key))
-                {
-                    var card = new MyCard
-                    {
-                        Margin = new Thickness(0d, 0d, 0d, 15d),
-                        Title = $"{group.Key} ({group.Count()})"
-                    };
-                    var stack = new StackPanel
-                    {
-                        Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d)
-                    };
-                    foreach (var entry in group)
-                    {
-                        var captured = entry;
-                        var item = new MyListItem
-                        {
-                            Title = entry.VersionName,
-                            Height = 42d,
-                            Type = MyListItem.CheckType.Clickable,
-                            Logo = LauncherPaths.ImageRoot + "Blocks/Cleanroom.png",
-                            LogoScale = 0.9,
-                            Info = entry.IsBeta
-                                ? Lang.Text("Download.Version.Type.Preview")
-                                : Lang.Text("Download.Version.Type.Stable")
-                        };
-                        item.Click += (_, _) => SaveInstaller(
-                            [$"{captured.UrlBase}-installer.jar"],
-                            $"cleanroom-{captured.ApiName}-installer.jar",
-                            null);
-                        stack.Children.Add(item);
-                    }
-
-                    card.Children.Add(stack);
-                    _panMain.Children.Add(card);
-                }
-
-                break;
-            }
-            case DownloadLoaderKind.LiteLoader:
-            {
-                var card = new MyCard
-                {
-                    Margin = new Thickness(0d, 0d, 0d, 15d),
-                    Title = Lang.Text(
-                        "Download.Version.VersionListCount",
-                        GameDownload.DlLiteLoaderListLoader.output.Value.Count)
-                };
-                var stack = new StackPanel
-                {
-                    Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d)
-                };
-                foreach (var entry in GameDownload.DlLiteLoaderListLoader.output.Value)
-                {
-                    var captured = entry;
-                    var item = new MyListItem
-                    {
-                        Title = entry.Inherit ?? "",
-                        Info = entry.FileName ?? "",
-                        Height = 42d,
-                        Type = MyListItem.CheckType.Clickable,
-                        Logo = LauncherPaths.ImageRoot + "Blocks/Egg.png",
-                        LogoScale = 0.9
-                    };
-                    item.Click += (_, _) => SaveInstaller(
-                        GetLiteLoaderUrls(captured),
-                        captured.FileName ?? "liteloader-installer.jar",
-                        null);
-                    stack.Children.Add(item);
-                }
-
-                card.Children.Add(stack);
-                _panMain.Children.Add(card);
-                break;
-            }
-            case DownloadLoaderKind.LabyMod:
-                BuildLabyModList();
-                break;
-            case DownloadLoaderKind.Forge:
-                BuildForgeMcList();
-                break;
-        }
-    }
-
-    private void BuildLabyModList()
-    {
-        var value = GameDownload.DlLabyModListLoader.output.Value;
-        var card = new MyCard
-        {
-            Margin = new Thickness(0d, 0d, 0d, 15d),
-            Title = Lang.Text("Download.Version.VersionList")
-        };
-        var stack = new StackPanel
-        {
-            Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d)
-        };
-        foreach (var channel in new[]
-                 {
-                     "production",
-                     "snapshot"
-                 })
-        {
-            var channelObject = value?[channel] as JsonObject;
-            if (channelObject is null)
-                continue;
-            var isSnapshot = channel == "snapshot";
-            var item = new MyListItem
-            {
-                Title = channelObject["labyModVersion"]?.ToString() ?? channel,
-                Height = 42d,
-                Type = MyListItem.CheckType.Clickable,
-                Logo = LauncherPaths.ImageRoot + "Blocks/LabyMod.png",
-                LogoScale = 0.9,
-                Info = channel
-            };
-            item.Click += (_, _) => SaveInstaller(
-                [
-                    isSnapshot
-                        ? "https://releases.labymod.net/api/v1/installer/snapshot/java"
-                        : "https://releases.labymod.net/api/v1/installer/production/java"
-                ],
-                isSnapshot ? "LabyMod4SnapshotInstaller.jar" : "LabyMod4ProductionInstaller.jar",
-                "Download.Version.Installer.LabyMod.Filter");
-            stack.Children.Add(item);
-        }
-
-        card.Children.Add(stack);
-        _panMain.Children.Add(card);
-    }
-
-    private void BuildForgeMcList()
-    {
-        var mcVersions = GameDownload.DlForgeListLoader.output.Value
-            .OrderByDescending(
-                version => version,
-                Comparer<string>.Create(McVersionComparer.CompareVersion));
-        foreach (var mcVersion in mcVersions)
-        {
-            var card = new MyCard
-            {
-                Margin = new Thickness(0d, 0d, 0d, 15d),
-                Title = mcVersion
-            };
-            var stack = new StackPanel
-            {
-                Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
-                Tag = mcVersion
-            };
-            card.Children.Add(stack);
-            card.SwapControl = stack;
-            card.InstallMethod = target =>
-            {
-                if (target.Tag is not string version)
-                    return;
-                LoadForgeVersions(target, version);
-            };
-            card.IsSwapped = true;
-            _panMain.Children.Add(card);
-        }
-    }
-
-    private void LoadForgeVersions(StackPanel target, string mcVersion)
-    {
-        target.Children.Clear();
-        var loading = new MyLoading
-        {
-            Margin = new Thickness(5d),
-            Text = Lang.Text("Download.Version.Forge.LoadingList")
-        };
-        var task = new Loading.LoaderTask<string, List<GameDownload.DlForgeVersionEntry>>(
-            "DlForgeVersion " + mcVersion,
-            GameDownload.DlForgeVersionMain);
-        loading.State = task;
-        task.OnStateChangedUi += (_, state, _) =>
-        {
-            switch (state)
-            {
-                case LoadState.Finished:
-                    target.Children.Remove(loading);
-                    FillForgeVersionList(target, task.output ?? []);
-                    break;
-                case LoadState.Failed:
-                    target.Children.Remove(loading);
-                    ShowForgeLoadError(target, task, mcVersion);
-                    break;
-                case LoadState.Aborted:
-                    target.Children.Remove(loading);
-                    break;
-            }
-        };
-        target.Children.Add(loading);
-        task.Start(mcVersion);
-    }
-
-    private void ShowForgeLoadError(
-        StackPanel target,
-        Loading.LoaderTask<string, List<GameDownload.DlForgeVersionEntry>> task,
-        string mcVersion)
-    {
-        target.Children.Add(
-            new TextBlock
-            {
-                Text = Lang.Text(
-                    "Download.Install.State.GetVersionListFailed",
-                    task.Error?.Message ?? Lang.Text("Download.Install.Error.OperationFailed")),
-                TextWrapping = TextWrapping.Wrap,
-                Margin = new Thickness(6d, 4d, 6d, 8d)
-            });
-        var retryButton = new MyButton
-        {
-            Text = Lang.Text("Common.Action.Refresh"),
-            HorizontalAlignment = HorizontalAlignment.Left,
-            MinWidth = 90d,
-            Padding = new Thickness(13d, 0d, 13d, 0d)
-        };
-        retryButton.Click += (_, _) => LoadForgeVersions(target, mcVersion);
-        target.Children.Add(retryButton);
-    }
-
-    private static void FillForgeVersionList(
-        StackPanel target,
-        List<GameDownload.DlForgeVersionEntry> entries)
-    {
-        var versions = entries.OrderByDescending(entry => entry.version).ToList();
-        if (versions.Count == 0)
-        {
-            target.Children.Add(
-                new TextBlock
-                {
-                    Text = Lang.Text("Download.Install.State.NoAvailableVersion"),
-                    Margin = new Thickness(6d, 4d, 6d, 8d)
-                });
-            return;
-        }
-
-        var latest = versions[0];
-        var recommended = versions.LastOrDefault(entry => entry.IsRecommended);
-        if (!ReferenceEquals(latest, recommended))
-            AddForgeVersionRow(target, recommended, "Download.Version.Type.Recommended");
-        AddForgeVersionRow(target, latest, "Download.Version.Latest.Title");
-        target.Children.Add(
-            new TextBlock
-            {
-                Text = Lang.Text("Download.Version.AllVersions", versions.Count),
-                HorizontalAlignment = HorizontalAlignment.Left,
-                Margin = new Thickness(6d, 13d, 0d, 4d)
-            });
-        foreach (var entry in versions)
-            AddForgeVersionRow(target, entry, null);
-    }
-
-    private static void AddForgeVersionRow(
-        StackPanel target,
-        GameDownload.DlForgeVersionEntry? entry,
-        string? typeKey)
-    {
-        if (entry is null)
-            return;
-
-        var infoParts = new List<string>();
-        if (typeKey is not null)
-            infoParts.Add(Lang.Text(typeKey));
-        if (entry.ReleaseTime is not null)
-            infoParts.Add(
-                Lang.Text(
-                    "Download.Version.ReleaseDate",
-                    Lang.Date(entry.ReleaseTime.Value, "g")));
-        if (typeKey is null && LauncherCommon.ModeDebug)
-            infoParts.Add(Lang.Text("Download.Version.Forge.Type", entry.Category));
-
-        var item = new MyListItem
-        {
-            Title = entry.FileVersion,
-            Height = 42d,
-            Type = MyListItem.CheckType.Clickable,
-            Logo = LauncherPaths.ImageRoot + "Blocks/Anvil.png",
-            Info = string.Join("  |  ", infoParts)
-        };
-        var captured = entry;
-        item.Click += (_, _) => SaveForgelike(captured);
-        target.Children.Add(item);
-    }
-
-    private static void SaveForgelike(GameDownload.DlForgeVersionEntry entry)
-    {
-        var inherit = entry.Inherit.Replace("-", "_");
-        var fileName =
-            $"{inherit}-{entry.FileVersion}/forge-{inherit}-{entry.FileVersion}-{entry.Category}.{entry.FileExtension}";
-        SaveInstaller(
-            [
-                $"https://bmclapi2.bangbang93.com/maven/net/minecraftforge/forge/{fileName}",
-                $"https://files.minecraftforge.net/maven/net/minecraftforge/forge/{fileName}"
-            ],
-            $"forge-{entry.Inherit}-{entry.FileVersion}-{entry.Category}.{entry.FileExtension}",
-            null);
-    }
-
-    private static void SaveOptiFine(GameDownload.DlOptiFineListEntry entry)
-    {
-        var inherit = entry.Inherit ?? "";
-        var displayName = entry.DisplayName ?? "";
-        var bmclapiInherit = inherit is "1.8" or "1.9" ? inherit + ".0" : inherit;
-        var url = entry.IsPreview
-            ? $"https://bmclapi2.bangbang93.com/optifine/{bmclapiInherit}/HD_U_{displayName.Replace($"{inherit} ", "").Replace(" ", "/")}"
-            : $"https://bmclapi2.bangbang93.com/optifine/{bmclapiInherit}/HD_U/{displayName.Replace($"{inherit} ", "")}";
-        SaveInstaller(
-            [url, $"https://optifine.net/adloadx?f={entry.NameFile}"],
-            entry.NameFile ?? $"OptiFine-{displayName}.jar",
-            null);
-    }
-
-    private static string[] GetLiteLoaderUrls(GameDownload.DlLiteLoaderListEntry entry)
-    {
-        var inherit = entry.Inherit ?? "";
-        if (!entry.IsLegacy)
-            return
-            [
-                $"http://jenkins.liteloader.com/job/LiteLoaderInstaller%20{inherit}/lastSuccessfulBuild/artifact/"
-                + $"{(inherit == "1.8" ? "ant/dist/" : "build/libs/")}{entry.FileName}"
-            ];
-        return inherit switch
-        {
-            "1.7.10" =>
-                ["https://dl.liteloader.com/redist/1.7.10/liteloader-installer-1.7.10-04.jar"],
-            "1.7.2" => ["https://dl.liteloader.com/redist/1.7.2/liteloader-installer-1.7.2-04.jar"],
-            "1.6.4" => ["https://dl.liteloader.com/redist/1.6.4/liteloader-installer-1.6.4-01.jar"],
-            "1.6.2" => ["https://dl.liteloader.com/redist/1.6.2/liteloader-installer-1.6.2-04.jar"],
-            "1.5.2" => ["https://dl.liteloader.com/redist/1.5.2/liteloader-installer-1.5.2-01.jar"],
-            _ => []
-        };
-    }
+    #endregion
 
     private static void SaveInstaller(IEnumerable<string> urls, string fileName, string? filterKey)
     {
@@ -778,4 +459,749 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
                 break;
         }
     }
+
+    #region LabyMod
+
+    private void BuildLabyModVersions()
+    {
+        var value = GameDownload.DlLabyModListLoader.output.Value;
+        if (value is null)
+            return;
+
+        _cardVersions.Title = Lang.Text("Download.Version.VersionListCount", value.Count);
+        foreach (var channel in new[]
+                 {
+                     "production",
+                     "snapshot"
+                 })
+        {
+            if (value[channel] is not JsonObject channelObject)
+                continue;
+            var version = channelObject["labyModVersion"]?.ToString() ?? channel;
+            var isSnapshot = channel == "snapshot";
+            var item = new MyListItem
+            {
+                Title = $"{version} {Lang.Text(
+                    isSnapshot
+                        ? "Download.Version.Type.Snapshot"
+                        : "Download.Version.Type.Stable")}",
+                Info = Lang.Text(
+                    isSnapshot
+                        ? "Download.Version.Type.Snapshot"
+                        : "Download.Version.Type.Stable"),
+                Height = 42d,
+                Type = MyListItem.CheckType.Clickable,
+                Logo = $"{LauncherPaths.ImageRoot}Blocks/LabyMod.png"
+            };
+
+            var saveButton = new MyIconButton
+            {
+                SvgIcon = "lucide/save",
+                Theme = MyIconButton.Themes.Custom
+            };
+            ToolTip.SetTip(saveButton, Lang.Text("Download.Version.SaveAs"));
+            saveButton.Click += (_, _) => SaveLabyMod(isSnapshot);
+
+            var changelogButton = new MyIconButton
+            {
+                SvgIcon = "lucide/info",
+                LogoScale = 1.05d,
+                Theme = MyIconButton.Themes.Custom
+            };
+            ToolTip.SetTip(changelogButton, Lang.Text("Download.Version.Changelog"));
+            changelogButton.Click += (_, _) =>
+                LauncherUi.Interaction?.OpenWebsite("https://www.labymod.net/zh_Hans/download");
+            item.Buttons = [saveButton, changelogButton];
+            item.Click += (_, _) => SaveLabyMod(isSnapshot);
+            _panVersions.Children.Add(item);
+        }
+    }
+
+    private static void SaveLabyMod(bool isSnapshot)
+    {
+        SaveInstaller(
+            [
+                isSnapshot
+                    ? "https://releases.labymod.net/api/v1/installer/snapshot/java"
+                    : "https://releases.labymod.net/api/v1/installer/production/java"
+            ],
+            isSnapshot ? "LabyMod4SnapshotInstaller.jar" : "LabyMod4ProductionInstaller.jar",
+            "Download.Version.Installer.LabyMod.Filter");
+    }
+
+    #endregion
+
+    #region Forge
+
+    private void BuildForgeMcList()
+    {
+        var mcVersions = GameDownload.DlForgeListLoader.output.Value
+            .OrderByDescending(
+                version => version,
+                Comparer<string>.Create(McVersionComparer.CompareVersion));
+        foreach (var mcVersion in mcVersions)
+        {
+            var card = new MyCard
+            {
+                Margin = new Thickness(0d, 0d, 0d, 15d),
+                Title = mcVersion.Replace("_p", " P")
+            };
+            var stack = new StackPanel
+            {
+                Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
+                Tag = mcVersion
+            };
+            card.Children.Add(stack);
+            card.SwapControl = stack;
+            card.InstallMethod = target =>
+            {
+                if (target.Tag is string version)
+                    LoadForgeVersions(card, target, version);
+            };
+            card.IsSwapped = true;
+            _panMain.Children.Add(card);
+        }
+    }
+
+    private void LoadForgeVersions(MyCard card, StackPanel target, string mcVersion)
+    {
+        target.Children.Clear();
+        if (_forgeCache.TryGetValue(mcVersion, out var cached))
+        {
+            FillForgeVersionList(card, target, mcVersion, cached);
+            return;
+        }
+
+        var loading = new MyLoading
+        {
+            Margin = new Thickness(5d),
+            Text = Lang.Text("Download.Version.Forge.LoadingList")
+        };
+        var task = new Loading.LoaderTask<string, List<GameDownload.DlForgeVersionEntry>>(
+            $"DlForgeVersion {mcVersion}",
+            GameDownload.DlForgeVersionMain);
+        loading.State = task;
+        loading.Click += (_, _) =>
+        {
+            if (task.State == LoadState.Failed)
+                task.Start(mcVersion, true);
+        };
+        task.OnStateChangedUi += (_, state, _) =>
+        {
+            switch (state)
+            {
+                case LoadState.Finished:
+                    target.Children.Remove(loading);
+                    var versions = task.output ?? [];
+                    _forgeCache[mcVersion] = versions;
+                    FillForgeVersionList(card, target, mcVersion, versions);
+                    break;
+                case LoadState.Failed:
+                    // 保持错误态的加载环，点击即可重试。
+                    break;
+                case LoadState.Aborted:
+                    target.Children.Remove(loading);
+                    break;
+            }
+        };
+        target.Children.Add(loading);
+        task.Start(mcVersion);
+    }
+
+    private void FillForgeVersionList(
+        MyCard card,
+        StackPanel target,
+        string mcVersion,
+        List<GameDownload.DlForgeVersionEntry> entries)
+    {
+        target.Children.Clear();
+        var versions = entries
+            .OrderByDescending(entry => entry.version)
+            .ToList();
+        if (versions.Count == 0)
+        {
+            target.Children.Add(
+                new TextBlock
+                {
+                    Text = Lang.Text("Download.Install.State.NoAvailableVersion"),
+                    Margin = new Thickness(6d, 4d, 6d, 8d)
+                });
+            card.InstallMethod = stack => FillForgeVersionList(
+                card,
+                stack,
+                mcVersion,
+                _forgeCache.GetValueOrDefault(mcVersion, []));
+            return;
+        }
+
+        if (versions.Count == 1)
+        {
+            AddForgeVersionRow(target, versions[0], null);
+            card.InstallMethod = stack => FillForgeVersionList(
+                card,
+                stack,
+                mcVersion,
+                _forgeCache.GetValueOrDefault(mcVersion, []));
+            return;
+        }
+
+        var latest = versions[0];
+        var recommended = versions.LastOrDefault(entry => entry.IsRecommended);
+        if (!ReferenceEquals(latest, recommended))
+            AddForgeVersionRow(
+                target,
+                recommended,
+                "Download.Version.Type.Recommended");
+        AddForgeVersionRow(target, latest, "Download.Version.Latest.Title");
+        target.Children.Add(
+            new TextBlock
+            {
+                Text = Lang.Text("Download.Version.AllVersions", versions.Count),
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Margin = new Thickness(6d, 13d, 0d, 4d)
+            });
+        foreach (var entry in versions)
+            AddForgeVersionRow(target, entry, null);
+
+        card.InstallMethod = stack => FillForgeVersionList(
+            card,
+            stack,
+            mcVersion,
+            _forgeCache.GetValueOrDefault(mcVersion, []));
+    }
+
+    private static void AddForgeVersionRow(
+        StackPanel target,
+        GameDownload.DlForgeVersionEntry? entry,
+        string? typeKey)
+    {
+        if (entry is null)
+            return;
+
+        var infoParts = new List<string>();
+        if (typeKey is not null)
+        {
+            infoParts.Add(
+                $"{Lang.Text(typeKey)}  |  {Lang.Text("Download.Version.Type.Stable")}");
+        }
+        else
+        {
+            if (entry.ReleaseTime is not null)
+                infoParts.Add(
+                    Lang.Text(
+                        "Download.Version.ReleaseDate",
+                        Lang.Date(entry.ReleaseTime.Value, "g")));
+            if (LauncherCommon.ModeDebug)
+                infoParts.Add(Lang.Text("Download.Version.Forge.Type", entry.Category));
+        }
+
+        var item = new MyListItem
+        {
+            Title = entry.VersionName,
+            Height = 42d,
+            Type = MyListItem.CheckType.Clickable,
+            Logo = $"{LauncherPaths.ImageRoot}Blocks/Anvil.png",
+            Info = string.Join("  |  ", infoParts)
+        };
+
+        var changelogButton = new MyIconButton
+        {
+            SvgIcon = "lucide/info",
+            LogoScale = 1.05d,
+            Theme = MyIconButton.Themes.Custom
+        };
+        ToolTip.SetTip(changelogButton, Lang.Text("Download.Version.Changelog"));
+        changelogButton.Click += (_, _) => LauncherUi.Interaction?.OpenWebsite(
+            $"https://files.minecraftforge.net/maven/net/minecraftforge/forge/{entry.Inherit}-{entry.VersionName}/forge-{entry.Inherit}-{entry.VersionName}-changelog.txt");
+        item.Buttons = [changelogButton];
+        item.Click += (_, _) => SaveForgelike(entry);
+        target.Children.Add(item);
+    }
+
+    private static void SaveForgelike(GameDownload.DlForgeVersionEntry entry)
+    {
+        var inherit = entry.Inherit.Replace("-", "_");
+        var fileName =
+            $"{inherit}-{entry.FileVersion}/forge-{inherit}-{entry.FileVersion}-{entry.Category}.{entry.FileExtension}";
+        SaveInstaller(
+            [
+                $"https://bmclapi2.bangbang93.com/maven/net/minecraftforge/forge/{fileName}",
+                $"https://files.minecraftforge.net/maven/net/minecraftforge/forge/{fileName}"
+            ],
+            $"forge-{entry.Inherit}-{entry.FileVersion}-{entry.Category}.{entry.FileExtension}",
+            null);
+    }
+
+    #endregion
+
+    #region NeoForge / Cleanroom
+
+    private void BuildForgelikeGroups<T>(
+        List<T>? entries,
+        Func<T, string> inheritSelector,
+        Action<StackPanel, List<T>> fill)
+        where T : class
+    {
+        if (entries is null)
+            return;
+
+        foreach (var group in entries
+                     .GroupBy(inheritSelector)
+                     .OrderByDescending(group => group.Key))
+        {
+            var items = group.ToList();
+            if (items.Count == 0)
+                continue;
+
+            var card = new MyCard
+            {
+                Margin = new Thickness(0d, 0d, 0d, 15d),
+                Title = $"{group.Key} ({items.Count})"
+            };
+            var stack = new StackPanel
+            {
+                Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
+                Tag = items
+            };
+            card.Children.Add(stack);
+            card.SwapControl = stack;
+            card.InstallMethod = target =>
+            {
+                if (target.Tag is List<T> list)
+                    fill(target, list);
+            };
+            card.IsSwapped = true;
+            _panMain.Children.Add(card);
+        }
+    }
+
+    private static void BuildNeoForgeRows(
+        StackPanel target,
+        List<GameDownload.DlNeoForgeListEntry> entries)
+    {
+        target.Children.Clear();
+        if (entries.Count == 1)
+        {
+            AddForgelikeRow(
+                target,
+                entries[0],
+                null,
+                entries[0].IsBeta
+                    ? "Download.Version.Type.Preview"
+                    : "Download.Version.Type.Stable");
+            return;
+        }
+
+        GameDownload.DlNeoForgeListEntry? latestStable = null;
+        GameDownload.DlNeoForgeListEntry? latestBeta = null;
+        foreach (var entry in entries)
+            if (entry.IsBeta)
+            {
+                latestBeta ??= entry;
+            }
+            else
+            {
+                latestStable = entry;
+                break;
+            }
+
+        if (latestStable is not null)
+            AddForgelikeRow(
+                target,
+                latestStable,
+                "Download.Version.Fresh.Latest",
+                "Download.Version.Type.Stable");
+        if (latestBeta is not null)
+            AddForgelikeRow(
+                target,
+                latestBeta,
+                "Download.Version.Fresh.Latest",
+                "Download.Version.Type.Preview");
+
+        AddAllVersionsLabel(target, entries.Count);
+        foreach (var entry in entries)
+            AddForgelikeRow(
+                target,
+                entry,
+                null,
+                entry.IsBeta
+                    ? "Download.Version.Type.Preview"
+                    : "Download.Version.Type.Stable");
+    }
+
+    private static void BuildCleanroomRows(
+        StackPanel target,
+        List<GameDownload.DlCleanroomListEntry> entries)
+    {
+        target.Children.Clear();
+        if (entries.Count > 0)
+            AddForgelikeRow(
+                target,
+                entries[0],
+                "Download.Version.Fresh.Latest",
+                "Download.Version.Type.Preview");
+
+        AddAllVersionsLabel(target, entries.Count);
+        foreach (var entry in entries)
+            AddForgelikeRow(
+                target,
+                entry,
+                null,
+                entry.IsBeta
+                    ? "Download.Version.Type.Preview"
+                    : "Download.Version.Type.Stable");
+    }
+
+    private static void AddAllVersionsLabel(StackPanel target, int count)
+    {
+        target.Children.Add(
+            new TextBlock
+            {
+                Text = Lang.Text("Download.Version.AllVersions", count),
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Margin = new Thickness(6d, 13d, 0d, 4d)
+            });
+    }
+
+    private static void AddForgelikeRow(
+        StackPanel target,
+        GameDownload.DlForgelikeEntry entry,
+        string? preloadKey,
+        string typeKey)
+    {
+        var infoParts = new List<string>();
+        if (preloadKey is not null)
+            infoParts.Add(Lang.Text(preloadKey));
+        infoParts.Add(Lang.Text(typeKey));
+
+        var item = new MyListItem
+        {
+            Title = entry.VersionName,
+            Height = 42d,
+            Type = MyListItem.CheckType.Clickable,
+            Logo = entry is GameDownload.DlCleanroomListEntry
+                ? $"{LauncherPaths.ImageRoot}Blocks/Cleanroom.png"
+                : $"{LauncherPaths.ImageRoot}Blocks/NeoForge.png",
+            Info = string.Join("  |  ", infoParts)
+        };
+        var changelogButton = new MyIconButton
+        {
+            SvgIcon = "lucide/info",
+            LogoScale = 1.05d,
+            Theme = MyIconButton.Themes.Custom
+        };
+        ToolTip.SetTip(changelogButton, Lang.Text("Download.Version.Changelog"));
+        changelogButton.Click += (_, _) =>
+        {
+            var url = GetForgelikeChangelogUrl(entry);
+            if (!string.IsNullOrEmpty(url))
+                LauncherUi.Interaction?.OpenWebsite(url);
+        };
+        item.Buttons = [changelogButton];
+        item.Click += (_, _) => SaveForgelikeEntry(entry);
+        target.Children.Add(item);
+    }
+
+    private static string GetForgelikeChangelogUrl(GameDownload.DlForgelikeEntry entry)
+    {
+        return entry switch
+        {
+            GameDownload.DlNeoForgeListEntry neo => $"{neo.UrlBase}-changelog.txt",
+            GameDownload.DlCleanroomListEntry cleanroom => $"{cleanroom.UrlBase}-changelog.txt",
+            _ => string.Empty
+        };
+    }
+
+    private static void SaveForgelikeEntry(GameDownload.DlForgelikeEntry entry)
+    {
+        switch (entry)
+        {
+            case GameDownload.DlNeoForgeListEntry neo:
+                SaveInstaller(
+                    [
+                        $"{neo.UrlBase.Replace(
+                            "maven.neoforged.net/releases",
+                            "bmclapi2.bangbang93.com/maven")}-installer.jar",
+                        $"{neo.UrlBase}-installer.jar"
+                    ],
+                    $"neoforge-{neo.ApiName}-installer.jar",
+                    null);
+                break;
+            case GameDownload.DlCleanroomListEntry cleanroom:
+                SaveInstaller(
+                    [$"{cleanroom.UrlBase}-installer.jar"],
+                    $"cleanroom-{cleanroom.ApiName}-installer.jar",
+                    null);
+                break;
+        }
+    }
+
+    #endregion
+
+    #region OptiFine
+
+    private void BuildOptiFineGroups()
+    {
+        const string snapshotKey = "Snapshot";
+        var groups = new List<KeyValuePair<string, List<GameDownload.DlOptiFineListEntry>>>
+        {
+            new(snapshotKey, [])
+        };
+        for (var versionCode = 50; versionCode >= 0; versionCode--)
+            groups.Add(
+                new KeyValuePair<string, List<GameDownload.DlOptiFineListEntry>>(
+                    $"1.{versionCode}",
+                    []));
+
+        var dictionary = groups.ToDictionary(pair => pair.Key, pair => pair.Value);
+        foreach (var entry in GameDownload.DlOptiFineListLoader.output.Value)
+            if (entry.Inherit?.StartsWith("1.") == true)
+            {
+                var parts = (entry.DisplayName ?? string.Empty).Split('.');
+                var mainVersion = parts.Length > 1
+                    ? $"1.{parts[1].Split(' ')[0]}"
+                    : snapshotKey;
+                if (dictionary.TryGetValue(mainVersion, out var list))
+                    list.Add(entry);
+                else
+                    dictionary[snapshotKey].Add(entry);
+            }
+            else
+            {
+                dictionary[snapshotKey].Add(entry);
+            }
+
+        foreach (var (key, entries) in dictionary)
+        {
+            if (entries.Count == 0)
+                continue;
+            var title = key == snapshotKey
+                ? Lang.Text("Download.Version.Optifine.Snapshot")
+                : key;
+            var card = new MyCard
+            {
+                Margin = new Thickness(0d, 0d, 0d, 15d),
+                Title = $"{title} ({entries.Count})"
+            };
+            var sorted = entries
+                .OrderByDescending(
+                    entry => entry.DisplayName,
+                    Comparer<string?>.Create(McVersionComparer.CompareVersion))
+                .ToList();
+            var stack = new StackPanel
+            {
+                Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
+                Tag = sorted
+            };
+            card.Children.Add(stack);
+            card.SwapControl = stack;
+            card.InstallMethod = target =>
+            {
+                if (target.Tag is not List<GameDownload.DlOptiFineListEntry> list)
+                    return;
+                target.Children.Clear();
+                foreach (var entry in list)
+                    AddOptiFineRow(target, entry);
+            };
+            card.IsSwapped = true;
+            _panMain.Children.Add(card);
+        }
+    }
+
+    private static void AddOptiFineRow(
+        StackPanel target,
+        GameDownload.DlOptiFineListEntry entry)
+    {
+        var infoParts = new List<string>
+        {
+            Lang.Text(
+                entry.IsPreview
+                    ? "Download.Version.Type.Preview"
+                    : "Download.Version.Type.Release")
+        };
+        if (entry.ReleaseTime is not null)
+            infoParts.Add(
+                Lang.Text(
+                    "Download.Version.ReleaseDate",
+                    Lang.Date(entry.ReleaseTime.Value, "d")));
+        if (entry.RequiredForgeVersion is null)
+            infoParts.Add(Lang.Text("Download.Version.Optifine.IncompatibleForge"));
+        else if (!string.IsNullOrEmpty(entry.RequiredForgeVersion))
+            infoParts.Add(
+                Lang.Text(
+                    "Download.Version.Optifine.CompatibleForge",
+                    entry.RequiredForgeVersion));
+
+        var item = new MyListItem
+        {
+            Title = entry.DisplayName ?? string.Empty,
+            Height = 42d,
+            Type = MyListItem.CheckType.Clickable,
+            Logo = $"{LauncherPaths.ImageRoot}Blocks/GrassPath.png",
+            Info = string.Join("  |  ", infoParts)
+        };
+        var changelogButton = new MyIconButton
+        {
+            SvgIcon = "lucide/info",
+            LogoScale = 1.05d,
+            Theme = MyIconButton.Themes.Custom
+        };
+        ToolTip.SetTip(changelogButton, Lang.Text("Download.Version.Changelog"));
+        changelogButton.Click += (_, _) => LauncherUi.Interaction?.OpenWebsite(
+            $"https://optifine.net/changelog?f={entry.NameFile}");
+        item.Buttons = [changelogButton];
+        item.Click += (_, _) => SaveOptiFine(entry);
+        target.Children.Add(item);
+    }
+
+    private static void SaveOptiFine(GameDownload.DlOptiFineListEntry entry)
+    {
+        var inherit = entry.Inherit ?? string.Empty;
+        var displayName = entry.DisplayName ?? string.Empty;
+        var bmclapiInherit = inherit is "1.8" or "1.9" ? $"{inherit}.0" : inherit;
+        var url = entry.IsPreview
+            ? $"https://bmclapi2.bangbang93.com/optifine/{bmclapiInherit}/HD_U_{displayName.Replace($"{inherit} ", "").Replace(" ", "/")}"
+            : $"https://bmclapi2.bangbang93.com/optifine/{bmclapiInherit}/HD_U/{displayName.Replace($"{inherit} ", "")}";
+        SaveInstaller(
+            [url, $"https://optifine.net/adloadx?f={entry.NameFile}"],
+            entry.NameFile ?? $"OptiFine-{displayName}.jar",
+            null);
+    }
+
+    #endregion
+
+    #region LiteLoader
+
+    private void BuildLiteLoaderGroups()
+    {
+        const string unknownKey = "Unknown";
+        var dict = new Dictionary<string, List<GameDownload.DlLiteLoaderListEntry>>();
+        for (var versionCode = 30; versionCode >= 0; versionCode--)
+            dict.Add($"1.{versionCode}", []);
+        dict.Add(unknownKey, []);
+
+        foreach (var entry in GameDownload.DlLiteLoaderListLoader.output.Value)
+        {
+            var inherit = entry.Inherit ?? string.Empty;
+            var segments = inherit.Split('.');
+            var mainVersion = segments.Length > 1 ? $"1.{segments[1]}" : unknownKey;
+            if (dict.TryGetValue(mainVersion, out var list))
+                list.Add(entry);
+            else
+                dict[unknownKey].Add(entry);
+        }
+
+        foreach (var (key, entries) in dict)
+        {
+            if (entries.Count == 0)
+                continue;
+            var title = key == unknownKey
+                ? Lang.Text("Minecraft.Version.Unknown")
+                : key;
+            var card = new MyCard
+            {
+                Margin = new Thickness(0d, 0d, 0d, 15d),
+                Title = $"{title} ({entries.Count})"
+            };
+            var sorted = entries
+                .OrderByDescending(
+                    entry => entry.Inherit,
+                    Comparer<string?>.Create(McVersionComparer.CompareVersion))
+                .ToList();
+            var stack = new StackPanel
+            {
+                Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
+                Tag = sorted
+            };
+            card.Children.Add(stack);
+            card.SwapControl = stack;
+            card.InstallMethod = target =>
+            {
+                if (target.Tag is not List<GameDownload.DlLiteLoaderListEntry> list)
+                    return;
+                target.Children.Clear();
+                foreach (var entry in list)
+                    AddLiteLoaderRow(target, entry);
+            };
+            card.IsSwapped = true;
+            _panMain.Children.Add(card);
+        }
+    }
+
+    private static void AddLiteLoaderRow(
+        StackPanel target,
+        GameDownload.DlLiteLoaderListEntry entry)
+    {
+        var infoParts = new List<string>
+        {
+            Lang.Text(
+                entry.IsPreview
+                    ? "Download.Version.Type.Preview"
+                    : "Download.Version.Type.Stable")
+        };
+        if (entry.ReleaseTime is not null)
+            infoParts.Add(
+                Lang.Text(
+                    "Download.Version.ReleaseDate",
+                    Lang.Date(entry.ReleaseTime.Value, "g")));
+
+        var item = new MyListItem
+        {
+            Title = entry.Inherit ?? string.Empty,
+            Height = 42d,
+            Type = MyListItem.CheckType.Clickable,
+            Logo = $"{LauncherPaths.ImageRoot}Blocks/Egg.png",
+            Info = string.Join("  |  ", infoParts)
+        };
+
+        if (entry.IsLegacy)
+        {
+            item.Buttons = [];
+        }
+        else
+        {
+            var listButton = new MyIconButton
+            {
+                SvgIcon = "lucide/list",
+                Theme = MyIconButton.Themes.Custom
+            };
+            ToolTip.SetTip(listButton, Lang.Text("Download.Version.ViewAllVersions"));
+            listButton.Click += (_, _) => LauncherUi.Interaction?.OpenWebsite(
+                $"https://jenkins.liteloader.com/view/{entry.Inherit}");
+            item.Buttons = [listButton];
+        }
+
+        item.Click += (_, _) => SaveLiteLoader(entry);
+        target.Children.Add(item);
+    }
+
+    private static void SaveLiteLoader(GameDownload.DlLiteLoaderListEntry entry)
+    {
+        SaveInstaller(
+            GetLiteLoaderUrls(entry),
+            entry.FileName ?? "liteloader-installer.jar",
+            null);
+    }
+
+    private static string[] GetLiteLoaderUrls(GameDownload.DlLiteLoaderListEntry entry)
+    {
+        var inherit = entry.Inherit ?? "";
+        if (!entry.IsLegacy)
+            return
+            [
+                $"http://jenkins.liteloader.com/job/LiteLoaderInstaller%20{inherit}/lastSuccessfulBuild/artifact/{(inherit == "1.8" ? "ant/dist/" : "build/libs/")}{entry.FileName}"
+            ];
+        return inherit switch
+        {
+            "1.7.10" =>
+                ["https://dl.liteloader.com/redist/1.7.10/liteloader-installer-1.7.10-04.jar"],
+            "1.7.2" => ["https://dl.liteloader.com/redist/1.7.2/liteloader-installer-1.7.2-04.jar"],
+            "1.6.4" => ["https://dl.liteloader.com/redist/1.6.4/liteloader-installer-1.6.4-01.jar"],
+            "1.6.2" => ["https://dl.liteloader.com/redist/1.6.2/liteloader-installer-1.6.2-04.jar"],
+            "1.5.2" => ["https://dl.liteloader.com/redist/1.5.2/liteloader-installer-1.5.2-01.jar"],
+            _ => []
+        };
+    }
+
+    #endregion
 }

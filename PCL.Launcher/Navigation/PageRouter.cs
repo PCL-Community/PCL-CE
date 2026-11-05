@@ -42,6 +42,8 @@ public static class PageRouter
 
     public static Control? CurrentPage => _rightPage;
 
+    public static INavigationService Navigation => NavigationService.Instance;
+
     public static PageStackData Current { get; private set; } = new(PageType.Launch);
 
     public static PageNavigationState? CurrentState { get; private set; }
@@ -240,11 +242,12 @@ public static class PageRouter
 
         var oldLeft = _mountedLeft;
         var oldRight = _mountedRight;
+        var animateLeft = !ReferenceEquals(oldLeft, left);
         _leftPage = left;
         _rightPage = right;
 
         if (oldLeft is IPageView oldLeftView) oldLeftView.OnNavigatedFrom();
-        if (oldLeft is MyPageLeft oldLeftPage) oldLeftPage.TriggerHideAnimation();
+        if (animateLeft && oldLeft is MyPageLeft oldLeftPage) oldLeftPage.TriggerHideAnimation();
         if (oldRight is IPageView oldRightView) oldRightView.OnNavigatedFrom();
         if (oldRight is MyPageRight oldRightPage) oldRightPage.PageOnExit();
 
@@ -261,7 +264,7 @@ public static class PageRouter
                             // WPF 在 110ms 才强制结束旧页；提前调用会把刚触发的退场动画直接隐藏。
                             if (oldRight is MyPageRight forceExitPage)
                                 forceExitPage.PageOnForceExit();
-                            SwapPageHosts(left, right, stack);
+                            SwapPageHosts(left, right, stack, animateLeft);
                         }
 
                         PageHostSwapped?.Invoke();
@@ -285,7 +288,11 @@ public static class PageRouter
             TransitionAnimationKey);
     }
 
-    private static void SwapPageHosts(Control? left, Control right, PageStackData stack)
+    private static void SwapPageHosts(
+        Control? left,
+        Control right,
+        PageStackData stack,
+        bool animateLeft)
     {
         if (_leftHost is not null)
         {
@@ -293,6 +300,9 @@ public static class PageRouter
             _leftHost.IsVisible = left is not null;
             // WPF 左栏是 Auto；不再把宿主的静态 LeftWidth 当作实际宽度。
             _leftHost.Width = double.NaN;
+            // 在同一个 UI 帧内设置初始状态并启动动画，避免先以终态显示再重新播放。
+            if (animateLeft && left is MyPageLeft newLeftPage)
+                newLeftPage.TriggerShowAnimation();
         }
 
         _rightHost?.Content = right;
@@ -306,7 +316,6 @@ public static class PageRouter
         try
         {
             right.Opacity = 1d;
-            if (left is MyPageLeft newLeftPage) newLeftPage.TriggerShowAnimation();
             if (left is IPageView leftView) leftView.OnNavigatedTo(stack.Parameter);
             if (right is MyPageRight newRightPage) newRightPage.PageOnEnter();
             if (right is IPageView rightView) rightView.OnNavigatedTo(stack.Parameter);
@@ -338,6 +347,7 @@ public static class PageRouter
             leftWidth);
         CurrentState = state;
         Navigated?.Invoke(state);
+        NavigationService.Instance.RaiseNavigated(new RouteKey(Current.Page, Current.SubType));
     }
 
     private static MainTab GetActiveTab(IPageHost? host)

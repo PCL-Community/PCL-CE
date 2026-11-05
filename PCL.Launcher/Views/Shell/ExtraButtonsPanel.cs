@@ -66,17 +66,16 @@ public sealed class ExtraButtonsPanel : StackPanel, ISeamShellActions
         _music.RightClick += (_, _) => MusicNextAction?.Invoke();
 
         _updateRestart.showCheck = () => UpdateManager.isUpdateWaitingRestart;
-        _backToTop.showCheck = () => CanScrollToTop();
+        _backToTop.showCheck = CanScrollToTop;
         _download.showCheck = () => NetFacade.HasDownloadingTask()
             && PageRouter.Current.Page != PageType.TaskManager;
         _april.showCheck = () => Basics.IsAprilFool
             && !IsAprilGiveup
             && PageRouter.Current.Page == PageType.Launch;
         _shutdown.showCheck = () => GameWatcher.hasRunningMinecraft;
-        _log.showCheck = () => ShowLogButton();
+        _log.showCheck = ShowLogButton;
         _music.showCheck = () => SeamCapabilities.MediaAvailable
-            && MusicStateProvider?.Invoke() is { } state
-            && state.Visible;
+            && MusicStateProvider?.Invoke() is { Visible: true };
 
         _stateTimer = new DispatcherTimer
         {
@@ -141,6 +140,18 @@ public sealed class ExtraButtonsPanel : StackPanel, ISeamShellActions
         }
 
         _shutdown.ShowRefresh();
+    }
+
+    /// <summary>刷新右下角“游戏日志”快捷按钮的显示状态，供日志页进出时调用。</summary>
+    public void RefreshGameLogButton()
+    {
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            Dispatcher.UIThread.Post(RefreshGameLogButton);
+            return;
+        }
+
+        _log.ShowRefresh();
     }
 
     public void RefreshAllStates()
@@ -264,7 +275,7 @@ public sealed class ExtraButtonsPanel : StackPanel, ISeamShellActions
         return scroll.Offset.Y > windowHeight + (Current?._backToTop.Show == true ? 0d : 700d);
     }
 
-    private void BackToTop()
+    private static void BackToTop()
     {
         var scroll = CurrentScroll;
         if (scroll is null)

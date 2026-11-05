@@ -207,7 +207,7 @@ public sealed class Tooltip
         _scaler = new ScaleTransform(ScaleClosed, ScaleClosed);
         _shell = new Border
         {
-            BorderThickness = new Thickness(1d),
+            BorderThickness = new Thickness(0d),
             CornerRadius = new CornerRadius(8d),
             MaxWidth = 700d,
             UseLayoutRounding = true,
@@ -240,8 +240,7 @@ public sealed class Tooltip
             _shell.Background = background;
         else if (_TryFindBrush("ColorBrushToolTip", out var fallback))
             _shell.Background = fallback;
-        if (_TryFindBrush("ColorBrushGray5", out var border))
-            _shell.BorderBrush = border;
+        _shell.BorderBrush = null;
     }
 
     private static bool _TryFindBrush(string key, out IBrush? brush)

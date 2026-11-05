@@ -71,6 +71,7 @@ public class MyCard : Grid
             Margin = new Thickness(-3d, -3d, -3d, -4d),
             ShadowRadius = 3d,
             CornerRadius = new CornerRadius(5d),
+            CenterTransparent = true,
             Opacity = DropShadowIdleOpacity,
             IsHitTestVisible = false
         };
@@ -79,7 +80,9 @@ public class MyCard : Grid
         _mainBorder = new BlurBorder
         {
             CornerRadius = new CornerRadius(5d),
-            IsHitTestVisible = false
+            // BorderChild 是页面内容的宿主；必须让内容参与命中测试，
+            // 否则所有通过 BorderChild 挂载的按钮/输入框都会变成不可点击。
+            IsHitTestVisible = true
         };
         Children.Insert(1, _mainBorder);
         _mainGrid = new Grid();

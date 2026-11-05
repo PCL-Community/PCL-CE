@@ -11,7 +11,7 @@ namespace PCL.Views.Pages.Launch;
 ///     正版（微软）登录视图：开始设备码登录，显示登录进度，成功后由启动页左栏切换到账号视图。
 ///     设备码弹窗由 <see cref="LoginProfile.ShowDeviceCodeLoginAsync" /> 的界面实现提供。
 /// </summary>
-public partial class PageLoginMs : LoginPageBase
+public partial class PageLoginMs : StackPanel, ILoginPage, ILoginPage_Bindable
 {
     private readonly MyTextButton _btnBack;
     private readonly MyButton _btnLogin;
@@ -34,11 +34,37 @@ public partial class PageLoginMs : LoginPageBase
         };
         _btnLogin.Click += (_, _) => _ = LoginAsync();
         ResetLoginState();
+
+        AttachedToVisualTree += (_, _) => LocalizationService.LanguageChanged += OnLanguageChanged;
+        DetachedFromVisualTree +=
+            (_, _) => LocalizationService.LanguageChanged -= OnLanguageChanged;
     }
 
-    public override void Reload()
+    public void Reload()
     {
         ResetLoginState();
+    }
+
+    public event Action? BackRequested;
+
+    public event Action<GameLaunch.McLoginType>? LoginTypeRequested;
+
+    public event Action? RefreshRequested;
+
+    private void OnLanguageChanged()
+    {
+        if (!_isLoggingIn)
+            ResetLoginState();
+    }
+
+    private void RequestBack()
+    {
+        BackRequested?.Invoke();
+    }
+
+    private void RequestRefresh()
+    {
+        RefreshRequested?.Invoke();
     }
 
     private void ResetLoginState()
@@ -111,8 +137,11 @@ public partial class PageLoginMs : LoginPageBase
             }
             else if (ex.Message.StartsWith("$"))
             {
-                HintService.Show(Hints.Error(
-                    Lang.Text("Launch.Account.Microsoft.LoginFailed.WithDetail", ex.Message.TrimStart('$'))));
+                HintService.Show(
+                    Hints.Error(
+                        Lang.Text(
+                            "Launch.Account.Microsoft.LoginFailed.WithDetail",
+                            ex.Message.TrimStart('$'))));
             }
             else if (ex is AuthenticationException && ex.Message.Contains("SSL/TLS"))
             {

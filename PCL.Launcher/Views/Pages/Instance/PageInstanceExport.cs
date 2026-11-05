@@ -7,8 +7,9 @@ using System.Text.RegularExpressions;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Input;
 using Avalonia.Layout;
-using Avalonia.Media;
+using Avalonia.Platform.Storage;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.UI;
@@ -46,47 +47,53 @@ internal sealed class ExportOption
 /// </summary>
 public class PageInstanceExport : MyPageRight, IRefreshable
 {
-    private static readonly string[] SubOptionBlackList = ["Quark Programmer Art.zip", "+ EuphoriaPatches_"];
+    private static readonly string[] SubOptionBlackList =
+        ["Quark Programmer Art.zip", "+ EuphoriaPatches_"];
+
+    private readonly MyExtraTextButton _btnStartExport = null!;
+
+    private readonly List<(MyCheckBox Box, ExportOption Option)> _options = [];
 
     private readonly StackPanel _panMain;
-    private readonly List<(MyCheckBox Box, ExportOption Option)> _options = [];
+    private MyIconTextButton _btnResetOverrides = null!;
+    private MyCard _cardOptions = null!;
+    private MyCheckBox _checkBundleFiles = null!;
+    private MyCheckBox _checkMod = null!;
+    private MyCheckBox _checkModrinth = null!;
+    private MyCheckBox _checkOtherFolders = null!;
+    private MyCheckBox _checkPcl = null!;
+    private MyCheckBox _checkPclCustom = null!;
+    private MyCheckBox _checkResourcePacks = null!;
+    private MyCheckBox _checkSaves = null!;
+    private MyCheckBox _checkShaderPacks = null!;
+    private string _configPackPath = string.Empty;
+    private bool _exporting;
+    private List<string> _extraFiles = [];
+    private MyHint _hintBundle = null!;
+    private MyHint _hintOptiFine = null!;
     private McInstance? _instance;
+    private string _lastConfigPath = string.Empty;
     private string _lastInstancePath = string.Empty;
+    private StackPanel _panModSub = null!;
+    private StackPanel _panOptions = null!;
+    private StackPanel _panOtherFoldersSub = null!;
+    private StackPanel _panPclSub = null!;
+    private StackPanel _panResourcePackSub = null!;
+    private StackPanel _panSavesSub = null!;
+    private StackPanel _panShaderPackSub = null!;
+
+    private List<string> _rulesOverrides = [];
 
     private MyTextBox _textName = null!;
     private MyTextBox _textVersion = null!;
-    private MyHint _hintOptiFine = null!;
-    private StackPanel _panOptions = null!;
-    private MyCard _cardOptions = null!;
-    private MyIconTextButton _btnResetOverrides = null!;
-    private MyCheckBox _checkMod = null!;
-    private StackPanel _panModSub = null!;
-    private MyCheckBox _checkResourcePacks = null!;
-    private StackPanel _panResourcePackSub = null!;
-    private MyCheckBox _checkShaderPacks = null!;
-    private StackPanel _panShaderPackSub = null!;
-    private MyCheckBox _checkSaves = null!;
-    private StackPanel _panSavesSub = null!;
-    private MyCheckBox _checkOtherFolders = null!;
-    private StackPanel _panOtherFoldersSub = null!;
-    private MyCheckBox _checkPcl = null!;
-    private MyCheckBox _checkPclCustom = null!;
-    private StackPanel _panPclSub = null!;
-    private MyHint _hintBundle = null!;
-    private MyCheckBox _checkBundleFiles = null!;
-    private MyCheckBox _checkModrinth = null!;
-    private MyExtraTextButton _btnStartExport = null!;
-
-    private List<string> _rulesOverrides = [];
-    private List<string> _extraFiles = [];
-    private string _configPackPath = string.Empty;
-    private string _lastConfigPath = string.Empty;
-    private bool _exporting;
 
     public PageInstanceExport()
     {
         var root = new Grid();
-        var panel = new StackPanel { Margin = new Thickness(25d, 10d, 25d, 65d) };
+        var panel = new StackPanel
+        {
+            Margin = new Thickness(25d, 10d, 25d, 65d)
+        };
         var scroll = new MyScrollViewer
         {
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
@@ -107,7 +114,16 @@ public class PageInstanceExport : MyPageRight, IRefreshable
         _btnStartExport.Click += (_, _) => _ = StartExportAsync();
         root.Children.Add(_btnStartExport);
         Child = root;
+
+        DragDrop.SetAllowDrop(this, true);
+        DragDrop.AddDragOverHandler(this, OnDragOver);
+        DragDrop.AddDropHandler(this, OnDrop);
         BuildUi();
+    }
+
+    public void Refresh()
+    {
+        RefreshAll();
     }
 
     public override void OnNavigatedTo(object? parameter)
@@ -125,16 +141,12 @@ public class PageInstanceExport : MyPageRight, IRefreshable
         RefreshAll();
     }
 
-    public void Refresh()
-    {
-        RefreshAll();
-    }
-
     public void RefreshAll()
     {
         if (_instance is null)
             return;
         _lastInstancePath = _instance.PathInstance;
+        _lastConfigPath = States.System.ExportConfigPath ?? string.Empty;
         _rulesOverrides = [];
         _extraFiles = [];
         _configPackPath = string.Empty;
@@ -145,8 +157,7 @@ public class PageInstanceExport : MyPageRight, IRefreshable
         ResetConfigOverrides();
         RefreshSubOptions();
         RefreshAllOptionsUi();
-        if (PanScroll is not null)
-            PanScroll.Offset = new Vector(0d, 0d);
+        PanScroll?.Offset = new Vector(0d, 0d);
     }
 
     #region 界面构建
@@ -165,7 +176,10 @@ public class PageInstanceExport : MyPageRight, IRefreshable
         };
         _panMain.Children.Add(_hintOptiFine);
 
-        var headerCard = new MyCard { Margin = new Thickness(0d, 15d) };
+        var headerCard = new MyCard
+        {
+            Margin = new Thickness(0d, 15d)
+        };
         var headerGrid = new Grid
         {
             Margin = new Thickness(22d, 15d, 25d, 15d),
@@ -179,7 +193,10 @@ public class PageInstanceExport : MyPageRight, IRefreshable
             Margin = new Thickness(0d, 0d, 20d, 0d)
         };
         headerGrid.Children.Add(nameLabel);
-        _textName = new MyTextBox { MaxLength = 100 };
+        _textName = new MyTextBox
+        {
+            MaxLength = 100
+        };
         Grid.SetColumn(_textName, 1);
         headerGrid.Children.Add(_textName);
         var versionLabel = new TextBlock
@@ -190,13 +207,25 @@ public class PageInstanceExport : MyPageRight, IRefreshable
         };
         Grid.SetColumn(versionLabel, 2);
         headerGrid.Children.Add(versionLabel);
-        _textVersion = new MyTextBox { MaxLength = 100 };
+        _textVersion = new MyTextBox
+        {
+            MaxLength = 100
+        };
         Grid.SetColumn(_textVersion, 3);
         headerGrid.Children.Add(_textVersion);
         headerCard.BorderChild = headerGrid;
         _panMain.Children.Add(headerCard);
 
-        _cardOptions = new MyCard { Margin = new Thickness(0d, 0d, 0d, 15d), MinHeight = 39d };
+        _cardOptions = new MyCard
+        {
+            Margin = new Thickness(0d, 0d, 0d, 15d),
+            MinHeight = 39d
+        };
+        _cardOptions.PointerPressed += (_, _) =>
+        {
+            if (_rulesOverrides.Count > 0)
+                ResetConfigOverrides();
+        };
         _btnResetOverrides = new MyIconTextButton
         {
             Text = Lang.Text("Common.Action.Reset"),
@@ -211,7 +240,10 @@ public class PageInstanceExport : MyPageRight, IRefreshable
         };
         _btnResetOverrides.Click += (_, _) => ResetConfigOverrides();
         _cardOptions.Children.Add(_btnResetOverrides);
-        _panOptions = new StackPanel { Margin = new Thickness(25d, 38d, 15d, 15d) };
+        _panOptions = new StackPanel
+        {
+            Margin = new Thickness(25d, 38d, 15d, 15d)
+        };
         _cardOptions.Children.Add(_panOptions);
         _panMain.Children.Add(_cardOptions);
 
@@ -222,7 +254,10 @@ public class PageInstanceExport : MyPageRight, IRefreshable
             Title = Lang.Text("Instance.Export.Advanced.Title"),
             Margin = new Thickness(0d, 0d, 0d, 15d)
         };
-        var advancedBody = new StackPanel { Margin = new Thickness(25d, 37d, 23d, 20d) };
+        var advancedBody = new StackPanel
+        {
+            Margin = new Thickness(25d, 37d, 23d, 20d)
+        };
         _hintBundle = new MyHint
         {
             Text = Lang.Text("Instance.Export.Advanced.BundleHint"),
@@ -236,7 +271,9 @@ public class PageInstanceExport : MyPageRight, IRefreshable
         {
             Text = Lang.Text("Instance.Export.Advanced.BundleFiles")
         };
-        ToolTip.SetTip(_checkBundleFiles, Lang.Text("Instance.Export.Advanced.BundleFiles.ToolTip"));
+        ToolTip.SetTip(
+            _checkBundleFiles,
+            Lang.Text("Instance.Export.Advanced.BundleFiles.ToolTip"));
         _checkBundleFiles.Change += (_, _) =>
         {
             var bundle = _checkBundleFiles.Checked == true;
@@ -368,7 +405,10 @@ public class PageInstanceExport : MyPageRight, IRefreshable
                 RequireModLoader = true
             },
             false);
-        _panModSub = new StackPanel { Margin = new Thickness(30d, 0d, 0d, 0d) };
+        _panModSub = new StackPanel
+        {
+            Margin = new Thickness(30d, 0d, 0d, 0d)
+        };
         _panOptions.Children.Add(_panModSub);
         _checkMod.Change += (_, _) => _panModSub.IsVisible = _checkMod.Checked == true;
 
@@ -448,9 +488,13 @@ public class PageInstanceExport : MyPageRight, IRefreshable
                 DefaultChecked = true
             },
             false);
-        _panResourcePackSub = new StackPanel { Margin = new Thickness(30d, 0d, 0d, 0d) };
+        _panResourcePackSub = new StackPanel
+        {
+            Margin = new Thickness(30d, 0d, 0d, 0d)
+        };
         _panOptions.Children.Add(_panResourcePackSub);
-        _checkResourcePacks.Change += (_, _) => _panResourcePackSub.IsVisible = _checkResourcePacks.Checked == true;
+        _checkResourcePacks.Change += (_, _) =>
+            _panResourcePackSub.IsVisible = _checkResourcePacks.Checked == true;
 
         _checkShaderPacks = AddOption(
             _panOptions,
@@ -462,9 +506,13 @@ public class PageInstanceExport : MyPageRight, IRefreshable
                 RequireModLoaderOrOptiFine = true
             },
             false);
-        _panShaderPackSub = new StackPanel { Margin = new Thickness(30d, 0d, 0d, 0d) };
+        _panShaderPackSub = new StackPanel
+        {
+            Margin = new Thickness(30d, 0d, 0d, 0d)
+        };
         _panOptions.Children.Add(_panShaderPackSub);
-        _checkShaderPacks.Change += (_, _) => _panShaderPackSub.IsVisible = _checkShaderPacks.Checked == true;
+        _checkShaderPacks.Change += (_, _) =>
+            _panShaderPackSub.IsVisible = _checkShaderPacks.Checked == true;
 
         AddOption(
             _panOptions,
@@ -503,7 +551,10 @@ public class PageInstanceExport : MyPageRight, IRefreshable
                 ShowRules = "saves/"
             },
             false);
-        _panSavesSub = new StackPanel { Margin = new Thickness(30d, 0d, 0d, 0d) };
+        _panSavesSub = new StackPanel
+        {
+            Margin = new Thickness(30d, 0d, 0d, 0d)
+        };
         _panOptions.Children.Add(_panSavesSub);
         _checkSaves.Change += (_, _) => _panSavesSub.IsVisible = _checkSaves.Checked == true;
 
@@ -524,7 +575,10 @@ public class PageInstanceExport : MyPageRight, IRefreshable
                 Description = Lang.Text("Instance.Export.Option.OtherFolders.Desc")
             },
             false);
-        _panOtherFoldersSub = new StackPanel { Margin = new Thickness(30d, 0d, 0d, 0d) };
+        _panOtherFoldersSub = new StackPanel
+        {
+            Margin = new Thickness(30d, 0d, 0d, 0d)
+        };
         _panOptions.Children.Add(_panOtherFoldersSub);
         _checkOtherFolders.Change += (_, _) =>
         {
@@ -543,7 +597,10 @@ public class PageInstanceExport : MyPageRight, IRefreshable
                 Description = Lang.Text("Instance.Export.Option.Launcher.Desc")
             },
             false);
-        _panPclSub = new StackPanel { Margin = new Thickness(30d, 0d, 0d, 0d) };
+        _panPclSub = new StackPanel
+        {
+            Margin = new Thickness(30d, 0d, 0d, 0d)
+        };
         _panOptions.Children.Add(_panPclSub);
         _checkPcl.Change += (_, _) => _panPclSub.IsVisible = _checkPcl.Checked == true;
         _checkPclCustom = AddOption(
@@ -589,7 +646,11 @@ public class PageInstanceExport : MyPageRight, IRefreshable
         RefreshAllOptionsUi();
     }
 
-    private void ReloadSubOptions(StackPanel panel, bool acceptCompressedFile, bool acceptFolder, params string[] folders)
+    private void ReloadSubOptions(
+        StackPanel panel,
+        bool acceptCompressedFile,
+        bool acceptFolder,
+        params string[] folders)
     {
         if (_instance is null)
             return;
@@ -600,46 +661,64 @@ public class PageInstanceExport : MyPageRight, IRefreshable
             if (!targetFolder.Exists)
                 continue;
             if (acceptCompressedFile)
-            {
-                foreach (var file in targetFolder.EnumerateFiles("*.zip").Concat(targetFolder.EnumerateFiles("*.rar")))
+                foreach (var file in targetFolder
+                             .EnumerateFiles("*.zip")
+                             .Concat(targetFolder.EnumerateFiles("*.rar")))
                 {
-                    if (SubOptionBlackList.Any(b => file.Name.Contains(b, StringComparison.OrdinalIgnoreCase)))
+                    if (SubOptionBlackList.Any(b => file.Name.Contains(
+                            b,
+                            StringComparison.OrdinalIgnoreCase)))
                         continue;
                     panel.Children.Add(
-                        CreateSubOption(file.Name, EscapePattern(folder + "/" + file.Name), true));
+                        CreateSubOption(file.Name, EscapePattern($"{folder}/{file.Name}"), true));
                     if (folder != "shaderpacks")
                         continue;
-                    var shaderConfig = new FileInfo(Path.Combine(file.Directory!.FullName, file.Name + ".txt"));
+                    var shaderConfig = new FileInfo(
+                        Path.Combine(
+                            file.Directory!.FullName,
+                            $"{file.Name}.txt"));
                     if (shaderConfig.Exists)
                         panel.Children.Add(
                             CreateSubOption(
                                 shaderConfig.Name,
-                                EscapePattern(folder + "/" + shaderConfig.Name),
+                                EscapePattern($"{folder}/{shaderConfig.Name}"),
                                 true,
                                 Lang.Text("Instance.Export.Config.ShaderConfigSuffix"),
                                 true));
                 }
-            }
 
             if (!acceptFolder)
                 continue;
-            foreach (var subFolder in targetFolder.EnumerateDirectories().OrderByDescending(f => f.LastWriteTime))
+            foreach (var subFolder in targetFolder
+                         .EnumerateDirectories()
+                         .OrderByDescending(f => f.LastWriteTime))
             {
-                if (SubOptionBlackList.Any(b => subFolder.Name.Contains(b, StringComparison.OrdinalIgnoreCase)))
+                if (SubOptionBlackList.Any(b => subFolder.Name.Contains(
+                        b,
+                        StringComparison.OrdinalIgnoreCase)))
                     continue;
                 if (!subFolder.EnumerateFileSystemInfos().Any())
                     continue;
-                var description = ReferenceEquals(panel, _panSavesSub) ? Lang.Date(subFolder.LastWriteTime, "g") : string.Empty;
+                var description = ReferenceEquals(panel, _panSavesSub)
+                    ? Lang.Date(subFolder.LastWriteTime, "g")
+                    : string.Empty;
                 panel.Children.Add(
-                    CreateSubOption(subFolder.Name, EscapePattern(folder + "/" + subFolder.Name + "/"), true, description));
+                    CreateSubOption(
+                        subFolder.Name,
+                        EscapePattern($"{folder}/{subFolder.Name}/"),
+                        true,
+                        description));
                 if (folder != "shaderpacks")
                     continue;
-                var shaderConfig = new FileInfo(Path.Combine(targetFolder.FullName, subFolder.Name + ".txt"));
+                var shaderConfig = new FileInfo(
+                    Path.Combine(
+                        targetFolder.FullName,
+                        $"{subFolder.Name}.txt"));
                 if (shaderConfig.Exists)
                     panel.Children.Add(
                         CreateSubOption(
                             shaderConfig.Name,
-                            EscapePattern(folder + "/" + shaderConfig.Name),
+                            EscapePattern($"{folder}/{shaderConfig.Name}"),
                             true,
                             Lang.Text("Instance.Export.Config.ShaderConfigSuffix"),
                             true));
@@ -647,7 +726,12 @@ public class PageInstanceExport : MyPageRight, IRefreshable
         }
     }
 
-    private MyCheckBox CreateSubOption(string title, string rules, bool defaultChecked, string description = "", bool indent = false)
+    private MyCheckBox CreateSubOption(
+        string title,
+        string rules,
+        bool defaultChecked,
+        string description = "",
+        bool indent = false)
     {
         var option = new ExportOption
         {
@@ -678,18 +762,70 @@ public class PageInstanceExport : MyPageRight, IRefreshable
 
         var coveredFolders = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            "mods", "coremods", "lib", "addons", "multiblocked", "modpack-update-checker", "global_packs",
-            "global_resource_packs", "global_data_packs", "optional_data_packs", "maps", "mods-resourcepacks",
-            "matmos", "resource_assorts", "patchouli_books", "datapacks", "openloader", "worldshape", "resources",
-            "scripts", "structures", "fontfiles", "oresources", "packmenu", "craftpresence", "pointblanks",
-            "config", "defaultconfigs", "journeymap", "local", "essential", "gg.essential.mod",
-            "CustomSkinLoader", "xaero", "XaeroWaypoints", "XaeroWorldMap", "resourcepacks", "texturepacks",
-            "shaderpacks", "screenshots", "schematics", "replay_recordings", "replay_videos", "saves",
-            "configureddefaults", "assets", "versions", "libraries", "structureCacheV1", ".fabric", ".git",
-            "avatar-cache", "cosmetic-cache", "PCL"
+            "mods",
+            "coremods",
+            "lib",
+            "addons",
+            "multiblocked",
+            "modpack-update-checker",
+            "global_packs",
+            "global_resource_packs",
+            "global_data_packs",
+            "optional_data_packs",
+            "maps",
+            "mods-resourcepacks",
+            "matmos",
+            "resource_assorts",
+            "patchouli_books",
+            "datapacks",
+            "openloader",
+            "worldshape",
+            "resources",
+            "scripts",
+            "structures",
+            "fontfiles",
+            "oresources",
+            "packmenu",
+            "craftpresence",
+            "pointblanks",
+            "config",
+            "defaultconfigs",
+            "journeymap",
+            "local",
+            "essential",
+            "gg.essential.mod",
+            "CustomSkinLoader",
+            "xaero",
+            "XaeroWaypoints",
+            "XaeroWorldMap",
+            "resourcepacks",
+            "texturepacks",
+            "shaderpacks",
+            "screenshots",
+            "schematics",
+            "replay_recordings",
+            "replay_videos",
+            "saves",
+            "configureddefaults",
+            "assets",
+            "versions",
+            "libraries",
+            "structureCacheV1",
+            ".fabric",
+            ".git",
+            "avatar-cache",
+            "cosmetic-cache",
+            "PCL"
         };
-        var coveredPrefixes = new[] { "kubejs", "template" };
-        var coveredSuffixes = new[] { "-natives" };
+        var coveredPrefixes = new[]
+        {
+            "kubejs",
+            "template"
+        };
+        var coveredSuffixes = new[]
+        {
+            "-natives"
+        };
 
         var rootDir = new DirectoryInfo(_instance.PathIndie);
         if (!rootDir.Exists)
@@ -702,9 +838,13 @@ public class PageInstanceExport : MyPageRight, IRefreshable
         {
             if (coveredFolders.Contains(subDir.Name))
                 continue;
-            if (coveredPrefixes.Any(p => subDir.Name.StartsWith(p, StringComparison.OrdinalIgnoreCase)))
+            if (coveredPrefixes.Any(p => subDir.Name.StartsWith(
+                    p,
+                    StringComparison.OrdinalIgnoreCase)))
                 continue;
-            if (coveredSuffixes.Any(s => subDir.Name.EndsWith(s, StringComparison.OrdinalIgnoreCase)))
+            if (coveredSuffixes.Any(s => subDir.Name.EndsWith(
+                    s,
+                    StringComparison.OrdinalIgnoreCase)))
                 continue;
 
             var box = new MyCheckBox
@@ -715,7 +855,7 @@ public class PageInstanceExport : MyPageRight, IRefreshable
             var option = new ExportOption
             {
                 Title = subDir.Name,
-                Rules = EscapePattern(subDir.Name + "/")
+                Rules = EscapePattern($"{subDir.Name}/")
             };
             box.Tag = option;
             _panOtherFoldersSub.Children.Add(box);
@@ -746,50 +886,23 @@ public class PageInstanceExport : MyPageRight, IRefreshable
                 allEntries.AddRange(pathInfo.EnumerateFiles().Select(f => f.Name));
                 foreach (var subFolder in pathInfo.EnumerateDirectories().Where(IsValidDirectory))
                 {
-                    allEntries.Add(subFolder.Name + "\\");
-                    allEntries.AddRange(subFolder.EnumerateFiles().Select(f => subFolder.Name + "\\" + f.Name));
+                    allEntries.Add($"{subFolder.Name}\\");
                     allEntries.AddRange(
-                        subFolder.EnumerateDirectories()
+                        subFolder
+                            .EnumerateFiles()
+                            .Select(f =>
+                                $"{subFolder.Name}\\{f.Name}"));
+                    allEntries.AddRange(
+                        subFolder
+                            .EnumerateDirectories()
                             .Where(IsValidDirectory)
-                            .Select(d => subFolder.Name + "\\" + d.Name + "\\"));
+                            .Select(d => $"{subFolder.Name}\\{d.Name}\\"));
                 }
             }
         }
         catch (Exception ex)
         {
             LauncherCommon.Log(ex, "扫描实例目录以判断导出选项失败", LauncherLogLevel.Developer);
-        }
-
-        bool IsVisible(ExportOption option)
-        {
-            if (option.RequireOptiFine && !_instance.Info.HasOptiFine)
-                return false;
-            if (option.RequireModLoader && !_instance.Modable)
-                return false;
-            if (option.RequireModLoaderOrOptiFine && !_instance.Info.HasOptiFine && !_instance.Modable)
-                return false;
-            return StandardizeRules(option.Rules.Split('|'), true).Any(rule =>
-            {
-                if (rule.StartsWith('!'))
-                    return false;
-                try
-                {
-                    if (allEntries.Any(entry => LikeString(entry, rule)))
-                        return true;
-                }
-                catch (Exception ex)
-                {
-                    LauncherCommon.Log(ex, "错误的导出规则：" + rule, LauncherLogLevel.Hint);
-                    return false;
-                }
-
-                var trimmed = rule.Trim('*', '?');
-                if (trimmed.Split('\\', StringSplitOptions.RemoveEmptyEntries).Length < 3)
-                    return false;
-                if (trimmed.EndsWith('\\'))
-                    return IsValidDirectory(new DirectoryInfo(pathIndie + trimmed));
-                return File.Exists(pathIndie + trimmed);
-            });
         }
 
         foreach (var (box, option) in _options)
@@ -820,6 +933,42 @@ public class PageInstanceExport : MyPageRight, IRefreshable
             _panOtherFoldersSub.IsVisible = _checkOtherFolders.Checked == true;
         if (_checkPcl is not null)
             _panPclSub.IsVisible = _checkPcl.Checked == true;
+        return;
+
+        bool IsVisible(ExportOption option)
+        {
+            if (option.RequireOptiFine && !_instance.Info.HasOptiFine)
+                return false;
+            if (option.RequireModLoader && !_instance.Modable)
+                return false;
+            if (option.RequireModLoaderOrOptiFine
+                && !_instance.Info.HasOptiFine
+                && !_instance.Modable)
+                return false;
+            return StandardizeRules(option.Rules.Split('|'), true)
+                .Any(rule =>
+                {
+                    if (rule.StartsWith('!'))
+                        return false;
+                    try
+                    {
+                        if (allEntries.Any(entry => LikeString(entry, rule)))
+                            return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        LauncherCommon.Log(ex, $"错误的导出规则：{rule}", LauncherLogLevel.Hint);
+                        return false;
+                    }
+
+                    var trimmed = rule.Trim('*', '?');
+                    if (trimmed.Split('\\', StringSplitOptions.RemoveEmptyEntries).Length < 3)
+                        return false;
+                    return trimmed.EndsWith('\\')
+                        ? IsValidDirectory(new DirectoryInfo(pathIndie + trimmed))
+                        : File.Exists(pathIndie + trimmed);
+                });
+        }
     }
 
     private static bool IsValidDirectory(DirectoryInfo folder)
@@ -827,8 +976,11 @@ public class PageInstanceExport : MyPageRight, IRefreshable
         try
         {
             return folder.Exists
-                   && folder.EnumerateFileSystemInfos()
-                       .Any(i => !SubOptionBlackList.Any(b => i.Name.Contains(b, StringComparison.OrdinalIgnoreCase)));
+                && folder
+                    .EnumerateFileSystemInfos()
+                    .Any(i => !SubOptionBlackList.Any(b => i.Name.Contains(
+                        b,
+                        StringComparison.OrdinalIgnoreCase)));
         }
         catch
         {
@@ -846,20 +998,20 @@ public class PageInstanceExport : MyPageRight, IRefreshable
         }
 
         yield return string.Empty;
-        yield return "# " + Lang.Text("Instance.Export.Config.Comment.ModifyRules");
-        yield return "# " + Lang.Text("Instance.Export.Config.Comment.ReverseMatch");
+        yield return $"# {Lang.Text("Instance.Export.Config.Comment.ModifyRules")}";
+        yield return $"# {Lang.Text("Instance.Export.Config.Comment.ReverseMatch")}";
         yield return string.Empty;
         foreach (var (box, option) in _options)
         {
             if (box.Checked != true || string.IsNullOrEmpty(option.Rules))
                 continue;
-            yield return "# " + option.Title;
+            yield return $"# {option.Title}";
             foreach (var rule in option.Rules.Split('|'))
                 yield return rule;
             yield return string.Empty;
         }
 
-        yield return "# " + Lang.Text("Instance.Export.Config.Comment.ExcludedFiles");
+        yield return $"# {Lang.Text("Instance.Export.Config.Comment.ExcludedFiles")}";
         yield return "!*.log";
         yield return "!*.dat_old";
         yield return "!*.BakaCoreInfo";
@@ -873,8 +1025,8 @@ public class PageInstanceExport : MyPageRight, IRefreshable
         if (_extraFiles.Count == 0)
         {
             yield return string.Empty;
-            yield return "# " + Lang.Text("Instance.Export.Config.Comment.ExtraFiles");
-            yield return "# " + Lang.Text("Instance.Export.Config.Comment.ExtraFiles2");
+            yield return $"# {Lang.Text("Instance.Export.Config.Comment.ExtraFiles")}";
+            yield return $"# {Lang.Text("Instance.Export.Config.Comment.ExtraFiles2")}";
             yield return string.Empty;
             yield break;
         }
@@ -883,16 +1035,16 @@ public class PageInstanceExport : MyPageRight, IRefreshable
             yield return file;
     }
 
-    private static IEnumerable<string> StandardizeRules(IEnumerable<string> raw, bool addSuffixStarToFolderPath)
+    private static IEnumerable<string> StandardizeRules(
+        IEnumerable<string> raw,
+        bool addSuffixStarToFolderPath)
     {
-        foreach (var rawLine in raw)
-        {
-            var line = rawLine.Trim();
-            if (string.IsNullOrEmpty(line) || line.StartsWith('#') || line.StartsWith('='))
-                continue;
-            line = line.Replace('/', '\\');
-            yield return line.EndsWith('\\') && addSuffixStarToFolderPath ? line + "**" : line;
-        }
+        return raw
+            .Select(rawLine => rawLine.Trim())
+            .Where(line =>
+                !string.IsNullOrEmpty(line) && !line.StartsWith('#') && !line.StartsWith('='))
+            .Select(line => line.Replace('/', '\\'))
+            .Select(line => line.EndsWith('\\') && addSuffixStarToFolderPath ? $"{line}**" : line);
     }
 
     private static List<Regex> CompileRules(IEnumerable<string> rules)
@@ -910,17 +1062,28 @@ public class PageInstanceExport : MyPageRight, IRefreshable
                     i++;
                 }
                 else if (ch == '*')
+                {
                     pattern.Append("[^\\\\]*");
+                }
                 else if (ch == '?')
+                {
                     pattern.Append("[^\\\\]");
+                }
                 else if (ch == '#')
+                {
                     pattern.Append("[0-9]");
+                }
                 else
+                {
                     pattern.Append(Regex.Escape(ch.ToString()));
+                }
             }
 
             pattern.Append('$');
-            result.Add(new Regex(pattern.ToString(), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant));
+            result.Add(
+                new Regex(
+                    pattern.ToString(),
+                    RegexOptions.IgnoreCase | RegexOptions.CultureInvariant));
         }
 
         return result;
@@ -942,11 +1105,11 @@ public class PageInstanceExport : MyPageRight, IRefreshable
     private static bool LikeString(string input, string rule)
     {
         var regex = new Regex(
-            "^" + Regex.Escape(rule.Replace('/', '\\'))
+            $"^{Regex.Escape(rule.Replace('/', '\\'))
                 .Replace("\\*\\*", ".*")
                 .Replace("\\*", "[^\\\\]*")
                 .Replace("\\?", "[^\\\\]")
-                .Replace("#", "[0-9]") + "$",
+                .Replace("#", "[0-9]")}$",
             RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
         return regex.IsMatch(input.Replace('/', '\\'));
     }
@@ -955,7 +1118,8 @@ public class PageInstanceExport : MyPageRight, IRefreshable
 
     #region 配置文件
 
-    private const string Separator = "==============================================================";
+    private const string Separator =
+        "==============================================================";
 
     private void ResetConfigOverrides()
     {
@@ -979,29 +1143,33 @@ public class PageInstanceExport : MyPageRight, IRefreshable
             if (string.IsNullOrEmpty(configPath))
                 return;
             _lastConfigPath = configPath;
+            States.System.ExportConfigPath = configPath;
 
             var lines = new List<string>
             {
-                "Name:" + (_textName.Text ?? string.Empty),
-                "Version:" + (_textVersion.Text ?? string.Empty),
+                $"Name:{_textName.Text ?? string.Empty}",
+                $"Version:{_textVersion.Text ?? string.Empty}",
                 string.Empty,
-                "# " + Lang.Text("Instance.Export.Config.Comment.IncludeLauncher"),
-                "IncludeLauncher:" + (_checkPcl.Checked == true),
+                $"# {Lang.Text("Instance.Export.Config.Comment.IncludeLauncher")}",
+                $"IncludeLauncher:{_checkPcl.Checked == true}",
                 string.Empty,
-                "# " + Lang.Text("Instance.Export.Config.Comment.BundleFiles"),
-                "# " + Lang.Text("Instance.Export.Config.Comment.BundleFiles2"),
-                "# " + Lang.Text("Instance.Export.Config.Comment.BundleFiles3"),
-                "DontCheckHostedAssets:" + (_checkBundleFiles.Checked == true),
+                $"# {Lang.Text("Instance.Export.Config.Comment.IncludeLauncherCustom")}",
+                $"IncludeLauncherCustom:{_checkPclCustom.Checked == true}",
                 string.Empty,
-                "# " + Lang.Text("Instance.Export.Config.Comment.Modrinth"),
-                "# " + Lang.Text("Instance.Export.Config.Comment.Modrinth2"),
-                "# " + Lang.Text("Instance.Export.Config.Comment.Modrinth3"),
-                "ModrinthUploadMode:" + (_checkModrinth.Checked == true),
+                $"# {Lang.Text("Instance.Export.Config.Comment.BundleFiles")}",
+                $"# {Lang.Text("Instance.Export.Config.Comment.BundleFiles2")}",
+                $"# {Lang.Text("Instance.Export.Config.Comment.BundleFiles3")}",
+                $"DontCheckHostedAssets:{_checkBundleFiles.Checked == true}",
                 string.Empty,
-                "# " + Lang.Text("Instance.Export.Config.Comment.PackPath"),
-                "# " + Lang.Text("Instance.Export.Config.Comment.PackPath2"),
-                "# " + Lang.Text("Instance.Export.Config.Comment.PackPath3"),
-                "PackPath:" + _configPackPath,
+                $"# {Lang.Text("Instance.Export.Config.Comment.Modrinth")}",
+                $"# {Lang.Text("Instance.Export.Config.Comment.Modrinth2")}",
+                $"# {Lang.Text("Instance.Export.Config.Comment.Modrinth3")}",
+                $"ModrinthUploadMode:{_checkModrinth.Checked == true}",
+                string.Empty,
+                $"# {Lang.Text("Instance.Export.Config.Comment.PackPath")}",
+                $"# {Lang.Text("Instance.Export.Config.Comment.PackPath2")}",
+                $"# {Lang.Text("Instance.Export.Config.Comment.PackPath3")}",
+                $"PackPath:{_configPackPath}",
                 string.Empty,
                 Separator
             };
@@ -1041,6 +1209,7 @@ public class PageInstanceExport : MyPageRight, IRefreshable
         try
         {
             _lastConfigPath = configPath;
+            States.System.ExportConfigPath = configPath;
             var content = LauncherCommon.ReadFile(configPath);
             var segments = content.Split(Separator);
             if (segments.Length == 0)
@@ -1068,26 +1237,56 @@ public class PageInstanceExport : MyPageRight, IRefreshable
             _checkBundleFiles.Checked = ReadBool(ini, "DontCheckHostedAssets", false);
             _configPackPath = ini.GetValueOrDefault("PackPath", string.Empty);
 
-            _rulesOverrides = segments[1].Replace("\r", string.Empty).Split('\n').ToList();
+            _rulesOverrides = [.. segments[1].Replace("\r", string.Empty).Split('\n')];
             _extraFiles = segments.Length > 2
-                ? segments[2].Replace("\r", string.Empty).Split('\n').ToList()
+                ? [.. segments[2].Replace("\r", string.Empty).Split('\n')]
                 : [];
             _panOptions.IsVisible = false;
             _btnResetOverrides.IsVisible = true;
-            _cardOptions.Title = Lang.Text("Instance.Export.OptionListTitle") + ": "
-                                 + Lang.Text("Instance.Export.OptionList.FromConfig");
+            _cardOptions.Title =
+                $"{Lang.Text("Instance.Export.OptionListTitle")}: {Lang.Text("Instance.Export.OptionList.FromConfig")}";
             HintService.Show(Hints.Success(Lang.Text("Instance.Export.ReadSuccess", configPath)));
         }
         catch (Exception ex)
         {
-            LauncherCommon.Log(ex, "读取导出配置失败：" + configPath, LauncherLogLevel.Feedback);
+            LauncherCommon.Log(ex, $"读取导出配置失败：{configPath}", LauncherLogLevel.Feedback);
             InstancePageHelper.ReportError("Instance.Export.Error.OperationFailed", ex);
         }
     }
 
     private static bool ReadBool(IReadOnlyDictionary<string, string> ini, string key, bool fallback)
     {
-        return ini.TryGetValue(key, out var value) && bool.TryParse(value, out var parsed) ? parsed : fallback;
+        return ini.TryGetValue(key, out var value) && bool.TryParse(value, out var parsed)
+            ? parsed
+            : fallback;
+    }
+
+    private static string? GetSingleTxtFile(DragEventArgs e)
+    {
+        var files = e.DataTransfer.TryGetFiles();
+        if (files is not { Length: 1 })
+            return null;
+        var path = files[0].TryGetLocalPath();
+        return !string.IsNullOrEmpty(path)
+            && path.EndsWith(".txt", StringComparison.OrdinalIgnoreCase)
+                ? path
+                : null;
+    }
+
+    private void OnDragOver(object? sender, DragEventArgs e)
+    {
+        e.DragEffects = GetSingleTxtFile(e) is not null
+            ? DragDropEffects.Copy
+            : DragDropEffects.None;
+        e.Handled = true;
+    }
+
+    private void OnDrop(object? sender, DragEventArgs e)
+    {
+        var path = GetSingleTxtFile(e);
+        if (path is not null)
+            ReadConfigFile(path);
+        e.Handled = true;
     }
 
     #endregion
@@ -1103,8 +1302,12 @@ public class PageInstanceExport : MyPageRight, IRefreshable
         try
         {
             var instance = _instance;
-            var packName = string.IsNullOrWhiteSpace(_textName.Text) ? instance.Name : _textName.Text!.Trim();
-            var packVersion = string.IsNullOrWhiteSpace(_textVersion.Text) ? "1.0.0" : _textVersion.Text!.Trim();
+            var packName = string.IsNullOrWhiteSpace(_textName.Text)
+                ? instance.Name
+                : _textName.Text!.Trim();
+            var packVersion = string.IsNullOrWhiteSpace(_textVersion.Text)
+                ? "1.0.0"
+                : _textVersion.Text!.Trim();
             var loaderName = Lang.Text("Instance.Export.ExportTask.Prefix") + packName;
             if (Loading.loaderTaskbar.Any(loader => loader.name == loaderName))
             {
@@ -1113,19 +1316,19 @@ public class PageInstanceExport : MyPageRight, IRefreshable
             }
 
             string? packPath = null;
-            if (!string.IsNullOrWhiteSpace(_configPackPath) && !_configPackPath.EndsWith('\\')
+            if (!string.IsNullOrWhiteSpace(_configPackPath)
+                && !_configPackPath.EndsWith('\\')
                 && !_configPackPath.EndsWith('/'))
-            {
                 try
                 {
-                    Directory.CreateDirectory(Path.GetDirectoryName(_configPackPath) ?? string.Empty);
+                    Directory.CreateDirectory(
+                        Path.GetDirectoryName(_configPackPath) ?? string.Empty);
                     packPath = _configPackPath;
                 }
                 catch (Exception ex)
                 {
                     LauncherCommon.Log(ex, "无法使用配置文件指定的导出路径", LauncherLogLevel.Hint);
                 }
-            }
 
             if (packPath is null)
             {
@@ -1136,7 +1339,10 @@ public class PageInstanceExport : MyPageRight, IRefreshable
                     extensions.Add(Lang.Text("Instance.Export.MrpackFilter"));
                 packPath = SystemDialogs.SelectSaveFile(
                     Lang.Text("Instance.Export.SelectSaveLocation"),
-                    packName + (string.IsNullOrWhiteSpace(_textVersion.Text) ? string.Empty : " " + packVersion),
+                    packName
+                    + (string.IsNullOrWhiteSpace(_textVersion.Text)
+                        ? string.Empty
+                        : $" {packVersion}"),
                     string.Join('|', extensions));
             }
 
@@ -1147,13 +1353,11 @@ public class PageInstanceExport : MyPageRight, IRefreshable
             var includePclCustom = includePcl && _checkPclCustom.Checked == true;
             var bundleFiles = _checkBundleFiles.Checked == true;
             var modrinthMode = _checkModrinth.Checked == true;
-            var rules = new List<(Regex Regex, bool Include)>();
-            foreach (var rule in StandardizeRules(GetAllRules(), true))
-            {
-                var exclude = rule.StartsWith('!');
-                var compiled = CompileRules([exclude ? rule[1..] : rule]).First();
-                rules.Add((compiled, !exclude));
-            }
+            var rules = (
+                from rule in StandardizeRules(GetAllRules(), true)
+                let exclude = rule.StartsWith('!')
+                let compiled = CompileRules([exclude ? rule[1..] : rule]).First()
+                select (compiled, !exclude)).ToList();
 
             var extraFiles = StandardizeRules(GetExtraFileLines(), false).ToList();
             var cacheFolder = LauncherCommon.GetTempFolder("Instance Export");
@@ -1162,7 +1366,14 @@ public class PageInstanceExport : MyPageRight, IRefreshable
             {
                 new Loading.LoaderTask<int, int>(
                     Lang.Text("Instance.Export.Task.CopyContent"),
-                    loader => CopyContent(instance, cacheFolder, rules, extraFiles, includePcl, includePclCustom, loader))
+                    loader => CopyContent(
+                        instance,
+                        cacheFolder,
+                        rules,
+                        extraFiles,
+                        includePcl,
+                        includePclCustom,
+                        loader))
                 {
                     ProgressWeight = 5d
                 },
@@ -1192,17 +1403,22 @@ public class PageInstanceExport : MyPageRight, IRefreshable
                     {
                         case LoadState.Finished:
                             HintService.Show(
-                                Hints.Success(
-                                    Lang.Text("Instance.Export.Task.Prefix") + packName
-                                    + Lang.Text("Common.Status.Success")));
-                            InstancePageHelper.OpenFolder(Path.GetDirectoryName(targetPath) ?? string.Empty);
+                                Hints.Success(loaderName + Lang.Text("Common.Status.Success")));
+                            InstancePageHelper.OpenFolder(
+                                Path.GetDirectoryName(targetPath) ?? string.Empty);
                             break;
                         case LoadState.Failed:
-                            HintService.Show(Hints.Error(Lang.Text("Instance.Export.Error.OperationFailed")));
+                            HintService.Show(
+                                Hints.Error(Lang.Text("Instance.Export.Error.OperationFailed")));
                             break;
                         case LoadState.Aborted:
                             HintService.Show(Hints.Info(Lang.Text("Common.Status.Cancelled")));
                             break;
+                        case LoadState.Waiting:
+                        case LoadState.Loading:
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
                     }
                 }
             };
@@ -1241,7 +1457,11 @@ public class PageInstanceExport : MyPageRight, IRefreshable
             {
                 if (isRoot && subFolder.Name is "assets" or "versions" or "libraries")
                     continue;
-                if (subFolder.Name is "structureCacheV1" or ".fabric" or ".git" or "avatar-cache" or "cosmetic-cache")
+                if (subFolder.Name is "structureCacheV1"
+                    or ".fabric"
+                    or ".git"
+                    or "avatar-cache"
+                    or "cosmetic-cache")
                     continue;
                 SearchFolder(subFolder, false);
             }
@@ -1249,7 +1469,9 @@ public class PageInstanceExport : MyPageRight, IRefreshable
             foreach (var entry in folder.EnumerateFiles())
             {
                 var relativePath = entry.FullName[pathIndie.Length..];
-                var matchPath = relativePath.Replace(Path.DirectorySeparatorChar, '\\').Replace('/', '\\');
+                var matchPath = relativePath
+                    .Replace(Path.DirectorySeparatorChar, '\\')
+                    .Replace('/', '\\');
                 var shouldKeep = false;
                 foreach (var (regex, include) in rules)
                     if (regex.IsMatch(matchPath))
@@ -1271,17 +1493,22 @@ public class PageInstanceExport : MyPageRight, IRefreshable
         var baseFolder = includePcl ? cacheFolder : Path.Combine(cacheFolder, "modpack");
         foreach (var line in extraFiles)
         {
-            var normalized = line.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar);
+            var normalized = line
+                .Replace('\\', Path.DirectorySeparatorChar)
+                .Replace('/', Path.DirectorySeparatorChar);
             if (normalized.EndsWith(Path.DirectorySeparatorChar))
             {
                 if (Directory.Exists(normalized))
                 {
-                    var target = Path.Combine(baseFolder, Path.GetFileName(normalized.TrimEnd(Path.DirectorySeparatorChar)));
+                    var target = Path.Combine(
+                        baseFolder,
+                        Path.GetFileName(normalized.TrimEnd(Path.DirectorySeparatorChar)));
                     CopyDirectory(normalized, target);
                 }
                 else
                 {
-                    HintService.Show(Hints.Error(Lang.Text("Instance.Export.Config.FolderNotFound", line)));
+                    HintService.Show(
+                        Hints.Error(Lang.Text("Instance.Export.Config.FolderNotFound", line)));
                 }
             }
             else if (File.Exists(normalized))
@@ -1290,7 +1517,8 @@ public class PageInstanceExport : MyPageRight, IRefreshable
             }
             else
             {
-                HintService.Show(Hints.Error(Lang.Text("Instance.Export.Config.FileNotFound", line)));
+                HintService.Show(
+                    Hints.Error(Lang.Text("Instance.Export.Config.FileNotFound", line)));
             }
         }
 
@@ -1299,7 +1527,6 @@ public class PageInstanceExport : MyPageRight, IRefreshable
             CopyDirectory(pclFolder, Path.Combine(overridesFolder, "PCL"));
 
         if (includePcl)
-        {
             try
             {
                 var launcherPath = Path.Combine(cacheFolder, "Plain Craft Launcher.exe");
@@ -1310,14 +1537,24 @@ public class PageInstanceExport : MyPageRight, IRefreshable
                     var exeFolder = Basics.ExecutableDirectory;
                     var pclSource = Path.Combine(exeFolder, "PCL");
                     var pclTarget = Path.Combine(cacheFolder, "PCL");
-                    foreach (var name in new[] { "Pictures", "Musics" })
+                    foreach (var name in new[]
+                             {
+                                 "Pictures",
+                                 "Musics"
+                             })
                     {
                         var source = Path.Combine(pclSource, name);
                         if (Directory.Exists(source))
                             CopyDirectory(source, Path.Combine(pclTarget, name));
                     }
 
-                    foreach (var name in new[] { "Custom.xaml", "Setup.ini", "hints.txt", "Logo.png" })
+                    foreach (var name in new[]
+                             {
+                                 "Custom.xaml",
+                                 "Setup.ini",
+                                 "hints.txt",
+                                 "Logo.png"
+                             })
                     {
                         var source = Path.Combine(pclSource, name);
                         if (File.Exists(source))
@@ -1332,7 +1569,6 @@ public class PageInstanceExport : MyPageRight, IRefreshable
             {
                 LauncherCommon.Log(ex, "复制启动器文件到整合包失败", LauncherLogLevel.Developer);
             }
-        }
 
         loader.Progress = 0.97d;
     }
@@ -1354,7 +1590,6 @@ public class PageInstanceExport : MyPageRight, IRefreshable
 
         var files = new JsonArray();
         if (!bundleFiles)
-        {
             try
             {
                 files = FetchHostedFiles(overridesFolder, modrinthMode);
@@ -1364,11 +1599,15 @@ public class PageInstanceExport : MyPageRight, IRefreshable
                 LauncherCommon.Log(ex, "联网获取资源下载信息失败，改为将资源文件直接打包", LauncherLogLevel.Hint);
                 files = [];
             }
-        }
 
         loader.Progress = 0.2d;
 
-        var dependencies = new JsonObject { { "minecraft", instance.Info.VanillaName } };
+        var dependencies = new JsonObject
+        {
+            {
+                "minecraft", instance.Info.VanillaName
+            }
+        };
         if (instance.Info.HasForge)
             dependencies.Add("forge", instance.Info.Forge);
         if (instance.Info.HasFabric)
@@ -1378,18 +1617,36 @@ public class PageInstanceExport : MyPageRight, IRefreshable
 
         var resultJson = new JsonObject
         {
-            { "game", "minecraft" },
-            { "formatVersion", 1 },
-            { "versionId", packVersion },
-            { "name", packName },
-            { "summary", instance.Desc },
-            { "files", files },
-            { "dependencies", dependencies }
+            {
+                "game", "minecraft"
+            },
+            {
+                "formatVersion", 1
+            },
+            {
+                "versionId", packVersion
+            },
+            {
+                "name", packName
+            },
+            {
+                "summary", instance.Desc
+            },
+            {
+                "files", files
+            },
+            {
+                "dependencies", dependencies
+            }
         };
         Directory.CreateDirectory(modpackFolder);
         File.WriteAllText(
             Path.Combine(modpackFolder, "modrinth.index.json"),
-            resultJson.ToJsonString(new JsonSerializerOptions(JsonCompat.SerializerOptions) { WriteIndented = true }));
+            resultJson.ToJsonString(
+                new JsonSerializerOptions(JsonCompat.SerializerOptions)
+                {
+                    WriteIndented = true
+                }));
 
         Directory.CreateDirectory(Path.GetDirectoryName(packPath) ?? string.Empty);
         if (File.Exists(packPath))
@@ -1427,21 +1684,36 @@ public class PageInstanceExport : MyPageRight, IRefreshable
         if (!Directory.Exists(overridesFolder))
             return files;
 
-        var archiveExtensions = new[] { ".zip", ".rar", ".jar", ".disabled", ".old" };
-        var candidates = Directory.EnumerateFiles(overridesFolder, "*", SearchOption.AllDirectories)
-            .Select(file => (File: file, Relative: Path.GetRelativePath(overridesFolder, file).Replace('\\', '/')))
+        var archiveExtensions = new[]
+        {
+            ".zip",
+            ".rar",
+            ".jar",
+            ".disabled",
+            ".old"
+        };
+        var candidates = Directory
+            .EnumerateFiles(overridesFolder, "*", SearchOption.AllDirectories)
+            .Select(file => (File: file,
+                Relative: Path.GetRelativePath(overridesFolder, file).Replace('\\', '/')))
             .Where(pair =>
                 archiveExtensions.Contains(Path.GetExtension(pair.File).ToLowerInvariant())
-                && new[] { "mods/", "packs/", "openloader/", "resource" }.Any(prefix =>
+                && new[]
+                {
+                    "mods/",
+                    "packs/",
+                    "openloader/",
+                    "resource"
+                }.Any(prefix =>
                     pair.Relative.Contains(prefix, StringComparison.OrdinalIgnoreCase)))
             .ToList();
 
         if (candidates.Count == 0)
             return files;
 
-        var infos = new List<(string Path, string Relative, string ModrinthHash, uint CurseForgeHash)>();
+        var infos =
+            new List<(string Path, string Relative, string ModrinthHash, uint CurseForgeHash)>();
         foreach (var (file, relative) in candidates)
-        {
             try
             {
                 var info = new LocalComp.LocalCompFile(file);
@@ -1449,9 +1721,8 @@ public class PageInstanceExport : MyPageRight, IRefreshable
             }
             catch (Exception ex)
             {
-                LauncherCommon.Log(ex, "读取资源文件信息失败：" + file, LauncherLogLevel.Developer);
+                LauncherCommon.Log(ex, $"读取资源文件信息失败：{file}", LauncherLogLevel.Developer);
             }
-        }
 
         if (infos.Count == 0)
             return files;
@@ -1460,8 +1731,8 @@ public class PageInstanceExport : MyPageRight, IRefreshable
 
         try
         {
-            var hashes = infos.Select(info => "\"" + info.ModrinthHash + "\"");
-            var body = "{\"hashes\": [" + string.Join(",", hashes) + "], \"algorithm\": \"sha1\"}";
+            var hashes = infos.Select(info => $"\"{info.ModrinthHash}\"");
+            var body = $"{{\"hashes\": [{string.Join(",", hashes)}], \"algorithm\": \"sha1\"}}";
             var response = JsonNode.Parse(
                 GameDownload.DlModRequest(
                     "https://api.modrinth.com/v2/version_files",
@@ -1469,14 +1740,17 @@ public class PageInstanceExport : MyPageRight, IRefreshable
                     body,
                     "application/json"));
             if (response is JsonObject mapping)
-            {
                 foreach (var info in infos)
                 {
                     if (mapping[info.ModrinthHash] is not JsonObject version)
                         continue;
                     var url = version["files"]?[0]?["url"]?.ToString();
                     var sha1 = version["files"]?[0]?["hashes"]?["sha1"]?.ToString();
-                    if (string.IsNullOrEmpty(url) || !string.Equals(sha1, info.ModrinthHash, StringComparison.OrdinalIgnoreCase))
+                    if (string.IsNullOrEmpty(url)
+                        || !string.Equals(
+                            sha1,
+                            info.ModrinthHash,
+                            StringComparison.OrdinalIgnoreCase))
                         continue;
                     if (!downloads.TryGetValue(info.ModrinthHash, out var list))
                     {
@@ -1486,7 +1760,6 @@ public class PageInstanceExport : MyPageRight, IRefreshable
 
                     list.Add(url);
                 }
-            }
         }
         catch (Exception ex)
         {
@@ -1494,11 +1767,10 @@ public class PageInstanceExport : MyPageRight, IRefreshable
         }
 
         if (!modrinthMode)
-        {
             try
             {
                 var fingerprints = infos.Select(info => info.CurseForgeHash.ToString());
-                var body = "{\"fingerprints\": [" + string.Join(",", fingerprints) + "]}";
+                var body = $"{{\"fingerprints\": [{string.Join(",", fingerprints)}]}}";
                 var response = JsonNode.Parse(
                     GameDownload.DlModRequest(
                         "https://api.curseforge.com/v1/fingerprints/432/",
@@ -1534,7 +1806,6 @@ public class PageInstanceExport : MyPageRight, IRefreshable
             {
                 LauncherCommon.Log(ex, "从 CurseForge 获取本地资源信息失败", LauncherLogLevel.Hint);
             }
-        }
 
         foreach (var info in infos)
         {
@@ -1546,17 +1817,26 @@ public class PageInstanceExport : MyPageRight, IRefreshable
             files.Add(
                 new JsonObject
                 {
-                    { "path", info.Relative },
                     {
-                        "hashes",
-                        new JsonObject
+                        "path", info.Relative
+                    },
+                    {
+                        "hashes", new JsonObject
                         {
-                            { "sha1", info.ModrinthHash },
-                            { "sha512", ComputeSha512(info.Path) }
+                            {
+                                "sha1", info.ModrinthHash
+                            },
+                            {
+                                "sha512", ComputeSha512(info.Path)
+                            }
                         }
                     },
-                    { "downloads", downloadArray },
-                    { "fileSize", new FileInfo(info.Path).Length }
+                    {
+                        "downloads", downloadArray
+                    },
+                    {
+                        "fileSize", new FileInfo(info.Path).Length
+                    }
                 });
             File.Delete(info.Path);
         }

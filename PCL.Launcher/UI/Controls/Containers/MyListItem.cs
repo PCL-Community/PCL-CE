@@ -429,7 +429,7 @@ public class MyListItem : Grid, IMyRadio
                 Margin = new Thickness(4d, 0d, 0d, 0d),
                 Opacity = 0.6d
             };
-            ContainerTheme.BindDynamic(lab, TextBlock.ForegroundProperty, "ColorBrushGray3");
+            ContainerTheme.BindDynamic(lab, TextBlock.ForegroundProperty, "ColorBrushGray2");
             SetColumn(lab, 4);
             SetRow(lab, 2);
             Children.Add(lab);

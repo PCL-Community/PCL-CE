@@ -23,10 +23,6 @@ namespace PCL.Views.Pages.Launch;
 /// </summary>
 public partial class PageLoginAuth : LoginPageBase
 {
-    public static string? PendingAuthServer { get; set; }
-
-    public static bool? PendingAuthServerOAuthSupported { get; set; }
-
     private readonly MyButton _btnBack;
     private readonly MyTextButton _btnBackOAuth;
     private readonly MyTextButton _btnLink;
@@ -36,29 +32,29 @@ public partial class PageLoginAuth : LoginPageBase
     private readonly MyTextButton _btnUseOAuth;
     private readonly MyTextButton _btnUsePassword;
     private readonly MyTextButton _btnWebsite;
-    private readonly TextBlock _textNameTitle;
-    private readonly MyTextBox _textName;
-    private readonly TextBlock _textPassTitle;
-    private readonly MyTextBox _textPass;
     private readonly Grid _panOAuth;
-    private readonly StackPanel _panPasswordLinks;
+    private readonly Grid _panPasswordLinks;
+    private readonly MyTextBox _textName;
+    private readonly TextBlock _textNameTitle;
+    private readonly MyPasswordBox _textPass;
+    private readonly TextBlock _textPassTitle;
 
     private string _authServerUrl = "";
-    private bool _isOAuthMode;
-    private bool? _oauthSupported;
     private bool _hasRegisterLink;
-    private bool _loginModeInitialized;
     private bool _isLoggingIn;
+    private bool _isOAuthMode;
     private bool _isRegisterMode = true;
+    private bool _loginModeInitialized;
+    private bool? _oauthSupported;
 
     public PageLoginAuth()
     {
         InitializeComponent();
         _panOAuth = this.FindControl<Grid>("PanOAuth")!;
-        _panPasswordLinks = this.FindControl<StackPanel>("PanPasswordLinks")!;
+        _panPasswordLinks = this.FindControl<Grid>("PanPasswordLinks")!;
         _textName = this.FindControl<MyTextBox>("TextName")!;
         _textNameTitle = this.FindControl<TextBlock>("TextNameTitle")!;
-        _textPass = this.FindControl<MyTextBox>("TextPass")!;
+        _textPass = this.FindControl<MyPasswordBox>("TextPass")!;
         _textPassTitle = this.FindControl<TextBlock>("TextPassTitle")!;
         _btnBack = this.FindControl<MyButton>("BtnBack")!;
         _btnBackOAuth = this.FindControl<MyTextButton>("BtnBackOAuth")!;
@@ -81,8 +77,23 @@ public partial class PageLoginAuth : LoginPageBase
         _btnOAuth.Click += (_, _) => _ = LoginAsync();
         _textName.TextChanged += (_, _) => RefreshRegisterButton();
 
-        SetLoginMode(false, animate: false);
+        SetLoginMode(false, false);
         RefreshRegisterButton();
+
+        AttachedToVisualTree += (_, _) => LocalizationService.LanguageChanged += OnLanguageChanged;
+        DetachedFromVisualTree +=
+            (_, _) => LocalizationService.LanguageChanged -= OnLanguageChanged;
+    }
+
+    public static string? PendingAuthServer { get; set; }
+
+    public static bool? PendingAuthServerOAuthSupported { get; set; }
+
+    private void OnLanguageChanged()
+    {
+        RefreshRegisterButton();
+        if (!_isLoggingIn)
+            _btnLogin.Text = Lang.Text("Launch.Account.Auth.Login");
     }
 
     public override void Reload()
@@ -163,14 +174,19 @@ public partial class PageLoginAuth : LoginPageBase
     {
         return oauthMode
             ? [_panOAuth, _btnUsePassword, _btnWebsite, _btnBackOAuth]
-            : [_textName, _textNameTitle, _panPasswordLinks, _btnLink, _btnLogin, _textPass, _textPassTitle];
+            :
+            [
+                _textName, _textNameTitle, _panPasswordLinks, _btnLink, _btnLogin, _textPass,
+                _textPassTitle
+            ];
     }
 
     private double GetModeTargetOpacity(Control control)
     {
-        return ReferenceEquals(control, _btnBackOAuth) || ReferenceEquals(control, _panPasswordLinks)
-            ? 0.3d
-            : 1d;
+        return ReferenceEquals(control, _btnBackOAuth)
+            || ReferenceEquals(control, _panPasswordLinks)
+                ? 0.3d
+                : 1d;
     }
 
     private void ApplyModeVisibility(bool oauthMode)
@@ -197,7 +213,7 @@ public partial class PageLoginAuth : LoginPageBase
     {
         var available = _oauthSupported == true;
         _btnUseOAuth.IsVisible = available;
-        Grid.SetColumnSpan(_btnPasswordWebsite, available ? 1 : 2);
+        Grid.SetColumnSpan(_btnPasswordWebsite, available ? 1 : 3);
     }
 
     #endregion
@@ -310,8 +326,11 @@ public partial class PageLoginAuth : LoginPageBase
         }
         else if (ex.Message.StartsWith("$"))
         {
-            HintService.Show(Hints.Error(
-                Lang.Text("Launch.Account.Auth.LoginFailed.WithDetail", ex.Message.TrimStart('$'))));
+            HintService.Show(
+                Hints.Error(
+                    Lang.Text(
+                        "Launch.Account.Auth.LoginFailed.WithDetail",
+                        ex.Message.TrimStart('$'))));
         }
         else
         {
@@ -361,10 +380,11 @@ public partial class PageLoginAuth : LoginPageBase
             var metadata = (JsonObject)LauncherCommon.GetJson(
                 await response.AsStringAsync().ConfigureAwait(false));
             var discovery = metadata["meta"]?["feature.openid_configuration_url"]?.ToString()
-                            ?? metadata["feature.openid_configuration_url"]?.ToString();
+                ?? metadata["feature.openid_configuration_url"]?.ToString();
             if (string.IsNullOrWhiteSpace(discovery)) return false;
 
-            using var discoveryResponse = await HttpRequest.Create(discovery).SendAsync().ConfigureAwait(false);
+            using var discoveryResponse =
+                await HttpRequest.Create(discovery).SendAsync().ConfigureAwait(false);
             if (!discoveryResponse.IsSuccess) return false;
             var discoveryMetadata = (JsonObject)LauncherCommon.GetJson(
                 await discoveryResponse.AsStringAsync().ConfigureAwait(false));
@@ -372,8 +392,8 @@ public partial class PageLoginAuth : LoginPageBase
             var deviceEndpoint = discoveryMetadata["device_authorization_endpoint"]?.ToString();
             var tokenEndpoint = discoveryMetadata["token_endpoint"]?.ToString();
             return !string.IsNullOrWhiteSpace(clientId)
-                   && !string.IsNullOrWhiteSpace(deviceEndpoint)
-                   && !string.IsNullOrWhiteSpace(tokenEndpoint);
+                && !string.IsNullOrWhiteSpace(deviceEndpoint)
+                && !string.IsNullOrWhiteSpace(tokenEndpoint);
         }
         catch (Exception ex)
         {
@@ -385,9 +405,11 @@ public partial class PageLoginAuth : LoginPageBase
     private static string? GetClientId(string authServerUrl, JsonObject discoveryMetadata)
     {
         if (!Uri.TryCreate(authServerUrl, UriKind.Absolute, out var serverUri)) return null;
-        if (YggdrasilConnectProvider.TryGetBuiltInClientId(serverUri.Host, out var builtInClientId))
-            return builtInClientId;
-        return discoveryMetadata["shared_client_id"]?.ToString();
+        return YggdrasilConnectProvider.TryGetBuiltInClientId(
+            serverUri.Host,
+            out var builtInClientId)
+            ? builtInClientId
+            : discoveryMetadata["shared_client_id"]?.ToString();
     }
 
     private async Task<bool> TryStartYggdrasilConnectAsync()
@@ -400,10 +422,11 @@ public partial class PageLoginAuth : LoginPageBase
             var metadata = (JsonObject)LauncherCommon.GetJson(
                 await response.AsStringAsync().ConfigureAwait(true));
             var discovery = metadata["meta"]?["feature.openid_configuration_url"]?.ToString()
-                            ?? metadata["feature.openid_configuration_url"]?.ToString();
+                ?? metadata["feature.openid_configuration_url"]?.ToString();
             if (string.IsNullOrWhiteSpace(discovery)) return false;
 
-            using var discoveryResponse = await HttpRequest.Create(discovery).SendAsync().ConfigureAwait(true);
+            using var discoveryResponse =
+                await HttpRequest.Create(discovery).SendAsync().ConfigureAwait(true);
             if (!discoveryResponse.IsSuccess) return false;
             var discoveryMetadata = (JsonObject)LauncherCommon.GetJson(
                 await discoveryResponse.AsStringAsync().ConfigureAwait(true));
@@ -420,23 +443,29 @@ public partial class PageLoginAuth : LoginPageBase
         }
     }
 
-    private async Task CompleteYggdrasilConnectLoginAsync(string server, string discovery, string clientId)
+    private async Task CompleteYggdrasilConnectLoginAsync(
+        string server,
+        string discovery,
+        string clientId)
     {
         try
         {
-            var profile = await ProfileService.AuthenticateAsync(
-                ProfileType.YggdrasilConnect,
-                new AuthenticationRequest
-                {
-                    Server = server,
-                    DiscoveryAddress = discovery,
-                    ClientId = clientId,
-                    DeviceCodeHandler = LoginProfile.ShowDeviceCodeLoginAsync,
-                    ProfileSelector = (candidates, _) => Task.FromResult(SelectYggdrasilProfile(candidates))
-                },
-                existing: null,
-                select: true,
-                token: CancellationToken.None).ConfigureAwait(false);
+            var profile = await ProfileService
+                .AuthenticateAsync(
+                    ProfileType.YggdrasilConnect,
+                    new AuthenticationRequest
+                    {
+                        Server = server,
+                        DiscoveryAddress = discovery,
+                        ClientId = clientId,
+                        DeviceCodeHandler = LoginProfile.ShowDeviceCodeLoginAsync,
+                        ProfileSelector = (candidates, _) =>
+                            Task.FromResult(SelectYggdrasilProfile(candidates))
+                    },
+                    null,
+                    true,
+                    CancellationToken.None)
+                .ConfigureAwait(false);
             LogWrapper.Info("Launch", "Yggdrasil Connect 登录成功：" + profile.UserName);
             await Dispatcher.UIThread.InvokeAsync(RequestRefresh);
         }
@@ -463,16 +492,20 @@ public partial class PageLoginAuth : LoginPageBase
         AuthenticationCandidate? selected = null;
         LauncherCommon.RunInUiWait(() =>
         {
-            var result = DialogService.Instance.Show(new SelectDialogRequest
-            {
-                Title = Lang.Text("Launch.Account.Auth.ChangeProfile"),
-                Options = candidates
-                    .Select(candidate => new DialogOption { Text = candidate.Name })
-                    .ToList(),
-                Buttons = DialogButtons.Ok,
-                HighLight = false,
-                ForceWait = true
-            });
+            var result = DialogService.Instance.Show(
+                new SelectDialogRequest
+                {
+                    Title = Lang.Text("Launch.Account.Auth.ChangeProfile"),
+                    Options = candidates
+                        .Select(candidate => new DialogOption
+                        {
+                            Text = candidate.Name
+                        })
+                        .ToList(),
+                    Buttons = DialogButtons.Ok,
+                    HighLight = false,
+                    ForceWait = true
+                });
             var index = result.Result?.SelectedIndex;
             if (index is >= 0 && index < candidates.Count)
                 selected = candidates[index.Value];
@@ -487,6 +520,7 @@ public partial class PageLoginAuth : LoginPageBase
     private void GoBack()
     {
         ProfileService.IsCreatingProfile = false;
+        _authServerUrl = "";
         _textName.Text = "";
         _textPass.Text = "";
         RequestBack();
@@ -496,7 +530,12 @@ public partial class PageLoginAuth : LoginPageBase
     {
         if (!Uri.TryCreate(_authServerUrl, UriKind.Absolute, out var uri))
             return;
-        var root = new UriBuilder(uri) { Path = "/", Query = "", Fragment = "" }.Uri;
+        var root = new UriBuilder(uri)
+        {
+            Path = "/",
+            Query = "",
+            Fragment = ""
+        }.Uri;
         Basics.OpenPath(root.ToString());
     }
 
@@ -505,7 +544,8 @@ public partial class PageLoginAuth : LoginPageBase
         var address = GetRegisterAddress();
         if (string.IsNullOrWhiteSpace(address))
             return;
-        Basics.OpenPath(_isRegisterMode ? address : address.Replace("/auth/register", "/auth/forgot"));
+        Basics.OpenPath(
+            _isRegisterMode ? address : address.Replace("/auth/register", "/auth/forgot"));
     }
 
     private static string GetRegisterAddress()
@@ -527,11 +567,12 @@ public partial class PageLoginAuth : LoginPageBase
     {
         var address = GetRegisterAddress();
         _hasRegisterLink = Uri.TryCreate(address, UriKind.Absolute, out var uri)
-                           && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
+            && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
         _isRegisterMode = string.IsNullOrEmpty(_textName.Text);
-        _btnLink.Text = Lang.Text(_isRegisterMode
-            ? "Launch.Account.Auth.Register"
-            : "Launch.Account.Auth.ForgotPassword");
+        _btnLink.Text = Lang.Text(
+            _isRegisterMode
+                ? "Launch.Account.Auth.Register"
+                : "Launch.Account.Auth.ForgotPassword");
         _btnLink.IsVisible = !_isOAuthMode && _hasRegisterLink;
     }
 

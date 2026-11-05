@@ -21,23 +21,26 @@ internal static class InstanceVersionItem
         LocalizedText.TryBind(item, "Info", () => instance.Desc);
 
         var info = instance.Info;
-        var tags = new List<string> { McInstanceInfo.GetVanillaNameDisplay(info.VanillaName) };
+        var tags = new List<string>
+        {
+            McInstanceInfo.GetVanillaNameDisplay(info.VanillaName)
+        };
         if (info.HasForge)
-            tags.Add("Forge" + McInstanceInfo.FormatVersion(info.Forge));
+            tags.Add($"Forge{McInstanceInfo.FormatVersion(info.Forge)}");
         else if (info.HasNeoForge)
-            tags.Add("NeoForge" + McInstanceInfo.FormatVersion(info.NeoForge));
+            tags.Add($"NeoForge{McInstanceInfo.FormatVersion(info.NeoForge)}");
         else if (info.HasCleanroom)
-            tags.Add("Cleanroom" + McInstanceInfo.FormatVersion(info.Cleanroom));
+            tags.Add($"Cleanroom{McInstanceInfo.FormatVersion(info.Cleanroom)}");
         else if (info.HasLabyMod)
-            tags.Add("LabyMod" + McInstanceInfo.FormatVersion(info.LabyMod));
+            tags.Add($"LabyMod{McInstanceInfo.FormatVersion(info.LabyMod)}");
         else if (info.HasQuilt)
-            tags.Add("Quilt" + McInstanceInfo.FormatVersion(info.Quilt));
+            tags.Add($"Quilt{McInstanceInfo.FormatVersion(info.Quilt)}");
         else if (info.HasFabric)
-            tags.Add("Fabric" + McInstanceInfo.FormatVersion(info.Fabric));
+            tags.Add($"Fabric{McInstanceInfo.FormatVersion(info.Fabric)}");
         if (info.HasLiteLoader)
             tags.Add("LiteLoader");
         if (info.HasOptiFine)
-            tags.Add("OptiFine" + McInstanceInfo.FormatVersion(info.OptiFine));
+            tags.Add($"OptiFine{McInstanceInfo.FormatVersion(info.OptiFine)}");
         item.PlainTags = tags;
 
         try
@@ -53,7 +56,7 @@ internal static class InstanceVersionItem
                 Lang.Text("Select.Instance.Error.IconLoad"),
                 LauncherLogLevel.Hint,
                 userSummary: Lang.Text("Select.Instance.Error.IconLoad"));
-            item.Logo = LauncherPaths.ImageRoot + "Blocks/RedstoneBlock.png";
+            item.Logo = $"{LauncherPaths.ImageRoot}Blocks/RedstoneBlock.png";
         }
 
         return item;

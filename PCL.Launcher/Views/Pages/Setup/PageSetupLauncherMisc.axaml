@@ -2,6 +2,7 @@
                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                 xmlns:ui="using:PCL.UI.Controls"
                 xmlns:loc="using:PCL.Core.UI"
+                x:CompileBindings="False"
                 x:Class="PCL.Views.Pages.Setup.PageSetupLauncherMisc">
     <ui:MyScrollViewer x:Name="PanBack"
                        HorizontalScrollBarVisibility="Disabled"
@@ -19,8 +20,10 @@
                     <ui:MyComboBox x:Name="ComboSystemActivity"
                                    Grid.Row="0"
                                    Grid.Column="1"
-                                   HorizontalAlignment="Stretch">
-                        <ui:MyComboBoxItem Content="{loc:Loc Setup.Misc.System.Announcement.All}" />
+                                   HorizontalAlignment="Stretch"
+                                   SelectedIndex="{Binding ActivityIndex, Mode=OneWay}">
+                        <ui:MyComboBoxItem Content="{loc:Loc Setup.Misc.System.Announcement.All}"
+                                           ToolTip.Tip="{loc:Loc Setup.Misc.System.Announcement.All.ToolTip}" />
                         <ui:MyComboBoxItem Content="{loc:Loc Setup.Misc.System.Announcement.ImportantOnly}" />
                         <ui:MyComboBoxItem Content="{loc:Loc Setup.Misc.System.Announcement.Disabled}" />
                     </ui:MyComboBox>
@@ -43,6 +46,7 @@
                                        Text="{loc:Loc Setup.Misc.System.DisableHardwareAcceleration}" />
                         <ui:MyCheckBox x:Name="CheckSystemTelemetry"
                                        Grid.Column="1"
+                                       IsEnabled="{Binding TelemetryEnabled}"
                                        Text="{loc:Loc Setup.Misc.System.Telemetry}"
                                        ToolTip.Tip="{loc:Loc Setup.Misc.System.Telemetry.ToolTip}" />
                     </Grid>
@@ -119,6 +123,8 @@
                         <ui:MyTextBox x:Name="TextSystemHttpProxy"
                                       Grid.Row="2"
                                       Grid.ColumnSpan="5"
+                                      HintText="比如 http://127.0.0.1:1080/"
+                                      Text="{Binding HttpProxyText, Mode=TwoWay}"
                                       ToolTip.Tip="{loc:Loc Setup.Misc.Network.Proxy.InvalidWarning}" />
                         <TextBlock Grid.Row="4"
                                    Grid.Column="0"
@@ -128,7 +134,9 @@
                         <ui:MyTextBox x:Name="TextSystemHttpProxyCustomUsername"
                                       Grid.Row="4"
                                       Grid.Column="1"
-                                      Margin="0,0,5,0" />
+                                      Margin="0,0,5,0"
+                                      HintText="{loc:Loc Setup.Misc.Network.Proxy.Optional}"
+                                      Text="{Binding HttpProxyUsername, Mode=TwoWay}" />
                         <TextBlock Grid.Row="4"
                                    Grid.Column="2"
                                    VerticalAlignment="Center"
@@ -137,11 +145,13 @@
                         <ui:MyTextBox x:Name="TextSystemHttpProxyCustomPassword"
                                       Grid.Row="4"
                                       Grid.Column="3"
-                                      Margin="0,0,5,0" />
+                                      Margin="0,0,5,0"
+                                      HintText="{loc:Loc Setup.Misc.Network.Proxy.Optional}"
+                                      Text="{Binding HttpProxyPassword, Mode=TwoWay}" />
                         <ui:MyButton x:Name="BtnApplyHttpProxy"
                                      Grid.Row="4"
                                      Grid.Column="4"
-                                     Padding="13,0"
+                                     TextPadding="3"
                                      Text="{loc:Loc Setup.Misc.Network.Proxy.Apply}" />
                     </Grid>
                 </Grid>

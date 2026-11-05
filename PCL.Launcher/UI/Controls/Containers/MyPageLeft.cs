@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using PCL.Core.App.Localization;
+using PCL.Navigation;
 using PCL.Views.Pages;
 using static PCL.Animations;
 
@@ -14,6 +15,8 @@ namespace PCL.UI.Controls;
 /// </summary>
 public class MyPageLeft : Grid, IPageView
 {
+    protected INavigationService Navigation => PageRouter.Navigation;
+
     public static readonly StyledProperty<Control?> AnimatedControlProperty =
         AvaloniaProperty.Register<MyPageLeft, Control?>(nameof(AnimatedControl));
 

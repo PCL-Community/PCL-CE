@@ -16,9 +16,11 @@ public sealed class HelpDetailHost : IPageHost
 
     public string GetTitle(PageStackData stack)
     {
-        if (!string.IsNullOrWhiteSpace(stack.TitleOverride))
-            return stack.TitleOverride!;
-        return _right?.Title ?? string.Empty;
+        return _right is { } page && !string.IsNullOrWhiteSpace(page.Title)
+            ? page.Title
+            : !string.IsNullOrWhiteSpace(stack.TitleOverride)
+                ? stack.TitleOverride!
+                : string.Empty;
     }
 
     public Control? GetLeft(PageStackData stack)
@@ -28,6 +30,11 @@ public sealed class HelpDetailHost : IPageHost
 
     public Control GetRight(PageStackData stack)
     {
-        return _right ??= new PageHelpDetail();
+        if (_right is not null)
+            return _right;
+
+        _right = new PageHelpDetail();
+        _right.TitleChanged += _ => PageRouter.RefreshState();
+        return _right;
     }
 }

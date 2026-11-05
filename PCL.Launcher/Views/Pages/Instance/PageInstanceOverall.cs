@@ -4,20 +4,22 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Layout;
-using Avalonia.Media;
 using Avalonia.Threading;
 using PCL.Core.App;
+using PCL.Core.App.Configuration;
+using PCL.Core.App.Configuration.Storage;
 using PCL.Core.App.Localization;
 using PCL.Core.IO;
 using PCL.Core.Minecraft;
-using PCL.Core.Utils.Validate;
 using PCL.Core.Minecraft.Profile;
 using PCL.Core.Minecraft.Profile.Models;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
+using PCL.Core.Utils.Validate;
 using PCL.Navigation;
 using PCL.UI.Controls;
+using PCL.Views.Pages.Download;
 
 namespace PCL.Views.Pages.Instance;
 
@@ -27,29 +29,28 @@ namespace PCL.Views.Pages.Instance;
 /// </summary>
 public class PageInstanceOverall : MyPageRight
 {
-    private const string CustomLogoTag = "__pcl_custom_logo__";
-
     private readonly StackPanel _panMain;
-    private MyLoading _labInfoLoading = null!;
-    private Grid _panDisplayItem = null!;
-    private StackPanel _panModpack = null!;
-    private WrapPanel _panInfo = null!;
-    private MyComboBox _comboDisplayLogo = null!;
-    private MyComboBoxItem _itemDisplayLogoCustom = null!;
-    private MyComboBox _comboDisplayType = null!;
-    private MyButton _btnDisplayRename = null!;
     private MyButton _btnDisplayDesc = null!;
+    private MyButton _btnDisplayRename = null!;
     private MyButton _btnDisplayStar = null!;
     private MyButton _btnFolderMods = null!;
-    private MyButton _btnManageScript = null!;
-    private MyButton _btnManageTest = null!;
     private MyButton _btnManageCheck = null!;
-    private MyButton _btnManageRestore = null!;
     private MyButton _btnManageDelete = null!;
     private MyButton _btnManagePatch = null!;
+    private MyButton _btnManageRestore = null!;
+    private MyButton _btnManageScript = null!;
+    private MyButton _btnManageTest = null!;
+    private MyComboBox _comboDisplayLogo = null!;
+    private MyComboBox _comboDisplayType = null!;
+    private int _infoRevision;
     private MyLoadingStateSimulator? _infoSimulator;
     private McInstance? _instance;
     private bool _isLoad;
+    private MyComboBoxItem _itemDisplayLogoCustom = null!;
+    private MyLoading _labInfoLoading = null!;
+    private Grid _panDisplayItem = null!;
+    private WrapPanel _panInfo = null!;
+    private StackPanel _panModpack = null!;
     private bool _syncing;
 
     public PageInstanceOverall()
@@ -81,12 +82,10 @@ public class PageInstanceOverall : MyPageRight
         var offset = PanScroll?.Offset.Y ?? 0d;
         BuildUi();
         RefreshOnNavigate();
-        Dispatcher.UIThread.Post(
-            () =>
-            {
-                if (PanScroll is not null)
-                    PanScroll.Offset = new Vector(PanScroll.Offset.X, offset);
-            });
+        Dispatcher.UIThread.Post(() =>
+        {
+            PanScroll?.Offset = new Vector(PanScroll.Offset.X, offset);
+        });
     }
 
     private void RefreshOnNavigate()
@@ -113,7 +112,10 @@ public class PageInstanceOverall : MyPageRight
             var item = InstanceVersionItem.Create(instance);
             item.IsHitTestVisible = false;
             _panDisplayItem.Children.Add(item);
-            _comboDisplayType.SelectedIndex = Math.Clamp(States.Instance.CardType[instance.PathInstance], 0, 5);
+            _comboDisplayType.SelectedIndex = Math.Clamp(
+                States.Instance.CardType[instance.PathInstance],
+                0,
+                5);
             RefreshStar(instance);
             _btnFolderMods.IsVisible = instance.Modable;
             RefreshIconSelection(instance);
@@ -137,12 +139,18 @@ public class PageInstanceOverall : MyPageRight
         _panMain.Children.Clear();
 
         var versionCard = NewCard(string.Empty, true);
-        _panDisplayItem = new Grid { Margin = new Thickness(10d, 7d) };
+        _panDisplayItem = new Grid
+        {
+            Margin = new Thickness(10d, 7d)
+        };
         versionCard.BorderChild = _panDisplayItem;
         _panMain.Children.Add(versionCard);
 
         var infoCard = NewCard("Instance.Overall.Info.Title");
-        var infoBody = new StackPanel { Margin = new Thickness(15d, 40d, 25d, 5d) };
+        var infoBody = new StackPanel
+        {
+            Margin = new Thickness(15d, 40d, 25d, 5d)
+        };
         _labInfoLoading = new MyLoading
         {
             Text = Lang.Text("Instance.Overall.Info.Loading"),
@@ -156,13 +164,19 @@ public class PageInstanceOverall : MyPageRight
             Margin = new Thickness(0d, 0d, 0d, 5d)
         };
         infoBody.Children.Add(_panModpack);
-        _panInfo = new WrapPanel { Margin = new Thickness(0d, -5d, -20d, 7d) };
+        _panInfo = new WrapPanel
+        {
+            Margin = new Thickness(0d, -5d, -20d, 7d)
+        };
         infoBody.Children.Add(_panInfo);
         infoCard.BorderChild = infoBody;
         _panMain.Children.Add(infoCard);
 
         var displayCard = NewCard("Instance.Overall.Personalization.Title");
-        var displayBody = new StackPanel { Margin = new Thickness(25d, 40d, 25d, 15d) };
+        var displayBody = new StackPanel
+        {
+            Margin = new Thickness(25d, 40d, 25d, 15d)
+        };
         var displayGrid = new Grid
         {
             ColumnDefinitions = new ColumnDefinitions("Auto,*"),
@@ -180,16 +194,35 @@ public class PageInstanceOverall : MyPageRight
         Grid.SetColumn(_comboDisplayLogo, 1);
         Grid.SetRow(_comboDisplayLogo, 0);
         displayGrid.Children.Add(_comboDisplayLogo);
-        _itemDisplayLogoCustom = AddLogoItem(_comboDisplayLogo, "Common.Option.Customize", CustomLogoTag);
-        AddLogoItem(_comboDisplayLogo, "Instance.Overall.Icon.Cobblestone", "Blocks/CobbleStone.png");
-        AddLogoItem(_comboDisplayLogo, "Instance.Overall.Icon.CommandBlock", "Blocks/CommandBlock.png");
+        AddLogoItem(_comboDisplayLogo, "Common.Option.Auto", string.Empty);
+        _itemDisplayLogoCustom = AddLogoItem(
+            _comboDisplayLogo,
+            "Common.Option.Customize",
+            Path.Combine("PCL", "Logo.png"));
+        AddLogoItem(
+            _comboDisplayLogo,
+            "Instance.Overall.Icon.Cobblestone",
+            "Blocks/CobbleStone.png");
+        AddLogoItem(
+            _comboDisplayLogo,
+            "Instance.Overall.Icon.CommandBlock",
+            "Blocks/CommandBlock.png");
         AddLogoItem(_comboDisplayLogo, "Instance.Overall.Icon.GoldBlock", "Blocks/GoldBlock.png");
         AddLogoItem(_comboDisplayLogo, "Instance.Overall.Icon.GrassBlock", "Blocks/Grass.png");
         AddLogoItem(_comboDisplayLogo, "Instance.Overall.Icon.DirtPath", "Blocks/GrassPath.png");
         AddLogoItem(_comboDisplayLogo, "Instance.Overall.Icon.Anvil", "Blocks/Anvil.png");
-        AddLogoItem(_comboDisplayLogo, "Instance.Overall.Icon.RedstoneBlock", "Blocks/RedstoneBlock.png");
-        AddLogoItem(_comboDisplayLogo, "Instance.Overall.Icon.RedstoneLampOn", "Blocks/RedstoneLampOn.png");
-        AddLogoItem(_comboDisplayLogo, "Instance.Overall.Icon.RedstoneLampOff", "Blocks/RedstoneLampOff.png");
+        AddLogoItem(
+            _comboDisplayLogo,
+            "Instance.Overall.Icon.RedstoneBlock",
+            "Blocks/RedstoneBlock.png");
+        AddLogoItem(
+            _comboDisplayLogo,
+            "Instance.Overall.Icon.RedstoneLampOn",
+            "Blocks/RedstoneLampOn.png");
+        AddLogoItem(
+            _comboDisplayLogo,
+            "Instance.Overall.Icon.RedstoneLampOff",
+            "Blocks/RedstoneLampOff.png");
         AddLogoItem(_comboDisplayLogo, "Instance.Overall.Icon.Egg", "Blocks/Egg.png");
         AddLogoItem(_comboDisplayLogo, "Instance.Overall.Icon.Fabric", "Blocks/Fabric.png");
         AddLogoItem(_comboDisplayLogo, "Instance.Overall.Icon.Quilt", "Blocks/Quilt.png");
@@ -209,14 +242,37 @@ public class PageInstanceOverall : MyPageRight
         _comboDisplayType = new MyComboBox();
         Grid.SetColumn(_comboDisplayType, 1);
         Grid.SetRow(_comboDisplayType, 2);
-        _comboDisplayType.Items.Add(new MyComboBoxItem { Content = Lang.Text("Common.Option.Auto") });
-        var hiddenItem = new MyComboBoxItem { Content = Lang.Text("Instance.Overall.Category.Hidden") };
+        _comboDisplayType.Items.Add(
+            new MyComboBoxItem
+            {
+                Content = Lang.Text("Common.Option.Auto")
+            });
+        var hiddenItem = new MyComboBoxItem
+        {
+            Content = Lang.Text("Instance.Overall.Category.Hidden")
+        };
         ToolTip.SetTip(hiddenItem, Lang.Text("Instance.Overall.Category.Hidden.ToolTip"));
         _comboDisplayType.Items.Add(hiddenItem);
-        _comboDisplayType.Items.Add(new MyComboBoxItem { Content = Lang.Text("Instance.Overall.Category.Modable") });
-        _comboDisplayType.Items.Add(new MyComboBoxItem { Content = Lang.Text("Instance.Overall.Category.Regular") });
-        _comboDisplayType.Items.Add(new MyComboBoxItem { Content = Lang.Text("Instance.Overall.Category.LessUsed") });
-        _comboDisplayType.Items.Add(new MyComboBoxItem { Content = Lang.Text("Instance.Overall.Category.AprilFools") });
+        _comboDisplayType.Items.Add(
+            new MyComboBoxItem
+            {
+                Content = Lang.Text("Instance.Overall.Category.Modable")
+            });
+        _comboDisplayType.Items.Add(
+            new MyComboBoxItem
+            {
+                Content = Lang.Text("Instance.Overall.Category.Regular")
+            });
+        _comboDisplayType.Items.Add(
+            new MyComboBoxItem
+            {
+                Content = Lang.Text("Instance.Overall.Category.LessUsed")
+            });
+        _comboDisplayType.Items.Add(
+            new MyComboBoxItem
+            {
+                Content = Lang.Text("Instance.Overall.Category.AprilFools")
+            });
         _comboDisplayType.SelectionChanged += (_, _) => _ = OnCardTypeChangedAsync();
         displayGrid.Children.Add(_comboDisplayType);
 
@@ -228,7 +284,9 @@ public class PageInstanceOverall : MyPageRight
         };
         _btnDisplayRename = NewDisplayButton("Instance.Overall.Rename", () => _ = RenameAsync());
         displayButtons.Children.Add(_btnDisplayRename);
-        _btnDisplayDesc = NewDisplayButton("Instance.Overall.EditDescription", () => _ = EditDescriptionAsync());
+        _btnDisplayDesc = NewDisplayButton(
+            "Instance.Overall.EditDescription",
+            () => _ = EditDescriptionAsync());
         Grid.SetColumn(_btnDisplayDesc, 1);
         displayButtons.Children.Add(_btnDisplayDesc);
         _btnDisplayStar = NewDisplayButton("Instance.Overall.Favorite", () => ToggleStar());
@@ -241,7 +299,10 @@ public class PageInstanceOverall : MyPageRight
         _panMain.Children.Add(displayCard);
 
         var folderCard = NewCard("Instance.Overall.Shortcuts.Title");
-        var folderBody = new StackPanel { Margin = new Thickness(25d, 40d, 25d, 15d) };
+        var folderBody = new StackPanel
+        {
+            Margin = new Thickness(25d, 40d, 25d, 15d)
+        };
         var folderButtons = new Grid
         {
             Margin = new Thickness(0d, 2d, 0d, 7d),
@@ -250,7 +311,9 @@ public class PageInstanceOverall : MyPageRight
         };
         folderButtons.Children.Add(
             NewDisplayButton("Instance.Overall.Shortcuts.InstanceFolder", OpenInstanceFolder));
-        var savesButton = NewDisplayButton("Instance.Overall.Shortcuts.SavesFolder", OpenSavesFolder);
+        var savesButton = NewDisplayButton(
+            "Instance.Overall.Shortcuts.SavesFolder",
+            OpenSavesFolder);
         Grid.SetColumn(savesButton, 1);
         folderButtons.Children.Add(savesButton);
         _btnFolderMods = NewDisplayButton("Instance.Overall.Shortcuts.ModsFolder", OpenModsFolder);
@@ -261,13 +324,18 @@ public class PageInstanceOverall : MyPageRight
         _panMain.Children.Add(folderCard);
 
         var manageCard = NewCard("Instance.Overall.Manage.Title");
-        var manageBody = new StackPanel { Margin = new Thickness(25d, 40d, 25d, 15d) };
+        var manageBody = new StackPanel
+        {
+            Margin = new Thickness(25d, 40d, 25d, 15d)
+        };
         var manageButtons = new WrapPanel
         {
             Orientation = Orientation.Horizontal,
             Margin = new Thickness(0d, -5d, -20d, 7d)
         };
-        _btnManageScript = NewManageButton("Instance.Overall.Manage.ExportLaunchScript", ExportLaunchScript);
+        _btnManageScript = NewManageButton(
+            "Instance.Overall.Manage.ExportLaunchScript",
+            ExportLaunchScript);
         manageButtons.Children.Add(_btnManageScript);
         _btnManageTest = NewManageButton("Instance.Overall.Manage.TestGame", TestGame);
         manageButtons.Children.Add(_btnManageTest);
@@ -277,10 +345,16 @@ public class PageInstanceOverall : MyPageRight
         _btnManageRestore = NewManageButton("Common.Action.Reset", () => _ = RestoreAsync());
         ToolTip.SetTip(_btnManageRestore, Lang.Text("Instance.Overall.Manage.Reinstall.ToolTip"));
         manageButtons.Children.Add(_btnManageRestore);
-        _btnManageDelete = NewManageButton("Instance.Overall.Manage.Delete", null, MyButton.ColorState.Red);
-        _btnManageDelete.Click += (_, e) => _ = DeleteAsync(e.KeyModifiers.HasFlag(KeyModifiers.Shift));
+        _btnManageDelete = NewManageButton(
+            "Instance.Overall.Manage.Delete",
+            null,
+            MyButton.ColorState.Red);
+        _btnManageDelete.Click +=
+            (_, e) => _ = DeleteAsync(e.KeyModifiers.HasFlag(KeyModifiers.Shift));
         manageButtons.Children.Add(_btnManageDelete);
-        _btnManagePatch = NewManageButton("Instance.Overall.Manage.PatchCore", () => _ = PatchCoreAsync());
+        _btnManagePatch = NewManageButton(
+            "Instance.Overall.Manage.PatchCore",
+            () => _ = PatchCoreAsync());
         manageButtons.Children.Add(_btnManagePatch);
         manageBody.Children.Add(manageButtons);
         manageCard.BorderChild = manageBody;
@@ -292,7 +366,9 @@ public class PageInstanceOverall : MyPageRight
         return new MyCard
         {
             Title = titleKey.Length == 0 ? string.Empty : Lang.Text(titleKey),
-            Margin = first ? new Thickness(0d, 15d, 0d, 15d) : new Thickness(0d, 0d, 0d, 15d)
+            Margin = first
+                ? new Thickness(0d, 15d, 0d, 15d)
+                : new Thickness(0d, 0d, 0d, 15d)
         };
     }
 
@@ -348,13 +424,17 @@ public class PageInstanceOverall : MyPageRight
         if (_instance is null)
             return;
         var instance = _instance;
+        var revision = ++_infoRevision;
 
         _panModpack.Children.Clear();
         _panModpack.IsVisible = false;
         _panInfo.Children.Clear();
         _panInfo.IsVisible = false;
         _labInfoLoading.IsVisible = true;
-        _infoSimulator = new MyLoadingStateSimulator { LoadingState = LoadingState.Run };
+        _infoSimulator = new MyLoadingStateSimulator
+        {
+            LoadingState = LoadingState.Run
+        };
         _labInfoLoading.State = _infoSimulator;
 
         LauncherCommon.RunInNewThread(
@@ -376,27 +456,27 @@ public class PageInstanceOverall : MyPageRight
                     LauncherCommon.Log(ex, "加载实例整合包信息失败", LauncherLogLevel.Developer);
                 }
 
-                LauncherCommon.RunInUi(
-                    () =>
+                LauncherCommon.RunInUi(() =>
+                {
+                    if (revision != _infoRevision || !ReferenceEquals(_instance, instance))
+                        return;
+
+                    _panModpack.Children.Clear();
+                    _panInfo.Children.Clear();
+                    if (modpackProject is not null)
                     {
-                        if (!ReferenceEquals(_instance, instance))
-                            return;
+                        var compItem = new MyCompItem(modpackProject, false, false);
+                        _panModpack.Children.Add(compItem);
+                        _panModpack.Children.Add(new TextBlock());
+                        _panModpack.IsVisible = true;
+                    }
 
-                        if (modpackProject is not null)
-                        {
-                            var compItem = new PCL.Views.Pages.Download.MyCompItem(modpackProject, false, false);
-                            _panModpack.Children.Add(compItem);
-                            _panModpack.Children.Add(new TextBlock());
-                            _panModpack.IsVisible = true;
-                        }
-
-                        foreach (var row in BuildInfoRows(instance))
-                            _panInfo.Children.Add(row);
-                        _panInfo.IsVisible = true;
-                        _labInfoLoading.IsVisible = false;
-                        if (_infoSimulator is not null)
-                            _infoSimulator.LoadingState = LoadingState.Stop;
-                    });
+                    foreach (var row in BuildInfoRows(instance))
+                        _panInfo.Children.Add(row);
+                    _panInfo.IsVisible = true;
+                    _labInfoLoading.IsVisible = false;
+                    _infoSimulator?.LoadingState = LoadingState.Stop;
+                });
             },
             "Instance Info Loader",
             ThreadPriority.BelowNormal);
@@ -424,17 +504,35 @@ public class PageInstanceOverall : MyPageRight
             McInstanceInfo.GetVanillaNameDisplay(instanceInfo.VanillaName),
             "Blocks/Grass.png");
         if (instanceInfo.HasForge)
-            yield return CreateInfoRow("Forge", FormatLoaderVersion(instanceInfo.Forge), "Blocks/Anvil.png");
+            yield return CreateInfoRow(
+                "Forge",
+                FormatLoaderVersion(instanceInfo.Forge),
+                "Blocks/Anvil.png");
         if (instanceInfo.HasNeoForge)
-            yield return CreateInfoRow("NeoForge", FormatLoaderVersion(instanceInfo.NeoForge), "Blocks/NeoForge.png");
+            yield return CreateInfoRow(
+                "NeoForge",
+                FormatLoaderVersion(instanceInfo.NeoForge),
+                "Blocks/NeoForge.png");
         if (instanceInfo.HasCleanroom)
-            yield return CreateInfoRow("Cleanroom", FormatLoaderVersion(instanceInfo.Cleanroom), "Blocks/Cleanroom.png");
+            yield return CreateInfoRow(
+                "Cleanroom",
+                FormatLoaderVersion(instanceInfo.Cleanroom),
+                "Blocks/Cleanroom.png");
         if (instanceInfo.HasFabric)
-            yield return CreateInfoRow("Fabric", FormatLoaderVersion(instanceInfo.Fabric), "Blocks/Fabric.png");
+            yield return CreateInfoRow(
+                "Fabric",
+                FormatLoaderVersion(instanceInfo.Fabric),
+                "Blocks/Fabric.png");
         if (instanceInfo.HasQuilt)
-            yield return CreateInfoRow("Quilt", FormatLoaderVersion(instanceInfo.Quilt), "Blocks/Quilt.png");
+            yield return CreateInfoRow(
+                "Quilt",
+                FormatLoaderVersion(instanceInfo.Quilt),
+                "Blocks/Quilt.png");
         if (instanceInfo.HasOptiFine)
-            yield return CreateInfoRow("OptiFine", FormatLoaderVersion(instanceInfo.OptiFine), "Blocks/GrassPath.png");
+            yield return CreateInfoRow(
+                "OptiFine",
+                FormatLoaderVersion(instanceInfo.OptiFine),
+                "Blocks/GrassPath.png");
         if (instanceInfo.HasLiteLoader)
             yield return CreateInfoRow(
                 "LiteLoader",
@@ -446,7 +544,10 @@ public class PageInstanceOverall : MyPageRight
                 FormatLoaderVersion(instanceInfo.LegacyFabric),
                 "Blocks/Fabric.png");
         if (instanceInfo.HasLabyMod)
-            yield return CreateInfoRow("LabyMod", FormatLoaderVersion(instanceInfo.LabyMod), "Blocks/LabyMod.png");
+            yield return CreateInfoRow(
+                "LabyMod",
+                FormatLoaderVersion(instanceInfo.LabyMod),
+                "Blocks/LabyMod.png");
     }
 
     private static MyListItem CreateInfoRow(string title, string info, string logo)
@@ -482,18 +583,20 @@ public class PageInstanceOverall : MyPageRight
         try
         {
             _comboDisplayLogo.SelectedIndex = 0;
-            var logo = States.Instance.LogoPath[instance.PathInstance];
+            var logo = States.Instance.LogoPath[instance.PathInstance] ?? string.Empty;
             var logoCustom = States.Instance.IsLogoCustom[instance.PathInstance];
-            if (!logoCustom)
+            if (!logoCustom && string.IsNullOrEmpty(logo))
                 return;
 
+            var customTag = Path.Combine("PCL", "Logo.png");
             foreach (var raw in _comboDisplayLogo.Items)
             {
                 if (raw is not MyComboBoxItem item)
                     continue;
                 var tag = item.Tag as string ?? string.Empty;
-                var matches = tag == CustomLogoTag
-                    ? logo.EndsWith(Path.Combine("PCL", "Logo.png"), StringComparison.OrdinalIgnoreCase)
+                var matches = tag == customTag
+                    ? logo.EndsWith(customTag, StringComparison.OrdinalIgnoreCase)
+                    || logo.EndsWith("PCL/Logo.png", StringComparison.OrdinalIgnoreCase)
                     : tag == logo;
                 if (!matches)
                     continue;
@@ -526,6 +629,8 @@ public class PageInstanceOverall : MyPageRight
             {
                 States.Instance.CardType[path] = index;
                 instance.displayType = (McInstanceCardType)index;
+                InstanceList.mcInstanceListForceRefresh = true;
+                PageInstanceLeft.Current?.RefreshForInstanceChange();
                 RefreshInstanceList();
                 _syncing = true;
                 return;
@@ -552,6 +657,8 @@ public class PageInstanceOverall : MyPageRight
             }
 
             States.Instance.CardType[path] = (int)McInstanceCardType.Hidden;
+            InstanceList.mcInstanceListForceRefresh = true;
+            PageInstanceLeft.Current?.RefreshForInstanceChange();
             RefreshInstanceList();
         }
         catch (Exception ex)
@@ -596,8 +703,6 @@ public class PageInstanceOverall : MyPageRight
                 if (File.Exists(customLogoFile))
                     File.Delete(customLogoFile);
                 newLogo = (_comboDisplayLogo.SelectedItem as MyComboBoxItem)?.Tag as string;
-                if (newLogo == CustomLogoTag)
-                    newLogo = string.Empty;
             }
         }
         catch (Exception ex)
@@ -635,7 +740,9 @@ public class PageInstanceOverall : MyPageRight
         {
             var oldName = _instance.Name;
             var oldPath = _instance.PathInstance;
-            var versionsFolder = Path.Combine(GameFolders.mcFolderSelected ?? string.Empty, "versions");
+            var versionsFolder = Path.Combine(
+                GameFolders.mcFolderSelected ?? string.Empty,
+                "versions");
             var dialog = await DialogService.Instance.ShowAsync(
                 new InputDialogRequest
                 {
@@ -652,7 +759,7 @@ public class PageInstanceOverall : MyPageRight
                 return;
 
             var newPath = Path.Combine(versionsFolder, newName);
-            var tempName = newName + "_temp";
+            var tempName = $"{newName}_temp";
             var tempPath = Path.Combine(versionsFolder, tempName);
             var isCaseChangedOnly = string.Equals(
                 newName.ToLowerInvariant(),
@@ -662,9 +769,9 @@ public class PageInstanceOverall : MyPageRight
             JsonObject jsonObject;
             try
             {
-                var jsonPath = Path.Combine(oldPath, oldName + ".json");
+                var jsonPath = Path.Combine(oldPath, $"{oldName}.json");
                 jsonObject = JsonNode.Parse(LauncherCommon.ReadFile(jsonPath)) as JsonObject
-                             ?? (JsonObject)_instance.JsonObject.DeepClone();
+                    ?? (JsonObject)_instance.JsonObject.DeepClone();
             }
             catch (Exception ex)
             {
@@ -676,13 +783,13 @@ public class PageInstanceOverall : MyPageRight
             Directory.Move(tempPath, newPath);
             LauncherCommon.IniClearCache(Path.Combine(_instance.PathIndie, "options.txt"));
 
-            var oldNatives = Path.Combine(newPath, oldName + "-natives");
+            var oldNatives = Path.Combine(newPath, $"{oldName}-natives");
             if (Directory.Exists(oldNatives))
             {
-                var newNatives = Path.Combine(newPath, newName + "-natives");
+                var newNatives = Path.Combine(newPath, $"{newName}-natives");
                 if (isCaseChangedOnly)
                 {
-                    var middle = Path.Combine(newPath, oldName + "natives_temp");
+                    var middle = Path.Combine(newPath, $"{oldName}natives_temp");
                     Directory.Move(oldNatives, middle);
                     Directory.Move(middle, newNatives);
                 }
@@ -694,13 +801,13 @@ public class PageInstanceOverall : MyPageRight
                 }
             }
 
-            var oldJar = Path.Combine(newPath, oldName + ".jar");
+            var oldJar = Path.Combine(newPath, $"{oldName}.jar");
             if (File.Exists(oldJar))
             {
-                var newJar = Path.Combine(newPath, newName + ".jar");
+                var newJar = Path.Combine(newPath, $"{newName}.jar");
                 if (isCaseChangedOnly)
                 {
-                    var middle = Path.Combine(newPath, oldName + "_temp.jar");
+                    var middle = Path.Combine(newPath, $"{oldName}_temp.jar");
                     File.Move(oldJar, middle);
                     File.Move(middle, newJar);
                 }
@@ -725,10 +832,12 @@ public class PageInstanceOverall : MyPageRight
             try
             {
                 jsonObject["id"] = newName;
-                LauncherCommon.WriteFile(Path.Combine(newPath, newName + ".json"), jsonObject.ToString());
+                LauncherCommon.WriteFile(
+                    Path.Combine(newPath, $"{newName}.json"),
+                    jsonObject.ToString());
                 if (!isCaseChangedOnly)
                 {
-                    var oldJson = Path.Combine(newPath, oldName + ".json");
+                    var oldJson = Path.Combine(newPath, $"{oldName}.json");
                     if (File.Exists(oldJson))
                         File.Delete(oldJson);
                 }
@@ -868,31 +977,29 @@ public class PageInstanceOverall : MyPageRight
         {
             var savePath = SystemDialogs.SelectSaveFile(
                 Lang.Text("Instance.Overall.Script.SelectSaveTitle"),
-                "启动 " + _instance.Name + ".bat",
+                $"启动 {_instance.Name}.bat",
                 Lang.Text("Instance.Overall.Script.FileFilter"));
             if (string.IsNullOrEmpty(savePath))
                 return;
             if (GameLaunch.mcLaunchLoader.State == LoadState.Loading)
             {
-                HintService.Show(Hints.Error(Lang.Text("Instance.Overall.Script.WaitForLaunchTask")));
+                HintService.Show(
+                    Hints.Error(Lang.Text("Instance.Overall.Script.WaitForLaunchTask")));
                 return;
             }
 
-            if (GameLaunch.McLaunchStart(new GameLaunch.McLaunchOptions
-                {
-                    SaveBatch = savePath,
-                    instance = _instance
-                }))
-            {
+            if (GameLaunch.McLaunchStart(
+                    new GameLaunch.McLaunchOptions
+                    {
+                        SaveBatch = savePath,
+                        instance = _instance
+                    }))
                 HintService.Show(
                     ProfileService.Current?.ProfileType == ProfileType.Offline
                         ? Hints.Info(Lang.Text("Instance.Overall.Script.Exporting"))
                         : Hints.Info(Lang.Text("Instance.Overall.Script.ExportingWarning")));
-            }
             else
-            {
                 HintService.Show(Hints.Error(Lang.Text("Instance.Overall.Script.ExportFailed")));
-            }
         }
         catch (Exception ex)
         {
@@ -906,11 +1013,12 @@ public class PageInstanceOverall : MyPageRight
             return;
         try
         {
-            if (GameLaunch.McLaunchStart(new GameLaunch.McLaunchOptions
-                {
-                    instance = _instance,
-                    IsTest = true
-                }))
+            if (GameLaunch.McLaunchStart(
+                    new GameLaunch.McLaunchOptions
+                    {
+                        instance = _instance,
+                        IsTest = true
+                    }))
                 PageRouter.Navigate(PageType.Launch);
         }
         catch (Exception ex)
@@ -923,16 +1031,19 @@ public class PageInstanceOverall : MyPageRight
     {
         if (_instance is null)
             return;
+        if (!RestrictedFeatures.Check("minecraft-repair"))
+            return;
         try
         {
             var instance = _instance;
             if (Libraries.ShouldIgnoreFileCheck(instance))
             {
-                HintService.Show(Hints.Info(Lang.Text("Instance.Overall.Repair.DisableVerificationHint")));
+                HintService.Show(
+                    Hints.Info(Lang.Text("Instance.Overall.Repair.DisableVerificationHint")));
                 return;
             }
 
-            var taskName = instance.Name + " " + Lang.Text("Instance.Overall.Repair.TaskName");
+            var taskName = $"{instance.Name} {Lang.Text("Instance.Overall.Repair.TaskName")}";
             if (Loading.loaderTaskbar.Any(loader => loader.name == taskName))
             {
                 HintService.Show(Hints.Error(Lang.Text("Instance.Overall.Repair.Processing")));
@@ -941,7 +1052,10 @@ public class PageInstanceOverall : MyPageRight
 
             var loader = new Loading.LoaderCombo<string>(
                 taskName,
-                GameDownload.DlClientFix(instance, true, GameDownload.AssetsIndexExistsBehaviour.AlwaysDownload))
+                GameDownload.DlClientFix(
+                    instance,
+                    true,
+                    GameDownload.AssetsIndexExistsBehaviour.AlwaysDownload))
             {
                 OnStateChanged = changed =>
                 {
@@ -950,8 +1064,11 @@ public class PageInstanceOverall : MyPageRight
                         case LoadState.Finished:
                             HintService.Show(
                                 Hints.Success(
-                                    Lang.Text("Instance.Overall.Repair.Success.WithTaskName", taskName)));
+                                    Lang.Text(
+                                        "Instance.Overall.Repair.Success.WithTaskName",
+                                        taskName)));
                             break;
+
                         case LoadState.Failed:
                             HintService.Show(
                                 Hints.Error(
@@ -960,11 +1077,21 @@ public class PageInstanceOverall : MyPageRight
                                         taskName,
                                         changed.Error?.Message ?? string.Empty)));
                             break;
+
                         case LoadState.Aborted:
                             HintService.Show(
                                 Hints.Info(
-                                    Lang.Text("Instance.Overall.Repair.Cancelled.WithTaskName", taskName)));
+                                    Lang.Text(
+                                        "Instance.Overall.Repair.Cancelled.WithTaskName",
+                                        taskName)));
                             break;
+
+                        case LoadState.Waiting:
+                        case LoadState.Loading:
+                            break;
+
+                        default:
+                            throw new ArgumentOutOfRangeException();
                     }
                 }
             };
@@ -981,6 +1108,8 @@ public class PageInstanceOverall : MyPageRight
     private async Task RestoreAsync()
     {
         if (_instance is null)
+            return;
+        if (!RestrictedFeatures.Check("minecraft-reset"))
             return;
         _btnManageRestore.IsEnabled = false;
         try
@@ -1017,12 +1146,12 @@ public class PageInstanceOverall : MyPageRight
             {
                 var backupFolder = Path.Combine(instance.PathInstance, "PCLInstallBackups");
                 InstancePageHelper.EnsureDirectory(backupFolder);
-                var json = Path.Combine(instance.PathInstance, instance.Name + ".json");
-                var jar = Path.Combine(instance.PathInstance, instance.Name + ".jar");
+                var json = Path.Combine(instance.PathInstance, $"{instance.Name}.json");
+                var jar = Path.Combine(instance.PathInstance, $"{instance.Name}.jar");
                 if (File.Exists(json))
-                    File.Copy(json, Path.Combine(backupFolder, instance.Name + ".json"), true);
+                    File.Copy(json, Path.Combine(backupFolder, $"{instance.Name}.json"), true);
                 if (File.Exists(jar))
-                    File.Copy(jar, Path.Combine(backupFolder, instance.Name + ".jar"), true);
+                    File.Copy(jar, Path.Combine(backupFolder, $"{instance.Name}.jar"), true);
             }
             catch (Exception ex)
             {
@@ -1038,11 +1167,14 @@ public class PageInstanceOverall : MyPageRight
                     ? new GameDownload.DlOptiFineListEntry
                     {
                         Inherit = currentVersion.VanillaName,
-                        DisplayName = currentVersion.VanillaName + " " + currentVersion.OptiFine
+                        DisplayName = $"{currentVersion.VanillaName} {currentVersion.OptiFine}"
                     }
                     : null,
                 forgeEntry = currentVersion.HasForge
-                    ? new GameDownload.DlForgeVersionEntry(currentVersion.Forge, null, currentVersion.VanillaName)
+                    ? new GameDownload.DlForgeVersionEntry(
+                        currentVersion.Forge,
+                        null,
+                        currentVersion.VanillaName)
                     {
                         Category = "installer"
                     }
@@ -1052,20 +1184,25 @@ public class PageInstanceOverall : MyPageRight
                 cleanroomVersion = currentVersion.HasCleanroom ? currentVersion.Cleanroom : null,
                 fabricVersion = currentVersion.HasFabric ? currentVersion.Fabric : null,
                 liteLoaderEntry = currentVersion.HasLiteLoader
-                    ? new GameDownload.DlLiteLoaderListEntry { Inherit = currentVersion.VanillaName }
+                    ? new GameDownload.DlLiteLoaderListEntry
+                    {
+                        Inherit = currentVersion.VanillaName
+                    }
                     : null,
-                legacyFabricVersion = currentVersion.HasLegacyFabric ? currentVersion.LegacyFabric : null
+                legacyFabricVersion =
+                    currentVersion.HasLegacyFabric ? currentVersion.LegacyFabric : null
             };
 
             var unsupportedLoader = McInstallPipeline.GetUnsupportedLoaderName(request);
             if (unsupportedLoader is not null)
             {
                 HintService.Show(
-                    Hints.Warning(Lang.Text("Download.Install.Loader.Unsupported", unsupportedLoader)));
+                    Hints.Warning(
+                        Lang.Text("Download.Install.Loader.Unsupported", unsupportedLoader)));
                 return;
             }
 
-            var loaders = McInstallPipeline.CreateInstallLoader(request, ignoreDump: true);
+            var loaders = McInstallPipeline.CreateInstallLoader(request, true);
             if (loaders.Count == 0)
             {
                 HintService.Show(Hints.Error(Lang.Text("Instance.Install.Error.OperationFailed")));
@@ -1133,11 +1270,23 @@ public class PageInstanceOverall : MyPageRight
                 return;
 
             LauncherCommon.IniClearCache(Path.Combine(instance.PathIndie, "options.txt"));
+            try
+            {
+                if (ConfigService.GetProvider(ConfigSource.GameInstance) is
+                    DynamicCacheConfigStorage storage)
+                    storage.InvalidateCache(instancePath);
+            }
+            catch (Exception ex)
+            {
+                LauncherCommon.Log(ex, "清理实例配置缓存失败", LauncherLogLevel.Developer);
+            }
+
             if (effectivePermanent)
             {
                 LauncherCommon.DeleteDirectory(instancePath);
                 HintService.Show(
-                    Hints.Success(Lang.Text("Instance.Overall.Delete.PermanentSuccess", instanceName)));
+                    Hints.Success(
+                        Lang.Text("Instance.Overall.Delete.PermanentSuccess", instanceName)));
             }
             else
             {
@@ -1146,18 +1295,28 @@ public class PageInstanceOverall : MyPageRight
                 {
                     case RecycleBin.Outcome.Moved:
                         HintService.Show(
-                            Hints.Success(Lang.Text("Instance.Overall.Delete.RecycleBinSuccess", instanceName)));
+                            Hints.Success(
+                                Lang.Text(
+                                    "Instance.Overall.Delete.RecycleBinSuccess",
+                                    instanceName)));
                         break;
+
                     case RecycleBin.Outcome.Unsupported:
                         LauncherCommon.DeleteDirectory(instancePath);
                         HintService.Show(
-                            Hints.Success(Lang.Text("Instance.Overall.Delete.PermanentSuccess", instanceName)));
+                            Hints.Success(
+                                Lang.Text(
+                                    "Instance.Overall.Delete.PermanentSuccess",
+                                    instanceName)));
                         break;
+
+                    case RecycleBin.Outcome.Failed:
                     default:
                         LauncherCommon.Log(
                             $"将实例移入回收站失败：{error}",
                             LauncherLogLevel.Feedback);
-                        HintService.Show(Hints.Error(Lang.Text("Instance.Overall.Error.OperationFailed")));
+                        HintService.Show(
+                            Hints.Error(Lang.Text("Instance.Overall.Error.OperationFailed")));
                         return;
                 }
             }
@@ -1202,7 +1361,7 @@ public class PageInstanceOverall : MyPageRight
                 return;
 
             HintService.Show(Hints.Info(Lang.Text("Instance.Overall.Patch.Patching")));
-            var corePath = Path.Combine(instance.PathInstance, instance.Name + ".jar");
+            var corePath = Path.Combine(instance.PathInstance, $"{instance.Name}.jar");
             var path = instance.PathInstance;
             LauncherCommon.RunInNewThread(
                 () =>
@@ -1212,14 +1371,14 @@ public class PageInstanceOverall : MyPageRight
                         var core = new GameCore(corePath);
                         core.AddToCore(jarPath);
                         Config.Instance.DisableAssetVerifyV2[path] = true;
-                        LauncherCommon.RunInUi(
-                            () => HintService.Show(Hints.Success(Lang.Text("Instance.Overall.Patch.Success"))));
+                        LauncherCommon.RunInUi(() => HintService.Show(
+                            Hints.Success(Lang.Text("Instance.Overall.Patch.Success"))));
                     }
                     catch (Exception ex)
                     {
                         LauncherCommon.Log(ex, "修补核心失败", LauncherLogLevel.Feedback);
-                        LauncherCommon.RunInUi(
-                            () => HintService.Show(Hints.Error(Lang.Text("Instance.Overall.Error.OperationFailed"))));
+                        LauncherCommon.RunInUi(() => HintService.Show(
+                            Hints.Error(Lang.Text("Instance.Overall.Error.OperationFailed"))));
                     }
                 },
                 "Patch Instance Core",
@@ -1247,17 +1406,27 @@ public class PageInstanceOverall : MyPageRight
             {
                 case LoadState.Finished:
                     RefreshInstanceList();
-                    HintService.Show(Hints.Success(Lang.Text("Common.Status.Success") + " " + instance.Name));
+                    HintService.Show(
+                        Hints.Success(
+                            $"{Lang.Text("Common.Status.Success")} {instance.Name}"));
                     break;
+
                 case LoadState.Failed:
                     HintService.Show(
                         Hints.Error(
-                            Lang.Text("Instance.Install.Error.OperationFailed")
-                            + " " + (loader.Error?.Message ?? string.Empty)));
+                            $"{Lang.Text("Instance.Install.Error.OperationFailed")} {loader.Error?.Message ?? string.Empty}"));
                     break;
+
                 case LoadState.Aborted:
                     HintService.Show(Hints.Info(Lang.Text("Common.Status.Cancelled")));
                     break;
+
+                case LoadState.Waiting:
+                case LoadState.Loading:
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         };
     }
@@ -1274,7 +1443,7 @@ public class PageInstanceOverall : MyPageRight
             folder,
             Loading.LoaderFolderRunType.ForceRun,
             1,
-            "versions" + Path.DirectorySeparatorChar);
+            $"versions{Path.DirectorySeparatorChar}");
     }
 
     #endregion

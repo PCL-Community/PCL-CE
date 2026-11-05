@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Controls.Shapes;
 using Avalonia.Layout;
 using Avalonia.Media;
 using PCL.Core.App.Localization;
@@ -8,6 +9,7 @@ using PCL.Navigation;
 using PCL.UI.Controls;
 using PCL.UI.Seams;
 using CompFile = PCL.LocalComp.LocalCompFile;
+using Path = System.IO.Path;
 
 namespace PCL.Views.Pages.Instance;
 
@@ -19,29 +21,33 @@ public class PageInstanceCompJarInJar : MyPageRight, ISeamCompLocalPage
 {
     private static readonly IBrush BrushOk = new SolidColorBrush(Color.FromRgb(0x4C, 0xAF, 0x50));
     private static readonly IBrush BrushWarn = new SolidColorBrush(Color.FromRgb(0xFF, 0x98, 0x00));
-    private static readonly IBrush BrushError = new SolidColorBrush(Color.FromRgb(0xE5, 0x39, 0x35));
+
+    private static readonly IBrush
+        BrushError = new SolidColorBrush(Color.FromRgb(0xE5, 0x39, 0x35));
+
+    private List<CompFile> _allMods = [];
+    private MyCard _cardConflicts = null!;
+    private MyCard _cardWarnings = null!;
+    private JarInJarIndex? _index;
+    private McInstance? _instance;
+    private string _instanceMc = string.Empty;
+    private MyLoading _load = null!;
+    private Loading.LoaderBase.OnStateChangedUiEventHandler? _loaderStateHandler;
+    private StackPanel _panBundledList = null!;
+    private StackPanel _panConflictList = null!;
 
     private StackPanel _panContent = null!;
-    private MySearchBox _searchBox = null!;
-    private StackPanel _panWarnList = null!;
-    private StackPanel _panConflictList = null!;
-    private StackPanel _panRelationList = null!;
-    private StackPanel _panBundledList = null!;
-    private MyCard _cardWarnings = null!;
-    private MyCard _cardConflicts = null!;
-    private StackPanel _sectionRelations = null!;
-    private StackPanel _sectionBundled = null!;
     private MyCard _panEmpty = null!;
     private MyCard _panLoad = null!;
-    private MyLoading _load = null!;
-    private TextBlock _txtEmptyTitle = null!;
-    private TextBlock _txtEmptyMessage = null!;
-    private McInstance? _instance;
-    private JarInJarIndex? _index;
-    private List<CompFile> _allMods = [];
-    private string _instanceMc = string.Empty;
+    private StackPanel _panRelationList = null!;
+    private StackPanel _panWarnList = null!;
+    private MySearchBox _searchBox = null!;
     private string _searchText = string.Empty;
+    private StackPanel _sectionBundled = null!;
+    private StackPanel _sectionRelations = null!;
     private MyLoadingStateSimulator? _simulator;
+    private TextBlock _txtEmptyMessage = null!;
+    private TextBlock _txtEmptyTitle = null!;
 
     public PageInstanceCompJarInJar()
     {
@@ -52,6 +58,11 @@ public class PageInstanceCompJarInJar : MyPageRight, ISeamCompLocalPage
     {
         _instance = InstancePageHelper.ResolveInstance(parameter);
         Reload();
+    }
+
+    public override void OnNavigatedFrom()
+    {
+        DetachLoaderHandler();
     }
 
     protected override void RefreshLocalization()
@@ -68,10 +79,19 @@ public class PageInstanceCompJarInJar : MyPageRight, ISeamCompLocalPage
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
             HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled
         };
-        _panContent = new StackPanel { Margin = new Thickness(25d, 10d, 25d, 10d) };
+        _panContent = new StackPanel
+        {
+            Margin = new Thickness(25d, 10d, 25d, 10d)
+        };
 
-        var manageCard = new MyCard { Margin = new Thickness(0d, 15d, 0d, 15d) };
-        var manageBody = new WrapPanel { Margin = new Thickness(15d, 8d, 0d, 15d) };
+        var manageCard = new MyCard
+        {
+            Margin = new Thickness(0d, 15d, 0d, 15d)
+        };
+        var manageBody = new WrapPanel
+        {
+            Margin = new Thickness(15d, 8d, 0d, 15d)
+        };
         var back = NewButton("Instance.Resource.BackToParent", true);
         back.Click += (_, _) => GoBack();
         manageBody.Children.Add(back);
@@ -93,9 +113,9 @@ public class PageInstanceCompJarInJar : MyPageRight, ISeamCompLocalPage
         _searchBox = new MySearchBox
         {
             HintText = Lang.Text("Instance.Resource.Mod.JarInJar.Search.Hint"),
-            Margin = new Thickness(0d, 0d, 0d, 15d)
+            Margin = new Thickness(0d, 0d, 0d, 15d),
+            Text = _searchText
         };
-        _searchBox.Text = _searchText;
         _searchBox.TextChanged += (_, _) =>
         {
             _searchText = (_searchBox.Text ?? string.Empty).Trim();
@@ -103,21 +123,30 @@ public class PageInstanceCompJarInJar : MyPageRight, ISeamCompLocalPage
         };
         _panContent.Children.Add(_searchBox);
 
-        _panWarnList = new StackPanel { Margin = new Thickness(0d, 8d, 0d, 0d) };
+        _panWarnList = new StackPanel
+        {
+            Margin = new Thickness(0d, 8d, 0d, 0d)
+        };
         _cardWarnings = CreateSectionCard(
             Lang.Text("Instance.Resource.Mod.JarInJar.Section.Warnings"),
             _panWarnList,
             null);
         _panContent.Children.Add(_cardWarnings);
 
-        _panConflictList = new StackPanel { Margin = new Thickness(0d, 8d, 0d, 0d) };
+        _panConflictList = new StackPanel
+        {
+            Margin = new Thickness(0d, 8d, 0d, 0d)
+        };
         _cardConflicts = CreateSectionCard(
             Lang.Text("Instance.Resource.Mod.JarInJar.Section.Conflicts"),
             _panConflictList,
             Lang.Text("Instance.Resource.Mod.JarInJar.Conflict.Tooltip"));
         _panContent.Children.Add(_cardConflicts);
 
-        _sectionRelations = new StackPanel { IsVisible = false };
+        _sectionRelations = new StackPanel
+        {
+            IsVisible = false
+        };
         _sectionRelations.Children.Add(
             new TextBlock
             {
@@ -130,7 +159,10 @@ public class PageInstanceCompJarInJar : MyPageRight, ISeamCompLocalPage
         _sectionRelations.Children.Add(_panRelationList);
         _panContent.Children.Add(_sectionRelations);
 
-        _sectionBundled = new StackPanel { IsVisible = false };
+        _sectionBundled = new StackPanel
+        {
+            IsVisible = false
+        };
         _sectionBundled.Children.Add(
             new TextBlock
             {
@@ -161,12 +193,12 @@ public class PageInstanceCompJarInJar : MyPageRight, ISeamCompLocalPage
             Margin = new Thickness(10d, 10d, 10d, 0d),
             HorizontalAlignment = HorizontalAlignment.Center
         };
-        var divider = new Avalonia.Controls.Shapes.Rectangle
+        var divider = new Rectangle
         {
             Height = 2d,
             HorizontalAlignment = HorizontalAlignment.Stretch
         };
-        ContainerTheme.BindDynamic(divider, Avalonia.Controls.Shapes.Shape.FillProperty, "ColorBrush3");
+        ContainerTheme.BindDynamic(divider, Shape.FillProperty, "ColorBrush3");
         var emptyBack = new MyButton
         {
             Text = Lang.Text("Instance.Resource.BackToParent"),
@@ -178,7 +210,10 @@ public class PageInstanceCompJarInJar : MyPageRight, ISeamCompLocalPage
             ColorType = MyButton.ColorState.Highlight
         };
         emptyBack.Click += (_, _) => GoBack();
-        var emptyBody = new StackPanel { Margin = new Thickness(20d, 17d) };
+        var emptyBody = new StackPanel
+        {
+            Margin = new Thickness(20d, 17d)
+        };
         emptyBody.Children.Add(_txtEmptyTitle);
         emptyBody.Children.Add(divider);
         emptyBody.Children.Add(_txtEmptyMessage);
@@ -238,8 +273,14 @@ public class PageInstanceCompJarInJar : MyPageRight, ISeamCompLocalPage
 
     private static MyCard CreateSectionCard(string title, Control content, string? tooltip)
     {
-        var card = new MyCard { Margin = new Thickness(0d, 0d, 0d, 15d) };
-        var body = new StackPanel { Margin = new Thickness(15d, 10d, 15d, 12d) };
+        var card = new MyCard
+        {
+            Margin = new Thickness(0d, 0d, 0d, 15d)
+        };
+        var body = new StackPanel
+        {
+            Margin = new Thickness(15d, 10d, 15d, 12d)
+        };
         var titleBlock = new TextBlock
         {
             Text = title,
@@ -283,22 +324,30 @@ public class PageInstanceCompJarInJar : MyPageRight, ISeamCompLocalPage
         if (_instance is null)
             return;
         ShowLoading();
-        LocalComp.CompResourceListLoader.OnStateChanged = loader =>
+        DetachLoaderHandler();
+        _loaderStateHandler = (_, newState, _) =>
         {
-            if (loader.State is not (LoadState.Finished or LoadState.Failed or LoadState.Aborted))
+            if (newState is not (LoadState.Finished or LoadState.Failed or LoadState.Aborted))
                 return;
-            LauncherCommon.RunInUi(
-                () =>
+            LauncherCommon.RunInUi(() =>
+            {
+                try
                 {
                     var output = LocalComp.CompResourceListLoader.output;
-                    if (loader.State == LoadState.Finished && output is not null)
+                    if (newState == LoadState.Finished && output is not null)
                         BuildFromOutput(output);
                     else
                         ShowEmpty(
                             Lang.Text("Instance.Resource.Mod.JarInJar.Empty.Title"),
                             Lang.Text("Instance.Resource.Mod.JarInJar.Empty.Message"));
-                });
+                }
+                finally
+                {
+                    DetachLoaderHandler();
+                }
+            });
         };
+        LocalComp.CompResourceListLoader.OnStateChangedUi += _loaderStateHandler;
 
         var folder = GetModFolder(_instance);
         var started = Loading.LoaderFolderRun(
@@ -321,13 +370,21 @@ public class PageInstanceCompJarInJar : MyPageRight, ISeamCompLocalPage
         }
     }
 
+    private void DetachLoaderHandler()
+    {
+        if (_loaderStateHandler is null)
+            return;
+        LocalComp.CompResourceListLoader.OnStateChangedUi -= _loaderStateHandler;
+        _loaderStateHandler = null;
+    }
+
     private static string GetModFolder(McInstance instance)
     {
         return instance.PathIndie
-               + (instance.Info.HasLabyMod
-                   ? Path.Combine("labymod-neo", "fabric", instance.Info.VanillaName)
-                   : string.Empty)
-               + LocalComp.GetPathNameByCompType(Comp.CompType.Mod);
+            + (instance.Info.HasLabyMod
+                ? Path.Combine("labymod-neo", "fabric", instance.Info.VanillaName)
+                : string.Empty)
+            + LocalComp.GetPathNameByCompType(Comp.CompType.Mod);
     }
 
     private bool IsCurrentInstanceModOutput(List<CompFile> output)
@@ -340,17 +397,23 @@ public class PageInstanceCompJarInJar : MyPageRight, ISeamCompLocalPage
 
         try
         {
-            var instancePath = Path.GetFullPath(_instance.PathInstance)
+            var instancePath = Path
+                .GetFullPath(_instance.PathInstance)
                 .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            var loaderPath = Path.GetFullPath(input.gameVersion.PathInstance)
+            var loaderPath = Path
+                .GetFullPath(input.gameVersion.PathInstance)
                 .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             if (!string.Equals(instancePath, loaderPath, StringComparison.OrdinalIgnoreCase))
                 return false;
-            var root = Path.GetFullPath(_instance.PathIndie)
-                           .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
-                       + Path.DirectorySeparatorChar;
+            var root = Path
+                    .GetFullPath(_instance.PathIndie)
+                    .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                + Path.DirectorySeparatorChar;
             var first = output.FirstOrDefault(entry => !string.IsNullOrEmpty(entry.path));
-            return first is null || Path.GetFullPath(first.path).StartsWith(root, StringComparison.OrdinalIgnoreCase);
+            return first is null
+                || Path
+                    .GetFullPath(first.path)
+                    .StartsWith(root, StringComparison.OrdinalIgnoreCase);
         }
         catch
         {
@@ -412,7 +475,8 @@ public class PageInstanceCompJarInJar : MyPageRight, ISeamCompLocalPage
         _panRelationList.Children.Clear();
         foreach (var host in _allMods)
         {
-            var hostDeps = JarInJarIndex.BuildOwnDependencies(host, host.DetectedLoader ?? string.Empty)
+            var hostDeps = JarInJarIndex
+                .BuildOwnDependencies(host, host.DetectedLoader ?? string.Empty)
                 .Where(dep => !DependencyIds.IsPlatform(dep.DepId))
                 .ToList();
             if (hostDeps.Count > 0 && (Match(host) || hostDeps.Any(dep => Contains(dep.DepId))))
@@ -420,7 +484,8 @@ public class PageInstanceCompJarInJar : MyPageRight, ISeamCompLocalPage
 
             foreach (var node in _index.GetLoadableEmbedded(host))
             {
-                var nodeDeps = JarInJarIndex.BuildOwnDependencies(node, node.JijLoader ?? string.Empty)
+                var nodeDeps = JarInJarIndex
+                    .BuildOwnDependencies(node, node.JijLoader ?? string.Empty)
                     .Where(dep => !DependencyIds.IsPlatform(dep.DepId))
                     .ToList();
                 if (nodeDeps.Count == 0)
@@ -434,9 +499,8 @@ public class PageInstanceCompJarInJar : MyPageRight, ISeamCompLocalPage
         _sectionRelations.IsVisible = _panRelationList.Children.Count > 0;
 
         _panBundledList.Children.Clear();
-        foreach (var mod in _allMods.Where(
-                     entry => entry.EmbeddedMods is { Count: > 0 }
-                              && (Match(entry) || AnyEmbeddedMatch(entry.EmbeddedMods))))
+        foreach (var mod in _allMods.Where(entry => entry.EmbeddedMods is { Count: > 0 }
+                     && (Match(entry) || AnyEmbeddedMatch(entry.EmbeddedMods))))
             _panBundledList.Children.Add(MakeBundledCard(mod));
         _sectionBundled.IsVisible = _panBundledList.Children.Count > 0;
 
@@ -453,52 +517,70 @@ public class PageInstanceCompJarInJar : MyPageRight, ISeamCompLocalPage
     private bool Contains(string? text)
     {
         return !string.IsNullOrEmpty(text)
-               && text.Contains(_searchText, StringComparison.OrdinalIgnoreCase);
+            && text.Contains(_searchText, StringComparison.OrdinalIgnoreCase);
     }
 
     private bool AnyEmbeddedMatch(List<CompFile>? embedded)
     {
         return embedded is not null
-               && embedded.Any(entry => Match(entry) || AnyEmbeddedMatch(entry.EmbeddedMods));
+            && embedded.Any(entry => Match(entry) || AnyEmbeddedMatch(entry.EmbeddedMods));
     }
 
     private void AppendMissingWarning(CompFile mod, CompFile? parent, string? loader)
     {
         if (_index is null)
             return;
-        var probed = JarInJarIndex.BuildOwnDependencies(mod, loader ?? string.Empty)
+        var probed = JarInJarIndex
+            .BuildOwnDependencies(mod, loader ?? string.Empty)
             .Where(dep => !DependencyIds.IsPlatform(dep.DepId) && !dep.Optional)
             .Select(dep => (Dep: dep, Status: _index.Analyze(mod, dep)))
             .ToList();
-        var missing = probed.Where(pair => pair.Status == JijDepStatus.Missing)
-            .Select(pair => pair.Dep.DepId ?? string.Empty).ToList();
-        var mismatch = probed.Where(pair => pair.Status == JijDepStatus.VersionMismatch)
+        var missing = probed
+            .Where(pair => pair.Status == JijDepStatus.Missing)
+            .Select(pair => pair.Dep.DepId ?? string.Empty)
+            .ToList();
+        var mismatch = probed
+            .Where(pair => pair.Status == JijDepStatus.VersionMismatch)
             .Select(pair => Lang.Text(
                 "Instance.Resource.Mod.JarInJar.Warning.VersionMismatch.Detail",
                 pair.Dep.DepId,
                 pair.Dep.Raw ?? "*",
                 string.Join(", ", _index.GetProviderVersions(mod, pair.Dep.DepId ?? string.Empty))))
             .ToList();
-        var disabled = probed.Where(pair => pair.Status == JijDepStatus.Disabled)
-            .Select(pair => pair.Dep.DepId ?? string.Empty).ToList();
+        var disabled = probed
+            .Where(pair => pair.Status == JijDepStatus.Disabled)
+            .Select(pair => pair.Dep.DepId ?? string.Empty)
+            .ToList();
         if (missing.Count == 0 && mismatch.Count == 0 && disabled.Count == 0)
             return;
 
         var name = parent is null
             ? DisplayName(mod)
-            : DisplayName(mod) + " " + Lang.Text("Instance.Resource.Mod.JarInJar.Bundled.From", DisplayName(parent));
+            : $"{DisplayName(mod)} {Lang.Text("Instance.Resource.Mod.JarInJar.Bundled.From", DisplayName(parent))}";
         if (missing.Count > 0)
-            _panWarnList.Children.Add(MakeText(
-                Lang.Text("Instance.Resource.Mod.JarInJar.Warning.Missing", name, string.Join(", ", missing)),
-                BrushError));
+            _panWarnList.Children.Add(
+                MakeText(
+                    Lang.Text(
+                        "Instance.Resource.Mod.JarInJar.Warning.Missing",
+                        name,
+                        string.Join(", ", missing)),
+                    BrushError));
         if (mismatch.Count > 0)
-            _panWarnList.Children.Add(MakeText(
-                Lang.Text("Instance.Resource.Mod.JarInJar.Warning.VersionMismatch", name, string.Join(", ", mismatch)),
-                BrushWarn));
+            _panWarnList.Children.Add(
+                MakeText(
+                    Lang.Text(
+                        "Instance.Resource.Mod.JarInJar.Warning.VersionMismatch",
+                        name,
+                        string.Join(", ", mismatch)),
+                    BrushWarn));
         if (disabled.Count > 0)
-            _panWarnList.Children.Add(MakeText(
-                Lang.Text("Instance.Resource.Mod.JarInJar.Warning.Disabled", name, string.Join(", ", disabled)),
-                BrushWarn));
+            _panWarnList.Children.Add(
+                MakeText(
+                    Lang.Text(
+                        "Instance.Resource.Mod.JarInJar.Warning.Disabled",
+                        name,
+                        string.Join(", ", disabled)),
+                    BrushWarn));
     }
 
     private static TextBlock MakeText(string text, IBrush? foreground)
@@ -516,16 +598,21 @@ public class PageInstanceCompJarInJar : MyPageRight, ISeamCompLocalPage
 
     private Control MakeConflictRow(CompFile a, CompFile b, bool hard)
     {
-        var panel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0d, 2d, 0d, 2d) };
+        var panel = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Margin = new Thickness(0d, 2d, 0d, 2d)
+        };
         panel.Children.Add(
             MakeText(
-                Lang.Text(hard
-                    ? "Instance.Resource.Mod.JarInJar.Conflict.Incompatible"
-                    : "Instance.Resource.Mod.JarInJar.Conflict.Discouraged"),
+                Lang.Text(
+                    hard
+                        ? "Instance.Resource.Mod.JarInJar.Conflict.Incompatible"
+                        : "Instance.Resource.Mod.JarInJar.Conflict.Discouraged"),
                 hard ? BrushError : BrushWarn));
         panel.Children.Add(
             MakeText(
-                "  " + Lang.Text("Instance.Resource.Mod.JarInJar.Conflict.Pair", DisplayName(a), DisplayName(b)),
+                $"  {Lang.Text("Instance.Resource.Mod.JarInJar.Conflict.Pair", DisplayName(a), DisplayName(b))}",
                 null));
         return panel;
     }
@@ -534,11 +621,26 @@ public class PageInstanceCompJarInJar : MyPageRight, ISeamCompLocalPage
     {
         var title = parent is null
             ? DisplayName(mod)
-            : DisplayName(mod) + "  " + Lang.Text("Instance.Resource.Mod.JarInJar.Bundled.From", DisplayName(parent));
+            : $"{DisplayName(mod)}  {Lang.Text("Instance.Resource.Mod.JarInJar.Bundled.From", DisplayName(parent))}";
         var body = new StackPanel();
         foreach (var dep in deps)
             body.Children.Add(MakeDependencyRow(mod, dep));
-        return CreateSectionCard(title, body, null);
+        return CreateCollapsibleCard(title, body);
+    }
+
+    private static MyCard CreateCollapsibleCard(string title, Control content)
+    {
+        var card = new MyCard
+        {
+            Title = title,
+            CanSwap = true,
+            Margin = new Thickness(0d, 0d, 0d, 10d)
+        };
+        content.Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 24d);
+        card.Children.Add(content);
+        card.SwapControl = content;
+        card.IsSwapped = true;
+        return card;
     }
 
     private Control MakeDependencyRow(CompFile mod, JarInJarIndex.DepRow dep)
@@ -547,15 +649,26 @@ public class PageInstanceCompJarInJar : MyPageRight, ISeamCompLocalPage
             return new StackPanel();
         var status = _index.Analyze(mod, dep);
         var optional = dep.Optional;
-        var text = dep.Raw is null ? dep.DepId ?? string.Empty : dep.DepId + " " + dep.Raw;
-        var label = "  (" + StatusLabel(status) + ")";
+        var text = dep.Raw is null ? dep.DepId ?? string.Empty : $"{dep.DepId} {dep.Raw}";
+        var label = $"  ({StatusLabel(status)})";
         var useThemeBrush = optional || status == JijDepStatus.Bundled;
 
-        var panel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(8d, 2d, 0d, 2d) };
-        panel.Children.Add(MakeText("• " + text, null));
+        var panel = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Margin = new Thickness(8d, 2d, 0d, 2d)
+        };
+        panel.Children.Add(MakeText($"• {text}", null));
         if (optional)
-            panel.Children.Add(MakeText("  " + Lang.Text("Instance.Resource.Mod.JarInJar.Dep.Optional"), null));
-        var labelBlock = new TextBlock { Text = label, VerticalAlignment = VerticalAlignment.Center };
+            panel.Children.Add(
+                MakeText(
+                    $"  {Lang.Text("Instance.Resource.Mod.JarInJar.Dep.Optional")}",
+                    null));
+        var labelBlock = new TextBlock
+        {
+            Text = label,
+            VerticalAlignment = VerticalAlignment.Center
+        };
         if (useThemeBrush)
             ContainerTheme.BindDynamic(labelBlock, TextBlock.ForegroundProperty, "ColorBrush2");
         else
@@ -566,14 +679,16 @@ public class PageInstanceCompJarInJar : MyPageRight, ISeamCompLocalPage
 
     private string StatusLabel(JijDepStatus status)
     {
-        return Lang.Text(status switch
-        {
-            JijDepStatus.Installed => "Instance.Resource.Mod.JarInJar.Dep.Installed",
-            JijDepStatus.Disabled => "Instance.Resource.Mod.JarInJar.Dep.Disabled",
-            JijDepStatus.Bundled => "Instance.Resource.Mod.JarInJar.Dep.Bundled",
-            JijDepStatus.VersionMismatch => "Instance.Resource.Mod.JarInJar.Dep.VersionMismatch",
-            _ => "Instance.Resource.Mod.JarInJar.Dep.Missing"
-        });
+        return Lang.Text(
+            status switch
+            {
+                JijDepStatus.Installed => "Instance.Resource.Mod.JarInJar.Dep.Installed",
+                JijDepStatus.Disabled => "Instance.Resource.Mod.JarInJar.Dep.Disabled",
+                JijDepStatus.Bundled => "Instance.Resource.Mod.JarInJar.Dep.Bundled",
+                JijDepStatus.VersionMismatch =>
+                    "Instance.Resource.Mod.JarInJar.Dep.VersionMismatch",
+                _ => "Instance.Resource.Mod.JarInJar.Dep.Missing"
+            });
     }
 
     private static IBrush StatusBrush(JijDepStatus status)
@@ -591,22 +706,27 @@ public class PageInstanceCompJarInJar : MyPageRight, ISeamCompLocalPage
     {
         var body = new StackPanel();
         if (_index is null)
-            return CreateSectionCard(DisplayName(mod), body, null);
+            return CreateCollapsibleCard(DisplayName(mod), body);
         var selected = mod.State == CompFile.LocalFileStatus.Fine
             ? _index.GetLoadableEmbedded(mod).ToHashSet()
             : [];
         AppendTreeRows(body, mod.EmbeddedMods, 0, selected);
-        return CreateSectionCard(DisplayName(mod), body, null);
+        return CreateCollapsibleCard(DisplayName(mod), body);
     }
 
-    private void AppendTreeRows(StackPanel panel, List<CompFile>? embedded, int depth, HashSet<CompFile> selected)
+    private void AppendTreeRows(
+        StackPanel panel,
+        List<CompFile>? embedded,
+        int depth,
+        HashSet<CompFile> selected)
     {
         if (embedded is null || embedded.Count == 0)
             return;
 
         foreach (var ungrouped in embedded.Where(entry => string.IsNullOrEmpty(entry.ModId)))
         {
-            panel.Children.Add(MakeTreeRow(ungrouped, depth, 0, McConstraintMatcher.MatchKind.None, null, false));
+            panel.Children.Add(
+                MakeTreeRow(ungrouped, depth, 0, McConstraintMatcher.MatchKind.None, null, false));
             AppendTreeRows(panel, ungrouped.EmbeddedMods, depth + 1, selected);
         }
 
@@ -617,7 +737,14 @@ public class PageInstanceCompJarInJar : MyPageRight, ISeamCompLocalPage
             var versions = group.ToList();
             if (versions.Count == 1)
             {
-                panel.Children.Add(MakeTreeRow(versions[0], depth, 0, McConstraintMatcher.MatchKind.None, null, false));
+                panel.Children.Add(
+                    MakeTreeRow(
+                        versions[0],
+                        depth,
+                        0,
+                        McConstraintMatcher.MatchKind.None,
+                        null,
+                        false));
                 AppendTreeRows(panel, versions[0].EmbeddedMods, depth + 1, selected);
                 continue;
             }
@@ -672,7 +799,7 @@ public class PageInstanceCompJarInJar : MyPageRight, ISeamCompLocalPage
         var mc = CleanPlaceholder(entry.JijTargetMcVersion);
         var showVersions = versionCount > 1;
         var isCurrent = selected
-                        || kind is McConstraintMatcher.MatchKind.Exact or McConstraintMatcher.MatchKind.Range;
+            || kind is McConstraintMatcher.MatchKind.Exact or McConstraintMatcher.MatchKind.Range;
         var isIncompatible = !isCurrent && kind == McConstraintMatcher.MatchKind.Incompatible;
 
         var panel = new StackPanel
@@ -680,19 +807,19 @@ public class PageInstanceCompJarInJar : MyPageRight, ISeamCompLocalPage
             Orientation = Orientation.Horizontal,
             Margin = new Thickness(8d + depth * 20d, 2d, 0d, 2d)
         };
-        var name = MakeText("• " + DisplayName(entry), null);
+        var name = MakeText($"• {DisplayName(entry)}", null);
         name.FontWeight = FontWeight.Bold;
         panel.Children.Add(name);
         if (version is not null)
-            panel.Children.Add(MakeText("  (" + version + ")", null));
+            panel.Children.Add(MakeText($"  ({version})", null));
         if (!string.IsNullOrEmpty(entry.JijLoader))
-            panel.Children.Add(MakeText("  [" + entry.JijLoader + "]", null));
+            panel.Children.Add(MakeText($"  [{entry.JijLoader}]", null));
         if (mc is not null)
-            panel.Children.Add(MakeText("  (MC " + mc + ")", null));
+            panel.Children.Add(MakeText($"  (MC {mc})", null));
         if (showVersions)
         {
             var versionsText = MakeText(
-                "  " + Lang.Text("Instance.Resource.Mod.JarInJar.Bundled.Versions", versionCount),
+                $"  {Lang.Text("Instance.Resource.Mod.JarInJar.Bundled.Versions", versionCount)}",
                 null);
             if (!string.IsNullOrEmpty(versionsTooltip))
                 ToolTip.SetTip(versionsText, versionsTooltip);
@@ -700,16 +827,23 @@ public class PageInstanceCompJarInJar : MyPageRight, ISeamCompLocalPage
         }
 
         if (isCurrent)
-            panel.Children.Add(MakeText("  " + Lang.Text("Instance.Resource.Mod.JarInJar.Bundled.Current"), BrushOk));
+            panel.Children.Add(
+                MakeText(
+                    $"  {Lang.Text("Instance.Resource.Mod.JarInJar.Bundled.Current")}",
+                    BrushOk));
         else if (isIncompatible)
             panel.Children.Add(
-                MakeText("  " + Lang.Text("Instance.Resource.Mod.JarInJar.Bundled.Incompatible"), BrushWarn));
+                MakeText(
+                    $"  {Lang.Text("Instance.Resource.Mod.JarInJar.Bundled.Incompatible")}",
+                    BrushWarn));
         return panel;
     }
 
     private static string? CleanPlaceholder(string? value)
     {
-        return string.IsNullOrEmpty(value) || value.Contains("${", StringComparison.Ordinal) ? null : value;
+        return string.IsNullOrEmpty(value) || value.Contains("${", StringComparison.Ordinal)
+            ? null
+            : value;
     }
 
     private static string DisplayName(CompFile mod)
@@ -741,7 +875,10 @@ public class PageInstanceCompJarInJar : MyPageRight, ISeamCompLocalPage
         _panContent.IsVisible = false;
         _panEmpty.IsVisible = false;
         _panLoad.IsVisible = true;
-        _simulator = new MyLoadingStateSimulator { LoadingState = LoadingState.Run };
+        _simulator = new MyLoadingStateSimulator
+        {
+            LoadingState = LoadingState.Run
+        };
         _load.State = _simulator;
     }
 
@@ -749,8 +886,7 @@ public class PageInstanceCompJarInJar : MyPageRight, ISeamCompLocalPage
     {
         _panEmpty.IsVisible = false;
         _panLoad.IsVisible = false;
-        if (_simulator is not null)
-            _simulator.LoadingState = LoadingState.Stop;
+        _simulator?.LoadingState = LoadingState.Stop;
     }
 
     #endregion

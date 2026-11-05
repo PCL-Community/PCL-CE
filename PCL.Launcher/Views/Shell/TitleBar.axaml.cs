@@ -36,7 +36,7 @@ public partial class TitleBar : UserControl
             PointerPressedEvent,
             Root_OnPointerPressed,
             RoutingStrategies.Tunnel,
-            handledEventsToo: true);
+            true);
         PanTitleMain.RenderTransform = new TranslateTransform();
         PanInnerTitle.RenderTransform = new TranslateTransform();
         PanTitleMain.SizeChanged += (_, _) => ApplyTitleLeftClamp();
@@ -202,7 +202,7 @@ public partial class TitleBar : UserControl
         {
             main.IsHitTestVisible = false;
             inner.IsVisible = true;
-            if (inner.Opacity <= 0.1d && inner.RenderTransform is TranslateTransform { X: 0d })
+            if (inner is { Opacity: <= 0.1d, RenderTransform: TranslateTransform { X: 0d } })
                 inner.RenderTransform = new TranslateTransform(-16d, 0d);
             var innerX = GetTranslateX(inner);
             AniStart(

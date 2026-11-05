@@ -1,9 +1,9 @@
-using System.IO;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input.Platform;
 using Avalonia.Threading;
+using PCL.Core.App;
 using PCL.Core.App.Localization;
-using PCL.Core.Logging;
 using PCL.Core.Minecraft.Profile;
 using PCL.Core.Minecraft.Profile.Models;
 using PCL.Core.UI.Dialogs;
@@ -33,8 +33,8 @@ public partial class PageLoginProfile : LoginPageBase
         _hintSelect = this.FindControl<MyHint>("HintSelect")!;
         _btnNew = this.FindControl<MyIconButton>("BtnNew")!;
         _btnNew.Click += (_, _) => CreateProfile();
-        LocalizationService.LanguageChanged += Reload;
-        Unloaded += (_, _) => LocalizationService.LanguageChanged -= Reload;
+        AttachedToVisualTree += (_, _) => LocalizationService.LanguageChanged += Reload;
+        DetachedFromVisualTree += (_, _) => LocalizationService.LanguageChanged -= Reload;
     }
 
     public override void Reload()
@@ -73,6 +73,8 @@ public partial class PageLoginProfile : LoginPageBase
         _hintSelect.IsVisible = !isEmpty;
         _hintCreate.IsVisible = isEmpty;
         _hintMicrosoft.IsVisible = isEmpty;
+        if (isEmpty)
+            States.Hint.LaunchWithProfile = true;
 
         foreach (var profile in profiles)
             _panProfiles.Children.Add(CreateProfileItem(profile));
@@ -86,7 +88,7 @@ public partial class PageLoginProfile : LoginPageBase
             Info = LaunchLoginHelper.GetProfileInfo(profile),
             Type = MyListItem.CheckType.Clickable,
             tag = profile,
-            Margin = new Avalonia.Thickness(8, 2, 10, 2),
+            Margin = new Thickness(8, 2, 10, 2),
             SvgIcon = "lucide/user"
         };
 
@@ -99,6 +101,23 @@ public partial class PageLoginProfile : LoginPageBase
 
         var buttons = new List<MyIconButton>();
 
+        if (profile.ProfileType == ProfileType.Offline)
+            AddButton(
+                "lucide/pencil",
+                "Launch.Account.Profile.ChangeUuid",
+                () => LaunchLoginHelper.EditOfflineUuid(profile));
+        else
+            AddButton("lucide/copy", "Launch.Account.Profile.CopyUuid", () => CopyUuid(profile));
+
+        AddButton(
+            "lucide/trash-2",
+            "Launch.Account.Profile.Delete",
+            () => _ = DeleteProfileAsync(profile));
+
+        item.Buttons = buttons;
+        item.Click += (_, _) => SelectProfile(profile);
+        return item;
+
         void AddButton(string svgIcon, string toolTipKey, Action action)
         {
             var button = new MyIconButton
@@ -106,36 +125,26 @@ public partial class PageLoginProfile : LoginPageBase
                 Height = 22,
                 Width = 22,
                 SvgIcon = svgIcon,
-                Margin = new Avalonia.Thickness(4, 0, 0, 0)
+                Margin = new Thickness(4, 0, 0, 0)
             };
             ToolTip.SetTip(button, Lang.Text(toolTipKey));
             button.Click += (_, _) => action();
             buttons.Add(button);
         }
-
-        if (profile.ProfileType == ProfileType.Offline)
-            AddButton("lucide/pencil", "Launch.Account.Profile.ChangeUuid",
-                () => LaunchLoginHelper.EditOfflineUuid(profile));
-        else
-            AddButton("lucide/copy", "Launch.Account.Profile.CopyUuid", () => CopyUuid(profile));
-
-        if (profile.ProfileType is ProfileType.Authlib or ProfileType.YggdrasilConnect)
-            AddButton("lucide/info", "Launch.Account.Profile.ChangeAuthServerName",
-                () => LaunchLoginHelper.EditAuthServerName(profile));
-
-        AddButton("lucide/trash-2", "Launch.Account.Profile.Delete", () => _ = DeleteProfileAsync(profile));
-
-        item.Buttons = buttons;
-        item.Click += (_, _) => SelectProfile(profile);
-        return item;
     }
 
     private static string? GetHeadCachePath(McProfile profile)
     {
         if (string.IsNullOrEmpty(profile.SkinHeadId))
             return null;
-        var path = Path.Combine(LauncherPaths.Temp, "Cache", "Skin", "Head", profile.SkinHeadId + ".png");
-        return File.Exists(path) ? path : null;
+        var path = Path.Combine(
+            LauncherPaths.Temp,
+            "Cache",
+            "Skin",
+            "Head",
+            profile.SkinHeadId + ".png");
+        var file = new FileInfo(path);
+        return file.Exists && file.Length > 0L ? path : null;
     }
 
     private void SelectProfile(McProfile profile)
@@ -162,13 +171,14 @@ public partial class PageLoginProfile : LoginPageBase
     {
         try
         {
-            var result = await DialogService.Instance.ShowAsync(new TextDialogRequest
-            {
-                Title = Lang.Text("Launch.Account.Profile.DeleteConfirm.Title"),
-                Content = Lang.Text("Launch.Account.Profile.DeleteConfirm.Message"),
-                Buttons = DialogButtons.ContinueCancel,
-                IsWarn = true
-            });
+            var result = await DialogService.Instance.ShowAsync(
+                new TextDialogRequest
+                {
+                    Title = Lang.Text("Launch.Account.Profile.DeleteConfirm.Title"),
+                    Content = Lang.Text("Launch.Account.Profile.DeleteConfirm.Message"),
+                    Buttons = DialogButtons.ContinueCancel,
+                    IsWarn = true
+                });
             if (result.Button == 2)
                 return;
             ProfileService.Remove(profile);
@@ -192,19 +202,29 @@ public partial class PageLoginProfile : LoginPageBase
         {
             var options = new List<DialogOption>
             {
-                new() { Text = Lang.Text("Launch.Account.Type.Microsoft") },
-                new() { Text = Lang.Text("Launch.Account.Type.ThirdParty") },
-                new() { Text = Lang.Text("Launch.Account.Type.Offline") }
+                new()
+                {
+                    Text = Lang.Text("Launch.Account.Type.Microsoft")
+                },
+                new()
+                {
+                    Text = Lang.Text("Launch.Account.Type.ThirdParty")
+                },
+                new()
+                {
+                    Text = Lang.Text("Launch.Account.Type.Offline")
+                }
             };
-            var result = await DialogService.Instance.ShowAsync(new SelectDialogRequest
-            {
-                Title = Lang.Text("Launch.Account.Profile.Create.SelectAuthType.Title"),
-                Options = options,
-                Buttons = DialogButtons.From(
-                    DialogButton.Create(Lang.Text("Common.Action.Continue")),
-                    DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
-                HighLight = false
-            });
+            var result = await DialogService.Instance.ShowAsync(
+                new SelectDialogRequest
+                {
+                    Title = Lang.Text("Launch.Account.Profile.Create.SelectAuthType.Title"),
+                    Options = options,
+                    Buttons = DialogButtons.From(
+                        DialogButton.Create(Lang.Text("Common.Action.Continue")),
+                        DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                    HighLight = false
+                });
             if (!result.IsConfirmed)
                 return;
 

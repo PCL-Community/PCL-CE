@@ -1,35 +1,41 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Controls.Shapes;
 using Avalonia.Input.Platform;
 using Avalonia.Layout;
 using Avalonia.Media;
-using PCL.Core.App;
+using fNbt;
 using PCL.Core.App.Localization;
 using PCL.Core.Minecraft;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
+using PCL.Core.Utils.Validate;
 using PCL.Navigation;
 using PCL.UI.Controls;
-using fNbt;
+using Path = System.IO.Path;
 
 namespace PCL.Views.Pages.Instance;
 
 /// <summary>
 ///     实例服务器页：读写实例 <c>servers.dat</c>（NBT）中的服务器列表。
-///     每张卡片内嵌服务器查询控件展示图标/MotD/人数/延迟；刷新全部会重新读取列表并重新查询每个服务器。
+///     每张卡片按原始 NBT 下标绑定，空 IP 项不会被丢弃；刷新全部时会并发 Ping 服务器并回写图标。
 /// </summary>
 public class PageInstanceServer : MyPageRight, IRefreshable
 {
     private const int DebounceInterval = 2000;
+    private const int PingConcurrency = 5;
+    private readonly List<ServerCard> _cards = [];
+    private readonly MyScrollViewer _panBack = null!;
+    private readonly MyCard _panEmpty;
 
     private readonly StackPanel _panMain;
     private readonly StackPanel _panServers;
-    private readonly MyCard _panEmpty;
-    private readonly List<ServerCard> _cards = [];
-    private MyScrollViewer _panBack = null!;
+    private readonly SemaphoreSlim _saveLock = new(1, 1);
+    private CancellationTokenSource? _cts;
     private McInstance? _instance;
     private DateTime _lastRefresh = DateTime.MinValue;
+    private string _loadedServersPath = string.Empty;
 
     public PageInstanceServer()
     {
@@ -39,8 +45,14 @@ public class PageInstanceServer : MyPageRight, IRefreshable
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
             HorizontalScrollBarVisibility = ScrollBarVisibility.Hidden
         };
-        _panMain = new StackPanel { Margin = new Thickness(10d, 25d, 10d, 10d) };
-        _panServers = new StackPanel { Margin = new Thickness(15d, 0d, 15d, 15d) };
+        _panMain = new StackPanel
+        {
+            Margin = new Thickness(10d, 25d, 10d, 10d)
+        };
+        _panServers = new StackPanel
+        {
+            Margin = new Thickness(15d, 0d, 15d, 15d)
+        };
         _panEmpty = new MyCard
         {
             HorizontalAlignment = HorizontalAlignment.Center,
@@ -48,7 +60,14 @@ public class PageInstanceServer : MyPageRight, IRefreshable
             Margin = new Thickness(40d),
             IsVisible = false
         };
-        _panBack.Content = new Grid { Children = { _panMain, _panEmpty } };
+        _panBack.Content = new Grid
+        {
+            Children =
+            {
+                _panMain,
+                _panEmpty
+            }
+        };
         root.Children.Add(_panBack);
         PanScroll = _panBack;
         Child = root;
@@ -58,20 +77,25 @@ public class PageInstanceServer : MyPageRight, IRefreshable
     private string? ServersPath =>
         _instance is null ? null : Path.Combine(_instance.PathIndie, "servers.dat");
 
+    public void Refresh()
+    {
+        Reload();
+    }
+
     public override void OnNavigatedTo(object? parameter)
     {
         _instance = InstancePageHelper.ResolveInstance(parameter);
         Reload();
     }
 
+    public override void OnNavigatedFrom()
+    {
+        CancelPing();
+    }
+
     protected override void RefreshLocalization()
     {
         BuildUi();
-        Reload();
-    }
-
-    public void Refresh()
-    {
         Reload();
     }
 
@@ -137,8 +161,12 @@ public class PageInstanceServer : MyPageRight, IRefreshable
         ContainerTheme.BindDynamic(title, TextBlock.ForegroundProperty, "ColorBrush3");
         Grid.SetColumnSpan(title, 4);
         grid.Children.Add(title);
-        var divider = new Avalonia.Controls.Shapes.Rectangle { Height = 2d, HorizontalAlignment = HorizontalAlignment.Stretch };
-        ContainerTheme.BindDynamic(divider, Avalonia.Controls.Shapes.Shape.FillProperty, "ColorBrush3");
+        var divider = new Rectangle
+        {
+            Height = 2d,
+            HorizontalAlignment = HorizontalAlignment.Stretch
+        };
+        ContainerTheme.BindDynamic(divider, Shape.FillProperty, "ColorBrush3");
         Grid.SetRow(divider, 1);
         Grid.SetColumnSpan(divider, 4);
         grid.Children.Add(divider);
@@ -183,6 +211,7 @@ public class PageInstanceServer : MyPageRight, IRefreshable
 
     public void Reload()
     {
+        CancelPing();
         _panServers.Children.Clear();
         _cards.Clear();
         var path = ServersPath;
@@ -192,31 +221,40 @@ public class PageInstanceServer : MyPageRight, IRefreshable
             return;
         }
 
-        _ = LoadAndRenderAsync(path);
+        _loadedServersPath = path;
+        _cts = new CancellationTokenSource();
+        _ = LoadAndRenderAsync(path, _cts.Token);
     }
 
-    private async Task LoadAndRenderAsync(string path)
+    private async Task LoadAndRenderAsync(string path, CancellationToken token)
     {
         try
         {
-            var servers = await NbtFileHandler.ReadTagInNbtFileAsync<NbtList>(path, "servers");
-            foreach (var tag in servers ?? [])
-            {
-                if (tag is not NbtCompound compound)
-                    continue;
-                var name = compound.Get<NbtString>("name")?.Value ?? string.Empty;
-                var ip = compound.Get<NbtString>("ip")?.Value ?? string.Empty;
-                if (string.IsNullOrEmpty(ip))
-                    continue;
+            var servers =
+                await NbtFileHandler.ReadTagInNbtFileAsync<NbtList>(path, "servers", token);
+            if (token.IsCancellationRequested
+                || !string.Equals(path, ServersPath, StringComparison.OrdinalIgnoreCase))
+                return;
 
-                var card = new ServerCard(name, ip);
-                card.ConnectRequested += ConnectServer;
-                card.CopyRequested += CopyAddress;
-                card.EditRequested += item => _ = EditServerAsync(item);
-                card.RemoveRequested += item => _ = RemoveServerAsync(item);
-                _cards.Add(card);
-                _panServers.Children.Add(card);
-            }
+            if (servers is not null)
+                for (var i = 0; i < servers.Count; i++)
+                {
+                    if (servers[i] is not NbtCompound compound)
+                        continue;
+                    var name = compound.Get<NbtString>("name")?.Value ?? string.Empty;
+                    var ip = compound.Get<NbtString>("ip")?.Value ?? string.Empty;
+                    var card = new ServerCard(name, ip, i);
+                    card.ConnectRequested += ConnectServer;
+                    card.CopyRequested += CopyAddress;
+                    card.RefreshRequested += item => _ = RefreshAndPersistAsync(item);
+                    card.EditRequested += item => _ = EditServerAsync(item);
+                    card.RemoveRequested += item => _ = RemoveServerAsync(item);
+                    _cards.Add(card);
+                    _panServers.Children.Add(card);
+                }
+        }
+        catch (OperationCanceledException)
+        {
         }
         catch (Exception ex)
         {
@@ -224,14 +262,15 @@ public class PageInstanceServer : MyPageRight, IRefreshable
         }
 
         UpdateEmptyState();
+        if (_cards.Count > 0)
+            _ = PingAllServersAsync(_cts?.Token ?? CancellationToken.None);
     }
 
     private void UpdateEmptyState()
     {
         var hasServers = _cards.Count > 0;
-        _panMain.IsVisible = true;
+        _panMain.IsVisible = hasServers;
         _panEmpty.IsVisible = !hasServers;
-        _panServers.IsVisible = hasServers;
     }
 
     private void RefreshAll()
@@ -243,24 +282,135 @@ public class PageInstanceServer : MyPageRight, IRefreshable
         }
 
         _lastRefresh = DateTime.Now;
-        var path = ServersPath;
-        if (path is null)
-            return;
-        _panServers.Children.Clear();
-        _cards.Clear();
-        _ = LoadAndRenderAsync(path);
+        HintService.Show(Hints.Info(Lang.Text("Instance.Server.RefreshingList")));
+        Reload();
     }
 
     private async Task<NbtList?> ReadServersAsync()
     {
         var path = ServersPath;
-        return path is null ? null : await NbtFileHandler.ReadTagInNbtFileAsync<NbtList>(path, "servers");
+        return path is null
+            ? null
+            : await NbtFileHandler.ReadTagInNbtFileAsync<NbtList>(path, "servers");
     }
 
     private async Task<bool> WriteServersAsync(NbtList servers)
     {
         var path = ServersPath;
-        return path is not null && await NbtFileHandler.WriteTagInNbtFileAsync((NbtList)servers.Clone(), path);
+        return path is not null
+            && await NbtFileHandler.WriteTagInNbtFileAsync((NbtList)servers.Clone(), path);
+    }
+
+    private void CancelPing()
+    {
+        var cts = _cts;
+        _cts = null;
+        if (cts is null)
+            return;
+        try
+        {
+            cts.Cancel();
+        }
+        catch
+        {
+            // ignored
+        }
+        finally
+        {
+            cts.Dispose();
+        }
+    }
+
+    private async Task PingAllServersAsync(CancellationToken token)
+    {
+        var semaphore = new SemaphoreSlim(PingConcurrency);
+        var tasks = _cards
+            .ToList()
+            .Select(async card =>
+            {
+                await semaphore.WaitAsync(token);
+                try
+                {
+                    await card.RefreshAsync(false, token);
+                }
+                catch (OperationCanceledException)
+                {
+                }
+                catch (Exception ex)
+                {
+                    LauncherCommon.Log(ex, $"Ping 服务器失败：{card.Address}");
+                }
+                finally
+                {
+                    semaphore.Release();
+                }
+            })
+            .ToList();
+
+        try
+        {
+            await Task.WhenAll(tasks);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+        finally
+        {
+            semaphore.Dispose();
+        }
+
+        if (!token.IsCancellationRequested)
+            await PersistServerIconsAsync(_loadedServersPath, [.. _cards]);
+    }
+
+    private async Task RefreshAndPersistAsync(ServerCard card)
+    {
+        await card.RefreshAsync(true);
+        await PersistServerIconsAsync(_loadedServersPath, [card]);
+    }
+
+    private async Task PersistServerIconsAsync(string path, List<ServerCard> cards)
+    {
+        var withIcon = cards
+            .Where(card => card.HasPinged && !string.IsNullOrWhiteSpace(card.IconBase64))
+            .ToList();
+        if (withIcon.Count == 0 || string.IsNullOrEmpty(path) || !File.Exists(path))
+            return;
+
+        await _saveLock.WaitAsync();
+        try
+        {
+            var servers = await NbtFileHandler.ReadTagInNbtFileAsync<NbtList>(path, "servers");
+            if (servers is null)
+                return;
+
+            var changed = false;
+            foreach (var card in withIcon.Where(card =>
+                         card.RawIndex >= 0 && card.RawIndex < servers.Count))
+            {
+                if (servers[card.RawIndex] is not NbtCompound compound)
+                    continue;
+                if (string.Equals(
+                        compound.Get<NbtString>("icon")?.Value,
+                        card.IconBase64,
+                        StringComparison.Ordinal))
+                    continue;
+                compound["icon"] = new NbtString("icon", card.IconBase64);
+                changed = true;
+            }
+
+            if (changed)
+                await NbtFileHandler.WriteTagInNbtFileAsync((NbtList)servers.Clone(), path);
+        }
+        catch (Exception ex)
+        {
+            LauncherCommon.Log(ex, "回写服务器图标失败", LauncherLogLevel.Developer);
+        }
+        finally
+        {
+            _saveLock.Release();
+        }
     }
 
     private void ConnectServer(ServerCard card)
@@ -269,13 +419,15 @@ public class PageInstanceServer : MyPageRight, IRefreshable
             return;
         try
         {
-            if (GameLaunch.McLaunchStart(new GameLaunch.McLaunchOptions
-                {
-                    ServerIp = card.Address,
-                    instance = _instance
-                }))
+            if (GameLaunch.McLaunchStart(
+                    new GameLaunch.McLaunchOptions
+                    {
+                        ServerIp = card.Address,
+                        instance = _instance
+                    }))
             {
-                HintService.Show(Hints.Info(Lang.Text("Instance.Server.Card.ConnectingTo", card.Name)));
+                HintService.Show(
+                    Hints.Info(Lang.Text("Instance.Server.Card.ConnectingTo", card.Name)));
                 PageRouter.Navigate(PageType.Launch);
             }
         }
@@ -298,7 +450,8 @@ public class PageInstanceServer : MyPageRight, IRefreshable
             if (clipboard is null)
                 return;
             await clipboard.SetTextAsync(address);
-            HintService.Show(Hints.Success(Lang.Text("Instance.Server.Card.AddressCopied")));
+            HintService.Show(
+                Hints.Success(Lang.Text("Instance.Server.Card.AddressCopied", address)));
         }
         catch (Exception ex)
         {
@@ -313,36 +466,41 @@ public class PageInstanceServer : MyPageRight, IRefreshable
             var nameResult = await DialogService.Instance.ShowAsync(
                 new InputDialogRequest
                 {
-                    Title = Lang.Text("Instance.Server.AddServer"),
+                    Title = Lang.Text("Instance.Server.EditTitle"),
                     Content = Lang.Text("Instance.Server.NamePrompt"),
                     DefaultValue = Lang.Text("Instance.Server.DefaultName"),
-                    Buttons = DialogButtons.OkCancel
+                    ValidateRules = [new NullOrWhiteSpaceValidator()],
+                    Buttons = DialogButtons.OkCancel,
+                    HighLight = false
                 });
             if (!nameResult.IsConfirmed)
                 return;
-            var name = nameResult.InputText ?? string.Empty;
+            var name = nameResult.InputText?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(name))
+                return;
 
             var addressResult = await DialogService.Instance.ShowAsync(
                 new InputDialogRequest
                 {
-                    Title = Lang.Text("Instance.Server.AddServer"),
+                    Title = Lang.Text("Instance.Server.EditTitle"),
                     Content = Lang.Text("Instance.Server.AddressPrompt"),
-                    Buttons = DialogButtons.OkCancel
+                    ValidateRules = [new NullOrWhiteSpaceValidator()],
+                    Buttons = DialogButtons.OkCancel,
+                    HighLight = false
                 });
             if (!addressResult.IsConfirmed)
                 return;
-            var address = addressResult.InputText ?? string.Empty;
+            var address = addressResult.InputText?.Trim() ?? string.Empty;
             if (string.IsNullOrWhiteSpace(address))
-            {
-                HintService.Show(Hints.Warning(Lang.Text("Instance.Server.AddressPrompt")));
                 return;
-            }
 
             var servers = await ReadServersAsync() ?? new NbtList("servers", NbtTagType.Compound);
+            if (servers.Count == 0)
+                servers.ListType = NbtTagType.Compound;
             servers.Add(
                 new NbtCompound
                 {
-                    new NbtString("name", string.IsNullOrWhiteSpace(name) ? address : name),
+                    new NbtString("name", name),
                     new NbtString("ip", address)
                 });
             if (!await WriteServersAsync(servers))
@@ -364,25 +522,21 @@ public class PageInstanceServer : MyPageRight, IRefreshable
     {
         try
         {
-            var servers = await ReadServersAsync();
-            var index = _cards.IndexOf(card);
-            if (servers is null || index < 0 || index >= servers.Count)
-            {
-                HintService.Show(Hints.Error(Lang.Text("Instance.Server.IndexNotFound")));
-                return;
-            }
-
             var nameResult = await DialogService.Instance.ShowAsync(
                 new InputDialogRequest
                 {
                     Title = Lang.Text("Instance.Server.EditTitle"),
                     Content = Lang.Text("Instance.Server.NamePrompt"),
-                    DefaultValue = card.Name,
-                    Buttons = DialogButtons.OkCancel
+                    DefaultValue = string.IsNullOrEmpty(card.Name) ? card.Address : card.Name,
+                    ValidateRules = [new NullOrWhiteSpaceValidator()],
+                    Buttons = DialogButtons.OkCancel,
+                    HighLight = false
                 });
             if (!nameResult.IsConfirmed)
                 return;
-            var name = nameResult.InputText ?? string.Empty;
+            var name = nameResult.InputText?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(name))
+                return;
 
             var addressResult = await DialogService.Instance.ShowAsync(
                 new InputDialogRequest
@@ -390,17 +544,27 @@ public class PageInstanceServer : MyPageRight, IRefreshable
                     Title = Lang.Text("Instance.Server.EditTitle"),
                     Content = Lang.Text("Instance.Server.AddressPrompt"),
                     DefaultValue = card.Address,
-                    Buttons = DialogButtons.OkCancel
+                    ValidateRules = [new NullOrWhiteSpaceValidator()],
+                    Buttons = DialogButtons.OkCancel,
+                    HighLight = false
                 });
             if (!addressResult.IsConfirmed)
                 return;
-            var address = addressResult.InputText ?? string.Empty;
+            var address = addressResult.InputText?.Trim() ?? string.Empty;
             if (string.IsNullOrWhiteSpace(address))
                 return;
 
-            if (servers[index] is not NbtCompound compound)
+            var servers = await ReadServersAsync();
+            if (servers is null
+                || card.RawIndex < 0
+                || card.RawIndex >= servers.Count
+                || servers[card.RawIndex] is not NbtCompound compound)
+            {
+                HintService.Show(Hints.Error(Lang.Text("Instance.Server.IndexNotFound")));
                 return;
-            compound["name"] = new NbtString("name", string.IsNullOrWhiteSpace(name) ? address : name);
+            }
+
+            compound["name"] = new NbtString("name", name);
             compound["ip"] = new NbtString("ip", address);
             if (!await WriteServersAsync(servers))
             {
@@ -408,7 +572,7 @@ public class PageInstanceServer : MyPageRight, IRefreshable
                 return;
             }
 
-            card.UpdateInfo(string.IsNullOrWhiteSpace(name) ? address : name, address);
+            card.UpdateInfo(name, address);
             await card.RefreshAsync();
             HintService.Show(Hints.Success(Lang.Text("Instance.Server.Updated")));
         }
@@ -426,7 +590,10 @@ public class PageInstanceServer : MyPageRight, IRefreshable
                 new TextDialogRequest
                 {
                     Title = Lang.Text("Instance.Server.Card.RemoveConfirmTitle"),
-                    Content = Lang.Text("Instance.Server.Card.RemoveConfirmMessage"),
+                    Content = Lang.Text(
+                        "Instance.Server.Card.RemoveConfirmMessage",
+                        card.Name,
+                        card.Address),
                     Buttons = DialogButtons.OkCancel,
                     IsWarn = true
                 });
@@ -434,14 +601,13 @@ public class PageInstanceServer : MyPageRight, IRefreshable
                 return;
 
             var servers = await ReadServersAsync();
-            var index = _cards.IndexOf(card);
-            if (servers is null || index < 0 || index >= servers.Count)
+            if (servers is null || card.RawIndex < 0 || card.RawIndex >= servers.Count)
             {
                 HintService.Show(Hints.Error(Lang.Text("Instance.Server.IndexNotFound")));
                 return;
             }
 
-            servers.RemoveAt(index);
+            servers.RemoveAt(card.RawIndex);
             if (!await WriteServersAsync(servers))
             {
                 HintService.Show(Hints.Error(Lang.Text("Instance.Server.WriteDataFailed")));
@@ -452,6 +618,10 @@ public class PageInstanceServer : MyPageRight, IRefreshable
             _cards.Remove(card);
             UpdateEmptyState();
             HintService.Show(Hints.Success(Lang.Text("Instance.Server.Removed")));
+
+            // 删除后下标整体前移，重新读取以保持卡片与 NBT 下标一致。
+            if (_cards.Count > 0)
+                Reload();
         }
         catch (Exception ex)
         {

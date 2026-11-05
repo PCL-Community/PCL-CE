@@ -1,10 +1,9 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
-using Avalonia.Threading;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.UI.Dialogs;
-using PCL.Core.UI.Hints;
 using PCL.Navigation;
 using PCL.UI.Controls;
 using PCL.Views.Shell;
@@ -17,19 +16,29 @@ namespace PCL.Views.Pages.Instance;
 /// </summary>
 public partial class PageInstanceLeft : MyPageLeft, IRefreshable
 {
-    public static McInstance? CurrentInstance { get; private set; }
-
     private readonly List<(PageSubType SubType, MyListItem Item)> _items = [];
-    private TextBlock? _resourceTitle;
     private bool _isBuilding;
     private bool _refreshed;
+    private bool _resetting;
+    private TextBlock? _resourceTitle;
 
     public PageInstanceLeft()
     {
         InitializeComponent();
+        Current = this;
         AnimatedControl = PanItem;
         AttachedToVisualTree += (_, _) => RefreshOnNavigate();
         DetachedFromVisualTree += (_, _) => _refreshed = false;
+    }
+
+    public static McInstance? CurrentInstance { get; private set; }
+
+    public static PageInstanceLeft? Current { get; private set; }
+
+    public void Refresh()
+    {
+        _refreshed = false;
+        RefreshOnNavigate();
     }
 
     public static void SetCurrentInstance(McInstance? instance)
@@ -43,7 +52,7 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
             CurrentInstance = instance;
         else if (CurrentInstance is null)
             CurrentInstance = InstanceList.McMcInstanceSelected
-                              ?? InstanceList.mcInstanceList.SelectMany(card => card.Value).FirstOrDefault();
+                ?? InstanceList.mcInstanceList.SelectMany(card => card.Value).FirstOrDefault();
         RefreshOnNavigate();
         RefreshChecked();
     }
@@ -58,7 +67,8 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
         RefreshOnNavigate();
     }
 
-    public void Refresh()
+    /// <summary>实例分类或 Mod 可用性变化后重建左栏。</summary>
+    public void RefreshForInstanceChange()
     {
         _refreshed = false;
         RefreshOnNavigate();
@@ -87,8 +97,17 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
             var modable = instance?.Modable ?? false;
 
             PanItem.Children.Add(CreateSectionTitle(Lang.Text("Instance.Left.Game")));
-            AddItem(PageSubType.VersionOverall, "Instance.Left.Overview", "lucide/layout-dashboard", 0.95);
-            AddItem(PageSubType.VersionSetup, "Instance.Left.Settings", "lucide/settings", 1.0, true);
+            AddItem(
+                PageSubType.VersionOverall,
+                "Instance.Left.Overview",
+                "lucide/layout-dashboard",
+                0.95);
+            AddItem(
+                PageSubType.VersionSetup,
+                "Instance.Left.Settings",
+                "lucide/settings",
+                1.0,
+                true);
             AddItem(
                 PageSubType.VersionInstall,
                 "Instance.Left.Install",
@@ -125,7 +144,6 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
                 Config.Preference.Hide.InstanceScreenshot,
                 PageSubType.VersionScreenshot);
             if (modable)
-            {
                 AddItem(
                     PageSubType.VersionMod,
                     "Instance.Left.Mod",
@@ -134,11 +152,14 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
                     false,
                     Config.Preference.Hide.InstanceMod,
                     PageSubType.VersionMod);
-            }
             else
-            {
-                AddItem(PageSubType.VersionModDisabled, "Instance.Left.Mod", "lucide/puzzle", 1.0);
-            }
+                AddItem(
+                    PageSubType.VersionModDisabled,
+                    "Instance.Left.Mod",
+                    "lucide/puzzle",
+                    1.0,
+                    false,
+                    Config.Preference.Hide.InstanceMod);
 
             AddItem(
                 PageSubType.VersionResourcePack,
@@ -175,11 +196,17 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
 
             var resourceTypes = new[]
             {
-                PageSubType.VersionWorld, PageSubType.VersionScreenshot, PageSubType.VersionMod,
-                PageSubType.VersionModDisabled, PageSubType.VersionResourcePack, PageSubType.VersionShader,
-                PageSubType.VersionSchematic, PageSubType.VersionServer
+                PageSubType.VersionWorld,
+                PageSubType.VersionScreenshot,
+                PageSubType.VersionMod,
+                PageSubType.VersionModDisabled,
+                PageSubType.VersionResourcePack,
+                PageSubType.VersionShader,
+                PageSubType.VersionSchematic,
+                PageSubType.VersionServer
             };
-            _resourceTitle.IsVisible = _items.Any(pair => resourceTypes.Contains(pair.SubType) && pair.Item.IsVisible);
+            _resourceTitle.IsVisible = _items.Any(pair =>
+                resourceTypes.Contains(pair.SubType) && pair.Item.IsVisible);
         }
         finally
         {
@@ -241,7 +268,7 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
         }
 
         if (buttons.Count > 0)
-            item.Buttons = buttons.ToArray();
+            item.Buttons = [.. buttons];
 
         _items.Add((subType, item));
         PanItem.Children.Add(item);
@@ -250,7 +277,12 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
 
     private static TextBlock CreateSectionTitle(string text)
     {
-        var title = new TextBlock { Text = text };
+        // WPF 实例左栏使用 13,6,5,4；共享 SectionTitle 的 18 上边距用于其它页面，这里局部覆盖。
+        var title = new TextBlock
+        {
+            Text = text,
+            Margin = new Thickness(13d, 6d, 5d, 4d)
+        };
         title.Classes.Add("SectionTitle");
         return title;
     }
@@ -264,10 +296,8 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
                 ? PageRouter.Current.SubType
                 : PageSubType.VersionOverall;
             foreach (var (subType, item) in _items)
-            {
                 if (item.IsVisible)
                     item.Checked = subType == current;
-            }
         }
         finally
         {
@@ -277,15 +307,13 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
 
     public static McInstance? ResolveInstance()
     {
-        if (PageRouter.Current.Page == PageType.InstanceSetup
-            && PageRouter.Current.Parameter is McInstance routed)
-            return routed;
-        if (CurrentInstance is not null)
-            return CurrentInstance;
-        return InstanceList.McMcInstanceSelected;
+        return PageRouter.Current.Page == PageType.InstanceSetup
+            && PageRouter.Current.Parameter is McInstance routed
+                ? routed
+                : CurrentInstance ?? InstanceList.McMcInstanceSelected;
     }
 
-    private void ChangePage(PageSubType subType)
+    private static void ChangePage(PageSubType subType)
     {
         var instance = ResolveInstance();
         if (instance is null)
@@ -297,7 +325,7 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
         PageRouter.Navigate(new PageStackData(PageType.InstanceSetup, subType, instance));
     }
 
-    private void RefreshSubPage(PageSubType subType)
+    private static void RefreshSubPage(PageSubType subType)
     {
         var instance = ResolveInstance();
         if (instance is null)
@@ -309,6 +337,9 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
 
     private async Task ResetInstanceSettingsAsync()
     {
+        if (_resetting)
+            return;
+        _resetting = true;
         try
         {
             var dialog = await DialogService.Instance.ShowAsync(
@@ -322,7 +353,11 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
             if (dialog.Button != 1)
                 return;
 
-            PageRouter.Navigate(new PageStackData(PageType.InstanceSetup, PageSubType.VersionSetup, ResolveInstance()));
+            PageRouter.Navigate(
+                new PageStackData(
+                    PageType.InstanceSetup,
+                    PageSubType.VersionSetup,
+                    ResolveInstance()));
             if (PageRouter.CurrentPage is PageInstanceSetup setup)
                 setup.Reset();
             RefreshChecked();
@@ -334,6 +369,10 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
                 "初始化实例设置失败",
                 LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Instance.Error.OperationFailed"));
+        }
+        finally
+        {
+            _resetting = false;
         }
     }
 }

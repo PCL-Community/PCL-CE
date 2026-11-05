@@ -4,6 +4,7 @@ using PCL.Core.Minecraft.Profile;
 using PCL.Core.Minecraft.Profile.Models;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
+using PCL.Core.Utils.Validate;
 using PCL.UI.Controls;
 
 namespace PCL.Views.Pages.Launch;
@@ -13,29 +14,22 @@ namespace PCL.Views.Pages.Launch;
 /// </summary>
 public partial class PageLoginOffline : LoginPageBase
 {
-    private enum UuidMode
-    {
-        Standard,
-        Legacy,
-        Custom
-    }
-
     private readonly MyButton _btnBack;
     private readonly MyButton _btnLogin;
     private readonly MyRadioBox _radioUuidCustom;
     private readonly MyRadioBox _radioUuidLegacy;
     private readonly MyRadioBox _radioUuidStandard;
-    private readonly MyTextBox _textName;
     private readonly MyTextBox _textUuid;
     private readonly TextBlock _textUuidTitle;
 
+    private readonly PageLoginOfflineViewModel _viewModel = new();
     private UuidMode _mode = UuidMode.Standard;
     private bool _syncingMode;
 
     public PageLoginOffline()
     {
         InitializeComponent();
-        _textName = this.FindControl<MyTextBox>("TextName")!;
+        DataContext = _viewModel;
         _textUuid = this.FindControl<MyTextBox>("TextUuid")!;
         _textUuidTitle = this.FindControl<TextBlock>("TextUuidTitle")!;
         _radioUuidStandard = this.FindControl<MyRadioBox>("RadioUuidStandard")!;
@@ -82,17 +76,19 @@ public partial class PageLoginOffline : LoginPageBase
     {
         try
         {
-            var username = _textName.Text ?? "";
-            if (!new PCL.Core.Utils.Validate.RegexValidator("^[A-z0-9_]{3,16}$")
-                    .Validate(username).IsValid)
+            var username = _viewModel.UserName;
+            if (!new RegexValidator("^[A-z0-9_]{3,16}$")
+                    .Validate(username)
+                    .IsValid)
             {
-                var result = await DialogService.Instance.ShowAsync(new TextDialogRequest
-                {
-                    Title = Lang.Text("Launch.Account.Offline.InvalidPlayerId.Title"),
-                    Content = Lang.Text("Launch.Account.Offline.InvalidPlayerId.Message"),
-                    Buttons = DialogButtons.ContinueCancel,
-                    IsWarn = true
-                });
+                var result = await DialogService.Instance.ShowAsync(
+                    new TextDialogRequest
+                    {
+                        Title = Lang.Text("Launch.Account.Offline.InvalidPlayerId.Title"),
+                        Content = Lang.Text("Launch.Account.Offline.InvalidPlayerId.Message"),
+                        Buttons = DialogButtons.ContinueCancel,
+                        IsWarn = true
+                    });
                 if (result.Button == 2)
                     return;
             }
@@ -100,12 +96,14 @@ public partial class PageLoginOffline : LoginPageBase
             string userUuid;
             if (_mode == UuidMode.Custom)
             {
-                var uuidInput = (_textUuid.Text ?? "").Replace("-", "");
-                var uuidValidateResult = new PCL.Core.Utils.Validate.RegexValidator("^[a-fA-F0-9]{32}$")
-                    .Validate(uuidInput);
+                var uuidInput = _viewModel.Uuid.Replace("-", "");
+                var uuidValidateResult = await new RegexValidator("^[a-fA-F0-9]{32}$")
+                    .ValidateAsync(uuidInput);
                 if (!uuidValidateResult.IsValid)
                 {
-                    HintService.Show(Hints.Error(Lang.Text("Launch.Account.Offline.InvalidUuid", uuidValidateResult)));
+                    HintService.Show(
+                        Hints.Error(
+                            Lang.Text("Launch.Account.Offline.InvalidUuid", uuidValidateResult)));
                     return;
                 }
 
@@ -120,16 +118,17 @@ public partial class PageLoginOffline : LoginPageBase
                 userUuid = LaunchLoginHelper.GetOfflineUuid(username);
             }
 
-            ProfileService.Add(new McProfile
-            {
-                ProfileType = ProfileType.Offline,
-                Uuid = userUuid,
-                UserName = username,
-                Description = "",
-                AccessToken = userUuid,
-                ClientToken = userUuid,
-                ProfileId = Guid.NewGuid().ToString("N")
-            });
+            ProfileService.Add(
+                new McProfile
+                {
+                    ProfileType = ProfileType.Offline,
+                    Uuid = userUuid,
+                    UserName = username,
+                    Description = "",
+                    AccessToken = userUuid,
+                    ClientToken = userUuid,
+                    ProfileId = Guid.NewGuid().ToString("N")
+                });
             ProfileService.IsCreatingProfile = false;
             HintService.Show(Hints.Success(Lang.Text("Launch.Account.Profile.Created")));
             RequestRefresh();
@@ -142,5 +141,12 @@ public partial class PageLoginOffline : LoginPageBase
                 LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Launch.Account.Profile.Error.Write"));
         }
+    }
+
+    private enum UuidMode
+    {
+        Standard,
+        Legacy,
+        Custom
     }
 }

@@ -16,18 +16,21 @@ namespace PCL.Views.Pages.Launch;
 /// <summary>
 ///     启动页右栏：按 <c>Preference.Homepage</c> 配置构建主页内容，另带社区版提示与启动日志卡片。
 ///     主页来源分为空白、内置“你知道吗”、Minecraft 信息流与运行时 XAML 主页四类；
-///     运行时 XAML 主页当前无法渲染，页面会给出带来源与操作入口的降级说明。
+///     本批次提供空白、Trivia、News 与加载、错误、重试结构，运行时 XAML 渲染留待 Phase 3.6。
 /// </summary>
 public partial class PageLaunchRight : MyPageRight, ISeamLaunchLogSink, IRefreshable
 {
+    private readonly TextBlock _labError;
     private readonly TextBlock _labHint1;
     private readonly TextBlock _labHint2;
     private readonly TextBlock _labLog;
-    private readonly MyCard _panHint;
-    private readonly MyCard _panLog;
+    private readonly PageHomepageNewsView _newsView;
     private readonly MyScrollViewer _panBack;
     private readonly StackPanel _panCustom;
-    private readonly PageHomepageNewsView _newsView;
+    private readonly MyCard _panError;
+    private readonly MyCard _panHint;
+    private readonly MyCard _panLoading;
+    private readonly MyCard _panLog;
 
     private HomepageContent? _currentContent;
     private int _refreshVersion;
@@ -39,11 +42,15 @@ public partial class PageLaunchRight : MyPageRight, ISeamLaunchLogSink, IRefresh
 
         _panBack = this.FindControl<MyScrollViewer>("PanBack")!;
         _panCustom = this.FindControl<StackPanel>("PanCustom")!;
+        _panLoading = this.FindControl<MyCard>("PanLoading")!;
+        _panError = this.FindControl<MyCard>("PanError")!;
         _panHint = this.FindControl<MyCard>("PanHint")!;
         _panLog = this.FindControl<MyCard>("PanLog")!;
+        _labError = this.FindControl<TextBlock>("LabError")!;
         _labHint1 = this.FindControl<TextBlock>("LabHint1")!;
         _labHint2 = this.FindControl<TextBlock>("LabHint2")!;
         _labLog = this.FindControl<TextBlock>("LabLog")!;
+        this.FindControl<MyTextButton>("BtnRetry")!.Click += (_, _) => ForceRefresh();
         PanScroll = _panBack;
 
         _newsView = new PageHomepageNewsView();
@@ -52,8 +59,14 @@ public partial class PageLaunchRight : MyPageRight, ISeamLaunchLogSink, IRefresh
         FileDragHandler.CustomHomepageDropped += _ => ForceRefresh();
 
         _panHint.IsVisible = States.Hint.CEMessage;
-        LocalizedText.TryBind(_labHint1, "Text", () => Lang.Text("Launch.Right.CommunityHint.Message"));
-        LocalizedText.TryBind(_labHint2, "Text", () => Lang.Text("Launch.Right.CommunityHint.HidePrompt"));
+        LocalizedText.TryBind(
+            _labHint1,
+            "Text",
+            () => Lang.Text("Launch.Right.CommunityHint.Message"));
+        LocalizedText.TryBind(
+            _labHint2,
+            "Text",
+            () => Lang.Text("Launch.Right.CommunityHint.HidePrompt"));
         this.FindControl<MyIconButton>("BtnHintClose")!.Click += (_, _) => HideCommunityHint();
 
         _panLog.IsVisible = LauncherCommon.ModeDebug;
@@ -67,12 +80,10 @@ public partial class PageLaunchRight : MyPageRight, ISeamLaunchLogSink, IRefresh
 
     public static PageLaunchRight? Current { get; private set; }
 
-    public override void OnNavigatedTo(object? parameter)
+    /// <inheritdoc />
+    public void Refresh()
     {
-    }
-
-    public override void OnNavigatedFrom()
-    {
+        ForceRefresh();
     }
 
     public void AppendLaunchLog(string text)
@@ -91,10 +102,12 @@ public partial class PageLaunchRight : MyPageRight, ISeamLaunchLogSink, IRefresh
             Dispatcher.UIThread.Post(() => _labLog.Text = "");
     }
 
-    /// <inheritdoc />
-    public void Refresh()
+    public override void OnNavigatedTo(object? parameter)
     {
-        ForceRefresh();
+    }
+
+    public override void OnNavigatedFrom()
+    {
     }
 
     public void ForceRefresh()
@@ -108,6 +121,10 @@ public partial class PageLaunchRight : MyPageRight, ISeamLaunchLogSink, IRefresh
     private void RefreshContent()
     {
         var version = Interlocked.Increment(ref _refreshVersion);
+        _panLoading.IsVisible = true;
+        _panError.IsVisible = false;
+        _labError.Text = "";
+
         Task.Run(() =>
         {
             HomepageContent content;
@@ -118,13 +135,20 @@ public partial class PageLaunchRight : MyPageRight, ISeamLaunchLogSink, IRefresh
             catch (Exception ex)
             {
                 LogWrapper.Error(ex, "Launch", "加载 PCL 主页自定义信息失败");
-                content = new HomepageContent { Kind = HomepageSourceKind.Blank };
+                content = new HomepageContent
+                {
+                    Kind = HomepageSourceKind.Blank,
+                    ErrorMessage = Lang.Text("Launch.Homepage.LoadFailed.Title")
+                };
             }
 
             LauncherCommon.RunInUi(() =>
             {
                 if (version != Volatile.Read(ref _refreshVersion))
                     return;
+                _panLoading.IsVisible = false;
+                _labError.Text = content.ErrorMessage ?? "";
+                _panError.IsVisible = !string.IsNullOrEmpty(content.ErrorMessage);
                 LoadContent(content);
             });
         });
@@ -138,8 +162,8 @@ public partial class PageLaunchRight : MyPageRight, ISeamLaunchLogSink, IRefresh
     #region 主页内容
 
     // TODO(FIX-P3-01): 运行时 XAML 主页（本地文件、联网 URL、预设 2-14）与 CustomLive.json 实时补丁
-    // 尚未实现渲染，当前只解析来源并给出带“打开来源/刷新”的降级说明卡（降级卡已在界面上可见告知用户，
-    // 不会静默显示空白主页）；补渲染时替换 LoadContent 的 default 分支。
+    // 尚未实现渲染。本批次只保留空白、Trivia、News、加载、错误与重试结构；成功取得运行时 XAML 时保持空白，
+    // 不显示“暂不支持”卡片，待 Phase 3.6 接入渲染后替换 LoadContent 的 default 分支。
 
     private void LoadContent(HomepageContent content)
     {
@@ -153,13 +177,14 @@ public partial class PageLaunchRight : MyPageRight, ISeamLaunchLogSink, IRefresh
                 break;
 
             case HomepageSourceKind.Removed:
-                DialogService.Instance.Show(new TextDialogRequest
-                {
-                    Title = Lang.Text("Common.Dialog.Title"),
-                    Content = Lang.Text("Launch.Homepage.Preset.EchoCave.Removed"),
-                    Buttons = DialogButtons.Ok,
-                    ForceWait = true
-                });
+                DialogService.Instance.Show(
+                    new TextDialogRequest
+                    {
+                        Title = Lang.Text("Common.Dialog.Title"),
+                        Content = Lang.Text("Launch.Homepage.Preset.EchoCave.Removed"),
+                        Buttons = DialogButtons.Ok,
+                        ForceWait = true
+                    });
                 break;
 
             case HomepageSourceKind.Trivia:
@@ -175,6 +200,7 @@ public partial class PageLaunchRight : MyPageRight, ISeamLaunchLogSink, IRefresh
                 _newsView.Reload();
                 break;
 
+            case HomepageSourceKind.CustomXaml:
             default:
                 LogWrapper.Info(
                     "Launch",
@@ -200,13 +226,14 @@ public partial class PageLaunchRight : MyPageRight, ISeamLaunchLogSink, IRefresh
 
     private void HideCommunityHint()
     {
-        var result = DialogService.Instance.Show(new InputDialogRequest
-        {
-            Title = Lang.Text("Launch.Right.CommunityHint.InputTitle"),
-            Buttons = DialogButtons.OkCancel,
-            HighLight = false,
-            ForceWait = true
-        });
+        var result = DialogService.Instance.Show(
+            new InputDialogRequest
+            {
+                Title = Lang.Text("Launch.Right.CommunityHint.InputTitle"),
+                Buttons = DialogButtons.OkCancel,
+                HighLight = false,
+                ForceWait = true
+            });
         var input = result.Result?.InputText ?? "";
         if (string.IsNullOrWhiteSpace(input))
             return;

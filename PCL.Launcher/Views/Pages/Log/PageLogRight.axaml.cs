@@ -1,6 +1,7 @@
 using System.Globalization;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
+using Avalonia.Controls.Templates;
 using Avalonia.Media;
 using Avalonia.Threading;
 using PCL.Core.App;
@@ -14,13 +15,11 @@ namespace PCL.Views.Pages.Log;
 
 /// <summary>
 ///     游戏实时日志页右栏：按级别着色渲染当前日志，并提供导出、清空、结束进程与线程快照操作。
+///     正文使用可选中文本与虚拟化列表，避免长日志一次性创建全部控件。
 /// </summary>
 public partial class PageLogRight : MyPageRight, IRefreshable
 {
     private bool _refreshed;
-    private PageLogLeft.LogBuffer? _renderedBuffer;
-    private int _renderedCount;
-    private PageLogLeft.LogLine? _renderedLastLine;
 
     private GameWatcher.Watcher? _subscribedLog;
 
@@ -29,6 +28,8 @@ public partial class PageLogRight : MyPageRight, IRefreshable
         InitializeComponent();
         PanScroll = PanBack;
         Current = this;
+        PanLog.ItemTemplate =
+            new FuncDataTemplate<PageLogLeft.LogLine>((line, _) => CreateLogLine(line));
 
         BtnOperationExport.Click += (_, _) => ExportLog();
         BtnOperationClear.Click += (_, _) => ClearLog();
@@ -36,7 +37,11 @@ public partial class PageLogRight : MyPageRight, IRefreshable
         BtnOperationExportStackDump.Click += (_, _) => ExportStackDump();
         SliderMaxLog.Change += OnMaxLogChanged;
         SliderMaxLog.getHintText = GetMaxLogHintText;
-        DetachedFromVisualTree += (_, _) => UnsubscribeCurrentLog();
+        DetachedFromVisualTree += (_, _) =>
+        {
+            _refreshed = false;
+            UnsubscribeCurrentLog();
+        };
     }
 
     public static PageLogRight? Current { get; private set; }
@@ -84,14 +89,10 @@ public partial class PageLogRight : MyPageRight, IRefreshable
         var hasLog = left is { CurrentUuid: > 0, CurrentLog: not null };
         PanAllBack.IsVisible = hasLog;
         CardOperation.IsVisible = hasLog;
-        LabEmpty.IsVisible = !hasLog;
         if (!hasLog)
         {
-            PanLog.Children.Clear();
+            PanLog.ItemsSource = null;
             PanLogCard.Inlines.Clear();
-            _renderedBuffer = null;
-            _renderedCount = 0;
-            _renderedLastLine = null;
             return;
         }
 
@@ -118,72 +119,37 @@ public partial class PageLogRight : MyPageRight, IRefreshable
         if (!ReferenceEquals(left.LogBuffers.GetValueOrDefault(left.CurrentUuid), buffer))
             return;
 
-        AppendMissingLines(buffer);
         RefreshCounters();
-        if (CheckAutoScroll.Checked == true)
-            PanBack.ScrollToEnd();
+        ScrollToEndIfNeeded();
     }
 
     private void RenderBuffer(PageLogLeft.LogBuffer? buffer)
     {
-        PanLog.Children.Clear();
-        _renderedBuffer = buffer;
-        _renderedCount = 0;
-        _renderedLastLine = null;
-        AppendMissingLines(buffer);
-        if (CheckAutoScroll.Checked == true)
-            PanBack.ScrollToEnd();
+        PanLog.ItemsSource = buffer?.Lines;
+        ScrollToEndIfNeeded();
     }
 
-    private void AppendMissingLines(PageLogLeft.LogBuffer? buffer)
+    private void ScrollToEndIfNeeded()
     {
-        if (buffer is null)
+        if (CheckAutoScroll.Checked != true)
             return;
-        if (!ReferenceEquals(_renderedBuffer, buffer))
+        Dispatcher.UIThread.Post(() =>
         {
-            PanLog.Children.Clear();
-            _renderedBuffer = buffer;
-            _renderedCount = 0;
-            _renderedLastLine = null;
-        }
-
-        if (buffer.Lines.Count == _renderedCount)
-        {
-            if (buffer.Lines.Count == 0
-                || ReferenceEquals(buffer.Lines[^1], _renderedLastLine))
-                return;
-            PanLog.Children.Clear();
-            _renderedCount = 0;
-            _renderedLastLine = null;
-        }
-        else if (_renderedCount > buffer.Lines.Count)
-        {
-            PanLog.Children.Clear();
-            _renderedCount = 0;
-            _renderedLastLine = null;
-        }
-
-        for (var i = _renderedCount; i < buffer.Lines.Count; i++)
-            PanLog.Children.Add(CreateLogLine(buffer.Lines[i]));
-        _renderedCount = buffer.Lines.Count;
-        _renderedLastLine = buffer.Lines.Count > 0 ? buffer.Lines[^1] : null;
-
-        var max = (long)PageLogLeft.GetMaxLogCount();
-        while (PanLog.Children.Count > max)
-            PanLog.Children.RemoveAt(0);
+            if (CheckAutoScroll.Checked == true)
+                PanBack.ScrollToEnd();
+        });
     }
 
-    private TextBlock CreateLogLine(PageLogLeft.LogLine line)
+    private SelectableTextBlock CreateLogLine(PageLogLeft.LogLine line)
     {
-        var text = new TextBlock
+        return new SelectableTextBlock
         {
             Text = line.Text,
             TextWrapping = TextWrapping.Wrap,
             FontFamily = new FontFamily("Consolas,Menlo,DejaVu Sans Mono,monospace"),
-            FontSize = 13d,
+            FontSize = 14d,
             Foreground = GetLevelBrush(line.Level)
         };
-        return text;
     }
 
     private IBrush GetLevelBrush(GameLogLevel level)
@@ -329,7 +295,7 @@ public partial class PageLogRight : MyPageRight, IRefreshable
         if (!left.LogBuffers.TryGetValue(left.CurrentUuid, out var buffer))
             return;
         buffer.Lines.Clear();
-        RenderBuffer(buffer);
+        Dispatcher.UIThread.Post(() => PanBack.ScrollToHome());
     }
 
     private void KillProcess()

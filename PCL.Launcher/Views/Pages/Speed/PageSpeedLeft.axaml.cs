@@ -1,3 +1,4 @@
+using Avalonia.Controls;
 using Avalonia.Threading;
 using PCL.Core.App.Localization;
 using PCL.Network;
@@ -78,11 +79,10 @@ public partial class PageSpeedLeft : MyPageLeft, ISeamTaskListPage, IRefreshable
             if (!Loading.loaderTaskbar.Any())
             {
                 LabProgress.Text = Lang.Number(1d, "P0");
-                LabSpeed.Text = LauncherCommon.GetString(0) + "/s";
+                LabSpeed.Text = $"{LauncherCommon.GetString(0)}/s";
                 LabFile.Text = Lang.Number(0, "N0");
-                LabThread.Text = Lang.Number(0, "N0")
-                    + " / "
-                    + Lang.Number(NetFacade.NetTaskConnectionLimit, "N0");
+                LabThread.Text =
+                    $"{Lang.Number(0, "N0")} / {Lang.Number(NetFacade.NetTaskConnectionLimit, "N0")}";
                 return;
             }
 
@@ -93,13 +93,12 @@ public partial class PageSpeedLeft : MyPageLeft, ISeamTaskListPage, IRefreshable
             LabProgress.Text = rawPercent > 0.999999d
                 ? Lang.Number(1d, "P0")
                 : Lang.Number(rawPercent, "P2");
-            LabSpeed.Text = LauncherCommon.GetString(NetFacade.NetManager.Speed) + "/s";
+            LabSpeed.Text = $"{LauncherCommon.GetString(NetFacade.NetManager.Speed)}/s";
             LabFile.Text = NetFacade.NetManager.FileRemain < 0
                 ? "0*"
                 : Lang.Number(NetFacade.NetManager.FileRemain, "N0");
-            LabThread.Text = Lang.Number(NetFacade.NetManager.ConnectionCount, "N0")
-                + " / "
-                + Lang.Number(NetFacade.NetTaskConnectionLimit, "N0");
+            LabThread.Text =
+                $"{Lang.Number(NetFacade.NetManager.ConnectionCount, "N0")} / {Lang.Number(NetFacade.NetTaskConnectionLimit, "N0")}";
         }
         catch (Exception ex)
         {
@@ -115,9 +114,8 @@ public partial class PageSpeedLeft : MyPageLeft, ISeamTaskListPage, IRefreshable
     {
         if (LauncherCommon.ModeDebug)
             return;
-        LabFileTitle.IsVisible = false;
-        LabFile.IsVisible = false;
-        LabThreadTitle.IsVisible = false;
-        LabThread.IsVisible = false;
+
+        for (var index = 12; index <= 15 && index < RowDefinitions.Count; index++)
+            RowDefinitions[index].Height = new GridLength(0d);
     }
 }

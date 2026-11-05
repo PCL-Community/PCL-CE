@@ -5,6 +5,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using Avalonia.Data;
+using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
 using PCL.Core.App.Localization;
@@ -38,11 +39,15 @@ public class FontSelector : ContentControl
             Name = "ComboFont",
             ItemTemplate = BuildItemTemplate(),
             MaxDropDownHeight = 300d,
-            ItemsSource = CustomFontCollection
+            ItemsSource = CustomFontCollection,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            HorizontalContentAlignment = HorizontalAlignment.Center
         };
         _comboFont.SelectionChanged += ComboFont_SelectionChanged;
 
         Content = _comboFont;
+        HorizontalAlignment = HorizontalAlignment.Stretch;
+        HorizontalContentAlignment = HorizontalAlignment.Stretch;
         FeedbackTheme.AttachStyles(this);
 
         Loaded += (_, _) => FontSelector_Loaded();
@@ -167,70 +172,86 @@ public class FontSelector : ContentControl
 
     private void LoadFonts()
     {
-        Dispatcher.UIThread.Post(() =>
-        {
-            _comboFont.IsEnabled = false;
-            _isInitializing = true;
-            CustomFontCollection.Add(
-                new CustomFontProperties
-                {
-                    NameKey = "Common.State.Loading",
-                    Tag = LoadingFontTag
-                });
-            _comboFont.SelectedIndex = 0;
-
-            var availableFonts = new List<(string Name, FontFamily Font)>();
-
-            foreach (var font in FontManager.Current.SystemFonts)
+        Dispatcher.UIThread.Post(
+            () =>
+            {
                 try
                 {
-                    var name = font.Name;
-                    if (string.IsNullOrWhiteSpace(name))
-                        continue;
-                    if (name.StartsWith("Global ", StringComparison.Ordinal))
-                        continue;
-
-                    availableFonts.Add((name, font));
+                    LoadFontsCore();
                 }
                 catch (Exception ex)
                 {
-                    LogWrapper.Debug(ex, "FontSelector", $"[FontSelector] 发现了一个无法加载的异常的字体：{font}");
+                    LogWrapper.Warn(ex, "FontSelector", "加载系统字体失败，回退到默认字体");
+                    _comboFont.IsEnabled = IsEnabled;
+                    _isInitializing = false;
                 }
+            });
+    }
 
-            availableFonts.Sort((left, right) => string.Compare(
+    private void LoadFontsCore()
+    {
+        _comboFont.IsEnabled = false;
+        _isInitializing = true;
+        CustomFontCollection.Add(
+            new CustomFontProperties
+            {
+                NameKey = "Common.State.Loading",
+                Tag = LoadingFontTag
+            });
+        _comboFont.SelectedIndex = 0;
+
+        var availableFonts = new List<(string Name, FontFamily Font)>();
+
+        foreach (var font in FontManager.Current.SystemFonts)
+            try
+            {
+                var name = font.Name;
+                if (string.IsNullOrWhiteSpace(name))
+                    continue;
+                if (name.StartsWith("Global ", StringComparison.Ordinal))
+                    continue;
+
+                availableFonts.Add((name, font));
+            }
+            catch (Exception ex)
+            {
+                LogWrapper.Debug(ex, "FontSelector", $"[FontSelector] 发现了一个无法加载的异常的字体：{font}");
+            }
+
+        availableFonts.Sort(
+            (left, right) => string.Compare(
                 left.Name,
                 right.Name,
                 StringComparison.Ordinal));
 
-            CustomFontCollection.Clear();
+        CustomFontCollection.Clear();
+        CustomFontCollection.Add(
+            new CustomFontProperties
+            {
+                NameKey = "Common.Option.Default",
+                Font = LaunchFonts.ForCurrentLanguage(),
+                Tag = string.Empty
+            });
+
+        foreach (var font in availableFonts)
             CustomFontCollection.Add(
                 new CustomFontProperties
                 {
-                    NameKey = "Common.Option.Default",
-                    Font = LaunchFonts.ForCurrentLanguage(),
-                    Tag = string.Empty
+                    RawName = font.Name,
+                    Font = font.Font,
+                    Tag = font.Font.Name
                 });
 
-            foreach (var font in availableFonts)
-                CustomFontCollection.Add(
-                    new CustomFontProperties
-                    {
-                        RawName = font.Name,
-                        Font = font.Font,
-                        Tag = font.Font.Name
-                    });
+        _comboFont.IsEnabled = IsEnabled;
 
-            _comboFont.IsEnabled = IsEnabled;
+        if (_pendingFontTag is not null)
+        {
+            var pendingTag = _pendingFontTag;
+            _pendingFontTag = null;
+            SelectedFontTag = pendingTag;
+        }
 
-            if (_pendingFontTag is not null)
-            {
-                var pendingTag = _pendingFontTag;
-                _pendingFontTag = null;
-                SelectedFontTag = pendingTag;
-            }
-
-            _isInitializing = false;
-        });
+        _isInitializing = false;
     }
 
     private void ComboFont_SelectionChanged(object? sender, SelectionChangedEventArgs e)

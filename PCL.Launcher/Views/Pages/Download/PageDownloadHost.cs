@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using PCL.Core.App.Localization;
 using PCL.Navigation;
 using PCL.UI.Controls;
 
@@ -14,6 +15,12 @@ public sealed class PageDownloadHost : IPageHost
         _left = new PageDownloadLeft();
         _left.PageSelected += sub => PageRouter.Navigate(PageType.Download, sub);
         _left.RefreshRequested += RefreshPage;
+        _left.InstallItemReselected += () =>
+        {
+            if (_rightPages.TryGetValue(PageSubType.DownloadInstall, out var page)
+                && page is PageDownloadInstall install)
+                install.ExitSelectPage();
+        };
     }
 
     public PageType Page => PageType.Download;
@@ -74,6 +81,7 @@ public sealed class PageDownloadHost : IPageHost
         return sub switch
         {
             PageSubType.DownloadInstall => new PageDownloadInstall(),
+            PageSubType.DownloadClient => new PageDownloadClient(),
             PageSubType.DownloadMod => new PageDownloadCompPage(Comp.CompType.Mod),
             PageSubType.DownloadPack => new PageDownloadCompPage(Comp.CompType.ModPack),
             PageSubType.DownloadDataPack => new PageDownloadCompPage(Comp.CompType.DataPack),
@@ -93,7 +101,8 @@ public sealed class PageDownloadHost : IPageHost
             PageSubType.DownloadLabyMod => new PageDownloadLoaderPage(DownloadLoaderKind.LabyMod),
             PageSubType.DownloadLiteLoader => new PageDownloadLoaderPage(
                 DownloadLoaderKind.LiteLoader),
-            _ => new PageDownloadClient()
+            _ => throw new Exception(
+                Lang.Text("Download.Left.Error.UnknownSubPageType", (int)sub))
         };
     }
 }

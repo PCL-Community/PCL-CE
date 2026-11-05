@@ -15,26 +15,12 @@ public partial class PageSetupGameManage : MyPageRight, ISetupResetPage
     {
         InitializeComponent();
         PanScroll = PanBack;
+        DataContext = ViewModel;
 
         SliderDownloadThread.getHintText = new Func<object, object>(value => (int)value + 1);
         SliderDownloadFileConnection.getHintText =
             new Func<object, object>(value => (int)value + 1);
         SliderDownloadSpeed.getHintText = new Func<object, object>(FormatSpeedLimit);
-
-        ComboDownloadSource.SelectionChanged += (_, _) =>
-            WriteIfReady(() => Config.Download.FileSource = ComboDownloadSource.SelectedIndex);
-        ComboDownloadVersion.SelectionChanged += (_, _) => WriteIfReady(() =>
-            Config.Download.VersionListSource = ComboDownloadVersion.SelectedIndex);
-        ComboDownloadHttpMode.SelectionChanged += (_, _) => WriteIfReady(() =>
-            Config.Download.HttpMode = (DownloadHttpMode)ComboDownloadHttpMode.SelectedIndex);
-        ComboDownloadMod.SelectionChanged += (_, _) => WriteIfReady(() =>
-            Config.Download.Comp.CompSourceSolution = ComboDownloadMod.SelectedIndex);
-        ComboDownloadTranslateV2.SelectionChanged += (_, _) => WriteIfReady(() =>
-            Config.Download.Comp.NameFormatV2 = ComboDownloadTranslateV2.SelectedIndex);
-        ComboModLocalNameStyle.SelectionChanged += (_, _) => WriteIfReady(() =>
-            Config.Download.Comp.UiCompNameSolution = ComboModLocalNameStyle.SelectedIndex);
-        ComboDownloadQuickBehavior.SelectionChanged += (_, _) => WriteIfReady(() =>
-            Config.Download.Comp.QuickDownloadBehavior = ComboDownloadQuickBehavior.SelectedIndex);
 
         SliderDownloadThread.Change += (_, _) =>
             WriteIfReady(() => Config.Download.ThreadLimit = SliderDownloadThread.Value);
@@ -42,6 +28,12 @@ public partial class PageSetupGameManage : MyPageRight, ISetupResetPage
             Config.Download.FileConnectionLimit = SliderDownloadFileConnection.Value);
         SliderDownloadSpeed.Change += (_, _) =>
             WriteIfReady(() => Config.Download.SpeedLimit = SliderDownloadSpeed.Value);
+        SliderDownloadThread.PreviewChange += (_, e) =>
+        {
+            if (_reloading) return;
+            if (SliderDownloadThread.Value < 64) return;
+            _ = ViewModel.WarnLargeThreadOnceAsync();
+        };
 
         CheckDownloadAutoSelectVersion.Change += (_, _) => WriteIfReady(() =>
             Config.Download.AutoSelectInstance = CheckDownloadAutoSelectVersion.Checked == true);
@@ -68,6 +60,8 @@ public partial class PageSetupGameManage : MyPageRight, ISetupResetPage
             Reload();
         };
     }
+
+    public PageSetupGameManageViewModel ViewModel { get; } = new();
 
     public void Reset()
     {
@@ -99,39 +93,23 @@ public partial class PageSetupGameManage : MyPageRight, ISetupResetPage
     {
     }
 
+    protected override void RefreshLocalization()
+    {
+        if (_loaded) Reload();
+    }
+
     public void Reload()
     {
         _reloading = true;
         try
         {
-            ComboDownloadSource.SelectedIndex = Math.Clamp(Config.Download.FileSource, 0, 2);
-            ComboDownloadVersion.SelectedIndex = Math.Clamp(
-                Config.Download.VersionListSource,
-                0,
-                2);
-            ComboDownloadHttpMode.SelectedIndex = Math.Clamp((int)Config.Download.HttpMode, 0, 2);
+            ViewModel.Reload();
             SliderDownloadThread.Value = Config.Download.ThreadLimit;
             SliderDownloadFileConnection.Value = Config.Download.FileConnectionLimit;
             SliderDownloadSpeed.Value = Config.Download.SpeedLimit;
             CheckDownloadAutoSelectVersion.Checked = Config.Download.AutoSelectInstance;
             CheckFixAuthlib.Checked = Config.Download.FixAuthLib;
 
-            ComboDownloadMod.SelectedIndex = Math.Clamp(
-                Config.Download.Comp.CompSourceSolution,
-                0,
-                2);
-            ComboDownloadTranslateV2.SelectedIndex = Math.Clamp(
-                Config.Download.Comp.NameFormatV2,
-                0,
-                4);
-            ComboModLocalNameStyle.SelectedIndex = Math.Clamp(
-                Config.Download.Comp.UiCompNameSolution,
-                0,
-                1);
-            ComboDownloadQuickBehavior.SelectedIndex = Math.Clamp(
-                Config.Download.Comp.QuickDownloadBehavior,
-                0,
-                3);
             CheckDownloadIgnoreQuilt.Checked = Config.Download.Comp.IgnoreQuilt;
             CheckDownloadAutoInstallDependencies.Checked =
                 Config.Download.Comp.AutoInstallDependencies;
@@ -141,13 +119,11 @@ public partial class PageSetupGameManage : MyPageRight, ISetupResetPage
             CheckUpdateSnapshot.Checked = Config.Tool.SnapshotNotification;
             CheckHelpLauncherLanguage.Checked = Config.Tool.AutoChangeLanguage;
 
-            var isChineseMainland = Lang.IsChineseMainland;
-            PanFilenameFormat.IsVisible = isChineseMainland;
-            PanModManageStyle.IsVisible = isChineseMainland;
-            PanQuickDownload.IsVisible = isChineseMainland;
-            for (var row = 2; row <= 7; row++)
+            // WPF 仅按语言隐藏文件名格式与 Mod 管理风格两行；快速下载行始终显示。
+            var show = ViewModel.FileFormatSettingsVisible;
+            for (var row = 2; row <= 5; row++)
                 PanCommunityRows.RowDefinitions[row].Height = new GridLength(
-                    isChineseMainland ? row % 2 == 0 ? 28d : 7d : 0d);
+                    show ? row % 2 == 0 ? 28d : 7d : 0d);
         }
         finally
         {

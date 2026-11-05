@@ -188,41 +188,45 @@ internal static class DownloadVersionList
         };
         ApplyVersionTags(item, version, installed.Contains(versionId));
 
-        var installButton = new MyIconButton
+        var changelogButton = new MyIconButton
         {
-            SvgIcon = "lucide/download",
-            LogoScale = 0.9,
+            SvgIcon = "lucide/info",
+            LogoScale = 1.05d,
             Theme = MyIconButton.Themes.Custom
         };
-        ToolTip.SetTip(installButton, Lang.Text("Common.Action.Install"));
-        installButton.Click += (_, _) => onSelect(version);
+        ToolTip.SetTip(changelogButton, Lang.Text("Download.Version.Changelog"));
+        changelogButton.Click += (_, _) => DownloadVersionActions.ShowChangelog(version);
+
+        var serverButton = new MyIconButton
+        {
+            SvgIcon = "lucide/server",
+            LogoScale = 1d,
+            Theme = MyIconButton.Themes.Custom
+        };
+        ToolTip.SetTip(serverButton, Lang.Text("Download.Version.DownloadServer"));
+        serverButton.Click +=
+            (_, _) => DownloadVersionActions.SaveServer(version, formattedVersion);
 
         if (mode == DownloadVersionListMode.SaveOnly)
         {
-            var changelogButton = new MyIconButton
-            {
-                SvgIcon = "lucide/info",
-                LogoScale = 1.05d,
-                Theme = MyIconButton.Themes.Custom
-            };
-            ToolTip.SetTip(changelogButton, Lang.Text("Download.Version.Changelog"));
-            changelogButton.Click += (_, _) => DownloadVersionActions.ShowChangelog(version);
-
-            var serverButton = new MyIconButton
-            {
-                SvgIcon = "lucide/server",
-                LogoScale = 1d,
-                Theme = MyIconButton.Themes.Custom
-            };
-            ToolTip.SetTip(serverButton, Lang.Text("Download.Version.DownloadServer"));
-            serverButton.Click += (_, _) => DownloadVersionActions.SaveServer(version);
-
-            item.Buttons = [installButton, changelogButton, serverButton];
-            item.Click += (_, _) => DownloadVersionActions.SaveVersion(version);
+            // 另存模式：点击整行另存，悬停按钮为服务端与更新日志。
+            item.Buttons = [serverButton, changelogButton];
+            item.Click += (_, _) =>
+                DownloadVersionActions.SaveVersion(version, formattedVersion);
         }
         else
         {
-            item.Buttons = [installButton];
+            // 安装模式：点击整行进入安装配置，悬停按钮与 WPF 的 McDownloadMenu 一致。
+            var saveButton = new MyIconButton
+            {
+                SvgIcon = "lucide/save",
+                LogoScale = 1d,
+                Theme = MyIconButton.Themes.Custom
+            };
+            ToolTip.SetTip(saveButton, Lang.Text("Download.Version.SaveAs"));
+            saveButton.Click += (_, _) =>
+                DownloadVersionActions.SaveVersion(version, formattedVersion);
+            item.Buttons = [saveButton, changelogButton, serverButton];
             item.Click += (_, _) => onSelect(version);
         }
 

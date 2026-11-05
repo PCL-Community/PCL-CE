@@ -1,10 +1,10 @@
-using Avalonia;
+using System.Collections.ObjectModel;
 using Avalonia.Controls;
-using Avalonia.Media;
 using Avalonia.Threading;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.UI.Hints;
+using PCL.Navigation;
 using PCL.UI.Controls;
 using PCL.UI.Seams;
 using PCL.Views.Shell;
@@ -21,6 +21,7 @@ public partial class PageLogLeft : MyPageLeft, ISeamGameLogSink, IRefreshable
     private bool _isBuilding;
 
     private bool _refreshed;
+    private bool _returnScheduled;
 
     public PageLogLeft()
     {
@@ -30,7 +31,11 @@ public partial class PageLogLeft : MyPageLeft, ISeamGameLogSink, IRefreshable
         SeamHosts.GameLog = this;
         ExtraButtonsPanel.GameLogProvider = () => Current is { ShownLogs.Count: > 0 };
         AttachedToVisualTree += (_, _) => RefreshOnNavigate();
-        DetachedFromVisualTree += (_, _) => _refreshed = false;
+        DetachedFromVisualTree += (_, _) =>
+        {
+            _refreshed = false;
+            ExtraButtonsPanel.Current?.RefreshGameLogButton();
+        };
     }
 
     public static PageLogLeft? Current { get; private set; }
@@ -68,6 +73,7 @@ public partial class PageLogLeft : MyPageLeft, ISeamGameLogSink, IRefreshable
             return;
         _refreshed = true;
         Reload();
+        ExtraButtonsPanel.Current?.RefreshGameLogButton();
     }
 
     /// <summary>一行游戏日志及其级别。</summary>
@@ -76,7 +82,7 @@ public partial class PageLogLeft : MyPageLeft, ISeamGameLogSink, IRefreshable
     /// <summary>单个游戏监视器的日志缓冲区。</summary>
     public sealed class LogBuffer
     {
-        public List<LogLine> Lines { get; } = [];
+        public ObservableCollection<LogLine> Lines { get; } = [];
     }
 
     #region 日志接入
@@ -96,6 +102,7 @@ public partial class PageLogLeft : MyPageLeft, ISeamGameLogSink, IRefreshable
         ShownLogs.Add(new KeyValuePair<int, GameWatcher.Watcher>(uuid, watcher));
         watcher.LogOutput += OnLogOutput;
         LogBuffers[uuid] = new LogBuffer();
+        ExtraButtonsPanel.Current?.RefreshGameLogButton();
         SelectionChange(uuid);
     }
 
@@ -204,6 +211,7 @@ public partial class PageLogLeft : MyPageLeft, ISeamGameLogSink, IRefreshable
                 Reload();
             }
 
+            ExtraButtonsPanel.Current?.RefreshGameLogButton();
             break;
         }
     }
@@ -223,14 +231,7 @@ public partial class PageLogLeft : MyPageLeft, ISeamGameLogSink, IRefreshable
 
             if (ShownLogs.Count == 0)
             {
-                var empty = new TextBlock
-                {
-                    Text = Lang.Text("LogPage.Empty.Description"),
-                    TextWrapping = TextWrapping.Wrap,
-                    Margin = new Thickness(13, 18, 8, 0)
-                };
-                empty.Classes.Add("Hint");
-                PanList.Children.Add(empty);
+                ScheduleReturnIfEmpty();
                 return;
             }
 
@@ -291,6 +292,23 @@ public partial class PageLogLeft : MyPageLeft, ISeamGameLogSink, IRefreshable
         {
             _isBuilding = false;
         }
+    }
+
+    /// <summary>没有可显示的游戏日志时离开日志页，与 WPF 保持一致的返回行为。</summary>
+    private void ScheduleReturnIfEmpty()
+    {
+        if (_returnScheduled)
+            return;
+        _returnScheduled = true;
+        Dispatcher.UIThread.Post(() =>
+        {
+            _returnScheduled = false;
+            if (ShownLogs.Count > 0)
+                return;
+            if (PageRouter.Current.Page != PageType.GameLog)
+                return;
+            PageRouter.Back();
+        });
     }
 
     private static string SafeGetVersionName(GameWatcher.Watcher watcher)

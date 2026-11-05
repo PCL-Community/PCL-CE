@@ -11,11 +11,19 @@
                            MaxItemWidth="240"
                            RowSpacing="14" />
 
-        <TextBlock x:Name="LabError"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Top"
-                   Foreground="{DynamicResource ColorBrushRedLight}"
-                   TextWrapping="Wrap" />
+        <StackPanel x:Name="PanError"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    IsVisible="False"
+                    Spacing="4">
+            <TextBlock x:Name="LabError"
+                       Foreground="{DynamicResource ColorBrushRedLight}"
+                       TextWrapping="Wrap" />
+            <ui:MyTextButton x:Name="BtnRetry"
+                             HorizontalAlignment="Left"
+                             Margin="0,2,0,0"
+                             Text="{loc:Loc Launch.Homepage.LoadFailed.Retry}" />
+        </StackPanel>
 
         <ui:MyCard x:Name="PanLoad"
                    Margin="32"

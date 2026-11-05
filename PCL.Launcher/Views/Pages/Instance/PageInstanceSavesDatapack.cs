@@ -2,17 +2,21 @@ using System.Text;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Controls.Shapes;
 using Avalonia.Layout;
 using Avalonia.Media;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.IO;
+using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
-using PCL.Core.UI;
 using PCL.Navigation;
+using PCL.Network;
+using PCL.Network.Loaders;
 using PCL.UI.Controls;
 using PCL.Views.Shell;
+using Path = System.IO.Path;
 
 namespace PCL.Views.Pages.Instance;
 
@@ -23,54 +27,55 @@ namespace PCL.Views.Pages.Instance;
 /// </summary>
 public class PageInstanceSavesDatapack : MyPageRight, IRefreshable
 {
-    private sealed class DatapackEntry
-    {
-        public required string Path { get; init; }
-
-        public required string Name { get; init; }
-
-        public bool IsDirectory { get; init; }
-
-        public bool Disabled => Path.EndsWith(".disabled", StringComparison.OrdinalIgnoreCase);
-
-        public string DisplayName => Disabled ? Name[..^".disabled".Length] : Name;
-
-        public string RawKey => Path;
-    }
+    private readonly List<DatapackEntry> _entries = [];
+    private readonly HashSet<string> _selected = new(StringComparer.OrdinalIgnoreCase);
+    private readonly List<DatapackEntry> _visibleEntries = [];
+    private MyRadioButton _btnFilterAll = null!;
+    private MyRadioButton _btnFilterDisabled = null!;
+    private MyRadioButton _btnFilterEnabled = null!;
+    private MyRadioButton _btnFilterError = null!;
+    private MyRadioButton _btnFilterUpdatable = null!;
+    private MyIconTextButton _btnSelectDelete = null!;
+    private MyIconTextButton _btnSelectDisable = null!;
+    private MyIconTextButton _btnSelectEnable = null!;
+    private MyIconTextButton _btnSort = null!;
+    private bool _building;
+    private int _filter;
+    private TextBlock _labSelect = null!;
+    private MyLoading _load = null!;
+    private MyCard _panEmpty = null!;
+    private StackPanel _panFilter = null!;
+    private StackPanel _panList = null!;
+    private MyCard _panLoad = null!;
 
     private StackPanel _panMain = null!;
-    private StackPanel _panList = null!;
-    private MySearchBox _searchBox = null!;
-    private StackPanel _panFilter = null!;
-    private StackPanel _panSort = null!;
-    private MyRadioButton _btnFilterAll = null!;
-    private MyRadioButton _btnFilterEnabled = null!;
-    private MyRadioButton _btnFilterDisabled = null!;
-    private MyIconTextButton _btnSort = null!;
-    private MyCard _panEmpty = null!;
     private MyCard _panSelect = null!;
-    private TextBlock _labSelect = null!;
-    private MyIconTextButton _btnSelectEnable = null!;
-    private MyIconTextButton _btnSelectDisable = null!;
-    private MyIconTextButton _btnSelectDelete = null!;
-    private readonly List<DatapackEntry> _entries = [];
-    private readonly List<DatapackEntry> _visibleEntries = [];
-    private readonly HashSet<string> _selected = new(StringComparer.OrdinalIgnoreCase);
+    private StackPanel _panSort = null!;
     private string? _saveFolder;
-    private int _filter;
-    private int _sort;
     private string _search = string.Empty;
-    private bool _building;
+    private MySearchBox _searchBox = null!;
+    private int _sort = 1;
 
     public PageInstanceSavesDatapack()
     {
         BuildUi();
     }
 
+    private string? DatapacksPath =>
+        string.IsNullOrEmpty(_saveFolder) ? null : InstancePageHelper.DatapacksPath(_saveFolder);
+
+    public void Refresh()
+    {
+        Reload();
+    }
+
     private void BuildUi()
     {
         var root = new Grid();
-        var panel = new StackPanel { Margin = new Thickness(25d, 25d, 25d, 25d) };
+        var panel = new StackPanel
+        {
+            Margin = new Thickness(25d, 25d, 25d, 25d)
+        };
         var scroll = new MyScrollViewer
         {
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
@@ -98,12 +103,17 @@ public class PageInstanceSavesDatapack : MyPageRight, IRefreshable
             Title = Lang.Text("Instance.Saves.Left.Datapack"),
             Margin = new Thickness(0d, 15d, 0d, 15d)
         };
-        var manageBody = new WrapPanel { Margin = new Thickness(15d, 8d, 0d, 15d) };
+        var manageBody = new WrapPanel
+        {
+            Margin = new Thickness(15d, 8d, 0d, 15d)
+        };
         var refresh = NewButton("Common.Action.Refresh", Reload);
         manageBody.Children.Add(refresh);
         var openFolder = NewButton("Instance.Saves.OpenFolder", OpenFolder);
         manageBody.Children.Add(openFolder);
-        var install = NewButton("Instance.Resource.InstallFromFiles", () => _ = InstallFromFilesAsync());
+        var install = NewButton(
+            "Instance.Resource.InstallFromFiles",
+            () => _ = InstallFromFilesAsync());
         manageBody.Children.Add(install);
         var download = NewButton("Instance.Resource.DownloadNew", DownloadNew);
         download.IsVisible = HiddenFeatureState.ForceShow || !Config.Preference.Hide.PageDownload;
@@ -116,8 +126,16 @@ public class PageInstanceSavesDatapack : MyPageRight, IRefreshable
         manageCard.BorderChild = manageBody;
         _panMain.Children.Add(manageCard);
 
-        var listCard = new MyCard { MinHeight = 55d, Title = " " };
-        var listContainer = new StackPanel { Margin = new Thickness(20d, 38d, 18d, 22d), Spacing = 2d };
+        var listCard = new MyCard
+        {
+            MinHeight = 55d,
+            Title = " "
+        };
+        var listContainer = new StackPanel
+        {
+            Margin = new Thickness(20d, 38d, 18d, 22d),
+            Spacing = 2d
+        };
         _panFilter = new StackPanel
         {
             Orientation = Orientation.Horizontal,
@@ -127,9 +145,13 @@ public class PageInstanceSavesDatapack : MyPageRight, IRefreshable
         _btnFilterAll = NewFilterButton("Instance.Resource.Filter.All", 0);
         _btnFilterEnabled = NewFilterButton("Instance.Resource.Filter.Enabled", 1);
         _btnFilterDisabled = NewFilterButton("Instance.Resource.Filter.Disabled", 2);
+        _btnFilterUpdatable = NewFilterButton("Instance.Resource.Filter.Updatable", 3);
+        _btnFilterError = NewFilterButton("Instance.Resource.Filter.Error", 4);
         _panFilter.Children.Add(_btnFilterAll);
         _panFilter.Children.Add(_btnFilterEnabled);
         _panFilter.Children.Add(_btnFilterDisabled);
+        _panFilter.Children.Add(_btnFilterUpdatable);
+        _panFilter.Children.Add(_btnFilterError);
         listContainer.Children.Add(_panFilter);
 
         _panSort = new StackPanel
@@ -140,13 +162,37 @@ public class PageInstanceSavesDatapack : MyPageRight, IRefreshable
         };
         _btnSort = new MyIconTextButton
         {
-            Text = Lang.Text("Instance.Resource.Sort.Text", Lang.Text("Instance.Resource.Sort.FileName")),
+            Text = Lang.Text(
+                "Instance.Resource.Sort.Text",
+                Lang.Text("Instance.Resource.Sort.FileName")),
             SvgIcon = "lucide/arrow-up-down"
         };
         _btnSort.Click += (_, _) =>
         {
-            _sort = (_sort + 1) % 3;
-            BuildList();
+            var menu = new ContextMenu();
+            var names = new[]
+            {
+                "Instance.Resource.Sort.FileName",
+                "Instance.Resource.Sort.ResourceName",
+                "Instance.Resource.Sort.AddTime",
+                "Instance.Resource.Sort.FileSize"
+            };
+            for (var i = 0; i < names.Length; i++)
+            {
+                var index = i;
+                var item = new MyMenuItem
+                {
+                    Header = Lang.Text(names[i])
+                };
+                item.Click += (_, _) =>
+                {
+                    _sort = index;
+                    BuildList();
+                };
+                menu.Items.Add(item);
+            }
+
+            menu.Open(_btnSort);
         };
         _panSort.Children.Add(_btnSort);
         listContainer.Children.Add(_panSort);
@@ -161,15 +207,28 @@ public class PageInstanceSavesDatapack : MyPageRight, IRefreshable
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(40d),
-            IsVisible = false
+            IsVisible = false,
+            BorderChild = CreateEmptyBody()
         };
-        _panEmpty.BorderChild = CreateEmptyBody();
         root.Children.Add(_panEmpty);
 
-        _labSelect = new TextBlock { HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(9d) };
-        _btnSelectEnable = NewSelectButton("Instance.Resource.Enable", "lucide/circle-check", () => SetSelectedEnabled(true));
-        _btnSelectDisable = NewSelectButton("Instance.Resource.Disable", "lucide/circle-minus", () => SetSelectedEnabled(false));
-        _btnSelectDelete = NewSelectButton("Common.Action.Delete", "lucide/trash-2", DeleteSelected);
+        _labSelect = new TextBlock
+        {
+            HorizontalAlignment = HorizontalAlignment.Center,
+            Margin = new Thickness(9d)
+        };
+        _btnSelectEnable = NewSelectButton(
+            "Instance.Resource.Enable",
+            "lucide/circle-check",
+            () => SetSelectedEnabled(true));
+        _btnSelectDisable = NewSelectButton(
+            "Instance.Resource.Disable",
+            "lucide/circle-minus",
+            () => SetSelectedEnabled(false));
+        _btnSelectDelete = NewSelectButton(
+            "Common.Action.Delete",
+            "lucide/trash-2",
+            DeleteSelected);
         var cancel = NewSelectButton(
             "Instance.Resource.CancelSelection",
             "lucide/x",
@@ -178,12 +237,21 @@ public class PageInstanceSavesDatapack : MyPageRight, IRefreshable
                 _selected.Clear();
                 BuildList();
             });
-        var selectButtons = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(5d), Spacing = 2d };
+        var selectButtons = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Margin = new Thickness(5d),
+            Spacing = 2d
+        };
         selectButtons.Children.Add(_btnSelectEnable);
         selectButtons.Children.Add(_btnSelectDisable);
         selectButtons.Children.Add(_btnSelectDelete);
         selectButtons.Children.Add(cancel);
-        var selectBody = new StackPanel { Margin = new Thickness(6d, 4d, 6d, 6d), Spacing = 2d };
+        var selectBody = new StackPanel
+        {
+            Margin = new Thickness(6d, 4d, 6d, 6d),
+            Spacing = 2d
+        };
         selectBody.Children.Add(_labSelect);
         selectBody.Children.Add(selectButtons);
         _panSelect = new MyCard
@@ -196,6 +264,24 @@ public class PageInstanceSavesDatapack : MyPageRight, IRefreshable
             BorderChild = selectBody
         };
         root.Children.Add(_panSelect);
+
+        _load = new MyLoading
+        {
+            Text = Lang.Text("Instance.Resource.Datapack.Loading"),
+            Margin = new Thickness(20d, 20d, 20d, 17d),
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        _panLoad = new MyCard
+        {
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(40d, 0d),
+            UseAnimation = false,
+            IsVisible = false,
+            BorderChild = _load
+        };
+        root.Children.Add(_panLoad);
 
         Child = root;
         BuildList();
@@ -258,31 +344,35 @@ public class PageInstanceSavesDatapack : MyPageRight, IRefreshable
         {
             Margin = new Thickness(20d, 17d),
             RowDefinitions = new RowDefinitions("Auto,Auto,Auto,Auto"),
-            ColumnDefinitions = new ColumnDefinitions("*,Auto,*")
+            ColumnDefinitions = new ColumnDefinitions("*,Auto,Auto,Auto,*")
         };
         var title = new TextBlock
         {
-            Text = Lang.Text("Instance.Saves.Empty.Title"),
+            Text = Lang.Text("Instance.Resource.Datapack.Empty.Title"),
             FontSize = 19d,
             HorizontalAlignment = HorizontalAlignment.Center,
             Margin = new Thickness(0d, 0d, 0d, 9d)
         };
         ContainerTheme.BindDynamic(title, TextBlock.ForegroundProperty, "ColorBrush3");
-        Grid.SetColumnSpan(title, 3);
+        Grid.SetColumnSpan(title, 5);
         grid.Children.Add(title);
-        var divider = new Avalonia.Controls.Shapes.Rectangle { Height = 2d, HorizontalAlignment = HorizontalAlignment.Stretch };
-        ContainerTheme.BindDynamic(divider, Avalonia.Controls.Shapes.Shape.FillProperty, "ColorBrush3");
+        var divider = new Rectangle
+        {
+            Height = 2d,
+            HorizontalAlignment = HorizontalAlignment.Stretch
+        };
+        ContainerTheme.BindDynamic(divider, Shape.FillProperty, "ColorBrush3");
         Grid.SetRow(divider, 1);
-        Grid.SetColumnSpan(divider, 3);
+        Grid.SetColumnSpan(divider, 5);
         grid.Children.Add(divider);
         var message = new TextBlock
         {
-            Text = Lang.Text("Instance.Saves.Empty.Message"),
+            Text = Lang.Text("Instance.Resource.Datapack.Empty.Description"),
             TextWrapping = TextWrapping.Wrap,
             Margin = new Thickness(10d, 15d, 10d, 5d)
         };
         Grid.SetRow(message, 2);
-        Grid.SetColumnSpan(message, 3);
+        Grid.SetColumnSpan(message, 5);
         grid.Children.Add(message);
         var openFolder = new MyButton
         {
@@ -298,6 +388,34 @@ public class PageInstanceSavesDatapack : MyPageRight, IRefreshable
         Grid.SetRow(openFolder, 3);
         Grid.SetColumn(openFolder, 1);
         grid.Children.Add(openFolder);
+
+        var install = new MyButton
+        {
+            Text = Lang.Text("Instance.Resource.InstallFromFiles"),
+            Height = 35d,
+            MinWidth = 140d,
+            Padding = new Thickness(13d, 0d),
+            Margin = new Thickness(10d, 10d, 10d, 0d),
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
+        install.Click += (_, _) => _ = InstallFromFilesAsync();
+        Grid.SetRow(install, 3);
+        Grid.SetColumn(install, 2);
+        grid.Children.Add(install);
+
+        var download = new MyButton
+        {
+            Text = Lang.Text("Instance.Resource.Datapack.DownloadNew"),
+            Height = 35d,
+            MinWidth = 140d,
+            Padding = new Thickness(13d, 0d),
+            Margin = new Thickness(10d, 10d, 10d, 0d),
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
+        download.Click += (_, _) => DownloadNew();
+        Grid.SetRow(download, 3);
+        Grid.SetColumn(download, 3);
+        grid.Children.Add(download);
         return grid;
     }
 
@@ -308,14 +426,6 @@ public class PageInstanceSavesDatapack : MyPageRight, IRefreshable
             _saveFolder = PageInstanceSavesLeft.currentSave;
         Reload();
     }
-
-    public void Refresh()
-    {
-        Reload();
-    }
-
-    private string? DatapacksPath =>
-        string.IsNullOrEmpty(_saveFolder) ? null : InstancePageHelper.DatapacksPath(_saveFolder);
 
     public void Reload()
     {
@@ -328,30 +438,68 @@ public class PageInstanceSavesDatapack : MyPageRight, IRefreshable
             return;
         }
 
+        _panLoad.IsVisible = true;
+        _panEmpty.IsVisible = false;
+        _panMain.IsVisible = false;
+        _panSelect.IsVisible = false;
+        _load.State = new MyLoadingStateSimulator
+        {
+            LoadingState = LoadingState.Run
+        };
+        _ = LoadAsync(path);
+    }
+
+    private async Task LoadAsync(string path)
+    {
         try
         {
             InstancePageHelper.EnsureDirectory(path);
-            foreach (var entry in Directory.EnumerateFileSystemEntries(path).OrderBy(
-                         entry => entry,
-                         StringComparer.OrdinalIgnoreCase))
-            {
-                var name = Path.GetFileName(entry);
-                _entries.Add(
-                    new DatapackEntry
-                    {
-                        Path = entry,
-                        Name = name,
-                        IsDirectory = Directory.Exists(entry)
-                    });
-            }
+            var entries = await Task.Run(() => Directory
+                .EnumerateFileSystemEntries(path)
+                .OrderBy(entry => entry, StringComparer.OrdinalIgnoreCase)
+                .Select(CreateEntry)
+                .ToList());
+            foreach (var entry in entries)
+                _entries.Add(entry);
         }
         catch (Exception ex)
         {
             InstancePageHelper.ReportError("Instance.Error.OperationFailed", ex);
         }
+        finally
+        {
+            _panLoad.IsVisible = false;
+            if (_load.State is MyLoadingStateSimulator simulator)
+                simulator.LoadingState = LoadingState.Stop;
+        }
 
         BuildList();
         UpdateEmptyState();
+    }
+
+    private static DatapackEntry CreateEntry(string path)
+    {
+        var name = Path.GetFileName(path);
+        var isDirectory = Directory.Exists(path);
+        LocalComp.LocalCompFile? file = null;
+        if (!isDirectory)
+            try
+            {
+                file = new LocalComp.LocalCompFile(path);
+                file.Load();
+            }
+            catch (Exception ex)
+            {
+                LauncherCommon.Log(ex, $"读取数据包元数据失败：{path}", LauncherLogLevel.Developer);
+            }
+
+        return new DatapackEntry
+        {
+            Path = path,
+            Name = name,
+            IsDirectory = isDirectory,
+            File = file
+        };
     }
 
     private void BuildList()
@@ -362,19 +510,29 @@ public class PageInstanceSavesDatapack : MyPageRight, IRefreshable
         try
         {
             var keyword = (_searchBox.Text ?? string.Empty).Trim();
-            var available = _entries.Select(entry => entry.RawKey).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var available = _entries
+                .Select(entry => entry.RawKey)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
             _selected.RemoveWhere(key => !available.Contains(key));
 
-            var filtered = _entries.Where(entry => MatchFilter(entry)).Where(entry =>
-                keyword.Length == 0
-                || entry.DisplayName.Contains(keyword, StringComparison.OrdinalIgnoreCase));
+            var filtered = _entries
+                .Where(MatchFilter)
+                .Where(entry =>
+                    keyword.Length == 0
+                    || entry.DisplayName.Contains(keyword, StringComparison.OrdinalIgnoreCase));
 
-            filtered = _sort switch
+            filtered = (_sort switch
             {
-                1 => filtered.OrderByDescending(SafeWriteTime),
-                2 => filtered.OrderBy(SafeSize),
+                1 => filtered.OrderBy(
+                    entry => entry.IsDirectory
+                        ? string.Empty
+                        : entry.File?.Name ?? entry.DisplayName,
+                    StringComparer.OrdinalIgnoreCase),
+                2 => filtered.OrderByDescending(SafeWriteTime),
+                3 => filtered.OrderByDescending(SafeSize),
                 _ => filtered.OrderBy(entry => entry.DisplayName, StringComparer.OrdinalIgnoreCase)
-            };
+            }).ThenBy(entry => entry.DisplayName, StringComparer.OrdinalIgnoreCase);
+            filtered = filtered.OrderBy(entry => entry.IsDirectory ? 0 : 1);
 
             _visibleEntries.Clear();
             var visible = filtered.ToList();
@@ -397,29 +555,43 @@ public class PageInstanceSavesDatapack : MyPageRight, IRefreshable
     {
         return _filter switch
         {
-            1 => !entry.Disabled,
+            1 => entry is { Disabled: false, Unavailable: false },
             2 => entry.Disabled,
+            3 => entry.CanUpdate,
+            4 => entry.Unavailable,
             _ => true
         };
     }
 
     private void RefreshFilterTexts()
     {
+        var updatable = _entries.Count(entry => entry.CanUpdate);
+        var unavailable = _entries.Count(entry => entry.Unavailable);
         _btnFilterAll.Text = Lang.Text("Instance.Resource.Filter.AllWithCount", _entries.Count);
         _btnFilterEnabled.Text = Lang.Text(
             "Instance.Resource.Filter.EnabledWithCount",
-            _entries.Count(entry => !entry.Disabled));
+            _entries.Count(entry => entry is { Disabled: false, Unavailable: false }));
         _btnFilterDisabled.Text = Lang.Text(
             "Instance.Resource.Filter.DisabledWithCount",
             _entries.Count(entry => entry.Disabled));
+        _btnFilterUpdatable.Text = Lang.Text(
+            "Instance.Resource.Filter.UpdatableWithCount",
+            updatable);
+        _btnFilterError.Text = Lang.Text("Instance.Resource.Filter.ErrorWithCount", unavailable);
+        var enabled = _entries.Count(entry => entry is { Disabled: false, Unavailable: false });
+        _btnFilterUpdatable.IsVisible = updatable > 0;
+        _btnFilterError.IsVisible = unavailable > 0;
+        _btnFilterEnabled.IsVisible = enabled > 0 && enabled < _entries.Count;
+        _btnFilterDisabled.IsVisible = _entries.Any(entry => entry.Disabled);
     }
 
     private void RefreshSortText()
     {
         var key = _sort switch
         {
-            1 => "Instance.Resource.Sort.AddTime",
-            2 => "Instance.Resource.Sort.FileSize",
+            1 => "Instance.Resource.Sort.ResourceName",
+            2 => "Instance.Resource.Sort.AddTime",
+            3 => "Instance.Resource.Sort.FileSize",
             _ => "Instance.Resource.Sort.FileName"
         };
         _btnSort.Text = Lang.Text("Instance.Resource.Sort.Text", Lang.Text(key));
@@ -442,7 +614,7 @@ public class PageInstanceSavesDatapack : MyPageRight, IRefreshable
     {
         var empty = _entries.Count == 0;
         _panEmpty.IsVisible = empty;
-        _panMain.IsVisible = true;
+        _panMain.IsVisible = !empty;
         if (empty)
             _panSelect.IsVisible = false;
     }
@@ -450,18 +622,28 @@ public class PageInstanceSavesDatapack : MyPageRight, IRefreshable
     private MyListItem CreateItem(DatapackEntry entry)
     {
         var selected = _selected.Contains(entry.RawKey);
+        var metadata = (entry.IsDirectory
+                ? Lang.Text("Instance.Resource.Item.FolderTag")
+                : string.Empty)
+            + (string.IsNullOrWhiteSpace(entry.Version) ? string.Empty : $" {entry.Version}")
+            + (string.IsNullOrWhiteSpace(entry.Description)
+                ? string.Empty
+                : $" · {entry.Description}");
         var item = new MyListItem
         {
-            Title = entry.DisplayName,
-            Info = (entry.IsDirectory ? Lang.Text("Instance.Resource.Item.FolderTag") + " · " : string.Empty)
-                   + (entry.Disabled
-                       ? Lang.Text("Instance.Resource.Filter.Disabled")
-                       : Lang.Text("Instance.Resource.Filter.Enabled")),
+            Title = entry.File?.Name ?? entry.DisplayName,
+            Info = string.IsNullOrWhiteSpace(metadata)
+                ? entry.Disabled
+                    ? Lang.Text("Instance.Resource.Filter.Disabled")
+                    : Lang.Text("Instance.Resource.Filter.Enabled")
+                : metadata,
             SvgIcon = entry.IsDirectory ? "lucide/folder" : "lucide/package",
             Type = MyListItem.CheckType.CheckBox,
             Checked = selected,
             tag = entry
         };
+        if (entry.Tags.Count > 0)
+            item.PlainTags = entry.Tags.Take(4);
         item.Check += (_, _) =>
         {
             if (item.Checked)
@@ -476,19 +658,117 @@ public class PageInstanceSavesDatapack : MyPageRight, IRefreshable
             SvgIcon = entry.Disabled ? "lucide/check" : "lucide/x",
             LogoScale = 0.9d
         };
-        ToolTip.SetTip(toggle, Lang.Text(entry.Disabled ? "Instance.Resource.Enable" : "Instance.Resource.Disable"));
+        ToolTip.SetTip(
+            toggle,
+            Lang.Text(entry.Disabled ? "Instance.Resource.Enable" : "Instance.Resource.Disable"));
         toggle.Click += (_, _) => Toggle(entry);
 
-        var open = new MyIconButton { SvgIcon = "lucide/folder-open", LogoScale = 0.9d };
+        var open = new MyIconButton
+        {
+            SvgIcon = "lucide/folder-open",
+            LogoScale = 0.9d
+        };
         ToolTip.SetTip(open, Lang.Text("Instance.Saves.OpenFolder"));
-        open.Click += (_, _) => InstancePageHelper.OpenFolder(entry.Path);
+        open.Click += (_, _) =>
+            InstancePageHelper.OpenFolder(
+                entry.IsDirectory ? entry.Path : Path.GetDirectoryName(entry.Path) ?? entry.Path);
 
-        var delete = new MyIconButton { SvgIcon = "lucide/trash-2", LogoScale = 0.9d };
+        var delete = new MyIconButton
+        {
+            SvgIcon = "lucide/trash-2",
+            LogoScale = 0.9d
+        };
         ToolTip.SetTip(delete, Lang.Text("Common.Action.Delete"));
-        delete.Click += (_, _) => _ = DeleteAsync(new List<DatapackEntry> { entry });
+        delete.Click += (_, _) => _ = DeleteAsync([entry]);
 
-        item.Buttons = [toggle, open, delete];
+        var buttons = new List<MyIconButton>();
+        if (entry.CanUpdate)
+        {
+            var update = new MyIconButton
+            {
+                SvgIcon = "lucide/upload",
+                LogoScale = 0.9d
+            };
+            ToolTip.SetTip(update, Lang.Text("Instance.Resource.Update"));
+            update.Click += (_, _) => _ = UpdateEntryAsync(entry);
+            buttons.Add(update);
+        }
+
+        buttons.Add(open);
+        buttons.Add(delete);
+        item.Buttons = buttons;
         return item;
+    }
+
+    private async Task UpdateEntryAsync(DatapackEntry entry)
+    {
+        if (entry.File is not { UpdateFile: not null, CanUpdate: true } file)
+            return;
+        try
+        {
+            var folder = Path.GetDirectoryName(entry.Path) ?? DatapacksPath;
+            if (string.IsNullOrEmpty(folder))
+                return;
+            var update = file.UpdateFile;
+            if (!update.Available || update.DownloadUrls.Count == 0)
+                return;
+
+            var targetPath = Path.Combine(folder, update.FileName);
+            var checker = string.IsNullOrEmpty(update.Hash)
+                ? new FileChecker(1024L)
+                : new FileChecker(hash: update.Hash);
+            var loader = new Loading.LoaderCombo<int>(
+                Lang.Text("Instance.Resource.Update.Task.DownloadFiles"),
+                [
+                    new LoaderDownload(
+                        Lang.Text("Instance.Resource.Update.Task.DownloadFiles"),
+                        [new DownloadFile(update.DownloadUrls, targetPath, checker)])
+                ])
+            {
+                OnStateChanged = changed =>
+                {
+                    switch (changed.State)
+                    {
+                        case LoadState.Finished:
+                        {
+                            foreach (var variant in new[]
+                                     {
+                                         entry.Path,
+                                         $"{entry.Path}.disabled",
+                                         $"{entry.Path}.old"
+                                     })
+                                if (File.Exists(variant)
+                                    && !string.Equals(
+                                        variant,
+                                        targetPath,
+                                        StringComparison.OrdinalIgnoreCase))
+                                    File.Delete(variant);
+                            HintService.Show(
+                                Hints.Success(
+                                    Lang.Text(
+                                        "Instance.Resource.Update.SuccessSingle",
+                                        entry.DisplayName)));
+                            Reload();
+                            break;
+                        }
+                        case LoadState.Failed:
+                            HintService.Show(
+                                Hints.Error(
+                                    Lang.Text(
+                                        "Instance.Resource.Update.Failed",
+                                        changed.Error?.Message ?? string.Empty)));
+                            break;
+                    }
+                }
+            };
+            loader.Start();
+            Loading.LoaderTaskbarAdd(loader);
+            LoadingUi.Current?.RefreshDownloadButton();
+        }
+        catch (Exception ex)
+        {
+            InstancePageHelper.ReportError("Instance.Resource.Update.Failed", ex);
+        }
     }
 
     private static DateTime SafeWriteTime(DatapackEntry entry)
@@ -517,6 +797,54 @@ public class PageInstanceSavesDatapack : MyPageRight, IRefreshable
         }
     }
 
+    private static string CsvEscape(string? value)
+    {
+        value ??= string.Empty;
+        return value.Contains(',')
+            || value.Contains('"')
+            || value.Contains('\r')
+            || value.Contains('\n')
+                ? $"\"{value.Replace("\"", "\"\"")}\""
+                : value;
+    }
+
+    private void OpenFolder()
+    {
+        var path = DatapacksPath;
+        if (path is null)
+            return;
+        InstancePageHelper.EnsureDirectory(path);
+        InstancePageHelper.OpenFolder(path);
+    }
+
+    private sealed class DatapackEntry
+    {
+        public required string Path { get; init; }
+
+        public required string Name { get; init; }
+
+        public bool IsDirectory { get; init; }
+
+        public LocalComp.LocalCompFile? File { get; init; }
+
+        public bool Disabled => Path.EndsWith(".disabled", StringComparison.OrdinalIgnoreCase);
+
+        public string DisplayName => Disabled ? Name[..^".disabled".Length] : Name;
+
+        public string RawKey => Path;
+
+        public string Version => File?.Version ?? string.Empty;
+
+        public string? Description => File?.Description;
+
+        public IReadOnlyList<string> Tags => File?.Tags ?? [];
+
+        public bool CanUpdate => File is { CanUpdate: true, UpdateFile: not null };
+
+        public bool Unavailable =>
+            File?.State == LocalComp.LocalCompFile.LocalFileStatus.Unavailable;
+    }
+
     #region 多选操作
 
     private void ToggleSelectAll()
@@ -525,12 +853,10 @@ public class PageInstanceSavesDatapack : MyPageRight, IRefreshable
             return;
         var allSelected = _visibleEntries.All(entry => _selected.Contains(entry.RawKey));
         foreach (var entry in _visibleEntries)
-        {
             if (allSelected)
                 _selected.Remove(entry.RawKey);
             else
                 _selected.Add(entry.RawKey);
-        }
 
         BuildList();
     }
@@ -560,7 +886,7 @@ public class PageInstanceSavesDatapack : MyPageRight, IRefreshable
         {
             var target = entry.Disabled
                 ? entry.Path[..^".disabled".Length]
-                : entry.Path + ".disabled";
+                : $"{entry.Path}.disabled";
             if (entry.IsDirectory)
                 Directory.Move(entry.Path, target);
             else
@@ -600,7 +926,9 @@ public class PageInstanceSavesDatapack : MyPageRight, IRefreshable
             var permanent = 0;
             foreach (var entry in targets)
             {
-                var outcome = canRecycle ? RecycleBin.Move(entry.Path, out _) : RecycleBin.Outcome.Unsupported;
+                var outcome = canRecycle
+                    ? RecycleBin.Move(entry.Path, out _)
+                    : RecycleBin.Outcome.Unsupported;
                 switch (outcome)
                 {
                     case RecycleBin.Outcome.Moved:
@@ -622,14 +950,20 @@ public class PageInstanceSavesDatapack : MyPageRight, IRefreshable
                 HintService.Show(
                     Hints.Success(
                         targets.Count == 1
-                            ? Lang.Text("Instance.Saves.Datapack.Delete.RecycleSingle", targets[0].DisplayName)
+                            ? Lang.Text(
+                                "Instance.Saves.Datapack.Delete.RecycleSingle",
+                                targets[0].DisplayName)
                             : Lang.Text("Instance.Saves.Datapack.Delete.RecycleMultiple", moved)));
             if (permanent > 0)
                 HintService.Show(
                     Hints.Success(
                         targets.Count == 1
-                            ? Lang.Text("Instance.Saves.Datapack.Delete.PermanentSingle", targets[0].DisplayName)
-                            : Lang.Text("Instance.Saves.Datapack.Delete.PermanentMultiple", permanent)));
+                            ? Lang.Text(
+                                "Instance.Saves.Datapack.Delete.PermanentSingle",
+                                targets[0].DisplayName)
+                            : Lang.Text(
+                                "Instance.Saves.Datapack.Delete.PermanentMultiple",
+                                permanent)));
             _selected.Clear();
             Reload();
         }
@@ -670,11 +1004,14 @@ public class PageInstanceSavesDatapack : MyPageRight, IRefreshable
             foreach (var file in files)
             {
                 var target = Path.Combine(path, Path.GetFileName(file));
-                if (File.Exists(target) && !string.Equals(file, target, StringComparison.OrdinalIgnoreCase))
+                if (File.Exists(target)
+                    && !string.Equals(file, target, StringComparison.OrdinalIgnoreCase))
                 {
                     HintService.Show(
                         Hints.Warning(
-                            Lang.Text("Instance.Saves.Datapack.Replace.FileNameConflict", Path.GetFileName(file))));
+                            Lang.Text(
+                                "Instance.Saves.Datapack.Replace.FileNameConflict",
+                                Path.GetFileName(file))));
                     continue;
                 }
 
@@ -727,15 +1064,25 @@ public class PageInstanceSavesDatapack : MyPageRight, IRefreshable
 
             var builder = new StringBuilder();
             if (isCsv)
-                builder.AppendLine("FileName,Enabled,Folder,Size");
-            foreach (var entry in _entries.OrderBy(entry => entry.DisplayName, StringComparer.OrdinalIgnoreCase))
-            {
+                builder.AppendLine("FileName,Enabled,Folder,Size,Version,Description");
+            foreach (var entry in _entries.OrderBy(
+                         entry => entry.DisplayName,
+                         StringComparer.OrdinalIgnoreCase))
                 if (isCsv)
                     builder.AppendLine(
-                        string.Join(',', entry.DisplayName, !entry.Disabled, entry.IsDirectory, SafeSize(entry)));
+                        string.Join(
+                            ',',
+                            new[]
+                            {
+                                entry.DisplayName,
+                                (!entry.Disabled).ToString(),
+                                entry.IsDirectory.ToString(),
+                                SafeSize(entry).ToString(),
+                                entry.Version,
+                                entry.Description ?? string.Empty
+                            }.Select(CsvEscape)));
                 else
                     builder.AppendLine(entry.DisplayName);
-            }
 
             await File.WriteAllTextAsync(savePath, builder.ToString(), Encoding.UTF8);
             InstancePageHelper.OpenFolder(savePath);
@@ -747,13 +1094,4 @@ public class PageInstanceSavesDatapack : MyPageRight, IRefreshable
     }
 
     #endregion
-
-    private void OpenFolder()
-    {
-        var path = DatapacksPath;
-        if (path is null)
-            return;
-        InstancePageHelper.EnsureDirectory(path);
-        InstancePageHelper.OpenFolder(path);
-    }
 }

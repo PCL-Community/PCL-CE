@@ -43,6 +43,8 @@ public partial class PageToolsGameLink : MyPageRight
     private readonly TextBlock _labLoadTitle;
     private readonly TextBlock _labNatayarkUserName;
     private readonly MyLoading _load;
+
+    private readonly MyLoadingStateSimulator _loadState = new();
     private readonly StackPanel _panEula;
     private readonly Grid _panFinish;
     private readonly StackPanel _panSelect;
@@ -50,12 +52,13 @@ public partial class PageToolsGameLink : MyPageRight
     private readonly MyTextBox _txtJoinCode;
 
     private readonly List<FoundWorld> _worlds = [];
+    private Exception? _initError;
+    private bool _initFailed;
 
     private bool _initialized;
     private bool _initializing;
     private long _lastPing;
     private LobbyState _lastState = LobbyState.Idle;
-    private bool _loadedOnce;
     private int? _manualPort;
 
     private int _naidRefreshVersion;
@@ -96,6 +99,15 @@ public partial class PageToolsGameLink : MyPageRight
 
         Current = this;
         _load.AutoRun = true;
+        _load.State = _loadState;
+        CardLoad.PointerReleased += (_, _) =>
+        {
+            if (!_initFailed)
+                return;
+            _initFailed = false;
+            _initError = null;
+            _ = _EnsureInitializedAsync();
+        };
 
         _btnCreate.Click += (_, _) => _ = _CreateLobbyAsync(_manualPort);
         _btnJoin.Click += (_, _) => _ = _JoinLobbyAsync();
@@ -143,9 +155,9 @@ public partial class PageToolsGameLink : MyPageRight
     public void Reload()
     {
         UpdateNatayarkUser();
-        _UpdateLayout();
         _ = _EnsureInitializedAsync();
         _ = _RefreshWorldsAsync();
+        _UpdateLayout();
     }
 
     protected override void RefreshLocalization()
@@ -157,8 +169,6 @@ public partial class PageToolsGameLink : MyPageRight
 
     private void _OnLoaded()
     {
-        if (_loadedOnce) return;
-        _loadedOnce = true;
         Reload();
     }
 
@@ -202,12 +212,30 @@ public partial class PageToolsGameLink : MyPageRight
             or LobbyState.Creating
             or LobbyState.Joining
             or LobbyState.Leaving;
-        this.FindControl<Grid>("PanLoad")!.IsVisible = isLoading;
+        var showLoader = isLoading || _initializing || _initFailed;
+        var panLoad = this.FindControl<Grid>("PanLoad")!;
+        panLoad.IsVisible = showLoader;
+        PanContent.IsVisible = !showLoader;
+
+        if (_initFailed)
+        {
+            _labLoadTitle.Text = Lang.Text("Tools.GameLink.Error.ConnectFailed");
+            _labLoadDesc.Text = _initError?.Message ?? "";
+            _labLoadDesc.IsVisible = !string.IsNullOrWhiteSpace(_labLoadDesc.Text);
+            _btnLoadCancel.IsVisible = false;
+            _loadState.LoadingState = LoadingState.Error;
+            _panEula.IsVisible = false;
+            _panSelect.IsVisible = false;
+            _panFinish.IsVisible = false;
+            _cardPlayerList.IsVisible = false;
+            _stackPlayerList.Children.Clear();
+            return;
+        }
+
+        _loadState.LoadingState = showLoader ? LoadingState.Run : LoadingState.Stop;
         _labLoadTitle.Text = state switch
         {
             LobbyState.Creating => Lang.Text("Tools.GameLink.Loading.Creating"),
-            LobbyState.Joining or LobbyState.Initializing =>
-                Lang.Text("Tools.GameLink.Loading.ConnectingServer"),
             _ => Lang.Text("Tools.GameLink.Loading.ConnectingServer")
         };
         _labLoadDesc.Text = state switch
@@ -220,8 +248,8 @@ public partial class PageToolsGameLink : MyPageRight
 
         var eulaAccepted = IsEulaAccepted();
         var connected = state == LobbyState.Connected;
-        var canSelect = eulaAccepted && !isLoading && !connected;
-        _panEula.IsVisible = !eulaAccepted && !isLoading;
+        var canSelect = eulaAccepted && !showLoader && !connected;
+        _panEula.IsVisible = !eulaAccepted && !showLoader;
         _panSelect.IsVisible = canSelect;
         _panFinish.IsVisible = connected;
 
@@ -327,10 +355,9 @@ public partial class PageToolsGameLink : MyPageRight
 
     private void _OnNatayarkAccountClicked()
     {
-        if (string.IsNullOrWhiteSpace(States.Link.NaidRefreshToken))
-            _ = LoginNaidAsync();
-        else
-            _ = LogoutNaidAsync();
+        _ = string.IsNullOrWhiteSpace(States.Link.NaidRefreshToken)
+            ? LoginNaidAsync()
+            : LogoutNaidAsync();
     }
 
     private async Task LoginNaidAsync()
@@ -400,33 +427,50 @@ public partial class PageToolsGameLink : MyPageRight
         var players = LobbyService.Players;
         _cardPlayerList.Title = Lang.Text("Tools.GameLink.Member.ListCount", players.Count);
         _stackPlayerList.Children.Clear();
-        var index = 0;
         foreach (var player in players)
         {
+            var info = player.Kind == PlayerKind.HOST
+                ? Lang.Text(
+                    "Tools.GameLink.Player.Details",
+                    Lang.Text("Tools.GameLink.Player.Host"),
+                    player.Vendor)
+                : player.Vendor;
             var item = new MyListItem
             {
                 Title = player.Name,
-                Info = index == 0
-                    ? Lang.Text("Tools.GameLink.Player.Host") + " " + player.Vendor
-                    : player.Vendor,
+                Info = info,
                 SvgIcon = "lucide/user",
                 Type = MyListItem.CheckType.Clickable
             };
             var profile = player;
             item.Click += (_, _) => _ShowPlayerInfo(profile);
             _stackPlayerList.Children.Add(item);
-            index++;
         }
     }
 
-    private void _ShowPlayerInfo(PlayerProfile profile)
+    private async void _ShowPlayerInfo(PlayerProfile profile)
     {
-        HintService.Show(
-            Hints.Info(
-                Lang.Text(
-                    "Tools.GameLink.Player.InfoMessage",
-                    profile.Name,
-                    profile.MachineId)));
+        try
+        {
+            await DialogService.Instance.ShowAsync(
+                new TextDialogRequest
+                {
+                    Title = Lang.Text("Tools.GameLink.Player.InfoTitle", profile.Name),
+                    Content = Lang.Text(
+                        "Tools.GameLink.Player.InfoMessage",
+                        profile.Name,
+                        profile.Vendor),
+                    Buttons = DialogButtons.Ok
+                });
+        }
+        catch (Exception ex)
+        {
+            LauncherCommon.Log(
+                ex,
+                "显示玩家信息失败",
+                LauncherLogLevel.Msgbox,
+                userSummary: Lang.Text("Tools.GameLink.Player.InfoTitle", ""));
+        }
     }
 
     #endregion
@@ -435,16 +479,34 @@ public partial class PageToolsGameLink : MyPageRight
 
     private async Task _EnsureInitializedAsync()
     {
-        if (_initialized || _initializing) return;
+        if (_initialized)
+        {
+            _loadState.LoadingState = LoadingState.Stop;
+            _UpdateLayout();
+            return;
+        }
+
+        if (_initializing)
+            return;
+
         _initializing = true;
+        _initFailed = false;
+        _initError = null;
+        _loadState.LoadingState = LoadingState.Run;
+        _UpdateLayout();
         try
         {
             await LobbyService.InitializeAsync();
             _initialized = true;
+            _loadState.LoadingState = LoadingState.Stop;
+            _ = _RefreshWorldsAsync();
         }
         catch (Exception ex)
         {
             LogWrapper.Error(ex, "Tools", "初始化联机大厅模块失败");
+            _initFailed = true;
+            _initError = ex;
+            _loadState.LoadingState = LoadingState.Error;
             HintService.Show(Hints.Error(Lang.Text("Tools.GameLink.Error.NetworkTestFailed")));
         }
         finally
@@ -637,15 +699,18 @@ public partial class PageToolsGameLink : MyPageRight
             return;
 
         var ip = $"127.0.0.1:{port.Value}";
-        await DialogService.Instance.ShowAsync(new TextDialogRequest
-        {
-            Title = Lang.Text("Tools.GameLink.CopyIp.Title"),
-            Content = Lang.Text("Tools.GameLink.CopyIp.Message", ip),
-            Buttons = DialogButtons.From(
-                DialogButton.Create(Lang.Text("Common.Action.Copy"), () => _ = _CopyTextAsync(ip)),
-                DialogButton.Create(Lang.Text("Tools.GameLink.CopyIp.Back"))),
-            ForceWait = true
-        });
+        await DialogService.Instance.ShowAsync(
+            new TextDialogRequest
+            {
+                Title = Lang.Text("Tools.GameLink.CopyIp.Title"),
+                Content = Lang.Text("Tools.GameLink.CopyIp.Message", ip),
+                Buttons = DialogButtons.From(
+                    DialogButton.Create(
+                        Lang.Text("Common.Action.Copy"),
+                        () => _ = _CopyTextAsync(ip)),
+                    DialogButton.Create(Lang.Text("Tools.GameLink.CopyIp.Back"))),
+                ForceWait = true
+            });
     }
 
     private async Task _CopyTextAsync(string text)

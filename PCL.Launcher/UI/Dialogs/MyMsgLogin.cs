@@ -12,6 +12,7 @@ using PCL.Core.Minecraft.IdentityModel.OAuth;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
 using PCL.Core.Utils;
+using PCL.UI.Controls;
 using PCL.UI.Seams;
 
 namespace PCL.UI.Dialogs;
@@ -35,11 +36,15 @@ public sealed class MyMsgLogin : MyMsgDialogBase
         SetButtonText(1, Lang.Text("Launch.Account.LoginDialog.ReopenWebpage"));
         SetButtonText(2, Lang.Text("Launch.Account.LoginDialog.CopyCode"));
         SetButtonText(3, Lang.Text("Common.Action.Cancel"));
+        for (var number = 1; number <= 3; number++)
+            Button(number).ColorType = MyButton.ColorState.Normal;
         LabTitle.Text = Lang.Text("Launch.Account.LoginDialog.MinecraftLogin");
 
         _caption = new SelectableTextBlock
         {
+            Padding = new Thickness(1d),
             TextWrapping = TextWrapping.Wrap,
+            TextTrimming = TextTrimming.None,
             FontSize = DialogTheme.BodyFontSize,
             LineHeight = 18d,
             VerticalAlignment = VerticalAlignment.Top
@@ -47,13 +52,39 @@ public sealed class MyMsgLogin : MyMsgDialogBase
         DialogTheme.BindBrush(_caption, TextBlock.ForegroundProperty, "ColorBrush1");
         SetBody(_caption);
 
+        if (Content is Grid root)
+        {
+            root.HorizontalAlignment = HorizontalAlignment.Center;
+            root.VerticalAlignment = VerticalAlignment.Center;
+        }
+
+        LocalizationService.LanguageChanged += OnLanguageChanged;
         Loaded += (_, _) => StartFlow();
+    }
+
+    private void OnLanguageChanged()
+    {
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            Dispatcher.UIThread.Post(OnLanguageChanged);
+            return;
+        }
+
+        SetButtonText(1, Lang.Text("Launch.Account.LoginDialog.ReopenWebpage"));
+        SetButtonText(2, Lang.Text("Launch.Account.LoginDialog.CopyCode"));
+        SetButtonText(3, Lang.Text("Common.Action.Cancel"));
+        for (var number = 1; number <= 3; number++)
+            Button(number).ColorType = MyButton.ColorState.Normal;
+        LabTitle.Text = Lang.Text("Launch.Account.LoginDialog.MinecraftLogin");
+        if (_started)
+            LoadDeviceCode();
     }
 
     /// <summary>控件离树即视为弹窗被关闭：停止轮询，并把未完成的结果以取消异常回报给调用方。</summary>
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnDetachedFromVisualTree(e);
+        LocalizationService.LanguageChanged -= OnLanguageChanged;
         _cancellation.Cancel();
         if (_completed) return;
 

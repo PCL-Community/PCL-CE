@@ -1,9 +1,10 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
-using PCL.Core.Logging;
+using PCL.Core.UI.Hints;
 using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Validate;
 using PCL.Navigation;
@@ -14,7 +15,8 @@ namespace PCL.Views.Pages.Setup;
 
 /// <summary>
 ///     启动设置页：实例隔离、窗口标题/大小/优先级、内存分配与 JVM/游戏参数。
-///     内存分配写 <c>Config.Launch</c>；内存显示按当前配置实时计算（与实例设置页共享计算规则）。
+///     状态与配置写入由 <see cref="PageSetupLaunchViewModel" /> 负责，页面仅处理视图生命周期、
+///     用户选择确认、内存占用条动画与动态文本排布。
 /// </summary>
 public partial class PageSetupLaunch : MyPageRight, ISetupResetPage
 {
@@ -25,131 +27,80 @@ public partial class PageSetupLaunch : MyPageRight, ISetupResetPage
 
     private bool _isActive;
     private bool _loaded;
-    private bool _reloading;
+    private int _ramTextLeft = 2;
+    private int _ramTextRight = 1;
+    private bool _syncing;
 
     public PageSetupLaunch()
     {
         InitializeComponent();
         PanScroll = PanBack;
+        DataContext = ViewModel;
 
         SliderRamCustom.getHintText = new Func<object, object>(value =>
-            Lang.Number(GetRamFromTick(Convert.ToInt32(value)), "N1") + " GiB");
+            Lang.Number(PageSetupLaunchViewModel.GetRamFromTick(Convert.ToInt32(value)), "N1")
+            + " GiB");
         SliderRamInitialCustom.getHintText = new Func<object, object>(value =>
-            Lang.Number(GetRamFromTick(Convert.ToInt32(value)), "N1") + " GiB");
+            Lang.Number(PageSetupLaunchViewModel.GetRamFromTick(Convert.ToInt32(value)), "N1")
+            + " GiB");
 
         TextArgumentInfo.ValidateRules.Add(new BlacklistValidator(["\"", "\u201c", "\u201d"]));
+        TextArgumentInfo.ValidatedTextChanged += (_, _) =>
+        {
+            if (!_syncing)
+                ViewModel.TypeInfoText = TextArgumentInfo.Text ?? string.Empty;
+        };
         TextArgumentWindowWidth.ValidateRules.Add(new IntValidator(9999, 1));
         TextArgumentWindowHeight.ValidateRules.Add(new IntValidator(9999, 1));
 
         RadioRamType0.Check += (_, _) => WriteRamType(0);
         RadioRamType1.Check += (_, _) => WriteRamType(1);
-        SliderRamCustom.Change += (_, _) => WriteIfReady(() =>
-        {
-            Config.Launch.CustomMemorySize = SliderRamCustom.Value;
-            RefreshRamVisual(false);
-        });
-        SliderRamInitialCustom.Change += (_, _) => WriteIfReady(() =>
-        {
-            Config.Launch.CustomInitialMemorySize = SliderRamInitialCustom.Value;
-            RefreshRamVisual(false);
-        });
-        CheckAdvanceLockMemory.Change += (_, _) => WriteIfReady(() =>
-        {
-            Config.Launch.LockMemory = CheckAdvanceLockMemory.Checked == true;
-            RefreshRamControls();
-            RefreshRamVisual(false);
-        });
-
-        ComboArgumentIndieV2.SelectionChanged += (_, _) =>
-            WriteIfReady(() => Config.Launch.IndieSolutionV2 = ComboArgumentIndieV2.SelectedIndex);
-        ComboArgumentTitle.TextChanged += (_, _) =>
-            WriteIfReady(() => Config.Launch.Title = ComboArgumentTitle.Text ?? string.Empty);
-        TextArgumentInfo.TextChanged += (_, _) =>
-            WriteIfReady(() => Config.Launch.TypeInfo = TextArgumentInfo.Text ?? string.Empty);
-        ComboArgumentVisibie.SelectionChanged += (_, _) => WriteIfReady(() =>
-        {
-            if (ComboArgumentVisibie.SelectedIndex >= 0)
-                Config.Launch.LauncherVisibility =
-                    (LauncherVisibility)ComboArgumentVisibie.SelectedIndex;
-        });
-        ComboArgumentPriority.SelectionChanged += (_, _) => WriteIfReady(() =>
-        {
-            if (ComboArgumentPriority.SelectedItem is MyComboBoxItem { Tag: string tag }
-                && int.TryParse(tag, out var value))
-                Config.Launch.ProcessPriority = (GameProcessPriority)value;
-        });
-        ComboArgumentWindowType.SelectionChanged += (_, _) => WriteIfReady(() =>
-        {
-            if (ComboArgumentWindowType.SelectedIndex < 0) return;
-            Config.Launch.GameWindowMode =
-                (GameWindowSizeMode)ComboArgumentWindowType.SelectedIndex;
-            RefreshWindowSizeVisibility();
-        });
-        TextArgumentWindowWidth.TextChanged += (_, _) => WriteWindowSize();
-        TextArgumentWindowHeight.TextChanged += (_, _) => WriteWindowSize();
-        ComboMsAuthType.SelectionChanged += (_, _) => WriteIfReady(() =>
-        {
-            if (ComboMsAuthType.SelectedIndex >= 0)
-                Config.Launch.LoginMsAuthType = ComboMsAuthType.SelectedIndex;
-        });
-        ComboPreferredIpStack.SelectionChanged += (_, _) => WriteIfReady(() =>
-        {
-            if (ComboPreferredIpStack.SelectedIndex >= 0)
-                Config.Launch.PreferredIpStack =
-                    (JvmPreferredIpStack)ComboPreferredIpStack.SelectedIndex;
-        });
-
-        // TODO(FIX-P3-15): WPF
-        // 在用户切到非默认渲染器时弹一次提示（PageSetupLaunch.xaml.cs:672-700，States.Hint.Renderer），
-        // 依赖 PCL.Core 的提示状态服务，本次未迁移。
-        ComboAdvanceRenderer.SelectionChanged += (_, _) => WriteIfReady(() =>
-        {
-            if (ComboAdvanceRenderer.SelectedIndex >= 0)
-                Config.Launch.Renderer = ComboAdvanceRenderer.SelectedIndex;
-        });
-        TextAdvanceJvm.TextChanged += (_, _) => WriteIfReady(() =>
-        {
-            Config.Launch.JvmArgs = TextAdvanceJvm.Text ?? string.Empty;
-            RefreshJvmResetVisibility();
-        });
-        TextAdvanceGame.TextChanged += (_, _) =>
-            WriteIfReady(() => Config.Launch.GameArgs = TextAdvanceGame.Text ?? string.Empty);
-        TextAdvanceRun.TextChanged += (_, _) => WriteIfReady(() =>
-            Config.Launch.PreLaunchCommand = TextAdvanceRun.Text ?? string.Empty);
-        CheckAdvanceRunWait.Change += (_, _) => WriteIfReady(() =>
-            Config.Launch.PreLaunchCommandWait = CheckAdvanceRunWait.Checked == true);
-        CheckAdvanceDisableJLW.Change += (_, _) =>
-            WriteIfReady(() => Config.Launch.DisableJlw = CheckAdvanceDisableJLW.Checked == true);
-        CheckAdvanceDisableLF.Change += (_, _) =>
-            WriteIfReady(() => Config.Launch.DisableLF = CheckAdvanceDisableLF.Checked == true);
-        CheckAdvanceGraphicCard.Change += (_, _) => WriteIfReady(() =>
-            Config.Launch.SetGpuPreference = CheckAdvanceGraphicCard.Checked == true);
-        CheckAdvanceNoJavaw.Change += (_, _) =>
-            WriteIfReady(() => Config.Launch.NoJavaw = CheckAdvanceNoJavaw.Checked == true);
-        CheckAdvanceDisableLwjglUnsafeAgent.Change += (_, _) => WriteIfReady(() =>
-            Config.Launch.DisableLwjglUnsafeAgent =
-                CheckAdvanceDisableLwjglUnsafeAgent.Checked == true);
-        CheckAdvanceDisableCrashAnalysis.Change += (_, _) => WriteIfReady(() =>
-            Config.Launch.DisableCrashAnalysis = CheckAdvanceDisableCrashAnalysis.Checked == true);
+        SliderRamCustom.Change += (_, _) => RefreshRamVisual(false);
+        SliderRamInitialCustom.Change += (_, _) => RefreshRamVisual(false);
 
         BtnAdvanceJvmReset.Click += (_, _) => ResetJvmArgs();
         BtnSwitch.Click += (_, _) => SwitchToInstanceSetup();
 
         _ramTimer.Tick += (_, _) => RefreshRamVisual(true);
+        PanRamDisplay.SizeChanged += (_, _) => RefreshRamText();
+        LabRamGame.SizeChanged += (_, _) => RefreshRamText();
+        LabRamGameTitle.SizeChanged += (_, _) => RefreshRamText();
+        LabRamUsed.SizeChanged += (_, _) => RefreshRamText();
+        LabRamTotal.SizeChanged += (_, _) => RefreshRamText();
+        LabRamUsedTitle.SizeChanged += (_, _) => RefreshRamText();
 
         Loaded += (_, _) =>
         {
-            if (_loaded) return;
             _loaded = true;
+            _isActive = true;
             Reload();
             _ramTimer.Start();
         };
-        Unloaded += (_, _) => _ramTimer.Stop();
+        Unloaded += (_, _) =>
+        {
+            _ramTimer.Stop();
+            _isActive = false;
+        };
     }
+
+    public PageSetupLaunchViewModel ViewModel { get; } = new();
 
     public void Reset()
     {
-        Config.Launch.Reset();
+        try
+        {
+            Config.Launch.Reset();
+            HintService.Show(Hints.Success(Lang.Text("Setup.Launch.Initialized"), false));
+        }
+        catch (Exception ex)
+        {
+            LauncherCommon.Log(
+                ex,
+                Lang.Text("Setup.Launch.Error.InitFailed"),
+                LauncherLogLevel.Msgbox,
+                userSummary: Lang.Text("Setup.Launch.Error.InitFailed"));
+        }
+
         Reload();
     }
 
@@ -157,6 +108,7 @@ public partial class PageSetupLaunch : MyPageRight, ISetupResetPage
     {
         PanBack.ScrollToHome();
         _isActive = true;
+        ViewModel.RefreshInstanceState();
         if (_loaded) Reload();
         RefreshRamVisual(false);
     }
@@ -166,201 +118,192 @@ public partial class PageSetupLaunch : MyPageRight, ISetupResetPage
         _isActive = false;
     }
 
-    public void Reload()
+    protected override void RefreshLocalization()
     {
-        _reloading = true;
-        try
-        {
-            ComboArgumentIndieV2.SelectedIndex = Math.Clamp(Config.Launch.IndieSolutionV2, 0, 4);
-            ComboArgumentTitle.Text = Config.Launch.Title;
-            TextArgumentInfo.Text = Config.Launch.TypeInfo;
-            ComboArgumentVisibie.SelectedIndex = Math.Clamp(
-                (int)Config.Launch.LauncherVisibility,
-                0,
-                5);
-            SelectPriorityItem((int)Config.Launch.ProcessPriority);
-            ComboArgumentWindowType.SelectedIndex = Math.Clamp(
-                (int)Config.Launch.GameWindowMode,
-                0,
-                4);
-            TextArgumentWindowWidth.Text = Config.Launch.GameWindowWidth.ToString();
-            TextArgumentWindowHeight.Text = Config.Launch.GameWindowHeight.ToString();
-            RefreshWindowSizeVisibility();
-            ComboMsAuthType.SelectedIndex = Math.Clamp(Config.Launch.LoginMsAuthType, 0, 1);
-            ComboPreferredIpStack.SelectedIndex = Math.Clamp(
-                (int)Config.Launch.PreferredIpStack,
-                0,
-                2);
-
-            var ramType = Math.Clamp(Config.Launch.MemoryAllocationMode, 0, 1);
-            var ramRadios = new[]
-            {
-                RadioRamType0,
-                RadioRamType1
-            };
-            ramRadios[ramType].SetChecked(true, false);
-            SliderRamCustom.Value = Config.Launch.CustomMemorySize;
-            SliderRamInitialCustom.Value = Config.Launch.CustomInitialMemorySize;
-            CheckAdvanceLockMemory.Checked = Config.Launch.LockMemory;
-            RefreshRamControls();
-            RefreshRamVisual(false);
-
-            ComboAdvanceRenderer.SelectedIndex = Math.Clamp(Config.Launch.Renderer, 0, 3);
-            TextAdvanceJvm.Text = Config.Launch.JvmArgs;
-            TextAdvanceGame.Text = Config.Launch.GameArgs;
-            TextAdvanceRun.Text = Config.Launch.PreLaunchCommand;
-            CheckAdvanceRunWait.Checked = Config.Launch.PreLaunchCommandWait;
-            CheckAdvanceDisableJLW.Checked = Config.Launch.DisableJlw;
-            CheckAdvanceDisableLF.Checked = Config.Launch.DisableLF;
-            CheckAdvanceGraphicCard.Checked = Config.Launch.SetGpuPreference;
-            CheckAdvanceNoJavaw.Checked = Config.Launch.NoJavaw;
-            CheckAdvanceDisableLwjglUnsafeAgent.Checked = Config.Launch.DisableLwjglUnsafeAgent;
-            CheckAdvanceDisableCrashAnalysis.Checked = Config.Launch.DisableCrashAnalysis;
-            CheckAdvanceDisableJLW.IsEnabled = !SystemInfo.IsArm64System;
-            RefreshJvmResetVisibility();
-        }
-        finally
-        {
-            _reloading = false;
-        }
+        if (!_loaded) return;
+        RefreshDisableJlwToolTip();
+        Reload();
+        RefreshRamVisual(false);
     }
 
-    private void WriteIfReady(Action action)
+    public void Reload()
     {
-        if (_reloading) return;
+        _syncing = true;
         try
         {
-            action();
+            ViewModel.Reload();
+            var ramType = Math.Clamp(ViewModel.MemoryAllocationMode, 0, 1);
+            (ramType == 0 ? RadioRamType0 : RadioRamType1).SetChecked(true, false);
+            RefreshDisableJlwToolTip();
+            RefreshRamVisual(false);
+        }
+        catch (NullReferenceException ex)
+        {
+            LauncherCommon.Log(
+                ex,
+                Lang.Text("Setup.Launch.Error.ConfigReset"),
+                LauncherLogLevel.Msgbox,
+                userSummary: Lang.Text("Setup.Launch.Error.ConfigReset"));
+            Config.Launch.Reset();
+            ViewModel.Reload();
         }
         catch (Exception ex)
         {
-            LauncherCommon.Log(ex, "写入启动设置失败");
+            LauncherCommon.Log(
+                ex,
+                Lang.Text("Setup.Launch.Error.LoadFailed"),
+                LauncherLogLevel.Feedback,
+                userSummary: Lang.Text("Setup.Launch.Error.LoadFailed"));
+        }
+        finally
+        {
+            _syncing = false;
         }
     }
 
     private void WriteRamType(int type)
     {
-        if (_reloading) return;
-        Config.Launch.MemoryAllocationMode = type;
-        RefreshRamControls();
+        if (_syncing) return;
+        ViewModel.MemoryAllocationMode = type;
         RefreshRamVisual(false);
     }
 
-    private void RefreshRamControls()
-    {
-        var isCustom = Config.Launch.MemoryAllocationMode == 1;
-        SliderRamCustom.IsEnabled = isCustom;
-        SliderRamInitialCustom.IsEnabled = isCustom && !Config.Launch.LockMemory;
-    }
+    #region 确认框
 
-    private void RefreshWindowSizeVisibility()
+    private async void ComboArgumentIndie_OnSelectionChanged(
+        object? sender,
+        SelectionChangedEventArgs e)
     {
-        var isCustom = ComboArgumentWindowType.SelectedIndex == 3;
-        TextArgumentWindowWidth.IsVisible = isCustom;
-        TextArgumentWindowHeight.IsVisible = isCustom;
-        LabArgumentWindowMiddle.IsVisible = isCustom;
-    }
-
-    private void WriteWindowSize()
-    {
-        if (_reloading) return;
-        if (int.TryParse(TextArgumentWindowWidth.Text, out var width) && width is > 0 and <= 9999)
-            Config.Launch.GameWindowWidth = width;
-        if (int.TryParse(TextArgumentWindowHeight.Text, out var height)
-            && height is > 0 and <= 9999)
-            Config.Launch.GameWindowHeight = height;
-    }
-
-    private void SelectPriorityItem(int priority)
-    {
-        for (var i = 0; i < ComboArgumentPriority.ItemCount; i++)
+        if (_syncing || ComboArgumentIndieV2.SelectedIndex < 0) return;
+        var previousValue = Config.Launch.IndieSolutionV2;
+        var selected = ComboArgumentIndieV2.SelectedIndex;
+        if (selected == previousValue || !IsUserSelecting(ComboArgumentIndieV2)) return;
+        ViewModel.IndieSolutionIndex = selected;
+        try
         {
-            if (ComboArgumentPriority.Items[i] is not MyComboBoxItem item) continue;
-            if (item.Tag?.ToString() == priority.ToString())
-            {
-                ComboArgumentPriority.SelectedIndex = i;
-                return;
-            }
+            await ViewModel.ConfirmInstanceIsolationAsync();
+        }
+        catch (Exception ex)
+        {
+            LauncherCommon.Log(
+                ex,
+                "实例隔离提示显示失败",
+                LauncherLogLevel.Feedback,
+                userSummary: Lang.Text("Setup.Error.OperationFailed"));
         }
     }
 
-    private static double GetRamFromTick(int value)
+    private async void ComboArgumentVisibie_SelectionChanged(
+        object? sender,
+        SelectionChangedEventArgs e)
     {
-        return value switch
+        if (_syncing || ComboArgumentVisibie.SelectedIndex < 0) return;
+        var previousValue = (int)Config.Launch.LauncherVisibility;
+        var selected = ComboArgumentVisibie.SelectedIndex;
+        if (selected == previousValue || !IsUserSelecting(ComboArgumentVisibie)) return;
+        if (selected != 0)
         {
-            <= 12 => value * 0.1d + 0.3d,
-            <= 25 => (value - 12) * 0.5d + 1.5d,
-            <= 33 => value - 25 + 8d,
-            _ => (value - 33) * 2d + 16d
-        };
+            ViewModel.VisibilityIndex = selected;
+            return;
+        }
+
+        try
+        {
+            if (await ViewModel.ConfirmCloseImmediatelyAsync())
+            {
+                ViewModel.VisibilityIndex = selected;
+                return;
+            }
+        }
+        catch (Exception ex)
+        {
+            LauncherCommon.Log(
+                ex,
+                "关闭窗口可见性确认失败",
+                LauncherLogLevel.Msgbox,
+                userSummary: Lang.Text("Setup.Error.OperationFailed"));
+        }
+
+        _syncing = true;
+        try
+        {
+            ComboArgumentVisibie.SelectedIndex = previousValue;
+        }
+        finally
+        {
+            _syncing = false;
+        }
     }
+
+    private async void ComboAdvanceRenderer_OnSelectionChanged(
+        object? sender,
+        SelectionChangedEventArgs e)
+    {
+        if (_syncing || ComboAdvanceRenderer.SelectedIndex < 0) return;
+        var previousValue = Config.Launch.Renderer;
+        var selected = ComboAdvanceRenderer.SelectedIndex;
+        if (selected == previousValue || !IsUserSelecting(ComboAdvanceRenderer)) return;
+
+        if (!States.Hint.Renderer && selected != 0)
+        {
+            try
+            {
+                if (await ViewModel.ConfirmRendererAsync())
+                {
+                    States.Hint.Renderer = true;
+                    ViewModel.RendererIndex = selected;
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                LauncherCommon.Log(
+                    ex,
+                    "渲染器可用性提示显示失败",
+                    LauncherLogLevel.Feedback,
+                    userSummary: Lang.Text("Setup.Error.OperationFailed"));
+            }
+
+            _syncing = true;
+            try
+            {
+                ComboAdvanceRenderer.SelectedIndex = previousValue;
+            }
+            finally
+            {
+                _syncing = false;
+            }
+
+            return;
+        }
+
+        ViewModel.RendererIndex = selected;
+    }
+
+    /// <summary>判断下拉框的选中变更是否来自用户操作，而非页面刷新时的绑定回写。</summary>
+    private static bool IsUserSelecting(ComboBox combo)
+    {
+        return combo.IsDropDownOpen || combo.IsKeyboardFocusWithin;
+    }
+
+    #endregion
 
     #region 内存可视化
 
     private void RefreshRamVisual(bool animate)
     {
         if (!_isActive) return;
-        try
-        {
-            var instance = InstanceList.McMcInstanceSelected;
-            var ramGame = Math.Round(MemorySettings.Current?.GetRam(instance!) ?? 0d, 5);
-            var phyRam = KernelInterop.GetPhysicalMemoryBytes();
-            var ramTotal = Math.Round(phyRam.Total / 1024d / 1024d / 1024d, 1);
-            var ramAvailable = Math.Round(phyRam.Available / 1024d / 1024d / 1024d, 1);
-            var ramGameActual = Math.Round(Math.Min(ramGame, ramAvailable), 5);
-            var ramUsed = Math.Round(ramTotal - ramAvailable, 5);
-            var ramEmpty = Math.Round(Math.Clamp(ramTotal - ramUsed - ramGame, 0d, 1000d), 1);
-
-            SliderRamCustom.MaxValue = ramTotal switch
-            {
-                <= 1.5d => (int)Math.Round(Math.Max(Math.Floor((ramTotal - 0.3d) / 0.1d), 1d)),
-                <= 8d => (int)Math.Round(Math.Floor((ramTotal - 1.5d) / 0.5d) + 12d),
-                <= 16d => (int)Math.Round(Math.Floor((ramTotal - 8d) / 1d) + 25d),
-                _ => (int)Math.Round(Math.Floor((ramTotal - 16d) / 2d) + 33d)
-            };
-
-            var ramInitial = MemorySettings.Current?.GetInitialRam(instance!);
-            string suffixText;
-            if (ramInitial.HasValue && ramGame != ramGameActual)
-                suffixText = Lang.Text(
-                    "Setup.Launch.Memory.SuffixBoth",
-                    Lang.Number(ramInitial.Value, "N1"),
-                    Lang.Number(ramGameActual, "N1"));
-            else if (ramInitial.HasValue)
-                suffixText = Lang.Text(
-                    "Setup.Launch.Memory.SuffixInitial",
-                    Lang.Number(ramInitial.Value, "N1"));
-            else if (ramGame != ramGameActual)
-                suffixText = Lang.Text(
-                    "Setup.Launch.Memory.SuffixAvailable",
-                    Lang.Number(ramGameActual, "N1"));
-            else
-                suffixText = string.Empty;
-
-            LabRamGame.Text = Lang.Number(ramGame, "N1")
-                + " GiB"
-                + (suffixText.Length > 0 ? " (" + suffixText + ")" : string.Empty);
-            LabRamUsed.Text = Lang.Number(ramUsed, "N1") + " GiB";
-            LabRamTotal.Text = " / " + Lang.Number(ramTotal, "N1") + " GiB";
-
-            LabRamWarn.IsVisible = ramGame == 1d
-                && !JavaRuntime.IsGameSet64BitJava(instance)
-                && !SystemInfo.Is32BitSystem
-                && JavaRuntime.Javas.ExistAnyJava();
-            HintRamTooHigh.IsVisible = ramGame / ramTotal > 0.75d;
-
-            if (animate)
-                AnimateRamColumns(ramUsed, ramGameActual, ramEmpty);
-            else
-                SetRamColumnWidths(ramUsed, ramGameActual, ramEmpty);
-        }
-        catch (Exception ex)
-        {
-            LogWrapper.Warn(ex, "Setup", "[Setup] 计算内存分配失败，已跳过内存可视化刷新");
-        }
+        var state = ViewModel.BuildRamVisual();
+        if (state is null) return;
+        SliderRamCustom.MaxValue = state.MaxTick;
+        if (animate)
+            AnimateRamColumns(state);
+        else
+            SetRamColumnWidths(state);
+        Dispatcher.UIThread.Post(RefreshRamText, DispatcherPriority.Loaded);
     }
 
-    private void AnimateRamColumns(double ramUsed, double ramGameActual, double ramEmpty)
+    private void AnimateRamColumns(RamVisualState state)
     {
         var columns = PanRamDisplay.ColumnDefinitions;
         const string animationKey = "SetupLaunch Ram Grid";
@@ -371,17 +314,17 @@ public partial class PageSetupLaunch : MyPageRight, ISetupResetPage
                 {
                     AaGridLengthWidth(
                         columns[0],
-                        ramUsed - columns[0].Width.Value,
+                        state.Used - columns[0].Width.Value,
                         800,
                         ease: new AniEaseOutFluent(AniEasePower.Strong)),
                     AaGridLengthWidth(
                         columns[1],
-                        ramGameActual - columns[1].Width.Value,
+                        state.GameActual - columns[1].Width.Value,
                         800,
                         ease: new AniEaseOutFluent(AniEasePower.Strong)),
                     AaGridLengthWidth(
                         columns[2],
-                        Math.Max(ramEmpty, 0.001d) - columns[2].Width.Value,
+                        Math.Max(state.Empty, 0.001d) - columns[2].Width.Value,
                         800,
                         ease: new AniEaseOutFluent(AniEasePower.Strong))
                 },
@@ -390,32 +333,115 @@ public partial class PageSetupLaunch : MyPageRight, ISetupResetPage
         }
 
         AniStop(animationKey);
-        SetRamColumnWidths(ramUsed, ramGameActual, ramEmpty);
+        SetRamColumnWidths(state);
     }
 
-    private void SetRamColumnWidths(double ramUsed, double ramGameActual, double ramEmpty)
+    private void SetRamColumnWidths(RamVisualState state)
     {
         var columns = PanRamDisplay.ColumnDefinitions;
-        columns[0].Width = new GridLength(ramUsed, GridUnitType.Star);
-        columns[1].Width = new GridLength(ramGameActual, GridUnitType.Star);
-        columns[2].Width = new GridLength(Math.Max(ramEmpty, 0.001d), GridUnitType.Star);
+        columns[0].Width = new GridLength(state.Used, GridUnitType.Star);
+        columns[1].Width = new GridLength(state.GameActual, GridUnitType.Star);
+        columns[2].Width = new GridLength(Math.Max(state.Empty, 0.001d), GridUnitType.Star);
+    }
+
+    /// <summary>按已用内存条宽度动态调整右侧文本位置，避免与已用内存文本重叠。</summary>
+    private void RefreshRamText()
+    {
+        if (!_isActive || PanRamDisplay.Bounds.Width <= 0d) return;
+
+        var rectUsedWidth = RectRamUsed.Bounds.Width;
+        var totalWidth = PanRamDisplay.Bounds.Width;
+        var labGameWidth = LabRamGame.Bounds.Width;
+        var labUsedWidth = LabRamUsed.Bounds.Width;
+        var labTotalWidth = LabRamTotal.Bounds.Width;
+        var labGameTitleWidth = LabRamGameTitle.Bounds.Width;
+        var labUsedTitleWidth = LabRamUsedTitle.Bounds.Width;
+
+        int left;
+        if (rectUsedWidth - 30d < labUsedWidth || rectUsedWidth - 30d < labUsedTitleWidth)
+            left = 0;
+        else if (rectUsedWidth - 25d < labUsedWidth + labTotalWidth)
+            left = 1;
+        else
+            left = 2;
+        if (_ramTextLeft != left)
+        {
+            _ramTextLeft = left;
+            var usedOpacity = left switch
+            {
+                0 => 0d,
+                1 => 1d,
+                _ => 1d
+            };
+            var totalOpacity = left == 0 ? 0d : 1d;
+            var titleOpacity = left == 0 ? 0d : 0.7d;
+            AniStart(
+                new[]
+                {
+                    AaOpacity(LabRamUsed, usedOpacity - LabRamUsed.Opacity, 100),
+                    AaOpacity(LabRamTotal, totalOpacity - LabRamTotal.Opacity, 100),
+                    AaOpacity(LabRamUsedTitle, titleOpacity - LabRamUsedTitle.Opacity, 100)
+                },
+                "SetupLaunch Ram TextLeft");
+        }
+
+        int right;
+        if (totalWidth < labGameWidth + 2d + rectUsedWidth
+            || totalWidth < labGameTitleWidth + 2d + rectUsedWidth)
+            right = 0;
+        else
+            right = 1;
+
+        var targetGameLeft = right == 0
+            ? totalWidth - labGameWidth
+            : 2d + rectUsedWidth;
+        var targetTitleLeft = right == 0
+            ? totalWidth - labGameTitleWidth
+            : 2d + rectUsedWidth;
+
+        if (ContainerAnimation.CanAnimate(this)
+            && (right != _ramTextRight || AniIsRun("SetupLaunch Ram TextRight")))
+        {
+            AniStart(
+                new[]
+                {
+                    AaX(
+                        LabRamGame,
+                        targetGameLeft - LabRamGame.Margin.Left,
+                        100,
+                        ease: new AniEaseOutFluent(AniEasePower.Weak)),
+                    AaX(
+                        LabRamGameTitle,
+                        targetTitleLeft - LabRamGameTitle.Margin.Left,
+                        100,
+                        ease: new AniEaseOutFluent(AniEasePower.Weak))
+                },
+                "SetupLaunch Ram TextRight");
+        }
+        else
+        {
+            AniStop("SetupLaunch Ram TextRight");
+            LabRamGame.Margin = new Thickness(targetGameLeft, 3d, 0d, 0d);
+            LabRamGameTitle.Margin = new Thickness(targetTitleLeft, 0d, 0d, 5d);
+        }
+
+        _ramTextRight = right;
     }
 
     #endregion
 
     #region 高级设置
 
-    private void RefreshJvmResetVisibility()
+    private void RefreshDisableJlwToolTip()
     {
-        try
-        {
-            var defaultArgs = ConfigService.GetConfigItem<string>("LaunchAdvanceJvm").DefaultValue;
-            BtnAdvanceJvmReset.IsVisible = TextAdvanceJvm.Text != defaultArgs;
-        }
-        catch (Exception)
-        {
-            BtnAdvanceJvmReset.IsVisible = false;
-        }
+        if (!_loaded) return;
+        ToolTip.SetTip(
+            CheckAdvanceDisableJLW,
+            Lang.Text(
+                SystemInfo.IsArm64System
+                    ? "Setup.Launch.Advanced.DisableJlw.Arm64Notice"
+                    : "Setup.Launch.Advanced.DisableJlw.ToolTip"));
+        ToolTip.SetShowOnDisabled(CheckAdvanceDisableJLW, true);
     }
 
     private void ResetJvmArgs()
@@ -431,7 +457,7 @@ public partial class PageSetupLaunch : MyPageRight, ISetupResetPage
         }
     }
 
-    private void SwitchToInstanceSetup()
+    private static void SwitchToInstanceSetup()
     {
         var instance = InstanceList.McMcInstanceSelected;
         if (instance is null) return;

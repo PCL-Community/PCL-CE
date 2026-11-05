@@ -1,16 +1,15 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Controls.Shapes;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using Avalonia.Platform;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.IO;
-using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
 using PCL.UI.Controls;
 
@@ -22,20 +21,22 @@ namespace PCL.Views.Pages.Instance;
 /// </summary>
 public class PageInstanceScreenshot : MyPageRight, IRefreshable
 {
-    private static readonly string[] AllowedSuffix = ["*.png", "*.jpg", "*.jpeg", "*.bmp", "*.webp", "*.tiff"];
-
     private const int AppendCount = 20;
 
-    private readonly StackPanel _panContent;
-    private readonly WrapPanel _panList;
-    private readonly MyCard _panEmpty;
-    private readonly MyCard _panQuickActions;
+    private static readonly string[] AllowedSuffix =
+        ["*.png", "*.jpg", "*.jpeg", "*.bmp", "*.webp", "*.tiff"];
+
     private readonly List<string> _fileList = [];
-    private MyScrollViewer _panBack = null!;
-    private McInstance? _instance;
-    private string _screenshotPath = string.Empty;
-    private int _appendOffset;
+
+    private readonly StackPanel _panContent;
+    private readonly MyCard _panEmpty;
+    private readonly WrapPanel _panList;
+    private readonly MyCard _panQuickActions;
     private bool _appendLock;
+    private int _appendOffset;
+    private McInstance? _instance;
+    private readonly MyScrollViewer _panBack = null!;
+    private string _screenshotPath = string.Empty;
 
     public PageInstanceScreenshot()
     {
@@ -66,7 +67,14 @@ public class PageInstanceScreenshot : MyPageRight, IRefreshable
         _panContent.Children.Add(_panList);
 
         _panEmpty = CreateEmptyCard();
-        _panBack.Content = new Grid { Children = { _panContent, _panEmpty } };
+        _panBack.Content = new Grid
+        {
+            Children =
+            {
+                _panContent,
+                _panEmpty
+            }
+        };
         root.Children.Add(_panBack);
         PanScroll = _panBack;
         Child = root;
@@ -74,10 +82,18 @@ public class PageInstanceScreenshot : MyPageRight, IRefreshable
         BuildUi();
     }
 
+    public void Refresh()
+    {
+        Reload();
+        HintService.Show(Hints.Info(Lang.Text("Instance.Saves.Status.Refreshing"), false));
+    }
+
     public override void OnNavigatedTo(object? parameter)
     {
         _instance = InstancePageHelper.ResolveInstance(parameter);
-        _screenshotPath = _instance is null ? string.Empty : InstancePageHelper.ScreenshotsPath(_instance);
+        _screenshotPath = _instance is null
+            ? string.Empty
+            : InstancePageHelper.ScreenshotsPath(_instance);
         if (!string.IsNullOrEmpty(_screenshotPath))
             InstancePageHelper.EnsureDirectory(_screenshotPath);
         Reload();
@@ -86,11 +102,6 @@ public class PageInstanceScreenshot : MyPageRight, IRefreshable
     protected override void RefreshLocalization()
     {
         BuildUi();
-        Reload();
-    }
-
-    public void Refresh()
-    {
         Reload();
     }
 
@@ -111,7 +122,10 @@ public class PageInstanceScreenshot : MyPageRight, IRefreshable
             if (Directory.Exists(_screenshotPath))
                 _fileList.AddRange(
                     AllowedSuffix
-                        .SelectMany(suffix => Directory.EnumerateFiles(_screenshotPath, suffix, SearchOption.TopDirectoryOnly))
+                        .SelectMany(suffix => Directory.EnumerateFiles(
+                            _screenshotPath,
+                            suffix,
+                            SearchOption.TopDirectoryOnly))
                         .OrderByDescending(File.GetCreationTime));
         }
         catch (Exception ex)
@@ -127,7 +141,11 @@ public class PageInstanceScreenshot : MyPageRight, IRefreshable
 
     private void BuildUi()
     {
-        var body = new Grid { Height = 35d, Margin = new Thickness(25d, 40d, 15d, 20d) };
+        var body = new Grid
+        {
+            Height = 35d,
+            Margin = new Thickness(25d, 40d, 15d, 20d)
+        };
         var openFolder = new MyButton
         {
             Text = Lang.Text("Instance.Screenshot.OpenFolder"),
@@ -161,8 +179,12 @@ public class PageInstanceScreenshot : MyPageRight, IRefreshable
         ContainerTheme.BindDynamic(title, TextBlock.ForegroundProperty, "ColorBrush3");
         Grid.SetColumnSpan(title, 3);
         grid.Children.Add(title);
-        var divider = new Avalonia.Controls.Shapes.Rectangle { Height = 2d, HorizontalAlignment = HorizontalAlignment.Stretch };
-        ContainerTheme.BindDynamic(divider, Avalonia.Controls.Shapes.Shape.FillProperty, "ColorBrush3");
+        var divider = new Rectangle
+        {
+            Height = 2d,
+            HorizontalAlignment = HorizontalAlignment.Stretch
+        };
+        ContainerTheme.BindDynamic(divider, Shape.FillProperty, "ColorBrush3");
         Grid.SetRow(divider, 1);
         Grid.SetColumnSpan(divider, 3);
         grid.Children.Add(divider);
@@ -243,7 +265,7 @@ public class PageInstanceScreenshot : MyPageRight, IRefreshable
                 }
                 catch (Exception ex)
                 {
-                    LauncherCommon.Log(ex, "创建截图预览失败：" + path, LauncherLogLevel.Developer);
+                    LauncherCommon.Log(ex, $"创建截图预览失败：{path}", LauncherLogLevel.Developer);
                 }
             }
         }
@@ -258,14 +280,13 @@ public class PageInstanceScreenshot : MyPageRight, IRefreshable
         var card = new MyCard
         {
             Width = 150d,
-            Height = 200d,
             Margin = new Thickness(7d),
             Tag = path
         };
         ToolTip.SetTip(card, path.Replace(_screenshotPath, string.Empty));
         var grid = new Grid
         {
-            RowDefinitions = new RowDefinitions("9,120,*")
+            RowDefinitions = new RowDefinitions("9,120,Auto")
         };
         var image = new Image
         {
@@ -275,16 +296,20 @@ public class PageInstanceScreenshot : MyPageRight, IRefreshable
         };
         try
         {
-            image.Source = await Task.Run(
-                () =>
-                {
-                    using var stream = File.OpenRead(path);
-                    return (Bitmap)Bitmap.DecodeToWidth(stream, 400);
-                });
+            var bitmap = await Task.Run(() =>
+            {
+                using var stream = File.OpenRead(path);
+                return Bitmap.DecodeToWidth(stream, 400);
+            });
+            image.Source = bitmap;
+            var ratio = bitmap.PixelSize.Height <= 0
+                ? 1d
+                : (double)bitmap.PixelSize.Width / bitmap.PixelSize.Height;
+            card.Width = Math.Clamp(120d * ratio + 16d, 120d, 420d);
         }
         catch (Exception ex)
         {
-            LauncherCommon.Log(ex, "加载截图缩略图失败：" + path, LauncherLogLevel.Developer);
+            LauncherCommon.Log(ex, $"加载截图缩略图失败：{path}", LauncherLogLevel.Developer);
         }
 
         image.PointerPressed += (_, _) =>
@@ -315,10 +340,16 @@ public class PageInstanceScreenshot : MyPageRight, IRefreshable
         delete.Click += (_, _) => _ = DeleteAsync(path, card);
         buttons.Children.Add(delete);
         var copy = CreateActionButton("Common.Action.Copy", "lucide/copy");
-        copy.Click += (_, _) => _ = CopyPathAsync(path);
+        copy.Click += (_, _) => _ = CopyImageAsync(path);
         buttons.Children.Add(copy);
         grid.Children.Add(buttons);
         card.BorderChild = grid;
+        card.Opacity = 0d;
+        Animations.AniStart(
+            new[]
+            {
+                Animations.AaOpacity(card, 1d, 200)
+            });
         return card;
     }
 
@@ -333,15 +364,42 @@ public class PageInstanceScreenshot : MyPageRight, IRefreshable
         };
     }
 
-    private async Task CopyPathAsync(string path)
+    private async Task CopyImageAsync(string path)
     {
         try
         {
+            if (!File.Exists(path))
+            {
+                HintService.Show(Hints.Info(Lang.Text("Instance.Screenshot.FileNotFound")));
+                return;
+            }
+
             var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
             if (clipboard is null)
                 return;
-            await clipboard.SetTextAsync(path);
-            HintService.Show(Hints.Success(Lang.Text("Instance.Screenshot.CopiedToClipboard")));
+
+            Bitmap? bitmap = null;
+            for (var attempt = 0; attempt < 6; attempt++)
+                try
+                {
+                    bitmap?.Dispose();
+                    await using var stream = File.OpenRead(path);
+                    bitmap = new Bitmap(stream);
+                    await clipboard.SetBitmapAsync(bitmap);
+                    HintService.Show(
+                        Hints.Success(Lang.Text("Instance.Screenshot.CopiedToClipboard")));
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    LauncherCommon.Log(
+                        ex,
+                        $"第 {attempt + 1} 次复制截图到剪贴板失败",
+                        LauncherLogLevel.Developer);
+                    await Task.Delay(30);
+                }
+
+            HintService.Show(Hints.Error(Lang.Text("Instance.Screenshot.CopyFailed")));
         }
         catch (Exception ex)
         {
@@ -349,30 +407,20 @@ public class PageInstanceScreenshot : MyPageRight, IRefreshable
         }
     }
 
-    private async Task DeleteAsync(string path, MyCard card)
+    private Task DeleteAsync(string path, MyCard card)
     {
         try
         {
-            var result = await DialogService.Instance.ShowAsync(
-                new TextDialogRequest
-                {
-                    Title = Lang.Text("Common.Dialog.Warning"),
-                    Content = Lang.Text("Event.Safety.ConfirmMessage", Lang.Text("Common.Action.Delete") + " " + Path.GetFileName(path)),
-                    Buttons = DialogButtons.OkCancel,
-                    IsWarn = true
-                });
-            if (!result.IsConfirmed)
-                return;
-
+            // 与 WPF 一致：截图删除不再二次确认，直接送入回收站。
             var canRecycle = RecycleBin.IsSupported(path);
             if (canRecycle)
             {
                 var outcome = RecycleBin.Move(path, out var error);
                 if (outcome == RecycleBin.Outcome.Failed)
                 {
-                    LauncherCommon.Log("删除截图失败：" + error, LauncherLogLevel.Feedback);
+                    LauncherCommon.Log($"删除截图失败：{error}", LauncherLogLevel.Feedback);
                     HintService.Show(Hints.Error(Lang.Text("Instance.Screenshot.DeleteFailed")));
-                    return;
+                    return Task.CompletedTask;
                 }
 
                 if (outcome == RecycleBin.Outcome.Unsupported)
@@ -391,6 +439,8 @@ public class PageInstanceScreenshot : MyPageRight, IRefreshable
         {
             InstancePageHelper.ReportError("Instance.Screenshot.DeleteFailed", ex);
         }
+
+        return Task.CompletedTask;
     }
 
     private void OpenFolder()

@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Threading;
 using PCL.Core.App.Localization;
+using PCL.Navigation;
 using PCL.Views.Pages;
 using static PCL.Animations;
 
@@ -15,6 +16,8 @@ namespace PCL.UI.Controls;
 /// </summary>
 public class MyPageRight : Decorator, IPageView
 {
+    protected INavigationService Navigation => PageRouter.Navigation;
+
     // 当前状态
     public enum PageStates
     {
@@ -792,6 +795,7 @@ public class MyPageRight : Decorator, IPageView
             return;
         }
 
+        ResetScrollTransform(GetFirstScrollViewer(realElements));
         var aniList = new List<AniData>();
         var delay = 0;
         foreach (var element in realElements)
@@ -824,25 +828,6 @@ public class MyPageRight : Decorator, IPageView
                     aniList.Add(AaTranslateY(control, 11d, 350, delay, new AniEaseOutBack()));
                     delay += 25;
                 }
-        }
-
-        // 滚动条从右侧滑入
-        var scroll = GetFirstScrollViewer(realElements);
-        if (scroll is not null)
-        {
-            if (scroll.RenderTransform is not TranslateTransform)
-            {
-                scroll.RenderTransformOrigin = RelativePoint.Center;
-                scroll.RenderTransform = new TranslateTransform(10d, 0d);
-            }
-
-            aniList.Add(
-                AaTranslateX(
-                    scroll,
-                    -((TranslateTransform)scroll.RenderTransform).X,
-                    350,
-                    0,
-                    new AniEaseOutFluent()));
         }
 
         // 同名动画组会顶掉上一组，快速切换时只有最后这一段回调会执行
@@ -892,25 +877,6 @@ public class MyPageRight : Decorator, IPageView
                 aniList.Add(AaTranslateY(control, -6d, 70, delay));
                 delay += 15;
             }
-
-        // 滚动条向右滑出
-        var scroll = GetFirstScrollViewer(realElements);
-        if (scroll is not null)
-        {
-            if (scroll.RenderTransform is not TranslateTransform)
-            {
-                scroll.RenderTransformOrigin = RelativePoint.Center;
-                scroll.RenderTransform = new TranslateTransform();
-            }
-
-            aniList.Add(
-                AaTranslateX(
-                    scroll,
-                    10d - ((TranslateTransform)scroll.RenderTransform).X,
-                    90,
-                    0,
-                    new AniEaseInFluent()));
-        }
 
         aniList.Add(
             AaCode(

@@ -475,8 +475,7 @@ public class MyToast : Border
 
         PCL.Animations.AniStart(
             PCL.Animations.AaDouble(
-                _progressBar,
-                WidthProperty,
+                delta => _progressBar.Width = Math.Max(0d, _progressBar.Width + delta),
                 -width,
                 (int)Math.Round(_progressTotalMs),
                 ease: new PCL.Animations.AniEaseLinear()),
@@ -500,8 +499,7 @@ public class MyToast : Border
         PCL.Animations.AniStop(ProgressKey);
         PCL.Animations.AniStart(
             PCL.Animations.AaDouble(
-                _progressBar,
-                WidthProperty,
+                delta => _progressBar.Width = Math.Max(0d, _progressBar.Width + delta),
                 -current,
                 (int)Math.Round(remainingMs),
                 ease: new PCL.Animations.AniEaseLinear()),

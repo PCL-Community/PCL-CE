@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using PCL.Core.App.Localization;
 using PCL.Navigation;
 
 namespace PCL.Views.Pages.Setup;
@@ -23,7 +24,20 @@ public sealed class PageSetupHost : IPageHost
 
     public string GetTitle(PageStackData stack)
     {
-        return string.Empty;
+        return NormalizeSubPage(stack.SubType) switch
+        {
+            PageSubType.SetupJava => Lang.Text("Setup.Left.Item.Java"),
+            PageSubType.SetupGameManage => Lang.Text("Setup.Left.Item.GameManage"),
+            PageSubType.SetupGameLink => Lang.Text("Setup.Left.Item.GameLink"),
+            PageSubType.SetupUI => Lang.Text("Setup.Left.Item.Ui"),
+            PageSubType.SetupLauncherLanguage => Lang.Text("Setup.Language.Title"),
+            PageSubType.SetupLauncherMisc => Lang.Text("Setup.Left.Item.Misc"),
+            PageSubType.SetupAbout => Lang.Text("Setup.Left.Item.About"),
+            PageSubType.SetupUpdate => Lang.Text("Setup.Left.Item.Update"),
+            PageSubType.SetupFeedback => Lang.Text("Setup.Left.Item.Feedback"),
+            PageSubType.SetupLog => Lang.Text("Setup.Left.Item.Log"),
+            _ => Lang.Text("Setup.Left.Item.Launch")
+        };
     }
 
     public Control? GetLeft(PageStackData stack)

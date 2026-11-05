@@ -4,8 +4,13 @@
              xmlns:launch="using:PCL.Views.Pages.Launch"
              xmlns:loc="using:PCL.Core.UI"
              x:Class="PCL.Views.Pages.Launch.PageLoginProfileSkin">
-    <Grid RowDefinitions="80,Auto,*"
-          ColumnDefinitions="34,*,34">
+    <Grid ColumnDefinitions="34,*,34">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="80" />
+            <RowDefinition Height="Auto"
+                           MinHeight="30" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
         <StackPanel Grid.Row="1"
                     Grid.Column="1"
                     VerticalAlignment="Top">
@@ -40,13 +45,14 @@
                 <ui:MyIconButton x:Name="BtnSkin"
                                  Width="24"
                                  Height="24"
+                                 Margin="0,0.5,9,0"
                                  LogoScale="1.08"
                                  SvgIcon="lucide/shirt"
                                  ToolTip.Tip="{loc:Loc Launch.Account.ProfileSkin.SkinsAndCapes}" />
                 <ui:MyIconButton x:Name="BtnEdit"
                                  Width="24"
                                  Height="24"
-                                 Margin="9,0,0,0"
+                                 Margin="0,0.5,9,0"
                                  IsVisible="False"
                                  LogoScale="1.1"
                                  SvgIcon="lucide/pencil"
@@ -54,7 +60,7 @@
                 <ui:MyIconButton x:Name="BtnSelect"
                                  Width="24"
                                  Height="24"
-                                 Margin="9,0,0,0"
+                                 Margin="0"
                                  LogoScale="1.15"
                                  SvgIcon="lucide/arrow-right-left"
                                  ToolTip.Tip="{loc:Loc Launch.Account.ProfileSkin.SwitchProfile}" />

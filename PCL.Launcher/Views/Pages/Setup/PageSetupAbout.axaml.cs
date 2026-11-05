@@ -1,21 +1,16 @@
-using System.Text.Json.Nodes;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Layout;
-using Avalonia.Media;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.UI.Hints;
-using PCL.Network;
 using PCL.UI.Controls;
 
 namespace PCL.Views.Pages.Setup;
 
 public partial class PageSetupAbout : MyPageRight
 {
-    private const string ContributorsApi =
-        "https://api.github.com/repos/PCL-Community/PCL2-CE/contributors";
-
     private bool _contributorsLoaded;
     private bool _loaded;
 
@@ -23,9 +18,9 @@ public partial class PageSetupAbout : MyPageRight
     {
         InitializeComponent();
         PanScroll = PanBack;
+        DataContext = ViewModel;
 
         ItemAboutPcl.Title = Basics.Metadata.Name;
-        ItemAboutPcl.Info = FormatVersionInfo();
 
         BtnSponsorOriginalAuthor.Click += (_, _) => Basics.OpenPath("https://ifdian.net/a/LTCat");
         BtnGitHubHome.Click += (_, _) => Basics.OpenPath("https://github.com/PCL-Community");
@@ -51,15 +46,22 @@ public partial class PageSetupAbout : MyPageRight
         {
             if (_loaded) return;
             _loaded = true;
-            BuildLicenses();
+            ViewModel.Initialize();
             RefreshMcmodRow();
             _ = LoadContributorsAsync();
         };
     }
 
+    public PageSetupAboutViewModel ViewModel { get; } = new();
+
     public override void OnNavigatedTo(object? parameter)
     {
         PanBack.ScrollToHome();
+        if (!_loaded) return;
+        ViewModel.Initialize();
+        RefreshMcmodRow();
+        if (PanContributors.Children.Count == 0)
+            _ = LoadContributorsAsync();
     }
 
     public override void OnNavigatedFrom()
@@ -69,23 +71,15 @@ public partial class PageSetupAbout : MyPageRight
     protected override void RefreshLocalization()
     {
         if (!_loaded) return;
-        ItemAboutPcl.Info = FormatVersionInfo();
-        BuildLicenses();
-    }
-
-    private static string FormatVersionInfo()
-    {
-        return Lang
-            .Text("Setup.About.Version.Info")
-            .Replace("%VERSION%", LauncherCommon.VersionBaseName)
-            .Replace("%VERSIONCODE%", LauncherCommon.VersionCode.ToString())
-            .Replace("%BRANCH%", LauncherCommon.VersionBranchName)
-            .Replace("%COMMIT_HASH%", Basics.Metadata.Version.CommitDigest);
+        ViewModel.Initialize();
+        ViewModel.RefreshVersionInfo();
+        RefreshMcmodRow();
+        ItemAboutPcl.Title = Basics.Metadata.Name;
     }
 
     private void RefreshMcmodRow()
     {
-        var show = Lang.IsChineseMainland;
+        var show = ViewModel.ShowMcmod;
         ImgMcmod.IsVisible = show;
         ItemMcmod.IsVisible = show;
         BtnMcmod.IsVisible = show;
@@ -95,6 +89,22 @@ public partial class PageSetupAbout : MyPageRight
                 : new GridLength(0d);
     }
 
+    #region 彩蛋
+
+    private void ImgPCLCommunity_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
+        PageSetupAboutViewModel.RotateCommunityLogo(sender);
+    }
+
+    private async void ImgPCLLogo_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
+        await ViewModel.HandleLogoClickAsync(sender);
+    }
+
+    #endregion
+
     #region 贡献者
 
     private async Task LoadContributorsAsync()
@@ -103,31 +113,14 @@ public partial class PageSetupAbout : MyPageRight
         _contributorsLoaded = true;
         try
         {
-            var json = await Requester.FetchJsonAsync(
-                ContributorsApi,
-                new RequestParam
-                {
-                    Retries = 2,
-                    UseBrowserUserAgent = true
-                });
-            if (json is not JsonArray list)
-                throw new InvalidOperationException(
-                    Lang.Text("Setup.About.Error.LoadContributorsFailed"));
-
-            PanContributors.Children.Clear();
-            foreach (var node in list)
-            {
-                if (node is not JsonObject contributor) continue;
-                var login = contributor["login"]?.ToString();
-                var avatar = contributor["avatar_url"]?.ToString();
-                var htmlUrl = contributor["html_url"]?.ToString();
-                if (string.IsNullOrEmpty(login)) continue;
-                PanContributors.Children.Add(CreateContributorItem(login, avatar, htmlUrl));
-            }
+            await ViewModel.LoadContributorsAsync();
+            if (ViewModel.Error is not null)
+                throw new InvalidOperationException(ViewModel.Error);
+            RebuildContributors();
         }
         catch (Exception ex)
         {
-            // TODO(FIX-P3-07): 失败后没有重试入口；WPF 由 ViewModel 命令重新拉取，可接一个"重试"按钮或下次进入重试。
+            _contributorsLoaded = false;
             LauncherCommon.Log(
                 ex,
                 Lang.Text("Setup.About.Error.LoadContributorsFailed"),
@@ -135,6 +128,17 @@ public partial class PageSetupAbout : MyPageRight
             HintService.Show(
                 Hints.Error(Lang.Text("Setup.About.Error.LoadContributorsFailed"), false));
         }
+    }
+
+    private void RebuildContributors()
+    {
+        PanContributors.Children.Clear();
+        foreach (var contributor in ViewModel.Contributors)
+            PanContributors.Children.Add(
+                CreateContributorItem(
+                    contributor.Login,
+                    contributor.AvatarUrl,
+                    contributor.HtmlUrl));
     }
 
     private static Control CreateContributorItem(string login, string? avatarUrl, string? htmlUrl)
@@ -178,74 +182,18 @@ public partial class PageSetupAbout : MyPageRight
 
     #region 开源许可
 
-    private void BuildLicenses()
+    private void LicenseWebsite_Click(object? sender, PointerReleasedEventArgs e)
     {
-        PanLicenses.Children.Clear();
-        foreach (var license in Basics.Metadata.Licenses)
-        {
-            var grid = new Grid
-            {
-                ColumnDefinitions = new ColumnDefinitions("Auto,20,Auto,*"),
-                RowDefinitions = new RowDefinitions("Auto,60"),
-                Margin = new Thickness(0, 0, 0, 8)
-            };
-
-            var name = new TextBlock
-            {
-                Text = license.Name,
-                FontWeight = FontWeight.Bold,
-                TextWrapping = TextWrapping.Wrap
-            };
-            Grid.SetRow(name, 0);
-            Grid.SetColumn(name, 0);
-            grid.Children.Add(name);
-
-            var info = new TextBlock
-            {
-                Text = license.Information,
-                TextWrapping = TextWrapping.Wrap
-            };
-            Grid.SetRow(info, 0);
-            Grid.SetColumn(info, 2);
-            Grid.SetColumnSpan(info, 2);
-            grid.Children.Add(info);
-
-            if (!string.IsNullOrEmpty(license.WebsiteUri))
-            {
-                var button = CreateLinkButton(
-                    Lang.Text("Setup.About.Licenses.ViewWebsite"),
-                    license.WebsiteUri);
-                Grid.SetRow(button, 1);
-                Grid.SetColumn(button, 2);
-                grid.Children.Add(button);
-            }
-
-            if (!string.IsNullOrEmpty(license.LicenseUri))
-            {
-                var button = CreateLinkButton(
-                    Lang.Text("Setup.About.Licenses.ViewLicense"),
-                    license.LicenseUri);
-                Grid.SetRow(button, 1);
-                Grid.SetColumn(button, string.IsNullOrEmpty(license.WebsiteUri) ? 2 : 3);
-                grid.Children.Add(button);
-            }
-
-            PanLicenses.Children.Add(grid);
-        }
+        if (sender is MyButton { DataContext: ThirdPartyLicenseModel license }
+            && !string.IsNullOrEmpty(license.WebsiteUri))
+            Basics.OpenPath(license.WebsiteUri);
     }
 
-    private static MyButton CreateLinkButton(string text, string url)
+    private void LicenseUri_Click(object? sender, PointerReleasedEventArgs e)
     {
-        var button = new MyButton
-        {
-            Text = text,
-            MinWidth = 140d,
-            Margin = new Thickness(0, 7, 20, 18),
-            Padding = new Thickness(13, 0, 13, 0),
-            HorizontalAlignment = HorizontalAlignment.Left
-        };
-        button.Click += (_, _) => Basics.OpenPath(url);
-        return button;
+        if (sender is MyButton { DataContext: ThirdPartyLicenseModel license }
+            && !string.IsNullOrEmpty(license.LicenseUri))
+            Basics.OpenPath(license.LicenseUri);
     }
 
     #endregion

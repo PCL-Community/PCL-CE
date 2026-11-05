@@ -2,6 +2,7 @@
                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                 xmlns:ui="using:PCL.UI.Controls"
                 xmlns:loc="using:PCL.Core.UI"
+                x:CompileBindings="False"
                 x:Class="PCL.Views.Pages.Setup.PageSetupGameLink">
     <ui:MyScrollViewer x:Name="PanBack"
                        HorizontalScrollBarVisibility="Disabled"
@@ -23,6 +24,7 @@
                         <ui:MyTextBox x:Name="TextLinkUsername"
                                       Grid.Row="0"
                                       Grid.Column="2"
+                                      Text="{Binding LinkUsername, Mode=TwoWay}"
                                       ToolTip.Tip="{loc:Loc Setup.GameLink.Username.ToolTip}" />
 
                         <TextBlock Grid.Row="2"
@@ -32,7 +34,8 @@
                         <ui:MyComboBox x:Name="ComboPreferProtocol"
                                        Grid.Row="2"
                                        Grid.Column="2"
-                                       HorizontalAlignment="Stretch">
+                                       HorizontalAlignment="Stretch"
+                                       SelectedIndex="{Binding PreferProtocolIndex, Mode=TwoWay}">
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.GameLink.Protocol.Tcp}"
                                                ToolTip.Tip="{loc:Loc Setup.GameLink.Protocol.Tcp.ToolTip}" />
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.GameLink.Protocol.Udp}"
@@ -42,23 +45,68 @@
                         <ui:MyCheckBox x:Name="CheckLatencyFirstMode"
                                        Grid.Row="4"
                                        Grid.ColumnSpan="3"
+                                       Checked="{Binding LatencyFirstMode, Mode=TwoWay}"
                                        Text="{loc:Loc Setup.GameLink.LatencyFirstMode}"
                                        ToolTip.Tip="{loc:Loc Setup.GameLink.LatencyFirstMode.ToolTip}" />
                         <ui:MyCheckBox x:Name="CheckTryPunchSym"
                                        Grid.Row="5"
                                        Grid.ColumnSpan="3"
+                                       Checked="{Binding TryPunchSym, Mode=TwoWay}"
                                        Text="{loc:Loc Setup.GameLink.PortGuessNat}"
                                        ToolTip.Tip="{loc:Loc Setup.GameLink.PortGuessNat.ToolTip}" />
                         <ui:MyCheckBox x:Name="CheckEnableIPv6"
                                        Grid.Row="6"
                                        Grid.ColumnSpan="3"
+                                       Checked="{Binding EnableIPv6, Mode=TwoWay}"
                                        Text="{loc:Loc Setup.GameLink.EnableIPv6}"
                                        ToolTip.Tip="{loc:Loc Setup.GameLink.EnableIPv6.ToolTip}" />
                         <ui:MyCheckBox x:Name="CheckEnableCliOutput"
                                        Grid.Row="7"
                                        Grid.ColumnSpan="3"
+                                       Checked="{Binding EnableCliOutput, Mode=TwoWay}"
                                        Text="{loc:Loc Setup.GameLink.CliDebugOutput}"
                                        ToolTip.Tip="{loc:Loc Setup.GameLink.CliDebugOutput.ToolTip}" />
+                    </Grid>
+                </StackPanel>
+            </ui:MyCard>
+
+            <!-- WPF 中该卡片默认折叠（Visibility=Collapsed）；真实 NAT/IPv6 检测在 Phase 3 接入。 -->
+            <ui:MyCard x:Name="CardNetworkTest"
+                       Margin="10"
+                       IsVisible="False"
+                       Title="{loc:Loc Setup.GameLink.NetworkTest.Title}">
+                <StackPanel Margin="25,40,25,15"
+                            Orientation="Vertical">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="8" />
+                            <ColumnDefinition Width="1*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="8" />
+                            <RowDefinition Height="30" />
+                        </Grid.RowDefinitions>
+                        <TextBlock x:Name="TextUdpNatType"
+                                   Grid.Row="0"
+                                   Text="{Binding UdpNatTypeText}" />
+                        <TextBlock x:Name="TextTcpNatType"
+                                   Grid.Row="1"
+                                   Text="{Binding TcpNatTypeText}" />
+                        <TextBlock x:Name="TextIpv6Status"
+                                   Grid.Row="2"
+                                   Text="{Binding Ipv6StatusText}" />
+                        <ui:MyButton x:Name="BtnNetTest"
+                                     Grid.Row="4"
+                                     Grid.ColumnSpan="3"
+                                     HorizontalAlignment="Stretch"
+                                     VerticalAlignment="Stretch"
+                                     ColorType="Highlight"
+                                     IsEnabled="{Binding NetTestEnabled}"
+                                     Text="{Binding NetTestButtonText}" />
                     </Grid>
                 </StackPanel>
             </ui:MyCard>

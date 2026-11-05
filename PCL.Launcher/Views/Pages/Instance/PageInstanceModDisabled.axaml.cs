@@ -1,12 +1,12 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Shapes;
 using Avalonia.Layout;
 using Avalonia.Media;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Navigation;
 using PCL.UI.Controls;
-using PCL.Views.Pages;
 using PCL.Views.Shell;
 
 namespace PCL.Views.Pages.Instance;
@@ -19,6 +19,15 @@ public class PageInstanceModDisabled : MyPageRight, IPageView
     public PageInstanceModDisabled()
     {
         BuildUi();
+    }
+
+    public override void OnNavigatedTo(object? parameter)
+    {
+        RefreshDownloadButton();
+    }
+
+    public override void OnNavigatedFrom()
+    {
     }
 
     private void BuildUi()
@@ -37,12 +46,12 @@ public class PageInstanceModDisabled : MyPageRight, IPageView
             Margin = new Thickness(0d, 0d, 0d, 9d)
         };
         ContainerTheme.BindDynamic(title, TextBlock.ForegroundProperty, "ColorBrush3");
-        var divider = new Avalonia.Controls.Shapes.Rectangle
+        var divider = new Rectangle
         {
             Height = 2d,
             HorizontalAlignment = HorizontalAlignment.Stretch
         };
-        ContainerTheme.BindDynamic(divider, Avalonia.Controls.Shapes.Shape.FillProperty, "ColorBrush3");
+        ContainerTheme.BindDynamic(divider, Shape.FillProperty, "ColorBrush3");
         var message = new TextBlock
         {
             Text = Lang.Text("Instance.Resource.Mod.Disabled.Message"),
@@ -57,7 +66,9 @@ public class PageInstanceModDisabled : MyPageRight, IPageView
             Padding = new Thickness(13d, 0d),
             ColorType = MyButton.ColorState.Highlight
         };
-        _btnDownload.Click += (_, _) => PageRouter.Navigate(PageType.Download, PageSubType.DownloadInstall);
+        _btnDownload.Click += (_, _) => PageRouter.Navigate(
+            PageType.Download,
+            PageSubType.DownloadInstall);
         var btnVersion = new MyButton
         {
             Text = Lang.Text("Instance.Resource.Mod.Disabled.SelectInstance"),
@@ -101,17 +112,14 @@ public class PageInstanceModDisabled : MyPageRight, IPageView
         BuildUi();
     }
 
-    public override void OnNavigatedTo(object? parameter)
-    {
-        RefreshDownloadButton();
-    }
-
-    public override void OnNavigatedFrom()
-    {
-    }
-
     private void RefreshDownloadButton()
     {
-        _btnDownload.IsVisible = HiddenFeatureState.ForceShow || !Config.Preference.Hide.PageDownload;
+        _btnDownload.IsVisible =
+            HiddenFeatureState.ForceShow || !Config.Preference.Hide.PageDownload;
+    }
+
+    public void RefreshModDisabled()
+    {
+        RefreshDownloadButton();
     }
 }

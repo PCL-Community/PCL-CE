@@ -4,7 +4,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Layout;
 using Avalonia.Media;
 using PCL.Core.App.Localization;
-using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
 using PCL.Navigation;
 using PCL.UI.Controls;
@@ -17,15 +17,34 @@ namespace PCL.Views.Pages.Instance;
 /// </summary>
 public class PageInstanceInstall : MyPageRight, IRefreshable
 {
+    private static readonly string[] LoaderTitleKeys =
+    [
+        "Common.Installation.Forge",
+        "Common.Installation.Cleanroom",
+        "Common.Installation.NeoForge",
+        "Common.Installation.Fabric",
+        "Common.Installation.LegacyFabric",
+        "Common.Installation.FabricApi",
+        "Common.Installation.LegacyFabricApi",
+        "Common.Installation.LabyMod",
+        "Common.Installation.OptiFine",
+        "Common.Installation.OptiFabric",
+        "Common.Installation.LiteLoader"
+    ];
+
+    private readonly Dictionary<string, TextBlock> _loaderBodies = [];
     private readonly StackPanel _panMain;
-    private McInstance? _instance;
     private MyButton _btnModify = null!;
     private MyButton _btnRepair = null!;
     private MyButton _btnReset = null!;
+    private McInstance? _instance;
 
     public PageInstanceInstall()
     {
-        var panel = new StackPanel { Margin = new Thickness(25d, 25d, 25d, 25d) };
+        var panel = new StackPanel
+        {
+            Margin = new Thickness(25d, 25d, 25d, 25d)
+        };
         var scroll = new MyScrollViewer
         {
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
@@ -36,6 +55,11 @@ public class PageInstanceInstall : MyPageRight, IRefreshable
         PanScroll = scroll;
         Child = scroll;
         BuildUi();
+    }
+
+    public void Refresh()
+    {
+        Reload();
     }
 
     public override void OnNavigatedTo(object? parameter)
@@ -49,21 +73,21 @@ public class PageInstanceInstall : MyPageRight, IRefreshable
         BuildUi();
     }
 
-    public void Refresh()
-    {
-        Reload();
-    }
-
     private void BuildUi()
     {
         _panMain.Children.Clear();
+        _loaderBodies.Clear();
 
         var infoCard = new MyCard
         {
             Title = Lang.Text("Download.Install.Title"),
             Margin = new Thickness(0d, 0d, 0d, 15d)
         };
-        var infoBody = new StackPanel { Margin = new Thickness(25d, 40d, 25d, 15d), Spacing = 6d };
+        var infoBody = new StackPanel
+        {
+            Margin = new Thickness(25d, 40d, 25d, 15d),
+            Spacing = 6d
+        };
         infoCard.BorderChild = infoBody;
         _panMain.Children.Add(infoCard);
 
@@ -72,13 +96,18 @@ public class PageInstanceInstall : MyPageRight, IRefreshable
             Title = Lang.Text("Instance.Install.Action.ModifyLabel"),
             Margin = new Thickness(0d, 0d, 0d, 15d)
         };
-        var actionBody = new StackPanel { Margin = new Thickness(25d, 40d, 25d, 15d) };
+        var actionBody = new StackPanel
+        {
+            Margin = new Thickness(25d, 40d, 25d, 15d)
+        };
         var buttons = new WrapPanel
         {
             Orientation = Orientation.Horizontal,
             Margin = new Thickness(0d, 0d, 0d, 5d)
         };
-        _btnModify = NewActionButton("Instance.Install.Action.StartModify", () => _ = ModifyAsync());
+        _btnModify = NewActionButton(
+            "Instance.Install.Action.StartModify",
+            () => _ = ModifyAsync());
         buttons.Children.Add(_btnModify);
         _btnRepair = NewActionButton("Instance.Overall.Manage.RepairFiles", RepairFiles);
         ToolTip.SetTip(_btnRepair, Lang.Text("Instance.Overall.Manage.RepairFiles.ToolTip"));
@@ -95,7 +124,64 @@ public class PageInstanceInstall : MyPageRight, IRefreshable
         actionCard.BorderChild = actionBody;
         _panMain.Children.Add(actionCard);
 
+        // 11 种加载器的完整 UI 骨架。Phase 3.1 接通安装后端前，这里只展示当前实例的真实状态，
+        // 不放置任何“看起来可点但无反应”的假禁用控件。
+        var loaderGroup = new StackPanel();
+        foreach (var key in LoaderTitleKeys)
+            loaderGroup.Children.Add(CreateLoaderCard(key));
+        _panMain.Children.Add(loaderGroup);
+
         Reload();
+    }
+
+    private MyCard CreateLoaderCard(string titleKey)
+    {
+        var card = new MyCard
+        {
+            Title = Lang.Text(titleKey),
+            Margin = new Thickness(0d, 0d, 0d, 10d),
+            CanSwap = true
+        };
+        var body = new TextBlock
+        {
+            Margin = new Thickness(25d, MyCard.SwapedHeight, 25d, 16d),
+            TextWrapping = TextWrapping.Wrap
+        };
+        ContainerTheme.BindDynamic(body, TextBlock.ForegroundProperty, "ColorBrushGray3");
+        card.Children.Add(body);
+        card.SwapControl = body;
+        card.IsSwapped = true;
+        _loaderBodies[titleKey] = body;
+        return card;
+    }
+
+    private void UpdateLoaderCards(McInstance? instance)
+    {
+        var info = instance?.Info;
+        var installed = Lang.Text("Instance.Overall.Info.Installed");
+        var missing = Lang.Text("Instance.Install.NoExtraInstall");
+
+        Set("Common.Installation.Forge", info?.HasForge == true, info?.Forge);
+        Set("Common.Installation.Cleanroom", info?.HasCleanroom == true, info?.Cleanroom);
+        Set("Common.Installation.NeoForge", info?.HasNeoForge == true, info?.NeoForge);
+        Set("Common.Installation.Fabric", info?.HasFabric == true, info?.Fabric);
+        Set("Common.Installation.LegacyFabric", info?.HasLegacyFabric == true, info?.LegacyFabric);
+        Set("Common.Installation.FabricApi", false, null);
+        Set("Common.Installation.LegacyFabricApi", false, null);
+        Set("Common.Installation.LabyMod", info?.HasLabyMod == true, info?.LabyMod);
+        Set("Common.Installation.OptiFine", info?.HasOptiFine == true, info?.OptiFine);
+        Set("Common.Installation.OptiFabric", false, null);
+        Set("Common.Installation.LiteLoader", info?.HasLiteLoader == true, null);
+        return;
+
+        void Set(string key, bool hasLoader, string? version)
+        {
+            if (!_loaderBodies.TryGetValue(key, out var block))
+                return;
+            block.Text = hasLoader
+                ? installed + (string.IsNullOrWhiteSpace(version) ? string.Empty : $" · {version}")
+                : missing;
+        }
     }
 
     private static MyButton NewActionButton(
@@ -119,21 +205,20 @@ public class PageInstanceInstall : MyPageRight, IRefreshable
     public void Reload()
     {
         ResetSummary(_instance);
+        UpdateLoaderCards(_instance);
 
         var enabled = _instance is not null;
-        if (_btnModify is not null)
-            _btnModify.IsEnabled = enabled;
-        if (_btnRepair is not null)
-            _btnRepair.IsEnabled = enabled;
-        if (_btnReset is not null)
-            _btnReset.IsEnabled = enabled;
+        _btnModify?.IsEnabled = enabled;
+        _btnRepair?.IsEnabled = enabled;
+        _btnReset?.IsEnabled = enabled;
     }
 
     private void ResetSummary(McInstance? instance)
     {
-        var body = _panMain.Children.Count > 0 && _panMain.Children[0] is MyCard { BorderChild: StackPanel panel }
-            ? panel
-            : null;
+        var body = _panMain.Children.Count > 0
+            && _panMain.Children[0] is MyCard { BorderChild: StackPanel panel }
+                ? panel
+                : null;
         if (body is null)
             return;
         body.Children.Clear();
@@ -151,12 +236,15 @@ public class PageInstanceInstall : MyPageRight, IRefreshable
 
         var info = instance.Info;
         body.Children.Add(MakeRow(Lang.Text("Download.Install.InstanceName"), instance.Name));
-        body.Children.Add(MakeRow(Lang.Text("Download.Install.InstanceLocation"), instance.PathInstance));
+        body.Children.Add(
+            MakeRow(Lang.Text("Download.Install.InstanceLocation"), instance.PathInstance));
         body.Children.Add(
             MakeRow(
                 Lang.Text("Download.Install.Section.Version"),
                 McInstanceInfo.GetVanillaNameDisplay(info.VanillaName)));
-        body.Children.Add(MakeRow(Lang.Text("Download.Install.Section.Loader"), FormatLoaders(instance)));
+        body.Children.Add(
+            MakeRow(Lang.Text("Download.Install.Section.Loader"), FormatLoaders(instance)));
+        UpdateLoaderCards(instance);
     }
 
     private static string FormatLoaders(McInstance instance)
@@ -164,23 +252,23 @@ public class PageInstanceInstall : MyPageRight, IRefreshable
         var info = instance.Info;
         var loaders = new List<string>();
         if (info.HasForge)
-            loaders.Add("Forge " + (info.Forge ?? string.Empty));
+            loaders.Add($"Forge {info.Forge ?? string.Empty}");
         if (info.HasNeoForge)
-            loaders.Add("NeoForge " + (info.NeoForge ?? string.Empty));
+            loaders.Add($"NeoForge {info.NeoForge ?? string.Empty}");
         if (info.HasCleanroom)
-            loaders.Add("Cleanroom " + (info.Cleanroom ?? string.Empty));
+            loaders.Add($"Cleanroom {info.Cleanroom ?? string.Empty}");
         if (info.HasFabric)
-            loaders.Add("Fabric " + (info.Fabric ?? string.Empty));
+            loaders.Add($"Fabric {info.Fabric ?? string.Empty}");
         if (info.HasQuilt)
-            loaders.Add("Quilt " + (info.Quilt ?? string.Empty));
+            loaders.Add($"Quilt {info.Quilt ?? string.Empty}");
         if (info.HasLegacyFabric)
-            loaders.Add("Legacy Fabric " + (info.LegacyFabric ?? string.Empty));
+            loaders.Add($"Legacy Fabric {info.LegacyFabric ?? string.Empty}");
         if (info.HasLiteLoader)
             loaders.Add("LiteLoader");
         if (info.HasOptiFine)
-            loaders.Add("OptiFine " + (info.OptiFine ?? string.Empty));
+            loaders.Add($"OptiFine {info.OptiFine ?? string.Empty}");
         if (info.HasLabyMod)
-            loaders.Add("LabyMod " + (info.LabyMod ?? string.Empty));
+            loaders.Add($"LabyMod {info.LabyMod ?? string.Empty}");
         return loaders.Count == 0
             ? Lang.Text("Instance.Install.NoExtraInstall")
             : string.Join(", ", loaders);
@@ -227,18 +315,28 @@ public class PageInstanceInstall : MyPageRight, IRefreshable
                             folder,
                             Loading.LoaderFolderRunType.ForceRun,
                             1,
-                            "versions" + Path.DirectorySeparatorChar);
-                    HintService.Show(Hints.Success(Lang.Text("Common.Status.Success") + " " + instance.Name));
+                            $"versions{Path.DirectorySeparatorChar}");
+                    HintService.Show(
+                        Hints.Success(
+                            $"{Lang.Text("Common.Status.Success")} {instance.Name}"));
                     break;
+
                 case LoadState.Failed:
                     HintService.Show(
                         Hints.Error(
-                            Lang.Text("Instance.Install.Error.OperationFailed")
-                            + " " + (loader.Error?.Message ?? string.Empty)));
+                            $"{Lang.Text("Instance.Install.Error.OperationFailed")} {loader.Error?.Message ?? string.Empty}"));
                     break;
+
                 case LoadState.Aborted:
                     HintService.Show(Hints.Info(Lang.Text("Common.Status.Cancelled")));
                     break;
+
+                case LoadState.Waiting:
+                case LoadState.Loading:
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         };
     }
@@ -260,7 +358,7 @@ public class PageInstanceInstall : MyPageRight, IRefreshable
                 ? new GameDownload.DlOptiFineListEntry
                 {
                     Inherit = info.VanillaName,
-                    DisplayName = info.VanillaName + " " + info.OptiFine
+                    DisplayName = $"{info.VanillaName} {info.OptiFine}"
                 }
                 : null,
             forgeEntry = info.HasForge
@@ -274,7 +372,10 @@ public class PageInstanceInstall : MyPageRight, IRefreshable
             cleanroomVersion = info.HasCleanroom ? info.Cleanroom : null,
             fabricVersion = info.HasFabric ? info.Fabric : null,
             liteLoaderEntry = info.HasLiteLoader
-                ? new GameDownload.DlLiteLoaderListEntry { Inherit = info.VanillaName }
+                ? new GameDownload.DlLiteLoaderListEntry
+                {
+                    Inherit = info.VanillaName
+                }
                 : null,
             legacyFabricVersion = info.HasLegacyFabric ? info.LegacyFabric : null
         };
@@ -283,6 +384,8 @@ public class PageInstanceInstall : MyPageRight, IRefreshable
     private async Task ModifyAsync()
     {
         if (_instance is null)
+            return;
+        if (!RestrictedFeatures.Check("minecraft-loader-install"))
             return;
         _btnModify.IsEnabled = false;
         try
@@ -293,11 +396,12 @@ public class PageInstanceInstall : MyPageRight, IRefreshable
             if (unsupportedLoader is not null)
             {
                 HintService.Show(
-                    Hints.Warning(Lang.Text("Download.Install.Loader.Unsupported", unsupportedLoader)));
+                    Hints.Warning(
+                        Lang.Text("Download.Install.Loader.Unsupported", unsupportedLoader)));
                 return;
             }
 
-            var loaders = McInstallPipeline.CreateInstallLoader(request, ignoreDump: true);
+            var loaders = McInstallPipeline.CreateInstallLoader(request, true);
             if (loaders.Count == 0)
             {
                 HintService.Show(Hints.Error(Lang.Text("Instance.Install.Error.OperationFailed")));
@@ -305,7 +409,7 @@ public class PageInstanceInstall : MyPageRight, IRefreshable
             }
 
             var combo = new Loading.LoaderCombo<object>(
-                Lang.Text("Instance.Install.Action.ModifyLabel") + " " + instance.Name,
+                $"{Lang.Text("Instance.Install.Action.ModifyLabel")} {instance.Name}",
                 loaders)
             {
                 OnStateChanged = OnInstallLoaderStateChanged(instance)
@@ -334,11 +438,12 @@ public class PageInstanceInstall : MyPageRight, IRefreshable
             var instance = _instance;
             if (Libraries.ShouldIgnoreFileCheck(instance))
             {
-                HintService.Show(Hints.Info(Lang.Text("Instance.Overall.Repair.DisableVerificationHint")));
+                HintService.Show(
+                    Hints.Info(Lang.Text("Instance.Overall.Repair.DisableVerificationHint")));
                 return;
             }
 
-            var taskName = instance.Name + " " + Lang.Text("Instance.Overall.Repair.TaskName");
+            var taskName = $"{instance.Name} {Lang.Text("Instance.Overall.Repair.TaskName")}";
             if (Loading.loaderTaskbar.Any(loader => loader.name == taskName))
             {
                 HintService.Show(Hints.Error(Lang.Text("Instance.Overall.Repair.Processing")));
@@ -347,7 +452,10 @@ public class PageInstanceInstall : MyPageRight, IRefreshable
 
             var loader = new Loading.LoaderCombo<string>(
                 taskName,
-                GameDownload.DlClientFix(instance, true, GameDownload.AssetsIndexExistsBehaviour.AlwaysDownload))
+                GameDownload.DlClientFix(
+                    instance,
+                    true,
+                    GameDownload.AssetsIndexExistsBehaviour.AlwaysDownload))
             {
                 OnStateChanged = changed =>
                 {
@@ -356,8 +464,11 @@ public class PageInstanceInstall : MyPageRight, IRefreshable
                         case LoadState.Finished:
                             HintService.Show(
                                 Hints.Success(
-                                    Lang.Text("Instance.Overall.Repair.Success.WithTaskName", taskName)));
+                                    Lang.Text(
+                                        "Instance.Overall.Repair.Success.WithTaskName",
+                                        taskName)));
                             break;
+
                         case LoadState.Failed:
                             HintService.Show(
                                 Hints.Error(
@@ -366,11 +477,21 @@ public class PageInstanceInstall : MyPageRight, IRefreshable
                                         taskName,
                                         changed.Error?.Message ?? string.Empty)));
                             break;
+
                         case LoadState.Aborted:
                             HintService.Show(
                                 Hints.Info(
-                                    Lang.Text("Instance.Overall.Repair.Cancelled.WithTaskName", taskName)));
+                                    Lang.Text(
+                                        "Instance.Overall.Repair.Cancelled.WithTaskName",
+                                        taskName)));
                             break;
+
+                        case LoadState.Waiting:
+                        case LoadState.Loading:
+                            break;
+
+                        default:
+                            throw new ArgumentOutOfRangeException();
                     }
                 }
             };
@@ -388,16 +509,18 @@ public class PageInstanceInstall : MyPageRight, IRefreshable
     {
         if (_instance is null)
             return;
+        if (!RestrictedFeatures.Check("minecraft-loader-install"))
+            return;
         _btnReset.IsEnabled = false;
         try
         {
             var instance = _instance;
-            var dialog = await PCL.Core.UI.Dialogs.DialogService.Instance.ShowAsync(
-                new PCL.Core.UI.Dialogs.TextDialogRequest
+            var dialog = await DialogService.Instance.ShowAsync(
+                new TextDialogRequest
                 {
                     Title = Lang.Text("Instance.Install.Reset.Title"),
                     Content = Lang.Text("Instance.Install.Reset.Message"),
-                    Buttons = PCL.Core.UI.Dialogs.DialogButtons.OkCancel,
+                    Buttons = DialogButtons.OkCancel,
                     IsWarn = true
                 });
             if (!dialog.IsConfirmed)
@@ -408,12 +531,12 @@ public class PageInstanceInstall : MyPageRight, IRefreshable
             {
                 var backupFolder = Path.Combine(instance.PathInstance, "PCLInstallBackups");
                 InstancePageHelper.EnsureDirectory(backupFolder);
-                var json = Path.Combine(instance.PathInstance, instance.Name + ".json");
-                var jar = Path.Combine(instance.PathInstance, instance.Name + ".jar");
+                var json = Path.Combine(instance.PathInstance, $"{instance.Name}.json");
+                var jar = Path.Combine(instance.PathInstance, $"{instance.Name}.jar");
                 if (File.Exists(json))
-                    File.Copy(json, Path.Combine(backupFolder, instance.Name + ".json"), true);
+                    File.Copy(json, Path.Combine(backupFolder, $"{instance.Name}.json"), true);
                 if (File.Exists(jar))
-                    File.Copy(jar, Path.Combine(backupFolder, instance.Name + ".jar"), true);
+                    File.Copy(jar, Path.Combine(backupFolder, $"{instance.Name}.jar"), true);
             }
             catch (Exception ex)
             {
@@ -425,11 +548,12 @@ public class PageInstanceInstall : MyPageRight, IRefreshable
             if (unsupportedLoader is not null)
             {
                 HintService.Show(
-                    Hints.Warning(Lang.Text("Download.Install.Loader.Unsupported", unsupportedLoader)));
+                    Hints.Warning(
+                        Lang.Text("Download.Install.Loader.Unsupported", unsupportedLoader)));
                 return;
             }
 
-            var loaders = McInstallPipeline.CreateInstallLoader(request, ignoreDump: true);
+            var loaders = McInstallPipeline.CreateInstallLoader(request, true);
             if (loaders.Count == 0)
             {
                 HintService.Show(Hints.Error(Lang.Text("Instance.Install.Error.OperationFailed")));
@@ -437,7 +561,7 @@ public class PageInstanceInstall : MyPageRight, IRefreshable
             }
 
             var combo = new Loading.LoaderCombo<object>(
-                Lang.Text("Instance.Install.Action.StartReset") + " " + instance.Name,
+                $"{Lang.Text("Instance.Install.Action.StartReset")} {instance.Name}",
                 loaders)
             {
                 OnStateChanged = OnInstallLoaderStateChanged(instance)

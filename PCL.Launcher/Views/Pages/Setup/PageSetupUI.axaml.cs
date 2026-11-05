@@ -1,12 +1,16 @@
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Layout;
+using Avalonia.VisualTree;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
 using PCL.Core.UI;
-using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
+using PCL.Core.Utils.Validate;
 using PCL.UI.Controls;
+using PCL.UI.Controls.Common;
 using PCL.UI.Seams;
 using PCL.Views.Pages.Launch;
 using PCL.Views.Shell;
@@ -15,8 +19,7 @@ namespace PCL.Views.Pages.Setup;
 
 /// <summary>
 ///     外观设置页：窗口透明度、深浅色模式、配色主题、字体、标题栏类型、背景、背景音乐、自定义主页与功能隐藏。
-///     所有开关与下拉直接读写 <see cref="Config" />；配色变更由 <c>ThemeService</c> 订阅配置事件后生效，
-///     语言与字体分别由 <c>LocalizationService</c> / 字体配置生效。
+///     状态与配置写入由 <see cref="PageSetupUIViewModel" /> 承担；页面负责动态控件构建、文件选择与标题栏刷新。
 /// </summary>
 public partial class PageSetupUI : MyPageRight, ISetupResetPage
 {
@@ -33,59 +36,39 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
     private readonly MyRadioBox[] _logoTypeRadios;
     private bool _loaded;
     private bool _reloading;
+    private bool _selectingLogo;
 
     public PageSetupUI()
     {
         InitializeComponent();
         PanScroll = PanBack;
+        DataContext = ViewModel;
 
         _logoTypeRadios = [RadioLogoType0, RadioLogoType1, RadioLogoType2, RadioLogoType3];
         _homepageRadios = [RadioCustomType0, RadioCustomType3, RadioCustomType1, RadioCustomType2];
 
-        SliderLauncherOpacity.getHintText = new Func<object, object>(FormatLauncherOpacityHint);
-        SliderBackgroundOpacity.getHintText = new Func<object, object>(FormatBackgroundOpacityHint);
-        SliderBackgroundBlur.getHintText = new Func<object, object>(FormatPixelHint);
-        SliderBlurValue.getHintText = new Func<object, object>(FormatPixelHint);
-        SliderBlurSamplingRate.getHintText = new Func<object, object>(FormatSamplingRateHint);
-        SliderMusicVolume.getHintText = new Func<object, object>(FormatMusicVolumeHint);
+        SliderLauncherOpacity.getHintText =
+            new Func<object, object>(PageSetupUIViewModel.FormatLauncherOpacityHint);
+        SliderBackgroundOpacity.getHintText =
+            new Func<object, object>(PageSetupUIViewModel.FormatBackgroundOpacityHint);
+        SliderBackgroundBlur.getHintText =
+            new Func<object, object>(PageSetupUIViewModel.FormatPixelHint);
+        SliderBlurValue.getHintText =
+            new Func<object, object>(PageSetupUIViewModel.FormatPixelHint);
+        SliderBlurSamplingRate.getHintText =
+            new Func<object, object>(PageSetupUIViewModel.FormatSamplingRateHint);
+        SliderMusicVolume.getHintText =
+            new Func<object, object>(PageSetupUIViewModel.FormatMusicVolumeHint);
 
-        SliderLauncherOpacity.Change += (_, _) =>
-            WriteIfReady(() => Config.Preference.Theme.WindowOpacity = SliderLauncherOpacity.Value);
-        SliderBackgroundOpacity.Change += (_, _) => WriteIfReady(() =>
-            Config.Preference.Background.WallpaperOpacity = SliderBackgroundOpacity.Value);
-        SliderBackgroundBlur.Change += (_, _) => WriteIfReady(() =>
-            Config.Preference.Background.WallpaperBlurRadius = SliderBackgroundBlur.Value);
-        SliderBlurValue.Change += (_, _) =>
-            WriteIfReady(() => Config.Preference.Blur.Radius = SliderBlurValue.Value);
-        SliderBlurSamplingRate.Change += (_, _) =>
-            WriteIfReady(() => Config.Preference.Blur.SamplingRate = SliderBlurSamplingRate.Value);
-        SliderMusicVolume.Change += (_, _) =>
-            WriteIfReady(() => Config.Preference.Music.Volume = SliderMusicVolume.Value);
-
-        ComboDarkMode.SelectionChanged += (_, _) => WriteIfReady(() =>
+        TextCustomNet.ValidateRules.Add(
+            new HttpValidator
+            {
+                AllowsNullOrEmpty = true
+            });
+        TextCustomNet.ValidatedTextChanged += (_, _) => WriteIfReady(() =>
         {
-            if (ComboDarkMode.SelectedIndex >= 0)
-                Config.Preference.Theme.ColorMode = (ColorMode)ComboDarkMode.SelectedIndex;
-        });
-        ComboLightColor.SelectionChanged += (_, _) => WriteIfReady(() =>
-        {
-            if (ComboLightColor.SelectedIndex >= 0)
-                Config.Preference.Theme.LightColor = (ColorTheme)ComboLightColor.SelectedIndex;
-        });
-        ComboDarkColor.SelectionChanged += (_, _) => WriteIfReady(() =>
-        {
-            if (ComboDarkColor.SelectedIndex >= 0)
-                Config.Preference.Theme.DarkColor = (ColorTheme)ComboDarkColor.SelectedIndex;
-        });
-        ComboBlurType.SelectionChanged += (_, _) => WriteIfReady(() =>
-        {
-            if (ComboBlurType.SelectedIndex >= 0)
-                Config.Preference.Blur.KernelType = ComboBlurType.SelectedIndex;
-        });
-        ComboBackgroundSuit.SelectionChanged += (_, _) => WriteIfReady(() =>
-        {
-            if (ComboBackgroundSuit.SelectedIndex >= 0)
-                Config.Preference.Background.WallpaperSuitMode = ComboBackgroundSuit.SelectedIndex;
+            Config.Preference.Homepage.CustomUrl = TextCustomNet.Text ?? string.Empty;
+            ViewModel.CustomNetText = TextCustomNet.Text ?? string.Empty;
         });
 
         CheckLauncherLogo.Change += (_, _) => WriteIfReady(() =>
@@ -99,8 +82,8 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
                 CheckBackgroundColorful.Checked == true);
         CheckAutoPauseVideo.Change += (_, _) => WriteIfReady(() =>
             Config.Preference.Background.AutoPauseVideo = CheckAutoPauseVideo.Checked == true);
-        CheckLogoLeft.Change += (_, _) =>
-            WriteIfReady(() => Config.Preference.TopBarLeftAlign = CheckLogoLeft.Checked == true);
+        CheckLogoLeft.Change += (_, _) => WriteIfReady(() =>
+            Config.Preference.TopBarLeftAlign = CheckLogoLeft.Checked == true);
         CheckBlur.Change += (_, _) => WriteIfReady(() =>
         {
             Config.Preference.Blur.IsEnabled = CheckBlur.Checked == true;
@@ -123,8 +106,8 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             if (CheckMusicStop.Checked == true && CheckMusicStart.Checked == true)
                 CheckMusicStart.Checked = false;
         });
-        CheckMusicSMTC.Change += (_, _) =>
-            WriteIfReady(() => Config.Preference.Music.EnableSMTC = CheckMusicSMTC.Checked == true);
+        CheckMusicSMTC.Change += (_, _) => WriteIfReady(() =>
+            Config.Preference.Music.EnableSMTC = CheckMusicSMTC.Checked == true);
 
         foreach (var (index, radio) in _logoTypeRadios.Index())
             radio.Check += (_, _) => WriteIfReady(() =>
@@ -132,6 +115,7 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
                 if (!radio.Checked) return;
                 Config.Preference.WindowTitleType = (LauncherTitleType)index;
                 RefreshLogoPanels();
+                RefreshTitleBar();
             });
 
         foreach (var (index, radio) in _homepageRadios.Index())
@@ -155,15 +139,6 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             WriteIfReady(() => Config.Preference.Font = ComboUiFont.SelectedFontTag);
         ComboUiMotdFont.SelectionChanged += (_, _) =>
             WriteIfReady(() => Config.Preference.MotdFont = ComboUiMotdFont.SelectedFontTag);
-        TextLogoText.TextChanged += (_, _) => WriteIfReady(() =>
-            Config.Preference.WindowTitleCustomText = TextLogoText.Text ?? string.Empty);
-        TextCustomNet.TextChanged += (_, _) => WriteIfReady(() =>
-            Config.Preference.Homepage.CustomUrl = TextCustomNet.Text ?? string.Empty);
-        ComboCustomPreset.SelectionChanged += (_, _) => WriteIfReady(() =>
-        {
-            if (ComboCustomPreset.SelectedIndex >= 0)
-                Config.Preference.Homepage.SelectedPreset = ComboCustomPreset.SelectedIndex;
-        });
 
         BtnLauncherDonate.Click += (_, _) => Basics.OpenPath("https://afdian.com/a/LTCat");
         BtnLogoChange.Click += (_, _) => OnChangeLogo();
@@ -201,8 +176,11 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             if (_loaded) return;
             _loaded = true;
             Reload();
+            ViewModel.ShowLauncherHint();
         };
     }
+
+    public PageSetupUIViewModel ViewModel { get; } = new();
 
     public void Reset()
     {
@@ -224,9 +202,10 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
 
     public override void OnNavigatedTo(object? parameter)
     {
+        PanBack.ScrollToHome();
+        if (_loaded) Reload();
         RefreshBackgroundState();
         RefreshMusicState();
-        Reload();
     }
 
     public override void OnNavigatedFrom()
@@ -257,47 +236,26 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         _reloading = true;
         try
         {
-            var theme = Config.Preference.Theme;
-            SliderLauncherOpacity.Value = theme.WindowOpacity;
-            ComboDarkMode.SelectedIndex = Math.Clamp((int)theme.ColorMode, 0, 2);
-            ComboLightColor.SelectedIndex = Math.Clamp(
-                (int)theme.LightColor,
-                0,
-                Math.Max(0, ComboLightColor.ItemCount - 1));
-            ComboDarkColor.SelectedIndex = Math.Clamp(
-                (int)theme.DarkColor,
-                0,
-                Math.Max(0, ComboDarkColor.ItemCount - 1));
+            ViewModel.Reload(Math.Max(1, ComboLightColor.ItemCount));
             CheckLauncherLogo.Checked = Config.Preference.ShowStartupLogo;
             CheckLockWindowSize.Checked = Config.Preference.LockWindowSize;
             CheckShowLaunchingHint.Checked = Config.Preference.ShowLaunchingHint;
 
             CheckBlur.Checked = Config.Preference.Blur.IsEnabled;
-            SliderBlurValue.Value = Config.Preference.Blur.Radius;
-            SliderBlurSamplingRate.Value = Config.Preference.Blur.SamplingRate;
-            ComboBlurType.SelectedIndex = Math.Clamp(Config.Preference.Blur.KernelType, 0, 1);
             PanBlurValue.IsVisible = Config.Preference.Blur.IsEnabled;
 
             ComboUiFont.SelectedFontTag = Config.Preference.Font;
             ComboUiMotdFont.SelectedFontTag = Config.Preference.MotdFont;
 
-            SliderBackgroundOpacity.Value = Config.Preference.Background.WallpaperOpacity;
-            SliderBackgroundBlur.Value = Config.Preference.Background.WallpaperBlurRadius;
-            ComboBackgroundSuit.SelectedIndex = Math.Clamp(
-                Config.Preference.Background.WallpaperSuitMode,
-                0,
-                8);
             CheckBackgroundColorful.Checked = Config.Preference.Background.BackgroundColorful;
             CheckAutoPauseVideo.Checked = Config.Preference.Background.AutoPauseVideo;
 
             var titleType = (int)Config.Preference.WindowTitleType;
             if (titleType >= 0 && titleType < _logoTypeRadios.Length)
                 _logoTypeRadios[titleType].SetChecked(true, false);
-            TextLogoText.Text = Config.Preference.WindowTitleCustomText;
             CheckLogoLeft.Checked = Config.Preference.TopBarLeftAlign;
             RefreshLogoPanels();
 
-            SliderMusicVolume.Value = Config.Preference.Music.Volume;
             CheckMusicRandom.Checked = Config.Preference.Music.ShufflePlayback;
             CheckMusicAuto.Checked = Config.Preference.Music.StartOnStartup;
             CheckMusicStart.Checked = Config.Preference.Music.StartInGame;
@@ -314,10 +272,6 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             };
             _homepageRadios[homepageIndex].SetChecked(true, false);
             TextCustomNet.Text = Config.Preference.Homepage.CustomUrl;
-            ComboCustomPreset.SelectedIndex = Math.Clamp(
-                Config.Preference.Homepage.SelectedPreset,
-                0,
-                ComboCustomPreset.ItemCount - 1);
             RefreshHomepagePanels();
 
             RefreshFeatureHideState();
@@ -368,31 +322,6 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
 
     #endregion
 
-    private static object FormatMusicVolumeHint(object value)
-    {
-        return Lang.Number(Math.Ceiling(Convert.ToDouble(value) * 0.1d) / 100d, "P0");
-    }
-
-    private static object FormatLauncherOpacityHint(object value)
-    {
-        return Lang.Number(Math.Round(40 + Convert.ToDouble(value) * 0.1d) / 100d, "P0");
-    }
-
-    private static object FormatBackgroundOpacityHint(object value)
-    {
-        return Lang.Number(Math.Round(Convert.ToDouble(value) * 0.1d) / 100d, "P0");
-    }
-
-    private static object FormatPixelHint(object value)
-    {
-        return Lang.Text("Setup.Ui.Slider.Pixel", Lang.Number(Convert.ToDouble(value), "N0"));
-    }
-
-    private static object FormatSamplingRateHint(object value)
-    {
-        return Lang.Number(Convert.ToDouble(value) / 100d, "P0");
-    }
-
     #region 标题栏与主页
 
     private void RefreshLogoPanels()
@@ -411,6 +340,23 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         PanCustomPreset.IsVisible = type == 3;
     }
 
+    private static void RefreshTitleBar()
+    {
+        var window = Application.Current?.ApplicationLifetime is
+            IClassicDesktopStyleApplicationLifetime desktop
+            ? desktop.MainWindow
+            : null;
+        var titleBar = window?.GetVisualDescendants().OfType<TitleBar>().FirstOrDefault();
+        if (titleBar is null) return;
+        titleBar.RefreshTitleAppearance();
+        if (Config.Preference.WindowTitleType == LauncherTitleType.Image
+            && titleBar.FindControl<MyImage>("ImageTitleLogo") is { } image)
+        {
+            image.Source = null;
+            image.Source = LogoPath;
+        }
+    }
+
     #endregion
 
     #region 背景
@@ -421,37 +367,20 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
     {
         try
         {
-            var count = CountFiles(BackgroundFolder);
+            var count = PageSetupUIViewModel.CountContentFiles(BackgroundFolder);
             var show = count > 0;
-            PanBackgroundSuit.IsVisible = show;
-            PanBackgroundOpacity.IsVisible = show;
-            PanBackgroundBlur.IsVisible = show;
-            BtnBackgroundClear.IsVisible = show;
-            // TODO(FIX-P3-05): 视频背景引擎（SEAM-3 / BackgroundHost）接入后恢复可勾选，并按实际能力决定显隐。
-            CheckAutoPauseVideo.IsVisible = show;
+            ViewModel.ApplyBackgroundState(show, count);
             CheckAutoPauseVideo.IsEnabled = SeamCapabilities.MediaAvailable;
-            if (!SeamCapabilities.MediaAvailable)
-                ToolTip.SetTip(CheckAutoPauseVideo, Lang.Text("Tools.GameLink.Finish.Unavailable"));
-            CardBackground.Title = show
-                ? Lang.Text("Setup.Ui.Background.TitleWithCount", count)
-                : Lang.Text("Setup.Ui.Background.TitleDefault");
+            ToolTip.SetTip(
+                CheckAutoPauseVideo,
+                SeamCapabilities.MediaAvailable
+                    ? Lang.Text("Setup.Ui.Background.PauseVideo.ToolTip")
+                    : Lang.Text("Tools.GameLink.Finish.Unavailable"));
+            ToolTip.SetShowOnDisabled(CheckAutoPauseVideo, true);
         }
         catch (Exception ex)
         {
             LauncherCommon.Log(ex, "刷新背景状态失败");
-        }
-    }
-
-    private static int CountFiles(string directory)
-    {
-        if (!Directory.Exists(directory)) return 0;
-        try
-        {
-            return Directory.EnumerateFiles(directory).Count();
-        }
-        catch (Exception)
-        {
-            return 0;
         }
     }
 
@@ -468,20 +397,16 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
 
     private async Task ClearBackgroundAsync()
     {
-        var result = await DialogService.Instance.ShowAsync(
-            new TextDialogRequest
-            {
-                Title = Lang.Text("Common.Dialog.Warning"),
-                Content = Lang.Text("Setup.Ui.Background.Clear.Confirm.Message"),
-                Buttons = DialogButtons.OkCancel,
-                IsWarn = true
-            });
-        if (!result.IsConfirmed) return;
+        ViewModel.BackgroundClearEnabled = false;
         try
         {
-            if (Directory.Exists(BackgroundFolder))
-                Directory.Delete(BackgroundFolder, true);
-            Directory.CreateDirectory(BackgroundFolder);
+            if (!await ViewModel.ConfirmBackgroundClearAsync()) return;
+            await Task.Run(() =>
+            {
+                if (Directory.Exists(BackgroundFolder))
+                    Directory.Delete(BackgroundFolder, true);
+                Directory.CreateDirectory(BackgroundFolder);
+            });
             BackgroundHost.RequestRefresh();
             RefreshBackgroundState();
             HintService.Show(Hints.Success(Lang.Text("Setup.Ui.Background.Clear.Success")));
@@ -493,6 +418,10 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
                 "清空背景内容失败",
                 LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
+        }
+        finally
+        {
+            ViewModel.BackgroundClearEnabled = true;
         }
     }
 
@@ -506,23 +435,15 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
     {
         try
         {
-            var count = CountFiles(MusicFolder);
-            var hasMusic = count > 0;
-            PanMusicVolume.IsVisible = hasMusic;
-            PanMusicDetail.IsVisible = hasMusic;
-            BtnMusicClear.IsVisible = hasMusic;
-            CardMusic.Title = hasMusic
-                ? Lang.Text("Setup.Ui.Music.TitleWithCount", count)
-                : Lang.Text("Setup.Ui.Music.Title");
-
-            // TODO(FIX-P3-03): 播放引擎（SEAM-3）迁移后恢复刷新按钮并把提示换回 Setup.Ui.Music.Refresh.ToolTip；
-            // 引擎缺失期间按钮禁用，配置项本身仍可正常读写。
+            var count = PageSetupUIViewModel.CountContentFiles(MusicFolder);
+            ViewModel.ApplyMusicState(count > 0, count);
             BtnMusicRefresh.IsEnabled = SeamCapabilities.MediaAvailable;
             ToolTip.SetTip(
                 BtnMusicRefresh,
                 SeamCapabilities.MediaAvailable
                     ? Lang.Text("Setup.Ui.Music.Refresh.ToolTip")
                     : Lang.Text("Tools.GameLink.Finish.Unavailable"));
+            ToolTip.SetShowOnDisabled(BtnMusicRefresh, true);
         }
         catch (Exception ex)
         {
@@ -532,21 +453,17 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
 
     private async Task ClearMusicAsync()
     {
-        var result = await DialogService.Instance.ShowAsync(
-            new TextDialogRequest
-            {
-                Title = Lang.Text("Common.Dialog.Warning"),
-                Content = Lang.Text("Setup.Ui.Music.Clear.Confirm.Message"),
-                Buttons = DialogButtons.OkCancel,
-                IsWarn = true
-            });
-        if (!result.IsConfirmed) return;
+        ViewModel.MusicClearEnabled = false;
         try
         {
+            if (!await ViewModel.ConfirmMusicClearAsync()) return;
             HintService.Show(Hints.Info(Lang.Text("Setup.Ui.Music.Deleting")));
-            if (Directory.Exists(MusicFolder))
-                Directory.Delete(MusicFolder, true);
-            Directory.CreateDirectory(MusicFolder);
+            await Task.Run(() =>
+            {
+                if (Directory.Exists(MusicFolder))
+                    Directory.Delete(MusicFolder, true);
+                Directory.CreateDirectory(MusicFolder);
+            });
             RefreshMusicState();
             HintService.Show(Hints.Success(Lang.Text("Setup.Ui.Music.Delete.Success")));
         }
@@ -558,6 +475,10 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
                 LauncherLogLevel.Msgbox,
                 userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
         }
+        finally
+        {
+            ViewModel.MusicClearEnabled = true;
+        }
     }
 
     #endregion
@@ -566,7 +487,7 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
 
     private static string LogoPath => Path.Combine(Paths.Data, "Logo.png");
 
-    private void OnChangeLogo()
+    private static void OnChangeLogo()
     {
         var fileName = SystemDialogs.SelectFile(
             Lang.Text("Setup.Ui.ImageFile.Filter"),
@@ -575,7 +496,7 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         try
         {
             File.Copy(fileName, LogoPath, true);
-            HintService.Show(Hints.Success(Lang.Text("Setup.Ui.Logo.ChangeImage")));
+            RefreshTitleBar();
         }
         catch (Exception ex)
         {
@@ -587,12 +508,56 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         }
     }
 
+    private void RadioLogoType3_PreviewCheck(object? sender, RouteEventArgs e)
+    {
+        if (_selectingLogo || !e.raiseByMouse || Animations.AniExitsAnyControl()) return;
+        if (File.Exists(LogoPath))
+        {
+            RefreshTitleBar();
+            return;
+        }
+
+        _selectingLogo = true;
+        try
+        {
+            var fileName = SystemDialogs.SelectFile(
+                Lang.Text("Setup.Ui.ImageFile.Filter"),
+                Lang.Text("Setup.Ui.ImageFile.SelectTitle"));
+            if (string.IsNullOrEmpty(fileName))
+            {
+                e.handled = true;
+                return;
+            }
+
+            try
+            {
+                File.Copy(fileName, LogoPath, true);
+                RefreshTitleBar();
+            }
+            catch (Exception ex)
+            {
+                LauncherCommon.Log(
+                    ex,
+                    "复制标题栏图片失败",
+                    LauncherLogLevel.Msgbox,
+                    userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
+                e.handled = true;
+            }
+        }
+        finally
+        {
+            _selectingLogo = false;
+        }
+    }
+
     private void OnDeleteLogo()
     {
         try
         {
             if (File.Exists(LogoPath)) File.Delete(LogoPath);
-            ((MyRadioBox)_logoTypeRadios[(int)LauncherTitleType.Default]).SetChecked(true, true);
+            Config.Preference.WindowTitleType = LauncherTitleType.Default;
+            RadioLogoType1.SetChecked(true, true);
+            RefreshTitleBar();
             HintService.Show(Hints.Success(Lang.Text("Setup.Ui.Logo.Clear.Success")));
         }
         catch (Exception ex)
@@ -618,16 +583,13 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
     {
         try
         {
-            var forceShow = HiddenFeatureState.ForceShow;
-            var functionHidden = Config.Preference.Hide.FunctionHidden;
-            CardSwitch.IsVisible = forceShow || !functionHidden;
-            CardSwitch.Title = forceShow
-                ? Lang.Text("Setup.Ui.FeatureHide.TitleTemporarilyDisabled")
-                : Lang.Text("Setup.Ui.FeatureHide.Title");
+            ViewModel.ApplyFeatureHideState(
+                HiddenFeatureState.ForceShow,
+                Config.Preference.Hide.FunctionHidden);
         }
         catch (Exception)
         {
-            CardSwitch.IsVisible = true;
+            ViewModel.FeatureHideVisible = true;
         }
     }
 
@@ -708,6 +670,7 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             "Setup.Ui.FeatureHide.Item.FeatureHide",
             tooltipKey: "Setup.Ui.FeatureHide.Item.FeatureHide.ToolTip");
 
+        var previous = _reloading;
         _reloading = true;
         try
         {
@@ -715,7 +678,7 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         }
         finally
         {
-            _reloading = false;
+            _reloading = previous;
         }
     }
 

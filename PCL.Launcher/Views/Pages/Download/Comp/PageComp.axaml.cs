@@ -98,7 +98,9 @@ public partial class PageComp : UserControl
         TargetGameVersion = gameVersion;
         TargetModLoader = modLoader;
         if (!_inited) return;
-        TextSearchVersion.Text = gameVersion ?? string.Empty;
+        TextSearchVersion.Text = string.IsNullOrEmpty(gameVersion)
+            ? Lang.Text("Download.Comp.Filter.Version.AllInputAvailable")
+            : gameVersion;
         SelectComboLoader(modLoader);
         ApplySourceVisibility();
         StartNewSearch();
@@ -130,7 +132,7 @@ public partial class PageComp : UserControl
                     Content = version
                 });
         TextSearchVersion.SelectedIndex = 0;
-        TextSearchVersion.Text = string.Empty;
+        TextSearchVersion.Text = Lang.Text("Download.Comp.Filter.Version.AllInputAvailable");
     }
 
     private void ApplyStaticToolTips()
@@ -236,10 +238,9 @@ public partial class PageComp : UserControl
     {
         PanSearchBox.HintText = Comp.GetCompSearchName(PageType);
         Load.Text = Comp.GetCompLoadingName(PageType);
-        if (_loader is not null)
-            _loader.name = Lang.Text(
-                "Download.Comp.List.Source.ResourceFetch",
-                Comp.GetCompTypeName(PageType));
+        _loader?.name = Lang.Text(
+            "Download.Comp.List.Source.ResourceFetch",
+            Comp.GetCompTypeName(PageType));
 
         var isModLike = PageType is Comp.CompType.Mod or Comp.CompType.ModPack;
         var isShader = PageType == Comp.CompType.Shader;
@@ -281,7 +282,9 @@ public partial class PageComp : UserControl
                     Content = version
                 });
         TextSearchVersion.SelectedIndex = versionIndex >= 0 ? versionIndex : 0;
-        TextSearchVersion.Text = versionText ?? string.Empty;
+        TextSearchVersion.Text = versionIndex > 0
+            ? versionText ?? string.Empty
+            : Lang.Text("Download.Comp.Filter.Version.AllInputAvailable");
         if (_loader is { State: LoadState.Finished })
             RenderResults();
     }
@@ -294,19 +297,22 @@ public partial class PageComp : UserControl
         switch (newState)
         {
             case LoadState.Loading:
+                PanAlways.IsVisible = false;
                 PanContent.IsVisible = false;
                 PanLoad.IsVisible = true;
                 break;
 
             case LoadState.Finished:
                 PanLoad.IsVisible = false;
+                PanAlways.IsVisible = true;
                 PanContent.IsVisible = true;
                 RenderResults();
                 break;
 
             case LoadState.Failed:
-                PanLoad.IsVisible = false;
-                PanContent.IsVisible = true;
+                PanLoad.IsVisible = true;
+                PanAlways.IsVisible = false;
+                PanContent.IsVisible = false;
                 if (!_autoRetried
                     && sender.Error?.Message.Contains(
                         Lang.Text("Common.Error.InvalidJson"),
@@ -315,10 +321,8 @@ public partial class PageComp : UserControl
                 {
                     _autoRetried = true;
                     StartLoad(true);
-                    break;
                 }
 
-                RenderResults();
                 break;
 
             case LoadState.Waiting:
@@ -341,13 +345,20 @@ public partial class PageComp : UserControl
                 PageType is not (Comp.CompType.ModPack or Comp.CompType.DataPack);
             foreach (var project in pageResults)
             {
-                var item = new MyCompItem(
-                    project,
-                    GetGameVersionFilter() is null,
-                    GetSelectedModLoader() == Comp.CompLoaderType.Any
-                    && PageType is Comp.CompType.Mod or Comp.CompType.ModPack,
-                    showQuickDownload);
-                item.Click += OnCompItemClick;
+                var item = new MyVirtualizingElement<MyCompItem>(() =>
+                {
+                    var compItem = new MyCompItem(
+                        project,
+                        GetGameVersionFilter() is null,
+                        GetSelectedModLoader() == Comp.CompLoaderType.Any
+                        && PageType is Comp.CompType.Mod or Comp.CompType.ModPack,
+                        showQuickDownload);
+                    compItem.Click += OnCompItemClick;
+                    return compItem;
+                })
+                {
+                    Height = 66d
+                };
                 PanProjects.Children.Add(item);
             }
 
@@ -373,7 +384,7 @@ public partial class PageComp : UserControl
             BtnPageFirst.Opacity = _page > 0 ? 1d : 0.2d;
             BtnPageLeft.Opacity = _page > 0 ? 1d : 0.2d;
             BtnPageRight.Opacity = hasMore ? 1d : 0.2d;
-            LabPage.Text = (_page + 1).ToString();
+            LabPage.Text = Lang.Number(_page + 1, "N0");
         }
         catch (Exception ex)
         {
@@ -416,6 +427,7 @@ public partial class PageComp : UserControl
     private void StartLoad(bool force)
     {
         if (_loader is null) return;
+        PanAlways.IsVisible = false;
         PanContent.IsVisible = false;
         PanLoad.IsVisible = true;
         _loader.Start(BuildRequest(), force);
@@ -534,7 +546,7 @@ public partial class PageComp : UserControl
     {
         PanSearchBox.Text = "";
         TextSearchVersion.SelectedIndex = 0;
-        TextSearchVersion.Text = string.Empty;
+        TextSearchVersion.Text = Lang.Text("Download.Comp.Filter.Version.AllInputAvailable");
         ComboSearchSource.SelectedIndex = 0;
         ComboSearchTag.SelectedIndex = 0;
         ComboSearchLoader.SelectedIndex = 0;

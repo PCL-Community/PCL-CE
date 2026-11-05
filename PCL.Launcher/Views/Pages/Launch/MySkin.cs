@@ -1,8 +1,5 @@
-using System.IO;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Data;
-using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Markup.Xaml.MarkupExtensions;
 using Avalonia.Media;
@@ -29,15 +26,6 @@ public sealed class MySkin : Grid
 
     private const double ShadowHoverOpacity = 0.8d;
 
-    private readonly MyDropShadow _shadow = new()
-    {
-        Margin = new Thickness(-3d, -3d, -3d, -4d),
-        ShadowRadius = 3d,
-        CornerRadius = new CornerRadius(5d),
-        Opacity = ShadowIdleOpacity,
-        IsHitTestVisible = false
-    };
-
     private readonly Image _imgBack = new()
     {
         Width = 48d,
@@ -56,10 +44,20 @@ public sealed class MySkin : Grid
         VerticalAlignment = VerticalAlignment.Center
     };
 
+    private readonly DropShadowEffect _shadow = new()
+    {
+        BlurRadius = 10d,
+        OffsetX = 0d,
+        OffsetY = 0d,
+        Opacity = ShadowIdleOpacity
+    };
+
     private string _address = "";
-    private bool _isMouseDown;
     private bool _hasCape = true;
+    private bool _isMouseDown;
     private int _loadRevision;
+
+    private MyMenuItem? _menuCape;
 
     public MySkin()
     {
@@ -69,11 +67,13 @@ public sealed class MySkin : Grid
         Bind(BackgroundProperty, new DynamicResourceExtension("ColorBrushSemiTransparent"));
         ToolTip.SetTip(this, Lang.Text("Launch.Skin.Change.ToolTip"));
 
-        ContainerTheme.BindDynamic(_shadow, MyDropShadow.ColorProperty, "ColorObject2");
+        Effect = _shadow;
+        ApplyShadowColor();
+        AttachedToVisualTree += (_, _) => ApplyShadowColor();
+        ActualThemeVariantChanged += (_, _) => ApplyShadowColor();
 
         RenderOptions.SetBitmapInterpolationMode(_imgBack, BitmapInterpolationMode.None);
         RenderOptions.SetBitmapInterpolationMode(_imgFore, BitmapInterpolationMode.None);
-        Children.Add(_shadow);
         Children.Add(_imgBack);
         Children.Add(_imgFore);
 
@@ -81,11 +81,22 @@ public sealed class MySkin : Grid
 
         PointerEntered += (_, _) =>
         {
-            AniStart(AaOpacity(_shadow, ShadowHoverOpacity - _shadow.Opacity, 200, 100), "Skin Shadow");
+            AniStart(
+                AaDouble(
+                    delta => _shadow.Opacity += delta,
+                    ShadowHoverOpacity - _shadow.Opacity,
+                    200,
+                    100),
+                "Skin Shadow");
         };
         PointerExited += (_, _) =>
         {
-            AniStart(AaOpacity(_shadow, ShadowIdleOpacity - _shadow.Opacity, 200), "Skin Shadow");
+            AniStart(
+                AaDouble(
+                    delta => _shadow.Opacity += delta,
+                    ShadowIdleOpacity - _shadow.Opacity,
+                    200),
+                "Skin Shadow");
             _isMouseDown = false;
             AniStart(
                 AaScaleTransform(this, 1d - GetScale().ScaleX, 60, ease: new AniEaseOutFluent()),
@@ -109,18 +120,13 @@ public sealed class MySkin : Grid
         };
     }
 
-    public event EventHandler? Click;
-
-    public event EventHandler? CapeRequested;
-
     public bool HasCape
     {
         get => _hasCape;
         set
         {
             _hasCape = value;
-            if (_menuCape is not null)
-                _menuCape.IsVisible = value;
+            _menuCape?.IsVisible = value;
         }
     }
 
@@ -134,12 +140,17 @@ public sealed class MySkin : Grid
             _address = value ?? "";
             ToolTip.SetTip(
                 this,
-                Lang.Text(string.IsNullOrEmpty(_address)
-                    ? "Common.State.Loading"
-                    : "Launch.Skin.Change.ToolTip"));
+                Lang.Text(
+                    string.IsNullOrEmpty(_address)
+                        ? "Common.State.Loading"
+                        : "Launch.Skin.Change.ToolTip"));
             _ = LoadAsync();
         }
     }
+
+    public event EventHandler? Click;
+
+    public event EventHandler? CapeRequested;
 
     public void Clear()
     {
@@ -168,15 +179,16 @@ public sealed class MySkin : Grid
         {
             var localPath = address;
             if (address.StartsWith("http", StringComparison.OrdinalIgnoreCase))
-                localPath = await PCL.UI.Controls.MyImage.DownloadImageAsync(address).ConfigureAwait(false);
+                localPath = await MyImage.DownloadImageAsync(address).ConfigureAwait(false);
             if (string.IsNullOrEmpty(localPath))
                 throw new InvalidDataException("皮肤文件不存在");
 
             var target = SystemDialogs.SelectSaveFile(
                 Lang.Text("Launch.Skin.SaveDialog.Title"),
-                Path.GetFileName(address.EndsWith(".png", StringComparison.OrdinalIgnoreCase)
-                    ? address
-                    : "Skin.png"),
+                Path.GetFileName(
+                    address.EndsWith(".png", StringComparison.OrdinalIgnoreCase)
+                        ? address
+                        : "Skin.png"),
                 Lang.Text("Launch.Skin.SaveDialog.Filter"));
             if (string.IsNullOrWhiteSpace(target))
                 return;
@@ -197,8 +209,6 @@ public sealed class MySkin : Grid
             HintService.Show(Hints.Error(Lang.Text("Launch.Skin.File.Error")));
         }
     }
-
-    private MyMenuItem? _menuCape;
 
     private void BuildContextMenu()
     {
@@ -226,8 +236,19 @@ public sealed class MySkin : Grid
 
         ContextMenu = new ContextMenu
         {
-            ItemsSource = new List<MyMenuItem> { saveItem, refreshItem, _menuCape }
+            ItemsSource = new List<MyMenuItem>
+            {
+                saveItem,
+                refreshItem,
+                _menuCape
+            }
         };
+    }
+
+    private void ApplyShadowColor()
+    {
+        if (this.TryFindResource("ColorObject2", out var value) && value is Color color)
+            _shadow.Color = color;
     }
 
     private ScaleTransform GetScale()
@@ -255,7 +276,7 @@ public sealed class MySkin : Grid
             var localPath = address;
             if (address.StartsWith("http", StringComparison.OrdinalIgnoreCase))
             {
-                localPath = await PCL.UI.Controls.MyImage.DownloadImageAsync(address).ConfigureAwait(false);
+                localPath = await MyImage.DownloadImageAsync(address).ConfigureAwait(false);
                 if (string.IsNullOrEmpty(localPath))
                     throw new FileNotFoundException("皮肤下载失败", address);
             }

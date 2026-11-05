@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using PCL.Navigation;
 
 namespace PCL.Views.Pages;
 
@@ -16,6 +17,8 @@ public interface IPageView
 /// </summary>
 public abstract class PageBase : UserControl, IPageView
 {
+    protected INavigationService Navigation => PageRouter.Navigation;
+
     public virtual void OnNavigatedTo(object? parameter)
     {
     }

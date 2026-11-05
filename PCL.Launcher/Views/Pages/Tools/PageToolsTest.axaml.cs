@@ -3,6 +3,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json.Nodes;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using PCL.Core.App;
@@ -38,6 +39,14 @@ public partial class PageToolsTest : MyPageRight
         PanScroll = PanBack;
         Current = this;
 
+        TextDownloadUrl.ValidateRules.Add(new HttpAndUncValidator());
+        TextDownloadFolder.ValidateRules.Add(new FolderPathValidator());
+        TextDownloadName.ValidateRules.Add(new FileNameValidator());
+        TextAchievementItem.ValidateRules.Add(
+            new RegexValidator(@"^[a-z0-9_]+$", Lang.Text("Tools.Test.Achievement.InvalidId")));
+        TextAchievementTitle.ValidateRules.Add(new NullOrEmptyValidator());
+        TextAchievementLine1.ValidateRules.Add(new NullOrEmptyValidator());
+
         BtnClean.Click += (_, _) => ClearTrash();
         BtnLuck.Click += (_, _) => ShowDailyFortune();
         BtnLaunchCount.Click += (_, _) => _ShowLaunchCount();
@@ -56,6 +65,9 @@ public partial class PageToolsTest : MyPageRight
         TextDownloadFolder.Text = States.Tool.DownloadFolder;
         if (string.IsNullOrWhiteSpace(TextDownloadFolder.Text))
             TextDownloadFolder.Text = Path.Combine(Paths.Data, "MyDownload");
+        TextDownloadUrl.Validate();
+        TextDownloadFolder.Validate();
+        TextDownloadName.Validate();
         _RefreshDownloadButtons();
 
         BtnSkinSave.Click += (_, _) => _ = _SavePlayerSkinAsync();
@@ -66,6 +78,9 @@ public partial class PageToolsTest : MyPageRight
         TextAchievementLine2.TextChanged += (_, _) => _RefreshAchievementButtons();
         BtnAchievementPreview.Click += (_, _) => _ = _PreviewAchievementAsync();
         BtnAchievementSave.Click += (_, _) => _ = _SaveAchievementAsync();
+        TextAchievementItem.Validate();
+        TextAchievementTitle.Validate();
+        TextAchievementLine1.Validate();
         _RefreshAchievementButtons();
 
         CmbHeadSize.ItemsSource = new List<string>
@@ -78,9 +93,21 @@ public partial class PageToolsTest : MyPageRight
         CmbHeadSize.SelectionChanged += (_, _) => _RegenerateHead();
         BtnSelectSkin.Click += (_, _) => _SelectSkinFile();
         BtnSaveHead.Click += (_, _) => _SaveHead();
+
+        CollapseTestCard(CardAchievement);
+        CollapseTestCard(CardAvatar);
     }
 
     public static PageToolsTest? Current { get; private set; }
+
+    private static void CollapseTestCard(MyCard card)
+    {
+        card.SwapControl = card.Children.OfType<StackPanel>().LastOrDefault();
+        if (card.SwapControl is null)
+            return;
+        card.IsSwapped = false;
+        card.IsSwapped = true;
+    }
 
     /// <summary>
     ///     WPF <c>PageToolsTest.RubbishClear</c> 的等价实现：运行中游戏、下载任务、清理确认、
@@ -321,7 +348,7 @@ public partial class PageToolsTest : MyPageRight
         }
     }
 
-    private void _CreateShortcut()
+    private static void _CreateShortcut()
     {
         try
         {
@@ -367,6 +394,7 @@ public partial class PageToolsTest : MyPageRight
             }
             catch (Exception)
             {
+                // ignored
             }
 
         _RefreshDownloadButtons();
@@ -374,14 +402,12 @@ public partial class PageToolsTest : MyPageRight
 
     private void _RefreshDownloadButtons()
     {
-        var url = TextDownloadUrl.Text?.Trim() ?? "";
         var folder = TextDownloadFolder.Text?.Trim() ?? "";
-        var name = TextDownloadName.Text?.Trim() ?? "";
-        var urlValid = new HttpAndUncValidator().Validate(url).IsValid;
-        var folderValid = new FolderPathValidator().Validate(folder).IsValid;
-        var nameValid = new FileNameValidator().Validate(name).IsValid;
-        BtnDownloadStart.IsEnabled = urlValid && folderValid && nameValid;
-        BtnDownloadOpen.IsEnabled = !string.IsNullOrWhiteSpace(folder);
+        BtnDownloadStart.IsEnabled = TextDownloadUrl.IsValidated
+            && TextDownloadFolder.IsValidated
+            && TextDownloadName.IsValidated;
+        BtnDownloadOpen.IsEnabled = TextDownloadFolder.IsValidated
+            && !string.IsNullOrWhiteSpace(folder);
     }
 
     private void _SelectDownloadFolder()
@@ -465,16 +491,32 @@ public partial class PageToolsTest : MyPageRight
             };
             combo.OnStateChangedUi += (loaderBase, state, _) =>
             {
-                if (state == LoadState.Finished)
-                    HintService.Show(
-                        Hints.Success(
-                            Lang.Text("Tools.Test.CustomDownload.Finished", loaderBase.name)));
-                else if (state == LoadState.Aborted)
-                    HintService.Show(
-                        Hints.Info(
-                            Lang.Text("Tools.Test.CustomDownload.Aborted", loaderBase.name)));
-                else if (state == LoadState.Failed)
-                    HintService.Show(Hints.Error(Lang.Text("Tools.Test.Error.OperationFailed")));
+                switch (state)
+                {
+                    case LoadState.Finished:
+                        HintService.Show(
+                            Hints.Success(
+                                Lang.Text("Tools.Test.CustomDownload.Finished", loaderBase.name)));
+                        break;
+
+                    case LoadState.Aborted:
+                        HintService.Show(
+                            Hints.Info(
+                                Lang.Text("Tools.Test.CustomDownload.Aborted", loaderBase.name)));
+                        break;
+
+                    case LoadState.Failed:
+                        HintService.Show(
+                            Hints.Error(Lang.Text("Tools.Test.Error.OperationFailed")));
+                        break;
+
+                    case LoadState.Waiting:
+                    case LoadState.Loading:
+                        break;
+
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(state), state, null);
+                }
             };
             combo.Start();
             Loading.LoaderTaskbarAdd(combo);
@@ -507,12 +549,21 @@ public partial class PageToolsTest : MyPageRight
         var (path, error) = await Task.Run(() => _FetchPlayerSkin(name));
         if (path is null)
         {
-            if (error == "429")
-                HintService.Show(Hints.Error(Lang.Text("Tools.Test.Skin.TooFrequent")));
-            else if (error == "invalid")
-                HintService.Show(Hints.Info(Lang.Text("Tools.Test.Skin.InvalidId")));
-            else
-                HintService.Show(Hints.Error(Lang.Text("Tools.Test.Error.OperationFailed")));
+            switch (error)
+            {
+                case "429":
+                    HintService.Show(Hints.Error(Lang.Text("Tools.Test.Skin.TooFrequent")));
+                    break;
+
+                case "invalid":
+                    HintService.Show(Hints.Info(Lang.Text("Tools.Test.Skin.InvalidId")));
+                    break;
+
+                default:
+                    HintService.Show(Hints.Error(Lang.Text("Tools.Test.Error.OperationFailed")));
+                    break;
+            }
+
             return;
         }
 
@@ -584,21 +635,13 @@ public partial class PageToolsTest : MyPageRight
 
     private bool _ValidateAchievementInput()
     {
-        var item = TextAchievementItem.Text?.Trim() ?? "";
-        if (string.IsNullOrWhiteSpace(item)
-            || !item.All(c => char.IsAsciiLetterOrDigit(c) || c == '_'))
-            return false;
-        return !string.IsNullOrWhiteSpace(TextAchievementTitle.Text)
-            && !string.IsNullOrWhiteSpace(TextAchievementLine1.Text);
+        return TextAchievementItem.IsValidated
+            && TextAchievementTitle.IsValidated
+            && TextAchievementLine1.IsValidated;
     }
 
     private string _BuildAchievementUrl()
     {
-        static string Escape(string? text)
-        {
-            return (text ?? "").Trim().Replace(" ", "..");
-        }
-
         var url = "https://minecraft-api.com/api/achivements/"
             + Escape(TextAchievementItem.Text)
             + "/"
@@ -609,6 +652,11 @@ public partial class PageToolsTest : MyPageRight
         if (!string.IsNullOrEmpty(line2))
             url += "/" + line2;
         return url;
+
+        static string Escape(string? text)
+        {
+            return (text ?? "").Trim().Replace(" ", "..");
+        }
     }
 
     private async Task _PreviewAchievementAsync()
@@ -785,6 +833,8 @@ public partial class PageToolsTest : MyPageRight
 
         try
         {
+            // TODO: CS0618: Method 'Avalonia.Media.Imaging.Bitmap.Save(string, int?)' is obsolete:
+            // 'Use the overload accepting BitmapEncoderOptions instead.'
             _generatedHead.Save(savePath, 100);
             HintService.Show(Hints.Success(Lang.Text("Tools.Test.Avatar.Saved")));
         }

@@ -1,5 +1,7 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
+using Avalonia.Threading;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Minecraft;
@@ -12,7 +14,7 @@ namespace PCL.Views.Pages.Setup;
 
 /// <summary>
 ///     Java 设置页：列出本地 Java、启用/禁用、选择全局 Java 与手动添加。
-///     列表来自 <c>JavaService.JavaManager</c>，扫描为真实文件系统扫描。
+///     列表操作由 <see cref="PageSetupJavaViewModel" /> 负责，页面负责列表控件构建与滚动位置保持。
 /// </summary>
 public partial class PageSetupJava : MyPageRight, IRefreshable
 {
@@ -36,6 +38,8 @@ public partial class PageSetupJava : MyPageRight, IRefreshable
         };
     }
 
+    public PageSetupJavaViewModel ViewModel { get; } = new();
+
     public void Refresh()
     {
         PageLoaderRestart();
@@ -53,13 +57,10 @@ public partial class PageSetupJava : MyPageRight, IRefreshable
 
     protected override void RefreshLocalization()
     {
-        if (_loaded && _loader.State == LoadState.Finished)
-            OnLoadFinished();
-    }
-
-    private static object LoadInput()
-    {
-        return false;
+        if (!_loaded || _loader.State != LoadState.Finished) return;
+        var offset = PanBack.Offset.Y;
+        OnLoadFinished();
+        Dispatcher.UIThread.Post(() => PanBack.Offset = new Vector(PanBack.Offset.X, offset));
     }
 
     private void LoadJavaList(Loading.LoaderTask<bool, List<JavaEntry>> task)
@@ -77,11 +78,7 @@ public partial class PageSetupJava : MyPageRight, IRefreshable
     {
         try
         {
-            await Task.Run(async () =>
-            {
-                await JavaService.JavaManager.ScanJavaAsync(true);
-                JavaService.JavaManager.CheckAllAvailability();
-            });
+            await ViewModel.ScanJavaAsync();
             LauncherCommon.RunInUi(OnLoadFinished);
         }
         finally
@@ -124,27 +121,15 @@ public partial class PageSetupJava : MyPageRight, IRefreshable
     {
         var item = new MyListItem
         {
-            Title = BuildTitle(entry),
-            Info = entry.Installation.JavaFolder,
-            Tags = BuildTags(entry),
+            Title = PageSetupJavaViewModel.BuildTitle(entry),
+            Info = PageSetupJavaViewModel.BuildInfo(entry),
+            Tags = PageSetupJavaViewModel.BuildTags(entry),
             Type = MyListItem.CheckType.RadioBox
         };
         item.Check += (_, args) =>
         {
-            if (!entry.Installation.IsStillAvailable)
-            {
-                HintService.Show(Hints.Info(Lang.Text("Setup.Java.Unavailable")));
-                return;
-            }
-
-            if (!entry.IsEnabled)
-            {
-                HintService.Show(Hints.Info(Lang.Text("Setup.Java.EnableBeforeSelect")));
+            if (!ViewModel.TrySelectJava(entry))
                 args.handled = true;
-                return;
-            }
-
-            Config.Launch.SelectedJava = entry.Installation.JavaExePath;
         };
 
         var btnOpenFolder = new MyIconButton
@@ -154,7 +139,7 @@ public partial class PageSetupJava : MyPageRight, IRefreshable
         ToolTip.SetTip(btnOpenFolder, Lang.Text("Common.Action.Open"));
         btnOpenFolder.Click += (_, _) =>
         {
-            if (!EnsureAvailable(entry)) return;
+            if (!PageSetupJavaViewModel.EnsureAvailable(entry)) return;
             Basics.OpenPath(entry.Installation.JavaFolder);
         };
 
@@ -165,25 +150,49 @@ public partial class PageSetupJava : MyPageRight, IRefreshable
         ToolTip.SetTip(btnInfo, Lang.Text("Setup.Java.Detail.ToolTip"));
         btnInfo.Click += async (_, _) =>
         {
-            if (!EnsureAvailable(entry)) return;
-            await DialogService.Instance.ShowAsync(
-                new TextDialogRequest
-                {
-                    Title = Lang.Text("Setup.Java.Info.Title"),
-                    Content = Lang.Text(
-                        "Setup.Java.Info.Format",
-                        entry.Installation.IsJre ? "JRE" : "JDK",
-                        entry.Installation.Version.ToString(),
-                        entry.Installation.Architecture.ToString(),
-                        entry.Installation.Is64Bit ? "64 Bit" : "32 Bit",
-                        entry.Installation.Brand.ToString(),
-                        entry.Installation.JavaFolder),
-                    Buttons = DialogButtons.Ok
-                });
+            // 防止重复点击打开多个详情弹窗。
+            if (!btnInfo.IsEnabled) return;
+            if (!PageSetupJavaViewModel.EnsureAvailable(entry)) return;
+            btnInfo.IsEnabled = false;
+            try
+            {
+                await DialogService.Instance.ShowAsync(
+                    new TextDialogRequest
+                    {
+                        Title = Lang.Text("Setup.Java.Info.Title"),
+                        Content = PageSetupJavaViewModel.BuildInfoMessage(entry),
+                        Buttons = DialogButtons.Ok
+                    });
+            }
+            catch (Exception ex)
+            {
+                LauncherCommon.Log(
+                    ex,
+                    Lang.Text("Setup.Error.OperationFailed"),
+                    LauncherLogLevel.Feedback,
+                    userSummary: Lang.Text("Setup.Error.OperationFailed"));
+            }
+            finally
+            {
+                btnInfo.IsEnabled = true;
+            }
         };
 
         var btnEnableSwitch = new MyIconButton();
         item.Buttons = [btnOpenFolder, btnInfo, btnEnableSwitch];
+
+        btnEnableSwitch.Click += (_, _) =>
+        {
+            var enabled = ViewModel.ToggleJavaEnabled(entry);
+            if (enabled is not null)
+            {
+                entry.IsEnabled = enabled.Value;
+                UpdateEnableStyle(enabled.Value);
+            }
+        };
+
+        UpdateEnableStyle(entry.IsEnabled);
+        return item;
 
         void UpdateEnableStyle(bool isEnabled)
         {
@@ -200,41 +209,11 @@ public partial class PageSetupJava : MyPageRight, IRefreshable
                 btnEnableSwitch,
                 Lang.Text(isEnabled ? "Setup.Java.Disable" : "Setup.Java.Enable"));
         }
-
-        btnEnableSwitch.Click += (_, _) =>
-        {
-            try
-            {
-                var target = JavaRuntime.Javas.AddOrGet(entry.Installation.JavaExePath);
-                if (target is null) return;
-                if (target.IsEnabled
-                    && Config.Launch.SelectedJava == target.Installation.JavaExePath)
-                {
-                    HintService.Show(Hints.Info(Lang.Text("Setup.Java.DeselectBeforeDisable")));
-                    return;
-                }
-
-                target.IsEnabled = !target.IsEnabled;
-                entry.IsEnabled = target.IsEnabled;
-                JavaRuntime.Javas.SaveConfig();
-                UpdateEnableStyle(target.IsEnabled);
-            }
-            catch (Exception ex)
-            {
-                LauncherCommon.Log(
-                    ex,
-                    Lang.Text("Setup.Java.EnableFailed"),
-                    LauncherLogLevel.Hint,
-                    userSummary: Lang.Text("Setup.Java.EnableFailed"));
-            }
-        };
-
-        UpdateEnableStyle(entry.IsEnabled);
-        return item;
     }
 
     private async Task AddJavaAsync()
     {
+        BtnAdd.IsEnabled = false;
         try
         {
             var path = SystemDialogs.SelectFile(
@@ -247,9 +226,7 @@ public partial class PageSetupJava : MyPageRight, IRefreshable
                 return;
             }
 
-            JavaRuntime.Javas.AddOrGet(path);
-            JavaRuntime.Javas.SaveConfig();
-            if (JavaRuntime.Javas.Exist(path))
+            if (await ViewModel.AddJavaAsync(path))
             {
                 HintService.Show(Hints.Success(Lang.Text("Setup.Java.Added")));
                 _loader.Start(true, true);
@@ -267,25 +244,9 @@ public partial class PageSetupJava : MyPageRight, IRefreshable
                 LauncherLogLevel.Hint,
                 userSummary: Lang.Text("Setup.Java.AddFailed"));
         }
-    }
-
-    private static string BuildTitle(JavaEntry entry)
-    {
-        return $"{(entry.Installation.IsJre ? "JRE" : "JDK")} {entry.Installation.MajorVersion}";
-    }
-
-    private static string[] BuildTags(JavaEntry entry)
-    {
-        return
-        [
-            entry.Installation.Is64Bit ? "64 Bit" : "32 Bit", entry.Installation.Brand.ToString()
-        ];
-    }
-
-    private static bool EnsureAvailable(JavaEntry entry)
-    {
-        if (entry.Installation.IsStillAvailable) return true;
-        HintService.Show(Hints.Info(Lang.Text("Setup.Java.Unavailable")));
-        return false;
+        finally
+        {
+            BtnAdd.IsEnabled = true;
+        }
     }
 }

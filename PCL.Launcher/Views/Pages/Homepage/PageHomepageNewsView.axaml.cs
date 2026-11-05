@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using PCL.Core.App.Localization;
 using PCL.Core.Model.Tools.News;
 using PCL.Core.ViewModel.Homepage;
@@ -16,19 +17,25 @@ namespace PCL.Views.Pages.Homepage;
 /// </summary>
 public partial class PageHomepageNewsView : UserControl
 {
+    private const double EstimatedCardHeight = 360d;
     private readonly TextBlock _labError;
+    private readonly StackPanel _panError;
     private readonly MyCard _panLoad;
     private readonly WaterfallPanel _panNews;
     private readonly NewsViewModel _viewModel;
+    private bool _isLocalizationHooked;
     private bool _rebuildPending;
     private bool _reloaded;
+    private ScrollViewer? _scrollViewer;
 
     public PageHomepageNewsView()
     {
         InitializeComponent();
         _panNews = this.FindControl<WaterfallPanel>("PanNews")!;
+        _panError = this.FindControl<StackPanel>("PanError")!;
         _labError = this.FindControl<TextBlock>("LabError")!;
         _panLoad = this.FindControl<MyCard>("PanLoad")!;
+        this.FindControl<MyTextButton>("BtnRetry")!.Click += (_, _) => Reload();
 
         _viewModel = new NewsViewModel();
         _viewModel.NewsItems.CollectionChanged += (_, _) => ScheduleRebuild();
@@ -41,26 +48,63 @@ public partial class PageHomepageNewsView : UserControl
 
         AttachedToVisualTree += (_, _) =>
         {
+            if (!_isLocalizationHooked)
+            {
+                _isLocalizationHooked = true;
+                LocalizationService.LanguageChanged += OnLanguageChanged;
+            }
+
+            _scrollViewer = this.GetVisualAncestors().OfType<ScrollViewer>().FirstOrDefault();
+            if (_scrollViewer is not null)
+                _scrollViewer.ScrollChanged += OnScrollChanged;
             if (_reloaded) return;
             _reloaded = true;
             RefreshState();
             ScheduleRebuild();
         };
+        DetachedFromVisualTree += (_, _) =>
+        {
+            if (_scrollViewer is not null)
+                _scrollViewer.ScrollChanged -= OnScrollChanged;
+            _scrollViewer = null;
+        };
+    }
+
+    private void OnScrollChanged(object? sender, ScrollChangedEventArgs e)
+    {
+        _panNews.InvalidateMeasure();
     }
 
     public void Reload()
     {
         _reloaded = true;
-        _viewModel._LoadDataCommand.Execute(null);
+        if (!_viewModel.IsLoading)
+        {
+            _viewModel.NewsItems.Clear();
+            _viewModel.ErrorMessage = null;
+            _viewModel._LoadDataCommand.Execute(null);
+        }
+
         RefreshState();
+    }
+
+    private void OnLanguageChanged()
+    {
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            Dispatcher.UIThread.Post(Rebuild);
+            return;
+        }
+
+        Rebuild();
     }
 
     private void RefreshState()
     {
-        var isLoading = _viewModel.IsLoading;
-        _panLoad.IsVisible = isLoading;
-        _labError.Text = _viewModel.ErrorMessage ?? "";
-        _labError.IsVisible = !string.IsNullOrEmpty(_viewModel.ErrorMessage);
+        var error = _viewModel.ErrorMessage;
+        _panLoad.IsVisible = _viewModel.IsLoading;
+        _panError.IsVisible = !string.IsNullOrEmpty(error);
+        _labError.Text = error ?? "";
     }
 
     private void ScheduleRebuild()
@@ -81,7 +125,15 @@ public partial class PageHomepageNewsView : UserControl
     {
         _panNews.Children.Clear();
         foreach (var item in _viewModel.NewsItems)
-            _panNews.Children.Add(CreateNewsCard(item));
+        {
+            var newsItem = item;
+            _panNews.Children.Add(
+                new MyVirtualizingElement<MyCard>(() => CreateNewsCard(newsItem))
+                {
+                    Height = EstimatedCardHeight
+                });
+        }
+
         RefreshState();
     }
 
@@ -90,7 +142,7 @@ public partial class PageHomepageNewsView : UserControl
         return this.TryFindResource(key, out var value) ? value as IBrush : null;
     }
 
-    private Control CreateNewsCard(NewsItem item)
+    private MyCard CreateNewsCard(NewsItem item)
     {
         var card = new MyCard();
 
@@ -114,6 +166,7 @@ public partial class PageHomepageNewsView : UserControl
         var titleBorder = new Border
         {
             Background = FindBrush("ColorBrushBackground"),
+            ClipToBounds = true,
             CornerRadius = new CornerRadius(6),
             Padding = new Thickness(5, 3, 5, 3),
             Margin = new Thickness(0, 5, 0, 0),
@@ -122,6 +175,7 @@ public partial class PageHomepageNewsView : UserControl
                 Text = item.Title,
                 FontSize = 16,
                 FontWeight = FontWeight.Bold,
+                Foreground = FindBrush("ColorBrush1"),
                 TextWrapping = TextWrapping.Wrap
             }
         };

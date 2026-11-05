@@ -1,8 +1,8 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using Avalonia.Layout;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Navigation;
 using PCL.UI.Controls;
 
@@ -18,27 +18,18 @@ public class PageInstanceSavesLeft : MyPageLeft, IRefreshable
     public static string currentSave = string.Empty;
 
     private static bool _showDatapackTab = true;
-
-    public static bool ShowDatapackTab
-    {
-        get => _showDatapackTab;
-        set
-        {
-            _showDatapackTab = value;
-            Current?.ApplyDatapackVisibility();
-        }
-    }
-
-    public static PageInstanceSavesLeft? Current { get; private set; }
+    private readonly List<(PageSubType SubType, MyListItem Item)> _items = [];
 
     private readonly StackPanel _panel;
-    private readonly List<(PageSubType SubType, MyListItem Item)> _items = [];
-    private MyListItem? _datapackItem;
     private bool _building;
+    private MyListItem? _datapackItem;
 
     public PageInstanceSavesLeft()
     {
-        var panel = new StackPanel { Margin = new Thickness(0d, 12d, 0d, 0d) };
+        var panel = new StackPanel
+        {
+            Margin = new Thickness(0d, 12d, 0d, 0d)
+        };
         var scroll = new MyScrollViewer
         {
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
@@ -52,14 +43,45 @@ public class PageInstanceSavesLeft : MyPageLeft, IRefreshable
         Current = this;
     }
 
+    public static bool ShowDatapackTab
+    {
+        get => _showDatapackTab;
+        set
+        {
+            _showDatapackTab = value;
+            Current?.ApplyDatapackVisibility();
+        }
+    }
+
+    public static PageInstanceSavesLeft? Current { get; private set; }
+
+    public void Refresh()
+    {
+        var target = PageRouter.Current.Page == PageType.VersionSaves
+            ? PageRouter.Current.SubType
+            : PageSubType.VersionSavesInfo;
+        PageRouter.Navigate(new PageStackData(PageType.VersionSaves, target, currentSave));
+        if (PageRouter.CurrentPage is IRefreshable refreshable)
+            refreshable.Refresh();
+        HintService.Show(
+            Hints.Info(Lang.Text("Instance.Saves.Left.Refreshing"), false));
+    }
+
     private void BuildItems()
     {
         _panel.Children.Clear();
         _items.Clear();
 
         AddItem(PageSubType.VersionSavesInfo, "Instance.Saves.Left.Info", "lucide/info");
-        _datapackItem = AddItem(PageSubType.VersionSavesDatapack, "Instance.Saves.Left.Datapack", "lucide/file-archive");
-        var datapackRefresh = new MyIconButton { SvgIcon = "lucide/refresh-cw", LogoScale = 0.85d };
+        _datapackItem = AddItem(
+            PageSubType.VersionSavesDatapack,
+            "Instance.Saves.Left.Datapack",
+            "lucide/file-archive");
+        var datapackRefresh = new MyIconButton
+        {
+            SvgIcon = "lucide/refresh-cw",
+            LogoScale = 0.85d
+        };
         ToolTip.SetTip(datapackRefresh, Lang.Text("Common.Action.Refresh"));
         datapackRefresh.Click += (_, _) => Refresh();
         _datapackItem.Buttons = [datapackRefresh];
@@ -108,16 +130,6 @@ public class PageInstanceSavesLeft : MyPageLeft, IRefreshable
         RefreshChecked();
     }
 
-    public void Refresh()
-    {
-        var target = PageRouter.Current.Page == PageType.VersionSaves
-            ? PageRouter.Current.SubType
-            : PageSubType.VersionSavesInfo;
-        PageRouter.Navigate(new PageStackData(PageType.VersionSaves, target, currentSave));
-        if (PageRouter.CurrentPage is IRefreshable refreshable)
-            refreshable.Refresh();
-    }
-
     private MyListItem AddItem(PageSubType subType, string titleKey, string svgIcon)
     {
         var item = new MyListItem
@@ -145,9 +157,14 @@ public class PageInstanceSavesLeft : MyPageLeft, IRefreshable
         if (_datapackItem is null)
             return;
         _datapackItem.IsVisible = _showDatapackTab;
-        if (!_showDatapackTab && PageRouter.Current.Page == PageType.VersionSaves
+        if (!_showDatapackTab
+            && PageRouter.Current.Page == PageType.VersionSaves
             && PageRouter.Current.SubType == PageSubType.VersionSavesDatapack)
-            PageRouter.Navigate(new PageStackData(PageType.VersionSaves, PageSubType.VersionSavesInfo, currentSave));
+            PageRouter.Navigate(
+                new PageStackData(
+                    PageType.VersionSaves,
+                    PageSubType.VersionSavesInfo,
+                    currentSave));
     }
 
     private void Navigate(PageSubType subType)

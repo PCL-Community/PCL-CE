@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using Avalonia.Controls;
 using Avalonia.Threading;
 using PCL.Core.App.Localization;
 using PCL.Navigation;
@@ -22,6 +23,7 @@ public partial class PageDownloadClient : MyPageRight, IPageView, IRefreshable
     {
         InitializeComponent();
         PanScroll = PanBack;
+        Grid.SetIsSharedSizeScope(PanMain, true);
         PageLoaderInit(
             Load,
             PanLoad,

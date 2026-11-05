@@ -1,45 +1,36 @@
-using PCL.Core.App;
+using PCL.Core.App.Localization;
 using PCL.UI.Controls;
 
 namespace PCL.Views.Pages.Setup;
 
-/// <summary>联机设置页：EasyTier 用户名、传输协议偏好与中继策略开关，全部写入 <c>Config.Link</c>。</summary>
+/// <summary>
+///     联机设置页：EasyTier 用户名、传输协议偏好与中继策略开关，全部写入 <c>Config.Link</c>。
+///     状态由 <see cref="PageSetupGameLinkViewModel" /> 持有；NAT/IPv6 测试卡按 WPF 默认折叠。
+/// </summary>
 public partial class PageSetupGameLink : MyPageRight, ISetupResetPage
 {
     private bool _loaded;
-    private bool _reloading;
 
     public PageSetupGameLink()
     {
         InitializeComponent();
         PanScroll = PanBack;
+        DataContext = ViewModel;
 
-        TextLinkUsername.TextChanged += (_, _) =>
+        BtnNetTest.Click += async (_, _) =>
         {
-            if (!_reloading) Config.Link.Username = TextLinkUsername.Text ?? string.Empty;
-        };
-        ComboPreferProtocol.SelectionChanged += (_, _) =>
-        {
-            if (_reloading || ComboPreferProtocol.SelectedIndex < 0) return;
-            Config.Link.ProtocolPreference =
-                (LinkProtocolPreference)ComboPreferProtocol.SelectedIndex;
-        };
-        CheckLatencyFirstMode.Change += (_, _) =>
-        {
-            if (!_reloading)
-                Config.Link.UseLatencyFirstMode = CheckLatencyFirstMode.Checked == true;
-        };
-        CheckTryPunchSym.Change += (_, _) =>
-        {
-            if (!_reloading) Config.Link.TryPunchSym = CheckTryPunchSym.Checked == true;
-        };
-        CheckEnableIPv6.Change += (_, _) =>
-        {
-            if (!_reloading) Config.Link.EnableIPv6 = CheckEnableIPv6.Checked == true;
-        };
-        CheckEnableCliOutput.Change += (_, _) =>
-        {
-            if (!_reloading) Config.Link.EnableCliOutput = CheckEnableCliOutput.Checked == true;
+            try
+            {
+                await ViewModel.RunNetworkTestAsync();
+            }
+            catch (Exception ex)
+            {
+                LauncherCommon.Log(
+                    ex,
+                    "[Link] 获取网络测试结果失败",
+                    LauncherLogLevel.Hint,
+                    userSummary: Lang.Text("Setup.GameLink.Error.NetworkTestFailed"));
+            }
         };
 
         Loaded += (_, _) =>
@@ -50,10 +41,11 @@ public partial class PageSetupGameLink : MyPageRight, ISetupResetPage
         };
     }
 
+    public PageSetupGameLinkViewModel ViewModel { get; } = new();
+
     public void Reset()
     {
-        Config.Link.Reset();
-        Reload();
+        ViewModel.Reset();
     }
 
     public override void OnNavigatedTo(object? parameter)
@@ -66,21 +58,13 @@ public partial class PageSetupGameLink : MyPageRight, ISetupResetPage
     {
     }
 
+    protected override void RefreshLocalization()
+    {
+        if (_loaded) ViewModel.RefreshLocalization();
+    }
+
     public void Reload()
     {
-        _reloading = true;
-        try
-        {
-            TextLinkUsername.Text = Config.Link.Username;
-            ComboPreferProtocol.SelectedIndex = (int)Config.Link.ProtocolPreference;
-            CheckLatencyFirstMode.Checked = Config.Link.UseLatencyFirstMode;
-            CheckTryPunchSym.Checked = Config.Link.TryPunchSym;
-            CheckEnableIPv6.Checked = Config.Link.EnableIPv6;
-            CheckEnableCliOutput.Checked = Config.Link.EnableCliOutput;
-        }
-        finally
-        {
-            _reloading = false;
-        }
+        ViewModel.Reload();
     }
 }

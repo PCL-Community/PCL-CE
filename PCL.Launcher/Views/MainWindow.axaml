@@ -22,7 +22,8 @@
           Background="Transparent">
         <ui:MyDropShadow Color="#21000000"
                          ShadowRadius="10"
-                         CornerRadius="6">
+                         CornerRadius="6"
+                         CenterTransparent="True">
             <Border x:Name="PanBack"
                     Margin="10"
                     CornerRadius="6"

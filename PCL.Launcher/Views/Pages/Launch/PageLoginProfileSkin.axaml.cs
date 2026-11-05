@@ -5,7 +5,6 @@ using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Core.Minecraft.Profile;
 using PCL.Core.Minecraft.Profile.Models;
-using PCL.Core.UI.Hints;
 using PCL.UI.Controls;
 using static PCL.Animations;
 
@@ -59,6 +58,9 @@ public partial class PageLoginProfileSkin : LoginPageBase
                 return;
             HideButtons();
         };
+
+        AttachedToVisualTree += (_, _) => LocalizationService.LanguageChanged += Reload;
+        DetachedFromVisualTree += (_, _) => LocalizationService.LanguageChanged -= Reload;
     }
 
     private void HideButtons()
@@ -91,12 +93,70 @@ public partial class PageLoginProfileSkin : LoginPageBase
         _ = LoadSkinAsync(profile);
     }
 
+    #region 皮肤加载
+
+    private async Task LoadSkinAsync(McProfile profile)
+    {
+        var revision = ++_loadRevision;
+        var address = "";
+        try
+        {
+            if (profile.ProfileType == ProfileType.Offline)
+                address = LaunchLoginHelper.GetOfflineSkinAddress(profile.Uuid);
+            else
+                address = await Task.Run(() =>
+                {
+                    try
+                    {
+                        return LaunchLoginHelper.GetOnlineSkinAddress(profile);
+                    }
+                    catch (Exception ex)
+                    {
+                        LogWrapper.Warn(ex, "Launch", $"获取在线皮肤失败：{profile.UserName}");
+                        return LaunchLoginHelper.GetOfflineSkinAddress(profile.Uuid);
+                    }
+                });
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Warn(ex, "Launch", $"加载皮肤失败：{profile.UserName}");
+        }
+
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            if (revision == _loadRevision)
+                _skin.Address = address;
+        });
+    }
+
+    #endregion
+
     #region 菜单
 
     private void BuildSkinMenu()
     {
         var items = new List<MyMenuItem>();
 
+        AddItem("Launch.Account.ProfileSkin.ChangeSkin", "lucide/shirt", ChangeSkin);
+        AddItem(
+            "Launch.Account.ProfileSkin.SaveSkin",
+            "lucide/download",
+            () => _ = SaveSkinAsync());
+        AddItem("Launch.Account.ProfileSkin.RefreshSkin", "lucide/refresh-cw", RefreshSkin);
+        AddItem("Launch.Account.ProfileSkin.ChangeCape", "lucide/shirt", ChangeCape);
+
+        _btnSkin.ContextMenu = new ContextMenu
+        {
+            ItemsSource = items,
+            HorizontalOffset = 10d,
+            VerticalOffset = 18d
+        };
+        _btnSkin.ContextMenu.Closed += (_, _) =>
+        {
+            if (!IsPointerOver) HideButtons();
+        };
+        return;
+
         void AddItem(string headerKey, string svgIcon, Action action)
         {
             var item = new MyMenuItem
@@ -111,23 +171,27 @@ public partial class PageLoginProfileSkin : LoginPageBase
             };
             items.Add(item);
         }
-
-        AddItem("Launch.Account.ProfileSkin.ChangeSkin", "lucide/shirt", ChangeSkin);
-        AddItem("Launch.Account.ProfileSkin.SaveSkin", "lucide/download", () => _ = SaveSkinAsync());
-        AddItem("Launch.Account.ProfileSkin.RefreshSkin", "lucide/refresh-cw", RefreshSkin);
-        AddItem("Launch.Account.ProfileSkin.ChangeCape", "lucide/shirt", ChangeCape);
-
-        _btnSkin.ContextMenu = new ContextMenu { ItemsSource = items };
-        _btnSkin.ContextMenu.Closed += (_, _) =>
-        {
-            if (!IsPointerOver) HideButtons();
-        };
     }
 
     private void BuildEditMenu()
     {
         var items = new List<MyMenuItem>();
 
+        AddItem("Launch.Account.ProfileSkin.EditPassword", "lucide/key-round", EditPassword);
+        AddItem("Launch.Account.ProfileSkin.EditUsername", "lucide/user-pen", EditUserName);
+
+        _btnEdit.ContextMenu = new ContextMenu
+        {
+            ItemsSource = items,
+            HorizontalOffset = 10d,
+            VerticalOffset = 18d
+        };
+        _btnEdit.ContextMenu.Closed += (_, _) =>
+        {
+            if (!IsPointerOver) HideButtons();
+        };
+        return;
+
         void AddItem(string headerKey, string svgIcon, Action action)
         {
             var item = new MyMenuItem
@@ -142,15 +206,6 @@ public partial class PageLoginProfileSkin : LoginPageBase
             };
             items.Add(item);
         }
-
-        AddItem("Launch.Account.ProfileSkin.EditPassword", "lucide/key-round", EditPassword);
-        AddItem("Launch.Account.ProfileSkin.EditUsername", "lucide/user-pen", EditUserName);
-
-        _btnEdit.ContextMenu = new ContextMenu { ItemsSource = items };
-        _btnEdit.ContextMenu.Closed += (_, _) =>
-        {
-            if (!IsPointerOver) HideButtons();
-        };
     }
 
     #endregion
@@ -180,7 +235,7 @@ public partial class PageLoginProfileSkin : LoginPageBase
             OpenProfilePage(profile.Server, "user/closet");
     }
 
-    private void ChangeCape()
+    private static void ChangeCape()
     {
         var profile = ProfileService.Current;
         if (profile is null)
@@ -197,7 +252,7 @@ public partial class PageLoginProfileSkin : LoginPageBase
 
     #region 修改信息
 
-    private void EditPassword()
+    private static void EditPassword()
     {
         var profile = ProfileService.Current;
         if (profile is null)
@@ -234,7 +289,9 @@ public partial class PageLoginProfileSkin : LoginPageBase
         try
         {
             var address = server;
-            var authIndex = address.IndexOf("api/yggdrasil/authserver", StringComparison.OrdinalIgnoreCase);
+            var authIndex = address.IndexOf(
+                "api/yggdrasil/authserver",
+                StringComparison.OrdinalIgnoreCase);
             if (authIndex >= 0)
                 address = address[..authIndex];
             if (!address.EndsWith('/'))
@@ -245,48 +302,6 @@ public partial class PageLoginProfileSkin : LoginPageBase
         {
             LogWrapper.Warn(ex, "Launch", $"打开档案网页失败：{server}/{subPath}");
         }
-    }
-
-    #endregion
-
-    #region 皮肤加载
-
-    private async Task LoadSkinAsync(McProfile profile)
-    {
-        var revision = ++_loadRevision;
-        var address = "";
-        try
-        {
-            if (profile.ProfileType == ProfileType.Offline)
-            {
-                address = LaunchLoginHelper.GetOfflineSkinAddress(profile.Uuid);
-            }
-            else
-            {
-                address = await Task.Run(() =>
-                {
-                    try
-                    {
-                        return LaunchLoginHelper.GetOnlineSkinAddress(profile);
-                    }
-                    catch (Exception ex)
-                    {
-                        LogWrapper.Warn(ex, "Launch", $"获取在线皮肤失败：{profile.UserName}");
-                        return LaunchLoginHelper.GetOfflineSkinAddress(profile.Uuid);
-                    }
-                });
-            }
-        }
-        catch (Exception ex)
-        {
-            LogWrapper.Warn(ex, "Launch", $"加载皮肤失败：{profile.UserName}");
-        }
-
-        await Dispatcher.UIThread.InvokeAsync(() =>
-        {
-            if (revision == _loadRevision)
-                _skin.Address = address;
-        });
     }
 
     #endregion

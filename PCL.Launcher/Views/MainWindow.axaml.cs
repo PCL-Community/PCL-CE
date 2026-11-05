@@ -11,7 +11,6 @@ using PCL.Core.Logging;
 using PCL.Navigation;
 using PCL.UI;
 using PCL.UI.Animations;
-using PCL.UI.Effects;
 using PCL.UI.SystemIntegration;
 using PCL.Views.Pages;
 using PCL.Views.Shell;
@@ -36,7 +35,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         Current = this;
         ApplyWindowIcon();
-        WindowBackdropController.Apply(this);
+        TransparencyLevelHint = [WindowTransparencyLevel.Transparent];
         _ = new WindowStateStore(this);
 
         _titleBar = TitleBar;
@@ -57,7 +56,7 @@ public partial class MainWindow : Window
             PointerPressedEvent,
             OnResizePointerPressed,
             RoutingStrategies.Tunnel,
-            handledEventsToo: true);
+            true);
         PointerMoved += OnResizePointerMoved;
 
         Topmost = true;

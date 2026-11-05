@@ -2,7 +2,6 @@
                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                 xmlns:ui="using:PCL.UI.Controls"
                 xmlns:loc="using:PCL.Core.UI"
-                xmlns:svg="using:PCL.UI.Controls.SvgIcon"
                 x:Class="PCL.Views.Pages.Download.PageDownloadInstall">
     <Grid>
         <ui:MyScrollViewer x:Name="PanBack"
@@ -12,7 +11,8 @@
                 <Grid x:Name="PanContent"
                       Margin="25,20,25,25">
                     <StackPanel x:Name="PanSelectStage">
-                        <StackPanel x:Name="PanVersions" />
+                        <StackPanel x:Name="PanVersions"
+                                    Margin="0,15,0,0" />
                     </StackPanel>
 
                     <StackPanel x:Name="PanConfigStage"
@@ -20,7 +20,7 @@
                                 IsVisible="False">
                         <ui:MyCard x:Name="CardVersion"
                                    Height="62"
-                                   Margin="0,0,0,12"
+                                   Margin="0,15,0,3"
                                    UseAnimation="False">
                             <Grid>
                                 <ui:MyIconButton x:Name="BtnReselect"
@@ -33,71 +33,33 @@
                                                  Opacity="0.6"
                                                  SvgIcon="lucide/arrow-left"
                                                  Theme="Black" />
-                                <svg:SvgIcon x:Name="IconVersion"
-                                             Width="32"
-                                             Height="32"
-                                             Margin="52,0,0,0"
-                                             HorizontalAlignment="Left"
-                                             VerticalAlignment="Center"
-                                             Icon="lucide/box" />
-                                <StackPanel Margin="93,0,16,0"
+                                <ui:MyImage x:Name="ImgLogo"
+                                            Height="32"
+                                            Margin="52,0,0,0"
+                                            HorizontalAlignment="Left"
                                             VerticalAlignment="Center"
-                                            Spacing="1">
-                                    <TextBlock x:Name="LabVersionName"
-                                               FontSize="15"
-                                               TextTrimming="CharacterEllipsis" />
-                                    <TextBlock x:Name="LabVersionInfo"
-                                               FontSize="12"
-                                               Opacity="0.7"
-                                               TextTrimming="CharacterEllipsis" />
-                                </StackPanel>
+                                            Stretch="Uniform" />
+                                <ui:MyTextBox x:Name="TextInstanceName"
+                                              Margin="93,0,16,0"
+                                              MinHeight="30"
+                                              VerticalAlignment="Center"
+                                              FontSize="15"
+                                              MaxLength="70" />
                             </Grid>
                         </ui:MyCard>
 
                         <ui:MyHint x:Name="HintLoaderWarning"
-                                   Margin="0,0,0,12"
+                                   Margin="0,10,0,0"
                                    Theme="Red"
                                    IsVisible="False" />
 
-                        <ui:MyCard x:Name="CardLoader"
-                                   Margin="0,0,0,12"
-                                   Title="{loc:Loc Download.Install.Section.Loader}">
-                            <StackPanel Margin="20,40,20,18"
-                                        Spacing="10">
-                                <StackPanel x:Name="PanLoaderCards"
-                                            Spacing="10" />
-                            </StackPanel>
-                        </ui:MyCard>
+                        <StackPanel x:Name="PanLoaderCards" />
 
-                        <ui:MyCard x:Name="CardInstance"
-                                   Margin="0,0,0,12"
-                                   Title="{loc:Loc Download.Install.Section.Instance}">
-                            <StackPanel Margin="20,40,20,18"
-                                        Spacing="10">
-                                <Grid ColumnDefinitions="Auto,*">
-                                    <TextBlock Margin="0,0,18,0"
-                                               VerticalAlignment="Center"
-                                               Text="{loc:Loc Download.Install.InstanceName}" />
-                                    <ui:MyTextBox x:Name="TextInstanceName"
-                                                  Grid.Column="1"
-                                                  MaxLength="70" />
-                                </Grid>
-                                <Grid ColumnDefinitions="Auto,*">
-                                    <TextBlock Margin="0,0,18,0"
-                                               VerticalAlignment="Center"
-                                               Text="{loc:Loc Download.Install.InstanceLocation}" />
-                                    <TextBlock x:Name="LabLocation"
-                                               Grid.Column="1"
-                                               VerticalAlignment="Center"
-                                               Opacity="0.7"
-                                               TextWrapping="Wrap" />
-                                </Grid>
-                                <ui:MyHint x:Name="HintNoFolder"
-                                           Theme="Red"
-                                           IsVisible="False"
-                                           Text="{loc:Loc Download.Install.NoFolder}" />
-                            </StackPanel>
-                        </ui:MyCard>
+                        <ui:MyHint x:Name="HintNoFolder"
+                                   Margin="0,12,0,0"
+                                   Theme="Red"
+                                   IsVisible="False"
+                                   Text="{loc:Loc Download.Install.NoFolder}" />
 
                         <ui:MyCard x:Name="CardProgress"
                                    Margin="0,0,0,12"
@@ -122,8 +84,8 @@
         </ui:MyScrollViewer>
 
         <ui:MyExtraTextButton x:Name="BtnStart"
-                              Margin="0,0,45,25"
-                              HorizontalAlignment="Right"
+                              Margin="0,0,0,25"
+                              HorizontalAlignment="Center"
                               VerticalAlignment="Bottom"
                               Text="{loc:Loc Download.Install.StartDownload}" />
 
@@ -136,7 +98,8 @@
             <ui:MyLoading x:Name="LoadMinecraft"
                           Margin="20,20,20,17"
                           HorizontalAlignment="Center"
-                          VerticalAlignment="Center" />
+                          VerticalAlignment="Center"
+                          Text="{loc:Loc Download.Version.LoadingList}" />
         </ui:MyCard>
     </Grid>
 </ui:MyPageRight>

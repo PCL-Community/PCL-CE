@@ -3,34 +3,49 @@
                 xmlns:ui="using:PCL.UI.Controls"
                 xmlns:svg="using:PCL.UI.Controls.SvgIcon"
                 xmlns:loc="using:PCL.Core.UI"
+                x:CompileBindings="False"
                 x:Class="PCL.Views.Pages.Setup.PageSetupLauncherLanguage">
     <ui:MyScrollViewer x:Name="PanBack"
                        HorizontalScrollBarVisibility="Disabled"
                        VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="25,10">
-            <ui:MyCard Margin="0,15"
+            <ui:MyCard Margin="0,15,0,10"
                        Title="{loc:Loc Setup.Language.CardTitle}">
                 <StackPanel Margin="25,40,25,15">
-                    <Grid ColumnDefinitions="Auto,*,60"
-                          RowDefinitions="28,9,28">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"
+                                              SharedSizeGroup="Name" />
+                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="60" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="28" />
+                            <RowDefinition Height="9" />
+                            <RowDefinition Height="28" />
+                        </Grid.RowDefinitions>
                         <TextBlock Grid.Row="0"
                                    VerticalAlignment="Center"
+                                   HorizontalAlignment="Left"
                                    Margin="0,0,25,0"
                                    Text="{loc:Loc Setup.Language.UiLanguage}" />
                         <ui:MyComboBox x:Name="ComboUiLanguage"
                                        Grid.Row="0"
                                        Grid.Column="1"
                                        Grid.ColumnSpan="2"
-                                       HorizontalAlignment="Stretch" />
+                                       HorizontalAlignment="Stretch"
+                                       SelectedIndex="{Binding UiLanguageIndex, Mode=OneWay}" />
                         <TextBlock Grid.Row="2"
                                    VerticalAlignment="Center"
+                                   HorizontalAlignment="Left"
                                    Margin="0,0,25,0"
                                    Text="{loc:Loc Setup.Language.FormatCulture}" />
                         <ui:MyComboBox x:Name="ComboUiFormatCulture"
                                        Grid.Row="2"
                                        Grid.Column="1"
                                        Grid.ColumnSpan="2"
-                                       HorizontalAlignment="Stretch" />
+                                       HorizontalAlignment="Stretch"
+                                       SelectedIndex="{Binding FormatCultureIndex, Mode=OneWay}" />
                     </Grid>
 
                     <ui:BlurBorder x:Name="BannerInternationalization"
@@ -43,6 +58,7 @@
                         <Grid>
                             <Canvas Width="205"
                                     Height="145"
+                                    Opacity="0.62"
                                     Margin="0,-43,-25,0"
                                     HorizontalAlignment="Right"
                                     VerticalAlignment="Top"
@@ -54,58 +70,71 @@
                                              Icon="lucide/earth"
                                              IconBrush="{DynamicResource ColorBrush5}"
                                              StrokeThickness="2.4"
-                                             Opacity="0.62"
                                              Stretch="Uniform" />
                             </Canvas>
-                            <StackPanel Grid.Column="0"
-                                        Spacing="2">
-                                <TextBlock FontSize="22"
-                                           FontWeight="Bold"
-                                           Foreground="{DynamicResource ColorBrush1}"
-                                           TextWrapping="Wrap"
-                                           Text="{loc:Loc Setup.Language.Banner.TitlePrefix}" />
-                                <!-- 使用内置字体，避免依赖 Windows 专有字体（Bahnschrift）导致非 Windows 平台字形创建失败 -->
-                                <TextBlock FontFamily="avares://PCL.Launcher/Assets/Fonts#PCL English"
-                                           FontSize="42"
-                                           FontWeight="Bold"
-                                           Foreground="{DynamicResource ColorBrush1}"
-                                           Text="PCL CE" />
-                                <TextBlock FontSize="22"
-                                           FontWeight="Bold"
-                                           Foreground="{DynamicResource ColorBrush1}"
-                                           TextWrapping="Wrap"
-                                           Text="{loc:Loc Setup.Language.Banner.TitleSuffix}" />
-                                <TextBlock Margin="0,18,0,0"
-                                           FontSize="14"
-                                           LineHeight="23"
-                                           Foreground="{DynamicResource ColorBrush1}"
-                                           TextWrapping="Wrap"
-                                           Text="{loc:Loc Setup.Language.Banner.DescriptionLine1}" />
-                                <TextBlock Margin="0,5,0,0"
-                                           FontSize="14"
-                                           LineHeight="23"
-                                           Foreground="{DynamicResource ColorBrush1}"
-                                           TextWrapping="Wrap"
-                                           Text="{loc:Loc Setup.Language.Banner.DescriptionLine2}" />
-                                <TextBlock Margin="0,5,0,0"
-                                           FontSize="14"
-                                           LineHeight="23"
-                                           Foreground="{DynamicResource ColorBrush1}"
-                                           TextWrapping="Wrap"
-                                           Text="{loc:Loc Setup.Language.Banner.DescriptionLine3}" />
-                            </StackPanel>
+
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <StackPanel Grid.Row="0"
+                                            Margin="0,0,170,0"
+                                            HorizontalAlignment="Left">
+                                    <TextBlock FontSize="22"
+                                               FontWeight="Bold"
+                                               Foreground="{DynamicResource ColorBrush1}"
+                                               TextWrapping="Wrap"
+                                               Text="{loc:Loc Setup.Language.Banner.TitlePrefix}" />
+                                    <TextBlock Margin="0,2,0,2"
+                                               FontFamily="Bahnschrift, avares://PCL.Launcher/Assets/Fonts#PCL English"
+                                               FontSize="42"
+                                               FontWeight="Bold"
+                                               Foreground="{DynamicResource ColorBrush1}"
+                                               Text="PCL CE"
+                                               TextWrapping="Wrap" />
+                                    <TextBlock FontSize="22"
+                                               FontWeight="Bold"
+                                               Foreground="{DynamicResource ColorBrush1}"
+                                               TextWrapping="Wrap"
+                                               Text="{loc:Loc Setup.Language.Banner.TitleSuffix}" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Row="1"
+                                            Margin="0,20,0,0">
+                                    <TextBlock FontSize="14"
+                                               LineHeight="23"
+                                               Foreground="{DynamicResource ColorBrush1}"
+                                               TextWrapping="Wrap"
+                                               Text="{loc:Loc Setup.Language.Banner.DescriptionLine1}" />
+                                    <TextBlock Margin="0,5,0,0"
+                                               FontSize="14"
+                                               LineHeight="23"
+                                               Foreground="{DynamicResource ColorBrush1}"
+                                               TextWrapping="Wrap"
+                                               Text="{loc:Loc Setup.Language.Banner.DescriptionLine2}" />
+                                    <TextBlock Margin="0,5,0,0"
+                                               FontSize="14"
+                                               LineHeight="23"
+                                               Foreground="{DynamicResource ColorBrush1}"
+                                               TextWrapping="Wrap"
+                                               Text="{loc:Loc Setup.Language.Banner.DescriptionLine3}" />
+                                </StackPanel>
+                            </Grid>
                         </Grid>
                     </ui:BlurBorder>
 
                     <StackPanel Margin="0,10,0,0"
                                 HorizontalAlignment="Right"
-                                Orientation="Horizontal"
-                                Spacing="7">
+                                Orientation="Horizontal">
                         <ui:MyIconTextButton x:Name="BtnTranslateWebsite"
+                                             Margin="0,0,7,0"
                                              ColorType="Highlight"
                                              SvgIcon="lucide/globe"
                                              Text="{loc:Loc Setup.Language.Banner.TranslateWebsite}" />
                         <ui:MyIconTextButton x:Name="BtnSubmitPullRequest"
+                                             Margin="0,0,7,0"
                                              SvgIcon="lucide/git-pull-request-arrow"
                                              Text="{loc:Loc Setup.Language.Banner.SubmitPullRequest}" />
                     </StackPanel>

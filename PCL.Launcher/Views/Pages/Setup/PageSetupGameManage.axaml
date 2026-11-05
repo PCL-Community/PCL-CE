@@ -2,17 +2,23 @@
                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                 xmlns:ui="using:PCL.UI.Controls"
                 xmlns:loc="using:PCL.Core.UI"
+                x:CompileBindings="False"
                 x:Class="PCL.Views.Pages.Setup.PageSetupGameManage">
     <ui:MyScrollViewer x:Name="PanBack"
                        HorizontalScrollBarVisibility="Disabled"
                        VerticalScrollBarVisibility="Auto">
-        <StackPanel Margin="25,10">
+        <StackPanel Margin="25,10"
+                    Grid.IsSharedSizeScope="True">
             <ui:MyCard Margin="0,15"
                        Title="{loc:Loc Setup.GameManage.Source.Title}">
                 <StackPanel Margin="25,37,25,15">
                     <Grid x:Name="PanDownloadSource"
-                          ColumnDefinitions="Auto,*"
                           RowDefinitions="28,7,28,7,27,7,27,27,27,27,27">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"
+                                              SharedSizeGroup="Name" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
                         <TextBlock Grid.Row="0"
                                    VerticalAlignment="Center"
                                    Margin="0,0,25,0"
@@ -20,7 +26,8 @@
                         <ui:MyComboBox x:Name="ComboDownloadSource"
                                        Grid.Row="0"
                                        Grid.Column="1"
-                                       HorizontalAlignment="Stretch">
+                                       HorizontalAlignment="Stretch"
+                                       SelectedIndex="{Binding FileSourceIndex, Mode=TwoWay}">
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Source.UseMirror}" />
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Source.PreferOfficialThenMirror}" />
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Source.UseOfficial}" />
@@ -33,7 +40,8 @@
                         <ui:MyComboBox x:Name="ComboDownloadVersion"
                                        Grid.Row="2"
                                        Grid.Column="1"
-                                       HorizontalAlignment="Stretch">
+                                       HorizontalAlignment="Stretch"
+                                       SelectedIndex="{Binding VersionListIndex, Mode=TwoWay}">
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Source.Version.Mirror}" />
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Source.PreferOfficialThenMirror}" />
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Source.UseOfficial}" />
@@ -46,7 +54,8 @@
                         <ui:MyComboBox x:Name="ComboDownloadHttpMode"
                                        Grid.Row="4"
                                        Grid.Column="1"
-                                       HorizontalAlignment="Stretch">
+                                       HorizontalAlignment="Stretch"
+                                       SelectedIndex="{Binding HttpModeIndex, Mode=TwoWay}">
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Download.HttpProtocol.Auto}"
                                                ToolTip.Tip="{loc:Loc Setup.GameManage.Download.HttpProtocol.Auto.ToolTip}" />
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Download.HttpProtocol.Http11}"
@@ -63,6 +72,7 @@
                                      Grid.Row="6"
                                      Grid.Column="1"
                                      MaxValue="255"
+                                     Value="63"
                                      ValueByKey="1"
                                      ToolTip.Tip="{loc:Loc Setup.GameManage.Download.Threads.ToolTip}" />
 
@@ -74,6 +84,7 @@
                                      Grid.Row="7"
                                      Grid.Column="1"
                                      MaxValue="7"
+                                     Value="7"
                                      ValueByKey="1"
                                      ToolTip.Tip="{loc:Loc Setup.GameManage.Download.FileConnections.ToolTip}" />
 
@@ -85,6 +96,7 @@
                                      Grid.Row="8"
                                      Grid.Column="1"
                                      MaxValue="42"
+                                     Value="42"
                                      ToolTip.Tip="{loc:Loc Setup.GameManage.Download.SpeedLimit.ToolTip}" />
 
                         <TextBlock Grid.Row="9"
@@ -122,8 +134,12 @@
                        Title="{loc:Loc Setup.GameManage.Community.Title}">
                 <StackPanel Margin="25,37,25,12">
                     <Grid x:Name="PanCommunityRows"
-                          ColumnDefinitions="Auto,*"
                           RowDefinitions="28,7,28,7,28,7,28,7,Auto">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"
+                                              SharedSizeGroup="Name" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
                         <TextBlock Grid.Row="0"
                                    VerticalAlignment="Center"
                                    Margin="0,0,25,0"
@@ -131,7 +147,8 @@
                         <ui:MyComboBox x:Name="ComboDownloadMod"
                                        Grid.Row="0"
                                        Grid.Column="1"
-                                       HorizontalAlignment="Stretch">
+                                       HorizontalAlignment="Stretch"
+                                       SelectedIndex="{Binding CompSourceIndex, Mode=TwoWay}">
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Source.UseMirror}" />
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.Source.PreferOfficialWithFallback}" />
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Source.UseOfficial}" />
@@ -140,6 +157,7 @@
                         <Grid x:Name="PanFilenameFormat"
                               Grid.Row="2"
                               Grid.ColumnSpan="2"
+                              IsVisible="{Binding FileFormatSettingsVisible}"
                               ColumnDefinitions="Auto,*">
                             <TextBlock VerticalAlignment="Center"
                                        Margin="0,0,25,0"
@@ -147,6 +165,7 @@
                             <ui:MyComboBox x:Name="ComboDownloadTranslateV2"
                                            Grid.Column="1"
                                            HorizontalAlignment="Stretch"
+                                           SelectedIndex="{Binding TranslateFormatIndex, Mode=TwoWay}"
                                            ToolTip.Tip="{loc:Loc Setup.GameManage.Community.FilenameFormat.ToolTip}">
                                 <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.FilenameFormat.Style0}" />
                                 <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.FilenameFormat.Style1}" />
@@ -159,6 +178,7 @@
                         <Grid x:Name="PanModManageStyle"
                               Grid.Row="4"
                               Grid.ColumnSpan="2"
+                              IsVisible="{Binding FileFormatSettingsVisible}"
                               ColumnDefinitions="Auto,*">
                             <TextBlock VerticalAlignment="Center"
                                        Margin="0,0,25,0"
@@ -166,6 +186,7 @@
                             <ui:MyComboBox x:Name="ComboModLocalNameStyle"
                                            Grid.Column="1"
                                            HorizontalAlignment="Stretch"
+                                           SelectedIndex="{Binding LocalNameStyleIndex, Mode=TwoWay}"
                                            ToolTip.Tip="{loc:Loc Setup.GameManage.Community.ModManageStyle.ToolTip}">
                                 <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.ModManageStyle.TitleTranslation}" />
                                 <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.ModManageStyle.TitleFilename}" />
@@ -182,6 +203,7 @@
                             <ui:MyComboBox x:Name="ComboDownloadQuickBehavior"
                                            Grid.Column="1"
                                            HorizontalAlignment="Stretch"
+                                           SelectedIndex="{Binding QuickBehaviorIndex, Mode=TwoWay}"
                                            ToolTip.Tip="{loc:Loc Setup.GameManage.Community.QuickDownload.ToolTip}">
                                 <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.QuickDownload.AlwaysAsk}" />
                                 <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.QuickDownload.CurrentInstance}" />

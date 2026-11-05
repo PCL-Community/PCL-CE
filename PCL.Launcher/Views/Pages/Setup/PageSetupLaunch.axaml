@@ -2,6 +2,7 @@
                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                 xmlns:ui="using:PCL.UI.Controls"
                 xmlns:loc="using:PCL.Core.UI"
+                x:CompileBindings="False"
                 x:Class="PCL.Views.Pages.Setup.PageSetupLaunch">
     <ui:MyScrollViewer x:Name="PanBack"
                        HorizontalScrollBarVisibility="Disabled"
@@ -10,28 +11,41 @@
             <ui:MyCard Margin="0,0,0,15"
                        Title="{loc:Loc Setup.Launch.Options.Title}">
                 <StackPanel Margin="25,40,25,15">
-                    <Grid ColumnDefinitions="Auto,*,60"
-                          RowDefinitions="28,9,28,9,28,9,28,9,28,9,28,9,28,9,28,Auto">
+                    <Grid RowDefinitions="28,9,28,9,28,9,28,9,28,9,28,9,28,9,28,Auto">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"
+                                              SharedSizeGroup="Name" />
+                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="60" />
+                        </Grid.ColumnDefinitions>
+
                         <TextBlock Grid.Row="0"
                                    VerticalAlignment="Center"
+                                   HorizontalAlignment="Left"
                                    Margin="0,0,25,0"
-                                   Text="{loc:Loc Setup.Launch.Options.InstanceIsolation.Label}"
-                                   ToolTip.Tip="{loc:Loc Setup.Launch.Options.InstanceIsolation.ToolTip}" />
+                                   Text="{loc:Loc Setup.Launch.Options.InstanceIsolation.Label}" />
                         <ui:MyComboBox x:Name="ComboArgumentIndieV2"
                                        Grid.Row="0"
                                        Grid.Column="1"
                                        Grid.ColumnSpan="2"
                                        HorizontalAlignment="Stretch"
+                                       SelectedIndex="{Binding IndieSolutionIndex, Mode=OneWay}"
+                                       SelectionChanged="ComboArgumentIndie_OnSelectionChanged"
                                        ToolTip.Tip="{loc:Loc Setup.Launch.Options.InstanceIsolation.ToolTip}">
-                            <ui:MyComboBoxItem Content="{loc:Loc Common.Action.Close}" />
-                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Launch.Options.InstanceIsolation.ModdedOnly}" />
-                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Launch.Options.InstanceIsolation.NonRelease}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Common.Action.Close}"
+                                               ToolTip.Tip="{loc:Loc Setup.Launch.Options.InstanceIsolation.None.ToolTip}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Launch.Options.InstanceIsolation.ModdedOnly}"
+                                               ToolTip.Tip="{loc:Loc Setup.Launch.Options.InstanceIsolation.ModdedOnly.ToolTip}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Launch.Options.InstanceIsolation.NonRelease}"
+                                               ToolTip.Tip="{loc:Loc Setup.Launch.Options.InstanceIsolation.NonRelease.ToolTip}" />
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.Launch.Options.InstanceIsolation.ModdedAndNonRelease}" />
-                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Launch.Options.InstanceIsolation.All}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Launch.Options.InstanceIsolation.All}"
+                                               ToolTip.Tip="{loc:Loc Setup.Launch.Options.InstanceIsolation.All.ToolTip}" />
                         </ui:MyComboBox>
 
                         <TextBlock Grid.Row="2"
                                    VerticalAlignment="Center"
+                                   HorizontalAlignment="Left"
                                    Margin="0,0,25,0"
                                    Text="{loc:Loc Setup.Launch.Options.WindowTitle.Label}" />
                         <ui:MyComboBox x:Name="ComboArgumentTitle"
@@ -41,6 +55,7 @@
                                        HorizontalAlignment="Stretch"
                                        IsEditable="True"
                                        IsTextSearchEnabled="False"
+                                       Text="{Binding WindowTitleText, Mode=TwoWay}"
                                        HintText="{loc:Loc Common.Option.Default}"
                                        ToolTip.Tip="{loc:Loc Setup.Launch.Options.WindowTitle.ToolTip}">
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.Launch.Options.WindowTitle.SampleFormat}" />
@@ -48,23 +63,28 @@
 
                         <TextBlock Grid.Row="4"
                                    VerticalAlignment="Center"
+                                   HorizontalAlignment="Left"
                                    Margin="0,0,25,0"
                                    Text="{loc:Loc Setup.Launch.Options.CustomInfo.Label}" />
                         <ui:MyTextBox x:Name="TextArgumentInfo"
                                       Grid.Row="4"
                                       Grid.Column="1"
                                       Grid.ColumnSpan="2"
+                                      Text="{Binding TypeInfoText, Mode=OneWay}"
                                       ToolTip.Tip="{loc:Loc Setup.Launch.Options.CustomInfo.ToolTip}" />
 
                         <TextBlock Grid.Row="6"
                                    VerticalAlignment="Center"
+                                   HorizontalAlignment="Left"
                                    Margin="0,0,25,0"
                                    Text="{loc:Loc Setup.Launch.Options.Visibility.Label}" />
                         <ui:MyComboBox x:Name="ComboArgumentVisibie"
                                        Grid.Row="6"
                                        Grid.Column="1"
                                        Grid.ColumnSpan="2"
-                                       HorizontalAlignment="Stretch">
+                                       HorizontalAlignment="Stretch"
+                                       SelectedIndex="{Binding VisibilityIndex, Mode=OneWay}"
+                                       SelectionChanged="ComboArgumentVisibie_SelectionChanged">
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.Launch.Options.Visibility.CloseImmediately}" />
                             <ui:MyComboBoxItem Content=""
                                                IsEnabled="False"
@@ -77,13 +97,15 @@
 
                         <TextBlock Grid.Row="8"
                                    VerticalAlignment="Center"
+                                   HorizontalAlignment="Left"
                                    Margin="0,0,25,0"
                                    Text="{loc:Loc Setup.Launch.Options.Priority.Label}" />
                         <ui:MyComboBox x:Name="ComboArgumentPriority"
                                        Grid.Row="8"
                                        Grid.Column="1"
                                        Grid.ColumnSpan="2"
-                                       HorizontalAlignment="Stretch">
+                                       HorizontalAlignment="Stretch"
+                                       SelectedIndex="{Binding PriorityIndex, Mode=TwoWay}">
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.Launch.Options.Priority.RealTime}"
                                                Tag="4" />
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.Launch.Options.Priority.High}"
@@ -98,6 +120,7 @@
 
                         <TextBlock Grid.Row="10"
                                    VerticalAlignment="Center"
+                                   HorizontalAlignment="Left"
                                    Margin="0,0,25,0"
                                    Text="{loc:Loc Setup.Launch.Options.WindowSize.Label}" />
                         <Grid x:Name="PanArgumentWindow"
@@ -107,11 +130,14 @@
                               ColumnDefinitions="*,Auto,Auto,Auto">
                             <ui:MyComboBox x:Name="ComboArgumentWindowType"
                                            Grid.Column="0"
-                                           HorizontalAlignment="Stretch">
+                                           HorizontalAlignment="Stretch"
+                                           SelectedIndex="{Binding WindowTypeIndex, Mode=TwoWay}"
+                                           ToolTip.Tip="{loc:Loc Setup.Launch.Options.WindowSize.ModernUiWarning}">
                                 <ui:MyComboBoxItem Content="{loc:Loc Setup.Launch.Options.WindowSize.Fullscreen}" />
                                 <ui:MyComboBoxItem Content="{loc:Loc Common.Option.Default}" />
                                 <ui:MyComboBoxItem Content="{loc:Loc Setup.Launch.Options.WindowSize.SameAsLauncher}" />
-                                <ui:MyComboBoxItem Content="{loc:Loc Setup.Launch.Options.WindowSize.Custom}" />
+                                <ui:MyComboBoxItem Content="{loc:Loc Setup.Launch.Options.WindowSize.Custom}"
+                                                   ToolTip.Tip="{loc:Loc Setup.Launch.Options.WindowSize.CustomHeightBug.ToolTip}" />
                                 <ui:MyComboBoxItem Content="{loc:Loc Setup.Launch.Options.WindowSize.Maximized}" />
                             </ui:MyComboBox>
                             <ui:MyTextBox x:Name="TextArgumentWindowWidth"
@@ -120,19 +146,21 @@
                                           Margin="50,0,0,0"
                                           Padding="0,0,5,0"
                                           HorizontalContentAlignment="Center"
-                                          IsVisible="False" />
+                                          Text="{Binding WindowWidthText, Mode=TwoWay}"
+                                          IsVisible="{Binding ShowWindowSize}" />
                             <TextBlock x:Name="LabArgumentWindowMiddle"
                                        Grid.Column="2"
                                        VerticalAlignment="Center"
                                        FontSize="18"
-                                       IsVisible="False"
+                                       IsVisible="{Binding ShowWindowSize}"
                                        Text=" × " />
                             <ui:MyTextBox x:Name="TextArgumentWindowHeight"
                                           Grid.Column="3"
                                           Width="60"
                                           Padding="0,0,5,0"
                                           HorizontalContentAlignment="Center"
-                                          IsVisible="False"
+                                          Text="{Binding WindowHeightText, Mode=TwoWay}"
+                                          IsVisible="{Binding ShowWindowSize}"
                                           ToolTip.Tip="{loc:Loc Setup.Launch.Options.WindowSize.CustomHeightBug.ToolTip}"
                                           ToolTip.Placement="Right"
                                           ToolTip.HorizontalOffset="5" />
@@ -140,6 +168,7 @@
 
                         <TextBlock Grid.Row="12"
                                    VerticalAlignment="Center"
+                                   HorizontalAlignment="Left"
                                    Margin="0,0,25,0"
                                    Text="{loc:Loc Setup.Launch.Options.MsAuth.Label}"
                                    ToolTip.Tip="{loc:Loc Setup.Launch.Options.MsAuth.ToolTip}" />
@@ -149,6 +178,7 @@
                                        Grid.ColumnSpan="2"
                                        HorizontalAlignment="Stretch"
                                        IsEnabled="False"
+                                       SelectedIndex="{Binding MsAuthTypeIndex, Mode=TwoWay}"
                                        ToolTip.Tip="{loc:Loc Setup.Launch.Options.MsAuth.ToolTip}">
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.Launch.Options.MsAuth.WebManager}" />
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.Launch.Options.MsAuth.DeviceCode}" />
@@ -156,13 +186,16 @@
 
                         <TextBlock Grid.Row="14"
                                    VerticalAlignment="Center"
+                                   HorizontalAlignment="Left"
                                    Margin="0,0,25,0"
                                    Text="{loc:Loc Setup.Launch.Options.IpStack.Label}" />
                         <ui:MyComboBox x:Name="ComboPreferredIpStack"
                                        Grid.Row="14"
                                        Grid.Column="1"
                                        Grid.ColumnSpan="2"
-                                       HorizontalAlignment="Stretch">
+                                       HorizontalAlignment="Stretch"
+                                       SelectedIndex="{Binding PreferredIpStackIndex, Mode=TwoWay}"
+                                       ToolTip.Tip="{loc:Loc Setup.Launch.Options.IpStack.ToolTip}">
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.Launch.Options.IpStack.Ipv4}" />
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.Launch.Options.IpStack.JavaDefault}" />
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.Launch.Options.IpStack.Ipv6}" />
@@ -177,13 +210,13 @@
                     <ui:MyHint x:Name="LabRamWarn"
                                Margin="0,0,0,12"
                                Theme="Yellow"
-                               IsVisible="False"
+                               IsVisible="{Binding RamWarnVisible}"
                                Text="{loc:Loc Setup.Launch.Memory.Warning.Java32Bit}" />
                     <ui:MyHint x:Name="HintRamTooHigh"
                                Height="30"
                                Margin="0,0,0,12"
                                Theme="Yellow"
-                               IsVisible="False"
+                               IsVisible="{Binding RamTooHighVisible}"
                                Text="{loc:Loc Setup.Launch.Memory.Warning.TooMuch}"
                                HorizontalAlignment="Stretch"
                                VerticalAlignment="Stretch" />
@@ -196,7 +229,10 @@
                                        Margin="0,0,20,9"
                                        HorizontalAlignment="Left"
                                        Text="{loc:Loc Setup.Launch.Memory.Auto}"
-                                       ToolTip.Tip="{loc:Loc Setup.Launch.Memory.Auto.ToolTip}" />
+                                       ToolTip.Tip="{loc:Loc Setup.Launch.Memory.Auto.ToolTip}"
+                                       ToolTip.Placement="Left"
+                                       ToolTip.HorizontalOffset="-10"
+                                       ToolTip.VerticalOffset="-10" />
                         <ui:MyRadioBox x:Name="RadioRamType1"
                                        Grid.Row="1"
                                        Margin="0,0,20,9"
@@ -205,27 +241,35 @@
                         <TextBlock Grid.Row="2"
                                    VerticalAlignment="Center"
                                    Margin="0,0,20,9"
-                                   Text="{loc:Loc Setup.Launch.Memory.Max}" />
+                                   Text="{loc:Loc Setup.Launch.Memory.Max}"
+                                   ToolTip.Tip="{loc:Loc Setup.Launch.Memory.Max.ToolTip}" />
                         <ui:MySlider x:Name="SliderRamCustom"
                                      Grid.Row="2"
                                      Grid.Column="1"
                                      MaxValue="49"
-                                     Margin="0,0,12,9" />
+                                     Margin="0,0,12,9"
+                                     Value="{Binding CustomMemorySize, Mode=TwoWay}"
+                                     IsEnabled="{Binding RamCustomEnabled}" />
                         <TextBlock Grid.Row="3"
                                    VerticalAlignment="Center"
                                    Margin="0,0,20,0"
-                                   Text="{loc:Loc Setup.Launch.Memory.Initial}" />
+                                   Text="{loc:Loc Setup.Launch.Memory.Initial}"
+                                   ToolTip.Tip="{loc:Loc Setup.Launch.Memory.Initial.ToolTip}" />
                         <ui:MySlider x:Name="SliderRamInitialCustom"
                                      Grid.Row="3"
                                      Grid.Column="1"
-                                     MaxValue="49" />
+                                     MaxValue="49"
+                                     Value="{Binding CustomInitialMemorySize, Mode=TwoWay}"
+                                     IsEnabled="{Binding RamInitialCustomEnabled}"
+                                     ToolTip.Tip="{loc:Loc Setup.Launch.Memory.Initial.ToolTip}" />
                     </Grid>
 
                     <Grid x:Name="PanRamDisplay"
                           Margin="0,11,2,0"
                           ColumnDefinitions="4.7*,2.5*,0.7*"
                           RowDefinitions="*,4,*">
-                        <Rectangle Grid.Row="1"
+                        <Rectangle x:Name="RectRamUsed"
+                                   Grid.Row="1"
                                    Grid.Column="0"
                                    StrokeThickness="0">
                             <Rectangle.Fill>
@@ -238,12 +282,14 @@
                                 </LinearGradientBrush>
                             </Rectangle.Fill>
                         </Rectangle>
-                        <Rectangle Grid.Row="1"
+                        <Rectangle x:Name="RectRamGame"
+                                   Grid.Row="1"
                                    Grid.Column="1"
                                    Fill="{DynamicResource ColorBrush3}"
                                    Opacity="0.5"
                                    StrokeThickness="0" />
-                        <Rectangle Grid.Row="1"
+                        <Rectangle x:Name="RectRamEmpty"
+                                   Grid.Row="1"
                                    Grid.Column="2"
                                    Fill="{DynamicResource ColorBrush6}"
                                    Opacity="0.7"
@@ -260,7 +306,7 @@
                                    Margin="2,0,0,5"
                                    FontSize="11"
                                    Opacity="0.7"
-                                   HorizontalAlignment="Right"
+                                   HorizontalAlignment="Left"
                                    Text="{loc:Loc Setup.Launch.Memory.GameAllocation}" />
                         <StackPanel Grid.Row="2"
                                     Grid.ColumnSpan="3"
@@ -269,10 +315,12 @@
                                     Orientation="Horizontal">
                             <TextBlock x:Name="LabRamUsed"
                                        FontSize="16"
-                                       Foreground="{DynamicResource ColorBrushMemory}" />
+                                       Foreground="{DynamicResource ColorBrushMemory}"
+                                       Text="{Binding RamUsedText}" />
                             <TextBlock x:Name="LabRamTotal"
                                        FontSize="16"
-                                       Foreground="{DynamicResource ColorBrushMemory}" />
+                                       Foreground="{DynamicResource ColorBrushMemory}"
+                                       Text="{Binding RamTotalText}" />
                         </StackPanel>
                         <TextBlock x:Name="LabRamGame"
                                    Grid.Row="2"
@@ -280,7 +328,8 @@
                                    Margin="2,3,0,0"
                                    FontSize="16"
                                    Foreground="{DynamicResource ColorBrushMemory}"
-                                   HorizontalAlignment="Right" />
+                                   HorizontalAlignment="Left"
+                                   Text="{Binding RamGameText}" />
                     </Grid>
                 </StackPanel>
             </ui:MyCard>
@@ -295,12 +344,15 @@
                       RowDefinitions="28,9,Auto,9,28,9,28,Auto,Auto,Auto">
                     <TextBlock Grid.Row="0"
                                VerticalAlignment="Center"
+                               HorizontalAlignment="Left"
                                Margin="0,0,25,0"
                                Text="{loc:Loc Setup.Launch.Advanced.Renderer.Label}" />
                     <ui:MyComboBox x:Name="ComboAdvanceRenderer"
                                    Grid.Row="0"
                                    Grid.Column="1"
-                                   HorizontalAlignment="Stretch">
+                                   HorizontalAlignment="Stretch"
+                                   SelectedIndex="{Binding RendererIndex, Mode=OneWay}"
+                                   SelectionChanged="ComboAdvanceRenderer_OnSelectionChanged">
                         <ui:MyComboBoxItem Content="{loc:Loc Setup.Launch.Advanced.Renderer.GameDefault}" />
                         <ui:MyComboBoxItem Content="{loc:Loc Setup.Launch.Advanced.Renderer.Software}" />
                         <ui:MyComboBoxItem Content="{loc:Loc Setup.Launch.Advanced.Renderer.DirectX12}" />
@@ -319,9 +371,11 @@
                                          VerticalAlignment="Center"
                                          LogoScale="0.9"
                                          SvgIcon="lucide/rotate-ccw"
-                                         IsVisible="False"
+                                         IsVisible="{Binding JvmResetVisible}"
                                          ToolTip.Tip="{loc:Loc Setup.Launch.Advanced.JvmHead.Restore}"
-                                         ToolTip.Placement="Left" />
+                                         ToolTip.Placement="Left"
+                                         ToolTip.ShowDelay="200"
+                                         ToolTip.VerticalOffset="-1" />
                     </StackPanel>
                     <ui:MyTextBox x:Name="TextAdvanceJvm"
                                   Grid.Row="2"
@@ -333,30 +387,38 @@
                                   TextWrapping="Wrap"
                                   VerticalContentAlignment="Top"
                                   ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                  Text="{Binding JvmArgsText, Mode=TwoWay}"
                                   ToolTip.Tip="{loc:Loc Setup.Launch.Advanced.JvmHead.ToolTip}" />
 
                     <TextBlock Grid.Row="4"
                                VerticalAlignment="Center"
+                               HorizontalAlignment="Left"
                                Margin="0,0,25,0"
                                Text="{loc:Loc Setup.Launch.Advanced.GameTail}" />
                     <ui:MyTextBox x:Name="TextAdvanceGame"
                                   Grid.Row="4"
                                   Grid.Column="1"
+                                  Text="{Binding GameArgsText, Mode=TwoWay}"
                                   ToolTip.Tip="{loc:Loc Setup.Launch.Advanced.GameTail.ToolTip}" />
 
                     <TextBlock Grid.Row="6"
                                VerticalAlignment="Center"
+                               HorizontalAlignment="Left"
                                Margin="0,0,25,0"
                                Text="{loc:Loc Setup.Launch.Advanced.PreLaunchCommand}" />
                     <ui:MyTextBox x:Name="TextAdvanceRun"
                                   Grid.Row="6"
                                   Grid.Column="1"
+                                  HintText=""
+                                  Text="{Binding PreLaunchText, Mode=TwoWay}"
                                   ToolTip.Tip="{loc:Loc Setup.Launch.Advanced.PreLaunchCommand.ToolTip}" />
 
                     <ui:MyCheckBox x:Name="CheckAdvanceRunWait"
                                    Grid.Row="7"
                                    Grid.Column="1"
                                    Margin="0,8,0,7"
+                                   IsVisible="{Binding CheckAdvanceRunWaitVisible}"
+                                   Checked="{Binding PreLaunchCommandWait, Mode=TwoWay}"
                                    Text="{loc:Loc Setup.Launch.Advanced.PreLaunchCommand.Wait}" />
 
                     <StackPanel Grid.Row="8"
@@ -366,37 +428,48 @@
                         <ui:MyCheckBox x:Name="CheckAdvanceDisableJLW"
                                        Height="28"
                                        Text="{loc:Loc Setup.Launch.Advanced.DisableJlw}"
+                                       IsEnabled="{Binding DisableJlwEnabled}"
+                                       Checked="{Binding DisableJlw, Mode=TwoWay}"
                                        ToolTip.Tip="{loc:Loc Setup.Launch.Advanced.DisableJlw.ToolTip}" />
                         <ui:MyCheckBox x:Name="CheckAdvanceDisableLF"
                                        Height="28"
                                        Text="{loc:Loc Setup.Launch.Advanced.DisableLF}"
+                                       Checked="{Binding DisableLF, Mode=TwoWay}"
                                        ToolTip.Tip="{loc:Loc Setup.Launch.Advanced.DisableLF.ToolTip}" />
                         <ui:MyCheckBox x:Name="CheckAdvanceGraphicCard"
                                        Height="28"
                                        Text="{loc:Loc Setup.Launch.Advanced.GpuPreference}"
+                                       Checked="{Binding SetGpuPreference, Mode=TwoWay}"
                                        ToolTip.Tip="{loc:Loc Setup.Launch.Advanced.GpuPreference.ToolTip}" />
                         <ui:MyCheckBox x:Name="CheckAdvanceNoJavaw"
                                        Height="28"
                                        Text="{loc:Loc Setup.Launch.Advanced.UseJavaExe}"
+                                       Checked="{Binding NoJavaw, Mode=TwoWay}"
                                        ToolTip.Tip="{loc:Loc Setup.Launch.Advanced.UseJavaExe.ToolTip}" />
                         <ui:MyCheckBox x:Name="CheckAdvanceDisableLwjglUnsafeAgent"
                                        Height="28"
                                        Text="{loc:Loc Setup.Launch.Advanced.DisableLwjglUnsafeAgent}"
+                                       Checked="{Binding DisableLwjglUnsafeAgent, Mode=TwoWay}"
                                        ToolTip.Tip="{loc:Loc Setup.Launch.Advanced.DisableLwjglUnsafeAgent.ToolTip}" />
                         <ui:MyCheckBox x:Name="CheckAdvanceDisableCrashAnalysis"
                                        Height="28"
                                        Text="{loc:Loc Setup.Launch.Advanced.DisableCrashAnalysis}"
+                                       Checked="{Binding DisableCrashAnalysis, Mode=TwoWay}"
                                        ToolTip.Tip="{loc:Loc Setup.Launch.Advanced.DisableCrashAnalysis.ToolTip}" />
                         <ui:MyCheckBox x:Name="CheckAdvanceLockMemory"
                                        Height="28"
                                        Text="{loc:Loc Setup.Launch.Advanced.LockMemory}"
+                                       Checked="{Binding LockMemory, Mode=TwoWay}"
                                        ToolTip.Tip="{loc:Loc Setup.Launch.Advanced.LockMemory.ToolTip}" />
                     </StackPanel>
 
-                    <ui:MyHint Grid.Row="9"
+                    <ui:MyHint x:Name="HintMoreAdvancedSetup"
+                               Grid.Row="9"
                                Grid.ColumnSpan="2"
                                Margin="0,5,0,10"
                                Theme="Blue"
+                               CanClose="True"
+                               RelativeSetup="HintMoreAdvancedSetup"
                                Text="{loc:Loc Setup.Launch.Advanced.MoreInInstanceSetup}" />
                 </Grid>
             </ui:MyCard>
@@ -406,6 +479,7 @@
                                   HorizontalAlignment="Center"
                                   SvgIcon="lucide/arrow-right"
                                   LogoScale="0.9"
+                                  IsVisible="{Binding ShowSwitchButton}"
                                   Text="{loc:Loc Setup.Launch.SwitchToInstanceSetup}" />
         </StackPanel>
     </ui:MyScrollViewer>
