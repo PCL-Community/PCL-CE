@@ -170,7 +170,8 @@ public partial class PageInstanceSaves : IRefreshable, IPageView
             Info = entry.Info,
             Type = MyListItem.CheckType.Clickable,
             Command = _vm.OpenDetailsCommand,
-            CommandParameter = curFolder
+            CommandParameter = curFolder,
+            LogoCornerRadius = new CornerRadius(6)
         };
 
         var btnOpen = new MyIconButton
