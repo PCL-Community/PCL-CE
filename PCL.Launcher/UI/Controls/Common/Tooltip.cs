@@ -33,6 +33,8 @@ public sealed class Tooltip
     private static bool _enabled;
     private static IDisposable? _openingSubscription;
     private static IDisposable? _pressSubscription;
+    private static IDisposable? _releaseSubscription;
+    private static bool _pointerPressed;
 
     private static Control? _target;
     private static Popup? _flyout;
@@ -80,7 +82,15 @@ public sealed class Tooltip
             RoutingStrategies.Direct | RoutingStrategies.Bubble,
             true);
         _pressSubscription = InputElement.PointerPressedEvent.AddClassHandler<InputElement>(
-            (_, _) => Dismiss(),
+            (_, _) =>
+            {
+                _pointerPressed = true;
+                Dismiss();
+            },
+            RoutingStrategies.Tunnel | RoutingStrategies.Bubble,
+            true);
+        _releaseSubscription = InputElement.PointerReleasedEvent.AddClassHandler<InputElement>(
+            (_, _) => _pointerPressed = false,
             RoutingStrategies.Tunnel | RoutingStrategies.Bubble,
             true);
 
@@ -99,6 +109,9 @@ public sealed class Tooltip
         _openingSubscription = null;
         _pressSubscription?.Dispose();
         _pressSubscription = null;
+        _releaseSubscription?.Dispose();
+        _releaseSubscription = null;
+        _pointerPressed = false;
 
         if (Application.Current is { } application)
             application.ActualThemeVariantChanged -= _OnThemeVariantChanged;
@@ -116,6 +129,12 @@ public sealed class Tooltip
     private static void _OnToolTipOpening(Control control, CancelRoutedEventArgs e)
     {
         if (!_enabled) return;
+        if (_pointerPressed)
+        {
+            e.Cancel = true;
+            e.Handled = true;
+            return;
+        }
 
         var content = ToolTip.GetTip(control);
         if (content is null or string { Length: 0 }) return;
@@ -136,6 +155,7 @@ public sealed class Tooltip
 
     private static void _PopUp(Control target, object content)
     {
+        if (_pointerPressed) return;
         if (_flyout is null)
             _BuildUi();
 
@@ -293,7 +313,8 @@ public sealed class Tooltip
 
     private static void _OnTargetPointerMoved(object? sender, PointerEventArgs e)
     {
-        if (_flyout is not { IsOpen: true } || _shell is null || _target is null) return;
+        if (_closing || _flyout is not { IsOpen: true } || _shell is null || _target is null)
+            return;
         if (!GetFollowCursor(_target)
             || _flyout.Placement != PlacementMode.AnchorAndGravity) return;
 

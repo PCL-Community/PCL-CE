@@ -1,6 +1,5 @@
-using System.Windows;
-using System.Windows.Controls;
 using PCL.Core.App.Localization;
+using System.Windows;
 
 namespace PCL;
 
@@ -9,72 +8,50 @@ public static class CompProjectUiExtensions
 {
     extension(Comp.CompProject project)
     {
+        /// <summary>
+        ///     将当前工程信息实例化为条目 ViewModel，供虚拟化列表（ItemsControl + DataTemplate）使用。
+        /// </summary>
+        public MyCompItemViewModel ToCompItemViewModel(
+            bool showMcVersionDesc,
+            bool showLoaderDesc,
+            bool showQuickDownload = false)
+        {
+            var title = project.GetControlTitle(true);
+            var hasSubtitle = !string.IsNullOrEmpty(title.Value);
+
+            var viewModel = new MyCompItemViewModel
+            {
+                Project = project,
+                TitleText = title.Key,
+                SubTitleText = hasSubtitle ? title.Value : "",
+                SubTitleVisibility = hasSubtitle ? Visibility.Visible : Visibility.Collapsed,
+                DescriptionText = project.Description.Replace("\r", "").Replace("\n", ""),
+                Tags = project.Tags,
+                SourceText = project.FromCurseForge ? "CurseForge" : "Modrinth",
+                ShowVersion = showMcVersionDesc || showLoaderDesc,
+                ShowTime = project.LastUpdate is not null,
+                ShowDownloadButton = showQuickDownload,
+                VersionText = LocalizedText.Create(
+                    () => project.BuildVersionDescription(showMcVersionDesc, showLoaderDesc)),
+                DownloadText = LocalizedText.Create(() => Lang.CompactNumber(project.DownloadCount))
+            };
+
+            if (project.LastUpdate is { } lastUpdate)
+                viewModel.TimeText = LocalizedText.Create(() => Lang.TimeSpan(lastUpdate - DateTime.Now, 1));
+
+            return viewModel;
+        }
+
         public MyVirtualizingElement<MyCompItem> ToCompItem(
             bool showMcVersionDesc,
             bool showLoaderDesc,
             bool showQuickDownload = false)
         {
-            return new MyVirtualizingElement<MyCompItem>(() =>
-            {
-                var newItem = new MyCompItem
+            return new MyVirtualizingElement<MyCompItem>(
+                () => new MyCompItem
                 {
-                    Tag = project
-                };
-                project.ApplyLogoToMyImage(newItem.PathLogo);
-
-                var title = project.GetControlTitle(true);
-                newItem.Title = title.Key;
-
-                if (string.IsNullOrEmpty(title.Value))
-                    ((StackPanel)newItem.LabTitleRaw.Parent).Children.Remove(
-                        newItem.LabTitleRaw);
-                else
-                    newItem.SubTitle = title.Value;
-
-                newItem.Tags = project.Tags;
-                newItem.Description = project.Description.Replace("\r", "").Replace("\n", "");
-                newItem.ShowDownloadBtn = showQuickDownload;
-
-                LocalizedText.TryBind(
-                    newItem.LabVersion,
-                    "Text",
-                    () => project.BuildVersionDescription(showMcVersionDesc, showLoaderDesc));
-
-                if (!showMcVersionDesc && !showLoaderDesc)
-                {
-                    ((Grid)newItem.SvgIconVersion.Parent).Children.Remove(
-                        newItem.SvgIconVersion);
-                    ((Grid)newItem.LabVersion.Parent).Children.Remove(newItem.LabVersion);
-                    newItem.ColumnVersion1.Width = new GridLength(0);
-                    newItem.ColumnVersion2.MaxWidth = 0;
-                    newItem.ColumnVersion3.Width = new GridLength(0);
-                }
-
-                newItem.LabSource.Text = project.FromCurseForge ? "CurseForge" : "Modrinth";
-
-                if (project.LastUpdate is not null)
-                {
-                    var lastUpdate = project.LastUpdate.Value;
-                    LocalizedText.TryBind(
-                        newItem.LabTime,
-                        "Text",
-                        () => Lang.TimeSpan(lastUpdate - DateTime.Now, 1));
-                }
-                else
-                {
-                    newItem.LabTime.Visibility = Visibility.Collapsed;
-                    newItem.ColumnTime1.Width =
-                        newItem.ColumnTime2.Width =
-                            newItem.ColumnTime3.Width = new GridLength(0);
-                }
-
-                LocalizedText.TryBind(
-                    newItem.LabDownload,
-                    "Text",
-                    () => Lang.CompactNumber(project.DownloadCount));
-
-                return newItem;
-            })
+                    ViewModel = project.ToCompItemViewModel(showMcVersionDesc, showLoaderDesc, showQuickDownload)
+                })
             {
                 Height = 64
             };

@@ -5,6 +5,7 @@ using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Threading;
+using PCL.UI;
 using PCL.UI.Controls.Common;
 
 namespace PCL.UI.Controls;
@@ -342,6 +343,8 @@ public partial class MySlider : UserControl
 
         Focus(); // 确保按键能改变值
         RefreshColor();
+        if (DialogPresenter.Instance.HasOpenDialog)
+            return;
         InputAnimation.Scale(
             ShapeDotElement,
             1.3d,
@@ -361,6 +364,11 @@ public partial class MySlider : UserControl
             return;
 
         _lastPointerPosition = e.GetPosition(PanMainElement);
+        if (DialogPresenter.Instance.HasOpenDialog)
+        {
+            DragStop();
+            return;
+        }
         UpdateValueFromPosition(_lastPointerPosition);
         RefreshPopup();
     }
@@ -388,6 +396,11 @@ public partial class MySlider : UserControl
     /// </summary>
     public void DragDoing()
     {
+        if (DialogPresenter.Instance.HasOpenDialog)
+        {
+            DragStop();
+            return;
+        }
         UpdateValueFromPosition(_lastPointerPosition);
         RefreshPopup();
     }
@@ -431,6 +444,8 @@ public partial class MySlider : UserControl
     /// </summary>
     public void RefreshPopup()
     {
+        if (DialogPresenter.Instance.HasOpenDialog)
+            return;
         if (getHintText is null || PopupElement is null || TextHintElement is null)
             return;
 

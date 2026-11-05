@@ -20,7 +20,7 @@ public sealed class WpfCompLocalUi : ICompLocalUi
         PlatformServices.UiDispatcher?.Post(() =>
         {
             if (Launcher.frmInstanceMod?.Filter == PageInstanceCompResource.FilterType.CanUpdate)
-                Launcher.frmInstanceMod.RefreshUI();
+                Launcher.frmInstanceMod.RefreshUi();
             else
                 Launcher.frmInstanceMod?.RefreshBars();
         });

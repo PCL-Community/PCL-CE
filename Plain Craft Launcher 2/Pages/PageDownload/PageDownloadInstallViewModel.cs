@@ -1,8 +1,8 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using PCL.Core.ViewModel;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Media;
-using CommunityToolkit.Mvvm.ComponentModel;
-using PCL.Core.ViewModel;
 
 namespace PCL;
 
@@ -97,9 +97,9 @@ public partial class PageDownloadInstallViewModel : ViewModelBase
 
     [ObservableProperty] private string? _optiFabricText = "";
 
-    [ObservableProperty] private bool _showHintFabricAPI = true;
+    [ObservableProperty] private bool _showHintFabricApi = true;
 
-    [ObservableProperty] private bool _showHintLegacyFabricAPI = true;
+    [ObservableProperty] private bool _showHintLegacyFabricApi = true;
 
     [ObservableProperty] private bool _showHintOptiFabric = true;
 

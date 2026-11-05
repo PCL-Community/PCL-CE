@@ -2414,8 +2414,6 @@
     <!-- Region -->
 
     <sys:String x:Key="Region.Feature.Restricted">Minecraft downloads, repairs, and modpack installation are unavailable in your country or region.</sys:String>
-    <sys:String x:Key="Region.Feature.Unknown">Could not determine region info. Minecraft downloads, repairs, and modpack installation are temporarily unavailable.</sys:String>
-
     <!-- Select -->
 
     <sys:String x:Key="Select.Error.OperationFailed">An instance selection operation failed. See the details below.</sys:String>

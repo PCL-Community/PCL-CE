@@ -546,8 +546,13 @@ public static partial class Comp
             Exception? lastError = null;
             var resultsLock = new object();
 
+            // 1.14- 的 Forge 老 Mod 常常没有声明自己支持的加载器，因此查询时不带加载器条件，
+            // 之后再按「未声明加载器或声明了 Forge」过滤。
+            // 注意必须要求版本可解析：VersionToDrop 对 null/无法识别的版本返回 -1，
+            // 若直接比较会把「不选版本 + Forge」误判为老版本，从而丢掉 Forge 筛选条件。
+            var gameVersionDrop = McInstanceInfo.VersionToDrop(request.gameVersion, true);
             var isOldForgeRequest = request.modLoader == CompLoaderType.Forge
-                && McInstanceInfo.VersionToDrop(request.gameVersion, true) < 140;
+                && gameVersionDrop is >= 0 and < 140;
             if (isOldForgeRequest) request.modLoader = CompLoaderType.Any;
             var curseForgeUrl = request.GetCurseForgeAddress();
             var modrinthUrl = request.GetModrinthAddress();

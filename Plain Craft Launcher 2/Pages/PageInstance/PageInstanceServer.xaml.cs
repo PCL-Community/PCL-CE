@@ -15,12 +15,12 @@ public partial class PageInstanceServer : MyPageRight, IPageView
 {
     private const int debounceInterval = 2000;
 
-    public static readonly List<MinecraftServerInfo> serverList = new();
-    private static readonly List<ServerCard> serverCardList = new();
+    public static readonly List<MinecraftServerInfo> serverList = [];
+    private static readonly List<ServerCard> serverCardList = [];
 
     private readonly PageInstanceServerViewModel _vm = new();
 
-    private CancellationTokenSource _cts;
+    private CancellationTokenSource? _cts = null;
 
     private DateTime _lastRefresh = DateTime.MinValue;
 
@@ -364,8 +364,12 @@ public partial class PageInstanceServer : MyPageRight, IPageView
 
     private async void PingAllServers()
     {
-        await _cts.CancelAsync().ConfigureAwait(true);
-        _cts.Dispose();
+        if (_cts is not null)
+        {
+            await _cts.CancelAsync().ConfigureAwait(true);
+            _cts.Dispose();
+            _cts = null;
+        }
 
         _cts = new CancellationTokenSource();
         var token = _cts.Token;
