@@ -1,4 +1,3 @@
-using System.Text;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -7,13 +6,10 @@ using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
-using PCL.Core.IO;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
 using PCL.Navigation;
-using PCL.Network;
-using PCL.Network.Loaders;
 using PCL.UI.Controls;
 using PCL.Views.Pages.Download;
 using PCL.Views.Shell;
@@ -30,16 +26,11 @@ public partial class PageInstanceCompResource
     : MyPageRight, IPageView, IRefreshable, ICompLocalPage
 {
     private readonly Comp.CompType _compType;
-    private readonly List<LocalComp.LocalCompFile> _entries = [];
-    private readonly HashSet<string> _selected = new(StringComparer.OrdinalIgnoreCase);
-    private readonly List<LocalComp.LocalCompFile> _visibleEntries = [];
 
     private string _currentFolderPath = string.Empty;
-    private int _filter;
     private bool _isBuilding;
     private bool _loaderInitialized;
     private bool _refreshed;
-    private int _sort = 1;
 
     public PageInstanceCompResource() : this(Comp.CompType.Mod)
     {
@@ -51,8 +42,14 @@ public partial class PageInstanceCompResource
         InitializeComponent();
         PanScroll = PanBack;
         SearchBox.HintText = Lang.Text("Instance.Resource.Search.Hint");
+        ViewModel.Configure(compType, CurrentLoaderFolder);
+        ViewModel.ReloadRequested += ReloadList;
         RefreshSortText();
-        SearchBox.TextChanged += (_, _) => BuildList();
+        SearchBox.TextChanged += (_, _) =>
+        {
+            ViewModel.SetSearch(SearchBox.Text ?? string.Empty);
+            BuildList();
+        };
         BtnManageBack.Click += (_, _) => GoBackToParentFolder();
         BtnManageOpen.Click += (_, _) => Basics.OpenPath(CurrentLoaderFolder);
         BtnManageInstall.Click += (_, _) => InstallFromFiles();
@@ -89,7 +86,7 @@ public partial class PageInstanceCompResource
             button.Check += (sender, _) =>
             {
                 if (sender.Tag is string tag && int.TryParse(tag, out var index))
-                    _filter = index;
+                    ViewModel.ApplyFilter(index);
                 BuildList();
             };
         BtnSort.Click += (_, _) => ShowSortMenu();
@@ -102,7 +99,7 @@ public partial class PageInstanceCompResource
         BtnSelectDelete.Click += (_, _) => DeleteSelected();
         BtnSelectCancel.Click += (_, _) =>
         {
-            _selected.Clear();
+            ViewModel.ClearSelection();
             BuildList();
         };
 
@@ -114,7 +111,8 @@ public partial class PageInstanceCompResource
                     return;
                 if (SearchBox.IsKeyboardFocusWithin && !string.IsNullOrEmpty(SearchBox.Text))
                     return;
-                ToggleSelectAll(true);
+                ViewModel.SetAllSelected(true);
+                BuildList();
                 e.Handled = true;
             },
             RoutingStrategies.Tunnel);
@@ -124,14 +122,9 @@ public partial class PageInstanceCompResource
         LoaderInit();
     }
 
-    private string CompNameKey =>
-        _compType switch
-        {
-            Comp.CompType.ResourcePack => "Instance.Left.ResourcePacks",
-            Comp.CompType.Shader => "Instance.Left.Shaders",
-            Comp.CompType.Schematic => "Instance.Left.Schematics",
-            _ => "Instance.Left.Mod"
-        };
+    private string CompNameKey => ViewModel.CompNameKey;
+
+    public PageInstanceCompResourceViewModel ViewModel { get; } = new();
 
     private string CurrentLoaderFolder
     {
@@ -153,7 +146,9 @@ public partial class PageInstanceCompResource
     public override void OnNavigatedTo(object? parameter)
     {
         _currentFolderPath = string.Empty;
-        _selected.Clear();
+        ViewModel.ClearSelection();
+        ViewModel.SetCurrentFolder(string.Empty);
+        ViewModel.Configure(_compType, CurrentLoaderFolder);
         if (_refreshed)
         {
             ReloadList();
@@ -177,6 +172,7 @@ public partial class PageInstanceCompResource
     protected override void RefreshLocalization()
     {
         SearchBox.HintText = Lang.Text("Instance.Resource.Search.Hint");
+        ViewModel.Configure(_compType, CurrentLoaderFolder);
         RefreshSortText();
         BuildList();
         if (PanSchematicEmpty.IsVisible)
@@ -199,7 +195,7 @@ public partial class PageInstanceCompResource
             null,
             LocalComp.CompResourceListLoader,
             _ => BuildFromLoaderOutput(),
-            () => GetLoaderData());
+            GetLoaderData);
     }
 
     private LocalComp.CompLocalLoaderData GetLoaderData()
@@ -211,10 +207,12 @@ public partial class PageInstanceCompResource
             case Comp.CompType.Mod:
                 loaders = LocalComp.GetCurrentVersionModLoader();
                 break;
+            
             case Comp.CompType.ResourcePack:
             case Comp.CompType.Schematic:
                 loaders = [Comp.CompLoaderType.Minecraft];
                 break;
+            
             case Comp.CompType.Shader:
                 loaders =
                 [
@@ -224,6 +222,16 @@ public partial class PageInstanceCompResource
                     Comp.CompLoaderType.Canvas
                 ];
                 break;
+            
+            case Comp.CompType.Any:
+            case Comp.CompType.ModPack:
+            case Comp.CompType.DataPack:
+            case Comp.CompType.Plugin:
+            case Comp.CompType.World:
+                break;
+            
+            default:
+                throw new ArgumentOutOfRangeException();
         }
 
         return new LocalComp.CompLocalLoaderData
@@ -268,6 +276,8 @@ public partial class PageInstanceCompResource
             && PageRouter.CurrentPage is PageInstanceCompResource page)
         {
             page._currentFolderPath = string.Empty;
+            page.ViewModel.SetCurrentFolder(string.Empty);
+            page.ViewModel.ClearSelection();
             page.ReloadList();
             HintService.Show(Hints.Info(Lang.Text("Instance.Left.Refreshing"), false));
         }
@@ -277,10 +287,10 @@ public partial class PageInstanceCompResource
     {
         try
         {
-            _entries.Clear();
             var output = LocalComp.CompResourceListLoader.output;
-            if (output is not null)
-                _entries.AddRange(output);
+            ViewModel.Configure(_compType, CurrentLoaderFolder);
+            ViewModel.SetCurrentFolder(_currentFolderPath);
+            ViewModel.SetEntries(output ?? []);
 
             var instance = PageInstanceLeft.ResolveInstance();
             if (instance is null)
@@ -288,22 +298,7 @@ public partial class PageInstanceCompResource
 
             BtnManageJarInJar.IsVisible = _compType == Comp.CompType.Mod && instance.Modable;
 
-            var root = Path.GetFullPath(CurrentLoaderFolder.TrimEnd(Path.DirectorySeparatorChar));
-            var shown = _entries
-                .Where(entry =>
-                {
-                    var itemPath = entry.IsFolder ? entry.ActualPath : entry.path;
-                    var parent = Directory.GetParent(itemPath)?.FullName;
-                    return string.IsNullOrEmpty(_currentFolderPath)
-                        ? string.Equals(parent, root, StringComparison.OrdinalIgnoreCase)
-                        : string.Equals(
-                            parent,
-                            _currentFolderPath,
-                            StringComparison.OrdinalIgnoreCase);
-                })
-                .ToList();
-
-            if (shown.Count == 0)
+            if (!ViewModel.HasEntriesInCurrentFolder)
             {
                 if (_compType == Comp.CompType.Schematic
                     && !Directory.Exists(Path.Combine(instance.PathIndie, "schematics")))
@@ -317,8 +312,8 @@ public partial class PageInstanceCompResource
             PanEmpty.IsVisible = false;
             PanSchematicEmpty.IsVisible = false;
             PanListBack.Opacity = 1d;
-            _sort = 1;
-            BuildList(shown);
+            ViewModel.ApplySort(1);
+            BuildList();
         }
         catch (Exception ex)
         {
@@ -337,16 +332,12 @@ public partial class PageInstanceCompResource
         PanEmpty.IsVisible = true;
         PanSchematicEmpty.IsVisible = false;
         PanSelect.IsVisible = false;
-        var inSubFolder = !string.IsNullOrEmpty(_currentFolderPath);
-        TxtEmptyTitle.Text = Lang.Text(
-            inSubFolder ? "Instance.Resource.EmptyFolder.Title" : "Instance.Resource.Empty.Title");
-        TxtEmptyDescription.Text = Lang.Text(
-            inSubFolder
-                ? "Instance.Resource.EmptyFolder.Description"
-                : "Instance.Resource.Empty.DescriptionWithDownload");
-        BtnHintBack.IsVisible = inSubFolder;
-        BtnManageBack.IsVisible = inSubFolder;
-        BtnHintDownload.IsVisible = _compType != Comp.CompType.Schematic;
+        ViewModel.ApplyEmptyState();
+        TxtEmptyTitle.Text = ViewModel.EmptyTitle;
+        TxtEmptyDescription.Text = ViewModel.EmptyDescription;
+        BtnHintBack.IsVisible = ViewModel.ShowHintBack;
+        BtnManageBack.IsVisible = ViewModel.ShowManageBack;
+        BtnHintDownload.IsVisible = ViewModel.ShowHintDownload;
     }
 
     private void ShowSchematicEmptyPanel()
@@ -356,55 +347,20 @@ public partial class PageInstanceCompResource
         PanEmpty.IsVisible = false;
         PanSchematicEmpty.IsVisible = true;
         PanSelect.IsVisible = false;
+        ViewModel.ApplySchematicEmptyState();
     }
 
-    private void BuildList(List<LocalComp.LocalCompFile>? entries = null)
+    private void BuildList()
     {
         if (_isBuilding || PanList is null)
             return;
         _isBuilding = true;
         try
         {
-            var searchText = SearchBox.Text?.Trim().ToLower() ?? string.Empty;
-            var source = entries
-                ??
-                [
-                    .. _entries
-                        .Where(entry =>
-                        {
-                            var itemPath = entry.IsFolder ? entry.ActualPath : entry.path;
-                            var parent = Directory.GetParent(itemPath)?.FullName;
-                            return string.IsNullOrEmpty(_currentFolderPath)
-                                || string.Equals(
-                                    parent,
-                                    _currentFolderPath,
-                                    StringComparison.OrdinalIgnoreCase);
-                        })
-                ];
+            ViewModel.RebuildVisibleEntries();
 
-            var available = source
-                .Select(entry => entry.RawPath)
-                .ToHashSet(StringComparer.OrdinalIgnoreCase);
-            _selected.RemoveWhere(path => !available.Contains(path));
-
-            var filtered = source
-                .Where(MatchFilter)
-                .Where(entry =>
-                    string.IsNullOrEmpty(searchText)
-                    || (entry.Name ?? "").Contains(searchText, StringComparison.InvariantCulture)
-                    || (entry.Description ?? "").Contains(
-                        searchText,
-                        StringComparison.InvariantCulture)
-                    || (entry.FileName ?? "").Contains(
-                        searchText,
-                        StringComparison.InvariantCulture))
-                .ToList();
-            filtered = SortEntries(filtered);
-
-            _visibleEntries.Clear();
-            _visibleEntries.AddRange(filtered);
             PanList.Children.Clear();
-            foreach (var entry in filtered)
+            foreach (var entry in ViewModel.VisibleEntries)
                 PanList.Children.Add(CreateEntryItem(entry));
 
             PanAllBack.IsVisible = true;
@@ -419,159 +375,40 @@ public partial class PageInstanceCompResource
         }
     }
 
-    private bool MatchFilter(LocalComp.LocalCompFile entry)
-    {
-        return _filter switch
-        {
-            1 => entry.State == LocalComp.LocalCompFile.LocalFileStatus.Fine,
-            2 => entry.State == LocalComp.LocalCompFile.LocalFileStatus.Disabled,
-            3 => entry.CanUpdate,
-            4 => entry.State == LocalComp.LocalCompFile.LocalFileStatus.Unavailable,
-            5 => IsDuplicate(entry),
-            _ => true
-        };
-    }
-
-    private bool IsDuplicate(LocalComp.LocalCompFile entry)
-    {
-        var name = entry.Name;
-        if (string.IsNullOrEmpty(name))
-            return false;
-        return _entries.Any(other =>
-            !ReferenceEquals(other, entry)
-            && string.Equals(other.Name, name, StringComparison.OrdinalIgnoreCase));
-    }
-
-    private List<LocalComp.LocalCompFile> SortEntries(List<LocalComp.LocalCompFile> list)
-    {
-        list.Sort((a, b) =>
-        {
-            if (a.IsFolder != b.IsFolder)
-                return a.IsFolder ? -1 : 1;
-            var nameCompare = string.Compare(
-                a.Name ?? a.FileName,
-                b.Name ?? b.FileName,
-                StringComparison.OrdinalIgnoreCase);
-            switch (_sort)
-            {
-                case 0:
-                    return string.Compare(
-                        a.FileName,
-                        b.FileName,
-                        StringComparison.OrdinalIgnoreCase);
-                case 2:
-                    if (a.IsFolder && b.IsFolder)
-                        return nameCompare;
-                    return b.Tags.Count.CompareTo(a.Tags.Count);
-                case 3:
-                {
-                    var aTime = SafeCreationTime(a);
-                    var bTime = SafeCreationTime(b);
-                    return aTime == bTime ? nameCompare : bTime.CompareTo(aTime);
-                }
-                case 4:
-                {
-                    if (a.IsFolder && b.IsFolder)
-                        return nameCompare;
-                    var aSize = SafeFileSize(a);
-                    var bSize = SafeFileSize(b);
-                    return aSize == bSize ? nameCompare : bSize.CompareTo(aSize);
-                }
-                default:
-                    return nameCompare;
-            }
-        });
-        return list;
-    }
-
-    private static DateTime SafeCreationTime(LocalComp.LocalCompFile entry)
-    {
-        try
-        {
-            return File.GetCreationTime(entry.path);
-        }
-        catch
-        {
-            return DateTime.MinValue;
-        }
-    }
-
-    private static long SafeFileSize(LocalComp.LocalCompFile entry)
-    {
-        try
-        {
-            return new FileInfo(entry.path).Length;
-        }
-        catch
-        {
-            return 0L;
-        }
-    }
-
     private void RefreshFilterTexts()
     {
-        var all = _entries.Count;
-        var enabled = _entries.Count(entry =>
-            entry.State == LocalComp.LocalCompFile.LocalFileStatus.Fine);
-        var disabled = _entries.Count(entry =>
-            entry.State == LocalComp.LocalCompFile.LocalFileStatus.Disabled);
-        var updatable = _entries.Count(entry => entry.CanUpdate);
-        var error = _entries.Count(entry =>
-            entry.State == LocalComp.LocalCompFile.LocalFileStatus.Unavailable);
-        var duplicate = _entries.Count(IsDuplicate);
-        BtnFilterAll.Text = _filter == 0 && string.IsNullOrWhiteSpace(SearchBox.Text)
-            ? Lang.Text("Instance.Resource.Filter.AllWithCount", all)
-            : Lang.Text("Instance.Resource.Filter.SearchResult");
-        BtnFilterEnabled.Text = Lang.Text("Instance.Resource.Filter.EnabledWithCount", enabled);
-        BtnFilterDisabled.Text = Lang.Text("Instance.Resource.Filter.DisabledWithCount", disabled);
-        BtnFilterUpdatable.Text = Lang.Text(
-            "Instance.Resource.Filter.UpdatableWithCount",
-            updatable);
-        BtnFilterError.Text = Lang.Text("Instance.Resource.Filter.ErrorWithCount", error);
-        BtnFilterDuplicate.Text = Lang.Text(
-            "Instance.Resource.Filter.DuplicateWithCount",
-            duplicate);
-        BtnFilterEnabled.IsVisible = enabled > 0 && enabled < all;
-        BtnFilterDisabled.IsVisible = disabled > 0;
-        BtnFilterUpdatable.IsVisible = updatable > 0;
-        BtnFilterError.IsVisible = error > 0;
-        BtnFilterDuplicate.IsVisible = duplicate > 0;
+        BtnFilterAll.Text = ViewModel.FilterAllText;
+        BtnFilterEnabled.Text = ViewModel.FilterEnabledText;
+        BtnFilterDisabled.Text = ViewModel.FilterDisabledText;
+        BtnFilterUpdatable.Text = ViewModel.FilterUpdatableText;
+        BtnFilterError.Text = ViewModel.FilterErrorText;
+        BtnFilterDuplicate.Text = ViewModel.FilterDuplicateText;
+        BtnFilterEnabled.IsVisible = ViewModel.ShowFilterEnabled;
+        BtnFilterDisabled.IsVisible = ViewModel.ShowFilterDisabled;
+        BtnFilterUpdatable.IsVisible = ViewModel.ShowFilterUpdatable;
+        BtnFilterError.IsVisible = ViewModel.ShowFilterError;
+        BtnFilterDuplicate.IsVisible = ViewModel.ShowFilterDuplicate;
     }
 
     private void RefreshSortText()
     {
-        var key = _sort switch
-        {
-            1 => "Instance.Resource.Sort.ResourceName",
-            2 => "Instance.Resource.Sort.TagCount",
-            3 => "Instance.Resource.Sort.AddTime",
-            4 => "Instance.Resource.Sort.FileSize",
-            _ => "Instance.Resource.Sort.FileName"
-        };
-        BtnSort.Text = Lang.Text("Instance.Resource.Sort.Text", Lang.Text(key));
+        BtnSort.Text = ViewModel.SortText;
     }
 
     private void ShowSortMenu()
     {
         var menu = new ContextMenu();
-        var names = new[]
-        {
-            "Instance.Resource.Sort.FileName",
-            "Instance.Resource.Sort.ResourceName",
-            "Instance.Resource.Sort.TagCount",
-            "Instance.Resource.Sort.AddTime",
-            "Instance.Resource.Sort.FileSize"
-        };
-        for (var i = 0; i < names.Length; i++)
+        var names = PageInstanceCompResourceViewModel.GetSortNames();
+        for (var i = 0; i < names.Count; i++)
         {
             var index = i;
             var item = new MyMenuItem
             {
-                Header = Lang.Text(names[i])
+                Header = names[i]
             };
             item.Click += (_, _) =>
             {
-                _sort = index;
+                ViewModel.ApplySort(index);
                 BuildList();
             };
             menu.Items.Add(item);
@@ -582,7 +419,7 @@ public partial class PageInstanceCompResource
 
     private MyLocalModItem CreateEntryItem(LocalComp.LocalCompFile entry)
     {
-        var selected = !entry.IsFolder && _selected.Contains(entry.RawPath);
+        var selected = ViewModel.IsSelected(entry);
         var item = new MyLocalModItem(entry)
         {
             Checked = selected
@@ -612,10 +449,7 @@ public partial class PageInstanceCompResource
                 else
                 {
                     item.Checked = !item.Checked;
-                    if (item.Checked)
-                        _selected.Add(entry.RawPath);
-                    else
-                        _selected.Remove(entry.RawPath);
+                    ViewModel.SetSelected(entry, item.Checked);
                     RefreshSelectBar();
                     lastClick = now;
                 }
@@ -623,24 +457,21 @@ public partial class PageInstanceCompResource
             else
             {
                 item.Checked = !item.Checked;
-                if (item.Checked)
-                    _selected.Add(entry.RawPath);
-                else
-                    _selected.Remove(entry.RawPath);
+                ViewModel.SetSelected(entry, item.Checked);
                 RefreshSelectBar();
             }
         };
 
-        item.UpdateRequested += item2 => { _ = UpdateEntriesAsync([entry]); };
-        item.ChangelogRequested += _ => ShowUpdateLog(entry);
+        item.UpdateRequested += item2 => { _ = ViewModel.UpdateEntriesAsync([entry]); };
+        item.ChangelogRequested += _ => PageInstanceCompResourceViewModel.ShowUpdateLog(entry);
         item.InfoRequested += _ => ShowEntryInfo(entry);
         item.OpenLocationRequested += _ =>
             Basics.OpenPath(
                 entry.IsFolder
                     ? entry.ActualPath
                     : Path.GetDirectoryName(entry.path) ?? CurrentLoaderFolder);
-        item.DeleteRequested += item2 => { _ = DeleteEntryAsync(entry); };
-        item.EnableDisableRequested += _ => ToggleEntry(entry);
+        item.DeleteRequested += item2 => { _ = ViewModel.DeleteEntryAsync(entry); };
+        item.EnableDisableRequested += _ => ViewModel.ToggleEntry(entry);
 
         var btnInfo = new MyIconButton
         {
@@ -680,7 +511,7 @@ public partial class PageInstanceCompResource
             ToolTip.SetTip(
                 btnEd,
                 Lang.Text(fine ? "Instance.Resource.Disable" : "Instance.Resource.Enable"));
-            btnEd.Click += (_, _) => ToggleEntry(entry);
+            btnEd.Click += (_, _) => ViewModel.ToggleEntry(entry);
             buttons.Add(btnEd);
         }
 
@@ -690,7 +521,7 @@ public partial class PageInstanceCompResource
             LogoScale = 1.0d
         };
         ToolTip.SetTip(btnDelete, Lang.Text("Common.Action.Delete"));
-        btnDelete.Click += (_, _) => _ = DeleteEntryAsync(entry);
+        btnDelete.Click += (_, _) => _ = ViewModel.DeleteEntryAsync(entry);
         buttons.Add(btnDelete);
         item.Buttons = buttons;
         return item;
@@ -702,142 +533,38 @@ public partial class PageInstanceCompResource
 
     private void RefreshSelectBar()
     {
-        var count = _selected.Count;
-        PanSelect.IsVisible = count > 0;
-        if (count == 0)
+        PanSelect.IsVisible = ViewModel.IsSelectionVisible;
+        if (!ViewModel.IsSelectionVisible)
             return;
 
-        LabSelect.Text = Lang.Text("Instance.Resource.SelectedCount", count);
-        var selectedEntries = _entries.Where(entry => _selected.Contains(entry.RawPath)).ToList();
-        BtnSelectUpdate.IsEnabled = selectedEntries.Any(entry => entry.CanUpdate);
-        BtnSelectEnable.IsEnabled = selectedEntries.Any(entry =>
-            entry.State == LocalComp.LocalCompFile.LocalFileStatus.Disabled);
-        BtnSelectDisable.IsEnabled = selectedEntries.Any(entry =>
-            entry.State == LocalComp.LocalCompFile.LocalFileStatus.Fine);
+        LabSelect.Text = ViewModel.SelectedText;
+        BtnSelectUpdate.IsEnabled = ViewModel.CanUpdateSelected;
+        BtnSelectEnable.IsEnabled = ViewModel.CanEnableSelected;
+        BtnSelectDisable.IsEnabled = ViewModel.CanDisableSelected;
         BtnSelectFavorites.IsVisible = _compType is Comp.CompType.Mod
             or Comp.CompType.ResourcePack
             or Comp.CompType.Shader
             or Comp.CompType.Schematic;
         BtnSelectShare.IsVisible = BtnSelectFavorites.IsVisible;
-        BtnSelectFavorites.IsEnabled = selectedEntries.Any(entry => entry.Comp is not null);
-        BtnSelectShare.IsEnabled = selectedEntries.Any(entry => entry.Comp is not null);
-        BtnSelectDelete.IsEnabled = selectedEntries.Count > 0;
+        BtnSelectFavorites.IsEnabled = ViewModel.CanFavoriteAndShare;
+        BtnSelectShare.IsEnabled = ViewModel.CanFavoriteAndShare;
+        BtnSelectDelete.IsEnabled = ViewModel.SelectedPaths.Count > 0;
     }
 
-    private void ToggleSelectAll(bool? select = null)
+    private void ToggleSelectAll()
     {
-        var selectable = _visibleEntries.Where(entry => !entry.IsFolder).ToList();
-        if (selectable.Count == 0)
-            return;
-        var allSelected = selectable.All(entry => _selected.Contains(entry.RawPath));
-        var target = select ?? !allSelected;
-        foreach (var entry in selectable)
-            if (target)
-                _selected.Add(entry.RawPath);
-            else
-                _selected.Remove(entry.RawPath);
-
+        ViewModel.ToggleSelectAll();
         BuildList();
     }
 
     private void SetSelectedEnabled(bool enabled)
     {
-        var targets = _entries
-            .Where(entry => _selected.Contains(entry.RawPath))
-            .Where(entry => enabled
-                ? entry.State == LocalComp.LocalCompFile.LocalFileStatus.Disabled
-                : entry.State == LocalComp.LocalCompFile.LocalFileStatus.Fine)
-            .ToList();
-        if (targets.Count == 0)
-            return;
-        foreach (var entry in targets)
-            ToggleEntry(entry, false);
-        _selected.Clear();
-        ReloadList();
+        ViewModel.SetSelectedEnabled(enabled);
     }
 
     private void DeleteSelected()
     {
-        var targets = _entries.Where(entry => _selected.Contains(entry.RawPath)).ToList();
-        if (targets.Count == 0)
-            return;
-        _ = DeleteEntriesAsync(targets);
-    }
-
-    private async Task DeleteEntriesAsync(List<LocalComp.LocalCompFile> targets)
-    {
-        try
-        {
-            var dialog = await DialogService.Instance.ShowAsync(
-                new TextDialogRequest
-                {
-                    Title = Lang.Text("Common.Dialog.Warning"),
-                    Content = Lang.Text(
-                        "Event.Safety.ConfirmMessage",
-                        $"{Lang.Text("Common.Action.Delete")} {targets.Count}"),
-                    Buttons = DialogButtons.OkCancel,
-                    IsWarn = true
-                });
-            if (dialog.Button != 1)
-                return;
-
-            var folder = string.Empty;
-            foreach (var entry in targets)
-                try
-                {
-                    folder = Path.GetDirectoryName(entry.IsFolder ? entry.ActualPath : entry.path)
-                        ?? CurrentLoaderFolder;
-                    DeleteEntryCore(entry);
-                }
-                catch (Exception ex)
-                {
-                    LauncherCommon.Log(ex, $"删除资源失败：{entry.path}", LauncherLogLevel.Feedback);
-                }
-
-            if (!string.IsNullOrEmpty(folder))
-                CompLocalUpdateRegistry.End(folder);
-            _selected.Clear();
-            ReloadList();
-        }
-        catch (Exception ex)
-        {
-            LauncherCommon.Log(
-                ex,
-                Lang.Text("Instance.Resource.Error.OperationFailed"),
-                LauncherLogLevel.Feedback,
-                userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
-        }
-    }
-
-    private static void DeleteEntryCore(LocalComp.LocalCompFile entry)
-    {
-        var folder = Path.GetDirectoryName(entry.IsFolder ? entry.ActualPath : entry.path);
-        if (!string.IsNullOrEmpty(folder))
-            CompLocalUpdateRegistry.Begin(folder);
-        try
-        {
-            if (entry.IsFolder || Directory.Exists(entry.ActualPath))
-            {
-                LauncherCommon.DeleteDirectory(entry.ActualPath);
-                return;
-            }
-
-            var recycle = RecycleBin.IsSupported(entry.path);
-            var moved = false;
-            if (recycle)
-            {
-                var outcome = RecycleBin.Move(entry.path, out _);
-                moved = outcome == RecycleBin.Outcome.Moved;
-            }
-
-            if (!moved)
-                File.Delete(entry.path);
-        }
-        finally
-        {
-            if (!string.IsNullOrEmpty(folder))
-                CompLocalUpdateRegistry.End(folder);
-        }
+        _ = ViewModel.DeleteSelectedAsync();
     }
 
     #endregion
@@ -846,190 +573,12 @@ public partial class PageInstanceCompResource
 
     private Task UpdateSelectedAsync()
     {
-        var targets = _entries
-            .Where(entry => _selected.Contains(entry.RawPath)
-                && entry is { CanUpdate: true, UpdateFile: not null })
-            .ToList();
-        return UpdateEntriesAsync(targets);
-    }
-
-    private async Task UpdateEntriesAsync(List<LocalComp.LocalCompFile> targets)
-    {
-        targets =
-        [
-            .. targets
-                .Where(entry => entry is { CanUpdate: true, UpdateFile: not null })
-        ];
-        if (targets.Count == 0)
-            return;
-
-        try
-        {
-            var warn = await DialogService.Instance.ShowAsync(
-                new TextDialogRequest
-                {
-                    Title = Lang.Text("Instance.Resource.Update.Warning.Title"),
-                    Content = Lang.Text("Instance.Resource.Update.Warning.Message"),
-                    Buttons = DialogButtons.Create(
-                        "Instance.Resource.Update.Warning.Confirm",
-                        "Common.Action.Cancel"),
-                    IsWarn = true
-                });
-            if (!warn.IsConfirmed)
-                return;
-
-            var downloads = new List<DownloadFile>();
-            var replacements = new List<(LocalComp.LocalCompFile Entry, string NewPath)>();
-            foreach (var entry in targets)
-            {
-                var updateFile = entry.UpdateFile!;
-                if (!updateFile.Available)
-                    continue;
-                var folder = Path.GetDirectoryName(entry.path) ?? CurrentLoaderFolder;
-                var targetPath = Path.Combine(folder, updateFile.FileName);
-                var checker = string.IsNullOrEmpty(updateFile.Hash)
-                    ? new FileChecker(1024L)
-                    : new FileChecker(hash: updateFile.Hash);
-                downloads.Add(new DownloadFile(updateFile.DownloadUrls, targetPath, checker));
-                replacements.Add((entry, targetPath));
-            }
-
-            if (downloads.Count == 0)
-            {
-                HintService.Show(
-                    Hints.Error(Lang.Text("Instance.Resource.Update.Failed", string.Empty)));
-                return;
-            }
-
-            var loader = new Loading.LoaderCombo<string>(
-                Lang.Text("Instance.Resource.Update.Task.Title", _compType.ToString()),
-                [
-                    new LoaderDownload(
-                        Lang.Text("Instance.Resource.Update.Task.DownloadFiles"),
-                        downloads)
-                    {
-                        ProgressWeight = 1d
-                    }
-                ])
-            {
-                OnStateChanged = changed =>
-                {
-                    switch (changed.State)
-                    {
-                        case LoadState.Finished:
-                            try
-                            {
-                                foreach (var (entry, newPath) in replacements)
-                                {
-                                    var oldPath = entry.path;
-                                    if (string.Equals(
-                                            oldPath,
-                                            newPath,
-                                            StringComparison.OrdinalIgnoreCase))
-                                        continue;
-                                    foreach (var variant in new[]
-                                             {
-                                                 oldPath,
-                                                 $"{oldPath}.disabled",
-                                                 $"{oldPath}.old"
-                                             })
-                                        if (File.Exists(variant)
-                                            && !string.Equals(
-                                                variant,
-                                                newPath,
-                                                StringComparison.OrdinalIgnoreCase))
-                                            File.Delete(variant);
-                                }
-
-                                HintService.Show(
-                                    Hints.Success(
-                                        Lang.Text(
-                                            "Instance.Resource.Update.SuccessMultiple",
-                                            replacements.Count)));
-                            }
-                            catch (Exception ex)
-                            {
-                                LauncherCommon.Log(ex, "替换资源文件失败", LauncherLogLevel.Feedback);
-                                HintService.Show(
-                                    Hints.Error(
-                                        Lang.Text("Instance.Resource.Update.Failed", ex.Message)));
-                            }
-
-                            _selected.Clear();
-                            LauncherCommon.RunInUi(ReloadList);
-                            break;
-
-                        case LoadState.Failed:
-                            HintService.Show(
-                                Hints.Error(
-                                    Lang.Text(
-                                        "Instance.Resource.Update.Failed",
-                                        changed.Error?.Message ?? string.Empty)));
-                            break;
-
-                        case LoadState.Aborted:
-                            HintService.Show(
-                                Hints.Info(Lang.Text("Instance.Resource.Update.Aborted")));
-                            break;
-
-                        case LoadState.Waiting:
-                        case LoadState.Loading:
-                            break;
-
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
-                }
-            };
-            loader.Start();
-            Loading.LoaderTaskbarAdd(loader);
-            LoadingUi.Current?.RefreshDownloadButton();
-        }
-        catch (Exception ex)
-        {
-            LauncherCommon.Log(
-                ex,
-                Lang.Text("Instance.Resource.Error.OperationFailed"),
-                LauncherLogLevel.Feedback,
-                userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
-        }
-    }
-
-    private static void ShowUpdateLog(LocalComp.LocalCompFile entry)
-    {
-        try
-        {
-            if (entry.Comp is not null)
-            {
-                var isNumeric = long.TryParse(entry.Comp.Id, out _);
-                var url = isNumeric
-                    ? entry.ChangelogUrls.FirstOrDefault(item => item.Contains(
-                        "curseforge.com",
-                        StringComparison.OrdinalIgnoreCase))
-                    : entry.ChangelogUrls.FirstOrDefault(item => item.Contains(
-                        "modrinth.com",
-                        StringComparison.OrdinalIgnoreCase));
-                if (!string.IsNullOrEmpty(url))
-                {
-                    Basics.OpenPath(url);
-                    return;
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            LauncherCommon.Log(ex, "打开更新日志失败", LauncherLogLevel.Developer);
-        }
-
-        HintService.Show(Hints.Info(Lang.Text("Instance.Resource.Item.OpenChangelogFailed")));
+        return ViewModel.UpdateSelectedAsync();
     }
 
     private void ShowFavoritesMenu()
     {
-        var project = _entries
-            .Where(entry => _selected.Contains(entry.RawPath))
-            .Select(entry => entry.Comp)
-            .FirstOrDefault(comp => comp is not null);
+        var project = ViewModel.GetFavoriteProject();
         if (project is null)
             return;
         CompFavoritesMenu.Show(project, BtnSelectFavorites);
@@ -1039,18 +588,15 @@ public partial class PageInstanceCompResource
     {
         try
         {
-            var ids = _entries
-                .Where(entry => _selected.Contains(entry.RawPath) && entry.Comp is not null)
-                .Select(entry => entry.Comp!.Id)
-                .ToHashSet();
+            var ids = ViewModel.GetShareIds();
             if (ids.Count == 0)
                 return;
             var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
             if (clipboard is null)
                 return;
-            _ = clipboard.SetTextAsync(Comp.CompFavorites.GetShareCode(ids));
+            _ = clipboard.SetTextAsync(Comp.CompFavorites.GetShareCode(ids.ToHashSet()));
             HintService.Show(Hints.Success(Lang.Text("Common.Hint.Copied")));
-            _selected.Clear();
+            ViewModel.ClearSelection();
             BuildList();
         }
         catch (Exception ex)
@@ -1067,45 +613,7 @@ public partial class PageInstanceCompResource
             return;
         }
 
-        var lines = new List<string>();
-        if (entry.IsFolder)
-        {
-            lines.Add(Lang.Text("Instance.Resource.Item.Info.Path", entry.ActualPath));
-        }
-        else
-        {
-            if (!string.IsNullOrWhiteSpace(entry.Authors))
-                lines.Add(Lang.Text("Instance.Resource.Item.Info.Author", entry.Authors));
-            lines.Add(
-                Lang.Text(
-                    "Instance.Resource.Item.Info.File",
-                    entry.FileName,
-                    InstancePageHelper.FormatSize(SafeFileSize(entry))));
-            if (!string.IsNullOrWhiteSpace(entry.Version))
-                lines.Add(Lang.Text("Instance.Resource.Item.Info.Version", entry.Version));
-            if (!string.IsNullOrWhiteSpace(entry.Description))
-                lines.Add(string.Empty + entry.Description);
-            if (!string.IsNullOrWhiteSpace(entry.ModId))
-                lines.Add(Lang.Text("Instance.Resource.Item.Info.ModId", entry.ModId));
-            var dependencies = entry
-                .Dependencies
-                .Where(pair => !DependencyIds.IsPlatform(pair.Key))
-                .ToList();
-            if (dependencies.Count > 0)
-            {
-                lines.Add(Lang.Text("Instance.Resource.Item.Info.Dependency"));
-                lines.AddRange(
-                    dependencies.Select(dependency => $" - {(dependency.Value is null
-                        ? dependency.Key
-                        : Lang.Text(
-                            "Instance.Resource.Item.Info.DependencyVersion",
-                            dependency.Key,
-                            dependency.Value))}"));
-            }
-        }
-
-        if (lines.Count == 0)
-            lines.Add(entry.Name);
+        var lines = PageInstanceCompResourceViewModel.BuildInfoLines(entry);
         _ = DialogService.Instance.ShowAsync(
             new TextDialogRequest
             {
@@ -1128,6 +636,7 @@ public partial class PageInstanceCompResource
     {
         _currentFolderPath = folderPath;
         BtnManageBack.IsVisible = true;
+        ViewModel.SetCurrentFolder(folderPath);
         ReloadList();
     }
 
@@ -1138,130 +647,13 @@ public partial class PageInstanceCompResource
         var parent = Directory.GetParent(_currentFolderPath)?.FullName;
         _currentFolderPath = parent ?? string.Empty;
         BtnManageBack.IsVisible = !string.IsNullOrEmpty(_currentFolderPath);
+        ViewModel.SetCurrentFolder(_currentFolderPath);
         ReloadList();
     }
 
     #endregion
 
     #region 管理
-
-    private void ToggleEntry(LocalComp.LocalCompFile entry, bool reload = true)
-    {
-        try
-        {
-            var path = entry.path;
-            switch (entry.State)
-            {
-                case LocalComp.LocalCompFile.LocalFileStatus.Fine:
-                {
-                    CompLocalUpdateRegistry.Begin(
-                        Path.GetDirectoryName(path) ?? CurrentLoaderFolder);
-                    try
-                    {
-                        File.Move(path, $"{path}.disabled");
-                    }
-                    finally
-                    {
-                        CompLocalUpdateRegistry.End(
-                            Path.GetDirectoryName(path) ?? CurrentLoaderFolder);
-                    }
-
-                    break;
-                }
-
-                case LocalComp.LocalCompFile.LocalFileStatus.Disabled:
-                {
-                    var enabledPath = path.EndsWith(".disabled", StringComparison.OrdinalIgnoreCase)
-                        ? path[..^".disabled".Length]
-                        : path[..^".old".Length];
-                    CompLocalUpdateRegistry.Begin(
-                        Path.GetDirectoryName(path) ?? CurrentLoaderFolder);
-                    try
-                    {
-                        File.Move(path, enabledPath);
-                    }
-                    finally
-                    {
-                        CompLocalUpdateRegistry.End(
-                            Path.GetDirectoryName(path) ?? CurrentLoaderFolder);
-                    }
-
-                    break;
-                }
-
-                case LocalComp.LocalCompFile.LocalFileStatus.Unavailable:
-                    break;
-
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
-        catch (Exception ex)
-        {
-            LauncherCommon.Log(
-                ex,
-                Lang.Text("Instance.Resource.Error.OperationFailed"),
-                LauncherLogLevel.Feedback,
-                userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
-        }
-
-        if (!reload)
-            return;
-        if (entry.State is LocalComp.LocalCompFile.LocalFileStatus.Fine
-            or LocalComp.LocalCompFile.LocalFileStatus.Disabled)
-            _selected.Remove(entry.RawPath);
-        ReloadList();
-    }
-
-    private async Task DeleteEntryAsync(LocalComp.LocalCompFile entry)
-    {
-        try
-        {
-            var dialog = await DialogService.Instance.ShowAsync(
-                new TextDialogRequest
-                {
-                    Title = Lang.Text("Common.Dialog.Warning"),
-                    Content = Lang.Text(
-                        "Event.Safety.ConfirmMessage",
-                        $"{Lang.Text("Common.Action.Delete")} {entry.Name}"),
-                    Buttons = DialogButtons.OkCancel,
-                    IsWarn = true
-                });
-            if (dialog.Button != 1)
-                return;
-
-            LauncherCommon.RunInNewThread(
-                () =>
-                {
-                    try
-                    {
-                        DeleteEntryCore(entry);
-                    }
-                    catch (Exception ex)
-                    {
-                        LauncherCommon.Log(
-                            ex,
-                            Lang.Text("Instance.Resource.Error.OperationFailed"),
-                            LauncherLogLevel.Feedback,
-                            userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
-                    }
-                    finally
-                    {
-                        LauncherCommon.RunInUi(ReloadList);
-                    }
-                },
-                $"Comp Delete {LauncherCommon.GetUuid()}",
-                ThreadPriority.BelowNormal);
-        }
-        catch (Exception ex)
-        {
-            LauncherCommon.Log(
-                ex,
-                Lang.Text("Instance.Resource.Error.OperationFailed"),
-                LauncherLogLevel.Feedback,
-                userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
-        }
-    }
 
     private void InstallFromFiles()
     {
@@ -1277,52 +669,8 @@ public partial class PageInstanceCompResource
             var files = SystemDialogs.SelectFiles(
                 filter,
                 Lang.Text("Instance.Resource.InstallFromFiles"));
-            if (files.Length == 0)
-                return;
-
-            var targetFolder = string.IsNullOrEmpty(_currentFolderPath)
-                ? CurrentLoaderFolder
-                : _currentFolderPath;
-            Directory.CreateDirectory(targetFolder);
-            CompLocalUpdateRegistry.Begin(targetFolder);
-            LauncherCommon.RunInNewThread(
-                () =>
-                {
-                    try
-                    {
-                        foreach (var file in files)
-                        {
-                            var name = Path.GetFileName(file);
-                            var target = Path.Combine(targetFolder, name);
-                            File.Copy(file, target, true);
-                        }
-
-                        var successText = files.Length > 1
-                            ? Lang.Text(
-                                "Instance.Resource.Install.SuccessMultiple",
-                                files.Length,
-                                Lang.Text(CompNameKey))
-                            : Lang.Text(
-                                "Instance.Resource.Install.SuccessSingle",
-                                Path.GetFileName(files[0]));
-                        HintService.Show(Hints.Success(successText));
-                    }
-                    catch (Exception ex)
-                    {
-                        LauncherCommon.Log(
-                            ex,
-                            Lang.Text("Instance.Resource.Error.OperationFailed"),
-                            LauncherLogLevel.Feedback,
-                            userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
-                    }
-                    finally
-                    {
-                        CompLocalUpdateRegistry.End(targetFolder);
-                        LauncherCommon.RunInUi(ReloadList);
-                    }
-                },
-                $"Comp Install {LauncherCommon.GetUuid()}",
-                ThreadPriority.BelowNormal);
+            if (files.Length != 0)
+                _ = ViewModel.InstallFilesAsync(files);
         }
         catch (Exception ex)
         {
@@ -1355,106 +703,9 @@ public partial class PageInstanceCompResource
                 PageInstanceLeft.ResolveInstance()));
     }
 
-    private async Task ExportInfoAsync()
+    private Task ExportInfoAsync()
     {
-        try
-        {
-            var mode = await DialogService.Instance.ShowAsync(
-                new TextDialogRequest
-                {
-                    Title = Lang.Text("Instance.Resource.Export.Mode.Title"),
-                    Content = Lang.Text("Instance.Resource.Export.Mode.Message"),
-                    Buttons = DialogButtons.Create(
-                        "Instance.Resource.Export.Mode.Txt",
-                        "Instance.Resource.Export.Mode.Csv",
-                        "Common.Action.Cancel")
-                });
-            if (!mode.IsConfirmed && mode.Button != 2 && mode.Button != 3)
-                return;
-
-            var isCsv = mode.Button == 2;
-            var savePath = SystemDialogs.SelectSaveFile(
-                Lang.Text("Instance.Resource.Export.SelectSaveLocation"),
-                isCsv ? "resource.csv" : "resource.txt",
-                Lang.Text("Instance.Resource.Export.FilesFilter"));
-            if (string.IsNullOrWhiteSpace(savePath))
-                return;
-
-            var builder = new StringBuilder();
-            if (isCsv)
-                builder.AppendLine("文件名,资源名称,资源版本,此版本更新时间,Mod ID,对应平台工程 ID,文件大小（字节）,文件路径,内嵌模组");
-            foreach (var entry in _entries)
-                if (isCsv)
-                {
-                    var fields = new[]
-                    {
-                        entry.FileName,
-                        entry.Comp?.TranslatedName ?? entry.Name ?? string.Empty,
-                        entry.Version ?? string.Empty,
-                        entry.CompFile?.ReleaseDate.ToString("yyyy-MM-dd HH:mm:ss") ?? string.Empty,
-                        entry.ModId ?? string.Empty,
-                        entry.Comp?.Id ?? string.Empty,
-                        SafeFileSize(entry).ToString(),
-                        entry.path,
-                        string.Join(";", FlattenEmbeddedNames(entry.EmbeddedMods))
-                    };
-                    builder.AppendLine(string.Join(',', fields.Select(CsvEscape)));
-                }
-                else
-                {
-                    builder.AppendLine(entry.FileName);
-                    AppendEmbeddedForExport(builder, entry.EmbeddedMods, 1, false);
-                }
-
-            await File.WriteAllTextAsync(savePath, builder.ToString(), Encoding.UTF8);
-            InstancePageHelper.OpenFolder(savePath);
-        }
-        catch (Exception ex)
-        {
-            LauncherCommon.Log(
-                ex,
-                Lang.Text("Instance.Resource.Error.OperationFailed"),
-                LauncherLogLevel.Feedback,
-                userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
-        }
-    }
-
-    private static void AppendEmbeddedForExport(
-        StringBuilder builder,
-        List<LocalComp.LocalCompFile>? embedded,
-        int depth,
-        bool isCsv)
-    {
-        if (embedded is null)
-            return;
-        foreach (var entry in embedded)
-        {
-            builder.AppendLine(new string(' ', depth * 2) + entry.FileName);
-            AppendEmbeddedForExport(builder, entry.EmbeddedMods, depth + 1, isCsv);
-        }
-    }
-
-    private static IEnumerable<string> FlattenEmbeddedNames(List<LocalComp.LocalCompFile>? embedded)
-    {
-        if (embedded is null)
-            yield break;
-        foreach (var entry in embedded)
-        {
-            yield return entry.Name ?? entry.ModId ?? entry.FileName;
-            foreach (var child in FlattenEmbeddedNames(entry.EmbeddedMods))
-                yield return child;
-        }
-    }
-
-    private static string CsvEscape(string? value)
-    {
-        value ??= string.Empty;
-        return value.Contains(',')
-            || value.Contains('"')
-            || value.Contains('\r')
-            || value.Contains('\n')
-                ? $"\"{value.Replace("\"", "\"\"")}\""
-                : value;
+        return ViewModel.ExportInfoAsync();
     }
 
     private bool OnFileDropped(IReadOnlyList<string> paths)
@@ -1462,44 +713,10 @@ public partial class PageInstanceCompResource
         if (!ReferenceEquals(PageRouter.CurrentPage, this))
             return false;
 
-        var accepted = paths
-            .Where(path =>
-                _compType switch
-                {
-                    Comp.CompType.Mod => LocalComp.LocalCompFile.IsModFile(path),
-                    Comp.CompType.ResourcePack or Comp.CompType.Shader =>
-                        path.EndsWith(".zip", StringComparison.OrdinalIgnoreCase),
-                    _ => LocalComp.LocalCompFile.IsCompFile(path, _compType)
-                })
-            .ToList();
-        if (accepted.Count == 0)
+        if (!ViewModel.AcceptDrop(paths, out var accepted))
             return false;
 
-        var targetFolder = string.IsNullOrEmpty(_currentFolderPath)
-            ? CurrentLoaderFolder
-            : _currentFolderPath;
-        try
-        {
-            Directory.CreateDirectory(targetFolder);
-            foreach (var path in accepted)
-                File.Copy(path, Path.Combine(targetFolder, Path.GetFileName(path)), true);
-            HintService.Show(
-                Hints.Success(
-                    Lang.Text(
-                        "Instance.Resource.Install.SuccessMultiple",
-                        accepted.Count,
-                        Lang.Text(CompNameKey))));
-            ReloadList();
-        }
-        catch (Exception ex)
-        {
-            LauncherCommon.Log(
-                ex,
-                Lang.Text("Instance.Resource.Error.OperationFailed"),
-                LauncherLogLevel.Feedback,
-                userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
-        }
-
+        _ = ViewModel.InstallFilesAsync(accepted);
         return true;
     }
 

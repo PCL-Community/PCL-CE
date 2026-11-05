@@ -22,7 +22,7 @@ public sealed class VersionSavesHost : IPageHost
     public string GetTitle(PageStackData stack)
     {
         var saveFolder = stack.Parameter as string
-                         ?? PageInstanceSavesLeft.currentSave;
+            ?? PageInstanceSavesLeft.CurrentSave;
         var name = GetSaveName(saveFolder);
         return string.IsNullOrEmpty(name)
             ? Lang.Text("Main.Title.SaveManagement", string.Empty)
@@ -54,13 +54,13 @@ public sealed class VersionSavesHost : IPageHost
     private static void ApplySaveFolder(PageStackData stack)
     {
         if (stack.Parameter is string { Length: > 0 } saveFolder)
-            PageInstanceSavesLeft.currentSave = saveFolder;
+            PageInstanceSavesLeft.CurrentSave = saveFolder;
     }
 
     private static string GetSaveName(string? saveFolder)
     {
-        if (string.IsNullOrWhiteSpace(saveFolder))
-            return string.Empty;
-        return Path.GetFileName(saveFolder.TrimEnd(Path.DirectorySeparatorChar));
+        return string.IsNullOrWhiteSpace(saveFolder)
+            ? string.Empty
+            : Path.GetFileName(saveFolder.TrimEnd(Path.DirectorySeparatorChar));
     }
 }

@@ -1,12 +1,9 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
-using PCL.Core.App;
 using PCL.Core.App.Localization;
-using PCL.Core.UI.Dialogs;
 using PCL.Navigation;
 using PCL.UI.Controls;
-using PCL.Views.Shell;
 
 namespace PCL.Views.Pages.Instance;
 
@@ -18,42 +15,39 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
 {
     private readonly List<(PageSubType SubType, MyListItem Item)> _items = [];
     private bool _isBuilding;
-    private bool _refreshed;
     private bool _resetting;
-    private TextBlock? _resourceTitle;
 
     public PageInstanceLeft()
     {
         InitializeComponent();
+        ViewModel.Attach();
         Current = this;
         AnimatedControl = PanItem;
         AttachedToVisualTree += (_, _) => RefreshOnNavigate();
-        DetachedFromVisualTree += (_, _) => _refreshed = false;
+        DetachedFromVisualTree += (_, _) => ViewModel.InvalidateRefresh();
     }
 
-    public static McInstance? CurrentInstance { get; private set; }
+    public static McInstance? CurrentInstance => PageInstanceLeftViewModel.CurrentInstance;
 
     public static PageInstanceLeft? Current { get; private set; }
 
+    public PageInstanceLeftViewModel ViewModel { get; } = new();
+
     public void Refresh()
     {
-        _refreshed = false;
+        ViewModel.RequestRefresh();
         RefreshOnNavigate();
     }
 
     public static void SetCurrentInstance(McInstance? instance)
     {
-        CurrentInstance = instance;
+        PageInstanceLeftViewModel.SetCurrentInstance(instance);
     }
 
     public override void OnNavigatedTo(object? parameter)
     {
-        if (parameter is McInstance instance)
-            CurrentInstance = instance;
-        else if (CurrentInstance is null)
-            CurrentInstance = InstanceList.McMcInstanceSelected
-                ?? InstanceList.mcInstanceList.SelectMany(card => card.Value).FirstOrDefault();
-        RefreshOnNavigate();
+        if (ViewModel.NavigateTo(parameter))
+            BuildItems();
         RefreshChecked();
     }
 
@@ -63,22 +57,21 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
 
     protected override void RefreshLocalization()
     {
-        _refreshed = false;
+        ViewModel.RequestRefresh();
         RefreshOnNavigate();
     }
 
     /// <summary>实例分类或 Mod 可用性变化后重建左栏。</summary>
     public void RefreshForInstanceChange()
     {
-        _refreshed = false;
+        ViewModel.RequestRefresh();
         RefreshOnNavigate();
     }
 
     private void RefreshOnNavigate()
     {
-        if (_refreshed)
+        if (!ViewModel.TryBeginRefresh())
             return;
-        _refreshed = true;
         BuildItems();
         RefreshChecked();
     }
@@ -93,120 +86,17 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
             PanItem.Children.Clear();
             _items.Clear();
 
-            var instance = ResolveInstance();
-            var modable = instance?.Modable ?? false;
-
-            PanItem.Children.Add(CreateSectionTitle(Lang.Text("Instance.Left.Game")));
-            AddItem(
-                PageSubType.VersionOverall,
-                "Instance.Left.Overview",
-                "lucide/layout-dashboard",
-                0.95);
-            AddItem(
-                PageSubType.VersionSetup,
-                "Instance.Left.Settings",
-                "lucide/settings",
-                1.0,
-                true);
-            AddItem(
-                PageSubType.VersionInstall,
-                "Instance.Left.Install",
-                "lucide/wrench",
-                0.87,
-                false,
-                Config.Preference.Hide.InstanceEdit,
-                PageSubType.VersionInstall);
-            AddItem(
-                PageSubType.VersionExport,
-                "Instance.Left.Export",
-                "lucide/package",
-                1.0,
-                false,
-                Config.Preference.Hide.InstanceExport,
-                PageSubType.VersionExport);
-
-            _resourceTitle = CreateSectionTitle(Lang.Text("Instance.Left.Resources"));
-            PanItem.Children.Add(_resourceTitle);
-            AddItem(
-                PageSubType.VersionWorld,
-                "Instance.Left.Saves",
-                "lucide/globe",
-                0.95,
-                false,
-                Config.Preference.Hide.InstanceSave,
-                PageSubType.VersionWorld);
-            AddItem(
-                PageSubType.VersionScreenshot,
-                "Instance.Left.Screenshots",
-                "lucide/image",
-                0.95,
-                false,
-                Config.Preference.Hide.InstanceScreenshot,
-                PageSubType.VersionScreenshot);
-            if (modable)
-                AddItem(
-                    PageSubType.VersionMod,
-                    "Instance.Left.Mod",
-                    "lucide/puzzle",
-                    1.0,
-                    false,
-                    Config.Preference.Hide.InstanceMod,
-                    PageSubType.VersionMod);
-            else
-                AddItem(
-                    PageSubType.VersionModDisabled,
-                    "Instance.Left.Mod",
-                    "lucide/puzzle",
-                    1.0,
-                    false,
-                    Config.Preference.Hide.InstanceMod);
-
-            AddItem(
-                PageSubType.VersionResourcePack,
-                "Instance.Left.ResourcePacks",
-                "lucide/layers",
-                0.85,
-                false,
-                Config.Preference.Hide.InstanceResourcePack,
-                PageSubType.VersionResourcePack);
-            AddItem(
-                PageSubType.VersionShader,
-                "Instance.Left.Shaders",
-                "lucide/sparkles",
-                1.15,
-                false,
-                Config.Preference.Hide.InstanceShader,
-                PageSubType.VersionShader);
-            AddItem(
-                PageSubType.VersionSchematic,
-                "Instance.Left.Schematics",
-                "lucide/file-box",
-                0.85,
-                false,
-                Config.Preference.Hide.InstanceSchematic,
-                PageSubType.VersionSchematic);
-            AddItem(
-                PageSubType.VersionServer,
-                "Instance.Left.Servers",
-                "lucide/server",
-                0.85,
-                false,
-                Config.Preference.Hide.InstanceServer,
-                PageSubType.VersionServer);
-
-            var resourceTypes = new[]
+            foreach (var entry in ViewModel.BuildEntries())
             {
-                PageSubType.VersionWorld,
-                PageSubType.VersionScreenshot,
-                PageSubType.VersionMod,
-                PageSubType.VersionModDisabled,
-                PageSubType.VersionResourcePack,
-                PageSubType.VersionShader,
-                PageSubType.VersionSchematic,
-                PageSubType.VersionServer
-            };
-            _resourceTitle.IsVisible = _items.Any(pair =>
-                resourceTypes.Contains(pair.SubType) && pair.Item.IsVisible);
+                if (entry.IsSection)
+                {
+                    PanItem.Children.Add(CreateSectionTitle(entry.SectionTitle!));
+                    continue;
+                }
+
+                if (entry.Item is { } item)
+                    AddItem(item);
+            }
         }
         finally
         {
@@ -214,14 +104,7 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
         }
     }
 
-    private MyListItem AddItem(
-        PageSubType subType,
-        string titleKey,
-        string svgIcon,
-        double logoScale = 1d,
-        bool isResetButton = false,
-        bool hidden = false,
-        PageSubType? refreshType = null)
+    private MyListItem AddItem(PageInstanceLeftItem definition)
     {
         var item = new MyListItem
         {
@@ -230,20 +113,20 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
             MinPaddingRight = 35,
             Height = 36,
             VerticalAlignment = VerticalAlignment.Top,
-            Title = Lang.Text(titleKey),
-            SvgIcon = svgIcon,
-            LogoScale = logoScale,
-            tag = subType,
-            IsVisible = !hidden || HiddenFeatureState.ForceShow
+            Title = Lang.Text(definition.TitleKey),
+            SvgIcon = definition.SvgIcon,
+            LogoScale = definition.LogoScale,
+            tag = definition.SubType,
+            IsVisible = definition.IsVisible
         };
         item.Check += (sender, _) =>
         {
             if (!_isBuilding && sender is MyListItem { tag: PageSubType target })
-                ChangePage(target);
+                PageInstanceLeftViewModel.ChangePage(target);
         };
 
         var buttons = new List<MyIconButton>();
-        if (isResetButton)
+        if (definition.IsResetButton)
         {
             var reset = new MyIconButton
             {
@@ -255,7 +138,7 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
             buttons.Add(reset);
         }
 
-        if (refreshType is { } refresh)
+        if (definition.RefreshType is { } refresh)
         {
             var refreshButton = new MyIconButton
             {
@@ -263,14 +146,14 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
                 LogoScale = 0.85d
             };
             ToolTip.SetTip(refreshButton, Lang.Text("Common.Action.Refresh"));
-            refreshButton.Click += (_, _) => RefreshSubPage(refresh);
+            refreshButton.Click += (_, _) => PageInstanceLeftViewModel.RefreshSubPage(refresh);
             buttons.Add(refreshButton);
         }
 
         if (buttons.Count > 0)
             item.Buttons = [.. buttons];
 
-        _items.Add((subType, item));
+        _items.Add((definition.SubType, item));
         PanItem.Children.Add(item);
         return item;
     }
@@ -292,9 +175,7 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
         _isBuilding = true;
         try
         {
-            var current = PageRouter.Current.Page == PageType.InstanceSetup
-                ? PageRouter.Current.SubType
-                : PageSubType.VersionOverall;
+            var current = PageInstanceLeftViewModel.CurrentSubType;
             foreach (var (subType, item) in _items)
                 if (item.IsVisible)
                     item.Checked = subType == current;
@@ -307,32 +188,7 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
 
     public static McInstance? ResolveInstance()
     {
-        return PageRouter.Current.Page == PageType.InstanceSetup
-            && PageRouter.Current.Parameter is McInstance routed
-                ? routed
-                : CurrentInstance ?? InstanceList.McMcInstanceSelected;
-    }
-
-    private static void ChangePage(PageSubType subType)
-    {
-        var instance = ResolveInstance();
-        if (instance is null)
-            return;
-        if (PageRouter.Current.Page == PageType.InstanceSetup
-            && PageRouter.Current.SubType == subType
-            && ReferenceEquals(PageRouter.Current.Parameter, instance))
-            return;
-        PageRouter.Navigate(new PageStackData(PageType.InstanceSetup, subType, instance));
-    }
-
-    private static void RefreshSubPage(PageSubType subType)
-    {
-        var instance = ResolveInstance();
-        if (instance is null)
-            return;
-        PageRouter.Navigate(new PageStackData(PageType.InstanceSetup, subType, instance));
-        if (PageRouter.CurrentPage is IRefreshable refreshable)
-            refreshable.Refresh();
+        return PageInstanceLeftViewModel.ResolveInstance();
     }
 
     private async Task ResetInstanceSettingsAsync()
@@ -342,33 +198,11 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
         _resetting = true;
         try
         {
-            var dialog = await DialogService.Instance.ShowAsync(
-                new TextDialogRequest
-                {
-                    Title = Lang.Text("Instance.Left.InitializeSettings.ConfirmTitle"),
-                    Content = Lang.Text("Instance.Left.InitializeSettings.ConfirmMessage"),
-                    Buttons = DialogButtons.OkCancel,
-                    IsWarn = true
-                });
-            if (dialog.Button != 1)
-                return;
-
-            PageRouter.Navigate(
-                new PageStackData(
-                    PageType.InstanceSetup,
-                    PageSubType.VersionSetup,
-                    ResolveInstance()));
-            if (PageRouter.CurrentPage is PageInstanceSetup setup)
-                setup.Reset();
-            RefreshChecked();
-        }
-        catch (Exception ex)
-        {
-            LauncherCommon.Log(
-                ex,
-                "初始化实例设置失败",
-                LauncherLogLevel.Feedback,
-                userSummary: Lang.Text("Instance.Error.OperationFailed"));
+            if (await ViewModel.ResetInstanceSettingsAsync())
+            {
+                BuildItems();
+                RefreshChecked();
+            }
         }
         finally
         {

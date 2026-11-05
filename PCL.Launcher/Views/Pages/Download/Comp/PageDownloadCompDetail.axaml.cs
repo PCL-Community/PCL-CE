@@ -16,85 +16,88 @@ namespace PCL.Views.Pages.Download;
 
 public partial class PageDownloadCompDetail : MyPageRight
 {
-    private readonly HashSet<string> _expandedTitles = [];
-    private List<Comp.CompFile> _allResults = [];
-    private bool _autoRetried;
     private MyCompItem? _compItem;
-    private Loading.LoaderTask<int, List<Comp.CompFile>>? _fileLoader;
-    private bool _groupedDrop;
-    private bool _groupedOld;
-    private string? _loaderFilter;
-    private Comp.CompProject? _project;
-    private string? _targetGameVersion;
-    private Comp.CompLoaderType _targetModLoader = Comp.CompLoaderType.Any;
-    private Comp.CompType _targetType = Comp.CompType.Any;
-    private string? _versionFilter;
 
     public PageDownloadCompDetail()
     {
         InitializeComponent();
         PanScroll = PanBack;
+        Load.State = ViewModel.EnsureLoader();
+        ViewModel.StateChanged += ApplyLoadState;
+        ViewModel.FiltersChanged += BuildFilters;
+        ViewModel.FileGroupsChanged += BuildFileList;
+        ViewModel.IntroChanged += ApplyIntroState;
 
         BtnOpenWebsite.Click += (_, _) =>
         {
-            if (_project is { Website.Length: > 0 } project)
+            if (ViewModel.Project is { Website.Length: > 0 } project)
                 Basics.OpenPath(project.Website);
         };
         BtnIntroWiki.Click += (_, _) =>
         {
-            if (_project is { WikiId: > 0 } project)
+            if (ViewModel.Project is { WikiId: > 0 } project)
                 Basics.OpenPath($"https://www.mcmod.cn/class/{project.WikiId}.html");
         };
         BtnCopyName.Click += (_, _) =>
         {
-            if (_project is null) return;
-            var title = _project.GetControlTitle(true);
+            if (ViewModel.Project is not { } project) return;
+            var title = project.GetControlTitle(true);
             PlatformServices.Clipboard?.SetText(title.Key + title.Value);
             HintService.Show(Hints.Success(Lang.Text("Common.Status.Success"), false));
         };
         BtnCopyLink.Click += (_, _) =>
         {
-            if (_project is null) return;
-            var link = !string.IsNullOrEmpty(_project.Website)
-                ? _project.Website
-                : $"https://modrinth.com/project/{_project.Slug}";
+            if (ViewModel.Project is not { } project) return;
+            var link = !string.IsNullOrEmpty(project.Website)
+                ? project.Website
+                : $"https://modrinth.com/project/{project.Slug}";
             PlatformServices.Clipboard?.SetText(link);
             HintService.Show(Hints.Success(Lang.Text("Common.Status.Success"), false));
         };
         BtnTranslate.Click += async (_, _) => await TranslateDescriptionAsync();
         BtnFavorites.Click += (_, _) =>
         {
-            if (_project is { } project)
+            if (ViewModel.Project is { } project)
                 CompFavoritesMenu.Show(project, BtnFavorites, RefreshFavoriteButton);
         };
-        Load.Click += (_, _) =>
-        {
-            if (_fileLoader?.State == LoadState.Failed)
-                _fileLoader.Start(0, true);
-        };
+        Load.Click += (_, _) => ViewModel.RetryCommand.Execute(null);
         Grid.SetIsSharedSizeScope(PanResults, true);
 
         LocalizationService.LanguageChanged += OnLanguageChanged;
-        AttachedToVisualTree += (_, _) => EnsureLoader();
     }
+
+    public PageDownloadCompDetailViewModel ViewModel { get; } = new();
 
     private void OnLanguageChanged()
     {
-        if (_project is null) return;
+        if (ViewModel.Project is null) return;
         ApplyButtonLocalization();
+        ViewModel.RefreshLocalization();
         RefreshIntro();
-        if (_fileLoader?.State == LoadState.Finished)
-        {
-            BuildFilters();
-            BuildFileList();
-        }
     }
 
     public override void OnNavigatedTo(object? parameter)
     {
         PanBack.ScrollToHome();
-        if (!TryApplyParameter(parameter)) return;
-        EnsureLoader();
+        var applied = parameter switch
+        {
+            Comp.CompProject project => ViewModel.ApplyContext(
+                project,
+                project.Type,
+                null,
+                Comp.CompLoaderType.Any),
+            CompDetailParameter context => ViewModel.ApplyContext(
+                context.Project,
+                context.TargetType,
+                context.TargetGameVersion,
+                context.TargetModLoader),
+            _ => ViewModel.ApplyContext(
+                null,
+                Comp.CompType.Any,
+                null,
+                Comp.CompLoaderType.Any)
+        };
+        if (!applied) return;
         Refresh();
     }
 
@@ -102,55 +105,9 @@ public partial class PageDownloadCompDetail : MyPageRight
     {
     }
 
-    private void EnsureLoader()
-    {
-        if (_fileLoader is not null) return;
-        _fileLoader = new Loading.LoaderTask<int, List<Comp.CompFile>>(
-            Lang.Text("Download.Comp.Detail.FileList.VersionList"),
-            task =>
-            {
-                if (_project is null) return;
-                task.output = Comp.CompFilesGet(_project.Id, _project.FromCurseForge);
-            })
-        {
-            reloadTimeout = 60 * 1000
-        };
-        _fileLoader.OnStateChangedUi += OnFileLoaderStateChanged;
-        Load.State = _fileLoader;
-    }
-
-    private bool TryApplyParameter(object? parameter)
-    {
-        var oldProjectId = _project?.Id;
-        var applied = true;
-        switch (parameter)
-        {
-            case Comp.CompProject project:
-                _project = project;
-                _targetType = project.Type;
-                _targetGameVersion = null;
-                _targetModLoader = Comp.CompLoaderType.Any;
-                break;
-            case CompDetailParameter context:
-                _project = context.Project;
-                _targetType = context.TargetType;
-                _targetGameVersion = context.TargetGameVersion;
-                _targetModLoader = context.TargetModLoader;
-                break;
-            default:
-                _project = null;
-                applied = false;
-                break;
-        }
-
-        if (applied && _project?.Id != oldProjectId)
-            _expandedTitles.Clear();
-        return applied;
-    }
-
     private void Refresh()
     {
-        if (_project is not { } project) return;
+        if (ViewModel.Project is not { } project) return;
 
         RefreshIntro();
 
@@ -159,29 +116,42 @@ public partial class PageDownloadCompDetail : MyPageRight
         ApplyButtonLocalization();
         RefreshFavoriteButton();
 
-        CaptureExpandedTitles();
         PanResults.Children.Clear();
         CardFilter.IsVisible = false;
         PanLoad.IsVisible = true;
-        _autoRetried = false;
-        _fileLoader?.Start(0, true);
+        ViewModel.StartLoad();
     }
 
-    private void CaptureExpandedTitles()
+    private void ApplyLoadState()
     {
-        _expandedTitles.Clear();
-        foreach (var child in PanResults.Children)
-            if (child is MyCard { IsSwapped: false, Tag: string key })
-                _expandedTitles.Add(key);
+        PanLoad.IsVisible = ViewModel.IsLoadingVisible || ViewModel.IsErrorVisible;
+        CardFilter.IsVisible = ViewModel.FilterVisible;
+    }
+
+    private void ApplyIntroState()
+    {
+        BtnIntroWiki.IsVisible = ViewModel.IntroWikiVisible;
+        BtnTranslate.IsVisible = ViewModel.TranslateVisible;
+        RefreshIntro();
     }
 
     private void RefreshIntro()
     {
-        if (_project is not { } project) return;
+        if (ViewModel.IntroItem is not { } introItem)
+        {
+            if (_compItem is not null)
+            {
+                PanIntro.Children.Remove(_compItem);
+                _compItem = null;
+            }
+
+            return;
+        }
+
         if (_compItem is not null)
             PanIntro.Children.Remove(_compItem);
 
-        _compItem = new MyCompItem(project)
+        _compItem = new MyCompItem(introItem)
         {
             CanInteraction = false,
             ShowFavoriteBtn = false,
@@ -193,7 +163,7 @@ public partial class PageDownloadCompDetail : MyPageRight
 
     private void ApplyButtonLocalization()
     {
-        BtnOpenWebsite.Text = _project?.FromCurseForge == true ? "CurseForge" : "Modrinth";
+        BtnOpenWebsite.Text = ViewModel.IntroWebText;
         BtnIntroWiki.Text = Lang.Text("Download.Comp.Detail.McMod");
         BtnTranslate.Text = Lang.Text("Download.Comp.Detail.TranslateDescription");
         BtnFavorites.Text = Lang.Text("Download.Comp.Detail.Favorite");
@@ -201,15 +171,16 @@ public partial class PageDownloadCompDetail : MyPageRight
 
     private void RefreshFavoriteButton()
     {
-        if (_project is null) return;
-        BtnFavorites.SvgIcon = Comp.CompFavorites.IsFavourite(_project.Id)
+        ViewModel.RefreshFavorite();
+        BtnFavorites.SvgIcon = ViewModel.IsFavorite
             ? "lucide/heart-filled"
             : "lucide/heart";
+        _compItem?.RefreshFavoriteStatus();
     }
 
     private async Task TranslateDescriptionAsync()
     {
-        if (_project is null) return;
+        if (ViewModel.Project is not { } project) return;
         try
         {
             BtnTranslate.IsEnabled = false;
@@ -217,8 +188,8 @@ public partial class PageDownloadCompDetail : MyPageRight
                 Hints.Info(
                     Lang.Text(
                         "Download.Comp.Detail.DescriptionTranslating",
-                        _project.TranslatedName)));
-            var chineseDescription = await _project.ChineseDescription;
+                        project.TranslatedName)));
+            var chineseDescription = await project.ChineseDescription;
             if (chineseDescription is null) return;
             await DialogService.Instance.ShowAsync(
                 new TextDialogRequest
@@ -226,7 +197,7 @@ public partial class PageDownloadCompDetail : MyPageRight
                     Title = Lang.Text("Common.Dialog.Title"),
                     Content = Lang.Text(
                         "Download.Comp.Detail.DescriptionTranslationResult",
-                        _project.Description,
+                        project.Description,
                         chineseDescription),
                     Buttons = DialogButtons.Ok
                 });
@@ -245,273 +216,80 @@ public partial class PageDownloadCompDetail : MyPageRight
         }
     }
 
-    private void OnFileLoaderStateChanged(
-        Loading.LoaderBase sender,
-        LoadState newState,
-        LoadState oldState)
-    {
-        switch (newState)
-        {
-            case LoadState.Finished:
-                PanLoad.IsVisible = false;
-                _allResults = FilterResultsByType(_fileLoader?.output ?? []);
-                BuildFilters();
-                BuildFileList();
-                break;
-
-            case LoadState.Failed:
-                PanLoad.IsVisible = true;
-                if (!_autoRetried
-                    && sender.Error?.Message.Contains(
-                        Lang.Text("Common.Error.InvalidJson"),
-                        StringComparison.OrdinalIgnoreCase)
-                    == true)
-                {
-                    _autoRetried = true;
-                    _fileLoader?.Start(0, true);
-                }
-
-                break;
-
-            case LoadState.Waiting:
-            case LoadState.Loading:
-            case LoadState.Aborted:
-                break;
-
-            default:
-                throw new ArgumentOutOfRangeException(nameof(newState), newState, null);
-        }
-    }
-
-    private List<Comp.CompFile> FilterResultsByType(List<Comp.CompFile> files)
-    {
-        var results = files.Where(file => file.Available).ToList();
-        return _targetType switch
-        {
-            Comp.CompType.Any => [.. results.Where(file => file.Type != Comp.CompType.Plugin)],
-            Comp.CompType.Shader or Comp.CompType.ResourcePack => results,
-            _ => [.. results.Where(file => file.Type == _targetType)]
-        };
-    }
-
     #region 筛选器
 
     private void BuildFilters()
     {
-        _groupedDrop = false;
-        _groupedOld = false;
-        var versionGroups = GetVersionGroups(false, false);
-        if (versionGroups.Count >= 9)
+        try
         {
-            _groupedDrop = true;
-            versionGroups = GetVersionGroups(true, false);
-            if (versionGroups.Count >= 9)
+            CardFilter.IsVisible = ViewModel.FilterVisible;
+            PanInstanceFilter.Children.Clear();
+            PanModLoaderFilter.Children.Clear();
+            PanModLoaderFilter.IsVisible = false;
+            if (!ViewModel.FilterVisible)
+                return;
+
+            foreach (var chip in ViewModel.InstanceFilterLabelChips)
+                PanInstanceFilter.Children.Add(CreateFilterLabel(chip.Text, true));
+            foreach (var option in ViewModel.InstanceFilterOptions)
+                PanInstanceFilter.Children.Add(
+                    CreateFilterChip(
+                        "InstanceFilter",
+                        option,
+                        selected => ViewModel.SelectInstanceFilterCommand.Execute(selected)));
+
+            PanModLoaderFilter.IsVisible = ViewModel is
             {
-                _groupedDrop = false;
-                _groupedOld = true;
-                versionGroups = GetVersionGroups(false, true);
-                if (versionGroups.Count >= 9)
-                {
-                    _groupedDrop = true;
-                    versionGroups = GetVersionGroups(true, true);
-                }
-            }
-        }
+                TargetType: Comp.CompType.Mod,
+                ModLoaderFilterOptions.Count: > 0
+            };
+            if (!PanModLoaderFilter.IsVisible)
+                return;
 
-        var loaderGroups = _allResults
-            .SelectMany(file => file.ModLoaders)
-            .Select(loader => loader.ToString())
-            .Distinct()
-            .OrderByDescending(name => name, StringComparer.Ordinal)
-            .ToList();
-
-        var showFilters = versionGroups.Count >= 2;
-        CardFilter.IsVisible = showFilters;
-        PanInstanceFilter.Children.Clear();
-        PanModLoaderFilter.Children.Clear();
-        PanModLoaderFilter.IsVisible = false;
-        if (!showFilters)
-        {
-            _versionFilter = null;
-            _loaderFilter = null;
-            return;
-        }
-
-        var targetGroup = _targetGameVersion is null
-            ? null
-            : GetGroupedVersionName(_targetGameVersion, _groupedDrop, _groupedOld);
-        if (targetGroup is not null && !versionGroups.Contains(targetGroup))
-            targetGroup = null;
-        _versionFilter = targetGroup;
-        _loaderFilter = null;
-
-        if (_targetType == Comp.CompType.Mod)
-            PanInstanceFilter.Children.Add(
-                new TextBlock
-                {
-                    Text = Lang.Text("Download.Comp.Detail.InstanceFilter"),
-                    VerticalAlignment = VerticalAlignment.Center,
-                    Margin = new Thickness(2d, 0d, 8d, 4d)
-                });
-        PanInstanceFilter.Children.Add(
-            CreateFilterChip(
-                "InstanceFilter",
-                Lang.Text("Common.Option.All"),
-                _versionFilter is null,
-                () => _versionFilter = null));
-        foreach (var group in versionGroups)
-        {
-            var name = group;
-            PanInstanceFilter.Children.Add(
-                CreateFilterChip(
-                    "InstanceFilter",
-                    name,
-                    _versionFilter == name,
-                    () => _versionFilter = name));
-        }
-
-        var isMod = _targetType == Comp.CompType.Mod;
-        PanModLoaderFilter.IsVisible = isMod && _allResults.Count > 0;
-        if (PanModLoaderFilter.IsVisible)
-        {
-            var targetLoaderName = _targetModLoader == Comp.CompLoaderType.Any
-                ? null
-                : _targetModLoader.ToString();
-            if (targetLoaderName is not null && !loaderGroups.Contains(targetLoaderName))
-                targetLoaderName = null;
-            _loaderFilter = targetLoaderName;
-
-            PanModLoaderFilter.Children.Add(
-                new TextBlock
-                {
-                    Text = Lang.Text("Download.Comp.Detail.LoaderFilter"),
-                    VerticalAlignment = VerticalAlignment.Center,
-                    Margin = new Thickness(2d, 0d, 8d, 0d)
-                });
-            PanModLoaderFilter.Children.Add(
-                CreateFilterChip(
-                    "ModLoaderFilter",
-                    Lang.Text("Common.Option.All"),
-                    _loaderFilter is null,
-                    () => _loaderFilter = null));
-            foreach (var group in loaderGroups)
-            {
-                var name = group;
+            foreach (var chip in ViewModel.ModLoaderFilterLabelChips)
+                PanModLoaderFilter.Children.Add(CreateFilterLabel(chip.Text, false));
+            foreach (var option in ViewModel.ModLoaderFilterOptions)
                 PanModLoaderFilter.Children.Add(
                     CreateFilterChip(
                         "ModLoaderFilter",
-                        name,
-                        _loaderFilter == name,
-                        () => _loaderFilter = name));
-            }
+                        option,
+                        selected => ViewModel.SelectModLoaderFilterCommand.Execute(selected)));
+        }
+        catch (Exception ex)
+        {
+            LauncherCommon.Log(
+                ex,
+                "构建资源筛选器失败",
+                LauncherLogLevel.Feedback,
+                userSummary: Lang.Text("Download.Comp.Error.OperationFailed"));
         }
     }
 
-    private MyRadioButton CreateFilterChip(
+    private static TextBlock CreateFilterLabel(string text, bool withBottomMargin)
+    {
+        return new TextBlock
+        {
+            Text = text,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(2d, 0d, 8d, withBottomMargin ? 4d : 0d)
+        };
+    }
+
+    private static MyRadioButton CreateFilterChip(
         string groupName,
-        string text,
-        bool isChecked,
-        Action onChecked)
+        CompFilterOption option,
+        Action<CompFilterOption> onChecked)
     {
         var chip = new MyRadioButton
         {
-            Text = text,
+            Text = option.Text,
             GroupName = groupName,
             ColorType = MyRadioButton.ColorState.Highlight,
-            Checked = isChecked,
+            Checked = option.IsSelected,
             Margin = new Thickness(2d, 0d, 2d, 4d)
         };
-        chip.Check += (_, _) =>
-        {
-            onChecked();
-            BuildFileList();
-        };
+        chip.Check += (_, _) => onChecked(option);
         return chip;
-    }
-
-    private List<string> GetVersionGroups(bool groupedDrop, bool foldOld)
-    {
-        return
-        [
-            .. _allResults
-                .SelectMany(file => file.GameVersions)
-                .Select(version => GetGroupedVersionName(version, groupedDrop, foldOld))
-                .Distinct()
-                .OrderByDescending(name => name, VersionGroupComparer.Instance)
-        ];
-    }
-
-    private static string GetGroupedVersionName(string? name, bool groupedByDrop, bool foldOld)
-    {
-        if (name is null)
-            return Lang.Text("Download.Comp.Detail.VersionGroup.Other");
-        if (name.Contains('w'))
-            return Lang.Text("Download.Comp.Detail.VersionGroup.Snapshot");
-        if (foldOld && McInstanceInfo.VersionToDrop(name, true) < 120)
-            return Lang.Text("Download.Comp.Detail.VersionGroup.Old");
-        if (groupedByDrop)
-        {
-            var drop = McInstanceInfo.VersionToDrop(name, true);
-            if (drop >= 0)
-                return McInstanceInfo.DropToVersion(drop);
-        }
-
-        return name;
-    }
-
-    /// <summary>卡片排序：所选版本卡置顶，其余按版本号倒序，「其他/快照」等特殊项排在后。</summary>
-    private sealed class CardSorter(string topmost) : IComparer<string>
-    {
-        public int Compare(string? x, string? y)
-        {
-            var sx = x ?? string.Empty;
-            var sy = y ?? string.Empty;
-
-            if (sx == sy) return 0;
-            if (sx == topmost) return -1;
-            if (sy == topmost) return 1;
-
-            var isXSpecial = !sx.Contains('.');
-            var isYSpecial = !sy.Contains('.');
-
-            if (isXSpecial && isYSpecial)
-                return string.Compare(sx, sy, StringComparison.Ordinal);
-            if (isXSpecial) return 1;
-            if (isYSpecial) return -1;
-
-            var versionCodeSort = -McVersionComparer.CompareVersion(
-                StripLoaderPrefix(sx),
-                StripLoaderPrefix(sy));
-            return versionCodeSort != 0
-                ? versionCodeSort
-                : -McVersionComparer.CompareVersion(sx, sy);
-        }
-
-        private static string StripLoaderPrefix(string value)
-        {
-            var space = value.IndexOf(' ');
-            return space >= 0 ? value[(space + 1)..] : value;
-        }
-    }
-
-    /// <summary>分组名排序：目标版本卡置顶，其余按版本号倒序，「其他/快照」等特殊项排在后。</summary>
-    private sealed class VersionGroupComparer : IComparer<string>
-    {
-        public static readonly VersionGroupComparer Instance = new();
-
-        public int Compare(string? x, string? y)
-        {
-            var sx = x ?? string.Empty;
-            var sy = y ?? string.Empty;
-            if (sx == sy) return 0;
-            var isXSpecial = !sx.Contains('.');
-            var isYSpecial = !sy.Contains('.');
-            if (isXSpecial && isYSpecial)
-                return string.Compare(sx, sy, StringComparison.Ordinal);
-            if (isXSpecial) return 1;
-            if (isYSpecial) return -1;
-            return -McVersionComparer.CompareVersion(sx, sy);
-        }
     }
 
     #endregion
@@ -522,71 +300,8 @@ public partial class PageDownloadCompDetail : MyPageRight
     {
         try
         {
-            var expandedTitles = new HashSet<string>(_expandedTitles);
-            foreach (var child in PanResults.Children)
-                if (child is MyCard { IsSwapped: false, Tag: string key })
-                    expandedTitles.Add(key);
-
             PanResults.Children.Clear();
-            var targetCardName = GetTargetCardName();
-            var groups = new SortedDictionary<string, List<Comp.CompFile>>(
-                new CardSorter(targetCardName));
-            var duplicates = new Dictionary<string, HashSet<Comp.CompFile>>();
-
-            var hasMultipleLoaders = (_project?.ModLoaders.Count ?? 0) > 1;
-            var ignoreQuilt = Config.Download.Comp.IgnoreQuilt;
-
-            foreach (var file in _allResults)
-            {
-                foreach (var gameVersion in file.GameVersions)
-                {
-                    if (_versionFilter is not null
-                        && GetGroupedVersionName(gameVersion, _groupedDrop, _groupedOld)
-                        != _versionFilter)
-                        continue;
-
-                    var exactVersion = GetGroupedVersionName(gameVersion, false, false);
-                    var prefixes = new List<string>();
-                    if (hasMultipleLoaders
-                        && file.Type == Comp.CompType.Mod
-                        && McInstanceInfo.IsFormatFit(exactVersion))
-                    {
-                        prefixes.AddRange(
-                            from loader in file.ModLoaders
-                            where loader != Comp.CompLoaderType.Quilt || !ignoreQuilt
-                            where _loaderFilter is null || loader.ToString() == _loaderFilter
-                            select $"{loader} ");
-
-                        if (prefixes.Count == 0 && _loaderFilter is not null)
-                            continue;
-                    }
-
-                    if (prefixes.Count == 0)
-                        prefixes.Add(string.Empty);
-
-                    foreach (var prefix in prefixes)
-                        AddFileToGroup(
-                            groups,
-                            duplicates,
-                            prefix + exactVersion,
-                            file);
-                }
-
-                if (string.IsNullOrEmpty(targetCardName)
-                    || string.IsNullOrEmpty(_targetGameVersion)
-                    || !file.GameVersions.Contains(_targetGameVersion)
-                    || (_targetModLoader != Comp.CompLoaderType.Any
-                        && !file.ModLoaders.Contains(_targetModLoader)))
-                    continue;
-                if (_versionFilter is not null
-                    && file.GameVersions.All(version =>
-                        GetGroupedVersionName(version, _groupedDrop, _groupedOld)
-                        != _versionFilter))
-                    continue;
-                AddFileToGroup(groups, duplicates, targetCardName, file);
-            }
-
-            if (groups.Count == 0 || groups.All(pair => pair.Value.Count == 0))
+            if (ViewModel.FileGroups.Count == 0)
             {
                 PanResults.Children.Add(
                     new TextBlock
@@ -597,42 +312,26 @@ public partial class PageDownloadCompDetail : MyPageRight
                 return;
             }
 
-            foreach (var (key, files) in groups)
+            foreach (var group in ViewModel.FileGroups)
             {
-                if (files.Count == 0)
-                    continue;
-
                 var card = new MyCard
                 {
-                    Title = key,
+                    Title = group.Title,
                     Margin = new Thickness(0, 0, 0, 15),
-                    Tag = key
+                    Tag = group
                 };
                 var stack = new StackPanel
                 {
-                    Margin = new Thickness(20, MyCard.SwapedHeight, 18, 0),
-                    Tag = files
+                    Margin = new Thickness(20, MyCard.SwapedHeight, 18, 0)
                 };
                 card.Children.Add(stack);
                 card.SwapControl = stack;
                 card.InstallMethod = target =>
                 {
                     target.Children.Clear();
-                    if (target.Tag is not List<Comp.CompFile> list)
-                        return;
-                    var sorted = list
-                        .OrderByDescending(file => file.ReleaseDate)
-                        .ToList();
-                    var hasDuplicateDisplayName = sorted
-                            .Select(file => string.IsNullOrEmpty(file.DisplayName)
-                                ? file.FileName
-                                : file.DisplayName)
-                            .Distinct()
-                            .Count()
-                        != sorted.Count;
-                    foreach (var file in sorted)
-                        target.Children.Add(CreateFileRow(file, hasDuplicateDisplayName));
-                    if (key == Lang.Text("Download.Comp.Detail.VersionGroup.Other"))
+                    foreach (var file in group.Items)
+                        target.Children.Add(CreateFileRow(file));
+                    if (group.ShowRecognitionHint)
                         target.Children.Add(
                             new MyHint
                             {
@@ -644,17 +343,13 @@ public partial class PageDownloadCompDetail : MyPageRight
                 };
 
                 PanResults.Children.Add(card);
-                if (key == targetCardName
-                    || expandedTitles.Contains(key)
-                    || groups.Count == 1)
+                if (!group.IsSwapped)
                     card.StackInstall();
                 else
                     card.IsSwapped = true;
+                card.Swap += (_, _) =>
+                    ViewModel.SetGroupExpanded(group.Title, !card.IsSwapped);
             }
-
-            if (PanResults.Children is [MyCard singleCard])
-                singleCard.IsSwapped = false;
-            CaptureExpandedTitles();
         }
         catch (Exception ex)
         {
@@ -666,67 +361,25 @@ public partial class PageDownloadCompDetail : MyPageRight
         }
     }
 
-    private static void AddFileToGroup(
-        IDictionary<string, List<Comp.CompFile>> groups,
-        IDictionary<string, HashSet<Comp.CompFile>> duplicates,
-        string key,
-        Comp.CompFile file)
+    private Control CreateFileRow(CompFileItemViewModel file)
     {
-        if (!groups.TryGetValue(key, out var list))
-        {
-            list = [];
-            groups[key] = list;
-            duplicates[key] = [];
-        }
-
-        if (duplicates[key].Add(file))
-            list.Add(file);
-    }
-
-    private string GetTargetCardName()
-    {
-        if (string.IsNullOrEmpty(_targetGameVersion)
-            && _targetModLoader == Comp.CompLoaderType.Any)
-            return string.Empty;
-        var loaderText = _targetModLoader != Comp.CompLoaderType.Any
-            ? $"{_targetModLoader} "
-            : string.Empty;
-        return Lang.Text(
-            "Download.Comp.Detail.SelectedVersion",
-            loaderText,
-            _targetGameVersion ?? string.Empty);
-    }
-
-    /// <summary>文件行的点击动作。</summary>
-    private enum FileClickAction
-    {
-        Save,
-        InstallModpack,
-        InstallWorld
-    }
-
-    private Control CreateFileRow(Comp.CompFile file, bool badDisplayName)
-    {
-        return new MyVirtualizingElement<MyListItem>(() => BuildFileRow(file, badDisplayName))
+        return new MyVirtualizingElement<MyListItem>(() => BuildFileRow(file))
         {
             Height = 42d
         };
     }
 
-    private MyListItem BuildFileRow(Comp.CompFile file, bool badDisplayName)
+    private MyListItem BuildFileRow(CompFileItemViewModel fileItem)
     {
-        var action = GetFileAction(file);
+        var file = fileItem.File;
+        var action = fileItem.Action;
         var item = new MyListItem
         {
             Type = MyListItem.CheckType.Clickable,
             Height = 42d,
-            Title = badDisplayName
-                ? file.FileName
-                : string.IsNullOrEmpty(file.DisplayName)
-                    ? file.FileName
-                    : file.DisplayName,
-            Info = BuildFileInfo(file),
-            Logo = GetStatusLogo(file),
+            Title = fileItem.TitleText,
+            Info = fileItem.InfoText,
+            Logo = fileItem.Logo,
             tag = file
         };
 
@@ -737,7 +390,7 @@ public partial class PageDownloadCompDetail : MyPageRight
         ToolTip.SetTip(saveButton, Lang.Text("Download.Version.SaveAs"));
         saveButton.Click += async (_, _) => await SaveFileAsync(file);
 
-        if (action == FileClickAction.Save)
+        if (action == CompFileAction.Save)
         {
             item.Buttons = [saveButton];
             item.Click += async (_, _) => await SaveFileAsync(file);
@@ -755,68 +408,17 @@ public partial class PageDownloadCompDetail : MyPageRight
         return item;
     }
 
-    private FileClickAction GetFileAction(Comp.CompFile file)
-    {
-        var type = _project?.Type ?? file.Type;
-        return type switch
-        {
-            Comp.CompType.ModPack => FileClickAction.InstallModpack,
-            Comp.CompType.World => FileClickAction.InstallWorld,
-            _ => FileClickAction.Save
-        };
-    }
-
-    private Task RunInstallAsync(FileClickAction action, Comp.CompFile file)
+    private Task RunInstallAsync(CompFileAction action, Comp.CompFile file)
     {
         return action switch
         {
-            FileClickAction.InstallModpack => InstallModpackAsync(file),
-            FileClickAction.InstallWorld => InstallWorldAsync(file),
+            CompFileAction.InstallModpack => InstallModpackAsync(file),
+            CompFileAction.InstallWorld => InstallWorldAsync(file),
             _ => SaveFileAsync(file)
         };
     }
 
-    private static string GetStatusLogo(Comp.CompFile file)
-    {
-        var icon = file.Status switch
-        {
-            Comp.CompFileStatus.Release => "R.png",
-            Comp.CompFileStatus.Beta => "B.png",
-            _ => "A.png"
-        };
-        return $"{LauncherPaths.ImageRoot}Icons/{icon}";
-    }
-
-    private static string BuildFileInfo(Comp.CompFile file)
-    {
-        var info = new List<string>();
-        var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file.FileName);
-        var title = string.IsNullOrEmpty(file.DisplayName) ? file.FileName : file.DisplayName;
-        if (!string.IsNullOrEmpty(fileNameWithoutExtension) && title != fileNameWithoutExtension)
-            info.Add(fileNameWithoutExtension);
-        if (file.Dependencies.Count != 0)
-            info.Add(
-                Lang.Text(
-                    "Download.Comp.Detail.FileList.DependencyCount",
-                    file.Dependencies.Count));
-        if (file.GameVersions.Count > 0)
-            info.Add(
-                Lang.Text(
-                    "Download.Comp.Detail.FileList.GameVersion",
-                    string.Join("、", file.GameVersions.Select(Comp.FormatGameVersion))));
-        if (file.DownloadCount > 0)
-            info.Add(
-                Lang.Text("Common.Format.DownloadCount", Lang.CompactNumber(file.DownloadCount)));
-        info.Add(
-            Lang.Text(
-                "Download.Comp.Detail.FileList.Updated",
-                Lang.TimeSpan(file.ReleaseDate - DateTime.Now)));
-        if (file.Status != Comp.CompFileStatus.Release)
-            info.Add(file.StatusDescription);
-        return string.Join("  |  ", info);
-    }
-
-    private async Task SaveFileAsync(Comp.CompFile file)
+    private static async Task SaveFileAsync(Comp.CompFile file)
     {
         try
         {
@@ -882,7 +484,7 @@ public partial class PageDownloadCompDetail : MyPageRight
     {
         if (!RestrictedFeatures.Check("online-modpack-install"))
             return;
-        if (_project is not { } project) return;
+        if (ViewModel.Project is not { } project) return;
         var folder = GameFolders.mcFolderSelected;
         if (string.IsNullOrEmpty(folder))
         {
@@ -1097,7 +699,7 @@ public partial class PageDownloadCompDetail : MyPageRight
             };
 
             var loaderName =
-                $"{(_project?.FromCurseForge == true ? "CurseForge" : "Modrinth")} {Lang.Text("Download.Comp.Detail.WorldDownload")}：{_project?.TranslatedName}";
+                $"{(ViewModel.Project?.FromCurseForge == true ? "CurseForge" : "Modrinth")} {Lang.Text("Download.Comp.Detail.WorldDownload")}：{ViewModel.Project?.TranslatedName}";
             var loader = new Loading.LoaderCombo<int>(loaderName, loaders);
             loader.OnStateChangedUi += (sender, newState, _) =>
             {

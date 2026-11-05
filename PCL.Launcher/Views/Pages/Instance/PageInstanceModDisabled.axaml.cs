@@ -1,13 +1,11 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
+using Avalonia.Data;
 using Avalonia.Layout;
 using Avalonia.Media;
-using PCL.Core.App;
 using PCL.Core.App.Localization;
-using PCL.Navigation;
 using PCL.UI.Controls;
-using PCL.Views.Shell;
 
 namespace PCL.Views.Pages.Instance;
 
@@ -18,8 +16,11 @@ public class PageInstanceModDisabled : MyPageRight, IPageView
 
     public PageInstanceModDisabled()
     {
+        DataContext = ViewModel;
         BuildUi();
     }
+
+    public PageInstanceModDisabledViewModel ViewModel { get; } = new();
 
     public override void OnNavigatedTo(object? parameter)
     {
@@ -66,9 +67,10 @@ public class PageInstanceModDisabled : MyPageRight, IPageView
             Padding = new Thickness(13d, 0d),
             ColorType = MyButton.ColorState.Highlight
         };
-        _btnDownload.Click += (_, _) => PageRouter.Navigate(
-            PageType.Download,
-            PageSubType.DownloadInstall);
+        _btnDownload.Bind(
+            IsVisibleProperty,
+            new Binding(nameof(PageInstanceModDisabledViewModel.IsDownloadVisible)));
+        _btnDownload.Click += (_, _) => PageInstanceModDisabledViewModel.GoDownload();
         var btnVersion = new MyButton
         {
             Text = Lang.Text("Instance.Resource.Mod.Disabled.SelectInstance"),
@@ -76,11 +78,7 @@ public class PageInstanceModDisabled : MyPageRight, IPageView
             MinWidth = 140d,
             Padding = new Thickness(13d, 0d)
         };
-        btnVersion.Click += (_, _) =>
-        {
-            PageRouter.Navigate(PageType.Launch);
-            PageRouter.Navigate(PageType.InstanceSelect);
-        };
+        btnVersion.Click += (_, _) => PageInstanceModDisabledViewModel.SelectInstance();
         var buttons = new StackPanel
         {
             Orientation = Orientation.Horizontal,
@@ -114,8 +112,7 @@ public class PageInstanceModDisabled : MyPageRight, IPageView
 
     private void RefreshDownloadButton()
     {
-        _btnDownload.IsVisible =
-            HiddenFeatureState.ForceShow || !Config.Preference.Hide.PageDownload;
+        ViewModel.Refresh();
     }
 
     public void RefreshModDisabled()

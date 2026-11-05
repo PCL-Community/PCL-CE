@@ -14,22 +14,10 @@ namespace PCL.Views.Pages.Download;
 /// </summary>
 public partial class PageComp : UserControl
 {
-    public const int PageSize = 40;
+    public const int PageSize = PageCompViewModel.PageSize;
 
-    private static readonly string[] CommonGameVersions =
-    [
-        "1.21.11", "1.21.1", "1.20.6", "1.20.1", "1.19.4", "1.19.2",
-        "1.18.2", "1.16.5", "1.12.2", "1.10.2", "1.8.9", "1.7.10"
-    ];
-
-    private bool _autoRetried;
     private IReadOnlyList<CompCategoryTag> _categoryTags = [];
-    private bool _inited;
-    private Loading.LoaderTask<Comp.CompProjectRequest, int>? _loader;
-    private int _page;
-    private Comp.CompType _pageType = Comp.CompType.Mod;
-
-    private Comp.CompProjectStorage _storage = new();
+    private bool _initialised;
 
     public PageComp()
     {
@@ -38,15 +26,34 @@ public partial class PageComp : UserControl
         PanSearchBox.Search += (_, _) => StartNewSearch();
         PanSearchBox.TextBox.KeyDown += OnSearchBoxKeyDown;
         BtnSearchReset.Click += (_, _) => ResetFilter();
-        BtnSearchInstallModPack.Click += (_, _) => Modpack.ModpackInstall();
-        BtnPageFirst.Click += (_, _) => ChangePage(0);
-        BtnPageLeft.Click += (_, _) => ChangePage(_page - 1);
-        BtnPageRight.Click += (_, _) => ChangePage(_page + 1);
+        BtnSearchInstallModPack.Click += (_, _) => ViewModel.InstallModPackCommand.Execute(null);
+        BtnPageFirst.Click += (_, _) =>
+        {
+            SyncFiltersToViewModel();
+            ViewModel.FirstPageCommand.Execute(null);
+        };
+        BtnPageLeft.Click += (_, _) =>
+        {
+            SyncFiltersToViewModel();
+            ViewModel.PreviousPageCommand.Execute(null);
+        };
+        BtnPageRight.Click += (_, _) =>
+        {
+            SyncFiltersToViewModel();
+            ViewModel.NextPageCommand.Execute(null);
+        };
         Load.Click += (_, _) =>
         {
-            if (_loader is { State: LoadState.Failed })
-                StartLoad(true);
+            SyncFiltersToViewModel();
+            ViewModel.RetryCommand.Execute(null);
         };
+
+        ViewModel.StateChanged += ApplyState;
+        ViewModel.ProjectsChanged += RenderResults;
+        ViewModel.CategoryOptionsChanged += ApplyCategoryTags;
+        ViewModel.ScrollToTopRequested += () => PanBack.ScrollToHome();
+        ViewModel.Initialize();
+        Load.State = ViewModel.Loader!;
 
         BuildVersionCombo();
         ApplyStaticToolTips();
@@ -60,48 +67,70 @@ public partial class PageComp : UserControl
         AttachedToVisualTree += (_, _) => InitOnce();
     }
 
+    public PageCompViewModel ViewModel { get; } = new();
+
     public Comp.CompType PageType
     {
-        get => _pageType;
+        get => ViewModel.PageType;
         set
         {
-            if (_pageType == value) return;
-            _pageType = value;
-            if (_inited) ApplyPageTypeUi();
+            if (ViewModel.PageType == value) return;
+            ViewModel.PageType = value;
+            if (_initialised) ApplyPageTypeUi();
         }
     }
 
-    public string? TargetGameVersion { get; private set; }
+    public string? TargetGameVersion => ViewModel.TargetGameVersion;
 
-    public Comp.CompLoaderType TargetModLoader { get; private set; } = Comp.CompLoaderType.Any;
+    public Comp.CompLoaderType TargetModLoader => ViewModel.TargetModLoader;
 
-    public bool SupportCurseForge { get; set; } = true;
+    public bool SupportCurseForge
+    {
+        get => ViewModel.SupportCurseForge;
+        set
+        {
+            if (ViewModel.SupportCurseForge == value) return;
+            ViewModel.SupportCurseForge = value;
+            if (_initialised) ApplySourceVisibility();
+        }
+    }
 
-    public bool SupportModrinth { get; set; } = true;
+    public bool SupportModrinth
+    {
+        get => ViewModel.SupportModrinth;
+        set
+        {
+            if (ViewModel.SupportModrinth == value) return;
+            ViewModel.SupportModrinth = value;
+            if (_initialised) ApplySourceVisibility();
+        }
+    }
 
     public MyScrollViewer ScrollViewer => PanBack;
 
-    public string? SelectedGameVersion => GetGameVersionFilter();
+    public string? SelectedGameVersion => ViewModel.SelectedGameVersion;
 
-    public Comp.CompLoaderType SelectedModLoader => GetSelectedModLoader();
+    public Comp.CompLoaderType SelectedModLoader => ViewModel.SelectedModLoader;
 
     public event Action<CompDetailParameter>? CompDetailRequested;
 
     public void SetCategoryTags(IEnumerable<CompCategoryTag> tags)
     {
         _categoryTags = tags as IReadOnlyList<CompCategoryTag> ?? [.. tags];
-        ApplyCategoryTags();
+        ViewModel.SetCategoryTags(
+            _categoryTags.Select(tag => new CompCategoryFilterTag(
+                tag.TextKey,
+                tag.Tag,
+                tag.IsIndented)));
+        if (_initialised) ApplyCategoryTags();
     }
 
     public void ApplySearchContext(string? gameVersion, Comp.CompLoaderType modLoader)
     {
-        TargetGameVersion = gameVersion;
-        TargetModLoader = modLoader;
-        if (!_inited) return;
-        TextSearchVersion.Text = string.IsNullOrEmpty(gameVersion)
-            ? Lang.Text("Download.Comp.Filter.Version.AllInputAvailable")
-            : gameVersion;
-        SelectComboLoader(modLoader);
+        ViewModel.ApplySearchContext(gameVersion, modLoader);
+        if (!_initialised) return;
+        TextSearchVersion.Text = ViewModel.SearchVersionText;
+        ComboSearchLoader.SelectedIndex = ViewModel.SearchLoaderIndex;
         ApplySourceVisibility();
         StartNewSearch();
     }
@@ -113,118 +142,46 @@ public partial class PageComp : UserControl
 
     public void RefreshFavoriteStatuses()
     {
+        ViewModel.RefreshAllFavoriteStatus();
         foreach (var child in PanProjects.Children)
             if (child is MyCompItem item)
                 item.RefreshFavoriteStatus();
     }
 
-    private void BuildVersionCombo()
-    {
-        TextSearchVersion.Items.Add(
-            new MyComboBoxItem
-            {
-                Content = Lang.Text("Download.Comp.Filter.Version.Any")
-            });
-        foreach (var version in CommonGameVersions)
-            TextSearchVersion.Items.Add(
-                new MyComboBoxItem
-                {
-                    Content = version
-                });
-        TextSearchVersion.SelectedIndex = 0;
-        TextSearchVersion.Text = Lang.Text("Download.Comp.Filter.Version.AllInputAvailable");
-    }
-
-    private void ApplyStaticToolTips()
-    {
-        ToolTip.SetTip(BtnSearchReset, Lang.Text("Download.Comp.Filter.Reset"));
-        ToolTip.SetTip(
-            BtnSearchInstallModPack,
-            Lang.Text("Download.Comp.Filter.InstallModpack.ToolTip"));
-    }
-
-    private void ApplyCategoryTags()
-    {
-        var selectedIndex = ComboSearchTag.SelectedIndex;
-        ComboSearchTag.Items.Clear();
-        ComboSearchTag.Items.Add(
-            new MyComboBoxItem
-            {
-                Content = Lang.Text("Common.Option.All"),
-                Tag = ""
-            });
-        foreach (var tag in _categoryTags)
-        {
-            var item = new MyComboBoxItem
-            {
-                Content = Lang.Text(tag.TextKey),
-                Tag = tag.Tag ?? ""
-            };
-            if (tag.IsGroupHeader)
-                item.IsEnabled = false;
-            else if (tag.IsIndented)
-                item.Margin = new Thickness(15d, 0d, 0d, 0d);
-            ComboSearchTag.Items.Add(item);
-        }
-
-        ComboSearchTag.SelectedIndex =
-            selectedIndex >= 0 && selectedIndex < ComboSearchTag.ItemCount
-                ? selectedIndex
-                : 0;
-    }
-
     private void InitOnce()
     {
-        if (_inited) return;
-        _inited = true;
-
-        _loader = new Loading.LoaderTask<Comp.CompProjectRequest, int>(
-            Lang.Text("Download.Comp.List.Source.ResourceFetch", Comp.GetCompTypeName(PageType)),
-            Comp.CompProjectsGet)
-        {
-            reloadTimeout = 60 * 1000
-        };
-        _loader.OnStateChangedUi += OnLoaderStateChanged;
-        Load.State = _loader;
+        if (_initialised) return;
+        _initialised = true;
 
         LocalizationService.LanguageChanged += OnLanguageChanged;
         ApplyPageTypeUi();
+        ApplyCategoryTags();
         InsertHighestDropVersion();
 
-        if (!string.IsNullOrEmpty(TargetGameVersion))
-            TextSearchVersion.Text = TargetGameVersion;
-        if (TargetModLoader != Comp.CompLoaderType.Any
+        if (!string.IsNullOrEmpty(ViewModel.TargetGameVersion))
+            TextSearchVersion.Text = ViewModel.TargetGameVersion;
+        if (ViewModel.TargetModLoader != Comp.CompLoaderType.Any
             && PageType is Comp.CompType.Mod or Comp.CompType.ModPack)
-            SelectComboLoader(TargetModLoader);
+            SelectComboLoader(ViewModel.TargetModLoader);
 
         StartNewSearch();
     }
 
     private void InsertHighestDropVersion()
     {
-        try
-        {
-            var drops = GameDownload.AllDrops;
-            if (drops is null || drops.Count == 0 || drops.First() <= 250)
-                return;
-            var highestVersion = McInstanceInfo.DropToVersion(drops.First());
-            if (string.IsNullOrEmpty(highestVersion))
-                return;
-            if (TextSearchVersion.ItemCount > 1
-                && (TextSearchVersion.Items[1] as MyComboBoxItem)?.Content?.ToString()
-                == highestVersion)
-                return;
-            TextSearchVersion.Items.Insert(
-                1,
-                new MyComboBoxItem
-                {
-                    Content = highestVersion
-                });
-        }
-        catch (Exception ex)
-        {
-            LauncherCommon.Log(ex, "插入最高版本筛选项失败");
-        }
+        var highestVersion = ViewModel.GetHighestDropVersion();
+        if (string.IsNullOrEmpty(highestVersion))
+            return;
+        if (TextSearchVersion.ItemCount > 1
+            && (TextSearchVersion.Items[1] as MyComboBoxItem)?.Content?.ToString()
+            == highestVersion)
+            return;
+        TextSearchVersion.Items.Insert(
+            1,
+            new MyComboBoxItem
+            {
+                Content = highestVersion
+            });
     }
 
     private void OnSearchBoxKeyDown(object? sender, KeyEventArgs e)
@@ -236,101 +193,48 @@ public partial class PageComp : UserControl
 
     private void ApplyPageTypeUi()
     {
-        PanSearchBox.HintText = Comp.GetCompSearchName(PageType);
-        Load.Text = Comp.GetCompLoadingName(PageType);
-        _loader?.name = Lang.Text(
-            "Download.Comp.List.Source.ResourceFetch",
-            Comp.GetCompTypeName(PageType));
-
-        var isModLike = PageType is Comp.CompType.Mod or Comp.CompType.ModPack;
-        var isShader = PageType == Comp.CompType.Shader;
-        LabLoader.IsVisible = isModLike || isShader;
-        ComboSearchLoader.IsVisible = isModLike;
-        ComboSearchShaderLoader.IsVisible = isShader;
-        BtnSearchInstallModPack.IsVisible = PageType == Comp.CompType.ModPack;
+        PanSearchBox.HintText = ViewModel.SearchHintText;
+        Load.Text = ViewModel.LoadText;
+        LabLoader.IsVisible = ViewModel.IsLoaderLabelVisible;
+        ComboSearchLoader.IsVisible = ViewModel.IsLoaderComboVisible;
+        ComboSearchShaderLoader.IsVisible = ViewModel.IsShaderLoaderComboVisible;
+        BtnSearchInstallModPack.IsVisible = ViewModel.IsInstallModPackVisible;
         ApplySourceVisibility();
     }
 
     private void ApplySourceVisibility()
     {
-        ItemSourceCurseForge.IsVisible = SupportCurseForge;
-        ItemSourceModrinth.IsVisible = SupportModrinth;
-        if (!SupportModrinth && ComboSearchSource.SelectedIndex == 2)
-            ComboSearchSource.SelectedIndex = SupportCurseForge ? 1 : 0;
-        if (!SupportCurseForge && ComboSearchSource.SelectedIndex == 1)
-            ComboSearchSource.SelectedIndex = SupportModrinth ? 2 : 0;
+        ItemSourceCurseForge.IsVisible = ViewModel.SupportCurseForge;
+        ItemSourceModrinth.IsVisible = ViewModel.SupportModrinth;
+        if (!ViewModel.SupportModrinth && ComboSearchSource.SelectedIndex == 2)
+            ComboSearchSource.SelectedIndex = ViewModel.SupportCurseForge ? 1 : 0;
+        if (!ViewModel.SupportCurseForge && ComboSearchSource.SelectedIndex == 1)
+            ComboSearchSource.SelectedIndex = ViewModel.SupportModrinth ? 2 : 0;
+    }
+
+    private void ApplyState()
+    {
+        PanAlways.IsVisible = ViewModel.IsFilterVisible;
+        PanContent.IsVisible = ViewModel.IsContentVisible;
+        PanLoad.IsVisible = ViewModel.IsLoadingVisible;
     }
 
     private void OnLanguageChanged()
     {
-        if (!_inited) return;
+        if (!_initialised) return;
+        ViewModel.RefreshLocalization();
         ApplyPageTypeUi();
         ApplyCategoryTags();
         ApplyStaticToolTips();
         var versionIndex = TextSearchVersion.SelectedIndex;
         var versionText = TextSearchVersion.Text;
-        TextSearchVersion.Items.Clear();
-        TextSearchVersion.Items.Add(
-            new MyComboBoxItem
-            {
-                Content = Lang.Text("Download.Comp.Filter.Version.Any")
-            });
-        foreach (var version in CommonGameVersions)
-            TextSearchVersion.Items.Add(
-                new MyComboBoxItem
-                {
-                    Content = version
-                });
+        BuildVersionCombo();
         TextSearchVersion.SelectedIndex = versionIndex >= 0 ? versionIndex : 0;
         TextSearchVersion.Text = versionIndex > 0
             ? versionText ?? string.Empty
             : Lang.Text("Download.Comp.Filter.Version.AllInputAvailable");
-        if (_loader is { State: LoadState.Finished })
-            RenderResults();
-    }
-
-    private void OnLoaderStateChanged(
-        Loading.LoaderBase sender,
-        LoadState newState,
-        LoadState oldState)
-    {
-        switch (newState)
-        {
-            case LoadState.Loading:
-                PanAlways.IsVisible = false;
-                PanContent.IsVisible = false;
-                PanLoad.IsVisible = true;
-                break;
-
-            case LoadState.Finished:
-                PanLoad.IsVisible = false;
-                PanAlways.IsVisible = true;
-                PanContent.IsVisible = true;
-                RenderResults();
-                break;
-
-            case LoadState.Failed:
-                PanLoad.IsVisible = true;
-                PanAlways.IsVisible = false;
-                PanContent.IsVisible = false;
-                if (!_autoRetried
-                    && sender.Error?.Message.Contains(
-                        Lang.Text("Common.Error.InvalidJson"),
-                        StringComparison.OrdinalIgnoreCase)
-                    == true)
-                {
-                    _autoRetried = true;
-                    StartLoad(true);
-                }
-
-                break;
-
-            case LoadState.Waiting:
-            case LoadState.Aborted:
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(newState), newState, null);
-        }
+        SyncFiltersToViewModel();
+        ApplySourceVisibility();
     }
 
     private void RenderResults()
@@ -338,21 +242,11 @@ public partial class PageComp : UserControl
         try
         {
             PanProjects.Children.Clear();
-            var results = _storage.results;
-            var index = Math.Min(_page * PageSize, results.Count);
-            var pageResults = results.Skip(index).Take(PageSize).ToList();
-            var showQuickDownload =
-                PageType is not (Comp.CompType.ModPack or Comp.CompType.DataPack);
-            foreach (var project in pageResults)
+            foreach (var project in ViewModel.Projects)
             {
                 var item = new MyVirtualizingElement<MyCompItem>(() =>
                 {
-                    var compItem = new MyCompItem(
-                        project,
-                        GetGameVersionFilter() is null,
-                        GetSelectedModLoader() == Comp.CompLoaderType.Any
-                        && PageType is Comp.CompType.Mod or Comp.CompType.ModPack,
-                        showQuickDownload);
+                    var compItem = new MyCompItem(project);
                     compItem.Click += OnCompItemClick;
                     return compItem;
                 })
@@ -362,7 +256,7 @@ public partial class PageComp : UserControl
                 PanProjects.Children.Add(item);
             }
 
-            if (pageResults.Count == 0)
+            if (ViewModel.Projects.Count == 0)
                 PanProjects.Children.Add(
                     new TextBlock
                     {
@@ -370,21 +264,16 @@ public partial class PageComp : UserControl
                         Margin = new Thickness(0, 6, 0, 6)
                     });
 
-            var errorMessage = _storage.errorMessage;
-            HintError.IsVisible = !string.IsNullOrEmpty(errorMessage);
-            HintError.Text = errorMessage ?? string.Empty;
-
-            var hasMore = results.Count > PageSize * (_page + 1)
-                || _storage.curseForgeOffset < _storage.curseForgeTotal
-                || _storage.modrinthOffset < _storage.modrinthTotal;
-            CardPages.IsVisible = results.Count > PageSize || _page > 0 || hasMore;
-            BtnPageFirst.IsEnabled = _page > 0;
-            BtnPageLeft.IsEnabled = _page > 0;
-            BtnPageRight.IsEnabled = hasMore;
-            BtnPageFirst.Opacity = _page > 0 ? 1d : 0.2d;
-            BtnPageLeft.Opacity = _page > 0 ? 1d : 0.2d;
-            BtnPageRight.Opacity = hasMore ? 1d : 0.2d;
-            LabPage.Text = Lang.Number(_page + 1, "N0");
+            HintError.IsVisible = ViewModel.IsErrorVisible;
+            HintError.Text = ViewModel.ErrorMessage;
+            CardPages.IsVisible = ViewModel.IsPagerVisible || ViewModel.CurrentPage > 0;
+            BtnPageFirst.IsEnabled = ViewModel.CanGoFirst;
+            BtnPageLeft.IsEnabled = ViewModel.CanGoLeft;
+            BtnPageRight.IsEnabled = ViewModel.CanGoRight;
+            BtnPageFirst.Opacity = ViewModel.FirstOpacity;
+            BtnPageLeft.Opacity = ViewModel.LeftOpacity;
+            BtnPageRight.Opacity = ViewModel.RightOpacity;
+            LabPage.Text = ViewModel.PageText;
         }
         catch (Exception ex)
         {
@@ -398,11 +287,12 @@ public partial class PageComp : UserControl
 
     private void OnCompItemClick(MyCompItem item)
     {
+        SyncFiltersToViewModel();
         var context = new CompDetailParameter(
             item.Project,
             PageType,
-            GetGameVersionFilter(),
-            GetSelectedModLoader());
+            ViewModel.SelectedGameVersion,
+            ViewModel.SelectedModLoader);
         var handler = CompDetailRequested;
         if (handler is not null)
         {
@@ -418,117 +308,69 @@ public partial class PageComp : UserControl
 
     private void StartNewSearch()
     {
-        _page = 0;
-        _autoRetried = false;
-        _storage = new Comp.CompProjectStorage();
-        StartLoad(true);
+        SyncFiltersToViewModel();
+        ViewModel.StartNewSearch();
     }
 
-    private void StartLoad(bool force)
+    private void SyncFiltersToViewModel()
     {
-        if (_loader is null) return;
-        PanAlways.IsVisible = false;
-        PanContent.IsVisible = false;
-        PanLoad.IsVisible = true;
-        _loader.Start(BuildRequest(), force);
+        ViewModel.SearchText = PanSearchBox.Text;
+        ViewModel.SearchVersionText = TextSearchVersion.Text ?? string.Empty;
+        ViewModel.SearchSourceIndex = ComboSearchSource.SelectedIndex;
+        ViewModel.SearchTagIndex = ComboSearchTag.SelectedIndex;
+        ViewModel.SearchSortIndex = ComboSearchSort.SelectedIndex;
+        ViewModel.SearchLoaderIndex = ComboSearchLoader.SelectedIndex;
+        ViewModel.SearchShaderLoaderIndex = ComboSearchShaderLoader.SelectedIndex;
     }
 
-    private void ChangePage(int newPage)
+    private void BuildVersionCombo()
     {
-        if (newPage < 0 || _loader is null) return;
-        _page = newPage;
-        PanBack.ScrollToHome();
-        StartLoad(true);
+        TextSearchVersion.Items.Clear();
+        TextSearchVersion.Items.Add(
+            new MyComboBoxItem
+            {
+                Content = Lang.Text("Download.Comp.Filter.Version.Any")
+            });
+        foreach (var version in PageCompViewModel.CommonGameVersions)
+            TextSearchVersion.Items.Add(
+                new MyComboBoxItem
+                {
+                    Content = version
+                });
+        TextSearchVersion.SelectedIndex = 0;
+        TextSearchVersion.Text = Lang.Text("Download.Comp.Filter.Version.AllInputAvailable");
     }
 
-    private Comp.CompProjectRequest BuildRequest()
+    private void ApplyCategoryTags()
     {
-        var request = new Comp.CompProjectRequest(PageType, _storage, (_page + 1) * PageSize)
+        var selectedIndex = ComboSearchTag.SelectedIndex;
+        ComboSearchTag.Items.Clear();
+        foreach (var option in ViewModel.CategoryOptions)
         {
-            searchText = NormalizeSearchText(PanSearchBox.Text),
-            gameVersion = GetGameVersionFilter(),
-            sort = (Comp.CompSortType)GetComboTagInt(ComboSearchSort, 1),
-            source = GetSelectedSource()
-        };
-
-        var selectedTag = (ComboSearchTag.SelectedItem as MyComboBoxItem)?.Tag?.ToString() ?? "";
-        if (PageType == Comp.CompType.Shader)
-        {
-            var loaderTag =
-                (ComboSearchShaderLoader.SelectedItem as MyComboBoxItem)?.Tag?.ToString() ?? "";
-            request.tag = string.IsNullOrEmpty(loaderTag) ? selectedTag : selectedTag + loaderTag;
-            request.modLoader = Comp.CompLoaderType.Any;
+            var item = new MyComboBoxItem
+            {
+                Content = option.Text,
+                Tag = option.Tag
+            };
+            if (!option.IsEnabled)
+                item.IsEnabled = false;
+            else if (option.IsIndented)
+                item.Margin = new Thickness(15d, 0d, 0d, 0d);
+            ComboSearchTag.Items.Add(item);
         }
-        else
-        {
-            request.tag = selectedTag;
-            request.modLoader = GetSelectedModLoader();
-        }
 
-        return request;
+        ComboSearchTag.SelectedIndex =
+            selectedIndex >= 0 && selectedIndex < ComboSearchTag.ItemCount
+                ? selectedIndex
+                : 0;
     }
 
-    private static string NormalizeSearchText(string text)
+    private void ApplyStaticToolTips()
     {
-        var trimmed = text.Trim();
-        var pipe = trimmed.IndexOf('|');
-        if (pipe < 0) return trimmed;
-        var before = trimmed[..pipe];
-        var after = trimmed[(pipe + 1)..];
-        if (ContainsChinese(after)) return before.Trim();
-        if (ContainsChinese(before)) return after.Trim();
-        return trimmed;
-    }
-
-    private static bool ContainsChinese(string text)
-    {
-        return text.Any(c => c is >= '\u4e00' and <= '\u9fff');
-    }
-
-    private string? GetGameVersionFilter()
-    {
-        var text = TextSearchVersion.Text?.Trim();
-        if (string.IsNullOrEmpty(text)) return null;
-        if (string.Equals(
-                text,
-                Lang.Text("Download.Comp.Filter.Version.Any"),
-                StringComparison.OrdinalIgnoreCase)
-            || string.Equals(
-                text,
-                Lang.Text("Download.Comp.Filter.Version.AllInputAvailable"),
-                StringComparison.OrdinalIgnoreCase))
-            return null;
-        return text.Contains('.') || text.Contains('w') ? text : null;
-    }
-
-    private Comp.CompLoaderType GetSelectedModLoader()
-    {
-        if (PageType is not (Comp.CompType.Mod or Comp.CompType.ModPack))
-            return Comp.CompLoaderType.Any;
-        var loaderType = (Comp.CompLoaderType)GetComboTagInt(ComboSearchLoader, 0);
-        if (loaderType == Comp.CompLoaderType.Forge
-            && GetGameVersionFilter() is { } version
-            && version.Contains('.')
-            && int.TryParse(version.Split('.')[1], out var minor)
-            && minor < 14)
-            return Comp.CompLoaderType.Any;
-        return loaderType;
-    }
-
-    private Comp.CompSourceType GetSelectedSource()
-    {
-        var source = (Comp.CompSourceType)GetComboTagInt(ComboSearchSource, 3);
-        if (!SupportCurseForge) source &= ~Comp.CompSourceType.CurseForge;
-        if (!SupportModrinth) source &= ~Comp.CompSourceType.Modrinth;
-        return source == 0 ? Comp.CompSourceType.CurseForge : source;
-    }
-
-    private static int GetComboTagInt(ComboBox combo, int fallback)
-    {
-        return combo.SelectedItem is MyComboBoxItem { Tag: string tag }
-            && int.TryParse(tag, out var value)
-                ? value
-                : fallback;
+        ToolTip.SetTip(BtnSearchReset, Lang.Text("Download.Comp.Filter.Reset"));
+        ToolTip.SetTip(
+            BtnSearchInstallModPack,
+            Lang.Text("Download.Comp.Filter.InstallModpack.ToolTip"));
     }
 
     private void SelectComboLoader(Comp.CompLoaderType loaderType)

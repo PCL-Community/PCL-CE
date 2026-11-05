@@ -2,8 +2,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
-using PCL.Core.App;
-using PCL.Core.App.Localization;
 using PCL.UI.Controls;
 
 namespace PCL.Views.Pages.Instance;
@@ -36,6 +34,8 @@ public class MyLocalModItem : Grid
     public MyLocalModItem(LocalComp.LocalCompFile entry)
     {
         Entry = entry;
+        ViewModel = new MyLocalModItemViewModel();
+        ViewModel.Initialize(entry, new ItemHost(this));
         Height = 44d;
         ColumnDefinitions = new ColumnDefinitions("6,34,7,Auto,*,4");
         RowDefinitions = new RowDefinitions("*,20,18,*");
@@ -151,13 +151,13 @@ public class MyLocalModItem : Grid
             Theme = MyIconButton.Themes.Black,
             IsVisible = false
         };
-        _btnUpdate.Click += (_, _) => UpdateRequested?.Invoke(this);
+        _btnUpdate.Click += (_, _) => ViewModel.UpdateCommand.Execute(null);
         _btnUpdate.PointerPressed += (_, e) =>
         {
             if (e.GetCurrentPoint(_btnUpdate).Properties.IsRightButtonPressed)
             {
                 e.Handled = true;
-                ChangelogRequested?.Invoke(this);
+                ViewModel.ShowUpdateLogCommand.Execute(null);
             }
         };
         SetColumn(_btnUpdate, 2);
@@ -201,6 +201,8 @@ public class MyLocalModItem : Grid
 
     public LocalComp.LocalCompFile Entry { get; }
 
+    public MyLocalModItemViewModel ViewModel { get; }
+
     public bool Checked
     {
         get => _checked;
@@ -209,6 +211,7 @@ public class MyLocalModItem : Grid
             if (_checked == value)
                 return;
             _checked = value;
+            ViewModel.IsChecked = value;
             ApplyChecked();
         }
     }
@@ -268,160 +271,42 @@ public class MyLocalModItem : Grid
 
     public void Refresh()
     {
-        var comp = Entry.Comp;
-        var displayVersion = Entry.Version;
-        string title;
-        string subtitle;
-        string description;
+        ViewModel.Refresh();
+        ApplyViewModel();
+    }
 
-        if (Entry.IsFolder)
-        {
-            title = Entry.Name;
-            subtitle = string.Empty;
-            description = Entry.Description ?? string.Empty;
-        }
-        else if (Config.Download.Comp.UiCompNameSolution == 1)
-        {
-            title = Path.GetFileNameWithoutExtension(
-                Entry.path.Replace(".disabled", string.Empty).Replace(".old", string.Empty));
-            subtitle = string.Empty;
-            if (comp is null)
-            {
-                description = Entry.Name;
-            }
-            else
-            {
-                var titles = comp.GetControlTitle(false);
-                description = titles.Key + titles.Value;
-            }
-
-            description = description.Replace("  |  ", " / ");
-            if (!string.IsNullOrEmpty(displayVersion))
-                description += $" ({displayVersion})";
-        }
-        else
-        {
-            if (comp is null)
-            {
-                title = Entry.Name;
-                subtitle = string.IsNullOrEmpty(displayVersion)
-                    ? string.Empty
-                    : $"  |  {displayVersion}";
-            }
-            else
-            {
-                var titles = comp.GetControlTitle(false);
-                title = titles.Key;
-                subtitle = titles.Value
-                    + (string.IsNullOrEmpty(displayVersion)
-                        ? string.Empty
-                        : $"  |  {displayVersion}");
-            }
-
-            description = Path.GetFileNameWithoutExtension(
-                Entry.path.Replace(".disabled", string.Empty).Replace(".old", string.Empty));
-        }
-
-        var state = Entry.State;
-        switch (state)
-        {
-            case LocalComp.LocalCompFile.LocalFileStatus.Disabled:
-                _labTitle.TextDecorations = TextDecorations.Strikethrough;
-                break;
-
-            case LocalComp.LocalCompFile.LocalFileStatus.Unavailable:
-                _labTitle.TextDecorations = TextDecorations.Strikethrough;
-                title += Lang.Text("Instance.Resource.Item.ErrorSuffix");
-                break;
-
-            case LocalComp.LocalCompFile.LocalFileStatus.Fine:
-            default:
-                _labTitle.TextDecorations = null;
-                break;
-        }
-
-        _labTitle.Text = title;
-        _labSubtitle.Text = subtitle;
-        _labSubtitle.IsVisible = !string.IsNullOrEmpty(subtitle);
+    private void ApplyViewModel()
+    {
+        _labTitle.Text = ViewModel.TitleText;
+        _labTitle.TextDecorations = ViewModel.IsTitleStrikethrough
+            ? TextDecorations.Strikethrough
+            : null;
+        _labSubtitle.Text = ViewModel.SubTitleText;
+        _labSubtitle.IsVisible = ViewModel.IsSubTitleVisible;
         _columnSubtitle.Width = _labSubtitle.IsVisible ? _subtitleWidth : new GridLength(0d);
+        _labInfo.Text = ViewModel.DescriptionText;
+        ToolTip.SetTip(
+            _labInfo,
+            string.IsNullOrEmpty(ViewModel.InfoToolTip) ? null : ViewModel.InfoToolTip);
 
-        var extra = comp?.Description ?? Entry.Description;
-        if (!string.IsNullOrEmpty(extra))
-            description += $": {extra.Replace("\r", string.Empty).Replace("\n", string.Empty)}";
-        else if (!Entry.IsFileAvailable)
-            description += $": {Lang.Text("Instance.Resource.Item.InfoUnavailable")}";
-        _labInfo.Text = description;
-
-        _logo.Source = Entry.GetLogo();
+        _logo.Source = ViewModel.Logo;
         _logo.FallbackSource = $"{LauncherPaths.ImageRoot}Icons/NoIcon.png";
-        if (state == LocalComp.LocalCompFile.LocalFileStatus.Fine)
-        {
-            _state.IsVisible = false;
-        }
-        else
-        {
-            _state.IsVisible = true;
-            _state.Source = $"{LauncherPaths.ImageRoot}Icons/{state}.png";
-        }
+        _state.IsVisible = ViewModel.IsStateImageVisible;
+        _state.Source = ViewModel.StateImage;
 
-        IEnumerable<string> tags = Entry.IsFolder
-            ? [Lang.Text("Instance.Resource.Item.FolderTag")]
-            : comp?.Tags ?? [];
-        TagPanelHelper.FillLocalized(_panTags, tags, ContainerTheme.TextSecondary(this));
+        TagPanelHelper.FillLocalized(
+            _panTags,
+            ViewModel.TagKeys,
+            ContainerTheme.TextSecondary(this));
+        _panTags.IsVisible = ViewModel.IsTagsVisible;
 
-        if (Entry is { CanUpdate: true, UpdateFile: not null })
-        {
-            _btnUpdate.IsVisible = true;
-            ToolTip.SetTip(
-                _btnUpdate,
-                $"{GetUpdateCompareDescription()}\r\n{Lang.Text("Instance.Resource.Item.UpdateToolTip")}");
-        }
-        else
-        {
-            _btnUpdate.IsVisible = false;
-            ToolTip.SetTip(_btnUpdate, null);
-        }
-
-        var meta = new List<string>();
-        if (!string.IsNullOrWhiteSpace(comp?.Description))
-            meta.Add(comp.Description);
-        if (!string.IsNullOrWhiteSpace(Entry.Authors))
-            meta.Add(Lang.Text("Instance.Resource.Item.Info.Author", Entry.Authors));
-        if (!string.IsNullOrWhiteSpace(Entry.Description))
-            meta.Add(Entry.Description);
-        ToolTip.SetTip(_labInfo, meta.Count == 0 ? null : string.Join("\r\n", meta));
+        _btnUpdate.IsVisible = ViewModel.IsUpdateVisible;
+        ToolTip.SetTip(
+            _btnUpdate,
+            string.IsNullOrEmpty(ViewModel.UpdateToolTip) ? null : ViewModel.UpdateToolTip);
 
         ApplyChecked();
         UpdateCompression();
-    }
-
-    private string GetUpdateCompareDescription()
-    {
-        var currentName =
-            Path.GetFileNameWithoutExtension(Entry.CompFile?.FileName ?? Entry.FileName);
-        var newestName = Path.GetFileNameWithoutExtension(Entry.UpdateFile.FileName);
-        var currentSegs = currentName.Split('-').ToList();
-        var newestSegs = newestName.Split('-').ToList();
-        var shortened = false;
-        foreach (var seg in currentSegs.ToList().Where(newestSegs.Contains))
-        {
-            currentSegs.Remove(seg);
-            newestSegs.Remove(seg);
-            shortened = true;
-        }
-
-        if (shortened && currentSegs.Count != 0 && newestSegs.Count != 0)
-        {
-            currentName = string.Join("-", currentSegs);
-            newestName = string.Join("-", newestSegs);
-        }
-
-        return Lang.Text(
-            "Instance.Resource.Item.UpdateCompare",
-            currentName,
-            Lang.TimeSpan((Entry.CompFile?.ReleaseDate ?? DateTime.Now) - DateTime.Now),
-            newestName,
-            Lang.TimeSpan(Entry.UpdateFile.ReleaseDate - DateTime.Now));
     }
 
     private void ShowButtons(bool show)
@@ -504,5 +389,46 @@ public class MyLocalModItem : Grid
         _columnTitle.Width = _titleWidth;
         _columnSubtitle.Width = _subtitleWidth;
         _columnExtend.Width = _extendWidth;
+    }
+
+    /// <summary>把 ViewModel 的命令转回控件现有的公开事件，保持页面构造方式不变。</summary>
+    private sealed class ItemHost(MyLocalModItem owner) : ILocalModItemHost
+    {
+        public Comp.CompType CompType => owner.Entry.Comp?.Type ?? Comp.CompType.Mod;
+
+        public void OpenFileLocation(LocalComp.LocalCompFile entry)
+        {
+            owner.OpenLocationRequested?.Invoke(owner);
+        }
+
+        public void ShowInfo(LocalComp.LocalCompFile entry)
+        {
+            owner.InfoRequested?.Invoke(owner);
+        }
+
+        public void Delete(LocalComp.LocalCompFile entry)
+        {
+            owner.DeleteRequested?.Invoke(owner);
+        }
+
+        public void ToggleEnabled(LocalComp.LocalCompFile entry)
+        {
+            owner.EnableDisableRequested?.Invoke(owner);
+        }
+
+        public void EnterFolder(string path)
+        {
+            owner.Checked = false;
+        }
+
+        public void Update(LocalComp.LocalCompFile entry)
+        {
+            owner.UpdateRequested?.Invoke(owner);
+        }
+
+        public void ShowChangelog(LocalComp.LocalCompFile entry)
+        {
+            owner.ChangelogRequested?.Invoke(owner);
+        }
     }
 }

@@ -1,5 +1,4 @@
 using Avalonia.Controls;
-using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Navigation;
 using PCL.UI.Controls;
@@ -14,24 +13,20 @@ namespace PCL.Views.Pages.Tools;
 public partial class PageToolsLeft : MyPageLeft
 {
     private readonly MyIconButton _btnRefresh;
-    private readonly List<(TextBlock Title, Func<bool> IsCategoryHidden)> _categories = [];
-    private readonly List<(PageSubType Sub, MyListItem Item, Func<bool> IsHidden)> _items = [];
+    private readonly List<(PageSubType Sub, MyListItem Item)> _items = [];
     private bool _hiddenStateSubscribed;
     private bool _isSynchronizing;
 
     public PageToolsLeft()
     {
         InitializeComponent();
+        DataContext = ViewModel;
         AnimatedControl = PanItem;
 
-        var hide = Config.Preference.Hide;
-        _items.Add((PageSubType.ToolsGameLink, ItemGameLink, () => hide.ToolsGameLink));
-        _items.Add((PageSubType.ToolsTest, ItemTest, () => hide.ToolsTest));
+        _items.Add((PageSubType.ToolsGameLink, ItemGameLink));
+        _items.Add((PageSubType.ToolsTest, ItemTest));
 
-        _categories.Add((TextMultiplayerCategory, () => AllHidden(PageSubType.ToolsGameLink)));
-        _categories.Add((TextUtilitiesCategory, () => AllHidden(PageSubType.ToolsTest)));
-
-        foreach (var (sub, item, _) in _items)
+        foreach (var (sub, item) in _items)
             item.Check += (_, _) => OnItemChecked(sub, item);
 
         _btnRefresh = new MyIconButton
@@ -41,13 +36,10 @@ public partial class PageToolsLeft : MyPageLeft
         };
         ToolTip.SetTip(_btnRefresh, Lang.Text("Common.Action.Refresh"));
         ToolTip.SetPlacement(_btnRefresh, PlacementMode.Right);
-        _btnRefresh.Click += (_, _) =>
-        {
-            Select(PageSubType.ToolsGameLink);
-            PageSelected?.Invoke(PageSubType.ToolsGameLink);
-            PageToolsGameLink.Current?.Reload();
-        };
+        _btnRefresh.Click += (_, _) => ViewModel.Refresh();
         ItemGameLink.Buttons = [_btnRefresh];
+
+        ViewModel.RefreshRequested += OnRefreshRequested;
 
         AttachedToVisualTree += (_, _) =>
         {
@@ -68,6 +60,8 @@ public partial class PageToolsLeft : MyPageLeft
         };
     }
 
+    public PageToolsLeftViewModel ViewModel { get; } = new();
+
     protected override void RefreshLocalization()
     {
         ToolTip.SetTip(_btnRefresh, Lang.Text("Common.Action.Refresh"));
@@ -87,11 +81,12 @@ public partial class PageToolsLeft : MyPageLeft
 
     public void Select(PageSubType sub)
     {
+        ViewModel.Select(sub);
         _isSynchronizing = true;
         try
         {
-            foreach (var (itemSub, item, _) in _items)
-                item.SetChecked(itemSub == sub, false, false);
+            foreach (var (itemSub, item) in _items)
+                item.SetChecked(itemSub == ViewModel.SelectedPage, false, false);
         }
         finally
         {
@@ -105,10 +100,11 @@ public partial class PageToolsLeft : MyPageLeft
     {
         try
         {
-            foreach (var (sub, item, _) in _items)
-                item.IsVisible = !IsSubPageHidden(sub);
-            foreach (var (title, isCategoryHidden) in _categories)
-                title.IsVisible = !isCategoryHidden();
+            ViewModel.UpdateVisibility();
+            ItemGameLink.IsVisible = ViewModel.GameLinkVisible;
+            ItemTest.IsVisible = ViewModel.TestVisible;
+            TextMultiplayerCategory.IsVisible = ViewModel.MultiplayerCategoryVisible;
+            TextUtilitiesCategory.IsVisible = ViewModel.UtilitiesCategoryVisible;
         }
         catch (Exception)
         {
@@ -117,33 +113,26 @@ public partial class PageToolsLeft : MyPageLeft
 
     public static PageSubType FirstVisible()
     {
-        if (!IsSubPageHidden(PageSubType.ToolsGameLink)) return PageSubType.ToolsGameLink;
-        if (!IsSubPageHidden(PageSubType.ToolsTest)) return PageSubType.ToolsTest;
-        return PageSubType.ToolsGameLink;
+        return PageToolsLeftViewModel.FirstVisible();
     }
 
     public static bool IsSubPageHidden(PageSubType sub)
     {
-        if (HiddenFeatureState.ForceShow)
-            return false;
-        var hide = Config.Preference.Hide;
-        return sub switch
-        {
-            PageSubType.ToolsGameLink => hide.ToolsGameLink,
-            PageSubType.ToolsTest => hide.ToolsTest,
-            _ => false
-        };
+        return PageToolsLeftViewModel.IsSubPageHidden(sub);
+    }
+
+    private void OnRefreshRequested()
+    {
+        Select(ViewModel.SelectedPage);
+        PageSelected?.Invoke(ViewModel.SelectedPage);
+        PageToolsGameLink.Current?.Reload();
     }
 
     private void OnItemChecked(PageSubType sub, MyListItem item)
     {
         if (_isSynchronizing || !item.Checked)
             return;
+        ViewModel.Select(sub);
         PageSelected?.Invoke(sub);
-    }
-
-    private static bool AllHidden(params PageSubType[] subs)
-    {
-        return subs.All(IsSubPageHidden);
     }
 }

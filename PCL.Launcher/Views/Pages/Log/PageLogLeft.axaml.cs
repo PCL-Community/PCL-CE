@@ -1,9 +1,7 @@
 using System.Collections.ObjectModel;
 using Avalonia.Controls;
 using Avalonia.Threading;
-using PCL.Core.App;
 using PCL.Core.App.Localization;
-using PCL.Core.UI.Hints;
 using PCL.Navigation;
 using PCL.UI.Controls;
 using PCL.Views.Shell;
@@ -16,7 +14,6 @@ namespace PCL.Views.Pages.Log;
 /// </summary>
 public partial class PageLogLeft : MyPageLeft, IRefreshable
 {
-    private const int MaxLinesDefault = 500;
     private bool _isBuilding;
 
     private bool _refreshed;
@@ -27,7 +24,9 @@ public partial class PageLogLeft : MyPageLeft, IRefreshable
         InitializeComponent();
         AnimatedControl = PanList;
         Current = this;
-        ExtraButtonsPanel.GameLogProvider = () => Current is { ShownLogs.Count: > 0 };
+        ViewModel.Changed += OnViewModelChanged;
+        ViewModel.LogAppended += OnLogAppended;
+        ExtraButtonsPanel.GameLogProvider = () => ViewModel.HasLogs;
         AttachedToVisualTree += (_, _) => RefreshOnNavigate();
         DetachedFromVisualTree += (_, _) =>
         {
@@ -38,13 +37,15 @@ public partial class PageLogLeft : MyPageLeft, IRefreshable
 
     public static PageLogLeft? Current { get; private set; }
 
-    public Dictionary<int, LogBuffer> LogBuffers { get; } = [];
+    public PageLogLeftViewModel ViewModel { get; } = new();
 
-    public List<KeyValuePair<int, GameWatcher.Watcher>> ShownLogs { get; } = [];
+    public Dictionary<int, LogBuffer> LogBuffers => ViewModel.LogBuffers;
 
-    public GameWatcher.Watcher? CurrentLog { get; private set; }
+    public List<KeyValuePair<int, GameWatcher.Watcher>> ShownLogs => ViewModel.ShownLogs;
 
-    public int CurrentUuid { get; private set; } = -1;
+    public GameWatcher.Watcher? CurrentLog => ViewModel.CurrentLog;
+
+    public int CurrentUuid => ViewModel.CurrentUuid;
 
     public void Refresh()
     {
@@ -74,6 +75,18 @@ public partial class PageLogLeft : MyPageLeft, IRefreshable
         ExtraButtonsPanel.Current?.RefreshGameLogButton();
     }
 
+    private void OnViewModelChanged()
+    {
+        PageLogRight.Current?.ReloadContent();
+        Reload();
+        ExtraButtonsPanel.Current?.RefreshGameLogButton();
+    }
+
+    private static void OnLogAppended(LogBuffer buffer)
+    {
+        PageLogRight.Current?.OnLogAppended(buffer);
+    }
+
     /// <summary>一行游戏日志及其级别。</summary>
     public sealed record LogLine(string Text, GameLogLevel Level);
 
@@ -88,130 +101,22 @@ public partial class PageLogLeft : MyPageLeft, IRefreshable
     /// <summary>登记一个游戏监视器并切换到它的日志。可在任意线程调用。</summary>
     public void AttachWatcher(GameWatcher.Watcher watcher)
     {
-        if (watcher is null)
-            return;
-        if (!Dispatcher.UIThread.CheckAccess())
-        {
-            Dispatcher.UIThread.Post(() => AttachWatcher(watcher));
-            return;
-        }
-
-        var uuid = LauncherCommon.GetUuid();
-        ShownLogs.Add(new KeyValuePair<int, GameWatcher.Watcher>(uuid, watcher));
-        watcher.LogOutput += OnLogOutput;
-        LogBuffers[uuid] = new LogBuffer();
-        ExtraButtonsPanel.Current?.RefreshGameLogButton();
-        SelectionChange(uuid);
-    }
-
-    private void OnLogOutput(GameWatcher.Watcher sender, GameWatcher.LogOutputEventArgs e)
-    {
-        var uuid = -1;
-        foreach (var item in ShownLogs.Where(item => ReferenceEquals(item.Value, sender)))
-        {
-            uuid = item.Key;
-            break;
-        }
-
-        if (uuid < 0)
-            return;
-
-        Dispatcher.UIThread.Post(() =>
-        {
-            if (!LogBuffers.TryGetValue(uuid, out var buffer))
-                return;
-            buffer.Lines.Add(new LogLine(e.logText, e.Level));
-            TrimBuffer(buffer);
-            if (uuid == CurrentUuid)
-                PageLogRight.Current?.OnLogAppended(buffer);
-        });
-    }
-
-    private static void TrimBuffer(LogBuffer buffer)
-    {
-        var max = GetMaxLogCount();
-        while ((ulong)buffer.Lines.Count > max)
-            buffer.Lines.RemoveAt(0);
+        ViewModel.AttachWatcher(watcher);
     }
 
     public static ulong GetMaxLogCount()
     {
-        var maxLog = (ulong)Config.System.MaxGameLog;
-        return maxLog switch
-        {
-            <= 5UL => (ulong)Math.Round(maxLog * 10m + 50m),
-            <= 13UL => (ulong)Math.Round(maxLog * 50m - 150m),
-            <= 28UL => (ulong)Math.Round(maxLog * 100m - 800m),
-            _ => ulong.MaxValue
-        };
+        return PageLogLeftViewModel.GetMaxLogCount();
     }
 
     public void SelectionChange(int uuid)
     {
-        if (!Dispatcher.UIThread.CheckAccess())
-        {
-            Dispatcher.UIThread.Post(() => SelectionChange(uuid));
-            return;
-        }
-
-        if (uuid <= 0)
-        {
-            CurrentUuid = -1;
-            CurrentLog = null;
-        }
-        else
-        {
-            foreach (var item in ShownLogs.Where(item => item.Key == uuid))
-            {
-                CurrentUuid = uuid;
-                CurrentLog = item.Value;
-                break;
-            }
-        }
-
-        PageLogRight.Current?.ReloadContent();
-        Reload();
+        ViewModel.SelectionChange(uuid);
     }
 
     public void RemoveItem(int uuid)
     {
-        if (!Dispatcher.UIThread.CheckAccess())
-        {
-            Dispatcher.UIThread.Post(() => RemoveItem(uuid));
-            return;
-        }
-
-        for (var i = ShownLogs.Count - 1; i >= 0; i--)
-        {
-            var item = ShownLogs[i];
-            if (item.Key != uuid)
-                continue;
-
-            item.Value.LogOutput -= OnLogOutput;
-            ShownLogs.RemoveAt(i);
-            LogBuffers.Remove(uuid);
-
-            if (CurrentUuid == uuid)
-            {
-                if (ShownLogs.Count == 0)
-                {
-                    SelectionChange(-1);
-                }
-                else
-                {
-                    var nextIndex = Math.Min(i, ShownLogs.Count - 1);
-                    SelectionChange(ShownLogs[nextIndex].Key);
-                }
-            }
-            else
-            {
-                PageLogRight.Current?.ReloadContent();
-                Reload();
-            }
-
-            ExtraButtonsPanel.Current?.RefreshGameLogButton();
-            break;
-        }
+        ViewModel.RemoveItem(uuid);
     }
 
     #endregion
@@ -227,7 +132,7 @@ public partial class PageLogLeft : MyPageLeft, IRefreshable
             _isBuilding = true;
             PanList.Children.Clear();
 
-            if (ShownLogs.Count == 0)
+            if (!ViewModel.HasLogs)
             {
                 ScheduleReturnIfEmpty();
                 return;
@@ -235,22 +140,22 @@ public partial class PageLogLeft : MyPageLeft, IRefreshable
 
             var title = new TextBlock
             {
-                Text = Lang.Text("LogPage.Left.InstancesTitle")
+                Text = PageLogLeftViewModel.InstancesTitle
             };
             title.Classes.Add("SectionTitle");
             PanList.Children.Add(title);
 
-            foreach (var (uuid, watcher) in ShownLogs)
+            foreach (var entry in ViewModel.BuildEntries())
             {
                 var newItem = new MyListItem
                 {
                     Type = MyListItem.CheckType.RadioBox,
                     IsScaleAnimationEnabled = false,
                     MinPaddingRight = 30,
-                    Title = SafeGetVersionName(watcher),
-                    Info = GetItemInfo(watcher),
+                    Title = entry.Title,
+                    Info = entry.Info,
                     Height = 40d,
-                    tag = uuid
+                    tag = entry.Uuid
                 };
                 newItem.Changed += (sender, e) =>
                 {
@@ -264,19 +169,15 @@ public partial class PageLogLeft : MyPageLeft, IRefreshable
                     LogoScale = 1.1d
                 };
                 ToolTip.SetTip(removeButton, Lang.Text("Common.Action.Delete"));
-                removeButton.Click += (_, _) => RemoveItem(uuid);
+                removeButton.Click += (_, _) => RemoveItem(entry.Uuid);
                 newItem.Buttons = [removeButton];
 
-                if (uuid == CurrentUuid)
+                if (entry.Uuid == ViewModel.CurrentUuid)
                     newItem.Checked = true;
                 PanList.Children.Add(newItem);
             }
 
-            if (!States.Hint.MaxGameLog)
-            {
-                States.Hint.MaxGameLog = true;
-                HintService.Show(Hints.Info(Lang.Text("LogPage.MaxLines.Hint", MaxLinesDefault)));
-            }
+            PageLogLeftViewModel.ShowMaxLinesHintIfNeeded();
         }
         catch (Exception ex)
         {
@@ -301,38 +202,12 @@ public partial class PageLogLeft : MyPageLeft, IRefreshable
         Dispatcher.UIThread.Post(() =>
         {
             _returnScheduled = false;
-            if (ShownLogs.Count > 0)
+            if (ViewModel.HasLogs)
                 return;
             if (PageRouter.Current.Page != PageType.GameLog)
                 return;
             PageRouter.Back();
         });
-    }
-
-    private static string SafeGetVersionName(GameWatcher.Watcher watcher)
-    {
-        try
-        {
-            return watcher.version?.Name ?? string.Empty;
-        }
-        catch (Exception)
-        {
-            return string.Empty;
-        }
-    }
-
-    private static string GetItemInfo(GameWatcher.Watcher watcher)
-    {
-        try
-        {
-            var info = watcher.version?.Info?.ToString() ?? string.Empty;
-            var startTime = watcher.gameProcess?.StartTime ?? DateTime.MinValue;
-            return $"{info} - {Lang.Date(startTime, "T")}";
-        }
-        catch (Exception)
-        {
-            return string.Empty;
-        }
     }
 
     #endregion

@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -9,18 +8,9 @@ using Avalonia.Threading;
 using FluentValidation;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
-using PCL.Core.Minecraft;
-using PCL.Core.Minecraft.Java.UserPreference;
-using PCL.Core.UI;
-using PCL.Core.UI.Dialogs;
-using PCL.Core.UI.Hints;
-using PCL.Core.Utils;
-using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Validate;
 using PCL.Navigation;
 using PCL.UI.Controls;
-using PCL.Views.Pages.Launch;
-using Path = System.IO.Path;
 
 namespace PCL.Views.Pages.Instance;
 
@@ -30,8 +20,6 @@ namespace PCL.Views.Pages.Instance;
 /// </summary>
 public class PageInstanceSetup : MyPageRight
 {
-    private const string DefaultAuthServer = "https://littleskin.cn/api/yggdrasil";
-
     private readonly StackPanel _panMain;
     private readonly DispatcherTimer _ramTimer;
     private MyButton _btnAuthLock = null!;
@@ -64,7 +52,6 @@ public class PageInstanceSetup : MyPageRight
     private MyHint _hintRam32 = null!;
     private MyHint _hintRamHigh = null!;
     private MyHint _hintSsl = null!;
-    private McInstance? _instance;
     private int _javaRefreshVersion;
     private TextBlock _labAuthName = null!;
     private TextBlock _labAuthRegister = null!;
@@ -112,11 +99,14 @@ public class PageInstanceSetup : MyPageRight
         _ramTimer.Tick += (_, _) => RefreshRam();
         AttachedToVisualTree += (_, _) => _ramTimer.Start();
         DetachedFromVisualTree += (_, _) => _ramTimer.Stop();
+        ViewModel.ReloadRequested += Reload;
     }
+
+    public PageInstanceSetupViewModel ViewModel { get; } = new();
 
     public override void OnNavigatedTo(object? parameter)
     {
-        _instance = InstancePageHelper.ResolveInstance(parameter);
+        ViewModel.SetInstance(InstancePageHelper.ResolveInstance(parameter));
         Reload();
     }
 
@@ -136,75 +126,9 @@ public class PageInstanceSetup : MyPageRight
         _syncing = true;
         try
         {
+            ViewModel.Load();
             RefreshJavaCombo();
-            if (_instance is null)
-            {
-                _comboTitle.Text = string.Empty;
-                _textInfo.Text = string.Empty;
-                _comboIndie.SelectedIndex = 1;
-                return;
-            }
-
-            var path = _instance.PathInstance;
-            if (Config.Instance.AssetVerifySolutionV1[path] == 2)
-            {
-                LauncherCommon.Log("[Setup] 已迁移老版本的关闭文件校验设置", LauncherLogLevel.Debug);
-                Config.Instance.AssetVerifySolutionV1[path] = 0;
-                Config.Instance.DisableAssetVerifyV2[path] = true;
-            }
-
-            _comboIndie.SelectedIndex = Config.Instance.IndieV2[path] ? 0 : 1;
-            _comboTitle.Text = Config.Instance.Title[path];
-            _checkTitleDefault.Checked = Config.Instance.UseGlobalTitle[path];
-            _textInfo.Text = Config.Instance.TypeInfo[path];
-            RefreshTitleHint();
-
-            var ramType = Config.Instance.MemorySolution[path];
-            SetMemorySolution(ramType);
-            _sliderRamMax.Value = Math.Clamp(Config.Instance.CustomMemorySize[path], 1, 49);
-            _sliderRamInitial.Value = Math.Clamp(
-                Config.Instance.CustomInitialMemorySize[path],
-                0,
-                _sliderRamMax.Value);
-            RefreshRam();
-
-            _textServerEnter.Text = Config.Instance.ServerToEnter[path];
-            _comboLoginRequire.SelectedIndex = Math.Clamp(
-                Config.InstanceAuth.LoginRequirementSolution[path],
-                0,
-                3);
-            _textAuthServer.Text = Config.InstanceAuth.AuthServerAddress[path];
-            _textAuthName.Text = Config.InstanceAuth.AuthServerDisplayName[path];
-            _textAuthRegister.Text = Config.InstanceAuth.AuthRegisterAddress[path];
-            RefreshServerLogin(_comboLoginRequire.SelectedIndex);
-
-            _comboRenderer.SelectedIndex = Math.Clamp(Config.Instance.Renderer[path], 0, 4);
-            _textClasspath.Text = Config.Instance.ClasspathHead[path];
-            _textJvm.Text = Config.Instance.JvmArgs[path];
-            _textGame.Text = Config.Instance.GameArgs[path];
-            _textPreLaunch.Text = Config.Instance.PreLaunchCommand[path];
-            _checkRunWait.Checked = Config.Instance.PreLaunchCommandWait[path];
-            _checkDisableLwjglAgent.Checked = Config.Instance.DisableLwjglUnsafeAgent[path];
-            _checkDisableModUpdate.Checked = Config.Instance.DisableModUpdate[path];
-            _checkDisableAssets.Checked = Config.Instance.DisableAssetVerifyV2[path];
-            _checkUseProxy.Checked = Config.Instance.UseProxy[path];
-            _checkIgnoreJava.Checked = Config.Instance.IgnoreJavaCompatibility[path];
-            if (SystemInfo.IsArm64System)
-            {
-                _checkDisableJlw.Checked = true;
-                _checkDisableJlw.IsEnabled = false;
-                ToolTip.SetTip(
-                    _checkDisableJlw,
-                    Lang.Text("Setup.Launch.Advanced.DisableJlw.Arm64ToolTip"));
-            }
-            else
-            {
-                _checkDisableJlw.Checked = Config.Instance.DisableJlw[path];
-            }
-
-            _checkDebugLog4j.Checked = Config.Instance.UseDebugLof4j2Config[path];
-            _checkDisableLF.Checked = Config.Instance.DisableLF[path];
-            RefreshRunWait();
+            ApplyState();
         }
         catch (Exception ex)
         {
@@ -216,23 +140,114 @@ public class PageInstanceSetup : MyPageRight
         }
     }
 
+    private void ApplyState()
+    {
+        if (ViewModel.Instance is null)
+        {
+            _comboTitle.Text = string.Empty;
+            _textInfo.Text = string.Empty;
+            _comboIndie.SelectedIndex = 1;
+            return;
+        }
+
+        _comboIndie.SelectedIndex = ViewModel.IndieEnabled ? 0 : 1;
+        _comboTitle.Text = ViewModel.TitleText;
+        _checkTitleDefault.Checked = ViewModel.UseGlobalTitle;
+        _textInfo.Text = ViewModel.InfoText;
+        RefreshTitleHint();
+
+        SetMemorySolution(ViewModel.MemorySolution);
+        _sliderRamMax.Value = (int)Math.Round(ViewModel.CustomMemorySize);
+        _sliderRamInitial.Value = (int)Math.Round(ViewModel.CustomInitialMemorySize);
+        ApplyRamState();
+
+        _textServerEnter.Text = ViewModel.ServerEnterText;
+        _comboLoginRequire.SelectedIndex = ViewModel.LoginRequirement;
+        _textAuthServer.Text = ViewModel.AuthServerAddress;
+        _textAuthName.Text = ViewModel.AuthDisplayName;
+        _textAuthRegister.Text = ViewModel.AuthRegisterAddress;
+        ApplyServerLoginState();
+
+        _comboRenderer.SelectedIndex = ViewModel.RendererIndex;
+        _textClasspath.Text = ViewModel.ClasspathHead;
+        _textJvm.Text = ViewModel.JvmArgs;
+        _textGame.Text = ViewModel.GameArgs;
+        _textPreLaunch.Text = ViewModel.PreLaunchCommand;
+        _checkRunWait.Checked = ViewModel.PreLaunchCommandWait;
+        _checkDisableLwjglAgent.Checked = ViewModel.DisableLwjglUnsafeAgent;
+        _checkDisableModUpdate.Checked = ViewModel.DisableModUpdate;
+        _checkDisableAssets.Checked = ViewModel.DisableAssetVerify;
+        _checkUseProxy.Checked = ViewModel.UseProxy;
+        _checkIgnoreJava.Checked = ViewModel.IgnoreJavaCompatibility;
+        _checkDisableJlw.Checked = ViewModel.DisableJlw;
+        _checkDisableJlw.IsEnabled = !ViewModel.IsArm64System;
+        ToolTip.SetTip(
+            _checkDisableJlw,
+            ViewModel.IsArm64System
+                ? Lang.Text("Setup.Launch.Advanced.DisableJlw.Arm64ToolTip")
+                : Lang.Text("Setup.Launch.Advanced.DisableJlw.ToolTip"));
+        _checkDebugLog4j.Checked = ViewModel.UseDebugLog4j;
+        _checkDisableLF.Checked = ViewModel.DisableLf;
+        RefreshRunWait();
+    }
+
     public void Reset()
     {
-        if (_instance is null)
-            return;
+        _syncing = true;
         try
         {
-            if (!Config.InstanceAuth.AuthLocked[_instance.PathInstance])
-                Config.InstanceAuth.Reset(_instance.PathInstance);
-            Config.Instance.Reset(_instance.PathInstance);
-            HintService.Show(Hints.Success(Lang.Text("Instance.Setup.Initialize.Success")));
+            ViewModel.Reset();
+            ApplyState();
         }
         catch (Exception ex)
         {
             InstancePageHelper.ReportError("Instance.Setup.Error.OperationFailed", ex);
         }
+        finally
+        {
+            _syncing = false;
+        }
+    }
 
-        Reload();
+    private void ApplyRamState()
+    {
+        _columnRamUsed.Width = new GridLength(
+            Math.Max(0.01d, ViewModel.RamUsedWeight),
+            GridUnitType.Star);
+        _columnRamGame.Width = new GridLength(
+            Math.Max(0.01d, ViewModel.RamGameWeight),
+            GridUnitType.Star);
+        _columnRamEmpty.Width = new GridLength(
+            Math.Max(0.01d, ViewModel.RamEmptyWeight),
+            GridUnitType.Star);
+        _sliderRamMax.MaxValue = (int)Math.Max(1d, ViewModel.RamMaxValue);
+        _sliderRamInitial.MaxValue = (int)Math.Max(1d, ViewModel.RamMaxValue);
+        _labRamUsed.Text = ViewModel.RamUsedText;
+        _labRamTotal.Text = ViewModel.RamTotalText;
+        _labRamGame.Text = ViewModel.RamGameText;
+        _hintRam32.IsVisible = ViewModel.Ram32WarningVisible;
+        _hintRamHigh.IsVisible = ViewModel.RamHighWarningVisible;
+    }
+
+    private void ApplyServerLoginState()
+    {
+        _labAuthServer.IsVisible = ViewModel.AuthVisible;
+        _textAuthServer.IsVisible = ViewModel.AuthVisible;
+        _labAuthRegister.IsVisible = ViewModel.AuthVisible;
+        _textAuthRegister.IsVisible = ViewModel.AuthVisible;
+        _labAuthName.IsVisible = ViewModel.AuthVisible;
+        _textAuthName.IsVisible = ViewModel.AuthVisible;
+        _btnLittleSkin.IsVisible = ViewModel.AuthVisible;
+        _textAuthServer.IsEnabled = ViewModel.AuthEditable;
+        _textAuthRegister.IsEnabled = ViewModel.AuthEditable;
+        _textAuthName.IsEnabled = ViewModel.AuthEditable;
+        _btnLittleSkin.IsEnabled = ViewModel.AuthEditable;
+        _hintLoginLock.IsVisible = ViewModel.LoginLockVisible;
+        _btnAuthLock.IsVisible = ViewModel.AuthLockVisible;
+        _btnAuthLock.IsEnabled = ViewModel.AuthLockEnabled && _textAuthServer.IsValidated;
+        _btnNewProfile.IsVisible = ViewModel.NewProfileVisible;
+        _hintSsl.IsVisible = ViewModel.SslWarningVisible;
+        _hintHttp.IsVisible = ViewModel.HttpWarningVisible;
     }
 
     #region 界面构建
@@ -326,10 +341,8 @@ public class PageInstanceSetup : MyPageRight
         {
             if (_syncing)
                 return;
+            ViewModel.SetTitle(_comboTitle.Text ?? string.Empty);
             RefreshTitleHint();
-            if (_instance is null)
-                return;
-            Config.Instance.Title[_instance.PathInstance] = _comboTitle.Text ?? string.Empty;
         };
         grid.Children.Add(_comboTitle);
 
@@ -344,11 +357,10 @@ public class PageInstanceSetup : MyPageRight
         Grid.SetColumnSpan(_checkTitleDefault, 3);
         _checkTitleDefault.Change += (_, _) =>
         {
-            RefreshTitleHint();
-            if (_syncing || _instance is null)
+            if (_syncing)
                 return;
-            Config.Instance.UseGlobalTitle[_instance.PathInstance] =
-                _checkTitleDefault.Checked == true;
+            ViewModel.SetUseGlobalTitle(_checkTitleDefault.Checked == true);
+            RefreshTitleHint();
         };
         grid.Children.Add(_checkTitleDefault);
 
@@ -364,9 +376,9 @@ public class PageInstanceSetup : MyPageRight
         Grid.SetColumnSpan(_textInfo, 2);
         _textInfo.TextChanged += (_, _) =>
         {
-            if (_syncing || _instance is null)
+            if (_syncing)
                 return;
-            Config.Instance.TypeInfo[_instance.PathInstance] = _textInfo.Text ?? string.Empty;
+            ViewModel.SetInfo(_textInfo.Text ?? string.Empty);
         };
         grid.Children.Add(_textInfo);
 
@@ -679,11 +691,16 @@ public class PageInstanceSetup : MyPageRight
             [new HttpValidator()]);
         _textAuthServer.LostFocus += (_, _) =>
         {
-            if (_syncing || _instance is null)
+            if (_syncing)
                 return;
-            NormalizeAuthServer();
-            Config.InstanceAuth.AuthServerAddress[_instance.PathInstance] =
-                _textAuthServer.Text ?? string.Empty;
+            if (ViewModel.NormalizeAuthServer())
+            {
+                _syncing = true;
+                _textAuthServer.Text = ViewModel.AuthServerAddress;
+                _syncing = false;
+            }
+
+            ViewModel.SetAuthServer(_textAuthServer.Text ?? string.Empty);
             RefreshServerLogin(_comboLoginRequire.SelectedIndex);
         };
 
@@ -700,20 +717,18 @@ public class PageInstanceSetup : MyPageRight
             ]);
         _textAuthRegister.TextChanged += (_, _) =>
         {
-            if (_syncing || _instance is null)
+            if (_syncing)
                 return;
-            Config.InstanceAuth.AuthRegisterAddress[_instance.PathInstance] =
-                _textAuthRegister.Text ?? string.Empty;
+            ViewModel.SetAuthRegister(_textAuthRegister.Text ?? string.Empty);
         };
 
         _labAuthName = AddFieldLabel(grid, "Instance.Setup.Server.Name", 3);
         _textAuthName = AddFieldBox(grid, 3, "Instance.Setup.Server.Name.Hint", []);
         _textAuthName.TextChanged += (_, _) =>
         {
-            if (_syncing || _instance is null)
+            if (_syncing)
                 return;
-            Config.InstanceAuth.AuthServerDisplayName[_instance.PathInstance] =
-                _textAuthName.Text ?? string.Empty;
+            ViewModel.SetAuthDisplayName(_textAuthName.Text ?? string.Empty);
         };
 
         AddRowLabel(grid, "Instance.Setup.Server.AutoJoin", 5);
@@ -726,7 +741,7 @@ public class PageInstanceSetup : MyPageRight
         Grid.SetColumn(_textServerEnter, 1);
         _textServerEnter.TextChanged += (_, _) =>
         {
-            if (_syncing || _instance is null)
+            if (_syncing)
                 return;
             var text = (_textServerEnter.Text ?? string.Empty).Replace('：', ':');
             if (text != _textServerEnter.Text)
@@ -736,7 +751,7 @@ public class PageInstanceSetup : MyPageRight
                 _syncing = false;
             }
 
-            Config.Instance.ServerToEnter[_instance.PathInstance] = text;
+            ViewModel.SetServerEnter(text);
         };
         grid.Children.Add(_textServerEnter);
         body.Children.Add(grid);
@@ -837,9 +852,9 @@ public class PageInstanceSetup : MyPageRight
         Grid.SetColumn(_textJvm, 1);
         _textJvm.TextChanged += (_, _) =>
         {
-            if (_syncing || _instance is null)
+            if (_syncing)
                 return;
-            Config.Instance.JvmArgs[_instance.PathInstance] = _textJvm.Text ?? string.Empty;
+            ViewModel.SetJvmArgs(_textJvm.Text ?? string.Empty);
         };
         grid.Children.Add(_textJvm);
 
@@ -853,9 +868,9 @@ public class PageInstanceSetup : MyPageRight
         Grid.SetColumn(_textGame, 1);
         _textGame.TextChanged += (_, _) =>
         {
-            if (_syncing || _instance is null)
+            if (_syncing)
                 return;
-            Config.Instance.GameArgs[_instance.PathInstance] = _textGame.Text ?? string.Empty;
+            ViewModel.SetGameArgs(_textGame.Text ?? string.Empty);
         };
         grid.Children.Add(_textGame);
 
@@ -866,10 +881,9 @@ public class PageInstanceSetup : MyPageRight
         Grid.SetColumn(_textClasspath, 1);
         _textClasspath.TextChanged += (_, _) =>
         {
-            if (_syncing || _instance is null)
+            if (_syncing)
                 return;
-            Config.Instance.ClasspathHead[_instance.PathInstance] =
-                _textClasspath.Text ?? string.Empty;
+            ViewModel.SetClasspath(_textClasspath.Text ?? string.Empty);
         };
         grid.Children.Add(_textClasspath);
 
@@ -885,10 +899,9 @@ public class PageInstanceSetup : MyPageRight
         Grid.SetColumn(_textPreLaunch, 1);
         _textPreLaunch.TextChanged += (_, _) =>
         {
-            if (_syncing || _instance is null)
+            if (_syncing)
                 return;
-            Config.Instance.PreLaunchCommand[_instance.PathInstance] =
-                _textPreLaunch.Text ?? string.Empty;
+            ViewModel.SetPreLaunchCommand(_textPreLaunch.Text ?? string.Empty);
             RefreshRunWait();
         };
         grid.Children.Add(_textPreLaunch);
@@ -903,14 +916,12 @@ public class PageInstanceSetup : MyPageRight
 
         _checkRunWait = NewCheck(
             "Setup.Launch.Advanced.PreLaunchCommand.Wait",
-            value => SetInstanceConfig(instance =>
-                Config.Instance.PreLaunchCommandWait[instance.PathInstance] = value));
+            value => ViewModel.SetPreLaunchCommandWait(value));
         checks.Children.Add(_checkRunWait);
 
         _checkDisableModUpdate = NewCheck(
             "Instance.Setup.Advanced.DisableModUpdate",
-            value => SetInstanceConfig(instance =>
-                Config.Instance.DisableModUpdate[instance.PathInstance] = value));
+            value => ViewModel.SetDisableModUpdate(value));
         ToolTip.SetTip(
             _checkDisableModUpdate,
             Lang.Text("Setup.Ui.FeatureHide.Item.ModUpdate.ToolTip"));
@@ -918,8 +929,7 @@ public class PageInstanceSetup : MyPageRight
 
         _checkIgnoreJava = NewCheck(
             "Instance.Setup.Advanced.IgnoreJavaCompatibility",
-            value => SetInstanceConfig(instance =>
-                Config.Instance.IgnoreJavaCompatibility[instance.PathInstance] = value));
+            value => ViewModel.SetIgnoreJavaCompatibility(value));
         ToolTip.SetTip(
             _checkIgnoreJava,
             Lang.Text("Instance.Setup.Advanced.IgnoreJavaCompatibility.ToolTip"));
@@ -927,8 +937,7 @@ public class PageInstanceSetup : MyPageRight
 
         _checkDisableAssets = NewCheck(
             "Instance.Setup.Advanced.DisableFileVerification",
-            value => SetInstanceConfig(instance =>
-                Config.Instance.DisableAssetVerifyV2[instance.PathInstance] = value));
+            value => ViewModel.SetDisableAssetVerify(value));
         ToolTip.SetTip(
             _checkDisableAssets,
             Lang.Text("Instance.Setup.Advanced.DisableFileVerification.ToolTip"));
@@ -937,22 +946,19 @@ public class PageInstanceSetup : MyPageRight
 
         _checkUseProxy = NewCheck(
             "Instance.Setup.Advanced.UseGlobalProxy",
-            value => SetInstanceConfig(instance =>
-                Config.Instance.UseProxy[instance.PathInstance] = value));
+            value => ViewModel.SetUseProxy(value));
         ToolTip.SetTip(_checkUseProxy, Lang.Text("Instance.Setup.Advanced.UseGlobalProxy.ToolTip"));
         checks.Children.Add(_checkUseProxy);
 
         _checkDisableJlw = NewCheck(
             "Setup.Launch.Advanced.DisableJlw",
-            value => SetInstanceConfig(instance =>
-                Config.Instance.DisableJlw[instance.PathInstance] = value));
+            value => ViewModel.SetDisableJlw(value));
         ToolTip.SetTip(_checkDisableJlw, Lang.Text("Setup.Launch.Advanced.DisableJlw.ToolTip"));
         checks.Children.Add(_checkDisableJlw);
 
         _checkDisableLF = NewCheck(
             "Setup.Launch.Advanced.DisableLF",
-            value => SetInstanceConfig(instance =>
-                Config.Instance.DisableLF[instance.PathInstance] = value));
+            value => ViewModel.SetDisableLf(value));
         ToolTip.SetTip(_checkDisableLF, Lang.Text("Setup.Launch.Advanced.DisableLF.ToolTip"));
         checks.Children.Add(_checkDisableLF);
 
@@ -970,8 +976,7 @@ public class PageInstanceSetup : MyPageRight
 
         _checkDisableLwjglAgent = NewCheck(
             "Setup.Launch.Advanced.DisableLwjglUnsafeAgent",
-            value => SetInstanceConfig(instance =>
-                Config.Instance.DisableLwjglUnsafeAgent[instance.PathInstance] = value));
+            value => ViewModel.SetDisableLwjglUnsafeAgent(value));
         ToolTip.SetTip(
             _checkDisableLwjglAgent,
             Lang.Text("Setup.Launch.Advanced.DisableLwjglUnsafeAgent.ToolTip"));
@@ -1062,50 +1067,27 @@ public class PageInstanceSetup : MyPageRight
 
     private async Task OnIndieChangedAsync()
     {
-        if (_instance is null)
-            return;
         var desired = _comboIndie.SelectedIndex == 0;
         _comboIndie.IsEnabled = false;
         try
         {
-            var dialog = await DialogService.Instance.ShowAsync(
-                new TextDialogRequest
-                {
-                    Title = Lang.Text("Common.Dialog.Warning"),
-                    Content = Lang.Text("Instance.Setup.Options.InstanceIsolation.Message"),
-                    Buttons = DialogButtons.Create(
-                        "Setup.Launch.Advanced.Renderer.Warning.Confirm",
-                        "Common.Action.Cancel"),
-                    IsWarn = true
-                });
-            if (!dialog.IsConfirmed)
+            if (!await ViewModel.ApplyIndieAsync(desired))
             {
                 _syncing = true;
                 _comboIndie.SelectedIndex = desired ? 1 : 0;
-                return;
+                _syncing = false;
             }
-
-            Config.Instance.IndieV2[_instance.PathInstance] = desired;
-        }
-        catch (Exception ex)
-        {
-            InstancePageHelper.ReportError("Instance.Setup.Error.OperationFailed", ex);
         }
         finally
         {
-            _syncing = true;
             _comboIndie.IsEnabled = true;
-            _syncing = false;
         }
     }
 
     private void RefreshTitleHint()
     {
-        var useDefault = _checkTitleDefault.Checked == true;
-        _comboTitle.HintText = useDefault
-            ? Lang.Text("Common.Option.Default")
-            : Lang.Text("Instance.Setup.FollowGlobal");
-        _checkTitleDefault.IsVisible = string.IsNullOrEmpty(_comboTitle.Text);
+        _comboTitle.HintText = ViewModel.TitleHintText;
+        _checkTitleDefault.IsVisible = ViewModel.TitleDefaultVisible;
     }
 
     private void RefreshJavaCombo()
@@ -1113,8 +1095,8 @@ public class PageInstanceSetup : MyPageRight
         if (_comboJava is null)
             return;
 
-        // 先立即显示加载项，Java 列表在后台枚举完成后填充，避免阻塞页面重载。
         var version = ++_javaRefreshVersion;
+        var wasSyncing = _syncing;
         _syncing = true;
         _comboJava.Items.Clear();
         var loading = new MyComboBoxItem
@@ -1124,7 +1106,7 @@ public class PageInstanceSetup : MyPageRight
         };
         _comboJava.Items.Add(loading);
         _comboJava.SelectedItem = loading;
-        _syncing = false;
+        _syncing = wasSyncing;
         _ = RefreshJavaComboAsync(version);
     }
 
@@ -1132,34 +1114,26 @@ public class PageInstanceSetup : MyPageRight
     {
         if (_comboJava is null)
             return;
-        var preference = _instance is null
-            ? new UseGlobalPreference()
-            : JavaRuntime.GetInstanceJavaPreference(_instance);
-
-        List<JavaEntry>? javas = null;
-        string? loadError = null;
+        IReadOnlyList<JavaOption> options;
         try
         {
-            javas = await Task.Run(() => JavaRuntime.Javas.GetSortedJavaList().ToList());
+            options = await ViewModel.LoadJavaOptionsAsync();
         }
         catch (Exception ex)
         {
-            loadError = ex.Message;
-            LauncherCommon.Log(
-                ex,
-                "更新实例设置 Java 下拉框失败",
-                LauncherLogLevel.Feedback,
-                userSummary: Lang.Text("Instance.Setup.Error.OperationFailed"));
+            InstancePageHelper.ReportError("Instance.Setup.Error.OperationFailed", ex);
+            return;
         }
 
         if (version != _javaRefreshVersion || _comboJava is null)
             return;
 
+        var wasSyncing = _syncing;
         _syncing = true;
         try
         {
             _comboJava.Items.Clear();
-            if (loadError is not null)
+            if (ViewModel.HasJavaLoadError)
             {
                 var failed = new MyComboBoxItem
                 {
@@ -1171,98 +1145,24 @@ public class PageInstanceSetup : MyPageRight
                 return;
             }
 
-            var items = new List<MyComboBoxItem>();
-            var globalItem = new MyComboBoxItem
-            {
-                Content = Lang.Text("Instance.Setup.FollowGlobal"),
-                Tag = new UseGlobalPreference()
-            };
-            items.Add(globalItem);
-            var autoItem = new MyComboBoxItem
-            {
-                Content = Lang.Text("Instance.Setup.Options.Java.AutoSelect"),
-                Tag = new AutoSelect()
-            };
-            items.Add(autoItem);
-            var relativeItem = new MyComboBoxItem
-            {
-                Content = Lang.Text("Instance.Setup.Options.Java.SelectRelative"),
-                Tag = new UseRelativePath(Path.Combine("jre", "bin", "java.exe"))
-            };
-            var relativeTag = (UseRelativePath)relativeItem.Tag;
-            var absolutePath = Path.GetFullPath(
-                Path.Combine(Basics.ExecutableDirectory, relativeTag.RelativePath));
-            ToolTip.SetTip(
-                relativeItem,
-                Lang.Text(
-                    "Instance.Setup.Options.Java.RelativePathToolTip",
-                    relativeTag.RelativePath,
-                    absolutePath));
-            items.Add(relativeItem);
-
-            foreach (var java in javas ?? [])
+            MyComboBoxItem? selectedItem = null;
+            foreach (var option in options)
             {
                 var item = new MyComboBoxItem
                 {
-                    Content = java.ToString(),
-                    Tag = java
+                    Content = option.Text,
+                    Tag = option,
+                    IsEnabled = option.IsEnabled
                 };
-                ToolTip.SetTip(
-                    item,
-                    Lang.Text(
-                        "Instance.Setup.Options.Java.Details.ToolTip",
-                        java.Installation.JavaExePath,
-                        java.Installation.Version,
-                        java.Source));
-                items.Add(item);
-            }
-
-            foreach (var item in items)
+                if (!string.IsNullOrEmpty(option.ToolTip))
+                    ToolTip.SetTip(item, option.ToolTip);
                 _comboJava.Items.Add(item);
-
-            MyComboBoxItem? selectedItem = null;
-            switch (preference)
-            {
-                case UseGlobalPreference:
-                    selectedItem = globalItem;
-                    break;
-                case UseRelativePath:
-                    selectedItem = relativeItem;
-                    break;
-                case ExistingJava existing:
-                    foreach (var raw in items)
-                    {
-                        if (raw.Tag is not JavaEntry entry)
-                            continue;
-                        if (!string.Equals(
-                                entry.Installation.JavaExePath,
-                                existing.JavaExePath,
-                                StringComparison.OrdinalIgnoreCase))
-                            continue;
-                        selectedItem = raw;
-                        break;
-                    }
-
-                    break;
+                if (option.IsSelected)
+                    selectedItem = item;
             }
 
-            if (selectedItem is null && items.Count > 1)
-                selectedItem = autoItem;
             if (selectedItem is not null)
                 _comboJava.SelectedItem = selectedItem;
-
-            if (!JavaRuntime.Javas.ExistAnyJava())
-            {
-                _comboJava.Items.Clear();
-                var noJava = new MyComboBoxItem
-                {
-                    Content = Lang.Text("Instance.Setup.Options.Java.NoRuntime"),
-                    IsEnabled = false
-                };
-                ToolTip.SetTip(noJava, Lang.Text("Instance.Setup.Options.Java.NoRuntime.ToolTip"));
-                _comboJava.Items.Add(noJava);
-                _comboJava.SelectedItem = noJava;
-            }
         }
         catch (Exception ex)
         {
@@ -1270,60 +1170,21 @@ public class PageInstanceSetup : MyPageRight
         }
         finally
         {
-            _syncing = false;
+            _syncing = wasSyncing;
         }
     }
 
     private void SaveJavaSelection()
     {
-        if (_instance is null)
+        if (_comboJava.SelectedItem is not MyComboBoxItem { Tag: JavaOption option })
             return;
-        if (_comboJava.SelectedItem is not MyComboBoxItem selected || selected.Tag is null)
-            return;
+        _ = SaveJavaSelectionAsync(option);
+    }
 
-        JavaPreference preference;
-        switch (selected.Tag)
-        {
-            case UseGlobalPreference:
-                preference = new UseGlobalPreference();
-                break;
-            case AutoSelect:
-                preference = new AutoSelect();
-                break;
-            case UseRelativePath:
-            {
-                var file = SystemDialogs.SelectFile(
-                    Lang.Text("Setup.Java.SelectFile.Filter"),
-                    Lang.Text("Setup.Java.SelectFile.Title"),
-                    Basics.ExecutableDirectory);
-                if (string.IsNullOrWhiteSpace(file))
-                {
-                    RefreshJavaCombo();
-                    return;
-                }
-
-                var absolute = Path.GetFullPath(file);
-                if (!absolute.StartsWith(Basics.ExecutableDirectory, StringComparison.Ordinal))
-                {
-                    HintService.Show(
-                        Hints.Error(Lang.Text("Instance.Setup.Options.Java.PathOutOfRange")));
-                    RefreshJavaCombo();
-                    return;
-                }
-
-                preference = new UseRelativePath(
-                    Path.GetRelativePath(Basics.ExecutableDirectory, absolute));
-                break;
-            }
-            case JavaEntry java:
-                preference = new ExistingJava(java.Installation.JavaExePath);
-                break;
-            default:
-                return;
-        }
-
-        Config.Instance.SelectedJava[_instance.PathInstance] =
-            JsonSerializer.Serialize(preference, JsonCompat.SerializerOptions);
+    private async Task SaveJavaSelectionAsync(JavaOption option)
+    {
+        if (!await ViewModel.SelectJavaAsync(option))
+            RefreshJavaCombo();
         RefreshRam();
     }
 
@@ -1342,83 +1203,25 @@ public class PageInstanceSetup : MyPageRight
 
     private void SaveMemorySolution(int solution)
     {
-        if (_syncing || _instance is null)
+        if (_syncing)
             return;
-        Config.Instance.MemorySolution[_instance.PathInstance] = solution;
+        ViewModel.SetMemorySolution(solution);
         SetMemorySolution(solution);
         RefreshRam();
     }
 
     private void SaveMemoryValues()
     {
-        if (_instance is null)
-            return;
-        var path = _instance.PathInstance;
-        Config.Instance.CustomMemorySize[path] = Math.Clamp(_sliderRamMax.Value, 1, 49);
-        Config.Instance.CustomInitialMemorySize[path] = Math.Clamp(
-            _sliderRamInitial.Value,
-            0,
-            _sliderRamMax.Value);
+        ViewModel.SetMemoryValues(_sliderRamMax.Value, _sliderRamInitial.Value);
         RefreshRam();
     }
 
     private void RefreshRam()
     {
-        if (_instance is null || _labRamUsed is null)
+        if (_labRamUsed is null || ViewModel.Instance is null)
             return;
-
-        var instance = _instance;
-        var ramGame = Math.Round(MemorySettings.GetRam(instance), 5);
-        var memory = KernelInterop.GetPhysicalMemoryBytes();
-        const double bytesPerGigabyte = 1024d * 1024d * 1024d;
-        var total = Math.Round(memory.Total / bytesPerGigabyte, 1);
-        var available = Math.Round(memory.Available / bytesPerGigabyte, 1);
-        var gameActual = Math.Round(Math.Min(ramGame, available), 5);
-        var used = Math.Round(total - available, 5);
-        var empty = Math.Round(Math.Clamp(total - used - ramGame, 0d, 1000d), 1);
-
-        var maxValue = total switch
-        {
-            <= 1.5d => (int)Math.Round(Math.Max(Math.Floor((total - 0.3d) / 0.1d), 1d)),
-            <= 8d => (int)Math.Round(Math.Floor((total - 1.5d) / 0.5d) + 12d),
-            <= 16d => (int)Math.Round(Math.Floor((total - 8d) / 1d) + 25d),
-            _ => (int)Math.Round(Math.Floor((total - 16d) / 2d) + 33d)
-        };
-        _sliderRamMax.MaxValue = Math.Max(1, maxValue);
-        _sliderRamInitial.MaxValue = Math.Max(1, maxValue);
-
-        _columnRamUsed.Width = new GridLength(Math.Max(0.01d, used), GridUnitType.Star);
-        _columnRamGame.Width = new GridLength(Math.Max(0.01d, gameActual), GridUnitType.Star);
-        _columnRamEmpty.Width = new GridLength(Math.Max(0.01d, empty), GridUnitType.Star);
-
-        var ramInitial = MemorySettings.GetInitialRam(instance);
-        string suffixText;
-        if (ramInitial.HasValue && ramGame != gameActual)
-            suffixText = Lang.Text(
-                "Setup.Launch.Memory.SuffixBoth",
-                Lang.Number(ramInitial.Value, "N1"),
-                Lang.Number(gameActual, "N1"));
-        else if (ramInitial.HasValue)
-            suffixText = Lang.Text(
-                "Setup.Launch.Memory.SuffixInitial",
-                Lang.Number(ramInitial.Value, "N1"));
-        else if (ramGame != gameActual)
-            suffixText = Lang.Text(
-                "Setup.Launch.Memory.SuffixAvailable",
-                Lang.Number(gameActual, "N1"));
-        else
-            suffixText = string.Empty;
-
-        _labRamUsed.Text = $"{Lang.Number(used, "N1")} GiB";
-        _labRamTotal.Text = $" / {Lang.Number(total, "N1")} GiB";
-        _labRamGame.Text =
-            $"{Lang.Number(ramGame, "N1")} GiB{(suffixText.Length > 0 ? $" ({suffixText})" : string.Empty)}";
-
-        _hintRam32.IsVisible = ramGame == 1d
-            && !JavaRuntime.IsGameSet64BitJava(instance)
-            && !SystemInfo.Is32BitSystem
-            && JavaRuntime.Javas.ExistAnyJava();
-        _hintRamHigh.IsVisible = total > 0d && ramGame / total > 0.75d;
+        ViewModel.RefreshRam();
+        ApplyRamState();
     }
 
     #endregion
@@ -1427,127 +1230,36 @@ public class PageInstanceSetup : MyPageRight
 
     private void OnLoginRequireChanged()
     {
-        if (_syncing || _instance is null)
+        if (_syncing)
             return;
         var index = _comboLoginRequire.SelectedIndex;
         if (index < 0)
             return;
-        RefreshServerLogin(index);
+        ViewModel.RefreshServerLogin(index);
+        ApplyServerLoginState();
         _btnAuthLock.IsEnabled = _textAuthServer.IsValidated;
-        if ((index == 2 || index == 3) && !_textAuthServer.IsValidated)
+        if (index is 2 or 3 && !_textAuthServer.IsValidated)
             return;
-        Config.InstanceAuth.LoginRequirementSolution[_instance.PathInstance] = index;
+        ViewModel.SetLoginRequirement(index);
     }
 
     private void RefreshServerLogin(int type)
     {
-        var authVisible = type == 2 || type == 3;
-        var authEditable =
-            _instance is null || !Config.InstanceAuth.AuthLocked[_instance.PathInstance];
-        _labAuthServer.IsVisible = authVisible;
-        _textAuthServer.IsVisible = authVisible;
-        _labAuthRegister.IsVisible = authVisible;
-        _textAuthRegister.IsVisible = authVisible;
-        _labAuthName.IsVisible = authVisible;
-        _textAuthName.IsVisible = authVisible;
-        _btnLittleSkin.IsVisible = authVisible;
-        _textAuthServer.IsEnabled = authEditable;
-        _textAuthRegister.IsEnabled = authEditable;
-        _textAuthName.IsEnabled = authEditable;
-        _btnLittleSkin.IsEnabled = authEditable;
-        _hintLoginLock.IsVisible = !authEditable;
-        _btnAuthLock.IsVisible = type != 0 && type != 1;
-        _btnAuthLock.IsEnabled = authEditable && _textAuthServer.IsValidated;
-        _btnNewProfile.IsVisible = authVisible && CanCreateOtherProfile();
-
-        var address = _textAuthServer.Text ?? string.Empty;
-        if (!authVisible)
-        {
-            _hintSsl.IsVisible = false;
-            _hintHttp.IsVisible = false;
-        }
-        else if (address.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
-        {
-            _hintSsl.IsVisible = true;
-            _hintHttp.IsVisible = false;
-        }
-        else if (address.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
-        {
-            _hintSsl.IsVisible = false;
-            _hintHttp.IsVisible = true;
-        }
-        else
-        {
-            _hintSsl.IsVisible = false;
-            _hintHttp.IsVisible = false;
-        }
-    }
-
-    private void NormalizeAuthServer()
-    {
-        var address = (_textAuthServer.Text ?? string.Empty).Trim();
-        if (string.IsNullOrWhiteSpace(address))
-            return;
-        if (!address.EndsWith("/api/yggdrasil/", StringComparison.OrdinalIgnoreCase)
-            && !address.EndsWith("/api/yggdrasil", StringComparison.OrdinalIgnoreCase))
-        {
-            address = address.EndsWith('/')
-                ? $"{address}api/yggdrasil"
-                : $"{address}/api/yggdrasil";
-            HintService.Show(
-                Hints.Info(Lang.Text("Instance.Setup.Server.AuthServer.AutoFormatted")));
-        }
-
-        if (address.EndsWith("/api/yggdrasil/", StringComparison.OrdinalIgnoreCase))
-        {
-            address = address[..^1];
-            HintService.Show(
-                Hints.Info(Lang.Text("Instance.Setup.Server.AuthServer.AutoFormatted")));
-        }
-
-        _syncing = true;
-        _textAuthServer.Text = address;
-        _syncing = false;
+        ViewModel.RefreshServerLogin(type);
+        ApplyServerLoginState();
     }
 
     private async Task ApplyLittleSkinAsync()
     {
-        try
-        {
-            var current = _textAuthServer.Text ?? string.Empty;
-            if (!string.IsNullOrEmpty(current) && current != DefaultAuthServer)
-            {
-                var dialog = await DialogService.Instance.ShowAsync(
-                    new TextDialogRequest
-                    {
-                        Title = Lang.Text("Instance.Setup.Server.LittleSkin.Override.Title"),
-                        Content = Lang.Text("Instance.Setup.Server.LittleSkin.Override.Message"),
-                        Buttons = DialogButtons.Create(
-                            "Instance.Setup.Server.LittleSkin.Override.Continue",
-                            "Common.Action.Cancel")
-                    });
-                if (!dialog.IsConfirmed)
-                    return;
-            }
+        if (!await ViewModel.ApplyLittleSkinAsync())
+            return;
 
-            _syncing = true;
-            _textAuthServer.Text = DefaultAuthServer;
-            _textAuthRegister.Text = "https://littleskin.cn/auth/register";
-            _textAuthName.Text = Lang.Text("Instance.Setup.Server.LittleSkin.Name");
-            _syncing = false;
-
-            if (_instance is null)
-                return;
-            var path = _instance.PathInstance;
-            Config.InstanceAuth.AuthServerAddress[path] = _textAuthServer.Text ?? string.Empty;
-            Config.InstanceAuth.AuthRegisterAddress[path] = _textAuthRegister.Text ?? string.Empty;
-            Config.InstanceAuth.AuthServerDisplayName[path] = _textAuthName.Text ?? string.Empty;
-            RefreshServerLogin(_comboLoginRequire.SelectedIndex);
-        }
-        catch (Exception ex)
-        {
-            InstancePageHelper.ReportError("Instance.Setup.Error.OperationFailed", ex);
-        }
+        _syncing = true;
+        _textAuthServer.Text = ViewModel.AuthServerAddress;
+        _textAuthRegister.Text = ViewModel.AuthRegisterAddress;
+        _textAuthName.Text = ViewModel.AuthDisplayName;
+        _syncing = false;
+        RefreshServerLogin(_comboLoginRequire.SelectedIndex);
     }
 
     private async Task LockAuthAsync()
@@ -1555,22 +1267,7 @@ public class PageInstanceSetup : MyPageRight
         _btnAuthLock.IsEnabled = false;
         try
         {
-            var dialog = await DialogService.Instance.ShowAsync(
-                new TextDialogRequest
-                {
-                    Title = Lang.Text("Instance.Setup.Server.LockLoginMethod.Title"),
-                    Content = Lang.Text("Instance.Setup.Server.LockLoginMethod.Message"),
-                    Buttons = DialogButtons.OkCancel,
-                    IsWarn = true
-                });
-            if (!dialog.IsConfirmed || _instance is null)
-                return;
-            Config.InstanceAuth.AuthLocked[_instance.PathInstance] = true;
-            Reload();
-        }
-        catch (Exception ex)
-        {
-            InstancePageHelper.ReportError("Instance.Setup.Error.OperationFailed", ex);
+            await ViewModel.LockAuthAsync();
         }
         finally
         {
@@ -1578,39 +1275,9 @@ public class PageInstanceSetup : MyPageRight
         }
     }
 
-    private static bool CanCreateOtherProfile()
-    {
-#if DEBUG || DEBUGCI
-        return true;
-#else
-        try
-        {
-            return ProfileService.HasMicrosoftProfile
-                   || (Lang.IsFeaturesUnrestricted && ProfileService.Profiles.Count > 0)
-                   || !NetworkHelper.IsNetworkAvailable();
-        }
-        catch
-        {
-            return false;
-        }
-#endif
-    }
-
     private void CreateServerProfile()
     {
-        if (!CanCreateOtherProfile())
-            return;
-        PageLoginAuth.PendingAuthServer = _textAuthServer.Text ?? string.Empty;
-        PageRouter.Navigate(PageType.Launch);
-        LauncherCommon.RunInNewThread(
-            () =>
-            {
-                Thread.Sleep(150);
-                LauncherCommon.RunInUi(() =>
-                    PageLaunchLeft.Current?.RefreshPage(true, GameLaunch.McLoginType.Auth));
-            },
-            "Instance Auth Profile",
-            ThreadPriority.BelowNormal);
+        ViewModel.CreateServerProfileCommand.Execute(null);
     }
 
     #endregion
@@ -1619,105 +1286,47 @@ public class PageInstanceSetup : MyPageRight
 
     private async Task OnRendererChangedAsync()
     {
-        if (_syncing || _instance is null)
+        if (_syncing)
             return;
         var index = _comboRenderer.SelectedIndex;
         if (index < 0)
             return;
-        var previous = Math.Clamp(Config.Instance.Renderer[_instance.PathInstance], 0, 4);
         _comboRenderer.IsEnabled = false;
         try
         {
-            if (!States.Hint.Renderer && index != 0)
-            {
-                var dialog = await DialogService.Instance.ShowAsync(
-                    new TextDialogRequest
-                    {
-                        Title = Lang.Text("Common.Dialog.Warning"),
-                        Content = Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Message"),
-                        Buttons = DialogButtons.Create(
-                            "Setup.Launch.Advanced.Renderer.Warning.Confirm",
-                            "Common.Action.Cancel"),
-                        IsWarn = true
-                    });
-                if (!dialog.IsConfirmed)
-                {
-                    _syncing = true;
-                    _comboRenderer.SelectedIndex = previous;
-                    return;
-                }
-
-                States.Hint.Renderer = true;
-            }
-
-            Config.Instance.Renderer[_instance.PathInstance] = index;
-        }
-        catch (Exception ex)
-        {
-            InstancePageHelper.ReportError("Instance.Setup.Error.OperationFailed", ex);
+            await ViewModel.ApplyRendererAsync(index);
+            _syncing = true;
+            _comboRenderer.SelectedIndex = ViewModel.RendererIndex;
+            _syncing = false;
         }
         finally
         {
-            _syncing = true;
             _comboRenderer.IsEnabled = true;
-            _syncing = false;
         }
     }
 
     private async Task OnDebugLog4jChangedAsync()
     {
-        if (_syncing || _instance is null)
+        if (_syncing)
             return;
         _checkDebugLog4j.IsEnabled = false;
         try
         {
-            var enabled = _checkDebugLog4j.Checked == true;
-            if (enabled && !States.Hint.DebugLog4j2Config)
-            {
-                var dialog = await DialogService.Instance.ShowAsync(
-                    new TextDialogRequest
-                    {
-                        Title = Lang.Text("Common.Dialog.Warning"),
-                        Content = Lang.Text("Instance.Setup.Advanced.UseDebugLog4j.Message"),
-                        Buttons = DialogButtons.Create(
-                            "Setup.Launch.Advanced.Renderer.Warning.Confirm",
-                            "Common.Action.Cancel"),
-                        IsWarn = true
-                    });
-                if (!dialog.IsConfirmed)
-                {
-                    _syncing = true;
-                    _checkDebugLog4j.Checked = false;
-                    return;
-                }
-
-                States.Hint.DebugLog4j2Config = true;
-            }
-
-            Config.Instance.UseDebugLof4j2Config[_instance.PathInstance] = enabled;
-        }
-        catch (Exception ex)
-        {
-            InstancePageHelper.ReportError("Instance.Setup.Error.OperationFailed", ex);
+            await ViewModel.ApplyDebugLog4jAsync(_checkDebugLog4j.Checked == true);
+            _syncing = true;
+            _checkDebugLog4j.Checked = ViewModel.UseDebugLog4j;
+            _syncing = false;
         }
         finally
         {
-            _syncing = true;
             _checkDebugLog4j.IsEnabled = true;
-            _syncing = false;
         }
     }
 
     private void RefreshRunWait()
     {
-        _checkRunWait.IsVisible = !string.IsNullOrEmpty(_textPreLaunch.Text);
-    }
-
-    private void SetInstanceConfig(Action<McInstance> setter)
-    {
-        if (_syncing || _instance is null)
-            return;
-        setter(_instance);
+        ViewModel.RefreshRunWait();
+        _checkRunWait.IsVisible = ViewModel.RunWaitVisible;
     }
 
     #endregion

@@ -1,15 +1,10 @@
-using System.Text.RegularExpressions;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input.Platform;
 using Avalonia.Layout;
 using Avalonia.Media;
-using Humanizer;
-using PCL.Core.App;
 using PCL.Core.App.Localization;
-using PCL.Core.Minecraft.Saves;
-using PCL.Core.Minecraft.Saves.Editing;
 using PCL.Core.UI.Hints;
 using PCL.UI.Controls;
 
@@ -17,20 +12,21 @@ namespace PCL.Views.Pages.Instance;
 
 /// <summary>
 ///     存档详情页：显示存档名称、版本、种子、游戏模式、难度、游玩时间与出生点，
-///     并允许修改作弊命令、难度与难度锁定（通过 <see cref="SaveManager.ApplyChangesAsync" /> 原子写入 level.dat）。
+///     并允许修改作弊命令、难度与难度锁定（通过存档管理器原子写入 level.dat）。
 ///     种子可点击复制，也可跳转 Chunkbase 预览；低版本存档会提示哪些字段无法获取。
 /// </summary>
 public class PageInstanceSavesInfo : MyPageRight, IRefreshable
 {
-    private readonly SaveManager _saveManager = new();
     private MyCheckBox _checkLockDifficulty = null!;
     private MyComboBox _comboAllowCommands = null!;
     private MyComboBox _comboDifficulty = null!;
     private StackPanel _panHints = null!;
     private StackPanel _panInfo = null!;
     private StackPanel _panMain = null!;
-    private SaveInfo? _save;
+    private Grid _rowAllowCommands = null!;
+    private Grid _rowDifficulty = null!;
     private string? _saveFolder;
+    private MyCard _settingsCard = null!;
     private bool _syncing;
     private TextBlock _titleText = null!;
 
@@ -39,15 +35,7 @@ public class PageInstanceSavesInfo : MyPageRight, IRefreshable
         BuildUi();
     }
 
-    private bool SupportsAllowCommands =>
-        _save?.VersionName is null
-            ? _save?.VersionId is not null
-            : McVersionComparer.CompareVersion(_save.VersionName, "1.9") >= 0;
-
-    private bool SupportsDifficulty =>
-        _save?.VersionName is null
-            ? _save?.VersionId is not null
-            : McVersionComparer.CompareVersion(_save.VersionName, "1.8") >= 0;
+    public PageInstanceSavesInfoViewModel ViewModel { get; } = new();
 
     public void Refresh()
     {
@@ -58,7 +46,7 @@ public class PageInstanceSavesInfo : MyPageRight, IRefreshable
     {
         _saveFolder = parameter as string;
         if (string.IsNullOrEmpty(_saveFolder))
-            _saveFolder = PageInstanceSavesLeft.currentSave;
+            _saveFolder = PageInstanceSavesLeft.CurrentSave;
         Reload();
     }
 
@@ -105,7 +93,7 @@ public class PageInstanceSavesInfo : MyPageRight, IRefreshable
         infoBody.Children.Add(_panInfo);
         panel.Children.Add(infoCard);
 
-        var settingsCard = InstancePageHelper.CreateCard(
+        _settingsCard = InstancePageHelper.CreateCard(
             "Instance.Saves.Info.Settings.Title",
             out var settingsBody);
         settingsBody.Children.Add(
@@ -126,10 +114,10 @@ public class PageInstanceSavesInfo : MyPageRight, IRefreshable
         {
             if (!_syncing) _ = ApplyChangesAsync();
         };
-        settingsBody.Children.Add(
-            InstancePageHelper.Row(
-                Lang.Text("Instance.Saves.Info.AllowCommands"),
-                _comboAllowCommands));
+        _rowAllowCommands = InstancePageHelper.Row(
+            Lang.Text("Instance.Saves.Info.AllowCommands"),
+            _comboAllowCommands);
+        settingsBody.Children.Add(_rowAllowCommands);
 
         _comboDifficulty = new MyComboBox
         {
@@ -143,10 +131,10 @@ public class PageInstanceSavesInfo : MyPageRight, IRefreshable
         {
             if (!_syncing) _ = ApplyChangesAsync();
         };
-        settingsBody.Children.Add(
-            InstancePageHelper.Row(
-                Lang.Text("Instance.Saves.Info.GameDifficultyLabel"),
-                _comboDifficulty));
+        _rowDifficulty = InstancePageHelper.Row(
+            Lang.Text("Instance.Saves.Info.GameDifficultyLabel"),
+            _comboDifficulty);
+        settingsBody.Children.Add(_rowDifficulty);
 
         _checkLockDifficulty = new MyCheckBox
         {
@@ -160,92 +148,62 @@ public class PageInstanceSavesInfo : MyPageRight, IRefreshable
             if (!_syncing) _ = ApplyChangesAsync();
         };
         settingsBody.Children.Add(_checkLockDifficulty);
-        panel.Children.Add(settingsCard);
+        panel.Children.Add(_settingsCard);
     }
 
     public void Reload()
     {
-        if (string.IsNullOrEmpty(_saveFolder) || !Directory.Exists(_saveFolder))
-        {
-            _titleText.Text = Lang.Text("Instance.Saves.Info.GetFailed");
-            _panInfo.Children.Clear();
-            return;
-        }
-
-        _ = LoadAsync(_saveFolder);
+        _ = ReloadAsync();
     }
 
-    private async Task LoadAsync(string folder)
+    private async Task ReloadAsync()
     {
+        _syncing = true;
         try
         {
-            _save = await _saveManager.LoadSaveAsync(folder);
-            PageInstanceSavesLeft.ShowDatapackTab =
-                _save.VersionId is not null && _save.VersionId >= DataVersionBoundaries._17w47a;
+            await ViewModel.LoadAsync(_saveFolder);
             Render();
         }
-        catch (Exception ex)
+        finally
         {
-            InstancePageHelper.ReportError("Instance.Saves.Info.Error.LoadFailed", ex);
+            _syncing = false;
         }
     }
 
     private void Render()
     {
-        if (_save is null)
-            return;
         _syncing = true;
         try
         {
-            _titleText.Text = _save.LevelName;
+            _titleText.Text = string.IsNullOrEmpty(ViewModel.LevelName)
+                ? Lang.Text("Instance.Saves.Info.GetFailed")
+                : ViewModel.LevelName;
             _panInfo.Children.Clear();
+            _panHints.Children.Clear();
 
-            AddInfoRow(
-                "Instance.Saves.Info.Version",
-                _save.VersionName is null
-                    ? _save.VersionId?.ToString() ?? Lang.Text("Instance.Saves.Info.GetFailed")
-                    : $"{_save.VersionName} ({_save.VersionId?.ToString() ?? "?"})");
-            AddInfoRow("Instance.Saves.Info.LevelName", _save.LevelName);
-            AddSeedRow(_save.Seed);
-            AddInfoRow("Instance.Saves.Info.GameMode", FormatGameMode(_save));
-            AddInfoRow(
-                "Instance.Saves.Info.Hardness",
-                _save.Difficulty is null
-                    ? Lang.Text("Instance.Saves.Info.GetFailed")
-                    : FormatDifficulty(_save.Difficulty.Value));
-            AddInfoRow(
-                "Instance.Saves.Info.LockDifficulty",
-                _save.IsDifficultyLocked
-                    ? Lang.Text("Common.Option.Yes")
-                    : Lang.Text("Common.Option.No"));
-            AddInfoRow(
-                "Instance.Saves.Info.PlayTime",
-                Lang.TimeSpan(_save.PlayTime, 3, false, TimeUnit.Day, TimeUnit.Second));
-            AddInfoRow(
-                "Instance.Saves.Info.LastPlayed",
-                Lang.Date(_save.LastPlayedUtc.ToLocalTime(), "g"));
-            AddInfoRow(
-                "Instance.Saves.Info.SpawnPoint",
-                _save.Spawn is { } spawn
-                    ? $"{spawn.X:0}, {spawn.Y:0}, {spawn.Z:0}"
-                    : Lang.Text("Instance.Saves.Info.GetFailed"));
+            if (ViewModel.Save is null)
+            {
+                _settingsCard.IsVisible = false;
+                return;
+            }
+
+            foreach (var row in ViewModel.Rows)
+                if (row.IsSeed)
+                    AddSeedRow(row);
+                else
+                    AddInfoRow(row.Head, row.Content);
 
             RenderHints();
-
-            _comboAllowCommands.SelectedIndex = _save.AllowCommands ? 0 : 1;
-            _comboAllowCommands.IsEnabled = SupportsAllowCommands;
-            _comboDifficulty.SelectedIndex = _save.Difficulty switch
-            {
-                Difficulty.Peaceful => 0,
-                Difficulty.Easy => 1,
-                Difficulty.Normal => 2,
-                Difficulty.Hard => 3,
-                _ => -1
-            };
-            _comboDifficulty.IsEnabled = _save.Difficulty is not null && SupportsDifficulty;
-            _checkLockDifficulty.Checked = _save.IsDifficultyLocked;
-            _checkLockDifficulty.IsEnabled = _save.Difficulty is not null && SupportsDifficulty;
-            _checkLockDifficulty.IsVisible = !_save.IsHardcore;
+            _settingsCard.IsVisible = ViewModel.ShowSettings;
+            _rowAllowCommands.IsVisible = ViewModel.HasAllowCommandsSetting;
+            _rowDifficulty.IsVisible = ViewModel.HasDifficultySetting;
+            _comboAllowCommands.SelectedIndex = ViewModel.AllowCommandsIndex;
+            _comboAllowCommands.IsEnabled = ViewModel.HasAllowCommandsSetting;
+            _comboDifficulty.SelectedIndex = ViewModel.DifficultyIndex;
+            _comboDifficulty.IsEnabled = ViewModel.HasDifficultySetting;
+            _checkLockDifficulty.Checked = ViewModel.IsDifficultyLocked;
+            _checkLockDifficulty.IsEnabled = ViewModel.HasDifficultySetting;
+            _checkLockDifficulty.IsVisible = ViewModel.ShowLockDifficulty;
         }
         finally
         {
@@ -255,47 +213,25 @@ public class PageInstanceSavesInfo : MyPageRight, IRefreshable
 
     private void RenderHints()
     {
-        _panHints.Children.Clear();
-        if (_save?.VersionName is not { } version)
-        {
-            if (_save?.VersionId is null)
-                _panHints.Children.Add(NewVersionHint("Instance.Saves.Info.VersionHint.1_3"));
-            return;
-        }
-
-        if (McVersionComparer.CompareVersion(version, "1.3") < 0)
-        {
-            _panHints.Children.Add(NewVersionHint("Instance.Saves.Info.VersionHint.1_3"));
-            _panHints.Children.Add(NewVersionHint("Instance.Saves.Info.VersionHint.1_8"));
-            _panHints.Children.Add(NewVersionHint("Instance.Saves.Info.VersionHint.1_9"));
-        }
-        else if (McVersionComparer.CompareVersion(version, "1.8") < 0)
-        {
-            _panHints.Children.Add(NewVersionHint("Instance.Saves.Info.VersionHint.1_8"));
-            _panHints.Children.Add(NewVersionHint("Instance.Saves.Info.VersionHint.1_9"));
-        }
-        else if (McVersionComparer.CompareVersion(version, "1.9") < 0)
-        {
-            _panHints.Children.Add(NewVersionHint("Instance.Saves.Info.VersionHint.1_9"));
-        }
+        if (ViewModel.ShowVersionHint13)
+            _panHints.Children.Add(NewVersionHint(ViewModel.VersionHint13Text));
+        if (ViewModel.ShowVersionHint18)
+            _panHints.Children.Add(NewVersionHint(ViewModel.VersionHint18Text));
+        if (ViewModel.ShowVersionHint19)
+            _panHints.Children.Add(NewVersionHint(ViewModel.VersionHint19Text));
     }
 
-    private static MyHint NewVersionHint(string key)
+    private static MyHint NewVersionHint(string text)
     {
         return new MyHint
         {
-            Text = Lang.Text(key),
+            Text = text,
             Theme = MyHint.Themes.Yellow,
             Margin = new Thickness(0d, 2d)
         };
     }
 
-    private void AddInfoRow(string labelKey, string value)
-    {
-        AddInfoRow(labelKey, value, value);
-    }
-
-    private void AddInfoRow(string labelKey, string display, string value)
+    private void AddInfoRow(string label, string value)
     {
         var grid = new Grid
         {
@@ -305,14 +241,14 @@ public class PageInstanceSavesInfo : MyPageRight, IRefreshable
         grid.Children.Add(
             new TextBlock
             {
-                Text = Lang.Text(labelKey),
+                Text = label,
                 Opacity = 0.7d,
                 VerticalAlignment = VerticalAlignment.Center,
                 Margin = new Thickness(0d, 0d, 25d, 0d)
             });
         var valueBlock = new TextBlock
         {
-            Text = display,
+            Text = value,
             VerticalAlignment = VerticalAlignment.Center,
             TextWrapping = TextWrapping.Wrap
         };
@@ -321,7 +257,7 @@ public class PageInstanceSavesInfo : MyPageRight, IRefreshable
         _panInfo.Children.Add(grid);
     }
 
-    private void AddSeedRow(long? seed)
+    private void AddSeedRow(SaveInfoRow row)
     {
         var grid = new Grid
         {
@@ -331,22 +267,22 @@ public class PageInstanceSavesInfo : MyPageRight, IRefreshable
         grid.Children.Add(
             new TextBlock
             {
-                Text = Lang.Text("Instance.Saves.Info.Seed"),
+                Text = row.Head,
                 Opacity = 0.7d,
                 VerticalAlignment = VerticalAlignment.Center,
                 Margin = new Thickness(0d, 0d, 25d, 0d)
             });
         var seedButton = new MyButton
         {
-            Text = seed?.ToString() ?? Lang.Text("Instance.Saves.Info.GetFailed"),
+            Text = row.Content,
             MinWidth = 140d,
             Height = 28d,
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Center,
-            IsEnabled = seed is not null
+            IsEnabled = row.CanCopySeed
         };
         ToolTip.SetTip(seedButton, Lang.Text("Common.Action.Copy"));
-        seedButton.Click += (_, _) => _ = CopySeedAsync(seed);
+        seedButton.Click += (_, _) => _ = CopySeedAsync(row.Seed);
         Grid.SetColumn(seedButton, 1);
         grid.Children.Add(seedButton);
         var chunkbase = new MyIconButton
@@ -354,10 +290,10 @@ public class PageInstanceSavesInfo : MyPageRight, IRefreshable
             SvgIcon = "lucide/external-link",
             LogoScale = 0.9d,
             VerticalAlignment = VerticalAlignment.Center,
-            IsEnabled = seed is not null
+            IsEnabled = row.CanCopySeed
         };
         ToolTip.SetTip(chunkbase, Lang.Text("Instance.Saves.Info.Chunkbase.ToolTip"));
-        chunkbase.Click += (_, _) => OpenChunkbase(seed);
+        chunkbase.Click += (_, _) => ViewModel.OpenChunkbase(row.Seed);
         Grid.SetColumn(chunkbase, 2);
         grid.Children.Add(chunkbase);
         _panInfo.Children.Add(grid);
@@ -365,14 +301,15 @@ public class PageInstanceSavesInfo : MyPageRight, IRefreshable
 
     private async Task CopySeedAsync(long? seed)
     {
-        if (seed is null)
+        var text = PageInstanceSavesInfoViewModel.GetSeedCopyText(seed);
+        if (text is null)
             return;
         try
         {
             var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
             if (clipboard is null)
                 return;
-            await clipboard.SetTextAsync(seed.Value.ToString());
+            await clipboard.SetTextAsync(text);
             HintService.Show(Hints.Success(Lang.Text("Common.Hint.Copied")));
         }
         catch (Exception ex)
@@ -381,122 +318,22 @@ public class PageInstanceSavesInfo : MyPageRight, IRefreshable
         }
     }
 
-    private void OpenChunkbase(long? seed)
-    {
-        if (seed is null)
-            return;
-        var version = _save?.VersionName;
-        if (string.IsNullOrEmpty(version))
-        {
-            HintService.Show(Hints.Info(Lang.Text("Instance.Saves.Info.Chunkbase.UnknownVersion")));
-            return;
-        }
-
-        var match = Regex.Match(version, @"^(?<major>\d+)\.(?<minor>\d+)");
-        if (!match.Success
-            || version.Contains('w', StringComparison.OrdinalIgnoreCase)
-            || version.Contains("pre", StringComparison.OrdinalIgnoreCase))
-        {
-            HintService.Show(
-                Hints.Info(Lang.Text("Instance.Saves.Info.Chunkbase.PreviewVersion", version)));
-            return;
-        }
-
-        var major = match.Groups["major"].Value;
-        var minor = match.Groups["minor"].Value;
-        try
-        {
-            var url =
-                $"https://www.chunkbase.com/apps/seed-map#seed={seed}&platform=java_{major}_{minor}";
-            Basics.OpenPath(url);
-        }
-        catch (Exception ex)
-        {
-            InstancePageHelper.ReportError("Instance.Saves.Info.Error.ChunkbaseFailed", ex);
-        }
-    }
-
-    private static string FormatGameMode(SaveInfo save)
-    {
-        if (save.IsHardcore)
-            return Lang.Text("Instance.Saves.Info.GameMode.Hardcore");
-        return save.GameMode switch
-        {
-            GameMode.Survival => Lang.Text("Instance.Saves.Info.GameMode.Survival"),
-            GameMode.Creative => Lang.Text("Instance.Saves.Info.GameMode.Creative"),
-            GameMode.Adventure => Lang.Text("Instance.Saves.Info.GameMode.Adventure"),
-            GameMode.Spectator => Lang.Text("Instance.Saves.Info.GameMode.Spectator"),
-            _ => Lang.Text("Instance.Saves.Info.GetFailed")
-        };
-    }
-
-    private static string FormatDifficulty(Difficulty difficulty)
-    {
-        return difficulty switch
-        {
-            Difficulty.Peaceful => Lang.Text("Instance.Saves.Info.Difficulty.Peaceful"),
-            Difficulty.Easy => Lang.Text("Instance.Saves.Info.Difficulty.Easy"),
-            Difficulty.Normal => Lang.Text("Instance.Saves.Info.Difficulty.Normal"),
-            Difficulty.Hard => Lang.Text("Instance.Saves.Info.Difficulty.Hard"),
-            _ => Lang.Text("Instance.Saves.Info.GetFailed")
-        };
-    }
-
     private async Task ApplyChangesAsync()
     {
-        if (_save is null || string.IsNullOrEmpty(_saveFolder) || _syncing)
+        if (ViewModel.Save is null || _syncing || ViewModel.IsApplying)
             return;
         _syncing = true;
         try
         {
-            var allowCommands = _comboAllowCommands.SelectedIndex == 0;
-            var difficulty = _comboDifficulty.SelectedIndex switch
-            {
-                0 => Difficulty.Peaceful,
-                1 => Difficulty.Easy,
-                2 => Difficulty.Normal,
-                3 => Difficulty.Hard,
-                _ => _save.Difficulty
-            };
-            var lockDifficulty = !_save.IsHardcore && _checkLockDifficulty.Checked == true;
-
-            var cheatChanged = SupportsAllowCommands && allowCommands != _save.AllowCommands;
-            var difficultyChanged = SupportsDifficulty
-                && difficulty is not null
-                && (difficulty != _save.Difficulty || lockDifficulty != _save.IsDifficultyLocked);
-            if (!cheatChanged && !difficultyChanged)
-                return;
-
-            var changes = new SaveChanges();
-            if (SupportsAllowCommands)
-                changes.AllowCommands = new Editable<bool>(allowCommands);
-            if (SupportsDifficulty && difficulty is not null)
-            {
-                changes.Difficulty = new Editable<Difficulty>(difficulty.Value);
-                changes.LockDifficulty = new Editable<bool>(lockDifficulty);
-            }
-
-            var applied = await _saveManager.ApplyChangesAsync(_saveFolder, changes);
-            if (!applied)
-                throw new InvalidOperationException();
-            _save = await _saveManager.LoadSaveAsync(_saveFolder);
-
-            if (cheatChanged)
-                HintService.Show(
-                    Hints.Success(Lang.Text("Instance.Saves.Info.Modify.CheatSuccess")));
-            if (difficultyChanged)
-                HintService.Show(
-                    Hints.Success(Lang.Text("Instance.Saves.Info.Modify.DifficultySuccess")));
-        }
-        catch (Exception ex)
-        {
-            HintService.Show(Hints.Error(Lang.Text("Instance.Saves.Info.Modify.CheatFailed")));
-            LauncherCommon.Log(ex, "修改存档设置失败", LauncherLogLevel.Feedback);
+            await ViewModel.ApplyAllowCommandsAsync(_comboAllowCommands.SelectedIndex);
+            await ViewModel.ApplyDifficultyAsync(
+                _comboDifficulty.SelectedIndex,
+                _checkLockDifficulty.Checked == true);
+            Render();
         }
         finally
         {
             _syncing = false;
-            Render();
         }
     }
 }

@@ -5,6 +5,7 @@
             xmlns:ui="using:PCL.UI.Controls"
             xmlns:loc="using:PCL.Core.UI"
             mc:Ignorable="d"
+            x:CompileBindings="False"
             x:Class="PCL.Views.Pages.Launch.PageLoginMs"
             d:DesignWidth="302.4">
     <Grid x:Name="PanEmpty"
@@ -27,7 +28,9 @@
                      Height="28"
                      Margin="0"
                      ColorType="Highlight"
-                     Text="{loc:Loc Launch.Account.Microsoft.Start}" />
+                     Command="{Binding LoginCommand}"
+                     IsEnabled="{Binding IsLoginEnabled}"
+                     Text="{Binding LoginText}" />
         <Grid Grid.Row="4"
               Grid.ColumnSpan="2"
               Margin="2,30,2,0"
@@ -46,6 +49,8 @@
                          Grid.ColumnSpan="2"
                          Margin="0,60,0,0"
                          HorizontalAlignment="Center"
+                         Command="{Binding BackCommand}"
+                         IsVisible="{Binding IsBackVisible}"
                          Opacity="0.3"
                          Text="{loc:Loc Launch.Account.Back}" />
     </Grid>

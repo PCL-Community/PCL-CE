@@ -7,12 +7,8 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
 using PCL.Core.App.Localization;
-using PCL.Core.IO;
-using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
-using PCL.Navigation;
 using PCL.UI.Controls;
-using Path = System.IO.Path;
 
 namespace PCL.Views.Pages.Instance;
 
@@ -24,20 +20,15 @@ namespace PCL.Views.Pages.Instance;
 public class PageInstanceSaves : MyPageRight, IRefreshable
 {
     private readonly DispatcherTimer _fileSystemRefreshTimer;
-    private readonly List<string> _saveFolders = [];
     private readonly DispatcherTimer _searchTimer;
     private MyIconTextButton _btnSort = null!;
-    private FileSystemWatcher? _fileSystemWatcher;
+    private bool _isActive;
     private MyCard _listCard = null!;
     private StackPanel _listPanel = null!;
-    private bool _loading;
     private MyCard _panEmpty = null!;
 
     private StackPanel _panMain = null!;
-    private string? _savesPath;
     private MySearchBox _searchBox = null!;
-    private SaveSortMethod _sortMethod = SaveSortMethod.FileName;
-    private bool _watcherInitialized;
 
     public PageInstanceSaves()
     {
@@ -60,27 +51,11 @@ public class PageInstanceSaves : MyPageRight, IRefreshable
             _searchTimer.Stop();
             BuildList();
         };
+        ViewModel.FileClipboardWriter = WriteFolderToClipboardAsync;
+        ViewModel.Updated += BuildList;
     }
 
-    private static bool SupportsQuickPlay
-    {
-        get
-        {
-            try
-            {
-                var instance = PageInstanceLeft.ResolveInstance();
-                return instance is not null
-                    && Equals(
-                        new GameLaunch.LaunchArgument(instance).HasArguments(
-                            "--quickPlaySingleplayer"),
-                        true);
-            }
-            catch
-            {
-                return false;
-            }
-        }
-    }
+    public PageInstanceSavesViewModel ViewModel { get; } = new();
 
     public void Refresh()
     {
@@ -108,10 +83,12 @@ public class PageInstanceSaves : MyPageRight, IRefreshable
         _searchBox = new MySearchBox
         {
             HintText = Lang.Text("Instance.Saves.SearchHint"),
-            Margin = new Thickness(0d, 15d)
+            Margin = new Thickness(0d, 15d),
+            Text = ViewModel.SearchText
         };
         _searchBox.TextChanged += (_, _) =>
         {
+            ViewModel.SearchText = _searchBox.Text ?? string.Empty;
             _searchTimer.Stop();
             _searchTimer.Start();
         };
@@ -130,13 +107,15 @@ public class PageInstanceSaves : MyPageRight, IRefreshable
         };
         var openFolder = NewButton(
             "Instance.Saves.OpenFolder",
-            OpenFolder,
+            () => ViewModel.OpenFolderCommand.Execute(null),
             MyButton.ColorState.Highlight);
         quickBody.Children.Add(openFolder);
-        var download = NewButton("Instance.Resource.DownloadNew", DownloadNew);
+        var download = NewButton(
+            "Instance.Resource.DownloadNew",
+            () => ViewModel.DownloadNewCommand.Execute(null));
         Grid.SetColumn(download, 1);
         quickBody.Children.Add(download);
-        var paste = NewButton("Instance.Saves.PasteFile", () => _ = PasteAsync());
+        var paste = NewButton("Instance.Saves.PasteFile", () => _ = ViewModel.PasteAsync());
         Grid.SetColumn(paste, 2);
         quickBody.Children.Add(paste);
         quickCard.BorderChild = quickBody;
@@ -161,22 +140,23 @@ public class PageInstanceSaves : MyPageRight, IRefreshable
         };
         _btnSort = new MyIconTextButton
         {
-            Text = Lang.Text("Instance.Saves.SortBy", Lang.Text("Instance.Saves.SortFileName")),
+            Text = ViewModel.SortText,
             SvgIcon = "lucide/arrow-up-down"
         };
         _btnSort.Click += (_, _) =>
         {
             var menu = new ContextMenu();
-            foreach (var method in Enum.GetValues<SaveSortMethod>())
+            var methods = Enum.GetValues<SaveSortMethod>();
+            foreach (var method in methods)
             {
                 var item = new MyMenuItem
                 {
-                    Header = GetSortName(method)
+                    Header = PageInstanceSavesViewModel.GetSortName(method)
                 };
                 var target = method;
                 item.Click += (_, _) =>
                 {
-                    _sortMethod = target;
+                    ViewModel.SetSortMethod(target);
                     UpdateSortText();
                     BuildList();
                 };
@@ -278,7 +258,7 @@ public class PageInstanceSaves : MyPageRight, IRefreshable
             HorizontalAlignment = HorizontalAlignment.Center,
             ColorType = MyButton.ColorState.Highlight
         };
-        openFolder.Click += (_, _) => OpenFolder();
+        openFolder.Click += (_, _) => ViewModel.OpenFolderCommand.Execute(null);
         Grid.SetRow(openFolder, 3);
         Grid.SetColumn(openFolder, 1);
         grid.Children.Add(openFolder);
@@ -292,7 +272,7 @@ public class PageInstanceSaves : MyPageRight, IRefreshable
             Margin = new Thickness(10d, 10d, 10d, 0d),
             HorizontalAlignment = HorizontalAlignment.Center
         };
-        download.Click += (_, _) => DownloadNew();
+        download.Click += (_, _) => ViewModel.DownloadNewCommand.Execute(null);
         Grid.SetRow(download, 3);
         Grid.SetColumn(download, 2);
         grid.Children.Add(download);
@@ -306,7 +286,7 @@ public class PageInstanceSaves : MyPageRight, IRefreshable
             Margin = new Thickness(10d, 10d, 10d, 0d),
             HorizontalAlignment = HorizontalAlignment.Center
         };
-        paste.Click += (_, _) => _ = PasteAsync();
+        paste.Click += (_, _) => _ = ViewModel.PasteAsync();
         Grid.SetRow(paste, 3);
         Grid.SetColumn(paste, 3);
         grid.Children.Add(paste);
@@ -315,98 +295,51 @@ public class PageInstanceSaves : MyPageRight, IRefreshable
 
     public override void OnNavigatedTo(object? parameter)
     {
-        DisposeFileSystemWatcher();
+        _isActive = true;
+        ViewModel.StopWatcher();
+        _fileSystemRefreshTimer?.Stop();
         var instance = InstancePageHelper.ResolveInstance(parameter);
-        _savesPath = instance is null ? null : InstancePageHelper.SavesPath(instance);
+        ViewModel.SetInstance(instance);
         _ = ReloadAsync();
     }
 
     public override void OnNavigatedFrom()
     {
-        DisposeFileSystemWatcher();
+        _isActive = false;
+        ViewModel.StopWatcher();
+        _fileSystemRefreshTimer?.Stop();
     }
 
     protected override void RefreshLocalization()
     {
-        var text = _searchBox.Text;
+        var text = ViewModel.SearchText;
         BuildUi();
         _searchBox.Text = text;
+        ViewModel.RefreshLocalization();
+        UpdateSortText();
         BuildList();
     }
 
     public async Task ReloadAsync()
     {
-        if (_loading)
-            return;
-        _loading = true;
         try
         {
-            _saveFolders.Clear();
-            if (string.IsNullOrEmpty(_savesPath))
-            {
-                BuildList();
+            await ViewModel.LoadAsync();
+            if (!_isActive)
                 return;
-            }
-
-            InstancePageHelper.EnsureDirectory(_savesPath);
-            var folders = await Task.Run(() => Directory
-                .EnumerateDirectories(_savesPath)
-                .Where(folder => File.Exists(Path.Combine(folder, "level.dat")))
-                .ToList());
-            _saveFolders.AddRange(folders);
             BuildList();
-            SetupFileSystemWatcher();
+            ViewModel.StartWatcher(() =>
+                Dispatcher.UIThread.Post(() =>
+                {
+                    _fileSystemRefreshTimer.Stop();
+                    _fileSystemRefreshTimer.Start();
+                }));
         }
         catch (Exception ex)
         {
             InstancePageHelper.ReportError("Instance.Saves.LoadListFailed", ex);
             BuildList();
         }
-        finally
-        {
-            _loading = false;
-        }
-    }
-
-    private void SetupFileSystemWatcher()
-    {
-        if (_watcherInitialized
-            || string.IsNullOrEmpty(_savesPath)
-            || !Directory.Exists(_savesPath))
-            return;
-        _watcherInitialized = true;
-        _fileSystemWatcher = new FileSystemWatcher
-        {
-            Path = _savesPath,
-            IncludeSubdirectories = false,
-            NotifyFilter = NotifyFilters.DirectoryName | NotifyFilters.LastWrite
-        };
-        _fileSystemWatcher.Created += OnFileSystemChanged;
-        _fileSystemWatcher.Deleted += OnFileSystemChanged;
-        _fileSystemWatcher.Renamed += OnFileSystemChanged;
-        _fileSystemWatcher.EnableRaisingEvents = true;
-    }
-
-    private void OnFileSystemChanged(object sender, FileSystemEventArgs e)
-    {
-        Dispatcher.UIThread.Post(() =>
-        {
-            _fileSystemRefreshTimer.Stop();
-            _fileSystemRefreshTimer.Start();
-        });
-    }
-
-    private void DisposeFileSystemWatcher()
-    {
-        _watcherInitialized = false;
-        _fileSystemRefreshTimer?.Stop();
-        if (_fileSystemWatcher is null)
-            return;
-        _fileSystemWatcher.Created -= OnFileSystemChanged;
-        _fileSystemWatcher.Deleted -= OnFileSystemChanged;
-        _fileSystemWatcher.Renamed -= OnFileSystemChanged;
-        _fileSystemWatcher.Dispose();
-        _fileSystemWatcher = null;
     }
 
     private void BuildList()
@@ -414,74 +347,35 @@ public class PageInstanceSaves : MyPageRight, IRefreshable
         if (_listPanel is null)
             return;
 
-        var keyword = (_searchBox?.Text ?? string.Empty).Trim();
-        var filtered = _saveFolders
-            .Where(folder => keyword.Length == 0
-                || Path.GetFileName(folder).Contains(keyword, StringComparison.OrdinalIgnoreCase))
-            .ToList();
-        filtered.Sort(CompareFolders);
-
         _listPanel.Children.Clear();
-        foreach (var folder in filtered)
-            _listPanel.Children.Add(CreateSaveItem(folder));
+        foreach (var entry in ViewModel.Saves)
+            _listPanel.Children.Add(CreateSaveItem(entry));
 
-        var searching = keyword.Length > 0;
-        _listCard.Title = searching
-            ? Lang.Text("Instance.Saves.SearchResultTitle", filtered.Count)
-            : Lang.Text("Instance.Saves.SaveListTitle", _saveFolders.Count);
-
-        var hasAnySave = _saveFolders.Count > 0;
-        _panEmpty.IsVisible = !hasAnySave;
-        _panMain.IsVisible = hasAnySave;
-    }
-
-    private int CompareFolders(string left, string right)
-    {
-        return _sortMethod switch
-        {
-            SaveSortMethod.CreateTime => Directory
-                .GetCreationTime(right)
-                .CompareTo(Directory.GetCreationTime(left)),
-            SaveSortMethod.ModifyTime => Directory
-                .GetLastWriteTime(right)
-                .CompareTo(Directory.GetLastWriteTime(left)),
-            _ => string.Compare(
-                Path.GetFileName(left),
-                Path.GetFileName(right),
-                StringComparison.OrdinalIgnoreCase)
-        };
-    }
-
-    private static string GetSortName(SaveSortMethod method)
-    {
-        return Lang.Text(
-            method switch
-            {
-                SaveSortMethod.CreateTime => "Instance.Saves.SortCreateTime",
-                SaveSortMethod.ModifyTime => "Instance.Saves.SortModifyTime",
-                _ => "Instance.Saves.SortFileName"
-            });
+        _listCard.Title = ViewModel.ListTitle;
+        _panEmpty.IsVisible = ViewModel.ShowNoWorld;
+        _panMain.IsVisible = ViewModel.ShowContent;
     }
 
     private void UpdateSortText()
     {
-        _btnSort?.Text = Lang.Text("Instance.Saves.SortBy", GetSortName(_sortMethod));
+        _btnSort?.Text = ViewModel.SortText;
     }
 
-    private MyListItem CreateSaveItem(string folder)
+    private MyListItem CreateSaveItem(SaveEntry entry)
     {
-        var name = Path.GetFileName(folder);
-        var info = Lang.Text(
-            "Instance.Saves.CreationTime",
-            Lang.Date(Directory.GetCreationTime(folder), "d"),
-            Lang.Date(Directory.GetLastWriteTime(folder), "d"));
+        var folder = entry.FolderPath;
         var item = new MyListItem
         {
             Type = MyListItem.CheckType.Clickable,
-            Title = name,
-            Info = info,
-            Logo = GetSaveLogo(folder),
+            Title = entry.Title,
+            Info = entry.Info,
+            Logo = entry.Logo,
             tag = folder
+        };
+        entry.PropertyChanged += (_, args) =>
+        {
+            if (args.PropertyName == nameof(SaveEntry.Info))
+                item.Info = entry.Info;
         };
 
         var open = new MyIconButton
@@ -490,7 +384,7 @@ public class PageInstanceSaves : MyPageRight, IRefreshable
             LogoScale = 0.9d
         };
         ToolTip.SetTip(open, Lang.Text("Instance.Saves.OpenFolder"));
-        open.Click += (_, _) => InstancePageHelper.OpenFolder(folder);
+        open.Click += (_, _) => ViewModel.OpenSaveFolderCommand.Execute(folder);
 
         var detail = new MyIconButton
         {
@@ -498,7 +392,7 @@ public class PageInstanceSaves : MyPageRight, IRefreshable
             LogoScale = 0.9d
         };
         ToolTip.SetTip(detail, Lang.Text("Instance.Saves.Details"));
-        detail.Click += (_, _) => OpenDetail(folder);
+        detail.Click += (_, _) => ViewModel.OpenDetailsCommand.Execute(folder);
 
         var copy = new MyIconButton
         {
@@ -506,7 +400,7 @@ public class PageInstanceSaves : MyPageRight, IRefreshable
             LogoScale = 0.9d
         };
         ToolTip.SetTip(copy, Lang.Text("Common.Action.Copy"));
-        copy.Click += (_, _) => _ = CopySaveAsync(folder);
+        copy.Click += (_, _) => _ = ViewModel.CopySaveAsync(folder);
 
         var delete = new MyIconButton
         {
@@ -514,7 +408,7 @@ public class PageInstanceSaves : MyPageRight, IRefreshable
             LogoScale = 0.9d
         };
         ToolTip.SetTip(delete, Lang.Text("Common.Action.Delete"));
-        delete.Click += (_, _) => _ = DeleteSaveAsync(item, folder);
+        delete.Click += (_, _) => _ = ViewModel.DeleteSaveAsync(folder);
 
         var buttons = new List<MyIconButton>
         {
@@ -523,7 +417,7 @@ public class PageInstanceSaves : MyPageRight, IRefreshable
             copy,
             detail
         };
-        if (SupportsQuickPlay)
+        if (ViewModel.QuickPlayEnabled)
         {
             var launch = new MyIconButton
             {
@@ -531,186 +425,23 @@ public class PageInstanceSaves : MyPageRight, IRefreshable
                 LogoScale = 0.9d
             };
             ToolTip.SetTip(launch, Lang.Text("Instance.Saves.QuickPlay"));
-            launch.Click += (_, _) => LaunchSave(folder);
+            launch.Click += (_, _) => ViewModel.LaunchSaveCommand.Execute(folder);
             buttons.Add(launch);
         }
 
         item.Buttons = buttons;
-        item.Click += (_, _) => OpenDetail(folder);
+        item.Click += (_, _) => ViewModel.OpenDetailsCommand.Execute(folder);
         return item;
     }
 
-    private async Task CopySaveAsync(string folder)
+    private async Task WriteFolderToClipboardAsync(string folder)
     {
-        try
-        {
-            if (!Directory.Exists(folder))
-            {
-                HintService.Show(Hints.Info(Lang.Text("Instance.Saves.FolderNotFound")));
-                return;
-            }
-
-            var topLevel = TopLevel.GetTopLevel(this);
-            if (topLevel?.Clipboard is null)
-                return;
-            var item = await topLevel.StorageProvider.TryGetFolderFromPathAsync(new Uri(folder));
-            if (item is null)
-                return;
-            await topLevel.Clipboard.SetFilesAsync([item]);
-            HintService.Show(Hints.Info(Lang.Text("Instance.Saves.CopiedToClipboard")));
-            HintService.Show(Hints.Info(Lang.Text("Instance.Saves.CopyPasteWarning")));
-        }
-        catch (Exception ex)
-        {
-            InstancePageHelper.ReportError("Instance.Saves.CopyFailed", ex);
-        }
-    }
-
-    private void LaunchSave(string folder)
-    {
-        try
-        {
-            var instance = PageInstanceLeft.ResolveInstance();
-            if (instance is null)
-                return;
-            if (!GameLaunch.McLaunchStart(
-                    new GameLaunch.McLaunchOptions
-                    {
-                        WorldName = Path.GetFileName(folder.TrimEnd(Path.DirectorySeparatorChar)),
-                        instance = instance
-                    }))
-                return;
-            PageRouter.Navigate(PageType.Launch);
-        }
-        catch (Exception ex)
-        {
-            InstancePageHelper.ReportError("Instance.Saves.Error.OperationFailed", ex);
-        }
-    }
-
-    private static string GetSaveLogo(string folder)
-    {
-        var iconPath = Path.Combine(folder, "icon.png");
-        if (!File.Exists(iconPath))
-            return $"{LauncherPaths.ImageRoot}Icons/NoIcon.png";
-        try
-        {
-            var instancePath = PageInstanceLeft.ResolveInstance()?.PathInstance;
-            if (string.IsNullOrEmpty(instancePath))
-                return $"{LauncherPaths.ImageRoot}Icons/NoIcon.png";
-            var cacheFolder = Path.Combine(instancePath, "PCL", "ImgCache");
-            Directory.CreateDirectory(cacheFolder);
-            var target = Path.Combine(cacheFolder, $"{LauncherCommon.GetFileMd5(iconPath)}.png");
-            if (!File.Exists(target))
-                File.Copy(iconPath, target, true);
-            return target;
-        }
-        catch (Exception ex)
-        {
-            LauncherCommon.Log(ex, "缓存存档图标失败", LauncherLogLevel.Developer);
-            return $"{LauncherPaths.ImageRoot}Icons/NoIcon.png";
-        }
-    }
-
-    private void OpenDetail(string folder)
-    {
-        PageInstanceSavesLeft.currentSave = folder;
-        PageRouter.Navigate(
-            new PageStackData(PageType.VersionSaves, PageSubType.VersionSavesInfo, folder));
-    }
-
-    private void OpenFolder()
-    {
-        if (string.IsNullOrEmpty(_savesPath))
+        var topLevel = TopLevel.GetTopLevel(this);
+        if (topLevel?.Clipboard is null)
             return;
-        InstancePageHelper.EnsureDirectory(_savesPath);
-        InstancePageHelper.OpenFolder(_savesPath);
-    }
-
-    private static void DownloadNew()
-    {
-        PageRouter.Navigate(PageType.Download, PageSubType.DownloadWorld);
-    }
-
-    private async Task PasteAsync()
-    {
-        try
-        {
-            if (string.IsNullOrEmpty(_savesPath))
-                return;
-            InstancePageHelper.EnsureDirectory(_savesPath);
-            var copied = await Files.PasteFromClipboardAsync(_savesPath, false, true);
-            if (copied == 0)
-            {
-                HintService.Show(Hints.Warning(Lang.Text("Instance.Saves.Empty.Message")));
-                return;
-            }
-
-            HintService.Show(Hints.Success(Lang.Text("Instance.Saves.PastedCount", copied)));
-            await ReloadAsync();
-        }
-        catch (Exception ex)
-        {
-            InstancePageHelper.ReportError("Instance.Saves.CopyFailed", ex);
-        }
-    }
-
-    private async Task DeleteSaveAsync(MyListItem item, string folder)
-    {
-        try
-        {
-            var saveName = Path.GetFileName(folder.TrimEnd(Path.DirectorySeparatorChar));
-            var canRecycle = RecycleBin.IsSupported(folder);
-            var result = await DialogService.Instance.ShowAsync(
-                new TextDialogRequest
-                {
-                    Title = Lang.Text("Instance.Saves.Delete.ConfirmTitle"),
-                    Content = Lang.Text(
-                        canRecycle
-                            ? "Instance.Saves.Delete.ConfirmMessage"
-                            : "Instance.Saves.Delete.ConfirmPermanent",
-                        saveName),
-                    Buttons = DialogButtons.OkCancel,
-                    IsWarn = true
-                });
-            if (!result.IsConfirmed)
-                return;
-
-            item.Info = Lang.Text("Instance.Saves.Deleting");
-            var (outcome, error) = await Task.Run(() =>
-            {
-                var moved = RecycleBin.Move(folder, out var reason);
-                return (moved, reason);
-            });
-            switch (outcome)
-            {
-                case RecycleBin.Outcome.Moved:
-                    HintService.Show(
-                        Hints.Success(Lang.Text("Instance.Saves.DeletedToRecycleBin")));
-                    break;
-                case RecycleBin.Outcome.Unsupported:
-                    // 确认阶段已经告知这是不可恢复的永久删除，这里按提示如实执行。
-                    await Task.Run(() => Directory.Delete(folder, true));
-                    HintService.Show(
-                        Hints.Success(Lang.Text("Instance.Saves.DeletedPermanent", saveName)));
-                    break;
-                default:
-                    throw new IOException(error ?? Lang.Text("Instance.Saves.DeleteFailed"));
-            }
-
-            await ReloadAsync();
-        }
-        catch (Exception ex)
-        {
-            InstancePageHelper.ReportError("Instance.Saves.DeleteFailed", ex);
-            await ReloadAsync();
-        }
-    }
-
-    private enum SaveSortMethod
-    {
-        FileName,
-        CreateTime,
-        ModifyTime
+        var item = await topLevel.StorageProvider.TryGetFolderFromPathAsync(new Uri(folder));
+        if (item is null)
+            return;
+        await topLevel.Clipboard.SetFilesAsync([item]);
     }
 }

@@ -1,7 +1,5 @@
 using Avalonia.Controls;
 using Avalonia.Threading;
-using PCL.Core.App.Localization;
-using PCL.Network;
 using PCL.UI.Controls;
 
 namespace PCL.Views.Pages.Speed;
@@ -16,12 +14,11 @@ public partial class PageSpeedLeft : MyPageLeft, IRefreshable
 
     private readonly DispatcherTimer _timer;
 
-    public static PageSpeedLeft? Current { get; private set; }
-
     public PageSpeedLeft()
     {
         InitializeComponent();
         Current = this;
+        DataContext = ViewModel;
         _timer = new DispatcherTimer
         {
             Interval = TimeSpan.FromMilliseconds(WatcherInterval)
@@ -30,22 +27,26 @@ public partial class PageSpeedLeft : MyPageLeft, IRefreshable
         ApplyDebugRowVisibility();
     }
 
+    public static PageSpeedLeft? Current { get; private set; }
+
+    public PageSpeedLeftViewModel ViewModel { get; } = new();
+
     public void Refresh()
     {
         RefreshStatistics();
     }
 
-    public void OnTaskAdded(Loading.LoaderBase loader)
+    public static void OnTaskAdded(Loading.LoaderBase loader)
     {
         PageSpeedRight.Current?.RefreshNow();
     }
 
-    public void OnTaskRemoved(Loading.LoaderBase loader)
+    public static void OnTaskRemoved(Loading.LoaderBase loader)
     {
         PageSpeedRight.Current?.RemoveTask(loader);
     }
 
-    public void OnTaskRefreshed(Loading.LoaderBase loader)
+    public static void OnTaskRefreshed(Loading.LoaderBase loader)
     {
         PageSpeedRight.Current?.RefreshNow();
     }
@@ -75,40 +76,7 @@ public partial class PageSpeedLeft : MyPageLeft, IRefreshable
             return;
         }
 
-        try
-        {
-            if (!Loading.loaderTaskbar.Any())
-            {
-                LabProgress.Text = Lang.Number(1d, "P0");
-                LabSpeed.Text = $"{LauncherCommon.GetString(0)}/s";
-                LabFile.Text = Lang.Number(0, "N0");
-                LabThread.Text =
-                    $"{Lang.Number(0, "N0")} / {Lang.Number(NetFacade.NetTaskConnectionLimit, "N0")}";
-                return;
-            }
-
-            var tasks = Loading.loaderTaskbar.Where(loader => loader.show).ToList();
-            var rawPercent = tasks.Count > 0
-                ? Math.Clamp(tasks.Average(loader => loader.Progress), 0d, 1d)
-                : 1d;
-            LabProgress.Text = rawPercent > 0.999999d
-                ? Lang.Number(1d, "P0")
-                : Lang.Number(rawPercent, "P2");
-            LabSpeed.Text = $"{LauncherCommon.GetString(NetFacade.NetManager.Speed)}/s";
-            LabFile.Text = NetFacade.NetManager.FileRemain < 0
-                ? "0*"
-                : Lang.Number(NetFacade.NetManager.FileRemain, "N0");
-            LabThread.Text =
-                $"{Lang.Number(NetFacade.NetManager.ConnectionCount, "N0")} / {Lang.Number(NetFacade.NetTaskConnectionLimit, "N0")}";
-        }
-        catch (Exception ex)
-        {
-            LauncherCommon.Log(
-                ex,
-                "任务管理左栏监视出错",
-                LauncherLogLevel.Feedback,
-                userSummary: Lang.Text("Speed.Error.OperationFailed"));
-        }
+        ViewModel.Refresh();
     }
 
     private void ApplyDebugRowVisibility()

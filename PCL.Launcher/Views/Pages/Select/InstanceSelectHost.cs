@@ -27,6 +27,6 @@ public sealed class InstanceSelectHost : IPageHost
         if (PageSelectRight.Current is not { } right)
             return;
         right.ShowHidden = !right.ShowHidden;
-        right.RefreshInstances(true);
+        PageSelectRight.RefreshInstances(true);
     }
 }

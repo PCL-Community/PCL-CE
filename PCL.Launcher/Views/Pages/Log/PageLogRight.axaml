@@ -2,9 +2,11 @@
                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                 xmlns:ui="using:PCL.UI.Controls"
                 xmlns:loc="using:PCL.Core.UI"
+                x:CompileBindings="False"
                 x:Class="PCL.Views.Pages.Log.PageLogRight">
     <Grid>
-        <Grid x:Name="PanAllBack">
+        <Grid x:Name="PanAllBack"
+              IsVisible="{Binding HasLog}">
             <ui:MyCard x:Name="PanLogCard"
                        Margin="16,16,16,100">
                 <ui:MyScrollViewer x:Name="PanBack"
@@ -12,6 +14,7 @@
                                    VerticalScrollBarVisibility="Auto"
                                    HorizontalScrollBarVisibility="Disabled">
                     <ItemsControl x:Name="PanLog"
+                                  ItemsSource="{Binding Lines}"
                                   Background="Transparent">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -27,7 +30,7 @@
                    HorizontalAlignment="Center"
                    VerticalAlignment="Bottom"
                    Margin="0,15,0,10"
-                   IsVisible="False">
+                   IsVisible="{Binding HasLog}">
             <StackPanel Margin="0,2,0,6">
                 <StackPanel Orientation="Horizontal"
                             Margin="10,4,10,4"
@@ -35,7 +38,7 @@
                             Spacing="10">
                     <ui:MyCheckBox x:Name="CheckAutoScroll"
                                    VerticalAlignment="Center"
-                                   Checked="True"
+                                   Checked="{Binding AutoScroll, Mode=TwoWay}"
                                    Text="{loc:Loc LogPage.Action.Scroll}" />
                     <ui:MyIconTextButton x:Name="BtnOperationExport"
                                          LogoScale="1"
@@ -48,10 +51,12 @@
                     <ui:MyIconTextButton x:Name="BtnOperationKill"
                                          LogoScale="0.85"
                                          SvgIcon="lucide/x"
+                                         IsEnabled="{Binding IsKillEnabled}"
                                          Text="{loc:Loc LogPage.Action.KillProcess}" />
                     <ui:MyIconTextButton x:Name="BtnOperationExportStackDump"
                                          LogoScale="0.85"
                                          SvgIcon="lucide/package"
+                                         IsEnabled="{Binding IsExportStackDumpEnabled}"
                                          Text="{loc:Loc LogPage.Action.ExportStack}" />
                 </StackPanel>
                 <Grid VerticalAlignment="Center"
@@ -68,7 +73,7 @@
                                  Grid.Column="1"
                                  HorizontalAlignment="Stretch"
                                  MaxValue="29"
-                                 Value="13" />
+                                 Value="{Binding MaxLogLines, Mode=TwoWay}" />
                 </Grid>
             </StackPanel>
         </ui:MyCard>

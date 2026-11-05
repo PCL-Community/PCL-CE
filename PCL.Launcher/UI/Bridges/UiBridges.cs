@@ -32,19 +32,19 @@ public sealed class LoadingUiBridge : ILoadingUi
 
     public void TaskAdded(Loading.LoaderBase loader)
     {
-        NotifyTaskPage(host => host.OnTaskAdded(loader), nameof(TaskAdded));
+        NotifyTaskPage(host => PageSpeedLeft.OnTaskAdded(loader), nameof(TaskAdded));
         RefreshDownloadButtonDelayed();
     }
 
     public void TaskRemoved(Loading.LoaderBase loader)
     {
-        NotifyTaskPage(host => host.OnTaskRemoved(loader), nameof(TaskRemoved));
+        NotifyTaskPage(host => PageSpeedLeft.OnTaskRemoved(loader), nameof(TaskRemoved));
         RefreshDownloadButtonDelayed();
     }
 
     public void TaskRefreshed(Loading.LoaderBase loader)
     {
-        NotifyTaskPage(host => host.OnTaskRefreshed(loader), nameof(TaskRefreshed));
+        NotifyTaskPage(host => PageSpeedLeft.OnTaskRefreshed(loader), nameof(TaskRefreshed));
         RefreshDownloadButtonDelayed();
     }
 

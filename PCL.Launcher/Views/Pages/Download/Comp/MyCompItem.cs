@@ -33,7 +33,25 @@ public sealed class MyCompItem : Grid
         bool showMcVersionDesc = true,
         bool showLoaderDesc = true,
         bool showQuickDownload = false)
+        : this(
+            MyCompItemViewModel.Create(
+                project,
+                showMcVersionDesc,
+                showLoaderDesc,
+                showQuickDownload),
+            project)
     {
+    }
+
+    public MyCompItem(MyCompItemViewModel viewModel) : this(
+        viewModel,
+        viewModel.Project ?? throw new ArgumentNullException(nameof(viewModel)))
+    {
+    }
+
+    private MyCompItem(MyCompItemViewModel viewModel, Comp.CompProject project)
+    {
+        ViewModel = viewModel;
         Project = project;
         Height = 64d;
         Margin = new Thickness(0d, 0d, 0d, 2d);
@@ -69,10 +87,9 @@ public sealed class MyCompItem : Grid
         SetRowSpan(_logo, 3);
         Children.Add(_logo);
 
-        var title = project.GetControlTitle(true);
         _labTitle = new TextBlock
         {
-            Text = title.Key,
+            Text = viewModel.TitleText,
             FontSize = 14d,
             VerticalAlignment = VerticalAlignment.Center,
             TextTrimming = TextTrimming.CharacterEllipsis
@@ -80,12 +97,12 @@ public sealed class MyCompItem : Grid
         BindDynamic(_labTitle, TextBlock.ForegroundProperty, "ColorBrush1");
         _labSubTitle = new TextBlock
         {
-            Text = title.Value,
+            Text = viewModel.SubTitleText,
             FontSize = 12d,
             Margin = new Thickness(6d, 0d, 0d, 0d),
             VerticalAlignment = VerticalAlignment.Center,
             Opacity = 0.4d,
-            IsVisible = !string.IsNullOrEmpty(title.Value),
+            IsVisible = viewModel.SubTitleVisible,
             TextTrimming = TextTrimming.CharacterEllipsis
         };
         BindDynamic(_labSubTitle, TextBlock.ForegroundProperty, "ColorBrushGray1");
@@ -103,12 +120,9 @@ public sealed class MyCompItem : Grid
         SetRow(panTitle, 1);
         Children.Add(panTitle);
 
-        var description = (project.Description ?? string.Empty)
-            .Replace("\r", string.Empty)
-            .Replace("\n", string.Empty);
         _labDescription = new TextBlock
         {
-            Text = description,
+            Text = viewModel.DescriptionText,
             FontSize = 12d,
             VerticalAlignment = VerticalAlignment.Center,
             TextTrimming = TextTrimming.CharacterEllipsis,
@@ -130,83 +144,77 @@ public sealed class MyCompItem : Grid
         SetColumn(_panTags, 3);
         SetRow(_panTags, 2);
         Children.Add(_panTags);
-        Tags = project.Tags;
+        Tags = viewModel.Tags;
 
-        _labVersion = CreateStatText(
-            project.BuildVersionDescription(showMcVersionDesc, showLoaderDesc));
-        _labDownload = CreateStatText(Lang.CompactNumber(project.DownloadCount));
-        _labTime = CreateStatText(
-            project.LastUpdate is { } lastUpdate
-                ? Lang.TimeSpan(lastUpdate - DateTime.Now, 1)
-                : string.Empty);
-        _labSource = CreateStatText(project.FromCurseForge ? "CurseForge" : "Modrinth");
+        _labVersion = CreateStatText(viewModel.VersionText);
+        _labDownload = CreateStatText(viewModel.DownloadText);
+        _labTime = CreateStatText(viewModel.TimeText);
+        _labSource = CreateStatText(viewModel.SourceText);
 
-        var statsColumns = new ColumnDefinitions();
-        statsColumns.Add(
+        var statsColumns = new ColumnDefinitions
+        {
             new ColumnDefinition
             {
                 Width = GridLength.Auto
-            });
-        statsColumns.Add(
+            },
             new ColumnDefinition
             {
                 Width = GridLength.Auto,
-                SharedSizeGroup = "CompItemVersion"
-            });
-        statsColumns.Add(
+                SharedSizeGroup = viewModel.UseSharedSizeGroups
+                    ? viewModel.VersionSharedSizeGroup
+                    : null
+            },
             new ColumnDefinition
             {
                 Width = new GridLength(0.25d, GridUnitType.Star)
-            });
-        statsColumns.Add(
+            },
             new ColumnDefinition
             {
                 Width = GridLength.Auto
-            });
-        statsColumns.Add(
+            },
             new ColumnDefinition
             {
                 Width = GridLength.Auto,
-                SharedSizeGroup = "LabDownload"
-            });
-        statsColumns.Add(
+                SharedSizeGroup = viewModel.UseSharedSizeGroups
+                    ? viewModel.DownloadSharedSizeGroup
+                    : null
+            },
             new ColumnDefinition
             {
                 Width = new GridLength(0.25d, GridUnitType.Star)
-            });
-        statsColumns.Add(
+            },
             new ColumnDefinition
             {
                 Width = GridLength.Auto
-            });
-        statsColumns.Add(
+            },
             new ColumnDefinition
             {
                 Width = GridLength.Auto,
                 MinWidth = 57d,
-                SharedSizeGroup = "CompItemTime"
-            });
-        statsColumns.Add(
+                SharedSizeGroup = viewModel.UseSharedSizeGroups
+                    ? viewModel.TimeSharedSizeGroup
+                    : null
+            },
             new ColumnDefinition
             {
                 Width = new GridLength(0.25d, GridUnitType.Star)
-            });
-        statsColumns.Add(
+            },
             new ColumnDefinition
             {
                 Width = GridLength.Auto
-            });
-        statsColumns.Add(
+            },
             new ColumnDefinition
             {
                 Width = GridLength.Auto,
-                SharedSizeGroup = "CompItemSource"
-            });
-        statsColumns.Add(
+                SharedSizeGroup = viewModel.UseSharedSizeGroups
+                    ? viewModel.SourceSharedSizeGroup
+                    : null
+            },
             new ColumnDefinition
             {
                 Width = new GridLength(0.25d, GridUnitType.Star)
-            });
+            }
+        };
 
         var panStats = new Grid
         {
@@ -214,13 +222,14 @@ public sealed class MyCompItem : Grid
             IsHitTestVisible = false,
             ColumnDefinitions = statsColumns
         };
-        if (showMcVersionDesc || showLoaderDesc)
+        if (viewModel.ShowVersion && !string.IsNullOrEmpty(_labVersion.Text))
             AddStat(panStats, 0, 1, "lucide/layout-list", _labVersion);
-        if (!string.IsNullOrEmpty(_labDownload.Text))
+        if (viewModel.ShowDownload && !string.IsNullOrEmpty(_labDownload.Text))
             AddStat(panStats, 3, 4, "lucide/download", _labDownload);
-        if (project.LastUpdate is not null)
+        if (viewModel.ShowTime && !string.IsNullOrEmpty(_labTime.Text))
             AddStat(panStats, 6, 7, "lucide/arrow-up-from-line", _labTime);
-        AddStat(panStats, 9, 10, "lucide/globe", _labSource);
+        if (viewModel.ShowSource && !string.IsNullOrEmpty(_labSource.Text))
+            AddStat(panStats, 9, 10, "lucide/globe", _labSource);
         SetColumn(panStats, 3);
         SetColumnSpan(panStats, 2);
         SetRow(panStats, 3);
@@ -233,27 +242,28 @@ public sealed class MyCompItem : Grid
             SvgIcon = "lucide/download",
             Theme = MyIconButton.Themes.Custom,
             Margin = new Thickness(0d, 0d, 4d, 0d),
-            IsVisible = showQuickDownload
+            IsVisible = viewModel.ShowDownloadButton
         };
         ToolTip.SetTip(_btnDownload, Lang.Text("Download.Comp.QuickDownload.Btn.ToolTip"));
         _btnDownload.Click += (_, _) =>
         {
             if (CanInteraction && _panButtons is { Opacity: > 0d })
-                Comp.QuickDownload(project);
+                Comp.QuickDownload(Project);
         };
 
         _btnFavorite = new MyIconButton
         {
             Height = 25d,
             Width = 25d,
-            SvgIcon = "lucide/heart",
-            Theme = MyIconButton.Themes.Custom
+            SvgIcon = viewModel.FavoriteIcon,
+            Theme = MyIconButton.Themes.Custom,
+            IsVisible = viewModel.ShowFavoriteButton
         };
         ToolTip.SetTip(_btnFavorite, Lang.Text("Download.Comp.Detail.Favorite"));
         _btnFavorite.Click += (_, _) =>
         {
             if (CanInteraction && _panButtons is { Opacity: > 0d })
-                CompFavoritesMenu.Show(project, _btnFavorite, RefreshFavoriteStatus);
+                CompFavoritesMenu.Show(Project, _btnFavorite, RefreshFavoriteStatus);
         };
 
         _panButtons = new StackPanel
@@ -291,11 +301,14 @@ public sealed class MyCompItem : Grid
                 return;
             if (IsPointerOnActionButton(e.Source as Visual))
                 return;
-            Click?.Invoke(this);
+            ViewModel.ClickCommand.Execute(null);
         };
+        ViewModel.ClickRequested += _ => Click?.Invoke(this);
     }
 
     public Comp.CompProject Project { get; }
+
+    public MyCompItemViewModel ViewModel { get; }
 
     public bool CanInteraction { get; set; } = true;
 
@@ -339,6 +352,7 @@ public sealed class MyCompItem : Grid
         var text = _labDescription.Text;
         if (string.IsNullOrEmpty(text) || _labDescription.Bounds.Width <= 0d)
         {
+            ViewModel.SetDescriptionToolTip(null);
             ToolTip.SetTip(_labDescription, null);
             return;
         }
@@ -354,20 +368,20 @@ public sealed class MyCompItem : Grid
                 _labDescription.FontStretch),
             _labDescription.FontSize,
             _labDescription.Foreground);
-        ToolTip.SetTip(
-            _labDescription,
-            formatted.WidthIncludingTrailingWhitespace > _labDescription.Bounds.Width + 0.5d
+        var tooltip = formatted.WidthIncludingTrailingWhitespace
+            > _labDescription.Bounds.Width + 0.5d
                 ? text
-                : null);
+                : null;
+        ViewModel.SetDescriptionToolTip(tooltip);
+        ToolTip.SetTip(_labDescription, tooltip);
     }
 
     public event Action<MyCompItem>? Click;
 
     public void RefreshFavoriteStatus()
     {
-        _btnFavorite.SvgIcon = Comp.CompFavorites.IsFavourite(Project.Id)
-            ? "lucide/heart-filled"
-            : "lucide/heart";
+        ViewModel.RefreshFavoriteStatus();
+        _btnFavorite.SvgIcon = ViewModel.FavoriteIcon;
     }
 
     private static void AddStat(

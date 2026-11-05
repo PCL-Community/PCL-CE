@@ -5,6 +5,7 @@
              xmlns:ui="using:PCL.UI.Controls"
              xmlns:loc="using:PCL.Core.UI"
              mc:Ignorable="d"
+             x:CompileBindings="False"
              x:Class="PCL.Views.Pages.Launch.PageLoginAuth"
              d:DesignWidth="317.6">
     <Grid Margin="0,0,0,-2"
@@ -36,6 +37,8 @@
                          Height="28"
                          HorizontalAlignment="Center"
                          ColorType="Highlight"
+                         Command="{Binding LoginCommand}"
+                         IsEnabled="{Binding ControlsEnabled}"
                          Text="{loc:Loc Launch.Account.Auth.OAuthLogin}" />
             <Grid Grid.Row="4"
                   Grid.ColumnSpan="2"
@@ -45,9 +48,12 @@
                   ColumnDefinitions="Auto,30,Auto">
                 <ui:MyTextButton x:Name="BtnWebsite"
                                  Grid.Column="0"
+                                 Command="{Binding OpenServerWebsiteCommand}"
+                                 IsEnabled="{Binding ControlsEnabled}"
                                  Text="{loc:Loc Launch.Account.Microsoft.Website}" />
                 <ui:MyTextButton x:Name="BtnUsePassword"
                                  Grid.Column="2"
+                                 IsEnabled="{Binding ControlsEnabled}"
                                  Text="{loc:Loc Launch.Account.Auth.UsePassword}" />
             </Grid>
         </Grid>
@@ -60,7 +66,8 @@
         <ui:MyTextBox x:Name="TextName"
                       Grid.Row="4"
                       Grid.Column="1"
-                      Height="28" />
+                      Height="28"
+                      Text="{Binding UserName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
         <TextBlock x:Name="TextPassTitle"
                    Grid.Row="6"
                    Grid.Column="0"
@@ -69,7 +76,8 @@
         <ui:MyPasswordBox x:Name="TextPass"
                           Grid.Row="6"
                           Grid.Column="1"
-                          Height="28" />
+                          Height="28"
+                          Text="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
         <ui:MyTextButton x:Name="BtnLink"
                          Grid.Row="7"
                          Grid.Column="1"
@@ -79,8 +87,9 @@
                          HorizontalContentAlignment="Right"
                          VerticalContentAlignment="Center"
                          FontSize="13"
+                         Command="{Binding OpenRegisterAddressCommand}"
                          IsVisible="False"
-                         Text="{loc:Loc Launch.Account.Auth.Register}" />
+                         Text="{Binding RegisterLinkContent}" />
         <Grid x:Name="PanPasswordLinks"
               Grid.Row="7"
               Grid.Column="0"
@@ -91,10 +100,13 @@
               ColumnDefinitions="Auto,30,Auto">
             <ui:MyTextButton x:Name="BtnPasswordWebsite"
                              Grid.Column="0"
+                             Command="{Binding OpenServerWebsiteCommand}"
+                             IsEnabled="{Binding ControlsEnabled}"
                              Text="{loc:Loc Launch.Account.Microsoft.Website}" />
             <ui:MyTextButton x:Name="BtnUseOAuth"
                              Grid.Column="2"
-                             IsVisible="False"
+                             IsEnabled="{Binding ControlsEnabled}"
+                             IsVisible="{Binding UseOAuthVisible}"
                              Text="{loc:Loc Launch.Account.Auth.UseOAuth}" />
         </Grid>
 
@@ -104,12 +116,16 @@
                      Width="50"
                      Margin="-100,0,0,0"
                      HorizontalAlignment="Center"
+                     Command="{Binding BackCommand}"
+                     IsEnabled="{Binding ControlsEnabled}"
                      Text="{loc:Loc Launch.Account.Auth.Back}" />
         <ui:MyTextButton x:Name="BtnBackOAuth"
                          Grid.Row="9"
                          Grid.Column="0"
                          Grid.ColumnSpan="2"
                          HorizontalAlignment="Center"
+                         Command="{Binding BackCommand}"
+                         IsEnabled="{Binding ControlsEnabled}"
                          IsVisible="False"
                          Opacity="0.3"
                          Text="{loc:Loc Launch.Account.Back}" />
@@ -120,6 +136,8 @@
                      Margin="20,0,0,0"
                      HorizontalAlignment="Center"
                      ColorType="Highlight"
-                     Text="{loc:Loc Launch.Account.Auth.Login}" />
+                     Command="{Binding LoginCommand}"
+                     IsEnabled="{Binding ControlsEnabled}"
+                     Text="{Binding LoginButtonText}" />
     </Grid>
 </UserControl>

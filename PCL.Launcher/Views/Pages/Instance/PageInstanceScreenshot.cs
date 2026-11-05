@@ -3,14 +3,10 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
 using Avalonia.Input;
-using Avalonia.Input.Platform;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using PCL.Core.App;
 using PCL.Core.App.Localization;
-using PCL.Core.IO;
-using PCL.Core.UI.Hints;
 using PCL.UI.Controls;
 
 namespace PCL.Views.Pages.Instance;
@@ -22,21 +18,11 @@ namespace PCL.Views.Pages.Instance;
 public class PageInstanceScreenshot : MyPageRight, IRefreshable
 {
     private const int AppendCount = 20;
-
-    private static readonly string[] AllowedSuffix =
-        ["*.png", "*.jpg", "*.jpeg", "*.bmp", "*.webp", "*.tiff"];
-
-    private readonly List<string> _fileList = [];
-
+    private readonly MyScrollViewer _panBack;
     private readonly StackPanel _panContent;
     private readonly MyCard _panEmpty;
     private readonly WrapPanel _panList;
     private readonly MyCard _panQuickActions;
-    private bool _appendLock;
-    private int _appendOffset;
-    private McInstance? _instance;
-    private readonly MyScrollViewer _panBack = null!;
-    private string _screenshotPath = string.Empty;
 
     public PageInstanceScreenshot()
     {
@@ -82,20 +68,17 @@ public class PageInstanceScreenshot : MyPageRight, IRefreshable
         BuildUi();
     }
 
+    public PageInstanceScreenshotViewModel ViewModel { get; } = new();
+
     public void Refresh()
     {
-        Reload();
-        HintService.Show(Hints.Info(Lang.Text("Instance.Saves.Status.Refreshing"), false));
+        ViewModel.Refresh();
+        RebuildList();
     }
 
     public override void OnNavigatedTo(object? parameter)
     {
-        _instance = InstancePageHelper.ResolveInstance(parameter);
-        _screenshotPath = _instance is null
-            ? string.Empty
-            : InstancePageHelper.ScreenshotsPath(_instance);
-        if (!string.IsNullOrEmpty(_screenshotPath))
-            InstancePageHelper.EnsureDirectory(_screenshotPath);
+        ViewModel.SetInstance(InstancePageHelper.ResolveInstance(parameter));
         Reload();
     }
 
@@ -107,36 +90,16 @@ public class PageInstanceScreenshot : MyPageRight, IRefreshable
 
     public void Reload()
     {
-        _fileList.Clear();
-        _appendOffset = 0;
-        _appendLock = false;
+        ViewModel.Reload();
+        RebuildList();
+    }
+
+    private void RebuildList()
+    {
         _panList.Children.Clear();
-        if (string.IsNullOrEmpty(_screenshotPath))
-        {
-            UpdateEmptyState();
-            return;
-        }
-
-        try
-        {
-            if (Directory.Exists(_screenshotPath))
-                _fileList.AddRange(
-                    AllowedSuffix
-                        .SelectMany(suffix => Directory.EnumerateFiles(
-                            _screenshotPath,
-                            suffix,
-                            SearchOption.TopDirectoryOnly))
-                        .OrderByDescending(File.GetCreationTime));
-        }
-        catch (Exception ex)
-        {
-            InstancePageHelper.ReportError("Instance.Screenshot.OpenFailed", ex);
-        }
-
         UpdateEmptyState();
-        if (_fileList.Count == 0)
-            return;
-        _ = AppendAsync(AppendCount);
+        if (ViewModel.HasScreenshots)
+            _ = AppendAsync(AppendCount);
     }
 
     private void BuildUi()
@@ -155,7 +118,7 @@ public class PageInstanceScreenshot : MyPageRight, IRefreshable
             HorizontalAlignment = HorizontalAlignment.Left,
             ColorType = MyButton.ColorState.Highlight
         };
-        openFolder.Click += (_, _) => OpenFolder();
+        openFolder.Click += (_, _) => ViewModel.OpenFolder();
         body.Children.Add(openFolder);
         _panQuickActions.BorderChild = body;
         _panEmpty.BorderChild = CreateEmptyBody();
@@ -207,7 +170,7 @@ public class PageInstanceScreenshot : MyPageRight, IRefreshable
             HorizontalAlignment = HorizontalAlignment.Center,
             ColorType = MyButton.ColorState.Highlight
         };
-        openFolder.Click += (_, _) => OpenFolder();
+        openFolder.Click += (_, _) => ViewModel.OpenFolder();
         Grid.SetRow(openFolder, 3);
         Grid.SetColumn(openFolder, 1);
         grid.Children.Add(openFolder);
@@ -227,14 +190,14 @@ public class PageInstanceScreenshot : MyPageRight, IRefreshable
 
     private void UpdateEmptyState()
     {
-        var hasContent = _fileList.Count > 0;
+        var hasContent = ViewModel.HasScreenshots;
         _panContent.IsVisible = hasContent;
         _panEmpty.IsVisible = !hasContent;
     }
 
     private void RequireAppend()
     {
-        if (_fileList.Count == 0 || _appendLock)
+        if (!ViewModel.HasScreenshots)
             return;
         if (_panBack.Offset.Y + _panBack.Viewport.Height < _panBack.Extent.Height - 40d)
             return;
@@ -243,47 +206,19 @@ public class PageInstanceScreenshot : MyPageRight, IRefreshable
 
     private async Task AppendAsync(int count)
     {
-        if (_appendLock || _appendOffset * count > _fileList.Count)
-            return;
-        _appendLock = true;
-        try
-        {
-            var start = _appendOffset * count;
-            _appendOffset++;
-            for (var i = start; i < Math.Min(start + count, _fileList.Count); i++)
-            {
-                var path = _fileList[i];
-                try
-                {
-                    if (!File.Exists(path))
-                        continue;
-                    if (File.GetAttributes(path).HasFlag(FileAttributes.Hidden))
-                        continue;
-                    if (new FileInfo(path).Length == 0L)
-                        continue;
-                    _panList.Children.Add(await CreateScreenshotCardAsync(path));
-                }
-                catch (Exception ex)
-                {
-                    LauncherCommon.Log(ex, $"创建截图预览失败：{path}", LauncherLogLevel.Developer);
-                }
-            }
-        }
-        finally
-        {
-            _appendLock = false;
-        }
+        foreach (var item in ViewModel.AppendNext(count))
+            _panList.Children.Add(await CreateScreenshotCardAsync(item));
     }
 
-    private async Task<MyCard> CreateScreenshotCardAsync(string path)
+    private async Task<MyCard> CreateScreenshotCardAsync(ScreenshotItemViewModel item)
     {
         var card = new MyCard
         {
             Width = 150d,
             Margin = new Thickness(7d),
-            Tag = path
+            Tag = item.FilePath
         };
-        ToolTip.SetTip(card, path.Replace(_screenshotPath, string.Empty));
+        ToolTip.SetTip(card, item.DisplayName);
         var grid = new Grid
         {
             RowDefinitions = new RowDefinitions("9,120,Auto")
@@ -298,7 +233,7 @@ public class PageInstanceScreenshot : MyPageRight, IRefreshable
         {
             var bitmap = await Task.Run(() =>
             {
-                using var stream = File.OpenRead(path);
+                using var stream = File.OpenRead(item.FilePath);
                 return Bitmap.DecodeToWidth(stream, 400);
             });
             image.Source = bitmap;
@@ -309,19 +244,14 @@ public class PageInstanceScreenshot : MyPageRight, IRefreshable
         }
         catch (Exception ex)
         {
-            LauncherCommon.Log(ex, $"加载截图缩略图失败：{path}", LauncherLogLevel.Developer);
+            LauncherCommon.Log(ex, $"加载截图缩略图失败：{item.FilePath}", LauncherLogLevel.Developer);
         }
 
         image.PointerPressed += (_, _) =>
         {
-            try
-            {
-                Basics.OpenPath(path);
-            }
-            catch (Exception ex)
-            {
-                InstancePageHelper.ReportError("Instance.Screenshot.OpenFailed", ex);
-            }
+            ViewModel.SelectedScreenshot = item;
+            item.IsSelected = true;
+            PageInstanceScreenshotViewModel.OpenScreenshot(item);
         };
         Grid.SetRow(image, 1);
         grid.Children.Add(image);
@@ -334,13 +264,13 @@ public class PageInstanceScreenshot : MyPageRight, IRefreshable
         };
         Grid.SetRow(buttons, 2);
         var open = CreateActionButton("Common.Action.Open", "lucide/folder-open");
-        open.Click += (_, _) => Basics.OpenPath(path);
+        open.Click += (_, _) => PageInstanceScreenshotViewModel.OpenScreenshot(item);
         buttons.Children.Add(open);
         var delete = CreateActionButton("Common.Action.Delete", "lucide/trash-2");
-        delete.Click += (_, _) => _ = DeleteAsync(path, card);
+        delete.Click += (_, _) => _ = DeleteAsync(item, card);
         buttons.Children.Add(delete);
         var copy = CreateActionButton("Common.Action.Copy", "lucide/copy");
-        copy.Click += (_, _) => _ = CopyImageAsync(path);
+        copy.Click += (_, _) => _ = CopyAsync(item);
         buttons.Children.Add(copy);
         grid.Children.Add(buttons);
         card.BorderChild = grid;
@@ -364,90 +294,18 @@ public class PageInstanceScreenshot : MyPageRight, IRefreshable
         };
     }
 
-    private async Task CopyImageAsync(string path)
+    private Task CopyAsync(ScreenshotItemViewModel item)
     {
-        try
-        {
-            if (!File.Exists(path))
-            {
-                HintService.Show(Hints.Info(Lang.Text("Instance.Screenshot.FileNotFound")));
-                return;
-            }
-
-            var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
-            if (clipboard is null)
-                return;
-
-            Bitmap? bitmap = null;
-            for (var attempt = 0; attempt < 6; attempt++)
-                try
-                {
-                    bitmap?.Dispose();
-                    await using var stream = File.OpenRead(path);
-                    bitmap = new Bitmap(stream);
-                    await clipboard.SetBitmapAsync(bitmap);
-                    HintService.Show(
-                        Hints.Success(Lang.Text("Instance.Screenshot.CopiedToClipboard")));
-                    return;
-                }
-                catch (Exception ex)
-                {
-                    LauncherCommon.Log(
-                        ex,
-                        $"第 {attempt + 1} 次复制截图到剪贴板失败",
-                        LauncherLogLevel.Developer);
-                    await Task.Delay(30);
-                }
-
-            HintService.Show(Hints.Error(Lang.Text("Instance.Screenshot.CopyFailed")));
-        }
-        catch (Exception ex)
-        {
-            InstancePageHelper.ReportError("Instance.Screenshot.CopyFailed", ex);
-        }
+        return PageInstanceScreenshotViewModel.CopyAsync(
+            item,
+            TopLevel.GetTopLevel(this)?.Clipboard);
     }
 
-    private Task DeleteAsync(string path, MyCard card)
+    private async Task DeleteAsync(ScreenshotItemViewModel item, MyCard card)
     {
-        try
-        {
-            // 与 WPF 一致：截图删除不再二次确认，直接送入回收站。
-            var canRecycle = RecycleBin.IsSupported(path);
-            if (canRecycle)
-            {
-                var outcome = RecycleBin.Move(path, out var error);
-                if (outcome == RecycleBin.Outcome.Failed)
-                {
-                    LauncherCommon.Log($"删除截图失败：{error}", LauncherLogLevel.Feedback);
-                    HintService.Show(Hints.Error(Lang.Text("Instance.Screenshot.DeleteFailed")));
-                    return Task.CompletedTask;
-                }
-
-                if (outcome == RecycleBin.Outcome.Unsupported)
-                    canRecycle = false;
-            }
-
-            if (!canRecycle)
-                File.Delete(path);
-
-            _panList.Children.Remove(card);
-            _fileList.Remove(path);
-            UpdateEmptyState();
-            HintService.Show(Hints.Info(Lang.Text("Instance.Screenshot.Deleted")));
-        }
-        catch (Exception ex)
-        {
-            InstancePageHelper.ReportError("Instance.Screenshot.DeleteFailed", ex);
-        }
-
-        return Task.CompletedTask;
-    }
-
-    private void OpenFolder()
-    {
-        if (string.IsNullOrEmpty(_screenshotPath))
+        if (!await ViewModel.DeleteAsync(item))
             return;
-        InstancePageHelper.EnsureDirectory(_screenshotPath);
-        InstancePageHelper.OpenFolder(_screenshotPath);
+        _panList.Children.Remove(card);
+        UpdateEmptyState();
     }
 }

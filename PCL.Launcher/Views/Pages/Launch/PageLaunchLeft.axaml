@@ -3,6 +3,7 @@
                xmlns:ui="using:PCL.UI.Controls"
                xmlns:media="using:Avalonia.Media"
                xmlns:loc="using:PCL.Core.UI"
+               x:CompileBindings="False"
                x:Class="PCL.Views.Pages.Launch.PageLaunchLeft"
                Width="300">
     <Grid x:Name="PanInput"
@@ -34,7 +35,9 @@
                          Margin="20,0"
                          Padding="30,0,30,15"
                          ColorType="Highlight"
-                         Text="{loc:Loc Launch.Home.Button.Loading}" />
+                         Command="{Binding LaunchCommand}"
+                         IsEnabled="{Binding IsLaunchButtonEnabled}"
+                         Text="{Binding LaunchButtonText}" />
             <TextBlock x:Name="LabVersion"
                        Margin="35,0,35,10"
                        HorizontalAlignment="Center"
@@ -42,6 +45,7 @@
                        FontSize="11"
                        Foreground="{DynamicResource ColorBrushGray3}"
                        IsHitTestVisible="False"
+                       Text="{Binding VersionNameText}"
                        TextTrimming="CharacterEllipsis" />
         </Grid>
 
@@ -50,6 +54,9 @@
                      Grid.Column="2"
                      Height="35"
                      Margin="0,10,10,0"
+                     Command="{Binding SelectInstanceCommand}"
+                     IsEnabled="{Binding IsInstanceButtonEnabled}"
+                     IsVisible="{Binding IsInstanceButtonVisible}"
                      Text="{loc:Loc Launch.Home.SelectInstance}" />
         <ui:MyButton x:Name="BtnMore"
                      Grid.Row="3"
@@ -58,7 +65,8 @@
                      Margin="0,10,10,0"
                      MinWidth="120"
                      TextPadding="36,0"
-                     IsVisible="False"
+                     Command="{Binding OpenInstanceSettingsCommand}"
+                     IsVisible="{Binding IsMoreButtonVisible}"
                      Text="{loc:Loc Launch.Home.InstanceSettings}" />
     </Grid>
 
@@ -90,7 +98,8 @@
                        Margin="15,10,15,0"
                        HorizontalAlignment="Center"
                        FontSize="20"
-                       Foreground="{DynamicResource ColorBrush3}">
+                       Foreground="{DynamicResource ColorBrush3}"
+                       Text="{Binding LaunchingTitleText}">
                 <TextBlock.RenderTransform>
                     <SkewTransform AngleX="-3" />
                 </TextBlock.RenderTransform>
@@ -99,7 +108,8 @@
                        Margin="40,5,40,0"
                        HorizontalAlignment="Center"
                        FontSize="13.5"
-                       Foreground="{DynamicResource ColorBrush3}">
+                       Foreground="{DynamicResource ColorBrush3}"
+                       Text="{Binding LaunchingNameText}">
                 <TextBlock.RenderTransform>
                     <SkewTransform AngleX="-3" />
                 </TextBlock.RenderTransform>
@@ -135,7 +145,8 @@
                            Grid.Column="3"
                            Margin="0,0,0,5"
                            HorizontalAlignment="Left"
-                           FontSize="12.5" />
+                           FontSize="12.5"
+                           Text="{Binding LaunchingStageText}" />
                 <TextBlock Grid.Row="1"
                            Grid.Column="1"
                            Margin="0,0,0,5"
@@ -150,6 +161,7 @@
                            HorizontalAlignment="Left"
                            MaxWidth="160"
                            FontSize="12.5"
+                           Text="{Binding LaunchingMethodText}"
                            TextWrapping="Wrap" />
                 <TextBlock x:Name="LabLaunchingProgressLeft"
                            Grid.Row="2"
@@ -158,13 +170,16 @@
                            HorizontalAlignment="Right"
                            FontSize="12.5"
                            Opacity="0.5"
+                           IsVisible="{Binding IsLaunchingProgressVisible}"
                            Text="{loc:Loc Launch.Status.LaunchProgress}" />
                 <TextBlock x:Name="LabLaunchingProgress"
                            Grid.Row="2"
                            Grid.Column="3"
                            Margin="0,0,0,5"
                            HorizontalAlignment="Left"
-                           FontSize="12.5" />
+                           FontSize="12.5"
+                           IsVisible="{Binding IsLaunchingProgressVisible}"
+                           Text="{Binding LaunchingProgressText}" />
                 <TextBlock x:Name="LabLaunchingDownloadLeft"
                            Grid.Row="3"
                            Grid.Column="1"
@@ -179,7 +194,8 @@
                            Margin="0,0,0,5"
                            HorizontalAlignment="Left"
                            FontSize="12.5"
-                           Opacity="0" />
+                           Opacity="0"
+                           Text="{Binding LaunchingDownloadText}" />
 
                 <Grid x:Name="PanLaunchingHint"
                       Grid.Row="2"
@@ -206,6 +222,7 @@
                                MaxHeight="54"
                                HorizontalAlignment="Center"
                                FontSize="12.5"
+                               Text="{Binding LaunchingHintText}"
                                TextWrapping="Wrap"
                                TextTrimming="CharacterEllipsis" />
                 </Grid>
@@ -217,6 +234,7 @@
                      Height="35"
                      Margin="20,0,20,20"
                      VerticalAlignment="Bottom"
+                     Command="{Binding CancelLaunchCommand}"
                      Text="{loc:Loc Common.Action.Cancel}" />
     </Grid>
 </ui:MyPageLeft>

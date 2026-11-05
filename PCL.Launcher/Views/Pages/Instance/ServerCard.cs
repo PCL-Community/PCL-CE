@@ -6,10 +6,6 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Threading;
 using PCL.Core.App.Localization;
-using PCL.Core.Link.McPing;
-using PCL.Core.Link.McPing.Model;
-using PCL.Core.Minecraft;
-using PCL.Core.UI.Hints;
 using PCL.UI.Controls;
 using SvgIconControl = PCL.UI.Controls.SvgIcon.SvgIcon;
 
@@ -32,12 +28,18 @@ public class ServerCard : MyCard
     private readonly TextBlock _nameText;
     private readonly TextBlock _playerText;
     private readonly SvgIconControl _signal;
+    private string _lastLogoBase64 = string.Empty;
 
-    public ServerCard(string name, string address, int rawIndex)
+    public ServerCard(
+        string name,
+        string address,
+        int rawIndex) : this(new ServerCardViewModel(name, address, rawIndex))
     {
-        Name = name;
-        RawIndex = rawIndex;
-        Address = address;
+    }
+
+    public ServerCard(ServerCardViewModel viewModel)
+    {
+        ViewModel = viewModel;
         Margin = new Thickness(0d, 8d, 0d, 8d);
         UseAnimation = false;
 
@@ -67,7 +69,7 @@ public class ServerCard : MyCard
 
         _nameText = new TextBlock
         {
-            Text = name,
+            Text = viewModel.NameText,
             FontSize = 14d,
             TextTrimming = TextTrimming.CharacterEllipsis,
             HorizontalAlignment = HorizontalAlignment.Left,
@@ -75,7 +77,7 @@ public class ServerCard : MyCard
             MaxWidth = 180d
         };
         ContainerTheme.BindDynamic(_nameText, TextBlock.ForegroundProperty, "ColorBrush1");
-        ToolTip.SetTip(_nameText, name);
+        ToolTip.SetTip(_nameText, viewModel.NameText);
         ToolTip.SetPlacement(_nameText, PlacementMode.Top);
         SetRow(_nameText, 1);
         SetColumn(_nameText, 3);
@@ -91,13 +93,13 @@ public class ServerCard : MyCard
             Name = "Signal",
             Width = 20d,
             Height = 20d,
-            Icon = "lucide/wifi"
+            Icon = viewModel.SignalIcon
         };
         ContainerTheme.BindDynamic(_signal, SvgIconControl.IconBrushProperty, "ColorBrushGray4");
         statusPanel.Children.Add(_signal);
         _playerText = new TextBlock
         {
-            Text = "???",
+            Text = viewModel.PlayerText,
             FontSize = 12d,
             Opacity = 0.4d,
             VerticalAlignment = VerticalAlignment.Center,
@@ -154,21 +156,23 @@ public class ServerCard : MyCard
 
         ContextMenu = BuildContextMenu();
         BorderChild = root;
-
-        UpdateInfo(name, address);
+        ViewModel.PropertyChanged += (_, _) => Dispatcher.UIThread.Post(ApplyState);
+        ApplyState();
     }
 
-    public new string Name { get; private set; }
+    public new string Name => ViewModel.Name;
 
     /// <summary>该卡片对应 servers.dat 中 servers 列表的原始下标（包含空 IP 项）。</summary>
-    public int RawIndex { get; }
+    public int RawIndex => ViewModel.RawIndex;
 
-    public string Address { get; private set; }
+    public string Address => ViewModel.Address;
 
     /// <summary>最近一次 ping 成功返回的图标（Base64），用于回写 servers.dat。</summary>
-    public string IconBase64 { get; private set; } = string.Empty;
+    public string IconBase64 => ViewModel.IconBase64;
 
-    public bool HasPinged { get; private set; }
+    public bool HasPinged => ViewModel.HasPinged;
+
+    public ServerCardViewModel ViewModel { get; }
 
     public event Action<ServerCard>? ConnectRequested;
 
@@ -221,90 +225,32 @@ public class ServerCard : MyCard
 
     public void UpdateInfo(string name, string address)
     {
-        Name = name;
-        Address = address;
-        _nameText.Text = !string.IsNullOrEmpty(name)
-            ? name
-            : !string.IsNullOrEmpty(address)
-                ? address
-                : "Unknown";
-        ToolTip.SetTip(_nameText, _nameText.Text);
-        IconBase64 = string.Empty;
-        HasPinged = false;
-        _icon.Source = DefaultLogo;
-        _playerText.Text = "???";
-        _motdText.Text = string.Empty;
-        _signal.Icon = "lucide/wifi";
+        ViewModel.UpdateInfo(name, address);
+        ApplyState();
     }
 
-    public async Task RefreshAsync(bool withHint = false, CancellationToken token = default)
+    public Task RefreshAsync(bool withHint = false, CancellationToken token = default)
     {
-        if (withHint)
-            HintService.Show(
-                Hints.Info(Lang.Text("Instance.Server.Card.RefreshingStatus", Name)));
-        if (string.IsNullOrWhiteSpace(Address))
-        {
-            ShowOffline();
-            return;
-        }
-
-        ShowPinging();
-        try
-        {
-            var addr = await ServerAddressResolver.GetResolvedServerAddressAsync(Address, token);
-            using var query = McPingServiceFactory.CreateService(addr.Host, addr.Ip, addr.Port);
-            var result = await query.PingAsync(token);
-            token.ThrowIfCancellationRequested();
-            if (result is null)
-            {
-                ShowOffline();
-                return;
-            }
-
-            HasPinged = true;
-            IconBase64 = result.Favicon ?? string.Empty;
-            await SetLogoAsync(IconBase64);
-            ShowOnline(result);
-        }
-        catch (OperationCanceledException)
-        {
-            ShowOffline();
-        }
-        catch (Exception ex)
-        {
-            LauncherCommon.Log(ex, $"Ping 服务器失败：{Address}");
-            ShowOffline();
-        }
+        return ViewModel.RefreshAsync(withHint, token);
     }
 
-    private void ShowPinging()
+    private void ApplyState()
     {
-        _signal.Icon = "lucide/loader";
-        _playerText.Text = Lang.Text("Instance.Server.Card.Connecting");
-        _motdText.Text = Lang.Text("Instance.Server.Card.ConnectingDots");
-    }
-
-    private void ShowOffline()
-    {
-        Dispatcher.UIThread.Post(() =>
+        _nameText.Text = ViewModel.NameText;
+        ToolTip.SetTip(_nameText, ViewModel.NameText);
+        _signal.Icon = ViewModel.SignalIcon;
+        if (string.IsNullOrEmpty(ViewModel.SignalTooltip))
         {
-            _signal.Icon = "lucide/wifi-off";
-            _playerText.Text = Lang.Text("Instance.Server.Card.Offline");
-            _motdText.Text = Lang.Text("Instance.Server.Card.ServerOffline");
-            _icon.Source = DefaultLogo;
-        });
-    }
-
-    private void ShowOnline(McPingResult result)
-    {
-        Dispatcher.UIThread.Post(() =>
+            ToolTip.SetTip(_signal, null);
+        }
+        else
         {
-            _signal.Icon = GetSignalIcon((int)Math.Min(result.Latency, int.MaxValue));
-            ToolTip.SetTip(_signal, $"{result.Latency}ms");
+            ToolTip.SetTip(_signal, ViewModel.SignalTooltip);
             ToolTip.SetPlacement(_signal, PlacementMode.Top);
-            _playerText.Text = result.Players.Online != 0 || result.Players.Max != 0
-                ? $"{result.Players.Online} / {result.Players.Max}"
-                : "???";
+        }
+
+        _playerText.Text = ViewModel.PlayerText;
+        if (ViewModel.IsOnline && ViewModel.LastPingResult is { } result)
             MotdTextRenderer.Render(
                 _motdText,
                 result.Description,
@@ -312,18 +258,14 @@ public class ServerCard : MyCard
                 2,
                 12d,
                 LaunchFonts.ResolveMotdFont());
-        });
-    }
+        else
+            _motdText.Text = ViewModel.MotdText;
 
-    private static string GetSignalIcon(int ping)
-    {
-        return ping switch
+        if (!string.Equals(_lastLogoBase64, ViewModel.IconBase64, StringComparison.Ordinal))
         {
-            <= 99 => "lucide/wifi",
-            <= 299 => "lucide/wifi-high",
-            <= 599 => "lucide/wifi-low",
-            _ => "lucide/wifi-zero"
-        };
+            _lastLogoBase64 = ViewModel.IconBase64;
+            _ = SetLogoAsync(ViewModel.IconBase64);
+        }
     }
 
     private async Task SetLogoAsync(string base64)
@@ -337,7 +279,11 @@ public class ServerCard : MyCard
         try
         {
             var bitmap = await Task.Run(() => DecodeBase64Image(base64));
-            Dispatcher.UIThread.Post(() => _icon.Source = bitmap ?? DefaultLogo);
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (string.Equals(_lastLogoBase64, base64, StringComparison.Ordinal))
+                    _icon.Source = bitmap ?? DefaultLogo;
+            });
         }
         catch (Exception ex)
         {
