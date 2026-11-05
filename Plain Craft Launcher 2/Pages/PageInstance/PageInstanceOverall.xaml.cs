@@ -323,7 +323,9 @@ public partial class PageInstanceOverall : IPageView
 
             // 重命名主文件夹
             var oldPathIndie = PageInstanceLeft.McInstance.PathIndie;
-            ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance)).InvalidateCache(oldPath);
+            await Task.Run(() =>
+                ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance))
+                .InvalidateCache(oldPath));
             FileSystem.RenameDirectory(oldPath, tempName);
             FileSystem.RenameDirectory(tempPath, newName);
             // 清理 ini 缓存
