@@ -46,6 +46,8 @@ public sealed class WpfWatcherUi : IWatcherUi
 /// <summary>媒体服务桥接。</summary>
 public sealed class WpfMediaService : IMediaService
 {
+    public bool IsAvailable => true;
+
     public void PauseMusic()
     {
         Music.MusicPause();

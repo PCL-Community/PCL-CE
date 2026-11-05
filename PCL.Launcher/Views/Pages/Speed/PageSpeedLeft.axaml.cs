@@ -3,7 +3,6 @@ using Avalonia.Threading;
 using PCL.Core.App.Localization;
 using PCL.Network;
 using PCL.UI.Controls;
-using PCL.UI.Seams;
 
 namespace PCL.Views.Pages.Speed;
 
@@ -11,22 +10,24 @@ namespace PCL.Views.Pages.Speed;
 ///     任务管理页左栏：汇总当前任务列表的进度、下载速度、剩余文件数与连接数。
 ///     每 300 ms 从 <see cref="Loading.loaderTaskbar" /> 与 <see cref="NetFacade.NetManager" /> 取值刷新。
 /// </summary>
-public partial class PageSpeedLeft : MyPageLeft, ISeamTaskListPage, IRefreshable
+public partial class PageSpeedLeft : MyPageLeft, IRefreshable
 {
     private const int WatcherInterval = 300;
 
     private readonly DispatcherTimer _timer;
 
+    public static PageSpeedLeft? Current { get; private set; }
+
     public PageSpeedLeft()
     {
         InitializeComponent();
+        Current = this;
         _timer = new DispatcherTimer
         {
             Interval = TimeSpan.FromMilliseconds(WatcherInterval)
         };
         _timer.Tick += (_, _) => RefreshStatistics();
         ApplyDebugRowVisibility();
-        SeamHosts.TaskListPage = this;
     }
 
     public void Refresh()

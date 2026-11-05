@@ -11,7 +11,6 @@ using Avalonia.Platform;
 using Avalonia.Threading;
 using PCL.Core.Logging;
 using PCL.UI.Controls;
-using PCL.UI.Seams;
 
 namespace PCL.UI.Dialogs;
 
@@ -1034,7 +1033,7 @@ internal static class MyMsgMarkdownRenderer
             return;
         }
 
-        UiSeamInteraction.OpenWebsite(url);
+        UiInteraction.OpenWebsite(url);
     }
 
     /// <summary>按可用宽度等比例缩放的图片控件。</summary>

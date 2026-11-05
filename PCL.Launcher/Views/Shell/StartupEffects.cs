@@ -5,13 +5,12 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
-using PCL.Core.App.IoC;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils.OS;
+using PCL.UI;
 using PCL.UI.Animations;
-using PCL.UI.Seams;
 using static PCL.Animations;
 
 namespace PCL.Views.Shell;
@@ -204,7 +203,7 @@ public sealed class StartupEffects(
                         () =>
                         {
                             OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/latest");
-                            PCL.UI.Seams.UiSeamInteraction.Shutdown();
+                            UiInteraction.Shutdown();
                         })),
                 IsWarn = true,
                 ForceWait = true
@@ -238,7 +237,7 @@ public sealed class StartupEffects(
                 States.System.LauncherEula = true;
                 break;
             case 2:
-                UiSeamInteraction.Shutdown();
+                UiInteraction.Shutdown();
                 break;
         }
     }

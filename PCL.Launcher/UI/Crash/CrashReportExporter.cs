@@ -554,7 +554,7 @@ internal sealed class CrashReportExporter
         var indent = new string('\t', depth);
         foreach (var mod in mods)
         {
-            var line = $"{indent}|-> {(mod.Name ?? mod.ModId ?? "?")}";
+            var line = $"{indent}|-> {mod.Name ?? mod.ModId ?? "?"}";
             var version = _CleanVersion(mod.Version);
             if (!string.IsNullOrWhiteSpace(version))
                 line += $" ({version})";

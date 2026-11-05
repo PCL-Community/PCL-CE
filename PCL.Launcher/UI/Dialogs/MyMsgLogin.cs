@@ -13,7 +13,6 @@ using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
 using PCL.Core.Utils;
 using PCL.UI.Controls;
-using PCL.UI.Seams;
 
 namespace PCL.UI.Dialogs;
 
@@ -150,7 +149,7 @@ public sealed class MyMsgLogin : MyMsgDialogBase
             await Task.Delay(2000, token);
             if (Dialog.IsClosed) return;
 
-            if (!string.IsNullOrEmpty(_website)) UiSeamInteraction.OpenWebsite(_website);
+            if (!string.IsNullOrEmpty(_website)) UiInteraction.OpenWebsite(_website);
             CopyCode();
 
             if (requestData is null || deviceCode is null)
@@ -346,7 +345,7 @@ public sealed class MyMsgLogin : MyMsgDialogBase
         switch (number)
         {
             case 1:
-                if (!string.IsNullOrEmpty(_website)) UiSeamInteraction.OpenWebsite(_website);
+                if (!string.IsNullOrEmpty(_website)) UiInteraction.OpenWebsite(_website);
                 return;
             case 2:
                 CopyCode();

@@ -4,7 +4,7 @@ using PCL.Core.App.IoC;
 using PCL.Core.UI;
 using PCL.Core.UI.Animation;
 using PCL.UI;
-using PCL.UI.Seams;
+using PCL.UI.Bridges;
 using PCL.Views;
 
 namespace PCL;
@@ -30,8 +30,8 @@ internal static class Program
         // 注册 Core 弹窗与提示的界面呈现器
         DialogPresenter.Install();
         HintPresenter.Install();
-        // 注册业务层 UI seam 的界面实现，并校验必需项
-        UiSeamRegistration.Register();
+        // 注册业务层 UI 平台桥的界面实现
+        UiBridgeRegistration.Register();
         // 启动 PCL.Core 生命周期
         Lifecycle.OnInitialize();
     }

@@ -15,7 +15,6 @@ using PCL.Navigation;
 using PCL.Network;
 using PCL.Network.Loaders;
 using PCL.UI.Controls;
-using PCL.UI.Seams;
 using PCL.Views.Pages.Download;
 using PCL.Views.Shell;
 
@@ -25,10 +24,10 @@ namespace PCL.Views.Pages.Instance;
 ///     实例本地资源页：模组 / 资源包 / 光影 / 结构文件的列表与管理。
 ///     支持搜索、按状态筛选、排序、全选与多选批量启用/禁用/更新/删除、导出资源信息与进入内嵌依赖页。
 ///     加载由 <see cref="LocalComp.CompResourceListLoader" /> 驱动，页面实现
-///     <see cref="ISeamCompLocalPage" /> 以便业务层查询加载状态和当前目录。
+///     <see cref="ICompLocalPage" /> 以便业务层查询加载状态和当前目录。
 /// </summary>
 public partial class PageInstanceCompResource
-    : MyPageRight, IPageView, IRefreshable, ISeamCompLocalPage
+    : MyPageRight, IPageView, IRefreshable, ICompLocalPage
 {
     private readonly Comp.CompType _compType;
     private readonly List<LocalComp.LocalCompFile> _entries = [];
@@ -1506,7 +1505,7 @@ public partial class PageInstanceCompResource
 
     #endregion
 
-    #region ISeamCompLocalPage
+    #region ICompLocalPage
 
     public bool LoadProgressVisible
     {

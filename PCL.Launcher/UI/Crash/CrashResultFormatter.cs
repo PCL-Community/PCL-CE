@@ -7,7 +7,7 @@ namespace PCL;
 
 internal sealed class CrashResultFormatter
 {
-    public CrashDialogContent Format(
+    public static CrashDialogContent Format(
         CrashAnalysisContext context,
         bool isHandAnalyze)
     {

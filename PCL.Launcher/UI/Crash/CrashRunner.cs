@@ -6,7 +6,7 @@ using PCL.Core.Logging;
 using PCL.Core.Platform;
 using PCL.Core.UI;
 using PCL.Navigation;
-using PCL.UI.Seams;
+using PCL.UI;
 
 namespace PCL;
 
@@ -14,14 +14,14 @@ namespace PCL;
 ///     崩溃分析的一次执行：收集日志、整理、检测原因，并把结果交给弹窗呈现。
 ///     内核（收集/整理/检测）位于 PCL.Launcher.Core，本类只负责流程编排与界面呈现。
 /// </summary>
-internal sealed class CrashSeamRunner
+internal sealed class CrashRunner
 {
     private readonly CrashLogCollector _collector;
     private readonly CrashAnalysisContext _context;
     private readonly CrashDetector _detector;
     private readonly CrashLogPreparer _preparer;
 
-    public CrashSeamRunner(int processId)
+    public CrashRunner(int processId)
     {
         var tempFolder = Path.Combine(
             LauncherPaths.Temp,
@@ -59,12 +59,12 @@ internal sealed class CrashSeamRunner
 
     public void Output(bool isHandAnalyze, List<string>? extraFiles)
     {
-        CrashSeamPresenter.Output(_context, isHandAnalyze, extraFiles);
+        CrashPresenter.Output(_context, isHandAnalyze, extraFiles);
     }
 }
 
 /// <summary>崩溃结果的弹窗呈现与报告导出。</summary>
-internal static class CrashSeamPresenter
+internal static class CrashPresenter
 {
     private static readonly CrashResultFormatter Formatter = new();
     private static readonly CrashReportExporter Exporter = new();
@@ -76,7 +76,7 @@ internal static class CrashSeamPresenter
     {
         BringMainWindowToFront();
 
-        var crashContent = Formatter.Format(context, isHandAnalyze);
+        var crashContent = CrashResultFormatter.Format(context, isHandAnalyze);
         var directFile = context.DirectOpenFile;
         var openInstanceSettings = context.Instance is not null
             && crashContent.SuggestedAction
@@ -89,7 +89,7 @@ internal static class CrashSeamPresenter
             ? ""
             : Lang.Text("Crash.Dialog.Button.ExportReport");
 
-        var selectedButton = UiSeamInteraction.Message(
+        var selectedButton = UiInteraction.Message(
             crashContent.Text,
             title,
             Lang.Text("Common.Action.Confirm"),
@@ -150,7 +150,7 @@ internal static class CrashSeamPresenter
             if (string.IsNullOrEmpty(fileAddress)) return;
 
             Exporter.Export(context, fileAddress, extraFiles);
-            UiSeamInteraction.Hint(
+            UiInteraction.Hint(
                 Lang.Text("Crash.Report.Export.Success"),
                 NotificationType.Success);
             Basics.OpenPath(Path.GetDirectoryName(fileAddress) ?? fileAddress);
@@ -160,7 +160,7 @@ internal static class CrashSeamPresenter
             LogWrapper.Error(ex, "Crash", "导出错误报告失败");
             var message = CreateExportFailureMessage(fileAddress, ex);
             var copyPressed = false;
-            UiSeamInteraction.Message(
+            UiInteraction.Message(
                 message,
                 Lang.Text("Crash.Export.Failed.Title"),
                 Lang.Text("Common.Action.Confirm"),
@@ -204,7 +204,7 @@ internal static class CrashSeamPresenter
     {
         LauncherCommon.RunInUi(() =>
         {
-            var window = UiSeamInteraction.MainWindow;
+            var window = UiInteraction.MainWindow;
             if (window is null) return;
             if (!window.IsVisible) window.Show();
             if (window.WindowState == WindowState.Minimized)

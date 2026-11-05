@@ -7,7 +7,6 @@ using PCL.Core.Logging;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
 using PCL.UI.Controls;
-using PCL.UI.Seams;
 using PCL.Views.Pages.Homepage;
 using PCL.Views.Shell;
 
@@ -18,7 +17,7 @@ namespace PCL.Views.Pages.Launch;
 ///     主页来源分为空白、内置“你知道吗”、Minecraft 信息流与运行时 XAML 主页四类；
 ///     本批次提供空白、Trivia、News 与加载、错误、重试结构，运行时 XAML 渲染留待 Phase 3.6。
 /// </summary>
-public partial class PageLaunchRight : MyPageRight, ISeamLaunchLogSink, IRefreshable
+public partial class PageLaunchRight : MyPageRight, IRefreshable
 {
     private readonly TextBlock _labError;
     private readonly TextBlock _labHint1;
@@ -55,7 +54,6 @@ public partial class PageLaunchRight : MyPageRight, ISeamLaunchLogSink, IRefresh
 
         _newsView = new PageHomepageNewsView();
 
-        SeamHosts.LaunchLog = this;
         FileDragHandler.CustomHomepageDropped += _ => ForceRefresh();
 
         _panHint.IsVisible = States.Hint.CEMessage;

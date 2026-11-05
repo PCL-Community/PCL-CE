@@ -11,7 +11,6 @@ using PCL.Core.UI.Hints;
 using PCL.Core.Utils.Validate;
 using PCL.UI.Controls;
 using PCL.UI.Controls.Common;
-using PCL.UI.Seams;
 using PCL.Views.Pages.Launch;
 using PCL.Views.Shell;
 
@@ -370,10 +369,10 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             var count = PageSetupUIViewModel.CountContentFiles(BackgroundFolder);
             var show = count > 0;
             ViewModel.ApplyBackgroundState(show, count);
-            CheckAutoPauseVideo.IsEnabled = SeamCapabilities.MediaAvailable;
+            CheckAutoPauseVideo.IsEnabled = MediaService.Current?.IsAvailable == true;
             ToolTip.SetTip(
                 CheckAutoPauseVideo,
-                SeamCapabilities.MediaAvailable
+                MediaService.Current?.IsAvailable == true
                     ? Lang.Text("Setup.Ui.Background.PauseVideo.ToolTip")
                     : Lang.Text("Tools.GameLink.Finish.Unavailable"));
             ToolTip.SetShowOnDisabled(CheckAutoPauseVideo, true);
@@ -437,10 +436,10 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         {
             var count = PageSetupUIViewModel.CountContentFiles(MusicFolder);
             ViewModel.ApplyMusicState(count > 0, count);
-            BtnMusicRefresh.IsEnabled = SeamCapabilities.MediaAvailable;
+            BtnMusicRefresh.IsEnabled = MediaService.Current?.IsAvailable == true;
             ToolTip.SetTip(
                 BtnMusicRefresh,
-                SeamCapabilities.MediaAvailable
+                MediaService.Current?.IsAvailable == true
                     ? Lang.Text("Setup.Ui.Music.Refresh.ToolTip")
                     : Lang.Text("Tools.GameLink.Finish.Unavailable"));
             ToolTip.SetShowOnDisabled(BtnMusicRefresh, true);

@@ -12,7 +12,6 @@ using PCL.Core.Utils.Exts;
 using PCL.Navigation;
 using PCL.Network;
 using PCL.UI.Controls;
-using PCL.UI.Seams;
 using PCL.Views.Pages.Homepage;
 using PCL.Views.Shell;
 using Rectangle = Avalonia.Controls.Shapes.Rectangle;
@@ -26,7 +25,7 @@ namespace PCL.Views.Pages.Launch;
 ///     启动、取消与启动中进度来自 <see cref="GameLaunch" />，账号来自 <see cref="ProfileService" />。
 ///     登录子视图按账号状态在 <c>PanLogin</c> 中切换，实例只创建一次并复用。
 /// </summary>
-public partial class PageLaunchLeft : MyPageLeft, ISeamLaunchPage, IShellShortcutTarget
+public partial class PageLaunchLeft : MyPageLeft, IShellShortcutTarget
 {
     private readonly MyButton _btnCancel;
     private readonly MyButton _btnInstance;
@@ -112,7 +111,6 @@ public partial class PageLaunchLeft : MyPageLeft, ISeamLaunchPage, IShellShortcu
 
         BindLocalizedTexts();
 
-        SeamHosts.LaunchPage = this;
         HiddenFeatureState.Changed += RefreshButtonsUI;
         ExtraButtonsPanel.AprilGiveupResetAction = ResetAprilState;
         FileDragHandler.AuthlibServerDropped += OnAuthlibServerDropped;
@@ -1042,7 +1040,7 @@ public partial class PageLaunchLeft : MyPageLeft, ISeamLaunchPage, IShellShortcu
 
     #endregion
 
-    #region 壳与业务 seam 接口
+    #region 壳与业务 UI 接口
 
     /// <inheritdoc />
     public void RefreshLaunchButtons()

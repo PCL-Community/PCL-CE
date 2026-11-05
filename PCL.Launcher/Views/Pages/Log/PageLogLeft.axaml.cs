@@ -6,7 +6,6 @@ using PCL.Core.App.Localization;
 using PCL.Core.UI.Hints;
 using PCL.Navigation;
 using PCL.UI.Controls;
-using PCL.UI.Seams;
 using PCL.Views.Shell;
 
 namespace PCL.Views.Pages.Log;
@@ -15,7 +14,7 @@ namespace PCL.Views.Pages.Log;
 ///     游戏实时日志页左栏：维护已打开的游戏监视器列表与各自的日志缓冲区。
 ///     右栏通过 <see cref="Current" /> 读取当前选中的缓冲区并渲染正文。
 /// </summary>
-public partial class PageLogLeft : MyPageLeft, ISeamGameLogSink, IRefreshable
+public partial class PageLogLeft : MyPageLeft, IRefreshable
 {
     private const int MaxLinesDefault = 500;
     private bool _isBuilding;
@@ -28,7 +27,6 @@ public partial class PageLogLeft : MyPageLeft, ISeamGameLogSink, IRefreshable
         InitializeComponent();
         AnimatedControl = PanList;
         Current = this;
-        SeamHosts.GameLog = this;
         ExtraButtonsPanel.GameLogProvider = () => Current is { ShownLogs.Count: > 0 };
         AttachedToVisualTree += (_, _) => RefreshOnNavigate();
         DetachedFromVisualTree += (_, _) =>

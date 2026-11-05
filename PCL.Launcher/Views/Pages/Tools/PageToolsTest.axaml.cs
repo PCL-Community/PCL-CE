@@ -17,8 +17,8 @@ using PCL.Core.Utils.Secret;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
 using PCL.Network.Loaders;
+using PCL.UI;
 using PCL.UI.Controls;
-using PCL.UI.Seams;
 
 namespace PCL.Views.Pages.Tools;
 
@@ -213,7 +213,7 @@ public partial class PageToolsTest : MyPageRight
                                 Buttons = DialogButtons.Ok,
                                 ForceWait = true
                             });
-                        UiSeamInteraction.Restart();
+                        UiInteraction.Restart();
                     }
                     else
                     {
@@ -520,7 +520,7 @@ public partial class PageToolsTest : MyPageRight
             };
             combo.Start();
             Loading.LoaderTaskbarAdd(combo);
-            UiSeamInteraction.RefreshDownloadButton(nameof(StartCustomDownload));
+            UiInteraction.RefreshDownloadButton(nameof(StartCustomDownload));
         }
         catch (Exception ex)
         {

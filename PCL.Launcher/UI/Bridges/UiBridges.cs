@@ -17,9 +17,13 @@ using PCL.Core.Utils;
 using PCL.Navigation;
 using PCL.UI.Controls;
 using PCL.UI.SystemIntegration;
+using PCL.Views.Pages;
+using PCL.Views.Pages.Select;
+using PCL.Views.Pages.Speed;
+using PCL.Views.Pages.Tools;
 using PCL.Views.Shell;
 
-namespace PCL.UI.Seams;
+namespace PCL.UI.Bridges;
 
 /// <summary>加载框架通知：下载按钮、任务栏进度与任务管理页事件。</summary>
 public sealed class LoadingUiBridge : ILoadingUi
@@ -60,14 +64,14 @@ public sealed class LoadingUiBridge : ILoadingUi
     }
 
     /// <summary>任务列表事件在业务线程触发，统一投递到 UI 线程，确保页面读到最新的任务栏列表。</summary>
-    private static void NotifyTaskPage(Action<ISeamTaskListPage> action, string feature)
+    private static void NotifyTaskPage(Action<PageSpeedLeft> action, string feature)
     {
-        var host = SeamHosts.TaskListPage;
+        var host = PageSpeedLeft.Current;
         if (host is null)
         {
             if (_taskHostWarned) return;
             _taskHostWarned = true;
-            UiSeamInteraction.WarnMissing(feature, "SEAM-TASK");
+            UiInteraction.WarnMissing(feature, "TASK");
             return;
         }
 
@@ -76,11 +80,7 @@ public sealed class LoadingUiBridge : ILoadingUi
 
     private static void RefreshDownloadButtonDelayed()
     {
-        Dispatcher.UIThread.Post(() =>
-        {
-            if (SeamHosts.Shell is { } shell) shell.RefreshDownloadButton();
-            else ExtraButtonsPanel.Current?.RefreshDownloadButton();
-        });
+        Dispatcher.UIThread.Post(() => { ExtraButtonsPanel.Current?.RefreshDownloadButton(); });
     }
 }
 
@@ -91,8 +91,8 @@ public sealed class CompLocalUiBridge : ICompLocalUi
     {
         LauncherCommon.RunInUi(() =>
         {
-            if (PageRouter.CurrentPage is ISeamCompLocalPage page) page.RefreshModList();
-            else UiSeamInteraction.WarnMissing(nameof(OnJijResolved), "SEAM-COMPLOCAL");
+            if (PageRouter.CurrentPage is ICompLocalPage page) page.RefreshModList();
+            else UiInteraction.WarnMissing(nameof(OnJijResolved), "COMPLOCAL");
         });
     }
 
@@ -105,48 +105,48 @@ public sealed class CompLocalUiBridge : ICompLocalUi
     {
         LauncherCommon.RunInUi(() =>
         {
-            if (PageRouter.CurrentPage is ISeamCompLocalPage page) page.RefreshModList();
-            else UiSeamInteraction.WarnMissing(nameof(RefreshModList), "SEAM-COMPLOCAL");
+            if (PageRouter.CurrentPage is ICompLocalPage page) page.RefreshModList();
+            else UiInteraction.WarnMissing(nameof(RefreshModList), "COMPLOCAL");
         });
     }
 
     public void SetLoadProgress(object? page, bool visible)
     {
-        if (page is not ISeamCompLocalPage localPage)
+        if (page is not ICompLocalPage localPage)
         {
-            UiSeamInteraction.WarnMissing(nameof(SetLoadProgress), "SEAM-COMPLOCAL");
+            UiInteraction.WarnMissing(nameof(SetLoadProgress), "COMPLOCAL");
             return;
         }
 
-        UiSeamInteraction.RunOnUi(() => localPage.LoadProgressVisible = visible);
+        UiInteraction.RunOnUi(() => localPage.LoadProgressVisible = visible);
     }
 
     public void SetLoadText(object? page, string key)
     {
-        if (page is not ISeamCompLocalPage localPage)
+        if (page is not ICompLocalPage localPage)
         {
-            UiSeamInteraction.WarnMissing(nameof(SetLoadText), "SEAM-COMPLOCAL");
+            UiInteraction.WarnMissing(nameof(SetLoadText), "COMPLOCAL");
             return;
         }
 
-        UiSeamInteraction.RunOnUi(() => localPage.SetLoadText(key));
+        UiInteraction.RunOnUi(() => localPage.SetLoadText(key));
     }
 
     public void UpdateOnly(object? page)
     {
-        if (page is not ISeamCompLocalPage localPage)
+        if (page is not ICompLocalPage localPage)
         {
-            UiSeamInteraction.WarnMissing(nameof(UpdateOnly), "SEAM-COMPLOCAL");
+            UiInteraction.WarnMissing(nameof(UpdateOnly), "COMPLOCAL");
             return;
         }
 
-        UiSeamInteraction.RunOnUi(localPage.UpdateOnly);
+        UiInteraction.RunOnUi(localPage.UpdateOnly);
     }
 
     public string? GetCurrentFolderPath(object? page)
     {
-        if (page is ISeamCompLocalPage localPage) return localPage.CurrentFolderPath;
-        UiSeamInteraction.WarnMissing(nameof(GetCurrentFolderPath), "SEAM-COMPLOCAL");
+        if (page is ICompLocalPage localPage) return localPage.CurrentFolderPath;
+        UiInteraction.WarnMissing(nameof(GetCurrentFolderPath), "COMPLOCAL");
         return null;
     }
 }
@@ -166,17 +166,17 @@ public sealed class ModpackUiBridge : IModpackUi
         {
             case LoadState.Finished:
                 HandleInstallFinished(loader, combo);
-                UiSeamInteraction.Hint(
+                UiInteraction.Hint(
                     $"{loader.DisplayName}{Lang.Text("Common.Status.Success")}",
                     NotificationType.Success);
                 break;
             case LoadState.Failed:
-                UiSeamInteraction.Hint(
+                UiInteraction.Hint(
                     $"{loader.DisplayName}{Lang.Text("Common.Status.Failure")}{loader.Error?.Message}",
                     NotificationType.Error);
                 break;
             case LoadState.Aborted:
-                UiSeamInteraction.Hint(
+                UiInteraction.Hint(
                     $"{loader.DisplayName}{Lang.Text("Common.Status.Cancelled")}",
                     NotificationType.Info);
                 break;
@@ -200,7 +200,7 @@ public sealed class ModpackUiBridge : IModpackUi
 
     public void AddFolder(string folderPath, string displayName, bool showHint)
     {
-        PCL.Views.Pages.Select.PageSelectLeft.AddFolder(folderPath, displayName, showHint);
+        PageSelectLeft.AddFolder(folderPath, displayName, showHint);
     }
 
     private static void HandleInstallFinished(Loading.LoaderBase loader, Loading.LoaderCombo? combo)
@@ -325,13 +325,13 @@ public sealed class ProfileUiBridge : IProfileUi
                         });
                     break;
                 case "xsts_2148916233":
-                    if (UiSeamInteraction.Message(
+                    if (UiInteraction.Message(
                             Lang.Text("Minecraft.Launch.Login.Microsoft.XboxNotRegistered"),
                             Lang.Text("Minecraft.Launch.Login.Hint"),
                             Lang.Text("Minecraft.Launch.Login.Register"),
                             Lang.Text("Common.Action.Cancel"))
                         == 1)
-                        UiSeamInteraction.OpenWebsite("https://signup.live.com/signup");
+                        UiInteraction.OpenWebsite("https://signup.live.com/signup");
                     break;
                 case "xsts_2148916235":
                     _ = DialogService.Instance.ShowAsync(
@@ -344,7 +344,7 @@ public sealed class ProfileUiBridge : IProfileUi
                         });
                     break;
                 case "xsts_2148916238":
-                    if (UiSeamInteraction.Message(
+                    if (UiInteraction.Message(
                             Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.Message"),
                             Lang.Text("Minecraft.Launch.Login.Hint"),
                             Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.AgeOver13"),
@@ -352,7 +352,7 @@ public sealed class ProfileUiBridge : IProfileUi
                             Lang.Text("Common.Option.IDontKnow"))
                         == 1)
                     {
-                        UiSeamInteraction.OpenWebsite("https://account.live.com/editprof.aspx");
+                        UiInteraction.OpenWebsite("https://account.live.com/editprof.aspx");
                         _ = DialogService.Instance.ShowAsync(
                             new TextDialogRequest
                             {
@@ -364,7 +364,7 @@ public sealed class ProfileUiBridge : IProfileUi
                     }
                     else
                     {
-                        UiSeamInteraction.OpenWebsite(
+                        UiInteraction.OpenWebsite(
                             "https://support.microsoft.com/zh-cn/account-billing/"
                             + "如何更改-microsoft-帐户上的出生日期-837badbc-999e-54d2-2617-d19206b9540a");
                         _ = DialogService.Instance.ShowAsync(
@@ -393,13 +393,13 @@ public sealed class ProfileUiBridge : IProfileUi
 
         LauncherCommon.RunInUiWait(() =>
         {
-            if (UiSeamInteraction.Message(
+            if (UiInteraction.Message(
                     Lang.Text("Minecraft.Launch.Login.Microsoft.NotPurchased"),
                     Lang.Text("Minecraft.Launch.Login.Failed"),
                     Lang.Text("Minecraft.Launch.Login.Microsoft.PurchaseMinecraft"),
                     Lang.Text("Common.Action.Cancel"))
                 == 1)
-                UiSeamInteraction.OpenWebsite(
+                UiInteraction.OpenWebsite(
                     "https://www.xbox.com/zh-cn/games/store/"
                     + "minecraft-java-bedrock-edition-for-pc/9nxp44l49shj");
         });
@@ -417,13 +417,13 @@ public sealed class ProfileUiBridge : IProfileUi
 
         LauncherCommon.RunInUiWait(() =>
         {
-            if (UiSeamInteraction.Message(
+            if (UiInteraction.Message(
                     Lang.Text("Minecraft.Launch.Login.Microsoft.CreateProfile.Message"),
                     Lang.Text("Minecraft.Launch.Login.Failed"),
                     Lang.Text("Minecraft.Launch.Login.Microsoft.CreateProfile.Button"),
                     Lang.Text("Common.Action.Cancel"))
                 == 1)
-                UiSeamInteraction.OpenWebsite(
+                UiInteraction.OpenWebsite(
                     "https://www.minecraft.net/zh-hans/msaprofile/mygames/editprofile");
         });
         return true;
@@ -526,7 +526,7 @@ public sealed class MemorySettingsBridge : IMemorySettings
         double ramGive;
         if (string.IsNullOrEmpty(instancePath))
         {
-            LogWrapper.Debug("Seam", "内存设置缺少实例上下文，使用全局内存配置");
+            LogWrapper.Debug("UI", "内存设置缺少实例上下文，使用全局内存配置");
             ramGive = Config.Launch.MemoryAllocationMode == 0
                 ? _GetAutoRam(null)
                 : _GetRamFromTick(Config.Launch.CustomMemorySize);
@@ -555,7 +555,7 @@ public sealed class MemorySettingsBridge : IMemorySettings
         var instancePath = version?.PathInstance;
         if (string.IsNullOrEmpty(instancePath))
         {
-            LogWrapper.Debug("Seam", "初始内存设置缺少实例上下文，使用全局内存配置");
+            LogWrapper.Debug("UI", "初始内存设置缺少实例上下文，使用全局内存配置");
             return _GetGlobalInitialRam(null, is32BitJava);
         }
 
@@ -670,7 +670,7 @@ public sealed class MemorySettingsBridge : IMemorySettings
 }
 
 /// <summary>崩溃分析：收集日志、分析原因并弹出真实结果弹窗，可导出错误报告。</summary>
-public sealed class CrashAnalysisSeam : ICrashAnalysisService
+public sealed class CrashAnalysisBridge : ICrashAnalysisService
 {
     public void Analyze(
         int pid,
@@ -683,7 +683,7 @@ public sealed class CrashAnalysisSeam : ICrashAnalysisService
         {
             // 稍等游戏进程收尾，保证崩溃日志已落盘
             Thread.Sleep(2000);
-            var runner = new CrashSeamRunner(pid);
+            var runner = new CrashRunner(pid);
             runner.Collect(pathIndie, [.. logs]);
             runner.Prepare();
             runner.Analyze(version);
@@ -732,19 +732,19 @@ public sealed class EventUiBridge : IEventUi
 
     public void ShowDailyFortune()
     {
-        PCL.Views.Pages.Tools.PageToolsTest.ShowDailyFortune();
+        PageToolsTest.ShowDailyFortune();
     }
 
     public void ClearTrash()
     {
-        PCL.Views.Pages.Tools.PageToolsTest.ClearTrash();
+        PageToolsTest.ClearTrash();
     }
 
     public void SwitchPage(string pageType, string? subType)
     {
         if (!Enum.TryParse<PageType>(pageType, true, out var page))
         {
-            LogWrapper.Warn("Seam", $"自定义事件切换页面失败：无法识别页面类型 {pageType}");
+            LogWrapper.Warn("UI", $"自定义事件切换页面失败：无法识别页面类型 {pageType}");
             return;
         }
 
@@ -752,7 +752,7 @@ public sealed class EventUiBridge : IEventUi
         if (!string.IsNullOrEmpty(subType)
             && !Enum.TryParse(subType, true, out sub))
         {
-            LogWrapper.Warn("Seam", $"自定义事件切换页面失败：无法识别子页面类型 {subType}");
+            LogWrapper.Warn("UI", $"自定义事件切换页面失败：无法识别子页面类型 {subType}");
             return;
         }
 
@@ -766,14 +766,14 @@ public sealed class EventUiBridge : IEventUi
 
     public void StartCustomDownload(string url, string savePath, string? fileName)
     {
-        PCL.Views.Pages.Tools.PageToolsTest.StartCustomDownload(url, fileName, savePath);
+        PageToolsTest.StartCustomDownload(url, fileName, savePath);
     }
 
     public void OpenHelp(string location)
     {
         try
         {
-            var title = PCL.Views.Pages.PageHelpDetail.ReadTitle(location);
+            var title = PageHelpDetail.ReadTitle(location);
             PageRouter.Navigate(
                 new PageStackData(
                     PageType.HelpDetail,
@@ -797,22 +797,21 @@ public sealed class MediaServiceBridge : IMediaService
 {
     private static bool _unavailableWarned;
 
+    public bool IsAvailable => false;
+
     public void PauseMusic()
     {
-        if (SeamHosts.Media is { } host) host.PauseMusic();
-        else WarnUnavailable();
+        WarnUnavailable();
     }
 
     public void ResumeMusic()
     {
-        if (SeamHosts.Media is { } host) host.ResumeMusic();
-        else WarnUnavailable();
+        WarnUnavailable();
     }
 
     public void SetVideoGaming(bool gaming)
     {
-        if (SeamHosts.Media is { } host) host.SetVideoGaming(gaming);
-        else WarnUnavailable();
+        WarnUnavailable();
     }
 
     private static void WarnUnavailable()
@@ -820,8 +819,8 @@ public sealed class MediaServiceBridge : IMediaService
         if (_unavailableWarned) return;
         _unavailableWarned = true;
         LogWrapper.Warn(
-            "Seam",
-            "音乐/背景视频控制不可用（TODO(SEAM-3)：播放引擎未迁移），本次调用已跳过");
+            "UI",
+            "音乐/背景视频控制不可用（TODO(MEDIA)：播放引擎未迁移），本次调用已跳过");
     }
 }
 
@@ -849,7 +848,7 @@ public sealed class DownloadInteractionBridge : IDownloadUserInteraction
                     ? Lang.Text("Minecraft.Update.UpdateTime") + Lang.Date(time)
                     : Lang.Text("Minecraft.Update.UpdatedAt")
                     + Lang.TimeSpan(time - DateTime.Now));
-            var result = UiSeamInteraction.Message(
+            var result = UiInteraction.Message(
                 message,
                 Lang.Text("Minecraft.Update.Title"),
                 Lang.Text("Common.Action.Confirm"),
@@ -878,12 +877,12 @@ public sealed class DownloadInteractionBridge : IDownloadUserInteraction
     {
         var wikiName = McFormatter.GetWikiUrlSuffix(version["id"]?.ToString() ?? "");
         var wikiUrl = $"{McFormatter.GetWikiBaseUrl()}/{wikiName.TrimStart('/')}";
-        UiSeamInteraction.OpenWebsite(wikiUrl);
+        UiInteraction.OpenWebsite(wikiUrl);
     }
 }
 
-/// <summary>把全部业务层 seam 注册到界面实现。</summary>
-public static class UiSeamRegistration
+/// <summary>把全部业务层 UI 平台桥注册到界面实现。</summary>
+public static class UiBridgeRegistration
 {
     public static void Register()
     {
@@ -894,7 +893,7 @@ public static class UiSeamRegistration
         AnnouncementActions.Current = new AnnouncementActionsBridge();
         WatcherUi.Current = new WatcherUiBridge();
         MediaService.Current = new MediaServiceBridge();
-        CrashAnalysisService.Current = new CrashAnalysisSeam();
+        CrashAnalysisService.Current = new CrashAnalysisBridge();
         CompNavigation.Current = new CompNavigationBridge();
         CompUi.Current = new CompUiBridge();
         CompLocalUi.Current = new CompLocalUiBridge();

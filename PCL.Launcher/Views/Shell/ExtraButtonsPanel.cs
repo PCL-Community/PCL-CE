@@ -7,8 +7,8 @@ using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Navigation;
 using PCL.Network;
+using PCL.UI;
 using PCL.UI.Controls;
-using PCL.UI.Seams;
 
 namespace PCL.Views.Shell;
 
@@ -16,7 +16,7 @@ namespace PCL.Views.Shell;
 ///     主窗口右下角的快捷按钮组：更新重启、返回顶部、任务管理、愚人节、关闭游戏、游戏日志、背景音乐。
 ///     每个按钮通过 <see cref="MyExtraButton.showCheck" /> 按实时状态显隐，状态在页面切换与定时轮询时刷新。
 /// </summary>
-public sealed class ExtraButtonsPanel : StackPanel, ISeamShellActions
+public sealed class ExtraButtonsPanel : StackPanel
 {
     private static readonly TimeSpan StateRefreshInterval = TimeSpan.FromSeconds(1d);
 
@@ -36,7 +36,6 @@ public sealed class ExtraButtonsPanel : StackPanel, ISeamShellActions
     public ExtraButtonsPanel()
     {
         Current = this;
-        SeamHosts.Shell = this;
         Orientation = Orientation.Vertical;
         Spacing = 0d;
         HorizontalAlignment = HorizontalAlignment.Right;
@@ -74,7 +73,7 @@ public sealed class ExtraButtonsPanel : StackPanel, ISeamShellActions
             && PageRouter.Current.Page == PageType.Launch;
         _shutdown.showCheck = () => GameWatcher.hasRunningMinecraft;
         _log.showCheck = ShowLogButton;
-        _music.showCheck = () => SeamCapabilities.MediaAvailable
+        _music.showCheck = () => MediaService.Current?.IsAvailable == true
             && MusicStateProvider?.Invoke() is { Visible: true };
 
         _stateTimer = new DispatcherTimer
@@ -262,7 +261,7 @@ public sealed class ExtraButtonsPanel : StackPanel, ISeamShellActions
 
     private static bool ShowLogButton()
     {
-        if (SeamHosts.GameLog is null) return false;
+        if (GameLogProvider is null) return false;
         if (PageRouter.Current.Page == PageType.GameLog) return false;
         return GameLogProvider?.Invoke() ?? GameWatcher.mcWatcherList.Count > 0;
     }
@@ -306,7 +305,7 @@ public sealed class ExtraButtonsPanel : StackPanel, ISeamShellActions
     {
         if (!Basics.IsAprilFool || IsAprilGiveup) return;
         IsAprilGiveup = true;
-        UiSeamInteraction.Hint("=D", NotificationType.Success);
+        UiInteraction.Hint("=D", NotificationType.Success);
         try
         {
             AprilGiveupResetAction?.Invoke();
@@ -325,7 +324,7 @@ public sealed class ExtraButtonsPanel : StackPanel, ISeamShellActions
         {
             GameLaunch.mcLaunchLoaderReal?.Abort();
             foreach (var watcher in GameWatcher.mcWatcherList.ToList()) watcher.Kill();
-            UiSeamInteraction.Hint(
+            UiInteraction.Hint(
                 Lang.Text("Main.ShutdownMinecraft.Success"),
                 NotificationType.Success);
         }

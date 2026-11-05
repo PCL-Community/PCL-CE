@@ -7,7 +7,6 @@ using Avalonia.Media;
 using PCL.Core.App.Localization;
 using PCL.Navigation;
 using PCL.UI.Controls;
-using PCL.UI.Seams;
 using CompFile = PCL.LocalComp.LocalCompFile;
 using Path = System.IO.Path;
 
@@ -17,7 +16,7 @@ namespace PCL.Views.Pages.Instance;
 ///     内嵌依赖（Jar-in-Jar）页：读取资源列表加载器解析出的模组内嵌副本，
 ///     展示依赖缺失/版本不匹配/禁用警告、内嵌副本之间的冲突、依赖关系与内嵌模组树。
 /// </summary>
-public class PageInstanceCompJarInJar : MyPageRight, ISeamCompLocalPage
+public class PageInstanceCompJarInJar : MyPageRight, ICompLocalPage
 {
     private static readonly IBrush BrushOk = new SolidColorBrush(Color.FromRgb(0x4C, 0xAF, 0x50));
     private static readonly IBrush BrushWarn = new SolidColorBrush(Color.FromRgb(0xFF, 0x98, 0x00));
@@ -891,7 +890,7 @@ public class PageInstanceCompJarInJar : MyPageRight, ISeamCompLocalPage
 
     #endregion
 
-    #region ISeamCompLocalPage
+    #region ICompLocalPage
 
     public bool LoadProgressVisible
     {

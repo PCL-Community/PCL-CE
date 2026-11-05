@@ -7,8 +7,8 @@ using PCL.Core.App.Localization;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
+using PCL.UI;
 using PCL.UI.Controls;
-using PCL.UI.Seams;
 
 namespace PCL.Views.Pages.Setup;
 
@@ -257,7 +257,7 @@ public partial class PageSetupLauncherMisc : MyPageRight, ISetupResetPage
                     ForceWait = true
                 });
             // 导入的配置需要重启后生效；与 WPF 一样立即重启启动器。
-            UiSeamInteraction.Restart();
+            UiInteraction.Restart();
         }
         catch (Exception ex)
         {
@@ -389,7 +389,7 @@ public partial class PageSetupLauncherMisc : MyPageRight, ISetupResetPage
             Process.Start(startInfo);
         }
 
-        UiSeamInteraction.Shutdown();
+        UiInteraction.Shutdown();
         return;
 
         static void DeleteFiles(IEnumerable<string> paths)

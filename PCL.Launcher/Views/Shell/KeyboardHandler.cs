@@ -6,8 +6,8 @@ using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Core.UI.Dialogs;
 using PCL.Navigation;
+using PCL.UI;
 using PCL.UI.Controls;
-using PCL.UI.Seams;
 
 namespace PCL.Views.Shell;
 
@@ -119,7 +119,7 @@ public sealed class KeyboardHandler
     private void ToggleHiddenFeatures()
     {
         HiddenFeatureState.Toggle();
-        UiSeamInteraction.Hint(
+        UiInteraction.Hint(
             Lang.Text(
                 HiddenFeatureState.ForceShow
                     ? "Main.HiddenFeature.Disabled"
@@ -150,7 +150,7 @@ public sealed class KeyboardHandler
     {
         if (Basics.IsAprilFool && !ExtraButtonsPanel.IsAprilGiveup)
         {
-            UiSeamInteraction.Hint(Lang.Text("Main.April.Nope"), NotificationType.Info);
+            UiInteraction.Hint(Lang.Text("Main.April.Nope"), NotificationType.Info);
             return;
         }
 
