@@ -322,10 +322,14 @@ public partial class PageInstanceOverall : IPageView
             }
 
             // 重命名主文件夹
+            var oldPathIndie = PageInstanceLeft.McInstance.PathIndie;
+            await Task.Run(() =>
+                ((DynamicCacheConfigStorage)ConfigService.GetProvider(ConfigSource.GameInstance))
+                .InvalidateCache(oldPath));
             FileSystem.RenameDirectory(oldPath, tempName);
             FileSystem.RenameDirectory(tempPath, newName);
             // 清理 ini 缓存
-            Common.IniClearCache(Path.Combine(PageInstanceLeft.McInstance.PathIndie, "options.txt"));
+            Common.IniClearCache(Path.Combine(oldPathIndie, "options.txt"));
             // 重命名 Jar 文件与 natives 文件夹
             // 不能进行遍历重命名，否则在实例名很短的时候容易误伤其他文件（Meloong-Git/#6443）
             if (Directory.Exists(Path.Combine(newPath, $"{oldName}-natives")))
