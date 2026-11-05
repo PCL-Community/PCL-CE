@@ -14,7 +14,7 @@
                               Loaded="InstallVersionItem_Loaded" />
         </DataTemplate>
         <ItemsPanelTemplate x:Key="InstallVersionItemPanel">
-            <core:VirtualizingWrapPanel ItemWidth="NaN" HorizontalSpacing="0" VerticalSpacing="0" />
+            <core:VirtualizingWrapPanel ItemWidth="NaN" ItemHeight="42" HorizontalSpacing="0" VerticalSpacing="0" />
         </ItemsPanelTemplate>
     </local:MyPageRight.Resources>
     <Grid>
