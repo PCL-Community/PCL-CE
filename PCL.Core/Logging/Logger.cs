@@ -46,7 +46,7 @@ public sealed class Logger : IAsyncDisposable
     private FileStream? _currentFile;
     private readonly List<string> _files = [];
     private readonly object _stateLock = new();
-    // Statis
+    // Stats
     private long _droppedCount;
     public long DroppedLogCount => Interlocked.Read(ref _droppedCount);
     // Processor

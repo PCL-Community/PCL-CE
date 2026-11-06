@@ -1,13 +1,13 @@
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.IO;
-using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.VisualBasic.FileIO;
 using PCL.Core.App.Localization;
 using PCL.Core.UI.Hints;
 using PCL.Core.ViewModel;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.IO;
+using System.Windows;
 
 namespace PCL;
 
@@ -46,10 +46,10 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
 
     public bool QuickPlayEnabled => _quickPlayFeature is true;
 
-    public async Task EnsureWorldFolderAsync()
+    public Task EnsureWorldFolderAsync()
     {
         var path = WorldPath;
-        await RunAsync(ct => Task.Run(() =>
+        return RunAsync(ct => Task.Run(() =>
         {
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
@@ -70,15 +70,15 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
         }
     }
 
-    public async Task LoadListAsync()
+    public Task LoadListAsync()
     {
         CheckQuickPlay();
-        await ApplyListAsync(true);
+        return ApplyListAsync(true);
     }
 
-    public async Task SearchAsync()
+    public Task SearchAsync()
     {
-        await ApplyListAsync(false);
+        return ApplyListAsync(false);
     }
 
     public string GetSortName(SaveSortMethod method)
@@ -97,10 +97,10 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
         SortText = Lang.Text("Instance.Saves.SortBy", GetSortName(target));
     }
 
-    public async Task ApplySortAsync(SaveSortMethod target)
+    public Task ApplySortAsync(SaveSortMethod target)
     {
         SetSortMethod(target);
-        await SearchAsync();
+        return SearchAsync();
     }
 
     public async Task<bool> DeleteSaveAsync(string folder)
@@ -118,8 +118,8 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
                     userSummary: Lang.Text("Instance.Saves.DeleteFailed"));
                 return false;
             }
-        }, ct));
-        return deleted is true;
+        }, ct)).ConfigureAwait(false);
+        return deleted;
     }
 
     public static int CopySaveFolders(StringCollection files, string worldPath)
@@ -173,10 +173,10 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
     {
         if (folder is null)
             return;
-        Launcher.frmMain.PageChange(new FormMain.PageStackData
+        Launcher.frmMain!.PageChange(new FormMain.PageStackData
         {
             page = FormMain.PageType.VersionSaves,
-            additional = (null, null, null, Comp.CompLoaderType.Any, Comp.CompType.Any, folder)
+            additional = (null, null, null, Comp.CompLoaderType.Any, Comp.CompType.Any, folder)!
         });
     }
 
@@ -216,19 +216,19 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
             instance = PageInstanceLeft.McInstance
         };
         GameLaunch.McLaunchStart(launchOptions);
-        Launcher.frmMain.PageChange(new FormMain.PageStackData { page = FormMain.PageType.Launch });
+        Launcher.frmMain!.PageChange(new FormMain.PageStackData { page = FormMain.PageType.Launch });
     }
 
     [RelayCommand]
     private void DownloadNew()
     {
-        Launcher.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadWorld);
+        Launcher.frmMain!.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadWorld);
         PageComp.targetVersion = PageInstanceLeft.McInstance;
     }
 
     private async Task ApplyListAsync(bool rescan)
     {
-        var snapshot = await RunAsync(ct => Task.Run(() => BuildEntries(rescan, SearchText), ct));
+        var snapshot = await RunAsync(ct => Task.Run(() => BuildEntries(rescan, SearchText), ct)).ConfigureAwait(false);
         if (snapshot is null)
             return;
 
@@ -264,16 +264,16 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
         List<string> showingSaves;
         if (searching)
         {
-            var queryList = new List<Common.SearchEntry<string>>();
+            var queryList = new List<SearchService.SearchEntry<string>>();
             foreach (var saveFolder in _saveFolders)
             {
                 var folderName = GetFolderNameFromPath(saveFolder);
-                var searchSource = new List<Common.SearchSource> { new(folderName, 1d) };
-                queryList.Add(new Common.SearchEntry<string> { item = saveFolder, searchSource = searchSource });
+                var searchSource = new List<SearchService.SearchSource> { new(folderName) };
+                queryList.Add(new SearchService.SearchEntry<string> { item = saveFolder, searchSource = searchSource });
             }
 
-            showingSaves = Common.Search(queryList, query, Common.MaxLocalSearchDepth, 0.35d)
-                .Select(r => r.item).ToList();
+            showingSaves = SearchService.Search(queryList, query, SearchService.MaxLocalSearchDepth, 0.35d)
+                .Select(r => r.item).ToList()!;
         }
         else
         {

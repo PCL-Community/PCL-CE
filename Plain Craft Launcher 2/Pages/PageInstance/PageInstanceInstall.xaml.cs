@@ -84,9 +84,9 @@ public partial class PageInstanceInstall : IPageView
         GameDownload.DlCleanroomListLoader.Start(isForceRestart: needRefresh);
         GameDownload.DlLabyModListLoader.Start(isForceRestart: needRefresh);
         GameDownload.DlLegacyFabricListLoader.Start(isForceRestart: needRefresh);
-        GameDownload.DlFabricApiLoader.Start(isForceRestart: needRefresh);
-        GameDownload.DlLegacyFabricApiLoader.Start(isForceRestart: needRefresh);
-        GameDownload.DlOptiFabricLoader.Start(isForceRestart: needRefresh);
+        CompDownloadLoaders.DlFabricApiLoader.Start(isForceRestart: needRefresh);
+        CompDownloadLoaders.DlLegacyFabricApiLoader.Start(isForceRestart: needRefresh);
+        CompDownloadLoaders.DlOptiFabricLoader.Start(isForceRestart: needRefresh);
     }
 
     private void Init()
@@ -106,13 +106,13 @@ public partial class PageInstanceInstall : IPageView
         LoadOptiFine.State = GameDownload.DlOptiFineListLoader;
         LoadLiteLoader.State = GameDownload.DlLiteLoaderListLoader;
         LoadFabric.State = GameDownload.DlFabricListLoader;
-        LoadFabricApi.State = GameDownload.DlFabricApiLoader;
+        LoadFabricApi.State = CompDownloadLoaders.DlFabricApiLoader;
         LoadNeoForge.State = GameDownload.DlNeoForgeListLoader;
         LoadCleanroom.State = GameDownload.DlCleanroomListLoader;
-        LoadOptiFabric.State = GameDownload.DlOptiFabricLoader;
+        LoadOptiFabric.State = CompDownloadLoaders.DlOptiFabricLoader;
         LoadLabyMod.State = GameDownload.DlLabyModListLoader;
         LoadLegacyFabric.State = GameDownload.DlLegacyFabricListLoader;
-        LoadLegacyFabricApi.State = GameDownload.DlLegacyFabricApiLoader;
+        LoadLegacyFabricApi.State = CompDownloadLoaders.DlLegacyFabricApiLoader;
     }
 
     #region 安装
@@ -169,7 +169,7 @@ public partial class PageInstanceInstall : IPageView
         if (selectedOptiFabric?.Equals(_currentOptiFabric) == true)
             selectedOptiFabric = null;
         // 提交安装申请
-        var request = new DownloadUi.McInstallRequest
+        var request = new McInstallRequest
         {
             targetInstanceName = PageInstanceLeft.McInstance.Name,
             targetInstanceFolder = $@"{GameFolders.mcFolderSelected}versions\{PageInstanceLeft.McInstance.Name}\",
@@ -212,16 +212,16 @@ public partial class PageInstanceInstall : IPageView
             return Lang.Text("Download.Install.State.Getting");
         switch (loader.State.LoadingState)
         {
-            case MyLoading.MyLoadingState.Run:
+            case LoadingState.Run:
             {
                 return Lang.Text("Download.Install.State.Getting");
             }
-            case MyLoading.MyLoadingState.Error:
+            case LoadingState.Error:
             {
                 var message = ((Loading.LoaderBase)loader.State).Error.Message;
                 return message == Lang.Text("Download.Install.State.NoVersion") ? Lang.Text("Download.Install.State.NoVersion") : Lang.Text("Download.Install.State.GetFailed", message);
             }
-            case MyLoading.MyLoadingState.Unloaded:
+            case LoadingState.Unloaded:
             {
                 return Lang.Text("Download.Install.State.UnknownUnloaded");
             }
@@ -292,9 +292,9 @@ public partial class PageInstanceInstall : IPageView
         }
 
         // 启动 Fabric API、Legacy Fabric API、OptiFabric 加载
-        GameDownload.DlFabricApiLoader.Start();
-        GameDownload.DlLegacyFabricApiLoader.Start();
-        GameDownload.DlOptiFabricLoader.Start();
+        CompDownloadLoaders.DlFabricApiLoader.Start();
+        CompDownloadLoaders.DlLegacyFabricApiLoader.Start();
+        CompDownloadLoaders.DlOptiFabricLoader.Start();
 
         Animations.AniStart(new[]
         {
@@ -1009,7 +1009,7 @@ public partial class PageInstanceInstall : IPageView
 
     private object GetCurrentFabricApi() // 进入页面和联网加载时调用
     {
-        var loaderOutput = GameDownload.DlFabricApiLoader.output;
+        var loaderOutput = CompDownloadLoaders.DlFabricApiLoader.output;
         if (loaderOutput is null)
             return null; // 确保联网信息已加载
         var localComp = LocalComp.GetModLocalCompByKeywords(PageInstanceLeft.McInstance,
@@ -1031,7 +1031,7 @@ public partial class PageInstanceInstall : IPageView
 
     private object GetCurrentLegacyFabricApi() // 进入页面和联网加载时调用
     {
-        var loaderOutput = GameDownload.DlLegacyFabricApiLoader.output;
+        var loaderOutput = CompDownloadLoaders.DlLegacyFabricApiLoader.output;
         if (loaderOutput is null)
             return null; // 确保联网信息已加载
         var localComp = LocalComp.GetModLocalCompByKeywords(PageInstanceLeft.McInstance,
@@ -1053,7 +1053,7 @@ public partial class PageInstanceInstall : IPageView
 
     private object GetCurrentOptiFabric()
     {
-        var loaderOutput = GameDownload.DlOptiFabricLoader.output;
+        var loaderOutput = CompDownloadLoaders.DlOptiFabricLoader.output;
         if (loaderOutput is null)
             return null;
         var localComp =
@@ -1359,9 +1359,9 @@ public partial class PageInstanceInstall : IPageView
     {
         if (_selectedLoaderType is ModLoaderType.NeoForge or ModLoaderType.LabyMod or ModLoaderType.Cleanroom)
             return Lang.Text("Download.Install.Compat.IncompatibleWithLoader", _selectedLoaderType);
-        if (LoadOptiFine is null || LoadOptiFine.State.LoadingState == MyLoading.MyLoadingState.Run)
+        if (LoadOptiFine is null || LoadOptiFine.State.LoadingState == LoadingState.Run)
             return Lang.Text("Download.Install.State.Loading");
-        if (LoadOptiFine.State.LoadingState == MyLoading.MyLoadingState.Error)
+        if (LoadOptiFine.State.LoadingState == LoadingState.Error)
             return $"{Lang.Text("Download.Install.State.GetVersionListFailed")}{((Loading.LoaderBase)LoadOptiFine.State).Error.Message}";
         // 检查 Forge 1.13 - 1.14.3：全部不兼容
         if (_selectedLoaderType == ModLoaderType.Forge && McVersionComparer.CompareVersion(_vanillaName, "1.13") >= 0 &&
@@ -1426,7 +1426,7 @@ public partial class PageInstanceInstall : IPageView
     {
         try
         {
-            if (GameDownload.DlOptiFineListLoader.State != Common.LoadState.Finished)
+            if (GameDownload.DlOptiFineListLoader.State != LoadState.Finished)
                 return;
 
             // 获取版本列表
@@ -1528,7 +1528,7 @@ public partial class PageInstanceInstall : IPageView
     {
         try
         {
-            if (GameDownload.DlLiteLoaderListLoader.State != Common.LoadState.Finished)
+            if (GameDownload.DlLiteLoaderListLoader.State != LoadState.Finished)
                 return;
             // 获取版本列表
             var versions = new List<GameDownload.DlLiteLoaderListEntry>();
@@ -1627,7 +1627,7 @@ public partial class PageInstanceInstall : IPageView
             var loader = (Loading.LoaderTask<string, List<GameDownload.DlForgeVersionEntry>>)LoadForge.State;
             if ((_vanillaName ?? "") != (loader.input ?? ""))
                 return;
-            if (loader.State != Common.LoadState.Finished)
+            if (loader.State != LoadState.Finished)
                 return;
             // 获取要显示的版本
             var versions = loader.output.ToList(); // 复制数组，以免 Output 在实例化后变空
@@ -1719,7 +1719,7 @@ public partial class PageInstanceInstall : IPageView
         try
         {
             // 获取版本列表
-            if (GameDownload.DlNeoForgeListLoader.State != Common.LoadState.Finished)
+            if (GameDownload.DlNeoForgeListLoader.State != LoadState.Finished)
                 return;
             var versions = GameDownload.DlNeoForgeListLoader.output.Value
                 .Where(v => (v.Inherit ?? "") == (_vanillaName ?? "")).ToList();
@@ -1806,7 +1806,7 @@ public partial class PageInstanceInstall : IPageView
         try
         {
             // 获取版本列表
-            if (GameDownload.DlCleanroomListLoader.State != Common.LoadState.Finished)
+            if (GameDownload.DlCleanroomListLoader.State != LoadState.Finished)
                 return;
             var versions = GameDownload.DlCleanroomListLoader.output.Value
                 .Where(v => (v.Inherit ?? "") == (_vanillaName ?? "")).ToList();
@@ -1895,7 +1895,7 @@ public partial class PageInstanceInstall : IPageView
     {
         try
         {
-            if (GameDownload.DlFabricListLoader.State != Common.LoadState.Finished)
+            if (GameDownload.DlFabricListLoader.State != LoadState.Finished)
                 return;
             // 获取版本列表
             var versions = (JsonArray)GameDownload.DlFabricListLoader.output.Value["loader"];
@@ -2016,10 +2016,10 @@ public partial class PageInstanceInstall : IPageView
         // 检查 Loader
         if (GetLoaderError(LoadFabricApi) is not null)
             return GetLoaderError(LoadFabricApi);
-        if (GameDownload.DlFabricApiLoader.output is null)
+        if (CompDownloadLoaders.DlFabricApiLoader.output is null)
             return selectedFabric is null ? Lang.Text("Download.Install.Compat.RequiresFabric") : Lang.Text("Download.Install.State.Getting");
         // 检查版本
-        if (GameDownload.DlFabricApiLoader.output.Any(f => IsFabricApiCompatible(f)))
+        if (CompDownloadLoaders.DlFabricApiLoader.output.Any(f => IsFabricApiCompatible(f)))
             return selectedFabric is null ? Lang.Text("Download.Install.Compat.RequiresFabric") : null;
 
         return Lang.Text("Download.Install.State.NoVersion");
@@ -2041,13 +2041,13 @@ public partial class PageInstanceInstall : IPageView
     {
         try
         {
-            if (GameDownload.DlFabricApiLoader.State != Common.LoadState.Finished)
+            if (CompDownloadLoaders.DlFabricApiLoader.State != LoadState.Finished)
                 return;
             if (_vanillaName is null || selectedFabric is null)
                 return;
             // 获取版本列表
             var versions = new List<Comp.CompFile>();
-            foreach (var version in GameDownload.DlFabricApiLoader.output)
+            foreach (var version in CompDownloadLoaders.DlFabricApiLoader.output)
                 if (IsFabricApiCompatible(version))
                 {
                     if (!version.DisplayName.StartsWith("["))
@@ -2123,9 +2123,9 @@ public partial class PageInstanceInstall : IPageView
     /// </summary>
     private string LoadLegacyFabricGetError()
     {
-        if (LoadLegacyFabric is null || LoadLegacyFabric.State.LoadingState == MyLoading.MyLoadingState.Run)
+        if (LoadLegacyFabric is null || LoadLegacyFabric.State.LoadingState == LoadingState.Run)
             return Lang.Text("Download.Install.State.Loading");
-        if (LoadLegacyFabric.State.LoadingState == MyLoading.MyLoadingState.Error)
+        if (LoadLegacyFabric.State.LoadingState == LoadingState.Error)
             return Lang.Text("Download.Install.State.GetVersionListFailed", ((Loading.LoaderBase)LoadLegacyFabric.State).Error.Message);
         foreach (JsonObject Version in GameDownload.DlLegacyFabricListLoader.output.Value["game"].AsArray())
             if ((Version["version"].ToString() ?? "") == (_vanillaName ?? ""))
@@ -2154,7 +2154,7 @@ public partial class PageInstanceInstall : IPageView
     {
         try
         {
-            if (GameDownload.DlLegacyFabricListLoader.State != Common.LoadState.Finished)
+            if (GameDownload.DlLegacyFabricListLoader.State != LoadState.Finished)
                 return;
             // 获取版本列表
             var versions = (JsonArray)GameDownload.DlLegacyFabricListLoader.output.Value["loader"];
@@ -2230,20 +2230,20 @@ public partial class PageInstanceInstall : IPageView
     /// </summary>
     private string LoadLegacyFabricApiGetError()
     {
-        if (LoadLegacyFabricApi is null || LoadLegacyFabricApi.State.LoadingState == MyLoading.MyLoadingState.Run)
+        if (LoadLegacyFabricApi is null || LoadLegacyFabricApi.State.LoadingState == LoadingState.Run)
             return Lang.Text("Download.Install.State.Loading");
-        if (LoadLegacyFabricApi.State.LoadingState == MyLoading.MyLoadingState.Error)
+        if (LoadLegacyFabricApi.State.LoadingState == LoadingState.Error)
             return Lang.Text("Download.Install.State.GetVersionListFailed", ((Loading.LoaderBase)LoadLegacyFabricApi.State).Error.Message);
         if (selectedAPIName is not null && !ReferenceEquals(selectedAPIName, "Legacy Fabric API"))
             return Lang.Text("Download.Install.Compat.IncompatibleWithLoader", selectedAPIName);
-        if (GameDownload.DlLegacyFabricApiLoader.output is null)
+        if (CompDownloadLoaders.DlLegacyFabricApiLoader.output is null)
         {
             if (selectedLegacyFabric is null)
                 return Lang.Text("Download.Install.Compat.RequiresLegacyFabric");
             return Lang.Text("Download.Install.State.Loading");
         }
 
-        foreach (var Version in GameDownload.DlLegacyFabricApiLoader.output)
+        foreach (var Version in CompDownloadLoaders.DlLegacyFabricApiLoader.output)
         {
             if (!IsSuitableLegacyFabricApi(Version.GameVersions, _vanillaName))
                 continue;
@@ -2271,13 +2271,13 @@ public partial class PageInstanceInstall : IPageView
     {
         try
         {
-            if (GameDownload.DlLegacyFabricApiLoader.State != Common.LoadState.Finished)
+            if (CompDownloadLoaders.DlLegacyFabricApiLoader.State != LoadState.Finished)
                 return;
             if (_vanillaName is null || selectedLegacyFabric is null)
                 return;
             // 获取版本列表
             var versions = new List<Comp.CompFile>();
-            foreach (var Version in GameDownload.DlLegacyFabricApiLoader.output)
+            foreach (var Version in CompDownloadLoaders.DlLegacyFabricApiLoader.output)
                 if (IsSuitableLegacyFabricApi(Version.GameVersions, _vanillaName))
                     versions.Add(Version);
 
@@ -2367,7 +2367,7 @@ public partial class PageInstanceInstall : IPageView
         if (GetLoaderError(LoadOptiFabric) is not null)
             return GetLoaderError(LoadOptiFabric);
         // 检查版本
-        if (GameDownload.DlOptiFabricLoader.output is null)
+        if (CompDownloadLoaders.DlOptiFabricLoader.output is null)
         {
             if (selectedFabric is null && selectedOptiFine is null)
                 return Lang.Text("Download.Install.Compat.RequiresOptiFineAndFabric");
@@ -2378,7 +2378,7 @@ public partial class PageInstanceInstall : IPageView
             return Lang.Text("Download.Install.State.Getting");
         }
 
-        foreach (var version in GameDownload.DlOptiFabricLoader.output)
+        foreach (var version in CompDownloadLoaders.DlOptiFabricLoader.output)
         {
             if (!IsOptiFabricCompatible(version))
                 continue; // 2135#
@@ -2408,13 +2408,13 @@ public partial class PageInstanceInstall : IPageView
     {
         try
         {
-            if (GameDownload.DlOptiFabricLoader.State != Common.LoadState.Finished)
+            if (CompDownloadLoaders.DlOptiFabricLoader.State != LoadState.Finished)
                 return;
             if (_vanillaName is null || selectedFabric is null || selectedOptiFine is null)
                 return;
             // 获取版本列表
             var versions = new List<Comp.CompFile>();
-            foreach (var Version in GameDownload.DlOptiFabricLoader.output)
+            foreach (var Version in CompDownloadLoaders.DlOptiFabricLoader.output)
                 if (IsOptiFabricCompatible(Version))
                     versions.Add(Version);
             if (!versions.Any())
@@ -2474,9 +2474,9 @@ public partial class PageInstanceInstall : IPageView
     /// </summary>
     private string LoadLabyModGetError()
     {
-        if (LoadLabyMod is null || LoadLabyMod.State.LoadingState == MyLoading.MyLoadingState.Run)
+        if (LoadLabyMod is null || LoadLabyMod.State.LoadingState == LoadingState.Run)
             return Lang.Text("Download.Install.State.Loading");
-        if (LoadLabyMod.State.LoadingState == MyLoading.MyLoadingState.Error)
+        if (LoadLabyMod.State.LoadingState == LoadingState.Error)
             return Lang.Text("Download.Install.State.GetVersionListFailed", ((Loading.LoaderBase)LoadLabyMod.State).Error.Message);
         // 检查 Loader
         if (GetLoaderError(LoadLabyMod) is not null)
@@ -2510,7 +2510,7 @@ public partial class PageInstanceInstall : IPageView
     {
         try
         {
-            if (LoadLabyMod.State.LoadingState == MyLoading.MyLoadingState.Run)
+            if (LoadLabyMod.State.LoadingState == LoadingState.Run)
                 return;
             // 获取版本列表
             var versions = GameDownload.DlLabyModListLoader.output.Value;

@@ -57,11 +57,20 @@ public static class ThemeManager
             var tone = ThemeService.CurrentTone;
             var darkLight = IsDarkMode ? 0.2d : 1d;
             brush.GradientStops.Add(new GradientStop
-                { Offset = -0.1d, Color = LabColor.FromLch(0.84d * darkLight, tone.C5, hue1) });
+            {
+                Offset = -0.1d,
+                Color = LabColor.FromLch(0.84d * darkLight, tone.C5, hue1).ToWpfColor()
+            });
             brush.GradientStops.Add(new GradientStop
-                { Offset = 0.4d, Color = LabColor.FromLch(0.96d * darkLight, tone.C7, hue) });
+            {
+                Offset = 0.4d,
+                Color = LabColor.FromLch(0.96d * darkLight, tone.C7, hue).ToWpfColor()
+            });
             brush.GradientStops.Add(new GradientStop
-                { Offset = 1.1d, Color = LabColor.FromLch(0.84d * darkLight, tone.C5, hue2) });
+            {
+                Offset = 1.1d,
+                Color = LabColor.FromLch(0.84d * darkLight, tone.C5, hue2).ToWpfColor()
+            });
             Launcher.frmMain.PanForm.Background = brush;
         }
         else

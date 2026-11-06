@@ -19,19 +19,19 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
     #region 初始化
 
     private readonly PageInstanceSavesDatapackViewModel _vm = new();
-    private readonly MyLocalCompItem.SwipeSelect currentSwipSelect;
-    private readonly Dictionary<string, MyLocalCompItem> datapackItems = new();
-    private readonly object sortLock = new();
+    private readonly MyLocalCompItem.SwipeSelect _currentSwipSelect;
+    private readonly Dictionary<string, MyLocalCompItem> _datapackItems = [];
+    private readonly Lock _sortLock = new();
     private bool _refreshed;
     private bool _syncingFilter;
-    private bool isLoad;
-    private int bottomBarShownCount;
+    private bool _isLoad;
+    private int _bottomBarShownCount;
 
     public PageInstanceSavesDatapackViewModel ViewModel => _vm;
 
     public PageInstanceSavesDatapack()
     {
-        currentSwipSelect = new MyLocalCompItem.SwipeSelect { TargetFrm = this };
+        _currentSwipSelect = new MyLocalCompItem.SwipeSelect { TargetFrm = this };
 
         InitializeComponent();
         DataContext = _vm;
@@ -41,7 +41,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
     }
 
     // Handles
-    private void Load_StateChanged(object sender, MyLoading.MyLoadingState state, MyLoading.MyLoadingState oldState) =>
+    private void Load_StateChanged(object sender, LoadingState state, LoadingState oldState) =>
         UnselectedAllWithAnimation();
 
     private void Page_Unloaded(object sender, RoutedEventArgs e)
@@ -75,24 +75,26 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
         Animations.AniEndControl();
 
         // 非重复加载部分
-        if (isLoad)
+        if (_isLoad)
             return;
-        isLoad = true;
+        _isLoad = true;
 
         Launcher.frmMain.KeyDown += FrmMain_KeyDown;
         // 调整按钮边距（这玩意儿没法从 XAML 改）
-        foreach (MyRadioButton Btn in PanFilter.Children)
-            Btn.LabText.Margin = new Thickness(-2, 0d, 8d, 0d);
+        foreach (MyRadioButton btn in PanFilter.Children)
+            btn.LabText.Margin = new Thickness(-2, 0d, 8d, 0d);
     }
 
     private LocalComp.CompLocalLoaderData GetRequireLoaderData()
     {
-        var res = new LocalComp.CompLocalLoaderData();
-        res.gameVersion = PageInstanceLeft.McInstance;
-        res.frm = null;
-        res.loaders = new[] { Comp.CompLoaderType.Minecraft }.ToList();
-        res.compPath = Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks");
-        res.compType = Comp.CompType.DataPack;
+        var res = new LocalComp.CompLocalLoaderData
+        {
+            gameVersion = PageInstanceLeft.McInstance,
+            frm = null,
+            loaders = [Comp.CompLoaderType.Minecraft],
+            compPath = Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks"),
+            compType = Comp.CompType.DataPack
+        };
         return res;
     }
 
@@ -114,7 +116,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
                 SyncFilterRadios();
                 PanBack.ScrollToHome();
                 _vm.SearchText = "";
-                RefreshUI();
+                RefreshUi();
             });
         }
     }
@@ -126,19 +128,19 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
 
     public void Refresh()
     {
-        Launcher.frmInstanceSavesDatapack.ReloadDatapackFileList(true);
+        Launcher.frmInstanceSavesDatapack!.ReloadDatapackFileList(true);
         Common.Log("[Datapack] 刷新数据包列表");
     }
 
     private void LoaderInit()
     {
         PageLoaderInit(Load, PanLoad, PanAllBack, null, LocalComp.CompResourceListLoader,
-            _ => LoadUIFromLoaderOutput(), () => Comp.CompType.DataPack, false);
+            _ => LoadUiFromLoaderOutput(), () => Comp.CompType.DataPack, false);
     }
 
     private void Load_Click(object sender, MouseButtonEventArgs e)
     {
-        if (LocalComp.CompResourceListLoader.State == Common.LoadState.Failed)
+        if (LocalComp.CompResourceListLoader.State == LoadState.Failed)
             LoaderRun(Loading.LoaderFolderRunType.ForceRun);
     }
 
@@ -153,19 +155,19 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
 
     #region UI 化
 
-    private void LoadUIFromLoaderOutput()
+    private void LoadUiFromLoaderOutput()
     {
         try
         {
-            _vm.ShowDatapacks = LocalComp.CompResourceListLoader.output.Any();
+            _vm.ShowDatapacks = LocalComp.CompResourceListLoader.output!.Any();
             if (!_vm.ShowDatapacks)
                 return;
 
-            datapackItems.Clear();
-            var itemsToShow = LocalComp.CompResourceListLoader.output.ToList();
+            _datapackItems.Clear();
+            var itemsToShow = LocalComp.CompResourceListLoader.output!.ToList();
 
-            foreach (var DatapackEntity in itemsToShow)
-                datapackItems[DatapackEntity.RawPath] = BuildLocalCompItem(DatapackEntity);
+            foreach (var datapackEntity in itemsToShow)
+                _datapackItems[datapackEntity.RawPath] = BuildLocalCompItem(datapackEntity);
 
             Common.RunInUi(() =>
             {
@@ -173,7 +175,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
                 SyncFilterRadios();
                 _vm.SearchText = "";
                 _vm.SetSortMethod(SortMethod.CompName);
-                RefreshUI();
+                RefreshUi();
             });
         }
         catch (Exception ex)
@@ -196,10 +198,10 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
                 SnapsToDevicePixels = true,
                 Entry = entry,
                 buttonHandler = BuildLocalCompItemBtnHandler,
-                Checked = _vm.SelectedDatapacks.Contains(entry.RawPath)
+                Checked = _vm.SelectedDatapacks.Contains(entry.RawPath),
+                CurrentSwipe = _currentSwipSelect,
+                Tags = entry.Tags
             };
-            newItem.CurrentSwipe = currentSwipSelect;
-            newItem.Tags = entry.Tags;
             entry.OnCompUpdate += _ => newItem.Refresh();
             newItem.Refresh();
             Animations.AniEndControl();
@@ -219,31 +221,46 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
         sender.Changed += (ss, e) => CheckChanged((MyLocalCompItem)ss, e);
 
         // 文件项的点击事件：切换选中状态
-        sender.Click += (ss, e) =>
+        sender.Click += (ss, _) =>
         {
             var s = (MyLocalCompItem)ss;
             s.Checked = !s.Checked;
         };
 
         // 图标按钮
-        var btnOpen = new MyIconButton { LogoScale = 1.05d, SvgIcon = "lucide/folder-open", Tag = sender };
-        btnOpen.ToolTip = Lang.Text("Instance.Saves.OpenFileLocation");
+        var btnOpen = new MyIconButton
+        {
+            LogoScale = 1.05d,
+            SvgIcon = "lucide/folder-open",
+            Tag = sender,
+            ToolTip = Lang.Text("Instance.Saves.OpenFileLocation")
+        };
         ToolTipService.SetPlacement(btnOpen, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnOpen, 30d);
         ToolTipService.SetHorizontalOffset(btnOpen, 2d);
         btnOpen.Command = _vm.OpenFileLocationCommand;
         btnOpen.CommandParameter = sender.Entry;
 
-        var btnCont = new MyIconButton { LogoScale = 1d, SvgIcon = "lucide/info", Tag = sender };
-        btnCont.ToolTip = Lang.Text("Instance.Saves.Detail");
+        var btnCont = new MyIconButton
+        {
+            LogoScale = 1d,
+            SvgIcon = "lucide/info",
+            Tag = sender,
+            ToolTip = Lang.Text("Instance.Saves.Detail")
+        };
         ToolTipService.SetPlacement(btnCont, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnCont, 30d);
         ToolTipService.SetHorizontalOffset(btnCont, 2d);
         btnCont.Click += Info_Click;
         sender.MouseRightButtonUp += Info_Click;
 
-        var btnDelete = new MyIconButton { LogoScale = 1d, SvgIcon = "lucide/trash-2", Tag = sender };
-        btnDelete.ToolTip = Lang.Text("Common.Action.Delete");
+        var btnDelete = new MyIconButton
+        {
+            LogoScale = 1d,
+            SvgIcon = "lucide/trash-2",
+            Tag = sender,
+            ToolTip = Lang.Text("Common.Action.Delete")
+        };
         ToolTipService.SetPlacement(btnDelete, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnDelete, 30d);
         ToolTipService.SetHorizontalOffset(btnDelete, 2d);
@@ -251,34 +268,44 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
 
         if (sender.Entry.State == LocalComp.LocalCompFile.LocalFileStatus.Fine)
         {
-            var btnDisable = new MyIconButton { LogoScale = 1d, SvgIcon = "lucide/circle-minus", Tag = sender };
-            btnDisable.ToolTip = Lang.Text("Instance.Resource.Disable");
+            var btnDisable = new MyIconButton
+            {
+                LogoScale = 1d,
+                SvgIcon = "lucide/circle-minus",
+                Tag = sender,
+                ToolTip = Lang.Text("Instance.Resource.Disable")
+            };
             ToolTipService.SetPlacement(btnDisable, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(btnDisable, 30d);
             ToolTipService.SetHorizontalOffset(btnDisable, 2d);
             btnDisable.Click += (ss, e) => Disable_Click((MyIconButton)ss, e);
-            sender.Buttons = new[] { btnCont, btnOpen, btnDisable, btnDelete };
+            sender.Buttons = [btnCont, btnOpen, btnDisable, btnDelete];
         }
         else if (sender.Entry.State == LocalComp.LocalCompFile.LocalFileStatus.Disabled)
         {
-            var btnEnable = new MyIconButton { LogoScale = 1d, SvgIcon = "lucide/circle-check", Tag = sender };
-            btnEnable.ToolTip = Lang.Text("Instance.Resource.Enable");
+            var btnEnable = new MyIconButton
+            {
+                LogoScale = 1d,
+                SvgIcon = "lucide/circle-check",
+                Tag = sender,
+                ToolTip = Lang.Text("Instance.Resource.Enable")
+            };
             ToolTipService.SetPlacement(btnEnable, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(btnEnable, 30d);
             ToolTipService.SetHorizontalOffset(btnEnable, 2d);
             btnEnable.Click += (ss, e) => Enable_Click((MyIconButton)ss, e);
-            sender.Buttons = new[] { btnCont, btnOpen, btnEnable, btnDelete };
+            sender.Buttons = [btnCont, btnOpen, btnEnable, btnDelete];
         }
         else
         {
-            sender.Buttons = new[] { btnCont, btnOpen, btnDelete };
+            sender.Buttons = [btnCont, btnOpen, btnDelete];
         }
     }
 
     /// <summary>
     ///     刷新整个 UI。
     /// </summary>
-    public void RefreshUI()
+    public void RefreshUi()
     {
         if (PanList is null)
             return;
@@ -288,19 +315,19 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
         if (_vm.VisibleEntries.Count > 0)
         {
             PanList.Children.Clear();
-            foreach (var TargetDatapack in _vm.VisibleEntries)
+            foreach (var targetDatapack in _vm.VisibleEntries)
             {
-                if (!datapackItems.TryGetValue(TargetDatapack.RawPath, out var item))
+                if (!_datapackItems.TryGetValue(targetDatapack.RawPath, out var item))
                     continue;
 
                 // 确保元素没有父容器，避免重复添加异常
-                if (item.Parent is not null) ((Panel)item.Parent).Children.Remove(item);
+                ((Panel)item.Parent)?.Children.Remove(item);
 
                 TextStyles.MinecraftFormatter.SetColorfulTextLab(item.LabTitle.Text, item.LabTitle,
                     ThemeService.IsDarkMode);
                 TextStyles.MinecraftFormatter.SetColorfulTextLab(item.LabInfo.Text, item.LabInfo,
                     ThemeService.IsDarkMode);
-                item.Checked = _vm.SelectedDatapacks.Contains(TargetDatapack.RawPath); // 更新选中状态
+                item.Checked = _vm.SelectedDatapacks.Contains(targetDatapack.RawPath); // 更新选中状态
                 PanList.Children.Add(item);
             }
         }
@@ -323,13 +350,13 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
             if (selected)
             {
                 // 仅在数量增加时播放出现/跳跃动画
-                if (bottomBarShownCount >= _vm.SelectedCount)
+                if (_bottomBarShownCount >= _vm.SelectedCount)
                 {
-                    bottomBarShownCount = _vm.SelectedCount;
+                    _bottomBarShownCount = _vm.SelectedCount;
                     return;
                 }
 
-                bottomBarShownCount = _vm.SelectedCount;
+                _bottomBarShownCount = _vm.SelectedCount;
                 // 出现/跳跃动画
                 CardSelect.Visibility = Visibility.Visible;
                 Animations.AniStart(
@@ -347,9 +374,9 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
             else
             {
                 // 不重复播放隐藏动画
-                if (bottomBarShownCount == 0)
+                if (_bottomBarShownCount == 0)
                     return;
-                bottomBarShownCount = 0;
+                _bottomBarShownCount = 0;
                 // 隐藏动画
                 Animations.AniStart(
                     new[]
@@ -364,7 +391,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
         else
         {
             Animations.AniStop("Datapack Sidebar");
-            bottomBarShownCount = _vm.SelectedCount;
+            _bottomBarShownCount = _vm.SelectedCount;
             if (selected)
             {
                 CardSelect.Visibility = Visibility.Visible;
@@ -409,7 +436,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
     /// </summary>
     public static void InstallDatapackFiles(IEnumerable<string> filePathList)
     {
-        _ = PageInstanceSavesDatapackViewModel.InstallFilesAsync(filePathList.ToList());
+        _ = PageInstanceSavesDatapackViewModel.InstallFilesAsync([.. filePathList]);
     }
 
     /// <summary>
@@ -442,12 +469,12 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
     {
         Animations.AniBeginControl();
         _vm.ClearSelection();
-        foreach (var Item in datapackItems.Values)
+        foreach (var item in _datapackItems.Values)
         {
-            var shouldSelected = value && PanList.Children.Contains(Item);
-            Item.Checked = shouldSelected;
+            var shouldSelected = value && PanList.Children.Contains(item);
+            item.Checked = shouldSelected;
             if (shouldSelected)
-                _vm.SetSelected(Item.Entry.RawPath, true);
+                _vm.SetSelected(item.Entry.RawPath, true);
         }
 
         Animations.AniEndControl();
@@ -529,7 +556,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
         if (_syncingFilter)
             return;
         _vm.Filter = (FilterType)Convert.ToInt32(sender.Tag);
-        RefreshUI();
+        RefreshUi();
         DoSort();
     }
 
@@ -548,8 +575,10 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
         var body = new ContextMenu();
         foreach (SortMethod i in Enum.GetValues(typeof(SortMethod)))
         {
-            var item = new MyMenuItem();
-            item.Header = _vm.GetSortName(i);
+            var item = new MyMenuItem
+            {
+                Header = _vm.GetSortName(i)
+            };
             item.Click += (_, _) => SetSortMethod(i);
             body.Items.Add(item);
         }
@@ -561,7 +590,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
 
     private void DoSort()
     {
-        lock (sortLock)
+        lock (_sortLock)
         {
             try
             {
@@ -578,7 +607,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
                 // 仅对有效项进行排序
                 valid.Sort((x, y) => method(x.Entry, y.Entry));
                 // 合并保持无效项的原始顺序
-                items = valid.Concat(invalid).ToList();
+                items = [.. valid, .. invalid];
 
                 // 批量更新UI元素
                 PanList.Children.Clear();
@@ -606,8 +635,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
         try
         {
             await ToggleDatapacksAsync(
-                LocalComp.CompResourceListLoader.output.Where(m => _vm.SelectedDatapacks.Contains(m.RawPath))
-                    .ToList(), true);
+                [.. LocalComp.CompResourceListLoader.output!.Where(m => _vm.SelectedDatapacks.Contains(m.RawPath))], true).ConfigureAwait(true);
             ChangeAllSelected(false);
         }
         catch (Exception ex)
@@ -626,8 +654,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
         try
         {
             await ToggleDatapacksAsync(
-                LocalComp.CompResourceListLoader.output.Where(m => _vm.SelectedDatapacks.Contains(m.RawPath))
-                    .ToList(), false);
+                [.. LocalComp.CompResourceListLoader.output!.Where(m => _vm.SelectedDatapacks.Contains(m.RawPath))], false).ConfigureAwait(true);
             ChangeAllSelected(false);
         }
         catch (Exception ex)
@@ -645,17 +672,17 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
     /// </summary>
     private async Task ToggleDatapacksAsync(IEnumerable<LocalComp.LocalCompFile> datapackList, bool isEnable)
     {
-        var outcome = await _vm.ToggleDatapacksAsync(datapackList, isEnable);
+        var outcome = await _vm.ToggleDatapacksAsync(datapackList, isEnable).ConfigureAwait(true);
 
-        foreach (var (OldEntry, NewEntry) in outcome.Replaced)
+        foreach (var (oldEntry, newEntry) in outcome.Replaced)
         {
             // 更改 UI 中的列表
             try
             {
-                var newItem = BuildLocalCompItem(NewEntry);
-                datapackItems[OldEntry.RawPath] = newItem;
+                var newItem = BuildLocalCompItem(newEntry);
+                _datapackItems[oldEntry.RawPath] = newItem;
                 var indexOfUi = PanList.Children.IndexOf(PanList.Children.OfType<MyLocalCompItem>()
-                    .FirstOrDefault(i => ReferenceEquals(i.Entry, OldEntry)));
+                    .FirstOrDefault(i => ReferenceEquals(i.Entry, oldEntry)));
                 if (indexOfUi == -1)
                     continue;
                 PanList.Children.RemoveAt(indexOfUi);
@@ -665,7 +692,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
             {
                 Common.Log(
                     ex,
-                    $"更新 UI 列表项失败：{OldEntry.FileName}",
+                    $"更新 UI 列表项失败：{oldEntry.FileName}",
                     Common.LogLevel.Hint,
                     userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
             }
@@ -677,7 +704,8 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
             return;
         }
 
-        Dispatcher.Invoke(() => PanList.UpdateLayout(), DispatcherPriority.Background);
+        // 排队中的布局/渲染会先执行完，这里不需要再插入一次同步布局传递。
+        await Dispatcher.Yield(DispatcherPriority.Background);
 
         if (outcome.IsSuccessful)
         {
@@ -697,11 +725,11 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
     {
         try
         {
-            var updateList = LocalComp.CompResourceListLoader.output
+            var updateList = LocalComp.CompResourceListLoader.output!
                 .Where(m => _vm.SelectedDatapacks.Contains(m.RawPath) && m.CanUpdate).ToList();
             if (!updateList.Any())
                 return;
-            await UpdateResourceAsync(updateList);
+            await UpdateResourceAsync(updateList).ConfigureAwait(true);
             ChangeAllSelected(false);
         }
         catch (Exception ex)
@@ -730,12 +758,12 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
                     Buttons = DialogButtons.Create("Instance.Saves.Datapack.Update.Warning.Confirm", "Common.Action.Cancel"),
                     IsWarn = true,
                     ForceWait = false
-                })).Button)
+                }).ConfigureAwait(true)).Button)
                     return;
                 States.Hint.FunctionDatapackUpdate = true;
             }
 
-            if (await _vm.UpdateAsync(list))
+            if (await _vm.UpdateAsync(list).ConfigureAwait(true))
                 ReloadDatapackFileList(true);
         }
         catch (Exception ex)
@@ -747,7 +775,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
     // 删除
     private void BtnSelectDelete_Click(object sender, Common.RouteEventArgs e)
     {
-        _ = DeleteDatapacksAsync(LocalComp.CompResourceListLoader.output
+        _ = DeleteDatapacksAsync(LocalComp.CompResourceListLoader.output!
             .Where(m => _vm.SelectedDatapacks.Contains(m.RawPath)));
         ChangeAllSelected(false);
     }
@@ -757,7 +785,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
         try
         {
             var isShiftPressed = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
-            var outcome = await _vm.DeleteFilesAsync(datapackList, isShiftPressed);
+            var outcome = await _vm.DeleteFilesAsync(datapackList, isShiftPressed).ConfigureAwait(true);
             if (outcome.Fatal is not null)
             {
                 Common.Log(
@@ -770,11 +798,11 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
                 return;
             }
 
-            foreach (var DatapackEntity in outcome.Deleted)
+            foreach (var datapackEntity in outcome.Deleted)
             {
-                datapackItems.Remove(DatapackEntity.RawPath);
+                _datapackItems.Remove(datapackEntity.RawPath);
                 var indexOfUi = PanList.Children.IndexOf(PanList.Children.OfType<MyLocalCompItem>()
-                    .FirstOrDefault(i => i.Entry.Equals(DatapackEntity)));
+                    .FirstOrDefault(i => i.Entry.Equals(datapackEntity)));
                 if (indexOfUi >= 0)
                     PanList.Children.RemoveAt(indexOfUi);
             }
@@ -800,10 +828,11 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
 
             if (isShiftPressed)
             {
-                if (outcome.Deleted.Count == 1)
-                    HintService.Show(Hints.Success(Lang.Text("Instance.Saves.Datapack.Delete.PermanentSingle", outcome.Deleted[0].FileName)));
-                else
-                    HintService.Show(Hints.Success(Lang.Text("Instance.Saves.Datapack.Delete.PermanentMultiple", outcome.Deleted.Count)));
+                HintService.Show(outcome.Deleted.Count == 1
+                    ? Hints.Success(Lang.Text("Instance.Saves.Datapack.Delete.PermanentSingle",
+                        outcome.Deleted[0].FileName))
+                    : Hints.Success(
+                        Lang.Text("Instance.Saves.Datapack.Delete.PermanentMultiple", outcome.Deleted.Count)));
             }
             else if (outcome.Deleted.Count == 1)
             {
@@ -837,15 +866,15 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
     // 收藏
     private void BtnSelectFavorites_Click(object sender, Common.RouteEventArgs e)
     {
-        var selected = LocalComp.CompResourceListLoader.output
+        var selected = LocalComp.CompResourceListLoader.output!
             .Where(m => _vm.SelectedDatapacks.Contains(m.RawPath) && m.Comp is not null).Select(i => i.Comp).ToList();
-        Comp.CompFavorites.ShowMenu(selected, (UIElement)sender);
+        CompFavoritesUi.ShowMenu(selected, (UIElement)sender);
     }
 
     // 分享
     private void BtnSelectShare_Click(object sender, Common.RouteEventArgs e)
     {
-        var shareList = LocalComp.CompResourceListLoader.output
+        var shareList = LocalComp.CompResourceListLoader.output!
             .Where(m => _vm.SelectedDatapacks.Contains(m.RawPath) && m.Comp is not null).Select(i => i.Comp.Id)
             .ToHashSet();
         Common.ClipboardSet(Comp.CompFavorites.GetShareCode(shareList));
@@ -874,23 +903,23 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
                         datapackEntry.FileUnavailableReason.ToString()),
                     Buttons = DialogButtons.Ok,
                     ForceWait = false
-                });
+                }).ConfigureAwait(true);
                 return;
             }
 
             if (datapackEntry.Comp is not null)
             {
                 // 跳转到数据包下载页面
-                Launcher.frmMain.PageChange(new FormMain.PageStackData
+                Launcher.frmMain!.PageChange(new FormMain.PageStackData
                 {
                     page = FormMain.PageType.CompDetail,
-                    additional = (datapackEntry.Comp, new List<string>(), PageInstanceLeft.McInstance.Info.VanillaName,
+                    additional = (datapackEntry.Comp, [], PageInstanceLeft.McInstance.Info.VanillaName,
                         Comp.CompLoaderType.Minecraft, Comp.CompType.DataPack, null)
                 });
             }
             else
             {
-                await _vm.EnsureFileInfoAsync(new[] { datapackEntry.path });
+                await _vm.EnsureFileInfoAsync([datapackEntry.path]).ConfigureAwait(true);
 
                 // 获取信息
                 var contentLines = new List<string>();
@@ -921,14 +950,14 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
                         Content = contentLines.Join("\r\n"),
                         Buttons = DialogButtons.Create("Instance.Resource.Item.Info.Return"),
                         ForceWait = false
-                    });
+                    }).ConfigureAwait(true);
                 else if (1 == (await DialogService.Instance.ShowAsync(new TextDialogRequest
                 {
                     Title = datapackEntry.Name,
                     Content = contentLines.Join("\r\n"),
                     Buttons = DialogButtons.Create("Instance.Resource.Item.Info.OpenWebsite", "Instance.Resource.Item.Info.Return"),
                     ForceWait = false
-                })).Button)
+                }).ConfigureAwait(true)).Button)
                     Common.OpenWebsite(datapackEntry.Url);
             }
         }
@@ -950,21 +979,21 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
     public void Delete_Click(MyIconButton sender, EventArgs e)
     {
         var listItem = (MyLocalCompItem)sender.Tag;
-        _ = DeleteDatapacksAsync(new[] { listItem.Entry });
+        _ = DeleteDatapacksAsync([listItem.Entry]);
     }
 
     // 启用
     public void Enable_Click(MyIconButton sender, EventArgs e)
     {
         var listItem = (MyLocalCompItem)sender.Tag;
-        _ = ToggleDatapacksAsync(new[] { listItem.Entry }, true);
+        _ = ToggleDatapacksAsync([listItem.Entry], true);
     }
 
     // 禁用
     public void Disable_Click(MyIconButton sender, EventArgs e)
     {
         var listItem = (MyLocalCompItem)sender.Tag;
-        _ = ToggleDatapacksAsync(new[] { listItem.Entry }, false);
+        _ = ToggleDatapacksAsync([listItem.Entry], false);
     }
 
     #endregion
@@ -981,38 +1010,40 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
             if (_vm.IsSearching)
             {
                 // 构造请求
-                var queryList = new List<Common.SearchEntry<LocalComp.LocalCompFile>>();
-                foreach (var Entry in LocalComp.CompResourceListLoader.output)
+                var queryList = new List<SearchService.SearchEntry<LocalComp.LocalCompFile>>();
+                foreach (var entry in LocalComp.CompResourceListLoader.output)
                 {
-                    var searchSource = new List<Common.SearchSource>();
-                    searchSource.Add(new Common.SearchSource(Entry.Name, 1d));
-                    searchSource.Add(new Common.SearchSource(Entry.FileName, 1d));
-                    if (Entry.Version is not null)
-                        searchSource.Add(new Common.SearchSource(Entry.Version, 0.2d));
-                    if (Entry.Description is not null && !string.IsNullOrEmpty(Entry.Description))
-                        searchSource.Add(new Common.SearchSource(Entry.Description, 0.4d));
-                    if (Entry.Comp is not null)
+                    var searchSource = new List<SearchService.SearchSource>();
+                    searchSource.Add(new SearchService.SearchSource(entry.Name, 1d));
+                    searchSource.Add(new SearchService.SearchSource(entry.FileName, 1d));
+                    if (entry.Version is not null)
+                        searchSource.Add(new SearchService.SearchSource(entry.Version, 0.2d));
+                    if (entry.Description is not null && !string.IsNullOrEmpty(entry.Description))
+                        searchSource.Add(new SearchService.SearchSource(entry.Description, 0.4d));
+                    if (entry.Comp is not null)
                     {
-                        if ((Entry.Comp.RawName ?? "") != (Entry.Name ?? ""))
-                            searchSource.Add(new Common.SearchSource(Entry.Comp.RawName, 1d));
-                        if ((Entry.Comp.TranslatedName ?? "") != (Entry.Comp.RawName ?? ""))
-                            searchSource.Add(new Common.SearchSource(Entry.Comp.TranslatedName, 1d));
-                        if ((Entry.Comp.Description ?? "") != (Entry.Description ?? ""))
-                            searchSource.Add(new Common.SearchSource(Entry.Comp.Description, 0.4d));
-                        searchSource.Add(new Common.SearchSource(string.Join("", Entry.Comp.Tags), 0.2d));
+                        if ((entry.Comp.RawName ?? "") != (entry.Name ?? ""))
+                            searchSource.Add(new SearchService.SearchSource(entry.Comp.RawName, 1d));
+                        if ((entry.Comp.TranslatedName ?? "") != (entry.Comp.RawName ?? ""))
+                            searchSource.Add(new SearchService.SearchSource(entry.Comp.TranslatedName, 1d));
+                        if ((entry.Comp.Description ?? "") != (entry.Description ?? ""))
+                            searchSource.Add(new SearchService.SearchSource(entry.Comp.Description, 0.4d));
+                        searchSource.Add(new SearchService.SearchSource(string.Join("", entry.Comp.Tags), 0.2d));
                     }
 
-                    queryList.Add(new Common.SearchEntry<LocalComp.LocalCompFile>
-                    { item = Entry, searchSource = searchSource });
+                    queryList.Add(new SearchService.SearchEntry<LocalComp.LocalCompFile>
+                    { item = entry, searchSource = searchSource });
                 }
 
                 // 进行搜索
                 _vm.SetSearchResult(
-                    Common.Search(queryList, SearchBox.Text, Common.MaxLocalSearchDepth, 0.35d)
-                        .Select(r => r.item).ToList());
+                [
+                    .. SearchService.Search(queryList, SearchBox.Text, SearchService.MaxLocalSearchDepth, 0.35d)
+                        .Select(r => r.item)
+                ]);
             }
 
-            RefreshUI();
+            RefreshUi();
         }
         catch (Exception ex)
         {

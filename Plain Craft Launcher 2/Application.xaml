@@ -4,9 +4,9 @@
              xmlns:local="clr-namespace:PCL"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:behaviors="clr-namespace:PCL.Controls.Behaviors"
-             xmlns:controls="clr-namespace:PCL.Core.UI.Controls;assembly=PCL.Core"
-             xmlns:cvt="clr-namespace:PCL.Core.UI.Converters;assembly=PCL.Core"
-             xmlns:localization="clr-namespace:PCL.Core.App.Localization;assembly=PCL.Core"
+             xmlns:controls="clr-namespace:PCL.Core.UI.Controls;assembly=PCL.Core.Wpf"
+             xmlns:cvt="clr-namespace:PCL.Core.UI.Converters;assembly=PCL.Core.Wpf"
+             xmlns:localization="clr-namespace:PCL.Core.App.Localization;assembly=PCL.Core.Wpf"
              ShutdownMode="OnExplicitShutdown">
     <Application.Resources>
         <ResourceDictionary>
@@ -207,24 +207,33 @@
                 </Setter>
             </Style>
             <Style TargetType="local:MyScrollViewer">
-                <Setter Property="OverridesDefaultStyle" Value="True" />
-                <Setter Property="CanContentScroll" Value="False" />
-                <Setter Property="PanningMode" Value="VerticalOnly" />
-                <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                <Setter Property="OverridesDefaultStyle"
+                        Value="True" />
+                <Setter Property="CanContentScroll"
+                        Value="False" />
+                <Setter Property="PanningMode"
+                        Value="VerticalOnly" />
+                <Setter Property="FocusVisualStyle"
+                        Value="{x:Null}" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="ScrollViewer">
                             <Grid>
                                 <ScrollContentPresenter x:Name="PART_ScrollContentPresenter"
                                                         CanContentScroll="{TemplateBinding CanContentScroll}"
-                                                        CanHorizontallyScroll="False" CanVerticallyScroll="False"
+                                                        CanHorizontallyScroll="False"
+                                                        CanVerticallyScroll="False"
                                                         ContentTemplate="{TemplateBinding ContentTemplate}"
-                                                        Content="{TemplateBinding Content}" Grid.Column="0"
-                                                        Margin="{TemplateBinding Padding}" Grid.Row="0" />
+                                                        Content="{TemplateBinding Content}"
+                                                        Grid.Column="0"
+                                                        Margin="{TemplateBinding Padding}"
+                                                        Grid.Row="0" />
                                 <local:MyScrollBar x:Name="PART_VerticalScrollBar"
                                                    AutomationProperties.AutomationId="VerticalScrollBar"
-                                                   Grid.Column="1" Maximum="{TemplateBinding ScrollableHeight}"
-                                                   Minimum="0" Grid.Row="0"
+                                                   Grid.Column="1"
+                                                   Maximum="{TemplateBinding ScrollableHeight}"
+                                                   Minimum="0"
+                                                   Grid.Row="0"
                                                    Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"
                                                    Value="{Binding VerticalOffset, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}"
                                                    ViewportSize="{TemplateBinding ViewportHeight}"
@@ -236,7 +245,37 @@
                     </Setter.Value>
                 </Setter>
             </Style>
-            <Style TargetType="local:PageComp" BasedOn="{StaticResource {x:Type local:MyScrollViewer}}" />
+            <Style x:Key="VirtualizedScrollViewer"
+                   TargetType="local:MyScrollViewer"
+                   BasedOn="{StaticResource {x:Type local:MyScrollViewer}}">
+                <Setter Property="CanContentScroll"
+                        Value="True" />
+                <Setter Property="EnableSmoothWheel"
+                        Value="False" />
+                <Setter Property="VerticalScrollBarVisibility"
+                        Value="Auto" />
+            </Style>
+            <Style TargetType="local:PageComp"
+                   BasedOn="{StaticResource {x:Type local:MyScrollViewer}}" />
+            <Style x:Key="VirtualizedItemsControl" TargetType="ItemsControl">
+                <Setter Property="VirtualizingPanel.IsVirtualizing" Value="True" />
+                <Setter Property="VirtualizingPanel.IsVirtualizingWhenGrouping" Value="True" />
+                <Setter Property="VirtualizingPanel.VirtualizationMode" Value="Recycling" />
+                <Setter Property="VirtualizingPanel.ScrollUnit" Value="Pixel" />
+                <Setter Property="VirtualizingPanel.CacheLength" Value="1,1" />
+                <Setter Property="VirtualizingPanel.CacheLengthUnit" Value="Page" />
+                <Setter Property="ItemsPanel">
+                    <Setter.Value>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel VirtualizingPanel.IsVirtualizing="True"
+                                                    VirtualizingPanel.VirtualizationMode="Recycling"
+                                                    VirtualizingPanel.ScrollUnit="Pixel"
+                                                    VirtualizingPanel.CacheLength="1,1"
+                                                    VirtualizingPanel.CacheLengthUnit="Page" />
+                        </ItemsPanelTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
             <Style TargetType="ScrollViewer" x:Key="ScrollViewerFullMargin">
                 <Setter Property="OverridesDefaultStyle" Value="True" />
                 <Setter Property="CanContentScroll" Value="False" />

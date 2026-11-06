@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -796,11 +796,6 @@ public static partial class Common
             }
         }
     }
-
-    /// <summary>
-    ///     指示用户手动取消了操作，或用户已知晓操作被取消的原因。
-    /// </summary>
-    public class CancelledException : Exception;
 
     /// <summary>
     ///     用于储存 RaiseByMouse 的 EventArgs。

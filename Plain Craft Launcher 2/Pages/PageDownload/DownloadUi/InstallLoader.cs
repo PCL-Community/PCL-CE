@@ -10,7 +10,7 @@ public static partial class DownloadUi
     /// <summary>
     ///     获取合并安装加载器列表，并进行前期的缓存清理与 Java 检查工作。
     /// </summary>
-    /// <exception cref="Common.CancelledException" />
+    /// <exception cref="CancelledException" />
     public static List<Loading.LoaderBase> McInstallLoader(
         McInstallRequest request,
         bool dontFixLibraries = false,
@@ -44,7 +44,7 @@ public static partial class DownloadUi
                     "Minecraft.Download.Error.InstanceAlreadyExists",
                     request.targetInstanceName,
                     "")));
-            throw new Common.CancelledException();
+            throw new CancelledException();
         }
 
         var loaderList = new List<Loading.LoaderBase>

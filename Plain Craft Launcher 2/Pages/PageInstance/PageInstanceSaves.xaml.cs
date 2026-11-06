@@ -11,10 +11,10 @@ namespace PCL;
 
 public partial class PageInstanceSaves : IRefreshable, IPageView
 {
-    private readonly DispatcherTimer fileSystemRefreshTimer;
-    private readonly DispatcherTimer searchTimer;
+    private readonly DispatcherTimer _fileSystemRefreshTimer;
+    private readonly DispatcherTimer _searchTimer;
     private readonly PageInstanceSavesViewModel _vm = new();
-    private FileSystemWatcher? fileSystemWatcher;
+    private FileSystemWatcher? _fileSystemWatcher;
     private bool _initialized;
     private bool _refreshed;
 
@@ -22,12 +22,12 @@ public partial class PageInstanceSaves : IRefreshable, IPageView
     {
         InitializeComponent();
         DataContext = _vm;
-        fileSystemRefreshTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100d) };
-        searchTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100d) };
+        _fileSystemRefreshTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100d) };
+        _searchTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100d) };
         Loaded += PageSetupLaunch_Loaded;
         Unloaded += Page_Unloaded;
-        fileSystemRefreshTimer.Tick += FileSystemRefreshTimer_Tick;
-        searchTimer.Tick += SearchTimer_Tick;
+        _fileSystemRefreshTimer.Tick += FileSystemRefreshTimer_Tick;
+        _searchTimer.Tick += SearchTimer_Tick;
     }
 
     public PageInstanceSavesViewModel ViewModel => _vm;
@@ -56,7 +56,7 @@ public partial class PageInstanceSaves : IRefreshable, IPageView
     {
         if (Launcher.frmInstanceSaves is not null)
             Launcher.frmInstanceSaves.Reload();
-        Launcher.frmInstanceLeft.ItemWorld.Checked = true;
+        Launcher.frmInstanceLeft!.ItemWorld.Checked = true;
         HintService.Show(Hints.Info(Lang.Text("Instance.Saves.Status.Refreshing"), log: false));
     }
 
@@ -92,10 +92,9 @@ public partial class PageInstanceSaves : IRefreshable, IPageView
     {
         try
         {
-            await _vm.EnsureWorldFolderAsync();
-            await _vm.LoadListAsync();
-            PanNoWorld.UpdateLayout();
-            PanContent.UpdateLayout();
+            await _vm.EnsureWorldFolderAsync().ConfigureAwait(true);
+            await _vm.LoadListAsync().ConfigureAwait(true);
+            await Dispatcher.Yield(DispatcherPriority.Loaded);
             RebuildList();
         }
         catch (Exception ex)
@@ -116,7 +115,7 @@ public partial class PageInstanceSaves : IRefreshable, IPageView
     {
         try
         {
-            await _vm.ApplySortAsync(method);
+            await _vm.ApplySortAsync(method).ConfigureAwait(true);
             RebuildList();
         }
         catch (Exception ex)
@@ -130,9 +129,8 @@ public partial class PageInstanceSaves : IRefreshable, IPageView
     {
         try
         {
-            await _vm.SearchAsync();
-            PanNoWorld.UpdateLayout();
-            PanContent.UpdateLayout();
+            await _vm.SearchAsync().ConfigureAwait(true);
+            await Dispatcher.Yield(DispatcherPriority.Loaded);
             RebuildList();
         }
         catch (Exception ex)
@@ -172,7 +170,8 @@ public partial class PageInstanceSaves : IRefreshable, IPageView
             Info = entry.Info,
             Type = MyListItem.CheckType.Clickable,
             Command = _vm.OpenDetailsCommand,
-            CommandParameter = curFolder
+            CommandParameter = curFolder,
+            LogoCornerRadius = new CornerRadius(6)
         };
 
         var btnOpen = new MyIconButton
@@ -243,49 +242,49 @@ public partial class PageInstanceSaves : IRefreshable, IPageView
 
     private void SetupFileSystemWatcher()
     {
-        fileSystemWatcher?.Dispose();
+        _fileSystemWatcher?.Dispose();
 
         var worldPath = _vm.WorldPath;
         if (!Directory.Exists(worldPath))
             Directory.CreateDirectory(worldPath);
 
-        fileSystemWatcher = new FileSystemWatcher
+        _fileSystemWatcher = new FileSystemWatcher
         {
             Path = worldPath,
             IncludeSubdirectories = false,
             NotifyFilter = NotifyFilters.DirectoryName | NotifyFilters.LastWrite
         };
-        fileSystemWatcher.Created += OnFileSystemChanged;
-        fileSystemWatcher.Deleted += OnFileSystemChanged;
-        fileSystemWatcher.Renamed += OnFileSystemChanged;
-        fileSystemWatcher.EnableRaisingEvents = true;
+        _fileSystemWatcher.Created += OnFileSystemChanged;
+        _fileSystemWatcher.Deleted += OnFileSystemChanged;
+        _fileSystemWatcher.Renamed += OnFileSystemChanged;
+        _fileSystemWatcher.EnableRaisingEvents = true;
     }
 
     private void OnFileSystemChanged(object sender, FileSystemEventArgs e)
     {
-        fileSystemRefreshTimer.Stop();
-        fileSystemRefreshTimer.Start();
+        _fileSystemRefreshTimer.Stop();
+        _fileSystemRefreshTimer.Start();
     }
 
-    private void FileSystemRefreshTimer_Tick(object sender, EventArgs e)
+    private void FileSystemRefreshTimer_Tick(object? sender, EventArgs e)
     {
-        fileSystemRefreshTimer.Stop();
+        _fileSystemRefreshTimer.Stop();
         Common.RunInUi(Reload, true);
     }
 
     private void Page_Unloaded(object sender, RoutedEventArgs e)
     {
-        if (fileSystemWatcher is not null)
+        if (_fileSystemWatcher is not null)
         {
-            fileSystemWatcher.Created -= OnFileSystemChanged;
-            fileSystemWatcher.Deleted -= OnFileSystemChanged;
-            fileSystemWatcher.Renamed -= OnFileSystemChanged;
-            fileSystemWatcher.Dispose();
-            fileSystemWatcher = null;
+            _fileSystemWatcher.Created -= OnFileSystemChanged;
+            _fileSystemWatcher.Deleted -= OnFileSystemChanged;
+            _fileSystemWatcher.Renamed -= OnFileSystemChanged;
+            _fileSystemWatcher.Dispose();
+            _fileSystemWatcher = null;
         }
 
-        fileSystemRefreshTimer.Stop();
-        searchTimer.Stop();
+        _fileSystemRefreshTimer.Stop();
+        _searchTimer.Stop();
         _refreshed = false;
     }
 
@@ -318,7 +317,7 @@ public partial class PageInstanceSaves : IRefreshable, IPageView
         };
         loader.Start(1);
         Loading.LoaderTaskbarAdd(loader);
-        Launcher.frmMain.BtnExtraDownload.ShowRefresh();
+        Launcher.frmMain!.BtnExtraDownload.ShowRefresh();
         Launcher.frmMain.BtnExtraDownload.Ribble();
     }
 
@@ -339,13 +338,13 @@ public partial class PageInstanceSaves : IRefreshable, IPageView
 
     private void SearchRun(object sender, EventArgs e)
     {
-        searchTimer.Stop();
-        searchTimer.Start();
+        _searchTimer.Stop();
+        _searchTimer.Start();
     }
 
-    private void SearchTimer_Tick(object sender, EventArgs e)
+    private void SearchTimer_Tick(object? sender, EventArgs e)
     {
-        searchTimer.Stop();
+        _searchTimer.Stop();
         _ = RefreshUiAsync();
     }
 }

@@ -34,6 +34,26 @@ public sealed class LocalizedText : INotifyPropertyChanged
     /// </summary>
     public string Value => _factory();
 
+    /// <summary>
+    ///     创建一个独立的本地化文本绑定源，用于 ViewModel 等无法通过 <see cref="Bind" /> 绑定到控件的场景。<br />
+    ///     在 XAML 中绑定到 <c>{Binding Xxx.Value}</c> 即可随语言切换自动刷新。
+    /// </summary>
+    /// <param name="factory">文本生成委托，在每次求值时调用。</param>
+    public static LocalizedText Create(Func<string> factory)
+    {
+        return new LocalizedText { _factory = factory };
+    }
+
+    /// <summary>
+    ///     替换文本生成逻辑并立即通知绑定刷新。
+    /// </summary>
+    /// <param name="factory">新的文本生成委托。</param>
+    public void SetFactory(Func<string> factory)
+    {
+        _factory = factory;
+        _RaiseChanged();
+    }
+
     /// <inheritdoc />
     public event PropertyChangedEventHandler? PropertyChanged;
 

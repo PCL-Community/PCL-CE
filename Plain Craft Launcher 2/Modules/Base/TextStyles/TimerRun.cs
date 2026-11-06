@@ -1,7 +1,7 @@
-﻿using System.Windows;
+using PCL.Core.App.Localization;
+using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Threading;
-using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -24,14 +24,23 @@ internal static partial class TextStyles
 
         public TimerRun(TimeSpan interval = default, bool autoStart = false)
         {
-            _timer = new DispatcherTimer();
-            _timer.Tick += _TimerTick;
             UpdateInterval = interval == TimeSpan.Zero
                 ? TimeSpan.FromSeconds(1d)
                 : interval;
             AutoStart = autoStart;
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;
+        }
+
+        /// <summary>首次需要计时时才创建 <see cref="DispatcherTimer" />。</summary>
+        private DispatcherTimer EnsureTimer()
+        {
+            if (_timer is not null)
+                return _timer;
+            var timer = new DispatcherTimer { Interval = UpdateInterval };
+            timer.Tick += _TimerTick;
+            _timer = timer;
+            return timer;
         }
 
         private object IsTimerRunning => _timer is not null && _timer.IsEnabled;
@@ -93,8 +102,10 @@ internal static partial class TextStyles
                 return;
             }
 
-            if (!(bool)IsTimerRunning)
-                _timer?.Start();
+            var timer = EnsureTimer();
+            timer.Interval = UpdateInterval;
+            if (!timer.IsEnabled)
+                timer.Start();
         }
 
         public void StopTimer()

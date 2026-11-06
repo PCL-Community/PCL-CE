@@ -123,7 +123,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                 Lang.Text("Instance.Saves.Datapack.Install.FileDialog.Title"));
             if (fileList.Length == 0)
                 return;
-            await InstallFilesAsync(fileList);
+            await InstallFilesAsync(fileList).ConfigureAwait(false);
             Launcher.frmInstanceSavesDatapack?.ReloadDatapackFileList(true);
             Common.Log("[Datapack] 刷新数据包列表");
         }
@@ -147,12 +147,12 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
         var datapackPath = Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks");
         Directory.CreateDirectory(datapackPath);
         PageDownloadCompDetail.cachedFolder[Comp.CompType.DataPack] = datapackPath;
-        Launcher.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadDataPack);
+        Launcher.frmMain!.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadDataPack);
         PageComp.targetVersion = PageInstanceLeft.McInstance; // 将当前实例设置为筛选器
     }
 
     [RelayCommand]
-    private async Task ExportInfo()
+    private async Task ExportInfoAsync()
     {
         ExportInfoEnabled = false;
         try
@@ -165,12 +165,12 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                     DialogButton.Create(Lang.Text("Instance.Resource.Export.Mode.Txt")),
                     DialogButton.Create(Lang.Text("Instance.Resource.Export.Mode.Csv")),
                     DialogButton.Create(Lang.Text("Common.Action.Cancel")))
-            }).ConfigureAwait(true)).Button;
+            }).ConfigureAwait(false)).Button;
             if (choice is not (1 or 2))
                 return;
 
             var isCsv = choice == 2;
-            await EnsureFileInfoAsync(LocalComp.CompResourceListLoader.output.Select(entry => entry.path)).ConfigureAwait(true);
+            await EnsureFileInfoAsync(LocalComp.CompResourceListLoader.output!.Select(entry => entry.path)).ConfigureAwait(false);
             var content = BuildExportContent(isCsv);
             var savePath = SystemDialogs.SelectSaveFile(
                 Lang.Text("Instance.Resource.Export.SelectSaveLocation"),
@@ -179,7 +179,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                 Lang.Text("Instance.Resource.Export.FilesFilter"));
             if (string.IsNullOrWhiteSpace(savePath))
                 return;
-            await WriteExportFileAsync(savePath, content).ConfigureAwait(true);
+            await WriteExportFileAsync(savePath, content).ConfigureAwait(false);
             Common.OpenExplorer(savePath);
         }
         catch (Exception ex)
@@ -215,7 +215,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
         }
     }
 
-    private readonly Dictionary<string, (DateTime CreationTime, long Length)> _fileInfoCache = new();
+    private readonly Dictionary<string, (DateTime CreationTime, long Length)> _fileInfoCache = [];
     private readonly List<LocalComp.LocalCompFile> _visibleEntries = [];
     private List<LocalComp.LocalCompFile>? _searchResult;
 
@@ -224,11 +224,11 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
         SortText = Lang.Text("Instance.Resource.Sort.Text", GetSortName(DatapackSortMethod.CompName));
     }
 
-    public static List<string> UpdatingVersions { get; } = new();
+    public static List<string> UpdatingVersions { get; } = [];
 
     public bool IsSearching => !string.IsNullOrWhiteSpace(SearchText);
 
-    public HashSet<string> SelectedDatapacks { get; } = new();
+    public HashSet<string> SelectedDatapacks { get; } = [];
 
     public IReadOnlyList<LocalComp.LocalCompFile> VisibleEntries => _visibleEntries;
 
@@ -513,14 +513,14 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
 
             Common.Log($"[System] 文件为 {extension} 格式，尝试作为数据包安装");
 
-            if (!(Launcher.frmMain.pageCurrent == FormMain.PageType.InstanceSetup &&
+            if (!(Launcher.frmMain!.pageCurrent == FormMain.PageType.InstanceSetup &&
                   Launcher.frmMain.PageCurrentSub == FormMain.PageSubType.VersionSavesDatapack))
                 if (!(await DialogService.Instance.ShowAsync(new TextDialogRequest
                 {
                     Title = Lang.Text("Instance.Saves.Datapack.Install.Title"),
                     Content = Lang.Text("Instance.Saves.Datapack.Install.Message"),
                     Buttons = DialogButtons.OkCancel
-                }).ConfigureAwait(true)).IsConfirmed)
+                }).ConfigureAwait(false)).IsConfirmed)
                     return;
 
             var datapackFolder = GetDatapackFolderPath();
@@ -538,7 +538,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                         Buttons = DialogButtons.From(
                                 DialogButton.Create(Lang.Text("Common.Action.Overwrite")),
                                 DialogButton.Create(Lang.Text("Common.Action.Cancel")))
-                    }).ConfigureAwait(true)).IsConfirmed)
+                    }).ConfigureAwait(false)).IsConfirmed)
                         continue;
 
                 copyList.Add((filePath, destFile));
@@ -549,7 +549,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                 Directory.CreateDirectory(datapackFolder);
                 foreach (var (source, destination) in copyList)
                     Common.CopyFile(source, destination);
-            }).ConfigureAwait(true);
+            }).ConfigureAwait(false);
 
             if (filePathList.Count == 1)
                 HintService.Show(Hints.Success(Lang.Text("Instance.Resource.Install.SuccessSingle",
@@ -598,7 +598,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                             Title = Lang.Text("Common.Dialog.Title"),
                             Content = Lang.Text("Instance.Saves.Datapack.Replace.FileNameConflict", Common.GetFileNameFromPath(newPath)),
                             Buttons = DialogButtons.Ok
-                        }).ConfigureAwait(true);
+                        }).ConfigureAwait(false);
                         continue;
                     }
 
@@ -676,7 +676,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
             {
                 failure = ex;
             }
-        }, ct)).ConfigureAwait(true);
+        }, ct)).ConfigureAwait(false);
 
         if (failure is not null)
             return new DatapackDeleteOutcome(deleted, false, false, failure);
@@ -707,7 +707,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
             }
 
             SelectedDatapacks.Remove(datapackEntity.RawPath);
-            LocalComp.CompResourceListLoader.output.Remove(datapackEntity);
+            LocalComp.CompResourceListLoader.output!.Remove(datapackEntity);
             _searchResult?.Remove(datapackEntity);
             deleted.Add(datapackEntity);
         }
@@ -806,7 +806,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
             {
                 switch (loader.State)
                 {
-                    case Common.LoadState.Finished:
+                    case LoadState.Finished:
                         {
                             switch (finishedFileNames.Count)
                             {
@@ -830,12 +830,12 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
 
                             break;
                         }
-                    case Common.LoadState.Failed:
+                    case LoadState.Failed:
                         {
                             HintService.Show(Hints.Error(Lang.Text("Instance.Resource.Update.Failed", loader.Error.Message)));
                             break;
                         }
-                    case Common.LoadState.Aborted:
+                    case LoadState.Aborted:
                         {
                             HintService.Show(Hints.Info(Lang.Text("Instance.Resource.Update.Aborted")));
                             break;
@@ -869,7 +869,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
             UpdatingVersions.Add(pathDatapacks);
             loader.Start();
             Loading.LoaderTaskbarAdd(loader);
-            Launcher.frmMain.BtnExtraDownload.ShowRefresh();
+            Launcher.frmMain!.BtnExtraDownload.ShowRefresh();
             Launcher.frmMain.BtnExtraDownload.Ribble();
             return true;
         }
@@ -885,13 +885,13 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
         var exportContent = new List<string>();
         if (!isCsv)
         {
-            foreach (var datapackEntity in LocalComp.CompResourceListLoader.output)
+            foreach (var datapackEntity in LocalComp.CompResourceListLoader.output!)
                 exportContent.Add(datapackEntity.FileName);
             return string.Join("\r\n", exportContent);
         }
 
         exportContent.Add("文件名,数据包名称,数据包版本,此版本更新时间,工程 ID,文件大小（字节）,文件路径");
-        foreach (var datapackEntity in LocalComp.CompResourceListLoader.output)
+        foreach (var datapackEntity in LocalComp.CompResourceListLoader.output!)
             exportContent.Add(
                 $"{datapackEntity.FileName},{datapackEntity.Comp?.TranslatedName},{datapackEntity.Version},{datapackEntity.CompFile?.ReleaseDate},{datapackEntity.Comp?.Id},{GetDatapackFileInfo(datapackEntity.path).Length},{datapackEntity.path}");
         return string.Join("\r\n", exportContent);
