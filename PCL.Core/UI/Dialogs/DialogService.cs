@@ -89,7 +89,8 @@ public sealed class DialogService : IDialogService
             return dialog;
         }
 
-        UiDispatcher.Invoke(() =>
+        // `Post` instead of `Invoke` to avoid potential dead lock
+        UiDispatcher.Post(() =>
         {
             lock (_lock)
             {
