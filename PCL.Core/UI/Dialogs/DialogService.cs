@@ -89,16 +89,9 @@ public sealed class DialogService : IDialogService
             return dialog;
         }
 
+        lock (_lock) _queue.Enqueue(dialog);
         // `Post` instead of `Invoke` to avoid potential dead lock
-        UiDispatcher.Post(() =>
-        {
-            lock (_lock)
-            {
-                _queue.Enqueue(dialog);
-            }
-
-            Pump();
-        });
+        UiDispatcher.Post(Pump);
 
         return dialog;
     }
@@ -118,6 +111,7 @@ public sealed class DialogService : IDialogService
         {
             if (_current is not null || _queue.Count == 0) return;
             next = _queue.Dequeue();
+            if (next.IsClosed) return;
             _current = next;
         }
 
