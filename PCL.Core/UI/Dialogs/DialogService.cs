@@ -123,17 +123,27 @@ public sealed class DialogService : IDialogService
             return;
         }
 
-        if (presenter.IsAvailable)
+        // Presenter may throw an error
+        // Pump should throw it back to `Completion`
+        try
         {
-            presenter.Present(next);
-            return;
-        }
+            if (presenter.IsAvailable)
+            {
+                presenter.Present(next);
+                return;
+            }
 
-        // 上一个弹窗的退场动画期间界面仍被占用，稍后重试，避免误退化到原生弹窗
-        next.PresentAttempts++;
-        if (next.PresentAttempts > MaxPresentRetries)
+            // 上一个弹窗的退场动画期间界面仍被占用，稍后重试，避免误退化到原生弹窗
+            next.PresentAttempts++;
+            if (next.PresentAttempts > MaxPresentRetries)
+            {
+                presenter.ShowFallback(next);
+                return;
+            }
+        }
+        catch (Exception ex)
         {
-            presenter.ShowFallback(next);
+            next.Completion.TrySetException(ex);
             return;
         }
 
