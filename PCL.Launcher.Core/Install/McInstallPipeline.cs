@@ -8,35 +8,89 @@ namespace PCL;
 /// <summary>
 ///     合并安装管线：下载原版客户端文件，按需追加加载器版本 Json 并合并为单个实例 Json，
 ///     最后补全合并后实例缺失的支持库与资源文件。
-///     目前支持原版、Fabric 与 Legacy Fabric；其余加载器需要运行官方安装器，尚未接入。
+///     Forge / NeoForge / Cleanroom 使用官方安装器；Fabric / Legacy Fabric 使用 meta Json；
+///     OptiFine / LiteLoader / LabyMod 及 Fabric API / OptiFabric 等附属组件使用各自的官方链路。
 /// </summary>
-/// <remarks>
-///     TODO(FIX-INSTALL-01): 接入 Forge/NeoForge/Cleanroom 的安装器运行链路（需要 Java 与 Forge 安装器包装）。
-///     TODO(FIX-INSTALL-02): 接入 OptiFine/LiteLoader/LabyMod 的安装器运行链路。
-///     TODO(FIX-INSTALL-03): 接入 Fabric API/Legacy Fabric API/OptiFabric 的模组文件下载与合并安装。
-/// </remarks>
 public static class McInstallPipeline
 {
     private const string IgnoreFlagFileName = ".pclignore";
 
-    public static string? GetUnsupportedLoaderName(McInstallRequest request)
+    /// <summary>获取安装任务的稳定标识，供任务栏去重使用。</summary>
+    public static string GetIdentifier(string instanceFolder)
     {
-        if (request.optiFabric is not null)
-            return Lang.Text("Common.Installation.OptiFabric");
-        if (request.optiFineEntry is not null || request.optiFineVersion is not null)
-            return Lang.Text("Common.Installation.OptiFine");
-        if (request.liteLoaderEntry is not null)
-            return Lang.Text("Common.Installation.LiteLoader");
-        if (request.labyModCommitRef is not null || request.labyModChannel is not null)
-            return Lang.Text("Common.Installation.LabyMod");
-        if (request.fabricVersion is not null && request.legacyFabricVersion is not null)
-            return Lang.Text("Common.Installation.LegacyFabric");
+        return "McInstall:" + McInstallRecovery.NormalizeFolder(instanceFolder);
+    }
+
+    /// <summary>
+    ///     校验安装组合。返回本地化错误信息；返回 <see langword="null" /> 表示组合可安装。
+    ///     该方法不是“功能白名单”，只拒绝会互相破坏或物理上无法共存的组合。
+    /// </summary>
+    public static string? GetCombinationError(McInstallRequest request)
+    {
+        var minecraftName = request.minecraftName ?? "";
+        var mainLoaders = new List<(string Name, bool Selected)>
+        {
+            ("Forge", request.forgeEntry is not null || request.forgeVersion is not null),
+            ("NeoForge", request.neoForgeEntry is not null || request.neoForgeVersion is not null),
+            ("Cleanroom",
+                request.cleanroomEntry is not null || request.cleanroomVersion is not null),
+            ("Fabric", request.fabricVersion is not null),
+            ("Legacy Fabric", request.legacyFabricVersion is not null),
+            ("LabyMod", request.labyModCommitRef is not null)
+        };
+        var selectedMain = mainLoaders.Where(loader => loader.Selected).ToList();
+        if (selectedMain.Count > 1)
+            return Lang.Text(
+                "Download.Install.Compat.IncompatibleWithLoader",
+                selectedMain[1].Name);
+
+        if (selectedMain.Any(loader => loader.Name == "Cleanroom")
+            && !string.Equals(minecraftName, "1.12.2", StringComparison.Ordinal))
+            return Lang.Text("Download.Install.State.NoVersion");
+
+        if (request.optiFabric is not null
+            && (request.fabricVersion is null
+                || (request.optiFineEntry is null && request.optiFineVersion is null)))
+            return Lang.Text("Download.Install.Compat.RequiresOptiFineAndFabric");
+
+        if (request.fabricApi is not null && request.fabricVersion is null)
+            return Lang.Text("Download.Install.Compat.RequiresFabric");
+        if (request.legacyFabricApi is not null && request.legacyFabricVersion is null)
+            return Lang.Text("Download.Install.Compat.RequiresLegacyFabric");
+
+        if (request.liteLoaderEntry is not null
+            && (request.neoForgeEntry is not null
+                || request.neoForgeVersion is not null
+                || request.legacyFabricVersion is not null
+                || request.labyModCommitRef is not null
+                || request.cleanroomEntry is not null
+                || request.cleanroomVersion is not null))
+            return Lang.Text(
+                "Download.Install.Compat.IncompatibleWithLoader",
+                "LiteLoader");
+
+        var hasOptiFine = request.optiFineEntry is not null || request.optiFineVersion is not null;
+        if (hasOptiFine
+            && (request.neoForgeEntry is not null
+                || request.neoForgeVersion is not null
+                || request.labyModCommitRef is not null
+                || request.cleanroomEntry is not null
+                || request.cleanroomVersion is not null))
+            return Lang.Text(
+                "Download.Install.Compat.IncompatibleWithLoader",
+                "OptiFine");
+
+        if (hasOptiFine
+            && request.fabricVersion is not null
+            && McVersionComparer.CompareVersionGe(minecraftName, "1.20.5"))
+            return Lang.Text("Download.Install.Compat.IncompatibleWithOptiFine");
+
         return null;
     }
 
     public static bool IsSupported(McInstallRequest request)
     {
-        return GetUnsupportedLoaderName(request) is null;
+        return GetCombinationError(request) is null;
     }
 
     /// <summary>
@@ -51,6 +105,11 @@ public static class McInstallPipeline
     {
         RestrictedFeatures.ThrowIfRestricted("minecraft-install");
 
+        NormalizeRequest(request);
+        var combinationError = GetCombinationError(request);
+        if (combinationError is not null)
+            throw new Exception(combinationError);
+
         var minecraftName = request.minecraftName
             ?? throw new Exception(
                 Lang.Text("Minecraft.Download.Modpack.MissingGameVersion.Generic"));
@@ -61,11 +120,6 @@ public static class McInstallPipeline
         var instanceFolder = McInstallRecovery.NormalizeFolder(request.targetInstanceFolder);
         if (string.IsNullOrEmpty(instanceFolder))
             throw new Exception(Lang.Text("Download.Install.NameInvalid"));
-
-        var unsupportedLoader = GetUnsupportedLoaderName(request);
-        if (unsupportedLoader is not null)
-            throw new Exception(
-                Lang.Text("Download.Install.Loader.Unsupported", unsupportedLoader));
 
         var instanceJsonPath = McInstallRecovery.GetJsonPath(instanceFolder, instanceName);
         McInstallRecovery.RegisterSession(instanceFolder, instanceName);
@@ -83,39 +137,106 @@ public static class McInstallPipeline
         McInstallRecovery.PrepareBackup(instanceFolder, instanceName);
 
         var tempFolder = LauncherCommon.GetTempFolder("Install");
+        var preserveCoreJar = request.mmcPackInfo?.isMinecraftOverrided == true
+            && File.Exists(instanceJsonPath)
+            && File.Exists(McInstallRecovery.GetJarPath(instanceFolder, instanceName));
+        var customCoreJarBackup = Path.Combine(tempFolder, "mmc-core.jar");
+        if (preserveCoreJar)
+            try
+            {
+                LauncherCommon.CopyFile(
+                    McInstallRecovery.GetJarPath(instanceFolder, instanceName),
+                    customCoreJarBackup);
+                LauncherCommon.Log("[Install] 已备份 MMC 修改后的原版核心 Jar");
+            }
+            catch (Exception ex)
+            {
+                preserveCoreJar = false;
+                LauncherCommon.Log(ex, "备份 MMC 修改后的原版核心 Jar 失败");
+            }
+
+        var sources = new InstallJsonSourceCollection();
         var loaders = new List<Loading.LoaderBase>
         {
             CreateIgnoreFlagLoader(instanceFolder)
         };
 
         AddVanillaLoaders(loaders, request, instanceFolder, instanceName, minecraftName);
-        var hasLoader = request.fabricVersion is not null
-            || request.legacyFabricVersion is not null
-            || IsForgelikeRequested(request);
-        if (!hasLoader)
-            loaders.Add(
-                new Loading.LoaderTask<int, int>(
-                    Lang.Text("Minecraft.Download.Stage.InstallGame"),
-                    _ => InstanceJsonMerge.Normalize(instanceFolder, instanceName))
-                {
-                    ProgressWeight = 1d
-                });
-        AddLoaderSpecificLoaders(
-            loaders,
-            request,
-            instanceFolder,
-            instanceName,
-            minecraftName,
-            tempFolder);
         AddForgelikeLoaders(
             loaders,
             request,
             instanceFolder,
             instanceName,
             minecraftName,
-            tempFolder);
+            tempFolder,
+            sources);
+        AddFabricLoaders(loaders, request, instanceName, minecraftName, tempFolder, sources);
+        LoaderSpecialInstall.AddLiteLoaderLoaders(
+            loaders,
+            request,
+            instanceFolder,
+            instanceName,
+            minecraftName,
+            tempFolder,
+            sources);
+        LoaderSpecialInstall.AddLabyModLoaders(
+            loaders,
+            request,
+            instanceFolder,
+            instanceName,
+            minecraftName,
+            tempFolder,
+            sources);
+        LoaderSpecialInstall.AddOptiFineLoaders(
+            loaders,
+            request,
+            instanceFolder,
+            instanceName,
+            minecraftName,
+            tempFolder,
+            sources);
         AddApiModLoaders(loaders, request, instanceFolder, minecraftName);
 
+        loaders.Add(
+            new Loading.LoaderTask<int, int>(
+                Lang.Text("Minecraft.Download.Stage.InstallGame"),
+                _ =>
+                {
+                    InstanceJsonMerge.MergeInstall(
+                        instanceFolder,
+                        instanceName,
+                        sources.Snapshot(),
+                        request.mmcPackInfo,
+                        request.labyModChannel ?? "production",
+                        minecraftName);
+                    CreateInstanceFolders(instanceFolder, request);
+                })
+            {
+                ProgressWeight = 2d,
+                block = true
+            });
+        var fixLoaders = GameDownload.DlClientFix(
+            new McInstance(instanceFolder),
+            false,
+            GameDownload.AssetsIndexExistsBehaviour.DontDownload);
+        loaders.AddRange(fixLoaders);
+        if (preserveCoreJar)
+            loaders.Add(
+                new Loading.LoaderTask<int, int>(
+                    Lang.Text("Minecraft.Download.Stage.DownloadCoreJar"),
+                    _ =>
+                    {
+                        foreach (var fixLoader in fixLoaders)
+                            while (fixLoader.State is LoadState.Waiting or LoadState.Loading)
+                                Thread.Sleep(50);
+                        LauncherCommon.CopyFile(
+                            customCoreJarBackup,
+                            McInstallRecovery.GetJarPath(instanceFolder, instanceName));
+                    })
+                {
+                    ProgressWeight = 0.1d,
+                    show = false
+                });
         loaders.Add(
             new Loading.LoaderTask<int, int>(
                 Lang.Text("Minecraft.Download.Stage.DeleteIgnoreFlag"),
@@ -123,7 +244,73 @@ public static class McInstallPipeline
             {
                 ProgressWeight = 0.5d
             });
+
+        LauncherCommon.Log(
+            $"[Install] 已创建 {instanceName} 的安装管线，原版版本：{minecraftName}，加载器 Json {sources.Snapshot().Count} 个",
+            LauncherLogLevel.Developer);
         return loaders;
+    }
+
+    private static void NormalizeRequest(McInstallRequest request)
+    {
+        if (request.optiFineEntry is { } existingOptiFine
+            && string.IsNullOrEmpty(existingOptiFine.NameFile))
+        {
+            var minecraftName = request.minecraftName ?? existingOptiFine.Inherit ?? "";
+            var inherit = string.IsNullOrEmpty(existingOptiFine.Inherit)
+                ? minecraftName
+                : existingOptiFine.Inherit;
+            var version = (existingOptiFine.DisplayName ?? "")
+                .Replace(minecraftName + " ", "")
+                .Replace("HD U ", "")
+                .Replace(" ", "_")
+                .Trim();
+            if (string.IsNullOrEmpty(version))
+                version = existingOptiFine.NameVersion?.AfterLast("OptiFine_") ?? "HD_U_LATEST";
+            if (!version.StartsWith("HD_U", StringComparison.OrdinalIgnoreCase))
+                version = $"HD_U_{version}";
+            existingOptiFine.NameFile =
+                $"{(existingOptiFine.IsPreview ? "preview_" : "")}OptiFine_{inherit}_{version}.jar";
+            existingOptiFine.NameVersion ??= $"{inherit}-OptiFine_{version}";
+            if (string.IsNullOrEmpty(existingOptiFine.Inherit))
+                request.optiFineEntry = new GameDownload.DlOptiFineListEntry
+                {
+                    DisplayName = existingOptiFine.DisplayName,
+                    IsPreview = existingOptiFine.IsPreview,
+                    NameFile = existingOptiFine.NameFile,
+                    NameVersion = existingOptiFine.NameVersion,
+                    ReleaseTime = existingOptiFine.ReleaseTime,
+                    RequiredForgeVersion = existingOptiFine.RequiredForgeVersion,
+                    Inherit = inherit
+                };
+        }
+
+        if (request.optiFineEntry is null && request.optiFineVersion is not null)
+        {
+            var version = request.optiFineVersion;
+            if (version.Contains("_HD_U_"))
+                version = $"HD_U_{version.AfterLast("_HD_U_")}";
+            var minecraftName = request.minecraftName ?? "";
+            request.optiFineVersion = version;
+            request.optiFineEntry = new GameDownload.DlOptiFineListEntry
+            {
+                DisplayName =
+                    $"{minecraftName} {version.Replace("HD_U_", "").Replace("_", "").Replace("pre", " pre")}",
+                Inherit = minecraftName,
+                IsPreview = version.Contains("pre", StringComparison.OrdinalIgnoreCase),
+                NameVersion = $"{minecraftName}-OptiFine_{version}",
+                NameFile =
+                    $"{(version.Contains("pre", StringComparison.OrdinalIgnoreCase) ? "preview_" : "")}OptiFine_{minecraftName}_{version}.jar"
+            };
+        }
+
+        if (request.liteLoaderEntry is not null
+            && string.IsNullOrEmpty(request.liteLoaderEntry.Inherit))
+            request.liteLoaderEntry.Inherit = request.minecraftName;
+
+        if (request.labyModCommitRef is not null
+            && string.IsNullOrEmpty(request.labyModChannel))
+            request.labyModChannel = "production";
     }
 
     private static void AddVanillaLoaders(
@@ -134,6 +321,34 @@ public static class McInstallPipeline
         string minecraftName)
     {
         var instanceJsonPath = McInstallRecovery.GetJsonPath(instanceFolder, instanceName);
+        var instanceJarPath = McInstallRecovery.GetJarPath(instanceFolder, instanceName);
+        var useExistingCore = request.mmcPackInfo?.isMinecraftOverrided == true
+            && File.Exists(instanceJsonPath)
+            && File.Exists(instanceJarPath);
+        if (useExistingCore)
+        {
+            LauncherCommon.Log(
+                $"[Install] 检测到 MMC 修改过原版核心，使用实例现有 Json/Jar 作为合并基准：{instanceFolder}");
+            loaders.Add(
+                new Loading.LoaderTask<int, int>(
+                    Lang.Text("Minecraft.Download.Stage.VanillaJsonDownload"),
+                    _ =>
+                    {
+                        if (!File.Exists(instanceJsonPath) || !File.Exists(instanceJarPath))
+                            throw new Exception(
+                                Lang.Text(
+                                    "Minecraft.Download.Error.JsonInvalid",
+                                    instanceName,
+                                    instanceJsonPath,
+                                    "MMC 修改后的实例核心文件缺失"));
+                    })
+                {
+                    ProgressWeight = 4d,
+                    show = false
+                });
+            return;
+        }
+
         loaders.Add(
             new Loading.LoaderTask<int, List<DownloadFile>>(
                 Lang.Text("Minecraft.Download.Stage.ObtainVanillaJsonUrl"),
@@ -182,27 +397,104 @@ public static class McInstallPipeline
             {
                 ProgressWeight = 5d
             });
-        loaders.AddRange(
-            GameDownload.DlClientFix(
-                new McInstance(instanceFolder),
-                false,
-                GameDownload.AssetsIndexExistsBehaviour.DontDownload));
     }
 
-    private static void AddLoaderSpecificLoaders(
+    private static void AddForgelikeLoaders(
         List<Loading.LoaderBase> loaders,
         McInstallRequest request,
         string instanceFolder,
         string instanceName,
         string minecraftName,
-        string tempFolder)
+        string tempFolder,
+        InstallJsonSourceCollection sources)
     {
-        var isLegacyFabric = request.legacyFabricVersion is not null;
-        if (request.fabricVersion is null && !isLegacyFabric)
+        if (!request.HasForgelikeLoader)
             return;
 
-        var profileLoader =
-            LoaderProfileInstall.CreateProfileLoader(request, tempFolder, isLegacyFabric);
+        var holder = new ForgelikePlanHolder();
+        loaders.Add(
+            LoaderInstallerInstall.CreatePlanLoader(
+                request,
+                minecraftName,
+                tempFolder,
+                holder));
+        loaders.Add(LoaderInstallerInstall.CreateInstallerDownloader(holder));
+        loaders.Add(
+            LoaderInstallerInstall.CreateDownloadLoader(
+                request.cleanroomEntry is not null || request.cleanroomVersion is not null
+                    ? "Cleanroom"
+                    : request.neoForgeEntry is not null || request.neoForgeVersion is not null
+                        ? "NeoForge"
+                        : "Forge"));
+        if (holder.Plan?.IsInstaller != false)
+        {
+            loaders.Add(
+                LoaderInstallerInstall.CreateLibraryAnalyzeLoader(
+                    holder,
+                    instanceFolder,
+                    instanceName,
+                    request.minecraftJson));
+            loaders.Add(
+                new LoaderDownload(
+                    Lang.Text(
+                        "Minecraft.Download.Stage.DownloadLoaderLibraries",
+                        holder.Plan?.LoaderName ?? "Forgelike"),
+                    [])
+                {
+                    ProgressWeight = 8d
+                });
+        }
+
+        var runLoader = LoaderInstallerInstall.CreateInstallerRunLoader(
+            holder,
+            instanceFolder,
+            instanceName);
+        loaders.Add(runLoader);
+        loaders.Add(
+            new Loading.LoaderTask<int, int>(
+                Lang.Text("Minecraft.Download.Stage.InstallGame"),
+                _ =>
+                {
+                    var loaderJsonPath = runLoader.output;
+                    if (string.IsNullOrEmpty(loaderJsonPath) || !File.Exists(loaderJsonPath))
+                        throw new Exception(
+                            Lang.Text(
+                                "Minecraft.Download.Error.LoaderInstallFailed",
+                                holder.Plan?.LoaderName ?? "Forgelike"));
+                    sources.Add(GetForgelikeJsonKind(request), loaderJsonPath);
+                })
+            {
+                ProgressWeight = 2d
+            });
+        LauncherCommon.Log(
+            $"[Install] 已为 {instanceName} 追加 {holder.Plan?.LoaderName ?? "Forgelike"} 安装步骤");
+    }
+
+    private static InstallJsonKind GetForgelikeJsonKind(McInstallRequest request)
+    {
+        if (request.cleanroomEntry is not null || request.cleanroomVersion is not null)
+            return InstallJsonKind.Cleanroom;
+        if (request.neoForgeEntry is not null || request.neoForgeVersion is not null)
+            return InstallJsonKind.NeoForge;
+        return InstallJsonKind.Forge;
+    }
+
+    private static void AddFabricLoaders(
+        List<Loading.LoaderBase> loaders,
+        McInstallRequest request,
+        string instanceName,
+        string minecraftName,
+        string tempFolder,
+        InstallJsonSourceCollection sources)
+    {
+        var isLegacy = request.legacyFabricVersion is not null;
+        if (request.fabricVersion is null && !isLegacy)
+            return;
+
+        var profileLoader = LoaderProfileInstall.CreateProfileLoader(
+            request,
+            tempFolder,
+            isLegacy);
         loaders.Add(profileLoader);
         loaders.Add(
             new Loading.LoaderTask<int, int>(
@@ -215,20 +507,15 @@ public static class McInstallPipeline
                             Lang.Text(
                                 "Minecraft.Download.Error.FabricMetaDownloadFailed",
                                 loaderJsonPath ?? ""));
-                    InstanceJsonMerge.Merge(instanceFolder, instanceName, loaderJsonPath);
+                    sources.Add(
+                        isLegacy ? InstallJsonKind.LegacyFabric : InstallJsonKind.Fabric,
+                        loaderJsonPath);
                 })
             {
                 ProgressWeight = 1d
             });
-
-        loaders.AddRange(
-            GameDownload.DlClientFix(
-                new McInstance(instanceFolder),
-                false,
-                GameDownload.AssetsIndexExistsBehaviour.DontDownload));
         LauncherCommon.Log(
-            $"[Install] 已为 {instanceName} 追加 {
-                (isLegacyFabric ? "Legacy Fabric" : "Fabric")} 安装步骤，原版版本：{minecraftName}",
+            $"[Install] 已为 {instanceName} 追加 {(isLegacy ? "Legacy Fabric" : "Fabric")} 安装步骤，原版版本：{minecraftName}",
             LauncherLogLevel.Developer);
     }
 
@@ -256,169 +543,29 @@ public static class McInstallPipeline
             File.Delete(path);
     }
 
-    #region 官方安装器型加载器（Forge / NeoForge / Cleanroom）
-
-    private static bool IsForgelikeRequested(McInstallRequest request)
+    private static void CreateInstanceFolders(string instanceFolder, McInstallRequest request)
     {
-        return request.forgeEntry is not null
-            || request.forgeVersion is not null
-            || request.neoForgeEntry is not null
-            || request.neoForgeVersion is not null
-            || request.cleanroomEntry is not null
-            || request.cleanroomVersion is not null;
-    }
+        var instance = new McInstance(instanceFolder);
+        var resourcepacksFolder = Path.Combine(instance.PathIndie, "resourcepacks");
+        Directory.CreateDirectory(resourcepacksFolder);
+        LauncherCommon.Log($"[Install] 已创建资源包文件夹：{resourcepacksFolder}");
 
-    private static void AddForgelikeLoaders(
-        List<Loading.LoaderBase> loaders,
-        McInstallRequest request,
-        string instanceFolder,
-        string instanceName,
-        string minecraftName,
-        string tempFolder)
-    {
-        if (!TryCreateForgelikeInstaller(
-                request,
-                minecraftName,
-                out var loaderName,
-                out var loaderVersion,
-                out var inheritVersion,
-                out var installerUrls,
-                out var installerHash))
+        var modable = request.fabricVersion is not null
+            || request.legacyFabricVersion is not null
+            || request.HasForgelikeLoader
+            || request.liteLoaderEntry is not null
+            || request.fabricApi is not null
+            || request.legacyFabricApi is not null
+            || request.optiFabric is not null
+            || request.OptiFineAsMod;
+        if (!modable)
             return;
-
-        var runFolder = Path.Combine(tempFolder, "installer-run");
-        Directory.CreateDirectory(runFolder);
-        var installerPath = LoaderInstallerInstall.GetInstallerPath(tempFolder, loaderName);
-        loaders.Add(
-            LoaderInstallerInstall.CreateInstallerDownloader(
-                loaderName,
-                installerUrls,
-                installerPath,
-                installerHash));
-        loaders.Add(
-            LoaderInstallerInstall.CreateLibraryAnalyzeLoader(
-                loaderName,
-                loaderVersion,
-                inheritVersion,
-                installerPath,
-                runFolder,
-                instanceFolder,
-                instanceName,
-                request.minecraftJson));
-        loaders.Add(
-            new LoaderDownload(
-                Lang.Text("Minecraft.Download.Stage.DownloadLoaderLibraries", loaderName),
-                [])
-            {
-                ProgressWeight = 8d
-            });
-        var runLoader = LoaderInstallerInstall.CreateInstallerRunLoader(
-            loaderName,
-            installerPath,
-            runFolder,
-            instanceFolder,
-            instanceName);
-        loaders.Add(runLoader);
-        loaders.Add(
-            new Loading.LoaderTask<int, int>(
-                Lang.Text("Minecraft.Download.Stage.InstallGame"),
-                _ =>
-                {
-                    var loaderJsonPath = runLoader.output;
-                    if (string.IsNullOrEmpty(loaderJsonPath) || !File.Exists(loaderJsonPath))
-                        throw new Exception(
-                            Lang.Text("Minecraft.Download.Error.LoaderInstallFailed", loaderName));
-                    InstanceJsonMerge.Merge(instanceFolder, instanceName, loaderJsonPath);
-                })
-            {
-                ProgressWeight = 2d
-            });
-        loaders.AddRange(
-            GameDownload.DlClientFix(
-                new McInstance(instanceFolder),
-                false,
-                GameDownload.AssetsIndexExistsBehaviour.DontDownload));
-        LauncherCommon.Log(
-            $"[Install] 已为 {instanceName} 追加 {loaderName} {loaderVersion} 安装步骤，继承版本：{inheritVersion}");
+        var modsFolder = Path.Combine(instance.PathIndie, "mods");
+        Directory.CreateDirectory(modsFolder);
+        LauncherCommon.Log($"[Install] 已创建模组文件夹：{modsFolder}");
     }
 
-    private static bool TryCreateForgelikeInstaller(
-        McInstallRequest request,
-        string minecraftName,
-        out string loaderName,
-        out string loaderVersion,
-        out string inheritVersion,
-        out List<string> urls,
-        out string? hash)
-    {
-        loaderVersion = "";
-        inheritVersion = minecraftName;
-        urls = [];
-        hash = null;
-
-        if (request.forgeEntry is not null || request.forgeVersion is not null)
-        {
-            loaderName = "Forge";
-            var entry = request.forgeEntry;
-            loaderVersion = entry?.VersionName ?? request.forgeVersion ?? "";
-            if (string.IsNullOrEmpty(loaderVersion))
-                return false;
-            inheritVersion = entry?.Inherit ?? minecraftName;
-            var inheritName = inheritVersion.Replace("-", "_");
-            var fileVersion = entry?.FileVersion ?? loaderVersion;
-            var category = entry?.Category ?? "installer";
-            var extension = entry?.FileExtension ?? "jar";
-            var fileName =
-                $"{inheritName}-{fileVersion}/forge-{inheritName}-{fileVersion}-{category}.{extension}";
-            urls =
-            [
-                $"https://bmclapi2.bangbang93.com/maven/net/minecraftforge/forge/{fileName}",
-                $"https://files.minecraftforge.net/maven/net/minecraftforge/forge/{fileName}"
-            ];
-            hash = entry?.Hash;
-            return true;
-        }
-
-        if (request.neoForgeEntry is not null || request.neoForgeVersion is not null)
-        {
-            loaderName = "NeoForge";
-            var entry = request.neoForgeEntry
-                ?? new GameDownload.DlNeoForgeListEntry(
-                    request.neoForgeVersion
-                    ?? throw new InvalidOperationException("NeoForge 版本为空"));
-            loaderVersion = entry.VersionName;
-            inheritVersion = entry.Inherit;
-            var url = $"{entry.UrlBase}-installer.jar";
-            urls =
-            [
-                url.Replace(
-                    "maven.neoforged.net/releases",
-                    "bmclapi2.bangbang93.com/maven"),
-                url
-            ];
-            return true;
-        }
-
-        if (request.cleanroomEntry is not null || request.cleanroomVersion is not null)
-        {
-            loaderName = "Cleanroom";
-            var entry = request.cleanroomEntry
-                ?? new GameDownload.DlCleanroomListEntry(
-                    request.cleanroomVersion
-                    ?? throw new InvalidOperationException("Cleanroom 版本为空"));
-            loaderVersion = entry.VersionName;
-            inheritVersion = entry.Inherit;
-            urls = [$"{entry.UrlBase}-installer.jar"];
-            return true;
-        }
-
-        loaderName = "";
-        return false;
-    }
-
-    #endregion
-
-    #region 模组型加载器附属文件（Fabric API / Legacy Fabric API）
+    #region 模组型加载器附属文件（Fabric API / Legacy Fabric API / OptiFabric）
 
     private static void AddApiModLoaders(
         List<Loading.LoaderBase> loaders,
@@ -442,6 +589,14 @@ public static class McInstallPipeline
                 Comp.CompLoaderType.Fabric,
                 instanceFolder,
                 minecraftName);
+        if (request.optiFabric is not null)
+            AddApiModLoader(
+                loaders,
+                request.optiFabric,
+                "OptiFabric",
+                Comp.CompLoaderType.Fabric,
+                instanceFolder,
+                minecraftName);
     }
 
     private static void AddApiModLoader(
@@ -457,16 +612,17 @@ public static class McInstallPipeline
                 Lang.Text("Minecraft.Download.Stage.DownloadLoaderLibraries", displayName),
                 task =>
                 {
-                    var modsFolder = Path.Combine(new McInstance(instanceFolder).PathIndie, "mods");
+                    var modsFolder = Path.Combine(new McInstance(instanceFolder).PathIndie, "mods")
+                        + Path.DirectorySeparatorChar;
                     Directory.CreateDirectory(modsFolder);
-                    task.output =
-                    [
-                        file.ToNetFile(
-                            modsFolder,
-                            Comp.DownloadReason.Dependency,
-                            minecraftName,
-                            loaderType)
-                    ];
+                    var downloadFile = file.ToNetFile(
+                        modsFolder,
+                        Comp.DownloadReason.Dependency,
+                        minecraftName,
+                        loaderType);
+                    if (!File.Exists(downloadFile.LocalPath))
+                        McInstallRecovery.RegisterCreatedFile(downloadFile.LocalPath);
+                    task.output = [downloadFile];
                 })
             {
                 ProgressWeight = 2d,

@@ -22,14 +22,15 @@ namespace PCL;
 /// <summary>实例总览页的视图模型。</summary>
 public partial class PageInstanceOverallViewModel : ViewModelBase
 {
-    [ObservableProperty] private int _cardTypeIndex;
     private int _infoRevision;
 
-    [ObservableProperty] private bool _isCustomLogo;
+    [ObservableProperty] public partial int CardTypeIndex { get; set; }
 
-    [ObservableProperty] private string _logoTag = string.Empty;
+    [ObservableProperty] public partial bool IsCustomLogo { get; set; }
 
-    [ObservableProperty] private bool _patchButtonEnabled = true;
+    [ObservableProperty] public partial string LogoTag { get; set; } = string.Empty;
+
+    [ObservableProperty] public partial bool PatchButtonEnabled { get; set; } = true;
 
     [ObservableProperty] public partial string InfoLoadingText { get; set; } = string.Empty;
 
@@ -367,6 +368,17 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
             {
                 LauncherCommon.Log(ex, "重命名读取 Json 时失败", LauncherLogLevel.Developer);
                 jsonObject = (JsonObject)instance.JsonObject.DeepClone();
+            }
+
+            try
+            {
+                if (ConfigService.GetProvider(ConfigSource.GameInstance) is
+                    DynamicCacheConfigStorage storage)
+                    storage.InvalidateCache(oldPath);
+            }
+            catch (Exception ex)
+            {
+                LauncherCommon.Log(ex, "清理重命名前的实例配置缓存失败", LauncherLogLevel.Developer);
             }
 
             Directory.Move(oldPath, tempPath);
@@ -720,7 +732,11 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
                     ? new GameDownload.DlOptiFineListEntry
                     {
                         Inherit = currentVersion.VanillaName,
-                        DisplayName = $"{currentVersion.VanillaName} {currentVersion.OptiFine}"
+                        DisplayName = $"{currentVersion.VanillaName} {currentVersion.OptiFine}",
+                        IsPreview = currentVersion.OptiFine?.Contains(
+                                "pre",
+                                StringComparison.OrdinalIgnoreCase)
+                            == true
                     }
                     : null,
                 forgeEntry = currentVersion.HasForge
@@ -743,15 +759,35 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
                     }
                     : null,
                 legacyFabricVersion =
-                    currentVersion.HasLegacyFabric ? currentVersion.LegacyFabric : null
+                    currentVersion.HasLegacyFabric ? currentVersion.LegacyFabric : null,
+                labyModChannel = currentVersion.HasLabyMod
+                    ? instance.JsonObject?["labymod_data"]?["channelType"]?.ToString()
+                    : null,
+                labyModCommitRef = currentVersion.HasLabyMod
+                    ? instance.JsonObject?["labymod_data"]?["commitReference"]?.ToString()
+                    : null
             };
 
-            var unsupportedLoader = McInstallPipeline.GetUnsupportedLoaderName(request);
-            if (unsupportedLoader is not null)
+            if (currentVersion.HasLabyMod && string.IsNullOrEmpty(request.labyModCommitRef))
             {
                 HintService.Show(
                     Hints.Warning(
-                        Lang.Text("Download.Install.Loader.Unsupported", unsupportedLoader)));
+                        Lang.Text("Download.Install.State.GetVersionListFailed", "LabyMod")));
+                return;
+            }
+
+            var combinationError = McInstallPipeline.GetCombinationError(request);
+            if (combinationError is not null)
+            {
+                HintService.Show(Hints.Warning(combinationError));
+                return;
+            }
+
+            var identifier = McInstallPipeline.GetIdentifier(instance.PathInstance);
+            if (Loading.loaderTaskbar.Any(loader => loader.Identifier == identifier))
+            {
+                HintService.Show(
+                    Hints.Error(Lang.Text("Minecraft.Download.Error.InstanceDownloading")));
                 return;
             }
 
@@ -764,9 +800,10 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
 
             var combo = new Loading.LoaderCombo<object>(Lang.Text("Common.Action.Reset"), loaders)
             {
+                Identifier = identifier,
                 OnStateChanged = OnInstallLoaderStateChanged(instance)
             };
-            combo.Start();
+            combo.Start(instance.PathInstance);
             Loading.LoaderTaskbarAdd(combo);
             LoadingUi.Current?.RefreshDownloadButton();
             PageRouter.Navigate(PageType.Launch);
@@ -963,6 +1000,8 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
     {
         return loader =>
         {
+            if (loader.State is LoadState.Finished or LoadState.Failed or LoadState.Aborted)
+                McInstallRecovery.HandleTerminalState(loader, instance.PathInstance);
             switch (loader.State)
             {
                 case LoadState.Finished:

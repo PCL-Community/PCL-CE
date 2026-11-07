@@ -2,7 +2,9 @@
                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                 xmlns:ui="using:PCL.UI.Controls"
                 xmlns:loc="using:PCL.Core.UI"
-                x:Class="PCL.Views.Pages.Download.PageDownloadInstall">
+                xmlns:download="using:PCL.Views.Pages.Download"
+                x:Class="PCL.Views.Pages.Download.PageDownloadInstall"
+                x:CompileBindings="False">
     <Grid>
         <ui:MyScrollViewer x:Name="PanBack"
                            HorizontalScrollBarVisibility="Disabled"
@@ -17,7 +19,7 @@
 
                     <StackPanel x:Name="PanConfigStage"
                                 Margin="0,0,0,45"
-                                IsVisible="False">
+                                IsVisible="{Binding IsConfigStageVisible}">
                         <ui:MyCard x:Name="CardVersion"
                                    Height="62"
                                    Margin="0,15,0,3"
@@ -41,29 +43,75 @@
                                             Stretch="Uniform" />
                                 <ui:MyTextBox x:Name="TextInstanceName"
                                               Margin="93,0,16,0"
+                                              Padding="-1,0"
                                               MinHeight="30"
                                               VerticalAlignment="Center"
                                               FontSize="15"
-                                              MaxLength="70" />
+                                              MaxLength="70"
+                                              HasBackground="False"
+                                              Text="{Binding InstanceName, Mode=TwoWay}" />
                             </Grid>
                         </ui:MyCard>
 
-                        <ui:MyHint x:Name="HintLoaderWarning"
+                        <ui:MyHint x:Name="HintFabricApi"
                                    Margin="0,10,0,0"
                                    Theme="Red"
-                                   IsVisible="False" />
+                                   Text="{loc:Loc Download.Install.Warning.FabricApi}"
+                                   IsVisible="{Binding ShowHintFabricApi}" />
 
-                        <StackPanel x:Name="PanLoaderCards" />
+                        <ui:MyHint x:Name="HintLegacyFabricApi"
+                                   Margin="0,10,0,0"
+                                   Theme="Red"
+                                   Text="{loc:Loc Download.Install.Warning.LegacyFabricApi}"
+                                   IsVisible="{Binding ShowHintLegacyFabricApi}" />
+
+                        <ui:MyHint x:Name="HintOptiFabric"
+                                   Margin="0,10,0,0"
+                                   Theme="Red"
+                                   Text="{loc:Loc Download.Install.Warning.OptiFabric}"
+                                   IsVisible="{Binding ShowHintOptiFabric}" />
+
+                        <ui:MyHint x:Name="HintOptiFabricOld"
+                                   Margin="0,10,0,0"
+                                   Theme="Yellow"
+                                   Text="{loc:Loc Download.Install.Warning.OptiFabricOld}"
+                                   IsVisible="{Binding ShowHintOptiFabricOld}" />
+
+                        <ui:MyHint x:Name="HintLegacyOptiFabric"
+                                   Margin="0,10,0,0"
+                                   Theme="Yellow"
+                                   Text="{loc:Loc Download.Install.Warning.LegacyOptiFabric}"
+                                   IsVisible="{Binding ShowHintLegacyOptiFabric}" />
+
+                        <ui:MyHint x:Name="HintModOptiFine"
+                                   Margin="0,10,0,0"
+                                   Theme="Yellow"
+                                   Text="{loc:Loc Download.Install.Warning.ModOptiFine}"
+                                   IsVisible="{Binding ShowHintModOptiFine}" />
+
+                        <StackPanel x:Name="PanLoaderCards">
+                            <download:InstallLoaderCard Title="{loc:Loc Common.Installation.Forge}" />
+                            <download:InstallLoaderCard Title="{loc:Loc Common.Installation.Cleanroom}" />
+                            <download:InstallLoaderCard Title="{loc:Loc Common.Installation.NeoForge}" />
+                            <download:InstallLoaderCard Title="{loc:Loc Common.Installation.Fabric}" />
+                            <download:InstallLoaderCard Title="{loc:Loc Common.Installation.LegacyFabric}" />
+                            <download:InstallLoaderCard Title="{loc:Loc Common.Installation.FabricApi}" />
+                            <download:InstallLoaderCard Title="{loc:Loc Common.Installation.LegacyFabricApi}" />
+                            <download:InstallLoaderCard Title="{loc:Loc Common.Installation.LabyMod}" />
+                            <download:InstallLoaderCard Title="{loc:Loc Common.Installation.OptiFine}" />
+                            <download:InstallLoaderCard Title="{loc:Loc Common.Installation.OptiFabric}" />
+                            <download:InstallLoaderCard Title="{loc:Loc Common.Installation.LiteLoader}" />
+                        </StackPanel>
 
                         <ui:MyHint x:Name="HintNoFolder"
                                    Margin="0,12,0,0"
                                    Theme="Red"
-                                   IsVisible="False"
+                                   IsVisible="{Binding HasNoFolder}"
                                    Text="{loc:Loc Download.Install.NoFolder}" />
 
                         <ui:MyCard x:Name="CardProgress"
                                    Margin="0,0,0,12"
-                                   IsVisible="False"
+                                   IsVisible="{Binding IsProgressVisible}"
                                    UseAnimation="False">
                             <StackPanel Margin="20,20,20,18"
                                         Spacing="12">
@@ -87,7 +135,9 @@
                               Margin="0,0,0,25"
                               HorizontalAlignment="Center"
                               VerticalAlignment="Bottom"
-                              Text="{loc:Loc Download.Install.StartDownload}" />
+                              IsEnabled="{Binding CanStartInstall}"
+                              SvgIcon="lucide/download"
+                              Text="{Binding StartButtonText}" />
 
         <ui:MyCard x:Name="PanLoad"
                    HorizontalAlignment="Center"

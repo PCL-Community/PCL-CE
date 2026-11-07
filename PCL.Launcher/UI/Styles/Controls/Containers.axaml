@@ -1,8 +1,3 @@
-<!--
-    容器与列表控件的样式覆盖层。
-    颜色全部走 ThemeService 写入 Application.Resources 的核心 ColorBrush* 键；
-    控件构造函数通过 ContainerTheme.AttachStyles 引入本文件，这里给出视觉默认值。
--->
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="using:PCL.UI.Controls">
@@ -11,7 +6,6 @@
                          Color="#11000000" />
     </Styles.Resources>
 
-    <!-- 列表项 -->
     <Style Selector="ui|MyListItem">
         <Setter Property="Background"
                 Value="Transparent" />
@@ -28,7 +22,7 @@
         <Setter Property="Background"
                 Value="{DynamicResource ColorBrush7}" />
         <Setter Property="BorderBrush"
-                Value="{DynamicResource ColorBrush7}" />
+                Value="{DynamicResource ColorBrush6}" />
     </Style>
 
     <Style Selector="ui|MyListItem Border.ListItemCheck">
@@ -54,7 +48,6 @@
                 Value="0,0,3,0" />
     </Style>
 
-    <!-- 折叠栏 -->
     <Style Selector="ui|MyCollapseBar TextBlock.CollapseTitle">
         <Setter Property="Foreground"
                 Value="{DynamicResource ColorBrush1}" />
@@ -65,7 +58,6 @@
                 Value="{DynamicResource ColorBrush1}" />
     </Style>
 
-    <!-- 页面壳 -->
     <Style Selector="ui|MyPageLeft">
         <Setter Property="Background"
                 Value="Transparent" />
@@ -76,7 +68,6 @@
                 Value="False" />
     </Style>
 
-    <!-- 滚动容器 -->
     <Style Selector="ui|MyScrollViewer">
         <Setter Property="Background"
                 Value="Transparent" />

@@ -125,11 +125,10 @@
                 <StackPanel Margin="25,40,25,15">
                     <Grid Margin="0,14,0,2"
                           ColumnDefinitions="Auto,*"
-                          RowDefinitions="Auto,Auto"
-                          ColumnSpacing="25"
-                          RowSpacing="14">
+                          RowDefinitions="Auto,Auto">
                         <TextBlock Grid.Row="0"
                                    Grid.Column="0"
+                                   Margin="0,0,25,0"
                                    VerticalAlignment="Center"
                                    Text="{loc:Loc Tools.Test.Skin.PlayerName}" />
                         <ui:MyTextBox x:Name="TextSkinID"
@@ -137,15 +136,21 @@
                                       Grid.Column="1"
                                       MaxLength="50"
                                       Text="{Binding SkinId, Mode=TwoWay}" />
-                        <ui:MyButton x:Name="BtnSkinSave"
-                                     Grid.Row="1"
-                                     Grid.Column="0"
-                                     MinWidth="140"
-                                     Padding="13,0"
-                                     HorizontalAlignment="Left"
-                                     Command="{Binding SavePlayerSkinCommand}"
-                                     IsEnabled="{Binding SkinSaveEnabled}"
-                                     Text="{loc:Loc Tools.Test.Skin.Save}" />
+                        <Grid Grid.Row="1"
+                              Grid.ColumnSpan="2"
+                              Height="35"
+                              Margin="0,14,0,0"
+                              ColumnDefinitions="Auto,*">
+                            <ui:MyButton x:Name="BtnSkinSave"
+                                         Grid.Column="0"
+                                         MinWidth="140"
+                                         Padding="13,0"
+                                         Margin="0,0,20,0"
+                                         HorizontalAlignment="Left"
+                                         Command="{Binding SavePlayerSkinCommand}"
+                                         IsEnabled="{Binding SkinSaveEnabled}"
+                                         Text="{loc:Loc Tools.Test.Skin.Save}" />
+                        </Grid>
                     </Grid>
                 </StackPanel>
             </ui:MyCard>
@@ -160,14 +165,13 @@
                        CanSwap="True"
                        IsSwapped="True"
                        Title="{loc:Loc Tools.Test.Achievement.Title}">
-                <StackPanel Margin="25,40,25,15">
+                <StackPanel Margin="25,30,25,15">
                     <Grid Margin="0,4,0,2"
                           ColumnDefinitions="Auto,*,Auto"
-                          RowDefinitions="Auto,Auto,Auto,Auto,*"
-                          ColumnSpacing="25"
-                          RowSpacing="10">
+                          RowDefinitions="Auto,Auto,Auto,Auto,*">
                         <TextBlock Grid.Row="0"
                                    Grid.Column="0"
+                                   Margin="0,0,25,0"
                                    VerticalAlignment="Center"
                                    Text="{loc:Loc Tools.Test.Achievement.ItemId}" />
                         <ui:MyTextBox x:Name="TextAchievementItem"
@@ -179,6 +183,7 @@
 
                         <TextBlock Grid.Row="1"
                                    Grid.Column="0"
+                                   Margin="0,0,25,0"
                                    VerticalAlignment="Center"
                                    Text="{loc:Loc Tools.Test.Achievement.Name}" />
                         <ui:MyTextBox x:Name="TextAchievementTitle"
@@ -190,6 +195,7 @@
 
                         <TextBlock Grid.Row="2"
                                    Grid.Column="0"
+                                   Margin="0,0,25,0"
                                    VerticalAlignment="Center"
                                    Text="{loc:Loc Tools.Test.Achievement.Line1}" />
                         <ui:MyTextBox x:Name="TextAchievementLine1"
@@ -201,6 +207,7 @@
 
                         <TextBlock Grid.Row="3"
                                    Grid.Column="0"
+                                   Margin="0,0,25,0"
                                    VerticalAlignment="Center"
                                    Text="{loc:Loc Tools.Test.Achievement.Line2}" />
                         <ui:MyTextBox x:Name="TextAchievementLine2"
@@ -211,6 +218,7 @@
                                       Text="{Binding AchievementLine2, Mode=TwoWay}" />
                     </Grid>
                     <Grid Margin="0,15,0,10"
+                          RowDefinitions="35"
                           ColumnDefinitions="*,*">
                         <ui:MyButton x:Name="BtnAchievementPreview"
                                      Grid.Column="0"

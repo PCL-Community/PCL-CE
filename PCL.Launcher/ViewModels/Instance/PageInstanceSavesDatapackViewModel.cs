@@ -11,6 +11,8 @@ using PCL.Core.ViewModel;
 using PCL.Navigation;
 using PCL.Network;
 using PCL.Network.Loaders;
+using PCL.Views.Pages.Download;
+using PCL.Views.Pages.Instance;
 
 namespace PCL;
 
@@ -86,6 +88,10 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
     [ObservableProperty] public partial bool CanEnable { get; set; }
 
     [ObservableProperty] public partial bool CanDisable { get; set; }
+
+    [ObservableProperty] public partial bool CanUpdate { get; set; }
+
+    [ObservableProperty] public partial bool CanFavoriteAndShare { get; set; }
 
     [ObservableProperty] public partial bool CanDelete { get; set; }
 
@@ -177,7 +183,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
         ShowEmpty = false;
         try
         {
-            var entries = await RunAsync(ct => Task.Run(() => LoadEntries(SaveFolder), ct));
+            var entries = await RunAsync(_ => LoadEntriesAsync(SaveFolder));
             if (entries is null)
                 return;
             Entries.Clear();
@@ -194,11 +200,59 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
         }
     }
 
-    private static List<DatapackEntry> LoadEntries(string saveFolder)
+    private static async Task<List<DatapackEntry>> LoadEntriesAsync(string saveFolder)
     {
         var path = Path.Combine(saveFolder, "datapacks");
         if (!Directory.Exists(path))
             Directory.CreateDirectory(path);
+
+        var instance = InstanceList.McMcInstanceSelected;
+        if (instance is null)
+            return LoadEntriesDirectory(path);
+        if (!instance.IsLoaded)
+            instance.Load();
+
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var data = new LocalComp.CompLocalLoaderData
+                {
+                    gameVersion = instance,
+                    frm = null,
+                    loaders = [Comp.CompLoaderType.Minecraft],
+                    compPath = path,
+                    compType = Comp.CompType.DataPack
+                };
+                Loading.LoaderFolderRun(
+                    LocalComp.CompResourceListLoader,
+                    path,
+                    Loading.LoaderFolderRunType.ForceRun,
+                    loaderInput: data,
+                    waitForExit: true);
+                var output = LocalComp.CompResourceListLoader.output;
+                if (output is null)
+                    return LoadEntriesDirectory(path);
+                return output
+                    .Select(file => new DatapackEntry
+                    {
+                        Path = file.path,
+                        Name = Path.GetFileName(file.path),
+                        IsDirectory = file.IsFolder,
+                        File = file
+                    })
+                    .OrderBy(entry => entry.Path, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+            }
+            catch
+            {
+                return LoadEntriesDirectory(path);
+            }
+        });
+    }
+
+    private static List<DatapackEntry> LoadEntriesDirectory(string path)
+    {
         return
         [
             .. Directory
@@ -353,6 +407,8 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
         {
             CanEnable = false;
             CanDisable = false;
+            CanUpdate = false;
+            CanFavoriteAndShare = false;
             CanDelete = false;
             return;
         }
@@ -361,6 +417,8 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
         var selected = Entries.Where(entry => _selected.Contains(entry.RawKey)).ToList();
         CanEnable = selected.Any(entry => entry.Disabled);
         CanDisable = selected.Any(entry => !entry.Disabled);
+        CanUpdate = selected.Any(entry => entry.CanUpdate);
+        CanFavoriteAndShare = selected.Any(entry => entry.File?.Comp is not null);
         CanDelete = selected.Count > 0;
     }
 
@@ -375,9 +433,23 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    public static void DownloadNew()
+    public void DownloadNew()
     {
-        PageRouter.Navigate(PageType.Download, PageSubType.DownloadDataPack);
+        if (!string.IsNullOrEmpty(SaveFolder))
+        {
+            var datapacks = Path.Combine(SaveFolder, "datapacks");
+            Directory.CreateDirectory(datapacks);
+            PageDownloadCompDetail.SetCachedFolder(Comp.CompType.DataPack, datapacks);
+        }
+
+        var instance = PageInstanceLeft.ResolveInstance();
+        if (instance is not null)
+            PageRouter.Navigate(
+                PageType.Download,
+                PageSubType.DownloadDataPack,
+                new CompSearchContext(instance.Info.VanillaName, Comp.CompLoaderType.Any));
+        else
+            PageRouter.Navigate(PageType.Download, PageSubType.DownloadDataPack);
     }
 
     public async Task InstallFilesAsync(IReadOnlyList<string> files)
@@ -387,6 +459,23 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
             var path = DatapacksPath;
             if (path is null || files.Count == 0)
                 return;
+
+            var accepted = files
+                .Where(file => file.EndsWith(".zip", StringComparison.OrdinalIgnoreCase)
+                    || file.EndsWith(".zip.disabled", StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            if (accepted.Count == 0)
+            {
+                var extension = Path.GetExtension(files[0]).TrimStart('.');
+                HintService.Show(
+                    Hints.Error(
+                        Lang.Text(
+                            "Instance.Resource.Install.UnsupportedFormat",
+                            extension,
+                            Lang.Text("Download.Comp.Type.DataPack"),
+                            "zip")));
+                return;
+            }
 
             var confirm = await DialogService.Instance.ShowAsync(
                 new TextDialogRequest
@@ -399,29 +488,52 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                 return;
 
             Directory.CreateDirectory(path);
-            foreach (var file in files)
+            var overwriteAll = false;
+            var installed = 0;
+            foreach (var file in accepted)
             {
                 var target = Path.Combine(path, Path.GetFileName(file));
-                if (File.Exists(target)
-                    && !string.Equals(file, target, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(file, target, StringComparison.OrdinalIgnoreCase))
                 {
-                    HintService.Show(
-                        Hints.Warning(
-                            Lang.Text(
-                                "Instance.Saves.Datapack.Replace.FileNameConflict",
-                                Path.GetFileName(file))));
+                    installed++;
                     continue;
                 }
 
+                if (File.Exists(target) && !overwriteAll)
+                {
+                    var overwrite = await DialogService.Instance.ShowAsync(
+                        new TextDialogRequest
+                        {
+                            Title = Lang.Text("Instance.Resource.Install.OverwriteConfirm.Title"),
+                            Content = Lang.Text(
+                                "Instance.Resource.Install.OverwriteConfirm.Message",
+                                Path.GetFileName(file)),
+                            Buttons = DialogButtons.From(
+                                DialogButton.Create(Lang.Text("Common.Action.Overwrite")),
+                                DialogButton.Create(Lang.Text("Common.Action.Cancel")))
+                        });
+                    if (!overwrite.IsConfirmed)
+                        continue;
+                    overwriteAll = true;
+                }
+
                 File.Copy(file, target, true);
+                installed++;
             }
 
+            if (installed == 0)
+                return;
             HintService.Show(
-                Hints.Success(
-                    Lang.Text(
-                        "Instance.Resource.Install.SuccessMultiple",
-                        files.Count,
-                        Lang.Text("Instance.Saves.Left.Datapack"))));
+                installed == 1
+                    ? Hints.Success(
+                        Lang.Text(
+                            "Instance.Resource.Install.SuccessSingle",
+                            Path.GetFileName(accepted[0])))
+                    : Hints.Success(
+                        Lang.Text(
+                            "Instance.Resource.Install.SuccessMultiple",
+                            installed,
+                            Lang.Text("Instance.Saves.Left.Datapack"))));
             await LoadAsync();
         }
         catch (Exception ex)
@@ -444,7 +556,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                         "Instance.Resource.Export.Mode.Csv",
                         "Common.Action.Cancel")
                 });
-            if (!mode.IsConfirmed && mode.Button != 2 && mode.Button != 3)
+            if (mode.Button is not (1 or 2))
                 return;
 
             var isCsv = mode.Button == 2;
@@ -492,14 +604,31 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
             return;
         try
         {
-            var folder = Path.GetDirectoryName(entry.Path) ?? DatapacksPath;
+            var folder = Path.GetFullPath(Path.GetDirectoryName(entry.Path) ?? DatapacksPath);
             if (string.IsNullOrEmpty(folder))
                 return;
             var update = file.UpdateFile;
             if (!update.Available || update.DownloadUrls.Count == 0)
                 return;
 
-            var targetPath = Path.Combine(folder, update.FileName);
+            var fileName = Path.GetFileName(update.FileName);
+            if (string.IsNullOrWhiteSpace(fileName)
+                || !string.Equals(fileName, update.FileName, StringComparison.Ordinal))
+                return;
+
+            var targetPath = Path.GetFullPath(
+                Path.Combine(
+                    folder,
+                    fileName + (entry.Disabled ? ".disabled" : string.Empty)));
+            if (!targetPath.StartsWith(
+                    folder + Path.DirectorySeparatorChar,
+                    StringComparison.Ordinal))
+                return;
+
+            var downloadPath = Path.Combine(
+                LauncherPaths.Temp,
+                "DownloadedComp",
+                Path.GetFileName(targetPath));
             var checker = string.IsNullOrEmpty(update.Hash)
                 ? new FileChecker(1024L)
                 : new FileChecker(hash: update.Hash);
@@ -508,7 +637,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                 [
                     new LoaderDownload(
                         Lang.Text("Instance.Resource.Update.Task.DownloadFiles"),
-                        [new DownloadFile(update.DownloadUrls, targetPath, checker)])
+                        [new DownloadFile(update.DownloadUrls, downloadPath, checker)])
                 ])
             {
                 OnStateChanged = changed =>
@@ -516,6 +645,11 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                     switch (changed.State)
                     {
                         case LoadState.Finished:
+                            if (!File.Exists(downloadPath))
+                                break;
+                            if (File.Exists(targetPath))
+                                DeleteFileToRecycleBin(targetPath);
+                            File.Move(downloadPath, targetPath, true);
                             foreach (var variant in new[]
                                      {
                                          entry.Path,
@@ -527,7 +661,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                                         variant,
                                         targetPath,
                                         StringComparison.OrdinalIgnoreCase))
-                                    File.Delete(variant);
+                                    DeleteFileToRecycleBin(variant);
                             HintService.Show(
                                 Hints.Success(
                                     Lang.Text(
@@ -537,6 +671,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                             break;
 
                         case LoadState.Failed:
+                            TryDeleteFile(downloadPath);
                             HintService.Show(
                                 Hints.Error(
                                     Lang.Text(
@@ -544,9 +679,12 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                                         changed.Error?.Message ?? string.Empty)));
                             break;
 
+                        case LoadState.Aborted:
+                            TryDeleteFile(downloadPath);
+                            break;
+
                         case LoadState.Waiting:
                         case LoadState.Loading:
-                        case LoadState.Aborted:
                             break;
 
                         default:
@@ -601,6 +739,38 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
             Toggle(entry, false);
         _selected.Clear();
         ReloadRequested?.Invoke();
+    }
+
+    [RelayCommand]
+    public async Task UpdateSelectedAsync()
+    {
+        var targets = Entries
+            .Where(entry => _selected.Contains(entry.RawKey) && entry.CanUpdate)
+            .ToList();
+        foreach (var entry in targets)
+            await UpdateEntryAsync(entry);
+        _selected.Clear();
+        BuildList();
+    }
+
+    public List<Comp.CompProject> GetFavoriteProjects()
+    {
+        return
+        [
+            .. Entries
+                .Where(entry => _selected.Contains(entry.RawKey) && entry.File?.Comp is not null)
+                .Select(entry => entry.File!.Comp!)
+        ];
+    }
+
+    public IReadOnlyList<string> GetShareIds()
+    {
+        return
+        [
+            .. Entries
+                .Where(entry => _selected.Contains(entry.RawKey) && entry.File?.Comp is not null)
+                .Select(entry => entry.File!.Comp!.Id)
+        ];
     }
 
     [RelayCommand]
@@ -730,6 +900,29 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
         catch
         {
             return 0L;
+        }
+    }
+
+    private static void DeleteFileToRecycleBin(string path)
+    {
+        if (!File.Exists(path))
+            return;
+        if (RecycleBin.IsSupported(path)
+            && RecycleBin.Move(path, out _) == RecycleBin.Outcome.Moved)
+            return;
+        File.Delete(path);
+    }
+
+    private static void TryDeleteFile(string path)
+    {
+        try
+        {
+            if (File.Exists(path))
+                File.Delete(path);
+        }
+        catch
+        {
+            // ignored
         }
     }
 }

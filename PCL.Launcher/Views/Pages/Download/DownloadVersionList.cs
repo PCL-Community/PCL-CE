@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text.Json.Nodes;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Templates;
 using PCL.Core.App.Localization;
 using PCL.Core.Minecraft;
 using PCL.UI.Controls;
@@ -12,7 +13,6 @@ namespace PCL.Views.Pages.Download;
 internal enum DownloadVersionListMode
 {
     Install,
-
     SaveOnly
 }
 
@@ -67,8 +67,8 @@ internal static class DownloadVersionList
             {
                 Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d)
             };
-            foreach (var version in latestVersions)
-                latestStack.Children.Add(CreateItem(version, onSelect, installed, mode, itemMap));
+            latestStack.Children.Add(
+                CreateVersionList(latestVersions, onSelect, installed, mode, itemMap));
             latestCard.Children.Add(latestStack);
             panMain.Children.Add(latestCard);
         }
@@ -97,12 +97,32 @@ internal static class DownloadVersionList
                 if (target.Tag is not List<JsonObject> list)
                     return;
                 target.Children.Clear();
-                foreach (var version in list)
-                    target.Children.Add(CreateItem(version, onSelect, installed, mode, itemMap));
+                target.Children.Add(
+                    CreateVersionList(list, onSelect, installed, mode, itemMap));
             };
             card.IsSwapped = true;
             panMain.Children.Add(card);
         }
+    }
+
+    /// <summary>
+    ///     版本行使用虚拟化面板承载，展开或滚动到可视区域时才创建对应的 <see cref="MyListItem" />。
+    /// </summary>
+    private static ItemsControl CreateVersionList(
+        IReadOnlyList<JsonObject> versions,
+        Action<JsonObject> onSelect,
+        IReadOnlySet<string> installed,
+        DownloadVersionListMode mode,
+        IDictionary<string, MyListItem>? itemMap)
+    {
+        var list = new ItemsControl
+        {
+            ItemsSource = versions,
+            ItemTemplate = new FuncDataTemplate<JsonObject>((version, _) =>
+                CreateItem(version, onSelect, installed, mode, itemMap)),
+            ItemsPanel = new FuncTemplate<Panel?>(() => new VirtualizingStackPanel())
+        };
+        return list;
     }
 
     public static HashSet<string> GetInstalledVersionNames()
@@ -161,13 +181,17 @@ internal static class DownloadVersionList
         return clone;
     }
 
-    private static MyListItem CreateItem(
-        JsonObject version,
+    private static MyListItem? CreateItem(
+        JsonObject? version,
         Action<JsonObject> onSelect,
         IReadOnlySet<string> installed,
         DownloadVersionListMode mode,
         IDictionary<string, MyListItem>? itemMap)
     {
+        // Avalonia 在回收虚拟化容器时可能用 null 重新调用模板；直接返回空容器，
+        // 避免在 ContentPresenter 清理阶段抛出 NullReferenceException。
+        if (version is null) return null;
+
         var versionId = version["id"]?.ToString() ?? "";
         var formattedVersion = McFormatter.FormatVersion(versionId).Replace("_", " ");
         var releaseTime = McVersionClassifier.GetReleaseTime(version);

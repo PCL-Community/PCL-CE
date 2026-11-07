@@ -27,8 +27,68 @@ public static class CompFavoritesMenu
             items.Add(item);
         }
 
-        if (items.Count == 0)
-            return;
+        var menu = new ContextMenu
+        {
+            ItemsSource = items
+        };
+        menu.Closed += (_, _) => closedCallback?.Invoke();
+        menu.Open(anchor);
+    }
+
+    /// <summary>批量收藏入口：把一组工程一次性加入所选收藏夹。</summary>
+    public static void Show(
+        IReadOnlyList<Comp.CompProject> projects,
+        Control anchor,
+        Action? closedCallback = null)
+    {
+        switch (projects.Count)
+        {
+            case 0:
+                return;
+            case 1:
+                Show(projects[0], anchor, closedCallback);
+                return;
+        }
+
+        var items = new List<MyMenuItem>();
+        foreach (var group in Comp.CompFavorites.FavoritesList ?? [])
+        {
+            var groupName = group.Name;
+            var item = new MyMenuItem
+            {
+                Header = Lang.Text(
+                    "Download.Comp.Detail.Favorites.FavoriteContextMenu",
+                    groupName),
+                SvgIcon = "lucide/heart",
+                MaxWidth = 240d
+            };
+            item.Click += (_, _) =>
+            {
+                try
+                {
+                    var count = group.Favs.Count;
+                    foreach (var project in projects)
+                        group.Favs.Add(project.Id);
+                    Comp.CompFavorites.Save();
+                    var successCount = group.Favs.Count - count;
+                    var failedCount = projects.Count - successCount;
+                    LauncherUi.Interaction?.ShowHint(
+                        Lang.Text(
+                            failedCount > 0
+                                ? "Download.Comp.Detail.Favorites.BulkAddWithFailures"
+                                : "Download.Comp.Detail.Favorites.BulkAdd",
+                            successCount,
+                            groupName,
+                            failedCount),
+                        NotificationType.Success);
+                }
+                catch (Exception ex)
+                {
+                    LauncherCommon.Log(ex, "[CompFavorites] 批量添加收藏项出错");
+                }
+            };
+            items.Add(item);
+        }
 
         var menu = new ContextMenu
         {

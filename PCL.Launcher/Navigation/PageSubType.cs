@@ -27,7 +27,7 @@ public enum PageSubType
     DownloadLegacyFabric = 18,
 
     SetupLaunch = 0,
-    SetupUI = 1,
+    SetupUi = 1,
     SetupGameManage = 2,
     SetupLink = 3,
     SetupAbout = 4,
@@ -54,7 +54,6 @@ public enum PageSubType
     VersionSchematic = 9,
     VersionInstall = 10,
     VersionServer = 11,
-    VersionModJarInJar = 12,
 
     VersionSavesInfo = 0,
     VersionSavesDatapack = 1

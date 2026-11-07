@@ -1,7 +1,4 @@
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
-using PCL.Core.App.Localization;
 using PCL.Navigation;
 using PCL.UI.Controls;
 
@@ -12,32 +9,31 @@ namespace PCL.Views.Pages.Instance;
 ///     数据包子页仅在存档数据版本支持数据包（17w47a 及以上）时显示；当前存档路径由
 ///     <see cref="CurrentSave" /> 记录，右栏详情页与数据包页从路由参数或该字段读取。
 /// </summary>
-public class PageInstanceSavesLeft : MyPageLeft, IRefreshable
+public partial class PageInstanceSavesLeft : MyPageLeft, IRefreshable
 {
     private readonly List<(PageSubType SubType, MyListItem Item)> _items = [];
-
-    private readonly StackPanel _panel;
     private bool _building;
-    private MyListItem? _datapackItem;
+    private MyIconButton? _datapackRefresh;
 
     public PageInstanceSavesLeft()
     {
-        var panel = new StackPanel
-        {
-            Margin = new Thickness(0d, 12d, 0d, 0d)
-        };
-        var scroll = new MyScrollViewer
-        {
-            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
-            Content = panel
-        };
-        _panel = panel;
-        Children.Add(scroll);
-        AnimatedControl = panel;
+        InitializeComponent();
+        AnimatedControl = PanItem;
         DataContext = ViewModel;
-        BuildItems();
+
+        ItemInfo.tag = PageSubType.VersionSavesInfo;
+        ItemDatapack.tag = PageSubType.VersionSavesDatapack;
+        _items.Add((PageSubType.VersionSavesInfo, ItemInfo));
+        _items.Add((PageSubType.VersionSavesDatapack, ItemDatapack));
+
+        ItemInfo.Check += (_, _) => NavigateIfNeeded(ItemInfo);
+        ItemDatapack.Check += (_, _) => NavigateIfNeeded(ItemDatapack);
+        BtnOpenFolder.Click += (_, _) => PageInstanceSavesLeftViewModel.OpenFolder();
+        AttachDatapackButton();
+
         Current = this;
+        ApplyDatapackVisibility();
+        RefreshChecked();
     }
 
     public static string CurrentSave
@@ -65,54 +61,6 @@ public class PageInstanceSavesLeft : MyPageLeft, IRefreshable
         PageInstanceSavesLeftViewModel.Refresh();
     }
 
-    private void BuildItems()
-    {
-        _panel.Children.Clear();
-        _items.Clear();
-        _datapackItem = null;
-
-        foreach (var definition in ViewModel.Items)
-        {
-            var item = AddItem(definition.SubType, definition.TitleKey, definition.SvgIcon);
-            if (definition.SubType != PageSubType.VersionSavesDatapack)
-                continue;
-
-            _datapackItem = item;
-            var datapackRefresh = new MyIconButton
-            {
-                SvgIcon = "lucide/refresh-cw",
-                LogoScale = 0.85d
-            };
-            ToolTip.SetTip(datapackRefresh, PageInstanceSavesLeftViewModel.RefreshToolTip);
-            datapackRefresh.Click += (_, _) => PageInstanceSavesLeftViewModel.Refresh();
-            item.Buttons = [datapackRefresh];
-        }
-
-        _panel.Children.Add(
-            new TextBlock
-            {
-                Text = PageInstanceSavesLeftViewModel.QuickActionsTitle,
-                Margin = new Thickness(13d, 6d, 5d, 4d),
-                Opacity = 0.6d,
-                FontSize = 12d
-            });
-
-        var openFolder = new MyListItem
-        {
-            Type = MyListItem.CheckType.Clickable,
-            Title = PageInstanceSavesLeftViewModel.OpenFolderTitle,
-            SvgIcon = "lucide/folder-open",
-            LogoScale = 0.8d,
-            IsScaleAnimationEnabled = false,
-            Height = 36d,
-            MinPaddingRight = 35
-        };
-        openFolder.Click += (_, _) => PageInstanceSavesLeftViewModel.OpenFolder();
-        _panel.Children.Add(openFolder);
-
-        ApplyDatapackVisibility();
-    }
-
     public override void OnNavigatedTo(object? parameter)
     {
         Current = this;
@@ -128,35 +76,33 @@ public class PageInstanceSavesLeft : MyPageLeft, IRefreshable
 
     protected override void RefreshLocalization()
     {
-        BuildItems();
+        if (_datapackRefresh is not null)
+            ToolTip.SetTip(_datapackRefresh, PageInstanceSavesLeftViewModel.RefreshToolTip);
+        ApplyDatapackVisibility();
         RefreshChecked();
     }
 
-    private MyListItem AddItem(PageSubType subType, string titleKey, string svgIcon)
+    private void AttachDatapackButton()
     {
-        var item = new MyListItem
+        _datapackRefresh = new MyIconButton
         {
-            Type = MyListItem.CheckType.RadioBox,
-            Title = Lang.Text(titleKey),
-            SvgIcon = svgIcon,
-            IsScaleAnimationEnabled = false,
-            Height = 36d,
-            MinPaddingRight = 35,
-            tag = subType
+            SvgIcon = "lucide/refresh-cw",
+            LogoScale = 0.85d
         };
-        item.Check += (_, _) =>
-        {
-            if (!_building && item.tag is PageSubType target)
-                PageInstanceSavesLeftViewModel.Navigate(target);
-        };
-        _items.Add((subType, item));
-        _panel.Children.Add(item);
-        return item;
+        ToolTip.SetTip(_datapackRefresh, PageInstanceSavesLeftViewModel.RefreshToolTip);
+        _datapackRefresh.Click += (_, _) => PageInstanceSavesLeftViewModel.Refresh();
+        ItemDatapack.Buttons = [_datapackRefresh];
+    }
+
+    private void NavigateIfNeeded(MyListItem item)
+    {
+        if (!_building && item.tag is PageSubType target)
+            PageInstanceSavesLeftViewModel.Navigate(target);
     }
 
     private void ApplyDatapackVisibility()
     {
-        _datapackItem?.IsVisible = PageInstanceSavesLeftViewModel.IsDatapackTabVisible;
+        ItemDatapack.IsVisible = PageInstanceSavesLeftViewModel.IsDatapackTabVisible;
         PageInstanceSavesLeftViewModel.ApplyDatapackVisibility();
     }
 

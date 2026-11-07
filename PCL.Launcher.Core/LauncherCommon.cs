@@ -41,8 +41,22 @@ public static class LauncherCommon
 
     public static LauncherLogHandler? UiLogHandler { get; set; }
 
+    private static bool _modeDebug;
+
     /// <summary>是否处于调试模式，由宿主同步。</summary>
-    public static bool ModeDebug { get; set; }
+    public static bool ModeDebug
+    {
+        get => _modeDebug;
+        set
+        {
+            if (_modeDebug == value) return;
+            _modeDebug = value;
+            ModeDebugChanged?.Invoke(value);
+        }
+    }
+
+    /// <summary>调试模式状态变化事件；供启动日志等调试 UI 实时刷新。</summary>
+    public static event Action<bool>? ModeDebugChanged;
 
     public static string VersionStandardCode => Basics.Metadata.Version.StandardVersion;
 

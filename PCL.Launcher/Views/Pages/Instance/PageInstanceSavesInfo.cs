@@ -1,6 +1,5 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
 using Avalonia.Input.Platform;
 using Avalonia.Layout;
 using Avalonia.Media;
@@ -15,24 +14,30 @@ namespace PCL.Views.Pages.Instance;
 ///     并允许修改作弊命令、难度与难度锁定（通过存档管理器原子写入 level.dat）。
 ///     种子可点击复制，也可跳转 Chunkbase 预览；低版本存档会提示哪些字段无法获取。
 /// </summary>
-public class PageInstanceSavesInfo : MyPageRight, IRefreshable
+public partial class PageInstanceSavesInfo : MyPageRight, IRefreshable
 {
-    private MyCheckBox _checkLockDifficulty = null!;
-    private MyComboBox _comboAllowCommands = null!;
-    private MyComboBox _comboDifficulty = null!;
-    private StackPanel _panHints = null!;
-    private StackPanel _panInfo = null!;
-    private StackPanel _panMain = null!;
-    private Grid _rowAllowCommands = null!;
-    private Grid _rowDifficulty = null!;
     private string? _saveFolder;
-    private MyCard _settingsCard = null!;
     private bool _syncing;
-    private TextBlock _titleText = null!;
 
     public PageInstanceSavesInfo()
     {
-        BuildUi();
+        InitializeComponent();
+        DataContext = ViewModel;
+        PanScroll = PanBack;
+        Grid.SetIsSharedSizeScope(PanMain, true);
+
+        ComboAllowCommands.SelectionChanged += (_, _) =>
+        {
+            if (!_syncing) _ = ApplyChangesAsync();
+        };
+        ComboDifficulty.SelectionChanged += (_, _) =>
+        {
+            if (!_syncing) _ = ApplyChangesAsync();
+        };
+        CheckLockDifficulty.Change += (_, _) =>
+        {
+            if (!_syncing) _ = ApplyChangesAsync();
+        };
     }
 
     public PageInstanceSavesInfoViewModel ViewModel { get; } = new();
@@ -52,103 +57,7 @@ public class PageInstanceSavesInfo : MyPageRight, IRefreshable
 
     protected override void RefreshLocalization()
     {
-        BuildUi();
         Reload();
-    }
-
-    private void BuildUi()
-    {
-        var panel = new StackPanel
-        {
-            Margin = new Thickness(25d, 25d, 25d, 25d)
-        };
-        var scroll = new MyScrollViewer
-        {
-            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
-            Content = panel
-        };
-        _panMain = panel;
-        PanScroll = scroll;
-        Child = scroll;
-
-        var infoCard = InstancePageHelper.CreateCard(
-            "Instance.Saves.Info.Details.Title",
-            out var infoBody);
-        _titleText = new TextBlock
-        {
-            FontSize = 18d,
-            FontWeight = FontWeight.SemiBold
-        };
-        infoBody.Children.Add(_titleText);
-        _panHints = new StackPanel
-        {
-            Spacing = 6d
-        };
-        infoBody.Children.Add(_panHints);
-        _panInfo = new StackPanel
-        {
-            Spacing = 4d
-        };
-        infoBody.Children.Add(_panInfo);
-        panel.Children.Add(infoCard);
-
-        _settingsCard = InstancePageHelper.CreateCard(
-            "Instance.Saves.Info.Settings.Title",
-            out var settingsBody);
-        settingsBody.Children.Add(
-            new MyHint
-            {
-                Text = Lang.Text("Instance.Saves.Info.Modify.BeforeSave"),
-                Theme = MyHint.Themes.Blue,
-                Margin = new Thickness(0d, 0d, 0d, 8d)
-            });
-
-        _comboAllowCommands = new MyComboBox
-        {
-            Width = 220d
-        };
-        _comboAllowCommands.Items.Add(Lang.Text("Instance.Saves.Info.AllowCommands.Allowed"));
-        _comboAllowCommands.Items.Add(Lang.Text("Instance.Saves.Info.AllowCommands.NotAllowed"));
-        _comboAllowCommands.SelectionChanged += (_, _) =>
-        {
-            if (!_syncing) _ = ApplyChangesAsync();
-        };
-        _rowAllowCommands = InstancePageHelper.Row(
-            Lang.Text("Instance.Saves.Info.AllowCommands"),
-            _comboAllowCommands);
-        settingsBody.Children.Add(_rowAllowCommands);
-
-        _comboDifficulty = new MyComboBox
-        {
-            Width = 220d
-        };
-        _comboDifficulty.Items.Add(Lang.Text("Instance.Saves.Info.Difficulty.Peaceful"));
-        _comboDifficulty.Items.Add(Lang.Text("Instance.Saves.Info.Difficulty.Easy"));
-        _comboDifficulty.Items.Add(Lang.Text("Instance.Saves.Info.Difficulty.Normal"));
-        _comboDifficulty.Items.Add(Lang.Text("Instance.Saves.Info.Difficulty.Hard"));
-        _comboDifficulty.SelectionChanged += (_, _) =>
-        {
-            if (!_syncing) _ = ApplyChangesAsync();
-        };
-        _rowDifficulty = InstancePageHelper.Row(
-            Lang.Text("Instance.Saves.Info.GameDifficultyLabel"),
-            _comboDifficulty);
-        settingsBody.Children.Add(_rowDifficulty);
-
-        _checkLockDifficulty = new MyCheckBox
-        {
-            Text = Lang.Text("Instance.Saves.Info.LockDifficulty")
-        };
-        ToolTip.SetTip(
-            _checkLockDifficulty,
-            Lang.Text("Instance.Saves.Info.LockDifficulty.ToolTip"));
-        _checkLockDifficulty.Change += (_, _) =>
-        {
-            if (!_syncing) _ = ApplyChangesAsync();
-        };
-        settingsBody.Children.Add(_checkLockDifficulty);
-        panel.Children.Add(_settingsCard);
     }
 
     public void Reload()
@@ -175,17 +84,13 @@ public class PageInstanceSavesInfo : MyPageRight, IRefreshable
         _syncing = true;
         try
         {
-            _titleText.Text = string.IsNullOrEmpty(ViewModel.LevelName)
+            TitleText.Text = string.IsNullOrEmpty(ViewModel.LevelName)
                 ? Lang.Text("Instance.Saves.Info.GetFailed")
                 : ViewModel.LevelName;
-            _panInfo.Children.Clear();
-            _panHints.Children.Clear();
+            PanInfo.Children.Clear();
 
             if (ViewModel.Save is null)
-            {
-                _settingsCard.IsVisible = false;
                 return;
-            }
 
             foreach (var row in ViewModel.Rows)
                 if (row.IsSeed)
@@ -193,17 +98,9 @@ public class PageInstanceSavesInfo : MyPageRight, IRefreshable
                 else
                     AddInfoRow(row.Head, row.Content);
 
-            RenderHints();
-            _settingsCard.IsVisible = ViewModel.ShowSettings;
-            _rowAllowCommands.IsVisible = ViewModel.HasAllowCommandsSetting;
-            _rowDifficulty.IsVisible = ViewModel.HasDifficultySetting;
-            _comboAllowCommands.SelectedIndex = ViewModel.AllowCommandsIndex;
-            _comboAllowCommands.IsEnabled = ViewModel.HasAllowCommandsSetting;
-            _comboDifficulty.SelectedIndex = ViewModel.DifficultyIndex;
-            _comboDifficulty.IsEnabled = ViewModel.HasDifficultySetting;
-            _checkLockDifficulty.Checked = ViewModel.IsDifficultyLocked;
-            _checkLockDifficulty.IsEnabled = ViewModel.HasDifficultySetting;
-            _checkLockDifficulty.IsVisible = ViewModel.ShowLockDifficulty;
+            ComboAllowCommands.SelectedIndex = ViewModel.AllowCommandsIndex;
+            ComboDifficulty.SelectedIndex = ViewModel.DifficultyIndex;
+            CheckLockDifficulty.Checked = ViewModel.IsDifficultyLocked;
         }
         finally
         {
@@ -211,92 +108,105 @@ public class PageInstanceSavesInfo : MyPageRight, IRefreshable
         }
     }
 
-    private void RenderHints()
-    {
-        if (ViewModel.ShowVersionHint13)
-            _panHints.Children.Add(NewVersionHint(ViewModel.VersionHint13Text));
-        if (ViewModel.ShowVersionHint18)
-            _panHints.Children.Add(NewVersionHint(ViewModel.VersionHint18Text));
-        if (ViewModel.ShowVersionHint19)
-            _panHints.Children.Add(NewVersionHint(ViewModel.VersionHint19Text));
-    }
-
-    private static MyHint NewVersionHint(string text)
-    {
-        return new MyHint
-        {
-            Text = text,
-            Theme = MyHint.Themes.Yellow,
-            Margin = new Thickness(0d, 2d)
-        };
-    }
-
     private void AddInfoRow(string label, string value)
     {
-        var grid = new Grid
-        {
-            ColumnDefinitions = new ColumnDefinitions("Auto,*"),
-            Height = 26d
-        };
+        var grid = new Grid();
+        grid.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width = GridLength.Auto,
+                SharedSizeGroup = "SavesInfoLabel"
+            });
+        grid.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width = new GridLength(24d)
+            });
+        grid.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width = GridLength.Auto
+            });
         grid.Children.Add(
             new TextBlock
             {
                 Text = label,
                 Opacity = 0.7d,
                 VerticalAlignment = VerticalAlignment.Center,
-                Margin = new Thickness(0d, 0d, 25d, 0d)
+                Margin = new Thickness(0d, 3d, 0d, 3d)
             });
         var valueBlock = new TextBlock
         {
             Text = value,
             VerticalAlignment = VerticalAlignment.Center,
-            TextWrapping = TextWrapping.Wrap
+            TextWrapping = TextWrapping.Wrap,
+            Margin = new Thickness(0d, 3d, 0d, 3d)
         };
-        Grid.SetColumn(valueBlock, 1);
+        Grid.SetColumn(valueBlock, 2);
         grid.Children.Add(valueBlock);
-        _panInfo.Children.Add(grid);
+        PanInfo.Children.Add(grid);
     }
 
     private void AddSeedRow(SaveInfoRow row)
     {
-        var grid = new Grid
-        {
-            ColumnDefinitions = new ColumnDefinitions("Auto,*,Auto"),
-            Height = 28d
-        };
+        var grid = new Grid();
+        grid.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width = GridLength.Auto,
+                SharedSizeGroup = "SavesInfoLabel"
+            });
+        grid.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width = new GridLength(24d)
+            });
+        grid.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width = GridLength.Auto
+            });
+        grid.ColumnDefinitions.Add(
+            new ColumnDefinition
+            {
+                Width = GridLength.Auto
+            });
         grid.Children.Add(
             new TextBlock
             {
                 Text = row.Head,
                 Opacity = 0.7d,
                 VerticalAlignment = VerticalAlignment.Center,
-                Margin = new Thickness(0d, 0d, 25d, 0d)
+                Margin = new Thickness(0d, 3d, 0d, 3d)
             });
-        var seedButton = new MyButton
+        // WPF 使用 MyTextButton 而不是带白色底框的 MyButton。
+        var seedButton = new MyTextButton
         {
             Text = row.Content,
-            MinWidth = 140d,
-            Height = 28d,
+            Margin = new Thickness(0d, 3d, 0d, 3d),
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Center,
             IsEnabled = row.CanCopySeed
         };
         ToolTip.SetTip(seedButton, Lang.Text("Common.Action.Copy"));
         seedButton.Click += (_, _) => _ = CopySeedAsync(row.Seed);
-        Grid.SetColumn(seedButton, 1);
+        Grid.SetColumn(seedButton, 2);
         grid.Children.Add(seedButton);
         var chunkbase = new MyIconButton
         {
             SvgIcon = "lucide/external-link",
+            Width = 22d,
+            Height = 22d,
             LogoScale = 0.9d,
+            Margin = new Thickness(4d, 3d, 0d, 3d),
             VerticalAlignment = VerticalAlignment.Center,
             IsEnabled = row.CanCopySeed
         };
         ToolTip.SetTip(chunkbase, Lang.Text("Instance.Saves.Info.Chunkbase.ToolTip"));
         chunkbase.Click += (_, _) => ViewModel.OpenChunkbase(row.Seed);
-        Grid.SetColumn(chunkbase, 2);
+        Grid.SetColumn(chunkbase, 3);
         grid.Children.Add(chunkbase);
-        _panInfo.Children.Add(grid);
+        PanInfo.Children.Add(grid);
     }
 
     private async Task CopySeedAsync(long? seed)
@@ -325,10 +235,10 @@ public class PageInstanceSavesInfo : MyPageRight, IRefreshable
         _syncing = true;
         try
         {
-            await ViewModel.ApplyAllowCommandsAsync(_comboAllowCommands.SelectedIndex);
+            await ViewModel.ApplyAllowCommandsAsync(ComboAllowCommands.SelectedIndex);
             await ViewModel.ApplyDifficultyAsync(
-                _comboDifficulty.SelectedIndex,
-                _checkLockDifficulty.Checked == true);
+                ComboDifficulty.SelectedIndex,
+                CheckLockDifficulty.Checked == true);
             Render();
         }
         finally

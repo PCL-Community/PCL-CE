@@ -34,6 +34,7 @@ public class RecycleBinTest
         }
         catch
         {
+            // ignored
         }
     }
 
@@ -65,9 +66,9 @@ public class RecycleBinTest
         var info = Path.Combine(_trashRoot, "Trash", "info", "instance-under-test.trashinfo");
         Assert.IsTrue(File.Exists(info), "应写入 .trashinfo 以支持桌面环境还原");
         var text = File.ReadAllText(info);
-        StringAssert.Contains(text, "[Trash Info]");
-        StringAssert.Contains(text, "Path=");
-        StringAssert.Contains(text, "DeletionDate=");
+        Assert.Contains("[Trash Info]", text);
+        Assert.Contains("Path=", text);
+        Assert.Contains("DeletionDate=", text);
     }
 
     [TestMethod]

@@ -82,7 +82,11 @@ public partial class PageInstanceServerViewModel : ViewModelBase
                         continue;
                     var name = compound.Get<NbtString>("name")?.Value ?? string.Empty;
                     var ip = compound.Get<NbtString>("ip")?.Value ?? string.Empty;
-                    Servers.Add(new ServerCardViewModel(name, ip, i));
+                    var icon = compound.Get<NbtString>("icon")?.Value ?? string.Empty;
+                    var card = new ServerCardViewModel(name, ip, i);
+                    if (!string.IsNullOrWhiteSpace(icon))
+                        card.IconBase64 = icon;
+                    Servers.Add(card);
                 }
 
             ShowContent = Servers.Count > 0;
@@ -209,16 +213,21 @@ public partial class PageInstanceServerViewModel : ViewModelBase
             if (string.IsNullOrWhiteSpace(address))
                 return false;
 
-            var servers = await ReadServersAsync() ?? new NbtList("servers", NbtTagType.Compound);
-            if (servers.Count == 0)
-                servers.ListType = NbtTagType.Compound;
-            servers.Add(
-                new NbtCompound
+            var written = await UpdateServersAsync(
+                servers =>
                 {
-                    new NbtString("name", name),
-                    new NbtString("ip", address)
-                });
-            if (!await WriteServersAsync(servers))
+                    if (servers.Count == 0)
+                        servers.ListType = NbtTagType.Compound;
+                    servers.Add(
+                        new NbtCompound
+                        {
+                            new NbtString("name", name),
+                            new NbtString("ip", address)
+                        });
+                    return true;
+                },
+                true);
+            if (!written)
             {
                 HintService.Show(Hints.Error(Lang.Text("Instance.Server.WriteDataFailed")));
                 return false;
@@ -270,21 +279,29 @@ public partial class PageInstanceServerViewModel : ViewModelBase
             if (string.IsNullOrWhiteSpace(address))
                 return false;
 
-            var servers = await ReadServersAsync();
-            if (servers is null
-                || card.RawIndex < 0
-                || card.RawIndex >= servers.Count
-                || servers[card.RawIndex] is not NbtCompound compound)
+            var indexFound = true;
+            var written = await UpdateServersAsync(servers =>
             {
-                HintService.Show(Hints.Error(Lang.Text("Instance.Server.IndexNotFound")));
-                return false;
-            }
+                if (card.RawIndex < 0
+                    || card.RawIndex >= servers.Count
+                    || servers[card.RawIndex] is not NbtCompound compound)
+                {
+                    indexFound = false;
+                    return false;
+                }
 
-            compound["name"] = new NbtString("name", name);
-            compound["ip"] = new NbtString("ip", address);
-            if (!await WriteServersAsync(servers))
+                compound["name"] = new NbtString("name", name);
+                compound["ip"] = new NbtString("ip", address);
+                return true;
+            });
+            if (!written)
             {
-                HintService.Show(Hints.Error(Lang.Text("Instance.Server.WriteDataFailed")));
+                HintService.Show(
+                    Hints.Error(
+                        Lang.Text(
+                            indexFound
+                                ? "Instance.Server.WriteDataFailed"
+                                : "Instance.Server.IndexNotFound")));
                 return false;
             }
 
@@ -318,17 +335,26 @@ public partial class PageInstanceServerViewModel : ViewModelBase
             if (!result.IsConfirmed)
                 return false;
 
-            var servers = await ReadServersAsync();
-            if (servers is null || card.RawIndex < 0 || card.RawIndex >= servers.Count)
+            var indexFound = true;
+            var written = await UpdateServersAsync(servers =>
             {
-                HintService.Show(Hints.Error(Lang.Text("Instance.Server.IndexNotFound")));
-                return false;
-            }
+                if (card.RawIndex < 0 || card.RawIndex >= servers.Count)
+                {
+                    indexFound = false;
+                    return false;
+                }
 
-            servers.RemoveAt(card.RawIndex);
-            if (!await WriteServersAsync(servers))
+                servers.RemoveAt(card.RawIndex);
+                return true;
+            });
+            if (!written)
             {
-                HintService.Show(Hints.Error(Lang.Text("Instance.Server.WriteDataFailed")));
+                HintService.Show(
+                    Hints.Error(
+                        Lang.Text(
+                            indexFound
+                                ? "Instance.Server.WriteDataFailed"
+                                : "Instance.Server.IndexNotFound")));
                 return false;
             }
 
@@ -390,6 +416,33 @@ public partial class PageInstanceServerViewModel : ViewModelBase
         return path is null
             ? null
             : await NbtFileHandler.ReadTagInNbtFileAsync<NbtList>(path, "servers");
+    }
+
+    private async Task<bool> UpdateServersAsync(
+        Func<NbtList, bool> update,
+        bool createIfMissing = false)
+    {
+        var path = ServersPath;
+        if (path is null)
+            return false;
+
+        await _saveLock.WaitAsync();
+        try
+        {
+            var servers = await ReadServersAsync();
+            if (servers is null)
+            {
+                if (!createIfMissing)
+                    return false;
+                servers = new NbtList("servers", NbtTagType.Compound);
+            }
+
+            return update(servers) && await WriteServersAsync(servers);
+        }
+        finally
+        {
+            _saveLock.Release();
+        }
     }
 
     private async Task<bool> WriteServersAsync(NbtList servers)

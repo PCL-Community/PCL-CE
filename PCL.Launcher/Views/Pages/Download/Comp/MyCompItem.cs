@@ -2,31 +2,20 @@ using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.VisualTree;
-using PCL.Core.App.Localization;
 using PCL.UI.Controls;
-using static PCL.UI.Controls.ContainerTheme;
-using SvgIconControl = PCL.UI.Controls.SvgIcon.SvgIcon;
 
 namespace PCL.Views.Pages.Download;
 
-public sealed class MyCompItem : Grid
+public sealed partial class MyCompItem : Grid
 {
-    private readonly MyIconButton _btnDownload;
-    private readonly MyIconButton _btnFavorite;
-    private readonly Border _hoverBack;
-    private readonly TextBlock _labDescription;
-    private readonly TextBlock _labDownload;
-    private readonly TextBlock _labSource;
-    private readonly TextBlock _labSubTitle;
-    private readonly TextBlock _labTime;
-    private readonly TextBlock _labTitle;
-    private readonly TextBlock _labVersion;
-    private readonly MyImage _logo;
-    private readonly StackPanel _panButtons;
-    private readonly StackPanel _panTags;
+    public MyCompItem()
+    {
+        ViewModel = null!;
+        Project = null!;
+        InitializeComponent();
+    }
 
     public MyCompItem(
         Comp.CompProject project,
@@ -53,247 +42,39 @@ public sealed class MyCompItem : Grid
     {
         ViewModel = viewModel;
         Project = project;
-        Height = 64d;
-        Margin = new Thickness(0d, 0d, 0d, 2d);
-        ColumnDefinitions = new ColumnDefinitions("7,50,8,Auto,*,Auto");
-        RowDefinitions = new RowDefinitions("*,20,18,16,1.1*");
+        InitializeComponent();
+
         Cursor = new Cursor(StandardCursorType.Hand);
-        BindDynamic(this, BackgroundProperty, "ColorBrushSemiTransparent");
-
-        _hoverBack = new Border
-        {
-            CornerRadius = new CornerRadius(3d),
-            IsHitTestVisible = false,
-            Opacity = 0d
-        };
-        BindDynamic(_hoverBack, Border.BackgroundProperty, "ColorBrushBg1");
-        SetColumnSpan(_hoverBack, 99);
-        SetRowSpan(_hoverBack, 99);
-        Children.Add(_hoverBack);
-
-        _logo = new MyImage
-        {
-            Width = 50d,
-            Height = 50d,
-            CornerRadius = new CornerRadius(6d),
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            Stretch = Stretch.Uniform,
-            IsHitTestVisible = false
-        };
         ApplyLogo(project);
-        SetColumn(_logo, 1);
-        SetRow(_logo, 1);
-        SetRowSpan(_logo, 3);
-        Children.Add(_logo);
-
-        _labTitle = new TextBlock
-        {
-            Text = viewModel.TitleText,
-            FontSize = 14d,
-            VerticalAlignment = VerticalAlignment.Center,
-            TextTrimming = TextTrimming.CharacterEllipsis
-        };
-        BindDynamic(_labTitle, TextBlock.ForegroundProperty, "ColorBrush1");
-        _labSubTitle = new TextBlock
-        {
-            Text = viewModel.SubTitleText,
-            FontSize = 12d,
-            Margin = new Thickness(6d, 0d, 0d, 0d),
-            VerticalAlignment = VerticalAlignment.Center,
-            Opacity = 0.4d,
-            IsVisible = viewModel.SubTitleVisible,
-            TextTrimming = TextTrimming.CharacterEllipsis
-        };
-        BindDynamic(_labSubTitle, TextBlock.ForegroundProperty, "ColorBrushGray1");
-
-        var panTitle = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            VerticalAlignment = VerticalAlignment.Center,
-            IsHitTestVisible = false
-        };
-        panTitle.Children.Add(_labTitle);
-        panTitle.Children.Add(_labSubTitle);
-        SetColumn(panTitle, 3);
-        SetColumnSpan(panTitle, 2);
-        SetRow(panTitle, 1);
-        Children.Add(panTitle);
-
-        _labDescription = new TextBlock
-        {
-            Text = viewModel.DescriptionText,
-            FontSize = 12d,
-            VerticalAlignment = VerticalAlignment.Center,
-            TextTrimming = TextTrimming.CharacterEllipsis,
-            Margin = new Thickness(0d, 0d, 3d, 0.5d)
-        };
-        BindDynamic(_labDescription, TextBlock.ForegroundProperty, "ColorBrushGray3");
-        _labDescription.PointerEntered += (_, _) => UpdateDescriptionToolTip();
-        SetColumn(_labDescription, 4);
-        SetRow(_labDescription, 2);
-        Children.Add(_labDescription);
-
-        _panTags = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(-1d, 0d, 1d, 0d),
-            IsVisible = false
-        };
-        SetColumn(_panTags, 3);
-        SetRow(_panTags, 2);
-        Children.Add(_panTags);
         Tags = viewModel.Tags;
+        ApplyStatsVisibility(viewModel);
+        BtnDownload.IsVisible = viewModel.ShowDownloadButton;
+        BtnFavorite.SvgIcon = viewModel.FavoriteIcon;
+        BtnFavorite.IsVisible = viewModel.ShowFavoriteButton;
+        UpdatePanButtons();
 
-        _labVersion = CreateStatText(viewModel.VersionText);
-        _labDownload = CreateStatText(viewModel.DownloadText);
-        _labTime = CreateStatText(viewModel.TimeText);
-        _labSource = CreateStatText(viewModel.SourceText);
-
-        var statsColumns = new ColumnDefinitions
+        LabInfo.PointerEntered += (_, _) => UpdateDescriptionToolTip();
+        BtnDownload.Click += (_, _) =>
         {
-            new ColumnDefinition
-            {
-                Width = GridLength.Auto
-            },
-            new ColumnDefinition
-            {
-                Width = GridLength.Auto,
-                SharedSizeGroup = viewModel.UseSharedSizeGroups
-                    ? viewModel.VersionSharedSizeGroup
-                    : null
-            },
-            new ColumnDefinition
-            {
-                Width = new GridLength(0.25d, GridUnitType.Star)
-            },
-            new ColumnDefinition
-            {
-                Width = GridLength.Auto
-            },
-            new ColumnDefinition
-            {
-                Width = GridLength.Auto,
-                SharedSizeGroup = viewModel.UseSharedSizeGroups
-                    ? viewModel.DownloadSharedSizeGroup
-                    : null
-            },
-            new ColumnDefinition
-            {
-                Width = new GridLength(0.25d, GridUnitType.Star)
-            },
-            new ColumnDefinition
-            {
-                Width = GridLength.Auto
-            },
-            new ColumnDefinition
-            {
-                Width = GridLength.Auto,
-                MinWidth = 57d,
-                SharedSizeGroup = viewModel.UseSharedSizeGroups
-                    ? viewModel.TimeSharedSizeGroup
-                    : null
-            },
-            new ColumnDefinition
-            {
-                Width = new GridLength(0.25d, GridUnitType.Star)
-            },
-            new ColumnDefinition
-            {
-                Width = GridLength.Auto
-            },
-            new ColumnDefinition
-            {
-                Width = GridLength.Auto,
-                SharedSizeGroup = viewModel.UseSharedSizeGroups
-                    ? viewModel.SourceSharedSizeGroup
-                    : null
-            },
-            new ColumnDefinition
-            {
-                Width = new GridLength(0.25d, GridUnitType.Star)
-            }
-        };
-
-        var panStats = new Grid
-        {
-            VerticalAlignment = VerticalAlignment.Center,
-            IsHitTestVisible = false,
-            ColumnDefinitions = statsColumns
-        };
-        if (viewModel.ShowVersion && !string.IsNullOrEmpty(_labVersion.Text))
-            AddStat(panStats, 0, 1, "lucide/layout-list", _labVersion);
-        if (viewModel.ShowDownload && !string.IsNullOrEmpty(_labDownload.Text))
-            AddStat(panStats, 3, 4, "lucide/download", _labDownload);
-        if (viewModel.ShowTime && !string.IsNullOrEmpty(_labTime.Text))
-            AddStat(panStats, 6, 7, "lucide/arrow-up-from-line", _labTime);
-        if (viewModel.ShowSource && !string.IsNullOrEmpty(_labSource.Text))
-            AddStat(panStats, 9, 10, "lucide/globe", _labSource);
-        SetColumn(panStats, 3);
-        SetColumnSpan(panStats, 2);
-        SetRow(panStats, 3);
-        Children.Add(panStats);
-
-        _btnDownload = new MyIconButton
-        {
-            Height = 25d,
-            Width = 25d,
-            SvgIcon = "lucide/download",
-            Theme = MyIconButton.Themes.Custom,
-            Margin = new Thickness(0d, 0d, 4d, 0d),
-            IsVisible = viewModel.ShowDownloadButton
-        };
-        ToolTip.SetTip(_btnDownload, Lang.Text("Download.Comp.QuickDownload.Btn.ToolTip"));
-        _btnDownload.Click += (_, _) =>
-        {
-            if (CanInteraction && _panButtons is { Opacity: > 0d })
+            if (CanInteraction && PanButtons is { Opacity: > 0d })
                 Comp.QuickDownload(Project);
         };
-
-        _btnFavorite = new MyIconButton
+        BtnFavorite.Click += (_, _) =>
         {
-            Height = 25d,
-            Width = 25d,
-            SvgIcon = viewModel.FavoriteIcon,
-            Theme = MyIconButton.Themes.Custom,
-            IsVisible = viewModel.ShowFavoriteButton
+            if (CanInteraction && PanButtons is { Opacity: > 0d })
+                CompFavoritesMenu.Show(Project, BtnFavorite, RefreshFavoriteStatus);
         };
-        ToolTip.SetTip(_btnFavorite, Lang.Text("Download.Comp.Detail.Favorite"));
-        _btnFavorite.Click += (_, _) =>
-        {
-            if (CanInteraction && _panButtons is { Opacity: > 0d })
-                CompFavoritesMenu.Show(Project, _btnFavorite, RefreshFavoriteStatus);
-        };
-
-        _panButtons = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            HorizontalAlignment = HorizontalAlignment.Right,
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(0d, 0d, 5d, 0d),
-            Opacity = 0d,
-            Spacing = 0d
-        };
-        _panButtons.Children.Add(_btnDownload);
-        _panButtons.Children.Add(_btnFavorite);
-        SetColumn(_panButtons, 5);
-        SetRow(_panButtons, 0);
-        SetRowSpan(_panButtons, 5);
-        Children.Add(_panButtons);
-
-        RefreshFavoriteStatus();
 
         PointerEntered += (_, _) =>
         {
-            _hoverBack.Opacity = 1d;
+            RectBack.Opacity = 1d;
             if (ShowFavoriteBtn || ShowDownloadBtn)
-                _panButtons.Opacity = 1d;
+                PanButtons.Opacity = 1d;
         };
         PointerExited += (_, _) =>
         {
-            _hoverBack.Opacity = 0d;
-            _panButtons.Opacity = 0d;
+            RectBack.Opacity = 0d;
+            PanButtons.Opacity = 0d;
         };
         PointerReleased += (_, e) =>
         {
@@ -317,43 +98,75 @@ public sealed class MyCompItem : Grid
     {
         set =>
             TagPanelHelper.FillLocalized(
-                _panTags,
+                PanTags,
                 value,
                 new SolidColorBrush(Color.FromRgb(134, 134, 134)));
     }
 
     public bool ShowDownloadBtn
     {
-        get => _btnDownload.IsVisible;
+        get => BtnDownload.IsVisible;
         set
         {
-            _btnDownload.IsVisible = value;
+            BtnDownload.IsVisible = value;
             UpdatePanButtons();
         }
     }
 
     public bool ShowFavoriteBtn
     {
-        get => _btnFavorite.IsVisible;
+        get => BtnFavorite.IsVisible;
         set
         {
-            _btnFavorite.IsVisible = value;
+            BtnFavorite.IsVisible = value;
             UpdatePanButtons();
         }
     }
 
     private void UpdatePanButtons()
     {
-        _panButtons.IsVisible = ShowFavoriteBtn || ShowDownloadBtn;
+        PanButtons.IsVisible = ShowFavoriteBtn || ShowDownloadBtn;
+    }
+
+    private void ApplyStatsVisibility(MyCompItemViewModel viewModel)
+    {
+        var showVersion = viewModel.ShowVersion && !string.IsNullOrEmpty(viewModel.VersionText);
+        var showDownload = viewModel.ShowDownload && !string.IsNullOrEmpty(viewModel.DownloadText);
+        var showTime = viewModel.ShowTime && !string.IsNullOrEmpty(viewModel.TimeText);
+        var showSource = viewModel.ShowSource && !string.IsNullOrEmpty(viewModel.SourceText);
+
+        SvgIconVersion.IsVisible = showVersion;
+        LabVersion.IsVisible = showVersion;
+        SvgIconDownload.IsVisible = showDownload;
+        LabDownload.IsVisible = showDownload;
+        SvgIconTime.IsVisible = showTime;
+        LabTime.IsVisible = showTime;
+        SvgIconSource.IsVisible = showSource;
+        LabSource.IsVisible = showSource;
+
+        var columns = PanStats.ColumnDefinitions;
+        SetStatColumns(columns, 0, showVersion);
+        SetStatColumns(columns, 3, showDownload);
+        SetStatColumns(columns, 6, showTime);
+        SetStatColumns(columns, 9, showSource);
+    }
+
+    private static void SetStatColumns(ColumnDefinitions columns, int start, bool show)
+    {
+        columns[start].Width = show ? GridLength.Auto : new GridLength(0d);
+        columns[start + 1].Width = show ? GridLength.Auto : new GridLength(0d);
+        columns[start + 2].Width = show
+            ? new GridLength(0.25d, GridUnitType.Star)
+            : new GridLength(0d);
     }
 
     private void UpdateDescriptionToolTip()
     {
-        var text = _labDescription.Text;
-        if (string.IsNullOrEmpty(text) || _labDescription.Bounds.Width <= 0d)
+        var text = LabInfo.Text;
+        if (string.IsNullOrEmpty(text) || LabInfo.Bounds.Width <= 0d)
         {
             ViewModel.SetDescriptionToolTip(null);
-            ToolTip.SetTip(_labDescription, null);
+            ToolTip.SetTip(LabInfo, null);
             return;
         }
 
@@ -362,18 +175,18 @@ public sealed class MyCompItem : Grid
             CultureInfo.CurrentCulture,
             FlowDirection.LeftToRight,
             new Typeface(
-                _labDescription.FontFamily,
-                _labDescription.FontStyle,
-                _labDescription.FontWeight,
-                _labDescription.FontStretch),
-            _labDescription.FontSize,
-            _labDescription.Foreground);
+                LabInfo.FontFamily,
+                LabInfo.FontStyle,
+                LabInfo.FontWeight,
+                LabInfo.FontStretch),
+            LabInfo.FontSize,
+            LabInfo.Foreground);
         var tooltip = formatted.WidthIncludingTrailingWhitespace
-            > _labDescription.Bounds.Width + 0.5d
+            > LabInfo.Bounds.Width + 0.5d
                 ? text
                 : null;
         ViewModel.SetDescriptionToolTip(tooltip);
-        ToolTip.SetTip(_labDescription, tooltip);
+        ToolTip.SetTip(LabInfo, tooltip);
     }
 
     public event Action<MyCompItem>? Click;
@@ -381,31 +194,7 @@ public sealed class MyCompItem : Grid
     public void RefreshFavoriteStatus()
     {
         ViewModel.RefreshFavoriteStatus();
-        _btnFavorite.SvgIcon = ViewModel.FavoriteIcon;
-    }
-
-    private static void AddStat(
-        Grid grid,
-        int iconColumn,
-        int textColumn,
-        string icon,
-        TextBlock text)
-    {
-        var iconControl = new SvgIconControl
-        {
-            Icon = icon,
-            Width = 12d,
-            Height = 12d,
-            Stretch = Stretch.Uniform,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        BindDynamic(iconControl, SvgIconControl.IconBrushProperty, "ColorBrushGray3");
-        SetColumn(iconControl, iconColumn);
-        grid.Children.Add(iconControl);
-
-        text.Margin = new Thickness(4d, 0d, 2d, 0d);
-        SetColumn(text, textColumn);
-        grid.Children.Add(text);
+        BtnFavorite.SvgIcon = ViewModel.FavoriteIcon;
     }
 
     private bool IsPointerOnActionButton(Visual? source)
@@ -422,34 +211,20 @@ public sealed class MyCompItem : Grid
     {
         if (string.IsNullOrEmpty(project.LogoUrl))
         {
-            _logo.Source = "avares://PCL.Launcher/Assets/Images/Icons/NoIcon.png";
+            PathLogo.Source = "avares://PCL.Launcher/Assets/Images/Icons/NoIcon.png";
             return;
         }
 
-        _logo.Source = project.LogoUrl;
+        PathLogo.Source = project.LogoUrl;
         try
         {
             var fallback = GameDownload.DlSourceModGet(project.LogoUrl);
             if (!string.IsNullOrEmpty(fallback))
-                _logo.FallbackSource = fallback;
+                PathLogo.FallbackSource = fallback;
         }
         catch (Exception)
         {
             // ignored
         }
-    }
-
-    private static TextBlock CreateStatText(string text)
-    {
-        var block = new TextBlock
-        {
-            Text = text,
-            FontSize = 12d,
-            VerticalAlignment = VerticalAlignment.Center,
-            IsVisible = !string.IsNullOrEmpty(text),
-            TextTrimming = TextTrimming.CharacterEllipsis
-        };
-        BindDynamic(block, TextBlock.ForegroundProperty, "ColorBrushGray4");
-        return block;
     }
 }

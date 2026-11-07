@@ -9,16 +9,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace PCL.Core.Test;
 
 [TestClass]
-public class LocalizationUsageTest
+public partial class LocalizationUsageTest
 {
-    private static readonly Regex LangTextRegex = new(
-        "Lang\\.Text\\(\\s*\"([^\"]+)\"",
-        RegexOptions.Compiled);
-
-    private static readonly Regex LocRegex = new(
-        "\\{loc:Loc\\s+([A-Za-z0-9_.]+)\\s*\\}",
-        RegexOptions.Compiled);
-
     [TestMethod]
     public void StaticLocalizationKeysShouldExistInBaseLanguage()
     {
@@ -35,18 +27,22 @@ public class LocalizationUsageTest
                  })
         {
             if (!Directory.Exists(directory)) continue;
-            foreach (var file in Directory.EnumerateFiles(directory, "*.*", SearchOption.AllDirectories))
+            foreach (var file in Directory.EnumerateFiles(
+                         directory,
+                         "*.*",
+                         SearchOption.AllDirectories))
             {
                 var extension = Path.GetExtension(file);
                 if (extension is not (".cs" or ".axaml")) continue;
                 if (file.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}")
-                    || file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}"))
+                    || file.Contains(
+                        $"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}"))
                     continue;
 
                 var text = File.ReadAllText(file);
-                foreach (Match match in LangTextRegex.Matches(text))
+                foreach (Match match in LangTextRegex().Matches(text))
                     used.Add(match.Groups[1].Value);
-                foreach (Match match in LocRegex.Matches(text))
+                foreach (Match match in LocRegex().Matches(text))
                     used.Add(match.Groups[1].Value);
             }
         }
@@ -60,9 +56,12 @@ public class LocalizationUsageTest
     private static HashSet<string> LoadKeys(string path)
     {
         var document = XDocument.Load(path);
-        return document.Descendants()
+        return document
+            .Descendants()
             .Where(element => element.Name.LocalName == "String")
-            .Select(element => element.Attribute(XName.Get("Key", "http://schemas.microsoft.com/winfx/2006/xaml"))?.Value)
+            .Select(element =>
+                element.Attribute(XName.Get("Key", "http://schemas.microsoft.com/winfx/2006/xaml"))
+                    ?.Value)
             .Where(key => !string.IsNullOrWhiteSpace(key))
             .Select(key => key!)
             .ToHashSet(StringComparer.Ordinal);
@@ -81,4 +80,10 @@ public class LocalizationUsageTest
         Assert.Fail("无法定位仓库根目录");
         return string.Empty;
     }
+
+    [GeneratedRegex("Lang\\.Text\\(\\s*\"([^\"]+)\"", RegexOptions.Compiled)]
+    private static partial Regex LangTextRegex();
+
+    [GeneratedRegex(@"\{loc:Loc\s+([A-Za-z0-9_.]+)\s*\}", RegexOptions.Compiled)]
+    private static partial Regex LocRegex();
 }

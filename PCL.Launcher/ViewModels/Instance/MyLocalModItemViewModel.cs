@@ -240,6 +240,9 @@ public partial class MyLocalModItemViewModel : ViewModelBase
             lines.Add(entry.Comp.Description);
         if (!string.IsNullOrWhiteSpace(entry.Authors))
             lines.Add(Lang.Text("Instance.Resource.Item.Info.Author", entry.Authors));
+        if (entry.CompFile is { } compFile && compFile.ReleaseDate != default)
+            lines.Add(
+                $"{Lang.Text("Minecraft.Update.UpdateTime")}{Lang.Date(compFile.ReleaseDate, "g")}");
         if (!string.IsNullOrWhiteSpace(entry.Description))
             lines.Add(entry.Description);
         var dependencies = entry

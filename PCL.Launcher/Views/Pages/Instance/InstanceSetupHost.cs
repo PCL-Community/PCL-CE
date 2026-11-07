@@ -19,15 +19,18 @@ public sealed class InstanceSetupHost : IPageHost
     public string GetTitle(PageStackData stack)
     {
         var name = (stack.Parameter as McInstance)?.Name
-                   ?? PageInstanceLeft.ResolveInstance()?.Name
-                   ?? InstanceList.McMcInstanceSelected?.Name
-                   ?? string.Empty;
+            ?? PageInstanceLeft.ResolveInstance()?.Name
+            ?? InstanceList.McMcInstanceSelected?.Name
+            ?? string.Empty;
         return string.IsNullOrEmpty(name)
             ? Lang.Text("Main.Title.InstanceSelect")
             : Lang.Text("Main.Title.InstanceSetup", name);
     }
 
-    public Control? GetLeft(PageStackData stack) => _left ??= new PageInstanceLeft();
+    public Control? GetLeft(PageStackData stack)
+    {
+        return _left ??= new PageInstanceLeft();
+    }
 
     public Control GetRight(PageStackData stack)
     {
@@ -42,36 +45,22 @@ public sealed class InstanceSetupHost : IPageHost
 
     private static Control CreatePage(PageSubType subType, McInstance? instance)
     {
-        switch (subType)
+        return subType switch
         {
-            case PageSubType.VersionOverall:
-                return new PageInstanceOverall();
-            case PageSubType.VersionSetup:
-                return new PageInstanceSetup();
-            case PageSubType.VersionMod:
-                return new PageInstanceCompResource(Comp.CompType.Mod);
-            case PageSubType.VersionResourcePack:
-                return new PageInstanceCompResource(Comp.CompType.ResourcePack);
-            case PageSubType.VersionShader:
-                return new PageInstanceCompResource(Comp.CompType.Shader);
-            case PageSubType.VersionSchematic:
-                return new PageInstanceCompResource(Comp.CompType.Schematic);
-            case PageSubType.VersionModDisabled:
-                return new PageInstanceModDisabled();
-            case PageSubType.VersionWorld:
-                return new PageInstanceSaves();
-            case PageSubType.VersionModJarInJar:
-                return new PageInstanceCompJarInJar();
-            case PageSubType.VersionInstall:
-                return new PageInstanceInstall();
-            case PageSubType.VersionExport:
-                return new PageInstanceExport();
-            case PageSubType.VersionScreenshot:
-                return new PageInstanceScreenshot();
-            case PageSubType.VersionServer:
-                return new PageInstanceServer();
-            default:
-                throw new ArgumentOutOfRangeException(nameof(subType), subType, null);
-        }
+            PageSubType.VersionOverall => new PageInstanceOverall(),
+            PageSubType.VersionSetup => new PageInstanceSetup(),
+            PageSubType.VersionMod => new PageInstanceCompResource(Comp.CompType.Mod),
+            PageSubType.VersionResourcePack => new PageInstanceCompResource(
+                Comp.CompType.ResourcePack),
+            PageSubType.VersionShader => new PageInstanceCompResource(Comp.CompType.Shader),
+            PageSubType.VersionSchematic => new PageInstanceCompResource(Comp.CompType.Schematic),
+            PageSubType.VersionModDisabled => new PageInstanceModDisabled(),
+            PageSubType.VersionWorld => new PageInstanceSaves(),
+            PageSubType.VersionInstall => new PageInstanceInstall(),
+            PageSubType.VersionExport => new PageInstanceExport(),
+            PageSubType.VersionScreenshot => new PageInstanceScreenshot(),
+            PageSubType.VersionServer => new PageInstanceServer(),
+            _ => throw new ArgumentOutOfRangeException(nameof(subType), subType, null)
+        };
     }
 }

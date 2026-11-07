@@ -1,73 +1,84 @@
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Layout;
-using Avalonia.Media;
-using Avalonia.Threading;
-using PCL.Core.App.Localization;
+using System.Text;
+using PCL.Core.App.IoC;
 using PCL.Core.Platform;
 
 namespace PCL.Core.UI;
 
-/// <summary>基于 Avalonia 窗口的致命错误对话框实现。</summary>
+/// <summary>
+///     优先使用原生窗口的致命错误对话框实现。调用会阻塞到用户关闭对话框，返回后生命周期会终止进程。
+/// </summary>
 public sealed class FatalDialogService : IFatalDialogService
 {
+    private readonly object _gate = new();
+    private readonly Func<string, string, bool> _showNative;
+    private bool _dismissed;
+
+    private bool _showing;
+
+    public FatalDialogService() : this(NativeFatalDialog.Show)
+    {
+    }
+
+    internal FatalDialogService(Func<string, string, bool> showNative)
+    {
+        _showNative = showNative ?? throw new ArgumentNullException(nameof(showNative));
+    }
+
     public void ShowFatal(string message, string caption)
     {
-        try
+        if (Lifecycle.HasShutdownStarted) return;
+
+        lock (_gate)
         {
-            if (Application.Current is null)
+            if (_dismissed) return;
+
+            if (_showing)
             {
-                Console.Error.WriteLine($"[{caption}] {message}");
+                while (!_dismissed) Monitor.Wait(_gate);
                 return;
             }
 
-            if (Dispatcher.UIThread.CheckAccess())
-                _Show(message, caption);
-            else
-                Dispatcher.UIThread.Post(() => _Show(message, caption));
+            _showing = true;
+        }
+
+        try
+        {
+            if (!_showNative(message, caption))
+                _WriteFallbackReport(message, caption);
         }
         catch (Exception ex)
         {
             Console.Error.WriteLine($"[{caption}] {message}{Environment.NewLine}{ex}");
         }
+        finally
+        {
+            lock (_gate)
+            {
+                _showing = false;
+                _dismissed = true;
+                Monitor.PulseAll(_gate);
+            }
+        }
     }
 
-    private static void _Show(string message, string caption)
+    private static void _WriteFallbackReport(string message, string caption)
     {
-        var window = new Window
+        try
         {
-            Title = caption,
-            Width = 640,
-            Height = 420,
-            WindowStartupLocation = WindowStartupLocation.CenterScreen
-        };
+            var path = Path.Combine(
+                Path.GetTempPath(),
+                $"PCL-CE-Crash-{DateTime.Now:yyyyMMdd-HHmmss}-{Environment.ProcessId}.txt");
 
-        var text = new SelectableTextBlock
+            File.WriteAllText(
+                path,
+                $"{caption}{Environment.NewLine}{Environment.NewLine}{message}",
+                new UTF8Encoding(false));
+
+            Console.Error.WriteLine($"[FatalDialog] 无法显示原生对话框，崩溃报告已写入：{path}");
+        }
+        catch (Exception ex)
         {
-            Text = message,
-            TextWrapping = TextWrapping.Wrap,
-            Margin = new Thickness(16)
-        };
-
-        var button = new Button
-        {
-            Content = Lang.Text("Common.Action.Confirm"),
-            HorizontalAlignment = HorizontalAlignment.Right,
-            Margin = new Thickness(16),
-            MinWidth = 96
-        };
-        button.Click += (_, _) => window.Close();
-
-        var panel = new DockPanel();
-        DockPanel.SetDock(button, Dock.Bottom);
-        panel.Children.Add(button);
-        panel.Children.Add(
-            new ScrollViewer
-            {
-                Content = text
-            });
-
-        window.Content = panel;
-        window.Show();
+            Console.Error.WriteLine($"[{caption}] {message}{Environment.NewLine}{ex}");
+        }
     }
 }

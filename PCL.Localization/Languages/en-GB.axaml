@@ -2962,8 +2962,6 @@
     <sys:String x:Key="Setup.Misc.System.Title">System</sys:String>
 
     <!-- Setup.Ui -->
-
-    <sys:String x:Key="Setup.Ui.Error.BackgroundVideoUnsupported">Failed to refresh the background. The video may not be encoded as H.264 (AVC). Re-encode it as H.264 (AVC) and try again.</sys:String>
     <sys:String x:Key="Setup.Ui.Error.ConfigReset">There is an exception in the personalisation settings and it has been automatically reset.</sys:String>
     <sys:String x:Key="Setup.Ui.Error.InitFailed">Failed to initialise the personalisation settings.</sys:String>
     <sys:String x:Key="Setup.Ui.Error.LoadFailed">Error whilst loading the personalisation settings.</sys:String>
@@ -2990,17 +2988,14 @@
     <sys:String x:Key="Setup.Ui.Background.Cleared">The background has been cleared!</sys:String>
     <sys:String x:Key="Setup.Ui.Background.ColorOverlay">Overlay coloured background</sys:String>
     <sys:String x:Key="Setup.Ui.Background.ContentAdapt">Adaptive</sys:String>
-    <sys:String x:Key="Setup.Ui.Background.ImageLoadFailed">Failed to load the image, trying to play the file as a video: {0}</sys:String>
     <sys:String x:Key="Setup.Ui.Background.NoAvailableContent">No available background detected!</sys:String>
-    <sys:String x:Key="Setup.Ui.Background.OpenFolder.ToolTip">Put background images and videos in this folder, and PCL CE will randomly load one each time it is opened.&#xA;For smoother playback, videos are recommended to use H.264 encoding.</sys:String>
-    <sys:String x:Key="Setup.Ui.Background.PauseVideo">Pause video backgrounds whilst an instance is running</sys:String>
-    <sys:String x:Key="Setup.Ui.Background.PauseVideo.ToolTip">If enabled, the background cannot be refreshed whilst the game is running</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.OpenFolder.ToolTip">Put background images in this folder. PCL CE will randomly load one each time it starts.</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Refresh">Refresh</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Refresh.Success">The background has been refreshed: {0}</sys:String>
-    <sys:String x:Key="Setup.Ui.Background.Refresh.ToolTip">Randomly load a background image or video from the folder.&#xA;For smoother playback, videos are recommended to use H.264 encoding.</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Refresh.ToolTip">Randomly load a background image from this folder</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Title">Backgrounds</sys:String>
-    <sys:String x:Key="Setup.Ui.Background.TitleDefault">Backgrounds</sys:String>
-    <sys:String x:Key="Setup.Ui.Background.TitleWithCount">Backgrounds (total: {0})</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.TitleDefault">Background image</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.TitleWithCount">Background images ({0})</sys:String>
 
     <!-- Setup.Ui.Background.Suit -->
 
@@ -3597,7 +3592,11 @@
     <sys:String x:Key="Download.Install.Section.Version">版本</sys:String>
     <sys:String x:Key="Download.Install.Title">安裝</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Delete.ConfirmTitle">刪除資料包</sys:String>
+    <sys:String x:Key="Instance.Saves.Datapack.Delete.ConfirmMessage">Delete datapack {0}?&#xA;It will be moved to the recycle bin.</sys:String>
+    <sys:String x:Key="Instance.Saves.Datapack.Delete.ConfirmPermanent">Permanently delete datapack {0}?&#xA;The recycle bin is unavailable, so this cannot be undone!</sys:String>
     <sys:String x:Key="Instance.Saves.Delete.ConfirmTitle">刪除存檔</sys:String>
+    <sys:String x:Key="Instance.Saves.Delete.ConfirmMessage">Delete save {0}?&#xA;It will be moved to the recycle bin.</sys:String>
+    <sys:String x:Key="Instance.Saves.Delete.ConfirmPermanent">Permanently delete save {0}?&#xA;The recycle bin is unavailable, so this cannot be undone!</sys:String>
     <sys:String x:Key="Instance.Saves.DeletedPermanent">已永久刪除</sys:String>
     <sys:String x:Key="PageLaunch.Homepage.Custom.Error.Missing">自訂主頁檔案不存在</sys:String>
     <sys:String x:Key="PageLaunch.Homepage.Custom.Source">來源</sys:String>
@@ -3606,7 +3605,7 @@
     <sys:String x:Key="PageLaunch.Login.ProfileEdit.Unavailable">目前帳戶不支援修改名稱</sys:String>
     <sys:String x:Key="PageLaunch.Login.SkinUpload.Unavailable">目前帳戶不支援更換皮膚</sys:String>
     <sys:String x:Key="Select.Instance.Delete.RecycleBinUnavailable">資源回收筒不可用，將永久刪除</sys:String>
-    <sys:String x:Key="Tools.GameLink.Unavailable.NatTest">NAT 檢測不可用</sys:String>
+    <sys:String x:Key="Tools.GameLink.Unavailable.NatTest">NAT test is unavailable</sys:String>
     <sys:String x:Key="Common.Validate.Blacklisted">Input cannot contain {0}!</sys:String>
     <sys:String x:Key="Common.Validate.Empty">Input cannot be empty!</sys:String>
     <sys:String x:Key="Common.Validate.FolderName.Duplicate">A folder with this name already exists!</sys:String>
@@ -3643,41 +3642,6 @@
     <sys:String x:Key="Crash.Report.JarInJarMod.WarningMissing">missing prerequisite(s) [{0}]</sys:String>
     <sys:String x:Key="Crash.Report.JarInJarMod.WarningNone">No dependency issues found.</sys:String>
     <sys:String x:Key="Crash.Report.JarInJarMod.WarningSection">=== Dependency warnings (missing / version mismatch) ===</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Bundled.Current">✓ used by this instance</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Bundled.From">[bundled · from {0}]</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Bundled.Incompatible">⚠ incompatible with this version</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Bundled.Versions">{0} versions</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.DeleteTitle">Deleting this mod affects {0} mod(s) that depend on it. Choose how to proceed:</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.DisableTitle">Disabling this mod affects {0} mod(s) that depend on it. Choose how to proceed:</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.OnlySelf">Only this mod</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.WithDelete">Also delete mods that depend on it</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.WithDisable">Also disable mods that depend on it</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Conflict.Discouraged">Discouraged</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Conflict.Incompatible">Incompatible</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Conflict.Pair">{0} and {1}</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Conflict.Tooltip">Incompatible: cannot load together; installing both will crash the game or prevent startup — remove one.&#xA;Discouraged: can load together, but the author flagged compatibility issues that may cause bugs or broken features.</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Bundled">Bundled</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Disabled">Disabled</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Installed">Installed</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Missing">Missing</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Optional">[optional]</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.VersionMismatch">Version mismatch</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Empty.Message">None of this instance's mods declare dependencies or bundle other mods, or the mod list has not finished loading.</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Empty.Title">No mod relations to analyze</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Entry">Mod Relations</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Entry.ToolTip">View mod dependencies, missing prerequisites and bundled (Jar-in-Jar) structure</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Message">An overview of dependencies and bundled structure between mods. Disabling or deleting a mod will warn about affected dependencies.</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.ParsePending.Message">Embedded mod relationships are still being analyzed in the background. Dependency cascade detection may be incomplete right now and could miss mods that should be handled together. Continue anyway?</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.ParsePending.Title">Mods still loading</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Search.Hint">Search mods: name / ModId / dependency</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Section.Bundled">Bundled mods</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Section.Conflicts">Conflicts</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Section.Relations">Mod relations</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Section.Warnings">Warnings</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Warning.Disabled">{0} has disabled prerequisite(s): {1}</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Warning.Missing">{0} is missing prerequisite(s): {1}</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Warning.VersionMismatch">{0} has version-incompatible prerequisite(s): {1}</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Warning.VersionMismatch.Detail">{0} {1} (detected: {2})</sys:String>
     <sys:String x:Key="Instance.Setup.Advanced.DisableModUpdate">Disable mod update</sys:String>
     <sys:String x:Key="Launch.Account.Auth.OAuth.CallbackHandleFailed">Failed to handle the callback</sys:String>
     <sys:String x:Key="Launch.Account.Auth.OAuth.CallbackParseFailed">Failed to parse callback parameters</sys:String>
@@ -3704,4 +3668,8 @@
     <sys:String x:Key="Setup.Misc.System.Telemetry.Unavailable">This version has been modified or is an unofficial build, so Sentry reporting is unavailable</sys:String>
     <sys:String x:Key="Tools.Test.Dependency.Package.D3DMappingLayers">OpenGL compatibility pack</sys:String>
     <sys:String x:Key="Tools.Test.Dependency.Package.WebpImageExtension">WebP component</sys:String>
+    <sys:String x:Key="Setup.Ui.Error.BackgroundVideoUnsupported">Failed to refresh the background. The video may not be encoded as H.264 (AVC). Re-encode it as H.264 (AVC) and try again.</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.ImageLoadFailed">Failed to load the image, trying to play the file as a video: {0}</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.PauseVideo">Pause video backgrounds whilst an instance is running</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.PauseVideo.ToolTip">If enabled, the background cannot be refreshed whilst the game is running</sys:String>
 </ResourceDictionary>

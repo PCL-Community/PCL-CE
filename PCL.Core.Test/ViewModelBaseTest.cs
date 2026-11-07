@@ -10,18 +10,7 @@ namespace PCL.Core.Test;
 [TestClass]
 public sealed class ViewModelBaseTest
 {
-    private sealed class TestViewModel : ViewModelBase
-    {
-        public Task Run(Func<CancellationToken, Task> body, CancellationToken token = default)
-        {
-            return RunAsync(body, token);
-        }
-
-        public Task<int?> RunValue(Func<CancellationToken, Task<int?>> body)
-        {
-            return RunAsync(body);
-        }
-    }
+    public TestContext TestContext { get; set; }
 
     [TestMethod]
     public async Task RunAsyncSuccessReachesReady()
@@ -34,9 +23,9 @@ public sealed class ViewModelBaseTest
                 observed.Add(vm.State);
         };
 
-        await vm.Run(_ => Task.CompletedTask);
+        await vm.Run(_ => Task.CompletedTask, TestContext.CancellationToken);
 
-        CollectionAssert.Contains(observed, AsyncState.Loading);
+        Assert.Contains(AsyncState.Loading, observed);
         Assert.AreEqual(AsyncState.Ready, vm.State);
         Assert.IsNull(vm.Error);
         Assert.IsFalse(vm.IsBusy);
@@ -47,7 +36,9 @@ public sealed class ViewModelBaseTest
     {
         var vm = new TestViewModel();
 
-        await vm.Run(_ => throw new InvalidOperationException("boom"));
+        await vm.Run(
+            _ => throw new InvalidOperationException("boom"),
+            TestContext.CancellationToken);
 
         Assert.AreEqual(AsyncState.Failed, vm.State);
         Assert.AreEqual("boom", vm.Error);
@@ -59,7 +50,7 @@ public sealed class ViewModelBaseTest
     {
         var vm = new TestViewModel();
         using var cts = new CancellationTokenSource();
-        cts.Cancel();
+        await cts.CancelAsync();
 
         await vm.Run(
             token =>
@@ -82,5 +73,18 @@ public sealed class ViewModelBaseTest
 
         Assert.AreEqual(42, result);
         Assert.AreEqual(AsyncState.Ready, vm.State);
+    }
+
+    private sealed class TestViewModel : ViewModelBase
+    {
+        public Task Run(Func<CancellationToken, Task> body, CancellationToken token = default)
+        {
+            return RunAsync(body, token);
+        }
+
+        public Task<int?> RunValue(Func<CancellationToken, Task<int?>> body)
+        {
+            return RunAsync(body);
+        }
     }
 }

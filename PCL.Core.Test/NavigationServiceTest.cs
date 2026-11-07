@@ -1,4 +1,3 @@
-using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PCL.Navigation;
 
@@ -15,14 +14,14 @@ public sealed class NavigationServiceTest
             new RouteKey(PageType.Setup, PageSubType.SetupLog));
         Assert.AreNotEqual(
             new RouteKey(PageType.Setup, PageSubType.SetupLog),
-            new RouteKey(PageType.Setup, PageSubType.SetupUI));
+            new RouteKey(PageType.Setup, PageSubType.SetupUi));
     }
 
     [TestMethod]
     public void NavigationServiceCurrentMatchesRouterDefault()
     {
         Assert.AreEqual(
-            new RouteKey(PageType.Launch, PageSubType.Default),
+            new RouteKey(PageType.Launch),
             NavigationService.Instance.Current);
     }
 }

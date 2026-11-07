@@ -1,8 +1,10 @@
 using Avalonia;
+using PCL.Core.App;
 using PCL.Core.App.Essentials;
 using PCL.Core.App.IoC;
 using PCL.Core.UI;
 using PCL.Core.UI.Animation;
+using PCL.Core.Utils.OS;
 using PCL.UI;
 using PCL.UI.Bridges;
 using PCL.Views;
@@ -17,22 +19,18 @@ internal static class Program
     [STAThread]
     public static void Main(string[] args)
     {
+        if (Basics.CommandLineArguments.Contains("--console") && OperatingSystem.IsWindows())
+            KernelInterop.AllocateConsole();
+
         var builder = BuildAvaloniaApp();
-        // PCL.Core 通过 PlatformServices 与 UI 解耦，需在生命周期启动前注册界面实现
         PlatformRegistration.Register();
-        // 动画引擎注册到生命周期（惰性启动兜底）
         AnimationRegistration.Register();
-        // 预加载任务：创建界面应用容器，消息循环由该容器启动
         ApplicationService.Loading = () =>
             new ApplicationHost(() => builder.StartWithClassicDesktopLifetime(args));
-        // 主窗体
         MainWindowService.Loading = () => new WindowHost(new MainWindow());
-        // 注册 Core 弹窗与提示的界面呈现器
         DialogPresenter.Install();
         HintPresenter.Install();
-        // 注册业务层 UI 平台桥的界面实现
         UiBridgeRegistration.Register();
-        // 启动 PCL.Core 生命周期
         Lifecycle.OnInitialize();
     }
 

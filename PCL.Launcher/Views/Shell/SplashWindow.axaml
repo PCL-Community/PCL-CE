@@ -1,24 +1,19 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="PCL.Views.Shell.SplashWindow"
-        Width="240"
-        Height="240"
+        Width="200"
+        Height="200"
         CanResize="False"
         ShowInTaskbar="False"
         Topmost="True"
         WindowDecorations="None"
         WindowStartupLocation="CenterScreen"
-        Background="Transparent"
+        Background="#FFFF0000"
         TransparencyBackgroundFallback="Transparent">
-    <Border Margin="24"
-            CornerRadius="12"
-            Background="{DynamicResource ColorBrushBackground}"
-            BoxShadow="0 4 24 0 #66000000">
-        <Image Width="160"
-               Height="160"
-               HorizontalAlignment="Center"
-               VerticalAlignment="Center"
-               Source="avares://PCL.Launcher/Assets/Images/icon.png"
-               Stretch="Uniform" />
-    </Border>
+    <Image Width="48"
+           Height="48"
+           HorizontalAlignment="Stretch"
+           VerticalAlignment="Stretch"
+           Source="avares://PCL.Launcher/Assets/Images/icon-splash.png"
+           Stretch="Uniform" />
 </Window>

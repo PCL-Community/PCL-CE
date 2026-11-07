@@ -41,16 +41,16 @@
                     </Grid>
                     <shell:TitleBar x:Name="TitleBar"
                                     Grid.Row="0" />
+                    <Border x:Name="RectLeftBackground"
+                            Grid.Row="1"
+                            Width="0"
+                            HorizontalAlignment="Left"
+                            Background="{DynamicResource ColorBrushTransparentBackground}"
+                            IsHitTestVisible="False"
+                            BoxShadow="4 0 6 0 #0A000000" />
                     <Grid x:Name="PanMain"
                           Grid.Row="1"
                           ColumnDefinitions="Auto,*">
-                        <Border x:Name="RectLeftBackground"
-                                Grid.Column="0"
-                                Width="0"
-                                HorizontalAlignment="Left"
-                                Background="{DynamicResource ColorBrushTransparentBackground}"
-                                IsHitTestVisible="False"
-                                BoxShadow="4 0 6 0 #0A000000" />
                         <ContentControl x:Name="PageLeftHost"
                                         Grid.Column="0"
                                         HorizontalAlignment="Left"
@@ -60,7 +60,7 @@
                     </Grid>
                     <Grid x:Name="PanHintAnchor"
                           Grid.RowSpan="2"
-                          Panel.ZIndex="1"
+                          ZIndex="1"
                           HorizontalAlignment="Right"
                           VerticalAlignment="Bottom">
                         <StackPanel x:Name="PanHint"

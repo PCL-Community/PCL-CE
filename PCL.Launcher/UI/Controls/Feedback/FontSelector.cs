@@ -71,7 +71,6 @@ public class FontSelector : ContentControl
         set
         {
             var tag = value ?? string.Empty;
-            // 如果字体还在加载中，延迟设置
             if (CustomFontCollection.Count == 0
                 || CustomFontCollection is [{ Tag: LoadingFontTag }])
             {
@@ -172,20 +171,19 @@ public class FontSelector : ContentControl
 
     private void LoadFonts()
     {
-        Dispatcher.UIThread.Post(
-            () =>
+        Dispatcher.UIThread.Post(() =>
+        {
+            try
             {
-                try
-                {
-                    LoadFontsCore();
-                }
-                catch (Exception ex)
-                {
-                    LogWrapper.Warn(ex, "FontSelector", "加载系统字体失败，回退到默认字体");
-                    _comboFont.IsEnabled = IsEnabled;
-                    _isInitializing = false;
-                }
-            });
+                LoadFontsCore();
+            }
+            catch (Exception ex)
+            {
+                LogWrapper.Warn(ex, "FontSelector", "加载系统字体失败，回退到默认字体");
+                _comboFont.IsEnabled = IsEnabled;
+                _isInitializing = false;
+            }
+        });
     }
 
     private void LoadFontsCore()
@@ -211,18 +209,20 @@ public class FontSelector : ContentControl
                 if (name.StartsWith("Global ", StringComparison.Ordinal))
                     continue;
 
-                availableFonts.Add((name, font));
+                // 不直接使用 SystemFonts 返回的 FontFamily，因为它带有 fonts:SystemFonts Key，
+                // 缺失字体不会触发回退，而会在下拉框测量文本时抛出异常。
+                // 逐项验证 GlyphTypeface 又会让整个页面卡数秒，所以这里使用安全的字体链。
+                availableFonts.Add((name, LaunchFonts.BuildPreviewFont(name)));
             }
             catch (Exception ex)
             {
                 LogWrapper.Debug(ex, "FontSelector", $"[FontSelector] 发现了一个无法加载的异常的字体：{font}");
             }
 
-        availableFonts.Sort(
-            (left, right) => string.Compare(
-                left.Name,
-                right.Name,
-                StringComparison.Ordinal));
+        availableFonts.Sort((left, right) => string.Compare(
+            left.Name,
+            right.Name,
+            StringComparison.Ordinal));
 
         CustomFontCollection.Clear();
         CustomFontCollection.Add(
@@ -239,7 +239,7 @@ public class FontSelector : ContentControl
                 {
                     RawName = font.Name,
                     Font = font.Font,
-                    Tag = font.Font.Name
+                    Tag = font.Name
                 });
 
         _comboFont.IsEnabled = IsEnabled;

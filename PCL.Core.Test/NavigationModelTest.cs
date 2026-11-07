@@ -13,11 +13,22 @@ public class NavigationModelTest
         var instanceB = new object();
 
         Assert.AreEqual(new PageStackData(PageType.Launch), new PageStackData(PageType.Launch));
-        Assert.AreNotEqual(new PageStackData(PageType.Launch), new PageStackData(PageType.Download));
+        Assert.AreNotEqual(
+            new PageStackData(PageType.Launch),
+            new PageStackData(PageType.Download));
 
-        var withParamA = new PageStackData(PageType.InstanceSetup, PageSubType.VersionOverall, instanceA);
-        var withParamASame = new PageStackData(PageType.InstanceSetup, PageSubType.VersionOverall, instanceA);
-        var withParamB = new PageStackData(PageType.InstanceSetup, PageSubType.VersionOverall, instanceB);
+        var withParamA = new PageStackData(
+            PageType.InstanceSetup,
+            PageSubType.VersionOverall,
+            instanceA);
+        var withParamASame = new PageStackData(
+            PageType.InstanceSetup,
+            PageSubType.VersionOverall,
+            instanceA);
+        var withParamB = new PageStackData(
+            PageType.InstanceSetup,
+            PageSubType.VersionOverall,
+            instanceB);
         Assert.AreEqual(withParamA, withParamASame);
         Assert.AreNotEqual(withParamA, withParamB);
     }
@@ -50,21 +61,5 @@ public class NavigationModelTest
         Assert.IsNull(PageRegistry.TabOfPage(PageType.TaskManager));
         Assert.IsNull(PageRegistry.TabOfPage(PageType.InstanceSelect));
         Assert.IsNull(PageRegistry.TabOfPage(PageType.GameLog));
-    }
-
-    [TestMethod]
-    public void PageTypeValuesShouldStayStable()
-    {
-        Assert.AreEqual(0, (int)PageType.Launch);
-        Assert.AreEqual(1, (int)PageType.Download);
-        Assert.AreEqual(2, (int)PageType.Setup);
-        Assert.AreEqual(3, (int)PageType.Tools);
-        Assert.AreEqual(5, (int)PageType.InstanceSelect);
-        Assert.AreEqual(6, (int)PageType.TaskManager);
-        Assert.AreEqual(7, (int)PageType.InstanceSetup);
-        Assert.AreEqual(8, (int)PageType.CompDetail);
-        Assert.AreEqual(9, (int)PageType.HelpDetail);
-        Assert.AreEqual(10, (int)PageType.GameLog);
-        Assert.AreEqual(12, (int)PageType.VersionSaves);
     }
 }

@@ -71,8 +71,8 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
 
     public static IReadOnlyList<SaveComboOption> AllowCommandsOptions =>
     [
-        new(0, Lang.Text("Instance.Saves.Info.AllowCommands.Allowed")),
-        new(1, Lang.Text("Instance.Saves.Info.AllowCommands.NotAllowed"))
+        new(0, Lang.Text("Instance.Saves.Info.AllowCommands.NotAllowed")),
+        new(1, Lang.Text("Instance.Saves.Info.AllowCommands.Allowed"))
     ];
 
     public static IReadOnlyList<SaveComboOption> DifficultyOptions =>
@@ -98,7 +98,8 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
     /// <summary>加载指定存档；为 null 或目录不存在时显示读取失败。</summary>
     public async Task LoadAsync(string? folder)
     {
-        await _cts?.CancelAsync();
+        if (_cts is not null)
+            await _cts.CancelAsync();
         _cts?.Dispose();
         _cts = new CancellationTokenSource();
         var token = _cts.Token;
@@ -151,7 +152,7 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
             || IsApplying
             || !SupportsAllowCommands)
             return false;
-        var allowCommands = index == 0;
+        var allowCommands = index == 1;
         if (allowCommands == Save.AllowCommands)
             return false;
 
@@ -322,7 +323,7 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
             : DifficultyName(save.Difficulty.Value);
         IsHardcore = save.IsHardcore;
         IsDifficultyLocked = save.IsDifficultyLocked;
-        AllowCommandsIndex = save.AllowCommands ? 0 : 1;
+        AllowCommandsIndex = save.AllowCommands ? 1 : 0;
         DifficultyIndex = save.Difficulty.HasValue ? (int)save.Difficulty.Value : -1;
         HasAllowCommandsSetting = SupportsAllowCommands;
         HasDifficultySetting = save.Difficulty.HasValue && SupportsDifficulty;

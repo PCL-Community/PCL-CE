@@ -38,7 +38,7 @@ public class PageSetupLeftViewModel : ViewModelBase
         if (!hide.SetupJava) return PageSubType.SetupJava;
         if (!hide.SetupGameManage) return PageSubType.SetupGameManage;
         if (!hide.SetupGameLink) return PageSubType.SetupGameLink;
-        if (!hide.SetupUi) return PageSubType.SetupUI;
+        if (!hide.SetupUi) return PageSubType.SetupUi;
         if (!hide.SetupLauncherLanguage) return PageSubType.SetupLauncherLanguage;
         if (!hide.SetupLauncherMisc) return PageSubType.SetupLauncherMisc;
         if (!hide.SetupAbout) return PageSubType.SetupAbout;
@@ -57,7 +57,7 @@ public class PageSetupLeftViewModel : ViewModelBase
             PageSubType.SetupJava => hide.SetupJava,
             PageSubType.SetupGameManage => hide.SetupGameManage,
             PageSubType.SetupGameLink => hide.SetupGameLink,
-            PageSubType.SetupUI => hide.SetupUi,
+            PageSubType.SetupUi => hide.SetupUi,
             PageSubType.SetupLauncherLanguage => hide.SetupLauncherLanguage,
             PageSubType.SetupLauncherMisc => hide.SetupLauncherMisc,
             PageSubType.SetupAbout => hide.SetupAbout,
@@ -73,7 +73,7 @@ public class PageSetupLeftViewModel : ViewModelBase
         var messageKey = id switch
         {
             PageSubType.SetupLaunch => "Setup.Left.Reset.Launch.Message",
-            PageSubType.SetupUI => "Setup.Left.Reset.Ui.Message",
+            PageSubType.SetupUi => "Setup.Left.Reset.Ui.Message",
             PageSubType.SetupGameManage => "Setup.Left.Reset.GameManage.Message",
             PageSubType.SetupGameLink => "Setup.Left.Reset.GameLink.Message",
             PageSubType.SetupLauncherLanguage => "Setup.Left.Reset.Language.Message",

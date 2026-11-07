@@ -40,6 +40,9 @@ public class MyDropShadow : Decorator
             ShadowRadiusProperty,
             CornerRadiusProperty,
             CenterTransparentProperty);
+        AffectsArrange<MyDropShadow>(
+            ShadowRadiusProperty,
+            CornerRadiusProperty);
     }
 
     /// <summary>
@@ -104,6 +107,25 @@ public class MyDropShadow : Decorator
     // =======================================
     // 渲染
     // =======================================
+
+    protected override Size ArrangeOverride(Size finalSize)
+    {
+        var size = base.ArrangeOverride(finalSize);
+        if (size.Width <= 0d || size.Height <= 0d)
+        {
+            Clip = null;
+            return size;
+        }
+
+        // 用外圆角裁剪阴影层，避免四角径向渐变在方形边界留下色块。
+        var radius = Math.Min(
+            Math.Min(CornerRadius.TopLeft, CornerRadius.TopRight) + ShadowRadius,
+            Math.Min(size.Width, size.Height) * 0.5d);
+        Clip = radius > 0d
+            ? new RectangleGeometry(new Rect(size), radius, radius)
+            : null;
+        return size;
+    }
 
     public override void Render(DrawingContext context)
     {

@@ -38,7 +38,8 @@ public class ImageResourceLayoutTest
         Assert.IsTrue(Directory.Exists(imageRoot), $"图片资源目录不存在：{imageRoot}");
 
         var missing = ExpectedImages
-            .Where(relative => !File.Exists(Path.Combine(imageRoot, relative.Replace('/', Path.DirectorySeparatorChar))))
+            .Where(relative => !File.Exists(
+                Path.Combine(imageRoot, relative.Replace('/', Path.DirectorySeparatorChar))))
             .ToArray();
         Assert.IsEmpty(missing, $"以下业务图片路径在 Assets/Images 中不存在：{string.Join(", ", missing)}");
     }
@@ -50,7 +51,8 @@ public class ImageResourceLayoutTest
         var wpfRoot = Path.Combine(GetRepositoryRoot(), "Plain Craft Launcher 2", "Images");
         if (!Directory.Exists(wpfRoot)) Assert.Inconclusive("WPF 参考图片目录不存在");
 
-        var avaloniaCount = Directory.EnumerateFiles(avaloniaRoot, "*", SearchOption.AllDirectories).Count();
+        var avaloniaCount =
+            Directory.EnumerateFiles(avaloniaRoot, "*", SearchOption.AllDirectories).Count();
         var wpfCount = Directory.EnumerateFiles(wpfRoot, "*", SearchOption.AllDirectories).Count();
         Assert.AreEqual(wpfCount, avaloniaCount, "图片资源数量与 WPF 参考不一致");
     }
@@ -60,7 +62,8 @@ public class ImageResourceLayoutTest
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory is not null)
         {
-            if (Directory.Exists(Path.Combine(directory.FullName, "PCL.Core"))) return directory.FullName;
+            if (Directory.Exists(Path.Combine(directory.FullName, "PCL.Core")))
+                return directory.FullName;
             directory = directory.Parent;
         }
 

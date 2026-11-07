@@ -26,7 +26,7 @@ public partial class PageSetupLeft : MyPageLeft
         _items.Add((PageSubType.SetupJava, ItemJava, () => hide.SetupJava));
         _items.Add((PageSubType.SetupGameManage, ItemGameManage, () => hide.SetupGameManage));
         _items.Add((PageSubType.SetupGameLink, ItemGameLink, () => hide.SetupGameLink));
-        _items.Add((PageSubType.SetupUI, ItemUI, () => hide.SetupUi));
+        _items.Add((PageSubType.SetupUi, ItemUI, () => hide.SetupUi));
         _items.Add(
             (PageSubType.SetupLauncherLanguage, ItemLauncherLanguage,
                 () => hide.SetupLauncherLanguage));
@@ -46,7 +46,7 @@ public partial class PageSetupLeft : MyPageLeft
         _categories.Add(
             (TextLauncherCategory,
                 () => AllHidden(
-                    PageSubType.SetupUI,
+                    PageSubType.SetupUi,
                     PageSubType.SetupLauncherLanguage,
                     PageSubType.SetupLauncherMisc)));
         _categories.Add(
@@ -172,7 +172,7 @@ public partial class PageSetupLeft : MyPageLeft
         ];
         ItemUI.Buttons =
         [
-            CreateResetButton(PageSubType.SetupUI)
+            CreateResetButton(PageSubType.SetupUi)
         ];
         ItemLauncherLanguage.Buttons =
         [

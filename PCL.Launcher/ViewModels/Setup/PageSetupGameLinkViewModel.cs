@@ -167,7 +167,7 @@ public partial class PageSetupGameLinkViewModel : ViewModelBase
         NetTestButtonText = Lang.Text("Setup.GameLink.NetworkTest.Testing");
         try
         {
-            var status = await RunAsync(ct => Task.Run(CliNetTest.GetNetStatusAsync, ct));
+            var status = await RunAsync(ct => Task.Run(() => CliNetTest.GetNetStatusAsync(ct), ct));
             if (status is null)
                 return;
             _lastStatus = status;

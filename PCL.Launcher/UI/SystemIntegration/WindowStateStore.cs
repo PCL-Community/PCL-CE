@@ -1,4 +1,3 @@
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using PCL.Core.App;
@@ -13,6 +12,7 @@ public sealed class WindowStateStore
 {
     private readonly DispatcherTimer _saveTimer;
     private readonly Window _window;
+    private bool _normalizeScheduled;
     private bool _normalizing;
     private bool _restoring;
     private bool _saveEnabled;
@@ -30,8 +30,6 @@ public sealed class WindowStateStore
             Save();
         };
 
-        // 尺寸必须在 Show() 之前恢复，否则 CenterScreen 会先按 XAML 的 850×500 居中，
-        // 再在 Opened 后改成 900×550，造成 +25/+25 的偏移。
         RestoreSize();
 
         _window.Opened += (_, _) => NormalizeWindowState();
@@ -47,13 +45,18 @@ public sealed class WindowStateStore
 
     private void NormalizeWindowState()
     {
-        if (_normalizing || _window.WindowState != WindowState.Maximized) return;
+        if (_normalizing || _normalizeScheduled)
+            return;
+        if (_window.WindowState != WindowState.Maximized)
+            return;
+
+        _normalizeScheduled = true;
         _normalizing = true;
         try
         {
-            // 在属性变更回调里同步改回去会与平台窗口过程重入，推迟到下一轮派发。
             Dispatcher.UIThread.Post(() =>
             {
+                _normalizeScheduled = false;
                 if (_window.WindowState == WindowState.Maximized)
                     _window.WindowState = WindowState.Normal;
             });

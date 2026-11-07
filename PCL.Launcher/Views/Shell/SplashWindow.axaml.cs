@@ -7,5 +7,6 @@ public partial class SplashWindow : Window
     public SplashWindow()
     {
         InitializeComponent();
+        TransparencyLevelHint = [WindowTransparencyLevel.Transparent];
     }
 }

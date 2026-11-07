@@ -154,63 +154,52 @@
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Source.UseOfficial}" />
                         </ui:MyComboBox>
 
-                        <Grid x:Name="PanFilenameFormat"
-                              Grid.Row="2"
-                              Grid.ColumnSpan="2"
-                              IsVisible="{Binding FileFormatSettingsVisible}"
-                              ColumnDefinitions="Auto,*">
-                            <TextBlock VerticalAlignment="Center"
-                                       Margin="0,0,25,0"
-                                       Text="{loc:Loc Setup.GameManage.Community.FilenameFormat}" />
-                            <ui:MyComboBox x:Name="ComboDownloadTranslateV2"
-                                           Grid.Column="1"
-                                           HorizontalAlignment="Stretch"
-                                           SelectedIndex="{Binding TranslateFormatIndex, Mode=TwoWay}"
-                                           ToolTip.Tip="{loc:Loc Setup.GameManage.Community.FilenameFormat.ToolTip}">
-                                <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.FilenameFormat.Style0}" />
-                                <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.FilenameFormat.Style1}" />
-                                <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.FilenameFormat.Style2}" />
-                                <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.FilenameFormat.Style3}" />
-                                <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.FilenameFormat.Style4}" />
-                            </ui:MyComboBox>
-                        </Grid>
+                        <TextBlock Grid.Row="2"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,25,0"
+                                   Text="{loc:Loc Setup.GameManage.Community.FilenameFormat}" />
+                        <ui:MyComboBox x:Name="ComboDownloadTranslateV2"
+                                       Grid.Row="2"
+                                       Grid.Column="1"
+                                       HorizontalAlignment="Stretch"
+                                       SelectedIndex="{Binding TranslateFormatIndex, Mode=TwoWay}"
+                                       ToolTip.Tip="{loc:Loc Setup.GameManage.Community.FilenameFormat.ToolTip}">
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.FilenameFormat.Style0}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.FilenameFormat.Style1}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.FilenameFormat.Style2}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.FilenameFormat.Style3}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.FilenameFormat.Style4}" />
+                        </ui:MyComboBox>
 
-                        <Grid x:Name="PanModManageStyle"
-                              Grid.Row="4"
-                              Grid.ColumnSpan="2"
-                              IsVisible="{Binding FileFormatSettingsVisible}"
-                              ColumnDefinitions="Auto,*">
-                            <TextBlock VerticalAlignment="Center"
-                                       Margin="0,0,25,0"
-                                       Text="{loc:Loc Setup.GameManage.Community.ModManageStyle}" />
-                            <ui:MyComboBox x:Name="ComboModLocalNameStyle"
-                                           Grid.Column="1"
-                                           HorizontalAlignment="Stretch"
-                                           SelectedIndex="{Binding LocalNameStyleIndex, Mode=TwoWay}"
-                                           ToolTip.Tip="{loc:Loc Setup.GameManage.Community.ModManageStyle.ToolTip}">
-                                <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.ModManageStyle.TitleTranslation}" />
-                                <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.ModManageStyle.TitleFilename}" />
-                            </ui:MyComboBox>
-                        </Grid>
+                        <TextBlock Grid.Row="4"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,25,0"
+                                   Text="{loc:Loc Setup.GameManage.Community.ModManageStyle}" />
+                        <ui:MyComboBox x:Name="ComboModLocalNameStyle"
+                                       Grid.Row="4"
+                                       Grid.Column="1"
+                                       HorizontalAlignment="Stretch"
+                                       SelectedIndex="{Binding LocalNameStyleIndex, Mode=TwoWay}"
+                                       ToolTip.Tip="{loc:Loc Setup.GameManage.Community.ModManageStyle.ToolTip}">
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.ModManageStyle.TitleTranslation}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.ModManageStyle.TitleFilename}" />
+                        </ui:MyComboBox>
 
-                        <Grid x:Name="PanQuickDownload"
-                              Grid.Row="6"
-                              Grid.ColumnSpan="2"
-                              ColumnDefinitions="Auto,*">
-                            <TextBlock VerticalAlignment="Center"
-                                       Margin="0,0,25,0"
-                                       Text="{loc:Loc Setup.GameManage.Community.QuickDownload}" />
-                            <ui:MyComboBox x:Name="ComboDownloadQuickBehavior"
-                                           Grid.Column="1"
-                                           HorizontalAlignment="Stretch"
-                                           SelectedIndex="{Binding QuickBehaviorIndex, Mode=TwoWay}"
-                                           ToolTip.Tip="{loc:Loc Setup.GameManage.Community.QuickDownload.ToolTip}">
-                                <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.QuickDownload.AlwaysAsk}" />
-                                <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.QuickDownload.CurrentInstance}" />
-                                <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.QuickDownload.AskInstance}" />
-                                <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.QuickDownload.AskPath}" />
-                            </ui:MyComboBox>
-                        </Grid>
+                        <TextBlock Grid.Row="6"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,25,0"
+                                   Text="{loc:Loc Setup.GameManage.Community.QuickDownload}" />
+                        <ui:MyComboBox x:Name="ComboDownloadQuickBehavior"
+                                       Grid.Row="6"
+                                       Grid.Column="1"
+                                       HorizontalAlignment="Stretch"
+                                       SelectedIndex="{Binding QuickBehaviorIndex, Mode=TwoWay}"
+                                       ToolTip.Tip="{loc:Loc Setup.GameManage.Community.QuickDownload.ToolTip}">
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.QuickDownload.AlwaysAsk}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.QuickDownload.CurrentInstance}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.QuickDownload.AskInstance}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.QuickDownload.AskPath}" />
+                        </ui:MyComboBox>
                     </Grid>
 
                     <Grid Margin="0,2,0,0"

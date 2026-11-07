@@ -20,6 +20,7 @@ public partial class PageSetupLauncherLanguage : MyPageRight, ISetupResetPage
         InitializeComponent();
         PanScroll = PanBack;
         DataContext = ViewModel;
+        LabBannerTitle.FontFamily = LaunchFonts.BannerFont;
 
         ComboUiLanguage.SelectionChanged += (_, _) => OnLanguageChanged();
         ComboUiFormatCulture.SelectionChanged += (_, _) => OnFormatCultureChanged();

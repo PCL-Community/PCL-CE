@@ -11,6 +11,7 @@ using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils.OS;
 using PCL.UI;
 using PCL.UI.Animations;
+using PCL.UI.Controls;
 using static PCL.Animations;
 
 namespace PCL.Views.Shell;
@@ -33,6 +34,8 @@ public sealed class StartupEffects(
 
         try
         {
+            GameFolders.ApplySelectedFolder(States.Game.SelectedFolder);
+            LauncherCommon.ModeDebug = Config.Debug.Enabled;
             PrepareWindowAnimation();
             ApplyLockWindowSize();
             titleBar.RefreshTitleAppearance();
@@ -40,8 +43,7 @@ public sealed class StartupEffects(
             extraButtons.RefreshAllStates();
             RegisterConfigObservers();
             WarmupLoaders();
-            // TODO(SHL-03): 背景音乐引擎（NAudio）尚未迁移，启动时的音乐状态刷新暂不执行
-            LogWrapper.Info("UI", "背景音乐引擎未迁移，启动音乐状态刷新已跳过");
+            MediaService.Current?.RefreshMusic(false, true);
         }
         catch (Exception ex)
         {
@@ -121,10 +123,22 @@ public sealed class StartupEffects(
 
     private void RegisterConfigObservers()
     {
+        States.Game.SelectedFolderConfig.Observe(
+            new ConfigObserver(
+                ConfigEvent.Changed,
+                e => GameFolders.ApplySelectedFolder(e.Value as string)));
         Config.Preference.Theme.WindowOpacityConfig.Observe(
             new ConfigObserver(ConfigEvent.Update, _ => ApplyWindowOpacity()));
+        Config.Debug.EnabledConfig.Observe(
+            new ConfigObserver(
+                ConfigEvent.Update,
+                e => LauncherCommon.ModeDebug = e.NewValue is true));
         Config.Preference.LockWindowSizeConfig.Observe(
             new ConfigObserver(ConfigEvent.Update, _ => ApplyLockWindowSize()));
+        ConfigService
+            .GetConfigItem<string>("UiFont")
+            .Observe(
+                new ConfigObserver(ConfigEvent.Update, _ => LaunchFonts.InstallGlobalFont()));
         Config.Preference.WindowTitleTypeConfig.Observe(
             new ConfigObserver(ConfigEvent.Update, _ => titleBar.RefreshTitleAppearance()));
         Config.Preference.WindowTitleCustomTextConfig.Observe(
@@ -194,8 +208,9 @@ public sealed class StartupEffects(
             {
                 Title = Lang.Text("Main.SpecialVersion.Title"),
                 Content = Lang.Text("Main.SpecialVersion.DebugHint")
-                          + Environment.NewLine + Environment.NewLine
-                          + Lang.Text("Main.SpecialVersion.HideHintNotice"),
+                    + Environment.NewLine
+                    + Environment.NewLine
+                    + Lang.Text("Main.SpecialVersion.HideHintNotice"),
                 Buttons = DialogButtons.From(
                     DialogButton.Create(Lang.Text("Main.SpecialVersion.IUnderstand")),
                     DialogButton.Create(

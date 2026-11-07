@@ -4,6 +4,7 @@ using System.Text.Json.Nodes;
 using Avalonia;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App;
@@ -36,6 +37,15 @@ public partial class PageToolsTestViewModel : ViewModelBase
         DownloadFolder = string.IsNullOrWhiteSpace(States.Tool.DownloadFolder)
             ? Path.Combine(Paths.Data, "MyDownload")
             : States.Tool.DownloadFolder;
+        try
+        {
+            DownloadFolder = Path.GetFullPath(DownloadFolder);
+        }
+        catch
+        {
+            DownloadFolder = Path.Combine(Paths.Data, "MyDownload");
+        }
+
         DownloadOpenEnabled = !string.IsNullOrWhiteSpace(DownloadFolder);
     }
 
@@ -87,7 +97,7 @@ public partial class PageToolsTestViewModel : ViewModelBase
             return;
         try
         {
-            var fileName = LauncherCommon.GetFileNameFromPath(WebUtility.UrlDecode(value));
+            var fileName = LauncherCommon.GetFileNameFromPath(WebUtility.UrlDecode(value) ?? value);
             if (!string.IsNullOrWhiteSpace(fileName))
                 DownloadName = fileName;
         }
@@ -160,27 +170,91 @@ public partial class PageToolsTestViewModel : ViewModelBase
         }
     }
 
+    private static string? EnsureShortcutIcon()
+    {
+        try
+        {
+            var iconPath = Path.Combine(
+                Paths.SharedLocalData,
+                "icons",
+                "pcl-community-edition.png");
+            Directory.CreateDirectory(Path.GetDirectoryName(iconPath)!);
+            if (!File.Exists(iconPath))
+            {
+                using var source = AssetLoader.Open(
+                    new Uri("avares://PCL.Launcher/Assets/Images/icon.png"));
+                using var target = File.Create(iconPath);
+                source.CopyTo(target);
+            }
+
+            return iconPath;
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Warn(ex, "Tools", "导出快捷方式图标失败");
+            return null;
+        }
+    }
+
     [RelayCommand]
     public async Task CreateShortcutAsync()
     {
         ShortcutEnabled = false;
         try
         {
+            if (OperatingSystem.IsMacOS())
+            {
+                LogWrapper.Warn("Tools", "macOS 不支持创建快捷方式");
+                HintService.Show(Hints.Error(Lang.Text("Tools.Test.Error.OperationFailed")));
+                return;
+            }
+
             var target = Environment.ProcessPath;
-            if (string.IsNullOrWhiteSpace(target)) return;
-            var desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            var fileName = Lang.Text("Tools.Test.Shortcut.FileName", string.Empty);
+            if (string.IsNullOrWhiteSpace(target))
+            {
+                HintService.Show(Hints.Error(Lang.Text("Tools.Test.Error.OperationFailed")));
+                return;
+            }
+
             var extension = OperatingSystem.IsWindows() ? ".lnk" : ".desktop";
+            var shortcutName = Lang.Text("Tools.Test.Shortcut.FileName", extension);
+            var desktopPath = Path.Combine(GetDesktopDirectory(), shortcutName);
+            var startMenuPath = OperatingSystem.IsWindows()
+                ? Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.StartMenu),
+                    "Programs",
+                    shortcutName)
+                : Path.Combine(GetLinuxApplicationsDirectory(), shortcutName);
+            var desktopName = Lang.Text("Tools.Test.Shortcut.Desktop");
+            var startName = Lang.Text("Tools.Test.Shortcut.StartMenu");
+
+            var choice = (await Dialog.ShowAsync(
+                new TextDialogRequest
+                {
+                    Title = Lang.Text("Tools.Test.Shortcut.SelectLocation"),
+                    Content = Lang.Text(
+                        "Tools.Test.Shortcut.ConfirmMessage",
+                        desktopName,
+                        desktopPath,
+                        startName,
+                        startMenuPath),
+                    Buttons = DialogButtons.From(
+                        DialogButton.Create(Lang.Text("Common.Action.Cancel")),
+                        DialogButton.Create(desktopName),
+                        DialogButton.Create(startName))
+                })).Button;
+            if (choice == 1)
+                return;
+
+            var shortcutPath = choice == 2 ? desktopPath : startMenuPath;
+            var locationName = choice == 2 ? desktopName : startName;
             Files.CreateShortcut(
-                Path.Combine(desktop, fileName + extension),
+                shortcutPath,
                 target,
                 workingDirectory: AppContext.BaseDirectory,
-                description: "PCL CE");
-            HintService.Show(
-                Hints.Success(
-                    Lang.Text(
-                        "Tools.Test.Shortcut.Created",
-                        Lang.Text("Tools.Test.Shortcut.Desktop"))));
+                description: "PCL CE",
+                icon: OperatingSystem.IsWindows() ? null : EnsureShortcutIcon());
+            HintService.Show(Hints.Success(Lang.Text("Tools.Test.Shortcut.Created", locationName)));
         }
         catch (Exception ex)
         {
@@ -191,6 +265,25 @@ public partial class PageToolsTestViewModel : ViewModelBase
         {
             ShortcutEnabled = true;
         }
+    }
+
+    private static string GetDesktopDirectory()
+    {
+        var desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+        return string.IsNullOrWhiteSpace(desktop)
+            ? Path.Combine(Paths.DefaultDirectory, "Desktop")
+            : desktop;
+    }
+
+    private static string GetLinuxApplicationsDirectory()
+    {
+        var dataHome = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
+        if (string.IsNullOrWhiteSpace(dataHome))
+            dataHome = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                ".local",
+                "share");
+        return Path.Combine(dataHome, "applications");
     }
 
     [RelayCommand]
@@ -390,11 +483,13 @@ public partial class PageToolsTestViewModel : ViewModelBase
             var bitmap = new Bitmap(stream);
             if (bitmap.PixelSize.Width != bitmap.PixelSize.Height)
             {
+                bitmap.Dispose();
+                ClearSkinPreview();
                 HintService.Show(Hints.Error(Lang.Text("Tools.Test.Avatar.InvalidSize")));
-                SkinPreviewVisible = false;
                 return;
             }
 
+            _currentSkin?.Dispose();
             _currentSkin = bitmap;
             _skinPath = path;
             RegenerateHead();
@@ -403,9 +498,9 @@ public partial class PageToolsTestViewModel : ViewModelBase
         catch (Exception ex)
         {
             LogWrapper.Error(ex, "Tools", "生成头像失败");
+            ClearSkinPreview();
             HintService.Show(
                 Hints.Error(Lang.Text("Tools.Test.Avatar.GenerateFailed", ex.Message)));
-            SkinPreviewVisible = false;
         }
     }
 
@@ -426,9 +521,7 @@ public partial class PageToolsTestViewModel : ViewModelBase
 
         try
         {
-            // TODO: CS0618: Method 'Avalonia.Media.Imaging.Bitmap.Save(string, int?)' is obsolete:
-            // 'Use the overload accepting BitmapEncoderOptions instead.'
-            GeneratedHead.Save(savePath, 100);
+            GeneratedHead.Save(savePath, PngBitmapEncoderOptions.Default);
             HintService.Show(Hints.Success(Lang.Text("Tools.Test.Avatar.Saved")));
         }
         catch (Exception ex)
@@ -445,16 +538,29 @@ public partial class PageToolsTestViewModel : ViewModelBase
 
         try
         {
+            GeneratedHead?.Dispose();
             GeneratedHead = CreateHeadBitmap(_currentSkin, GetHeadSize());
             SkinPreviewVisible = true;
         }
         catch (Exception ex)
         {
             LogWrapper.Error(ex, "Tools", "生成头像失败");
+            GeneratedHead?.Dispose();
+            GeneratedHead = null;
             HintService.Show(
                 Hints.Error(Lang.Text("Tools.Test.Avatar.GenerateFailed", ex.Message)));
             SkinPreviewVisible = false;
         }
+    }
+
+    private void ClearSkinPreview()
+    {
+        _currentSkin?.Dispose();
+        _currentSkin = null;
+        _skinPath = null;
+        GeneratedHead?.Dispose();
+        GeneratedHead = null;
+        SkinPreviewVisible = false;
     }
 
     private int GetHeadSize()

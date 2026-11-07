@@ -1,5 +1,8 @@
 using System.Globalization;
+using System.Net;
 using Avalonia.Controls;
+using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
@@ -28,12 +31,13 @@ public partial class PageToolsTest : MyPageRight
         PanScroll = PanBack;
         Current = this;
         DataContext = ViewModel;
+        RenderOptions.SetBitmapInterpolationMode(ImgHead, BitmapInterpolationMode.None);
 
         TextDownloadUrl.ValidateRules.Add(new HttpAndUncValidator());
         TextDownloadFolder.ValidateRules.Add(new FolderPathValidator());
         TextDownloadName.ValidateRules.Add(new FileNameValidator());
         TextAchievementItem.ValidateRules.Add(
-            new RegexValidator(@"^[a-z0-9_]+$", Lang.Text("Tools.Test.Achievement.InvalidId")));
+            new RegexValidator("^[a-z0-9_]+$", Lang.Text("Tools.Test.Achievement.InvalidId")));
         TextAchievementTitle.ValidateRules.Add(new NullOrEmptyValidator());
         TextAchievementLine1.ValidateRules.Add(new NullOrEmptyValidator());
 
@@ -45,7 +49,14 @@ public partial class PageToolsTest : MyPageRight
         TextDownloadFolder.TextChanged += (_, _) =>
         {
             ViewModel.DownloadFolder = TextDownloadFolder.Text ?? string.Empty;
+            TextDownloadName.Validate();
             RefreshDownloadButtons();
+        };
+        TextDownloadFolder.ValidatedTextChanged += (_, _) =>
+        {
+            if (TextDownloadFolder.IsValidated
+                && !string.IsNullOrWhiteSpace(ViewModel.DownloadFolder))
+                States.Tool.DownloadFolder = ViewModel.DownloadFolder;
         };
         TextDownloadName.TextChanged += (_, _) =>
         {
@@ -172,9 +183,9 @@ public partial class PageToolsTest : MyPageRight
 
                     foreach (var folder in cleanFolders)
                     {
-                        count += _DeleteDirectoryCounted(
+                        count += _DeleteDirectory(
                             Path.Combine(folder.FullName, "crash-reports"));
-                        count += _DeleteDirectoryCounted(Path.Combine(folder.FullName, "logs"));
+                        count += _DeleteDirectory(Path.Combine(folder.FullName, "logs"));
                         foreach (var file in folder.EnumerateFiles("*"))
                             if (file.Name.StartsWith("hs_err_pid", StringComparison.Ordinal)
                                 || file.Name.EndsWith(".log", StringComparison.OrdinalIgnoreCase)
@@ -190,12 +201,12 @@ public partial class PageToolsTest : MyPageRight
                                     "-natives",
                                     StringComparison.Ordinal)
                                 || nativeFolder.Name == "natives-windows-x86_64")
-                            .Sum(nativeFolder => _DeleteDirectoryCounted(nativeFolder.FullName));
+                            .Sum(nativeFolder => _DeleteDirectory(nativeFolder.FullName));
                     }
 
-                    count += _DeleteDirectoryCounted(LauncherPaths.Temp);
+                    count += _DeleteDirectory(LauncherPaths.Temp);
                     if (OperatingSystem.IsWindows())
-                        count += _DeleteDirectoryCounted(
+                        count += _DeleteDirectory(
                             Path.Combine(
                                 Path.GetPathRoot(Environment.SystemDirectory) ?? "C:\\",
                                 "ProgramData",
@@ -238,20 +249,107 @@ public partial class PageToolsTest : MyPageRight
             "Rubbish Clear");
     }
 
-    private static int _DeleteDirectoryCounted(string path)
+    /// <summary>
+    ///     删除目录并返回真正删除成功的文件数。与 WPF <c>Common.DeleteDirectory</c> 一样，
+    ///     只在单个文件删除成功后计数，删除失败的目录不计入清理数量。
+    /// </summary>
+    private static int _DeleteDirectory(string path, bool ignoreIssue = true)
     {
+        if (!Directory.Exists(path))
+            return 0;
+
+        var deletedCount = 0;
+        string[] files;
         try
         {
-            if (!Directory.Exists(path)) return 0;
-            var count = Directory.GetFiles(path, "*", SearchOption.AllDirectories).Length;
-            Directory.Delete(path, true);
-            return Math.Max(1, count);
+            files = Directory.GetFiles(path);
+        }
+        catch (DirectoryNotFoundException ex)
+        {
+            LogWrapper.Warn(ex, "Tools", $"疑似为孤立符号链接，尝试直接删除（{path}）");
+            try
+            {
+                Directory.Delete(path);
+            }
+            catch (Exception deleteEx)
+            {
+                LogWrapper.Warn(deleteEx, "Tools", $"清理目录失败：{path}");
+            }
+
+            return 0;
         }
         catch (Exception ex)
         {
-            LogWrapper.Warn(ex, "Tools", $"清理目录失败：{path}");
+            LogWrapper.Warn(ex, "Tools", $"读取目录失败：{path}");
+            if (!ignoreIssue)
+                throw;
             return 0;
         }
+
+        foreach (var filePath in files)
+            for (var attempt = 0; attempt < 2; attempt++)
+                try
+                {
+                    File.Delete(filePath);
+                    deletedCount++;
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    if (attempt == 0)
+                    {
+                        LogWrapper.Warn(ex, "Tools", $"删除文件失败，将在 0.3s 后重试（{filePath}）");
+                        Thread.Sleep(300);
+                        continue;
+                    }
+
+                    if (!ignoreIssue)
+                        throw;
+                    LogWrapper.Warn(ex, "Tools", $"删除文件失败（{filePath}）");
+                }
+
+        string[] directories;
+        try
+        {
+            directories = Directory.GetDirectories(path);
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Warn(ex, "Tools", $"读取子目录失败：{path}");
+            if (!ignoreIssue)
+                throw;
+            return deletedCount;
+        }
+
+        deletedCount += directories.Sum(directory => _DeleteDirectory(directory, ignoreIssue));
+
+        for (var attempt = 0; attempt < 2; attempt++)
+            try
+            {
+                Directory.Delete(path, true);
+                break;
+            }
+            catch (Exception ex)
+            {
+                if (attempt == 0 && !LauncherCommon.RunInUi())
+                {
+                    LogWrapper.Warn(ex, "Tools", $"删除文件夹失败，将在 0.3s 后重试（{path}）");
+                    Thread.Sleep(300);
+                    continue;
+                }
+
+                if (!ignoreIssue)
+                    throw;
+                LogWrapper.Warn(ex, "Tools", $"删除文件夹失败（{path}）");
+            }
+
+        return deletedCount;
+    }
+
+    /// <summary>WPF 名称兼容入口。</summary>
+    public static void RubbishClear()
+    {
+        ClearTrash();
     }
 
     /// <summary>WPF <c>PageToolsTest.Jrrp</c> 的等价实现。</summary>
@@ -259,9 +357,9 @@ public partial class PageToolsTest : MyPageRight
     {
         try
         {
-            var random = new Random(_GenerateDailySeed());
+            var random = new Random(GenerateDailySeed());
             var luckValue = random.Next(0, 101);
-            var rating = _GetLuckRating(luckValue);
+            var rating = GetRating(luckValue);
             var title = Lang.Text("Tools.Test.Luck.MsgboxTitle", Lang.Date(DateTime.Now, "d"));
 
             if (luckValue >= 60)
@@ -294,7 +392,14 @@ public partial class PageToolsTest : MyPageRight
         }
     }
 
-    private static int _GenerateDailySeed()
+    /// <summary>WPF 名称兼容入口。</summary>
+    public static void Jrrp()
+    {
+        ShowDailyFortune();
+    }
+
+    /// <summary>WPF <c>GenerateDailySeed</c> 的等价实现：日期 + 启动器识别码的 DJB2 哈希。</summary>
+    public static int GenerateDailySeed()
     {
         var datePart = DateTime.Today.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
         return _Djb2Hash(datePart + Identify.LauncherId);
@@ -310,7 +415,8 @@ public partial class PageToolsTest : MyPageRight
         return (int)(hash & 0x7FFFFFFFL);
     }
 
-    private static string _GetLuckRating(int luckValue)
+    /// <summary>WPF <c>GetRating</c> 的等价实现。</summary>
+    public static string GetRating(int luckValue)
     {
         var key = luckValue switch
         {
@@ -328,12 +434,16 @@ public partial class PageToolsTest : MyPageRight
     }
 
     /// <summary>WPF <c>PageToolsTest.StartCustomDownload</c> 的等价实现。</summary>
-    public static void StartCustomDownload(string url, string? fileName, string? folder)
+    public static void StartCustomDownload(
+        string url,
+        string? fileName,
+        string? folder,
+        string userAgent = "")
     {
         try
         {
             fileName = string.IsNullOrWhiteSpace(fileName)
-                ? LauncherCommon.GetFileNameFromPath(url)
+                ? LauncherCommon.GetFileNameFromPath(WebUtility.UrlDecode(url) ?? url)
                 : fileName;
             if (string.IsNullOrWhiteSpace(folder))
             {
@@ -355,10 +465,10 @@ public partial class PageToolsTest : MyPageRight
             var uuid = LauncherCommon.GetUuid();
             var savePath = Path.Combine(folder, fileName);
             Loading.LoaderBase loader;
-            if (new HttpValidator(true).Validate(url).IsValid)
+            if (new HttpValidator().Validate(url).IsValid)
                 loader = new LoaderDownload(
                     Lang.Text("Tools.Test.CustomDownload.LoaderName", fileName),
-                    [new DownloadFile([url], savePath, null, true)]);
+                    [new DownloadFile([url], savePath, null, true, userAgent)]);
             else
                 loader = new LoaderDownloadUnc(
                     Lang.Text("Tools.Test.CustomDownload.LoaderName", fileName),
@@ -387,6 +497,10 @@ public partial class PageToolsTest : MyPageRight
                         break;
 
                     case LoadState.Failed:
+                        LogWrapper.Error(
+                            loaderBase.Error,
+                            "Tools",
+                            $"{loaderBase.name}失败");
                         HintService.Show(
                             Hints.Error(Lang.Text("Tools.Test.Error.OperationFailed")));
                         break;
@@ -394,9 +508,6 @@ public partial class PageToolsTest : MyPageRight
                     case LoadState.Waiting:
                     case LoadState.Loading:
                         break;
-
-                    default:
-                        throw new ArgumentOutOfRangeException(nameof(state), state, null);
                 }
             };
             combo.Start();

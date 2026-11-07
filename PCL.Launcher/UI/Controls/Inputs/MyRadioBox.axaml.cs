@@ -360,7 +360,8 @@ public partial class MyRadioBox : UserControl, IMyRadio
                     AnimationTimeOfCheck * 2,
                     (int)Math.Round(AnimationTimeOfCheck * 0.6d),
                     new PCL.Animations.AniEaseOutBack(),
-                    absolute: true)
+                    absolute: true),
+                PCL.Animations.AaCode(SetTerminalShapes, after: true)
             },
             BorderKey);
 
@@ -377,7 +378,8 @@ public partial class MyRadioBox : UserControl, IMyRadio
                     ShapeDotElement,
                     1d - ShapeDotElement.Opacity,
                     (int)Math.Round(AnimationTimeOfCheck * 0.5d),
-                    (int)Math.Round(AnimationTimeOfCheck * 0.6d))
+                    (int)Math.Round(AnimationTimeOfCheck * 0.6d)),
+                PCL.Animations.AaCode(SetTerminalShapes, after: true)
             },
             DotKey);
     }
@@ -385,12 +387,16 @@ public partial class MyRadioBox : UserControl, IMyRadio
     private void AnimateUnchecked()
     {
         PCL.Animations.AniStart(
-            PCL.Animations.AaScale(
-                ShapeBorderElement,
-                18d - ShapeBorderElement.Width,
-                AnimationTimeOfCheck,
-                ease: new PCL.Animations.AniEaseOutFluent(),
-                absolute: true),
+            new List<PCL.Animations.AniData>
+            {
+                PCL.Animations.AaScale(
+                    ShapeBorderElement,
+                    18d - ShapeBorderElement.Width,
+                    AnimationTimeOfCheck,
+                    ease: new PCL.Animations.AniEaseOutFluent(),
+                    absolute: true),
+                PCL.Animations.AaCode(SetTerminalShapes, after: true)
+            },
             BorderKey);
 
         PCL.Animations.AniStart(
@@ -406,7 +412,8 @@ public partial class MyRadioBox : UserControl, IMyRadio
                     ShapeDotElement,
                     -ShapeDotElement.Opacity,
                     (int)Math.Round(AnimationTimeOfCheck * 0.5d),
-                    (int)Math.Round(AnimationTimeOfCheck * 0.2d))
+                    (int)Math.Round(AnimationTimeOfCheck * 0.2d)),
+                PCL.Animations.AaCode(SetTerminalShapes, after: true)
             },
             DotKey);
     }

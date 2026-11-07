@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
+using PCL.Core.App.IoC;
 using PCL.Core.Platform;
 
 namespace PCL.Core.UI;
@@ -12,10 +13,10 @@ namespace PCL.Core.UI;
 /// </summary>
 public sealed class ApplicationHost : IApplicationHost
 {
-    private readonly Func<int> _run;
     private readonly Dictionary<object, object> _pendingResources = new();
-    private IWindowHost? _mainWindow;
+    private readonly Func<int> _run;
     private Application? _application;
+    private IWindowHost? _mainWindow;
 
     public ApplicationHost(Func<int> run)
     {
@@ -28,30 +29,6 @@ public sealed class ApplicationHost : IApplicationHost
 
     private IClassicDesktopStyleApplicationLifetime? DesktopLifetime =>
         _application?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
-
-    /// <summary>由 Avalonia <c>App.OnFrameworkInitializationCompleted</c> 调用，标记应用容器就绪。</summary>
-    public static void NotifyStartup(Application application)
-    {
-        Current?._OnApplicationInitialized(application);
-    }
-
-    private void _OnApplicationInitialized(Application application)
-    {
-        _application = application;
-
-        foreach (var pair in _pendingResources)
-            application.Resources[pair.Key] = pair.Value;
-        _pendingResources.Clear();
-
-        Dispatcher.UIThread.UnhandledException += (_, e) =>
-            DispatcherUnhandledException?.Invoke(e.Exception);
-
-        // 语言资源字典必须在加载流程的 Lang.Text 调用前进入应用资源
-        if (PlatformServices.Localization is LocalizationBackend localization)
-            localization.EnsureBaseLanguage();
-
-        Startup?.Invoke();
-    }
 
     public int Run()
     {
@@ -107,4 +84,41 @@ public sealed class ApplicationHost : IApplicationHost
     public event Action? Startup;
 
     public event Action<Exception>? DispatcherUnhandledException;
+
+    /// <summary>由 Avalonia <c>App.OnFrameworkInitializationCompleted</c> 调用，标记应用容器就绪。</summary>
+    public static void NotifyStartup(Application application)
+    {
+        Current?._OnApplicationInitialized(application);
+    }
+
+    private void _OnApplicationInitialized(Application application)
+    {
+        _application = application;
+
+        foreach (var pair in _pendingResources)
+            application.Resources[pair.Key] = pair.Value;
+        _pendingResources.Clear();
+
+        Dispatcher.UIThread.UnhandledException += (_, e) =>
+        {
+            // 生命周期会按致命错误处理该异常并在原生对话框关闭后结束进程。
+            // 先标记已处理，避免 Avalonia 在对话框关闭前重抛异常并拆除 Dispatcher。
+            e.Handled = true;
+
+            try
+            {
+                DispatcherUnhandledException?.Invoke(e.Exception);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"[UI] 未处理异常处理器失败：{ex}");
+                Lifecycle.RequestFatalExit();
+            }
+        };
+
+        if (PlatformServices.Localization is LocalizationBackend localization)
+            localization.EnsureBaseLanguage();
+
+        Startup?.Invoke();
+    }
 }

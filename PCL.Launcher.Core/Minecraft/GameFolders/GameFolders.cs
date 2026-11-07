@@ -52,6 +52,15 @@ public static class GameFolders
         }
     }
 
+    /// <summary>
+    ///     应用配置中保存的当前文件夹路径，将启动器目录占位符 <c>$</c> 展开为实际路径。
+    /// </summary>
+    public static void ApplySelectedFolder(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return;
+        mcFolderSelected = value.Replace("$", LauncherPaths.ExecutableDirectory);
+    }
+
     private static void McFolderListLoadSub()
     {
         try

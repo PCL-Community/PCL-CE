@@ -101,7 +101,7 @@ public partial class PageDownloadCompFavoritesViewModel : ViewModelBase
                     return;
                 }
 
-                task.output = Comp.CompRequest.GetCompProjectsByIds([.. group.Favs]);
+                task.output = Comp.CompRequest.GetCompProjectsByIds([.. group.Favs.Distinct()]);
             },
             inputDelegate: () => 0)
         {
@@ -160,7 +160,7 @@ public partial class PageDownloadCompFavoritesViewModel : ViewModelBase
     {
         var group = SelectedFolder;
         var output = Loader?.output ?? [];
-        ShowHintGetFail = group is not null && output.Count < group.Favs.Count;
+        ShowHintGetFail = group is not null && output.Count < group.Favs.Distinct().Count();
         _compItems.Clear();
         _selectedItems.Clear();
         foreach (var project in output)
@@ -542,10 +542,11 @@ public partial class PageDownloadCompFavoritesViewModel : ViewModelBase
                     Title = Lang.Text("Download.Comp.Favorites.EditNote"),
                     DefaultValue = note ?? ""
                 });
-            if (!result.IsConfirmed) return;
-            group.Notes[project.Id] = result.InputText ?? "";
+            var desiredNote = result.IsConfirmed ? result.InputText : null;
+            if (string.IsNullOrEmpty(desiredNote)) return;
+            group.Notes[project.Id] = desiredNote;
             var item = _compItems.FirstOrDefault(candidate => candidate.Project.Id == project.Id);
-            item?.SetNote(result.InputText);
+            item?.SetNote(desiredNote);
             Comp.CompFavorites.Save();
             RebuildGroups();
         }

@@ -73,8 +73,8 @@ public sealed class ExtraButtonsPanel : StackPanel
             && PageRouter.Current.Page == PageType.Launch;
         _shutdown.showCheck = () => GameWatcher.hasRunningMinecraft;
         _log.showCheck = ShowLogButton;
-        _music.showCheck = () => MediaService.Current?.IsAvailable == true
-            && MusicStateProvider?.Invoke() is { Visible: true };
+        _music.showCheck = () => MusicStateProvider?.Invoke() is { Visible: true }
+            && MediaService.Current?.IsAvailable == true;
 
         _stateTimer = new DispatcherTimer
         {

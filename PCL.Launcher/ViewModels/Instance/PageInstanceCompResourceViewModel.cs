@@ -85,11 +85,12 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
 
     [ObservableProperty] public partial bool ShowManageDownload { get; set; } = true;
 
-    [ObservableProperty] public partial bool ShowJarInJar { get; set; }
 
-    [ObservableProperty] public partial bool IsEmpty { get; set; }
+    [ObservableProperty] public partial bool ShowList { get; set; }
 
-    [ObservableProperty] public partial bool IsSchematicEmpty { get; set; }
+    [ObservableProperty] public partial bool ShowEmpty { get; set; }
+
+    [ObservableProperty] public partial bool ShowSchematicEmpty { get; set; }
 
     [ObservableProperty] public partial string EmptyTitle { get; set; } = string.Empty;
 
@@ -128,7 +129,6 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
             && (HiddenFeatureState.ForceShow
                 || !Config.Preference.Hide.PageDownload);
         ShowHintDownload = compType != Comp.CompType.Schematic;
-        IsSchematicEmpty = false;
         UpdateFilterState();
         UpdateSortText();
     }
@@ -139,10 +139,41 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
         ShowManageBack = !string.IsNullOrEmpty(path);
     }
 
+    /// <summary>开始新一轮加载前收起旧列表与空状态，避免旧内容在加载期间闪现。</summary>
+    public void BeginLoading()
+    {
+        ShowList = false;
+        ShowEmpty = false;
+        ShowSchematicEmpty = false;
+    }
+
+    /// <summary>显示资源列表，隐藏两种空状态。</summary>
+    public void ShowListPanel()
+    {
+        ShowList = true;
+        ShowEmpty = false;
+        ShowSchematicEmpty = false;
+    }
+
+    /// <summary>显示“尚未安装资源”空状态。</summary>
+    public void ShowEmptyPanel()
+    {
+        ShowList = false;
+        ShowEmpty = true;
+        ShowSchematicEmpty = false;
+    }
+
+    /// <summary>显示原理图目录不可用空状态。</summary>
+    public void ShowSchematicEmptyPanel()
+    {
+        ShowList = false;
+        ShowEmpty = false;
+        ShowSchematicEmpty = true;
+    }
+
     public void ApplyEmptyState()
     {
-        IsEmpty = true;
-        IsSchematicEmpty = false;
+        ShowEmptyPanel();
         var inSubFolder = !string.IsNullOrEmpty(CurrentFolderPath);
         EmptyTitle = Lang.Text(
             inSubFolder ? "Instance.Resource.EmptyFolder.Title" : "Instance.Resource.Empty.Title");
@@ -157,8 +188,7 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
 
     public void ApplySchematicEmptyState()
     {
-        IsEmpty = false;
-        IsSchematicEmpty = true;
+        ShowSchematicEmptyPanel();
     }
 
     partial void OnSearchTextChanged(string value)
@@ -220,10 +250,14 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
                     StringComparison.InvariantCulture))
             .ToList();
         SortEntries(filtered);
+        _selected.RemoveWhere(path =>
+            !filtered.Any(entry => string.Equals(
+                entry.RawPath,
+                path,
+                StringComparison.OrdinalIgnoreCase)));
 
         VisibleEntries.Clear();
         VisibleEntries.AddRange(filtered);
-        IsEmpty = VisibleEntries.Count == 0;
         UpdateFilterState();
         UpdateSortText();
         UpdateSelectionState();
@@ -270,12 +304,12 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
 
     private bool IsDuplicate(LocalComp.LocalCompFile entry)
     {
-        var name = entry.Name;
-        if (string.IsNullOrEmpty(name))
+        if (entry.Comp is null)
             return false;
         return Entries.Any(other =>
             !ReferenceEquals(other, entry)
-            && string.Equals(other.Name, name, StringComparison.OrdinalIgnoreCase));
+            && other.Comp is not null
+            && string.Equals(other.Comp.Id, entry.Comp.Id, StringComparison.OrdinalIgnoreCase));
     }
 
     private void SortEntries(List<LocalComp.LocalCompFile> list)
@@ -332,7 +366,7 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
             entry.State == LocalComp.LocalCompFile.LocalFileStatus.Unavailable);
         var duplicate = Entries.Count(IsDuplicate);
 
-        FilterAllText = FilterIndex == 0 && string.IsNullOrWhiteSpace(SearchText)
+        FilterAllText = string.IsNullOrWhiteSpace(SearchText)
             ? Lang.Text("Instance.Resource.Filter.AllWithCount", all)
             : Lang.Text("Instance.Resource.Filter.SearchResult");
         FilterEnabledText = Lang.Text("Instance.Resource.Filter.EnabledWithCount", enabled);
@@ -340,11 +374,11 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
         FilterUpdatableText = Lang.Text("Instance.Resource.Filter.UpdatableWithCount", updatable);
         FilterErrorText = Lang.Text("Instance.Resource.Filter.ErrorWithCount", error);
         FilterDuplicateText = Lang.Text("Instance.Resource.Filter.DuplicateWithCount", duplicate);
-        ShowFilterEnabled = enabled > 0 && enabled < all;
-        ShowFilterDisabled = disabled > 0;
-        ShowFilterUpdatable = updatable > 0;
-        ShowFilterError = error > 0;
-        ShowFilterDuplicate = duplicate > 0;
+        ShowFilterEnabled = FilterIndex == 1 || (enabled > 0 && enabled < all);
+        ShowFilterDisabled = FilterIndex == 2 || disabled > 0;
+        ShowFilterUpdatable = FilterIndex == 3 || updatable > 0;
+        ShowFilterError = FilterIndex == 4 || error > 0;
+        ShowFilterDuplicate = FilterIndex == 5 || duplicate > 0;
     }
 
     private void UpdateSortText()
@@ -500,36 +534,45 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
 
     public async Task DeleteEntriesAsync(IReadOnlyList<LocalComp.LocalCompFile> targets)
     {
+        if (targets.Count == 0)
+            return;
         try
         {
+            var canRecycle = targets.All(entry => RecycleBin.IsSupported(GetEntryPath(entry)));
+            var content = Lang.Text(
+                "Event.Safety.ConfirmMessage",
+                $"{Lang.Text("Common.Action.Delete")} {targets.Count}");
+            if (!canRecycle)
+                content += Environment.NewLine
+                    + Lang.Text("Select.Instance.Delete.RecycleBinUnavailable");
             var dialog = await DialogService.Instance.ShowAsync(
                 new TextDialogRequest
                 {
                     Title = Lang.Text("Common.Dialog.Warning"),
-                    Content = Lang.Text(
-                        "Event.Safety.ConfirmMessage",
-                        $"{Lang.Text("Common.Action.Delete")} {targets.Count}"),
+                    Content = content,
                     Buttons = DialogButtons.OkCancel,
                     IsWarn = true
                 });
-            if (dialog.Button != 1)
+            if (!dialog.IsConfirmed)
                 return;
 
-            var folder = string.Empty;
+            var moved = 0;
+            var permanent = 0;
             foreach (var entry in targets)
                 try
                 {
-                    folder = Path.GetDirectoryName(GetEntryPath(entry)) ?? RootFolderPath;
-                    DeleteEntryCore(entry);
+                    if (DeleteEntryCore(entry))
+                        moved++;
+                    else
+                        permanent++;
                 }
                 catch (Exception ex)
                 {
                     LauncherCommon.Log(ex, $"删除资源失败：{entry.path}", LauncherLogLevel.Feedback);
                 }
 
-            if (!string.IsNullOrEmpty(folder))
-                CompLocalUpdateRegistry.End(folder);
             _selected.Clear();
+            ShowDeleteResult(targets, moved, permanent);
             ReloadRequested?.Invoke();
         }
         catch (Exception ex)
@@ -546,25 +589,35 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
     {
         try
         {
+            var canRecycle = RecycleBin.IsSupported(GetEntryPath(entry));
+            var content = Lang.Text(
+                "Event.Safety.ConfirmMessage",
+                $"{Lang.Text("Common.Action.Delete")} {GetEntryDisplayName(entry)}");
+            if (!canRecycle)
+                content += Environment.NewLine
+                    + Lang.Text("Select.Instance.Delete.RecycleBinUnavailable");
             var dialog = await DialogService.Instance.ShowAsync(
                 new TextDialogRequest
                 {
                     Title = Lang.Text("Common.Dialog.Warning"),
-                    Content = Lang.Text(
-                        "Event.Safety.ConfirmMessage",
-                        $"{Lang.Text("Common.Action.Delete")} {entry.Name}"),
+                    Content = content,
                     Buttons = DialogButtons.OkCancel,
                     IsWarn = true
                 });
-            if (dialog.Button != 1)
+            if (!dialog.IsConfirmed)
                 return;
 
             LauncherCommon.RunInNewThread(
                 () =>
                 {
+                    var moved = 0;
+                    var permanent = 0;
                     try
                     {
-                        DeleteEntryCore(entry);
+                        if (DeleteEntryCore(entry))
+                            moved++;
+                        else
+                            permanent++;
                     }
                     catch (Exception ex)
                     {
@@ -576,7 +629,11 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
                     }
                     finally
                     {
-                        LauncherCommon.RunInUi(() => ReloadRequested?.Invoke());
+                        LauncherCommon.RunInUi(() =>
+                        {
+                            ShowDeleteResult([entry], moved, permanent);
+                            ReloadRequested?.Invoke();
+                        });
                     }
                 },
                 $"Comp Delete {LauncherCommon.GetUuid()}",
@@ -592,35 +649,66 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
         }
     }
 
-    private static void DeleteEntryCore(LocalComp.LocalCompFile entry)
+    /// <summary>删除单个条目；返回 true 表示已移入回收站，false 表示已永久删除。</summary>
+    private static bool DeleteEntryCore(LocalComp.LocalCompFile entry)
     {
-        var folder = Path.GetDirectoryName(entry.IsFolder ? entry.ActualPath : entry.path);
+        var targetPath = GetEntryPath(entry);
+        var folder = Path.GetDirectoryName(targetPath);
         if (!string.IsNullOrEmpty(folder))
             CompLocalUpdateRegistry.Begin(folder);
         try
         {
-            if (entry.IsFolder || Directory.Exists(entry.ActualPath))
+            var isDirectory = entry.IsFolder || Directory.Exists(targetPath);
+            if (RecycleBin.IsSupported(targetPath))
             {
-                LauncherCommon.DeleteDirectory(entry.ActualPath);
-                return;
+                var outcome = RecycleBin.Move(targetPath, out var error);
+                if (outcome == RecycleBin.Outcome.Moved)
+                    return true;
+                if (outcome == RecycleBin.Outcome.Failed)
+                    throw new IOException(error ?? Lang.Text("Instance.Resource.Delete.Failed"));
             }
 
-            var recycle = RecycleBin.IsSupported(entry.path);
-            var moved = false;
-            if (recycle)
-            {
-                var outcome = RecycleBin.Move(entry.path, out _);
-                moved = outcome == RecycleBin.Outcome.Moved;
-            }
-
-            if (!moved)
-                File.Delete(entry.path);
+            if (isDirectory)
+                LauncherCommon.DeleteDirectory(targetPath);
+            else
+                File.Delete(targetPath);
+            return false;
         }
         finally
         {
             if (!string.IsNullOrEmpty(folder))
                 CompLocalUpdateRegistry.End(folder);
         }
+    }
+
+    private static string GetEntryDisplayName(LocalComp.LocalCompFile entry)
+    {
+        return string.IsNullOrWhiteSpace(entry.FileName)
+            ? entry.Name ?? string.Empty
+            : entry.FileName;
+    }
+
+    private static void ShowDeleteResult(
+        IReadOnlyList<LocalComp.LocalCompFile> targets,
+        int moved,
+        int permanent)
+    {
+        if (moved > 0)
+            HintService.Show(
+                Hints.Success(
+                    moved == 1
+                        ? Lang.Text(
+                            "Instance.Resource.Delete.RecycleSingle",
+                            GetEntryDisplayName(targets[0]))
+                        : Lang.Text("Instance.Resource.Delete.RecycleMultiple", moved)));
+        if (permanent > 0)
+            HintService.Show(
+                Hints.Success(
+                    permanent == 1
+                        ? Lang.Text(
+                            "Instance.Resource.Delete.PermanentSingle",
+                            GetEntryDisplayName(targets[0]))
+                        : Lang.Text("Instance.Resource.Delete.PermanentMultiple", permanent)));
     }
 
     [RelayCommand]
@@ -657,19 +745,40 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
                 return;
 
             var downloads = new List<DownloadFile>();
-            var replacements = new List<(LocalComp.LocalCompFile Entry, string NewPath)>();
+            var replacements =
+                new List<(LocalComp.LocalCompFile Entry, string DownloadPath, string TargetPath)>();
             foreach (var entry in targets)
             {
                 var updateFile = entry.UpdateFile!;
                 if (!updateFile.Available)
                     continue;
-                var folder = Path.GetDirectoryName(entry.path) ?? RootFolderPath;
-                var targetPath = Path.Combine(folder, updateFile.FileName);
+                var fileName = Path.GetFileName(updateFile.FileName);
+                if (string.IsNullOrWhiteSpace(fileName)
+                    || !string.Equals(fileName, updateFile.FileName, StringComparison.Ordinal))
+                    continue;
+
+                var folder = Path.GetFullPath(
+                    Path.GetDirectoryName(entry.path) ?? RootFolderPath);
+                var suffix = entry.path.EndsWith(".disabled", StringComparison.OrdinalIgnoreCase)
+                    ? ".disabled"
+                    : entry.path.EndsWith(".old", StringComparison.OrdinalIgnoreCase)
+                        ? ".old"
+                        : string.Empty;
+                var targetPath = Path.GetFullPath(Path.Combine(folder, fileName + suffix));
+                if (!targetPath.StartsWith(
+                        folder + Path.DirectorySeparatorChar,
+                        StringComparison.Ordinal))
+                    continue;
+
+                var downloadPath = Path.Combine(
+                    LauncherPaths.Temp,
+                    "DownloadedComp",
+                    fileName + suffix);
                 var checker = string.IsNullOrEmpty(updateFile.Hash)
                     ? new FileChecker(1024L)
                     : new FileChecker(hash: updateFile.Hash);
-                downloads.Add(new DownloadFile(updateFile.DownloadUrls, targetPath, checker));
-                replacements.Add((entry, targetPath));
+                downloads.Add(new DownloadFile(updateFile.DownloadUrls, downloadPath, checker));
+                replacements.Add((entry, downloadPath, targetPath));
             }
 
             if (downloads.Count == 0)
@@ -697,33 +806,39 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
                         case LoadState.Finished:
                             try
                             {
-                                foreach (var (entry, newPath) in replacements)
+                                var replaced = 0;
+                                foreach (var (entry, downloadPath, newPath) in replacements)
                                 {
-                                    var oldPath = entry.path;
-                                    if (string.Equals(
-                                            oldPath,
-                                            newPath,
-                                            StringComparison.OrdinalIgnoreCase))
+                                    if (!File.Exists(downloadPath))
                                         continue;
+
+                                    if (File.Exists(newPath))
+                                        DeleteFileToRecycleBin(newPath);
+                                    var directory = Path.GetDirectoryName(newPath);
+                                    if (!string.IsNullOrEmpty(directory))
+                                        Directory.CreateDirectory(directory);
+                                    File.Move(downloadPath, newPath, true);
+                                    replaced++;
+
                                     foreach (var variant in new[]
                                              {
-                                                 oldPath,
-                                                 $"{oldPath}.disabled",
-                                                 $"{oldPath}.old"
+                                                 entry.path,
+                                                 $"{entry.path}.disabled",
+                                                 $"{entry.path}.old"
                                              })
                                         if (File.Exists(variant)
                                             && !string.Equals(
                                                 variant,
                                                 newPath,
                                                 StringComparison.OrdinalIgnoreCase))
-                                            File.Delete(variant);
+                                            DeleteFileToRecycleBin(variant);
                                 }
 
                                 HintService.Show(
                                     Hints.Success(
                                         Lang.Text(
                                             "Instance.Resource.Update.SuccessMultiple",
-                                            replacements.Count)));
+                                            replaced)));
                             }
                             catch (Exception ex)
                             {
@@ -773,6 +888,16 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
         }
     }
 
+    private static void DeleteFileToRecycleBin(string path)
+    {
+        if (!File.Exists(path))
+            return;
+        if (RecycleBin.IsSupported(path)
+            && RecycleBin.Move(path, out _) == RecycleBin.Outcome.Moved)
+            return;
+        File.Delete(path);
+    }
+
     public static void ShowUpdateLog(LocalComp.LocalCompFile entry)
     {
         try
@@ -808,6 +933,16 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
             .Where(entry => _selected.Contains(entry.RawPath))
             .Select(entry => entry.Comp)
             .FirstOrDefault(comp => comp is not null);
+    }
+
+    public List<Comp.CompProject> GetFavoriteProjects()
+    {
+        return
+        [
+            .. Entries
+                .Where(entry => _selected.Contains(entry.RawPath) && entry.Comp is not null)
+                .Select(entry => entry.Comp!)
+        ];
     }
 
     public string GetShareCode()
@@ -902,19 +1037,51 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
                 : CurrentFolderPath;
             Directory.CreateDirectory(targetFolder);
             CompLocalUpdateRegistry.Begin(targetFolder);
-            await Task.Run(() =>
+            var installed = 0;
+            foreach (var file in files)
             {
-                foreach (var file in files)
+                if (CompType == Comp.CompType.Mod && !IsInstallableMod(file))
+                    continue;
+
+                var name = Path.GetFileName(file);
+                if (CompType == Comp.CompType.Mod)
                 {
-                    var name = Path.GetFileName(file);
-                    var target = Path.Combine(targetFolder, name);
-                    File.Copy(file, target, true);
+                    name = name
+                        .Replace(".disabled", "", StringComparison.OrdinalIgnoreCase)
+                        .Replace(".old", "", StringComparison.OrdinalIgnoreCase);
+                    if (!name.Contains('.'))
+                        name += ".jar";
                 }
-            });
-            var successText = files.Count > 1
+
+                var target = Path.Combine(targetFolder, name);
+                if (File.Exists(target))
+                {
+                    var overwrite = await DialogService.Instance.ShowAsync(
+                        new TextDialogRequest
+                        {
+                            Title = Lang.Text("Instance.Resource.Install.OverwriteConfirm.Title"),
+                            Content = Lang.Text(
+                                "Instance.Resource.Install.OverwriteConfirm.Message",
+                                name),
+                            Buttons = DialogButtons.Create(
+                                "Common.Action.Overwrite",
+                                "Common.Action.Cancel")
+                        });
+                    if (!overwrite.IsConfirmed)
+                        continue;
+                }
+
+                await Task.Run(() => File.Copy(file, target, true));
+                installed++;
+            }
+
+            if (installed == 0)
+                return;
+
+            var successText = installed > 1
                 ? Lang.Text(
                     "Instance.Resource.Install.SuccessMultiple",
-                    files.Count,
+                    installed,
                     Lang.Text(CompNameKey))
                 : Lang.Text(
                     "Instance.Resource.Install.SuccessSingle",
@@ -937,6 +1104,14 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
         }
     }
 
+    private static bool IsInstallableMod(string path)
+    {
+        return path.EndsWith(".jar", StringComparison.OrdinalIgnoreCase)
+            || path.EndsWith(".litemod", StringComparison.OrdinalIgnoreCase)
+            || path.EndsWith(".disabled", StringComparison.OrdinalIgnoreCase)
+            || path.EndsWith(".old", StringComparison.OrdinalIgnoreCase);
+    }
+
     public bool AcceptDrop(IReadOnlyList<string> paths, out List<string> accepted)
     {
         accepted =
@@ -944,7 +1119,7 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
             .. paths
                 .Where(path => CompType switch
                 {
-                    Comp.CompType.Mod => LocalComp.LocalCompFile.IsModFile(path),
+                    Comp.CompType.Mod => IsInstallableMod(path),
                     Comp.CompType.ResourcePack or Comp.CompType.Shader =>
                         path.EndsWith(".zip", StringComparison.OrdinalIgnoreCase),
                     _ => LocalComp.LocalCompFile.IsCompFile(path, CompType)
@@ -968,7 +1143,7 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
                         "Instance.Resource.Export.Mode.Csv",
                         "Common.Action.Cancel")
                 });
-            if (!mode.IsConfirmed && mode.Button != 2 && mode.Button != 3)
+            if (mode.Button is not (1 or 2))
                 return;
 
             var isCsv = mode.Button == 2;

@@ -278,12 +278,6 @@
                                      Value="{Binding BackgroundBlur, Mode=TwoWay}"
                                      ToolTip.Tip="{loc:Loc Setup.Ui.Background.Blur.ToolTip}" />
                     </Grid>
-                    <ui:MyCheckBox x:Name="CheckAutoPauseVideo"
-                                   Height="22"
-                                   Margin="-1,0,0,8"
-                                   IsVisible="{Binding AutoPauseVideoVisible}"
-                                   Text="{loc:Loc Setup.Ui.Background.PauseVideo}"
-                                   ToolTip.Tip="{loc:Loc Setup.Ui.Background.PauseVideo.ToolTip}" />
                     <ui:MyCheckBox x:Name="CheckBackgroundColorful"
                                    Height="22"
                                    Margin="-1,0,0,8"

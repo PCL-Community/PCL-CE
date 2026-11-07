@@ -18,7 +18,7 @@ namespace PCL.Views.Pages.Instance;
 
 /// <summary>
 ///     实例本地资源页：模组 / 资源包 / 光影 / 结构文件的列表与管理。
-///     支持搜索、按状态筛选、排序、全选与多选批量启用/禁用/更新/删除、导出资源信息与进入内嵌依赖页。
+///     支持搜索、按状态筛选、排序、全选与多选批量启用/禁用/更新/删除与导出资源信息。
 ///     加载由 <see cref="LocalComp.CompResourceListLoader" /> 驱动，页面实现
 ///     <see cref="ICompLocalPage" /> 以便业务层查询加载状态和当前目录。
 /// </summary>
@@ -40,6 +40,7 @@ public partial class PageInstanceCompResource
     {
         _compType = compType;
         InitializeComponent();
+        DataContext = ViewModel;
         PanScroll = PanBack;
         SearchBox.HintText = Lang.Text("Instance.Resource.Search.Hint");
         ViewModel.Configure(compType, CurrentLoaderFolder);
@@ -51,22 +52,19 @@ public partial class PageInstanceCompResource
             BuildList();
         };
         BtnManageBack.Click += (_, _) => GoBackToParentFolder();
-        BtnManageOpen.Click += (_, _) => Basics.OpenPath(CurrentLoaderFolder);
+        BtnManageOpen.Click += (_, _) => OpenCurrentFolder();
         BtnManageInstall.Click += (_, _) => InstallFromFiles();
         BtnManageDownload.Click += (_, _) => DownloadNew();
         BtnManageDownload.IsVisible =
             HiddenFeatureState.ForceShow || !Config.Preference.Hide.PageDownload;
+        BtnManageDownload.IsVisible &= ViewModel.ShowManageDownload;
+        BtnHintDownload.IsVisible = ViewModel.ShowHintDownload;
         BtnManageSelectAll.Click += (_, _) => ToggleSelectAll();
         BtnManageInfoExport.Click += (_, _) => _ = ExportInfoAsync();
-        ToolTip.SetTip(BtnManageInfoExport, Lang.Text("Instance.Resource.ExportInfo.ToolTip"));
-        BtnManageJarInJar.Click += (_, _) => OpenJarInJar();
-        ToolTip.SetTip(
-            BtnManageJarInJar,
-            Lang.Text("Instance.Resource.Mod.JarInJar.Entry.ToolTip"));
         BtnHintBack.Click += (_, _) => GoBackToParentFolder();
         BtnHintInstall.Click += (_, _) => InstallFromFiles();
         BtnHintDownload.Click += (_, _) => DownloadNew();
-        BtnHintOpen.Click += (_, _) => Basics.OpenPath(CurrentLoaderFolder);
+        BtnHintOpen.Click += (_, _) => OpenCurrentFolder();
         BtnSchematicDownloadMod.Click += (_, _) => DownloadNewForSchematic();
         BtnSchematicVersionSelect.Click += (_, _) =>
         {
@@ -149,6 +147,7 @@ public partial class PageInstanceCompResource
         ViewModel.ClearSelection();
         ViewModel.SetCurrentFolder(string.Empty);
         ViewModel.Configure(_compType, CurrentLoaderFolder);
+        BtnManageBack.IsVisible = false;
         if (_refreshed)
         {
             ReloadList();
@@ -173,11 +172,15 @@ public partial class PageInstanceCompResource
     {
         SearchBox.HintText = Lang.Text("Instance.Resource.Search.Hint");
         ViewModel.Configure(_compType, CurrentLoaderFolder);
+        BtnManageDownload.IsVisible =
+            (HiddenFeatureState.ForceShow || !Config.Preference.Hide.PageDownload)
+            && ViewModel.ShowManageDownload;
+        BtnHintDownload.IsVisible = ViewModel.ShowHintDownload;
         RefreshSortText();
         BuildList();
-        if (PanSchematicEmpty.IsVisible)
+        if (ViewModel.ShowSchematicEmpty)
             ShowSchematicEmptyPanel();
-        else if (PanEmpty.IsVisible)
+        else if (ViewModel.ShowEmpty)
             ShowEmptyPanel();
     }
 
@@ -195,7 +198,8 @@ public partial class PageInstanceCompResource
             null,
             LocalComp.CompResourceListLoader,
             _ => BuildFromLoaderOutput(),
-            GetLoaderData);
+            GetLoaderData,
+            false);
     }
 
     private LocalComp.CompLocalLoaderData GetLoaderData()
@@ -207,12 +211,12 @@ public partial class PageInstanceCompResource
             case Comp.CompType.Mod:
                 loaders = LocalComp.GetCurrentVersionModLoader();
                 break;
-            
+
             case Comp.CompType.ResourcePack:
             case Comp.CompType.Schematic:
                 loaders = [Comp.CompLoaderType.Minecraft];
                 break;
-            
+
             case Comp.CompType.Shader:
                 loaders =
                 [
@@ -222,14 +226,14 @@ public partial class PageInstanceCompResource
                     Comp.CompLoaderType.Canvas
                 ];
                 break;
-            
+
             case Comp.CompType.Any:
             case Comp.CompType.ModPack:
             case Comp.CompType.DataPack:
             case Comp.CompType.Plugin:
             case Comp.CompType.World:
                 break;
-            
+
             default:
                 throw new ArgumentOutOfRangeException();
         }
@@ -258,8 +262,12 @@ public partial class PageInstanceCompResource
 
     private void ReloadList()
     {
-        if (LoaderRun(Loading.LoaderFolderRunType.RunOnUpdated))
-            LauncherCommon.Log($"[System] 已刷新 {_compType} 列表");
+        if (!LoaderRun(Loading.LoaderFolderRunType.RunOnUpdated))
+            return;
+
+        // 只有真正开始新一轮加载时才收起旧内容，避免无变化刷新把页面清空。
+        ViewModel.BeginLoading();
+        LauncherCommon.Log($"[System] 已刷新 {_compType} 列表");
     }
 
     public static void ForceReload(Comp.CompType compType)
@@ -275,6 +283,17 @@ public partial class PageInstanceCompResource
             && PageRouter.Current.SubType == subType
             && PageRouter.CurrentPage is PageInstanceCompResource page)
         {
+            Comp.compProjectCache.Clear();
+            Comp.compFilesCache.Clear();
+            try
+            {
+                File.Delete(Path.Combine(LauncherPaths.Temp, "Cache", "LocalComp.json"));
+            }
+            catch (Exception ex)
+            {
+                LauncherCommon.Log(ex, "强制刷新时清理本地工程信息缓存失败");
+            }
+
             page._currentFolderPath = string.Empty;
             page.ViewModel.SetCurrentFolder(string.Empty);
             page.ViewModel.ClearSelection();
@@ -296,8 +315,6 @@ public partial class PageInstanceCompResource
             if (instance is null)
                 return;
 
-            BtnManageJarInJar.IsVisible = _compType == Comp.CompType.Mod && instance.Modable;
-
             if (!ViewModel.HasEntriesInCurrentFolder)
             {
                 if (_compType == Comp.CompType.Schematic
@@ -308,11 +325,8 @@ public partial class PageInstanceCompResource
                 return;
             }
 
-            PanAllBack.IsVisible = true;
-            PanEmpty.IsVisible = false;
-            PanSchematicEmpty.IsVisible = false;
+            ViewModel.ShowListPanel();
             PanListBack.Opacity = 1d;
-            ViewModel.ApplySort(1);
             BuildList();
         }
         catch (Exception ex)
@@ -327,10 +341,7 @@ public partial class PageInstanceCompResource
 
     private void ShowEmptyPanel()
     {
-        PanAllBack.IsVisible = false;
         PanLoad.IsVisible = false;
-        PanEmpty.IsVisible = true;
-        PanSchematicEmpty.IsVisible = false;
         PanSelect.IsVisible = false;
         ViewModel.ApplyEmptyState();
         TxtEmptyTitle.Text = ViewModel.EmptyTitle;
@@ -342,10 +353,7 @@ public partial class PageInstanceCompResource
 
     private void ShowSchematicEmptyPanel()
     {
-        PanAllBack.IsVisible = false;
         PanLoad.IsVisible = false;
-        PanEmpty.IsVisible = false;
-        PanSchematicEmpty.IsVisible = true;
         PanSelect.IsVisible = false;
         ViewModel.ApplySchematicEmptyState();
     }
@@ -363,8 +371,8 @@ public partial class PageInstanceCompResource
             foreach (var entry in ViewModel.VisibleEntries)
                 PanList.Children.Add(CreateEntryItem(entry));
 
-            PanAllBack.IsVisible = true;
             PanListBack.Opacity = 1d;
+            BtnManageBack.IsVisible = !string.IsNullOrEmpty(_currentFolderPath);
             RefreshFilterTexts();
             RefreshSortText();
             RefreshSelectBar();
@@ -424,6 +432,7 @@ public partial class PageInstanceCompResource
         {
             Checked = selected
         };
+        entry.OnCompUpdate += _ => LauncherCommon.RunInUi(item.Refresh);
 
         var lastClick = DateTime.MinValue;
         item.PointerReleased += (_, e) =>
@@ -578,10 +587,10 @@ public partial class PageInstanceCompResource
 
     private void ShowFavoritesMenu()
     {
-        var project = ViewModel.GetFavoriteProject();
-        if (project is null)
+        var projects = ViewModel.GetFavoriteProjects();
+        if (projects.Count == 0)
             return;
-        CompFavoritesMenu.Show(project, BtnSelectFavorites);
+        CompFavoritesMenu.Show(projects, BtnSelectFavorites);
     }
 
     private void ShareSelected()
@@ -605,16 +614,40 @@ public partial class PageInstanceCompResource
         }
     }
 
-    private static void ShowEntryInfo(LocalComp.LocalCompFile entry)
+    private async void ShowEntryInfo(LocalComp.LocalCompFile entry)
     {
         if (entry.Comp is not null)
         {
-            PageRouter.Navigate(PageType.CompDetail, PageSubType.Default, entry.Comp);
+            var instance = PageInstanceLeft.ResolveInstance();
+            var loader = _compType == Comp.CompType.Mod
+                ? LocalComp.GetCurrentVersionModLoader().FirstOrDefault()
+                : Comp.CompLoaderType.Any;
+            PageRouter.Navigate(
+                PageType.CompDetail,
+                PageSubType.Default,
+                new CompDetailParameter(
+                    entry.Comp,
+                    _compType,
+                    instance?.Info.VanillaName,
+                    loader));
             return;
         }
 
-        var lines = PageInstanceCompResourceViewModel.BuildInfoLines(entry);
-        _ = DialogService.Instance.ShowAsync(
+        var lines = PageInstanceCompResourceViewModel.BuildInfoLines(entry).ToList();
+        if (IsSchematicFile(entry))
+            try
+            {
+                HintService.Show(
+                    Hints.Info(Lang.Text("Instance.Resource.Item.Info.LoadingDetail")));
+                await Task.Run(entry.LoadNbtDataIfNeeded);
+                AppendSchematicInfoLines(lines, entry);
+            }
+            catch (Exception ex)
+            {
+                LauncherCommon.Log(ex, "加载原理图 NBT 数据失败");
+            }
+
+        await DialogService.Instance.ShowAsync(
             new TextDialogRequest
             {
                 Title = entry.Name,
@@ -623,14 +656,166 @@ public partial class PageInstanceCompResource
             });
     }
 
+    private static bool IsSchematicFile(LocalComp.LocalCompFile entry)
+    {
+        return !entry.IsFolder
+            && (entry.path.EndsWith(".litematic", StringComparison.OrdinalIgnoreCase)
+                || entry.path.EndsWith(".schem", StringComparison.OrdinalIgnoreCase)
+                || entry.path.EndsWith(".schematic", StringComparison.OrdinalIgnoreCase)
+                || entry.path.EndsWith(".nbt", StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>把 WPF 原理图详情中的 NBT 字段追加到基础文件信息之后。</summary>
+    private static void AppendSchematicInfoLines(
+        List<string> lines,
+        LocalComp.LocalCompFile entry)
+    {
+        lines.Add("");
+        lines.Add(Lang.Text("Instance.Resource.Item.Schematic.DetailInfo"));
+
+        if (entry.path.EndsWith(".litematic", StringComparison.OrdinalIgnoreCase))
+        {
+            if (entry.LitematicOriginalName is not null)
+                lines.Add(
+                    Lang.Text("Instance.Resource.Item.Schematic.OriginalName")
+                    + entry.LitematicOriginalName);
+            if (entry.LitematicVersion.HasValue)
+                lines.Add(
+                    Lang.Text("Instance.Resource.Item.Schematic.Version")
+                    + entry.LitematicVersion.Value);
+            if (entry.LitematicEnclosingSize is not null)
+                lines.Add(
+                    Lang.Text("Instance.Resource.Item.Schematic.EnclosingSize")
+                    + entry.LitematicEnclosingSize);
+            if (entry.LitematicTotalBlocks.HasValue)
+                lines.Add(
+                    Lang.Text("Instance.Resource.Item.Schematic.TotalBlocks")
+                    + Lang.Number(entry.LitematicTotalBlocks.Value, "N0"));
+            if (entry.LitematicTotalVolume.HasValue)
+                lines.Add(
+                    Lang.Text("Instance.Resource.Item.Schematic.TotalVolume")
+                    + Lang.Number(entry.LitematicTotalVolume.Value, "N0"));
+            if (entry.LitematicRegionCount.HasValue)
+                lines.Add(
+                    Lang.Text("Instance.Resource.Item.Schematic.RegionCount")
+                    + entry.LitematicRegionCount.Value);
+            if (entry.LitematicTimeCreated.HasValue)
+                lines.Add(
+                    Lang.Text("Instance.Resource.Item.Schematic.CreatedTime")
+                    + FormatTimestamp(entry.LitematicTimeCreated.Value));
+            if (entry.LitematicTimeModified.HasValue)
+                lines.Add(
+                    Lang.Text("Instance.Resource.Item.Schematic.ModifiedTime")
+                    + FormatTimestamp(entry.LitematicTimeModified.Value));
+            return;
+        }
+
+        if (entry.path.EndsWith(".schem", StringComparison.OrdinalIgnoreCase))
+        {
+            if (entry.SchemOriginalName is not null)
+                lines.Add(
+                    Lang.Text("Instance.Resource.Item.Schematic.OriginalName")
+                    + entry.SchemOriginalName);
+            if (entry.StructureGameVersion is not null)
+                lines.Add(
+                    Lang.Text("Instance.Resource.Item.Schematic.GameVersion")
+                    + entry.StructureGameVersion);
+            if (entry.SpongeVersion.HasValue)
+                lines.Add(
+                    Lang.Text("Instance.Resource.Item.Schematic.SpongeVersion")
+                    + entry.SpongeVersion.Value);
+            if (entry.StructureDataVersion.HasValue)
+                lines.Add(
+                    Lang.Text("Instance.Resource.Item.Schematic.DataVersion")
+                    + entry.StructureDataVersion.Value);
+        }
+        else if (entry.path.EndsWith(".nbt", StringComparison.OrdinalIgnoreCase))
+        {
+            if (entry.StructureAuthor is not null)
+                lines.Add(Lang.Text("Instance.Resource.Item.Info.Author", entry.StructureAuthor));
+            if (entry.StructureGameVersion is not null)
+                lines.Add(
+                    Lang.Text("Instance.Resource.Item.Schematic.GameVersion")
+                    + entry.StructureGameVersion);
+            if (entry.StructureDataVersion.HasValue)
+                lines.Add(
+                    Lang.Text("Instance.Resource.Item.Schematic.DataVersion")
+                    + entry.StructureDataVersion.Value);
+        }
+
+        if (entry.LitematicEnclosingSize is not null)
+            lines.Add(
+                Lang.Text("Instance.Resource.Item.Schematic.EnclosingDimensions")
+                + entry.LitematicEnclosingSize);
+        if (entry.LitematicTotalBlocks.HasValue)
+            lines.Add(
+                Lang.Text("Instance.Resource.Item.Schematic.TotalBlocks")
+                + Lang.Number(entry.LitematicTotalBlocks.Value, "N0"));
+        if (entry.LitematicTotalVolume.HasValue)
+            lines.Add(
+                Lang.Text("Instance.Resource.Item.Schematic.TotalVolume")
+                + Lang.Number(entry.LitematicTotalVolume.Value, "N0"));
+        if (entry.LitematicRegionCount.HasValue)
+            lines.Add(
+                Lang.Text("Instance.Resource.Item.Schematic.RegionCount")
+                + entry.LitematicRegionCount.Value);
+
+        var fileType = entry.path.EndsWith(".schem", StringComparison.OrdinalIgnoreCase)
+            ? "Instance.Resource.Item.Schematic.FileType.Sponge"
+            : entry.path.EndsWith(".nbt", StringComparison.OrdinalIgnoreCase)
+                ? "Instance.Resource.Item.Schematic.FileType.Nbt"
+                : "Instance.Resource.Item.Schematic.FileType.Mcedit";
+        lines.Add(Lang.Text("Instance.Resource.Item.Schematic.FileType", Lang.Text(fileType)));
+    }
+
+    private static string FormatTimestamp(long unixMilliseconds)
+    {
+        try
+        {
+            return Lang.Date(
+                DateTimeOffset.FromUnixTimeMilliseconds(unixMilliseconds).ToLocalTime().DateTime);
+        }
+        catch
+        {
+            return unixMilliseconds.ToString();
+        }
+    }
+
     private static void DownloadNewForSchematic()
     {
+        var instance = PageInstanceLeft.ResolveInstance();
+        if (instance is not null)
+        {
+            var folder = Path.Combine(
+                instance.PathIndie,
+                LocalComp.GetPathNameByCompType(Comp.CompType.Mod));
+            PageDownloadCompDetail.SetCachedFolder(Comp.CompType.Mod, folder);
+            PageRouter.Navigate(
+                PageType.Download,
+                PageSubType.DownloadMod,
+                new CompSearchContext(
+                    instance.Info.VanillaName,
+                    LocalComp.GetCurrentVersionModLoader().FirstOrDefault()));
+            return;
+        }
+
         PageRouter.Navigate(PageType.Download, PageSubType.DownloadMod);
     }
 
     #endregion
 
     #region 目录与安装
+
+    private void OpenCurrentFolder()
+    {
+        var path = string.IsNullOrEmpty(_currentFolderPath)
+            ? CurrentLoaderFolder
+            : _currentFolderPath;
+        if (string.IsNullOrEmpty(path))
+            return;
+        Directory.CreateDirectory(path);
+        Basics.OpenPath(path);
+    }
 
     private void EnterFolder(string folderPath)
     {
@@ -661,7 +846,7 @@ public partial class PageInstanceCompResource
         {
             var filter = _compType switch
             {
-                Comp.CompType.Mod => "*.jar;*.zip;*.disabled;*.old",
+                Comp.CompType.Mod => "*.jar;*.litemod;*.disabled;*.old",
                 Comp.CompType.ResourcePack => "*.zip",
                 Comp.CompType.Shader => "*.zip",
                 _ => "*.schematic;*.litematic;*.nbt;*.zip"
@@ -684,6 +869,15 @@ public partial class PageInstanceCompResource
 
     private void DownloadNew()
     {
+        var instance = PageInstanceLeft.ResolveInstance();
+        if (instance is not null)
+        {
+            var folder = Path.Combine(
+                instance.PathIndie,
+                LocalComp.GetPathNameByCompType(_compType));
+            PageDownloadCompDetail.SetCachedFolder(_compType, folder);
+        }
+
         var subType = _compType switch
         {
             Comp.CompType.ResourcePack => PageSubType.DownloadResourcePack,
@@ -691,16 +885,19 @@ public partial class PageInstanceCompResource
             Comp.CompType.Schematic => PageSubType.DownloadWorld,
             _ => PageSubType.DownloadMod
         };
-        PageRouter.Navigate(PageType.Download, subType);
-    }
+        if (instance is null)
+        {
+            PageRouter.Navigate(PageType.Download, subType);
+            return;
+        }
 
-    private static void OpenJarInJar()
-    {
+        var loader = _compType == Comp.CompType.Mod
+            ? LocalComp.GetCurrentVersionModLoader().FirstOrDefault()
+            : Comp.CompLoaderType.Any;
         PageRouter.Navigate(
-            new PageStackData(
-                PageType.InstanceSetup,
-                PageSubType.VersionModJarInJar,
-                PageInstanceLeft.ResolveInstance()));
+            PageType.Download,
+            subType,
+            new CompSearchContext(instance.Info.VanillaName, loader));
     }
 
     private Task ExportInfoAsync()

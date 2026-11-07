@@ -2,6 +2,8 @@ using System.Xml.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
+using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.UI.Controls;
 
 namespace PCL.Views.Pages;
@@ -97,11 +99,11 @@ public partial class PageHelpDetail : MyPageRight, IRefreshable
 
         var rendered = HelpXamlRenderer.Render(
             PageHelpDetailViewModel.ReplaceArguments(content.Xaml),
-            ResolveBrush);
-        if (rendered is not null)
+            ResolveResource);
+        if (rendered.Success && rendered.Controls.Count > 0)
         {
             PanCustom.Children.Clear();
-            PanCustom.Children.Add(rendered);
+            PanCustom.Children.Add(rendered.Controls[0]);
         }
         else
         {
@@ -109,6 +111,13 @@ public partial class PageHelpDetail : MyPageRight, IRefreshable
                 _ExtractPlainText(
                     PageHelpDetailViewModel.ReplaceArguments(content.Xaml)));
         }
+
+        foreach (var unsupported in rendered.UnsupportedEventTypes.Distinct(StringComparer.Ordinal))
+            HintService.Show(
+                Hints.Error(Lang.Text("Event.Sanitize.UnsupportedTypeHint", unsupported)));
+        foreach (var unknown in rendered.UnrecognizedEventTypes.Distinct(StringComparer.Ordinal))
+            HintService.Show(
+                Hints.Error(Lang.Text("Event.Sanitize.UnknownTypeHint", unknown)));
 
         TitleChanged?.Invoke(content.Title);
     }
@@ -131,11 +140,9 @@ public partial class PageHelpDetail : MyPageRight, IRefreshable
         PanCustom.Children.Add(card);
     }
 
-    private IBrush? ResolveBrush(string key)
+    private object? ResolveResource(string key)
     {
-        return this.TryFindResource(key, out var resource) && resource is IBrush brush
-            ? brush
-            : null;
+        return this.TryFindResource(key, out var resource) ? resource : null;
     }
 
     private static string _ExtractPlainText(string xaml)

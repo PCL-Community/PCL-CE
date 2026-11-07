@@ -29,7 +29,7 @@ public sealed class PageSetupHost : IPageHost
             PageSubType.SetupJava => Lang.Text("Setup.Left.Item.Java"),
             PageSubType.SetupGameManage => Lang.Text("Setup.Left.Item.GameManage"),
             PageSubType.SetupGameLink => Lang.Text("Setup.Left.Item.GameLink"),
-            PageSubType.SetupUI => Lang.Text("Setup.Left.Item.Ui"),
+            PageSubType.SetupUi => Lang.Text("Setup.Left.Item.Ui"),
             PageSubType.SetupLauncherLanguage => Lang.Text("Setup.Language.Title"),
             PageSubType.SetupLauncherMisc => Lang.Text("Setup.Left.Item.Misc"),
             PageSubType.SetupAbout => Lang.Text("Setup.Left.Item.About"),
@@ -68,16 +68,14 @@ public sealed class PageSetupHost : IPageHost
     {
         if (sub == PageSubType.Default)
             sub = PageSubType.SetupLaunch;
-        if (PageSetupLeft.IsSubPageHidden(sub))
-            return PageSetupLeft.FirstVisible();
-        return sub;
+        return PageSetupLeft.IsSubPageHidden(sub) ? PageSetupLeft.FirstVisible() : sub;
     }
 
     private static Control CreatePage(PageSubType sub)
     {
         return sub switch
         {
-            PageSubType.SetupUI => new PageSetupUI(),
+            PageSubType.SetupUi => new PageSetupUI(),
             PageSubType.SetupGameManage => new PageSetupGameManage(),
             PageSubType.SetupAbout => new PageSetupAbout(),
             PageSubType.SetupLog => new PageSetupLog(),

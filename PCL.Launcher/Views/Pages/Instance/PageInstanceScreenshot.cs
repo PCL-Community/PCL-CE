@@ -1,7 +1,5 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
-using Avalonia.Controls.Shapes;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
@@ -15,57 +13,24 @@ namespace PCL.Views.Pages.Instance;
 ///     实例截图页：以 MyCard 图片墙展示 <c>screenshots</c> 目录中的截图缩略图，
 ///     滚动到底部时按批追加；每张卡片提供打开、复制路径与删除。删除优先移入系统回收站。
 /// </summary>
-public class PageInstanceScreenshot : MyPageRight, IRefreshable
+public partial class PageInstanceScreenshot : MyPageRight, IRefreshable
 {
     private const int AppendCount = 20;
-    private readonly MyScrollViewer _panBack;
-    private readonly StackPanel _panContent;
-    private readonly MyCard _panEmpty;
-    private readonly WrapPanel _panList;
-    private readonly MyCard _panQuickActions;
 
     public PageInstanceScreenshot()
     {
-        var root = new Grid();
-        _panBack = new MyScrollViewer
-        {
-            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled
-        };
+        InitializeComponent();
+        DataContext = ViewModel;
+        PanScroll = PanBack;
 
-        _panContent = new StackPanel
+        BtnOpenFolder.Click += (_, _) => ViewModel.OpenFolder();
+        BtnOpenFolderTop.Click += (_, _) => ViewModel.OpenFolder();
+        PanBack.ScrollChanged += (_, _) => RequireAppend();
+        PanLoad.PropertyChanged += (_, change) =>
         {
-            Orientation = Orientation.Vertical,
-            Margin = new Thickness(10d, 25d, 10d, 10d)
+            if (change.Property == IsVisibleProperty)
+                Load.State.LoadingState = PanLoad.IsVisible ? LoadingState.Run : LoadingState.Stop;
         };
-        _panQuickActions = new MyCard
-        {
-            Title = Lang.Text("Instance.Screenshot.QuickActions"),
-            Margin = new Thickness(15d, 0d, 15d, 15d)
-        };
-        _panList = new WrapPanel
-        {
-            Margin = new Thickness(8d, 0d, 8d, 25d),
-            HorizontalAlignment = HorizontalAlignment.Center,
-            Orientation = Orientation.Horizontal
-        };
-        _panContent.Children.Add(_panQuickActions);
-        _panContent.Children.Add(_panList);
-
-        _panEmpty = CreateEmptyCard();
-        _panBack.Content = new Grid
-        {
-            Children =
-            {
-                _panContent,
-                _panEmpty
-            }
-        };
-        root.Children.Add(_panBack);
-        PanScroll = _panBack;
-        Child = root;
-        _panBack.ScrollChanged += (_, _) => RequireAppend();
-        BuildUi();
     }
 
     public PageInstanceScreenshotViewModel ViewModel { get; } = new();
@@ -79,12 +44,12 @@ public class PageInstanceScreenshot : MyPageRight, IRefreshable
     public override void OnNavigatedTo(object? parameter)
     {
         ViewModel.SetInstance(InstancePageHelper.ResolveInstance(parameter));
+        PanBack.ScrollToHome();
         Reload();
     }
 
     protected override void RefreshLocalization()
     {
-        BuildUi();
         Reload();
     }
 
@@ -96,110 +61,16 @@ public class PageInstanceScreenshot : MyPageRight, IRefreshable
 
     private void RebuildList()
     {
-        _panList.Children.Clear();
-        UpdateEmptyState();
+        PanScreenshots.Children.Clear();
         if (ViewModel.HasScreenshots)
             _ = AppendAsync(AppendCount);
-    }
-
-    private void BuildUi()
-    {
-        var body = new Grid
-        {
-            Height = 35d,
-            Margin = new Thickness(25d, 40d, 15d, 20d)
-        };
-        var openFolder = new MyButton
-        {
-            Text = Lang.Text("Instance.Screenshot.OpenFolder"),
-            MinWidth = 140d,
-            Padding = new Thickness(13d, 0d),
-            Margin = new Thickness(0d, 0d, 20d, 0d),
-            HorizontalAlignment = HorizontalAlignment.Left,
-            ColorType = MyButton.ColorState.Highlight
-        };
-        openFolder.Click += (_, _) => ViewModel.OpenFolder();
-        body.Children.Add(openFolder);
-        _panQuickActions.BorderChild = body;
-        _panEmpty.BorderChild = CreateEmptyBody();
-    }
-
-    private Grid CreateEmptyBody()
-    {
-        var grid = new Grid
-        {
-            Margin = new Thickness(20d, 17d),
-            RowDefinitions = new RowDefinitions("Auto,Auto,Auto,Auto"),
-            ColumnDefinitions = new ColumnDefinitions("*,Auto,*")
-        };
-        var title = new TextBlock
-        {
-            Text = Lang.Text("Instance.Screenshot.Empty.Title"),
-            FontSize = 19d,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            Margin = new Thickness(0d, 0d, 0d, 9d)
-        };
-        ContainerTheme.BindDynamic(title, TextBlock.ForegroundProperty, "ColorBrush3");
-        Grid.SetColumnSpan(title, 3);
-        grid.Children.Add(title);
-        var divider = new Rectangle
-        {
-            Height = 2d,
-            HorizontalAlignment = HorizontalAlignment.Stretch
-        };
-        ContainerTheme.BindDynamic(divider, Shape.FillProperty, "ColorBrush3");
-        Grid.SetRow(divider, 1);
-        Grid.SetColumnSpan(divider, 3);
-        grid.Children.Add(divider);
-        var message = new TextBlock
-        {
-            Text = Lang.Text("Instance.Screenshot.Empty.Message"),
-            TextWrapping = TextWrapping.Wrap,
-            Margin = new Thickness(10d, 15d, 10d, 5d)
-        };
-        Grid.SetRow(message, 2);
-        Grid.SetColumnSpan(message, 3);
-        grid.Children.Add(message);
-        var openFolder = new MyButton
-        {
-            Text = Lang.Text("Instance.Screenshot.OpenFolder"),
-            Height = 35d,
-            MinWidth = 140d,
-            Padding = new Thickness(13d, 0d),
-            Margin = new Thickness(10d, 10d, 10d, 0d),
-            HorizontalAlignment = HorizontalAlignment.Center,
-            ColorType = MyButton.ColorState.Highlight
-        };
-        openFolder.Click += (_, _) => ViewModel.OpenFolder();
-        Grid.SetRow(openFolder, 3);
-        Grid.SetColumn(openFolder, 1);
-        grid.Children.Add(openFolder);
-        return grid;
-    }
-
-    private static MyCard CreateEmptyCard()
-    {
-        return new MyCard
-        {
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(40d),
-            IsVisible = false
-        };
-    }
-
-    private void UpdateEmptyState()
-    {
-        var hasContent = ViewModel.HasScreenshots;
-        _panContent.IsVisible = hasContent;
-        _panEmpty.IsVisible = !hasContent;
     }
 
     private void RequireAppend()
     {
         if (!ViewModel.HasScreenshots)
             return;
-        if (_panBack.Offset.Y + _panBack.Viewport.Height < _panBack.Extent.Height - 40d)
+        if (PanBack.Offset.Y + PanBack.Viewport.Height < PanBack.Extent.Height - 40d)
             return;
         _ = AppendAsync(AppendCount);
     }
@@ -207,7 +78,7 @@ public class PageInstanceScreenshot : MyPageRight, IRefreshable
     private async Task AppendAsync(int count)
     {
         foreach (var item in ViewModel.AppendNext(count))
-            _panList.Children.Add(await CreateScreenshotCardAsync(item));
+            PanScreenshots.Children.Add(await CreateScreenshotCardAsync(item));
     }
 
     private async Task<MyCard> CreateScreenshotCardAsync(ScreenshotItemViewModel item)
@@ -305,7 +176,6 @@ public class PageInstanceScreenshot : MyPageRight, IRefreshable
     {
         if (!await ViewModel.DeleteAsync(item))
             return;
-        _panList.Children.Remove(card);
-        UpdateEmptyState();
+        PanScreenshots.Children.Remove(card);
     }
 }

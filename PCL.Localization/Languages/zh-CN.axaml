@@ -1232,43 +1232,6 @@
     <sys:String x:Key="Instance.Resource.Mod.Disabled.SelectInstance">实例选择</sys:String>
     <sys:String x:Key="Instance.Resource.Mod.Disabled.Title">该实例不可使用模组</sys:String>
 
-    <!-- Instance.Resource.Mod.JarInJar -->
-
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Bundled.Current">✓ 当前实例使用</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Bundled.From">[内置 · 来自 {0}]</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Bundled.Incompatible">⚠ 不适配当前版本</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Bundled.Versions">{0} 个版本</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.DeleteTitle">删除此模组会影响 {0} 个依赖它的模组，请选择处理方式</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.DisableTitle">禁用此模组会影响 {0} 个依赖它的模组，请选择处理方式</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.OnlySelf">仅操作此模组</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.WithDelete">连带删除依赖它的模组</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Cascade.WithDisable">连带禁用依赖它的模组</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Conflict.Discouraged">不建议共存</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Conflict.Incompatible">不兼容</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Conflict.Pair">{0} 与 {1}</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Conflict.Tooltip">「不兼容」：两者无法同时加载，一起安装会导致游戏崩溃或无法启动，需卸载其一。&#xA;「不建议共存」：可以一起加载，但作者标注了兼容性问题，可能出现异常或功能失效。</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Bundled">内嵌提供</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Disabled">已禁用</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Installed">已安装</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Missing">缺失</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.Optional">[可选]</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Dep.VersionMismatch">版本不符</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Empty.Message">当前实例的模组均无依赖声明或内嵌模组，或模组列表尚未加载完成。</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Empty.Title">没有可分析的模组关系</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Entry">模组关系</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Entry.ToolTip">查看模组的依赖关系、缺失前置与内嵌（Jar-in-Jar）结构</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Message">这里概览模组间的依赖关系与内嵌结构。禁用或删除模组时会提示受影响的依赖项。</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.ParsePending.Message">内嵌模组关系仍在后台解析，此时禁用或删除的连带依赖检测可能不完整，可能遗漏应一并处理的模组。是否仍要继续？</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.ParsePending.Title">模组仍在解析</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Search.Hint">搜索模组：名称 / ModId / 依赖</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Section.Bundled">内嵌模组</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Section.Conflicts">冲突关系</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Section.Relations">模组关系</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Section.Warnings">警告</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Warning.Disabled">{0} 的前置被禁用：{1}</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Warning.Missing">{0} 缺少前置：{1}</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Warning.VersionMismatch">{0} 前置版本不符：{1}</sys:String>
-    <sys:String x:Key="Instance.Resource.Mod.JarInJar.Warning.VersionMismatch.Detail">{0} {1}（检测到：{2}）</sys:String>
 
     <!-- Instance.Resource.Update -->
 
@@ -3067,8 +3030,6 @@
     <sys:String x:Key="Setup.Misc.System.Title">系统</sys:String>
 
     <!-- Setup.Ui -->
-
-    <sys:String x:Key="Setup.Ui.Error.BackgroundVideoUnsupported">刷新背景内容失败。该视频文件可能并非 H.264（AVC）格式。请使用视频转码工具将其转码为 H.264（AVC）后再试。</sys:String>
     <sys:String x:Key="Setup.Ui.Error.ConfigReset">个性化设置项存在异常，已被自动重置</sys:String>
     <sys:String x:Key="Setup.Ui.Error.InitFailed">初始化个性化设置失败</sys:String>
     <sys:String x:Key="Setup.Ui.Error.LoadFailed">重载个性化设置时出错</sys:String>
@@ -3095,17 +3056,14 @@
     <sys:String x:Key="Setup.Ui.Background.Cleared">背景内容已清除！</sys:String>
     <sys:String x:Key="Setup.Ui.Background.ColorOverlay">叠加彩色背景</sys:String>
     <sys:String x:Key="Setup.Ui.Background.ContentAdapt">内容自适应方式</sys:String>
-    <sys:String x:Key="Setup.Ui.Background.ImageLoadFailed">图片加载失败，尝试将文件作为视频播放：{0}</sys:String>
     <sys:String x:Key="Setup.Ui.Background.NoAvailableContent">未检测到可用背景内容！</sys:String>
-    <sys:String x:Key="Setup.Ui.Background.OpenFolder.ToolTip">将背景图片和视频放到该文件夹，PCL CE 将会在每次打开时随机加载其中的一张图片或视频&#xA;为提高播放时的流畅度，视频推荐使用H264格式编码</sys:String>
-    <sys:String x:Key="Setup.Ui.Background.PauseVideo">游戏启动后暂停视频背景，游戏退出后重新播放</sys:String>
-    <sys:String x:Key="Setup.Ui.Background.PauseVideo.ToolTip">若启用此项设置，游戏时将无法刷新背景</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.OpenFolder.ToolTip">将背景图片放到该文件夹，PCL CE 将会在每次打开时随机加载其中的一张图片</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Refresh">刷新背景内容</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Refresh.Success">背景内容已刷新：{0}</sys:String>
-    <sys:String x:Key="Setup.Ui.Background.Refresh.ToolTip">随机加载文件夹内的一张背景图片或视频&#xA;为提高播放时的流畅度，视频推荐使用H264格式编码</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Refresh.ToolTip">随机加载文件夹内的一张背景图片</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Title">背景内容</sys:String>
-    <sys:String x:Key="Setup.Ui.Background.TitleDefault">背景图片/视频</sys:String>
-    <sys:String x:Key="Setup.Ui.Background.TitleWithCount">背景图片/视频（{0} 张）</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.TitleDefault">背景图片</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.TitleWithCount">背景图片（{0} 张）</sys:String>
 
     <!-- Setup.Ui.Background.Suit -->
 
@@ -3704,7 +3662,11 @@
     <sys:String x:Key="Download.Install.Section.Version">版本</sys:String>
     <sys:String x:Key="Download.Install.Title">安装</sys:String>
     <sys:String x:Key="Instance.Saves.Datapack.Delete.ConfirmTitle">删除数据包</sys:String>
+    <sys:String x:Key="Instance.Saves.Datapack.Delete.ConfirmMessage">你确定要删除数据包 {0} 吗？&#xA;该数据包将被移至回收站。</sys:String>
+    <sys:String x:Key="Instance.Saves.Datapack.Delete.ConfirmPermanent">你确定要永久删除数据包 {0} 吗？&#xA;当前系统或磁盘不支持回收站，删除后无法恢复！</sys:String>
     <sys:String x:Key="Instance.Saves.Delete.ConfirmTitle">删除存档</sys:String>
+    <sys:String x:Key="Instance.Saves.Delete.ConfirmMessage">你确定要删除存档 {0} 吗？&#xA;该存档将被移至回收站。</sys:String>
+    <sys:String x:Key="Instance.Saves.Delete.ConfirmPermanent">你确定要永久删除存档 {0} 吗？&#xA;当前系统或磁盘不支持回收站，删除后无法恢复！</sys:String>
     <sys:String x:Key="Instance.Saves.DeletedPermanent">已永久删除</sys:String>
     <sys:String x:Key="PageLaunch.Homepage.Custom.Error.Missing">自定义主页文件不存在</sys:String>
     <sys:String x:Key="PageLaunch.Homepage.Custom.Source">来源</sys:String>
@@ -3714,4 +3676,8 @@
     <sys:String x:Key="PageLaunch.Login.SkinUpload.Unavailable">当前账户不支持更换皮肤</sys:String>
     <sys:String x:Key="Select.Instance.Delete.RecycleBinUnavailable">回收站不可用，将永久删除</sys:String>
     <sys:String x:Key="Tools.GameLink.Unavailable.NatTest">NAT 检测不可用</sys:String>
+    <sys:String x:Key="Setup.Ui.Error.BackgroundVideoUnsupported">刷新背景内容失败。该视频文件可能并非 H.264（AVC）格式。请使用视频转码工具将其转码为 H.264（AVC）后再试。</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.ImageLoadFailed">图片加载失败，尝试将文件作为视频播放：{0}</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.PauseVideo">游戏启动后暂停视频背景，游戏退出后重新播放</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.PauseVideo.ToolTip">若启用此项设置，游戏时将无法刷新背景</sys:String>
 </ResourceDictionary>

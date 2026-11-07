@@ -7,6 +7,7 @@ namespace PCL;
 ///     安装会话的目录状态记录与失败恢复。
 ///     安装开始前记录实例目录中哪些路径是本次安装会创建或覆盖的，失败或取消后只回滚这些路径；
 ///     安装前已存在的实例核心文件会先备份到 <c>PCLInstallBackups</c>，失败时还原、成功时清理。
+///     清理前会等待 1 秒，避免安装器/下载器尚未释放文件句柄。
 /// </summary>
 public static class McInstallRecovery
 {
@@ -65,6 +66,36 @@ public static class McInstallRecovery
         LauncherCommon.Log(
             $"[Install] 记录安装会话：{folder}（目录已存在：{session.FolderExisted}，Json 已存在：{session.JsonExisted}）",
             LauncherLogLevel.Developer);
+    }
+
+    /// <summary>登记一个由本次安装创建的路径，失败或取消时会被删除。</summary>
+    public static void RegisterCreatedFile(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+            return;
+        var folder = FindSessionFolder(path);
+        if (folder is null)
+            return;
+        lock (SyncRoot)
+        {
+            if (Sessions.TryGetValue(folder, out var session))
+                session.CreatedPaths.Add(Path.GetFullPath(path));
+        }
+    }
+
+    private static string? FindSessionFolder(string path)
+    {
+        var fullPath = Path.GetFullPath(path);
+        lock (SyncRoot)
+        {
+            return Sessions
+                .Keys
+                .Where(folder => fullPath.StartsWith(
+                    folder + Path.DirectorySeparatorChar,
+                    StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(folder => folder.Length)
+                .FirstOrDefault();
+        }
     }
 
     /// <summary>安装开始前调用：把已存在的实例核心文件备份到 <c>PCLInstallBackups</c>。</summary>
@@ -132,6 +163,7 @@ public static class McInstallRecovery
         if (File.Exists(GetJsonPath(folder, instanceName)))
             return false;
 
+        Thread.Sleep(1000);
         var backupFolder = Path.Combine(folder, BackupFolderName);
         if (Directory.Exists(backupFolder))
             try
@@ -145,10 +177,42 @@ public static class McInstallRecovery
 
         DeleteFileQuietly(GetJarPath(folder, instanceName));
         DeleteFileQuietly(Path.Combine(folder, ".pclignore"));
-        TryDeleteEmptyFolder(folder);
+        if (!TryDeleteInstallArtifacts(folder, instanceName))
+            TryDeleteEmptyFolder(folder);
         InvalidateInstanceCache(folder);
         LauncherCommon.Log($"[Install] 已清理未完成的实例目录：{folder}", LauncherLogLevel.Developer);
         return true;
+    }
+
+    private static bool TryDeleteInstallArtifacts(string folder, string instanceName)
+    {
+        try
+        {
+            if (!Directory.Exists(folder))
+                return true;
+            string[] userDataNames =
+            [
+                "mods", "saves", "resourcepacks", "shaderpacks", "config",
+                "PCL", "logs", "crash-reports", "options.txt", "servers.dat"
+            ];
+            if (userDataNames.Any(name =>
+                    File.Exists(Path.Combine(folder, name))
+                    || Directory.Exists(Path.Combine(folder, name))))
+            {
+                LauncherCommon.Log(
+                    $"[Install] 未完成目录中存在用户数据，保留目录并只清理安装残留：{folder}",
+                    LauncherLogLevel.Developer);
+                return false;
+            }
+
+            LauncherCommon.DeleteDirectory(folder);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            LauncherCommon.Log(ex, $"删除未完成实例目录失败：{folder}");
+            return false;
+        }
     }
 
     private static void RestoreOrCleanup(string instanceFolder)
@@ -157,16 +221,19 @@ public static class McInstallRecovery
         if (string.IsNullOrEmpty(folder))
             return;
 
-        // 安装前已存在的核心文件备份：优先还原，绝不删除用户已有实例
+        Thread.Sleep(1000);
+
         var backupFolder = Path.Combine(folder, BackupFolderName);
         if (Directory.Exists(backupFolder))
             try
             {
                 LauncherCommon.CopyDirectory(backupFolder, folder);
+                DeleteTrackedFiles(folder);
                 DeleteFileQuietly(Path.Combine(folder, ".pclignore"));
                 LauncherCommon.DeleteDirectory(backupFolder);
                 InvalidateInstanceCache(folder);
                 LauncherCommon.Log($"[Install] 已从备份还原实例目录：{folder}");
+                UnregisterSession(folder);
                 return;
             }
             catch (Exception ex)
@@ -185,6 +252,7 @@ public static class McInstallRecovery
             $"[Install] 由于安装失败或取消，清理本次安装创建的路径：{folder}",
             LauncherLogLevel.Developer);
 
+        DeleteTrackedFiles(folder);
         DeleteFileQuietly(Path.Combine(folder, ".pclignore"));
         DeleteFileQuietly(GetJsonPath(folder, instanceName));
         DeleteFileQuietly(GetJarPath(folder, instanceName));
@@ -197,6 +265,20 @@ public static class McInstallRecovery
 
         InvalidateInstanceCache(folder);
         UnregisterSession(folder);
+    }
+
+    private static void DeleteTrackedFiles(string folder)
+    {
+        InstallSession? session;
+        lock (SyncRoot)
+        {
+            Sessions.TryGetValue(folder, out session);
+        }
+
+        if (session is null)
+            return;
+        foreach (var path in session.CreatedPaths.ToArray())
+            DeleteFileQuietly(path);
     }
 
     private static void DeleteBackupQuietly(string folder)
@@ -272,15 +354,16 @@ public static class McInstallRecovery
 
     private sealed class InstallSession
     {
-        public bool FolderExisted;
+        public readonly HashSet<string> CreatedPaths = new(StringComparer.OrdinalIgnoreCase);
 
+        public bool FolderExisted;
         public required string InstanceFolder;
         public required string InstanceName;
 
         /// <summary>安装开始前实例核心 Jar 是否已存在（需要备份）。</summary>
         public bool JarExisted;
 
-        /// <summary>安装开始前实例 Json 是否已存在（需要备份）。</summary>
+        /// <summary>安装开始前实例核心 Json 是否已存在（需要备份）。</summary>
         public bool JsonExisted;
     }
 }

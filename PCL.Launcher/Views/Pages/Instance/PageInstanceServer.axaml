@@ -1,0 +1,92 @@
+<ui:MyPageRight xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:ui="using:PCL.UI.Controls"
+                xmlns:loc="using:PCL.Core.UI"
+                x:Class="PCL.Views.Pages.Instance.PageInstanceServer"
+                x:CompileBindings="False">
+    <Grid>
+        <ui:MyScrollViewer x:Name="PanBack"
+                           HorizontalScrollBarVisibility="Hidden"
+                           VerticalScrollBarVisibility="Auto">
+            <Grid>
+                <ui:MyCard x:Name="PanNoServer"
+                           Margin="40"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           IsVisible="{Binding ShowContent, Converter={x:Static BoolConverters.Not}}">
+                    <Grid Margin="20,17"
+                          RowDefinitions="Auto,Auto,Auto,Auto"
+                          ColumnDefinitions="*,Auto,Auto,*">
+                        <TextBlock Grid.Row="0"
+                                   Grid.ColumnSpan="4"
+                                   Margin="0,0,0,9"
+                                   HorizontalAlignment="Center"
+                                   FontSize="19"
+                                   Foreground="{DynamicResource ColorBrush3}"
+                                   Text="{loc:Loc Instance.Server.Empty.Title}" />
+                        <Rectangle Grid.Row="1"
+                                   Grid.ColumnSpan="4"
+                                   Height="2"
+                                   HorizontalAlignment="Stretch"
+                                   Fill="{DynamicResource ColorBrush3}" />
+                        <TextBlock Grid.Row="2"
+                                   Grid.ColumnSpan="4"
+                                   Margin="10,15,10,5"
+                                   Text="{loc:Loc Instance.Server.Empty.Message}"
+                                   TextWrapping="Wrap" />
+                        <ui:MyButton x:Name="BtnRefreshEmpty"
+                                     Grid.Row="3"
+                                     Grid.Column="1"
+                                     Height="35"
+                                     MinWidth="140"
+                                     Margin="10,10,10,0"
+                                     Padding="13,0"
+                                     HorizontalAlignment="Center"
+                                     ColorType="Highlight"
+                                     Text="{loc:Loc Instance.Server.RefreshInfo}" />
+                        <ui:MyButton x:Name="BtnAddServerEmpty"
+                                     Grid.Row="3"
+                                     Grid.Column="2"
+                                     Height="35"
+                                     MinWidth="140"
+                                     Margin="10,10,10,0"
+                                     Padding="13,0"
+                                     HorizontalAlignment="Center"
+                                     Text="{loc:Loc Instance.Server.AddServer}" />
+                    </Grid>
+                </ui:MyCard>
+
+                <StackPanel x:Name="PanMain"
+                            Margin="10,25,10,10"
+                            Orientation="Vertical"
+                            IsVisible="{Binding ShowContent}">
+                    <ui:MyCard Margin="15,0,15,15"
+                               Title="{loc:Loc Instance.Server.QuickActions}">
+                        <Grid Height="35"
+                              Margin="25,40,23,15"
+                              ColumnDefinitions="Auto,Auto">
+                            <ui:MyButton x:Name="BtnRefreshAll"
+                                         Grid.Column="0"
+                                         MinWidth="140"
+                                         Margin="0,0,20,0"
+                                         Padding="13,0"
+                                         HorizontalAlignment="Left"
+                                         ColorType="Highlight"
+                                         Text="{loc:Loc Instance.Server.RefreshAll}" />
+                            <ui:MyButton x:Name="BtnAddServer"
+                                         Grid.Column="1"
+                                         MinWidth="140"
+                                         Margin="0,0,20,0"
+                                         Padding="13,0"
+                                         HorizontalAlignment="Left"
+                                         Text="{loc:Loc Instance.Server.AddServer}" />
+                        </Grid>
+                    </ui:MyCard>
+
+                    <StackPanel x:Name="PanServers"
+                                Margin="15,0,15,15" />
+                </StackPanel>
+            </Grid>
+        </ui:MyScrollViewer>
+    </Grid>
+</ui:MyPageRight>

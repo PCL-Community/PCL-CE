@@ -14,8 +14,9 @@
                 Height="1"
                 Opacity="0.3"
                 CornerRadius="2"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Center" />
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center"
+                Margin="0,0,1,0" />
         <Border x:Name="LineForeElement"
                 Width="0"
                 Height="2"

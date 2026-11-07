@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Threading;
 using PCL.Core.App.Localization;
 using PCL.Navigation;
 using PCL.UI.Controls;
@@ -64,7 +65,9 @@ public partial class PageComp : UserControl
         ComboSearchLoader.SelectedIndex = 0;
         ComboSearchShaderLoader.SelectedIndex = 0;
 
-        AttachedToVisualTree += (_, _) => InitOnce();
+        AttachedToVisualTree += (_, _) => Dispatcher.UIThread.Post(
+            InitOnce,
+            DispatcherPriority.Background);
     }
 
     public PageCompViewModel ViewModel { get; } = new();

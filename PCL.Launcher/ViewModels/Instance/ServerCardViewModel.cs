@@ -37,7 +37,7 @@ public partial class ServerCardViewModel : ViewModelBase
 
     [ObservableProperty] public partial string MotdText { get; set; } = string.Empty;
 
-    [ObservableProperty] public partial string SignalIcon { get; set; } = "lucide/wifi";
+    [ObservableProperty] public partial string SignalIcon { get; set; } = "lucide/signal";
 
     [ObservableProperty] public partial string SignalTooltip { get; set; } = string.Empty;
 
@@ -62,7 +62,7 @@ public partial class ServerCardViewModel : ViewModelBase
         Latency = 0;
         PlayerText = "???";
         MotdText = string.Empty;
-        SignalIcon = "lucide/wifi";
+        SignalIcon = "lucide/signal";
         SignalTooltip = string.Empty;
     }
 
@@ -130,10 +130,9 @@ public partial class ServerCardViewModel : ViewModelBase
         IsPinging = false;
         IsOnline = false;
         HasPinged = false;
-        IconBase64 = string.Empty;
         LastPingResult = null;
         Latency = 0;
-        SignalIcon = "lucide/wifi-off";
+        SignalIcon = "lucide/signal-zero";
         SignalTooltip = string.Empty;
         PlayerText = Lang.Text("Instance.Server.Card.Offline");
         MotdText = Lang.Text("Instance.Server.Card.ServerOffline");
@@ -143,10 +142,11 @@ public partial class ServerCardViewModel : ViewModelBase
     {
         return ping switch
         {
-            <= 99 => "lucide/wifi",
-            <= 299 => "lucide/wifi-high",
-            <= 599 => "lucide/wifi-low",
-            _ => "lucide/wifi-zero"
+            <= 99 => "lucide/signal",
+            <= 299 => "lucide/signal-high",
+            <= 599 => "lucide/signal-medium",
+            <= 999 => "lucide/signal-low",
+            _ => "lucide/signal-zero"
         };
     }
 }

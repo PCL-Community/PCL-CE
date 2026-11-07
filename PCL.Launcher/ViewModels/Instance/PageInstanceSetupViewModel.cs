@@ -3,8 +3,10 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.IO.Net;
 using PCL.Core.Minecraft;
 using PCL.Core.Minecraft.Java.UserPreference;
+using PCL.Core.Minecraft.Profile;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
@@ -648,6 +650,12 @@ public partial class PageInstanceSetupViewModel : ViewModelBase
         {
             AuthLockEnabled = true;
         }
+    }
+
+    [RelayCommand]
+    private static void OpenGlobalSettings()
+    {
+        PageRouter.Navigate(PageType.Setup);
     }
 
     [RelayCommand]

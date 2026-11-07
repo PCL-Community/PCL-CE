@@ -5,6 +5,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Primitives.PopupPositioning;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
 using Avalonia.Media;
 using PCL.Core.Logging;
 
@@ -239,13 +240,15 @@ public sealed class Tooltip
 
         var wrap = new Grid
         {
-            Margin = new Thickness(ShadowBlur + 1d)
+            Margin = new Thickness(ShadowBlur + 1d),
+            Background = Brushes.Transparent
         };
         wrap.Children.Add(_shell);
 
         _flyout = new Popup
         {
             IsHitTestVisible = false,
+            WindowManagerAddShadowHint = false,
             Child = wrap
         };
 
@@ -284,7 +287,6 @@ public sealed class Tooltip
         if (_shell is null) return;
 
         _shell.Child = null;
-        var tipWidth = MaxContentWidth;
 
         if (content is string text)
         {
@@ -295,7 +297,7 @@ public sealed class Tooltip
                 Margin = InnerPad,
                 FontSize = TipFontSize,
                 LineHeight = TipLineHeight,
-                MaxWidth = tipWidth
+                MaxWidth = MaxContentWidth
             };
             if (_TryFindBrush("ColorBrush1", out var foreground))
                 block.Foreground = foreground;
@@ -307,7 +309,8 @@ public sealed class Tooltip
         {
             Content = content,
             Margin = InnerPad,
-            MaxWidth = tipWidth
+            MaxWidth = MaxContentWidth,
+            HorizontalContentAlignment = HorizontalAlignment.Stretch
         };
     }
 

@@ -45,6 +45,7 @@ public partial class PageSelectLeftViewModel : ViewModelBase
             selected = GameFolders.mcFolderList[0];
             States.Game.SelectedFolder = selected.Location
                 .Replace(LauncherPaths.ExecutableDirectory, "$");
+            GameFolders.ApplySelectedFolder(selected.Location);
         }
 
         SelectedFolder = selected;
@@ -101,9 +102,13 @@ public partial class PageSelectLeftViewModel : ViewModelBase
 
         States.Game.SelectedFolder = folder.Location
             .Replace(LauncherPaths.ExecutableDirectory, "$");
+        GameFolders.ApplySelectedFolder(folder.Location);
+        LauncherCommon.Log(
+            $"[Minecraft] 切换文件夹：{folder.Location}",
+            LauncherLogLevel.Debug);
         GameFolders.McFolderListLoader.Start(null, true);
         SelectedFolder = folder;
-        ReloadInstanceList();
+        ReloadInstanceList(force: true);
         return true;
     }
 
@@ -177,6 +182,7 @@ public partial class PageSelectLeftViewModel : ViewModelBase
             Directory.CreateDirectory(minecraftFolder);
             Directory.CreateDirectory(Path.Combine(minecraftFolder, "versions"));
             States.Game.SelectedFolder = "$.minecraft" + Path.DirectorySeparatorChar;
+            GameFolders.ApplySelectedFolder(minecraftFolder);
             GameFolders.McFolderLauncherProfilesJsonCreate(minecraftFolder);
             HintService.Show(Hints.Success(Lang.Text("Select.Folder.CreateSuccess")));
         }
@@ -487,17 +493,30 @@ public partial class PageSelectLeftViewModel : ViewModelBase
             return;
         LauncherCommon.WriteIni(Path.Combine(folder, "PCL.ini"), "InstanceCache", "");
         if (folder == GameFolders.mcFolderSelected)
-            ReloadInstanceList();
+            ReloadInstanceList(force: true);
     }
 
-    public static void ReloadInstanceList()
+    public static void ReloadInstanceList(bool force = false)
     {
         if (string.IsNullOrEmpty(GameFolders.mcFolderSelected))
             return;
+
+        if (force)
+            LauncherCommon.WriteIni(
+                Path.Combine(GameFolders.mcFolderSelected, "PCL.ini"),
+                "InstanceCache",
+                "");
+
+        LauncherCommon.Log(
+            $"[Minecraft] 刷新实例列表：{GameFolders.mcFolderSelected}（force={force}）",
+            LauncherLogLevel.Debug);
+
         Loading.LoaderFolderRun(
             InstanceList.mcInstanceListLoader,
             GameFolders.mcFolderSelected,
-            Loading.LoaderFolderRunType.RunOnUpdated,
+            force
+                ? Loading.LoaderFolderRunType.ForceRun
+                : Loading.LoaderFolderRunType.RunOnUpdated,
             1,
             $"versions{Path.DirectorySeparatorChar}");
     }
@@ -558,6 +577,7 @@ public partial class PageSelectLeftViewModel : ViewModelBase
                 States.Game.Folders = string.Join("|", folders);
                 States.Game.SelectedFolder = folderPath
                     .Replace(LauncherPaths.ExecutableDirectory, "$");
+                GameFolders.ApplySelectedFolder(folderPath);
                 GameFolders.McFolderListLoader.Start(null, true);
                 if (isReplace)
                     return;

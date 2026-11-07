@@ -35,7 +35,7 @@ public class MinecraftServerQuery : Grid
             Name = "LabServerIp",
             HintText = Lang.Text("Tools.ServerQuery.Address.Hint"),
             Margin = new Thickness(0d, 0d, 15d, 0d),
-            VerticalAlignment = VerticalAlignment.Center
+            VerticalAlignment = VerticalAlignment.Stretch
         };
         _labServerIp.ValidateRules.Add(new BlacklistValidator(["/"]));
 
@@ -44,8 +44,9 @@ public class MinecraftServerQuery : Grid
             Name = "BtnServerQuery",
             Text = Lang.Text("Tools.ServerQuery.Action.Query"),
             Width = 60d,
+            Height = double.NaN,
             MinHeight = 28d,
-            VerticalAlignment = VerticalAlignment.Center
+            VerticalAlignment = VerticalAlignment.Stretch
         };
         _btnServerQuery.Click += (_, _) => _ = ServerQueryAsync();
 
@@ -72,7 +73,7 @@ public class MinecraftServerQuery : Grid
         else
             FeedbackTheme.BindDynamic(_serverInfo, Border.BackgroundProperty, "ColorBrushWhite");
 
-        FeedbackTheme.BindDynamic(_serverInfo, Border.BorderBrushProperty, "ColorBrushGray6");
+        FeedbackTheme.BindDynamic(_serverInfo, Border.BorderBrushProperty, "ColorBrush5");
         SetRow(_serverInfo, 1);
         SetColumnSpan(_serverInfo, 2);
 

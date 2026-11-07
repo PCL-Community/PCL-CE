@@ -9,7 +9,6 @@ using PCL.Core.UI.Hints;
 using PCL.Core.Utils.Secret;
 using PCL.Core.ViewModel;
 using PCL.Views.Pages;
-using PCL.Views.Pages.Homepage;
 
 namespace PCL;
 
@@ -190,7 +189,8 @@ public partial class PageHelpDetailViewModel : ViewModelBase
             @"\{setup:([a-zA-Z0-9]+)\}",
             match =>
             {
-                if (!ConfigService.TryGetConfigItemNoType(match.Groups[1].Value, out var item))
+                if (!ConfigService.TryGetConfigItemNoType(match.Groups[1].Value, out var item)
+                    || item.Source == ConfigSource.SharedEncrypt)
                     return "";
                 return item.GetValueNoType(instance?.PathInstance)?.ToString() ?? "";
             });
@@ -200,7 +200,9 @@ public partial class PageHelpDetailViewModel : ViewModelBase
             match => CustomEvent.GetCustomVariable(
                 match.Groups[1].Value,
                 match.Groups[2].Success ? match.Groups[2].Value : ""));
-        text = text.Replace("{hint}", HomepageHints.GetRandomHint());
+        text = text
+            .Replace("{hint}", Lang.Text("Tools.Test.CeNotice"))
+            .Replace("{cave}", Lang.Text("Tools.Test.CeNotice"));
         return text;
     }
 }

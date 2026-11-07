@@ -1,0 +1,105 @@
+<ui:MyCard xmlns="https://github.com/avaloniaui"
+           xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+           xmlns:ui="using:PCL.UI.Controls"
+           xmlns:svg="using:PCL.UI.Controls.SvgIcon"
+           xmlns:media="using:Avalonia.Media"
+           xmlns:loc="using:PCL.Core.UI"
+           x:Class="PCL.Views.Pages.Instance.ServerCard"
+           x:CompileBindings="False"
+           Margin="0,8">
+    <Grid x:Name="PanBack"
+          Height="44"
+          Background="{DynamicResource ColorBrushSemiTransparent}"
+          ColumnDefinitions="6,34,7,*,350,60"
+          RowDefinitions="*,17,18,*">
+        <Border Grid.Column="1"
+                Grid.Row="1"
+                Grid.RowSpan="2"
+                Width="34"
+                Height="34"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center"
+                IsHitTestVisible="False">
+            <Image x:Name="ServerIcon"
+                   Stretch="UniformToFill"
+                   ClipToBounds="True">
+                <Image.Clip>
+                    <media:RectangleGeometry Rect="0,0,34,34"
+                                             RadiusX="6"
+                                             RadiusY="6" />
+                </Image.Clip>
+            </Image>
+        </Border>
+
+        <TextBlock x:Name="ServerName"
+                   Grid.Column="3"
+                   Grid.Row="1"
+                   MaxWidth="180"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Bottom"
+                   FontSize="14"
+                   Foreground="{DynamicResource ColorBrush1}"
+                   TextTrimming="CharacterEllipsis" />
+
+        <StackPanel Grid.Column="3"
+                    Grid.Row="2"
+                    Orientation="Horizontal"
+                    VerticalAlignment="Bottom">
+            <svg:SvgIcon x:Name="Signal"
+                         Width="20"
+                         Height="20"
+                         IconBrush="{DynamicResource ColorBrushGray4}" />
+            <TextBlock x:Name="ServerPlayer"
+                       VerticalAlignment="Center"
+                       FontSize="12"
+                       Foreground="{DynamicResource ColorBrushGray3}"
+                       Opacity="0.4"
+                       TextTrimming="CharacterEllipsis" />
+        </StackPanel>
+
+        <TextBlock x:Name="ServerMotD"
+                   Grid.Column="4"
+                   Grid.Row="1"
+                   Grid.RowSpan="2"
+                   Margin="0,0,3,1"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   FontSize="12"
+                   Foreground="{DynamicResource ColorBrushGray4}"
+                   IsHitTestVisible="False"
+                   TextTrimming="CharacterEllipsis" />
+
+        <StackPanel Grid.Column="5"
+                    Grid.Row="1"
+                    Grid.RowSpan="2"
+                    Margin="0,0,4,0"
+                    Orientation="Horizontal"
+                    VerticalAlignment="Center">
+            <ui:MyIconButton x:Name="BtnConnect"
+                             Width="24"
+                             SvgIcon="lucide/play" />
+            <ui:MyIconButton x:Name="BtnSetting"
+                             Width="24"
+                             LogoScale="1.2"
+                             SvgIcon="lucide/settings">
+                <ui:MyIconButton.ContextMenu>
+                    <ContextMenu>
+                        <ui:MyMenuItem Click="MenuRefresh_Click"
+                                       Header="{loc:Loc Common.Action.Refresh}"
+                                       SvgIcon="lucide/refresh-cw" />
+                        <ui:MyMenuItem Click="MenuCopy_Click"
+                                       Header="{loc:Loc Instance.Server.Card.CopyAddress}"
+                                       SvgIcon="lucide/copy" />
+                        <ui:MyMenuItem Click="MenuEdit_Click"
+                                       Header="{loc:Loc Instance.Server.Card.Edit}"
+                                       SvgIcon="lucide/pencil" />
+                        <Separator />
+                        <ui:MyMenuItem Click="MenuRemove_Click"
+                                       Header="{loc:Loc Instance.Server.Card.Remove}"
+                                       SvgIcon="lucide/trash-2" />
+                    </ContextMenu>
+                </ui:MyIconButton.ContextMenu>
+            </ui:MyIconButton>
+        </StackPanel>
+    </Grid>
+</ui:MyCard>

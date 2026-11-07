@@ -417,7 +417,7 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
                 .SelectMany(file => file.GameVersions)
                 .Select(version => GetGroupedVersionName(version, groupedDrop, foldOld))
                 .Distinct()
-                .OrderByDescending(name => name, VersionGroupComparer.Instance)
+                .OrderBy(name => name, VersionGroupComparer.Instance)
         ];
     }
 
@@ -647,6 +647,7 @@ public sealed partial class CompFilterOption(string text) : ObservableObject
 public enum CompFileAction
 {
     Save,
+    InstallToInstance,
     InstallModpack,
     InstallWorld
 }

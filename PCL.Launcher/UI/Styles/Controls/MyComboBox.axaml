@@ -1,10 +1,3 @@
-<!--
-    MyComboBox 的模板与样式：按 WPF Application.xaml:423-522 的自绘模板重写。
-    结构为单层 Border（底色/1px 描边/圆角 3）+ 内容呈现 + 右侧 15×8 箭头 + 下拉 Popup；
-    配色由控件代码驱动（Foreground 同时作为描边色，Background 作为底色）。
-    Avalonia 的 ComboBox 要求模板内保留 PART_Popup / PART_EditableTextBox / PART_ItemsPresenter，
-    内容宿主命名为 PART_ContentPresenter 供控件代码查找；可编辑模式沿用 MyTextBox。
--->
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="using:PCL.UI.Controls">
@@ -24,7 +17,7 @@
             <Setter Property="FontSize"
                     Value="13" />
             <Setter Property="MinHeight"
-                    Value="26" />
+                    Value="0" />
             <Setter Property="MaxDropDownHeight"
                     Value="160" />
             <Setter Property="Padding"
@@ -35,10 +28,6 @@
                     Value="Left" />
             <Setter Property="VerticalContentAlignment"
                     Value="Center" />
-            <Setter Property="HorizontalAlignment"
-                    Value="Left" />
-            <Setter Property="VerticalAlignment"
-                    Value="Top" />
             <Setter Property="PlaceholderForeground"
                     Value="{DynamicResource ColorBrushGray4}" />
             <Setter Property="ScrollViewer.HorizontalScrollBarVisibility"

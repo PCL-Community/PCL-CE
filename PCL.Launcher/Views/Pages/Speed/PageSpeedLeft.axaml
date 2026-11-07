@@ -4,6 +4,8 @@
                xmlns:loc="using:PCL.Core.UI"
                x:CompileBindings="False"
                x:Class="PCL.Views.Pages.Speed.PageSpeedLeft"
+               Width="200"
+               HorizontalAlignment="Left"
                RowDefinitions="1*,Auto,Auto,Auto,0.6*,Auto,Auto,Auto,0.6*,Auto,Auto,Auto,0.6*,Auto,Auto,Auto,1*">
     <TextBlock Grid.Row="1"
                HorizontalAlignment="Center"

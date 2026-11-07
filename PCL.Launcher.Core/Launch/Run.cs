@@ -29,7 +29,6 @@ public static partial class GameLaunch
 
     private static void _SetJavaGpuPreference(string javaExePath)
     {
-        // 显卡偏好是 Windows 注册表功能，其他平台没有对应设置
         if (!OperatingSystem.IsWindows()) return;
 
         try
@@ -673,7 +672,6 @@ public static partial class GameLaunch
     {
         McLaunchLog("开始启动结束处理");
         _ApplyMusicState();
-        MediaService.Current?.SetVideoGaming(true);
         McLaunchLog($"启动器可见性：{Config.Launch.LauncherVisibility}");
         _ApplyLauncherVisibility();
 

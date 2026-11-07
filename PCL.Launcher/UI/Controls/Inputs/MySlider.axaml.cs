@@ -5,7 +5,6 @@ using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Threading;
-using PCL.UI;
 using PCL.UI.Controls.Common;
 
 namespace PCL.UI.Controls;
@@ -202,7 +201,6 @@ public partial class MySlider : UserControl
 
         LineForeElement.Width = Math.Max(0d, dotPosition + (dotPosition < 0.5d ? 0d : 0.5d));
         LineBackElement.Width = backWidth + (backWidth < 0.5d ? 0d : 0.5d);
-        LineBackElement.Margin = new Thickness(dotPosition + DotWidth, 0d, 0d, 0d);
         ShapeDotElement.Margin = new Thickness(dotPosition, 0d, 0d, 0d);
         PopupElement.HorizontalOffset = dotPosition + 5d;
     }
@@ -317,7 +315,10 @@ public partial class MySlider : UserControl
             DotStrokeKey,
             animate);
 
-        LineBackElement.Background = InputTheme.Brush(this, InputTheme.IdleBorderKey, Brushes.LightSteelBlue);
+        LineBackElement.Background = InputTheme.Brush(
+            this,
+            InputTheme.IdleBorderKey,
+            Brushes.LightSteelBlue);
         if (HintBorderElement is not null)
         {
             HintBorderElement.BorderBrush = InputTheme.Text(this);
@@ -369,6 +370,7 @@ public partial class MySlider : UserControl
             DragStop();
             return;
         }
+
         UpdateValueFromPosition(_lastPointerPosition);
         RefreshPopup();
     }
@@ -401,6 +403,7 @@ public partial class MySlider : UserControl
             DragStop();
             return;
         }
+
         UpdateValueFromPosition(_lastPointerPosition);
         RefreshPopup();
     }

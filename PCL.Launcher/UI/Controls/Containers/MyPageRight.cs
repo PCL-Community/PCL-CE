@@ -16,8 +16,6 @@ namespace PCL.UI.Controls;
 /// </summary>
 public class MyPageRight : Decorator, IPageView
 {
-    protected INavigationService Navigation => PageRouter.Navigation;
-
     // 当前状态
     public enum PageStates
     {
@@ -39,6 +37,7 @@ public class MyPageRight : Decorator, IPageView
     private bool _panScrollNullWarned;
 
     public int pageUuid = LauncherCommon.GetUuid();
+    protected INavigationService Navigation => PageRouter.Navigation;
 
     // “返回顶部” 按钮检测的滚动区域
     public MyScrollViewer? PanScroll
@@ -855,7 +854,6 @@ public class MyPageRight : Decorator, IPageView
                     control.RenderTransform = new TranslateTransform(0d, -6d);
                 }
 
-            SetScrollExitTransform(GetFirstScrollViewer(realElements));
             foreach (var element in realElements)
                 element.IsVisible = false;
 
@@ -890,7 +888,7 @@ public class MyPageRight : Decorator, IPageView
         AniStart(aniList, PageChangeAnimationKey);
     }
 
-    /// <summary>找到页面中第一个 <see cref="MyScrollViewer" />，用于页面转场时的横向位移。</summary>
+    /// <summary>找到页面中第一个 <see cref="MyScrollViewer" />，用于转场前复位滚动容器位移。</summary>
     private static MyScrollViewer? GetFirstScrollViewer(IEnumerable<Control> elements)
     {
         foreach (var element in elements)
@@ -938,21 +936,6 @@ public class MyPageRight : Decorator, IPageView
     {
         if (scroll?.RenderTransform is TranslateTransform transform)
             transform.X = 0d;
-    }
-
-    /// <summary>无动画退出时把滚动容器放到滑出位置。</summary>
-    private static void SetScrollExitTransform(MyScrollViewer? scroll)
-    {
-        if (scroll is null)
-            return;
-
-        if (scroll.RenderTransform is not TranslateTransform)
-        {
-            scroll.RenderTransformOrigin = RelativePoint.Center;
-            scroll.RenderTransform = new TranslateTransform();
-        }
-
-        ((TranslateTransform)scroll.RenderTransform).X = 10d;
     }
 
     /// <summary>

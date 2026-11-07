@@ -291,13 +291,9 @@ public partial class TitleBar : UserControl
         if (IsInteractiveSource(e.Source)) return;
         if (TopLevel.GetTopLevel(this) is not Window window) return;
 
-        if (e.ClickCount == 2)
-        {
-            window.WindowState = window.WindowState == WindowState.Maximized
-                ? WindowState.Normal
-                : WindowState.Maximized;
-            return;
-        }
+        // WPF 版本的窗口策略会强制保持 Normal；这里不再处理双击最大化，
+        // 避免 Minimized/Maximized/Normal 与 BeginMoveDrag 叠加导致窗口卡死。
+        if (e.ClickCount > 1) return;
 
         if (window.WindowState == WindowState.Maximized) return;
 

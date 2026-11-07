@@ -1,11 +1,6 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="using:PCL.UI.Controls">
-    <!--
-        外层 PanBack 只负责命中测试与焦点，可见配色与缩放都落在内层 PanFore 上。
-        悬停/按下/禁用的过渡由 MyButton.axaml.cs 逐帧插值，这里只提供初始配色。
-        颜色取自主题核心键（见 PCL.Core/UI/Theme/ThemeService.cs 的资源计算）。
-    -->
     <Style Selector="ui|MyButton">
         <Setter Property="Background"
                 Value="{DynamicResource ColorBrushSemiTransparent}" />
@@ -15,8 +10,6 @@
                 Value="True" />
         <Setter Property="UseLayoutRounding"
                 Value="True" />
-        <Setter Property="Height"
-                Value="35" />
     </Style>
     <Style Selector="ui|MyButton > Border#PanFore">
         <Setter Property="CornerRadius"

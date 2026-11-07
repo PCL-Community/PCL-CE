@@ -7,6 +7,7 @@ using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Threading;
 using PCL.Core.App.IoC;
+using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Navigation;
 using PCL.UI;
@@ -29,6 +30,7 @@ public partial class MainWindow : Window
     private readonly BackgroundLayer _background;
     private readonly ExtraButtonsPanel _extraButtons;
     private readonly TitleBar _titleBar;
+    private bool _leftWidthUpdateQueued;
 
     public MainWindow()
     {
@@ -50,6 +52,8 @@ public partial class MainWindow : Window
         PageRouter.Navigated += OnNavigated;
         PageRouter.PageHostSwapped += OnPageHostSwapped;
         PageRouter.PageChanged += _ => _extraButtons.RefreshAllStates();
+        PageLeftHost.SizeChanged += (_, _) => ScheduleLeftWidthUpdate();
+        LocalizationService.LanguageChanged += OnLanguageChangedForLeftWidth;
 
         ApplyRoundedWindowClip();
         AddHandler(
@@ -114,8 +118,31 @@ public partial class MainWindow : Window
 
     private void OnPageHostSwapped()
     {
+        ScheduleLeftWidthUpdate();
+    }
+
+    private void OnLanguageChangedForLeftWidth()
+    {
+        Dispatcher.UIThread.Post(ScheduleLeftWidthUpdate, DispatcherPriority.Loaded);
+    }
+
+    /// <summary>合并同一轮布局中的多次宽度变化，避免背景宽度来回抖动。</summary>
+    private void ScheduleLeftWidthUpdate()
+    {
+        if (_leftWidthUpdateQueued)
+            return;
+        _leftWidthUpdateQueued = true;
         Dispatcher.UIThread.Post(
-            () => AnimateLeftWidth(PageLeftHost.Bounds.Width),
+            () =>
+            {
+                _leftWidthUpdateQueued = false;
+                var width = PageLeftHost.IsVisible
+                    ? PageLeftHost.Bounds.Width > 0d
+                        ? PageLeftHost.Bounds.Width
+                        : PageLeftHost.DesiredSize.Width
+                    : 0d;
+                AnimateLeftWidth(width);
+            },
             DispatcherPriority.Loaded);
     }
 
@@ -134,7 +161,8 @@ public partial class MainWindow : Window
 
     private void OnResizePointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (WindowState == WindowState.Maximized
+        if (!CanResize
+            || WindowState == WindowState.Maximized
             || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
             return;
 
@@ -145,7 +173,7 @@ public partial class MainWindow : Window
 
     private void OnResizePointerMoved(object? sender, PointerEventArgs e)
     {
-        Cursor = WindowState == WindowState.Maximized
+        Cursor = !CanResize || WindowState == WindowState.Maximized
             ? null
             : GetResizeEdge(e.GetPosition(this)) switch
             {
@@ -215,6 +243,7 @@ public partial class MainWindow : Window
     {
         PageRouter.Navigated -= OnNavigated;
         PageRouter.PageHostSwapped -= OnPageHostSwapped;
+        LocalizationService.LanguageChanged -= OnLanguageChangedForLeftWidth;
         BackgroundHost.Detach(_background);
         _background.Remove();
         if (ReferenceEquals(Current, this)) Current = null;

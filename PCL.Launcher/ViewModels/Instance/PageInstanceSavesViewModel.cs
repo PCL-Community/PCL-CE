@@ -4,10 +4,12 @@ using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.IO;
+using PCL.Core.Platform;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
 using PCL.Core.ViewModel;
 using PCL.Navigation;
+using PCL.Views.Pages.Download;
 using PCL.Views.Pages.Instance;
 
 namespace PCL;
@@ -114,20 +116,22 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
         try
         {
             InstancePageHelper.EnsureDirectory(WorldPath);
-            var folders = await RunAsync(ct => Task.Run(
-                () => Directory
-                    .EnumerateDirectories(WorldPath)
-                    .Where(folder => File.Exists(Path.Combine(folder, "level.dat")))
-                    .ToList(),
+            var loaded = await RunAsync(ct => Task.Run(
+                () =>
+                {
+                    var folders = Directory
+                        .EnumerateDirectories(WorldPath)
+                        .ToList();
+                    return (Folders: folders, Saves: folders.Select(BuildEntry).ToList());
+                },
                 ct));
-            if (folders is null)
+            if (loaded.Folders is null)
                 return;
 
             _saveFolders.Clear();
-            _saveFolders.AddRange(folders);
+            _saveFolders.AddRange(loaded.Folders);
             _allSaves.Clear();
-            foreach (var folder in _saveFolders)
-                _allSaves.Add(BuildEntry(folder));
+            _allSaves.AddRange(loaded.Saves);
             ApplySearchAndSort();
         }
         finally
@@ -186,10 +190,27 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
     {
         var keyword = SearchText.Trim();
         IsSearching = keyword.Length > 0;
-        var filtered = _allSaves
-            .Where(entry => keyword.Length == 0
-                || entry.Title.Contains(keyword, StringComparison.OrdinalIgnoreCase))
-            .ToList();
+        List<SaveEntry> filtered;
+        if (IsSearching)
+            filtered = SearchService
+                .Search(
+                    [
+                        .. _allSaves.Select(entry =>
+                            new SearchService.SearchEntry<SaveEntry>
+                            {
+                                item = entry,
+                                searchSource = [new SearchService.SearchSource(entry.Title)]
+                            })
+                    ],
+                    keyword,
+                    SearchService.MaxLocalSearchDepth,
+                    0.35d)
+                .Select(result => result.item)
+                .OfType<SaveEntry>()
+                .ToList();
+        else
+            filtered = [.. _allSaves];
+
         filtered.Sort(CompareEntries);
 
         Saves.Clear();
@@ -288,9 +309,15 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private static void DownloadNew()
+    private void DownloadNew()
     {
-        PageRouter.Navigate(PageType.Download, PageSubType.DownloadWorld);
+        if (Instance is not null)
+            PageRouter.Navigate(
+                PageType.Download,
+                PageSubType.DownloadWorld,
+                new CompSearchContext(Instance.Info.VanillaName, Comp.CompLoaderType.Any));
+        else
+            PageRouter.Navigate(PageType.Download, PageSubType.DownloadWorld);
     }
 
     [RelayCommand]
@@ -420,7 +447,18 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
         if (string.IsNullOrEmpty(WorldPath))
             return;
         InstancePageHelper.EnsureDirectory(WorldPath);
-        var copied = await Files.PasteFromClipboardAsync(WorldPath, false, true);
+        var paths = PlatformServices.Clipboard?.GetFileDropList();
+        if (paths is not null)
+            foreach (var path in paths)
+            {
+                if (!Directory.Exists(path)) continue;
+                var folderName = new DirectoryInfo(path).Name;
+                if (Directory.Exists(Path.Combine(WorldPath, folderName)))
+                    HintService.Show(
+                        Hints.Info(Lang.Text("Instance.Saves.DuplicateFolder", folderName)));
+            }
+
+        var copied = await Files.PasteFromClipboardAsync(WorldPath, false, true, true);
         if (copied == 0)
         {
             HintService.Show(Hints.Warning(Lang.Text("Instance.Saves.Empty.Message")));

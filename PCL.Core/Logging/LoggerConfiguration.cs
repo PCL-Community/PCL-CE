@@ -11,4 +11,8 @@ public record LoggerConfiguration(
 #else
     LogLevel MinLogLevel = LogLevel.Info
 #endif
-);
+)
+{
+    /// <summary>是否将写入文件的日志同时输出到当前进程的控制台。</summary>
+    public bool ConsoleOutput { get; init; }
+}

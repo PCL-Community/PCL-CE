@@ -1,13 +1,13 @@
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
-using Avalonia.Controls.Shapes;
-using Avalonia.Layout;
-using Avalonia.Media;
+using Avalonia.Input;
+using Avalonia.Input.Platform;
+using Avalonia.Interactivity;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.UI;
+using PCL.Core.UI.Hints;
 using PCL.UI.Controls;
+using PCL.Views.Pages.Download;
 using PCL.Views.Shell;
 using Path = System.IO.Path;
 
@@ -18,34 +18,82 @@ namespace PCL.Views.Pages.Instance;
 ///     支持搜索、按启用状态/可读性筛选、排序、全选与批量启用/禁用/删除、从文件安装与下载新数据包；
 ///     删除优先移入系统回收站，回收站不可用时明确提示永久删除。
 /// </summary>
-public class PageInstanceSavesDatapack : MyPageRight, IRefreshable
+public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable
 {
-    private MyRadioButton _btnFilterAll = null!;
-    private MyRadioButton _btnFilterDisabled = null!;
-    private MyRadioButton _btnFilterEnabled = null!;
-    private MyRadioButton _btnFilterError = null!;
-    private MyRadioButton _btnFilterUpdatable = null!;
-    private MyIconTextButton _btnSelectDelete = null!;
-    private MyIconTextButton _btnSelectDisable = null!;
-    private MyIconTextButton _btnSelectEnable = null!;
-    private MyIconTextButton _btnSort = null!;
     private bool _building;
-    private TextBlock _labSelect = null!;
-    private MyLoading _load = null!;
-    private MyCard _panEmpty = null!;
-    private StackPanel _panFilter = null!;
-    private StackPanel _panList = null!;
-    private MyCard _panLoad = null!;
-
-    private StackPanel _panMain = null!;
-    private MyCard _panSelect = null!;
-    private StackPanel _panSort = null!;
-    private MySearchBox _searchBox = null!;
 
     public PageInstanceSavesDatapack()
     {
-        BuildUi();
+        InitializeComponent();
+        DataContext = ViewModel;
+        PanScroll = PanBack;
+
+        SearchBox.TextChanged += (_, _) =>
+        {
+            ViewModel.SetSearch(SearchBox.Text ?? string.Empty);
+            BuildList();
+        };
+        BtnManageRefresh.Click += (_, _) => Reload();
+        BtnManageOpen.Click += (_, _) => ViewModel.OpenFolderCommand.Execute(null);
+        BtnManageInstall.Click += (_, _) => _ = InstallFromFilesAsync();
+        BtnManageDownload.Click += (_, _) => ViewModel.DownloadNewCommand.Execute(null);
+        BtnManageDownload.IsVisible =
+            HiddenFeatureState.ForceShow || !Config.Preference.Hide.PageDownload;
+        BtnManageSelectAll.Click += (_, _) =>
+        {
+            ViewModel.ToggleSelectAll();
+            BuildList();
+        };
+        BtnManageInfoExport.Click += (_, _) => _ = ViewModel.ExportInfoAsync();
+
+        foreach (var button in new[]
+                 {
+                     BtnFilterAll,
+                     BtnFilterEnabled,
+                     BtnFilterDisabled,
+                     BtnFilterUpdatable,
+                     BtnFilterError
+                 })
+            button.Check += (sender, _) =>
+            {
+                if (sender.Tag is string tag && int.TryParse(tag, out var index))
+                    ViewModel.SetFilter(index);
+                BuildList();
+            };
+        BtnSort.Click += (_, _) => ShowSortMenu();
+
+        BtnSelectUpdate.Click += (_, _) => _ = UpdateSelectedAsync();
+        BtnSelectEnable.Click += (_, _) => ViewModel.SetSelectedEnabled(true);
+        BtnSelectDisable.Click += (_, _) => ViewModel.SetSelectedEnabled(false);
+        BtnSelectFavorites.Click += (_, _) => ShowFavoritesMenu();
+        BtnSelectShare.Click += (_, _) => ShareSelected();
+        BtnSelectDelete.Click += (_, _) => _ = ViewModel.DeleteSelectedAsync();
+        BtnSelectCancel.Click += (_, _) =>
+        {
+            ViewModel.ClearSelection();
+            BuildList();
+        };
+
+        BtnHintInstall.Click += (_, _) => _ = InstallFromFilesAsync();
+        BtnHintDownload.Click += (_, _) => ViewModel.DownloadNewCommand.Execute(null);
+        BtnHintOpen.Click += (_, _) => ViewModel.OpenFolderCommand.Execute(null);
+
         ViewModel.ReloadRequested += Reload;
+        AddHandler(
+            KeyDownEvent,
+            (_, e) =>
+            {
+                if (e.Key != Key.A || !e.KeyModifiers.HasFlag(KeyModifiers.Control))
+                    return;
+                if (SearchBox.IsKeyboardFocusWithin && !string.IsNullOrEmpty(SearchBox.Text))
+                    return;
+                ViewModel.ToggleSelectAll();
+                BuildList();
+                e.Handled = true;
+            },
+            RoutingStrategies.Tunnel);
+
+        BuildList();
     }
 
     public PageInstanceSavesDatapackViewModel ViewModel { get; } = new();
@@ -57,357 +105,12 @@ public class PageInstanceSavesDatapack : MyPageRight, IRefreshable
         Reload();
     }
 
-    private void BuildUi()
-    {
-        var root = new Grid();
-        var panel = new StackPanel
-        {
-            Margin = new Thickness(25d, 25d, 25d, 25d)
-        };
-        var scroll = new MyScrollViewer
-        {
-            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
-            Content = panel
-        };
-        _panMain = panel;
-        PanScroll = scroll;
-        root.Children.Add(scroll);
-
-        _searchBox = new MySearchBox
-        {
-            HintText = Lang.Text("Instance.Resource.Search.Hint"),
-            Text = ViewModel.SearchText
-        };
-        _searchBox.TextChanged += (_, _) =>
-        {
-            ViewModel.SetSearch(_searchBox.Text ?? string.Empty);
-            BuildList();
-        };
-        _panMain.Children.Add(_searchBox);
-
-        var manageCard = new MyCard
-        {
-            Title = Lang.Text("Instance.Saves.Left.Datapack"),
-            Margin = new Thickness(0d, 15d, 0d, 15d)
-        };
-        var manageBody = new WrapPanel
-        {
-            Margin = new Thickness(15d, 8d, 0d, 15d)
-        };
-        var refresh = NewButton("Common.Action.Refresh", Reload);
-        manageBody.Children.Add(refresh);
-        var openFolder = NewButton(
-            "Instance.Saves.OpenFolder",
-            () => ViewModel.OpenFolderCommand.Execute(null));
-        manageBody.Children.Add(openFolder);
-        var install = NewButton(
-            "Instance.Resource.InstallFromFiles",
-            () => _ = InstallFromFilesAsync());
-        manageBody.Children.Add(install);
-        var download = NewButton(
-            "Instance.Resource.DownloadNew",
-            () => ViewModel.DownloadNewCommand.Execute(null));
-        download.IsVisible = HiddenFeatureState.ForceShow || !Config.Preference.Hide.PageDownload;
-        manageBody.Children.Add(download);
-        var selectAll = NewButton(
-            "Instance.Resource.SelectAll",
-            () => ViewModel.ToggleSelectAllCommand.Execute(null));
-        manageBody.Children.Add(selectAll);
-        var export = NewButton(
-            "Instance.Resource.ExportInfo",
-            () => _ = ViewModel.ExportInfoAsync());
-        ToolTip.SetTip(export, Lang.Text("Instance.Resource.ExportInfo.ToolTip"));
-        manageBody.Children.Add(export);
-        manageCard.BorderChild = manageBody;
-        _panMain.Children.Add(manageCard);
-
-        var listCard = new MyCard
-        {
-            MinHeight = 55d,
-            Title = " "
-        };
-        var listContainer = new StackPanel
-        {
-            Margin = new Thickness(20d, 38d, 18d, 22d),
-            Spacing = 2d
-        };
-        _panFilter = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            Height = 28d,
-            HorizontalAlignment = HorizontalAlignment.Left
-        };
-        _btnFilterAll = NewFilterButton("Instance.Resource.Filter.All", 0);
-        _btnFilterEnabled = NewFilterButton("Instance.Resource.Filter.Enabled", 1);
-        _btnFilterDisabled = NewFilterButton("Instance.Resource.Filter.Disabled", 2);
-        _btnFilterUpdatable = NewFilterButton("Instance.Resource.Filter.Updatable", 3);
-        _btnFilterError = NewFilterButton("Instance.Resource.Filter.Error", 4);
-        _panFilter.Children.Add(_btnFilterAll);
-        _panFilter.Children.Add(_btnFilterEnabled);
-        _panFilter.Children.Add(_btnFilterDisabled);
-        _panFilter.Children.Add(_btnFilterUpdatable);
-        _panFilter.Children.Add(_btnFilterError);
-        listContainer.Children.Add(_panFilter);
-
-        _panSort = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            Height = 28d,
-            HorizontalAlignment = HorizontalAlignment.Right
-        };
-        _btnSort = new MyIconTextButton
-        {
-            Text = Lang.Text(
-                "Instance.Resource.Sort.Text",
-                Lang.Text("Instance.Resource.Sort.FileName")),
-            SvgIcon = "lucide/arrow-up-down"
-        };
-        _btnSort.Click += (_, _) =>
-        {
-            var menu = new ContextMenu();
-            var names = PageInstanceSavesDatapackViewModel.GetSortNames();
-            for (var i = 0; i < names.Count; i++)
-            {
-                var index = i;
-                var item = new MyMenuItem
-                {
-                    Header = names[i]
-                };
-                item.Click += (_, _) =>
-                {
-                    ViewModel.SetSortMethod(
-                        (PageInstanceSavesDatapackViewModel.DatapackSortMethod)index);
-                    BuildList();
-                };
-                menu.Items.Add(item);
-            }
-
-            menu.Open(_btnSort);
-        };
-        _panSort.Children.Add(_btnSort);
-        listContainer.Children.Add(_panSort);
-
-        _panList = new StackPanel();
-        listContainer.Children.Add(_panList);
-        listCard.BorderChild = listContainer;
-        _panMain.Children.Add(listCard);
-
-        _panEmpty = new MyCard
-        {
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(40d),
-            IsVisible = false,
-            BorderChild = CreateEmptyBody()
-        };
-        root.Children.Add(_panEmpty);
-
-        _labSelect = new TextBlock
-        {
-            HorizontalAlignment = HorizontalAlignment.Center,
-            Margin = new Thickness(9d)
-        };
-        _btnSelectEnable = NewSelectButton(
-            "Instance.Resource.Enable",
-            "lucide/circle-check",
-            () => ViewModel.SetSelectedEnabled(true));
-        _btnSelectDisable = NewSelectButton(
-            "Instance.Resource.Disable",
-            "lucide/circle-minus",
-            () => ViewModel.SetSelectedEnabled(false));
-        _btnSelectDelete = NewSelectButton(
-            "Common.Action.Delete",
-            "lucide/trash-2",
-            () => _ = ViewModel.DeleteSelectedAsync());
-        var cancel = NewSelectButton(
-            "Instance.Resource.CancelSelection",
-            "lucide/x",
-            () =>
-            {
-                ViewModel.ClearSelection();
-                BuildList();
-            });
-        var selectButtons = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            Margin = new Thickness(5d),
-            Spacing = 2d
-        };
-        selectButtons.Children.Add(_btnSelectEnable);
-        selectButtons.Children.Add(_btnSelectDisable);
-        selectButtons.Children.Add(_btnSelectDelete);
-        selectButtons.Children.Add(cancel);
-        var selectBody = new StackPanel
-        {
-            Margin = new Thickness(6d, 4d, 6d, 6d),
-            Spacing = 2d
-        };
-        selectBody.Children.Add(_labSelect);
-        selectBody.Children.Add(selectButtons);
-        _panSelect = new MyCard
-        {
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Bottom,
-            Margin = new Thickness(25d, 25d, 25d, 0d),
-            UseAnimation = false,
-            IsVisible = false,
-            BorderChild = selectBody
-        };
-        root.Children.Add(_panSelect);
-
-        _load = new MyLoading
-        {
-            Text = Lang.Text("Instance.Resource.Datapack.Loading"),
-            Margin = new Thickness(20d, 20d, 20d, 17d),
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        _panLoad = new MyCard
-        {
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(40d, 0d),
-            UseAnimation = false,
-            IsVisible = false,
-            BorderChild = _load
-        };
-        root.Children.Add(_panLoad);
-
-        Child = root;
-        BuildList();
-    }
-
     protected override void RefreshLocalization()
     {
-        BuildUi();
-    }
-
-    private MyRadioButton NewFilterButton(string textKey, int index)
-    {
-        var button = new MyRadioButton
-        {
-            Text = Lang.Text(textKey),
-            Tag = index.ToString(),
-            ColorType = MyRadioButton.ColorState.Highlight,
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(2d, 0d),
-            Checked = index == 0
-        };
-        button.Check += (sender, _) =>
-        {
-            if (sender.Tag is string tag && int.TryParse(tag, out var value))
-                ViewModel.SetFilter(value);
-            BuildList();
-        };
-        return button;
-    }
-
-    private static MyButton NewButton(string textKey, Action onClick)
-    {
-        var button = new MyButton
-        {
-            Text = Lang.Text(textKey),
-            MinWidth = 110d,
-            Margin = new Thickness(0d, 7d, 15d, 0d),
-            Padding = new Thickness(13d, 7d),
-            HorizontalAlignment = HorizontalAlignment.Left
-        };
-        button.Click += (_, _) => onClick();
-        return button;
-    }
-
-    private static MyIconTextButton NewSelectButton(string textKey, string icon, Action onClick)
-    {
-        var button = new MyIconTextButton
-        {
-            Text = Lang.Text(textKey),
-            SvgIcon = icon,
-            LogoScale = 1d
-        };
-        button.Click += (_, _) => onClick();
-        return button;
-    }
-
-    private Control CreateEmptyBody()
-    {
-        var grid = new Grid
-        {
-            Margin = new Thickness(20d, 17d),
-            RowDefinitions = new RowDefinitions("Auto,Auto,Auto,Auto"),
-            ColumnDefinitions = new ColumnDefinitions("*,Auto,Auto,Auto,*")
-        };
-        var title = new TextBlock
-        {
-            Text = Lang.Text("Instance.Resource.Datapack.Empty.Title"),
-            FontSize = 19d,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            Margin = new Thickness(0d, 0d, 0d, 9d)
-        };
-        ContainerTheme.BindDynamic(title, TextBlock.ForegroundProperty, "ColorBrush3");
-        Grid.SetColumnSpan(title, 5);
-        grid.Children.Add(title);
-        var divider = new Rectangle
-        {
-            Height = 2d,
-            HorizontalAlignment = HorizontalAlignment.Stretch
-        };
-        ContainerTheme.BindDynamic(divider, Shape.FillProperty, "ColorBrush3");
-        Grid.SetRow(divider, 1);
-        Grid.SetColumnSpan(divider, 5);
-        grid.Children.Add(divider);
-        var message = new TextBlock
-        {
-            Text = Lang.Text("Instance.Resource.Datapack.Empty.Description"),
-            TextWrapping = TextWrapping.Wrap,
-            Margin = new Thickness(10d, 15d, 10d, 5d)
-        };
-        Grid.SetRow(message, 2);
-        Grid.SetColumnSpan(message, 5);
-        grid.Children.Add(message);
-        var openFolder = new MyButton
-        {
-            Text = Lang.Text("Instance.Saves.OpenFolder"),
-            Height = 35d,
-            MinWidth = 140d,
-            Padding = new Thickness(13d, 0d),
-            Margin = new Thickness(10d, 10d, 10d, 0d),
-            HorizontalAlignment = HorizontalAlignment.Center,
-            ColorType = MyButton.ColorState.Highlight
-        };
-        openFolder.Click += (_, _) => ViewModel.OpenFolderCommand.Execute(null);
-        Grid.SetRow(openFolder, 3);
-        Grid.SetColumn(openFolder, 1);
-        grid.Children.Add(openFolder);
-
-        var install = new MyButton
-        {
-            Text = Lang.Text("Instance.Resource.InstallFromFiles"),
-            Height = 35d,
-            MinWidth = 140d,
-            Padding = new Thickness(13d, 0d),
-            Margin = new Thickness(10d, 10d, 10d, 0d),
-            HorizontalAlignment = HorizontalAlignment.Center
-        };
-        install.Click += (_, _) => _ = InstallFromFilesAsync();
-        Grid.SetRow(install, 3);
-        Grid.SetColumn(install, 2);
-        grid.Children.Add(install);
-
-        var download = new MyButton
-        {
-            Text = Lang.Text("Instance.Resource.Datapack.DownloadNew"),
-            Height = 35d,
-            MinWidth = 140d,
-            Padding = new Thickness(13d, 0d),
-            Margin = new Thickness(10d, 10d, 10d, 0d),
-            HorizontalAlignment = HorizontalAlignment.Center
-        };
-        download.Click += (_, _) => ViewModel.DownloadNewCommand.Execute(null);
-        Grid.SetRow(download, 3);
-        Grid.SetColumn(download, 3);
-        grid.Children.Add(download);
-        return grid;
+        BtnManageDownload.IsVisible =
+            HiddenFeatureState.ForceShow || !Config.Preference.Hide.PageDownload;
+        BuildList();
+        UpdateEmptyState();
     }
 
     public override void OnNavigatedTo(object? parameter)
@@ -429,11 +132,11 @@ public class PageInstanceSavesDatapack : MyPageRight, IRefreshable
             return;
         }
 
-        _panLoad.IsVisible = true;
-        _panEmpty.IsVisible = false;
-        _panMain.IsVisible = false;
-        _panSelect.IsVisible = false;
-        _load.State = new MyLoadingStateSimulator
+        PanLoad.IsVisible = true;
+        PanEmpty.IsVisible = false;
+        PanMain.IsVisible = false;
+        PanSelect.IsVisible = false;
+        Load.State = new MyLoadingStateSimulator
         {
             LoadingState = LoadingState.Run
         };
@@ -448,8 +151,8 @@ public class PageInstanceSavesDatapack : MyPageRight, IRefreshable
         }
         finally
         {
-            _panLoad.IsVisible = false;
-            if (_load.State is MyLoadingStateSimulator simulator)
+            PanLoad.IsVisible = false;
+            if (Load.State is MyLoadingStateSimulator simulator)
                 simulator.LoadingState = LoadingState.Stop;
         }
 
@@ -465,9 +168,9 @@ public class PageInstanceSavesDatapack : MyPageRight, IRefreshable
         try
         {
             ViewModel.Rebuild();
-            _panList.Children.Clear();
+            PanList.Children.Clear();
             foreach (var entry in ViewModel.VisibleEntries)
-                _panList.Children.Add(CreateItem(entry));
+                PanList.Children.Add(CreateItem(entry));
 
             RefreshFilterTexts();
             RefreshSortText();
@@ -481,40 +184,94 @@ public class PageInstanceSavesDatapack : MyPageRight, IRefreshable
 
     private void RefreshFilterTexts()
     {
-        _btnFilterAll.Text = ViewModel.FilterAllText;
-        _btnFilterEnabled.Text = ViewModel.FilterEnabledText;
-        _btnFilterDisabled.Text = ViewModel.FilterDisabledText;
-        _btnFilterUpdatable.Text = ViewModel.FilterCanUpdateText;
-        _btnFilterError.Text = ViewModel.FilterErrorText;
-        _btnFilterUpdatable.IsVisible = ViewModel.ShowFilterCanUpdate;
-        _btnFilterError.IsVisible = ViewModel.ShowFilterError;
-        _btnFilterEnabled.IsVisible = ViewModel.ShowFilterEnabled;
-        _btnFilterDisabled.IsVisible = ViewModel.ShowFilterDisabled;
+        BtnFilterAll.Text = ViewModel.FilterAllText;
+        BtnFilterEnabled.Text = ViewModel.FilterEnabledText;
+        BtnFilterDisabled.Text = ViewModel.FilterDisabledText;
+        BtnFilterUpdatable.Text = ViewModel.FilterCanUpdateText;
+        BtnFilterError.Text = ViewModel.FilterErrorText;
+        BtnFilterUpdatable.IsVisible = ViewModel.ShowFilterCanUpdate;
+        BtnFilterError.IsVisible = ViewModel.ShowFilterError;
+        BtnFilterEnabled.IsVisible = ViewModel.ShowFilterEnabled;
+        BtnFilterDisabled.IsVisible = ViewModel.ShowFilterDisabled;
     }
 
     private void RefreshSortText()
     {
-        _btnSort.Text = ViewModel.SortText;
+        BtnSort.Text = ViewModel.SortText;
     }
 
     private void RefreshSelectBar()
     {
-        _panSelect.IsVisible = ViewModel.ShowSelection;
+        PanSelect.IsVisible = ViewModel.ShowSelection;
         if (!ViewModel.ShowSelection)
             return;
-        _labSelect.Text = ViewModel.SelectedText;
-        _btnSelectEnable.IsEnabled = ViewModel.CanEnable;
-        _btnSelectDisable.IsEnabled = ViewModel.CanDisable;
-        _btnSelectDelete.IsEnabled = ViewModel.CanDelete;
+        LabSelect.Text = ViewModel.SelectedText;
+        BtnSelectEnable.IsEnabled = ViewModel.CanEnable;
+        BtnSelectDisable.IsEnabled = ViewModel.CanDisable;
+        BtnSelectUpdate.IsEnabled = ViewModel.CanUpdate;
+        BtnSelectFavorites.IsEnabled = ViewModel.CanFavoriteAndShare;
+        BtnSelectShare.IsEnabled = ViewModel.CanFavoriteAndShare;
+        BtnSelectDelete.IsEnabled = ViewModel.CanDelete;
+    }
+
+    private void ShowSortMenu()
+    {
+        var menu = new ContextMenu();
+        var names = PageInstanceSavesDatapackViewModel.GetSortNames();
+        for (var i = 0; i < names.Count; i++)
+        {
+            var index = i;
+            var item = new MyMenuItem
+            {
+                Header = names[i]
+            };
+            item.Click += (_, _) =>
+            {
+                ViewModel.SetSortMethod(
+                    (PageInstanceSavesDatapackViewModel.DatapackSortMethod)index);
+                BuildList();
+            };
+            menu.Items.Add(item);
+        }
+
+        menu.Open(BtnSort);
+    }
+
+    private void ShowFavoritesMenu()
+    {
+        var projects = ViewModel.GetFavoriteProjects();
+        if (projects.Count > 0)
+            CompFavoritesMenu.Show(projects, BtnSelectFavorites);
+    }
+
+    private void ShareSelected()
+    {
+        try
+        {
+            var ids = ViewModel.GetShareIds();
+            if (ids.Count == 0)
+                return;
+            var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
+            if (clipboard is null)
+                return;
+            _ = clipboard.SetTextAsync(Comp.CompFavorites.GetShareCode(ids.ToHashSet()));
+            HintService.Show(Hints.Success(Lang.Text("Common.Hint.Copied")));
+            ViewModel.ClearSelection();
+            BuildList();
+        }
+        catch (Exception ex)
+        {
+            InstancePageHelper.ReportError("Instance.Resource.Error.OperationFailed", ex);
+        }
     }
 
     private void UpdateEmptyState()
     {
         var empty = ViewModel.ShowEmpty || (DatapacksPath is null && ViewModel.Entries.Count == 0);
-        _panEmpty.IsVisible = empty;
-        _panMain.IsVisible = !empty;
+        PanEmpty.IsVisible = empty;
+        PanMain.IsVisible = !empty;
         if (empty)
-            _panSelect.IsVisible = false;
+            PanSelect.IsVisible = false;
     }
 
     private MyListItem CreateItem(DatapackEntry entry)
@@ -593,6 +350,12 @@ public class PageInstanceSavesDatapack : MyPageRight, IRefreshable
         buttons.Add(delete);
         item.Buttons = buttons;
         return item;
+    }
+
+    private async Task UpdateSelectedAsync()
+    {
+        await ViewModel.UpdateSelectedAsync();
+        BuildList();
     }
 
     private Task UpdateEntryAsync(DatapackEntry entry)

@@ -26,12 +26,6 @@
       "license": "https://github.com/00ll00/java_launch_wrapper?tab=MIT-1-ov-file#readme"
     },
     {
-      "name": "NAudio",
-      "info": "Copyright © 2015 Mark Heath (mark.heath@gmail.com)\nLicensed under the MIT License.",
-      "website": "https://github.com/naudio/NAudio",
-      "license": "https://github.com/naudio/NAudio/blob/master/license.txt"
-    },
-    {
       "name": "Iconmonstr",
       "info": "Copyright © 2019 iconmonstr (Alexander Kahlkopf)",
       "website": "https://iconmonstr.com/",
@@ -198,6 +192,12 @@
       "info": "Copyright © Microsoft\nLicensed under the MIT License.",
       "website": "https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet",
       "license": "https://licenses.nuget.org/MIT"
+    },
+    {
+      "name": "MiniAudioEx",
+      "info": "Copyright © 2026 W.M.R Jap-A-Joe\nLicensed under the MIT License.\nIncludes JAJ.Packages.MiniAudioEx 3.3.7 and its miniaudio native backends.",
+      "website": "https://github.com/japajoe/MiniAudioExNET",
+      "license": "https://github.com/japajoe/MiniAudioExNET/blob/master/LICENSE"
     }
   ]
 }

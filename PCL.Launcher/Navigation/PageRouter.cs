@@ -17,41 +17,28 @@ namespace PCL.Navigation;
 public static class PageRouter
 {
     private const int PageSwapDelayMilliseconds = 110;
-
     private const int PageEnterDelayMilliseconds = 30;
-
     private const string TransitionAnimationKey = "PageTransition";
 
     private static ContentControl? _leftHost;
     private static ContentControl? _rightHost;
     private static Control? _leftPage;
-    private static Control? _rightPage;
-
     private static Control? _mountedLeft;
-
     private static Control? _mountedRight;
-
     private static int _transitionGeneration;
-
     private static readonly List<PageStackData> PageStack = [];
     private static readonly Dictionary<MainTab, PageStackData> TabStates = [];
     private static bool _isNavigating;
     private static bool _hasNavigated;
-
     private static bool _languageHooked;
 
-    public static Control? CurrentPage => _rightPage;
-
+    public static Control? CurrentPage { get; private set; }
     public static INavigationService Navigation => NavigationService.Instance;
-
     public static PageStackData Current { get; private set; } = new(PageType.Launch);
-
     public static PageNavigationState? CurrentState { get; private set; }
-
     public static bool CanGoBack => PageStack.Count > 0;
 
     public static event Action<PageNavigationState>? Navigated;
-
     public static event Action<PageStackData>? PageChanged;
 
     /// <summary>页面宿主已经完成 110ms 换页；左栏背景按实际内容宽度重新测量。</summary>
@@ -99,7 +86,7 @@ public static class PageRouter
         if (_rightHost is null) return;
         _hasNavigated = false;
         _leftPage = null;
-        _rightPage = page;
+        CurrentPage = page;
         CancelPendingTransition();
         if (_leftHost is not null)
         {
@@ -200,6 +187,12 @@ public static class PageRouter
             var left = host.GetLeft(stack);
             var right = host.GetRight(stack);
 
+            if (left is null && _leftHost is not null)
+            {
+                _leftHost.Content = null;
+                _leftHost.IsVisible = false;
+            }
+
             _MountPages(left, right, stack);
 
             Current = stack;
@@ -244,7 +237,7 @@ public static class PageRouter
         var oldRight = _mountedRight;
         var animateLeft = !ReferenceEquals(oldLeft, left);
         _leftPage = left;
-        _rightPage = right;
+        CurrentPage = right;
 
         if (oldLeft is IPageView oldLeftView) oldLeftView.OnNavigatedFrom();
         if (animateLeft && oldLeft is MyPageLeft oldLeftPage) oldLeftPage.TriggerHideAnimation();
@@ -261,7 +254,6 @@ public static class PageRouter
 
                         using (SuspendControl())
                         {
-                            // WPF 在 110ms 才强制结束旧页；提前调用会把刚触发的退场动画直接隐藏。
                             if (oldRight is MyPageRight forceExitPage)
                                 forceExitPage.PageOnForceExit();
                             SwapPageHosts(left, right, stack, animateLeft);
@@ -283,7 +275,7 @@ public static class PageRouter
                         EnterPage(left, right, stack);
                     },
                     PageEnterDelayMilliseconds,
-                    after: true)
+                    true)
             },
             TransitionAnimationKey);
     }
@@ -298,9 +290,7 @@ public static class PageRouter
         {
             _leftHost.Content = left;
             _leftHost.IsVisible = left is not null;
-            // WPF 左栏是 Auto；不再把宿主的静态 LeftWidth 当作实际宽度。
             _leftHost.Width = double.NaN;
-            // 在同一个 UI 帧内设置初始状态并启动动画，避免先以终态显示再重新播放。
             if (animateLeft && left is MyPageLeft newLeftPage)
                 newLeftPage.TriggerShowAnimation();
         }
@@ -353,8 +343,8 @@ public static class PageRouter
     private static MainTab GetActiveTab(IPageHost? host)
     {
         if (host?.Tab is { } tab) return tab;
-        if (PageStack.Count > 0 && PageRegistry.TabOfPage(PageStack[0].Page) is { } stackTab)
-            return stackTab;
-        return PageRegistry.TabOfPage(Current.Page) ?? MainTab.Launch;
+        return PageStack.Count > 0 && PageRegistry.TabOfPage(PageStack[0].Page) is { } stackTab
+            ? stackTab
+            : PageRegistry.TabOfPage(Current.Page) ?? MainTab.Launch;
     }
 }

@@ -9,8 +9,6 @@ namespace PCL;
 /// <summary>界面个性化设置页的视图模型。</summary>
 public partial class PageSetupUIViewModel : ViewModelBase
 {
-    [ObservableProperty] private bool _autoPauseVideoVisible = true;
-
     [ObservableProperty] private int _backgroundBlur =
         Config.Preference.Background.WallpaperBlurRadius;
 
@@ -196,7 +194,6 @@ public partial class PageSetupUIViewModel : ViewModelBase
         BackgroundBlurVisible = show;
         BackgroundSuitVisible = show;
         BackgroundClearVisible = show;
-        AutoPauseVideoVisible = show;
         BackgroundTitle = show
             ? Lang.Text("Setup.Ui.Background.TitleWithCount", count)
             : Lang.Text("Setup.Ui.Background.TitleDefault");
@@ -244,20 +241,18 @@ public partial class PageSetupUIViewModel : ViewModelBase
             })).IsConfirmed;
     }
 
-    /// <summary>统计目录中的内容文件数量；与 WPF 一致排除 ini/db 等配置与缓存文件。</summary>
+    /// <summary>统计目录中的背景图片数量；只统计图片扩展名。</summary>
     public static int CountContentFiles(string directory)
     {
         if (!Directory.Exists(directory)) return 0;
         try
         {
+            string[] extensions = [".png", ".jpg", ".jpeg", ".bmp", ".gif"];
             return Directory
                 .EnumerateFiles(directory)
-                .Count(file =>
-                {
-                    var extension = Path.GetExtension(file);
-                    return !extension.Equals(".ini", StringComparison.OrdinalIgnoreCase)
-                        && !extension.Equals(".db", StringComparison.OrdinalIgnoreCase);
-                });
+                .Count(file => extensions.Contains(
+                    Path.GetExtension(file),
+                    StringComparer.OrdinalIgnoreCase));
         }
         catch (Exception)
         {

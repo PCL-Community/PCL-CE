@@ -10,184 +10,48 @@ namespace PCL.Views.Pages.Instance;
 ///     实例资源列表项，对齐 WPF <c>MyLocalCompItem</c>：
 ///     44px 单行、34px 图标与状态角标、可压缩的标题/副标题、标签、更新按钮、悬停操作按钮。
 /// </summary>
-public class MyLocalModItem : Grid
+public partial class MyLocalModItem : Grid
 {
-    private readonly MyIconButton _btnUpdate;
     private readonly ColumnDefinition _columnExtend;
     private readonly ColumnDefinition _columnPaddingRight;
     private readonly ColumnDefinition _columnSubtitle;
     private readonly ColumnDefinition _columnTitle;
-    private readonly TextBlock _labInfo;
-    private readonly TextBlock _labSubtitle;
-    private readonly TextBlock _labTitle;
-    private readonly MyImage _logo;
-    private readonly StackPanel _panTags;
-    private readonly Border _rectBack;
-    private readonly Border _rectCheck;
-    private readonly MyImage _state;
     private StackPanel? _buttonStack;
     private bool _checked;
     private GridLength _extendWidth = new(1d, GridUnitType.Star);
     private GridLength _subtitleWidth = GridLength.Auto;
     private GridLength _titleWidth = GridLength.Auto;
 
+    public MyLocalModItem()
+    {
+        Entry = null!;
+        ViewModel = null!;
+        InitializeComponent();
+    }
+
     public MyLocalModItem(LocalComp.LocalCompFile entry)
     {
         Entry = entry;
         ViewModel = new MyLocalModItemViewModel();
+        InitializeComponent();
+
+        _columnTitle = PanTitle.ColumnDefinitions[0];
+        _columnSubtitle = PanTitle.ColumnDefinitions[1];
+        _columnExtend = PanTitle.ColumnDefinitions[3];
+        _columnPaddingRight = ColumnDefinitions[5];
+
         ViewModel.Initialize(entry, new ItemHost(this));
-        Height = 44d;
-        ColumnDefinitions = new ColumnDefinitions("6,34,7,Auto,*,4");
-        RowDefinitions = new RowDefinitions("*,20,18,*");
-        RenderTransformOrigin = RelativePoint.Center;
-        ContainerTheme.BindDynamic(this, BackgroundProperty, "ColorBrushSemiTransparent");
 
-        _rectBack = new Border
+        BtnUpdate.Click += (_, _) => ViewModel.UpdateCommand.Execute(null);
+        BtnUpdate.PointerPressed += (_, e) =>
         {
-            CornerRadius = new CornerRadius(3d),
-            BorderThickness = new Thickness(1d),
-            IsHitTestVisible = false,
-            Opacity = 0d
-        };
-        ContainerTheme.BindDynamic(_rectBack, Border.BackgroundProperty, "ColorBrush7");
-        ContainerTheme.BindDynamic(_rectBack, Border.BorderBrushProperty, "ColorBrush6");
-        SetRowSpan(_rectBack, 10);
-        SetColumnSpan(_rectBack, 10);
-        Children.Add(_rectBack);
-
-        _rectCheck = new Border
-        {
-            Width = 5d,
-            Height = 0d,
-            CornerRadius = new CornerRadius(2d),
-            VerticalAlignment = VerticalAlignment.Center,
-            HorizontalAlignment = HorizontalAlignment.Left,
-            Margin = new Thickness(-3d, 0d, 0d, 0d)
-        };
-        ContainerTheme.BindDynamic(_rectCheck, Border.BackgroundProperty, "ColorBrush3");
-        SetRowSpan(_rectCheck, 10);
-        Children.Add(_rectCheck);
-
-        _logo = new MyImage
-        {
-            Width = 34d,
-            Height = 34d,
-            Stretch = Stretch.UniformToFill,
-            HorizontalAlignment = HorizontalAlignment.Right,
-            VerticalAlignment = VerticalAlignment.Center,
-            CornerRadius = new CornerRadius(6d),
-            FallbackSource = $"{LauncherPaths.ImageRoot}Icons/NoIcon.png",
-            IsHitTestVisible = false
-        };
-        SetRow(_logo, 1);
-        SetRowSpan(_logo, 2);
-        SetColumn(_logo, 1);
-        Children.Add(_logo);
-
-        _state = new MyImage
-        {
-            Width = 20d,
-            Height = 20d,
-            Margin = new Thickness(0d, 0d, -5d, -3d),
-            Stretch = Stretch.Uniform,
-            HorizontalAlignment = HorizontalAlignment.Right,
-            VerticalAlignment = VerticalAlignment.Bottom,
-            IsHitTestVisible = false,
-            IsVisible = false
-        };
-        SetRow(_state, 1);
-        SetRowSpan(_state, 2);
-        SetColumn(_state, 1);
-        Children.Add(_state);
-
-        var titleGrid = new Grid
-        {
-            Margin = new Thickness(0d, 1d, 0d, 0d),
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        _columnTitle = new ColumnDefinition(_titleWidth);
-        _columnSubtitle = new ColumnDefinition(_subtitleWidth);
-        _columnExtend = new ColumnDefinition(_extendWidth);
-        var columnUpdate = new ColumnDefinition(GridLength.Auto);
-        titleGrid.ColumnDefinitions.Add(_columnTitle);
-        titleGrid.ColumnDefinitions.Add(_columnSubtitle);
-        titleGrid.ColumnDefinitions.Add(columnUpdate);
-        titleGrid.ColumnDefinitions.Add(_columnExtend);
-        SetRow(titleGrid, 1);
-        SetColumn(titleGrid, 3);
-        SetColumnSpan(titleGrid, 2);
-        Children.Add(titleGrid);
-
-        _labTitle = new TextBlock
-        {
-            FontSize = 14d,
-            TextTrimming = TextTrimming.CharacterEllipsis,
-            IsHitTestVisible = false,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        ContainerTheme.BindDynamic(_labTitle, TextBlock.ForegroundProperty, "ColorBrush1");
-        titleGrid.Children.Add(_labTitle);
-
-        _labSubtitle = new TextBlock
-        {
-            FontSize = 12d,
-            Opacity = 0.4d,
-            HorizontalAlignment = HorizontalAlignment.Left,
-            VerticalAlignment = VerticalAlignment.Center,
-            TextTrimming = TextTrimming.CharacterEllipsis,
-            IsHitTestVisible = false
-        };
-        ContainerTheme.BindDynamic(_labSubtitle, TextBlock.ForegroundProperty, "ColorBrushGray1");
-        SetColumn(_labSubtitle, 1);
-        titleGrid.Children.Add(_labSubtitle);
-
-        _btnUpdate = new MyIconButton
-        {
-            Width = 21d,
-            Height = 21d,
-            Margin = new Thickness(-2d, -1.6d, 0d, 0d),
-            SvgIcon = "lucide/upload",
-            Opacity = 0.4d,
-            Theme = MyIconButton.Themes.Black,
-            IsVisible = false
-        };
-        _btnUpdate.Click += (_, _) => ViewModel.UpdateCommand.Execute(null);
-        _btnUpdate.PointerPressed += (_, e) =>
-        {
-            if (e.GetCurrentPoint(_btnUpdate).Properties.IsRightButtonPressed)
+            if (e.GetCurrentPoint(BtnUpdate).Properties.IsRightButtonPressed)
             {
                 e.Handled = true;
                 ViewModel.ShowUpdateLogCommand.Execute(null);
             }
         };
-        SetColumn(_btnUpdate, 2);
-        titleGrid.Children.Add(_btnUpdate);
 
-        _panTags = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            Margin = new Thickness(-1d, 0d, 1d, 0d),
-            VerticalAlignment = VerticalAlignment.Center,
-            IsHitTestVisible = false
-        };
-        SetRow(_panTags, 2);
-        SetColumn(_panTags, 3);
-        Children.Add(_panTags);
-
-        _labInfo = new TextBlock
-        {
-            FontSize = 12d,
-            Margin = new Thickness(0d, 0d, 3d, 1d),
-            VerticalAlignment = VerticalAlignment.Center,
-            TextTrimming = TextTrimming.CharacterEllipsis,
-            IsHitTestVisible = false
-        };
-        ContainerTheme.BindDynamic(_labInfo, TextBlock.ForegroundProperty, "ColorBrushGray4");
-        SetRow(_labInfo, 2);
-        SetColumn(_labInfo, 4);
-        Children.Add(_labInfo);
-
-        _columnPaddingRight = ColumnDefinitions[5];
         PointerEntered += (_, _) => RefreshColors();
         PointerExited += (_, _) => RefreshColors();
         SizeChanged += (_, _) => UpdateCompression();
@@ -249,8 +113,8 @@ public class MyLocalModItem : Grid
                 _buttonStack.Children.Add(button);
             }
 
-            SetColumnSpan(_buttonStack, 10);
-            SetRowSpan(_buttonStack, 10);
+            SetColumnSpan(_buttonStack, 99);
+            SetRowSpan(_buttonStack, 99);
             Children.Add(_buttonStack);
             PointerEntered += (_, _) => ShowButtons(true);
             PointerExited += (_, _) => ShowButtons(false);
@@ -277,32 +141,32 @@ public class MyLocalModItem : Grid
 
     private void ApplyViewModel()
     {
-        _labTitle.Text = ViewModel.TitleText;
-        _labTitle.TextDecorations = ViewModel.IsTitleStrikethrough
+        LabTitle.Text = ViewModel.TitleText;
+        LabTitle.TextDecorations = ViewModel.IsTitleStrikethrough
             ? TextDecorations.Strikethrough
             : null;
-        _labSubtitle.Text = ViewModel.SubTitleText;
-        _labSubtitle.IsVisible = ViewModel.IsSubTitleVisible;
-        _columnSubtitle.Width = _labSubtitle.IsVisible ? _subtitleWidth : new GridLength(0d);
-        _labInfo.Text = ViewModel.DescriptionText;
+        LabSubtitle.Text = ViewModel.SubTitleText;
+        LabSubtitle.IsVisible = ViewModel.IsSubTitleVisible;
+        _columnSubtitle.Width = LabSubtitle.IsVisible ? _subtitleWidth : new GridLength(0d);
+        LabInfo.Text = ViewModel.DescriptionText;
         ToolTip.SetTip(
-            _labInfo,
+            LabInfo,
             string.IsNullOrEmpty(ViewModel.InfoToolTip) ? null : ViewModel.InfoToolTip);
 
-        _logo.Source = ViewModel.Logo;
-        _logo.FallbackSource = $"{LauncherPaths.ImageRoot}Icons/NoIcon.png";
-        _state.IsVisible = ViewModel.IsStateImageVisible;
-        _state.Source = ViewModel.StateImage;
+        PathLogo.Source = ViewModel.Logo;
+        PathLogo.FallbackSource = $"{LauncherPaths.ImageRoot}Icons/NoIcon.png";
+        ImgState.IsVisible = ViewModel.IsStateImageVisible;
+        ImgState.Source = ViewModel.StateImage;
 
         TagPanelHelper.FillLocalized(
-            _panTags,
+            PanTags,
             ViewModel.TagKeys,
             ContainerTheme.TextSecondary(this));
-        _panTags.IsVisible = ViewModel.IsTagsVisible;
+        PanTags.IsVisible = ViewModel.IsTagsVisible;
 
-        _btnUpdate.IsVisible = ViewModel.IsUpdateVisible;
+        BtnUpdate.IsVisible = ViewModel.IsUpdateVisible;
         ToolTip.SetTip(
-            _btnUpdate,
+            BtnUpdate,
             string.IsNullOrEmpty(ViewModel.UpdateToolTip) ? null : ViewModel.UpdateToolTip);
 
         ApplyChecked();
@@ -321,13 +185,13 @@ public class MyLocalModItem : Grid
 
     private void ApplyChecked()
     {
-        _rectCheck.Height = _checked ? 32d : 0d;
-        _rectCheck.Opacity = _checked ? 1d : 0d;
-        _rectCheck.Margin = _checked
+        RectCheck.Height = _checked ? 32d : 0d;
+        RectCheck.Opacity = _checked ? 1d : 0d;
+        RectCheck.Margin = _checked
             ? new Thickness(-3d, 6d, 0d, 6d)
             : new Thickness(-3d, 0d, 0d, 0d);
         ContainerTheme.BindDynamic(
-            _labTitle,
+            LabTitle,
             TextBlock.ForegroundProperty,
             _checked
                 ? Entry.State == LocalComp.LocalCompFile.LocalFileStatus.Fine
@@ -336,14 +200,14 @@ public class MyLocalModItem : Grid
                 : Entry.State == LocalComp.LocalCompFile.LocalFileStatus.Fine
                     ? "ColorBrush1"
                     : "ColorBrushGray4");
-        _rectBack.Opacity = _checked ? 1d : 0d;
+        RectBack.Opacity = _checked ? 1d : 0d;
     }
 
     private void RefreshColors()
     {
         if (_checked || IsPointerOver)
-            ContainerTheme.BindDynamic(_rectBack, Border.BackgroundProperty, "ColorBrushBg1");
-        _rectBack.Opacity = _checked || IsPointerOver ? 1d : 0d;
+            ContainerTheme.BindDynamic(RectBack, Border.BackgroundProperty, "ColorBrushBg1");
+        RectBack.Opacity = _checked || IsPointerOver ? 1d : 0d;
         ShowButtons(IsPointerOver);
     }
 
@@ -351,8 +215,8 @@ public class MyLocalModItem : Grid
     {
         if (!IsLoaded || Bounds.Width <= 0d)
             return;
-        var titleWidth = _labTitle.DesiredSize.Width;
-        var subtitleWidth = _labSubtitle.IsVisible ? _labSubtitle.DesiredSize.Width : 0d;
+        var titleWidth = LabTitle.DesiredSize.Width;
+        var subtitleWidth = LabSubtitle.IsVisible ? LabSubtitle.DesiredSize.Width : 0d;
         var fixedWidth = 6d + 34d + 7d + 4d + _columnPaddingRight.Width.Value + 8d;
         var available = Math.Max(0d, Bounds.Width - fixedWidth);
 
@@ -368,21 +232,21 @@ public class MyLocalModItem : Grid
                 _titleWidth = GridLength.Auto;
                 _subtitleWidth = GridLength.Auto;
                 _extendWidth = new GridLength(1d, GridUnitType.Star);
-                _labSubtitle.IsVisible = !string.IsNullOrEmpty(_labSubtitle.Text);
+                LabSubtitle.IsVisible = !string.IsNullOrEmpty(LabSubtitle.Text);
                 break;
 
             case 1:
                 _titleWidth = GridLength.Auto;
                 _subtitleWidth = new GridLength(1d, GridUnitType.Star);
                 _extendWidth = new GridLength(0d, GridUnitType.Pixel);
-                _labSubtitle.IsVisible = false;
+                LabSubtitle.IsVisible = false;
                 break;
 
             default:
                 _titleWidth = new GridLength(1d, GridUnitType.Star);
                 _subtitleWidth = new GridLength(0d, GridUnitType.Pixel);
                 _extendWidth = new GridLength(0d, GridUnitType.Pixel);
-                _labSubtitle.IsVisible = false;
+                LabSubtitle.IsVisible = false;
                 break;
         }
 

@@ -362,10 +362,10 @@ public class MyListItem : Grid, IMyRadio
                 RenderTransformOrigin = RelativePoint.Center,
                 BorderThickness = new Thickness(1d),
                 IsHitTestVisible = false,
-                Opacity = 0d,
-                Background = ContainerTheme.AccentLight(this),
-                BorderBrush = ContainerTheme.ItemPressed(this)
+                Opacity = 0d
             };
+            ContainerTheme.BindDynamic(rect, Border.BackgroundProperty, "ColorBrush7");
+            ContainerTheme.BindDynamic(rect, Border.BorderBrushProperty, "ColorBrush6");
             rect.Classes.Add("ListItemBack");
             SetColumnSpan(rect, 999);
             SetRowSpan(rect, 999);
@@ -624,7 +624,7 @@ public class MyListItem : Grid, IMyRadio
                     scale.ScaleY = 0.75d;
                 }
 
-                _rectBack.Background = ContainerTheme.ItemHover(this);
+                BindRectBackIdle();
                 _rectBack.Opacity = 0d;
             }
 
@@ -654,10 +654,14 @@ public class MyListItem : Grid, IMyRadio
 
     private void MyListItem_Loaded()
     {
-        // 仅在选中时重设前景色，未选中沿用主题绑定
+        // 列表重建后必须重新评估一次状态，否则首次悬停会被旧 state 吞掉。
+        _stateLast = null;
         if (Checked)
             ApplyCheckedForeground();
+        else
+            ContainerTheme.BindDynamic(this, ForegroundProperty, "ColorBrush1");
         _columnPaddingRight.Width = new GridLength(MinPaddingRight);
+        RefreshColor(this, EventArgs.Empty);
     }
 
     private void OnSizeChanged()
@@ -1138,18 +1142,28 @@ public class MyListItem : Grid, IMyRadio
     /// <summary>
     ///     选中项的前景色：常规行（高度 40 及以上）用强调色，紧凑行用浅一档的强调色。
     /// </summary>
+    private string CheckedForegroundKey => Height < 40d ? "ColorBrush3" : "ColorBrush2";
+
+    /// <summary>选中态动画的起始/终点颜色，最终仍由动态资源绑定接管。</summary>
     private IBrush CheckedForeground =>
-        Height < 40d
-            ? ContainerTheme.CheckedTextWeak(this)
-            : ContainerTheme.CheckedTextStrong(this);
+        ContainerTheme.Brush(this, CheckedForegroundKey, ContainerTheme.Text(this));
 
     private void ApplyCheckedForeground()
     {
-        // 未选中时恢复动态资源绑定，保证主题切换后文字颜色继续跟随页面。
-        if (Checked)
-            Foreground = CheckedForeground;
-        else
-            ContainerTheme.BindDynamic(this, ForegroundProperty, "ColorBrush1");
+        // 选中与未选中都保持动态资源绑定，主题切换后颜色才能继续跟随页面。
+        ContainerTheme.BindDynamic(
+            this,
+            ForegroundProperty,
+            Checked ? CheckedForegroundKey : "ColorBrush1");
+    }
+
+    /// <summary>把背景层恢复到 WPF 的空闲态资源绑定，避免主题切换后残留旧画刷。</summary>
+    private void BindRectBackIdle()
+    {
+        if (_rectBack is null)
+            return;
+        ContainerTheme.BindDynamic(_rectBack, Border.BackgroundProperty, "ColorBrush7");
+        ContainerTheme.BindDynamic(_rectBack, Border.BorderBrushProperty, "ColorBrush6");
     }
 
     private void ExecuteCheckCommand()
@@ -1207,9 +1221,9 @@ public class MyListItem : Grid, IMyRadio
                 HorizontalAlignment = HorizontalAlignment.Left,
                 Margin = Checked
                     ? new Thickness(-1d, 6d, 0d, 6d)
-                    : new Thickness(-1d, 0d, 0d, 0d),
-                Background = ContainerTheme.Accent(this)
+                    : new Thickness(-1d, 0d, 0d, 0d)
             };
+            ContainerTheme.BindDynamic(bar, Border.BackgroundProperty, "ColorBrush3");
             bar.Classes.Add("ListItemCheck");
             SetRowSpan(bar, 4);
             Children.Add(bar);
@@ -1239,6 +1253,7 @@ public class MyListItem : Grid, IMyRadio
                 // 只有一个按钮
                 var button = buttons[0];
                 ConfigureButton(button);
+                button.Opacity = 0d;
                 SetColumnSpan(button, 10);
                 SetRowSpan(button, 10);
                 Children.Add(button);
@@ -1277,7 +1292,6 @@ public class MyListItem : Grid, IMyRadio
             button.Height = 25d;
         if (double.IsNaN(button.Width))
             button.Width = 25d;
-        button.Opacity = 0d;
         button.Margin = new Thickness(0d, 0d, 5d, 0d);
         button.HorizontalAlignment = HorizontalAlignment.Right;
         button.VerticalAlignment = VerticalAlignment.Center;
@@ -1409,6 +1423,8 @@ public class MyListItem : Grid, IMyRadio
         ActualThemeVariantChanged += OnActualThemeVariantChanged;
         if (Checked)
             ApplyCheckedForeground();
+        if (_rectBack is { Opacity: <= 0d })
+            BindRectBackIdle();
     }
 
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
@@ -1421,7 +1437,7 @@ public class MyListItem : Grid, IMyRadio
     {
         ApplyCheckedForeground();
         if (_rectBack is { Opacity: <= 0d })
-            _rectBack.Background = ContainerTheme.ItemHover(this);
+            BindRectBackIdle();
     }
 
     #endregion

@@ -87,8 +87,8 @@
                                                Foreground="{DynamicResource ColorBrush1}"
                                                TextWrapping="Wrap"
                                                Text="{loc:Loc Setup.Language.Banner.TitlePrefix}" />
-                                    <TextBlock Margin="0,2,0,2"
-                                               FontFamily="Bahnschrift, avares://PCL.Launcher/Assets/Fonts#PCL English"
+                                    <TextBlock x:Name="LabBannerTitle"
+                                               Margin="0,2,0,2"
                                                FontSize="42"
                                                FontWeight="Bold"
                                                Foreground="{DynamicResource ColorBrush1}"

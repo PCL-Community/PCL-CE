@@ -79,8 +79,6 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         CheckBackgroundColorful.Change += (_, _) => WriteIfReady(() =>
             Config.Preference.Background.BackgroundColorful =
                 CheckBackgroundColorful.Checked == true);
-        CheckAutoPauseVideo.Change += (_, _) => WriteIfReady(() =>
-            Config.Preference.Background.AutoPauseVideo = CheckAutoPauseVideo.Checked == true);
         CheckLogoLeft.Change += (_, _) => WriteIfReady(() =>
             Config.Preference.TopBarLeftAlign = CheckLogoLeft.Checked == true);
         CheckBlur.Change += (_, _) => WriteIfReady(() =>
@@ -153,8 +151,15 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         BtnMusicOpen.Click += (_, _) => OpenFolder(MusicFolder);
         BtnMusicRefresh.Click += (_, _) =>
         {
+            if (MediaService.Current is not { IsMusicAvailable: true } media)
+            {
+                HintService.Show(Hints.Error(Lang.Text("Music.Error.OperationFailed")));
+                RefreshMusicState();
+                return;
+            }
+
+            media.RefreshMusic(true);
             RefreshMusicState();
-            HintService.Show(Hints.Info(Lang.Text("Music.Error.NotStarted"), false));
         };
         BtnMusicClear.Click += async (_, _) => await ClearMusicAsync();
         BtnCustomRefresh.Click += (_, _) =>
@@ -247,7 +252,6 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             ComboUiMotdFont.SelectedFontTag = Config.Preference.MotdFont;
 
             CheckBackgroundColorful.Checked = Config.Preference.Background.BackgroundColorful;
-            CheckAutoPauseVideo.Checked = Config.Preference.Background.AutoPauseVideo;
 
             var titleType = (int)Config.Preference.WindowTitleType;
             if (titleType >= 0 && titleType < _logoTypeRadios.Length)
@@ -369,13 +373,6 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             var count = PageSetupUIViewModel.CountContentFiles(BackgroundFolder);
             var show = count > 0;
             ViewModel.ApplyBackgroundState(show, count);
-            CheckAutoPauseVideo.IsEnabled = MediaService.Current?.IsAvailable == true;
-            ToolTip.SetTip(
-                CheckAutoPauseVideo,
-                MediaService.Current?.IsAvailable == true
-                    ? Lang.Text("Setup.Ui.Background.PauseVideo.ToolTip")
-                    : Lang.Text("Tools.GameLink.Finish.Unavailable"));
-            ToolTip.SetShowOnDisabled(CheckAutoPauseVideo, true);
         }
         catch (Exception ex)
         {
@@ -400,6 +397,8 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         try
         {
             if (!await ViewModel.ConfirmBackgroundClearAsync()) return;
+            // 先释放当前图片句柄，避免 Windows 上文件仍被占用导致删除失败。
+            BackgroundHost.Current?.Clear();
             await Task.Run(() =>
             {
                 if (Directory.Exists(BackgroundFolder))
@@ -434,12 +433,16 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
     {
         try
         {
-            var count = PageSetupUIViewModel.CountContentFiles(MusicFolder);
-            ViewModel.ApplyMusicState(count > 0, count);
-            BtnMusicRefresh.IsEnabled = MediaService.Current?.IsAvailable == true;
+            var service = MediaService.Current;
+            var count = service?.MusicCount
+                ?? PageSetupUIViewModel.CountContentFiles(MusicFolder);
+            var hasMusic = count > 0;
+            var musicAvailable = !hasMusic || service?.IsMusicAvailable == true;
+            ViewModel.ApplyMusicState(hasMusic, count);
+            BtnMusicRefresh.IsEnabled = musicAvailable;
             ToolTip.SetTip(
                 BtnMusicRefresh,
-                MediaService.Current?.IsAvailable == true
+                musicAvailable
                     ? Lang.Text("Setup.Ui.Music.Refresh.ToolTip")
                     : Lang.Text("Tools.GameLink.Finish.Unavailable"));
             ToolTip.SetShowOnDisabled(BtnMusicRefresh, true);
@@ -457,12 +460,15 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         {
             if (!await ViewModel.ConfirmMusicClearAsync()) return;
             HintService.Show(Hints.Info(Lang.Text("Setup.Ui.Music.Deleting")));
+
+            MediaService.Current?.ClearMusic();
             await Task.Run(() =>
             {
                 if (Directory.Exists(MusicFolder))
                     Directory.Delete(MusicFolder, true);
                 Directory.CreateDirectory(MusicFolder);
             });
+            MediaService.Current?.RefreshMusic(false);
             RefreshMusicState();
             HintService.Show(Hints.Success(Lang.Text("Setup.Ui.Music.Delete.Success")));
         }

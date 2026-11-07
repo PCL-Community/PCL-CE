@@ -1,8 +1,6 @@
 using System.Text.Json.Nodes;
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
 using PCL.Core.App;
@@ -16,39 +14,35 @@ using static PCL.Animations;
 namespace PCL.Views.Pages.Download;
 
 /// <summary>
-///     下载安装页：选择 Minecraft 版本后进入配置阶段，可选装当前安装管线支持的加载器
-///     （Fabric / Legacy Fabric）并执行合并安装。
+///     下载安装页：选择 Minecraft 版本后进入配置阶段，通过 <see cref="InstallLoaderSelector" />
+///     选择 11 种加载器与附属组件，并执行合并安装。
 ///     安装失败或取消后由 <see cref="McInstallRecovery" /> 清理本次安装创建的路径，可用同名实例重试。
 /// </summary>
 public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
 {
-    private static readonly (string TitleKey, DownloadLoaderKind Kind)[] LoaderDefinitions =
-    [
-        ("Common.Installation.Fabric", DownloadLoaderKind.Fabric),
-        ("Common.Installation.LegacyFabric", DownloadLoaderKind.LegacyFabric)
-    ];
-
-    private readonly List<LoaderCard> _loaderCards = [];
+    private readonly Loading.LoaderBase.PreviewFinishEventHandler _folderLoaderHandler;
     private readonly DispatcherTimer _progressTimer;
+    private readonly InstallLoaderSelector _selector;
+    private readonly bool _uiBuilt;
+    private readonly PageDownloadInstallViewModel _vm = new();
     private Loading.LoaderCombo<string>? _installCombo;
     private string _instanceFolder = "";
     private string _instanceName = "";
     private bool _instanceNameEdited;
-    private bool _isInstalling;
-    private bool _loaderCardsBuilt;
     private bool _updatingInstanceName;
     private JsonObject? _version;
     private string _versionIcon = $"{LauncherPaths.ImageRoot}Icons/NoIcon.png";
     private bool _versionListBuilt;
-    private string _versionName = "";
-    private string? _versionUrl;
+    private string? _waitingVersionName;
 
     public PageDownloadInstall()
     {
         InitializeComponent();
+        DataContext = _vm;
         PanScroll = PanBack;
-        BtnStart.IsVisible = false;
-        BtnStart.IsHitTestVisible = false;
+        BtnStart.Show = false;
+        _selector = new InstallLoaderSelector(PanLoaderCards, OnSelectionChanged, _vm.Selection);
+        _uiBuilt = true;
 
         PageLoaderInit(
             LoadMinecraft,
@@ -67,104 +61,110 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
         TextInstanceName.ValidatedTextChanged += (_, _) => UpdateLocation();
         TextInstanceName.TextChanged += (_, _) =>
         {
-            if (!_updatingInstanceName)
+            var text = TextInstanceName.Text?.Trim() ?? "";
+            if (!_updatingInstanceName
+                && !string.Equals(text, _vm.InstanceName, StringComparison.Ordinal))
                 _instanceNameEdited = true;
+            _vm.InstanceName = text;
             UpdateLocation();
         };
         TextInstanceName.KeyDown += OnInstanceNameKeyDown;
         BtnReselect.Click += (_, _) =>
         {
-            if (!_isInstalling)
+            if (!_vm.IsInstalling)
                 ShowSelectStage();
         };
         BtnStart.Click += (_, _) =>
         {
-            if (!_isInstalling)
+            if (!_vm.IsInstalling)
                 _ = StartInstallAsync();
         };
         BtnCancel.Click += (_, _) => _installCombo?.Abort();
 
-        GameFolders.McFolderListLoader.PreviewFinish +=
-            _ => Dispatcher.UIThread.Post(() =>
-            {
-                UpdateLocation();
-                if (_versionListBuilt)
-                    OnVersionListFinished();
-            });
+        _folderLoaderHandler = OnMcFolderListPreviewFinish;
+        GameFolders.McFolderListLoader.PreviewFinish += _folderLoaderHandler;
 
-        GameDownload.DlFabricListLoader.PreviewFinish +=
-            _ => Dispatcher.UIThread.Post(() => RefreshLoaderCard(DownloadLoaderKind.Fabric));
-        GameDownload.DlLegacyFabricListLoader.PreviewFinish +=
-            _ => Dispatcher.UIThread.Post(() => RefreshLoaderCard(DownloadLoaderKind.LegacyFabric));
-        GameDownload.DlFabricListLoader.OnStateChangedUi +=
-            (_, state, _) => Dispatcher.UIThread.Post(() =>
-            {
-                if (state is LoadState.Loading or LoadState.Failed or LoadState.Finished)
-                    RefreshLoaderCard(DownloadLoaderKind.Fabric);
-            });
-        GameDownload.DlLegacyFabricListLoader.OnStateChangedUi +=
-            (_, state, _) => Dispatcher.UIThread.Post(() =>
-            {
-                if (state is LoadState.Loading or LoadState.Failed or LoadState.Finished)
-                    RefreshLoaderCard(DownloadLoaderKind.LegacyFabric);
-            });
-
-        BuildLoaderCards();
+        BuildVersionListWhenReady();
         ShowSelectStage();
     }
 
     public override void OnNavigatedTo(object? parameter)
     {
         PanBack?.ScrollToHome();
-        if (_isInstalling)
+        _selector.Activate();
+        GameFolders.McFolderListLoader.PreviewFinish -= _folderLoaderHandler;
+        GameFolders.McFolderListLoader.PreviewFinish += _folderLoaderHandler;
+        if (_vm.IsInstalling)
             return;
         if (parameter is JsonObject version)
+        {
+            _waitingVersionName = null;
             SelectVersion(version);
+        }
+        else if (parameter is string versionName && !string.IsNullOrWhiteSpace(versionName))
+        {
+            _waitingVersionName = versionName;
+            if (!TrySelectWaitingVersion())
+                ShowSelectStage();
+        }
         else
+        {
+            _waitingVersionName = null;
             ShowSelectStage();
+        }
     }
 
     public override void OnNavigatedFrom()
     {
+        _selector.Deactivate();
+        GameFolders.McFolderListLoader.PreviewFinish -= _folderLoaderHandler;
     }
 
     public void Refresh()
     {
-        if (_isInstalling)
+        if (!_uiBuilt || _vm.IsInstalling)
             return;
         _versionListBuilt = false;
         GameDownload.dlClientListLoader.Start(null, true);
-        GameDownload.DlOptiFineListLoader.Start(null, true);
-        GameDownload.DlForgeListLoader.Start(null, true);
-        GameDownload.DlNeoForgeListLoader.Start(null, true);
-        GameDownload.DlCleanroomListLoader.Start(null, true);
-        GameDownload.DlLiteLoaderListLoader.Start(null, true);
-        GameDownload.DlFabricListLoader.Start(null, true);
-        GameDownload.DlLegacyFabricListLoader.Start(null, true);
-        GameDownload.DlLabyModListLoader.Start(null, true);
-        CompDownloadLoaders.DlFabricApiLoader.Start(0, true);
-        CompDownloadLoaders.DlLegacyFabricApiLoader.Start(0, true);
-        CompDownloadLoaders.DlOptiFabricLoader.Start(0, true);
+        if (_version is not null)
+            _selector.SetMinecraft(_vm.VersionName, _vm.VersionUrl, false);
+        else
+            _selector.RefreshAll();
+        BuildVersionListWhenReady();
+    }
+
+    private void OnMcFolderListPreviewFinish(Loading.LoaderBase loader)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            UpdateLocation();
+            if (_versionListBuilt)
+                OnVersionListFinished();
+        });
     }
 
     protected override void RefreshLocalization()
     {
-        foreach (var loaderCard in _loaderCards)
+        if (!_uiBuilt)
+            return;
+        _vm.StartButtonText = Lang.Text("Download.Install.StartDownload");
+        _selector.RefreshLocalization();
+        if (_version is not null)
         {
-            loaderCard.Card.Title = Lang.Text(loaderCard.TitleKey);
-            if (loaderCard.Kind is { } kind)
-                RefreshLoaderCard(kind, loaderCard);
+            UpdateWarnings();
+            OnSelectionChanged();
         }
 
         if (_versionListBuilt
             && GameDownload.dlClientListLoader.output.Value?["versions"] is JsonArray)
             OnVersionListFinished();
+    }
 
-        if (string.IsNullOrEmpty(_versionName))
-            return;
-        UpdateLocation();
-        HintLoaderWarning.Text = GetLoaderWarningText();
-        HintLoaderWarning.IsVisible = !string.IsNullOrEmpty(HintLoaderWarning.Text);
+    /// <summary>退出安装配置阶段，回到版本选择。</summary>
+    public void ExitSelectPage()
+    {
+        if (!_vm.IsInstalling)
+            ShowSelectStage();
     }
 
     #region 版本选择阶段
@@ -179,6 +179,7 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
                 return;
             DownloadVersionList.Build(PanVersions, versions, SelectVersion);
             _versionListBuilt = true;
+            TrySelectWaitingVersion();
         }
         catch (Exception ex)
         {
@@ -186,11 +187,35 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
         }
     }
 
-    /// <summary>退出安装配置阶段，回到版本选择。</summary>
-    public void ExitSelectPage()
+    private bool TrySelectWaitingVersion()
     {
-        if (!_isInstalling)
-            ShowSelectStage();
+        if (string.IsNullOrEmpty(_waitingVersionName))
+            return false;
+        if (GameDownload.dlClientListLoader.output.Value?["versions"] is not JsonArray versions)
+            return false;
+        var version = versions
+            .OfType<JsonObject>()
+            .FirstOrDefault(entry =>
+                string.Equals(
+                    entry["id"]?.ToString(),
+                    _waitingVersionName,
+                    StringComparison.Ordinal));
+        if (version is null)
+        {
+            _waitingVersionName = null;
+            return false;
+        }
+
+        _waitingVersionName = null;
+        SelectVersion(version);
+        return true;
+    }
+
+    private void BuildVersionListWhenReady()
+    {
+        if (_versionListBuilt)
+            return;
+        OnVersionListFinished();
     }
 
     private void ShowSelectStage()
@@ -198,6 +223,7 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
         var animate = ContainerAnimation.CanAnimate(this)
             && PanSelectStage?.IsLoaded == true
             && PanConfigStage?.IsLoaded == true;
+        _vm.IsConfigStageVisible = false;
         PanConfigStage?.IsVisible = false;
         if (PanSelectStage is not null)
         {
@@ -228,10 +254,14 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
 
         PanContent?.Margin = new Thickness(25d, 10d, 25d, 25d);
         _instanceNameEdited = false;
-        foreach (var loaderCard in _loaderCards)
-            loaderCard.SelectedVersion = null;
-        RefreshAllLoaderCards();
-        RefreshLogo();
+        _version = null;
+        _versionIcon = $"{LauncherPaths.ImageRoot}Icons/NoIcon.png";
+        _vm.VersionName = "";
+        _vm.VersionUrl = null;
+        _vm.VersionIcon = _versionIcon;
+        _vm.IsProgressVisible = false;
+        _vm.CanStartInstall = false;
+        _selector.SetMinecraft(null, null);
         BtnStart.Show = false;
         if (!_versionListBuilt)
             OnVersionListFinished();
@@ -245,6 +275,7 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
             && PanSelectStage?.IsLoaded == true
             && PanConfigStage?.IsLoaded == true;
         PanSelectStage?.IsVisible = false;
+        _vm.IsConfigStageVisible = true;
         if (PanConfigStage is not null)
         {
             PanConfigStage.IsVisible = true;
@@ -274,18 +305,19 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
 
         PanContent?.Margin = new Thickness(25d, 10d, 25d, 40d);
         BtnStart.Show = true;
-        BtnStart.IsEnabled = !_isInstalling && !string.IsNullOrEmpty(GameFolders.mcFolderSelected);
         UpdateLocation();
         PanBack?.ScrollToHome();
     }
 
     private void SelectVersion(JsonObject version)
     {
+        _waitingVersionName = null;
         _version = version;
-        _versionName = version["id"]?.ToString() ?? "";
-        _versionUrl = version["url"]?.ToString();
+        _vm.VersionName = version["id"]?.ToString() ?? "";
+        _vm.VersionUrl = version["url"]?.ToString();
         _versionIcon = GetVersionIcon(version);
-        if (string.IsNullOrEmpty(_versionName))
+        _vm.VersionIcon = _versionIcon;
+        if (string.IsNullOrEmpty(_vm.VersionName))
         {
             ShowSelectStage();
             return;
@@ -293,16 +325,10 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
 
         _instanceNameEdited = false;
         SetDefaultInstanceName();
+        _selector.SetMinecraft(_vm.VersionName, _vm.VersionUrl);
         RefreshLogo();
-        StartLoaderListLoaders();
-        RefreshAllLoaderCards();
+        UpdateWarnings();
         ShowConfigStage();
-    }
-
-    private static void StartLoaderListLoaders()
-    {
-        GameDownload.DlFabricListLoader.Start(null, true);
-        GameDownload.DlLegacyFabricListLoader.Start(null, true);
     }
 
     private void SetDefaultInstanceName()
@@ -330,6 +356,7 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
         _updatingInstanceName = true;
         try
         {
+            _vm.InstanceName = name;
             TextInstanceName.Text = name;
         }
         finally
@@ -342,47 +369,72 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
             new FolderNameValidator(
                 string.IsNullOrEmpty(GameFolders.mcFolderSelected)
                     ? null
-                    : Path.Combine(GameFolders.mcFolderSelected, "versions"))
+                    : Path.Combine(GameFolders.mcFolderSelected, "versions"),
+                ignoreSameNameInParentFolder: true)
         ];
         TextInstanceName.Validate();
-
         UpdateLocation();
     }
 
     private string BuildDefaultInstanceName()
     {
-        var name = string.IsNullOrEmpty(_versionName) ? "Minecraft" : _versionName;
-        var fabric = _loaderCards.FirstOrDefault(card =>
-                card.Kind == DownloadLoaderKind.Fabric)
-            ?.SelectedVersion;
-        if (!string.IsNullOrEmpty(fabric))
-            name += $"-Fabric_{fabric.Replace("+build", "")}";
-        var legacyFabric = _loaderCards.FirstOrDefault(card =>
-                card.Kind == DownloadLoaderKind.LegacyFabric)
-            ?.SelectedVersion;
-        if (!string.IsNullOrEmpty(legacyFabric))
-            name += $"-LegacyFabric_{legacyFabric}";
-        return name;
+        var name = string.IsNullOrEmpty(_vm.VersionName) ? "Minecraft" : _vm.VersionName;
+        return name + _selector.Selection.GetSuffix();
     }
 
     private void RefreshInstanceNameIfNeeded()
     {
-        if (_instanceNameEdited || string.IsNullOrEmpty(_versionName))
+        if (_instanceNameEdited || string.IsNullOrEmpty(_vm.VersionName))
             return;
         SetDefaultInstanceName();
+    }
+
+    private void OnSelectionChanged()
+    {
+        if (_selector is null)
+            return;
+        RefreshInstanceNameIfNeeded();
+        RefreshLogo();
+        UpdateWarnings();
+        UpdateLocation();
+    }
+
+    private void UpdateWarnings()
+    {
+        var warnings = _selector.GetWarnings();
+        var flags = _selector.GetWarningFlags();
+        _vm.LoaderWarning = string.Join(Environment.NewLine, warnings);
+        _vm.HasLoaderWarning = warnings.Count > 0;
+        _vm.ShowHintFabricApi = flags.FabricApi;
+        _vm.ShowHintLegacyFabricApi = flags.LegacyFabricApi;
+        _vm.ShowHintOptiFabric = flags.OptiFabric;
+        _vm.ShowHintOptiFabricOld = flags.OptiFabricOld;
+        _vm.ShowHintLegacyOptiFabric = flags.LegacyOptiFabric;
+        _vm.ShowHintModOptiFine = flags.ModOptiFine;
     }
 
     private void RefreshLogo()
     {
         if (ImgLogo is null)
             return;
-        var fabricSelected = _loaderCards.Any(card =>
-            card is { Kind: DownloadLoaderKind.Fabric, SelectedVersion: not null });
-        var legacyFabricSelected = _loaderCards.Any(card =>
-            card is { Kind: DownloadLoaderKind.LegacyFabric, SelectedVersion: not null });
-        ImgLogo.Source = fabricSelected || legacyFabricSelected
+        var selection = _selector.Selection;
+        var logo = selection.FabricVersion is not null || selection.LegacyFabricVersion is not null
             ? $"{LauncherPaths.ImageRoot}Blocks/Fabric.png"
-            : _versionIcon;
+            : selection.Forge is not null
+                ? $"{LauncherPaths.ImageRoot}Blocks/Anvil.png"
+                : selection.NeoForge is not null
+                    ? $"{LauncherPaths.ImageRoot}Blocks/NeoForge.png"
+                    : selection.LiteLoader is not null
+                        ? $"{LauncherPaths.ImageRoot}Blocks/Egg.png"
+                        : selection.OptiFine is not null
+                            ? $"{LauncherPaths.ImageRoot}Blocks/GrassPath.png"
+                            : selection.Cleanroom is not null
+                                ? $"{LauncherPaths.ImageRoot}Blocks/Cleanroom.png"
+                                : selection.LabyModCommitRef is not null
+                                    ? $"{LauncherPaths.ImageRoot}Blocks/LabyMod.png"
+                                    : _versionIcon;
+        ImgLogo.Source = logo;
+        _vm.VersionIcon = logo;
     }
 
     private static string GetVersionIcon(JsonObject version)
@@ -404,13 +456,18 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
             var folder = GameFolders.mcFolderSelected;
             if (string.IsNullOrEmpty(folder))
             {
-                HintNoFolder.IsVisible = true;
+                _vm.HasNoFolder = true;
+                _vm.CanStartInstall = false;
                 BtnStart.IsEnabled = false;
                 return;
             }
 
-            HintNoFolder.IsVisible = false;
-            BtnStart.IsEnabled = !_isInstalling;
+            _vm.HasNoFolder = false;
+            var canStart = !_vm.IsInstalling
+                && _version is not null
+                && TextInstanceName.IsValidated;
+            _vm.CanStartInstall = canStart;
+            BtnStart.IsEnabled = canStart;
         }
         catch (Exception ex)
         {
@@ -420,323 +477,11 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
 
     #endregion
 
-    #region 加载器卡片
-
-    private sealed class LoaderCard
-    {
-        public required StackPanel Body;
-        public required MyCard Card;
-        public required MyIconButton ClearButton;
-        public required TextBlock Info;
-        public DownloadLoaderKind? Kind;
-        public string? SelectedVersion;
-        public required string TitleKey;
-    }
-
-    private void BuildLoaderCards()
-    {
-        if (_loaderCardsBuilt || PanLoaderCards is null)
-            return;
-        _loaderCardsBuilt = true;
-
-        foreach (var (titleKey, kind) in LoaderDefinitions)
-        {
-            var card = new MyCard
-            {
-                Title = Lang.Text(titleKey),
-                Margin = new Thickness(0d, 12d, 0d, 0d),
-                UseAnimation = false
-            };
-            var info = new TextBlock
-            {
-                VerticalAlignment = VerticalAlignment.Center,
-                FontSize = 12d,
-                Opacity = 0.7d,
-                TextTrimming = TextTrimming.CharacterEllipsis,
-                IsHitTestVisible = false
-            };
-            var header = new Grid
-            {
-                Height = 40d,
-                VerticalAlignment = VerticalAlignment.Top,
-                Margin = new Thickness(132d, 0d, 44d, 0d)
-            };
-            if (GetLoaderLogo(titleKey) is { } logoPath)
-                header.Children.Add(
-                    new MyImage
-                    {
-                        Source = logoPath,
-                        Width = 50d,
-                        Height = 50d,
-                        Margin = new Thickness(-112d, -5d, 0d, 0d),
-                        HorizontalAlignment = HorizontalAlignment.Left,
-                        VerticalAlignment = VerticalAlignment.Top,
-                        IsHitTestVisible = false
-                    });
-            header.Children.Add(info);
-            card.Children.Add(header);
-
-            var clearButton = new MyIconButton
-            {
-                Width = 30d,
-                Height = 30d,
-                Margin = new Thickness(0d, 5d, 32d, 0d),
-                HorizontalAlignment = HorizontalAlignment.Right,
-                VerticalAlignment = VerticalAlignment.Top,
-                Theme = MyIconButton.Themes.Custom,
-                SvgIcon = "lucide/x",
-                IsVisible = false
-            };
-            card.Children.Add(clearButton);
-
-            var body = new StackPanel
-            {
-                Margin = new Thickness(20d, 40d, 18d, 15d),
-                Spacing = 2d
-            };
-            card.Children.Add(body);
-            card.SwapControl = body;
-            card.IsSwapped = true;
-
-            var loaderCard = new LoaderCard
-            {
-                TitleKey = titleKey,
-                Kind = kind,
-                Card = card,
-                Body = body,
-                ClearButton = clearButton,
-                Info = info
-            };
-
-            var cardKind = kind;
-            clearButton.Click += (_, _) =>
-            {
-                loaderCard.SelectedVersion = null;
-                RefreshLoaderCard(cardKind, loaderCard);
-                card.IsSwapped = true;
-                RefreshInstanceNameIfNeeded();
-                RefreshLogo();
-            };
-            card.Swap += (_, _) =>
-            {
-                if (!card.IsSwapped)
-                    RefreshLoaderCard(cardKind, loaderCard);
-            };
-            info.Text = Lang.Text("Download.Install.State.CanAdd");
-
-            _loaderCards.Add(loaderCard);
-            PanLoaderCards.Children.Add(card);
-        }
-    }
-
-    private static string? GetLoaderLogo(string titleKey)
-    {
-        return titleKey switch
-        {
-            "Common.Installation.Forge" => $"{LauncherPaths.ImageRoot}Blocks/Anvil.png",
-            "Common.Installation.Cleanroom" => $"{LauncherPaths.ImageRoot}Blocks/Cleanroom.png",
-            "Common.Installation.NeoForge" => $"{LauncherPaths.ImageRoot}Blocks/NeoForge.png",
-            "Common.Installation.Fabric" or "Common.Installation.FabricApi" =>
-                $"{LauncherPaths.ImageRoot}Blocks/Fabric.png",
-            "Common.Installation.LegacyFabric" or "Common.Installation.LegacyFabricApi" =>
-                $"{LauncherPaths.ImageRoot}Blocks/Fabric.png",
-            "Common.Installation.LabyMod" => $"{LauncherPaths.ImageRoot}Blocks/LabyMod.png",
-            "Common.Installation.OptiFine" or "Common.Installation.OptiFabric" =>
-                $"{LauncherPaths.ImageRoot}Blocks/GrassPath.png",
-            "Common.Installation.LiteLoader" => $"{LauncherPaths.ImageRoot}Blocks/Egg.png",
-            _ => null
-        };
-    }
-
-    private void RefreshAllLoaderCards()
-    {
-        foreach (var loaderCard in _loaderCards)
-            if (loaderCard.Kind is { } kind)
-                RefreshLoaderCard(kind, loaderCard);
-        HintLoaderWarning.Text = GetLoaderWarningText();
-        HintLoaderWarning.IsVisible = !string.IsNullOrEmpty(HintLoaderWarning.Text);
-    }
-
-    private void RefreshLoaderCard(DownloadLoaderKind? kind)
-    {
-        if (kind is not { } kindValue)
-            return;
-        foreach (var loaderCard in _loaderCards)
-            if (loaderCard.Kind == kindValue)
-                RefreshLoaderCard(kindValue, loaderCard);
-    }
-
-    private void RefreshLoaderCard(DownloadLoaderKind kind, LoaderCard loaderCard)
-    {
-        loaderCard.Info.Text = loaderCard.SelectedVersion is null
-            ? Lang.Text("Download.Install.State.CanAdd")
-            : $"{Lang.Text(loaderCard.TitleKey)} {loaderCard.SelectedVersion}";
-        loaderCard.ClearButton.IsVisible = loaderCard.SelectedVersion is not null;
-
-        var body = loaderCard.Body;
-        body.Children.Clear();
-
-        var listLoader = kind == DownloadLoaderKind.Fabric
-            ? (Loading.LoaderBase)GameDownload.DlFabricListLoader
-            : GameDownload.DlLegacyFabricListLoader;
-        switch (listLoader.State)
-        {
-            case LoadState.Loading:
-            case LoadState.Waiting:
-                body.Children.Add(
-                    new MyLoading
-                    {
-                        Margin = new Thickness(5d),
-                        Text = Lang.Text("Download.Install.State.Getting")
-                    });
-                return;
-            case LoadState.Failed:
-                body.Children.Add(
-                    new TextBlock
-                    {
-                        Text = Lang.Text(
-                            "Download.Install.State.GetVersionListFailed",
-                            listLoader.Error?.Message
-                            ?? Lang.Text("Download.Install.Error.OperationFailed")),
-                        TextWrapping = TextWrapping.Wrap,
-                        Margin = new Thickness(6d, 4d, 6d, 8d)
-                    });
-                var retryButton = new MyButton
-                {
-                    Text = Lang.Text("Common.Action.Refresh"),
-                    HorizontalAlignment = HorizontalAlignment.Left,
-                    MinWidth = 90d,
-                    Padding = new Thickness(13d, 0d, 13d, 0d)
-                };
-                retryButton.Click += (_, _) => listLoader.Start(null, true);
-                body.Children.Add(retryButton);
-                return;
-            case LoadState.Finished:
-            case LoadState.Aborted:
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
-
-        var gameVersions = GetGameVersions(kind);
-        if (gameVersions is null || !gameVersions.Contains(_versionName))
-        {
-            body.Children.Add(
-                new TextBlock
-                {
-                    Text = Lang.Text("Download.Install.State.NoVersion"),
-                    Margin = new Thickness(6d, 4d, 0d, 4d),
-                    Opacity = 0.7d
-                });
-            return;
-        }
-
-        var versions = GetLoaderVersions(kind);
-        if (versions is null || versions.Count == 0)
-        {
-            body.Children.Add(
-                new TextBlock
-                {
-                    Text = Lang.Text("Download.Install.State.NoAvailableVersion"),
-                    Margin = new Thickness(6d, 4d, 0d, 4d),
-                    Opacity = 0.7d
-                });
-            return;
-        }
-
-        foreach (var node in versions.OfType<JsonObject>())
-        {
-            var version = (node["version"]?.ToString() ?? "").Replace("+build", "");
-            if (string.IsNullOrEmpty(version))
-                continue;
-            var isStable = node["stable"]?.GetValue<bool>() == true;
-            var item = new MyListItem
-            {
-                Title = version,
-                Height = 42d,
-                Type = MyListItem.CheckType.Clickable,
-                Logo = $"{LauncherPaths.ImageRoot}Blocks/Fabric.png",
-                LogoScale = 1d,
-                Info = Lang.Text(
-                    isStable
-                        ? "Download.Version.Type.Stable"
-                        : "Download.Version.Type.Preview")
-            };
-            item.Click += (_, _) => SelectLoaderVersion(kind, loaderCard, version);
-            body.Children.Add(item);
-        }
-
-        if (body.Children.Count == 0)
-            body.Children.Add(
-                new TextBlock
-                {
-                    Text = Lang.Text("Download.Install.State.NoAvailableVersion"),
-                    Margin = new Thickness(6d, 4d, 0d, 4d),
-                    Opacity = 0.7d
-                });
-    }
-
-    private void SelectLoaderVersion(
-        DownloadLoaderKind kind,
-        LoaderCard loaderCard,
-        string version)
-    {
-        if (_isInstalling)
-            return;
-
-        foreach (var other in _loaderCards)
-            if (!ReferenceEquals(other, loaderCard) && other.Kind is not null)
-                other.SelectedVersion = null;
-
-        loaderCard.SelectedVersion = version;
-        loaderCard.Card.IsSwapped = true;
-        RefreshAllLoaderCards();
-        RefreshInstanceNameIfNeeded();
-        RefreshLogo();
-    }
-
-    private static JsonArray? GetLoaderVersions(DownloadLoaderKind kind)
-    {
-        if (kind == DownloadLoaderKind.Fabric)
-        {
-            var result = GameDownload.DlFabricListLoader.output;
-            return true ? result.Value?["loader"] as JsonArray : null;
-        }
-
-        var legacyResult = GameDownload.DlLegacyFabricListLoader.output;
-        return true ? legacyResult.Value?["loader"] as JsonArray : null;
-    }
-
-    private static JsonArray? GetGameVersions(DownloadLoaderKind kind)
-    {
-        if (kind == DownloadLoaderKind.Fabric)
-        {
-            var result = GameDownload.DlFabricListLoader.output;
-            return true ? result.Value?["game"] as JsonArray : null;
-        }
-
-        var legacyResult = GameDownload.DlLegacyFabricListLoader.output;
-        return true ? legacyResult.Value?["game"] as JsonArray : null;
-    }
-
-    private string GetLoaderWarningText()
-    {
-        var fabricSelected = _loaderCards.Any(card =>
-            card is { Kind: DownloadLoaderKind.Fabric, SelectedVersion: not null });
-        if (fabricSelected)
-            return Lang.Text("Download.Install.Warning.FabricApi");
-        var legacyFabricSelected = _loaderCards.Any(card =>
-            card is { Kind: DownloadLoaderKind.LegacyFabric, SelectedVersion: not null });
-        return legacyFabricSelected ? Lang.Text("Download.Install.Warning.LegacyFabricApi") : "";
-    }
-
-    #endregion
-
     #region 安装
 
     private void OnInstanceNameKeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Key != Key.Enter || _isInstalling || !BtnStart.IsEnabled)
+        if (e.Key != Key.Enter || _vm.IsInstalling || !BtnStart.IsEnabled)
             return;
         _ = StartInstallAsync();
         e.Handled = true;
@@ -744,20 +489,19 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
 
     private async Task StartInstallAsync()
     {
-        if (_isInstalling)
+        if (_vm.IsInstalling)
             return;
 
         if (!RestrictedFeatures.Check("minecraft-install"))
             return;
 
-        if (string.IsNullOrEmpty(_versionName))
+        if (_version is null || string.IsNullOrEmpty(_vm.VersionName))
         {
             ShowSelectStage();
             return;
         }
 
-        var selectedLoader = _loaderCards.Any(card => card.SelectedVersion is not null);
-        if (selectedLoader
+        if (_selector.Selection.HasAny
             && Config.Launch.IndieSolutionV2 is 0 or 2)
         {
             var isolation = await DialogService.Instance.ShowAsync(
@@ -780,7 +524,7 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
         if (string.IsNullOrEmpty(folder))
         {
             HintService.Show(Hints.Error(Lang.Text("Download.Install.NoFolder")));
-            HintNoFolder.IsVisible = true;
+            _vm.HasNoFolder = true;
             return;
         }
 
@@ -796,36 +540,49 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
             return;
         }
 
-        var instanceFolder =
-            Path.Combine(folder, "versions", name) + Path.DirectorySeparatorChar;
+        var instanceFolder = Path.Combine(folder, "versions", name)
+            + Path.DirectorySeparatorChar;
         var instanceJsonPath = Path.Combine(instanceFolder, $"{name}.json");
-        if (File.Exists(instanceJsonPath)
-            || !McInstallRecovery.TryClearIncompleteInstanceFolder(instanceFolder, name))
+        var overwrite = false;
+        if (File.Exists(instanceJsonPath))
         {
-            HintService.Show(
-                Hints.Error(
-                    Lang.Text("Minecraft.Download.Error.InstanceAlreadyExists", name, "")));
-            return;
+            var exists = await DialogService.Instance.ShowAsync(
+                new TextDialogRequest
+                {
+                    Title = Lang.Text("Minecraft.Download.Error.InstanceAlreadyExists.Title"),
+                    Content = Lang.Text(
+                        "Minecraft.Download.Error.InstanceAlreadyExists",
+                        name,
+                        Environment.NewLine),
+                    Buttons = DialogButtons.OkCancel,
+                    IsWarn = true
+                });
+            if (!exists.IsConfirmed)
+                return;
+            overwrite = true;
         }
 
         var request = new McInstallRequest
         {
             targetInstanceName = name,
             targetInstanceFolder = instanceFolder,
-            minecraftJson = _versionUrl,
-            minecraftName = _versionName,
-            fabricVersion = _loaderCards
-                .FirstOrDefault(card => card.Kind == DownloadLoaderKind.Fabric)
-                ?.SelectedVersion,
-            legacyFabricVersion = _loaderCards
-                .FirstOrDefault(card => card.Kind == DownloadLoaderKind.LegacyFabric)
-                ?.SelectedVersion
+            minecraftJson = _vm.VersionUrl,
+            minecraftName = _vm.VersionName
         };
+        _selector.Selection.ApplyTo(request);
+
+        var identifier = McInstallPipeline.GetIdentifier(instanceFolder);
+        if (Loading.loaderTaskbar.Any(loader => loader.Identifier == identifier))
+        {
+            HintService.Show(
+                Hints.Error(Lang.Text("Minecraft.Download.Error.InstanceDownloading")));
+            return;
+        }
 
         List<Loading.LoaderBase> loaders;
         try
         {
-            loaders = McInstallPipeline.CreateInstallLoader(request);
+            loaders = McInstallPipeline.CreateInstallLoader(request, overwrite);
         }
         catch (CancelledException)
         {
@@ -840,11 +597,12 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
 
         _instanceName = name;
         _instanceFolder = instanceFolder;
-        _isInstalling = true;
-        BtnStart.IsEnabled = false;
+        _vm.IsInstalling = true;
+        _vm.CanStartInstall = false;
+        _vm.IsProgressVisible = true;
+        _selector.SetInstalling(true);
         BtnStart.Show = false;
         BtnReselect.IsEnabled = false;
-        CardProgress.IsVisible = true;
         LoadInstall.Text = Lang.Text("Download.Install.State.Loading");
         LoadInstall.TextError = "";
         LoadInstall.ShowProgress = true;
@@ -856,10 +614,14 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
 
         _installCombo = new Loading.LoaderCombo<string>(
             $"{name} {Lang.Text("Download.Install.Title")}",
-            loaders);
+            loaders)
+        {
+            Identifier = identifier
+        };
         _installCombo.OnStateChangedUi += OnInstallStateChanged;
         _installCombo.Start(instanceFolder);
         Loading.LoaderTaskbarAdd(_installCombo);
+        LoadingUi.Current?.RefreshDownloadButton();
     }
 
     private void OnInstallStateChanged(
@@ -872,15 +634,10 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
 
         _progressTimer.Stop();
         LoadInstall.ShowProgress = false;
-        _isInstalling = false;
+        _vm.IsInstalling = false;
+        _selector.SetInstalling(false);
         BtnReselect.IsEnabled = true;
-        BtnStart.IsEnabled = true;
-        foreach (var loaderCard in _loaderCards)
-        {
-            if (loaderCard.Kind is null)
-                continue;
-            loaderCard.Card.IsEnabled = true;
-        }
+        UpdateLocation();
 
         // 失败或取消时回滚本次安装创建的路径；成功时清理备份
         McInstallRecovery.HandleTerminalState(loader, _instanceFolder);
@@ -892,14 +649,14 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
 
         if (newState == LoadState.Finished)
         {
-            CardProgress.IsVisible = false;
+            _vm.IsProgressVisible = false;
             LoadInstall.State = new MyLoadingStateSimulator();
             ApplyFinishedBookkeeping(_instanceName);
             HintService.Show(
                 Hints.Success($"{_instanceName} {Lang.Text("Download.Install.Finished")}"));
             _versionListBuilt = false;
             OnVersionListFinished();
-            RefreshAllLoaderCards();
+            _selector.RefreshAll();
             ShowSelectStage();
             return;
         }
@@ -914,7 +671,7 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
         BtnStart.Show = true;
         UpdateLocation();
         HintService.Show(Hints.Error(LoadInstall.TextError));
-        RefreshAllLoaderCards();
+        _selector.RefreshAll();
     }
 
     private static void ApplyFinishedBookkeeping(string instanceName)
@@ -941,12 +698,13 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
 
     private void RefreshProgressText()
     {
-        if (!_isInstalling || _installCombo is null)
+        if (!_vm.IsInstalling || _installCombo is null)
             return;
         var running = _installCombo
             .GetLoaderList()
             .FirstOrDefault(loader => loader.State == LoadState.Loading);
-        LoadInstall.Text = running?.DisplayName ?? Lang.Text("Download.Install.State.Loading");
+        _vm.ProgressText = running?.DisplayName ?? Lang.Text("Download.Install.State.Loading");
+        LoadInstall.Text = _vm.ProgressText;
     }
 
     #endregion

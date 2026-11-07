@@ -14,6 +14,7 @@ using PCL.Core.Minecraft.Profile.Models;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
 using PCL.Core.Utils;
+using PCL.Media;
 using PCL.Navigation;
 using PCL.UI.Controls;
 using PCL.UI.SystemIntegration;
@@ -32,19 +33,19 @@ public sealed class LoadingUiBridge : ILoadingUi
 
     public void TaskAdded(Loading.LoaderBase loader)
     {
-        NotifyTaskPage(host => PageSpeedLeft.OnTaskAdded(loader), nameof(TaskAdded));
+        NotifyTaskPage(_ => PageSpeedLeft.OnTaskAdded(loader), nameof(TaskAdded));
         RefreshDownloadButtonDelayed();
     }
 
     public void TaskRemoved(Loading.LoaderBase loader)
     {
-        NotifyTaskPage(host => PageSpeedLeft.OnTaskRemoved(loader), nameof(TaskRemoved));
+        NotifyTaskPage(_ => PageSpeedLeft.OnTaskRemoved(loader), nameof(TaskRemoved));
         RefreshDownloadButtonDelayed();
     }
 
     public void TaskRefreshed(Loading.LoaderBase loader)
     {
-        NotifyTaskPage(host => PageSpeedLeft.OnTaskRefreshed(loader), nameof(TaskRefreshed));
+        NotifyTaskPage(_ => PageSpeedLeft.OnTaskRefreshed(loader), nameof(TaskRefreshed));
         RefreshDownloadButtonDelayed();
     }
 
@@ -792,35 +793,78 @@ public sealed class EventUiBridge : IEventUi
     }
 }
 
-/// <summary>游戏启动前后的音乐与视频控制；当前版本没有可用的播放引擎，仅在有宿主时转发。</summary>
+/// <summary>游戏启动前后的音乐控制，以及设置页与右下角音乐按钮所需的媒体操作。</summary>
 public sealed class MediaServiceBridge : IMediaService
 {
-    private static bool _unavailableWarned;
+    private readonly MediaPlaybackService _media = new();
 
-    public bool IsAvailable => false;
+    public bool IsAvailable => _media.IsAvailable;
+
+    public bool IsMusicAvailable => _media.IsMusicAvailable;
+
+    public MusicPlaybackState MusicState => _media.MusicState;
+
+    public int MusicCount => _media.MusicCount;
+
+    public string? CurrentMusicPath => _media.CurrentMusicPath;
+
+    public IReadOnlyList<string> MusicList => _media.MusicList;
 
     public void PauseMusic()
     {
-        WarnUnavailable();
+        _media.PauseMusic();
     }
 
     public void ResumeMusic()
     {
-        WarnUnavailable();
+        _media.ResumeMusic();
     }
 
-    public void SetVideoGaming(bool gaming)
+    public void ToggleMusic()
     {
-        WarnUnavailable();
+        _media.ToggleMusic();
     }
 
-    private static void WarnUnavailable()
+    public void PlayNextMusic()
     {
-        if (_unavailableWarned) return;
-        _unavailableWarned = true;
-        LogWrapper.Warn(
-            "UI",
-            "音乐/背景视频控制不可用（TODO(MEDIA)：播放引擎未迁移），本次调用已跳过");
+        _media.PlayNextMusic();
+    }
+
+    public void RefreshMusic(bool showHint, bool isFirstLoad = false)
+    {
+        _media.RefreshMusic(showHint, isFirstLoad);
+    }
+
+    public void ClearMusic()
+    {
+        _media.ClearMusic();
+    }
+
+    public void SetMusicVolume(int volume)
+    {
+        _media.SetMusicVolume(volume);
+    }
+
+    /// <summary>右下角音乐快捷按钮的展示状态；没有音乐时返回 <see langword="null" />。</summary>
+    public ExtraButtonsPanel.MusicButtonState? GetMusicButtonState()
+    {
+        if (!_media.IsMusicVisible) return null;
+
+        var playing = _media.MusicState == MusicPlaybackState.Play;
+        var paused = _media.MusicState == MusicPlaybackState.Pause;
+        var single = _media.MusicCount == 1;
+        var name = Path.GetFileNameWithoutExtension(_media.CurrentMusicPath ?? string.Empty);
+        var tipKey = paused
+            ? single
+                ? "Music.ToolTip.Paused.Single"
+                : "Music.ToolTip.Paused.Multiple"
+            : single
+                ? "Music.ToolTip.Playing.Single"
+                : "Music.ToolTip.Playing.Multiple";
+        return new ExtraButtonsPanel.MusicButtonState(
+            true,
+            playing,
+            Lang.Text(tipKey, name));
     }
 }
 
@@ -861,7 +905,7 @@ public sealed class DownloadInteractionBridge : IDownloadUserInteraction
                 PageRouter.Navigate(
                     PageType.Download,
                     PageSubType.DownloadInstall,
-                    versionName);
+                    version as JsonObject ?? (object)versionName);
         }
         catch (Exception ex)
         {
@@ -892,7 +936,11 @@ public static class UiBridgeRegistration
         UpdateUi.Current = new UpdateUiBridge();
         AnnouncementActions.Current = new AnnouncementActionsBridge();
         WatcherUi.Current = new WatcherUiBridge();
-        MediaService.Current = new MediaServiceBridge();
+        var mediaBridge = new MediaServiceBridge();
+        MediaService.Current = mediaBridge;
+        ExtraButtonsPanel.MusicStateProvider = mediaBridge.GetMusicButtonState;
+        ExtraButtonsPanel.MusicToggleAction = mediaBridge.ToggleMusic;
+        ExtraButtonsPanel.MusicNextAction = mediaBridge.PlayNextMusic;
         CrashAnalysisService.Current = new CrashAnalysisBridge();
         CompNavigation.Current = new CompNavigationBridge();
         CompUi.Current = new CompUiBridge();

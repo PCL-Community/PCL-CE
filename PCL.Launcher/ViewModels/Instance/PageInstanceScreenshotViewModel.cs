@@ -228,8 +228,9 @@ public partial class PageInstanceScreenshotViewModel : ViewModelBase
     {
         try
         {
-            // 与 WPF 一致：截图删除不再二次确认，直接送入回收站。
+            // 与 WPF 一致：截图删除不再二次确认；优先送入回收站。
             var canRecycle = RecycleBin.IsSupported(item.FilePath);
+            var movedToRecycle = false;
             if (canRecycle)
             {
                 var outcome = RecycleBin.Move(item.FilePath, out var error);
@@ -246,6 +247,7 @@ public partial class PageInstanceScreenshotViewModel : ViewModelBase
                         break;
 
                     case RecycleBin.Outcome.Moved:
+                        movedToRecycle = true;
                         break;
 
                     default:
@@ -261,7 +263,11 @@ public partial class PageInstanceScreenshotViewModel : ViewModelBase
             if (ReferenceEquals(SelectedScreenshot, item))
                 SelectedScreenshot = null;
             ShowContent = _files.Count > 0;
-            HintService.Show(Hints.Info(Lang.Text("Instance.Screenshot.Deleted")));
+            HintService.Show(
+                Hints.Info(
+                    movedToRecycle
+                        ? Lang.Text("Instance.Saves.DeletedToRecycleBin")
+                        : Lang.Text("Instance.Saves.DeletedPermanent")));
             return Task.FromResult(true);
         }
         catch (Exception ex)
