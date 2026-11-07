@@ -1001,8 +1001,8 @@ public partial class PageInstanceExport : IRefreshable, IPageView
                 // 复制 PCL 实例设置
                 Common.CopyDirectory(Path.Combine(mcInstance.PathInstance, "PCL"), Path.Combine(overridesFolder, "PCL"));
 #if RELEASE
-                        // 复制 PCL 本体
-                        if (includePCL) Common.CopyFile(Basics.ExecutablePath, Path.Combine(cacheFolder, Basics.ExecutableName));
+                // 复制 PCL 本体
+                if (includePcl) Common.CopyFile(Basics.ExecutablePath, Path.Combine(cacheFolder, Basics.ExecutableName));
 #endif
                 // 复制 PCL 个性化内容
                 if (includePclCustom)
