@@ -1,6 +1,7 @@
-﻿using System.Runtime.InteropServices;
-using PCL.Core.Platform;
+﻿using PCL.Core.Platform;
 using PCL.Core.Utils.OS;
+using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 
 namespace PCL;
 
@@ -117,15 +118,28 @@ public static partial class Libraries
 
     /// <summary>
     ///     当前平台的 Natives classifier 优先级清单。
+    ///     
     /// </summary>
     private static string[] _GetMcNativeClassifierNames()
     {
+        // ojang 神秘玩意
+        // natives-linux
+        // natives-osx
+        // natives-windows
+        // natives-macos
+        // linux-x86_64
+        // linux-aarch_64
+        // natives-windows-x86
+        // natives-macos-arm64
+        // natives-windows-arm64
+        // natives-macos-patch
+        // natives-windows-${arch}
         return PlatformRuntime.Current.Kind switch
         {
             PlatformKind.Windows => ["natives-windows"],
             PlatformKind.MacOs => RuntimeInformation.OSArchitecture is Architecture.Arm64
-                ? ["natives-macos-arm64", "natives-macos", "natives-osx"]
-                : ["natives-macos", "natives-osx", "natives-macos-x86_64"],
+                ? ["natives-macos-arm64", "natives-macos", "natives-osx", "natives-macos-patch"]
+                : ["natives-macos", "natives-osx", "natives-macos-x86_64", "natives-macos-patch"],
             _ => RuntimeInformation.OSArchitecture switch
             {
                 Architecture.Arm64 =>
