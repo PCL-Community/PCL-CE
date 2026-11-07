@@ -117,6 +117,10 @@ public partial class PageToolsTest : IPageView
         TextDownloadFolder.Validate();
         TextDownloadName.Validate();
         TextDownloadUrl.Validate();
+        // 三个输入框首次进页面时还没校验过，ValidateResult 为空会被当成「已填写」，按钮就先亮了
+        AchievementBlockTextBox.Validate();
+        AchievementTitleTextBox.Validate();
+        AchievementString1TextBox.Validate();
         StartButtonRefresh();
     }
 
@@ -659,6 +663,7 @@ public partial class PageToolsTest : IPageView
     {
         if (_isRenderingAchievement) return;
 
+        _vm.AchievementLoadingText = Lang.Text("Tools.Test.Achievement.Loading");
         LoadAchievement.State.LoadingState = LoadingState.Run;
         LoadAchievement.Visibility = Visibility.Visible;
         _isRenderingAchievement = true;
@@ -696,6 +701,7 @@ public partial class PageToolsTest : IPageView
     {
         if (_isRenderingAchievement) return;
 
+        _vm.AchievementLoadingText = Lang.Text("Tools.Test.Achievement.Saving");
         LoadAchievement.State.LoadingState = LoadingState.Run;
         LoadAchievement.Visibility = Visibility.Visible;
         _isRenderingAchievement = true;

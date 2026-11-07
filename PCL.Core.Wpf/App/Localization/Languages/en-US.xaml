@@ -3543,6 +3543,7 @@
     <sys:String x:Key="Tools.Test.Achievement.Preview">Preview achievement</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Save">Save image</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Saved">Custom achievement image saved!</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.Saving">Saving image…</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Title">Custom achievement image generator</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Font">Font</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Loading">Fetching item icon…</sys:String>

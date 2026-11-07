@@ -3436,6 +3436,7 @@
     <sys:String x:Key="Tools.Test.Achievement.Preview">預覽進度影像</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Save">儲存圖片</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Saved">自訂進度圖片已儲存！</sys:String>
+    <sys:String x:Key="Tools.Test.Achievement.Saving">正在儲存圖片…</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Title">自訂進度圖片生成器</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Font">字型</sys:String>
     <sys:String x:Key="Tools.Test.Achievement.Loading">正在取得物品圖示…</sys:String>

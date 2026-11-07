@@ -217,7 +217,7 @@
                                         Click="BtnAchievementSave_Click" />
                     </Grid>
                     <local:MyLoading x:Name="LoadAchievement" Margin="0,5,0,10" HorizontalAlignment="Center"
-                                     Text="{loc:Loc Tools.Test.Achievement.Loading}"
+                                     Text="{Binding AchievementLoadingText}"
                                      AutoRun="False" Visibility="Collapsed" />
                     <Image x:Name="AchievementImage" Width="320" Stretch="Uniform"
                            HorizontalAlignment="Left"
