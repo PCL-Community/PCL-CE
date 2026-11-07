@@ -1,0 +1,80 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="using:PCL.UI.Controls">
+    <Styles.Resources>
+        <SolidColorBrush x:Key="ListItemTagBubbleBackground"
+                         Color="#11000000" />
+    </Styles.Resources>
+
+    <Style Selector="ui|MyListItem">
+        <Setter Property="Background"
+                Value="Transparent" />
+        <Setter Property="ClipToBounds"
+                Value="False" />
+    </Style>
+
+    <Style Selector="ui|MyListItem TextBlock.ListItemTitle">
+        <Setter Property="Foreground"
+                Value="{DynamicResource ColorBrush1}" />
+    </Style>
+
+    <Style Selector="ui|MyListItem Border.ListItemBack">
+        <Setter Property="Background"
+                Value="{DynamicResource ColorBrush7}" />
+        <Setter Property="BorderBrush"
+                Value="{DynamicResource ColorBrush6}" />
+    </Style>
+
+    <Style Selector="ui|MyListItem Border.ListItemCheck">
+        <Setter Property="Background"
+                Value="{DynamicResource ColorBrush3}" />
+    </Style>
+
+    <Style Selector="ui|MyListItem TextBlock.ListItemTagText">
+        <Setter Property="Foreground"
+                Value="{DynamicResource ColorBrushGray3}" />
+        <Setter Property="FontSize"
+                Value="11" />
+    </Style>
+
+    <Style Selector="ui|MyListItem Border.ListItemTagBubble">
+        <Setter Property="Background"
+                Value="{DynamicResource ListItemTagBubbleBackground}" />
+        <Setter Property="Padding"
+                Value="3,1" />
+        <Setter Property="CornerRadius"
+                Value="3" />
+        <Setter Property="Margin"
+                Value="0,0,3,0" />
+    </Style>
+
+    <Style Selector="ui|MyCollapseBar TextBlock.CollapseTitle">
+        <Setter Property="Foreground"
+                Value="{DynamicResource ColorBrush1}" />
+    </Style>
+
+    <Style Selector="ui|MyCollapseBar Path.CollapseTriangle">
+        <Setter Property="Fill"
+                Value="{DynamicResource ColorBrush1}" />
+    </Style>
+
+    <Style Selector="ui|MyPageLeft">
+        <Setter Property="Background"
+                Value="Transparent" />
+    </Style>
+
+    <Style Selector="ui|MyPageRight">
+        <Setter Property="ClipToBounds"
+                Value="False" />
+    </Style>
+
+    <Style Selector="ui|MyScrollViewer">
+        <Setter Property="Background"
+                Value="Transparent" />
+    </Style>
+
+    <Style Selector="ui|MyScrollBar">
+        <Setter Property="MinWidth"
+                Value="8" />
+    </Style>
+</Styles>

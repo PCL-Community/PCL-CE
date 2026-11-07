@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using PCL.Core.App.Localization;
+using PCL.Core.Platform;
 
 namespace PCL;
 
@@ -154,6 +155,9 @@ public static partial class GameWatcher
 
         private void _SetWindowTitleRepeatedly()
         {
+            var windowInterop = PlatformServices.WindowInterop;
+            if (windowInterop is null) return;
+
             for (var i = 1; i <= 3; i++)
             {
                 if (State == MinecraftState.Running && !gameProcess.HasExited)
@@ -161,7 +165,7 @@ public static partial class GameWatcher
                     var realTitle = _windowTitle
                         .Replace("{date}", Lang.Date(DateTime.Now, "d"))
                         .Replace("{time}", Lang.Date(DateTime.Now, "T"));
-                    SetWindowText(_windowHandle, realTitle);
+                    windowInterop.SetWindowTitle(_windowHandle, realTitle);
                 }
 
                 Thread.Sleep(64);

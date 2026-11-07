@@ -1,7 +1,7 @@
-using PCL.Core.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using PCL.Core.Logging;
 
 namespace PCL.Core.Minecraft.Java.Scanner;
 
@@ -14,11 +14,13 @@ public class PathEnvironmentScanner : IJavaScanner
             var pathVar = Environment.GetEnvironmentVariable("PATH");
             if (string.IsNullOrEmpty(pathVar)) return;
 
-            foreach (var dir in pathVar.Split(';', StringSplitOptions.RemoveEmptyEntries))
+            foreach (var dir in pathVar.Split(
+                         Path.PathSeparator,
+                         StringSplitOptions.RemoveEmptyEntries))
             {
                 if (!Directory.Exists(dir)) continue;
 
-                var javaExe = Path.Combine(dir, "java.exe");
+                var javaExe = JavaExecutableLayout.GetJavaExePath(dir);
                 if (File.Exists(javaExe)) results.Add(javaExe);
             }
         }

@@ -3,7 +3,7 @@
                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                    xmlns:local="clr-namespace:PCL"
                    xmlns:loc="https://ce.pclc.cc/core/localization"
-                   xmlns:val="https://ce.pclc.cc/core/utils/validate"
+                   xmlns:val="clr-namespace:PCL.Core.Utils.Validate;assembly=PCL.Core"
                    xmlns:sys="clr-namespace:System;assembly=mscorlib"
                    PanScroll="{Binding ElementName=PanBack}">
     <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">

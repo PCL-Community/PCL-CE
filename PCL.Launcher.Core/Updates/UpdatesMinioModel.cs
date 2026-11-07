@@ -81,7 +81,9 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
             RefreshCache();
         var loaders = new List<Loading.LoaderBase>();
         var patchUpdate = true;
-        var tempPath = $@"{LauncherPaths.Temp}Cache\Update\Download\";
+        var tempPath =
+            Path.Combine(LauncherPaths.Temp, "Cache", "Update", "Download")
+            + Path.DirectorySeparatorChar;
         loaders.Add(
             new Loading.LoaderTask<int, List<DownloadFile>>(
                 Lang.Text("Update.Task.GetVersionInfo"),

@@ -1,0 +1,179 @@
+<ui:MyPageRight xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:ui="using:PCL.UI.Controls"
+                xmlns:loc="using:PCL.Core.UI"
+                x:Class="PCL.Views.Pages.Download.PageDownloadCompFavorites"
+                x:CompileBindings="False">
+    <Grid>
+        <ui:MyScrollViewer x:Name="PanBack"
+                           HorizontalScrollBarVisibility="Disabled"
+                           VerticalScrollBarVisibility="Auto">
+            <Grid x:Name="PanContent"
+                  IsVisible="False">
+                <StackPanel Margin="25">
+                    <Grid Margin="0,0,0,15"
+                          ColumnDefinitions="*,Auto">
+                        <ui:MySearchBox x:Name="PanSearchBox"
+                                        Grid.Column="0"
+                                        HintText="{loc:Loc Download.Comp.Favorites.Search.Hint}"
+                                        TextChanged="SearchRun"
+                                        IsVisible="{Binding ShowSearchBox}" />
+                        <ui:MyCard Grid.Column="1"
+                                   Margin="15,0,0,0"
+                                   Height="40"
+                                   CanSwap="False">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:MyComboBox x:Name="ComboTargetFav"
+                                               Height="27"
+                                               MinWidth="80"
+                                               MaxWidth="160"
+                                               Margin="8,0,-1,0"
+                                               VerticalAlignment="Center"
+                                               SelectedIndex="{Binding SelectedFolderIndex, Mode=OneWay}"
+                                               SelectionChanged="ComboTargetFav_Selected" />
+                                <ui:MyIconButton x:Name="Btn_ManageTargetFav"
+                                                 Margin="4,8,5,8"
+                                                 VerticalAlignment="Center"
+                                                 LogoScale="1.1"
+                                                 SvgIcon="lucide/settings-2"
+                                                 ToolTip.Tip="{loc:Loc Download.Comp.Favorites.Manage}" />
+                            </StackPanel>
+                        </ui:MyCard>
+                    </Grid>
+                    <ui:MyHint x:Name="HintGetFail"
+                               Margin="0,0,0,15"
+                               Theme="Yellow"
+                               Text="{loc:Loc Download.Comp.Favorites.GetInfoFailed}"
+                               IsVisible="{Binding ShowHintGetFail}"
+                               PointerReleased="HintGetFail_PointerReleased" />
+                    <ItemsControl x:Name="PanContentList"
+                                  ItemsSource="{Binding Groups}"
+                                  IsVisible="{Binding ShowContentList}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Vertical" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <ui:MyCard CanSwap="True"
+                                           Title="{Binding Title}"
+                                           Margin="0,0,0,15"
+                                           IsVisible="{Binding IsVisible}">
+                                    <StackPanel Orientation="Vertical"
+                                                Margin="12,38,12,12">
+                                        <ItemsControl ItemsSource="{Binding Items}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <StackPanel Orientation="Vertical" />
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <ui:MyListItem Title="{Binding Title}"
+                                                                   Info="{Binding Info}"
+                                                                   Logo="{Binding Logo}"
+                                                                   Tags="{Binding Tags}"
+                                                                   Type="CheckBox"
+                                                                   LogoCornerRadius="6"
+                                                                   Checked="{Binding IsChecked, Mode=TwoWay}"
+                                                                   Loaded="FavoriteItem_Loaded" />
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </ui:MyCard>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock Margin="4,6,4,6"
+                               Text="{loc:Loc Download.Comp.List.NoResults}"
+                               IsVisible="{Binding ShowNoResults}" />
+                </StackPanel>
+                <ui:MyCard x:Name="CardNoContent"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Margin="40"
+                           IsVisible="{Binding ShowNoContent}">
+                    <Grid Margin="20,17"
+                          RowDefinitions="Auto,Auto,Auto,Auto"
+                          ColumnDefinitions="*,Auto,Auto,*">
+                        <TextBlock Grid.Row="0"
+                                   Grid.ColumnSpan="4"
+                                   Margin="0,0,0,9"
+                                   HorizontalAlignment="Center"
+                                   Text="{loc:Loc Download.Comp.Favorites.Empty.Title}"
+                                   FontSize="19"
+                                   UseLayoutRounding="True"
+                                   Foreground="{DynamicResource ColorBrush3}" />
+                        <Rectangle Grid.Row="1"
+                                   Grid.ColumnSpan="4"
+                                   HorizontalAlignment="Stretch"
+                                   Height="2"
+                                   Fill="{DynamicResource ColorBrush3}" />
+                        <TextBlock Grid.Row="2"
+                                   Grid.ColumnSpan="4"
+                                   Margin="10,15,10,5"
+                                   Text="{loc:Loc Download.Comp.Favorites.Empty.Description}"
+                                   TextWrapping="Wrap" />
+                    </Grid>
+                </ui:MyCard>
+            </Grid>
+        </ui:MyScrollViewer>
+        <ui:MyCard x:Name="CardSelect"
+                   IsVisible="False"
+                   Opacity="0"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Bottom"
+                   Margin="25,25,25,0"
+                   UseAnimation="False"
+                   HasMouseAnimation="False">
+            <ui:MyCard.RenderTransform>
+                <TranslateTransform Y="-10" />
+            </ui:MyCard.RenderTransform>
+            <TextBlock x:Name="LabSelect"
+                       Text="{Binding SelectedText}"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Top"
+                       Margin="9"
+                       Foreground="{DynamicResource ColorBrush2}" />
+            <StackPanel Orientation="Horizontal"
+                        Margin="5,28,5,5">
+                <ui:MyIconTextButton x:Name="Btn_FavoritesCancel"
+                                     Text="{loc:Loc Download.Comp.Favorites.Cancel}"
+                                     LogoScale="1"
+                                     SvgIcon="lucide/heart-filled"
+                                     Click="Btn_FavoritesCancel_Clicked" />
+                <ui:MyIconTextButton x:Name="Btn_FavoritesShare"
+                                     Text="{loc:Loc Download.Comp.Favorites.Share}"
+                                     LogoScale="1"
+                                     SvgIcon="lucide/share-2"
+                                     Click="Btn_FavoritesShare_Clicked" />
+                <ui:MyIconTextButton x:Name="Btn_FavoritesDownload"
+                                     Text="{loc:Loc Download.Comp.Favorites.Download}"
+                                     LogoScale="1"
+                                     IsEnabled="{Binding IsBulkDownloadEnabled}"
+                                     SvgIcon="lucide/download"
+                                     Click="Btn_FavoritesDownload_Clicked" />
+                <ui:MyIconTextButton x:Name="Btn_SelectCancel"
+                                     Text="{loc:Loc Download.Comp.Favorites.Deselect}"
+                                     LogoScale="0.8"
+                                     SvgIcon="lucide/download"
+                                     Click="Btn_SelectCancel_Clicked" />
+            </StackPanel>
+        </ui:MyCard>
+        <ui:MyCard x:Name="PanLoad"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Margin="40,50"
+                   IsVisible="False"
+                   UseAnimation="False">
+            <ui:MyLoading x:Name="Load"
+                          Margin="20,20,20,17"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center"
+                          Text="{loc:Loc Download.Comp.Favorites.Loading}"
+                          AutoRun="False" />
+        </ui:MyCard>
+    </Grid>
+</ui:MyPageRight>

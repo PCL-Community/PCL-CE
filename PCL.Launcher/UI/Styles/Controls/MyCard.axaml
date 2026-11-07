@@ -1,0 +1,12 @@
+<!--
+    MyCard 的视觉（阴影层 / 背景层 / 标题层）由控件自身在代码中建立，
+    这里只保留样式层的默认值覆盖入口。
+-->
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="using:PCL.UI.Controls">
+    <Style Selector="ui|MyCard">
+        <Setter Property="ClipToBounds"
+                Value="False" />
+    </Style>
+</Styles>

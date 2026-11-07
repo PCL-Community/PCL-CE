@@ -1,8 +1,10 @@
+using System;
+using System.Diagnostics;
 using PCL.Core.App.IoC;
 using PCL.Core.App.Localization;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils;
-using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -19,6 +21,12 @@ public sealed partial class DependencyCheckService
     {
         Context.Info(Lang.Text("Tools.Test.Dependency.Checking"));
 
+        if (!OperatingSystem.IsWindows())
+        {
+            Context.Debug("当前平台不支持应用商店依赖检查，已跳过");
+            return;
+        }
+
         if (RuntimeInformation.OSArchitecture.Equals(Architecture.Arm64))
             await _CheckAndAskAsync(
                     "Microsoft.D3DMappingLayers",
@@ -33,37 +41,36 @@ public sealed partial class DependencyCheckService
             .ConfigureAwait(false);
     }
 
-    private static async Task _CheckAndAskAsync(string packageId, string packageName, string storeId)
+    private static async Task _CheckAndAskAsync(
+        string packageId,
+        string packageName,
+        string storeId)
     {
         if (!await _CheckPackageAsync(packageId))
         {
             Context.Info($"检测到依赖缺失 (package-id = {packageId})");
-            //var selection = MsgBoxWrapper.Show(
-            //    Lang.Text("Tools.Test.Dependency.MissingMessage", packageName),
-            //    buttons: [Lang.Text("Common.Action.Confirm"), Lang.Text("Tools.Test.Dependency.Later")]);
-
-            var selection = DialogService.Instance.Show(new TextDialogRequest
+            var result = await DialogService.Instance.ShowAsync(new TextDialogRequest
             {
                 Title = Lang.Text("Tools.Test.Dependency.MissingTitle"),
                 Content = Lang.Text("Tools.Test.Dependency.MissingMessage", packageName),
                 Buttons = DialogButtons.From(
                     DialogButton.Create(Lang.Text("Common.Action.Confirm")),
                     DialogButton.Create(Lang.Text("Tools.Test.Dependency.Later")))
-            }).Result?.Button ?? 0;
-
-            if (selection == 1) _LaunchMsStore(storeId);
+            }).ConfigureAwait(false);
+            if (result.Button == 1) _LaunchMsStore(storeId);
         }
     }
 
     private static void _LaunchMsStore(string id)
     {
         Context.Info($"正在打开微软应用商店 (id = {id})");
-        var psi = new ProcessStartInfo()
+        var psi = new ProcessStartInfo
         {
             FileName = $"ms-windows-store://pdp?launch=true&productid={id}&mode=full",
             UseShellExecute = true
         };
-        using var ps = new Process() { StartInfo = psi };
+        using var ps = new Process();
+        ps.StartInfo = psi;
         ps.Start();
     }
 
@@ -71,7 +78,7 @@ public sealed partial class DependencyCheckService
     {
         var command = $"Get-AppxPackage -Name *{id}* | ConvertTo-Json";
 
-        var psi = new ProcessStartInfo()
+        var psi = new ProcessStartInfo
         {
             FileName = "powershell.exe",
             Arguments = $"-NoProfile -Command \"{command}\"",
@@ -81,14 +88,18 @@ public sealed partial class DependencyCheckService
             CreateNoWindow = true
         };
 
-        using var ps = new Process() { StartInfo = psi };
+        using var ps = new Process();
+        ps.StartInfo = psi;
         ps.Start();
 
         JsonNode? jnode;
         try
         {
             // ConvertTo-Json 结构不一定可靠，不太能 Serialize
-            jnode = await JsonNode.ParseAsync(ps.StandardOutput.BaseStream, JsonCompat.NodeOptions, JsonCompat.DocumentOptions);
+            jnode = await JsonNode.ParseAsync(
+                ps.StandardOutput.BaseStream,
+                JsonCompat.NodeOptions,
+                JsonCompat.DocumentOptions);
         }
         catch
         {
@@ -96,30 +107,14 @@ public sealed partial class DependencyCheckService
         }
 
         if (jnode is null) return false;
-        if (jnode.GetValueKind().Equals(JsonValueKind.Array))
-        {
-            var hasPack = false;
-            foreach (var node in jnode.AsArray())
-            {
-                if (node is not null && CheckPackSuit(node, id))
-                {
-                    hasPack = true;
-                    break;
-                }
-
-            }
-
-            return hasPack;
-        }
-        else
-        {
-            return CheckPackSuit(jnode, id);
-        }
+        return jnode.GetValueKind().Equals(JsonValueKind.Array)
+            ? jnode.AsArray().OfType<JsonNode>().Any(node => CheckPackSuit(node, id))
+            : CheckPackSuit(jnode, id);
 
         // 检查当前的 JsonNode 下是否是符合的包
         static bool CheckPackSuit(JsonNode jnode, string id)
         {
-            var findedPackName = JsonCompat.ToObject<string>(jnode["Name"]);
+            var findedPackName = jnode[nameof(Name)].ToObject<string>();
             return findedPackName is not null && findedPackName.Contains(id);
         }
     }

@@ -1,10 +1,25 @@
-﻿using PCL.Core.Utils.OS;
+﻿using System.Runtime.InteropServices;
+using PCL.Core.Utils.OS;
 
 namespace PCL;
 
 public static partial class Libraries
 {
     private static readonly string OsVersion = Environment.OSVersion.Version.ToString();
+
+    /// <summary>
+    ///     当前平台在 JSON 的 natives 对象中对应的系统键（macOS 写作 osx）。
+    /// </summary>
+    private static readonly string[] McNativesOsNames =
+        OperatingSystem.IsWindows() ? ["windows"]
+        : OperatingSystem.IsMacOS() ? ["osx", "macos"]
+        : ["linux"];
+
+    /// <summary>
+    ///     当前平台与架构对应的 Natives classifier 名称，按优先级排列。
+    ///     Windows 保持既有行为，仅识别 natives-windows。
+    /// </summary>
+    private static readonly string[] McNativeClassifierNames = _GetMcNativeClassifierNames();
 
     /// <summary>
     ///     检查是否符合 JSON 中的 Rules。
@@ -53,20 +68,68 @@ public static partial class Libraries
                 case "unknown":
                     break;
                 case "windows":
+                    result = OperatingSystem.IsWindows();
+                    if (!result)
+                        break;
                     var osVersionNode = os["version"];
                     if (osVersionNode is not null)
                         result = OsVersion.RegexCheck(osVersionNode.ToString());
                     break;
                 default:
-                    result = false;
+                    result = osName switch
+                    {
+                        "linux" => OperatingSystem.IsLinux(),
+                        "osx" or "macos" => OperatingSystem.IsMacOS(),
+                        _ => false
+                    };
                     break;
             }
         }
 
         var archNode = os["arch"];
         if (archNode is not null)
-            result = result && archNode.ToString() == "x86" == SystemInfo.Is32BitSystem;
+            result = result && _IsRuleArchMatch(archNode.ToString());
         return result;
+    }
+
+    /// <summary>
+    ///     检查 value 是否符合当前平台架构（x86 / x86_64 / arm64）。
+    /// </summary>
+    private static bool _IsRuleArchMatch(string arch)
+    {
+        if (OperatingSystem.IsWindows())
+            return arch == "x86" == SystemInfo.Is32BitSystem;
+
+        var osArch = RuntimeInformation.OSArchitecture;
+        return arch switch
+        {
+            "x86" => osArch is Architecture.X86,
+            "x86_64" or "amd64" or "x64" => osArch is Architecture.X64,
+            "arm64" or "aarch64" => osArch is Architecture.Arm64,
+            "arm" => osArch is Architecture.Arm or Architecture.Armv6,
+            _ => arch == "x86" == SystemInfo.Is32BitSystem
+        };
+    }
+
+    /// <summary>
+    ///     当前平台的 Natives classifier 优先级清单。
+    /// </summary>
+    private static string[] _GetMcNativeClassifierNames()
+    {
+        if (OperatingSystem.IsWindows())
+            return ["natives-windows"];
+
+        if (OperatingSystem.IsMacOS())
+            return RuntimeInformation.OSArchitecture is Architecture.Arm64
+                ? ["natives-macos-arm64", "natives-macos", "natives-osx"]
+                : ["natives-macos", "natives-osx", "natives-macos-x86_64"];
+
+        return RuntimeInformation.OSArchitecture switch
+        {
+            Architecture.Arm64 => ["natives-linux", "natives-linux-arm64", "natives-linux-aarch64"],
+            Architecture.X86 => ["natives-linux", "natives-linux-32"],
+            _ => ["natives-linux", "natives-linux-64", "natives-linux-amd64"]
+        };
     }
 
     private static bool _IsRuleFeaturesMatch(JsonNode? features)
@@ -176,7 +239,7 @@ public static partial class Libraries
                         false,
                         true,
                         customMcFolder)
-                    .Replace(@"\", "/");
+                    .Replace(Path.DirectorySeparatorChar, '/');
 
             var hint = library["hint"]?.ToString();
             var isLocal = hint is not null && hint == "local";
@@ -193,7 +256,7 @@ public static partial class Libraries
                 if (token is not null)
                     basicArray.Add(token);
             }
-            else if (library["natives"]?["windows"] is { } windows)
+            else if (_GetMcLibNativesValue(library) is { } nativeName)
             {
                 var token = _BuildMcLibNativeToken(
                     library,
@@ -201,7 +264,7 @@ public static partial class Libraries
                     rootUrl,
                     isLocal,
                     customMcFolder,
-                    windows.ToString());
+                    nativeName.ToString());
                 if (token is not null)
                     basicArray.Add(token);
             }
@@ -230,8 +293,10 @@ public static partial class Libraries
     {
         string localPath;
         if (isLocal && targetMcInstance is not null)
-            localPath =
-                $@"{targetMcInstance.PathInstance}libraries\{name.AfterFirst(":").Replace(":", "-")}.jar";
+            localPath = Path.Combine(
+                targetMcInstance.PathInstance,
+                "libraries",
+                $"{name.AfterFirst(":").Replace(":", "-")}.jar");
         else
             localPath = McLibGet(name, customMcFolder: customMcFolder);
 
@@ -286,6 +351,36 @@ public static partial class Libraries
         }
     }
 
+    /// <summary>
+    ///     按当前平台从 JSON 的 natives 对象中取 Natives 名称，例如 linux 对应 "natives-linux"。
+    /// </summary>
+    private static JsonNode? _GetMcLibNativesValue(JsonObject library)
+    {
+        var natives = library["natives"];
+        if (natives is null)
+            return null;
+
+        foreach (var osName in McNativesOsNames)
+            if (natives[osName] is { } nativeName)
+                return nativeName;
+        return null;
+    }
+
+    /// <summary>
+    ///     按当前平台与架构从 JSON 的 downloads.classifiers 中选择 Natives 条目。
+    /// </summary>
+    private static JsonNode? _GetMcLibNativeClassifier(JsonObject library)
+    {
+        var classifiers = library["downloads"]?["classifiers"];
+        if (classifiers is null)
+            return null;
+
+        foreach (var classifierName in McNativeClassifierNames)
+            if (classifiers[classifierName] is { } classifier)
+                return classifier;
+        return null;
+    }
+
     private static McLibToken? _BuildMcLibNativeToken(
         JsonObject library,
         string name,
@@ -294,26 +389,25 @@ public static partial class Libraries
         string customMcFolder,
         string nativeName)
     {
-        var classifiers = library["downloads"]?["classifiers"];
-        var nativesWindows = classifiers?["natives-windows"];
-        var nativePath = nativesWindows?["path"];
+        var nativeArtifact = _GetMcLibNativeClassifier(library);
+        var nativePath = nativeArtifact?["path"];
         var fallbackPath = McLibGet(name, customMcFolder: customMcFolder)
             .Replace(".jar", $"-{nativeName}.jar")
             .Replace("${arch}", Environment.Is64BitOperatingSystem ? "64" : "32");
         try
         {
-            if (nativesWindows is not null)
+            if (nativeArtifact is not null)
                 return new McLibToken
                 {
                     OriginalName = name,
-                    Url = rootUrl ?? (string?)nativesWindows["url"],
+                    Url = rootUrl ?? (string?)nativeArtifact["url"],
                     LocalPath = nativePath is null
                         ? fallbackPath
                         : McLibGetByArtifactPath(nativePath.ToString(), customMcFolder),
                     size = (long)Math.Round(
-                        LauncherText.Val(nativesWindows["size"]?.ToString() ?? "0")),
+                        LauncherText.Val(nativeArtifact["size"]?.ToString() ?? "0")),
                     IsNatives = true,
-                    Sha1 = nativesWindows["sha1"]?.ToString(),
+                    Sha1 = nativeArtifact["sha1"]?.ToString(),
                     IsLocal = isLocal
                 };
 

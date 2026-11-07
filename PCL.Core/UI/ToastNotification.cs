@@ -1,6 +1,8 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Security;
+using PCL.Core.Logging;
+using PCL.Core.Platform;
 using PCL.Core.Utils.OS;
 using PCL.Core.Utils.WinRT;
 using PCL.Core.Utils.WinRT.Interface;
@@ -18,6 +20,16 @@ public static class ToastNotification
     /// <param name="title">通知标题</param>
     public static void SendToast(string message, string title = "Notice")
     {
+        if (!OperatingSystem.IsWindows())
+        {
+            var service = PlatformServices.Notification;
+            if (service is { IsAvailable: true })
+                service.Show(title, message);
+            else
+                LogWrapper.Warn("UI", $"当前平台没有可用通知实现，丢弃通知：{title} - {message}");
+            return;
+        }
+
         var xml = $"""
                    <toast>
                        <visual>
@@ -38,6 +50,9 @@ public static class ToastNotification
     /// <param name="xml">Toast 模板</param>
     public static unsafe void SendToastFromTemplate(string xml)
     {
+        // Toast 基于 WinRT COM 接口，仅 Windows 提供
+        if (!OperatingSystem.IsWindows()) return;
+
         // 定义 Toast 模板
         var toastXml = HStringHelper.ToHString(xml);
 

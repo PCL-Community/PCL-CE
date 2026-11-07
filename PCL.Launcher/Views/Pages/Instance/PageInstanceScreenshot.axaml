@@ -1,0 +1,89 @@
+<ui:MyPageRight xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:ui="using:PCL.UI.Controls"
+                xmlns:loc="using:PCL.Core.UI"
+                x:Class="PCL.Views.Pages.Instance.PageInstanceScreenshot"
+                x:CompileBindings="False">
+    <Grid>
+        <ui:MyScrollViewer x:Name="PanBack"
+                           HorizontalScrollBarVisibility="Disabled"
+                           VerticalScrollBarVisibility="Auto">
+            <Grid>
+                <ui:MyCard x:Name="PanNoPic"
+                           Margin="40"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           IsVisible="{Binding ShowContent, Converter={x:Static BoolConverters.Not}}">
+                    <Grid Margin="20,17"
+                          RowDefinitions="Auto,Auto,Auto,Auto"
+                          ColumnDefinitions="*,Auto,Auto,*">
+                        <TextBlock Grid.Row="0"
+                                   Grid.ColumnSpan="4"
+                                   Margin="0,0,0,9"
+                                   HorizontalAlignment="Center"
+                                   FontSize="19"
+                                   Foreground="{DynamicResource ColorBrush3}"
+                                   Text="{loc:Loc Instance.Screenshot.Empty.Title}" />
+                        <Rectangle Grid.Row="1"
+                                   Grid.ColumnSpan="4"
+                                   Height="2"
+                                   HorizontalAlignment="Stretch"
+                                   Fill="{DynamicResource ColorBrush3}" />
+                        <TextBlock Grid.Row="2"
+                                   Grid.ColumnSpan="4"
+                                   Margin="10,15,10,5"
+                                   Text="{loc:Loc Instance.Screenshot.Empty.Message}"
+                                   TextWrapping="Wrap" />
+                        <ui:MyButton x:Name="BtnOpenFolderTop"
+                                     Grid.Row="3"
+                                     Grid.Column="1"
+                                     Height="35"
+                                     MinWidth="140"
+                                     Margin="10,10,10,0"
+                                     Padding="13,0"
+                                     HorizontalAlignment="Center"
+                                     ColorType="Highlight"
+                                     Text="{loc:Loc Instance.Screenshot.OpenFolder}" />
+                    </Grid>
+                </ui:MyCard>
+
+                <StackPanel x:Name="PanContent"
+                            Margin="10,25,10,10"
+                            Orientation="Vertical"
+                            IsVisible="{Binding ShowContent}">
+                    <ui:MyCard Margin="15,0,15,15"
+                               Title="{loc:Loc Instance.Screenshot.QuickActions}">
+                        <Grid Height="35"
+                              Margin="25,40,15,20"
+                              ColumnDefinitions="Auto,Auto">
+                            <ui:MyButton x:Name="BtnOpenFolder"
+                                         Grid.Column="0"
+                                         MinWidth="140"
+                                         Margin="0,0,20,0"
+                                         Padding="13,0"
+                                         HorizontalAlignment="Left"
+                                         ColorType="Highlight"
+                                         Text="{loc:Loc Instance.Screenshot.OpenFolder}" />
+                        </Grid>
+                    </ui:MyCard>
+                    <WrapPanel x:Name="PanScreenshots"
+                               Margin="8,0,8,25"
+                               HorizontalAlignment="Center"
+                               Orientation="Horizontal" />
+                </StackPanel>
+            </Grid>
+        </ui:MyScrollViewer>
+
+        <ui:MyCard x:Name="PanLoad"
+                   Margin="40,50"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   UseAnimation="False"
+                   IsVisible="{Binding IsRefreshing}">
+            <ui:MyLoading x:Name="Load"
+                          Margin="20,20,20,17"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center" />
+        </ui:MyCard>
+    </Grid>
+</ui:MyPageRight>

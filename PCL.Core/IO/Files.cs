@@ -1,38 +1,41 @@
-using ICSharpCode.SharpZipLib.BZip2;
-using ICSharpCode.SharpZipLib.GZip;
-using ICSharpCode.SharpZipLib.Tar;
-using ICSharpCode.SharpZipLib.Zip;
-using PCL.Core.Logging;
-using PCL.Core.UI;
-using PCL.Core.Utils;
-using PCL.Core.Utils.Codecs;
-using PCL.Core.Utils.Exts;
-using PCL.Core.Utils.Hash;
-using PCL.Core.App.Localization;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
+using ICSharpCode.SharpZipLib.BZip2;
+using ICSharpCode.SharpZipLib.GZip;
+using ICSharpCode.SharpZipLib.Tar;
+using ICSharpCode.SharpZipLib.Zip;
 using PCL.Core.App;
+using PCL.Core.Logging;
 using PCL.Core.Platform;
+using PCL.Core.UI;
+using PCL.Core.Utils;
+using PCL.Core.Utils.Codecs;
+using PCL.Core.Utils.Exts;
+using PCL.Core.Utils.Hash;
 
 namespace PCL.Core.IO;
 
-public static class Files {
-    public static readonly JsonSerializerOptions PrettierJsonOptions = new(JsonCompat.SerializerOptions) {
-        WriteIndented = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-    };
+public static class Files
+{
+    public static readonly JsonSerializerOptions PrettierJsonOptions =
+        new(JsonCompat.SerializerOptions)
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
 
     /// <summary>
-    /// 在指定路径创建一个指向目标文件的 .lnk 快捷方式。
+    ///     在指定路径创建一个指向目标文件的快捷方式：Windows 为 .lnk，Linux 为 .desktop。
     /// </summary>
-    /// <param name="shortcut">要创建的快捷方式完整路径，建议以 ".lnk" 结尾</param>
+    /// <param name="shortcut">要创建的快捷方式完整路径，Windows 建议以 ".lnk" 结尾</param>
     /// <param name="target">被指向的目标文件或可执行程序路径</param>
     /// <param name="arguments">启动时的命令行参数</param>
     /// <param name="workingDirectory">快捷方式的起始目录</param>
@@ -45,18 +48,34 @@ public static class Files {
         string? arguments = null,
         string? workingDirectory = null,
         string? description = null,
-        string? icon = null) {
+        string? icon = null)
+    {
         if (string.IsNullOrWhiteSpace(shortcut))
             throw new ArgumentException("shortcutPath 不能为空", nameof(shortcut));
         if (string.IsNullOrWhiteSpace(target))
             throw new ArgumentException("targetFilePath 不能为空", nameof(target));
+
+        if (!OperatingSystem.IsWindows())
+        {
+            if (OperatingSystem.IsMacOS())
+                throw new PlatformNotSupportedException("macOS 暂不支持创建快捷方式");
+
+            _CreateLinuxDesktopShortcut(
+                shortcut,
+                target,
+                arguments,
+                workingDirectory,
+                description,
+                icon);
+            return;
+        }
 
         // 确保目录存在
         var dir = Path.GetDirectoryName(shortcut);
         if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
 
         // 与 WshShell 交互
-        var shellType = Type.GetTypeFromProgID("WScript.Shell", throwOnError: true)!;
+        var shellType = Type.GetTypeFromProgID("WScript.Shell", true)!;
         dynamic shell = Activator.CreateInstance(shellType)!;
         var link = shell.CreateShortcut(shortcut)!;
 
@@ -71,10 +90,87 @@ public static class Files {
         // 保存 .lnk 文件
         link.Save();
     }
-    
-    public static bool ArePathsEqual(string path1, string path2) {
-        var fullPath1 = Path.GetFullPath(path1).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-        var fullPath2 = Path.GetFullPath(path2).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+    /// <summary>在 Linux 写一个 XDG 桌面项（.desktop）。</summary>
+    [UnsupportedOSPlatform("windows")]
+    private static void _CreateLinuxDesktopShortcut(
+        string shortcut,
+        string target,
+        string? arguments,
+        string? workingDirectory,
+        string? description,
+        string? icon)
+    {
+        var desktopFile = shortcut.EndsWith(".desktop", StringComparison.OrdinalIgnoreCase)
+            ? shortcut
+            : Path.ChangeExtension(shortcut, ".desktop");
+        var desktopDir = Path.GetDirectoryName(desktopFile);
+        if (!string.IsNullOrEmpty(desktopDir)) Directory.CreateDirectory(desktopDir);
+
+        var workingDir = string.IsNullOrEmpty(workingDirectory)
+            ? Path.GetDirectoryName(target)
+            ?? Path.GetPathRoot(target) ?? Environment.CurrentDirectory
+            : workingDirectory;
+        var name = string.IsNullOrWhiteSpace(description)
+            ? Path.GetFileNameWithoutExtension(shortcut)
+            : description;
+
+        var builder = new StringBuilder();
+        builder.AppendLine("[Desktop Entry]");
+        builder.AppendLine("Type=Application");
+        builder.Append("Name=").AppendLine(_EscapeDesktopValue(name));
+        if (!string.IsNullOrWhiteSpace(description))
+            builder.Append("Comment=").AppendLine(_EscapeDesktopValue(description));
+        builder.Append("Exec=").AppendLine(_BuildDesktopExec(target, arguments));
+        builder.Append("Path=").AppendLine(_EscapeDesktopValue(workingDir));
+        if (!string.IsNullOrWhiteSpace(icon))
+        {
+            // Windows 的图标格式是 "路径,索引"，desktop 项只接受路径
+            var iconPath = icon.Split(',')[0].Trim();
+            if (iconPath.Length > 0)
+                builder.Append("Icon=").AppendLine(_EscapeDesktopValue(iconPath));
+        }
+
+        builder.AppendLine("Terminal=false");
+        File.WriteAllText(desktopFile, builder.ToString());
+        File.SetUnixFileMode(
+            desktopFile,
+            UnixFileMode.UserRead
+            | UnixFileMode.UserWrite
+            | UnixFileMode.UserExecute
+            | UnixFileMode.GroupRead
+            | UnixFileMode.GroupExecute
+            | UnixFileMode.OtherRead
+            | UnixFileMode.OtherExecute);
+        LogWrapper.Info("Files", $"已创建桌面快捷方式：{desktopFile}");
+    }
+
+    private static string _EscapeDesktopValue(string value)
+    {
+        return value.Replace('\n', ' ').Replace('\r', ' ').Trim();
+    }
+
+    private static string _BuildDesktopExec(string target, string? arguments)
+    {
+        // 按 Desktop Entry Specification 对 Exec 中的目标路径转义
+        var escaped = target
+            .Replace("\\", "\\\\")
+            .Replace("\"", "\\\"")
+            .Replace("$", "\\$")
+            .Replace("`", "\\`");
+        return string.IsNullOrWhiteSpace(arguments)
+            ? $"\"{escaped}\""
+            : $"\"{escaped}\" {arguments}";
+    }
+
+    public static bool ArePathsEqual(string path1, string path2)
+    {
+        var fullPath1 = Path
+            .GetFullPath(path1)
+            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        var fullPath2 = Path
+            .GetFullPath(path2)
+            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         return string.Equals(fullPath1, fullPath2, StringComparison.OrdinalIgnoreCase);
     }
 
@@ -85,86 +181,356 @@ public static class Files {
         string fileFilter,
         string defaultDirectory,
         string tempDirPrefix,
-        CancellationToken cancellationToken = default) {
+        CancellationToken cancellationToken = default)
+    {
         var tempDirName = $"{tempDirPrefix}.tmp";
-        var selectedPath = SystemDialogs.SelectSaveFile(dialogTitle, defaultFileName, fileFilter, defaultDirectory);
+        var selectedPath = SystemDialogs.SelectSaveFile(
+            dialogTitle,
+            defaultFileName,
+            fileFilter,
+            defaultDirectory);
 
-        if (string.IsNullOrEmpty(selectedPath)) {
-            return false;
-        }
+        if (string.IsNullOrEmpty(selectedPath)) return false;
 
-        try {
+        try
+        {
             Directory.CreateDirectory(tempDirName);
 
-            if (File.Exists(selectedPath)) {
+            if (File.Exists(selectedPath))
+            {
                 File.Delete(selectedPath);
                 LogWrapper.Info("Files", $"删除已有文件：{selectedPath}");
             }
 
-            await using var fileStream = new FileStream(selectedPath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true);
+            await using var fileStream = new FileStream(
+                selectedPath,
+                FileMode.Create,
+                FileAccess.Write,
+                FileShare.None,
+                4096,
+                true);
             await using var zipStream = new ZipOutputStream(fileStream);
-            foreach (var item in sourceFiles) {
+            foreach (var item in sourceFiles)
+            {
                 cancellationToken.ThrowIfCancellationRequested();
                 var itemFileName = Path.GetFileName(item);
                 var tempPath = Path.Combine(tempDirName, itemFileName);
 
                 await CopyFileAsync(item, tempPath, cancellationToken);
-                await using (var sourceStream = new FileStream(tempPath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, true)) {
+                await using (var sourceStream = new FileStream(
+                                 tempPath,
+                                 FileMode.Open,
+                                 FileAccess.Read,
+                                 FileShare.Read,
+                                 4096,
+                                 true))
+                {
                     var entry = new ZipEntry(itemFileName);
                     await zipStream.PutNextEntryAsync(entry, cancellationToken);
                     await sourceStream.CopyToAsync(zipStream, cancellationToken);
                 }
+
                 File.Delete(tempPath);
             }
+
             await zipStream.FinishAsync(cancellationToken);
             LogWrapper.Info("Files", $"导出 Zip 成功：{selectedPath}");
 
             return true;
-        } catch (Exception ex) {
+        }
+        catch (Exception ex)
+        {
             LogWrapper.Warn(ex, "Log", "导出 Zip 失败");
             return false;
-        } finally {
-            if (Directory.Exists(tempDirName)) {
+        }
+        finally
+        {
+            if (Directory.Exists(tempDirName))
+            {
                 Directory.Delete(tempDirName, true);
                 LogWrapper.Debug("Log", $"清理临时文件夹：{tempDirName}");
             }
         }
     }
 
+    /// <summary>
+    ///     从剪切板粘贴文件或文件夹
+    /// </summary>
+    /// <param name="dest">目标文件夹</param>
+    /// <param name="copyFile">是否粘贴文件</param>
+    /// <param name="copyDir">是否粘贴文件夹</param>
+    /// <returns>总共粘贴的数量</returns>
+    public static async Task<int> PasteFromClipboardAsync(
+        string dest,
+        bool copyFile,
+        bool copyDir,
+        bool skipExisting = false)
+    {
+        if (string.IsNullOrEmpty(dest))
+            throw new ArgumentException(
+                "Destination folder cannot be null or empty.",
+                nameof(dest));
+
+        if (!Directory.Exists(dest)) Directory.CreateDirectory(dest);
+
+        var paths = PlatformServices.Clipboard?.GetFileDropList();
+        if (paths is null || paths.Length == 0) return 0;
+
+        var count = 0;
+        foreach (var path in paths)
+            if (File.Exists(path) && copyFile)
+            {
+                var targetPath = Path.Combine(dest, Path.GetFileName(path));
+                if (skipExisting && File.Exists(targetPath)) continue;
+                await CopyFileAsync(path, targetPath);
+                count++;
+            }
+            else if (Directory.Exists(path) && copyDir)
+            {
+                var targetDir = Path.Combine(dest, new DirectoryInfo(path).Name);
+                if (skipExisting && Directory.Exists(targetDir)) continue;
+                await CopyDirectoryAsync(path, targetDir);
+                count++;
+            }
+
+        return count;
+    }
+
+    /// <summary>
+    ///     合并两个 JSON 对象，源 JSON 覆盖目标 JSON 的同名键，数组去重合并。
+    /// </summary>
+    /// <param name="target">目标 JSON 对象。</param>
+    /// <param name="source">源 JSON 对象，优先级高于目标对象。</param>
+    /// <returns>合并后的 JSON 对象。如果输入无效，返回源或目标的深拷贝。</returns>
+    /// <exception cref="ArgumentNullException">如果 target 和 source 均为 null，则抛出异常。</exception>
+    public static JsonNode MergeJson(JsonNode target, JsonNode source)
+    {
+        if (target is null && source is null)
+            throw new ArgumentNullException(nameof(target), "目标和源 JSON 不能同时为 null。");
+
+        if (target is null) return source.DeepClone();
+
+        if (target is not JsonObject targetObj || source is not JsonObject sourceObj)
+            // 如果源是对象，优先返回源的深拷贝；否则返回目标的深拷贝
+            return source.DeepClone();
+
+        var result = (JsonObject)targetObj.DeepClone(); // 克隆以避免修改原始对象
+
+        foreach (var (key, sourceValue) in sourceObj)
+        {
+            var targetValue = result[key];
+
+            if (sourceValue is null)
+                // 忽略 null 值，保留目标值
+                continue;
+
+            if (sourceValue is JsonObject && targetValue is JsonObject)
+            {
+                // 递归合并嵌套对象
+                result[key] = MergeJson(targetValue, sourceValue);
+            }
+            else if (sourceValue is JsonArray sourceArray && targetValue is JsonArray targetArray)
+            {
+                // 合并数组并去重
+                var uniqueValues = new HashSet<string>(StringComparer.Ordinal);
+                JsonArray mergedArray = [];
+
+                // 添加目标数组元素
+                foreach (var item in targetArray)
+                {
+                    if (item is null) continue;
+
+                    var itemStr = item.ToJsonString();
+                    if (uniqueValues.Add(itemStr)) mergedArray.Add(item.DeepClone());
+                }
+
+                // 添加源数组元素（源覆盖目标）
+                foreach (var item in sourceArray)
+                {
+                    if (item is null) continue;
+
+                    var itemStr = item.ToJsonString();
+                    if (uniqueValues.Add(itemStr)) mergedArray.Add(item.DeepClone());
+                }
+
+                result[key] = mergedArray;
+            }
+            else
+            {
+                // 直接覆盖（包括简单值、数组替换或其他类型）
+                result[key] = sourceValue.DeepClone();
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    ///     检查文件。若成功则返回 null，失败则返回错误的描述文本，描述文本不以句号结尾。不会抛出错误。
+    /// </summary>
+    public static async Task<string?> CheckAsync(
+        string localPath,
+        long minSize = -1,
+        long actualSize = -1,
+        string? hash = null,
+        bool isJson = false)
+    {
+        try
+        {
+            LogWrapper.Debug("Checker", $"开始校验文件 {localPath}");
+            var info = new FileInfo(localPath);
+            if (!info.Exists) return $"文件不存在：{localPath}";
+
+            var fileSize = info.Length;
+            var errors = new StringBuilder();
+            var allowSizeMismatch = false; // 允许相信哈希正确但是大小不正确
+
+            if (!string.IsNullOrEmpty(hash))
+            {
+                var computedHash = hash.Length switch
+                {
+                    < 35 => await GetFileMD5Async(localPath), // MD5
+                    64 => await GetFileSHA256Async(localPath), // SHA256
+                    _ => await GetFileSHA1Async(localPath) // SHA1 (40)
+                };
+
+                if (!string.Equals(hash, computedHash, StringComparison.OrdinalIgnoreCase))
+                {
+                    var hashType = hash.Length switch
+                    {
+                        < 35 => "MD5",
+                        64 => "SHA256",
+                        _ => "SHA1"
+                    };
+                    errors.AppendLine($"文件 {hashType} 应为 {hash}，实际为 {computedHash}");
+                }
+                else
+                {
+                    allowSizeMismatch = true;
+                }
+            }
+
+            // 检查实际大小
+            if (actualSize >= 0 && actualSize != fileSize && !allowSizeMismatch)
+            {
+                var contentPreview =
+                    fileSize < 2000 ? await ReadAllTextOrEmptyAsync(localPath) : "";
+                errors.AppendLine(
+                    $"文件大小应为 {actualSize} B，实际为 {fileSize} B"
+                    + (string.IsNullOrEmpty(contentPreview) ? "" : $"，内容为 {contentPreview}"));
+            }
+
+            // 检查最小大小
+            if (minSize >= 0 && minSize > fileSize)
+            {
+                var contentPreview =
+                    fileSize < 2000 ? await ReadAllTextOrEmptyAsync(localPath) : "";
+                errors.AppendLine(
+                    $"文件大小应大于 {minSize} B，实际为 {fileSize} B"
+                    + (string.IsNullOrEmpty(contentPreview) ? "" : $"，内容为 {contentPreview}"));
+            }
+
+            // JSON 检查
+            if (isJson)
+            {
+                var content = await ReadAllTextOrEmptyAsync(localPath);
+                if (string.IsNullOrEmpty(content)) throw new Exception("读取到的文件为空");
+                try
+                {
+                    using var document = JsonDocument.Parse(content, JsonCompat.DocumentOptions);
+                    // 简单验证 JSON 有效性
+                }
+                catch (JsonException ex)
+                {
+                    throw new InvalidJsonException(ex);
+                }
+            }
+
+            if (errors.Length <= 0) return null;
+
+            errors.Insert(0, $"实际校验地址：{localPath}\n");
+            return errors.ToString().TrimEnd();
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Warn("Checker", $"检查文件出错: {ex}");
+            return ex.ToString();
+        }
+    }
+
+    /// <summary>
+    ///     检查指定路径是否在指定文件夹中
+    /// </summary>
+    /// <param name="childPath">预检查路径</param>
+    /// <param name="baseDirectory">应存在文件夹</param>
+    /// <returns></returns>
+    public static bool IsPathWithinDirectory(string childPath, string baseDirectory)
+    {
+        var baseDir = Path.GetFullPath(baseDirectory);
+        var child = Path.GetFullPath(childPath);
+
+        return child.StartsWith(
+            baseDir.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar,
+            RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? StringComparison.OrdinalIgnoreCase
+                : StringComparison.Ordinal
+        );
+    }
+
     #region 异步文件操作
 
     /// <summary>
-    /// 复制文件，自动创建目标目录并覆盖已有文件。
+    ///     复制文件，自动创建目标目录并覆盖已有文件。
     /// </summary>
     /// <param name="fromPath">源文件路径（完整或相对）</param>
     /// <param name="toPath">目标文件路径（完整或相对）</param>
     /// <param name="cancelToken">取消令牌</param>
     /// <exception cref="IOException">复制失败时抛出</exception>
-    public static async Task CopyFileAsync(string fromPath, string toPath, CancellationToken cancelToken = default) {
-        try {
+    public static async Task CopyFileAsync(
+        string fromPath,
+        string toPath,
+        CancellationToken cancelToken = default)
+    {
+        try
+        {
             var fullFromPath = GetFullPath(fromPath);
             var fullToPath = GetFullPath(toPath);
             if (fullFromPath == fullToPath) return;
 
             var directoryName = Path.GetDirectoryName(fullToPath);
-            if (directoryName is null) {
-                throw new InvalidOperationException("无法获取目标目录");
-            }
+            if (directoryName is null) throw new InvalidOperationException("无法获取目标目录");
+
             Directory.CreateDirectory(directoryName);
 
             // 使用异步流复制
             const int bufferSize = 4096;
-            await using var sourceStream = new FileStream(fullFromPath, FileMode.Open, FileAccess.Read,
-                FileShare.ReadWrite, bufferSize, FileOptions.Asynchronous | FileOptions.SequentialScan);
-            await using var destinationStream = new FileStream(fullToPath, FileMode.Create, FileAccess.Write,
-                FileShare.Read, bufferSize, FileOptions.Asynchronous);
+            await using var sourceStream = new FileStream(
+                fullFromPath,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.ReadWrite,
+                bufferSize,
+                FileOptions.Asynchronous | FileOptions.SequentialScan);
+            await using var destinationStream = new FileStream(
+                fullToPath,
+                FileMode.Create,
+                FileAccess.Write,
+                FileShare.Read,
+                bufferSize,
+                FileOptions.Asynchronous);
             await sourceStream.CopyToAsync(destinationStream, cancelToken);
-        } catch (Exception ex) {
+        }
+        catch (Exception ex)
+        {
             throw new IOException($"复制文件出错：{fromPath} -> {toPath}", ex);
         }
     }
 
-    public static async Task CopyDirectoryAsync(string sourceDir, string destDir, CancellationToken cancelToken = default) {
+    public static async Task CopyDirectoryAsync(
+        string sourceDir,
+        string destDir,
+        CancellationToken cancelToken = default)
+    {
         Directory.CreateDirectory(destDir);
 
         // 获取所有文件和子目录
@@ -172,72 +538,99 @@ public static class Files {
         var directories = Directory.GetDirectories(sourceDir);
 
         // 限制并行度，防止资源耗尽
-        var parallelOptions = new ParallelOptions {
+        var parallelOptions = new ParallelOptions
+        {
             MaxDegreeOfParallelism = Math.Max(2, Environment.ProcessorCount),
             CancellationToken = cancelToken
         };
 
         // 并行复制文件
-        await Parallel.ForEachAsync(files, parallelOptions, async (file, ct) => {
-            var destFile = Path.Combine(destDir, Path.GetFileName(file));
-            await CopyFileAsync(file, destFile, ct);
-        });
+        await Parallel.ForEachAsync(
+            files,
+            parallelOptions,
+            async (file, ct) =>
+            {
+                var destFile = Path.Combine(destDir, Path.GetFileName(file));
+                await CopyFileAsync(file, destFile, ct);
+            });
 
         // 并行处理子目录
-        await Parallel.ForEachAsync(directories, parallelOptions, async (subDir, ct) => {
-            var destSubDir = Path.Combine(destDir, Path.GetFileName(subDir));
-            await CopyDirectoryAsync(subDir, destSubDir, ct);
-        });
+        await Parallel.ForEachAsync(
+            directories,
+            parallelOptions,
+            async (subDir, ct) =>
+            {
+                var destSubDir = Path.Combine(destDir, Path.GetFileName(subDir));
+                await CopyDirectoryAsync(subDir, destSubDir, ct);
+            });
     }
 
     /// <summary>
-    /// 读取文件为字节数组，支持读取被占用的文件。
+    ///     读取文件为字节数组，支持读取被占用的文件。
     /// </summary>
     /// <param name="filePath">文件路径（完整或相对）</param>
     /// <param name="cancelToken">取消令牌</param>
     /// <returns>文件内容的字节数组，失败时返回空数组</returns>
-    public static async Task<byte[]> ReadAllBytesOrEmptyAsync(string filePath, CancellationToken cancelToken = default) {
-        try {
+    public static async Task<byte[]> ReadAllBytesOrEmptyAsync(
+        string filePath,
+        CancellationToken cancelToken = default)
+    {
+        try
+        {
             var fullPath = GetFullPath(filePath);
-            if (File.Exists(fullPath)) {
+            if (File.Exists(fullPath))
                 // 使用 ReadAllBytesAsync
                 return await File.ReadAllBytesAsync(fullPath, cancelToken);
-            }
+
             throw new FileNotFoundException(fullPath);
-        } catch (Exception ex) {
+        }
+        catch (Exception ex)
+        {
             LogWrapper.Warn(ex, $"读取文件出错：{filePath}");
             return [];
         }
     }
 
     /// <summary>
-    /// 读取文件为字符串。
+    ///     读取文件为字符串。
     /// </summary>
     /// <param name="filePath">文件路径（完整或相对）</param>
     /// <param name="encoding">文件编码，默认为 UTF-8</param>
     /// <param name="cancelToken">取消令牌</param>
     /// <returns>文件内容的字符串，失败时返回空字符串</returns>
-    public static async Task<string> ReadAllTextOrEmptyAsync(string filePath, Encoding? encoding = null, CancellationToken cancelToken = default) {
-        try {
+    public static async Task<string> ReadAllTextOrEmptyAsync(
+        string filePath,
+        Encoding? encoding = null,
+        CancellationToken cancelToken = default)
+    {
+        try
+        {
             var fullPath = GetFullPath(filePath);
             if (!File.Exists(fullPath)) throw new FileNotFoundException(fullPath);
             if (encoding is null) return await File.ReadAllTextAsync(fullPath, cancelToken);
             return await File.ReadAllTextAsync(fullPath, encoding, cancelToken);
-        } catch (Exception ex) {
+        }
+        catch (Exception ex)
+        {
             LogWrapper.Warn(ex, $"读取文件出错：{filePath}");
             return "";
         }
     }
 
     /// <summary>
-    /// 从流中读取所有文本。
+    ///     从流中读取所有文本。
     /// </summary>
     /// <param name="stream">要读取的流</param>
     /// <param name="encoding">文件编码（可选，若为 null 则动态检测）</param>
     /// <param name="cancelToken">取消令牌</param>
     /// <returns>流内容的字符串，失败时返回空字符串</returns>
-    public static async Task<string> ReadAllTextOrEmptyAsync(Stream stream, Encoding? encoding = null, CancellationToken cancelToken = default) {
-        try {
+    public static async Task<string> ReadAllTextOrEmptyAsync(
+        Stream stream,
+        Encoding? encoding = null,
+        CancellationToken cancelToken = default)
+    {
+        try
+        {
             ArgumentNullException.ThrowIfNull(stream);
             using var memoryStream = new MemoryStream();
             await stream.CopyToAsync(memoryStream, cancelToken);
@@ -246,106 +639,153 @@ public static class Files {
             var buffer = memoryStream.GetBuffer();
             var len = (int)memoryStream.Length;
             return (encoding ?? EncodingDetector.DetectEncoding(buffer)).GetString(buffer, 0, len);
-        } catch (Exception ex) {
+        }
+        catch (Exception ex)
+        {
             LogWrapper.Warn(ex, $"读取流出错: {stream}");
             return string.Empty;
         }
     }
 
     /// <summary>
-    /// 异步读取文件到流。
+    ///     异步读取文件到流。
     /// </summary>
     /// <param name="filePath">文件路径（完整或相对）</param>
     /// <param name="cancelToken">取消令牌</param>
     /// <returns>包含文件内容的 MemoryStream，失败时返回空的 MemoryStream</returns>
-    public static async Task<MemoryStream> ReadFileToStreamOrEmptyAsync(string filePath, CancellationToken cancelToken = default) {
-        try {
+    public static async Task<MemoryStream> ReadFileToStreamOrEmptyAsync(
+        string filePath,
+        CancellationToken cancelToken = default)
+    {
+        try
+        {
             var fullPath = GetFullPath(filePath);
             if (!File.Exists(fullPath))
                 throw new FileNotFoundException(fullPath);
 
-            await using var fileStream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 4096, useAsync: true);
+            await using var fileStream = new FileStream(
+                fullPath,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.Read,
+                4096,
+                true);
             var memoryStream = new MemoryStream();
             await fileStream.CopyToAsync(memoryStream, cancelToken);
             memoryStream.Position = 0; // 重置流位置以便后续读取
             return memoryStream;
-        } catch (Exception ex) {
+        }
+        catch (Exception ex)
+        {
             LogWrapper.Warn(ex, $"读取文件到流出错：{filePath}");
             return new MemoryStream(); // 返回空的 MemoryStream
         }
     }
 
     /// <summary>
-    /// 写入字符串到文件，支持追加或覆盖，自动创建目录。
+    ///     写入字符串到文件，支持追加或覆盖，自动创建目录。
     /// </summary>
     /// <param name="filePath">文件路径（完整或相对）</param>
     /// <param name="text">要写入的文本</param>
     /// <param name="append">追加到文件（true）或覆盖（false）</param>
     /// <param name="encoding">文件编码（可选），默认智能检测</param>
     /// <param name="cancelToken">取消令牌</param>
-    public static async Task WriteFileAsync(string filePath, string text, bool append = false, Encoding? encoding = null, CancellationToken cancelToken = default) {
+    public static async Task WriteFileAsync(
+        string filePath,
+        string text,
+        bool append = false,
+        Encoding? encoding = null,
+        CancellationToken cancelToken = default)
+    {
         var fullPath = GetFullPath(filePath);
         var directoryName = Path.GetDirectoryName(fullPath);
-        if (directoryName is null) {
-            throw new InvalidOperationException("无法获取目标目录");
-        }
+        if (directoryName is null) throw new InvalidOperationException("无法获取目标目录");
+
         Directory.CreateDirectory(directoryName);
 
-        if (append) {
+        if (append)
+        {
             // 编码检测使用 stream 而不是完整读取内容以避免多余的内存占用
-            await using (var fileStream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            await using (var fileStream = new FileStream(
+                             fullPath,
+                             FileMode.Open,
+                             FileAccess.Read,
+                             FileShare.ReadWrite))
+            {
                 encoding ??= EncodingDetector.DetectEncoding(fileStream);
+            }
+
             // 注：从此处开始，编码检测使用的 stream 已经销毁
             await File.AppendAllTextAsync(fullPath, text, encoding, cancelToken);
-        } else {
+        }
+        else
+        {
             encoding ??= new UTF8Encoding(false); // 无 BOM 的 UTF-8
             await File.WriteAllTextAsync(fullPath, text, encoding, cancelToken);
         }
     }
 
     /// <summary>
-    /// 写入字节数组到文件，自动创建目录。
+    ///     写入字节数组到文件，自动创建目录。
     /// </summary>
     /// <param name="filePath">文件路径（完整或相对）</param>
     /// <param name="content">要写入的字节数组</param>
     /// <param name="append">追加到文件（true）或覆盖（false），默认为 false</param>
     /// <param name="cancelToken">取消令牌</param>
     /// <returns>一个 Task，表示异步写入操作</returns>
-    public static async Task WriteFileAsync(string filePath, byte[] content, bool append = false, CancellationToken cancelToken = default) {
+    public static async Task WriteFileAsync(
+        string filePath,
+        byte[] content,
+        bool append = false,
+        CancellationToken cancelToken = default)
+    {
         var fullPath = GetFullPath(filePath);
         var directoryName = Path.GetDirectoryName(fullPath);
-        if (directoryName is null) {
-            throw new InvalidOperationException("无法获取目标目录");
-        }
+        if (directoryName is null) throw new InvalidOperationException("无法获取目标目录");
+
         Directory.CreateDirectory(directoryName);
 
         var fileMode = append ? FileMode.Append : FileMode.Create;
-        await using var fileStream = new FileStream(fullPath, fileMode, FileAccess.Write, FileShare.Read);
+        await using var fileStream = new FileStream(
+            fullPath,
+            fileMode,
+            FileAccess.Write,
+            FileShare.Read);
         await fileStream.WriteAsync(content.AsMemory(), cancelToken);
     }
 
     /// <summary>
-    /// 将流写入文件，自动创建目录。
+    ///     将流写入文件，自动创建目录。
     /// </summary>
     /// <param name="filePath">文件路径（完整或相对）</param>
     /// <param name="stream">要写入的流</param>
     /// <param name="cancelToken">取消令牌</param>
     /// <returns>写入是否成功</returns>
-    public static async Task<bool> WriteFileAsync(string filePath, Stream? stream, CancellationToken cancelToken = default) {
+    public static async Task<bool> WriteFileAsync(
+        string filePath,
+        Stream? stream,
+        CancellationToken cancelToken = default)
+    {
         if (stream is null) return false;
-        try {
+        try
+        {
             var fullPath = GetFullPath(filePath);
             var directoryName = Path.GetDirectoryName(fullPath);
-            if (directoryName is null) {
-                throw new InvalidOperationException("无法获取目标目录");
-            }
+            if (directoryName is null) throw new InvalidOperationException("无法获取目标目录");
+
             Directory.CreateDirectory(directoryName);
 
-            await using var fileStream = new FileStream(fullPath, FileMode.Create, FileAccess.Write, FileShare.None);
+            await using var fileStream = new FileStream(
+                fullPath,
+                FileMode.Create,
+                FileAccess.Write,
+                FileShare.None);
             fileStream.SetLength(0);
             await stream.CopyToAsync(fileStream, cancelToken).ConfigureAwait(false);
             return true;
-        } catch (Exception ex) {
+        }
+        catch (Exception ex)
+        {
             LogWrapper.Warn(ex, "保存流出错");
             return false;
         }
@@ -356,43 +796,74 @@ public static class Files {
     #region 文件解压
 
     /// <summary>
-    /// 尝试根据文件后缀名判断文件种类并解压，支持 zip、gz、tar、tar.gz 和 bzip2。
-    /// 会尝试将 jar 文件以 zip 方式解压。不会清空目标目录，但会创建不存在的目录。
+    ///     尝试根据文件后缀名判断文件种类并解压，支持 zip、gz、tar、tar.gz 和 bzip2。
+    ///     会尝试将 jar 文件以 zip 方式解压。不会清空目标目录，但会创建不存在的目录。
     /// </summary>
     /// <param name="compressFilePath">压缩文件路径</param>
     /// <param name="destDirectory">目标解压目录</param>
     /// <param name="progressIncrementHandler">进度更新回调，接收 0.0 到 1.0 的进度值</param>
     /// <param name="cancellationToken">取消操作的令牌</param>
     /// <returns>异步任务。</returns>
-    /// <exception cref="ArgumentNullException">当 <paramref name="compressFilePath"/> 或 <paramref name="destDirectory"/> 为 null 或空时抛出</exception>
+    /// <exception cref="ArgumentNullException">
+    ///     当 <paramref name="compressFilePath" /> 或
+    ///     <paramref name="destDirectory" /> 为 null 或空时抛出
+    /// </exception>
     /// <exception cref="NotSupportedException">当文件格式不受支持时抛出</exception>
-    public static async Task ExtractFileAsync(string? compressFilePath, string? destDirectory, Action<double>? progressIncrementHandler = null,
-        CancellationToken cancellationToken = default) {
-        if (string.IsNullOrEmpty(compressFilePath)) {
+    public static async Task ExtractFileAsync(
+        string? compressFilePath,
+        string? destDirectory,
+        Action<double>? progressIncrementHandler = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrEmpty(compressFilePath))
+        {
             LogWrapper.Error(new ArgumentNullException(nameof(compressFilePath)), "压缩文件路径为空");
             return;
         }
 
-        if (string.IsNullOrEmpty(destDirectory)) {
+        if (string.IsNullOrEmpty(destDirectory))
+        {
             LogWrapper.Error(new ArgumentNullException(nameof(destDirectory)), "目标目录路径为空");
             return;
         }
 
-        try {
+        try
+        {
             Directory.CreateDirectory(destDirectory); // 创建目标目录（同步操作，因为通常很快且无异步版本）
 
-            if (compressFilePath.EndsWithF(".gz") || compressFilePath.EndsWithF(".tgz")) {
-                await _ExtractGZipAsync(compressFilePath, destDirectory, progressIncrementHandler, cancellationToken).ConfigureAwait(false);
-            } else if (compressFilePath.EndsWithF(".bz2")) {
-                await _ExtractBZip2Async(compressFilePath, destDirectory, progressIncrementHandler, cancellationToken).ConfigureAwait(false);
-            } else if (compressFilePath.EndsWithF(".tar")) {
-                await _ExtractTarAsync(compressFilePath, destDirectory, progressIncrementHandler, cancellationToken).ConfigureAwait(false);
-            } else if (compressFilePath.EndsWithF(".zip") || compressFilePath.EndsWithF(".jar")) {
-                await _ExtractZipAsync(compressFilePath, destDirectory, progressIncrementHandler, cancellationToken).ConfigureAwait(false);
-            } else {
+            if (compressFilePath.EndsWithF(".gz") || compressFilePath.EndsWithF(".tgz"))
+                await _ExtractGZipAsync(
+                        compressFilePath,
+                        destDirectory,
+                        progressIncrementHandler,
+                        cancellationToken)
+                    .ConfigureAwait(false);
+            else if (compressFilePath.EndsWithF(".bz2"))
+                await _ExtractBZip2Async(
+                        compressFilePath,
+                        destDirectory,
+                        progressIncrementHandler,
+                        cancellationToken)
+                    .ConfigureAwait(false);
+            else if (compressFilePath.EndsWithF(".tar"))
+                await _ExtractTarAsync(
+                        compressFilePath,
+                        destDirectory,
+                        progressIncrementHandler,
+                        cancellationToken)
+                    .ConfigureAwait(false);
+            else if (compressFilePath.EndsWithF(".zip") || compressFilePath.EndsWithF(".jar"))
+                await _ExtractZipAsync(
+                        compressFilePath,
+                        destDirectory,
+                        progressIncrementHandler,
+                        cancellationToken)
+                    .ConfigureAwait(false);
+            else
                 throw new NotSupportedException("不支持的压缩文件格式");
-            }
-        } catch (Exception ex) {
+        }
+        catch (Exception ex)
+        {
             LogWrapper.Error(ex, $"解压文件 {compressFilePath} 失败");
             throw;
         }
@@ -414,11 +885,15 @@ public static class Files {
             outputFileName = outputFileName
                 .Replace(".tar.gz", "")
                 .Replace(".tgz", "");
-        else if (outputFileName.EndsWithF(".gz")) outputFileName = outputFileName.Replace(".gz", "");
+        else if (outputFileName.EndsWithF(".gz"))
+            outputFileName = outputFileName.Replace(".gz", "");
 
         var outputPath = _GetSafePath(destDirectory, outputFileName);
 
-        await using FileStream compressedFile = new(compressFilePath, FileMode.Open, FileAccess.Read);
+        await using FileStream compressedFile = new(
+            compressFilePath,
+            FileMode.Open,
+            FileAccess.Read);
         await using GZipInputStream gzipStream = new(compressedFile);
 
         if (isTarGZip)
@@ -436,7 +911,10 @@ public static class Files {
         else
         {
             // 处理普通 .gz 文件
-            await using FileStream outputStream = new(outputPath, FileMode.Create, FileAccess.Write);
+            await using FileStream outputStream = new(
+                outputPath,
+                FileMode.Create,
+                FileAccess.Write);
 
             await gzipStream
                 .CopyToAsync(outputStream, cancellationToken)
@@ -455,13 +933,17 @@ public static class Files {
         Action<double>? progressIncrementHandler,
         CancellationToken cancellationToken)
     {
-        var outputFileName = Path.GetFileName(compressFilePath)
+        var outputFileName = Path
+            .GetFileName(compressFilePath)
             .ToLower()
             .Replace(".bz2", "");
 
         var outputPath = _GetSafePath(destDirectory, outputFileName);
 
-        await using FileStream compressedFile = new(compressFilePath, FileMode.Open, FileAccess.Read);
+        await using FileStream compressedFile = new(
+            compressFilePath,
+            FileMode.Open,
+            FileAccess.Read);
         await using BZip2InputStream bzip2Stream = new(compressedFile);
         await using FileStream outputStream = new(outputPath, FileMode.Create, FileAccess.Write);
 
@@ -481,7 +963,10 @@ public static class Files {
         Action<double>? progressIncrementHandler,
         CancellationToken cancellationToken)
     {
-        await using FileStream compressedFile = new(compressFilePath, FileMode.Open, FileAccess.Read);
+        await using FileStream compressedFile = new(
+            compressFilePath,
+            FileMode.Open,
+            FileAccess.Read);
         await using TarInputStream tarStream = new(compressedFile, Encoding.UTF8);
 
         await _ExtractTarStreamAsync(
@@ -511,7 +996,8 @@ public static class Files {
         var entries = new List<TarEntry>();
         long totalBytes = 0;
 
-        while (await _GetNextEntryAsync(tarStream, cancellationToken).ConfigureAwait(false) is { } entry)
+        while (await _GetNextEntryAsync(tarStream, cancellationToken).ConfigureAwait(false) is
+               { } entry)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -539,7 +1025,9 @@ public static class Files {
                     continue;
                 }
 
-                await _CreateDirectoryAsync(Path.GetDirectoryName(destinationPath)!, cancellationToken)
+                await _CreateDirectoryAsync(
+                        Path.GetDirectoryName(destinationPath)!,
+                        cancellationToken)
                     .ConfigureAwait(false);
 
                 if (entry.Size == 0)
@@ -548,7 +1036,10 @@ public static class Files {
                     continue;
                 }
 
-                await using FileStream outputStream = new(destinationPath, FileMode.Create, FileAccess.Write);
+                await using FileStream outputStream = new(
+                    destinationPath,
+                    FileMode.Create,
+                    FileAccess.Write);
 
                 await tarStream
                     .CopyEntryContentsAsync(outputStream, cancellationToken)
@@ -574,7 +1065,10 @@ public static class Files {
 
         var task = Task.Run(tarStream.GetNextEntry, cts.Token);
 
-        if (await Task.WhenAny(task, Task.Delay(TimeSpan.FromSeconds(10), cts.Token)).ConfigureAwait(false) == task)
+        if (await Task
+                .WhenAny(task, Task.Delay(TimeSpan.FromSeconds(10), cts.Token))
+                .ConfigureAwait(false)
+            == task)
             return await task.ConfigureAwait(false);
 
         throw new TimeoutException("Operation timed out while reading next Tar entry.");
@@ -585,9 +1079,10 @@ public static class Files {
         string entryName)
     {
         var destinationRoot =
-            Path.GetFullPath(destDirectory)
-                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) +
-            Path.DirectorySeparatorChar;
+            Path
+                .GetFullPath(destDirectory)
+                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+            + Path.DirectorySeparatorChar;
 
         var fullPath = Path.GetFullPath(Path.Combine(destinationRoot, entryName));
 
@@ -632,7 +1127,10 @@ public static class Files {
             Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
 
             await using var zipStream = zipFile.GetInputStream(entry);
-            await using FileStream outputStream = new(destinationPath, FileMode.Create, FileAccess.Write);
+            await using FileStream outputStream = new(
+                destinationPath,
+                FileMode.Create,
+                FileAccess.Write);
 
             await zipStream
                 .CopyToAsync(outputStream, cancellationToken)
@@ -648,40 +1146,55 @@ public static class Files {
     #region 文件哈希计算
 
     /// <summary>
-    /// 异步计算文件的指定哈希值。
+    ///     异步计算文件的指定哈希值。
     /// </summary>
     /// <param name="filePath">要计算哈希的文件路径</param>
     /// <param name="hashProvider">哈希算法提供者（如 MD5Provider、SHA1Provider 等）</param>
     /// <param name="ignoreIfBusy">是否忽略被占用的文件</param>
     /// <returns>哈希值（十六进制字符串），失败时返回空字符串</returns>
-    public static async Task<string> ComputeFileHashAsync(string? filePath, IHashProvider hashProvider, bool ignoreIfBusy = false) {
-        if (string.IsNullOrEmpty(filePath)) {
+    public static async Task<string> ComputeFileHashAsync(
+        string? filePath,
+        IHashProvider hashProvider,
+        bool ignoreIfBusy = false)
+    {
+        if (string.IsNullOrEmpty(filePath))
+        {
             LogWrapper.Warn(new ArgumentNullException(nameof(filePath)), "文件路径为空");
             return string.Empty;
         }
 
         // 检查文件是否被占用
-        if (ignoreIfBusy && await CheckFileBusyAsync(filePath).ConfigureAwait(false)) {
+        if (ignoreIfBusy && await CheckFileBusyAsync(filePath).ConfigureAwait(false))
             return string.Empty;
-        }
 
-        for (var attempt = 0; attempt < 2; attempt++) {
-            try {
-                using FileStream fs = new(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                return (await hashProvider.ComputeHashAsync(fs).ConfigureAwait(false)).ToHexString();
-            } catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException) {
+        for (var attempt = 0; attempt < 2; attempt++)
+            try
+            {
+                using FileStream fs = new(
+                    filePath,
+                    FileMode.Open,
+                    FileAccess.Read,
+                    FileShare.ReadWrite);
+                return (await hashProvider.ComputeHashAsync(fs).ConfigureAwait(false))
+                    .ToHexString();
+            }
+            catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
+            {
                 LogWrapper.Warn(ex, $"计算文件哈希失败：{filePath}");
                 return string.Empty;
-            } catch (Exception ex) {
-                if (attempt == 0) {
+            }
+            catch (Exception ex)
+            {
+                if (attempt == 0)
+                {
                     LogWrapper.Warn(ex, $"计算文件哈希可重试失败：{filePath}");
                     await Task.Delay(Random.Shared.Next(200, 500)).ConfigureAwait(false);
                     continue;
                 }
+
                 LogWrapper.Warn(ex, $"计算文件哈希失败：{filePath}");
                 return string.Empty;
             }
-        }
 
         return string.Empty;
     }
@@ -689,252 +1202,75 @@ public static class Files {
     // ReSharper disable InconsistentNaming
 
     /// <summary>
-    /// 异步获取文件的 MD5 哈希值。
+    ///     异步获取文件的 MD5 哈希值。
     /// </summary>
     public static Task<string> GetFileMD5Async(string? filePath)
-        => ComputeFileHashAsync(filePath, MD5Provider.Instance);
+    {
+        return ComputeFileHashAsync(filePath, MD5Provider.Instance);
+    }
 
     /// <summary>
-    /// 异步获取文件的 SHA1 哈希值。
+    ///     异步获取文件的 SHA1 哈希值。
     /// </summary>
     public static Task<string> GetFileSHA1Async(string? filePath)
-        => ComputeFileHashAsync(filePath, SHA1Provider.Instance);
+    {
+        return ComputeFileHashAsync(filePath, SHA1Provider.Instance);
+    }
 
     /// <summary>
-    /// 异步获取文件的 SHA256 哈希值。
+    ///     异步获取文件的 SHA256 哈希值。
     /// </summary>
     public static Task<string> GetFileSHA256Async(string? filePath, bool ignoreIfBusy = false)
-        => ComputeFileHashAsync(filePath, SHA256Provider.Instance, ignoreIfBusy);
+    {
+        return ComputeFileHashAsync(filePath, SHA256Provider.Instance, ignoreIfBusy);
+    }
 
     /// <summary>
-    /// 异步获取文件的 SHA512 哈希值。
+    ///     异步获取文件的 SHA512 哈希值。
     /// </summary>
     public static Task<string> GetFileSHA512Async(string? filePath, bool ignoreIfBusy = false)
-        => ComputeFileHashAsync(filePath, SHA512Provider.Instance, ignoreIfBusy);
+    {
+        return ComputeFileHashAsync(filePath, SHA512Provider.Instance, ignoreIfBusy);
+    }
 
     // ReSharper restore InconsistentNaming
 
     /// <summary>
-    /// 获取文件的完整路径。
+    ///     获取文件的完整路径。
     /// </summary>
-    public static string GetFullPath(string filePath) {
+    public static string GetFullPath(string filePath)
+    {
         ArgumentNullException.ThrowIfNull(filePath);
-        return Path.IsPathRooted(filePath) ? filePath : Path.Combine(Paths.DefaultDirectory, filePath);
+        return Path.IsPathRooted(filePath)
+            ? filePath
+            : Path.Combine(Paths.DefaultDirectory, filePath);
     }
 
     /// <summary>
-    /// 异步检查文件是否被占用。
+    ///     异步检查文件是否被占用。
     /// </summary>
     /// <returns>若被占用则为 true，否则为 false</returns>
-    public static async Task<bool> CheckFileBusyAsync(string filePath) {
-        try {
+    public static async Task<bool> CheckFileBusyAsync(string filePath)
+    {
+        try
+        {
             if (!File.Exists(filePath)) return false;
-            await using FileStream fs = new(filePath, FileMode.Open, FileAccess.ReadWrite, FileShare.Read | FileShare.Delete);
+            await using FileStream fs = new(
+                filePath,
+                FileMode.Open,
+                FileAccess.ReadWrite,
+                FileShare.Read | FileShare.Delete);
             return false;
-        } catch (IOException) { return true; } catch { return false; }
+        }
+        catch (IOException)
+        {
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     #endregion
-
-    /// <summary>
-    /// 从剪切板粘贴文件或文件夹
-    /// </summary>
-    /// <param name="dest">目标文件夹</param>
-    /// <param name="copyFile">是否粘贴文件</param>
-    /// <param name="copyDir">是否粘贴文件夹</param>
-    /// <returns>总共粘贴的数量</returns>
-    public static async Task<int> PasteFromClipboardAsync(string dest, bool copyFile, bool copyDir) {
-        if (string.IsNullOrEmpty(dest)) {
-            throw new ArgumentException("Destination folder cannot be null or empty.", nameof(dest));
-        }
-
-        if (!Directory.Exists(dest)) {
-            Directory.CreateDirectory(dest);
-        }
-
-        var paths = PlatformServices.Clipboard?.GetFileDropList();
-        if (paths is null || paths.Length == 0) {
-            return 0;
-        }
-
-        var count = 0;
-        foreach (var path in paths) {
-            if (File.Exists(path) && copyFile) {
-                var targetPath = Path.Combine(dest, Path.GetFileName(path));
-                await CopyFileAsync(path, targetPath);
-                count++;
-            } else if (Directory.Exists(path) && copyDir) {
-                var targetDir = Path.Combine(dest, new DirectoryInfo(path).Name);
-                await CopyDirectoryAsync(path, targetDir);
-                count++;
-            }
-        }
-
-        return count;
-    }
-
-    /// <summary>
-    /// 合并两个 JSON 对象，源 JSON 覆盖目标 JSON 的同名键，数组去重合并。
-    /// </summary>
-    /// <param name="target">目标 JSON 对象。</param>
-    /// <param name="source">源 JSON 对象，优先级高于目标对象。</param>
-    /// <returns>合并后的 JSON 对象。如果输入无效，返回源或目标的深拷贝。</returns>
-    /// <exception cref="ArgumentNullException">如果 target 和 source 均为 null，则抛出异常。</exception>
-    public static JsonNode MergeJson(JsonNode target, JsonNode source) {
-        if (target is null && source is null) {
-            throw new ArgumentNullException(nameof(target), "目标和源 JSON 不能同时为 null。");
-        }
-
-        if (target is null) {
-            return source.DeepClone();
-        }
-
-        if (target is not JsonObject targetObj || source is not JsonObject sourceObj) {
-            // 如果源是对象，优先返回源的深拷贝；否则返回目标的深拷贝
-            return source.DeepClone();
-        }
-
-        var result = (JsonObject)targetObj.DeepClone(); // 克隆以避免修改原始对象
-
-        foreach (var (key, sourceValue) in sourceObj) {
-            var targetValue = result[key];
-
-            if (sourceValue is null) {
-                // 忽略 null 值，保留目标值
-                continue;
-            }
-
-            if (sourceValue is JsonObject && targetValue is JsonObject) {
-                // 递归合并嵌套对象
-                result[key] = MergeJson(targetValue, sourceValue);
-            } else if (sourceValue is JsonArray sourceArray && targetValue is JsonArray targetArray) {
-                // 合并数组并去重
-                var uniqueValues = new HashSet<string>(StringComparer.Ordinal);
-                JsonArray mergedArray = [];
-
-                // 添加目标数组元素
-                foreach (var item in targetArray) {
-                    if (item is null) {
-                        continue;
-                    }
-                    var itemStr = item.ToJsonString();
-                    if (uniqueValues.Add(itemStr)) {
-                        mergedArray.Add(item.DeepClone());
-                    }
-                }
-
-                // 添加源数组元素（源覆盖目标）
-                foreach (var item in sourceArray) {
-                    if (item is null) {
-                        continue;
-                    }
-                    var itemStr = item.ToJsonString();
-                    if (uniqueValues.Add(itemStr)) {
-                        mergedArray.Add(item.DeepClone());
-                    }
-                }
-
-                result[key] = mergedArray;
-            } else {
-                // 直接覆盖（包括简单值、数组替换或其他类型）
-                result[key] = sourceValue.DeepClone();
-            }
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// 检查文件。若成功则返回 null，失败则返回错误的描述文本，描述文本不以句号结尾。不会抛出错误。
-    /// </summary>
-    public static async Task<string?> CheckAsync(
-        string localPath,
-        long minSize = -1,
-        long actualSize = -1,
-        string? hash = null,
-        bool isJson = false) {
-        try {
-            LogWrapper.Debug("Checker", $"开始校验文件 {localPath}");
-            var info = new FileInfo(localPath);
-            if (!info.Exists) return $"文件不存在：{localPath}";
-
-            var fileSize = info.Length;
-            var errors = new StringBuilder();
-            var allowSizeMismatch = false; // 允许相信哈希正确但是大小不正确
-
-            if (!string.IsNullOrEmpty(hash)) {
-                var computedHash = hash.Length switch {
-                    < 35 => await GetFileMD5Async(localPath), // MD5
-                    64 => await GetFileSHA256Async(localPath), // SHA256
-                    _ => await GetFileSHA1Async(localPath) // SHA1 (40)
-                };
-
-                if (!string.Equals(hash, computedHash, StringComparison.OrdinalIgnoreCase)) {
-                    var hashType = hash.Length switch {
-                        < 35 => "MD5",
-                        64 => "SHA256",
-                        _ => "SHA1"
-                    };
-                    errors.AppendLine($"文件 {hashType} 应为 {hash}，实际为 {computedHash}");
-                } else {
-                    allowSizeMismatch = true;
-                }
-            }
-
-            // 检查实际大小
-            if (actualSize >= 0 && actualSize != fileSize && !allowSizeMismatch) {
-                var contentPreview = fileSize < 2000 ? await ReadAllTextOrEmptyAsync(localPath) : "";
-                errors.AppendLine($"文件大小应为 {actualSize} B，实际为 {fileSize} B" +
-                                  (string.IsNullOrEmpty(contentPreview) ? "" : $"，内容为 {contentPreview}"));
-            }
-
-            // 检查最小大小
-            if (minSize >= 0 && minSize > fileSize) {
-                var contentPreview = fileSize < 2000 ? await ReadAllTextOrEmptyAsync(localPath) : "";
-                errors.AppendLine($"文件大小应大于 {minSize} B，实际为 {fileSize} B" +
-                                  (string.IsNullOrEmpty(contentPreview) ? "" : $"，内容为 {contentPreview}"));
-            }
-
-            // JSON 检查
-            if (isJson) {
-                var content = await ReadAllTextOrEmptyAsync(localPath);
-                if (string.IsNullOrEmpty(content)) throw new Exception("读取到的文件为空");
-                try {
-                    using var document = JsonDocument.Parse(content, JsonCompat.DocumentOptions);
-                    // 简单验证 JSON 有效性
-                } catch (JsonException ex) {
-                    throw new InvalidJsonException(ex);
-                }
-            }
-
-            if (errors.Length <= 0) {
-                return null;
-            }
-            
-            errors.Insert(0, $"实际校验地址：{localPath}\n");
-            return errors.ToString().TrimEnd();
-        } catch (Exception ex) {
-            LogWrapper.Warn("Checker", $"检查文件出错: {ex}");
-            return ex.ToString();
-        }
-    }
-
-    /// <summary>
-    /// 检查指定路径是否在指定文件夹中
-    /// </summary>
-    /// <param name="childPath">预检查路径</param>
-    /// <param name="baseDirectory">应存在文件夹</param>
-    /// <returns></returns>
-    public static bool IsPathWithinDirectory(string childPath, string baseDirectory)
-    {
-        var baseDir = Path.GetFullPath(baseDirectory);
-        var child = Path.GetFullPath(childPath);
-
-        return child.StartsWith(
-            baseDir.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar,
-            RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                ? StringComparison.OrdinalIgnoreCase
-                : StringComparison.Ordinal
-        );
-    }
 }

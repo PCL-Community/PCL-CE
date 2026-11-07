@@ -1,0 +1,20 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="using:PCL.UI.Controls">
+    <!--
+        MyTextButton：纯文字按钮，悬停/按下/禁用文字色由代码过渡。
+        颜色落在 TextBlock#LabText 上：PageStyles 给全局 TextBlock 设了 Foreground，
+        控件级继承值优先级低于该样式，必须直接命中内部 TextBlock 才能切换悬停/按下颜色。
+    -->
+    <Style Selector="ui|MyTextButton">
+        <Setter Property="Background"
+                Value="{DynamicResource ColorBrushSemiTransparent}" />
+        <Setter Property="Padding"
+                Value="0" />
+    </Style>
+    <Style Selector="ui|MyTextButton TextBlock#LabText">
+        <Setter Property="Foreground"
+                Value="{DynamicResource ColorBrush1}" />
+    </Style>
+    <!-- 悬停/按下/禁用的文字色过渡由 MyTextButton.axaml.cs 用动画接管，样式只提供常态基线。 -->
+</Styles>

@@ -1,0 +1,25 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:PCL.Core.UI"
+             x:Class="PCL.Views.Pages.PageLoading">
+    <Grid>
+        <StackPanel HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Spacing="18">
+            <TextBlock Name="TitleText"
+                       FontSize="28"
+                       FontWeight="Bold"
+                       HorizontalAlignment="Center"
+                       Text="PCL Community Edition" />
+            <ProgressBar Name="LoadingBar"
+                         Width="320"
+                         Height="6"
+                         IsIndeterminate="True" />
+            <TextBlock Name="StatusText"
+                       FontSize="13"
+                       Opacity="0.75"
+                       HorizontalAlignment="Center"
+                       Text="{loc:Loc Application.Loading.Status.Preparing}" />
+        </StackPanel>
+    </Grid>
+</UserControl>

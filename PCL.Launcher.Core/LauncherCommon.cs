@@ -41,8 +41,22 @@ public static class LauncherCommon
 
     public static LauncherLogHandler? UiLogHandler { get; set; }
 
+    private static bool _modeDebug;
+
     /// <summary>是否处于调试模式，由宿主同步。</summary>
-    public static bool ModeDebug { get; set; }
+    public static bool ModeDebug
+    {
+        get => _modeDebug;
+        set
+        {
+            if (_modeDebug == value) return;
+            _modeDebug = value;
+            ModeDebugChanged?.Invoke(value);
+        }
+    }
+
+    /// <summary>调试模式状态变化事件；供启动日志等调试 UI 实时刷新。</summary>
+    public static event Action<bool>? ModeDebugChanged;
 
     public static string VersionStandardCode => Basics.Metadata.Version.StandardVersion;
 
@@ -375,6 +389,13 @@ public static class LauncherCommon
 
     public static void ShellOnly(string fileName, string arguments)
     {
+        if (!OperatingSystem.IsWindows())
+        {
+            // 非 Windows 没有 shell 关联启动，交给桌面默认程序打开
+            Basics.OpenPath(fileName);
+            return;
+        }
+
         Process.Start(
             new ProcessStartInfo
             {
@@ -401,6 +422,8 @@ public static class LauncherCommon
 
     public static string ShortenPath(string longPath, int shortenThreshold = 247)
     {
+        // GetShortPathName 是 Windows 专有 API，其他平台长路径保持原样
+        if (!OperatingSystem.IsWindows()) return longPath;
         if (longPath.Length <= shortenThreshold) return longPath;
 
         var shortPath = new StringBuilder(260);
@@ -470,11 +493,16 @@ public static class LauncherCommon
 
         if (compressFilePath.EndsWith(".gz", StringComparison.OrdinalIgnoreCase))
         {
-            using var compressedFile = new FileStream(compressFilePath, FileMode.Open, FileAccess.Read);
+            using var compressedFile = new FileStream(
+                compressFilePath,
+                FileMode.Open,
+                FileAccess.Read);
             using var decompressStream = new GZipStream(compressedFile, CompressionMode.Decompress);
             var fileName = Path.GetFileName(compressFilePath);
-            if (fileName.EndsWith(".gz", StringComparison.OrdinalIgnoreCase)) fileName = fileName[..^3];
-            if (fileName.EndsWith(".tar", StringComparison.OrdinalIgnoreCase)) fileName = fileName[..^4];
+            if (fileName.EndsWith(".gz", StringComparison.OrdinalIgnoreCase))
+                fileName = fileName[..^3];
+            if (fileName.EndsWith(".tar", StringComparison.OrdinalIgnoreCase))
+                fileName = fileName[..^4];
             using var extractFileStream = new FileStream(
                 Path.Combine(fullDestDirectory, fileName.ToLowerInvariant()),
                 FileMode.OpenOrCreate,
@@ -616,7 +644,9 @@ public static class LauncherCommon
     {
         if (string.IsNullOrWhiteSpace(path))
             throw new ArgumentNullException(nameof(path), "文件夹名不能为空！");
-        if (!path.EndsWith('\\')) path += "\\";
+        if (!path.EndsWith(Path.DirectorySeparatorChar)
+            && !path.EndsWith(Path.AltDirectorySeparatorChar))
+            path += Path.DirectorySeparatorChar;
         if (!Directory.Exists(path))
             throw new DirectoryNotFoundException("文件夹不存在！");
         if (File.Exists($"{path}CheckPermission"))

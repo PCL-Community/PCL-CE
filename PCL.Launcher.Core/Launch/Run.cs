@@ -29,6 +29,8 @@ public static partial class GameLaunch
 
     private static void _SetJavaGpuPreference(string javaExePath)
     {
+        if (!OperatingSystem.IsWindows()) return;
+
         try
         {
             LaunchUi.SetGpuPreference(javaExePath, Config.Launch.SetGpuPreference);
@@ -317,9 +319,13 @@ public static partial class GameLaunch
     {
         try
         {
+            var scriptPath = currentLaunchOptions!.SaveBatch
+                ?? Path.Combine(
+                    LauncherPaths.ExecutableDirectory,
+                    "PCL",
+                    OperatingSystem.IsWindows() ? "LatestLaunch.bat" : "LatestLaunch.sh");
             LauncherCommon.WriteFile(
-                currentLaunchOptions!.SaveBatch
-                ?? $@"{LauncherPaths.ExecutableDirectory}PCL\LatestLaunch.bat",
+                scriptPath,
                 LogFilter.FilterAccessToken(
                     _CreateLaunchScript(customCommandGlobal, customCommandVersion),
                     'F'
@@ -327,6 +333,16 @@ public static partial class GameLaunch
                 mcLaunchJavaSelected!.Installation.MajorVersion > 8
                     ? Encoding.UTF8
                     : Encoding.Default);
+            if (!OperatingSystem.IsWindows())
+                File.SetUnixFileMode(
+                    scriptPath,
+                    UnixFileMode.UserRead
+                    | UnixFileMode.UserWrite
+                    | UnixFileMode.UserExecute
+                    | UnixFileMode.GroupRead
+                    | UnixFileMode.GroupExecute
+                    | UnixFileMode.OtherRead
+                    | UnixFileMode.OtherExecute);
             if (currentLaunchOptions.SaveBatch is null)
                 return false;
 
@@ -356,16 +372,28 @@ public static partial class GameLaunch
     {
         var instance = InstanceList.McMcInstanceSelected!;
         var javaInstallation = mcLaunchJavaSelected!.Installation;
-        var chcpCommand = javaInstallation.MajorVersion > 8 ? "chcp 65001>nul" + "\r\n" : "";
-        return $"{chcpCommand}@echo off\r\n"
-            + $"title 启动 - {instance.Name}\r\n"
-            + "echo 游戏正在启动，请稍候。\r\n"
-            + $"cd /D \"{LauncherCommon.ShortenPath(instance.PathIndie)}\"\r\n"
-            + $"{customCommandGlobal}\r\n"
-            + $"{customCommandVersion}\r\n"
-            + $"\"{javaInstallation.JavaExePath}\" {_mcLaunchArgument}\r\n"
-            + "echo 游戏已退出。\r\n"
-            + "pause";
+        if (OperatingSystem.IsWindows())
+        {
+            var chcpCommand = javaInstallation.MajorVersion > 8
+                ? "chcp 65001>nul" + "\r\n"
+                : "";
+            return $"{chcpCommand}@echo off\r\n"
+                + $"title 启动 - {instance.Name}\r\n"
+                + "echo 游戏正在启动，请稍候。\r\n"
+                + $"cd /D \"{LauncherCommon.ShortenPath(instance.PathIndie)}\"\r\n"
+                + $"{customCommandGlobal}\r\n"
+                + $"{customCommandVersion}\r\n"
+                + $"\"{javaInstallation.JavaExePath}\" {_mcLaunchArgument}\r\n"
+                + "echo 游戏已退出。\r\n"
+                + "pause";
+        }
+
+        return "#!/bin/sh\n"
+            + $"cd \"{LauncherCommon.ShortenPath(instance.PathIndie)}\"\n"
+            + $"{customCommandGlobal}\n"
+            + $"{customCommandVersion}\n"
+            + $"\"{javaInstallation.JavaExePath}\" {_mcLaunchArgument}\n"
+            + "echo 游戏已退出。\n";
     }
 
     private static void _RunCustomCommand(
@@ -378,8 +406,10 @@ public static partial class GameLaunch
         var customProcess = new Process();
         try
         {
-            customProcess.StartInfo.FileName = "cmd.exe";
-            customProcess.StartInfo.Arguments = $"/c \"{command}\"";
+            var isWindows = OperatingSystem.IsWindows();
+            customProcess.StartInfo.FileName = isWindows ? "cmd.exe" : "/bin/sh";
+            customProcess.StartInfo.Arguments =
+                isWindows ? $"/c \"{command}\"" : $"-c \"{command}\"";
             customProcess.StartInfo.WorkingDirectory =
                 LauncherCommon.ShortenPath(GameFolders.mcFolderSelected!);
             customProcess.StartInfo.UseShellExecute = false;
@@ -439,11 +469,9 @@ public static partial class GameLaunch
             (noJavaw ? installation.JavaExePath : installation.JavawExePath)
             ?? installation.JavaExePath);
 
-        var paths = new List<string>((startInfo.EnvironmentVariables["Path"] ?? "").Split(";"))
-        {
-            LauncherCommon.ShortenPath(installation.JavaFolder)
-        };
-        startInfo.EnvironmentVariables["Path"] = paths.Distinct().ToList().Join(";");
+        _PrependJavaFolderToPathVariable(startInfo, installation.JavaFolder);
+        _ApplyGpuPreferenceEnvironment(startInfo, Config.Launch.SetGpuPreference);
+        _ApplyRendererEnvironment(startInfo);
         startInfo.EnvironmentVariables["appdata"] = LauncherCommon.ShortenPath(
             GameFolders.mcFolderSelected!);
 
@@ -455,6 +483,83 @@ public static partial class GameLaunch
         startInfo.CreateNoWindow = noJavaw;
         startInfo.Arguments = _mcLaunchArgument;
         return startInfo;
+    }
+
+    /// <summary>
+    ///     将 Java 目录添加到游戏进程的 PATH 环境变量开头。
+    ///     Windows 使用 "Path" 与 ";"，其余平台使用 "PATH" 与 Path.PathSeparator。
+    /// </summary>
+    private static void _PrependJavaFolderToPathVariable(
+        ProcessStartInfo startInfo,
+        string javaFolder)
+    {
+        var separator = Path.PathSeparator;
+        var javaFolderPath = LauncherCommon.ShortenPath(javaFolder);
+        if (OperatingSystem.IsWindows())
+        {
+            var paths = new List<string>(
+                (startInfo.EnvironmentVariables["Path"] ?? "").Split(separator))
+            {
+                javaFolderPath
+            };
+            startInfo.EnvironmentVariables["Path"] =
+                paths.Distinct().ToList().Join(separator.ToString());
+            return;
+        }
+
+        startInfo.Environment.TryGetValue("PATH", out var currentPath);
+        var unixPaths = new List<string>((currentPath ?? "").Split(separator))
+        {
+            javaFolderPath
+        };
+        startInfo.Environment["PATH"] = unixPaths.Distinct().ToList().Join(separator.ToString());
+    }
+
+    /// <summary>
+    ///     非 Windows 平台通过 PRIME 相关环境变量请求游戏进程使用独立显卡；Windows 走注册表设置。
+    /// </summary>
+    private static void _ApplyGpuPreferenceEnvironment(ProcessStartInfo startInfo, bool enabled)
+    {
+        if (!OperatingSystem.IsLinux() || !enabled) return;
+
+        // Mesa（AMD/Intel）的 PRIME 渲染卸载；没有独立显卡时驱动会回退到默认设备
+        startInfo.Environment["DRI_PRIME"] = "1";
+        if (!File.Exists("/proc/driver/nvidia/version")) return;
+
+        // NVIDIA PRIME Render Offload；仅在 NVIDIA 驱动存在时注入，避免强制 GLX vendor 导致初始化失败
+        startInfo.Environment["__NV_PRIME_RENDER_OFFLOAD"] = "1";
+        startInfo.Environment["__GLX_VENDOR_LIBRARY_NAME"] = "nvidia";
+        startInfo.Environment["__VK_LAYER_NV_optimus"] = "NVIDIA_only";
+        McLaunchLog("已通过环境变量请求使用独立显卡（NVIDIA PRIME Render Offload）");
+    }
+
+    /// <summary>
+    ///     非 Windows 平台用 Mesa 环境变量实现渲染器选择；Windows 由 Mesa Loader javaagent 处理。
+    /// </summary>
+    private static void _ApplyRendererEnvironment(ProcessStartInfo startInfo)
+    {
+        if (!OperatingSystem.IsLinux()) return;
+
+        var instanceRenderer = Config.Instance.Renderer[
+            InstanceList.McMcInstanceSelected!.PathInstance];
+        var renderer = instanceRenderer != 0 ? instanceRenderer - 1 : Config.Launch.Renderer;
+        switch (renderer)
+        {
+            case 1:
+                // llvmpipe：Mesa 软件渲染
+                startInfo.Environment["LIBGL_ALWAYS_SOFTWARE"] = "1";
+                startInfo.Environment["GALLIUM_DRIVER"] = "llvmpipe";
+                break;
+            case 2:
+                // d3d12 是 Windows 专有的 Mesa 后端，Linux 没有等价实现
+                McLaunchLog("d3d12 渲染器在 Linux 上没有等价实现，使用系统默认渲染器");
+                break;
+            case >= 3:
+                // zink：OpenGL over Vulkan
+                startInfo.Environment["MESA_LOADER_DRIVER_OVERRIDE"] = "zink";
+                startInfo.Environment["GALLIUM_DRIVER"] = "zink";
+                break;
+        }
     }
 
     private static void _ApplyProcessPriority(Process gameProcess)
@@ -499,7 +604,9 @@ public static partial class GameLaunch
             windowTitle = Config.Launch.Title;
         windowTitle = ArgumentReplace(windowTitle, false) ?? "";
 
-        var jStackPath = Path.Combine(mcLaunchJavaSelected!.Installation.JavaFolder, "jstack.exe");
+        var jStackPath = Path.Combine(
+            mcLaunchJavaSelected!.Installation.JavaFolder,
+            OperatingSystem.IsWindows() ? "jstack.exe" : "jstack");
 
         var watcher = new GameWatcher.Watcher(
             loader,
@@ -565,7 +672,6 @@ public static partial class GameLaunch
     {
         McLaunchLog("开始启动结束处理");
         _ApplyMusicState();
-        MediaService.Current?.SetVideoGaming(true);
         McLaunchLog($"启动器可见性：{Config.Launch.LauncherVisibility}");
         _ApplyLauncherVisibility();
 

@@ -16,6 +16,12 @@ public sealed partial class Lifecycle : ILifecycleService
     private Lifecycle() { _context = GetContext(this); }
     private static LifecycleContext Context => _context ?? SystemContext;
 
+    /// <summary>请求在正常退出流程结束后以指定参数重启当前程序。</summary>
+    public static void RequestRestartOnExit(string? arguments = null)
+    {
+        Context.RequestRestartOnExit(arguments);
+    }
+
     public Task StartAsync() => Task.CompletedTask;
 
     public Task StopAsync()

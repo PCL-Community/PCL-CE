@@ -1,0 +1,48 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="using:PCL.UI.Controls"
+             x:Class="PCL.Views.Pages.Download.InstallLoaderCard"
+             x:Name="Root"
+             x:CompileBindings="False"
+             HorizontalContentAlignment="Stretch">
+    <ui:MyCard x:Name="CardRoot"
+               Title="{Binding Title, ElementName=Root}"
+               Height="40"
+               Margin="0,12,0,0"
+               UseAnimation="False"
+               CanSwap="True"
+               SwapLogoRight="True">
+        <Grid x:Name="HeaderGrid"
+              Height="18"
+              Margin="132,11,15,0"
+              VerticalAlignment="Top"
+              ColumnDefinitions="Auto,*">
+            <ui:MyImage x:Name="HeaderLogo"
+                        Height="18"
+                        Margin="0,0,7,0"
+                        VerticalAlignment="Center"
+                        Stretch="Uniform"
+                        IsHitTestVisible="False" />
+            <TextBlock x:Name="StatusText"
+                       Grid.Column="1"
+                       VerticalAlignment="Center"
+                       FontSize="12"
+                       Opacity="0.7"
+                       TextTrimming="CharacterEllipsis"
+                       IsHitTestVisible="False" />
+        </Grid>
+        <ui:MyIconButton x:Name="BtnClear"
+                         Width="30"
+                         Height="30"
+                         Margin="0,5,32,0"
+                         HorizontalAlignment="Right"
+                         VerticalAlignment="Top"
+                         Theme="Custom"
+                         Foreground="{DynamicResource ColorBrush1}"
+                         SvgIcon="lucide/x"
+                         IsVisible="False" />
+        <StackPanel x:Name="BodyHost"
+                    Margin="20,40,18,15"
+                    VerticalAlignment="Top" />
+    </ui:MyCard>
+</UserControl>

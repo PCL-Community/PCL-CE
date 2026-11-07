@@ -14,6 +14,7 @@ public static class PlatformRegistration
         PlatformServices.FileDialogs = new WpfFileDialogService();
         PlatformServices.DialogService = new WpfDialogService();
         PlatformServices.ResourceStore = new WpfResourceStore();
+        PlatformServices.WindowInterop = new WpfWindowInterop();
         PlatformServices.Localization = new WpfLocalizationBackend();
         PlatformServices.Theme = new WpfThemeBackend();
         PlatformServices.Clipboard = new WpfClipboardService();

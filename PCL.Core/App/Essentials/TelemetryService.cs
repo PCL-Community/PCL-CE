@@ -13,9 +13,10 @@ using PCL.Core.IO.Net;
 using PCL.Core.IO.Net.Dns;
 using PCL.Core.Logging;
 using PCL.Core.Utils.OS;
-using STUN.Client;
+using PCL.Core.Utils.Secret;
 using Sentry;
 using Sentry.Extensibility;
+using STUN.Client;
 
 namespace PCL.Core.App.Essentials;
 
@@ -34,29 +35,29 @@ public sealed partial class TelemetryService
             Context.Warn("未找到 Sentry DSN");
             return;
         }
-        
+
         var release = $"{Basics.VersionName}";
-        
+
 #if DEBUG
         var environment = "Debug";
 #else
         var environment = "Production";
 #endif
-        
+
         SentrySdk.Init(options =>
         {
             options.Dsn = dsn;
-            #if DEBUG
+#if DEBUG
             options.Debug = true;
-            #else
+#else
             options.Debug = false;
-            #endif
+#endif
             options.SendDefaultPii = false;
             options.IsGlobalModeEnabled = true;
             options.AutoSessionTracking = true;
             options.Release = release;
             options.Environment = environment;
-            
+
             // 应该被直接丢弃不上报的异常类型
             options.AddExceptionFilterForType<TimeoutException>();
             options.AddExceptionFilterForType<HttpRequestException>();
@@ -65,28 +66,29 @@ public sealed partial class TelemetryService
             options.AddExceptionFilterForType<DirectoryNotFoundException>();
             options.AddExceptionFilterForType<UnauthorizedAccessException>();
             options.AddExceptionFilterForType<FileNotFoundException>();
-            
+
             // 细分类型的过滤器
             options.AddExceptionFilter(new SocketExceptionFilter());
-            
+
             options.SetBeforeSend(@event => @event.Level is SentryLevel.Debug ? null : @event);
         });
-        
+
         SentrySdk.ConfigureScope(scope =>
         {
             scope.User = new SentryUser
             {
-                Id = Utils.Secret.Identify.LauncherId
+                Id = Identify.LauncherId
             };
         });
-        
+
         Context.Info("Sentry SDK 初始化完成");
     }
 
     // 错误上报
     public static void ReportException(Exception ex, string plain, LogLevel level)
     {
-        // Building the event parses the whole stack trace, which is wasted work while telemetry is off.
+        // Building the event parses the whole stack trace, which is wasted work while telemetry is
+        // off.
         if (!SentrySdk.IsEnabled) return;
 
         var sentryEvent = new SentryEvent(ex)
@@ -104,28 +106,37 @@ public sealed partial class TelemetryService
 
         if (!string.IsNullOrWhiteSpace(plain))
         {
-            sentryEvent.Message = new SentryMessage { Formatted = plain };
+            sentryEvent.Message = new SentryMessage
+            {
+                Formatted = plain
+            };
         }
-        
+
         SentrySdk.CaptureEvent(sentryEvent);
+    }
+
+    private static ulong _GetPhysicalMemoryBytes()
+    {
+        if (OperatingSystem.IsWindows())
+            return KernelInterop.GetPhysicalMemoryBytes().Total;
+        if (HardwareInfo.TryReadLinuxMemory(out var totalMiB, out _))
+            return (ulong)totalMiB * 1024 * 1024;
+        return (ulong)GC.GetGCMemoryInfo().TotalAvailableMemoryBytes;
     }
 
     // 设备环境上报
     private static void _ReportDeviceEnvironment(TelemetryDeviceEnvironment content)
     {
         Context.Info("正在上报设备环境调查数据");
-        
-        SentrySdk.ConfigureScope(scope =>
-        {
-            scope.Contexts["Telemetry"] = content;
-        });
+
+        SentrySdk.ConfigureScope(scope => { scope.Contexts["Telemetry"] = content; });
 
         try
         {
             SentrySdk.CaptureMessage("设备环境调查");
             Context.Info("已发送设备环境调查数据");
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             Context.Error("设备环境调查数据发送失败，请检查网络连接以及使用的版本", ex);
         }
@@ -141,7 +152,7 @@ public sealed partial class TelemetryService
         public required bool Is64Bit { get; set; }
         [JsonPropertyName("IsARM64")] public required bool IsArm64 { get; set; }
         public required string Launcher { get; set; }
-        public required string LauncherBranch {get; set; }
+        public required string LauncherBranch { get; set; }
         [JsonPropertyName("UsedOfficialPCL")] public required bool UsedOfficialPcl { get; set; }
         [JsonPropertyName("UsedHMCL")] public required bool UsedHmcl { get; set; }
         [JsonPropertyName("UsedBakaXL")] public required bool UsedBakaXl { get; set; }
@@ -155,6 +166,7 @@ public sealed partial class TelemetryService
     private const string STUN_SERVER_ADDR = "stun.miwifi.com";
 
     // ReSharper restore UnusedAutoPropertyAccessor.Local
+
     [LifecycleStart]
     private static async Task _StartAsync()
     {
@@ -167,20 +179,26 @@ public sealed partial class TelemetryService
         }
 
         _InitSentry();
-        
+
         var appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
         // stun test
         StunClient5389UDP? natTest = null;
-        var miWifiIps = await DnsQuery.Instance.QueryForIpAsync(STUN_SERVER_ADDR).ConfigureAwait(false);
+        var miWifiIps =
+            await DnsQuery.Instance.QueryForIpAsync(STUN_SERVER_ADDR).ConfigureAwait(false);
         try
         {
             miWifiIps ??= await Dns.GetHostAddressesAsync(STUN_SERVER_ADDR).ConfigureAwait(false);
-        } catch(Exception) { /* Ignore dns error */ }
-        
+        }
+        catch (Exception)
+        {
+            /* Ignore dns error */
+        }
+
         if (miWifiIps is not null && miWifiIps.Length != 0)
         {
-            natTest = new StunClient5389UDP(new IPEndPoint(miWifiIps.First(), 3478),
+            natTest = new StunClient5389UDP(
+                new IPEndPoint(miWifiIps.First(), 3478),
                 new IPEndPoint(IPAddress.Any, 0));
             await natTest.QueryAsync().ConfigureAwait(false);
         }
@@ -188,7 +206,7 @@ public sealed partial class TelemetryService
         var telemetry = new TelemetryDeviceEnvironment
         {
             Tag = "Telemetry",
-            Id = Utils.Secret.Identify.LauncherId,
+            Id = Identify.LauncherId,
             Os = Environment.OSVersion.Version.Build,
             Is64Bit = Environment.Is64BitOperatingSystem,
             IsArm64 = RuntimeInformation.OSArchitecture.Equals(Architecture.Arm64),
@@ -200,20 +218,26 @@ public sealed partial class TelemetryService
                 UpdateChannel.Dev => "Dev",
                 _ => "Unknown"
             },
-            UsedOfficialPcl =
-                bool.TryParse(Registry.GetValue(@"HKEY_CURRENT_USER\Software\PCL", "SystemEula", "false") as string,
-                    out var officialPcl) && officialPcl,
+            // 官方启动器 EULA 记录在 Windows 注册表中，非 Windows 没有对应概念（不可抗力），固定为 false
+            UsedOfficialPcl = OperatingSystem.IsWindows()
+                && bool.TryParse(
+                    Registry.GetValue(
+                        @"HKEY_CURRENT_USER\Software\PCL",
+                        "SystemEula",
+                        "false") as string,
+                    out var officialPcl)
+                && officialPcl,
             UsedHmcl = Directory.Exists(Path.Combine(appDataFolder, ".hmcl")),
             UsedBakaXl = Directory.Exists(Path.Combine(appDataFolder, "BakaXL")),
-            Memory = KernelInterop.GetPhysicalMemoryBytes().Total,
+            Memory = _GetPhysicalMemoryBytes(),
             NatMapBehaviour = natTest?.State.MappingBehavior.ToString(),
             NatFilterBehaviour = natTest?.State.FilteringBehavior.ToString(),
             Ipv6Status = NetworkInterfaceUtils.GetIPv6Status().ToString()
         };
-        
+
         _ReportDeviceEnvironment(telemetry);
     }
-    
+
     // 用来细分过滤 SocketException 的过滤器，我觉得应该除了遥测服务之外没有其他东西会用到这破玩意儿
     private sealed class SocketExceptionFilter : IExceptionFilter
     {
@@ -222,16 +246,17 @@ public sealed partial class TelemetryService
             if (ex is SocketException socketEx)
             {
                 return socketEx.SocketErrorCode is
-                    SocketError.ConnectionRefused or 
-                    SocketError.TimedOut or
-                    SocketError.HostNotFound or
-                    SocketError.NetworkUnreachable or
-                    SocketError.ConnectionReset;
+                    SocketError.ConnectionRefused
+                    or SocketError.TimedOut
+                    or SocketError.HostNotFound
+                    or SocketError.NetworkUnreachable
+                    or SocketError.ConnectionReset;
             }
+
             return false;
         }
     }
-    
+
     [LifecycleStop]
     private static void _StopAsync()
     {

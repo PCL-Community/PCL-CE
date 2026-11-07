@@ -12,16 +12,19 @@ public static class IconHelper
         var paths = Path.Combine(Paths.Temp, "icon.png");
         if (!File.Exists(paths))
         {
-            CreateIcon();
+            _CreateIcon();
         }
 
         return paths;
     }
 
-    private static void CreateIcon()
+    private static void _CreateIcon()
     {
-        using var icon = Icon.ExtractAssociatedIcon(Basics.ExecutablePath) ??
-                         throw new InvalidOperationException("无法提取程序图标。");
+        // System.Drawing 的图标提取仅在 Windows 上可用
+        if (!OperatingSystem.IsWindows()) return;
+
+        using var icon = Icon.ExtractAssociatedIcon(Basics.ExecutablePath)
+            ?? throw new InvalidOperationException("无法提取程序图标。");
         using var bitmap = icon.ToBitmap();
         bitmap.Save(Path.Combine(Paths.Temp, "icon.png"));
     }

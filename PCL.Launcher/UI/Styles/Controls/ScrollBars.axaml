@@ -1,0 +1,156 @@
+<!--
+    滚动条与滚动容器的视觉模板。
+    MyScrollBar 的滑块底色绑定 ScrollBar.Foreground，由控件在悬停/拖动/空闲/隐藏之间过渡；
+    MyScrollViewer 的模板把 PART_VerticalScrollBar / PART_HorizontalScrollBar 换成 MyScrollBar。
+    接入方式：App.axaml 的 Application.Styles 中包含本文件。
+-->
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="using:PCL.UI.Controls">
+    <Styles.Resources>
+        <!-- 轨道空白区域：透明按钮，只负责点击翻页 -->
+        <ControlTheme x:Key="MyScrollBarPageButton"
+                      TargetType="RepeatButton">
+            <Setter Property="Background"
+                    Value="Transparent" />
+            <Setter Property="Focusable"
+                    Value="False" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}" />
+                </ControlTemplate>
+            </Setter>
+        </ControlTheme>
+
+        <!-- 滑块：四周留 2px 边距、圆角 3，颜色跟随 ScrollBar.Foreground -->
+        <ControlTheme x:Key="MyScrollBarThumb"
+                      TargetType="Thumb">
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}"
+                            CornerRadius="3"
+                            Margin="2" />
+                </ControlTemplate>
+            </Setter>
+        </ControlTheme>
+
+        <ControlTheme x:Key="{x:Type ui:MyScrollBar}"
+                      TargetType="ui:MyScrollBar">
+            <Setter Property="MinWidth"
+                    Value="8" />
+            <Setter Property="MinHeight"
+                    Value="8" />
+            <Setter Property="Foreground"
+                    Value="{DynamicResource ColorBrush4}" />
+            <Setter Property="Opacity"
+                    Value="0.5" />
+
+            <Style Selector="^:vertical">
+                <Setter Property="Width"
+                        Value="8" />
+                <Setter Property="Template">
+                    <ControlTemplate>
+                        <Border Background="{DynamicResource ColorBrushSemiTransparent}"
+                                CornerRadius="2">
+                            <Track Name="PART_Track"
+                                   Minimum="{TemplateBinding Minimum}"
+                                   Maximum="{TemplateBinding Maximum}"
+                                   Value="{TemplateBinding Value, Mode=TwoWay}"
+                                   ViewportSize="{TemplateBinding ViewportSize}"
+                                   Orientation="{TemplateBinding Orientation}"
+                                   IsDirectionReversed="True">
+                                <Track.DecreaseButton>
+                                    <RepeatButton Name="PART_PageUpButton"
+                                                  Theme="{StaticResource MyScrollBarPageButton}" />
+                                </Track.DecreaseButton>
+                                <Track.IncreaseButton>
+                                    <RepeatButton Name="PART_PageDownButton"
+                                                  Theme="{StaticResource MyScrollBarPageButton}" />
+                                </Track.IncreaseButton>
+                                <Track.Thumb>
+                                    <Thumb Name="PART_Thumb"
+                                           Theme="{StaticResource MyScrollBarThumb}"
+                                           Background="{TemplateBinding Foreground}" />
+                                </Track.Thumb>
+                            </Track>
+                        </Border>
+                    </ControlTemplate>
+                </Setter>
+            </Style>
+
+            <Style Selector="^:horizontal">
+                <Setter Property="Height"
+                        Value="8" />
+                <Setter Property="Template">
+                    <ControlTemplate>
+                        <Border Background="{DynamicResource ColorBrushSemiTransparent}"
+                                CornerRadius="2">
+                            <Track Name="PART_Track"
+                                   Minimum="{TemplateBinding Minimum}"
+                                   Maximum="{TemplateBinding Maximum}"
+                                   Value="{TemplateBinding Value, Mode=TwoWay}"
+                                   ViewportSize="{TemplateBinding ViewportSize}"
+                                   Orientation="{TemplateBinding Orientation}">
+                                <Track.DecreaseButton>
+                                    <RepeatButton Name="PART_PageUpButton"
+                                                  Theme="{StaticResource MyScrollBarPageButton}" />
+                                </Track.DecreaseButton>
+                                <Track.IncreaseButton>
+                                    <RepeatButton Name="PART_PageDownButton"
+                                                  Theme="{StaticResource MyScrollBarPageButton}" />
+                                </Track.IncreaseButton>
+                                <Track.Thumb>
+                                    <Thumb Name="PART_Thumb"
+                                           Theme="{StaticResource MyScrollBarThumb}"
+                                           Background="{TemplateBinding Foreground}" />
+                                </Track.Thumb>
+                            </Track>
+                        </Border>
+                    </ControlTemplate>
+                </Setter>
+            </Style>
+        </ControlTheme>
+
+        <ControlTheme x:Key="{x:Type ui:MyScrollViewer}"
+                      TargetType="ui:MyScrollViewer">
+            <Setter Property="Background"
+                    Value="Transparent" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Grid ColumnDefinitions="*,Auto"
+                          RowDefinitions="*,Auto">
+                        <ScrollContentPresenter Name="PART_ScrollContentPresenter"
+                                                Grid.Row="0"
+                                                Grid.Column="0"
+                                                Background="{TemplateBinding Background}"
+                                                Padding="{TemplateBinding Padding}"
+                                                HorizontalSnapPointsType="{TemplateBinding HorizontalSnapPointsType}"
+                                                VerticalSnapPointsType="{TemplateBinding VerticalSnapPointsType}"
+                                                HorizontalSnapPointsAlignment="{TemplateBinding HorizontalSnapPointsAlignment}"
+                                                VerticalSnapPointsAlignment="{TemplateBinding VerticalSnapPointsAlignment}"
+                                                ScrollViewer.IsScrollInertiaEnabled="{TemplateBinding IsScrollInertiaEnabled}">
+                            <ScrollContentPresenter.GestureRecognizers>
+                                <ScrollGestureRecognizer CanHorizontallyScroll="{Binding CanHorizontallyScroll, ElementName=PART_ScrollContentPresenter}"
+                                                         CanVerticallyScroll="{Binding CanVerticallyScroll, ElementName=PART_ScrollContentPresenter}"
+                                                         IsScrollInertiaEnabled="{Binding (ScrollViewer.IsScrollInertiaEnabled), ElementName=PART_ScrollContentPresenter}"
+                                                         Offset="{Binding Offset, ElementName=PART_ScrollContentPresenter}"
+                                                         Viewport="{Binding Viewport, ElementName=PART_ScrollContentPresenter}"
+                                                         Extent="{Binding Extent, ElementName=PART_ScrollContentPresenter}" />
+                            </ScrollContentPresenter.GestureRecognizers>
+                        </ScrollContentPresenter>
+                        <ui:MyScrollBar Name="PART_HorizontalScrollBar"
+                                        Orientation="Horizontal"
+                                        Margin="{TemplateBinding ScrollBarMargin}"
+                                        Grid.Row="1"
+                                        Grid.Column="0" />
+                        <ui:MyScrollBar Name="PART_VerticalScrollBar"
+                                        Orientation="Vertical"
+                                        Margin="{TemplateBinding ScrollBarMargin}"
+                                        Grid.Row="0"
+                                        Grid.Column="1" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter>
+        </ControlTheme>
+    </Styles.Resources>
+</Styles>

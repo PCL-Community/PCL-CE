@@ -1,0 +1,114 @@
+<ui:MyPageRight xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:ui="using:PCL.UI.Controls"
+                xmlns:loc="using:PCL.Core.UI"
+                x:Class="PCL.Views.Pages.Instance.PageInstanceSavesInfo"
+                x:CompileBindings="False">
+    <ui:MyScrollViewer x:Name="PanBack"
+                       VerticalScrollBarVisibility="Auto"
+                       HorizontalScrollBarVisibility="Disabled">
+        <StackPanel x:Name="PanMain"
+                    Margin="25,10,25,10">
+            <ui:MyHint x:Name="HintVersion19"
+                       Margin="0,5,0,0"
+                       Theme="Yellow"
+                       IsVisible="{Binding ShowVersionHint19}"
+                       Text="{Binding VersionHint19Text}" />
+            <ui:MyHint x:Name="HintVersion18"
+                       Margin="0,5,0,0"
+                       Theme="Yellow"
+                       IsVisible="{Binding ShowVersionHint18}"
+                       Text="{Binding VersionHint18Text}" />
+            <ui:MyHint x:Name="HintVersion13"
+                       Margin="0,5,0,0"
+                       Theme="Yellow"
+                       IsVisible="{Binding ShowVersionHint13}"
+                       Text="{Binding VersionHint13Text}" />
+
+            <ui:MyCard x:Name="PanContent"
+                       Margin="0,15,0,0"
+                       Title="{loc:Loc Instance.Saves.Info.Details.Title}"
+                       IsVisible="{Binding ShowContent}">
+                <StackPanel Margin="15,35,15,15"
+                            Spacing="4">
+                    <TextBlock x:Name="TitleText"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               TextWrapping="Wrap" />
+                    <StackPanel x:Name="PanInfo"
+                                Margin="0,4,0,0" />
+                </StackPanel>
+            </ui:MyCard>
+
+            <ui:MyCard x:Name="PanSettings"
+                       Margin="0,15,0,0"
+                       Title="{loc:Loc Instance.Saves.Info.Settings.Title}"
+                       IsVisible="{Binding ShowSettings}">
+                <Grid Margin="15,35,15,15"
+                      RowDefinitions="Auto,Auto,Auto">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"
+                                          SharedSizeGroup="SavesInfoLabel" />
+                        <ColumnDefinition Width="24" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <ui:MyHint Grid.Row="0"
+                               Grid.ColumnSpan="3"
+                               Margin="0,0,0,8"
+                               Theme="Blue"
+                               Text="{loc:Loc Instance.Saves.Info.Modify.BeforeSave}" />
+
+                    <Grid x:Name="RowAllowCommands"
+                          Grid.Row="1"
+                          Grid.ColumnSpan="3"
+                          Margin="0,0,0,8"
+                          MinHeight="26"
+                          ColumnDefinitions="Auto,24,Auto"
+                          IsVisible="{Binding HasAllowCommandsSetting}">
+                        <TextBlock Grid.Column="0"
+                                   VerticalAlignment="Center"
+                                   Text="{loc:Loc Instance.Saves.Info.AllowCommands}" />
+                        <ui:MyComboBox x:Name="ComboAllowCommands"
+                                       Grid.Column="2"
+                                       Width="100"
+                                       HorizontalAlignment="Left"
+                                       IsEnabled="{Binding HasAllowCommandsSetting}">
+                            <ui:MyComboBoxItem Content="{loc:Loc Instance.Saves.Info.AllowCommands.NotAllowed}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Instance.Saves.Info.AllowCommands.Allowed}" />
+                        </ui:MyComboBox>
+                    </Grid>
+
+                    <Grid x:Name="RowDifficulty"
+                          Grid.Row="2"
+                          Grid.ColumnSpan="3"
+                          MinHeight="26"
+                          ColumnDefinitions="Auto,24,Auto"
+                          IsVisible="{Binding HasDifficultySetting}">
+                        <TextBlock Grid.Column="0"
+                                   VerticalAlignment="Center"
+                                   Text="{loc:Loc Instance.Saves.Info.GameDifficultyLabel}" />
+                        <StackPanel Grid.Column="2"
+                                    Orientation="Horizontal">
+                            <ui:MyComboBox x:Name="ComboDifficulty"
+                                           Width="100"
+                                           HorizontalAlignment="Left"
+                                           IsEnabled="{Binding HasDifficultySetting}">
+                                <ui:MyComboBoxItem Content="{loc:Loc Instance.Saves.Info.Difficulty.Peaceful}" />
+                                <ui:MyComboBoxItem Content="{loc:Loc Instance.Saves.Info.Difficulty.Easy}" />
+                                <ui:MyComboBoxItem Content="{loc:Loc Instance.Saves.Info.Difficulty.Normal}" />
+                                <ui:MyComboBoxItem Content="{loc:Loc Instance.Saves.Info.Difficulty.Hard}" />
+                            </ui:MyComboBox>
+                            <ui:MyCheckBox x:Name="CheckLockDifficulty"
+                                           Margin="10,0,0,0"
+                                           VerticalAlignment="Center"
+                                           IsEnabled="{Binding HasDifficultySetting}"
+                                           IsVisible="{Binding ShowLockDifficulty}"
+                                           Text="{loc:Loc Instance.Saves.Info.LockDifficulty}"
+                                           ToolTip.Tip="{loc:Loc Instance.Saves.Info.LockDifficulty.ToolTip}" />
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </ui:MyCard>
+        </StackPanel>
+    </ui:MyScrollViewer>
+</ui:MyPageRight>

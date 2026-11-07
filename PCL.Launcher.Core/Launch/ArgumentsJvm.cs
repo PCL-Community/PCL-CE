@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Net;
 using System.Text;
 using PCL.Core.App;
@@ -85,7 +85,9 @@ public static partial class GameLaunch
         if (mcLoginLoader.output.Type != "Auth")
             return;
 
-        if (mcLaunchJavaSelected!.Installation.MajorVersion >= 6)
+        // WINDOWS-ROOT 信任库类型仅 Windows 的 JVM 支持
+        if (OperatingSystem.IsWindows()
+            && mcLaunchJavaSelected!.Installation.MajorVersion >= 6)
             dataList.Add("-Djavax.net.ssl.trustStoreType=WINDOWS-ROOT");
 
         var server = (mcLoginAuthLoader.input!.BaseUrl ?? "").Replace("/authserver", "");
@@ -130,6 +132,9 @@ public static partial class GameLaunch
 
     private static void _AddRendererJvmArgs(List<string> dataList)
     {
+        // Mesa Loader javaagent 仅用于 Windows；Linux 在启动进程时通过 Mesa 环境变量选择渲染器
+        if (!OperatingSystem.IsWindows()) return;
+
         var instanceRenderer = Config.Instance.Renderer[
             InstanceList.McMcInstanceSelected!.PathInstance
         ];
@@ -197,7 +202,8 @@ public static partial class GameLaunch
         if (mcLaunchJavaSelected!.Installation.MajorVersion >= 9)
             dataList.Add(
                 "--add-exports cpw.mods.bootstraplauncher/cpw.mods.bootstraplauncher=ALL-UNNAMED");
-        dataList.Add($"-Doolloo.jlw.tmpdir=\"{LauncherPaths.PureAsciiDirectory.TrimEnd('\\')}\"");
+        dataList.Add(
+            $"-Doolloo.jlw.tmpdir=\"{LauncherPaths.PureAsciiDirectory.TrimEnd(Path.DirectorySeparatorChar)}\"");
         dataList.Add($"-jar \"{ExtractJavaWrapper()}\"");
     }
 
@@ -262,7 +268,9 @@ public static partial class GameLaunch
         if (mcLoginLoader.output.Type != "Auth")
             return;
 
-        if (mcLaunchJavaSelected!.Installation.MajorVersion >= 6)
+        // WINDOWS-ROOT 信任库类型仅 Windows 的 JVM 支持
+        if (OperatingSystem.IsWindows()
+            && mcLaunchJavaSelected!.Installation.MajorVersion >= 6)
             dataList.Add("-Djavax.net.ssl.trustStoreType=WINDOWS-ROOT");
 
         var server = (mcLoginAuthLoader.input!.BaseUrl ?? "").Replace("/authserver", "");
@@ -292,7 +300,7 @@ public static partial class GameLaunch
             $"获取到的 LWJGL 版本：{McLaunchGetLwjglVersion(InstanceList.McMcInstanceSelected!)}");
         dataList.Insert(
             0,
-            $"-javaagent:\"{LauncherPaths.PureAsciiDirectory}lwjgl-unsafe-agent.jar\"");
+            $"-javaagent:\"{Path.Combine(LauncherPaths.PureAsciiDirectory, "lwjgl-unsafe-agent.jar")}\"");
     }
 
     private static string _DeduplicateJvmArguments(List<string> dataList)

@@ -26,12 +26,6 @@
       "license": "https://github.com/00ll00/java_launch_wrapper?tab=MIT-1-ov-file#readme"
     },
     {
-      "name": "NAudio",
-      "info": "Copyright © 2015 Mark Heath (mark.heath@gmail.com)\nLicensed under the MIT License.",
-      "website": "https://github.com/naudio/NAudio",
-      "license": "https://github.com/naudio/NAudio/blob/master/license.txt"
-    },
-    {
       "name": "Iconmonstr",
       "info": "Copyright © 2019 iconmonstr (Alexander Kahlkopf)",
       "website": "https://iconmonstr.com/",
@@ -126,6 +120,84 @@
       "info": "Copyright © 2015-present Darrell Tunnell\nLicensed under the MIT license.",
       "website": "https://github.com/dazinator/DotNet.Glob",
       "license": "https://github.com/dazinator/DotNet.Glob/blob/master/LICENSE"
+    },
+    {
+      "name": "CommunityToolkit.Mvvm",
+      "info": "Copyright © .NET Foundation and Contributors\nLicensed under the MIT License.",
+      "website": "https://github.com/CommunityToolkit/dotnet",
+      "license": "https://licenses.nuget.org/MIT"
+    },
+    {
+      "name": "Avalonia",
+      "info": "Copyright © Avalonia Team\nLicensed under the MIT License.\nIncludes Avalonia.Desktop, Avalonia.Themes.Fluent and Avalonia.Fonts.Inter.",
+      "website": "https://avaloniaui.net/",
+      "license": "https://licenses.nuget.org/MIT"
+    },
+    {
+      "name": "SharpZipLib",
+      "info": "Copyright © ICSharpCode\nLicensed under the MIT License.",
+      "website": "https://github.com/icsharpcode/SharpZipLib",
+      "license": "https://licenses.nuget.org/MIT"
+    },
+    {
+      "name": "SQLitePCLRaw",
+      "info": "Copyright © Eric Sink\nLicensed under the Apache-2.0 License.",
+      "website": "https://github.com/ericsink/SQLitePCL.raw",
+      "license": "https://licenses.nuget.org/Apache-2.0"
+    },
+    {
+      "name": "YamlDotNet",
+      "info": "Copyright © Antoine Aubry\nLicensed under the MIT License.",
+      "website": "https://github.com/aaubry/YamlDotNet",
+      "license": "https://licenses.nuget.org/MIT"
+    },
+    {
+      "name": "fNbt",
+      "info": "Copyright © Erik Davidson, Matvei Stefarov\nLicensed under the BSD-3-Clause License.",
+      "website": "https://github.com/mstefarov/fNbt",
+      "license": "https://licenses.nuget.org/BSD-3-Clause"
+    },
+    {
+      "name": "Polly",
+      "info": "Copyright © App vNext\nLicensed under the BSD-3-Clause License.",
+      "website": "https://github.com/App-vNext/Polly",
+      "license": "https://licenses.nuget.org/BSD-3-Clause"
+    },
+    {
+      "name": "Humanizer",
+      "info": "Copyright © Humanizr Contributors\nLicensed under the MIT License.",
+      "website": "https://github.com/Humanizr/Humanizer",
+      "license": "https://licenses.nuget.org/MIT"
+    },
+    {
+      "name": "FluentValidation",
+      "info": "Copyright © Jeremy Skinner\nLicensed under the Apache-2.0 License.",
+      "website": "https://fluentvalidation.net/",
+      "license": "https://licenses.nuget.org/Apache-2.0"
+    },
+    {
+      "name": "PlainToolkit.CngProtectedData",
+      "info": "Copyright © PCL Community\nLicensed under the MIT License.",
+      "website": "https://github.com/PCL-Community/PlainToolkit.CngProtectedData",
+      "license": "https://licenses.nuget.org/MIT"
+    },
+    {
+      "name": "Microsoft.Extensions.Http / Logging",
+      "info": "Copyright © Microsoft\nLicensed under the MIT License.",
+      "website": "https://github.com/dotnet/runtime",
+      "license": "https://licenses.nuget.org/MIT"
+    },
+    {
+      "name": "System.IdentityModel.Tokens.Jwt",
+      "info": "Copyright © Microsoft\nLicensed under the MIT License.",
+      "website": "https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet",
+      "license": "https://licenses.nuget.org/MIT"
+    },
+    {
+      "name": "MiniAudioEx",
+      "info": "Copyright © 2026 W.M.R Jap-A-Joe\nLicensed under the MIT License.\nIncludes JAJ.Packages.MiniAudioEx 3.3.7 and its miniaudio native backends.",
+      "website": "https://github.com/japajoe/MiniAudioExNET",
+      "license": "https://github.com/japajoe/MiniAudioExNET/blob/master/LICENSE"
     }
   ]
 }

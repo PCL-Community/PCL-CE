@@ -1,0 +1,42 @@
+<ui:MyPageLeft xmlns="https://github.com/avaloniaui"
+               xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+               xmlns:ui="using:PCL.UI.Controls"
+               xmlns:loc="using:PCL.Core.UI"
+               x:Class="PCL.Views.Pages.Tools.PageToolsLeft">
+    <ui:MyScrollViewer Classes="FullMargin"
+                       HorizontalScrollBarVisibility="Disabled"
+                       VerticalScrollBarVisibility="Auto">
+        <StackPanel x:Name="PanItem"
+                    Margin="0,12,0,0">
+            <TextBlock x:Name="TextMultiplayerCategory"
+                       Margin="13,5,5,3"
+                       Opacity="0.6"
+                       FontSize="12"
+                       Text="{loc:Loc Tools.Left.Multiplayer}" />
+
+            <ui:MyListItem x:Name="ItemGameLink"
+                           Height="36"
+                           IsScaleAnimationEnabled="False"
+                           LogoScale="0.85"
+                           MinPaddingRight="35"
+                           SvgIcon="lucide/link-2"
+                           Title="{loc:Loc Tools.Left.Lobby}"
+                           Type="RadioBox" />
+
+            <TextBlock x:Name="TextUtilitiesCategory"
+                       Margin="13,5,5,3"
+                       Opacity="0.6"
+                       FontSize="12"
+                       Text="{loc:Loc Tools.Left.Utilities}" />
+
+            <ui:MyListItem x:Name="ItemTest"
+                           Height="36"
+                           IsScaleAnimationEnabled="False"
+                           LogoScale="0.9"
+                           MinPaddingRight="35"
+                           SvgIcon="lucide/tool-case"
+                           Title="{loc:Loc Tools.Left.Utilities.Title}"
+                           Type="RadioBox" />
+        </StackPanel>
+    </ui:MyScrollViewer>
+</ui:MyPageLeft>

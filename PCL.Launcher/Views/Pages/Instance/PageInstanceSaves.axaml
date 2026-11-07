@@ -1,0 +1,130 @@
+<ui:MyPageRight xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:ui="using:PCL.UI.Controls"
+                xmlns:loc="using:PCL.Core.UI"
+                x:Class="PCL.Views.Pages.Instance.PageInstanceSaves"
+                x:CompileBindings="False">
+    <ui:MyScrollViewer x:Name="PanBack"
+                       VerticalScrollBarVisibility="Auto"
+                       HorizontalScrollBarVisibility="Disabled">
+        <Grid>
+            <ui:MyCard x:Name="PanNoWorld"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Margin="40"
+                       IsVisible="{Binding ShowNoWorld}">
+                <Grid Margin="20,17"
+                      RowDefinitions="Auto,Auto,Auto,Auto"
+                      ColumnDefinitions="*,Auto,Auto,Auto,*">
+                    <TextBlock Grid.Row="0"
+                               Grid.ColumnSpan="4"
+                               Margin="0,0,0,9"
+                               HorizontalAlignment="Center"
+                               FontSize="19"
+                               Foreground="{DynamicResource ColorBrush3}"
+                               Text="{loc:Loc Instance.Saves.Empty.Title}" />
+                    <Rectangle Grid.Row="1"
+                               Grid.ColumnSpan="4"
+                               Height="2"
+                               HorizontalAlignment="Stretch"
+                               Fill="{DynamicResource ColorBrush3}" />
+                    <TextBlock Grid.Row="2"
+                               Grid.ColumnSpan="4"
+                               Margin="10,15,10,5"
+                               HorizontalAlignment="Center"
+                               TextWrapping="Wrap"
+                               Text="{loc:Loc Instance.Saves.Empty.Message}" />
+                    <ui:MyButton x:Name="BtnEmptyOpen"
+                                 Grid.Row="3"
+                                 Grid.Column="1"
+                                 Height="35"
+                                 MinWidth="140"
+                                 Margin="10,10,10,0"
+                                 Padding="13,0"
+                                 HorizontalAlignment="Center"
+                                 ColorType="Highlight"
+                                 Text="{loc:Loc Instance.Saves.OpenFolder}" />
+                    <ui:MyButton x:Name="BtnEmptyDownload"
+                                 Grid.Row="3"
+                                 Grid.Column="2"
+                                 Height="35"
+                                 MinWidth="140"
+                                 Margin="10,10,10,0"
+                                 Padding="13,0"
+                                 HorizontalAlignment="Center"
+                                 Text="{loc:Loc Instance.Resource.DownloadNew}" />
+                    <ui:MyButton x:Name="BtnEmptyPaste"
+                                 Grid.Row="3"
+                                 Grid.Column="3"
+                                 Height="35"
+                                 MinWidth="140"
+                                 Margin="10,10,10,0"
+                                 Padding="13,0"
+                                 HorizontalAlignment="Center"
+                                 Text="{loc:Loc Instance.Saves.PasteFile}" />
+                </Grid>
+            </ui:MyCard>
+
+            <StackPanel x:Name="PanContent"
+                        Orientation="Vertical"
+                        Margin="25,10,25,10"
+                        IsVisible="{Binding ShowContent}">
+                <ui:MySearchBox x:Name="SearchBox"
+                                Margin="0,15"
+                                HintText="{loc:Loc Instance.Saves.SearchHint}"
+                                Text="{Binding SearchText, Mode=TwoWay}" />
+
+                <ui:MyCard Margin="0,0,0,15"
+                           Title="{loc:Loc Instance.Saves.QuickActions}">
+                    <Grid Height="35"
+                          Margin="25,40,15,20"
+                          ColumnDefinitions="Auto,Auto,Auto">
+                        <ui:MyButton x:Name="BtnQuickOpen"
+                                     Grid.Column="0"
+                                     MinWidth="140"
+                                     Margin="0,0,20,0"
+                                     Padding="13,0"
+                                     HorizontalAlignment="Left"
+                                     ColorType="Highlight"
+                                     Text="{loc:Loc Instance.Saves.OpenFolder}" />
+                        <ui:MyButton x:Name="BtnQuickDownload"
+                                     Grid.Column="1"
+                                     MinWidth="140"
+                                     Margin="0,0,20,0"
+                                     Padding="13,0"
+                                     HorizontalAlignment="Left"
+                                     Text="{loc:Loc Instance.Resource.DownloadNew}" />
+                        <ui:MyButton x:Name="BtnQuickPaste"
+                                     Grid.Column="2"
+                                     MinWidth="140"
+                                     Margin="0,0,20,0"
+                                     Padding="13,0"
+                                     HorizontalAlignment="Left"
+                                     Text="{loc:Loc Instance.Saves.PasteFile}" />
+                    </Grid>
+                </ui:MyCard>
+
+                <ui:MyCard x:Name="PanListBack"
+                           Margin="0,0,0,15"
+                           VerticalAlignment="Top"
+                           MinHeight="55"
+                           Title="{Binding ListTitle}">
+                    <Grid>
+                        <StackPanel Margin="0,13,15,0"
+                                    Orientation="Horizontal"
+                                    VerticalAlignment="Top"
+                                    HorizontalAlignment="Right"
+                                    Height="28">
+                            <ui:MyIconTextButton x:Name="BtnSort"
+                                                 Text="{Binding SortText}"
+                                                 SvgIcon="lucide/arrow-up-down" />
+                        </StackPanel>
+                        <StackPanel x:Name="PanList"
+                                    Margin="20,48,18,22"
+                                    VerticalAlignment="Top" />
+                    </Grid>
+                </ui:MyCard>
+            </StackPanel>
+        </Grid>
+    </ui:MyScrollViewer>
+</ui:MyPageRight>

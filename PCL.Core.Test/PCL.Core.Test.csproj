@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>net10.0-windows</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
         <OutputType>Library</OutputType>
         <LangVersion>14.0</LangVersion>
         <Nullable>enable</Nullable>
@@ -13,8 +13,6 @@
         <Copyright>Copyright © PCL Community 2025</Copyright>
         <AssemblyVersion>1.0.0.0</AssemblyVersion>
         <FileVersion>1.0.0.0</FileVersion>
-        <EnableWindowsTargeting>true</EnableWindowsTargeting>
-        <UseWPF>true</UseWPF>
     </PropertyGroup>
     <PropertyGroup>
         <DebugSymbols>true</DebugSymbols>
@@ -51,10 +49,17 @@
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\PCL.Core\PCL.Core.csproj" />
+        <ProjectReference Include="..\PCL.Core.UI\PCL.Core.UI.csproj" />
         <ProjectReference Include="..\PCL.Launcher.Core\PCL.Launcher.Core.csproj" />
-        <ProjectReference Include="..\PCL.Core.Wpf\PCL.Core.Wpf.csproj" />
+        <ProjectReference Include="..\PCL.Launcher\PCL.Launcher.csproj" />
     </ItemGroup>
     <ItemGroup>
+        <EmbeddedResource Include="..\Plain Craft Launcher 2\metadata.json" Link="metadata.json">
+            <LogicalName>PCL.metadata.json</LogicalName>
+        </EmbeddedResource>
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Remove="BlurPerformanceTest.cs" />
         <Compile Remove="Net\**" />
     </ItemGroup>
     <ItemGroup>

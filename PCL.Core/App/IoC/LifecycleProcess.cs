@@ -14,13 +14,6 @@ partial class Lifecycle
 
     private static void _KillCurrentProcess()
     {
-        var psi = new ProcessStartInfo
-        {
-            FileName = "taskkill.exe",
-            Arguments = $"/f /t /pid {Environment.ProcessId}",
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
-        Process.Start(psi);
+        Process.GetCurrentProcess().Kill(true);
     }
 }

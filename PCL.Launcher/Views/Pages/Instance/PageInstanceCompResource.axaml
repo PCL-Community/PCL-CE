@@ -1,0 +1,299 @@
+<ui:MyPageRight xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:vm="using:PCL"
+                xmlns:ui="using:PCL.UI.Controls"
+                xmlns:loc="using:PCL.Core.UI"
+                x:Class="PCL.Views.Pages.Instance.PageInstanceCompResource"
+                x:DataType="vm:PageInstanceCompResourceViewModel">
+    <Grid>
+        <Grid x:Name="PanAllBack">
+            <Grid IsVisible="{Binding ShowList}">
+                <ui:MyScrollViewer x:Name="PanBack"
+                                   VerticalScrollBarVisibility="Auto"
+                                   HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel x:Name="PanMain"
+                                Margin="25,25,25,25">
+                        <ui:MySearchBox x:Name="SearchBox"
+                                        Margin="0,0,0,15"
+                                        HintText="{loc:Loc Instance.Resource.Search.Hint}" />
+
+                        <ui:MyCard x:Name="PanManage"
+                                   Margin="0,0,0,15">
+                            <WrapPanel Margin="15,8,0,15">
+                                <ui:MyButton x:Name="BtnManageBack"
+                                             MinWidth="110"
+                                             Margin="0,7,15,0"
+                                             Padding="13,7"
+                                             HorizontalAlignment="Left"
+                                             IsVisible="False"
+                                             Text="{loc:Loc Instance.Resource.BackToParent}" />
+                                <ui:MyButton x:Name="BtnManageOpen"
+                                             MinWidth="110"
+                                             Margin="0,7,15,0"
+                                             Padding="13,7"
+                                             HorizontalAlignment="Left"
+                                             ColorType="Highlight"
+                                             Text="{loc:Loc Common.Action.OpenFolder}" />
+                                <ui:MyButton x:Name="BtnManageInstall"
+                                             MinWidth="110"
+                                             Margin="0,7,15,0"
+                                             Padding="13,7"
+                                             HorizontalAlignment="Left"
+                                             Text="{loc:Loc Instance.Resource.InstallFromFiles}" />
+                                <ui:MyButton x:Name="BtnManageDownload"
+                                             MinWidth="110"
+                                             Margin="0,7,15,0"
+                                             Padding="13,7"
+                                             HorizontalAlignment="Left"
+                                             Text="{loc:Loc Instance.Resource.DownloadNew}" />
+                                <ui:MyButton x:Name="BtnManageSelectAll"
+                                             MinWidth="110"
+                                             Margin="0,7,15,0"
+                                             Padding="13,7"
+                                             HorizontalAlignment="Left"
+                                             Text="{loc:Loc Instance.Resource.SelectAll}" />
+                                <ui:MyButton x:Name="BtnManageInfoExport"
+                                             MinWidth="110"
+                                             Margin="0,7,15,0"
+                                             Padding="13,7"
+                                             HorizontalAlignment="Left"
+                                             Text="{loc:Loc Instance.Resource.ExportInfo}"
+                                             ToolTip.Tip="{loc:Loc Instance.Resource.ExportInfo.ToolTip}" />
+                                <ui:MyButton x:Name="BtnManageCheck"
+                                             MinWidth="110"
+                                             Margin="0,7,15,0"
+                                             Padding="13,7"
+                                             HorizontalAlignment="Left"
+                                             IsVisible="False"
+                                             Text="{loc:Loc Instance.Resource.CheckMods}"
+                                             ToolTip.Tip="{loc:Loc Instance.Resource.CheckMods.ToolTip}" />
+                            </WrapPanel>
+                        </ui:MyCard>
+
+                        <ui:MyCard x:Name="PanListBack"
+                                   Margin="0,0,0,14"
+                                   MinHeight="55"
+                                   Opacity="0"
+                                   Title=" ">
+                            <Grid RowDefinitions="Auto,Auto">
+                                <Grid Grid.Row="0">
+                                    <StackPanel x:Name="PanFilter"
+                                                Margin="15,13,0,0"
+                                                Orientation="Horizontal"
+                                                VerticalAlignment="Top"
+                                                HorizontalAlignment="Left"
+                                                Height="28">
+                                        <ui:MyRadioButton x:Name="BtnFilterAll"
+                                                          Tag="0"
+                                                          ColorType="Highlight"
+                                                          VerticalAlignment="Center"
+                                                          Margin="2,0"
+                                                          LabTextMargin="-2,0,8,0"
+                                                          Checked="True"
+                                                          Text="{loc:Loc Instance.Resource.Filter.All}" />
+                                        <ui:MyRadioButton x:Name="BtnFilterEnabled"
+                                                          Tag="1"
+                                                          ColorType="Highlight"
+                                                          VerticalAlignment="Center"
+                                                          Margin="2,0"
+                                                          LabTextMargin="-2,0,8,0"
+                                                          IsVisible="False"
+                                                          Text="{loc:Loc Instance.Resource.Filter.Enabled}" />
+                                        <ui:MyRadioButton x:Name="BtnFilterDisabled"
+                                                          Tag="2"
+                                                          ColorType="Highlight"
+                                                          VerticalAlignment="Center"
+                                                          Margin="2,0"
+                                                          LabTextMargin="-2,0,8,0"
+                                                          IsVisible="False"
+                                                          Text="{loc:Loc Instance.Resource.Filter.Disabled}" />
+                                        <ui:MyRadioButton x:Name="BtnFilterUpdatable"
+                                                          Tag="3"
+                                                          ColorType="Highlight"
+                                                          VerticalAlignment="Center"
+                                                          Margin="2,0"
+                                                          LabTextMargin="-2,0,8,0"
+                                                          IsVisible="False"
+                                                          Text="{loc:Loc Instance.Resource.Filter.Updatable}" />
+                                        <ui:MyRadioButton x:Name="BtnFilterError"
+                                                          Tag="4"
+                                                          ColorType="Highlight"
+                                                          VerticalAlignment="Center"
+                                                          Margin="2,0"
+                                                          LabTextMargin="-2,0,8,0"
+                                                          IsVisible="False"
+                                                          Text="{loc:Loc Instance.Resource.Filter.Error}" />
+                                        <ui:MyRadioButton x:Name="BtnFilterDuplicate"
+                                                          Tag="5"
+                                                          ColorType="Highlight"
+                                                          VerticalAlignment="Center"
+                                                          Margin="2,0"
+                                                          LabTextMargin="-2,0,8,0"
+                                                          IsVisible="False"
+                                                          Text="{loc:Loc Instance.Resource.Filter.Duplicate}" />
+                                    </StackPanel>
+                                    <StackPanel Margin="0,13,15,0"
+                                                Orientation="Horizontal"
+                                                VerticalAlignment="Top"
+                                                HorizontalAlignment="Right"
+                                                Height="28">
+                                        <ui:MyIconTextButton x:Name="BtnSort"
+                                                             Text="{loc:Loc Instance.Resource.Sort.Text}"
+                                                             SvgIcon="lucide/arrow-up-down" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <StackPanel x:Name="PanList"
+                                            Grid.Row="1"
+                                            Margin="20,10,18,22"
+                                            VerticalAlignment="Top" />
+                            </Grid>
+                        </ui:MyCard>
+                    </StackPanel>
+                </ui:MyScrollViewer>
+            </Grid>
+
+            <ui:MyCard x:Name="PanEmpty"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Margin="40"
+                       IsVisible="{Binding ShowEmpty}">
+                <StackPanel Margin="20,17">
+                    <TextBlock x:Name="TxtEmptyTitle"
+                               Margin="0,0,0,9"
+                               HorizontalAlignment="Center"
+                               FontSize="19"
+                               Foreground="{DynamicResource ColorBrush3}" />
+                    <Rectangle Height="2"
+                               HorizontalAlignment="Stretch"
+                               Fill="{DynamicResource ColorBrush3}" />
+                    <TextBlock x:Name="TxtEmptyDescription"
+                               Margin="10,10,10,0"
+                               TextWrapping="Wrap" />
+                    <WrapPanel Margin="10,20,10,5"
+                               HorizontalAlignment="Center">
+                        <ui:MyButton x:Name="BtnHintBack"
+                                     Height="35"
+                                     MinWidth="130"
+                                     Margin="5,0"
+                                     Padding="12,0"
+                                     IsVisible="False"
+                                     Text="{loc:Loc Instance.Resource.BackToParent}" />
+                        <ui:MyButton x:Name="BtnHintInstall"
+                                     Height="35"
+                                     MinWidth="130"
+                                     Margin="5,0"
+                                     Padding="12,0"
+                                     ColorType="Highlight"
+                                     Text="{loc:Loc Instance.Resource.InstallFromFiles}" />
+                        <ui:MyButton x:Name="BtnHintDownload"
+                                     Height="35"
+                                     MinWidth="130"
+                                     Margin="5,0"
+                                     Padding="12,0"
+                                     Text="{loc:Loc Instance.Resource.DownloadNew}" />
+                        <ui:MyButton x:Name="BtnHintOpen"
+                                     Height="35"
+                                     MinWidth="130"
+                                     Margin="5,0"
+                                     Padding="12,0"
+                                     Text="{loc:Loc Common.Action.OpenFolder}" />
+                    </WrapPanel>
+                </StackPanel>
+            </ui:MyCard>
+
+            <ui:MyCard x:Name="PanSchematicEmpty"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Margin="40"
+                       IsVisible="{Binding ShowSchematicEmpty}">
+                <StackPanel Margin="20,17">
+                    <TextBlock Margin="0,0,0,9"
+                               HorizontalAlignment="Center"
+                               Text="{loc:Loc Instance.Resource.Schematic.Unavailable.Title}"
+                               FontSize="19"
+                               Foreground="{DynamicResource ColorBrush3}" />
+                    <Rectangle Height="2"
+                               HorizontalAlignment="Stretch"
+                               Fill="{DynamicResource ColorBrush3}" />
+                    <TextBlock Margin="10,10,10,0"
+                               Text="{loc:Loc Instance.Resource.Schematic.Unavailable.Message}"
+                               TextWrapping="Wrap"
+                               HorizontalAlignment="Center" />
+                    <WrapPanel Margin="10,20,10,5"
+                               HorizontalAlignment="Center">
+                        <ui:MyButton x:Name="BtnSchematicDownloadMod"
+                                     Height="35"
+                                     MinWidth="130"
+                                     Margin="5,0"
+                                     Padding="12,0"
+                                     ColorType="Highlight"
+                                     Text="{loc:Loc Instance.Resource.Schematic.DownloadMod}" />
+                        <ui:MyButton x:Name="BtnSchematicVersionSelect"
+                                     Height="35"
+                                     MinWidth="130"
+                                     Margin="5,0"
+                                     Padding="12,0"
+                                     Text="{loc:Loc Instance.Resource.Mod.Disabled.SelectInstance}" />
+                    </WrapPanel>
+                </StackPanel>
+            </ui:MyCard>
+        </Grid>
+
+        <ui:MyCard x:Name="PanLoad"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Margin="40"
+                   UseAnimation="False">
+            <ui:MyLoading x:Name="Load"
+                          Margin="20,20,20,17"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center" />
+        </ui:MyCard>
+
+        <ui:MyCard x:Name="PanSelect"
+                   IsVisible="False"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Bottom"
+                   Margin="25,25,25,0"
+                   UseAnimation="False">
+            <StackPanel Margin="5,4,5,5">
+                <TextBlock x:Name="LabSelect"
+                           HorizontalAlignment="Center"
+                           Margin="9" />
+                <StackPanel Orientation="Horizontal"
+                            Margin="5,0,5,5"
+                            Spacing="2">
+                    <ui:MyIconTextButton x:Name="BtnSelectUpdate"
+                                         Text="{loc:Loc Instance.Resource.Update}"
+                                         LogoScale="1"
+                                         SvgIcon="lucide/upload" />
+                    <ui:MyIconTextButton x:Name="BtnSelectEnable"
+                                         Text="{loc:Loc Instance.Resource.Enable}"
+                                         LogoScale="1.05"
+                                         SvgIcon="lucide/circle-check" />
+                    <ui:MyIconTextButton x:Name="BtnSelectDisable"
+                                         Text="{loc:Loc Instance.Resource.Disable}"
+                                         LogoScale="1"
+                                         SvgIcon="lucide/circle-minus" />
+                    <ui:MyIconTextButton x:Name="BtnSelectFavorites"
+                                         Text="{loc:Loc Instance.Resource.Favorite}"
+                                         LogoScale="1"
+                                         SvgIcon="lucide/heart" />
+                    <ui:MyIconTextButton x:Name="BtnSelectShare"
+                                         Text="{loc:Loc Instance.Resource.ShareSelected}"
+                                         LogoScale="1"
+                                         SvgIcon="lucide/share-2" />
+                    <ui:MyIconTextButton x:Name="BtnSelectDelete"
+                                         Text="{loc:Loc Common.Action.Delete}"
+                                         LogoScale="0.96"
+                                         SvgIcon="lucide/trash-2" />
+                    <ui:MyIconTextButton x:Name="BtnSelectCancel"
+                                         Text="{loc:Loc Instance.Resource.CancelSelection}"
+                                         LogoScale="0.8"
+                                         SvgIcon="lucide/x" />
+                </StackPanel>
+            </StackPanel>
+        </ui:MyCard>
+    </Grid>
+</ui:MyPageRight>

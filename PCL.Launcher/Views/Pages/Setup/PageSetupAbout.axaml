@@ -1,0 +1,374 @@
+<ui:MyPageRight xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:conv="using:Avalonia.Data.Converters"
+                xmlns:ui="using:PCL.UI.Controls"
+                xmlns:loc="using:PCL.Core.UI"
+                x:CompileBindings="False"
+                x:Class="PCL.Views.Pages.Setup.PageSetupAbout">
+    <ui:MyScrollViewer x:Name="PanBack"
+                       HorizontalScrollBarVisibility="Disabled"
+                       VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="25,10"
+                    Grid.IsSharedSizeScope="True">
+            <ui:MyCard Margin="0,15"
+                       Title="{loc:Loc Setup.About.Title}">
+                <Grid Margin="21,40,21,16"
+                      ColumnDefinitions="40,*,150"
+                      RowDefinitions="45,45,45">
+                    <ui:MyImage Grid.Row="0"
+                                Width="34"
+                                Height="34"
+                                Margin="3"
+                                CornerRadius="17"
+                                VerticalAlignment="Center"
+                                Source="avares://PCL.Launcher/Assets/Images/Heads/LTCat.jpg" />
+                    <ui:MyImage x:Name="ImgPCLCommunity"
+                                Grid.Row="1"
+                                Width="34"
+                                Height="34"
+                                Margin="3"
+                                VerticalAlignment="Center"
+                                Source="avares://PCL.Launcher/Assets/Images/Heads/PCL-Community.png"
+                                PointerPressed="ImgPCLCommunity_PointerPressed" />
+                    <ui:MyImage x:Name="ImgPCLLogo"
+                                Grid.Row="2"
+                                Width="34"
+                                Height="34"
+                                Margin="3"
+                                CornerRadius="17"
+                                VerticalAlignment="Center"
+                                IsHitTestVisible="{Binding IsLogoClickEnabled}"
+                                Source="avares://PCL.Launcher/Assets/Images/Heads/Logo-CE.png"
+                                PointerPressed="ImgPCLLogo_PointerPressed" />
+
+                    <ui:MyListItem Grid.Row="0"
+                                   Grid.Column="1"
+                                   Margin="-5,0,15,0"
+                                   IsHitTestVisible="False"
+                                   Info="{loc:Loc Setup.About.OriginalAuthor.Info}"
+                                   Title="{loc:Loc Setup.About.OriginalAuthor.Name}" />
+                    <ui:MyListItem Grid.Row="1"
+                                   Grid.Column="1"
+                                   Margin="-5,0,15,0"
+                                   IsHitTestVisible="False"
+                                   Info="{loc:Loc Setup.About.Community.Info}"
+                                   Title="{loc:Loc Setup.About.Community.Name}" />
+                    <ui:MyListItem x:Name="ItemAboutPcl"
+                                   Grid.Row="2"
+                                   Grid.Column="1"
+                                   Margin="-5,0,15,0"
+                                   IsHitTestVisible="False"
+                                   Info="{Binding AboutInfo}" />
+
+                    <ui:MyButton x:Name="BtnSponsorOriginalAuthor"
+                                 Grid.Row="0"
+                                 Grid.Column="2"
+                                 Height="35"
+                                 Text="{loc:Loc Setup.About.SponsorOriginalAuthor}" />
+                    <ui:MyButton x:Name="BtnGitHubHome"
+                                 Grid.Row="1"
+                                 Grid.Column="2"
+                                 Height="35"
+                                 Text="{loc:Loc Setup.About.GitHubHome}" />
+                    <ui:MyButton x:Name="BtnSourceCode"
+                                 Grid.Row="2"
+                                 Grid.Column="2"
+                                 Height="35"
+                                 Text="{loc:Loc Setup.About.SourceCode}" />
+                </Grid>
+            </ui:MyCard>
+
+            <ui:MyCard Margin="0,0,0,15"
+                       Title="{loc:Loc Setup.About.SpecialThanks.Title}">
+                <Grid x:Name="PanThanks"
+                      Margin="21,40,21,16"
+                      ColumnDefinitions="40,*,150"
+                      RowDefinitions="45,45,45,45,45,45,45">
+                    <ui:MyImage Grid.Row="0"
+                                Grid.Column="0"
+                                Width="34"
+                                Height="34"
+                                Margin="3"
+                                CornerRadius="17"
+                                VerticalAlignment="Center"
+                                Source="avares://PCL.Launcher/Assets/Images/Heads/bangbang93.png" />
+                    <ui:MyListItem Grid.Row="0"
+                                   Grid.Column="1"
+                                   Margin="-5,0,0,0"
+                                   IsHitTestVisible="False"
+                                   Info="{loc:Loc Setup.About.SpecialThanks.Info.Bmclapi}"
+                                   Title="{loc:Loc Setup.About.SpecialThanks.Name.Bangbang93}" />
+                    <ui:MyButton x:Name="BtnSponsorMirror"
+                                 Grid.Row="0"
+                                 Grid.Column="2"
+                                 Height="35"
+                                 Text="{loc:Loc Setup.About.SpecialThanks.SponsorMirror}" />
+
+                    <ui:MyImage x:Name="ImgMcmod"
+                                Grid.Row="1"
+                                Grid.Column="0"
+                                Width="34"
+                                Height="34"
+                                Margin="3"
+                                CornerRadius="17"
+                                VerticalAlignment="Center"
+                                Source="avares://PCL.Launcher/Assets/Images/Heads/wiki.png" />
+                    <ui:MyListItem x:Name="ItemMcmod"
+                                   Grid.Row="1"
+                                   Grid.Column="1"
+                                   Margin="-5,0,0,0"
+                                   IsHitTestVisible="False"
+                                   Info="{loc:Loc Setup.About.SpecialThanks.Info.Mcmod}"
+                                   Title="{loc:Loc Setup.About.SpecialThanks.Name.Mcmod}" />
+                    <ui:MyButton x:Name="BtnMcmod"
+                                 Grid.Row="1"
+                                 Grid.Column="2"
+                                 Height="35"
+                                 Text="{loc:Loc Setup.About.SpecialThanks.OpenMcmod}" />
+
+                    <ui:MyImage Grid.Row="2"
+                                Grid.Column="0"
+                                Width="34"
+                                Height="34"
+                                Margin="3"
+                                CornerRadius="17"
+                                VerticalAlignment="Center"
+                                Source="avares://PCL.Launcher/Assets/Images/Heads/Pysio.jpg" />
+                    <ui:MyListItem Grid.Row="2"
+                                   Grid.Column="1"
+                                   Margin="-5,0,0,0"
+                                   IsHitTestVisible="False"
+                                   Info="{loc:Loc Setup.About.SpecialThanks.Info.Cloud}"
+                                   Title="{loc:Loc Setup.About.SpecialThanks.Name.Pysio}" />
+                    <ui:MyButton x:Name="BtnPysioBlog"
+                                 Grid.Row="2"
+                                 Grid.Column="2"
+                                 Height="35"
+                                 Text="{loc:Loc Setup.About.SpecialThanks.GoBlog}" />
+
+                    <ui:MyImage Grid.Row="3"
+                                Grid.Column="0"
+                                Width="34"
+                                Height="34"
+                                Margin="3"
+                                CornerRadius="17"
+                                VerticalAlignment="Center"
+                                Source="avares://PCL.Launcher/Assets/Images/Heads/Yunmoan.jpg" />
+                    <ui:MyListItem Grid.Row="3"
+                                   Grid.Column="1"
+                                   Margin="-5,0,0,0"
+                                   IsHitTestVisible="False"
+                                   Info="{loc:Loc Setup.About.SpecialThanks.Info.Cloud}"
+                                   Title="{loc:Loc Setup.About.SpecialThanks.Name.Yunmoan}" />
+                    <ui:MyButton x:Name="BtnYunmoanWebsite"
+                                 Grid.Row="3"
+                                 Grid.Column="2"
+                                 Height="35"
+                                 Text="{loc:Loc Setup.About.SpecialThanks.OpenWebsite}" />
+
+                    <ui:MyImage Grid.Row="4"
+                                Grid.Column="0"
+                                Width="34"
+                                Height="34"
+                                Margin="3"
+                                CornerRadius="17"
+                                VerticalAlignment="Center"
+                                Source="avares://PCL.Launcher/Assets/Images/Heads/EasyTier.png" />
+                    <ui:MyListItem Grid.Row="4"
+                                   Grid.Column="1"
+                                   Margin="-5,0,0,0"
+                                   IsHitTestVisible="False"
+                                   Info="{loc:Loc Setup.About.SpecialThanks.Info.LinkModule}"
+                                   Title="{loc:Loc Setup.About.SpecialThanks.Name.EasyTier}" />
+                    <ui:MyButton x:Name="BtnEasyTierWebsite"
+                                 Grid.Row="4"
+                                 Grid.Column="2"
+                                 Height="35"
+                                 Text="{loc:Loc Setup.About.SpecialThanks.OpenWebsite}" />
+
+                    <ui:MyImage Grid.Row="5"
+                                Grid.Column="0"
+                                Width="34"
+                                Height="34"
+                                Margin="3"
+                                CornerRadius="17"
+                                VerticalAlignment="Center"
+                                Source="avares://PCL.Launcher/Assets/Images/Heads/z0z0r4.png" />
+                    <ui:MyListItem Grid.Row="5"
+                                   Grid.Column="1"
+                                   Grid.ColumnSpan="2"
+                                   Margin="-5,0,0,0"
+                                   IsHitTestVisible="False"
+                                   Info="{loc:Loc Setup.About.SpecialThanks.Info.Mcim}"
+                                   Title="{loc:Loc Setup.About.SpecialThanks.Name.Z0z0r4}" />
+
+                    <ui:MyImage Grid.Row="6"
+                                Grid.Column="0"
+                                Width="34"
+                                Height="34"
+                                Margin="3"
+                                CornerRadius="17"
+                                VerticalAlignment="Center"
+                                Source="avares://PCL.Launcher/Assets/Images/Heads/Emperormummy.png" />
+                    <ui:MyListItem Grid.Row="6"
+                                   Grid.Column="1"
+                                   Grid.ColumnSpan="2"
+                                   Margin="-5,0,0,0"
+                                   IsHitTestVisible="False"
+                                   Info="{loc:Loc Setup.About.SpecialThanks.Info.IconDesign}"
+                                   Title="{loc:Loc Setup.About.SpecialThanks.Name.Emperormummy}" />
+                </Grid>
+            </ui:MyCard>
+
+            <ui:MyCard Margin="0,0,0,15"
+                       Title="{loc:Loc Setup.About.Contributors.Title}">
+                <Grid Margin="17,42,15,20"
+                      RowDefinitions="Auto,5,Auto">
+                    <WrapPanel x:Name="PanContributors"
+                               Grid.Row="0"
+                               Orientation="Horizontal" />
+                    <ui:MyTextButton x:Name="BtnContributors"
+                                     Grid.Row="2"
+                                     HorizontalAlignment="Center"
+                                     Text="{loc:Loc Setup.About.Contributors.ViewMore}" />
+                </Grid>
+            </ui:MyCard>
+
+            <ui:MyCard Margin="0,0,0,15"
+                       Title="{loc:Loc Setup.About.Legal.Title}"
+                       CanSwap="True">
+                <StackPanel Margin="25,39,23,20">
+                    <TextBlock Margin="0,6,0,4"
+                               FontWeight="Bold"
+                               TextWrapping="Wrap"
+                               Text="{loc:Loc Setup.About.Legal.PrivacyNotice}" />
+                    <TextBlock Margin="0,0,0,2"
+                               LineHeight="17"
+                               TextWrapping="Wrap"
+                               Text="{loc:Loc Setup.About.Legal.PrivacyText}" />
+                    <TextBlock Margin="0,12,0,4"
+                               FontWeight="Bold"
+                               TextWrapping="Wrap"
+                               Text="{loc:Loc Setup.About.Legal.OtherInfo}" />
+                    <TextBlock Margin="0,0,0,2"
+                               LineHeight="17"
+                               TextWrapping="Wrap"
+                               Text="{loc:Loc Setup.About.Legal.CopyrightText}" />
+                    <StackPanel Height="35"
+                                Margin="0,12,0,0"
+                                HorizontalAlignment="Left"
+                                Orientation="Horizontal">
+                        <ui:MyButton x:Name="BtnCommunitySource"
+                                     Margin="0,0,20,0"
+                                     Padding="13,0"
+                                     ColorType="Highlight"
+                                     Text="{loc:Loc Setup.About.Legal.CommunitySource}" />
+                        <ui:MyButton x:Name="BtnCommunityLobbyPrivacy"
+                                     Margin="0,0,20,0"
+                                     Padding="13,0"
+                                     Text="{loc:Loc Setup.About.Legal.CommunityLobbyPrivacy}" />
+                        <ui:MyButton x:Name="BtnNatayarkTerms"
+                                     Margin="0,0,20,0"
+                                     Padding="13,0"
+                                     Text="{loc:Loc Setup.About.Legal.NatayarkTerms}" />
+                    </StackPanel>
+                </StackPanel>
+            </ui:MyCard>
+
+            <ui:MyCard Margin="0,0,0,15"
+                       Title="{loc:Loc Setup.About.UpstreamLegal.Title}"
+                       CanSwap="True"
+                       IsSwapped="True">
+                <StackPanel Margin="25,39,23,20">
+                    <TextBlock Margin="0,6,0,4"
+                               FontWeight="Bold"
+                               TextWrapping="Wrap"
+                               Text="{loc:Loc Setup.About.Legal.PrivacyNotice}" />
+                    <TextBlock Margin="0,0,0,2"
+                               LineHeight="17"
+                               TextWrapping="Wrap"
+                               Text="{loc:Loc Setup.About.UpstreamLegal.PrivacyText}" />
+                    <TextBlock Margin="0,12,0,4"
+                               FontWeight="Bold"
+                               TextWrapping="Wrap"
+                               Text="{loc:Loc Setup.About.Legal.OtherInfo}" />
+                    <TextBlock Margin="0,0,0,2"
+                               LineHeight="17"
+                               TextWrapping="Wrap"
+                               Text="{loc:Loc Setup.About.UpstreamLegal.CopyrightText}" />
+                    <StackPanel Height="35"
+                                Margin="0,12,0,0"
+                                HorizontalAlignment="Left"
+                                Orientation="Horizontal">
+                        <ui:MyButton x:Name="BtnUpstreamTerms"
+                                     Width="160"
+                                     Margin="0,0,20,0"
+                                     Padding="13,0"
+                                     ColorType="Highlight"
+                                     Text="{loc:Loc Setup.About.UpstreamLegal.TermsAndDisclaimer}" />
+                        <ui:MyButton x:Name="BtnUpstreamSource"
+                                     Width="120"
+                                     Margin="0,0,20,0"
+                                     Padding="13,0"
+                                     Text="{loc:Loc Setup.About.UpstreamLegal.OpenSource}" />
+                    </StackPanel>
+                </StackPanel>
+            </ui:MyCard>
+
+            <ui:MyCard Margin="0,0,0,15"
+                       Title="{loc:Loc Setup.About.Licenses.Title}"
+                       CanSwap="True"
+                       IsSwapped="True">
+                <ItemsControl x:Name="PanLicenses"
+                              Margin="25,42,23,4"
+                              ItemsSource="{Binding Licenses}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"
+                                                      SharedSizeGroup="LicenseName" />
+                                    <ColumnDefinition Width="20" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="60" />
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.Row="0"
+                                           Grid.Column="0"
+                                           FontWeight="Bold"
+                                           TextWrapping="Wrap"
+                                           Text="{Binding Name}" />
+                                <TextBlock Grid.Row="0"
+                                           Grid.Column="2"
+                                           Grid.ColumnSpan="2"
+                                           TextWrapping="Wrap"
+                                           Text="{Binding Information}" />
+                                <ui:MyButton Grid.Row="1"
+                                             Grid.Column="2"
+                                             MinWidth="140"
+                                             Margin="0,7,20,18"
+                                             HorizontalAlignment="Left"
+                                             Padding="13,0"
+                                             IsVisible="{Binding WebsiteUri, Converter={x:Static conv:ObjectConverters.IsNotNull}}"
+                                             Click="LicenseWebsite_Click"
+                                             Text="{loc:Loc Setup.About.Licenses.ViewWebsite}" />
+                                <ui:MyButton Grid.Row="1"
+                                             Grid.Column="3"
+                                             MinWidth="140"
+                                             Margin="0,7,20,18"
+                                             HorizontalAlignment="Left"
+                                             Padding="13,0"
+                                             IsVisible="{Binding LicenseUri, Converter={x:Static conv:ObjectConverters.IsNotNull}}"
+                                             Click="LicenseUri_Click"
+                                             Text="{loc:Loc Setup.About.Licenses.ViewLicense}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ui:MyCard>
+        </StackPanel>
+    </ui:MyScrollViewer>
+</ui:MyPageRight>

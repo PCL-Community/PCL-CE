@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using PCL.Core.Platform;
@@ -9,23 +10,57 @@ partial class Lifecycle
 {
     private static DateTime? _countRunningStart;
 
-    private static bool _isApplicationStarted = false;
-    private static bool _isLoadingStarted = false;
-    private static bool _isWindowCreated = false;
+    private static bool _isApplicationStarted;
+    private static bool _isLoadingStarted;
+    private static bool _isWindowCreated;
 
-    private static bool _hasRequestedStopLoading = false;
+    private static bool _hasRequestedStopLoading;
+
+    private static bool _hasRequestedRestart;
+    private static string? _requestRestartArguments;
+    private static ILifecycleService? _requestRestartService;
+
+    private static readonly Lock _ExitLock = new();
+
+    private static int _fatalExitStarted;
 
     /// <summary>
-    /// [请勿调用] 处理未捕获异常流程
+    ///     应用程序容器，在 <see cref="LifecycleState.BeforeLoading" /> 阶段为空值
+    /// </summary>
+    public static IApplicationHost CurrentApplication { get; set; } = null!;
+
+    /// <summary>
+    ///     是否正在关闭程序
+    /// </summary>
+    public static bool HasShutdownStarted { get; private set; }
+
+    /// <summary>
+    ///     正在进行的关闭程序流程是否是强制关闭
+    /// </summary>
+    public static bool IsForceShutdown { get; private set; }
+
+    /// <summary>
+    ///     [请勿调用] 处理未捕获异常流程
     /// </summary>
     /// <param name="ex">异常对象</param>
     public static void OnException(object ex)
     {
-        Context.Fatal("未捕获的异常", ex as Exception);
+        try
+        {
+            Context.Fatal("未捕获的异常 | UNCAUGHT EXCEPTION", ex as Exception);
+        }
+        catch (Exception fatalEx)
+        {
+            Console.Error.WriteLine($"[Lifecycle] 处理未捕获异常失败：{fatalEx}");
+        }
+        finally
+        {
+            _FatalExit();
+        }
     }
 
     /// <summary>
-    /// [请勿调用] 程序初始化流程
+    ///     [请勿调用] 程序初始化流程
     /// </summary>
     public static void OnInitialize()
     {
@@ -52,6 +87,7 @@ partial class Lifecycle
             if (_ManualServiceMap.TryAdd(identifier, instance)) continue;
             Context.Warn($"{_ServiceName(instance, LifecycleState.Manual)} 标识符重复，已跳过");
         }
+
         // 运行预加载服务
         _StartStateFlow(LifecycleState.BeforeLoading);
         if (_hasRequestedStopLoading) return;
@@ -61,7 +97,7 @@ partial class Lifecycle
     }
 
     /// <summary>
-    /// [请勿调用] 组件加载流程
+    ///     [请勿调用] 组件加载流程
     /// </summary>
     public static void OnLoading()
     {
@@ -75,7 +111,7 @@ partial class Lifecycle
     }
 
     /// <summary>
-    /// [请勿调用] 窗口创建结束流程
+    ///     [请勿调用] 窗口创建结束流程
     /// </summary>
     public static void OnWindowCreated()
     {
@@ -88,30 +124,59 @@ partial class Lifecycle
         _StartWorker(LifecycleState.Running, LifecycleState.Exiting, false);
     }
 
-    private static bool _hasRequestedRestart = false;
-    private static string? _requestRestartArguments;
-    private static ILifecycleService? _requestRestartService;
-
-    private static readonly object _ExitLock = new();
-
     /// <summary>
-    ///     应用程序容器，在 <see cref="LifecycleState.BeforeLoading" /> 阶段为空值
+    ///     请求以致命错误状态结束进程。供致命错误对话框或 UI 宿主在异常路径上兜底调用。
     /// </summary>
-    public static IApplicationHost CurrentApplication { get; set; } = null!;
-
-    /// <summary>
-    /// 是否正在关闭程序
-    /// </summary>
-    public static bool HasShutdownStarted { get; private set; } = false;
-
-    /// <summary>
-    /// 正在进行的关闭程序流程是否是强制关闭
-    /// </summary>
-    public static bool IsForceShutdown { get; private set; } = false;
+    public static void RequestFatalExit()
+    {
+        _FatalExit();
+    }
 
     private static void _FatalExit()
     {
-        ForceShutdown(-1);
+        if (HasShutdownStarted) return;
+
+        // 正常关闭流程可能被卡住；致命退出最多等待 5 秒，之后直接结束进程。
+        if (Interlocked.Exchange(ref _fatalExitStarted, 1) == 0)
+            new Thread(() =>
+            {
+                Thread.Sleep(TimeSpan.FromSeconds(5));
+                try
+                {
+                    Process.GetCurrentProcess().Kill();
+                }
+                catch
+                {
+                    Environment.Exit(-1);
+                }
+            })
+            {
+                IsBackground = true,
+                Name = "Lifecycle/FatalExitWatchdog"
+            }.Start();
+
+        try
+        {
+            // BeforeLoading 阶段应用容器尚未创建，Shutdown 会抛 InvalidOperationException 掩盖原始错误
+            if (CurrentState == LifecycleState.BeforeLoading)
+            {
+                _Exit(-1);
+                return;
+            }
+
+            ForceShutdown(-1);
+        }
+        catch
+        {
+            try
+            {
+                Process.GetCurrentProcess().Kill();
+            }
+            catch
+            {
+                Environment.Exit(-1);
+            }
+        }
     }
 
     private static void _Exit(int statusCode = 0)
@@ -121,12 +186,14 @@ partial class Lifecycle
             if (HasShutdownStarted) return;
             HasShutdownStarted = true;
         }
+
         // 结束 Running 计时
         if (_countRunningStart is { } start)
         {
             var countSpan = DateTime.Now - start;
             _LogStateCount(countSpan, LifecycleState.Running);
         }
+
         // 开始 Exiting 状态
         _StartStateFlow(LifecycleState.Exiting, count: false);
         // 停止服务
@@ -135,7 +202,8 @@ partial class Lifecycle
         while (_StartedServiceStack.TryPop(out var service))
         {
             // 跳过已标记为停止的服务
-            if (_RunningServiceInfoMap.TryGetValue(service.Identifier, out var info) && info.IsStopped) continue;
+            if (_RunningServiceInfoMap.TryGetValue(service.Identifier, out var info)
+                && info.IsStopped) continue;
             // 跳过日志服务
             if (service is ILifecycleLogService ls)
             {
@@ -143,9 +211,11 @@ partial class Lifecycle
                 logService = ls;
                 continue;
             }
+
             // 执行停止流程
             _StopService(service, service.SupportAsync);
         }
+
         _WaitStoppingServiceTasks();
         if (logService is not null)
         {
@@ -154,12 +224,15 @@ partial class Lifecycle
             logService.StopAsync().ConfigureAwait(false).GetAwaiter().GetResult();
             Console.WriteLine("[Lifecycle] Log service stopped");
         }
+
         _SavePendingLogs();
         if (_hasRequestedRestart && _requestRestartService is { } s)
         {
-            Console.WriteLine($"[Lifecycle] Requested by '{s.Identifier}', restarting the program...");
+            Console.WriteLine(
+                $"[Lifecycle] Requested by '{s.Identifier}', restarting the program...");
             _RunCurrentExecutable(_requestRestartArguments);
         }
+
         // 退出程序
         Console.WriteLine($"[Lifecycle] Exiting program with status: {statusCode}");
         // 执行正常退出
@@ -172,12 +245,12 @@ partial class Lifecycle
     }
 
     /// <summary>
-    /// 发起关闭程序流程。<br/>
-    /// <see cref="LifecycleState.BeforeLoading"/> 状态请使用 <see cref="LifecycleContext.RequestExit"/>。
+    ///     发起关闭程序流程。<br />
+    ///     <see cref="LifecycleState.BeforeLoading" /> 状态请使用 <see cref="LifecycleContext.RequestExit" />。
     /// </summary>
     /// <param name="statusCode">退出状态码 (返回值)</param>
     /// <param name="force">指定是否强制关闭，即不执行 WPF 标准关闭流程</param>
-    /// <exception cref="InvalidOperationException">尝试在 <see cref="LifecycleState.BeforeLoading"/> 状态调用</exception>
+    /// <exception cref="InvalidOperationException">尝试在 <see cref="LifecycleState.BeforeLoading" /> 状态调用</exception>
     public static void Shutdown(int statusCode = 0, bool force = false)
     {
         if (CurrentState == LifecycleState.BeforeLoading) throw new InvalidOperationException();
@@ -185,13 +258,20 @@ partial class Lifecycle
         Context.Info(force ? "开始强制关闭程序" : "正在关闭程序");
         IsForceShutdown = force;
         if (force) _Exit(statusCode);
-        else new Thread(() => _Exit(statusCode)) { Name = "Lifecycle/Shutdown" }.Start();
+        else
+            new Thread(() => _Exit(statusCode))
+            {
+                Name = "Lifecycle/Shutdown"
+            }.Start();
     }
 
     /// <summary>
-    /// 强制关闭程序，不执行 WPF 标准关闭流程。
+    ///     强制关闭程序，不执行 WPF 标准关闭流程。
     /// </summary>
     /// <param name="statusCode">退出状态码 (返回值)</param>
-    /// <exception cref="InvalidOperationException">尝试在 <see cref="LifecycleState.BeforeLoading"/> 时调用</exception>
-    public static void ForceShutdown(int statusCode = 0) => Shutdown(statusCode, true);
+    /// <exception cref="InvalidOperationException">尝试在 <see cref="LifecycleState.BeforeLoading" /> 时调用</exception>
+    public static void ForceShutdown(int statusCode = 0)
+    {
+        Shutdown(statusCode, true);
+    }
 }

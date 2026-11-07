@@ -1,0 +1,11 @@
+<ui:MyPageLeft xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:ui="using:PCL.UI.Controls"
+                x:Class="PCL.Views.Pages.Instance.PageInstanceLeft">
+    <ui:MyScrollViewer Classes="FullMargin"
+                       HorizontalScrollBarVisibility="Disabled"
+                       VerticalScrollBarVisibility="Auto">
+        <StackPanel x:Name="PanItem"
+                    Margin="0,12,0,0" />
+    </ui:MyScrollViewer>
+</ui:MyPageLeft>

@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Utils.OS;
@@ -23,7 +23,11 @@ public static partial class GameLaunch
             string.IsNullOrEmpty(dataJvmCustom) ? Config.Launch.JvmArgs : dataJvmCustom);
         _ApplyPreferredIpStackArgs(dataList);
 
-        var availableGb = KernelInterop.GetAvailablePhysicalMemoryBytes() / 1073741824.0;
+        // 非 Windows 没有 GlobalMemoryStatusEx，使用 GC 报告的可用内存作为近似值
+        var availableBytes = OperatingSystem.IsWindows()
+            ? KernelInterop.GetAvailablePhysicalMemoryBytes()
+            : (ulong)GC.GetGCMemoryInfo().TotalAvailableMemoryBytes;
+        var availableGb = availableBytes / 1073741824.0;
         McLaunchLog($"当前剩余内存：{availableGb.ToString("N1", CultureInfo.InvariantCulture)}G");
 
         _ApplyMemoryArgs(dataList);

@@ -1,0 +1,81 @@
+<ui:MyPageRight xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:ui="using:PCL.UI.Controls"
+                xmlns:loc="using:PCL.Core.UI"
+                x:Class="PCL.Views.Pages.Download.PageDownloadCompDetail">
+    <ui:MyScrollViewer x:Name="PanBack"
+                       HorizontalScrollBarVisibility="Disabled"
+                       VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="25,25,25,10">
+            <ui:MyCard Margin="0,0,0,25">
+                <StackPanel x:Name="PanIntro"
+                            Margin="22,20,2,20">
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Left">
+                        <ui:MyIconTextButton x:Name="BtnOpenWebsite"
+                                             Margin="0,0,3,0"
+                                             BorderBrush="{DynamicResource ColorBrush6}"
+                                             BorderThickness="1"
+                                             SvgIcon="lucide/globe" />
+                        <ui:MyIconTextButton x:Name="BtnIntroWiki"
+                                             Margin="0,0,3,0"
+                                             BorderBrush="{DynamicResource ColorBrush6}"
+                                             BorderThickness="1"
+                                             SvgIcon="lucide/globe"
+                                             IsVisible="False"
+                                             Text="{loc:Loc Download.Comp.Detail.McMod}" />
+                        <ui:MyIconTextButton x:Name="BtnCopyName"
+                                             Margin="0,0,3,0"
+                                             BorderBrush="{DynamicResource ColorBrush6}"
+                                             BorderThickness="1"
+                                             SvgIcon="lucide/copy"
+                                             Text="{loc:Loc Download.Comp.Detail.CopyName}" />
+                        <ui:MyIconTextButton x:Name="BtnCopyLink"
+                                             Margin="0,0,3,0"
+                                             BorderBrush="{DynamicResource ColorBrush6}"
+                                             BorderThickness="1"
+                                             SvgIcon="lucide/copy"
+                                             Text="{loc:Loc Download.Comp.Detail.CopyLink}" />
+                        <ui:MyIconTextButton x:Name="BtnTranslate"
+                                             Margin="0,0,3,0"
+                                             BorderBrush="{DynamicResource ColorBrush6}"
+                                             BorderThickness="1"
+                                             SvgIcon="lucide/earth"
+                                             IsVisible="False"
+                                             Text="{loc:Loc Download.Comp.Detail.TranslateDescription}" />
+                        <ui:MyIconTextButton x:Name="BtnFavorites"
+                                             Margin="0,0,2,0"
+                                             BorderBrush="{DynamicResource ColorBrush6}"
+                                             BorderThickness="1"
+                                             SvgIcon="lucide/heart"
+                                             Text="{loc:Loc Download.Comp.Detail.Favorite}" />
+                    </StackPanel>
+                </StackPanel>
+            </ui:MyCard>
+
+            <ui:MyCard x:Name="CardFilter"
+                       Margin="0,0,0,15"
+                       IsVisible="False">
+                <StackPanel Margin="10,10,10,6"
+                            Spacing="6">
+                    <WrapPanel x:Name="PanInstanceFilter" />
+                    <WrapPanel x:Name="PanModLoaderFilter"
+                               IsVisible="False" />
+                </StackPanel>
+            </ui:MyCard>
+
+            <StackPanel x:Name="PanResults" />
+
+            <ui:MyCard x:Name="PanLoad"
+                       Margin="40,50"
+                       HorizontalAlignment="Center">
+                <ui:MyLoading x:Name="Load"
+                              Margin="20,20,20,17"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"
+                              AutoRun="False"
+                              Text="{loc:Loc Download.Version.LoadingList}" />
+            </ui:MyCard>
+        </StackPanel>
+    </ui:MyScrollViewer>
+</ui:MyPageRight>
