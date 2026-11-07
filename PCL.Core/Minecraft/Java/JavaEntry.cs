@@ -1,6 +1,4 @@
-using PCL.Core.Minecraft.Java;
-
-namespace PCL.Core.Minecraft;
+namespace PCL.Core.Minecraft.Java;
 
 public sealed class JavaEntry
 {
