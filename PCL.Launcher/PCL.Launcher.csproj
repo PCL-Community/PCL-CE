@@ -26,6 +26,7 @@
     <ItemGroup>
         <PackageReference Include="Avalonia" Version="12.1.4" />
         <PackageReference Include="Avalonia.Desktop" Version="12.1.4" />
+        <PackageReference Include="Avalonia.Wayland" Version="12.1.4" />
         <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.4" />
         <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.4" />
         <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3">
@@ -46,6 +47,7 @@
         </EmbeddedResource>
     </ItemGroup>
     <ItemGroup>
+        <Content Include="Assets\Images\icon.png" Link="Assets\Images\icon.png" CopyToOutputDirectory="PreserveNewest" />
         <Content Include="..\LICENSE" Link="LICENSE" CopyToOutputDirectory="PreserveNewest" />
         <Content Include="..\PCL.Launcher.Core\LICENCE" Link="LICENCE.PCL.Launcher.Core" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
@@ -58,4 +60,10 @@
         <ProjectReference Include="..\PCL.Core.UI\PCL.Core.UI.csproj" />
         <ProjectReference Include="..\PCL.Launcher.Core\PCL.Launcher.Core.csproj" />
     </ItemGroup>
+    <Target Name="RemovePublishPdbs" AfterTargets="Publish" Condition="'$(Configuration)' != 'Debug'">
+        <ItemGroup>
+            <_PublishPdb Include="$(PublishDir)**/*.pdb" />
+        </ItemGroup>
+        <Delete Files="@(_PublishPdb)" />
+    </Target>
 </Project>

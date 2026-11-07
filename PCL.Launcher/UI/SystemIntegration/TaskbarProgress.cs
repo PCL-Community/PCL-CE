@@ -12,10 +12,15 @@ namespace PCL.UI.SystemIntegration;
 /// <summary>任务栏进度：Windows 使用 ITaskbarList3，Linux 使用 Unity LauncherEntry，其它平台降级为无操作。</summary>
 public static class TaskbarProgress
 {
+    private static readonly Lock LinuxSync = new();
     private static TaskbarProgressState _lastState = TaskbarProgressState.None;
     private static double _lastProgress;
     private static bool _windowsFailed;
     private static bool _linuxUnavailable;
+    private static bool _linuxUpdateRunning;
+    private static bool _linuxUpdateDirty;
+    private static TaskbarProgressState _linuxPendingState;
+    private static double _linuxPendingProgress;
     private static ITaskbarList3? _taskbar;
 
     private static Window? MainWindow =>
@@ -42,7 +47,48 @@ public static class TaskbarProgress
         }
 
         if (OperatingSystem.IsLinux())
-            _UpdateLinux(state, progress);
+            _QueueLinuxUpdate(state, progress);
+    }
+
+    /// <summary>
+    ///     Linux 的 Unity LauncherEntry 通过 gdbus 子进程实现，不能阻塞 UI 线程。
+    ///     这里合并连续进度更新，只保留最后一次状态，串行交给后台线程执行。
+    /// </summary>
+    private static void _QueueLinuxUpdate(TaskbarProgressState state, double progress)
+    {
+        lock (LinuxSync)
+        {
+            _linuxPendingState = state;
+            _linuxPendingProgress = progress;
+            _linuxUpdateDirty = true;
+            if (_linuxUpdateRunning)
+                return;
+            _linuxUpdateRunning = true;
+        }
+
+        _ = Task.Run(async () =>
+        {
+            while (true)
+            {
+                TaskbarProgressState pendingState;
+                double pendingProgress;
+                lock (LinuxSync)
+                {
+                    if (!_linuxUpdateDirty)
+                    {
+                        _linuxUpdateRunning = false;
+                        return;
+                    }
+
+                    pendingState = _linuxPendingState;
+                    pendingProgress = _linuxPendingProgress;
+                    _linuxUpdateDirty = false;
+                }
+
+                _UpdateLinux(pendingState, pendingProgress);
+                await Task.Delay(120);
+            }
+        });
     }
 
     public static void SetThumbnailClip(Thickness margin)

@@ -5,6 +5,7 @@ using Avalonia.Threading;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Minecraft;
+using PCL.Core.Minecraft.Java;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
@@ -217,7 +218,9 @@ public partial class PageSetupJava : MyPageRight, IRefreshable
         try
         {
             var path = SystemDialogs.SelectFile(
-                Lang.Text("Setup.Java.SelectFile.Filter"),
+                Lang.Text(
+                    "Setup.Java.SelectFile.Filter",
+                    JavaExecutableLayout.JavaExecutableName),
                 Lang.Text("Setup.Java.SelectFile.Title"));
             if (string.IsNullOrEmpty(path) || !File.Exists(path)) return;
             if (JavaRuntime.Javas.Exist(path))

@@ -29,8 +29,9 @@ public partial class PageInstanceOverall : MyPageRight
         BtnDisplayDesc.Click += (_, _) => _ = ViewModel.EditDescriptionAsync();
         BtnDisplayStar.Click += (_, _) => ViewModel.ToggleStarCommand.Execute(null);
         BtnManageRestore.Click += (_, _) => _ = ViewModel.RestoreAsync();
-        BtnManageDelete.Click += (_, e) =>
-            _ = ViewModel.DeleteAsync(e.KeyModifiers.HasFlag(KeyModifiers.Shift));
+        BtnManageDelete.Click += (_, _) =>
+            _ = ViewModel.DeleteAsync(
+                BtnManageDelete.LastClickKeyModifiers.HasFlag(KeyModifiers.Shift));
         BtnManagePatch.Click += (_, _) => _ = ViewModel.PatchCoreAsync();
 
         ComboDisplayLogo.SelectionChanged += (_, _) => OnLogoChanged();

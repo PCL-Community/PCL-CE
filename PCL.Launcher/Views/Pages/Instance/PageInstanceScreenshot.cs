@@ -4,6 +4,7 @@ using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.VisualTree;
 using PCL.Core.App.Localization;
 using PCL.UI.Controls;
 
@@ -63,7 +64,7 @@ public partial class PageInstanceScreenshot : MyPageRight, IRefreshable
     {
         PanScreenshots.Children.Clear();
         if (ViewModel.HasScreenshots)
-            _ = AppendAsync(AppendCount);
+            AppendBatch(AppendCount);
     }
 
     private void RequireAppend()
@@ -72,16 +73,29 @@ public partial class PageInstanceScreenshot : MyPageRight, IRefreshable
             return;
         if (PanBack.Offset.Y + PanBack.Viewport.Height < PanBack.Extent.Height - 40d)
             return;
-        _ = AppendAsync(AppendCount);
+        AppendBatch(AppendCount);
     }
 
-    private async Task AppendAsync(int count)
+    private void AppendBatch(int count)
     {
         foreach (var item in ViewModel.AppendNext(count))
-            PanScreenshots.Children.Add(await CreateScreenshotCardAsync(item));
+        {
+            var placeholder = new MyVirtualizingElement<MyCard>(() => CreateScreenshotCard(item))
+            {
+                Width = 150d,
+                Height = 170d,
+                RecycleOffscreen = true
+            };
+            placeholder.Recycled += control =>
+            {
+                if (control is MyCard card)
+                    UnloadScreenshotCard(card);
+            };
+            PanScreenshots.Children.Add(placeholder);
+        }
     }
 
-    private async Task<MyCard> CreateScreenshotCardAsync(ScreenshotItemViewModel item)
+    private MyCard CreateScreenshotCard(ScreenshotItemViewModel item)
     {
         var card = new MyCard
         {
@@ -100,23 +114,7 @@ public partial class PageInstanceScreenshot : MyPageRight, IRefreshable
             Cursor = new Cursor(StandardCursorType.Hand),
             Margin = new Thickness(4d, 0d)
         };
-        try
-        {
-            var bitmap = await Task.Run(() =>
-            {
-                using var stream = File.OpenRead(item.FilePath);
-                return Bitmap.DecodeToWidth(stream, 400);
-            });
-            image.Source = bitmap;
-            var ratio = bitmap.PixelSize.Height <= 0
-                ? 1d
-                : (double)bitmap.PixelSize.Width / bitmap.PixelSize.Height;
-            card.Width = Math.Clamp(120d * ratio + 16d, 120d, 420d);
-        }
-        catch (Exception ex)
-        {
-            LauncherCommon.Log(ex, $"加载截图缩略图失败：{item.FilePath}", LauncherLogLevel.Developer);
-        }
+        _ = LoadScreenshotImageAsync(card, image, item);
 
         image.PointerPressed += (_, _) =>
         {
@@ -152,6 +150,48 @@ public partial class PageInstanceScreenshot : MyPageRight, IRefreshable
                 Animations.AaOpacity(card, 1d, 200)
             });
         return card;
+    }
+
+    private static async Task LoadScreenshotImageAsync(
+        MyCard card,
+        Image image,
+        ScreenshotItemViewModel item)
+    {
+        try
+        {
+            var bitmap = await Task.Run(() =>
+            {
+                using var stream = File.OpenRead(item.FilePath);
+                return Bitmap.DecodeToWidth(stream, 400);
+            });
+
+            if (card.Tag is not string path || path != item.FilePath)
+            {
+                bitmap.Dispose();
+                return;
+            }
+
+            image.Source = bitmap;
+            var ratio = bitmap.PixelSize.Height <= 0
+                ? 1d
+                : (double)bitmap.PixelSize.Width / bitmap.PixelSize.Height;
+            card.Width = Math.Clamp(120d * ratio + 16d, 120d, 420d);
+        }
+        catch (Exception ex)
+        {
+            LauncherCommon.Log(ex, $"加载截图缩略图失败：{item.FilePath}", LauncherLogLevel.Developer);
+        }
+    }
+
+    private static void UnloadScreenshotCard(MyCard card)
+    {
+        card.Tag = null;
+        foreach (var image in card.GetVisualDescendants().OfType<Image>())
+        {
+            if (image.Source is IDisposable disposable)
+                disposable.Dispose();
+            image.Source = null;
+        }
     }
 
     private static MyIconTextButton CreateActionButton(string textKey, string icon)

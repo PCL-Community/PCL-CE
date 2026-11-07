@@ -1,5 +1,6 @@
 using System.Windows.Input;
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Data;
@@ -48,6 +49,10 @@ public partial class MyCheckBox : UserControl
     public static readonly StyledProperty<object?> CheckCommandParameterProperty =
         AvaloniaProperty.Register<MyCheckBox, object?>(nameof(CheckCommandParameter));
 
+    // 基础
+
+    public int Uuid = InputTheme.NewUuid();
+
     private bool _allowMouseDown = true;
     private bool _isExecutingCheckCommand;
     private bool _isSettingChecked;
@@ -55,16 +60,13 @@ public partial class MyCheckBox : UserControl
     private bool _mouseDowned;
     private bool? _previousState;
 
-    // 基础
-
-    public int Uuid = InputTheme.NewUuid();
-
     public MyCheckBox()
     {
         InitializeComponent();
 
         PointerPressed += Checkbox_MouseDown;
         PointerReleased += Checkbox_MouseUp;
+        KeyboardActivation.Attach(this, PerformClick);
         PointerEntered += Checkbox_MouseEnter;
         PointerExited += Checkbox_MouseLeave;
         Loaded += (_, _) =>
@@ -114,10 +116,55 @@ public partial class MyCheckBox : UserControl
     /// </summary>
     public TextBlock LabText => LabTextElement;
 
+    // 外观
+
+    private string CheckScaleShowKey => InputAnimation.Key("MyCheckBox Check Scale Show", Uuid);
+
+    private string CheckScaleHideKey => InputAnimation.Key("MyCheckBox Check Scale Hide", Uuid);
+
+    private string IndeterminateScaleShowKey =>
+        InputAnimation.Key("MyCheckBox Indeterminate Scale Show", Uuid);
+
+    private string IndeterminateScaleHideKey =>
+        InputAnimation.Key("MyCheckBox Indeterminate Scale Hide", Uuid);
+
+    private string BackgroundScaleKey => InputAnimation.Key("MyCheckBox Background Scale", Uuid);
+
+    private string BorderColorKey => InputAnimation.Key("MyCheckBox BorderColor", Uuid);
+
+    private string TextColorKey => InputAnimation.Key("MyCheckBox TextColor", Uuid);
+
+    private string BackgroundKey => InputAnimation.Key("MyCheckBox Background", Uuid);
+
+    private string AllowMouseDownKey => InputAnimation.Key("MyCheckBox AllowMouseDown", Uuid);
+
     /// <summary>
     ///     复选框勾选状态改变。
     /// </summary>
     /// <param name="user">是否为用户手动改变的勾选状态。</param>
+    /// <summary>执行勾选语义；键盘 Enter/Space 与自动化调用共用。</summary>
+    public void PerformClick()
+    {
+        if (!IsEnabled) return;
+        if (IsThreeState)
+            switch (Checked)
+            {
+                case true:
+                    SetChecked(null, true);
+                    break;
+                case false:
+                    SetChecked(true, true);
+                    break;
+                case null:
+                    SetChecked(false, true);
+                    break;
+            }
+        else
+            SetChecked(!Checked, true);
+
+        AnimateBackground(AnimationTimeOfPress, true);
+    }
+
     public event ChangeEventHandler? Change;
 
     public event PreviewChangeEventHandler? PreviewChange;
@@ -185,24 +232,7 @@ public partial class MyCheckBox : UserControl
             return;
 
         _mouseDowned = false;
-
-        if (IsThreeState)
-            switch (Checked)
-            {
-                case true:
-                    SetChecked(null, true);
-                    break;
-                case false:
-                    SetChecked(true, true);
-                    break;
-                case null:
-                    SetChecked(false, true);
-                    break;
-            }
-        else
-            SetChecked(!Checked, true);
-
-        AnimateBackground(AnimationTimeOfPress, true);
+        PerformClick();
     }
 
     private void Checkbox_MouseDown(object? sender, PointerPressedEventArgs e)
@@ -234,23 +264,6 @@ public partial class MyCheckBox : UserControl
 
         AnimateColors(AnimationTimeOfMouseOut);
     }
-
-    // 外观
-
-    private string CheckScaleShowKey => InputAnimation.Key("MyCheckBox Check Scale Show", Uuid);
-    private string CheckScaleHideKey => InputAnimation.Key("MyCheckBox Check Scale Hide", Uuid);
-
-    private string IndeterminateScaleShowKey =>
-        InputAnimation.Key("MyCheckBox Indeterminate Scale Show", Uuid);
-
-    private string IndeterminateScaleHideKey =>
-        InputAnimation.Key("MyCheckBox Indeterminate Scale Hide", Uuid);
-
-    private string BackgroundScaleKey => InputAnimation.Key("MyCheckBox Background Scale", Uuid);
-    private string BorderColorKey => InputAnimation.Key("MyCheckBox BorderColor", Uuid);
-    private string TextColorKey => InputAnimation.Key("MyCheckBox TextColor", Uuid);
-    private string BackgroundKey => InputAnimation.Key("MyCheckBox Background", Uuid);
-    private string AllowMouseDownKey => InputAnimation.Key("MyCheckBox AllowMouseDown", Uuid);
 
     /// <summary>
     ///     取消进行中的状态动画并把形状与配色写入终值。
@@ -612,5 +625,14 @@ public partial class MyCheckBox : UserControl
     private void OnActualThemeVariantChanged(object? sender, EventArgs e)
     {
         SyncUI(false);
+    }
+
+    protected override AutomationPeer OnCreateAutomationPeer()
+    {
+        return new PclToggleAutomationPeer(
+            this,
+            () => Checked,
+            PerformClick,
+            () => Text);
     }
 }

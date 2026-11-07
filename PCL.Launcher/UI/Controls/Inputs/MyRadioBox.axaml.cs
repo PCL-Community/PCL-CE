@@ -1,5 +1,6 @@
 using System.Windows.Input;
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Controls.Shapes;
@@ -58,6 +59,7 @@ public partial class MyRadioBox : UserControl, IMyRadio
         PointerReleased += Radiobox_MouseUp;
         PointerEntered += Radiobox_MouseEnter;
         PointerExited += Radiobox_MouseLeave;
+        KeyboardActivation.Attach(this, PerformClick);
         Loaded += (_, _) => SyncUI(false);
         Unloaded += (_, _) => StopAnimations();
     }
@@ -108,6 +110,13 @@ public partial class MyRadioBox : UserControl, IMyRadio
     public event IMyRadio.ChangedEventHandler? Changed;
 
     public event PreviewCheckEventHandler? PreviewCheck;
+
+    /// <summary>执行选中语义；键盘 Enter/Space 与自动化调用共用。</summary>
+    public void PerformClick()
+    {
+        if (!IsEnabled || Checked) return;
+        SetChecked(true, true);
+    }
 
     public event PreviewChangeEventHandler? PreviewChange;
 
@@ -560,5 +569,40 @@ public partial class MyRadioBox : UserControl, IMyRadio
     private void OnActualThemeVariantChanged(object? sender, EventArgs e)
     {
         SyncUI(false);
+    }
+
+    protected override AutomationPeer OnCreateAutomationPeer()
+    {
+        return new PclToggleAutomationPeer(
+            this,
+            () => Checked,
+            PerformClick,
+            () => Text,
+            AutomationControlType.RadioButton);
+    }
+
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        if (e.Key is Key.Left or Key.Up or Key.Right or Key.Down
+            && Parent is Panel panel)
+        {
+            var members = panel
+                .Children
+                .OfType<MyRadioBox>()
+                .Where(x => x.IsEnabled && x.IsVisible)
+                .ToList();
+            if (members.Count > 1)
+            {
+                var index = members.IndexOf(this);
+                var delta = e.Key is Key.Left or Key.Up ? -1 : 1;
+                var next = members[(index + delta + members.Count) % members.Count];
+                next.SetChecked(true, true);
+                next.Focus();
+                e.Handled = true;
+                return;
+            }
+        }
+
+        base.OnKeyDown(e);
     }
 }

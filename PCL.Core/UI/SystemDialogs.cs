@@ -9,6 +9,9 @@ public static class SystemDialogs
 {
     private static IFileDialogService? Service => PlatformServices.FileDialogs;
 
+    /// <summary>当前平台是否有可用的文件对话框实现。</summary>
+    public static bool IsAvailable => Service?.IsAvailable ?? false;
+
     /// <summary>
     ///     显示保存文件对话框，要求用户选择保存位置。
     /// </summary>

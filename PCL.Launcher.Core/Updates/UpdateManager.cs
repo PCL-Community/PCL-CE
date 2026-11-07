@@ -35,6 +35,8 @@ public static class UpdateManager
             _ => LoadOnlineInfo(),
             priority: ThreadPriority.BelowNormal);
 
+    public static bool SupportsInAppUpdate => OperatingSystem.IsWindows();
+
     public static bool IsCurrentVersionBeta
     {
         get
@@ -97,6 +99,14 @@ public static class UpdateManager
         string? receivedKey = null,
         bool forceValidated = false)
     {
+        if (!SupportsInAppUpdate && type != UpdateEnums.UpdateType.PromptOnly)
+        {
+            LauncherCommon.Log("[Update] 当前平台不支持应用内安装，已改为手动下载");
+            LauncherCommon.RunInUi(() => UpdateUi.Current?.ShowHint(
+                Lang.Text("Update.ManualDownloadRequired")));
+            return;
+        }
+
         var dlTargetPath = Path.Combine(
             LauncherPaths.ExecutableDirectory,
             "PCL",
@@ -319,6 +329,20 @@ public static class UpdateManager
 
     private static void ScheduleBasedOnConfig()
     {
+        if (!SupportsInAppUpdate)
+        {
+            if (Config.Update.UpdateMode == LauncherAutoUpdateBehavior.Disable)
+            {
+                LauncherCommon.Log("[Update] 更新设置: 不自动检查更新");
+                return;
+            }
+
+            // macOS/Linux 当前只检测并提示；安装交给 DMG/Flatpak/发布页。
+            LauncherCommon.Log("[Update] 当前平台仅检查更新，不自动下载");
+            UpdateStart(UpdateEnums.UpdateType.PromptOnly);
+            return;
+        }
+
         switch (Config.Update.UpdateMode)
         {
             case LauncherAutoUpdateBehavior.DownloadAndInstall:

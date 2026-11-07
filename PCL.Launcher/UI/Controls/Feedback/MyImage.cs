@@ -36,10 +36,19 @@ public class MyImage : Image
             nameof(CornerRadius),
             new CornerRadius(-1d));
 
+    /// <summary>按目标显示宽度解码，避免高清原图长期占用内存。</summary>
+    public static readonly StyledProperty<int> DecodeWidthProperty =
+        AvaloniaProperty.Register<MyImage, int>(nameof(DecodeWidth));
+
+    /// <summary>按目标显示高度解码；与 <see cref="DecodeWidth" /> 同时设置时优先宽度。</summary>
+    public static readonly StyledProperty<int> DecodeHeightProperty =
+        AvaloniaProperty.Register<MyImage, int>(nameof(DecodeHeight));
+
     private static readonly ConcurrentDictionary<string, Task<string>> DownloadTasks = new();
 
     private string? _actualSource;
     private bool _isAttached;
+    private int _loadGeneration;
 
     /// <summary>
     ///     网络图片缓存的有效期。
@@ -78,6 +87,18 @@ public class MyImage : Image
         set => SetValue(EnableCacheProperty, value);
     }
 
+    public int DecodeWidth
+    {
+        get => GetValue(DecodeWidthProperty);
+        set => SetValue(DecodeWidthProperty, Math.Max(0, value));
+    }
+
+    public int DecodeHeight
+    {
+        get => GetValue(DecodeHeightProperty);
+        set => SetValue(DecodeHeightProperty, Math.Max(0, value));
+    }
+
     /// <summary>
     ///     与 Image 的 Source 类似。
     ///     若输入以 http 开头的字符串，则会尝试下载图片然后显示，图片会保存为本地缓存。
@@ -113,6 +134,9 @@ public class MyImage : Image
             Load();
         else if (change.Property == CornerRadiusProperty || change.Property == BoundsProperty)
             UpdateClip();
+        else if (change.Property == DecodeWidthProperty || change.Property == DecodeHeightProperty)
+            if (!string.IsNullOrEmpty(_actualSource))
+                _ = LoadActualSourceAsync(_actualSource);
     }
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
@@ -212,16 +236,30 @@ public class MyImage : Image
             return;
         }
 
+        var generation = Volatile.Read(ref _loadGeneration);
         try
         {
-            var bitmap = await Task.Run(() => DecodeBitmap(source)).ConfigureAwait(false);
-            if (!string.Equals(_actualSource, source, StringComparison.Ordinal))
-                return; // 期间地址已改变，丢弃过期结果
+            var decodeWidth = DecodeWidth;
+            var decodeHeight = DecodeHeight;
+            var bitmap = await Task
+                .Run(() => DecodeBitmap(source, decodeWidth, decodeHeight))
+                .ConfigureAwait(false);
+            if (generation != Volatile.Read(ref _loadGeneration)
+                || !string.Equals(_actualSource, source, StringComparison.Ordinal))
+            {
+                if (bitmap is IDisposable disposable)
+                    disposable.Dispose();
+                return; // 期间地址已改变或控件已卸载，丢弃过期结果
+            }
 
             SetImageSource(bitmap);
         }
         catch (Exception ex)
         {
+            if (generation != Volatile.Read(ref _loadGeneration)
+                || !string.Equals(_actualSource, source, StringComparison.Ordinal))
+                return;
+
             LogWrapper.Debug(ex, "MyImage", $"加载图片失败（{source}）");
             try
             {
@@ -238,29 +276,46 @@ public class MyImage : Image
         }
     }
 
-    private void SetImageSource(IImage? image)
+    /// <summary>释放当前解码结果；再次显示由新的控件实例重新加载。</summary>
+    public void Unload()
     {
-        if (Dispatcher.UIThread.CheckAccess())
-            base.Source = image;
-        else
-            Dispatcher.UIThread.Post(() => base.Source = image);
+        Interlocked.Increment(ref _loadGeneration);
+        _actualSource = null;
+        SetImageSource(null);
     }
 
-    private static IImage DecodeBitmap(string source)
+    private void SetImageSource(IImage? image)
+    {
+        void Apply()
+        {
+            var previous = base.Source;
+            base.Source = image;
+            if (previous is IDisposable disposable && !ReferenceEquals(previous, image))
+                disposable.Dispose();
+        }
+
+        if (Dispatcher.UIThread.CheckAccess())
+            Apply();
+        else
+            Dispatcher.UIThread.Post(Apply);
+    }
+
+    private static IImage DecodeBitmap(string source, int decodeWidth, int decodeHeight)
     {
         using var stream = OpenSource(source);
-        return new Bitmap(stream);
+        return decodeWidth > 0 ? Bitmap.DecodeToWidth(stream, decodeWidth)
+            : decodeHeight > 0 ? Bitmap.DecodeToHeight(stream, decodeHeight)
+            : new Bitmap(stream);
     }
 
     private static Stream OpenSource(string source)
     {
-        if (source.StartsWith("avares://", StringComparison.OrdinalIgnoreCase))
-            return AssetLoader.Open(new Uri(source, UriKind.Absolute));
-
-        if (source.StartsWith("file://", StringComparison.OrdinalIgnoreCase))
-            return File.OpenRead(new Uri(source, UriKind.Absolute).LocalPath);
-
-        return File.OpenRead(source);
+        return source.StartsWith("avares://", StringComparison.OrdinalIgnoreCase)
+            ? AssetLoader.Open(new Uri(source, UriKind.Absolute))
+            : File.OpenRead(
+                source.StartsWith("file://", StringComparison.OrdinalIgnoreCase)
+                    ? new Uri(source, UriKind.Absolute).LocalPath
+                    : source);
     }
 
     private void UpdateClip()

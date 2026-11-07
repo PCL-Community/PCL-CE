@@ -39,6 +39,7 @@ public partial class MainWindow : Window
         ApplyWindowIcon();
         TransparencyLevelHint = [WindowTransparencyLevel.Transparent];
         _ = new WindowStateStore(this);
+        ApplyDebugWindowSize();
 
         _titleBar = TitleBar;
         _extraButtons = PanExtraButtons;
@@ -89,7 +90,9 @@ public partial class MainWindow : Window
         Closed += (_, _) => OnClosed();
 
         PageRouter.ShowStandalone(new PageLoading());
-        Lifecycle.When(LifecycleState.Running, () => PageRouter.Navigate(MainTab.Launch));
+        Lifecycle.When(
+            LifecycleState.Running,
+            () => { PageRouter.Navigate(MainTab.Launch); });
 
         var effects = new StartupEffects(this, _titleBar, _background, _extraButtons);
         Lifecycle.When(LifecycleState.WindowCreated, effects.Run);
@@ -144,6 +147,35 @@ public partial class MainWindow : Window
                 AnimateLeftWidth(width);
             },
             DispatcherPriority.Loaded);
+    }
+
+    /// <summary>
+    ///     仅用于截图/布局证据：PCL_DEBUG_WINDOW_SIZE=810x470 或 workarea。
+    ///     不实现真正的最大化；UI 设计中没有最大化场景。
+    /// </summary>
+    private void ApplyDebugWindowSize()
+    {
+        var value = Environment.GetEnvironmentVariable("PCL_DEBUG_WINDOW_SIZE");
+        if (string.IsNullOrWhiteSpace(value)) return;
+
+        if (value.Equals("workarea", StringComparison.OrdinalIgnoreCase))
+        {
+            var screen = Screens.Primary;
+            if (screen is null) return;
+            var scaling = screen.Scaling <= 0d ? 1d : screen.Scaling;
+            Width = Math.Max(MinWidth, screen.WorkingArea.Width / scaling);
+            Height = Math.Max(MinHeight, screen.WorkingArea.Height / scaling);
+            return;
+        }
+
+        var parts = value.Split('x', 'X');
+        if (parts.Length != 2
+            || !double.TryParse(parts[0], out var width)
+            || !double.TryParse(parts[1], out var height))
+            return;
+
+        Width = Math.Max(MinWidth, width);
+        Height = Math.Max(MinHeight, height);
     }
 
     private void ApplyRoundedWindowClip()

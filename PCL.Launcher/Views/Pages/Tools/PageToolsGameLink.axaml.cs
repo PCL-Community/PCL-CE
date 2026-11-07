@@ -64,6 +64,7 @@ public partial class PageToolsGameLink : MyPageRight
         _btnFinishExit = this.FindControl<MyIconTextButton>("BtnFinishExit")!;
 
         Current = this;
+        ViewModel.PlayerRows.CollectionChanged += (_, _) => RebuildPlayerList();
         _load.AutoRun = true;
         _load.State = _loadState;
         _hintAnnounce.Theme = (MyHint.Themes)ViewModel.AnnouncementThemeIndex;
@@ -114,6 +115,7 @@ public partial class PageToolsGameLink : MyPageRight
         Loaded += (_, _) =>
         {
             UpdateLoadState();
+            RebuildPlayerList();
             ViewModel.Reload();
         };
         Unloaded += (_, _) => ViewModel.Suspend();
@@ -122,6 +124,27 @@ public partial class PageToolsGameLink : MyPageRight
     public static PageToolsGameLink? Current { get; private set; }
 
     public PageToolsGameLinkViewModel ViewModel { get; } = new();
+
+    private void RebuildPlayerList()
+    {
+        StackPlayerList.Children.Clear();
+        foreach (var row in ViewModel.PlayerRows)
+        {
+            var placeholder = new MyVirtualizingElement<MyListItem>(() => new MyListItem
+            {
+                Title = row.Name,
+                Info = row.Info,
+                SvgIcon = "lucide/user",
+                Type = MyListItem.CheckType.Clickable,
+                Command = row.ShowInfoCommand
+            })
+            {
+                Height = 42d,
+                RecycleOffscreen = true
+            };
+            StackPlayerList.Children.Add(placeholder);
+        }
+    }
 
     public void Reload()
     {

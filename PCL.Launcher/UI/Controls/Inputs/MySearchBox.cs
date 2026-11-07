@@ -21,7 +21,9 @@ public class MySearchBox : MyCard
     public delegate void TextChangedEventHandler(object sender, EventArgs e);
 
     public static readonly StyledProperty<string> HintTextProperty =
-        AvaloniaProperty.Register<MySearchBox, string>(nameof(HintText), string.Empty);
+        AvaloniaProperty.Register<MySearchBox, string>(
+            nameof(HintText),
+            string.Empty);
 
     public static readonly StyledProperty<string> TextProperty =
         AvaloniaProperty.Register<MySearchBox, string>(
@@ -189,7 +191,7 @@ public class MySearchBox : MyCard
         TextBox.Focus();
     }
 
-    private void BtnSearch_Click(object? sender, PointerReleasedEventArgs e)
+    private void BtnSearch_Click(object? sender, PointerReleasedEventArgs? e)
     {
         Search?.Invoke(BtnSearch, EventArgs.Empty);
     }

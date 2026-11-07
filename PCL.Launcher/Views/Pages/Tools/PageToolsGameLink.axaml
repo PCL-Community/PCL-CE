@@ -409,24 +409,8 @@
                                MinWidth="300"
                                Margin="10"
                                Title="{Binding PlayerListTitle}">
-                        <ItemsControl x:Name="StackPlayerList"
-                                      Margin="5,35,6,8"
-                                      ItemsSource="{Binding PlayerRows}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <ui:MyListItem Title="{Binding Name}"
-                                                   Info="{Binding Info}"
-                                                   SvgIcon="lucide/user"
-                                                   Type="Clickable"
-                                                   Command="{Binding ShowInfoCommand}" />
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                        <StackPanel x:Name="StackPlayerList"
+                                    Margin="5,35,6,8" />
                     </ui:MyCard>
                 </Grid>
 

@@ -1,8 +1,11 @@
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.UI.Controls;
+using PCL.UI.SystemIntegration;
 using PCL.Views.Pages;
 using PCL.Views.Shell;
 using static PCL.Animations;
@@ -309,11 +312,35 @@ public static class PageRouter
             if (left is IPageView leftView) leftView.OnNavigatedTo(stack.Parameter);
             if (right is MyPageRight newRightPage) newRightPage.PageOnEnter();
             if (right is IPageView rightView) rightView.OnNavigatedTo(stack.Parameter);
+            LayoutProbe.CheckAfterLayout(right, $"{stack.Page}/{stack.SubType}");
+            FocusFirst(right);
         }
         catch (Exception ex)
         {
             LogWrapper.Error(ex, "UI", $"页面进入失败：{stack.Page}");
         }
+    }
+
+    private static void FocusFirst(Control page)
+    {
+        Dispatcher.UIThread.Post(
+            () =>
+            {
+                if (!page.IsEffectivelyVisible) return;
+                var target = page
+                    .GetVisualDescendants()
+                    .OfType<Control>()
+                    .FirstOrDefault(control =>
+                        control is { Focusable: true, IsEffectivelyVisible: true, IsEnabled: true }
+                            and not ScrollViewer
+                            and not ScrollBar);
+
+                if (target is not null)
+                    target.Focus();
+                else if (page.Focusable)
+                    page.Focus();
+            },
+            DispatcherPriority.Loaded);
     }
 
     private static void CancelPendingTransition()

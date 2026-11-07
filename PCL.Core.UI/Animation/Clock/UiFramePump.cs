@@ -13,14 +13,11 @@ namespace PCL.Core.UI.Animation.Clock;
 internal static class UiFramePump
 {
     private const string Module = "Animation";
-
     private const int FallbackFps = 60;
-
     private const int RetryIntervalMilliseconds = 250;
-
     private const int RafStallMilliseconds = 1000;
-
     private const int StatWindowMilliseconds = 5000;
+    private const double SlowFrameMilliseconds = 100d;
 
     private static readonly List<AvaloniaRenderingClock> Subscribers = [];
     private static readonly Lock SyncRoot = new();
@@ -33,7 +30,11 @@ internal static class UiFramePump
     private static long _rafRequestStamp;
     private static string _loggedMode = string.Empty;
     private static long _statStartStamp;
+    private static long _lastTickStamp;
     private static int _statTicks;
+    private static int _statSlowTicks;
+    private static double _statMaxIntervalMs;
+    private static double _statMaxTickMs;
 
     public static bool IsRunning { get; private set; }
 
@@ -79,6 +80,10 @@ internal static class UiFramePump
         IsRunning = true;
         _statStartStamp = Stopwatch.GetTimestamp();
         _statTicks = 0;
+        _statSlowTicks = 0;
+        _statMaxIntervalMs = 0d;
+        _statMaxTickMs = 0d;
+        _lastTickStamp = 0;
         _ResolveAndDrive();
     }
 
@@ -93,6 +98,10 @@ internal static class UiFramePump
         _StopRetryTimer();
         _DetachTopLevel();
         _loggedMode = string.Empty;
+        _lastTickStamp = 0;
+        _statSlowTicks = 0;
+        _statMaxIntervalMs = 0d;
+        _statMaxTickMs = 0d;
         LogWrapper.Debug(Module, "[Animation] 帧源已停止 clock=stopped");
     }
 
@@ -283,6 +292,18 @@ internal static class UiFramePump
     private static void _Tick(TimeSpan? renderingTime)
     {
         _statTicks++;
+        var tickStamp = Stopwatch.GetTimestamp();
+        if (_lastTickStamp != 0)
+        {
+            var intervalMs =
+                (tickStamp - _lastTickStamp) * 1000d / Stopwatch.Frequency;
+            if (intervalMs > _statMaxIntervalMs)
+                _statMaxIntervalMs = intervalMs;
+            if (intervalMs > SlowFrameMilliseconds)
+                _statSlowTicks++;
+        }
+
+        _lastTickStamp = tickStamp;
 
         AvaloniaRenderingClock[] subscribers;
         lock (SyncRoot)
@@ -291,6 +312,7 @@ internal static class UiFramePump
             subscribers = [.. Subscribers];
         }
 
+        var tickStart = Stopwatch.GetTimestamp();
         foreach (var clock in subscribers)
             try
             {
@@ -301,6 +323,10 @@ internal static class UiFramePump
                 LogWrapper.Warn(ex, Module, "[Animation] 帧回调执行失败");
             }
 
+        var tickMs = (Stopwatch.GetTimestamp() - tickStart) * 1000d / Stopwatch.Frequency;
+        if (tickMs > _statMaxTickMs)
+            _statMaxTickMs = tickMs;
+
         var elapsed = Stopwatch.GetTimestamp() - _statStartStamp;
         if (elapsed < StatWindowMilliseconds * (Stopwatch.Frequency / 1000d)) return;
 
@@ -309,8 +335,16 @@ internal static class UiFramePump
         _statTicks = 0;
         LogWrapper.Debug(
             Module,
-            $"[Animation] 帧驱动模式 clock={(_frameTimer is null ? "raf" : "timer")} fps≈{Math.Round(fps, 1)} "
+            $"[Animation] 帧驱动模式 clock={(_frameTimer is null ? "raf" : "timer")} "
+            + $"fps≈{Math.Round(fps, 1)} "
+            + $"maxFrame={_statMaxIntervalMs:0.#}ms "
+            + $"maxTick={_statMaxTickMs:0.#}ms "
+            + $"slowFrames={_statSlowTicks} "
+            + $"gc={GC.CollectionCount(0)}/{GC.CollectionCount(1)}/{GC.CollectionCount(2)} "
             + $"TopLevel={_Describe(_topLevel)}");
+        _statMaxIntervalMs = 0d;
+        _statMaxTickMs = 0d;
+        _statSlowTicks = 0;
     }
 
     private static void _LogMode(string mode, string detail)

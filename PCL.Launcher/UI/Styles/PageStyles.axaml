@@ -1,18 +1,11 @@
 <Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <!--
-        页面配色全部来自 ThemeService 计算并写入 Application.Resources 的核心键：
-        ColorBrush1..8、ColorBrushBg0/Bg1、ColorBrushGray1..8、ColorBrushBackground、
-        ColorBrushTransparentBackground、ColorBrushHalfWhite/SemiWhite/White 等。
-        本文件只做键引用，不定义任何颜色值；主题切换由 ThemeBackend 改写核心键后，
-        DynamicResource 自动把新值推给已渲染控件。
-    -->
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="using:PCL.UI.Controls">
     <Style Selector="Border.WindowSurface">
         <Setter Property="Background"
                 Value="{DynamicResource ColorBrushTransparentBackground}" />
     </Style>
 
-    <!-- 系统没有可用材质时使用不透明底色，避免文字压在桌面或纯透明背景上。 -->
     <Style Selector="Border.WindowSurface.Opaque">
         <Setter Property="Background"
                 Value="{DynamicResource ColorBrushBackground}" />
@@ -205,5 +198,48 @@
     <Style Selector="MenuItem">
         <Setter Property="FontSize"
                 Value="13" />
+    </Style>
+
+    <Style Selector="Border.FocusRing">
+        <Setter Property="IsVisible"
+                Value="False" />
+        <Setter Property="Margin"
+                Value="-2" />
+        <Setter Property="BorderBrush"
+                Value="{DynamicResource ColorBrush2}" />
+        <Setter Property="BorderThickness"
+                Value="2" />
+        <Setter Property="CornerRadius"
+                Value="4" />
+    </Style>
+    <Style Selector="ui|MyButton:focus-visible Border#FocusRing,
+                     ui|MyIconButton:focus-visible Border#FocusRing,
+                     ui|MyTextButton:focus-visible Border#FocusRing,
+                     ui|MyIconTextButton:focus-visible Border#FocusRing,
+                     ui|MyExtraButton:focus-visible Border#FocusRing,
+                     ui|MyExtraTextButton:focus-visible Border#FocusRing,
+                     ui|MyRadioButton:focus-visible Border#FocusRing,
+                     ui|MyCheckBox:focus-visible Border#FocusRing,
+                     ui|MyRadioBox:focus-visible Border#FocusRing,
+                     ui|MySlider:focus-visible Border#FocusRing,
+                     ui|MyListItem:focus-visible Border.FocusRing">
+        <Setter Property="IsVisible"
+                Value="True" />
+    </Style>
+    <Style Selector="ui|MyIconButton:focus-visible Border#FocusRing,
+                     ui|MyExtraButton:focus-visible Border#FocusRing">
+        <Setter Property="CornerRadius"
+                Value="1000" />
+    </Style>
+    <Style Selector="ui|MyButton:focus-visible Border#FocusRing,
+                     ui|MyTextButton:focus-visible Border#FocusRing,
+                     ui|MyListItem:focus-visible Border.FocusRing">
+        <Setter Property="CornerRadius"
+                Value="3" />
+    </Style>
+    <Style Selector="ui|MyIconTextButton:focus-visible Border#FocusRing,
+                     ui|MyRadioButton:focus-visible Border#FocusRing">
+        <Setter Property="CornerRadius"
+                Value="13.5" />
     </Style>
 </Styles>

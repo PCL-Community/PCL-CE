@@ -1,5 +1,6 @@
 using System.Windows.Input;
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Controls.Shapes;
@@ -63,6 +64,7 @@ public partial class MyIconTextButton : Border
         PointerReleased += _OnPointerReleased;
         PointerEntered += (_, _) => RefreshColor(true);
         PointerExited += _OnPointerExited;
+        KeyboardActivation.Attach(this, PerformClick);
 
         Loaded += (_, _) => RefreshColor(false);
         ActualThemeVariantChanged += (_, _) => RefreshColor(false);
@@ -297,6 +299,14 @@ public partial class MyIconTextButton : Border
         Classes.Set("pressed", false);
         RefreshColor(true);
 
+        PerformClick();
+        e.Handled = true;
+    }
+
+    /// <summary>执行点击语义；鼠标释放、键盘 Enter/Space 与自动化调用共用。</summary>
+    public void PerformClick()
+    {
+        if (!IsEnabled) return;
         LogWrapper.Debug("[Control] 按下带图标按钮：" + Text);
         Click?.Invoke(this, new RouteEventArgs(true));
         CustomEventService.Raise(this);
@@ -324,5 +334,10 @@ public partial class MyIconTextButton : Border
         {
             _isCommandRunning = false;
         }
+    }
+
+    protected override AutomationPeer OnCreateAutomationPeer()
+    {
+        return new PclButtonAutomationPeer(this, PerformClick, () => Text);
     }
 }

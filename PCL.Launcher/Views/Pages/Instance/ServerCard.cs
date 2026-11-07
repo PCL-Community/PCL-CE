@@ -41,9 +41,15 @@ public partial class ServerCard : MyCard
 
         BtnConnect.Click += (_, _) => ConnectRequested?.Invoke(this);
         BtnSetting.Click += (_, _) => BtnSetting.ContextMenu?.Open(BtnSetting);
+        ContextMenuHelper.Attach(BtnSetting, () => BtnSetting.ContextMenu);
         ToolTip.SetPlacement(ServerName, PlacementMode.Top);
 
-        ViewModel.PropertyChanged += (_, _) => Dispatcher.UIThread.Post(ApplyState);
+        var weakCard = new WeakReference<ServerCard>(this);
+        ViewModel.PropertyChanged += (_, _) =>
+        {
+            if (weakCard.TryGetTarget(out var card))
+                Dispatcher.UIThread.Post(card.ApplyState);
+        };
         ApplyState();
     }
 
@@ -118,7 +124,7 @@ public partial class ServerCard : MyCard
         }
 
         ServerPlayer.Text = ViewModel.PlayerText;
-        if (ViewModel.IsOnline && ViewModel.LastPingResult is { } result)
+        if (ViewModel is { IsOnline: true, LastPingResult: { } result })
             MotdTextRenderer.Render(
                 ServerMotD,
                 result.Description,

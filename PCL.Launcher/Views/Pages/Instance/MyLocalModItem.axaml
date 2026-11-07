@@ -36,6 +36,7 @@
                 Grid.Column="1"
                 Width="34"
                 Height="34"
+                DecodeWidth="68"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Center"
                 CornerRadius="6"

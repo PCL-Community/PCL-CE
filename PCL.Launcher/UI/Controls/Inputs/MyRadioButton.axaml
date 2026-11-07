@@ -9,35 +9,40 @@
              MinHeight="27"
              MaxHeight="27">
     <!-- 圆角药丸 + 可选图标（Path 或 SvgIcon）+ 文本；配色与缩放由代码驱动。 -->
-    <Border x:Name="PanBackElement"
-            CornerRadius="13.5"
-            MinHeight="27"
-            MaxHeight="27"
-            Background="Transparent">
-        <StackPanel Orientation="Horizontal">
-            <Grid x:Name="LogoHostElement"
-                  Width="16"
-                  Height="16"
-                  Margin="12,0,0,0"
-                  HorizontalAlignment="Left"
-                  VerticalAlignment="Center"
-                  RenderTransformOrigin="0.5,0.5">
-                <Grid.RenderTransform>
-                    <ScaleTransform />
-                </Grid.RenderTransform>
-                <Path x:Name="ShapeLogoElement"
-                      HorizontalAlignment="Stretch"
-                      VerticalAlignment="Stretch"
-                      Stretch="Uniform"
-                      Fill="White" />
-                <svg:SvgIcon x:Name="ShapeSvgIconElement"
-                             Stretch="Uniform"
-                             IsVisible="False" />
-            </Grid>
-            <TextBlock x:Name="LabTextElement"
-                       Margin="8,0,12,0"
-                       VerticalAlignment="Center"
-                       Foreground="White" />
-        </StackPanel>
-    </Border>
+    <Grid>
+        <Border x:Name="PanBackElement"
+                CornerRadius="13.5"
+                MinHeight="27"
+                MaxHeight="27"
+                Background="Transparent">
+            <StackPanel Orientation="Horizontal">
+                <Grid x:Name="LogoHostElement"
+                      Width="16"
+                      Height="16"
+                      Margin="12,0,0,0"
+                      HorizontalAlignment="Left"
+                      VerticalAlignment="Center"
+                      RenderTransformOrigin="0.5,0.5">
+                    <Grid.RenderTransform>
+                        <ScaleTransform />
+                    </Grid.RenderTransform>
+                    <Path x:Name="ShapeLogoElement"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          Stretch="Uniform"
+                          Fill="White" />
+                    <svg:SvgIcon x:Name="ShapeSvgIconElement"
+                                 Stretch="Uniform"
+                                 IsVisible="False" />
+                </Grid>
+                <TextBlock x:Name="LabTextElement"
+                           Margin="8,0,12,0"
+                           VerticalAlignment="Center"
+                           Foreground="White" />
+            </StackPanel>
+        </Border>
+        <Border x:Name="FocusRing"
+                Classes="FocusRing"
+                IsHitTestVisible="False" />
+    </Grid>
 </UserControl>

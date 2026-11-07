@@ -1,5 +1,6 @@
 using System.Windows.Input;
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Input;
@@ -15,7 +16,7 @@ namespace PCL.UI.Controls;
 /// </summary>
 public partial class MyExtraTextButton : Grid
 {
-    public delegate void ClickEventHandler(object? sender, PointerReleasedEventArgs e);
+    public delegate void ClickEventHandler(object? sender, PointerReleasedEventArgs? e);
 
     private const int AnimationColorIn = 120;
     private const int AnimationColorOut = 150;
@@ -48,6 +49,7 @@ public partial class MyExtraTextButton : Grid
         PanClick.PointerReleased += _OnPointerReleased;
         PanClick.PointerEntered += (_, _) => RefreshColor();
         PanClick.PointerExited += _OnPointerExited;
+        KeyboardActivation.Attach(this, PerformClick);
         Loaded += (_, _) => RefreshColor(false);
         ActualThemeVariantChanged += (_, _) => RefreshColor(false);
         Unloaded += (_, _) =>
@@ -371,12 +373,19 @@ public partial class MyExtraTextButton : Grid
         if (e.InitialPressMouseButton != MouseButton.Left || !_isLeftMouseHeld)
             return;
 
-        LogWrapper.Debug("[Control] 按下附加图标按钮：" + Text);
         _isLeftMouseHeld = false;
-        Click?.Invoke(this, e);
+        PerformClick();
         e.Handled = true;
-        CustomEventService.Raise(this);
         _RefreshScaleAfterRelease();
+    }
+
+    /// <summary>执行点击语义；鼠标释放、键盘 Enter/Space 与自动化调用共用。</summary>
+    public void PerformClick()
+    {
+        if (!IsEnabled) return;
+        LogWrapper.Debug("[Control] 按下附加图标按钮：" + Text);
+        Click?.Invoke(this, null!);
+        CustomEventService.Raise(this);
         RefreshColor();
         ExecuteCommand();
     }
@@ -412,5 +421,10 @@ public partial class MyExtraTextButton : Grid
         {
             _isCommandRunning = false;
         }
+    }
+
+    protected override AutomationPeer OnCreateAutomationPeer()
+    {
+        return new PclButtonAutomationPeer(this, PerformClick, () => Text);
     }
 }

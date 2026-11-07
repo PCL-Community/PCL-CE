@@ -37,6 +37,12 @@ public partial class PageSetupLaunch : MyPageRight, ISetupResetPage
         PanScroll = PanBack;
         DataContext = ViewModel;
 
+        CheckAdvanceNoJavaw.IsEnabled = OperatingSystem.IsWindows();
+        if (!OperatingSystem.IsWindows())
+            ToolTip.SetTip(
+                CheckAdvanceNoJavaw,
+                Lang.Text("Setup.Launch.Advanced.UseJavaExe.Unsupported"));
+
         SliderRamCustom.getHintText = new Func<object, object>(value =>
             Lang.Number(PageSetupLaunchViewModel.GetRamFromTick(Convert.ToInt32(value)), "N1")
             + " GiB");

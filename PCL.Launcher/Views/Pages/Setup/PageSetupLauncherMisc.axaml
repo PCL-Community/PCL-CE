@@ -173,6 +173,27 @@
                                      Grid.Column="1"
                                      MaxValue="30" />
                     </Grid>
+                    <Grid Height="28"
+                          Margin="0,0,0,10"
+                          ColumnDefinitions="Auto,*">
+                        <TextBlock VerticalAlignment="Center"
+                                   Margin="0,0,25,0"
+                                   Text="{loc:Loc Setup.Misc.Debug.LinuxProtocol}" />
+                        <ui:MyComboBox x:Name="ComboDebugLinuxProtocol"
+                                       Grid.Column="1"
+                                       HorizontalAlignment="Stretch"
+                                       ToolTip.Tip="{loc:Loc Setup.Misc.Debug.LinuxProtocol.ToolTip}">
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Misc.Debug.LinuxProtocol.Auto}"
+                                               Tag="0"
+                                               ToolTip.Tip="{loc:Loc Setup.Misc.Debug.LinuxProtocol.Auto.ToolTip}" />
+                            <ui:MyComboBoxItem Content="X11"
+                                               Tag="1"
+                                               ToolTip.Tip="{loc:Loc Setup.Misc.Debug.LinuxProtocol.X11.ToolTip}" />
+                            <ui:MyComboBoxItem Content="Wayland"
+                                               Tag="2"
+                                               ToolTip.Tip="{loc:Loc Setup.Misc.Debug.LinuxProtocol.Wayland.ToolTip}" />
+                        </ui:MyComboBox>
+                    </Grid>
                     <Grid ColumnDefinitions="1.5*,*,*">
                         <ui:MyCheckBox x:Name="CheckDebugSkipCopy"
                                        Grid.Column="0"

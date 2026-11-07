@@ -5,28 +5,33 @@
     <Border.Styles>
         <StyleInclude Source="avares://PCL.Launcher/UI/Styles/Controls/MyIconTextButton.axaml" />
     </Border.Styles>
-    <StackPanel Orientation="Horizontal">
-        <Grid x:Name="LogoHost"
-              Width="16"
-              Height="16"
-              Margin="12,0,0,0"
-              HorizontalAlignment="Left"
-              VerticalAlignment="Center"
-              RenderTransformOrigin="0.5,0.5">
-            <Grid.RenderTransform>
-                <ScaleTransform />
-            </Grid.RenderTransform>
-            <Path x:Name="ShapeLogo"
-                  HorizontalAlignment="Stretch"
-                  VerticalAlignment="Stretch"
-                  Stretch="Uniform" />
-            <svg:SvgIcon x:Name="ShapeSvgIcon"
-                         Stretch="Uniform"
-                         IsVisible="False"
-                         IconBrush="{Binding Fill, ElementName=ShapeLogo}" />
-        </Grid>
-        <TextBlock x:Name="LabText"
-                   Margin="7,0,12,1"
-                   VerticalAlignment="Center" />
-    </StackPanel>
+    <Grid>
+        <StackPanel Orientation="Horizontal">
+            <Grid x:Name="LogoHost"
+                  Width="16"
+                  Height="16"
+                  Margin="12,0,0,0"
+                  HorizontalAlignment="Left"
+                  VerticalAlignment="Center"
+                  RenderTransformOrigin="0.5,0.5">
+                <Grid.RenderTransform>
+                    <ScaleTransform />
+                </Grid.RenderTransform>
+                <Path x:Name="ShapeLogo"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch"
+                      Stretch="Uniform" />
+                <svg:SvgIcon x:Name="ShapeSvgIcon"
+                             Stretch="Uniform"
+                             IsVisible="False"
+                             IconBrush="{Binding Fill, ElementName=ShapeLogo}" />
+            </Grid>
+            <TextBlock x:Name="LabText"
+                       Margin="7,0,12,1"
+                       VerticalAlignment="Center" />
+        </StackPanel>
+        <Border x:Name="FocusRing"
+                Classes="FocusRing"
+                IsHitTestVisible="False" />
+    </Grid>
 </Border>

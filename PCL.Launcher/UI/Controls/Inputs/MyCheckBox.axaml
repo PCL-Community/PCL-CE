@@ -52,5 +52,8 @@
                                 ScaleY="0" />
             </Border.RenderTransform>
         </Border>
+        <Border x:Name="FocusRing"
+                Classes="FocusRing"
+                IsHitTestVisible="False" />
     </Grid>
 </UserControl>

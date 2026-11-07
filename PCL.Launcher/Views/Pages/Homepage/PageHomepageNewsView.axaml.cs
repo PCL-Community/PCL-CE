@@ -127,11 +127,17 @@ public partial class PageHomepageNewsView : UserControl
         foreach (var item in _viewModel.NewsItems)
         {
             var newsItem = item;
-            _panNews.Children.Add(
-                new MyVirtualizingElement<MyCard>(() => CreateNewsCard(newsItem))
-                {
-                    Height = EstimatedCardHeight
-                });
+            var element = new MyVirtualizingElement<MyCard>(() => CreateNewsCard(newsItem))
+            {
+                Height = EstimatedCardHeight,
+                RecycleOffscreen = true
+            };
+            element.Recycled += card =>
+            {
+                foreach (var image in card.GetVisualDescendants().OfType<MyImage>())
+                    image.Unload();
+            };
+            _panNews.Children.Add(element);
         }
 
         RefreshState();
@@ -157,6 +163,7 @@ public partial class PageHomepageNewsView : UserControl
             HorizontalAlignment = HorizontalAlignment.Stretch,
             Stretch = Stretch.UniformToFill,
             CornerRadius = new CornerRadius(6),
+            DecodeWidth = 480,
             Source = item.Image
         };
         if (!string.IsNullOrEmpty(item.ImageAltText))

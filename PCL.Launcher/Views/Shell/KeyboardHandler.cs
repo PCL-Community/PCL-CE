@@ -1,6 +1,8 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.VisualTree;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
@@ -58,7 +60,8 @@ public sealed class KeyboardHandler
 
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Key is Key.LeftAlt or Key.RightAlt)
+        // Alt 在 Windows 会激活系统菜单；macOS/Linux 的 Option/Alt 是正常输入修饰键。
+        if (OperatingSystem.IsWindows() && e.Key is Key.LeftAlt or Key.RightAlt)
         {
             e.Handled = true;
             return;
@@ -70,30 +73,55 @@ public sealed class KeyboardHandler
 
         if (e.KeyModifiers != KeyModifiers.None) return;
 
+        // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
+        // 你是要把 200 个键都放这吗？？
         switch (e.Key)
         {
             case Key.Escape:
+                if (HasOpenComboBox()) return;
                 PageRouter.Back();
                 e.Handled = true;
                 break;
+
             case Key.F11:
                 ToggleHiddenInstances();
                 e.Handled = true;
                 break;
+
             case Key.F12:
                 ToggleHiddenFeatures();
                 e.Handled = true;
                 break;
+
             case Key.F5:
                 RefreshCurrentPage();
                 e.Handled = true;
                 break;
+
             case Key.Enter when PageRouter.Current.Page == PageType.Launch:
-                if (_window.FocusManager?.GetFocusedElement() is TextBox) return;
+                if (HasInteractiveFocus()) return;
                 LaunchGame();
                 e.Handled = true;
                 break;
         }
+    }
+
+    private bool HasOpenComboBox()
+    {
+        var focused = _window.FocusManager?.GetFocusedElement();
+        if (focused is ComboBox { IsDropDownOpen: true })
+            return true;
+        return focused is Visual visual
+            && visual.FindAncestorOfType<ComboBox>() is { IsDropDownOpen: true };
+    }
+
+    private bool HasInteractiveFocus()
+    {
+        var focused = _window.FocusManager?.GetFocusedElement();
+        return focused is ComboBox
+            or Control { Focusable: true }
+            and not Window
+            and not ScrollViewer;
     }
 
     private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
@@ -116,7 +144,7 @@ public sealed class KeyboardHandler
         LogWrapper.Info("UI", "当前页面未提供隐藏实例显隐开关，F11 已忽略");
     }
 
-    private void ToggleHiddenFeatures()
+    private static void ToggleHiddenFeatures()
     {
         HiddenFeatureState.Toggle();
         UiInteraction.Hint(

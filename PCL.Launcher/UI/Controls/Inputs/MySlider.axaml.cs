@@ -559,33 +559,28 @@ public partial class MySlider : UserControl
         if (_isDragging)
             return;
 
-        if (e.Key == Key.Left)
+        var step = Math.Max(1, (int)ValueByKey);
+        int? target = e.Key switch
         {
-            _changeByKey = true;
-            try
-            {
-                Value -= (int)ValueByKey;
-            }
-            finally
-            {
-                _changeByKey = false;
-            }
-        }
-        else if (e.Key == Key.Right)
-        {
-            _changeByKey = true;
-            try
-            {
-                Value += (int)ValueByKey;
-            }
-            finally
-            {
-                _changeByKey = false;
-            }
-        }
-        else
-        {
+            Key.Left or Key.Down => Value - step,
+            Key.Right or Key.Up => Value + step,
+            Key.PageDown => Value - step * 10,
+            Key.PageUp => Value + step * 10,
+            Key.Home => 0,
+            Key.End => MaxValue,
+            _ => null
+        };
+        if (target is null)
             return;
+
+        _changeByKey = true;
+        try
+        {
+            Value = Math.Clamp(target.Value, 0, MaxValue);
+        }
+        finally
+        {
+            _changeByKey = false;
         }
 
         e.Handled = true;
@@ -639,7 +634,6 @@ public partial class MySlider : UserControl
 
     private void OnPointerEntered(object? sender, PointerEventArgs e)
     {
-        Focus(); // 确保按键能改变值
         RefreshColor();
     }
 

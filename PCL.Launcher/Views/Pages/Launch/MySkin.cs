@@ -75,6 +75,7 @@ public sealed class MySkin : Grid
         ViewModel.CapeRequested += () => CapeRequested?.Invoke(this, EventArgs.Empty);
 
         BuildContextMenu();
+        ContextMenuHelper.Attach(this, () => ContextMenu);
 
         PointerEntered += (_, _) =>
         {

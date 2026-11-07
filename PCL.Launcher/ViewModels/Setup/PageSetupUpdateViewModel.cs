@@ -13,40 +13,57 @@ namespace PCL;
 /// <summary>设置页面中「更新」页的视图模型。</summary>
 public partial class PageSetupUpdateViewModel : ViewModelBase
 {
-    [ObservableProperty] private bool _changelogDetailEnabled = true;
-
-    [ObservableProperty] private string _changelogText = string.Empty;
-    [ObservableProperty] private bool _channelEnabled = true;
-
-    [ObservableProperty] private bool _checkAgainEnabled = true;
     private bool _checking;
 
-    [ObservableProperty] private string _currentDescText = string.Empty;
-
-    [ObservableProperty] private string _currentVersionText = string.Empty;
     private object?[] _descArgs = [];
     private string _descKey = "Setup.Update.Checking";
 
     private VersionDataModel? _latestVersion;
 
-    [ObservableProperty] private string _mirrorChyanKey = Config.Update.MirrorChyanKey;
+    [ObservableProperty] public partial bool ChangelogDetailEnabled { get; set; } = true;
 
-    [ObservableProperty] private bool _showCheckCard;
+    [ObservableProperty] public partial string ChangelogText { get; set; } = string.Empty;
 
-    [ObservableProperty] private bool _showUpdateCard;
+    [ObservableProperty] public partial bool ChannelEnabled { get; set; } = true;
 
-    [ObservableProperty] private bool _updateButtonEnabled = true;
+    [ObservableProperty] public partial bool CheckAgainEnabled { get; set; } = true;
 
-    [ObservableProperty] private string _updateButtonText = Lang.Text("Setup.Update.Install");
+    [ObservableProperty] public partial string CurrentDescText { get; set; } = string.Empty;
 
-    [ObservableProperty] private int _updateModeIndex = Math.Clamp(
+    [ObservableProperty] public partial string CurrentVersionText { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string MirrorChyanKey { get; set; } = Config.Update.MirrorChyanKey;
+
+    [ObservableProperty] public partial bool ShowCheckCard { get; set; }
+
+    [ObservableProperty] public partial bool ShowUpdateCard { get; set; }
+
+    [ObservableProperty] public partial bool UpdateButtonEnabled { get; set; } = true;
+
+    [ObservableProperty]
+    public partial string UpdateButtonText { get; set; } = Lang.Text("Setup.Update.Install");
+
+    [ObservableProperty]
+    public partial int UpdateModeIndex { get; set; } = Math.Clamp(
         (int)Config.Update.UpdateMode,
         0,
         3);
 
-    [ObservableProperty] private string _updateNameText = string.Empty;
+    [ObservableProperty] public partial string UpdateNameText { get; set; } = string.Empty;
 
     public string? LatestChangelog => _latestVersion?.Changelog;
+
+    /// <summary>Flatpak 包由软件中心更新，不能展示假的安装入口。</summary>
+    public static bool IsFlatpak =>
+        !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("FLATPAK_ID"));
+
+    private static string InstallButtonText =>
+        IsFlatpak
+            ? Lang.Text("Setup.Update.Flatpak")
+            : UpdateManager.SupportsInAppUpdate
+                ? Lang.Text("Setup.Update.Install")
+                : Lang.Text("Setup.Update.OpenDownload");
 
     partial void OnMirrorChyanKeyChanged(string value)
     {
@@ -65,6 +82,8 @@ public partial class PageSetupUpdateViewModel : ViewModelBase
             ChangelogText = Lang.Text("Setup.Update.Changelog.Placeholder");
         MirrorChyanKey = Config.Update.MirrorChyanKey;
         UpdateModeIndex = Math.Clamp((int)Config.Update.UpdateMode, 0, 3);
+        UpdateButtonText = InstallButtonText;
+        UpdateButtonEnabled = !IsFlatpak;
     }
 
     public async Task CheckUpdateAsync()
@@ -109,12 +128,12 @@ public partial class PageSetupUpdateViewModel : ViewModelBase
             else if (UpdateManager.isUpdateWaitingRestart)
             {
                 UpdateButtonText = Lang.Text("Setup.Update.RestartInstall");
-                UpdateButtonEnabled = true;
+                UpdateButtonEnabled = !IsFlatpak;
             }
             else
             {
-                UpdateButtonText = Lang.Text("Setup.Update.Install");
-                UpdateButtonEnabled = true;
+                UpdateButtonText = InstallButtonText;
+                UpdateButtonEnabled = !IsFlatpak;
             }
 
             ShowUpdateCard = true;
@@ -139,6 +158,15 @@ public partial class PageSetupUpdateViewModel : ViewModelBase
     /// <summary>点击安装：等待重启时直接重启安装，否则启动更新并轮询下载进度。</summary>
     public async Task StartUpdateAsync()
     {
+        if (IsFlatpak)
+            return;
+
+        if (!UpdateManager.SupportsInAppUpdate)
+        {
+            OpenReleasesPage();
+            return;
+        }
+
         if (UpdateManager.isUpdateWaitingRestart)
         {
             UpdateManager.UpdateRestart(true);
@@ -153,11 +181,10 @@ public partial class PageSetupUpdateViewModel : ViewModelBase
     private async Task MonitorAndRestoreAsync()
     {
         await MonitorUpdateProgressAsync();
-        UpdateButtonText = Lang.Text(
-            UpdateManager.isUpdateWaitingRestart
-                ? "Setup.Update.RestartInstall"
-                : "Setup.Update.Install");
-        UpdateButtonEnabled = true;
+        UpdateButtonText = UpdateManager.isUpdateWaitingRestart
+            ? Lang.Text("Setup.Update.RestartInstall")
+            : InstallButtonText;
+        UpdateButtonEnabled = !IsFlatpak;
     }
 
     /// <summary>页面重新进入时同步更新按钮状态，若下载仍在进行则恢复进度显示。</summary>
@@ -166,18 +193,18 @@ public partial class PageSetupUpdateViewModel : ViewModelBase
         if (UpdateManager.updateLoader is { State: LoadState.Loading })
         {
             UpdateButtonEnabled = false;
-            UpdateButtonText = Lang.Text("Setup.Update.Install");
+            UpdateButtonText = InstallButtonText;
             await MonitorAndRestoreAsync();
         }
         else if (UpdateManager.isUpdateWaitingRestart)
         {
             UpdateButtonText = Lang.Text("Setup.Update.RestartInstall");
-            UpdateButtonEnabled = true;
+            UpdateButtonEnabled = !IsFlatpak;
         }
         else
         {
-            UpdateButtonText = Lang.Text("Setup.Update.Install");
-            UpdateButtonEnabled = true;
+            UpdateButtonText = InstallButtonText;
+            UpdateButtonEnabled = !IsFlatpak;
         }
     }
 

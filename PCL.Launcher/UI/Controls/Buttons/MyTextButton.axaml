@@ -5,6 +5,11 @@
     <Label.Styles>
         <StyleInclude Source="avares://PCL.Launcher/UI/Styles/Controls/MyTextButton.axaml" />
     </Label.Styles>
-    <TextBlock x:Name="LabText"
-               VerticalAlignment="Center" />
+    <Grid>
+        <TextBlock x:Name="LabText"
+                   VerticalAlignment="Center" />
+        <Border x:Name="FocusRing"
+                Classes="FocusRing"
+                IsHitTestVisible="False" />
+    </Grid>
 </Label>

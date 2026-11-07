@@ -10,8 +10,6 @@ namespace PCL.Views.Pages.Setup;
 /// </summary>
 public partial class PageSetupUpdate : MyPageRight
 {
-    public static PageSetupUpdate? Current { get; private set; }
-
     private bool _loaded;
     private bool _reloading;
 
@@ -33,9 +31,7 @@ public partial class PageSetupUpdate : MyPageRight
         BtnChangelog.Click += (_, _) => PageSetupUpdateViewModel.OpenReleasesPage();
         BtnChangelogDetail.Click += async (_, _) => await ViewModel.ShowChangelogAsync();
         BtnUpdate.Click += async (_, _) => await ViewModel.StartUpdateAsync();
-        BtnUpdate.IsVisible = OperatingSystem.IsWindows();
-
-
+        ComboSystemUpdateMode.IsEnabled = UpdateManager.SupportsInAppUpdate;
         Loaded += async (_, _) =>
         {
             if (_loaded) return;
@@ -44,6 +40,8 @@ public partial class PageSetupUpdate : MyPageRight
             await ViewModel.CheckUpdateAsync();
         };
     }
+
+    public static PageSetupUpdate? Current { get; private set; }
 
     public PageSetupUpdateViewModel ViewModel { get; } = new();
 

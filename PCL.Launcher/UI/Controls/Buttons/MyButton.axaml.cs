@@ -1,5 +1,6 @@
 using System.Windows.Input;
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Data;
@@ -15,7 +16,7 @@ namespace PCL.UI.Controls;
 /// </summary>
 public partial class MyButton : Border
 {
-    public delegate void ClickEventHandler(object? sender, PointerReleasedEventArgs e);
+    public delegate void ClickEventHandler(object? sender, PointerReleasedEventArgs? e);
 
     public enum ColorState
     {
@@ -77,6 +78,7 @@ public partial class MyButton : Border
         PointerReleased += _OnPointerReleased;
         PointerEntered += (_, _) => RefreshColor(true);
         PointerExited += _OnPointerExited;
+        KeyboardActivation.Attach(this, modifiers => PerformClick(modifiers));
 
         Loaded += (_, _) => RefreshColor(false);
         ActualThemeVariantChanged += (_, _) => RefreshColor(false);
@@ -143,6 +145,9 @@ public partial class MyButton : Border
     private string BackgroundKey => ButtonAnimation.Name("MyButton Background", Uuid);
 
     private string BorderKey => ButtonAnimation.Name("MyButton Border", Uuid);
+
+    /// <summary>最近一次鼠标或键盘触发时的修饰键；键盘/自动化触发时 Click 参数为 null。</summary>
+    public KeyModifiers LastClickKeyModifiers { get; private set; }
 
     public event ClickEventHandler? Click;
 
@@ -276,8 +281,17 @@ public partial class MyButton : Border
         _AnimateScale(1d, 300, 10, new PCL.Animations.AniEaseOutFluent());
         RefreshColor(true);
 
+        PerformClick(e.KeyModifiers);
+        e.Handled = true;
+    }
+
+    /// <summary>执行点击语义；鼠标释放、键盘 Enter/Space 与自动化调用共用。</summary>
+    public void PerformClick(KeyModifiers modifiers = KeyModifiers.None)
+    {
+        LastClickKeyModifiers = modifiers;
+        if (!IsEnabled) return;
         LogWrapper.Debug("[Control] 按下按钮：" + Text);
-        Click?.Invoke(this, e);
+        Click?.Invoke(this, null!);
         CustomEventService.Raise(this);
         ExecuteCommand();
     }
@@ -307,5 +321,10 @@ public partial class MyButton : Border
         {
             _isCommandRunning = false;
         }
+    }
+
+    protected override AutomationPeer OnCreateAutomationPeer()
+    {
+        return new PclButtonAutomationPeer(this, () => PerformClick(), () => Text);
     }
 }

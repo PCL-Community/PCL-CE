@@ -1,5 +1,6 @@
 using System.Windows.Input;
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
@@ -15,7 +16,7 @@ namespace PCL.UI.Controls;
 /// </summary>
 public partial class MyExtraButton : Grid
 {
-    public delegate void ClickEventHandler(object? sender, PointerReleasedEventArgs e);
+    public delegate void ClickEventHandler(object? sender, PointerReleasedEventArgs? e);
 
     public delegate void RightClickEventHandler(object? sender, PointerReleasedEventArgs e);
 
@@ -75,6 +76,7 @@ public partial class MyExtraButton : Grid
         PanClick.PointerReleased += _OnPointerReleased;
         PanClick.PointerEntered += (_, _) => RefreshColor();
         PanClick.PointerExited += _OnPointerExited;
+        KeyboardActivation.Attach(this, PerformClick);
         Loaded += (_, _) => RefreshColor();
         ActualThemeVariantChanged += (_, _) => RefreshColor();
         Unloaded += (_, _) => _StopAnimations();
@@ -477,16 +479,11 @@ public partial class MyExtraButton : Grid
 
         if (e.InitialPressMouseButton == MouseButton.Left && _isLeftMouseHeld)
         {
-            LogWrapper.Debug(
-                $"[Control] 按下附加按钮{(string.IsNullOrEmpty(tipText) ? "" : $"：{tipText}")}");
             _isLeftMouseHeld = false;
-            Click?.Invoke(this, e);
+            PerformClick();
             e.Handled = true;
             if (!_isRightMouseHeld)
                 _RefreshScaleAfterRelease();
-            RefreshColor();
-            CustomEventService.Raise(this);
-            ExecuteCommand();
             return;
         }
 
@@ -510,6 +507,19 @@ public partial class MyExtraButton : Grid
     private void _OnPointerExited(object? sender, PointerEventArgs e)
     {
         _ResetHeldState();
+    }
+
+    /// <summary>执行点击语义；鼠标释放、键盘 Enter/Space 与自动化调用共用。</summary>
+    public void PerformClick()
+    {
+        if (!IsEnabled) return;
+        var tipText = ToolTip.GetTip(this) as string;
+        LogWrapper.Debug(
+            $"[Control] 按下附加按钮{(string.IsNullOrEmpty(tipText) ? "" : $"：{tipText}")}");
+        Click?.Invoke(this, null!);
+        RefreshColor();
+        CustomEventService.Raise(this);
+        ExecuteCommand();
     }
 
     private void ExecuteCommand()
@@ -542,5 +552,13 @@ public partial class MyExtraButton : Grid
         {
             _isRightClickCommandRunning = false;
         }
+    }
+
+    protected override AutomationPeer OnCreateAutomationPeer()
+    {
+        return new PclButtonAutomationPeer(
+            this,
+            PerformClick,
+            () => ToolTip.GetTip(this) as string);
     }
 }

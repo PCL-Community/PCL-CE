@@ -1,5 +1,7 @@
 using System.Windows.Input;
 using Avalonia;
+using Avalonia.Automation;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
 using Avalonia.Input;
@@ -62,8 +64,24 @@ public partial class MyIconButton : Border
         PointerReleased += _OnPointerReleased;
         PointerEntered += (_, _) => RefreshAnim();
         PointerExited += _OnPointerExited;
+        KeyboardActivation.Attach(this, PerformClick);
 
-        Loaded += (_, _) => RefreshAnim(false);
+        Loaded += (_, _) =>
+        {
+            if (string.IsNullOrWhiteSpace(AutomationProperties.GetName(this)))
+            {
+                var tooltip = ToolTip.GetTip(this) as string;
+                AutomationProperties.SetName(
+                    this,
+                    !string.IsNullOrWhiteSpace(tooltip)
+                        ? tooltip
+                        : !string.IsNullOrWhiteSpace(SvgIcon)
+                            ? SvgIcon
+                            : Name ?? string.Empty);
+            }
+
+            RefreshAnim(false);
+        };
         ActualThemeVariantChanged += (_, _) => RefreshAnim(false);
         Unloaded += (_, _) =>
         {
@@ -345,9 +363,16 @@ public partial class MyIconButton : Border
         else
             ButtonAnimation.SetScale(PanBack, 1d);
 
+        PerformClick();
+        e.Handled = true;
+    }
+
+    /// <summary>执行点击语义；鼠标释放、键盘 Enter/Space 与自动化调用共用。</summary>
+    public void PerformClick()
+    {
+        if (!IsEnabled) return;
         LogWrapper.Debug("[Control] 按下图标按钮" + (string.IsNullOrEmpty(Name) ? "" : "：" + Name));
         Click?.Invoke(this, EventArgs.Empty);
-        e.Handled = true;
         CustomEventService.Raise(this);
         RefreshAnim();
         ExecuteCommand();
@@ -385,6 +410,14 @@ public partial class MyIconButton : Border
         {
             _isCommandRunning = false;
         }
+    }
+
+    protected override AutomationPeer OnCreateAutomationPeer()
+    {
+        return new PclButtonAutomationPeer(
+            this,
+            PerformClick,
+            () => ToolTip.GetTip(this) as string ?? SvgIcon);
     }
 
     #region 收起与移除

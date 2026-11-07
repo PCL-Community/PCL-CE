@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Controls.Shapes;
@@ -103,6 +104,7 @@ public partial class MyRadioButton : UserControl
         PointerReleased += Radiobox_MouseUp;
         PointerExited += Radiobox_MouseLeave;
         PointerEntered += Radiobox_MouseEnter;
+        KeyboardActivation.Attach(this, PerformClick);
     }
 
     // 自定义属性
@@ -225,6 +227,13 @@ public partial class MyRadioButton : UserControl
     private void StopAnimations()
     {
         InputAnimation.Stop(BackgroundKey, TextColorKey, LogoColorKey, SvgColorKey);
+    }
+
+    /// <summary>执行选中语义；键盘 Enter/Space 与自动化调用共用。</summary>
+    public void PerformClick()
+    {
+        if (!IsEnabled || Checked) return;
+        SetChecked(true, true, true);
     }
 
     public event CheckEventHandler? Check;
@@ -682,6 +691,47 @@ public partial class MyRadioButton : UserControl
     private void OnActualThemeVariantChanged(object? sender, EventArgs e)
     {
         RefreshColor(false);
+    }
+
+    protected override AutomationPeer OnCreateAutomationPeer()
+    {
+        return new PclToggleAutomationPeer(
+            this,
+            () => Checked,
+            PerformClick,
+            () => Text,
+            AutomationControlType.RadioButton);
+    }
+
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        if (e.Key is Key.Left or Key.Up or Key.Right or Key.Down)
+        {
+            var members = string.IsNullOrEmpty(GroupName)
+                ? Parent is Panel panel
+                    ? panel
+                        .Children.OfType<MyRadioButton>()
+                        .Where(x => x is { IsEnabled: true, IsVisible: true })
+                        .ToList()
+                    : []
+                :
+                [
+                    .. GetGroupMembers(GroupName)
+                        .Where(x => x is { IsEnabled: true, IsVisible: true })
+                ];
+            if (members.Count > 1)
+            {
+                var index = members.IndexOf(this);
+                var delta = e.Key is Key.Left or Key.Up ? -1 : 1;
+                var next = members[(index + delta + members.Count) % members.Count];
+                next.SetChecked(true, true, true);
+                next.Focus();
+                e.Handled = true;
+                return;
+            }
+        }
+
+        base.OnKeyDown(e);
     }
 
     #region 分组

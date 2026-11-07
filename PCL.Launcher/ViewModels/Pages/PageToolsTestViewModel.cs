@@ -202,13 +202,6 @@ public partial class PageToolsTestViewModel : ViewModelBase
         ShortcutEnabled = false;
         try
         {
-            if (OperatingSystem.IsMacOS())
-            {
-                LogWrapper.Warn("Tools", "macOS 不支持创建快捷方式");
-                HintService.Show(Hints.Error(Lang.Text("Tools.Test.Error.OperationFailed")));
-                return;
-            }
-
             var target = Environment.ProcessPath;
             if (string.IsNullOrWhiteSpace(target))
             {
@@ -216,7 +209,12 @@ public partial class PageToolsTestViewModel : ViewModelBase
                 return;
             }
 
-            var extension = OperatingSystem.IsWindows() ? ".lnk" : ".desktop";
+            var isMacApp = OperatingSystem.IsMacOS() && Files.FindMacAppBundle(target) is not null;
+            var extension = OperatingSystem.IsWindows()
+                ? ".lnk"
+                : OperatingSystem.IsMacOS()
+                    ? isMacApp ? ".app" : ".command"
+                    : ".desktop";
             var shortcutName = Lang.Text("Tools.Test.Shortcut.FileName", extension);
             var desktopPath = Path.Combine(GetDesktopDirectory(), shortcutName);
             var startMenuPath = OperatingSystem.IsWindows()
@@ -224,7 +222,9 @@ public partial class PageToolsTestViewModel : ViewModelBase
                     Environment.GetFolderPath(Environment.SpecialFolder.StartMenu),
                     "Programs",
                     shortcutName)
-                : Path.Combine(GetLinuxApplicationsDirectory(), shortcutName);
+                : OperatingSystem.IsMacOS()
+                    ? Path.Combine(GetMacApplicationsDirectory(), shortcutName)
+                    : Path.Combine(GetLinuxApplicationsDirectory(), shortcutName);
             var desktopName = Lang.Text("Tools.Test.Shortcut.Desktop");
             var startName = Lang.Text("Tools.Test.Shortcut.StartMenu");
 
@@ -253,7 +253,9 @@ public partial class PageToolsTestViewModel : ViewModelBase
                 target,
                 workingDirectory: AppContext.BaseDirectory,
                 description: "PCL CE",
-                icon: OperatingSystem.IsWindows() ? null : EnsureShortcutIcon());
+                icon: OperatingSystem.IsWindows() || OperatingSystem.IsMacOS()
+                    ? null
+                    : EnsureShortcutIcon());
             HintService.Show(Hints.Success(Lang.Text("Tools.Test.Shortcut.Created", locationName)));
         }
         catch (Exception ex)
@@ -273,6 +275,14 @@ public partial class PageToolsTestViewModel : ViewModelBase
         return string.IsNullOrWhiteSpace(desktop)
             ? Path.Combine(Paths.DefaultDirectory, "Desktop")
             : desktop;
+    }
+
+    private static string GetMacApplicationsDirectory()
+    {
+        var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        var directory = Path.Combine(home, "Applications");
+        Directory.CreateDirectory(directory);
+        return directory;
     }
 
     private static string GetLinuxApplicationsDirectory()

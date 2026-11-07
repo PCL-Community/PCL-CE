@@ -1,16 +1,74 @@
 using System.Diagnostics;
+using System.Net.NetworkInformation;
+using PCL.Core.Logging;
 using PCL.Core.Platform;
 
 namespace PCL.Core.UI;
 
 /// <summary>
-///     Unix 系统代理：环境变量优先，其次 GNOME gsettings、KDE kioslaverc，最后尝试 libproxy。
+///     Unix 系统代理：环境变量优先，其次 GNOME gsettings、KDE kioslaverc，
+///     macOS 使用 scutil，最后尝试 libproxy。GNOME/KDE/macOS 设置变化会触发 <see cref="Changed" />。
 /// </summary>
-public sealed class UnixSystemProxyProvider : ISystemProxyProvider
+public sealed class UnixSystemProxyProvider : ISystemProxyProvider, IDisposable
 {
     private static readonly string[] _HttpProxyEnv = ["http_proxy", "HTTP_PROXY"];
     private static readonly string[] _HttpsProxyEnv = ["https_proxy", "HTTPS_PROXY"];
     private static readonly string[] _AllProxyEnv = ["all_proxy", "ALL_PROXY"];
+
+    private readonly Lock _watchLock = new();
+    private int _changeGeneration;
+    private bool _disposed;
+    private Process? _gnomeMonitor;
+    private FileSystemWatcher? _kdeWatcher;
+
+    public UnixSystemProxyProvider()
+    {
+        try
+        {
+            NetworkChange.NetworkAddressChanged += _OnNetworkAddressChanged;
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Debug("Proxy", $"无法订阅网络地址变化：{ex.Message}");
+        }
+
+        _StartWatchers();
+    }
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+        try
+        {
+            NetworkChange.NetworkAddressChanged -= _OnNetworkAddressChanged;
+        }
+        catch
+        {
+            // 忽略退订异常
+        }
+
+        lock (_watchLock)
+        {
+            try
+            {
+                if (_gnomeMonitor is { HasExited: false })
+                    _gnomeMonitor.Kill(true);
+            }
+            catch
+            {
+                // 忽略进程退出异常
+            }
+
+            _gnomeMonitor?.Dispose();
+            _gnomeMonitor = null;
+
+            _kdeWatcher?.Dispose();
+            _kdeWatcher = null;
+        }
+    }
+
+    public event EventHandler? Changed;
 
     public IReadOnlyList<SystemProxyEntry> GetSystemProxies()
     {
@@ -22,11 +80,160 @@ public sealed class UnixSystemProxyProvider : ISystemProxyProvider
         if (!string.IsNullOrWhiteSpace(https)) proxies.Add(new SystemProxyEntry("https", https));
         if (proxies.Count > 0) return proxies;
 
+        if (OperatingSystem.IsMacOS())
+            return _ReadMacProxies();
+
+        if (!OperatingSystem.IsLinux())
+            return [];
+
         var gnome = _ReadGnomeProxies();
         if (gnome.Count > 0) return gnome;
 
         var kde = _ReadKdeProxies();
         return kde.Count > 0 ? kde : _ReadLibProxy();
+    }
+
+    private void _OnNetworkAddressChanged(object? sender, EventArgs e)
+    {
+        _ScheduleChanged();
+    }
+
+    private void _ScheduleChanged()
+    {
+        if (_disposed) return;
+        var generation = Interlocked.Increment(ref _changeGeneration);
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(300);
+            if (_disposed || generation != Volatile.Read(ref _changeGeneration))
+                return;
+            try
+            {
+                Changed?.Invoke(this, EventArgs.Empty);
+            }
+            catch (Exception ex)
+            {
+                LogWrapper.Warn("Proxy", $"系统代理变化通知处理失败：{ex.Message}");
+            }
+        });
+    }
+
+    private void _StartWatchers()
+    {
+        if (!OperatingSystem.IsLinux()) return;
+
+        var desktop = Environment.GetEnvironmentVariable("XDG_CURRENT_DESKTOP") ?? string.Empty;
+        if (desktop.Contains("GNOME", StringComparison.OrdinalIgnoreCase)
+            || desktop.Contains("Unity", StringComparison.OrdinalIgnoreCase))
+            _StartGnomeMonitor();
+
+        if (desktop.Contains("KDE", StringComparison.OrdinalIgnoreCase)
+            || Directory.Exists(
+                Path.GetDirectoryName(_GetKdeProxyPath() ?? string.Empty)))
+            _StartKdeWatcher();
+    }
+
+    private void _StartGnomeMonitor()
+    {
+        try
+        {
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = "gsettings",
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+            startInfo.ArgumentList.Add("monitor");
+            startInfo.ArgumentList.Add("org.gnome.system.proxy");
+
+            var process = new Process
+            {
+                StartInfo = startInfo,
+                EnableRaisingEvents = true
+            };
+            process.OutputDataReceived += (_, e) =>
+            {
+                if (e.Data is not null) _ScheduleChanged();
+            };
+            process.ErrorDataReceived += (_, _) =>
+            {
+                // gsettings 不可用时进程会退出，下面的 Exited 事件会清理引用。
+            };
+            process.Exited += (_, _) =>
+            {
+                lock (_watchLock)
+                {
+                    if (ReferenceEquals(_gnomeMonitor, process))
+                        _gnomeMonitor = null;
+                }
+
+                process.Dispose();
+            };
+            if (!process.Start()) return;
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+            lock (_watchLock)
+            {
+                _gnomeMonitor = process;
+            }
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Debug("Proxy", $"GNOME 代理监视不可用：{ex.Message}");
+        }
+    }
+
+    private void _StartKdeWatcher()
+    {
+        try
+        {
+            var path = _GetKdeProxyPath();
+            if (path is null) return;
+            var directory = Path.GetDirectoryName(path);
+            if (string.IsNullOrEmpty(directory) || !Directory.Exists(directory)) return;
+
+            var watcher = new FileSystemWatcher(directory, Path.GetFileName(path))
+            {
+                NotifyFilter = NotifyFilters.FileName
+                    | NotifyFilters.LastWrite
+                    | NotifyFilters.Size
+                    | NotifyFilters.CreationTime,
+                EnableRaisingEvents = true
+            };
+            watcher.Changed += (_, _) => _ScheduleChanged();
+            watcher.Created += (_, _) => _ScheduleChanged();
+            watcher.Deleted += (_, _) => _ScheduleChanged();
+            watcher.Renamed += (_, _) => _ScheduleChanged();
+            lock (_watchLock)
+            {
+                _kdeWatcher = watcher;
+            }
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Debug("Proxy", $"KDE 代理监视不可用：{ex.Message}");
+        }
+    }
+
+    private static string? _GetKdeProxyPath()
+    {
+        try
+        {
+            var configHome = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
+            if (string.IsNullOrWhiteSpace(configHome))
+            {
+                var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                configHome = Path.Combine(home, ".config");
+            }
+
+            return Path.Combine(configHome, "kioslaverc");
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     private static string? _ReadEnv(IEnumerable<string> names)
@@ -37,6 +244,38 @@ public sealed class UnixSystemProxyProvider : ISystemProxyProvider
             into value
             where !string.IsNullOrWhiteSpace(value)
             select value.Trim()).FirstOrDefault();
+    }
+
+    private static IReadOnlyList<SystemProxyEntry> _ReadMacProxies()
+    {
+        try
+        {
+            using var process = Process.Start(
+                new ProcessStartInfo
+                {
+                    FileName = "scutil",
+                    Arguments = "--proxy",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                });
+            if (process is null) return [];
+            if (!process.WaitForExit(1500))
+            {
+                process.Kill(true);
+                return [];
+            }
+
+            return process.ExitCode == 0
+                ? MacProxyConfigParser.Parse(process.StandardOutput.ReadToEnd())
+                : [];
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Debug("Proxy", $"macOS 系统代理读取失败：{ex.Message}");
+            return [];
+        }
     }
 
     private static IReadOnlyList<SystemProxyEntry> _ReadGnomeProxies()
@@ -70,15 +309,8 @@ public sealed class UnixSystemProxyProvider : ISystemProxyProvider
         if (!OperatingSystem.IsLinux()) return [];
         try
         {
-            var configHome = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
-            if (string.IsNullOrWhiteSpace(configHome))
-            {
-                var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-                configHome = Path.Combine(home, ".config");
-            }
-
-            var path = Path.Combine(configHome, "kioslaverc");
-            return File.Exists(path)
+            var path = _GetKdeProxyPath();
+            return path is not null && File.Exists(path)
                 ? KdeProxyConfigParser.Parse(File.ReadAllText(path))
                 : [];
         }

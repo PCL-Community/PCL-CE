@@ -30,5 +30,8 @@
                  HorizontalAlignment="Left"
                  VerticalAlignment="Center"
                  IsHitTestVisible="False" />
+        <Border x:Name="FocusRing"
+                Classes="FocusRing"
+                IsHitTestVisible="False" />
     </Grid>
 </UserControl>

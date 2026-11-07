@@ -47,4 +47,7 @@
                        Foreground="{DynamicResource ColorBrush8}" />
         </StackPanel>
     </Grid>
+    <Border x:Name="FocusRing"
+            Classes="FocusRing"
+            IsHitTestVisible="False" />
 </Grid>

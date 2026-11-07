@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Win32;
 using PCL.Core.Logging;
 using PCL.Core.Platform;
@@ -12,8 +14,6 @@ namespace PCL.Core.IO.Net.Http;
 
 public class HttpProxyManager : IWebProxy, IDisposable
 {
-    public static readonly HttpProxyManager Instance = new();
-
     public enum ProxyMode
     {
         NoProxy,
@@ -21,170 +21,39 @@ public class HttpProxyManager : IWebProxy, IDisposable
         CustomProxy
     }
 
-    private readonly object _lock = new();
-    private ProxyMode _mode = ProxyMode.SystemProxy;
-
-    private readonly WebProxy _customWebProxy = new()
-    {
-        BypassProxyOnLocal = true
-    };
-
-    private readonly WebProxy _systemWebProxy = new()
-    {
-        BypassProxyOnLocal = true
-    };
-
     private const string ProxyRegPathFull =
         @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings";
 
     private const string ProxyRegPath =
         @"Software\Microsoft\Windows\CurrentVersion\Internet Settings";
 
+    public static readonly HttpProxyManager Instance = new();
+
+    private readonly WebProxy _customWebProxy = new()
+    {
+        BypassProxyOnLocal = true
+    };
+
+    private readonly Lock _lock = new();
+
     private readonly RegistryChangeMonitor? _proxyMonitor =
         OperatingSystem.IsWindows() ? new RegistryChangeMonitor(ProxyRegPath) : null;
 
+    private readonly WebProxy _systemWebProxy = new()
+    {
+        BypassProxyOnLocal = true
+    };
+
+    private ProxyMode _mode = ProxyMode.SystemProxy;
+
+    private ISystemProxyProvider? _subscribedProxyProvider;
+
     private HttpProxyManager()
     {
-        RefreshSystemProxy(); // 初始化系统代理
+        _EnsurePlatformProxySubscription();
+        _ = Task.Run(RefreshSystemProxy);
         if (_proxyMonitor is not null)
             _proxyMonitor.Changed += _OnSystemProxyChanged;
-    }
-
-    private void _OnSystemProxyChanged(object? sender, EventArgs e)
-    {
-        RefreshSystemProxy();
-    }
-
-    private enum ProxyProtocol
-    {
-        Http,
-        Socks
-    }
-
-    private sealed record ProxyItem(ProxyProtocol Protocol, string Address);
-
-    private static ProxyItem[] _GetProxyFromString(string? proxyString)
-    {
-        if (proxyString.IsNullOrWhiteSpace()) return [];
-
-        // 含 '=' 的形式：http=192.168.1.100:8080;socks=192.168.1.100:1080;ftp=127.0.0.1:124
-        // 也可以是 http=http://127.0.0.1:10808
-        if (proxyString.Contains('='))
-        {
-            var items = new List<ProxyItem>();
-            foreach (var segment in proxyString.Split(
-                         ';',
-                         StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-            {
-                if (_ParseKeyValueSegment(segment) is { } item)
-                    items.Add(item);
-            }
-
-            return [.. items];
-        }
-
-        // 形式：http://127.0.0.1:1145/ 或者单纯 127.0.0.1:1145
-        var proxy = _ParseAddress(proxyString.Trim());
-        return proxy is null ? [] : [proxy];
-    }
-
-    /// <summary>解析 <c>protocol=address</c> 形式的段；格式非法时返回 null 以便忽略该段</summary>
-    private static ProxyItem? _ParseKeyValueSegment(string segment)
-    {
-        var eqIndex = segment.IndexOf('=');
-        // 缺少 '='、协议名或地址的段视为非法，直接忽略
-        if (eqIndex <= 0 || eqIndex >= segment.Length - 1) return null;
-
-        return _ParseAddress(
-            segment[(eqIndex + 1)..].Trim(),
-            _ParseProtocol(segment[..eqIndex].Trim()));
-    }
-
-    /// <summary>解析单个代理地址：支持带 scheme 的地址（如 http://127.0.0.1:10808）与纯 host:port 地址（如 127.0.0.1:1145）</summary>
-    private static ProxyItem? _ParseAddress(string address, ProxyProtocol? protocol = null)
-    {
-        if (address.IsNullOrWhiteSpace()) return null;
-
-        // 能解析出主机名的地址，规范化为 host:port
-        if (Uri.TryCreate(address, new UriCreationOptions(), out var uri)
-            && !uri.Host.IsNullOrEmpty())
-        {
-            var hostPort = uri.Port > 0 ? $"{uri.Host}:{uri.Port}" : uri.Host;
-            return new ProxyItem(protocol ?? _ParseProtocol(uri.Scheme), hostPort);
-        }
-
-        // 纯 host:port 地址（无法作为 URI 解析），按指定协议（默认 Http）原样使用
-        return new ProxyItem(protocol ?? ProxyProtocol.Http, address);
-    }
-
-    private static ProxyProtocol _ParseProtocol(string scheme)
-    {
-        return scheme.ToLowerInvariant() switch
-        {
-            "socks" or "socks4" or "socks5" => ProxyProtocol.Socks,
-            _ => ProxyProtocol.Http
-        };
-    }
-
-    /// <summary>刷新系统代理设置</summary>
-    public void RefreshSystemProxy()
-    {
-        lock (_lock)
-        {
-            try
-            {
-                if (!OperatingSystem.IsWindows())
-                {
-                    // 非 Windows 从平台服务读取系统代理（环境变量 / 桌面环境设置）
-                    var platformProxies = PlatformServices.SystemProxy?.GetSystemProxies() ?? [];
-                    ProxyItem? platformProxy = null;
-                    foreach (var entry in platformProxies)
-                    {
-                        var parsed = _ParseAddress(entry.Address, _ParseProtocol(entry.Protocol));
-                        if (parsed is not { Protocol: ProxyProtocol.Http }) continue;
-                        platformProxy = parsed;
-                        break;
-                    }
-
-                    _systemWebProxy.Address = platformProxy is null
-                        || platformProxy.Address.IsNullOrEmpty()
-                            ? null
-                            : new Uri($"http://{platformProxy.Address}");
-                    LogWrapper.Info(
-                        "Proxy",
-                        $"已从操作系统更新代理设置，系统代理来源：{string.Join(";", platformProxies.Select(static x => $"{x.Protocol}={x.Address}"))}");
-                    return;
-                }
-
-                // read from reg
-                var isSystemProxyEnabled =
-                    (int)(Registry.GetValue(ProxyRegPathFull, "ProxyEnable", 0) ?? 0);
-                var systemProxyString = Registry.GetValue(
-                    ProxyRegPathFull,
-                    "ProxyServer",
-                    string.Empty) as string;
-
-                // parse
-                var proxies = _GetProxyFromString(systemProxyString);
-
-                // 仅当系统代理已启用且存在有效的 HTTP 代理时才应用
-                var selectedProxy =
-                    proxies.FirstOrDefault(static x => x.Protocol == ProxyProtocol.Http);
-                _systemWebProxy.Address = selectedProxy is null
-                    || selectedProxy.Address.IsNullOrEmpty()
-                    || isSystemProxyEnabled == 0
-                        ? null
-                        : new Uri($"http://{selectedProxy.Address}");
-
-                LogWrapper.Info(
-                    "Proxy",
-                    $"已从操作系统更新代理设置，系统代理状态：{isSystemProxyEnabled}|{systemProxyString}");
-            }
-            catch (Exception ex)
-            {
-                LogWrapper.Error(ex, "Proxy", "获取系统代理时出现异常");
-            }
-        }
     }
 
     public ProxyMode Mode
@@ -260,6 +129,15 @@ public class HttpProxyManager : IWebProxy, IDisposable
         }
     } = true;
 
+    public void Dispose()
+    {
+        _proxyMonitor?.Dispose();
+        if (_subscribedProxyProvider is not null)
+            _subscribedProxyProvider.Changed -= _OnSystemProxyChanged;
+        _subscribedProxyProvider = null;
+        GC.SuppressFinalize(this);
+    }
+
     public Uri? GetProxy(Uri destination)
     {
         lock (_lock)
@@ -309,9 +187,152 @@ public class HttpProxyManager : IWebProxy, IDisposable
         }
     }
 
-    public void Dispose()
+    private void _EnsurePlatformProxySubscription()
     {
-        _proxyMonitor?.Dispose();
-        GC.SuppressFinalize(this);
+        var provider = PlatformServices.SystemProxy;
+        if (ReferenceEquals(_subscribedProxyProvider, provider)) return;
+
+        if (_subscribedProxyProvider is not null)
+            _subscribedProxyProvider.Changed -= _OnSystemProxyChanged;
+
+        _subscribedProxyProvider = provider;
+        if (provider is not null)
+            provider.Changed += _OnSystemProxyChanged;
     }
+
+    private void _OnSystemProxyChanged(object? sender, EventArgs e)
+    {
+        _ = Task.Run(RefreshSystemProxy);
+    }
+
+    private static ProxyItem[] _GetProxyFromString(string? proxyString)
+    {
+        if (proxyString.IsNullOrWhiteSpace()) return [];
+
+        // 含 '=' 的形式：http=192.168.1.100:8080;socks=192.168.1.100:1080;ftp=127.0.0.1:124
+        // 也可以是 http=http://127.0.0.1:10808
+        if (proxyString.Contains('='))
+        {
+            var items = new List<ProxyItem>();
+            foreach (var segment in proxyString.Split(
+                         ';',
+                         StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                if (_ParseKeyValueSegment(segment) is { } item)
+                    items.Add(item);
+
+            return [.. items];
+        }
+
+        // 形式：http://127.0.0.1:1145/ 或者单纯 127.0.0.1:1145
+        var proxy = _ParseAddress(proxyString.Trim());
+        return proxy is null ? [] : [proxy];
+    }
+
+    /// <summary>解析 <c>protocol=address</c> 形式的段；格式非法时返回 null 以便忽略该段</summary>
+    private static ProxyItem? _ParseKeyValueSegment(string segment)
+    {
+        var eqIndex = segment.IndexOf('=');
+        // 缺少 '='、协议名或地址的段视为非法，直接忽略
+        if (eqIndex <= 0 || eqIndex >= segment.Length - 1) return null;
+
+        return _ParseAddress(
+            segment[(eqIndex + 1)..].Trim(),
+            _ParseProtocol(segment[..eqIndex].Trim()));
+    }
+
+    /// <summary>解析单个代理地址：支持带 scheme 的地址（如 http://127.0.0.1:10808）与纯 host:port 地址（如 127.0.0.1:1145）</summary>
+    private static ProxyItem? _ParseAddress(string address, ProxyProtocol? protocol = null)
+    {
+        if (address.IsNullOrWhiteSpace()) return null;
+
+        // 能解析出主机名的地址，规范化为 host:port
+        if (Uri.TryCreate(address, new UriCreationOptions(), out var uri)
+            && !uri.Host.IsNullOrEmpty())
+        {
+            var hostPort = uri.Port > 0 ? $"{uri.Host}:{uri.Port}" : uri.Host;
+            return new ProxyItem(protocol ?? _ParseProtocol(uri.Scheme), hostPort);
+        }
+
+        // 纯 host:port 地址（无法作为 URI 解析），按指定协议（默认 Http）原样使用
+        return new ProxyItem(protocol ?? ProxyProtocol.Http, address);
+    }
+
+    private static ProxyProtocol _ParseProtocol(string scheme)
+    {
+        return scheme.ToLowerInvariant() switch
+        {
+            "socks" or "socks4" or "socks5" => ProxyProtocol.Socks,
+            _ => ProxyProtocol.Http
+        };
+    }
+
+    /// <summary>刷新系统代理设置</summary>
+    public void RefreshSystemProxy()
+    {
+        _EnsurePlatformProxySubscription();
+        lock (_lock)
+        {
+            try
+            {
+                if (!OperatingSystem.IsWindows())
+                {
+                    // 非 Windows 从平台服务读取系统代理（环境变量 / 桌面环境设置）
+                    var platformProxies = PlatformServices.SystemProxy?.GetSystemProxies() ?? [];
+                    ProxyItem? platformProxy = null;
+                    foreach (var entry in platformProxies)
+                    {
+                        var parsed = _ParseAddress(entry.Address, _ParseProtocol(entry.Protocol));
+                        if (parsed is not { Protocol: ProxyProtocol.Http }) continue;
+                        platformProxy = parsed;
+                        break;
+                    }
+
+                    _systemWebProxy.Address = platformProxy is null
+                        || platformProxy.Address.IsNullOrEmpty()
+                            ? null
+                            : new Uri($"http://{platformProxy.Address}");
+                    LogWrapper.Info(
+                        "Proxy",
+                        $"已从操作系统更新代理设置，系统代理来源：{string.Join(";", platformProxies.Select(static x => $"{x.Protocol}={x.Address}"))}");
+                    return;
+                }
+
+                // read from reg
+                var isSystemProxyEnabled =
+                    (int)(Registry.GetValue(ProxyRegPathFull, "ProxyEnable", 0) ?? 0);
+                var systemProxyString = Registry.GetValue(
+                    ProxyRegPathFull,
+                    "ProxyServer",
+                    string.Empty) as string;
+
+                // parse
+                var proxies = _GetProxyFromString(systemProxyString);
+
+                // 仅当系统代理已启用且存在有效的 HTTP 代理时才应用
+                var selectedProxy =
+                    proxies.FirstOrDefault(static x => x.Protocol == ProxyProtocol.Http);
+                _systemWebProxy.Address = selectedProxy is null
+                    || selectedProxy.Address.IsNullOrEmpty()
+                    || isSystemProxyEnabled == 0
+                        ? null
+                        : new Uri($"http://{selectedProxy.Address}");
+
+                LogWrapper.Info(
+                    "Proxy",
+                    $"已从操作系统更新代理设置，系统代理状态：{isSystemProxyEnabled}|{systemProxyString}");
+            }
+            catch (Exception ex)
+            {
+                LogWrapper.Error(ex, "Proxy", "获取系统代理时出现异常");
+            }
+        }
+    }
+
+    private enum ProxyProtocol
+    {
+        Http,
+        Socks
+    }
+
+    private sealed record ProxyItem(ProxyProtocol Protocol, string Address);
 }

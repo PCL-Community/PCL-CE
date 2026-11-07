@@ -117,10 +117,6 @@ public static partial class Animations
     {
         try
         {
-            var speed = AniSpeed;
-            if (speed > 0d && deltaTick / speed > 100d)
-                LogWrapper.Debug("Animation", $"[Animation] 两个动画帧间隔 {deltaTick} ms");
-
             _AniFlushGroups();
 
             var groups = AniOrder;

@@ -82,7 +82,7 @@
                        Margin="0,15"
                        IsVisible="{Binding ShowUpdateCard}">
                 <StackPanel Margin="20,20,20,20">
-                    <Grid ColumnDefinitions="50,10,*,85"
+                    <Grid ColumnDefinitions="50,10,*,Auto"
                           RowDefinitions="29,1,20,8,Auto,10,Auto">
                         <ui:MyImage x:Name="ImgUpdateIcon"
                                     Grid.Row="0"
@@ -112,8 +112,9 @@
                                      Grid.Row="0"
                                      Grid.RowSpan="2"
                                      Grid.Column="3"
-                                     Width="85"
+                                     MinWidth="85"
                                      Height="30"
+                                     Padding="13,0"
                                      HorizontalAlignment="Center"
                                      VerticalAlignment="Center"
                                      ColorType="Highlight"

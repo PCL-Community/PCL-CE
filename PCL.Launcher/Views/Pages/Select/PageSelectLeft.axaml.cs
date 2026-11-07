@@ -152,6 +152,7 @@ public partial class PageSelectLeft : MyPageLeft, IRefreshable
 
         var contextMenu = CreateContextMenu(folder);
         item.ContextMenu = contextMenu;
+        ContextMenuHelper.Attach(item, () => contextMenu);
         var menu = new MyIconButton
         {
             SvgIcon = "lucide/settings",

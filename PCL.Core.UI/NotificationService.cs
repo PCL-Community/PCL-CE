@@ -35,23 +35,26 @@ public sealed class NotificationService : ISystemNotificationService
 
     public void Show(string title, string message)
     {
-        if (OperatingSystem.IsWindows())
-            try
-            {
-                ToastNotification.SendToast(message, title);
-                return;
-            }
-            catch (Exception ex)
-            {
-                LogWrapper.Warn("UI", $"Windows Toast 通知发送失败，改用应用内提示：{ex.Message}");
-            }
+        _ = Task.Run(() =>
+        {
+            if (OperatingSystem.IsWindows())
+                try
+                {
+                    ToastNotification.SendToast(message, title);
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    LogWrapper.Warn("UI", $"Windows Toast 通知发送失败，改用应用内提示：{ex.Message}");
+                }
 
-        if (OperatingSystem.IsMacOS() && _TrySendMacNotification(title, message)) return;
+            if (OperatingSystem.IsMacOS() && _TrySendMacNotification(title, message)) return;
 
-        if (_TrySendDesktopNotification(title, message)) return;
+            if (_TrySendDesktopNotification(title, message)) return;
 
-        if (Application.Current is null) return;
-        Dispatcher.UIThread.Post(() => _ShowFallbackToast(title, message));
+            if (Application.Current is null) return;
+            Dispatcher.UIThread.Post(() => _ShowFallbackToast(title, message));
+        });
     }
 
     private static bool _TrySendMacNotification(string title, string message)

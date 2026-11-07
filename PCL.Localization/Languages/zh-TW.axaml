@@ -59,6 +59,25 @@
     <sys:String x:Key="Common.Status.Failure">失敗：</sys:String>
     <sys:String x:Key="Common.Status.Success">成功！</sys:String>
 
+    <!-- Main.Menu -->
+
+    <sys:String x:Key="Main.Menu.File">檔案</sys:String>
+    <sys:String x:Key="Main.Menu.Edit">編輯</sys:String>
+    <sys:String x:Key="Main.Menu.Window">視窗</sys:String>
+    <sys:String x:Key="Main.Menu.Help">說明</sys:String>
+    <sys:String x:Key="Main.Menu.About">關於 PCL CE</sys:String>
+    <sys:String x:Key="Main.Menu.Preferences">設定…</sys:String>
+    <sys:String x:Key="Main.Menu.Hide">隱藏 PCL CE</sys:String>
+    <sys:String x:Key="Main.Menu.Quit">結束 PCL CE</sys:String>
+    <sys:String x:Key="Main.Menu.CloseWindow">關閉視窗</sys:String>
+    <sys:String x:Key="Main.Menu.Minimize">最小化</sys:String>
+    <sys:String x:Key="Main.Menu.Undo">復原</sys:String>
+    <sys:String x:Key="Main.Menu.Redo">重做</sys:String>
+    <sys:String x:Key="Main.Menu.Cut">剪下</sys:String>
+    <sys:String x:Key="Main.Menu.Copy">複製</sys:String>
+    <sys:String x:Key="Main.Menu.Paste">貼上</sys:String>
+    <sys:String x:Key="Main.Menu.SelectAll">全選</sys:String>
+
     <!-- Common.Action -->
 
     <sys:String x:Key="Common.Action.Agree">同意</sys:String>
@@ -2701,7 +2720,7 @@
     <sys:String x:Key="Setup.Java.Info.Format">型別: {0}&#xD;&#xA;版本: {1}&#xD;&#xA;架構: {2} ({3})&#xD;&#xA;發行商: {4}&#xD;&#xA;位置: {5}</sys:String>
     <sys:String x:Key="Setup.Java.Info.Title">Java 資訊</sys:String>
     <sys:String x:Key="Setup.Java.Loading">正在載入 Java 清單</sys:String>
-    <sys:String x:Key="Setup.Java.SelectFile.Filter">Java 程式(java.exe)|java.exe</sys:String>
+    <sys:String x:Key="Setup.Java.SelectFile.Filter">Java 程式({0})|{0}</sys:String>
     <sys:String x:Key="Setup.Java.SelectFile.Title">選擇 Java 程式</sys:String>
     <sys:String x:Key="Setup.Java.Unavailable">此 Java 不可用，請重新整理清單</sys:String>
 
@@ -2767,6 +2786,7 @@
     <sys:String x:Key="Setup.Launch.Advanced.Title">高階啟動選項</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.UseJavaExe">使用 java.exe 而不是 javaw.exe</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.UseJavaExe.ToolTip">如果遇到遊戲視窗長時間不出現等故障可嘗試啟用此項，PCL CE 將使用 java.exe 來執行遊戲，這樣會讓遊戲程式擁有標準輸入/輸出流，以盡可能避免列印日誌時出現問題。&#xA;&#xA;取決於不同 Java 發行版的行為，java.exe 可能無法使用 HDR 顏色等依賴作業系統支援的特性。因此，如果正常使用沒有問題，請勿啟用該選項。</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.UseJavaExe.Unsupported">目前平台不使用 java.exe/javaw.exe 區分，此選項僅在 Windows 可用。</sys:String>
 
     <!-- Setup.Launch.Memory -->
 
@@ -2903,6 +2923,14 @@
     <!-- Setup.Misc.Debug -->
 
     <sys:String x:Key="Setup.Misc.Debug.AnimationSpeed">動畫速度</sys:String>
+    <sys:String x:Key="Setup.Misc.Debug.LinuxProtocol">Linux 顯示協定</sys:String>
+    <sys:String x:Key="Setup.Misc.Debug.LinuxProtocol.Auto">自動（X11）</sys:String>
+    <sys:String x:Key="Setup.Misc.Debug.LinuxProtocol.ToolTip">選擇 Linux 下使用的顯示協定，修改後需要重啟啟動器。&#xA;使用環境變數 PCL_FORCE_X11 或 PCL_USE_WAYLAND 將會覆蓋此設定。</sys:String>
+    <sys:String x:Key="Setup.Misc.Debug.LinuxProtocol.Auto.ToolTip">跟隨啟動器預設值（X11）。</sys:String>
+    <sys:String x:Key="Setup.Misc.Debug.LinuxProtocol.X11.ToolTip">使用 X11/XWayland 顯示。目前相容性和幀率最穩定，推薦保持。</sys:String>
+    <sys:String x:Key="Setup.Misc.Debug.LinuxProtocol.Wayland.ToolTip">使用原生 Wayland 顯示。實驗性，可能出現動畫卡頓或視窗行為差異。</sys:String>
+    <sys:String x:Key="Setup.Misc.Debug.LinuxProtocol.Restart">顯示協定已儲存，需要重啟啟動器後生效。</sys:String>
+    <sys:String x:Key="Setup.Misc.Debug.LinuxProtocol.OnlyLinux">此選項僅在 Linux 上生效。</sys:String>
     <sys:String x:Key="Setup.Misc.Debug.Delay">新增延遲</sys:String>
     <sys:String x:Key="Setup.Misc.Debug.Delay.ToolTip">在各個環節新增隨機的延遲，拖慢載入速度，以測試部分功能是否正常執行。&#xA;這會嚴重影響啟動器執行，若無特殊需要不建議開啟。</sys:String>
     <sys:String x:Key="Setup.Misc.Debug.Mode">除錯模式</sys:String>
@@ -3184,6 +3212,8 @@
     <sys:String x:Key="Setup.Update.DotNetMissing.Title">啟動器更新 - 缺少執行環境</sys:String>
     <sys:String x:Key="Setup.Update.Error.NetworkFailed">無法取得最新版本資訊，請檢查網路連線</sys:String>
     <sys:String x:Key="Setup.Update.Install">下載並安裝</sys:String>
+    <sys:String x:Key="Setup.Update.Flatpak">請透過 Flatpak 或軟體中心更新</sys:String>
+    <sys:String x:Key="Setup.Update.OpenDownload">開啟下載頁</sys:String>
     <sys:String x:Key="Setup.Update.Latest">已是最新版本</sys:String>
     <sys:String x:Key="Setup.Update.MirrorChyanCdk.Get">取得 CDK</sys:String>
     <sys:String x:Key="Setup.Update.MirrorChyanCdk.Label">Mirror 醬 CDK</sys:String>
@@ -3528,6 +3558,7 @@
     <sys:String x:Key="Update.Error.UpdateBlockedMessage">由於被 Windows 安全中心攔截，或存在權限問題，導致 PCL CE 無法更新。&#xA;請將 PCL CE 所在資料夾加入白名單，或手動用 {0}PCL\Plain Craft Launcher Community Edition.exe 取代目前檔案！</sys:String>
     <sys:String x:Key="Update.Service.PclCe">PCL CE 服務</sys:String>
     <sys:String x:Key="Update.Title">啟動器更新</sys:String>
+    <sys:String x:Key="Update.ManualDownloadRequired">目前平台暫不支援應用程式內安裝更新，請前往發佈頁手動下載。</sys:String>
 
     <!-- Update.Task -->
 

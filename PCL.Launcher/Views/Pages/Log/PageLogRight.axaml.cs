@@ -4,6 +4,7 @@ using Avalonia.Controls.Templates;
 using Avalonia.Media;
 using Avalonia.Threading;
 using PCL.Core.App.Localization;
+using PCL.Core.Logging;
 using PCL.Core.UI.Theme;
 using PCL.UI.Controls;
 
@@ -95,6 +96,20 @@ public partial class PageLogRight : MyPageRight, IRefreshable
         else
             UnsubscribeCurrentLog();
         ScrollToEndIfNeeded();
+        LogVirtualizationState();
+    }
+
+    private void LogVirtualizationState()
+    {
+        Dispatcher.UIThread.Post(
+            () =>
+            {
+                if (PanLog.ItemsPanelRoot is VirtualizingStackPanel panel)
+                    LogWrapper.Debug(
+                        "UI",
+                        $"[LOG] virtualizing first={panel.FirstRealizedIndex} last={panel.LastRealizedIndex} count={ViewModel.Lines?.Count ?? 0}");
+            },
+            DispatcherPriority.Loaded);
     }
 
     public void OnLogAppended(PageLogLeft.LogBuffer buffer)

@@ -3,10 +3,9 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
-using PCL.Core.IO.Net;
 using PCL.Core.Minecraft;
+using PCL.Core.Minecraft.Java;
 using PCL.Core.Minecraft.Java.UserPreference;
-using PCL.Core.Minecraft.Profile;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
@@ -811,7 +810,8 @@ public partial class PageInstanceSetupViewModel : ViewModelBase
                     new AutoSelect())
             };
 
-            var relative = new UseRelativePath(Path.Combine("jre", "bin", "java.exe"));
+            var relative = new UseRelativePath(
+                Path.Combine("jre", "bin", JavaExecutableLayout.JavaExecutableName));
             var absolutePath = Path.GetFullPath(
                 Path.Combine(Basics.ExecutableDirectory, relative.RelativePath));
             options.Add(
@@ -870,7 +870,9 @@ public partial class PageInstanceSetupViewModel : ViewModelBase
             case UseRelativePath:
             {
                 var file = SystemDialogs.SelectFile(
-                    Lang.Text("Setup.Java.SelectFile.Filter"),
+                    Lang.Text(
+                        "Setup.Java.SelectFile.Filter",
+                        JavaExecutableLayout.JavaExecutableName),
                     Lang.Text("Setup.Java.SelectFile.Title"),
                     Basics.ExecutableDirectory);
                 if (string.IsNullOrWhiteSpace(file))

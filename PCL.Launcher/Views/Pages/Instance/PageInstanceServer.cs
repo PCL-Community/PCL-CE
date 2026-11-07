@@ -62,18 +62,28 @@ public partial class PageInstanceServer : MyPageRight, IRefreshable
         PanServers.Children.Clear();
         foreach (var item in ViewModel.Servers)
         {
-            var card = new ServerCard(item);
-            card.ConnectRequested += server => ViewModel.ConnectServer(server.ViewModel);
-            card.CopyRequested += server =>
-                _ = ViewModel.CopyAddressAsync(
-                    server.ViewModel,
-                    TopLevel.GetTopLevel(this)?.Clipboard);
-            card.RefreshRequested += server =>
-                _ = ViewModel.RefreshServerAndPersistAsync(server.ViewModel);
-            card.EditRequested += server => _ = EditServerAsync(server.ViewModel);
-            card.RemoveRequested += server => _ = RemoveServerAsync(server.ViewModel);
-            PanServers.Children.Add(card);
+            var placeholder = new MyVirtualizingElement<ServerCard>(() => CreateCard(item))
+            {
+                Height = 44d,
+                RecycleOffscreen = true
+            };
+            PanServers.Children.Add(placeholder);
         }
+    }
+
+    private ServerCard CreateCard(ServerCardViewModel item)
+    {
+        var card = new ServerCard(item);
+        card.ConnectRequested += server => ViewModel.ConnectServer(server.ViewModel);
+        card.CopyRequested += server =>
+            _ = ViewModel.CopyAddressAsync(
+                server.ViewModel,
+                TopLevel.GetTopLevel(this)?.Clipboard);
+        card.RefreshRequested += server =>
+            _ = ViewModel.RefreshServerAndPersistAsync(server.ViewModel);
+        card.EditRequested += server => _ = EditServerAsync(server.ViewModel);
+        card.RemoveRequested += server => _ = RemoveServerAsync(server.ViewModel);
+        return card;
     }
 
     private void RefreshAll()

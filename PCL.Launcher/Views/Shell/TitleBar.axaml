@@ -121,6 +121,7 @@
                                    Theme="White"
                                    LogoScale="0.87"
                                    SvgIcon="lucide/arrow-left"
+                                   AutomationProperties.Name="{loc:Loc Common.Action.Back}"
                                    Click="Back_OnClick" />
             <TextBlock x:Name="LabTitleInner"
                        HorizontalAlignment="Left"
@@ -142,18 +143,21 @@
                                    Theme="White"
                                    SvgIcon="lucide/circle-help"
                                    IsVisible="False"
+                                   AutomationProperties.Name="{loc:Loc Main.Menu.Help}"
                                    Click="Help_OnClick" />
             <controls:MyIconButton x:Name="BtnTitleMin"
                                    Width="28"
                                    Height="28"
                                    Theme="White"
                                    SvgIcon="lucide/minus"
+                                   AutomationProperties.Name="{loc:Loc Main.Menu.Minimize}"
                                    Click="Minimize_OnClick" />
             <controls:MyIconButton x:Name="BtnTitleClose"
                                    Width="28"
                                    Height="28"
                                    Theme="White"
                                    SvgIcon="lucide/x"
+                                   AutomationProperties.Name="{loc:Loc Common.Action.Close}"
                                    Click="Close_OnClick" />
         </StackPanel>
     </Grid>

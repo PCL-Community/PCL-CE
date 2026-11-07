@@ -40,6 +40,8 @@ public partial class PageLoginProfileSkin : LoginPageBase
 
         _btnSkin.Click += (_, _) => _btnSkin.ContextMenu?.Open(_btnSkin);
         _btnEdit.Click += (_, _) => _btnEdit.ContextMenu?.Open(_btnEdit);
+        ContextMenuHelper.Attach(_btnSkin, () => _btnSkin.ContextMenu);
+        ContextMenuHelper.Attach(_btnEdit, () => _btnEdit.ContextMenu);
         _btnSelect.Click += (_, _) => ViewModel.SelectProfileCommand.Execute(null);
         _skin.CapeRequested += (_, _) => ViewModel.ChangeCapeCommand.Execute(null);
 

@@ -35,6 +35,30 @@ public partial class PageSetupLauncherMisc : MyPageRight, ISetupResetPage
             WriteIfReady(() => Config.System.MaxGameLog = SliderMaxLog.Value);
         SliderDebugAnim.Change += (_, _) =>
             WriteIfReady(() => Config.Debug.AnimationSpeed = SliderDebugAnim.Value);
+
+        ComboDebugLinuxProtocol.IsEnabled = OperatingSystem.IsLinux();
+        ToolTip.SetTip(
+            ComboDebugLinuxProtocol,
+            Lang.Text(
+                OperatingSystem.IsLinux()
+                    ? "Setup.Misc.Debug.LinuxProtocol.ToolTip"
+                    : "Setup.Misc.Debug.LinuxProtocol.OnlyLinux"));
+        ToolTip.SetShowOnDisabled(ComboDebugLinuxProtocol, true);
+        ComboDebugLinuxProtocol.SelectionChanged += (_, _) =>
+        {
+            if (_reloading) return;
+            WriteIfReady(() =>
+            {
+                Config.Debug.LinuxProtocol = Math.Clamp(
+                    ComboDebugLinuxProtocol.SelectedIndex,
+                    0,
+                    2);
+                HintService.Show(
+                    Hints.Info(
+                        Lang.Text("Setup.Misc.Debug.LinuxProtocol.Restart"),
+                        false));
+            });
+        };
         CheckSystemDisableHardwareAcceleration.Change += (_, _) => WriteIfReady(() =>
         {
             Config.System.DisableHardwareAcceleration =
@@ -137,6 +161,8 @@ public partial class PageSetupLauncherMisc : MyPageRight, ISetupResetPage
             PanHttpProxyCustom.IsVisible = proxyType == 2;
 
             SliderDebugAnim.Value = Config.Debug.AnimationSpeed;
+            ComboDebugLinuxProtocol.SelectedIndex =
+                Math.Clamp(Config.Debug.LinuxProtocol, 0, 2);
             CheckDebugSkipCopy.Checked = Config.Debug.DontCopy;
             CheckDebugMode.Checked = Config.Debug.Enabled;
             CheckDebugDelay.Checked = Config.Debug.AddRandomDelay;

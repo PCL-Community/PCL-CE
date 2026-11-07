@@ -112,7 +112,7 @@ public partial class PageInstanceExportViewModel : ViewModelBase
 
     public bool ModrinthEnabled => !BundleFiles;
 
-    public bool PclEnabled => !Modrinth;
+    public bool PclEnabled => !Modrinth && OperatingSystem.IsWindows();
 
     public bool OptionsVisible => !HasOverrides;
 
@@ -974,11 +974,14 @@ public partial class PageInstanceExportViewModel : ViewModelBase
         var launcher = EnumerateOptions(Options).FirstOrDefault(option => option.IsLauncher);
         if (launcher is null)
             return;
-        launcher.IsEnabled = !Modrinth;
+
+        var canIncludeLauncher = !Modrinth && OperatingSystem.IsWindows();
+        launcher.IsEnabled = canIncludeLauncher;
+        if (!canIncludeLauncher && IncludePcl)
+            IncludePcl = false;
         launcher.IsChecked = IncludePcl;
         var custom = launcher.Children.FirstOrDefault(option => option.IsLauncherCustom);
-        if (custom is not null)
-            custom.IsChecked = IncludePclCustom;
+        custom?.IsChecked = IncludePclCustom;
     }
 
     private bool IsOptionVisible(
@@ -1239,7 +1242,7 @@ public partial class PageInstanceExportViewModel : ViewModelBase
         if (Directory.Exists(pclFolder))
             CopyDirectory(pclFolder, Path.Combine(overridesFolder, "PCL"));
 
-        if (includePcl)
+        if (includePcl && OperatingSystem.IsWindows())
             try
             {
                 var launcherPath = Path.Combine(cacheFolder, "Plain Craft Launcher.exe");

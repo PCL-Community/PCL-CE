@@ -11,7 +11,7 @@
         <Setter Property="UseLayoutRounding"
                 Value="True" />
     </Style>
-    <Style Selector="ui|MyButton > Border#PanFore">
+    <Style Selector="ui|MyButton Border#PanFore">
         <Setter Property="CornerRadius"
                 Value="3" />
         <Setter Property="BorderThickness"
@@ -21,13 +21,13 @@
         <Setter Property="Background"
                 Value="{DynamicResource ColorBrushHalfWhite}" />
     </Style>
-    <Style Selector="ui|MyButton.color-highlight > Border#PanFore">
+    <Style Selector="ui|MyButton.color-highlight Border#PanFore">
         <Setter Property="Background"
                 Value="{DynamicResource ColorBrushHalfWhite}" />
         <Setter Property="BorderBrush"
                 Value="{DynamicResource ColorBrush2}" />
     </Style>
-    <Style Selector="ui|MyButton.color-red > Border#PanFore">
+    <Style Selector="ui|MyButton.color-red Border#PanFore">
         <Setter Property="Background"
                 Value="{DynamicResource ColorBrushHalfWhite}" />
         <Setter Property="BorderBrush"

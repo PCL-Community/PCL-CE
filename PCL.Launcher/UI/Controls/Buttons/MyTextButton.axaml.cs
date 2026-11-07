@@ -1,5 +1,6 @@
 using System.Windows.Input;
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Input;
@@ -43,6 +44,7 @@ public partial class MyTextButton : Label
         PointerReleased += _OnPointerReleased;
         PointerEntered += (_, _) => RefreshColor(true);
         PointerExited += _OnPointerExited;
+        KeyboardActivation.Attach(this, PerformClick);
 
         Loaded += (_, _) => RefreshColor(false);
         ActualThemeVariantChanged += (_, _) => RefreshColor(false);
@@ -157,11 +159,18 @@ public partial class MyTextButton : Label
         Classes.Set("pressed", false);
         RefreshColor(true);
 
+        PerformClick();
+        e.Handled = true;
+    }
+
+    /// <summary>执行点击语义；鼠标释放、键盘 Enter/Space 与自动化调用共用。</summary>
+    public void PerformClick()
+    {
+        if (!IsEnabled) return;
         LogWrapper.Debug("[Control] 按下文本按钮：" + Text);
         Click?.Invoke(this, EventArgs.Empty);
         CustomEventService.Raise(this);
         ExecuteCommand();
-        e.Handled = true;
     }
 
     private void _OnPointerExited(object? sender, PointerEventArgs e)
@@ -185,5 +194,10 @@ public partial class MyTextButton : Label
         {
             _isCommandRunning = false;
         }
+    }
+
+    protected override AutomationPeer OnCreateAutomationPeer()
+    {
+        return new PclButtonAutomationPeer(this, PerformClick, () => Text);
     }
 }

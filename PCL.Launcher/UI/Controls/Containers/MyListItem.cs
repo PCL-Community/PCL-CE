@@ -1,5 +1,6 @@
 using System.Windows.Input;
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Controls.Shapes;
@@ -23,7 +24,7 @@ namespace PCL.UI.Controls;
 /// </summary>
 public class MyListItem : Grid, IMyRadio
 {
-    public delegate void ClickEventHandler(object? sender, PointerReleasedEventArgs e);
+    public delegate void ClickEventHandler(object? sender, PointerReleasedEventArgs? e);
 
     public delegate void LogoClickEventHandler(object? sender, PointerReleasedEventArgs e);
 
@@ -76,10 +77,25 @@ public class MyListItem : Grid, IMyRadio
         SetColumnSpan(LabTitle, 2);
         Children.Add(LabTitle);
 
+        var focusRing = new Border
+        {
+            Classes =
+            {
+                "FocusRing"
+            },
+            IsHitTestVisible = false,
+            Margin = new Thickness(-2d),
+            ZIndex = 1000
+        };
+        SetRowSpan(focusRing, 4);
+        SetColumnSpan(focusRing, 6);
+        Children.Add(focusRing);
+
         SizeChanged += (_, _) => OnSizeChanged();
         PointerReleased += Button_MouseUp;
         PointerPressed += Button_MouseDown;
         PointerExited += Button_MouseLeave;
+        KeyboardActivation.Attach(this, PerformClick);
         PointerEntered += (_, _) => RefreshColor(this, EventArgs.Empty);
         Loaded += (_, _) => MyListItem_Loaded();
     }
@@ -111,6 +127,15 @@ public class MyListItem : Grid, IMyRadio
     }
 
     #endregion
+
+    protected override AutomationPeer OnCreateAutomationPeer()
+    {
+        return new PclButtonAutomationPeer(
+            this,
+            PerformClick,
+            () => Title,
+            AutomationControlType.ListItem);
+    }
 
     #region 自定义属性
 
@@ -1312,41 +1337,42 @@ public class MyListItem : Grid, IMyRadio
 
         _isMouseDown = false;
         buttonStack?.IsHitTestVisible = true;
+        PerformClick();
+        e.Handled = true;
+    }
 
-        Click?.Invoke(this, e);
+    /// <summary>执行点击语义；鼠标释放、键盘 Enter/Space 与自动化调用共用。</summary>
+    public void PerformClick()
+    {
+        if (!IsEnabled) return;
+        Click?.Invoke(this, null!);
         ExecuteCommand();
-        RaiseCustomEventOnce(e);
+        if (HasCustomEvent)
+            CustomEventService.Raise(this);
 
-        if (!e.Handled)
-            switch (Type)
-            {
-                case CheckType.Clickable:
-                {
-                    LauncherCommon.Log("[Control] 按下单击列表项：" + Title);
-                    break;
-                }
+        switch (Type)
+        {
+            case CheckType.Clickable:
+                LauncherCommon.Log("[Control] 按下单击列表项：" + Title);
+                break;
 
-                case CheckType.RadioBox:
-                {
-                    LauncherCommon.Log("[Control] 按下单选列表项：" + Title);
-                    if (!Checked)
-                        SetChecked(true, true, true);
-                    break;
-                }
+            case CheckType.RadioBox:
+                LauncherCommon.Log("[Control] 按下单选列表项：" + Title);
+                if (!Checked)
+                    SetChecked(true, true, true);
+                break;
 
-                case CheckType.CheckBox:
-                {
-                    LauncherCommon.Log("[Control] 按下复选列表项（" + !Checked + "）：" + Title);
-                    SetChecked(!Checked, true, true);
-                    break;
-                }
+            case CheckType.CheckBox:
+                LauncherCommon.Log("[Control] 按下复选列表项（" + !Checked + "）：" + Title);
+                SetChecked(!Checked, true, true);
+                break;
 
-                case CheckType.None:
-                    break;
+            case CheckType.None:
+                break;
 
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
 
         RefreshColor(this, EventArgs.Empty);
     }

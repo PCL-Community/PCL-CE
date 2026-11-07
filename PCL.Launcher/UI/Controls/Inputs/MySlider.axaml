@@ -51,5 +51,8 @@
                            TextWrapping="Wrap" />
             </Border>
         </Popup>
+        <Border x:Name="FocusRing"
+                Classes="FocusRing"
+                IsHitTestVisible="False" />
     </Grid>
 </UserControl>

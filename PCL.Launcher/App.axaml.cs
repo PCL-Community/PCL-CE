@@ -8,7 +8,9 @@ using PCL.Core.Logging;
 using PCL.Core.UI;
 using PCL.UI.Controls;
 using PCL.UI.Controls.Behaviors;
+using PCL.UI.SystemIntegration;
 using PCL.UI.Theming;
+using PCL.Views;
 using PCL.Views.Shell;
 
 namespace PCL;
@@ -24,8 +26,14 @@ public class App : Application
         LocalizationService.LanguageChanged += LaunchFonts.InstallGlobalFont;
         LogWrapper.Debug("UI", $"注册启动画面：当前生命周期 {Lifecycle.CurrentState}");
         Lifecycle.When(LifecycleState.Loaded, ShowStartupSplash);
-        // WindowCreated 在 Debug 提示框等 StartupEffects 之前触发，避免启动画面盖住对话框。
         Lifecycle.When(LifecycleState.WindowCreated, CloseStartupSplash);
+        Lifecycle.When(
+            LifecycleState.WindowCreated,
+            () =>
+            {
+                if (MainWindow.Current is { } window)
+                    MacNativeMenu.AttachWindow(window);
+            });
     }
 
     public override void OnFrameworkInitializationCompleted()
@@ -33,6 +41,7 @@ public class App : Application
         ThemeCoordinator.Install();
         Tooltip.Enable();
         ClipboardInterceptor.Enable();
+        MacNativeMenu.Install(this);
 
         ApplicationHost.NotifyStartup(this);
         base.OnFrameworkInitializationCompleted();

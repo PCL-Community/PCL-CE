@@ -59,6 +59,25 @@
     <sys:String x:Key="Common.Status.Failure">Failure:</sys:String>
     <sys:String x:Key="Common.Status.Success">Success!</sys:String>
 
+    <!-- Main.Menu -->
+
+    <sys:String x:Key="Main.Menu.File">File</sys:String>
+    <sys:String x:Key="Main.Menu.Edit">Edit</sys:String>
+    <sys:String x:Key="Main.Menu.Window">Window</sys:String>
+    <sys:String x:Key="Main.Menu.Help">Help</sys:String>
+    <sys:String x:Key="Main.Menu.About">About PCL CE</sys:String>
+    <sys:String x:Key="Main.Menu.Preferences">Preferences…</sys:String>
+    <sys:String x:Key="Main.Menu.Hide">Hide PCL CE</sys:String>
+    <sys:String x:Key="Main.Menu.Quit">Quit PCL CE</sys:String>
+    <sys:String x:Key="Main.Menu.CloseWindow">Close window</sys:String>
+    <sys:String x:Key="Main.Menu.Minimize">Minimise</sys:String>
+    <sys:String x:Key="Main.Menu.Undo">Undo</sys:String>
+    <sys:String x:Key="Main.Menu.Redo">Redo</sys:String>
+    <sys:String x:Key="Main.Menu.Cut">Cut</sys:String>
+    <sys:String x:Key="Main.Menu.Copy">Copy</sys:String>
+    <sys:String x:Key="Main.Menu.Paste">Paste</sys:String>
+    <sys:String x:Key="Main.Menu.SelectAll">Select all</sys:String>
+
     <!-- Common.Action -->
 
     <sys:String x:Key="Common.Action.Agree">Agree</sys:String>
@@ -2701,7 +2720,7 @@
     <sys:String x:Key="Setup.Java.Info.Format">Type: {0}&#xA;Version: {1}&#xA;Architecture: {2} ({3})&#xA;Vendor: {4}&#xA;Location: {5}</sys:String>
     <sys:String x:Key="Setup.Java.Info.Title">Java information</sys:String>
     <sys:String x:Key="Setup.Java.Loading">Loading Java list...</sys:String>
-    <sys:String x:Key="Setup.Java.SelectFile.Filter">Java programme (java.exe)|java.exe</sys:String>
+    <sys:String x:Key="Setup.Java.SelectFile.Filter">Java programme ({0})|{0}</sys:String>
     <sys:String x:Key="Setup.Java.SelectFile.Title">Select Java programme</sys:String>
     <sys:String x:Key="Setup.Java.Unavailable">This Java is unavailable. Please refresh the list.</sys:String>
 
@@ -2767,6 +2786,7 @@
     <sys:String x:Key="Setup.Launch.Advanced.Title">Advanced launch options</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.UseJavaExe">Use java.exe instead of javaw.exe</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.UseJavaExe.ToolTip">If the game window does not appear for a long time, try enabling this option. PCL CE will use java.exe to run the game, giving the game process standard input/output streams to avoid possible issues when logs are printed.&#xA;&#xA;Depending on the behaviour of different Java distributions, java.exe may not support features that depend on operating system support, such as HDR colours. Therefore, do not enable this option if everything works normally.</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.UseJavaExe.Unsupported">This option is only available on Windows because other platforms do not distinguish java.exe from javaw.exe.</sys:String>
 
     <!-- Setup.Launch.Memory -->
 
@@ -2903,6 +2923,14 @@
     <!-- Setup.Misc.Debug -->
 
     <sys:String x:Key="Setup.Misc.Debug.AnimationSpeed">Animation speed</sys:String>
+    <sys:String x:Key="Setup.Misc.Debug.LinuxProtocol">Linux display protocol</sys:String>
+    <sys:String x:Key="Setup.Misc.Debug.LinuxProtocol.Auto">Auto (X11)</sys:String>
+    <sys:String x:Key="Setup.Misc.Debug.LinuxProtocol.ToolTip">Select the display protocol used on Linux. A restart is required.&#xA;This setting will be overrided if PCL_FORCE_X11 and PCL_USE_WAYLAND environment variables are used.</sys:String>
+    <sys:String x:Key="Setup.Misc.Debug.LinuxProtocol.Auto.ToolTip">Follow the launcher default (X11).</sys:String>
+    <sys:String x:Key="Setup.Misc.Debug.LinuxProtocol.X11.ToolTip">Use X11/XWayland. This is currently the most stable option for compatibility and frame pacing.</sys:String>
+    <sys:String x:Key="Setup.Misc.Debug.LinuxProtocol.Wayland.ToolTip">Use native Wayland. Experimental and animation stutter or window behaviour differences may occur.</sys:String>
+    <sys:String x:Key="Setup.Misc.Debug.LinuxProtocol.Restart">Display protocol saved. Restart the launcher to apply it.</sys:String>
+    <sys:String x:Key="Setup.Misc.Debug.LinuxProtocol.OnlyLinux">This option is only available on Linux.</sys:String>
     <sys:String x:Key="Setup.Misc.Debug.Delay">Add delay</sys:String>
     <sys:String x:Key="Setup.Misc.Debug.Delay.ToolTip">Add random delays at various stages, slowing down loading to test whether certain features work correctly.&#xA;This will seriously affect launcher performance. Not recommended unless specifically needed.</sys:String>
     <sys:String x:Key="Setup.Misc.Debug.Mode">Debug mode</sys:String>
@@ -3184,6 +3212,8 @@
     <sys:String x:Key="Setup.Update.DotNetMissing.Title">Launcher update - missing runtime</sys:String>
     <sys:String x:Key="Setup.Update.Error.NetworkFailed">Unable to retrieve latest version information. Please check your network connection.</sys:String>
     <sys:String x:Key="Setup.Update.Install">Download and install</sys:String>
+    <sys:String x:Key="Setup.Update.Flatpak">Update through Flatpak/software centre</sys:String>
+    <sys:String x:Key="Setup.Update.OpenDownload">Open download page</sys:String>
     <sys:String x:Key="Setup.Update.Latest">Already up to date</sys:String>
     <sys:String x:Key="Setup.Update.MirrorChyanCdk.Get">Get CDK</sys:String>
     <sys:String x:Key="Setup.Update.MirrorChyanCdk.Label">MirrorChyan CDK</sys:String>
@@ -3528,6 +3558,7 @@
     <sys:String x:Key="Update.Error.UpdateBlockedMessage">PCL CE cannot update because it was blocked by Windows Security or does not have sufficient permissions.&#xA;Please add the PCL CE folder to the exclusion list, or manually replace the current file with {0}PCL\Plain Craft Launcher Community Edition.exe!</sys:String>
     <sys:String x:Key="Update.Service.PclCe">PCL CE service</sys:String>
     <sys:String x:Key="Update.Title">Launcher update</sys:String>
+    <sys:String x:Key="Update.ManualDownloadRequired">In-app update installation is not available on this platform. Please download it manually from the release page.</sys:String>
 
     <!-- Update.Task -->
 

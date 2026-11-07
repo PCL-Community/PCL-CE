@@ -366,10 +366,14 @@ public partial class PageInstanceCompResource
         try
         {
             ViewModel.RebuildVisibleEntries();
-
             PanList.Children.Clear();
-            foreach (var entry in ViewModel.VisibleEntries)
-                PanList.Children.Add(CreateEntryItem(entry));
+            foreach (var placeholder in ViewModel.VisibleEntries.Select(entry =>
+                         new MyVirtualizingElement<MyLocalModItem>(() => CreateEntryItem(entry))
+                         {
+                             Height = 44d,
+                             RecycleOffscreen = true
+                         }))
+                PanList.Children.Add(placeholder);
 
             PanListBack.Opacity = 1d;
             BtnManageBack.IsVisible = !string.IsNullOrEmpty(_currentFolderPath);
@@ -432,7 +436,12 @@ public partial class PageInstanceCompResource
         {
             Checked = selected
         };
-        entry.OnCompUpdate += _ => LauncherCommon.RunInUi(item.Refresh);
+        var weakItem = new WeakReference<MyLocalModItem>(item);
+        entry.OnCompUpdate += _ =>
+        {
+            if (weakItem.TryGetTarget(out var target))
+                LauncherCommon.RunInUi(target.Refresh);
+        };
 
         var lastClick = DateTime.MinValue;
         item.PointerReleased += (_, e) =>
