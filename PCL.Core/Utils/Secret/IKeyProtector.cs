@@ -3,7 +3,7 @@ namespace PCL.Core.Utils.Secret;
 /// <summary>
 ///     用户密钥文件的本地保护方案：Windows 使用 DPAPI，其他平台使用机器/用户绑定的 AES-GCM。
 /// </summary>
-internal interface IKeyProtector
+public interface IKeyProtector
 {
     /// <summary>新建密钥时写入的存储版本。</summary>
     uint Version { get; }

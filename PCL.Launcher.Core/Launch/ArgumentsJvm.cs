@@ -86,7 +86,7 @@ public static partial class GameLaunch
             return;
 
         // WINDOWS-ROOT 信任库类型仅 Windows 的 JVM 支持
-        if (OperatingSystem.IsWindows()
+        if (PCL.Core.Platform.PlatformRuntime.Current.Capabilities.SupportsJavaw
             && mcLaunchJavaSelected!.Installation.MajorVersion >= 6)
             dataList.Add("-Djavax.net.ssl.trustStoreType=WINDOWS-ROOT");
 
@@ -133,7 +133,7 @@ public static partial class GameLaunch
     private static void _AddRendererJvmArgs(List<string> dataList)
     {
         // Mesa Loader javaagent 仅用于 Windows；Linux 在启动进程时通过 Mesa 环境变量选择渲染器
-        if (!OperatingSystem.IsWindows()) return;
+        if (!PCL.Core.Platform.PlatformRuntime.Current.Capabilities.SupportsJavaw) return;
 
         var instanceRenderer = Config.Instance.Renderer[
             InstanceList.McMcInstanceSelected!.PathInstance
@@ -269,7 +269,7 @@ public static partial class GameLaunch
             return;
 
         // WINDOWS-ROOT 信任库类型仅 Windows 的 JVM 支持
-        if (OperatingSystem.IsWindows()
+        if (PCL.Core.Platform.PlatformRuntime.Current.Capabilities.SupportsJavaw
             && mcLaunchJavaSelected!.Installation.MajorVersion >= 6)
             dataList.Add("-Djavax.net.ssl.trustStoreType=WINDOWS-ROOT");
 

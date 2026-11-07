@@ -382,7 +382,7 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
         {
             DeletingFolder = folder;
             var saveName = Path.GetFileName(folder.TrimEnd(Path.DirectorySeparatorChar));
-            var canRecycle = RecycleBin.IsSupported(folder);
+            var canRecycle = PCL.Core.Platform.PlatformRuntime.Current.RecycleBin.IsSupported(folder);
             var result = await DialogService.Instance.ShowAsync(
                 new TextDialogRequest
                 {
@@ -406,23 +406,23 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
 
             var (outcome, error) = await Task.Run(() =>
             {
-                var moved = RecycleBin.Move(folder, out var reason);
+                var moved = PCL.Core.Platform.PlatformRuntime.Current.RecycleBin.Move(folder, out var reason);
                 return (moved, reason);
             });
             switch (outcome)
             {
-                case RecycleBin.Outcome.Moved:
+                case RecycleBinOutcome.Moved:
                     HintService.Show(
                         Hints.Success(Lang.Text("Instance.Saves.DeletedToRecycleBin")));
                     break;
 
-                case RecycleBin.Outcome.Unsupported:
+                case RecycleBinOutcome.Unsupported:
                     await Task.Run(() => Directory.Delete(folder, true));
                     HintService.Show(
                         Hints.Success(Lang.Text("Instance.Saves.DeletedPermanent", saveName)));
                     break;
 
-                case RecycleBin.Outcome.Failed:
+                case RecycleBinOutcome.Failed:
                 default:
                     throw new IOException(error ?? Lang.Text("Instance.Saves.DeleteFailed"));
             }

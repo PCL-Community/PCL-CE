@@ -1,3 +1,4 @@
+using PCL.Core.Platform;
 using System.Text.Json.Nodes;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -170,7 +171,7 @@ public partial class PageSelectRightViewModel : ViewModelBase
                 && (instance.PathIndie ?? "") != (GameFolders.mcFolderSelected ?? "");
             // Shift 直接永久删除；否则优先走系统回收站。平台或所在卷没有回收站时，
             // 确认文案必须改写成“永久删除、不可恢复”，不能沿用“已移至回收站”的说法。
-            var canRecycle = !permanent && RecycleBin.IsSupported(instance.PathInstance);
+            var canRecycle = !permanent && PCL.Core.Platform.PlatformRuntime.Current.RecycleBin.IsSupported(instance.PathInstance);
             var confirmMsg = !permanent && !canRecycle
                 ? Lang.Text("Select.Instance.Delete.RecycleBinUnavailable", instance.Name)
                 : Lang.Text(
@@ -507,20 +508,20 @@ public partial class PageSelectRightViewModel : ViewModelBase
 
     private static bool TryRecycleInstance(McInstance instance)
     {
-        var outcome = RecycleBin.Move(instance.PathInstance, out var error);
+        var outcome = PCL.Core.Platform.PlatformRuntime.Current.RecycleBin.Move(instance.PathInstance, out var error);
         switch (outcome)
         {
-            case RecycleBin.Outcome.Moved:
+            case RecycleBinOutcome.Moved:
                 HintService.Show(
                     Hints.Success(
                         Lang.Text("Select.Instance.Delete.RecycleBinSuccess", instance.Name)));
                 return true;
             
-            case RecycleBin.Outcome.Failed:
+            case RecycleBinOutcome.Failed:
                 throw new IOException(
                     error ?? Lang.Text("Select.Instance.Error.Delete", instance.Name));
             
-            case RecycleBin.Outcome.Unsupported:
+            case RecycleBinOutcome.Unsupported:
             default:
                 return false;
         }

@@ -15,10 +15,6 @@ public sealed class FatalDialogService : IFatalDialogService
 
     private bool _showing;
 
-    public FatalDialogService() : this(NativeFatalDialog.Show)
-    {
-    }
-
     internal FatalDialogService(Func<string, string, bool> showNative)
     {
         _showNative = showNative ?? throw new ArgumentNullException(nameof(showNative));

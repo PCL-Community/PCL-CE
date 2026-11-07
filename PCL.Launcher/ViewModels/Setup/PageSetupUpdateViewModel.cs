@@ -161,7 +161,7 @@ public partial class PageSetupUpdateViewModel : ViewModelBase
         if (IsFlatpak)
             return;
 
-        if (!UpdateManager.SupportsInAppUpdate)
+        if (!UpdatePolicies.Current.SupportsInAppUpdate)
         {
             OpenReleasesPage();
             return;

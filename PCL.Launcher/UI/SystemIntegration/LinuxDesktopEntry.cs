@@ -14,9 +14,6 @@ public static class LinuxDesktopEntry
 
     public static void Ensure()
     {
-        if (!OperatingSystem.IsLinux())
-            return;
-
         try
         {
             var executable = Environment.ProcessPath;

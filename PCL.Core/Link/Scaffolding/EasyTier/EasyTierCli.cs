@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using PCL.Core.Logging;
+using PCL.Core.Platform;
 using PCL.Core.Utils;
 
 namespace PCL.Core.Link.Scaffolding.EasyTier;
@@ -51,7 +52,7 @@ public static class EasyTierCli
         };
 
         // WindowStyle 与 ErrorDialog 是 Windows 专属属性；Unix 上保持默认值。
-        if (EasyTierMetadata.Package.Os == EasyTierHostOs.Windows)
+        if (EasyTierMetadata.Package.Os == PlatformKind.Windows)
         {
             startInfo.WindowStyle = ProcessWindowStyle.Hidden;
             startInfo.ErrorDialog = false;

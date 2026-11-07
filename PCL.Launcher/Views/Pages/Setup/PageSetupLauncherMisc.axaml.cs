@@ -36,11 +36,13 @@ public partial class PageSetupLauncherMisc : MyPageRight, ISetupResetPage
         SliderDebugAnim.Change += (_, _) =>
             WriteIfReady(() => Config.Debug.AnimationSpeed = SliderDebugAnim.Value);
 
-        ComboDebugLinuxProtocol.IsEnabled = OperatingSystem.IsLinux();
+        var supportsProtocol = PCL.Core.Platform.PlatformRuntime.Current.Capabilities
+            .SupportsDisplayProtocolSelection;
+        ComboDebugLinuxProtocol.IsEnabled = supportsProtocol;
         ToolTip.SetTip(
             ComboDebugLinuxProtocol,
             Lang.Text(
-                OperatingSystem.IsLinux()
+                supportsProtocol
                     ? "Setup.Misc.Debug.LinuxProtocol.ToolTip"
                     : "Setup.Misc.Debug.LinuxProtocol.OnlyLinux"));
         ToolTip.SetShowOnDisabled(ComboDebugLinuxProtocol, true);
@@ -385,35 +387,7 @@ public partial class PageSetupLauncherMisc : MyPageRight, ISetupResetPage
             .Distinct()
             .ToArray();
 
-        if (OperatingSystem.IsWindows())
-        {
-            var arguments = new StringBuilder("/c timeout /t 5 /nobreak >nul & ");
-            foreach (var folder in folders)
-                arguments.Append($"rmdir /s /q \"{folder}\" & ");
-            Process.Start(
-                new ProcessStartInfo
-                {
-                    FileName = "cmd.exe",
-                    Arguments = arguments.ToString(),
-                    CreateNoWindow = true,
-                    WindowStyle = ProcessWindowStyle.Hidden,
-                    UseShellExecute = false
-                });
-        }
-        else
-        {
-            var quoted = string.Join(
-                " ",
-                folders.Select(folder => "'" + folder.Replace("'", "'\\''") + "'"));
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = "/bin/sh",
-                UseShellExecute = false
-            };
-            startInfo.ArgumentList.Add("-c");
-            startInfo.ArgumentList.Add($"sleep 2; rm -rf {quoted}");
-            Process.Start(startInfo);
-        }
+        PCL.Core.Platform.PlatformRuntime.Current.ProcessCleanup.DeleteFoldersAndRestart(folders);
 
         UiInteraction.Shutdown();
         return;

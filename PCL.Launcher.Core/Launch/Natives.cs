@@ -9,8 +9,8 @@ public static partial class GameLaunch
     /// <summary>
     ///     各平台需要解压的 Natives 动态库后缀。Windows 仅解压 .dll，其余平台还需 .so 与 .dylib。
     /// </summary>
-    private static readonly string[] NativeLibraryExtensions =
-        OperatingSystem.IsWindows() ? [".dll"] : [".dll", ".so", ".dylib"];
+    private static IReadOnlyList<string> NativeLibraryExtensions =>
+        PCL.Core.Platform.PlatformRuntime.Current.Capabilities.NativeLibraryExtensions;
 
     private static void McLaunchNatives(Loading.LoaderTask<List<Libraries.McLibToken>, int> loader)
     {
@@ -119,7 +119,7 @@ public static partial class GameLaunch
             "natives");
         return result.IsAscii()
             ? result
-            : OperatingSystem.IsWindows()
+            : PCL.Core.Platform.PlatformRuntime.Current.Capabilities.UsesWindowsPaths
                 ? Path.Combine(SystemPaths.DriveLetter, "ProgramData", "PCL", "natives")
                 : Path.Combine(Path.GetTempPath(), "PCLCE", "natives");
     }

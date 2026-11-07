@@ -1,13 +1,15 @@
 using System;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PCL.Core.IO;
+using PCL.Core.Platform;
+using PCL.Core.UI;
 
 namespace PCL.Core.Test.IO;
 
 [TestClass]
 public class RecycleBinTest
 {
+    private readonly IRecycleBinService _bin = PlatformModuleFactory.Create().RecycleBin;
     private string? _originalDataHome;
     private string _sandboxRoot = string.Empty;
     private string _trashRoot = string.Empty;
@@ -41,8 +43,8 @@ public class RecycleBinTest
     [TestMethod]
     public void IsSupported_ReturnsFalseForMissingPath()
     {
-        Assert.IsFalse(RecycleBin.IsSupported(Path.Combine(_sandboxRoot, "missing")));
-        Assert.IsFalse(RecycleBin.IsSupported(null));
+        Assert.IsFalse(_bin.IsSupported(Path.Combine(_sandboxRoot, "missing")));
+        Assert.IsFalse(_bin.IsSupported(null));
     }
 
     [TestMethod]
@@ -52,11 +54,11 @@ public class RecycleBinTest
         Directory.CreateDirectory(source);
         File.WriteAllText(Path.Combine(source, "options.txt"), "fov:0.0");
 
-        Assert.IsTrue(RecycleBin.IsSupported(source), "工作区位于用户主目录下，应支持回收站");
+        Assert.IsTrue(_bin.IsSupported(source), "工作区位于用户主目录下，应支持回收站");
 
-        var outcome = RecycleBin.Move(source, out var error);
+        var outcome = _bin.Move(source, out var error);
 
-        Assert.AreEqual(RecycleBin.Outcome.Moved, outcome, error);
+        Assert.AreEqual(RecycleBinOutcome.Moved, outcome, error);
         Assert.IsFalse(Directory.Exists(source), "原目录应已不在原位");
 
         var trashed = Path.Combine(_trashRoot, "Trash", "files", "instance-under-test");
@@ -77,9 +79,9 @@ public class RecycleBinTest
         var source = Path.Combine(_sandboxRoot, "world.zip");
         File.WriteAllText(source, "zip-bytes");
 
-        var outcome = RecycleBin.Move(source, out var error);
+        var outcome = _bin.Move(source, out var error);
 
-        Assert.AreEqual(RecycleBin.Outcome.Moved, outcome, error);
+        Assert.AreEqual(RecycleBinOutcome.Moved, outcome, error);
         Assert.IsFalse(File.Exists(source));
         Assert.IsTrue(File.Exists(Path.Combine(_trashRoot, "Trash", "files", "world.zip")));
     }
@@ -89,11 +91,11 @@ public class RecycleBinTest
     {
         var first = Path.Combine(_sandboxRoot, "saves");
         Directory.CreateDirectory(first);
-        Assert.AreEqual(RecycleBin.Outcome.Moved, RecycleBin.Move(first, out _));
+        Assert.AreEqual(RecycleBinOutcome.Moved, _bin.Move(first, out _));
 
         var second = Path.Combine(_sandboxRoot, "saves");
         Directory.CreateDirectory(second);
-        Assert.AreEqual(RecycleBin.Outcome.Moved, RecycleBin.Move(second, out _));
+        Assert.AreEqual(RecycleBinOutcome.Moved, _bin.Move(second, out _));
 
         var files = Path.Combine(_trashRoot, "Trash", "files");
         Assert.IsTrue(Directory.Exists(Path.Combine(files, "saves")));
@@ -103,8 +105,8 @@ public class RecycleBinTest
     [TestMethod]
     public void Move_MissingPath_ReportsFailure()
     {
-        var outcome = RecycleBin.Move(Path.Combine(_sandboxRoot, "not-there"), out var error);
-        Assert.AreEqual(RecycleBin.Outcome.Failed, outcome);
+        var outcome = _bin.Move(Path.Combine(_sandboxRoot, "not-there"), out var error);
+        Assert.AreEqual(RecycleBinOutcome.Failed, outcome);
         Assert.IsFalse(string.IsNullOrWhiteSpace(error));
     }
 }

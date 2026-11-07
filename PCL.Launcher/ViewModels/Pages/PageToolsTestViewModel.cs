@@ -209,22 +209,11 @@ public partial class PageToolsTestViewModel : ViewModelBase
                 return;
             }
 
-            var isMacApp = OperatingSystem.IsMacOS() && Files.FindMacAppBundle(target) is not null;
-            var extension = OperatingSystem.IsWindows()
-                ? ".lnk"
-                : OperatingSystem.IsMacOS()
-                    ? isMacApp ? ".app" : ".command"
-                    : ".desktop";
+            var shortcuts = PCL.Core.Platform.PlatformRuntime.Current.Shortcuts;
+            var extension = shortcuts.GetPreferredExtension(target);
             var shortcutName = Lang.Text("Tools.Test.Shortcut.FileName", extension);
-            var desktopPath = Path.Combine(GetDesktopDirectory(), shortcutName);
-            var startMenuPath = OperatingSystem.IsWindows()
-                ? Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.StartMenu),
-                    "Programs",
-                    shortcutName)
-                : OperatingSystem.IsMacOS()
-                    ? Path.Combine(GetMacApplicationsDirectory(), shortcutName)
-                    : Path.Combine(GetLinuxApplicationsDirectory(), shortcutName);
+            var desktopPath = shortcuts.GetDesktopPath(shortcutName);
+            var startMenuPath = shortcuts.GetStartMenuPath(shortcutName);
             var desktopName = Lang.Text("Tools.Test.Shortcut.Desktop");
             var startName = Lang.Text("Tools.Test.Shortcut.StartMenu");
 
@@ -248,14 +237,14 @@ public partial class PageToolsTestViewModel : ViewModelBase
 
             var shortcutPath = choice == 2 ? desktopPath : startMenuPath;
             var locationName = choice == 2 ? desktopName : startName;
-            Files.CreateShortcut(
+            shortcuts.Create(
                 shortcutPath,
                 target,
                 workingDirectory: AppContext.BaseDirectory,
                 description: "PCL CE",
-                icon: OperatingSystem.IsWindows() || OperatingSystem.IsMacOS()
-                    ? null
-                    : EnsureShortcutIcon());
+                icon: PCL.Core.Platform.PlatformRuntime.Current.Capabilities.SupportsShortcutIcon
+                    ? EnsureShortcutIcon()
+                    : null);
             HintService.Show(Hints.Success(Lang.Text("Tools.Test.Shortcut.Created", locationName)));
         }
         catch (Exception ex)
@@ -267,33 +256,6 @@ public partial class PageToolsTestViewModel : ViewModelBase
         {
             ShortcutEnabled = true;
         }
-    }
-
-    private static string GetDesktopDirectory()
-    {
-        var desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-        return string.IsNullOrWhiteSpace(desktop)
-            ? Path.Combine(Paths.DefaultDirectory, "Desktop")
-            : desktop;
-    }
-
-    private static string GetMacApplicationsDirectory()
-    {
-        var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        var directory = Path.Combine(home, "Applications");
-        Directory.CreateDirectory(directory);
-        return directory;
-    }
-
-    private static string GetLinuxApplicationsDirectory()
-    {
-        var dataHome = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
-        if (string.IsNullOrWhiteSpace(dataHome))
-            dataHome = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                ".local",
-                "share");
-        return Path.Combine(dataHome, "applications");
     }
 
     [RelayCommand]

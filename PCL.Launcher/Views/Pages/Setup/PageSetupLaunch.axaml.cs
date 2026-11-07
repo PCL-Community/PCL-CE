@@ -37,8 +37,9 @@ public partial class PageSetupLaunch : MyPageRight, ISetupResetPage
         PanScroll = PanBack;
         DataContext = ViewModel;
 
-        CheckAdvanceNoJavaw.IsEnabled = OperatingSystem.IsWindows();
-        if (!OperatingSystem.IsWindows())
+        var java = PCL.Core.Platform.PlatformRuntime.Current.Java;
+        CheckAdvanceNoJavaw.IsEnabled = java.SupportsJavaw;
+        if (!java.SupportsJavaw)
             ToolTip.SetTip(
                 CheckAdvanceNoJavaw,
                 Lang.Text("Setup.Launch.Advanced.UseJavaExe.Unsupported"));

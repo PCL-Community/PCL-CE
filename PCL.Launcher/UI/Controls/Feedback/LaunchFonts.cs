@@ -16,7 +16,7 @@ internal static class LaunchFonts
 {
     public const string ApplicationFontKey = "LaunchFontFamily";
     private const string EmbeddedFontFamily = "PCL English";
-    private const string EmbeddedFontUri = "avares://PCL.Launcher/Assets/Fonts#PCL English";
+    internal const string EmbeddedFontUri = "avares://PCL.Launcher/Assets/Fonts#PCL English";
 
     private static readonly Lock PreviewFallbackLock = new();
     private static string? _previewFallbackChain;
@@ -29,9 +29,7 @@ internal static class LaunchFonts
     ///     语言页横幅字体。Windows 使用 Bahnschrift，其他平台只使用内嵌字体，
     ///     避免 Avalonia 在缺少该字体的系统上创建 GlyphTypeface 失败。
     /// </summary>
-    public static FontFamily BannerFont { get; } = OperatingSystem.IsWindows()
-        ? Build("Bahnschrift")
-        : new FontFamily(EmbeddedFontUri);
+    public static FontFamily BannerFont => PlatformFontProvider.Current.CreateBannerFont();
 
     public static void InstallGlobalFont()
     {

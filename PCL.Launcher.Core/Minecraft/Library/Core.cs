@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using PCL.Core.Platform;
 using PCL.Core.Utils.OS;
 
 namespace PCL;
@@ -11,9 +12,12 @@ public static partial class Libraries
     ///     当前平台在 JSON 的 natives 对象中对应的系统键（macOS 写作 osx）。
     /// </summary>
     private static readonly string[] McNativesOsNames =
-        OperatingSystem.IsWindows() ? ["windows"]
-        : OperatingSystem.IsMacOS() ? ["osx", "macos"]
-        : ["linux"];
+        PlatformRuntime.Current.Kind switch
+        {
+            PlatformKind.Windows => ["windows"],
+            PlatformKind.MacOs => ["osx", "macos"],
+            _ => ["linux"]
+        };
 
     /// <summary>
     ///     当前平台与架构对应的 Natives classifier 名称，按优先级排列。
@@ -68,7 +72,7 @@ public static partial class Libraries
                 case "unknown":
                     break;
                 case "windows":
-                    result = OperatingSystem.IsWindows();
+                    result = PlatformRuntime.Current.Kind == PlatformKind.Windows;
                     if (!result)
                         break;
                     var osVersionNode = os["version"];
@@ -78,8 +82,8 @@ public static partial class Libraries
                 default:
                     result = osName switch
                     {
-                        "linux" => OperatingSystem.IsLinux(),
-                        "osx" or "macos" => OperatingSystem.IsMacOS(),
+                        "linux" => PlatformRuntime.Current.Kind == PlatformKind.Linux,
+                        "osx" or "macos" => PlatformRuntime.Current.Kind == PlatformKind.MacOs,
                         _ => false
                     };
                     break;
@@ -97,7 +101,7 @@ public static partial class Libraries
     /// </summary>
     private static bool _IsRuleArchMatch(string arch)
     {
-        if (OperatingSystem.IsWindows())
+        if (PlatformRuntime.Current.Kind == PlatformKind.Windows)
             return arch == "x86" == SystemInfo.Is32BitSystem;
 
         var osArch = RuntimeInformation.OSArchitecture;
@@ -116,19 +120,19 @@ public static partial class Libraries
     /// </summary>
     private static string[] _GetMcNativeClassifierNames()
     {
-        if (OperatingSystem.IsWindows())
-            return ["natives-windows"];
-
-        if (OperatingSystem.IsMacOS())
-            return RuntimeInformation.OSArchitecture is Architecture.Arm64
-                ? ["natives-macos-arm64", "natives-macos", "natives-osx"]
-                : ["natives-macos", "natives-osx", "natives-macos-x86_64"];
-
-        return RuntimeInformation.OSArchitecture switch
+        return PlatformRuntime.Current.Kind switch
         {
-            Architecture.Arm64 => ["natives-linux", "natives-linux-arm64", "natives-linux-aarch64"],
-            Architecture.X86 => ["natives-linux", "natives-linux-32"],
-            _ => ["natives-linux", "natives-linux-64", "natives-linux-amd64"]
+            PlatformKind.Windows => ["natives-windows"],
+            PlatformKind.MacOs => RuntimeInformation.OSArchitecture is Architecture.Arm64
+                ? ["natives-macos-arm64", "natives-macos", "natives-osx"]
+                : ["natives-macos", "natives-osx", "natives-macos-x86_64"],
+            _ => RuntimeInformation.OSArchitecture switch
+            {
+                Architecture.Arm64 =>
+                    ["natives-linux", "natives-linux-arm64", "natives-linux-aarch64"],
+                Architecture.X86 => ["natives-linux", "natives-linux-32"],
+                _ => ["natives-linux", "natives-linux-64", "natives-linux-amd64"]
+            }
         };
     }
 

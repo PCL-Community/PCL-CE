@@ -62,18 +62,9 @@ internal sealed class CrashReportExporter
         {
             long totalMiB;
             long availableMiB;
-            if (OperatingSystem.IsWindows())
-            {
-                var (total, available) = KernelInterop.GetPhysicalMemoryBytes();
-                totalMiB = (long)total / 1024 / 1024;
-                availableMiB = (long)available / 1024 / 1024;
-            }
-            else
-            {
-                totalMiB = HardwareInfo.SystemMemorySize;
-                var totalAvailable = GC.GetGCMemoryInfo().TotalAvailableMemoryBytes;
-                availableMiB = totalAvailable > 0 ? totalAvailable / 1024 / 1024 : 0;
-            }
+            var memory = PCL.Core.Platform.PlatformRuntime.Current.SystemFacts.GetMemoryBytes();
+            totalMiB = (long)memory.Total / 1024 / 1024;
+            availableMiB = (long)memory.Available / 1024 / 1024;
 
             var dpiScale = Math.Round(LauncherCommon.Dpi / 96d, 2);
             LogWrapper.Info(

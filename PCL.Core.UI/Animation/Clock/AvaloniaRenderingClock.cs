@@ -45,9 +45,11 @@ public class AvaloniaRenderingClock(int fps = 60) : IUiClock, IDisposable
         _lastTime = TimeSpan.Zero;
         _timerStartStamp = 0;
         UiFramePump.Subscribe(this);
+#if DEBUG
         LogWrapper.Debug(
             Module,
             $"[Animation] 时钟已启动 fps={(Fps == int.MaxValue ? "每帧" : Fps.ToString())}");
+#endif
     }
 
     public void Stop()

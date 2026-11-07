@@ -46,12 +46,7 @@ public sealed class ClipboardInterceptor
             RoutingStrategies.Direct | RoutingStrategies.Bubble,
             true);
 
-        if (OperatingSystem.IsWindows())
-            LogWrapper.Debug(Module, "[Clipboard] 已全局挂载文本框剪贴板安全拦截（Windows）");
-        else
-            LogWrapper.Warn(
-                Module,
-                "[Clipboard] 非 Windows 平台：系统剪贴板异常保护降级为 Avalonia 事件层尽力拦截");
+        LogWrapper.Debug(Module, "[Clipboard] 已全局挂载文本框剪贴板安全拦截");
     }
 
     public static void Disable()

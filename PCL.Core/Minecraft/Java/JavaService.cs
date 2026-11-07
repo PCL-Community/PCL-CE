@@ -1,8 +1,7 @@
-using System;
 using System.Threading.Tasks;
 using PCL.Core.App.IoC;
-using PCL.Core.Minecraft.Java.Parser;
 using PCL.Core.Minecraft.Java.Scanner;
+using PCL.Core.Platform;
 
 namespace PCL.Core.Minecraft;
 
@@ -21,7 +20,7 @@ public sealed partial class JavaService
         Context.Info("Initializing Java Manager...");
 
         _javaManager = new JavaManager(
-            new PeHeaderParser(),
+            PlatformRuntime.Current.Java.CreateParser(),
             _CreateScanners());
         _javaManager.ReadConfig();
 
@@ -32,26 +31,9 @@ public sealed partial class JavaService
         Context.Info($"Finished to scan java: \n\t{logInfo}");
     }
 
-    /// <summary>
-    ///     按当前平台选择 Java 扫描器。Windows 保持原有清单，其余平台改用 PATH 与 Unix JVM 目录。
-    /// </summary>
     private static IJavaScanner[] _CreateScanners()
     {
-        if (OperatingSystem.IsWindows())
-            return
-            [
-                new RegistryJavaScanner(),
-                new DefaultPathsScanner(),
-                new PathEnvironmentScanner(),
-                new MicrosoftStoreJavaScanner(),
-                new WhereCommandScanner()
-            ];
-
-        return
-        [
-            new PathEnvironmentScanner(),
-            new UnixJavaScanner()
-        ];
+        return PlatformRuntime.Current.Java.CreateScanners();
     }
 
     [LifecycleStop]

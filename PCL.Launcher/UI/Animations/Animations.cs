@@ -39,7 +39,9 @@ public static partial class Animations
             }
 
             _aniClock.Start();
+#if DEBUG
             LogWrapper.Debug("Animation", "[Animation] 动画帧循环已启动（与动画引擎共用帧源）");
+#endif
         });
     }
 

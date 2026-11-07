@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using PCL.Core.App;
 using PCL.Core.Logging;
+using PCL.Core.Platform;
 using PCL.Core.Utils.Encryption;
 using PCL.Core.Utils.Exts;
 using Aes = System.Runtime.Intrinsics.X86.Aes;
@@ -19,15 +20,20 @@ public static class EncryptHelper
     private static readonly byte[] _Key = [.. "PCL CE Encryption Key"u8];
 
     /// <summary>密钥文件的本地保护方案，由平台决定（Windows DPAPI / 其他平台机器绑定 AES-GCM）。</summary>
-    private static readonly IKeyProtector _KeyProtector = OperatingSystem.IsWindows()
-        ? new WindowsKeyProtector(_Key)
-        : new UnixKeyProtector(_Key);
-
-    public static (IEncryptionProvider Provider, uint Version) DefaultProvider =>
-        _DefaultProvider.Value;
+    private static readonly Lazy<IKeyProtector> _KeyProtectorFactory = new(() =>
+        PlatformRuntime.IsInitialized
+            ? PlatformRuntime.Current.CreateKeyProtector(_Key)
+            : OperatingSystem.IsWindows()
+                ? new WindowsKeyProtector(_Key)
+                : new UnixKeyProtector(_Key));
 
     private static readonly Lazy<(IEncryptionProvider Provider, uint Version)> _DefaultProvider =
         new(_SelectBestEncryption);
+
+    private static IKeyProtector KeyProtector => _KeyProtectorFactory.Value;
+
+    public static (IEncryptionProvider Provider, uint Version) DefaultProvider =>
+        _DefaultProvider.Value;
 
     private static (IEncryptionProvider Provider, uint Version) _SelectBestEncryption()
     {
@@ -60,7 +66,6 @@ public static class EncryptHelper
         var rawData = Convert.FromBase64String(data);
         Exception? decryptError;
         if (EncryptionData.IsValid(rawData))
-        {
             try
             {
                 var encryptionData = EncryptionData.FromBytes(rawData);
@@ -78,23 +83,22 @@ public static class EncryptHelper
             {
                 decryptError = ex;
             }
-        }
         else
-        {
             try
             {
-#pragma warning disable CS0612,CS0618 // Type or member is obsolete
+#pragma warning disable CS0612,CS0618
+                // Type or member is obsolete
                 var decryptedData = AesCbcProvider.Instance.Decrypt(
                     rawData,
                     Encoding.UTF8.GetBytes(IdentifyOld.EncryptKey));
-#pragma warning restore CS0612,CS0618 // Type or member is obsolete
+#pragma warning restore CS0612,CS0618
+                // Type or member is obsolete
                 return Encoding.UTF8.GetString(decryptedData);
             }
             catch (Exception ex)
             {
                 decryptError = ex;
             }
-        }
 
         throw new Exception("Unknown Encryption data, the data may broken", decryptError);
     }
@@ -174,9 +178,9 @@ public static class EncryptHelper
     private static byte[]? _cachedKey;
 
     /// <summary>
-    /// 用户密钥。只在成功获取后缓存——失败不会被记住，下次访问会重新尝试。<br/>
-    /// 注意：密钥文件的 version（1 = 旧版 CAPI DPAPI，2 = CNG DPAPI，3 = 非 Windows 平台机器绑定 AES-GCM）与
-    /// <see cref="SecretEncrypt"/> 的数据算法 version（0/1/2）语义无关。
+    ///     用户密钥。只在成功获取后缓存——失败不会被记住，下次访问会重新尝试。<br />
+    ///     注意：密钥文件的 version（1 = 旧版 CAPI DPAPI，2 = CNG DPAPI，3 = 非 Windows 平台机器绑定 AES-GCM）与
+    ///     <see cref="SecretEncrypt" /> 的数据算法 version（0/1/2）语义无关。
     /// </summary>
     internal static byte[] EncryptionKey
     {
@@ -194,7 +198,11 @@ public static class EncryptHelper
     // NOTE: only used for unit test
     // NOTE: do not touch on production env
     private static string? _keyFileverride;
-    internal static void OverrideKeyFile(string? path) => _keyFileverride = path;
+
+    internal static void OverrideKeyFile(string? path)
+    {
+        _keyFileverride = path;
+    }
 
     internal static string KeyFilePath =>
         _keyFileverride ?? Path.Combine(Paths.SharedData, "UserKey.bin");
@@ -231,12 +239,12 @@ public static class EncryptHelper
     private static byte[] _ReadKey(string keyFile)
     {
         var data = EncryptionData.FromBytes(File.ReadAllBytes(keyFile));
-        var rawKey = _KeyProtector.Unprotect(data.Version, data.Data);
-        if (data.Version == _KeyProtector.Version) return rawKey;
-        if (_KeyProtector.TryProtect(rawKey, out var migrated) && _WriteKeyFile(keyFile, migrated))
+        var rawKey = KeyProtector.Unprotect(data.Version, data.Data);
+        if (data.Version == KeyProtector.Version) return rawKey;
+        if (KeyProtector.TryProtect(rawKey, out var migrated) && _WriteKeyFile(keyFile, migrated))
             LogWrapper.Info(
                 "Encryption",
-                $"用户密钥已迁移至 version {_KeyProtector.Version}（{_KeyProtector.Description}）：{keyFile}");
+                $"用户密钥已迁移至 version {KeyProtector.Version}（{KeyProtector.Description}）：{keyFile}");
         return rawKey;
     }
 
@@ -245,9 +253,9 @@ public static class EncryptHelper
     {
         var key = new byte[32];
         RandomNumberGenerator.Fill(key);
-        if (!_KeyProtector.TryProtect(key, out var storeData))
+        if (!KeyProtector.TryProtect(key, out var storeData))
             throw new InvalidOperationException(
-                OperatingSystem.IsWindows()
+                PlatformRuntime.Current.Capabilities.UsesWindowsPaths
                     ? "本机 DPAPI 不可用，无法创建用户密钥"
                     : "本机密钥保护不可用，无法创建用户密钥");
         _QuarantineBrokenKeyFile(keyFile); // 已确认能重建，才动原文件
@@ -256,7 +264,7 @@ public static class EncryptHelper
         else
             LogWrapper.Warn(
                 "Encryption",
-                $"用户密钥已重建（version {_KeyProtector.Version}）。旧密钥保护的数据无法恢复，需要重新登录。");
+                $"用户密钥已重建（version {KeyProtector.Version}）。旧密钥保护的数据无法恢复，需要重新登录。");
         return key;
     }
 
@@ -276,7 +284,7 @@ public static class EncryptHelper
                 fs.Flush(true);
             }
 
-            if (!OperatingSystem.IsWindows())
+            if (!PlatformRuntime.Current.Capabilities.UsesWindowsPaths)
                 try
                 {
                     File.SetUnixFileMode(tmpFile, UnixFileMode.UserRead | UnixFileMode.UserWrite);

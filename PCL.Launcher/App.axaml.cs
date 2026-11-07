@@ -32,7 +32,7 @@ public class App : Application
             () =>
             {
                 if (MainWindow.Current is { } window)
-                    MacNativeMenu.AttachWindow(window);
+                    PlatformStartup.Shell.OnWindowCreated(window);
             });
     }
 
@@ -41,7 +41,7 @@ public class App : Application
         ThemeCoordinator.Install();
         Tooltip.Enable();
         ClipboardInterceptor.Enable();
-        MacNativeMenu.Install(this);
+        PlatformStartup.Shell.OnFrameworkInitialized(this);
 
         ApplicationHost.NotifyStartup(this);
         base.OnFrameworkInitializationCompleted();

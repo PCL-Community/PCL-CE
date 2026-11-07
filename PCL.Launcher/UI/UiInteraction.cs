@@ -3,11 +3,11 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
-using Microsoft.Win32;
 using PCL.Core.App;
 using PCL.Core.App.IoC;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
+using PCL.Core.Platform;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
 using PCL.Navigation;
@@ -385,50 +385,14 @@ public sealed class LaunchUiBridge : ILaunchUi
 
     public void SetGpuPreference(string javaExePath, bool preference)
     {
-        if (!OperatingSystem.IsWindows())
+        var service = PlatformRuntime.Current.GpuPreference;
+        if (!service.IsSupported)
         {
-            LogWrapper.Debug(
-                "UI",
-                $"当前平台不支持写入 GPU 偏好（{javaExePath}），已跳过");
+            LogWrapper.Debug("UI", "当前平台不提供 GPU 偏好服务");
             return;
         }
 
-        try
-        {
-            const string registryKey = @"Software\Microsoft\DirectX\UserGpuPreferences";
-            const string highPerformance = "GpuPreference=2;";
-            const string defaultPreference = "GpuPreference=0;";
-            var currentIsHighPerformance = false;
-            using (var readOnlyKey = Registry.CurrentUser.OpenSubKey(
-                       registryKey,
-                       false))
-            {
-                if (readOnlyKey is null)
-                {
-                    Registry.CurrentUser.CreateSubKey(registryKey);
-                }
-                else
-                {
-                    var currentValue = readOnlyKey.GetValue(javaExePath)?.ToString();
-                    currentIsHighPerformance = currentValue == highPerformance;
-                }
-            }
-
-            if (currentIsHighPerformance == preference) return;
-            using var writeKey = Registry.CurrentUser.OpenSubKey(
-                registryKey,
-                true);
-            writeKey?.SetValue(
-                javaExePath,
-                preference ? highPerformance : defaultPreference);
-            LogWrapper.Info(
-                "UI",
-                $"已调整程序 {javaExePath} 的显卡设置为高性能：{preference}");
-        }
-        catch (Exception ex)
-        {
-            LogWrapper.Warn(ex, "UI", $"写入 GPU 偏好失败：{javaExePath}");
-        }
+        service.Set(javaExePath, preference);
     }
 
     public int? ShowSelect(string caption, IReadOnlyList<string> options)

@@ -5,6 +5,7 @@ using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.IO.Net.Http;
 using PCL.Core.Minecraft;
+using PCL.Core.Platform;
 using PCL.Core.Utils;
 using PCL.Network;
 using PCL.Network.Loaders;
@@ -313,7 +314,7 @@ internal static class LoaderSpecialInstall
         string target,
         Version javaVersion)
     {
-        var useWrapper = OperatingSystem.IsWindows()
+        var useWrapper = PlatformRuntime.Current.Capabilities.SupportsJavaw
             && LauncherCommon.IsUtf8CodePage()
             && !Config.Launch.DisableJlw;
         while (true)

@@ -1,8 +1,8 @@
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PCL.Core.Link.Scaffolding.EasyTier;
+using PCL.Core.Platform;
 using PCL.Core.Utils;
 
 namespace PCL.Core.Test;
@@ -13,7 +13,7 @@ public sealed class EasyTierInstallerTest
     [TestMethod]
     public void DownloadUrlsUsePlatformPackageAndFallbacks()
     {
-        var package = EasyTierPlatform.Resolve(EasyTierHostOs.Linux, Architecture.X64);
+        var package = EasyTierPlatform.Resolve(PlatformKind.Linux, Architecture.X64);
         var urls = EasyTierInstaller.GetDownloadUrls("2.6.4", package);
 
         Assert.HasCount(3, urls);
@@ -82,8 +82,8 @@ public sealed class EasyTierInstallerTest
     [TestMethod]
     public void RequiredFilesMatchPlatform()
     {
-        var windows = EasyTierPlatform.Resolve(EasyTierHostOs.Windows, Architecture.X64);
-        var linux = EasyTierPlatform.Resolve(EasyTierHostOs.Linux, Architecture.X64);
+        var windows = EasyTierPlatform.Resolve(PlatformKind.Windows, Architecture.X64);
+        var linux = EasyTierPlatform.Resolve(PlatformKind.Linux, Architecture.X64);
 
         Assert.Contains("Packet.dll", windows.RequiredFiles);
         Assert.DoesNotContain("Packet.dll", linux.RequiredFiles);

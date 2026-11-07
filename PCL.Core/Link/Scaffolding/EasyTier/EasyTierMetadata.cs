@@ -1,6 +1,7 @@
 using System.IO;
 using System.Linq;
 using PCL.Core.App;
+using PCL.Core.Platform;
 
 namespace PCL.Core.Link.Scaffolding.EasyTier;
 
@@ -62,7 +63,7 @@ public static class EasyTierMetadata
 
     internal static void EnsureExecutable(EasyTierPackage package, string installRoot)
     {
-        if (package.Os == EasyTierHostOs.Windows)
+        if (package.Os == PlatformKind.Windows)
             return;
 
         foreach (var fileName in new[]

@@ -1,3 +1,4 @@
+using PCL.Core.Platform;
 using System.Collections.ObjectModel;
 using Avalonia.Input.Platform;
 using Avalonia.Media.Imaging;
@@ -229,24 +230,24 @@ public partial class PageInstanceScreenshotViewModel : ViewModelBase
         try
         {
             // 与 WPF 一致：截图删除不再二次确认；优先送入回收站。
-            var canRecycle = RecycleBin.IsSupported(item.FilePath);
+            var canRecycle = PCL.Core.Platform.PlatformRuntime.Current.RecycleBin.IsSupported(item.FilePath);
             var movedToRecycle = false;
             if (canRecycle)
             {
-                var outcome = RecycleBin.Move(item.FilePath, out var error);
+                var outcome = PCL.Core.Platform.PlatformRuntime.Current.RecycleBin.Move(item.FilePath, out var error);
                 switch (outcome)
                 {
-                    case RecycleBin.Outcome.Failed:
+                    case RecycleBinOutcome.Failed:
                         LauncherCommon.Log($"删除截图失败：{error}", LauncherLogLevel.Feedback);
                         HintService.Show(
                             Hints.Error(Lang.Text("Instance.Screenshot.DeleteFailed")));
                         return Task.FromResult(false);
 
-                    case RecycleBin.Outcome.Unsupported:
+                    case RecycleBinOutcome.Unsupported:
                         canRecycle = false;
                         break;
 
-                    case RecycleBin.Outcome.Moved:
+                    case RecycleBinOutcome.Moved:
                         movedToRecycle = true;
                         break;
 

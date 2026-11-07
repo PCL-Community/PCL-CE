@@ -14,7 +14,7 @@ namespace PCL.Core.Utils.Secret;
 ///     密钥文件被复制到其他机器/用户后无法解密，交由上层隔离并重建。
 /// </summary>
 [UnsupportedOSPlatform("windows")]
-internal sealed class UnixKeyProtector : IKeyProtector
+public sealed class UnixKeyProtector : IKeyProtector
 {
     private const int KeySize = 32;
     private const string FallbackMachineIdFileName = "machine-id";
@@ -24,8 +24,9 @@ internal sealed class UnixKeyProtector : IKeyProtector
     private static readonly string[] _MachineIdFiles =
         ["/etc/machine-id", "/var/lib/dbus/machine-id"];
 
-    private readonly byte[] _entropy;
     private readonly Lazy<byte[]> _derivedKey;
+
+    private readonly byte[] _entropy;
 
     public UnixKeyProtector(byte[] entropy)
     {
@@ -42,7 +43,6 @@ internal sealed class UnixKeyProtector : IKeyProtector
         try
         {
             var key = _derivedKey.Value;
-            // v3 载荷沿用 AesGcmProvider 的 nonce(12) | tag(16) | ciphertext 布局
             var blob = AesGcmProvider.Instance.Encrypt(rawKey, key);
             var roundTrip = AesGcmProvider.Instance.Decrypt(blob, key);
             storeData = EncryptHelper.EncryptionData.ToBytes(
@@ -74,7 +74,6 @@ internal sealed class UnixKeyProtector : IKeyProtector
 
     private byte[] _DeriveKey()
     {
-        // Environment.UserName 在 Unix 上由 getpwuid(euid) 解析，等价于 uid
         var ikm = Encoding.UTF8.GetBytes($"{_GetMachineId()}\n{Environment.UserName}");
         return HKDF.DeriveKey(HashAlgorithmName.SHA256, ikm, KeySize, _entropy, _HkdfInfo);
     }
@@ -130,7 +129,6 @@ internal sealed class UnixKeyProtector : IKeyProtector
         }
         catch (IOException)
         {
-            // 其他进程抢先创建，使用对方写入的标识
             var existing = File.ReadAllText(path).Trim();
             if (existing.Length > 0) return existing;
             throw;

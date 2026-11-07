@@ -1,3 +1,4 @@
+using PCL.Core.Platform;
 using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -786,7 +787,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
         try
         {
             var names = string.Join(", ", targets.Select(entry => entry.DisplayName));
-            var canRecycle = targets.All(entry => RecycleBin.IsSupported(entry.Path));
+            var canRecycle = targets.All(entry => PCL.Core.Platform.PlatformRuntime.Current.RecycleBin.IsSupported(entry.Path));
             var result = await DialogService.Instance.ShowAsync(
                 new TextDialogRequest
                 {
@@ -807,15 +808,15 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
             foreach (var entry in targets)
             {
                 var outcome = canRecycle
-                    ? RecycleBin.Move(entry.Path, out _)
-                    : RecycleBin.Outcome.Unsupported;
+                    ? PCL.Core.Platform.PlatformRuntime.Current.RecycleBin.Move(entry.Path, out _)
+                    : RecycleBinOutcome.Unsupported;
                 switch (outcome)
                 {
-                    case RecycleBin.Outcome.Moved:
+                    case RecycleBinOutcome.Moved:
                         moved++;
                         break;
 
-                    case RecycleBin.Outcome.Unsupported:
+                    case RecycleBinOutcome.Unsupported:
                         if (entry.IsDirectory)
                             Directory.Delete(entry.Path, true);
                         else
@@ -823,7 +824,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                         permanent++;
                         break;
 
-                    case RecycleBin.Outcome.Failed:
+                    case RecycleBinOutcome.Failed:
                     default:
                         throw new IOException(Lang.Text("Instance.Saves.DeleteFailed"));
                 }
@@ -907,8 +908,8 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
     {
         if (!File.Exists(path))
             return;
-        if (RecycleBin.IsSupported(path)
-            && RecycleBin.Move(path, out _) == RecycleBin.Outcome.Moved)
+        if (PCL.Core.Platform.PlatformRuntime.Current.RecycleBin.IsSupported(path)
+            && PCL.Core.Platform.PlatformRuntime.Current.RecycleBin.Move(path, out _) == RecycleBinOutcome.Moved)
             return;
         File.Delete(path);
     }

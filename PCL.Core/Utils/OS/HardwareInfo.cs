@@ -11,20 +11,20 @@ public static class HardwareInfo
     private static readonly object _Lock = new();
 
     /// <summary>
-    /// 系统 CPU 信息
+    ///     系统 CPU 信息
     /// </summary>
     public static string CPUName = "Unknown";
-
-    /// <summary>
-    /// 系统 GPU 信息
-    /// </summary>
-    public static IReadOnlyList<GPUInfo> GPUs { get; private set; } = [];
 
     // TODO: macOS 未实现（无 /proc、/sys），CPU 名称保持 Unknown、GPU 为空、内存回退 GC；需补 sysctl/system_profiler 实现。
     private static readonly Lazy<long> _SystemMemorySize = new(_GetSystemMemorySize);
 
     /// <summary>
-    /// 已安装物理内存大小，单位 MiB。
+    ///     系统 GPU 信息
+    /// </summary>
+    public static IReadOnlyList<GPUInfo> GPUs { get; private set; } = [];
+
+    /// <summary>
+    ///     已安装物理内存大小，单位 MiB。
     /// </summary>
     public static long SystemMemorySize => _SystemMemorySize.Value;
 
@@ -40,7 +40,7 @@ public static class HardwareInfo
     }
 
     /// <summary>读取 Linux <c>/proc/meminfo</c> 的物理内存总量与可用量（MiB）；非 Linux 或读取失败时返回 <c>false</c>。</summary>
-    internal static bool TryReadLinuxMemory(out long totalMiB, out long availableMiB)
+    public static bool TryReadLinuxMemory(out long totalMiB, out long availableMiB)
     {
         totalMiB = 0;
         availableMiB = 0;
@@ -81,13 +81,8 @@ public static class HardwareInfo
         return long.TryParse(valuePart, out var value) ? value : null;
     }
 
-    public readonly record struct GPUInfo(
-        string Name,
-        string DriverVersion,
-        long Memory);
-
     /// <summary>
-    /// 获取系统信息，例如 CPU 与 GPU，并存储到 CPUName 和 GPUs
+    ///     获取系统信息，例如 CPU 与 GPU，并存储到 CPUName 和 GPUs
     /// </summary>
     public static void GetHardwareInfo()
     {
@@ -306,4 +301,9 @@ public static class HardwareInfo
 
         return result;
     }
+
+    public readonly record struct GPUInfo(
+        string Name,
+        string DriverVersion,
+        long Memory);
 }

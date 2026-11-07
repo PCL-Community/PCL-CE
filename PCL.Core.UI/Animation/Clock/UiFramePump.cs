@@ -16,8 +16,10 @@ internal static class UiFramePump
     private const int FallbackFps = 60;
     private const int RetryIntervalMilliseconds = 250;
     private const int RafStallMilliseconds = 1000;
+#if DEBUG
     private const int StatWindowMilliseconds = 5000;
     private const double SlowFrameMilliseconds = 100d;
+#endif
 
     private static readonly List<AvaloniaRenderingClock> Subscribers = [];
     private static readonly Lock SyncRoot = new();
@@ -29,12 +31,14 @@ internal static class UiFramePump
     private static int _rafToken;
     private static long _rafRequestStamp;
     private static string _loggedMode = string.Empty;
+#if DEBUG
     private static long _statStartStamp;
     private static long _lastTickStamp;
     private static int _statTicks;
     private static int _statSlowTicks;
     private static double _statMaxIntervalMs;
     private static double _statMaxTickMs;
+#endif
 
     public static bool IsRunning { get; private set; }
 
@@ -78,12 +82,14 @@ internal static class UiFramePump
         }
 
         IsRunning = true;
+#if DEBUG
         _statStartStamp = Stopwatch.GetTimestamp();
         _statTicks = 0;
         _statSlowTicks = 0;
         _statMaxIntervalMs = 0d;
         _statMaxTickMs = 0d;
         _lastTickStamp = 0;
+#endif
         _ResolveAndDrive();
     }
 
@@ -98,11 +104,13 @@ internal static class UiFramePump
         _StopRetryTimer();
         _DetachTopLevel();
         _loggedMode = string.Empty;
+#if DEBUG
         _lastTickStamp = 0;
         _statSlowTicks = 0;
         _statMaxIntervalMs = 0d;
         _statMaxTickMs = 0d;
         LogWrapper.Debug(Module, "[Animation] 帧源已停止 clock=stopped");
+#endif
     }
 
     private static void _ResolveAndDrive()
@@ -160,14 +168,18 @@ internal static class UiFramePump
     private static void _OnTopLevelOpened(object? sender, EventArgs e)
     {
         if (!IsRunning) return;
+#if DEBUG
         LogWrapper.Debug(Module, $"[Animation] TopLevel 已打开，重新解析帧驱动：{_Describe(_topLevel)}");
+#endif
         _ResolveAndDrive();
     }
 
     private static void _OnTopLevelClosed(object? sender, EventArgs e)
     {
         if (!IsRunning) return;
+#if DEBUG
         LogWrapper.Debug(Module, $"[Animation] TopLevel 已关闭，重新解析帧驱动：{_Describe(_topLevel)}");
+#endif
         _DetachTopLevel();
         _rafToken++;
         _rafScheduled = false;
@@ -291,6 +303,7 @@ internal static class UiFramePump
 
     private static void _Tick(TimeSpan? renderingTime)
     {
+#if DEBUG
         _statTicks++;
         var tickStamp = Stopwatch.GetTimestamp();
         if (_lastTickStamp != 0)
@@ -304,6 +317,8 @@ internal static class UiFramePump
         }
 
         _lastTickStamp = tickStamp;
+        var tickStart = Stopwatch.GetTimestamp();
+#endif
 
         AvaloniaRenderingClock[] subscribers;
         lock (SyncRoot)
@@ -312,7 +327,6 @@ internal static class UiFramePump
             subscribers = [.. Subscribers];
         }
 
-        var tickStart = Stopwatch.GetTimestamp();
         foreach (var clock in subscribers)
             try
             {
@@ -323,6 +337,7 @@ internal static class UiFramePump
                 LogWrapper.Warn(ex, Module, "[Animation] 帧回调执行失败");
             }
 
+#if DEBUG
         var tickMs = (Stopwatch.GetTimestamp() - tickStart) * 1000d / Stopwatch.Frequency;
         if (tickMs > _statMaxTickMs)
             _statMaxTickMs = tickMs;
@@ -345,6 +360,7 @@ internal static class UiFramePump
         _statMaxIntervalMs = 0d;
         _statMaxTickMs = 0d;
         _statSlowTicks = 0;
+#endif
     }
 
     private static void _LogMode(string mode, string detail)
@@ -352,10 +368,15 @@ internal static class UiFramePump
         if (_loggedMode == mode) return;
 
         var message = $"[Animation] 帧驱动模式 clock={mode}，{detail}";
+#if DEBUG
         if (mode == "raf")
+        {
             LogWrapper.Debug(Module, message);
-        else
-            LogWrapper.Warn(Module, message);
+            _loggedMode = mode;
+            return;
+        }
+#endif
+        LogWrapper.Warn(Module, message);
         _loggedMode = mode;
     }
 

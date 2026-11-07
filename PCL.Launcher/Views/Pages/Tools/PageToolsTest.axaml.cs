@@ -205,12 +205,8 @@ public partial class PageToolsTest : MyPageRight
                     }
 
                     count += _DeleteDirectory(LauncherPaths.Temp);
-                    if (OperatingSystem.IsWindows())
-                        count += _DeleteDirectory(
-                            Path.Combine(
-                                Path.GetPathRoot(Environment.SystemDirectory) ?? "C:\\",
-                                "ProgramData",
-                                "PCL"));
+                    count += PCL.Core.Platform.PlatformRuntime.Current.ProcessCleanup
+                        .CleanupAdditionalData();
 
                     if (count != 0)
                     {

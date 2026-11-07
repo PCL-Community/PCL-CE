@@ -87,7 +87,7 @@ public sealed partial class ThemeService
     {
         ColorMode.Light => false,
         ColorMode.Dark => true,
-        ColorMode.System => SystemThemeHelper.IsSystemInDarkMode(),
+        ColorMode.System => PlatformServices.SystemTheme?.IsDarkMode ?? false,
         _ => false
     };
 

@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using CommunityToolkit.Mvvm.ComponentModel;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.Platform;
 using PCL.Core.UI;
 using PCL.Core.UI.Hints;
 using PCL.Core.Utils;
@@ -112,7 +113,7 @@ public partial class PageInstanceExportViewModel : ViewModelBase
 
     public bool ModrinthEnabled => !BundleFiles;
 
-    public bool PclEnabled => !Modrinth && OperatingSystem.IsWindows();
+    public bool PclEnabled => !Modrinth && PlatformRuntime.Current.Capabilities.SupportsBundledLauncher;
 
     public bool OptionsVisible => !HasOverrides;
 
@@ -975,7 +976,7 @@ public partial class PageInstanceExportViewModel : ViewModelBase
         if (launcher is null)
             return;
 
-        var canIncludeLauncher = !Modrinth && OperatingSystem.IsWindows();
+        var canIncludeLauncher = !Modrinth && PlatformRuntime.Current.Capabilities.SupportsBundledLauncher;
         launcher.IsEnabled = canIncludeLauncher;
         if (!canIncludeLauncher && IncludePcl)
             IncludePcl = false;
@@ -1242,7 +1243,7 @@ public partial class PageInstanceExportViewModel : ViewModelBase
         if (Directory.Exists(pclFolder))
             CopyDirectory(pclFolder, Path.Combine(overridesFolder, "PCL"));
 
-        if (includePcl && OperatingSystem.IsWindows())
+        if (includePcl && PlatformRuntime.Current.Capabilities.SupportsBundledLauncher)
             try
             {
                 var launcherPath = Path.Combine(cacheFolder, "Plain Craft Launcher.exe");

@@ -7,11 +7,11 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using Microsoft.Win32;
 using PCL.Core.App.IoC;
 using PCL.Core.IO.Net;
 using PCL.Core.IO.Net.Dns;
 using PCL.Core.Logging;
+using PCL.Core.Platform;
 using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Secret;
 using Sentry;
@@ -105,23 +105,17 @@ public sealed partial class TelemetryService
         };
 
         if (!string.IsNullOrWhiteSpace(plain))
-        {
             sentryEvent.Message = new SentryMessage
             {
                 Formatted = plain
             };
-        }
 
         SentrySdk.CaptureEvent(sentryEvent);
     }
 
     private static ulong _GetPhysicalMemoryBytes()
     {
-        if (OperatingSystem.IsWindows())
-            return KernelInterop.GetPhysicalMemoryBytes().Total;
-        if (HardwareInfo.TryReadLinuxMemory(out var totalMiB, out _))
-            return (ulong)totalMiB * 1024 * 1024;
-        return (ulong)GC.GetGCMemoryInfo().TotalAvailableMemoryBytes;
+        return PlatformRuntime.Current.SystemFacts.GetPhysicalMemoryBytes();
     }
 
     // 设备环境上报
@@ -141,31 +135,6 @@ public sealed partial class TelemetryService
             Context.Error("设备环境调查数据发送失败，请检查网络连接以及使用的版本", ex);
         }
     }
-
-    // ReSharper disable UnusedAutoPropertyAccessor.Local
-
-    private class TelemetryDeviceEnvironment
-    {
-        public required string Tag { get; set; }
-        public required string Id { get; set; }
-        [JsonPropertyName("OS")] public required int Os { get; set; }
-        public required bool Is64Bit { get; set; }
-        [JsonPropertyName("IsARM64")] public required bool IsArm64 { get; set; }
-        public required string Launcher { get; set; }
-        public required string LauncherBranch { get; set; }
-        [JsonPropertyName("UsedOfficialPCL")] public required bool UsedOfficialPcl { get; set; }
-        [JsonPropertyName("UsedHMCL")] public required bool UsedHmcl { get; set; }
-        [JsonPropertyName("UsedBakaXL")] public required bool UsedBakaXl { get; set; }
-        public required ulong Memory { get; set; }
-        public required string? NatMapBehaviour { get; set; }
-        public required string? NatFilterBehaviour { get; set; }
-        [JsonPropertyName("IPv6Status")] public required string Ipv6Status { get; set; }
-    }
-
-    // ReSharper disable once InconsistentNaming
-    private const string STUN_SERVER_ADDR = "stun.miwifi.com";
-
-    // ReSharper restore UnusedAutoPropertyAccessor.Local
 
     [LifecycleStart]
     private static async Task _StartAsync()
@@ -219,14 +188,7 @@ public sealed partial class TelemetryService
                 _ => "Unknown"
             },
             // 官方启动器 EULA 记录在 Windows 注册表中，非 Windows 没有对应概念（不可抗力），固定为 false
-            UsedOfficialPcl = OperatingSystem.IsWindows()
-                && bool.TryParse(
-                    Registry.GetValue(
-                        @"HKEY_CURRENT_USER\Software\PCL",
-                        "SystemEula",
-                        "false") as string,
-                    out var officialPcl)
-                && officialPcl,
+            UsedOfficialPcl = false,
             UsedHmcl = Directory.Exists(Path.Combine(appDataFolder, ".hmcl")),
             UsedBakaXl = Directory.Exists(Path.Combine(appDataFolder, "BakaXL")),
             Memory = _GetPhysicalMemoryBytes(),
@@ -238,28 +200,51 @@ public sealed partial class TelemetryService
         _ReportDeviceEnvironment(telemetry);
     }
 
+    [LifecycleStop]
+    private static void _StopAsync()
+    {
+        SentrySdk.Close();
+    }
+
     // 用来细分过滤 SocketException 的过滤器，我觉得应该除了遥测服务之外没有其他东西会用到这破玩意儿
     private sealed class SocketExceptionFilter : IExceptionFilter
     {
         public bool Filter(Exception ex)
         {
             if (ex is SocketException socketEx)
-            {
                 return socketEx.SocketErrorCode is
                     SocketError.ConnectionRefused
                     or SocketError.TimedOut
                     or SocketError.HostNotFound
                     or SocketError.NetworkUnreachable
                     or SocketError.ConnectionReset;
-            }
 
             return false;
         }
     }
 
-    [LifecycleStop]
-    private static void _StopAsync()
+    // ReSharper disable UnusedAutoPropertyAccessor.Local
+
+    private class TelemetryDeviceEnvironment
     {
-        SentrySdk.Close();
+        public required string Tag { get; set; }
+        public required string Id { get; set; }
+        [JsonPropertyName("OS")] public required int Os { get; set; }
+        public required bool Is64Bit { get; set; }
+        [JsonPropertyName("IsARM64")] public required bool IsArm64 { get; set; }
+        public required string Launcher { get; set; }
+        public required string LauncherBranch { get; set; }
+        [JsonPropertyName("UsedOfficialPCL")] public required bool UsedOfficialPcl { get; set; }
+        [JsonPropertyName("UsedHMCL")] public required bool UsedHmcl { get; set; }
+        [JsonPropertyName("UsedBakaXL")] public required bool UsedBakaXl { get; set; }
+        public required ulong Memory { get; set; }
+        public required string? NatMapBehaviour { get; set; }
+        public required string? NatFilterBehaviour { get; set; }
+        [JsonPropertyName("IPv6Status")] public required string Ipv6Status { get; set; }
     }
+
+    // ReSharper disable once InconsistentNaming
+    private const string STUN_SERVER_ADDR = "stun.miwifi.com";
+
+    // ReSharper restore UnusedAutoPropertyAccessor.Local
 }

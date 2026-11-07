@@ -1,3 +1,4 @@
+using PCL.Core.Platform;
 using System.Text.Json.Nodes;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -838,7 +839,7 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
                     instance.PathIndie,
                     GameFolders.mcFolderSelected,
                     StringComparison.OrdinalIgnoreCase);
-            var recycleSupported = RecycleBin.IsSupported(instancePath);
+            var recycleSupported = PCL.Core.Platform.PlatformRuntime.Current.RecycleBin.IsSupported(instancePath);
             var effectivePermanent = permanent || !recycleSupported;
 
             var confirmMessageKey = (isIsolatedInstance, effectivePermanent) switch
@@ -881,10 +882,10 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
             }
             else
             {
-                var outcome = RecycleBin.Move(instancePath, out var error);
+                var outcome = PCL.Core.Platform.PlatformRuntime.Current.RecycleBin.Move(instancePath, out var error);
                 switch (outcome)
                 {
-                    case RecycleBin.Outcome.Moved:
+                    case RecycleBinOutcome.Moved:
                         HintService.Show(
                             Hints.Success(
                                 Lang.Text(
@@ -892,7 +893,7 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
                                     instanceName)));
                         break;
 
-                    case RecycleBin.Outcome.Unsupported:
+                    case RecycleBinOutcome.Unsupported:
                         LauncherCommon.DeleteDirectory(instancePath);
                         HintService.Show(
                             Hints.Success(
@@ -901,7 +902,7 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
                                     instanceName)));
                         break;
 
-                    case RecycleBin.Outcome.Failed:
+                    case RecycleBinOutcome.Failed:
                     default:
                         LauncherCommon.Log(
                             $"将实例移入回收站失败：{error}",

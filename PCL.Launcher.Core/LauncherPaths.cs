@@ -34,7 +34,7 @@ public static class LauncherPaths
                     ? temp
                     : temp + Path.DirectorySeparatorChar;
 
-            return !OperatingSystem.IsWindows()
+            return !PCL.Core.Platform.PlatformRuntime.Current.Capabilities.UsesWindowsPaths
                 ? Path.Combine(temp, "PCL") + Path.DirectorySeparatorChar
                 : Path.Combine(
                     Path.GetPathRoot(Environment.SystemDirectory)

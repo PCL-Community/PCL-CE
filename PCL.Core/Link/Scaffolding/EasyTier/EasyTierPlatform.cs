@@ -1,18 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using PCL.Core.Platform;
 
 namespace PCL.Core.Link.Scaffolding.EasyTier;
-
-/// <summary>
-///     EasyTier 依赖包所在的宿主平台。
-/// </summary>
-public enum EasyTierHostOs
-{
-    Windows,
-    Linux,
-    MacOs
-}
 
 /// <summary>
 ///     某个平台/架构对应的 EasyTier 依赖包描述。
@@ -24,7 +15,7 @@ public enum EasyTierHostOs
 /// <param name="CliFileName">EasyTier CLI 可执行文件名。</param>
 /// <param name="RequiredFiles">安装完成后必须存在的文件。</param>
 public sealed record EasyTierPackage(
-    EasyTierHostOs Os,
+    PlatformKind Os,
     Architecture Architecture,
     string FolderName,
     string CoreFileName,
@@ -48,11 +39,7 @@ public static class EasyTierPlatform
     /// <summary>
     ///     当前宿主平台。仅本类允许根据操作系统选择平台。
     /// </summary>
-    public static EasyTierHostOs CurrentOs =>
-        OperatingSystem.IsWindows() ? EasyTierHostOs.Windows :
-        OperatingSystem.IsMacOS() ? EasyTierHostOs.MacOs :
-        OperatingSystem.IsLinux() ? EasyTierHostOs.Linux :
-        throw new PlatformNotSupportedException("EasyTier 不支持当前操作系统");
+    public static PlatformKind CurrentOs => PlatformRuntime.Current.Kind;
 
     /// <summary>
     ///     当前宿主使用的 EasyTier 依赖包。
@@ -66,31 +53,31 @@ public static class EasyTierPlatform
     ///     将平台与架构解析为官方依赖包描述。纯函数，便于单元测试。
     /// </summary>
     /// <exception cref="PlatformNotSupportedException">官方没有对应架构的依赖包。</exception>
-    public static EasyTierPackage Resolve(EasyTierHostOs os, Architecture architecture)
+    public static EasyTierPackage Resolve(PlatformKind os, Architecture architecture)
     {
         var osToken = os switch
         {
-            EasyTierHostOs.Windows => "windows",
-            EasyTierHostOs.Linux => "linux",
-            EasyTierHostOs.MacOs => "macos",
+            PlatformKind.Windows => "windows",
+            PlatformKind.Linux => "linux",
+            PlatformKind.MacOs => "macos",
             _ => throw new ArgumentOutOfRangeException(nameof(os), os, "未知的 EasyTier 宿主平台")
         };
 
         var archToken = (os, architecture) switch
         {
-            (EasyTierHostOs.Windows, Architecture.X64) => "x86_64",
-            (EasyTierHostOs.Windows, Architecture.Arm64) => "arm64",
-            (EasyTierHostOs.Windows, Architecture.X86) => "i686",
-            (EasyTierHostOs.Linux, Architecture.X64) => "x86_64",
-            (EasyTierHostOs.Linux, Architecture.Arm64) => "aarch64",
-            (EasyTierHostOs.MacOs, Architecture.X64) => "x86_64",
-            (EasyTierHostOs.MacOs, Architecture.Arm64) => "aarch64",
+            (PlatformKind.Windows, Architecture.X64) => "x86_64",
+            (PlatformKind.Windows, Architecture.Arm64) => "arm64",
+            (PlatformKind.Windows, Architecture.X86) => "i686",
+            (PlatformKind.Linux, Architecture.X64) => "x86_64",
+            (PlatformKind.Linux, Architecture.Arm64) => "aarch64",
+            (PlatformKind.MacOs, Architecture.X64) => "x86_64",
+            (PlatformKind.MacOs, Architecture.Arm64) => "aarch64",
             _ => throw new PlatformNotSupportedException(
                 $"EasyTier 没有适用于 {os}/{architecture} 的官方依赖包")
         };
 
         var folderName = $"easytier-{osToken}-{archToken}";
-        var isWindows = os == EasyTierHostOs.Windows;
+        var isWindows = os == PlatformKind.Windows;
         var coreFileName = isWindows ? "easytier-core.exe" : "easytier-core";
         var cliFileName = isWindows ? "easytier-cli.exe" : "easytier-cli";
 

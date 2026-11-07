@@ -35,7 +35,7 @@ public static class UpdateManager
             _ => LoadOnlineInfo(),
             priority: ThreadPriority.BelowNormal);
 
-    public static bool SupportsInAppUpdate => OperatingSystem.IsWindows();
+    public static bool SupportsInAppUpdate => UpdatePolicies.Current.SupportsInAppUpdate;
 
     public static bool IsCurrentVersionBeta
     {

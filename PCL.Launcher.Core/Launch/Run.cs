@@ -29,7 +29,7 @@ public static partial class GameLaunch
 
     private static void _SetJavaGpuPreference(string javaExePath)
     {
-        if (!OperatingSystem.IsWindows()) return;
+        if (!PCL.Core.Platform.PlatformRuntime.Current.Capabilities.SupportsGpuPreference) return;
 
         try
         {
@@ -323,7 +323,7 @@ public static partial class GameLaunch
                 ?? Path.Combine(
                     LauncherPaths.ExecutableDirectory,
                     "PCL",
-                    OperatingSystem.IsWindows() ? "LatestLaunch.bat" : "LatestLaunch.sh");
+                    PCL.Core.Platform.PlatformRuntime.Current.Capabilities.UsesWindowsPaths ? "LatestLaunch.bat" : "LatestLaunch.sh");
             LauncherCommon.WriteFile(
                 scriptPath,
                 LogFilter.FilterAccessToken(
@@ -333,7 +333,7 @@ public static partial class GameLaunch
                 mcLaunchJavaSelected!.Installation.MajorVersion > 8
                     ? Encoding.UTF8
                     : Encoding.Default);
-            if (!OperatingSystem.IsWindows())
+            if (!PCL.Core.Platform.PlatformRuntime.Current.Capabilities.UsesWindowsPaths)
                 File.SetUnixFileMode(
                     scriptPath,
                     UnixFileMode.UserRead
@@ -372,7 +372,7 @@ public static partial class GameLaunch
     {
         var instance = InstanceList.McMcInstanceSelected!;
         var javaInstallation = mcLaunchJavaSelected!.Installation;
-        if (OperatingSystem.IsWindows())
+        if (PCL.Core.Platform.PlatformRuntime.Current.Capabilities.UsesWindowsPaths)
         {
             var chcpCommand = javaInstallation.MajorVersion > 8
                 ? "chcp 65001>nul" + "\r\n"
@@ -406,7 +406,7 @@ public static partial class GameLaunch
         var customProcess = new Process();
         try
         {
-            var isWindows = OperatingSystem.IsWindows();
+            var isWindows = PCL.Core.Platform.PlatformRuntime.Current.Capabilities.UsesWindowsPaths;
             customProcess.StartInfo.FileName = isWindows ? "cmd.exe" : "/bin/sh";
             customProcess.StartInfo.Arguments =
                 isWindows ? $"/c \"{command}\"" : $"-c \"{command}\"";
@@ -495,7 +495,7 @@ public static partial class GameLaunch
     {
         var separator = Path.PathSeparator;
         var javaFolderPath = LauncherCommon.ShortenPath(javaFolder);
-        if (OperatingSystem.IsWindows())
+        if (PCL.Core.Platform.PlatformRuntime.Current.Capabilities.UsesWindowsPaths)
         {
             var paths = new List<string>(
                 (startInfo.EnvironmentVariables["Path"] ?? "").Split(separator))
@@ -520,7 +520,7 @@ public static partial class GameLaunch
     /// </summary>
     private static void _ApplyGpuPreferenceEnvironment(ProcessStartInfo startInfo, bool enabled)
     {
-        if (!OperatingSystem.IsLinux() || !enabled) return;
+        if (PCL.Core.Platform.PlatformRuntime.Current.Kind != PCL.Core.Platform.PlatformKind.Linux || !enabled) return;
 
         // Mesa（AMD/Intel）的 PRIME 渲染卸载；没有独立显卡时驱动会回退到默认设备
         startInfo.Environment["DRI_PRIME"] = "1";
@@ -538,7 +538,7 @@ public static partial class GameLaunch
     /// </summary>
     private static void _ApplyRendererEnvironment(ProcessStartInfo startInfo)
     {
-        if (!OperatingSystem.IsLinux()) return;
+        if (PCL.Core.Platform.PlatformRuntime.Current.Kind != PCL.Core.Platform.PlatformKind.Linux) return;
 
         var instanceRenderer = Config.Instance.Renderer[
             InstanceList.McMcInstanceSelected!.PathInstance];
@@ -606,7 +606,7 @@ public static partial class GameLaunch
 
         var jStackPath = Path.Combine(
             mcLaunchJavaSelected!.Installation.JavaFolder,
-            OperatingSystem.IsWindows() ? "jstack.exe" : "jstack");
+            PCL.Core.Platform.PlatformRuntime.Current.Capabilities.UsesWindowsPaths ? "jstack.exe" : "jstack");
 
         var watcher = new GameWatcher.Watcher(
             loader,

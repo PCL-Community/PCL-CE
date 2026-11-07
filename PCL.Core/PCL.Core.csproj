@@ -88,6 +88,9 @@
     </PropertyGroup>
     <ItemGroup>
         <Compile Include="**\*.cs" Exclude="bin\**;obj\**;publish\**;**\*.g.cs;SourceGenerators\**" />
+        <Compile Update="App\Region\LinuxRegionSignalProvider.cs">
+          <DependentUpon>PosixRegionSignalProvider.cs</DependentUpon>
+        </Compile>
     </ItemGroup>
     <!-- 项目自定义源生成器 -->
     <ItemGroup>

@@ -389,20 +389,7 @@ public static class LauncherCommon
 
     public static void ShellOnly(string fileName, string arguments)
     {
-        if (!OperatingSystem.IsWindows())
-        {
-            // 非 Windows 没有 shell 关联启动，交给桌面默认程序打开
-            Basics.OpenPath(fileName);
-            return;
-        }
-
-        Process.Start(
-            new ProcessStartInfo
-            {
-                FileName = fileName,
-                Arguments = arguments,
-                UseShellExecute = true
-            });
+        PCL.Core.Platform.PlatformRuntime.Current.Shell.OpenPath(fileName, arguments: arguments);
     }
 
     public static void IniClearCache()
@@ -423,7 +410,7 @@ public static class LauncherCommon
     public static string ShortenPath(string longPath, int shortenThreshold = 247)
     {
         // GetShortPathName 是 Windows 专有 API，其他平台长路径保持原样
-        if (!OperatingSystem.IsWindows()) return longPath;
+        if (!PCL.Core.Platform.PlatformRuntime.Current.Capabilities.UsesWindowsPaths) return longPath;
         if (longPath.Length <= shortenThreshold) return longPath;
 
         var shortPath = new StringBuilder(260);

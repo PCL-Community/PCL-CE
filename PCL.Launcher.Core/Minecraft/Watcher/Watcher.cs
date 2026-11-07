@@ -27,6 +27,7 @@ public static partial class GameWatcher
         private readonly string _windowTitle;
 
         private bool _isWindowAppeared;
+        private long _lastWindowCheckTicks;
 
         /// <summary>
         ///     窗口检查是否已经完成。这不一定代表着找到了窗口（如果没有找到，IsWindowAppeared 仍为 False）。
@@ -131,7 +132,12 @@ public static partial class GameWatcher
                            or MinecraftState.Canceled)
                        && monitorLoader.State != LoadState.Aborted)
                 {
-                    TimerWindow();
+                    if (Environment.TickCount64 - _lastWindowCheckTicks >= 100)
+                    {
+                        _lastWindowCheckTicks = Environment.TickCount64;
+                        TimerWindow();
+                    }
+
                     TimerLog();
                     if (!string.IsNullOrWhiteSpace(_windowTitle))
                         _SetWindowTitleRepeatedly();

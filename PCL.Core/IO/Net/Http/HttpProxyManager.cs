@@ -4,11 +4,9 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Win32;
 using PCL.Core.Logging;
 using PCL.Core.Platform;
 using PCL.Core.Utils.Exts;
-using PCL.Core.Utils.OS;
 
 namespace PCL.Core.IO.Net.Http;
 
@@ -21,12 +19,6 @@ public class HttpProxyManager : IWebProxy, IDisposable
         CustomProxy
     }
 
-    private const string ProxyRegPathFull =
-        @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings";
-
-    private const string ProxyRegPath =
-        @"Software\Microsoft\Windows\CurrentVersion\Internet Settings";
-
     public static readonly HttpProxyManager Instance = new();
 
     private readonly WebProxy _customWebProxy = new()
@@ -35,9 +27,6 @@ public class HttpProxyManager : IWebProxy, IDisposable
     };
 
     private readonly Lock _lock = new();
-
-    private readonly RegistryChangeMonitor? _proxyMonitor =
-        OperatingSystem.IsWindows() ? new RegistryChangeMonitor(ProxyRegPath) : null;
 
     private readonly WebProxy _systemWebProxy = new()
     {
@@ -52,8 +41,6 @@ public class HttpProxyManager : IWebProxy, IDisposable
     {
         _EnsurePlatformProxySubscription();
         _ = Task.Run(RefreshSystemProxy);
-        if (_proxyMonitor is not null)
-            _proxyMonitor.Changed += _OnSystemProxyChanged;
     }
 
     public ProxyMode Mode
@@ -131,7 +118,6 @@ public class HttpProxyManager : IWebProxy, IDisposable
 
     public void Dispose()
     {
-        _proxyMonitor?.Dispose();
         if (_subscribedProxyProvider is not null)
             _subscribedProxyProvider.Changed -= _OnSystemProxyChanged;
         _subscribedProxyProvider = null;
@@ -274,52 +260,23 @@ public class HttpProxyManager : IWebProxy, IDisposable
         {
             try
             {
-                if (!OperatingSystem.IsWindows())
+                var platformProxies = PlatformServices.SystemProxy?.GetSystemProxies() ?? [];
+                ProxyItem? platformProxy = null;
+                foreach (var entry in platformProxies)
                 {
-                    // 非 Windows 从平台服务读取系统代理（环境变量 / 桌面环境设置）
-                    var platformProxies = PlatformServices.SystemProxy?.GetSystemProxies() ?? [];
-                    ProxyItem? platformProxy = null;
-                    foreach (var entry in platformProxies)
-                    {
-                        var parsed = _ParseAddress(entry.Address, _ParseProtocol(entry.Protocol));
-                        if (parsed is not { Protocol: ProxyProtocol.Http }) continue;
-                        platformProxy = parsed;
-                        break;
-                    }
-
-                    _systemWebProxy.Address = platformProxy is null
-                        || platformProxy.Address.IsNullOrEmpty()
-                            ? null
-                            : new Uri($"http://{platformProxy.Address}");
-                    LogWrapper.Info(
-                        "Proxy",
-                        $"已从操作系统更新代理设置，系统代理来源：{string.Join(";", platformProxies.Select(static x => $"{x.Protocol}={x.Address}"))}");
-                    return;
+                    var parsed = _ParseAddress(entry.Address, _ParseProtocol(entry.Protocol));
+                    if (parsed is not { Protocol: ProxyProtocol.Http }) continue;
+                    platformProxy = parsed;
+                    break;
                 }
 
-                // read from reg
-                var isSystemProxyEnabled =
-                    (int)(Registry.GetValue(ProxyRegPathFull, "ProxyEnable", 0) ?? 0);
-                var systemProxyString = Registry.GetValue(
-                    ProxyRegPathFull,
-                    "ProxyServer",
-                    string.Empty) as string;
-
-                // parse
-                var proxies = _GetProxyFromString(systemProxyString);
-
-                // 仅当系统代理已启用且存在有效的 HTTP 代理时才应用
-                var selectedProxy =
-                    proxies.FirstOrDefault(static x => x.Protocol == ProxyProtocol.Http);
-                _systemWebProxy.Address = selectedProxy is null
-                    || selectedProxy.Address.IsNullOrEmpty()
-                    || isSystemProxyEnabled == 0
+                _systemWebProxy.Address = platformProxy is null
+                    || platformProxy.Address.IsNullOrEmpty()
                         ? null
-                        : new Uri($"http://{selectedProxy.Address}");
-
+                        : new Uri($"http://{platformProxy.Address}");
                 LogWrapper.Info(
                     "Proxy",
-                    $"已从操作系统更新代理设置，系统代理状态：{isSystemProxyEnabled}|{systemProxyString}");
+                    $"已从操作系统更新代理设置，系统代理来源：{string.Join(";", platformProxies.Select(static x => $"{x.Protocol}={x.Address}"))}");
             }
             catch (Exception ex)
             {

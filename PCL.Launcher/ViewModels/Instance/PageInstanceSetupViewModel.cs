@@ -14,6 +14,10 @@ using PCL.Core.Utils.OS;
 using PCL.Core.ViewModel;
 using PCL.Navigation;
 using PCL.Views.Pages.Launch;
+// ReSharper disable once RedundantUsingDirective
+using PCL.Core.IO.Net;
+// ReSharper disable once RedundantUsingDirective
+using PCL.Core.Minecraft.Profile;
 
 namespace PCL;
 

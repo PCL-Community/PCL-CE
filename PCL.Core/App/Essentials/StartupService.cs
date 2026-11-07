@@ -8,19 +8,19 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using PCL.Core.App.Cli;
 using PCL.Core.App.IoC;
+using PCL.Core.Platform;
 using PCL.Core.Utils;
-using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Secret;
 
 namespace PCL.Core.App.Essentials;
 
 /// <summary>
-/// 命令处理委托
+///     命令处理委托
 /// </summary>
 /// <param name="model">命令模型</param>
 /// <param name="isCallback">
-/// 指示该委托是否由已注册的回调触发，若是，则代表可能由 RPC
-/// 或用户后续操作而非当前进程的命令行参数触发，应注意鉴权问题
+///     指示该委托是否由已注册的回调触发，若是，则代表可能由 RPC
+///     或用户后续操作而非当前进程的命令行参数触发，应注意鉴权问题
 /// </param>
 public delegate void CommandHandler(CommandLine model, bool isCallback);
 
@@ -28,13 +28,11 @@ public delegate void CommandHandler(CommandLine model, bool isCallback);
 [LifecycleScope("startup", "基本信息", false)]
 public sealed partial class StartupService
 {
-    private static Exception _GetUninitializedException()
-    {
-        return new InvalidOperationException("Not initialized");
-    }
+    private static readonly Dictionary<string, CommandLine> _UnhandledCommandMap = [];
+    private static readonly ConcurrentDictionary<string, CommandHandler> _HandleCallbackMap = [];
 
     /// <summary>
-    /// 解析后的命令行模型实例
+    ///     解析后的命令行模型实例
     /// </summary>
     /// <exception cref="Exception">尚未初始化完成</exception>
     public static CommandLine CommandLine
@@ -43,20 +41,22 @@ public sealed partial class StartupService
         private set;
     } = null!;
 
-    private static readonly Dictionary<string, CommandLine> _UnhandledCommandMap = [];
-    private static readonly ConcurrentDictionary<string, CommandHandler> _HandleCallbackMap = [];
-
     /// <summary>
-    /// 未处理的子命令
+    ///     未处理的子命令
     /// </summary>
     public static IReadOnlyDictionary<string, CommandLine> UnhandledCommands =>
         _UnhandledCommandMap.AsReadOnly();
 
+    private static Exception _GetUninitializedException()
+    {
+        return new InvalidOperationException("Not initialized");
+    }
+
     /// <summary>
-    /// 处理一个子命令
+    ///     处理一个子命令
     /// </summary>
     /// <param name="command">子命令</param>
-    /// <param name="handler">用于处理命令的委托，传入 <see langword="null"/> 则触发已注册的处理回调</param>
+    /// <param name="handler">用于处理命令的委托，传入 <see langword="null" /> 则触发已注册的处理回调</param>
     /// <param name="registerCallback">指定是否注册该委托为处理回调</param>
     /// <returns>是否执行成功，若子命令不存在或未注册任何处理回调则不成功</returns>
     public static bool TryHandleCommand(
@@ -71,7 +71,10 @@ public sealed partial class StartupService
             if (handler is null) return false;
             isCallback = true;
         }
-        else if (registerCallback) _HandleCallbackMap.TryAdd(command, handler);
+        else if (registerCallback)
+        {
+            _HandleCallbackMap.TryAdd(command, handler);
+        }
 
         lock (_UnhandledCommandMap)
         {
@@ -117,32 +120,13 @@ public sealed partial class StartupService
             .Append(GetArchitectureName(RuntimeInformation.OSArchitecture))
             .Append(')');
         const int memoryDiv = 1024 * 1024;
-        if (OperatingSystem.IsWindows())
-        {
-            var memory = KernelInterop.GetPhysicalMemoryBytes();
-            info
-                .Append("\n可用内存: ")
-                .Append(memory.Available / memoryDiv)
-                .Append('/')
-                .Append(memory.Total / memoryDiv)
-                .Append(" MiB");
-        }
-        else if (HardwareInfo.TryReadLinuxMemory(out var totalMiB, out var availableMiB))
-        {
-            info
-                .Append("\n可用内存: ")
-                .Append(availableMiB)
-                .Append('/')
-                .Append(totalMiB)
-                .Append(" MiB");
-        }
-        else
-        {
-            info
-                .Append("\n可用内存: ")
-                .Append(GC.GetGCMemoryInfo().TotalAvailableMemoryBytes / memoryDiv)
-                .Append(" MiB");
-        }
+        var memory = PlatformRuntime.Current.SystemFacts.GetMemoryBytes();
+        info
+            .Append("\n可用内存: ")
+            .Append(memory.Available / memoryDiv)
+            .Append('/')
+            .Append(memory.Total / memoryDiv)
+            .Append(" MiB");
 
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         var cp = Encoding.GetEncoding(0);
@@ -154,20 +138,20 @@ public sealed partial class StartupService
             .Append(')');
         info
             .Append("\n管理员身份: ")
-            .Append(
-                OperatingSystem.IsWindows()
-                    ? ProcessInterop.IsAdmin()
-                    : Environment.IsPrivilegedProcess);
+            .Append(PlatformRuntime.Current.SystemFacts.IsAdministrator);
         info.Append("\n识别码: ").Append(Identify.LauncherId);
         Context.Info(info.ToString());
         return;
 
-        string GetArchitectureName(Architecture arch) => arch switch
+        string GetArchitectureName(Architecture arch)
         {
-            Architecture.X64 => "x64",
-            Architecture.Arm64 => "ARM64",
-            _ => arch.ToString()
-        };
+            return arch switch
+            {
+                Architecture.X64 => "x64",
+                Architecture.Arm64 => "ARM64",
+                _ => arch.ToString()
+            };
+        }
     }
 
     [LifecycleStart]

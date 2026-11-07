@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
-using PCL.Core.IO;
+using PCL.Core.Platform;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
@@ -538,7 +538,8 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
             return;
         try
         {
-            var canRecycle = targets.All(entry => RecycleBin.IsSupported(GetEntryPath(entry)));
+            var canRecycle = targets.All(entry =>
+                PlatformRuntime.Current.RecycleBin.IsSupported(GetEntryPath(entry)));
             var content = Lang.Text(
                 "Event.Safety.ConfirmMessage",
                 $"{Lang.Text("Common.Action.Delete")} {targets.Count}");
@@ -589,7 +590,7 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
     {
         try
         {
-            var canRecycle = RecycleBin.IsSupported(GetEntryPath(entry));
+            var canRecycle = PlatformRuntime.Current.RecycleBin.IsSupported(GetEntryPath(entry));
             var content = Lang.Text(
                 "Event.Safety.ConfirmMessage",
                 $"{Lang.Text("Common.Action.Delete")} {GetEntryDisplayName(entry)}");
@@ -659,12 +660,12 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
         try
         {
             var isDirectory = entry.IsFolder || Directory.Exists(targetPath);
-            if (RecycleBin.IsSupported(targetPath))
+            if (PlatformRuntime.Current.RecycleBin.IsSupported(targetPath))
             {
-                var outcome = RecycleBin.Move(targetPath, out var error);
-                if (outcome == RecycleBin.Outcome.Moved)
+                var outcome = PlatformRuntime.Current.RecycleBin.Move(targetPath, out var error);
+                if (outcome == RecycleBinOutcome.Moved)
                     return true;
-                if (outcome == RecycleBin.Outcome.Failed)
+                if (outcome == RecycleBinOutcome.Failed)
                     throw new IOException(error ?? Lang.Text("Instance.Resource.Delete.Failed"));
             }
 
@@ -892,8 +893,8 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
     {
         if (!File.Exists(path))
             return;
-        if (RecycleBin.IsSupported(path)
-            && RecycleBin.Move(path, out _) == RecycleBin.Outcome.Moved)
+        if (PlatformRuntime.Current.RecycleBin.IsSupported(path)
+            && PlatformRuntime.Current.RecycleBin.Move(path, out _) == RecycleBinOutcome.Moved)
             return;
         File.Delete(path);
     }

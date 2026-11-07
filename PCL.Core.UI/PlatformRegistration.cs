@@ -1,33 +1,33 @@
-using PCL.Core.Logging;
 using PCL.Core.Platform;
+// ReSharper disable once RedundantUsingDirective
+using PCL.Core.Logging;
 
 namespace PCL.Core.UI;
 
-/// <summary>
-///     将 PCL.Core.UI 的平台实现注册到 <see cref="PlatformServices" />。
-///     必须在 PCL.Core 的生命周期启动之前调用。
-/// </summary>
+/// <summary>将当前平台模块注册到全局运行时。</summary>
 public static class PlatformRegistration
 {
-    public static void Register()
+    public static PlatformModule Register()
     {
+        var module = PlatformModuleFactory.Create();
+        PlatformRuntime.Initialize(module);
+
         PlatformServices.UiDispatcher = new UiDispatcher();
-        PlatformServices.FileDialogs = new FileDialogService();
-        PlatformServices.DialogService = new FatalDialogService();
+        PlatformServices.FileDialogs = module.FileDialogs;
+        PlatformServices.DialogService = module.FatalDialog;
         PlatformServices.ResourceStore = new ResourceStore();
-        PlatformServices.WindowInterop = new WindowInterop();
+        PlatformServices.WindowInterop = module.WindowInterop;
         PlatformServices.Localization = new LocalizationBackend();
         PlatformServices.Theme = new ThemeBackend();
         PlatformServices.Clipboard = new ClipboardService();
-        PlatformServices.SystemProxy = new UnixSystemProxyProvider();
-        PlatformServices.SystemTheme = new SystemThemeProvider();
-        PlatformServices.Notification = new NotificationService();
+        PlatformServices.SystemProxy = module.SystemProxy;
+        PlatformServices.SystemTheme = module.SystemTheme;
+        PlatformServices.Notification = module.Notifications;
+
         ValidateRequiredServices();
+        return module;
     }
 
-    /// <summary>
-    ///     校验全部平台服务均已注册。Debug/CI 构建直接抛异常以便开发期尽早发现，Release 仅记录错误日志。
-    /// </summary>
     public static void ValidateRequiredServices()
     {
         var missing = new List<string>();
@@ -44,7 +44,6 @@ public static class PlatformRegistration
         Check(nameof(PlatformServices.Notification), PlatformServices.Notification);
 
         if (missing.Count == 0) return;
-
         var message = $"平台服务未注册：{string.Join("、", missing)}";
 #if DEBUG
         throw new InvalidOperationException(message);

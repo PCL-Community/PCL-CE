@@ -1,5 +1,5 @@
-using System;
 using System.IO;
+using PCL.Core.Platform;
 
 namespace PCL.Core.Minecraft.Java;
 
@@ -8,12 +8,9 @@ namespace PCL.Core.Minecraft.Java;
 /// </summary>
 public static class JavaExecutableLayout
 {
-    private static readonly bool _IsWindowsPlatform = OperatingSystem.IsWindows();
+    public static string JavaExecutableName => PlatformRuntime.Current.Java.JavaExecutableName;
 
-    public static string JavaExecutableName => _IsWindowsPlatform ? "java.exe" : "java";
-
-    /// <summary>非 Windows 平台没有 javaw，返回 null。</summary>
-    public static string? JavawExecutableName => _IsWindowsPlatform ? "javaw.exe" : null;
+    public static string? JavawExecutableName => PlatformRuntime.Current.Java.JavawExecutableName;
 
     public static string GetJavaExePath(string javaFolder)
     {

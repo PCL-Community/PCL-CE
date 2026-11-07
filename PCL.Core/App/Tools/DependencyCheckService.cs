@@ -1,14 +1,14 @@
-using System;
 using System.Diagnostics;
-using PCL.Core.App.IoC;
-using PCL.Core.App.Localization;
-using PCL.Core.UI.Dialogs;
-using PCL.Core.Utils;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using PCL.Core.App.IoC;
+using PCL.Core.App.Localization;
+using PCL.Core.Platform;
+using PCL.Core.UI.Dialogs;
+using PCL.Core.Utils;
 
 namespace PCL.Core.App.Tools;
 
@@ -21,7 +21,7 @@ public sealed partial class DependencyCheckService
     {
         Context.Info(Lang.Text("Tools.Test.Dependency.Checking"));
 
-        if (!OperatingSystem.IsWindows())
+        if (!PlatformRuntime.Current.Capabilities.SupportsWindowsStoreDependencies)
         {
             Context.Debug("当前平台不支持应用商店依赖检查，已跳过");
             return;
@@ -49,14 +49,17 @@ public sealed partial class DependencyCheckService
         if (!await _CheckPackageAsync(packageId))
         {
             Context.Info($"检测到依赖缺失 (package-id = {packageId})");
-            var result = await DialogService.Instance.ShowAsync(new TextDialogRequest
-            {
-                Title = Lang.Text("Tools.Test.Dependency.MissingTitle"),
-                Content = Lang.Text("Tools.Test.Dependency.MissingMessage", packageName),
-                Buttons = DialogButtons.From(
-                    DialogButton.Create(Lang.Text("Common.Action.Confirm")),
-                    DialogButton.Create(Lang.Text("Tools.Test.Dependency.Later")))
-            }).ConfigureAwait(false);
+            var result = await DialogService
+                .Instance.ShowAsync(
+                    new TextDialogRequest
+                    {
+                        Title = Lang.Text("Tools.Test.Dependency.MissingTitle"),
+                        Content = Lang.Text("Tools.Test.Dependency.MissingMessage", packageName),
+                        Buttons = DialogButtons.From(
+                            DialogButton.Create(Lang.Text("Common.Action.Confirm")),
+                            DialogButton.Create(Lang.Text("Tools.Test.Dependency.Later")))
+                    })
+                .ConfigureAwait(false);
             if (result.Button == 1) _LaunchMsStore(storeId);
         }
     }

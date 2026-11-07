@@ -9,7 +9,7 @@ namespace PCL.Core.Utils.Secret;
 
 /// <summary>Windows DPAPI 保护：v2 = CNG DPAPI，v1 = 旧版 CAPI DPAPI（只读，解密成功后迁移到 v2）。</summary>
 [SupportedOSPlatform("windows")]
-internal sealed class WindowsKeyProtector(byte[] entropy) : IKeyProtector
+public sealed class WindowsKeyProtector(byte[] entropy) : IKeyProtector
 {
     public uint Version => 2;
 
