@@ -577,13 +577,38 @@ public partial class PageToolsTest : IPageView
         ComboAchievementFont.IsEnabled = false;
         try
         {
-            var families = await Task.Run(() => Media.Fonts.SystemFontFamilies
-                .Where(f => !string.IsNullOrWhiteSpace(f.Source))
-                .GroupBy(f => f.Source)
-                .Select(g => g.First())
-                .Select(f => (Source: f.Source, Display: _GetFontDisplayName(f)))
-                .OrderBy(f => f.Display, StringComparer.CurrentCulture)
-                .ToList());
+            // 与 FontSelector.LoadFonts 保持一致：逐字形校验，损坏或无法加载的字体族直接跳过。
+            // 只判断 Source 非空是不够的 —— 坏字体进了下拉，用户选中后构造 FormattedText 会抛异常，
+            // 预览和保存都会失败。
+            var families = await Task.Run(() =>
+            {
+                var available = new List<(string Source, string Display)>();
+                foreach (var family in Media.Fonts.SystemFontFamilies)
+                {
+                    try
+                    {
+                        foreach (var typeface in family.GetTypefaces())
+                        {
+                            if (!typeface.TryGetGlyphTypeface(out var glyphTypeface))
+                                throw new InvalidOperationException("字形无法加载：" + family.Source);
+                            _ = new Media.GlyphTypeface(glyphTypeface.FontUri);
+                        }
+
+                        if (string.IsNullOrWhiteSpace(family.Source)) continue;
+                        available.Add((family.Source, _GetFontDisplayName(family)));
+                    }
+                    catch (Exception ex)
+                    {
+                        Common.Log(ex, "跳过无法加载的字体：" + family.Source);
+                    }
+                }
+
+                return available
+                    .GroupBy(f => f.Source)
+                    .Select(g => g.First())
+                    .OrderBy(f => f.Display, StringComparer.CurrentCulture)
+                    .ToList();
+            });
 
             var items = new List<MyComboBoxItem>(families.Count + 1)
             {
@@ -1033,51 +1058,74 @@ public partial class PageToolsTest : IPageView
     }
 
     /// <summary>
-    ///     定位实例实际启用的客户端 JAR，先跟 jar 覆盖字段，再沿继承链向上查找。
+    ///     定位实例实际加载的客户端 JAR，规则与启动器的真实实例解析保持一致。
     /// </summary>
+    /// <param name="instance">起始实例。</param>
+    /// <returns>JAR 文件路径；解析失败或文件不存在时返回 null。</returns>
+    /// <remarks>
+    ///     启动器在 <c>Library/Core.cs:_ResolveMcLibRealInstance</c> 里是这样选的：有 <c>jar</c> 覆盖字段就直接用
+    ///     被指向的实例；没有覆盖则沿 inheritsFrom 一路走到最底层，用底层的 JAR；现代 Forge/NeoForge（Drop ≥ 170）
+    ///     例外，它们自己的 JAR 就是最终产物。不按这个顺序走，加载器实例会拿到子目录里那个并没有贴图的 JAR，
+    ///     结果就是图标变成屏障或取错版本。
+    /// </remarks>
     private static string? _ResolveClientJarPath(McInstance instance)
     {
         // 父实例要靠游戏文件夹拼路径，没选文件夹时直接放弃，交给在线源兜底
         var folder = GameFolders.mcFolderSelected;
         if (string.IsNullOrEmpty(folder)) return null;
 
-        var current = instance;
-        // 继承链可能是自引用或成环（inheritsFrom 指向自己、或两个实例互指），按「实例目录 + 名字」去重：
-        // 同一个实例再次出现说明已经绕回来了，必须停下，否则这里会无限 new McInstance 卡死 UI 线程
-        var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        while (current is not null)
+        try
         {
+            var jarName = instance.JsonObject["jar"]?.ToString();
+            var real = instance;
+            if (instance.IsHmclFormatJson || string.IsNullOrEmpty(jarName))
+            {
+                if (!((instance.Info.HasForge || instance.Info.HasNeoForge) && instance.Info.Drop >= 170))
+                    real = _FollowInheritance(instance, folder);
+            }
+            else if (jarName != instance.Name)
+            {
+                real = new McInstance(jarName);
+            }
+
+            // 目标实例的 JSON 不存在时退回选中实例本身，与启动器的处理一致
+            if (!File.Exists(real.PathInstance + real.Name + ".json")) real = instance;
+
+            var jar = real.PathInstance + real.Name + ".jar";
+            return File.Exists(jar) ? jar : null;
+        }
+        catch (Exception ex)
+        {
+            // McInstance 是惰性加载的：构造只记路径，访问 JsonObject / InheritInstanceName 才读盘解析。
+            // 父版本 JSON 损坏或被删掉时异常就出在这里，必须就地兜住，否则预览和保存会直接中止，
+            // 连在线图标和屏障兜底都走不到。
+            Common.Log(ex, "解析客户端 JAR 失败：" + instance.Name);
+            return null;
+        }
+    }
+
+    /// <summary>
+    ///     沿 inheritsFrom 走到最底层的实例。
+    /// </summary>
+    /// <param name="instance">起始实例。</param>
+    /// <param name="folder">游戏文件夹，用于拼接父实例路径。</param>
+    /// <returns>继承链最底层的实例；链正常结束时返回最后一个可用的实例。</returns>
+    /// <remarks>
+    ///     继承链可能被写成自引用或成环（inheritsFrom 指向自己、或两个实例互指），按「实例目录 + 名字」去重，
+    ///     同一个实例再次出现就停下，避免在这里无限 new McInstance 卡死 UI 线程。
+    /// </remarks>
+    private static McInstance _FollowInheritance(McInstance instance, string folder)
+    {
+        var current = instance;
+        var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        while (!string.IsNullOrEmpty(current.InheritInstanceName))
+        {
+            if (current.InheritInstanceName == current.Name) break;
             if (!visited.Add(current.PathInstance + current.Name)) break;
-
-            var jarName = current.JsonObject["jar"]?.ToString();
-            var target = current;
-            if (!string.IsNullOrEmpty(jarName) && jarName != current.Name)
-            {
-                try
-                {
-                    target = new McInstance(jarName);
-                }
-                catch
-                {
-                    target = current; // jar 字段指向的实例缺失时退回自身
-                }
-            }
-
-            var jar = target.PathInstance + target.Name + ".jar";
-            if (File.Exists(jar)) return jar;
-
-            if (string.IsNullOrEmpty(current.InheritInstanceName)) break;
-            try
-            {
-                current = new McInstance(Path.Combine(folder, "versions", current.InheritInstanceName));
-            }
-            catch
-            {
-                break; // 父实例信息异常时停止向上查找，交给在线源兜底
-            }
+            current = new McInstance(Path.Combine(folder, "versions", current.InheritInstanceName));
         }
 
-        return null;
+        return current;
     }
 
     /// <summary>
