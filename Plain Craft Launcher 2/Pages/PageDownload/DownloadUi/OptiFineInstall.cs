@@ -3,7 +3,7 @@ using System.Globalization;
 using System.IO;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
-using PCL.Core.Minecraft;
+using PCL.Core.Minecraft.Java;
 using PCL.Network;
 
 namespace PCL;
