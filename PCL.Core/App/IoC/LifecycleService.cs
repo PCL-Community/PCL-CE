@@ -149,7 +149,7 @@ partial class Lifecycle
     private static readonly Lock _AdditionalServiceTypesLock = new();
 
     /// <summary>
-    ///     注册由其他程序集（例如 PCL.Core.Wpf）提供的生命周期服务类型。
+    ///     注册由其他程序集提供的生命周期服务类型。
     /// </summary>
     /// <param name="state">服务启动状态。</param>
     /// <param name="types">要注册的服务类型。</param>

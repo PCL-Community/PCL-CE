@@ -188,9 +188,10 @@
 
    Copyright 2025 PCL Community
 
-   SPECIAL DIRECTORY: Plain Craft Launcher 2/
+   SPECIAL DIRECTORY: "PCL.Launcher/" and "PCL.Launcher.Core/"
 
-   Licensed under some custom terms discribed in the 'Plain Craft Launcher 2/LICENCE' file.
+   Licensed under some custom terms described in the "PCL.Launcher/LICENCE" and 
+   "PCL.Launcher.Core/LICENCE" files.
 
    ALL THE OTHER DIRECTORIES
 

@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-    <!-- PCL 业务核心：从 Plain Craft Launcher 2/Modules 拆出的业务逻辑，自定义许可。 -->
     <PropertyGroup>
         <AssemblyTitle>PCL.Launcher.Core</AssemblyTitle>
         <AssemblyName>PCL.Launcher.Core</AssemblyName>

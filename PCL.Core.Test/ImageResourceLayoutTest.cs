@@ -44,19 +44,6 @@ public class ImageResourceLayoutTest
         Assert.IsEmpty(missing, $"以下业务图片路径在 Assets/Images 中不存在：{string.Join(", ", missing)}");
     }
 
-    [TestMethod]
-    public void ImageAssetCountShouldMatchWpfReference()
-    {
-        var avaloniaRoot = Path.Combine(GetRepositoryRoot(), "PCL.Launcher", "Assets", "Images");
-        var wpfRoot = Path.Combine(GetRepositoryRoot(), "Plain Craft Launcher 2", "Images");
-        if (!Directory.Exists(wpfRoot)) Assert.Inconclusive("WPF 参考图片目录不存在");
-
-        var avaloniaCount =
-            Directory.EnumerateFiles(avaloniaRoot, "*", SearchOption.AllDirectories).Count();
-        var wpfCount = Directory.EnumerateFiles(wpfRoot, "*", SearchOption.AllDirectories).Count();
-        Assert.AreEqual(wpfCount, avaloniaCount, "图片资源数量与 WPF 参考不一致");
-    }
-
     private static string GetRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

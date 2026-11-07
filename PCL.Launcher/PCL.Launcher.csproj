@@ -35,20 +35,19 @@
         <PackageReference Include="JAJ.Packages.MiniAudioEx" Version="3.3.7" />
     </ItemGroup>
     <ItemGroup>
-        <EmbeddedResource Include="..\Plain Craft Launcher 2\metadata.json" Link="metadata.json">
+        <EmbeddedResource Include="Resources\metadata.json" Link="metadata.json">
             <LogicalName>PCL.metadata.json</LogicalName>
         </EmbeddedResource>
-        <EmbeddedResource Include="..\Plain Craft Launcher 2\Resources\*.*">
+        <EmbeddedResource Include="Resources\*.*" Exclude="Resources\metadata.json">
             <LogicalName>PCL.Resources.%(Filename)%(Extension)</LogicalName>
         </EmbeddedResource>
-        <EmbeddedResource Include="..\Plain Craft Launcher 2\Resources\hints\*.txt">
+        <EmbeddedResource Include="Resources\hints\*.txt">
             <LogicalName>PCL.Resources.hints.%(Filename)%(Extension)</LogicalName>
         </EmbeddedResource>
     </ItemGroup>
     <ItemGroup>
         <Content Include="..\LICENSE" Link="LICENSE" CopyToOutputDirectory="PreserveNewest" />
         <Content Include="..\PCL.Launcher.Core\LICENCE" Link="LICENCE.PCL.Launcher.Core" CopyToOutputDirectory="PreserveNewest" />
-        <Content Include="..\Plain Craft Launcher 2\LICENCE" Link="LICENCE.PCL" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
     <ItemGroup>
         <AvaloniaResource Include="Assets/IconPacks/**" />

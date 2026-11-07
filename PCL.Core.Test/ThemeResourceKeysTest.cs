@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Xml.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace PCL.Core.Test;
@@ -34,8 +32,29 @@ public class ThemeResourceKeysTest
         "ColorObjectMsgBoxShadow"
     ];
 
+    private static readonly string[] FrozenPaletteKeys =
+    [
+        "ColorBrush1", "ColorBrush2", "ColorBrush3", "ColorBrush4",
+        "ColorBrush5", "ColorBrush6", "ColorBrush7", "ColorBrush8",
+        "ColorBrushBackground", "ColorBrushBg0", "ColorBrushBg1",
+        "ColorBrushDebug", "ColorBrushError", "ColorBrushFatal",
+        "ColorBrushGray1", "ColorBrushGray2", "ColorBrushGray3", "ColorBrushGray4",
+        "ColorBrushGray5", "ColorBrushGray6", "ColorBrushGray7", "ColorBrushGray8",
+        "ColorBrushHalfWhite", "ColorBrushInfo", "ColorBrushInfoDark", "ColorBrushMemory",
+        "ColorBrushRedBack", "ColorBrushRedDark", "ColorBrushRedLight",
+        "ColorBrushSemiTransparent", "ColorBrushSemiWhite", "ColorBrushToolTip",
+        "ColorBrushTransparent", "ColorBrushTransparentBackground", "ColorBrushWarn",
+        "ColorBrushWhite",
+        "ColorObject1", "ColorObject2", "ColorObject3", "ColorObject4",
+        "ColorObject5", "ColorObject6", "ColorObject7", "ColorObject8",
+        "ColorObjectBg0", "ColorObjectBg1",
+        "ColorObjectGray1", "ColorObjectGray2", "ColorObjectGray3", "ColorObjectGray4",
+        "ColorObjectGray5", "ColorObjectGray6", "ColorObjectGray7", "ColorObjectGray8",
+        "ColorObjectMsgBoxShadow"
+    ];
+
     [TestMethod]
-    public void ThemeServiceKeysShouldCoverWpfPalette()
+    public void ThemeServiceKeysShouldCoverFrozenPalette()
     {
         var produced = new HashSet<string>(StringComparer.Ordinal);
         foreach (var suffix in BrushSuffixes) produced.Add($"ColorBrush{suffix}");
@@ -65,39 +84,10 @@ public class ThemeResourceKeysTest
                 produced.Add($"ColorBrush{suffix}");
         foreach (var suffix in FixedKeys) produced.Add(suffix);
 
-        var wpfKeys = LoadWpfColorKeys();
-        Assert.IsGreaterThanOrEqualTo(50, wpfKeys.Count, $"WPF 色表键数量异常：{wpfKeys.Count}");
+        Assert.IsGreaterThanOrEqualTo(
+            50, FrozenPaletteKeys.Length, $"冻结色表键数量异常：{FrozenPaletteKeys.Length}");
 
-        var missing = wpfKeys.Where(key => !produced.Contains(key)).ToArray();
-        Assert.IsEmpty(missing, $"以下 WPF 色表键没有运行时来源：{string.Join(", ", missing)}");
-    }
-
-    private static HashSet<string> LoadWpfColorKeys()
-    {
-        var path = Path.Combine(GetRepositoryRoot(), "Plain Craft Launcher 2", "Application.xaml");
-        var document = XDocument.Load(path);
-        var keyName = XName.Get("Key", "http://schemas.microsoft.com/winfx/2006/xaml");
-        return document
-            .Descendants()
-            .Select(element => element.Attribute(keyName)?.Value)
-            .Where(key => key is not null
-                && (key.StartsWith("ColorBrush", StringComparison.Ordinal)
-                    || key.StartsWith("ColorObject", StringComparison.Ordinal)))
-            .Select(key => key!)
-            .ToHashSet(StringComparer.Ordinal);
-    }
-
-    private static string GetRepositoryRoot()
-    {
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory is not null)
-        {
-            if (Directory.Exists(Path.Combine(directory.FullName, "PCL.Core")))
-                return directory.FullName;
-            directory = directory.Parent;
-        }
-
-        Assert.Fail("无法定位仓库根目录");
-        return string.Empty;
+        var missing = FrozenPaletteKeys.Where(key => !produced.Contains(key)).ToArray();
+        Assert.IsEmpty(missing, $"以下色表键没有运行时来源：{string.Join(", ", missing)}");
     }
 }
