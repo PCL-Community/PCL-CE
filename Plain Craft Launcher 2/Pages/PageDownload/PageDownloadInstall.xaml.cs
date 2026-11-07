@@ -1093,6 +1093,9 @@ public partial class PageDownloadInstall : IPageView
             RenderTransform = new TranslateTransform(0d, 0d)
         };
         stack.Children.Add(host);
+        var spacer = new FrameworkElement { Height = 18d, Visibility = Visibility.Hidden };
+        host.SizeChanged += (_, _) => spacer.Visibility = Visibility.Visible;
+        stack.Children.Add(spacer);
         return stack;
     }
 
