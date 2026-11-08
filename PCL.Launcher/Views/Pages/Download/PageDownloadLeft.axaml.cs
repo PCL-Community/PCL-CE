@@ -125,7 +125,7 @@ public partial class PageDownloadLeft : MyPageLeft, IPageView, IRefreshable
         {
             SvgIcon = "lucide/refresh-cw",
             LogoScale = 0.85,
-            Theme = MyIconButton.Themes.Custom
+            Theme = MyIconButton.Themes.Color
         };
         ToolTip.SetTip(button, Lang.Text("Common.Action.Refresh"));
         ToolTip.SetPlacement(button, PlacementMode.Right);

@@ -15,7 +15,7 @@ public static partial class InstanceList
                     $"{path}PCL.ini",
                     "CardCount",
                     (-1).ToString()));
-            if (cardCount == -1)
+            if (cardCount <= 0)
                 return null;
 
             for (int i = 0, loopTo = cardCount - 1; i <= loopTo; i++)

@@ -2424,6 +2424,8 @@
     <sys:String x:Key="Select.Instance.Error.Load">載入實例失敗（{0}）</sys:String>
     <sys:String x:Key="Select.Instance.Error.UiUpdate">將實例清單轉換顯示時失敗</sys:String>
     <sys:String x:Key="Select.Instance.Favorite">新增至我的最愛</sys:String>
+    <sys:String x:Key="Select.Instance.AllHidden.Message">目前資料夾中的實例都被隱藏了。再次按下 F11 即可檢視隱藏實例。</sys:String>
+    <sys:String x:Key="Select.Instance.AllHidden.Title">所有實例已隱藏</sys:String>
     <sys:String x:Key="Select.Instance.Hidden.EmptyMessage">沒有實例被隱藏，你可以在實例設定的實例分類選項中隱藏實例。&#xA;再次按下 F11 即可退出隱藏實例檢視模式。</sys:String>
     <sys:String x:Key="Select.Instance.Hidden.EmptySearchTitle">無匹配的隱藏實例</sys:String>
     <sys:String x:Key="Select.Instance.Hidden.EmptyTitle">無隱藏實例</sys:String>

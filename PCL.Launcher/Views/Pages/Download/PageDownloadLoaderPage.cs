@@ -385,7 +385,7 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
                 {
                     SvgIcon = "lucide/info",
                     LogoScale = 1.05d,
-                    Theme = MyIconButton.Themes.Custom
+                    Theme = MyIconButton.Themes.Color
                 };
                 ToolTip.SetTip(infoButton, Lang.Text("Download.Version.Changelog"));
                 infoButton.Click += (_, _) =>
@@ -497,7 +497,7 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
             var saveButton = new MyIconButton
             {
                 SvgIcon = "lucide/save",
-                Theme = MyIconButton.Themes.Custom
+                Theme = MyIconButton.Themes.Color
             };
             ToolTip.SetTip(saveButton, Lang.Text("Download.Version.SaveAs"));
             saveButton.Click += (_, _) => SaveLabyMod(isSnapshot);
@@ -506,7 +506,7 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
             {
                 SvgIcon = "lucide/info",
                 LogoScale = 1.05d,
-                Theme = MyIconButton.Themes.Custom
+                Theme = MyIconButton.Themes.Color
             };
             ToolTip.SetTip(changelogButton, Lang.Text("Download.Version.Changelog"));
             changelogButton.Click += (_, _) =>
@@ -708,7 +708,7 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
         {
             SvgIcon = "lucide/info",
             LogoScale = 1.05d,
-            Theme = MyIconButton.Themes.Custom
+            Theme = MyIconButton.Themes.Color
         };
         ToolTip.SetTip(changelogButton, Lang.Text("Download.Version.Changelog"));
         changelogButton.Click += (_, _) => LauncherUi.Interaction?.OpenWebsite(
@@ -888,7 +888,7 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
         {
             SvgIcon = "lucide/info",
             LogoScale = 1.05d,
-            Theme = MyIconButton.Themes.Custom
+            Theme = MyIconButton.Themes.Color
         };
         ToolTip.SetTip(changelogButton, Lang.Text("Download.Version.Changelog"));
         changelogButton.Click += (_, _) =>
@@ -1044,7 +1044,7 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
         {
             SvgIcon = "lucide/info",
             LogoScale = 1.05d,
-            Theme = MyIconButton.Themes.Custom
+            Theme = MyIconButton.Themes.Color
         };
         ToolTip.SetTip(changelogButton, Lang.Text("Download.Version.Changelog"));
         changelogButton.Click += (_, _) => LauncherUi.Interaction?.OpenWebsite(
@@ -1163,7 +1163,7 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
             var listButton = new MyIconButton
             {
                 SvgIcon = "lucide/list",
-                Theme = MyIconButton.Themes.Custom
+                Theme = MyIconButton.Themes.Color
             };
             ToolTip.SetTip(listButton, Lang.Text("Download.Version.ViewAllVersions"));
             listButton.Click += (_, _) => LauncherUi.Interaction?.OpenWebsite(

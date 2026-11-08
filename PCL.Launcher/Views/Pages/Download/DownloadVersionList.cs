@@ -65,10 +65,24 @@ internal static class DownloadVersionList
             };
             var latestStack = new StackPanel
             {
-                Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d)
+                Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
+                Tag = latestVersions
             };
-            latestStack.Children.Add(
-                CreateVersionList(latestVersions, onSelect, installed, mode, itemMap));
+
+            MyCard.StackInstall(
+                ref latestStack,
+                stack =>
+                {
+                    if (stack.Tag is not IReadOnlyList<JsonObject> list)
+                        return;
+                    foreach (var version in list)
+                    {
+                        var item = CreateItem(version, onSelect, installed, mode, itemMap);
+                        if (item is not null)
+                            stack.Children.Add(item);
+                    }
+                });
+
             latestCard.Children.Add(latestStack);
             panMain.Children.Add(latestCard);
         }
@@ -215,39 +229,34 @@ internal static class DownloadVersionList
         var changelogButton = new MyIconButton
         {
             SvgIcon = "lucide/info",
-            LogoScale = 1.05d,
-            Theme = MyIconButton.Themes.Custom
+            LogoScale = 1.05d
         };
-        ToolTip.SetTip(changelogButton, Lang.Text("Download.Version.Changelog"));
+        ConfigureVersionButtonTooltip(changelogButton, "Download.Version.Changelog");
         changelogButton.Click += (_, _) => DownloadVersionActions.ShowChangelog(version);
 
         var serverButton = new MyIconButton
         {
             SvgIcon = "lucide/server",
-            LogoScale = 1d,
-            Theme = MyIconButton.Themes.Custom
+            LogoScale = 1d
         };
-        ToolTip.SetTip(serverButton, Lang.Text("Download.Version.DownloadServer"));
+        ConfigureVersionButtonTooltip(serverButton, "Download.Version.DownloadServer");
         serverButton.Click +=
             (_, _) => DownloadVersionActions.SaveServer(version, formattedVersion);
 
         if (mode == DownloadVersionListMode.SaveOnly)
         {
-            // 另存模式：点击整行另存，悬停按钮为服务端与更新日志。
             item.Buttons = [serverButton, changelogButton];
             item.Click += (_, _) =>
                 DownloadVersionActions.SaveVersion(version, formattedVersion);
         }
         else
         {
-            // 安装模式：点击整行进入安装配置，悬停按钮与 WPF 的 McDownloadMenu 一致。
             var saveButton = new MyIconButton
             {
                 SvgIcon = "lucide/save",
-                LogoScale = 1d,
-                Theme = MyIconButton.Themes.Custom
+                LogoScale = 1d
             };
-            ToolTip.SetTip(saveButton, Lang.Text("Download.Version.SaveAs"));
+            ConfigureVersionButtonTooltip(saveButton, "Download.Version.SaveAs");
             saveButton.Click += (_, _) =>
                 DownloadVersionActions.SaveVersion(version, formattedVersion);
             item.Buttons = [saveButton, changelogButton, serverButton];
@@ -290,6 +299,14 @@ internal static class DownloadVersionList
         if ((version["url"]?.ToString() ?? "").Contains("unlisted-versions-of-minecraft"))
             tags.Add("Download.Source.Tag.Uvmc");
         item.Tags = tags.Count == 0 ? null : tags;
+    }
+
+    private static void ConfigureVersionButtonTooltip(MyIconButton button, string textKey)
+    {
+        ToolTip.SetTip(button, Lang.Text(textKey));
+        ToolTip.SetPlacement(button, PlacementMode.Center);
+        ToolTip.SetVerticalOffset(button, 30d);
+        ToolTip.SetHorizontalOffset(button, 2d);
     }
 
     private static string GetLogo(JsonObject version)

@@ -2482,6 +2482,8 @@
     <sys:String x:Key="Select.Instance.Error.Load">加载实例失败（{0}）</sys:String>
     <sys:String x:Key="Select.Instance.Error.UiUpdate">将实例列表转换显示时失败</sys:String>
     <sys:String x:Key="Select.Instance.Favorite">收藏</sys:String>
+    <sys:String x:Key="Select.Instance.AllHidden.Message">当前文件夹中的实例都被隐藏了。再次按下 F11 即可查看隐藏实例。</sys:String>
+    <sys:String x:Key="Select.Instance.AllHidden.Title">所有实例已隐藏</sys:String>
     <sys:String x:Key="Select.Instance.Hidden.EmptyMessage">没有实例被隐藏，你可以在实例设置的实例分类选项中隐藏实例。&#xA;再次按下 F11 即可退出隐藏实例查看模式。</sys:String>
     <sys:String x:Key="Select.Instance.Hidden.EmptySearchTitle">无匹配的隐藏实例</sys:String>
     <sys:String x:Key="Select.Instance.Hidden.EmptyTitle">无隐藏实例</sys:String>

@@ -685,10 +685,15 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
             if (Config.Download.AutoSelectInstance)
                 LauncherCommon.WriteIni(iniPath, "Version", instanceName);
             LauncherCommon.WriteIni(iniPath, "InstanceCache", "");
+            var root = mcFolder.EndsWith(Path.DirectorySeparatorChar)
+                ? mcFolder
+                : mcFolder + Path.DirectorySeparatorChar;
             Loading.LoaderFolderRun(
                 InstanceList.mcInstanceListLoader,
-                Path.Combine(mcFolder, "versions") + Path.DirectorySeparatorChar,
-                Loading.LoaderFolderRunType.ForceRun);
+                root,
+                Loading.LoaderFolderRunType.ForceRun,
+                1,
+                $"versions{Path.DirectorySeparatorChar}");
         }
         catch (Exception ex)
         {

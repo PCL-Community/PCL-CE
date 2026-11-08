@@ -180,8 +180,21 @@ public class MyPageRight : Decorator, IPageView
     // 重试
     public void PageLoaderRestart(object? input = null, bool isForceRestart = true) // 由外部调用的重试
     {
-        if (!_pageLoaderAutoRun || _pageLoader is null)
+        // autoRun=false 的页面也可以重试，但必须能提供加载器输入；
+        // 否则通用重试会把空输入传给文件夹加载器。
+        if (_pageLoader is null)
             return;
+        if (!_pageLoaderAutoRun && _pageLoaderInputInvoke is null)
+            return;
+
+        if (input is null && _pageLoaderInputInvoke is not null)
+        {
+            input = _pageLoaderInputInvoke();
+            // 文件夹类加载器没有输入时不要启动，否则只会立刻进入 Failed。
+            if (input is string { Length: 0 })
+                return;
+        }
+
         if (_pageLoader is Loading.LoaderTask task)
             _pageLoader.Start(
                 task.StartGetInputNoType(input, _pageLoaderInputInvoke),
@@ -640,10 +653,15 @@ public class MyPageRight : Decorator, IPageView
     {
         switch (newState)
         {
-            // 加载开始或重新加载
             case LoadState.Failed:
             case LoadState.Loading:
             {
+                if (newState == LoadState.Loading && oldState == LoadState.Failed)
+                {
+                    HandleLoadStarted();
+                    return;
+                }
+
                 if (oldState is LoadState.Failed or LoadState.Loading)
                     return;
 

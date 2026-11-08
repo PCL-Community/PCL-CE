@@ -21,33 +21,36 @@ public partial class PageSelectLeftViewModel : ViewModelBase
     [ObservableProperty]
     public partial IReadOnlyList<GameFolders.McFolder> Folders { get; set; } = [];
 
-    [ObservableProperty] public partial bool IsFirstLoad { get; set; } = true;
-
     [ObservableProperty] public partial GameFolders.McFolder? SelectedFolder { get; set; }
 
-    /// <summary>从全局文件夹列表同步快照；列表未变化时返回 <c>false</c>。</summary>
+    /// <summary>从全局文件夹列表同步快照；列表和当前选中项均未变化时返回 <c>false</c>。</summary>
     public bool RefreshFolders(bool force = false)
     {
-        if (!force
-            && _lastFolders is not null
-            && _lastFolders.SequenceEqual(GameFolders.mcFolderList))
-            return false;
-
-        _lastFolders = [.. GameFolders.mcFolderList];
-        Folders = _lastFolders;
-        CanCreateFolder = !Directory.Exists(
-            Path.Combine(LauncherPaths.ExecutableDirectory, ".minecraft"));
-
-        var selected = GameFolders.mcFolderList.FirstOrDefault(folder =>
+        var snapshot = GameFolders.mcFolderList.ToList();
+        var selected = snapshot.FirstOrDefault(folder =>
             folder.Location == GameFolders.mcFolderSelected);
-        if (selected is null && GameFolders.mcFolderList.Count > 0)
+        if (selected is null && snapshot.Count > 0)
         {
-            selected = GameFolders.mcFolderList[0];
+            selected = snapshot[0];
             States.Game.SelectedFolder = selected.Location
                 .Replace(LauncherPaths.ExecutableDirectory, "$");
             GameFolders.ApplySelectedFolder(selected.Location);
         }
 
+        var selectionChanged = !Equals(SelectedFolder, selected);
+        if (!force
+            && _lastFolders is not null
+            && _lastFolders.SequenceEqual(snapshot)
+            && !selectionChanged)
+        {
+            SelectedFolder = selected;
+            return false;
+        }
+
+        _lastFolders = snapshot;
+        Folders = _lastFolders;
+        CanCreateFolder = !Directory.Exists(
+            Path.Combine(LauncherPaths.ExecutableDirectory, ".minecraft"));
         SelectedFolder = selected;
         return true;
     }
@@ -108,11 +111,13 @@ public partial class PageSelectLeftViewModel : ViewModelBase
             LauncherLogLevel.Debug);
         GameFolders.McFolderListLoader.Start(null, true);
         SelectedFolder = folder;
-        ReloadInstanceList(force: true);
+        ReloadInstanceList(true);
         return true;
     }
 
-    public static bool ReorderFolders(GameFolders.McFolder sourceFolder, GameFolders.McFolder targetFolder)
+    public static bool ReorderFolders(
+        GameFolders.McFolder sourceFolder,
+        GameFolders.McFolder targetFolder)
     {
         if (ReferenceEquals(sourceFolder, targetFolder))
             return false;
@@ -493,27 +498,39 @@ public partial class PageSelectLeftViewModel : ViewModelBase
             return;
         LauncherCommon.WriteIni(Path.Combine(folder, "PCL.ini"), "InstanceCache", "");
         if (folder == GameFolders.mcFolderSelected)
-            ReloadInstanceList(force: true);
+            ReloadInstanceList(true);
     }
 
     public static void ReloadInstanceList(bool force = false)
     {
-        if (string.IsNullOrEmpty(GameFolders.mcFolderSelected))
+        var folder = GameFolders.mcFolderSelected;
+        if (string.IsNullOrWhiteSpace(folder))
             return;
 
+        var root = folder.EndsWith(Path.DirectorySeparatorChar)
+            ? folder
+            : folder + Path.DirectorySeparatorChar;
+
+        var state = InstanceList.mcInstanceListLoader.State;
+        if (state is LoadState.Failed or LoadState.Aborted)
+            force = true;
+
         if (force)
+        {
             LauncherCommon.WriteIni(
-                Path.Combine(GameFolders.mcFolderSelected, "PCL.ini"),
+                Path.Combine(root, "PCL.ini"),
                 "InstanceCache",
                 "");
+            InstanceList.mcInstanceListForceRefresh = true;
+        }
 
         LauncherCommon.Log(
-            $"[Minecraft] 刷新实例列表：{GameFolders.mcFolderSelected}（force={force}）",
+            $"[Minecraft] 刷新实例列表：{root}（force={force}）",
             LauncherLogLevel.Debug);
 
         Loading.LoaderFolderRun(
             InstanceList.mcInstanceListLoader,
-            GameFolders.mcFolderSelected,
+            root,
             force
                 ? Loading.LoaderFolderRunType.ForceRun
                 : Loading.LoaderFolderRunType.RunOnUpdated,

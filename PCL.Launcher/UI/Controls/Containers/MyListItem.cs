@@ -91,6 +91,8 @@ public class MyListItem : Grid, IMyRadio
         SetColumnSpan(focusRing, 6);
         Children.Add(focusRing);
 
+        _ = RectBack;
+
         SizeChanged += (_, _) => OnSizeChanged();
         PointerReleased += Button_MouseUp;
         PointerPressed += Button_MouseDown;
@@ -386,11 +388,8 @@ public class MyListItem : Grid, IMyRadio
                 RenderTransform = IsScaleAnimationEnabled ? new ScaleTransform(0.8d, 0.8d) : null,
                 RenderTransformOrigin = RelativePoint.Center,
                 BorderThickness = new Thickness(1d),
-                IsHitTestVisible = false,
-                Opacity = 0d
+                IsHitTestVisible = false
             };
-            ContainerTheme.BindDynamic(rect, Border.BackgroundProperty, "ColorBrush7");
-            ContainerTheme.BindDynamic(rect, Border.BorderBrushProperty, "ColorBrush6");
             rect.Classes.Add("ListItemBack");
             SetColumnSpan(rect, 999);
             SetRowSpan(rect, 999);
@@ -528,6 +527,7 @@ public class MyListItem : Grid, IMyRadio
         {
             if (buttonStack is not null)
             {
+                buttonStack.IsHitTestVisible = true;
                 ani.Add(
                     AaOpacity(
                         buttonStack,
@@ -544,17 +544,17 @@ public class MyListItem : Grid, IMyRadio
                         (int)Math.Round(time * 0.7d)));
             }
 
-            var back = RectBack; // 鼠标移入时才实例化
+            var back = RectBack;
+            var targetBack = stateNew == "MouseDown"
+                ? ContainerTheme.ItemPressed(this)
+                : ContainerTheme.ItemHover(this);
+            back.Background = targetBack;
             ani.Add(
                 AaColor(
                     back,
                     Border.BackgroundProperty,
-                    ContainerAnimation.ColorOf(
-                        stateNew == "MouseDown"
-                            ? ContainerTheme.ItemPressed(this)
-                            : ContainerTheme.ItemHover(this)),
+                    ContainerAnimation.ColorOf(targetBack),
                     time));
-            ani.Add(AaOpacity(back, 1d - back.Opacity, time, ease: new AniEaseOutFluent()));
 
             if (IsScaleAnimationEnabled)
             {
@@ -586,6 +586,7 @@ public class MyListItem : Grid, IMyRadio
         {
             if (buttonStack is not null)
             {
+                buttonStack.IsHitTestVisible = false;
                 ani.Add(AaOpacity(buttonStack, -buttonStack.Opacity, (int)Math.Round(time * 0.4d)));
                 ani.Add(
                     AaDouble(
@@ -596,8 +597,6 @@ public class MyListItem : Grid, IMyRadio
             }
 
             if (_rectBack is not null)
-            {
-                ani.Add(AaOpacity(_rectBack, -_rectBack.Opacity, time));
                 if (IsScaleAnimationEnabled)
                 {
                     var backScale = ContainerAnimation.EnsureScale(_rectBack);
@@ -623,7 +622,6 @@ public class MyListItem : Grid, IMyRadio
                     // 收尾回落到 0.75，下次移入时从缩小状态展开
                     ani.Add(AaScaleTransform(_rectBack, -0.246d, 1, after: true));
                 }
-            }
         }
 
         AniStart(ani, animationKey);
@@ -634,7 +632,12 @@ public class MyListItem : Grid, IMyRadio
     {
         if (stateNew == "Idle")
         {
-            buttonStack?.Opacity = 0d;
+            if (buttonStack is not null)
+            {
+                buttonStack.Opacity = 0d;
+                buttonStack.IsHitTestVisible = false;
+            }
+
             _columnPaddingRight.Width = new GridLength(MinPaddingRight);
 
             var idleScale = ContainerAnimation.EnsureScale(this);
@@ -650,7 +653,6 @@ public class MyListItem : Grid, IMyRadio
                 }
 
                 BindRectBackIdle();
-                _rectBack.Opacity = 0d;
             }
 
             return;
@@ -659,6 +661,7 @@ public class MyListItem : Grid, IMyRadio
         if (buttonStack is not null)
         {
             buttonStack.Opacity = 1d;
+            buttonStack.IsHitTestVisible = true;
             _columnPaddingRight.Width = new GridLength(
                 Math.Max(MinPaddingRight, 5d + (Buttons?.Count() ?? 0) * 25d));
         }
@@ -667,7 +670,6 @@ public class MyListItem : Grid, IMyRadio
         back.Background = stateNew == "MouseDown"
             ? ContainerTheme.ItemPressed(this)
             : ContainerTheme.ItemHover(this);
-        back.Opacity = 1d;
         var backScale = ContainerAnimation.EnsureScale(back);
         backScale.ScaleX = 1d;
         backScale.ScaleY = 1d;
@@ -1277,8 +1279,9 @@ public class MyListItem : Grid, IMyRadio
             {
                 // 只有一个按钮
                 var button = buttons[0];
-                ConfigureButton(button);
+                ConfigureButton(button, true);
                 button.Opacity = 0d;
+                button.IsHitTestVisible = false;
                 SetColumnSpan(button, 10);
                 SetRowSpan(button, 10);
                 Children.Add(button);
@@ -1287,10 +1290,10 @@ public class MyListItem : Grid, IMyRadio
             }
             default:
             {
-                // 有复数按钮，使用 StackPanel
                 var stack = new StackPanel
                 {
                     Opacity = 0d,
+                    IsHitTestVisible = false,
                     Margin = new Thickness(0d, 0d, 5d, 0d),
                     Orientation = Orientation.Horizontal,
                     HorizontalAlignment = HorizontalAlignment.Right,
@@ -1300,7 +1303,7 @@ public class MyListItem : Grid, IMyRadio
                 SetRowSpan(stack, 10);
                 foreach (var button in buttons)
                 {
-                    ConfigureButton(button);
+                    ConfigureButton(button, false);
                     stack.Children.Add(button);
                 }
 
@@ -1311,13 +1314,15 @@ public class MyListItem : Grid, IMyRadio
         }
     }
 
-    private static void ConfigureButton(MyIconButton button)
+    private static void ConfigureButton(MyIconButton button, bool withRightMargin)
     {
         if (double.IsNaN(button.Height))
             button.Height = 25d;
         if (double.IsNaN(button.Width))
             button.Width = 25d;
-        button.Margin = new Thickness(0d, 0d, 5d, 0d);
+        button.Margin = withRightMargin
+            ? new Thickness(0d, 0d, 5d, 0d)
+            : default;
         button.HorizontalAlignment = HorizontalAlignment.Right;
         button.VerticalAlignment = VerticalAlignment.Center;
     }

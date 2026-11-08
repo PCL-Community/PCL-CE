@@ -16,17 +16,18 @@ public sealed class InstanceSelectHost : IPageHost
 
     public double LeftWidth => 300d;
 
-    public string GetTitle(PageStackData stack) => Lang.Text("Main.Title.InstanceSelect");
-
-    public Control? GetLeft(PageStackData stack) => _left ??= new PageSelectLeft();
-
-    public Control GetRight(PageStackData stack) => _right ??= new PageSelectRight();
-
-    public static void ToggleHiddenInstances()
+    public string GetTitle(PageStackData stack)
     {
-        if (PageSelectRight.Current is not { } right)
-            return;
-        right.ShowHidden = !right.ShowHidden;
-        PageSelectRight.RefreshInstances(true);
+        return Lang.Text("Main.Title.InstanceSelect");
+    }
+
+    public Control? GetLeft(PageStackData stack)
+    {
+        return _left ??= new PageSelectLeft();
+    }
+
+    public Control GetRight(PageStackData stack)
+    {
+        return _right ??= new PageSelectRight();
     }
 }

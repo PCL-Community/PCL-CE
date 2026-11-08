@@ -33,10 +33,13 @@ public static partial class InstanceList
             ?? throw new InvalidOperationException("实例列表加载器输入为空");
         try
         {
-            mcInstanceList = new Dictionary<McInstanceCardType, List<McInstance>>();
             var folderList = _GetInstanceFolderNames(path);
             if (folderList.Count == 0)
             {
+                if (loader.IsAborted)
+                    return;
+
+                mcInstanceList = new Dictionary<McInstanceCardType, List<McInstance>>();
                 _ClearInstanceSelection(path);
                 return;
             }
@@ -49,30 +52,33 @@ public static partial class InstanceList
                         "InstanceCache"))
                 == folderListCheck;
 
+            Dictionary<McInstanceCardType, List<McInstance>>? result = null;
             if (useCache)
             {
-                var cachedResult = InitMcInstanceListWithCache(path);
-                if (cachedResult is not null)
-                    mcInstanceList = cachedResult;
-                else
+                result = InitMcInstanceListWithCache(path);
+                if (result is null || result.Count == 0)
+                {
+                    result = null;
                     useCache = false;
+                }
             }
 
             if (!useCache)
             {
                 mcInstanceListForceRefresh = false;
                 LauncherCommon.Log("[Minecraft] 文件夹列表变更或缓存无效，重载所有实例");
+                result = InitMcInstanceListWithoutCache(path);
                 LauncherCommon.WriteIni(
                     Path.Combine(path, "PCL.ini"),
                     "InstanceCache",
                     folderListCheck.ToString());
-                mcInstanceList = InitMcInstanceListWithoutCache(path);
             }
-
-            _isFirstMcInstanceListLoad = false;
 
             if (loader.IsAborted)
                 return;
+
+            mcInstanceList = result ?? new Dictionary<McInstanceCardType, List<McInstance>>();
+            _isFirstMcInstanceListLoad = false;
 
             _SelectInstanceAfterLoad(path);
 
@@ -104,10 +110,12 @@ public static partial class InstanceList
 
         try
         {
-            return new DirectoryInfo(versionsPath)
-                .GetDirectories()
-                .Select(folder => folder.Name)
-                .ToList();
+            return
+            [
+                .. new DirectoryInfo(versionsPath)
+                    .GetDirectories()
+                    .Select(folder => folder.Name)
+            ];
         }
         catch (Exception ex)
         {

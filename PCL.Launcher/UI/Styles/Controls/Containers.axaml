@@ -1,14 +1,7 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="using:PCL.UI.Controls">
-    <Styles.Resources>
-        <SolidColorBrush x:Key="ListItemTagBubbleBackground"
-                         Color="#11000000" />
-    </Styles.Resources>
-
     <Style Selector="ui|MyListItem">
-        <Setter Property="Background"
-                Value="Transparent" />
         <Setter Property="ClipToBounds"
                 Value="False" />
     </Style>
@@ -23,6 +16,17 @@
                 Value="{DynamicResource ColorBrush7}" />
         <Setter Property="BorderBrush"
                 Value="{DynamicResource ColorBrush6}" />
+        <Setter Property="Opacity"
+                Value="0" />
+    </Style>
+
+    <Style Selector="ui|MyListItem:pointerover Border.ListItemBack">
+        <Setter Property="Background"
+                Value="{DynamicResource ColorBrushBg1}" />
+        <Setter Property="BorderBrush"
+                Value="{DynamicResource ColorBrush6}" />
+        <Setter Property="Opacity"
+                Value="1" />
     </Style>
 
     <Style Selector="ui|MyListItem Border.ListItemCheck">
@@ -32,20 +36,20 @@
 
     <Style Selector="ui|MyListItem TextBlock.ListItemTagText">
         <Setter Property="Foreground"
-                Value="{DynamicResource ColorBrushGray3}" />
+                Value="{DynamicResource ColorBrush2}" />
         <Setter Property="FontSize"
                 Value="11" />
     </Style>
 
     <Style Selector="ui|MyListItem Border.ListItemTagBubble">
         <Setter Property="Background"
-                Value="{DynamicResource ListItemTagBubbleBackground}" />
+                Value="{DynamicResource ColorBrush6}" />
         <Setter Property="Padding"
                 Value="3,1" />
         <Setter Property="CornerRadius"
                 Value="3" />
         <Setter Property="Margin"
-                Value="0,0,3,0" />
+                Value="0,0,4,0" />
     </Style>
 
     <Style Selector="ui|MyCollapseBar TextBlock.CollapseTitle">

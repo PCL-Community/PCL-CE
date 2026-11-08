@@ -36,6 +36,8 @@ public partial class PageSelectRight : MyPageRight, IRefreshable, IShellShortcut
         ToolTip.SetTip(PanVerSearchBox, Lang.Text("Select.Instance.Search.ToolTip"));
         PanVerSearchBox.TextChanged += (_, _) => OnSearchTextChanged();
         DetachedFromVisualTree += (_, _) => StopReloadTimer();
+        EnsureLoaderInitialized();
+        PageEnter += OnPageEnter;
     }
 
     public static PageSelectRight? Current { get; private set; }
@@ -55,7 +57,9 @@ public partial class PageSelectRight : MyPageRight, IRefreshable, IShellShortcut
 
     public bool ToggleHiddenInstances()
     {
-        return ViewModel.ToggleHiddenInstances();
+        ViewModel.ShowHidden = !ViewModel.ShowHidden;
+        McInstanceListUi(InstanceList.mcInstanceListLoader);
+        return true;
     }
 
     public bool LaunchGame()
@@ -75,7 +79,18 @@ public partial class PageSelectRight : MyPageRight, IRefreshable, IShellShortcut
             null,
             InstanceList.mcInstanceListLoader,
             _ => McInstanceListUi(InstanceList.mcInstanceListLoader),
-            autoRun: false);
+            () => GameFolders.mcFolderSelected ?? "",
+            false);
+    }
+
+    /// <summary>
+    ///     PageOnEnter 会先触发 PageEnter，再根据加载器状态决定显示内容还是加载环。
+    ///     因此必须在这里完成加载器初始化与刷新，不能等到 OnNavigatedTo。
+    /// </summary>
+    private void OnPageEnter()
+    {
+        EnsureLoaderInitialized();
+        RefreshOnNavigate();
     }
 
     public override void OnNavigatedTo(object? parameter)
@@ -104,7 +119,10 @@ public partial class PageSelectRight : MyPageRight, IRefreshable, IShellShortcut
         if (_refreshed)
             return;
         _refreshed = true;
-        PageSelectRightViewModel.RefreshInstances(false);
+
+        var force =
+            InstanceList.mcInstanceListLoader.State is LoadState.Failed or LoadState.Aborted;
+        PageSelectRightViewModel.RefreshInstances(force);
         PanBack.ScrollToHome();
     }
 
@@ -156,10 +174,13 @@ public partial class PageSelectRight : MyPageRight, IRefreshable, IShellShortcut
 
     private void StopReloadTimer()
     {
-        if (_reloadTimer is null)
-            return;
-        _reloadTimer.Stop();
-        _reloadTimer = null;
+        if (_reloadTimer is not null)
+        {
+            _reloadTimer.Stop();
+            _reloadTimer = null;
+        }
+
+        _isRefreshing = false;
         _refreshed = false;
     }
 

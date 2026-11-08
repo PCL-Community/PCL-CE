@@ -1,4 +1,3 @@
-using PCL.Core.Platform;
 using System.Text.Json.Nodes;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -6,7 +5,7 @@ using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Configuration.Storage;
 using PCL.Core.App.Localization;
-using PCL.Core.IO;
+using PCL.Core.Platform;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
 using PCL.Core.Utils.Validate;
@@ -55,6 +54,7 @@ public partial class PageSelectRightViewModel : ViewModelBase
     public void RefreshGroups()
     {
         IsLoading = InstanceList.mcInstanceListLoader.State == LoadState.Loading;
+        SelectedInstance = InstanceList.McMcInstanceSelected;
         var searchText = SearchText.Trim().ToLowerInvariant();
         var cards = InstanceList.mcInstanceList.ToArray();
         var originalHasInstances = cards.Any(card => card.Value.Count > 0);
@@ -86,19 +86,28 @@ public partial class PageSelectRightViewModel : ViewModelBase
 
     public static void RefreshInstances(bool force)
     {
+        var folder = GameFolders.mcFolderSelected;
+        if (string.IsNullOrWhiteSpace(folder))
+            return;
+
+        var root = folder.EndsWith(Path.DirectorySeparatorChar)
+            ? folder
+            : folder + Path.DirectorySeparatorChar;
+
+        if (force)
+        {
+            LauncherCommon.WriteIni(Path.Combine(root, "PCL.ini"), "InstanceCache", "");
+            InstanceList.mcInstanceListForceRefresh = true;
+        }
+
         Loading.LoaderFolderRun(
             InstanceList.mcInstanceListLoader,
-            GameFolders.mcFolderSelected ?? "",
-            force ? Loading.LoaderFolderRunType.ForceRun : Loading.LoaderFolderRunType.RunOnUpdated,
+            root,
+            force
+                ? Loading.LoaderFolderRunType.ForceRun
+                : Loading.LoaderFolderRunType.RunOnUpdated,
             1,
             $"versions{Path.DirectorySeparatorChar}");
-    }
-
-    public bool ToggleHiddenInstances()
-    {
-        ShowHidden = !ShowHidden;
-        RefreshInstances(true);
-        return true;
     }
 
     public static string GetCardTitle(InstanceCardGroup group)
@@ -169,9 +178,8 @@ public partial class PageSelectRightViewModel : ViewModelBase
         {
             var isHintIndie = instance.state != McInstanceState.Error
                 && (instance.PathIndie ?? "") != (GameFolders.mcFolderSelected ?? "");
-            // Shift 直接永久删除；否则优先走系统回收站。平台或所在卷没有回收站时，
-            // 确认文案必须改写成“永久删除、不可恢复”，不能沿用“已移至回收站”的说法。
-            var canRecycle = !permanent && PCL.Core.Platform.PlatformRuntime.Current.RecycleBin.IsSupported(instance.PathInstance);
+            var canRecycle = !permanent
+                && PlatformRuntime.Current.RecycleBin.IsSupported(instance.PathInstance);
             var confirmMsg = !permanent && !canRecycle
                 ? Lang.Text("Select.Instance.Delete.RecycleBinUnavailable", instance.Name)
                 : Lang.Text(
@@ -421,33 +429,49 @@ public partial class PageSelectRightViewModel : ViewModelBase
             return;
         }
 
-        if (ShowHidden)
+        switch (ShowHidden)
         {
-            var hasHiddenInstances = cards.Any(card =>
-                card.Key == McInstanceCardType.Hidden && card.Value.Count > 0);
-            if (hasHiddenInstances)
-            {
-                IsBackVisible = true;
-                IsSearchBoxVisible = true;
-                IsEmptyVisible = false;
-                IsEmptySearchVisible = true;
-                EmptySearchTitle = Lang.Text("Select.Instance.Hidden.EmptySearchTitle");
-                EmptySearchContent = string.IsNullOrWhiteSpace(searchText)
-                    ? Lang.Text("Select.Instance.Search.EmptyInput")
-                    : Lang.Text("Select.Instance.Search.NoHiddenResult", searchText);
-            }
-            else
+            case false when string.IsNullOrWhiteSpace(searchText)
+                && cards.Any(card => card.Key == McInstanceCardType.Hidden && card.Value.Count > 0):
             {
                 IsBackVisible = false;
                 IsSearchBoxVisible = false;
                 IsEmptyVisible = true;
                 IsEmptySearchVisible = false;
-                EmptyTitle = Lang.Text("Select.Instance.Hidden.EmptyTitle");
-                EmptyContent = Lang.Text("Select.Instance.Hidden.EmptyMessage");
+                EmptyTitle = Lang.Text("Select.Instance.AllHidden.Title");
+                EmptyContent = Lang.Text("Select.Instance.AllHidden.Message");
                 IsDownloadVisible = false;
+                return;
             }
 
-            return;
+            case true:
+            {
+                var hasHiddenInstances = cards.Any(card =>
+                    card.Key == McInstanceCardType.Hidden && card.Value.Count > 0);
+                if (hasHiddenInstances)
+                {
+                    IsBackVisible = true;
+                    IsSearchBoxVisible = true;
+                    IsEmptyVisible = false;
+                    IsEmptySearchVisible = true;
+                    EmptySearchTitle = Lang.Text("Select.Instance.Hidden.EmptySearchTitle");
+                    EmptySearchContent = string.IsNullOrWhiteSpace(searchText)
+                        ? Lang.Text("Select.Instance.Search.EmptyInput")
+                        : Lang.Text("Select.Instance.Search.NoHiddenResult", searchText);
+                }
+                else
+                {
+                    IsBackVisible = false;
+                    IsSearchBoxVisible = false;
+                    IsEmptyVisible = true;
+                    IsEmptySearchVisible = false;
+                    EmptyTitle = Lang.Text("Select.Instance.Hidden.EmptyTitle");
+                    EmptyContent = Lang.Text("Select.Instance.Hidden.EmptyMessage");
+                    IsDownloadVisible = false;
+                }
+
+                return;
+            }
         }
 
         IsBackVisible = true;
@@ -481,9 +505,8 @@ public partial class PageSelectRightViewModel : ViewModelBase
 
         foreach (var instance in instances)
         {
-            if (!instance.IsLoaded)
-                instance.Load();
-
+            // 列表中的实例要么已在扫描线程完整 Load，要么从缓存恢复了 Info。
+            // 这里位于 UI 线程，不能再调用 Load() 去读 Json 和写配置。
             if (instance.Info.HasFabric) flags.Add("Fabric");
             if (instance.Info.HasQuilt) flags.Add("Quilt");
             if (instance.Info.HasLiteLoader) flags.Add("LiteLoader");
@@ -508,7 +531,7 @@ public partial class PageSelectRightViewModel : ViewModelBase
 
     private static bool TryRecycleInstance(McInstance instance)
     {
-        var outcome = PCL.Core.Platform.PlatformRuntime.Current.RecycleBin.Move(instance.PathInstance, out var error);
+        var outcome = PlatformRuntime.Current.RecycleBin.Move(instance.PathInstance, out var error);
         switch (outcome)
         {
             case RecycleBinOutcome.Moved:
@@ -516,11 +539,11 @@ public partial class PageSelectRightViewModel : ViewModelBase
                     Hints.Success(
                         Lang.Text("Select.Instance.Delete.RecycleBinSuccess", instance.Name)));
                 return true;
-            
+
             case RecycleBinOutcome.Failed:
                 throw new IOException(
                     error ?? Lang.Text("Select.Instance.Error.Delete", instance.Name));
-            
+
             case RecycleBinOutcome.Unsupported:
             default:
                 return false;

@@ -171,32 +171,43 @@ public sealed class ModpackUiBridge : IModpackUi
                     $"{loader.DisplayName}{Lang.Text("Common.Status.Success")}",
                     NotificationType.Success);
                 break;
+
             case LoadState.Failed:
                 UiInteraction.Hint(
                     $"{loader.DisplayName}{Lang.Text("Common.Status.Failure")}{loader.Error?.Message}",
                     NotificationType.Error);
                 break;
+
             case LoadState.Aborted:
                 UiInteraction.Hint(
                     $"{loader.DisplayName}{Lang.Text("Common.Status.Cancelled")}",
                     NotificationType.Info);
                 break;
+
             case LoadState.Loading:
                 return;
+
             case LoadState.Waiting:
                 break;
+
             default:
                 throw new ArgumentOutOfRangeException(nameof(loader));
         }
 
-        // 成功时清理备份；失败或取消时只回滚本次安装创建的路径（必要时从 PCLInstallBackups 还原）
         McInstallRecovery.HandleTerminalState(loader, combo?.input?.ToString() ?? "");
+        var folder = GameFolders.mcFolderSelected;
+        if (string.IsNullOrWhiteSpace(folder))
+            return;
+
+        var root = folder.EndsWith(Path.DirectorySeparatorChar)
+            ? folder
+            : folder + Path.DirectorySeparatorChar;
         Loading.LoaderFolderRun(
             InstanceList.mcInstanceListLoader,
-            GameFolders.mcFolderSelected ?? "",
+            root,
             Loading.LoaderFolderRunType.ForceRun,
             1,
-            "versions" + Path.DirectorySeparatorChar);
+            $"versions{Path.DirectorySeparatorChar}");
     }
 
     public void AddFolder(string folderPath, string displayName, bool showHint)

@@ -2482,6 +2482,8 @@
     <sys:String x:Key="Select.Instance.Error.Load">Failed to load instance. ({0})</sys:String>
     <sys:String x:Key="Select.Instance.Error.UiUpdate">Failed to render instance list UI.</sys:String>
     <sys:String x:Key="Select.Instance.Favorite">Favorite</sys:String>
+    <sys:String x:Key="Select.Instance.AllHidden.Message">All instances in this folder are hidden. Press F11 again to view hidden instances.</sys:String>
+    <sys:String x:Key="Select.Instance.AllHidden.Title">All instances are hidden</sys:String>
     <sys:String x:Key="Select.Instance.Hidden.EmptyMessage">No instances are hidden. You can select "Hidden from list" in "Properties → Personalization → Category" to hide the instance.&#xA;Press "F11" again to exit the hidden instance viewing mode.</sys:String>
     <sys:String x:Key="Select.Instance.Hidden.EmptySearchTitle">No matching hidden instances</sys:String>
     <sys:String x:Key="Select.Instance.Hidden.EmptyTitle">No hidden instances</sys:String>

@@ -69,9 +69,14 @@ public partial class PageSelectLeft : MyPageLeft, IRefreshable
         if (_refreshed)
             return;
         _refreshed = true;
-        if (ViewModel.IsFirstLoad)
-            McFolderListUi();
-        ViewModel.IsFirstLoad = false;
+
+        // 页面可能是在文件夹加载器完成前被切走；重新进入时必须重建，
+        // 不能只在 IsFirstLoad 时构建一次。
+        if (GameFolders.McFolderListLoader.State is LoadState.Waiting
+            or LoadState.Failed
+            or LoadState.Aborted)
+            GameFolders.McFolderListLoader.Start(null, true);
+        McFolderListUi();
     }
 
     private void RefreshList()
@@ -82,11 +87,13 @@ public partial class PageSelectLeft : MyPageLeft, IRefreshable
 
     private void McFolderListUi()
     {
+        var rebuilt = false;
         try
         {
             if (!ViewModel.RefreshFolders())
                 return;
 
+            rebuilt = true;
             _isBuilding = true;
             PanList.Children.Clear();
             _rows.Clear();
@@ -131,7 +138,10 @@ public partial class PageSelectLeft : MyPageLeft, IRefreshable
         finally
         {
             _isBuilding = false;
-            PageSelectLeftViewModel.ReloadInstanceList();
+            // 只有文件夹列表或选中项确实变化时才触发实例列表刷新，
+            // 避免每次导航/本地化重建都重复启动加载器。
+            if (rebuilt)
+                PageSelectLeftViewModel.ReloadInstanceList();
         }
     }
 
@@ -249,6 +259,7 @@ public partial class PageSelectLeft : MyPageLeft, IRefreshable
         {
             ItemsSource = items
         };
+        menu.Classes.Add("NoScroll");
         return menu;
 
         void AddItem(

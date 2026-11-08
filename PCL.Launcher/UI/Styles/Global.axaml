@@ -72,6 +72,27 @@
                 Value="0,0,4,4" />
     </Style>
 
+    <Style Selector="ContextMenu.NoScroll">
+        <Setter Property="PlacementConstraintAdjustment"
+                Value="FlipX,FlipY,SlideX,SlideY" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        Padding="{TemplateBinding Padding}"
+                        MaxWidth="{TemplateBinding MaxWidth}"
+                        HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
+                        CornerRadius="{TemplateBinding CornerRadius}">
+                    <ItemsPresenter Name="PART_ItemsPresenter"
+                                    ItemsPanel="{TemplateBinding ItemsPanel}"
+                                    KeyboardNavigation.TabNavigation="Continue"
+                                    Grid.IsSharedSizeScope="True" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
     <Style Selector="MenuItem">
         <Setter Property="Height"
                 Value="26" />
