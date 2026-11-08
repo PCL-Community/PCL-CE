@@ -162,6 +162,7 @@ public sealed class Tooltip
 
         if (_flyout is null || _shell is null) return;
 
+        _AttachPopupTo(target);
         _RenderInside(content);
 
         _flyout.PlacementTarget = target;
@@ -198,6 +199,27 @@ public sealed class Tooltip
                 PCL.Animations.AaScaleTransform(_shell, 1d - ScaleClosed, AnimLength)
             },
             "Tooltip Open");
+    }
+
+    /// <summary>
+    ///     代码创建的 Popup 不会自动进入逻辑树。挂到目标控件后，PopupRoot 才能解析到
+    ///     FluentTheme 中的 PopupRoot 主题，获得透明背景；内置 ToolTip 通过
+    ///     <c>Popup.SetPopupParent</c> 完成同样的事情。
+    /// </summary>
+    private static void _AttachPopupTo(Control target)
+    {
+        if (_flyout is null || ReferenceEquals(_flyout.Parent, target)) return;
+
+        if (_flyout.Parent is not null)
+            ((ISetLogicalParent)_flyout).SetParent(null);
+
+        ((ISetLogicalParent)_flyout).SetParent(target);
+    }
+
+    private static void _DetachPopup()
+    {
+        if (_flyout?.Parent is null) return;
+        ((ISetLogicalParent)_flyout).SetParent(null);
     }
 
     private static PlacementMode _GetPlacement(Control target)
@@ -393,6 +415,10 @@ public sealed class Tooltip
             catch (Exception ex)
             {
                 LogWrapper.Debug(ex, Module, "提示浮层关闭失败");
+            }
+            finally
+            {
+                _DetachPopup();
             }
 
         if (_shell is not null)
