@@ -134,18 +134,25 @@ public static partial class Libraries
         // natives-windows-arm64
         // natives-macos-patch
         // natives-windows-${arch}
+
         return PlatformRuntime.Current.Kind switch
         {
-            PlatformKind.Windows => ["natives-windows"],
+            PlatformKind.Windows => RuntimeInformation.OSArchitecture switch
+            {
+                Architecture.Arm64 =>
+                    ["natives-windows", "natives-windows-arm64"],
+                Architecture.X64 => ["natives-windows", "natives-windows-64", "natives-windows-x86"],
+                _ => ["natives-windows", "natives-windows-x86", "natives-windows-32"]
+            },
             PlatformKind.MacOs => RuntimeInformation.OSArchitecture is Architecture.Arm64
                 ? ["natives-macos-arm64", "natives-macos", "natives-osx", "natives-macos-patch"]
-                : ["natives-macos", "natives-osx", "natives-macos-x86_64", "natives-macos-patch"],
+                : ["natives-macos", "natives-osx", "natives-macos-patch"],
             _ => RuntimeInformation.OSArchitecture switch
             {
                 Architecture.Arm64 =>
-                    ["natives-linux", "natives-linux-arm64", "natives-linux-aarch64"],
-                Architecture.X86 => ["natives-linux", "natives-linux-32"],
-                _ => ["natives-linux", "natives-linux-64", "natives-linux-amd64"]
+                    ["natives-linux", "linux-aarch_64"],
+                Architecture.X64 => ["natives-linux", "linux-x86_64"],
+                _ => ["natives-linux"]
             }
         };
     }
