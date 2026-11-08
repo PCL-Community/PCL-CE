@@ -19,8 +19,7 @@ public sealed class DialogPresenter : IDialogPresenter
         {
             var main = Launcher.frmMain;
             return main?.PanMsg is not null
-                   && main.WindowState != WindowState.Minimized
-                   && main.PanMsg.Children.Count == 0;
+                   && main.WindowState != WindowState.Minimized;
         }
     }
 
@@ -52,11 +51,14 @@ public sealed class DialogPresenter : IDialogPresenter
                 return;
             }
 
+            view.Opacity = 0d;
             main.PanMsgBackground.Visibility = Visibility.Visible;
             main.PanMsg.Children.Add(view);
             view.Unloaded += (_, _) =>
             {
-                if (main.PanMsg is { Children.Count: 0 })
+                if (main.PanMsg is { Children.Count: 0 }
+                    && !DialogService.Instance.IsShowing
+                    && !DialogService.Instance.HasPending)
                     main.PanMsgBackground.Visibility = Visibility.Collapsed;
             };
         }
