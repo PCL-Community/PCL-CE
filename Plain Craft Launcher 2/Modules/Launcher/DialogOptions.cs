@@ -20,6 +20,7 @@ public static class DialogOptions
                         Text = item.Title,
                         Description = item.Info,
                         Image = item.Logo,
+                        SvgIcon = item.SvgIcon,
                         ImageScale = item.LogoScale,
                         IsChecked = item.Checked,
                         Tag = item
@@ -52,6 +53,7 @@ public static class DialogOptions
                 Text = item.Title,
                 Description = item.Info,
                 Image = item.Logo,
+                SvgIcon = item.SvgIcon,
                 ImageScale = item.LogoScale,
                 IsChecked = item.Checked,
                 Tag = item

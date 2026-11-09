@@ -26,6 +26,8 @@ public sealed partial class DialogOptionState(DialogOption option, int index) : 
 
     public double ImageScale => Option.ImageScale;
 
+    public string? SvgIcon => Option.SvgIcon;
+
     [ObservableProperty] private bool _isChecked = option.IsChecked;
 }
 
