@@ -26,6 +26,7 @@ public partial class PageInstanceModDisabled : MyPageRight, IPageView
 
     public void RefreshModDisabled()
     {
-        ViewModel.Refresh();
+        if (ViewModel.Refresh())
+            PanMain.InvalidateMeasure();
     }
 }

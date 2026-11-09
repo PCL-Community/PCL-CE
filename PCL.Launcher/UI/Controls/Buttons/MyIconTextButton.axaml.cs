@@ -64,7 +64,7 @@ public partial class MyIconTextButton : Border
         PointerReleased += _OnPointerReleased;
         PointerEntered += (_, _) => RefreshColor(true);
         PointerExited += _OnPointerExited;
-        KeyboardActivation.Attach(this, PerformClick);
+        KeyboardActivation.Attach(this, modifiers => PerformClick(modifiers));
 
         Loaded += (_, _) => RefreshColor(false);
         ActualThemeVariantChanged += (_, _) => RefreshColor(false);
@@ -75,6 +75,9 @@ public partial class MyIconTextButton : Border
             PCL.Animations.AniStop(IconKey);
         };
     }
+
+    /// <summary>最近一次点击携带的修饰键；键盘和自动化调用为 <see cref="KeyModifiers.None" />。</summary>
+    public KeyModifiers LastClickKeyModifiers { get; private set; }
 
     /// <summary>旧版 Path 图标数据（SVG path 语法）。</summary>
     public string Logo
@@ -299,14 +302,21 @@ public partial class MyIconTextButton : Border
         Classes.Set("pressed", false);
         RefreshColor(true);
 
-        PerformClick();
+        PerformClick(e.KeyModifiers);
         e.Handled = true;
     }
 
     /// <summary>执行点击语义；鼠标释放、键盘 Enter/Space 与自动化调用共用。</summary>
     public void PerformClick()
     {
+        PerformClick(KeyModifiers.None);
+    }
+
+    /// <summary>执行点击语义，并记录本次点击的修饰键。</summary>
+    public void PerformClick(KeyModifiers modifiers)
+    {
         if (!IsEnabled) return;
+        LastClickKeyModifiers = modifiers;
         LogWrapper.Debug("[Control] 按下带图标按钮：" + Text);
         Click?.Invoke(this, new RouteEventArgs(true));
         CustomEventService.Raise(this);

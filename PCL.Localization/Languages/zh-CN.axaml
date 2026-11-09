@@ -1408,7 +1408,7 @@
     <sys:String x:Key="Instance.Server.EditTitle">编辑服务器信息</sys:String>
     <sys:String x:Key="Instance.Server.Empty.Message">暂时没有找到服务器，在游戏内添加服务器或点击下方按钮添加新服务器</sys:String>
     <sys:String x:Key="Instance.Server.Empty.Title">暂时没有服务器</sys:String>
-    <sys:String x:Key="Instance.Server.FoundServers">找到服务器列表</sys:String>
+    <sys:String x:Key="Instance.Server.FoundServers">服务器列表</sys:String>
     <sys:String x:Key="Instance.Server.IndexNotFound">无法找到服务器在列表中的索引</sys:String>
     <sys:String x:Key="Instance.Server.NamePrompt">请输入新的服务器名称：</sys:String>
     <sys:String x:Key="Instance.Server.NoFrequentRefresh">请勿频繁刷新！</sys:String>

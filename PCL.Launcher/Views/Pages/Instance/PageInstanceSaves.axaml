@@ -65,6 +65,32 @@
                 </Grid>
             </ui:MyCard>
 
+            <ui:MyCard x:Name="PanError"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Margin="40"
+                       IsVisible="False">
+                <StackPanel Margin="20,17"
+                            HorizontalAlignment="Center">
+                    <TextBlock Margin="0,0,0,9"
+                               HorizontalAlignment="Center"
+                               FontSize="19"
+                               Foreground="{DynamicResource ColorBrush3}"
+                               Text="{loc:Loc Instance.Saves.LoadListFailed}" />
+                    <Rectangle Height="2"
+                               HorizontalAlignment="Stretch"
+                               Fill="{DynamicResource ColorBrush3}" />
+                    <ui:MyButton x:Name="BtnErrorRetry"
+                                 Height="35"
+                                 MinWidth="140"
+                                 Margin="10,20,10,0"
+                                 Padding="13,0"
+                                 HorizontalAlignment="Center"
+                                 ColorType="Highlight"
+                                 Text="{loc:Loc Common.Action.Refresh}" />
+                </StackPanel>
+            </ui:MyCard>
+
             <StackPanel x:Name="PanContent"
                         Orientation="Vertical"
                         Margin="25,10,25,10"

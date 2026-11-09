@@ -86,9 +86,10 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
     public SaveInfo? Save { get; private set; }
 
     public bool SupportsAllowCommands =>
-        Save?.VersionName is null
-            ? Save?.VersionId is not null
-            : McVersionComparer.CompareVersion(Save.VersionName, "1.9") >= 0;
+        Save is not null
+        && (Save.VersionName is not null
+            || Save.VersionId is not null
+            || Save.Difficulty.HasValue);
 
     public bool SupportsDifficulty =>
         Save?.VersionName is null
@@ -231,9 +232,7 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
         }
 
         var match = Regex.Match(version, @"^(?<major>\d+)\.(?<minor>\d+)");
-        if (!match.Success
-            || version.Contains('w', StringComparison.OrdinalIgnoreCase)
-            || version.Contains("pre", StringComparison.OrdinalIgnoreCase))
+        if (!match.Success || version.Any(char.IsLetter))
         {
             HintService.Show(
                 Hints.Info(Lang.Text("Instance.Saves.Info.Chunkbase.PreviewVersion", version)));
@@ -350,11 +349,12 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
             true);
         AddRow(Lang.Text("Instance.Saves.Info.GameMode"), GameModeText);
         AddRow(Lang.Text("Instance.Saves.Info.Hardness"), DifficultyText);
-        AddRow(
-            Lang.Text("Instance.Saves.Info.LockDifficulty"),
-            save.IsDifficultyLocked
-                ? Lang.Text("Common.Option.Yes")
-                : Lang.Text("Common.Option.No"));
+        if (save.Difficulty.HasValue)
+            AddRow(
+                Lang.Text("Instance.Saves.Info.LockDifficulty"),
+                save.IsDifficultyLocked
+                    ? Lang.Text("Common.Option.Yes")
+                    : Lang.Text("Common.Option.No"));
         AddRow(Lang.Text("Instance.Saves.Info.PlayTime"), PlayTimeText);
         AddRow(
             Lang.Text("Instance.Saves.Info.LastPlayed"),

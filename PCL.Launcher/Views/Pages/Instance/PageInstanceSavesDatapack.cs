@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
@@ -5,7 +6,9 @@ using Avalonia.Interactivity;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
+using PCL.Navigation;
 using PCL.UI.Controls;
 using PCL.Views.Pages.Download;
 using PCL.Views.Shell;
@@ -18,8 +21,9 @@ namespace PCL.Views.Pages.Instance;
 ///     支持搜索、按启用状态/可读性筛选、排序、全选与批量启用/禁用/删除、从文件安装与下载新数据包；
 ///     删除优先移入系统回收站，回收站不可用时明确提示永久删除。
 /// </summary>
-public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable
+public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable, ICompLocalPage
 {
+    private readonly ResourceSwipeSelector _swipeSelector;
     private bool _building;
 
     public PageInstanceSavesDatapack()
@@ -27,6 +31,16 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable
         InitializeComponent();
         DataContext = ViewModel;
         PanScroll = PanBack;
+        ViewModel.SetPage(this);
+        _swipeSelector = new ResourceSwipeSelector(
+            PanList,
+            PanSelect,
+            () => ViewModel.VisibleEntries.Count,
+            index => index >= 0
+                && index < ViewModel.VisibleEntries.Count
+                && ViewModel.IsSelected(ViewModel.VisibleEntries[index]),
+            SetSwipeSelected,
+            RefreshSelectBar);
 
         SearchBox.TextChanged += (_, _) =>
         {
@@ -62,13 +76,23 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable
             };
         BtnSort.Click += (_, _) => ShowSortMenu();
 
-        BtnSelectUpdate.Click += (_, _) => _ = UpdateSelectedAsync();
-        BtnSelectEnable.Click += (_, _) => ViewModel.SetSelectedEnabled(true);
-        BtnSelectDisable.Click += (_, _) => ViewModel.SetSelectedEnabled(false);
-        BtnSelectFavorites.Click += (_, _) => ShowFavoritesMenu();
-        BtnSelectShare.Click += (_, _) => ShareSelected();
-        BtnSelectDelete.Click += (_, _) => _ = ViewModel.DeleteSelectedAsync();
-        BtnSelectCancel.Click += (_, _) =>
+        PanSelect.UpdateButton.Click += (_, _) => _ = UpdateSelectedAsync();
+        PanSelect.EnableButton.Click += (_, _) => ViewModel.SetSelectedEnabled(true);
+        PanSelect.DisableButton.Click += (_, _) => ViewModel.SetSelectedEnabled(false);
+        PanSelect.FavoritesButton.Click += (_, _) => ShowFavoritesMenu();
+        PanSelect.ShareButton.Click += (_, _) => ShareSelected();
+        PanSelect.DeleteButton.Click += (_, _) =>
+        {
+            var targets = ViewModel
+                .SelectedKeys
+                .Select(key => ViewModel.Entries.FirstOrDefault(entry => entry.path == key))
+                .OfType<LocalComp.LocalCompFile>()
+                .ToList();
+            var permanent =
+                PanSelect.DeleteButton.LastClickKeyModifiers.HasFlag(KeyModifiers.Shift);
+            _ = ViewModel.DeleteAsync(targets, permanent);
+        };
+        PanSelect.CancelButton.Click += (_, _) =>
         {
             ViewModel.ClearSelection();
             BuildList();
@@ -79,6 +103,9 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable
         BtnHintOpen.Click += (_, _) => ViewModel.OpenFolderCommand.Execute(null);
 
         ViewModel.ReloadRequested += Reload;
+        BtnErrorRetry.Click += (_, _) => Reload();
+        AttachedToVisualTree += (_, _) => FileDragHandler.FileDropped += OnFileDropped;
+        DetachedFromVisualTree += (_, _) => FileDragHandler.FileDropped -= OnFileDropped;
         AddHandler(
             KeyDownEvent,
             (_, e) =>
@@ -100,6 +127,23 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable
 
     private string? DatapacksPath => ViewModel.DatapacksPath;
 
+    public bool LoadProgressVisible { get; set; }
+
+    public string? CurrentFolderPath => DatapacksPath;
+
+    public void SetLoadText(string key)
+    {
+    }
+
+    public void UpdateOnly()
+    {
+    }
+
+    public void RefreshModList()
+    {
+        BuildList();
+    }
+
     public void Refresh()
     {
         Reload();
@@ -118,13 +162,24 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable
         var saveFolder = parameter as string;
         if (string.IsNullOrEmpty(saveFolder))
             saveFolder = PageInstanceSavesLeft.CurrentSave;
+        ViewModel.SetInstance(PageInstanceLeft.ResolveInstance());
         ViewModel.SetSaveFolder(saveFolder ?? string.Empty);
+        ViewModel.ResetListViewState();
+        SearchBox.Text = string.Empty;
+        PanBack.ScrollToHome();
         Reload();
+    }
+
+    public override void OnNavigatedFrom()
+    {
+        _swipeSelector.Cancel();
     }
 
     public void Reload()
     {
-        ViewModel.ClearSelection();
+        ViewModel.ResetListViewState();
+        SearchBox.Text = string.Empty;
+        PanBack.ScrollToHome();
         var path = DatapacksPath;
         if (path is null)
         {
@@ -135,7 +190,7 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable
         PanLoad.IsVisible = true;
         PanEmpty.IsVisible = false;
         PanMain.IsVisible = false;
-        PanSelect.IsVisible = false;
+        PanSelect.UpdateSelection(false, 0, ViewModel.SelectedText);
         Load.State = new MyLoadingStateSimulator
         {
             LoadingState = LoadingState.Run
@@ -167,10 +222,16 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable
         _building = true;
         try
         {
+            _swipeSelector.Cancel();
             ViewModel.Rebuild();
             PanList.Children.Clear();
-            foreach (var entry in ViewModel.VisibleEntries)
-                PanList.Children.Add(CreateItem(entry));
+            foreach (var placeholder in ViewModel.VisibleEntries.Select(entry =>
+                         new MyVirtualizingElement<MyLocalModItem>(() => CreateItem(entry))
+                         {
+                             Height = 44d,
+                             RecycleOffscreen = true
+                         }))
+                PanList.Children.Add(placeholder);
 
             RefreshFilterTexts();
             RefreshSortText();
@@ -200,18 +261,41 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable
         BtnSort.Text = ViewModel.SortText;
     }
 
+    private void SetSwipeSelected(int index, bool selected, bool animate)
+    {
+        if (index < 0 || index >= ViewModel.VisibleEntries.Count)
+            return;
+
+        var entry = ViewModel.VisibleEntries[index];
+        ViewModel.SetSelected(entry, selected);
+        if (index < PanList.Children.Count && PanList.Children[index] is MyLocalModItem item)
+            item.SetChecked(selected, animate);
+    }
+
     private void RefreshSelectBar()
     {
-        PanSelect.IsVisible = ViewModel.ShowSelection;
+        PanListBack.Margin = new Thickness(
+            0d,
+            0d,
+            0d,
+            ViewModel.ShowSelection ? 95d : 15d);
         if (!ViewModel.ShowSelection)
+        {
+            PanSelect.UpdateSelection(false, 0, ViewModel.SelectedText);
             return;
-        LabSelect.Text = ViewModel.SelectedText;
-        BtnSelectEnable.IsEnabled = ViewModel.CanEnable;
-        BtnSelectDisable.IsEnabled = ViewModel.CanDisable;
-        BtnSelectUpdate.IsEnabled = ViewModel.CanUpdate;
-        BtnSelectFavorites.IsEnabled = ViewModel.CanFavoriteAndShare;
-        BtnSelectShare.IsEnabled = ViewModel.CanFavoriteAndShare;
-        BtnSelectDelete.IsEnabled = ViewModel.CanDelete;
+        }
+
+        PanSelect.EnableButton.IsEnabled = ViewModel.CanEnable;
+        PanSelect.DisableButton.IsEnabled = ViewModel.CanDisable;
+        PanSelect.UpdateButton.IsEnabled = ViewModel.CanUpdate;
+        PanSelect.FavoritesButton.IsEnabled = ViewModel.CanFavoriteAndShare;
+        PanSelect.ShareButton.IsEnabled = ViewModel.CanFavoriteAndShare;
+        PanSelect.DeleteButton.IsEnabled = ViewModel.CanDelete;
+        PanSelect.UpdateSelection(
+            true,
+            ViewModel.SelectedKeys.Count,
+            ViewModel.SelectedText,
+            !PanSelect.IsSwipeActive);
     }
 
     private void ShowSortMenu()
@@ -241,7 +325,7 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable
     {
         var projects = ViewModel.GetFavoriteProjects();
         if (projects.Count > 0)
-            CompFavoritesMenu.Show(projects, BtnSelectFavorites);
+            CompFavoritesMenu.Show(projects, PanSelect.FavoritesButton);
     }
 
     private void ShareSelected()
@@ -267,53 +351,53 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable
 
     private void UpdateEmptyState()
     {
-        var empty = ViewModel.ShowEmpty || (DatapacksPath is null && ViewModel.Entries.Count == 0);
+        var failed = ViewModel.HasError;
+        PanError.IsVisible = failed;
+        var empty = !failed
+            && (ViewModel.ShowEmpty || (DatapacksPath is null && ViewModel.Entries.Count == 0));
         PanEmpty.IsVisible = empty;
-        PanMain.IsVisible = !empty;
-        if (empty)
-            PanSelect.IsVisible = false;
+        PanMain.IsVisible = !failed && !empty;
+        if (empty || failed)
+            PanSelect.UpdateSelection(false, 0, ViewModel.SelectedText);
     }
 
-    private MyListItem CreateItem(DatapackEntry entry)
+    private MyLocalModItem CreateItem(LocalComp.LocalCompFile entry)
     {
-        var selected = ViewModel.IsSelected(entry);
-        var metadata = (entry.IsDirectory
-                ? Lang.Text("Instance.Resource.Item.FolderTag")
-                : string.Empty)
-            + (string.IsNullOrWhiteSpace(entry.Version) ? string.Empty : $" {entry.Version}")
-            + (string.IsNullOrWhiteSpace(entry.Description)
-                ? string.Empty
-                : $" · {entry.Description}");
-        var item = new MyListItem
+        var item = new MyLocalModItem(entry)
         {
-            Title = entry.File?.Name ?? entry.DisplayName,
-            Info = string.IsNullOrWhiteSpace(metadata)
-                ? entry.Disabled
-                    ? Lang.Text("Instance.Resource.Filter.Disabled")
-                    : Lang.Text("Instance.Resource.Filter.Enabled")
-                : metadata,
-            SvgIcon = entry.IsDirectory ? "lucide/folder" : "lucide/package",
-            Type = MyListItem.CheckType.CheckBox,
-            Checked = selected,
-            Tag = entry
+            AllowFolderNavigation = false
         };
-        if (entry.Tags.Count > 0)
-            item.PlainTags = entry.Tags.Take(4);
-        item.Check += (_, _) =>
+        item.CheckedChanged += (_, value) =>
         {
-            ViewModel.SetSelected(entry, item.Checked);
+            ViewModel.SetSelected(entry, value);
             RefreshSelectBar();
         };
+        item.InfoRequested += i => _ = ShowInfoAsync(entry);
 
         var toggle = new MyIconButton
         {
-            SvgIcon = entry.Disabled ? "lucide/check" : "lucide/x",
+            SvgIcon = entry.State == LocalComp.LocalCompFile.LocalFileStatus.Disabled
+                ? "lucide/check"
+                : "lucide/x",
             LogoScale = 0.9d
         };
         ToolTip.SetTip(
             toggle,
-            Lang.Text(entry.Disabled ? "Instance.Resource.Enable" : "Instance.Resource.Disable"));
+            Lang.Text(
+                entry.State == LocalComp.LocalCompFile.LocalFileStatus.Disabled
+                    ? "Instance.Resource.Enable"
+                    : "Instance.Resource.Disable"));
         toggle.Click += (_, _) => ViewModel.Toggle(entry);
+        toggle.IsVisible = !entry.IsFolder
+            && entry.State != LocalComp.LocalCompFile.LocalFileStatus.Unavailable;
+
+        var info = new MyIconButton
+        {
+            SvgIcon = "lucide/info",
+            LogoScale = 1d
+        };
+        ToolTip.SetTip(info, Lang.Text("Instance.Saves.Details"));
+        info.Click += (_, _) => _ = ShowInfoAsync(entry);
 
         var open = new MyIconButton
         {
@@ -322,8 +406,11 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable
         };
         ToolTip.SetTip(open, Lang.Text("Instance.Saves.OpenFolder"));
         open.Click += (_, _) =>
+        {
+            var path = PageInstanceSavesDatapackViewModel.GetEntryPath(entry);
             InstancePageHelper.OpenFolder(
-                entry.IsDirectory ? entry.Path : Path.GetDirectoryName(entry.Path) ?? entry.Path);
+                entry.IsFolder ? path : Path.GetDirectoryName(path) ?? path);
+        };
 
         var delete = new MyIconButton
         {
@@ -331,25 +418,126 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable
             LogoScale = 0.9d
         };
         ToolTip.SetTip(delete, Lang.Text("Common.Action.Delete"));
-        delete.Click += (_, _) => _ = ViewModel.DeleteAsync([entry]);
+        delete.Click += (_, _) => _ = ViewModel.DeleteAsync(
+            [entry],
+            delete.LastClickKeyModifiers.HasFlag(KeyModifiers.Shift));
 
-        var buttons = new List<MyIconButton>();
-        if (entry.CanUpdate)
+        var buttons = new List<MyIconButton>
         {
-            var update = new MyIconButton
-            {
-                SvgIcon = "lucide/upload",
-                LogoScale = 0.9d
-            };
-            ToolTip.SetTip(update, Lang.Text("Instance.Resource.Update"));
-            update.Click += (_, _) => _ = ViewModel.UpdateEntryAsync(entry);
-            buttons.Add(update);
-        }
-
-        buttons.Add(open);
+            info,
+            open
+        };
+        if (toggle.IsVisible)
+            buttons.Add(toggle);
         buttons.Add(delete);
         item.Buttons = buttons;
+        item.SetChecked(ViewModel.IsSelected(entry), false);
         return item;
+    }
+
+    private async Task ShowUpdateConfirmAsync(LocalComp.LocalCompFile entry)
+    {
+        var result = await DialogService.Instance.ShowAsync(
+            new TextDialogRequest
+            {
+                Title = Lang.Text("Instance.Resource.Item.UpdateConfirm.Title"),
+                Content = Lang.Text(
+                        "Instance.Resource.Item.UpdateConfirm.Message",
+                        entry.Name)
+                    + "\r\n\r\n"
+                    + $"{entry.Version} -> {entry.UpdateFile?.Version}",
+                Buttons = DialogButtons.Create(
+                    "Instance.Resource.Item.Update",
+                    "Instance.Resource.Item.ViewChangelog",
+                    "Common.Action.Cancel")
+            });
+        switch (result.Button)
+        {
+            case 1:
+                await ViewModel.UpdateEntriesAsync([entry]);
+                break;
+            case 2:
+                PageInstanceCompResourceViewModel.ShowUpdateLog(entry);
+                break;
+        }
+    }
+
+    private static async Task ShowInfoAsync(LocalComp.LocalCompFile entry)
+    {
+        if (entry.State == LocalComp.LocalCompFile.LocalFileStatus.Unavailable)
+        {
+            await DialogService.Instance.ShowAsync(
+                new TextDialogRequest
+                {
+                    Title = Lang.Text("Instance.Saves.Datapack.Info.ReadFailedTitle"),
+                    Content = Lang.Text(
+                        "Instance.Saves.Datapack.Info.ReadFailed.WithDetail",
+                        entry.FileUnavailableReason?.ToString() ?? string.Empty),
+                    Buttons = DialogButtons.Ok
+                });
+            return;
+        }
+
+        if (entry.Comp is { } comp)
+        {
+            var instance = PageInstanceLeft.ResolveInstance();
+            PageRouter.Navigate(
+                PageType.CompDetail,
+                PageSubType.Default,
+                new CompDetailParameter(
+                    comp,
+                    Comp.CompType.DataPack,
+                    instance?.Info.VanillaName,
+                    Comp.CompLoaderType.Any));
+            return;
+        }
+
+        var lines = new List<string>();
+        if (entry.IsFolder)
+        {
+            lines.Add(Lang.Text("Instance.Resource.Item.FolderTag"));
+            lines.Add(Lang.Text("Instance.Resource.Item.Info.Path", entry.ActualPath));
+        }
+        else
+        {
+            if (!string.IsNullOrWhiteSpace(entry.Authors))
+                lines.Add(Lang.Text("Instance.Saves.Datapack.Info.Author") + entry.Authors);
+            lines.Add(
+                Lang.Text("Instance.Saves.Datapack.Info.File")
+                + entry.Name
+                + $"（{InstancePageHelper.FormatSize(PageInstanceSavesDatapackViewModel.GetSafeSize(entry))}）");
+            if (!string.IsNullOrWhiteSpace(entry.Version))
+                lines.Add(Lang.Text("Instance.Saves.Datapack.Info.Version") + entry.Version);
+            if (!string.IsNullOrWhiteSpace(entry.ModId))
+                lines.Add(Lang.Text("Instance.Saves.Datapack.Info.DatapackId") + entry.ModId);
+            if (!string.IsNullOrWhiteSpace(entry.Description))
+                lines.Add(entry.Description);
+        }
+
+        if (lines.Count == 0)
+            lines.Add(entry.Name);
+
+        var showWebsite = !entry.IsFolder && !string.IsNullOrWhiteSpace(entry.Url);
+        var buttons = new List<string>();
+        if (showWebsite)
+            buttons.Add("Instance.Resource.Item.Info.OpenWebsite");
+        buttons.Add("Instance.Resource.Item.Info.Return");
+        var result = await DialogService.Instance.ShowAsync(
+            new TextDialogRequest
+            {
+                Title = entry.Name,
+                Content = string.Join("\r\n", lines),
+                Buttons = DialogButtons.Create([.. buttons])
+            });
+        if (showWebsite && result.Button == 1)
+            try
+            {
+                Basics.OpenPath(entry.Url!);
+            }
+            catch (Exception ex)
+            {
+                InstancePageHelper.ReportError("Instance.Resource.Error.OperationFailed", ex);
+            }
     }
 
     private async Task UpdateSelectedAsync()
@@ -358,9 +546,23 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable
         BuildList();
     }
 
-    private Task UpdateEntryAsync(DatapackEntry entry)
+    private Task UpdateEntryAsync(LocalComp.LocalCompFile entry)
     {
         return ViewModel.UpdateEntryAsync(entry);
+    }
+
+    private bool OnFileDropped(IReadOnlyList<string> paths)
+    {
+        if (!ReferenceEquals(PageRouter.CurrentPage, this))
+            return false;
+        var accepted = paths
+            .Where(path => path.EndsWith(".zip", StringComparison.OrdinalIgnoreCase)
+                || path.EndsWith(".zip.disabled", StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        if (accepted.Count == 0)
+            return false;
+        _ = ViewModel.InstallFilesAsync(accepted);
+        return true;
     }
 
     #region 安装与导出

@@ -65,12 +65,6 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
 
     public event Action? Updated;
 
-    partial void OnSearchTextChanged(string value)
-    {
-        IsSearching = !string.IsNullOrWhiteSpace(value);
-        ApplySearchAndSort();
-    }
-
     public void SetInstance(McInstance? instance)
     {
         Instance = instance;
@@ -186,28 +180,30 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
         ];
     }
 
-    private void ApplySearchAndSort()
+    public void ApplySearchAndSort()
     {
         var keyword = SearchText.Trim();
         IsSearching = keyword.Length > 0;
         List<SaveEntry> filtered;
         if (IsSearching)
-            filtered = SearchService
-                .Search(
-                    [
-                        .. _allSaves.Select(entry =>
-                            new SearchService.SearchEntry<SaveEntry>
-                            {
-                                item = entry,
-                                searchSource = [new SearchService.SearchSource(entry.Title)]
-                            })
-                    ],
-                    keyword,
-                    SearchService.MaxLocalSearchDepth,
-                    0.35d)
-                .Select(result => result.item)
-                .OfType<SaveEntry>()
-                .ToList();
+            filtered =
+            [
+                .. SearchService
+                    .Search(
+                        [
+                            .. _allSaves.Select(entry =>
+                                new SearchService.SearchEntry<SaveEntry>
+                                {
+                                    item = entry,
+                                    searchSource = [new SearchService.SearchSource(entry.Title)]
+                                })
+                        ],
+                        keyword,
+                        SearchService.MaxLocalSearchDepth,
+                        0.35d)
+                    .Select(result => result.item)
+                    .OfType<SaveEntry>()
+            ];
         else
             filtered = [.. _allSaves];
 
@@ -382,7 +378,7 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
         {
             DeletingFolder = folder;
             var saveName = Path.GetFileName(folder.TrimEnd(Path.DirectorySeparatorChar));
-            var canRecycle = PCL.Core.Platform.PlatformRuntime.Current.RecycleBin.IsSupported(folder);
+            var canRecycle = PlatformRuntime.Current.RecycleBin.IsSupported(folder);
             var result = await DialogService.Instance.ShowAsync(
                 new TextDialogRequest
                 {
@@ -406,7 +402,7 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
 
             var (outcome, error) = await Task.Run(() =>
             {
-                var moved = PCL.Core.Platform.PlatformRuntime.Current.RecycleBin.Move(folder, out var reason);
+                var moved = PlatformRuntime.Current.RecycleBin.Move(folder, out var reason);
                 return (moved, reason);
             });
             switch (outcome)
@@ -444,29 +440,42 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
 
     public async Task DiscussPasteAsync()
     {
-        if (string.IsNullOrEmpty(WorldPath))
-            return;
-        InstancePageHelper.EnsureDirectory(WorldPath);
         var paths = PlatformServices.Clipboard?.GetFileDropList();
-        if (paths is not null)
-            foreach (var path in paths)
-            {
-                if (!Directory.Exists(path)) continue;
-                var folderName = new DirectoryInfo(path).Name;
-                if (Directory.Exists(Path.Combine(WorldPath, folderName)))
-                    HintService.Show(
-                        Hints.Info(Lang.Text("Instance.Saves.DuplicateFolder", folderName)));
-            }
+        await PastePathsAsync(paths);
+    }
 
-        var copied = await Files.PasteFromClipboardAsync(WorldPath, false, true, true);
+    /// <summary>粘贴指定的路径；可在加载器后台线程调用，剪贴板读取必须由页面在 UI 线程完成。</summary>
+    public async Task<int> PastePathsAsync(IReadOnlyList<string>? paths)
+    {
+        if (string.IsNullOrEmpty(WorldPath))
+            return 0;
+
+        if (paths is null || paths.Count == 0)
+        {
+            HintService.Show(Hints.Warning(Lang.Text("Instance.Saves.Empty.Message")));
+            return 0;
+        }
+
+        InstancePageHelper.EnsureDirectory(WorldPath);
+        foreach (var path in paths)
+        {
+            if (!Directory.Exists(path)) continue;
+            var folderName = new DirectoryInfo(path).Name;
+            if (Directory.Exists(Path.Combine(WorldPath, folderName)))
+                HintService.Show(
+                    Hints.Info(Lang.Text("Instance.Saves.DuplicateFolder", folderName)));
+        }
+
+        var copied = await Files.PastePathsAsync(paths, WorldPath, false, true, true);
         if (copied == 0)
         {
             HintService.Show(Hints.Warning(Lang.Text("Instance.Saves.Empty.Message")));
-            return;
+            return 0;
         }
 
         HintService.Show(Hints.Success(Lang.Text("Instance.Saves.PastedCount", copied)));
         await LoadAsync();
+        return copied;
     }
 
     [RelayCommand]

@@ -260,7 +260,7 @@ public sealed class FileDragHandler
                 Path.GetExtension(path).ToLowerInvariant())))
             return false;
 
-        var instance = InstanceList.McMcInstanceSelected;
+        var instance = ResolveTargetInstance();
         if (instance is null)
         {
             HintService.Show(Hints.Info(Lang.Text("Main.FileDrag.NoInstance")));
@@ -295,8 +295,16 @@ public sealed class FileDragHandler
 
         var folder = Path.Combine(
             instance.PathIndie,
+            instance.Info.HasLabyMod
+                ? Path.Combine("labymod-neo", "fabric", instance.Info.VanillaName)
+                : string.Empty,
             LocalComp.GetPathNameByCompType(Comp.CompType.Mod));
         return InstallInstanceFiles(paths, folder);
+    }
+
+    private static McInstance? ResolveTargetInstance()
+    {
+        return PageInstanceLeft.ResolveInstance() ?? InstanceList.McMcInstanceSelected;
     }
 
     private static bool TryInstallSchematics(IReadOnlyList<string> paths)
@@ -306,7 +314,7 @@ public sealed class FileDragHandler
                 Comp.CompType.Schematic)))
             return false;
 
-        var instance = InstanceList.McMcInstanceSelected;
+        var instance = ResolveTargetInstance();
         if (instance is null)
         {
             HintService.Show(Hints.Info(Lang.Text("Main.FileDrag.NoInstance")));
@@ -331,7 +339,7 @@ public sealed class FileDragHandler
         IReadOnlyList<string> paths,
         Comp.CompType type)
     {
-        var instance = InstanceList.McMcInstanceSelected;
+        var instance = ResolveTargetInstance();
         if (instance is null)
         {
             HintService.Show(Hints.Info(Lang.Text("Main.FileDrag.NoInstance")));
@@ -400,7 +408,7 @@ public sealed class FileDragHandler
 
     private static void ImportSave(string path)
     {
-        if (InstanceList.McMcInstanceSelected is not { } instance)
+        if (ResolveTargetInstance() is not { } instance)
         {
             HintService.Show(Hints.Info(Lang.Text("Main.FileDrag.NoInstance")));
             return;
@@ -505,6 +513,7 @@ public sealed class FileDragHandler
             ".litemod",
             ".disabled",
             ".old",
+            ".zip",
             ".litematic",
             ".nbt",
             ".schematic",

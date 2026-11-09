@@ -25,6 +25,30 @@
                        IsVisible="{Binding ShowVersionHint13}"
                        Text="{Binding VersionHint13Text}" />
 
+            <ui:MyCard x:Name="PanError"
+                       Margin="0,15,0,0"
+                       IsVisible="False">
+                <StackPanel Margin="15,20,15,15"
+                            HorizontalAlignment="Center">
+                    <TextBlock Margin="0,0,0,9"
+                               HorizontalAlignment="Center"
+                               FontSize="19"
+                               Foreground="{DynamicResource ColorBrush3}"
+                               Text="{loc:Loc Instance.Saves.Info.Error.LoadFailed}" />
+                    <TextBlock Margin="10,8"
+                               Text="{Binding Error}"
+                               TextWrapping="Wrap" />
+                    <ui:MyButton x:Name="BtnErrorRetry"
+                                 Height="35"
+                                 MinWidth="140"
+                                 Margin="10,12,10,0"
+                                 Padding="13,0"
+                                 HorizontalAlignment="Center"
+                                 ColorType="Highlight"
+                                 Text="{loc:Loc Common.Action.Refresh}" />
+                </StackPanel>
+            </ui:MyCard>
+
             <ui:MyCard x:Name="PanContent"
                        Margin="0,15,0,0"
                        Title="{loc:Loc Instance.Saves.Info.Details.Title}"

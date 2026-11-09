@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App;
 using PCL.Core.ViewModel;
 using PCL.Navigation;
+using PCL.Views.Pages.Select;
 using PCL.Views.Shell;
 
 namespace PCL;
@@ -15,7 +16,9 @@ public partial class PageInstanceModDisabledViewModel : ViewModelBase
     /// <summary>按“功能隐藏”设置刷新下载按钮的可见性；返回状态是否发生变化。</summary>
     public bool Refresh()
     {
-        var visible = HiddenFeatureState.ForceShow || !Config.Preference.Hide.PageDownload;
+        var visible = HiddenFeatureState.ForceShow
+            || !Config.Preference.Hide.PageDownload
+            || PageSelectRight.Current?.ShowHidden == true;
         if (IsDownloadVisible == visible)
             return false;
 

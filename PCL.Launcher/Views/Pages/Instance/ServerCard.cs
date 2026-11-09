@@ -1,23 +1,30 @@
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using PCL.UI.Controls;
+using static PCL.Animations;
 
 namespace PCL.Views.Pages.Instance;
 
 /// <summary>
-///     服务器卡片：与 WPF 版一致的单行 44px 布局，左侧图标、名称、延迟/人数、MotD，
-///     右侧提供进入服务器与设置菜单（刷新、复制地址、编辑、移除）。
+///     服务器列表行：与资源页保持一致的 44px 紧凑布局。
+///     左侧 34px 图标，中间名称/地址/MotD，右侧固定操作按钮。
 /// </summary>
-public partial class ServerCard : MyCard
+public partial class ServerCard : Grid
 {
     private const string DefaultLogoUri =
         "avares://PCL.Launcher/Assets/Images/Icons/DefaultServer.png";
 
     private static readonly Bitmap? DefaultLogo = LoadDefaultLogo();
+    private readonly int _uuid = LauncherCommon.GetUuid();
+    private bool _isMouseDown;
     private string? _lastLogoBase64;
+    private string? _stateLast;
 
     public ServerCard()
     {
@@ -37,12 +44,30 @@ public partial class ServerCard : MyCard
         ViewModel = viewModel;
         InitializeComponent();
         DataContext = viewModel;
-        UseAnimation = false;
 
         BtnConnect.Click += (_, _) => ConnectRequested?.Invoke(this);
         BtnSetting.Click += (_, _) => BtnSetting.ContextMenu?.Open(BtnSetting);
         ContextMenuHelper.Attach(BtnSetting, () => BtnSetting.ContextMenu);
         ToolTip.SetPlacement(ServerName, PlacementMode.Top);
+
+        PointerEntered += (_, _) => RefreshColor();
+        PointerExited += (_, _) =>
+        {
+            _isMouseDown = false;
+            RefreshColor();
+        };
+        PointerPressed += OnPointerPressed;
+        PointerReleased += OnPointerReleased;
+        PointerCaptureLost += (_, _) =>
+        {
+            _isMouseDown = false;
+            RefreshColor();
+        };
+        Loaded += (_, _) =>
+        {
+            _stateLast = null;
+            RefreshColor();
+        };
 
         var weakCard = new WeakReference<ServerCard>(this);
         ViewModel.PropertyChanged += (_, _) =>
@@ -88,6 +113,21 @@ public partial class ServerCard : MyCard
         return ViewModel.RefreshAsync(withHint, token);
     }
 
+    private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed
+            || IsPointerOnActionButton(e.Source as Visual))
+            return;
+        _isMouseDown = true;
+        RefreshColor();
+    }
+
+    private void OnPointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        _isMouseDown = false;
+        RefreshColor();
+    }
+
     private void MenuRefresh_Click(object? sender, RoutedEventArgs e)
     {
         RefreshRequested?.Invoke(this);
@@ -112,6 +152,9 @@ public partial class ServerCard : MyCard
     {
         ServerName.Text = ViewModel.NameText;
         ToolTip.SetTip(ServerName, ViewModel.NameText);
+        ServerAddress.Text = ViewModel.Address;
+        ServerPlayer.Text = ViewModel.PlayerText;
+        ServerPlayer.IsVisible = !string.IsNullOrWhiteSpace(ViewModel.PlayerText);
         Signal.Icon = ViewModel.SignalIcon;
         if (string.IsNullOrEmpty(ViewModel.SignalTooltip))
         {
@@ -123,7 +166,6 @@ public partial class ServerCard : MyCard
             ToolTip.SetPlacement(Signal, PlacementMode.Top);
         }
 
-        ServerPlayer.Text = ViewModel.PlayerText;
         if (ViewModel is { IsOnline: true, LastPingResult: { } result })
             MotdTextRenderer.Render(
                 ServerMotD,
@@ -187,5 +229,76 @@ public partial class ServerCard : MyCard
         {
             return null;
         }
+    }
+
+    private void RefreshColor()
+    {
+        var stateNew = _isMouseDown
+            ? "MouseDown"
+            : IsPointerOver
+                ? "MouseOver"
+                : "Idle";
+        if (_stateLast == stateNew)
+            return;
+        _stateLast = stateNew;
+
+        var show = stateNew is "MouseOver" or "MouseDown";
+        var time = show ? 120 : 160;
+        if (!ContainerAnimation.CanAnimate(this))
+        {
+            ApplyColorStateInstant(show, stateNew);
+            return;
+        }
+
+        AniStart(
+            new List<AniData>
+            {
+                AaOpacity(
+                    RectBack,
+                    (show ? 1d : 0d) - RectBack.Opacity,
+                    time,
+                    ease: new AniEaseOutFluent()),
+                AaColor(
+                    RectBack,
+                    Border.BackgroundProperty,
+                    stateNew == "MouseDown"
+                        ? "ColorBrush6"
+                        : show
+                            ? "ColorBrushBg1"
+                            : "ColorBrush7",
+                    time)
+            },
+            $"ServerCard Color {_uuid}");
+    }
+
+    private void ApplyColorStateInstant(bool show, string stateNew)
+    {
+        AniStop($"ServerCard Color {_uuid}");
+        RectBack.Opacity = show ? 1d : 0d;
+        ContainerTheme.BindDynamic(
+            RectBack,
+            Border.BackgroundProperty,
+            stateNew == "MouseDown"
+                ? "ColorBrush6"
+                : show
+                    ? "ColorBrushBg1"
+                    : "ColorBrush7");
+    }
+
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        AniStop($"ServerCard Color {_uuid}");
+        _stateLast = null;
+        base.OnDetachedFromVisualTree(e);
+    }
+
+    private static bool IsPointerOnActionButton(Visual? source)
+    {
+        for (var current = source;
+             current is not null;
+             current = current.GetVisualParent())
+            if (current is MyIconButton)
+                return true;
+        return false;
     }
 }

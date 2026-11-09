@@ -6,6 +6,7 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.VisualTree;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.UI.Controls;
 
 namespace PCL.Views.Pages.Instance;
@@ -26,6 +27,7 @@ public partial class PageInstanceScreenshot : MyPageRight, IRefreshable
 
         BtnOpenFolder.Click += (_, _) => ViewModel.OpenFolder();
         BtnOpenFolderTop.Click += (_, _) => ViewModel.OpenFolder();
+        BtnErrorRetry.Click += (_, _) => Reload();
         PanBack.ScrollChanged += (_, _) => RequireAppend();
         PanLoad.PropertyChanged += (_, change) =>
         {
@@ -36,10 +38,13 @@ public partial class PageInstanceScreenshot : MyPageRight, IRefreshable
 
     public PageInstanceScreenshotViewModel ViewModel { get; } = new();
 
-    public void Refresh()
+    public async void Refresh()
     {
-        ViewModel.Refresh();
-        RebuildList();
+        PanBack.ScrollToHome();
+        ViewModel.IsRefreshing = true;
+        await Task.Yield();
+        HintService.Show(Hints.Info(Lang.Text("Instance.Saves.Status.Refreshing"), false));
+        Reload();
     }
 
     public override void OnNavigatedTo(object? parameter)
@@ -58,6 +63,10 @@ public partial class PageInstanceScreenshot : MyPageRight, IRefreshable
     {
         ViewModel.Reload();
         RebuildList();
+        var failed = !string.IsNullOrEmpty(ViewModel.Error);
+        PanError.IsVisible = failed;
+        PanNoPic.IsVisible = !failed && !ViewModel.ShowContent;
+        PanContent.IsVisible = !failed && ViewModel.ShowContent;
     }
 
     private void RebuildList()

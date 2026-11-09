@@ -89,6 +89,7 @@ internal static class MotdTextRenderer
         target.FontSize = fontSize;
         target.MaxLines = maxLines;
         target.TextWrapping = TextWrapping.Wrap;
+        target.ClipToBounds = true;
         if (fontFamily is not null)
             target.FontFamily = fontFamily;
 
@@ -117,6 +118,39 @@ internal static class MotdTextRenderer
                 case '§' when i + 1 < motd.Length:
                 {
                     var code = char.ToLowerInvariant(motd[++i]);
+                    switch (code)
+                    {
+                        case '#':
+                        {
+                            if (TryReadHexColor(motd, i + 1, out var hexColor, out var consumed))
+                            {
+                                Flush();
+                                state.Color = NormalizeHexColor(hexColor, whiteBackground);
+                                state.ResetFormats();
+                                i += consumed;
+                            }
+
+                            continue;
+                        }
+
+                        case 'x':
+                        {
+                            if (TryReadExtendedHexColor(
+                                    motd,
+                                    i + 1,
+                                    out var hexColor,
+                                    out var consumed))
+                            {
+                                Flush();
+                                state.Color = NormalizeHexColor(hexColor, whiteBackground);
+                                state.ResetFormats();
+                                i += consumed;
+                            }
+
+                            continue;
+                        }
+                    }
+
                     if (colors.TryGetValue(code, out var color))
                     {
                         Flush();
@@ -126,10 +160,6 @@ internal static class MotdTextRenderer
                     else if (ApplyFormat(state, code))
                     {
                         Flush();
-                    }
-                    else
-                    {
-                        builder.Append('§').Append(motd[i]);
                     }
 
                     continue;
@@ -204,6 +234,105 @@ internal static class MotdTextRenderer
                     Child = block
                 });
             obfuscation.Entries.Add((block, original.ToString()));
+        }
+    }
+
+    private static bool TryReadHexColor(
+        string text,
+        int start,
+        out Color color,
+        out int consumed)
+    {
+        color = default;
+        consumed = 0;
+        if (start + 6 > text.Length)
+            return false;
+
+        var value = 0;
+        for (var i = 0; i < 6; i++)
+        {
+            var digit = HexValue(text[start + i]);
+            if (digit < 0)
+                return false;
+            value = (value << 4) | digit;
+        }
+
+        color = Color.FromRgb(
+            (byte)((value >> 16) & 0xFF),
+            (byte)((value >> 8) & 0xFF),
+            (byte)(value & 0xFF));
+        consumed = 6;
+        return true;
+    }
+
+    private static bool TryReadExtendedHexColor(
+        string text,
+        int start,
+        out Color color,
+        out int consumed)
+    {
+        color = default;
+        consumed = 0;
+        var value = 0;
+        var index = start;
+        for (var i = 0; i < 6; i++)
+        {
+            if (index + 1 >= text.Length
+                || text[index] != '§'
+                || HexValue(text[index + 1]) < 0)
+                return false;
+
+            value = (value << 4) | HexValue(text[index + 1]);
+            index += 2;
+        }
+
+        color = Color.FromRgb(
+            (byte)((value >> 16) & 0xFF),
+            (byte)((value >> 8) & 0xFF),
+            (byte)(value & 0xFF));
+        consumed = index - start;
+        return true;
+    }
+
+    private static int HexValue(char value)
+    {
+        return value switch
+        {
+            >= '0' and <= '9' => value - '0',
+            >= 'a' and <= 'f' => value - 'a' + 10,
+            >= 'A' and <= 'F' => value - 'A' + 10,
+            _ => -1
+        };
+    }
+
+    /// <summary>十六进制颜色在浅色背景上容易过亮，按背景做一个轻微亮度修正。</summary>
+    private static Color NormalizeHexColor(Color color, bool whiteBackground)
+    {
+        var luminance = 0.299d * color.R + 0.587d * color.G + 0.114d * color.B;
+        switch (whiteBackground)
+        {
+            case true when luminance > 180d:
+            {
+                var factor = Math.Clamp(150d / luminance, 0.45d, 0.85d);
+                return Color.FromArgb(
+                    color.A,
+                    (byte)(color.R * factor),
+                    (byte)(color.G * factor),
+                    (byte)(color.B * factor));
+            }
+
+            case false when luminance < 35d:
+            {
+                var lift = (byte)Math.Min(255d, 70d - luminance);
+                return Color.FromArgb(
+                    color.A,
+                    (byte)Math.Min(255, color.R + lift),
+                    (byte)Math.Min(255, color.G + lift),
+                    (byte)Math.Min(255, color.B + lift));
+            }
+
+            default:
+                return color;
         }
     }
 

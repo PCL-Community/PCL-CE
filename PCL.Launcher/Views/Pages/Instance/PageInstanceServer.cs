@@ -1,4 +1,6 @@
 using Avalonia.Controls;
+using PCL.Core.App.Localization;
+using PCL.Core.ViewModel;
 using PCL.UI.Controls;
 
 namespace PCL.Views.Pages.Instance;
@@ -19,6 +21,7 @@ public partial class PageInstanceServer : MyPageRight, IRefreshable
         BtnRefreshEmpty.Click += (_, _) => RefreshAll();
         BtnAddServer.Click += (_, _) => _ = AddServerAsync();
         BtnAddServerEmpty.Click += (_, _) => _ = AddServerAsync();
+        BtnErrorRetry.Click += (_, _) => Reload();
     }
 
     public PageInstanceServerViewModel ViewModel { get; } = new();
@@ -53,7 +56,13 @@ public partial class PageInstanceServer : MyPageRight, IRefreshable
     {
         await ViewModel.LoadAsync();
         BuildCards();
-        if (ViewModel.ShowContent)
+        PanServerList.Title =
+            $"{Lang.Text("Instance.Server.FoundServers")} ({ViewModel.Servers.Count})";
+        var failed = ViewModel.State == AsyncState.Failed;
+        PanError.IsVisible = failed;
+        PanNoServer.IsVisible = !failed && !ViewModel.ShowContent;
+        PanMain.IsVisible = !failed && ViewModel.ShowContent;
+        if (ViewModel.ShowContent && !failed)
             _ = ViewModel.PingAllAsync();
     }
 

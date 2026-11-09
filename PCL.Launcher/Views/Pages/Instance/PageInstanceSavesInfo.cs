@@ -25,6 +25,7 @@ public partial class PageInstanceSavesInfo : MyPageRight, IRefreshable
         DataContext = ViewModel;
         PanScroll = PanBack;
         Grid.SetIsSharedSizeScope(PanMain, true);
+        BtnErrorRetry.Click += (_, _) => Reload();
 
         ComboAllowCommands.SelectionChanged += (_, _) =>
         {
@@ -49,6 +50,7 @@ public partial class PageInstanceSavesInfo : MyPageRight, IRefreshable
 
     public override void OnNavigatedTo(object? parameter)
     {
+        PanBack.ScrollToHome();
         _saveFolder = parameter as string;
         if (string.IsNullOrEmpty(_saveFolder))
             _saveFolder = PageInstanceSavesLeft.CurrentSave;
@@ -76,6 +78,10 @@ public partial class PageInstanceSavesInfo : MyPageRight, IRefreshable
         finally
         {
             _syncing = false;
+            var failed = !string.IsNullOrEmpty(ViewModel.Error);
+            PanError.IsVisible = failed;
+            PanContent.IsVisible = !failed && ViewModel.ShowContent;
+            PanSettings.IsVisible = !failed && ViewModel.ShowSettings;
         }
     }
 

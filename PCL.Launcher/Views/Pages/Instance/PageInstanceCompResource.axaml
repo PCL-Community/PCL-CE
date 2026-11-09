@@ -71,7 +71,7 @@
                         </ui:MyCard>
 
                         <ui:MyCard x:Name="PanListBack"
-                                   Margin="0,0,0,14"
+                                   Margin="0,0,0,15"
                                    MinHeight="55"
                                    Opacity="0"
                                    Title=" ">
@@ -251,49 +251,6 @@
                           VerticalAlignment="Center" />
         </ui:MyCard>
 
-        <ui:MyCard x:Name="PanSelect"
-                   IsVisible="False"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Bottom"
-                   Margin="25,25,25,0"
-                   UseAnimation="False">
-            <StackPanel Margin="5,4,5,5">
-                <TextBlock x:Name="LabSelect"
-                           HorizontalAlignment="Center"
-                           Margin="9" />
-                <StackPanel Orientation="Horizontal"
-                            Margin="5,0,5,5"
-                            Spacing="2">
-                    <ui:MyIconTextButton x:Name="BtnSelectUpdate"
-                                         Text="{loc:Loc Instance.Resource.Update}"
-                                         LogoScale="1"
-                                         SvgIcon="lucide/upload" />
-                    <ui:MyIconTextButton x:Name="BtnSelectEnable"
-                                         Text="{loc:Loc Instance.Resource.Enable}"
-                                         LogoScale="1.05"
-                                         SvgIcon="lucide/circle-check" />
-                    <ui:MyIconTextButton x:Name="BtnSelectDisable"
-                                         Text="{loc:Loc Instance.Resource.Disable}"
-                                         LogoScale="1"
-                                         SvgIcon="lucide/circle-minus" />
-                    <ui:MyIconTextButton x:Name="BtnSelectFavorites"
-                                         Text="{loc:Loc Instance.Resource.Favorite}"
-                                         LogoScale="1"
-                                         SvgIcon="lucide/heart" />
-                    <ui:MyIconTextButton x:Name="BtnSelectShare"
-                                         Text="{loc:Loc Instance.Resource.ShareSelected}"
-                                         LogoScale="1"
-                                         SvgIcon="lucide/share-2" />
-                    <ui:MyIconTextButton x:Name="BtnSelectDelete"
-                                         Text="{loc:Loc Common.Action.Delete}"
-                                         LogoScale="0.96"
-                                         SvgIcon="lucide/trash-2" />
-                    <ui:MyIconTextButton x:Name="BtnSelectCancel"
-                                         Text="{loc:Loc Instance.Resource.CancelSelection}"
-                                         LogoScale="0.8"
-                                         SvgIcon="lucide/x" />
-                </StackPanel>
-            </StackPanel>
-        </ui:MyCard>
+        <ui:MyResourceSelectBar x:Name="PanSelect" />
     </Grid>
 </ui:MyPageRight>

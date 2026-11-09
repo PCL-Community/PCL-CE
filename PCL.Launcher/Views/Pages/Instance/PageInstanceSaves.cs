@@ -2,6 +2,8 @@ using Avalonia.Controls;
 using Avalonia.Input.Platform;
 using Avalonia.Threading;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
+using PCL.Core.Platform;
 using PCL.Core.UI.Hints;
 using PCL.UI.Controls;
 
@@ -40,6 +42,7 @@ public partial class PageInstanceSaves : MyPageRight, IRefreshable
         _searchTimer.Tick += (_, _) =>
         {
             _searchTimer.Stop();
+            ViewModel.ApplySearchAndSort();
             BuildList();
         };
 
@@ -52,10 +55,11 @@ public partial class PageInstanceSaves : MyPageRight, IRefreshable
         BtnSort.Click += (_, _) => ShowSortMenu();
         BtnQuickOpen.Click += (_, _) => ViewModel.OpenFolderCommand.Execute(null);
         BtnQuickDownload.Click += (_, _) => ViewModel.DownloadNewCommand.Execute(null);
-        BtnQuickPaste.Click += (_, _) => _ = ViewModel.PasteAsync();
+        BtnQuickPaste.Click += (_, _) => _ = PasteWithLoaderAsync();
         BtnEmptyOpen.Click += (_, _) => ViewModel.OpenFolderCommand.Execute(null);
         BtnEmptyDownload.Click += (_, _) => ViewModel.DownloadNewCommand.Execute(null);
-        BtnEmptyPaste.Click += (_, _) => _ = ViewModel.PasteAsync();
+        BtnEmptyPaste.Click += (_, _) => _ = PasteWithLoaderAsync();
+        BtnErrorRetry.Click += (_, _) => _ = ReloadAsync();
 
         ViewModel.FileClipboardWriter = WriteFolderToClipboardAsync;
         ViewModel.Updated += BuildList;
@@ -65,6 +69,8 @@ public partial class PageInstanceSaves : MyPageRight, IRefreshable
 
     public void Refresh()
     {
+        PanBack.ScrollToHome();
+        ViewModel.CheckQuickPlay();
         _ = ReloadAsync();
         HintService.Show(Hints.Info(Lang.Text("Instance.Saves.Status.Refreshing"), false));
     }
@@ -74,6 +80,7 @@ public partial class PageInstanceSaves : MyPageRight, IRefreshable
         _isActive = true;
         ViewModel.StopWatcher();
         _fileSystemRefreshTimer?.Stop();
+        PanBack.ScrollToHome();
         var instance = InstancePageHelper.ResolveInstance(parameter);
         ViewModel.SetInstance(instance);
         _ = ReloadAsync();
@@ -94,6 +101,7 @@ public partial class PageInstanceSaves : MyPageRight, IRefreshable
 
     public async Task ReloadAsync()
     {
+        ViewModel.HasError = false;
         try
         {
             await ViewModel.LoadAsync();
@@ -109,9 +117,29 @@ public partial class PageInstanceSaves : MyPageRight, IRefreshable
         }
         catch (Exception ex)
         {
+            ViewModel.HasError = true;
+            ViewModel.Error = ex.Message;
             InstancePageHelper.ReportError("Instance.Saves.LoadListFailed", ex);
             BuildList();
         }
+        finally
+        {
+            UpdateStatePanels();
+        }
+    }
+
+    private void UpdateStatePanels()
+    {
+        PanError.IsVisible = ViewModel.HasError;
+        if (ViewModel.HasError)
+        {
+            PanNoWorld.IsVisible = false;
+            PanContent.IsVisible = false;
+            return;
+        }
+
+        PanNoWorld.IsVisible = ViewModel.ShowNoWorld;
+        PanContent.IsVisible = ViewModel.ShowContent;
     }
 
     private void BuildList()
@@ -200,7 +228,15 @@ public partial class PageInstanceSaves : MyPageRight, IRefreshable
             LogoScale = 0.9d
         };
         ToolTip.SetTip(delete, Lang.Text("Common.Action.Delete"));
-        delete.Click += (_, _) => _ = ViewModel.DeleteSaveAsync(folder);
+        delete.Click += async (_, _) =>
+        {
+            item.IsEnabled = false;
+            entry.Info = Lang.Text("Instance.Saves.Deleting");
+            if (await ViewModel.DeleteSaveAsync(folder))
+                return;
+            item.IsEnabled = true;
+            await ReloadAsync();
+        };
 
         var buttons = new List<MyIconButton>
         {
@@ -224,6 +260,68 @@ public partial class PageInstanceSaves : MyPageRight, IRefreshable
         item.Buttons = buttons;
         item.Click += (_, _) => ViewModel.OpenDetailsCommand.Execute(folder);
         return item;
+    }
+
+    private async Task PasteWithLoaderAsync()
+    {
+        var paths = PlatformServices.Clipboard?.GetFileDropList();
+        if (paths is null || paths.Length == 0)
+        {
+            HintService.Show(Hints.Warning(Lang.Text("Instance.Saves.Empty.Message")));
+            return;
+        }
+
+        var destination = ViewModel.WorldPath;
+        if (string.IsNullOrEmpty(destination))
+            return;
+        InstancePageHelper.EnsureDirectory(destination);
+        foreach (var path in paths)
+        {
+            if (!Directory.Exists(path)) continue;
+            var folderName = new DirectoryInfo(path).Name;
+            if (Directory.Exists(Path.Combine(destination, folderName)))
+                HintService.Show(
+                    Hints.Info(Lang.Text("Instance.Saves.DuplicateFolder", folderName)));
+        }
+
+        var copied = 0;
+        var task = new Loading.LoaderTask<int, int>(
+            Lang.Text("Instance.Saves.CopySave"),
+            _ => copied = Files
+                .PastePathsAsync(paths, destination, false, true, true)
+                .GetAwaiter()
+                .GetResult());
+        var loader = new Loading.LoaderCombo<int>(
+            Lang.Text("Instance.Saves.CopySave"),
+            [task])
+        {
+            OnStateChanged = state =>
+            {
+                switch (state.State)
+                {
+                    case LoadState.Finished when copied > 0:
+                        HintService.Show(
+                            Hints.Success(Lang.Text("Instance.Saves.PastedCount", copied)));
+                        _ = ReloadAsync();
+                        break;
+
+                    case LoadState.Failed:
+                        HintService.Show(Hints.Error(Lang.Text("Instance.Saves.CopyFailed")));
+                        break;
+
+                    case LoadState.Waiting:
+                    case LoadState.Loading:
+                    case LoadState.Aborted:
+                        break;
+
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+        };
+        loader.Start();
+        Loading.LoaderTaskbarAdd(loader);
+        await Task.CompletedTask;
     }
 
     private async Task WriteFolderToClipboardAsync(string folder)

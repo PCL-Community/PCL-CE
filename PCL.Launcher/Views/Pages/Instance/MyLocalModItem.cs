@@ -1,8 +1,11 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.VisualTree;
 using PCL.UI.Controls;
+using static PCL.Animations;
 
 namespace PCL.Views.Pages.Instance;
 
@@ -16,10 +19,18 @@ public partial class MyLocalModItem : Grid
     private readonly ColumnDefinition _columnPaddingRight;
     private readonly ColumnDefinition _columnSubtitle;
     private readonly ColumnDefinition _columnTitle;
+    private readonly int _uuid = LauncherCommon.GetUuid();
     private StackPanel? _buttonStack;
+    private TranslateTransform? _buttonTransform;
+    private IReadOnlyList<MyIconButton> _buttons = [];
     private bool _checked;
     private GridLength _extendWidth = new(1d, GridUnitType.Star);
+    private bool _isMouseDown;
+    private DateTime _lastClick = DateTime.MinValue;
+    private string? _pathHint;
+    private string? _stateLast;
     private GridLength _subtitleWidth = GridLength.Auto;
+    private bool _suppressClick;
     private GridLength _titleWidth = GridLength.Auto;
 
     public MyLocalModItem()
@@ -27,6 +38,10 @@ public partial class MyLocalModItem : Grid
         Entry = null!;
         ViewModel = null!;
         InitializeComponent();
+        _columnTitle = PanTitle.ColumnDefinitions[0];
+        _columnSubtitle = PanTitle.ColumnDefinitions[1];
+        _columnExtend = PanTitle.ColumnDefinitions[3];
+        _columnPaddingRight = ColumnDefinitions[5];
     }
 
     public MyLocalModItem(LocalComp.LocalCompFile entry)
@@ -40,6 +55,7 @@ public partial class MyLocalModItem : Grid
         _columnExtend = PanTitle.ColumnDefinitions[3];
         _columnPaddingRight = ColumnDefinitions[5];
 
+        Cursor = new Cursor(StandardCursorType.Hand);
         ViewModel.Initialize(entry, new ItemHost(this));
 
         BtnUpdate.Click += (_, _) => ViewModel.UpdateCommand.Execute(null);
@@ -53,11 +69,24 @@ public partial class MyLocalModItem : Grid
         };
 
         PointerEntered += (_, _) => RefreshColors();
-        PointerExited += (_, _) => RefreshColors();
+        PointerExited += (_, _) =>
+        {
+            _isMouseDown = false;
+            RefreshColors();
+        };
+        PointerPressed += OnPointerPressed;
+        PointerReleased += OnPointerReleased;
+        PointerCaptureLost += (_, _) =>
+        {
+            _isMouseDown = false;
+            RefreshColors();
+        };
         SizeChanged += (_, _) => UpdateCompression();
         Loaded += (_, _) =>
         {
+            _stateLast = null;
             Refresh();
+            RefreshColors();
             UpdateCompression();
         };
         Refresh();
@@ -67,18 +96,25 @@ public partial class MyLocalModItem : Grid
 
     public MyLocalModItemViewModel ViewModel { get; }
 
+    public bool AllowFolderNavigation { get; set; } = true;
+
+    public string? PathHint
+    {
+        get => _pathHint;
+        set
+        {
+            _pathHint = value;
+            UpdateToolTip();
+        }
+    }
+
     public bool Checked
     {
         get => _checked;
-        set
-        {
-            if (_checked == value)
-                return;
-            _checked = value;
-            ViewModel.IsChecked = value;
-            ApplyChecked();
-        }
+        set => SetChecked(value, true);
     }
+
+    private double ActionColumnWidth => _buttons.Count == 0 ? 4d : 5d + _buttons.Count * 25d;
 
     public IEnumerable<MyIconButton>? Buttons
     {
@@ -90,21 +126,23 @@ public partial class MyLocalModItem : Grid
                 _buttonStack = null;
             }
 
-            if (value is null)
-                return;
-            var buttons = value.ToList();
-            if (buttons.Count == 0)
+            _buttons = value?.ToList() ?? [];
+            _columnPaddingRight.Width = new GridLength(ActionColumnWidth);
+            if (_buttons.Count == 0)
                 return;
 
+            _buttonTransform = new TranslateTransform(4d, 0d);
             _buttonStack = new StackPanel
             {
                 Orientation = Orientation.Horizontal,
                 Opacity = 0d,
+                IsHitTestVisible = false,
                 Margin = new Thickness(0d, 0d, 5d, 0d),
                 HorizontalAlignment = HorizontalAlignment.Right,
-                VerticalAlignment = VerticalAlignment.Center
+                VerticalAlignment = VerticalAlignment.Center,
+                RenderTransform = _buttonTransform
             };
-            foreach (var button in buttons)
+            foreach (var button in _buttons)
             {
                 if (double.IsNaN(button.Height))
                     button.Height = 25d;
@@ -113,11 +151,11 @@ public partial class MyLocalModItem : Grid
                 _buttonStack.Children.Add(button);
             }
 
-            SetColumnSpan(_buttonStack, 99);
+            SetColumn(_buttonStack, 5);
             SetRowSpan(_buttonStack, 99);
             Children.Add(_buttonStack);
-            PointerEntered += (_, _) => ShowButtons(true);
-            PointerExited += (_, _) => ShowButtons(false);
+            UpdateCompression();
+            RefreshColors();
         }
     }
 
@@ -133,10 +171,31 @@ public partial class MyLocalModItem : Grid
 
     public event Action<MyLocalModItem>? EnableDisableRequested;
 
+    public event Action<MyLocalModItem>? Clicked;
+
+    public event Action<MyLocalModItem>? FolderEntered;
+
+    public event Action<MyLocalModItem, bool>? CheckedChanged;
+
+    public void SuppressNextClick()
+    {
+        _suppressClick = true;
+    }
+
     public void Refresh()
     {
         ViewModel.Refresh();
         ApplyViewModel();
+    }
+
+    public void SetChecked(bool value, bool animate)
+    {
+        if (_checked == value)
+            return;
+        _checked = value;
+        ViewModel.IsChecked = value;
+        ApplyChecked(animate);
+        CheckedChanged?.Invoke(this, value);
     }
 
     private void ApplyViewModel()
@@ -149,9 +208,7 @@ public partial class MyLocalModItem : Grid
         LabSubtitle.IsVisible = ViewModel.IsSubTitleVisible;
         _columnSubtitle.Width = LabSubtitle.IsVisible ? _subtitleWidth : new GridLength(0d);
         LabInfo.Text = ViewModel.DescriptionText;
-        ToolTip.SetTip(
-            LabInfo,
-            string.IsNullOrEmpty(ViewModel.InfoToolTip) ? null : ViewModel.InfoToolTip);
+        UpdateToolTip();
 
         PathLogo.Source = ViewModel.Logo;
         PathLogo.FallbackSource = $"{LauncherPaths.ImageRoot}Icons/NoIcon.png";
@@ -169,46 +226,263 @@ public partial class MyLocalModItem : Grid
             BtnUpdate,
             string.IsNullOrEmpty(ViewModel.UpdateToolTip) ? null : ViewModel.UpdateToolTip);
 
-        ApplyChecked();
+        ApplyChecked(false);
         UpdateCompression();
     }
 
-    private void ShowButtons(bool show)
+    private void UpdateToolTip()
     {
-        if (_buttonStack is null)
+        var lines = new List<string>();
+        if (!string.IsNullOrWhiteSpace(_pathHint))
+            lines.Add(_pathHint);
+        if (!string.IsNullOrWhiteSpace(ViewModel.InfoToolTip))
+            lines.Add(ViewModel.InfoToolTip);
+        ToolTip.SetTip(this, lines.Count == 0 ? null : string.Join("\r\n", lines));
+    }
+
+    private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        var point = e.GetCurrentPoint(this);
+        if (!point.Properties.IsLeftButtonPressed || IsPointerOnActionButton(e.Source as Visual))
             return;
-        _buttonStack.Opacity = show ? 1d : 0d;
-        _columnPaddingRight.Width =
-            new GridLength(show ? 5d + _buttonStack.Children.Count * 25d : 4d);
-        UpdateCompression();
+        _isMouseDown = true;
+        RefreshColors();
     }
 
-    private void ApplyChecked()
+    private void OnPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
-        RectCheck.Height = _checked ? 32d : 0d;
-        RectCheck.Opacity = _checked ? 1d : 0d;
-        RectCheck.Margin = _checked
-            ? new Thickness(-3d, 6d, 0d, 6d)
-            : new Thickness(-3d, 0d, 0d, 0d);
-        ContainerTheme.BindDynamic(
-            LabTitle,
-            TextBlock.ForegroundProperty,
-            _checked
-                ? Entry.State == LocalComp.LocalCompFile.LocalFileStatus.Fine
-                    ? "ColorBrush2"
-                    : "ColorBrush5"
-                : Entry.State == LocalComp.LocalCompFile.LocalFileStatus.Fine
-                    ? "ColorBrush1"
-                    : "ColorBrushGray4");
-        RectBack.Opacity = _checked ? 1d : 0d;
+        if (e.InitialPressMouseButton == MouseButton.Right
+            && !IsPointerOnActionButton(e.Source as Visual))
+        {
+            e.Handled = true;
+            InfoRequested?.Invoke(this);
+            return;
+        }
+
+        var wasMouseDown = _isMouseDown;
+        _isMouseDown = false;
+        if (e.InitialPressMouseButton != MouseButton.Left
+            || !wasMouseDown
+            || IsPointerOnActionButton(e.Source as Visual))
+        {
+            RefreshColors();
+            return;
+        }
+
+        if (_suppressClick)
+        {
+            _suppressClick = false;
+            RefreshColors();
+            return;
+        }
+
+        var now = DateTime.UtcNow;
+        if (Entry.IsFolder
+            && AllowFolderNavigation
+            && (now - _lastClick).TotalMilliseconds <= 300d)
+        {
+            _lastClick = DateTime.MinValue;
+            SetChecked(false, true);
+            FolderEntered?.Invoke(this);
+            RefreshColors();
+            return;
+        }
+
+        _lastClick = now;
+        SetChecked(!Checked, true);
+        Clicked?.Invoke(this);
+        RefreshColors();
     }
 
     private void RefreshColors()
     {
-        if (_checked || IsPointerOver)
-            ContainerTheme.BindDynamic(RectBack, Border.BackgroundProperty, "ColorBrushBg1");
-        RectBack.Opacity = _checked || IsPointerOver ? 1d : 0d;
-        ShowButtons(IsPointerOver);
+        var stateNew = _isMouseDown
+            ? "MouseDown"
+            : IsPointerOver
+                ? "MouseOver"
+                : Checked
+                    ? "Checked"
+                    : "Idle";
+        if (_stateLast == stateNew)
+            return;
+        _stateLast = stateNew;
+
+        var showButtons = stateNew is "MouseOver" or "MouseDown";
+        var time = IsPointerOver ? 120 : 180;
+        if (!ContainerAnimation.CanAnimate(this))
+        {
+            ApplyColorStateInstant(stateNew, showButtons);
+            return;
+        }
+
+        var animations = new List<AniData>();
+        AddButtonAnimations(animations, showButtons, time);
+        var scale = EnsureBackScale();
+
+        if (stateNew is "MouseOver" or "MouseDown" or "Checked")
+        {
+            animations.Add(
+                AaColor(
+                    RectBack,
+                    Border.BackgroundProperty,
+                    stateNew == "MouseDown" ? "ColorBrush6" : "ColorBrushBg1",
+                    time));
+            animations.Add(
+                AaOpacity(
+                    RectBack,
+                    1d - RectBack.Opacity,
+                    time,
+                    ease: new AniEaseOutFluent()));
+            animations.Add(
+                AaScaleTransform(
+                    RectBack,
+                    (stateNew == "MouseDown" ? 0.996d : 1d) - scale.ScaleX,
+                    (int)Math.Round(time * 1.2d),
+                    ease: new AniEaseOutFluent()));
+        }
+        else
+        {
+            animations.Add(AaOpacity(RectBack, -RectBack.Opacity, time));
+            animations.Add(
+                AaColor(RectBack, Border.BackgroundProperty, "ColorBrush7", time));
+            animations.Add(
+                AaScaleTransform(
+                    RectBack,
+                    0.996d - scale.ScaleX,
+                    time,
+                    ease: new AniEaseOutFluent()));
+            animations.Add(AaScaleTransform(RectBack, -0.196d, 1, after: true));
+        }
+
+        AniStart(animations, $"LocalModItem Color {_uuid}");
+    }
+
+    private void ApplyColorStateInstant(string stateNew, bool showButtons)
+    {
+        AniStop($"LocalModItem Color {_uuid}");
+        if (_buttonStack is not null)
+        {
+            _buttonStack.Opacity = showButtons ? 1d : 0d;
+            _buttonStack.IsHitTestVisible = showButtons;
+            if (_buttonStack.RenderTransform is TranslateTransform transform)
+                transform.X = showButtons ? 0d : 4d;
+        }
+
+        var showBack = stateNew is not "Idle";
+        RectBack.Opacity = showBack ? 1d : 0d;
+        ContainerTheme.BindDynamic(
+            RectBack,
+            Border.BackgroundProperty,
+            stateNew == "MouseDown"
+                ? "ColorBrush6"
+                : showBack
+                    ? "ColorBrushBg1"
+                    : "ColorBrush7");
+
+        var scale = EnsureBackScale();
+        var scaleValue = stateNew switch
+        {
+            "MouseDown" => 0.996d,
+            "Idle" => 0.8d,
+            _ => 1d
+        };
+        scale.ScaleX = scaleValue;
+        scale.ScaleY = scaleValue;
+    }
+
+    private void AddButtonAnimations(List<AniData> animations, bool showButtons, int time)
+    {
+        if (_buttonStack is null)
+            return;
+
+        _buttonStack.IsHitTestVisible = showButtons;
+        _buttonTransform ??= new TranslateTransform(4d, 0d);
+        if (_buttonStack.RenderTransform is not TranslateTransform)
+            _buttonStack.RenderTransform = _buttonTransform;
+
+        animations.Add(
+            AaOpacity(
+                _buttonStack,
+                (showButtons ? 1d : 0d) - _buttonStack.Opacity,
+                (int)Math.Round(time * (showButtons ? 0.7d : 0.4d)),
+                showButtons ? (int)Math.Round(time * 0.3d) : 0));
+        animations.Add(
+            AaTranslateX(
+                _buttonStack,
+                (showButtons ? 0d : 4d) - _buttonTransform.X,
+                (int)Math.Round(time * (showButtons ? 0.3d : 0.4d)),
+                showButtons ? (int)Math.Round(time * 0.7d) : 0));
+    }
+
+    private void ApplyChecked(bool animate)
+    {
+        var titleKey = _checked
+            ? Entry.State == LocalComp.LocalCompFile.LocalFileStatus.Fine
+                ? "ColorBrush2"
+                : "ColorBrush5"
+            : Entry.State == LocalComp.LocalCompFile.LocalFileStatus.Fine
+                ? "ColorBrush1"
+                : "ColorBrushGray4";
+
+        if (!animate || !ContainerAnimation.CanAnimate(this))
+        {
+            AniStop($"MyLocalModItem Checked {_uuid}");
+            RectCheck.VerticalAlignment = VerticalAlignment.Center;
+            RectCheck.Margin = new Thickness(-3d, 0d, 0d, 0d);
+            RectCheck.Height = _checked ? 32d : 0d;
+            RectCheck.Opacity = _checked ? 1d : 0d;
+            ContainerTheme.BindDynamic(LabTitle, TextBlock.ForegroundProperty, titleKey);
+            RefreshColors();
+            return;
+        }
+
+        var animations = new List<AniData>();
+        if (_checked)
+        {
+            var delta = 32d - RectCheck.Height;
+            RectCheck.VerticalAlignment = VerticalAlignment.Center;
+            RectCheck.Margin = new Thickness(-3d, 0d, 0d, 0d);
+            animations.Add(
+                AaHeight(
+                    RectCheck,
+                    delta * 0.4d,
+                    200,
+                    ease: new AniEaseOutFluent(AniEasePower.Weak)));
+            animations.Add(
+                AaHeight(
+                    RectCheck,
+                    delta * 0.6d,
+                    300,
+                    ease: new AniEaseOutBack(AniEasePower.Weak)));
+            animations.Add(AaOpacity(RectCheck, 1d - RectCheck.Opacity, 30));
+            animations.Add(AaColor(LabTitle, TextBlock.ForegroundProperty, titleKey, 200));
+        }
+        else
+        {
+            animations.Add(
+                AaHeight(
+                    RectCheck,
+                    -RectCheck.Height,
+                    120,
+                    ease: new AniEaseInFluent(AniEasePower.Weak)));
+            animations.Add(AaOpacity(RectCheck, -RectCheck.Opacity, 70, 40));
+            animations.Add(AaColor(LabTitle, TextBlock.ForegroundProperty, titleKey, 120));
+            animations.Add(AaCode(() => RectCheck.Height = 0d, after: true));
+        }
+
+        RefreshColors();
+        AniStart(animations, $"MyLocalModItem Checked {_uuid}");
+    }
+
+    private ScaleTransform EnsureBackScale()
+    {
+        if (RectBack.RenderTransform is ScaleTransform scale)
+            return scale;
+
+        scale = new ScaleTransform(0.8d, 0.8d);
+        RectBack.RenderTransformOrigin = RelativePoint.Center;
+        RectBack.RenderTransform = scale;
+        return scale;
     }
 
     private void UpdateCompression()
@@ -217,7 +491,7 @@ public partial class MyLocalModItem : Grid
             return;
         var titleWidth = LabTitle.DesiredSize.Width;
         var subtitleWidth = LabSubtitle.IsVisible ? LabSubtitle.DesiredSize.Width : 0d;
-        var fixedWidth = 6d + 34d + 7d + 4d + _columnPaddingRight.Width.Value + 8d;
+        var fixedWidth = 6d + 34d + 7d + 4d + ActionColumnWidth + 8d;
         var available = Math.Max(0d, Bounds.Width - fixedWidth);
 
         var level = 0;
@@ -255,6 +529,16 @@ public partial class MyLocalModItem : Grid
         _columnExtend.Width = _extendWidth;
     }
 
+    private bool IsPointerOnActionButton(Visual? source)
+    {
+        for (var current = source;
+             current is not null && current != this;
+             current = current.GetVisualParent())
+            if (current is MyIconButton or MyIconTextButton)
+                return true;
+        return false;
+    }
+
     /// <summary>把 ViewModel 的命令转回控件现有的公开事件，保持页面构造方式不变。</summary>
     private sealed class ItemHost(MyLocalModItem owner) : ILocalModItemHost
     {
@@ -282,7 +566,7 @@ public partial class MyLocalModItem : Grid
 
         public void EnterFolder(string path)
         {
-            owner.Checked = false;
+            owner.FolderEntered?.Invoke(owner);
         }
 
         public void Update(LocalComp.LocalCompFile entry)

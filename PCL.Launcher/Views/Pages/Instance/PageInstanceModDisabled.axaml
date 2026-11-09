@@ -5,7 +5,8 @@
                 xmlns:local="using:PCL"
                 x:Class="PCL.Views.Pages.Instance.PageInstanceModDisabled"
                 x:DataType="local:PageInstanceModDisabledViewModel">
-    <ui:MyCard HorizontalAlignment="Center"
+    <ui:MyCard x:Name="PanMain"
+               HorizontalAlignment="Center"
                VerticalAlignment="Center"
                Margin="40">
         <Grid Margin="20,17"

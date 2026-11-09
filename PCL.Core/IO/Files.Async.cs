@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -33,6 +34,23 @@ public static partial class Files
 
         var paths = PlatformServices.Clipboard?.GetFileDropList();
         if (paths is null || paths.Length == 0) return 0;
+        return await PastePathsAsync(paths, dest, copyFile, copyDir, skipExisting);
+    }
+
+    /// <summary>粘贴指定的文件或文件夹路径，不读取剪贴板。</summary>
+    public static async Task<int> PastePathsAsync(
+        IEnumerable<string> paths,
+        string dest,
+        bool copyFile,
+        bool copyDir,
+        bool skipExisting = false,
+        CancellationToken cancelToken = default)
+    {
+        if (string.IsNullOrEmpty(dest))
+            throw new ArgumentException(
+                "Destination folder cannot be null or empty.",
+                nameof(dest));
+        if (!Directory.Exists(dest)) Directory.CreateDirectory(dest);
 
         var count = 0;
         foreach (var path in paths)
@@ -40,14 +58,14 @@ public static partial class Files
             {
                 var targetPath = Path.Combine(dest, Path.GetFileName(path));
                 if (skipExisting && File.Exists(targetPath)) continue;
-                await CopyFileAsync(path, targetPath);
+                await CopyFileAsync(path, targetPath, cancelToken);
                 count++;
             }
             else if (Directory.Exists(path) && copyDir)
             {
                 var targetDir = Path.Combine(dest, new DirectoryInfo(path).Name);
                 if (skipExisting && Directory.Exists(targetDir)) continue;
-                await CopyDirectoryAsync(path, targetDir);
+                await CopyDirectoryAsync(path, targetDir, cancelToken);
                 count++;
             }
 

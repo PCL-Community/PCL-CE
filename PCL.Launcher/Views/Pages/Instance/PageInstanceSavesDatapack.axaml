@@ -63,7 +63,7 @@
 
                     <ui:MyCard x:Name="PanListBack"
                                MinHeight="55"
-                               Margin="0,0,0,14"
+                               Margin="0,0,0,15"
                                VerticalAlignment="Top"
                                Title=" ">
                         <Grid>
@@ -167,6 +167,35 @@
                     </WrapPanel>
                 </StackPanel>
             </ui:MyCard>
+
+            <ui:MyCard x:Name="PanError"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Margin="40"
+                       IsVisible="False">
+                <StackPanel Margin="20,17"
+                            HorizontalAlignment="Center">
+                    <TextBlock Margin="0,0,0,9"
+                               HorizontalAlignment="Center"
+                               FontSize="19"
+                               Foreground="{DynamicResource ColorBrush3}"
+                               Text="{loc:Loc Instance.Saves.LoadListFailed}" />
+                    <Rectangle Height="2"
+                               HorizontalAlignment="Stretch"
+                               Fill="{DynamicResource ColorBrush3}" />
+                    <TextBlock Margin="10,12"
+                               Text="{Binding Error}"
+                               TextWrapping="Wrap" />
+                    <ui:MyButton x:Name="BtnErrorRetry"
+                                 Height="35"
+                                 MinWidth="140"
+                                 Margin="10,12,10,0"
+                                 Padding="13,0"
+                                 HorizontalAlignment="Center"
+                                 ColorType="Highlight"
+                                 Text="{loc:Loc Common.Action.Refresh}" />
+                </StackPanel>
+            </ui:MyCard>
         </Grid>
 
         <ui:MyCard x:Name="PanLoad"
@@ -182,48 +211,6 @@
                           Text="{loc:Loc Instance.Resource.Datapack.Loading}" />
         </ui:MyCard>
 
-        <ui:MyCard x:Name="PanSelect"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Bottom"
-                   Margin="25,25,25,0"
-                   UseAnimation="False"
-                   IsVisible="False">
-            <TextBlock x:Name="LabSelect"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Top"
-                       Margin="9"
-                       Foreground="{DynamicResource ColorBrush2}" />
-            <StackPanel Orientation="Horizontal"
-                        Margin="5,28,5,5">
-                <ui:MyIconTextButton x:Name="BtnSelectUpdate"
-                                     LogoScale="1"
-                                     SvgIcon="lucide/upload"
-                                     Text="{loc:Loc Instance.Resource.Update}" />
-                <ui:MyIconTextButton x:Name="BtnSelectEnable"
-                                     LogoScale="1.05"
-                                     SvgIcon="lucide/circle-check"
-                                     Text="{loc:Loc Instance.Resource.Enable}" />
-                <ui:MyIconTextButton x:Name="BtnSelectDisable"
-                                     LogoScale="1"
-                                     SvgIcon="lucide/circle-minus"
-                                     Text="{loc:Loc Instance.Resource.Disable}" />
-                <ui:MyIconTextButton x:Name="BtnSelectFavorites"
-                                     LogoScale="1"
-                                     SvgIcon="lucide/heart"
-                                     Text="{loc:Loc Instance.Resource.Favorite}" />
-                <ui:MyIconTextButton x:Name="BtnSelectShare"
-                                     LogoScale="1"
-                                     SvgIcon="lucide/share-2"
-                                     Text="{loc:Loc Instance.Resource.ShareSelected}" />
-                <ui:MyIconTextButton x:Name="BtnSelectDelete"
-                                     LogoScale="0.96"
-                                     SvgIcon="lucide/trash-2"
-                                     Text="{loc:Loc Common.Action.Delete}" />
-                <ui:MyIconTextButton x:Name="BtnSelectCancel"
-                                     LogoScale="0.8"
-                                     SvgIcon="lucide/x"
-                                     Text="{loc:Loc Instance.Resource.CancelSelection}" />
-            </StackPanel>
-        </ui:MyCard>
+        <ui:MyResourceSelectBar x:Name="PanSelect" />
     </Grid>
 </ui:MyPageRight>

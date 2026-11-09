@@ -33,7 +33,7 @@ public partial class ServerCardViewModel : ViewModelBase
 
     [ObservableProperty] public partial string NameText { get; set; } = "Unknown";
 
-    [ObservableProperty] public partial string PlayerText { get; set; } = "???";
+    [ObservableProperty] public partial string PlayerText { get; set; } = string.Empty;
 
     [ObservableProperty] public partial string MotdText { get; set; } = string.Empty;
 
@@ -60,7 +60,7 @@ public partial class ServerCardViewModel : ViewModelBase
         IsPinging = false;
         LastPingResult = null;
         Latency = 0;
-        PlayerText = "???";
+        PlayerText = string.Empty;
         MotdText = string.Empty;
         SignalIcon = "lucide/signal";
         SignalTooltip = string.Empty;
@@ -121,7 +121,7 @@ public partial class ServerCardViewModel : ViewModelBase
         LastPingResult = null;
         SignalIcon = "lucide/loader";
         SignalTooltip = string.Empty;
-        PlayerText = Lang.Text("Instance.Server.Card.Connecting");
+        PlayerText = string.Empty;
         MotdText = Lang.Text("Instance.Server.Card.ConnectingDots");
     }
 
@@ -134,7 +134,7 @@ public partial class ServerCardViewModel : ViewModelBase
         Latency = 0;
         SignalIcon = "lucide/signal-zero";
         SignalTooltip = string.Empty;
-        PlayerText = Lang.Text("Instance.Server.Card.Offline");
+        PlayerText = string.Empty;
         MotdText = Lang.Text("Instance.Server.Card.ServerOffline");
     }
 
