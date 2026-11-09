@@ -48,12 +48,13 @@ public sealed class LocalizationSource : INotifyPropertyChanged
     }
 
     /// <summary>
-    ///     使用空属性名通知所有绑定重新求值。
+    ///     通知索引器绑定重新求值。Avalonia 12 使用 <c>Item</c> 作为索引器属性通知名，
+    ///     空属性名不会重新求值索引器绑定。
     /// </summary>
     private void _RaisePropertyChanged()
     {
         PropertyChanged?.Invoke(
             this,
-            new PropertyChangedEventArgs(string.Empty));
+            new PropertyChangedEventArgs("Item"));
     }
 }

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using PCL.Core.Utils.Secret;
 
 namespace PCL.Core.Platform;
@@ -19,11 +18,15 @@ public sealed class PlatformModule
     public required IProcessCleanupService ProcessCleanup { get; init; }
     public required IGpuPreferenceService GpuPreference { get; init; }
     public required ISystemFacts SystemFacts { get; init; }
+    public required IHardwareInfo Hardware { get; init; }
     public required IShellLauncher Shell { get; init; }
     public required IRegionSignalProvider Region { get; init; }
     public required IRecycleBinService RecycleBin { get; init; }
     public required IFatalDialogService FatalDialog { get; init; }
     public required Func<byte[], IKeyProtector> KeyProtectorFactory { get; init; }
 
-    public IKeyProtector CreateKeyProtector(byte[] key) => KeyProtectorFactory(key);
+    public IKeyProtector CreateKeyProtector(byte[] key)
+    {
+        return KeyProtectorFactory(key);
+    }
 }

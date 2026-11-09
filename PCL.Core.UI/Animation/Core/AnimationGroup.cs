@@ -10,24 +10,28 @@ namespace PCL.Core.UI.Animation.Core;
 /// </summary>
 public abstract class AnimationGroup : AnimationBase
 {
-    // TODO(AN-1)：默认值是注册时创建的共享集合，跳过基类构造的派生类会共享同一实例；
-    // 当前两个子类都调用了基构造，未触发，后续新增子类时必须调用基构造。
-    public static readonly StyledProperty<ObservableCollection<IAnimation>> ChildrenProperty =
-        AvaloniaProperty.Register<AnimationGroup, ObservableCollection<IAnimation>>(
-            nameof(Children),
-            []);
+    public static readonly StyledProperty<ObservableCollection<IAnimation>?> ChildrenProperty =
+        AvaloniaProperty.Register<AnimationGroup, ObservableCollection<IAnimation>?>(
+            nameof(Children));
 
     protected AnimationGroup()
     {
-        // 确保集合初始化，但不进行自动同步
         SetCurrentValue(ChildrenProperty, []);
     }
 
     [Content]
     public ObservableCollection<IAnimation> Children
     {
-        get => GetValue(ChildrenProperty);
-        set => SetValue(ChildrenProperty, value);
+        get
+        {
+            if (GetValue(ChildrenProperty) is { } children)
+                return children;
+
+            children = [];
+            SetCurrentValue(ChildrenProperty, children);
+            return children;
+        }
+        set => SetValue(ChildrenProperty, value ?? []);
     }
 
     /// <summary>

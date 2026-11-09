@@ -43,6 +43,17 @@ internal sealed class CrashRunner
         _collector.Collect(versionPathIndie, latestLog);
     }
 
+    public void Import(string filePath)
+    {
+        var importer = new CrashLogImporter(_context);
+        importer.Import(filePath);
+        if (!Prepare())
+            return;
+
+        Analyze(InstanceList.McMcInstanceSelected);
+        Output(true, null);
+    }
+
     public bool Prepare()
     {
         return _preparer.Prepare();

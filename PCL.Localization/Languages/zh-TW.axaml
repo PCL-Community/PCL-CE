@@ -1912,6 +1912,7 @@
     <sys:String x:Key="Main.FileDrag.CreateAuthlibProfile">是否要建立新的第三方驗證檔案？&#xA;驗證伺服器位址：{0}</sys:String>
     <sys:String x:Key="Main.FileDrag.CreateAuthlibProfileTitle">建立新的第三方驗證檔案</sys:String>
     <sys:String x:Key="Main.FileDrag.ExtractFirst">請將檔案解壓縮後再拖入！</sys:String>
+    <sys:String x:Key="Main.FileDrag.NoInstance">請先選擇一個可用的 Minecraft 執行個體！</sys:String>
     <sys:String x:Key="Main.FileDrag.FileNotFound">拖入的檔案不存在：{0}</sys:String>
     <sys:String x:Key="Main.FileDrag.FileOnly">請拖入一個檔案，而非資料夾！</sys:String>
     <sys:String x:Key="Main.FileDrag.HomepageExists">已存在一個首頁檔案，是否要將它覆蓋？</sys:String>

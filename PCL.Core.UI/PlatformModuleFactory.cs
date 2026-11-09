@@ -3,6 +3,7 @@ using PCL.Core.App.Region;
 using PCL.Core.IO;
 using PCL.Core.Minecraft.Java;
 using PCL.Core.Platform;
+using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Secret;
 
 namespace PCL.Core.UI;
@@ -33,6 +34,7 @@ public static class PlatformModuleFactory
             ProcessCleanup = new WindowsProcessCleanupService(),
             GpuPreference = new WindowsGpuPreferenceService(),
             SystemFacts = new WindowsSystemFacts(),
+            Hardware = new WindowsHardwareInfo(),
             Shell = new WindowsShellLauncher(),
             Region = new WindowsRegionSignalProvider(),
             RecycleBin = new WindowsRecycleBinService(),
@@ -57,6 +59,7 @@ public static class PlatformModuleFactory
             ProcessCleanup = new PosixProcessCleanupService(),
             GpuPreference = new UnsupportedGpuPreferenceService(),
             SystemFacts = new LinuxSystemFacts(),
+            Hardware = new LinuxHardwareInfo(),
             Shell = new PosixShellLauncher("xdg-open"),
             Region = new PosixRegionSignalProvider(),
             RecycleBin = new LinuxRecycleBinService(),
@@ -81,6 +84,7 @@ public static class PlatformModuleFactory
             ProcessCleanup = new PosixProcessCleanupService(),
             GpuPreference = new UnsupportedGpuPreferenceService(),
             SystemFacts = new MacOsSystemFacts(),
+            Hardware = new MacOsHardwareInfo(),
             Shell = new PosixShellLauncher("open"),
             Region = new PosixRegionSignalProvider(),
             RecycleBin = new MacOsRecycleBinService(),

@@ -1967,6 +1967,7 @@
     <sys:String x:Key="Main.FileDrag.CreateAuthlibProfile">Do you want to create a new third-party authentication profile?&#xA;Authentication server address: {0}</sys:String>
     <sys:String x:Key="Main.FileDrag.CreateAuthlibProfileTitle">Create new third-party authentication profile</sys:String>
     <sys:String x:Key="Main.FileDrag.ExtractFirst">Please extract the file before dragging it in!</sys:String>
+    <sys:String x:Key="Main.FileDrag.NoInstance">Select an available Minecraft instance first!</sys:String>
     <sys:String x:Key="Main.FileDrag.FileNotFound">The file dragged in does not exist: {0}</sys:String>
     <sys:String x:Key="Main.FileDrag.FileOnly">Please drag in a file instead of a folder!</sys:String>
     <sys:String x:Key="Main.FileDrag.HomepageExists">A homepage file already exists. Do you want to override it?</sys:String>

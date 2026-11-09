@@ -173,12 +173,19 @@ public sealed class AnimationService : GeneralService
             {
                 var animationEntry = animationList[i];
 
-                // 如果动画已经完成或被取消，则从列表中移除
                 if (animationEntry.Animation.Status is AnimationStatus.Canceled
                     or AnimationStatus.Completed)
                 {
-                    // TODO(AN-2)：Completed 在计算线程触发，订阅者改 UI 需自行 Dispatcher.UIThread.Post
-                    animationEntry.Animation.RaiseCompleted();
+                    try
+                    {
+                        await UiAccessProvider.InvokeAsync(animationEntry.Animation.RaiseCompleted);
+                    }
+                    catch (Exception ex)
+                    {
+                        LogWrapper.Warn(
+                            "Animation",
+                            $"触发动画完成事件失败：{animationEntry.Animation.Name}，{ex.Message}");
+                    }
 
                     if (!string.IsNullOrEmpty(animationEntry.Animation.Name))
                         ((ICollection<KeyValuePair<string, IAnimation>>)NamedAnimations)

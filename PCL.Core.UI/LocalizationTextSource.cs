@@ -5,10 +5,11 @@ using PCL.Core.Platform;
 namespace PCL.Core.UI;
 
 /// <summary>
-///     按资源键缓存的本地化文本源，供 <see cref="LocExtension" /> 的绑定使用。
+///     按资源键缓存的本地化文本源，供代码侧本地化绑定辅助方法使用。
 ///     <para>
-///         实测 Avalonia 不会因 <see cref="INotifyPropertyChanged" /> 的空属性名通知重新求值索引器绑定，
-///         因此这里为每个键提供独立的 <see cref="Value" /> 属性，并在语言切换时发出具名通知。
+///         XAML 的 <see cref="LocExtension" /> 直接绑定
+///         <see cref="PCL.Core.App.Localization.LocalizationSource" />
+///         索引器；本类型用于需要显式绑定到具名 <see cref="Value" /> 属性的代码场景。
 ///     </para>
 /// </summary>
 public sealed class LocalizationTextSource : INotifyPropertyChanged
@@ -27,6 +28,11 @@ public sealed class LocalizationTextSource : INotifyPropertyChanged
         _key = key;
     }
 
+    /// <summary>当前语言下该资源键对应的文本。</summary>
+    public string Value => Lang.Text(_key);
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
     /// <summary>获取指定资源键的文本源；同一键始终返回同一实例以复用绑定。</summary>
     public static LocalizationTextSource Get(string key)
     {
@@ -41,11 +47,6 @@ public sealed class LocalizationTextSource : INotifyPropertyChanged
             return source;
         }
     }
-
-    /// <summary>当前语言下该资源键对应的文本。</summary>
-    public string Value => Lang.Text(_key);
-
-    public event PropertyChangedEventHandler? PropertyChanged;
 
     private static void _HookLanguageChanged()
     {
