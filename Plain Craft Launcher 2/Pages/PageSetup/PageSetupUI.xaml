@@ -373,7 +373,7 @@
                     <TextBlock Margin="0,1,0,1" Text="{loc:Loc Setup.Ui.FeatureHide.Description}" TextWrapping="Wrap" />
                     <StackPanel Margin="0,6,0,0">
                         <TextBlock Margin="0,4,0,4" Text="{loc:Loc Setup.Ui.FeatureHide.MainPage}"
-                                   Foreground="{DynamicResource ColorBrush2}" FontWeight="Bold" />
+                                   Opacity="0.6" FontSize="12" />
                         <WrapPanel>
                             <local:MyCheckBox Height="22" Margin="0,0,12,4" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Download}"
                                               x:Name="CheckHiddenPageDownload" Tag="UiHiddenPageDownload" Change="CheckBoxChange" />
@@ -384,7 +384,7 @@
                         </WrapPanel>
 
                         <TextBlock Margin="0,12,0,4" Text="{loc:Loc Setup.Ui.FeatureHide.SubSetup}"
-                                   Foreground="{DynamicResource ColorBrush2}" FontWeight="Bold" />
+                                   Opacity="0.6" FontSize="12" />
                         <WrapPanel>
                             <local:MyCheckBox Height="22" Margin="0,0,12,4" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Launch}"
                                               x:Name="CheckHiddenSetupLaunch" Tag="UiHiddenSetupLaunch" Change="CheckBoxChange" />
@@ -411,7 +411,7 @@
                         </WrapPanel>
 
                         <TextBlock Margin="0,12,0,4" Text="{loc:Loc Setup.Ui.FeatureHide.SubTools}"
-                                   Foreground="{DynamicResource ColorBrush2}" FontWeight="Bold" />
+                                   Opacity="0.6" FontSize="12" />
                         <WrapPanel>
                             <local:MyCheckBox Height="22" Margin="0,0,12,4" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Lobby}"
                                               x:Name="CheckHiddenToolsGameLink" Tag="UiHiddenToolsGameLink" Change="CheckBoxChange" />
@@ -420,7 +420,7 @@
                         </WrapPanel>
 
                         <TextBlock Margin="0,12,0,4" Text="{loc:Loc Setup.Ui.FeatureHide.SubInstance}"
-                                   Foreground="{DynamicResource ColorBrush2}" FontWeight="Bold" />
+                                   Opacity="0.6" FontSize="12" />
                         <WrapPanel>
                             <local:MyCheckBox Height="22" Margin="0,0,12,4" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Edit}"
                                               x:Name="CheckHiddenVersionEdit" Tag="UiHiddenVersionEdit" Change="CheckBoxChange" />
@@ -443,7 +443,7 @@
                         </WrapPanel>
 
                         <TextBlock Margin="0,12,0,4" Text="{loc:Loc Setup.Ui.FeatureHide.SpecificFeature}"
-                                   Foreground="{DynamicResource ColorBrush2}" FontWeight="Bold" />
+                                   Opacity="0.6" FontSize="12" />
                         <WrapPanel>
                             <local:MyCheckBox Height="22" Margin="0,0,12,4" Text="{loc:Loc Setup.Ui.FeatureHide.Item.InstanceSelect}"
                                               x:Name="CheckHiddenFunctionSelect" Tag="UiHiddenFunctionSelect"
