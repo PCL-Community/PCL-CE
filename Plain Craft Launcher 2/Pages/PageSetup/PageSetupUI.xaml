@@ -371,114 +371,91 @@
                           Visibility="{Binding FeatureHideVisibility}">
                 <StackPanel Margin="25,38,15,15">
                     <TextBlock Margin="0,1,0,1" Text="{loc:Loc Setup.Ui.FeatureHide.Description}" TextWrapping="Wrap" />
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="18" />
-                            <ColumnDefinition Width="0.8*" />
-                            <ColumnDefinition Width="0.9*" />
-                            <ColumnDefinition Width="0.8*" />
-                            <ColumnDefinition Width="0.8*" />
-                            <ColumnDefinition Width="1.0*" />
-                            <ColumnDefinition Width="1.0*" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="4" />
-                            <RowDefinition Height="30" />
-                            <RowDefinition Height="30" />
-                            <RowDefinition Height="30" />
-                            <RowDefinition Height="30" />
-                            <RowDefinition Height="30" />
-                            <RowDefinition Height="30" />
-                            <RowDefinition Height="30" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-                        <TextBlock Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{loc:Loc Setup.Ui.FeatureHide.MainPage}" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="1" Grid.Column="2" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Download}"
-                                          x:Name="CheckHiddenPageDownload" Tag="UiHiddenPageDownload"
-                                          Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="1" Grid.Column="3" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Settings}"
-                                          x:Name="CheckHiddenPageSetup" Tag="UiHiddenPageSetup" Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="1" Grid.Column="4" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Tools}"
-                                          x:Name="CheckHiddenPageTools" Tag="UiHiddenPageTools" Change="CheckBoxChange" />
-                        <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{loc:Loc Setup.Ui.FeatureHide.SubSetup}" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="2" Grid.Column="2" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Launch}"
-                                          x:Name="CheckHiddenSetupLaunch" Tag="UiHiddenSetupLaunch"
-                                          Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="2" Grid.Column="3"
-                                          Text="Java" x:Name="CheckHiddenSetupJava" Tag="UiHiddenSetupJava"
-                                          Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="2" Grid.Column="4" Text="{loc:Loc Setup.Ui.FeatureHide.Item.GameManage}"
-                                          x:Name="CheckHiddenSetupGameManage" Tag="UiHiddenSetupGameManage"
-                                          Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="2" Grid.Column="5" Text="{loc:Loc Setup.Ui.FeatureHide.Item.GameLink}"
-                                          x:Name="CheckHiddenSetupGameLink" Tag="UiHiddenSetupGameLink"
-                                          Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="2" Grid.Column="6"
-                                          Text="{loc:Loc Setup.Ui.FeatureHide.Item.Ui}" x:Name="CheckHiddenSetupUI" Tag="UiHiddenSetupUi"
-                                          Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="2" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Language}"
-                                          x:Name="CheckHiddenSetupLauncherLanguage" Tag="UiHiddenSetupLauncherLanguage"
-                                          Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="3" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Misc}"
-                                          x:Name="CheckHiddenLauncherMisc" Tag="UiHiddenSetupLauncherMisc"
-                                          Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="4"
-                                          Text="{loc:Loc Setup.Ui.FeatureHide.Item.Update}" x:Name="CheckHiddenSetupUpdate" Tag="UiHiddenSetupUpdate"
-                                          Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="5" Text="{loc:Loc Setup.Ui.FeatureHide.Item.About}"
-                                          x:Name="CheckHiddenSetupAbout" Tag="UiHiddenSetupAbout"
-                                          Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="6" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Feedback}"
-                                          x:Name="CheckHiddenSetupFeedback" Tag="UiHiddenSetupFeedback"
-                                          Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="7"
-                                          Text="{loc:Loc Setup.Ui.FeatureHide.Item.Log}" x:Name="CheckHiddenSetupLog" Tag="UiHiddenSetupLog"
-                                          Change="CheckBoxChange" />
-                        <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{loc:Loc Setup.Ui.FeatureHide.SubTools}" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="2" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Lobby}" x:Name="CheckHiddenToolsGameLink" Tag="UiHiddenToolsGameLink" Change="CheckBoxChange"/>
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="3" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Toolbox}" x:Name="CheckHiddenToolsTest" Tag="UiHiddenToolsTest" Change="CheckBoxChange"/>
-                        <TextBlock Grid.Row="5" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{loc:Loc Setup.Ui.FeatureHide.SubInstance}" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="5" Grid.Column="2" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Edit}"
-                                          x:Name="CheckHiddenVersionEdit" Tag="UiHiddenVersionEdit"
-                                          Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="5" Grid.Column="3" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Export}"
-                                          x:Name="CheckHiddenVersionExport" Tag="UiHiddenVersionExport"
-                                          Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="5" Grid.Column="4" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Save}"
-                                          x:Name="CheckHiddenVersionSave" Tag="UiHiddenVersionSave"
-                                          Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="5" Grid.Column="5" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Screenshot}"
-                                          x:Name="CheckHiddenVersionScreenshot" Tag="UiHiddenVersionScreenshot"
-                                          Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="5" Grid.Column="6"
-                                          Text="Mod" x:Name="CheckHiddenVersionMod" Tag="UiHiddenVersionMod"
-                                          Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="6" Grid.Column="2"
-                                          Text="{loc:Loc Setup.Ui.FeatureHide.Item.ResourcePack}" x:Name="CheckHiddenVersionResourcePack"
-                                          Tag="UiHiddenVersionResourcePack" Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="6" Grid.Column="3"
-                                          Text="{loc:Loc Setup.Ui.FeatureHide.Item.Shader}" x:Name="CheckHiddenVersionShader" Tag="UiHiddenVersionShader"
-                                          Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="6" Grid.Column="4"
-                                          Grid.ColumnSpan="2" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Schematic}" x:Name="CheckHiddenVersionSchematic"
-                                          Tag="UiHiddenVersionSchematic" Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="6" Grid.Column="6"
-                                          Text="{loc:Loc Setup.Ui.FeatureHide.Item.Server}" x:Name="CheckHiddenVersionServer" Tag="UiHiddenVersionServer"
-                                          Change="CheckBoxChange" />
-                        <TextBlock Grid.Row="7" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{loc:Loc Setup.Ui.FeatureHide.SpecificFeature}" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="7" Grid.Column="2"
-                                          Text="{loc:Loc Setup.Ui.FeatureHide.Item.InstanceSelect}" x:Name="CheckHiddenFunctionSelect" Tag="UiHiddenFunctionSelect"
-                                          ToolTip="{loc:Loc Setup.Ui.FeatureHide.Item.InstanceSelect.ToolTip}" Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="7" Grid.Column="3"
-                                          Text="{loc:Loc Setup.Ui.FeatureHide.Item.ModUpdate}" x:Name="CheckHiddenFunctionModUpdate"
-                                          Tag="UiHiddenFunctionModUpdate" ToolTip="{loc:Loc Setup.Ui.FeatureHide.Item.ModUpdate.ToolTip}"
-                                          Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="7" Grid.Column="4"
-                                          Text="{loc:Loc Setup.Ui.FeatureHide.Item.FeatureHide}" x:Name="CheckHiddenFunctionHidden" Tag="UiHiddenFunctionHidden"
-                                          ToolTip="{loc:Loc Setup.Ui.FeatureHide.Item.FeatureHide.ToolTip}"
-                                          Change="CheckBoxChange" />
-                    </Grid>
+                    <StackPanel Margin="0,6,0,0">
+                        <TextBlock Margin="0,4,0,4" Text="{loc:Loc Setup.Ui.FeatureHide.MainPage}"
+                                   Opacity="0.6" FontSize="12" />
+                        <WrapPanel>
+                            <local:MyCheckBox Height="22" Margin="0,0,12,4" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Download}"
+                                              x:Name="CheckHiddenPageDownload" Tag="UiHiddenPageDownload" Change="CheckBoxChange" />
+                            <local:MyCheckBox Height="22" Margin="0,0,12,4" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Settings}"
+                                              x:Name="CheckHiddenPageSetup" Tag="UiHiddenPageSetup" Change="CheckBoxChange" />
+                            <local:MyCheckBox Height="22" Margin="0,0,12,4" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Tools}"
+                                              x:Name="CheckHiddenPageTools" Tag="UiHiddenPageTools" Change="CheckBoxChange" />
+                        </WrapPanel>
+
+                        <TextBlock Margin="0,12,0,4" Text="{loc:Loc Setup.Ui.FeatureHide.SubSetup}"
+                                   Opacity="0.6" FontSize="12" />
+                        <WrapPanel>
+                            <local:MyCheckBox Height="22" Margin="0,0,12,4" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Launch}"
+                                              x:Name="CheckHiddenSetupLaunch" Tag="UiHiddenSetupLaunch" Change="CheckBoxChange" />
+                            <local:MyCheckBox Height="22" Margin="0,0,12,4" Text="Java"
+                                              x:Name="CheckHiddenSetupJava" Tag="UiHiddenSetupJava" Change="CheckBoxChange" />
+                            <local:MyCheckBox Height="22" Margin="0,0,12,4" Text="{loc:Loc Setup.Ui.FeatureHide.Item.GameManage}"
+                                              x:Name="CheckHiddenSetupGameManage" Tag="UiHiddenSetupGameManage" Change="CheckBoxChange" />
+                            <local:MyCheckBox Height="22" Margin="0,0,12,4" Text="{loc:Loc Setup.Ui.FeatureHide.Item.GameLink}"
+                                              x:Name="CheckHiddenSetupGameLink" Tag="UiHiddenSetupGameLink" Change="CheckBoxChange" />
+                            <local:MyCheckBox Height="22" Margin="0,0,12,4" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Ui}"
+                                              x:Name="CheckHiddenSetupUI" Tag="UiHiddenSetupUi" Change="CheckBoxChange" />
+                            <local:MyCheckBox Height="22" Margin="0,0,12,4" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Language}"
+                                              x:Name="CheckHiddenSetupLauncherLanguage" Tag="UiHiddenSetupLauncherLanguage" Change="CheckBoxChange" />
+                            <local:MyCheckBox Height="22" Margin="0,0,12,4" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Misc}"
+                                              x:Name="CheckHiddenLauncherMisc" Tag="UiHiddenSetupLauncherMisc" Change="CheckBoxChange" />
+                            <local:MyCheckBox Height="22" Margin="0,0,12,4" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Update}"
+                                              x:Name="CheckHiddenSetupUpdate" Tag="UiHiddenSetupUpdate" Change="CheckBoxChange" />
+                            <local:MyCheckBox Height="22" Margin="0,0,12,4" Text="{loc:Loc Setup.Ui.FeatureHide.Item.About}"
+                                              x:Name="CheckHiddenSetupAbout" Tag="UiHiddenSetupAbout" Change="CheckBoxChange" />
+                            <local:MyCheckBox Height="22" Margin="0,0,12,4" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Feedback}"
+                                              x:Name="CheckHiddenSetupFeedback" Tag="UiHiddenSetupFeedback" Change="CheckBoxChange" />
+                            <local:MyCheckBox Height="22" Margin="0,0,12,4" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Log}"
+                                              x:Name="CheckHiddenSetupLog" Tag="UiHiddenSetupLog" Change="CheckBoxChange" />
+                        </WrapPanel>
+
+                        <TextBlock Margin="0,12,0,4" Text="{loc:Loc Setup.Ui.FeatureHide.SubTools}"
+                                   Opacity="0.6" FontSize="12" />
+                        <WrapPanel>
+                            <local:MyCheckBox Height="22" Margin="0,0,12,4" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Lobby}"
+                                              x:Name="CheckHiddenToolsGameLink" Tag="UiHiddenToolsGameLink" Change="CheckBoxChange" />
+                            <local:MyCheckBox Height="22" Margin="0,0,12,4" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Toolbox}"
+                                              x:Name="CheckHiddenToolsTest" Tag="UiHiddenToolsTest" Change="CheckBoxChange" />
+                        </WrapPanel>
+
+                        <TextBlock Margin="0,12,0,4" Text="{loc:Loc Setup.Ui.FeatureHide.SubInstance}"
+                                   Opacity="0.6" FontSize="12" />
+                        <WrapPanel>
+                            <local:MyCheckBox Height="22" Margin="0,0,12,4" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Edit}"
+                                              x:Name="CheckHiddenVersionEdit" Tag="UiHiddenVersionEdit" Change="CheckBoxChange" />
+                            <local:MyCheckBox Height="22" Margin="0,0,12,4" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Export}"
+                                              x:Name="CheckHiddenVersionExport" Tag="UiHiddenVersionExport" Change="CheckBoxChange" />
+                            <local:MyCheckBox Height="22" Margin="0,0,12,4" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Save}"
+                                              x:Name="CheckHiddenVersionSave" Tag="UiHiddenVersionSave" Change="CheckBoxChange" />
+                            <local:MyCheckBox Height="22" Margin="0,0,12,4" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Screenshot}"
+                                              x:Name="CheckHiddenVersionScreenshot" Tag="UiHiddenVersionScreenshot" Change="CheckBoxChange" />
+                            <local:MyCheckBox Height="22" Margin="0,0,12,4" Text="Mod"
+                                              x:Name="CheckHiddenVersionMod" Tag="UiHiddenVersionMod" Change="CheckBoxChange" />
+                            <local:MyCheckBox Height="22" Margin="0,0,12,4" Text="{loc:Loc Setup.Ui.FeatureHide.Item.ResourcePack}"
+                                              x:Name="CheckHiddenVersionResourcePack" Tag="UiHiddenVersionResourcePack" Change="CheckBoxChange" />
+                            <local:MyCheckBox Height="22" Margin="0,0,12,4" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Shader}"
+                                              x:Name="CheckHiddenVersionShader" Tag="UiHiddenVersionShader" Change="CheckBoxChange" />
+                            <local:MyCheckBox Height="22" Margin="0,0,12,4" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Schematic}"
+                                              x:Name="CheckHiddenVersionSchematic" Tag="UiHiddenVersionSchematic" Change="CheckBoxChange" />
+                            <local:MyCheckBox Height="22" Margin="0,0,12,4" Text="{loc:Loc Setup.Ui.FeatureHide.Item.Server}"
+                                              x:Name="CheckHiddenVersionServer" Tag="UiHiddenVersionServer" Change="CheckBoxChange" />
+                        </WrapPanel>
+
+                        <TextBlock Margin="0,12,0,4" Text="{loc:Loc Setup.Ui.FeatureHide.SpecificFeature}"
+                                   Opacity="0.6" FontSize="12" />
+                        <WrapPanel>
+                            <local:MyCheckBox Height="22" Margin="0,0,12,4" Text="{loc:Loc Setup.Ui.FeatureHide.Item.InstanceSelect}"
+                                              x:Name="CheckHiddenFunctionSelect" Tag="UiHiddenFunctionSelect"
+                                              ToolTip="{loc:Loc Setup.Ui.FeatureHide.Item.InstanceSelect.ToolTip}" Change="CheckBoxChange" />
+                            <local:MyCheckBox Height="22" Margin="0,0,12,4" Text="{loc:Loc Setup.Ui.FeatureHide.Item.ModUpdate}"
+                                              x:Name="CheckHiddenFunctionModUpdate" Tag="UiHiddenFunctionModUpdate"
+                                              ToolTip="{loc:Loc Setup.Ui.FeatureHide.Item.ModUpdate.ToolTip}" Change="CheckBoxChange" />
+                            <local:MyCheckBox Height="22" Margin="0,0,12,4" Text="{loc:Loc Setup.Ui.FeatureHide.Item.FeatureHide}"
+                                              x:Name="CheckHiddenFunctionHidden" Tag="UiHiddenFunctionHidden"
+                                              ToolTip="{loc:Loc Setup.Ui.FeatureHide.Item.FeatureHide.ToolTip}" Change="CheckBoxChange" />
+                        </WrapPanel>
+                    </StackPanel>
                 </StackPanel>
             </local:MyCard>
         </StackPanel>
