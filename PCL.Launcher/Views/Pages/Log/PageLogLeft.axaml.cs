@@ -155,12 +155,12 @@ public partial class PageLogLeft : MyPageLeft, IRefreshable
                     Title = entry.Title,
                     Info = entry.Info,
                     Height = 40d,
-                    tag = entry.Uuid
+                    Tag = entry.Uuid
                 };
                 newItem.Changed += (sender, e) =>
                 {
                     if (e.raiseByMouse && ((MyListItem)sender).Checked)
-                        SelectionChange((int)((MyListItem)sender).tag!);
+                        SelectionChange((int)((MyListItem)sender).Tag!);
                 };
 
                 var removeButton = new MyIconButton

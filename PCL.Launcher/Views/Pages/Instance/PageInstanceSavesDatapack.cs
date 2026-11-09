@@ -295,7 +295,7 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable
             SvgIcon = entry.IsDirectory ? "lucide/folder" : "lucide/package",
             Type = MyListItem.CheckType.CheckBox,
             Checked = selected,
-            tag = entry
+            Tag = entry
         };
         if (entry.Tags.Count > 0)
             item.PlainTags = entry.Tags.Take(4);

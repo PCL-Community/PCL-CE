@@ -21,8 +21,8 @@ public partial class PageInstanceSavesLeft : MyPageLeft, IRefreshable
         AnimatedControl = PanItem;
         DataContext = ViewModel;
 
-        ItemInfo.tag = PageSubType.VersionSavesInfo;
-        ItemDatapack.tag = PageSubType.VersionSavesDatapack;
+        ItemInfo.Tag = PageSubType.VersionSavesInfo;
+        ItemDatapack.Tag = PageSubType.VersionSavesDatapack;
         _items.Add((PageSubType.VersionSavesInfo, ItemInfo));
         _items.Add((PageSubType.VersionSavesDatapack, ItemDatapack));
 
@@ -96,7 +96,7 @@ public partial class PageInstanceSavesLeft : MyPageLeft, IRefreshable
 
     private void NavigateIfNeeded(MyListItem item)
     {
-        if (!_building && item.tag is PageSubType target)
+        if (!_building && item.Tag is PageSubType target)
             PageInstanceSavesLeftViewModel.Navigate(target);
     }
 

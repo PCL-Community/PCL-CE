@@ -155,7 +155,7 @@ public partial class PageSelectLeft : MyPageLeft, IRefreshable
             Title = folder.DisplayName,
             Info = folder.Location,
             Height = 40,
-            tag = folder
+            Tag = folder
         };
         item.Changed += (sender, e) => FolderChanged((MyListItem)sender, e);
         AttachDragHandlers(item, folder);
@@ -373,7 +373,7 @@ public partial class PageSelectLeft : MyPageLeft, IRefreshable
             var sourceFolder = e.DataTransfer.TryGetValue(FolderFormat);
             if (sourceFolder is null)
                 return;
-            if (target.tag is not GameFolders.McFolder targetFolder)
+            if (target.Tag is not GameFolders.McFolder targetFolder)
                 return;
             PageSelectLeftViewModel.ReorderFolders(sourceFolder, targetFolder);
         }
@@ -414,7 +414,7 @@ public partial class PageSelectLeft : MyPageLeft, IRefreshable
     {
         if (_isBuilding || !e.raiseByMouse || !sender.Checked)
             return;
-        if (sender.tag is not GameFolders.McFolder folder)
+        if (sender.Tag is not GameFolders.McFolder folder)
             return;
         if (folder.Location == GameFolders.mcFolderSelected)
             return;

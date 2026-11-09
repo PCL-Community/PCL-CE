@@ -219,7 +219,7 @@ internal static class DownloadVersionList
             Height = 42d,
             Title = formattedVersion,
             Info = info,
-            tag = version,
+            Tag = version,
             LogoScale = 0.9,
             Logo = GetLogo(version),
             Type = MyListItem.CheckType.Clickable

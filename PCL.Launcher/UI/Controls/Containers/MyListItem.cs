@@ -8,7 +8,7 @@ using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
-using Avalonia.Metadata;
+using Avalonia.VisualTree;
 using PCL.Core.App;
 using PCL.UI.Controls.Common;
 using static PCL.Animations;
@@ -19,130 +19,92 @@ namespace PCL.UI.Controls;
 
 /// <summary>
 ///     列表项：标题 + 副文本 + 标签 + 图标，可切换为单选、复选或纯点击三种交互。
-///     悬停/按下颜色、背景缩放与勾选条缩放由 <c>PCL.Animations</c> 驱动；
-///     标签支持本地化资源键与现成文本两种来源，右侧按钮在悬停时淡入并让出右边距。
+///     外层只承接页面转场，内层承载悬停/按下缩放，避免两套 RenderTransform 互相覆盖。
+///     颜色、背景、按钮和选中条动画均由状态机统一驱动。
 /// </summary>
-public class MyListItem : Grid, IMyRadio
+public partial class MyListItem : Grid, IMyRadio
 {
     public delegate void ClickEventHandler(object? sender, PointerReleasedEventArgs? e);
 
-    public delegate void LogoClickEventHandler(object? sender, PointerReleasedEventArgs e);
+    private const int AnimationTimeIn = 120;
+    private const int AnimationTimeOut = 180;
+
+    public readonly int Uuid = LauncherCommon.GetUuid();
+
+    private readonly ColumnDefinition _columnCheck;
+    private readonly ColumnDefinition _columnLogo;
+    private readonly ColumnDefinition _columnPaddingLeft;
+    private readonly ColumnDefinition _columnPaddingRight;
+    private bool _isCommandRunning;
+    private bool _isExecutingCheckCommand;
+    private bool _isHoverAnimationEnabled = true;
+    private bool _isMouseDown;
+    private bool _isSettingChecked;
+    private bool _isSyncingGroup;
+    private bool _isUserInteraction;
+    private bool _showButtonsOnKeyboardFocus;
 
     private string? _stateLast;
 
-    /// <summary>是否启用鼠标悬停动画；逐项进入动画期间由 MyPageLeft/MyPageRight 临时关闭。</summary>
-    public bool isMouseOverAnimationEnabled = true;
-
-    #region 构造
-
     public MyListItem()
     {
-        ContainerTheme.AttachStyles(this);
+        InitializeComponent();
 
-        Height = 42d;
-        ContainerTheme.BindDynamic(this, BackgroundProperty, "ColorBrushSemiTransparent");
-        RenderTransformOrigin = RelativePoint.Center;
+        _columnCheck = PanBackElement.ColumnDefinitions[0];
+        _columnPaddingLeft = PanBackElement.ColumnDefinitions[1];
+        _columnLogo = PanBackElement.ColumnDefinitions[2];
+        _columnPaddingRight = PanBackElement.ColumnDefinitions[5];
+
         ContainerTheme.BindDynamic(this, ForegroundProperty, "ColorBrush1");
-
-        ColumnDefinitions = new ColumnDefinitions("2,0,4,Auto,*,4");
-        RowDefinitions = new RowDefinitions("*,Auto,Auto,*");
-        _columnCheck = ColumnDefinitions[0];
-        _columnPaddingLeft = ColumnDefinitions[1];
-        _columnLogo = ColumnDefinitions[2];
-        _columnPaddingRight = ColumnDefinitions[5];
-
-        LabTitle = new TextBlock
-        {
-            HorizontalAlignment = HorizontalAlignment.Left,
-            IsHitTestVisible = false,
-            TextTrimming = TextTrimming.CharacterEllipsis,
-            FontSize = 14d,
-            Margin = new Thickness(4d, 0d, 0d, 0d)
-        };
-        LabTitle.Classes.Add("ListItemTitle");
-        LabTitle.Bind(
+        LabTitleElement.Bind(
             TextBlock.ForegroundProperty,
             new Binding(nameof(Foreground))
             {
                 Source = this
             });
-        LabTitle.Bind(
+        LabTitleElement.Bind(
             TextBlock.FontSizeProperty,
             new Binding(nameof(FontSize))
             {
                 Source = this
             });
-        SetRow(LabTitle, 1);
-        SetColumn(LabTitle, 3);
-        SetColumnSpan(LabTitle, 2);
-        Children.Add(LabTitle);
-
-        var focusRing = new Border
-        {
-            Classes =
-            {
-                "FocusRing"
-            },
-            IsHitTestVisible = false,
-            Margin = new Thickness(-2d),
-            ZIndex = 1000
-        };
-        SetRowSpan(focusRing, 4);
-        SetColumnSpan(focusRing, 6);
-        Children.Add(focusRing);
-
-        _ = RectBack;
+        ContainerTheme.BindDynamic(LabInfoElement, TextBlock.ForegroundProperty, "ColorBrushGray2");
+        FocusAdorner = null;
 
         SizeChanged += (_, _) => OnSizeChanged();
         PointerReleased += Button_MouseUp;
         PointerPressed += Button_MouseDown;
         PointerExited += Button_MouseLeave;
-        KeyboardActivation.Attach(this, PerformClick);
+        PointerCaptureLost += (_, _) => ResetPointerState();
         PointerEntered += (_, _) => RefreshColor(this, EventArgs.Empty);
+        GotFocus += (_, e) => OnFocusChanged(e.NavigationMethod);
+        LostFocus += (_, _) => OnFocusLost();
+        KeyboardActivation.Attach(
+            this,
+            modifiers => PerformClick(modifiers),
+            null,
+            false);
         Loaded += (_, _) => MyListItem_Loaded();
+        ActualThemeVariantChanged += OnActualThemeVariantChanged;
+    }
+
+    #region 菜单与事件
+
+    public override string ToString()
+    {
+        return Title;
     }
 
     #endregion
 
-    public object? tag { get; set; }
+    #region 事件与属性
 
     public event IMyRadio.CheckEventHandler? Check;
     public event IMyRadio.ChangedEventHandler? Changed;
-
     public event ClickEventHandler? Click;
-    public event LogoClickEventHandler? LogoClick;
 
-    #region 标签
-
-    private void SetTags(object? value)
-    {
-        var list = value switch
-        {
-            string str => [.. str.Split('|')],
-            IEnumerable<string> strings => [.. strings],
-            _ => new List<string>()
-        };
-        TagPanelHelper.FillLocalized(
-            PanTags,
-            list,
-            ContainerTheme.TextSecondary(this));
-    }
-
-    #endregion
-
-    protected override AutomationPeer OnCreateAutomationPeer()
-    {
-        return new PclButtonAutomationPeer(
-            this,
-            PerformClick,
-            () => Title,
-            AutomationControlType.ListItem);
-    }
-
-    #region 自定义属性
-
-    /// <summary>唯一编号，用于区分同名动画组。</summary>
-    public readonly int Uuid = LauncherCommon.GetUuid();
+    /// <summary>最近一次点击携带的修饰键；键盘和自动化调用为 <see cref="KeyModifiers.None" />。</summary>
+    public KeyModifiers LastClickKeyModifiers { get; private set; }
 
     public static readonly StyledProperty<string> TitleProperty =
         AvaloniaProperty.Register<MyListItem, string>(nameof(Title), string.Empty);
@@ -181,6 +143,9 @@ public class MyListItem : Grid, IMyRadio
     public static readonly StyledProperty<int> PaddingLeftProperty =
         AvaloniaProperty.Register<MyListItem, int>(nameof(PaddingLeft));
 
+    public static readonly StyledProperty<int> MinPaddingRightProperty =
+        AvaloniaProperty.Register<MyListItem, int>(nameof(MinPaddingRight), 4);
+
     public static readonly StyledProperty<object?> TagsProperty =
         AvaloniaProperty.Register<MyListItem, object?>(nameof(Tags));
 
@@ -208,7 +173,7 @@ public class MyListItem : Grid, IMyRadio
         InfoProperty.Changed.AddClassHandler<MyListItem>((item, e) => item.OnInfoChanged(e));
         LogoProperty.Changed.AddClassHandler<MyListItem>((item, e) =>
             item.UpdateLogo(e.NewValue as string));
-        SvgIconProperty.Changed.AddClassHandler<MyListItem>((item, e) =>
+        SvgIconProperty.Changed.AddClassHandler<MyListItem>((item, _) =>
             item.UpdateLogo(item.Logo));
         ButtonsProperty.Changed.AddClassHandler<MyListItem>((item, e) =>
             item.SetButtons(e.NewValue as IEnumerable<MyIconButton>));
@@ -221,6 +186,8 @@ public class MyListItem : Grid, IMyRadio
             item.ApplyScaleAnimationEnabled(e.NewValue is true));
         PaddingLeftProperty.Changed.AddClassHandler<MyListItem>((item, e) =>
             item.ApplyPaddingLeft(e.NewValue is int value ? value : 0));
+        MinPaddingRightProperty.Changed.AddClassHandler<MyListItem>((item, _) =>
+            item.OnMinPaddingRightChanged());
         TagsProperty.Changed.AddClassHandler<MyListItem>((item, e) => item.SetTags(e.NewValue));
     }
 
@@ -277,7 +244,7 @@ public class MyListItem : Grid, IMyRadio
         set => SetValue(LogoCornerRadiusProperty, value);
     }
 
-    /// <summary>是否启用缩放动画；影响 RectBack 圆角。</summary>
+    /// <summary>是否启用缩放动画；影响 RectBack 与 PanBack 的 Transform。</summary>
     public bool IsScaleAnimationEnabled
     {
         get => GetValue(IsScaleAnimationEnabledProperty);
@@ -291,10 +258,12 @@ public class MyListItem : Grid, IMyRadio
         set => SetValue(PaddingLeftProperty, value);
     }
 
-    /// <summary>
-    ///     右边距的最小值。在存在右侧按钮时，右边距会被自动设置为 5 + 按钮数 * 25。
-    /// </summary>
-    public int MinPaddingRight { get; set; } = 4;
+    /// <summary>右边距的最小值。存在右侧按钮时，悬停会扩展到 5 + 按钮数 * 25。</summary>
+    public int MinPaddingRight
+    {
+        get => GetValue(MinPaddingRightProperty);
+        set => SetValue(MinPaddingRightProperty, value);
+    }
 
     /// <summary>右侧按钮集合。</summary>
     public IEnumerable<MyIconButton>? Buttons
@@ -333,7 +302,6 @@ public class MyListItem : Grid, IMyRadio
         set => SetValue(CheckCommandParameterProperty, value);
     }
 
-    // 勾选选项
     public enum CheckType
     {
         None,
@@ -348,11 +316,10 @@ public class MyListItem : Grid, IMyRadio
         set => SetValue(TypeProperty, value);
     }
 
-    // 勾选状态
     public bool Checked
     {
         get => GetValue(CheckedProperty);
-        set => SetChecked(value, false, value != Checked); // 仅在值发生变化时触发动画 (#4596)
+        set => SetChecked(value, false, value != Checked);
     }
 
     /// <summary>标签：String（以 | 分隔）或字符串集合，内容按本地化资源键解析。</summary>
@@ -365,354 +332,398 @@ public class MyListItem : Grid, IMyRadio
     /// <summary>直接写入的标签文本；不做本地化，语言切换不影响这些标签。</summary>
     public IEnumerable<string>? PlainTags
     {
-        set => TagPanelHelper.FillPlain(PanTags, value, ContainerTheme.TextSecondary(this));
+        set => TagPanelHelper.FillPlain(PanTagsElement, value);
+    }
+
+    private void SetTags(object? value)
+    {
+        var list = value switch
+        {
+            string str => [.. str.Split('|')],
+            IEnumerable<string> strings => [.. strings],
+            _ => new List<string>()
+        };
+        TagPanelHelper.FillLocalized(PanTagsElement, list);
+    }
+
+    /// <summary>是否启用鼠标悬停动画；逐项进入动画期间由 MyPageLeft 临时关闭。</summary>
+    public bool HoverAnimationEnabled
+    {
+        get => _isHoverAnimationEnabled;
+        set
+        {
+            if (_isHoverAnimationEnabled == value)
+                return;
+            _isHoverAnimationEnabled = value;
+            _stateLast = null;
+            RefreshColor(this, EventArgs.Empty);
+        }
     }
 
     #endregion
 
-    #region 后加载控件
+    #region 视觉部件
 
-    // 指向背景
-    private Border? _rectBack;
+    public Grid PanBack => PanBackElement;
 
-    public Border RectBack
-    {
-        get
-        {
-            if (_rectBack is not null)
-                return _rectBack;
+    public Border RectBack => RectBackElement;
 
-            var rect = new Border
-            {
-                CornerRadius = new CornerRadius(IsScaleAnimationEnabled || Height > 40d ? 6d : 0d),
-                RenderTransform = IsScaleAnimationEnabled ? new ScaleTransform(0.8d, 0.8d) : null,
-                RenderTransformOrigin = RelativePoint.Center,
-                BorderThickness = new Thickness(1d),
-                IsHitTestVisible = false
-            };
-            rect.Classes.Add("ListItemBack");
-            SetColumnSpan(rect, 999);
-            SetRowSpan(rect, 999);
-            Children.Insert(0, rect);
-            _rectBack = rect;
-            return _rectBack;
-        }
-    }
+    public Border RectCheck => RectCheckElement;
 
-    // 按钮
+    public TextBlock LabTitle => LabTitleElement;
+
+    public StackPanel PanTags => PanTagsElement;
+
+    public TextBlock LabInfo => LabInfoElement;
+
+    /// <summary>标题内联集合；仅供初始化完成后的代码调用。</summary>
+    public InlineCollection Inlines => LabTitleElement.Inlines!;
+
     public Control? buttonStack;
-
-    // 图标
     public Control? pathLogo;
 
-    // 勾选条
-    public Border? rectCheck;
+    #endregion
 
-    private StackPanel? _panTags;
+    #region 生命周期
 
-    /// <summary>Tags 的存放 StackPanel。</summary>
-    public StackPanel PanTags
+    private void MyListItem_Loaded()
     {
-        get
-        {
-            if (_panTags is not null)
-                return _panTags;
+        _stateLast = null;
+        ApplyType(Type);
+        UpdateBackChrome();
+        UpdateInteractivity();
+        _columnPaddingRight.Width = new GridLength(MinPaddingRight);
+        ApplyCheckedForeground();
+        RefreshColor(this, EventArgs.Empty);
+    }
 
-            var stack = new StackPanel
-            {
-                IsHitTestVisible = false,
-                Orientation = Orientation.Horizontal,
-                VerticalAlignment = VerticalAlignment.Bottom,
-                Margin = new Thickness(3.5d, 0d, -3d, 0d)
-            };
-            SetColumn(stack, 3);
-            SetRow(stack, 2);
-            Children.Add(stack);
-            _panTags = stack;
-            return _panTags;
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        UpdateBackChrome();
+        ApplyCheckedForeground();
+        _stateLast = null;
+        RefreshColor(this, EventArgs.Empty);
+    }
+
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        AniStop("ListItem Color " + Uuid);
+        AniStop("MyListItem Checked " + Uuid);
+        _isMouseDown = false;
+        _stateLast = null;
+        base.OnDetachedFromVisualTree(e);
+    }
+
+    private void OnActualThemeVariantChanged(object? sender, EventArgs e)
+    {
+        ApplyCheckedForeground();
+        if (RectBackElement.Opacity <= 0d)
+            BindRectBackIdle();
+        else
+            ApplyColorStateInstant(_stateLast ?? "Idle");
+    }
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+
+        if (change.Property == CheckedProperty && !_isSettingChecked)
+        {
+            EnsureSingleChecked();
+            RefreshCheckedVisual(change.NewValue is true, true);
+        }
+        else if (change.Property == IsEnabledProperty
+                 || change.Property == IsVisibleProperty
+                 || change.Property == IsHitTestVisibleProperty
+                 || change.Property == CommandProperty
+                 || change.Property == CheckCommandProperty)
+        {
+            UpdateInteractivity();
         }
     }
 
-    private TextBlock? _labInfo;
-
-    /// <summary>副文本控件。</summary>
-    public TextBlock LabInfo
+    protected override AutomationPeer OnCreateAutomationPeer()
     {
-        get
+        return Type switch
         {
-            if (_labInfo is not null)
-                return _labInfo;
-
-            var lab = new TextBlock
-            {
-                HorizontalAlignment = HorizontalAlignment.Left,
-                IsHitTestVisible = false,
-                TextTrimming = TextTrimming.CharacterEllipsis,
-                IsVisible = false,
-                FontSize = 12d,
-                Margin = new Thickness(4d, 0d, 0d, 0d),
-                Opacity = 0.6d
-            };
-            ContainerTheme.BindDynamic(lab, TextBlock.ForegroundProperty, "ColorBrushGray2");
-            SetColumn(lab, 4);
-            SetRow(lab, 2);
-            Children.Add(lab);
-            _labInfo = lab;
-            return _labInfo;
-        }
+            CheckType.RadioBox => new PclToggleAutomationPeer(
+                this,
+                () => Checked,
+                () => PerformClick(),
+                () => Title,
+                AutomationControlType.RadioButton),
+            CheckType.CheckBox => new PclToggleAutomationPeer(
+                this,
+                () => Checked,
+                () => PerformClick(),
+                () => Title),
+            _ => new PclButtonAutomationPeer(
+                this,
+                () => PerformClick(),
+                () => Title,
+                AutomationControlType.ListItem)
+        };
     }
-
-    /// <summary>根 Grid（列表项自身）。</summary>
-    public Grid PanBack => this;
-
-    private readonly ColumnDefinition _columnCheck;
-    private readonly ColumnDefinition _columnPaddingLeft;
-    private readonly ColumnDefinition _columnLogo;
-    private readonly ColumnDefinition _columnPaddingRight;
-
-    public TextBlock LabTitle { get; }
-
-    [Content] public InlineCollection Inlines => LabTitle.Inlines!;
 
     #endregion
 
     #region 颜色与尺寸
 
-    /// <summary>悬停/按下/离开时的颜色、背景缩放与右侧按钮过渡（120/180 ms）。</summary>
+    private double EffectiveHeight
+    {
+        get
+        {
+            if (Bounds.Height > 0d)
+                return Bounds.Height;
+            return double.IsNaN(Height) ? 0d : Height;
+        }
+    }
+
+    private bool IsCompact => EffectiveHeight > 0d && EffectiveHeight < 40d;
+
+    /// <summary>悬停/按下/离开时的颜色、背景缩放与右侧按钮过渡。</summary>
     public void RefreshColor(object? sender, EventArgs e)
     {
-        // 菜单虚拟化检测
-        if (ContentHandler is not null)
-        {
-            ContentHandler.Invoke(this, e);
-            ContentHandler = null;
-        }
-
-        // 判断当前颜色
         string stateNew;
         int time;
         if (_isMouseDown && !(Type == CheckType.RadioBox && Checked))
         {
             stateNew = "MouseDown";
-            time = 120;
+            time = AnimationTimeIn;
         }
-        else if (IsPointerOver && isMouseOverAnimationEnabled)
+        else if (IsPointerOver && _isHoverAnimationEnabled)
         {
             stateNew = "MouseOver";
-            time = 120;
+            time = AnimationTimeIn;
         }
         else
         {
             stateNew = "Idle";
-            time = 180;
+            time = AnimationTimeOut;
         }
 
         if ((_stateLast ?? string.Empty) == stateNew)
             return;
         _stateLast = stateNew;
 
-        var animationKey = "ListItem Color " + Uuid;
-
-        // 动画关闭、控件未加载或页面切换中：直接落到终值
         if (!ContainerAnimation.CanAnimate(this))
         {
             ApplyColorStateInstant(stateNew);
-            AniStop(animationKey);
             return;
         }
 
-        // 有动画：同名的上一组会在 AniStart 时被丢弃，所以快速移入移出不会叠加
-        var ani = new List<AniData>();
+        var animationKey = "ListItem Color " + Uuid;
+        var animations = new List<AniData>();
+        var showButtons = ShouldShowButtons(stateNew);
+        AddButtonAnimations(animations, showButtons, time);
+
+        var back = RectBackElement;
         if (stateNew is "MouseOver" or "MouseDown")
         {
-            if (buttonStack is not null)
-            {
-                buttonStack.IsHitTestVisible = true;
-                ani.Add(
-                    AaOpacity(
-                        buttonStack,
-                        1d - buttonStack.Opacity,
-                        (int)Math.Round(time * 0.7d),
-                        (int)Math.Round(time * 0.3d)));
-                ani.Add(
-                    AaDouble(
-                        delta => _columnPaddingRight.Width =
-                            new GridLength(Math.Max(0d, _columnPaddingRight.Width.Value + delta)),
-                        Math.Max(MinPaddingRight, 5d + (Buttons?.Count() ?? 0) * 25d)
-                        - _columnPaddingRight.Width.Value,
-                        (int)Math.Round(time * 0.3d),
-                        (int)Math.Round(time * 0.7d)));
-            }
-
-            var back = RectBack;
-            var targetBack = stateNew == "MouseDown"
-                ? ContainerTheme.ItemPressed(this)
-                : ContainerTheme.ItemHover(this);
-            back.Background = targetBack;
-            ani.Add(
+            animations.Add(
+                AaOpacity(
+                    back,
+                    1d - back.Opacity,
+                    time,
+                    ease: new AniEaseOutFluent()));
+            animations.Add(
                 AaColor(
                     back,
                     Border.BackgroundProperty,
-                    ContainerAnimation.ColorOf(targetBack),
+                    stateNew == "MouseDown" ? "ColorBrush6" : "ColorBrushBg1",
                     time));
 
             if (IsScaleAnimationEnabled)
             {
                 var backScale = ContainerAnimation.EnsureScale(back, 0.8d, 0.8d);
-                var selfScale = ContainerAnimation.EnsureScale(this);
-                ani.Add(
+                var selfScale = ContainerAnimation.EnsureScale(PanBackElement);
+                animations.Add(
                     AaScaleTransform(
                         back,
                         1d - backScale.ScaleX,
                         (int)Math.Round(time * 1.6d),
                         ease: new AniEaseOutFluent()));
-                if (_isMouseDown)
-                    ani.Add(
-                        AaScaleTransform(
-                            this,
-                            0.98d - selfScale.ScaleX,
-                            (int)Math.Round(time * 0.9d),
-                            ease: new AniEaseOutFluent()));
-                else
-                    ani.Add(
-                        AaScaleTransform(
-                            this,
-                            1d - selfScale.ScaleX,
-                            (int)Math.Round(time * 1.2d),
-                            ease: new AniEaseOutFluent()));
+                animations.Add(
+                    AaScaleTransform(
+                        PanBackElement,
+                        (_isMouseDown ? 0.98d : 1d) - selfScale.ScaleX,
+                        (int)Math.Round(time * (_isMouseDown ? 0.9d : 1.2d)),
+                        ease: new AniEaseOutFluent()));
             }
         }
         else
         {
-            if (buttonStack is not null)
-            {
-                buttonStack.IsHitTestVisible = false;
-                ani.Add(AaOpacity(buttonStack, -buttonStack.Opacity, (int)Math.Round(time * 0.4d)));
-                ani.Add(
-                    AaDouble(
-                        delta => _columnPaddingRight.Width =
-                            new GridLength(Math.Max(0d, _columnPaddingRight.Width.Value + delta)),
-                        MinPaddingRight - _columnPaddingRight.Width.Value,
-                        (int)Math.Round(time * 0.4d)));
-            }
+            animations.Add(AaOpacity(back, -back.Opacity, time));
+            animations.Add(
+                AaColor(back, Border.BackgroundProperty, "ColorBrush7", time));
 
-            if (_rectBack is not null)
-                if (IsScaleAnimationEnabled)
-                {
-                    var backScale = ContainerAnimation.EnsureScale(_rectBack);
-                    var selfScale = ContainerAnimation.EnsureScale(this);
-                    ani.Add(
-                        AaColor(
-                            _rectBack,
-                            Border.BackgroundProperty,
-                            ContainerAnimation.ColorOf(ContainerTheme.AccentLight(this)),
-                            time));
-                    ani.Add(
-                        AaScaleTransform(
-                            this,
-                            1d - selfScale.ScaleX,
-                            time * 3,
-                            ease: new AniEaseOutFluent()));
-                    ani.Add(
-                        AaScaleTransform(
-                            _rectBack,
-                            0.996d - backScale.ScaleX,
-                            time,
-                            ease: new AniEaseOutFluent()));
-                    // 收尾回落到 0.75，下次移入时从缩小状态展开
-                    ani.Add(AaScaleTransform(_rectBack, -0.246d, 1, after: true));
-                }
+            if (IsScaleAnimationEnabled)
+            {
+                var backScale = ContainerAnimation.EnsureScale(back, 0.8d, 0.8d);
+                var selfScale = ContainerAnimation.EnsureScale(PanBackElement);
+                animations.Add(
+                    AaScaleTransform(
+                        PanBackElement,
+                        1d - selfScale.ScaleX,
+                        time * 3,
+                        ease: new AniEaseOutFluent()));
+                animations.Add(
+                    AaScaleTransform(
+                        back,
+                        0.996d - backScale.ScaleX,
+                        time,
+                        ease: new AniEaseOutFluent()));
+                animations.Add(AaScaleTransform(back, -0.246d, 1, after: true));
+            }
         }
 
-        AniStart(ani, animationKey);
+        AniStart(animations, animationKey);
     }
 
     /// <summary>无动画路径：直接写入悬停/按下/离开的终态。</summary>
     private void ApplyColorStateInstant(string stateNew)
     {
-        if (stateNew == "Idle")
-        {
-            if (buttonStack is not null)
-            {
-                buttonStack.Opacity = 0d;
-                buttonStack.IsHitTestVisible = false;
-            }
-
-            _columnPaddingRight.Width = new GridLength(MinPaddingRight);
-
-            var idleScale = ContainerAnimation.EnsureScale(this);
-            idleScale.ScaleX = 1d;
-            idleScale.ScaleY = 1d;
-            if (_rectBack is not null)
-            {
-                if (IsScaleAnimationEnabled)
-                {
-                    var scale = ContainerAnimation.EnsureScale(_rectBack, 0.75d, 0.75d);
-                    scale.ScaleX = 0.75d;
-                    scale.ScaleY = 0.75d;
-                }
-
-                BindRectBackIdle();
-            }
-
-            return;
-        }
-
+        var showButtons = ShouldShowButtons(stateNew);
         if (buttonStack is not null)
         {
-            buttonStack.Opacity = 1d;
-            buttonStack.IsHitTestVisible = true;
+            buttonStack.Opacity = showButtons ? 1d : 0d;
+            buttonStack.IsHitTestVisible = showButtons;
             _columnPaddingRight.Width = new GridLength(
-                Math.Max(MinPaddingRight, 5d + (Buttons?.Count() ?? 0) * 25d));
+                showButtons
+                    ? Math.Max(MinPaddingRight, 5d + (Buttons?.Count() ?? 0) * 25d)
+                    : MinPaddingRight);
+            SetButtonTabStops(showButtons);
         }
 
-        var back = RectBack; // 鼠标移入时才实例化
-        back.Background = stateNew == "MouseDown"
-            ? ContainerTheme.ItemPressed(this)
-            : ContainerTheme.ItemHover(this);
-        var backScale = ContainerAnimation.EnsureScale(back);
-        backScale.ScaleX = 1d;
-        backScale.ScaleY = 1d;
-        var selfScale = ContainerAnimation.EnsureScale(this);
-        var targetScale = stateNew == "MouseDown" ? 0.98d : 1d;
-        selfScale.ScaleX = targetScale;
-        selfScale.ScaleY = targetScale;
+        var back = RectBackElement;
+        back.Opacity = stateNew == "Idle" ? 0d : 1d;
+        switch (stateNew)
+        {
+            case "MouseDown":
+                ContainerTheme.BindDynamic(back, Border.BackgroundProperty, "ColorBrush6");
+                break;
+            case "MouseOver":
+                ContainerTheme.BindDynamic(back, Border.BackgroundProperty, "ColorBrushBg1");
+                break;
+            default:
+                BindRectBackIdle();
+                break;
+        }
+
+        if (IsScaleAnimationEnabled)
+        {
+            back.RenderTransformOrigin = RelativePoint.Center;
+            back.RenderTransform = new ScaleTransform(
+                stateNew == "Idle" ? 0.75d : 1d,
+                stateNew == "Idle" ? 0.75d : 1d);
+            PanBackElement.RenderTransformOrigin = RelativePoint.Center;
+            PanBackElement.RenderTransform = new ScaleTransform(
+                stateNew == "MouseDown" ? 0.98d : 1d,
+                stateNew == "MouseDown" ? 0.98d : 1d);
+        }
+        else
+        {
+            back.RenderTransform = null;
+            PanBackElement.RenderTransform = null;
+        }
     }
 
-    private void MyListItem_Loaded()
+    private bool ShouldShowButtons(string stateNew)
     {
-        // 列表重建后必须重新评估一次状态，否则首次悬停会被旧 state 吞掉。
+        return stateNew is "MouseOver" or "MouseDown"
+            || (_showButtonsOnKeyboardFocus && IsKeyboardFocusWithin);
+    }
+
+    private void AddButtonAnimations(List<AniData> animations, bool show, int time)
+    {
+        if (buttonStack is null)
+            return;
+
+        buttonStack.IsHitTestVisible = show;
+        SetButtonTabStops(show);
+        var targetPadding = show
+            ? Math.Max(MinPaddingRight, 5d + (Buttons?.Count() ?? 0) * 25d)
+            : MinPaddingRight;
+        animations.Add(
+            AaOpacity(
+                buttonStack,
+                (show ? 1d : 0d) - buttonStack.Opacity,
+                (int)Math.Round(time * (show ? 0.7d : 0.4d)),
+                show ? (int)Math.Round(time * 0.3d) : 0));
+        animations.Add(
+            AaDouble(
+                delta => _columnPaddingRight.Width =
+                    new GridLength(Math.Max(0d, _columnPaddingRight.Width.Value + delta)),
+                targetPadding - _columnPaddingRight.Width.Value,
+                (int)Math.Round(time * (show ? 0.3d : 0.4d)),
+                show ? (int)Math.Round(time * 0.7d) : 0));
+    }
+
+    private void OnFocusChanged(NavigationMethod navigationMethod)
+    {
+        _showButtonsOnKeyboardFocus =
+            navigationMethod is NavigationMethod.Tab or NavigationMethod.Directional;
         _stateLast = null;
-        if (Checked)
-            ApplyCheckedForeground();
-        else
-            ContainerTheme.BindDynamic(this, ForegroundProperty, "ColorBrush1");
-        _columnPaddingRight.Width = new GridLength(MinPaddingRight);
+        RefreshColor(this, EventArgs.Empty);
+    }
+
+    private void OnFocusLost()
+    {
+        _stateLast = null;
         RefreshColor(this, EventArgs.Empty);
     }
 
     private void OnSizeChanged()
     {
-        var logo = Logo;
-        var hasLogo = IsUsingSvgIcon || !string.IsNullOrEmpty(logo);
-        var isBitmapLogo = IsBitmapLogo;
+        var hasLogo = IsUsingSvgIcon || !string.IsNullOrWhiteSpace(Logo);
         _columnCheck.Width = new GridLength(
             Type is CheckType.None or CheckType.Clickable
-                ? Height < 40d
+                ? IsCompact
                     ? 4d
                     : 2d
                 : 6d);
-        _columnLogo.Width = new GridLength((hasLogo ? 34d : 0d) + (Height < 40d ? 0d : 4d));
+        _columnLogo.Width = new GridLength((hasLogo ? 34d : 0d) + (IsCompact ? 0d : 4d));
 
-        pathLogo?.Margin = isBitmapLogo
+        pathLogo?.Margin = IsBitmapLogo
             ? new Thickness(4d, 5d, 3d, 5d)
             : new Thickness(
-                Height < 40d ? 6d : 8d,
+                IsCompact ? 6d : 8d,
                 8d,
-                Height < 40d ? 4d : 6d,
+                IsCompact ? 4d : 6d,
                 8d);
 
-        LabTitle.Margin = new Thickness(4d, 0d, 0d, Height < 40d ? 0d : 2d);
+        LabTitleElement.Margin = new Thickness(4d, 0d, 0d, IsCompact ? 0d : 2d);
+        UpdateBackChrome();
+        if (Checked)
+            ApplyCheckedForeground();
+    }
+
+    private void UpdateBackChrome()
+    {
+        var radius = IsScaleAnimationEnabled || EffectiveHeight > 40d ? 6d : 0d;
+        RectBackElement.CornerRadius = new CornerRadius(radius);
+        RectBackElement.RenderTransformOrigin = RelativePoint.Center;
+        PanBackElement.RenderTransformOrigin = RelativePoint.Center;
+
+        if (IsScaleAnimationEnabled)
+        {
+            if (RectBackElement.RenderTransform is not ScaleTransform)
+                RectBackElement.RenderTransform = new ScaleTransform(0.75d, 0.75d);
+            if (PanBackElement.RenderTransform is not ScaleTransform)
+                PanBackElement.RenderTransform = new ScaleTransform(1d, 1d);
+        }
+        else
+        {
+            RectBackElement.RenderTransform = null;
+            PanBackElement.RenderTransform = null;
+        }
+    }
+
+    private void BindRectBackIdle()
+    {
+        ContainerTheme.BindDynamic(RectBackElement, Border.BackgroundProperty, "ColorBrush7");
+        ContainerTheme.BindDynamic(RectBackElement, Border.BorderBrushProperty, "ColorBrush6");
     }
 
     #endregion
@@ -721,15 +732,15 @@ public class MyListItem : Grid, IMyRadio
 
     private void OnTitleChanged(AvaloniaPropertyChangedEventArgs e)
     {
-        LabTitle.Text = (e.NewValue as string ?? string.Empty).Replace("\r", "").Replace("\n", "");
+        LabTitleElement.Text =
+            (e.NewValue as string ?? string.Empty).Replace("\r", "").Replace("\n", "");
     }
 
     private void OnInfoChanged(AvaloniaPropertyChangedEventArgs e)
     {
         var value = e.NewValue as string;
-        var lab = LabInfo;
-        lab.Text = value ?? string.Empty;
-        lab.IsVisible = !string.IsNullOrEmpty(value);
+        LabInfoElement.Text = value ?? string.Empty;
+        LabInfoElement.IsVisible = !string.IsNullOrEmpty(value);
     }
 
     private void ApplyPaddingLeft(int value)
@@ -739,7 +750,15 @@ public class MyListItem : Grid, IMyRadio
 
     private void ApplyScaleAnimationEnabled(bool value)
     {
-        _rectBack?.CornerRadius = new CornerRadius(value ? 6d : 0d);
+        UpdateBackChrome();
+        _stateLast = null;
+        RefreshColor(this, EventArgs.Empty);
+    }
+
+    private void OnMinPaddingRightChanged()
+    {
+        _stateLast = null;
+        RefreshColor(this, EventArgs.Empty);
     }
 
     #endregion
@@ -750,18 +769,15 @@ public class MyListItem : Grid, IMyRadio
 
     private void UpdateLogo(string? logo)
     {
-        // 删除旧 Logo
         if (pathLogo is not null)
-            Children.Remove(pathLogo);
+            PanBackElement.Children.Remove(pathLogo);
         pathLogo = null;
 
-        // 添加新 Logo
         if (IsUsingSvgIcon)
         {
             var icon = new SvgIconControl
             {
-                Tag = this,
-                IsHitTestVisible = LogoClickable,
+                IsHitTestVisible = false,
                 Icon = SvgIcon,
                 Stretch = Stretch.Uniform,
                 RenderTransformOrigin = RelativePoint.Center,
@@ -780,11 +796,9 @@ public class MyListItem : Grid, IMyRadio
         else if (!string.IsNullOrEmpty(logo))
         {
             if (logo.StartsWith("http", StringComparison.OrdinalIgnoreCase))
-                // 网络图片：按原比例缩放，下载与缓存由 MyImage 负责
                 pathLogo = new MyImage
                 {
-                    Tag = this,
-                    IsHitTestVisible = LogoClickable,
+                    IsHitTestVisible = false,
                     Source = logo,
                     CornerRadius = LogoCornerRadius,
                     Stretch = Stretch.Uniform,
@@ -794,11 +808,9 @@ public class MyListItem : Grid, IMyRadio
                     VerticalAlignment = VerticalAlignment.Stretch
                 };
             else if (IsBitmapPath(logo))
-                // 本地位图：拉伸填满单元格；皮肤头像与披风缓存用最近邻，避免像素被平滑
                 pathLogo = new ListItemLogoImage
                 {
-                    Tag = this,
-                    IsHitTestVisible = LogoClickable,
+                    IsHitTestVisible = false,
                     Source = logo,
                     CornerRadius = LogoCornerRadius,
                     UseNearestNeighbor = IsAvatarCachePath(logo),
@@ -808,13 +820,11 @@ public class MyListItem : Grid, IMyRadio
                     VerticalAlignment = VerticalAlignment.Stretch
                 };
             else
-                // 矢量图
                 try
                 {
                     var path = new Path
                     {
-                        Tag = this,
-                        IsHitTestVisible = LogoClickable,
+                        IsHitTestVisible = false,
                         HorizontalAlignment = HorizontalAlignment.Center,
                         VerticalAlignment = VerticalAlignment.Center,
                         Stretch = Stretch.Uniform,
@@ -841,35 +851,12 @@ public class MyListItem : Grid, IMyRadio
         {
             SetColumn(pathLogo, 2);
             SetRowSpan(pathLogo, 4);
-            OnSizeChanged(); // 设置边距
-            Children.Add(pathLogo);
-            // 图标的点击事件
-            if (LogoClickable)
-            {
-                pathLogo.PointerExited += (_, _) => _isLogoDown = false;
-                pathLogo.PointerPressed += (_, e) =>
-                {
-                    if (e.GetCurrentPoint(pathLogo).Properties.IsLeftButtonPressed)
-                        _isLogoDown = true;
-                };
-                pathLogo.PointerReleased += (_, e) =>
-                {
-                    if (!_isLogoDown)
-                        return;
-                    _isLogoDown = false;
-                    if (e.InitialPressMouseButton != MouseButton.Left)
-                        return;
-
-                    LogoClick?.Invoke(this, e);
-                    // 图标点击不冒泡到整行的点击处理，自定义事件在这里补发
-                    RaiseCustomEventOnce(e);
-                };
-            }
+            OnSizeChanged();
+            PanBackElement.Children.Add(pathLogo);
         }
 
-        // 改变行距
-        var hasLogo = IsUsingSvgIcon || !string.IsNullOrEmpty(logo);
-        _columnLogo.Width = new GridLength((hasLogo ? 34d : 0d) + (Height < 40d ? 0d : 4d));
+        var hasLogo = IsUsingSvgIcon || !string.IsNullOrWhiteSpace(logo);
+        _columnLogo.Width = new GridLength((hasLogo ? 34d : 0d) + (IsCompact ? 0d : 4d));
     }
 
     private static bool IsBitmapPath(string logo)
@@ -879,14 +866,8 @@ public class MyListItem : Grid, IMyRadio
             || logo.EndsWith(".webp", StringComparison.OrdinalIgnoreCase);
     }
 
-    /// <summary>当前 Logo 是否为位图文件（png/jpg/webp）。</summary>
     private bool IsBitmapLogo => !IsUsingSvgIcon && IsBitmapPath(Logo);
 
-    /// <summary>
-    ///     Logo 是否位于皮肤头像或披风缓存目录。
-    ///     这两类图是像素画，放大或缩小时需要使用最近邻采样。
-    ///     TODO(FIX-C-04): 皮肤页面负责生成头像缓存（56×56 最近邻合成），这里只消费已存在的缓存文件。
-    /// </summary>
     private static bool IsAvatarCachePath(string path)
     {
         var temp = Paths.Temp;
@@ -900,35 +881,13 @@ public class MyListItem : Grid, IMyRadio
             || normalized.Contains(capeCache, StringComparison.OrdinalIgnoreCase);
     }
 
-    /// <summary>控件上是否配置了自定义事件（附加事件类型或事件集合）。</summary>
-    private bool HasCustomEvent =>
-        CustomEventService.GetEventType(this) != EventType.None
-        || GetValue(CustomEventService.EventsProperty) is { Events.Count: > 0 };
-
-    /// <summary>配置了自定义事件时派发一次，并标记事件已处理。</summary>
-    private void RaiseCustomEventOnce(PointerEventArgs e)
-    {
-        if (e.Handled || !HasCustomEvent)
-            return;
-
-        CustomEventService.Raise(this);
-        e.Handled = true;
-    }
-
     private void ApplyLogoScale()
     {
-        if (pathLogo is not null)
-        {
-            var scale = IsUsingSvgIcon ? 1d : LogoScale;
-            pathLogo.RenderTransform = new ScaleTransform(scale, scale);
-            pathLogo.RenderTransformOrigin = RelativePoint.Center;
-        }
+        if (pathLogo is null) return;
+        var scale = IsUsingSvgIcon ? 1d : LogoScale;
+        pathLogo.RenderTransform = new ScaleTransform(scale, scale);
+        pathLogo.RenderTransformOrigin = RelativePoint.Center;
     }
-
-    /// <summary>该 Logo 是否可用点击触发事件。需要在 Logo 属性之前设置。</summary>
-    public bool LogoClickable { get; set; }
-
-    private bool _isLogoDown;
 
     private bool IsLogoCornerRadiusEnabled()
     {
@@ -946,10 +905,6 @@ public class MyListItem : Grid, IMyRadio
 
     #region 勾选
 
-    private bool _isSettingChecked;
-    private bool _isUserInteraction;
-    private bool _isExecutingCheckCommand;
-
     /// <summary>手动设置 Checked 属性。</summary>
     /// <param name="value">新的 Checked 属性。</param>
     /// <param name="user">是否由用户引发。</param>
@@ -958,7 +913,6 @@ public class MyListItem : Grid, IMyRadio
     {
         try
         {
-            // 自定义属性基础
             var changedEventArgs = new RouteEventArgs(user);
             var rawValue = Checked;
             _isUserInteraction = user;
@@ -970,7 +924,7 @@ public class MyListItem : Grid, IMyRadio
                     Changed?.Invoke(this, changedEventArgs);
                     if (changedEventArgs.handled)
                     {
-                        SetCheckedValue(rawValue);
+                        RevertChecked(rawValue);
                         return;
                     }
                 }
@@ -987,7 +941,7 @@ public class MyListItem : Grid, IMyRadio
                     Changed?.Invoke(this, changedEventArgs);
                     if (changedEventArgs.handled)
                     {
-                        SetCheckedValue(rawValue);
+                        RevertChecked(rawValue);
                         return;
                     }
                 }
@@ -998,10 +952,12 @@ public class MyListItem : Grid, IMyRadio
                 var checkEventArgs = new RouteEventArgs(user);
                 Check?.Invoke(this, checkEventArgs);
                 if (checkEventArgs.handled)
+                {
+                    RevertChecked(rawValue);
                     return;
+                }
             }
 
-            // 保证只有一个单选 ListItem 选中
             if (Type == CheckType.RadioBox)
             {
                 if (Parent is null)
@@ -1024,6 +980,12 @@ public class MyListItem : Grid, IMyRadio
         }
     }
 
+    private void RevertChecked(bool rawValue)
+    {
+        SetCheckedValue(rawValue);
+        RefreshCheckedVisual(rawValue, false);
+    }
+
     private void SetCheckedValue(bool value)
     {
         _isSettingChecked = true;
@@ -1039,158 +1001,138 @@ public class MyListItem : Grid, IMyRadio
 
     private void EnsureSingleChecked()
     {
-        if (Type != CheckType.RadioBox)
+        if (Type != CheckType.RadioBox || _isSyncingGroup)
             return;
         if (Parent is not Panel panel)
             return;
 
-        var radioBoxList = new List<MyListItem>();
-        var checkedCount = 0;
-        // 收集控件列表与选中个数
-        foreach (var control in panel.Children.Select(MyVirtualizingElement.TryInit))
-        {
-            if (control is not MyListItem { Type: CheckType.RadioBox } listItem)
-                continue;
+        var radioBoxList = panel
+            .Children
+            .OfType<MyListItem>()
+            .Where(item => item.Type == CheckType.RadioBox && item.IsVisible)
+            .ToList();
+        if (radioBoxList.Count == 0)
+            return;
 
-            radioBoxList.Add(listItem);
-            if (listItem.Checked)
-                checkedCount += 1;
-        }
-
-        // 判断选中情况
-        switch (checkedCount)
+        var checkedCount = radioBoxList.Count(item => item.Checked);
+        _isSyncingGroup = true;
+        try
         {
-            case 0:
-                // 没有任何单选框被选中，选择第一个
-                if (radioBoxList.Count > 0)
-                    radioBoxList[0].Checked = true;
-                break;
-            case > 1 when Checked:
-                // 选中项目多于 1 个且本控件选中：取消其他所有控件的选中
-                foreach (var control in radioBoxList.Where(control =>
-                             control.Checked && !ReferenceEquals(control, this)))
-                    control.Checked = false;
-                break;
-            case > 1:
+            switch (checkedCount)
             {
-                // 本控件未选中：只保留第一个选中的控件
-                var firstChecked = false;
-                foreach (var control in radioBoxList.Where(control => control.Checked))
-                    if (firstChecked)
-                        control.Checked = false; // 修改 Checked 会自动触发 Change 事件
-                    else
-                        firstChecked = true;
+                case 0:
+                {
+                    radioBoxList[0].Checked = true;
+                    break;
+                }
 
-                break;
+                case > 1 when Checked:
+                {
+                    foreach (var control in radioBoxList.Where(control =>
+                                 control.Checked && !ReferenceEquals(control, this)))
+                        control.Checked = false;
+                    break;
+                }
+
+                case > 1:
+                {
+                    var firstChecked = false;
+                    foreach (var control in radioBoxList.Where(control => control.Checked))
+                        if (firstChecked)
+                            control.Checked = false;
+                        else
+                            firstChecked = true;
+                    break;
+                }
             }
+        }
+        finally
+        {
+            _isSyncingGroup = false;
         }
     }
 
-    /// <summary>选中/取消时的左侧竖条弹性缩放与前景色过渡（300/120/200 ms）。</summary>
+    /// <summary>选中/取消时的左侧竖条弹性缩放与前景色过渡。</summary>
     private void RefreshCheckedVisual(bool value, bool anime)
     {
-        const double customHeight = 20d; // 修改左侧神秘动画条的高度
+        const double customHeight = 20d;
         var animationKey = "MyListItem Checked " + Uuid;
+        var check = RectCheckElement;
 
+        if (Type is CheckType.None or CheckType.Clickable)
+        {
+            check.IsVisible = false;
+            check.Height = 0d;
+            check.Opacity = 0d;
+            ApplyCheckedForeground();
+            return;
+        }
+
+        check.IsVisible = true;
         if (anime && ContainerAnimation.CanAnimate(this))
         {
-            var anim = new List<AniData>();
+            var animations = new List<AniData>();
             if (value)
             {
-                // 由无变有：固定高度、居中对齐，再让 ScaleY 从 0 弹到 1
-                if (rectCheck is not null)
-                {
-                    rectCheck.Height = customHeight;
-                    rectCheck.VerticalAlignment = VerticalAlignment.Center;
-                    rectCheck.Margin = new Thickness(-1d, 0d, 0d, 0d);
-                    rectCheck.Opacity = 1d;
-                    rectCheck.RenderTransformOrigin = RelativePoint.Center;
-                    var scale = new ScaleTransform(1d, 0d);
-                    rectCheck.RenderTransform = scale;
+                check.Height = customHeight;
+                check.VerticalAlignment = VerticalAlignment.Center;
+                check.Margin = new Thickness(-1d, 0d, 0d, 0d);
+                check.Opacity = 1d;
+                check.RenderTransformOrigin = RelativePoint.Center;
+                var scale = new ScaleTransform(1d, 0d);
+                check.RenderTransform = scale;
 
-                    anim.Add(
-                        AaDouble(
-                            delta => scale.ScaleY = Math.Max(0d, scale.ScaleY + delta),
-                            1d - scale.ScaleY,
-                            300,
-                            ease: new AniEaseOutBack(AniEasePower.Weak)));
-                }
-
-                anim.Add(
+                animations.Add(
+                    AaDouble(
+                        delta => scale.ScaleY = Math.Max(0d, scale.ScaleY + delta),
+                        1d - scale.ScaleY,
+                        300,
+                        ease: new AniEaseOutBack(AniEasePower.Weak)));
+                animations.Add(
                     AaColor(
                         this,
                         ForegroundProperty,
-                        ContainerAnimation.ColorOf(CheckedForeground),
+                        CheckedForegroundKey,
                         200));
             }
             else
             {
-                // 由有变无：ScaleY 缩到 0，同时淡出竖条
-                if (rectCheck is not null)
-                {
-                    var scale = ContainerAnimation.EnsureScale(rectCheck);
-                    anim.Add(
-                        AaDouble(
-                            delta => scale.ScaleY = Math.Max(0d, scale.ScaleY + delta),
-                            -scale.ScaleY,
-                            120,
-                            ease: new AniEaseInFluent(AniEasePower.Weak)));
-                    anim.Add(AaOpacity(rectCheck, -rectCheck.Opacity, 70, 40));
-                }
-
-                anim.Add(
-                    AaColor(
-                        this,
-                        ForegroundProperty,
-                        ContainerAnimation.ColorOf(ContainerTheme.Text(this)),
-                        120));
+                var scale = ContainerAnimation.EnsureScale(check);
+                animations.Add(
+                    AaDouble(
+                        delta => scale.ScaleY = Math.Max(0d, scale.ScaleY + delta),
+                        -scale.ScaleY,
+                        120,
+                        ease: new AniEaseInFluent(AniEasePower.Weak)));
+                animations.Add(AaOpacity(check, -check.Opacity, 70, 40));
+                animations.Add(
+                    AaColor(this, ForegroundProperty, "ColorBrush1", 120));
             }
 
-            // 颜色是逐帧相对插值，收尾时统一恢复：选中写强调色，未选中恢复主题动态绑定
-            anim.Add(AaCode(ApplyCheckedForeground, after: true));
-            AniStart(anim, animationKey);
+            animations.Add(AaCode(ApplyCheckedForeground, after: true));
+            AniStart(animations, animationKey);
             return;
         }
 
         AniStop(animationKey);
-
-        if (rectCheck is not null)
-        {
-            rectCheck.Height = value ? customHeight : 0d;
-            rectCheck.Margin = new Thickness(-1d, 0d, 0d, 0d);
-            rectCheck.Opacity = value ? 1d : 0d;
-            rectCheck.VerticalAlignment = VerticalAlignment.Center;
-            rectCheck.RenderTransform = null;
-        }
-
+        check.Height = value ? customHeight : 0d;
+        check.Margin = new Thickness(-1d, 0d, 0d, 0d);
+        check.Opacity = value ? 1d : 0d;
+        check.VerticalAlignment = VerticalAlignment.Center;
+        check.RenderTransform = null;
         ApplyCheckedForeground();
     }
 
-    /// <summary>
-    ///     选中项的前景色：常规行（高度 40 及以上）用强调色，紧凑行用浅一档的强调色。
-    /// </summary>
-    private string CheckedForegroundKey => Height < 40d ? "ColorBrush3" : "ColorBrush2";
-
-    /// <summary>选中态动画的起始/终点颜色，最终仍由动态资源绑定接管。</summary>
-    private IBrush CheckedForeground =>
-        ContainerTheme.Brush(this, CheckedForegroundKey, ContainerTheme.Text(this));
+    private string CheckedForegroundKey => IsCompact ? "ColorBrush3" : "ColorBrush2";
 
     private void ApplyCheckedForeground()
     {
-        // 选中与未选中都保持动态资源绑定，主题切换后颜色才能继续跟随页面。
         ContainerTheme.BindDynamic(
             this,
             ForegroundProperty,
-            Checked ? CheckedForegroundKey : "ColorBrush1");
-    }
-
-    /// <summary>把背景层恢复到 WPF 的空闲态资源绑定，避免主题切换后残留旧画刷。</summary>
-    private void BindRectBackIdle()
-    {
-        if (_rectBack is null)
-            return;
-        ContainerTheme.BindDynamic(_rectBack, Border.BackgroundProperty, "ColorBrush7");
-        ContainerTheme.BindDynamic(_rectBack, Border.BorderBrushProperty, "ColorBrush6");
+            Checked && Type is CheckType.RadioBox or CheckType.CheckBox
+                ? CheckedForegroundKey
+                : "ColorBrush1");
     }
 
     private void ExecuteCheckCommand()
@@ -1217,77 +1159,73 @@ public class MyListItem : Grid, IMyRadio
 
     private void ApplyType(CheckType value)
     {
-        // 切换左栏大小
         _columnCheck.Width = new GridLength(
             value is CheckType.None or CheckType.Clickable
-                ? Height < 40d
+                ? IsCompact
                     ? 4d
                     : 2d
                 : 6d);
-        // 切换竖条控件
-        if (value is CheckType.None or CheckType.Clickable)
-        {
-            // 移除竖条控件
-            if (rectCheck is not null)
-            {
-                Children.Remove(rectCheck);
-                rectCheck = null;
-            }
 
-            SetChecked(false, false, false);
-        }
-        // 添加竖条控件
-        else if (rectCheck is null)
+        var isCheck = value is CheckType.RadioBox or CheckType.CheckBox;
+        RectCheckElement.IsVisible = isCheck;
+        if (!isCheck)
         {
-            var bar = new Border
-            {
-                Width = 5d,
-                Height = Checked ? double.NaN : 0d,
-                CornerRadius = new CornerRadius(2d),
-                VerticalAlignment = Checked ? VerticalAlignment.Stretch : VerticalAlignment.Center,
-                HorizontalAlignment = HorizontalAlignment.Left,
-                Margin = Checked
-                    ? new Thickness(-1d, 6d, 0d, 6d)
-                    : new Thickness(-1d, 0d, 0d, 0d)
-            };
-            ContainerTheme.BindDynamic(bar, Border.BackgroundProperty, "ColorBrush3");
-            bar.Classes.Add("ListItemCheck");
-            SetRowSpan(bar, 4);
-            Children.Add(bar);
-            rectCheck = bar;
+            if (Checked)
+                SetCheckedValue(false);
+            RectCheckElement.Height = 0d;
+            RectCheckElement.Opacity = 0d;
+            ApplyCheckedForeground();
         }
+        else if (Checked)
+        {
+            RefreshCheckedVisual(true, false);
+        }
+        else
+        {
+            RectCheckElement.Height = 0d;
+            RectCheckElement.Opacity = 0d;
+        }
+
+        UpdateInteractivity();
     }
 
     private void SetButtons(IEnumerable<MyIconButton>? value)
     {
-        // 没有特殊按钮，移除原 Stack
         if (buttonStack is not null)
         {
-            Children.Remove(buttonStack);
+            PanBackElement.Children.Remove(buttonStack);
             buttonStack = null;
         }
 
         if (value is null)
+        {
+            ResetButtonPadding();
             return;
+        }
 
         var buttons = value.ToList();
         switch (buttons.Count)
         {
             case 0:
-                break;
+            {
+                ResetButtonPadding();
+                return;
+            }
+
             case 1:
             {
-                // 只有一个按钮
                 var button = buttons[0];
                 ConfigureButton(button, true);
                 button.Opacity = 0d;
                 button.IsHitTestVisible = false;
+                button.IsTabStop = false;
                 SetColumnSpan(button, 10);
                 SetRowSpan(button, 10);
-                Children.Add(button);
+                PanBackElement.Children.Add(button);
                 buttonStack = button;
                 break;
             }
+
             default:
             {
                 var stack = new StackPanel
@@ -1304,14 +1242,19 @@ public class MyListItem : Grid, IMyRadio
                 foreach (var button in buttons)
                 {
                     ConfigureButton(button, false);
+                    button.IsTabStop = false;
                     stack.Children.Add(button);
                 }
 
-                Children.Add(stack);
+                PanBackElement.Children.Add(stack);
                 buttonStack = stack;
                 break;
             }
         }
+
+        _columnPaddingRight.Width = new GridLength(MinPaddingRight);
+        _stateLast = null;
+        RefreshColor(this, EventArgs.Empty);
     }
 
     private static void ConfigureButton(MyIconButton button, bool withRightMargin)
@@ -1327,30 +1270,50 @@ public class MyListItem : Grid, IMyRadio
         button.VerticalAlignment = VerticalAlignment.Center;
     }
 
+    private void ResetButtonPadding()
+    {
+        _columnPaddingRight.Width = new GridLength(MinPaddingRight);
+        _stateLast = null;
+        RefreshColor(this, EventArgs.Empty);
+    }
+
+    private void SetButtonTabStops(bool enabled)
+    {
+        if (Buttons is null)
+            return;
+        foreach (var button in Buttons)
+            button.IsTabStop = enabled;
+    }
+
     #endregion
 
     #region 点击
 
-    private bool _isMouseDown;
-
     private void Button_MouseUp(object? sender, PointerReleasedEventArgs e)
     {
-        if (e.InitialPressMouseButton != MouseButton.Left)
-            return;
         if (!_isMouseDown)
             return;
+        if (IsInteractiveChild(e.Source))
+        {
+            ResetPointerState();
+            return;
+        }
 
         _isMouseDown = false;
         buttonStack?.IsHitTestVisible = true;
-        PerformClick();
+        PerformClick(e.KeyModifiers, e);
         e.Handled = true;
     }
 
     /// <summary>执行点击语义；鼠标释放、键盘 Enter/Space 与自动化调用共用。</summary>
-    public void PerformClick()
+    public void PerformClick(
+        KeyModifiers modifiers = KeyModifiers.None,
+        PointerReleasedEventArgs? pointerArgs = null)
     {
-        if (!IsEnabled) return;
-        Click?.Invoke(this, null!);
+        if (!IsEnabled)
+            return;
+        LastClickKeyModifiers = modifiers;
+        Click?.Invoke(this, pointerArgs);
         ExecuteCommand();
         if (HasCustomEvent)
             CustomEventService.Raise(this);
@@ -1386,24 +1349,41 @@ public class MyListItem : Grid, IMyRadio
     {
         if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
             return;
-        // 落在图标或右侧按钮上的按下不算整行点击
-        if (ReferenceEquals(e.Source, this) && Type != CheckType.None)
-        {
-            _isMouseDown = true;
-            buttonStack?.IsHitTestVisible = false;
-        }
+        if (!IsInteractiveItem || IsInteractiveChild(e.Source))
+            return;
 
+        _isMouseDown = true;
+        _showButtonsOnKeyboardFocus = false;
+        buttonStack?.IsHitTestVisible = false;
         RefreshColor(this, EventArgs.Empty);
     }
 
     private void Button_MouseLeave(object? sender, PointerEventArgs e)
     {
+        ResetPointerState();
+    }
+
+    private void ResetPointerState()
+    {
         _isMouseDown = false;
         buttonStack?.IsHitTestVisible = true;
+        _stateLast = null;
         RefreshColor(this, EventArgs.Empty);
     }
 
-    private bool _isCommandRunning;
+    private bool IsInteractiveChild(object? source)
+    {
+        if (source is not Visual visual)
+            return false;
+
+        for (var current = visual;
+             current is not null && !ReferenceEquals(current, this);
+             current = current.GetVisualParent())
+            if (current is MyIconButton || ReferenceEquals(current, buttonStack))
+                return true;
+
+        return false;
+    }
 
     private void ExecuteCommand()
     {
@@ -1423,53 +1403,27 @@ public class MyListItem : Grid, IMyRadio
 
     #endregion
 
-    #region 菜单与事件
+    #region 交互能力
 
-    /// <summary>菜单与按钮绑定：首次显示时由菜单系统填充右侧按钮。</summary>
-    public Action<MyListItem, EventArgs>? ContentHandler { get; set; }
+    private bool IsInteractiveItem =>
+        Type is CheckType.RadioBox or CheckType.CheckBox or CheckType.Clickable
+        || Click is not null
+        || Command is not null
+        || CheckCommand is not null
+        || HasCustomEvent;
 
-    public override string ToString()
+    private void UpdateInteractivity()
     {
-        return Title;
+        var interactive = IsEnabled && IsVisible && IsHitTestVisible && IsInteractiveItem;
+
+        Focusable = interactive;
+        IsTabStop = interactive;
     }
 
-    #endregion
-
-    #region 生命周期
-
-    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
-    {
-        base.OnPropertyChanged(change);
-
-        if (change.Property == CheckedProperty && !_isSettingChecked)
-        {
-            EnsureSingleChecked();
-            RefreshCheckedVisual(change.NewValue is true, true);
-        }
-    }
-
-    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
-    {
-        base.OnAttachedToVisualTree(e);
-        ActualThemeVariantChanged += OnActualThemeVariantChanged;
-        if (Checked)
-            ApplyCheckedForeground();
-        if (_rectBack is { Opacity: <= 0d })
-            BindRectBackIdle();
-    }
-
-    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
-    {
-        ActualThemeVariantChanged -= OnActualThemeVariantChanged;
-        base.OnDetachedFromVisualTree(e);
-    }
-
-    private void OnActualThemeVariantChanged(object? sender, EventArgs e)
-    {
-        ApplyCheckedForeground();
-        if (_rectBack is { Opacity: <= 0d })
-            BindRectBackIdle();
-    }
+    /// <summary>控件上是否配置了自定义事件（附加事件类型或事件集合）。</summary>
+    private bool HasCustomEvent =>
+        CustomEventService.GetEventType(this) != EventType.None
+        || GetValue(CustomEventService.EventsProperty) is { Events.Count: > 0 };
 
     #endregion
 }

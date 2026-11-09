@@ -15,7 +15,7 @@ internal static class InstanceVersionItem
         {
             Title = instance.Name,
             Height = 42d,
-            tag = instance,
+            Tag = instance,
             Type = MyListItem.CheckType.Clickable
         };
         LocalizedText.TryBind(item, "Info", () => instance.Desc);

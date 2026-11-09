@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Input;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using PCL.Core.App.Localization;
@@ -331,14 +332,21 @@ public static class PageRouter
                     .GetVisualDescendants()
                     .OfType<Control>()
                     .FirstOrDefault(control =>
-                        control is { Focusable: true, IsEffectivelyVisible: true, IsEnabled: true }
+                        control is
+                            {
+                                Focusable: true,
+                                IsEffectivelyVisible: true,
+                                IsEnabled: true
+                            }
                             and not ScrollViewer
-                            and not ScrollBar);
+                            and not ScrollBar
+                        && (control.IsTabStop
+                            || (control is not MyListItem && control is not MyIconButton)));
 
                 if (target is not null)
-                    target.Focus();
+                    target.Focus(NavigationMethod.Unspecified);
                 else if (page.Focusable)
-                    page.Focus();
+                    page.Focus(NavigationMethod.Unspecified);
             },
             DispatcherPriority.Loaded);
     }

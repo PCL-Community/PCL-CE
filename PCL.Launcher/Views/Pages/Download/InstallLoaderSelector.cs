@@ -1426,7 +1426,7 @@ internal sealed class InstallLoaderSelector : IDisposable
             Logo = $"{LauncherPaths.ImageRoot}{logo}",
             LogoScale = 1d,
             Info = info,
-            tag = entry
+            Tag = entry
         };
         item.Click += (_, _) =>
         {

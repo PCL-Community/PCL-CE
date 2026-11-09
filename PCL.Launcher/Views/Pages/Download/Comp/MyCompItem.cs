@@ -5,11 +5,16 @@ using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.VisualTree;
 using PCL.UI.Controls;
+using static PCL.Animations;
 
 namespace PCL.Views.Pages.Download;
 
 public sealed partial class MyCompItem : Grid
 {
+    private readonly int _uuid = LauncherCommon.GetUuid();
+    private bool _isMouseDown;
+    private string? _stateLast;
+
     public MyCompItem()
     {
         ViewModel = null!;
@@ -65,24 +70,23 @@ public sealed partial class MyCompItem : Grid
                 CompFavoritesMenu.Show(Project, BtnFavorite, RefreshFavoriteStatus);
         };
 
-        PointerEntered += (_, _) =>
-        {
-            RectBack.Opacity = 1d;
-            if (ShowFavoriteBtn || ShowDownloadBtn)
-                PanButtons.Opacity = 1d;
-        };
+        PointerEntered += (_, _) => RefreshColor();
         PointerExited += (_, _) =>
         {
-            RectBack.Opacity = 0d;
-            PanButtons.Opacity = 0d;
+            _isMouseDown = false;
+            RefreshColor();
         };
-        PointerReleased += (_, e) =>
+        PointerPressed += Button_MouseDown;
+        PointerReleased += Button_MouseUp;
+        PointerCaptureLost += (_, _) =>
         {
-            if (!CanInteraction || e.InitialPressMouseButton != MouseButton.Left)
-                return;
-            if (IsPointerOnActionButton(e.Source as Visual))
-                return;
-            ViewModel.ClickCommand.Execute(null);
+            _isMouseDown = false;
+            RefreshColor();
+        };
+        Loaded += (_, _) =>
+        {
+            _stateLast = null;
+            RefreshColor();
         };
         ViewModel.ClickRequested += _ => Click?.Invoke(this);
     }
@@ -125,7 +129,10 @@ public sealed partial class MyCompItem : Grid
 
     private void UpdatePanButtons()
     {
-        PanButtons.IsVisible = ShowFavoriteBtn || ShowDownloadBtn;
+        var show = ShowFavoriteBtn || ShowDownloadBtn;
+        PanButtons.IsVisible = show;
+        if (!show)
+            PanButtons.Opacity = 0d;
     }
 
     private void ApplyStatsVisibility(MyCompItemViewModel viewModel)
@@ -195,6 +202,158 @@ public sealed partial class MyCompItem : Grid
     {
         ViewModel.RefreshFavoriteStatus();
         BtnFavorite.SvgIcon = ViewModel.FavoriteIcon;
+    }
+
+    private void Button_MouseDown(object? sender, PointerPressedEventArgs e)
+    {
+        if (!CanInteraction
+            || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed
+            || IsPointerOnActionButton(e.Source as Visual))
+            return;
+
+        _isMouseDown = true;
+        RefreshColor();
+    }
+
+    private void Button_MouseUp(object? sender, PointerReleasedEventArgs e)
+    {
+        var wasMouseDown = _isMouseDown;
+        _isMouseDown = false;
+
+        if (wasMouseDown
+            && CanInteraction
+            && e.InitialPressMouseButton == MouseButton.Left
+            && !IsPointerOnActionButton(e.Source as Visual))
+            ViewModel.ClickCommand.Execute(null);
+
+        RefreshColor();
+    }
+
+    private void RefreshColor()
+    {
+        if (!CanInteraction)
+        {
+            AniStop("CompItem Color " + _uuid);
+            _stateLast = null;
+            RectBack.Opacity = 0d;
+            PanButtons.Opacity = 0d;
+            return;
+        }
+
+        var stateNew = IsPointerOver
+            ? _isMouseDown ? "MouseDown" : "MouseOver"
+            : "Idle";
+        if ((_stateLast ?? string.Empty) == stateNew)
+            return;
+        _stateLast = stateNew;
+
+        var time = stateNew == "Idle" ? 180 : 120;
+        if (!ContainerAnimation.CanAnimate(this))
+        {
+            ApplyColorStateInstant(stateNew);
+            return;
+        }
+
+        var animations = new List<AniData>();
+        var hasButtons = ShowFavoriteBtn || ShowDownloadBtn;
+        var scale = EnsureBackScale();
+
+        if (stateNew is "MouseOver" or "MouseDown")
+        {
+            if (hasButtons)
+                animations.Add(
+                    AaOpacity(
+                        PanButtons,
+                        1d - PanButtons.Opacity,
+                        (int)Math.Round(time * 0.35d),
+                        (int)Math.Round(time * 0.15d)));
+
+            animations.Add(
+                AaColor(
+                    RectBack,
+                    Border.BackgroundProperty,
+                    stateNew == "MouseDown" ? "ColorBrush6" : "ColorBrushBg1",
+                    time));
+            animations.Add(
+                AaOpacity(
+                    RectBack,
+                    1d - RectBack.Opacity,
+                    time,
+                    ease: new AniEaseOutFluent()));
+            animations.Add(
+                AaScaleTransform(
+                    RectBack,
+                    (stateNew == "MouseDown" ? 0.996d : 1d) - scale.ScaleX,
+                    (int)Math.Round(time * 1.2d),
+                    ease: new AniEaseOutFluent()));
+        }
+        else
+        {
+            if (hasButtons)
+                animations.Add(
+                    AaOpacity(
+                        PanButtons,
+                        -PanButtons.Opacity,
+                        (int)Math.Round(time * 0.4d)));
+
+            animations.Add(AaOpacity(RectBack, -RectBack.Opacity, time));
+            animations.Add(
+                AaColor(
+                    RectBack,
+                    Border.BackgroundProperty,
+                    "ColorBrush7",
+                    time));
+            animations.Add(
+                AaScaleTransform(
+                    RectBack,
+                    0.996d - scale.ScaleX,
+                    time,
+                    ease: new AniEaseOutFluent()));
+            animations.Add(AaScaleTransform(RectBack, -0.196d, 1, after: true));
+        }
+
+        AniStart(animations, "CompItem Color " + _uuid);
+    }
+
+    private void ApplyColorStateInstant(string stateNew)
+    {
+        AniStop("CompItem Color " + _uuid);
+
+        var hasButtons = ShowFavoriteBtn || ShowDownloadBtn;
+        PanButtons.Opacity = stateNew == "Idle" || !hasButtons ? 0d : 1d;
+        RectBack.Opacity = stateNew == "Idle" ? 0d : 1d;
+        ContainerTheme.BindDynamic(
+            RectBack,
+            Border.BackgroundProperty,
+            stateNew == "MouseDown"
+                ? "ColorBrush6"
+                : stateNew == "MouseOver"
+                    ? "ColorBrushBg1"
+                    : "ColorBrush7");
+
+        var scale = EnsureBackScale();
+        var scaleValue = stateNew == "Idle" ? 0.8d : stateNew == "MouseDown" ? 0.996d : 1d;
+        scale.ScaleX = scaleValue;
+        scale.ScaleY = scaleValue;
+    }
+
+    private ScaleTransform EnsureBackScale()
+    {
+        if (RectBack.RenderTransform is ScaleTransform scale)
+            return scale;
+
+        scale = new ScaleTransform(1d, 1d);
+        RectBack.RenderTransform = scale;
+        RectBack.RenderTransformOrigin = RelativePoint.Center;
+        return scale;
+    }
+
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        AniStop("CompItem Color " + _uuid);
+        _isMouseDown = false;
+        _stateLast = null;
+        base.OnDetachedFromVisualTree(e);
     }
 
     private bool IsPointerOnActionButton(Visual? source)

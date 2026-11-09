@@ -775,14 +775,12 @@ public class MyPageRight : Decorator, IPageView
 
     private string PageChangeAnimationKey => "PageRight PageChange " + pageUuid;
 
-    // 逐个进入动画
     public void TriggerEnterAnimation(params Control?[] elements)
     {
         var realElements = elements.Where(e => e is not null).Cast<Control>().ToList();
         foreach (var element in realElements)
-            element.IsVisible = true; // 页面均处于默认的隐藏状态
+            element.IsVisible = true;
 
-        // 动画关闭、控件未加载或页面已被强制退出：直接落到终值，状态机同步推进
         if (!ContainerAnimation.CanAnimatePage(this))
         {
             AniStop(PageChangeAnimationKey);
@@ -790,7 +788,8 @@ public class MyPageRight : Decorator, IPageView
             {
                 foreach (var control in GetAllAnimControls(element, true))
                 {
-                    control.IsHitTestVisible = true;
+                    if (control is not MyListItem)
+                        control.IsHitTestVisible = true;
                     if (control.RenderTransform is TranslateTransform)
                         control.RenderTransform = null;
                 }
@@ -819,8 +818,8 @@ public class MyPageRight : Decorator, IPageView
         {
             foreach (var control in GetAllAnimControls(element, true))
             {
-                // 还原被隐藏的卡片的消失动画
-                control.IsHitTestVisible = true;
+                if (control is not MyListItem)
+                    control.IsHitTestVisible = true;
                 if (control.RenderTransform is TranslateTransform)
                     control.RenderTransform = null;
             }
@@ -847,12 +846,10 @@ public class MyPageRight : Decorator, IPageView
                 }
         }
 
-        // 同名动画组会顶掉上一组，快速切换时只有最后这一段回调会执行
         aniList.Add(AaCode(PageOnEnterAnimationFinished, after: true));
         AniStart(aniList, PageChangeAnimationKey, true);
     }
 
-    // 逐个退出动画
     public void TriggerExitAnimation(params Control?[] elements)
     {
         var realElements = elements.Where(e => e is not null).Cast<Control>().ToList();
@@ -867,7 +864,8 @@ public class MyPageRight : Decorator, IPageView
                 }
                 else
                 {
-                    control.IsHitTestVisible = false;
+                    if (control is not MyListItem)
+                        control.IsHitTestVisible = false;
                     control.Opacity = 0d;
                     control.RenderTransform = new TranslateTransform(0d, -6d);
                 }
@@ -888,7 +886,8 @@ public class MyPageRight : Decorator, IPageView
             }
             else
             {
-                control.IsHitTestVisible = false;
+                if (control is not MyListItem)
+                    control.IsHitTestVisible = false;
                 aniList.Add(AaOpacity(control, -control.Opacity, 70, delay));
                 aniList.Add(AaTranslateY(control, -6d, 70, delay));
                 delay += 15;
@@ -984,6 +983,7 @@ public class MyPageRight : Decorator, IPageView
 
             switch (element)
             {
+                case MyListItem:
                 case MyCard:
                 case MyHint:
                 case MyExtraTextButton:

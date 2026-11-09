@@ -398,7 +398,7 @@ public partial class PageDownloadCompDetail : MyPageRight
             Title = fileItem.TitleText,
             Info = fileItem.InfoText,
             Logo = fileItem.Logo,
-            tag = file
+            Tag = file
         };
 
         var saveButton = new MyIconButton

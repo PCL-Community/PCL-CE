@@ -116,12 +116,12 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
             Title = Lang.Text(definition.TitleKey),
             SvgIcon = definition.SvgIcon,
             LogoScale = definition.LogoScale,
-            tag = definition.SubType,
+            Tag = definition.SubType,
             IsVisible = definition.IsVisible
         };
         item.Check += (sender, _) =>
         {
-            if (!_isBuilding && sender is MyListItem { tag: PageSubType target })
+            if (!_isBuilding && sender is MyListItem { Tag: PageSubType target })
                 PageInstanceLeftViewModel.ChangePage(target);
         };
 

@@ -258,7 +258,7 @@ public partial class PageSelectRight : MyPageRight, IRefreshable, IShellShortcut
         {
             Title = instance.Name,
             Height = 42d,
-            tag = instance,
+            Tag = instance,
             Type = MyListItem.CheckType.Clickable
         };
         LocalizedText.TryBind(newItem, "Info", () => instance.Desc);
@@ -302,20 +302,16 @@ public partial class PageSelectRight : MyPageRight, IRefreshable, IShellShortcut
             newItem.Logo = LauncherPaths.ImageRoot + "Blocks/RedstoneBlock.png";
         }
 
-        newItem.ContentHandler = InstanceItemContent;
+        InstanceItemContent(newItem, EventArgs.Empty);
         return newItem;
     }
 
     private void InstanceItemContent(MyListItem sender, EventArgs e)
     {
-        if (sender.tag is not McInstance version)
+        if (sender.Tag is not McInstance version)
             return;
 
         sender.Click += (_, _) => ViewModel.SelectInstance(version);
-
-        var shiftPressed = false;
-        sender.PointerReleased += (_, args) =>
-            shiftPressed = args.KeyModifiers.HasFlag(KeyModifiers.Shift);
         sender.PointerPressed += (_, args) =>
         {
             if (args.GetCurrentPoint(sender).Properties.IsRightButtonPressed)
@@ -346,7 +342,9 @@ public partial class PageSelectRight : MyPageRight, IRefreshable, IShellShortcut
             SvgIcon = "lucide/trash-2"
         };
         ToolTip.SetTip(btnDelete, Lang.Text("Common.Action.Delete"));
-        btnDelete.Click += (_, _) => _ = ViewModel.DeleteVersionAsync(version, shiftPressed);
+        btnDelete.Click += (_, _) => _ = ViewModel.DeleteVersionAsync(
+            version,
+            btnDelete.LastClickKeyModifiers.HasFlag(KeyModifiers.Shift));
 
         var btnSettings = new MyIconButton
         {

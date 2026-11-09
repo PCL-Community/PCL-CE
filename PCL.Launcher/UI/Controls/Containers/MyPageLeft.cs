@@ -15,8 +15,6 @@ namespace PCL.UI.Controls;
 /// </summary>
 public class MyPageLeft : Grid, IPageView
 {
-    protected INavigationService Navigation => PageRouter.Navigation;
-
     public static readonly StyledProperty<Control?> AnimatedControlProperty =
         AvaloniaProperty.Register<MyPageLeft, Control?>(nameof(AnimatedControl));
 
@@ -31,7 +29,8 @@ public class MyPageLeft : Grid, IPageView
         Loaded += (_, _) => RefreshLocalizationIfStale();
     }
 
-    // 执行逐个进入动画的控件
+    protected INavigationService Navigation => PageRouter.Navigation;
+
     public Control? AnimatedControl
     {
         get
@@ -113,7 +112,6 @@ public class MyPageLeft : Grid, IPageView
             return;
         }
 
-        // 动画关闭或控件未加载：直接落到终值
         if (!ContainerAnimation.CanAnimatePage(this))
         {
             AniStop(animationKey);
@@ -123,7 +121,7 @@ public class MyPageLeft : Grid, IPageView
                 element.RenderTransform = null;
                 if (element is MyListItem listItem)
                 {
-                    listItem.isMouseOverAnimationEnabled = true;
+                    listItem.HoverAnimationEnabled = true;
                     listItem.RefreshColor(this, EventArgs.Empty);
                 }
             }
@@ -131,25 +129,23 @@ public class MyPageLeft : Grid, IPageView
             return;
         }
 
-        // 逐个进入动画：左侧滑入 + 淡入，列表项按次序错开
         var aniList = new List<AniData>();
         var id = 0;
         var delay = 0;
         foreach (var element in GetAllAnimControls(true))
             if (!element.IsVisible)
             {
-                // 还原之前的隐藏动画可能导致的改变（#2436）
                 element.Opacity = 1d;
                 element.RenderTransform = new TranslateTransform(0d, 0d);
                 if (element is MyListItem hiddenItem)
-                    hiddenItem.isMouseOverAnimationEnabled = true;
+                    hiddenItem.HoverAnimationEnabled = true;
             }
             else
             {
                 element.Opacity = 0d;
                 element.RenderTransform = new TranslateTransform(-25d, 0d);
                 if (element is MyListItem listItem)
-                    listItem.isMouseOverAnimationEnabled = false;
+                    listItem.HoverAnimationEnabled = false;
                 aniList.Add(
                     AaOpacity(
                         element,
@@ -170,7 +166,7 @@ public class MyPageLeft : Grid, IPageView
                         AaCode(
                             () =>
                             {
-                                item.isMouseOverAnimationEnabled = true;
+                                item.HoverAnimationEnabled = true;
                                 item.RefreshColor(this, EventArgs.Empty);
                             },
                             delay + 280));
@@ -227,7 +223,6 @@ public class MyPageLeft : Grid, IPageView
             return;
         }
 
-        // 逐个退出动画：右侧滑出 + 淡出
         var aniList = new List<AniData>();
         var id = 0;
         foreach (var element in controls)
@@ -238,7 +233,6 @@ public class MyPageLeft : Grid, IPageView
             id += 1;
         }
 
-        // 动画被下一次切换打断时，列表项的悬停开关不能留在关闭状态
         aniList.Add(AaCode(() => RestoreListItemHover(controls), after: true));
         AniStart(aniList, animationKey);
     }
@@ -247,10 +241,9 @@ public class MyPageLeft : Grid, IPageView
     {
         foreach (var control in controls)
             if (control is MyListItem listItem)
-                listItem.isMouseOverAnimationEnabled = true;
+                listItem.HoverAnimationEnabled = true;
     }
 
-    // 遍历获取所有需要生成动画的控件
     private List<Control> GetAllAnimControls(bool ignoreInvisibility = false)
     {
         var allControls = new List<Control>();

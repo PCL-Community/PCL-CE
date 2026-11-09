@@ -64,7 +64,7 @@ public partial class MyIconButton : Border
         PointerReleased += _OnPointerReleased;
         PointerEntered += (_, _) => RefreshAnim();
         PointerExited += _OnPointerExited;
-        KeyboardActivation.Attach(this, PerformClick);
+        KeyboardActivation.Attach(this, modifiers => PerformClick(modifiers));
 
         Loaded += (_, _) =>
         {
@@ -104,7 +104,7 @@ public partial class MyIconButton : Border
             }
             catch (Exception ex)
             {
-                LogWrapper.Debug(ex, "MyIconButton", "解析 Logo 路径失败：" + value);
+                LogWrapper.Debug(ex, "MyIconButton", $"解析 Logo 路径失败：{value}");
                 Path.Data = null;
             }
 
@@ -184,6 +184,8 @@ public partial class MyIconButton : Border
     private string BackgroundKey => ButtonAnimation.Name("MyIconButton Background", Uuid);
 
     private string DisposeKey => ButtonAnimation.Name("MyIconButton Dispose", Uuid);
+
+    public KeyModifiers LastClickKeyModifiers { get; private set; }
 
     public event ClickEventHandler? Click;
 
@@ -363,15 +365,16 @@ public partial class MyIconButton : Border
         else
             ButtonAnimation.SetScale(PanBack, 1d);
 
-        PerformClick();
+        PerformClick(e.KeyModifiers);
         e.Handled = true;
     }
 
     /// <summary>执行点击语义；鼠标释放、键盘 Enter/Space 与自动化调用共用。</summary>
-    public void PerformClick()
+    public void PerformClick(KeyModifiers modifiers = KeyModifiers.None)
     {
         if (!IsEnabled) return;
-        LogWrapper.Debug("[Control] 按下图标按钮" + (string.IsNullOrEmpty(Name) ? "" : "：" + Name));
+        LastClickKeyModifiers = modifiers;
+        LogWrapper.Debug($"[Control] 按下图标按钮{(string.IsNullOrEmpty(Name) ? "" : $"：{Name}")}");
         Click?.Invoke(this, EventArgs.Empty);
         CustomEventService.Raise(this);
         RefreshAnim();
@@ -416,7 +419,7 @@ public partial class MyIconButton : Border
     {
         return new PclButtonAutomationPeer(
             this,
-            PerformClick,
+            () => PerformClick(),
             () => ToolTip.GetTip(this) as string ?? SvgIcon);
     }
 

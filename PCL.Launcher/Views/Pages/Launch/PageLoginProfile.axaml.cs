@@ -50,7 +50,7 @@ public partial class PageLoginProfile : LoginPageBase
             Title = item.Username,
             Info = item.Info,
             Type = MyListItem.CheckType.Clickable,
-            tag = profile,
+            Tag = profile,
             Margin = new Thickness(8, 2, 10, 2),
             Logo = item.Logo,
             SvgIcon = item.SvgIcon

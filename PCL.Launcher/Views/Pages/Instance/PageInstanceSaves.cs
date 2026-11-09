@@ -162,7 +162,7 @@ public partial class PageInstanceSaves : MyPageRight, IRefreshable
             Title = entry.Title,
             Info = entry.Info,
             Logo = entry.Logo,
-            tag = folder
+            Tag = folder
         };
         entry.PropertyChanged += (_, args) =>
         {
