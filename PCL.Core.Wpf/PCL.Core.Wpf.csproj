@@ -12,7 +12,7 @@
         <UseWPF>true</UseWPF>
         <EnableWindowsTargeting>true</EnableWindowsTargeting>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <LangVersion>14.0</LangVersion>
+        <LangVersion>15.0</LangVersion>
         <Nullable>enable</Nullable>
         <ImplicitUsings>disable</ImplicitUsings>
         <Configurations>Debug;CI;Release;Beta</Configurations>
