@@ -330,8 +330,12 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             sender.Buttons = new[] { btnCont, btnOpen, btnDelete };
         }
 
-        var btnUndo = ResourceUpdateUndo.CreateButton(sender, PageInstanceLeft.McInstance.PathIndie,
-            () => ReloadDatapackFileList(true));
+        var instance = PageInstanceLeft.McInstance;
+        var saveDirectory = PageInstanceSavesLeft.currentSave;
+        var btnUndo = ResourceUpdateUndo.CreateButton(sender, instance.PathIndie, () =>
+        {
+            if (_IsUndoContextCurrent(instance.PathInstance, saveDirectory)) ReloadDatapackFileList(true);
+        });
         if (btnUndo is not null) sender.Buttons = sender.Buttons.Append(btnUndo).ToArray();
     }
 
@@ -565,10 +569,16 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     private void _CardSelectSizeChanged(object sender, SizeChangedEventArgs e) =>
         _UpdateSelectionMargin(selectedDatapacks.Count > 0);
 
+    private bool _IsUndoContextCurrent(string instanceDirectory, string saveDirectory) =>
+        IsLoaded && ModMain.frmMain.pageCurrent == FormMain.PageType.InstanceSetup &&
+        ModMain.frmMain.PageCurrentSub == FormMain.PageSubType.VersionSavesDatapack &&
+        string.Equals(instanceDirectory, PageInstanceLeft.McInstance?.PathInstance, StringComparison.OrdinalIgnoreCase) &&
+        string.Equals(saveDirectory, PageInstanceSavesLeft.currentSave, StringComparison.OrdinalIgnoreCase);
+
     private async void _BtnSelectUndoClick(object sender, ModBase.RouteEventArgs e)
     {
         if (_undoingSelection) return;
-        var gameDirectory = PageInstanceLeft.McInstance.PathIndie;
+        var instance = PageInstanceLeft.McInstance;
         var saveDirectory = PageInstanceSavesLeft.currentSave;
         var paths = datapackItems.Values.Select(item => item.Entry)
             .Where(entry => !entry.IsFolder && selectedDatapacks.Contains(entry.RawPath))
@@ -579,7 +589,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         PanAllBack.IsEnabled = false;
         try
         {
-            await ResourceUpdateUndo.UndoSelectedAsync(gameDirectory, paths);
+            await ResourceUpdateUndo.UndoSelectedAsync(instance.PathIndie, paths);
         }
         catch (Exception ex)
         {
@@ -591,7 +601,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             _undoingSelection = false;
             CardSelect.IsEnabled = true;
             PanAllBack.IsEnabled = true;
-            if (IsLoaded && gameDirectory == PageInstanceLeft.McInstance.PathIndie && saveDirectory == PageInstanceSavesLeft.currentSave)
+            if (_IsUndoContextCurrent(instance.PathInstance, saveDirectory))
             {
                 selectedDatapacks.Clear();
                 ReloadDatapackFileList(true);

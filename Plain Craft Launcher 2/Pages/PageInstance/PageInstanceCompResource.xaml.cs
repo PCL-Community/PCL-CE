@@ -685,8 +685,11 @@ public partial class PageInstanceCompResource : IRefreshable
             sender.Buttons = new[] { btnCont, btnOpen, btnED, btnDelete };
         }
 
-        var btnUndo = ResourceUpdateUndo.CreateButton(sender, PageInstanceLeft.McInstance.PathIndie,
-            () => ReloadCompFileList(true));
+        var instance = PageInstanceLeft.McInstance;
+        var btnUndo = ResourceUpdateUndo.CreateButton(sender, instance.PathIndie, () =>
+        {
+            if (_IsUndoContextCurrent(instance.PathInstance)) ReloadCompFileList(true);
+        });
         if (btnUndo is not null) sender.Buttons = sender.Buttons.Append(btnUndo).ToArray();
     }
 
@@ -952,10 +955,24 @@ public partial class PageInstanceCompResource : IRefreshable
     private void _CardSelectSizeChanged(object sender, SizeChangedEventArgs e) =>
         _UpdateSelectionMargin(selectedMods.Count > 0);
 
+    private bool _IsUndoContextCurrent(string instanceDirectory)
+    {
+        var subPage = currentCompType switch
+        {
+            ModComp.CompType.ResourcePack => FormMain.PageSubType.VersionResourcePack,
+            ModComp.CompType.Shader => FormMain.PageSubType.VersionShader,
+            ModComp.CompType.Schematic => FormMain.PageSubType.VersionSchematic,
+            _ => FormMain.PageSubType.VersionMod
+        };
+        return IsLoaded && ModMain.frmMain.pageCurrent == FormMain.PageType.InstanceSetup &&
+            ModMain.frmMain.PageCurrentSub == subPage &&
+            string.Equals(instanceDirectory, PageInstanceLeft.McInstance?.PathInstance, StringComparison.OrdinalIgnoreCase);
+    }
+
     private async void _BtnSelectUndoClick(object sender, ModBase.RouteEventArgs e)
     {
         if (_undoingSelection) return;
-        var gameDirectory = PageInstanceLeft.McInstance.PathIndie;
+        var instance = PageInstanceLeft.McInstance;
         var paths = modItems.Values.Select(item => item.Entry)
             .Where(entry => !entry.IsFolder && selectedMods.Contains(entry.RawPath))
             .Select(entry => entry.path).ToArray();
@@ -965,7 +982,7 @@ public partial class PageInstanceCompResource : IRefreshable
         PanAllBack.IsEnabled = false;
         try
         {
-            await ResourceUpdateUndo.UndoSelectedAsync(gameDirectory, paths);
+            await ResourceUpdateUndo.UndoSelectedAsync(instance.PathIndie, paths);
         }
         catch (Exception ex)
         {
@@ -977,7 +994,7 @@ public partial class PageInstanceCompResource : IRefreshable
             _undoingSelection = false;
             CardSelect.IsEnabled = true;
             PanAllBack.IsEnabled = true;
-            if (IsLoaded && gameDirectory == PageInstanceLeft.McInstance.PathIndie)
+            if (_IsUndoContextCurrent(instance.PathInstance))
             {
                 selectedMods.Clear();
                 ReloadCompFileList(true);
