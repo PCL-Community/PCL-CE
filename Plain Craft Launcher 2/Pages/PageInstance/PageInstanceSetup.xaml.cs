@@ -2,7 +2,7 @@ using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
 using PCL.Core.IO;
-using PCL.Core.Minecraft;
+using PCL.Core.Minecraft.Java;
 using PCL.Core.Minecraft.Java.UserPreference;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;

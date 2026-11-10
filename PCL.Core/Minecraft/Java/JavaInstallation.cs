@@ -23,12 +23,13 @@ public sealed record JavaInstallation(
     }
 
     /// <summary>
-    /// Java 主版本号（处理 1.8 → 8 的映射）
+    /// Java 主版本号
     /// </summary>
     public int MajorVersion => Version.Major == 1 ? Version.Minor : Version.Major;
 
     /// <summary>
-    /// 检查物理文件是否存在（合理查询，非状态存储）
+    /// Fast check for Java availability.
+    /// This DO NOT mean the Java works well.
     /// </summary>
     public bool IsStillAvailable => File.Exists(JavaExePath);
 
