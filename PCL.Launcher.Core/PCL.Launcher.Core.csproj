@@ -9,7 +9,7 @@
         <RootNamespace>PCL</RootNamespace>
         <TargetFramework>net10.0-windows</TargetFramework>
         <EnableWindowsTargeting>true</EnableWindowsTargeting>
-        <LangVersion>14.0</LangVersion>
+        <LangVersion>15.0</LangVersion>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <Configurations>Debug;CI;Release;Beta</Configurations>
