@@ -1,16 +1,21 @@
-﻿using System.Windows;
+using PCL.Core.App.Localization;
+using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
+using PCL.Core.UI.Hints;
+using PCL.Core.UI.Theme;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using PCL.Core.UI;
-using PCL.Core.UI.Theme;
-using PCL.Core.App.Localization;
 
 namespace PCL;
 
 public partial class ServerCard
 {
     private readonly IconManager _manager;
+    private readonly ServerCardViewModel _vm = new();
     public MinecraftServerInfo server;
+
+    public ServerCardViewModel ViewModel => _vm;
 
     public ServerCard()
     {
@@ -50,7 +55,7 @@ public partial class ServerCard
     public void UpdateServerInfo(MinecraftServerInfo serverInfo)
     {
         server = serverInfo;
-        ModBase.RunInUi(() => UpdateServerUi());
+        Common.RunInUi(() => UpdateServerUi());
     }
 
     /// <summary>
@@ -62,7 +67,7 @@ public partial class ServerCard
             return;
 
         // 更新服务器名称
-        ServerName.Text = server.Name;
+        _vm.NameText = server.Name;
         await ImageLoaderHelper.SetServerLogoAsync(server.Icon, ServerIcon);
         if (server.Status == ServerStatus.Online)
         {
@@ -73,11 +78,11 @@ public partial class ServerCard
             ToolTipService.SetPlacement(Signal, PlacementMode.Top);
 
             if (server.PlayerCount != default && server.MaxPlayers != default)
-                ServerPlayer.Text = $"{server.PlayerCount} / {server.MaxPlayers}";
+                _vm.PlayerText = $"{server.PlayerCount} / {server.MaxPlayers}";
             else
-                ServerPlayer.Text = "???";
+                _vm.PlayerText = "???";
 
-            ServerMotD.Visibility = Visibility.Collapsed;
+            _vm.MotdVisibility = Visibility.Collapsed;
             MotdRenderer.RenderMotd(server.Description, ThemeService.IsDarkMode, 2);
             MotdRenderer.RenderCanvas();
         }
@@ -85,17 +90,17 @@ public partial class ServerCard
         {
             _manager.SetSelectedIconByName("loading");
             MotdRenderer.ClearCanvas();
-            ServerPlayer.Text = Lang.Text("Instance.Server.Card.Connecting");
-            ServerMotD.Text = Lang.Text("Instance.Server.Card.ConnectingDots");
-            ServerMotD.Visibility = Visibility.Visible;
+            _vm.PlayerText = Lang.Text("Instance.Server.Card.Connecting");
+            _vm.MotdText = Lang.Text("Instance.Server.Card.ConnectingDots");
+            _vm.MotdVisibility = Visibility.Visible;
         }
         else if (server.Status == ServerStatus.Offline)
         {
             _manager.SetSelectedIconByName("signal_offline");
             MotdRenderer.ClearCanvas();
-            ServerPlayer.Text = Lang.Text("Instance.Server.Card.Offline");
-            ServerMotD.Text = Lang.Text("Instance.Server.Card.ServerOffline");
-            ServerMotD.Visibility = Visibility.Visible;
+            _vm.PlayerText = Lang.Text("Instance.Server.Card.Offline");
+            _vm.MotdText = Lang.Text("Instance.Server.Card.ServerOffline");
+            _vm.MotdVisibility = Visibility.Visible;
         }
     }
 
@@ -104,26 +109,26 @@ public partial class ServerCard
         switch (ping)
         {
             case var @case when 0 <= @case && @case <= 99:
-            {
-                return "signal_5"; // 5 条信号
-            }
+                {
+                    return "signal_5"; // 5 条信号
+                }
             case var case1 when 100 <= case1 && case1 <= 299:
-            {
-                return "signal_4"; // 4 条信号
-            }
+                {
+                    return "signal_4"; // 4 条信号
+                }
             case var case2 when 300 <= case2 && case2 <= 599:
-            {
-                return "signal_3"; // 3 条信号
-            }
+                {
+                    return "signal_3"; // 3 条信号
+                }
             case var case3 when 600 <= case3 && case3 <= 999:
-            {
-                return "signal_2"; // 2 条信号
-            }
+                {
+                    return "signal_2"; // 2 条信号
+                }
 
             default:
-            {
-                return "signal_1"; // 1 条信号
-            }
+                {
+                    return "signal_1"; // 1 条信号
+                }
         }
     }
 
@@ -132,7 +137,7 @@ public partial class ServerCard
     /// </summary>
     public async Task RefreshServerStatusAsync(bool withHint, CancellationToken token = default)
     {
-        if (withHint) HintService.Hint(Lang.Text("Instance.Server.Card.RefreshingStatus", server.Name));
+        if (withHint) HintService.Show(Hints.Info(Lang.Text("Instance.Server.Card.RefreshingStatus", server.Name)));
         server.Status = ServerStatus.Pinging;
         await Dispatcher.InvokeAsync(() => UpdateServerUi());
         var serverInfo = await PageInstanceServer.PingServerAsync(server, token);
@@ -146,23 +151,24 @@ public partial class ServerCard
     {
         try
         {
-            var launchOptions = new ModLaunch.McLaunchOptions
+            var launchOptions = new GameLaunch.McLaunchOptions
             {
                 ServerIp = server.Address,
                 instance = PageInstanceLeft.McInstance
             };
-            ModLaunch.McLaunchStart(launchOptions);
-            ModMain.frmMain.PageChange(new FormMain.PageStackData { page = FormMain.PageType.Launch });
-            HintService.Hint(Lang.Text("Instance.Server.Card.ConnectingTo", server.Name));
+            GameLaunch.McLaunchStart(launchOptions);
+            Launcher.frmMain.PageChange(new FormMain.PageStackData
+            { page = FormMain.PageType.Launch });
+            HintService.Show(Hints.Info(Lang.Text("Instance.Server.Card.ConnectingTo", server.Name)));
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 Lang.Text("Instance.Server.Card.LaunchFailed"),
-                ModBase.LogLevel.Feedback,
+                Common.LogLevel.Feedback,
                 userSummary: Lang.Text("Instance.Server.Card.LaunchFailed"));
-            HintService.Hint(Lang.Text("Instance.Server.Card.LaunchFailedMsg", ex.Message), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Instance.Server.Card.LaunchFailedMsg", ex.Message)));
         }
     }
 
@@ -174,12 +180,12 @@ public partial class ServerCard
         try
         {
             Clipboard.SetText(server.Address);
-            HintService.Hint(Lang.Text("Instance.Server.Card.AddressCopied", server.Address), HintType.Success);
+            HintService.Show(Hints.Success(Lang.Text("Instance.Server.Card.AddressCopied", server.Address)));
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, Lang.Text("Instance.Server.Card.CopyAddressFailed"));
-            HintService.Hint(Lang.Text("Instance.Server.Card.CopyAddressFailed"), HintType.Error);
+            Common.Log(ex, Lang.Text("Instance.Server.Card.CopyAddressFailed"));
+            HintService.Show(Hints.Error(Lang.Text("Instance.Server.Card.CopyAddressFailed")));
         }
     }
 
@@ -188,7 +194,7 @@ public partial class ServerCard
     /// </summary>
     private async void BtnRefresh_Click(object sender, RoutedEventArgs e)
     {
-        await Task.Run(async () => await RefreshServerStatusAsync(true));
+        await Task.Run(async () => await RefreshServerStatusAsync(true)).ConfigureAwait(true);
     }
 
     /// <summary>
@@ -211,17 +217,19 @@ public partial class ServerCard
 
         catch (Exception ex)
         {
-            HintService.Hint(Lang.Text("Instance.Server.Card.EditFailed", ex.Message), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Instance.Server.Card.EditFailed", ex.Message)));
         }
     }
 
     private void BtnRemove_Click(object sender, RoutedEventArgs e)
     {
-        if (ModMain.MyMsgBox(
-                Lang.Text("Instance.Server.Card.RemoveConfirmMessage", server.Name, server.Address),
-                Lang.Text("Instance.Server.Card.RemoveConfirmTitle"), Lang.Text("Common.Action.Confirm"),
-                Lang.Text("Common.Action.Cancel")
-            ) == 1) RemoveServer?.Invoke(this, EventArgs.Empty);
+        if ((DialogService.Instance.Show(new TextDialogRequest
+        {
+            Title = Lang.Text("Instance.Server.Card.RemoveConfirmTitle"),
+            Content = Lang.Text("Instance.Server.Card.RemoveConfirmMessage", server.Name, server.Address),
+            Buttons = DialogButtons.OkCancel,
+            ForceWait = true
+        }).Result?.Button ?? 0) == 1) RemoveServer?.Invoke(this, EventArgs.Empty);
     }
 
     public class ResultEventArgs : EventArgs

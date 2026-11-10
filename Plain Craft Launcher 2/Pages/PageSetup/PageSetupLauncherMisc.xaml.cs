@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Windows;
@@ -6,24 +6,41 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
+using PCL.Core.App.Essentials;
 using PCL.Core.App.IoC;
 using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Utils.OS;
 
 namespace PCL;
 
-public partial class PageSetupLauncherMisc
+public partial class PageSetupLauncherMisc : IPageView
 {
+    private readonly PageSetupLauncherMiscViewModel _vm = new();
     private bool isFirstLoad = true;
 
     private new bool isLoaded;
 
+    private bool _refreshed;
+
     public PageSetupLauncherMisc()
     {
         InitializeComponent();
+        DataContext = _vm;
+        DialogServiceInstaller.Install(_vm);
         Loaded += PageSetupLink_Loaded;
-        Loaded += (_, _) => Reload();
+        Loaded += (_, _) => Refresh();
+        Unloaded += PageSetupLauncherMisc_Unloaded;
+    }
+
+    public PageSetupLauncherMiscViewModel ViewModel => _vm;
+
+    public void OnNavigatedTo(object? parameter) => Refresh();
+
+    public void OnNavigatedFrom()
+    {
     }
 
     private void PageSetupLink_Loaded(object sender, RoutedEventArgs e)
@@ -36,25 +53,37 @@ public partial class PageSetupLauncherMisc
             return;
         isLoaded = true;
 
-        ModAnimation.AniControlEnabled += 1;
+        Animations.AniBeginControl();
         SliderLoad();
+        Refresh();
+        Animations.AniEndControl();
+    }
+
+    private void PageSetupLauncherMisc_Unloaded(object sender, RoutedEventArgs e) => _refreshed = false;
+
+    private void Refresh()
+    {
+        if (_refreshed)
+            return;
+        _refreshed = true;
         Reload();
-        ModAnimation.AniControlEnabled -= 1;
     }
 
     public void Reload()
     {
         // 系统设置
-        ComboSystemActivity.SelectedIndex = States.System.AnnounceSolution;
+        _vm.Reload();
         CheckSystemDisableHardwareAcceleration.Checked = Config.System.DisableHardwareAcceleration;
-        SliderAniFPS.Value = Config.System.AnimationFpsLimit;
         SliderMaxLog.Value = Config.System.MaxGameLog;
         CheckSystemTelemetry.Checked = Config.System.Telemetry;
+        if (TelemetryService.IsBuildUntrusted)
+        {
+            CheckSystemTelemetry.Checked = false;
+            CheckSystemTelemetry.ToolTip = Lang.Text("Setup.Misc.System.Telemetry.Unavailable");
+            ToolTipService.SetShowOnDisabled(CheckSystemTelemetry, true);
+        }
 
         // 网络
-        TextSystemHttpProxy.Text = Config.Network.HttpProxy.CustomAddress;
-        TextSystemHttpProxyCustomUsername.Text = Config.Network.HttpProxy.CustomUsername;
-        TextSystemHttpProxyCustomPassword.Text = Config.Network.HttpProxy.CustomPassword;
         ((MyRadioBox)FindName($"RadioHttpProxyType{Config.Network.HttpProxy.Type}")).SetChecked(true, false);
         CheckNetDohEnable.Checked = Config.Network.EnableDoH;
 
@@ -73,16 +102,16 @@ public partial class PageSetupLauncherMisc
             Config.Network.Reset();
             Config.Debug.Reset();
             Config.System.Reset();
-            ModBase.Log("[Setup] 已初始化启动器-杂项页设置");
-            HintService.Hint(Lang.Text("Setup.Misc.Initialized"), HintType.Success, false);
+            Common.Log("[Setup] 已初始化启动器-杂项页设置");
+            HintService.Show(Hints.Success(Lang.Text("Setup.Misc.Initialized"), log: false));
             Reload();
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 Lang.Text("Setup.Misc.Error.InitFailed"),
-                ModBase.LogLevel.Msgbox,
+                Common.LogLevel.Msgbox,
                 userSummary: Lang.Text("Setup.Misc.Error.InitFailed"));
         }
 
@@ -93,29 +122,31 @@ public partial class PageSetupLauncherMisc
     private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
-        if (ModAnimation.AniControlEnabled == 0)
-            SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
+        if (Animations.AniExitsAnyControl() || sender.SelectedIndex < 0)
+            return;
+        SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
-    private void RadioBoxChange(object senderRaw, ModBase.RouteEventArgs e)
+    private void RadioBoxChange(object senderRaw, Common.RouteEventArgs e)
     {
         var sender = (MyRadioBox)senderRaw;
         var gotCfg = sender.Tag?.ToString()?.Split("/") ?? Array.Empty<string>();
-        if (ModAnimation.AniControlEnabled == 0 && gotCfg.Length >= 2)
+        if (!Animations.AniExitsAnyControl() && gotCfg.Length >= 2)
             SetByTag(gotCfg[0], int.Parse(gotCfg[1]));
     }
 
     private void CheckBoxChange(object senderRaw, bool user)
     {
         var sender = (MyCheckBox)senderRaw;
-        if (ModAnimation.AniControlEnabled == 0)
+        if (!user) return;
+        if (!Animations.AniExitsAnyControl())
             SetByTag(sender.Tag?.ToString(), sender.Checked);
     }
 
     private void SliderChange(object senderRaw, bool user)
     {
         var sender = (MySlider)senderRaw;
-        if (ModAnimation.AniControlEnabled == 0)
+        if (!Animations.AniExitsAnyControl())
             SetByTag(sender.Tag?.ToString(), sender.Value);
     }
 
@@ -137,7 +168,6 @@ public partial class PageSetupLauncherMisc
             (int)v > 29
                 ? Lang.Text("Common.Action.Close")
                 : Lang.Number(Math.Round(Convert.ToDouble(v) / 10 + 0.1d, 1), "N1") + "x");
-        SliderAniFPS.getHintText = new Func<object, string>(v => Lang.Number(Convert.ToInt32(v) + 1, "N0") + " FPS");
         // y = 10x + 50 (0 <= x <= 5, 50 <= y <= 100)
         // y = 50x - 150 (5 < x <= 13, 100 < y <= 500)
         // y = 100x - 800 (13 < x <= 28, 500 < y <= 2000)
@@ -157,28 +187,33 @@ public partial class PageSetupLauncherMisc
     // 硬件加速
     private void Check_DisableHardwareAcceleration(object _, bool __)
     {
-        HintService.Hint(Lang.Text("Setup.Misc.HardwareAcceleration.RestartNotice"));
+        HintService.Show(Hints.Info(Lang.Text("Setup.Misc.HardwareAcceleration.RestartNotice")));
     }
 
     // 调试模式
     private void CheckDebugMode_Change(object _, bool __)
     {
-        if (ModAnimation.AniControlEnabled == 0)
-            HintService.Hint(Lang.Text("Setup.Misc.Debug.Mode.Hint"), log: false);
+        if (!Animations.AniExitsAnyControl())
+            HintService.Show(Hints.Info(Lang.Text("Setup.Misc.Debug.Mode.Hint"), log: false));
     }
 
     // 自动更新
     private void ComboSystemActivity_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (ModAnimation.AniControlEnabled != 0)
+        if (Animations.AniExitsAnyControl() || sender is not MyComboBox combo || (!combo.IsDropDownOpen && !Keyboard.IsKeyDown(Key.Enter)))
             return;
         if (ComboSystemActivity.SelectedIndex != 2)
             return;
-        if (ModMain.MyMsgBox(
-                Lang.Text("Setup.Misc.System.Announcement.Disabled.Warning.Message"),
-                Lang.Text("Common.Dialog.Warning"),
-                Lang.Text("Setup.Misc.System.Announcement.Disabled.Warning.Confirm"),
-                Lang.Text("Common.Action.Cancel"), isWarn: true) ==
+        if (_vm.Dialog.Show(new TextDialogRequest
+        {
+            Title = Lang.Text("Common.Dialog.Warning"),
+            Content = Lang.Text("Setup.Misc.System.Announcement.Disabled.Warning.Message"),
+            Buttons = DialogButtons.From(
+                DialogButton.Create(Lang.Text("Setup.Misc.System.Announcement.Disabled.Warning.Confirm")),
+                DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+            IsWarn = true,
+            ForceWait = true
+        }).Result?.Button ==
             2) ComboSystemActivity.SelectedItem = e.RemovedItems[0];
     }
 
@@ -205,12 +240,12 @@ public partial class PageSetupLauncherMisc
     private void BtnSystemSettingExp_Click(object sender, MouseButtonEventArgs e)
     {
         var savePath =
-            SystemDialogs.SelectSaveFile(Lang.Text("Setup.Misc.System.ExportSettings.SaveTitle"), "PCL 全局配置.json", Lang.Text("Setup.Misc.System.ExportSettings.Filter"), ModBase.exePath);
+            SystemDialogs.SelectSaveFile(Lang.Text("Setup.Misc.System.ExportSettings.SaveTitle"), "PCL 全局配置.json", Lang.Text("Setup.Misc.System.ExportSettings.Filter"), Common.ExePath);
         if (string.IsNullOrWhiteSpace(savePath))
             return;
         File.Copy(ConfigService.SharedConfigPath, savePath, true);
-        HintService.Hint(Lang.Text("Setup.Misc.System.ExportSettings.Success"), HintType.Success);
-        ModBase.OpenExplorer(savePath);
+        HintService.Show(Hints.Success(Lang.Text("Setup.Misc.System.ExportSettings.Success")));
+        Common.OpenExplorer(savePath);
     }
 
     private void BtnSystemSettingImp_Click(object sender, MouseButtonEventArgs e)
@@ -219,7 +254,14 @@ public partial class PageSetupLauncherMisc
         if (string.IsNullOrWhiteSpace(sourcePath))
             return;
         File.Copy(sourcePath, ConfigService.SharedConfigPath, true);
-        ModMain.MyMsgBox(Lang.Text("Setup.Misc.System.ImportSettings.Success.Message"), button1: Lang.Text("Setup.Misc.System.ImportSettings.Success.Restart"), forceWait: true);
+        _ = _vm.Dialog.ShowAsync(new TextDialogRequest
+        {
+            Title = Lang.Text("Common.Dialog.Title"),
+            Content = Lang.Text("Setup.Misc.System.ImportSettings.Success.Message"),
+            Buttons = DialogButtons.From(
+                DialogButton.Create(Lang.Text("Setup.Misc.System.ImportSettings.Success.Restart"))),
+            ForceWait = true
+        });
         Process.Start(new ProcessStartInfo(Basics.ExecutablePath));
         FormMain.EndProgramForce();
     }
@@ -228,27 +270,35 @@ public partial class PageSetupLauncherMisc
 
     #region 停止使用 PCL CE
 
-    private void BtnSystemStopUsingPclCe_Click(object sender, MouseButtonEventArgs e)
+    private async void BtnSystemStopUsingPclCe_Click(object sender, MouseButtonEventArgs e)
     {
-        var result = ModMain.MyMsgBox(
-            Lang.Text("Setup.Misc.System.StopUsingPclCe.Message"),
-            Lang.Text("Setup.Misc.System.StopUsingPclCe.Title"),
-            Lang.Text("Common.Action.Continue"),
-            Lang.Text("Setup.Misc.System.StopUsingPclCe.ContinueAndRemove"),
-            Lang.Text("Common.Action.Cancel"),
-            isWarn: true);
-
-        if (result < 3)
+        try
         {
-            if (ModMain.MyMsgBox(
-                    Lang.Text("Setup.Misc.System.StopUsingPclCe.Message.Final"),
-                    Lang.Text("Common.Dialog.Warning"),
-                    Lang.Text("Common.Action.Continue"),
-                    Lang.Text("Common.Action.Cancel"),
-                    isWarn: true) == 1)
+            var result = (await _vm.Dialog.ShowAsync(new TextDialogRequest
             {
+                Title = Lang.Text("Setup.Misc.System.StopUsingPclCe.Title"),
+                Content = Lang.Text("Setup.Misc.System.StopUsingPclCe.Message"),
+                Buttons = DialogButtons.From(
+                    DialogButton.Create(Lang.Text("Common.Action.Continue")),
+                    DialogButton.Create(Lang.Text("Setup.Misc.System.StopUsingPclCe.ContinueAndRemove")),
+                    DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                IsWarn = true
+            })).Button;
+
+            if (result >= 3) return;
+            if ((await _vm.Dialog.ShowAsync(new TextDialogRequest
+            {
+                Title = Lang.Text("Common.Dialog.Warning"),
+                Content = Lang.Text("Setup.Misc.System.StopUsingPclCe.Message.Final"),
+                Buttons = DialogButtons.ContinueCancel,
+                IsWarn = true
+            })).IsConfirmed)
                 StopUsingPClCeCore(result == 2);
-            }
+        }
+        catch (Exception ex)
+        {
+            Common.Log(ex, "停止使用 PCL CE 失败", Common.LogLevel.Msgbox,
+                userSummary: Lang.Text("Setup.Error.OperationFailed"));
         }
     }
 
@@ -264,14 +314,14 @@ public partial class PageSetupLauncherMisc
 
                 var versionsPath = Path.Combine(realPath, "versions");
                 if (!Directory.Exists(versionsPath)) continue;
-                
+
                 Delete(
                     Directory.EnumerateDirectories(versionsPath)
                         .Select(p => Path.Combine(p, "PCL", "config.v1.yml"))
                 );
             }
         }
-        
+
         // 由于 CE 文件夹正在使用，使用延迟调用 CMD 的方法删除
         List<string> foldersToDelete =
         [
@@ -288,7 +338,7 @@ public partial class PageSetupLauncherMisc
         {
             sb.Append($"rmdir /s /q \"{folder}\" & ");
         }
-        
+
         Process.Start(new ProcessStartInfo
         {
             FileName = "cmd.exe",
@@ -300,7 +350,7 @@ public partial class PageSetupLauncherMisc
 
         // 强制退出
         KernelInterop.ExitProcess();
-            
+
         void Delete(IEnumerable<string> paths)
         {
             foreach (var path in paths)

@@ -1,8 +1,12 @@
 # 如何为项目做贡献
 
-Wiki 页面:
-[开发指南](https://github.com/PCL-Community/PCL2-CE/wiki/开发指南)
-[技术规范](https://github.com/PCL-Community/PCL2-CE/wiki/技术规范)
+> **重要：** 提交 Issue 或 Pull Request 前，请先阅读 [生成式人工智能使用方针](https://docs.pclc.cc/ce/developers/ai-policy)。使用生成式 AI 工具时，必须按方针披露使用情况，并对提交内容的正确性承担全部责任。不符合方针的贡献可能会被要求修改或关闭。
+
+开发文档：
+
+* [开发环境配置](https://docs.pclc.cc/ce/developers/setup)
+* [技术规范](https://docs.pclc.cc/ce/developers/guidelines)
+* [生成式人工智能使用方针](https://docs.pclc.cc/ce/developers/ai-policy)
 
 <details>
 

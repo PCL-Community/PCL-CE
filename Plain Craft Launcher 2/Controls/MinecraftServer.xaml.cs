@@ -1,4 +1,4 @@
-using PCL.Core.App.Localization;
+﻿using PCL.Core.App.Localization;
 using PCL.Core.Link.McPing;
 using PCL.Core.Link.McPing.Model;
 using PCL.Core.Minecraft;
@@ -42,7 +42,7 @@ public partial class MinecraftServer : Grid
         address = address.Replace("：", ":");
         // 预先重置UI状态
         LabServerDesc.Foreground = Brushes.White;
-        LabServerDesc.Text = Lang.Text("Tools.ServerQuery.State.Querying");
+        LabServerDesc.TrySetLocalizedValue("Text", "Tools.ServerQuery.State.Querying");
         LabServerPlayer.Text = "-/-";
         LabServerPlayer.ToolTip = null;
         LabServerLatency.Text = string.Empty;
@@ -69,8 +69,11 @@ public partial class MinecraftServer : Grid
         }
         catch (Exception ex)
         {
-            ModBase.Log(ex, "[MinecraftServer] 信息查询失败");
-            LabServerDesc.Text = Lang.Text("Tools.ServerQuery.Error.UnableToConnect", ex.Message);
+            Common.Log(ex, "[MinecraftServer] 信息查询失败");
+            LocalizedText.TryBind(
+                LabServerDesc,
+                "Text",
+                () => Lang.Text("Tools.ServerQuery.Error.UnableToConnect", ex.Message));
             LabServerDesc.Foreground = Brushes.Red;
             ImageLoaderHelper.SetFallbackImage(ImgServerLogo, fallbackImageUri);
         }
@@ -82,13 +85,14 @@ public partial class MinecraftServer : Grid
         var latencyColor = ret.Latency < 150 ? "a" : ret.Latency < 400 ? "6" : "c";
 
         // 更新描述
-        LabServerDesc.Text = Lang.Text("Tools.ServerQuery.Title.MinecraftServer");
+        LabServerDesc.TrySetLocalizedValue("Text", "Tools.ServerQuery.Title.MinecraftServer");
         MotdRenderer.RenderMotd(ret.Description, false, 2, 14);
         MotdRenderer.RenderCanvas();
 
         // 更新玩家信息
         LabServerPlayer.Text = $"{ret.Players.Online}/{ret.Players.Max}";
-        ModStyle.MinecraftFormatter.SetColorfulTextLab($"§{latencyColor}{ret.Latency}ms", LabServerLatency, false);
+        TextStyles.MinecraftFormatter.SetColorfulTextLab($"§{latencyColor}{ret.Latency}ms",
+            LabServerLatency, false);
 
         // 玩家列表提示
         if (ret.Players.Samples is not null && ret.Players.Samples.Any())

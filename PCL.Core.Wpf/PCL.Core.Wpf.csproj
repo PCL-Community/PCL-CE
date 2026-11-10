@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <!-- PCL.Core 的 WPF 适配层：仅包含依赖 WPF 的通用控件、效果与工具，目标为 Apache-2.0。 -->
+    <PropertyGroup>
+        <AssemblyTitle>PCL.Core.Wpf</AssemblyTitle>
+        <AssemblyName>PCL.Core.Wpf</AssemblyName>
+        <Description>PCL.Core 的 WPF 适配层</Description>
+        <Company>PCL Community</Company>
+        <Product>PCL.Core.Wpf</Product>
+        <Copyright>Copyright © PCL Community</Copyright>
+        <RootNamespace>PCL.Core</RootNamespace>
+        <TargetFramework>net10.0-windows</TargetFramework>
+        <UseWPF>true</UseWPF>
+        <EnableWindowsTargeting>true</EnableWindowsTargeting>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <LangVersion>14.0</LangVersion>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>disable</ImplicitUsings>
+        <Configurations>Debug;CI;Release;Beta</Configurations>
+        <Platforms>AnyCPU;x64;ARM64</Platforms>
+        <NoWarn>$(NoWarn);CS9113</NoWarn>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\PCL.Core\PCL.Core.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <Resource Include="UI\Assets\IconPacks\**\*.svg" />
+        <Resource Include="UI\Assets\Shaders\*.ps" />
+    </ItemGroup>
+</Project>

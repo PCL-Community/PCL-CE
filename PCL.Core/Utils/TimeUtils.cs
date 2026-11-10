@@ -1,5 +1,4 @@
 using System;
-using PCL.Core.App.Localization;
 using System.Globalization;
 
 namespace PCL.Core.Utils;
@@ -72,16 +71,5 @@ public static class TimeUtils
     public static DateTimeOffset ToLocalTime(DateTimeOffset utcDate)
     {
         return utcDate.ToLocalTime();
-    }
-
-    /// <summary>
-    ///     将 Unix 时间戳（秒）转换为当前展示区域性格式的本地时间字符串。
-    /// </summary>
-    /// <param name="unixTimestamp">Unix 时间戳（秒），表示自 1970-01-01 00:00:00 UTC 起的秒数。</param>
-    /// <returns>使用当前展示区域性格式化后的本地时间字符串。</returns>
-    /// <exception cref="ArgumentOutOfRangeException">当 <paramref name="unixTimestamp" /> 为负数或过大时抛出。</exception>
-    public static string FormatUnixTimestamp(long unixTimestamp)
-    {
-        return Lang.Date(FromUnixTimestamp(unixTimestamp), "g");
     }
 }

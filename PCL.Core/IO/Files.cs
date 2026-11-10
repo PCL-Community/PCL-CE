@@ -18,8 +18,8 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 using PCL.Core.App;
+using PCL.Core.Platform;
 
 namespace PCL.Core.IO;
 
@@ -752,16 +752,8 @@ public static class Files {
             Directory.CreateDirectory(dest);
         }
 
-        var dataObject = Clipboard.GetDataObject();
-        if (dataObject is null || !dataObject.GetDataPresent(DataFormats.FileDrop)) {
-            return 0;
-        }
-
-        var data = dataObject.GetData(DataFormats.FileDrop);
-        if (data is not string[] paths) {
-            return 0;
-        }
-        if (paths.Length == 0) {
+        var paths = PlatformServices.Clipboard?.GetFileDropList();
+        if (paths is null || paths.Length == 0) {
             return 0;
         }
 
@@ -911,7 +903,7 @@ public static class Files {
                     using var document = JsonDocument.Parse(content, JsonCompat.DocumentOptions);
                     // 简单验证 JSON 有效性
                 } catch (JsonException ex) {
-                    throw new Exception(Lang.Text("Common.Error.InvalidJson"), ex);
+                    throw new InvalidJsonException(ex);
                 }
             }
 

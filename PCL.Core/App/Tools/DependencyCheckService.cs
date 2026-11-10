@@ -1,12 +1,12 @@
+using PCL.Core.App.IoC;
+using PCL.Core.App.Localization;
+using PCL.Core.UI.Dialogs;
+using PCL.Core.Utils;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
-using PCL.Core.App.IoC;
-using PCL.Core.App.Localization;
-using PCL.Core.UI;
-using PCL.Core.Utils;
 
 namespace PCL.Core.App.Tools;
 
@@ -20,10 +20,16 @@ public sealed partial class DependencyCheckService
         Context.Info(Lang.Text("Tools.Test.Dependency.Checking"));
 
         if (RuntimeInformation.OSArchitecture.Equals(Architecture.Arm64))
-            await _CheckAndAskAsync("Microsoft.D3DMappingLayers", "OpenGL 兼容包", "9nqpsl29bfff")
+            await _CheckAndAskAsync(
+                    "Microsoft.D3DMappingLayers",
+                    Lang.Text("Tools.Test.Dependency.Package.D3DMappingLayers"),
+                    "9nqpsl29bfff")
                 .ConfigureAwait(false);
 
-        await _CheckAndAskAsync("Microsoft.WebpImageExtension", "WebP 组件包", "9pg2dk419drg")
+        await _CheckAndAskAsync(
+                "Microsoft.WebpImageExtension",
+                Lang.Text("Tools.Test.Dependency.Package.WebpImageExtension"),
+                "9pg2dk419drg")
             .ConfigureAwait(false);
     }
 
@@ -32,9 +38,19 @@ public sealed partial class DependencyCheckService
         if (!await _CheckPackageAsync(packageId))
         {
             Context.Info($"检测到依赖缺失 (package-id = {packageId})");
-            var selection = MsgBoxWrapper.Show(
-                Lang.Text("Tools.Test.Dependency.MissingMessage", packageName),
-                buttons: [Lang.Text("Common.Action.Confirm"), Lang.Text("Tools.Test.Dependency.Later")]);
+            //var selection = MsgBoxWrapper.Show(
+            //    Lang.Text("Tools.Test.Dependency.MissingMessage", packageName),
+            //    buttons: [Lang.Text("Common.Action.Confirm"), Lang.Text("Tools.Test.Dependency.Later")]);
+
+            var selection = DialogService.Instance.Show(new TextDialogRequest
+            {
+                Title = Lang.Text("Tools.Test.Dependency.MissingTitle"),
+                Content = Lang.Text("Tools.Test.Dependency.MissingMessage", packageName),
+                Buttons = DialogButtons.From(
+                    DialogButton.Create(Lang.Text("Common.Action.Confirm")),
+                    DialogButton.Create(Lang.Text("Tools.Test.Dependency.Later")))
+            }).Result?.Button ?? 0;
+
             if (selection == 1) _LaunchMsStore(storeId);
         }
     }

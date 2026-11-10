@@ -7,32 +7,34 @@ using PCL.Core.App.Configuration;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 
 namespace PCL;
 
-public partial class PageSetupUI
+public partial class PageSetupUI : IPageView
 {
-    public string[] ThemeColors => Basics.IsAprilFool 
-        ? [Lang.Text("Setup.Ui.Theme.Color.SkyBlue"), Lang.Text("Setup.Ui.Theme.Color.CatBlue"), Lang.Text("Setup.Ui.Theme.Color.CrashBlue"), Lang.Text("Setup.Ui.Theme.Color.Hmcl")]
-        : [Lang.Text("Setup.Ui.Theme.Color.SkyBlue"), Lang.Text("Setup.Ui.Theme.Color.CatBlue"), Lang.Text("Setup.Ui.Theme.Color.CrashBlue")];
-    
+    private readonly PageSetupUIViewModel _vm = new();
+
+    private bool _refreshed;
+
+    public PageSetupUIViewModel ViewModel => _vm;
+
+    public string[] ThemeColors => _vm.ThemeColors;
+
     public new bool isLoaded;
 
     public PageSetupUI()
     {
         InitializeComponent();
+        DataContext = _vm;
         Loaded += PageSetupUI_Loaded;
         Loaded += (_, _) => HiddenRefresh();
+        Unloaded += (_, _) => _refreshed = false;
     }
 
     private void PageSetupUI_Loaded(object sender, RoutedEventArgs e)
     {
-        // 重复加载部分
-        PanBack.ScrollToHome();
-
-        ModAnimation.AniControlEnabled += 1;
-        Reload(); // #4826，在每次进入页面时都刷新一下
-        ModAnimation.AniControlEnabled -= 1;
+        RefreshOnNavigate();
 
         // 非重复加载部分
         if (isLoaded)
@@ -41,7 +43,29 @@ public partial class PageSetupUI
 
         SliderLoad();
 
-        PanLauncherHide.Visibility = Visibility.Visible;
+        _vm.ShowLauncherHint();
+    }
+
+    public void OnNavigatedTo(object? parameter)
+    {
+        RefreshOnNavigate();
+    }
+
+    public void OnNavigatedFrom()
+    {
+    }
+
+    private void RefreshOnNavigate()
+    {
+        if (_refreshed)
+            return;
+        _refreshed = true;
+        // 重复加载部分
+        PanBack.ScrollToHome();
+
+        Animations.AniBeginControl();
+        Reload(); // #4826，在每次进入页面时都刷新一下
+        Animations.AniEndControl();
     }
 
     public void Reload()
@@ -51,9 +75,9 @@ public partial class PageSetupUI
             // 启动器
             SliderLauncherOpacity.Value = Config.Preference.Theme.WindowOpacity;
             CheckLauncherLogo.Checked = Config.Preference.ShowStartupLogo;
-            ComboDarkMode.SelectedIndex = (int)Config.Preference.Theme.ColorMode;
-            ComboDarkColor.SelectedIndex = (int)Config.Preference.Theme.DarkColor;
-            ComboLightColor.SelectedIndex = (int)Config.Preference.Theme.LightColor;
+            _vm.DarkModeSelectedIndex = (int)Config.Preference.Theme.ColorMode;
+            _vm.DarkColorSelectedIndex = (int)Config.Preference.Theme.DarkColor;
+            _vm.LightColorSelectedIndex = (int)Config.Preference.Theme.LightColor;
             CheckShowLaunchingHint.Checked = Config.Preference.ShowLaunchingHint;
 
             // 字体设置
@@ -63,18 +87,18 @@ public partial class PageSetupUI
             CheckBlur.Checked = Config.Preference.Blur.IsEnabled;
             SliderBlurValue.Value = Config.Preference.Blur.Radius;
             SliderBlurSamplingRate.Value = Config.Preference.Blur.SamplingRate;
-            ComboBlurType.SelectedIndex = Config.Preference.Blur.KernelType;
+            _vm.BlurTypeSelectedIndex = Config.Preference.Blur.KernelType;
             PanBlurValue.Visibility = CheckBlur.Checked == true ? Visibility.Visible : Visibility.Collapsed;
             CheckLockWindowSize.Checked = Config.Preference.LockWindowSize;
 
             // 背景图片
             SliderBackgroundOpacity.Value = Config.Preference.Background.WallpaperOpacity;
             SliderBackgroundBlur.Value = Config.Preference.Background.WallpaperBlurRadius;
-            ComboBackgroundSuit.SelectedIndex = Config.Preference.Background.WallpaperSuitMode;
+            _vm.BackgroundSuitSelectedIndex = Config.Preference.Background.WallpaperSuitMode;
             CheckBackgroundColorful.Checked = Config.Preference.Background.BackgroundColorful;
             var autoPauseVideo = Config.Preference.Background.AutoPauseVideo;
             CheckAutoPauseVideo.Checked = autoPauseVideo;
-            if (ModVideoBack.IsGaming)
+            if (VideoBackground.IsGaming)
                 if (autoPauseVideo)
                     BtnBackgroundRefresh.IsEnabled = false;
 
@@ -86,7 +110,7 @@ public partial class PageSetupUI
             CheckLogoLeft.Visibility = RadioLogoType0.Checked ? Visibility.Visible : Visibility.Collapsed;
             PanLogoText.Visibility = RadioLogoType2.Checked ? Visibility.Visible : Visibility.Collapsed;
             PanLogoChange.Visibility = RadioLogoType3.Checked ? Visibility.Visible : Visibility.Collapsed;
-            TextLogoText.Text = Config.Preference.WindowTitleCustomText;
+            _vm.LogoText = Config.Preference.WindowTitleCustomText;
             CheckLogoLeft.Checked = Config.Preference.TopBarLeftAlign;
 
             // 背景音乐
@@ -101,7 +125,7 @@ public partial class PageSetupUI
             // 主页
             try
             {
-                ComboCustomPreset.SelectedIndex = Config.Preference.Homepage.SelectedPreset;
+                _vm.CustomPresetSelectedIndex = Config.Preference.Homepage.SelectedPreset;
             }
             catch
             {
@@ -109,8 +133,8 @@ public partial class PageSetupUI
             }
 
             ((MyRadioBox)FindName("RadioCustomType" + Config.Preference.Homepage.Type)).Checked = true;
-            TextCustomNet.Text = Config.Preference.Homepage.CustomUrl;
-            ModSetup.UiCustomType(Config.Preference.Homepage.Type);
+            _vm.CustomNetText = Config.Preference.Homepage.CustomUrl;
+            Setup.UiCustomType(Config.Preference.Homepage.Type);
 
             // 功能隐藏
             // 获取配置组引用
@@ -156,19 +180,19 @@ public partial class PageSetupUI
         }
         catch (NullReferenceException ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 Lang.Text("Setup.Ui.Error.ConfigReset"),
-                ModBase.LogLevel.Msgbox,
+                Common.LogLevel.Msgbox,
                 userSummary: Lang.Text("Setup.Ui.Error.ConfigReset"));
             Reset();
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 Lang.Text("Setup.Ui.Error.LoadFailed"),
-                ModBase.LogLevel.Feedback,
+                Common.LogLevel.Feedback,
                 userSummary: Lang.Text("Setup.Ui.Error.LoadFailed"));
         }
     }
@@ -179,15 +203,15 @@ public partial class PageSetupUI
         try
         {
             Config.Preference.Reset();
-            ModBase.Log("[Setup] 已初始化个性化设置！");
-            HintService.Hint(Lang.Text("Setup.Ui.Initialized"), HintType.Success, false);
+            Common.Log("[Setup] 已初始化个性化设置！");
+            HintService.Show(Hints.Success(Lang.Text("Setup.Ui.Initialized"), log: false));
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 Lang.Text("Setup.Ui.Error.InitFailed"),
-                ModBase.LogLevel.Msgbox,
+                Common.LogLevel.Msgbox,
                 userSummary: Lang.Text("Setup.Ui.Error.InitFailed"));
         }
 
@@ -198,36 +222,37 @@ public partial class PageSetupUI
     private void SliderChange(object senderRaw, bool user)
     {
         var sender = (MySlider)senderRaw;
-        if (ModAnimation.AniControlEnabled == 0)
+        if (!Animations.AniExitsAnyControl())
             SetByTag(sender.Tag?.ToString(), sender.Value);
     }
 
     private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
-        if (ModAnimation.AniControlEnabled == 0)
-            SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
+        if (Animations.AniExitsAnyControl() || sender.SelectedIndex < 0)
+            return;
+        SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
     private void CheckBoxChange(object senderRaw, bool user)
     {
         var sender = (MyCheckBox)senderRaw;
-        if (ModAnimation.AniControlEnabled == 0)
+        if (!Animations.AniExitsAnyControl())
             SetByTag(sender.Tag?.ToString(), sender.Checked);
     }
 
     private void TextBoxChange(object senderRaw, RoutedEventArgs e)
     {
         var sender = (MyTextBox)senderRaw;
-        if (ModAnimation.AniControlEnabled == 0)
+        if (!Animations.AniExitsAnyControl())
             SetByTag(sender.Tag?.ToString(), sender.Text);
     }
 
-    private void RadioBoxChange(object senderRaw, ModBase.RouteEventArgs e)
+    private void RadioBoxChange(object senderRaw, Common.RouteEventArgs e)
     {
         var sender = (MyRadioBox)senderRaw;
         var gotCfg = sender.Tag?.ToString()?.Split("/") ?? Array.Empty<string>();
-        if (ModAnimation.AniControlEnabled == 0 && gotCfg.Length >= 2)
+        if (!Animations.AniExitsAnyControl() && gotCfg.Length >= 2)
             SetByTag(gotCfg[0], int.Parse(gotCfg[1]));
     }
 
@@ -238,18 +263,18 @@ public partial class PageSetupUI
 
     private void ComboFontChange(object sender, SelectionChangedEventArgs e)
     {
-        if (ModAnimation.AniControlEnabled == 0) Config.Preference.Font = ComboUiFont.SelectedFontTag;
+        if (!Animations.AniExitsAnyControl()) Config.Preference.Font = ComboUiFont.SelectedFontTag;
     }
 
     private void ComboMotdFontChange(object sender, SelectionChangedEventArgs e)
     {
-        if (ModAnimation.AniControlEnabled == 0) Config.Preference.MotdFont = ComboUiMotdFont.SelectedFontTag;
+        if (!Animations.AniExitsAnyControl()) Config.Preference.MotdFont = ComboUiMotdFont.SelectedFontTag;
     }
 
     // 背景图片
     private void BtnUIBgOpen_Click(object sender, MouseButtonEventArgs e)
     {
-        ModBase.OpenExplorer(ModBase.exePath + @"PCL\Pictures\");
+        Common.OpenExplorer(Common.ExePath + @"PCL\Pictures\");
     }
 
     private void BtnBackgroundRefresh_Click(object sender, MouseButtonEventArgs e)
@@ -261,42 +286,40 @@ public partial class PageSetupUI
     {
         if (PanBackgroundOpacity is null)
             return;
-        if (show)
-        {
-            PanBackgroundOpacity.Visibility = Visibility.Visible;
-            PanBackgroundBlur.Visibility = Visibility.Visible;
-            PanBackgroundSuit.Visibility = Visibility.Visible;
-            BtnBackgroundClear.Visibility = Visibility.Visible;
-            CheckAutoPauseVideo.Visibility = Visibility.Visible;
-            CardBackground.Title = Lang.Text("Setup.Ui.Background.TitleWithCount", count);
-        }
-        else
-        {
-            PanBackgroundOpacity.Visibility = Visibility.Collapsed;
-            PanBackgroundBlur.Visibility = Visibility.Collapsed;
-            PanBackgroundSuit.Visibility = Visibility.Collapsed;
-            BtnBackgroundClear.Visibility = Visibility.Collapsed;
-            CheckAutoPauseVideo.Visibility = Visibility.Collapsed;
-            CardBackground.Title = Lang.Text("Setup.Ui.Background.TitleDefault");
-        }
-
+        _vm.ApplyBackgroundState(show, count);
+        LocalizedText.TryBind(
+            CardBackground,
+            "Title",
+            () => show
+                ? Lang.Text("Setup.Ui.Background.TitleWithCount", count)
+                : Lang.Text("Setup.Ui.Background.TitleDefault"));
         CardBackground.TriggerForceResize();
     }
 
-    private void BtnBackgroundClear_Click(object sender, MouseButtonEventArgs e)
+    private async void BtnBackgroundClear_Click(object sender, MouseButtonEventArgs e)
     {
-        if (ModMain.MyMsgBox(Lang.Text("Setup.Ui.Background.Clear.Confirm.Message"),
-                Lang.Text("Common.Dialog.Warning"), button2: Lang.Text("Common.Action.Cancel"),
-                isWarn: true) == 1)
+        _vm.BackgroundClearEnabled = false;
+        try
         {
-            ModBase.DeleteDirectory(ModBase.exePath + @"PCL\Pictures");
+            if (!await _vm.ConfirmBackgroundClearAsync())
+                return;
+            Common.DeleteDirectory(Common.ExePath + @"PCL\Pictures");
             BackgroundRefresh(false, true);
-            HintService.Hint(Lang.Text("Setup.Ui.Background.Clear.Success"), HintType.Success);
+            HintService.Show(Hints.Success(Lang.Text("Setup.Ui.Background.Clear.Success")));
+        }
+        catch (Exception ex)
+        {
+            Common.Log(ex, "清空背景内容失败", Common.LogLevel.Feedback,
+                userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
+        }
+        finally
+        {
+            _vm.BackgroundClearEnabled = true;
         }
     }
 
     /// <summary>
-    ///     刷新背景图片及设置页 UI。
+    /// 刷新背景图片及设置页 UI。
     /// </summary>
     /// <param name="isHint">是否显示刷新提示。</param>
     /// <param name="refresh">是否刷新图片显示。</param>
@@ -305,8 +328,8 @@ public partial class PageSetupUI
         try
         {
             // 获取可用的图片文件
-            Directory.CreateDirectory(ModBase.exePath + @"PCL\Pictures\");
-            var pic = ModBase.EnumerateFiles(ModBase.exePath + @"PCL\Pictures\").Where(file =>
+            Directory.CreateDirectory(Common.ExePath + @"PCL\Pictures\");
+            var pic = Common.EnumerateFiles(Common.ExePath + @"PCL\Pictures\").Where(file =>
                     !(file.Extension.Equals(".ini", StringComparison.OrdinalIgnoreCase) ||
                       file.Extension.Equals(".db", StringComparison.OrdinalIgnoreCase))).Select(file => file.FullName)
                 .ToList();
@@ -316,55 +339,55 @@ public partial class PageSetupUI
             EventHandler<ExceptionRoutedEventArgs> videoHandler = (sender, e) =>
             {
                 var videoEx = e.ErrorException;
-                var videoAddress = ModMain.frmMain.VideoBack.Source.ToString();
-                if (ModMain.frmMain.VideoBack.Source is not null)
+                var videoAddress = Launcher.frmMain.VideoBack.Source.ToString();
+                if (Launcher.frmMain.VideoBack.Source is not null)
                 {
-                    ModVideoBack.VideoStop();
+                    VideoBackground.VideoStop();
 
                     if (videoEx.Message.Contains("0xC00D109B"))
-                        ModBase.Log(
+                        Common.Log(
                             $"""
                              刷新背景内容失败，该视频文件可能并非 H.264（AVC）格式。
                              你可以尝试使用视频转码工具打开视频文件并设定目标格式为 H.264（AVC），然后转码该视频。
                              文件：{videoAddress}
                              """,
-                            ModBase.LogLevel.Msgbox,
+                            Common.LogLevel.Msgbox,
                             userSummary: Lang.Text("Setup.Ui.Error.BackgroundVideoUnsupported"));
                     else
-                        ModBase.Log(
+                        Common.Log(
                             videoEx,
                             $"刷新背景内容失败（{videoAddress}）",
-                            ModBase.LogLevel.Msgbox,
+                            Common.LogLevel.Msgbox,
                             userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
                 }
             };
-            ModMain.frmMain.VideoBack.MediaFailed -= videoHandler;
-            ModVideoBack.GamingStateChanged -= ModVideoBack.OnGamingStateChanged;
-            ModVideoBack.ForcePlayChanged -= ModVideoBack.OnForcePlayChanged;
-            ModVideoBack.GamingStateChanged += ModVideoBack.OnGamingStateChanged;
-            ModVideoBack.ForcePlayChanged += ModVideoBack.OnForcePlayChanged;
+            Launcher.frmMain.VideoBack.MediaFailed -= videoHandler;
+            VideoBackground.GamingStateChanged -= VideoBackground.OnGamingStateChanged;
+            VideoBackground.ForcePlayChanged -= VideoBackground.OnForcePlayChanged;
+            VideoBackground.GamingStateChanged += VideoBackground.OnGamingStateChanged;
+            VideoBackground.ForcePlayChanged += VideoBackground.OnForcePlayChanged;
             if (!Config.Preference.Background.AutoPauseVideo)
-                ModVideoBack.ForcePlay = true;
+                VideoBackground.ForcePlay = true;
             // 加载
             if (pic.Count == 0)
             {
                 if (refresh)
                 {
-                    if (ModMain.frmMain.ImgBack.Visibility == Visibility.Collapsed)
+                    if (Launcher.frmMain.ImgBack.Visibility == Visibility.Collapsed)
                     {
                         if (isHint)
-                            HintService.Hint(Lang.Text("Setup.Ui.Background.NoAvailableContent"), HintType.Error);
+                            HintService.Show(Hints.Error(Lang.Text("Setup.Ui.Background.NoAvailableContent")));
                     }
                     else
                     {
-                        ModMain.frmMain.ImgBack.Visibility = Visibility.Collapsed;
+                        Launcher.frmMain.ImgBack.Visibility = Visibility.Collapsed;
                         if (isHint)
-                            HintService.Hint(Lang.Text("Setup.Ui.Background.Cleared"), HintType.Success);
+                            HintService.Show(Hints.Success(Lang.Text("Setup.Ui.Background.Cleared")));
                     }
                 }
 
-                if (ModMain.frmSetupUI is not null)
-                    ModMain.frmSetupUI.BackgroundRefreshUI(false, 0);
+                if (Launcher.frmSetupUi is not null)
+                    Launcher.frmSetupUi.BackgroundRefreshUI(false, 0);
             }
             else
             {
@@ -373,49 +396,47 @@ public partial class PageSetupUI
                     var address = RandomUtils.PickRandom(pic);
                     try
                     {
-                        ModMain.frmMain.ImgBack.Background = null;
-                        ModVideoBack.VideoStop();
-                        ModBase.Log("[UI] 加载背景内容：" + address);
-                        ModMain.frmMain.ImgBack.Background = new MyBitmap(address);
+                        Launcher.frmMain.ImgBack.Background = null;
+                        VideoBackground.VideoStop();
+                        Common.Log("[UI] 加载背景内容：" + address);
+                        Launcher.frmMain.ImgBack.Background = new MyBitmap(address);
                         _ = Config.Preference.Background.WallpaperSuitMode;
-                        ModMain.frmMain.ImgBack.Visibility = Visibility.Visible;
+                        Launcher.frmMain.ImgBack.Visibility = Visibility.Visible;
                         if (isHint)
-                                HintService.Hint(Lang.Text("Setup.Ui.Background.Refresh.Success", ModBase.GetFileNameFromPath(address)), HintType.Success,
-                                false);
+                                HintService.Show(Hints.Success(Lang.Text("Setup.Ui.Background.Refresh.Success", Common.GetFileNameFromPath(address)), log: false));
                     }
                     catch (Exception ex)
                     {
                         try
                         {
-                            ModMain.frmMain.VideoBack.MediaFailed += videoHandler;
-                            ModBase.Log(ex, "[UI] 加载背景图片失败" + address);
-                            if (ModBase.modeDebug)
-                                HintService.Hint(Lang.Text("Setup.Ui.Background.ImageLoadFailed", address));
-                            ModMain.frmMain.ImgBack.Visibility = Visibility.Visible;
-                            ModMain.frmMain.VideoBack.Source = new Uri(address, UriKind.Absolute);
-                            ModVideoBack.VideoPlay();
+                            Launcher.frmMain.VideoBack.MediaFailed += videoHandler;
+                            Common.Log(ex, "[UI] 加载背景图片失败" + address);
+                            if (Common.modeDebug)
+                                HintService.Show(Hints.Info(Lang.Text("Setup.Ui.Background.ImageLoadFailed", address)));
+                            Launcher.frmMain.ImgBack.Visibility = Visibility.Visible;
+                            Launcher.frmMain.VideoBack.Source = new Uri(address, UriKind.Absolute);
+                            VideoBackground.VideoPlay();
                             if (isHint)
-                            HintService.Hint(Lang.Text("Setup.Ui.Background.Refresh.Success", ModBase.GetFileNameFromPath(address)), HintType.Success,
-                                    false);
+                            HintService.Show(Hints.Success(Lang.Text("Setup.Ui.Background.Refresh.Success", Common.GetFileNameFromPath(address)), log: false));
                         }
                         catch (Exception playEx)
                         {
-                            ModBase.Log(playEx, "播放背景内容时出现未知错误：");
+                            Common.Log(playEx, "播放背景内容时出现未知错误：");
                         }
                     }
                 }
 
-                if (ModMain.frmSetupUI is not null)
-                    ModMain.frmSetupUI.BackgroundRefreshUI(true, pic.Count);
+                if (Launcher.frmSetupUi is not null)
+                    Launcher.frmSetupUi.BackgroundRefreshUI(true, pic.Count);
             }
         }
 
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 "刷新背景内容时出现未知错误",
-                ModBase.LogLevel.Feedback,
+                Common.LogLevel.Feedback,
                 userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
         }
     }
@@ -431,74 +452,74 @@ public partial class PageSetupUI
         try
         {
             // 拷贝文件
-            File.Delete(ModBase.exePath + @"PCL\Logo.png");
-            ModBase.CopyFile(fileName, ModBase.exePath + @"PCL\Logo.png");
+            File.Delete(Common.ExePath + @"PCL\Logo.png");
+            Common.CopyFile(fileName, Common.ExePath + @"PCL\Logo.png");
             // 设置当前显示
-            ModMain.frmMain.ImageTitleLogo.Source = null; // 防止因为 Source 属性前后的值相同而不更新 (#5628)
-            ModMain.frmMain.ImageTitleLogo.Source = ModBase.exePath + @"PCL\Logo.png";
+            Launcher.frmMain.ImageTitleLogo.Source = null; // 防止因为 Source 属性前后的值相同而不更新 (#5628)
+            Launcher.frmMain.ImageTitleLogo.Source = Common.ExePath + @"PCL\Logo.png";
         }
         catch (Exception ex)
         {
             if (ex.Message.Contains("参数无效"))
-                ModBase.Log(
+                Common.Log(
                     """
                     改变标题栏图片失败，该图片文件可能并非标准格式。
                     你可以尝试使用画图打开该文件并重新保存，这会让图片变为标准格式。
                     """,
-                    ModBase.LogLevel.Msgbox,
+                    Common.LogLevel.Msgbox,
                     userSummary: Lang.Text("Setup.Ui.Error.TitleImageInvalidFormat"));
             else
-                ModBase.Log(
+                Common.Log(
                     ex,
                     "设置标题栏图片失败",
-                    ModBase.LogLevel.Msgbox,
+                    Common.LogLevel.Msgbox,
                     userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
-            ModMain.frmMain.ImageTitleLogo.Source = null;
+            Launcher.frmMain.ImageTitleLogo.Source = null;
         }
     }
 
-    private void RadioLogoType3_Check(object sender, ModBase.RouteEventArgs e)
+    private void RadioLogoType3_Check(object sender, Common.RouteEventArgs e)
     {
-        if (!(ModAnimation.AniControlEnabled == 0 && e.raiseByMouse))
+        if (!(!Animations.AniExitsAnyControl() && e.raiseByMouse))
             return;
         Refresh: ;
 
         // 已有图片则不再选择
-        if (File.Exists(ModBase.exePath + @"PCL\Logo.png"))
+        if (File.Exists(Common.ExePath + @"PCL\Logo.png"))
         {
             try
             {
-                ModMain.frmMain.ImageTitleLogo.Source = null; // 防止因为 Source 属性前后的值相同而不更新 (#5628)
-                ModMain.frmMain.ImageTitleLogo.Source = ModBase.exePath + @"PCL\Logo.png";
+                Launcher.frmMain.ImageTitleLogo.Source = null; // 防止因为 Source 属性前后的值相同而不更新 (#5628)
+                Launcher.frmMain.ImageTitleLogo.Source = Common.ExePath + @"PCL\Logo.png";
             }
             catch (Exception ex)
             {
                 if (ex.Message.Contains("参数无效"))
-                    ModBase.Log(
+                    Common.Log(
                         """
                         调整标题栏图片失败，该图片文件可能并非标准格式。
                         你可以尝试使用画图打开该文件并重新保存，这会让图片变为标准格式。
                         """,
-                        ModBase.LogLevel.Msgbox,
+                        Common.LogLevel.Msgbox,
                         userSummary: Lang.Text("Setup.Ui.Error.TitleImageResizeInvalidFormat"));
                 else
-                    ModBase.Log(
+                    Common.Log(
                         ex,
                         "调整标题栏图片失败",
-                        ModBase.LogLevel.Msgbox,
+                        Common.LogLevel.Msgbox,
                         userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
-                ModMain.frmMain.ImageTitleLogo.Source = null;
+                Launcher.frmMain.ImageTitleLogo.Source = null;
                 e.handled = true;
                 try
                 {
-                    File.Delete(ModBase.exePath + @"PCL\Logo.png");
+                    File.Delete(Common.ExePath + @"PCL\Logo.png");
                 }
                 catch (Exception exx)
                 {
-                    ModBase.Log(
+                    Common.Log(
                         exx,
                         "清理错误的标题栏图片失败",
-                        ModBase.LogLevel.Msgbox,
+                        Common.LogLevel.Msgbox,
                         userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
                 }
             }
@@ -510,7 +531,7 @@ public partial class PageSetupUI
         var fileName = SystemDialogs.SelectFile(Lang.Text("Setup.Ui.ImageFile.Filter"), Lang.Text("Setup.Ui.ImageFile.SelectTitle"));
         if (string.IsNullOrEmpty(fileName))
         {
-            ModMain.frmMain.ImageTitleLogo.Source = null;
+            Launcher.frmMain.ImageTitleLogo.Source = null;
             e.handled = true;
         }
         else
@@ -518,16 +539,16 @@ public partial class PageSetupUI
             try
             {
                 // 拷贝文件
-                File.Delete(ModBase.exePath + @"PCL\Logo.png");
-                ModBase.CopyFile(fileName, ModBase.exePath + @"PCL\Logo.png");
+                File.Delete(Common.ExePath + @"PCL\Logo.png");
+                Common.CopyFile(fileName, Common.ExePath + @"PCL\Logo.png");
                 goto Refresh;
             }
             catch (Exception ex)
             {
-                ModBase.Log(
+                Common.Log(
                     ex,
                     "复制标题栏图片失败",
-                    ModBase.LogLevel.Msgbox,
+                    Common.LogLevel.Msgbox,
                     userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
             }
         }
@@ -537,16 +558,16 @@ public partial class PageSetupUI
     {
         try
         {
-            File.Delete(ModBase.exePath + @"PCL\Logo.png");
+            File.Delete(Common.ExePath + @"PCL\Logo.png");
             RadioLogoType1.SetChecked(true, true);
-            HintService.Hint(Lang.Text("Setup.Ui.Logo.Clear.Success"), HintType.Success);
+            HintService.Show(Hints.Success(Lang.Text("Setup.Ui.Logo.Clear.Success")));
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 "清空标题栏图片失败",
-                ModBase.LogLevel.Msgbox,
+                Common.LogLevel.Msgbox,
                 userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
         }
     }
@@ -554,85 +575,91 @@ public partial class PageSetupUI
     // 背景音乐
     private void BtnMusicOpen_Click(object sender, MouseButtonEventArgs e)
     {
-        ModBase.OpenExplorer(ModBase.exePath + @"PCL\Musics\");
+        Common.OpenExplorer(Common.ExePath + @"PCL\Musics\");
     }
 
     private void BtnMusicRefresh_Click(object sender, MouseButtonEventArgs e)
     {
-        ModMusic.MusicRefreshPlay(true);
+        Music.MusicRefreshPlay(true);
     }
 
     public void MusicRefreshUI()
     {
         if (PanBackgroundOpacity is null)
             return;
-        if (ModMusic.musicAllList.Any())
-        {
-            PanMusicVolume.Visibility = Visibility.Visible;
-            PanMusicDetail.Visibility = Visibility.Visible;
-            BtnMusicClear.Visibility = Visibility.Visible;
-            CardMusic.Title = Lang.Text("Setup.Ui.Music.TitleWithCount", ModBase.EnumerateFiles(ModBase.exePath + @"PCL\Musics\").Count());
-        }
-        else
-        {
-            PanMusicVolume.Visibility = Visibility.Collapsed;
-            PanMusicDetail.Visibility = Visibility.Collapsed;
-            BtnMusicClear.Visibility = Visibility.Collapsed;
-            CardMusic.Title = Lang.Text("Setup.Ui.Music.Title");
-        }
-
+        var hasMusic = Music.musicAllList.Any();
+        var musicCount = Music.musicAllList.Count;
+        _vm.ApplyMusicState(hasMusic, hasMusic ? Common.EnumerateFiles(Common.ExePath + @"PCL\Musics\").Count() : 0);
+        LocalizedText.TryBind(
+            CardMusic,
+            "Title",
+            () => hasMusic
+                ? Lang.Text("Setup.Ui.Music.TitleWithCount", musicCount)
+                : Lang.Text("Setup.Ui.Music.Title"));
         CardMusic.TriggerForceResize();
     }
 
-    private void BtnMusicClear_Click(object sender, MouseButtonEventArgs e)
+    private async void BtnMusicClear_Click(object sender, MouseButtonEventArgs e)
     {
-        if (ModMain.MyMsgBox(Lang.Text("Setup.Ui.Music.Clear.Confirm.Message"),
-                Lang.Text("Common.Dialog.Warning"), button2: Lang.Text("Common.Action.Cancel"),
-                isWarn: true) == 1)
-            ModBase.RunInThread(() =>
+        _vm.MusicClearEnabled = false;
+        try
+        {
+            if (!await _vm.ConfirmMusicClearAsync())
+                return;
+            Common.RunInThread(() =>
             {
-                HintService.Hint(Lang.Text("Setup.Ui.Music.Deleting"));
+                HintService.Show(Hints.Info(Lang.Text("Setup.Ui.Music.Deleting")));
                 // 停止播放音乐
-                ModMusic.musicNAudio = null;
-                ModMusic.musicWaitingList = new List<string>();
-                ModMusic.musicAllList = new List<string>();
+                Music.musicNAudio = null;
+                Music.musicWaitingList = new List<string>();
+                Music.musicAllList = new List<string>();
                 Thread.Sleep(200);
                 // 删除文件
                 try
                 {
-                    ModBase.DeleteDirectory(ModBase.exePath + @"PCL\Musics");
+                    Common.DeleteDirectory(Common.ExePath + @"PCL\Musics");
                     // DisableSMTCSupport()
-                    HintService.Hint(Lang.Text("Setup.Ui.Music.Delete.Success"), HintType.Success);
+                    HintService.Show(Hints.Success(Lang.Text("Setup.Ui.Music.Delete.Success")));
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(
+                    Common.Log(
                         ex,
                         "删除背景音乐失败",
-                        ModBase.LogLevel.Msgbox,
+                        Common.LogLevel.Msgbox,
                         userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
                 }
 
                 try
                 {
-                    Directory.CreateDirectory(ModBase.exePath + @"PCL\Musics");
-                    ModBase.RunInUi(() => ModMusic.MusicRefreshPlay(false));
+                    Directory.CreateDirectory(Common.ExePath + @"PCL\Musics");
+                    Common.RunInUi(() => Music.MusicRefreshPlay(false));
                 }
                 catch (Exception ex)
                 {
-                    ModBase.Log(
+                    Common.Log(
                         ex,
                         "重建背景音乐文件夹失败",
-                        ModBase.LogLevel.Msgbox,
+                        Common.LogLevel.Msgbox,
                         userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
                 }
             });
+        }
+        catch (Exception ex)
+        {
+            Common.Log(ex, "清空背景音乐失败", Common.LogLevel.Feedback,
+                userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
+        }
+        finally
+        {
+            _vm.MusicClearEnabled = true;
+        }
     }
 
     private void CheckMusicStart_Change(object sender, bool user)
     {
         CheckBoxChange(sender, user);
-        if (ModAnimation.AniControlEnabled != 0)
+        if (Animations.AniExitsAnyControl())
             return;
         if (CheckMusicStart.Checked == true)
             CheckMusicStop.Checked = false;
@@ -640,7 +667,7 @@ public partial class PageSetupUI
 
     private void CheckMusicStop_Change()
     {
-        if (ModAnimation.AniControlEnabled != 0)
+        if (Animations.AniExitsAnyControl())
             return;
         if (CheckMusicStop.Checked == true)
             CheckMusicStart.Checked = false;
@@ -650,19 +677,21 @@ public partial class PageSetupUI
 
     private void BtnCustomRefresh_Click(object sender, MouseButtonEventArgs e)
     {
-        ModMain.frmLaunchRight.ForceRefresh();
-        HintService.Hint(Lang.Text("Setup.Ui.Homepage.Refresh.Success"), HintType.Success);
+        Launcher.frmLaunchRight.ForceRefresh();
+        HintService.Show(Hints.Success(Lang.Text("Setup.Ui.Homepage.Refresh.Success")));
     }
 
     private void BtnCustomTutorial_Click(object sender, MouseButtonEventArgs e)
     {
-        ModBase.OpenWebsite("https://docs.pclc.cc/ce/customization/xaml-format");
+        Common.OpenWebsite("https://docs.pclc.cc/ce/customization/xaml-format");
     }
 
     // 主题
     private void ThemeColor_Change(object senderRaw, SelectionChangedEventArgs e)
     {
         var sender = (MyComboBox)senderRaw;
+        if (Animations.AniExitsAnyControl() || sender.SelectedIndex < 0)
+            return;
         SetByTag(sender.Tag?.ToString(), sender.SelectedIndex);
         ThemeManager.ThemeRefresh();
     }
@@ -670,21 +699,18 @@ public partial class PageSetupUI
     // 赞助
     private void BtnLauncherDonate_Click(object sender, MouseButtonEventArgs e)
     {
-        ModBase.OpenWebsite("https://afdian.com/a/LTCat");
+        Common.OpenWebsite("https://afdian.com/a/LTCat");
     }
 
     // 滑动条
     private void SliderLoad()
     {
-        SliderMusicVolume.getHintText = new Func<object, object>(v =>
-            Lang.Number(Math.Ceiling(Convert.ToDouble(v) * 0.1d) / 100d, "P0"));
-        SliderLauncherOpacity.getHintText = new Func<object, object>(v =>
-            Lang.Number(Math.Round(40 + Convert.ToDouble(v) * 0.1d) / 100d, "P0"));
-        SliderBackgroundOpacity.getHintText = new Func<object, object>(v =>
-            Lang.Number(Math.Round(Convert.ToDouble(v) * 0.1d) / 100d, "P0"));
-        SliderBackgroundBlur.getHintText = new Func<object, object>(v => Lang.Text("Setup.Ui.Slider.Pixel", Lang.Number(Convert.ToDouble(v), "N0")));
-        SliderBlurValue.getHintText = new Func<object, object>(v => Lang.Text("Setup.Ui.Slider.Pixel", Lang.Number(Convert.ToDouble(v), "N0")));
-        SliderBlurSamplingRate.getHintText = new Func<object, object>(v => Lang.Number(Convert.ToDouble(v) / 100d, "P0"));
+        SliderMusicVolume.getHintText = new Func<object, object>(PageSetupUIViewModel.FormatMusicVolumeHint);
+        SliderLauncherOpacity.getHintText = new Func<object, object>(PageSetupUIViewModel.FormatLauncherOpacityHint);
+        SliderBackgroundOpacity.getHintText = new Func<object, object>(PageSetupUIViewModel.FormatBackgroundOpacityHint);
+        SliderBackgroundBlur.getHintText = new Func<object, object>(PageSetupUIViewModel.FormatPixelHint);
+        SliderBlurValue.getHintText = new Func<object, object>(PageSetupUIViewModel.FormatPixelHint);
+        SliderBlurSamplingRate.getHintText = new Func<object, object>(PageSetupUIViewModel.FormatSamplingRateHint);
     }
 
     private void CheckMusicStart_OnChange(object sender, bool user)
@@ -702,7 +728,7 @@ public partial class PageSetupUI
     #region 功能隐藏
 
     /// <summary>
-    ///     是否强制显示被禁用的功能。
+    /// 是否强制显示被禁用的功能。
     /// </summary>
     public static bool HiddenForceShow
     {
@@ -715,11 +741,11 @@ public partial class PageSetupUI
     }
 
     /// <summary>
-    ///     更新功能隐藏带来的显示变化。
+    /// 更新功能隐藏带来的显示变化。
     /// </summary>
     public static void HiddenRefresh()
     {
-        if (ModMain.frmMain.PanTitleSelect is null || !ModMain.frmMain.PanTitleSelect.IsLoaded)
+        if (Launcher.frmMain.PanTitleSelect is null || !Launcher.frmMain.PanTitleSelect.IsLoaded)
             return;
         try
         {
@@ -731,67 +757,70 @@ public partial class PageSetupUI
 
             if (isAllTitleHidden)
             {
-                ModMain.frmMain.PanTitleSelect.Visibility = Visibility.Collapsed;
+                Launcher.frmMain.PanTitleSelect.Visibility = Visibility.Collapsed;
             }
             else
             {
-                ModMain.frmMain.PanTitleSelect.Visibility = Visibility.Visible;
-                ModMain.frmMain.BtnTitleSelect1.Visibility = !HiddenForceShow && conf.PageDownload
+                Launcher.frmMain.PanTitleSelect.Visibility = Visibility.Visible;
+                Launcher.frmMain.BtnTitleSelect1.Visibility = !HiddenForceShow && conf.PageDownload
                     ? Visibility.Collapsed
                     : Visibility.Visible;
-                ModMain.frmMain.BtnTitleSelect2.Visibility =
+                Launcher.frmMain.BtnTitleSelect2.Visibility =
                     !HiddenForceShow && conf.PageSetup ? Visibility.Collapsed : Visibility.Visible;
-                ModMain.frmMain.BtnTitleSelect3.Visibility =
+                Launcher.frmMain.BtnTitleSelect3.Visibility =
                     !HiddenForceShow && conf.PageTools ? Visibility.Collapsed : Visibility.Visible;
             }
 
             // 功能隐藏设置卡片
-            if (ModMain.frmSetupUI is not null)
+            if (Launcher.frmSetupUi is not null)
             {
-                ModMain.frmSetupUI.CardSwitch.Visibility = !HiddenForceShow && conf.FunctionHidden
-                    ? Visibility.Collapsed
-                    : Visibility.Visible;
-                ModMain.frmSetupUI.CardSwitch.Title = HiddenForceShow ? Lang.Text("Setup.Ui.FeatureHide.TitleTemporarilyDisabled") : Lang.Text("Setup.Ui.FeatureHide.Title");
+                Launcher.frmSetupUi.ViewModel.ApplyFeatureHideState(HiddenForceShow, conf.FunctionHidden);
+                LocalizedText.TryBind(
+                    Launcher.frmSetupUi.CardSwitch,
+                    "Title",
+                    () => HiddenForceShow
+                        ? Lang.Text("Setup.Ui.FeatureHide.TitleTemporarilyDisabled")
+                        : Lang.Text("Setup.Ui.FeatureHide.Title"));
             }
 
             // 设置子页面 (FrmSetupLeft)
-            if (ModMain.frmSetupLeft is not null)
+            if (Launcher.frmSetupLeft is not null)
             {
-                ModMain.frmSetupLeft.ItemLaunch.Visibility =
+                Launcher.frmSetupLeft.ItemLaunch.Visibility =
                     !HiddenForceShow && conf.SetupLaunch ? Visibility.Collapsed : Visibility.Visible;
-                ModMain.frmSetupLeft.ItemUI.Visibility =
+                Launcher.frmSetupLeft.ItemUI.Visibility =
                     !HiddenForceShow && conf.SetupUi ? Visibility.Collapsed : Visibility.Visible;
-                ModMain.frmSetupLeft.ItemLauncherLanguage.Visibility = !HiddenForceShow && conf.SetupLauncherLanguage
+                Launcher.frmSetupLeft.ItemLauncherLanguage.Visibility = !HiddenForceShow && conf.SetupLauncherLanguage
                     ? Visibility.Collapsed
                     : Visibility.Visible;
-                ModMain.frmSetupLeft.ItemGameManage.Visibility = !HiddenForceShow && conf.SetupGameManage
+                Launcher.frmSetupLeft.ItemGameManage.Visibility = !HiddenForceShow && conf.SetupGameManage
                     ? Visibility.Collapsed
                     : Visibility.Visible;
-                ModMain.frmSetupLeft.ItemLauncherMisc.Visibility = !HiddenForceShow && conf.SetupLauncherMisc
+                Launcher.frmSetupLeft.ItemLauncherMisc.Visibility = !HiddenForceShow && conf.SetupLauncherMisc
                     ? Visibility.Collapsed
                     : Visibility.Visible;
-                ModMain.frmSetupLeft.ItemJava.Visibility =
+                Launcher.frmSetupLeft.ItemJava.Visibility =
                     !HiddenForceShow && conf.SetupJava ? Visibility.Collapsed : Visibility.Visible;
-                ModMain.frmSetupLeft.ItemUpdate.Visibility =
+                Launcher.frmSetupLeft.ItemUpdate.Visibility =
                     !HiddenForceShow && conf.SetupUpdate ? Visibility.Collapsed : Visibility.Visible;
-                ModMain.frmSetupLeft.ItemGameLink.Visibility = !HiddenForceShow && conf.SetupGameLink
+                Launcher.frmSetupLeft.ItemGameLink.Visibility = !HiddenForceShow && conf.SetupGameLink
                     ? Visibility.Collapsed
                     : Visibility.Visible;
-                ModMain.frmSetupLeft.ItemAbout.Visibility =
+                Launcher.frmSetupLeft.ItemAbout.Visibility =
                     !HiddenForceShow && conf.SetupAbout ? Visibility.Collapsed : Visibility.Visible;
-                ModMain.frmSetupLeft.ItemFeedback.Visibility = !HiddenForceShow && conf.SetupFeedback
+                Launcher.frmSetupLeft.ItemFeedback.Visibility = !HiddenForceShow && conf.SetupFeedback
                     ? Visibility.Collapsed
                     : Visibility.Visible;
-                ModMain.frmSetupLeft.ItemLog.Visibility =
+                Launcher.frmSetupLeft.ItemLog.Visibility =
                     !HiddenForceShow && conf.SetupLog ? Visibility.Collapsed : Visibility.Visible;
 
                 var categories = new[]
                 {
-                    (ModMain.frmSetupLeft.TextGameCategory,
+                    (Launcher.frmSetupLeft.TextGameCategory,
                         !(conf.SetupLaunch && conf.SetupJava && conf.SetupGameManage)),
-                    (ModMain.frmSetupLeft.TextToolsCategory, !conf.SetupGameLink),
-                    (ModMain.frmSetupLeft.TextLauncherCategory, !(conf.SetupUi && conf.SetupLauncherLanguage && conf.SetupLauncherMisc)),
-                    (ModMain.frmSetupLeft.TextAboutCategory,
+                    (Launcher.frmSetupLeft.TextToolsCategory, !conf.SetupGameLink),
+                    (Launcher.frmSetupLeft.TextLauncherCategory, !(conf.SetupUi && conf.SetupLauncherLanguage && conf.SetupLauncherMisc)),
+                    (Launcher.frmSetupLeft.TextAboutCategory,
                         !(conf.SetupAbout && conf.SetupUpdate && conf.SetupFeedback && conf.SetupLog))
                 };
 
@@ -827,54 +856,54 @@ public partial class PageSetupUI
                     setupCount += 1;
                 if (!conf.SetupLog)
                     setupCount += 1;
-                ModMain.frmSetupLeft.PanItem.Visibility =
+                Launcher.frmSetupLeft.PanItem.Visibility =
                     setupCount < 2 && !HiddenForceShow ? Visibility.Collapsed : Visibility.Visible;
             }
 
             // 工具子页面 (FrmToolsLeft)
-            if (ModMain.frmToolsLeft is not null)
+            if (Launcher.frmToolsLeft is not null)
             {
-                ModMain.frmToolsLeft.ItemGameLink.Visibility = !HiddenForceShow && conf.ToolsGameLink
+                Launcher.frmToolsLeft.ItemGameLink.Visibility = !HiddenForceShow && conf.ToolsGameLink
                     ? Visibility.Collapsed
                     : Visibility.Visible;
-                ModMain.frmToolsLeft.ItemTest.Visibility =
+                Launcher.frmToolsLeft.ItemTest.Visibility =
                     !HiddenForceShow && conf.ToolsTest ? Visibility.Collapsed : Visibility.Visible;
-                
+
                 // 处理分类标题
                 var isGameLinkVisible = (!HiddenForceShow && !conf.ToolsGameLink) || HiddenForceShow;
-                ModMain.frmToolsLeft.TextGameLinkCategory.Visibility = isGameLinkVisible ? Visibility.Visible : Visibility.Collapsed;
-                if (isGameLinkVisible) ModMain.frmToolsLeft.TextGameLinkCategory.Opacity = 0.6;
+                Launcher.frmToolsLeft.TextGameLinkCategory.Visibility = isGameLinkVisible ? Visibility.Visible : Visibility.Collapsed;
+                if (isGameLinkVisible) Launcher.frmToolsLeft.TextGameLinkCategory.Opacity = 0.6;
 
                 var isToolsVisible = (!HiddenForceShow && !conf.ToolsTest) || HiddenForceShow;
-                ModMain.frmToolsLeft.TextToolsCategory.Visibility = isToolsVisible ? Visibility.Visible : Visibility.Collapsed;
-                if (isToolsVisible) ModMain.frmToolsLeft.TextToolsCategory.Opacity = 0.6;
-                
+                Launcher.frmToolsLeft.TextToolsCategory.Visibility = isToolsVisible ? Visibility.Visible : Visibility.Collapsed;
+                if (isToolsVisible) Launcher.frmToolsLeft.TextToolsCategory.Opacity = 0.6;
+
                 // 统计工具页可用项数量
                 var toolsCount = 0;
                 if (!conf.ToolsGameLink)
                     toolsCount += 1;
                 if (!conf.ToolsTest)
                     toolsCount += 1;
-                ModMain.frmToolsLeft.PanItem.Visibility =
+                Launcher.frmToolsLeft.PanItem.Visibility =
                     toolsCount < 2 && !HiddenForceShow ? Visibility.Collapsed : Visibility.Visible;
             }
 
             // 其他入口刷新
-            if (ModMain.frmMain.pageCurrent == FormMain.PageType.InstanceSelect)
-                ModMain.frmSelectRight.BtnEmptyDownload_Loaded();
-            if (ModMain.frmMain.pageCurrent == FormMain.PageType.Launch)
-                ModMain.frmLaunchLeft.RefreshButtonsUI();
-            if (ModMain.frmMain.pageCurrent == FormMain.PageType.InstanceSetup &&
-                ModMain.frmInstanceModDisabled is not null)
-                ModMain.frmInstanceModDisabled.BtnDownload_Loaded();
+            if (Launcher.frmMain.pageCurrent == FormMain.PageType.InstanceSelect)
+                Launcher.frmSelectRight.BtnEmptyDownload_Loaded();
+            if (Launcher.frmMain.pageCurrent == FormMain.PageType.Launch)
+                Launcher.frmLaunchLeft.RefreshButtonsUI();
+            if (Launcher.frmMain.pageCurrent == FormMain.PageType.InstanceSetup &&
+                Launcher.frmInstanceModDisabled is not null)
+                Launcher.frmInstanceModDisabled.BtnDownload_Loaded();
         }
 
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 "刷新功能隐藏项目失败",
-                ModBase.LogLevel.Feedback,
+                Common.LogLevel.Feedback,
                 userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
         }
     }
@@ -949,8 +978,8 @@ public partial class PageSetupUI
     // 警告提示
     private void HiddenHint(object sender, bool user)
     {
-        if (ModAnimation.AniControlEnabled == 0 && sender is MyCheckBox checkBox && checkBox.Checked == true)
-            HintService.Hint(Lang.Text("Setup.Ui.FeatureHide.TemporaryHint"));
+        if (!Animations.AniExitsAnyControl() && sender is MyCheckBox checkBox && checkBox.Checked == true)
+            HintService.Show(Hints.Info(Lang.Text("Setup.Ui.FeatureHide.TemporaryHint")));
     }
 
     #endregion

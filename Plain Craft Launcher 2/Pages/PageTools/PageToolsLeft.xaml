@@ -1,13 +1,14 @@
-<local:MyPageLeft x:Class="PCL.PageToolsLeft"
+﻿<local:MyPageLeft x:Class="PCL.PageToolsLeft"
                   xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                   xmlns:local="clr-namespace:PCL"
-                  mc:Ignorable="d">
+                  mc:Ignorable="d"
+                  xmlns:loc="https://ce.pclc.cc/core/localization">
     <StackPanel Orientation="Vertical" x:Name="PanItem" Margin="0,12,0,0">
 
-        <TextBlock Text="{DynamicResource Tools.Left.Multiplayer}"
+        <TextBlock Text="{loc:Loc Tools.Left.Multiplayer}"
                    Margin="13,5,5,3"
                    Opacity="0.6" FontSize="12"
                    x:Name="TextGameLinkCategory" />
@@ -18,13 +19,13 @@
                           Check="PageCheck"
                           MinPaddingRight="35" Height="36"
                           VerticalAlignment="Top"
-                          Title="{DynamicResource Tools.Left.Lobby}"
+                          Title="{loc:Loc Tools.Left.Lobby}"
                           LogoScale="0.85"
                           SvgIcon="lucide/link-2">
             <local:MyListItem.Buttons>
                 <x:Array Type="{x:Type local:MyIconButton}">
                     <local:MyIconButton Tag="1"
-                                        ToolTip="{DynamicResource Common.Action.Refresh}"
+                                        ToolTip="{loc:Loc Common.Action.Refresh}"
                                         ToolTipService.Placement="Right"
                                         ToolTipService.InitialShowDelay="200"
                                         ToolTipService.VerticalOffset="-1"
@@ -35,14 +36,15 @@
             </local:MyListItem.Buttons>
         </local:MyListItem>
 
-        <TextBlock Text="{DynamicResource Tools.Left.Utilities}" Margin="13,5,5,3" Opacity="0.6" FontSize="12"
+        <TextBlock Text="{loc:Loc Tools.Left.Utilities}" Margin="13,5,5,3" Opacity="0.6"
+                   FontSize="12"
                    x:Name="TextToolsCategory" />
         <local:MyListItem x:Name="ItemTest"
                           IsScaleAnimationEnabled="False"
                           Type="RadioBox" Tag="3"
                           MinPaddingRight="35" Height="36"
                           VerticalAlignment="Top"
-                          Title="{DynamicResource Tools.Left.Utilities.Title}" Check="PageCheck"
+                          Title="{loc:Loc Tools.Left.Utilities.Title}" Check="PageCheck"
                           LogoScale="0.9"
                           SvgIcon="lucide/tool-case" />
 
