@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.Logging;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
 using PCL.Core.ViewModel;
@@ -41,10 +42,20 @@ public partial class PageSetupAboutViewModel : ViewModelBase
 
     public async Task LoadContributorsAsync()
     {
-        var contributors = await RunAsync(ct => Task.Run(
-            async () => await FetchContributorsAsync(ct),
-            ct));
-        if (contributors is null) return;
+        List<GitHubContributor> contributors;
+        try
+        {
+            contributors = await Task.Run(
+                () => FetchContributorsAsync(CancellationToken.None));
+        }
+        catch (Exception ex)
+        {
+            var message = Lang.Text("Setup.About.Error.LoadContributorsFailed");
+            LogWrapper.Warn(ex, message);
+            HintService.Show(Hints.Error(message));
+            return;
+        }
+
         Contributors.Clear();
         foreach (var contributor in contributors)
             Contributors.Add(contributor);
