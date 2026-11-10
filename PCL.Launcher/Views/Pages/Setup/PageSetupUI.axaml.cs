@@ -611,69 +611,75 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
 
     private void BuildHideGrid()
     {
-        PanHideGrid.Children.Clear();
+        PanHidePanel.Children.Clear();
         _hideChecks.Clear();
 
-        AddHideTitle(1, "Setup.Ui.FeatureHide.MainPage");
-        AddHideTitle(2, "Setup.Ui.FeatureHide.SubSetup");
-        AddHideTitle(4, "Setup.Ui.FeatureHide.SubTools");
-        AddHideTitle(5, "Setup.Ui.FeatureHide.SubInstance");
-        AddHideTitle(7, "Setup.Ui.FeatureHide.SpecificFeature");
+        AddHideGroup(
+            "Setup.Ui.FeatureHide.MainPage",
+            true,
+            [
+                new("UiHiddenPageDownload", "Setup.Ui.FeatureHide.Item.Download"),
+                new("UiHiddenPageSetup", "Setup.Ui.FeatureHide.Item.Settings"),
+                new("UiHiddenPageTools", "Setup.Ui.FeatureHide.Item.Tools")
+            ]);
 
-        AddHideCheck(1, 2, "UiHiddenPageDownload", "Setup.Ui.FeatureHide.Item.Download");
-        AddHideCheck(1, 3, "UiHiddenPageSetup", "Setup.Ui.FeatureHide.Item.Settings");
-        AddHideCheck(1, 4, "UiHiddenPageTools", "Setup.Ui.FeatureHide.Item.Tools");
+        AddHideGroup(
+            "Setup.Ui.FeatureHide.SubSetup",
+            false,
+            [
+                new("UiHiddenSetupLaunch", "Setup.Ui.FeatureHide.Item.Launch"),
+                new("UiHiddenSetupJava", null, "Java"),
+                new("UiHiddenSetupGameManage", "Setup.Ui.FeatureHide.Item.GameManage"),
+                new("UiHiddenSetupGameLink", "Setup.Ui.FeatureHide.Item.GameLink"),
+                new("UiHiddenSetupUi", "Setup.Ui.FeatureHide.Item.Ui"),
+                new("UiHiddenSetupLauncherLanguage", "Setup.Ui.FeatureHide.Item.Language"),
+                new("UiHiddenLauncherMisc", "Setup.Ui.FeatureHide.Item.Misc"),
+                new("UiHiddenSetupUpdate", "Setup.Ui.FeatureHide.Item.Update"),
+                new("UiHiddenSetupAbout", "Setup.Ui.FeatureHide.Item.About"),
+                new("UiHiddenSetupFeedback", "Setup.Ui.FeatureHide.Item.Feedback"),
+                new("UiHiddenSetupLog", "Setup.Ui.FeatureHide.Item.Log")
+            ]);
 
-        AddHideCheck(2, 2, "UiHiddenSetupLaunch", "Setup.Ui.FeatureHide.Item.Launch");
-        AddHideCheck(2, 3, "UiHiddenSetupJava", null, "Java");
-        AddHideCheck(2, 4, "UiHiddenSetupGameManage", "Setup.Ui.FeatureHide.Item.GameManage");
-        AddHideCheck(2, 5, "UiHiddenSetupGameLink", "Setup.Ui.FeatureHide.Item.GameLink");
-        AddHideCheck(2, 6, "UiHiddenSetupUi", "Setup.Ui.FeatureHide.Item.Ui");
+        AddHideGroup(
+            "Setup.Ui.FeatureHide.SubTools",
+            false,
+            [
+                new("UiHiddenToolsGameLink", "Setup.Ui.FeatureHide.Item.Lobby"),
+                new("UiHiddenToolsTest", "Setup.Ui.FeatureHide.Item.Toolbox")
+            ]);
 
-        AddHideCheck(3, 2, "UiHiddenSetupLauncherLanguage", "Setup.Ui.FeatureHide.Item.Language");
-        AddHideCheck(3, 3, "UiHiddenSetupLauncherMisc", "Setup.Ui.FeatureHide.Item.Misc");
-        AddHideCheck(3, 4, "UiHiddenSetupUpdate", "Setup.Ui.FeatureHide.Item.Update");
-        AddHideCheck(3, 5, "UiHiddenSetupAbout", "Setup.Ui.FeatureHide.Item.About");
-        AddHideCheck(3, 6, "UiHiddenSetupFeedback", "Setup.Ui.FeatureHide.Item.Feedback");
-        AddHideCheck(3, 7, "UiHiddenSetupLog", "Setup.Ui.FeatureHide.Item.Log");
+        AddHideGroup(
+            "Setup.Ui.FeatureHide.SubInstance",
+            false,
+            [
+                new("UiHiddenVersionEdit", "Setup.Ui.FeatureHide.Item.Edit"),
+                new("UiHiddenVersionExport", "Setup.Ui.FeatureHide.Item.Export"),
+                new("UiHiddenVersionSave", "Setup.Ui.FeatureHide.Item.Save"),
+                new("UiHiddenVersionScreenshot", "Setup.Ui.FeatureHide.Item.Screenshot"),
+                new("UiHiddenVersionMod", null, "Mod"),
+                new("UiHiddenVersionResourcePack", "Setup.Ui.FeatureHide.Item.ResourcePack"),
+                new("UiHiddenVersionShader", "Setup.Ui.FeatureHide.Item.Shader"),
+                new("UiHiddenVersionSchematic", "Setup.Ui.FeatureHide.Item.Schematic"),
+                new("UiHiddenVersionServer", "Setup.Ui.FeatureHide.Item.Server")
+            ]);
 
-        AddHideCheck(4, 2, "UiHiddenToolsGameLink", "Setup.Ui.FeatureHide.Item.Lobby");
-        AddHideCheck(4, 3, "UiHiddenToolsTest", "Setup.Ui.FeatureHide.Item.Toolbox");
-
-        AddHideCheck(5, 2, "UiHiddenVersionEdit", "Setup.Ui.FeatureHide.Item.Edit");
-        AddHideCheck(5, 3, "UiHiddenVersionExport", "Setup.Ui.FeatureHide.Item.Export");
-        AddHideCheck(5, 4, "UiHiddenVersionSave", "Setup.Ui.FeatureHide.Item.Save");
-        AddHideCheck(5, 5, "UiHiddenVersionScreenshot", "Setup.Ui.FeatureHide.Item.Screenshot");
-        AddHideCheck(5, 6, "UiHiddenVersionMod", null, "Mod");
-
-        AddHideCheck(6, 2, "UiHiddenVersionResourcePack", "Setup.Ui.FeatureHide.Item.ResourcePack");
-        AddHideCheck(6, 3, "UiHiddenVersionShader", "Setup.Ui.FeatureHide.Item.Shader");
-        AddHideCheck(
-            6,
-            4,
-            "UiHiddenVersionSchematic",
-            "Setup.Ui.FeatureHide.Item.Schematic",
-            columnSpan: 2);
-        AddHideCheck(6, 6, "UiHiddenVersionServer", "Setup.Ui.FeatureHide.Item.Server");
-
-        AddHideCheck(
-            7,
-            2,
-            "UiHiddenFunctionSelect",
-            "Setup.Ui.FeatureHide.Item.InstanceSelect",
-            tooltipKey: "Setup.Ui.FeatureHide.Item.InstanceSelect.ToolTip");
-        AddHideCheck(
-            7,
-            3,
-            "UiHiddenFunctionModUpdate",
-            "Setup.Ui.FeatureHide.Item.ModUpdate",
-            tooltipKey: "Setup.Ui.FeatureHide.Item.ModUpdate.ToolTip");
-        AddHideCheck(
-            7,
-            4,
-            "UiHiddenFunctionHidden",
-            "Setup.Ui.FeatureHide.Item.FeatureHide",
-            tooltipKey: "Setup.Ui.FeatureHide.Item.FeatureHide.ToolTip");
+        AddHideGroup(
+            "Setup.Ui.FeatureHide.SpecificFeature",
+            false,
+            [
+                new(
+                    "UiHiddenFunctionSelect",
+                    "Setup.Ui.FeatureHide.Item.InstanceSelect",
+                    TooltipKey: "Setup.Ui.FeatureHide.Item.InstanceSelect.ToolTip"),
+                new(
+                    "UiHiddenFunctionModUpdate",
+                    "Setup.Ui.FeatureHide.Item.ModUpdate",
+                    TooltipKey: "Setup.Ui.FeatureHide.Item.ModUpdate.ToolTip"),
+                new(
+                    "UiHiddenFunctionHidden",
+                    "Setup.Ui.FeatureHide.Item.FeatureHide",
+                    TooltipKey: "Setup.Ui.FeatureHide.Item.FeatureHide.ToolTip")
+            ]);
 
         var previous = _reloading;
         _reloading = true;
@@ -687,36 +693,38 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         }
     }
 
-    private void AddHideTitle(int row, string langKey)
+    private void AddHideGroup(
+        string titleKey,
+        bool isFirst,
+        IReadOnlyList<HideCheckDefinition> items)
     {
-        var text = new TextBlock
-        {
-            Text = Lang.Text(langKey),
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        Grid.SetRow(text, row);
-        Grid.SetColumn(text, 0);
-        PanHideGrid.Children.Add(text);
+        PanHidePanel.Children.Add(
+            new TextBlock
+            {
+                Text = Lang.Text(titleKey),
+                Margin = new Thickness(0d, isFirst ? 4d : 12d, 0d, 4d),
+                FontSize = 12d,
+                Opacity = 0.6d
+            });
+
+        var wrap = new WrapPanel();
+        foreach (var item in items)
+            wrap.Children.Add(CreateHideCheck(item));
+        PanHidePanel.Children.Add(wrap);
     }
 
-    private void AddHideCheck(
-        int row,
-        int column,
-        string configKey,
-        string? langKey,
-        string? literal = null,
-        int columnSpan = 1,
-        string? tooltipKey = null)
+    private MyCheckBox CreateHideCheck(HideCheckDefinition definition)
     {
         var check = new MyCheckBox
         {
             Height = 22d,
+            Margin = new Thickness(0d, 0d, 12d, 4d),
             VerticalAlignment = VerticalAlignment.Center,
-            Text = literal ?? Lang.Text(langKey!),
-            Tag = configKey
+            Text = definition.Literal ?? Lang.Text(definition.LangKey!),
+            Tag = definition.ConfigKey
         };
-        if (tooltipKey is not null)
-            ToolTip.SetTip(check, Lang.Text(tooltipKey));
+        if (definition.TooltipKey is not null)
+            ToolTip.SetTip(check, Lang.Text(definition.TooltipKey));
         check.Change += (_, _) =>
         {
             if (_reloading || check.Tag is not string tag) return;
@@ -725,13 +733,15 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             if (tag == "UiHiddenFunctionHidden")
                 RefreshFeatureHideState();
         };
-        Grid.SetRow(check, row);
-        Grid.SetColumn(check, column);
-        if (columnSpan > 1)
-            Grid.SetColumnSpan(check, columnSpan);
-        PanHideGrid.Children.Add(check);
         _hideChecks.Add(check);
+        return check;
     }
+
+    private readonly record struct HideCheckDefinition(
+        string ConfigKey,
+        string? LangKey,
+        string? Literal = null,
+        string? TooltipKey = null);
 
     #endregion
 }

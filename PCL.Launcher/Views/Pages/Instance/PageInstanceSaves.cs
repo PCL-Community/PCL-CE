@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input.Platform;
 using Avalonia.Threading;
@@ -190,6 +191,7 @@ public partial class PageInstanceSaves : MyPageRight, IRefreshable
             Title = entry.Title,
             Info = entry.Info,
             Logo = entry.Logo,
+            LogoCornerRadius = new CornerRadius(6),
             Tag = folder
         };
         entry.PropertyChanged += (_, args) =>

@@ -129,6 +129,10 @@ public sealed class DialogPresenter : IDialogPresenter
     {
         if (dialog.IsClosed) return;
 
+        // 没有其他遮罩弹窗时，先复位可能为连续弹窗保留的遮罩，避免独立窗口显示后被挡住。
+        if (_dialogs.Count == 0)
+            _ResetLayer();
+
         if (Application.Current is null)
         {
             Console.Error.WriteLine($"[UI] [{dialog.Title}] {dialog.TextContent}");
@@ -305,7 +309,9 @@ public sealed class DialogPresenter : IDialogPresenter
         _releasing = true;
 
         entry.View.PlayExitAnimation();
-        _AnimateMask(false, false);
+        // 队列里还有下一个弹窗时保留遮罩，避免连续弹窗之间露出底层页面。
+        if (!DialogService.Instance.HasPending)
+            _AnimateMask(false, false);
 
         if (_layer is null)
             _FinishClosing();
@@ -350,6 +356,29 @@ public sealed class DialogPresenter : IDialogPresenter
         if (closing is not null) _RemoveFromLayer(closing);
 
         if (_dialogs.Count > 0 || !_releasing) return;
+
+        _releasing = false;
+        if (_layer is not { } layer) return;
+
+        // 下一个弹窗已在队列中：保持遮罩与宿主可见，等 Pump 呈现时直接复用。
+        if (DialogService.Instance.HasPending)
+            return;
+
+        PCL.Animations.AniStop(MaskAnimationKey);
+        _SetMaskColor(0, 0, 0, 0);
+        layer.IsVisible = false;
+        layer.Opacity = 1d;
+    }
+
+    /// <summary>强制复位遮罩层；仅在确认没有其他遮罩弹窗时调用，避免遮罩残留挡住主界面。</summary>
+    private void _ResetLayer()
+    {
+        _StopReleaseTimer();
+        if (_closing is not null)
+        {
+            _RemoveFromLayer(_closing);
+            _closing = null;
+        }
 
         _releasing = false;
         if (_layer is not { } layer) return;

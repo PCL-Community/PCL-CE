@@ -582,9 +582,8 @@
                     <TextBlock Margin="0,1,0,1"
                                TextWrapping="Wrap"
                                Text="{loc:Loc Setup.Ui.FeatureHide.Description}" />
-                    <Grid x:Name="PanHideGrid"
-                          ColumnDefinitions="Auto,18,0.8*,0.9*,0.8*,0.8*,1*,1*"
-                          RowDefinitions="4,30,30,30,30,30,30,30,Auto" />
+                    <StackPanel x:Name="PanHidePanel"
+                                Margin="0,6,0,0" />
                 </StackPanel>
             </ui:MyCard>
         </StackPanel>

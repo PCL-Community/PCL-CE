@@ -36,7 +36,7 @@
             </ui:MyCard>
 
             <ui:MyCard x:Name="PanHint"
-                       Margin="0,0,0,15"
+                       Margin="0,15,0,15"
                        Title="{loc:Loc Launch.Right.CommunityHint.Title}">
                 <ui:MyIconButton x:Name="BtnHintClose"
                                  Width="20"

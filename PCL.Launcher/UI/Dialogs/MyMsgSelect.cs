@@ -25,7 +25,9 @@ public sealed class MyMsgSelect : MyMsgDialogBase
         // 同一弹窗内只用一种选项控件：不同控件的互斥范围各自独立，混用会出现多项同时勾选
         var useListItems = dialog.MultiSelect
             || dialog.Options.Any(option =>
-                option.Description is not null || option.Image is not null);
+                option.Description is not null
+                || option.Image is not null
+                || !string.IsNullOrWhiteSpace(option.SvgIcon));
 
         foreach (var state in dialog.Options)
         {
@@ -37,6 +39,7 @@ public sealed class MyMsgSelect : MyMsgDialogBase
                     Title = state.Text,
                     Info = state.Description ?? string.Empty,
                     Logo = state.Image ?? string.Empty,
+                    SvgIcon = state.SvgIcon ?? string.Empty,
                     LogoScale = state.ImageScale,
                     Checked = state.IsChecked,
                     Type = dialog.MultiSelect
