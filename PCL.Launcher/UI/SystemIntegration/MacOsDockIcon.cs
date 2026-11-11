@@ -8,7 +8,7 @@ internal static class MacOsDockIcon
     public static void Apply()
     {
         using var stream = AssetLoader.Open(
-            new Uri("avares://PCL.Launcher/Assets/Images/icon.icns"));
+            new Uri("avares://PCL.Launcher/Assets/Images/icon-mac.png"));
         var icon = new byte[stream.Length];
         stream.ReadExactly(icon);
 
