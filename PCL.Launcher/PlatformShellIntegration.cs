@@ -36,6 +36,7 @@ internal sealed class MacOsShellIntegration : IPlatformShellIntegration
 {
     public void OnFrameworkInitialized(Application application)
     {
+        MacOsDockIcon.Apply();
         MacOsNativeMenu.Install(application);
     }
 
