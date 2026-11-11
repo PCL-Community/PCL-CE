@@ -1,6 +1,7 @@
 using Microsoft.VisualBasic.FileIO;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.Minecraft;
 using PCL.Core.Logging;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
@@ -432,6 +433,15 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView, ILocalM
     void ILocalModItemHost.ToggleEnabled(LocalComp.LocalCompFile entry) =>
         EdMods([entry], entry.State == LocalComp.LocalCompFile.LocalFileStatus.Disabled);
 
+    MyIconButton? ILocalModItemHost.CreateUndoButton(MyLocalCompItem item)
+    {
+        if (PageInstanceLeft.McInstance is not { } instance) return null;
+        return ResourceUpdateUndo.CreateButton(item, instance.PathIndie, () =>
+        {
+            if (_IsUndoContextCurrent(instance.PathInstance)) ReloadCompFileList(true);
+        });
+    }
+
     void ILocalModItemHost.EnterFolder(string path) => EnterFolderWithCheck(path);
 
     void ILocalModItemHost.SwipeStart(MyLocalModItemViewModel item)
@@ -633,6 +643,89 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView, ILocalM
             CheckChanged(item);
     }
 
+    private int _undoSelectionRevision;
+    private bool _undoingSelection;
+
+    private string[] _GetSelectedUndoPaths() =>
+        modItems.Values.Select(item => item.Entry).OfType<LocalComp.LocalCompFile>()
+            .Where(entry => !entry.IsFolder && selectedMods.Contains(entry.RawPath))
+            .Select(entry => entry.path).ToArray();
+
+    private async Task _RefreshUndoSelectionAsync()
+    {
+        var revision = ++_undoSelectionRevision;
+        var instance = PageInstanceLeft.McInstance;
+        var paths = _GetSelectedUndoPaths();
+        if (paths.Length == 0 || instance is null)
+        {
+            ResourceUpdateUndo.RefreshSelectionButton(BtnSelectUndo, 0, _undoingSelection);
+            return;
+        }
+
+        try
+        {
+            var recycleBin = new ResourceUpdateRecycleBin(instance.PathIndie);
+            var count = await Task.Run(() => paths.Count(recycleBin.CanUndo));
+            if (revision == _undoSelectionRevision && _IsUndoContextCurrent(instance.PathInstance))
+                ResourceUpdateUndo.RefreshSelectionButton(BtnSelectUndo, count, _undoingSelection);
+        }
+        catch (Exception ex)
+        {
+            Common.Log(ex, "检查资源撤回状态失败");
+        }
+    }
+
+    private void _UpdateSelectionMargin(bool selected) =>
+        _vm.ListBackMargin = new Thickness(0, 0, 0, selected ? Math.Max(95, CardSelect.ActualHeight + 50) : 15);
+
+    private void _CardSelectSizeChanged(object sender, SizeChangedEventArgs e) =>
+        _UpdateSelectionMargin(selectedMods.Count > 0);
+
+    private bool _IsUndoContextCurrent(string instanceDirectory)
+    {
+        var subPage = _vm.CompType switch
+        {
+            Comp.CompType.ResourcePack => FormMain.PageSubType.VersionResourcePack,
+            Comp.CompType.Shader => FormMain.PageSubType.VersionShader,
+            Comp.CompType.Schematic => FormMain.PageSubType.VersionSchematic,
+            _ => FormMain.PageSubType.VersionMod
+        };
+        return IsLoaded && Launcher.frmMain?.pageCurrent == FormMain.PageType.InstanceSetup &&
+            Launcher.frmMain?.PageCurrentSub == subPage &&
+            string.Equals(instanceDirectory, PageInstanceLeft.McInstance?.PathInstance, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private async void _BtnSelectUndoClick(object sender, Common.RouteEventArgs e)
+    {
+        if (_undoingSelection || PageInstanceLeft.McInstance is not { } instance) return;
+        var paths = _GetSelectedUndoPaths();
+        if (paths.Length == 0) return;
+        _undoingSelection = true;
+        CardSelect.IsEnabled = false;
+        PanAllBack.IsEnabled = false;
+        try
+        {
+            await ResourceUpdateUndo.UndoSelectedAsync(instance.PathIndie, paths);
+        }
+        catch (Exception ex)
+        {
+            Common.Log(ex, "批量撤回资源更新失败", Common.LogLevel.Hint,
+                userSummary: Lang.Text("Instance.Resource.Undo.Failed", ex.Message));
+        }
+        finally
+        {
+            _undoingSelection = false;
+            CardSelect.IsEnabled = true;
+            PanAllBack.IsEnabled = true;
+            if (_IsUndoContextCurrent(instance.PathInstance))
+            {
+                selectedMods.Clear();
+                ReloadCompFileList(true);
+                RefreshBars();
+            }
+        }
+    }
+
     /// <summary>
     ///     刷新整个 UI。
     /// </summary>
@@ -678,6 +771,8 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView, ILocalM
     {
         Dispatcher.BeginInvoke(new Func<Task>(async () =>
         {
+            _ = _RefreshUndoSelectionAsync();
+
             // 顶部栏
 
             // 计数
@@ -784,7 +879,7 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView, ILocalM
             // 更新显示状态
             if (!Animations.AniExitsAnyControl())
             {
-                _vm.ListBackMargin = new Thickness(0d, 0d, 0d, selected ? 95 : 15);
+                _UpdateSelectionMargin(selected);
                 if (selected)
                 {
                     // 仅在数量增加时播放出现/跳跃动画
@@ -2026,7 +2121,9 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView, ILocalM
             // 构造下载信息
             modList = modList.ToList(); // 防止刷新影响迭代器
             var fileList = new List<DownloadFile>();
-            var fileCopyList = new Dictionary<string, string>();
+            var replacements = new List<(string Original, string Downloaded, string Updated)>();
+            var recycleBin = new ResourceUpdateRecycleBin(PageInstanceLeft.McInstance.PathIndie);
+            var tempRoot = Path.Combine(Common.pathTemp, "DownloadedComp", Guid.NewGuid().ToString("N"));
             foreach (var entry in modList)
             {
                 var file = entry.UpdateFile;
@@ -2069,64 +2166,40 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView, ILocalM
                 }
 
                 // 添加到下载列表
-                var tempAddress = Common.pathTemp + @"DownloadedComp\" +
-                                  entry.FileName.Replace(currentReplaceName, newestReplaceName);
-                var realAddress = Common.GetPathFromFullPath(entry.path) +
-                                  entry.FileName.Replace(currentReplaceName, newestReplaceName);
+                var fileName = entry.FileName.Replace(currentReplaceName, newestReplaceName);
+                if (string.IsNullOrWhiteSpace(fileName) || fileName is "." or ".." || Path.GetFileName(fileName) != fileName ||
+                    fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+                    throw new IOException("更新后的资源文件名无效：" + fileName);
+                var tempAddress = Path.Combine(tempRoot, Guid.NewGuid().ToString("N"), fileName);
+                var realAddress = Path.Combine(Path.GetDirectoryName(entry.path)!, fileName);
                 fileList.Add(file.ToNetFile(tempAddress, Comp.DownloadReason.Update));
-                fileCopyList[tempAddress] = realAddress;
+                replacements.Add((entry.path, tempAddress, realAddress));
             }
+
+            if (fileList.Count == 0) return;
 
             // 构造加载器
             var installLoaders = new List<Loading.LoaderBase>();
             var finishedFileNames = new List<string>();
+            var failedFileNames = new List<string>();
             installLoaders.Add(new LoaderDownload(Lang.Text("Instance.Resource.Update.Task.DownloadFiles"), fileList)
             { ProgressWeight = modList.Count() * 1.5d }); // 每个 Mod 需要 1.5s
             installLoaders.Add(new Loading.LoaderTask<int, int>(
                 Lang.Text("Instance.Resource.Update.Task.ReplaceFiles"), _ =>
             {
-                try
+                var result = recycleBin.ReplaceMany(replacements);
+                finishedFileNames.AddRange(result.UpdatedPaths.Select(Common.GetFileNameFromPath));
+                foreach (var failure in result.Failures)
                 {
-                    foreach (var entry in modList)
-                        if (File.Exists(entry.path))
-                            Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(entry.path, UIOption.AllDialogs,
-                                RecycleOption.SendToRecycleBin);
-                        else
-                            Common.Log($"[CompUpdate] 未找到更新前的资源文件，跳过对它的删除：{entry.path}", Common.LogLevel.Debug);
-
-                    foreach (var entry in fileCopyList)
-                    {
-                        if (File.Exists(entry.Value))
-                        {
-                            Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(entry.Value, UIOption.AllDialogs,
-                                RecycleOption.SendToRecycleBin);
-                            Common.Log($"[Mod] 更新后的资源文件已存在，将会把它放入回收站：{entry.Value}", Common.LogLevel.Debug);
-                        }
-
-                        if (Directory.Exists(Common.GetPathFromFullPath(entry.Value)))
-                        {
-                            File.Move(entry.Key, entry.Value);
-                            finishedFileNames.Add(Common.GetFileNameFromPath(entry.Value));
-                        }
-                        else
-                        {
-                            Common.Log($"[Mod] 更新后的目标文件夹已被删除：{entry.Value}", Common.LogLevel.Debug);
-                        }
-                    }
-                }
-                catch (OperationCanceledException ex)
-                {
-                    Common.Log(ex, "替换旧版资源文件时被主动取消");
+                    failedFileNames.Add(Common.GetFileNameFromPath(failure.Key));
+                    Common.Log(failure.Value, "资源更新替换失败：" + failure.Key);
                 }
             }));
             // 结束处理
             var loader =
                 new Loading.LoaderCombo<IEnumerable<LocalComp.LocalCompFile>>(
                     Lang.Text("Instance.Resource.Update.Task.Title", PageInstanceLeft.McInstance.Name), installLoaders);
-            var pathMods = PageInstanceLeft.McInstance.PathIndie +
-                           (PageInstanceLeft.McInstance.Info.HasLabyMod
-                               ? Path.Combine("labymod-neo", "fabric", PageInstanceLeft.McInstance.Info.VanillaName)
-                               : "") + LocalComp.GetPathNameByCompType(_vm.CompType) + @"\";
+            var pathMods = GetRequireLoaderData().compPath;
             loader.OnStateChanged = _ =>
             {
                 // 结果提示
@@ -2134,6 +2207,13 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView, ILocalM
                 {
                     case LoadState.Finished:
                         {
+                            if (failedFileNames.Count > 0)
+                            {
+                                HintService.Show(Hints.Error(Lang.Text("Instance.Resource.Update.BatchResult",
+                                    finishedFileNames.Count, failedFileNames.Count, string.Join(", ", failedFileNames))));
+                                break;
+                            }
+
                             switch (finishedFileNames.Count)
                             {
                                 case 0: // 一般是由于 Mod 文件被占用，然后玩家主动取消
@@ -2174,15 +2254,14 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView, ILocalM
                 }
 
                 Common.Log($"[CompUpdate] 已从正在进行资源更新的文件夹列表移除：{pathMods}");
-                updatingVersions.Remove(pathMods);
+                lock (updatingVersions) updatingVersions.Remove(pathMods);
                 // 清理缓存
                 Common.RunInNewThread(() =>
                 {
                     try
                     {
-                        foreach (var tempFile in fileCopyList.Keys)
-                            if (File.Exists(tempFile))
-                                File.Delete(tempFile);
+                        if (Directory.Exists(tempRoot))
+                            Directory.Delete(tempRoot, true);
                     }
                     catch (Exception ex)
                     {
@@ -2192,11 +2271,19 @@ public partial class PageInstanceCompResource : IRefreshable, IPageView, ILocalM
             };
             // 启动加载器
             Common.Log($"[CompUpdate] 开始更新 {modList.Count()} 个资源：{pathMods}");
-            updatingVersions.Add(pathMods);
-            loader.Start();
+            lock (updatingVersions) updatingVersions.Add(pathMods);
+            try
+            {
+                loader.Start();
+            }
+            catch
+            {
+                lock (updatingVersions) updatingVersions.Remove(pathMods);
+                throw;
+            }
             Loading.LoaderTaskbarAdd(loader);
-            Launcher.frmMain.BtnExtraDownload.ShowRefresh();
-            Launcher.frmMain.BtnExtraDownload.Ribble();
+            Launcher.frmMain!.BtnExtraDownload.ShowRefresh();
+            Launcher.frmMain!.BtnExtraDownload.Ribble();
             ReloadCompFileList(true);
         }
         catch (Exception ex)

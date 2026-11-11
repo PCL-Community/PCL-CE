@@ -58,6 +58,7 @@ public static partial class DownloadUi
                     "resourcepacks");
                 Directory.CreateDirectory(resourcepacksFolder);
                 Common.Log($"[Download] 自动创建资源包文件夹：{resourcepacksFolder}");
+                _TryInitializeResourceRecycleBin(instanceFolder);
             }
         )
         {

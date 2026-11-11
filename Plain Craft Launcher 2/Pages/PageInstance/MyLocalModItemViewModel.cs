@@ -33,6 +33,8 @@ public interface ILocalModItemHost
     /// <summary>切换该资源的启用状态。</summary>
     void ToggleEnabled(LocalComp.LocalCompFile entry);
 
+    MyIconButton? CreateUndoButton(MyLocalCompItem item) => null;
+
     /// <summary>进入该文件夹项。</summary>
     void EnterFolder(string path);
 

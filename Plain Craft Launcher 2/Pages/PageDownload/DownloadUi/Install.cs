@@ -4,6 +4,7 @@ using PCL.Core.App.Configuration;
 using PCL.Core.App.Configuration.Storage;
 using PCL.Core.App.Localization;
 using PCL.Core.UI.Hints;
+using PCL.Core.Minecraft;
 
 namespace PCL;
 
@@ -48,6 +49,9 @@ public static partial class DownloadUi
         {
             case LoadState.Finished:
             {
+                if (combo.input is string installedFolder && File.Exists(Path.Combine(installedFolder,
+                        Path.GetFileName(Path.TrimEndingDirectorySeparator(installedFolder)) + ".json")))
+                    _TryInitializeResourceRecycleBin(installedFolder);
                 _HandleInstallFinished(loader);
                 break;
             }
@@ -79,6 +83,18 @@ public static partial class DownloadUi
             1,
             @"versions\"
         );
+    }
+
+    private static void _TryInitializeResourceRecycleBin(string instanceFolder)
+    {
+        try
+        {
+            new ResourceUpdateRecycleBin(new McInstance(instanceFolder).PathIndie).InitializeFolders();
+        }
+        catch (Exception ex)
+        {
+            Common.Log(ex, "创建实例资源回收站失败");
+        }
     }
 
     private static void _HandleInstallFinished(Loading.LoaderBase loader)

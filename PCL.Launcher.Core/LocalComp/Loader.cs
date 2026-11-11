@@ -1,3 +1,4 @@
+using PCL.Core.Minecraft;
 using PCL.Core.Utils;
 using static PCL.Comp;
 using static PCL.Loading;
@@ -87,6 +88,18 @@ public static partial class LocalComp
             if (!WaitForResourceUpdate(loader, data))
                 return;
 
+            try
+            {
+                new ResourceUpdateRecycleBin(data.gameVersion.PathIndie).RecoverPendingOperations();
+            }
+            catch (Exception ex)
+            {
+                LauncherCommon.Log(ex, "恢复中断的资源更新失败，已保留文件和恢复日志");
+            }
+
+            if (loader.IsAborted)
+                return;
+
             var modList = LoadResourceListFiles(data);
             UpdateResourceListProgress(loader, data, modList.Count);
 
@@ -154,7 +167,7 @@ public static partial class LocalComp
         LoaderTask<CompLocalLoaderData, List<LocalCompFile>> loader,
         CompLocalLoaderData data)
     {
-        if (!CompLocalUi.Current?.IsUpdating(data.compPath) == true)
+        if (CompLocalUi.Current?.IsUpdating(data.compPath) != true)
             return true;
 
         LauncherCommon.Log($"[Mod] 等待资源更新完成后才能继续加载资源列表：{data.compPath}");
@@ -176,7 +189,8 @@ public static partial class LocalComp
             CompLocalUi.Current?.SetLoadText(data.frm, "Instance.Resource.List.Loading");
         }
 
-        CompLocalUi.Current?.UpdateOnly(data.frm);
+        if (loader.IsAborted) return false;
+        LoaderFolderRun(loader, data.compPath, LoaderFolderRunType.UpdateOnly);
         return true;
     }
 

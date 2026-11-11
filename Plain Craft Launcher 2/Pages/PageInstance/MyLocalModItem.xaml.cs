@@ -39,6 +39,7 @@ public partial class MyLocalCompItem
     private List<MyIconButton>? _buttons;
     private MyLocalCompItem.SwipeSelect? _currentSwipe;
     private MyIconButton? _btnEd;
+    private MyIconButton? _defaultUndoButton;
     private DateTime _lastClickTime = DateTime.MinValue;
 
     public MyLocalCompItem()
@@ -86,6 +87,7 @@ public partial class MyLocalCompItem
         ResetVisualState();
         ApplyViewModel();
         EnsureDefaultButtons();
+        RefreshDefaultUndoButton();
     }
 
     private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -752,7 +754,7 @@ public partial class MyLocalCompItem
 
     /// <summary>当前按钮数量中实际可见的数量（虚拟化列表由 ViewModel 决定）。</summary>
     private int VisibleButtonCount => _defaultButtonsCreated
-        ? ViewModel?.VisibleButtonCount ?? 3
+        ? (ViewModel?.VisibleButtonCount ?? 3) + (_defaultUndoButton?.Visibility == Visibility.Visible ? 1 : 0)
         : Buttons.Count();
 
     public IEnumerable<MyIconButton> Buttons
@@ -772,6 +774,7 @@ public partial class MyLocalCompItem
         // 移除原 Stack
         if (buttonStack is not null)
         {
+            if (buttonStack is Panel oldPanel) oldPanel.Children.Clear();
             Children.Remove(buttonStack);
             buttonStack = null;
         }
@@ -822,6 +825,26 @@ public partial class MyLocalCompItem
         // 直接安装按钮栈，不经过 Buttons 的 setter，避免默认按钮被标记为外部设置
         ApplyButtons(new List<MyIconButton> { btnCont, btnOpen, _btnEd, btnDelete });
         UpdateEnabledButton();
+    }
+
+    private void RefreshDefaultUndoButton()
+    {
+        if (!_defaultButtonsCreated || _externalButtons || buttonStack is not Panel stack || _buttons is null)
+            return;
+
+        if (_defaultUndoButton is not null)
+        {
+            stack.Children.Remove(_defaultUndoButton);
+            _buttons.Remove(_defaultUndoButton);
+            IsEnabled = true;
+        }
+
+        _defaultUndoButton = ViewModel?.Host?.CreateUndoButton(this);
+        if (_defaultUndoButton is not { } button) return;
+        button.Height = 25d;
+        button.Width = 25d;
+        _buttons.Add(button);
+        stack.Children.Add(button);
     }
 
     private MyIconButton CreateDefaultButton(string icon, string toolTipPath, string commandPath,

@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.VisualBasic.FileIO;
 using PCL.Core.App.Localization;
+using PCL.Core.Minecraft;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
@@ -721,9 +722,10 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
         {
             var list = datapackList.ToList();
             var fileList = new List<DownloadFile>();
-            var fileCopyList = new Dictionary<string, string>();
+            var replacements = new List<(string Original, string Downloaded, string Updated)>();
+            var recycleBin = new ResourceUpdateRecycleBin(PageInstanceLeft.McInstance.PathIndie);
             var updateEntryList = new List<LocalComp.LocalCompFile>();
-            var tempRoot = Path.Combine(Common.pathTemp, "DownloadedComp");
+            var tempRoot = Path.Combine(Common.pathTemp, "DownloadedComp", Guid.NewGuid().ToString("N"));
             var datapackRoot = GetDatapackFolderPath();
             var skippedUnsafeFileCount = 0;
             foreach (var entry in list)
@@ -732,7 +734,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                 if (!file.Available)
                     continue;
                 if (!TryGetSafeDatapackUpdateFileName(file, out var safeFileName) ||
-                    !TryBuildDatapackUpdatePath(tempRoot, safeFileName, out var tempAddress) ||
+                    !TryBuildDatapackUpdatePath(Path.Combine(tempRoot, Guid.NewGuid().ToString("N")), safeFileName, out var tempAddress) ||
                     !TryBuildDatapackUpdatePath(datapackRoot, safeFileName, out var realAddress))
                 {
                     skippedUnsafeFileCount++;
@@ -740,9 +742,11 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                     continue;
                 }
 
+                if (entry.State == LocalComp.LocalCompFile.LocalFileStatus.Disabled)
+                    realAddress += entry.path.EndsWith(".old", StringComparison.OrdinalIgnoreCase) ? ".old" : ".disabled";
                 fileList.Add(file.ToNetFile(tempAddress, Comp.DownloadReason.Update,
                     file.RawGameVersions.FirstOrDefault()));
-                fileCopyList[tempAddress] = realAddress;
+                replacements.Add((entry.path, tempAddress, realAddress));
                 updateEntryList.Add(entry);
             }
 
@@ -753,6 +757,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
 
             var installLoaders = new List<Loading.LoaderBase>();
             var finishedFileNames = new List<string>();
+            var failedFileNames = new List<string>();
             installLoaders.Add(
                 new LoaderDownload(Lang.Text("Instance.Saves.Datapack.Update.Task.DownloadFiles"), fileList)
                 { ProgressWeight = updateEntryList.Count * 1.5d });
@@ -760,40 +765,12 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
             installLoaders.Add(new Loading.LoaderTask<int, int>(
                 Lang.Text("Instance.Saves.Datapack.Update.Task.ReplaceFiles"), _ =>
                 {
-                    try
+                    var result = recycleBin.ReplaceMany(replacements);
+                    finishedFileNames.AddRange(result.UpdatedPaths.Select(Common.GetFileNameFromPath));
+                    foreach (var failure in result.Failures)
                     {
-                        foreach (var entry in updateEntryList)
-                            if (File.Exists(entry.path))
-                                Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(entry.path, UIOption.AllDialogs,
-                                    RecycleOption.SendToRecycleBin);
-                            else
-                                Common.Log($"[DatapackUpdate] 未找到更新前的数据包文件，跳过对它的删除：{entry.path}",
-                                    Common.LogLevel.Debug);
-
-                        foreach (var entry in fileCopyList)
-                        {
-                            if (File.Exists(entry.Value))
-                            {
-                                Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(entry.Value, UIOption.AllDialogs,
-                                    RecycleOption.SendToRecycleBin);
-                                Common.Log($"[Datapack] 更新后的数据包文件已存在，将会把它放入回收站：{entry.Value}",
-                                    Common.LogLevel.Debug);
-                            }
-
-                            if (Directory.Exists(Common.GetPathFromFullPath(entry.Value)))
-                            {
-                                File.Move(entry.Key, entry.Value);
-                                finishedFileNames.Add(Common.GetFileNameFromPath(entry.Value));
-                            }
-                            else
-                            {
-                                Common.Log($"[Datapack] 更新后的目标文件夹已被删除：{entry.Value}", Common.LogLevel.Debug);
-                            }
-                        }
-                    }
-                    catch (OperationCanceledException ex)
-                    {
-                        Common.Log(ex, "替换旧版数据包文件时被主动取消");
+                        failedFileNames.Add(Common.GetFileNameFromPath(failure.Key));
+                        Common.Log(failure.Value, "资源更新替换失败：" + failure.Key);
                     }
                 }));
 
@@ -808,6 +785,13 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                 {
                     case LoadState.Finished:
                         {
+                            if (failedFileNames.Count > 0)
+                            {
+                                HintService.Show(Hints.Error(Lang.Text("Instance.Resource.Update.BatchResult",
+                                    finishedFileNames.Count, failedFileNames.Count, string.Join(", ", failedFileNames))));
+                                break;
+                            }
+
                             switch (finishedFileNames.Count)
                             {
                                 case 0:
@@ -848,15 +832,14 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                 }
 
                 Common.Log($"[DatapackUpdate] 已从正在进行数据包更新的文件夹列表移除：{pathDatapacks}");
-                UpdatingVersions.Remove(pathDatapacks);
+                lock (UpdatingVersions) UpdatingVersions.Remove(pathDatapacks);
 
                 Common.RunInNewThread(() =>
                 {
                     try
                     {
-                        foreach (var tempFile in fileCopyList.Keys)
-                            if (File.Exists(tempFile))
-                                File.Delete(tempFile);
+                        if (Directory.Exists(tempRoot))
+                            Directory.Delete(tempRoot, true);
                     }
                     catch (Exception ex)
                     {
@@ -866,8 +849,16 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
             };
 
             Common.Log($"[DatapackUpdate] 开始更新 {list.Count()} 个数据包：{pathDatapacks}");
-            UpdatingVersions.Add(pathDatapacks);
-            loader.Start();
+            lock (UpdatingVersions) UpdatingVersions.Add(pathDatapacks);
+            try
+            {
+                loader.Start();
+            }
+            catch
+            {
+                lock (UpdatingVersions) UpdatingVersions.Remove(pathDatapacks);
+                throw;
+            }
             Loading.LoaderTaskbarAdd(loader);
             Launcher.frmMain!.BtnExtraDownload.ShowRefresh();
             Launcher.frmMain.BtnExtraDownload.Ribble();

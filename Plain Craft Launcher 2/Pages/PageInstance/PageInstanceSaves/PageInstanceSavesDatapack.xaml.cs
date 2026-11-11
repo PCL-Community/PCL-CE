@@ -1,5 +1,6 @@
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.Minecraft;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
 using PCL.Core.UI.Theme;
@@ -300,6 +301,90 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
         {
             sender.Buttons = [btnCont, btnOpen, btnDelete];
         }
+        var instance = PageInstanceLeft.McInstance;
+        var saveDirectory = PageInstanceSavesLeft.currentSave;
+        var btnUndo = ResourceUpdateUndo.CreateButton(sender, instance.PathIndie, () =>
+        {
+            if (_IsUndoContextCurrent(instance.PathInstance, saveDirectory)) ReloadDatapackFileList(true);
+        });
+        if (btnUndo is not null) sender.Buttons = sender.Buttons.Append(btnUndo).ToArray();
+    }
+
+    private int _undoSelectionRevision;
+    private bool _undoingSelection;
+
+    private string[] _GetSelectedUndoPaths() =>
+        _datapackItems.Values.Select(item => item.Entry)
+            .Where(entry => !entry.IsFolder && _vm.SelectedDatapacks.Contains(entry.RawPath))
+            .Select(entry => entry.path).ToArray();
+
+    private async Task _RefreshUndoSelectionAsync()
+    {
+        var revision = ++_undoSelectionRevision;
+        var instance = PageInstanceLeft.McInstance;
+        var saveDirectory = PageInstanceSavesLeft.currentSave;
+        var paths = _GetSelectedUndoPaths();
+        if (paths.Length == 0 || instance is null)
+        {
+            ResourceUpdateUndo.RefreshSelectionButton(BtnSelectUndo, 0, _undoingSelection);
+            return;
+        }
+
+        try
+        {
+            var recycleBin = new ResourceUpdateRecycleBin(instance.PathIndie);
+            var count = await Task.Run(() => paths.Count(recycleBin.CanUndo));
+            if (revision == _undoSelectionRevision && _IsUndoContextCurrent(instance.PathInstance, saveDirectory))
+                ResourceUpdateUndo.RefreshSelectionButton(BtnSelectUndo, count, _undoingSelection);
+        }
+        catch (Exception ex)
+        {
+            Common.Log(ex, "检查资源撤回状态失败");
+        }
+    }
+
+    private void _UpdateSelectionMargin(bool selected) =>
+        PanListBack.Margin = new Thickness(0, 0, 0, selected ? Math.Max(95, CardSelect.ActualHeight + 50) : 15);
+
+    private void _CardSelectSizeChanged(object sender, SizeChangedEventArgs e) =>
+        _UpdateSelectionMargin(_vm.SelectedDatapacks.Count > 0);
+
+    private bool _IsUndoContextCurrent(string instanceDirectory, string saveDirectory) =>
+        IsLoaded && Launcher.frmMain?.pageCurrent == FormMain.PageType.InstanceSetup &&
+        Launcher.frmMain?.PageCurrentSub == FormMain.PageSubType.VersionSavesDatapack &&
+        string.Equals(instanceDirectory, PageInstanceLeft.McInstance?.PathInstance, StringComparison.OrdinalIgnoreCase) &&
+        string.Equals(saveDirectory, PageInstanceSavesLeft.currentSave, StringComparison.OrdinalIgnoreCase);
+
+    private async void _BtnSelectUndoClick(object sender, Common.RouteEventArgs e)
+    {
+        if (_undoingSelection || PageInstanceLeft.McInstance is not { } instance) return;
+        var saveDirectory = PageInstanceSavesLeft.currentSave;
+        var paths = _GetSelectedUndoPaths();
+        if (paths.Length == 0) return;
+        _undoingSelection = true;
+        CardSelect.IsEnabled = false;
+        PanAllBack.IsEnabled = false;
+        try
+        {
+            await ResourceUpdateUndo.UndoSelectedAsync(instance.PathIndie, paths);
+        }
+        catch (Exception ex)
+        {
+            Common.Log(ex, "批量撤回资源更新失败", Common.LogLevel.Hint,
+                userSummary: Lang.Text("Instance.Resource.Undo.Failed", ex.Message));
+        }
+        finally
+        {
+            _undoingSelection = false;
+            CardSelect.IsEnabled = true;
+            PanAllBack.IsEnabled = true;
+            if (_IsUndoContextCurrent(instance.PathInstance, saveDirectory))
+            {
+                _vm.ClearSelection();
+                ReloadDatapackFileList(true);
+                RefreshBars();
+            }
+        }
     }
 
     /// <summary>
@@ -342,11 +427,12 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
     public void RefreshBars()
     {
         _vm.RefreshBarState();
+        _ = _RefreshUndoSelectionAsync();
         var selected = _vm.SelectedCount > 0;
 
         if (!Animations.AniExitsAnyControl())
         {
-            PanListBack.Margin = new Thickness(0d, 0d, 0d, selected ? 95 : 15);
+            _UpdateSelectionMargin(selected);
             if (selected)
             {
                 // 仅在数量增加时播放出现/跳跃动画

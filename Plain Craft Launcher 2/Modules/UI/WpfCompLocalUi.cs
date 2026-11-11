@@ -1,3 +1,4 @@
+using System.IO;
 using PCL.Core.Platform;
 
 namespace PCL;
@@ -12,7 +13,19 @@ public sealed class WpfCompLocalUi : ICompLocalUi
 
     public bool IsUpdating(string compPath)
     {
-        return PageInstanceCompResource.updatingVersions.Contains(compPath);
+        var resources = PageInstanceCompResource.updatingVersions;
+        var datapacks = PageInstanceSavesDatapackViewModel.UpdatingVersions;
+        var path = Path.TrimEndingDirectorySeparator(compPath);
+        lock (resources)
+        {
+            if (resources.Any(IsSamePath)) return true;
+        }
+
+        lock (datapacks)
+            return datapacks.Any(IsSamePath);
+
+        bool IsSamePath(string candidate) =>
+            string.Equals(Path.TrimEndingDirectorySeparator(candidate), path, StringComparison.OrdinalIgnoreCase);
     }
 
     public void RefreshModList()
