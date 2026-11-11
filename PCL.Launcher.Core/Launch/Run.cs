@@ -232,6 +232,12 @@ public static partial class GameLaunch
         if (_IsMinecraftVersionUnder1Dot1(mcReleaseTime))
             return "none";
 
+        // 13w16a ~ 13w23b 只有 en_US.lang，其它语言 NPE 会崩溃
+        var vanillaName = InstanceList.McMcInstanceSelected!.Info.VanillaName ?? string.Empty;
+        if (McVersionComparer.CompareVersionGe(vanillaName, "13w16a")
+            && McVersionComparer.CompareVersionGe("13w23b", vanillaName))
+            return "en_US";
+
         var useLegacyRegionCase = _ShouldUseLegacyMinecraftLanguageCode(mcReleaseTime);
         var languageCode = shouldUseLauncherLanguage
             ? LocalizationService.CurrentLanguage.Code
