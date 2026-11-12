@@ -1,6 +1,9 @@
+using System.IO;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.ViewModel;
 
 namespace PCL;
@@ -18,6 +21,8 @@ public partial class PageLaunchLeftViewModel : ViewModelBase
 
     [ObservableProperty] private Visibility _moreButtonVisibility = Visibility.Collapsed;
 
+    [ObservableProperty] private bool _isLaunchButtonEnabled;
+
     [ObservableProperty] private string _launchingStageText = Lang.Text("Launch.Status.DownloadLibs");
 
     [ObservableProperty] private string _launchingTitleText = Lang.Text("Launch.Status.Title.Launching");
@@ -32,6 +37,12 @@ public partial class PageLaunchLeftViewModel : ViewModelBase
 
     [ObservableProperty] private string _launchingHintText = Lang.Text("Launch.Status.Trivia.Placeholder");
 
+    [ObservableProperty] private Visibility _launchingDownloadVisibility = Visibility.Collapsed;
+
+    [ObservableProperty] private Visibility _launchingProgressVisibility = Visibility.Visible;
+
+    [ObservableProperty] private Visibility _launchingHintVisibility = Visibility.Collapsed;
+
     public void ApplyLaunchingHint(bool showHint)
     {
         LaunchingHintText = showHint ? PageLaunchRight.GetRandomHint(true, true) : "";
@@ -45,5 +56,58 @@ public partial class PageLaunchLeftViewModel : ViewModelBase
     public void ApplyLaunchingDownload(long speed)
     {
         LaunchingDownloadText = Common.GetString(speed) + "/s";
+    }
+
+    // 实例选择按钮
+    [RelayCommand]
+    private void SelectInstance()
+    {
+        if (GameLaunch.mcLaunchLoader.State == LoadState.Loading)
+            return;
+        Launcher.frmMain.PageChange(FormMain.PageType.InstanceSelect);
+    }
+
+    // 取消按钮
+    [RelayCommand]
+    private void CancelLaunch()
+    {
+        if (GameLaunch.mcLaunchLoaderReal is not null)
+        {
+            GameLaunch.mcLaunchLoaderReal.Abort();
+            GameLaunch.McLaunchLog("已取消启动");
+            try
+            {
+                if (GameLaunch.mcLaunchWatcher is not null)
+                    GameLaunch.mcLaunchWatcher.Kill();
+                else if (GameLaunch.mcLaunchProcess is not null)
+                    if (!GameLaunch.mcLaunchProcess.HasExited)
+                        GameLaunch.mcLaunchProcess.Kill();
+            }
+            catch (Exception ex)
+            {
+                Common.Log(
+                    ex,
+                    Lang.Text("Minecraft.Launch.Error.CancelProcess"),
+                    Common.LogLevel.Hint,
+                    userSummary: Lang.Text("Minecraft.Launch.Error.CancelProcess"));
+            }
+        }
+    }
+
+    // 实例设置按钮
+    [RelayCommand]
+    private void OpenInstanceSettings()
+    {
+        if (GameLaunch.mcLaunchLoader.State == LoadState.Loading)
+            return;
+        InstanceList.McMcInstanceSelected.Load();
+        PageInstanceLeft.McInstance = InstanceList.McMcInstanceSelected;
+        if (File.Exists(InstanceList.McMcInstanceSelected.PathInstance + ".pclignore"))
+        {
+            HintService.Show(Hints.Error(Lang.Text("Launch.Home.Instance.InstallingCannotSetup")));
+            return;
+        }
+
+        Launcher.frmMain.PageChange(FormMain.PageType.InstanceSetup);
     }
 }

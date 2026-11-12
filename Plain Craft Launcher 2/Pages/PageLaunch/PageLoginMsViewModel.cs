@@ -4,6 +4,7 @@ using System.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Minecraft.Profile;
 using PCL.Core.ViewModel;
 
@@ -46,18 +47,18 @@ public partial class PageLoginMsViewModel : ViewModelBase
             {
                 ProfileService.Select(null);
                 GameLaunch.mcLoginMsLoader.Start(ProfileUi.GetLoginData(GameLaunch.McLoginType.Ms), true);
-                while (GameLaunch.mcLoginMsLoader.State == Common.LoadState.Loading)
+                while (GameLaunch.mcLoginMsLoader.State == LoadState.Loading)
                 {
                     Common.RunInUi(() => LoginText = Lang.Number(GameLaunch.mcLoginMsLoader.Progress, "P0"));
                     Thread.Sleep(50);
                 }
 
-                if (GameLaunch.mcLoginMsLoader.State == Common.LoadState.Finished)
+                if (GameLaunch.mcLoginMsLoader.State == LoadState.Finished)
                 {
                     loginSucceeded = true;
                     Common.RunInUi(() => Launcher.frmLaunchLeft?.RefreshPage(true));
                 }
-                else if (GameLaunch.mcLoginMsLoader.State == Common.LoadState.Aborted)
+                else if (GameLaunch.mcLoginMsLoader.State == LoadState.Aborted)
                 {
                     throw new ThreadInterruptedException();
                 }
@@ -73,7 +74,7 @@ public partial class PageLoginMsViewModel : ViewModelBase
             catch (ThreadInterruptedException)
             {
                 if (!loginSucceeded && previousProfile is not null) ProfileService.Select(previousProfile);
-                HintService.Hint(Lang.Text("Launch.Account.LoginCancelled"));
+                HintService.Show(Hints.Info(Lang.Text("Launch.Account.LoginCancelled")));
             }
             catch (Exception ex)
             {
@@ -83,9 +84,7 @@ public partial class PageLoginMsViewModel : ViewModelBase
                 }
                 else if (ex.Message.StartsWith("$"))
                 {
-                    HintService.Hint(
-                        Lang.Text("Launch.Account.Microsoft.LoginFailed.WithDetail", ex.Message.TrimStart('$')),
-                        HintType.Error);
+                    HintService.Show(Hints.Error(Lang.Text("Launch.Account.Microsoft.LoginFailed.WithDetail", ex.Message.TrimStart('$'))));
                 }
                 else if (ex is AuthenticationException && ex.Message.ContainsF("SSL/TLS"))
                 {

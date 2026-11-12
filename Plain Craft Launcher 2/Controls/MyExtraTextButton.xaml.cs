@@ -28,6 +28,24 @@ public partial class MyExtraTextButton
     // 自定义属性
     public int Uuid = Common.GetUuid();
 
+    public static readonly DependencyProperty CommandProperty = DependencyProperty.Register(nameof(Command),
+        typeof(ICommand), typeof(MyExtraTextButton), new PropertyMetadata(null));
+
+    public ICommand? Command
+    {
+        get => (ICommand?)GetValue(CommandProperty);
+        set => SetValue(CommandProperty, value);
+    }
+
+    public static readonly DependencyProperty CommandParameterProperty = DependencyProperty.Register(
+        nameof(CommandParameter), typeof(object), typeof(MyExtraTextButton), new PropertyMetadata(null));
+
+    public object? CommandParameter
+    {
+        get => GetValue(CommandParameterProperty);
+        set => SetValue(CommandParameterProperty, value);
+    }
+
     public MyExtraTextButton()
     {
         InitializeComponent();
@@ -213,6 +231,7 @@ public partial class MyExtraTextButton
         e.Handled = true;
         Launcher.RaiseCustomEvent(this);
         Button_LeftMouseUp();
+        ExecuteCommand();
     }
 
     private void Button_LeftMouseDown(object sender, MouseButtonEventArgs e)
@@ -287,6 +306,24 @@ public partial class MyExtraTextButton
         catch (Exception ex)
         {
             Common.Log(ex, "刷新附加图标按钮颜色出错");
+        }
+    }
+
+    private bool _isCommandRunning;
+
+    private void ExecuteCommand()
+    {
+        var command = Command;
+        if (_isCommandRunning || command is null || !command.CanExecute(CommandParameter))
+            return;
+        _isCommandRunning = true;
+        try
+        {
+            command.Execute(CommandParameter);
+        }
+        finally
+        {
+            _isCommandRunning = false;
         }
     }
 }

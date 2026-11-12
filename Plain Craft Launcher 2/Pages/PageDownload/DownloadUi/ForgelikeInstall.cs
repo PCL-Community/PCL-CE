@@ -246,13 +246,13 @@ public static partial class DownloadUi
         var targetLoaders = clientDownloadLoader
             .GetLoaderList()
             .Where(l => l.Identifier is McDownloadClientLibId or McDownloadClientJsonId)
-            .Where(l => l.State != Common.LoadState.Finished)
+            .Where(l => l.State != LoadState.Finished)
             .ToList();
         if (targetLoaders.Count != 0)
             Common.Log($"[Download] {loaderName} 安装正在等待原版文件下载完成");
         while (targetLoaders.Count != 0 && !task.IsAborted)
         {
-            targetLoaders = [.. targetLoaders.Where(l => l.State != Common.LoadState.Finished)];
+            targetLoaders = [.. targetLoaders.Where(l => l.State != LoadState.Finished)];
             Thread.Sleep(50);
         }
 

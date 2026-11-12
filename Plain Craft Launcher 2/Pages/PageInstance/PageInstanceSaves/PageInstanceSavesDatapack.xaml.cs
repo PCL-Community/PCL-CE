@@ -1,20 +1,16 @@
-﻿using System.IO;
-using System.Text;
+using PCL.Core.App;
+using PCL.Core.App.Localization;
+using PCL.Core.UI.Dialogs;
+using PCL.Core.UI.Hints;
+using PCL.Core.UI.Theme;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Threading;
-using Microsoft.VisualBasic.FileIO;
-using PCL.Core.App;
-using PCL.Core.UI;
-using PCL.Core.UI.Theme;
-using PCL.Network;
-using PCL.Network.Loaders;
-using FileSystem = Microsoft.VisualBasic.FileSystem;
-using PCL.Core.App.Localization;
-using SortMethod = PCL.PageInstanceSavesDatapackViewModel.DatapackSortMethod;
 using FilterType = PCL.PageInstanceSavesDatapackViewModel.DatapackFilterType;
+using SortMethod = PCL.PageInstanceSavesDatapackViewModel.DatapackSortMethod;
 
 namespace PCL;
 
@@ -23,53 +19,30 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
     #region 初始化
 
     private readonly PageInstanceSavesDatapackViewModel _vm = new();
-    private readonly MyLocalCompItem.SwipeSelect currentSwipSelect;
-    private readonly Dictionary<string, MyLocalCompItem> datapackItems = new();
-    private readonly object sortLock = new();
+    private readonly MyLocalCompItem.SwipeSelect _currentSwipSelect;
+    private readonly Dictionary<string, MyLocalCompItem> _datapackItems = [];
+    private readonly Lock _sortLock = new();
     private bool _refreshed;
     private bool _syncingFilter;
-    private bool isLoad;
-    private int bottomBarShownCount;
+    private bool _isLoad;
+    private int _bottomBarShownCount;
 
     public PageInstanceSavesDatapackViewModel ViewModel => _vm;
 
     public PageInstanceSavesDatapack()
     {
-        currentSwipSelect = new MyLocalCompItem.SwipeSelect { TargetFrm = this };
+        _currentSwipSelect = new MyLocalCompItem.SwipeSelect { TargetFrm = this };
 
         InitializeComponent();
         DataContext = _vm;
         Unloaded += Page_Unloaded;
         Loaded += (_, _) => RefreshOnNavigate();
         LoaderInit();
-        PageExit += UnselectedAllWithAnimation;
-        // Handles
-        Load.Click += Load_Click;
-        BtnManageOpen.Click += BtnManageOpen_Click;
-        BtnHintOpen.Click += BtnManageOpen_Click;
-        BtnManageSelectAll.Click += BtnManageSelectAll_Click;
-        BtnManageInstall.Click += BtnManageInstall_Click;
-        BtnHintInstall.Click += BtnManageInstall_Click;
-        BtnManageDownload.Click += BtnManageDownload_Click;
-        BtnHintDownload.Click += BtnManageDownload_Click;
-        BtnManageInfoExport.Click += BtnManageInfoExport_Click;
-        Load.StateChanged += (_, _, _) => UnselectedAllWithAnimation();
-        SearchBox.PreviewKeyDown += SearchBox_PreviewKeyDown;
-        BtnFilterAll.Check += ChangeFilter;
-        BtnFilterCanUpdate.Check += ChangeFilter;
-        BtnFilterDisabled.Check += ChangeFilter;
-        BtnFilterEnabled.Check += ChangeFilter;
-        BtnFilterError.Check += ChangeFilter;
-        BtnSort.Click += BtnSortClick;
-        BtnSelectEnable.Click += BtnSelectEnable_Click;
-        BtnSelectDisable.Click += BtnSelectDisable_Click;
-        BtnSelectUpdate.Click += BtnSelectUpdate_Click;
-        BtnSelectDelete.Click += BtnSelectDelete_Click;
-        BtnSelectCancel.Click += BtnSelectCancel_Click;
-        BtnSelectFavorites.Click += BtnSelectFavorites_Click;
-        BtnSelectShare.Click += BtnSelectShare_Click;
-        SearchBox.TextChanged += SearchRun;
     }
+
+    // Handles
+    private void Load_StateChanged(object sender, LoadingState state, LoadingState oldState) =>
+        UnselectedAllWithAnimation();
 
     private void Page_Unloaded(object sender, RoutedEventArgs e)
     {
@@ -102,24 +75,26 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
         Animations.AniEndControl();
 
         // 非重复加载部分
-        if (isLoad)
+        if (_isLoad)
             return;
-        isLoad = true;
+        _isLoad = true;
 
         Launcher.frmMain.KeyDown += FrmMain_KeyDown;
         // 调整按钮边距（这玩意儿没法从 XAML 改）
-        foreach (MyRadioButton Btn in PanFilter.Children)
-            Btn.LabText.Margin = new Thickness(-2, 0d, 8d, 0d);
+        foreach (MyRadioButton btn in PanFilter.Children)
+            btn.LabText.Margin = new Thickness(-2, 0d, 8d, 0d);
     }
 
     private LocalComp.CompLocalLoaderData GetRequireLoaderData()
     {
-        var res = new LocalComp.CompLocalLoaderData();
-        res.gameVersion = PageInstanceLeft.McInstance;
-        res.frm = null;
-        res.loaders = new[] { Comp.CompLoaderType.Minecraft }.ToList();
-        res.compPath = Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks");
-        res.compType = Comp.CompType.DataPack;
+        var res = new LocalComp.CompLocalLoaderData
+        {
+            gameVersion = PageInstanceLeft.McInstance,
+            frm = null,
+            loaders = [Comp.CompLoaderType.Minecraft],
+            compPath = Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks"),
+            compType = Comp.CompType.DataPack
+        };
         return res;
     }
 
@@ -140,9 +115,8 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
                 _vm.Filter = FilterType.All;
                 SyncFilterRadios();
                 PanBack.ScrollToHome();
-                SearchBox.Text = "";
                 _vm.SearchText = "";
-                RefreshUI();
+                RefreshUi();
             });
         }
     }
@@ -154,19 +128,19 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
 
     public void Refresh()
     {
-        Launcher.frmInstanceSavesDatapack.ReloadDatapackFileList(true);
+        Launcher.frmInstanceSavesDatapack!.ReloadDatapackFileList(true);
         Common.Log("[Datapack] 刷新数据包列表");
     }
 
     private void LoaderInit()
     {
         PageLoaderInit(Load, PanLoad, PanAllBack, null, LocalComp.CompResourceListLoader,
-            _ => LoadUIFromLoaderOutput(), () => Comp.CompType.DataPack, false);
+            _ => LoadUiFromLoaderOutput(), () => Comp.CompType.DataPack, false);
     }
 
     private void Load_Click(object sender, MouseButtonEventArgs e)
     {
-        if (LocalComp.CompResourceListLoader.State == Common.LoadState.Failed)
+        if (LocalComp.CompResourceListLoader.State == LoadState.Failed)
             LoaderRun(Loading.LoaderFolderRunType.ForceRun);
     }
 
@@ -181,35 +155,27 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
 
     #region UI 化
 
-    protected override void RefreshLocalization()
-    {
-        _vm.SetSortMethod(_vm.SortMethod);
-        foreach (var item in datapackItems.Values)
-            item.Refresh();
-        RefreshBars();
-    }
-
-    private void LoadUIFromLoaderOutput()
+    private void LoadUiFromLoaderOutput()
     {
         try
         {
-            _vm.ShowDatapacks = LocalComp.CompResourceListLoader.output.Any();
+            _vm.ShowDatapacks = LocalComp.CompResourceListLoader.output!.Any();
             if (!_vm.ShowDatapacks)
                 return;
 
-            datapackItems.Clear();
-            var itemsToShow = LocalComp.CompResourceListLoader.output.ToList();
+            _datapackItems.Clear();
+            var itemsToShow = LocalComp.CompResourceListLoader.output!.ToList();
 
-            foreach (var DatapackEntity in itemsToShow)
-                datapackItems[DatapackEntity.RawPath] = BuildLocalCompItem(DatapackEntity);
+            foreach (var datapackEntity in itemsToShow)
+                _datapackItems[datapackEntity.RawPath] = BuildLocalCompItem(datapackEntity);
 
             Common.RunInUi(() =>
             {
                 _vm.Filter = FilterType.All;
                 SyncFilterRadios();
-                SearchBox.Text = "";
+                _vm.SearchText = "";
                 _vm.SetSortMethod(SortMethod.CompName);
-                RefreshUI();
+                RefreshUi();
             });
         }
         catch (Exception ex)
@@ -232,10 +198,10 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
                 SnapsToDevicePixels = true,
                 Entry = entry,
                 buttonHandler = BuildLocalCompItemBtnHandler,
-                Checked = _vm.SelectedDatapacks.Contains(entry.RawPath)
+                Checked = _vm.SelectedDatapacks.Contains(entry.RawPath),
+                CurrentSwipe = _currentSwipSelect,
+                Tags = entry.Tags
             };
-            newItem.CurrentSwipe = currentSwipSelect;
-            newItem.Tags = entry.Tags;
             entry.OnCompUpdate += _ => newItem.Refresh();
             newItem.Refresh();
             Animations.AniEndControl();
@@ -255,30 +221,46 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
         sender.Changed += (ss, e) => CheckChanged((MyLocalCompItem)ss, e);
 
         // 文件项的点击事件：切换选中状态
-        sender.Click += (ss, e) =>
+        sender.Click += (ss, _) =>
         {
             var s = (MyLocalCompItem)ss;
             s.Checked = !s.Checked;
         };
 
         // 图标按钮
-        var btnOpen = new MyIconButton { LogoScale = 1.05d, SvgIcon = "lucide/folder-open", Tag = sender };
-        btnOpen.TrySetLocalizedValue("ToolTip", "Instance.Saves.OpenFileLocation");
+        var btnOpen = new MyIconButton
+        {
+            LogoScale = 1.05d,
+            SvgIcon = "lucide/folder-open",
+            Tag = sender,
+            ToolTip = Lang.Text("Instance.Saves.OpenFileLocation")
+        };
         ToolTipService.SetPlacement(btnOpen, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnOpen, 30d);
         ToolTipService.SetHorizontalOffset(btnOpen, 2d);
-        btnOpen.Click += (sender, e) => Open_Click((MyIconButton)sender, e);
+        btnOpen.Command = _vm.OpenFileLocationCommand;
+        btnOpen.CommandParameter = sender.Entry;
 
-        var btnCont = new MyIconButton { LogoScale = 1d, SvgIcon = "lucide/info", Tag = sender };
-        btnCont.TrySetLocalizedValue("ToolTip", "Instance.Saves.Detail");
+        var btnCont = new MyIconButton
+        {
+            LogoScale = 1d,
+            SvgIcon = "lucide/info",
+            Tag = sender,
+            ToolTip = Lang.Text("Instance.Saves.Detail")
+        };
         ToolTipService.SetPlacement(btnCont, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnCont, 30d);
         ToolTipService.SetHorizontalOffset(btnCont, 2d);
         btnCont.Click += Info_Click;
         sender.MouseRightButtonUp += Info_Click;
 
-        var btnDelete = new MyIconButton { LogoScale = 1d, SvgIcon = "lucide/trash-2", Tag = sender };
-        btnDelete.TrySetLocalizedValue("ToolTip", "Common.Action.Delete");
+        var btnDelete = new MyIconButton
+        {
+            LogoScale = 1d,
+            SvgIcon = "lucide/trash-2",
+            Tag = sender,
+            ToolTip = Lang.Text("Common.Action.Delete")
+        };
         ToolTipService.SetPlacement(btnDelete, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnDelete, 30d);
         ToolTipService.SetHorizontalOffset(btnDelete, 2d);
@@ -286,34 +268,44 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
 
         if (sender.Entry.State == LocalComp.LocalCompFile.LocalFileStatus.Fine)
         {
-            var btnDisable = new MyIconButton { LogoScale = 1d, SvgIcon = "lucide/circle-minus", Tag = sender };
-            btnDisable.TrySetLocalizedValue("ToolTip", "Instance.Resource.Disable");
+            var btnDisable = new MyIconButton
+            {
+                LogoScale = 1d,
+                SvgIcon = "lucide/circle-minus",
+                Tag = sender,
+                ToolTip = Lang.Text("Instance.Resource.Disable")
+            };
             ToolTipService.SetPlacement(btnDisable, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(btnDisable, 30d);
             ToolTipService.SetHorizontalOffset(btnDisable, 2d);
             btnDisable.Click += (ss, e) => Disable_Click((MyIconButton)ss, e);
-            sender.Buttons = new[] { btnCont, btnOpen, btnDisable, btnDelete };
+            sender.Buttons = [btnCont, btnOpen, btnDisable, btnDelete];
         }
         else if (sender.Entry.State == LocalComp.LocalCompFile.LocalFileStatus.Disabled)
         {
-            var btnEnable = new MyIconButton { LogoScale = 1d, SvgIcon = "lucide/circle-check", Tag = sender };
-            btnEnable.TrySetLocalizedValue("ToolTip", "Instance.Resource.Enable");
+            var btnEnable = new MyIconButton
+            {
+                LogoScale = 1d,
+                SvgIcon = "lucide/circle-check",
+                Tag = sender,
+                ToolTip = Lang.Text("Instance.Resource.Enable")
+            };
             ToolTipService.SetPlacement(btnEnable, PlacementMode.Center);
             ToolTipService.SetVerticalOffset(btnEnable, 30d);
             ToolTipService.SetHorizontalOffset(btnEnable, 2d);
             btnEnable.Click += (ss, e) => Enable_Click((MyIconButton)ss, e);
-            sender.Buttons = new[] { btnCont, btnOpen, btnEnable, btnDelete };
+            sender.Buttons = [btnCont, btnOpen, btnEnable, btnDelete];
         }
         else
         {
-            sender.Buttons = new[] { btnCont, btnOpen, btnDelete };
+            sender.Buttons = [btnCont, btnOpen, btnDelete];
         }
     }
 
     /// <summary>
     ///     刷新整个 UI。
     /// </summary>
-    public void RefreshUI()
+    public void RefreshUi()
     {
         if (PanList is null)
             return;
@@ -323,19 +315,19 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
         if (_vm.VisibleEntries.Count > 0)
         {
             PanList.Children.Clear();
-            foreach (var TargetDatapack in _vm.VisibleEntries)
+            foreach (var targetDatapack in _vm.VisibleEntries)
             {
-                if (!datapackItems.TryGetValue(TargetDatapack.RawPath, out var item))
+                if (!_datapackItems.TryGetValue(targetDatapack.RawPath, out var item))
                     continue;
 
                 // 确保元素没有父容器，避免重复添加异常
-                if (item.Parent is not null) ((Panel)item.Parent).Children.Remove(item);
+                ((Panel)item.Parent)?.Children.Remove(item);
 
                 TextStyles.MinecraftFormatter.SetColorfulTextLab(item.LabTitle.Text, item.LabTitle,
                     ThemeService.IsDarkMode);
                 TextStyles.MinecraftFormatter.SetColorfulTextLab(item.LabInfo.Text, item.LabInfo,
                     ThemeService.IsDarkMode);
-                item.Checked = _vm.SelectedDatapacks.Contains(TargetDatapack.RawPath); // 更新选中状态
+                item.Checked = _vm.SelectedDatapacks.Contains(targetDatapack.RawPath); // 更新选中状态
                 PanList.Children.Add(item);
             }
         }
@@ -358,13 +350,13 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
             if (selected)
             {
                 // 仅在数量增加时播放出现/跳跃动画
-                if (bottomBarShownCount >= _vm.SelectedCount)
+                if (_bottomBarShownCount >= _vm.SelectedCount)
                 {
-                    bottomBarShownCount = _vm.SelectedCount;
+                    _bottomBarShownCount = _vm.SelectedCount;
                     return;
                 }
 
-                bottomBarShownCount = _vm.SelectedCount;
+                _bottomBarShownCount = _vm.SelectedCount;
                 // 出现/跳跃动画
                 CardSelect.Visibility = Visibility.Visible;
                 Animations.AniStart(
@@ -382,9 +374,9 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
             else
             {
                 // 不重复播放隐藏动画
-                if (bottomBarShownCount == 0)
+                if (_bottomBarShownCount == 0)
                     return;
-                bottomBarShownCount = 0;
+                _bottomBarShownCount = 0;
                 // 隐藏动画
                 Animations.AniStart(
                     new[]
@@ -399,7 +391,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
         else
         {
             Animations.AniStop("Datapack Sidebar");
-            bottomBarShownCount = _vm.SelectedCount;
+            _bottomBarShownCount = _vm.SelectedCount;
             if (selected)
             {
                 CardSelect.Visibility = Visibility.Visible;
@@ -422,23 +414,8 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
     /// <summary>
     ///     打开 datapacks 文件夹。
     /// </summary>
-    private void BtnManageOpen_Click(object sender, EventArgs e)
-    {
-        try
-        {
-            var datapackPath = Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks");
-            Directory.CreateDirectory(datapackPath);
-            Common.OpenExplorer(datapackPath);
-        }
-        catch (Exception ex)
-        {
-            Common.Log(
-                ex,
-                "打开 datapacks 文件夹失败",
-                Common.LogLevel.Msgbox,
-                userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
-        }
-    }
+    private void BtnManageOpen_Click(object sender, EventArgs e) =>
+        _vm.OpenFolderCommand.Execute(null);
 
     /// <summary>
     ///     全选。
@@ -451,96 +428,28 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
     /// <summary>
     ///     安装数据包。
     /// </summary>
-    private async void BtnManageInstall_Click(object sender, MouseButtonEventArgs e)
-    {
-        var ctl = sender as Control;
-        if (ctl is not null) ctl.IsEnabled = false;
-        try
-        {
-            var fileList = SystemDialogs.SelectFiles(
-                Lang.Text("Instance.Saves.Datapack.Install.FileDialog.Filter"),
-                Lang.Text("Instance.Saves.Datapack.Install.FileDialog.Title"));
-            if (fileList is null || fileList.Length == 0)
-                return;
-            await PageInstanceSavesDatapackViewModel.InstallFilesAsync(fileList);
-            Refresh();
-        }
-        catch (Exception ex)
-        {
-            Common.Log(
-                ex,
-                "复制数据包文件失败",
-                Common.LogLevel.Msgbox,
-                userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
-        }
-        finally
-        {
-            if (ctl is not null) ctl.IsEnabled = true;
-        }
-    }
+    private void BtnManageInstall_Click(object sender, MouseButtonEventArgs e) =>
+        _vm.InstallCommand.Execute(null);
 
     /// <summary>
     ///     安装数据包文件。
     /// </summary>
     public static void InstallDatapackFiles(IEnumerable<string> filePathList)
     {
-        _ = PageInstanceSavesDatapackViewModel.InstallFilesAsync(filePathList.ToList());
+        _ = PageInstanceSavesDatapackViewModel.InstallFilesAsync([.. filePathList]);
     }
 
     /// <summary>
     ///     下载数据包。
     /// </summary>
-    private void BtnManageDownload_Click(object sender, MouseButtonEventArgs e)
-    {
-        var datapackPath = Path.Combine(PageInstanceSavesLeft.currentSave, "datapacks");
-        Directory.CreateDirectory(datapackPath);
-        PageDownloadCompDetail.cachedFolder[Comp.CompType.DataPack] = datapackPath;
-        Launcher.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadDataPack);
-        PageComp.targetVersion = PageInstanceLeft.McInstance; // 将当前实例设置为筛选器
-    }
+    private void BtnManageDownload_Click(object sender, MouseButtonEventArgs e) =>
+        _vm.DownloadCommand.Execute(null);
 
     /// <summary>
     ///     导出信息。
     /// </summary>
-    private async void BtnManageInfoExport_Click(object sender, MouseButtonEventArgs e)
-    {
-        var ctl = sender as Control;
-        if (ctl is not null) ctl.IsEnabled = false;
-        try
-        {
-            var choice = await Launcher.MyMsgBoxAsync(
-                Lang.Text("Instance.Saves.Datapack.Export.Mode.Message"),
-                Lang.Text("Instance.Resource.Export.Mode.Title"), Lang.Text("Instance.Resource.Export.Mode.Txt"),
-                Lang.Text("Instance.Resource.Export.Mode.Csv"), Lang.Text("Common.Action.Cancel"));
-            if (choice is not (1 or 2))
-                return;
-
-            var isCsv = choice == 2;
-            await _vm.EnsureFileInfoAsync(LocalComp.CompResourceListLoader.output.Select(entry => entry.path));
-            var content = _vm.BuildExportContent(isCsv);
-            var savePath = SystemDialogs.SelectSaveFile(
-                Lang.Text("Instance.Resource.Export.SelectSaveLocation"),
-                Common.GetFolderNameFromPath(PageInstanceSavesLeft.currentSave) +
-                (isCsv ? "的数据包信息.csv" : "的数据包信息.txt"),
-                Lang.Text("Instance.Resource.Export.FilesFilter"));
-            if (string.IsNullOrWhiteSpace(savePath))
-                return;
-            await _vm.WriteExportFileAsync(savePath, content);
-            Common.OpenExplorer(savePath);
-        }
-        catch (Exception ex)
-        {
-            Common.Log(
-                ex,
-                "导出数据包信息失败",
-                Common.LogLevel.Msgbox,
-                userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
-        }
-        finally
-        {
-            if (ctl is not null) ctl.IsEnabled = true;
-        }
-    }
+    private void BtnManageInfoExport_Click(object sender, MouseButtonEventArgs e) =>
+        _vm.ExportInfoCommand.Execute(null);
 
     #endregion
 
@@ -560,12 +469,12 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
     {
         Animations.AniBeginControl();
         _vm.ClearSelection();
-        foreach (var Item in datapackItems.Values)
+        foreach (var item in _datapackItems.Values)
         {
-            var shouldSelected = value && PanList.Children.Contains(Item);
-            Item.Checked = shouldSelected;
+            var shouldSelected = value && PanList.Children.Contains(item);
+            item.Checked = shouldSelected;
             if (shouldSelected)
-                _vm.SetSelected(Item.Entry.RawPath, true);
+                _vm.SetSelected(item.Entry.RawPath, true);
         }
 
         Animations.AniEndControl();
@@ -608,31 +517,31 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
             switch (_vm.Filter)
             {
                 case FilterType.All:
-                {
-                    BtnFilterAll.Checked = true;
-                    break;
-                }
+                    {
+                        BtnFilterAll.Checked = true;
+                        break;
+                    }
                 case FilterType.Enabled:
-                {
-                    BtnFilterEnabled.Checked = true;
-                    break;
-                }
+                    {
+                        BtnFilterEnabled.Checked = true;
+                        break;
+                    }
                 case FilterType.Disabled:
-                {
-                    BtnFilterDisabled.Checked = true;
-                    break;
-                }
+                    {
+                        BtnFilterDisabled.Checked = true;
+                        break;
+                    }
                 case FilterType.CanUpdate:
-                {
-                    BtnFilterCanUpdate.Checked = true;
-                    break;
-                }
+                    {
+                        BtnFilterCanUpdate.Checked = true;
+                        break;
+                    }
 
                 default:
-                {
-                    BtnFilterError.Checked = true;
-                    break;
-                }
+                    {
+                        BtnFilterError.Checked = true;
+                        break;
+                    }
             }
         }
         finally
@@ -647,7 +556,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
         if (_syncingFilter)
             return;
         _vm.Filter = (FilterType)Convert.ToInt32(sender.Tag);
-        RefreshUI();
+        RefreshUi();
         DoSort();
     }
 
@@ -666,8 +575,10 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
         var body = new ContextMenu();
         foreach (SortMethod i in Enum.GetValues(typeof(SortMethod)))
         {
-            var item = new MyMenuItem();
-            item.Header = _vm.GetSortName(i);
+            var item = new MyMenuItem
+            {
+                Header = _vm.GetSortName(i)
+            };
             item.Click += (_, _) => SetSortMethod(i);
             body.Items.Add(item);
         }
@@ -679,7 +590,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
 
     private void DoSort()
     {
-        lock (sortLock)
+        lock (_sortLock)
         {
             try
             {
@@ -696,7 +607,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
                 // 仅对有效项进行排序
                 valid.Sort((x, y) => method(x.Entry, y.Entry));
                 // 合并保持无效项的原始顺序
-                items = valid.Concat(invalid).ToList();
+                items = [.. valid, .. invalid];
 
                 // 批量更新UI元素
                 PanList.Children.Clear();
@@ -724,8 +635,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
         try
         {
             await ToggleDatapacksAsync(
-                LocalComp.CompResourceListLoader.output.Where(m => _vm.SelectedDatapacks.Contains(m.RawPath))
-                    .ToList(), true);
+                [.. LocalComp.CompResourceListLoader.output!.Where(m => _vm.SelectedDatapacks.Contains(m.RawPath))], true).ConfigureAwait(true);
             ChangeAllSelected(false);
         }
         catch (Exception ex)
@@ -744,8 +654,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
         try
         {
             await ToggleDatapacksAsync(
-                LocalComp.CompResourceListLoader.output.Where(m => _vm.SelectedDatapacks.Contains(m.RawPath))
-                    .ToList(), false);
+                [.. LocalComp.CompResourceListLoader.output!.Where(m => _vm.SelectedDatapacks.Contains(m.RawPath))], false).ConfigureAwait(true);
             ChangeAllSelected(false);
         }
         catch (Exception ex)
@@ -763,17 +672,17 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
     /// </summary>
     private async Task ToggleDatapacksAsync(IEnumerable<LocalComp.LocalCompFile> datapackList, bool isEnable)
     {
-        var outcome = await _vm.ToggleDatapacksAsync(datapackList, isEnable);
+        var outcome = await _vm.ToggleDatapacksAsync(datapackList, isEnable).ConfigureAwait(true);
 
-        foreach (var (OldEntry, NewEntry) in outcome.Replaced)
+        foreach (var (oldEntry, newEntry) in outcome.Replaced)
         {
             // 更改 UI 中的列表
             try
             {
-                var newItem = BuildLocalCompItem(NewEntry);
-                datapackItems[OldEntry.RawPath] = newItem;
+                var newItem = BuildLocalCompItem(newEntry);
+                _datapackItems[oldEntry.RawPath] = newItem;
                 var indexOfUi = PanList.Children.IndexOf(PanList.Children.OfType<MyLocalCompItem>()
-                    .FirstOrDefault(i => ReferenceEquals(i.Entry, OldEntry)));
+                    .FirstOrDefault(i => ReferenceEquals(i.Entry, oldEntry)));
                 if (indexOfUi == -1)
                     continue;
                 PanList.Children.RemoveAt(indexOfUi);
@@ -783,7 +692,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
             {
                 Common.Log(
                     ex,
-                    $"更新 UI 列表项失败：{OldEntry.FileName}",
+                    $"更新 UI 列表项失败：{oldEntry.FileName}",
                     Common.LogLevel.Hint,
                     userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
             }
@@ -795,7 +704,8 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
             return;
         }
 
-        Dispatcher.Invoke(() => PanList.UpdateLayout(), DispatcherPriority.Background);
+        // 排队中的布局/渲染会先执行完，这里不需要再插入一次同步布局传递。
+        await Dispatcher.Yield(DispatcherPriority.Background);
 
         if (outcome.IsSuccessful)
         {
@@ -803,7 +713,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
         }
         else
         {
-            HintService.Hint(Lang.Text("Instance.Saves.Datapack.ToggleWarning"), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Instance.Saves.Datapack.ToggleWarning")));
             ReloadDatapackFileList(true);
         }
 
@@ -815,11 +725,11 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
     {
         try
         {
-            var updateList = LocalComp.CompResourceListLoader.output
+            var updateList = LocalComp.CompResourceListLoader.output!
                 .Where(m => _vm.SelectedDatapacks.Contains(m.RawPath) && m.CanUpdate).ToList();
             if (!updateList.Any())
                 return;
-            await UpdateResourceAsync(updateList);
+            await UpdateResourceAsync(updateList).ConfigureAwait(true);
             ChangeAllSelected(false);
         }
         catch (Exception ex)
@@ -841,16 +751,19 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
             // 更新前警告
             if (!States.Hint.FunctionDatapackUpdate || list.Count >= 15)
             {
-                if (1 != await Launcher.MyMsgBoxAsync(
-                        Lang.Text("Instance.Saves.Datapack.Update.Warning.Message"),
-                        Lang.Text("Instance.Saves.Datapack.Update.Warning.Title"),
-                        Lang.Text("Instance.Saves.Datapack.Update.Warning.Confirm"),
-                        Lang.Text("Common.Action.Cancel"), isWarn: true))
+                if (1 != (await DialogService.Instance.ShowAsync(new TextDialogRequest
+                {
+                    Title = Lang.Text("Instance.Saves.Datapack.Update.Warning.Title"),
+                    Content = Lang.Text("Instance.Saves.Datapack.Update.Warning.Message"),
+                    Buttons = DialogButtons.Create("Instance.Saves.Datapack.Update.Warning.Confirm", "Common.Action.Cancel"),
+                    IsWarn = true,
+                    ForceWait = false
+                }).ConfigureAwait(true)).Button)
                     return;
                 States.Hint.FunctionDatapackUpdate = true;
             }
 
-            if (await _vm.UpdateAsync(list))
+            if (await _vm.UpdateAsync(list).ConfigureAwait(true))
                 ReloadDatapackFileList(true);
         }
         catch (Exception ex)
@@ -862,7 +775,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
     // 删除
     private void BtnSelectDelete_Click(object sender, Common.RouteEventArgs e)
     {
-        _ = DeleteDatapacksAsync(LocalComp.CompResourceListLoader.output
+        _ = DeleteDatapacksAsync(LocalComp.CompResourceListLoader.output!
             .Where(m => _vm.SelectedDatapacks.Contains(m.RawPath)));
         ChangeAllSelected(false);
     }
@@ -872,7 +785,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
         try
         {
             var isShiftPressed = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
-            var outcome = await _vm.DeleteFilesAsync(datapackList, isShiftPressed);
+            var outcome = await _vm.DeleteFilesAsync(datapackList, isShiftPressed).ConfigureAwait(true);
             if (outcome.Fatal is not null)
             {
                 Common.Log(
@@ -885,11 +798,11 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
                 return;
             }
 
-            foreach (var DatapackEntity in outcome.Deleted)
+            foreach (var datapackEntity in outcome.Deleted)
             {
-                datapackItems.Remove(DatapackEntity.RawPath);
+                _datapackItems.Remove(datapackEntity.RawPath);
                 var indexOfUi = PanList.Children.IndexOf(PanList.Children.OfType<MyLocalCompItem>()
-                    .FirstOrDefault(i => i.Entry.Equals(DatapackEntity)));
+                    .FirstOrDefault(i => i.Entry.Equals(datapackEntity)));
                 if (indexOfUi >= 0)
                     PanList.Children.RemoveAt(indexOfUi);
             }
@@ -903,7 +816,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
             RefreshBars();
             if (!outcome.IsSuccessful)
             {
-                HintService.Hint(Lang.Text("Instance.Saves.Datapack.Delete.FileOccupied"), HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Instance.Saves.Datapack.Delete.FileOccupied")));
                 ReloadDatapackFileList(true);
                 return;
             }
@@ -915,26 +828,19 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
 
             if (isShiftPressed)
             {
-                if (outcome.Deleted.Count == 1)
-                    HintService.Hint(
-                        Lang.Text("Instance.Saves.Datapack.Delete.PermanentSingle", outcome.Deleted[0].FileName),
-                        HintType.Success);
-                else
-                    HintService.Hint(
-                        Lang.Text("Instance.Saves.Datapack.Delete.PermanentMultiple", outcome.Deleted.Count),
-                        HintType.Success);
+                HintService.Show(outcome.Deleted.Count == 1
+                    ? Hints.Success(Lang.Text("Instance.Saves.Datapack.Delete.PermanentSingle",
+                        outcome.Deleted[0].FileName))
+                    : Hints.Success(
+                        Lang.Text("Instance.Saves.Datapack.Delete.PermanentMultiple", outcome.Deleted.Count)));
             }
             else if (outcome.Deleted.Count == 1)
             {
-                HintService.Hint(
-                    Lang.Text("Instance.Saves.Datapack.Delete.RecycleSingle", outcome.Deleted[0].FileName),
-                    HintType.Success);
+                HintService.Show(Hints.Success(Lang.Text("Instance.Saves.Datapack.Delete.RecycleSingle", outcome.Deleted[0].FileName)));
             }
             else
             {
-                HintService.Hint(
-                    Lang.Text("Instance.Saves.Datapack.Delete.RecycleMultiple", outcome.Deleted.Count),
-                    HintType.Success);
+                HintService.Show(Hints.Success(Lang.Text("Instance.Saves.Datapack.Delete.RecycleMultiple", outcome.Deleted.Count)));
             }
 
             LoaderRun(Loading.LoaderFolderRunType.UpdateOnly);
@@ -960,15 +866,15 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
     // 收藏
     private void BtnSelectFavorites_Click(object sender, Common.RouteEventArgs e)
     {
-        var selected = LocalComp.CompResourceListLoader.output
+        var selected = LocalComp.CompResourceListLoader.output!
             .Where(m => _vm.SelectedDatapacks.Contains(m.RawPath) && m.Comp is not null).Select(i => i.Comp).ToList();
-        Comp.CompFavorites.ShowMenu(selected, (UIElement)sender);
+        CompFavoritesUi.ShowMenu(selected, (UIElement)sender);
     }
 
     // 分享
     private void BtnSelectShare_Click(object sender, Common.RouteEventArgs e)
     {
-        var shareList = LocalComp.CompResourceListLoader.output
+        var shareList = LocalComp.CompResourceListLoader.output!
             .Where(m => _vm.SelectedDatapacks.Contains(m.RawPath) && m.Comp is not null).Select(i => i.Comp.Id)
             .ToHashSet();
         Common.ClipboardSet(Comp.CompFavorites.GetShareCode(shareList));
@@ -989,27 +895,31 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
             // 加载失败信息
             if (datapackEntry.State == LocalComp.LocalCompFile.LocalFileStatus.Unavailable)
             {
-                await Launcher.MyMsgBoxAsync(
-                    Lang.Text(
+                await DialogService.Instance.ShowAsync(new TextDialogRequest
+                {
+                    Title = Lang.Text("Instance.Saves.Datapack.Info.ReadFailedTitle"),
+                    Content = Lang.Text(
                         "Instance.Saves.Datapack.Info.ReadFailed.WithDetail",
                         datapackEntry.FileUnavailableReason.ToString()),
-                    Lang.Text("Instance.Saves.Datapack.Info.ReadFailedTitle"));
+                    Buttons = DialogButtons.Ok,
+                    ForceWait = false
+                }).ConfigureAwait(true);
                 return;
             }
 
             if (datapackEntry.Comp is not null)
             {
                 // 跳转到数据包下载页面
-                Launcher.frmMain.PageChange(new FormMain.PageStackData
+                Launcher.frmMain!.PageChange(new FormMain.PageStackData
                 {
                     page = FormMain.PageType.CompDetail,
-                    additional = (datapackEntry.Comp, new List<string>(), PageInstanceLeft.McInstance.Info.VanillaName,
+                    additional = (datapackEntry.Comp, [], PageInstanceLeft.McInstance.Info.VanillaName,
                         Comp.CompLoaderType.Minecraft, Comp.CompType.DataPack, null)
                 });
             }
             else
             {
-                await _vm.EnsureFileInfoAsync(new[] { datapackEntry.path });
+                await _vm.EnsureFileInfoAsync([datapackEntry.path]).ConfigureAwait(true);
 
                 // 获取信息
                 var contentLines = new List<string>();
@@ -1034,11 +944,20 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
 
                 // 显示详情信息
                 if (datapackEntry.Url is null)
-                    await Launcher.MyMsgBoxAsync(contentLines.Join("\r\n"), datapackEntry.Name,
-                        Lang.Text("Instance.Resource.Item.Info.Return"));
-                else if (1 == await Launcher.MyMsgBoxAsync(contentLines.Join("\r\n"), datapackEntry.Name,
-                             Lang.Text("Instance.Resource.Item.Info.OpenWebsite"),
-                             Lang.Text("Instance.Resource.Item.Info.Return")))
+                    await DialogService.Instance.ShowAsync(new TextDialogRequest
+                    {
+                        Title = datapackEntry.Name,
+                        Content = contentLines.Join("\r\n"),
+                        Buttons = DialogButtons.Create("Instance.Resource.Item.Info.Return"),
+                        ForceWait = false
+                    }).ConfigureAwait(true);
+                else if (1 == (await DialogService.Instance.ShowAsync(new TextDialogRequest
+                {
+                    Title = datapackEntry.Name,
+                    Content = contentLines.Join("\r\n"),
+                    Buttons = DialogButtons.Create("Instance.Resource.Item.Info.OpenWebsite", "Instance.Resource.Item.Info.Return"),
+                    ForceWait = false
+                }).ConfigureAwait(true)).Button)
                     Common.OpenWebsite(datapackEntry.Url);
             }
         }
@@ -1053,42 +972,28 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
     }
 
     // 打开文件所在的位置
-    public void Open_Click(MyIconButton sender, EventArgs e)
-    {
-        try
-        {
-            var listItem = (MyLocalCompItem)sender.Tag;
-            Common.OpenExplorer(listItem.Entry.path);
-        }
-        catch (Exception ex)
-        {
-            Common.Log(
-                ex,
-                "打开数据包文件位置失败",
-                Common.LogLevel.Feedback,
-                userSummary: Lang.Text("Instance.Saves.Error.OperationFailed"));
-        }
-    }
+    public void Open_Click(MyIconButton sender, EventArgs e) =>
+        _vm.OpenFileLocationCommand.Execute((sender.Tag as MyLocalCompItem)?.Entry);
 
     // 删除
     public void Delete_Click(MyIconButton sender, EventArgs e)
     {
         var listItem = (MyLocalCompItem)sender.Tag;
-        _ = DeleteDatapacksAsync(new[] { listItem.Entry });
+        _ = DeleteDatapacksAsync([listItem.Entry]);
     }
 
     // 启用
     public void Enable_Click(MyIconButton sender, EventArgs e)
     {
         var listItem = (MyLocalCompItem)sender.Tag;
-        _ = ToggleDatapacksAsync(new[] { listItem.Entry }, true);
+        _ = ToggleDatapacksAsync([listItem.Entry], true);
     }
 
     // 禁用
     public void Disable_Click(MyIconButton sender, EventArgs e)
     {
         var listItem = (MyLocalCompItem)sender.Tag;
-        _ = ToggleDatapacksAsync(new[] { listItem.Entry }, false);
+        _ = ToggleDatapacksAsync([listItem.Entry], false);
     }
 
     #endregion
@@ -1105,40 +1010,40 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
             if (_vm.IsSearching)
             {
                 // 构造请求
-                var queryList = new List<Common.SearchEntry<LocalComp.LocalCompFile>>();
-                foreach (var Entry in LocalComp.CompResourceListLoader.output)
+                var queryList = new List<SearchService.SearchEntry<LocalComp.LocalCompFile>>();
+                foreach (var entry in LocalComp.CompResourceListLoader.output)
                 {
-                    var searchSource = new List<Common.SearchSource>();
-                    searchSource.Add(new Common.SearchSource(Entry.Name, 1d));
-                    searchSource.Add(new Common.SearchSource(Entry.FileName, 1d));
-                    if (Entry.Version is not null)
-                        searchSource.Add(new Common.SearchSource(Entry.Version, 0.2d));
-                    if (Entry.Description is not null && !string.IsNullOrEmpty(Entry.Description))
-                        searchSource.Add(new Common.SearchSource(Entry.Description, 0.4d));
-                    if (Entry.Comp is not null)
+                    var searchSource = new List<SearchService.SearchSource>();
+                    searchSource.Add(new SearchService.SearchSource(entry.Name, 1d));
+                    searchSource.Add(new SearchService.SearchSource(entry.FileName, 1d));
+                    if (entry.Version is not null)
+                        searchSource.Add(new SearchService.SearchSource(entry.Version, 0.2d));
+                    if (entry.Description is not null && !string.IsNullOrEmpty(entry.Description))
+                        searchSource.Add(new SearchService.SearchSource(entry.Description, 0.4d));
+                    if (entry.Comp is not null)
                     {
-                        if ((Entry.Comp.RawName ?? "") != (Entry.Name ?? ""))
-                            searchSource.Add(new Common.SearchSource(Entry.Comp.RawName, 1d));
-                        if ((Entry.Comp.TranslatedName ?? "") != (Entry.Comp.RawName ?? ""))
-                            searchSource.Add(new Common.SearchSource(Entry.Comp.TranslatedName, 1d));
-                        if ((Entry.Comp.Description ?? "") != (Entry.Description ?? ""))
-                            searchSource.Add(new Common.SearchSource(Entry.Comp.Description, 0.4d));
-                        searchSource.Add(new Common.SearchSource(
-                            string.Join("", Comp.GetLocalizedTags(Entry.Comp.Tags)),
-                            0.2d));
+                        if ((entry.Comp.RawName ?? "") != (entry.Name ?? ""))
+                            searchSource.Add(new SearchService.SearchSource(entry.Comp.RawName, 1d));
+                        if ((entry.Comp.TranslatedName ?? "") != (entry.Comp.RawName ?? ""))
+                            searchSource.Add(new SearchService.SearchSource(entry.Comp.TranslatedName, 1d));
+                        if ((entry.Comp.Description ?? "") != (entry.Description ?? ""))
+                            searchSource.Add(new SearchService.SearchSource(entry.Comp.Description, 0.4d));
+                        searchSource.Add(new SearchService.SearchSource(string.Join("", entry.Comp.Tags), 0.2d));
                     }
 
-                    queryList.Add(new Common.SearchEntry<LocalComp.LocalCompFile>
-                        { item = Entry, searchSource = searchSource });
+                    queryList.Add(new SearchService.SearchEntry<LocalComp.LocalCompFile>
+                    { item = entry, searchSource = searchSource });
                 }
 
                 // 进行搜索
                 _vm.SetSearchResult(
-                    Common.Search(queryList, SearchBox.Text, Common.MaxLocalSearchDepth, 0.35d)
-                        .Select(r => r.item).ToList());
+                [
+                    .. SearchService.Search(queryList, SearchBox.Text, SearchService.MaxLocalSearchDepth, 0.35d)
+                        .Select(r => r.item)
+                ]);
             }
 
-            RefreshUI();
+            RefreshUi();
         }
         catch (Exception ex)
         {

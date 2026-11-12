@@ -2,10 +2,10 @@
                    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                    xmlns:local="clr-namespace:PCL"
+                   xmlns:loc="https://ce.pclc.cc/core/localization"
                    xmlns:val="https://ce.pclc.cc/core/utils/validate"
                    xmlns:sys="clr-namespace:System;assembly=mscorlib"
-                   PanScroll="{Binding ElementName=PanBack}"
-                   xmlns:loc="https://ce.pclc.cc/core/localization">
+                   PanScroll="{Binding ElementName=PanBack}">
     <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
         <StackPanel x:Name="PanMain" Margin="25,10" Grid.IsSharedSizeScope="True">
             <local:MyCard Margin="0,15" Title="{loc:Loc Tools.Test.Title}">
@@ -17,14 +17,16 @@
                                     Click="BtnLuck_Click" />
                     <local:MyButton MinWidth="100" Text="{loc:Loc Tools.Test.Crash.Title}"
                                     ToolTip="{loc:Loc Tools.Test.Crash.ManualCrash}" ColorType="Red"
-                                    Margin="0,0,15,15" Click="BtnCrash_Click"
+                                    Margin="0,0,15,15" Command="{Binding CrashCommand}"
                                     Visibility="{Binding CrashButtonVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                                     x:Name="BtnCrash" />
                     <local:MyButton MinWidth="120" Text="{loc:Loc Tools.Test.Shortcut.Title}"
                                     ToolTip="{loc:Loc Tools.Test.Shortcut.ToolTip}" Margin="0,0,15,15"
-                                    Click="BtnCreateShortcut_Click" />
+                                    Command="{Binding CreateShortcutCommand}"
+                                    IsEnabled="{Binding CreateShortcutEnabled}" />
                     <local:MyButton MinWidth="120" Text="{loc:Loc Tools.Test.LaunchCount.Title}"
-                                    Margin="0,0,15,15" Click="BtnLaunchCount_Click" />
+                                    Margin="0,0,15,15" Command="{Binding ShowLaunchCountCommand}"
+                                    IsEnabled="{Binding LaunchCountEnabled}" />
                 </WrapPanel>
             </local:MyCard>
             <local:MyCard Margin="0,0,0,15" Title="{loc:Loc Tools.Test.CustomDownload.Title}">
@@ -226,7 +228,7 @@
                         </Grid.ColumnDefinitions>
                         <local:MyButton x:Name="BtnSelectSkin" Grid.Column="1"
                                         Text="{loc:Loc Tools.Test.Avatar.SelectSkin}" Width="140" Height="35"
-                                        Margin="0,0,10,0" />
+                                        Margin="0,0,10,0" Click="BtnSelectSkin_Click" />
                         <local:MyButton Grid.Column="2" Text="{loc:Loc Tools.Test.Avatar.Save}" Width="140"
                                         Height="35" Click="BtnSaveHead_Click" />
                     </Grid>

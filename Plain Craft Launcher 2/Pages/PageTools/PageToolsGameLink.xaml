@@ -1,12 +1,12 @@
 ﻿<local:MyPageRight
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:PCL"
+                   xmlns:loc="https://ce.pclc.cc/core/localization" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:svgIcon="clr-namespace:PCL.Core.UI.Controls.SvgIcon;assembly=PCL.Core"
+    xmlns:svgIcon="clr-namespace:PCL.Core.UI.Controls.SvgIcon;assembly=PCL.Core.Wpf"
     mc:Ignorable="d" x:Class="PCL.PageToolsGameLink"
-    d:DesignWidth="800" d:DesignHeight="800"
-    xmlns:loc="https://ce.pclc.cc/core/localization">
+    d:DesignWidth="800" d:DesignHeight="800">
     <Grid>
         <Grid x:Name="PanLoad" Visibility="Collapsed">
             <local:MyCard HorizontalAlignment="Center" VerticalAlignment="Center" x:Name="CardLoad"
@@ -104,7 +104,7 @@
                 <StackPanel x:Name="PanSelect" Grid.Row="1" HorizontalAlignment="Stretch" Orientation="Vertical"
                             Visibility="{Binding PanSelectVisibility}">
                     <StackPanel Margin="10,4" HorizontalAlignment="Right" Orientation="Horizontal">
-                        <local:MyCard Margin="12,0" x:Name="BtnNatTest">
+                        <local:MyCard Margin="12,0" x:Name="BtnNatTest" IsEnabled="{Binding NatTestEnabled}">
                             <StackPanel Orientation="Horizontal"
                                         Background="{StaticResource ColorBrushSemiTransparent}"
                                         MouseLeftButtonUp="BtnNetTest_Click"
@@ -122,7 +122,7 @@
                             </StackPanel>
                         </local:MyCard>
 
-                        <local:MyCard x:Name="BtnNatayarkUserName">
+                        <local:MyCard x:Name="BtnNatayarkUserName" IsEnabled="{Binding NatayarkUserEnabled}">
                             <StackPanel Orientation="Horizontal"
                                         Background="{StaticResource ColorBrushSemiTransparent}"
                                         ToolTip="{loc:Loc Tools.GameLink.Natayark.Account}"
@@ -154,12 +154,13 @@
                                                 Width="50" Margin="10,0,0,0" Click="BtnJoin_Click" />
                                 <local:MyButton x:Name="BtnPaste" DockPanel.Dock="Right"
                                                 Text="{loc:Loc Tools.GameLink.Join.Paste}" ColorType="Normal"
-                                                Width="50" Margin="10,0,0,0" Click="PasteLobbyId" />
+                                                Width="50" Margin="10,0,0,0" Command="{Binding PasteLobbyIdCommand}" />
                                 <local:MyButton x:Name="BtnClearLobbyId" DockPanel.Dock="Right"
                                                 Text="{loc:Loc Tools.GameLink.Join.Clear}"
-                                                Click="ClearLobbyId"
+                                                Command="{Binding ClearLobbyIdCommand}"
                                                 ColorType="Normal" Width="50" Margin="10,0,0,0" />
                                 <local:MyTextBox x:Name="TextJoinLobbyId"
+                                                 Text="{Binding JoinLobbyId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                  HintText="{loc:Loc Tools.GameLink.Join.IdHint}"
                                                  MaxLines="1" AcceptsReturn="False" KeyDown="TextJoinLobbyId_KeyDown" />
                             </DockPanel>
@@ -175,6 +176,7 @@
                                 <local:MyButton x:Name="BtnCreate" DockPanel.Dock="Right"
                                                 Text="{loc:Loc Tools.GameLink.Create.Action}"
                                                 ColorType="Highlight" Width="50" Margin="10,0,0,0"
+                                                IsEnabled="{Binding CreateEnabled}"
                                                 Click="BtnCreate_Click" />
                                 <local:MyButton x:Name="BtnRefresh" DockPanel.Dock="Right"
                                                 Text="{loc:Loc Common.Action.Refresh}" ColorType="Normal"
@@ -182,8 +184,10 @@
                                 <local:MyButton x:Name="BtnInputPort" DockPanel.Dock="Right"
                                                 Text="{loc:Loc Tools.GameLink.Create.ManualInput}"
                                                 ColorType="Normal" Width="80" Margin="10,0,0,0"
+                                                IsEnabled="{Binding InputPortEnabled}"
                                                 Click="BtnInputPort_Click" />
-                                <local:MyComboBox x:Name="ComboWorldList" DropDownWidthSync="False" />
+                                <local:MyComboBox x:Name="ComboWorldList" IsEnabled="{Binding WorldListEnabled}"
+                                                  DropDownWidthSync="False" />
                             </DockPanel>
                         </StackPanel>
                     </local:MyCard>
@@ -205,7 +209,8 @@
                                                 local:CustomEventService.EventData="https://www.pclc.cc/privacy/personal-info-brief.html" />
                             <TextBlock Text=" | " />
                             <local:MyTextButton Text="{loc:Loc Tools.GameLink.Link.Disable}"
-                                                x:Name="BtnEulaStop" Click="BtnEulaStop_Click" />
+                                                x:Name="BtnEulaStop" IsEnabled="{Binding EulaStopEnabled}"
+                                                Click="BtnEulaStop_Click" />
                         </StackPanel>
                         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="15,6"
                                     Orientation="Horizontal">
@@ -280,7 +285,7 @@
                                            Margin="0,0,12,0" />
                             </StackPanel>
                             <StackPanel x:Name="BtnConnectType" Margin="5" Orientation="Horizontal"
-                                        Background="{StaticResource ColorBrushSemiTransparent}" Visibility="Collapsed"
+                                        Background="{StaticResource ColorBrushSemiTransparent}" Visibility="{Binding ConnectTypeVisibility}"
                                         ToolTip="{loc:Loc Tools.GameLink.Finish.ConnectionType}"
                                         ToolTipService.Placement="MousePoint"
                                         ToolTipService.InitialShowDelay="100" ToolTipService.VerticalOffset="-35">
@@ -345,6 +350,7 @@
                                                     SvgIcon="lucide/copy" />
                             <local:MyIconTextButton Margin="-2,1" HorizontalAlignment="Left" x:Name="BtnFinishExit"
                                                     Text="{Binding FinishExitText}"
+                                                    IsEnabled="{Binding FinishExitEnabled}"
                                                     Click="BtnFinishExit_Click"
                                                     SvgIcon="lucide/power" />
                         </StackPanel>
@@ -353,7 +359,21 @@
                     <local:MyCard x:Name="CardPlayerList" Title="{loc:Loc Tools.GameLink.Member.ListLoading}"
                                   Margin="10" MinWidth="300"
                                   Grid.Row="1" Grid.RowSpan="4" Grid.Column="1">
-                        <StackPanel x:Name="StackPlayerList" Margin="5,35,6,8" />
+                        <ItemsControl x:Name="StackPlayerList" Margin="5,35,6,8"
+                                      ItemsSource="{Binding PlayerRows}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <local:MyListItem Title="{Binding Name}" Info="{Binding Info}"
+                                                      Type="Clickable" Tag="{Binding}"
+                                                      Click="PlayerInfoClick" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </local:MyCard>
                 </Grid>
             </Grid>

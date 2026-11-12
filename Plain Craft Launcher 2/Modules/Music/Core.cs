@@ -3,6 +3,7 @@ using NAudio;
 using NAudio.Wave;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 
 namespace PCL;
 
@@ -101,9 +102,9 @@ public static partial class Music
             {
                 var msg = ex.Message;
                 if (msg.Contains("AlreadyAllocated"))
-                    HintService.Hint(Lang.Text("Music.Error.DeviceBusy"), HintType.Error);
+                    HintService.Show(Hints.Error(Lang.Text("Music.Error.DeviceBusy")));
                 else if (msg.Contains("NoDriver") || msg.Contains("BadDeviceId"))
-                    HintService.Hint(Lang.Text("Music.Error.DeviceChanged"), HintType.Error);
+                    HintService.Show(Hints.Error(Lang.Text("Music.Error.DeviceChanged")));
                 else
                     _LogPlaybackFailed(ex, fileName);
                 break;
@@ -113,13 +114,9 @@ public static partial class Music
             {
                 if (ex.Message.Contains("Got a frame at sample rate")
                     || ex.Message.Contains("does not support changes to"))
-                    HintService.Hint(
-                        Lang.Text("Music.Error.PropertyChangeUnsupported", fileName),
-                        HintType.Error);
+                    HintService.Show(Hints.Error(Lang.Text("Music.Error.PropertyChangeUnsupported", fileName)));
                 else if (_IsUnsupportedMusicFormat() || ex.Message.Contains("0xC00D36C4"))
-                    HintService.Hint(
-                        Lang.Text("Music.Error.UnsupportedFormat", fileName),
-                        HintType.Error);
+                    HintService.Show(Hints.Error(Lang.Text("Music.Error.UnsupportedFormat", fileName)));
                 else
                     _LogPlaybackFailed(ex, fileName);
                 break;

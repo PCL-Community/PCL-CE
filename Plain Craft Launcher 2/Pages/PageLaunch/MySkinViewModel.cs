@@ -1,3 +1,4 @@
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using PCL.Core.App.Localization;
 using PCL.Core.ViewModel;
@@ -8,6 +9,10 @@ namespace PCL;
 public partial class MySkinViewModel : ViewModelBase
 {
     [ObservableProperty] private string _address = "";
+
+    [ObservableProperty] private bool _canSave = true;
+
+    [ObservableProperty] private Visibility _capeVisibility = Visibility.Visible;
 
     [ObservableProperty] private string? _toolTipText;
 

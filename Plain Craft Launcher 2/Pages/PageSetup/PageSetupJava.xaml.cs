@@ -3,9 +3,12 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using PCL.Core.App;
-using PCL.Core.Minecraft;
 using PCL.Core.UI;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
+using PCL.Core.UI.Dialogs;
+using PCL.Core.Minecraft.Java;
+using PCL.Pages.PageSetup;
 
 namespace PCL;
 
@@ -100,7 +103,7 @@ public partial class PageSetupJava : IPageView
 
     protected override void RefreshLocalization()
     {
-        if (loader.State == Common.LoadState.Finished)
+        if (loader.State == LoadState.Finished)
         {
             var savedOffset = PanBack.VerticalOffset;
             OnLoadFinished();
@@ -144,9 +147,13 @@ public partial class PageSetupJava : IPageView
                 if (!PageSetupJavaViewModel.EnsureAvailable(j))
                     return;
 
-                await Launcher.MyMsgBoxAsync(
-                    PageSetupJavaViewModel.BuildInfoMessage(j),
-                    Lang.Text("Setup.Java.Info.Title"));
+                await DialogService.Instance.ShowAsync(new TextDialogRequest
+                {
+                    Title = Lang.Text("Setup.Java.Info.Title"),
+                    Content = PageSetupJavaViewModel.BuildInfoMessage(j),
+                    Buttons = DialogButtons.Ok,
+                    ForceWait = false
+                });
             }
             catch (Exception ex)
             {
@@ -170,7 +177,7 @@ public partial class PageSetupJava : IPageView
         {
             if (!j.Installation.IsStillAvailable)
             {
-                HintService.Hint(Lang.Text("Setup.Java.Unavailable"));
+                HintService.Show(Hints.Info(Lang.Text("Setup.Java.Unavailable")));
                 return;
             }
 
@@ -214,18 +221,18 @@ public partial class PageSetupJava : IPageView
                 return;
             if (JavaRuntime.Javas.Exist(ret))
             {
-                HintService.Hint(Lang.Text("Setup.Java.AlreadyExists"));
+                HintService.Show(Hints.Info(Lang.Text("Setup.Java.AlreadyExists")));
                 return;
             }
 
             if (await _vm.AddJavaAsync(ret))
             {
-                HintService.Hint(Lang.Text("Setup.Java.Added"), HintType.Success);
+                HintService.Show(Hints.Success(Lang.Text("Setup.Java.Added")));
                 loader.Start(true, true);
             }
             else
             {
-                HintService.Hint(Lang.Text("Setup.Java.AddFailed"), HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Setup.Java.AddFailed")));
             }
         }
         catch (Exception ex)

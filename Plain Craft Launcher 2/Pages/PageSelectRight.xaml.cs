@@ -13,16 +13,19 @@ using PCL.Core.App.Configuration;
 using PCL.Core.App.Configuration.Storage;
 using FileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
 
 namespace PCL;
 
-public partial class PageSelectRight
+public partial class PageSelectRight : IPageView
 {
     private readonly PageSelectRightViewModel _vm = new();
     private const int normalDelay = 75; // 正常输入延迟0.075秒
     private const int quickDelay = 50; // 清空搜索框延迟0.05秒
     private bool isRefreshing;
+    private bool _refreshed;
 
     private DateTime lastInputTime = DateTime.MinValue;
     private DispatcherTimer reloadTimer;
@@ -47,7 +50,7 @@ public partial class PageSelectRight
 
     protected override void RefreshLocalization()
     {
-        if (InstanceList.mcInstanceListLoader.State != Common.LoadState.Finished)
+        if (InstanceList.mcInstanceListLoader.State != LoadState.Finished)
             return;
         var savedOffset = PanBack.VerticalOffset;
         McInstanceListUI(InstanceList.mcInstanceListLoader);
@@ -57,13 +60,30 @@ public partial class PageSelectRight
     // 窗口基础
     private void PageSelectRight_Loaded(object sender, RoutedEventArgs e)
     {
-        Loading.LoaderFolderRun(InstanceList.mcInstanceListLoader, GameFolders.mcFolderSelected,
-            Loading.LoaderFolderRunType.RunOnUpdated, 1, @"versions\");
-        PanBack.ScrollToHome();
+        RefreshOnNavigate();
         PanVerSearchBox.TextChanged += (a, b) => PanVerSearchBox_TextChanged(a, (TextChangedEventArgs)b);
 
         reloadTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(normalDelay) };
         reloadTimer.Tick += ReloadTimer_Tick;
+    }
+
+    public void OnNavigatedTo(object? parameter)
+    {
+        RefreshOnNavigate();
+    }
+
+    public void OnNavigatedFrom()
+    {
+    }
+
+    private void RefreshOnNavigate()
+    {
+        if (_refreshed)
+            return;
+        _refreshed = true;
+        Loading.LoaderFolderRun(InstanceList.mcInstanceListLoader, GameFolders.mcFolderSelected,
+            Loading.LoaderFolderRunType.RunOnUpdated, 1, @"versions\");
+        PanBack.ScrollToHome();
     }
 
     private void PanVerSearchBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -94,7 +114,7 @@ public partial class PageSelectRight
         var elapsed = (DateTime.Now - lastInputTime).TotalMilliseconds;
         var currentDelay = reloadTimer.Interval.TotalMilliseconds;
 
-        if (elapsed >= currentDelay && InstanceList.mcInstanceListLoader.State == Common.LoadState.Finished &&
+        if (elapsed >= currentDelay && InstanceList.mcInstanceListLoader.State == LoadState.Finished &&
             !isRefreshing)
         {
             isRefreshing = true;
@@ -111,6 +131,7 @@ public partial class PageSelectRight
 
     private void PageSelectRight_Unloaded(object sender, RoutedEventArgs e)
     {
+        _refreshed = false;
         // 清理计时器
         if (reloadTimer is not null)
         {
@@ -125,13 +146,6 @@ public partial class PageSelectRight
         PageLoaderInit(Load, PanLoad, PanAllBack, null, InstanceList.mcInstanceListLoader,
             a => this.McInstanceListUI((Loading.LoaderTask<string, int>)a),
             autoRun: false);
-    }
-
-    private void Load_Click(object sender, MouseButtonEventArgs e)
-    {
-        if (InstanceList.mcInstanceListLoader.State == Common.LoadState.Failed)
-            Loading.LoaderFolderRun(InstanceList.mcInstanceListLoader, GameFolders.mcFolderSelected,
-                Loading.LoaderFolderRunType.ForceRun, 1, @"versions\");
     }
 
     #region 结果 UI 化
@@ -540,11 +554,6 @@ public partial class PageSelectRight
         }
     }
 
-    private void BtnDownload_Click(object sender, MouseButtonEventArgs e)
-    {
-        Launcher.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadInstall);
-    }
-
     // 修改此代码时，同时修改 PageInstanceOverall 中的代码
     public static void DeleteVersion(MyListItem item, McInstance mcInstance)
     {
@@ -558,8 +567,14 @@ public partial class PageSelectRight
                 : Lang.Text("Select.Instance.Delete.ConfirmMessage", mcInstance.Name);
             var confirmFullMsg = confirmMsg +
                                  (isHintIndie ? "\r\n" + Lang.Text("Select.Instance.Delete.IsolatedWarning") : "");
-            switch (Launcher.MyMsgBox(confirmFullMsg, Lang.Text("Select.Instance.Delete.ConfirmTitle"),
-                        button2: Lang.Text("Common.Action.Cancel"), isWarn: true))
+            switch ((DialogService.Instance.Show(new TextDialogRequest
+            {
+                Title = Lang.Text("Select.Instance.Delete.ConfirmTitle"),
+                Content = confirmFullMsg,
+                Buttons = DialogButtons.OkCancel,
+                IsWarn = true,
+                ForceWait = true
+            }).Result?.Button ?? 0))
             {
                 case 1:
                 {
@@ -569,15 +584,13 @@ public partial class PageSelectRight
                     if (isShiftPressed)
                     {
                         Common.DeleteDirectory(mcInstance.PathInstance);
-                        HintService.Hint(Lang.Text("Select.Instance.Delete.PermanentSuccess", mcInstance.Name),
-                            HintType.Success);
+                        HintService.Show(Hints.Success(Lang.Text("Select.Instance.Delete.PermanentSuccess", mcInstance.Name)));
                     }
                     else
                     {
                         FileSystem.DeleteDirectory(mcInstance.PathInstance, UIOption.AllDialogs,
                             RecycleOption.SendToRecycleBin);
-                        HintService.Hint(Lang.Text("Select.Instance.Delete.RecycleBinSuccess", mcInstance.Name),
-                            HintType.Success);
+                        HintService.Show(Hints.Success(Lang.Text("Select.Instance.Delete.RecycleBinSuccess", mcInstance.Name)));
                     }
 
                     break;

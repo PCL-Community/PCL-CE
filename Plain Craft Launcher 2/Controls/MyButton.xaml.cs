@@ -43,6 +43,24 @@ public partial class MyButton
     // 自定义属性
     public int Uuid = Common.GetUuid();
 
+    public static readonly DependencyProperty CommandProperty = DependencyProperty.Register(nameof(Command),
+        typeof(ICommand), typeof(MyButton), new PropertyMetadata(null));
+
+    public ICommand? Command
+    {
+        get => (ICommand?)GetValue(CommandProperty);
+        set => SetValue(CommandProperty, value);
+    }
+
+    public static readonly DependencyProperty CommandParameterProperty = DependencyProperty.Register(
+        nameof(CommandParameter), typeof(object), typeof(MyButton), new PropertyMetadata(null));
+
+    public object? CommandParameter
+    {
+        get => GetValue(CommandParameterProperty);
+        set => SetValue(CommandParameterProperty, value);
+    }
+
     public MyButton()
     {
         InitializeComponent();
@@ -158,6 +176,7 @@ public partial class MyButton
         Common.Log("[Control] 按下按钮：" + Text);
         Click?.Invoke(sender, e);
         Launcher.RaiseCustomEvent(this);
+        ExecuteCommand();
     }
 
     private void Button_MouseDown(object sender, MouseButtonEventArgs e)
@@ -212,5 +231,23 @@ public partial class MyButton
                 1d - ((ScaleTransform)PanFore.RenderTransform).ScaleX, 800,
                 ease: new Animations.AniEaseOutFluent(Animations.AniEasePower.Strong)),
             "MyButton Scale " + Uuid);
+    }
+
+    private bool _isCommandRunning;
+
+    private void ExecuteCommand()
+    {
+        var command = Command;
+        if (_isCommandRunning || command is null || !command.CanExecute(CommandParameter))
+            return;
+        _isCommandRunning = true;
+        try
+        {
+            command.Execute(CommandParameter);
+        }
+        finally
+        {
+            _isCommandRunning = false;
+        }
     }
 }

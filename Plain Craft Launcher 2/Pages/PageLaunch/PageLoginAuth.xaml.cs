@@ -1,13 +1,16 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.IO.Net.Http;
 using PCL.Core.Logging;
 using PCL.Core.Minecraft.Yggdrasil;
 using PCL.Core.Minecraft.Profile;
 using PCL.Core.Minecraft.Profile.Authentication;
 using PCL.Core.Minecraft.Profile.Models;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.Validate;
@@ -43,17 +46,12 @@ public partial class PageLoginAuth
         DataContext = _vm;
         Loaded += (_, _) => Reload();
         Loaded += (_, _) => ReloadRegisterButton();
-        // Handles
-        BtnBack.Click += BtnBack_Click;
-        BtnBackOAuth.Click += BtnBack_Click;
-        BtnLogin.Click += BtnLogin_Click;
-        BtnOAuth.Click += BtnLogin_Click;
-        BtnUsePassword.Click += (_, _) => _SetLoginMode(false);
-        BtnUseOAuth.Click += (_, _) => _SetLoginMode(true);
-        BtnWebsite.Click += BtnWebsite_Click;
-        BtnPasswordWebsite.Click += BtnWebsite_Click;
-        BtnLink.Click += Btn_Click;
     }
+
+    // Handles
+    private void BtnUsePassword_Click(object sender, EventArgs e) => _SetLoginMode(false);
+
+    private void BtnUseOAuth_Click(object sender, EventArgs e) => _SetLoginMode(true);
 
     private void Reload()
     {
@@ -88,17 +86,19 @@ public partial class PageLoginAuth
         Launcher.frmLaunchLeft.RefreshPage(true);
     }
 
-    private void BtnLogin_Click(object sender, EventArgs e)
+    private void BtnBackButton_Click(object sender, MouseButtonEventArgs e) => BtnBack_Click(sender, e);
+
+    private void BtnLogin_Click(object sender, MouseButtonEventArgs e)
     {
         if (string.IsNullOrWhiteSpace(_authServerUrl))
         {
-            HintService.Hint(Lang.Text("Launch.Account.Auth.EmptyFields"), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Launch.Account.Auth.EmptyFields")));
             return;
         }
 
         if (!_authServerUrl.IsMatch(RegexPatterns.HttpUri))
         {
-            HintService.Hint(Lang.Text("Launch.Account.Auth.InvalidServer"), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Launch.Account.Auth.InvalidServer")));
             return;
         }
 
@@ -113,7 +113,7 @@ public partial class PageLoginAuth
                 {
                     if (!await _TryStartYggdrasilConnectAsync().ConfigureAwait(true))
                     {
-                        HintService.Hint(Lang.Text("Launch.Account.Auth.LoginFailed"), HintType.Error);
+                        HintService.Show(Hints.Error(Lang.Text("Launch.Account.Auth.LoginFailed")));
                         return;
                     }
                     keepControlsDisabled = true;
@@ -121,7 +121,7 @@ public partial class PageLoginAuth
                 }
                 if (string.IsNullOrWhiteSpace(TextName.Text) || string.IsNullOrWhiteSpace(TextPass.Password))
                 {
-                    HintService.Hint(Lang.Text("Launch.Account.Auth.EmptyFields"), HintType.Error);
+                    HintService.Show(Hints.Error(Lang.Text("Launch.Account.Auth.EmptyFields")));
                     return;
                 }
                 var loginData = new GameLaunch.McLoginServer(GameLaunch.McLoginType.Auth)
@@ -131,7 +131,7 @@ public partial class PageLoginAuth
                     LoginType = GameLaunch.McLoginType.Auth
                 };
                 GameLaunch.mcLoginAuthLoader.Start(loginData, true);
-                while (GameLaunch.mcLoginAuthLoader.State == Common.LoadState.Loading)
+                while (GameLaunch.mcLoginAuthLoader.State == LoadState.Loading)
                 {
                     _vm.LoginButtonText = Lang.Number(GameLaunch.mcLoginAuthLoader.Progress, "P0");
                     await Task.Delay(50);
@@ -139,15 +139,15 @@ public partial class PageLoginAuth
 
                 switch (GameLaunch.mcLoginAuthLoader.State)
                 {
-                    case Common.LoadState.Finished:
+                    case LoadState.Finished:
                         Launcher.frmLaunchLeft.RefreshPage(true);
                         break;
-                    case Common.LoadState.Aborted:
-                        HintService.Hint(Lang.Text("Launch.Account.Auth.Cancelled"));
+                    case LoadState.Aborted:
+                        HintService.Show(Hints.Info(Lang.Text("Launch.Account.Auth.Cancelled")));
                         break;
-                    case Common.LoadState.Waiting:
-                    case Common.LoadState.Loading:
-                    case Common.LoadState.Failed:
+                    case LoadState.Waiting:
+                    case LoadState.Loading:
+                    case LoadState.Failed:
                     default:
                     {
                         if (GameLaunch.mcLoginAuthLoader.Error is null)
@@ -163,9 +163,7 @@ public partial class PageLoginAuth
                 }
                 else if (ex.Message.StartsWith("$"))
                 {
-                    HintService.Hint(
-                        Lang.Text("Launch.Account.Auth.LoginFailed.WithDetail",ex.Message.TrimStart('$')),
-                        HintType.Error);
+                    HintService.Show(Hints.Error(Lang.Text("Launch.Account.Auth.LoginFailed.WithDetail",ex.Message.TrimStart('$'))));
                 }
                 else
                 {
@@ -293,7 +291,7 @@ public partial class PageLoginAuth
         }
         catch (ThreadInterruptedException)
         {
-            HintService.Hint(Lang.Text("Launch.Account.Auth.Cancelled"));
+            HintService.Show(Hints.Info(Lang.Text("Launch.Account.Auth.Cancelled")));
         }
         catch (Exception ex)
         {
@@ -314,7 +312,14 @@ public partial class PageLoginAuth
         Common.RunInUiWait(() =>
         {
             var controls = candidates.Select(candidate => (IMyRadio)new MyRadioBox { Text = candidate.Name }).ToList();
-            var index = Launcher.MyMsgBoxSelect(controls, Lang.Text("Launch.Account.Auth.ChangeProfile"));
+            var index = (DialogService.Instance.Show(new SelectDialogRequest
+            {
+                Title = Lang.Text("Launch.Account.Auth.ChangeProfile"),
+                Options = PCL.DialogOptions.From(controls),
+                Buttons = DialogButtons.Ok,
+                HighLight = false,
+                ForceWait = true
+            }).Result?.SelectedIndex);
             if (index is >= 0 and < 100000) selected = candidates[index.Value];
         });
         return selected;

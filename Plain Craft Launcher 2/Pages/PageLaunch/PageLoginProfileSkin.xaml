@@ -4,10 +4,11 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:local="clr-namespace:PCL"
+                   xmlns:loc="https://ce.pclc.cc/core/localization"
       mc:Ignorable="d"
-      d:DesignHeight="450" d:DesignWidth="800"
-      xmlns:loc="https://ce.pclc.cc/core/localization">
-    <Grid Margin="0,0,0,0" Background="{StaticResource ColorBrushTransparent}" Name="PanData">
+      d:DesignHeight="450" d:DesignWidth="800">
+    <Grid Margin="0,0,0,0" Background="{StaticResource ColorBrushTransparent}" Name="PanData"
+          MouseEnter="ShowPanel" MouseLeave="HidePanel">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="34" />
             <ColumnDefinition />
@@ -29,7 +30,7 @@
         <local:MyCard Grid.Column="1" Grid.Row="2" HorizontalAlignment="Center" x:Name="PanButtons" Opacity="0"
                       CornerRadius="5" Margin="0,8,0,0">
             <StackPanel Orientation="Horizontal" Margin="10,3,9,3">
-                <local:MyIconButton Height="24" Margin="0,0.5,9,0" x:Name="BtnSkin"
+                <local:MyIconButton Height="24" Margin="0,0.5,9,0" x:Name="BtnSkin" Click="BtnSkin_Click"
                                     ToolTip="{loc:Loc Launch.Account.ProfileSkin.SkinsAndCapes}"
                                     ToolTipService.Placement="Center"
                                     ToolTipService.VerticalOffset="35" ToolTipService.HorizontalOffset="1"
@@ -49,7 +50,7 @@
                         </ContextMenu>
                     </local:MyIconButton.ContextMenu>
                 </local:MyIconButton>
-                <local:MyIconButton Height="24" Margin="0,0,9,0" x:Name="BtnEdit"
+                <local:MyIconButton Height="24" Margin="0,0,9,0" x:Name="BtnEdit" Click="BtnEdit_Click"
                                     ToolTip="{loc:Loc Launch.Account.ProfileSkin.EditProfile}"
                                     ToolTipService.Placement="Center" ToolTipService.VerticalOffset="35"
                                     ToolTipService.HorizontalOffset="1" ToolTipService.InitialShowDelay="50"

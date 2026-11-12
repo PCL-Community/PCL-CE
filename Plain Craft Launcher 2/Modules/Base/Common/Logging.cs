@@ -6,7 +6,9 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.VisualBasic;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Logging;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils.OS;
 
 namespace PCL;
@@ -87,7 +89,7 @@ public static partial class Common
 
         if (level == LogLevel.Debug)
         {
-            HintService.Hint($"[Debug] {text}", HintType.Info, false);
+            HintService.Show(Hints.Info($"[Debug] {text}", log: false));
             return;
         }
 
@@ -146,7 +148,7 @@ public static partial class Common
 
         if (level == LogLevel.Debug)
         {
-            HintService.Hint($"[Debug] {desc}：{ex}", HintType.Info, false);
+            HintService.Show(Hints.Info($"[Debug] {desc}：{ex}", log: false));
             return;
         }
 
@@ -181,11 +183,18 @@ public static partial class Common
         switch (level)
         {
             case LogLevel.Hint:
-                HintService.Hint(message, HintType.Error, false);
+                HintService.Show(Hints.Error(message, log: false));
                 break;
 
             case LogLevel.Msgbox:
-                Launcher.MyMsgBox(message, title, isWarn: true);
+                DialogService.Instance.Show(new TextDialogRequest
+                {
+                    Title = title,
+                    Content = message,
+                    Buttons = DialogButtons.Ok,
+                    IsWarn = true,
+                    ForceWait = true
+                });
                 break;
 
             case LogLevel.Feedback:
@@ -262,7 +271,14 @@ public static partial class Common
             if (isCritical)
                 Interaction.MsgBox(message, MsgBoxStyle.Critical, title);
             else
-                Launcher.MyMsgBox(message, title, isWarn: true);
+                DialogService.Instance.Show(new TextDialogRequest
+                {
+                    Title = title,
+                    Content = message,
+                    Buttons = DialogButtons.Ok,
+                    IsWarn = true,
+                    ForceWait = true
+                });
 
             return;
         }
@@ -277,13 +293,17 @@ public static partial class Common
                 MsgBoxStyle.Critical | MsgBoxStyle.YesNo,
                 title)
             == MsgBoxResult.Yes
-            : Launcher.MyMsgBox(
-                feedbackMessage,
-                title,
-                Lang.Text("Setup.Feedback.ErrorPrompt.Submit.Action"),
-                Lang.Text("Common.Action.Cancel"),
-                isWarn: true)
-            == 1;
+            : DialogService.Instance.Show(new TextDialogRequest
+                {
+                    Title = title,
+                    Content = feedbackMessage,
+                    Buttons = DialogButtons.From(
+                        DialogButton.Create(Lang.Text("Setup.Feedback.ErrorPrompt.Submit.Action")),
+                        DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                    IsWarn = true,
+                    ForceWait = true
+                }).Result
+                ?.Button == 1;
 
         if (shouldSendFeedback)
             Feedback(false, true);
@@ -328,11 +348,16 @@ public static partial class Common
 
         var shouldOpenLogFolder = forceOpenLog
             || (showMsgbox
-                && Launcher.MyMsgBox(
-                    Lang.Text("Setup.Feedback.Reminder.Message", currentDate),
-                    Lang.Text("Setup.Feedback.Reminder.Title"),
-                    Lang.Text("Common.Action.OpenFolder"),
-                    Lang.Text("Setup.Feedback.Reminder.NotNeeded"))
+                && DialogService.Instance.Show(new TextDialogRequest
+                    {
+                        Title = Lang.Text("Setup.Feedback.Reminder.Title"),
+                        Content = Lang.Text("Setup.Feedback.Reminder.Message", currentDate),
+                        Buttons = DialogButtons.From(
+                            DialogButton.Create(Lang.Text("Common.Action.OpenFolder")),
+                            DialogButton.Create(Lang.Text("Setup.Feedback.Reminder.NotNeeded"))),
+                        ForceWait = true
+                    }).Result
+                    ?.Button
                 == 1);
         if (shouldOpenLogFolder)
             OpenExplorer(ExePath + @"PCL\Log\");
@@ -362,12 +387,16 @@ public static partial class Common
                 "Setup.Feedback.Unavailable.CheckFailed.Action")
         };
 
-        var shouldOpenUpdatePage = Launcher.MyMsgBox(
-                Lang.Text(messageKey),
-                Lang.Text("Setup.Feedback.Unavailable.Title"),
-                Lang.Text(actionKey),
-                Lang.Text("Common.Action.Cancel"))
-            == 1;
+        var shouldOpenUpdatePage = DialogService.Instance.Show(new TextDialogRequest
+            {
+                Title = Lang.Text("Setup.Feedback.Unavailable.Title"),
+                Content = Lang.Text(messageKey),
+                Buttons = DialogButtons.From(
+                    DialogButton.Create(Lang.Text(actionKey)),
+                    DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                ForceWait = true
+            }).Result
+            ?.Button == 1;
 
         if (shouldOpenUpdatePage)
             Launcher.frmMain?.PageChange(

@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.ViewModel;
 
 namespace PCL;
@@ -53,11 +54,13 @@ public partial class PageSetupLeftViewModel : ViewModelBase
         };
         if (messageKey is null)
             return false;
-        var result = await Launcher.MyMsgBoxAsync(
-            Lang.Text(messageKey),
-            Lang.Text("Setup.Left.Reset.Title"),
-            button2: Lang.Text("Common.Action.Cancel"),
-            isWarn: true);
+        var result = (await Dialog.ShowAsync(new TextDialogRequest
+        {
+            Title = Lang.Text("Setup.Left.Reset.Title"),
+            Content = Lang.Text(messageKey),
+            Buttons = DialogButtons.OkCancel,
+            IsWarn = true
+        })).Button;
         return result == 1;
     }
 }

@@ -1,12 +1,14 @@
-﻿using System.IO;
+using PCL.Core.App;
+using PCL.Core.App.Configuration;
+using PCL.Core.App.Localization;
+using PCL.Core.UI.Dialogs;
+using PCL.Core.UI.Hints;
+using PCL.Core.Utils.OS;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
-using PCL.Core.App;
-using PCL.Core.App.Configuration;
-using PCL.Core.Utils.OS;
-using PCL.Core.App.Localization;
 
 namespace PCL;
 
@@ -22,6 +24,7 @@ public partial class PageSetupLaunch : IPageView
         Unloaded += PageSetupLaunch_Unloaded;
         InitializeComponent();
         DataContext = _vm;
+        DialogServiceInstaller.Install(_vm);
     }
 
     public PageSetupLaunchViewModel ViewModel => _vm;
@@ -92,9 +95,7 @@ public partial class PageSetupLaunch : IPageView
             if (SystemInfo.IsArm64System)
             {
                 CheckAdvanceDisableJLW.Checked = true;
-                CheckAdvanceDisableJLW.TrySetLocalizedValue(
-                    "ToolTip",
-                    "Setup.Launch.Advanced.DisableJlw.Arm64Notice");
+                CheckAdvanceDisableJLW.ToolTip = Lang.Text("Setup.Launch.Advanced.DisableJlw.Arm64Notice");
             }
             else
             {
@@ -132,7 +133,7 @@ public partial class PageSetupLaunch : IPageView
         {
             Config.Launch.Reset();
             Common.Log("[Setup] 已初始化启动设置");
-            HintService.Hint(Lang.Text("Setup.Launch.Initialized"), HintType.Success, false);
+            HintService.Show(Hints.Success(Lang.Text("Setup.Launch.Initialized"), log: false));
         }
         catch (Exception ex)
         {
@@ -228,16 +229,22 @@ public partial class PageSetupLaunch : IPageView
         Launcher.frmMain.PageChange(FormMain.PageType.InstanceSetup, FormMain.PageSubType.VersionSetup);
     }
 
+    /// <summary>判断下拉框的选中变更是否来自用户操作（展开下拉或键盘选择），而非页面刷新时的绑定回写。</summary>
+    private static bool IsUserSelecting(ComboBox combo) => combo.IsDropDownOpen || combo.IsKeyboardFocusWithin;
+
     private void ComboAdvanceRenderer_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        // 先记录变更前的配置值：页面刷新时绑定回写 SelectedIndex 同样会触发本事件，只有用户真正切换时才提示
+        var previousValue = Config.Launch.Renderer;
         ComboChange(sender, e);
-        ComboAdvanceRenderer_SelectionChanged((MyComboBox)sender, e);
+        ComboAdvanceRenderer_SelectionChanged((MyComboBox)sender, e, previousValue);
     }
 
     private void ComboArgumentIndie_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        var previousValue = Config.Launch.IndieSolutionV2;
         ComboChange(sender, e);
-        ComboArgumentIndie_SelectionChanged(sender, e);
+        ComboArgumentIndie_SelectionChanged(sender, e, previousValue);
     }
 
     #region 游戏内存
@@ -246,9 +253,8 @@ public partial class PageSetupLaunch : IPageView
     {
         if (SliderRamCustom is null)
             return;
-        SliderRamCustom.IsEnabled = type == 1;
         // 锁定内存时 -Xms 恒等于 -Xmx，初始内存设置不生效
-        SliderRamInitialCustom.IsEnabled = type == 1 && !Config.Launch.LockMemory;
+        _vm.RamType(type);
     }
 
     /// <summary>
@@ -287,14 +293,12 @@ public partial class PageSetupLaunch : IPageView
             suffixText = Lang.Text("Setup.Launch.Memory.SuffixAvailable", Lang.Number(ramGameActual, "N1"));
         else
             suffixText = "";
-        LabRamGame.Text = $"{Lang.Number(ramGame, "N1")} GiB{(suffixText.Length > 0 ? $" ({suffixText})" : "")}";
-        LabRamUsed.Text = $"{Lang.Number(ramUsed, "N1")} GiB";
-        LabRamTotal.Text = $" / {Lang.Number(ramTotal, "N1")} GiB";
-        LabRamWarn.Visibility =
-            ramGame == 1d && !JavaRuntime.IsGameSet64BitJava() && !SystemInfo.Is32BitSystem && JavaRuntime.Javas.ExistAnyJava()
-                ? Visibility.Visible
-                : Visibility.Collapsed;
-        HintRamTooHigh.Visibility = ramGame / ramTotal > 0.75d ? Visibility.Visible : Visibility.Collapsed;
+        _vm.RamGameText = $"{Lang.Number(ramGame, "N1")} GiB{(suffixText.Length > 0 ? $" ({suffixText})" : "")}";
+        _vm.RamUsedText = $"{Lang.Number(ramUsed, "N1")} GiB";
+        _vm.RamTotalText = $" / {Lang.Number(ramTotal, "N1")} GiB";
+        _vm.RamWarnVisible =
+            ramGame == 1d && !JavaRuntime.IsGameSet64BitJava() && !SystemInfo.Is32BitSystem && JavaRuntime.Javas.ExistAnyJava();
+        _vm.RamTooHighVisible = ramGame / ramTotal > 0.75d;
         if (showAnim)
         {
             // 宽度动画
@@ -356,38 +360,38 @@ public partial class PageSetupLaunch : IPageView
             switch (left)
             {
                 case 0:
-                {
-                    Animations.AniStart(
-                        new[]
-                        {
+                    {
+                        Animations.AniStart(
+                            new[]
+                            {
                             Animations.AaOpacity(LabRamUsed, -LabRamUsed.Opacity, 100),
                             Animations.AaOpacity(LabRamTotal, -LabRamTotal.Opacity, 100),
                             Animations.AaOpacity(LabRamUsedTitle, -LabRamUsedTitle.Opacity, 100)
-                        }, "SetupLaunch Ram TextLeft");
-                    break;
-                }
+                            }, "SetupLaunch Ram TextLeft");
+                        break;
+                    }
                 case 1:
-                {
-                    Animations.AniStart(
-                        new[]
-                        {
+                    {
+                        Animations.AniStart(
+                            new[]
+                            {
                             Animations.AaOpacity(LabRamUsed, 1d - LabRamUsed.Opacity, 100),
                             Animations.AaOpacity(LabRamTotal, -LabRamTotal.Opacity, 100),
                             Animations.AaOpacity(LabRamUsedTitle, 0.7d - LabRamUsedTitle.Opacity, 100)
-                        }, "SetupLaunch Ram TextLeft");
-                    break;
-                }
+                            }, "SetupLaunch Ram TextLeft");
+                        break;
+                    }
                 case 2:
-                {
-                    Animations.AniStart(
-                        new[]
-                        {
+                    {
+                        Animations.AniStart(
+                            new[]
+                            {
                             Animations.AaOpacity(LabRamUsed, 1d - LabRamUsed.Opacity, 100),
                             Animations.AaOpacity(LabRamTotal, 1d - LabRamTotal.Opacity, 100),
                             Animations.AaOpacity(LabRamUsedTitle, 0.7d - LabRamUsedTitle.Opacity, 100)
-                        }, "SetupLaunch Ram TextLeft");
-                    break;
-                }
+                            }, "SetupLaunch Ram TextLeft");
+                        break;
+                    }
             }
         }
 
@@ -584,26 +588,61 @@ public partial class PageSetupLaunch : IPageView
     }
 
     // 可见性选择直接关闭的警告
-    private void ComboArgumentVisibie_SelectionChanged(object sender, SelectionChangedEventArgs sizeChangedEventArgs)
+    private async void ComboArgumentVisibie_SelectionChanged(object sender, SelectionChangedEventArgs sizeChangedEventArgs)
     {
+        // 先记录变更前的配置值：页面刷新时绑定回写 SelectedIndex 同样会触发本事件，只有用户真正切换时才提示
+        var previousValue = (int)Config.Launch.LauncherVisibility;
         ComboChange(sender, sizeChangedEventArgs);
         if (Animations.AniExitsAnyControl())
             return;
-        if (ComboArgumentVisibie.SelectedIndex == 0)
-            if (Launcher.MyMsgBox(
-                    Lang.Text("Setup.Launch.Options.Visibility.CloseImmediately.Warning.Message"),
-                    Lang.Text("Setup.Launch.Options.Visibility.CloseImmediately.Warning.Title"),
-                    Lang.Text("Setup.Launch.Options.Visibility.CloseImmediately.Warning.Continue"),
-                    Lang.Text("Common.Action.Cancel")) == 2)
-                ComboArgumentVisibie.SelectedItem = sizeChangedEventArgs.RemovedItems[0];
+        if (ComboArgumentVisibie.SelectedIndex != 0 || !IsUserSelecting(ComboArgumentVisibie) ||
+            ComboArgumentVisibie.SelectedIndex == previousValue)
+            return;
+        var removedItem = sizeChangedEventArgs.RemovedItems.Count > 0 ? sizeChangedEventArgs.RemovedItems[0] : null;
+        try
+        {
+            if ((await _vm.Dialog.ShowAsync(new TextDialogRequest
+            {
+                Title = Lang.Text("Setup.Launch.Options.Visibility.CloseImmediately.Warning.Title"),
+                Content = Lang.Text("Setup.Launch.Options.Visibility.CloseImmediately.Warning.Message"),
+                Buttons = DialogButtons.From(
+                        DialogButton.Create(Lang.Text("Setup.Launch.Options.Visibility.CloseImmediately.Warning.Continue")),
+                        DialogButton.Create(Lang.Text("Common.Action.Cancel")))
+            }).ConfigureAwait(true)).Button == 2 &&
+                removedItem is not null)
+                ComboArgumentVisibie.SelectedItem = removedItem;
+        }
+        catch (Exception ex)
+        {
+            Common.Log(ex, "关闭窗口可见性确认失败", Common.LogLevel.Msgbox,
+                userSummary: Lang.Text("Setup.Error.OperationFailed"));
+        }
     }
 
     // 实例隔离提示
-    private void ComboArgumentIndie_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private async void ComboArgumentIndie_SelectionChanged(object sender, SelectionChangedEventArgs e,
+        int previousValue)
     {
         if (Animations.AniExitsAnyControl())
             return;
-        Launcher.MyMsgBox(Lang.Text("Setup.Launch.Options.InstanceIsolation.DefaultPolicyHint"));
+        // 只有用户主动操作（下拉展开或键盘选择）且值确实发生变化时才提示；页面刷新时的绑定回写一律忽略
+        if (sender is not MyComboBox { SelectedIndex: >= 0 } combo || !IsUserSelecting(combo) ||
+            combo.SelectedIndex == previousValue)
+            return;
+        try
+        {
+            await _vm.Dialog.ShowAsync(new TextDialogRequest
+            {
+                Title = Lang.Text("Common.Dialog.Title"),
+                Content = Lang.Text("Setup.Launch.Options.InstanceIsolation.DefaultPolicyHint"),
+                Buttons = DialogButtons.Ok
+            }).ConfigureAwait(true);
+        }
+        catch (Exception ex)
+        {
+            Common.Log(ex, "实例隔离提示显示失败", Common.LogLevel.Feedback,
+                userSummary: Lang.Text("Setup.Error.OperationFailed"));
+        }
     }
 
     #endregion
@@ -612,14 +651,13 @@ public partial class PageSetupLaunch : IPageView
 
     private void TextAdvanceRun_TextChanged(object sender, TextChangedEventArgs e)
     {
-        CheckAdvanceRunWait.Visibility =
-            string.IsNullOrEmpty(TextAdvanceRun.Text) ? Visibility.Collapsed : Visibility.Visible;
+        _vm.CheckAdvanceRunWaitVisible = !string.IsNullOrEmpty(TextAdvanceRun.Text);
     }
 
     // JVM 参数重设
     private void TextAdvanceJvm_TextChanged(object sender, TextChangedEventArgs e)
     {
-        BtnAdvanceJvmReset.Visibility =
+        _vm.JvmResetVisibility =
             TextAdvanceJvm.Text == Config.Launch.JvmArgsConfig.DefaultValue
                 ? Visibility.Hidden
                 : Visibility.Visible;
@@ -631,23 +669,43 @@ public partial class PageSetupLaunch : IPageView
         Reload();
     }
 
-    private void ComboAdvanceRenderer_SelectionChanged(MyComboBox sender, object e)
+    private async void ComboAdvanceRenderer_SelectionChanged(MyComboBox sender, object e, int previousValue)
     {
         if (Animations.AniExitsAnyControl())
             return;
+        if (ComboAdvanceRenderer.SelectedIndex < 0 || !IsUserSelecting(ComboAdvanceRenderer) ||
+            ComboAdvanceRenderer.SelectedIndex == previousValue)
+            return;
         if (!States.Hint.Renderer && ComboAdvanceRenderer.SelectedIndex != 0)
         {
-            if (Launcher.MyMsgBox(Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Message"),
-                    Lang.Text("Common.Dialog.Warning"),
-                    Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm"),
-                    Lang.Text("Common.Action.Cancel"), isWarn: true) == 2)
+            var removedItem = ((SelectionChangedEventArgs)e).RemovedItems.Count > 0
+                ? ((SelectionChangedEventArgs)e).RemovedItems[0]
+                : null;
+            try
             {
-                ComboAdvanceRenderer.SelectedItem = ((SelectionChangedEventArgs)e).RemovedItems[0];
+                if ((await _vm.Dialog.ShowAsync(new TextDialogRequest
+                {
+                    Title = Lang.Text("Common.Dialog.Warning"),
+                    Content = Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Message"),
+                    Buttons = DialogButtons.From(
+                        DialogButton.Create(Lang.Text("Setup.Launch.Advanced.Renderer.Warning.Confirm")),
+                        DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                    IsWarn = true
+                })).Button == 2)
+                {
+                    if (removedItem is not null)
+                        ComboAdvanceRenderer.SelectedItem = removedItem;
+                }
+                else
+                {
+                    Config.Launch.Renderer = sender.SelectedIndex;
+                    States.Hint.Renderer = true;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                Config.Launch.Renderer = sender.SelectedIndex;
-                States.Hint.Renderer = true;
+                Common.Log(ex, "渲染器可用性提示显示失败", Common.LogLevel.Feedback,
+                    userSummary: Lang.Text("Setup.Error.OperationFailed"));
             }
         }
         else

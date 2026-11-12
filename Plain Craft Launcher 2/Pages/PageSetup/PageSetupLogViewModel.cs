@@ -3,8 +3,10 @@ using System.IO;
 using System.IO.Compression;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Logging;
 using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
 using PCL.Core.ViewModel;
@@ -48,16 +50,20 @@ public partial class PageSetupLogViewModel : ViewModelBase
 
     public async Task<bool> CleanAsync()
     {
-        var result = await Launcher.MyMsgBoxAsync(Lang.Text("Setup.Log.Clear.Confirm.Message"),
-            Lang.Text("Setup.Log.Clear.Confirm.Title"), Lang.Text("Common.Action.Confirm"),
-            Lang.Text("Common.Action.Cancel"), isWarn: true);
+        var result = (await Dialog.ShowAsync(new TextDialogRequest
+        {
+            Title = Lang.Text("Setup.Log.Clear.Confirm.Title"),
+            Content = Lang.Text("Setup.Log.Clear.Confirm.Message"),
+            Buttons = DialogButtons.OkCancel,
+            IsWarn = true
+        })).Button;
         if (result != 1)
             return false;
         var currentSet = new HashSet<string>(CurrentLogs);
         var cleaned = await RunAsync(ct => Task.Run(() => DeleteInactiveLogs(currentSet), ct));
         if (cleaned is not true)
             return false;
-        HintService.Hint(Lang.Text("Setup.Log.Clear.Success"), HintType.Success);
+        HintService.Show(Hints.Success(Lang.Text("Setup.Log.Clear.Success")));
         return true;
     }
 
@@ -76,7 +82,7 @@ public partial class PageSetupLogViewModel : ViewModelBase
             return;
         var written = await RunAsync(ct => Task.Run(() => WriteZip(selectedPath, tempDirName, sourceFiles), ct));
         if (written is true)
-            HintService.Hint(Lang.Text("Setup.Log.ExportSuccess"), HintType.Success);
+            HintService.Show(Hints.Success(Lang.Text("Setup.Log.ExportSuccess")));
     }
 
     private List<SetupLogEntry> BuildEntries()

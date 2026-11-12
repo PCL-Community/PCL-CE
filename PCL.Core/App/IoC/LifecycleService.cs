@@ -9,7 +9,9 @@ namespace PCL.Core.App.IoC;
 
 partial class Lifecycle
 {
-    private static readonly ConcurrentDictionary<string, LifecycleServiceInfo> _RunningServiceInfoMap = [];
+    private static readonly ConcurrentDictionary<string, LifecycleServiceInfo>
+        _RunningServiceInfoMap = [];
+
     private static readonly ConcurrentStack<ILifecycleService> _StartedServiceStack = [];
     private static readonly Dictionary<string, ILifecycleService> _ManualServiceMap = [];
     private static readonly HashSet<ILifecycleService> _DeclaredStoppedServices = [];
@@ -77,20 +79,26 @@ partial class Lifecycle
             if (_logService is not null) throw new InvalidOperationException("日志服务只能有一个");
             logService = ls;
         }
+
         var state = manual ? LifecycleState.Manual : CurrentState;
         var name = _ServiceName(service, state);
         // 确保不存在重复的标识符
-        lock (_ManualServiceMap) {
-            if (_ManualServiceMap.ContainsKey(service.Identifier) && IsServiceRunning(service.Identifier))
+        lock (_ManualServiceMap)
+        {
+            if (_ManualServiceMap.ContainsKey(service.Identifier)
+                && IsServiceRunning(service.Identifier))
             {
                 Context.Warn($"{name} 标识符重复，已跳过");
                 return Task.CompletedTask;
             }
+
             // 先找个东西占着防止异步加载中检测逻辑失效
             _RunningServiceInfoMap[service.Identifier] = _SystemServiceInfo;
         }
+
         // 运行服务项并添加到正在运行列表
         return service.SupportAsync ? Task.Run(AsyncCall) : AsyncCall();
+
         async Task AsyncCall()
         {
             try
@@ -121,13 +129,14 @@ partial class Lifecycle
                 _UpdateLastException(service, ex);
                 _StopService(service, false);
             }
+
             // 若日志服务已启动则清空日志缓冲
             if (logService is null) return;
             LifecycleLogItem[] pending;
             lock (_PendingLogs)
             {
                 _logService = logService;
-                pending = _PendingLogs.ToArray();
+                pending = [.. _PendingLogs];
                 _PendingLogs.Clear();
             }
 
@@ -136,7 +145,37 @@ partial class Lifecycle
         }
     }
 
-    private static Type[] _GetServiceTypes(LifecycleState state) => LifecycleServiceTypes.GetServiceTypes(state);
+    private static readonly Dictionary<LifecycleState, List<Type>> _AdditionalServiceTypes = [];
+    private static readonly Lock _AdditionalServiceTypesLock = new();
+
+    /// <summary>
+    ///     注册由其他程序集（例如 PCL.Core.Wpf）提供的生命周期服务类型。
+    /// </summary>
+    /// <param name="state">服务启动状态。</param>
+    /// <param name="types">要注册的服务类型。</param>
+    public static void RegisterServiceTypes(LifecycleState state, params Type[] types)
+    {
+        if (types.Length == 0) return;
+        lock (_AdditionalServiceTypesLock)
+        {
+            if (!_AdditionalServiceTypes.TryGetValue(state, out var list))
+                _AdditionalServiceTypes[state] = list = [];
+            foreach (var type in types)
+                if (!list.Contains(type))
+                    list.Add(type);
+        }
+    }
+
+    private static Type[] _GetServiceTypes(LifecycleState state)
+    {
+        var generated = LifecycleServiceTypes.GetServiceTypes(state);
+        lock (_AdditionalServiceTypesLock)
+        {
+            if (!_AdditionalServiceTypes.TryGetValue(state, out var extra) || extra.Count == 0)
+                return generated;
+            return [.. generated, .. extra.Where(t => !generated.Contains(t))];
+        }
+    }
 
     private static ILifecycleService _CreateService(Type type)
     {
@@ -146,7 +185,8 @@ partial class Lifecycle
             SystemContext.Trace($"正在实例化 {fullname}");
             var instance = (ILifecycleService)Activator.CreateInstance(type, true)!;
             var supportAsyncText = instance.SupportAsync ? "异步" : "同步";
-            SystemContext.Trace($"实例化完成: {instance.Name} ({instance.Identifier}), 启动方式: {supportAsyncText}");
+            SystemContext.Trace(
+                $"实例化完成: {instance.Name} ({instance.Identifier}), 启动方式: {supportAsyncText}");
             return instance;
         }
         catch (Exception ex)
@@ -174,11 +214,15 @@ partial class Lifecycle
             else _StartServiceTask(instance).ConfigureAwait(false).GetAwaiter().GetResult();
             if (_hasRequestedStopLoading) return; // 若请求停止加载则提前结束
         }
+
         // 运行异步启动服务并等待所有服务启动完成
         Task.WaitAll(asyncInstances.Select(instance => _StartServiceTask(instance)).ToArray());
     }
 
-    private static void _StartStateFlow(LifecycleState start, LifecycleState? end = null, bool count = true)
+    private static void _StartStateFlow(
+        LifecycleState start,
+        LifecycleState? end = null,
+        bool count = true)
     {
         var index = (int)start;
         var endIndex = end is null ? index : (int)end;
@@ -193,18 +237,25 @@ partial class Lifecycle
                 var countSpan = DateTime.Now - s; // 结束计时
                 _LogStateCount(countSpan, state);
             }
+
             index++;
         }
     }
 
-    private static void _StartWorker(LifecycleState state, LifecycleState? wait = null, bool count = true)
+    private static void _StartWorker(
+        LifecycleState state,
+        LifecycleState? wait = null,
+        bool count = true)
     {
         new Thread(() =>
         {
             _StartStateFlow(state, count: count);
             if (wait is { } w) WaitForState(w);
         })
-        { IsBackground = true, Name = $"Lifecycle/{state}" }.Start();
+        {
+            IsBackground = true,
+            Name = $"Lifecycle/{state}"
+        }.Start();
     }
 
     private static void _RemoveRunningInstance(ILifecycleService service)
@@ -243,6 +294,7 @@ partial class Lifecycle
                 Context.Warn($"停止 {name} 时出错，已跳过", ex);
                 _UpdateLastException(service, ex);
             }
+
             // 从正在运行列表移除
             _RemoveRunningInstance(service);
         }
@@ -259,7 +311,10 @@ partial class Lifecycle
     /// </summary>
     /// <param name="identifier">服务项标识符（即 <see cref="ILifecycleService.Identifier"/> 属性）</param>
     /// <returns>服务项是否正在运行</returns>
-    public static bool IsServiceRunning(string identifier) => _RunningServiceInfoMap.ContainsKey(identifier);
+    public static bool IsServiceRunning(string identifier)
+    {
+        return _RunningServiceInfoMap.ContainsKey(identifier);
+    }
 
     /// <summary>
     /// 根据标识符获取正在运行的服务项的相关信息
@@ -321,7 +376,8 @@ partial class Lifecycle
     /// <returns>是否成功请求运行，若标识符与正在运行的服务或已注册的手动服务冲突则无法运行。</returns>
     public static bool StartCustomService(ILifecycleService service)
     {
-        if (IsServiceRunning(service.Identifier) || _ManualServiceMap.ContainsKey(service.Identifier)) return false;
+        if (IsServiceRunning(service.Identifier)
+            || _ManualServiceMap.ContainsKey(service.Identifier)) return false;
         _StartServiceTask(service);
         return true;
     }
@@ -337,19 +393,19 @@ public interface ILifecycleService
     /// 全局唯一标识符，统一使用纯小写字母与 “-” 的命名格式，如 <c>logger</c> <c>yggdrasil-server</c> 等。
     /// </summary>
     public string Identifier { get; }
-    
+
     /// <summary>
     /// 友好名称，如 “日志” “验证服务端” 等，将会用于记录日志等场合。
     /// </summary>
     public string Name { get; }
-    
+
     /// <summary>
     /// 声明该服务是否支持异步启动。
     /// 每个生命周期均会依次同步启动不支持异步启动的服务，然后依次异步启动支持异步启动的服务，启动的执行顺序遵循声明的优先级。<br/>
     /// 支持异步启动对启动器整体启动速度有一定帮助，在允许的情况下应尽最大可能支持。
     /// </summary>
     public bool SupportAsync { get; }
-    
+
     /// <summary>
     /// 启动该服务。应由生命周期管理自动调用，若无特殊情况，请勿手动调用。
     /// </summary>

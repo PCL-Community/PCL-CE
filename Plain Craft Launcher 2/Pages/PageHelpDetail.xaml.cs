@@ -1,14 +1,17 @@
 using System.ComponentModel;
 using System.Windows;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 
 namespace PCL;
 
-public partial class PageHelpDetail : IRefreshable
+public partial class PageHelpDetail : IRefreshable, IPageView
 {
     internal sealed record HelpContent(string SourcePath, string Title, string Xaml);
 
     private readonly PageHelpDetailViewModel _vm;
+
+    private bool _refreshed;
 
     public string Title => _vm.Title;
 
@@ -18,11 +21,29 @@ public partial class PageHelpDetail : IRefreshable
         _vm = new PageHelpDetailViewModel(content);
         DataContext = _vm;
         _vm.PropertyChanged += VmOnPropertyChanged;
-        Loaded += (_, _) => PanBack.ScrollToHome();
+        Loaded += (_, _) => RefreshOnNavigate();
+        Unloaded += (_, _) => _refreshed = false;
         ApplyContent(content);
     }
 
     internal static HelpContent LoadContent(string jsonPath) => PageHelpDetailViewModel.LoadContent(jsonPath);
+
+    public void OnNavigatedTo(object? parameter)
+    {
+        RefreshOnNavigate();
+    }
+
+    public void OnNavigatedFrom()
+    {
+    }
+
+    private void RefreshOnNavigate()
+    {
+        if (_refreshed)
+            return;
+        _refreshed = true;
+        PanBack.ScrollToHome();
+    }
 
     private void VmOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
@@ -44,9 +65,9 @@ public partial class PageHelpDetail : IRefreshable
 
         var element = (UIElement)Common.GetObjectFromXml(xaml, out var sanitizeResult);
         foreach (var unsupported in sanitizeResult.UnsupportedTypesFound)
-            HintService.Hint(Lang.Text("Event.Sanitize.UnsupportedTypeHint", unsupported), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Event.Sanitize.UnsupportedTypeHint", unsupported)));
         foreach (var unknown in sanitizeResult.UnrecognizedTypes)
-            HintService.Hint(Lang.Text("Event.Sanitize.UnknownTypeHint", unknown), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Event.Sanitize.UnknownTypeHint", unknown)));
 
         PanCustom.Children.Clear();
         PanCustom.Children.Add(element);

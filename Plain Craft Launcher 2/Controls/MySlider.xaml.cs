@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
@@ -14,7 +14,11 @@ public partial class MySlider
 
     // 自定义属性
 
-    private int _Value;
+    public static readonly DependencyProperty ValueProperty = DependencyProperty.Register(nameof(Value), typeof(int),
+        typeof(MySlider), new FrameworkPropertyMetadata(0, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault,
+            (d, e) => ((MySlider)d).OnValueChanged((int)e.OldValue, (int)e.NewValue)));
+
+    private bool _isUpdatingValue;
     private bool changeByKey;
 
     // 拖动
@@ -51,79 +55,105 @@ public partial class MySlider
 
     public int Value
     {
-        get => _Value;
+        get => (int)GetValue(ValueProperty);
         set
         {
-            try
-            {
-                value = (int)Math.Round(Common.MathClamp(value, 0d, MaxValue));
-                if (_Value == value)
-                    return;
+            var clamped = (int)Math.Round(Common.MathClamp(value, 0d, MaxValue));
+            if (clamped == Value)
+                return;
+            SetCurrentValue(ValueProperty, clamped);
+        }
+    }
 
-                // 触发 Preview 事件，修改新值
-                var oldValue = _Value;
-                _Value = value;
-                if (!Animations.AniExitsAnyControl())
+    private void OnValueChanged(int oldValue, int newValue)
+    {
+        if (_isUpdatingValue)
+            return;
+        try
+        {
+            var value = (int)Math.Round(Common.MathClamp(newValue, 0d, MaxValue));
+            if (value != newValue)
+            {
+                _isUpdatingValue = true;
+                try
                 {
-                    var e = new Common.RouteEventArgs();
-                    PreviewChange?.Invoke(this, e);
-                    if (e.handled)
+                    SetCurrentValue(ValueProperty, value);
+                }
+                finally
+                {
+                    _isUpdatingValue = false;
+                }
+            }
+
+            // 触发 Preview 事件，修改新值
+            if (!Animations.AniExitsAnyControl())
+            {
+                var e = new Common.RouteEventArgs();
+                PreviewChange?.Invoke(this, e);
+                if (e.handled)
+                {
+                    _isUpdatingValue = true;
+                    try
                     {
-                        _Value = oldValue;
-                        DragStop();
-                        return;
+                        SetCurrentValue(ValueProperty, oldValue);
                     }
-                }
+                    finally
+                    {
+                        _isUpdatingValue = false;
+                    }
 
-                if (IsLoaded && !Animations.AniExitsAnyControl())
-                {
-                    if (ActualWidth < ShapeDot.Width)
-                        return;
-                    var newWidth = _Value / (double)MaxValue * (ActualWidth - ShapeDot.Width);
-                    var deltaProcess =
-                        Math.Abs(LineFore.Width / (ActualWidth - ShapeDot.Width) - _Value / (double)MaxValue);
-                    var time = (1d - Math.Pow(1d - deltaProcess, 3d)) * 300d + (changeByKey ? 100 : 0);
-                    Animations.AniStart(
-                        new[]
-                        {
-                            Animations.AaWidth(LineFore,
-                                Math.Max(0d, newWidth + (newWidth < 0.5d ? 0d : 0.5d)) - LineFore.Width,
-                                (int)Math.Round(time),
-                                ease: time > 50d
-                                    ? new Animations.AniEaseOutFluent()
-                                    : new Animations.AniEaseLinear()),
-                            Animations.AaWidth(LineBack,
-                                Math.Max(0d,
-                                    ActualWidth - ShapeDot.Width - newWidth +
-                                    (ActualWidth - ShapeDot.Width - newWidth < 0.5d ? 0d : 0.5d)) - LineBack.Width,
-                                (int)Math.Round(time),
-                                ease: time > 50d
-                                    ? new Animations.AniEaseOutFluent()
-                                    : new Animations.AniEaseLinear()),
-                            Animations.AaX(ShapeDot, newWidth - ShapeDot.Margin.Left,
-                                (int)Math.Round(time),
-                                ease: time > 50d
-                                    ? new Animations.AniEaseOutFluent()
-                                    : new Animations.AniEaseLinear())
-                        }, "MySlider Progress " + Uuid);
+                    return;
                 }
-                else
-                {
-                    RefreshWidth(null, null);
-                }
-
-                if (!Animations.AniExitsAnyControl())
-                    Change?.Invoke(this, false);
             }
 
-            catch (Exception ex)
+            if (IsLoaded && !Animations.AniExitsAnyControl())
             {
-                Common.Log(
-                    ex,
-                    "滑动条进度改变出错",
-                    Common.LogLevel.Hint,
-                    userSummary: Lang.Text("Application.Control.Error.OperationFailed"));
+                if (ActualWidth < ShapeDot.Width)
+                    return;
+                var newWidth = value / (double)MaxValue * (ActualWidth - ShapeDot.Width);
+                var deltaProcess =
+                    Math.Abs(LineFore.Width / (ActualWidth - ShapeDot.Width) - value / (double)MaxValue);
+                var time = (1d - Math.Pow(1d - deltaProcess, 3d)) * 300d + (changeByKey ? 100 : 0);
+                Animations.AniStart(
+                    new[]
+                    {
+                        Animations.AaWidth(LineFore,
+                            Math.Max(0d, newWidth + (newWidth < 0.5d ? 0d : 0.5d)) - LineFore.Width,
+                            (int)Math.Round(time),
+                            ease: time > 50d
+                                ? new Animations.AniEaseOutFluent()
+                                : new Animations.AniEaseLinear()),
+                        Animations.AaWidth(LineBack,
+                            Math.Max(0d,
+                                ActualWidth - ShapeDot.Width - newWidth +
+                                (ActualWidth - ShapeDot.Width - newWidth < 0.5d ? 0d : 0.5d)) - LineBack.Width,
+                            (int)Math.Round(time),
+                            ease: time > 50d
+                                ? new Animations.AniEaseOutFluent()
+                                : new Animations.AniEaseLinear()),
+                        Animations.AaX(ShapeDot, newWidth - ShapeDot.Margin.Left,
+                            (int)Math.Round(time),
+                            ease: time > 50d
+                                ? new Animations.AniEaseOutFluent()
+                                : new Animations.AniEaseLinear())
+                    }, "MySlider Progress " + Uuid);
             }
+            else
+            {
+                RefreshWidth(null, null);
+            }
+
+            if (!Animations.AniExitsAnyControl())
+                Change?.Invoke(this, false);
+        }
+
+        catch (Exception ex)
+        {
+            Common.Log(
+                ex,
+                "滑动条进度改变出错",
+                Common.LogLevel.Hint,
+                userSummary: Lang.Text("Application.Control.Error.OperationFailed"));
         }
     }
 
@@ -138,7 +168,7 @@ public partial class MySlider
         if (e is not null)
             PanMain.Width = e.NewSize.Width;
         Animations.AniStop("MySlider Progress " + Uuid);
-        var newWidth = _Value / (double)MaxValue * (ActualWidth - ShapeDot.Width);
+        var newWidth = Value / (double)MaxValue * (ActualWidth - ShapeDot.Width);
         LineFore.Width = Math.Max(0d, newWidth + (newWidth < 0.5d ? 0d : 0.5d));
         LineBack.Width = Math.Max(0d,
             ActualWidth - ShapeDot.Width - newWidth + (ActualWidth - ShapeDot.Width - newWidth < 0.5d ? 0d : 0.5d));
@@ -153,6 +183,7 @@ public partial class MySlider
         Launcher.dragControl = this;
         RefreshColor();
         Launcher.frmMain.DragDoing();
+        if (Launcher.frmMain.PanMsg.Children.Count > 0) return;
         Animations.AniStart(
             Animations.AaScaleTransform(ShapeDot,
                 1.3d - ((ScaleTransform)ShapeDot.RenderTransform).ScaleX, 40,
@@ -163,6 +194,12 @@ public partial class MySlider
 
     public void DragDoing()
     {
+        if (Launcher.frmMain.PanMsg.Children.Count > 0)
+        {
+            Launcher.frmMain.DragStop();
+            return;
+        }
+
         var percent =
             Common.MathClamp(
                 (Mouse.GetPosition(PanMain).X - ShapeDot.Width / 2d) /
@@ -170,7 +207,7 @@ public partial class MySlider
                 1d);
         var newValue = (int)Math.Round(percent * MaxValue);
         if (newValue != Value) Value = newValue;
-        RefreshPopup();
+        if (Launcher.frmMain.PanMsg.Children.Count == 0) RefreshPopup();
     }
     
     private void OnDragMouseMove(object sender, MouseEventArgs e)

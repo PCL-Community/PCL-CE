@@ -1,6 +1,8 @@
 ﻿using System.IO;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
 using PCL.Network;
 using PCL.Network.Loaders;
 
@@ -20,22 +22,22 @@ public static partial class DownloadUi
                 .ToList()
                 .Any(ongoingLoader => ongoingLoader.Identifier == DownloadIdentifier("LiteLoader", id)))
             {
-                HintService.Hint(
-                    Lang.Text("Minecraft.Download.Error.InstanceDownloading"),
-                    HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Minecraft.Download.Error.InstanceDownloading")));
                 return;
             }
 
             if (File.Exists(Path.Combine(versionFolder, $"{versionName}.json")))
             {
-                if (Launcher.MyMsgBox(
-                        Lang.Text(
-                            "Minecraft.Download.Error.InstanceAlreadyExists",
-                            versionName,
-                            "\r\n"),
-                        Lang.Text("Minecraft.Download.Error.InstanceAlreadyExists.Title"),
-                        Lang.Text("Common.Action.Continue"),
-                        Lang.Text("Common.Action.Cancel"))
+                if ((DialogService.Instance.Show(new TextDialogRequest
+                {
+                    Title = Lang.Text("Minecraft.Download.Error.InstanceAlreadyExists.Title"),
+                    Content = Lang.Text(
+                        "Minecraft.Download.Error.InstanceAlreadyExists",
+                        versionName,
+                        "\r\n"),
+                    Buttons = DialogButtons.ContinueCancel,
+                    ForceWait = true
+                }).Result?.Button ?? 0)
                     == 1)
                 {
                     File.Delete(Path.Combine(versionFolder, $"{versionName}.jar"));
@@ -86,9 +88,7 @@ public static partial class DownloadUi
 
             if (_IsLiteLoaderDownloading(id))
             {
-                HintService.Hint(
-                    Lang.Text("Minecraft.Download.Error.InstanceDownloading"),
-                    HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Minecraft.Download.Error.InstanceDownloading")));
                 return;
             }
 
@@ -100,7 +100,7 @@ public static partial class DownloadUi
                         new DownloadFile(
                             _GetLiteLoaderDownloadAddresses(downloadInfo),
                             target,
-                            new Common.FileChecker(1024 * 1024))
+                            new FileChecker(1024 * 1024))
                     ]
                 )
                 {

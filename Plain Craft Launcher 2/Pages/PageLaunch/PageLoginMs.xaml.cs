@@ -1,4 +1,5 @@
 using System;
+using System.Windows.Input;
 
 namespace PCL;
 
@@ -10,8 +11,6 @@ public partial class PageLoginMs : IPageView
     {
         InitializeComponent();
         DataContext = _vm;
-        BtnBack.Click += BtnBack_Click;
-        BtnLogin.Click += BtnLogin_Click;
     }
 
     public void OnNavigatedTo(object? parameter) => _vm.ResetLoginState();
@@ -22,5 +21,5 @@ public partial class PageLoginMs : IPageView
 
     private void BtnBack_Click(object sender, EventArgs e) => _vm.BackCommand.Execute(null);
 
-    private void BtnLogin_Click(object sender, EventArgs e) => _vm.LoginCommand.Execute(null);
+    private void BtnLogin_Click(object sender, MouseButtonEventArgs e) => _vm.LoginCommand.Execute(null);
 }

@@ -5,15 +5,16 @@ using System.Windows.Interop;
 using Markdig.Wpf;
 using PCL.Core.App.Localization;
 using PCL.Core.UI.Controls;
+using PCL.Core.UI.Dialogs;
 
 namespace PCL;
 
 public partial class MyMsgMarkdown
 {
-    private readonly Launcher.MyMsgBoxConverter myConverter;
+    private readonly DialogViewModel myDialog;
     private readonly int uuid = Common.GetUuid();
 
-    public MyMsgMarkdown(Launcher.MyMsgBoxConverter converter)
+    public MyMsgMarkdown(DialogViewModel dialog)
     {
         try
         {
@@ -22,13 +23,13 @@ public partial class MyMsgMarkdown
             AppendUniqueNameSuffix(Btn1);
             AppendUniqueNameSuffix(Btn2);
             AppendUniqueNameSuffix(Btn3);
-            myConverter = converter;
-            LabTitle.Text = converter.Title;
-            LabCaption.Markdown = converter.Text;
+            myDialog = dialog;
+            LabTitle.Text = dialog.Title;
+            LabCaption.Markdown = dialog.TextContent;
             DataContext = this;
-            ConfigurePrimaryButton(converter.Button1, converter.IsWarn);
-            ConfigureSecondaryButton(Btn2, converter.Button2);
-            ConfigureSecondaryButton(Btn3, converter.Button3);
+            ConfigurePrimaryButton(dialog.ButtonText(1), dialog.IsWarn);
+            ConfigureSecondaryButton(Btn2, dialog.ButtonText(2));
+            ConfigureSecondaryButton(Btn3, dialog.ButtonText(3));
             ShapeLine.StrokeThickness = Common.GetWpfSize(1d);
         }
 
@@ -92,7 +93,7 @@ public partial class MyMsgMarkdown
             Opacity = 0d;
             Animations.AniStart(
                 Animations.AaColor(Launcher.frmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
-                    (myConverter.IsWarn
+                    (myDialog.IsWarn
                         ? new Common.MyColor(140d, 80d, 0d, 0d)
                         : new Common.MyColor(90d, 0d, 0d, 0d)) -
                     Launcher.frmMain.PanMsgBackground.Background, 200),
@@ -125,16 +126,12 @@ public partial class MyMsgMarkdown
     private void Close()
     {
         // 结束线程阻塞
-        if (myConverter.ForceWait || !string.IsNullOrEmpty(myConverter.Button2))
-            myConverter.WaitFrame.Continue = false;
-        myConverter.Completion.TrySetResult(myConverter.Result is int value ? value : null);
-        ComponentDispatcher.PopModal();
         // 动画
         Animations.AniStart(new[]
         {
             Animations.AaCode(() =>
             {
-                if (!Launcher.WaitingMyMsgBox.Any())
+                if (!PCL.Core.UI.Dialogs.DialogService.Instance.IsShowing && !PCL.Core.UI.Dialogs.DialogService.Instance.HasPending)
                     Animations.AniStart(Animations.AaColor(Launcher.frmMain.PanMsgBackground,
                         BlurBorder.BackgroundProperty,
                         new Common.MyColor(0d, 0d, 0d, 0d) -
@@ -153,50 +150,47 @@ public partial class MyMsgMarkdown
 
     public void Btn1_Click(object sender, MouseButtonEventArgs e)
     {
-        if (myConverter.IsExited)
+        if (myDialog.IsClosed)
             return;
-        if (myConverter.Button1Action is not null)
+        var action = myDialog.ButtonAction(1);
+        if (action is not null)
         {
-            myConverter.Button1Action();
+            action();
+            return;
         }
-        else
-        {
-            myConverter.IsExited = true;
-            myConverter.Result = 1;
-            Close();
-        }
+
+        myDialog.CloseByButton(1);
+        Close();
     }
 
     public void Btn2_Click(object sender, MouseButtonEventArgs e)
     {
-        if (myConverter.IsExited)
+        if (myDialog.IsClosed)
             return;
-        if (myConverter.Button2Action is not null)
+        var action = myDialog.ButtonAction(2);
+        if (action is not null)
         {
-            myConverter.Button2Action();
+            action();
+            return;
         }
-        else
-        {
-            myConverter.IsExited = true;
-            myConverter.Result = 2;
-            Close();
-        }
+
+        myDialog.CloseByButton(2);
+        Close();
     }
 
     public void Btn3_Click(object sender, MouseButtonEventArgs e)
     {
-        if (myConverter.IsExited)
+        if (myDialog.IsClosed)
             return;
-        if (myConverter.Button3Action is not null)
+        var action = myDialog.ButtonAction(3);
+        if (action is not null)
         {
-            myConverter.Button3Action();
+            action();
+            return;
         }
-        else
-        {
-            myConverter.IsExited = true;
-            myConverter.Result = 3;
-            Close();
-        }
+
+        myDialog.CloseByButton(3);
+        Close();
     }
 
     private void Drag(object? sender = null, MouseButtonEventArgs? e = null)

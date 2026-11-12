@@ -1,6 +1,10 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App.Localization;
 using PCL.Core.ViewModel;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Windows;
 
 namespace PCL;
 
@@ -31,6 +35,9 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
     [ObservableProperty] private string _sortText = "";
 
     [ObservableProperty] private bool _showList = true;
+    [ObservableProperty] private bool _showItemList = true;
+    [ObservableProperty] private Thickness _listBackMargin = new(0d, 0d, 0d, 14d);
+    [ObservableProperty] private string _searchText = "";
     [ObservableProperty] private bool _showEmpty = true;
     [ObservableProperty] private bool _showSchematicEmpty;
     [ObservableProperty] private string _emptyTitle = "";
@@ -52,35 +59,188 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
     [ObservableProperty] private bool _showHintDownload = true;
     [ObservableProperty] private bool _showManageJarInJar = true;
 
+    public Comp.CompType CompType { get; private set; } = Comp.CompType.Mod;
+
+    public string CurrentFolderPath { get; private set; } = "";
+
+    public void SetCompType(Comp.CompType compType)
+    {
+        CompType = compType;
+
+        // 按资源类型收窄可用操作
+        if (compType is Comp.CompType.Shader or Comp.CompType.ResourcePack or Comp.CompType.Schematic)
+        {
+            ShowSelectEnable = false;
+            ShowSelectDisable = false;
+        }
+
+        // 投影文件管理页隐藏下载按钮
+        if (compType == Comp.CompType.Schematic)
+        {
+            ShowManageDownload = false;
+            ShowHintDownload = false;
+        }
+
+        if (compType != Comp.CompType.Mod) ShowManageJarInJar = false;
+    }
+
+    public void SetCurrentFolder(string path) => CurrentFolderPath = path;
+
+    /// <summary>列表当前显示的条目。排序与筛选在 code-behind 中算好后交给该集合。</summary>
+    public ObservableCollection<MyLocalModItemViewModel> Mods { get; } = new();
+
+    /// <summary>是否正在加载列表；供需要区分加载态与空态的界面使用。</summary>
+    [ObservableProperty] private bool _isLoading;
+
+    /// <summary>
+    ///     用目标顺序替换列表内容。<br />
+    ///     只做增删与移动，复用传入的 ViewModel 实例，避免同一文件重复解码图片。
+    /// </summary>
+    public void ReplaceMods(IReadOnlyList<MyLocalModItemViewModel> items)
+    {
+        // 移除不再显示的项
+        var wanted = new HashSet<MyLocalModItemViewModel>(items);
+        for (var i = Mods.Count - 1; i >= 0; i--)
+            if (!wanted.Contains(Mods[i]))
+                Mods.RemoveAt(i);
+
+        // 按目标顺序插入或移动
+        for (var i = 0; i < items.Count; i++)
+        {
+            var item = items[i];
+            var index = Mods.IndexOf(item);
+            if (index < 0)
+                Mods.Insert(i, item);
+            else if (index != i)
+                Mods.Move(index, i);
+        }
+    }
+
+    [RelayCommand]
+    private void OpenJarInJar()
+    {
+        Launcher.frmInstanceLeft?.PageChange(FormMain.PageSubType.VersionModJarInJar);
+    }
+
+    [RelayCommand]
+    private void SchematicDownloadMod()
+    {
+        Launcher.frmMain!.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadMod);
+        PageComp.targetVersion = PageInstanceLeft.McInstance; // 将当前实例设置为筛选器
+    }
+
+    [RelayCommand]
+    private void SchematicVersionSelect()
+    {
+        Launcher.frmMain!.PageChange(FormMain.PageType.Launch);
+        Launcher.frmMain.PageChange(FormMain.PageType.InstanceSelect);
+    }
+
+    [RelayCommand]
+    private void DownloadNew()
+    {
+        switch (CompType)
+        {
+            case Comp.CompType.Mod:
+                {
+                    Launcher.frmMain!.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadMod);
+                    break;
+                }
+            case Comp.CompType.ResourcePack:
+                {
+                    Launcher.frmMain!.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadResourcePack);
+                    break;
+                }
+            case Comp.CompType.Shader:
+                {
+                    Launcher.frmMain!.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadShader);
+                    break;
+                }
+        }
+
+        PageComp.targetVersion = PageInstanceLeft.McInstance; // 将当前实例设置为筛选器
+    }
+
+    [RelayCommand]
+    private void OpenFolder()
+    {
+        try
+        {
+            string compFilePath;
+            // 如果当前在子文件夹中，则打开当前子文件夹；否则打开根目录
+            if (string.IsNullOrEmpty(CurrentFolderPath))
+                // 打开根目录
+                compFilePath = PageInstanceLeft.McInstance.PathIndie +
+                               (PageInstanceLeft.McInstance.Info.HasLabyMod
+                                   ? Path.Combine("labymod-neo", "fabric",
+                                       PageInstanceLeft.McInstance.Info.VanillaName)
+                                   : "") + LocalComp.GetPathNameByCompType(CompType) + @"\";
+            else
+                // 打开当前子文件夹
+                compFilePath = CurrentFolderPath.EndsWith(@"\") ? CurrentFolderPath : CurrentFolderPath + @"\";
+            Directory.CreateDirectory(compFilePath);
+            Common.OpenExplorer(compFilePath);
+        }
+        catch (Exception ex)
+        {
+            Common.Log(
+                ex,
+                "打开 Mods 文件夹失败",
+                Common.LogLevel.Msgbox,
+                userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
+        }
+    }
+
+    [RelayCommand]
+    private void OpenFileLocation(LocalComp.LocalCompFile? entry)
+    {
+        if (entry is null)
+            return;
+        try
+        {
+            // 对于文件夹使用实际路径，对于文件使用原路径
+            var targetPath = entry.IsFolder ? entry.ActualPath : entry.path;
+            Common.OpenExplorer(targetPath);
+        }
+        catch (Exception ex)
+        {
+            Common.Log(
+                ex,
+                "打开资源文件位置失败",
+                Common.LogLevel.Feedback,
+                userSummary: Lang.Text("Instance.Resource.Error.OperationFailed"));
+        }
+    }
+
     public static string GetSortName(SortMethod method)
     {
         switch (method)
         {
             case SortMethod.FileName:
-            {
-                return Lang.Text("Instance.Resource.Sort.FileName");
-            }
+                {
+                    return Lang.Text("Instance.Resource.Sort.FileName");
+                }
             case SortMethod.CompName:
-            {
-                return Lang.Text("Instance.Resource.Sort.ResourceName");
-            }
+                {
+                    return Lang.Text("Instance.Resource.Sort.ResourceName");
+                }
             case SortMethod.TagNums:
-            {
-                return Lang.Text("Instance.Resource.Sort.TagCount");
-            }
+                {
+                    return Lang.Text("Instance.Resource.Sort.TagCount");
+                }
             case SortMethod.CreateTime:
-            {
-                return Lang.Text("Instance.Resource.Sort.AddTime");
-            }
+                {
+                    return Lang.Text("Instance.Resource.Sort.AddTime");
+                }
             case SortMethod.ModFileSize:
-            {
-                return Lang.Text("Instance.Resource.Sort.FileSize");
-            }
+                {
+                    return Lang.Text("Instance.Resource.Sort.FileSize");
+                }
 
             default:
-            {
-                return Lang.Text("Instance.Resource.Sort.ResourceName");
-            }
+                {
+                    return Lang.Text("Instance.Resource.Sort.ResourceName");
+                }
         }
     }
 

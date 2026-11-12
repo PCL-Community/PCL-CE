@@ -1,8 +1,9 @@
-﻿using System.Text;
+using PCL.Core.UI.Controls;
+using System.Collections.Concurrent;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using PCL.Core.UI.Controls;
 
 namespace PCL;
 
@@ -14,6 +15,20 @@ internal static partial class TextStyles
             "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%^&*()_+-=[]{}|;:,.<>?/~";
 
         private static readonly Random Random = new();
+
+        /// <summary>颜色画刷缓存，避免每段文本都新建并冻结一个画刷。</summary>
+        private static readonly ConcurrentDictionary<Color, SolidColorBrush> BrushCache = [];
+
+        private static SolidColorBrush GetCachedBrush(string color)
+        {
+            var parsed = (Color)new Common.MyColor(color);
+            return BrushCache.GetOrAdd(parsed, static c =>
+            {
+                var brush = new SolidColorBrush(c);
+                brush.Freeze();
+                return brush;
+            });
+        }
 
         /// <summary>
         /// Minecraft 文本格式化代码，用于显示不同颜色的文本
@@ -27,6 +42,10 @@ internal static partial class TextStyles
                 Common.Log("[Style] SetColorfulTextLab: lab is null");
                 return;
             }
+
+            if (lab.Tag is string lastText && lastText == text && lab.Inlines.Count > 0)
+                return;
+            lab.Tag = text;
 
             lab.Inlines.Clear();
 
@@ -61,48 +80,48 @@ internal static partial class TextStyles
                         {
                             case 'k':
                             case 'K':
-                            {
-                                isRandomText = true;
-                                if (!string.IsNullOrEmpty(curRun.Text))
                                 {
-                                    curRun = new TimerRun();
-                                    lab.Inlines.Add(curRun);
-                                }
+                                    isRandomText = true;
+                                    if (!string.IsNullOrEmpty(curRun.Text))
+                                    {
+                                        curRun = new TimerRun();
+                                        lab.Inlines.Add(curRun);
+                                    }
 
-                                curRun.AutoStart = true;
-                                randomTextRuns.Add(curRun);
-                                break;
-                            }
+                                    curRun.AutoStart = true;
+                                    randomTextRuns.Add(curRun);
+                                    break;
+                                }
                             case 'l':
-                            {
-                                hasBlodProperty = true;
-                                break;
-                            }
+                                {
+                                    hasBlodProperty = true;
+                                    break;
+                                }
                             case 'o':
-                            {
-                                hasItalicProperty = true;
-                                break;
-                            }
+                                {
+                                    hasItalicProperty = true;
+                                    break;
+                                }
                             case 'n':
-                            {
-                                hasStrickThroughProperty = true;
-                                break;
-                            }
+                                {
+                                    hasStrickThroughProperty = true;
+                                    break;
+                                }
                             case 'm':
-                            {
-                                hasDeleteLineProperty = true;
-                                break;
-                            }
+                                {
+                                    hasDeleteLineProperty = true;
+                                    break;
+                                }
                             case 'r':
-                            {
-                                color = isDarkMode ? "#FFFFFF" : "#888888";
-                                hasBlodProperty = false;
-                                hasItalicProperty = false;
-                                hasStrickThroughProperty = false;
-                                hasDeleteLineProperty = false;
-                                isRandomText = false;
-                                break;
-                            }
+                                {
+                                    color = isDarkMode ? "#FFFFFF" : "#888888";
+                                    hasBlodProperty = false;
+                                    hasItalicProperty = false;
+                                    hasStrickThroughProperty = false;
+                                    hasDeleteLineProperty = false;
+                                    isRandomText = false;
+                                    break;
+                                }
                         }
                     }
 
@@ -114,7 +133,7 @@ internal static partial class TextStyles
                         lab.Inlines.Add(curRun);
                     }
 
-                    curRun.Foreground = new SolidColorBrush(new Common.MyColor(color!));
+                    curRun.Foreground = GetCachedBrush(color!);
                     curRun.FontWeight = hasBlodProperty ? FontWeights.Bold : FontWeights.Normal;
                     curRun.FontStyle = hasItalicProperty ? FontStyles.Italic : FontStyles.Normal;
                     curRun.TextDecorations = hasStrickThroughProperty

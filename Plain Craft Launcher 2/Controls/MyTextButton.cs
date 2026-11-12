@@ -37,6 +37,24 @@ public class MyTextButton : Label
 
     public int Uuid = Common.GetUuid();
 
+    public static readonly DependencyProperty CommandProperty = DependencyProperty.Register(nameof(Command),
+        typeof(ICommand), typeof(MyTextButton), new PropertyMetadata(null));
+
+    public ICommand? Command
+    {
+        get => (ICommand?)GetValue(CommandProperty);
+        set => SetValue(CommandProperty, value);
+    }
+
+    public static readonly DependencyProperty CommandParameterProperty = DependencyProperty.Register(
+        nameof(CommandParameter), typeof(object), typeof(MyTextButton), new PropertyMetadata(null));
+
+    public object? CommandParameter
+    {
+        get => GetValue(CommandParameterProperty);
+        set => SetValue(CommandParameterProperty, value);
+    }
+
     public MyTextButton()
     {
         SetResourceReference(ForegroundProperty, "ColorBrush1");
@@ -88,6 +106,7 @@ public class MyTextButton : Label
         Common.Log("[Control] 按下文本按钮：" + Text);
         Click?.Invoke(this, null);
         Launcher.RaiseCustomEvent(this);
+        ExecuteCommand();
         e.Handled = true;
     }
 
@@ -102,5 +121,23 @@ public class MyTextButton : Label
         // 触发颜色动画
         ControlVisualHelpers.AnimateColorOrSetResource(this, ForegroundProperty, ForeName, Time,
             "MyTextButton Color " + Uuid, ControlVisualHelpers.ShouldAnimate(this));
+    }
+
+    private bool _isCommandRunning;
+
+    private void ExecuteCommand()
+    {
+        var command = Command;
+        if (_isCommandRunning || command is null || !command.CanExecute(CommandParameter))
+            return;
+        _isCommandRunning = true;
+        try
+        {
+            command.Execute(CommandParameter);
+        }
+        finally
+        {
+            _isCommandRunning = false;
+        }
     }
 }

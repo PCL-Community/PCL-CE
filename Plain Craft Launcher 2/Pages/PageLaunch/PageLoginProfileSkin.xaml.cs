@@ -1,26 +1,42 @@
 using System.Windows;
 using System.Windows.Input;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Minecraft.Profile;
 using PCL.Core.Minecraft.Profile.Models;
 
 namespace PCL;
 
-public partial class PageLoginProfileSkin
+public partial class PageLoginProfileSkin : IPageView
 {
     private readonly PageLoginProfileSkinViewModel _vm = new();
+
+    private bool _refreshed;
 
     public PageLoginProfileSkin()
     {
         InitializeComponent();
         DataContext = _vm;
-        Loaded += (_, _) => Reload();
+        Loaded += (_, _) => RefreshOnNavigate();
+        Unloaded += (_, _) => _refreshed = false;
         // Handles
-        PanData.MouseEnter += ShowPanel;
-        PanData.MouseLeave += HidePanel;
-        BtnSkin.Click += BtnSkin_Click;
-        BtnEdit.Click += BtnEdit_Click;
-        BtnSelect.Click += ChangeProfile;
+    }
+
+    public void OnNavigatedTo(object? parameter)
+    {
+        RefreshOnNavigate();
+    }
+
+    public void OnNavigatedFrom()
+    {
+    }
+
+    private void RefreshOnNavigate()
+    {
+        if (_refreshed)
+            return;
+        _refreshed = true;
+        Reload();
     }
 
     public PageLoginProfileSkinViewModel ViewModel => _vm;
@@ -62,7 +78,7 @@ public partial class PageLoginProfileSkin
             "PageLoginProfileSkin Button");
     }
 
-    private void HidePanel(object sender, EventArgs e)
+    private void HidePanel(object sender, MouseEventArgs? e)
     {
         if (BtnEdit.ContextMenu.IsOpen || BtnSkin.ContextMenu.IsOpen || PanData.IsMouseOver)
             return;
@@ -72,7 +88,7 @@ public partial class PageLoginProfileSkin
 
     private void MenuAccountOptions_Closed(object sender, RoutedEventArgs e)
     {
-        HidePanel(sender, e);
+        HidePanel(sender, null);
     }
 
     // 皮肤与披风子菜单
@@ -104,7 +120,7 @@ public partial class PageLoginProfileSkin
         }
         else
         {
-            HintService.Hint(Lang.Text("Launch.Account.ProfileSkin.PasswordUnsupported"));
+            HintService.Show(Hints.Info(Lang.Text("Launch.Account.ProfileSkin.PasswordUnsupported")));
         }
     }
 
@@ -136,7 +152,7 @@ public partial class PageLoginProfileSkin
             Common.OpenWebsite(profile.Server.BeforeFirst("api/yggdrasil/authserver") +
                                 "user/closet");
         else
-                HintService.Hint(Lang.Text("Launch.Account.ProfileSkin.SkinUnsupported"));
+                HintService.Show(Hints.Info(Lang.Text("Launch.Account.ProfileSkin.SkinUnsupported")));
     }
 
     // 保存皮肤
@@ -162,7 +178,7 @@ public partial class PageLoginProfileSkin
             Common.OpenWebsite(profile.Server.BeforeFirst("api/yggdrasil/authserver") +
                                 "user/closet");
         else
-            HintService.Hint(Lang.Text("Launch.Account.ProfileSkin.CapeUnsupported"));
+            HintService.Show(Hints.Info(Lang.Text("Launch.Account.ProfileSkin.CapeUnsupported")));
     }
 
     #endregion

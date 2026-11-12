@@ -1,5 +1,6 @@
 ﻿using NAudio.Wave;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 
 namespace PCL;
 
@@ -39,11 +40,11 @@ public static partial class Music
                 {
                     musicNAudio = null;
                     if (showHint)
-                        HintService.Hint(Lang.Text("Music.Hint.Cleared"), HintType.Success);
+                        HintService.Show(Hints.Success(Lang.Text("Music.Hint.Cleared")));
                 }
                 else if (showHint)
                 {
-                    HintService.Hint(Lang.Text("Music.Error.NotDetected"), HintType.Error);
+                    HintService.Show(Hints.Error(Lang.Text("Music.Error.NotDetected")));
                 }
             }
             else
@@ -52,7 +53,7 @@ public static partial class Music
                 if (addr is null)
                 {
                     if (showHint)
-                        HintService.Hint(Lang.Text("Music.Error.NoAvailable"), HintType.Error);
+                        HintService.Show(Hints.Error(Lang.Text("Music.Error.NoAvailable")));
                 }
                 else
                 {
@@ -60,10 +61,7 @@ public static partial class Music
                     {
                         MusicStartPlay(addr, isFirstLoad);
                         if (showHint)
-                            HintService.Hint(
-                                Lang.Text("Music.Hint.Refreshed", Common.GetFileNameFromPath(addr)),
-                                HintType.Success,
-                                false);
+                            HintService.Show(Hints.Success(Lang.Text("Music.Hint.Refreshed", Common.GetFileNameFromPath(addr)), log: false));
                     }
                     catch
                     {

@@ -40,7 +40,7 @@ public static partial class GameLink
                             new DownloadFile(
                                 [.. addresses],
                                 dlTargetPath,
-                                new Common.FileChecker(1024 * 64))
+                                new FileChecker(1024 * 64))
                         ])
                     {
                         ProgressWeight = 15

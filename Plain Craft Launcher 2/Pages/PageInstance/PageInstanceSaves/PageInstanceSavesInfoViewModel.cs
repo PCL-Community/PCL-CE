@@ -1,10 +1,12 @@
-using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Humanizer;
 using PCL.Core.App.Localization;
 using PCL.Core.Minecraft.Saves;
 using PCL.Core.Minecraft.Saves.Editing;
+using PCL.Core.UI.Hints;
 using PCL.Core.ViewModel;
+using System.Collections.ObjectModel;
+using System.Windows;
 
 namespace PCL;
 
@@ -72,7 +74,8 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
 
         Reset();
         try
-        {            var save = await SaveManager.LoadSaveAsync(PageInstanceSavesLeft.currentSave, ct);
+        {
+            var save = await SaveManager.LoadSaveAsync(PageInstanceSavesLeft.currentSave, ct).ConfigureAwait(false);
 
             ShowDatapackTab = save.VersionId is not null and >= DataVersionBoundaries._17w47a;
 
@@ -142,13 +145,13 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
         {
             try
             {
-                await WriteLock.WaitAsync(ct);
+                await WriteLock.WaitAsync(ct).ConfigureAwait(false);
                 try
                 {
                     await SaveManager.ApplyChangesAsync(folder, new SaveChanges
                     {
                         AllowCommands = new Editable<bool>(value == 1)
-                    });
+                    }, ct).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -163,11 +166,11 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
                     userSummary: Lang.Text("Instance.Saves.Info.Modify.CheatFailed"));
                 return false;
             }
-        }, ct));
+        }, ct)).ConfigureAwait(true);
 
         if (applied is not true)
             return;
-        HintService.Hint(Lang.Text("Instance.Saves.Info.Modify.CheatSuccess"), HintType.Success);
+        HintService.Show(Hints.Success(Lang.Text("Instance.Saves.Info.Modify.CheatSuccess")));
     }
 
     public async Task ApplyDifficultyAsync(string folder, int difficulty, bool isHardcore, bool lockChecked)
@@ -176,14 +179,14 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
         {
             try
             {
-                await WriteLock.WaitAsync(ct);
+                await WriteLock.WaitAsync(ct).ConfigureAwait(false);
                 try
                 {
                     await SaveManager.ApplyChangesAsync(folder, new SaveChanges
                     {
                         Difficulty = new Editable<Difficulty>((Difficulty)difficulty),
                         LockDifficulty = new Editable<bool>(!isHardcore && lockChecked)
-                    });
+                    }, ct).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -198,11 +201,11 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
                     userSummary: Lang.Text("Instance.Saves.Info.Modify.DifficultyFailed"));
                 return false;
             }
-        }, ct));
+        }, ct)).ConfigureAwait(true);
 
         if (applied is not true)
             return;
-        HintService.Hint(Lang.Text("Instance.Saves.Info.Modify.DifficultySuccess"), HintType.Success);
+        HintService.Show(Hints.Success(Lang.Text("Instance.Saves.Info.Modify.DifficultySuccess")));
     }
 
     public static string GameModeName(GameMode mode)
@@ -237,10 +240,10 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
             }
 
             var usedVersion = versionName.StartsWith("1.21")
-                ? versionName.Replace(".", "_")
+                ? versionName.Replace('.', '_')
                 : versionName.Contains('.')
                     ? string.Join("_", versionName.Split('.').Take(2))
-                    : versionName.Replace(".", "_");
+                    : versionName.Replace('.', '_');
             Common.OpenWebsite(
                 $"https://www.chunkbase.com/apps/seed-map#seed={seed}&platform=java_{usedVersion}&dimension=overworld");
         }
@@ -282,6 +285,17 @@ public class SaveInfoRow(string head, string content, bool isSeed, string? versi
     public bool IsSeed { get; } = isSeed;
 
     public string? VersionName { get; } = versionName;
+
+    /// <summary>种子行复制按钮的可见性。</summary>
+    public Visibility SeedButtonVisibility { get; } =
+        IsCopyableSeed(isSeed, content) ? Visibility.Visible : Visibility.Collapsed;
+
+    /// <summary>普通文本内容的可见性。</summary>
+    public Visibility ContentTextVisibility { get; } =
+        IsCopyableSeed(isSeed, content) ? Visibility.Collapsed : Visibility.Visible;
+
+    private static bool IsCopyableSeed(bool seed, string text) =>
+        seed && text != Lang.Text("Instance.Saves.Info.GetFailed");
 }
 
 /// <summary>存档设置下拉框中的一个选项。</summary>

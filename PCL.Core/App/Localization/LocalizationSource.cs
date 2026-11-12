@@ -1,5 +1,5 @@
 using System.ComponentModel;
-using System.Windows;
+using PCL.Core.Platform;
 
 namespace PCL.Core.App.Localization;
 
@@ -14,15 +14,15 @@ namespace PCL.Core.App.Localization;
 /// </summary>
 public sealed class LocalizationSource : INotifyPropertyChanged
 {
-    /// <summary>
-    ///     全局唯一的本地化数据源实例。
-    /// </summary>
-    public static LocalizationSource Instance { get; } = new();
-
     private LocalizationSource()
     {
         LocalizationService.LanguageChanged += _OnLanguageChanged;
     }
+
+    /// <summary>
+    ///     全局唯一的本地化数据源实例。
+    /// </summary>
+    public static LocalizationSource Instance { get; } = new();
 
     /// <summary>
     ///     按资源键读取当前语言的本地化文本。
@@ -40,11 +40,11 @@ public sealed class LocalizationSource : INotifyPropertyChanged
 
     private void _OnLanguageChanged()
     {
-        var dispatcher = Application.Current?.Dispatcher;
+        var dispatcher = PlatformServices.UiDispatcher;
         if (dispatcher is null || dispatcher.CheckAccess())
             _RaisePropertyChanged();
         else
-            dispatcher.BeginInvoke(_RaisePropertyChanged);
+            dispatcher.Post(_RaisePropertyChanged);
     }
 
     /// <summary>

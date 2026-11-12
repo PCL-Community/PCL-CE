@@ -7,8 +7,10 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Logging;
 using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
 using PCL.Network;
 
 namespace PCL;
@@ -46,7 +48,13 @@ public partial class PageLaunchRight : IRefreshable
     // 暂时关闭快照版提示
     private void BtnHintClose_Click(object sender, EventArgs e)
     {
-        var input = Launcher.MyMsgBoxInput(Lang.Text("Launch.Right.CommunityHint.InputTitle"));
+        var input = (DialogService.Instance.Show(new InputDialogRequest
+        {
+            Title = Lang.Text("Launch.Right.CommunityHint.InputTitle"),
+            Buttons = DialogButtons.OkCancel,
+            HighLight = false,
+            ForceWait = true
+        }).Result?.InputText ?? "");
         if (string.IsNullOrWhiteSpace(input))
             return;
         input = new string(input.Where(char.IsAsciiLetter).ToArray()).ToLower();
@@ -57,7 +65,7 @@ public partial class PageLaunchRight : IRefreshable
         }
         else
         {
-            HintService.Hint(Lang.Text("Launch.Right.CommunityHint.WrongInput"));
+            HintService.Show(Hints.Info(Lang.Text("Launch.Right.CommunityHint.WrongInput")));
         }
     }
 
@@ -129,7 +137,13 @@ public partial class PageLaunchRight : IRefreshable
 
                 case 1:
                     LogWrapper.Info("[Page] 主页预设：回声洞 已被移除");
-                    Launcher.MyMsgBox(Lang.Text("Launch.Homepage.Preset.EchoCave.Removed"));
+                    DialogService.Instance.Show(new TextDialogRequest
+                    {
+                        Title = Lang.Text("Common.Dialog.Title"),
+                        Content = Lang.Text("Launch.Homepage.Preset.EchoCave.Removed"),
+                        Buttons = DialogButtons.Ok,
+                        ForceWait = true
+                    });
                     return;
 
                 case 2:
@@ -505,13 +519,15 @@ public partial class PageLaunchRight : IRefreshable
                 if (Common.modeDebug)
                 {
                     Common.Log(ex, $"加载失败的主页内容：\r\n{content}");
-                    if (Launcher.MyMsgBox(
-                            ex is UnauthorizedAccessException
+                    if ((DialogService.Instance.Show(new TextDialogRequest
+                    {
+                        Title = Lang.Text("Launch.Homepage.LoadFailed.Title"),
+                        Content = ex is UnauthorizedAccessException
                                 ? ex.Message
                                 : Lang.Text("Launch.Homepage.LoadFailed.Message", ex),
-                            Lang.Text("Launch.Homepage.LoadFailed.Title"),
-                            Lang.Text("Launch.Homepage.LoadFailed.Retry"),
-                            Lang.Text("Common.Action.Cancel")) == 1)
+                        Buttons = DialogButtons.Create("Launch.Homepage.LoadFailed.Retry", "Common.Action.Cancel"),
+                        ForceWait = true
+                    }).Result?.Button ?? 0) == 1)
                     {
                         // 防止 SyncLock 死锁
                         ForceRefresh();
@@ -533,8 +549,8 @@ public partial class PageLaunchRight : IRefreshable
             var loadCostTime = (DateTime.Now - loadStartTime).Milliseconds;
             Common.Log($"[Page] 实例化：加载主页 UI 完成，耗时 {loadCostTime}ms");
             if (loadCostTime > 3000)
-                HintService.Hint(Lang.Text("Launch.Homepage.SlowWarning",
-                    Lang.Number(Math.Round(loadCostTime / 1000d, 1), "N1")));
+                HintService.Show(Hints.Info(Lang.Text("Launch.Homepage.SlowWarning",
+                    Lang.Number(Math.Round(loadCostTime / 1000d, 1), "N1"))));
         }
 
         return;
@@ -545,11 +561,10 @@ public partial class PageLaunchRight : IRefreshable
     private static void _ShowSanitizeHints(XamlEventSanitizer.SanitizeResult result)
     {
         foreach (var unsupported in result.UnsupportedTypesFound)
-            HintService.Hint(Lang.Text("Event.Sanitize.UnsupportedTypeHint", unsupported),
-                HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Event.Sanitize.UnsupportedTypeHint", unsupported)));
 
         foreach (var unknown in result.UnrecognizedTypes)
-            HintService.Hint(Lang.Text("Event.Sanitize.UnknownTypeHint", unknown), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Event.Sanitize.UnknownTypeHint", unknown)));
     }
 
     private const string homepageLivePatchFileName = "CustomLive.json";

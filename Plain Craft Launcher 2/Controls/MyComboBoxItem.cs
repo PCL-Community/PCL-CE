@@ -21,15 +21,26 @@ public class MyComboBoxItem : ComboBoxItem
     {
         Style = (Style)FindResource("MyComboBoxItem");
         Unselected += (_, _) => RefreshColor();
-        MouseMove += (_, _) => RefreshColor();
+        MouseMove += OnMouseMove;
         MouseLeave += (_, _) => RefreshColor();
         Selected += (_, _) => RefreshColor();
         IsEnabledChanged += (_, _) => RefreshColor();
         MouseLeftButtonUp += MyComboBoxItem_MouseLeftButtonUp;
     }
 
+    protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+    {
+        base.OnPropertyChanged(e);
+        if (e.Property != IsHighlightedProperty)
+            return;
+        if (e.NewValue is true && ItemsControl.ItemsControlFromItemContainer(this) is MyComboBox box)
+            box.KeyboardAway = !IsMouseOver;
+        Dispatcher.BeginInvoke(new Action(RefreshColor));
+    }
+
     private void RefreshColor()
     {
+        var keyboardAway = ItemsControl.ItemsControlFromItemContainer(this) is MyComboBox { KeyboardAway: true };
         // 判断当前颜色
         string newBackColorName;
         double newFontOpacity;
@@ -40,7 +51,7 @@ public class MyComboBoxItem : ComboBoxItem
             newFontOpacity = 1d;
             time = animationTimeIn;
         }
-        else if (IsMouseOver)
+        else if (keyboardAway ? IsHighlighted : IsMouseOver)
         {
             newBackColorName = "ColorBrush8";
             newFontOpacity = 1d;
@@ -81,6 +92,17 @@ public class MyComboBoxItem : ComboBoxItem
             SetResourceReference(BackgroundProperty, backColorName);
             Opacity = fontOpacity;
         }
+    }
+
+    private void OnMouseMove(object sender, MouseEventArgs e)
+    {
+        if (ItemsControl.ItemsControlFromItemContainer(this) is MyComboBox { KeyboardAway: true } box)
+        {
+            box.KeyboardAway = false;
+            if (Keyboard.FocusedElement is MyComboBoxItem item)
+                item.RefreshColor();
+        }
+        RefreshColor();
     }
 
     public override string ToString()

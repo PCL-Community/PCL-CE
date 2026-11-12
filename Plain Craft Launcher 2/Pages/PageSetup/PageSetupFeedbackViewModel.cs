@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -29,6 +30,41 @@ public partial class PageSetupFeedbackViewModel : ViewModelBase
     [ObservableProperty] private bool _showWaitingProcess;
 
     public IReadOnlyList<SetupFeedbackEntry> Items { get; private set; } = [];
+
+    public ObservableCollection<SetupFeedbackItemRow> ProcessingRows { get; } = [];
+
+    public ObservableCollection<SetupFeedbackItemRow> WaitingProcessRows { get; } = [];
+
+    public ObservableCollection<SetupFeedbackItemRow> WaitRows { get; } = [];
+
+    public ObservableCollection<SetupFeedbackItemRow> PauseRows { get; } = [];
+
+    public ObservableCollection<SetupFeedbackItemRow> UpnextRows { get; } = [];
+
+    public ObservableCollection<SetupFeedbackItemRow> CompletedRows { get; } = [];
+
+    public ObservableCollection<SetupFeedbackItemRow> DeclineRows { get; } = [];
+
+    public ObservableCollection<SetupFeedbackItemRow> IgnoredRows { get; } = [];
+
+    public ObservableCollection<SetupFeedbackItemRow> DuplicateRows { get; } = [];
+
+    private Dictionary<string, (ObservableCollection<SetupFeedbackItemRow> Rows, string Icon)>? _groups;
+
+    private Dictionary<string, (ObservableCollection<SetupFeedbackItemRow> Rows, string Icon)> Groups =>
+        _groups ??= new Dictionary<string, (ObservableCollection<SetupFeedbackItemRow> Rows, string Icon)>
+        {
+            [((long)PageSetupFeedback.TagId.Processing).ToString()] = (ProcessingRows, "Blocks/CommandBlock.png"),
+            [((long)PageSetupFeedback.TagId.WaitingProcess).ToString()] =
+                (WaitingProcessRows, "Blocks/RedstoneBlock.png"),
+            [((long)PageSetupFeedback.TagId.Wait).ToString()] = (WaitRows, "Blocks/Anvil.png"),
+            [((long)PageSetupFeedback.TagId.Pause).ToString()] = (PauseRows, "Blocks/RedstoneLampOff.png"),
+            [((long)PageSetupFeedback.TagId.Upnext).ToString()] = (UpnextRows, "Blocks/RedstoneLampOn.png"),
+            [((long)PageSetupFeedback.TagId.Completed).ToString()] = (CompletedRows, "Blocks/Grass.png"),
+            [((long)PageSetupFeedback.TagId.Decline).ToString()] = (DeclineRows, "Blocks/CobbleStone.png"),
+            [((long)PageSetupFeedback.TagId.Ignored).ToString()] = (IgnoredRows, "Blocks/CobbleStone.png"),
+            [((long)PageSetupFeedback.TagId.Duplicate).ToString()] = (DuplicateRows, "Blocks/CobbleStone.png")
+        };
 
     public List<PageSetupFeedback.Feedback> FetchFeedbackList()
     {
@@ -76,12 +112,17 @@ public partial class PageSetupFeedbackViewModel : ViewModelBase
     public void SetItems(List<PageSetupFeedback.Feedback>? source)
     {
         var tagKeys = Enum.GetValues<PageSetupFeedback.TagId>().Select(id => ((long)id).ToString()).ToHashSet();
+        foreach (var group in Groups.Values)
+            group.Rows.Clear();
         var grouped = new List<SetupFeedbackEntry>();
         foreach (var item in source ?? [])
         {
             var tag = item.Tags.Find(tagKeys.Contains);
-            if (tag is not null)
-                grouped.Add(new SetupFeedbackEntry(tag, item));
+            if (tag is null) continue;
+            grouped.Add(new SetupFeedbackEntry(tag, item));
+            if (!Groups.TryGetValue(tag, out var rows)) continue;
+            rows.Rows.Add(new SetupFeedbackItemRow(item.Title, $"{item.User} | {Lang.Date(item.Time)}",
+                Common.PathImage + rows.Icon, item.Type, item));
         }
 
         Items = grouped;
@@ -107,6 +148,25 @@ public partial class PageSetupFeedbackViewModel : ViewModelBase
 public class SetupFeedbackEntry(string tag, PageSetupFeedback.Feedback feedback)
 {
     public string Tag { get; } = tag;
+
+    public PageSetupFeedback.Feedback Feedback { get; } = feedback;
+}
+
+/// <summary>反馈列表中的一行显示数据。</summary>
+public class SetupFeedbackItemRow(
+    string title,
+    string info,
+    string logo,
+    string tags,
+    PageSetupFeedback.Feedback feedback)
+{
+    public string Title { get; } = title;
+
+    public string Info { get; } = info;
+
+    public string Logo { get; } = logo;
+
+    public string Tags { get; } = tags;
 
     public PageSetupFeedback.Feedback Feedback { get; } = feedback;
 }

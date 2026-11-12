@@ -1,9 +1,9 @@
-﻿using System.Windows;
-using System.Windows.Controls;
+using System.Windows;
 using System.Windows.Input;
 using System.Text.Json.Serialization;
 using PCL.Network;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Dialogs;
 
 namespace PCL;
 
@@ -26,19 +26,6 @@ public partial class PageSetupFeedback : IPageView
 
     private readonly PageSetupFeedbackViewModel _vm = new();
     private bool _refreshed;
-
-    private static readonly Dictionary<string, (Func<PageSetupFeedback, StackPanel> Panel, string Icon)> TagMap = new()
-    {
-        [((long)TagId.Processing).ToString()] = (p => p.PanListProcessing, "Blocks/CommandBlock.png"),
-        [((long)TagId.WaitingProcess).ToString()] = (p => p.PanListWaitingProcess, "Blocks/RedstoneBlock.png"),
-        [((long)TagId.Wait).ToString()] = (p => p.PanListWait, "Blocks/Anvil.png"),
-        [((long)TagId.Pause).ToString()] = (p => p.PanListPause, "Blocks/RedstoneLampOff.png"),
-        [((long)TagId.Upnext).ToString()] = (p => p.PanListUpnext, "Blocks/RedstoneLampOn.png"),
-        [((long)TagId.Completed).ToString()] = (p => p.PanListCompleted, "Blocks/Grass.png"),
-        [((long)TagId.Decline).ToString()] = (p => p.PanListDecline, "Blocks/CobbleStone.png"),
-        [((long)TagId.Ignored).ToString()] = (p => p.PanListIgnored, "Blocks/CobbleStone.png"),
-        [((long)TagId.Duplicate).ToString()] = (p => p.PanListDuplicate, "Blocks/CobbleStone.png"),
-    };
 
     public PageSetupFeedback()
     {
@@ -75,34 +62,18 @@ public partial class PageSetupFeedback : IPageView
         task.output = _vm.FetchFeedbackList();
     }
 
-    private MyListItem CreateFeedbackItem(Feedback item, string logo)
-    {
-        var li = new MyListItem
-        {
-            Title = item.Title,
-            Type = MyListItem.CheckType.Clickable,
-            Logo = Common.PathImage + logo,
-            PlainTags = [item.TypeDisplay]
-        };
-        // Info 含日期格式化，按当前语言重新求值
-        LocalizedText.TryBind(
-            li,
-            "Info",
-            () => $"{item.User} | {Lang.Date(item.Time)}");
-
-        li.Click += (_, _) => ShowFeedbackDetail(item);
-
-        return li;
-    }
-
     private void ShowFeedbackDetail(Feedback item)
     {
         var timeSpanText = Lang.TimeSpan(item.Time - DateTime.Now);
-        switch (Launcher.MyMsgBoxMarkdown(
-                    Lang.Text("Setup.Feedback.Item.Submitter", item.User, timeSpanText) + "\n" +
-                    Lang.Text("Setup.Feedback.Item.Type", item.TypeDisplay) + "\n\n" +
-                    item.Content,
-                    $"#{item.Id} {item.Title}", button2: Lang.Text("Setup.Feedback.Item.ViewDetail")))
+        switch ((DialogService.Instance.Show(new MarkdownDialogRequest
+        {
+            Title = $"#{item.Id} {item.Title}",
+            Content = Lang.Text("Setup.Feedback.Item.Submitter", item.User, timeSpanText) + "\n" +
+                      Lang.Text("Setup.Feedback.Item.Type", item.Type) + "\n\n" +
+                      item.Content,
+            Buttons = DialogButtons.Create("Common.Action.Confirm", "Setup.Feedback.Item.ViewDetail"),
+            ForceWait = true
+        }).Result?.Button ?? 0))
         {
             case 2:
             {
@@ -112,32 +83,16 @@ public partial class PageSetupFeedback : IPageView
         }
     }
 
-    protected override void RefreshLocalization()
-    {
-        if (Loader.State == Common.LoadState.Finished)
-            RefreshList();
-    }
-
     public void RefreshList()
     {
-        PanListProcessing.Children.Clear();
-        PanListWaitingProcess.Children.Clear();
-        PanListWait.Children.Clear();
-        PanListPause.Children.Clear();
-        PanListUpnext.Children.Clear();
-        PanListCompleted.Children.Clear();
-        PanListDecline.Children.Clear();
-        PanListIgnored.Children.Clear();
-        PanListDuplicate.Children.Clear();
-
         _vm.SetItems(Loader.output);
+    }
 
-        foreach (var entry in _vm.Items)
-        {
-            if (!TagMap.TryGetValue(entry.Tag, out var target))
-                continue;
-            target.Panel(this).Children.Add(CreateFeedbackItem(entry.Feedback, target.Icon));
-        }
+    private void FeedbackItem_Click(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not MyListItem { Tag: SetupFeedbackItemRow row })
+            return;
+        ShowFeedbackDetail(row.Feedback);
     }
 
     private void Feedback_Click(object sender, MouseButtonEventArgs e)
@@ -160,17 +115,6 @@ public partial class PageSetupFeedback : IPageView
         [JsonIgnore]
         public string Id { get; set; } = string.Empty;
         public List<string> Tags { get; } = new();
-        /// <summary>
-        ///     服务端返回的原始类型标识（例如 <c>bug</c>）。为空表示未分类。
-        ///     该字段不参与本地化。
-        /// </summary>
         public string Type { get; set; } = string.Empty;
-
-        /// <summary>
-        ///     当前语言下显示的类型文本。
-        /// </summary>
-        [JsonIgnore]
-        public string TypeDisplay =>
-            string.IsNullOrEmpty(Type) ? Lang.Text("Setup.Feedback.Uncategorized") : Type;
     }
 }

@@ -1,7 +1,9 @@
 ﻿﻿using System.Collections;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Shapes;
@@ -38,9 +40,50 @@ public partial class MyRadioButton
             if (sender is MyRadioButton rb && rb.LabText is not null) rb.LabText.Text = (string)e.NewValue;
         }));
 
-    private bool _Checked; // 是否选中
+    /// <summary>文本内边距，用于个别位置微调排版。</summary>
+    public Thickness LabTextMargin
+    {
+        get => (Thickness)GetValue(LabTextMarginProperty);
+        set => SetValue(LabTextMarginProperty, value);
+    }
+
+    public static readonly DependencyProperty LabTextMarginProperty = DependencyProperty.Register(
+        nameof(LabTextMargin), typeof(Thickness), typeof(MyRadioButton),
+        new PropertyMetadata(new Thickness(8, 0, 12, 0),
+            (sender, e) =>
+            {
+                if (sender is MyRadioButton rb && rb.LabText is not null) rb.LabText.Margin = (Thickness)e.NewValue;
+            }));
+
+    private static readonly Dictionary<object, List<WeakReference<MyRadioButton>>> GroupRegistry =
+        new(GroupKeyComparer.Instance);
+
+    private static readonly object GroupRegistryLock = new();
+
+    private sealed class GroupKeyComparer : IEqualityComparer<object>
+    {
+        public static readonly GroupKeyComparer Instance = new();
+
+        public new bool Equals(object? x, object? y)
+        {
+            return x is string groupNameX && y is string groupNameY
+                ? string.Equals(groupNameX, groupNameY, StringComparison.Ordinal)
+                : ReferenceEquals(x, y);
+        }
+
+        public int GetHashCode(object obj)
+        {
+            return obj is string groupName
+                ? StringComparer.Ordinal.GetHashCode(groupName)
+                : RuntimeHelpers.GetHashCode(obj);
+        }
+    }
+
     private bool _hasLegacyLogo;
     private bool isMouseDown;
+    private bool _isSettingChecked;
+    private bool _isUserInteraction;
+    private bool _isExecutingCheckCommand;
 
     // 基础
 
@@ -71,6 +114,8 @@ public partial class MyRadioButton
         MouseEnter += RefreshColor;
         MouseLeave += RefreshColor;
         Loaded += RefreshColor;
+        Loaded += (_, _) => RegisterGroup(GroupName);
+        Unloaded += (_, _) => UnregisterGroup(GroupName);
     }
 
     private void OnColorModeChanged(bool isDarkMode, ColorTheme theme)
@@ -151,7 +196,7 @@ public partial class MyRadioButton
 
         LogoHost.Height = 16;
         LogoHost.Margin = new Thickness(12, 0, 0, 0);
-        LabText.Margin = new Thickness(8, 0, 12, 0);
+        LabText.Margin = LabTextMargin;
     }
 
     public double LogoScale
@@ -164,10 +209,60 @@ public partial class MyRadioButton
         }
     } = 1d;
 
+    // 是否选中
+    public static readonly DependencyProperty CheckedProperty = DependencyProperty.Register(nameof(Checked),
+        typeof(bool), typeof(MyRadioButton), new FrameworkPropertyMetadata(false,
+            FrameworkPropertyMetadataOptions.BindsTwoWayByDefault,
+            (d, e) =>
+            {
+                var obj = (MyRadioButton)d;
+                if (!obj._isSettingChecked)
+                {
+                    obj.EnsureSingleChecked();
+                    obj.RefreshColor(null, true);
+                }
+
+                if (obj._isUserInteraction) obj.ExecuteCheckCommand();
+            }));
+
+    public static readonly DependencyProperty GroupNameProperty = DependencyProperty.Register(
+        nameof(GroupName), typeof(string), typeof(MyRadioButton), new PropertyMetadata(null,
+            (d, e) =>
+            {
+                var radioButton = (MyRadioButton)d;
+                if (!radioButton.IsLoaded) return;
+                radioButton.UnregisterGroup((string?)e.OldValue);
+                radioButton.RegisterGroup((string?)e.NewValue);
+            }));
+
+    public static readonly DependencyProperty CheckCommandProperty = DependencyProperty.Register(nameof(CheckCommand),
+        typeof(ICommand), typeof(MyRadioButton), new PropertyMetadata(null));
+
+    public static readonly DependencyProperty CheckCommandParameterProperty = DependencyProperty.Register(
+        nameof(CheckCommandParameter), typeof(object), typeof(MyRadioButton), new PropertyMetadata(null));
+
     public bool Checked
     {
-        get => _Checked;
+        get => (bool)GetValue(CheckedProperty);
         set => SetChecked(value, false, true);
+    }
+
+    public string? GroupName
+    {
+        get => (string?)GetValue(GroupNameProperty);
+        set => SetValue(GroupNameProperty, value);
+    }
+
+    public ICommand? CheckCommand
+    {
+        get => (ICommand?)GetValue(CheckCommandProperty);
+        set => SetValue(CheckCommandProperty, value);
+    }
+
+    public object? CheckCommandParameter
+    {
+        get => GetValue(CheckCommandParameterProperty);
+        set => SetValue(CheckCommandParameterProperty, value);
     }
 
     public InlineCollection Inlines => LabText.Inlines;
@@ -202,74 +297,43 @@ public partial class MyRadioButton
         {
             // 自定义属性基础
 
-            var isChanged = false;
-            if (_Checked != value)
+            var isChanged = Checked != value;
+            _isUserInteraction = raiseByMouse;
+            try
             {
-                _Checked = value;
-                isChanged = true;
-            }
-
-            // 保证只有一个单选框选中
-
-            if (Parent is null) return;
-            var radioboxList = new List<MyRadioButton>();
-            var checkedCount = 0;
-            // 收集控件列表与选中个数
-            foreach (var Control in ((Panel)Parent).Children)
-                if (Control is MyRadioButton radioButton)
+                if (isChanged)
                 {
-                    radioboxList.Add(radioButton);
-                    if (radioButton.Checked)
-                        checkedCount += 1;
+                    _isSettingChecked = true;
+                    try
+                    {
+                        SetValue(CheckedProperty, value);
+                    }
+                    finally
+                    {
+                        _isSettingChecked = false;
+                    }
                 }
 
-            // 判断选中情况
-            switch (checkedCount)
+                // 保证只有一个单选框选中
+
+                if (Parent is null && string.IsNullOrEmpty(GroupName)) return;
+                EnsureSingleChecked();
+
+                // 更改动画
+
+                if (!isChanged)
+                    return;
+                RefreshColor(null, anime);
+
+                // 触发事件
+                if (Checked)
+                    Check?.Invoke(this, raiseByMouse);
+                Launcher.RaiseCustomEvent(this);
+            }
+            finally
             {
-                case 0:
-                {
-                    // 没有任何单选框被选中，选择第一个
-                    radioboxList[0].Checked = true;
-                    break;
-                }
-                case var @case when @case > 1:
-                {
-                    // 选中项目多于 1 个
-                    if (Checked)
-                    {
-                        // 如果本控件选中，则取消其他所有控件的选中
-                        foreach (var Control in radioboxList)
-                            if (Control.Checked && !Control.Equals(this))
-                                Control.Checked = false;
-                    }
-                    else
-                    {
-                        // 如果本控件未选中，则只保留第一个选中的控件
-                        var firstChecked = false;
-                        foreach (var Control in radioboxList)
-                            if (Control.Checked)
-                            {
-                                if (firstChecked)
-                                    Control.Checked = false; // 修改 Checked 会自动触发 Change 事件，所以不用额外触发
-                                else
-                                    firstChecked = true;
-                            }
-                    }
-
-                    break;
-                }
+                _isUserInteraction = false;
             }
-
-            // 更改动画
-
-            if (!isChanged)
-                return;
-            RefreshColor(null, anime);
-
-            // 触发事件
-            if (Checked)
-                Check?.Invoke(this, raiseByMouse);
-            Launcher.RaiseCustomEvent(this);
         }
 
         catch (Exception ex)
@@ -279,6 +343,137 @@ public partial class MyRadioButton
                 "单选按钮勾选改变错误",
                 Common.LogLevel.Hint,
                 userSummary: Lang.Text("Application.Control.Error.OperationFailed"));
+        }
+    }
+
+    private void EnsureSingleChecked()
+    {
+        if (!string.IsNullOrEmpty(GroupName))
+        {
+            if (!Checked) return;
+            foreach (var radioButton in GetGroupMembers(GroupName))
+                if (!ReferenceEquals(radioButton, this))
+                    radioButton.SetChecked(false, false, false);
+            return;
+        }
+
+        if (Parent is null) return;
+        if (Parent is not Panel parentPanel) return;
+        var radioboxList = new List<MyRadioButton>();
+        var checkedCount = 0;
+        // 收集控件列表与选中个数
+        foreach (var Control in parentPanel.Children)
+            if (Control is MyRadioButton radioButton)
+            {
+                radioboxList.Add(radioButton);
+                if (radioButton.Checked)
+                    checkedCount += 1;
+            }
+
+        // 判断选中情况
+        switch (checkedCount)
+        {
+            case 0:
+            {
+                // 没有任何单选框被选中，选择第一个
+                radioboxList[0].Checked = true;
+                break;
+            }
+            case var @case when @case > 1:
+            {
+                // 选中项目多于 1 个
+                if (Checked)
+                {
+                    // 如果本控件选中，则取消其他所有控件的选中
+                    foreach (var Control in radioboxList)
+                        if (Control.Checked && !Control.Equals(this))
+                            Control.Checked = false;
+                }
+                else
+                {
+                    // 如果本控件未选中，则只保留第一个选中的控件
+                    var firstChecked = false;
+                    foreach (var Control in radioboxList)
+                        if (Control.Checked)
+                        {
+                            if (firstChecked)
+                                Control.Checked = false; // 修改 Checked 会自动触发 Change 事件，所以不用额外触发
+                            else
+                                firstChecked = true;
+                        }
+                }
+
+                break;
+            }
+        }
+    }
+
+    private void RegisterGroup(string? groupName)
+    {
+        if (string.IsNullOrEmpty(groupName)) return;
+        lock (GroupRegistryLock)
+        {
+            if (!GroupRegistry.TryGetValue(groupName, out var members))
+            {
+                members = new List<WeakReference<MyRadioButton>>();
+                GroupRegistry[groupName] = members;
+            }
+
+            members.RemoveAll(reference =>
+                !reference.TryGetTarget(out var target) || ReferenceEquals(target, this));
+            members.Add(new WeakReference<MyRadioButton>(this));
+        }
+
+        if (Checked) EnsureSingleChecked();
+    }
+
+    private void UnregisterGroup(string? groupName)
+    {
+        if (string.IsNullOrEmpty(groupName)) return;
+        lock (GroupRegistryLock)
+        {
+            if (!GroupRegistry.TryGetValue(groupName, out var members)) return;
+            members.RemoveAll(reference =>
+                !reference.TryGetTarget(out var target) || ReferenceEquals(target, this));
+            if (members.Count == 0)
+                GroupRegistry.Remove(groupName);
+        }
+    }
+
+    private static List<MyRadioButton> GetGroupMembers(string groupName)
+    {
+        var radioButtons = new List<MyRadioButton>();
+        lock (GroupRegistryLock)
+        {
+            if (!GroupRegistry.TryGetValue(groupName, out var members)) return radioButtons;
+            members.RemoveAll(reference => !reference.TryGetTarget(out _));
+            if (members.Count == 0)
+            {
+                GroupRegistry.Remove(groupName);
+                return radioButtons;
+            }
+
+            foreach (var reference in members)
+                if (reference.TryGetTarget(out var target))
+                    radioButtons.Add(target);
+        }
+
+        return radioButtons;
+    }
+
+    private void ExecuteCheckCommand()
+    {
+        var command = CheckCommand;
+        if (_isExecutingCheckCommand || command is null || !command.CanExecute(CheckCommandParameter))
+            return;
+        _isExecutingCheckCommand = true;
+        try
+        {
+            command.Execute(CheckCommandParameter);
+        }
+        finally
+        {
+            _isExecutingCheckCommand = false;
         }
     }
 

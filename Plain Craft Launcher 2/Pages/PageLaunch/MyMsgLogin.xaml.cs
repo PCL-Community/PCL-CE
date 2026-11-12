@@ -3,7 +3,9 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.UI.Controls;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils;
 using PCL.Core.IO.Net.Http;
 using PCL.Core.Logging;
@@ -24,21 +26,15 @@ public partial class MyMsgLogin
         DataContext = _vm;
         // Handles
         Loaded += Load;
-        Btn1.Click += Btn1_Click;
-        Btn3.Click += Btn3_Click;
-        PanBorder.MouseLeftButtonDown += Drag;
-        LabTitle.MouseLeftButtonDown += Drag;
     }
 
     private void Finished(object result)
     {
-        if (myConverter.IsExited)
+        if (myDialog.IsClosed)
             return;
-        myConverter.IsExited = true;
+        myDialog.Close(result is Exception ? new DialogResult(2) : new DialogResult(1));
         _cancellation.Cancel();
-        myConverter.Result = result;
-        myConverter.CompletionObject.TrySetResult(myConverter.Result);
-        myConverter.CompletionHandler?.Invoke(result);
+        myDialog.CompletionHandler?.Invoke(result);
         Common.RunInUi(Close);
         Thread.Sleep(200);
         Launcher.frmMain.ShowWindowToTop();
@@ -63,11 +59,11 @@ public partial class MyMsgLogin
         {
             await Task.Delay(2000, token).ConfigureAwait(false);
         }
-        catch (OperationCanceledException) when (myConverter.IsExited)
+        catch (OperationCanceledException) when (myDialog.IsClosed)
         {
             return;
         }
-        if (myConverter.IsExited)
+        if (myDialog.IsClosed)
             return;
         Common.OpenWebsite(_vm.Website);
         Common.ClipboardSet(_vm.UserCode);
@@ -75,13 +71,13 @@ public partial class MyMsgLogin
         var delayTime = TimeSpan.FromSeconds(device.Interval ?? 5);
         // 轮询
         var unknownFailureCount = 0;
-        while (!myConverter.IsExited && !token.IsCancellationRequested)
+        while (!myDialog.IsClosed && !token.IsCancellationRequested)
         {
             try
             {
-                if (myConverter.DeviceCodePoll is null)
+                if (myDialog.DeviceCodePoll is null)
                     throw new InvalidOperationException("设备授权没有配置轮询处理程序。");
-                var resultJson = await myConverter.DeviceCodePoll(data, token).ConfigureAwait(false);
+                var resultJson = await myDialog.DeviceCodePoll(data, token).ConfigureAwait(false);
                 token.ThrowIfCancellationRequested();
                 if (resultJson is { IsError: true })
                 {
@@ -116,11 +112,11 @@ public partial class MyMsgLogin
                 }
                 // 获取结果
                 if (resultJson is null) throw new InvalidDataException("微软令牌返回为空");
-                if (myConverter.LoginResultHandler is not null)
+                if (myDialog.LoginResultHandler is not null)
                 {
                     try
                     {
-                        await myConverter.LoginResultHandler(resultJson, token).ConfigureAwait(false);
+                        await myDialog.LoginResultHandler(resultJson, token).ConfigureAwait(false);
                         token.ThrowIfCancellationRequested();
                     }
                     catch (Exception handlerException)
@@ -130,11 +126,11 @@ public partial class MyMsgLogin
                     }
                 }
                 LogWrapper.Info("Profile",$"令牌过期时间：{resultJson.ExpiresIn} 秒");
-                HintService.Hint(Lang.Text("Launch.Account.LoginDialog.Success"), HintType.Success);
+                HintService.Show(Hints.Success(Lang.Text("Launch.Account.LoginDialog.Success")));
                 Finished(new[] { resultJson.AccessToken ?? string.Empty, resultJson.RefreshToken ?? string.Empty });
                 return;
             }
-            catch (OperationCanceledException) when (myConverter.IsExited)
+            catch (OperationCanceledException) when (myDialog.IsClosed)
             {
                 return;
             }
@@ -149,7 +145,7 @@ public partial class MyMsgLogin
                     {
                         await Task.Delay(2000, token).ConfigureAwait(false);
                     }
-                    catch (OperationCanceledException) when (myConverter.IsExited)
+                    catch (OperationCanceledException) when (myDialog.IsClosed)
                     {
                         return;
                     }
@@ -166,10 +162,10 @@ public partial class MyMsgLogin
 
     #region 弹窗
 
-    private readonly Launcher.MyMsgBoxConverter myConverter;
+    private readonly DialogViewModel myDialog;
     private readonly int uuid = Common.GetUuid();
 
-    public MyMsgLogin(Launcher.MyMsgBoxConverter converter)
+    public MyMsgLogin(DialogViewModel dialog)
     {
         try
         {
@@ -178,9 +174,9 @@ public partial class MyMsgLogin
             Btn1.Name += Common.GetUuid();
             Btn2.Name += Common.GetUuid();
             Btn3.Name += Common.GetUuid();
-            myConverter = converter;
+            myDialog = dialog;
             ShapeLine.StrokeThickness = Common.GetWpfSize(1d);
-            data = (JsonObject)converter.Content;
+            data = dialog.LoginData!;
             Init();
         }
         catch (Exception ex)
@@ -203,7 +199,7 @@ public partial class MyMsgLogin
             Opacity = 0d;
             Animations.AniStart(
                 Animations.AaColor(Launcher.frmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
-                    (myConverter.IsWarn
+                    (myDialog.IsWarn
                         ? new Common.MyColor(140d, 80d, 0d, 0d)
                         : new Common.MyColor(90d, 0d, 0d, 0d)) - Launcher.frmMain.PanMsgBackground.Background, 200),
                 "PanMsgBackground Background");
@@ -237,7 +233,7 @@ public partial class MyMsgLogin
         {
             Animations.AaCode(() =>
             {
-                if (!Launcher.WaitingMyMsgBox.Any())
+                if (!PCL.Core.UI.Dialogs.DialogService.Instance.IsShowing && !PCL.Core.UI.Dialogs.DialogService.Instance.HasPending)
                     Animations.AniStart(Animations.AaColor(Launcher.frmMain.PanMsgBackground,
                         BlurBorder.BackgroundProperty,
                         new Common.MyColor(0d, 0d, 0d, 0d) - Launcher.frmMain.PanMsgBackground.Background, 200,

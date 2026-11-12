@@ -1,5 +1,7 @@
 ﻿using System.IO;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
+using PCL.Core.UI.Dialogs;
 using PCL.Network;
 
 namespace PCL;
@@ -31,9 +33,7 @@ public static partial class DownloadUi
             {
                 if (behaviour == NetPreDownloadBehaviour.ExitWhileExistsOrDownloading)
                     return (Loading.LoaderCombo<string>)ongoingLoader;
-                HintService.Hint(
-                    Lang.Text("Minecraft.Download.Error.InstanceDownloading"),
-                    HintType.Error);
+                HintService.Show(Hints.Error(Lang.Text("Minecraft.Download.Error.InstanceDownloading")));
                 return (Loading.LoaderCombo<string>)ongoingLoader;
             }
 
@@ -43,11 +43,13 @@ public static partial class DownloadUi
             {
                 if (behaviour == NetPreDownloadBehaviour.ExitWhileExistsOrDownloading)
                     return null;
-                if (Launcher.MyMsgBox(
-                        Lang.Text("Minecraft.Download.Error.InstanceAlreadyExists", id, "\r\n"),
-                        Lang.Text("Minecraft.Download.Error.InstanceAlreadyExists.Title"),
-                        Lang.Text("Common.Action.Continue"),
-                        Lang.Text("Common.Action.Cancel"))
+                if ((DialogService.Instance.Show(new TextDialogRequest
+                {
+                    Title = Lang.Text("Minecraft.Download.Error.InstanceAlreadyExists.Title"),
+                    Content = Lang.Text("Minecraft.Download.Error.InstanceAlreadyExists", id, "\r\n"),
+                    Buttons = DialogButtons.ContinueCancel,
+                    ForceWait = true
+                }).Result?.Button ?? 0)
                     == 1)
                 {
                     File.Delete(Path.Combine(versionFolder, $"{id}.jar"));

@@ -3,11 +3,13 @@ using System.Windows.Controls;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils;
 
 namespace PCL;
 
-public partial class PageSetupGameManage
+public partial class PageSetupGameManage : IPageView
 {
     private readonly PageSetupGameManageViewModel _vm = new();
 
@@ -17,6 +19,14 @@ public partial class PageSetupGameManage
     {
         InitializeComponent();
         Loaded += PageSetupSystem_Loaded;
+    }
+
+    public void OnNavigatedTo(object? parameter)
+    {
+    }
+
+    public void OnNavigatedFrom()
+    {
     }
 
     public PageSetupGameManageViewModel ViewModel => _vm;
@@ -84,7 +94,7 @@ public partial class PageSetupGameManage
             Config.Download.Reset();
             Config.Tool.Reset();
             Common.Log("[Setup] 已初始化其他页设置");
-            HintService.Hint(Lang.Text("Setup.GameManage.Initialized"), HintType.Success, false);
+            HintService.Show(Hints.Success(Lang.Text("Setup.GameManage.Initialized"), log: false));
         }
         catch (Exception ex)
         {
@@ -153,10 +163,15 @@ public partial class PageSetupGameManage
         if (!States.Hint.LargeDownloadThread)
         {
             States.Hint.LargeDownloadThread = true;
-            Launcher.MyMsgBox(
-                Lang.Text("Setup.GameManage.Download.Threads.TooManyWarning.Message"),
-                Lang.Text("Common.Dialog.Warning"),
-                Lang.Text("Setup.GameManage.Download.Threads.TooManyWarning.Confirm"), isWarn: true);
+            _ = _vm.Dialog.ShowAsync(new TextDialogRequest
+            {
+                Title = Lang.Text("Common.Dialog.Warning"),
+                Content = Lang.Text("Setup.GameManage.Download.Threads.TooManyWarning.Message"),
+                Buttons = DialogButtons.From(
+                    DialogButton.Create(Lang.Text("Setup.GameManage.Download.Threads.TooManyWarning.Confirm"))),
+                IsWarn = true,
+                ForceWait = true
+            });
         }
     }
 }

@@ -4,9 +4,9 @@
                   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                   xmlns:local="clr-namespace:PCL"
+                   xmlns:loc="https://ce.pclc.cc/core/localization"
                   mc:Ignorable="d" x:Name="PanBack"
-                  d:DesignHeight="417.2" Width="300"
-                  xmlns:loc="https://ce.pclc.cc/core/localization">
+                  d:DesignHeight="417.2" Width="300">
     <Grid Name="PanInput" RenderTransformOrigin="0.5,0.5">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -27,9 +27,9 @@
         </Grid.RenderTransform>
         <local:MyButton Grid.Row="3" Grid.Column="2" x:Name="BtnInstance" Height="35" Margin="0,10,10,0" Text="{loc:Loc Launch.Home.SelectInstance}"
                         IsEnabled="{Binding IsInstanceButtonEnabled}" Visibility="{Binding InstanceButtonVisibility}"
-                        Click="BtnInstance_Click" />
+                        Command="{Binding SelectInstanceCommand}" />
         <local:MyButton Grid.Row="3" Grid.Column="3" x:Name="BtnMore" Visibility="{Binding MoreButtonVisibility}" Height="35"
-                        Click="BtnMore_Click"
+                        Command="{Binding OpenInstanceSettingsCommand}"
                         Margin="0,10,10,0" TextPadding="36" Text="{loc:Loc Launch.Home.InstanceSettings}" />
         <Grid Grid.ColumnSpan="5" Grid.Row="1" Margin="20,0" VerticalAlignment="Center" x:Name="PanLogin" />
         <Grid Grid.ColumnSpan="5" Grid.Row="2" RenderTransformOrigin="0.5,0.5">
@@ -40,8 +40,8 @@
                 </TransformGroup>
             </Grid.RenderTransform>
             <local:MyButton x:Name="BtnLaunch" Height="54" Margin="20,0" Text="{Binding LaunchButtonText}" ColorType="Highlight"
-                            Click="BtnLaunch_Click"
-                            Padding="30,0,30,15" IsEnabled="False" />
+                            Click="BtnLaunch_Click" Loaded="BtnLaunch_Loaded"
+                            Padding="30,0,30,15" IsEnabled="{Binding IsLaunchButtonEnabled, Mode=TwoWay}" />
             <TextBlock x:Name="LabVersion" Text="{Binding VersionNameText}" Margin="35,0,35,10" IsHitTestVisible="False"
                        VerticalAlignment="Bottom" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"
                        FontSize="11" Foreground="{DynamicResource ColorBrushGray3}" RenderTransformOrigin="0.5,-0.2">
@@ -121,16 +121,16 @@
                            HorizontalAlignment="Left" MaxWidth="160" TextWrapping="WrapWithOverflow"
                            Name="LabLaunchingMethod" />
                 <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="{loc:Loc Launch.Status.LaunchProgress}" Grid.Row="2" Grid.Column="1"
-                           HorizontalAlignment="Right" Opacity="0.5" Name="LabLaunchingProgressLeft" />
+                           HorizontalAlignment="Right" Opacity="0.5" Name="LabLaunchingProgressLeft" Visibility="{Binding LaunchingProgressVisibility}" />
                 <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="{Binding LaunchingProgressText}" Grid.Row="2" Grid.Column="3"
-                           HorizontalAlignment="Left" Name="LabLaunchingProgress" />
+                           HorizontalAlignment="Left" Name="LabLaunchingProgress" Visibility="{Binding LaunchingProgressVisibility}" />
                 <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="{loc:Loc Launch.Status.DownloadSpeed}" Grid.Row="3" Grid.Column="1"
                            HorizontalAlignment="Right" Opacity="0" Name="LabLaunchingDownloadLeft"
-                           Visibility="Collapsed" />
+                           Visibility="{Binding LaunchingDownloadVisibility}" />
                 <TextBlock FontSize="12.5" Margin="0,0,0,5" Text="{Binding LaunchingDownloadText}" Grid.Row="3" Grid.Column="3"
-                           HorizontalAlignment="Left" Name="LabLaunchingDownload" Opacity="0" Visibility="Collapsed" />
+                           HorizontalAlignment="Left" Name="LabLaunchingDownload" Opacity="0" Visibility="{Binding LaunchingDownloadVisibility}" />
                 <Grid x:Name="PanLaunchingHint" HorizontalAlignment="Center" Grid.Row="2" Grid.ColumnSpan="5"
-                      Grid.RowSpan="2" Width="260" Visibility="Collapsed" Margin="0,16,0,2" Opacity="0">
+                      Grid.RowSpan="2" Width="260" Visibility="{Binding LaunchingHintVisibility}" Margin="0,16,0,2" Opacity="0">
                     <Border Margin="0,8,0,0" BorderThickness="1" CornerRadius="3"
                             BorderBrush="{DynamicResource ColorBrushGray1}" Opacity="0.5">
                         <Border.Clip>
@@ -153,7 +153,7 @@
             </Grid>
         </StackPanel>
         <local:MyButton Grid.Row="4" x:Name="BtnCancel" Height="35" Margin="20,0,20,20" VerticalAlignment="Bottom"
-                        Click="BtnCancel_Click"
+                        Command="{Binding CancelLaunchCommand}"
                         Text="{loc:Loc Common.Action.Cancel}" />
     </Grid>
 </local:MyPageLeft>

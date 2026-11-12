@@ -30,6 +30,24 @@ public partial class MyIconButton
 
     public int Uuid = Common.GetUuid();
 
+    public static readonly DependencyProperty CommandProperty = DependencyProperty.Register(nameof(Command),
+        typeof(ICommand), typeof(MyIconButton), new PropertyMetadata(null));
+
+    public ICommand? Command
+    {
+        get => (ICommand?)GetValue(CommandProperty);
+        set => SetValue(CommandProperty, value);
+    }
+
+    public static readonly DependencyProperty CommandParameterProperty = DependencyProperty.Register(
+        nameof(CommandParameter), typeof(object), typeof(MyIconButton), new PropertyMetadata(null));
+
+    public object? CommandParameter
+    {
+        get => GetValue(CommandParameterProperty);
+        set => SetValue(CommandParameterProperty, value);
+    }
+
     protected override Size MeasureOverride(Size constraint)
     {
         var measured = base.MeasureOverride(constraint);
@@ -364,6 +382,7 @@ public partial class MyIconButton
         e.Handled = true;
         Button_MouseUp();
         Launcher.RaiseCustomEvent(this);
+        ExecuteCommand();
     }
 
     private void Button_MouseDown(object sender, MouseButtonEventArgs e)
@@ -430,6 +449,24 @@ public partial class MyIconButton
         catch (Exception ex)
         {
             Common.Log(ex, "刷新图标按钮动画状态出错");
+        }
+    }
+
+    private bool _isCommandRunning;
+
+    private void ExecuteCommand()
+    {
+        var command = Command;
+        if (_isCommandRunning || command is null || !command.CanExecute(CommandParameter))
+            return;
+        _isCommandRunning = true;
+        try
+        {
+            command.Execute(CommandParameter);
+        }
+        finally
+        {
+            _isCommandRunning = false;
         }
     }
 }

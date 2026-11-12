@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Network.Loaders;
 
 namespace PCL;
@@ -9,7 +10,7 @@ public static partial class DownloadUi
     /// <summary>
     ///     获取合并安装加载器列表，并进行前期的缓存清理与 Java 检查工作。
     /// </summary>
-    /// <exception cref="Common.CancelledException" />
+    /// <exception cref="CancelledException" />
     public static List<Loading.LoaderBase> McInstallLoader(
         McInstallRequest request,
         bool dontFixLibraries = false,
@@ -39,13 +40,11 @@ public static partial class DownloadUi
         if (File.Exists(Path.Combine(instanceFolder, $"{request.targetInstanceName}.json"))
             && !ignoreDump)
         {
-            HintService.Hint(
-                Lang.Text(
+            HintService.Show(Hints.Error(Lang.Text(
                     "Minecraft.Download.Error.InstanceAlreadyExists",
                     request.targetInstanceName,
-                    ""),
-                HintType.Error);
-            throw new Common.CancelledException();
+                    "")));
+            throw new CancelledException();
         }
 
         var loaderList = new List<Loading.LoaderBase>

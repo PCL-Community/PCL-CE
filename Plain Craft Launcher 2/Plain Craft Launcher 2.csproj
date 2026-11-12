@@ -17,7 +17,7 @@
         <TargetCulture>zh-CN</TargetCulture>
         <UseApplicationTrust>false</UseApplicationTrust>
         <BootstrapperEnabled>true</BootstrapperEnabled>
-        <LangVersion>14</LangVersion>
+        <LangVersion>15</LangVersion>
         <UseWPF>true</UseWPF>
         <Configurations>Beta;Debug;Release;CI</Configurations>
         <Platforms>AnyCPU;x64;ARM64</Platforms>
@@ -79,6 +79,8 @@
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\PCL.Core\PCL.Core.csproj" />
+        <ProjectReference Include="..\PCL.Core.Wpf\PCL.Core.Wpf.csproj" />
+        <ProjectReference Include="..\PCL.Launcher.Core\PCL.Launcher.Core.csproj" />
     </ItemGroup>
     <ItemGroup>
         <Using Include="System.Text.Json" />

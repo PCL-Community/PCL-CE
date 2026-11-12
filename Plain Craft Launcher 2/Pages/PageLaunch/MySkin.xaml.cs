@@ -6,8 +6,10 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Minecraft.Profile;
 using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
 using PCL.Network;
 
 namespace PCL;
@@ -36,10 +38,6 @@ public partial class MySkin
         MouseLeftButtonDown += PanSkin_MouseLeftButtonDown;
         MouseLeftButtonUp += PanSkin_MouseLeftButtonUp;
         // Handles
-        BtnSkinSave.Click += BtnSkinSave_Click;
-        BtnSkinSave.Checked += BtnSkinSave_Checked;
-        BtnSkinRefresh.Click += RefreshClick;
-        BtnSkinCape.Click += BtnSkinCape_Click;
     }
 
     public string Address
@@ -51,8 +49,8 @@ public partial class MySkin
     // 披风
     public bool HasCape
     {
-        get => BtnSkinCape.Visibility == Visibility.Collapsed;
-        set => BtnSkinCape.Visibility = value ? Visibility.Visible : Visibility.Collapsed;
+        get => _vm.CapeVisibility == Visibility.Collapsed;
+        set => _vm.CapeVisibility = value ? Visibility.Visible : Visibility.Collapsed;
     }
 
     // 事件
@@ -102,10 +100,10 @@ public partial class MySkin
     public static void Save(Loading.LoaderTask<Common.EqualableList<string>, string> loader)
     {
         var address = loader.output;
-        if (loader.State != Common.LoadState.Finished)
+        if (loader.State != LoadState.Finished)
         {
-            HintService.Hint(Lang.Text("Launch.Skin.Fetching"), HintType.Error);
-            if (loader.State != Common.LoadState.Loading)
+            HintService.Show(Hints.Error(Lang.Text("Launch.Skin.Fetching")));
+            if (loader.State != LoadState.Loading)
                 loader.Start();
             return;
         }
@@ -127,7 +125,7 @@ public partial class MySkin
                 Common.CopyFile(address, fileAddress);
             }
 
-            HintService.Hint(Lang.Text("Launch.Skin.SaveSuccess"), HintType.Success);
+            HintService.Show(Hints.Success(Lang.Text("Launch.Skin.SaveSuccess")));
         }
         catch (Exception ex)
         {
@@ -141,7 +139,7 @@ public partial class MySkin
 
     private void BtnSkinSave_Checked(object sender, RoutedEventArgs e)
     {
-        ((MyMenuItem)sender).IsEnabled = string.IsNullOrEmpty(Address);
+        _vm.CanSave = string.IsNullOrEmpty(Address);
     }
 
     /// <summary>
@@ -290,11 +288,11 @@ public partial class MySkin
     {
         var hasLoaderRunning =
             PageLaunchLeft.skinLoaders.Any(skinLoader =>
-                skinLoader.State == Common.LoadState.Loading);
+                skinLoader.State == LoadState.Loading);
 
         if (Launcher.frmLaunchLeft is not null && hasLoaderRunning)
             // 由于 Abort 不是实时的，暂时不会释放文件，会导致删除报错，故只能取消执行
-            HintService.Hint(Lang.Text("Launch.Skin.Refresh.Busy"));
+            HintService.Show(Hints.Info(Lang.Text("Launch.Skin.Refresh.Busy")));
         else
             // 清空缓存
             // 刷新控件
@@ -302,7 +300,7 @@ public partial class MySkin
             {
                 try
                 {
-                    HintService.Hint(Lang.Text("Launch.Skin.Refreshing"));
+                    HintService.Show(Hints.Info(Lang.Text("Launch.Skin.Refreshing")));
                     Common.Log("[Skin] 正在清空皮肤缓存");
                     if (Directory.Exists(Common.pathTemp + @"Cache\Skin"))
                         Common.DeleteDirectory(Common.pathTemp + @"Cache\Skin");
@@ -315,7 +313,7 @@ public partial class MySkin
                                  ? new[] { sender }
                                  : new[] { PageLaunchLeft.skinLegacy, PageLaunchLeft.skinMs })
                         SkinLoader.WaitForExit(isForceRestart: true);
-                    HintService.Hint(Lang.Text("Launch.Skin.RefreshSuccess"), HintType.Success);
+                    HintService.Show(Hints.Success(Lang.Text("Launch.Skin.RefreshSuccess")));
                 }
                 catch (Exception ex)
                 {
@@ -344,7 +342,7 @@ public partial class MySkin
                 Common.WriteIni(Common.pathTemp + @"Cache\Skin\IndexMs.ini", uuid, skinAddress);
                 Common.Log($"[Skin] 已写入皮肤地址缓存 {uuid} -> {skinAddress}");
                 PageLaunchLeft.skinMs.WaitForExit(isForceRestart: true);
-                HintService.Hint(Lang.Text("Launch.Skin.ChangeSuccess"), HintType.Success);
+                HintService.Show(Hints.Success(Lang.Text("Launch.Skin.ChangeSuccess")));
             }
             catch (Exception ex)
             {
@@ -362,17 +360,17 @@ public partial class MySkin
         // 检查条件，获取新披风
         if (isChanging)
         {
-            HintService.Hint(Lang.Text("Launch.Skin.Cape.Changing"));
+            HintService.Show(Hints.Info(Lang.Text("Launch.Skin.Cape.Changing")));
             return;
         }
 
-        if (GameLaunch.mcLoginMsLoader.State == Common.LoadState.Failed)
+        if (GameLaunch.mcLoginMsLoader.State == LoadState.Failed)
         {
-            HintService.Hint(Lang.Text("Launch.Skin.Cape.LoginFailed"), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Launch.Skin.Cape.LoginFailed")));
             return;
         }
 
-        HintService.Hint(Lang.Text("Launch.Skin.Cape.FetchingList"));
+        HintService.Show(Hints.Info(Lang.Text("Launch.Skin.Cape.FetchingList")));
         isChanging = true;
         // 开始实际获取
         Common.RunInNewThread(() =>
@@ -380,11 +378,11 @@ public partial class MySkin
             try
             {
                 // 获取登录信息
-                if (GameLaunch.mcLoginMsLoader.State != Common.LoadState.Finished)
+                if (GameLaunch.mcLoginMsLoader.State != LoadState.Finished)
                     GameLaunch.mcLoginMsLoader.WaitForExit(ProfileUi.GetLoginData());
-                if (GameLaunch.mcLoginMsLoader.State != Common.LoadState.Finished)
+                if (GameLaunch.mcLoginMsLoader.State != LoadState.Finished)
                 {
-                    HintService.Hint(Lang.Text("Launch.Skin.Cape.LoginFailed"), HintType.Error);
+                    HintService.Show(Hints.Error(Lang.Text("Launch.Skin.Cape.LoginFailed")));
                     return;
                 }
 
@@ -439,9 +437,14 @@ public partial class MySkin
                                 LogoScale = 0.8d
                             });
 
-                        selId = Launcher.MyMsgBoxSelect(selectionControl,
-                            Lang.Text("Launch.Skin.Cape.SelectTitle"),
-                            Lang.Text("Common.Action.Confirm"), Lang.Text("Common.Action.Cancel"));
+                        selId = (DialogService.Instance.Show(new SelectDialogRequest
+                        {
+                            Title = Lang.Text("Launch.Skin.Cape.SelectTitle"),
+                            Options = PCL.DialogOptions.From(selectionControl),
+                            Buttons = DialogButtons.OkCancel,
+                            HighLight = false,
+                            ForceWait = true
+                        }).Result?.SelectedIndex);
                     }
                     catch (Exception ex)
                     {
@@ -467,11 +470,10 @@ public partial class MySkin
                     }
                 );
                 if (result.Contains("\"errorMessage\""))
-                    HintService.Hint(
-                        Lang.Text("Launch.Skin.Cape.ChangeFailedWithReason",
-                            ((JsonObject)Common.GetJson(result))["errorMessage"]), HintType.Error);
+                    HintService.Show(Hints.Error(Lang.Text("Launch.Skin.Cape.ChangeFailedWithReason",
+                            ((JsonObject)Common.GetJson(result))["errorMessage"])));
                 else
-                    HintService.Hint(Lang.Text("Launch.Skin.Cape.ChangeSuccess"), HintType.Success);
+                    HintService.Show(Hints.Success(Lang.Text("Launch.Skin.Cape.ChangeSuccess")));
             }
             catch (Exception ex)
             {

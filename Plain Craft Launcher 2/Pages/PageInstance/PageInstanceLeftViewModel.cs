@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.ViewModel;
@@ -29,6 +30,13 @@ public partial class PageInstanceLeftViewModel : ViewModelBase
     [ObservableProperty] private bool _itemSchematicVisible = true;
 
     [ObservableProperty] private bool _itemServerVisible = true;
+
+    [RelayCommand]
+    private void RefreshButton(string? tag)
+    {
+        if (tag is null) return;
+        Launcher.frmInstanceLeft?.Refresh((FormMain.PageSubType)Common.Val(tag));
+    }
 
     public void RefreshModDisabled(McInstance instance)
     {

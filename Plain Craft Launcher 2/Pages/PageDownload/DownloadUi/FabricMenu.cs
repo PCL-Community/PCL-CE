@@ -19,13 +19,11 @@ public static partial class DownloadUi
             Height = 42d,
             Type = MyListItem.CheckType.Clickable,
             Tag = entry,
+            Info = entry["stable"].ToObject<bool>()
+                ? Lang.Text("Download.Version.Type.Stable")
+                : Lang.Text("Download.Version.Type.Preview"),
             Logo = $"{Common.PathImage}Blocks/Fabric.png"
         };
-        newItem.SetLocalizedValue(
-            MyListItem.InfoProperty,
-            entry["stable"].ToObject<bool>()
-                ? "Download.Version.Type.Stable"
-                : "Download.Version.Type.Preview");
         newItem.Click += onClick;
         newItem.ContentHandler = FabricContMenuBuild;
         return newItem;
@@ -33,7 +31,12 @@ public static partial class DownloadUi
 
     private static void FabricContMenuBuild(object sender, EventArgs e)
     {
-        var btnInfo = CreateChangelogButton();
+        var btnInfo = new MyIconButton
+        {
+            LogoScale = 1.05d,
+            SvgIcon = "lucide/info",
+            ToolTip = Lang.Text("Download.Version.Changelog")
+        };
         ToolTipService.SetPlacement(btnInfo, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(btnInfo, 30d);
         ToolTipService.SetHorizontalOffset(btnInfo, 2d);
@@ -49,28 +52,36 @@ public static partial class DownloadUi
         Common.OpenWebsite("https://fabricmc.net/blog");
     }
 
-    public static MyListItem FabricApiDownloadListItem(
-        Comp.CompFile entry,
-        MyListItem.ClickEventHandler onClick)
+    public static FabricApiVersionRow FabricApiVersionRowBuild(Comp.CompFile entry)
     {
-        var newItem = new MyListItem
+        return new FabricApiVersionRow
         {
             Title = entry.DisplayName.Split("]")[1]
                 .Replace("Fabric API ", "")
                 .Replace(" build ", ".")
                 .Trim(),
+            Info = entry.StatusDescription
+                   + Lang.Text("Download.Version.ReleaseDate", Lang.Date(entry.ReleaseDate, "g")),
+            Logo = $"{Common.PathImage}Blocks/Fabric.png",
+            Entry = entry
+        };
+    }
+
+    public static MyListItem FabricApiDownloadListItem(
+        Comp.CompFile entry,
+        MyListItem.ClickEventHandler onClick)
+    {
+        var row = FabricApiVersionRowBuild(entry);
+        var newItem = new MyListItem
+        {
+            Title = row.Title,
             SnapsToDevicePixels = true,
             Height = 42d,
             Type = MyListItem.CheckType.Clickable,
-            Tag = entry,
-            Logo = $"{Common.PathImage}Blocks/Fabric.png"
+            Tag = row.Entry,
+            Info = row.Info,
+            Logo = row.Logo
         };
-        LocalizedText.TryBind(
-            newItem,
-            "Info",
-            () => entry.StatusDescription + Lang.Text(
-                "Download.Version.ReleaseDate",
-                Lang.Date(entry.ReleaseDate, "g")));
         newItem.Click += onClick;
         return newItem;
     }
@@ -91,14 +102,10 @@ public static partial class DownloadUi
             Height = 42d,
             Type = MyListItem.CheckType.Clickable,
             Tag = entry,
+            Info = entry.StatusDescription
+                + Lang.Text("Download.Version.ReleaseDate", Lang.Date(entry.ReleaseDate, "g")),
             Logo = $"{Common.PathImage}Blocks/OptiFabric.png"
         };
-        LocalizedText.TryBind(
-            newItem,
-            "Info",
-            () => entry.StatusDescription + Lang.Text(
-                "Download.Version.ReleaseDate",
-                Lang.Date(entry.ReleaseDate, "g")));
         newItem.Click += onClick;
         return newItem;
     }
@@ -114,15 +121,11 @@ public static partial class DownloadUi
             Height = 42d,
             Type = MyListItem.CheckType.Clickable,
             Tag = entry,
+            Info = entry["stable"].ToObject<bool>()
+                ? Lang.Text("Download.Version.Type.Stable")
+                : Lang.Text("Download.Version.Type.Preview"),
             Logo = $"{Common.PathImage}Blocks/Fabric.png"
         };
-        // 发布状态按当前语言实时求值，切换语言后自动刷新
-        LocalizedText.TryBind(
-            newItem,
-            "Info",
-            () => entry["stable"]?.ToObject<bool>() == true
-                ? Lang.Text("Download.Version.Type.Stable")
-                : Lang.Text("Download.Version.Type.Preview"));
         newItem.Click += onClick;
         return newItem;
     }
@@ -138,14 +141,10 @@ public static partial class DownloadUi
             Height = 42d,
             Type = MyListItem.CheckType.Clickable,
             Tag = entry,
+            Info = entry.StatusDescription
+                + Lang.Text("Download.Version.ReleaseDate", Lang.Date(entry.ReleaseDate, "g")),
             Logo = $"{Common.PathImage}Blocks/Fabric.png"
         };
-        LocalizedText.TryBind(
-            newItem,
-            "Info",
-            () => entry.StatusDescription + Lang.Text(
-                "Download.Version.ReleaseDate",
-                Lang.Date(entry.ReleaseDate, "g")));
         newItem.Click += onClick;
         return newItem;
     }

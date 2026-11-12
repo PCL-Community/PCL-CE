@@ -15,8 +15,8 @@ internal sealed class CrashReportExporter
     private const string ReportFolderName = "Report";
 
     private const string LaunchScriptFileName = "启动脚本.bat";
-    private const string RawOutputFileName = "游戏崩溃前的输出.txt";
-    private const string LauncherLogFileName = "PCL CE 启动器日志.txt";
+    private const string RawOutputFileName = "游戏崩溃前的输出.log";
+    private const string LauncherLogFileName = "PCL CE 启动器日志.log";
     private const string EnvironmentFileName = "环境与启动信息.txt";
     private const string ModInfoFileName = "模组列表.txt";
 

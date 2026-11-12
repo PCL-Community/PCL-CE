@@ -3,6 +3,7 @@ using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.ViewModel;
 
 namespace PCL;
@@ -20,6 +21,8 @@ public partial class PageSetupUIViewModel : ViewModelBase
 
     [ObservableProperty] private Visibility _backgroundClearVisibility = Visibility.Collapsed;
 
+    [ObservableProperty] private bool _backgroundClearEnabled = true;
+
     [ObservableProperty] private Visibility _autoPauseVideoVisibility = Visibility.Visible;
 
     [ObservableProperty] private string _backgroundTitle = Lang.Text("Setup.Ui.Background.TitleDefault");
@@ -30,11 +33,29 @@ public partial class PageSetupUIViewModel : ViewModelBase
 
     [ObservableProperty] private Visibility _musicClearVisibility = Visibility.Collapsed;
 
+    [ObservableProperty] private bool _musicClearEnabled = true;
+
     [ObservableProperty] private string _musicTitle = Lang.Text("Setup.Ui.Music.Title");
 
     [ObservableProperty] private Visibility _featureHideVisibility = Visibility.Visible;
 
     [ObservableProperty] private string _featureHideTitle = Lang.Text("Setup.Ui.FeatureHide.Title");
+
+    [ObservableProperty] private string _logoText = "";
+
+    [ObservableProperty] private string _customNetText = "";
+
+    [ObservableProperty] private int _darkModeSelectedIndex = -1;
+
+    [ObservableProperty] private int _darkColorSelectedIndex = -1;
+
+    [ObservableProperty] private int _lightColorSelectedIndex = -1;
+
+    [ObservableProperty] private int _blurTypeSelectedIndex = -1;
+
+    [ObservableProperty] private int _backgroundSuitSelectedIndex = 0;
+
+    [ObservableProperty] private int _customPresetSelectedIndex = -1;
 
     public string[] ThemeColors => Basics.IsAprilFool
         ? [Lang.Text("Setup.Ui.Theme.Color.SkyBlue"), Lang.Text("Setup.Ui.Theme.Color.CatBlue"), Lang.Text("Setup.Ui.Theme.Color.CrashBlue"), Lang.Text("Setup.Ui.Theme.Color.Hmcl")]
@@ -95,14 +116,24 @@ public partial class PageSetupUIViewModel : ViewModelBase
 
     public async Task<bool> ConfirmBackgroundClearAsync()
     {
-        return await Launcher.MyMsgBoxAsync(Lang.Text("Setup.Ui.Background.Clear.Confirm.Message"),
-            Lang.Text("Common.Dialog.Warning"), button2: Lang.Text("Common.Action.Cancel"), isWarn: true) == 1;
+        return (await Dialog.ShowAsync(new TextDialogRequest
+        {
+            Title = Lang.Text("Common.Dialog.Warning"),
+            Content = Lang.Text("Setup.Ui.Background.Clear.Confirm.Message"),
+            Buttons = DialogButtons.OkCancel,
+            IsWarn = true
+        })).IsConfirmed;
     }
 
     public async Task<bool> ConfirmMusicClearAsync()
     {
-        return await Launcher.MyMsgBoxAsync(Lang.Text("Setup.Ui.Music.Clear.Confirm.Message"),
-            Lang.Text("Common.Dialog.Warning"), button2: Lang.Text("Common.Action.Cancel"), isWarn: true) == 1;
+        return (await Dialog.ShowAsync(new TextDialogRequest
+        {
+            Title = Lang.Text("Common.Dialog.Warning"),
+            Content = Lang.Text("Setup.Ui.Music.Clear.Confirm.Message"),
+            Buttons = DialogButtons.OkCancel,
+            IsWarn = true
+        })).IsConfirmed;
     }
 
     public static object FormatMusicVolumeHint(object value)

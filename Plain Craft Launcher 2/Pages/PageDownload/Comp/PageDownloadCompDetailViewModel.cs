@@ -1,10 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App.Localization;
 using PCL.Core.ViewModel;
+using System.Collections.ObjectModel;
+using System.Windows;
 
 namespace PCL;
 
@@ -20,6 +19,59 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
     [ObservableProperty] private Visibility _filterVisibility = Visibility.Visible;
 
     [ObservableProperty] private bool _isFavorite;
+
+    /// <summary>文件列表的版本分组，整体替换以只触发一次集合变更通知。</summary>
+    [ObservableProperty] private ObservableCollection<CompFileGroupViewModel> _fileGroups = [];
+
+    public ObservableCollection<CompFilterChip> InstanceFilterLabelChips { get; } = [];
+
+    public ObservableCollection<CompFilterChip> ModLoaderFilterLabelChips { get; } = [];
+
+    public ObservableCollection<CompFilterOption> InstanceFilterOptions { get; } = [];
+
+    public ObservableCollection<CompFilterOption> ModLoaderFilterOptions { get; } = [];
+
+    public Action? FilterSelectionChanged { get; set; }
+
+    public CompFilterOption? SelectedInstanceFilter => InstanceFilterOptions.FirstOrDefault(option => option.IsSelected);
+
+    public CompFilterOption? SelectedModLoaderFilter => ModLoaderFilterOptions.FirstOrDefault(option => option.IsSelected);
+
+    public string? InstanceFilterValue => SelectedInstanceFilter?.Text == Lang.Text("Common.Option.All")
+        ? null
+        : SelectedInstanceFilter?.Text;
+
+    public string? ModLoaderFilterValue => SelectedModLoaderFilter?.Text == Lang.Text("Common.Option.All")
+        ? null
+        : SelectedModLoaderFilter?.Text;
+
+    public void SetInstanceFilter(CompFilterOption? option)
+    {
+        foreach (var item in InstanceFilterOptions)
+            item.IsSelected = ReferenceEquals(item, option);
+        OnPropertyChanged(nameof(SelectedInstanceFilter));
+    }
+
+    public void SetModLoaderFilter(CompFilterOption? option)
+    {
+        foreach (var item in ModLoaderFilterOptions)
+            item.IsSelected = ReferenceEquals(item, option);
+        OnPropertyChanged(nameof(SelectedModLoaderFilter));
+    }
+
+    [RelayCommand]
+    private void SelectInstanceFilter(CompFilterOption? option)
+    {
+        SetInstanceFilter(option);
+        FilterSelectionChanged?.Invoke();
+    }
+
+    [RelayCommand]
+    private void SelectModLoaderFilter(CompFilterOption? option)
+    {
+        SetModLoaderFilter(option);
+        FilterSelectionChanged?.Invoke();
+    }
 
     public void ApplyProjectState(Comp.CompProject project)
     {
@@ -42,14 +94,19 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
         IsFavorite = Comp.CompFavorites.IsFavourite(projectId);
     }
 
-    // 筛选类型相同的结果（Modrinth 会返回 Mod、服务端插件、数据包混合的列表）
+    /// <summary>
+    /// 筛选类型相同的结果（Modrinth 会返回 Mod、服务端插件、数据包混合的列表）
+    /// </summary>
+    /// <param name="results"></param>
+    /// <param name="pageType"></param>
+    /// <returns></returns>
     public static List<Comp.CompFile> FilterResults(List<Comp.CompFile> results, Comp.CompType pageType)
     {
         if (pageType == Comp.CompType.Any)
         {
             results = results.Where(r => r.Type != Comp.CompType.Plugin).ToList();
         }
-        else if (pageType == Comp.CompType.Shader || pageType == Comp.CompType.ResourcePack)
+        else if (pageType is Comp.CompType.Shader or Comp.CompType.ResourcePack)
         {
         }
         // 不筛选光影和资源包，否则原版光影会因为是资源包格式而被过滤（Meloong-Git/#6473）
@@ -61,16 +118,8 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
         return results;
     }
 
-    // 结果 UI 化
-    public sealed class CardSorter : IComparer<string>
+    public sealed class CardSorter(string topmost = "") : IComparer<string>
     {
-        public readonly string topmost = "";
-
-        public CardSorter(string topmost = "")
-        {
-            this.topmost = topmost ?? "";
-        }
-
         public int Compare(string? x, string? y)
         {
             var sx = x ?? "";
@@ -84,8 +133,8 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
             if (sy == topmost)
                 return 1;
             // 特殊版本
-            var isXSpecial = !sx.Contains(".");
-            var isYSpecial = !sy.Contains(".");
+            var isXSpecial = !sx.Contains('.');
+            var isYSpecial = !sy.Contains('.');
             if (isXSpecial && isYSpecial)
                 return string.Compare(sx, sy, StringComparison.Ordinal);
             if (isXSpecial)
@@ -101,4 +150,12 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
             return -McVersionComparer.CompareVersion(sx, sy);
         }
     }
+}
+
+/// <summary>资源详情页筛选器中的单个选项。</summary>
+public sealed partial class CompFilterOption(string text) : ObservableObject
+{
+    public string Text { get; } = text;
+
+    [ObservableProperty] private bool _isSelected;
 }

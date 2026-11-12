@@ -1,11 +1,11 @@
 ﻿<local:MyPageRight
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="clr-namespace:PCL" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:PCL"
+                   xmlns:loc="https://ce.pclc.cc/core/localization" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" x:Class="PCL.PageSetupUpdate"
-    PanScroll="{Binding ElementName=PanBack}"
-    xmlns:loc="https://ce.pclc.cc/core/localization">
+    PanScroll="{Binding ElementName=PanBack}">
     <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
         <StackPanel x:Name="PanMain" Margin="25,25,25,10">
             <local:MyCard Height="Auto">
@@ -28,6 +28,7 @@
                                    Margin="0,0,25,0" />
                         <local:MyComboBox x:Name="ComboSystemUpdateChannel" Tag="SystemUpdateChannel" Grid.Column="1"
                                           Grid.ColumnSpan="3" Grid.Row="0"
+                                          IsEnabled="{Binding ChannelEnabled, Mode=OneWay}"
                                           SelectionChanged="ComboSystemUpdateBranch_SelectionChanged">
                             <local:MyComboBoxItem Content="{loc:Loc Setup.Update.Channel.Release}"
                                                   ToolTip="{loc:Loc Setup.Update.Channel.Release.ToolTip}" />
@@ -89,9 +90,10 @@
                                         VerticalAlignment="Center" Width="85" Height="30"
                                         Click="BtnUpdate_Click" />
                         <TextBlock x:Name="TextChangelog"
-                                    Text="{loc:Loc Setup.Update.Changelog.Placeholder}"
+                                    Text="{Binding ChangelogText, Mode=OneWay}"
                                    Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="4" TextWrapping="Wrap" />
                         <local:MyTextButton x:Name="BtnChangelogDetail" Text="{loc:Loc Setup.Update.Changelog.MoreInfo}" FontWeight="Thin"
+                                            IsEnabled="{Binding ChangelogDetailEnabled, Mode=OneWay}"
                                             Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="4" HorizontalAlignment="Left"
                                             VerticalAlignment="Center" Click="BtnChangelogDetail_Click" />
                     </Grid>

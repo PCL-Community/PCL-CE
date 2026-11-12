@@ -7,12 +7,15 @@ using PCL.Core.App.Configuration;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 
 namespace PCL;
 
-public partial class PageSetupUI
+public partial class PageSetupUI : IPageView
 {
     private readonly PageSetupUIViewModel _vm = new();
+
+    private bool _refreshed;
 
     public PageSetupUIViewModel ViewModel => _vm;
 
@@ -26,16 +29,12 @@ public partial class PageSetupUI
         DataContext = _vm;
         Loaded += PageSetupUI_Loaded;
         Loaded += (_, _) => HiddenRefresh();
+        Unloaded += (_, _) => _refreshed = false;
     }
 
     private void PageSetupUI_Loaded(object sender, RoutedEventArgs e)
     {
-        // 重复加载部分
-        PanBack.ScrollToHome();
-
-        Animations.AniBeginControl();
-        Reload(); // #4826，在每次进入页面时都刷新一下
-        Animations.AniEndControl();
+        RefreshOnNavigate();
 
         // 非重复加载部分
         if (isLoaded)
@@ -47,6 +46,28 @@ public partial class PageSetupUI
         _vm.ShowLauncherHint();
     }
 
+    public void OnNavigatedTo(object? parameter)
+    {
+        RefreshOnNavigate();
+    }
+
+    public void OnNavigatedFrom()
+    {
+    }
+
+    private void RefreshOnNavigate()
+    {
+        if (_refreshed)
+            return;
+        _refreshed = true;
+        // 重复加载部分
+        PanBack.ScrollToHome();
+
+        Animations.AniBeginControl();
+        Reload(); // #4826，在每次进入页面时都刷新一下
+        Animations.AniEndControl();
+    }
+
     public void Reload()
     {
         try
@@ -54,9 +75,9 @@ public partial class PageSetupUI
             // 启动器
             SliderLauncherOpacity.Value = Config.Preference.Theme.WindowOpacity;
             CheckLauncherLogo.Checked = Config.Preference.ShowStartupLogo;
-            ComboDarkMode.SelectedIndex = (int)Config.Preference.Theme.ColorMode;
-            ComboDarkColor.SelectedIndex = (int)Config.Preference.Theme.DarkColor;
-            ComboLightColor.SelectedIndex = (int)Config.Preference.Theme.LightColor;
+            _vm.DarkModeSelectedIndex = (int)Config.Preference.Theme.ColorMode;
+            _vm.DarkColorSelectedIndex = (int)Config.Preference.Theme.DarkColor;
+            _vm.LightColorSelectedIndex = (int)Config.Preference.Theme.LightColor;
             CheckShowLaunchingHint.Checked = Config.Preference.ShowLaunchingHint;
 
             // 字体设置
@@ -66,14 +87,14 @@ public partial class PageSetupUI
             CheckBlur.Checked = Config.Preference.Blur.IsEnabled;
             SliderBlurValue.Value = Config.Preference.Blur.Radius;
             SliderBlurSamplingRate.Value = Config.Preference.Blur.SamplingRate;
-            ComboBlurType.SelectedIndex = Config.Preference.Blur.KernelType;
+            _vm.BlurTypeSelectedIndex = Config.Preference.Blur.KernelType;
             PanBlurValue.Visibility = CheckBlur.Checked == true ? Visibility.Visible : Visibility.Collapsed;
             CheckLockWindowSize.Checked = Config.Preference.LockWindowSize;
 
             // 背景图片
             SliderBackgroundOpacity.Value = Config.Preference.Background.WallpaperOpacity;
             SliderBackgroundBlur.Value = Config.Preference.Background.WallpaperBlurRadius;
-            ComboBackgroundSuit.SelectedIndex = Config.Preference.Background.WallpaperSuitMode;
+            _vm.BackgroundSuitSelectedIndex = Config.Preference.Background.WallpaperSuitMode;
             CheckBackgroundColorful.Checked = Config.Preference.Background.BackgroundColorful;
             var autoPauseVideo = Config.Preference.Background.AutoPauseVideo;
             CheckAutoPauseVideo.Checked = autoPauseVideo;
@@ -89,7 +110,7 @@ public partial class PageSetupUI
             CheckLogoLeft.Visibility = RadioLogoType0.Checked ? Visibility.Visible : Visibility.Collapsed;
             PanLogoText.Visibility = RadioLogoType2.Checked ? Visibility.Visible : Visibility.Collapsed;
             PanLogoChange.Visibility = RadioLogoType3.Checked ? Visibility.Visible : Visibility.Collapsed;
-            TextLogoText.Text = Config.Preference.WindowTitleCustomText;
+            _vm.LogoText = Config.Preference.WindowTitleCustomText;
             CheckLogoLeft.Checked = Config.Preference.TopBarLeftAlign;
 
             // 背景音乐
@@ -104,7 +125,7 @@ public partial class PageSetupUI
             // 主页
             try
             {
-                ComboCustomPreset.SelectedIndex = Config.Preference.Homepage.SelectedPreset;
+                _vm.CustomPresetSelectedIndex = Config.Preference.Homepage.SelectedPreset;
             }
             catch
             {
@@ -112,7 +133,7 @@ public partial class PageSetupUI
             }
 
             ((MyRadioBox)FindName("RadioCustomType" + Config.Preference.Homepage.Type)).Checked = true;
-            TextCustomNet.Text = Config.Preference.Homepage.CustomUrl;
+            _vm.CustomNetText = Config.Preference.Homepage.CustomUrl;
             Setup.UiCustomType(Config.Preference.Homepage.Type);
 
             // 功能隐藏
@@ -183,7 +204,7 @@ public partial class PageSetupUI
         {
             Config.Preference.Reset();
             Common.Log("[Setup] 已初始化个性化设置！");
-            HintService.Hint(Lang.Text("Setup.Ui.Initialized"), HintType.Success, false);
+            HintService.Show(Hints.Success(Lang.Text("Setup.Ui.Initialized"), log: false));
         }
         catch (Exception ex)
         {
@@ -277,16 +298,14 @@ public partial class PageSetupUI
 
     private async void BtnBackgroundClear_Click(object sender, MouseButtonEventArgs e)
     {
-        var control = sender as FrameworkElement;
-        if (control is not null)
-            control.IsEnabled = false;
+        _vm.BackgroundClearEnabled = false;
         try
         {
             if (!await _vm.ConfirmBackgroundClearAsync())
                 return;
             Common.DeleteDirectory(Common.ExePath + @"PCL\Pictures");
             BackgroundRefresh(false, true);
-            HintService.Hint(Lang.Text("Setup.Ui.Background.Clear.Success"), HintType.Success);
+            HintService.Show(Hints.Success(Lang.Text("Setup.Ui.Background.Clear.Success")));
         }
         catch (Exception ex)
         {
@@ -295,8 +314,7 @@ public partial class PageSetupUI
         }
         finally
         {
-            if (control is not null)
-                control.IsEnabled = true;
+            _vm.BackgroundClearEnabled = true;
         }
     }
 
@@ -358,13 +376,13 @@ public partial class PageSetupUI
                     if (Launcher.frmMain.ImgBack.Visibility == Visibility.Collapsed)
                     {
                         if (isHint)
-                            HintService.Hint(Lang.Text("Setup.Ui.Background.NoAvailableContent"), HintType.Error);
+                            HintService.Show(Hints.Error(Lang.Text("Setup.Ui.Background.NoAvailableContent")));
                     }
                     else
                     {
                         Launcher.frmMain.ImgBack.Visibility = Visibility.Collapsed;
                         if (isHint)
-                            HintService.Hint(Lang.Text("Setup.Ui.Background.Cleared"), HintType.Success);
+                            HintService.Show(Hints.Success(Lang.Text("Setup.Ui.Background.Cleared")));
                     }
                 }
 
@@ -385,8 +403,7 @@ public partial class PageSetupUI
                         _ = Config.Preference.Background.WallpaperSuitMode;
                         Launcher.frmMain.ImgBack.Visibility = Visibility.Visible;
                         if (isHint)
-                                HintService.Hint(Lang.Text("Setup.Ui.Background.Refresh.Success", Common.GetFileNameFromPath(address)), HintType.Success,
-                                false);
+                                HintService.Show(Hints.Success(Lang.Text("Setup.Ui.Background.Refresh.Success", Common.GetFileNameFromPath(address)), log: false));
                     }
                     catch (Exception ex)
                     {
@@ -395,13 +412,12 @@ public partial class PageSetupUI
                             Launcher.frmMain.VideoBack.MediaFailed += videoHandler;
                             Common.Log(ex, "[UI] 加载背景图片失败" + address);
                             if (Common.modeDebug)
-                                HintService.Hint(Lang.Text("Setup.Ui.Background.ImageLoadFailed", address));
+                                HintService.Show(Hints.Info(Lang.Text("Setup.Ui.Background.ImageLoadFailed", address)));
                             Launcher.frmMain.ImgBack.Visibility = Visibility.Visible;
                             Launcher.frmMain.VideoBack.Source = new Uri(address, UriKind.Absolute);
                             VideoBackground.VideoPlay();
                             if (isHint)
-                            HintService.Hint(Lang.Text("Setup.Ui.Background.Refresh.Success", Common.GetFileNameFromPath(address)), HintType.Success,
-                                    false);
+                            HintService.Show(Hints.Success(Lang.Text("Setup.Ui.Background.Refresh.Success", Common.GetFileNameFromPath(address)), log: false));
                         }
                         catch (Exception playEx)
                         {
@@ -544,7 +560,7 @@ public partial class PageSetupUI
         {
             File.Delete(Common.ExePath + @"PCL\Logo.png");
             RadioLogoType1.SetChecked(true, true);
-            HintService.Hint(Lang.Text("Setup.Ui.Logo.Clear.Success"), HintType.Success);
+            HintService.Show(Hints.Success(Lang.Text("Setup.Ui.Logo.Clear.Success")));
         }
         catch (Exception ex)
         {
@@ -585,16 +601,14 @@ public partial class PageSetupUI
 
     private async void BtnMusicClear_Click(object sender, MouseButtonEventArgs e)
     {
-        var control = sender as FrameworkElement;
-        if (control is not null)
-            control.IsEnabled = false;
+        _vm.MusicClearEnabled = false;
         try
         {
             if (!await _vm.ConfirmMusicClearAsync())
                 return;
             Common.RunInThread(() =>
             {
-                HintService.Hint(Lang.Text("Setup.Ui.Music.Deleting"));
+                HintService.Show(Hints.Info(Lang.Text("Setup.Ui.Music.Deleting")));
                 // 停止播放音乐
                 Music.musicNAudio = null;
                 Music.musicWaitingList = new List<string>();
@@ -605,7 +619,7 @@ public partial class PageSetupUI
                 {
                     Common.DeleteDirectory(Common.ExePath + @"PCL\Musics");
                     // DisableSMTCSupport()
-                    HintService.Hint(Lang.Text("Setup.Ui.Music.Delete.Success"), HintType.Success);
+                    HintService.Show(Hints.Success(Lang.Text("Setup.Ui.Music.Delete.Success")));
                 }
                 catch (Exception ex)
                 {
@@ -638,8 +652,7 @@ public partial class PageSetupUI
         }
         finally
         {
-            if (control is not null)
-                control.IsEnabled = true;
+            _vm.MusicClearEnabled = true;
         }
     }
 
@@ -665,7 +678,7 @@ public partial class PageSetupUI
     private void BtnCustomRefresh_Click(object sender, MouseButtonEventArgs e)
     {
         Launcher.frmLaunchRight.ForceRefresh();
-        HintService.Hint(Lang.Text("Setup.Ui.Homepage.Refresh.Success"), HintType.Success);
+        HintService.Show(Hints.Success(Lang.Text("Setup.Ui.Homepage.Refresh.Success")));
     }
 
     private void BtnCustomTutorial_Click(object sender, MouseButtonEventArgs e)
@@ -966,7 +979,7 @@ public partial class PageSetupUI
     private void HiddenHint(object sender, bool user)
     {
         if (!Animations.AniExitsAnyControl() && sender is MyCheckBox checkBox && checkBox.Checked == true)
-            HintService.Hint(Lang.Text("Setup.Ui.FeatureHide.TemporaryHint"));
+            HintService.Show(Hints.Info(Lang.Text("Setup.Ui.FeatureHide.TemporaryHint")));
     }
 
     #endregion

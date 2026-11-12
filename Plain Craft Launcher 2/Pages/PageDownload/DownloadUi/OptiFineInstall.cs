@@ -3,7 +3,7 @@ using System.Globalization;
 using System.IO;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
-using PCL.Core.Minecraft;
+using PCL.Core.Minecraft.Java;
 using PCL.Network;
 
 namespace PCL;
@@ -108,7 +108,7 @@ public static partial class DownloadUi
             try
             {
                 javaLoader.Start(downloadJavaMajor, true);
-                while (javaLoader.State == Common.LoadState.Loading && !task.IsAborted)
+                while (javaLoader.State == LoadState.Loading && !task.IsAborted)
                     Thread.Sleep(10);
             }
             finally
@@ -202,7 +202,7 @@ public static partial class DownloadUi
 
             try
             {
-                if (task.State == Common.LoadState.Aborted && !process.HasExited)
+                if (task.State == LoadState.Aborted && !process.HasExited)
                 {
                     Common.Log("[Installer] 由于任务取消，已中止 OptiFine 安装");
                     process.Kill();

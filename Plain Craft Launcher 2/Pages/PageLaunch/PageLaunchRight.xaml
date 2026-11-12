@@ -6,7 +6,7 @@
     <local:MyScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" x:Name="PanBack">
         <StackPanel Name="PanMain" Margin="25,25,25,10" Grid.IsSharedSizeScope="True">
             <StackPanel x:Name="PanCustom" />
-            <local:MyCard Margin="0,0,0,15" Title="{loc:Loc Launch.Right.CommunityHint.Title}"
+            <local:MyCard Margin="0,15,0,15" Title="{loc:Loc Launch.Right.CommunityHint.Title}"
                           x:Name="PanHint">
                 <local:MyIconButton LogoScale="1.1"
                                     SvgIcon="lucide/x"

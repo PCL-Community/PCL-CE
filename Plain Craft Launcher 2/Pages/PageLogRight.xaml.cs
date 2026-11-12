@@ -5,12 +5,13 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.UI;
 using System.Globalization;
 
 namespace PCL;
 
-public partial class PageLogRight
+public partial class PageLogRight : IPageView
 {
     public Run labDebug;
     public Run labError;
@@ -20,10 +21,13 @@ public partial class PageLogRight
 
     private readonly PageLogRightViewModel _vm = new();
 
+    private bool _refreshed;
+
     public PageLogRight()
     {
         Initialized += (_, _) => Init();
         Loaded += PageLogRight_Loaded;
+        Unloaded += PageLogRight_Unloaded;
         InitializeComponent();
         DataContext = _vm;
     }
@@ -75,6 +79,28 @@ public partial class PageLogRight
 
     private void PageLogRight_Loaded(object sender, RoutedEventArgs e)
     {
+        RefreshOnNavigate();
+    }
+
+    private void PageLogRight_Unloaded(object sender, RoutedEventArgs e)
+    {
+        _refreshed = false;
+    }
+
+    public void OnNavigatedTo(object? parameter)
+    {
+        RefreshOnNavigate();
+    }
+
+    public void OnNavigatedFrom()
+    {
+    }
+
+    private void RefreshOnNavigate()
+    {
+        if (_refreshed)
+            return;
+        _refreshed = true;
         Animations.AniBeginControl();
         Reload();
         Animations.AniEndControl();
@@ -176,7 +202,7 @@ public partial class PageLogRight
         if (savePath.Length < 3)
             return;
         File.WriteAllLines(savePath, Launcher.frmLogLeft.currentLog.fullLog);
-        HintService.Hint(Lang.Text("LogPage.Export.Success"), HintType.Success);
+        HintService.Show(Hints.Success(Lang.Text("LogPage.Export.Success")));
         Common.OpenExplorer(savePath);
     }
 
@@ -185,8 +211,7 @@ public partial class PageLogRight
         if (Launcher.frmLogLeft.currentLog.State <= GameWatcher.Watcher.MinecraftState.Running)
         {
             Launcher.frmLogLeft.currentLog.Kill();
-            HintService.Hint(Lang.Text("LogPage.Action.GameClosed", Launcher.frmLogLeft.currentLog.version.Name),
-                HintType.Success);
+            HintService.Show(Hints.Success(Lang.Text("LogPage.Action.GameClosed", Launcher.frmLogLeft.currentLog.version.Name)));
         }
     }
 
@@ -201,7 +226,7 @@ public partial class PageLogRight
             Lang.Text("LogPage.ExportStack.Filter"));
         if (savePath.Length < 3)
             return;
-        HintService.Hint(Lang.Text("LogPage.ExportStack.Progress"));
+        HintService.Show(Hints.Info(Lang.Text("LogPage.ExportStack.Progress")));
         _vm.IsExportStackDumpEnabled = false;
         Common.RunInNewThread(() =>
         {
@@ -209,7 +234,7 @@ public partial class PageLogRight
             File.WriteAllLines(savePath, dump);
             Common.RunInUi(() =>
             {
-                HintService.Hint(Lang.Text("LogPage.ExportStack.Success"), HintType.Success);
+                HintService.Show(Hints.Success(Lang.Text("LogPage.ExportStack.Success")));
                 _vm.IsExportStackDumpEnabled = true;
             });
             Common.OpenExplorer(savePath);

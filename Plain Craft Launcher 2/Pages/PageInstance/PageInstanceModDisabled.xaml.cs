@@ -1,8 +1,9 @@
 using System.Windows;
+using System.Windows.Input;
 
 namespace PCL;
 
-public partial class PageInstanceModDisabled
+public partial class PageInstanceModDisabled : IPageView
 {
     private readonly PageInstanceModDisabledViewModel _vm = new();
     private bool _refreshed;
@@ -11,21 +12,27 @@ public partial class PageInstanceModDisabled
     {
         InitializeComponent();
         DataContext = _vm;
-        BtnDownload.Click += BtnDownload_Click;
-        BtnVersion.Click += BtnVersion_Click;
-        BtnDownload.Loaded += BtnDownload_Loaded;
         Loaded += (_, _) => RefreshOnNavigate();
         Unloaded += (_, _) => _refreshed = false;
     }
 
+    public void OnNavigatedTo(object? parameter)
+    {
+        RefreshOnNavigate();
+    }
+
+    public void OnNavigatedFrom()
+    {
+    }
+
     public PageInstanceModDisabledViewModel ViewModel => _vm;
 
-    private void BtnDownload_Click(object sender, EventArgs e)
+    private void BtnDownload_Click(object sender, MouseButtonEventArgs e)
     {
         Launcher.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadInstall);
     }
 
-    private void BtnVersion_Click(object sender, EventArgs e)
+    private void BtnVersion_Click(object sender, MouseButtonEventArgs e)
     {
         Launcher.frmMain.PageChange(FormMain.PageType
             .Launch); // 在实例选择页面选定实例的时候只会返回一层，因此如果不先锚定 Launch，在选择实例后会回退到实例设置的这个页面

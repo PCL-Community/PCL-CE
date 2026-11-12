@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Windows;
@@ -9,7 +9,9 @@ using PCL.Core.App.Configuration;
 using PCL.Core.App.Essentials;
 using PCL.Core.App.IoC;
 using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.Utils.OS;
 
 namespace PCL;
@@ -27,6 +29,7 @@ public partial class PageSetupLauncherMisc : IPageView
     {
         InitializeComponent();
         DataContext = _vm;
+        DialogServiceInstaller.Install(_vm);
         Loaded += PageSetupLink_Loaded;
         Loaded += (_, _) => Refresh();
         Unloaded += PageSetupLauncherMisc_Unloaded;
@@ -100,7 +103,7 @@ public partial class PageSetupLauncherMisc : IPageView
             Config.Debug.Reset();
             Config.System.Reset();
             Common.Log("[Setup] 已初始化启动器-杂项页设置");
-            HintService.Hint(Lang.Text("Setup.Misc.Initialized"), HintType.Success, false);
+            HintService.Show(Hints.Success(Lang.Text("Setup.Misc.Initialized"), log: false));
             Reload();
         }
         catch (Exception ex)
@@ -184,28 +187,33 @@ public partial class PageSetupLauncherMisc : IPageView
     // 硬件加速
     private void Check_DisableHardwareAcceleration(object _, bool __)
     {
-        HintService.Hint(Lang.Text("Setup.Misc.HardwareAcceleration.RestartNotice"));
+        HintService.Show(Hints.Info(Lang.Text("Setup.Misc.HardwareAcceleration.RestartNotice")));
     }
 
     // 调试模式
     private void CheckDebugMode_Change(object _, bool __)
     {
         if (!Animations.AniExitsAnyControl())
-            HintService.Hint(Lang.Text("Setup.Misc.Debug.Mode.Hint"), log: false);
+            HintService.Show(Hints.Info(Lang.Text("Setup.Misc.Debug.Mode.Hint"), log: false));
     }
 
     // 自动更新
     private void ComboSystemActivity_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (Animations.AniExitsAnyControl())
+        if (Animations.AniExitsAnyControl() || sender is not MyComboBox combo || (!combo.IsDropDownOpen && !Keyboard.IsKeyDown(Key.Enter)))
             return;
         if (ComboSystemActivity.SelectedIndex != 2)
             return;
-        if (Launcher.MyMsgBox(
-                Lang.Text("Setup.Misc.System.Announcement.Disabled.Warning.Message"),
-                Lang.Text("Common.Dialog.Warning"),
-                Lang.Text("Setup.Misc.System.Announcement.Disabled.Warning.Confirm"),
-                Lang.Text("Common.Action.Cancel"), isWarn: true) ==
+        if (_vm.Dialog.Show(new TextDialogRequest
+        {
+            Title = Lang.Text("Common.Dialog.Warning"),
+            Content = Lang.Text("Setup.Misc.System.Announcement.Disabled.Warning.Message"),
+            Buttons = DialogButtons.From(
+                DialogButton.Create(Lang.Text("Setup.Misc.System.Announcement.Disabled.Warning.Confirm")),
+                DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+            IsWarn = true,
+            ForceWait = true
+        }).Result?.Button ==
             2) ComboSystemActivity.SelectedItem = e.RemovedItems[0];
     }
 
@@ -236,7 +244,7 @@ public partial class PageSetupLauncherMisc : IPageView
         if (string.IsNullOrWhiteSpace(savePath))
             return;
         File.Copy(ConfigService.SharedConfigPath, savePath, true);
-        HintService.Hint(Lang.Text("Setup.Misc.System.ExportSettings.Success"), HintType.Success);
+        HintService.Show(Hints.Success(Lang.Text("Setup.Misc.System.ExportSettings.Success")));
         Common.OpenExplorer(savePath);
     }
 
@@ -246,7 +254,14 @@ public partial class PageSetupLauncherMisc : IPageView
         if (string.IsNullOrWhiteSpace(sourcePath))
             return;
         File.Copy(sourcePath, ConfigService.SharedConfigPath, true);
-        Launcher.MyMsgBox(Lang.Text("Setup.Misc.System.ImportSettings.Success.Message"), button1: Lang.Text("Setup.Misc.System.ImportSettings.Success.Restart"), forceWait: true);
+        _ = _vm.Dialog.ShowAsync(new TextDialogRequest
+        {
+            Title = Lang.Text("Common.Dialog.Title"),
+            Content = Lang.Text("Setup.Misc.System.ImportSettings.Success.Message"),
+            Buttons = DialogButtons.From(
+                DialogButton.Create(Lang.Text("Setup.Misc.System.ImportSettings.Success.Restart"))),
+            ForceWait = true
+        });
         Process.Start(new ProcessStartInfo(Basics.ExecutablePath));
         FormMain.EndProgramForce();
     }
@@ -259,21 +274,25 @@ public partial class PageSetupLauncherMisc : IPageView
     {
         try
         {
-            var result = await Launcher.MyMsgBoxAsync(
-                Lang.Text("Setup.Misc.System.StopUsingPclCe.Message"),
-                Lang.Text("Setup.Misc.System.StopUsingPclCe.Title"),
-                Lang.Text("Common.Action.Continue"),
-                Lang.Text("Setup.Misc.System.StopUsingPclCe.ContinueAndRemove"),
-                Lang.Text("Common.Action.Cancel"),
-                isWarn: true);
+            var result = (await _vm.Dialog.ShowAsync(new TextDialogRequest
+            {
+                Title = Lang.Text("Setup.Misc.System.StopUsingPclCe.Title"),
+                Content = Lang.Text("Setup.Misc.System.StopUsingPclCe.Message"),
+                Buttons = DialogButtons.From(
+                    DialogButton.Create(Lang.Text("Common.Action.Continue")),
+                    DialogButton.Create(Lang.Text("Setup.Misc.System.StopUsingPclCe.ContinueAndRemove")),
+                    DialogButton.Create(Lang.Text("Common.Action.Cancel"))),
+                IsWarn = true
+            })).Button;
 
             if (result >= 3) return;
-            if (await Launcher.MyMsgBoxAsync(
-                    Lang.Text("Setup.Misc.System.StopUsingPclCe.Message.Final"),
-                    Lang.Text("Common.Dialog.Warning"),
-                    Lang.Text("Common.Action.Continue"),
-                    Lang.Text("Common.Action.Cancel"),
-                    isWarn: true) == 1)
+            if ((await _vm.Dialog.ShowAsync(new TextDialogRequest
+            {
+                Title = Lang.Text("Common.Dialog.Warning"),
+                Content = Lang.Text("Setup.Misc.System.StopUsingPclCe.Message.Final"),
+                Buttons = DialogButtons.ContinueCancel,
+                IsWarn = true
+            })).IsConfirmed)
                 StopUsingPClCeCore(result == 2);
         }
         catch (Exception ex)
