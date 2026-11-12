@@ -966,7 +966,7 @@ public partial class FormMain
                 // 获取文本
                 try
                 {
-                    Common.Log("[System] 接受文本拖拽：" + e.Data.GetData(DataFormats.Text);
+                    Common.Log("[System] 接受文本拖拽：" + e.Data.GetData(DataFormats.Text));
                     Uri uri = new((string)e.Data.GetData(DataFormats.Text));
                     if (uri.IsFile && !uri.IsUnc)
                     {
