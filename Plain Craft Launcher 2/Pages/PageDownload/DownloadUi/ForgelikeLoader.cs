@@ -108,19 +108,20 @@ public static partial class DownloadUi
         ref string inherit,
         GameDownload.DlForgelikeEntry? info)
     {
+        if (string.IsNullOrWhiteSpace(loaderVersion))
+            throw new ArgumentOutOfRangeException(nameof(loaderVersion), loaderVersion, null);
+
         switch (forgeType)
         {
-            case GameDownload.DlForgelikeEntry.ForgelikeType.NeoForge when info is null:
-            {
-                if (inherit == "1.20.1" && !loaderVersion.StartsWithF("1.20.1-"))
-                    info = new GameDownload.DlNeoForgeListEntry($"1.20.1-{loaderVersion}");
-                else
-                    info = new GameDownload.DlNeoForgeListEntry(loaderVersion);
+            case GameDownload.DlForgelikeEntry.ForgelikeType.NeoForge:
+                if (info is null)
+                    info = inherit == "1.20.1" && !loaderVersion.StartsWithF("1.20.1-")
+                        ? new GameDownload.DlNeoForgeListEntry($"1.20.1-{loaderVersion}")
+                        : new GameDownload.DlNeoForgeListEntry(loaderVersion);
                 break;
-            }
 
-            case GameDownload.DlForgelikeEntry.ForgelikeType.Cleanroom when info is null:
-                info = new GameDownload.DlCleanroomListEntry(loaderVersion);
+            case GameDownload.DlForgelikeEntry.ForgelikeType.Cleanroom:
+                info ??= new GameDownload.DlCleanroomListEntry(loaderVersion);
                 break;
 
             case GameDownload.DlForgelikeEntry.ForgelikeType.Forge:
