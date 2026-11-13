@@ -243,7 +243,7 @@ public static partial class KernelInterop
     {
         try
         {
-            var totalText = _RunAndRead("sysctl", "-n hw.memsize");
+            var totalText = _RunAndRead("sysctl", "-n", "hw.memsize");
             if (!ulong.TryParse(
                     totalText.Trim(),
                     NumberStyles.Integer,
