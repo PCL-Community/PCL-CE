@@ -114,8 +114,8 @@ public sealed partial class StartupService
             foreach (var x in Basics.CommandLineArguments)
                 info.Append("\n - ").Append(x);
         info
-            .Append("\n系统版本: ")
-            .Append(Environment.OSVersion.Version)
+            .Append("\n系统: ")
+            .Append($"{RuntimeInformation.OSDescription}")
             .Append(" (")
             .Append(GetArchitectureName(RuntimeInformation.OSArchitecture))
             .Append(')');
