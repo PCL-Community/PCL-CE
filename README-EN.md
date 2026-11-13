@@ -36,26 +36,47 @@ Everyone is welcome to try it out!
 
 ## 💻 Supported Platforms
 
-| Operating System | Support Status | Requirements |
-|---|---|---|
-| Windows 10 1809 (17763) or later | ✅ Fully supported | [.NET 10 Desktop Runtime](http://get.dot.net/10) |
-| Windows 8 to Windows 10 1809 (17763) | ⚠️ Expected to run; community support offered at discretion | [.NET 10 Desktop Runtime](http://get.dot.net/10) |
-| Windows 7 or earlier | ❌ Not supported | N/A |
-| macOS / Linux / Other OS | ⚠️ Cross-platform development only (cross-compilation) | [.NET 10 SDK](http://get.dot.net/10) |
+### Windows
 
-**✅ Fully supported**: We will provide as much support as possible, but you must ensure you are using the latest version of the launcher.
+| Version | Architecture | Support | Requirements |
+|---|---|---|---|
+| Windows 10 1809 (17763) or later, or Windows 11 | x64, ARM64 | ✅ Fully supported | [.NET 10 Runtime](https://get.dot.net/10) |
+| Windows 10 1607 (E) | x64 | ⚠️ Expected to run; community support offered at discretion | [.NET 10 Runtime](https://get.dot.net/10) |
+| Windows 8.1, 8, 7 or earlier | / | ❌ Not supported | / |
 
-**⚠️ Expected to run; community support offered at discretion**: PCL CE is expected to run on these platforms, but full functionality is not guaranteed. You may need to upgrade to a fully supported OS version to receive further community technical support.
+<small>`(E)` means Enterprise or ESU editions. .NET 10 officially supports Windows 10 1607 and 1809 only on these editions.</small>
 
-**❌ Not supported**: PCL CE may not be usable on these platforms and might not even launch at all. Please upgrade your OS to use PCL CE.
+### Linux
 
-**⚠️ Cross-platform development only (cross-compilation)**: PCL CE’s source code can be built on macOS and Linux, but it cannot run directly. As a developer, you can develop on these platforms and then move the build artifacts to Windows for testing.
+| Distribution | Architecture | Support | Requirements |
+|---|---|---|---|
+| Common glibc desktop distributions<br>(Ubuntu 22.04 or later, Fedora 43 or later, Arch Linux, etc.) | x64 | ✅ Supported | [.NET 10 Runtime](https://get.dot.net/10), X11, Wayland experimental |
+| Same as above | ARM64 | ✅ Supported | [.NET 10 Runtime](https://get.dot.net/10), X11 |
+| Other glibc desktop distributions | x64, ARM64 | ⚠️ Expected to run; community support offered at discretion | Requires glibc 2.27 or later and a working X11 desktop |
+| Alpine and other musl distributions | x64, ARM64 | ❌ Not supported | Current artifacts have not been tested on musl |
 
-**Note**:     
-The community only supports the latest version of the launcher.    
-Depending on the nature of certain issues (e.g., an incomplete system environment), you may still need to upgrade your OS to continue receiving support.    
-PCL CE always recommends using the latest version of your OS for the best experience.    
-You can still try using the latest launcher version on unsupported platforms, but you may encounter many additional problems.
+<small>X11 is used by default. Set `PCL_USE_WAYLAND=1` to try native Wayland. If initialization fails, it falls back to X11 automatically. Wayland also requires `libwayland-client` and `libxkbcommon`.</small>
+
+### macOS
+
+| Version | Architecture | Support | Requirements |
+|---|---|---|---|
+| macOS 12 or later | Apple Silicon (ARM64) | ✅ Supported | [.NET 10 Runtime](https://get.dot.net/10) |
+| Intel-based macOS | x64 | ❌ Not supported | / |
+
+<small>Intel (x64) macOS builds are no longer provided.</small>
+
+**✅ Fully supported**: We will provide as much support as possible. Please make sure you are using the latest version.
+
+**⚠️ Expected to run; community support offered at discretion**: These platforms usually work, but we cannot guarantee that every feature will work correctly. The community will help when possible. Upgrading to a supported OS version gives you more complete support.
+
+**❌ Not supported**: These platforms generally cannot run PCL CE, and may not even start. Please upgrade your system before using PCL CE.
+
+**Note**:
+- The community only supports the latest version of the launcher.
+- Some issues depend on the system environment. For example, if system components are incomplete, you may still need to upgrade your system to get further support.
+- We recommend a newer OS for a better experience.
+- You can still try running PCL CE on unsupported systems, but you may run into more problems.
 
 ## 🔒 License
 

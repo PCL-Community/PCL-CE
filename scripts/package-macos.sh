@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
 # 生成未签名（可选本地 ad-hoc 签名）的 macOS .app。
-# 用法：scripts/package-macos.sh <osx-x64|osx-arm64> <version> <output-dir>
+# 用法：scripts/package-macos.sh <osx-arm64> <configuration> <version> <output-dir>
 set -euo pipefail
 
-RID="${1:?usage: package-macos.sh <osx-x64|osx-arm64> <version> <output-dir>}"
-VERSION="${2:?usage: package-macos.sh <osx-x64|osx-arm64> <version> <output-dir>}"
-OUT="${3:?usage: package-macos.sh <osx-x64|osx-arm64> <version> <output-dir>}"
+RID="${1:?usage: package-macos.sh <osx-arm64> <configuration> <version> <output-dir>}"
+CONFIG="${2:?usage: package-macos.sh <osx-arm64> <configuration> <version> <output-dir>}"
+VERSION="${3:?usage: package-macos.sh <osx-arm64> <configuration> <version> <output-dir>}"
+OUT="${4:?usage: package-macos.sh <osx-arm64> <configuration> <version> <output-dir>}"
 
 case "$RID" in
-  osx-x64|osx-arm64) ;;
-  *) echo "unsupported RID: $RID (expected osx-x64 or osx-arm64)" >&2; exit 2 ;;
+  osx-arm64) ;;
+  *) echo "unsupported RID: $RID (expected osx-arm64)" >&2; exit 2 ;;
 esac
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -21,10 +22,10 @@ TEMP="$OUT/.publish-$RID"
 rm -rf "$APP" "$TEMP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 
-if [ "$RID" = "osx-arm64" ]; then PLATFORM=ARM64; else PLATFORM=x64; fi
+PLATFORM=ARM64
 
 "$DOTNET" publish "$ROOT/PCL.Launcher/PCL.Launcher.csproj" \
-  -c Beta -r "$RID" --no-self-contained \
+  -c "$CONFIG" -r "$RID" --no-self-contained \
   -p:Platform="$PLATFORM" \
   -p:DebugType=None -p:DebugSymbols=false \
   -o "$TEMP"
@@ -32,6 +33,7 @@ if [ "$RID" = "osx-arm64" ]; then PLATFORM=ARM64; else PLATFORM=x64; fi
 cp -a "$TEMP"/. "$APP/Contents/MacOS/"
 find "$APP/Contents/MacOS" -name '*.pdb' -delete
 chmod +x "$APP/Contents/MacOS/PCL.Launcher"
+"$ROOT/scripts/verify-artifact.sh" "$RID" "$APP/Contents/MacOS"
 
 cp "$ROOT/PCL.Launcher/Assets/Images/icon.icns" "$APP/Contents/Resources/icon.icns"
 cp "$ROOT/LICENSE" "$APP/Contents/Resources/LICENSE"

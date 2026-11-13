@@ -12,7 +12,7 @@ DOTNET="${DOTNET:-$HOME/.dotnet/dotnet}"
 case "$RID" in
   win-x64|win-arm64) PLATFORM=$([ "$RID" = win-arm64 ] && echo ARM64 || echo x64) ;;
   linux-x64|linux-arm64) PLATFORM=$([ "$RID" = linux-arm64 ] && echo ARM64 || echo x64) ;;
-  osx-x64|osx-arm64) PLATFORM=$([ "$RID" = osx-arm64 ] && echo ARM64 || echo x64) ;;
+  osx-arm64) PLATFORM=ARM64 ;;
   *) echo "unsupported RID: $RID" >&2; exit 2 ;;
 esac
 

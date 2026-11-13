@@ -9,22 +9,43 @@ on:
       configuration:
         required: true
         type: string
-      architecture:
+      target:
         required: true
         type: string
+      rid:
+        required: true
+        type: string
+      platform:
+        required: true
+        type: string
+      runner:
+        required: true
+        type: string
+      version:
+        required: false
+        type: string
+        default: '0.0.0'
 
 jobs:
   build:
-    name: Build
-    runs-on: ubuntu-latest
+    name: Build ${{ inputs.target }}
+    runs-on: ${{ inputs.runner }}
     env:
       LANG: en_US.UTF-8
+      DOTNET: dotnet
+      CONFIGURATION: ${{ inputs.configuration }}
+      TARGET: ${{ inputs.target }}
+      RID: ${{ inputs.rid }}
+      PLATFORM: ${{ inputs.platform }}
+      VERSION: ${{ inputs.version }}
+      ASSET_NAME: PCL2_CE_${{ inputs.configuration }}_${{ inputs.target }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set Describe
+        shell: bash
         run: |
           describe=`git describe --tags --always`
           echo "describe=$describe" >> $GITHUB_ENV
@@ -34,7 +55,8 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      - name: Build Project
+      - name: Publish
+        shell: bash
         env:
           PCL_WRITE_SECRET: '1'
           PCL_MS_CLIENT_ID: ${{ secrets.CLIENT_ID }}
@@ -46,13 +68,37 @@ jobs:
           PCL_LOBBY_DEFAULT_SECRET: ${{ secrets.LOBBY_DEFAULT_SECRET }}
           PCL_GITHUB_SHA: ${{ github.sha }}
         run: |
-          dotnet publish "PCL.Launcher/PCL.Launcher.csproj" \
-          -p:Configuration=${{ inputs.configuration }} -p:Platform=${{ inputs.architecture }} \
-          -r win-${{ inputs.architecture == 'x64' && 'x64' || 'arm64' }} \
-          -p:DeleteExistingFiles=true -o ./artifact --no-self-contained
+          if [ "${{ runner.os }}" = "macOS" ]; then
+            scripts/package-macos.sh "$RID" "$CONFIGURATION" "$VERSION" dist
+          else
+            scripts/publish.sh "$RID" "$CONFIGURATION" dist
+          fi
+
+      - name: Package Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $source = Join-Path (Join-Path "dist" $env:RID) "*"
+          $destination = Join-Path "dist" "$env:ASSET_NAME.zip"
+          Compress-Archive -Path $source -DestinationPath $destination -Force
+
+      - name: Package Linux
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          tar -czf "dist/${ASSET_NAME}.tar.gz" -C "dist/${RID}" .
+
+      - name: Package macOS
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent "dist/PCL CE.app" "dist/${ASSET_NAME}.zip"
 
       - name: Upload the Build Artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: PCL2_CE_${{ inputs.configuration }}_${{ inputs.architecture }}
-          path: artifact/**
+          name: PCL2_CE_${{ inputs.configuration }}_${{ inputs.target }}
+          path: |
+            dist/*.zip
+            dist/*.tar.gz
+          if-no-files-found: error
