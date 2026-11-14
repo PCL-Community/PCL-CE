@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
@@ -322,6 +323,46 @@ public sealed class AnimationEngineTest
 
         var transform = (TranslateTransform)border.RenderTransform!;
         Assert.AreEqual(0d, transform.Y, 1e-6d);
+    }
+
+    [TestMethod]
+    public void ClockSampleUsesElapsedTimeInsteadOfFrameSteps()
+    {
+        var fresh = new NumberOwner
+        {
+            Value = 5d
+        };
+        var freshTarget = CreateTarget(fresh);
+        var started = new DoubleFromToAnimation
+        {
+            To = 7d,
+            ValueType = AnimationValueType.Relative,
+            Duration = TimeSpan.FromMilliseconds(200),
+            Easing = new LinearEasing()
+        };
+        started.PrepareForTest(freshTarget);
+        started.ArmClock(Stopwatch.GetTimestamp());
+        started.ComputeNextFrame(freshTarget)!.GetAction()();
+        Assert.IsFalse(started.IsClockFinished);
+        Assert.AreEqual(5d, fresh.Value, 0.05d);
+
+        var finishedOwner = new NumberOwner
+        {
+            Value = 5d
+        };
+        var finishedTarget = CreateTarget(finishedOwner);
+        var finished = new DoubleFromToAnimation
+        {
+            To = 7d,
+            ValueType = AnimationValueType.Relative,
+            Duration = TimeSpan.FromMilliseconds(200),
+            Easing = new LinearEasing()
+        };
+        finished.PrepareForTest(finishedTarget);
+        finished.ArmClock(Stopwatch.GetTimestamp() - Stopwatch.Frequency / 4);
+        finished.ComputeNextFrame(finishedTarget)!.GetAction()();
+        Assert.IsTrue(finished.IsClockFinished);
+        Assert.AreEqual(12d, finishedOwner.Value, 1e-6d);
     }
 
     private sealed class NumberOwner

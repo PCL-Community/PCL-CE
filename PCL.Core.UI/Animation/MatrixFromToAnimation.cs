@@ -10,7 +10,7 @@ public class MatrixFromToAnimation : FromToAnimationBase<Matrix>
     public override IAnimationFrame? ComputeNextFrame(IAnimatable target)
     {
         // 应用缓动函数
-        var easedProgress = Easing.Ease(CurrentFrame, TotalFrames);
+        var easedProgress = SampleEasedProgress();
 
         // 计算当前值
         CurrentValue = ValueType == AnimationValueType.Relative

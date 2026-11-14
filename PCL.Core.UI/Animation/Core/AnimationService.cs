@@ -1,6 +1,6 @@
 using System.Collections;
 using System.Collections.Concurrent;
-using System.Threading.Channels;
+using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
 using PCL.Core.App;
@@ -16,22 +16,16 @@ using PCL.Core.UI.Animation.ValueProcessor;
 namespace PCL.Core.UI.Animation.Core;
 
 /// <summary>
-///     动画服务：负责帧调度、帧计算与 UI 线程赋值。
-///     由生命周期服务自动启动，也可通过 <see cref="EnsureStarted" /> 惰性启动。
+///     动画服务：在 UI 线程的渲染帧回调里同步计算并写回属性。
+///     没有活动动画时不订阅帧源，避免把合成节拍锁在 60Hz 定时器上。
 /// </summary>
 [LifecycleService(LifecycleState.WindowCreating)]
 public sealed class AnimationService : GeneralService
 {
-    private static Channel<(IAnimation Animation, IAnimatable Target)> _animationChannel = null!;
-    private static Channel<(IAnimationFrame Frame, IAnimation Source)> _frameChannel = null!;
-
+    private static readonly List<(IAnimation Animation, IAnimatable Target)> ActiveAnimations = new(8);
     private static readonly ConcurrentDictionary<string, IAnimation> NamedAnimations = new();
-    private static IClock _clock = null!;
-
-    private static TaskCompletionSource _nextTick = null!;
-
-    private static int _taskCount;
-    private static CancellationTokenSource _cts = null!;
+    private static AvaloniaRenderingClock? _clock;
+    private static int _inTick;
     private static IUiAccessProvider? _uiAccessProvider;
 
     private static readonly Lock InitLock = new();
@@ -39,6 +33,7 @@ public sealed class AnimationService : GeneralService
     private static double? _speedOverride;
     private static int _suspensionCount;
 
+    /// <summary>手动逐帧驱动使用的采样率。运行中的 UI 动画按显示器刷新率采样，不受此值限速。</summary>
     public static int Fps { get; set; } = 60;
 
     public static double Speed
@@ -285,178 +280,122 @@ public sealed class AnimationService : GeneralService
 
     private static void _Initialize()
     {
-        // 初始化 Channel 与 Dictionary
-        _animationChannel = Channel.CreateUnbounded<(IAnimation, IAnimatable)>();
-        _frameChannel = Channel.CreateUnbounded<(IAnimationFrame, IAnimation)>();
-
-        // 根据核心数量来确定动画计算 Task 数量
-        _taskCount = Environment.ProcessorCount;
-
-        _cts = new CancellationTokenSource();
-        _nextTick = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-
-        // 注册 ValueProcessor
         _RegisterValueProcessors();
-
-        // 初始化 UI 线程访问提供器并启动赋值 Task
-        var uiAccessProvider = UiAccessProvider;
-        _ = uiAccessProvider.InvokeAsync(async () =>
-        {
-            while (await _frameChannel.Reader.WaitToReadAsync())
-            {
-                // 读取数据
-                while (_frameChannel.Reader.TryRead(out var item))
-                {
-                    // 如果动画源已被标记取消，直接丢弃该帧，不进行处理
-                    if (item.Source.Status == AnimationStatus.Canceled)
-                        continue;
-
-                    // 正常处理
-                    item.Frame.GetAction()();
-                }
-
-                await Task.Yield();
-            }
-        });
-
-        // 初始化 Clock 并注册 Tick 事件
-        _clock = new AvaloniaRenderingClock(Fps);
-        _clock.Tick += ClockOnTick;
-        _clock.Start();
-
-        // 运行动画计算 Task
-        for (var i = 0; i < _taskCount; i++) _ = Task.Run(_AnimationComputeTaskAsync);
-
-        TryInfo($"以最多 {_taskCount} 个线程初始化动画计算 Task");
+        TryInfo("动画服务已就绪，帧更新在 UI 线程同步应用");
     }
 
     private static void _Uninitialize()
     {
-        // 取消动画计算 Task
-        try
-        {
-            _cts.Cancel();
-        }
-        catch
-        {
-            // 忽略
-        }
-
-        _cts.Dispose();
-
-        // 停止 Clock 并注销 Tick 事件
-        if (_clock is not null)
-        {
-            _clock.Tick -= ClockOnTick;
-            _clock.Stop();
-        }
-
-        try
-        {
-            _animationChannel?.Writer.TryComplete();
-            _frameChannel?.Writer.TryComplete();
-        }
-        catch
-        {
-        }
-
-        try
-        {
-            Volatile.Read(ref _nextTick)?.TrySetCanceled();
-        }
-        catch
-        {
-            // 忽略
-        }
-
+        StopClock();
+        _clock = null;
+        ActiveAnimations.Clear();
         CancelAll();
     }
 
-    private static void ClockOnTick(object? sender, long e)
+    private static void EnsureClock()
     {
-        var next = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var previous = Interlocked.Exchange(ref _nextTick, next);
-        previous?.TrySetResult();
+        _clock ??= new AvaloniaRenderingClock(int.MaxValue);
+        if (_clock.IsRunning) return;
+
+        _clock.Tick += ClockOnTick;
+        _clock.Start();
     }
 
-    private static async Task _AnimationComputeTaskAsync()
+    private static void StopClock()
     {
-        // 本地动画列表，确保没有一直无法计算的动画
-        var animationList = new List<(IAnimation Animation, IAnimatable Target)>(8);
+        if (_clock is not { IsRunning: true }) return;
 
-        // 持续监听 Channel 中的动画
-        while (!_cts.IsCancellationRequested)
+        _clock.Tick -= ClockOnTick;
+        _clock.Stop();
+    }
+
+    private static void ClockOnTick(object? sender, long frame)
+    {
+        _ = frame;
+        if (Interlocked.Exchange(ref _inTick, 1) == 1) return;
+
+        try
         {
-            // 读取所有可用的动画到本地列表
-            while (_animationChannel.Reader.TryRead(out var animation))
-                animationList.Add(animation);
+            PumpActiveAnimations();
+        }
+        finally
+        {
+            Interlocked.Exchange(ref _inTick, 0);
+        }
+    }
 
-            // 如果没有动画，直接等下一帧
-            if (animationList.Count == 0)
+    private static void PumpActiveAnimations()
+    {
+        var count = ActiveAnimations.Count;
+        if (count == 0)
+        {
+            StopClock();
+            return;
+        }
+
+        var now = Stopwatch.GetTimestamp();
+        for (var i = count - 1; i >= 0; i--)
+        {
+            if (i >= ActiveAnimations.Count) continue;
+
+            var (animation, target) = ActiveAnimations[i];
+            if (IsTerminal(animation))
             {
-                if (!await _WaitNextFrameAsync()) return;
+                CompleteAndRemove(i, animation);
                 continue;
             }
 
-            for (var i = animationList.Count - 1; i >= 0; i--)
+            try
             {
-                var animationEntry = animationList[i];
+                if (animation is IClockSampledAnimation sampled)
+                    sampled.ArmClock(now);
 
-                if (animationEntry.Animation.Status is AnimationStatus.Canceled
-                    or AnimationStatus.Completed)
-                {
-                    try
-                    {
-                        await UiAccessProvider.InvokeAsync(animationEntry.Animation.RaiseCompleted);
-                    }
-                    catch (Exception ex)
-                    {
-                        LogWrapper.Warn(
-                            "Animation",
-                            $"触发动画完成事件失败：{animationEntry.Animation.Name}，{ex.Message}");
-                    }
-
-                    if (!string.IsNullOrEmpty(animationEntry.Animation.Name))
-                        ((ICollection<KeyValuePair<string, IAnimation>>)NamedAnimations)
-                            .Remove(
-                                new KeyValuePair<string, IAnimation>(
-                                    animationEntry.Animation.Name,
-                                    animationEntry.Animation));
-
-                    animationList.RemoveAt(i);
-                    continue;
-                }
-
-                // 计算动画的下一帧
-                var frame = animationEntry.Animation.ComputeNextFrame(animationEntry.Target);
-                // 如果没有计算帧（动画组），跳过
-                if (frame is null) continue;
-                // 将动画帧写入 Channel
-                _frameChannel.Writer.TryWrite((frame, animationEntry.Animation));
-                // 增加当前帧计数
-                animationEntry.Animation.CurrentFrame++;
+                animation.ComputeNextFrame(target)?.Apply();
+            }
+            catch (Exception ex)
+            {
+                LogWrapper.Warn(
+                    "Animation",
+                    $"动画帧应用失败：{animation.Name}，{ex.Message}");
+                animation.Cancel();
             }
 
-            // 等待 Tick 事件的通知
-            if (!await _WaitNextFrameAsync()) return;
+            if (IsTerminal(animation)
+                || animation is IClockSampledAnimation { IsClockFinished: true })
+                CompleteAndRemove(i, animation);
         }
+
+        if (ActiveAnimations.Count == 0)
+            StopClock();
     }
 
-    private static async Task<bool> _WaitNextFrameAsync()
+    private static bool IsTerminal(IAnimation animation)
     {
+        return animation.Status is AnimationStatus.Canceled or AnimationStatus.Completed;
+    }
+
+    private static void CompleteAndRemove(int index, IAnimation animation)
+    {
+        if (animation is AnimationBase { Status: AnimationStatus.Running } animationBase)
+            animationBase.Status = AnimationStatus.Completed;
+
+        ActiveAnimations.RemoveAt(index);
         try
         {
-            await Volatile.Read(ref _nextTick).Task;
-            return true;
+            animation.RaiseCompleted();
         }
-        catch (ObjectDisposedException)
+        catch (Exception ex)
         {
-            return false;
+            LogWrapper.Warn(
+                "Animation",
+                $"触发动画完成事件失败：{animation.Name}，{ex.Message}");
         }
-        catch (OperationCanceledException)
-        {
-            return false;
-        }
+
+        if (string.IsNullOrEmpty(animation.Name)) return;
+
+        ((ICollection<KeyValuePair<string, IAnimation>>)NamedAnimations)
+            .Remove(
+                new KeyValuePair<string, IAnimation>(animation.Name, animation));
     }
 
     private static void _HandleNamedAnimationConflict(IAnimation animation)
@@ -481,10 +420,8 @@ public sealed class AnimationService : GeneralService
         _HandleNamedAnimationConflict(animation);
 
         var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-
-        animation.Completed += (_, _) => tcs.SetResult();
-
-        _animationChannel.Writer.TryWrite((animation, target));
+        animation.Completed += (_, _) => tcs.TrySetResult();
+        Enqueue(animation, target);
         return tcs.Task;
     }
 
@@ -492,8 +429,41 @@ public sealed class AnimationService : GeneralService
     {
         EnsureStarted();
         _HandleNamedAnimationConflict(animation);
+        Enqueue(animation, target);
+    }
 
-        _animationChannel.Writer.TryWrite((animation, target));
+    private static void Enqueue(IAnimation animation, IAnimatable target)
+    {
+        if (UiAccessProvider.CheckAccess())
+            Activate(animation, target);
+        else
+            _ = UiAccessProvider.InvokeAsync(() => Activate(animation, target));
+    }
+
+    private static void Activate(IAnimation animation, IAnimatable target)
+    {
+        if (!_initialized) return;
+
+        if (IsTerminal(animation))
+        {
+            if (animation is AnimationBase { Status: AnimationStatus.Running } animationBase)
+                animationBase.Status = AnimationStatus.Completed;
+            try
+            {
+                animation.RaiseCompleted();
+            }
+            catch (Exception ex)
+            {
+                LogWrapper.Warn(
+                    "Animation",
+                    $"触发动画完成事件失败：{animation.Name}，{ex.Message}");
+            }
+
+            return;
+        }
+
+        ActiveAnimations.Add((animation, target));
+        EnsureClock();
     }
 
     public static void CancelAnimationByName(string name)
