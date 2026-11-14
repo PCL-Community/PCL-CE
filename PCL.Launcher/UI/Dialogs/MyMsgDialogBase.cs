@@ -99,8 +99,10 @@ public abstract class MyMsgDialogBase : UserControl
         {
             var button = new MyButton
             {
+                Height = 32d,
+                VerticalAlignment = VerticalAlignment.Center,
                 Margin = new Thickness(12d, 0d, 0d, 0d),
-                TextPadding = new Thickness(7d),
+                TextPadding = new Thickness(7d, 0d),
                 Padding = new Thickness(5d, 0d)
             };
             var number = index + 1;

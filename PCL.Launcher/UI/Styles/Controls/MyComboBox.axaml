@@ -16,6 +16,8 @@
                     Value="3" />
             <Setter Property="FontSize"
                     Value="13" />
+            <Setter Property="FontFamily"
+                    Value="{DynamicResource LaunchFontFamily}" />
             <Setter Property="MinHeight"
                     Value="0" />
             <Setter Property="MaxDropDownHeight"

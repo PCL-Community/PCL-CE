@@ -11,5 +11,7 @@
                 Value="6,4" />
         <Setter Property="FontSize"
                 Value="13" />
+        <Setter Property="FontFamily"
+                Value="{DynamicResource LaunchFontFamily}" />
     </Style>
 </Styles>

@@ -274,7 +274,7 @@ public static class PageRouter
                             return;
                         }
 
-                        EnterPage(left, right, stack);
+                        EnterPage(left, right, stack, animateLeft);
                     },
                     PageEnterDelayMilliseconds,
                     true)
@@ -290,11 +290,11 @@ public static class PageRouter
     {
         if (_leftHost is not null)
         {
+            if (animateLeft && left is MyPageLeft)
+                left.Opacity = 0d;
             _leftHost.Content = left;
             _leftHost.IsVisible = left is not null;
             _leftHost.Width = double.NaN;
-            if (animateLeft && left is MyPageLeft newLeftPage)
-                newLeftPage.TriggerShowAnimation();
         }
 
         _rightHost?.Content = right;
@@ -303,11 +303,22 @@ public static class PageRouter
         _mountedRight = right;
     }
 
-    private static void EnterPage(Control? left, Control right, PageStackData stack)
+    private static void EnterPage(
+        Control? left,
+        Control right,
+        PageStackData stack,
+        bool animateLeft)
     {
         try
         {
             right.Opacity = 1d;
+            // 与 WPF 一致：左页先挂载一帧，等布局完成后再播放进入动画。
+            if (animateLeft && left is MyPageLeft newLeftPage)
+            {
+                left.Opacity = 1d;
+                newLeftPage.TriggerShowAnimation();
+            }
+
             if (left is IPageView leftView) leftView.OnNavigatedTo(stack.Parameter);
             if (right is MyPageRight newRightPage) newRightPage.PageOnEnter();
             if (right is IPageView rightView) rightView.OnNavigatedTo(stack.Parameter);

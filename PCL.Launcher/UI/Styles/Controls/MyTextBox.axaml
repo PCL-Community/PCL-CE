@@ -24,6 +24,8 @@
                     Value="28" />
             <Setter Property="FontSize"
                     Value="13" />
+            <Setter Property="FontFamily"
+                    Value="{DynamicResource LaunchFontFamily}" />
             <Setter Property="VerticalContentAlignment"
                     Value="Center" />
             <Setter Property="HorizontalContentAlignment"
