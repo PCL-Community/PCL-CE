@@ -16,6 +16,8 @@ namespace PCL;
 /// <summary>登录档案列表的视图模型：档案集合、选择、删除、UUID 操作与新建档案引导。</summary>
 public partial class PageLoginProfileViewModel : ViewModelBase
 {
+    private const string DefaultAuthServer = "https://littleskin.cn/api/yggdrasil";
+
     public ObservableCollection<ProfileItem> Profiles { get; } = [];
 
     [ObservableProperty] public partial bool ShowSelectHint { get; set; } = true;
@@ -114,12 +116,44 @@ public partial class PageLoginProfileViewModel : ViewModelBase
                 _ => GameLaunch.McLoginType.Legacy
             };
             ProfileService.IsCreatingProfile = true;
+            if (type == GameLaunch.McLoginType.Auth && !await TrySelectAuthServerAsync())
+            {
+                ProfileService.IsCreatingProfile = false;
+                return;
+            }
+
             LoginTypeRequested?.Invoke(type);
         }
         catch (Exception ex)
         {
+            ProfileService.IsCreatingProfile = false;
             LauncherCommon.Log(ex, "选择验证方式失败", LauncherLogLevel.Feedback);
         }
+    }
+
+    private async Task<bool> TrySelectAuthServerAsync()
+    {
+        var serverDialog = await Dialog.ShowAsync(
+            new AuthServerDialogRequest
+            {
+                Title = Lang.Text("Launch.Account.Auth.SelectServer"),
+                DefaultServer = DefaultAuthServer,
+                Presets = new Dictionary<string, string>
+                {
+                    [Lang.Text("Launch.Account.Auth.Preset.LittleSkin")] = DefaultAuthServer,
+                    [Lang.Text("Common.Option.Customize")] = ""
+                },
+                Buttons = DialogButtons.OkCancel,
+                HighLight = false
+            });
+        var server = serverDialog.IsConfirmed ? serverDialog.InputText?.Trim() ?? "" : "";
+        if (string.IsNullOrWhiteSpace(server))
+            return false;
+
+        PageLoginAuth.PendingAuthServerOAuthSupported =
+            await PageLoginAuth.IsOAuthSupportedAsync(server);
+        PageLoginAuth.PendingAuthServer = server;
+        return true;
     }
 
     [RelayCommand]
