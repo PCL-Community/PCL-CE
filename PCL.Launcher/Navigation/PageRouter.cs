@@ -1,6 +1,5 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using Avalonia.Input;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using PCL.Core.App.Localization;
@@ -9,7 +8,6 @@ using PCL.UI.Controls;
 using PCL.UI.SystemIntegration;
 using PCL.Views.Pages;
 using PCL.Views.Shell;
-using static PCL.Animations;
 
 namespace PCL.Navigation;
 
@@ -172,7 +170,7 @@ public static class PageRouter
         if (_hasNavigated && Current.IsSameLocation(stack)) return;
 
         _isNavigating = true;
-        AniBeginControl();
+        AnimationService.BeginControl();
         try
         {
             if (host.IsSecondary)
@@ -225,7 +223,7 @@ public static class PageRouter
         }
         finally
         {
-            AniEndControl();
+            AnimationService.EndControl();
             _isNavigating = false;
         }
     }
@@ -235,7 +233,7 @@ public static class PageRouter
         if (_rightHost is null) return;
 
         var generation = ++_transitionGeneration;
-        AniStop(TransitionAnimationKey);
+        AnimationService.CancelAnimationByName(TransitionAnimationKey);
 
         var oldLeft = _mountedLeft;
         var oldRight = _mountedRight;
@@ -248,15 +246,15 @@ public static class PageRouter
         if (oldRight is IPageView oldRightView) oldRightView.OnNavigatedFrom();
         if (oldRight is MyPageRight oldRightPage) oldRightPage.PageOnExit();
 
-        AniStart(
-            new List<AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                AaCode(
+                new ActionAnimation(
                     () =>
                     {
                         if (generation != _transitionGeneration) return;
 
-                        using (SuspendControl())
+                        using (AnimationService.SuspendControl())
                         {
                             if (oldRight is MyPageRight forceExitPage)
                                 forceExitPage.PageOnForceExit();
@@ -266,7 +264,7 @@ public static class PageRouter
                         PageHostSwapped?.Invoke();
                     },
                     PageSwapDelayMilliseconds),
-                AaCode(
+                new ActionAnimation(
                     () =>
                     {
                         if (generation != _transitionGeneration
@@ -344,16 +342,16 @@ public static class PageRouter
                             || (control is not MyListItem && control is not MyIconButton)));
 
                 if (target is not null)
-                    target.Focus(NavigationMethod.Unspecified);
+                    target.Focus();
                 else if (page.Focusable)
-                    page.Focus(NavigationMethod.Unspecified);
+                    page.Focus();
             },
             DispatcherPriority.Loaded);
     }
 
     private static void CancelPendingTransition()
     {
-        AniStop(TransitionAnimationKey);
+        AnimationService.CancelAnimationByName(TransitionAnimationKey);
     }
 
     private static void PublishState()

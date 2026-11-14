@@ -11,7 +11,6 @@ using Avalonia.Media;
 using Avalonia.VisualTree;
 using PCL.Core.App;
 using PCL.UI.Controls.Common;
-using static PCL.Animations;
 using Path = Avalonia.Controls.Shapes.Path;
 using SvgIconControl = PCL.UI.Controls.SvgIcon.SvgIcon;
 
@@ -408,8 +407,8 @@ public partial class MyListItem : Grid, IMyRadio
 
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
-        AniStop("ListItem Color " + Uuid);
-        AniStop("MyListItem Checked " + Uuid);
+        AnimationService.CancelAnimationByName("ListItem Color " + Uuid);
+        AnimationService.CancelAnimationByName("MyListItem Checked " + Uuid);
         _isMouseDown = false;
         _stateLast = null;
         base.OnDetachedFromVisualTree(e);
@@ -514,7 +513,7 @@ public partial class MyListItem : Grid, IMyRadio
         }
 
         var animationKey = "ListItem Color " + Uuid;
-        var animations = new List<AniData>();
+        var animations = new List<IAnimation>();
         var showButtons = ShouldShowButtons(stateNew);
         AddButtonAnimations(animations, showButtons, time);
 
@@ -522,13 +521,13 @@ public partial class MyListItem : Grid, IMyRadio
         if (stateNew is "MouseOver" or "MouseDown")
         {
             animations.Add(
-                AaOpacity(
+                new OpacityAnimation(
                     back,
                     1d - back.Opacity,
                     time,
-                    ease: new AniEaseOutFluent()));
+                    ease: new FluentEaseOut()));
             animations.Add(
-                AaColor(
+                new ColorAnimation(
                     back,
                     Border.BackgroundProperty,
                     stateNew == "MouseDown" ? "ColorBrush6" : "ColorBrushBg1",
@@ -539,46 +538,46 @@ public partial class MyListItem : Grid, IMyRadio
                 var backScale = ContainerAnimation.EnsureScale(back, 0.8d, 0.8d);
                 var selfScale = ContainerAnimation.EnsureScale(PanBackElement);
                 animations.Add(
-                    AaScaleTransform(
+                    new ScaleTransformAnimation(
                         back,
                         1d - backScale.ScaleX,
                         (int)Math.Round(time * 1.6d),
-                        ease: new AniEaseOutFluent()));
+                        ease: new FluentEaseOut()));
                 animations.Add(
-                    AaScaleTransform(
+                    new ScaleTransformAnimation(
                         PanBackElement,
                         (_isMouseDown ? 0.98d : 1d) - selfScale.ScaleX,
                         (int)Math.Round(time * (_isMouseDown ? 0.9d : 1.2d)),
-                        ease: new AniEaseOutFluent()));
+                        ease: new FluentEaseOut()));
             }
         }
         else
         {
-            animations.Add(AaOpacity(back, -back.Opacity, time));
+            animations.Add(new OpacityAnimation(back, -back.Opacity, time));
             animations.Add(
-                AaColor(back, Border.BackgroundProperty, "ColorBrush7", time));
+                new ColorAnimation(back, Border.BackgroundProperty, "ColorBrush7", time));
 
             if (IsScaleAnimationEnabled)
             {
                 var backScale = ContainerAnimation.EnsureScale(back, 0.8d, 0.8d);
                 var selfScale = ContainerAnimation.EnsureScale(PanBackElement);
                 animations.Add(
-                    AaScaleTransform(
+                    new ScaleTransformAnimation(
                         PanBackElement,
                         1d - selfScale.ScaleX,
                         time * 3,
-                        ease: new AniEaseOutFluent()));
+                        ease: new FluentEaseOut()));
                 animations.Add(
-                    AaScaleTransform(
+                    new ScaleTransformAnimation(
                         back,
                         0.996d - backScale.ScaleX,
                         time,
-                        ease: new AniEaseOutFluent()));
-                animations.Add(AaScaleTransform(back, -0.246d, 1, after: true));
+                        ease: new FluentEaseOut()));
+                animations.Add(new ScaleTransformAnimation(back, -0.246d, 1, after: true));
             }
         }
 
-        AniStart(animations, animationKey);
+        AnimationService.Run(animations, animationKey);
     }
 
     /// <summary>无动画路径：直接写入悬停/按下/离开的终态。</summary>
@@ -635,7 +634,7 @@ public partial class MyListItem : Grid, IMyRadio
             || (_showButtonsOnKeyboardFocus && IsKeyboardFocusWithin);
     }
 
-    private void AddButtonAnimations(List<AniData> animations, bool show, int time)
+    private void AddButtonAnimations(List<IAnimation> animations, bool show, int time)
     {
         if (buttonStack is null)
             return;
@@ -646,13 +645,13 @@ public partial class MyListItem : Grid, IMyRadio
             ? Math.Max(MinPaddingRight, 5d + (Buttons?.Count() ?? 0) * 25d)
             : MinPaddingRight;
         animations.Add(
-            AaOpacity(
+            new OpacityAnimation(
                 buttonStack,
                 (show ? 1d : 0d) - buttonStack.Opacity,
                 (int)Math.Round(time * (show ? 0.7d : 0.4d)),
                 show ? (int)Math.Round(time * 0.3d) : 0));
         animations.Add(
-            AaDouble(
+            new DoubleAnimation(
                 delta => _columnPaddingRight.Width =
                     new GridLength(Math.Max(0d, _columnPaddingRight.Width.Value + delta)),
                 targetPadding - _columnPaddingRight.Width.Value,
@@ -1071,7 +1070,7 @@ public partial class MyListItem : Grid, IMyRadio
         check.IsVisible = true;
         if (anime && ContainerAnimation.CanAnimate(this))
         {
-            var animations = new List<AniData>();
+            var animations = new List<IAnimation>();
             if (value)
             {
                 check.Height = customHeight;
@@ -1083,13 +1082,13 @@ public partial class MyListItem : Grid, IMyRadio
                 check.RenderTransform = scale;
 
                 animations.Add(
-                    AaDouble(
+                    new DoubleAnimation(
                         delta => scale.ScaleY = Math.Max(0d, scale.ScaleY + delta),
                         1d - scale.ScaleY,
                         300,
-                        ease: new AniEaseOutBack(AniEasePower.Weak)));
+                        ease: new BackEaseWithPowerOut(EasePower.Weak)));
                 animations.Add(
-                    AaColor(
+                    new ColorAnimation(
                         this,
                         ForegroundProperty,
                         CheckedForegroundKey,
@@ -1099,22 +1098,22 @@ public partial class MyListItem : Grid, IMyRadio
             {
                 var scale = ContainerAnimation.EnsureScale(check);
                 animations.Add(
-                    AaDouble(
+                    new DoubleAnimation(
                         delta => scale.ScaleY = Math.Max(0d, scale.ScaleY + delta),
                         -scale.ScaleY,
                         120,
-                        ease: new AniEaseInFluent(AniEasePower.Weak)));
-                animations.Add(AaOpacity(check, -check.Opacity, 70, 40));
+                        ease: new FluentEaseIn(EasePower.Weak)));
+                animations.Add(new OpacityAnimation(check, -check.Opacity, 70, 40));
                 animations.Add(
-                    AaColor(this, ForegroundProperty, "ColorBrush1", 120));
+                    new ColorAnimation(this, ForegroundProperty, "ColorBrush1", 120));
             }
 
-            animations.Add(AaCode(ApplyCheckedForeground, after: true));
-            AniStart(animations, animationKey);
+            animations.Add(new ActionAnimation(ApplyCheckedForeground, true));
+            AnimationService.Run(animations, animationKey);
             return;
         }
 
-        AniStop(animationKey);
+        AnimationService.CancelAnimationByName(animationKey);
         check.Height = value ? customHeight : 0d;
         check.Margin = new Thickness(-1d, 0d, 0d, 0d);
         check.Opacity = value ? 1d : 0d;

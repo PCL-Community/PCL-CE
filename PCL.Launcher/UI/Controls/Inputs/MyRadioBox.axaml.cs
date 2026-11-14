@@ -15,7 +15,7 @@ namespace PCL.UI.Controls;
 ///     单选方块：文本 + 圆环 + 圆点，同一父容器内互斥选中。
 ///     保留 <see cref="Checked" />、<see cref="CheckCommand" />、<see cref="Inlines" />、
 ///     <see cref="IMyRadio" /> 事件组与预览拦截语义。
-///     勾选、悬停、按下与禁用状态经 <c>PCL.Animations</c> 过渡；动画关闭时直接落到终值。
+///     勾选、悬停、按下与禁用状态经 新动画引擎 过渡；动画关闭时直接落到终值。
 /// </summary>
 public partial class MyRadioBox : UserControl, IMyRadio
 {
@@ -354,75 +354,75 @@ public partial class MyRadioBox : UserControl, IMyRadio
 
     private void AnimateChecked()
     {
-        PCL.Animations.AniStart(
-            new List<PCL.Animations.AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                PCL.Animations.AaScale(
+                new ScaleAnimation(
                     ShapeBorderElement,
                     10d - ShapeBorderElement.Width,
                     AnimationTimeOfCheck,
-                    ease: new PCL.Animations.AniEaseOutFluent(PCL.Animations.AniEasePower.Weak),
+                    ease: new FluentEaseOut(EasePower.Weak),
                     absolute: true),
-                PCL.Animations.AaScale(
+                new ScaleAnimation(
                     ShapeBorderElement,
                     8d,
                     AnimationTimeOfCheck * 2,
                     (int)Math.Round(AnimationTimeOfCheck * 0.6d),
-                    new PCL.Animations.AniEaseOutBack(),
+                    new BackEaseWithPowerOut(),
                     absolute: true),
-                PCL.Animations.AaCode(SetTerminalShapes, after: true)
+                new ActionAnimation(SetTerminalShapes, true)
             },
             BorderKey);
 
-        PCL.Animations.AniStart(
-            new List<PCL.Animations.AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                PCL.Animations.AaScale(
+                new ScaleAnimation(
                     ShapeDotElement,
                     9d - ShapeDotElement.Width,
                     (int)Math.Round(AnimationTimeOfCheck * 2.6d),
-                    ease: new PCL.Animations.AniEaseOutBack(PCL.Animations.AniEasePower.Weak),
+                    ease: new BackEaseWithPowerOut(EasePower.Weak),
                     absolute: true),
-                PCL.Animations.AaOpacity(
+                new OpacityAnimation(
                     ShapeDotElement,
                     1d - ShapeDotElement.Opacity,
                     (int)Math.Round(AnimationTimeOfCheck * 0.5d),
                     (int)Math.Round(AnimationTimeOfCheck * 0.6d)),
-                PCL.Animations.AaCode(SetTerminalShapes, after: true)
+                new ActionAnimation(SetTerminalShapes, true)
             },
             DotKey);
     }
 
     private void AnimateUnchecked()
     {
-        PCL.Animations.AniStart(
-            new List<PCL.Animations.AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                PCL.Animations.AaScale(
+                new ScaleAnimation(
                     ShapeBorderElement,
                     18d - ShapeBorderElement.Width,
                     AnimationTimeOfCheck,
-                    ease: new PCL.Animations.AniEaseOutFluent(),
+                    ease: new FluentEaseOut(),
                     absolute: true),
-                PCL.Animations.AaCode(SetTerminalShapes, after: true)
+                new ActionAnimation(SetTerminalShapes, true)
             },
             BorderKey);
 
-        PCL.Animations.AniStart(
-            new List<PCL.Animations.AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                PCL.Animations.AaScale(
+                new ScaleAnimation(
                     ShapeDotElement,
                     -ShapeDotElement.Width,
                     AnimationTimeOfCheck,
-                    ease: new PCL.Animations.AniEaseInFluent(),
+                    ease: new FluentEaseIn(),
                     absolute: true),
-                PCL.Animations.AaOpacity(
+                new OpacityAnimation(
                     ShapeDotElement,
                     -ShapeDotElement.Opacity,
                     (int)Math.Round(AnimationTimeOfCheck * 0.5d),
                     (int)Math.Round(AnimationTimeOfCheck * 0.2d)),
-                PCL.Animations.AaCode(SetTerminalShapes, after: true)
+                new ActionAnimation(SetTerminalShapes, true)
             },
             DotKey);
     }
@@ -436,12 +436,12 @@ public partial class MyRadioBox : UserControl, IMyRadio
             return;
         }
 
-        PCL.Animations.AniStart(
-            PCL.Animations.AaScale(
+        AnimationService.Run(
+            new ScaleAnimation(
                 ShapeBorderElement,
                 16.5d - ShapeBorderElement.Width,
                 1000,
-                ease: new PCL.Animations.AniEaseOutFluent(PCL.Animations.AniEasePower.Strong),
+                ease: new FluentEaseOut(EasePower.Strong),
                 absolute: true),
             BorderKey);
     }
@@ -456,11 +456,11 @@ public partial class MyRadioBox : UserControl, IMyRadio
             return;
         }
 
-        PCL.Animations.AniStart(
-            PCL.Animations.AaScale(
+        AnimationService.Run(
+            new ScaleAnimation(
                 ShapeBorderElement,
                 18d - ShapeBorderElement.Width,
-                ease: new PCL.Animations.AniEaseOutFluent(PCL.Animations.AniEasePower.Strong),
+                ease: new FluentEaseOut(EasePower.Strong),
                 absolute: true),
             BorderKey);
     }

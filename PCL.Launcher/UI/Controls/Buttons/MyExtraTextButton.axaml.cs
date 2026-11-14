@@ -54,9 +54,9 @@ public partial class MyExtraTextButton : Grid
         ActualThemeVariantChanged += (_, _) => RefreshColor(false);
         Unloaded += (_, _) =>
         {
-            PCL.Animations.AniStop(ScaleKey);
-            PCL.Animations.AniStop(MainScaleKey);
-            PCL.Animations.AniStop(ColorKey);
+            AnimationService.CancelAnimationByName(ScaleKey);
+            AnimationService.CancelAnimationByName(MainScaleKey);
+            AnimationService.CancelAnimationByName(ColorKey);
         };
         RefreshIconHostVisibility();
         _SyncCornerRadius();
@@ -238,22 +238,22 @@ public partial class MyExtraTextButton : Grid
             }
 
             Opacity = 0d;
-            PCL.Animations.AniStart(
-                new List<PCL.Animations.AniData>
+            AnimationService.Run(
+                new List<IAnimation>
                 {
-                    PCL.Animations.AaOpacity(this, 1d, 80, 50),
-                    PCL.Animations.AaScaleTransform(
+                    new OpacityAnimation(this, 1d, 80, 50),
+                    new ScaleTransformAnimation(
                         this,
                         0.15d - ButtonAnimation.CurrentScale(this),
                         400,
                         50,
-                        new PCL.Animations.AniEaseOutBack()),
-                    PCL.Animations.AaScaleTransform(
+                        new BackEaseWithPowerOut()),
+                    new ScaleTransformAnimation(
                         this,
                         0.85d,
                         160,
                         50,
-                        new PCL.Animations.AniEaseOutFluent())
+                        new FluentEaseOut())
                 },
                 MainScaleKey);
             return;
@@ -267,22 +267,22 @@ public partial class MyExtraTextButton : Grid
             return;
         }
 
-        PCL.Animations.AniStart(
-            new List<PCL.Animations.AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                PCL.Animations.AaOpacity(this, -Opacity, 50, 50),
-                PCL.Animations.AaScaleTransform(
+                new OpacityAnimation(this, -Opacity, 50, 50),
+                new ScaleTransformAnimation(
                     this,
                     -ButtonAnimation.CurrentScale(this),
                     100,
-                    ease: new PCL.Animations.AniEaseInFluent(PCL.Animations.AniEasePower.Weak)),
-                PCL.Animations.AaCode(
+                    ease: new FluentEaseIn(EasePower.Weak)),
+                new ActionAnimation(
                     () =>
                     {
                         Opacity = 0d;
                         IsVisible = false;
                     },
-                    after: true)
+                    true)
             },
             MainScaleKey);
     }
@@ -299,19 +299,19 @@ public partial class MyExtraTextButton : Grid
             return;
         }
 
-        PCL.Animations.AniStart(
-            new List<PCL.Animations.AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                PCL.Animations.AaScaleTransform(
+                new ScaleTransformAnimation(
                     PanScale,
                     targetScale - ButtonAnimation.CurrentScale(PanScale),
                     800,
-                    ease: new PCL.Animations.AniEaseOutFluent(PCL.Animations.AniEasePower.Strong)),
-                PCL.Animations.AaScaleTransform(
+                    ease: new FluentEaseOut(EasePower.Strong)),
+                new ScaleTransformAnimation(
                     PanScale,
                     reboundScale,
                     reboundDuration,
-                    ease: new PCL.Animations.AniEaseOutFluent())
+                    ease: new FluentEaseOut())
             },
             ScaleKey);
     }
@@ -325,12 +325,12 @@ public partial class MyExtraTextButton : Grid
             return;
         }
 
-        PCL.Animations.AniStart(
-            PCL.Animations.AaScaleTransform(
+        AnimationService.Run(
+            new ScaleTransformAnimation(
                 PanScale,
                 1d - ButtonAnimation.CurrentScale(PanScale),
                 300,
-                ease: new PCL.Animations.AniEaseOutBack()),
+                ease: new BackEaseWithPowerOut()),
             ScaleKey);
     }
 
@@ -394,12 +394,12 @@ public partial class MyExtraTextButton : Grid
     {
         _isLeftMouseHeld = false;
         if (ButtonAnimation.CanAnimate(this))
-            PCL.Animations.AniStart(
-                PCL.Animations.AaScaleTransform(
+            AnimationService.Run(
+                new ScaleTransformAnimation(
                     PanScale,
                     1d - ButtonAnimation.CurrentScale(PanScale),
                     500,
-                    ease: new PCL.Animations.AniEaseOutFluent()),
+                    ease: new FluentEaseOut()),
                 ScaleKey);
         else
             ButtonAnimation.SetScale(PanScale, 1d);

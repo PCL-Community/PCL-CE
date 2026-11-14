@@ -192,11 +192,11 @@ public sealed class Tooltip
             return;
         }
 
-        PCL.Animations.AniStart(
-            new List<PCL.Animations.AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                PCL.Animations.AaOpacity(_shell, 1d, AnimLength),
-                PCL.Animations.AaScaleTransform(_shell, 1d - ScaleClosed, AnimLength)
+                new OpacityAnimation(_shell, 1d, AnimLength),
+                new ScaleTransformAnimation(_shell, 1d - ScaleClosed, AnimLength)
             },
             "Tooltip Open");
     }
@@ -375,16 +375,16 @@ public sealed class Tooltip
         }
 
         var shell = _shell;
-        PCL.Animations.AniStop("Tooltip Open");
-        PCL.Animations.AniStart(
-            new List<PCL.Animations.AniData>
+        AnimationService.CancelAnimationByName("Tooltip Open");
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                PCL.Animations.AaOpacity(shell, -shell.Opacity, AnimExit),
-                PCL.Animations.AaScaleTransform(
+                new OpacityAnimation(shell, -shell.Opacity, AnimExit),
+                new ScaleTransformAnimation(
                     shell,
                     ScaleClosed - (_scaler?.ScaleX ?? 1d),
                     AnimExit),
-                PCL.Animations.AaCode(_Hush, after: true)
+                new ActionAnimation(_Hush, true)
             },
             "Tooltip Close");
     }
@@ -401,8 +401,8 @@ public sealed class Tooltip
 
     private static void _Hush()
     {
-        PCL.Animations.AniStop("Tooltip Open");
-        PCL.Animations.AniStop("Tooltip Close");
+        AnimationService.CancelAnimationByName("Tooltip Open");
+        AnimationService.CancelAnimationByName("Tooltip Close");
 
         _closing = false;
         _DetachTarget();

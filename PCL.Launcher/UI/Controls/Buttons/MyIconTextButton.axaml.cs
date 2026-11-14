@@ -70,9 +70,9 @@ public partial class MyIconTextButton : Border
         ActualThemeVariantChanged += (_, _) => RefreshColor(false);
         Unloaded += (_, _) =>
         {
-            PCL.Animations.AniStop(BackgroundKey);
-            PCL.Animations.AniStop(ForegroundKey);
-            PCL.Animations.AniStop(IconKey);
+            AnimationService.CancelAnimationByName(BackgroundKey);
+            AnimationService.CancelAnimationByName(ForegroundKey);
+            AnimationService.CancelAnimationByName(IconKey);
         };
     }
 
@@ -227,7 +227,7 @@ public partial class MyIconTextButton : Border
             this,
             BackgroundProperty,
             background ?? string.Empty,
-            background is null ? new MyColor(Colors.Transparent) : null,
+            background is null ? (NColor?)new NColor(Colors.Transparent) : null,
             time,
             animate,
             BackgroundKey);

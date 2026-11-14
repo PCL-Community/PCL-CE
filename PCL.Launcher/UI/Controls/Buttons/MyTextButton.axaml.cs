@@ -50,8 +50,8 @@ public partial class MyTextButton : Label
         ActualThemeVariantChanged += (_, _) => RefreshColor(false);
         Unloaded += (_, _) =>
         {
-            PCL.Animations.AniStop(ColorKey);
-            PCL.Animations.AniStop(TextKey);
+            AnimationService.CancelAnimationByName(ColorKey);
+            AnimationService.CancelAnimationByName(TextKey);
         };
     }
 
@@ -102,12 +102,12 @@ public partial class MyTextButton : Label
             return;
         }
 
-        PCL.Animations.AniStart(
-            new List<PCL.Animations.AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                PCL.Animations.AaOpacity(LabText, -LabText.Opacity, 50),
-                PCL.Animations.AaCode(() => LabText.Text = text, after: true),
-                PCL.Animations.AaOpacity(LabText, 1d, 170)
+                new OpacityAnimation(LabText, -LabText.Opacity, 50),
+                new ActionAnimation(() => LabText.Text = text, true),
+                new OpacityAnimation(LabText, 1d, 170)
             },
             TextKey);
     }

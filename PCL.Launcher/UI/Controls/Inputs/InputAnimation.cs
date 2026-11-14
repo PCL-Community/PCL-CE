@@ -1,8 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
-using PCL.UI.Animations;
-using MyColor = PCL.UI.Controls.Common.MyColor;
 
 namespace PCL.UI.Controls;
 
@@ -22,7 +20,7 @@ internal static class InputAnimation
         return IsEnabled
             && control.IsLoaded
             && TopLevel.GetTopLevel(control) is not null
-            && !PCL.Animations.AniExitsAnyControl();
+            && !AnimationService.IsSuspended;
     }
 
     /// <summary>生成带控件编号的动画组名，避免同一控件的状态动画互相覆盖。</summary>
@@ -35,18 +33,18 @@ internal static class InputAnimation
     internal static void Stop(params string[] names)
     {
         foreach (var name in names)
-            PCL.Animations.AniStop(name);
+            AnimationService.CancelAnimationByName(name);
     }
 
     /// <summary>读取控件当前颜色，非纯色画刷按全透明处理。</summary>
-    internal static MyColor ReadColor(AvaloniaObject target, AvaloniaProperty property)
+    internal static NColor ReadColor(AvaloniaObject target, AvaloniaProperty property)
     {
         return target.GetValue(property) switch
         {
-            ISolidColorBrush brush => new MyColor(brush.Color),
-            Color color => new MyColor(color),
-            MyColor color => color,
-            _ => new MyColor(0d, 0d, 0d, 0d)
+            ISolidColorBrush brush => new NColor(brush.Color),
+            Color color => new NColor(color),
+            NColor color => color,
+            _ => new NColor(0d, 0d, 0d, 0d)
         };
     }
 
@@ -62,7 +60,7 @@ internal static class InputAnimation
         int time,
         string name,
         bool animate = true,
-        PCL.Animations.AniEase? ease = null)
+        IEasing? ease = null)
     {
         if (animate && InputTheme.TryColor(target, key, out var targetColor) && CanAnimate(target))
         {
@@ -70,7 +68,7 @@ internal static class InputAnimation
             return;
         }
 
-        PCL.Animations.AniStop(name);
+        AnimationService.CancelAnimationByName(name);
         target.SetValue(property, InputTheme.Brush(target, key, fallback));
     }
 
@@ -84,35 +82,35 @@ internal static class InputAnimation
         int time,
         string name,
         bool animate = true,
-        PCL.Animations.AniEase? ease = null)
+        IEasing? ease = null)
     {
         if (animate && CanAnimate(target))
         {
-            AnimateColor(target, property, new MyColor(color), time, name, ease);
+            AnimateColor(target, property, new NColor(color), time, name, ease);
             return;
         }
 
-        PCL.Animations.AniStop(name);
+        AnimationService.CancelAnimationByName(name);
         target.SetValue(property, new SolidColorBrush(color));
     }
 
     private static void AnimateColor(
         Control target,
         AvaloniaProperty property,
-        MyColor targetColor,
+        NColor targetColor,
         int time,
         string name,
-        PCL.Animations.AniEase? ease)
+        IEasing? ease)
     {
         var delta = targetColor - ReadColor(target, property);
-        if (Math.Abs(delta.a) < 0.001d
-            && Math.Abs(delta.r) < 0.001d
-            && Math.Abs(delta.g) < 0.001d
-            && Math.Abs(delta.b) < 0.001d)
+        if (Math.Abs(delta.A) < 0.001d
+            && Math.Abs(delta.R) < 0.001d
+            && Math.Abs(delta.G) < 0.001d
+            && Math.Abs(delta.B) < 0.001d)
             return;
 
-        PCL.Animations.AniStart(
-            PCL.Animations.AaColor(target, property, delta, time, 0, ease),
+        AnimationService.Run(
+            new ColorAnimation(target, property, delta, time, 0, ease),
             name);
     }
 
@@ -124,20 +122,20 @@ internal static class InputAnimation
         string name,
         bool animate = true,
         int delay = 0,
-        PCL.Animations.AniEase? ease = null)
+        IEasing? ease = null)
     {
         if (animate && CanAnimate(target))
         {
             var delta = value - target.Opacity;
             if (Math.Abs(delta) < 0.0001d)
                 return;
-            PCL.Animations.AniStart(
-                PCL.Animations.AaOpacity(target, delta, time, delay, ease),
+            AnimationService.Run(
+                new OpacityAnimation(target, delta, time, delay, ease),
                 name);
             return;
         }
 
-        PCL.Animations.AniStop(name);
+        AnimationService.CancelAnimationByName(name);
         target.Opacity = value;
     }
 
@@ -148,20 +146,20 @@ internal static class InputAnimation
         int time,
         string name,
         bool animate = true,
-        PCL.Animations.AniEase? ease = null)
+        IEasing? ease = null)
     {
         if (animate && CanAnimate(target))
         {
             var delta = value - (double.IsNaN(target.Width) ? target.Bounds.Width : target.Width);
             if (Math.Abs(delta) < 0.0001d)
                 return;
-            PCL.Animations.AniStart(
-                PCL.Animations.AaWidth(target, delta, time, 0, ease),
+            AnimationService.Run(
+                new WidthAnimation(target, delta, time, 0, ease),
                 name);
             return;
         }
 
-        PCL.Animations.AniStop(name);
+        AnimationService.CancelAnimationByName(name);
         target.Width = value;
     }
 
@@ -172,20 +170,20 @@ internal static class InputAnimation
         int time,
         string name,
         bool animate = true,
-        PCL.Animations.AniEase? ease = null)
+        IEasing? ease = null)
     {
         if (animate && CanAnimate(target))
         {
             var delta = value - target.Margin.Left;
             if (Math.Abs(delta) < 0.0001d)
                 return;
-            PCL.Animations.AniStart(
-                PCL.Animations.AaX(target, delta, time, 0, ease),
+            AnimationService.Run(
+                new XAnimation(target, delta, time, 0, ease),
                 name);
             return;
         }
 
-        PCL.Animations.AniStop(name);
+        AnimationService.CancelAnimationByName(name);
         var margin = target.Margin;
         target.Margin = new Thickness(value, margin.Top, margin.Right, margin.Bottom);
     }
@@ -198,20 +196,20 @@ internal static class InputAnimation
         string name,
         bool animate = true,
         int delay = 0,
-        PCL.Animations.AniEase? ease = null)
+        IEasing? ease = null)
     {
         if (animate && CanAnimate(target))
         {
             var delta = value - CurrentScale(target);
             if (Math.Abs(delta) < 0.0001d)
                 return;
-            PCL.Animations.AniStart(
-                PCL.Animations.AaScaleTransform(target, delta, time, delay, ease),
+            AnimationService.Run(
+                new ScaleTransformAnimation(target, delta, time, delay, ease),
                 name);
             return;
         }
 
-        PCL.Animations.AniStop(name);
+        AnimationService.CancelAnimationByName(name);
         SetScale(target, value);
     }
 

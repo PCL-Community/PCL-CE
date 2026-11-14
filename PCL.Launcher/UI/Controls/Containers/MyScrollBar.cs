@@ -4,7 +4,6 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
-using static PCL.Animations;
 
 namespace PCL.UI.Controls;
 
@@ -85,25 +84,25 @@ public class MyScrollBar : ScrollBar
 
             if (ContainerAnimation.CanAnimate(this))
             {
-                // AaColor 的参数是增量而非目标值，必须传“目标 - 当前”，否则颜色会逐次漂移
+                // ColorAnimation 的参数是增量而非目标值，必须传“目标 - 当前”，否则颜色会逐次漂移
                 var delta = ContainerAnimation.ColorOf(Resolve(newColorKey))
                     - ContainerAnimation.ColorOf(Foreground);
 
-                AniStart(
-                    new List<AniData>
+                AnimationService.Run(
+                    new List<IAnimation>
                     {
-                        AaColor(this, ForegroundProperty, delta, time),
-                        AaOpacity(this, newOpacity - Opacity, time),
+                        new ColorAnimation(this, ForegroundProperty, delta, time),
+                        new OpacityAnimation(this, newOpacity - Opacity, time),
                         // 收尾恢复动态资源，主题切换后颜色继续跟随页面
-                        AaCode(
+                        new ActionAnimation(
                             () => ContainerTheme.BindDynamic(this, ForegroundProperty, _colorKey),
-                            after: true)
+                            true)
                     },
                     animationKey);
             }
             else
             {
-                AniStop(animationKey);
+                AnimationService.CancelAnimationByName(animationKey);
                 ContainerTheme.BindDynamic(this, ForegroundProperty, newColorKey);
                 Opacity = newOpacity;
             }

@@ -1,5 +1,4 @@
 using Avalonia.Media;
-using static PCL.Animations;
 
 namespace PCL.UI.Controls;
 
@@ -82,50 +81,50 @@ public partial class MyResourceSelectBar : MyCard
     private void ShowAnimated()
     {
         IsVisible = true;
-        AniStart(
-            new List<AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                AaOpacity(this, 1d - Opacity, 60),
-                AaTranslateY(
+                new OpacityAnimation(this, 1d - Opacity, 60),
+                new TranslateYAnimation(
                     _transSelect,
                     -27d - _transSelect.Y,
                     120,
-                    ease: new AniEaseOutFluent(AniEasePower.Weak)),
-                AaTranslateY(
+                    ease: new FluentEaseOut(EasePower.Weak)),
+                new TranslateYAnimation(
                     _transSelect,
                     3d,
                     150,
                     120,
-                    new AniEaseInoutFluent(AniEasePower.Weak)),
-                AaTranslateY(
+                    new FluentEaseInOut(EasePower.Weak)),
+                new TranslateYAnimation(
                     _transSelect,
                     -1d,
                     90,
                     270,
-                    new AniEaseInoutFluent(AniEasePower.Weak))
+                    new FluentEaseInOut(EasePower.Weak))
             },
             "Resource Sidebar");
     }
 
     private void HideAnimated()
     {
-        AniStart(
-            new List<AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                AaOpacity(this, -Opacity, 90),
-                AaTranslateY(
+                new OpacityAnimation(this, -Opacity, 90),
+                new TranslateYAnimation(
                     _transSelect,
                     -10d - _transSelect.Y,
                     90,
-                    ease: new AniEaseInFluent(AniEasePower.Weak)),
-                AaCode(() => IsVisible = false, after: true)
+                    ease: new FluentEaseIn(EasePower.Weak)),
+                new ActionAnimation(() => IsVisible = false, true)
             },
             "Resource Sidebar");
     }
 
     private void ShowInstant()
     {
-        AniStop("Resource Sidebar");
+        AnimationService.CancelAnimationByName("Resource Sidebar");
         IsVisible = true;
         Opacity = 1d;
         _transSelect.Y = -25d;
@@ -133,7 +132,7 @@ public partial class MyResourceSelectBar : MyCard
 
     private void HideInstant()
     {
-        AniStop("Resource Sidebar");
+        AnimationService.CancelAnimationByName("Resource Sidebar");
         IsVisible = false;
         Opacity = 0d;
         _transSelect.Y = -10d;

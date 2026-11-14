@@ -18,33 +18,11 @@ public static class MathHelper
     }
 
     /// <summary>
-    ///     把 MyColor 的四个通道四舍五入到指定小数位。
-    /// </summary>
-    public static MyColor MathRound(MyColor col, int w = 0)
-    {
-        return new MyColor
-        {
-            a = Math.Round(col.a, w),
-            r = Math.Round(col.r, w),
-            g = Math.Round(col.g, w),
-            b = Math.Round(col.b, w)
-        };
-    }
-
-    /// <summary>
     ///     按 percent 在 valueA 与 valueB 之间线性插值，结果保留 6 位小数。
     /// </summary>
     public static double MathPercent(double valueA, double valueB, double percent)
     {
         return Math.Round(valueA * (1d - percent) + valueB * percent, 6);
-    }
-
-    /// <summary>
-    ///     按 percent 在两种颜色之间逐通道插值，结果保留 6 位小数。
-    /// </summary>
-    public static MyColor MathPercent(MyColor valueA, MyColor valueB, double percent)
-    {
-        return MathRound(valueA * (1d - percent) + valueB * percent, 6);
     }
 
     /// <summary>

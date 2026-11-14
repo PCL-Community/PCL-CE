@@ -2,7 +2,6 @@ using System.ComponentModel;
 using Avalonia.Controls;
 using PCL.Core.App.Localization;
 using PCL.UI.Controls;
-using static PCL.Animations;
 
 namespace PCL.Views.Pages.Launch;
 
@@ -45,8 +44,8 @@ public partial class PageLoginProfileSkin : LoginPageBase
         _btnSelect.Click += (_, _) => ViewModel.SelectProfileCommand.Execute(null);
         _skin.CapeRequested += (_, _) => ViewModel.ChangeCapeCommand.Execute(null);
 
-        PointerEntered += (_, _) => AniStart(
-            AaOpacity(_panButtons, 1d - _panButtons.Opacity, 120),
+        PointerEntered += (_, _) => AnimationService.Run(
+            new OpacityAnimation(_panButtons, 1d - _panButtons.Opacity, 120),
             "PageLoginProfileSkin Button");
         PointerExited += (_, _) =>
         {
@@ -79,8 +78,8 @@ public partial class PageLoginProfileSkin : LoginPageBase
 
     private void HideButtons()
     {
-        AniStart(
-            AaOpacity(_panButtons, -_panButtons.Opacity, 120),
+        AnimationService.Run(
+            new OpacityAnimation(_panButtons, -_panButtons.Opacity, 120),
             "PageLoginProfileSkin Button");
     }
 

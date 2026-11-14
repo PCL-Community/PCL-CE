@@ -7,7 +7,6 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using PCL.Core.App.Localization;
 using PCL.UI.Controls;
-using static PCL.Animations;
 
 namespace PCL.Views.Pages.Launch;
 
@@ -79,8 +78,8 @@ public sealed class MySkin : Grid
 
         PointerEntered += (_, _) =>
         {
-            AniStart(
-                AaDouble(
+            AnimationService.Run(
+                new DoubleAnimation(
                     delta => _shadow.Opacity += delta,
                     ShadowHoverOpacity - _shadow.Opacity,
                     200,
@@ -89,28 +88,40 @@ public sealed class MySkin : Grid
         };
         PointerExited += (_, _) =>
         {
-            AniStart(
-                AaDouble(
+            AnimationService.Run(
+                new DoubleAnimation(
                     delta => _shadow.Opacity += delta,
                     ShadowIdleOpacity - _shadow.Opacity,
                     200),
                 "Skin Shadow");
             _isMouseDown = false;
-            AniStart(
-                AaScaleTransform(this, 1d - GetScale().ScaleX, 60, ease: new AniEaseOutFluent()),
+            AnimationService.Run(
+                new ScaleTransformAnimation(
+                    this,
+                    1d - GetScale().ScaleX,
+                    60,
+                    ease: new FluentEaseOut()),
                 "Skin Scale");
         };
         PointerPressed += (_, _) =>
         {
             _isMouseDown = true;
-            AniStart(
-                AaScaleTransform(this, 0.9d - GetScale().ScaleX, 60, ease: new AniEaseOutFluent()),
+            AnimationService.Run(
+                new ScaleTransformAnimation(
+                    this,
+                    0.9d - GetScale().ScaleX,
+                    60,
+                    ease: new FluentEaseOut()),
                 "Skin Scale");
         };
         PointerReleased += (_, _) =>
         {
-            AniStart(
-                AaScaleTransform(this, 1d - GetScale().ScaleX, 60, ease: new AniEaseOutFluent()),
+            AnimationService.Run(
+                new ScaleTransformAnimation(
+                    this,
+                    1d - GetScale().ScaleX,
+                    60,
+                    ease: new FluentEaseOut()),
                 "Skin Scale");
             if (!_isMouseDown) return;
             _isMouseDown = false;

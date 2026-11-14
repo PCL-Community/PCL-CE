@@ -15,7 +15,7 @@ namespace PCL.UI.Controls;
 ///     加载状态提示：镐子图标加一行状态文本，可叠加进度值或切换为错误态。
 ///     状态由 <see cref="State" />、<see cref="ShowProgress" /> 与错误文本继承决定，
 ///     鼠标左键点击会触发 <c>Click</c> 并调用 <see cref="Command" />；镐子挥舞循环与错误叉过渡
-///     由 <c>PCL.Animations</c> 驱动。
+///     由 新动画引擎 驱动。
 /// </summary>
 public class MyLoading : Grid
 {
@@ -182,8 +182,8 @@ public class MyLoading : Grid
         };
         Unloaded += (_, _) =>
         {
-            PCL.Animations.AniStop(LoopKey);
-            PCL.Animations.AniStop(ErrorKey);
+            AnimationService.CancelAnimationByName(LoopKey);
+            AnimationService.CancelAnimationByName(ErrorKey);
             _isLooping = false;
             RefreshState();
         };
@@ -490,7 +490,7 @@ public class MyLoading : Grid
 
     /// <summary>
     ///     镐子挥动循环：旋转镐子，挥舞结束后重置箭头位置并淡出，再在组末尾递归启动下一轮。
-    ///     动画关闭或速度过高（<see cref="Animations.AniSpeed" /> &gt; 10）时保持静止。
+    ///     动画关闭或速度过高（<see cref="AnimationService.Speed" /> &gt; 10）时保持静止。
     /// </summary>
     private void AniLoop()
     {
@@ -505,33 +505,33 @@ public class MyLoading : Grid
             || _isLooping
             || InnerState != LoadingState.Run
             || !FeedbackAnimation.CanAnimate(this)
-            || PCL.Animations.AniSpeed > 10d)
+            || AnimationService.Speed > 10d)
             return;
 
         _isLooping = true;
         _errorAnimationWaiting = true;
 
-        PCL.Animations.AniStart(
-            new List<PCL.Animations.AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                PCL.Animations.AaRotateTransform(
+                new RotateTransformAnimation(
                     _pathPickaxe,
                     -20d - FeedbackAnimation.CurrentAngle(_pathPickaxe),
                     350,
                     250,
-                    new PCL.Animations.AniEaseInBack(PCL.Animations.AniEasePower.Weak)),
-                PCL.Animations.AaRotateTransform(
+                    new BackEaseWithPowerIn(EasePower.Weak)),
+                new RotateTransformAnimation(
                     _pathPickaxe,
                     50d,
                     900,
-                    ease: new PCL.Animations.AniEaseOutFluent(),
+                    ease: new FluentEaseOut(),
                     after: true),
-                PCL.Animations.AaRotateTransform(
+                new RotateTransformAnimation(
                     _pathPickaxe,
                     25d,
                     900,
-                    ease: new PCL.Animations.AniEaseOutElastic(PCL.Animations.AniEasePower.Weak)),
-                PCL.Animations.AaCode(() =>
+                    ease: new ElasticEaseOut(EasePower.Weak)),
+                new ActionAnimation(() =>
                 {
                     _pathLeft.Opacity = 1d;
                     _pathLeft.Margin = new Thickness(7d, 41d, 0d, 0d);
@@ -539,35 +539,35 @@ public class MyLoading : Grid
                     _pathRight.Margin = new Thickness(14d, 41d, 0d, 0d);
                     _errorAnimationWaiting = false;
                 }),
-                PCL.Animations.AaOpacity(_pathLeft, -1d, 100, 50),
-                PCL.Animations.AaX(
+                new OpacityAnimation(_pathLeft, -1d, 100, 50),
+                new XAnimation(
                     _pathLeft,
                     -5d,
                     180,
-                    ease: new PCL.Animations.AniEaseOutFluent()),
-                PCL.Animations.AaY(
+                    ease: new FluentEaseOut()),
+                new YAnimation(
                     _pathLeft,
                     -6d,
                     180,
-                    ease: new PCL.Animations.AniEaseOutFluent()),
-                PCL.Animations.AaOpacity(_pathRight, -1d, 100, 50),
-                PCL.Animations.AaX(
+                    ease: new FluentEaseOut()),
+                new OpacityAnimation(_pathRight, -1d, 100, 50),
+                new XAnimation(
                     _pathRight,
                     5d,
                     180,
-                    ease: new PCL.Animations.AniEaseOutFluent()),
-                PCL.Animations.AaY(
+                    ease: new FluentEaseOut()),
+                new YAnimation(
                     _pathRight,
                     -6d,
                     180,
-                    ease: new PCL.Animations.AniEaseOutFluent()),
-                PCL.Animations.AaCode(
+                    ease: new FluentEaseOut()),
+                new ActionAnimation(
                     () =>
                     {
                         _isLooping = false;
                         AniLoop();
                     },
-                    after: true)
+                    true)
             },
             LoopKey);
     }
@@ -597,19 +597,19 @@ public class MyLoading : Grid
             return;
         }
 
-        var animations = new List<PCL.Animations.AniData>
+        var animations = new List<IAnimation>
         {
-            PCL.Animations.AaOpacity(
+            new OpacityAnimation(
                 _pathError,
                 (isError ? 1d : 0d) - _pathError.Opacity,
                 100,
                 isError ? 300 + wait : 0),
-            PCL.Animations.AaScaleTransform(
+            new ScaleTransformAnimation(
                 _pathError,
                 (isError ? 1d : 0.5d) - FeedbackAnimation.CurrentScale(_pathError),
                 isError ? 400 : 200,
                 isError ? 300 + wait : 0,
-                isError ? new PCL.Animations.AniEaseOutBack() : null)
+                isError ? new BackEaseWithPowerOut() : null)
         };
 
         foreach (var (targetControl, property) in new (Control Control, AvaloniaProperty Property)[]
@@ -621,18 +621,18 @@ public class MyLoading : Grid
                      (_pathError, Shape.FillProperty),
                      (_line, Shape.FillProperty)
                  })
-            animations.Add(FeedbackAnimation.ColorTo(targetControl, property, target, 300));
+            animations.Add(FeedbackAnimation.ColorTo(targetControl, property, target.Value, 300));
 
         animations.Add(
-            PCL.Animations.AaCode(
+            new ActionAnimation(
                 () =>
                 {
                     _foregroundIsThemeOwned = true;
                     _ApplyThemeColors();
                 },
-                after: true));
+                true));
 
-        PCL.Animations.AniStart(animations, ErrorKey);
+        AnimationService.Run(animations, ErrorKey);
     }
 
     private void SetErrorScale(double scale)

@@ -10,9 +10,7 @@ using PCL.Core.Logging;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils.OS;
 using PCL.UI;
-using PCL.UI.Animations;
 using PCL.UI.Controls;
-using static PCL.Animations;
 
 namespace PCL.Views.Shell;
 
@@ -89,29 +87,29 @@ public sealed class StartupEffects(
         root.RenderTransform = group;
         window.Opacity = 0d;
 
-        AniStart(
-            new List<AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                AaOpacity(window, target, 250, 100),
-                AaDouble(
+                new OpacityAnimation(window, target, 250, 100),
+                new DoubleAnimation(
                     value => translate.Y += value,
                     -translate.Y,
                     600,
                     100,
-                    new AniEaseOutBack(AniEasePower.Weak)),
-                AaDouble(
+                    new BackEaseWithPowerOut(EasePower.Weak)),
+                new DoubleAnimation(
                     value => rotate.Angle += value,
                     -rotate.Angle,
                     500,
                     100,
-                    new AniEaseOutBack(AniEasePower.Weak)),
-                AaCode(
+                    new BackEaseWithPowerOut(EasePower.Weak)),
+                new ActionAnimation(
                     () =>
                     {
                         root.RenderTransform = null;
                         LogWrapper.Debug("UI", "窗口进场动画完成");
                     },
-                    after: true)
+                    true)
             },
             "Startup Window Show");
     }

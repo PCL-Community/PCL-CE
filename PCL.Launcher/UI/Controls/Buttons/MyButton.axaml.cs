@@ -59,7 +59,7 @@ public partial class MyButton : Border
 
     public MyButton()
     {
-        using var controlScope = PCL.Animations.SuspendControl();
+        using var controlScope = AnimationService.SuspendControl();
 
         InitializeComponent();
 
@@ -228,16 +228,16 @@ public partial class MyButton : Border
         double target,
         int time,
         int delay = 0,
-        PCL.Animations.AniEase? ease = null)
+        IEasing? ease = null)
     {
         ButtonAnimation.AnimateScale(PanFore, target, time, ScaleKey, delay, ease);
     }
 
     private void _StopAnimations()
     {
-        PCL.Animations.AniStop(BackgroundKey);
-        PCL.Animations.AniStop(BorderKey);
-        PCL.Animations.AniStop(ScaleKey);
+        AnimationService.CancelAnimationByName(BackgroundKey);
+        AnimationService.CancelAnimationByName(BorderKey);
+        AnimationService.CancelAnimationByName(ScaleKey);
     }
 
     private void _OnPointerPressed(object? sender, PointerPressedEventArgs e)
@@ -251,20 +251,20 @@ public partial class MyButton : Border
         RefreshColor(true);
 
         if (ButtonAnimation.CanAnimate(this))
-            PCL.Animations.AniStart(
-                new List<PCL.Animations.AniData>
+            AnimationService.Run(
+                new List<IAnimation>
                 {
-                    PCL.Animations.AaScaleTransform(
+                    new ScaleTransformAnimation(
                         PanFore,
                         0.955d - ButtonAnimation.CurrentScale(PanFore),
                         80,
-                        ease: new PCL.Animations.AniEaseOutFluent(
-                            PCL.Animations.AniEasePower.ExtraStrong)),
-                    PCL.Animations.AaScaleTransform(
+                        ease: new FluentEaseOut(
+                            EasePower.ExtraStrong)),
+                    new ScaleTransformAnimation(
                         PanFore,
                         -0.01d,
                         700,
-                        ease: new PCL.Animations.AniEaseOutFluent())
+                        ease: new FluentEaseOut())
                 },
                 ScaleKey);
         else
@@ -278,7 +278,7 @@ public partial class MyButton : Border
 
         _isMouseDown = false;
         Classes.Set("pressed", false);
-        _AnimateScale(1d, 300, 10, new PCL.Animations.AniEaseOutFluent());
+        _AnimateScale(1d, 300, 10, new FluentEaseOut());
         RefreshColor(true);
 
         PerformClick(e.KeyModifiers);
@@ -303,7 +303,7 @@ public partial class MyButton : Border
         _AnimateScale(
             1d,
             800,
-            ease: new PCL.Animations.AniEaseOutFluent(PCL.Animations.AniEasePower.Strong));
+            ease: new FluentEaseOut(EasePower.Strong));
         RefreshColor(true);
     }
 

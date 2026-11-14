@@ -7,7 +7,6 @@ using Avalonia.Platform;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using PCL.UI.Controls;
-using static PCL.Animations;
 
 namespace PCL.Views.Pages.Instance;
 
@@ -250,15 +249,15 @@ public partial class ServerCard : Grid
             return;
         }
 
-        AniStart(
-            new List<AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                AaOpacity(
+                new OpacityAnimation(
                     RectBack,
                     (show ? 1d : 0d) - RectBack.Opacity,
                     time,
-                    ease: new AniEaseOutFluent()),
-                AaColor(
+                    ease: new FluentEaseOut()),
+                new ColorAnimation(
                     RectBack,
                     Border.BackgroundProperty,
                     stateNew == "MouseDown"
@@ -273,7 +272,7 @@ public partial class ServerCard : Grid
 
     private void ApplyColorStateInstant(bool show, string stateNew)
     {
-        AniStop($"ServerCard Color {_uuid}");
+        AnimationService.CancelAnimationByName($"ServerCard Color {_uuid}");
         RectBack.Opacity = show ? 1d : 0d;
         ContainerTheme.BindDynamic(
             RectBack,
@@ -287,7 +286,7 @@ public partial class ServerCard : Grid
 
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
-        AniStop($"ServerCard Color {_uuid}");
+        AnimationService.CancelAnimationByName($"ServerCard Color {_uuid}");
         _stateLast = null;
         base.OnDetachedFromVisualTree(e);
     }

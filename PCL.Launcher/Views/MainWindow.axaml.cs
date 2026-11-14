@@ -11,11 +11,9 @@ using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Navigation;
 using PCL.UI;
-using PCL.UI.Animations;
 using PCL.UI.SystemIntegration;
 using PCL.Views.Pages;
 using PCL.Views.Shell;
-using static PCL.Animations;
 
 namespace PCL.Views;
 
@@ -253,19 +251,19 @@ public partial class MainWindow : Window
             || !AnimationService.IsEnabled
             || !RectLeftBackground.IsLoaded)
         {
-            AniStop(LeftWidthAnimationKey);
+            AnimationService.CancelAnimationByName(LeftWidthAnimationKey);
             RectLeftBackground.Width = target;
             return;
         }
 
-        AniStart(
-            new List<AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                AaWidth(
+                new WidthAnimation(
                     RectLeftBackground,
                     target - current,
                     180,
-                    ease: new AniEaseOutFluent(AniEasePower.ExtraStrong))
+                    ease: new FluentEaseOut(EasePower.ExtraStrong))
             },
             LeftWidthAnimationKey,
             true);

@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
-using PCL.UI.Controls.Common;
 using Path = Avalonia.Controls.Shapes.Path;
 using SvgIconControl = PCL.UI.Controls.SvgIcon.SvgIcon;
 
@@ -59,14 +58,14 @@ internal static class SvgIconControlHelper
         if (!svgIcon.IsVisible) return;
         if (ResolveBrush(resourceKey) is not ISolidColorBrush { Color: var color }) return;
         svgIcon.AnimateIconBrushTo(
-            new MyColor(color),
+            new NColor(color),
             TimeSpan.FromMilliseconds(duration),
             animationKey: animationKey);
     }
 
     internal static void AnimateSvgIconBrushTo(
         SvgIconControl svgIcon,
-        MyColor color,
+        NColor color,
         int duration,
         string? animationKey = null)
     {

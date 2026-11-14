@@ -231,18 +231,18 @@ public partial class MyExtraButton : Grid
         };
 
         PanScale.Children.Insert(0, shape);
-        PCL.Animations.AniStart(
-            new List<PCL.Animations.AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                PCL.Animations.AaScaleTransform(
+                new ScaleTransformAnimation(
                     shape,
                     13d,
                     1000,
-                    ease: new PCL.Animations.AniEaseInoutFluent(
-                        PCL.Animations.AniEasePower.Strong,
+                    ease: new FluentEaseInOut(
+                        EasePower.Strong,
                         0.3d)),
-                PCL.Animations.AaOpacity(shape, -0.5d, 1000),
-                PCL.Animations.AaCode(() => PanScale.Children.Remove(shape), after: true)
+                new OpacityAnimation(shape, -0.5d, 1000),
+                new ActionAnimation(() => PanScale.Children.Remove(shape), true)
             },
             $"MyExtraButton Ribble {Interlocked.Increment(ref _ribbleSeed)}");
     }
@@ -321,26 +321,26 @@ public partial class MyExtraButton : Grid
                 return;
             }
 
-            PCL.Animations.AniStart(
-                new List<PCL.Animations.AniData>
+            AnimationService.Run(
+                new List<IAnimation>
                 {
-                    PCL.Animations.AaScaleTransform(
+                    new ScaleTransformAnimation(
                         this,
                         0.3d - ButtonAnimation.CurrentScale(this),
                         500,
                         60,
-                        new PCL.Animations.AniEaseOutFluent(PCL.Animations.AniEasePower.Weak)),
-                    PCL.Animations.AaScaleTransform(
+                        new FluentEaseOut(EasePower.Weak)),
+                    new ScaleTransformAnimation(
                         this,
                         0.7d,
                         500,
                         60,
-                        new PCL.Animations.AniEaseOutBack(PCL.Animations.AniEasePower.Weak)),
-                    PCL.Animations.AaHeight(
+                        new BackEaseWithPowerOut(EasePower.Weak)),
+                    new HeightAnimation(
                         this,
                         50d - CurrentHeight(),
                         200,
-                        ease: new PCL.Animations.AniEaseOutFluent(PCL.Animations.AniEasePower.Weak))
+                        ease: new FluentEaseOut(EasePower.Weak))
                 },
                 MainScaleKey);
             return;
@@ -354,27 +354,27 @@ public partial class MyExtraButton : Grid
             return;
         }
 
-        PCL.Animations.AniStart(
-            new List<PCL.Animations.AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                PCL.Animations.AaScaleTransform(
+                new ScaleTransformAnimation(
                     this,
                     -ButtonAnimation.CurrentScale(this),
                     100,
-                    ease: new PCL.Animations.AniEaseInFluent(PCL.Animations.AniEasePower.Weak)),
-                PCL.Animations.AaHeight(
+                    ease: new FluentEaseIn(EasePower.Weak)),
+                new HeightAnimation(
                     this,
                     -CurrentHeight(),
                     400,
                     100,
-                    new PCL.Animations.AniEaseOutFluent()),
-                PCL.Animations.AaCode(
+                    new FluentEaseOut()),
+                new ActionAnimation(
                     () =>
                     {
                         Height = 0d;
                         IsVisible = false;
                     },
-                    after: true)
+                    true)
             },
             MainScaleKey);
     }
@@ -391,19 +391,19 @@ public partial class MyExtraButton : Grid
             return;
         }
 
-        PCL.Animations.AniStart(
-            new List<PCL.Animations.AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                PCL.Animations.AaScaleTransform(
+                new ScaleTransformAnimation(
                     PanScale,
                     targetScale - ButtonAnimation.CurrentScale(PanScale),
                     800,
-                    ease: new PCL.Animations.AniEaseOutFluent(PCL.Animations.AniEasePower.Strong)),
-                PCL.Animations.AaScaleTransform(
+                    ease: new FluentEaseOut(EasePower.Strong)),
+                new ScaleTransformAnimation(
                     PanScale,
                     reboundScale,
                     reboundDuration,
-                    ease: new PCL.Animations.AniEaseOutFluent())
+                    ease: new FluentEaseOut())
             },
             ScaleKey);
     }
@@ -417,12 +417,12 @@ public partial class MyExtraButton : Grid
             return;
         }
 
-        PCL.Animations.AniStart(
-            PCL.Animations.AaScaleTransform(
+        AnimationService.Run(
+            new ScaleTransformAnimation(
                 PanScale,
                 1d - ButtonAnimation.CurrentScale(PanScale),
                 300,
-                ease: new PCL.Animations.AniEaseOutBack()),
+                ease: new BackEaseWithPowerOut()),
             ScaleKey);
     }
 
@@ -431,12 +431,12 @@ public partial class MyExtraButton : Grid
         _isLeftMouseHeld = false;
         _isRightMouseHeld = false;
         if (ButtonAnimation.CanAnimate(this))
-            PCL.Animations.AniStart(
-                PCL.Animations.AaScaleTransform(
+            AnimationService.Run(
+                new ScaleTransformAnimation(
                     PanScale,
                     1d - ButtonAnimation.CurrentScale(PanScale),
                     500,
-                    ease: new PCL.Animations.AniEaseOutFluent()),
+                    ease: new FluentEaseOut()),
                 ScaleKey);
         else
             ButtonAnimation.SetScale(PanScale, 1d);
@@ -446,9 +446,9 @@ public partial class MyExtraButton : Grid
 
     private void _StopAnimations()
     {
-        PCL.Animations.AniStop(ScaleKey);
-        PCL.Animations.AniStop(MainScaleKey);
-        PCL.Animations.AniStop(ColorKey);
+        AnimationService.CancelAnimationByName(ScaleKey);
+        AnimationService.CancelAnimationByName(MainScaleKey);
+        AnimationService.CancelAnimationByName(ColorKey);
     }
 
     private void _OnPointerPressed(object? sender, PointerPressedEventArgs e)

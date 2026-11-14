@@ -1,8 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
-using PCL.UI.Animations;
-using MyColor = PCL.UI.Controls.Common.MyColor;
 
 namespace PCL.UI.Controls;
 
@@ -20,10 +18,10 @@ internal static class ContainerAnimation
     internal static bool CanAnimate(Control control)
     {
         return CanAnimatePage(control)
-            && !PCL.Animations.AniExitsAnyControl();
+            && !AnimationService.IsSuspended;
     }
 
-    /// <summary>页面级显式动画：只检查动画总开关/加载状态，不受 AniBeginControl 抑制。</summary>
+    /// <summary>页面级显式动画：只检查动画总开关/加载状态，不受 AnimationService.BeginControl 抑制。</summary>
     internal static bool CanAnimatePage(Control control)
     {
         return IsEnabled
@@ -32,15 +30,15 @@ internal static class ContainerAnimation
     }
 
     /// <summary>把画刷转成可插值的颜色；非纯色画刷按透明处理。</summary>
-    internal static MyColor ColorOf(IBrush? brush)
+    internal static NColor ColorOf(IBrush? brush)
     {
         return brush is ISolidColorBrush
-            ? new MyColor(brush)
-            : new MyColor(0d, 0d, 0d, 0d);
+            ? new NColor(brush)
+            : new NColor(0d, 0d, 0d, 0d);
     }
 
     /// <summary>按资源键取页面主题画刷并转成可插值的颜色。</summary>
-    internal static MyColor ThemeColor(StyledElement element, string key, IBrush fallback)
+    internal static NColor ThemeColor(StyledElement element, string key, IBrush fallback)
     {
         return ColorOf(ContainerTheme.Brush(element, key, fallback));
     }

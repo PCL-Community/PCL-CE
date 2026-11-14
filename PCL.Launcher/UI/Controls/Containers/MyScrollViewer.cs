@@ -5,7 +5,6 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using PCL.Views.Shell;
-using static PCL.Animations;
 
 namespace PCL.UI.Controls;
 
@@ -16,12 +15,12 @@ namespace PCL.UI.Controls;
 public class MyScrollViewer : ScrollViewer
 {
     private const double WheelScrollStep = 120d; // 一个滚轮刻度对应的像素数
-
-    public static readonly StyledProperty<Thickness> ScrollBarMarginProperty =
-        AvaloniaProperty.Register<MyScrollViewer, Thickness>(nameof(ScrollBarMargin));
     private const int WheelAnimationTime = 300;
     private const string VerticalBarPartName = "PART_VerticalScrollBar";
     private const string HorizontalBarPartName = "PART_HorizontalScrollBar";
+
+    public static readonly StyledProperty<Thickness> ScrollBarMarginProperty =
+        AvaloniaProperty.Register<MyScrollViewer, Thickness>(nameof(ScrollBarMargin));
 
     private double _realOffset;
 
@@ -87,8 +86,8 @@ public class MyScrollViewer : ScrollViewer
         }
 
         // 不具名：连续滚轮事件各自独立叠加；越界由 Clamp 挡在 [0, 可滚动高度]
-        AniStart(
-            AaDouble(
+        AnimationService.Run(
+            new DoubleAnimation(
                 animDelta =>
                 {
                     _realOffset = Math.Clamp(_realOffset + animDelta, 0d, MaximumOffset);
@@ -97,7 +96,7 @@ public class MyScrollViewer : ScrollViewer
                 target,
                 WheelAnimationTime,
                 0,
-                new AniEaseOutFluent((AniEasePower)6)));
+                new FluentEaseOut((EasePower)6)));
     }
 
     private void OnPreviewPointerWheel(object? sender, PointerWheelEventArgs e)

@@ -49,7 +49,7 @@ public abstract class MyMsgDialogBase : UserControl
 
     protected MyMsgDialogBase(DialogViewModel dialog)
     {
-        using var controlScope = PCL.Animations.SuspendControl();
+        using var controlScope = AnimationService.SuspendControl();
 
         Dialog = dialog;
         Focusable = true;
@@ -186,22 +186,22 @@ public abstract class MyMsgDialogBase : UserControl
             return;
         }
 
-        PCL.Animations.AniStart(
-            new List<PCL.Animations.AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                PCL.Animations.AaOpacity(this, 1d, 120, 60),
-                PCL.Animations.AaDouble(
+                new OpacityAnimation(this, 1d, 120, 60),
+                new DoubleAnimation(
                     delta => _translate.Y += delta,
                     -_translate.Y,
                     EnterDuration,
                     60,
-                    new PCL.Animations.AniEaseOutBack(PCL.Animations.AniEasePower.Weak)),
-                PCL.Animations.AaDouble(
+                    new BackEaseWithPowerOut(EasePower.Weak)),
+                new DoubleAnimation(
                     delta => _rotate.Angle += delta,
                     -_rotate.Angle,
                     EnterDuration,
                     60,
-                    new PCL.Animations.AniEaseOutFluent(PCL.Animations.AniEasePower.Weak))
+                    new FluentEaseOut(EasePower.Weak))
             },
             "MyMsg Enter " + GetHashCode());
     }
@@ -217,33 +217,33 @@ public abstract class MyMsgDialogBase : UserControl
             return;
         }
 
-        PCL.Animations.AniStart(
-            new List<PCL.Animations.AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                PCL.Animations.AaOpacity(this, -Opacity, 80, 20),
-                PCL.Animations.AaDouble(
+                new OpacityAnimation(this, -Opacity, 80, 20),
+                new DoubleAnimation(
                     delta => _translate.Y += delta,
                     ExitOffsetY - _translate.Y,
                     ExitDuration,
                     0,
-                    new PCL.Animations.AniEaseOutFluent()),
-                PCL.Animations.AaDouble(
+                    new FluentEaseOut()),
+                new DoubleAnimation(
                     delta => _rotate.Angle += delta,
                     ExitAngle - _rotate.Angle,
                     ExitDuration,
                     0,
-                    new PCL.Animations.AniEaseInFluent(PCL.Animations.AniEasePower.Weak)),
-                PCL.Animations.AaCode(() => completed?.Invoke(), after: true)
+                    new FluentEaseIn(EasePower.Weak)),
+                new ActionAnimation(() => completed?.Invoke(), true)
             },
             "MyMsg Exit " + GetHashCode());
     }
 
     private bool _CanAnimateDialog()
     {
-        return PCL.Animations.AniSpeed > 0d
+        return AnimationService.Speed > 0d
             && IsLoaded
             && TopLevel.GetTopLevel(this) is not null
-            && !PCL.Animations.AniExitsAnyControl();
+            && !AnimationService.IsSuspended;
     }
 
     /// <summary>取第 <paramref name="number" /> 个按钮（从 1 开始）。</summary>

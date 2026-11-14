@@ -11,7 +11,7 @@ internal static class ControlVisualHelpers
     internal static bool ShouldAnimate(Control control, object? animationOverride = null)
     {
         return TopLevel.GetTopLevel(control) is not null
-            && !PCL.Animations.AniExitsAnyControl()
+            && !AnimationService.IsSuspended
             && !false.Equals(animationOverride);
     }
 
@@ -25,13 +25,13 @@ internal static class ControlVisualHelpers
     {
         if (shouldAnimate)
         {
-            PCL.Animations.AniStart(
-                PCL.Animations.AaColor(target, property, resourceKey, duration),
+            AnimationService.Run(
+                new ColorAnimation(target, property, resourceKey, duration),
                 animationKey);
             return;
         }
 
-        PCL.Animations.AniStop(animationKey);
+        AnimationService.CancelAnimationByName(animationKey);
         if (Application.Current is { } app
             && app.TryFindResource(resourceKey, out var value))
             target.SetValue(property, value);

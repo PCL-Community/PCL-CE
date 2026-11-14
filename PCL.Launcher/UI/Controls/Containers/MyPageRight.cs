@@ -5,7 +5,6 @@ using Avalonia.Threading;
 using PCL.Core.App.Localization;
 using PCL.Navigation;
 using PCL.Views.Pages;
-using static PCL.Animations;
 
 namespace PCL.UI.Controls;
 
@@ -365,7 +364,7 @@ public class MyPageRight : Decorator, IPageView
             LauncherCommon.Log("[UI] 已触发 PageOnForceExit");
         PageState = PageStates.Empty;
         // 由于动画会被强制中止，所以需要手动进行隐藏
-        AniStop(PageChangeAnimationKey);
+        AnimationService.CancelAnimationByName(PageChangeAnimationKey);
         if (_pageLoader is null && Child is not null)
         {
             Child.IsVisible = false;
@@ -445,8 +444,8 @@ public class MyPageRight : Decorator, IPageView
             return;
         }
 
-        AniStart(
-            AaCode(
+        AnimationService.Run(
+            new ActionAnimation(
                 () =>
                 {
                     // 页面可能在等待期间退出；同名动画被顶掉后这里不会再执行
@@ -469,8 +468,8 @@ public class MyPageRight : Decorator, IPageView
             return;
         }
 
-        AniStart(
-            AaCode(
+        AnimationService.Run(
+            new ActionAnimation(
                 () =>
                 {
                     if (PageState == PageStates.LoaderStayForce)
@@ -783,7 +782,7 @@ public class MyPageRight : Decorator, IPageView
 
         if (!ContainerAnimation.CanAnimatePage(this))
         {
-            AniStop(PageChangeAnimationKey);
+            AnimationService.CancelAnimationByName(PageChangeAnimationKey);
             foreach (var element in realElements)
             {
                 foreach (var control in GetAllAnimControls(element, true))
@@ -812,7 +811,7 @@ public class MyPageRight : Decorator, IPageView
         }
 
         ResetScrollTransform(GetFirstScrollViewer(realElements));
-        var aniList = new List<AniData>();
+        var aniList = new List<IAnimation>();
         var delay = 0;
         foreach (var element in realElements)
         {
@@ -834,20 +833,27 @@ public class MyPageRight : Decorator, IPageView
                     control.Opacity = 0d;
                     control.RenderTransform = new TranslateTransform(0d, -16d);
                     aniList.Add(
-                        AaOpacity(
+                        new OpacityAnimation(
                             control,
                             1d,
                             100,
                             delay,
-                            new AniEaseOutFluent(AniEasePower.Weak)));
-                    aniList.Add(AaTranslateY(control, 5d, 250, delay, new AniEaseOutFluent()));
-                    aniList.Add(AaTranslateY(control, 11d, 350, delay, new AniEaseOutBack()));
+                            new FluentEaseOut(EasePower.Weak)));
+                    aniList.Add(
+                        new TranslateYAnimation(control, 5d, 250, delay, new FluentEaseOut()));
+                    aniList.Add(
+                        new TranslateYAnimation(
+                            control,
+                            11d,
+                            350,
+                            delay,
+                            new BackEaseWithPowerOut()));
                     delay += 25;
                 }
         }
 
-        aniList.Add(AaCode(PageOnEnterAnimationFinished, after: true));
-        AniStart(aniList, PageChangeAnimationKey, true);
+        aniList.Add(new ActionAnimation(PageOnEnterAnimationFinished, true));
+        AnimationService.Run(aniList, PageChangeAnimationKey, true);
     }
 
     public void TriggerExitAnimation(params Control?[] elements)
@@ -856,7 +862,7 @@ public class MyPageRight : Decorator, IPageView
 
         if (!ContainerAnimation.CanAnimatePage(this))
         {
-            AniStop(PageChangeAnimationKey);
+            AnimationService.CancelAnimationByName(PageChangeAnimationKey);
             foreach (var control in realElements.SelectMany(element => GetAllAnimControls(element)))
                 if (control is MyExtraTextButton extraTextButton)
                 {
@@ -877,7 +883,7 @@ public class MyPageRight : Decorator, IPageView
             return;
         }
 
-        var aniList = new List<AniData>();
+        var aniList = new List<IAnimation>();
         var delay = 0;
         foreach (var control in realElements.SelectMany(element => GetAllAnimControls(element)))
             if (control is MyExtraTextButton extraTextButton)
@@ -888,21 +894,21 @@ public class MyPageRight : Decorator, IPageView
             {
                 if (control is not MyListItem)
                     control.IsHitTestVisible = false;
-                aniList.Add(AaOpacity(control, -control.Opacity, 70, delay));
-                aniList.Add(AaTranslateY(control, -6d, 70, delay));
+                aniList.Add(new OpacityAnimation(control, -control.Opacity, 70, delay));
+                aniList.Add(new TranslateYAnimation(control, -6d, 70, delay));
                 delay += 15;
             }
 
         aniList.Add(
-            AaCode(
+            new ActionAnimation(
                 () =>
                 {
                     foreach (var element in realElements)
                         element.IsVisible = false;
                     PageOnExitAnimationFinished();
                 },
-                after: true));
-        AniStart(aniList, PageChangeAnimationKey);
+                true));
+        AnimationService.Run(aniList, PageChangeAnimationKey);
     }
 
     /// <summary>找到页面中第一个 <see cref="MyScrollViewer" />，用于转场前复位滚动容器位移。</summary>

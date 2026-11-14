@@ -8,7 +8,6 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using PCL.Core.UI.Hints;
-using PCL.UI.Controls.Common;
 using SvgIconControl = PCL.UI.Controls.SvgIcon.SvgIcon;
 
 namespace PCL.UI.Controls;
@@ -16,7 +15,7 @@ namespace PCL.UI.Controls;
 /// <summary>
 ///     右下角浮动提示：按显示时长自动关闭，可向右拖动或点关闭按钮立即移除。
 ///     同一提示重复出现时抖动强调并重新计时；入场/退场、强调抖动、高度展开与进度条收缩
-///     由 <c>PCL.Animations</c> 驱动的五组动画负责。
+///     由 新动画引擎 驱动的五组动画负责。
 /// </summary>
 public class MyToast : Border
 {
@@ -166,7 +165,7 @@ public class MyToast : Border
             _hideTimer?.Stop();
             _hideTimer = null;
             StopAnimations(ShowKey, HideKey, DismissKey, EmphasizeKey, DragReturnKey);
-            PCL.Animations.AniStop(ProgressKey);
+            AnimationService.CancelAnimationByName(ProgressKey);
         };
     }
 
@@ -185,7 +184,7 @@ public class MyToast : Border
     {
         get
         {
-            var speed = PCL.Animations.AniSpeed;
+            var speed = AnimationService.Speed;
             if (speed <= 0d) return 0d;
             if (speed >= 200d) return Hint.DisplayDuration;
             return Hint.DisplayDuration * speed;
@@ -239,7 +238,7 @@ public class MyToast : Border
         _targetHeight = Math.Max(DesiredSize.Height, 45d);
         _targetWidth = Math.Max(DesiredSize.Width, 1d);
 
-        PCL.Animations.AniStop(DragReturnKey);
+        AnimationService.CancelAnimationByName(DragReturnKey);
 
         if (!FeedbackAnimation.CanAnimate(this))
         {
@@ -254,19 +253,19 @@ public class MyToast : Border
         Height = 0d;
         RenderTransform = new TranslateTransform(60d, 0d);
 
-        PCL.Animations.AniStart(
-            new List<PCL.Animations.AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                PCL.Animations.AaTranslateX(
+                new TranslateXAnimation(
                     this,
                     -60d,
-                    ease: new PCL.Animations.AniEaseOutFluent()),
-                PCL.Animations.AaHeight(
+                    ease: new FluentEaseOut()),
+                new HeightAnimation(
                     this,
                     _targetHeight,
                     150,
-                    ease: new PCL.Animations.AniEaseOutFluent()),
-                PCL.Animations.AaOpacity(this, 1d, 100)
+                    ease: new FluentEaseOut()),
+                new OpacityAnimation(this, 1d, 100)
             },
             ShowKey);
 
@@ -288,7 +287,7 @@ public class MyToast : Border
             return;
 
         StopAnimations(ShowKey, HideKey, EmphasizeKey, DragReturnKey);
-        PCL.Animations.AniStop(ProgressKey);
+        AnimationService.CancelAnimationByName(ProgressKey);
         _hideTimer?.Stop();
         _hideTimer = null;
 
@@ -303,22 +302,22 @@ public class MyToast : Border
             return;
         }
 
-        PCL.Animations.AniStart(
-            new List<PCL.Animations.AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                PCL.Animations.AaTranslateX(
+                new TranslateXAnimation(
                     this,
                     -8d,
                     70,
-                    ease: new PCL.Animations.AniEaseOutFluent()),
-                PCL.Animations.AaTranslateX(this, 16d, 70, after: true),
-                PCL.Animations.AaTranslateX(
+                    ease: new FluentEaseOut()),
+                new TranslateXAnimation(this, 16d, 70, after: true),
+                new TranslateXAnimation(
                     this,
                     -8d,
                     60,
                     after: true,
-                    ease: new PCL.Animations.AniEaseOutFluent()),
-                PCL.Animations.AaCode(RestartHide, after: true)
+                    ease: new FluentEaseOut()),
+                new ActionAnimation(RestartHide, true)
             },
             EmphasizeKey);
     }
@@ -344,7 +343,7 @@ public class MyToast : Border
         _hideTimer?.Stop();
         _hideTimer = null;
         StopAnimations(ShowKey, HideKey, EmphasizeKey, DragReturnKey);
-        PCL.Animations.AniStop(ProgressKey);
+        AnimationService.CancelAnimationByName(ProgressKey);
 
         if (!FeedbackAnimation.CanAnimate(this))
         {
@@ -352,16 +351,16 @@ public class MyToast : Border
             return;
         }
 
-        PCL.Animations.AniStart(
-            new List<PCL.Animations.AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                PCL.Animations.AaTranslateX(
+                new TranslateXAnimation(
                     this,
                     60d,
                     150,
-                    ease: new PCL.Animations.AniEaseInFluent()),
-                PCL.Animations.AaOpacity(this, -1d, 100),
-                PCL.Animations.AaCode(RemoveSelf, after: true)
+                    ease: new FluentEaseIn()),
+                new OpacityAnimation(this, -1d, 100),
+                new ActionAnimation(RemoveSelf, true)
             },
             DismissKey);
     }
@@ -383,22 +382,22 @@ public class MyToast : Border
             return;
         }
 
-        PCL.Animations.AniStart(
-            new List<PCL.Animations.AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                PCL.Animations.AaTranslateX(
+                new TranslateXAnimation(
                     this,
                     60d,
                     200,
-                    ease: new PCL.Animations.AniEaseInFluent()),
-                PCL.Animations.AaOpacity(this, -1d, 150),
-                PCL.Animations.AaHeight(
+                    ease: new FluentEaseIn()),
+                new OpacityAnimation(this, -1d, 150),
+                new HeightAnimation(
                     this,
                     -_targetHeight,
                     100,
-                    ease: new PCL.Animations.AniEaseOutFluent(),
+                    ease: new FluentEaseOut(),
                     after: true),
-                PCL.Animations.AaCode(RemoveSelf, after: true)
+                new ActionAnimation(RemoveSelf, true)
             },
             HideKey);
     }
@@ -413,7 +412,7 @@ public class MyToast : Border
     private void StopAnimations(params string[] names)
     {
         foreach (var name in names)
-            PCL.Animations.AniStop(name);
+            AnimationService.CancelAnimationByName(name);
     }
 
     private TranslateTransform EnsureTranslate()
@@ -454,7 +453,7 @@ public class MyToast : Border
     /// <summary>进度条按显示时长线性收缩；动画关闭时直接归零。</summary>
     private void StartProgressAnimation(double durationMs)
     {
-        PCL.Animations.AniStop(ProgressKey);
+        AnimationService.CancelAnimationByName(ProgressKey);
         _progressTotalMs = Math.Max(1d, durationMs);
 
         if (!FeedbackAnimation.CanAnimate(this))
@@ -473,18 +472,18 @@ public class MyToast : Border
         _progressBar.HorizontalAlignment = HorizontalAlignment.Left;
         _progressBar.Width = width;
 
-        PCL.Animations.AniStart(
-            PCL.Animations.AaDouble(
+        AnimationService.Run(
+            new DoubleAnimation(
                 delta => _progressBar.Width = Math.Max(0d, _progressBar.Width + delta),
                 -width,
                 (int)Math.Round(_progressTotalMs),
-                ease: new PCL.Animations.AniEaseLinear()),
+                ease: new LinearEasing()),
             ProgressKey);
     }
 
     private void PauseProgress()
     {
-        PCL.Animations.AniStop(ProgressKey);
+        AnimationService.CancelAnimationByName(ProgressKey);
     }
 
     private void ResumeProgress(double remainingMs)
@@ -496,13 +495,13 @@ public class MyToast : Border
         if (double.IsNaN(current) || current <= 0d)
             return;
 
-        PCL.Animations.AniStop(ProgressKey);
-        PCL.Animations.AniStart(
-            PCL.Animations.AaDouble(
+        AnimationService.CancelAnimationByName(ProgressKey);
+        AnimationService.Run(
+            new DoubleAnimation(
                 delta => _progressBar.Width = Math.Max(0d, _progressBar.Width + delta),
                 -current,
                 (int)Math.Round(remainingMs),
-                ease: new PCL.Animations.AniEaseLinear()),
+                ease: new LinearEasing()),
             ProgressKey);
     }
 
@@ -521,7 +520,7 @@ public class MyToast : Border
             HintKind.Warning => 40d,
             _ => 210d
         };
-        var accent = new SolidColorBrush((Color)new MyColor().FromHsl2(baseHue, 75d, 60d));
+        var accent = new SolidColorBrush(NColor.FromHsl2(baseHue, 75d, 60d));
         var background = FeedbackTheme.GetBrush(this, "ColorBrushBackground", Brushes.White);
         var text = FeedbackTheme.GetBrush(this, "ColorBrushGray1", Brushes.Black);
 
@@ -699,15 +698,15 @@ public class MyToast : Border
             return;
         }
 
-        PCL.Animations.AniStart(
-            new List<PCL.Animations.AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                PCL.Animations.AaTranslateX(
+                new TranslateXAnimation(
                     this,
                     -currentX,
                     ReturnAnimationMs,
-                    ease: new PCL.Animations.AniEaseOutFluent()),
-                PCL.Animations.AaOpacity(this, 1d - currentOpacity, ReturnAnimationMs)
+                    ease: new FluentEaseOut()),
+                new OpacityAnimation(this, 1d - currentOpacity, ReturnAnimationMs)
             },
             DragReturnKey);
     }

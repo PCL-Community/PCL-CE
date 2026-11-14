@@ -1,13 +1,12 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
-using MyColor = PCL.UI.Controls.Common.MyColor;
 
 namespace PCL.UI.Controls;
 
 /// <summary>
 ///     背景色可平滑过渡的面板。
-///     主题切换时通过 <c>PCL.Animations.AaColor</c> 在 300ms 内过渡背景色；
+///     主题切换时通过 <c>ColorAnimation</c> 在 300ms 内过渡背景色；
 ///     动画关闭（<c>Config.Debug.AnimationSpeed = 0</c>）时直接赋终值。
 /// </summary>
 public class AnimatedBackgroundGrid : Grid
@@ -30,7 +29,7 @@ public class AnimatedBackgroundGrid : Grid
         AttachedToVisualTree += (_, _) => Init();
         Unloaded += (_, _) =>
         {
-            PCL.Animations.AniStop(AnimationKey);
+            AnimationService.CancelAnimationByName(AnimationKey);
             IsAnimating = false;
         };
     }
@@ -86,27 +85,27 @@ public class AnimatedBackgroundGrid : Grid
             return;
         }
 
-        var target = new MyColor(brush);
+        var target = new NColor(brush);
         var current = AnimatableBrush is { } currentBrush
-            ? new MyColor(currentBrush)
-            : new MyColor(0d, 0d, 0d, 0d);
+            ? new NColor(currentBrush)
+            : new NColor(0d, 0d, 0d, 0d);
 
         IsAnimating = true;
-        PCL.Animations.AniStart(
-            new List<PCL.Animations.AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                PCL.Animations.AaColor(
+                new ColorAnimation(
                     AnimatableElement,
                     _animatableBrushProperty,
                     target - current,
                     300),
-                PCL.Animations.AaCode(
+                new ActionAnimation(
                     () =>
                     {
                         AnimatableBrush = brush;
                         IsAnimating = false;
                     },
-                    after: true)
+                    true)
             },
             AnimationKey);
     }

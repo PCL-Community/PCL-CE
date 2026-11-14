@@ -45,8 +45,7 @@ public partial class PageSetupAboutViewModel : ViewModelBase
         List<GitHubContributor> contributors;
         try
         {
-            contributors = await Task.Run(
-                () => FetchContributorsAsync(CancellationToken.None));
+            contributors = await Task.Run(() => FetchContributorsAsync(CancellationToken.None));
         }
         catch (Exception ex)
         {
@@ -64,10 +63,10 @@ public partial class PageSetupAboutViewModel : ViewModelBase
     public static void RotateCommunityLogo(object? sender)
     {
         if (sender is null) return;
-        Animations.AniStart(
-            new[]
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                Animations.AaRotateTransform(sender, 360d)
+                new RotateTransformAnimation(sender, 360d)
             });
     }
 
@@ -210,13 +209,13 @@ public partial class PageSetupAboutViewModel : ViewModelBase
                 if (mx == 0) mx = 1;
                 var my = rand.Next(-1, 1);
                 if (my == 0) my = 1;
-                Animations.AniStart(
-                    new[]
+                AnimationService.Run(
+                    new List<IAnimation>
                     {
-                        Animations.AaTranslateX(sender, mx, 0),
-                        Animations.AaTranslateY(sender, my, 0),
-                        Animations.AaTranslateX(sender, -mx, 0, 100),
-                        Animations.AaTranslateY(sender, -my, 0, 100)
+                        new TranslateXAnimation(sender, mx, 0),
+                        new TranslateYAnimation(sender, my, 0),
+                        new TranslateXAnimation(sender, -mx, 0, 100),
+                        new TranslateYAnimation(sender, -my, 0, 100)
                     });
             }
         }

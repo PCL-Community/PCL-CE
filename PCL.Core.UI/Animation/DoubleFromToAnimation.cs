@@ -3,7 +3,7 @@ using PCL.Core.UI.Animation.Core;
 
 namespace PCL.Core.UI.Animation;
 
-public sealed class DoubleFromToAnimation : FromToAnimationBase<double>
+public class DoubleFromToAnimation : FromToAnimationBase<double>
 {
     public override IAnimationFrame? ComputeNextFrame(IAnimatable target)
     {

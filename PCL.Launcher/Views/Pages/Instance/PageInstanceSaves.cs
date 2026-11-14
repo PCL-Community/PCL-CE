@@ -148,7 +148,7 @@ public partial class PageInstanceSaves : MyPageRight, IRefreshable
         if (PanList is null)
             return;
 
-        Animations.AniBeginControl();
+        AnimationService.BeginControl();
         try
         {
             PanList.Children.Clear();
@@ -157,7 +157,7 @@ public partial class PageInstanceSaves : MyPageRight, IRefreshable
         }
         finally
         {
-            Animations.AniEndControl();
+            AnimationService.EndControl();
         }
     }
 

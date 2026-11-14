@@ -5,7 +5,6 @@ using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.VisualTree;
 using PCL.UI.Controls;
-using static PCL.Animations;
 
 namespace PCL.Views.Pages.Download;
 
@@ -233,7 +232,7 @@ public sealed partial class MyCompItem : Grid
     {
         if (!CanInteraction)
         {
-            AniStop("CompItem Color " + _uuid);
+            AnimationService.CancelAnimationByName("CompItem Color " + _uuid);
             _stateLast = null;
             RectBack.Opacity = 0d;
             PanButtons.Opacity = 0d;
@@ -254,7 +253,7 @@ public sealed partial class MyCompItem : Grid
             return;
         }
 
-        var animations = new List<AniData>();
+        var animations = new List<IAnimation>();
         var hasButtons = ShowFavoriteBtn || ShowDownloadBtn;
         var scale = EnsureBackScale();
 
@@ -262,62 +261,62 @@ public sealed partial class MyCompItem : Grid
         {
             if (hasButtons)
                 animations.Add(
-                    AaOpacity(
+                    new OpacityAnimation(
                         PanButtons,
                         1d - PanButtons.Opacity,
                         (int)Math.Round(time * 0.35d),
                         (int)Math.Round(time * 0.15d)));
 
             animations.Add(
-                AaColor(
+                new ColorAnimation(
                     RectBack,
                     Border.BackgroundProperty,
                     stateNew == "MouseDown" ? "ColorBrush6" : "ColorBrushBg1",
                     time));
             animations.Add(
-                AaOpacity(
+                new OpacityAnimation(
                     RectBack,
                     1d - RectBack.Opacity,
                     time,
-                    ease: new AniEaseOutFluent()));
+                    ease: new FluentEaseOut()));
             animations.Add(
-                AaScaleTransform(
+                new ScaleTransformAnimation(
                     RectBack,
                     (stateNew == "MouseDown" ? 0.996d : 1d) - scale.ScaleX,
                     (int)Math.Round(time * 1.2d),
-                    ease: new AniEaseOutFluent()));
+                    ease: new FluentEaseOut()));
         }
         else
         {
             if (hasButtons)
                 animations.Add(
-                    AaOpacity(
+                    new OpacityAnimation(
                         PanButtons,
                         -PanButtons.Opacity,
                         (int)Math.Round(time * 0.4d)));
 
-            animations.Add(AaOpacity(RectBack, -RectBack.Opacity, time));
+            animations.Add(new OpacityAnimation(RectBack, -RectBack.Opacity, time));
             animations.Add(
-                AaColor(
+                new ColorAnimation(
                     RectBack,
                     Border.BackgroundProperty,
                     "ColorBrush7",
                     time));
             animations.Add(
-                AaScaleTransform(
+                new ScaleTransformAnimation(
                     RectBack,
                     0.996d - scale.ScaleX,
                     time,
-                    ease: new AniEaseOutFluent()));
-            animations.Add(AaScaleTransform(RectBack, -0.196d, 1, after: true));
+                    ease: new FluentEaseOut()));
+            animations.Add(new ScaleTransformAnimation(RectBack, -0.196d, 1, after: true));
         }
 
-        AniStart(animations, "CompItem Color " + _uuid);
+        AnimationService.Run(animations, "CompItem Color " + _uuid);
     }
 
     private void ApplyColorStateInstant(string stateNew)
     {
-        AniStop("CompItem Color " + _uuid);
+        AnimationService.CancelAnimationByName("CompItem Color " + _uuid);
 
         var hasButtons = ShowFavoriteBtn || ShowDownloadBtn;
         PanButtons.Opacity = stateNew == "Idle" || !hasButtons ? 0d : 1d;
@@ -350,7 +349,7 @@ public sealed partial class MyCompItem : Grid
 
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
-        AniStop("CompItem Color " + _uuid);
+        AnimationService.CancelAnimationByName("CompItem Color " + _uuid);
         _isMouseDown = false;
         _stateLast = null;
         base.OnDetachedFromVisualTree(e);

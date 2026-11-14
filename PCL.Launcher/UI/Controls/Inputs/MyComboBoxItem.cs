@@ -2,13 +2,12 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
-using MyColor = PCL.UI.Controls.Common.MyColor;
 
 namespace PCL.UI.Controls;
 
 /// <summary>
 ///     下拉框列表项：内容转字符串、隐式字符串转换与选中/悬停/禁用配色。
-///     键盘与指针高亮分别按焦点与悬停状态近似；背景色与透明度经 <c>PCL.Animations</c> 过渡，
+///     键盘与指针高亮分别按焦点与悬停状态近似；背景色与透明度经 新动画引擎 过渡，
 ///     动画关闭时直接落到终值。
 /// </summary>
 public class MyComboBoxItem : ComboBoxItem
@@ -96,28 +95,28 @@ public class MyComboBoxItem : ComboBoxItem
         _fontOpacity = newFontOpacity;
 
         var targetColor = string.IsNullOrEmpty(newBackColorName)
-            ? new MyColor(0d, 0d, 0d, 0d)
+            ? new NColor(0d, 0d, 0d, 0d)
             : InputTheme.TryColor(this, newBackColorName, out var resolved)
                 ? resolved
-                : new MyColor(0d, 0d, 0d, 0d);
+                : new NColor(0d, 0d, 0d, 0d);
 
         if (animate && InputAnimation.CanAnimate(this))
         {
-            PCL.Animations.AniStart(
-                new List<PCL.Animations.AniData>
+            AnimationService.Run(
+                new List<IAnimation>
                 {
-                    PCL.Animations.AaColor(
+                    new ColorAnimation(
                         this,
                         BackgroundProperty,
                         targetColor - InputAnimation.ReadColor(this, BackgroundProperty),
                         time),
-                    PCL.Animations.AaOpacity(this, newFontOpacity - Opacity, time)
+                    new OpacityAnimation(this, newFontOpacity - Opacity, time)
                 },
                 ColorKey);
         }
         else
         {
-            PCL.Animations.AniStop(ColorKey);
+            AnimationService.CancelAnimationByName(ColorKey);
             Background = string.IsNullOrEmpty(newBackColorName)
                 ? Brushes.Transparent
                 : InputTheme.Brush(this, newBackColorName, Brushes.Transparent);
@@ -167,7 +166,7 @@ public class MyComboBoxItem : ComboBoxItem
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
         ActualThemeVariantChanged -= OnActualThemeVariantChanged;
-        PCL.Animations.AniStop(ColorKey);
+        AnimationService.CancelAnimationByName(ColorKey);
         base.OnDetachedFromVisualTree(e);
     }
 

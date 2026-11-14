@@ -1,8 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
-using PCL.UI.Animations;
-using MyColor = PCL.UI.Controls.Common.MyColor;
 
 namespace PCL.UI.Controls;
 
@@ -22,7 +20,7 @@ internal static class FeedbackAnimation
         return IsEnabled
             && control.IsLoaded
             && TopLevel.GetTopLevel(control) is not null
-            && !PCL.Animations.AniExitsAnyControl();
+            && !AnimationService.IsSuspended;
     }
 
     /// <summary>生成带控件编号的动画组名。</summary>
@@ -32,41 +30,41 @@ internal static class FeedbackAnimation
     }
 
     /// <summary>把资源键解析为可插值颜色；资源缺失或非纯色画刷时返回 <c>null</c>。</summary>
-    internal static MyColor? ThemeColor(StyledElement element, string key)
+    internal static NColor? ThemeColor(StyledElement element, string key)
     {
         if (!element.TryFindResource(key, out var resource) || resource is null)
             return null;
 
         return resource switch
         {
-            ISolidColorBrush brush => new MyColor(brush.Color),
-            Color color => new MyColor(color),
-            MyColor color => color,
+            ISolidColorBrush brush => new NColor(brush.Color),
+            Color color => new NColor(color),
+            NColor color => color,
             _ => null
         };
     }
 
     /// <summary>读取控件当前颜色，非纯色画刷按透明处理。</summary>
-    internal static MyColor ColorOf(AvaloniaObject target, AvaloniaProperty property)
+    internal static NColor ColorOf(AvaloniaObject target, AvaloniaProperty property)
     {
         return target.GetValue(property) switch
         {
-            ISolidColorBrush brush => new MyColor(brush.Color),
-            Color color => new MyColor(color),
-            MyColor color => color,
-            _ => new MyColor(0d, 0d, 0d, 0d)
+            ISolidColorBrush brush => new NColor(brush.Color),
+            Color color => new NColor(color),
+            NColor color => color,
+            _ => new NColor(0d, 0d, 0d, 0d)
         };
     }
 
     /// <summary>生成“从当前颜色动画到 <paramref name="target" />”的动画数据。</summary>
-    internal static PCL.Animations.AniData ColorTo(
+    internal static IAnimation ColorTo(
         Control control,
         AvaloniaProperty property,
-        MyColor target,
+        NColor target,
         int time,
-        PCL.Animations.AniEase? ease = null)
+        IEasing? ease = null)
     {
-        return PCL.Animations.AaColor(
+        return new ColorAnimation(
             control,
             property,
             target - ColorOf(control, property),

@@ -1,9 +1,15 @@
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Threading.Channels;
+using Avalonia;
+using Avalonia.Controls;
+using PCL.Core.App;
+using PCL.Core.App.Configuration;
 using PCL.Core.App.IoC;
 using PCL.Core.Logging;
 using PCL.Core.UI.Animation.Animatable;
 using PCL.Core.UI.Animation.Clock;
+using PCL.Core.UI.Animation.Easings;
 using PCL.Core.UI.Animation.UIAccessProvider;
 using PCL.Core.UI.Animation.ValueProcessor;
 
@@ -30,18 +36,242 @@ public sealed class AnimationService : GeneralService
 
     private static readonly Lock InitLock = new();
     private static bool _initialized;
+    private static double? _speedOverride;
+    private static int _suspensionCount;
 
     public static int Fps { get; set; } = 60;
 
-    /// <summary>
-    ///     UI 线程访问器。未启动动画服务时也可安全获取。
-    /// </summary>
+    public static double Speed
+    {
+        get =>
+            _speedOverride
+            ?? (ConfigService.IsInitialized ? MapSpeedValue(Config.Debug.AnimationSpeed) : 1d);
+        set => _speedOverride = value;
+    }
+
+    public static bool IsEnabled => Speed > 0d;
+
+    public static bool IsInstant => Speed is <= 0d or >= 200d;
+
+    public static bool IsSuspended => Volatile.Read(ref _suspensionCount) != 0;
+
     public static IUiAccessProvider UiAccessProvider =>
         _uiAccessProvider ??= new AvaloniaUiAccessProvider();
 
-    /// <summary>
-    ///     一次性注册全部数值处理器。
-    /// </summary>
+    public static double MapSpeedValue(int value)
+    {
+        if (value <= 0) return 0d;
+
+        return value >= 30
+            ? 200d
+            : Math.Clamp(value * 0.1d + 0.1d, 0.1d, 3d);
+    }
+
+    public static void ResetSpeed()
+    {
+        _speedOverride = null;
+    }
+
+    public static TimeSpan ScaleDuration(TimeSpan duration)
+    {
+        var speed = Speed;
+        if (speed is <= 0d or >= 200d) return TimeSpan.Zero;
+
+        return TimeSpan.FromTicks(
+            Math.Max(0L, (long)Math.Round(duration.Ticks / speed)));
+    }
+
+    public static void BeginControl()
+    {
+        Interlocked.Increment(ref _suspensionCount);
+    }
+
+    public static void EndControl()
+    {
+        Interlocked.Decrement(ref _suspensionCount);
+    }
+
+    public static IDisposable SuspendControl()
+    {
+        BeginControl();
+        return new ControlSuspension();
+    }
+
+    public static bool IsAnimationRunning(string name)
+    {
+        return !string.IsNullOrEmpty(name) && NamedAnimations.ContainsKey(name);
+    }
+
+    public static void CancelAll()
+    {
+        foreach (var pair in NamedAnimations)
+            pair.Value.Cancel();
+        NamedAnimations.Clear();
+    }
+
+    public static void Run(
+        IAnimation animation,
+        string name = "",
+        bool refreshTime = false)
+    {
+        Run(
+            new List<IAnimation>
+            {
+                animation
+            },
+            name,
+            refreshTime);
+    }
+
+    public static void Run(
+        IList animations,
+        string name = "",
+        bool refreshTime = false)
+    {
+        var list = new List<IAnimation>();
+        FlattenAnimations(animations, list);
+        if (list.Count == 0) return;
+
+        var root = new SequentialAnimationGroup
+        {
+            Name = name
+        };
+        var parallel = new ParallelAnimationGroup();
+
+        foreach (var animation in list)
+        {
+            if (animation is AnimationBase { After: true } && parallel.Children.Count > 0)
+            {
+                root.Children.Add(parallel);
+                parallel = new ParallelAnimationGroup();
+            }
+
+            parallel.Children.Add(animation);
+        }
+
+        if (parallel.Children.Count > 0)
+            root.Children.Add(parallel);
+        if (root.Children.Count == 0) return;
+
+        _ = refreshTime;
+        root.RunFireAndForget(EmptyAnimatable.Instance);
+    }
+
+    public static Task FadeAsync(
+        Visual target,
+        double from,
+        double to,
+        double baseMilliseconds)
+    {
+        var animation = new DoubleFromToAnimation
+        {
+            Target = new AvaloniaAnimatable(target, Visual.OpacityProperty),
+            From = from,
+            HasFrom = true,
+            To = to,
+            Duration = TimeSpan.FromMilliseconds(Math.Max(0d, baseMilliseconds)),
+            Easing = new FluentEaseOut()
+        };
+
+        return animation.RunAsync(EmptyAnimatable.Instance);
+    }
+
+    public static void DisposeControl(
+        Control control,
+        bool removeFromChildren,
+        Action<Control>? callBack = null,
+        double scale = 0.92d,
+        bool collapseHeight = false,
+        string? animationName = null)
+    {
+        if (!control.IsHitTestVisible)
+        {
+            Finish();
+            return;
+        }
+
+        control.IsHitTestVisible = false;
+        if (!IsEnabled
+            || IsSuspended
+            || !control.IsLoaded
+            || TopLevel.GetTopLevel(control) is null)
+        {
+            Finish();
+            return;
+        }
+
+        var animations = new List<IAnimation>
+        {
+            new ScaleTransformAnimation(control, scale - 1d, 200, ease: new FluentEaseIn()),
+            new OpacityAnimation(control, -control.Opacity, 200, ease: new FluentEaseOut())
+        };
+        if (collapseHeight)
+            animations.Add(
+                new HeightAnimation(
+                    control,
+                    -control.Bounds.Height,
+                    150,
+                    100,
+                    new FluentEaseOut()));
+        animations.Add(new ActionAnimation(Finish, 0, true));
+
+        Run(animations, animationName ?? $"Dispose {Guid.NewGuid()}");
+        return;
+
+        void Finish()
+        {
+            if (removeFromChildren)
+            {
+                if (!TryRemoveFromParent(control))
+                    control.IsVisible = false;
+            }
+            else
+            {
+                control.IsVisible = false;
+            }
+
+            callBack?.Invoke(control);
+        }
+    }
+
+    public static bool TryRemoveFromParent(Control control)
+    {
+        switch (control.Parent)
+        {
+            case Panel panel:
+                panel.Children.Remove(control);
+                return true;
+            case Decorator decorator when ReferenceEquals(decorator.Child, control):
+                decorator.Child = null;
+                return true;
+            case ContentControl contentControl
+                when ReferenceEquals(contentControl.Content, control):
+                contentControl.Content = null;
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private static void FlattenAnimations(IList source, ICollection<IAnimation> target)
+    {
+        foreach (var item in source)
+            switch (item)
+            {
+                case IAnimation animation:
+                    target.Add(animation);
+                    break;
+                case IList list:
+                    FlattenAnimations(list, target);
+                    break;
+            }
+    }
+
+    internal static void RegisterValueProcessorsForTest()
+    {
+        _RegisterValueProcessors();
+    }
+
     private static void _RegisterValueProcessors()
     {
         ValueProcessorManager.Register(new DoubleValueProcessor());
@@ -139,8 +369,7 @@ public sealed class AnimationService : GeneralService
             // 忽略
         }
 
-        // 清理 Dictionary
-        NamedAnimations.Clear();
+        CancelAll();
     }
 
     private static void ClockOnTick(object? sender, long e)
@@ -297,6 +526,18 @@ public sealed class AnimationService : GeneralService
             if (!_initialized) return;
             _initialized = false;
             _Uninitialize();
+        }
+    }
+
+    private sealed class ControlSuspension : IDisposable
+    {
+        private bool _disposed;
+
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
+            EndControl();
         }
     }
 

@@ -9,9 +9,7 @@ using Avalonia.VisualTree;
 using PCL.Core.App;
 using PCL.Core.UI.Theme;
 using PCL.Navigation;
-using PCL.UI.Animations;
 using PCL.UI.Controls;
-using static PCL.Animations;
 
 namespace PCL.Views.Shell;
 
@@ -161,7 +159,7 @@ public partial class TitleBar : UserControl
 
     private void AnimateInnerTitle(string title)
     {
-        AniStop(InnerTitleAnimationKey);
+        AnimationService.CancelAnimationByName(InnerTitleAnimationKey);
         if (!CanAnimateShell)
         {
             LabTitleInner.Text = title;
@@ -169,12 +167,12 @@ public partial class TitleBar : UserControl
             return;
         }
 
-        AniStart(
-            new List<AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                AaOpacity(LabTitleInner, -LabTitleInner.Opacity, 130),
-                AaCode(() => LabTitleInner.Text = title, after: true),
-                AaOpacity(LabTitleInner, 1d, 150, 30)
+                new OpacityAnimation(LabTitleInner, -LabTitleInner.Opacity, 130),
+                new ActionAnimation(() => LabTitleInner.Text = title, true),
+                new OpacityAnimation(LabTitleInner, 1d, 150, 30)
             },
             InnerTitleAnimationKey);
     }
@@ -183,7 +181,7 @@ public partial class TitleBar : UserControl
     {
         var main = PanTitleMain;
         var inner = PanInnerTitle;
-        AniStop(TitleLayerAnimationKey);
+        AnimationService.CancelAnimationByName(TitleLayerAnimationKey);
 
         if (!animate || !CanAnimateShell)
         {
@@ -205,18 +203,18 @@ public partial class TitleBar : UserControl
             if (inner is { Opacity: <= 0.1d, RenderTransform: TranslateTransform { X: 0d } })
                 inner.RenderTransform = new TranslateTransform(-16d, 0d);
             var innerX = GetTranslateX(inner);
-            AniStart(
-                new List<AniData>
+            AnimationService.Run(
+                new List<IAnimation>
                 {
-                    AaOpacity(main, -main.Opacity, 150),
-                    AaTranslateX(
+                    new OpacityAnimation(main, -main.Opacity, 150),
+                    new TranslateXAnimation(
                         main,
                         12d - mainX,
                         150,
-                        ease: new AniEaseInFluent(AniEasePower.Weak)),
-                    AaOpacity(inner, 1d - inner.Opacity, 150, 200),
-                    AaTranslateX(inner, -innerX, 350, 200, new AniEaseOutBack()),
-                    AaCode(() => main.IsVisible = false, after: true)
+                        ease: new FluentEaseIn(EasePower.Weak)),
+                    new OpacityAnimation(inner, 1d - inner.Opacity, 150, 200),
+                    new TranslateXAnimation(inner, -innerX, 350, 200, new BackEaseWithPowerOut()),
+                    new ActionAnimation(() => main.IsVisible = false, true)
                 },
                 TitleLayerAnimationKey);
             return;
@@ -225,14 +223,19 @@ public partial class TitleBar : UserControl
         main.IsVisible = true;
         main.IsHitTestVisible = true;
         var innerCurrentX = GetTranslateX(inner);
-        AniStart(
-            new List<AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                AaOpacity(inner, -inner.Opacity, 150),
-                AaTranslateX(inner, -18d - innerCurrentX, 150, ease: new AniEaseInFluent()),
-                AaOpacity(main, 1d - main.Opacity, 150, 200),
-                AaTranslateX(main, -mainX, 350, 200, new AniEaseOutBack(AniEasePower.Weak)),
-                AaCode(() => inner.IsVisible = false, after: true)
+                new OpacityAnimation(inner, -inner.Opacity, 150),
+                new TranslateXAnimation(inner, -18d - innerCurrentX, 150, ease: new FluentEaseIn()),
+                new OpacityAnimation(main, 1d - main.Opacity, 150, 200),
+                new TranslateXAnimation(
+                    main,
+                    -mainX,
+                    350,
+                    200,
+                    new BackEaseWithPowerOut(EasePower.Weak)),
+                new ActionAnimation(() => inner.IsVisible = false, true)
             },
             TitleLayerAnimationKey);
     }

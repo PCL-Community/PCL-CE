@@ -5,17 +5,10 @@ using Avalonia.Markup.Xaml.MarkupExtensions;
 using Avalonia.Media;
 using Avalonia.Styling;
 using PCL.Core.Logging;
-using MyColor = PCL.UI.Controls.Common.MyColor;
 
-namespace PCL;
+namespace PCL.Core.UI.Animation;
 
-/// <summary>
-///     颜色动画结束后把属性重新绑定到主题资源。
-///     优先使用 <see cref="DynamicResourceExtension" /> 绑定：主题切换、资源变化由 Avalonia 资源系统
-///     自动重新求值，不再挂 <c>ActualThemeVariantChanged</c> 事件，因此没有订阅泄漏。
-///     目标不在资源宿主中或资源缺失时，退回按当前 <see cref="ThemeVariant" /> 解析出的固定值。
-///     同一 (元素, 属性) 只保留一个绑定，重新绑定前释放旧句柄。
-/// </summary>
+/// <summary>颜色动画结束后恢复动态资源绑定，避免主题切换后停留在一次性颜色值。</summary>
 internal static class ThemeResourceRestorer
 {
     private const string Module = "Animation";
@@ -44,19 +37,10 @@ internal static class ThemeResourceRestorer
             }
         }
 
-        _ApplyByThemeVariant(target, property, resourceKey);
+        ApplyByThemeVariant(target, property, resourceKey);
     }
 
-    public static void Release(AvaloniaObject target)
-    {
-        if (!Bindings.TryGetValue(target, out var map)) return;
-
-        foreach (var binding in map.Values)
-            binding.Dispose();
-        map.Clear();
-    }
-
-    private static void _ApplyByThemeVariant(
+    private static void ApplyByThemeVariant(
         AvaloniaObject target,
         AvaloniaProperty property,
         string resourceKey)
@@ -72,26 +56,25 @@ internal static class ThemeResourceRestorer
         if (value is null && Application.Current is { } application)
             application.TryFindResource(resourceKey, variant, out value);
 
-        var converted = _Convert(value, property);
-        if (converted is null) return;
-
-        target.SetValue(property, converted);
+        var converted = Convert(value, property);
+        if (converted is not null)
+            target.SetValue(property, converted);
     }
 
-    private static object? _Convert(object? value, AvaloniaProperty property)
+    private static object? Convert(object? value, AvaloniaProperty property)
     {
         var color = value switch
         {
             Color direct => direct,
             ISolidColorBrush brush => brush.Color,
-            MyColor myColor => (Color)myColor,
+            NColor nColor => nColor.ToColor(),
             _ => (Color?)null
         };
         if (color is null) return null;
 
         var propertyType = property.PropertyType;
-        if (typeof(IBrush).IsAssignableFrom(propertyType)) return new SolidColorBrush(color.Value);
-        if (propertyType == typeof(MyColor)) return new MyColor(color.Value);
+        if (typeof(IBrush).IsAssignableFrom(propertyType))
+            return new SolidColorBrush(color.Value);
         return color.Value;
     }
 }

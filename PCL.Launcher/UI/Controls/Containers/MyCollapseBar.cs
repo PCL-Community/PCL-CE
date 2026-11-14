@@ -4,13 +4,12 @@ using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Path = Avalonia.Controls.Shapes.Path;
-using static PCL.Animations;
 
 namespace PCL.UI.Controls;
 
 /// <summary>
 ///     轻量折叠栏：一行可点击标题 + 三角，点击切换内容区显示。
-///     高度展开/收起与箭头旋转由 <c>PCL.Animations</c> 驱动，快速连点时先停旧动画再量新高度；
+///     高度展开/收起与箭头旋转由 新动画引擎 驱动，快速连点时先停旧动画再量新高度；
 ///     开合期间会临时关闭父卡片的动画，避免两套高度动画互相覆盖。
 /// </summary>
 public class MyCollapseBar : StackPanel
@@ -108,18 +107,18 @@ public class MyCollapseBar : StackPanel
 
             if (ContainerAnimation.CanAnimate(this))
             {
-                AniStart(
-                    AaRotateTransform(
+                AnimationService.Run(
+                    new RotateTransformAnimation(
                         _triangle,
                         targetAngle - rotate.Angle,
                         250,
-                        ease: new AniEaseOutFluent(AniEasePower.ExtraStrong)),
+                        ease: new FluentEaseOut(EasePower.ExtraStrong)),
                     rotateKey,
                     true);
             }
             else
             {
-                AniStop(rotateKey);
+                AnimationService.CancelAnimationByName(rotateKey);
                 rotate.Angle = targetAngle;
             }
 
@@ -133,7 +132,7 @@ public class MyCollapseBar : StackPanel
             else
             {
                 // 未加载或动画关闭：直接显隐，并把可能残留的高度还原
-                AniStop(HeightAnimationKey);
+                AnimationService.CancelAnimationByName(HeightAnimationKey);
                 RestoreParentCardOnInterrupt();
                 Height = double.NaN;
                 ContentPanel.IsVisible = !value;
@@ -187,36 +186,36 @@ public class MyCollapseBar : StackPanel
 
     private void CollapseWithAnimation()
     {
-        AniStop(HeightAnimationKey);
+        AnimationService.CancelAnimationByName(HeightAnimationKey);
         RestoreParentCardOnInterrupt();
         SilenceParentCard();
 
         var fullHeight = Bounds.Height;
         Height = fullHeight;
 
-        AniStart(
-            new List<AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                AaHeight(
+                new HeightAnimation(
                     this,
                     HeaderHeight - fullHeight,
                     200,
-                    ease: new AniEaseOutFluent(AniEasePower.ExtraStrong)),
-                AaCode(
+                    ease: new FluentEaseOut(EasePower.ExtraStrong)),
+                new ActionAnimation(
                     () =>
                     {
                         ContentPanel.IsVisible = false;
                         Height = double.NaN;
                         RestoreParentCard();
                     },
-                    after: true)
+                    true)
             },
             HeightAnimationKey);
     }
 
     private void ExpandWithAnimation()
     {
-        AniStop(HeightAnimationKey);
+        AnimationService.CancelAnimationByName(HeightAnimationKey);
         RestoreParentCardOnInterrupt();
         SilenceParentCard();
 
@@ -232,21 +231,21 @@ public class MyCollapseBar : StackPanel
             HeaderHeight + ContentPanel.Margin.Top + ContentPanel.DesiredSize.Height);
         Height = HeaderHeight;
 
-        AniStart(
-            new List<AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                AaHeight(
+                new HeightAnimation(
                     this,
                     fullHeight - HeaderHeight,
                     200,
-                    ease: new AniEaseOutFluent(AniEasePower.ExtraStrong)),
-                AaCode(
+                    ease: new FluentEaseOut(EasePower.ExtraStrong)),
+                new ActionAnimation(
                     () =>
                     {
                         Height = double.NaN;
                         RestoreParentCard();
                     },
-                    after: true)
+                    true)
             },
             HeightAnimationKey);
     }

@@ -17,7 +17,7 @@ namespace PCL.UI.Controls;
 ///     <see cref="DropDownWidthSync" />、<see cref="TextChanged" /> 事件与
 ///     “可编辑文本与选项不一致时取消选中”的修正；可编辑文本由 <see cref="MyTextBox" /> 承载，
 ///     通过 <see cref="ValidateRules" /> 参与校验并显示错误文本。
-///     前景/背景色经 <c>PCL.Animations</c> 过渡；动画关闭时直接落到终值。
+///     前景/背景色经 新动画引擎 过渡；动画关闭时直接落到终值。
 /// </summary>
 public class MyComboBox : ComboBox
 {
@@ -166,18 +166,18 @@ public class MyComboBox : ComboBox
         var target = IsDropDownOpen ? 180d : 0d;
         if (!animate || !InputAnimation.CanAnimate(this))
         {
-            PCL.Animations.AniStop(GlyphKey);
+            AnimationService.CancelAnimationByName(GlyphKey);
             rotate.Angle = target;
             return;
         }
 
-        PCL.Animations.AniStart(
-            PCL.Animations.AaRotateTransform(
+        AnimationService.Run(
+            new RotateTransformAnimation(
                 _dropDownGlyph,
                 target - rotate.Angle,
                 200,
-                ease: new PCL.Animations.AniEaseOutFluent(
-                    PCL.Animations.AniEasePower.Strong)),
+                ease: new FluentEaseOut(
+                    EasePower.Strong)),
             GlyphKey);
     }
 
@@ -354,7 +354,7 @@ public class MyComboBox : ComboBox
         if (IsEditable && SelectedItem is not null)
             FillEditableText(GetItemDisplayText(SelectedItem));
 
-        if (IsLoaded && !PCL.Animations.AniExitsAnyControl())
+        if (IsLoaded && !AnimationService.IsSuspended)
             CustomEventService.Raise(this);
     }
 

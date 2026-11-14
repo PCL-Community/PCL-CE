@@ -129,24 +129,24 @@ public class MyMenuItem : MenuItem
         _colorKey = backKey;
 
         var animate = IsLoaded
-            && !PCL.Animations.AniExitsAnyControl()
-            && PCL.Animations.AniSpeed > 0d
+            && !AnimationService.IsSuspended
+            && AnimationService.Speed > 0d
             && ResourceExists(backKey)
             && ResourceExists(foreKey);
 
         if (animate)
         {
-            PCL.Animations.AniStart(
-                new[]
+            AnimationService.Run(
+                new List<IAnimation>
                 {
-                    PCL.Animations.AaColor(this, BackgroundProperty, backKey, time),
-                    PCL.Animations.AaColor(this, ForegroundProperty, foreKey, time)
+                    new ColorAnimation(this, BackgroundProperty, backKey, time),
+                    new ColorAnimation(this, ForegroundProperty, foreKey, time)
                 },
                 ColorAnimationKey);
             return;
         }
 
-        PCL.Animations.AniStop(ColorAnimationKey);
+        AnimationService.CancelAnimationByName(ColorAnimationKey);
         SetDynamicResource(BackgroundProperty, backKey);
         SetDynamicResource(ForegroundProperty, foreKey);
     }

@@ -7,6 +7,10 @@ public abstract class AnimationBase : AvaloniaObject, IAnimation
 {
     private volatile int _status = (int)AnimationStatus.NotStarted;
 
+    public IAnimatable? Target { get; set; }
+
+    public bool After { get; set; }
+
     public string Name { get; set; } = string.Empty;
 
     public AnimationStatus Status
@@ -29,9 +33,14 @@ public abstract class AnimationBase : AvaloniaObject, IAnimation
 
     public void RaiseCompleted()
     {
+        OnAnimationCompleted();
         Completed?.Invoke(this, EventArgs.Empty);
     }
 
     public event EventHandler? Started;
     public event EventHandler? Completed;
+
+    protected virtual void OnAnimationCompleted()
+    {
+    }
 }

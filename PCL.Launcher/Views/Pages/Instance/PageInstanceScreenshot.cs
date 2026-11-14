@@ -153,10 +153,10 @@ public partial class PageInstanceScreenshot : MyPageRight, IRefreshable
         grid.Children.Add(buttons);
         card.BorderChild = grid;
         card.Opacity = 0d;
-        Animations.AniStart(
-            new[]
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                Animations.AaOpacity(card, 1d, 200)
+                new OpacityAnimation(card, 1d, 200)
             });
         return card;
     }

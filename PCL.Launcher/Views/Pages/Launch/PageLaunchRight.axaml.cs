@@ -268,7 +268,7 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable
                 return;
             }
 
-            Animations.AniDispose(_panHint, true);
+            AnimationService.DisposeControl(_panHint, true);
             States.Hint.CEMessage = false;
         }
         finally

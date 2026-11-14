@@ -8,14 +8,13 @@ using Avalonia.Input;
 using Avalonia.Media;
 using PCL.Core.Logging;
 using PCL.Core.UI.Theme;
-using PCL.UI.Controls.Common;
 
 namespace PCL.UI.Controls;
 
 /// <summary>
 ///     PCL 圆形图标按钮：内层 <c>PanBack</c> 承载图标与缩放，图标可以是旧版 Path
 ///     数据（<see cref="Logo" />）或 SVG 图标（<see cref="SvgIcon" />）。
-///     图标填充与 White 主题的悬停底色由 <c>PCL.Animations</c> 插值，其余主题的
+///     图标填充与 White 主题的悬停底色由 新动画引擎 插值，其余主题的
 ///     底色保持透明；Custom 主题按 <see cref="Foreground" /> 计算透明度。
 ///     从父容器移除时由 <see cref="AniDispose" /> 先缩放收起再移除。
 /// </summary>
@@ -85,10 +84,10 @@ public partial class MyIconButton : Border
         ActualThemeVariantChanged += (_, _) => RefreshAnim(false);
         Unloaded += (_, _) =>
         {
-            PCL.Animations.AniStop(ScaleKey);
-            PCL.Animations.AniStop(FillKey);
-            PCL.Animations.AniStop(BackgroundKey);
-            PCL.Animations.AniStop(DisposeKey);
+            AnimationService.CancelAnimationByName(ScaleKey);
+            AnimationService.CancelAnimationByName(FillKey);
+            AnimationService.CancelAnimationByName(BackgroundKey);
+            AnimationService.CancelAnimationByName(DisposeKey);
         };
     }
 
@@ -248,7 +247,7 @@ public partial class MyIconButton : Border
                     Path,
                     Shape.FillProperty,
                     string.Empty,
-                    new MyColor(alpha, baseColor),
+                    new NColor(alpha, baseColor),
                     time,
                     animate,
                     FillKey);
@@ -257,10 +256,10 @@ public partial class MyIconButton : Border
 
             var (key, literal) = _theme switch
             {
-                Themes.White => (string.Empty, new MyColor(234d, 242d, 254d)),
+                Themes.White => (string.Empty, new NColor(234d, 242d, 254d)),
                 Themes.Black => (string.Empty, ThemeService.IsDarkMode
-                    ? new MyColor(IsPointerOver ? 230d : 160d, 255d, 255d, 255d)
-                    : new MyColor(IsPointerOver ? 230d : 160d, 0d, 0d, 0d)),
+                    ? new NColor(255d, 255d, 255d, IsPointerOver ? 230d : 160d)
+                    : new NColor(0d, 0d, 0d, IsPointerOver ? 230d : 160d)),
                 Themes.Red => IsPointerOver
                     ? ("ColorBrushRedLight", null)
                     : ("ColorBrushRedLight", AlphaThemeColor("ColorBrushRedLight", 160d)),
@@ -284,10 +283,10 @@ public partial class MyIconButton : Border
         }
     }
 
-    private MyColor? AlphaThemeColor(string key, double alpha)
+    private NColor? AlphaThemeColor(string key, double alpha)
     {
         var color = ButtonAnimation.ThemeColor(this, key);
-        return color is null ? null : new MyColor(alpha, (Color)color);
+        return color is null ? null : new NColor(alpha, (Color)color);
     }
 
     /// <summary>
@@ -302,7 +301,7 @@ public partial class MyIconButton : Border
                 PanBack,
                 BackgroundProperty,
                 string.Empty,
-                new MyColor(50d, 255d, 255d, 255d),
+                new NColor(255d, 255d, 255d, 50d),
                 time,
                 animate,
                 BackgroundKey);
@@ -313,7 +312,7 @@ public partial class MyIconButton : Border
             PanBack,
             BackgroundProperty,
             string.Empty,
-            new MyColor(0d, 255d, 255d, 255d),
+            new NColor(255d, 255d, 255d, 0d),
             time,
             animate,
             BackgroundKey);
@@ -328,11 +327,11 @@ public partial class MyIconButton : Border
         Focus();
         // 按下时内层缩小到 0.8。
         if (ButtonAnimation.CanAnimate(this))
-            PCL.Animations.AniStart(
-                PCL.Animations.AaScaleTransform(
+            AnimationService.Run(
+                new ScaleTransformAnimation(
                     PanBack,
                     0.8d - ButtonAnimation.CurrentScale(PanBack),
-                    ease: new PCL.Animations.AniEaseOutFluent(PCL.Animations.AniEasePower.Strong)),
+                    ease: new FluentEaseOut(EasePower.Strong)),
                 ScaleKey);
         else
             ButtonAnimation.SetScale(PanBack, 0.8d);
@@ -346,20 +345,20 @@ public partial class MyIconButton : Border
         _isMouseDown = false;
         // 释放时先弹到 1.05，再回落到 1。
         if (ButtonAnimation.CanAnimate(this))
-            PCL.Animations.AniStart(
-                new List<PCL.Animations.AniData>
+            AnimationService.Run(
+                new List<IAnimation>
                 {
-                    PCL.Animations.AaScaleTransform(
+                    new ScaleTransformAnimation(
                         PanBack,
                         1.05d - ButtonAnimation.CurrentScale(PanBack),
                         250,
-                        ease: new PCL.Animations.AniEaseOutBack(PCL.Animations.AniEasePower.Weak)),
-                    PCL.Animations.AaScaleTransform(
+                        ease: new BackEaseWithPowerOut(EasePower.Weak)),
+                    new ScaleTransformAnimation(
                         PanBack,
                         -0.05d,
                         250,
-                        ease: new PCL.Animations.AniEaseOutFluent(
-                            PCL.Animations.AniEasePower.Strong))
+                        ease: new FluentEaseOut(
+                            EasePower.Strong))
                 },
                 ScaleKey);
         else
@@ -386,12 +385,12 @@ public partial class MyIconButton : Border
         _isMouseDown = false;
         // 离开时内层回到原尺寸。
         if (ButtonAnimation.CanAnimate(this))
-            PCL.Animations.AniStart(
-                PCL.Animations.AaScaleTransform(
+            AnimationService.Run(
+                new ScaleTransformAnimation(
                     PanBack,
                     1d - ButtonAnimation.CurrentScale(PanBack),
                     250,
-                    ease: new PCL.Animations.AniEaseOutFluent()),
+                    ease: new FluentEaseOut()),
                 ScaleKey);
         else
             ButtonAnimation.SetScale(PanBack, 1d);
@@ -428,7 +427,7 @@ public partial class MyIconButton : Border
     private bool _isDisposing;
 
     /// <summary>
-    ///     收起按钮并从父容器移除：整体缩放增量 −1.5（200 ms，<c>AniEaseInFluent</c>）后移除或隐藏，不做淡出。
+    ///     收起按钮并从父容器移除：整体缩放增量 −1.5（200 ms，<c>FluentEaseIn</c>）后移除或隐藏，不做淡出。
     ///     已不可交互、动画关闭或控件未加载时立即收尾。
     /// </summary>
     /// <param name="removeFromChildren">为 <see langword="true" /> 时从父容器移除，否则仅隐藏。</param>
@@ -440,10 +439,10 @@ public partial class MyIconButton : Border
         _isDisposing = true;
         IsHitTestVisible = false;
 
-        if (PCL.Animations.AniSpeed <= 0d
+        if (AnimationService.Speed <= 0d
             || !IsLoaded
             || TopLevel.GetTopLevel(this) is null
-            || PCL.Animations.AniExitsAnyControl())
+            || AnimationService.IsSuspended)
         {
             Finish();
             return;
@@ -456,15 +455,15 @@ public partial class MyIconButton : Border
             RenderTransform = transform;
         }
 
-        PCL.Animations.AniStart(
-            new List<PCL.Animations.AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                PCL.Animations.AaScaleTransform(
+                new ScaleTransformAnimation(
                     this,
                     -1.5d - transform.ScaleX,
                     200,
-                    ease: new PCL.Animations.AniEaseInFluent()),
-                PCL.Animations.AaCode(Finish, after: true)
+                    ease: new FluentEaseIn()),
+                new ActionAnimation(Finish, true)
             },
             DisposeKey);
         return;
@@ -473,7 +472,7 @@ public partial class MyIconButton : Border
         {
             if (removeFromChildren)
             {
-                if (!PCL.Animations.TryRemoveFromParent(this))
+                if (!AnimationService.TryRemoveFromParent(this))
                     IsVisible = false;
             }
             else

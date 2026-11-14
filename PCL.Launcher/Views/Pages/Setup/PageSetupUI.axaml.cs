@@ -515,7 +515,7 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
 
     private void RadioLogoType3_PreviewCheck(object? sender, RouteEventArgs e)
     {
-        if (_selectingLogo || !e.raiseByMouse || Animations.AniExitsAnyControl()) return;
+        if (_selectingLogo || !e.raiseByMouse || AnimationService.IsSuspended) return;
         if (File.Exists(LogoPath))
         {
             RefreshTitleBar();
@@ -618,64 +618,84 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             "Setup.Ui.FeatureHide.MainPage",
             true,
             [
-                new("UiHiddenPageDownload", "Setup.Ui.FeatureHide.Item.Download"),
-                new("UiHiddenPageSetup", "Setup.Ui.FeatureHide.Item.Settings"),
-                new("UiHiddenPageTools", "Setup.Ui.FeatureHide.Item.Tools")
+                new HideCheckDefinition(
+                    "UiHiddenPageDownload",
+                    "Setup.Ui.FeatureHide.Item.Download"),
+                new HideCheckDefinition("UiHiddenPageSetup", "Setup.Ui.FeatureHide.Item.Settings"),
+                new HideCheckDefinition("UiHiddenPageTools", "Setup.Ui.FeatureHide.Item.Tools")
             ]);
 
         AddHideGroup(
             "Setup.Ui.FeatureHide.SubSetup",
             false,
             [
-                new("UiHiddenSetupLaunch", "Setup.Ui.FeatureHide.Item.Launch"),
-                new("UiHiddenSetupJava", null, "Java"),
-                new("UiHiddenSetupGameManage", "Setup.Ui.FeatureHide.Item.GameManage"),
-                new("UiHiddenSetupGameLink", "Setup.Ui.FeatureHide.Item.GameLink"),
-                new("UiHiddenSetupUi", "Setup.Ui.FeatureHide.Item.Ui"),
-                new("UiHiddenSetupLauncherLanguage", "Setup.Ui.FeatureHide.Item.Language"),
-                new("UiHiddenLauncherMisc", "Setup.Ui.FeatureHide.Item.Misc"),
-                new("UiHiddenSetupUpdate", "Setup.Ui.FeatureHide.Item.Update"),
-                new("UiHiddenSetupAbout", "Setup.Ui.FeatureHide.Item.About"),
-                new("UiHiddenSetupFeedback", "Setup.Ui.FeatureHide.Item.Feedback"),
-                new("UiHiddenSetupLog", "Setup.Ui.FeatureHide.Item.Log")
+                new HideCheckDefinition("UiHiddenSetupLaunch", "Setup.Ui.FeatureHide.Item.Launch"),
+                new HideCheckDefinition("UiHiddenSetupJava", null, "Java"),
+                new HideCheckDefinition(
+                    "UiHiddenSetupGameManage",
+                    "Setup.Ui.FeatureHide.Item.GameManage"),
+                new HideCheckDefinition(
+                    "UiHiddenSetupGameLink",
+                    "Setup.Ui.FeatureHide.Item.GameLink"),
+                new HideCheckDefinition("UiHiddenSetupUi", "Setup.Ui.FeatureHide.Item.Ui"),
+                new HideCheckDefinition(
+                    "UiHiddenSetupLauncherLanguage",
+                    "Setup.Ui.FeatureHide.Item.Language"),
+                new HideCheckDefinition("UiHiddenLauncherMisc", "Setup.Ui.FeatureHide.Item.Misc"),
+                new HideCheckDefinition("UiHiddenSetupUpdate", "Setup.Ui.FeatureHide.Item.Update"),
+                new HideCheckDefinition("UiHiddenSetupAbout", "Setup.Ui.FeatureHide.Item.About"),
+                new HideCheckDefinition(
+                    "UiHiddenSetupFeedback",
+                    "Setup.Ui.FeatureHide.Item.Feedback"),
+                new HideCheckDefinition("UiHiddenSetupLog", "Setup.Ui.FeatureHide.Item.Log")
             ]);
 
         AddHideGroup(
             "Setup.Ui.FeatureHide.SubTools",
             false,
             [
-                new("UiHiddenToolsGameLink", "Setup.Ui.FeatureHide.Item.Lobby"),
-                new("UiHiddenToolsTest", "Setup.Ui.FeatureHide.Item.Toolbox")
+                new HideCheckDefinition("UiHiddenToolsGameLink", "Setup.Ui.FeatureHide.Item.Lobby"),
+                new HideCheckDefinition("UiHiddenToolsTest", "Setup.Ui.FeatureHide.Item.Toolbox")
             ]);
 
         AddHideGroup(
             "Setup.Ui.FeatureHide.SubInstance",
             false,
             [
-                new("UiHiddenVersionEdit", "Setup.Ui.FeatureHide.Item.Edit"),
-                new("UiHiddenVersionExport", "Setup.Ui.FeatureHide.Item.Export"),
-                new("UiHiddenVersionSave", "Setup.Ui.FeatureHide.Item.Save"),
-                new("UiHiddenVersionScreenshot", "Setup.Ui.FeatureHide.Item.Screenshot"),
-                new("UiHiddenVersionMod", null, "Mod"),
-                new("UiHiddenVersionResourcePack", "Setup.Ui.FeatureHide.Item.ResourcePack"),
-                new("UiHiddenVersionShader", "Setup.Ui.FeatureHide.Item.Shader"),
-                new("UiHiddenVersionSchematic", "Setup.Ui.FeatureHide.Item.Schematic"),
-                new("UiHiddenVersionServer", "Setup.Ui.FeatureHide.Item.Server")
+                new HideCheckDefinition("UiHiddenVersionEdit", "Setup.Ui.FeatureHide.Item.Edit"),
+                new HideCheckDefinition(
+                    "UiHiddenVersionExport",
+                    "Setup.Ui.FeatureHide.Item.Export"),
+                new HideCheckDefinition("UiHiddenVersionSave", "Setup.Ui.FeatureHide.Item.Save"),
+                new HideCheckDefinition(
+                    "UiHiddenVersionScreenshot",
+                    "Setup.Ui.FeatureHide.Item.Screenshot"),
+                new HideCheckDefinition("UiHiddenVersionMod", null, "Mod"),
+                new HideCheckDefinition(
+                    "UiHiddenVersionResourcePack",
+                    "Setup.Ui.FeatureHide.Item.ResourcePack"),
+                new HideCheckDefinition(
+                    "UiHiddenVersionShader",
+                    "Setup.Ui.FeatureHide.Item.Shader"),
+                new HideCheckDefinition(
+                    "UiHiddenVersionSchematic",
+                    "Setup.Ui.FeatureHide.Item.Schematic"),
+                new HideCheckDefinition("UiHiddenVersionServer", "Setup.Ui.FeatureHide.Item.Server")
             ]);
 
         AddHideGroup(
             "Setup.Ui.FeatureHide.SpecificFeature",
             false,
             [
-                new(
+                new HideCheckDefinition(
                     "UiHiddenFunctionSelect",
                     "Setup.Ui.FeatureHide.Item.InstanceSelect",
                     TooltipKey: "Setup.Ui.FeatureHide.Item.InstanceSelect.ToolTip"),
-                new(
+                new HideCheckDefinition(
                     "UiHiddenFunctionModUpdate",
                     "Setup.Ui.FeatureHide.Item.ModUpdate",
                     TooltipKey: "Setup.Ui.FeatureHide.Item.ModUpdate.ToolTip"),
-                new(
+                new HideCheckDefinition(
                     "UiHiddenFunctionHidden",
                     "Setup.Ui.FeatureHide.Item.FeatureHide",
                     TooltipKey: "Setup.Ui.FeatureHide.Item.FeatureHide.ToolTip")

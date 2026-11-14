@@ -9,7 +9,6 @@ using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
 using PCL.Core.Utils.Validate;
 using PCL.UI.Controls;
-using static PCL.Animations;
 
 namespace PCL.Views.Pages.Download;
 
@@ -211,16 +210,16 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
             {
                 PanSelectStage.Opacity = 0d;
                 PanSelectStage.RenderTransform = new TranslateTransform(-40d, 0d);
-                AniStart(
-                    new[]
+                AnimationService.Run(
+                    new List<IAnimation>
                     {
-                        AaOpacity(PanSelectStage, 1d, 100),
-                        AaTranslateX(
+                        new OpacityAnimation(PanSelectStage, 1d, 100),
+                        new TranslateXAnimation(
                             PanSelectStage,
                             40d,
                             200,
                             0,
-                            new AniEaseOutFluent(AniEasePower.ExtraStrong))
+                            new FluentEaseOut(EasePower.ExtraStrong))
                     },
                     "Install Stage Switch");
             }
@@ -261,16 +260,16 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
             {
                 PanConfigStage.Opacity = 0d;
                 PanConfigStage.RenderTransform = new TranslateTransform(40d, 0d);
-                AniStart(
-                    new[]
+                AnimationService.Run(
+                    new List<IAnimation>
                     {
-                        AaOpacity(PanConfigStage, 1d, 100),
-                        AaTranslateX(
+                        new OpacityAnimation(PanConfigStage, 1d, 100),
+                        new TranslateXAnimation(
                             PanConfigStage,
                             -40d,
                             200,
                             0,
-                            new AniEaseOutFluent(AniEasePower.ExtraStrong))
+                            new FluentEaseOut(EasePower.ExtraStrong))
                     },
                     "Install Stage Switch");
             }

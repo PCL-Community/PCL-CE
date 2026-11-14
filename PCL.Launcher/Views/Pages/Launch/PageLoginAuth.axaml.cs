@@ -1,7 +1,6 @@
 using Avalonia.Controls;
 using PCL.Core.App.Localization;
 using PCL.UI.Controls;
-using static PCL.Animations;
 
 namespace PCL.Views.Pages.Launch;
 
@@ -100,17 +99,18 @@ public partial class PageLoginAuth : LoginPageBase
         var animations = (
             from control in oldControls
             where control.IsVisible
-            select AaOpacity(control, -control.Opacity, 90)).ToList();
-        animations.Add(AaCode(() => ApplyModeVisibility(useOAuth), after: true));
+            select (IAnimation)new OpacityAnimation(control, -control.Opacity, 90)).ToList();
+        animations.Add(new ActionAnimation(() => ApplyModeVisibility(useOAuth), true));
         var newControls = GetModeControls(useOAuth);
         foreach (var control in newControls)
         {
             control.Opacity = 0d;
             var targetOpacity = GetModeTargetOpacity(control);
-            animations.Add(AaOpacity(control, targetOpacity, 130, 20, new AniEaseInFluent()));
+            animations.Add(
+                new OpacityAnimation(control, targetOpacity, 130, 20, new FluentEaseIn()));
         }
 
-        AniStart(animations, "Profile Authentication Mode");
+        AnimationService.Run(animations, "Profile Authentication Mode");
     }
 
     private List<Control> GetModeControls(bool oauthMode)

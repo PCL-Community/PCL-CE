@@ -9,7 +9,6 @@ using Avalonia.Threading;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
 using PCL.Core.UI.Theme;
-using PCL.UI.Controls.Common;
 
 namespace PCL.UI.Controls;
 
@@ -46,7 +45,7 @@ public class MyHint : Border
 
     public MyHint()
     {
-        using var controlScope = PCL.Animations.SuspendControl();
+        using var controlScope = AnimationService.SuspendControl();
 
         CornerRadius = new CornerRadius(2d);
         BorderThickness = new Thickness(3d, 0d, 0d, 0d);
@@ -103,7 +102,7 @@ public class MyHint : Border
         {
             _unwatchTheme?.Invoke();
             _unwatchTheme = null;
-            PCL.Animations.AniStop(DisposeKey);
+            AnimationService.CancelAnimationByName(DisposeKey);
         };
 
         PointerReleased += _OnPointerReleased;
@@ -123,13 +122,13 @@ public class MyHint : Border
         };
 
         var tone = ThemeService.CurrentTone;
-        var background = new MyColor().FromHsl2(hue, 90d, tone.L7 * 100d);
-        var foreground = new MyColor().FromHsl2(hue, 90d, tone.L2 * 100d);
+        var background = NColor.FromHsl2(hue, 90d, tone.L7 * 100d);
+        var foreground = NColor.FromHsl2(hue, 90d, tone.L2 * 100d);
 
-        Background = new SolidColorBrush((Color)background);
-        BorderBrush = new SolidColorBrush((Color)foreground);
-        _labText.Foreground = new SolidColorBrush((Color)foreground);
-        _btnClose.Foreground = new SolidColorBrush((Color)foreground);
+        Background = new SolidColorBrush(background);
+        BorderBrush = new SolidColorBrush(foreground);
+        _labText.Foreground = new SolidColorBrush(foreground);
+        _btnClose.Foreground = new SolidColorBrush(foreground);
         _btnClose.RefreshAnim();
 
         // 读取 HasBorder 会按当前上边框判断是否补齐其余三边
@@ -248,7 +247,7 @@ public class MyHint : Border
 
         _isClosing = true;
 
-        PCL.Animations.AniDispose(
+        AnimationService.DisposeControl(
             this,
             false,
             _ => callBack?.Invoke(this),

@@ -37,7 +37,7 @@ public class MySearchBox : MyCard
 
     public MySearchBox()
     {
-        using var controlScope = PCL.Animations.SuspendControl();
+        using var controlScope = AnimationService.SuspendControl();
 
         Height = 40d;
 

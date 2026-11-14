@@ -17,7 +17,7 @@ namespace PCL.UI.Controls;
 ///     <see cref="ValidateChanged" />/<see cref="ValidatedTextChanged" /> 事件与
 ///     <see cref="HasBackground" />/<see cref="CornerRadius" /> 视觉开关。
 ///     验证失败时在输入框下方展开错误文本层（模板中的 PART_Error）；
-///     边框、底色与文字颜色经 <c>PCL.Animations</c> 过渡。
+///     边框、底色与文字颜色经 新动画引擎 过渡。
 /// </summary>
 public class MyTextBox : TextBox
 {
@@ -69,7 +69,7 @@ public class MyTextBox : TextBox
 
     public MyTextBox()
     {
-        using (PCL.Animations.SuspendControl())
+        using (AnimationService.SuspendControl())
         {
             BorderThickness = new Thickness(1d);
             FontSize = 13d;
@@ -285,24 +285,24 @@ public class MyTextBox : TextBox
 
         if (!animate || !InputAnimation.CanAnimate(this))
         {
-            PCL.Animations.AniStop(ErrorLayerKey);
+            AnimationService.CancelAnimationByName(ErrorLayerKey);
             errorText.Opacity = 1d;
             errorText.Height = ErrorLayerHeight;
             return;
         }
 
-        PCL.Animations.AniStart(
-            new List<PCL.Animations.AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                PCL.Animations.AaOpacity(
+                new OpacityAnimation(
                     errorText,
                     1d - errorText.Opacity,
                     AnimationTimeOfValidate),
-                PCL.Animations.AaHeight(
+                new HeightAnimation(
                     errorText,
                     ErrorLayerHeight - errorText.Height,
                     AnimationTimeOfValidate,
-                    ease: new PCL.Animations.AniEaseOutFluent())
+                    ease: new FluentEaseOut())
             },
             ErrorLayerKey);
     }
@@ -316,7 +316,7 @@ public class MyTextBox : TextBox
         {
             if (!animate || !InputAnimation.CanAnimate(this))
             {
-                PCL.Animations.AniStop(ErrorLayerKey);
+                AnimationService.CancelAnimationByName(ErrorLayerKey);
                 errorText.IsVisible = false;
                 errorText.Opacity = 0d;
                 errorText.Height = 0d;
@@ -329,23 +329,23 @@ public class MyTextBox : TextBox
 
         if (!animate || !InputAnimation.CanAnimate(this))
         {
-            PCL.Animations.AniStop(ErrorLayerKey);
+            AnimationService.CancelAnimationByName(ErrorLayerKey);
             errorText.IsVisible = false;
             errorText.Opacity = 0d;
             errorText.Height = 0d;
             return;
         }
 
-        PCL.Animations.AniStart(
-            new List<PCL.Animations.AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                PCL.Animations.AaOpacity(errorText, -errorText.Opacity, AnimationTimeOfValidate),
-                PCL.Animations.AaHeight(
+                new OpacityAnimation(errorText, -errorText.Opacity, AnimationTimeOfValidate),
+                new HeightAnimation(
                     errorText,
                     -errorText.Height,
                     AnimationTimeOfValidate,
-                    ease: new PCL.Animations.AniEaseOutFluent()),
-                PCL.Animations.AaCode(() => errorText.IsVisible = false, after: true)
+                    ease: new FluentEaseOut()),
+                new ActionAnimation(() => errorText.IsVisible = false, true)
             },
             ErrorLayerKey);
     }

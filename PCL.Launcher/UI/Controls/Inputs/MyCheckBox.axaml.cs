@@ -15,7 +15,7 @@ namespace PCL.UI.Controls;
 ///     保留 <see cref="Checked" />（可空三态）、<see cref="IsThreeState" />、<see cref="Text" />、
 ///     <see cref="Inlines" />、<see cref="CheckCommand" /> 与 <see cref="Change" />/
 ///     <see cref="PreviewChange" /> 事件。
-///     勾选、悬停、按下与禁用状态经 <c>PCL.Animations</c> 过渡；动画关闭时直接落到终值。
+///     勾选、悬停、按下与禁用状态经 新动画引擎 过渡；动画关闭时直接落到终值。
 /// </summary>
 public partial class MyCheckBox : UserControl
 {
@@ -330,8 +330,8 @@ public partial class MyCheckBox : UserControl
                     break;
             }
 
-            PCL.Animations.AniStart(
-                PCL.Animations.AaCode(() => _allowMouseDown = true, AnimationTimeOfCheck * 2),
+            AnimationService.Run(
+                new ActionAnimation(() => _allowMouseDown = true, AnimationTimeOfCheck * 2),
                 AllowMouseDownKey);
 
             AnimateColors(AnimationTimeOfCheck);
@@ -362,21 +362,21 @@ public partial class MyCheckBox : UserControl
 
     private void AnimateBackgroundScale()
     {
-        PCL.Animations.AniStart(
-            new List<PCL.Animations.AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                PCL.Animations.AaScale(
+                new ScaleAnimation(
                     ShapeBorderElement,
                     12d - ShapeBorderElement.Width,
                     AnimationTimeOfCheck,
-                    ease: new PCL.Animations.AniEaseOutFluent(),
+                    ease: new FluentEaseOut(),
                     absolute: true),
-                PCL.Animations.AaScale(
+                new ScaleAnimation(
                     ShapeBorderElement,
                     6d,
                     AnimationTimeOfCheck * 2,
                     (int)Math.Round(AnimationTimeOfCheck * 0.7d),
-                    new PCL.Animations.AniEaseOutBack(),
+                    new BackEaseWithPowerOut(),
                     absolute: true)
             },
             BackgroundScaleKey);
@@ -384,47 +384,47 @@ public partial class MyCheckBox : UserControl
 
     private void AnimateCheckShow()
     {
-        PCL.Animations.AniStart(
-            PCL.Animations.AaScaleTransform(
+        AnimationService.Run(
+            new ScaleTransformAnimation(
                 ShapeCheckElement,
                 1d - InputAnimation.CurrentScale(ShapeCheckElement),
                 AnimationTimeOfCheck * 2,
                 (int)Math.Round(AnimationTimeOfCheck * 0.7d),
-                new PCL.Animations.AniEaseOutBack(PCL.Animations.AniEasePower.Weak)),
+                new BackEaseWithPowerOut(EasePower.Weak)),
             CheckScaleShowKey);
     }
 
     private void AnimateCheckHide()
     {
-        PCL.Animations.AniStart(
-            PCL.Animations.AaScaleTransform(
+        AnimationService.Run(
+            new ScaleTransformAnimation(
                 ShapeCheckElement,
                 -InputAnimation.CurrentScale(ShapeCheckElement),
                 (int)Math.Round(AnimationTimeOfCheck * 0.9d),
-                ease: new PCL.Animations.AniEaseInFluent(PCL.Animations.AniEasePower.Weak)),
+                ease: new FluentEaseIn(EasePower.Weak)),
             CheckScaleHideKey);
     }
 
     private void AnimateIndeterminateShow()
     {
-        PCL.Animations.AniStart(
-            PCL.Animations.AaScaleTransform(
+        AnimationService.Run(
+            new ScaleTransformAnimation(
                 ShapeIndeterminateElement,
                 1d - InputAnimation.CurrentScale(ShapeIndeterminateElement),
                 AnimationTimeOfCheck * 2,
                 (int)Math.Round(AnimationTimeOfCheck * 0.7d),
-                new PCL.Animations.AniEaseOutBack(PCL.Animations.AniEasePower.Weak)),
+                new BackEaseWithPowerOut(EasePower.Weak)),
             IndeterminateScaleShowKey);
     }
 
     private void AnimateIndeterminateHide()
     {
-        PCL.Animations.AniStart(
-            PCL.Animations.AaScaleTransform(
+        AnimationService.Run(
+            new ScaleTransformAnimation(
                 ShapeIndeterminateElement,
                 -InputAnimation.CurrentScale(ShapeIndeterminateElement),
                 (int)Math.Round(AnimationTimeOfCheck * 0.9d),
-                ease: new PCL.Animations.AniEaseInFluent(PCL.Animations.AniEasePower.Weak)),
+                ease: new FluentEaseIn(EasePower.Weak)),
             IndeterminateScaleHideKey);
     }
 
@@ -439,24 +439,24 @@ public partial class MyCheckBox : UserControl
             return;
         }
 
-        var animations = new List<PCL.Animations.AniData>
+        var animations = new List<IAnimation>
         {
-            PCL.Animations.AaScale(
+            new ScaleAnimation(
                 ShapeBorderElement,
                 16.5d - ShapeBorderElement.Width,
                 1000,
-                ease: new PCL.Animations.AniEaseOutFluent(PCL.Animations.AniEasePower.Strong),
+                ease: new FluentEaseOut(EasePower.Strong),
                 absolute: true)
         };
         if (Checked == true)
             animations.Add(
-                PCL.Animations.AaScaleTransform(
+                new ScaleTransformAnimation(
                     ShapeCheckElement,
                     0.9d - InputAnimation.CurrentScale(ShapeCheckElement),
                     1000,
-                    ease: new PCL.Animations.AniEaseOutFluent(PCL.Animations.AniEasePower.Strong)));
+                    ease: new FluentEaseOut(EasePower.Strong)));
 
-        PCL.Animations.AniStart(animations, InputAnimation.Key("MyCheckBox Scale", Uuid));
+        AnimationService.Run(animations, InputAnimation.Key("MyCheckBox Scale", Uuid));
     }
 
     private void RestoreBorderScale()
@@ -471,23 +471,23 @@ public partial class MyCheckBox : UserControl
             return;
         }
 
-        var animations = new List<PCL.Animations.AniData>
+        var animations = new List<IAnimation>
         {
-            PCL.Animations.AaScale(
+            new ScaleAnimation(
                 ShapeBorderElement,
                 18d - ShapeBorderElement.Width,
-                ease: new PCL.Animations.AniEaseOutFluent(PCL.Animations.AniEasePower.Strong),
+                ease: new FluentEaseOut(EasePower.Strong),
                 absolute: true)
         };
         if (Checked == true)
             animations.Add(
-                PCL.Animations.AaScaleTransform(
+                new ScaleTransformAnimation(
                     ShapeCheckElement,
                     1d - InputAnimation.CurrentScale(ShapeCheckElement),
                     500,
-                    ease: new PCL.Animations.AniEaseOutFluent(PCL.Animations.AniEasePower.Strong)));
+                    ease: new FluentEaseOut(EasePower.Strong)));
 
-        PCL.Animations.AniStart(animations, InputAnimation.Key("MyCheckBox Scale", Uuid));
+        AnimationService.Run(animations, InputAnimation.Key("MyCheckBox Scale", Uuid));
     }
 
     private void AnimateBackground(int time, bool animate)

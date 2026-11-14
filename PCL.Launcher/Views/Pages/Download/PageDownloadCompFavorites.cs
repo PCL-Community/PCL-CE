@@ -214,9 +214,9 @@ public sealed partial class PageDownloadCompFavorites : MyPageRight, IPageView, 
             0d,
             ViewModel.ContentListBottomInset);
 
-        if (Animations.AniExitsAnyControl())
+        if (AnimationService.IsSuspended)
         {
-            Animations.AniStop(SelectBarAnimationKey);
+            AnimationService.CancelAnimationByName(SelectBarAnimationKey);
             _bottomBarShownCount = count;
             if (selected)
             {
@@ -244,27 +244,27 @@ public sealed partial class PageDownloadCompFavorites : MyPageRight, IPageView, 
 
             _bottomBarShownCount = count;
             CardSelect.IsVisible = true;
-            Animations.AniStart(
-                new[]
+            AnimationService.Run(
+                new List<IAnimation>
                 {
-                    Animations.AaOpacity(CardSelect, 1d - CardSelect.Opacity, 60),
-                    Animations.AaTranslateY(
+                    new OpacityAnimation(CardSelect, 1d - CardSelect.Opacity, 60),
+                    new TranslateYAnimation(
                         CardSelect,
                         -27d - SelectTransform.Y,
                         120,
-                        ease: new Animations.AniEaseOutFluent(Animations.AniEasePower.Weak)),
-                    Animations.AaTranslateY(
+                        ease: new FluentEaseOut(EasePower.Weak)),
+                    new TranslateYAnimation(
                         CardSelect,
                         3d,
                         150,
                         120,
-                        new Animations.AniEaseInoutFluent(Animations.AniEasePower.Weak)),
-                    Animations.AaTranslateY(
+                        new FluentEaseInOut(EasePower.Weak)),
+                    new TranslateYAnimation(
                         CardSelect,
                         -1d,
                         90,
                         270,
-                        new Animations.AniEaseInoutFluent(Animations.AniEasePower.Weak))
+                        new FluentEaseInOut(EasePower.Weak))
                 },
                 SelectBarAnimationKey);
             return;
@@ -273,16 +273,16 @@ public sealed partial class PageDownloadCompFavorites : MyPageRight, IPageView, 
         if (_bottomBarShownCount == 0)
             return;
         _bottomBarShownCount = 0;
-        Animations.AniStart(
-            new[]
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                Animations.AaOpacity(CardSelect, -CardSelect.Opacity, 90),
-                Animations.AaTranslateY(
+                new OpacityAnimation(CardSelect, -CardSelect.Opacity, 90),
+                new TranslateYAnimation(
                     CardSelect,
                     -10d - SelectTransform.Y,
                     90,
-                    ease: new Animations.AniEaseInFluent(Animations.AniEasePower.Weak)),
-                Animations.AaCode(() => CardSelect.IsVisible = false, after: true)
+                    ease: new FluentEaseIn(EasePower.Weak)),
+                new ActionAnimation(() => CardSelect.IsVisible = false, true)
             },
             SelectBarAnimationKey);
     }

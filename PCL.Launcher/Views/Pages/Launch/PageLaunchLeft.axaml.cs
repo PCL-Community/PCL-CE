@@ -8,7 +8,6 @@ using PCL.Core.UI.Theme;
 using PCL.UI.Controls;
 using PCL.Views.Shell;
 using Rectangle = Avalonia.Controls.Shapes.Rectangle;
-using static PCL.Animations;
 using LaunchPageKind = PCL.PageLaunchLeftViewModel.LaunchPageKind;
 
 namespace PCL.Views.Pages.Launch;
@@ -210,17 +209,21 @@ public partial class PageLaunchLeft : MyPageLeft, IShellShortcutTarget
             _isInfoWidthAnimating = true;
             _actualUsedWidth = _panLaunchingInfo.Width;
             var previousWidth = e.PreviousSize.Width;
-            AniStart(
-                new[]
+            AnimationService.Run(
+                new List<IAnimation>
                 {
-                    AaWidth(_panLaunchingInfo, deltaWidth, 180, ease: new AniEaseOutFluent()),
-                    AaCode(
+                    new WidthAnimation(
+                        _panLaunchingInfo,
+                        deltaWidth,
+                        180,
+                        ease: new FluentEaseOut()),
+                    new ActionAnimation(
                         () =>
                         {
                             _isInfoWidthAnimating = false;
                             _panLaunchingInfo.Width = _actualUsedWidth;
                         },
-                        after: true)
+                        true)
                 },
                 "Launching Info Width");
             _panLaunchingInfo.Width = previousWidth;
@@ -235,17 +238,21 @@ public partial class PageLaunchLeft : MyPageLeft, IShellShortcutTarget
             _isInfoHeightAnimating = true;
             _actualUsedHeight = _panLaunchingInfo.Height;
             var previousHeight = e.PreviousSize.Height;
-            AniStart(
-                new[]
+            AnimationService.Run(
+                new List<IAnimation>
                 {
-                    AaHeight(_panLaunchingInfo, deltaHeight, 180, ease: new AniEaseOutFluent()),
-                    AaCode(
+                    new HeightAnimation(
+                        _panLaunchingInfo,
+                        deltaHeight,
+                        180,
+                        ease: new FluentEaseOut()),
+                    new ActionAnimation(
                         () =>
                         {
                             _isInfoHeightAnimating = false;
                             _panLaunchingInfo.Height = _actualUsedHeight;
                         },
-                        after: true)
+                        true)
                 },
                 "Launching Info Height");
             _panLaunchingInfo.Height = previousHeight;
@@ -272,19 +279,19 @@ public partial class PageLaunchLeft : MyPageLeft, IShellShortcutTarget
         _loadLaunching.State.LoadingState = LoadingState.Run;
         _panLaunching.IsVisible = true;
 
-        AniStart(
-            new List<AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                AaOpacity(_panInput, -_panInput.Opacity, 110, ease: new AniEaseInFluent()),
-                AaScaleTransform(_panInput, 1.2d - GetScale(_panInput).ScaleX, 160),
-                AaOpacity(_panLaunching, 1d - _panLaunching.Opacity, 150, 100),
-                AaScaleTransform(
+                new OpacityAnimation(_panInput, -_panInput.Opacity, 110, ease: new FluentEaseIn()),
+                new ScaleTransformAnimation(_panInput, 1.2d - GetScale(_panInput).ScaleX, 160),
+                new OpacityAnimation(_panLaunching, 1d - _panLaunching.Opacity, 150, 100),
+                new ScaleTransformAnimation(
                     _panLaunching,
                     1d - GetScale(_panLaunching).ScaleX,
                     500,
                     100,
-                    new AniEaseOutBack(AniEasePower.Weak)),
-                AaCode(() => _panLaunching.IsHitTestVisible = true, 150)
+                    new BackEaseWithPowerOut(EasePower.Weak)),
+                new ActionAnimation(() => _panLaunching.IsHitTestVisible = true, 150)
             },
             "Launch State Page");
     }
@@ -301,23 +308,23 @@ public partial class PageLaunchLeft : MyPageLeft, IShellShortcutTarget
         _loadLaunching.State.LoadingState = LoadingState.Stop;
         _panInput.IsVisible = true;
 
-        AniStart(
-            new List<AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                AaOpacity(_panLaunching, -_panLaunching.Opacity, 150),
-                AaScaleTransform(
+                new OpacityAnimation(_panLaunching, -_panLaunching.Opacity, 150),
+                new ScaleTransformAnimation(
                     _panLaunching,
                     0.8d - GetScale(_panLaunching).ScaleX,
                     150,
-                    ease: new AniEaseOutFluent(AniEasePower.Weak)),
-                AaOpacity(_panInput, 1d - _panInput.Opacity, 250, 50),
-                AaScaleTransform(
+                    ease: new FluentEaseOut(EasePower.Weak)),
+                new OpacityAnimation(_panInput, 1d - _panInput.Opacity, 250, 50),
+                new ScaleTransformAnimation(
                     _panInput,
                     1d - GetScale(_panInput).ScaleX,
                     300,
                     50,
-                    new AniEaseOutBack(AniEasePower.Weak)),
-                AaCode(() => _panInput.IsHitTestVisible = true, 200)
+                    new BackEaseWithPowerOut(EasePower.Weak)),
+                new ActionAnimation(() => _panInput.IsHitTestVisible = true, 200)
             },
             "Launch State Page",
             true);
@@ -331,18 +338,18 @@ public partial class PageLaunchLeft : MyPageLeft, IShellShortcutTarget
             return;
         }
 
-        if (!ViewModel.RefreshLaunching(AniIsRun("Launch State Page")))
+        if (!ViewModel.RefreshLaunching(AnimationService.IsAnimationRunning("Launch State Page")))
             return;
 
         var downloadText = this.FindControl<TextBlock>("LabLaunchingDownload")!;
         var downloadLeft = this.FindControl<TextBlock>("LabLaunchingDownloadLeft")!;
         var downloadOpacity = ViewModel.HasLaunchDownloader ? 1d : 0d;
         if (Math.Abs(downloadText.Opacity - downloadOpacity) > 0.01d)
-            AniStart(
-                new List<AniData>
+            AnimationService.Run(
+                new List<IAnimation>
                 {
-                    AaOpacity(downloadText, downloadOpacity - downloadText.Opacity, 100),
-                    AaOpacity(
+                    new OpacityAnimation(downloadText, downloadOpacity - downloadText.Opacity, 100),
+                    new OpacityAnimation(
                         downloadLeft,
                         (downloadOpacity > 0d ? 0.5d : 0d) - downloadLeft.Opacity,
                         100)
@@ -355,8 +362,8 @@ public partial class PageLaunchLeft : MyPageLeft, IShellShortcutTarget
             if (shouldShowHint)
                 _panLaunchingHint.IsVisible = true;
 
-            AniStart(
-                AaOpacity(
+            AnimationService.Run(
+                new OpacityAnimation(
                     _panLaunchingHint,
                     (shouldShowHint ? 1d : 0d) - _panLaunchingHint.Opacity,
                     100),
@@ -366,19 +373,19 @@ public partial class PageLaunchLeft : MyPageLeft, IShellShortcutTarget
         }
 
         var columns = _gridProgress.ColumnDefinitions;
-        AniStart(
-            new List<AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                AaGridLengthWidth(
+                new GridLengthWidthAnimation(
                     columns[0],
                     ViewModel.ShowProgress - columns[0].Width.Value,
                     260,
-                    ease: new AniEaseOutFluent()),
-                AaGridLengthWidth(
+                    ease: new FluentEaseOut()),
+                new GridLengthWidthAnimation(
                     columns[1],
                     1d - ViewModel.ShowProgress - columns[1].Width.Value,
                     260,
-                    ease: new AniEaseOutFluent())
+                    ease: new FluentEaseOut())
             },
             "Launching Progress");
     }
@@ -454,7 +461,7 @@ public partial class PageLaunchLeft : MyPageLeft, IShellShortcutTarget
     {
         try
         {
-            AniStop("FrmLogin PageChange");
+            AnimationService.CancelAnimationByName("FrmLogin PageChange");
             var pageNew = GetLoginPage(kind);
 
             if (!anim)
@@ -464,12 +471,21 @@ public partial class PageLaunchLeft : MyPageLeft, IShellShortcutTarget
                 return;
             }
 
-            AniStart(
-                new List<AniData>
+            AnimationService.Run(
+                new List<IAnimation>
                 {
-                    AaOpacity(_panLogin, -_panLogin.Opacity, 100, ease: new AniEaseOutFluent()),
-                    AaCode(() => SwapLoginPage(pageNew), 100),
-                    AaOpacity(_panLogin, 1d - _panLogin.Opacity, 100, 120, new AniEaseInFluent())
+                    new OpacityAnimation(
+                        _panLogin,
+                        -_panLogin.Opacity,
+                        100,
+                        ease: new FluentEaseOut()),
+                    new ActionAnimation(() => SwapLoginPage(pageNew), 100),
+                    new OpacityAnimation(
+                        _panLogin,
+                        1d - _panLogin.Opacity,
+                        100,
+                        120,
+                        new FluentEaseIn())
                 },
                 "FrmLogin PageChange");
             _loginPageCurrent = kind;
@@ -490,12 +506,12 @@ public partial class PageLaunchLeft : MyPageLeft, IShellShortcutTarget
 
     private void SwapLoginPage(Control pageNew)
     {
-        AniBeginControl();
+        AnimationService.BeginControl();
         _panLogin.Opacity = 1d;
         _panLogin.Children.Clear();
         _panLogin.Children.Add(pageNew);
         (pageNew as ILoginPage)?.Reload();
-        AniEndControl();
+        AnimationService.EndControl();
     }
 
     #endregion

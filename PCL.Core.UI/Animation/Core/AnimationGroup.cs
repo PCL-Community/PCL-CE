@@ -72,6 +72,9 @@ public abstract class AnimationGroup : AnimationBase
         if (animation is not AvaloniaObject animationObject)
             return defaultTarget;
 
+        if (animationObject is AnimationBase { Target: { } explicitTarget })
+            return explicitTarget;
+
         AvaloniaObject? targetObject = null;
         AvaloniaProperty? targetProperty = null;
 

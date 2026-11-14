@@ -5,7 +5,6 @@ using Avalonia.Media.Imaging;
 using PCL.Core.App;
 using PCL.Core.Logging;
 using PCL.Core.UI.Theme;
-using PCL.UI.Animations;
 
 namespace PCL.Views.Shell;
 

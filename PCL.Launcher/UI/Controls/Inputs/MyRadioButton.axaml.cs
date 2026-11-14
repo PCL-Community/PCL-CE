@@ -17,7 +17,7 @@ namespace PCL.UI.Controls;
 ///     单选按钮：圆角药丸 + 可选图标 + 文本，支持 <see cref="ColorState.White" /> /
 ///     <see cref="ColorState.Highlight" /> 两种配色、<see cref="GroupName" /> 分组互斥与
 ///     <see cref="Check" /> 事件。
-///     勾选、悬停与按下状态经 <c>PCL.Animations</c> 过渡；动画关闭时直接落到终值。
+///     勾选、悬停与按下状态经 新动画引擎 过渡；动画关闭时直接落到终值。
 /// </summary>
 public partial class MyRadioButton : UserControl
 {
@@ -498,8 +498,10 @@ public partial class MyRadioButton : UserControl
         LabTextElement.Margin = HasAnyIcon
             ? textMargin
             : new Thickness(
-                Math.Max(textMargin.Left, textMargin.Right), textMargin.Top,
-                Math.Max(textMargin.Left, textMargin.Right), textMargin.Bottom);
+                Math.Max(textMargin.Left, textMargin.Right),
+                textMargin.Top,
+                Math.Max(textMargin.Left, textMargin.Right),
+                textMargin.Bottom);
     }
 
     /// <summary>

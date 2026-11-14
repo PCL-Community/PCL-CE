@@ -11,7 +11,6 @@ using PCL.Core.UI.Hints;
 using PCL.Navigation;
 using PCL.UI.Controls;
 using PCL.Views.Pages.Download;
-using static PCL.Animations;
 
 namespace PCL.Views.Pages.Instance;
 
@@ -380,24 +379,24 @@ public partial class PageInstanceInstall : MyPageRight, IRefreshable
             return;
         }
 
-        AniStop(StageAnimationKey);
+        AnimationService.CancelAnimationByName(StageAnimationKey);
         PanMinecraft.Opacity = 1d;
         PanMinecraft.RenderTransform = new TranslateTransform();
         PanSelect.IsVisible = true;
         PanSelect.Opacity = 0d;
         PanSelect.RenderTransform = new TranslateTransform();
-        AniStart(
-            new[]
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                AaOpacity(PanMinecraft, 0d, 100, 10),
-                AaCode(
+                new OpacityAnimation(PanMinecraft, 0d, 100, 10),
+                new ActionAnimation(
                     () =>
                     {
                         PanMinecraft.IsVisible = false;
                         PanBack?.ScrollToHome();
                     },
-                    after: true),
-                AaOpacity(PanSelect, 1d, 250, 150)
+                    true),
+                new OpacityAnimation(PanSelect, 1d, 250, 150)
             },
             StageAnimationKey,
             true);
@@ -419,18 +418,18 @@ public partial class PageInstanceInstall : MyPageRight, IRefreshable
             return;
         }
 
-        AniStop(StageAnimationKey);
+        AnimationService.CancelAnimationByName(StageAnimationKey);
         PanMinecraft.IsVisible = true;
         PanMinecraft.Opacity = 0d;
         PanMinecraft.RenderTransform = new TranslateTransform();
         PanSelect.Opacity = 1d;
         PanSelect.RenderTransform = new TranslateTransform();
-        AniStart(
-            new[]
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                AaOpacity(PanSelect, 0d, 90, 10),
-                AaCode(() => PanSelect.IsVisible = false, after: true),
-                AaOpacity(PanMinecraft, 1d, 150, 100)
+                new OpacityAnimation(PanSelect, 0d, 90, 10),
+                new ActionAnimation(() => PanSelect.IsVisible = false, true),
+                new OpacityAnimation(PanMinecraft, 1d, 150, 100)
             },
             StageAnimationKey,
             true);

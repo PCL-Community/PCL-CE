@@ -4,11 +4,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using PCL.Core.Logging;
-using PCL.Core.UI.Animation;
-using PCL.Core.UI.Animation.Animatable;
-using PCL.Core.UI.Animation.Core;
-using PCL.Core.UI.Animation.Easings;
-using PCL.UI.Controls.Common;
 
 namespace PCL.UI.Controls.SvgIcon;
 
@@ -96,7 +91,7 @@ public class SvgIcon : Control
     ///     过渡结束会写一条带目标时长与实测时长的 Debug 日志。
     /// </summary>
     public void AnimateIconBrushTo(
-        MyColor color,
+        NColor color,
         TimeSpan? duration = null,
         object? easing = null,
         string? animationKey = null)

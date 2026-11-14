@@ -2,7 +2,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using PCL.Core.Logging;
-using MyColor = PCL.UI.Controls.Common.MyColor;
 
 namespace PCL.UI.Controls;
 
@@ -61,23 +60,23 @@ internal static class InputTheme
     /// <summary>
     ///     把资源键解析为可参与动画插值的纯色；资源缺失或不是纯色画刷时返回 <c>false</c>。
     /// </summary>
-    internal static bool TryColor(StyledElement element, string key, out MyColor color)
+    internal static bool TryColor(StyledElement element, string key, out NColor color)
     {
         if (element.TryFindResource(key, out var value))
             switch (value)
             {
                 case ISolidColorBrush brush:
-                    color = new MyColor(brush.Color);
+                    color = new NColor(brush.Color);
                     return true;
                 case Color plain:
-                    color = new MyColor(plain);
+                    color = new NColor(plain);
                     return true;
-                case MyColor myColor:
+                case NColor myColor:
                     color = myColor;
                     return true;
             }
 
-        color = new MyColor(0d, 0d, 0d, 0d);
+        color = new NColor(0d, 0d, 0d, 0d);
         return false;
     }
 
@@ -158,7 +157,7 @@ internal static class InputTheme
 
     public static Color ColorOf(StyledElement element, string key, Color fallback)
     {
-        return TryColor(element, key, out var color) ? (Color)color : fallback;
+        return TryColor(element, key, out var color) ? color : fallback;
     }
 
     public static Color ColorOf(IBrush? brush, Color fallback)

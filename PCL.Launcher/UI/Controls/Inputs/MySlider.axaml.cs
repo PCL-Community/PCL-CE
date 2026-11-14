@@ -13,7 +13,7 @@ namespace PCL.UI.Controls;
 ///     整数滑动条：双导轨 + 拖点 + 拖动数值提示。
 ///     保留 <see cref="Value" />/<see cref="MaxValue" />/<see cref="ValueByKey" />、
 ///     <see cref="Change" />/<see cref="PreviewChange" /> 事件、<c>getHintText</c> 提示委托与
-///     键盘左右方向键步进。进度、配色与拖点缩放经 <c>PCL.Animations</c> 过渡。
+///     键盘左右方向键步进。进度、配色与拖点缩放经 新动画引擎 过渡。
 /// </summary>
 public partial class MySlider : UserControl
 {
@@ -110,7 +110,7 @@ public partial class MySlider : UserControl
     private void StopAnimations()
     {
         InputAnimation.Stop(ProgressKey, ForegroundKey, DotFillKey, DotStrokeKey, ScaleKey);
-        PCL.Animations.AniStop(PopupFadeKey);
+        AnimationService.CancelAnimationByName(PopupFadeKey);
         _isPopupClosing = false;
 
         // 离树时收起提示，避免浮层残留在窗口上
@@ -140,7 +140,7 @@ public partial class MySlider : UserControl
             }
 
             // 触发 Preview 事件，可拦截本次修改
-            if (!PCL.Animations.AniExitsAnyControl())
+            if (!AnimationService.IsSuspended)
             {
                 var args = new RouteEventArgs();
                 PreviewChange?.Invoke(this, args);
@@ -163,7 +163,7 @@ public partial class MySlider : UserControl
 
             AnimateProgress();
 
-            if (!PCL.Animations.AniExitsAnyControl())
+            if (!AnimationService.IsSuspended)
                 Change?.Invoke(this, false);
         }
         catch (Exception ex)
@@ -194,7 +194,7 @@ public partial class MySlider : UserControl
         if (width <= 0d)
             return;
 
-        PCL.Animations.AniStop(ProgressKey);
+        AnimationService.CancelAnimationByName(ProgressKey);
 
         var dotPosition = GetDotPosition();
         var backWidth = Math.Max(0d, width - DotWidth - dotPosition);
@@ -226,29 +226,29 @@ public partial class MySlider : UserControl
         var time = (int)Math.Round(
             (1d - Math.Pow(1d - deltaProcess, 3d)) * 300d + (_changeByKey ? 100d : 0d));
 
-        PCL.Animations.AniEase ease = time > 50
-            ? new PCL.Animations.AniEaseOutFluent()
-            : new PCL.Animations.AniEaseLinear();
+        IEasing ease = time > 50
+            ? new FluentEaseOut()
+            : new LinearEasing();
 
         var foreWidth = Math.Max(0d, newWidth + (newWidth < 0.5d ? 0d : 0.5d));
         var backWidth = Math.Max(
             0d,
             trackWidth - newWidth + (trackWidth - newWidth < 0.5d ? 0d : 0.5d));
 
-        PCL.Animations.AniStart(
-            new List<PCL.Animations.AniData>
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                PCL.Animations.AaWidth(
+                new WidthAnimation(
                     LineForeElement,
                     foreWidth - LineForeElement.Width,
                     time,
                     ease: ease),
-                PCL.Animations.AaWidth(
+                new WidthAnimation(
                     LineBackElement,
                     backWidth - LineBackElement.Width,
                     time,
                     ease: ease),
-                PCL.Animations.AaX(
+                new XAnimation(
                     ShapeDotElement,
                     newWidth - ShapeDotElement.Margin.Left,
                     time,
@@ -351,7 +351,7 @@ public partial class MySlider : UserControl
             1.3d,
             40,
             ScaleKey,
-            ease: new PCL.Animations.AniEaseOutFluent());
+            ease: new FluentEaseOut());
         UpdateValueFromPosition(_lastPointerPosition);
         RefreshPopup();
         StopPopupCloseTimer();
@@ -420,7 +420,7 @@ public partial class MySlider : UserControl
             1d,
             200,
             ScaleKey,
-            ease: new PCL.Animations.AniEaseOutFluent());
+            ease: new FluentEaseOut());
         ClosePopup();
         StopPopupCloseTimer();
     }
@@ -462,8 +462,8 @@ public partial class MySlider : UserControl
 
             _isPopupClosing = false;
             if (HintBorderElement is not null)
-                PCL.Animations.AniStart(
-                    PCL.Animations.AaOpacity(HintBorderElement, 1d, PopupFadeInTime),
+                AnimationService.Run(
+                    new OpacityAnimation(HintBorderElement, 1d, PopupFadeInTime),
                     PopupFadeKey);
             return;
         }
@@ -479,12 +479,12 @@ public partial class MySlider : UserControl
 
         HintBorderElement.Opacity = 0d;
         PopupElement.IsOpen = true;
-        PCL.Animations.AniStart(
-            PCL.Animations.AaOpacity(
+        AnimationService.Run(
+            new OpacityAnimation(
                 HintBorderElement,
                 1d,
                 PopupFadeInTime,
-                ease: new PCL.Animations.AniEaseOutFluent()),
+                ease: new FluentEaseOut()),
             PopupFadeKey);
     }
 
@@ -501,29 +501,29 @@ public partial class MySlider : UserControl
             || !InputAnimation.CanAnimate(this)
             || HintBorderElement.Opacity <= 0.01d)
         {
-            PCL.Animations.AniStop(PopupFadeKey);
+            AnimationService.CancelAnimationByName(PopupFadeKey);
             PopupElement.IsOpen = false;
             return;
         }
 
         _isPopupClosing = true;
-        PCL.Animations.AniStop(PopupFadeKey);
-        PCL.Animations.AniStart(
-            new List<PCL.Animations.AniData>
+        AnimationService.CancelAnimationByName(PopupFadeKey);
+        AnimationService.Run(
+            new List<IAnimation>
             {
-                PCL.Animations.AaOpacity(
+                new OpacityAnimation(
                     HintBorderElement,
                     -HintBorderElement.Opacity,
                     PopupFadeOutTime,
-                    ease: new PCL.Animations.AniEaseOutFluent()),
-                PCL.Animations.AaCode(
+                    ease: new FluentEaseOut()),
+                new ActionAnimation(
                     () =>
                     {
                         _isPopupClosing = false;
                         PopupElement.IsOpen = false;
                         HintBorderElement.Opacity = 1d;
                     },
-                    after: true)
+                    true)
             },
             PopupFadeKey);
     }
