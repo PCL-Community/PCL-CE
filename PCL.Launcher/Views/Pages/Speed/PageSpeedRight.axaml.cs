@@ -1,6 +1,10 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Shapes;
+using ShapePath = Avalonia.Controls.Shapes.Path;
+using Avalonia.Input;
 using Avalonia.Input.Platform;
+using Avalonia.Markup.Xaml.MarkupExtensions;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
@@ -8,7 +12,6 @@ using PCL.Core.App.Localization;
 using PCL.Core.UI.Hints;
 using PCL.Navigation;
 using PCL.UI.Controls;
-using PCL.UI.Controls.SvgIcon;
 
 namespace PCL.Views.Pages.Speed;
 
@@ -19,6 +22,16 @@ namespace PCL.Views.Pages.Speed;
 public partial class PageSpeedRight : MyPageRight, IRefreshable
 {
     private const int WatcherInterval = 300;
+
+    private const string WaitingIconData =
+        "F1 M5,0 a5,5 360 1 0 0,0.0001 m15,0 a5,5 360 1 0 0,0.0001 m15,0 a5,5 360 1 0 0,0.0001 Z";
+
+    private const string FinishedIconData =
+        "F1 M 23.7501,33.25L 34.8334,44.3333L 52.2499,22.1668L 56.9999,26.9168L 34.8334,53.8333L 19.0001,38L 23.7501,33.25 Z";
+
+    private const string FailedIconData =
+        "F1 M2.5,0 L0,2.5 7.5,10 0,17.5 2.5,20 10,12.5 17.5,20 20,17.5 12.5,10 20,2.5 17.5,0 10,7.5 2.5,0Z";
+
 
     private readonly Dictionary<string, TaskCard> _cards = new(StringComparer.Ordinal);
     private readonly DispatcherTimer _timer;
@@ -132,14 +145,15 @@ public partial class PageSpeedRight : MyPageRight, IRefreshable
                     return;
 
                 case LoadState.Finished:
-                    RemoveCard(loader.name);
+                    DisposeFinished(existing);
                     return;
 
-                case LoadState.Waiting:
                 case LoadState.Loading:
-                case LoadState.Aborted:
+                case LoadState.Waiting:
+                    UpdateProgress(existing, loader);
+                    return;
+
                 default:
-                    BuildProgress(existing, loader);
                     return;
             }
         }
@@ -150,23 +164,13 @@ public partial class PageSpeedRight : MyPageRight, IRefreshable
         var card = new MyCard
         {
             Title = loader.name,
-            Margin = new Thickness(0d, 0d, 0d, 15d),
-            UseAnimation = false,
-            HasMouseAnimation = false
+            Margin = new Thickness(0d, 0d, 0d, 15d)
         };
         var grid = new Grid
         {
             Margin = new Thickness(14d, 40d, 15d, 10d),
             ColumnDefinitions = new ColumnDefinitions("50,*")
         };
-        var taskCard = new TaskCard
-        {
-            Card = card,
-            Grid = grid,
-            Value = loader.Progress + (double)loader.State
-        };
-        card.Children.Add(grid);
-
         var cancel = new MyIconButton
         {
             SvgIcon = "lucide/x",
@@ -177,7 +181,14 @@ public partial class PageSpeedRight : MyPageRight, IRefreshable
             HorizontalAlignment = HorizontalAlignment.Right,
             VerticalAlignment = VerticalAlignment.Top
         };
-        ToolTip.SetTip(cancel, Lang.Text("Common.Action.Cancel"));
+        var taskCard = new TaskCard
+        {
+            Card = card,
+            Grid = grid,
+            Cancel = cancel,
+            Value = loader.Progress + (double)loader.State
+        };
+        card.Children.Add(grid);
         cancel.Click += (_, _) => CancelLoader(loader, taskCard);
         card.Children.Add(cancel);
 
@@ -198,11 +209,11 @@ public partial class PageSpeedRight : MyPageRight, IRefreshable
         for (var row = 0; row < subtasks.Count; row++)
         {
             var subtask = subtasks[row];
-            card.Grid.Children.Add(CreateSubtaskStateIcon(subtask, row));
+            card.Grid.Children.Add(CreateStateIcon(subtask, row));
             var label = new TextBlock
             {
                 Text = subtask.name,
-                VerticalAlignment = VerticalAlignment.Center
+                HorizontalAlignment = HorizontalAlignment.Left
             };
             Grid.SetColumn(label, 1);
             Grid.SetRow(label, row);
@@ -210,32 +221,60 @@ public partial class PageSpeedRight : MyPageRight, IRefreshable
         }
     }
 
+    private static void UpdateProgress(TaskCard card, Loading.LoaderBase loader)
+    {
+        var subtasks = GetSubtasks(loader);
+        if (card.Grid.Children.Count < subtasks.Count * 2)
+        {
+            LauncherCommon.Log(
+                $"[Watcher] 刷新任务管理卡片 {loader.name} 失败：卡片中仅有 {card.Grid.Children.Count} 个子项，要求至少有 {subtasks.Count * 2} 个子项",
+                LauncherLogLevel.Debug);
+            return;
+        }
+
+        for (var row = 0; row < subtasks.Count; row++)
+        {
+            var subtask = subtasks[row];
+            var icon = card.Grid.Children[row * 2];
+            switch (subtask.State)
+            {
+                case LoadState.Waiting when icon.Tag as string != "Waiting":
+                case LoadState.Finished when icon.Tag as string != "Finished":
+                    ReplaceIcon(card, row, CreateStateIcon(subtask, row));
+                    break;
+
+                case LoadState.Loading when icon.Tag as string != "Loading":
+                    ReplaceIcon(card, row, CreateStateIcon(subtask, row));
+                    break;
+
+                case LoadState.Loading:
+                    ((TextBlock)icon).Text = Lang.Number(subtask.Progress, "P0");
+                    break;
+            }
+        }
+    }
+
     private static void BuildFailed(TaskCard card, Loading.LoaderBase loader)
     {
-        RebuildGrid(card, 1);
-        var icon = new SvgIcon
-        {
-            Icon = "lucide/x",
-            Width = 15d,
-            Height = 15d,
-            Margin = new Thickness(0d, 1d, 0d, 0d),
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Top,
-            Stretch = Stretch.Uniform
-        };
+        card.Grid.Children.Clear();
+        card.Grid.RowDefinitions.Clear();
+        var icon = CreatePath(FailedIconData, 15d, 15d, new Thickness(0d, 1d, 0d, 0d), "Failed");
         Grid.SetColumn(icon, 0);
         Grid.SetRow(icon, 0);
         card.Grid.Children.Add(icon);
 
-        var text = new SelectableTextBlock
+        var text = new TextBlock
         {
             Text = loader.Error?.ToString() ?? string.Empty,
             TextWrapping = TextWrapping.Wrap,
+            HorizontalAlignment = HorizontalAlignment.Left,
             Margin = new Thickness(0d, 0d, 0d, 5d)
         };
         ToolTip.SetTip(text, Lang.Text("Speed.Error.ClickToCopy"));
-        text.PointerPressed += (_, _) =>
+        text.PointerPressed += (_, e) =>
         {
+            if (!e.GetCurrentPoint(text).Properties.IsLeftButtonPressed)
+                return;
             if (TopLevel.GetTopLevel(text)?.Clipboard is { } clipboard)
                 _ = clipboard.SetTextAsync(text.Text ?? string.Empty);
             HintService.Show(Hints.Success(Lang.Text("Speed.Error.Copied")));
@@ -250,85 +289,121 @@ public partial class PageSpeedRight : MyPageRight, IRefreshable
         return loader is Loading.LoaderCombo combo ? combo.GetLoaderList() : [loader];
     }
 
-    private static Control CreateSubtaskStateIcon(Loading.LoaderBase subtask, int row)
+    private static Control CreateStateIcon(Loading.LoaderBase subtask, int row)
     {
-        Control control;
-        switch (subtask.State)
+        Control control = subtask.State switch
         {
-            case LoadState.Waiting:
-                control = new SvgIcon
-                {
-                    Icon = "lucide/circle",
-                    Width = 9d,
-                    Height = 9d,
-                    Stretch = Stretch.Uniform
-                };
-                break;
-            case LoadState.Finished:
-                control = new SvgIcon
-                {
-                    Icon = "lucide/circle-check",
-                    Width = 16d,
-                    Height = 16d,
-                    Stretch = Stretch.Uniform
-                };
-                break;
-            case LoadState.Failed:
-                control = new SvgIcon
-                {
-                    Icon = "lucide/x",
-                    Width = 15d,
-                    Height = 15d,
-                    Stretch = Stretch.Uniform
-                };
-                break;
-            default:
-                control = new TextBlock
-                {
-                    Text = Lang.Number(subtask.Progress, "P0"),
-                    HorizontalAlignment = HorizontalAlignment.Center
-                };
-                break;
-        }
+            LoadState.Waiting => CreatePath(
+                WaitingIconData,
+                18d,
+                6d,
+                new Thickness(0d, 7d, 0d, 0d),
+                "Waiting"),
+            LoadState.Finished => CreatePath(
+                FinishedIconData,
+                15d,
+                16d,
+                new Thickness(0d, 3d, 0d, 0d),
+                "Finished"),
+            LoadState.Failed or LoadState.Aborted => CreatePath(
+                FailedIconData,
+                15d,
+                15d,
+                new Thickness(0d, 1d, 0d, 0d),
+                "Failed"),
+            _ => CreateProgressText(subtask)
+        };
 
-        control.HorizontalAlignment = HorizontalAlignment.Center;
-        control.VerticalAlignment = VerticalAlignment.Top;
-        control.Margin = new Thickness(0d, 6d, 0d, 0d);
         Grid.SetColumn(control, 0);
         Grid.SetRow(control, row);
         return control;
     }
 
-    private static void RebuildGrid(TaskCard card, int rowCount, GridLength? rowHeight = null)
+    private static TextBlock CreateProgressText(Loading.LoaderBase subtask)
+    {
+        var text = new TextBlock
+        {
+            Text = Lang.Number(subtask.Progress, "P0"),
+            Tag = "Loading",
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
+        BindAccent(text, TextBlock.ForegroundProperty);
+        return text;
+    }
+
+    private static ShapePath CreatePath(
+        string data,
+        double width,
+        double height,
+        Thickness margin,
+        string tag)
+    {
+        var path = new ShapePath
+        {
+            Data = Geometry.Parse(data),
+            Width = width,
+            Height = height,
+            Margin = margin,
+            Tag = tag,
+            Stretch = Stretch.Uniform,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Top
+        };
+        BindAccent(path, Shape.FillProperty);
+        return path;
+    }
+
+    private static void BindAccent(AvaloniaObject target, AvaloniaProperty property)
+    {
+        target.Bind(property, new DynamicResourceExtension("ColorBrush3"));
+    }
+
+    private static void ReplaceIcon(TaskCard card, int row, Control icon)
+    {
+        card.Grid.Children.RemoveAt(row * 2);
+        card.Grid.Children.Insert(row * 2, icon);
+    }
+
+    private static void RebuildGrid(TaskCard card, int rowCount, GridLength rowHeight)
     {
         card.Grid.Children.Clear();
         card.Grid.RowDefinitions.Clear();
         for (var i = 0; i < rowCount; i++)
-            card.Grid.RowDefinitions.Add(
-                new RowDefinition(rowHeight ?? GridLength.Auto));
+            card.Grid.RowDefinitions.Add(new RowDefinition(rowHeight));
+    }
+
+    private void DisposeFinished(TaskCard card)
+    {
+        if (card.Closing)
+            return;
+        card.Closing = true;
+        card.Card.AniDispose(true, _ => TryReturnToHome());
     }
 
     private void CancelLoader(Loading.LoaderBase loader, TaskCard card)
     {
-        card.Card.AniDispose(true);
+        if (card.Closing)
+            return;
+        card.Closing = true;
+        card.Cancel.AniDispose(false);
+        card.Card.AniDispose(true, _ => TryReturnToHome());
         _cards.Remove(loader.name);
         Loading.loaderTaskbar.Remove(loader);
         LauncherCommon.Log($"[Taskbar] 关闭任务管理卡片：{loader.name}，且移出任务列表");
         LauncherCommon.RunInThread(() => loader.Abort());
-        TryReturnToHome();
     }
 
     private void RemoveCard(string name)
     {
         if (!_cards.Remove(name, out var card))
             return;
-        card.Card.AniDispose(true);
+        PanMain.Children.Remove(card.Card);
         LauncherCommon.Log($"[Watcher] 移除任务管理卡片：{name}");
     }
 
     private void TryReturnToHome()
     {
-        if (_cards.Count > 0)
+        if (PanMain.Children.Count > 0)
             return;
         if (PageRouter.Current.Page != PageType.TaskManager)
             return;
@@ -342,6 +417,10 @@ public partial class PageSpeedRight : MyPageRight, IRefreshable
 
         public required Grid Grid { get; init; }
 
+        public required MyIconButton Cancel { get; init; }
+
         public double Value { get; set; }
+
+        public bool Closing { get; set; }
     }
 }

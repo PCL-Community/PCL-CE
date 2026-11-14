@@ -86,5 +86,8 @@ public partial class PageSpeedLeft : MyPageLeft, IRefreshable
 
         for (var index = 12; index <= 15 && index < RowDefinitions.Count; index++)
             RowDefinitions[index].Height = new GridLength(0d);
+        LabThreadTitle.IsVisible = false;
+        LineThread.IsVisible = false;
+        LabThread.IsVisible = false;
     }
 }
