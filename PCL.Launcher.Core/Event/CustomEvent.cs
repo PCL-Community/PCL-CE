@@ -385,27 +385,35 @@ public class CustomEvent
         // 同一帮助地址同时只处理一次
         if (!_helpOpening.TryAdd(args[0], 0)) return;
 
-        LauncherCommon.RunInNewThread(() =>
+        try
         {
-            try
+            LauncherCommon.RunInNewThread(() =>
             {
-                var actualPaths = GetAbsoluteUrls(args[0], type);
-                var location = actualPaths[0];
-                EventUi.OpenHelp(location);
-            }
-            catch (Exception ex)
-            {
-                LauncherCommon.Log(
-                    ex,
-                    Lang.Text("Event.Error.ExecutionFailed", type, arg),
-                    LauncherLogLevel.Msgbox,
-                    userSummary: Lang.Text("Event.Error.ExecutionFailed", type, arg));
-            }
-            finally
-            {
-                _helpOpening.TryRemove(args[0], out _);
-            }
-        });
+                try
+                {
+                    var actualPaths = GetAbsoluteUrls(args[0], type);
+                    var location = actualPaths[0];
+                    EventUi.OpenHelp(location);
+                }
+                catch (Exception ex)
+                {
+                    LauncherCommon.Log(
+                        ex,
+                        Lang.Text("Event.Error.ExecutionFailed", type, arg),
+                        LauncherLogLevel.Msgbox,
+                        userSummary: Lang.Text("Event.Error.ExecutionFailed", type, arg));
+                }
+                finally
+                {
+                    _helpOpening.TryRemove(args[0], out _);
+                }
+            });
+        }
+        catch
+        {
+            _helpOpening.TryRemove(args[0], out _);
+            throw;
+        }
     }
 
     public static string[] GetAbsoluteUrls(string relativeUrl, EventType type)
