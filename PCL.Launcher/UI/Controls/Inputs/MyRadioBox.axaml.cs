@@ -334,21 +334,21 @@ public partial class MyRadioBox : UserControl, IMyRadio
     {
         ShapeBorderElement.Width = 18d;
         ShapeBorderElement.Height = 18d;
-        ShapeBorderElement.Margin = new Thickness(1d, 0d, 0d, 0d);
+        ShapeBorderElement.Margin = default;
 
         if (Checked)
         {
             ShapeDotElement.Width = 9d;
             ShapeDotElement.Height = 9d;
             ShapeDotElement.Opacity = 1d;
-            ShapeDotElement.Margin = new Thickness(5.5d, 0d, 0d, 0d);
+            ShapeDotElement.Margin = default;
         }
         else
         {
             ShapeDotElement.Width = 0d;
             ShapeDotElement.Height = 0d;
             ShapeDotElement.Opacity = 0d;
-            ShapeDotElement.Margin = new Thickness(10d, 0d, 0d, 0d);
+            ShapeDotElement.Margin = default;
         }
     }
 
@@ -452,7 +452,7 @@ public partial class MyRadioBox : UserControl, IMyRadio
         {
             ShapeBorderElement.Width = 18d;
             ShapeBorderElement.Height = 18d;
-            ShapeBorderElement.Margin = new Thickness(1d, 0d, 0d, 0d);
+            ShapeBorderElement.Margin = default;
             return;
         }
 
