@@ -88,9 +88,9 @@
                                   Stretch="None"
                                   Stroke="{TemplateBinding Foreground}"
                                   StrokeThickness="1.5"
-                                  RenderTransformOrigin="0.3,0.5">
+                                  RenderTransformOrigin="0,0">
                                 <Path.RenderTransform>
-                                    <RotateTransform Angle="0" />
+                                    <RotateTransform Angle="0" CenterX="4.5" CenterY="2.75" />
                                 </Path.RenderTransform>
                             </Path>
 
