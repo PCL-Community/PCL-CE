@@ -351,8 +351,39 @@ public class MyComboBox : ComboBox
 
     private void MyComboBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
+        if (IsEditable && SelectedItem is not null)
+            FillEditableText(GetItemDisplayText(SelectedItem));
+
         if (IsLoaded && !PCL.Animations.AniExitsAnyControl())
             CustomEventService.Raise(this);
+    }
+
+    private void FillEditableText(string text)
+    {
+        if (_editableTextBox is not null && _editableTextBox.Text != text)
+        {
+            _isTextChanging = true;
+            try
+            {
+                _editableTextBox.Text = text;
+            }
+            finally
+            {
+                _isTextChanging = false;
+            }
+        }
+
+        if (!string.Equals(Text, text, StringComparison.Ordinal))
+            SetCurrentValue(TextProperty, text);
+    }
+
+    private static string GetItemDisplayText(object? item)
+    {
+        if (item is null)
+            return string.Empty;
+        if (item is ContentControl content)
+            return content.Content?.ToString() ?? string.Empty;
+        return item.ToString() ?? string.Empty;
     }
 
     protected override void OnKeyDown(KeyEventArgs e)
@@ -454,7 +485,7 @@ public class MyComboBox : ComboBox
         }
 
         var rawText = _editableTextBox.Text ?? string.Empty;
-        var selectedText = SelectedItem?.ToString() ?? string.Empty;
+        var selectedText = GetItemDisplayText(SelectedItem);
         if (SelectedItem is not null && rawText != selectedText)
         {
             var rawSelectionStart = _editableTextBox.SelectionStart;
@@ -496,7 +527,11 @@ public class MyComboBox : ComboBox
     {
         base.OnPropertyChanged(change);
 
-        if (change.Property == HintTextProperty)
+        if (change.Property == TextProperty && IsEditable && !_isTextChanging)
+        {
+            FillEditableText(change.NewValue as string ?? string.Empty);
+        }
+        else if (change.Property == HintTextProperty)
         {
             var hint = change.NewValue as string ?? string.Empty;
             PlaceholderText = hint;
