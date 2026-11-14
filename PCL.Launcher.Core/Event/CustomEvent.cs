@@ -1,4 +1,5 @@
-﻿using PCL.Core.App;
+﻿using System.Collections.Concurrent;
+using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
 using PCL.Core.Platform;
@@ -9,6 +10,8 @@ namespace PCL;
 
 public class CustomEvent
 {
+    private static readonly ConcurrentDictionary<string, byte> _helpOpening = new();
+
     /// <summary>
     ///     禁止自定义主页写入的高危设置黑名单
     /// </summary>
@@ -379,6 +382,9 @@ public class CustomEvent
             return;
         }
 
+        // 同一帮助地址同时只处理一次
+        if (!_helpOpening.TryAdd(args[0], 0)) return;
+
         LauncherCommon.RunInNewThread(() =>
         {
             try
@@ -394,6 +400,10 @@ public class CustomEvent
                     Lang.Text("Event.Error.ExecutionFailed", type, arg),
                     LauncherLogLevel.Msgbox,
                     userSummary: Lang.Text("Event.Error.ExecutionFailed", type, arg));
+            }
+            finally
+            {
+                _helpOpening.TryRemove(args[0], out _);
             }
         });
     }
