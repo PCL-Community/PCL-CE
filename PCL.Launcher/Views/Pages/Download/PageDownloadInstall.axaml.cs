@@ -15,19 +15,16 @@ namespace PCL.Views.Pages.Download;
 
 /// <summary>
 ///     下载安装页：选择 Minecraft 版本后进入配置阶段，通过 <see cref="InstallLoaderSelector" />
-///     选择 11 种加载器与附属组件，并执行合并安装。
+///     选择 11 种加载器与附属组件，并执行合并安装。提交后立即回到版本选择，进度与取消在下载任务栏。
 ///     安装失败或取消后由 <see cref="McInstallRecovery" /> 清理本次安装创建的路径，可用同名实例重试。
 /// </summary>
 public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
 {
     private readonly Loading.LoaderBase.PreviewFinishEventHandler _folderLoaderHandler;
-    private readonly DispatcherTimer _progressTimer;
     private readonly InstallLoaderSelector _selector;
     private readonly bool _uiBuilt;
     private readonly PageDownloadInstallViewModel _vm = new();
-    private Loading.LoaderCombo<string>? _installCombo;
-    private string _instanceFolder = "";
-    private string _instanceName = "";
+    private bool _startingInstall;
     private bool _instanceNameEdited;
     private bool _updatingInstanceName;
     private JsonObject? _version;
@@ -52,12 +49,6 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
             GameDownload.dlClientListLoader,
             _ => OnVersionListFinished());
 
-        _progressTimer = new DispatcherTimer
-        {
-            Interval = TimeSpan.FromMilliseconds(200)
-        };
-        _progressTimer.Tick += (_, _) => RefreshProgressText();
-
         TextInstanceName.ValidatedTextChanged += (_, _) => UpdateLocation();
         TextInstanceName.TextChanged += (_, _) =>
         {
@@ -69,17 +60,8 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
             UpdateLocation();
         };
         TextInstanceName.KeyDown += OnInstanceNameKeyDown;
-        BtnReselect.Click += (_, _) =>
-        {
-            if (!_vm.IsInstalling)
-                ShowSelectStage();
-        };
-        BtnStart.Click += (_, _) =>
-        {
-            if (!_vm.IsInstalling)
-                _ = StartInstallAsync();
-        };
-        BtnCancel.Click += (_, _) => _installCombo?.Abort();
+        BtnReselect.Click += (_, _) => ShowSelectStage();
+        BtnStart.Click += (_, _) => _ = StartInstallAsync();
 
         _folderLoaderHandler = OnMcFolderListPreviewFinish;
         GameFolders.McFolderListLoader.PreviewFinish += _folderLoaderHandler;
@@ -94,8 +76,6 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
         _selector.Activate();
         GameFolders.McFolderListLoader.PreviewFinish -= _folderLoaderHandler;
         GameFolders.McFolderListLoader.PreviewFinish += _folderLoaderHandler;
-        if (_vm.IsInstalling)
-            return;
         if (parameter is JsonObject version)
         {
             _waitingVersionName = null;
@@ -122,7 +102,7 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
 
     public void Refresh()
     {
-        if (!_uiBuilt || _vm.IsInstalling)
+        if (!_uiBuilt)
             return;
         _versionListBuilt = false;
         GameDownload.dlClientListLoader.Start(null, true);
@@ -163,8 +143,7 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
     /// <summary>退出安装配置阶段，回到版本选择。</summary>
     public void ExitSelectPage()
     {
-        if (!_vm.IsInstalling)
-            ShowSelectStage();
+        ShowSelectStage();
     }
 
     #region 版本选择阶段
@@ -259,7 +238,6 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
         _vm.VersionName = "";
         _vm.VersionUrl = null;
         _vm.VersionIcon = _versionIcon;
-        _vm.IsProgressVisible = false;
         _vm.CanStartInstall = false;
         _selector.SetMinecraft(null, null);
         BtnStart.Show = false;
@@ -463,9 +441,7 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
             }
 
             _vm.HasNoFolder = false;
-            var canStart = !_vm.IsInstalling
-                && _version is not null
-                && TextInstanceName.IsValidated;
+            var canStart = _version is not null && TextInstanceName.IsValidated;
             _vm.CanStartInstall = canStart;
             BtnStart.IsEnabled = canStart;
         }
@@ -481,7 +457,7 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
 
     private void OnInstanceNameKeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Key != Key.Enter || _vm.IsInstalling || !BtnStart.IsEnabled)
+        if (e.Key != Key.Enter || _startingInstall || !BtnStart.IsEnabled)
             return;
         _ = StartInstallAsync();
         e.Handled = true;
@@ -489,189 +465,165 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
 
     private async Task StartInstallAsync()
     {
-        if (_vm.IsInstalling)
+        if (_startingInstall)
             return;
-
-        if (!RestrictedFeatures.Check("minecraft-install"))
-            return;
-
-        if (_version is null || string.IsNullOrEmpty(_vm.VersionName))
-        {
-            ShowSelectStage();
-            return;
-        }
-
-        if (_selector.Selection.HasAny
-            && Config.Launch.IndieSolutionV2 is 0 or 2)
-        {
-            var isolation = await DialogService.Instance.ShowAsync(
-                new TextDialogRequest
-                {
-                    Title = Lang.Text("Download.Install.InstanceIsolation.Warning.Title"),
-                    Content = Lang.Text("Download.Install.InstanceIsolation.Warning.Message"),
-                    Buttons = DialogButtons.From(
-                        DialogButton.Create(
-                            Lang.Text("Download.Install.InstanceIsolation.Warning.Cancel")),
-                        DialogButton.Create(
-                            Lang.Text("Download.Install.InstanceIsolation.Warning.Continue"))),
-                    IsWarn = true
-                });
-            if (isolation.Button != 2)
-                return;
-        }
-
-        var folder = GameFolders.mcFolderSelected;
-        if (string.IsNullOrEmpty(folder))
-        {
-            HintService.Show(Hints.Error(Lang.Text("Download.Install.NoFolder")));
-            _vm.HasNoFolder = true;
-            return;
-        }
-
-        var name = TextInstanceName.Text?.Trim() ?? "";
-        TextInstanceName.Validate();
-        if (!TextInstanceName.IsValidated)
-        {
-            HintService.Show(
-                Hints.Error(
-                    string.IsNullOrEmpty(TextInstanceName.ValidateResult)
-                        ? Lang.Text("Download.Install.NameInvalid")
-                        : TextInstanceName.ValidateResult));
-            return;
-        }
-
-        var instanceFolder = Path.Combine(folder, "versions", name)
-            + Path.DirectorySeparatorChar;
-        var instanceJsonPath = Path.Combine(instanceFolder, $"{name}.json");
-        var overwrite = false;
-        if (File.Exists(instanceJsonPath))
-        {
-            var exists = await DialogService.Instance.ShowAsync(
-                new TextDialogRequest
-                {
-                    Title = Lang.Text("Minecraft.Download.Error.InstanceAlreadyExists.Title"),
-                    Content = Lang.Text(
-                        "Minecraft.Download.Error.InstanceAlreadyExists",
-                        name,
-                        Environment.NewLine),
-                    Buttons = DialogButtons.OkCancel,
-                    IsWarn = true
-                });
-            if (!exists.IsConfirmed)
-                return;
-            overwrite = true;
-        }
-
-        var request = new McInstallRequest
-        {
-            targetInstanceName = name,
-            targetInstanceFolder = instanceFolder,
-            minecraftJson = _vm.VersionUrl,
-            minecraftName = _vm.VersionName
-        };
-        _selector.Selection.ApplyTo(request);
-
-        var identifier = McInstallPipeline.GetIdentifier(instanceFolder);
-        if (Loading.loaderTaskbar.Any(loader => loader.Identifier == identifier))
-        {
-            HintService.Show(
-                Hints.Error(Lang.Text("Minecraft.Download.Error.InstanceDownloading")));
-            return;
-        }
-
-        List<Loading.LoaderBase> loaders;
+        _startingInstall = true;
         try
         {
-            loaders = McInstallPipeline.CreateInstallLoader(request, overwrite);
-        }
-        catch (CancelledException)
-        {
-            return;
-        }
-        catch (Exception ex)
-        {
-            HintService.Show(Hints.Error(ex.Message));
-            LauncherCommon.Log(ex, "开始安装失败");
-            return;
-        }
+            if (!RestrictedFeatures.Check("minecraft-install"))
+                return;
 
-        _instanceName = name;
-        _instanceFolder = instanceFolder;
-        _vm.IsInstalling = true;
-        _vm.CanStartInstall = false;
-        _vm.IsProgressVisible = true;
-        _selector.SetInstalling(true);
-        BtnStart.Show = false;
-        BtnReselect.IsEnabled = false;
-        LoadInstall.Text = Lang.Text("Download.Install.State.Loading");
-        LoadInstall.TextError = "";
-        LoadInstall.ShowProgress = true;
-        LoadInstall.State = new MyLoadingStateSimulator
-        {
-            LoadingState = LoadingState.Run
-        };
-        _progressTimer.Start();
+            if (_version is null || string.IsNullOrEmpty(_vm.VersionName))
+            {
+                ShowSelectStage();
+                return;
+            }
 
-        _installCombo = new Loading.LoaderCombo<string>(
-            $"{name} {Lang.Text("Download.Install.Title")}",
-            loaders)
+            if (_selector.Selection.HasAny
+                && Config.Launch.IndieSolutionV2 is 0 or 2)
+            {
+                var isolation = await DialogService.Instance.ShowAsync(
+                    new TextDialogRequest
+                    {
+                        Title = Lang.Text("Download.Install.InstanceIsolation.Warning.Title"),
+                        Content = Lang.Text("Download.Install.InstanceIsolation.Warning.Message"),
+                        Buttons = DialogButtons.From(
+                            DialogButton.Create(
+                                Lang.Text("Download.Install.InstanceIsolation.Warning.Cancel")),
+                            DialogButton.Create(
+                                Lang.Text("Download.Install.InstanceIsolation.Warning.Continue"))),
+                        IsWarn = true
+                    });
+                if (isolation.Button != 2)
+                    return;
+            }
+
+            var folder = GameFolders.mcFolderSelected;
+            if (string.IsNullOrEmpty(folder))
+            {
+                HintService.Show(Hints.Error(Lang.Text("Download.Install.NoFolder")));
+                _vm.HasNoFolder = true;
+                return;
+            }
+
+            var name = TextInstanceName.Text?.Trim() ?? "";
+            TextInstanceName.Validate();
+            if (!TextInstanceName.IsValidated)
+            {
+                HintService.Show(
+                    Hints.Error(
+                        string.IsNullOrEmpty(TextInstanceName.ValidateResult)
+                            ? Lang.Text("Download.Install.NameInvalid")
+                            : TextInstanceName.ValidateResult));
+                return;
+            }
+
+            var instanceFolder = Path.Combine(folder, "versions", name)
+                + Path.DirectorySeparatorChar;
+            var instanceJsonPath = Path.Combine(instanceFolder, $"{name}.json");
+            var overwrite = false;
+            if (File.Exists(instanceJsonPath))
+            {
+                var exists = await DialogService.Instance.ShowAsync(
+                    new TextDialogRequest
+                    {
+                        Title = Lang.Text("Minecraft.Download.Error.InstanceAlreadyExists.Title"),
+                        Content = Lang.Text(
+                            "Minecraft.Download.Error.InstanceAlreadyExists",
+                            name,
+                            Environment.NewLine),
+                        Buttons = DialogButtons.OkCancel,
+                        IsWarn = true
+                    });
+                if (!exists.IsConfirmed)
+                    return;
+                overwrite = true;
+            }
+
+            var request = new McInstallRequest
+            {
+                targetInstanceName = name,
+                targetInstanceFolder = instanceFolder,
+                minecraftJson = _vm.VersionUrl,
+                minecraftName = _vm.VersionName
+            };
+            _selector.Selection.ApplyTo(request);
+
+            var identifier = McInstallPipeline.GetIdentifier(instanceFolder);
+            if (Loading.loaderTaskbar.Any(loader => loader.Identifier == identifier))
+            {
+                HintService.Show(
+                    Hints.Error(Lang.Text("Minecraft.Download.Error.InstanceDownloading")));
+                return;
+            }
+
+            List<Loading.LoaderBase> loaders;
+            try
+            {
+                loaders = McInstallPipeline.CreateInstallLoader(request, overwrite);
+            }
+            catch (CancelledException)
+            {
+                return;
+            }
+            catch (Exception ex)
+            {
+                HintService.Show(Hints.Error(ex.Message));
+                LauncherCommon.Log(ex, "开始安装失败");
+                return;
+            }
+
+            var installCombo = new Loading.LoaderCombo<string>(
+                $"{name} {Lang.Text("Download.Install.Title")}",
+                loaders)
+            {
+                Identifier = identifier
+            };
+            Loading.LoaderBase.OnStateChangedUiEventHandler? onStateChanged = null;
+            onStateChanged = (loader, newState, _) =>
+            {
+                if (newState is LoadState.Waiting or LoadState.Loading)
+                    return;
+                if (onStateChanged is not null)
+                    loader.OnStateChangedUi -= onStateChanged;
+                OnInstallFinished(loader, newState, name, instanceFolder);
+            };
+            installCombo.OnStateChangedUi += onStateChanged;
+            installCombo.Start(instanceFolder);
+            Loading.LoaderTaskbarAdd(installCombo);
+            LoadingUi.Current?.RefreshDownloadButton();
+            ShowSelectStage();
+        }
+        finally
         {
-            Identifier = identifier
-        };
-        _installCombo.OnStateChangedUi += OnInstallStateChanged;
-        _installCombo.Start(instanceFolder);
-        Loading.LoaderTaskbarAdd(_installCombo);
-        LoadingUi.Current?.RefreshDownloadButton();
+            _startingInstall = false;
+        }
     }
 
-    private void OnInstallStateChanged(
+    private void OnInstallFinished(
         Loading.LoaderBase loader,
         LoadState newState,
-        LoadState oldState)
+        string instanceName,
+        string instanceFolder)
     {
-        if (newState is LoadState.Waiting or LoadState.Loading)
-            return;
-
-        _progressTimer.Stop();
-        LoadInstall.ShowProgress = false;
-        _vm.IsInstalling = false;
-        _selector.SetInstalling(false);
-        BtnReselect.IsEnabled = true;
-        UpdateLocation();
-
         // 失败或取消时回滚本次安装创建的路径；成功时清理备份
-        McInstallRecovery.HandleTerminalState(loader, _instanceFolder);
-        if (_installCombo is not null)
-        {
-            _installCombo.OnStateChangedUi -= OnInstallStateChanged;
-            _installCombo = null;
-        }
-
+        McInstallRecovery.HandleTerminalState(loader, instanceFolder);
         if (newState == LoadState.Finished)
         {
-            _vm.IsProgressVisible = false;
-            LoadInstall.State = new MyLoadingStateSimulator();
-            ApplyFinishedBookkeeping(_instanceName);
+            ApplyFinishedBookkeeping(instanceName);
             HintService.Show(
-                Hints.Success($"{_instanceName} {Lang.Text("Download.Install.Finished")}"));
+                Hints.Success($"{instanceName} {Lang.Text("Download.Install.Finished")}"));
             _versionListBuilt = false;
             OnVersionListFinished();
-            _selector.RefreshAll();
-            ShowSelectStage();
             return;
         }
 
-        LoadInstall.State = new MyLoadingStateSimulator
-        {
-            LoadingState = LoadingState.Error
-        };
-        LoadInstall.TextError = newState == LoadState.Aborted
-            ? Lang.Text("Minecraft.Download.Error.InstallationCanceled")
-            : loader.Error?.Message ?? Lang.Text("Download.Install.Error.OperationFailed");
-        BtnStart.Show = true;
-        UpdateLocation();
-        HintService.Show(Hints.Error(LoadInstall.TextError));
-        _selector.RefreshAll();
+        HintService.Show(
+            Hints.Error(
+                newState == LoadState.Aborted
+                    ? Lang.Text("Minecraft.Download.Error.InstallationCanceled")
+                    : loader.Error?.Message
+                      ?? Lang.Text("Download.Install.Error.OperationFailed")));
     }
 
     private static void ApplyFinishedBookkeeping(string instanceName)
@@ -699,17 +651,6 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
         {
             LauncherCommon.Log(ex, "安装完成后刷新实例列表失败");
         }
-    }
-
-    private void RefreshProgressText()
-    {
-        if (!_vm.IsInstalling || _installCombo is null)
-            return;
-        var running = _installCombo
-            .GetLoaderList()
-            .FirstOrDefault(loader => loader.State == LoadState.Loading);
-        _vm.ProgressText = running?.DisplayName ?? Lang.Text("Download.Install.State.Loading");
-        LoadInstall.Text = _vm.ProgressText;
     }
 
     #endregion

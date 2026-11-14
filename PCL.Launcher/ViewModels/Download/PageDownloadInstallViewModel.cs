@@ -30,13 +30,7 @@ public partial class PageDownloadInstallViewModel : ViewModelBase
 
     [ObservableProperty] public partial bool IsConfigStageVisible { get; set; }
 
-    [ObservableProperty] public partial bool IsInstalling { get; set; }
-
-    [ObservableProperty] public partial bool IsProgressVisible { get; set; }
-
     [ObservableProperty] public partial string LoaderWarning { get; set; } = "";
-
-    [ObservableProperty] public partial string ProgressText { get; set; } = "";
 
     [ObservableProperty]
     public partial string StartButtonText { get; set; } =

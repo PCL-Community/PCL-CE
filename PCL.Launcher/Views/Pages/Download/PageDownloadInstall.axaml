@@ -108,24 +108,6 @@
                                    Theme="Red"
                                    IsVisible="{Binding HasNoFolder}"
                                    Text="{loc:Loc Download.Install.NoFolder}" />
-
-                        <ui:MyCard x:Name="CardProgress"
-                                   Margin="0,0,0,12"
-                                   IsVisible="{Binding IsProgressVisible}"
-                                   UseAnimation="False">
-                            <StackPanel Margin="20,20,20,18"
-                                        Spacing="12">
-                                <ui:MyLoading x:Name="LoadInstall"
-                                              HorizontalAlignment="Center"
-                                              AutoRun="False"
-                                              ShowProgress="True" />
-                                <ui:MyButton x:Name="BtnCancel"
-                                             MinWidth="120"
-                                             Padding="13,0"
-                                             HorizontalAlignment="Center"
-                                             Text="{loc:Loc Common.Action.Cancel}" />
-                            </StackPanel>
-                        </ui:MyCard>
                     </StackPanel>
                 </Grid>
             </StackPanel>
