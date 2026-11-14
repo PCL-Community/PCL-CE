@@ -442,12 +442,9 @@ public static partial class Animations
     {
         if (ani.obj is not Visual element) return;
 
-        var center = new RelativePoint(0.5d, 0.5d, RelativeUnit.Relative);
-        if (element.RenderTransformOrigin != center)
-            element.RenderTransformOrigin = center;
-
         if (element.RenderTransform is not RotateTransform transform)
         {
+            element.RenderTransformOrigin = new RelativePoint(0.5d, 0.5d, RelativeUnit.Relative);
             transform = new RotateTransform(0d);
             element.RenderTransform = transform;
         }
