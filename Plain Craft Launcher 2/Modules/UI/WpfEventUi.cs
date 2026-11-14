@@ -46,7 +46,7 @@ public sealed class WpfEventUi : IEventUi
     public void OpenHelp(string location)
     {
         var content = PageHelpDetail.LoadContent(location);
-        PlatformServices.UiDispatcher?.Post(() =>
+        PlatformServices.UiDispatcher?.Invoke(() =>
         {
             var page = new PageHelpDetail(content);
             Launcher.frmMain?.PageChange(
