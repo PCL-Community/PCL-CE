@@ -81,21 +81,28 @@ public partial class PageLoginProfileViewModel : ViewModelBase
     {
         try
         {
+            var includeOthers = PageInstanceSetupViewModel.CanCreateOtherProfile();
             var options = new List<DialogOption>
             {
                 new()
                 {
-                    Text = Lang.Text("Launch.Account.Type.Microsoft")
-                },
-                new()
-                {
-                    Text = Lang.Text("Launch.Account.Type.ThirdParty")
-                },
-                new()
-                {
-                    Text = Lang.Text("Launch.Account.Type.Offline")
+                    Text = Lang.Text("Launch.Account.Type.Microsoft"),
+                    SvgIcon = "lucide/shield-check"
                 }
             };
+            if (includeOthers)
+            {
+                options.Add(new DialogOption
+                {
+                    Text = Lang.Text("Launch.Account.Type.ThirdParty"),
+                    SvgIcon = "lucide/network"
+                });
+                options.Add(new DialogOption
+                {
+                    Text = Lang.Text("Launch.Account.Type.Offline"),
+                    SvgIcon = "lucide/link-2-off"
+                });
+            }
             var result = await Dialog.ShowAsync(
                 new SelectDialogRequest
                 {
