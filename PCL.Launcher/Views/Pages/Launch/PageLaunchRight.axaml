@@ -11,30 +11,6 @@
                     Grid.IsSharedSizeScope="True">
             <StackPanel x:Name="PanCustom" />
 
-            <ui:MyCard x:Name="PanLoading"
-                       Margin="0,0,0,15"
-                       HorizontalAlignment="Center"
-                       IsVisible="False">
-                <ui:MyLoading Margin="20,20,20,17"
-                              Text="{loc:Loc Launch.Homepage.Loading}" />
-            </ui:MyCard>
-
-            <ui:MyCard x:Name="PanError"
-                       Margin="0,0,0,15"
-                       Title="{loc:Loc Launch.Homepage.LoadFailed.Title}"
-                       IsVisible="False">
-                <StackPanel Margin="25,38,23,15"
-                            Spacing="6">
-                    <TextBlock x:Name="LabError"
-                               HorizontalAlignment="Left"
-                               Foreground="{DynamicResource ColorBrushRedLight}"
-                               TextWrapping="Wrap" />
-                    <ui:MyTextButton x:Name="BtnRetry"
-                                     HorizontalAlignment="Left"
-                                     Text="{loc:Loc Launch.Homepage.LoadFailed.Retry}" />
-                </StackPanel>
-            </ui:MyCard>
-
             <ui:MyCard x:Name="PanHint"
                        Margin="0,15,0,15"
                        Title="{loc:Loc Launch.Right.CommunityHint.Title}">

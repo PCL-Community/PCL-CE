@@ -2,14 +2,14 @@ using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Network;
-using PCL.Xaml;
 
 namespace PCL.Views.Pages.Homepage;
 
 /// <summary>
 ///     主页内容的解析结果：描述当前配置下主页应当展示什么，以及内容来自哪里。
-///     运行时 XAML 主页在 <see cref="Xaml" /> 中携带原始内容，由白名单渲染器转换；
-///     联网主页在没有缓存时返回 <see cref="IsLoading" />，由界面层清空旧页并等待后台下载。
+///     运行时 XAML 主页在 <see cref="Xaml" /> 中携带原始内容，由 WPF 兼容渲染器
+///     或 AXAML 运行时加载器转换；联网主页在没有缓存时返回 <see cref="IsLoading" />，
+///     由界面层清空旧页并等待后台下载。
 /// </summary>
 public sealed record HomepageContent
 {
@@ -51,6 +51,10 @@ public static class HomepageSource
 
     public static string CachePath => Path.Combine(Paths.Temp, "Cache", CustomFileCacheName);
 
+    /// <summary>
+    ///     重置主页的缓存状态。与 WPF 一致，这里不删除 <see cref="CachePath" />，
+    ///     只清除记住的 URL/版本；下次联网刷新会重新下载，失败时仍保留旧缓存文件。
+    /// </summary>
     public static void ClearCache()
     {
         States.UI.SavedHomepageUrl = "";
@@ -59,8 +63,6 @@ public static class HomepageSource
         {
             lock (CacheLock)
             {
-                if (File.Exists(CachePath))
-                    File.Delete(CachePath);
                 var tempPath = CachePath + ".tmp";
                 if (File.Exists(tempPath))
                     File.Delete(tempPath);
@@ -68,7 +70,7 @@ public static class HomepageSource
         }
         catch (Exception ex)
         {
-            LogWrapper.Debug(ex, "Launch", "清空主页缓存失败");
+            LogWrapper.Debug(ex, "Launch", "重置主页缓存状态失败");
         }
     }
 
@@ -103,7 +105,9 @@ public static class HomepageSource
 
     private static HomepageContent ResolveLocalFile()
     {
-        var path = Path.Combine(Paths.Data, "Custom.xaml");
+        var xamlPath = Path.Combine(Paths.Data, "Custom.xaml");
+        var axamlPath = Path.Combine(Paths.Data, "Custom.axaml");
+        var path = File.Exists(xamlPath) || !File.Exists(axamlPath) ? xamlPath : axamlPath;
         LogWrapper.Info("Launch", "主页自定义数据来源：本地文件");
         if (!File.Exists(path))
             return new HomepageContent
@@ -300,14 +304,6 @@ public static class HomepageSource
                 if (content.Length > MaxContentLength)
                     throw new InvalidDataException(
                         $"下载到的主页内容过大（{content.Length} 字符，上限 {MaxContentLength} 字符）");
-
-                var security = XamlSecurityValidator.ValidateFragment(content);
-                if (!security.IsValid)
-                    throw new InvalidDataException(
-                        "下载到的主页未通过安全校验："
-                        + string.Join("；", security.Errors));
-                if (security.ElementCount == 0)
-                    throw new InvalidDataException("下载到的主页不是有效的 XAML 界面");
 
                 lock (CacheLock)
                 {

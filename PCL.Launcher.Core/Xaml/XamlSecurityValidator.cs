@@ -25,17 +25,14 @@ public sealed class XamlSecurityResult
 ///     拒绝任意 CLR 类型、事件处理器、外部资源字典、file/UNC 路径与路径穿越。
 ///     本类不依赖任何 UI 框架，可供主页、帮助与测试共用。
 /// </summary>
-public static class XamlSecurityValidator
+public static partial class XamlSecurityValidator
 {
     public const string PresentationNamespace =
         "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
 
     public const string XamlNamespace = "http://schemas.microsoft.com/winfx/2006/xaml";
-
+    public const string AvaloniaNamespace = "https://github.com/avaloniaui";
     private const int MaxLength = 2 * 1024 * 1024;
-
-    private static readonly Regex MarkupExtensionPattern =
-        new(@"^\{([A-Za-z_][\w.:]*)\s+([^{}]*)\}$", RegexOptions.Compiled);
 
     private static readonly HashSet<string> AllowedElementNames =
         new(StringComparer.OrdinalIgnoreCase)
@@ -57,6 +54,7 @@ public static class XamlSecurityValidator
             "Span",
             "Bold",
             "Italic",
+            "Underline",
             "LineBreak",
             "Hyperlink",
             "Image",
@@ -65,6 +63,14 @@ public static class XamlSecurityValidator
             "Ellipse",
             "Line",
             "Path",
+            "TextBox",
+            "FlowDocumentScrollViewer",
+            "FlowDocument",
+            "Paragraph",
+            "List",
+            "ListItem",
+            "Section",
+            "ControlTemplate",
             "Button",
             "MyButton",
             "MyTextButton",
@@ -114,7 +120,8 @@ public static class XamlSecurityValidator
             "Point",
             "Vector",
             "Rect",
-            "Size"
+            "Size",
+            "String"
         };
 
     private static readonly HashSet<string> AllowedPropertyElementNames =
@@ -181,7 +188,9 @@ public static class XamlSecurityValidator
             "Radius",
             "MappingMode",
             "SpreadMethod",
-            "Transform"
+            "Transform",
+            "Triggers",
+            "Template"
         };
 
     private static readonly HashSet<string> AllowedXamlAttributes =
@@ -271,7 +280,8 @@ public static class XamlSecurityValidator
                 + " xmlns:x=\""
                 + XamlNamespace
                 + "\""
-                + " xmlns:local=\"clr-namespace:PCL\">"
+                + " xmlns:local=\"clr-namespace:PCL\""
+                + " xmlns:sys=\"clr-namespace:System;assembly=System.Runtime\">"
                 + StripXmlDeclaration(fragment)
                 + "</Root>";
             document = XDocument.Parse(wrapped, LoadOptions.PreserveWhitespace);
@@ -302,22 +312,15 @@ public static class XamlSecurityValidator
             return true;
 
         var value = source.Trim();
-        if (value.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
-            || value.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
-            return true;
-
-        // 本地/嵌入资源不允许任何 ".." 路径段，防止借 /images/ 前缀穿越目录。
-        if (value.Contains("..", StringComparison.Ordinal))
-            return false;
-
-        if (value.StartsWith("pack://", StringComparison.OrdinalIgnoreCase)
-            && value.Contains("/images/", StringComparison.OrdinalIgnoreCase))
-            return true;
-        if (value.StartsWith("/images/", StringComparison.Ordinal)
-            || value.StartsWith("avares://PCL.Launcher/Assets/", StringComparison.Ordinal))
-            return true;
-
-        return false;
+        return value.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
+            || (!value.Contains("..", StringComparison.Ordinal)
+                && ((value.StartsWith("pack://", StringComparison.OrdinalIgnoreCase)
+                        && value.Contains("/images/", StringComparison.OrdinalIgnoreCase))
+                    || value.StartsWith("/images/", StringComparison.Ordinal)
+                    || value.StartsWith(
+                        "avares://PCL.Launcher/Assets/",
+                        StringComparison.Ordinal)));
     }
 
     private static void ValidateElement(XElement element, XamlSecurityResult result)
@@ -354,6 +357,13 @@ public static class XamlSecurityValidator
                 return;
             }
 
+            if (localName.Equals("String", StringComparison.OrdinalIgnoreCase)
+                && IsSystemStringNamespace(namespaceName))
+            {
+                ValidateAttributes(element, result);
+                return;
+            }
+
             if (localName.Equals("ResourceDictionary", StringComparison.OrdinalIgnoreCase)
                 && element
                     .Attributes()
@@ -377,7 +387,6 @@ public static class XamlSecurityValidator
     {
         foreach (var attribute in element.Attributes())
         {
-            // xmlns 声明本身不会实例化类型；元素/属性实际使用时的命名空间会被严格校验。
             if (attribute.IsNamespaceDeclaration)
                 continue;
 
@@ -429,24 +438,25 @@ public static class XamlSecurityValidator
 
             ValidateMarkupExtension(attribute.Value, localName, result);
 
-            if (element.Name.LocalName == "Setter"
-                && localName.Equals("Property", StringComparison.OrdinalIgnoreCase))
-            {
-                if (attribute.Value.Contains("EventType", StringComparison.OrdinalIgnoreCase)
-                    || attribute.Value.Contains("Command", StringComparison.OrdinalIgnoreCase))
-                    result.Fail("不允许通过 Style Setter 注入事件或命令属性");
-                if (attribute.Value.EndsWith("Source", StringComparison.OrdinalIgnoreCase)
-                    || attribute.Value.Equals("Logo", StringComparison.OrdinalIgnoreCase))
-                {
-                    var setterValue = element
-                        .Attributes()
-                        .FirstOrDefault(item =>
-                            item.Name.LocalName.Equals("Value", StringComparison.OrdinalIgnoreCase))
-                        ?.Value;
-                    if (setterValue is not null)
-                        ValidateSource(setterValue, "Setter.Value", result);
-                }
-            }
+            if (element.Name.LocalName != "Setter"
+                || !localName.Equals("Property", StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            if (attribute.Value.Contains("Command", StringComparison.OrdinalIgnoreCase))
+                result.Fail("不允许通过 Style Setter 注入命令属性");
+
+            if (!attribute.Value.EndsWith("Source", StringComparison.OrdinalIgnoreCase)
+                && !attribute.Value.Equals("Logo", StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            var setterValue = element
+                .Attributes()
+                .FirstOrDefault(item =>
+                    item.Name.LocalName.Equals("Value", StringComparison.OrdinalIgnoreCase))
+                ?.Value;
+
+            if (setterValue is not null)
+                ValidateSource(setterValue, "Setter.Value", result);
         }
     }
 
@@ -457,11 +467,10 @@ public static class XamlSecurityValidator
             .FirstOrDefault(attribute =>
                 attribute.Name.LocalName.Equals("Type", StringComparison.OrdinalIgnoreCase))
             ?.Value;
-        if (string.IsNullOrWhiteSpace(typeValue))
-            return false;
-        if (!TryGetXTypeName(typeValue.Trim(), out var typeName))
-            return false;
-        return AllowedElementNames.Contains(StripClrPrefix(typeName));
+
+        return !string.IsNullOrWhiteSpace(typeValue)
+            && TryGetXTypeName(typeValue.Trim(), out var typeName)
+            && AllowedElementNames.Contains(StripClrPrefix(typeName));
     }
 
     private static bool IsAllowedPropertyElement(string localName)
@@ -502,15 +511,11 @@ public static class XamlSecurityValidator
 
     private static bool IsForbiddenEventAttribute(string localName)
     {
-        if (ForbiddenEventAttributes.Contains(localName))
-            return true;
-
-        if (localName.Length > 2
-            && localName.StartsWith("On", StringComparison.Ordinal)
-            && char.IsUpper(localName[2]))
-            return true;
-
-        return localName.Contains("Command", StringComparison.OrdinalIgnoreCase)
+        return ForbiddenEventAttributes.Contains(localName)
+            || (localName.Length > 2
+                && localName.StartsWith("On", StringComparison.Ordinal)
+                && char.IsUpper(localName[2]))
+            || localName.Contains("Command", StringComparison.OrdinalIgnoreCase)
             || localName.EndsWith("Click", StringComparison.OrdinalIgnoreCase)
             || localName.EndsWith("Tapped", StringComparison.OrdinalIgnoreCase)
             || localName.EndsWith("Gesture", StringComparison.OrdinalIgnoreCase)
@@ -534,10 +539,10 @@ public static class XamlSecurityValidator
         if (IsSafeSource(value))
             return;
 
-        if (value.Contains("..", StringComparison.Ordinal))
-            result.Fail($"不允许的路径穿越（{attributeName}=\"{value}\"）");
-        else
-            result.Fail($"不允许的本地或外部资源地址（{attributeName}=\"{value}\"）");
+        result.Fail(
+            value.Contains("..", StringComparison.Ordinal)
+                ? $"不允许的路径穿越（{attributeName}=\"{value}\"）"
+                : $"不允许的本地或外部资源地址（{attributeName}=\"{value}\"）");
     }
 
     private static void ValidateMarkupExtension(
@@ -554,7 +559,7 @@ public static class XamlSecurityValidator
             && AllowedElementNames.Contains(StripClrPrefix(targetType)))
             return;
 
-        var match = MarkupExtensionPattern.Match(trimmed);
+        var match = MarkupExtensionPattern().Match(trimmed);
         if (!match.Success)
         {
             result.Fail($"不允许的标记扩展（{attributeName}=\"{value}\"）");
@@ -562,8 +567,16 @@ public static class XamlSecurityValidator
         }
 
         var extension = match.Groups[1].Value;
-        if (extension is not ("DynamicResource" or "StaticResource"))
+        if (extension is not ("DynamicResource" or "StaticResource" or "TemplateBinding"))
             result.Fail($"不允许的标记扩展：{extension}");
+    }
+
+    private static bool IsSystemStringNamespace(string namespaceName)
+    {
+        return namespaceName.StartsWith("clr-namespace:System", StringComparison.Ordinal)
+            && (namespaceName.Contains("System.Runtime", StringComparison.Ordinal)
+                || namespaceName.Contains("mscorlib", StringComparison.Ordinal)
+                || namespaceName.Equals("clr-namespace:System", StringComparison.Ordinal));
     }
 
     private static bool TryGetXTypeName(string value, out string typeName)
@@ -591,4 +604,7 @@ public static class XamlSecurityValidator
         var end = trimmed.IndexOf("?>", StringComparison.Ordinal);
         return end < 0 ? xaml : trimmed[(end + 2)..];
     }
+
+    [GeneratedRegex(@"^\{([A-Za-z_][\w.:]*)\s+([^{}]*)\}$", RegexOptions.Compiled)]
+    private static partial Regex MarkupExtensionPattern();
 }

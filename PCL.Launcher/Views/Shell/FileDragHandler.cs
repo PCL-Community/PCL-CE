@@ -13,7 +13,7 @@ using PCL.Views.Pages.Instance;
 namespace PCL.Views.Shell;
 
 /// <summary>
-///     主窗口文件拖放：authlib 验证服务器链接、自定义主页 xaml、实例资源、存档、整合包和崩溃报告。
+///     主窗口文件拖放：authlib 验证服务器链接、自定义主页 AXAML/XAML、实例资源、存档、整合包和崩溃报告。
 ///     页面可通过 <see cref="FileDropped" /> 抢先接收拖入的文件；未被页面处理的文件由这里按类型路由。
 /// </summary>
 public sealed class FileDragHandler
@@ -175,7 +175,7 @@ public sealed class FileDragHandler
         }
 
         var extension = Path.GetExtension(paths[0]).ToLowerInvariant();
-        if (extension == ".xaml")
+        if (extension is ".xaml" or ".axaml")
         {
             LoadCustomHomepage(paths[0]);
             return;

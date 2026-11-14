@@ -492,11 +492,12 @@
                     <ui:MyHint x:Name="HintCustom"
                                Margin="0,15,0,-4"
                                Theme="Blue"
-                               Text="{loc:Loc Setup.Ui.Homepage.HintReferToModSetup}" />
+                               IsVisible="False" />
                     <ui:MyHint x:Name="HintCustomWarn"
                                Margin="0,15,0,6"
                                Theme="Yellow"
                                CanClose="True"
+                               IsVisible="False"
                                RelativeSetup="HintCustomWarn"
                                Text="{loc:Loc Setup.Ui.Homepage.NetWarning}" />
                     <Grid x:Name="PanCustomLocal"

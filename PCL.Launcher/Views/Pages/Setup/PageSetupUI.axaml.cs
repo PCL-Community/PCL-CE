@@ -341,6 +341,27 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         PanCustomLocal.IsVisible = type == 1;
         PanCustomNet.IsVisible = type == 2;
         PanCustomPreset.IsVisible = type == 3;
+
+        var showHint = type is 1 or 2;
+        HintCustom.IsVisible = showHint;
+        HintCustomWarn.IsVisible = showHint && !States.Hint.UntrustedHomepage;
+        if (showHint)
+        {
+            HintCustom.Text = Lang.Text(
+                type == 1
+                    ? "Setup.Ui.Homepage.LocalFile.Hint"
+                    : "Setup.Ui.Homepage.NetUpdate.Hint");
+            CustomEventService.SetEventType(
+                HintCustom,
+                type == 2 ? EventType.OpenUrl : EventType.None);
+            CustomEventService.SetEventData(
+                HintCustom,
+                type == 2
+                    ? "https://github.com/PCL-Community/PCL-CE/discussions"
+                    : "");
+        }
+
+        CardCustom.TriggerForceResize();
     }
 
     private static void RefreshTitleBar()
