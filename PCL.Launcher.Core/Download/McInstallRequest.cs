@@ -1,5 +1,9 @@
 namespace PCL;
 
+/// <summary>
+///     合并安装请求。所有字段描述“用户想安装什么”，组合合法性与前置条件由
+///     <see cref="McInstallPipeline" /> 在开始安装前统一校验。
+/// </summary>
 public class McInstallRequest
 {
     /// <summary>
@@ -106,4 +110,46 @@ public class McInstallRequest
     ///     必填。安装目标实例名称。
     /// </summary>
     public required string targetInstanceName;
+
+    /// <summary>是否请求了 Forge / NeoForge / Cleanroom 中的任意一种。</summary>
+    public bool HasForgelikeLoader =>
+        forgeEntry is not null
+        || forgeVersion is not null
+        || neoForgeEntry is not null
+        || neoForgeVersion is not null
+        || cleanroomEntry is not null
+        || cleanroomVersion is not null;
+
+    /// <summary>是否请求了任意一个主加载器（Forge / NeoForge / Cleanroom / Fabric / Legacy Fabric / LabyMod）。</summary>
+    public bool HasMainLoader =>
+        forgeEntry is not null
+        || forgeVersion is not null
+        || neoForgeEntry is not null
+        || neoForgeVersion is not null
+        || cleanroomEntry is not null
+        || cleanroomVersion is not null
+        || fabricVersion is not null
+        || legacyFabricVersion is not null
+        || labyModCommitRef is not null;
+
+    /// <summary>是否请求了任意一个加载器或附属组件。</summary>
+    public bool HasAnyLoader =>
+        HasMainLoader
+        || liteLoaderEntry is not null
+        || optiFineEntry is not null
+        || optiFineVersion is not null
+        || fabricApi is not null
+        || legacyFabricApi is not null
+        || optiFabric is not null;
+
+    /// <summary>
+    ///     该安装是否会以“模组”形式放置 OptiFine，而不是运行 OptiFine 安装器。
+    ///     与 WPF 的 McInstallFolders.OptiFineAsMod 判定保持一致。
+    /// </summary>
+    public bool OptiFineAsMod =>
+        (optiFineEntry is not null || optiFineVersion is not null)
+        && (HasForgelikeLoader
+            || fabricVersion is not null
+            || legacyFabricVersion is not null
+            || liteLoaderEntry is not null);
 }

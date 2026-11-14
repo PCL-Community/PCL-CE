@@ -1,0 +1,265 @@
+<ui:MyPageRight xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:ui="using:PCL.UI.Controls"
+                xmlns:loc="using:PCL.Core.UI"
+                x:CompileBindings="False"
+                x:Class="PCL.Views.Pages.Setup.PageSetupGameManage">
+    <ui:MyScrollViewer x:Name="PanBack"
+                       HorizontalScrollBarVisibility="Disabled"
+                       VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="25,10"
+                    Grid.IsSharedSizeScope="True">
+            <ui:MyCard Margin="0,15"
+                       Title="{loc:Loc Setup.GameManage.Source.Title}">
+                <StackPanel Margin="25,37,25,15">
+                    <Grid x:Name="PanDownloadSource"
+                          RowDefinitions="28,7,28,7,27,7,27,27,27,27,27">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"
+                                              SharedSizeGroup="Name" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Row="0"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,25,0"
+                                   Text="{loc:Loc Setup.GameManage.Source.File}" />
+                        <ui:MyComboBox x:Name="ComboDownloadSource"
+                                       Grid.Row="0"
+                                       Grid.Column="1"
+                                       HorizontalAlignment="Stretch"
+                                       SelectedIndex="{Binding FileSourceIndex, Mode=TwoWay}">
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Source.UseMirror}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Source.PreferOfficialThenMirror}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Source.UseOfficial}" />
+                        </ui:MyComboBox>
+
+                        <TextBlock Grid.Row="2"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,25,0"
+                                   Text="{loc:Loc Setup.GameManage.Source.Version}" />
+                        <ui:MyComboBox x:Name="ComboDownloadVersion"
+                                       Grid.Row="2"
+                                       Grid.Column="1"
+                                       HorizontalAlignment="Stretch"
+                                       SelectedIndex="{Binding VersionListIndex, Mode=TwoWay}">
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Source.Version.Mirror}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Source.PreferOfficialThenMirror}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Source.UseOfficial}" />
+                        </ui:MyComboBox>
+
+                        <TextBlock Grid.Row="4"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,25,0"
+                                   Text="{loc:Loc Setup.GameManage.Download.HttpProtocol}" />
+                        <ui:MyComboBox x:Name="ComboDownloadHttpMode"
+                                       Grid.Row="4"
+                                       Grid.Column="1"
+                                       HorizontalAlignment="Stretch"
+                                       SelectedIndex="{Binding HttpModeIndex, Mode=TwoWay}">
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Download.HttpProtocol.Auto}"
+                                               ToolTip.Tip="{loc:Loc Setup.GameManage.Download.HttpProtocol.Auto.ToolTip}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Download.HttpProtocol.Http11}"
+                                               ToolTip.Tip="{loc:Loc Setup.GameManage.Download.HttpProtocol.Http11.ToolTip}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Download.HttpProtocol.Http2}"
+                                               ToolTip.Tip="{loc:Loc Setup.GameManage.Download.HttpProtocol.Http2.ToolTip}" />
+                        </ui:MyComboBox>
+
+                        <TextBlock Grid.Row="6"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,25,0"
+                                   Text="{loc:Loc Setup.GameManage.Download.Threads}" />
+                        <ui:MySlider x:Name="SliderDownloadThread"
+                                     Grid.Row="6"
+                                     Grid.Column="1"
+                                     MaxValue="255"
+                                     Value="63"
+                                     ValueByKey="1"
+                                     ToolTip.Tip="{loc:Loc Setup.GameManage.Download.Threads.ToolTip}" />
+
+                        <TextBlock Grid.Row="7"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,25,0"
+                                   Text="{loc:Loc Setup.GameManage.Download.FileConnections}" />
+                        <ui:MySlider x:Name="SliderDownloadFileConnection"
+                                     Grid.Row="7"
+                                     Grid.Column="1"
+                                     MaxValue="7"
+                                     Value="7"
+                                     ValueByKey="1"
+                                     ToolTip.Tip="{loc:Loc Setup.GameManage.Download.FileConnections.ToolTip}" />
+
+                        <TextBlock Grid.Row="8"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,25,0"
+                                   Text="{loc:Loc Setup.GameManage.Download.SpeedLimit}" />
+                        <ui:MySlider x:Name="SliderDownloadSpeed"
+                                     Grid.Row="8"
+                                     Grid.Column="1"
+                                     MaxValue="42"
+                                     Value="42"
+                                     ToolTip.Tip="{loc:Loc Setup.GameManage.Download.SpeedLimit.ToolTip}" />
+
+                        <TextBlock Grid.Row="9"
+                                   VerticalAlignment="Top"
+                                   Margin="0,5,25,5"
+                                   Text="{loc:Loc Setup.GameManage.Download.TargetFolder}" />
+                        <TextBlock Grid.Row="9"
+                                   Grid.Column="1"
+                                   Margin="0,5"
+                                   VerticalAlignment="Center"
+                                   Opacity="0.5"
+                                   TextWrapping="Wrap"
+                                   Text="{loc:Loc Setup.GameManage.Download.TargetFolder.Hint}" />
+
+                        <TextBlock Grid.Row="10"
+                                   Margin="0,5"
+                                   Text="{loc:Loc Setup.GameManage.Download.InstallBehavior}" />
+                        <Grid Grid.Row="10"
+                              Grid.Column="1"
+                              RowDefinitions="Auto"
+                              ColumnDefinitions="*,*">
+                            <ui:MyCheckBox x:Name="CheckDownloadAutoSelectVersion"
+                                           Grid.Column="0"
+                                           Text="{loc:Loc Setup.GameManage.Download.AutoSelectInstance}" />
+                            <ui:MyCheckBox x:Name="CheckFixAuthlib"
+                                           Grid.Column="1"
+                                           Text="{loc:Loc Setup.GameManage.Download.FixAuthlib}"
+                                           ToolTip.Tip="{loc:Loc Setup.GameManage.Download.FixAuthlib.ToolTip}" />
+                        </Grid>
+                    </Grid>
+                </StackPanel>
+            </ui:MyCard>
+
+            <ui:MyCard Margin="0,0,0,15"
+                       Title="{loc:Loc Setup.GameManage.Community.Title}">
+                <StackPanel Margin="25,37,25,12">
+                    <Grid x:Name="PanCommunityRows"
+                          RowDefinitions="28,7,28,7,28,7,28,7,Auto">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"
+                                              SharedSizeGroup="Name" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Row="0"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,25,0"
+                                   Text="{loc:Loc Setup.GameManage.Community.Source}" />
+                        <ui:MyComboBox x:Name="ComboDownloadMod"
+                                       Grid.Row="0"
+                                       Grid.Column="1"
+                                       HorizontalAlignment="Stretch"
+                                       SelectedIndex="{Binding CompSourceIndex, Mode=TwoWay}">
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Source.UseMirror}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.Source.PreferOfficialWithFallback}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Source.UseOfficial}" />
+                        </ui:MyComboBox>
+
+                        <TextBlock Grid.Row="2"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,25,0"
+                                   Text="{loc:Loc Setup.GameManage.Community.FilenameFormat}" />
+                        <ui:MyComboBox x:Name="ComboDownloadTranslateV2"
+                                       Grid.Row="2"
+                                       Grid.Column="1"
+                                       HorizontalAlignment="Stretch"
+                                       SelectedIndex="{Binding TranslateFormatIndex, Mode=TwoWay}"
+                                       ToolTip.Tip="{loc:Loc Setup.GameManage.Community.FilenameFormat.ToolTip}">
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.FilenameFormat.Style0}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.FilenameFormat.Style1}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.FilenameFormat.Style2}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.FilenameFormat.Style3}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.FilenameFormat.Style4}" />
+                        </ui:MyComboBox>
+
+                        <TextBlock Grid.Row="4"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,25,0"
+                                   Text="{loc:Loc Setup.GameManage.Community.ModManageStyle}" />
+                        <ui:MyComboBox x:Name="ComboModLocalNameStyle"
+                                       Grid.Row="4"
+                                       Grid.Column="1"
+                                       HorizontalAlignment="Stretch"
+                                       SelectedIndex="{Binding LocalNameStyleIndex, Mode=TwoWay}"
+                                       ToolTip.Tip="{loc:Loc Setup.GameManage.Community.ModManageStyle.ToolTip}">
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.ModManageStyle.TitleTranslation}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.ModManageStyle.TitleFilename}" />
+                        </ui:MyComboBox>
+
+                        <TextBlock Grid.Row="6"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,25,0"
+                                   Text="{loc:Loc Setup.GameManage.Community.QuickDownload}" />
+                        <ui:MyComboBox x:Name="ComboDownloadQuickBehavior"
+                                       Grid.Row="6"
+                                       Grid.Column="1"
+                                       HorizontalAlignment="Stretch"
+                                       SelectedIndex="{Binding QuickBehaviorIndex, Mode=TwoWay}"
+                                       ToolTip.Tip="{loc:Loc Setup.GameManage.Community.QuickDownload.ToolTip}">
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.QuickDownload.AlwaysAsk}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.QuickDownload.CurrentInstance}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.QuickDownload.AskInstance}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.GameManage.Community.QuickDownload.AskPath}" />
+                        </ui:MyComboBox>
+                    </Grid>
+
+                    <Grid Margin="0,2,0,0"
+                          RowDefinitions="Auto,Auto">
+                        <ui:MyCheckBox x:Name="CheckDownloadIgnoreQuilt"
+                                       Grid.Row="0"
+                                       Height="22"
+                                       Margin="0,2,0,4"
+                                       Text="{loc:Loc Setup.GameManage.Community.HideQuilt}"
+                                       ToolTip.Tip="{loc:Loc Setup.GameManage.Community.HideQuilt.ToolTip}" />
+                        <ui:MyCheckBox x:Name="CheckDownloadAutoInstallDependencies"
+                                       Grid.Row="1"
+                                       Height="22"
+                                       Margin="0,2,0,4"
+                                       Text="{loc:Loc Setup.GameManage.Community.AutoInstallDependencies}"
+                                       ToolTip.Tip="{loc:Loc Setup.GameManage.Community.AutoInstallDependencies.ToolTip}" />
+                    </Grid>
+                </StackPanel>
+            </ui:MyCard>
+
+            <ui:MyCard Margin="0,0,0,15"
+                       Title="{loc:Loc Setup.GameManage.Accessibility.Title}">
+                <Grid Margin="25,40,25,17"
+                      ColumnDefinitions="Auto,160,Auto"
+                      RowDefinitions="22,8,22,8,22,8">
+                    <TextBlock Grid.Row="0"
+                               VerticalAlignment="Center"
+                               Margin="0,0,25,0"
+                               Text="{loc:Loc Setup.GameManage.Accessibility.GameUpdateNotice}" />
+                    <ui:MyCheckBox x:Name="CheckUpdateRelease"
+                                   Grid.Row="0"
+                                   Grid.Column="1"
+                                   Text="{loc:Loc Setup.GameManage.Accessibility.ReleaseNotice}"
+                                   ToolTip.Tip="{loc:Loc Setup.GameManage.Accessibility.ReleaseNotice.ToolTip}" />
+                    <ui:MyCheckBox x:Name="CheckUpdateSnapshot"
+                                   Grid.Row="0"
+                                   Grid.Column="2"
+                                   Height="22"
+                                   Text="{loc:Loc Setup.GameManage.Accessibility.SnapshotNotice}"
+                                   ToolTip.Tip="{loc:Loc Setup.GameManage.Accessibility.SnapshotNotice.ToolTip}" />
+
+                    <TextBlock Grid.Row="2"
+                               VerticalAlignment="Center"
+                               Margin="0,0,25,0"
+                               Text="{loc:Loc Setup.GameManage.Accessibility.GameLanguage}" />
+                    <ui:MyCheckBox x:Name="CheckHelpLauncherLanguage"
+                                   Grid.Row="2"
+                                   Grid.Column="1"
+                                   Grid.ColumnSpan="2"
+                                   Text="{loc:Loc Setup.GameManage.Accessibility.AutoLauncherLanguage}" />
+
+                    <ui:MyCheckBox x:Name="CheckDownloadClipboard"
+                                   Grid.Row="4"
+                                   Grid.Column="0"
+                                   Grid.ColumnSpan="3"
+                                   Height="22"
+                                   Text="{loc:Loc Setup.GameManage.Accessibility.ReadClipboard}"
+                                   ToolTip.Tip="{loc:Loc Setup.GameManage.Accessibility.ReadClipboard.ToolTip}" />
+                </Grid>
+            </ui:MyCard>
+        </StackPanel>
+    </ui:MyScrollViewer>
+</ui:MyPageRight>

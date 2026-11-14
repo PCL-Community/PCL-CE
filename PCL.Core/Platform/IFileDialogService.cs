@@ -5,6 +5,9 @@ namespace PCL.Core.Platform;
 /// </summary>
 public interface IFileDialogService
 {
+    /// <summary>当前平台是否有可用的文件对话框实现。</summary>
+    bool IsAvailable { get; }
+
     /// <summary>显示保存文件对话框；取消时返回空字符串。</summary>
     string SelectSaveFile(
         string? title,

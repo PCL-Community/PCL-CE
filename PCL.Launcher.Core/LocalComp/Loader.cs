@@ -186,11 +186,10 @@ public static partial class LocalComp
         if (!Directory.Exists(data.compPath))
             return modList;
 
-        var rawName = data.compPath.ToLower();
         if (data.compType == CompType.Schematic)
             EnumerateSchematicResourceFiles(data, modList);
         else
-            EnumerateRegularResourceFiles(data, rawName, modList);
+            EnumerateRegularResourceFiles(data, modList);
 
         return modList;
     }
@@ -232,17 +231,27 @@ public static partial class LocalComp
 
     private static void EnumerateRegularResourceFiles(
         CompLocalLoaderData data,
-        string rawName,
         List<LocalCompFile> modList)
     {
         try
         {
-            foreach (var file in LauncherCommon.EnumerateFiles(data.compPath))
+            var directoryDepth = data.compType == CompType.DataPack
+                ? SearchOption.TopDirectoryOnly
+                : SearchOption.AllDirectories;
+            modList.AddRange(
+                new DirectoryInfo(data.compPath)
+                    .EnumerateDirectories("*", directoryDepth)
+                    .Select(directory =>
+                        new LocalCompFile(Path.Combine(directory.FullName, "__FOLDER__"))));
+
+            var files = data.compType == CompType.DataPack
+                ? new DirectoryInfo(data.compPath).EnumerateFiles(
+                    "*",
+                    SearchOption.TopDirectoryOnly)
+                : LauncherCommon.EnumerateFiles(data.compPath);
+            foreach (var file in files)
                 try
                 {
-                    if (ShouldSkipResourceFile(file, rawName))
-                        continue;
-
                     if (LocalCompFile.IsCompFile(file.FullName, data.compType))
                         modList.Add(new LocalCompFile(file.FullName));
                 }
@@ -257,20 +266,6 @@ public static partial class LocalComp
         }
     }
 
-    private static bool ShouldSkipResourceFile(FileInfo file, string rawName)
-    {
-        var fileFolder = (file.DirectoryName ?? "").TrimEnd('\\', '/');
-        var targetFolder = rawName.TrimEnd('\\', '/');
-        if (fileFolder.Equals(targetFolder, StringComparison.CurrentCultureIgnoreCase))
-            return false;
-
-        return !(LauncherState.SelectedInstance is not null
-            && LauncherState.SelectedInstance.Info.HasForge
-            && LauncherState.SelectedInstance.Info.Drop < 130
-            && (file.Directory?.Name ?? "")
-            == (LauncherState.SelectedInstance.Info.VanillaName));
-    }
-
     private static void UpdateResourceListProgress(
         LoaderTask<CompLocalLoaderData, List<LocalCompFile>> loader,
         CompLocalLoaderData data,
@@ -283,7 +278,7 @@ public static partial class LocalComp
 
     private static JsonObject LoadLocalModInfoCache()
     {
-        var cachePath = $@"{LauncherPaths.Temp}Cache\LocalComp.json";
+        var cachePath = Path.Combine(LauncherPaths.Temp, "Cache", "LocalComp.json");
         var cache = new JsonObject();
 
         try

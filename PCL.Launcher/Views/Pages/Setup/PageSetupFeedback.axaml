@@ -1,0 +1,153 @@
+<ui:MyPageRight xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:ui="using:PCL.UI.Controls"
+                xmlns:loc="using:PCL.Core.UI"
+                x:CompileBindings="False"
+                x:Class="PCL.Views.Pages.Setup.PageSetupFeedback">
+    <ui:MyPageRight.Resources>
+        <DataTemplate x:Key="FeedbackItemTemplate">
+            <ui:MyListItem Title="{Binding Title}"
+                           Info="{Binding Info}"
+                           Logo="{Binding Logo}"
+                           Tags="{Binding Tags}"
+                           Type="Clickable"
+                           Tag="{Binding}"
+                           Click="FeedbackItem_Click" />
+        </DataTemplate>
+    </ui:MyPageRight.Resources>
+    <ui:MyScrollViewer x:Name="PanBack"
+                       HorizontalScrollBarVisibility="Disabled"
+                       VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="25,25,25,25">
+            <ui:MyCard x:Name="PanInfo"
+                       Title="{loc:Loc Setup.Feedback.Submit.Title}">
+                <StackPanel Margin="20,40,18,22">
+                    <TextBlock TextWrapping="Wrap"
+                               Text="{loc:Loc Setup.Feedback.Submit.Description}" />
+                    <Grid Height="35"
+                          Margin="0,15,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"
+                                              SharedSizeGroup="Button" />
+                            <ColumnDefinition Width="Auto"
+                                              SharedSizeGroup="Button" />
+                            <ColumnDefinition Width="Auto"
+                                              SharedSizeGroup="Button" />
+                            <ColumnDefinition Width="Auto"
+                                              SharedSizeGroup="Button" />
+                        </Grid.ColumnDefinitions>
+                        <ui:MyButton x:Name="BtnManageOpen"
+                                     Grid.Column="0"
+                                     MinWidth="140"
+                                     Margin="0,0,20,0"
+                                     Padding="13,0"
+                                     HorizontalAlignment="Left"
+                                     ColorType="Highlight"
+                                     Text="{loc:Loc Setup.Feedback.Submit.Open}" />
+                    </Grid>
+                </StackPanel>
+            </ui:MyCard>
+
+            <StackPanel x:Name="PanContent"
+                        Margin="0,15,0,0">
+                <ui:MyCard x:Name="PanContentProcessing"
+                           Margin="0,0,0,15"
+                           Title="{loc:Loc Setup.Feedback.Status.Processing}"
+                           CanSwap="True"
+                           IsVisible="{Binding ShowProcessing}">
+                    <ItemsControl Margin="20,36,18,18"
+                                  ItemsSource="{Binding ProcessingRows}"
+                                  ItemTemplate="{StaticResource FeedbackItemTemplate}" />
+                </ui:MyCard>
+                <ui:MyCard x:Name="PanContentWaitingProcess"
+                           Margin="0,0,0,15"
+                           Title="{loc:Loc Setup.Feedback.Status.WaitingProcess}"
+                           CanSwap="True"
+                           IsVisible="{Binding ShowWaitingProcess}">
+                    <ItemsControl Margin="20,36,18,18"
+                                  ItemsSource="{Binding WaitingProcessRows}"
+                                  ItemTemplate="{StaticResource FeedbackItemTemplate}" />
+                </ui:MyCard>
+                <ui:MyCard x:Name="PanContentWait"
+                           Margin="0,0,0,15"
+                           Title="{loc:Loc Setup.Feedback.Status.Waiting}"
+                           CanSwap="True"
+                           IsVisible="{Binding ShowWait}">
+                    <ItemsControl Margin="20,36,18,18"
+                                  ItemsSource="{Binding WaitRows}"
+                                  ItemTemplate="{StaticResource FeedbackItemTemplate}" />
+                </ui:MyCard>
+                <ui:MyCard x:Name="PanContentPause"
+                           Margin="0,0,0,15"
+                           Title="{loc:Loc Setup.Feedback.Status.Paused}"
+                           CanSwap="True"
+                           IsVisible="{Binding ShowPause}">
+                    <ItemsControl Margin="20,36,18,18"
+                                  ItemsSource="{Binding PauseRows}"
+                                  ItemTemplate="{StaticResource FeedbackItemTemplate}" />
+                </ui:MyCard>
+                <ui:MyCard x:Name="PanContentUpnext"
+                           Margin="0,0,0,15"
+                           Title="{loc:Loc Setup.Feedback.Status.UpNext}"
+                           CanSwap="True"
+                           IsVisible="{Binding ShowUpnext}">
+                    <ItemsControl Margin="20,36,18,18"
+                                  ItemsSource="{Binding UpnextRows}"
+                                  ItemTemplate="{StaticResource FeedbackItemTemplate}" />
+                </ui:MyCard>
+                <ui:MyCard x:Name="PanContentCompleted"
+                           Margin="0,0,0,15"
+                           Title="{loc:Loc Setup.Feedback.Status.Completed}"
+                           CanSwap="True"
+                           IsSwapped="True"
+                           IsVisible="{Binding ShowCompleted}">
+                    <ItemsControl Margin="20,36,18,18"
+                                  ItemsSource="{Binding CompletedRows}"
+                                  ItemTemplate="{StaticResource FeedbackItemTemplate}" />
+                </ui:MyCard>
+                <ui:MyCard x:Name="PanContentDecline"
+                           Margin="0,0,0,15"
+                           Title="{loc:Loc Setup.Feedback.Status.Declined}"
+                           CanSwap="True"
+                           IsSwapped="True"
+                           IsVisible="{Binding ShowDecline}">
+                    <ItemsControl Margin="20,36,18,18"
+                                  ItemsSource="{Binding DeclineRows}"
+                                  ItemTemplate="{StaticResource FeedbackItemTemplate}" />
+                </ui:MyCard>
+                <ui:MyCard x:Name="PanContentIgnored"
+                           Margin="0,0,0,15"
+                           Title="{loc:Loc Setup.Feedback.Status.Ignored}"
+                           CanSwap="True"
+                           IsSwapped="True"
+                           IsVisible="{Binding ShowIgnored}">
+                    <ItemsControl Margin="20,36,18,18"
+                                  ItemsSource="{Binding IgnoredRows}"
+                                  ItemTemplate="{StaticResource FeedbackItemTemplate}" />
+                </ui:MyCard>
+                <ui:MyCard x:Name="PanContentDuplicate"
+                           Margin="0,0,0,15"
+                           Title="{loc:Loc Setup.Feedback.Status.Duplicate}"
+                           CanSwap="True"
+                           IsSwapped="True"
+                           IsVisible="{Binding ShowDuplicate}">
+                    <ItemsControl Margin="20,36,18,18"
+                                  ItemsSource="{Binding DuplicateRows}"
+                                  ItemTemplate="{StaticResource FeedbackItemTemplate}" />
+                </ui:MyCard>
+            </StackPanel>
+
+            <ui:MyCard x:Name="PanLoad"
+                       Margin="40,50"
+                       UseAnimation="False"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center">
+                <ui:MyLoading x:Name="Load"
+                              Margin="20,20,20,17"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"
+                              Text="{loc:Loc Setup.Feedback.Loading}" />
+            </ui:MyCard>
+        </StackPanel>
+    </ui:MyScrollViewer>
+</ui:MyPageRight>

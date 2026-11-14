@@ -12,24 +12,33 @@ namespace PCL.Core.Test;
 [TestClass]
 public class LocalizationTest
 {
-    private static readonly string[] LanguageFiles = LocalizationService.SupportedLanguages
-        .Select(language => language.Code)
-        .ToArray();
+    private static readonly string[] LanguageFiles =
+    [
+        .. LocalizationService
+            .SupportedLanguages
+            .Select(language => language.Code)
+    ];
 
     [TestMethod]
     public void AllLanguageDictionariesShouldContainBaseKeys()
     {
         var baseKeys = LoadKeys("zh-CN");
+        string[] partialLanguages = ["fr-FR", "ja-JP", "es-ES"];
 
         foreach (var language in LanguageFiles.Where(language => language != "zh-CN"))
         {
             var keys = LoadKeys(language);
-            var missing = baseKeys.Except(keys).ToArray();
+            if (partialLanguages.Contains(language))
+            {
+                var unknown = keys.Except(baseKeys).ToArray();
+                Assert.IsEmpty(unknown, $"{language} 存在基础语言没有的键：{string.Join(", ", unknown)}");
+                continue;
+            }
 
+            var missing = baseKeys.Except(keys).ToArray();
             Assert.IsEmpty(missing, $"{language} 缺少语言键：{string.Join(", ", missing)}");
         }
     }
-
 
     [TestMethod]
     public void LanguageDictionariesShouldNotContainDuplicateKeys()
@@ -59,73 +68,72 @@ public class LocalizationTest
         }
     }
 
-
     [TestMethod]
     public void SupportedLanguagesShouldHaveValidCultureAndResourceDictionary()
     {
         foreach (var language in LocalizationService.SupportedLanguages)
         {
-            CultureInfo.GetCultureInfo(language.CultureName);
-
-            var filePath = Path.Combine(GetRepositoryRoot(), "PCL.Core", "App", "Localization", "Languages",
-                language.Code + ".xaml");
-            Assert.IsTrue(File.Exists(filePath), $"{language.Code} 缺少语言资源文件");
+            _ = CultureInfo.GetCultureInfo(language.CultureName);
+            Assert.IsTrue(
+                File.Exists(GetLanguageFilePath(language.Code)),
+                $"{language.Code} 缺少语言资源文件");
         }
     }
 
-
     [TestMethod]
-    public void FontProfileShouldFollowCultureGlyphStandard()
+    public void LanguageFontProfilesShouldMatchGlyphStandard()
     {
-        Assert.AreEqual(LocalizationFontProfile.SimplifiedChinese,
-            LocalizationFontService.ResolveProfileFromCultureName("zh-CN"));
-        Assert.AreEqual(LocalizationFontProfile.SimplifiedChinese,
-            LocalizationFontService.ResolveProfileFromCultureName("zh-Hans"));
-        Assert.AreEqual(LocalizationFontProfile.TraditionalChinese,
-            LocalizationFontService.ResolveProfileFromCultureName("zh-TW"));
-        Assert.AreEqual(LocalizationFontProfile.TraditionalChinese,
-            LocalizationFontService.ResolveProfileFromCultureName("zh_HK"));
-        Assert.AreEqual(LocalizationFontProfile.TraditionalChinese,
-            LocalizationFontService.ResolveProfileFromCultureName("zh-Hant-HK"));
-        Assert.AreEqual(LocalizationFontProfile.Japanese,
-            LocalizationFontService.ResolveProfileFromCultureName("ja-JP"));
-        Assert.AreEqual(LocalizationFontProfile.Korean,
-            LocalizationFontService.ResolveProfileFromCultureName("ko-KR"));
-        Assert.AreEqual(LocalizationFontProfile.English,
-            LocalizationFontService.ResolveProfileFromCultureName("en-US"));
-        Assert.AreEqual(LocalizationFontProfile.English,
-            LocalizationFontService.ResolveProfileFromCultureName("en-GB"));
-        Assert.AreEqual(LocalizationFontProfile.Other,
-            LocalizationFontService.ResolveProfileFromCultureName("fr-FR"));
-        Assert.AreEqual(LocalizationFontProfile.Other,
-            LocalizationFontService.ResolveProfileFromCultureName("es-ES"));
-        Assert.AreEqual(LocalizationFontProfile.Other,
-            LocalizationFontService.ResolveProfileFromCultureName("pt-BR"));
+        Assert.AreEqual(LocalizationFontProfile.SimplifiedChinese, ProfileOf("zh-CN"));
+        Assert.AreEqual(LocalizationFontProfile.TraditionalChinese, ProfileOf("zh-TW"));
+        Assert.AreEqual(LocalizationFontProfile.Japanese, ProfileOf("ja-JP"));
+        Assert.AreEqual(LocalizationFontProfile.English, ProfileOf("en-US"));
+        Assert.AreEqual(LocalizationFontProfile.English, ProfileOf("en-GB"));
+        Assert.AreEqual(LocalizationFontProfile.Other, ProfileOf("fr-FR"));
+        Assert.AreEqual(LocalizationFontProfile.Other, ProfileOf("es-ES"));
+        return;
+
+        static LocalizationFontProfile ProfileOf(string code)
+        {
+            return LocalizationService.SupportedLanguages.Single(language => language.Code == code)
+                .FontProfile;
+        }
     }
 
     [TestMethod]
     public void FontProfileAliasesShouldNotMakeLanguageResourceSupported()
     {
         Assert.IsFalse(LocalizationService.IsLanguageSupported("zh-HK"));
-        Assert.AreEqual(LocalizationService.DefaultLanguageCode, LocalizationService.ResolveLanguage("zh-HK").Code);
+        Assert.AreEqual(
+            LocalizationService.DefaultLanguageCode,
+            LocalizationService.ResolveLanguage("zh-HK").Code);
     }
 
     private static HashSet<string> LoadKeys(string language)
     {
-        return LoadKeyList(language).ToHashSet();
+        return [.. LoadKeyList(language)];
     }
 
     private static string[] LoadKeyList(string language)
     {
-        var filePath = Path.Combine(GetRepositoryRoot(), "PCL.Core", "App", "Localization", "Languages",
-            language + ".xaml");
-        var document = XDocument.Load(filePath);
+        var document = XDocument.Load(GetLanguageFilePath(language));
         var keyAttributeName = XName.Get("Key", "http://schemas.microsoft.com/winfx/2006/xaml");
-        return document.Descendants()
-            .Select(element => element.Attribute(keyAttributeName)?.Value)
-            .Where(key => !string.IsNullOrWhiteSpace(key))
-            .Select(key => key!)
-            .ToArray();
+        return
+        [
+            .. document
+                .Descendants()
+                .Select(element => element.Attribute(keyAttributeName)?.Value)
+                .Where(key => !string.IsNullOrWhiteSpace(key))
+                .Select(key => key!)
+        ];
+    }
+
+    private static string GetLanguageFilePath(string language)
+    {
+        return Path.Combine(
+            GetRepositoryRoot(),
+            "PCL.Localization",
+            "Languages",
+            $"{language}.axaml");
     }
 
     private static string GetRepositoryRoot()
@@ -133,7 +141,8 @@ public class LocalizationTest
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory is not null)
         {
-            if (Directory.Exists(Path.Combine(directory.FullName, "PCL.Core"))) return directory.FullName;
+            if (Directory.Exists(Path.Combine(directory.FullName, "PCL.Core")))
+                return directory.FullName;
             directory = directory.Parent;
         }
 

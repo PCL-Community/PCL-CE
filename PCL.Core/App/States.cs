@@ -195,6 +195,17 @@ public static partial class States
         /// </summary>
         [ConfigItem<double>("WindowWidth", 900, ConfigSource.Local)] public partial double WindowWidth { get; set; }
 
+        [ConfigItem<bool>("WindowPositionSaved", false, ConfigSource.Local)]
+        public partial bool WindowPositionSaved { get; set; }
+
+        [ConfigItem<double>("WindowLeft", 0d, ConfigSource.Local)]
+        public partial double WindowLeft { get; set; }
+
+        [ConfigItem<double>("WindowTop", 0d, ConfigSource.Local)]
+        public partial double WindowTop { get; set; }
+
+        [ConfigItem<bool>("WindowMaximized", false, ConfigSource.Local)]
+        public partial bool WindowMaximized { get; set; }
     }
 
     /// <summary>

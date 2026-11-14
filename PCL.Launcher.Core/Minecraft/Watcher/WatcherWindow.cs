@@ -1,8 +1,7 @@
 ﻿using System.ComponentModel;
-using System.Runtime.InteropServices;
-using System.Text;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.Platform;
 
 namespace PCL;
 
@@ -115,7 +114,7 @@ public static partial class GameWatcher
                     try
                     {
                         Thread.Sleep(2000);
-                        ShowWindow(_windowHandle, 3U);
+                        PlatformServices.WindowInterop?.MaximizeWindow(_windowHandle);
 
                         WatcherLog(
                             Lang.Text(
@@ -132,97 +131,13 @@ public static partial class GameWatcher
 
         /// <summary>
         ///     获取可能是当前进程对应的 Minecraft 窗口的句柄和标题。
-        ///     Nothing 代表未找到。
+        ///     <c>null</c> 代表未找到；非 Windows 平台未注册窗口交互实现时始终返回 <c>null</c>。
         /// </summary>
         private KeyValuePair<nint, string>? TryGetMinecraftWindow()
         {
-            KeyValuePair<nint, string>? foundWindow = null;
-
-            EnumWindows(
-                (windowHandle, _) =>
-                {
-                    if (foundWindow is not null)
-                        return false;
-
-                    if (!TryGetMinecraftWindowInfo(
-                            windowHandle,
-                            out var windowTitle))
-                        return true;
-
-                    foundWindow = new KeyValuePair<nint, string>(
-                        windowHandle,
-                        windowTitle);
-
-                    return false;
-                },
-                nint.Zero);
-
-            return foundWindow;
+            return PlatformServices.WindowInterop?.TryFindGameWindow(gameProcess.Id) is { } window
+                ? new KeyValuePair<nint, string>(window.Handle, window.Title)
+                : null;
         }
-
-        private bool TryGetMinecraftWindowInfo(
-            nint windowHandle,
-            out string windowTitle)
-        {
-            var buffer = new StringBuilder(512);
-            _ = GetClassName(windowHandle, buffer, buffer.Capacity);
-
-            var className = buffer.ToString();
-            if (className is not ("GLFW30" or "LWJGL" or "SunAwtFrame"))
-            {
-                windowTitle = string.Empty;
-                return false;
-            }
-
-            buffer = new StringBuilder(512);
-            _ = GetWindowText(windowHandle, buffer, buffer.Capacity);
-
-            windowTitle = buffer.ToString();
-
-            if (!(windowTitle.StartsWithF("FML")
-                    || (windowTitle != "PopupMessageWindow"
-                        && !windowTitle.StartsWithF("GLFW"))))
-                return false;
-
-            var processId = 0;
-            _ = GetWindowThreadProcessId(windowHandle, ref processId);
-
-            try
-            {
-                return processId == gameProcess.Id;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-        }
-
-        [DllImport("user32")]
-        private static extern bool EnumWindows(
-            EnumWindowsSub lpEnumFunc,
-            nint lParam);
-
-        [DllImport("user32", EntryPoint = "GetClassNameW", CharSet = CharSet.Unicode)]
-        private static extern int GetClassName(
-            nint hWnd,
-            StringBuilder lpClassName,
-            int nMaxCount);
-
-        [DllImport("user32", EntryPoint = "GetWindowTextW", CharSet = CharSet.Unicode)]
-        private static extern int GetWindowText(
-            nint hWnd,
-            StringBuilder lpString,
-            int nMaxCount);
-
-        [DllImport("user32", EntryPoint = "SetWindowTextW", CharSet = CharSet.Unicode)]
-        private static extern bool SetWindowText(nint hWnd, string lpString);
-
-        [DllImport("user32")]
-        private static extern bool ShowWindow(nint hWnd, uint cmdWindow);
-
-        [DllImport("user32")]
-        private static extern int GetWindowThreadProcessId(
-            nint hWnd,
-            ref int lpdwProcessId);
     }
 }

@@ -1,0 +1,313 @@
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Media;
+using PCL.Core.App.Localization;
+using PCL.Navigation;
+using PCL.Views.Pages;
+
+namespace PCL.UI.Controls;
+
+/// <summary>
+///     页面左栏容器：为 <see cref="AnimatedControl" /> 中的按钮与列表项生成逐个进入/退出动画；
+///     未设置 <see cref="AnimatedControl" /> 时退化为整栏缩放淡入。
+///     语言切换后 <see cref="RefreshLocalization" /> 会在下次加载时重刷页面文本。
+/// </summary>
+public class MyPageLeft : Grid, IPageView
+{
+    public static readonly StyledProperty<Control?> AnimatedControlProperty =
+        AvaloniaProperty.Register<MyPageLeft, Control?>(nameof(AnimatedControl));
+
+    private readonly int _uuid = LauncherCommon.GetUuid();
+
+    private bool _animatedControlNullWarned;
+    private int _localizationRevision = LocalizationService.UiRevision;
+
+    public MyPageLeft()
+    {
+        ContainerTheme.AttachStyles(this);
+        Loaded += (_, _) => RefreshLocalizationIfStale();
+    }
+
+    protected INavigationService Navigation => PageRouter.Navigation;
+
+    public Control? AnimatedControl
+    {
+        get
+        {
+            var res = GetValue(AnimatedControlProperty);
+            if (res is null && !_animatedControlNullWarned)
+            {
+                _animatedControlNullWarned = true;
+                LauncherCommon.Log(
+                    $"[MyPageLeft] 获取到 AnimatedControl(来自 {Name}) 的值为 null",
+                    LauncherLogLevel.Debug);
+            }
+
+            return res;
+        }
+        set => SetValue(AnimatedControlProperty, value);
+    }
+
+    public virtual void OnNavigatedTo(object? parameter)
+    {
+    }
+
+    public virtual void OnNavigatedFrom()
+    {
+    }
+
+    private void RefreshLocalizationIfStale()
+    {
+        if (_localizationRevision == LocalizationService.UiRevision)
+            return;
+        _localizationRevision = LocalizationService.UiRevision;
+        try
+        {
+            RefreshLocalization();
+        }
+        catch (Exception ex)
+        {
+            LauncherCommon.Log(ex, "刷新页面本地化文本失败");
+        }
+    }
+
+    protected virtual void RefreshLocalization()
+    {
+    }
+
+    public void ApplyLocalizationChanged()
+    {
+        RefreshLocalizationIfStale();
+    }
+
+    public void TriggerShowAnimation()
+    {
+        var animationKey = "PageLeft PageChange " + _uuid;
+
+        if (AnimatedControl is null)
+        {
+            // 缩放动画：0.96 放大到 1，同时淡入
+            var scale = ContainerAnimation.EnsureScale(this, 0.96d, 0.96d);
+            if (!ContainerAnimation.CanAnimatePage(this))
+            {
+                AnimationService.CancelAnimationByName(animationKey);
+                scale.ScaleX = 1d;
+                scale.ScaleY = 1d;
+                Opacity = 1d;
+                return;
+            }
+
+            Opacity = 0d;
+            AnimationService.Run(
+                new List<IAnimation>
+                {
+                    new ScaleTransformAnimation(
+                        this,
+                        1d - scale.ScaleX,
+                        ease: new BackEaseWithPowerOut(EasePower.Weak)),
+                    new OpacityAnimation(this, 1d, 100)
+                },
+                animationKey);
+            return;
+        }
+
+        if (!ContainerAnimation.CanAnimatePage(this))
+        {
+            AnimationService.CancelAnimationByName(animationKey);
+            foreach (var element in GetAllAnimControls(true))
+            {
+                element.Opacity = element is TextBlock ? 0.6d : 1d;
+                element.RenderTransform = null;
+                if (element is MyListItem listItem)
+                {
+                    listItem.HoverAnimationEnabled = true;
+                    listItem.RefreshColor(this, EventArgs.Empty);
+                }
+            }
+
+            return;
+        }
+
+        var aniList = new List<IAnimation>();
+        var id = 0;
+        var delay = 0;
+        foreach (var element in GetAllAnimControls(true))
+            if (!element.IsVisible)
+            {
+                element.Opacity = 1d;
+                element.RenderTransform = new TranslateTransform(0d, 0d);
+                if (element is MyListItem hiddenItem)
+                    hiddenItem.HoverAnimationEnabled = true;
+            }
+            else
+            {
+                element.Opacity = 0d;
+                element.RenderTransform = new TranslateTransform(-25d, 0d);
+                if (element is MyListItem listItem)
+                    listItem.HoverAnimationEnabled = false;
+                aniList.Add(
+                    new OpacityAnimation(
+                        element,
+                        element is TextBlock ? 0.6d : 1d,
+                        100,
+                        delay,
+                        new FluentEaseOut(EasePower.Weak)));
+                aniList.Add(new TranslateXAnimation(element, 5d, 200, delay, new FluentEaseOut()));
+                aniList.Add(
+                    new TranslateXAnimation(
+                        element,
+                        20d,
+                        300,
+                        delay,
+                        new BackEaseWithPowerOut(EasePower.Weak)));
+                if (element is MyListItem item)
+                    aniList.Add(
+                        new ActionAnimation(
+                            () =>
+                            {
+                                item.HoverAnimationEnabled = true;
+                                item.RefreshColor(this, EventArgs.Empty);
+                            },
+                            delay + 280));
+                delay += Math.Max(15 - id, 7) * 2;
+                id += 1;
+            }
+
+        AnimationService.Run(aniList, animationKey);
+    }
+
+    public void TriggerHideAnimation()
+    {
+        var animationKey = "PageLeft PageChange " + _uuid;
+
+        if (AnimatedControl is null)
+        {
+            // 缩放动画：1 缩到 0.95，同时淡出
+            var scale = ContainerAnimation.EnsureScale(this);
+            if (!ContainerAnimation.CanAnimatePage(this))
+            {
+                AnimationService.CancelAnimationByName(animationKey);
+                scale.ScaleX = 1d;
+                scale.ScaleY = 1d;
+                Opacity = 0d;
+                return;
+            }
+
+            AnimationService.Run(
+                new List<IAnimation>
+                {
+                    new ScaleTransformAnimation(
+                        this,
+                        0.95d - scale.ScaleX,
+                        110,
+                        ease: new FluentEaseIn(EasePower.Weak)),
+                    new OpacityAnimation(this, -Opacity, 80, 30)
+                },
+                animationKey);
+            return;
+        }
+
+        var controls = GetAllAnimControls();
+
+        if (!ContainerAnimation.CanAnimatePage(this) || controls.Count == 0)
+        {
+            AnimationService.CancelAnimationByName(animationKey);
+            foreach (var element in controls)
+            {
+                element.Opacity = 0d;
+                element.RenderTransform = new TranslateTransform(-6d, 0d);
+            }
+
+            RestoreListItemHover(controls);
+            return;
+        }
+
+        var aniList = new List<IAnimation>();
+        var id = 0;
+        foreach (var element in controls)
+        {
+            var delay = (int)Math.Round(70d / controls.Count * id);
+            aniList.Add(new OpacityAnimation(element, -element.Opacity, 50, delay));
+            aniList.Add(new TranslateXAnimation(element, -6d, 50, delay));
+            id += 1;
+        }
+
+        aniList.Add(new ActionAnimation(() => RestoreListItemHover(controls), true));
+        AnimationService.Run(aniList, animationKey);
+    }
+
+    private static void RestoreListItemHover(IEnumerable<Control> controls)
+    {
+        foreach (var control in controls)
+            if (control is MyListItem listItem)
+                listItem.HoverAnimationEnabled = true;
+    }
+
+    private List<Control> GetAllAnimControls(bool ignoreInvisibility = false)
+    {
+        var allControls = new List<Control>();
+        if (AnimatedControl is not null)
+            GetAllAnimControls(AnimatedControl, allControls, ignoreInvisibility);
+        return allControls;
+    }
+
+    private static void GetAllAnimControls(
+        Control element,
+        List<Control> allControls,
+        bool ignoreInvisibility)
+    {
+        while (true)
+        {
+            if (!ignoreInvisibility && !element.IsVisible) return;
+            switch (element)
+            {
+                case MyTextButton or MyListItem:
+                {
+                    allControls.Add(element);
+                    break;
+                }
+
+                case ContentControl contentControl:
+                {
+                    if (contentControl.Content is Control content)
+                    {
+                        element = content;
+                        continue;
+                    }
+
+                    break;
+                }
+
+                case Decorator decorator:
+                {
+                    if (decorator.Child is not null)
+                    {
+                        element = decorator.Child;
+                        continue;
+                    }
+
+                    break;
+                }
+
+                case Panel panel:
+                {
+                    foreach (var child in panel.Children.OfType<Control>())
+                        GetAllAnimControls(child, allControls, ignoreInvisibility);
+                    break;
+                }
+
+                default:
+                    allControls.Add(element);
+                    break;
+            }
+
+            break;
+        }
+    }
+}
+
+/// <summary>页面内可刷新的控件约定。</summary>
+public interface IRefreshable
+{
+    void Refresh();
+}

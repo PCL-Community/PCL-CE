@@ -40,7 +40,10 @@ public static partial class Modpack
             .FirstOrDefault(entryMatch => entryMatch.Success);
         return match is null
             ? throw new Exception(Lang.Text("Minecraft.Download.Modpack.UnknownArchiveStructure"))
-            : (match.Value.Replace("/", @"\").TrimStart('\\'), match.Groups[1].Value);
+            : (match
+                .Value
+                .Replace('/', Path.DirectorySeparatorChar)
+                .TrimStart(Path.DirectorySeparatorChar), match.Groups[1].Value);
     }
 
     private static string _SelectCompressTargetFolder()

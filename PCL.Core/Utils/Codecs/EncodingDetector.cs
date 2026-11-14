@@ -50,31 +50,26 @@ public static class EncodingDetector
         var actualRead = stream.Read(buffer, 0, buffer.Length);
         if (actualRead != sampleLength) throw new Exception("无法获取样本长度");
 
-        // 对样本进行分析
-        if (sampleLength >= 3 && buffer is [0xef, 0xbb, 0xbf])
-            return Encoding.UTF8; // UTF-8
-
-        if (sampleLength >= 2)
+        return sampleLength switch
         {
-            if (buffer is [0xfe, 0xff])
-                return Encoding.BigEndianUnicode; // UTF-16 BE
-            if (buffer is [0xff, 0xfe])
-            {
-                if (sampleLength >= 4 && buffer is [_, _, 0x00, 0x00])
-                    return Encoding.UTF32; // UTF-32 LE
-                return Encoding.Unicode;   // UTF-16 LE
-            }
-        }
+            >= 3 when buffer is [0xef, 0xbb, 0xbf, ..] => Encoding.UTF8, // UTF-8
 
-        if (sampleLength >= 4)
-        {
-            if (buffer is [0x00, 0x00, 0xfe, 0xff])
-                return Encoding.GetEncoding("utf-32BE"); // UTF-32 BE
-            if (buffer is [0xff, 0xfe, 0x00, 0x00])
-                return Encoding.UTF32; // UTF-32 LE
-        }
+            >= 2 when buffer is [0xfe, 0xff, ..] => Encoding.BigEndianUnicode, // UTF-16 BE
 
-        return null;
+            >= 2 when buffer is [0xff, 0xfe, ..] => sampleLength >= 4
+                && buffer is [_, _, 0x00, 0x00]
+                    ? Encoding.UTF32 // UTF-32 LE
+                    : Encoding.Unicode, // UTF-16 LE
+
+            _ => sampleLength < 4
+                ? null
+                : buffer switch
+                {
+                    [0x00, 0x00, 0xfe, 0xff] => Encoding.GetEncoding("utf-32BE"),
+                    [0xff, 0xfe, 0x00, 0x00] => Encoding.UTF32,
+                    _ => null
+                }
+        };
     }
 
     /// <summary>
@@ -97,9 +92,12 @@ public static class EncodingDetector
 
         try
         {
-            var decoded = Encoding.UTF8.GetString(buffer);
+            var read = stream.Read(buffer, 0, sampleSize);
+            if (read == 0) return true;
+            var sample = buffer.AsSpan(0, read);
+            var decoded = Encoding.UTF8.GetString(sample);
             var roundTrip = Encoding.UTF8.GetBytes(decoded);
-            return roundTrip.SequenceEqual(buffer);
+            return roundTrip.AsSpan().SequenceEqual(sample);
         }
         catch
         {

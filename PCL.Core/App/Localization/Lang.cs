@@ -14,8 +14,7 @@ namespace PCL.Core.App.Localization;
 ///     </p>
 ///     <p>
 ///         <see cref="Lang" /> 用于代码中读取本地化文本资源，以及按照当前展示区域性格式化文本参数、日期时间和数值。
-///         它面向 C# 代码侧调用；XAML 中的静态文本优先使用 <see cref="LocExtension" />，
-///         XAML 绑定值的格式化优先使用 <see cref="LocalizationFormatConverter" />。
+///         它面向 C# 代码侧调用；XAML 中的静态文本使用 <see cref="LocExtension" />（页面迁移中逐步接入）。
 ///     </p>
 ///     <p>
 ///         文本资源来自当前应用的资源字典。正常运行时优先通过

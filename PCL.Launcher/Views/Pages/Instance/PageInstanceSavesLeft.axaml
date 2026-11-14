@@ -1,0 +1,45 @@
+<ui:MyPageLeft xmlns="https://github.com/avaloniaui"
+               xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+               xmlns:ui="using:PCL.UI.Controls"
+               xmlns:loc="using:PCL.Core.UI"
+               x:Class="PCL.Views.Pages.Instance.PageInstanceSavesLeft"
+               x:CompileBindings="False">
+    <ui:MyScrollViewer Classes="FullMargin"
+                       VerticalScrollBarVisibility="Auto"
+                       HorizontalScrollBarVisibility="Disabled">
+        <StackPanel x:Name="PanItem"
+                    Margin="0,12,0,0">
+            <ui:MyListItem x:Name="ItemInfo"
+                           Height="36"
+                           VerticalAlignment="Top"
+                           IsScaleAnimationEnabled="False"
+                           MinPaddingRight="35"
+                           LogoScale="1"
+                           Type="RadioBox"
+                           SvgIcon="lucide/info"
+                           Title="{loc:Loc Instance.Saves.Left.Info}" />
+            <ui:MyListItem x:Name="ItemDatapack"
+                           Height="36"
+                           VerticalAlignment="Top"
+                           IsScaleAnimationEnabled="False"
+                           MinPaddingRight="35"
+                           LogoScale="0.91"
+                           Type="RadioBox"
+                           SvgIcon="lucide/file-archive"
+                           Title="{loc:Loc Instance.Saves.Left.Datapack}" />
+            <TextBlock Margin="13,6,5,4"
+                       Opacity="0.6"
+                       FontSize="12"
+                       Text="{loc:Loc Instance.Saves.Left.QuickActions}" />
+            <ui:MyListItem x:Name="BtnOpenFolder"
+                           Height="36"
+                           VerticalAlignment="Top"
+                           IsScaleAnimationEnabled="False"
+                           MinPaddingRight="35"
+                           LogoScale="0.8"
+                           Type="Clickable"
+                           SvgIcon="lucide/folder-open"
+                           Title="{loc:Loc Common.Action.OpenFolder}" />
+        </StackPanel>
+    </ui:MyScrollViewer>
+</ui:MyPageLeft>

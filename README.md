@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<img src="Plain Craft Launcher 2/Images/icon.ico" alt="Logo" width="80" height="80">
+<img src="PCL.Launcher/Assets/Images/icon.svg" alt="Logo" width="80" height="80">
 
 # PCL Community Edition
 
@@ -36,30 +36,51 @@ PCL CE 是基于 PCL 开源代码二次开发的社区版本，包括了主线�
 
 ## 💻 支持平台
 
-| 操作系统 | 支持情况 | 环境要求 |
-|---|---|---|
-| Windows 10 1809 (17763) 或更高 | ✅ 完整支持 | [.NET 10 Desktop Runtime](https://get.dot.net/10) |
-| Windows 8 - Windows 10 1809 (17763) | ⚠️ 理论能跑，酌情提供社区支持 | [.NET 10 Desktop Runtime](https://get.dot.net/10) |
-| Windows 7 或更低版本 | ❌ 不支持 | / |
-| macOS / Linux / 其他操作系统 | ⚠️ 仅跨平台开发支持（交叉编译） | [.NET 11 SDK](https://get.dot.net/11) |
+### Windows
 
-**✅ 完整支持**：尽可能提供一切相关支持，但必须确保启动器为最新版本。
+| 版本 | 架构 | 支持情况 | 环境要求 |
+|---|---|---|---|
+| Windows 10 1809 (17763) 及以上，或 Windows 11 | x64、ARM64 | ✅ 完整支持 | [.NET 10 Runtime](https://get.dot.net/10) |
+| Windows 10 1607 (E) | x64 | ⚠️ 理论能跑，酌情提供社区支持 | [.NET 10 Runtime](https://get.dot.net/10) |
+| Windows 8.1、8、7 及更低版本 | / | ❌ 不支持 | / |
 
-**⚠️ 理论能跑，酌情提供社区支持**：PCL CE 应该可以在这些平台上运行，但不保证功能完全可用。你可能需要升级到完整支持的系统版本以获得进一步社区技术支持。
+<small>`(E)` 指 Enterprise 或 ESU 版本。.NET 10 对 Windows 10 1607 和 1809 的官方支持仅限这些版本。</small>
 
-**❌ 不支持**：PCL CE 在这些平台的可用性较低，甚至压根打不开。请升级操作系统以使用 PCL CE。
+### Linux
 
-**⚠️ 仅跨平台开发支持（交叉编译）**：PCL CE 的源代码可以在 macOS 与 Linux 平台编译，但无法直接运行。作为开发者，你可以在这些平台上进行开发，然后将编译产物转移到 Windows 系统测试。
+| 发行版 | 架构 | 支持情况 | 环境要求 |
+|---|---|---|---|
+| 常见 glibc 桌面发行版<br>（Ubuntu 22.04 及以上、Fedora 43 及以上、Arch Linux 等） | x64 | ✅ 支持 | [.NET 10 Runtime](https://get.dot.net/10)、X11、Wayland 实验 |
+| 同上 | ARM64 | ✅ 支持 | [.NET 10 Runtime](https://get.dot.net/10)、X11 |
+| 其他 glibc 桌面发行版 | x64、ARM64 | ⚠️ 理论能跑，酌情提供社区支持 | 需要 glibc 2.27 及以上，并能使用 X11 桌面 |
+| Alpine 等 musl 发行版 | x64、ARM64 | ❌ 不支持 | 当前产物尚未在 musl 环境验证 |
 
-**注**：    
-社区仅对最新版本的启动器提供支持。    
-取决于部分问题的特殊性（如系统不完整），有时你仍然必须升级操作系统以继续获得支持。    
-PCL CE 始终建议使用最新版本的操作系统以获得最佳体验。    
-你仍然可以尝试在不受支持的系统上使用 PCL CE，但可能会遇到很多额外问题。
+<small>默认使用 X11。设置 `PCL_USE_WAYLAND=1` 可以尝试原生 Wayland。如果初始化失败，会自动回退到 X11。使用 Wayland 还需要安装 `libwayland-client` 和 `libxkbcommon`。</small>
+
+### macOS
+
+| 版本 | 架构 | 支持情况 | 环境要求 |
+|---|---|---|---|
+| macOS 12 及以上 | Apple Silicon (ARM64) | ✅ 支持 | [.NET 10 Runtime](https://get.dot.net/10) |
+| Intel 版 macOS | x64 | ❌ 不支持 | / |
+
+<small>macOS 不再提供 Intel（x64）版本。</small>
+
+**✅ 完整支持**：会尽量提供支持，但请先确保使用最新版本。
+
+**⚠️ 理论能跑，酌情提供社区支持**：这些平台通常可以运行，但无法保证所有功能正常。遇到问题时，社区会视情况协助。升级到受支持的系统版本可以获得更完整的支持。
+
+**❌ 不支持**：这些平台基本无法正常使用，甚至可能无法启动。请升级系统后再运行 PCL CE。
+
+**注**：
+- 社区只为最新版本提供支持。
+- 有些问题与系统环境有关。例如系统组件不完整时，仍需升级系统才能继续获得支持。
+- 建议使用较新的操作系统，以获得更好的体验。
+- 在不受支持的系统上仍可尝试运行，但可能遇到更多问题。
 
 ## 🔒 许可证
 
-- `Plain Craft Launcher 2/` 使用 [自定义许可证](https://github.com/PCL-Community/PCL-CE/blob/dev/Plain%20Craft%20Launcher%202/LICENCE)
+- `PCL.Launcher/` 和 `PCL.Launcher.Core/` 使用 [自定义许可证](https://github.com/PCL-Community/PCL-CE/blob/dev/PCL.Launcher.Core/LICENCE)
 - `其余所有目录` 使用 [Apache License 2.0](https://github.com/PCL-Community/PCL-CE/blob/dev/LICENSE)
 
 ## 🌟 统计数据

@@ -1,0 +1,236 @@
+<ui:MyPageRight xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:ui="using:PCL.UI.Controls"
+                xmlns:loc="using:PCL.Core.UI"
+                x:Class="PCL.Views.Pages.Instance.PageInstanceOverall"
+                x:CompileBindings="False">
+    <Grid>
+        <ui:MyScrollViewer x:Name="PanBack"
+                           HorizontalScrollBarVisibility="Disabled"
+                           VerticalScrollBarVisibility="Auto">
+            <StackPanel x:Name="PanMain"
+                        Margin="25,10"
+                        Grid.IsSharedSizeScope="True">
+                <ui:MyCard Margin="0,15"
+                           Title="">
+                    <Grid x:Name="PanDisplayItem"
+                          Margin="10,7" />
+                </ui:MyCard>
+
+                <ui:MyCard Margin="0,0,0,15"
+                           Title="{loc:Loc Instance.Overall.Info.Title}">
+                    <StackPanel Margin="15,40,25,5">
+                        <ui:MyLoading x:Name="LabInfoLoading"
+                                      Margin="0,0,0,10"
+                                      HorizontalAlignment="Left"
+                                      IsVisible="{Binding InfoLoadingVisible}"
+                                      Text="{loc:Loc Instance.Overall.Info.Loading}" />
+                        <StackPanel x:Name="PanModpack"
+                                    Margin="0,0,0,5"
+                                    IsVisible="False" />
+                        <WrapPanel x:Name="PanInfo"
+                                   Margin="0,-5,-20,7"
+                                   IsVisible="False" />
+                    </StackPanel>
+                </ui:MyCard>
+
+                <ui:MyCard Margin="0,0,0,15"
+                           Title="{loc:Loc Instance.Overall.Personalization.Title}">
+                    <StackPanel Margin="25,40,25,15">
+                        <Grid ColumnDefinitions="Auto,*"
+                              RowDefinitions="28,9,28">
+                            <TextBlock Grid.Row="0"
+                                       Grid.Column="0"
+                                       Margin="0,0,25,0"
+                                       HorizontalAlignment="Left"
+                                       VerticalAlignment="Center"
+                                       Text="{loc:Loc Instance.Overall.Icon.Title}" />
+                            <ui:MyComboBox x:Name="ComboDisplayLogo"
+                                           Grid.Row="0"
+                                           Grid.Column="1"
+                                           HorizontalAlignment="Stretch">
+                                <ui:MyComboBoxItem Content="{loc:Loc Common.Option.Auto}"
+                                                   Tag=""
+                                                   IsSelected="True" />
+                                <ui:MyComboBoxItem x:Name="ItemDisplayLogoCustom"
+                                                   Content="{loc:Loc Common.Option.Customize}" />
+                                <ui:MyComboBoxItem Content="{loc:Loc Instance.Overall.Icon.Cobblestone}"
+                                                   Tag="Blocks/CobbleStone.png" />
+                                <ui:MyComboBoxItem Content="{loc:Loc Instance.Overall.Icon.CommandBlock}"
+                                                   Tag="Blocks/CommandBlock.png" />
+                                <ui:MyComboBoxItem Content="{loc:Loc Instance.Overall.Icon.GoldBlock}"
+                                                   Tag="Blocks/GoldBlock.png" />
+                                <ui:MyComboBoxItem Content="{loc:Loc Instance.Overall.Icon.GrassBlock}"
+                                                   Tag="Blocks/Grass.png" />
+                                <ui:MyComboBoxItem Content="{loc:Loc Instance.Overall.Icon.DirtPath}"
+                                                   Tag="Blocks/GrassPath.png" />
+                                <ui:MyComboBoxItem Content="{loc:Loc Instance.Overall.Icon.Anvil}"
+                                                   Tag="Blocks/Anvil.png" />
+                                <ui:MyComboBoxItem Content="{loc:Loc Instance.Overall.Icon.RedstoneBlock}"
+                                                   Tag="Blocks/RedstoneBlock.png" />
+                                <ui:MyComboBoxItem Content="{loc:Loc Instance.Overall.Icon.RedstoneLampOn}"
+                                                   Tag="Blocks/RedstoneLampOn.png" />
+                                <ui:MyComboBoxItem Content="{loc:Loc Instance.Overall.Icon.RedstoneLampOff}"
+                                                   Tag="Blocks/RedstoneLampOff.png" />
+                                <ui:MyComboBoxItem Content="{loc:Loc Instance.Overall.Icon.Egg}"
+                                                   Tag="Blocks/Egg.png" />
+                                <ui:MyComboBoxItem Content="{loc:Loc Instance.Overall.Icon.Fabric}"
+                                                   Tag="Blocks/Fabric.png" />
+                                <ui:MyComboBoxItem Content="{loc:Loc Instance.Overall.Icon.Quilt}"
+                                                   Tag="Blocks/Quilt.png" />
+                                <ui:MyComboBoxItem Content="{loc:Loc Instance.Overall.Icon.NeoForgeFox}"
+                                                   Tag="Blocks/NeoForge.png" />
+                                <ui:MyComboBoxItem Content="{loc:Loc Instance.Overall.Icon.Cleanroom}"
+                                                   Tag="Blocks/Cleanroom.png" />
+                            </ui:MyComboBox>
+                            <TextBlock Grid.Row="2"
+                                       Grid.Column="0"
+                                       Margin="0,0,25,0"
+                                       HorizontalAlignment="Left"
+                                       VerticalAlignment="Center"
+                                       Text="{loc:Loc Instance.Overall.Category.Title}" />
+                            <ui:MyComboBox x:Name="ComboDisplayType"
+                                           Grid.Row="2"
+                                           Grid.Column="1"
+                                           HorizontalAlignment="Stretch"
+                                           IsEnabled="{Binding CardTypeComboEnabled}">
+                                <ui:MyComboBoxItem Content="{loc:Loc Common.Option.Auto}"
+                                                   IsSelected="True" />
+                                <ui:MyComboBoxItem Content="{loc:Loc Instance.Overall.Category.Hidden}"
+                                                   ToolTip.Tip="{loc:Loc Instance.Overall.Category.Hidden.ToolTip}" />
+                                <ui:MyComboBoxItem Content="{loc:Loc Instance.Overall.Category.Modable}" />
+                                <ui:MyComboBoxItem Content="{loc:Loc Instance.Overall.Category.Regular}" />
+                                <ui:MyComboBoxItem Content="{loc:Loc Instance.Overall.Category.LessUsed}" />
+                                <ui:MyComboBoxItem Content="{loc:Loc Instance.Overall.Category.AprilFools}" />
+                            </ui:MyComboBox>
+                        </Grid>
+                        <Grid Margin="0,15,0,7"
+                              Height="35">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"
+                                                  SharedSizeGroup="Button" />
+                                <ColumnDefinition Width="Auto"
+                                                  SharedSizeGroup="Button" />
+                                <ColumnDefinition Width="Auto"
+                                                  SharedSizeGroup="Button" />
+                            </Grid.ColumnDefinitions>
+                            <ui:MyButton x:Name="BtnDisplayRename"
+                                         Grid.Column="0"
+                                         MinWidth="140"
+                                         Margin="0,0,20,0"
+                                         Padding="13,0"
+                                         IsEnabled="{Binding RenameButtonEnabled}"
+                                         Text="{loc:Loc Instance.Overall.Rename}" />
+                            <ui:MyButton x:Name="BtnDisplayDesc"
+                                         Grid.Column="1"
+                                         MinWidth="140"
+                                         Margin="0,0,20,0"
+                                         Padding="13,0"
+                                         IsEnabled="{Binding DescriptionButtonEnabled}"
+                                         Text="{loc:Loc Instance.Overall.EditDescription}" />
+                            <ui:MyButton x:Name="BtnDisplayStar"
+                                         Grid.Column="2"
+                                         MinWidth="140"
+                                         Margin="0,0,20,0"
+                                         Padding="13,0"
+                                         Text="{Binding StarText}" />
+                        </Grid>
+                    </StackPanel>
+                </ui:MyCard>
+
+                <ui:MyCard Margin="0,0,0,15"
+                           Title="{loc:Loc Instance.Overall.Shortcuts.Title}">
+                    <StackPanel Margin="25,40,25,15">
+                        <Grid Margin="0,2,0,7"
+                              Height="35">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"
+                                                  SharedSizeGroup="Button" />
+                                <ColumnDefinition Width="Auto"
+                                                  SharedSizeGroup="Button" />
+                                <ColumnDefinition Width="Auto"
+                                                  SharedSizeGroup="Button" />
+                            </Grid.ColumnDefinitions>
+                            <ui:MyButton x:Name="BtnFolderVersion"
+                                         Grid.Column="0"
+                                         MinWidth="140"
+                                         Margin="0,0,20,0"
+                                         Padding="13,0"
+                                         Command="{Binding OpenInstanceFolderCommand}"
+                                         Text="{loc:Loc Instance.Overall.Shortcuts.InstanceFolder}" />
+                            <ui:MyButton x:Name="BtnFolderSaves"
+                                         Grid.Column="1"
+                                         MinWidth="140"
+                                         Margin="0,0,20,0"
+                                         Padding="13,0"
+                                         Command="{Binding OpenSavesFolderCommand}"
+                                         Text="{loc:Loc Instance.Overall.Shortcuts.SavesFolder}" />
+                            <ui:MyButton x:Name="BtnFolderMods"
+                                         Grid.Column="2"
+                                         MinWidth="140"
+                                         Margin="0,0,20,0"
+                                         Padding="13,0"
+                                         Command="{Binding OpenModsFolderCommand}"
+                                         IsVisible="{Binding ModsFolderVisible}"
+                                         Text="{loc:Loc Instance.Overall.Shortcuts.ModsFolder}" />
+                        </Grid>
+                    </StackPanel>
+                </ui:MyCard>
+
+                <ui:MyCard Margin="0,0,0,15"
+                           Title="{loc:Loc Instance.Overall.Manage.Title}">
+                    <StackPanel Margin="25,40,25,15">
+                        <WrapPanel Margin="0,-5,-20,7"
+                                   Orientation="Horizontal">
+                            <ui:MyButton x:Name="BtnManageScript"
+                                         MinWidth="140"
+                                         Height="35"
+                                         Margin="0,7,20,0"
+                                         Padding="13,0"
+                                         Command="{Binding ExportLaunchScriptCommand}"
+                                         Text="{loc:Loc Instance.Overall.Manage.ExportLaunchScript}" />
+                            <ui:MyButton x:Name="BtnManageTest"
+                                         MinWidth="140"
+                                         Height="35"
+                                         Margin="0,7,20,0"
+                                         Padding="13,0"
+                                         Command="{Binding TestGameCommand}"
+                                         Text="{loc:Loc Instance.Overall.Manage.TestGame}" />
+                            <ui:MyButton x:Name="BtnManageCheck"
+                                         MinWidth="140"
+                                         Height="35"
+                                         Margin="0,7,20,0"
+                                         Padding="13,0"
+                                         Command="{Binding CheckFilesCommand}"
+                                         Text="{loc:Loc Instance.Overall.Manage.RepairFiles}"
+                                         ToolTip.Tip="{loc:Loc Instance.Overall.Manage.RepairFiles.ToolTip}" />
+                            <ui:MyButton x:Name="BtnManageRestore"
+                                         MinWidth="140"
+                                         Height="35"
+                                         Margin="0,7,20,0"
+                                         Padding="13,0"
+                                         IsEnabled="{Binding RestoreButtonEnabled}"
+                                         Text="{loc:Loc Common.Action.Reset}"
+                                         ToolTip.Tip="{loc:Loc Instance.Overall.Manage.Reinstall.ToolTip}" />
+                            <ui:MyButton x:Name="BtnManageDelete"
+                                         MinWidth="140"
+                                         Height="35"
+                                         Margin="0,7,20,0"
+                                         Padding="13,0"
+                                         ColorType="Red"
+                                         IsEnabled="{Binding DeleteButtonEnabled}"
+                                         Text="{loc:Loc Instance.Overall.Manage.Delete}" />
+                            <ui:MyButton x:Name="BtnManagePatch"
+                                         MinWidth="140"
+                                         Height="35"
+                                         Margin="0,7,20,0"
+                                         Padding="13,0"
+                                         IsEnabled="{Binding PatchButtonEnabled}"
+                                         Text="{loc:Loc Instance.Overall.Manage.PatchCore}" />
+                        </WrapPanel>
+                    </StackPanel>
+                </ui:MyCard>
+            </StackPanel>
+        </ui:MyScrollViewer>
+    </Grid>
+</ui:MyPageRight>

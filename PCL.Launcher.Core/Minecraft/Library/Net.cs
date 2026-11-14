@@ -145,7 +145,8 @@ public static partial class Libraries
         {
             var channelType =
                 mcInstance.JsonObject["labymod_data"]?["channelType"]?.ToString() ?? "";
-            Directory.CreateDirectory($@"{GameFolders.mcFolderSelected}labymod-neo\libraries");
+            Directory.CreateDirectory(
+                Path.Combine(GameFolders.mcFolderSelected!, "labymod-neo", "libraries"));
             LauncherCommon.Log("[Minecraft] 开始获取 LabyMod 信息");
             var labyManifest = (JsonObject)
                 NetFacade.NetGetCodeByRequestRetry(
@@ -190,7 +191,11 @@ public static partial class Libraries
         string labyModCommitRef)
     {
         var assetSha1 = value?.ToString() ?? "";
-        var assetPath = $@"{GameFolders.mcFolderSelected}labymod-neo\assets\{assetName}.jar";
+        var assetPath = Path.Combine(
+            GameFolders.mcFolderSelected!,
+            "labymod-neo",
+            "assets",
+            $"{assetName}.jar");
         var assetUrl =
             "https://releases.r2.labymod.net/api/v1/download/assets/labymod4/"
             + $"{channelType}/{labyModCommitRef}/{assetName}/{assetSha1}.jar";
@@ -248,7 +253,8 @@ public static partial class Libraries
                 continue;
             }
 
-            if (token.LocalPath.Contains(@"optifine\OptiFine"))
+            if (token.LocalPath.Contains(
+                    $"optifine{Path.DirectorySeparatorChar}OptiFine"))
             {
                 _AddOptiFineMirrorUrl(urls, token, customMcFolder);
             }
@@ -288,7 +294,8 @@ public static partial class Libraries
         string customMcFolder)
     {
         var optiFineFolder =
-            $@"{Path.Combine(customMcFolder, "libraries", "optifine", "OptiFine")}\";
+            Path.Combine(customMcFolder, "libraries", "optifine", "OptiFine")
+            + Path.DirectorySeparatorChar;
         var optiFineBase =
             token.LocalPath.Replace(optiFineFolder, "").Split("_")[0]
             + "/"
@@ -306,7 +313,7 @@ public static partial class Libraries
     {
         var relativeLibraryPath = token
             .LocalPath.Replace($"{customMcFolder}libraries", "")
-            .Replace(@"\", "/");
+            .Replace(Path.DirectorySeparatorChar, '/');
         urls.AddRange(
             GameDownload.DlSourceLibraryGet(
                 $"https://libraries.minecraft.net{relativeLibraryPath}"));
@@ -318,7 +325,9 @@ public static partial class Libraries
         if (token.Url is null && token.Name == "net.minecraftforge:forge:universal")
             token.Url =
                 "https://maven.minecraftforge.net"
-                + token.LocalPath.Replace($"{customMcFolder}libraries", "").Replace(@"\", "/");
+                + token
+                    .LocalPath.Replace($"{customMcFolder}libraries", "")
+                    .Replace(Path.DirectorySeparatorChar, '/');
         var url = token.Url;
         if (url is null)
             return urls;

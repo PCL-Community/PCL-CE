@@ -48,7 +48,8 @@ public static partial class InstanceList
     {
         var instances = new List<McInstance>();
 
-        foreach (var folder in new DirectoryInfo($"{path}versions").GetDirectories())
+        foreach (var folder in new DirectoryInfo(
+                     Path.Combine(path, "versions")).GetDirectories())
         {
             if (!folder.Exists || !folder.EnumerateFiles().Any())
             {
@@ -63,7 +64,7 @@ public static partial class InstanceList
                 continue;
             }
 
-            var instanceFolder = $@"{folder.FullName}\";
+            var instanceFolder = folder.FullName + Path.DirectorySeparatorChar;
             var ignoreFilePath = $"{instanceFolder}.pclignore";
 
             if (File.Exists(ignoreFilePath))
@@ -317,7 +318,7 @@ public static partial class InstanceList
         string path,
         Dictionary<McInstanceCardType, List<McInstance>> results)
     {
-        var iniPath = $"{path}PCL.ini";
+        var iniPath = Path.Combine(path, "PCL.ini");
 
         LauncherCommon.WriteIni(iniPath, "CardCount", results.Count.ToString());
 

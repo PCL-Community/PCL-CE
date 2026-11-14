@@ -1,0 +1,125 @@
+<Grid xmlns="https://github.com/avaloniaui"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:ui="using:PCL.UI.Controls"
+      x:Class="PCL.Views.Pages.Instance.MyLocalModItem"
+      x:Name="PanBack"
+      x:CompileBindings="False"
+      Height="44"
+      Background="{DynamicResource ColorBrushSemiTransparent}"
+      RenderTransformOrigin="0.5,0.5"
+      RowDefinitions="*,20,18,*"
+      ColumnDefinitions="6,34,7,Auto,*,4">
+
+    <Border x:Name="RectBack"
+            Grid.RowSpan="99"
+            Grid.ColumnSpan="99"
+            Background="{DynamicResource ColorBrush7}"
+            BorderBrush="{DynamicResource ColorBrush6}"
+            BorderThickness="1"
+            CornerRadius="3"
+            IsHitTestVisible="False"
+            Opacity="0"
+            RenderTransformOrigin="0.5,0.5">
+        <Border.RenderTransform>
+            <ScaleTransform ScaleX="0.8"
+                            ScaleY="0.8" />
+        </Border.RenderTransform>
+    </Border>
+
+    <Border x:Name="RectCheck"
+            Grid.RowSpan="99"
+            Width="5"
+            Height="0"
+            Margin="-3,0,0,0"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Center"
+            Background="{DynamicResource ColorBrush3}"
+            CornerRadius="2" />
+
+    <ui:MyImage x:Name="PathLogo"
+                Grid.Row="1"
+                Grid.RowSpan="2"
+                Grid.Column="1"
+                Width="34"
+                Height="34"
+                DecodeWidth="68"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center"
+                CornerRadius="6"
+                IsHitTestVisible="False"
+                Stretch="UniformToFill" />
+
+    <ui:MyImage x:Name="ImgState"
+                Grid.Row="1"
+                Grid.RowSpan="2"
+                Grid.Column="1"
+                Width="20"
+                Height="20"
+                Margin="0,0,-5,-3"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Bottom"
+                IsHitTestVisible="False"
+                IsVisible="{Binding ViewModel.IsStateImageVisible, ElementName=PanBack}" />
+
+    <Grid x:Name="PanTitle"
+          Grid.Row="1"
+          Grid.Column="3"
+          Grid.ColumnSpan="2"
+          Margin="0,1,0,0"
+          VerticalAlignment="Center">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <TextBlock x:Name="LabTitle"
+                   FontSize="14"
+                   IsHitTestVisible="False"
+                   Text="{Binding ViewModel.TitleText, ElementName=PanBack}"
+                   TextTrimming="CharacterEllipsis" />
+
+        <TextBlock x:Name="LabSubtitle"
+                   Grid.Column="1"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Center"
+                   FontSize="12"
+                   Foreground="{DynamicResource ColorBrushGray1}"
+                   IsHitTestVisible="False"
+                   IsVisible="{Binding ViewModel.IsSubTitleVisible, ElementName=PanBack}"
+                   Opacity="0.4"
+                   Text="{Binding ViewModel.SubTitleText, ElementName=PanBack}"
+                   TextTrimming="CharacterEllipsis" />
+
+        <ui:MyIconButton x:Name="BtnUpdate"
+                         Grid.Column="2"
+                         Width="21"
+                         Height="21"
+                         Margin="-2,-1.6,0,0"
+                         SvgIcon="lucide/upload"
+                         Opacity="0.4"
+                         Theme="Black"
+                         IsVisible="{Binding ViewModel.IsUpdateVisible, ElementName=PanBack}"
+                         ToolTip.Tip="{Binding ViewModel.UpdateToolTip, ElementName=PanBack}" />
+    </Grid>
+
+    <StackPanel x:Name="PanTags"
+                Grid.Row="2"
+                Grid.Column="3"
+                Margin="-1,0,1,0"
+                VerticalAlignment="Center"
+                IsHitTestVisible="False"
+                Orientation="Horizontal" />
+
+    <TextBlock x:Name="LabInfo"
+               Grid.Row="2"
+               Grid.Column="4"
+               Margin="0,0,3,1"
+               VerticalAlignment="Center"
+               FontSize="12"
+               Foreground="{DynamicResource ColorBrushGray4}"
+               IsHitTestVisible="False"
+               Text="{Binding ViewModel.DescriptionText, ElementName=PanBack}"
+               TextTrimming="CharacterEllipsis" />
+</Grid>

@@ -23,16 +23,36 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         include:
-          - configuration: CI
-            architecture: x64
-          - configuration: CI
-            architecture: ARM64
-      fail-fast: false
+          - target: windows_x64
+            runner: windows-latest
+            rid: win-x64
+            platform: x64
+          - target: windows_ARM64
+            runner: windows-latest
+            rid: win-arm64
+            platform: ARM64
+          - target: linux_x64
+            runner: ubuntu-latest
+            rid: linux-x64
+            platform: x64
+          - target: linux_ARM64
+            runner: ubuntu-latest
+            rid: linux-arm64
+            platform: ARM64
+          - target: macos_ARM64
+            runner: macos-latest
+            rid: osx-arm64
+            platform: ARM64
 
     uses: ./.github/workflows/reusable-build.yml
     with:
-      configuration: ${{ matrix.configuration }}
-      architecture: ${{ matrix.architecture }}
+      configuration: CI
+      target: ${{ matrix.target }}
+      rid: ${{ matrix.rid }}
+      platform: ${{ matrix.platform }}
+      runner: ${{ matrix.runner }}
+      version: 0.0.0-ci
     secrets: inherit

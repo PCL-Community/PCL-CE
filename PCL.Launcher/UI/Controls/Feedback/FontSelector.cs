@@ -1,0 +1,316 @@
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.Templates;
+using Avalonia.Data;
+using Avalonia.Layout;
+using Avalonia.Media;
+using Avalonia.Threading;
+using PCL.Core.App.Localization;
+using PCL.Core.Logging;
+
+namespace PCL.UI.Controls;
+
+/// <summary>
+///     字体选择器：列出系统字体并附带一项语言默认字体。
+///     默认项使用 <see cref="LaunchFonts" /> 生成的字体链，语言切换后自动刷新；
+///     选择结果通过 <see cref="SelectedFontTag" /> 与 <see cref="SelectionChanged" /> 对外暴露。
+/// </summary>
+public class FontSelector : ContentControl
+{
+    public delegate void SelectionChangedEventHandler(object sender, SelectionChangedEventArgs e);
+
+    private const string LoadingFontTag = "\0loading";
+
+    public static readonly StyledProperty<string?> TooltipProperty =
+        AvaloniaProperty.Register<FontSelector, string?>(nameof(Tooltip));
+
+    private readonly MyComboBox _comboFont;
+    private bool _isInitializing;
+    private bool _isListeningLanguageChanged;
+    private string? _pendingFontTag;
+
+    public FontSelector()
+    {
+        _comboFont = new MyComboBox
+        {
+            Name = "ComboFont",
+            ItemTemplate = BuildItemTemplate(),
+            MaxDropDownHeight = 300d,
+            ItemsSource = CustomFontCollection,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            HorizontalContentAlignment = HorizontalAlignment.Center
+        };
+        _comboFont.SelectionChanged += ComboFont_SelectionChanged;
+
+        Content = _comboFont;
+        HorizontalAlignment = HorizontalAlignment.Stretch;
+        HorizontalContentAlignment = HorizontalAlignment.Stretch;
+        FeedbackTheme.AttachStyles(this);
+
+        Loaded += (_, _) => FontSelector_Loaded();
+        Unloaded += (_, _) => FontSelector_Unloaded();
+    }
+
+    public string? Tooltip
+    {
+        get => GetValue(TooltipProperty);
+        set => SetValue(TooltipProperty, value);
+    }
+
+    public ObservableCollection<CustomFontProperties> CustomFontCollection { get; } = [];
+
+    public string SelectedFontTag
+    {
+        get =>
+            _comboFont.SelectedItem is not CustomFontProperties selectedFont
+                ? string.Empty
+                : selectedFont.Tag;
+        set
+        {
+            var tag = value ?? string.Empty;
+            if (CustomFontCollection.Count == 0
+                || CustomFontCollection is [{ Tag: LoadingFontTag }])
+            {
+                _pendingFontTag = tag;
+                return;
+            }
+
+            _isInitializing = true;
+            var targetSelection = CustomFontCollection.FirstOrDefault(item => item.Tag == tag);
+            if (targetSelection is null)
+                _comboFont.SelectedIndex = 0;
+            else
+                _comboFont.SelectedItem = targetSelection;
+            _isInitializing = false;
+        }
+    }
+
+    public int SelectedIndex
+    {
+        get => _comboFont.SelectedIndex;
+        set => _comboFont.SelectedIndex = value;
+    }
+
+    public event SelectionChangedEventHandler? SelectionChanged;
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+
+        if (change.Property == TooltipProperty)
+            ToolTip.SetTip(_comboFont, change.NewValue as string);
+        else if (change.Property == IsEnabledProperty && change.NewValue is bool isEnabled)
+            _comboFont.IsEnabled = isEnabled;
+    }
+
+    private static IDataTemplate BuildItemTemplate()
+    {
+        return new FuncDataTemplate<CustomFontProperties>((font, _) =>
+        {
+            var text = new TextBlock
+            {
+                TextAlignment = TextAlignment.Center
+            };
+            text.Bind(TextBlock.TextProperty, new Binding(nameof(CustomFontProperties.Name)));
+            text.Bind(TextBlock.FontFamilyProperty, new Binding(nameof(CustomFontProperties.Font)));
+            return text;
+        });
+    }
+
+    private void FontSelector_Loaded()
+    {
+        StartListeningLanguageChanged();
+
+        if (CustomFontCollection.Count == 0)
+            LoadFonts();
+        else
+            RefreshDefaultFont();
+    }
+
+    private void FontSelector_Unloaded()
+    {
+        StopListeningLanguageChanged();
+    }
+
+    private void StartListeningLanguageChanged()
+    {
+        if (_isListeningLanguageChanged)
+            return;
+        LocalizationService.LanguageChanged += LocalizationService_LanguageChanged;
+        _isListeningLanguageChanged = true;
+    }
+
+    private void StopListeningLanguageChanged()
+    {
+        if (!_isListeningLanguageChanged)
+            return;
+        LocalizationService.LanguageChanged -= LocalizationService_LanguageChanged;
+        _isListeningLanguageChanged = false;
+    }
+
+    private void LocalizationService_LanguageChanged()
+    {
+        RefreshDefaultFont();
+    }
+
+    private void RefreshDefaultFont()
+    {
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            Dispatcher.UIThread.Post(RefreshDefaultFont);
+            return;
+        }
+
+        var defaultFont = GetDefaultFont();
+        defaultFont?.NotifyNameChanged();
+        defaultFont?.Font = LaunchFonts.ForCurrentLanguage();
+    }
+
+    private void LoadFonts()
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            try
+            {
+                LoadFontsCore();
+            }
+            catch (Exception ex)
+            {
+                LogWrapper.Warn(ex, "FontSelector", "加载系统字体失败，回退到默认字体");
+                _comboFont.IsEnabled = IsEnabled;
+                _isInitializing = false;
+            }
+        });
+    }
+
+    private void LoadFontsCore()
+    {
+        _comboFont.IsEnabled = false;
+        _isInitializing = true;
+        CustomFontCollection.Add(
+            new CustomFontProperties
+            {
+                NameKey = "Common.State.Loading",
+                Tag = LoadingFontTag
+            });
+        _comboFont.SelectedIndex = 0;
+
+        var availableFonts = new List<(string Name, FontFamily Font)>();
+
+        foreach (var font in FontManager.Current.SystemFonts)
+            try
+            {
+                var name = font.Name;
+                if (string.IsNullOrWhiteSpace(name))
+                    continue;
+                if (name.StartsWith("Global ", StringComparison.Ordinal))
+                    continue;
+
+                // 不直接使用 SystemFonts 返回的 FontFamily，因为它带有 fonts:SystemFonts Key，
+                // 缺失字体不会触发回退，而会在下拉框测量文本时抛出异常。
+                // 逐项验证 GlyphTypeface 又会让整个页面卡数秒，所以这里使用安全的字体链。
+                availableFonts.Add((name, LaunchFonts.BuildPreviewFont(name)));
+            }
+            catch (Exception ex)
+            {
+                LogWrapper.Debug(ex, "FontSelector", $"[FontSelector] 发现了一个无法加载的异常的字体：{font}");
+            }
+
+        availableFonts.Sort((left, right) => string.Compare(
+            left.Name,
+            right.Name,
+            StringComparison.Ordinal));
+
+        CustomFontCollection.Clear();
+        CustomFontCollection.Add(
+            new CustomFontProperties
+            {
+                NameKey = "Common.Option.Default",
+                Font = LaunchFonts.ForCurrentLanguage(),
+                Tag = string.Empty
+            });
+
+        foreach (var font in availableFonts)
+            CustomFontCollection.Add(
+                new CustomFontProperties
+                {
+                    RawName = font.Name,
+                    Font = font.Font,
+                    Tag = font.Name
+                });
+
+        _comboFont.IsEnabled = IsEnabled;
+
+        if (_pendingFontTag is not null)
+        {
+            var pendingTag = _pendingFontTag;
+            _pendingFontTag = null;
+            SelectedFontTag = pendingTag;
+        }
+
+        _isInitializing = false;
+    }
+
+    private void ComboFont_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (!_isInitializing)
+            SelectionChanged?.Invoke(this, e);
+    }
+
+    private CustomFontProperties? GetDefaultFont()
+    {
+        return CustomFontCollection.FirstOrDefault(item => string.IsNullOrEmpty(item.Tag));
+    }
+
+    public class CustomFontProperties : INotifyPropertyChanged
+    {
+        public string Name =>
+            string.IsNullOrEmpty(NameKey)
+                ? RawName
+                : Lang.Text(NameKey);
+
+        public string RawName
+        {
+            get;
+            init => SetField(ref field, value);
+        } = string.Empty;
+
+        public string? NameKey
+        {
+            get;
+            set => SetField(ref field, value);
+        }
+
+        public FontFamily Font
+        {
+            get;
+            set => SetField(ref field, value);
+        } = LaunchFonts.Default;
+
+        public string Tag
+        {
+            get;
+            set => SetField(ref field, value);
+        } = string.Empty;
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        public void NotifyNameChanged()
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Name)));
+        }
+
+        private void SetField<T>(
+            ref T field,
+            T value,
+            [CallerMemberName] string? propertyName = null)
+        {
+            if (EqualityComparer<T>.Default.Equals(field, value)) return;
+            field = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+}

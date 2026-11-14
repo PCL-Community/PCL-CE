@@ -1,0 +1,219 @@
+<ui:MyPageRight xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:ui="using:PCL.UI.Controls"
+                xmlns:loc="using:PCL.Core.UI"
+                x:CompileBindings="False"
+                x:Class="PCL.Views.Pages.Setup.PageSetupLauncherMisc">
+    <ui:MyScrollViewer x:Name="PanBack"
+                       HorizontalScrollBarVisibility="Disabled"
+                       VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="25,10">
+            <ui:MyCard Margin="0,15"
+                       Title="{loc:Loc Setup.Misc.System.Title}">
+                <Grid Margin="25,40,25,16"
+                      ColumnDefinitions="Auto,*"
+                      RowDefinitions="28,9,28,5,20,8,Auto">
+                    <TextBlock Grid.Row="0"
+                               VerticalAlignment="Center"
+                               Margin="0,0,25,0"
+                               Text="{loc:Loc Setup.Misc.System.Announcement}" />
+                    <ui:MyComboBox x:Name="ComboSystemActivity"
+                                   Grid.Row="0"
+                                   Grid.Column="1"
+                                   HorizontalAlignment="Stretch"
+                                   SelectedIndex="{Binding ActivityIndex, Mode=OneWay}">
+                        <ui:MyComboBoxItem Content="{loc:Loc Setup.Misc.System.Announcement.All}"
+                                           ToolTip.Tip="{loc:Loc Setup.Misc.System.Announcement.All.ToolTip}" />
+                        <ui:MyComboBoxItem Content="{loc:Loc Setup.Misc.System.Announcement.ImportantOnly}" />
+                        <ui:MyComboBoxItem Content="{loc:Loc Setup.Misc.System.Announcement.Disabled}" />
+                    </ui:MyComboBox>
+
+                    <TextBlock Grid.Row="2"
+                               VerticalAlignment="Center"
+                               Margin="0,0,25,0"
+                               Text="{loc:Loc Setup.Misc.System.MaxLogLines}" />
+                    <ui:MySlider x:Name="SliderMaxLog"
+                                 Grid.Row="2"
+                                 Grid.Column="1"
+                                 MaxValue="29"
+                                 ToolTip.Tip="{loc:Loc Setup.Misc.System.MaxLogLines.ToolTip}" />
+
+                    <Grid Grid.Row="4"
+                          Grid.ColumnSpan="2"
+                          ColumnDefinitions="Auto,Auto,Auto,Auto">
+                        <ui:MyCheckBox x:Name="CheckSystemDisableHardwareAcceleration"
+                                       Grid.Column="0"
+                                       Margin="0,0,20,0"
+                                       Text="{loc:Loc Setup.Misc.System.DisableHardwareAcceleration}" />
+                        <ui:MyCheckBox x:Name="CheckSystemTelemetry"
+                                       Grid.Column="1"
+                                       IsEnabled="{Binding TelemetryEnabled}"
+                                       Text="{loc:Loc Setup.Misc.System.Telemetry}"
+                                       ToolTip.Tip="{loc:Loc Setup.Misc.System.Telemetry.ToolTip}" />
+                    </Grid>
+
+                    <Grid Grid.Row="6"
+                          Grid.ColumnSpan="2"
+                          RowDefinitions="35"
+                          ColumnDefinitions="Auto,Auto,Auto,Auto">
+                        <ui:MyButton x:Name="BtnSystemSettingExp"
+                                     Grid.Column="0"
+                                     MinWidth="140"
+                                     Margin="0,0,20,0"
+                                     Padding="13,0"
+                                     Text="{loc:Loc Setup.Misc.System.ExportSettings}" />
+                        <ui:MyButton x:Name="BtnSystemSettingImp"
+                                     Grid.Column="1"
+                                     MinWidth="140"
+                                     Margin="0,0,20,0"
+                                     Padding="13,0"
+                                     Text="{loc:Loc Setup.Misc.System.ImportSettings}" />
+                        <ui:MyButton x:Name="BtnSystemStopUsingPclCe"
+                                     Grid.Column="2"
+                                     MinWidth="140"
+                                     Margin="0,0,20,0"
+                                     Padding="13,0"
+                                     ColorType="Red"
+                                     Text="{loc:Loc Setup.Misc.System.StopUsingPclCe}" />
+                    </Grid>
+                </Grid>
+            </ui:MyCard>
+
+            <ui:MyCard Margin="0,0,0,15"
+                       Title="{loc:Loc Setup.Misc.Network.Title}">
+                <Grid Margin="25,38,25,15"
+                      ColumnDefinitions="Auto,*"
+                      RowDefinitions="28,4,28,4,Auto">
+                    <ui:MyCheckBox x:Name="CheckNetDohEnable"
+                                   Grid.Row="0"
+                                   Grid.ColumnSpan="2"
+                                   Text="{loc:Loc Setup.Misc.Network.DoH}"
+                                   ToolTip.Tip="{loc:Loc Setup.Misc.Network.DoH.ToolTip}" />
+
+                    <TextBlock Grid.Row="2"
+                               VerticalAlignment="Center"
+                               Margin="0,0,25,0"
+                               Text="{loc:Loc Setup.Misc.Network.HttpProxy}" />
+                    <Grid Grid.Row="2"
+                          Grid.Column="1"
+                          ColumnDefinitions="*,*,*,0.2*">
+                        <ui:MyRadioBox x:Name="RadioHttpProxyType0"
+                                       Grid.Column="0"
+                                       Height="22"
+                                       Text="{loc:Loc Setup.Misc.Network.Proxy.None}" />
+                        <ui:MyRadioBox x:Name="RadioHttpProxyType1"
+                                       Grid.Column="1"
+                                       Height="22"
+                                       Text="{loc:Loc Setup.Misc.Network.Proxy.System}" />
+                        <ui:MyRadioBox x:Name="RadioHttpProxyType2"
+                                       Grid.Column="2"
+                                       Height="22"
+                                       Text="{loc:Loc Setup.Misc.Network.Proxy.Custom}" />
+                    </Grid>
+
+                    <Grid x:Name="PanHttpProxyCustom"
+                          Grid.Row="4"
+                          Grid.Column="1"
+                          ColumnDefinitions="Auto,*,Auto,*,Auto"
+                          RowDefinitions="28,9,28,9,28"
+                          IsVisible="False">
+                        <ui:MyHint Grid.Row="0"
+                                   Grid.ColumnSpan="5"
+                                   Theme="Yellow"
+                                   Text="{loc:Loc Setup.Misc.Network.Proxy.UntrustedWarning}" />
+                        <ui:MyTextBox x:Name="TextSystemHttpProxy"
+                                      Grid.Row="2"
+                                      Grid.ColumnSpan="5"
+                                      HintText="比如 http://127.0.0.1:1080/"
+                                      Text="{Binding HttpProxyText, Mode=TwoWay}"
+                                      ToolTip.Tip="{loc:Loc Setup.Misc.Network.Proxy.InvalidWarning}" />
+                        <TextBlock Grid.Row="4"
+                                   Grid.Column="0"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,5,0"
+                                   Text="{loc:Loc Setup.Misc.Network.Proxy.Username}" />
+                        <ui:MyTextBox x:Name="TextSystemHttpProxyCustomUsername"
+                                      Grid.Row="4"
+                                      Grid.Column="1"
+                                      Margin="0,0,5,0"
+                                      HintText="{loc:Loc Setup.Misc.Network.Proxy.Optional}"
+                                      Text="{Binding HttpProxyUsername, Mode=TwoWay}" />
+                        <TextBlock Grid.Row="4"
+                                   Grid.Column="2"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,5,0"
+                                   Text="{loc:Loc Setup.Misc.Network.Proxy.Password}" />
+                        <ui:MyTextBox x:Name="TextSystemHttpProxyCustomPassword"
+                                      Grid.Row="4"
+                                      Grid.Column="3"
+                                      Margin="0,0,5,0"
+                                      HintText="{loc:Loc Setup.Misc.Network.Proxy.Optional}"
+                                      Text="{Binding HttpProxyPassword, Mode=TwoWay}" />
+                        <ui:MyButton x:Name="BtnApplyHttpProxy"
+                                     Grid.Row="4"
+                                     Grid.Column="4"
+                                     TextPadding="3"
+                                     Text="{loc:Loc Setup.Misc.Network.Proxy.Apply}" />
+                    </Grid>
+                </Grid>
+            </ui:MyCard>
+
+            <ui:MyCard x:Name="CardDebug"
+                       Margin="0,0,0,15"
+                       Title="{loc:Loc Setup.Misc.Debug.Title}"
+                       CanSwap="True"
+                       IsSwapped="True">
+                <StackPanel Margin="25,40,25,15">
+                    <Grid Height="22"
+                          Margin="0,0,0,10"
+                          ColumnDefinitions="Auto,*">
+                        <TextBlock VerticalAlignment="Center"
+                                   Margin="0,0,25,0"
+                                   Text="{loc:Loc Setup.Misc.Debug.AnimationSpeed}" />
+                        <ui:MySlider x:Name="SliderDebugAnim"
+                                     Grid.Column="1"
+                                     MaxValue="30" />
+                    </Grid>
+                    <Grid Height="28"
+                          Margin="0,0,0,10"
+                          ColumnDefinitions="Auto,*">
+                        <TextBlock VerticalAlignment="Center"
+                                   Margin="0,0,25,0"
+                                   Text="{loc:Loc Setup.Misc.Debug.LinuxProtocol}" />
+                        <ui:MyComboBox x:Name="ComboDebugLinuxProtocol"
+                                       Grid.Column="1"
+                                       HorizontalAlignment="Stretch"
+                                       ToolTip.Tip="{loc:Loc Setup.Misc.Debug.LinuxProtocol.ToolTip}">
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Misc.Debug.LinuxProtocol.Auto}"
+                                               Tag="0"
+                                               ToolTip.Tip="{loc:Loc Setup.Misc.Debug.LinuxProtocol.Auto.ToolTip}" />
+                            <ui:MyComboBoxItem Content="X11"
+                                               Tag="1"
+                                               ToolTip.Tip="{loc:Loc Setup.Misc.Debug.LinuxProtocol.X11.ToolTip}" />
+                            <ui:MyComboBoxItem Content="Wayland"
+                                               Tag="2"
+                                               ToolTip.Tip="{loc:Loc Setup.Misc.Debug.LinuxProtocol.Wayland.ToolTip}" />
+                        </ui:MyComboBox>
+                    </Grid>
+                    <Grid ColumnDefinitions="1.5*,*,*">
+                        <ui:MyCheckBox x:Name="CheckDebugSkipCopy"
+                                       Grid.Column="0"
+                                       Height="22"
+                                       Text="{loc:Loc Setup.Misc.Debug.SkipCopy}"
+                                       ToolTip.Tip="{loc:Loc Setup.Misc.Debug.SkipCopy.ToolTip}" />
+                        <ui:MyCheckBox x:Name="CheckDebugMode"
+                                       Grid.Column="1"
+                                       Height="22"
+                                       Text="{loc:Loc Setup.Misc.Debug.Mode}"
+                                       ToolTip.Tip="{loc:Loc Setup.Misc.Debug.Mode.ToolTip}" />
+                        <ui:MyCheckBox x:Name="CheckDebugDelay"
+                                       Grid.Column="2"
+                                       Height="22"
+                                       Text="{loc:Loc Setup.Misc.Debug.Delay}"
+                                       ToolTip.Tip="{loc:Loc Setup.Misc.Debug.Delay.ToolTip}" />
+                    </Grid>
+                </StackPanel>
+            </ui:MyCard>
+        </StackPanel>
+    </ui:MyScrollViewer>
+</ui:MyPageRight>

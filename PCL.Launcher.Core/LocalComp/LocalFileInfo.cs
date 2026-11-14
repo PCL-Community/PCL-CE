@@ -87,12 +87,15 @@ public static partial class LocalComp
         /// <summary>
         ///     是否为文件夹项。
         /// </summary>
-        public bool IsFolder => path.EndsWithF(@"\__FOLDER__", true);
+        public bool IsFolder => path.EndsWithF($"{Path.DirectorySeparatorChar}__FOLDER__", true);
 
         /// <summary>
         ///     获取实际的文件夹路径（去除 __FOLDER__ 标记）。
         /// </summary>
-        public string ActualPath => IsFolder ? path.Replace(@"\__FOLDER__", "") : path;
+        public string ActualPath =>
+            IsFolder
+                ? path.Replace($"{Path.DirectorySeparatorChar}__FOLDER__", "")
+                : path;
 
         /// <summary>
         ///     Mod 资源的完整路径，去除最后的 .disabled 和 .old。

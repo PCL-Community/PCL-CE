@@ -1,10 +1,10 @@
-using Microsoft.Data.Sqlite;
-using PCL.Core.IO.Storage.Cache.Model;
 using System;
-using System.Globalization;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Data.Sqlite;
+using PCL.Core.IO.Storage.Cache.Model;
 
 namespace PCL.Core.IO.Storage.Cache;
 
@@ -128,7 +128,9 @@ public class SqliteCacheStorage(string dbPath) : IDisposable
         {
             await using var conn = await _CreateConnectionAsync().ConfigureAwait(false);
             await using var cmd = conn.CreateCommand();
-            cmd.CommandText = "DELETE FROM cache_entries WHERE expires_at IS NOT NULL AND datetime(expires_at) < datetime('now')";
+            cmd.CommandText =
+                "DELETE FROM cache_entries WHERE expires_at IS NOT NULL AND expires_at < @now";
+            cmd.Parameters.AddWithValue("@now", now.ToUniversalTime().ToString("O"));
             var affected = await cmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
             return affected;
         }
@@ -597,7 +599,6 @@ public class SqliteCacheStorage(string dbPath) : IDisposable
             ScanHash = r.IsDBNull(16) ? null : r.GetString(16),
         };
     }
-
 
     #endregion
 

@@ -329,7 +329,10 @@ public static partial class GameDownload
                     var backAssetsFile = DlClientAssetIndexGet(version);
                     if (backAssetsFile is null) return;
                     realAddress = backAssetsFile.LocalPath;
-                    tempAddress = $@"{LauncherPaths.Temp}Cache\{backAssetsFile.LocalName}";
+                    tempAddress = Path.Combine(
+                        LauncherPaths.Temp,
+                        "Cache",
+                        backAssetsFile.LocalName);
                     backAssetsFile.LocalPath = tempAddress;
                     task.output = [backAssetsFile];
                     if (!_IsFileFromToday(realAddress))
@@ -467,8 +470,7 @@ public static partial class GameDownload
         };
     }
 
-    private static void DlClientListMojangMain(
-        Loading.LoaderTask<string, DlClientListResult> loader)
+    private static void DlClientListMojangMain(Loading.LoaderTask<string, DlClientListResult> loader)
     {
         var startTime = TimeUtils.GetTimeTick();
         var json = (JsonObject)Requester.FetchJson(
@@ -509,7 +511,8 @@ public static partial class GameDownload
 
     private static void _MergeUnlistedVersions(JsonArray versions, string sourceDescription)
     {
-        var cacheFilePath = $@"{LauncherPaths.Temp}Cache\uvmc-download.json";
+        var cacheFilePath =
+            Path.Combine(LauncherPaths.Temp, "Cache", "uvmc-download.json");
         if (!File.Exists(cacheFilePath))
             try
             {
@@ -583,8 +586,7 @@ public static partial class GameDownload
             && !_dlClientListMojangMainIsHinted;
     }
 
-    private static void DlClientListBmclapiMain(
-        Loading.LoaderTask<string, DlClientListResult> loader)
+    private static void DlClientListBmclapiMain(Loading.LoaderTask<string, DlClientListResult> loader)
     {
         var json = (JsonObject)Requester.FetchJson(
             "https://bmclapi2.bangbang93.com/mc/game/version_manifest.json");
@@ -610,8 +612,7 @@ public static partial class GameDownload
         }
     }
 
-    private static void _EnsureBmclapiHasInputVersion(
-        Loading.LoaderTask<string, DlClientListResult> loader)
+    private static void _EnsureBmclapiHasInputVersion(Loading.LoaderTask<string, DlClientListResult> loader)
     {
         if (string.IsNullOrEmpty(loader.input))
             return;

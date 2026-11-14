@@ -17,7 +17,7 @@
         <Platforms>AnyCPU;x64;ARM64</Platforms>
         <ProjectGuid>{A0C2209D-64FB-4C11-9459-8E86304B6F94}</ProjectGuid>
         <RootNamespace>PCL.Core</RootNamespace>
-        <TargetFramework>net10.0-windows</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
         <EnableWindowsTargeting>true</EnableWindowsTargeting>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>15.0</LangVersion>
@@ -46,7 +46,6 @@
     <ItemGroup>
         <!-- UI -->
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-        <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.142" />
         <PackageReference Include="Wacton.Unicolour" Version="8.0.0" />
         <!-- 语言和系统特性 -->
         <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
@@ -89,6 +88,9 @@
     </PropertyGroup>
     <ItemGroup>
         <Compile Include="**\*.cs" Exclude="bin\**;obj\**;publish\**;**\*.g.cs;SourceGenerators\**" />
+        <Compile Update="App\Region\LinuxRegionSignalProvider.cs">
+          <DependentUpon>PosixRegionSignalProvider.cs</DependentUpon>
+        </Compile>
     </ItemGroup>
     <!-- 项目自定义源生成器 -->
     <ItemGroup>

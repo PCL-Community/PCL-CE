@@ -1,0 +1,93 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:shell="using:PCL.Views.Shell"
+        xmlns:ui="using:PCL.UI.Controls"
+        mc:Ignorable="d"
+        d:DesignWidth="850"
+        d:DesignHeight="500"
+        x:Class="PCL.Views.MainWindow"
+        Width="850"
+        Height="500"
+        MinWidth="810"
+        MinHeight="470"
+        WindowStartupLocation="CenterScreen"
+        WindowDecorations="None"
+        Background="Transparent"
+        CanResize="True"
+        TransparencyBackgroundFallback="{DynamicResource ColorBrushBackground}"
+        Title="Plain Craft Launcher Community Edition ">
+    <Grid x:Name="PanRoot"
+          Background="Transparent">
+        <ui:MyDropShadow Color="#21000000"
+                         ShadowRadius="10"
+                         CornerRadius="6"
+                         CenterTransparent="True">
+            <Border x:Name="PanBack"
+                    Margin="10"
+                    CornerRadius="6"
+                    ClipToBounds="True">
+                <Grid x:Name="PanForm"
+                      RowDefinitions="Auto,*">
+                    <Grid x:Name="ImgBack"
+                          Grid.Row="1"
+                          ClipToBounds="True"
+                          IsHitTestVisible="False">
+                        <Image x:Name="ImgBackImage"
+                               Stretch="UniformToFill"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+                    </Grid>
+                    <shell:TitleBar x:Name="TitleBar"
+                                    Grid.Row="0" />
+                    <Border x:Name="RectLeftBackground"
+                            Grid.Row="1"
+                            Width="0"
+                            HorizontalAlignment="Left"
+                            Background="{DynamicResource ColorBrushTransparentBackground}"
+                            IsHitTestVisible="False"
+                            BoxShadow="4 0 6 0 #0A000000" />
+                    <Grid x:Name="PanMain"
+                          Grid.Row="1"
+                          ColumnDefinitions="Auto,*">
+                        <ContentControl x:Name="PageLeftHost"
+                                        Grid.Column="0"
+                                        HorizontalAlignment="Left"
+                                        IsVisible="False" />
+                        <ContentControl x:Name="PageRightHost"
+                                        Grid.Column="1" />
+                    </Grid>
+                    <Grid x:Name="PanHintAnchor"
+                          Grid.RowSpan="2"
+                          ZIndex="1"
+                          HorizontalAlignment="Right"
+                          VerticalAlignment="Bottom">
+                        <StackPanel x:Name="PanHint"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Bottom" />
+                    </Grid>
+                    <shell:ExtraButtonsPanel x:Name="PanExtraButtons"
+                                             Grid.Row="1" />
+                    <Panel x:Name="PanDialogLayer"
+                           Grid.RowSpan="2"
+                           IsVisible="False"
+                           Opacity="0">
+                        <Border x:Name="BorDialogMask"
+                                Background="#00000000" />
+                        <ScrollViewer x:Name="SclDialogHost"
+                                      MinWidth="400"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      HorizontalScrollBarVisibility="Disabled"
+                                      VerticalScrollBarVisibility="Auto">
+                            <Panel x:Name="PanDialogHost"
+                                   HorizontalAlignment="Stretch"
+                                   VerticalAlignment="Center" />
+                        </ScrollViewer>
+                    </Panel>
+                </Grid>
+            </Border>
+        </ui:MyDropShadow>
+    </Grid>
+</Window>

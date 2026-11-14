@@ -1,0 +1,58 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="PCL.UI.Controls.MySlider"
+             Background="Transparent"
+             Focusable="True"
+             MinHeight="16">
+    <!-- 双导轨 + 圆形拖点 + 数值提示 Popup；拖点缩放与配色由代码驱动动画。 -->
+    <Grid x:Name="PanMainElement"
+          MinHeight="16"
+          MaxHeight="16"
+          IsHitTestVisible="False">
+        <Border x:Name="LineBackElement"
+                Width="0"
+                Height="1"
+                Opacity="0.3"
+                CornerRadius="2"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center"
+                Margin="0,0,1,0" />
+        <Border x:Name="LineForeElement"
+                Width="0"
+                Height="2"
+                CornerRadius="2"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center" />
+        <Ellipse x:Name="ShapeDotElement"
+                 Width="10"
+                 Height="10"
+                 StrokeThickness="1.2"
+                 HorizontalAlignment="Left"
+                 VerticalAlignment="Center"
+                 RenderTransformOrigin="0.5,0.5">
+            <Ellipse.RenderTransform>
+                <ScaleTransform />
+            </Ellipse.RenderTransform>
+        </Ellipse>
+        <Popup x:Name="PopupElement"
+               Placement="Center"
+               VerticalOffset="38"
+               IsLightDismissEnabled="False"
+               IsOpen="False">
+            <Border x:Name="HintBorderElement"
+                    MaxWidth="500"
+                    Margin="0,0,4,4"
+                    Padding="7,5"
+                    BorderThickness="1.5"
+                    CornerRadius="3"
+                    BoxShadow="0 4 4 0 #66000000">
+                <TextBlock x:Name="TextHintElement"
+                           FontSize="12"
+                           TextWrapping="Wrap" />
+            </Border>
+        </Popup>
+        <Border x:Name="FocusRing"
+                Classes="FocusRing"
+                IsHitTestVisible="False" />
+    </Grid>
+</UserControl>

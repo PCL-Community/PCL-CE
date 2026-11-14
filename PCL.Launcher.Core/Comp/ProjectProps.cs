@@ -57,7 +57,8 @@ public static partial class Comp
             string? result = null;
 
             var descHash = $"{Id}{LauncherCommon.GetStringMd5(Description)}";
-            var cacheFilePath = $@"{LauncherPaths.Temp}Cache\CompTranslation.ini";
+            var cacheFilePath =
+                Path.Combine(LauncherPaths.Temp, "Cache", "CompTranslation.ini");
             var cacheTranslation = LauncherCommon.ReadIni(cacheFilePath, descHash);
             if (!string.IsNullOrWhiteSpace(cacheTranslation))
             {

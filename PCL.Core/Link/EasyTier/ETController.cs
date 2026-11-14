@@ -5,6 +5,7 @@ using System.Linq;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.IO.Net;
+using PCL.Core.Link.Scaffolding.EasyTier;
 using PCL.Core.Logging;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Secret;
@@ -13,8 +14,8 @@ using static PCL.Core.Link.Lobby.LobbyInfoProvider;
 using static PCL.Core.Link.Natayark.NatayarkProfileManager;
 
 namespace PCL.Core.Link.EasyTier;
-// ReSharper disable InconsistentNaming
 
+// ReSharper disable InconsistentNaming
 public enum ETState
 {
     Stopped,
@@ -30,21 +31,20 @@ public static class ETController
 
     public static int Precheck()
     {
-        var existedET = Process.GetProcessesByName("easytier-core");
+        var existedET = Process.GetProcessesByName(
+            Path.GetFileNameWithoutExtension(EasyTierMetadata.Package.CoreFileName));
         foreach (var p in existedET)
-        {
             LogWrapper.Warn("Link", $"发现已有的 EasyTier 实例，可能影响与启动器所用的实例通信: {p.Id}");
-        }
 
-        // 检查文件
-        LogWrapper.Info("Link", "EasyTier 路径: " + ETPath);
-        if (!(File.Exists(ETPath + "\\easytier-core.exe") && File.Exists(ETPath + "\\easytier-cli.exe") &&
-              File.Exists(ETPath + "\\Packet.dll")))
+        // 检查当前平台的依赖文件
+        LogWrapper.Info("Link", "EasyTier 路径: " + EasyTierMetadata.InstallRoot);
+        if (!EasyTierMetadata.IsInstalled)
         {
             LogWrapper.Error("Link", "EasyTier 不存在或不完整");
             return 1;
         }
 
+        EasyTierMetadata.EnsureExecutable();
         return 0;
     }
 
@@ -52,17 +52,15 @@ public static class ETController
     {
         try
         {
-            if (TargetLobby is null || Precheck() != 0)
-            {
-                return 1;
-            }
+            if (TargetLobby is null || Precheck() != 0) return 1;
 
             ETProcess = new Process
             {
                 EnableRaisingEvents = true,
                 StartInfo = new ProcessStartInfo
                 {
-                    FileName = $"{ETPath}\\easytier-core.exe", WorkingDirectory = ETPath,
+                    FileName = EasyTierMetadata.CorePath,
+                    WorkingDirectory = EasyTierMetadata.InstallRoot,
                     WindowStyle = ProcessWindowStyle.Hidden
                 }
             };
@@ -83,7 +81,8 @@ public static class ETController
                     name = "terracotta-mc-" + name;
                     break;
                 default:
-                    throw new NotSupportedException(Lang.Text("Link.Lobby.UnsupportedType", TargetLobby.Type));
+                    throw new NotSupportedException(
+                        Lang.Text("Link.Lobby.UnsupportedType", TargetLobby.Type));
             }
 
             arguments.AddFlag("no-tun");
@@ -108,45 +107,41 @@ public static class ETController
 
                 JoinerLocalPort = NetworkHelper.NewTcpPort();
                 LogWrapper.Info("Link", $"ET 端口转发: 远程 {TargetLobby.Port} -> 本地 {JoinerLocalPort}");
-                arguments.Add("port-forward", $"tcp://127.0.0.1:{JoinerLocalPort}/{TargetLobby.Ip}:{TargetLobby.Port}");
-                arguments.Add("port-forward", $"udp://127.0.0.1:{JoinerLocalPort}/{TargetLobby.Ip}:{TargetLobby.Port}");
+                arguments.Add(
+                    "port-forward",
+                    $"tcp://127.0.0.1:{JoinerLocalPort}/{TargetLobby.Ip}:{TargetLobby.Port}");
+                arguments.Add(
+                    "port-forward",
+                    $"udp://127.0.0.1:{JoinerLocalPort}/{TargetLobby.Ip}:{TargetLobby.Port}");
             }
 
             // 节点设置
             var relays = ETRelay.RelayList;
             var customNodes = Config.Link.CustomRelayServer;
             foreach (var node in customNodes.Split([';'], StringSplitOptions.RemoveEmptyEntries))
-            {
                 if (node.Contains("tcp://") || node.Contains("udp://"))
-                {
-                    relays.Add(new ETRelay
-                    {
-                        Url = node,
-                        Name = "Custom",
-                        Type = ETRelayType.Custom
-                    });
-                }
+                    relays.Add(
+                        new ETRelay
+                        {
+                            Url = node,
+                            Name = "Custom",
+                            Type = ETRelayType.Custom
+                        });
                 else
-                {
                     LogWrapper.Warn("Link", $"无效的自定义节点 URL: {node}");
-                }
-            }
 
             foreach (var relay in
                      from relay in relays
                      let serverType = Config.Link.ServerType
-                     where (relay.Type == ETRelayType.Selfhosted && serverType != 2) ||
-                           (relay.Type == ETRelayType.Community && serverType == 1) || relay.Type == ETRelayType.Custom
+                     where (relay.Type == ETRelayType.Selfhosted && serverType != 2)
+                         || (relay.Type == ETRelayType.Community && serverType == 1)
+                         || relay.Type == ETRelayType.Custom
                      select relay)
-            {
                 arguments.Add("p", relay.Url);
-            }
 
             // 中继行为设置
             if (Config.Link.RelayType == LinkRelayBehavior.ForceRelay)
-            {
                 arguments.AddFlag("disable-p2p");
-            }
 
             // 数据流代理设置
             arguments.AddFlag("enable-quic-proxy");
@@ -166,16 +161,15 @@ public static class ETController
             // TODO: 等待玩家档案迁移以获取正在使用的档案名称
             var showName = "default";
             if (AllowCustomName && !string.IsNullOrWhiteSpace(Config.Link.Username))
-            {
                 showName = Config.Link.Username;
-            }
             else if (!string.IsNullOrWhiteSpace(NaidProfile.Username))
-            {
                 showName = NaidProfile.Username;
-            }
 
-            arguments.Add("hostname",
-                (isHost ? "H|" : "J|") + showName + (!string.IsNullOrWhiteSpace(hostname) ? "|" + hostname : ""));
+            arguments.Add(
+                "hostname",
+                (isHost ? "H|" : "J|")
+                + showName
+                + (!string.IsNullOrWhiteSpace(hostname) ? "|" + hostname : ""));
 
             // 指定 RPC 端口以避免与其他 ET 实例冲突
             ETRpcPort = NetworkHelper.NewTcpPort();
@@ -204,7 +198,7 @@ public static class ETController
         try
         {
             LogWrapper.Info("Link", $"关闭 EasyTier (PID: {ETProcess.Id})");
-            ETProcess.Kill();
+            ETProcess.Kill(true);
             ETProcess.WaitForExit(200);
         }
         catch (InvalidOperationException)

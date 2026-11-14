@@ -59,7 +59,10 @@ public static partial class Modpack
     {
         ExtractModpackFiles(targetFolder, fileAddress, task, 0.9d);
         Thread.Sleep(400);
-        var launcher = _FindBundledLauncher(targetFolder);
+        // 整合包附带的启动器只可能是 Windows 可执行文件
+        var launcher = PCL.Core.Platform.PlatformRuntime.Current.Capabilities.SupportsBundledLauncher
+            ? _FindBundledLauncher(targetFolder)
+            : null;
 
         task.Progress = 0.95d;
         if (launcher is not null)
@@ -131,7 +134,9 @@ public static partial class Modpack
             Path.Combine(
                 targetFolder,
                 ".minecraft",
-                archiveBaseFolder.Replace("/", @"\").TrimStart('\\')
+                archiveBaseFolder
+                    .Replace('/', Path.DirectorySeparatorChar)
+                    .TrimStart(Path.DirectorySeparatorChar)
             ),
             instanceName,
             false);

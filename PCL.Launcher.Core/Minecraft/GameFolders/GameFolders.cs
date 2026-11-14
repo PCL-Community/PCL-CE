@@ -40,7 +40,7 @@ public static class GameFolders
         };
 
     /// <summary>
-    ///     当前的 Minecraft 文件夹路径，以"\"结尾。
+    ///     当前的 Minecraft 文件夹路径，以路径分隔符结尾。
     /// </summary>
     public static string? mcFolderSelected
     {
@@ -50,6 +50,15 @@ public static class GameFolders
             _mcFolderSelected = value;
             LauncherPaths.MinecraftFolder = value;
         }
+    }
+
+    /// <summary>
+    ///     应用配置中保存的当前文件夹路径，将启动器目录占位符 <c>$</c> 展开为实际路径。
+    /// </summary>
+    public static void ApplySelectedFolder(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return;
+        mcFolderSelected = value.Replace("$", LauncherPaths.ExecutableDirectory);
     }
 
     private static void McFolderListLoadSub()
@@ -93,7 +102,8 @@ public static class GameFolders
             if (string.IsNullOrEmpty(folder))
                 continue;
 
-            if (!folder.Contains('>') || !folder.EndsWithF(@"\"))
+            if (!folder.Contains('>')
+                || !folder.EndsWithF(Path.DirectorySeparatorChar.ToString()))
             {
                 LauncherUi.Interaction?.ShowHint(
                     Lang.Text("Select.Folder.Invalid", folder),
@@ -133,7 +143,8 @@ public static class GameFolders
         var originalMcFolderList = new List<McFolder>();
         try
         {
-            if (Directory.Exists($@"{LauncherPaths.ExecutableDirectory}versions\"))
+            if (Directory.Exists(
+                    Path.Combine(LauncherPaths.ExecutableDirectory, "versions")))
                 originalMcFolderList.Add(
                     McFolder.CreateBuiltin(
                         "Select.Folder.CurrentFolder",
@@ -149,7 +160,7 @@ public static class GameFolders
                 var newCurrentFolder = new McFolder
                 {
                     Name = folder.Name,
-                    Location = $@"{folder.FullName}\",
+                    Location = folder.FullName + Path.DirectorySeparatorChar,
                     Type = McFolder.Types.Original
                 };
                 originalMcFolderList.Add(newCurrentFolder);
@@ -161,9 +172,10 @@ public static class GameFolders
             LauncherCommon.Log(ex, "扫描 PCL 所在文件夹中是否有 MC 文件夹失败");
         }
 
-        var mojangPath = $@"{Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            ".minecraft")}\";
+        var mojangPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                ".minecraft")
+            + Path.DirectorySeparatorChar;
         if ((currentMcFolderList.Count == 0
                 || mojangPath != currentMcFolderList[0].Location)
             && Directory.Exists(Path.Combine(mojangPath, "versions")))
@@ -224,11 +236,13 @@ public static class GameFolders
         if (cacheMcFolderList.Count != 0)
             return;
 
-        Directory.CreateDirectory($@"{LauncherPaths.ExecutableDirectory}.minecraft\versions\");
+        Directory.CreateDirectory(
+            Path.Combine(LauncherPaths.ExecutableDirectory, ".minecraft", "versions"));
         cacheMcFolderList.Add(
             McFolder.CreateBuiltin(
                 "Select.Folder.CurrentFolder",
-                $@"{LauncherPaths.ExecutableDirectory}.minecraft\",
+                Path.Combine(LauncherPaths.ExecutableDirectory, ".minecraft")
+                + Path.DirectorySeparatorChar,
                 McFolder.Types.Original));
     }
 
@@ -293,7 +307,7 @@ public static class GameFolders
 
         /// <summary>
         ///     文件夹路径。
-        ///     以 \ 结尾，例如 "D:\Game\MC\.minecraft\"。
+        ///     以路径分隔符结尾，例如 Windows 上的 "D:\Game\MC\.minecraft\"。
         /// </summary>
         public string Location = location ?? "";
 

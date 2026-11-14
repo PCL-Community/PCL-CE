@@ -2,6 +2,7 @@ using System;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.IoC;
+using PCL.Core.Platform;
 using PCL.Core.UI.Threading;
 
 namespace PCL.Core.UI.Theme;
@@ -60,8 +61,21 @@ public sealed partial class ThemeService
     private static void _Start()
     {
         IsDarkMode = _IsDarkMode();
+        _SubscribeSystemTheme();
         _LogStatus();
         _RefreshAll();
+    }
+
+    private static void _SubscribeSystemTheme()
+    {
+        if (PlatformServices.SystemTheme is { } provider)
+            provider.ThemeChanged += _OnSystemThemeChanged;
+    }
+
+    private static void _OnSystemThemeChanged(object? sender, EventArgs e)
+    {
+        if (Config.Preference.Theme.ColorMode != ColorMode.System) return;
+        UiDispatcher.Post(RefreshColorMode);
     }
 
     private static void _LogStatus()
@@ -73,7 +87,7 @@ public sealed partial class ThemeService
     {
         ColorMode.Light => false,
         ColorMode.Dark => true,
-        ColorMode.System => SystemThemeHelper.IsSystemInDarkMode(),
+        ColorMode.System => PlatformServices.SystemTheme?.IsDarkMode ?? false,
         _ => false
     };
 
@@ -228,7 +242,8 @@ public sealed partial class ThemeService
     }
 
     /// <summary>
-    /// 应用灰度配色到 WPF 资源字典。
+    /// 把灰度配色写入界面框架的应用资源字典（由 <see cref="PlatformServices.Theme" /> 实现，
+    /// Avalonia 侧即 <c>Application.Resources</c>）。
     /// </summary>
     public static void ApplyGrayResources()
     {
@@ -237,7 +252,8 @@ public sealed partial class ThemeService
     }
 
     /// <summary>
-    /// 应用彩色配色到 WPF 资源字典。
+    /// 把彩色配色写入界面框架的应用资源字典（由 <see cref="PlatformServices.Theme" /> 实现，
+    /// Avalonia 侧即 <c>Application.Resources</c>）。
     /// </summary>
     public static void ApplyColorResources()
     {

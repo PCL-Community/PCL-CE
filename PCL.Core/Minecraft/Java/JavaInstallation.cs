@@ -1,6 +1,6 @@
-using PCL.Core.Utils;
 using System;
 using System.IO;
+using PCL.Core.Utils;
 
 namespace PCL.Core.Minecraft.Java;
 
@@ -12,15 +12,12 @@ public sealed record JavaInstallation(
     bool Is64Bit,
     bool IsJre)
 {
-    public string JavaExePath => Path.Combine(JavaFolder, "java.exe");
-    public string? JavawExePath
-    {
-        get
-        {
-            var javaw = Path.Combine(JavaFolder, "javaw.exe");
-            return File.Exists(javaw) ? javaw : null;
-        }
-    }
+    public string JavaExePath => JavaExecutableLayout.GetJavaExePath(JavaFolder);
+
+    public string? JavawExePath =>
+        JavaExecutableLayout.GetJavawExePath(JavaFolder) is { } javaw && File.Exists(javaw)
+            ? javaw
+            : null;
 
     /// <summary>
     /// Java 主版本号

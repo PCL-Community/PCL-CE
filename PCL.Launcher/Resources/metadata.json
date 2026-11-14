@@ -1,0 +1,203 @@
+{
+  "name": "Plain Craft Launcher Community Edition",
+  "version": {
+    "base": "2.15.1",
+    "upstream": "2.12.1",
+    "suffix": "",
+    "code": 524
+  },
+  "licenses": [
+    {
+      "name": "PCL.Core",
+      "info": "Copyright © PCL Community",
+      "website": "https://github.com/PCL-Community/PCL-CE/tree/dev/PCL.Core",
+      "license": "https://github.com/PCL-Community/PCL-CE/blob/dev/LICENSE"
+    },
+    {
+      "name": "LegacyFix",
+      "info": "Copyright © betacraftuk\nLicensed under the GPL-3.0 license.",
+      "website": "https://github.com/betacraftuk/legacyfix",
+      "license": "https://github.com/betacraftuk/legacyfix/blob/master/LICENSE"
+    },
+    {
+      "name": "Java Launch Wrapper",
+      "info": "Copyright © 2022 00ll00\nLicensed under the MIT License.",
+      "website": "https://github.com/00ll00/java_launch_wrapper",
+      "license": "https://github.com/00ll00/java_launch_wrapper?tab=MIT-1-ov-file#readme"
+    },
+    {
+      "name": "Iconmonstr",
+      "info": "Copyright © 2019 iconmonstr (Alexander Kahlkopf)",
+      "website": "https://iconmonstr.com/",
+      "license": "https://iconmonstr.com/license/"
+    },
+    {
+      "name": "Iconfont",
+      "info": "Copyright © ALIMAMA MUX, powered by alimama THX.",
+      "website": "https://www.iconfont.cn/",
+      "license": null
+    },
+    {
+      "name": "Stun.Net",
+      "info": "Copyright © Bruce Wayne",
+      "website": "https://github.com/HMBSbige/NatTypeTester",
+      "license": "https://github.com/HMBSbige/NatTypeTester/blob/master/LICENSE"
+    },
+    {
+      "name": "LiteDB",
+      "info": "Copyright © 2014-2022 Mauricio David",
+      "website": "https://github.com/litedb-org/LiteDB",
+      "license": "https://github.com/litedb-org/LiteDB/blob/master/LICENSE"
+    },
+    {
+      "name": "Markdig.Wpf",
+      "info": "Copyright © 2016-2021 Nicolas Musset",
+      "website": "https://github.com/Kryptos-FR/markdig.wpf",
+      "license": "https://github.com/Kryptos-FR/markdig.wpf/blob/main/LICENSE.md"
+    },
+    {
+      "name": "Mesa Loader Windows",
+      "info": "Copyright © 2024 Glavo\nLicensed under the Apache 2 License.",
+      "website": "https://github.com/HMCL-dev/mesa-loader-windows",
+      "license": "https://github.com/HMCL-dev/mesa-loader-windows/blob/main/LICENSE"
+    },
+    {
+      "name": "Ae.Dns.Client",
+      "info": "Copyright © alanedwardes\nLicensed under the MIT License.",
+      "website": "https://github.com/alanedwardes/Ae.Dns",
+      "license": "https://licenses.nuget.org/MIT"
+    },
+    {
+      "name": "Lucide",
+      "info": "Copyright © Lucide Contributors\nLicensed under the ISC License (includes portions under MIT).",
+      "website": "https://github.com/lucide-icons/lucide",
+      "license": "https://lucide.dev/license"
+    },
+    {
+      "name": "Dapper",
+      "info": "Copyright © DapperLib\nLicensed under the Apache-2.0 license.",
+      "website": "https://github.com/DapperLib/Dapper",
+      "license": "https://licenses.nuget.org/Apache-2.0"
+    },
+    {
+      "name": "Microsoft.Data.Sqlite",
+      "info": "Copyright © Microsoft\nLicensed under the MIT license.",
+      "website": "https://github.com/dotnet/dotnet",
+      "license": "https://licenses.nuget.org/MIT"
+    },
+    {
+      "name": "Unicolour",
+      "info": "Copyright © 2022-2025 William Acton\nLicensed under the MIT license.",
+      "website": "https://github.com/waacton/Unicolour",
+      "license": "https://github.com/waacton/Unicolour/blob/main/LICENSE"
+    },
+    {
+      "name": "protobuf-net",
+      "info": "Copyright © protobuf-net\nLicensed under the Apache-2.0 license.",
+      "website": "https://github.com/protobuf-net/protobuf-net",
+      "license": "https://github.com/protobuf-net/protobuf-net/blob/main/Licence.txt"
+    },
+    {
+      "name": "Sentry",
+      "info": "Copyright © 2018 Sentry\nLicensed under the MIT license.",
+      "website": "https://sentry.io/",
+      "license": "https://github.com/getsentry/sentry-dotnet/blob/main/LICENSE"
+    },
+    {
+      "name": "LWJGL Unsafe Agent",
+      "info": "Copyright © HMCL-dev\nLicensed under the Apache-2.0 license.",
+      "website": "https://github.com/HMCL-dev/lwjgl-unsafe-agent",
+      "license": "https://github.com/HMCL-dev/lwjgl-unsafe-agent/blob/main/LICENSE"
+    },
+    {
+      "name": "Downloader",
+      "info": "Copyright © Behzad Khosravifar\nLicensed under the MIT license.",
+      "website": "https://github.com/bezzad/Downloader",
+      "license": "https://github.com/bezzad/Downloader/blob/master/LICENSE"
+    },
+    {
+      "name": "DotNet.Glob",
+      "info": "Copyright © 2015-present Darrell Tunnell\nLicensed under the MIT license.",
+      "website": "https://github.com/dazinator/DotNet.Glob",
+      "license": "https://github.com/dazinator/DotNet.Glob/blob/master/LICENSE"
+    },
+    {
+      "name": "CommunityToolkit.Mvvm",
+      "info": "Copyright © .NET Foundation and Contributors\nLicensed under the MIT License.",
+      "website": "https://github.com/CommunityToolkit/dotnet",
+      "license": "https://licenses.nuget.org/MIT"
+    },
+    {
+      "name": "Avalonia",
+      "info": "Copyright © Avalonia Team\nLicensed under the MIT License.\nIncludes Avalonia.Desktop, Avalonia.Themes.Fluent and Avalonia.Fonts.Inter.",
+      "website": "https://avaloniaui.net/",
+      "license": "https://licenses.nuget.org/MIT"
+    },
+    {
+      "name": "SharpZipLib",
+      "info": "Copyright © ICSharpCode\nLicensed under the MIT License.",
+      "website": "https://github.com/icsharpcode/SharpZipLib",
+      "license": "https://licenses.nuget.org/MIT"
+    },
+    {
+      "name": "SQLitePCLRaw",
+      "info": "Copyright © Eric Sink\nLicensed under the Apache-2.0 License.",
+      "website": "https://github.com/ericsink/SQLitePCL.raw",
+      "license": "https://licenses.nuget.org/Apache-2.0"
+    },
+    {
+      "name": "YamlDotNet",
+      "info": "Copyright © Antoine Aubry\nLicensed under the MIT License.",
+      "website": "https://github.com/aaubry/YamlDotNet",
+      "license": "https://licenses.nuget.org/MIT"
+    },
+    {
+      "name": "fNbt",
+      "info": "Copyright © Erik Davidson, Matvei Stefarov\nLicensed under the BSD-3-Clause License.",
+      "website": "https://github.com/mstefarov/fNbt",
+      "license": "https://licenses.nuget.org/BSD-3-Clause"
+    },
+    {
+      "name": "Polly",
+      "info": "Copyright © App vNext\nLicensed under the BSD-3-Clause License.",
+      "website": "https://github.com/App-vNext/Polly",
+      "license": "https://licenses.nuget.org/BSD-3-Clause"
+    },
+    {
+      "name": "Humanizer",
+      "info": "Copyright © Humanizr Contributors\nLicensed under the MIT License.",
+      "website": "https://github.com/Humanizr/Humanizer",
+      "license": "https://licenses.nuget.org/MIT"
+    },
+    {
+      "name": "FluentValidation",
+      "info": "Copyright © Jeremy Skinner\nLicensed under the Apache-2.0 License.",
+      "website": "https://fluentvalidation.net/",
+      "license": "https://licenses.nuget.org/Apache-2.0"
+    },
+    {
+      "name": "PlainToolkit.CngProtectedData",
+      "info": "Copyright © PCL Community\nLicensed under the MIT License.",
+      "website": "https://github.com/PCL-Community/PlainToolkit.CngProtectedData",
+      "license": "https://licenses.nuget.org/MIT"
+    },
+    {
+      "name": "Microsoft.Extensions.Http / Logging",
+      "info": "Copyright © Microsoft\nLicensed under the MIT License.",
+      "website": "https://github.com/dotnet/runtime",
+      "license": "https://licenses.nuget.org/MIT"
+    },
+    {
+      "name": "System.IdentityModel.Tokens.Jwt",
+      "info": "Copyright © Microsoft\nLicensed under the MIT License.",
+      "website": "https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet",
+      "license": "https://licenses.nuget.org/MIT"
+    },
+    {
+      "name": "MiniAudioEx",
+      "info": "Copyright © 2026 W.M.R Jap-A-Joe\nLicensed under the MIT License.\nIncludes JAJ.Packages.MiniAudioEx 3.3.7 and its miniaudio native backends.",
+      "website": "https://github.com/japajoe/MiniAudioExNET",
+      "license": "https://github.com/japajoe/MiniAudioExNET/blob/master/LICENSE"
+    }
+  ]
+}

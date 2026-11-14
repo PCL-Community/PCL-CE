@@ -1,0 +1,114 @@
+<ui:MyPageRight xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:ui="using:PCL.UI.Controls"
+                xmlns:loc="using:PCL.Core.UI"
+                x:Class="PCL.Views.Pages.Instance.PageInstanceExport"
+                x:CompileBindings="False">
+    <Grid x:Name="PanAllBack">
+        <ui:MyScrollViewer x:Name="PanBack"
+                           HorizontalScrollBarVisibility="Disabled"
+                           VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="25,10,25,65">
+                <ui:MyHint x:Name="HintOptiFine"
+                           Margin="0,15,0,0"
+                           Theme="Yellow"
+                           Text="{loc:Loc Instance.Export.ModrinthWarning}"
+                           IsVisible="False" />
+
+                <ui:MyCard Margin="0,15">
+                    <Grid Margin="22,15,25,15"
+                          ColumnDefinitions="Auto,*,Auto,0.3*"
+                          RowDefinitions="28">
+                        <TextBlock Grid.Row="0"
+                                   Grid.Column="0"
+                                   Margin="0,0,20,0"
+                                   HorizontalAlignment="Left"
+                                   VerticalAlignment="Center"
+                                   Text="{loc:Loc Instance.Export.PackName}" />
+                        <ui:MyTextBox x:Name="TextExportName"
+                                      Grid.Row="0"
+                                      Grid.Column="1"
+                                      MaxLength="100" />
+                        <TextBlock Grid.Row="0"
+                                   Grid.Column="2"
+                                   Margin="30,0,20,0"
+                                   HorizontalAlignment="Left"
+                                   VerticalAlignment="Center"
+                                   Text="{loc:Loc Instance.Export.PackVersion}" />
+                        <ui:MyTextBox x:Name="TextExportVersion"
+                                      Grid.Row="0"
+                                      Grid.Column="3"
+                                      MaxLength="100" />
+                    </Grid>
+                </ui:MyCard>
+
+                <ui:MyCard x:Name="CardOptions"
+                           Margin="0,0,0,15"
+                           MinHeight="39">
+                    <ui:MyIconTextButton x:Name="BtnOverrideCancel"
+                                         Height="24"
+                                         Margin="0,0,5,0"
+                                         HorizontalAlignment="Right"
+                                         VerticalAlignment="Center"
+                                         LogoScale="0.9"
+                                         SvgIcon="lucide/rotate-ccw"
+                                         Text="{loc:Loc Common.Action.Reset}"
+                                         IsVisible="False" />
+                    <StackPanel x:Name="PanOptions"
+                                Margin="25,38,15,15" />
+                </ui:MyCard>
+
+                <ui:MyCard Margin="0,0,0,15"
+                           Title="{loc:Loc Instance.Export.Advanced.Title}"
+                           CanSwap="True"
+                           IsSwapped="True">
+                    <StackPanel Margin="25,37,23,20">
+                        <ui:MyHint x:Name="HintBundle"
+                                   Margin="0,2,0,8"
+                                   Theme="Yellow"
+                                   Text="{loc:Loc Instance.Export.Advanced.BundleHint}"
+                                   IsVisible="False" />
+                        <ui:MyCheckBox x:Name="CheckAdvancedInclude"
+                                       Height="26"
+                                       Text="{loc:Loc Instance.Export.Advanced.BundleFiles}"
+                                       ToolTip.Tip="{loc:Loc Instance.Export.Advanced.BundleFiles.ToolTip}" />
+                        <ui:MyCheckBox x:Name="CheckAdvancedModrinth"
+                                       Height="26"
+                                       Text="{loc:Loc Instance.Export.Advanced.Modrinth}"
+                                       ToolTip.Tip="{loc:Loc Instance.Export.Advanced.Modrinth.ToolTip}" />
+                        <ui:MyHint Margin="0,20,0,2"
+                                   Theme="Blue"
+                                   CanClose="True"
+                                   RelativeSetup="HintExportConfig"
+                                   Text="{loc:Loc Instance.Export.Advanced.ConfigHint}" />
+
+                        <Grid Height="35"
+                              Margin="0,12,0,0"
+                              ColumnDefinitions="Auto,Auto,Auto">
+                            <ui:MyButton x:Name="BtnAdvancedImport"
+                                         Grid.Column="0"
+                                         MinWidth="140"
+                                         Margin="0,0,20,0"
+                                         Padding="13,0"
+                                         ColorType="Highlight"
+                                         Text="{loc:Loc Instance.Export.Advanced.ImportConfig}" />
+                            <ui:MyButton x:Name="BtnAdvancedExport"
+                                         Grid.Column="1"
+                                         MinWidth="140"
+                                         Margin="0,0,20,0"
+                                         Padding="13,0"
+                                         Text="{loc:Loc Instance.Export.Advanced.ExportConfig}" />
+                        </Grid>
+                    </StackPanel>
+                </ui:MyCard>
+            </StackPanel>
+        </ui:MyScrollViewer>
+
+        <ui:MyExtraTextButton x:Name="BtnExport"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Bottom"
+                              LogoScale="1.1"
+                              SvgIcon="lucide/package"
+                              Text="{loc:Loc Instance.Export.StartExport}" />
+    </Grid>
+</ui:MyPageRight>

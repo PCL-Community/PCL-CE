@@ -15,7 +15,7 @@ public static partial class InstanceList
                     $"{path}PCL.ini",
                     "CardCount",
                     (-1).ToString()));
-            if (cardCount == -1)
+            if (cardCount <= 0)
                 return null;
 
             for (int i = 0, loopTo = cardCount - 1; i <= loopTo; i++)
@@ -38,7 +38,8 @@ public static partial class InstanceList
                     if (string.IsNullOrEmpty(folder))
                         continue;
 
-                    var versionFolder = $@"{path}versions\{folder}\";
+                    var versionFolder =
+                        Path.Combine(path, "versions", folder) + Path.DirectorySeparatorChar;
                     if (File.Exists($"{versionFolder}.pclignore"))
                     {
                         if (_isFirstMcInstanceListLoad)

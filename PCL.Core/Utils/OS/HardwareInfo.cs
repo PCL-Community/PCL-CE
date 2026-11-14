@@ -1,83 +1,89 @@
 using System;
 using System.Collections.Generic;
-using System.Management;
+using System.Threading;
 using PCL.Core.Logging;
+using PCL.Core.Platform;
 
 namespace PCL.Core.Utils.OS;
 
+/// <summary>
+///     系统硬件信息门面。具体采集由当前平台的 <see cref="IHardwareInfo" /> 实现完成。
+/// </summary>
 public static class HardwareInfo
 {
-    private static readonly object _Lock = new();
-    
+    private static readonly Lock _Lock = new();
+
     /// <summary>
-    /// 系统 CPU 信息
+    ///     系统 CPU 信息。
     /// </summary>
-    public static string CPUName = "Unknown";
+    public static string CpuName = "Unknown";
+
+    private static readonly Lazy<long> _SystemMemorySize = new(_GetSystemMemorySize);
 
     /// <summary>
-    /// 系统 GPU 信息
+    ///     系统 GPU 信息。
     /// </summary>
-    public static IReadOnlyList<GPUInfo> GPUs { get; private set; } = [];
+    public static IReadOnlyList<GpuInfo> Gpus { get; private set; } = [];
 
     /// <summary>
-    /// 已安装物理内存大小，单位 MiB
+    ///     已安装物理内存大小，单位 MiB。
     /// </summary>
-    public static long SystemMemorySize = (long)KernelInterop.GetPhysicalMemoryBytes().Total / 1024 / 1024;
+    public static long SystemMemorySize => _SystemMemorySize.Value;
 
-    public readonly record struct GPUInfo(string Name, string DriverVersion, long Memory);
+    private static IHardwareInfo? CurrentProvider =>
+        PlatformRuntime.IsInitialized ? PlatformRuntime.Current.Hardware : null;
+
+    private static long _GetSystemMemorySize()
+    {
+        if (CurrentProvider is { } provider)
+            try
+            {
+                var size = provider.GetMemorySizeMiB();
+                if (size > 0) return size;
+            }
+            catch (Exception ex)
+            {
+                LogWrapper.Warn(ex, "获取系统内存信息失败");
+            }
+
+        var totalBytes = GC.GetGCMemoryInfo().TotalAvailableMemoryBytes;
+        return totalBytes > 0 ? totalBytes / 1024 / 1024 : 0;
+    }
 
     /// <summary>
-    /// 获取系统信息，例如 CPU 与 GPU，并存储到 CPUName 和 GPUs
+    ///     获取系统信息，例如 CPU 与 GPU，并存储到 <see cref="CpuName" /> 和 <see cref="Gpus" />。
     /// </summary>
     public static void GetHardwareInfo()
     {
-        // CPU
-        var cpuName = (string?)null;
+        if (CurrentProvider is not { } provider)
+        {
+            LogWrapper.Debug("Hardware", "平台模块尚未初始化，跳过硬件信息采集");
+            return;
+        }
+
         try
         {
-            using var searcher = new ManagementObjectSearcher(@"root\CIMV2", "SELECT * FROM Win32_Processor");
-            foreach (ManagementObject queryObj in searcher.Get())
+            var cpuName = provider.GetCpuName();
+            var gpuList = provider.GetGpus();
+
+            lock (_Lock)
             {
-                cpuName = queryObj["Name"]?.ToString()?.Trim();
-                break;
+                if (!string.IsNullOrWhiteSpace(cpuName))
+                    CpuName = cpuName;
+                if (gpuList.Count > 0)
+                    Gpus = gpuList;
             }
+
+            LogWrapper.Info("已获取系统硬件信息");
         }
         catch (Exception ex)
         {
-            LogWrapper.Warn(ex, "获取 CPU 信息时出错");
+            LogWrapper.Warn(ex, "获取系统硬件信息失败");
         }
-
-        // GPU
-        var gpuList = new List<GPUInfo>();
-        try
-        {
-            using var searcher =
-                new ManagementObjectSearcher(@"root\CIMV2", "SELECT * FROM Win32_VideoController");
-            foreach (ManagementObject queryObj in searcher.Get())
-            {
-                var gpuInfo = new GPUInfo
-                {
-                    Name = queryObj["Name"]?.ToString() ?? "",
-                    DriverVersion = queryObj["DriverVersion"]?.ToString() ?? "",
-                    Memory = queryObj["AdapterRAM"] is not null and not DBNull
-                        ? Convert.ToInt64(queryObj["AdapterRAM"]) / (1024 * 1024)
-                        : 0
-                };
-                gpuList.Add(gpuInfo);
-            }
-        }
-        catch (Exception ex)
-        {
-            LogWrapper.Warn(ex, "获取 GPU 信息时出错");
-        }
-
-        lock (_Lock)
-        {
-            if (cpuName is not null)
-                CPUName = cpuName;
-            if (gpuList.Count > 0)
-                GPUs = gpuList;
-        }
-        LogWrapper.Info("已获取系统硬件信息");
     }
+
+    public readonly record struct GpuInfo(
+        string Name,
+        string DriverVersion,
+        long Memory);
 }

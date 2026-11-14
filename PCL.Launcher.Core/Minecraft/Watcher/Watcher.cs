@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using PCL.Core.App.Localization;
+using PCL.Core.Platform;
 
 namespace PCL;
 
@@ -26,6 +27,7 @@ public static partial class GameWatcher
         private readonly string _windowTitle;
 
         private bool _isWindowAppeared;
+        private long _lastWindowCheckTicks;
 
         /// <summary>
         ///     窗口检查是否已经完成。这不一定代表着找到了窗口（如果没有找到，IsWindowAppeared 仍为 False）。
@@ -130,7 +132,12 @@ public static partial class GameWatcher
                            or MinecraftState.Canceled)
                        && monitorLoader.State != LoadState.Aborted)
                 {
-                    TimerWindow();
+                    if (Environment.TickCount64 - _lastWindowCheckTicks >= 100)
+                    {
+                        _lastWindowCheckTicks = Environment.TickCount64;
+                        TimerWindow();
+                    }
+
                     TimerLog();
                     if (!string.IsNullOrWhiteSpace(_windowTitle))
                         _SetWindowTitleRepeatedly();
@@ -154,6 +161,9 @@ public static partial class GameWatcher
 
         private void _SetWindowTitleRepeatedly()
         {
+            var windowInterop = PlatformServices.WindowInterop;
+            if (windowInterop is null) return;
+
             for (var i = 1; i <= 3; i++)
             {
                 if (State == MinecraftState.Running && !gameProcess.HasExited)
@@ -161,7 +171,7 @@ public static partial class GameWatcher
                     var realTitle = _windowTitle
                         .Replace("{date}", Lang.Date(DateTime.Now, "d"))
                         .Replace("{time}", Lang.Date(DateTime.Now, "T"));
-                    SetWindowText(_windowHandle, realTitle);
+                    windowInterop.SetWindowTitle(_windowHandle, realTitle);
                 }
 
                 Thread.Sleep(64);

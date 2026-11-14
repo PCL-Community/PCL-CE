@@ -36,10 +36,11 @@ partial class Lifecycle
             _PendingLogs.Add(item);
             return;
         }
+
         _droppedPendingLogs++;
     }
 
-    public static string PendingLogDirectory { get; set; } = @"PCL\Log";
+    public static string PendingLogDirectory { get; set; } = Path.Combine("PCL", "Log");
     public static string PendingLogFileName { get; set; } = "LastPending.log";
 
     /// <summary>
@@ -67,13 +68,18 @@ partial class Lifecycle
             Console.WriteLine("[Lifecycle] No pending logs");
             return;
         }
+
         try
         {
             // Write the remaining output straight into the program directory.
             var path = Path.Combine(PendingLogDirectory, PendingLogFileName);
             if (!Path.IsPathRooted(path)) path = Path.Combine(Basics.ExecutableDirectory, path);
             Directory.CreateDirectory(Basics.GetParentPathOrDefault(path));
-            using var stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read);
+            using var stream = new FileStream(
+                path,
+                FileMode.Create,
+                FileAccess.Write,
+                FileShare.Read);
             using var writer = new StreamWriter(stream, Encoding.UTF8);
             foreach (var item in pending) writer.WriteLine(item.ComposeMessage());
             if (dropped > 0)

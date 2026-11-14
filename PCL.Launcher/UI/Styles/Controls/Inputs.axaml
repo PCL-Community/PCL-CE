@@ -1,0 +1,12 @@
+<!-- 输入与选择控件的样式汇总入口：每个控件一份样式文件，本文件只做聚合，由 App.axaml 引入。 -->
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StyleInclude Source="avares://PCL.Launcher/UI/Styles/Controls/MyCheckBox.axaml" />
+    <StyleInclude Source="avares://PCL.Launcher/UI/Styles/Controls/MyRadioBox.axaml" />
+    <StyleInclude Source="avares://PCL.Launcher/UI/Styles/Controls/MyRadioButton.axaml" />
+    <StyleInclude Source="avares://PCL.Launcher/UI/Styles/Controls/MyTextBox.axaml" />
+    <StyleInclude Source="avares://PCL.Launcher/UI/Styles/Controls/MySearchBox.axaml" />
+    <StyleInclude Source="avares://PCL.Launcher/UI/Styles/Controls/MySlider.axaml" />
+    <StyleInclude Source="avares://PCL.Launcher/UI/Styles/Controls/MyComboBox.axaml" />
+    <StyleInclude Source="avares://PCL.Launcher/UI/Styles/Controls/MyComboBoxItem.axaml" />
+</Styles>

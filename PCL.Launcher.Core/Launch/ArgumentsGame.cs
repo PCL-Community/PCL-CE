@@ -139,7 +139,7 @@ public static partial class GameLaunch
             LauncherCommon.ShortenPath(InstanceList.McMcInstanceSelected.PathIndie[..^1]));
         gameArguments.Add(
             "${assets_root}",
-            LauncherCommon.ShortenPath($"{GameFolders.mcFolderSelected}assets"));
+            LauncherCommon.ShortenPath(Path.Combine(GameFolders.mcFolderSelected!, "assets")));
         gameArguments.Add("${user_properties}", "{}");
         _AddAuthArgumentReplacements(gameArguments);
 
@@ -154,7 +154,12 @@ public static partial class GameLaunch
 
         gameArguments.Add(
             "${game_assets}",
-            LauncherCommon.ShortenPath($@"{GameFolders.mcFolderSelected}assets\virtual\legacy"));
+            LauncherCommon.ShortenPath(
+                Path.Combine(
+                    GameFolders.mcFolderSelected!,
+                    "assets",
+                    "virtual",
+                    "legacy")));
         gameArguments.Add("${assets_index_name}", GameAssets.McAssetsGetIndexName(instance));
 
         var libList = Libraries.McLibListGet(instance, true);
@@ -169,18 +174,18 @@ public static partial class GameLaunch
         return new Dictionary<string, string>
         {
             {
-                "${classpath_separator}", ";"
+                "${classpath_separator}", Path.PathSeparator.ToString()
             },
             {
                 "${natives_directory}", LauncherCommon.ShortenPath(GetNativesFolder())
             },
             {
-                "${library_directory}",
-                LauncherCommon.ShortenPath($"{GameFolders.mcFolderSelected}libraries")
+                "${library_directory}", LauncherCommon.ShortenPath(
+                    Path.Combine(GameFolders.mcFolderSelected!, "libraries"))
             },
             {
-                "${libraries_directory}",
-                LauncherCommon.ShortenPath($"{GameFolders.mcFolderSelected}libraries")
+                "${libraries_directory}", LauncherCommon.ShortenPath(
+                    Path.Combine(GameFolders.mcFolderSelected!, "libraries"))
             },
             {
                 "${launcher_name}", "PCLCE"
@@ -295,7 +300,9 @@ public static partial class GameLaunch
             else
                 cpStrings.Add(library.LocalPath);
 
-        foreach (var library in Config.Instance.ClasspathHead[instance.PathInstance].Split(";"))
+        foreach (var library in Config
+                     .Instance.ClasspathHead[instance.PathInstance]
+                     .Split(Path.PathSeparator))
         {
             if (string.IsNullOrWhiteSpace(library))
                 continue;
@@ -305,7 +312,9 @@ public static partial class GameLaunch
         if (optiFineCp is not null)
             cpStrings.Insert(cpStrings.Count - 2, optiFineCp);
 
-        return cpStrings.Select(c => LauncherCommon.ShortenPath(c)).Join(";");
+        return cpStrings
+            .Select(c => LauncherCommon.ShortenPath(c))
+            .Join(Path.PathSeparator.ToString());
     }
 
     public struct GameWindowSize(double width, double height)

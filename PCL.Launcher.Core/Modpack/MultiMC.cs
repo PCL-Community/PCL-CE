@@ -32,7 +32,9 @@ public static partial class Modpack
 
         var instanceName = _GetMmcInstanceName(packInstance);
         var installTemp = LauncherCommon.GetTempFolder("Modpack");
-        var versionFolder = $@"{GameFolders.mcFolderSelected}versions\{instanceName}\";
+        var versionFolder =
+            Path.Combine(GameFolders.mcFolderSelected!, "versions", instanceName)
+            + Path.DirectorySeparatorChar;
         var installLoaders = _CreateMmcInstallLoaders(
             fileAddress,
             installTemp,
@@ -551,10 +553,15 @@ public static partial class Modpack
             return;
 
         States.Instance.IsLogoCustom[versionFolder] = true;
-        States.Instance.LogoPath[versionFolder] = @"PCL\Logo.png";
+        States.Instance.LogoPath[versionFolder] = Path.Combine("PCL", "Logo.png");
         LauncherCommon.CopyFile(
             $"{installTemp}{archiveBaseFolder}{logo}.png",
-            $@"{GameFolders.mcFolderSelected}versions\{instanceName}\PCL\Logo.png");
+            Path.Combine(
+                GameFolders.mcFolderSelected!,
+                "versions",
+                instanceName,
+                "PCL",
+                "Logo.png"));
         LauncherCommon.Log($"[ModPack] 迁移 MultiMC 实例独立设置：实例图标（{logo}.png）");
     }
 
@@ -585,7 +592,9 @@ public static partial class Modpack
         var request = new McInstallRequest
         {
             targetInstanceName = instanceName,
-            targetInstanceFolder = $@"{GameFolders.mcFolderSelected}versions\{instanceName}\"
+            targetInstanceFolder =
+                Path.Combine(GameFolders.mcFolderSelected!, "versions", instanceName)
+                + Path.DirectorySeparatorChar
         };
         foreach (var component in packJson["components"]!.AsArray())
             _ApplyMmcRequestComponent(request, component);

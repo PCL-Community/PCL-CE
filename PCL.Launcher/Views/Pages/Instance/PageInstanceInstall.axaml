@@ -1,0 +1,133 @@
+<ui:MyPageRight xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:ui="using:PCL.UI.Controls"
+                xmlns:loc="using:PCL.Core.UI"
+                x:Class="PCL.Views.Pages.Instance.PageInstanceInstall"
+                x:CompileBindings="False">
+    <Grid>
+        <Grid x:Name="PanAllBack">
+            <ui:MyScrollViewer x:Name="PanBack"
+                               HorizontalScrollBarVisibility="Disabled"
+                               VerticalScrollBarVisibility="Auto">
+                <Grid x:Name="PanInner"
+                      Margin="25,10,25,75">
+                    <StackPanel x:Name="PanMinecraft"
+                                Margin="0,0,0,-10">
+                        <StackPanel x:Name="PanVersionStatus"
+                                    Margin="0,15,0,0"
+                                    Spacing="8">
+                            <ui:MyLoading x:Name="LoadVersionList"
+                                          AutoRun="False"
+                                          HorizontalAlignment="Center"
+                                          IsVisible="False"
+                                          Text="{loc:Loc Download.Version.LoadingList}" />
+                            <ui:MyButton x:Name="BtnRetryVersions"
+                                         MinWidth="120"
+                                         Height="35"
+                                         Padding="13,0"
+                                         HorizontalAlignment="Left"
+                                         IsVisible="False"
+                                         Text="{loc:Loc Launch.Homepage.LoadFailed.Retry}" />
+                        </StackPanel>
+                        <StackPanel x:Name="PanVersions"
+                                    Margin="0,15,0,0" />
+                    </StackPanel>
+
+                    <StackPanel x:Name="PanSelect"
+                                Margin="0,0,0,-10"
+                                IsVisible="False">
+                        <StackPanel x:Name="PanWarnings"
+                                    Margin="0,0,0,7" />
+
+                        <ui:MyCard x:Name="CardSelect"
+                                   Margin="0,15,0,0"
+                                   UseAnimation="False">
+                            <StackPanel Margin="15,7,15,7">
+                                <ui:MyListItem x:Name="ItemSelect"
+                                               Height="42"
+                                               Margin="-7,0,0,0"
+                                               IsHitTestVisible="False"
+                                               Type="None"
+                                               Title="{Binding InstanceName}"
+                                               Info="{Binding SelectedInfo}"
+                                               Logo="{Binding VersionIcon}" />
+                            </StackPanel>
+                        </ui:MyCard>
+
+                        <ui:MyCard x:Name="CardMinecraft"
+                                   Margin="0,15,0,0"
+                                   Height="40"
+                                   UseAnimation="False"
+                                   Title="{loc:Loc Common.Installation.Minecraft}"
+                                   IsSwapped="True"
+                                   CanSwap="True"
+                                   SwapLogoRight="True">
+                            <StackPanel x:Name="PanMinecraftBody"
+                                        Margin="20,40,18,15"
+                                        VerticalAlignment="Top" />
+                            <Grid x:Name="PanMinecraftInfo"
+                                  Height="18"
+                                  Margin="132,11,15,0"
+                                  VerticalAlignment="Top"
+                                  ColumnDefinitions="Auto,*,Auto,Auto">
+                                <ui:MyImage x:Name="ImgMinecraft"
+                                            Height="18"
+                                            Margin="0,0,7,0"
+                                            Source="{Binding VersionIcon}"
+                                            Stretch="Uniform" />
+                                <TextBlock x:Name="LabMinecraft"
+                                           Grid.Column="1"
+                                           VerticalAlignment="Center"
+                                           Text="{Binding VersionName}"
+                                           TextTrimming="CharacterEllipsis" />
+                                <Path Grid.Column="2"
+                                      Width="12"
+                                      Height="12"
+                                      Margin="0,1,6,0"
+                                      VerticalAlignment="Center"
+                                      Data="M7.736 1.56a1.914 1.914 0 0 1 2.707 2.708l-.234.234l-2.707-2.707zm-.941.942L1.65 7.646a.5.5 0 0 0-.136.255l-.504 2.5a.5.5 0 0 0 .588.59l2.504-.5a.5.5 0 0 0 .255-.137l5.145-5.145z"
+                                      Fill="{DynamicResource ColorBrushGray4}"
+                                      Stretch="Uniform" />
+                                <TextBlock Grid.Column="3"
+                                           VerticalAlignment="Center"
+                                           Foreground="{DynamicResource ColorBrushGray4}"
+                                           Text="{loc:Loc Instance.Install.Action.ModifyLabel}" />
+                            </Grid>
+                        </ui:MyCard>
+
+                        <StackPanel x:Name="PanLoaderCards" />
+                    </StackPanel>
+                </Grid>
+            </ui:MyScrollViewer>
+
+            <ui:MyExtraTextButton x:Name="BtnStart"
+                                  Margin="0,0,0,25"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Bottom"
+                                  IsEnabled="{Binding CanStartInstall}"
+                                  LogoScale="0.95"
+                                  SvgIcon="lucide/download"
+                                  Text="{Binding ActionText}" />
+        </Grid>
+
+        <ui:MyCard x:Name="CardProgress"
+                   Margin="40,0"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   IsVisible="False"
+                   UseAnimation="False">
+            <StackPanel Margin="20,20,20,18"
+                        Spacing="12">
+                <ui:MyLoading x:Name="LoadInstall"
+                              HorizontalAlignment="Center"
+                              AutoRun="False"
+                              ShowProgress="True" />
+                <ui:MyButton x:Name="BtnCancel"
+                             MinWidth="120"
+                             Padding="13,0"
+                             HorizontalAlignment="Center"
+                             Text="{loc:Loc Common.Action.Cancel}" />
+            </StackPanel>
+        </ui:MyCard>
+    </Grid>
+</ui:MyPageRight>

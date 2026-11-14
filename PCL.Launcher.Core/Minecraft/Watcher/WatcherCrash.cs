@@ -31,9 +31,12 @@ public static partial class GameWatcher
                             version.PathIndie,
                             [.. latestLog],
                             [
-                                version.PathInstance + version.Name + ".json",
+                                Path.Combine(version.PathInstance, $"{version.Name}.json"),
                                 LogWrapper.CurrentLogger.CurrentLogFiles.Last(),
-                                LauncherPaths.ExecutableDirectory + @"PCL\LatestLaunch.bat"
+                                Path.Combine(
+                                    LauncherPaths.ExecutableDirectory,
+                                    "PCL",
+                                    "LatestLaunch.bat")
                             ]);
                     },
                     "Crash Analyzer");
@@ -67,16 +70,7 @@ public static partial class GameWatcher
                     if (CheckAlive(gameProcess))
                     {
                         WatcherLog(Lang.Text("Watcher.Kill.TaskkillAttempt"));
-                        var taskkillInfo = new ProcessStartInfo
-                        {
-                            FileName = "taskkill.exe",
-                            Arguments = $"/PID {gameProcess.Id} /F /T",
-                            RedirectStandardOutput = true,
-                            UseShellExecute = false
-                        };
-                        var taskkillProcess = Process.Start(taskkillInfo);
-                        var output = taskkillProcess?.StandardOutput.ReadToEnd() ?? string.Empty;
-                        WatcherLog(Lang.Text("Watcher.Kill.TaskkillResult", output));
+                        gameProcess.Kill(true);
                         gameProcess.WaitForExit(5000);
                         if (CheckAlive(gameProcess))
                         {
@@ -118,7 +112,5 @@ public static partial class GameWatcher
 
             return dump;
         }
-
-        private delegate bool EnumWindowsSub(nint hwnd, nint lParam);
     }
 }

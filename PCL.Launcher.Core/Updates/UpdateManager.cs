@@ -35,6 +35,8 @@ public static class UpdateManager
             _ => LoadOnlineInfo(),
             priority: ThreadPriority.BelowNormal);
 
+    public static bool SupportsInAppUpdate => UpdatePolicies.Current.SupportsInAppUpdate;
+
     public static bool IsCurrentVersionBeta
     {
         get
@@ -97,8 +99,18 @@ public static class UpdateManager
         string? receivedKey = null,
         bool forceValidated = false)
     {
-        var dlTargetPath =
-            $@"{LauncherPaths.ExecutableDirectory}PCL\Plain Craft Launcher Community Edition.exe";
+        if (!SupportsInAppUpdate && type != UpdateEnums.UpdateType.PromptOnly)
+        {
+            LauncherCommon.Log("[Update] 当前平台不支持应用内安装，已改为手动下载");
+            LauncherCommon.RunInUi(() => UpdateUi.Current?.ShowHint(
+                Lang.Text("Update.ManualDownloadRequired")));
+            return;
+        }
+
+        var dlTargetPath = Path.Combine(
+            LauncherPaths.ExecutableDirectory,
+            "PCL",
+            "Plain Craft Launcher Community Edition.exe");
         LauncherCommon.RunInNewThread(() =>
         {
             try
@@ -232,8 +244,10 @@ public static class UpdateManager
     {
         try
         {
-            var fileName = LauncherPaths.ExecutableDirectory
-                + @"PCL\Plain Craft Launcher Community Edition.exe";
+            var fileName = Path.Combine(
+                LauncherPaths.ExecutableDirectory,
+                "PCL",
+                "Plain Craft Launcher Community Edition.exe");
             if (!File.Exists(fileName))
             {
                 LauncherCommon.Log("[System] 更新失败：未找到更新文件");
@@ -315,6 +329,20 @@ public static class UpdateManager
 
     private static void ScheduleBasedOnConfig()
     {
+        if (!SupportsInAppUpdate)
+        {
+            if (Config.Update.UpdateMode == LauncherAutoUpdateBehavior.Disable)
+            {
+                LauncherCommon.Log("[Update] 更新设置: 不自动检查更新");
+                return;
+            }
+
+            // macOS/Linux 当前只检测并提示；安装交给 DMG/Flatpak/发布页。
+            LauncherCommon.Log("[Update] 当前平台仅检查更新，不自动下载");
+            UpdateStart(UpdateEnums.UpdateType.PromptOnly);
+            return;
+        }
+
         switch (Config.Update.UpdateMode)
         {
             case LauncherAutoUpdateBehavior.DownloadAndInstall:

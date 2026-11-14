@@ -143,7 +143,7 @@ public static partial class Comp
                 GameFolders.mcFolderSelected,
                 Loading.LoaderFolderRunType.ForceRun,
                 1,
-                "versions\\",
+                $"versions{Path.DirectorySeparatorChar}",
                 true);
         }
 
@@ -265,10 +265,10 @@ public static partial class Comp
     {
         return type switch
         {
-            CompType.Mod => "mods\\",
-            CompType.ResourcePack => "resourcepacks\\",
-            CompType.Shader => "shaderpacks\\",
-            CompType.World => "saves\\",
+            CompType.Mod => $"mods{Path.DirectorySeparatorChar}",
+            CompType.ResourcePack => $"resourcepacks{Path.DirectorySeparatorChar}",
+            CompType.Shader => $"shaderpacks{Path.DirectorySeparatorChar}",
+            CompType.World => $"saves{Path.DirectorySeparatorChar}",
             _ => ""
         };
     }
