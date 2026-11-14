@@ -14,21 +14,17 @@ public readonly struct FromToAnimationFrame<T>(
     public T StartValue { get; init; } = startValue;
     public bool IsRelative { get; init; } = isRelative;
 
+    public void Apply()
+    {
+        var current = IsRelative ? Target.GetValue() : null;
+        var absolute = current is null
+            ? ValueProcessorManager.Add(StartValue, Value)
+            : ValueProcessorManager.Add(current, Value);
+        Target.SetValue(absolute!);
+    }
+
     public Action GetAction()
     {
-        var target = Target;
-        var value = Value;
-        var startValue = StartValue;
-        var isRelative = IsRelative;
-
-        return () =>
-        {
-            // 相对动画按帧应用增量，保留旧引擎的可叠加特性，并避免并行动画互相覆盖。
-            var current = isRelative ? target.GetValue() : null;
-            var absolute = current is null
-                ? ValueProcessorManager.Add(startValue, value)
-                : ValueProcessorManager.Add(current, value);
-            target.SetValue(absolute!);
-        };
+        return Apply;
     }
 }

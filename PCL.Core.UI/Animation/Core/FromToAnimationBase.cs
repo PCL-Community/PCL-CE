@@ -1,16 +1,28 @@
+using System.Diagnostics;
 using PCL.Core.UI.Animation.Animatable;
 using PCL.Core.UI.Animation.Easings;
 using PCL.Core.UI.Animation.ValueProcessor;
 
 namespace PCL.Core.UI.Animation.Core;
 
-public class FromToAnimationBase<T> : AnimationBase, IFromToAnimation
+internal interface IClockSampledAnimation
+{
+    void ArmClock(long startStamp);
+
+    bool IsClockFinished { get; }
+}
+
+public class FromToAnimationBase<T> : AnimationBase, IFromToAnimation, IClockSampledAnimation
 {
     private int _currentFrame;
 
     private bool _hasPreviousValue;
     private T? _previousValue;
     private T? _startValue;
+    private bool _clockArmed;
+    private bool _clockFinished;
+    private long _clockStartStamp;
+
     public IEasing Easing { get; set; } = new LinearEasing();
     public T From { get; set; } = default!;
     public bool HasFrom { get; set; }
@@ -38,6 +50,55 @@ public class FromToAnimationBase<T> : AnimationBase, IFromToAnimation
         get => Interlocked.CompareExchange(ref _currentFrame, 0, 0);
         set => Interlocked.Exchange(ref _currentFrame, value);
     }
+    internal void ArmClock(long startStamp)
+    {
+        if (_clockArmed) return;
+
+        _clockArmed = true;
+        _clockStartStamp = startStamp;
+    }
+
+    internal bool IsClockFinished => _clockFinished;
+
+    void IClockSampledAnimation.ArmClock(long startStamp)
+    {
+        ArmClock(startStamp);
+    }
+
+    bool IClockSampledAnimation.IsClockFinished => _clockFinished;
+
+    /// <summary>
+    ///     帧回调驱动时按墙钟进度采样，使任意刷新率下时长不变且每帧都有新值。
+    ///     未武装时钟时仍按 <see cref="CurrentFrame" /> 逐帧采样，供测试和手动驱动使用。
+    /// </summary>
+    protected double SampleEasedProgress()
+    {
+        if (!_clockArmed)
+            return Easing.Ease(CurrentFrame, TotalFrames);
+
+        if (_clockFinished)
+            return Easing.Ease(1d);
+
+        var speed = AnimationService.Speed;
+        if (speed is <= 0d or >= 200d || Duration <= TimeSpan.Zero)
+        {
+            _clockFinished = true;
+            return Easing.Ease(1d);
+        }
+
+        // 与原逐帧公式一致：墙钟时长 = Duration * Speed。Speed 为 1 时等于设定时长。
+        var span = Duration.TotalSeconds * speed;
+        var elapsed = (Stopwatch.GetTimestamp() - _clockStartStamp)
+            / (double)Stopwatch.Frequency;
+        if (elapsed >= span)
+        {
+            _clockFinished = true;
+            return Easing.Ease(1d);
+        }
+
+        return Easing.Ease(elapsed / span);
+    }
+
 
     public override Task<IAnimation> RunAsync(IAnimatable target)
     {
@@ -158,6 +219,9 @@ public class FromToAnimationBase<T> : AnimationBase, IFromToAnimation
         _currentFrame = 0;
         _hasPreviousValue = false;
         _previousValue = default;
+        _clockArmed = false;
+        _clockFinished = false;
+        _clockStartStamp = 0;
 
         // 空值检查
         ArgumentNullException.ThrowIfNull(To);
