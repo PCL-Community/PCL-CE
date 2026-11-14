@@ -523,7 +523,11 @@ public sealed class RestrictedFeaturesBridge : IRestrictedFeatures
 
     private static RegionAssessment _Assess()
     {
+#if DEBUG || DEBUGCI
+        return new RegionAssessment(RegionClassification.Other, "debug-build");
+#else
         return RegionPolicy.Evaluate(RegionPolicy.ReadWindowsSignals());
+#endif
     }
 }
 
