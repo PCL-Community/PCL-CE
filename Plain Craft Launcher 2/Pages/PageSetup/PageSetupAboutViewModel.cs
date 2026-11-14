@@ -8,6 +8,7 @@ using PCL.Core.App.Localization;
 using PCL.Core.UI.Hints;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.IO.Net.Http;
+using PCL.Core.Logging;
 using PCL.Core.Utils;
 using PCL.Core.ViewModel;
 
@@ -39,11 +40,21 @@ public partial class PageSetupAboutViewModel : ViewModelBase
     [RelayCommand]
     public async Task LoadContributorsAsync()
     {
-        var contributors = await RunAsync(ct => Task.Run(FetchContributorsAsync, ct));
-        if (contributors is null) return;
+        List<PageSetupAbout.GitHubContributor> contributors;
+        try
+        {
+            contributors = await Task.Run(FetchContributorsAsync);
+        }
+        catch (Exception ex)
+        {
+            var message = Lang.Text("Setup.About.Error.LoadContributorsFailed");
+            LogWrapper.Warn(ex, message);
+            HintService.Show(Hints.Error(message));
+            return;
+        }
+
         Contributors.Clear();
-        foreach (var contributor in contributors)
-            Contributors.Add(contributor);
+        foreach (var contributor in contributors) Contributors.Add(contributor);
     }
 
     [RelayCommand]

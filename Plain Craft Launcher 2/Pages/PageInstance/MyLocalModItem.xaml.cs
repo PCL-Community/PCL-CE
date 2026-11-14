@@ -1,11 +1,10 @@
 using Microsoft.VisualBasic;
-using PCL.Core.App;
-using PCL.Core.App.Localization;
-using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils.Exts;
-using System.IO;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -13,197 +12,287 @@ namespace PCL;
 
 public partial class MyLocalCompItem
 {
-    private readonly MyLocalModItemViewModel _vm = new();
+    public static readonly DependencyProperty ViewModelProperty = DependencyProperty.Register(
+        nameof(ViewModel),
+        typeof(MyLocalModItemViewModel),
+        typeof(MyLocalCompItem),
+        new PropertyMetadata(null, OnViewModelPropertyChanged));
 
-    public MyLocalModItemViewModel ViewModel => _vm;
+    private static void OnViewModelPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) =>
+        ((MyLocalCompItem)d).OnViewModelChanged((MyLocalModItemViewModel?)e.OldValue,
+            (MyLocalModItemViewModel?)e.NewValue);
 
-    private string? _displayVersion;
-
-    private string GetUpdateCompareDescription()
+    /// <summary>
+    ///     条目视图模型。<br />
+    ///     由列表的 DataTemplate 绑定；旧调用方也可以直接构造控件后赋值 <see cref="Entry" />。
+    /// </summary>
+    public MyLocalModItemViewModel ViewModel
     {
-        _displayVersion = null;
-        var currentName = Entry.CompFile.FileName.Replace(".jar", "");
-        var newestName = Entry.UpdateFile.FileName.Replace(".jar", "");
-        // 简化名称对比
-        var currentSegs = currentName.Split('-').ToList();
-        var newestSegs = newestName.Split('-').ToList();
-        var shortened = false;
-        foreach (var seg in currentSegs.ToList())
-        {
-            if (!newestSegs.Contains(seg))
-                continue;
-            currentSegs.Remove(seg);
-            newestSegs.Remove(seg);
-            shortened = true;
-        }
-
-        if (shortened && currentSegs.Any() && newestSegs.Any())
-        {
-            currentName = currentSegs.Join("-");
-            newestName = newestSegs.Join("-");
-            _displayVersion = currentName;
-        }
-
-        return
-            Lang.Text("Instance.Resource.Item.UpdateCompare", currentName, Lang.TimeSpan(Entry.CompFile.ReleaseDate - DateTime.Now), newestName, Lang.TimeSpan(Entry.UpdateFile.ReleaseDate - DateTime.Now));
+        get => (MyLocalModItemViewModel)GetValue(ViewModelProperty);
+        set => SetValue(ViewModelProperty, value);
     }
 
-    public void Refresh()
+    private MyLocalModItemViewModel? _subscribedViewModel;
+    private bool _suppressCheckedHandler;
+    private bool _defaultButtonsCreated;
+    private bool _externalButtons;
+    private List<MyIconButton>? _buttons;
+    private MyLocalCompItem.SwipeSelect? _currentSwipe;
+    private MyIconButton? _btnEd;
+    private DateTime _lastClickTime = DateTime.MinValue;
+
+    public MyLocalCompItem()
     {
-        Dispatcher.BeginInvoke(new Func<Task>(async () =>
-        {
-            // 更新
-            if (Entry.CanUpdate)
-            {
-                _vm.UpdateVisibility = Visibility.Visible;
-                _vm.UpdateToolTip = $"{GetUpdateCompareDescription()}\r\n{Lang.Text("Instance.Resource.Item.UpdateToolTip")}";
-            }
-            else
-            {
-                _vm.UpdateVisibility = Visibility.Collapsed;
-                _displayVersion = null;
-            }
-
-            // 标题与描述
-            string descFileName;
-            if (Entry.IsFolder)
-                // 文件夹项的特殊处理
-                descFileName = Entry.Name;
-            else
-                switch (Entry.State)
-                {
-                    case LocalComp.LocalCompFile.LocalFileStatus.Fine:
-                        {
-                            descFileName = Path.GetFileNameWithoutExtension(Entry.path);
-                            break;
-                        }
-                    case LocalComp.LocalCompFile.LocalFileStatus.Disabled:
-                        {
-                            descFileName =
-                                Path.GetFileNameWithoutExtension(Entry.path.Replace(".disabled", "")
-                                    .Replace(".old", "")); // McMod.McModState.Unavailable
-                            break;
-                        }
-
-                    default:
-                        {
-                            descFileName = Common.GetFileNameFromPath(Entry.path);
-                            break;
-                        }
-                }
-
-            string newDescription;
-            var displayVersion = _displayVersion ?? Entry.Version;
-            var compTemp = Entry.Comp;
-            if (Entry.IsFolder)
-            {
-                // 文件夹项的特殊显示
-                Title = Entry.Name;
-                newDescription = Entry.Description;
-            }
-            else if (Config.Download.Comp.UiCompNameSolution == 1)
-            {
-                // 标题显示文件名，详情显示译名
-                // 标题
-                Title = descFileName;
-                SubTitle = "";
-                // 描述
-                if (Entry.Comp is null)
-                {
-                    newDescription = Entry.Name;
-                }
-                else
-                {
-                    var titles = await Task.Run(() => compTemp.GetControlTitle(false)).ConfigureAwait(true);
-                    newDescription = titles.Key + titles.Value;
-                }
-
-                newDescription = newDescription.Replace("  |  ", " / ");
-                if (displayVersion is not null)
-                    newDescription += $" ({displayVersion})";
-            }
-            else
-            {
-                // 标题显示译名，详情显示文件名
-                // 标题
-                if (Entry.Comp is null)
-                {
-                    Title = Entry.Name;
-                    SubTitle = displayVersion is null ? "" : "  |  " + displayVersion;
-                }
-                else
-                {
-                    var titles = await Task.Run(() => compTemp.GetControlTitle(false)).ConfigureAwait(true);
-                    Title = titles.Key;
-                    SubTitle = titles.Value + (displayVersion is null ? "" : "  |  " + displayVersion);
-                }
-
-                // 描述
-                newDescription = descFileName;
-            }
-
-            if (Entry.Comp is not null)
-                newDescription += ": " + Entry.Comp.Description.Replace("\r", "").Replace("\n", "");
-            else if (Entry.Description is not null)
-                newDescription += ": " + Entry.Description.Replace("\r", "").Replace("\n", "");
-            else if (!Entry.IsFileAvailable) newDescription += ": " + Lang.Text("Instance.Resource.Item.InfoUnavailable");
-            Description = newDescription;
-            if (Checked)
-                LabTitle.SetResourceReference(TextBlock.ForegroundProperty,
-                    Entry.State == LocalComp.LocalCompFile.LocalFileStatus.Fine
-                        ? "ColorBrush2"
-                        : "ColorBrush5");
-            else
-                LabTitle.SetResourceReference(TextBlock.ForegroundProperty,
-                    Entry.State == LocalComp.LocalCompFile.LocalFileStatus.Fine
-                        ? "ColorBrush1"
-                        : "ColorBrushGray4");
-            // 主 Logo
-            Logo = Entry.GetLogo();
-
-            // 图标右下角的 Logo
-            if (Entry.State == LocalComp.LocalCompFile.LocalFileStatus.Fine)
-            {
-                if (_imgState is not null)
-                {
-                    Children.Remove(_imgState);
-                    _imgState = null;
-                }
-            }
-            else
-            {
-                if (_imgState is null)
-                {
-                    _imgState = new Image
-                    {
-                        Width = 20d,
-                        Height = 20d,
-                        Margin = new Thickness(0d, 0d, -5, -3),
-                        IsHitTestVisible = false,
-                        HorizontalAlignment = HorizontalAlignment.Right,
-                        VerticalAlignment = VerticalAlignment.Bottom
-                    };
-                    RenderOptions.SetBitmapScalingMode(_imgState, BitmapScalingMode.HighQuality);
-                    SetColumn(_imgState, 1);
-                    SetRow(_imgState, 1);
-                    SetRowSpan(_imgState, 2);
-                    Children.Add(_imgState);
-                    // <Image x:Name="ImgState" RenderOptions.BitmapScalingMode="HighQuality" Width="16" Height="16" Margin="0,0,-3,-1"
-                    // Grid.Column="1" Grid.Row="1" Grid.RowSpan="2" IsHitTestVisible="False"
-                    // HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                    // Source="/Images/Icons/Unavailable.png" />
-                }
-
-                _imgState.Source = new MyBitmap(Common.PathImage + $"Icons/{Entry.State}.png");
-            }
-
-            // 标签
-            if (Entry.IsFolder)
-                // 为文件夹添加标签
-                Tags = [Lang.Text("Instance.Resource.Item.FolderTag")];
-            else if (Entry.Comp is not null) Tags = Entry.Comp.Tags;
-        }));
+        InitializeComponent();
+        // 无参构造时创建默认 VM，避免设计器与其他直接构造控件的调用点崩溃
+        ViewModel = new MyLocalModItemViewModel();
+        // 虚拟化容器会被回收复用：DataContext 变化（含首次绑定）时同步到 ViewModel
+        DataContextChanged += OnDataContextChangedForViewModel;
+        PreviewMouseLeftButtonUp += Button_MouseUp;
+        PreviewMouseLeftButtonDown += Button_MouseDown;
+        MouseLeave += Button_MouseLeave;
+        PreviewMouseLeftButtonUp += Button_MouseLeave;
+        MouseLeftButtonDown += Button_MouseSwipeStart;
+        MouseEnter += Button_MouseSwipe;
+        MouseLeave += Button_MouseSwipe;
+        MouseLeftButtonUp += Button_MouseSwipe;
+        // 不再在 Loaded 时刷新：虚拟化容器会被回收复用，刷新由 ViewModel 驱动
+        MouseEnter += RefreshColor;
+        MouseLeave += RefreshColor;
+        MouseLeftButtonDown += RefreshColor;
+        MouseLeftButtonUp += RefreshColor;
+        Changed += RefreshColor;
+        MouseRightButtonUp += Button_MouseRightButtonUp;
     }
+
+    /// <summary>
+    ///     容器复用或首次绑定时，把 DataContext 中的条目 VM 同步到 <see cref="ViewModel" />。
+    /// </summary>
+    private void OnDataContextChangedForViewModel(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        if (e.NewValue is MyLocalModItemViewModel vm && !ReferenceEquals(vm, ViewModel))
+            ViewModel = vm;
+    }
+
+    private void OnViewModelChanged(MyLocalModItemViewModel? oldValue, MyLocalModItemViewModel? newValue)
+    {
+        if (_subscribedViewModel is not null)
+            _subscribedViewModel.PropertyChanged -= ViewModel_PropertyChanged;
+        _subscribedViewModel = newValue;
+        if (newValue is not null)
+            newValue.PropertyChanged += ViewModel_PropertyChanged;
+
+        _lastClickTime = DateTime.MinValue;
+        ResetVisualState();
+        ApplyViewModel();
+        EnsureDefaultButtons();
+    }
+
+    private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(MyLocalModItemViewModel.IsChecked))
+            OnCheckedChanged();
+        else if (e.PropertyName is nameof(MyLocalModItemViewModel.EnabledButtonIcon)
+                 or nameof(MyLocalModItemViewModel.ShowEnabledButton))
+            UpdateEnabledButton();
+        else if (e.PropertyName == nameof(MyLocalModItemViewModel.TitleText))
+            ApplyTitleText();
+        else if (e.PropertyName == nameof(MyLocalModItemViewModel.SubTitleText))
+            ApplySubTitleText();
+        else if (e.PropertyName == nameof(MyLocalModItemViewModel.DescriptionText))
+            ApplyDescriptionText();
+    }
+
+    /// <summary>
+    ///     设置文本块的文本，并还原 Minecraft 颜色代码（§a 之类）。
+    ///     统一走 Inlines：Text 与 Inlines 混用时 TextBlock 内部文本可能不同步，表现为 Text 有值但测量宽度为 0（文本不显示）。
+    /// </summary>
+    private static void SetBlockText(TextBlock block, string text)
+    {
+        // 统一走 Inlines：Text 与 Inlines 混用时 TextBlock 的内部文本可能不同步（表现为文本有值但测量宽度为 0）
+        block.Inlines.Clear();
+        if (string.IsNullOrEmpty(text))
+            return;
+        if (text.Contains('§'))
+        {
+            TextStyles.MinecraftFormatter.SetColorfulTextLab(text, block, PCL.Core.UI.Theme.ThemeService.IsDarkMode);
+            return;
+        }
+
+        block.Inlines.Add(new Run(text));
+    }
+
+    /// <summary>把 VM 的标题应用到控件（虚拟化容器复用时不依赖 XAML 绑定）。</summary>
+    private void ApplyTitleText()
+    {
+        SetBlockText(LabTitle, ViewModel?.TitleText ?? "");
+        // TextBlock 的文本在文本树被布局后修改时，Auto 列可能仍保留旧的 0 宽度，需显式使标题网格重新测量
+        LabTitle.InvalidateMeasure();
+        PanTitle.InvalidateMeasure();
+    }
+
+    /// <summary>把 VM 的副标题应用到控件。</summary>
+    private void ApplySubTitleText()
+    {
+        SetBlockText(LabSubtitle, ViewModel?.SubTitleText ?? "");
+    }
+
+    /// <summary>把 VM 的描述应用到控件。</summary>
+    private void ApplyDescriptionText()
+    {
+        SetBlockText(LabInfo, ViewModel?.DescriptionText ?? "");
+    }
+
+    private void UpdateEnabledButton()
+    {
+        if (_btnEd is null || ViewModel is null)
+            return;
+        _btnEd.SvgIcon = ViewModel.EnabledButtonIcon;
+        _btnEd.Visibility = ViewModel.ShowEnabledButton ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private static string GetTitleBrushKey(bool isChecked, LocalComp.LocalCompFile? entry)
+    {
+        var isFine = entry?.State == LocalComp.LocalCompFile.LocalFileStatus.Fine;
+        if (isChecked)
+            return isFine ? "ColorBrush2" : "ColorBrush5";
+        return isFine ? "ColorBrush1" : "ColorBrushGray4";
+    }
+
+    /// <summary>把当前 ViewModel 的轻量状态（颜色、勾选、悬停）应用到控件上。</summary>
+    private void ApplyViewModel()
+    {
+        var vm = ViewModel;
+        if (vm is null)
+            return;
+        LabTitle.SetResourceReference(TextBlock.ForegroundProperty, GetTitleBrushKey(vm.IsChecked, vm.Entry));
+        ApplyCheckedVisual(false);
+        ResetVisualState();
+        UpdateEnabledButton();
+        // 首次绑定时同步填充文本（绑定丢失或容器复用时同样生效）
+        ApplyTitleText();
+        ApplySubTitleText();
+        ApplyDescriptionText();
+    }
+
+    /// <summary>重置悬停相关视觉状态，避免回收后的容器残留上一项的效果。</summary>
+    private void ResetVisualState()
+    {
+        _isMouseDown = false;
+        Animations.AniStop("LocalModItem Color " + Uuid);
+        if (buttonStack is not null)
+        {
+            buttonStack.Opacity = 0d;
+            buttonStack.IsHitTestVisible = true;
+        }
+
+        ColumnPaddingRight.Width = new GridLength(4d);
+        var back = RectBack;
+        var scale = (ScaleTransform)back.RenderTransform;
+        if (ViewModel?.IsChecked == true)
+        {
+            back.SetResourceReference(Border.BackgroundProperty, "ColorBrushBg1");
+            back.Opacity = 1d;
+            scale.ScaleX = 1d;
+            scale.ScaleY = 1d;
+        }
+        else
+        {
+            back.Opacity = 0d;
+            scale.ScaleX = 0.8d;
+            scale.ScaleY = 0.8d;
+        }
+    }
+
+    /// <summary>应用勾选状态的视觉表现；<paramref name="animate" /> 为 false 时直接设置。</summary>
+    private void ApplyCheckedVisual(bool animate)
+    {
+        var vm = ViewModel;
+        if (vm is null)
+            return;
+        var isChecked = vm.IsChecked;
+        if (!animate || !this.IsVisibleInWindow(Launcher.frmMain))
+        {
+            RectCheck.VerticalAlignment = VerticalAlignment.Center;
+            RectCheck.Margin = new Thickness(-3, 0d, 0d, 0d);
+            RectCheck.Height = isChecked ? 32d : 0d;
+            RectCheck.Opacity = isChecked ? 1d : 0d;
+            LabTitle.SetResourceReference(TextBlock.ForegroundProperty, GetTitleBrushKey(isChecked, vm.Entry));
+            Animations.AniStop("MyLocalCompItem Checked " + Uuid);
+            return;
+        }
+
+        var anim = new List<Animations.AniData>();
+        if (isChecked)
+        {
+            // 由无变有
+            var delta = 32d - RectCheck.ActualHeight;
+            anim.Add(Animations.AaHeight(RectCheck, delta * 0.4d, 200,
+                ease: new Animations.AniEaseOutFluent(Animations.AniEasePower.Weak)));
+            anim.Add(Animations.AaHeight(RectCheck, delta * 0.6d, 300,
+                ease: new Animations.AniEaseOutBack(Animations.AniEasePower.Weak)));
+            anim.Add(Animations.AaOpacity(RectCheck, 1d - RectCheck.Opacity, 30));
+            RectCheck.VerticalAlignment = VerticalAlignment.Center;
+            RectCheck.Margin = new Thickness(-3, 0d, 0d, 0d);
+            anim.Add(Animations.AaColor(LabTitle, TextBlock.ForegroundProperty,
+                GetTitleBrushKey(true, vm.Entry), 200));
+        }
+        else
+        {
+            // 由有变无
+            anim.Add(Animations.AaHeight(RectCheck, -RectCheck.ActualHeight, 120,
+                ease: new Animations.AniEaseInFluent(Animations.AniEasePower.Weak)));
+            anim.Add(Animations.AaOpacity(RectCheck, -RectCheck.Opacity, 70, 40));
+            RectCheck.VerticalAlignment = VerticalAlignment.Center;
+            anim.Add(Animations.AaColor(LabTitle, TextBlock.ForegroundProperty,
+                GetTitleBrushKey(false, vm.Entry), 120));
+        }
+
+        Animations.AniStart(anim, "MyLocalCompItem Checked " + Uuid);
+    }
+
+    /// <summary>勾选状态变化（来自 ViewModel）。</summary>
+    private void OnCheckedChanged()
+    {
+        if (_suppressCheckedHandler)
+            return;
+        var vm = ViewModel;
+        if (vm is null)
+            return;
+        try
+        {
+            var value = vm.IsChecked;
+            // 触发属性值修改
+            var changedEventArgs = new Common.RouteEventArgs();
+            if (IsInitialized)
+            {
+                Changed?.Invoke(this, changedEventArgs);
+                if (changedEventArgs.handled)
+                {
+                    _suppressCheckedHandler = true;
+                    vm.IsChecked = !value;
+                    _suppressCheckedHandler = false;
+                    return;
+                }
+            }
+
+            if (value)
+            {
+                var checkEventArgs = new Common.RouteEventArgs();
+                Check?.Invoke(this, checkEventArgs);
+                if (checkEventArgs.handled)
+                    return;
+            }
+
+            ApplyCheckedVisual(true);
+        }
+        catch (Exception ex)
+        {
+            Common.Log(ex, "设置 Checked 失败");
+        }
+    }
+
+    public void Refresh() => ViewModel?.Refresh();
 
     public void RefreshColor(object sender, EventArgs e)
     {
@@ -222,7 +311,7 @@ public partial class MyLocalCompItem
                 ani.Add(Animations.AaDouble(
                     i => ColumnPaddingRight.Width =
                         new GridLength(Math.Max(0, ColumnPaddingRight.Width.Value + (double)i)),
-                    5 + Buttons.Count() * 25 - ColumnPaddingRight.Width.Value, (int)Math.Round(time * 0.3d),
+                    5 + VisibleButtonCount * 25 - ColumnPaddingRight.Width.Value, (int)Math.Round(time * 0.3d),
                     (int)Math.Round(time * 0.7d)));
             }
             else
@@ -237,7 +326,7 @@ public partial class MyLocalCompItem
         }
 
         // RectBack
-        if (IsMouseOver || Checked)
+        if (IsMouseOver || ViewModel?.IsChecked == true)
         {
             ani.AddRange([
                 Animations.AaColor(RectBack, Border.BackgroundProperty,
@@ -274,7 +363,7 @@ public partial class MyLocalCompItem
     {
         if (buttonHandler is not null)
         {
-            buttonHandler((MyLocalCompItem)sender, e);
+            buttonHandler(this, e);
             buttonHandler = null;
         }
     }
@@ -283,104 +372,23 @@ public partial class MyLocalCompItem
     private void BtnUpdate_PreviewMouseRightButtonUp(object sender, MouseButtonEventArgs e)
     {
         e.Handled = true;
-        ShowUpdateLog();
-    }
-
-    private void ShowUpdateLog()
-    {
-        if (Entry.Comp is not null)
-        {
-            if (!Information.IsNumeric(Entry.Comp.Id))
-            {
-                var modrinthUrl = Entry.ChangelogUrls.FirstOrDefault(x => x.Contains("modrinth.com"));
-                if (modrinthUrl is not null)
-                {
-                    Common.OpenWebsite(modrinthUrl);
-                    return;
-                }
-            }
-            else
-            {
-                var curseForgeUrl = Entry.ChangelogUrls.FirstOrDefault(x => x.Contains("curseforge.com"));
-                if (curseForgeUrl is not null)
-                {
-                    Common.OpenWebsite(curseForgeUrl);
-                    return;
-                }
-            }
-        }
-
-        Common.Log(
-            Lang.Text("Instance.Resource.Item.OpenChangelogFailed"),
-            Common.LogLevel.Hint,
-            userSummary: Lang.Text("Instance.Resource.Item.OpenChangelogFailed"));
+        ViewModel?.ShowUpdateLog();
     }
 
     // 触发更新
-    private void BtnUpdate_Click(object sender, EventArgs e)
-    {
-        switch ((DialogService.Instance.Show(new TextDialogRequest
-        {
-            Title = Lang.Text("Instance.Resource.Item.UpdateConfirm.Title"),
-            Content = $"{Lang.Text("Instance.Resource.Item.UpdateConfirm.Message", Entry.Name)}\r\n\r\n{GetUpdateCompareDescription()}",
-            Buttons = DialogButtons.Create("Instance.Resource.Item.Update", "Instance.Resource.Item.ViewChangelog", "Common.Action.Cancel"),
-            ForceWait = true
-        }).Result?.Button ?? 0))
-        {
-            case 1: // 更新
-                {
-                    switch (Entry.Comp.Type)
-                    {
-                        case Comp.CompType.Mod:
-                            {
-                                Launcher.frmInstanceMod ??= new PageInstanceCompResource(Comp.CompType.Mod);
-                                Launcher.frmInstanceMod.UpdateResource([Entry]);
-                                break;
-                            }
-                        case Comp.CompType.ResourcePack:
-                            {
-                                Launcher.frmInstanceResourcePack ??=
-                                    new PageInstanceCompResource(Comp.CompType.ResourcePack);
-                                Launcher.frmInstanceResourcePack.UpdateResource([Entry]);
-                                break;
-                            }
-                        case Comp.CompType.Shader:
-                            {
-                                Launcher.frmInstanceShader ??=
-                                    new PageInstanceCompResource(Comp.CompType.Shader);
-                                Launcher.frmInstanceShader.UpdateResource([Entry]);
-                                break;
-                            }
-                        case Comp.CompType.DataPack:
-                            {
-                                Launcher.frmInstanceSavesDatapack ??= new PageInstanceSavesDatapack();
-                                Launcher.frmInstanceSavesDatapack.UpdateResource([Entry]);
-                                break;
-                            }
-                    }
-
-                    break;
-                }
-            case 2: // 查看更新日志
-                {
-                    ShowUpdateLog();
-                    break;
-                }
-            case 3: // 取消
-                {
-                    break;
-                }
-        }
-    }
+    private void BtnUpdate_Click(object sender, EventArgs e) => ViewModel?.UpdateCommand.Execute(null);
 
     // 自适应（#4465）
     private void PanTitle_SizeChanged(object sender, SizeChangedEventArgs sizeChangedEventArgs)
     {
+        var vm = ViewModel;
+        if (vm is null)
+            return;
         // 0：全部舒展：Auto - Auto - (Auto) - 1*
         // 1：压缩 Subtitle：Auto - 1* - (Auto) - 0
         // 2：继续压缩 Title：1* - 0 - (Auto) - 0
         var currentCompressLevel =
-            _vm.ColumnExtendWidth.IsStar ? 0 : _vm.ColumnTitleWidth.IsStar ? 2 : 1; // Subtitle 可能是 Collapsed
+            vm.ColumnExtendWidth.IsStar ? 0 : vm.ColumnTitleWidth.IsStar ? 2 : 1; // Subtitle 可能是 Collapsed
         var newCompressLevel = 0;
         switch (currentCompressLevel)
         {
@@ -420,25 +428,25 @@ public partial class MyLocalCompItem
             case 0:
                 {
                     // 全部舒展：Auto - Auto - (Auto) - 1*
-                    _vm.ColumnTitleWidth = GridLength.Auto;
-                    _vm.ColumnSubtitleWidth = GridLength.Auto;
-                    _vm.ColumnExtendWidth = new GridLength(1d, GridUnitType.Star);
+                    vm.ColumnTitleWidth = GridLength.Auto;
+                    vm.ColumnSubtitleWidth = GridLength.Auto;
+                    vm.ColumnExtendWidth = new GridLength(1d, GridUnitType.Star);
                     break;
                 }
             case 1:
                 {
                     // 压缩 Subtitle：Auto - 1* - (Auto) - 0
-                    _vm.ColumnTitleWidth = GridLength.Auto;
-                    _vm.ColumnSubtitleWidth = new GridLength(1d, GridUnitType.Star);
-                    _vm.ColumnExtendWidth = new GridLength(0d, GridUnitType.Pixel);
+                    vm.ColumnTitleWidth = GridLength.Auto;
+                    vm.ColumnSubtitleWidth = new GridLength(1d, GridUnitType.Star);
+                    vm.ColumnExtendWidth = new GridLength(0d, GridUnitType.Pixel);
                     break;
                 }
             case 2:
                 {
                     // 继续压缩 Title：1* - 0 - (Auto) - 0
-                    _vm.ColumnTitleWidth = new GridLength(1d, GridUnitType.Star);
-                    _vm.ColumnSubtitleWidth = new GridLength(0d, GridUnitType.Pixel);
-                    _vm.ColumnExtendWidth = new GridLength(0d, GridUnitType.Pixel);
+                    vm.ColumnTitleWidth = new GridLength(1d, GridUnitType.Star);
+                    vm.ColumnSubtitleWidth = new GridLength(0d, GridUnitType.Pixel);
+                    vm.ColumnExtendWidth = new GridLength(0d, GridUnitType.Pixel);
                     break;
                 }
         }
@@ -451,106 +459,65 @@ public partial class MyLocalCompItem
     // Logo
     public string Logo
     {
-        get => PathLogo.Source;
-        set => PathLogo.Source = value;
+        get => ViewModel?.Logo ?? "";
+        set
+        {
+            if (ViewModel is not null)
+                ViewModel.Logo = value;
+        }
     }
 
     // 标题
     public string Title
     {
-        get;
+        get => ViewModel?.TitleText ?? "";
         set
         {
-            var rawValue = value;
-            switch (Entry.State)
-            {
-                case LocalComp.LocalCompFile.LocalFileStatus.Fine:
-                    {
-                        LabTitle.TextDecorations = null;
-                        break;
-                    }
-                case LocalComp.LocalCompFile.LocalFileStatus.Disabled:
-                    {
-                        LabTitle.TextDecorations = TextDecorations.Strikethrough;
-                        break;
-                    }
-                case LocalComp.LocalCompFile.LocalFileStatus.Unavailable:
-                    {
-                        LabTitle.TextDecorations = TextDecorations.Strikethrough;
-                        value += Lang.Text("Instance.Resource.Item.ErrorSuffix");
-                        break;
-                    }
-            }
-
-            if (_vm.TitleText == value)
-                return;
-            _vm.TitleText = value;
-            field = rawValue;
+            if (ViewModel is not null)
+                ViewModel.TitleText = value;
         }
     }
 
     // 副标题
     public string? SubTitle
     {
-        get => _vm.SubTitleText;
+        get => ViewModel?.SubTitleText;
         set
         {
-            if (_vm.SubTitleText == (value ?? ""))
+            if (ViewModel is null)
                 return;
-            _vm.SubTitleText = value;
-            _vm.SubTitleVisibility = string.IsNullOrEmpty(value) ? Visibility.Collapsed : Visibility.Visible;
+            ViewModel.SubTitleText = value ?? "";
+            ViewModel.SubTitleVisibility = string.IsNullOrEmpty(value) ? Visibility.Collapsed : Visibility.Visible;
         }
     }
 
     // 描述
     public string Description
     {
-        get => _vm.DescriptionText;
+        get => ViewModel?.DescriptionText ?? "";
         set
         {
-            if ((_vm.DescriptionText ?? "") == (value ?? ""))
-                return;
-            _vm.DescriptionText = value;
+            if (ViewModel is not null)
+                ViewModel.DescriptionText = value;
         }
     }
 
     // Tag
     public List<string> Tags
     {
-        set
-        {
-            PanTags.Children.Clear();
-            _vm.TagsVisibility = value.Any() ? Visibility.Visible : Visibility.Collapsed;
-            foreach (var tagText in value)
-            {
-                var newTag = new Border
-                {
-                    Background = new SolidColorBrush(Color.FromArgb(12, 0, 0, 0)),
-                    Padding = new Thickness(3d, 1d, 3d, 1d),
-                    CornerRadius = new CornerRadius(3d),
-                    Margin = new Thickness(0d, 0d, 3d, 0d),
-                    SnapsToDevicePixels = true,
-                    UseLayoutRounding = false
-                };
-                var tagTextBlock = new TextBlock
-                {
-                    Text = tagText,
-                    Foreground = new SolidColorBrush(ThemeManager.IsDarkMode
-                        ? Color.FromArgb(88, 255, 255, 255)
-                        : Color.FromArgb(88, 136, 136, 136)),
-                    FontSize = 11d
-                };
-                newTag.Child = tagTextBlock;
-                PanTags.Children.Add(newTag);
-            }
-        }
+        set => ViewModel?.SetTags(value);
     }
 
     // 相关联的 Mod
     public LocalComp.LocalCompFile Entry
     {
-        get => (LocalComp.LocalCompFile)Tag;
-        set => Tag = value;
+        get => ViewModel?.Entry!;
+        set
+        {
+            if (ViewModel is null || ReferenceEquals(ViewModel.Entry, value))
+                return;
+            ViewModel.Initialize(value, null);
+        }
     }
 
     #endregion
@@ -562,34 +529,38 @@ public partial class MyLocalCompItem
 
     public delegate void ClickEventHandler(object sender, MouseButtonEventArgs e);
 
-    public MyLocalCompItem()
-    {
-        InitializeComponent();
-        PreviewMouseLeftButtonUp += Button_MouseUp;
-        PreviewMouseLeftButtonDown += Button_MouseDown;
-        MouseLeave += Button_MouseLeave;
-        PreviewMouseLeftButtonUp += Button_MouseLeave;
-        MouseLeftButtonDown += Button_MouseSwipeStart;
-        MouseEnter += Button_MouseSwipe;
-        MouseLeave += Button_MouseSwipe;
-        MouseLeftButtonUp += Button_MouseSwipe;
-        Loaded += (_, _) => Refresh();
-        MouseEnter += RefreshColor;
-        MouseLeave += RefreshColor;
-        MouseLeftButtonDown += RefreshColor;
-        MouseLeftButtonUp += RefreshColor;
-        Changed += RefreshColor;
-        // Handles
-    }
-
     private void Button_MouseUp(object sender, MouseButtonEventArgs e)
     {
-        if (_isMouseDown)
+        if (!_isMouseDown)
+            return;
+        Click?.Invoke(sender, e);
+        if (e.Handled)
+            return;
+        // 没有外部订阅时由控件自行处理点击（虚拟化列表由 DataTemplate 创建，无法预先挂接事件）
+        if (Click is null)
+            HandleDefaultClick();
+        Common.Log("[Control] 按下本地 Mod 列表项：" + LabTitle.Text);
+    }
+
+    /// <summary>默认点击行为：文件夹双击进入，其余情况切换选中状态。</summary>
+    private void HandleDefaultClick()
+    {
+        var vm = ViewModel;
+        if (vm?.Entry is null || vm.Host is null)
+            return;
+        var currentTime = DateTime.Now;
+        var timeDiff = (currentTime - _lastClickTime).TotalMilliseconds;
+        if (vm.Entry.IsFolder && timeDiff <= 300d)
         {
-            Click?.Invoke(sender, e);
-            if (e.Handled)
-                return;
-            Common.Log("[Control] 按下本地 Mod 列表项：" + LabTitle.Text);
+            // 300ms 内双击，进入文件夹
+            vm.EnterFolderCommand.Execute(null);
+            _lastClickTime = DateTime.MinValue;
+        }
+        else
+        {
+            // 单击切换选中状态
+            vm.IsChecked = !vm.IsChecked;
+            _lastClickTime = currentTime;
         }
     }
 
@@ -608,6 +579,15 @@ public partial class MyLocalCompItem
     {
         _isMouseDown = false;
         buttonStack?.IsHitTestVisible = true;
+    }
+
+    // 右键查看详情
+    private void Button_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (ViewModel?.Host is null)
+            return;
+        e.Handled = true;
+        ViewModel.ShowInfoCommand.Execute(null);
     }
 
     // 滑动选中
@@ -635,13 +615,31 @@ public partial class MyLocalCompItem
         }
 
         public bool SwipeToState { get; set; }
-        public object TargetFrm { get; set; }
+        public object TargetFrm { get; set; } = null!;
     }
 
-    public SwipeSelect CurrentSwipe { get; set; }
+    /// <summary>滑动选中状态；虚拟化列表中由宿主页面提供共享实例。</summary>
+    public SwipeSelect CurrentSwipe
+    {
+        get
+        {
+            if (_currentSwipe is not null)
+                return _currentSwipe;
+            _currentSwipe = ViewModel?.Host?.SwipeState ?? new SwipeSelect();
+            return _currentSwipe;
+        }
+        set => _currentSwipe = value;
+    }
 
     private void Button_MouseSwipeStart(object sender, object e)
     {
+        var vm = ViewModel;
+        if (vm?.Host is not null)
+        {
+            vm.Host.SwipeStart(vm);
+            return;
+        }
+
         if (Parent is null)
             return; // Mod 可能已被删除（#3824）
         // 开始滑动
@@ -654,10 +652,18 @@ public partial class MyLocalCompItem
 
     private void Button_MouseSwipe(object sender, object e)
     {
+        var vm = ViewModel;
+        var isPressed = Mouse.LeftButton == MouseButtonState.Pressed && Mouse.DirectlyOver is MyLocalCompItem;
+        if (vm?.Host is not null)
+        {
+            vm.Host.SwipeMove(vm, isPressed);
+            return;
+        }
+
         if (Parent is null)
             return; // Mod 可能已被删除（#3824）
         // 结束滑动
-        if (Mouse.LeftButton != MouseButtonState.Pressed || !(Mouse.DirectlyOver is MyLocalCompItem)) // #5771
+        if (!isPressed) // #5771
         {
             CurrentSwipe.Swiping = false;
             return;
@@ -694,108 +700,18 @@ public partial class MyLocalCompItem
 
     public bool Checked
     {
-        get => field;
+        get => ViewModel?.IsChecked == true;
         set
         {
-            try
-            {
-                // 触发属性值修改
-                var rawValue = field;
-                if (value == field)
-                    return;
-                field = value;
-                var changedEventArgs = new Common.RouteEventArgs();
-                if (IsInitialized)
-                {
-                    Changed?.Invoke(this, changedEventArgs);
-                    if (changedEventArgs.handled)
-                    {
-                        field = rawValue;
-                        return;
-                    }
-                }
-
-                if (value)
-                {
-                    var checkEventArgs = new Common.RouteEventArgs();
-                    Check?.Invoke(this, checkEventArgs);
-                    if (checkEventArgs.handled)
-                        return;
-                }
-
-                // 更改动画
-                if (this.IsVisibleInWindow(Launcher.frmMain))
-                {
-                    var anim = new List<Animations.AniData>();
-                    if (Checked)
-                    {
-                        // 由无变有
-                        var delta = 32d - RectCheck.ActualHeight;
-                        anim.Add(Animations.AaHeight(RectCheck, delta * 0.4d, 200,
-                            ease: new Animations.AniEaseOutFluent(Animations.AniEasePower.Weak)));
-                        anim.Add(Animations.AaHeight(RectCheck, delta * 0.6d, 300,
-                            ease: new Animations.AniEaseOutBack(Animations.AniEasePower.Weak)));
-                        anim.Add(Animations.AaOpacity(RectCheck, 1d - RectCheck.Opacity, 30));
-                        RectCheck.VerticalAlignment = VerticalAlignment.Center;
-                        RectCheck.Margin = new Thickness(-3, 0d, 0d, 0d);
-                        anim.Add(Animations.AaColor(LabTitle, TextBlock.ForegroundProperty,
-                            Entry.State == LocalComp.LocalCompFile.LocalFileStatus.Fine
-                                ? "ColorBrush2"
-                                : "ColorBrush5", 200));
-                    }
-                    else
-                    {
-                        // 由有变无
-                        anim.Add(Animations.AaHeight(RectCheck, -RectCheck.ActualHeight, 120,
-                            ease: new Animations.AniEaseInFluent(Animations.AniEasePower.Weak)));
-                        anim.Add(Animations.AaOpacity(RectCheck, -RectCheck.Opacity, 70, 40));
-                        RectCheck.VerticalAlignment = VerticalAlignment.Center;
-                        anim.Add(Animations.AaColor(LabTitle, TextBlock.ForegroundProperty,
-                            LabTitle.TextDecorations is null ? "ColorBrush1" : "ColorBrushGray4", 120));
-                    }
-
-                    Animations.AniStart(anim, "MyLocalCompItem Checked " + Uuid);
-                }
-                else
-                {
-                    // 不在窗口上时直接设置
-                    RectCheck.VerticalAlignment = VerticalAlignment.Center;
-                    RectCheck.Margin = new Thickness(-3, 0d, 0d, 0d);
-                    if (Checked)
-                    {
-                        RectCheck.Height = 32d;
-                        RectCheck.Opacity = 1d;
-                        LabTitle.SetResourceReference(TextBlock.ForegroundProperty,
-                            Entry.State == LocalComp.LocalCompFile.LocalFileStatus.Fine
-                                ? "ColorBrush2"
-                                : "ColorBrush5");
-                    }
-                    else
-                    {
-                        RectCheck.Height = 0d;
-                        RectCheck.Opacity = 0d;
-                        LabTitle.SetResourceReference(TextBlock.ForegroundProperty,
-                            Entry.State == LocalComp.LocalCompFile.LocalFileStatus.Fine
-                                ? "ColorBrush1"
-                                : "ColorBrushGray4");
-                    }
-
-                    Animations.AniStop("MyLocalCompItem Checked " + Uuid);
-                }
-            }
-            catch (Exception ex)
-            {
-                Common.Log(ex, "设置 Checked 失败");
-            }
+            if (ViewModel is null || ViewModel.IsChecked == value)
+                return;
+            ViewModel.IsChecked = value;
         }
     }
 
     #endregion
 
     #region 后加载内容
-
-    // 右下角状态指示图标
-    private Image? _imgState;
 
     // 指向背景
     public Border RectBack
@@ -834,46 +750,92 @@ public partial class MyLocalCompItem
     public Action<MyLocalCompItem, EventArgs>? buttonHandler;
     public FrameworkElement? buttonStack;
 
+    /// <summary>当前按钮数量中实际可见的数量（虚拟化列表由 ViewModel 决定）。</summary>
+    private int VisibleButtonCount => _defaultButtonsCreated
+        ? ViewModel?.VisibleButtonCount ?? 3
+        : Buttons.Count();
+
     public IEnumerable<MyIconButton> Buttons
     {
-        get;
+        get => _buttons ?? Enumerable.Empty<MyIconButton>();
         set
         {
-            field = value;
-            // 移除原 Stack
-            if (buttonStack is not null)
-            {
-                Children.Remove(buttonStack);
-                buttonStack = null;
-            }
-
-            if (!value.Any())
-                return;
-            // 添加新 Stack
-            buttonStack = new StackPanel
-            {
-                Opacity = 0d,
-                Margin = new Thickness(0d, 0d, 5d, 0d),
-                SnapsToDevicePixels = false,
-                Orientation = (Orientation)System.Windows.Forms.Orientation.Horizontal,
-                HorizontalAlignment = HorizontalAlignment.Right,
-                VerticalAlignment = VerticalAlignment.Center,
-                UseLayoutRounding = false
-            };
-            SetColumnSpan(buttonStack, 10);
-            SetRowSpan(buttonStack, 10);
-            // 构造按钮
-            foreach (var btn in value)
-            {
-                if (btn.Height.Equals(double.NaN))
-                    btn.Height = 25d;
-                if (btn.Width.Equals(double.NaN))
-                    btn.Width = 25d;
-                ((StackPanel)buttonStack).Children.Add(btn);
-            }
-
-            Children.Add(buttonStack);
+            _externalButtons = true;
+            ApplyButtons(value.ToList());
         }
+    }
+
+    /// <summary>安装按钮栈；默认按钮与外部设置共用此入口，避免默认按钮被误标记为外部按钮。</summary>
+    private void ApplyButtons(List<MyIconButton> buttons)
+    {
+        _buttons = buttons;
+        // 移除原 Stack
+        if (buttonStack is not null)
+        {
+            Children.Remove(buttonStack);
+            buttonStack = null;
+        }
+
+        if (!_buttons.Any())
+            return;
+        // 添加新 Stack
+        buttonStack = new StackPanel
+        {
+            Opacity = 0d,
+            Margin = new Thickness(0d, 0d, 5d, 0d),
+            SnapsToDevicePixels = false,
+            Orientation = (Orientation)System.Windows.Forms.Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            VerticalAlignment = VerticalAlignment.Center,
+            UseLayoutRounding = false
+        };
+        SetColumnSpan(buttonStack, 10);
+        SetRowSpan(buttonStack, 10);
+        // 构造按钮
+        foreach (var btn in _buttons)
+        {
+            if (btn.Height.Equals(double.NaN))
+                btn.Height = 25d;
+            if (btn.Width.Equals(double.NaN))
+                btn.Width = 25d;
+            ((StackPanel)buttonStack).Children.Add(btn);
+        }
+
+        Children.Add(buttonStack);
+    }
+
+    /// <summary>虚拟化列表使用：构造由 ViewModel 命令驱动的默认按钮组（只构造一次）。</summary>
+    private void EnsureDefaultButtons()
+    {
+        var vm = ViewModel;
+        if (vm?.Host is null || _defaultButtonsCreated || _externalButtons)
+            return;
+        _defaultButtonsCreated = true;
+
+        var btnCont = CreateDefaultButton("lucide/info", "ViewModel.InfoToolTip.Value", "ViewModel.ShowInfoCommand");
+        var btnOpen = CreateDefaultButton("lucide/folder-open", "ViewModel.OpenFolderToolTip.Value",
+            "ViewModel.OpenFileLocationCommand", 1.05d);
+        _btnEd = CreateDefaultButton("lucide/circle-minus", "ViewModel.EnabledButtonToolTip.Value",
+            "ViewModel.ToggleEnabledCommand");
+        var btnDelete = CreateDefaultButton("lucide/trash-2", "ViewModel.DeleteToolTip.Value", "ViewModel.DeleteCommand");
+
+        // 直接安装按钮栈，不经过 Buttons 的 setter，避免默认按钮被标记为外部设置
+        ApplyButtons(new List<MyIconButton> { btnCont, btnOpen, _btnEd, btnDelete });
+        UpdateEnabledButton();
+    }
+
+    private MyIconButton CreateDefaultButton(string icon, string toolTipPath, string commandPath,
+        double logoScale = 1d)
+    {
+        var button = new MyIconButton { LogoScale = logoScale, SvgIcon = icon };
+        button.SetBinding(FrameworkElement.ToolTipProperty,
+            new Binding(toolTipPath) { Source = this, Mode = BindingMode.OneWay });
+        button.SetBinding(MyIconButton.CommandProperty,
+            new Binding(commandPath) { Source = this, Mode = BindingMode.OneWay });
+        ToolTipService.SetPlacement(button, System.Windows.Controls.Primitives.PlacementMode.Center);
+        ToolTipService.SetVerticalOffset(button, 30d);
+        ToolTipService.SetHorizontalOffset(button, 2d);
+        return button;
     }
 
     // 勾选条

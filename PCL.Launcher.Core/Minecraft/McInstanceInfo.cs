@@ -218,30 +218,30 @@ public class McInstanceInfo
             switch (segments.Count)
             {
                 case var @case when @case > 4:
-                {
-                    return (int)Math.Round(
-                        LauncherText.Val(segments[0]) * 1000000d
-                        + LauncherText.Val(segments[1]) * 10000d
-                        + LauncherText.Val(segments[3]));
-                }
+                    {
+                        return (int)Math.Round(
+                            LauncherText.Val(segments[0]) * 1000000d
+                            + LauncherText.Val(segments[1]) * 10000d
+                            + LauncherText.Val(segments[3]));
+                    }
                 case 3:
-                {
-                    return (int)Math.Round(
-                        LauncherText.Val(segments[0]) * 1000000d
-                        + LauncherText.Val(segments[1]) * 10000d
-                        + LauncherText.Val(segments[2]));
-                }
+                    {
+                        return (int)Math.Round(
+                            LauncherText.Val(segments[0]) * 1000000d
+                            + LauncherText.Val(segments[1]) * 10000d
+                            + LauncherText.Val(segments[2]));
+                    }
                 case 2:
-                {
-                    return (int)Math.Round(
-                        LauncherText.Val(segments[0]) * 1000000d
-                        + LauncherText.Val(segments[1]) * 10000d);
-                }
+                    {
+                        return (int)Math.Round(
+                            LauncherText.Val(segments[0]) * 1000000d
+                            + LauncherText.Val(segments[1]) * 10000d);
+                    }
 
                 default:
-                {
-                    return (int)Math.Round(LauncherText.Val(segments[0]) * 1000000d);
-                }
+                    {
+                        return (int)Math.Round(LauncherText.Val(segments[0]) * 1000000d);
+                    }
             }
         }
     }
@@ -302,7 +302,7 @@ public class McInstanceInfo
     /// <summary>
     ///     版本字符串是否符合 Minecraft 原版格式，例如 1.x、26.x。
     /// </summary>
-    public static bool IsFormatFit(string version)
+    public static bool IsFormatFit(string? version)
     {
         if (version is null)
             return false;

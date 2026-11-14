@@ -1,12 +1,15 @@
-﻿﻿using System.Diagnostics;
+using PCL.Core.App.Localization;
+using PCL.Core.UI.Effects;
+using PCL.Core.Utils;
+using PCL.Network;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using PCL.Core.App.Localization;
-using PCL.Core.Utils;
-using PCL.Network;
+using System.Windows.Media.Effects;
 
 namespace PCL;
 
@@ -29,7 +32,7 @@ public static partial class Animations
 
         Common.RunInUi(() =>
         {
-            CompositionTarget.Rendering -= _AniOnRendering; // never subscribe twice
+            CompositionTarget.Rendering -= _AniOnRendering;
             CompositionTarget.Rendering += _AniOnRendering;
             Common.Log("[Animation] 动画帧循环已挂载到渲染管线", Common.LogLevel.Developer);
         });
@@ -72,13 +75,10 @@ public static partial class Animations
             AniTimer(deltaTick);
 
             if (RandomUtils.NextInt(0, 64 * (Common.modeDebug ? 5 : 30)) == 0
-                && ((_aniFps < 62 && _aniFps > 0)
+                && (_aniFps is < 62 and > 0
                     || _aniCount > 4
                     || NetFacade.NetManager.FileRemain != 0))
-                Common.Log(
-                    "[Report] FPS " + _aniFps + ", 动画 " + _aniCount + ", 下载中 "
-                    + NetFacade.NetManager.FileRemain + "（"
-                    + Common.GetString(NetFacade.NetManager.Speed) + "/s）");
+                Common.Log($"[Report] FPS {_aniFps}, 动画 {_aniCount}, 下载中 {NetFacade.NetManager.FileRemain}（{Common.GetString(NetFacade.NetManager.Speed)}/s）");
         }
         catch (Exception ex)
         {
@@ -109,9 +109,8 @@ public static partial class Animations
             _AniFlushGroups();
 
             var groups = _aniOrder;
-            for (var i = 0; i < groups.Count; i++)
+            foreach (var entry in groups)
             {
-                var entry = groups[i];
                 if (entry.Dead) continue;
                 if (entry.startTick > _aniLastTick) continue;
 
@@ -215,7 +214,7 @@ public static partial class Animations
             target[2] is not string { Length: 0 })
             ((FrameworkElement)target[0]).SetResourceReference(
                 (DependencyProperty)target[1],
-                target[2]!);
+                target[2]);
     }
 
     /// <summary>
@@ -322,122 +321,165 @@ public static partial class Animations
                 break;
 
             case AniTypeSub.Opacity:
-            {
-                dynamic target = ani.obj;
-                target.Opacity = Common.MathClamp(
-                    Convert.ToDouble(target.Opacity) + delta,
-                    0d,
-                    1d);
-                break;
-            }
+                {
+                    var target = ani.obj as UIElement ?? throw new NotSupportedException(
+                        "Opacity 动画的目标必须是 UIElement，实际为 " + (ani.obj?.GetType().FullName ?? "null"));
+
+                    target.Opacity = Common.MathClamp(target.Opacity + delta, 0d, 1d);
+                    break;
+                }
 
             case AniTypeSub.Width:
-            {
-                var element = (FrameworkElement)ani.obj;
-                var width = double.IsNaN(element.Width)
-                    ? element.ActualWidth
-                    : element.Width;
+                {
+                    var element = (FrameworkElement)ani.obj;
+                    var width = element.Width is double.NaN
+                        ? element.ActualWidth
+                        : element.Width;
 
-                element.Width = Math.Max(width + delta, 0d);
-                break;
-            }
+                    element.Width = Math.Max(width + delta, 0d);
+                    break;
+                }
 
             case AniTypeSub.Height:
-            {
-                var element = (FrameworkElement)ani.obj;
-                var height = double.IsNaN(element.Height)
-                    ? element.ActualHeight
-                    : element.Height;
+                {
+                    var element = (FrameworkElement)ani.obj;
+                    var height = element.Height is double.NaN
+                        ? element.ActualHeight
+                        : element.Height;
 
-                element.Height = Math.Max(height + delta, 0d);
-                break;
-            }
+                    element.Height = Math.Max(height + delta, 0d);
+                    break;
+                }
 
             case AniTypeSub.Value:
-            {
-                dynamic target = ani.obj;
-                target.Value += delta;
-                break;
-            }
+                {
+                    var target = ani.obj as System.Windows.Controls.Primitives.RangeBase
+                                 ?? throw new NotSupportedException(
+                                     "Value 动画的目标必须是 RangeBase，实际为 "
+                                     + (ani.obj?.GetType().FullName ?? "null"));
+
+                    target.Value += delta;
+                    break;
+                }
 
             case AniTypeSub.Radius:
-            {
-                dynamic target = ani.obj;
-                target.Radius += delta;
-                break;
-            }
+                {
+                    switch (ani.obj)
+                    {
+                        case BlurEffect blur:
+                            blur.Radius += delta;
+                            break;
+                        case OptimizedBlurEffect optimizedBlur:
+                            optimizedBlur.Radius += delta;
+                            break;
+                        case EnhancedBlurEffect enhancedBlur:
+                            enhancedBlur.Radius += delta;
+                            break;
+                        case AdaptiveBlurEffect adaptiveBlur:
+                            adaptiveBlur.Radius += delta;
+                            break;
+                        default:
+                            throw new NotSupportedException(
+                                "Radius 动画的目标必须是模糊效果，实际为 "
+                                + (ani.obj?.GetType().FullName ?? "null"));
+                    }
+
+                    break;
+                }
 
             case AniTypeSub.StrokeThickness:
-            {
-                dynamic target = ani.obj;
-                target.StrokeThickness = Math.Max(
-                    Convert.ToDouble(target.StrokeThickness) + delta,
-                    0d);
-                break;
-            }
+                {
+                    var shape = ani.obj as System.Windows.Shapes.Shape
+                                ?? throw new NotSupportedException(
+                                    "StrokeThickness 动画的目标必须是 Shape，实际为 "
+                                    + (ani.obj?.GetType().FullName ?? "null"));
+
+                    shape.StrokeThickness = Math.Max(shape.StrokeThickness + delta, 0d);
+                    break;
+                }
 
             case AniTypeSub.BorderThickness:
-            {
-                dynamic target = ani.obj;
-                var thickness = (Thickness)target.BorderThickness;
+                {
+                    switch (ani.obj)
+                    {
+                        case Border border:
+                            border.BorderThickness = new Thickness(border.BorderThickness.Bottom + delta);
+                            break;
+                        case Control control:
+                            control.BorderThickness = new Thickness(control.BorderThickness.Bottom + delta);
+                            break;
+                        default:
+                            throw new NotSupportedException(
+                                "BorderThickness 动画的目标必须是 Border 或 Control，实际为 "
+                                + (ani.obj?.GetType().FullName ?? "null"));
+                    }
 
-                target.BorderThickness = new Thickness(
-                    thickness.Bottom + delta);
-                break;
-            }
+                    break;
+                }
 
             case AniTypeSub.TranslateX:
             case AniTypeSub.TranslateY:
-            {
-                dynamic target = ani.obj;
+                {
+                    var target = ani.obj as UIElement ?? throw new NotSupportedException(
+                        "TranslateX/Y 动画的目标必须是 UIElement，实际为 "
+                        + (ani.obj?.GetType().FullName ?? "null"));
 
-                if (target.RenderTransform is not TranslateTransform)
-                    target.RenderTransform = new TranslateTransform(0d, 0d);
+                    if (target.RenderTransform is not TranslateTransform transform)
+                    {
+                        transform = new TranslateTransform(0d, 0d);
+                        target.RenderTransform = transform;
+                    }
 
-                var transform = (TranslateTransform)target.RenderTransform;
+                    if (ani.typeSub == AniTypeSub.TranslateX)
+                        transform.X += delta;
+                    else
+                        transform.Y += delta;
 
-                if (ani.typeSub == AniTypeSub.TranslateX)
-                    transform.X += delta;
-                else
-                    transform.Y += delta;
-
-                break;
-            }
+                    break;
+                }
 
             case AniTypeSub.Double:
-            {
-                dynamic args = ani.obj;
-                var target = args[0];
-                var property = args[1];
+                {
+                    var args = (object[])ani.obj!;
+                    var target = (DependencyObject)args[0];
+                    var property = (DependencyProperty)args[1];
 
-                target.SetValue(
-                    property,
-                    Convert.ToDouble(target.GetValue(property)) + delta);
-                break;
-            }
+                    target.SetValue(
+                        property,
+                        Convert.ToDouble(target.GetValue(property)) + delta);
+                    break;
+                }
 
             case AniTypeSub.DoubleParam:
                 ((ParameterizedThreadStart)ani.obj)(delta);
                 break;
 
             case AniTypeSub.GridLengthWidth:
-            {
-                dynamic target = ani.obj;
-                var width = Convert.ToDouble(target.Width.Value);
+                {
+                    var target = ani.obj as ColumnDefinition ?? throw new NotSupportedException(
+                        "GridLengthWidth 动画的目标必须是 ColumnDefinition，实际为 "
+                        + (ani.obj?.GetType().FullName ?? "null"));
 
-                target.Width = new GridLength(
-                    Math.Max(width + delta, 0d),
-                    GridUnitType.Star);
-                break;
-            }
+                    target.Width = new GridLength(
+                        Math.Max(target.Width.Value + delta, 0d),
+                        GridUnitType.Star);
+                    break;
+                }
             default:
                 throw new ArgumentOutOfRangeException();
         }
     }
 
+    /// <summary>
+    ///     颜色动画复用的 Brush 缓存。key 为该动画的 obj（即 AaColor 创建的 object[]），
+    ///     value 为整条动画共用、始终未被冻结的 SolidColorBrush。
+    ///     用 ConditionalWeakTable 是为了让动画结束后缓存随 obj 一起被回收，不会造成泄漏。
+    /// </summary>
+    private static readonly ConditionalWeakTable<object, SolidColorBrush> AniColorBrushes = new();
+
     private static void _RunColorAnimation(ref AniData ani)
     {
-        dynamic args = ani.obj;
+        var args = (object[])ani.obj!;
         var element = (FrameworkElement)args[0];
         var property = (DependencyProperty)args[1];
 
@@ -448,13 +490,22 @@ public static partial class Animations
 
         delta += (Common.MyColor)ani.valueLast;
 
-        var newColor = new Common.MyColor(element.GetValue(property)) + delta;
+        var valueLast = element.GetValue(property);
+        var newColor = new Common.MyColor(valueLast) + delta;
+        var color = (Color)newColor;
 
-        element.SetValue(
-            property,
-            property.PropertyType.Name == "Color"
-                ? (Color)newColor
-                : (SolidColorBrush)newColor);
+        if (property.PropertyType == typeof(Color))
+        {
+            element.SetValue(property, color);
+        }
+        else
+        {
+            var brush = AniColorBrushes.GetValue(ani.obj!, _ => new SolidColorBrush());
+            // 先更新颜色再挂到元素上，避免首帧出现一次透明色
+            brush.Color = color;
+            if (!ReferenceEquals(valueLast, brush))
+                element.SetValue(property, brush);
+        }
 
         ani.valueLast = newColor - new Common.MyColor(element.GetValue(property));
     }
@@ -462,28 +513,32 @@ public static partial class Animations
     private static void _RunScaleAnimation(AniData ani)
     {
         var element = (FrameworkElement)ani.obj;
-        dynamic scale = ani.value;
+
+        if (ani.value is not Common.MyRect scale)
+            throw new NotSupportedException(
+                "Scale 动画的目标值必须是 MyRect，实际为 "
+                + (ani.value?.GetType().FullName ?? "null"));
 
         var progressDelta = _GetAnimationDelta(ani);
 
         var marginX = Common.MathPercent(
             0d,
-            Convert.ToDouble(scale.Left),
+            scale.Left,
             progressDelta);
 
         var marginY = Common.MathPercent(
             0d,
-            Convert.ToDouble(scale.Top),
+            scale.Top,
             progressDelta);
 
         var widthDelta = Common.MathPercent(
             0d,
-            Convert.ToDouble(scale.Width),
+            scale.Width,
             progressDelta);
 
         var heightDelta = Common.MathPercent(
             0d,
-            Convert.ToDouble(scale.Height),
+            scale.Height,
             progressDelta);
 
         var margin = element.Margin;
@@ -529,17 +584,22 @@ public static partial class Animations
             ((dynamic)ani.obj).Context = newText;
     }
 
+    /// <summary>
+    ///     GB18030 编码实例的缓存。原先每次调用都会走 Encoding.GetEncoding("GB18030")，
+    ///     内部需要查询编码表，逐帧调用开销明显；这里只在首次使用时解析一次。
+    ///     刻意使用惰性初始化而不是静态字段初始化器，以免改变编码提供程序的注册时机。
+    /// </summary>
+    private static Encoding? _gb18030Encoding;
+
     private static string _GetRandomTextCharacter(char character)
     {
         if (character >= 128)
-            return Encoding
-                .GetEncoding("GB18030")
-                .GetString(
-                    new[]
-                    {
-                        (byte)RandomUtils.NextInt(176, 247),
-                        (byte)RandomUtils.NextInt(161, 249)
-                    });
+            return (_gb18030Encoding ??= Encoding.GetEncoding("GB18030")).GetString(
+                new[]
+                {
+                    (byte)RandomUtils.NextInt(176, 247),
+                    (byte)RandomUtils.NextInt(161, 249)
+                });
 
         const string characters =
             @"0123456789./*-+\[]{};':/?,!@#$%^&*()_+-=qwwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM";

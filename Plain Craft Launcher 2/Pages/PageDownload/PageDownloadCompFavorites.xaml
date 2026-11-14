@@ -1,4 +1,4 @@
-﻿<local:MyPageRight
+<local:MyPageRight
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:PCL"
@@ -37,9 +37,49 @@
                                       Margin="0,0,0,15" x:Name="HintGetFail"
                                       MouseLeftButtonDown="HintGetFail_MouseLeftButtonDown"
                                       Visibility="{Binding ShowHintGetFail, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                        <StackPanel x:Name="PanContentList"
-                                    Margin="{Binding ContentListMargin}"
-                                    Visibility="{Binding ShowContentList, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <!-- 分组列表刻意不虚拟化：
+                             分组本身最多只有 8 个（每种工程类型一个 + 搜索结果一个），数量可控；
+                             而每组内部还有一层独立的条目 ItemsControl，虚拟化面板无法跨嵌套层级生效，
+                             外层套 VirtualizingStackPanel 只会白白破坏 MyCard 的展开/折叠状态与高度动画。 -->
+                        <ItemsControl x:Name="PanContentList" ItemsSource="{Binding Groups}"
+                                      Margin="{Binding ContentListMargin}"
+                                      Visibility="{Binding ShowContentList, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Vertical" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <local:MyCard CanSwap="True" Title="{Binding Title}" Margin="0,0,0,15"
+                                                  Visibility="{Binding Visibility}">
+                                        <StackPanel Orientation="Vertical" Margin="12,38,12,12">
+                                            <ItemsControl ItemsSource="{Binding Items}">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <StackPanel Orientation="Vertical" />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <!-- SvgIcon / 备注 Run / 编辑与删除按钮 / 右键菜单无法纯绑定，
+                                                             由 FavoriteItem_Loaded 做一次性代码映射。 -->
+                                                        <local:MyListItem Title="{Binding Title}"
+                                                                          Info="{Binding Info}"
+                                                                          Logo="{Binding Logo}"
+                                                                          Tags="{Binding Tags}"
+                                                                          Type="CheckBox"
+                                                                          LogoCornerRadius="6"
+                                                                          Checked="{Binding IsChecked, Mode=TwoWay}"
+                                                                          Loaded="FavoriteItem_Loaded" />
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </local:MyCard>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                         <!--<local:MyCard x:Name="CardProjectsMod" Title="Mod" IsSwapped="True" CanSwap="True" Margin="0,0,0,15">
                             <StackPanel x:Name="PanProjectsMod" Margin="12,38,12,12" />
                         </local:MyCard>

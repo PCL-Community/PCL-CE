@@ -3,8 +3,9 @@ using PCL.Core.App.Localization;
 using PCL.Core.UI.Hints;
 using PCL.Core.Minecraft;
 using PCL.Core.ViewModel;
+using PCL.Core.Minecraft.Java;
 
-namespace PCL;
+namespace PCL.Pages.PageSetup;
 
 /// <summary>设置页面中「Java」页的视图模型。</summary>
 public class PageSetupJavaViewModel : ViewModelBase

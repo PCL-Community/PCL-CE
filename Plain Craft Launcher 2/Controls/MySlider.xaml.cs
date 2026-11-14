@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
@@ -102,7 +102,6 @@ public partial class MySlider
                         _isUpdatingValue = false;
                     }
 
-                    DragStop();
                     return;
                 }
             }
@@ -184,6 +183,7 @@ public partial class MySlider
         Launcher.dragControl = this;
         RefreshColor();
         Launcher.frmMain.DragDoing();
+        if (Launcher.frmMain.PanMsg.Children.Count > 0) return;
         Animations.AniStart(
             Animations.AaScaleTransform(ShapeDot,
                 1.3d - ((ScaleTransform)ShapeDot.RenderTransform).ScaleX, 40,
@@ -194,6 +194,12 @@ public partial class MySlider
 
     public void DragDoing()
     {
+        if (Launcher.frmMain.PanMsg.Children.Count > 0)
+        {
+            Launcher.frmMain.DragStop();
+            return;
+        }
+
         var percent =
             Common.MathClamp(
                 (Mouse.GetPosition(PanMain).X - ShapeDot.Width / 2d) /
@@ -201,7 +207,7 @@ public partial class MySlider
                 1d);
         var newValue = (int)Math.Round(percent * MaxValue);
         if (newValue != Value) Value = newValue;
-        RefreshPopup();
+        if (Launcher.frmMain.PanMsg.Children.Count == 0) RefreshPopup();
     }
     
     private void OnDragMouseMove(object sender, MouseEventArgs e)

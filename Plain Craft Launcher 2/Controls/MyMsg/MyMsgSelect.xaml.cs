@@ -71,12 +71,13 @@ public partial class MyMsgSelect
         foreach (var state in myDialog.Options)
         {
             IMyRadio selection;
-            if (myDialog.MultiSelect || state.Description is not null || state.Image is not null)
+            if (myDialog.MultiSelect || state.Description is not null || state.Image is not null || !string.IsNullOrWhiteSpace(state.SvgIcon))
                 selection = new MyListItem
                 {
                     Title = state.Text,
                     Info = state.Description ?? "",
                     Logo = state.Image ?? "",
+                    SvgIcon = state.SvgIcon ?? "",
                     LogoScale = state.ImageScale,
                     Checked = state.IsChecked,
                     Type = myDialog.MultiSelect ? MyListItem.CheckType.CheckBox : MyListItem.CheckType.RadioBox,

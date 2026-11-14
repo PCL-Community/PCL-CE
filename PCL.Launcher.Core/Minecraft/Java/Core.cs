@@ -3,6 +3,7 @@ using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.IO;
 using PCL.Core.Minecraft;
+using PCL.Core.Minecraft.Java;
 using PCL.Core.Minecraft.Java.UserPreference;
 using PCL.Core.Utils;
 
@@ -25,7 +26,7 @@ public static partial class JavaRuntime
     ///     最小与最大版本在与输入相同时也会通过。
     ///     必须在工作线程调用，且必须包括 SyncLock JavaLock。
     /// </summary>
-    public static JavaEntry JavaSelect(
+    public static JavaEntry? JavaSelect(
         string cancelException,
         Version? minVersion = null,
         Version? maxVersion = null,

@@ -3,11 +3,12 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using PCL.Core.App;
-using PCL.Core.Minecraft;
 using PCL.Core.UI;
 using PCL.Core.App.Localization;
 using PCL.Core.UI.Hints;
 using PCL.Core.UI.Dialogs;
+using PCL.Core.Minecraft.Java;
+using PCL.Pages.PageSetup;
 
 namespace PCL;
 

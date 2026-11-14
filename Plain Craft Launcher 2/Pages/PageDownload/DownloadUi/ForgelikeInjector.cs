@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
-using PCL.Core.Minecraft;
+using PCL.Core.Minecraft.Java;
 
 namespace PCL;
 

@@ -73,6 +73,8 @@ public sealed record DialogOption
 
     public double ImageScale { get; init; } = 1d;
 
+    public string? SvgIcon { get; init; }
+
     public bool IsChecked { get; init; }
 
     public object? Tag { get; init; }

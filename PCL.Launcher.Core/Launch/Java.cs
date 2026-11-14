@@ -1,5 +1,5 @@
 using PCL.Core.App.Localization;
-using PCL.Core.Minecraft;
+using PCL.Core.Minecraft.Java;
 using PCL.Core.Utils;
 
 namespace PCL;

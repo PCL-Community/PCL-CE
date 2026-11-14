@@ -1,4 +1,3 @@
-using PCL.Core.Logging;
 using PCL.Core.Utils;
 using System;
 using System.Collections.Generic;
@@ -7,8 +6,11 @@ using System.IO;
 using System.Linq;
 
 namespace PCL.Core.Minecraft.Java.Parser;
+
+/// Windows exe file binary. Get version and brand info from PE header.
 public class PeHeaderParser : IJavaParser
 {
+    /// Do not modify the map unless you have tested the real binary section.
     private static readonly Dictionary<string, JavaBrandType> _BrandMap = new()
     {
         ["Eclipse"] = JavaBrandType.EclipseTemurin,
@@ -26,45 +28,48 @@ public class PeHeaderParser : IJavaParser
         ["JetBrains"] = JavaBrandType.JetBrains
     };
 
-    public JavaInstallation? Parse(string javaExePath)
+    public Result<JavaInstallation, Exception> Parse(string javaExePath)
     {
         try
         {
             if (!File.Exists(javaExePath))
-                return null;
-
-            LogWrapper.Info("Java", $"解析 {javaExePath} 的 Java 程序信息");
+                return Result<JavaInstallation, Exception>
+                    .Err(new FileNotFoundException($"{javaExePath} is not found"));
 
             var versionInfo = FileVersionInfo.GetVersionInfo(javaExePath);
-            var fileVersion = Version.Parse(versionInfo.FileVersion ?? "0.0.0.0");
+            // The JDK defines only the meaning of the first four segments of the version number,
+            // and subsequent fields are defined independently by vendors.
+            var versionSection = versionInfo.FileVersion is null
+                ? "0.0.0.0"
+                : String.Join('.', values: versionInfo.FileVersion
+                    .Split('.')
+                    .Take(4));
+            var fileVersion = Version.Parse(versionSection);
             var companyName = _NormalizeCompanyName(versionInfo);
             var brand = _DetermineBrand(companyName);
 
             var javaFolder = Path.GetDirectoryName(javaExePath)!;
+            // Jre is pure runtime and do not have javac binary.
             var isJre = !File.Exists(Path.Combine(javaFolder, "javac.exe"));
 
             var peData = PEHeaderReader.ReadPEHeader(javaExePath);
             var arch = peData.Machine;
             var is64Bit = PEHeaderReader.IsMachine64Bit(arch);
 
-            // 可用性检查（不影响模型创建，由调用方决定是否启用）
-            var libDir = Path.Combine(Directory.GetParent(javaFolder)!.FullName, "lib");
-            var isUsable = (!isJre && File.Exists(Path.Combine(libDir, "jvm.lib"))) ||
-                           (isJre && File.Exists(Path.Combine(libDir, "rt.jar")));
-
-            return new JavaInstallation(
-                javaFolder,
-                fileVersion,
-                brand,
-                arch,
-                is64Bit,
-                isJre
-            );
+            return Result<JavaInstallation, Exception>
+                .Ok(new JavaInstallation(
+                    javaFolder,
+                    fileVersion,
+                    brand,
+                    arch,
+                    is64Bit,
+                    isJre
+                ));
         }
         catch (Exception ex)
         {
-            LogWrapper.Error(ex, $"[Java] 解析 {javaExePath} 时出错");
-            return null;
+            return Result<JavaInstallation, Exception>
+                .Err(ex);
         }
     }
 
@@ -72,7 +77,7 @@ public class PeHeaderParser : IJavaParser
     {
         var name = info.CompanyName ?? info.FileDescription ?? info.ProductName ?? string.Empty;
 
-        // 修复 Oracle/OpenJDK 混淆问题
+        // Fix the issue about confusion on Oracle/OpenJDK binary
         if (name.Contains("Oracle", StringComparison.OrdinalIgnoreCase) || name == "N/A")
         {
             if ((info.FileDescription?.Contains("Java(TM)", StringComparison.OrdinalIgnoreCase) ?? false) ||

@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.IO.Compression;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -576,7 +576,8 @@ public static partial class LocalComp
                 {
                     var optional =
                         type == "optional"
-                        || depEntry["mandatory"]?.ToString()?.ToLower() == "false";
+                        || (depEntry.TryGetValue("mandatory", out var mandatoryValue)
+                            && mandatoryValue?.ToString()?.ToLower() == "false");
                     AddDependency(depModId, range, optional);
                 }
             }

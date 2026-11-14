@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Media.Imaging;
@@ -13,6 +14,12 @@ namespace PCL;
 public partial class PageInstanceScreenshotViewModel : ViewModelBase
 {
     [ObservableProperty] private bool _showContent = true;
+
+    /// <summary>加载中覆盖层的可见性。</summary>
+    [ObservableProperty] private Visibility _panLoadVisibility = Visibility.Visible;
+
+    /// <summary>当前显示的截图条目，由页面增量装填。</summary>
+    public ObservableCollection<ScreenshotItemViewModel> Screenshots { get; } = new();
 
     private string ScreenshotPath => PageInstanceLeft.McInstance.PathIndie + @"screenshots\";
 
