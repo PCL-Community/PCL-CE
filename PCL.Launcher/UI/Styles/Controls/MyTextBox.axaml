@@ -37,7 +37,7 @@
             <Setter Property="Template">
                 <ControlTemplate>
                     <DataValidationErrors>
-                        <Grid RowDefinitions="Auto,Auto">
+                        <Grid RowDefinitions="*,Auto">
                             <Panel Grid.Row="0"
                                    MinHeight="28">
                                 <Border x:Name="PART_BorderElement"
