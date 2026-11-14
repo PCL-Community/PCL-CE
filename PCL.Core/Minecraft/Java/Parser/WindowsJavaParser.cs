@@ -11,7 +11,8 @@ public sealed class WindowsJavaParser : JavaParserBase
     protected override JavaInstallation? ParseCore(string javaExePath)
     {
         var versionInfo = FileVersionInfo.GetVersionInfo(javaExePath);
-        var fileVersion = Version.Parse(versionInfo.FileVersion ?? "0.0.0.0");
+        // 只取前 4 段，避免厂商追加自定义版本段导致 Version.Parse 抛异常。
+        var fileVersion = ParseVersion(versionInfo.FileVersion) ?? new Version(0, 0, 0, 0);
         var companyName = _NormalizeCompanyName(versionInfo);
         var brand = DetermineBrand(companyName);
 

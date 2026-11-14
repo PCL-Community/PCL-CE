@@ -192,13 +192,10 @@ public class LogService : ILifecycleLogService
             case ActionLevel.MsgBox or ActionLevel.MsgBoxErr:
             {
                 var isWarn = actionLevel == ActionLevel.MsgBoxErr;
-
                 var caption = entry.Exception is null
                     ? null
                     : Lang.Text("SystemDialog.Error.Unexpected.Title");
-
                 var message = _ComposeUserError(plain, entry.Exception);
-
                 if (actionLevel == ActionLevel.MsgBoxErr)
                     message = Lang.Text(
                         "SystemDialog.Error.Message.WithLogExportGuidance",

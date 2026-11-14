@@ -15,7 +15,7 @@ using PCL.Core.Platform;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
 
-namespace PCL.Core.Minecraft;
+namespace PCL.Core.Minecraft.Java;
 
 public class JavaManager(
     IJavaParser parser,
@@ -62,19 +62,15 @@ public class JavaManager(
             foreach (var item in items)
             {
                 var parserResult = _ParseInstallation(item.Path);
-                if (parserResult is null)
-                {
-                    LogWrapper.Trace(ModuleName, $"Can not find Java {item.Path}, skip");
-                    continue;
-                }
-
-                itemsAdded.Add(
+                parserResult.IfSuccess(installation => itemsAdded.Add(
                     new JavaEntry
                     {
-                        Installation = parserResult,
+                        Installation = installation,
                         IsEnabled = item.IsEnable,
                         Source = item.Source ?? JavaSource.AutoScanned
-                    });
+                    }));
+                parserResult.IfFailure(_ =>
+                    LogWrapper.Trace(ModuleName, $"Can not find Java {item.Path}, skip"));
             }
 
             lock (_javaEntries)
@@ -150,21 +146,22 @@ public class JavaManager(
             existingEntries = new Dictionary<string, JavaEntry>(_javaEntries);
         }
 
-        var scannedEntries = pathSet
-            .Keys
-            .Select(_ParseInstallation)
-            .Where(inst => inst is not null)
-            .Select(inst => new JavaEntry
-            {
-                Installation = inst!,
-                IsEnabled = existingEntries.TryGetValue(
-                    _NormalizePath(inst!.JavaExePath),
-                    out var existingJava)
-                    ? existingJava.IsEnabled
-                    : _ShouldEnableByDefault(inst!),
-                Source = JavaSource.AutoScanned
-            })
-            .ToList();
+        var scannedEntries = new List<JavaEntry>();
+        foreach (var parserResult in pathSet.Keys.Select(_ParseInstallation))
+        {
+            parserResult.IfSuccess(installation => scannedEntries.Add(
+                new JavaEntry
+                {
+                    Installation = installation,
+                    IsEnabled = existingEntries.TryGetValue(
+                        _NormalizePath(installation.JavaExePath),
+                        out var existingJava)
+                        ? existingJava.IsEnabled
+                        : _ShouldEnableByDefault(installation),
+                    Source = JavaSource.AutoScanned
+                }));
+            parserResult.IfFailure(error => LogWrapper.Warn(error, "Unable to parse Java file"));
+        }
 
         lock (_javaEntries)
         {
@@ -173,15 +170,12 @@ public class JavaManager(
         }
     }
 
-    private JavaInstallation? _ParseInstallation(string javaExePath)
+    private Result<JavaInstallation, Exception> _ParseInstallation(string javaExePath)
     {
-        var installation = parser.Parse(javaExePath);
-        return installation is null
-            ? null
-            : installation with
-            {
-                JavaFolder = _ResolveDirectoryPath(installation.JavaFolder)
-            };
+        return parser.Parse(javaExePath).Map(installation => installation with
+        {
+            JavaFolder = _ResolveDirectoryPath(installation.JavaFolder)
+        });
     }
 
     private static bool _ShouldEnableByDefault(JavaInstallation inst)
@@ -241,25 +235,27 @@ public class JavaManager(
         {
             if (javaExePath.IsNullOrWhiteSpace() || !File.Exists(javaExePath)) return null;
 
-            var installation = _ParseInstallation(javaExePath);
-            if (installation is null) return null;
-
-            var exePath = _NormalizePath(installation.JavaExePath);
-            lock (_javaEntries)
-            {
-                if (_javaEntries.TryGetValue(exePath, out var ret))
-                    return ret;
-
-                var entry = new JavaEntry
+            return _ParseInstallation(javaExePath).Match<JavaEntry?>(
+                installation =>
                 {
-                    Installation = installation,
-                    IsEnabled = _ShouldEnableByDefault(installation),
-                    Source = JavaSource.ManualAdded
-                };
+                    var exePath = _NormalizePath(installation.JavaExePath);
+                    lock (_javaEntries)
+                    {
+                        if (_javaEntries.TryGetValue(exePath, out var ret))
+                            return ret;
 
-                _javaEntries.Add(exePath, entry);
-                return entry;
-            }
+                        var entry = new JavaEntry
+                        {
+                            Installation = installation,
+                            IsEnabled = _ShouldEnableByDefault(installation),
+                            Source = JavaSource.ManualAdded
+                        };
+
+                        _javaEntries.Add(exePath, entry);
+                        return entry;
+                    }
+                },
+                _ => null);
         }
         catch (Exception ex)
         {
@@ -277,24 +273,24 @@ public class JavaManager(
         {
             if (javaExePath.IsNullOrWhiteSpace() || !File.Exists(javaExePath)) return null;
 
-            var installation = _ParseInstallation(javaExePath);
-            if (installation is null) return null;
-
-            var exePath = _NormalizePath(installation.JavaExePath);
-            lock (_javaEntries)
-            {
-                if (_javaEntries.TryGetValue(exePath, out var ret))
-                    return ret;
-
-                var entry = new JavaEntry
+            return _ParseInstallation(javaExePath).Match<JavaEntry?>(
+                installation =>
                 {
-                    Installation = installation,
-                    IsEnabled = _ShouldEnableByDefault(installation),
-                    Source = JavaSource.ManualAdded
-                };
+                    var exePath = _NormalizePath(installation.JavaExePath);
+                    lock (_javaEntries)
+                    {
+                        if (_javaEntries.TryGetValue(exePath, out var ret))
+                            return ret;
 
-                return entry;
-            }
+                        return new JavaEntry
+                        {
+                            Installation = installation,
+                            IsEnabled = _ShouldEnableByDefault(installation),
+                            Source = JavaSource.ManualAdded
+                        };
+                    }
+                },
+                _ => null);
         }
         catch (Exception ex)
         {

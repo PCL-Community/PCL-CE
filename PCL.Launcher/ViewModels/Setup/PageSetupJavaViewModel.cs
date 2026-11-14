@@ -3,6 +3,7 @@ using PCL.Core.App.Localization;
 using PCL.Core.Minecraft;
 using PCL.Core.UI.Hints;
 using PCL.Core.ViewModel;
+using PCL.Core.Minecraft.Java;
 
 namespace PCL;
 

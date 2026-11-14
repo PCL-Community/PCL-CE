@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using PCL.Core.Logging;
+using PCL.Core.Utils;
 
 namespace PCL.Core.Minecraft.Java.Parser;
 
@@ -27,20 +28,25 @@ public abstract partial class JavaParserBase : IJavaParser
         ["JetBrains"] = JavaBrandType.JetBrains
     };
 
-    public JavaInstallation? Parse(string javaExePath)
+    public Result<JavaInstallation, Exception> Parse(string javaExePath)
     {
         try
         {
             if (!File.Exists(javaExePath))
-                return null;
+                return Result<JavaInstallation, Exception>.Err(
+                    new FileNotFoundException($"Java executable not found: {javaExePath}", javaExePath));
 
             LogWrapper.Info("Java", $"解析 {javaExePath} 的 Java 程序信息");
-            return ParseCore(javaExePath);
+            var installation = ParseCore(javaExePath);
+            return installation is null
+                ? Result<JavaInstallation, Exception>.Err(
+                    new InvalidDataException($"Unable to parse Java executable: {javaExePath}"))
+                : Result<JavaInstallation, Exception>.Ok(installation);
         }
         catch (Exception ex)
         {
             LogWrapper.Error(ex, $"[Java] 解析 {javaExePath} 时出错");
-            return null;
+            return Result<JavaInstallation, Exception>.Err(ex);
         }
     }
 

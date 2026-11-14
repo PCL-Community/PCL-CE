@@ -5,6 +5,7 @@ using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.IO.Net.Http;
 using PCL.Core.Minecraft;
+using PCL.Core.Minecraft.Java;
 using PCL.Core.Platform;
 using PCL.Core.Utils;
 using PCL.Network;

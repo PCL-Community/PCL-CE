@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using PCL.Core.App.IoC;
+using PCL.Core.Minecraft.Java;
 using PCL.Core.Minecraft.Java.Scanner;
 using PCL.Core.Platform;
 
