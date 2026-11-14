@@ -490,10 +490,16 @@ public partial class MyRadioButton : UserControl
         if (LogoHostElement is null || LabTextElement is null)
             return;
 
+        LogoHostElement.IsVisible = HasAnyIcon;
         LogoHostElement.Width = HasAnyIcon ? 16d : 0d;
         LogoHostElement.Height = 16d;
-        LogoHostElement.Margin = new Thickness(12d, 0d, 0d, 0d);
-        LabTextElement.Margin = LabTextMargin;
+        LogoHostElement.Margin = HasAnyIcon ? new Thickness(12d, 0d, 0d, 0d) : default;
+        var textMargin = LabTextMargin;
+        LabTextElement.Margin = HasAnyIcon
+            ? textMargin
+            : new Thickness(
+                Math.Max(textMargin.Left, textMargin.Right), textMargin.Top,
+                Math.Max(textMargin.Left, textMargin.Right), textMargin.Bottom);
     }
 
     /// <summary>
@@ -660,8 +666,7 @@ public partial class MyRadioButton : UserControl
         }
         else if (change.Property == LabTextMarginProperty)
         {
-            if (LabTextElement is not null && change.NewValue is Thickness margin)
-                LabTextElement.Margin = margin;
+            RefreshLogoHostVisibility();
         }
         else if (change.Property == PaddingProperty)
         {

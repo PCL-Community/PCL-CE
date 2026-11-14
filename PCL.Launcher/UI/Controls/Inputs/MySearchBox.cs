@@ -45,7 +45,7 @@ public class MySearchBox : MyCard
         {
             HasBackground = false,
             BorderThickness = new Thickness(0d),
-            Padding = new Thickness(32d, 0d, 40d, 0d),
+            Padding = new Thickness(28.5d, 0d, 40d, 0d),
             MaxLength = 50,
             FontSize = 13.5d,
             VerticalContentAlignment = VerticalAlignment.Center,

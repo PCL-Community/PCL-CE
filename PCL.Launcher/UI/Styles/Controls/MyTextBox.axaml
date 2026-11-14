@@ -47,7 +47,7 @@
                                         CornerRadius="{TemplateBinding CornerRadius}" />
 
                                 <ScrollViewer Name="PART_ScrollViewer"
-                                              Margin="5,0,0,0"
+                                              Margin="8.5,0,0,0"
                                               Cursor="IBeam"
                                               HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
                                               VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}"
@@ -83,8 +83,7 @@
                                         VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                         BorderThickness="0">
                                     <TextBlock Name="PART_Placeholder"
-                                               Margin="4,0,0,0"
-                                               Padding="{TemplateBinding BorderThickness}"
+                                               Margin="8.5,0,0,0"
                                                FontFamily="{TemplateBinding FontFamily}"
                                                FontSize="{TemplateBinding FontSize}"
                                                Foreground="{TemplateBinding PlaceholderForeground}"

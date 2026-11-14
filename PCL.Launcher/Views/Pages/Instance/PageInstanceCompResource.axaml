@@ -88,7 +88,7 @@
                                                           ColorType="Highlight"
                                                           VerticalAlignment="Center"
                                                           Margin="2,0"
-                                                          LabTextMargin="-2,0,8,0"
+                                                          LabTextMargin="10,0,8,0"
                                                           Checked="True"
                                                           Text="{loc:Loc Instance.Resource.Filter.All}" />
                                         <ui:MyRadioButton x:Name="BtnFilterEnabled"
@@ -96,7 +96,7 @@
                                                           ColorType="Highlight"
                                                           VerticalAlignment="Center"
                                                           Margin="2,0"
-                                                          LabTextMargin="-2,0,8,0"
+                                                          LabTextMargin="10,0,8,0"
                                                           IsVisible="False"
                                                           Text="{loc:Loc Instance.Resource.Filter.Enabled}" />
                                         <ui:MyRadioButton x:Name="BtnFilterDisabled"
@@ -104,7 +104,7 @@
                                                           ColorType="Highlight"
                                                           VerticalAlignment="Center"
                                                           Margin="2,0"
-                                                          LabTextMargin="-2,0,8,0"
+                                                          LabTextMargin="10,0,8,0"
                                                           IsVisible="False"
                                                           Text="{loc:Loc Instance.Resource.Filter.Disabled}" />
                                         <ui:MyRadioButton x:Name="BtnFilterUpdatable"
@@ -112,7 +112,7 @@
                                                           ColorType="Highlight"
                                                           VerticalAlignment="Center"
                                                           Margin="2,0"
-                                                          LabTextMargin="-2,0,8,0"
+                                                          LabTextMargin="10,0,8,0"
                                                           IsVisible="False"
                                                           Text="{loc:Loc Instance.Resource.Filter.Updatable}" />
                                         <ui:MyRadioButton x:Name="BtnFilterError"
@@ -120,7 +120,7 @@
                                                           ColorType="Highlight"
                                                           VerticalAlignment="Center"
                                                           Margin="2,0"
-                                                          LabTextMargin="-2,0,8,0"
+                                                          LabTextMargin="10,0,8,0"
                                                           IsVisible="False"
                                                           Text="{loc:Loc Instance.Resource.Filter.Error}" />
                                         <ui:MyRadioButton x:Name="BtnFilterDuplicate"
@@ -128,7 +128,7 @@
                                                           ColorType="Highlight"
                                                           VerticalAlignment="Center"
                                                           Margin="2,0"
-                                                          LabTextMargin="-2,0,8,0"
+                                                          LabTextMargin="10,0,8,0"
                                                           IsVisible="False"
                                                           Text="{loc:Loc Instance.Resource.Filter.Duplicate}" />
                                     </StackPanel>

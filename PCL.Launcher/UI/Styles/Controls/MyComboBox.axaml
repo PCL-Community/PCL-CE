@@ -70,7 +70,7 @@
                                               IsVisible="{TemplateBinding IsEditable, Converter={x:Static BoolConverters.Not}}" />
 
                             <ui:MyTextBox Name="PART_EditableTextBox"
-                                          Margin="1.5,0,21.5,0"
+                                          Margin="0,0,21.5,0"
                                           Padding="0"
                                           Background="Transparent"
                                           Text="{TemplateBinding Text, Mode=TwoWay}"

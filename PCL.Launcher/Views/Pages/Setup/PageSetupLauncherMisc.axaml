@@ -43,6 +43,7 @@
                           ColumnDefinitions="Auto,Auto,Auto,Auto">
                         <ui:MyCheckBox x:Name="CheckSystemDisableHardwareAcceleration"
                                        Grid.Column="0"
+                                       Margin="0,0,20,0"
                                        Text="{loc:Loc Setup.Misc.System.DisableHardwareAcceleration}" />
                         <ui:MyCheckBox x:Name="CheckSystemTelemetry"
                                        Grid.Column="1"
