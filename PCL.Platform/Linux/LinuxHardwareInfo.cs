@@ -82,47 +82,6 @@ public sealed class LinuxHardwareInfo : IHardwareInfo
         return gpuList;
     }
 
-    /// <summary>读取 Linux <c>/proc/meminfo</c> 的物理内存总量与可用量（MiB）。</summary>
-    public static bool TryReadMemory(out long totalMiB, out long availableMiB)
-    {
-        totalMiB = 0;
-        availableMiB = 0;
-
-        try
-        {
-            long? totalKb = null;
-            long? availableKb = null;
-            foreach (var line in File.ReadLines("/proc/meminfo"))
-            {
-                if (line.StartsWith("MemTotal:", StringComparison.Ordinal))
-                    totalKb = _ParseMemInfoValue(line);
-                else if (line.StartsWith("MemAvailable:", StringComparison.Ordinal))
-                    availableKb = _ParseMemInfoValue(line);
-                if (totalKb is not null && availableKb is not null) break;
-            }
-
-            if (totalKb is null or 0) return false;
-            totalMiB = totalKb.Value / 1024;
-            availableMiB = (availableKb ?? 0) / 1024;
-            return totalMiB > 0;
-        }
-        catch (Exception ex)
-        {
-            LogWrapper.Warn(ex, "读取 /proc/meminfo 失败");
-            return false;
-        }
-    }
-
-    private static long? _ParseMemInfoValue(string line)
-    {
-        var colonIndex = line.IndexOf(':');
-        if (colonIndex < 0) return null;
-        var valuePart = line[(colonIndex + 1)..].Trim();
-        var spaceIndex = valuePart.IndexOf(' ');
-        if (spaceIndex >= 0) valuePart = valuePart[..spaceIndex];
-        return long.TryParse(valuePart, out var value) ? value : null;
-    }
-
     private static string _GetCpuInfoValue(string line)
     {
         var colonIndex = line.IndexOf(':');

@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace PCL.Core.Test.Instance;

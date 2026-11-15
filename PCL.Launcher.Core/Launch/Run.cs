@@ -525,47 +525,24 @@ public static partial class GameLaunch
         startInfo.Environment["PATH"] = unixPaths.Distinct().ToList().Join(separator.ToString());
     }
 
-    /// <summary>非 Windows 平台通过 PRIME 相关环境变量请求游戏进程使用独立显卡；Windows 走注册表设置。</summary>
+    /// <summary>通过平台服务准备独立显卡相关的启动环境。</summary>
     private static void _ApplyGpuPreferenceEnvironment(ProcessStartInfo startInfo, bool enabled)
     {
-        if (PlatformRuntime.Current.Kind != PlatformKind.Linux || !enabled) return;
-
-        // Mesa（AMD/Intel）的 PRIME 渲染卸载；没有独立显卡时驱动会回退到默认设备
-        startInfo.Environment["DRI_PRIME"] = "1";
-        if (!File.Exists("/proc/driver/nvidia/version")) return;
-
-        // NVIDIA PRIME Render Offload；仅在 NVIDIA 驱动存在时注入，避免强制 GLX vendor 导致初始化失败
-        startInfo.Environment["__NV_PRIME_RENDER_OFFLOAD"] = "1";
-        startInfo.Environment["__GLX_VENDOR_LIBRARY_NAME"] = "nvidia";
-        startInfo.Environment["__VK_LAYER_NV_optimus"] = "NVIDIA_only";
-        McLaunchLog("已通过环境变量请求使用独立显卡（NVIDIA PRIME Render Offload）");
+        var environment = PlatformRuntime.Current.LaunchEnvironment;
+        if (!environment.IsSupported) return;
+        environment.ApplyGpuPreference(startInfo, enabled, McLaunchLog);
     }
 
-    /// <summary>非 Windows 平台用 Mesa 环境变量实现渲染器选择；Windows 由 Mesa Loader javaagent 处理。</summary>
+    /// <summary>通过平台服务应用渲染器选择。</summary>
     private static void _ApplyRendererEnvironment(ProcessStartInfo startInfo)
     {
-        if (PlatformRuntime.Current.Kind != PlatformKind.Linux) return;
+        var environment = PlatformRuntime.Current.LaunchEnvironment;
+        if (!environment.IsSupported) return;
 
         var instanceRenderer = Config.Instance.Renderer[
             InstanceList.McMcInstanceSelected!.PathInstance];
         var renderer = instanceRenderer != 0 ? instanceRenderer - 1 : Config.Launch.Renderer;
-        switch (renderer)
-        {
-            case 1:
-                // llvmpipe：Mesa 软件渲染
-                startInfo.Environment["LIBGL_ALWAYS_SOFTWARE"] = "1";
-                startInfo.Environment["GALLIUM_DRIVER"] = "llvmpipe";
-                break;
-            case 2:
-                // d3d12 是 Windows 专有的 Mesa 后端，Linux 没有等价实现
-                McLaunchLog("d3d12 渲染器在 Linux 上没有等价实现，使用系统默认渲染器");
-                break;
-            case >= 3:
-                // zink：OpenGL over Vulkan
-                startInfo.Environment["MESA_LOADER_DRIVER_OVERRIDE"] = "zink";
-                startInfo.Environment["GALLIUM_DRIVER"] = "zink";
-                break;
-        }
+        environment.ApplyRenderer(startInfo, renderer, McLaunchLog);
     }
 
     private static void _ApplyProcessPriority(Process gameProcess)

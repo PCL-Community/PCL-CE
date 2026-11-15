@@ -84,6 +84,7 @@ public sealed class ApplicationRuntimeTest
                 Java = null!,
                 ProcessCleanup = null!,
                 GpuPreference = null!,
+                LaunchEnvironment = null!,
                 SystemFacts = null!,
                 Hardware = null!,
                 Shell = null!,

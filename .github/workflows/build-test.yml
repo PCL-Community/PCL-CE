@@ -13,7 +13,6 @@ on:
       - '**/*.md'
       - '**/LICENSE'
       - '**/LICENCE'
-      - 'PCL.Core.Test/**'
       - '.github/ISSUE_TEMPLATE/**'
       - '.github/FUNDING.yml'
   pull_request:
@@ -61,3 +60,22 @@ jobs:
       runner: ${{ matrix.runner }}
       version: 0.0.0-ci
     secrets: inherit
+
+  test:
+    name: test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 11.0.x
+
+      - name: Run tests
+        run: dotnet test PCL.Core.Test/PCL.Core.Test.csproj -c Debug -p:Platform=AnyCPU --nologo

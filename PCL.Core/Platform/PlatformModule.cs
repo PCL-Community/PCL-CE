@@ -16,6 +16,7 @@ public sealed class PlatformModule : IDisposable
     public required IJavaPlatformInfo Java { get; init; }
     public required IProcessCleanupService ProcessCleanup { get; init; }
     public required IGpuPreferenceService GpuPreference { get; init; }
+    public required ILaunchEnvironmentService LaunchEnvironment { get; init; }
     public required ISystemFacts SystemFacts { get; init; }
     public required IHardwareInfo Hardware { get; init; }
     public required IShellLauncher Shell { get; init; }

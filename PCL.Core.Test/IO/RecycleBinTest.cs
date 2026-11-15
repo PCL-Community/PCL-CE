@@ -7,6 +7,7 @@ using PCL.Platform;
 namespace PCL.Core.Test.IO;
 
 [TestClass]
+[OSCondition(OperatingSystems.Linux)]
 public class RecycleBinTest
 {
     private readonly IRecycleBinService _bin = PlatformModuleFactory

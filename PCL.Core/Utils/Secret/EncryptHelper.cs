@@ -255,7 +255,7 @@ public static class EncryptHelper
         RandomNumberGenerator.Fill(key);
         if (!KeyProtector.TryProtect(key, out var storeData))
             throw new InvalidOperationException(
-                PlatformRuntime.Current.Capabilities.UsesWindowsPaths
+                OperatingSystem.IsWindows()
                     ? "本机 DPAPI 不可用，无法创建用户密钥"
                     : "本机密钥保护不可用，无法创建用户密钥");
         _QuarantineBrokenKeyFile(keyFile); // 已确认能重建，才动原文件
@@ -284,7 +284,7 @@ public static class EncryptHelper
                 fs.Flush(true);
             }
 
-            if (!PlatformRuntime.Current.Capabilities.UsesWindowsPaths)
+            if (!OperatingSystem.IsWindows())
                 try
                 {
                     File.SetUnixFileMode(tmpFile, UnixFileMode.UserRead | UnixFileMode.UserWrite);
