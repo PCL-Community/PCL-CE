@@ -47,7 +47,7 @@
         <ui:MyTextButton x:Name="BtnBack"
                          Grid.Row="5"
                          Grid.ColumnSpan="2"
-                         Margin="0,60,0,0"
+                         Margin="0,20,0,0"
                          HorizontalAlignment="Center"
                          Command="{Binding BackCommand}"
                          IsVisible="{Binding IsBackVisible}"

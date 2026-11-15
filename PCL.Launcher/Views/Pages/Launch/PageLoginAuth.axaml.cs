@@ -10,6 +10,7 @@ namespace PCL.Views.Pages.Launch;
 /// </summary>
 public partial class PageLoginAuth : LoginPageBase
 {
+    private readonly MyButton _btnBack;
     private readonly MyTextButton _btnBackOAuth;
     private readonly MyTextButton _btnLink;
     private readonly MyButton _btnLogin;
@@ -34,6 +35,7 @@ public partial class PageLoginAuth : LoginPageBase
         _textNameTitle = this.FindControl<TextBlock>("TextNameTitle")!;
         _textPass = this.FindControl<MyPasswordBox>("TextPass")!;
         _textPassTitle = this.FindControl<TextBlock>("TextPassTitle")!;
+        _btnBack = this.FindControl<MyButton>("BtnBack")!;
         _btnBackOAuth = this.FindControl<MyTextButton>("BtnBackOAuth")!;
         _btnLogin = this.FindControl<MyButton>("BtnLogin")!;
         _btnLink = this.FindControl<MyTextButton>("BtnLink")!;
@@ -119,7 +121,7 @@ public partial class PageLoginAuth : LoginPageBase
             ? [_panOAuth, _btnUsePassword, _btnWebsite, _btnBackOAuth]
             :
             [
-                _textName, _textNameTitle, _panPasswordLinks, _btnLink, _btnLogin, _textPass,
+                _textName, _textNameTitle, _panPasswordLinks, _btnLink, _btnLogin, _btnBack, _textPass,
                 _textPassTitle
             ];
     }
