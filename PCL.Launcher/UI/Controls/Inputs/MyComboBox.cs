@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.VisualTree;
 using FluentValidation;
@@ -202,6 +203,10 @@ public class MyComboBox : ComboBox
         if (_editableTextBox is not null)
         {
             _editableTextBox.TextChanged -= EditableTextBox_TextChanged;
+            _editableTextBox.GotFocus -= EditableTextBox_GotFocus;
+            _editableTextBox.RemoveHandler(
+                PointerPressedEvent,
+                (EventHandler<PointerPressedEventArgs>)EditableTextBox_PointerPressed);
             _editableTextBox = null;
         }
 
@@ -229,6 +234,11 @@ public class MyComboBox : ComboBox
             }
 
             _editableTextBox.TextChanged += EditableTextBox_TextChanged;
+            _editableTextBox.GotFocus += EditableTextBox_GotFocus;
+            _editableTextBox.AddHandler(
+                PointerPressedEvent,
+                (EventHandler<PointerPressedEventArgs>)EditableTextBox_PointerPressed,
+                RoutingStrategies.Tunnel);
             _editableTextBox.Tag = Tag;
             _editableTextBox.PlaceholderText = HintText;
             _editableTextBox.CaretBrush = InputTheme.TextSecondary(this);
@@ -334,6 +344,9 @@ public class MyComboBox : ComboBox
         if (_popup is not null && !double.IsNaN(Bounds.Width))
             _popup.MinWidth = DropDownWidthSync ? 0d : Bounds.Width;
 
+        if (IsEditable)
+            _editableTextBox?.SelectAll();
+
         // 由键盘打开时直接采用键盘高亮，由指针打开时采用悬停高亮。
         SetKeyboardNavigation(_lastInputFromKeyboard);
 
@@ -379,11 +392,12 @@ public class MyComboBox : ComboBox
 
     private static string GetItemDisplayText(object? item)
     {
-        if (item is null)
-            return string.Empty;
-        if (item is ContentControl content)
-            return content.Content?.ToString() ?? string.Empty;
-        return item.ToString() ?? string.Empty;
+        return item switch
+        {
+            null => string.Empty,
+            ContentControl content => content.Content?.ToString() ?? string.Empty,
+            _ => item.ToString() ?? string.Empty
+        };
     }
 
     protected override void OnKeyDown(KeyEventArgs e)
@@ -392,6 +406,8 @@ public class MyComboBox : ComboBox
         _lastInputFromKeyboard = true;
 
         if (IsDropDownOpen)
+            // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
+            // 能不能不要提示给 200 多个 Key 加进来了
             switch (e.Key)
             {
                 case Key.Up:
@@ -470,6 +486,21 @@ public class MyComboBox : ComboBox
     {
         if (e.Property == OpacityProperty && _popupContent is not null && sender is Visual source)
             _popupContent.Opacity = source.Opacity;
+    }
+
+    private void EditableTextBox_GotFocus(object? sender, FocusChangedEventArgs e)
+    {
+        _editableTextBox?.SelectAll();
+    }
+
+    private void EditableTextBox_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (_editableTextBox is null || _editableTextBox.IsFocused) return;
+        if (!e.GetCurrentPoint(_editableTextBox).Properties.IsLeftButtonPressed) return;
+
+        _editableTextBox.Focus();
+        _editableTextBox.SelectAll();
+        e.Handled = true;
     }
 
     private void EditableTextBox_TextChanged(object? sender, TextChangedEventArgs e)
