@@ -31,6 +31,8 @@ public abstract class MyMsgDialogBase : UserControl
 
     private const int ExitDuration = 150;
 
+    private const double BodyScrollBarOverlap = 3d;
+
     private readonly MyScrollViewer _bodyScroll;
     private readonly MyButton[] _buttons;
 
@@ -82,8 +84,9 @@ public abstract class MyMsgDialogBase : UserControl
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
             HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+            ScrollBarMargin = new Thickness(-2d, 0d, -BodyScrollBarOverlap, 0d),
             Margin = new Thickness(0d, 0d, 0d, 17d),
-            Padding = new Thickness(7d, 0d, 15d, 0d),
+            Padding = new Thickness(7d, 0d, 6d, 0d),
             DeltaMult = 0.7d
         };
 
@@ -118,7 +121,7 @@ public abstract class MyMsgDialogBase : UserControl
         {
             Margin = new Thickness(22d, 22d, 22d, 23d),
             VerticalAlignment = VerticalAlignment.Top,
-            RowDefinitions = new RowDefinitions("Auto,2,13,*,Auto,Auto")
+            RowDefinitions = new RowDefinitions("Auto,2,13,*,Auto,Auto,1*")
         };
         Grid.SetRow(LabTitle, 0);
         Grid.SetRow(shapeLine, 1);
@@ -136,6 +139,7 @@ public abstract class MyMsgDialogBase : UserControl
             CornerRadius = new CornerRadius(DialogTheme.CardCornerRadius),
             BorderThickness = new Thickness(0d),
             BoxShadow = BoxShadows.Parse("0 2 20 0 #CC3C3C3C"),
+            HorizontalAlignment = HorizontalAlignment.Stretch,
             Child = main
         };
         DialogTheme.BindBrush(card, Border.BackgroundProperty, "ColorBrushBackground");
@@ -270,7 +274,11 @@ public abstract class MyMsgDialogBase : UserControl
     /// <summary>调整正文内边距。</summary>
     protected void SetBodyPadding(Thickness padding)
     {
-        _bodyScroll.Padding = padding;
+        _bodyScroll.Padding = new Thickness(
+            padding.Left,
+            padding.Top,
+            padding.Right - BodyScrollBarOverlap,
+            padding.Bottom);
     }
 
     /// <summary>写入页脚控件；页脚固定在滚动区下方，不随正文滚动。</summary>

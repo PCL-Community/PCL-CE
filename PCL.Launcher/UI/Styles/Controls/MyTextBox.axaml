@@ -17,7 +17,9 @@
             <Setter Property="CaretBrush"
                     Value="{DynamicResource ColorBrush1}" />
             <Setter Property="SelectionBrush"
-                    Value="{DynamicResource ColorBrush3}" />
+                    Value="{DynamicResource ColorBrush7}" />
+            <Setter Property="SelectionForegroundBrush"
+                    Value="{DynamicResource ColorBrush1}" />
             <Setter Property="PlaceholderForeground"
                     Value="{DynamicResource ColorBrushGray4}" />
             <Setter Property="MinHeight"

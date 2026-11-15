@@ -35,7 +35,8 @@ public sealed class Tooltip
     private static IDisposable? _openingSubscription;
     private static IDisposable? _pressSubscription;
     private static IDisposable? _releaseSubscription;
-    private static bool _pointerPressed;
+
+    private static InputElement? _pressedElement;
 
     private static Control? _target;
     private static Popup? _flyout;
@@ -83,15 +84,19 @@ public sealed class Tooltip
             RoutingStrategies.Direct | RoutingStrategies.Bubble,
             true);
         _pressSubscription = InputElement.PointerPressedEvent.AddClassHandler<InputElement>(
-            (_, _) =>
+            (sender, _) =>
             {
-                _pointerPressed = true;
+                _pressedElement = sender;
                 Dismiss();
             },
             RoutingStrategies.Tunnel | RoutingStrategies.Bubble,
             true);
         _releaseSubscription = InputElement.PointerReleasedEvent.AddClassHandler<InputElement>(
-            (_, _) => _pointerPressed = false,
+            (sender, _) =>
+            {
+                if (ReferenceEquals(_pressedElement, sender))
+                    _pressedElement = null;
+            },
             RoutingStrategies.Tunnel | RoutingStrategies.Bubble,
             true);
 
@@ -112,7 +117,7 @@ public sealed class Tooltip
         _pressSubscription = null;
         _releaseSubscription?.Dispose();
         _releaseSubscription = null;
-        _pointerPressed = false;
+        _pressedElement = null;
 
         if (Application.Current is { } application)
             application.ActualThemeVariantChanged -= _OnThemeVariantChanged;
@@ -130,12 +135,6 @@ public sealed class Tooltip
     private static void _OnToolTipOpening(Control control, CancelRoutedEventArgs e)
     {
         if (!_enabled) return;
-        if (_pointerPressed)
-        {
-            e.Cancel = true;
-            e.Handled = true;
-            return;
-        }
 
         var content = ToolTip.GetTip(control);
         if (content is null or string { Length: 0 }) return;
@@ -143,24 +142,30 @@ public sealed class Tooltip
         if (!GetIsEnabled(control)) return;
         if (!control.IsEffectivelyEnabled && !ToolTip.GetShowOnDisabled(control)) return;
 
-        e.Cancel = true;
-        e.Handled = true;
-
         if (ReferenceEquals(_target, control) && _flyout is { IsOpen: true })
+        {
+            e.Cancel = true;
+            e.Handled = true;
             return;
+        }
 
         _Hush();
         _target = control;
-        _PopUp(control, content);
+
+        if (!_PopUp(control, content))
+            return;
+
+        e.Cancel = true;
+        e.Handled = true;
     }
 
-    private static void _PopUp(Control target, object content)
+    private static bool _PopUp(Control target, object content)
     {
-        if (_pointerPressed) return;
+        if (ReferenceEquals(_pressedElement, target)) return false;
         if (_flyout is null)
             _BuildUi();
 
-        if (_flyout is null || _shell is null) return;
+        if (_flyout is null || _shell is null) return false;
 
         _AttachPopupTo(target);
         _RenderInside(content);
@@ -169,12 +174,13 @@ public sealed class Tooltip
         _flyout.HorizontalOffset = ToolTip.GetHorizontalOffset(target);
         _flyout.VerticalOffset = ToolTip.GetVerticalOffset(target);
         _flyout.Placement = _GetPlacement(target);
-        if (_flyout.Placement == PlacementMode.AnchorAndGravity)
+        if (GetFollowCursor(target))
             _ApplyFollowPlacement(default);
 
         target.PointerMoved += _OnTargetPointerMoved;
         target.PointerExited += _OnTargetPointerExited;
         target.DetachedFromVisualTree += _OnTargetDetached;
+        target.PointerCaptureLost += _OnTargetCaptureLost;
 
         _closing = false;
         _shell.Opacity = 0d;
@@ -189,7 +195,7 @@ public sealed class Tooltip
         {
             LogWrapper.Debug(ex, Module, "提示浮层打开失败");
             _Hush();
-            return;
+            return false;
         }
 
         AnimationService.Run(
@@ -199,6 +205,7 @@ public sealed class Tooltip
                 new ScaleTransformAnimation(_shell, 1d - ScaleClosed, AnimLength)
             },
             "Tooltip Open");
+        return true;
     }
 
     /// <summary>
@@ -236,11 +243,22 @@ public sealed class Tooltip
     {
         if (_flyout is null) return;
 
+        var placement = _target is null ? PlacementMode.Pointer : ToolTip.GetPlacement(_target);
+        var gravity = placement switch
+        {
+            PlacementMode.Left => PopupGravity.Left,
+            PlacementMode.Right => PopupGravity.Right,
+            PlacementMode.Top => PopupGravity.Top,
+            PlacementMode.Bottom => PopupGravity.Bottom,
+            _ => PopupGravity.BottomRight
+        };
+
+        _flyout.Placement = PlacementMode.AnchorAndGravity;
         _flyout.PlacementAnchor = PopupAnchor.TopLeft;
-        _flyout.PlacementGravity = PopupGravity.BottomRight;
+        _flyout.PlacementGravity = gravity;
         _flyout.PlacementRect = new Rect(
-            point.X + CursorGap,
-            point.Y + CursorGap,
+            point.X,
+            point.Y,
             1d,
             1d);
     }
@@ -340,8 +358,7 @@ public sealed class Tooltip
     {
         if (_closing || _flyout is not { IsOpen: true } || _shell is null || _target is null)
             return;
-        if (!GetFollowCursor(_target)
-            || _flyout.Placement != PlacementMode.AnchorAndGravity) return;
+        if (!GetFollowCursor(_target)) return;
 
         _ApplyFollowPlacement(e.GetPosition(_target));
     }
@@ -354,6 +371,12 @@ public sealed class Tooltip
     private static void _OnTargetDetached(object? sender, VisualTreeAttachmentEventArgs e)
     {
         _WindDown();
+    }
+
+    private static void _OnTargetCaptureLost(object? sender, PointerCaptureLostEventArgs e)
+    {
+        if (ReferenceEquals(_pressedElement, sender))
+            _pressedElement = null;
     }
 
     private static void _OnThemeVariantChanged(object? sender, EventArgs e)
@@ -396,6 +419,7 @@ public sealed class Tooltip
         _target.PointerMoved -= _OnTargetPointerMoved;
         _target.PointerExited -= _OnTargetPointerExited;
         _target.DetachedFromVisualTree -= _OnTargetDetached;
+        _target.PointerCaptureLost -= _OnTargetCaptureLost;
         _target = null;
     }
 

@@ -78,6 +78,17 @@
                 </Setter>
             </Style>
 
+            <Style Selector="^:collapsed">
+                <Setter Property="Width"
+                        Value="0" />
+                <Setter Property="MinWidth"
+                        Value="0" />
+                <Setter Property="Height"
+                        Value="0" />
+                <Setter Property="MinHeight"
+                        Value="0" />
+            </Style>
+
             <Style Selector="^:horizontal">
                 <Setter Property="Height"
                         Value="8" />
@@ -122,6 +133,7 @@
                         <ScrollContentPresenter Name="PART_ScrollContentPresenter"
                                                 Grid.Row="0"
                                                 Grid.Column="0"
+                                                Grid.ColumnSpan="2"
                                                 Background="{TemplateBinding Background}"
                                                 Padding="{TemplateBinding Padding}"
                                                 HorizontalSnapPointsType="{TemplateBinding HorizontalSnapPointsType}"

@@ -64,6 +64,10 @@
     <Style Selector="SelectableTextBlock">
         <Setter Property="FontFamily"
                 Value="{DynamicResource LaunchFontFamily}" />
+        <Setter Property="SelectionBrush"
+                Value="{DynamicResource ColorBrush7}" />
+        <Setter Property="SelectionForegroundBrush"
+                Value="{DynamicResource ColorBrush1}" />
     </Style>
 
     <Style Selector="TextBlock.PageTitle">

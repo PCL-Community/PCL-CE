@@ -714,9 +714,9 @@ internal static class MyMsgMarkdownRenderer
     // 内联文本
     // =======================================
 
-    private static TextBlock CreateTextBlock(double fontSize, FontWeight weight)
+    private static SelectableTextBlock CreateTextBlock(double fontSize, FontWeight weight)
     {
-        var block = new TextBlock
+        var block = new SelectableTextBlock
         {
             FontSize = fontSize,
             FontWeight = weight,
@@ -728,7 +728,7 @@ internal static class MyMsgMarkdownRenderer
         return block;
     }
 
-    private static TextBlock CreateRichText(string text, double fontSize, FontWeight weight)
+    private static SelectableTextBlock CreateRichText(string text, double fontSize, FontWeight weight)
     {
         var block = CreateTextBlock(fontSize, weight);
         AddRichText(block, text, fontSize, weight == FontWeight.Bold);
@@ -968,22 +968,16 @@ internal static class MyMsgMarkdownRenderer
         return run;
     }
 
-    private static Inline CreateLink(
+    private static Run CreateLink(
         string display,
         double fontSize,
         bool bold,
         bool italic,
         bool strike)
     {
-        var span = new Span
-        {
-            TextDecorations = TextDecorations.Underline
-        };
-        DialogTheme.BindBrush(span, TextElement.ForegroundProperty, "ColorBrush3");
         var run = CreateRun(display, fontSize, bold, italic, strike, "ColorBrush3");
-        if (strike) run.TextDecorations = TextDecorations.Strikethrough;
-        span.Inlines!.Add(run);
-        return span;
+        run.TextDecorations = TextDecorations.Underline;
+        return run;
     }
 
     private static void AttachLinkInteraction(TextBlock block, IReadOnlyList<LinkSpan> links)
