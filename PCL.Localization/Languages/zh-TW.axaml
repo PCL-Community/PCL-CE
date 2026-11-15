@@ -3209,8 +3209,8 @@
     <sys:String x:Key="Setup.Update.CheckAgain">再次檢查</sys:String>
     <sys:String x:Key="Setup.Update.CheckFailed">檢查更新時出錯</sys:String>
     <sys:String x:Key="Setup.Update.Checking">正在檢查更新...</sys:String>
-    <sys:String x:Key="Setup.Update.DotNetMissing.DownloadRuntime">下載 .NET 10 執行時</sys:String>
-    <sys:String x:Key="Setup.Update.DotNetMissing.Message">發現了啟動器更新（版本 {0}），但是新版本要求你的電腦安裝 .NET 10 才可以執行。&#xA;你需要先安裝 .NET 10 才可以繼續更新。&#xA;&#xA;點擊下方按鈕開啟網頁，然後選擇「.NET 桌面執行時」中的 {1} 選項下載。</sys:String>
+    <sys:String x:Key="Setup.Update.DotNetMissing.DownloadRuntime">下載 .NET 11 執行時</sys:String>
+    <sys:String x:Key="Setup.Update.DotNetMissing.Message">發現了啟動器更新（版本 {0}），但是新版本要求你的電腦安裝 .NET 11 才可以執行。&#xA;你需要先安裝 .NET 11 才可以繼續更新。&#xA;&#xA;點擊下方按鈕開啟網頁，然後選擇「.NET 桌面執行時」中的 {1} 選項下載。</sys:String>
     <sys:String x:Key="Setup.Update.DotNetMissing.Title">啟動器更新 - 缺少執行環境</sys:String>
     <sys:String x:Key="Setup.Update.Error.NetworkFailed">無法取得最新版本資訊，請檢查網路連線</sys:String>
     <sys:String x:Key="Setup.Update.Install">下載並安裝</sys:String>
@@ -3279,7 +3279,7 @@
     <sys:String x:Key="SystemDialog.File.SelectTitle">選擇檔案</sys:String>
     <sys:String x:Key="SystemDialog.Folder.OpenFailed.Message">無法開啟檔案總管。請嘗試關閉安全軟體（例如 360 安全衛士）。&#xA;&#xA;路徑：{0}</sys:String>
     <sys:String x:Key="SystemDialog.Folder.SelectTitle">選擇資料夾</sys:String>
-    <sys:String x:Key="SystemDialog.Startup.DotNetRuntimeOutdated.Message">你的 .NET 桌面執行時已過期或損壞。請重新安裝 .NET 10。</sys:String>
+    <sys:String x:Key="SystemDialog.Startup.DotNetRuntimeOutdated.Message">你的 .NET 桌面執行時已過期或損壞。請重新安裝 .NET 11。</sys:String>
     <sys:String x:Key="SystemDialog.Startup.InitializationTitle">PCL CE 初始化失敗</sys:String>
 
     <!-- SystemDialog.Error -->
@@ -3287,7 +3287,7 @@
     <sys:String x:Key="SystemDialog.Error.Detail.WithException">{0}&#xA;&#xA;詳細資訊：&#xA;{1}</sys:String>
     <sys:String x:Key="SystemDialog.Error.Message.WithLogExportGuidance">{0}&#xA;&#xA;若要尋求幫助，請不要關閉啟動器。請立即匯出日誌（設定 → 檢視日誌 → 匯出日誌），並傳送匯出的日誌壓縮檔；僅傳送此視窗的截圖通常無法幫助定位問題。</sys:String>
     <sys:String x:Key="SystemDialog.Error.OperationFailed.Message">執行操作時發生錯誤。&#xA;&#xA;操作資訊：&#xA;{0}&#xA;&#xA;詳細資訊：&#xA;{1}</sys:String>
-    <sys:String x:Key="SystemDialog.Error.OperationFailed.RuntimeMessage">執行操作時發生錯誤。&#xA;&#xA;操作資訊：&#xA;{0}&#xA;&#xA;詳細資訊：&#xA;{1}&#xA;&#xA;與系統底層互動失敗。請嘗試重新安裝 .NET 10。</sys:String>
+    <sys:String x:Key="SystemDialog.Error.OperationFailed.RuntimeMessage">執行操作時發生錯誤。&#xA;&#xA;操作資訊：&#xA;{0}&#xA;&#xA;詳細資訊：&#xA;{1}&#xA;&#xA;與系統底層互動失敗。請嘗試重新安裝 .NET 11。</sys:String>
     <sys:String x:Key="SystemDialog.Error.Title">錯誤</sys:String>
     <sys:String x:Key="SystemDialog.Error.Unexpected.Message">發生意外錯誤。</sys:String>
     <sys:String x:Key="SystemDialog.Error.Unexpected.Title">發生意外錯誤</sys:String>
