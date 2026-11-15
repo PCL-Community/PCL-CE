@@ -30,19 +30,43 @@ internal static class ResourceUpdateUndo
     public static MyIconButton? CreateButton(MyLocalCompItem item, string gameDirectory, Action refresh)
     {
         var recycleBin = new ResourceUpdateRecycleBin(gameDirectory);
-        if (item.Entry.IsFolder || !recycleBin.CanUndo(item.Entry.path)) return null;
+        if (item.Entry.IsFolder) return null;
 
-        var button = new MyIconButton { LogoScale = 1d, SvgIcon = "lucide/rotate-ccw", Tag = item };
+        var button = new MyIconButton
+        {
+            LogoScale = 1d, SvgIcon = "lucide/rotate-ccw", Tag = item, Visibility = Visibility.Collapsed
+        };
         button.ToolTip = Lang.Text("Instance.Resource.Item.UndoToolTip");
         ToolTipService.SetPlacement(button, PlacementMode.Center);
         ToolTipService.SetVerticalOffset(button, 30d);
         ToolTipService.SetHorizontalOffset(button, 2d);
-        button.Click += (_, _) =>
+        var revision = 0;
+        async Task RefreshVisibilityAsync()
         {
-            button.IsEnabled = false;
+            var currentRevision = ++revision;
+            var path = item.Entry.path;
             try
             {
-                recycleBin.Undo(item.Entry.path);
+                var available = await Task.Run(() => recycleBin.CanUndo(path));
+                if (currentRevision == revision && path == item.Entry.path)
+                    button.Visibility = available ? Visibility.Visible : Visibility.Collapsed;
+            }
+            catch (Exception ex)
+            {
+                ModBase.Log(ex, "检查资源撤回状态失败");
+            }
+        }
+        button.Loaded += async (_, _) => await RefreshVisibilityAsync();
+        _ = RefreshVisibilityAsync();
+        button.Click += async (_, _) =>
+        {
+            ++revision;
+            button.IsEnabled = false;
+            item.IsEnabled = false;
+            var path = item.Entry.path;
+            try
+            {
+                await Task.Run(() => recycleBin.Undo(path));
                 item.Buttons = item.Buttons.Where(existing => existing != button).ToArray();
                 HintService.Hint(Lang.Text("Instance.Resource.Undo.Success", item.Entry.FileName), HintType.Success);
                 refresh();
@@ -53,6 +77,10 @@ internal static class ResourceUpdateUndo
                 ModBase.Log(ex, "撤回资源更新失败", ModBase.LogLevel.Hint,
                     userSummary: Lang.Text("Instance.Resource.Undo.Failed", ex.Message));
                 refresh();
+            }
+            finally
+            {
+                item.IsEnabled = true;
             }
         };
         return button;
