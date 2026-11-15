@@ -12,9 +12,9 @@ if [ -n "$(find "$DIR" -maxdepth 1 -name '*.pdb' -print -quit)" ]; then
   fail "PDB files found in Beta/Release artifact"
 fi
 
-win_native=(av_libglesv2.dll dtls_native.dll e_sqlite3.dll libSkiaSharp.dll libHarfBuzzSharp.dll miniaudioex.dll)
-linux_native=(libSkiaSharp.so libHarfBuzzSharp.so libe_sqlite3.so libminiaudioex.so libdtls_native.so)
-mac_native=(libSkiaSharp.dylib libHarfBuzzSharp.dylib libe_sqlite3.dylib libminiaudioex.dylib libdtls_native.dylib libAvaloniaNative.dylib)
+win_native=(av_libglesv2.dll e_sqlite3.dll libSkiaSharp.dll libHarfBuzzSharp.dll miniaudioex.dll)
+linux_native=(libSkiaSharp.so libHarfBuzzSharp.so libe_sqlite3.so libminiaudioex.so)
+mac_native=(libSkiaSharp.dylib libHarfBuzzSharp.dylib libe_sqlite3.dylib libminiaudioex.dylib libAvaloniaNative.dylib)
 
 case "$RID" in
   linux-*)
