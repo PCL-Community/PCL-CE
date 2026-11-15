@@ -6,9 +6,9 @@ using System.IO;
 using System.IO.Pipes;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows;
 using PCL.Core.App.IoC;
 using PCL.Core.IO;
+using PCL.Core.Platform;
 
 namespace PCL.Core.App.Essentials;
 
@@ -121,8 +121,8 @@ public sealed partial class RpcService
     #region Function
 
     private static readonly Dictionary<string, RpcFunction> _FunctionMap = new() {
-        ["ping"] = ((_, _, _) => RpcResponse.EmptySuccess),
-        ["activate"] = ((_, _, _) =>
+        ["ping"] = (_, _, _) => RpcResponse.EmptySuccess,
+        ["activate"] = (_, _, _) =>
         {
             if (Lifecycle.CurrentState >= LifecycleState.WindowCreated) ActivateMainWindow();
             else Lifecycle.When(LifecycleState.WindowCreated, ActivateMainWindow);
@@ -131,19 +131,21 @@ public sealed partial class RpcService
             void ActivateMainWindow()
             {
                 var app = Lifecycle.CurrentApplication;
-                app.Dispatcher.BeginInvoke(() =>
+                PlatformServices.UiDispatcher?.Post(() =>
                 {
-                    var window = app.MainWindow!;
-                    if (window.WindowState == WindowState.Minimized) window.WindowState = WindowState.Normal;
-                    if (!window.Topmost)
+                    var window = app.MainWindow;
+                    if (window is null) return;
+                    if (window.IsMinimized) window.Restore();
+                    if (!window.IsTopmost)
                     {
-                        window.Topmost = true;
-                        window.Topmost = false;
+                        window.IsTopmost = true;
+                        window.IsTopmost = false;
                     }
+
                     window.Activate();
                 });
             }
-        })
+        }
     };
 
     /// <summary>

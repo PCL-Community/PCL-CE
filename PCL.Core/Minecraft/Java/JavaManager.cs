@@ -1,5 +1,4 @@
 using PCL.Core.Logging;
-using PCL.Core.Minecraft.Java;
 using PCL.Core.Minecraft.Java.Parser;
 using PCL.Core.Minecraft.Java.Scanner;
 using PCL.Core.App;
@@ -14,27 +13,21 @@ using System.Threading.Tasks;
 using System.Text.Json;
 using PCL.Core.Utils;
 
-namespace PCL.Core.Minecraft;
+namespace PCL.Core.Minecraft.Java;
 
-public class JavaManager
+public class JavaManager(
+    IJavaParser parser,
+    params IJavaScanner[] scanners)
 {
     private const string ModuleName = "JavaManager";
-    private readonly Dictionary<string, JavaEntry> _javaEntrys = new();
+    private readonly Dictionary<string, JavaEntry> _javaEntrys = [];
 
-    private readonly IJavaParser _parser;
-    private readonly IJavaScanner[] _scanners;
+    private readonly IJavaParser _parser = parser;
+    private readonly IJavaScanner[] _scanners = scanners;
 
     private readonly SemaphoreSlim _scanLock = new(1, 1);
     private DateTime _lastScanTime = DateTime.MinValue;
     private static readonly TimeSpan _MinScanInterval = TimeSpan.FromSeconds(13);
-
-    public JavaManager(
-        IJavaParser parser,
-        params IJavaScanner[] scanners)
-    {
-        _parser = parser;
-        _scanners = scanners;
-    }
 
     public void SaveConfig()
     {
@@ -50,7 +43,7 @@ public class JavaManager
                 .ToArray();
             States.Game.JavaList = JsonSerializer.Serialize(items, JsonCompat.SerializerOptions);
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             LogWrapper.Error(ex, ModuleName, "保存 Java 配置项失败");
         }
@@ -68,22 +61,28 @@ public class JavaManager
             foreach (var item in items)
             {
                 var parserResult = _parser.Parse(item.Path);
-                if (parserResult is null)
-                {
-                    LogWrapper.Trace(ModuleName, $"Can not find Java {item.Path}, skip");
-                    continue;
-                }
-
-                itemsAdded.Add(new JavaEntry() { 
-                    Installation = parserResult,
-                    IsEnabled = item.IsEnable,
-                    Source = item.Source ?? JavaSource.AutoScanned
-                });
+                parserResult.Match(
+                    inst =>
+                    {
+                        itemsAdded.Add(new JavaEntry()
+                        {
+                            Installation = inst,
+                            IsEnabled = item.IsEnable,
+                            Source = item.Source ?? JavaSource.AutoScanned
+                        });
+                        return 0;
+                    },
+                    err =>
+                    {
+                        LogWrapper.Trace(ModuleName, $"Can not find Java {item.Path}, skip");
+                        return 0;
+                    }
+                );
             }
 
             lock (_javaEntrys)
             {
-                foreach(var item in itemsAdded)
+                foreach (var item in itemsAdded)
                 {
                     if (_javaEntrys.TryGetValue(item.Installation.JavaExePath, out var existingRecord))
                     {
@@ -97,7 +96,7 @@ public class JavaManager
                 }
             }
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             LogWrapper.Error(ex, ModuleName, "无法读取 Java 配置项");
         }
@@ -146,22 +145,36 @@ public class JavaManager
             }
         });
 
-        var scannedEntries = pathSet.Keys
-            .Select(_parser.Parse)
-            .Where(inst => inst is not null)
-            .Select(inst => new JavaEntry
-            {
-                Installation = inst!,
-                IsEnabled = _javaEntrys.TryGetValue(_NormalizePath(inst!.JavaExePath), out var existingJava)
-                    ? existingJava.IsEnabled
-                    : _ShouldEnableByDefault(inst!),
-                Source = JavaSource.AutoScanned
-            })
-            .ToList();
+        var parsedEntries = pathSet.Keys
+            .Select(_parser.Parse);
+        List<JavaEntry> scannedEntries = [];
+        foreach (var entry in parsedEntries)
+        {
+            entry.Match(
+                inst =>
+                {
+                    scannedEntries.Add(new JavaEntry
+                    {
+                        Installation = inst,
+                        IsEnabled = _javaEntrys
+                            .TryGetValue(_NormalizePath(inst.JavaExePath), out var existingJava)
+                                ? existingJava.IsEnabled
+                                : _ShouldEnableByDefault(inst),
+                        Source = JavaSource.AutoScanned
+                    });
+                    return 0;
+                },
+                err =>
+                {
+                    LogWrapper.Warn(err, "Unable to parse Java file");
+                    return 0;
+                }
+            );
+        }
 
         lock (_javaEntrys)
         {
-            foreach(var entry in scannedEntries)
+            foreach (var entry in scannedEntries)
             {
                 _javaEntrys[entry.Installation.JavaExePath] = entry;
             }
@@ -222,27 +235,33 @@ public class JavaManager
         {
             if (javaExePath.IsNullOrWhiteSpace() || !File.Exists(javaExePath)) return null;
 
-            var installation = _parser.Parse(javaExePath);
-            if (installation is null) return null;
-
-            var exePath = _NormalizePath(installation.JavaExePath);
-            lock (_javaEntrys)
-            {
-                if (_javaEntrys.TryGetValue(exePath, out var ret))
-                    return ret;
-
-                var entry = new JavaEntry
+            return _parser.Parse(javaExePath).Match<JavaEntry?>(
+                inst =>
                 {
-                    Installation = installation,
-                    IsEnabled = _ShouldEnableByDefault(installation),
-                    Source = JavaSource.ManualAdded
-                };
+                    var exePath = _NormalizePath(inst.JavaExePath);
+                    lock (_javaEntrys)
+                    {
+                        if (_javaEntrys.TryGetValue(exePath, out var ret))
+                            return ret;
 
-                _javaEntrys.Add(exePath, entry);
-                return entry;
-            }
+                        var entry = new JavaEntry
+                        {
+                            Installation = inst,
+                            IsEnabled = _ShouldEnableByDefault(inst),
+                            Source = JavaSource.ManualAdded
+                        };
+
+                        _javaEntrys.Add(exePath, entry);
+                        return entry;
+                    }
+                },
+                err =>
+                {
+                    return null;
+                }
+            );
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             LogWrapper.Error(ex, ModuleName, $"Failed to add or get {javaExePath}");
             return null;
@@ -253,34 +272,32 @@ public class JavaManager
     /// </summary>
     public JavaEntry? Get(string javaExePath)
     {
-        try
-        {
-            if (javaExePath.IsNullOrWhiteSpace() || !File.Exists(javaExePath)) return null;
+        if (javaExePath.IsNullOrWhiteSpace() || !File.Exists(javaExePath)) return null;
 
-            var installation = _parser.Parse(javaExePath);
-            if (installation is null) return null;
-
-            var exePath = _NormalizePath(installation.JavaExePath);
-            lock (_javaEntrys)
+        return _parser.Parse(javaExePath).Match<JavaEntry?>(
+            inst =>
             {
-                if (_javaEntrys.TryGetValue(exePath, out var ret))
-                    return ret;
-
-                var entry = new JavaEntry
+                var exePath = _NormalizePath(inst.JavaExePath);
+                lock (_javaEntrys)
                 {
-                    Installation = installation,
-                    IsEnabled = _ShouldEnableByDefault(installation),
-                    Source = JavaSource.ManualAdded
-                };
+                    if (_javaEntrys.TryGetValue(exePath, out var ret))
+                        return ret;
 
-                return entry;
+                    var entry = new JavaEntry
+                    {
+                        Installation = inst,
+                        IsEnabled = _ShouldEnableByDefault(inst),
+                        Source = JavaSource.ManualAdded
+                    };
+
+                    return entry;
+                }
+            },
+            err =>
+            {
+                return null;
             }
-        }
-        catch (Exception ex)
-        {
-            LogWrapper.Error(ex, ModuleName, $"Failed to get {javaExePath}");
-            return null;
-        }
+        );
     }
 
     public async Task<JavaEntry[]> SelectSuitableJavaAsync(Version minVersion, Version maxVersion)

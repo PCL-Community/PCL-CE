@@ -21,6 +21,8 @@ public partial class FontSelector
     private bool _isListeningLanguageChanged;
     private string? _pendingFontTag;
 
+    private const string LoadingFontTag = "\0loading";
+
     public FontSelector()
     {
         InitializeComponent();
@@ -48,7 +50,7 @@ public partial class FontSelector
         {
             // 如果字体还在加载中，延迟设置
             if (CustomFontCollection.Count == 0 ||
-                (CustomFontCollection is [{ Name: var name }] && name == Lang.Text("Common.State.Loading")))
+                (CustomFontCollection is [{ Tag: var tag }] && tag == LoadingFontTag))
             {
                 _pendingFontTag = value;
                 return;
@@ -127,6 +129,7 @@ public partial class FontSelector
             return;
         }
 
+        GetDefaultFont()?.NotifyNameChanged();
         GetDefaultFont()?.Font = LocalizationFontService.BuildLaunchFontFamily();
     }
 
@@ -136,7 +139,11 @@ public partial class FontSelector
         {
             ComboFont.IsEnabled = false;
             _isInitializing = true;
-            CustomFontCollection.Add(new CustomFontProperties { Name = Lang.Text("Common.State.Loading") });
+            CustomFontCollection.Add(new CustomFontProperties
+            {
+                NameKey = "Common.State.Loading",
+                Tag = LoadingFontTag
+            });
             ComboFont.SelectedIndex = 0;
 
             var availableFonts = new List<(string Name, FontFamily Font)>();
@@ -170,14 +177,14 @@ public partial class FontSelector
             CustomFontCollection.Clear();
             CustomFontCollection.Add(new CustomFontProperties
             {
-                Name = Lang.Text("Common.Option.Default"),
+                NameKey = "Common.Option.Default",
                 Font = LocalizationFontService.BuildLaunchFontFamily(),
                 Tag = ""
             });
 
             foreach (var font in availableFonts)
                 CustomFontCollection.Add(new CustomFontProperties
-                    { Name = font.Name, Font = font.Font, Tag = font.Font.Source });
+                    { RawName = font.Name, Font = font.Font, Tag = font.Font.Source });
 
             ComboFont.IsEnabled = true;
 
@@ -204,11 +211,28 @@ public partial class FontSelector
 
     public class CustomFontProperties : INotifyPropertyChanged
     {
-        public string Name
+        public string Name => string.IsNullOrEmpty(NameKey)
+            ? RawName
+            : Lang.Text(NameKey);
+
+        public string RawName
         {
             get;
             init => SetField(ref field, value);
         } = string.Empty;
+
+        public string? NameKey
+        {
+            get;
+            set => SetField(ref field, value);
+        }
+
+        public void NotifyNameChanged()
+        {
+            PropertyChanged?.Invoke(
+                this,
+                new PropertyChangedEventArgs(nameof(Name)));
+        }
 
         public FontFamily Font
         {

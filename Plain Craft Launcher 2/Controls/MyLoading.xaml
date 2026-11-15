@@ -1,9 +1,10 @@
-<Grid
+﻿<Grid
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" x:Name="PanBack" mc:Ignorable="d"
     x:Class="PCL.MyLoading"
-    MinWidth="50" MinHeight="50" Background="{StaticResource ColorBrushTransparent}">
+    MinWidth="50" MinHeight="50" Background="{StaticResource ColorBrushTransparent}"
+                  xmlns:loc="https://ce.pclc.cc/core/localization">
     <Grid.RowDefinitions>
         <RowDefinition Height="1*" />
         <RowDefinition Height="Auto" />
@@ -43,7 +44,7 @@
         <Rectangle Width="25" Height="2" Fill="{Binding Foreground, ElementName=PanBack}" VerticalAlignment="Bottom"
                    HorizontalAlignment="Left" />
     </Grid>
-    <TextBlock x:Name="LabText" Text="{DynamicResource Application.Control.Loading.Default}"
+    <TextBlock x:Name="LabText" Text="{loc:Loc Application.Control.Loading.Default}"
                HorizontalAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Top"
                Foreground="{Binding Foreground, ElementName=PanBack}" FontSize="16" Margin="0,10,0,0" Grid.Row="2" />
 </Grid>

@@ -1,0 +1,34 @@
+using FluentValidation;
+using FluentValidation.Results;
+using PCL.Core.App.Localization;
+
+namespace PCL.Core.Utils.Validate;
+
+public class StringLengthValidator(
+    int min = 0,
+    int max = int.MaxValue) : AbstractValidator<string>
+{
+    public StringLengthValidator() : this(0)
+    {
+    }
+
+    public int Min { get; set; } = min;
+    public int Max { get; set; } = max;
+
+    private void _BuildRules()
+    {
+        RuleFor(x => x)
+            .Must(x => x.Length != Max || Max == Min)
+            .WithMessage(_ => Lang.Text("Common.Validate.Length.Exact", Max))
+            .Must(x => x.Length >= Min)
+            .WithMessage(_ => Lang.Text("Common.Validate.Length.Min", Min))
+            .Must(x => x.Length <= Max)
+            .WithMessage(_ => Lang.Text("Common.Validate.Length.Max", Max));
+    }
+
+    protected override bool PreValidate(ValidationContext<string> context, ValidationResult result)
+    {
+        _BuildRules();
+        return base.PreValidate(context, result);
+    }
+}

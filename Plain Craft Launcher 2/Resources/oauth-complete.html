@@ -5,7 +5,7 @@
     <meta content="noindex" name="robots">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <link id="favicon" rel="icon">
-    <title>PCL 社区版提示页</title>
+    <title>PCL 社区版提示页 / PCL Community Edition</title>
     <style>
         :root {
             --hue: 210deg;
@@ -91,9 +91,9 @@
 <div class="panel" id="panel">
     <div class="title">
         <img alt="icon" src="/assets/icon" style="margin-right:.4em" width="64">
-        <span id="title">加载中...</span>
+        <span id="title">加载中... / Loading...</span>
     </div>
-    <div class="content" id="content">加载中...</div>
+    <div class="content" id="content">加载中... / Loading...</div>
     <div class="stacktrace" id="stacktrace"></div>
 </div>
 <script>
@@ -126,10 +126,10 @@
         }
         const status = await response.json();
         if (status.success) {
-            title.innerText = `欢迎回来, ${status.username}！`;
-            content.innerText = "已完成登录授权，现在可以安全关闭浏览器窗口";
+            title.innerText = `欢迎回来, ${status.username}！/ Welcome back, ${status.username}!`;
+            content.innerText = "已完成登录授权，现在可以安全关闭浏览器窗口 / Authorization complete. You can now safely close this browser window.";
         } else {
-            title.innerText = "出现错误";
+            title.innerText = "出现错误 / An error occurred";
             title.style.color = "red";
             content.innerText = status.message;
             if (status.stacktrace) {

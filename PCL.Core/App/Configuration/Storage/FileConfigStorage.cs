@@ -1,4 +1,7 @@
-﻿using System;
+using PCL.Core.App.Localization;
+using PCL.Core.Logging;
+using PCL.Core.UI.Dialogs;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -7,9 +10,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using PCL.Core.App.Localization;
-using PCL.Core.Logging;
-using PCL.Core.UI;
 
 namespace PCL.Core.App.Configuration.Storage;
 
@@ -25,7 +25,7 @@ public class FileConfigStorage : ConfigStorage
 
     private readonly Channel<(string, Action)> _writeActionChannel;
     private readonly CancellationTokenSource _writeActionCts;
-    private readonly ManualResetEventSlim _writeStopEvent = new(true);
+    private readonly ManualResetEventSlim _writeStopEvent = new(false);
 
     public FileConfigStorage(IKeyValueFileProvider file)
     {
@@ -34,7 +34,6 @@ public class FileConfigStorage : ConfigStorage
         _writeActionCts = new CancellationTokenSource();
         Task.Run(async () =>
         {
-            _writeStopEvent.Reset();
             const long syncInterval = 10000; // ms
             var lastSyncTick = 0L;
             var cancelToken = _writeActionCts.Token;
@@ -57,11 +56,14 @@ public class FileConfigStorage : ConfigStorage
             catch (OperationCanceledException) { /* ignoring*/ }
             finally
             {
+                // 停止前先排空通道中尚未被 ReadAsync 读取的写入：
+                // 取消令牌会让 ReadAsync 直接抛出，通道里剩余的操作若不取出，会在缓存被驱逐时随实例一起丢弃
+                while (reader.TryRead(out var pendingItem))
+                    writeActionMap[pendingItem.Item1] = pendingItem.Item2;
                 // 结束时执行一次同步
                 Sync();
+                _writeStopEvent.Set();
             }
-            _writeStopEvent.Set();
-            return;
             void Sync()
             {
                 try
@@ -75,10 +77,17 @@ public class FileConfigStorage : ConfigStorage
                     LogWrapper.Error(ex, "Config", "配置文件保存失败");
                     var summary = Lang.Text("Config.Error.SaveFailed.Message", File.FilePath);
                     var message = ExceptionDetails.Compose(summary, ex);
-                    MsgBoxWrapper.Show(
-                        message,
-                        Lang.Text("Config.Error.SaveFailed.Title"),
-                        MsgBoxTheme.Error);
+                    //MsgBoxWrapper.Show(
+                    //    message,
+                    //    Lang.Text("Config.Error.SaveFailed.Title"),
+                    //    MsgBoxTheme.Error);
+
+                    DialogService.Instance.Show(new TextDialogRequest
+                    {
+                        Title = Lang.Text("Config.Error.SaveFailed.Title"),
+                        Content = message,
+                        IsWarn = true
+                    });
                 }
             }
         });

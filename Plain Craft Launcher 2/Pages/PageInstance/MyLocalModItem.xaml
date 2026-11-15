@@ -36,10 +36,28 @@
         FallbackSource="pack://application:,,,/images/Icons/NoIcon.png"
         IsHitTestVisible="False"
         RenderOptions.BitmapScalingMode="HighQuality"
-        SnapsToDevicePixels="True" />
+        SnapsToDevicePixels="True"
+        Source="{Binding ViewModel.Logo, ElementName=PanBack}" />
+    <!-- 右下角状态图标 -->
+    <local:MyImage
+        x:Name="ImgState"
+        Grid.Row="1"
+        Grid.RowSpan="2"
+        Grid.Column="1"
+        Width="20"
+        Height="20"
+        Margin="0,0,-5,-3"
+        HorizontalAlignment="Right"
+        VerticalAlignment="Bottom"
+        IsHitTestVisible="False"
+        RenderOptions.BitmapScalingMode="HighQuality"
+        SnapsToDevicePixels="True"
+        Source="{Binding ViewModel.StateImage, ElementName=PanBack}"
+        Visibility="{Binding ViewModel.StateImageVisibility, ElementName=PanBack}" />
     <!-- 标题 -->
     <Grid
         x:Name="PanTitle"
+        SizeChanged="PanTitle_SizeChanged"
         Grid.Row="1"
         Grid.Column="3"
         Grid.ColumnSpan="2"
@@ -48,15 +66,23 @@
         SnapsToDevicePixels="False"
         UseLayoutRounding="False">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition x:Name="ColumnTitle" Width="Auto" />
-            <ColumnDefinition x:Name="ColumnSubtitle" Width="Auto" />
+            <ColumnDefinition
+                x:Name="ColumnTitle"
+                Width="{Binding ViewModel.ColumnTitleWidth, ElementName=PanBack}" />
+            <ColumnDefinition
+                x:Name="ColumnSubtitle"
+                Width="{Binding ViewModel.ColumnSubtitleWidth, ElementName=PanBack}" />
             <ColumnDefinition Width="Auto" />
-            <ColumnDefinition x:Name="ColumnExtend" Width="1*" />
+            <ColumnDefinition
+                x:Name="ColumnExtend"
+                Width="{Binding ViewModel.ColumnExtendWidth, ElementName=PanBack}" />
         </Grid.ColumnDefinitions>
         <TextBlock
             x:Name="LabTitle"
             FontSize="14"
             IsHitTestVisible="False"
+            Text="{Binding ViewModel.TitleText, ElementName=PanBack}"
+            TextDecorations="{Binding ViewModel.TitleDecorations, ElementName=PanBack}"
             TextTrimming="CharacterEllipsis" />
         <TextBlock
             x:Name="LabSubtitle"
@@ -67,8 +93,9 @@
             Foreground="{DynamicResource ColorBrushGray1}"
             IsHitTestVisible="False"
             Opacity="0.4"
+            Text="{Binding ViewModel.SubTitleText, ElementName=PanBack}"
             TextTrimming="CharacterEllipsis"
-            Visibility="Collapsed" />
+            Visibility="{Binding ViewModel.SubTitleVisibility, ElementName=PanBack}" />
         <!-- 更新按钮 -->
         <local:MyIconButton
             x:Name="BtnUpdate"
@@ -79,25 +106,46 @@
             SvgIcon="lucide/upload"
             Opacity="0.4"
             Theme="Black"
+            ToolTip="{Binding ViewModel.UpdateToolTip.Value, ElementName=PanBack}"
             ToolTipService.InitialShowDelay="100"
             ToolTipService.Placement="Right"
             ToolTipService.VerticalOffset="-9"
-            Visibility="Collapsed" />
+            Visibility="{Binding ViewModel.UpdateVisibility, ElementName=PanBack}"
+            Click="BtnUpdate_Click"
+            PreviewMouseRightButtonUp="BtnUpdate_PreviewMouseRightButtonUp" />
     </Grid>
     <!-- Tag 与 详情 -->
-    <StackPanel
+    <ItemsControl
         x:Name="PanTags"
         Grid.Row="2"
         Grid.Column="3"
         Margin="-1,0,1,0"
         VerticalAlignment="Center"
+        Foreground="{Binding ViewModel.TagForeground, ElementName=PanBack}"
         IsHitTestVisible="False"
-        Orientation="Horizontal"
-        Visibility="Collapsed">
-        <!--<corelocal:BlurBorder Background="{DynamicResource ColorBrush6}" Padding="3,1" CornerRadius="3" Margin="0,0,4,0" SnapsToDevicePixels="True" UseLayoutRounding="False">
-            <TextBlock Text="科技" Foreground="{DynamicResource ColorBrush2}" FontSize="11" />
-        </corelocal:BlurBorder>-->
-    </StackPanel>
+        ItemsSource="{Binding ViewModel.Tags, ElementName=PanBack}"
+        Visibility="{Binding ViewModel.TagsVisibility, ElementName=PanBack}">
+        <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+                <StackPanel Orientation="Horizontal" />
+            </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+            <DataTemplate>
+                <Border
+                    Margin="0,0,3,0"
+                    Padding="3,1"
+                    Background="#0C000000"
+                    CornerRadius="3"
+                    SnapsToDevicePixels="True"
+                    UseLayoutRounding="False">
+                    <TextBlock
+                        FontSize="11"
+                        Text="{Binding Value}" />
+                </Border>
+            </DataTemplate>
+        </ItemsControl.ItemTemplate>
+    </ItemsControl>
     <TextBlock
         x:Name="LabInfo"
         Grid.Row="2"
@@ -108,6 +156,7 @@
         Foreground="{DynamicResource ColorBrushGray4}"
         IsHitTestVisible="False"
         SnapsToDevicePixels="False"
+        Text="{Binding ViewModel.DescriptionText, ElementName=PanBack}"
         TextTrimming="CharacterEllipsis"
         UseLayoutRounding="False" />
 </Grid>

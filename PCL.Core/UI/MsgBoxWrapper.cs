@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Dialogs;
 
 namespace PCL.Core.UI;
 
@@ -18,19 +19,8 @@ public enum MsgBoxTheme
     Error
 }
 
-public delegate void MsgBoxHandler(
-    string message,
-    string caption,
-    ICollection<MsgBoxButtonInfo> buttons,
-    MsgBoxTheme theme,
-    bool block,
-    ref int result
-);
-
 public static class MsgBoxWrapper
 {
-    public static event MsgBoxHandler? OnShow;
-
     public static int ShowWithCustomButtons(
         string message,
         string? caption,
@@ -38,11 +28,27 @@ public static class MsgBoxWrapper
         bool block,
         ICollection<MsgBoxButtonInfo> buttonCollection)
     {
-        var result = 0;
-        if (buttonCollection.Count == 0)
-            buttonCollection = [new MsgBoxButtonInfo(Lang.Text("Common.Action.Confirm"))];
-        OnShow?.Invoke(message, _ResolveCaption(caption, theme), buttonCollection, theme, block, ref result);
-        return result;
+        var buttons = buttonCollection.Count == 0
+            ? [new MsgBoxButtonInfo(Lang.Text("Common.Action.Confirm"))]
+            : buttonCollection.ToList();
+
+        var request = new TextDialogRequest
+        {
+            Title = _ResolveCaption(caption, theme),
+            Content = message,
+            Buttons = DialogButtons.From(
+                buttons.Select(button => DialogButton.Create(button.Context, button.OnClick)).ToArray()),
+            IsWarn = theme is not MsgBoxTheme.Info,
+            ForceWait = block
+        };
+
+        if (!block && buttons.Count == 1)
+        {
+            _ = DialogService.Instance.ShowAsync(request);
+            return 1;
+        }
+
+        return DialogService.Instance.Show(request).Result?.Button ?? 0;
     }
 
     public static int ShowWithCustomButtons(

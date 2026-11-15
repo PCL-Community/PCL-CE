@@ -15,14 +15,14 @@ public enum McVersionCategory
 
 public static class McVersionClassifier
 {
-    public static string GetCategoryDisplayName(McVersionCategory cat)
+    public static string GetCategoryKey(McVersionCategory cat)
     {
         return cat switch
         {
-            McVersionCategory.Release => Lang.Text("Download.Version.Type.Release"),
-            McVersionCategory.Snapshot => Lang.Text("Download.Version.Type.Development"),
-            McVersionCategory.BeforeRelease => Lang.Text("Download.Version.Type.BeforeRelease"),
-            McVersionCategory.AprilFools => Lang.Text("Download.Version.Type.AprilFools"),
+            McVersionCategory.Release => "Download.Version.Type.Release",
+            McVersionCategory.Snapshot => "Download.Version.Type.Development",
+            McVersionCategory.BeforeRelease => "Download.Version.Type.BeforeRelease",
+            McVersionCategory.AprilFools => "Download.Version.Type.AprilFools",
             _ => throw new ArgumentOutOfRangeException(nameof(cat))
         };
     }
@@ -119,51 +119,61 @@ public static class McVersionClassifier
         version["type"] = "special";
 
         if (addLore)
-            version["lore"] = GetMcFoolName(_GetString(version, "id"));
+            version["lore"] = GetMcFoolNameKey(_GetString(version, "id"));
     }
 
-    public static string GetMcFoolName(string name)
+    public static string GetMcFoolNameKey(string name)
     {
         name = name.ToLowerInvariant();
 
         return name switch
         {
-            _ when name.StartsWith("2.0") || name.StartsWith("2point0")
-                => Lang.Text("Minecraft.Fool.Description.2013") + name switch
-                {
-                    _ when name.EndsWith("red")
-                        => Lang.Text("Minecraft.Fool.Tag.Red"),
+            _ when name.StartsWith("2.0") || name.StartsWith("2point0") => name switch
+            {
+                _ when name.EndsWith("red") => "Minecraft.Fool.Description.2013",
+                _ when name.EndsWith("blue") => "Minecraft.Fool.Description.2013",
+                _ when name.EndsWith("purple") => "Minecraft.Fool.Description.2013",
+                _ => "Minecraft.Fool.Description.2013"
+            },
 
-                    _ when name.EndsWith("blue")
-                        => Lang.Text("Minecraft.Fool.Tag.Blue"),
+            "15w14a" => "Minecraft.Fool.Description.2015",
 
-                    _ when name.EndsWith("purple")
-                        => Lang.Text("Minecraft.Fool.Tag.Purple"),
+            "1.rv-pre1" => "Minecraft.Fool.Description.2016",
 
-                    _ => ""
-                },
+            "3d shareware v1.34" => "Minecraft.Fool.Description.2019",
 
-            "15w14a" => Lang.Text("Minecraft.Fool.Description.2015"),
+            _ when name.StartsWith("20w14inf") || name == "20w14∞" => "Minecraft.Fool.Description.2020",
 
-            "1.rv-pre1" => Lang.Text("Minecraft.Fool.Description.2016"),
+            "22w13oneblockatatime" => "Minecraft.Fool.Description.2022",
 
-            "3d shareware v1.34" => Lang.Text("Minecraft.Fool.Description.2019"),
+            "23w13a_or_b" => "Minecraft.Fool.Description.2023",
 
-            _ when name.StartsWith("20w14inf") || name == "20w14∞"
-                => Lang.Text("Minecraft.Fool.Description.2020"),
+            "24w14potato" => "Minecraft.Fool.Description.2024",
 
-            "22w13oneblockatatime" => Lang.Text("Minecraft.Fool.Description.2022"),
+            "25w14craftmine" => "Minecraft.Fool.Description.2025",
 
-            "23w13a_or_b" => Lang.Text("Minecraft.Fool.Description.2023"),
-
-            "24w14potato" => Lang.Text("Minecraft.Fool.Description.2024"),
-
-            "25w14craftmine" => Lang.Text("Minecraft.Fool.Description.2025"),
-
-            "26w14a" => Lang.Text("Minecraft.Fool.Description.2026"),
+            "26w14a" => "Minecraft.Fool.Description.2026",
 
             _ => ""
         };
+    }
+
+    public static string GetMcFoolName(string name)
+    {
+        var key = GetMcFoolNameKey(name);
+        if (string.IsNullOrEmpty(key)) return "";
+
+        var lower = name.ToLowerInvariant();
+        if (!(lower.StartsWith("2.0") || lower.StartsWith("2point0"))) return Lang.Text(key);
+
+        var tagKey = lower switch
+        {
+            _ when lower.EndsWith("red") => "Minecraft.Fool.Tag.Red",
+            _ when lower.EndsWith("blue") => "Minecraft.Fool.Tag.Blue",
+            _ when lower.EndsWith("purple") => "Minecraft.Fool.Tag.Purple",
+            _ => null
+        };
+        return Lang.Text(key) + (tagKey is null ? "" : Lang.Text(tagKey));
     }
 
     private static DateTime _GetDateTime(JsonObject obj, string key)

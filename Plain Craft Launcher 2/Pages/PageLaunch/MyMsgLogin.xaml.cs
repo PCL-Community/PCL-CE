@@ -3,7 +3,9 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.UI.Controls;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils;
 using PCL.Core.IO.Net.Http;
 using PCL.Core.Logging;
@@ -15,52 +17,37 @@ namespace PCL;
 public partial class MyMsgLogin
 {
     private readonly JsonObject data;
-    private string userCode; // 需要用户在网页上输入的设备代码
-    private string website; // 验证网页的网址
     private readonly CancellationTokenSource _cancellation = new();
+    private readonly MyMsgLoginViewModel _vm = new();
 
     public MyMsgLogin()
     {
         InitializeComponent();
+        DataContext = _vm;
         // Handles
         Loaded += Load;
-        Btn1.Click += Btn1_Click;
-        Btn3.Click += Btn3_Click;
-        PanBorder.MouseLeftButtonDown += Drag;
-        LabTitle.MouseLeftButtonDown += Drag;
     }
 
     private void Finished(object result)
     {
-        if (myConverter.IsExited)
+        if (myDialog.IsClosed)
             return;
-        myConverter.IsExited = true;
+        myDialog.Close(result is Exception ? new DialogResult(2) : new DialogResult(1));
         _cancellation.Cancel();
-        myConverter.Result = result;
-        myConverter.CompletionHandler?.Invoke(result);
-        ModBase.RunInUi(Close);
+        myDialog.CompletionHandler?.Invoke(result);
+        Common.RunInUi(Close);
         Thread.Sleep(200);
-        ModMain.frmMain.ShowWindowToTop();
+        Launcher.frmMain.ShowWindowToTop();
     }
 
     private void Init()
     {
-        userCode = (string)data["user_code"];
-        if (data["verification_uri_complete"] is not null)
-        {
-            website = (string)data["verification_uri_complete"];
-            LabCaption.Text = Lang.Text("Launch.Account.LoginDialog.MicrosoftInstructions.WithAutoFill", userCode, website);
-        }
-        else
-        {
-            website = (string)data["verification_uri"];
-            LabCaption.Text = Lang.Text("Launch.Account.LoginDialog.MicrosoftInstructions", userCode, website);
-        }
+        _vm.Load(data);
 
         // 设置 UI
         LabTitle.Text = Lang.Text("Launch.Account.LoginDialog.MinecraftLogin");
-        CustomEventService.SetEventData(Btn1, website);
-        CustomEventService.SetEventData(Btn2, userCode);
+        CustomEventService.SetEventData(Btn1, _vm.Website);
+        CustomEventService.SetEventData(Btn2, _vm.UserCode);
         // 启动工作线程
         _ = WorkThreadAsync();
     }
@@ -72,25 +59,25 @@ public partial class MyMsgLogin
         {
             await Task.Delay(2000, token).ConfigureAwait(false);
         }
-        catch (OperationCanceledException) when (myConverter.IsExited)
+        catch (OperationCanceledException) when (myDialog.IsClosed)
         {
             return;
         }
-        if (myConverter.IsExited)
+        if (myDialog.IsClosed)
             return;
-        ModBase.OpenWebsite(website);
-        ModBase.ClipboardSet(userCode);
+        Common.OpenWebsite(_vm.Website);
+        Common.ClipboardSet(_vm.UserCode);
         var device = data.ToObject<DeviceCodeData>() ?? throw new InvalidDataException("设备授权数据无效");
         var delayTime = TimeSpan.FromSeconds(device.Interval ?? 5);
         // 轮询
         var unknownFailureCount = 0;
-        while (!myConverter.IsExited && !token.IsCancellationRequested)
+        while (!myDialog.IsClosed && !token.IsCancellationRequested)
         {
             try
             {
-                if (myConverter.DeviceCodePoll is null)
+                if (myDialog.DeviceCodePoll is null)
                     throw new InvalidOperationException("设备授权没有配置轮询处理程序。");
-                var resultJson = await myConverter.DeviceCodePoll(data, token).ConfigureAwait(false);
+                var resultJson = await myDialog.DeviceCodePoll(data, token).ConfigureAwait(false);
                 token.ThrowIfCancellationRequested();
                 if (resultJson is { IsError: true })
                 {
@@ -125,11 +112,11 @@ public partial class MyMsgLogin
                 }
                 // 获取结果
                 if (resultJson is null) throw new InvalidDataException("微软令牌返回为空");
-                if (myConverter.LoginResultHandler is not null)
+                if (myDialog.LoginResultHandler is not null)
                 {
                     try
                     {
-                        await myConverter.LoginResultHandler(resultJson, token).ConfigureAwait(false);
+                        await myDialog.LoginResultHandler(resultJson, token).ConfigureAwait(false);
                         token.ThrowIfCancellationRequested();
                     }
                     catch (Exception handlerException)
@@ -139,11 +126,11 @@ public partial class MyMsgLogin
                     }
                 }
                 LogWrapper.Info("Profile",$"令牌过期时间：{resultJson.ExpiresIn} 秒");
-                HintService.Hint(Lang.Text("Launch.Account.LoginDialog.Success"), HintType.Success);
+                HintService.Show(Hints.Success(Lang.Text("Launch.Account.LoginDialog.Success")));
                 Finished(new[] { resultJson.AccessToken ?? string.Empty, resultJson.RefreshToken ?? string.Empty });
                 return;
             }
-            catch (OperationCanceledException) when (myConverter.IsExited)
+            catch (OperationCanceledException) when (myDialog.IsClosed)
             {
                 return;
             }
@@ -152,13 +139,13 @@ public partial class MyMsgLogin
                 if (unknownFailureCount <= 2)
                 {
                     unknownFailureCount += 1;
-                    ModBase.Log(ex, $"正版验证轮询第 {unknownFailureCount} 次失败");
-                    ModBase.Log(ex.Message);
+                    Common.Log(ex, $"正版验证轮询第 {unknownFailureCount} 次失败");
+                    Common.Log(ex.Message);
                     try
                     {
                         await Task.Delay(2000, token).ConfigureAwait(false);
                     }
-                    catch (OperationCanceledException) when (myConverter.IsExited)
+                    catch (OperationCanceledException) when (myDialog.IsClosed)
                     {
                         return;
                     }
@@ -175,28 +162,29 @@ public partial class MyMsgLogin
 
     #region 弹窗
 
-    private readonly ModMain.MyMsgBoxConverter myConverter;
-    private readonly int uuid = ModBase.GetUuid();
+    private readonly DialogViewModel myDialog;
+    private readonly int uuid = Common.GetUuid();
 
-    public MyMsgLogin(ModMain.MyMsgBoxConverter converter)
+    public MyMsgLogin(DialogViewModel dialog)
     {
         try
         {
             InitializeComponent();
-            Btn1.Name += ModBase.GetUuid();
-            Btn2.Name += ModBase.GetUuid();
-            Btn3.Name += ModBase.GetUuid();
-            myConverter = converter;
-            ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
-            data = (JsonObject)converter.Content;
+            DataContext = _vm;
+            Btn1.Name += Common.GetUuid();
+            Btn2.Name += Common.GetUuid();
+            Btn3.Name += Common.GetUuid();
+            myDialog = dialog;
+            ShapeLine.StrokeThickness = Common.GetWpfSize(1d);
+            data = dialog.LoginData!;
             Init();
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 Lang.Text("Launch.Account.LoginDialog.Error.Init"),
-                ModBase.LogLevel.Hint,
+                Common.LogLevel.Hint,
                 userSummary: Lang.Text("Launch.Account.LoginDialog.Error.Init"));
         }
 
@@ -209,31 +197,31 @@ public partial class MyMsgLogin
         {
             // 动画
             Opacity = 0d;
-            ModAnimation.AniStart(
-                ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
-                    (myConverter.IsWarn
-                        ? new ModBase.MyColor(140d, 80d, 0d, 0d)
-                        : new ModBase.MyColor(90d, 0d, 0d, 0d)) - ModMain.frmMain.PanMsgBackground.Background, 200),
+            Animations.AniStart(
+                Animations.AaColor(Launcher.frmMain.PanMsgBackground, BlurBorder.BackgroundProperty,
+                    (myDialog.IsWarn
+                        ? new Common.MyColor(140d, 80d, 0d, 0d)
+                        : new Common.MyColor(90d, 0d, 0d, 0d)) - Launcher.frmMain.PanMsgBackground.Background, 200),
                 "PanMsgBackground Background");
-            ModAnimation.AniStart(
+            Animations.AniStart(
                 new[]
                 {
-                    ModAnimation.AaOpacity(this, 1d, 120, 60),
-                    ModAnimation.AaDouble(i => TransformPos.Y += (double)i,
-                        -TransformPos.Y, 300, 60, new ModAnimation.AniEaseOutBack(ModAnimation.AniEasePower.Weak)),
-                    ModAnimation.AaDouble(i => TransformRotate.Angle += (double)i,
+                    Animations.AaOpacity(this, 1d, 120, 60),
+                    Animations.AaDouble(i => TransformPos.Y += (double)i,
+                        -TransformPos.Y, 300, 60, new Animations.AniEaseOutBack(Animations.AniEasePower.Weak)),
+                    Animations.AaDouble(i => TransformRotate.Angle += (double)i,
                         -TransformRotate.Angle, 300, 60,
-                        new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak))
+                        new Animations.AniEaseOutFluent(Animations.AniEasePower.Weak))
                 }, "MyMsgBox " + uuid);
             // 记录日志
-            ModBase.Log($"[Control] 正版验证弹窗：{LabTitle.Text}\r\n{LabCaption.Text}");
+            Common.Log($"[Control] 正版验证弹窗：{LabTitle.Text}\r\n{_vm.CaptionText}");
         }
         catch (Exception ex)
         {
-            ModBase.Log(
+            Common.Log(
                 ex,
                 Lang.Text("Launch.Account.LoginDialog.Error.Load"),
-                ModBase.LogLevel.Hint,
+                Common.LogLevel.Hint,
                 userSummary: Lang.Text("Launch.Account.LoginDialog.Error.Load"));
         }
     }
@@ -241,22 +229,22 @@ public partial class MyMsgLogin
     private void Close()
     {
         // 动画
-        ModAnimation.AniStart(new[]
+        Animations.AniStart(new[]
         {
-            ModAnimation.AaCode(() =>
+            Animations.AaCode(() =>
             {
-                if (!ModMain.WaitingMyMsgBox.Any())
-                    ModAnimation.AniStart(ModAnimation.AaColor(ModMain.frmMain.PanMsgBackground,
+                if (!PCL.Core.UI.Dialogs.DialogService.Instance.IsShowing && !PCL.Core.UI.Dialogs.DialogService.Instance.HasPending)
+                    Animations.AniStart(Animations.AaColor(Launcher.frmMain.PanMsgBackground,
                         BlurBorder.BackgroundProperty,
-                        new ModBase.MyColor(0d, 0d, 0d, 0d) - ModMain.frmMain.PanMsgBackground.Background, 200,
-                        ease: new ModAnimation.AniEaseOutFluent(ModAnimation.AniEasePower.Weak)));
+                        new Common.MyColor(0d, 0d, 0d, 0d) - Launcher.frmMain.PanMsgBackground.Background, 200,
+                        ease: new Animations.AniEaseOutFluent(Animations.AniEasePower.Weak)));
             }, 30),
-            ModAnimation.AaOpacity(this, -Opacity, 80, 20),
-            ModAnimation.AaDouble(i => TransformPos.Y += (double)i, 20d - TransformPos.Y,
-                150, 0, new ModAnimation.AniEaseOutFluent()),
-            ModAnimation.AaDouble(i => TransformRotate.Angle += (double)i,
-                6d - TransformRotate.Angle, 150, 0, new ModAnimation.AniEaseInFluent(ModAnimation.AniEasePower.Weak)),
-            ModAnimation.AaCode(() => ((Grid)Parent).Children.Remove(this), after: true)
+            Animations.AaOpacity(this, -Opacity, 80, 20),
+            Animations.AaDouble(i => TransformPos.Y += (double)i, 20d - TransformPos.Y,
+                150, 0, new Animations.AniEaseOutFluent()),
+            Animations.AaDouble(i => TransformRotate.Angle += (double)i,
+                6d - TransformRotate.Angle, 150, 0, new Animations.AniEaseInFluent(Animations.AniEasePower.Weak)),
+            Animations.AaCode(() => ((Grid)Parent).Children.Remove(this), after: true)
         }, "MyMsgBox " + uuid);
     }
 
@@ -274,7 +262,7 @@ public partial class MyMsgLogin
     {
         // On Error Resume Next
         if (e.GetPosition(ShapeLine).Y <= 2d)
-            ModMain.frmMain.DragMove();
+            Launcher.frmMain.DragMove();
     }
 
     #endregion

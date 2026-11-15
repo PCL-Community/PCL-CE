@@ -5,8 +5,8 @@ using System.IO;
 using System.Reflection;
 using System.Text.Json;
 using System.Threading;
-using System.Windows;
 using PCL.Core.Logging;
+using PCL.Core.Platform;
 using PCL.Core.Utils;
 
 namespace PCL.Core.App;
@@ -113,7 +113,7 @@ public static class Basics
             catch (ThreadInterruptedException) { LogWrapper.Trace("Thread", $"{threadName.Value}: 已中止"); }
             catch (Exception ex) { LogWrapper.Error(ex, "Thread", $"{threadName.Value}: 抛出异常"); }
         })
-        { Priority = priority };
+        { Priority = priority, IsBackground = true };
         threadName.Value ??= $"Worker#{thread.ManagedThreadId}";
         thread.Name = threadName.Value;
         thread.Start();
@@ -184,8 +184,7 @@ public static class Basics
     /// <returns>资源输入流，若资源不存在则为 <c>null</c></returns>
     public static Stream? GetResourceStream(string path)
     {
-        var resourceInfo = Application.GetResourceStream(new Uri($"pack://application:,,,/{path}", UriKind.Absolute));
-        return resourceInfo?.Stream;
+        return PlatformServices.ResourceStore?.GetResourceStream(path);
     }
 
     private const string AssemblyImagePath = "pack://application:,,,/Plain Craft Launcher 2;component/Images/";

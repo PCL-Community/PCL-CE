@@ -17,6 +17,30 @@ body:
           required: true
         - label: "我确认会详细描述我所遇到的问题，并附上日志和截图，而不是随便填点东西敷衍了事 / I will describe the problem in detail, attach logs and screenshots, and avoid submitting vague or incomplete information."
           required: true
+        - label: "我确认已亲自复现并核实所报告的问题；如未能复现，我已在描述中明确说明未确认的部分。Issue 中的描述、日志和截图均为真实内容，未直接提交 AI 生成的未经核实内容 / I confirm that I have personally reproduced and verified the reported problem. If I could not reproduce it, I have clearly stated which parts remain unconfirmed in the description. The description, logs, and screenshots are genuine, and I have not submitted unverified AI-generated content."
+          required: true
+  - type: dropdown
+    id: "yml-ai-usage"
+    attributes:
+      label: "AI 使用情况 / AI Usage"
+      description: "请说明撰写本 Issue 时是否使用了生成式 AI。使用 AI 本身不构成违规，但必须如实披露并自行核实全部内容。详见 [生成式人工智能使用方针](https://docs.pclc.cc/ce/developers/ai-policy)。 / State whether generative AI was used when writing this issue. Using AI is not a violation, but it must be disclosed and all content must be verified by you. See the [Generative Artificial Intelligence Usage Policy](https://docs.pclc.cc/en/ce/developers/ai-policy)."
+      options:
+        - "未使用 / Not used"
+        - "仅用于翻译或语言润色 / Translation or language editing only"
+        - "用于分析、整理或撰写，并已自行核实 / Used for analysis, drafting, or organization, verified by me"
+    validations:
+      required: true
+  - type: textarea
+    id: "yml-ai-details"
+    attributes:
+      label: "AI 工具与核实说明 / AI Tools and Verification"
+      description: "如使用了 AI，请说明工具、模型及用途；未使用时填写“无”。 / If AI was used, list the tools, models, and purpose; enter \"None\" if not used."
+      placeholder: |
+        工具与模型 / Tools and models：
+        用途 / Purpose：
+        核实方式 / Verification：
+    validations:
+      required: true
   - type: textarea
     id: "yml-2"
     attributes:

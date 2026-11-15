@@ -26,7 +26,7 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - uses: MirrorChyan/uploading-action@v1
+      - uses: MirrorChyan/uploading-action@ea9a0f6f516fafb6b0a3046a1fe4b0dccb29eca8 # v1
         with:
           filetype: latest-release
           filename: "PCL2_CE_${{ inputs.channel == 'stable' && 'Release' || 'Beta' }}_${{ inputs.arch == 'x64' && 'x64' || 'ARM64' }}.exe"

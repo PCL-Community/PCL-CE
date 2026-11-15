@@ -18,12 +18,12 @@ public class MyTextButton : Label
         {
             if (Equals(e.OldValue, e.NewValue)) return;
             var button = (MyTextButton)sender;
-            ModAnimation.AniStart(
+            Animations.AniStart(
                 new[]
                 {
-                    ModAnimation.AaOpacity(button, -button.Opacity, 50),
-                    ModAnimation.AaCode(() => button.Content = e.NewValue, after: true),
-                    ModAnimation.AaOpacity(button, 1d, 170)
+                    Animations.AaOpacity(button, -button.Opacity, 50),
+                    Animations.AaCode(() => button.Content = e.NewValue, after: true),
+                    Animations.AaOpacity(button, 1d, 170)
                 }, "MyTextButton Text " + button.Uuid);
         }));
     
@@ -35,7 +35,25 @@ public class MyTextButton : Label
 
     // 基础
 
-    public int Uuid = ModBase.GetUuid();
+    public int Uuid = Common.GetUuid();
+
+    public static readonly DependencyProperty CommandProperty = DependencyProperty.Register(nameof(Command),
+        typeof(ICommand), typeof(MyTextButton), new PropertyMetadata(null));
+
+    public ICommand? Command
+    {
+        get => (ICommand?)GetValue(CommandProperty);
+        set => SetValue(CommandProperty, value);
+    }
+
+    public static readonly DependencyProperty CommandParameterProperty = DependencyProperty.Register(
+        nameof(CommandParameter), typeof(object), typeof(MyTextButton), new PropertyMetadata(null));
+
+    public object? CommandParameter
+    {
+        get => GetValue(CommandParameterProperty);
+        set => SetValue(CommandParameterProperty, value);
+    }
 
     public MyTextButton()
     {
@@ -85,9 +103,10 @@ public class MyTextButton : Label
     {
         if (!isMouseDown) return;
         isMouseDown = false;
-        ModBase.Log("[Control] 按下文本按钮：" + Text);
+        Common.Log("[Control] 按下文本按钮：" + Text);
         Click?.Invoke(this, null);
-        ModMain.RaiseCustomEvent(this);
+        Launcher.RaiseCustomEvent(this);
+        ExecuteCommand();
         e.Handled = true;
     }
 
@@ -102,5 +121,23 @@ public class MyTextButton : Label
         // 触发颜色动画
         ControlVisualHelpers.AnimateColorOrSetResource(this, ForegroundProperty, ForeName, Time,
             "MyTextButton Color " + Uuid, ControlVisualHelpers.ShouldAnimate(this));
+    }
+
+    private bool _isCommandRunning;
+
+    private void ExecuteCommand()
+    {
+        var command = Command;
+        if (_isCommandRunning || command is null || !command.CanExecute(CommandParameter))
+            return;
+        _isCommandRunning = true;
+        try
+        {
+            command.Execute(CommandParameter);
+        }
+        finally
+        {
+            _isCommandRunning = false;
+        }
     }
 }

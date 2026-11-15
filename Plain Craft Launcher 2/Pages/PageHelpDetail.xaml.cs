@@ -1,86 +1,79 @@
-﻿using System.IO;
-using System.Security;
+using System.ComponentModel;
 using System.Windows;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 
 namespace PCL;
 
-public partial class PageHelpDetail : IRefreshable
+public partial class PageHelpDetail : IRefreshable, IPageView
 {
     internal sealed record HelpContent(string SourcePath, string Title, string Xaml);
 
-    private HelpContent _content = null!;
+    private readonly PageHelpDetailViewModel _vm;
 
-    public string Title => _content.Title;
+    private bool _refreshed;
+
+    public string Title => _vm.Title;
 
     internal PageHelpDetail(HelpContent content)
     {
         InitializeComponent();
-        Loaded += (_, _) => PanBack.ScrollToHome();
+        _vm = new PageHelpDetailViewModel(content);
+        DataContext = _vm;
+        _vm.PropertyChanged += VmOnPropertyChanged;
+        Loaded += (_, _) => RefreshOnNavigate();
+        Unloaded += (_, _) => _refreshed = false;
         ApplyContent(content);
     }
 
-    /// <summary>
-    ///     从帮助 JSON 及同名 XAML 文件读取详情页数据。失败会抛出异常。
-    /// </summary>
-    internal static HelpContent LoadContent(string jsonPath)
+    internal static HelpContent LoadContent(string jsonPath) => PageHelpDetailViewModel.LoadContent(jsonPath);
+
+    public void OnNavigatedTo(object? parameter)
     {
-        if (!File.Exists(jsonPath))
-            throw new FileNotFoundException("未找到帮助 JSON 文件", jsonPath);
+        RefreshOnNavigate();
+    }
 
-        var json = ModMain.ArgumentReplace(File.ReadAllText(jsonPath), SecurityElement.Escape);
-        using var document = JsonDocument.Parse(json);
-        if (!document.RootElement.TryGetProperty("Title", out var titleElement) ||
-            titleElement.ValueKind != JsonValueKind.String ||
-            string.IsNullOrWhiteSpace(titleElement.GetString()))
-            throw new ArgumentException("帮助 JSON 中未找到有效的 Title 项", nameof(jsonPath));
+    public void OnNavigatedFrom()
+    {
+    }
 
-        var xamlPath = Path.ChangeExtension(jsonPath, ".xaml");
-        if (!File.Exists(xamlPath))
-            throw new FileNotFoundException("未找到帮助 JSON 对应的 XAML 文件", xamlPath);
+    private void RefreshOnNavigate()
+    {
+        if (_refreshed)
+            return;
+        _refreshed = true;
+        PanBack.ScrollToHome();
+    }
 
-        var xaml = File.ReadAllText(xamlPath);
-        if (string.IsNullOrWhiteSpace(xaml))
-            throw new InvalidDataException("帮助 XAML 文件为空");
-
-        return new HelpContent(jsonPath, titleElement.GetString()!, xaml);
+    private void VmOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(PageHelpDetailViewModel.Content))
+            return;
+        var content = _vm.Content;
+        if (content is not null)
+            ApplyContent(content);
     }
 
     private void ApplyContent(HelpContent content)
     {
         // 修改时应同时修改 PageLaunchRight.LoadContent。
-        var xaml = ModMain.ArgumentReplace(content.Xaml);
+        var xaml = Launcher.ArgumentReplace(content.Xaml);
         while (xaml.Contains("xmlns"))
             xaml = xaml.RegexReplace("xmlns[^\"']*(\"|')[^\"']*(\"|')", "").Replace("xmlns", "");
         xaml =
             $"<StackPanel xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xmlns:sys=\"clr-namespace:System;assembly=System.Runtime\" xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\" xmlns:local=\"clr-namespace:PCL;assembly=Plain Craft Launcher 2\">{xaml}</StackPanel>";
 
-        var element = (UIElement)ModBase.GetObjectFromXML(xaml, out var sanitizeResult);
+        var element = (UIElement)Common.GetObjectFromXml(xaml, out var sanitizeResult);
         foreach (var unsupported in sanitizeResult.UnsupportedTypesFound)
-            HintService.Hint(Lang.Text("Event.Sanitize.UnsupportedTypeHint", unsupported), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Event.Sanitize.UnsupportedTypeHint", unsupported)));
         foreach (var unknown in sanitizeResult.UnrecognizedTypes)
-            HintService.Hint(Lang.Text("Event.Sanitize.UnknownTypeHint", unknown), HintType.Error);
+            HintService.Show(Hints.Error(Lang.Text("Event.Sanitize.UnknownTypeHint", unknown)));
 
-        _content = content;
         PanCustom.Children.Clear();
         PanCustom.Children.Add(element);
-        if (ModMain.frmMain?.pageCurrent.page == FormMain.PageType.HelpDetail)
-            ModMain.frmMain.PageNameRefresh();
+        if (Launcher.frmMain?.pageCurrent.page == FormMain.PageType.HelpDetail)
+            Launcher.frmMain.PageNameRefresh();
     }
 
-    public void Refresh()
-    {
-        try
-        {
-            ApplyContent(LoadContent(_content.SourcePath));
-        }
-        catch (Exception ex)
-        {
-            ModBase.Log(
-                ex,
-                "刷新帮助详情页失败",
-                ModBase.LogLevel.Msgbox,
-                userSummary: Lang.Text("Event.Error.ExecutionFailed", EventType.OpenHelp, _content.SourcePath));
-        }
-    }
+    public void Refresh() => _vm.RefreshCommand.Execute(null);
 }

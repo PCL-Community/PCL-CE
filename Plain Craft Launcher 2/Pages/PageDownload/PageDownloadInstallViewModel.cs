@@ -1,0 +1,156 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using PCL.Core.ViewModel;
+using System.Collections.ObjectModel;
+using System.Windows;
+using System.Windows.Media;
+
+namespace PCL;
+
+/// <summary>下载安装向导页的视图模型。</summary>
+public partial class PageDownloadInstallViewModel : ViewModelBase
+{
+    [ObservableProperty] private bool _showOptiFineCard = true;
+
+    [ObservableProperty] private bool _showOptiFineClear = true;
+
+    [ObservableProperty] private bool _showOptiFineImage = true;
+
+    [ObservableProperty] private string? _optiFineText = "";
+
+    [ObservableProperty] private bool _showLiteLoaderCard = true;
+
+    [ObservableProperty] private bool _showLiteLoaderClear = true;
+
+    [ObservableProperty] private bool _showLiteLoaderImage = true;
+
+    [ObservableProperty] private string? _liteLoaderText = "";
+
+    [ObservableProperty] private bool _showForgeCard = true;
+
+    [ObservableProperty] private bool _showForgeClear = true;
+
+    [ObservableProperty] private bool _showForgeImage = true;
+
+    [ObservableProperty] private string? _forgeText = "";
+
+    [ObservableProperty] private bool _showCleanroomCard = true;
+
+    [ObservableProperty] private bool _showCleanroomClear = true;
+
+    [ObservableProperty] private bool _showCleanroomImage = true;
+
+    [ObservableProperty] private string? _cleanroomText = "";
+
+    [ObservableProperty] private bool _showNeoForgeCard = true;
+
+    [ObservableProperty] private bool _showNeoForgeClear = true;
+
+    [ObservableProperty] private bool _showNeoForgeImage = true;
+
+    [ObservableProperty] private string? _neoForgeText = "";
+
+    [ObservableProperty] private bool _showFabricCard = true;
+
+    [ObservableProperty] private bool _showFabricClear = true;
+
+    [ObservableProperty] private bool _showFabricImage = true;
+
+    [ObservableProperty] private string? _fabricText = "";
+
+    [ObservableProperty] private bool _showFabricApiCard = true;
+
+    [ObservableProperty] private bool _showFabricApiClear = true;
+
+    [ObservableProperty] private bool _showFabricApiImage = true;
+
+    [ObservableProperty] private string? _fabricApiText = "";
+
+    [ObservableProperty] private bool _showLegacyFabricCard = true;
+
+    [ObservableProperty] private bool _showLegacyFabricClear = true;
+
+    [ObservableProperty] private bool _showLegacyFabricImage = true;
+
+    [ObservableProperty] private string? _legacyFabricText = "";
+
+    [ObservableProperty] private bool _showLegacyFabricApiCard = true;
+
+    [ObservableProperty] private bool _showLegacyFabricApiClear = true;
+
+    [ObservableProperty] private bool _showLegacyFabricApiImage = true;
+
+    [ObservableProperty] private string? _legacyFabricApiText = "";
+
+    [ObservableProperty] private bool _showLabyModCard = true;
+
+    [ObservableProperty] private bool _showLabyModClear = true;
+
+    [ObservableProperty] private bool _showLabyModImage = true;
+
+    [ObservableProperty] private string? _labyModText = "";
+
+    [ObservableProperty] private bool _showOptiFabricCard = true;
+
+    [ObservableProperty] private bool _showOptiFabricClear = true;
+
+    [ObservableProperty] private bool _showOptiFabricImage = true;
+
+    [ObservableProperty] private string? _optiFabricText = "";
+
+    [ObservableProperty] private bool _showHintFabricApi = true;
+
+    [ObservableProperty] private bool _showHintLegacyFabricApi = true;
+
+    [ObservableProperty] private bool _showHintOptiFabric = true;
+
+    [ObservableProperty] private bool _showHintOptiFabricOld = true;
+
+    [ObservableProperty] private bool _showHintLegacyOptiFabric = true;
+
+    [ObservableProperty] private bool _showHintModOptiFine = true;
+
+    [ObservableProperty] private bool _canStartInstall;
+
+    [ObservableProperty] private string _instanceName = "";
+
+    [ObservableProperty] private string _loadingText = "";
+
+    [ObservableProperty] private Thickness _panInnerMargin = new(25d, 10d, 25d, 25d);
+
+    [ObservableProperty] private bool _panSelectHitTestVisible;
+
+    [ObservableProperty] private bool _panMinecraftHitTestVisible = true;
+
+    [ObservableProperty] private bool _panBackHitTestVisible = true;
+
+    [ObservableProperty] private Brush _optiFineForeground = ThemeManager.colorGray1;
+
+    [ObservableProperty] private Brush _liteLoaderForeground = ThemeManager.colorGray1;
+
+    [ObservableProperty] private Brush _forgeForeground = ThemeManager.colorGray1;
+
+    [ObservableProperty] private Brush _cleanroomForeground = ThemeManager.colorGray1;
+
+    [ObservableProperty] private Brush _neoForgeForeground = ThemeManager.colorGray1;
+
+    [ObservableProperty] private Brush _fabricForeground = ThemeManager.colorGray1;
+
+    [ObservableProperty] private Brush _fabricApiForeground = ThemeManager.colorGray1;
+
+    [ObservableProperty] private Brush _legacyFabricForeground = ThemeManager.colorGray1;
+
+    [ObservableProperty] private Brush _legacyFabricApiForeground = ThemeManager.colorGray1;
+
+    [ObservableProperty] private Brush _labyModForeground = ThemeManager.colorGray1;
+
+    [ObservableProperty] private Brush _optiFabricForeground = ThemeManager.colorGray1;
+
+    /// <summary>Fabric API 版本列表。</summary>
+    public ObservableCollection<FabricApiVersionRow> FabricApiVersions { get; } = [];
+
+    public void SetFabricApiVersions(IEnumerable<FabricApiVersionRow> rows)
+    {
+        FabricApiVersions.Clear();
+        foreach (var row in rows) FabricApiVersions.Add(row);
+    }
+}
