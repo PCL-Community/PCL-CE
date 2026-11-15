@@ -157,8 +157,6 @@ public partial class PageLoginProfileViewModel : ViewModelBase
         if (string.IsNullOrWhiteSpace(server))
             return false;
 
-        PageLoginAuth.PendingAuthServerOAuthSupported =
-            await PageLoginAuth.IsOAuthSupportedAsync(server);
         PageLoginAuth.PendingAuthServer = server;
         return true;
     }

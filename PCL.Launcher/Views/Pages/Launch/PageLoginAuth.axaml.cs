@@ -6,7 +6,7 @@ namespace PCL.Views.Pages.Launch;
 
 /// <summary>
 ///     第三方（Authlib-Injector）登录视图：支持密码与 OAuth（Yggdrasil Connect 设备码）两种模式。
-///     登录、OAuth 探测与注册链接由 <see cref="PageLoginAuthViewModel" /> 负责；页面只保留模式切换动画。
+///     内置清单中的服务器直接进入 OAuth，其余固定密码登录。页面只保留手动切换动画。
 /// </summary>
 public partial class PageLoginAuth : LoginPageBase
 {
@@ -41,48 +41,49 @@ public partial class PageLoginAuth : LoginPageBase
         _btnLink = this.FindControl<MyTextButton>("BtnLink")!;
         _btnWebsite = this.FindControl<MyTextButton>("BtnWebsite")!;
         _btnUsePassword = this.FindControl<MyTextButton>("BtnUsePassword")!;
-        _btnPasswordWebsite = this.FindControl<MyTextButton>("BtnPasswordWebsite")!;
         _btnUseOAuth = this.FindControl<MyTextButton>("BtnUseOAuth")!;
+        _btnPasswordWebsite = this.FindControl<MyTextButton>("BtnPasswordWebsite")!;
 
-        ViewModel.LoginModeRequested += mode => SetLoginMode(mode);
         ViewModel.BackRequested += RequestBack;
         ViewModel.RefreshRequested += RequestRefresh;
 
         _btnUsePassword.Click += (_, _) => SetLoginMode(false);
         _btnUseOAuth.Click += (_, _) => SetLoginMode(true);
 
-        SetLoginMode(false, false);
+        ApplyListedMode(PendingAuthServer);
 
-        AttachedToVisualTree += (_, _) => LocalizationService.LanguageChanged += OnLanguageChanged;
+        AttachedToVisualTree += (_, _) =>
+        {
+            LocalizationService.LanguageChanged += OnLanguageChanged;
+            if (PendingAuthServer is not null)
+                ApplyListedMode(PendingAuthServer);
+        };
         DetachedFromVisualTree +=
             (_, _) => LocalizationService.LanguageChanged -= OnLanguageChanged;
     }
 
     public static string? PendingAuthServer { get; set; }
 
-    public static bool? PendingAuthServerOAuthSupported { get; set; }
-
     public PageLoginAuthViewModel ViewModel { get; } = new();
-
-    internal static Task<bool> IsOAuthSupportedAsync(string authServerUrl)
-    {
-        return PageLoginAuthViewModel.IsOAuthSupportedAsync(authServerUrl);
-    }
 
     private void OnLanguageChanged()
     {
         ViewModel.RefreshLocalization();
         ApplyModeVisibility(ViewModel.IsOAuthMode);
-        UpdateOAuthEntryVisibility();
     }
 
     public override void Reload()
     {
         var pendingServer = PendingAuthServer;
-        var pendingOAuthSupport = PendingAuthServerOAuthSupported;
         PendingAuthServer = null;
-        PendingAuthServerOAuthSupported = null;
-        ViewModel.Reload(pendingServer, pendingOAuthSupport);
+        SetLoginMode(ViewModel.Reload(pendingServer), false);
+    }
+
+    private void ApplyListedMode(string? server)
+    {
+        ViewModel.UseOAuthVisible = PageLoginAuthViewModel.IsListedOAuthServer(server);
+        UpdateOAuthEntryVisibility();
+        SetLoginMode(ViewModel.UseOAuthVisible, false);
     }
 
     #region 模式切换
@@ -93,6 +94,8 @@ public partial class PageLoginAuth : LoginPageBase
         UpdateOAuthEntryVisibility();
         if (!animate || !shouldAnimate)
         {
+            if (!animate)
+                AnimationService.CancelAnimationByName("Profile Authentication Mode");
             ApplyModeVisibility(useOAuth);
             return;
         }
@@ -155,8 +158,7 @@ public partial class PageLoginAuth : LoginPageBase
 
     private void UpdateOAuthEntryVisibility()
     {
-        var available = ViewModel.UseOAuthVisible;
-        Grid.SetColumnSpan(_btnPasswordWebsite, available ? 1 : 3);
+        Grid.SetColumnSpan(_btnPasswordWebsite, ViewModel.UseOAuthVisible ? 1 : 3);
     }
 
     #endregion

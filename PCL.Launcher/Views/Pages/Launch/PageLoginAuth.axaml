@@ -8,8 +8,7 @@
              x:CompileBindings="False"
              x:Class="PCL.Views.Pages.Launch.PageLoginAuth"
              d:DesignWidth="317.6">
-    <Grid Margin="0,0,0,-2"
-          RowDefinitions="Auto,10,Auto,10,Auto,10,Auto,Auto,20,30"
+    <Grid RowDefinitions="Auto,10,Auto,10,Auto,10,Auto,Auto,20,30"
           ColumnDefinitions="50,*">
         <Grid x:Name="PanOAuth"
               Grid.Row="0"

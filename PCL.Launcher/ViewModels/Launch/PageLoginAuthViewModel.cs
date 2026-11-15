@@ -22,7 +22,6 @@ public partial class PageLoginAuthViewModel : ViewModelBase
     private string _authServerUrl = string.Empty;
     private bool _hasRegisterLink;
     private bool _isRegisterMode = true;
-    private bool? _oauthSupported;
 
     [ObservableProperty] public partial bool ControlsEnabled { get; set; } = true;
 
@@ -53,37 +52,32 @@ public partial class PageLoginAuthViewModel : ViewModelBase
     /// <summary>登录成功或档案状态变化后请求启动页刷新。</summary>
     public event Action? RefreshRequested;
 
-    /// <summary>OAuth 探测完成或已知支持状态需要切换登录模式时触发。</summary>
-    public event Action<bool>? LoginModeRequested;
-
     partial void OnUserNameChanged(string value)
     {
         RefreshRegisterState();
     }
 
-    /// <summary>处理拖入的认证服务器与已知的 OAuth 支持状态。</summary>
-    public void Reload(string? pendingServer, bool? knownOAuthSupport)
+    /// <summary>内置 OAuth 服务器清单内的主机。不访问网络。</summary>
+    internal static bool IsListedOAuthServer(string? server)
+    {
+        return Uri.TryCreate(server, UriKind.Absolute, out var uri)
+               && YggdrasilConnectProvider.TryGetBuiltInClientId(uri.Host, out _);
+    }
+
+    /// <summary>处理拖入或选中的认证服务器，并返回是否应直接进入 OAuth。</summary>
+    public bool Reload(string? pendingServer)
     {
         if (pendingServer is not null)
             _authServerUrl = pendingServer;
 
-        if (knownOAuthSupport is { } knownSupport)
-        {
-            _oauthSupported = knownSupport;
-            UseOAuthVisible = knownSupport;
-            LoginModeRequested?.Invoke(knownSupport);
-        }
-        else if (_oauthSupported is null)
-        {
-            var server = _authServerUrl;
-            _ = ProbeOAuthSupportAsync(server);
-        }
-
+        UseOAuthVisible = IsListedOAuthServer(_authServerUrl);
         if (IsLoggingIn)
-            return;
+            return IsOAuthMode;
+
         ControlsEnabled = true;
         LoginButtonText = Lang.Text("Launch.Account.Auth.Login");
         RefreshRegisterState();
+        return UseOAuthVisible;
     }
 
     /// <summary>切换密码 / OAuth 模式；返回是否需要由页面执行切换动画。</summary>
@@ -242,19 +236,6 @@ public partial class PageLoginAuthViewModel : ViewModelBase
             _isRegisterMode ? address : address.Replace("/auth/register", "/auth/forgot"));
     }
 
-    private async Task ProbeOAuthSupportAsync(string server)
-    {
-        var supported = await IsOAuthSupportedAsync(server).ConfigureAwait(false);
-        await Dispatcher.UIThread.InvokeAsync(() =>
-        {
-            if (!string.Equals(_authServerUrl, server, StringComparison.OrdinalIgnoreCase))
-                return;
-            _oauthSupported = supported;
-            UseOAuthVisible = supported;
-            LoginModeRequested?.Invoke(supported);
-        });
-    }
-
     private void FinishLoginAttempt()
     {
         if (!Dispatcher.UIThread.CheckAccess())
@@ -293,42 +274,6 @@ public partial class PageLoginAuthViewModel : ViewModelBase
     }
 
     #region Yggdrasil Connect
-
-    internal static async Task<bool> IsOAuthSupportedAsync(string authServerUrl)
-    {
-        if (Uri.TryCreate(authServerUrl, UriKind.Absolute, out var serverUri)
-            && YggdrasilConnectProvider.TryGetBuiltInClientId(serverUri.Host, out _))
-            return true;
-
-        try
-        {
-            var server = await ApiLocation.TryRequestAsync(authServerUrl).ConfigureAwait(false);
-            using var response = await HttpRequest.Create(server).SendAsync().ConfigureAwait(false);
-            if (!response.IsSuccess) return false;
-            var metadata = (JsonObject)LauncherCommon.GetJson(
-                await response.AsStringAsync().ConfigureAwait(false));
-            var discovery = metadata["meta"]?["feature.openid_configuration_url"]?.ToString()
-                ?? metadata["feature.openid_configuration_url"]?.ToString();
-            if (string.IsNullOrWhiteSpace(discovery)) return false;
-
-            using var discoveryResponse =
-                await HttpRequest.Create(discovery).SendAsync().ConfigureAwait(false);
-            if (!discoveryResponse.IsSuccess) return false;
-            var discoveryMetadata = (JsonObject)LauncherCommon.GetJson(
-                await discoveryResponse.AsStringAsync().ConfigureAwait(false));
-            var clientId = GetClientId(server, discoveryMetadata);
-            var deviceEndpoint = discoveryMetadata["device_authorization_endpoint"]?.ToString();
-            var tokenEndpoint = discoveryMetadata["token_endpoint"]?.ToString();
-            return !string.IsNullOrWhiteSpace(clientId)
-                && !string.IsNullOrWhiteSpace(deviceEndpoint)
-                && !string.IsNullOrWhiteSpace(tokenEndpoint);
-        }
-        catch (Exception ex)
-        {
-            LogWrapper.Debug(ex, "Launch", "检测 Yggdrasil Connect 支持失败");
-            return false;
-        }
-    }
 
     private static string? GetClientId(string authServerUrl, JsonObject discoveryMetadata)
     {
