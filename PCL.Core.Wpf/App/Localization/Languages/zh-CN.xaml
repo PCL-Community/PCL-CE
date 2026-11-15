@@ -3216,7 +3216,7 @@
     <sys:String x:Key="Setup.Ui.Homepage.Preset.DailyModpack">每日整合包推荐（作者：wkea）</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.EchoCave">回声洞 (已移除)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.GitHub">PCL GitHub 仪表盘（作者：Deep-Dark-Forest）</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.Magazine">杂志主页（作者：CreeperIsASpy）</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.Magazine">杂志主页（作者：正源 Neclyon）</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McNews">Minecraft 新闻（作者：最亮的信标）</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McOfficialFeed">Minecraft 官方信息流</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McSkin">Minecraft 皮肤推荐（作者：wkea）</sys:String>
