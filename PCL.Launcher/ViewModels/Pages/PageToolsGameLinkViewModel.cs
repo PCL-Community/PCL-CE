@@ -1050,7 +1050,7 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            LogWrapper.Error(ex, "Link", "获取联机大厅公告失败");
+            LogWrapper.Warn(ex, "Link", "获取联机大厅公告失败");
             if (!IsCurrentAnnouncementRequest(requestId))
                 return;
 
@@ -1116,7 +1116,7 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
             catch (Exception ex)
             {
                 lastError = ex;
-                LogWrapper.Error(ex, "Link", $"从服务器 {server} 获取联机大厅公告失败");
+                LogWrapper.Warn(ex, "Link", $"从服务器 {server} 获取联机大厅公告失败");
                 if (!TryApplyCurrentAnnouncementRequest(
                         requestId,
                         () =>

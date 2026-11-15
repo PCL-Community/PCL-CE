@@ -165,7 +165,7 @@ public class MinecraftServer : Grid
         }
         catch (Exception ex)
         {
-            LogWrapper.Error(ex, "MinecraftServer", "[MinecraftServer] 信息查询失败");
+            LogWrapper.Warn(ex, "MinecraftServer", "[MinecraftServer] 信息查询失败");
             _labServerDesc.Text = Lang.Text("Tools.ServerQuery.Error.UnableToConnect", ex.Message);
             _isErrorText = true;
             _labServerDesc.Foreground = Brushes.Red;

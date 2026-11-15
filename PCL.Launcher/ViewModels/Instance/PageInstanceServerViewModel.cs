@@ -3,6 +3,7 @@ using Avalonia.Input.Platform;
 using CommunityToolkit.Mvvm.ComponentModel;
 using fNbt;
 using PCL.Core.App.Localization;
+using PCL.Core.Logging;
 using PCL.Core.Minecraft;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
@@ -132,7 +133,7 @@ public partial class PageInstanceServerViewModel : ViewModelBase
                 }
                 catch (Exception ex)
                 {
-                    LauncherCommon.Log(ex, $"Ping 服务器失败：{card.Address}");
+                    LogWrapper.Warn(ex, "Launcher", $"Ping 服务器失败：{card.Address}");
                 }
                 finally
                 {

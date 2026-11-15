@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using PCL.Core.App.Localization;
 using PCL.Core.Link.McPing;
 using PCL.Core.Link.McPing.Model;
+using PCL.Core.Logging;
 using PCL.Core.Minecraft;
 using PCL.Core.UI.Hints;
 using PCL.Core.ViewModel;
@@ -109,7 +110,7 @@ public partial class ServerCardViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            LauncherCommon.Log(ex, $"Ping 服务器失败：{Address}");
+            LogWrapper.Warn(ex, "Launcher", $"Ping 服务器失败：{Address}");
             ShowOffline();
         }
     }
