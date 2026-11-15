@@ -203,7 +203,7 @@ public partial class PageLaunchRight : IRefreshable
                 case 7:
                     LogWrapper.Info("[Page] 主页预设：杂志主页");
                     url =
-                        "https://gh-proxy.com/https://github.com/Neclyon/Magazine-Homepage-PCL/raw/main/output/Custom.xaml";
+                        "https://github.com/Neclyon/Magazine-Homepage-PCL/raw/main/output/Custom.xaml";
                     content = LoadFromNetwork(url);
                     break;
 
