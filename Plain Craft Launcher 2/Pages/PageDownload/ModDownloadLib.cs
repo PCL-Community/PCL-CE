@@ -4092,7 +4092,15 @@ public static class ModDownloadLib
             Directory.CreateDirectory(resourcepacksFolder);
             ModBase.Log("[Download] 自动创建资源包文件夹：" + resourcepacksFolder);
             // 回收站与实际资源目录使用相同的版本隔离路径。
-            new ResourceUpdateRecycleBin(new McInstance(instanceFolder).PathIndie).InitializeFolders();
+            // 回收站不可用不应使已完成的游戏安装失败并触发实例清理。
+            try
+            {
+                new ResourceUpdateRecycleBin(new McInstance(instanceFolder).PathIndie).InitializeFolders();
+            }
+            catch (Exception ex)
+            {
+                ModBase.Log(ex, "创建实例资源回收站失败");
+            }
         })
         {
             ProgressWeight = 2d,
