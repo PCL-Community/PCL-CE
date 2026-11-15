@@ -655,10 +655,7 @@ public partial class PageSelectLeftViewModel : ViewModelBase
         var location = folder.Location;
         var minecraftFolder =
             LauncherPaths.DefaultMinecraftDirectory + separator;
-        var mojangFolder = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                ".minecraft")
-            + separator;
+        var mojangFolder = LauncherPaths.OfficialMinecraftDirectory;
         string name;
         if (location == minecraftFolder
             || location == LauncherPaths.UserDataRoot)

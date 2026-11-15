@@ -161,10 +161,7 @@ public static class GameFolders
             LauncherCommon.Log(ex, "扫描 PCL 所在文件夹中是否有 MC 文件夹失败");
         }
 
-        var mojangPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                ".minecraft")
-            + Path.DirectorySeparatorChar;
+        var mojangPath = LauncherPaths.OfficialMinecraftDirectory;
         if ((currentMcFolderList.Count == 0
                 || mojangPath != currentMcFolderList[0].Location)
             && Directory.Exists(Path.Combine(mojangPath, "versions")))

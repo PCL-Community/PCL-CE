@@ -54,6 +54,27 @@ public static class LauncherPaths
         }
     }
 
+    /// <summary>
+    ///     官方启动器的默认 Minecraft 文件夹，以路径分隔符结尾。
+    ///     Windows 为 <c>%APPDATA%\.minecraft</c>，macOS 为 <c>~/Library/Application Support/minecraft</c>，
+    ///     Linux 为 <c>~/.minecraft</c>。
+    /// </summary>
+    public static string OfficialMinecraftDirectory => _WithTrailingSeparator(
+        PlatformRuntime.Current.Kind switch
+        {
+            PlatformKind.Windows => Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                ".minecraft"),
+            PlatformKind.MacOs => Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                "Library",
+                "Application Support",
+                "minecraft"),
+            _ => Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                ".minecraft")
+        });
+
     /// <summary>当前 Minecraft 文件夹路径，由 WPF 宿主同步设置。</summary>
     public static string? MinecraftFolder { get; set; }
 
