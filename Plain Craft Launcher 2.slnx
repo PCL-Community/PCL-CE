@@ -13,6 +13,7 @@
     <Project Path="PCL.Launcher.Core\PCL.Launcher.Core.csproj" Type="C#" />
     <Project Path="PCL.Core.SourceGenerators\PCL.Core.SourceGenerators.csproj" Type="C#" />
     <Project Path="PCL.Core.UI\PCL.Core.UI.csproj" Type="C#" />
+    <Project Path="PCL.Platform\PCL.Platform.csproj" Type="C#" />
     <Project Path="PCL.Localization\PCL.Localization.csproj" Type="C#" />
     <Project Path="PCL.Launcher\PCL.Launcher.csproj" Type="C#" />
 </Solution>

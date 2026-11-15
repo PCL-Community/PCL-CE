@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-    <!-- PCL 的界面层：跨平台 net11.0。 -->
     <PropertyGroup>
         <AssemblyTitle>PCL</AssemblyTitle>
         <AssemblyName>PCL.Launcher</AssemblyName>
@@ -60,6 +59,7 @@
     <ItemGroup>
         <ProjectReference Include="..\PCL.Core.UI\PCL.Core.UI.csproj" />
         <ProjectReference Include="..\PCL.Launcher.Core\PCL.Launcher.Core.csproj" />
+        <ProjectReference Include="..\PCL.Platform\PCL.Platform.csproj" />
     </ItemGroup>
     <Target Name="RemovePublishPdbs" AfterTargets="Publish" Condition="'$(Configuration)' != 'Debug'">
         <ItemGroup>

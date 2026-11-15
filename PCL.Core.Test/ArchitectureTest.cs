@@ -1,6 +1,8 @@
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PCL.Core.App;
+using PCL.Core.UI;
+using PCL.Platform;
 
 namespace PCL.Test;
 
@@ -46,6 +48,32 @@ public sealed class ArchitectureTest
             .ToList();
 
         Assert.DoesNotContain("PCL.Core.UI", references);
+        Assert.DoesNotContain("PCL.Platform", references);
         Assert.DoesNotContain("Avalonia", references);
+    }
+
+    [TestMethod]
+    public void Platform_DoesNotReferenceUiOrAvalonia()
+    {
+        var references = typeof(PlatformModuleFactory)
+            .Assembly
+            .GetReferencedAssemblies()
+            .Select(assembly => assembly.Name)
+            .ToList();
+
+        Assert.DoesNotContain("PCL.Core.UI", references);
+        Assert.DoesNotContain("Avalonia", references);
+    }
+
+    [TestMethod]
+    public void CoreUi_DoesNotReferencePlatform()
+    {
+        var references = typeof(UiModuleFactory)
+            .Assembly
+            .GetReferencedAssemblies()
+            .Select(assembly => assembly.Name)
+            .ToList();
+
+        Assert.DoesNotContain("PCL.Platform", references);
     }
 }

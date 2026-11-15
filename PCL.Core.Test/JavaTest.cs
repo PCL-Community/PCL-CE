@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PCL.Core.Minecraft.Java;
 using PCL.Core.Minecraft.Java.Scanner;
 using PCL.Core.Platform;
-using PCL.Core.UI;
+using PCL.Platform;
 
 namespace PCL.Core.Test;
 

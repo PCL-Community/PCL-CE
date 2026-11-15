@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PCL.Core.Platform;
-using PCL.Core.UI;
+using PCL.Platform;
 
 namespace PCL.Core.Test.IO;
 

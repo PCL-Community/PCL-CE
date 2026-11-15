@@ -1,9 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
-    <!-- PCL.Core 的 UI 适配层：把 PlatformServices 的服务与宿主接口绑定到界面框架。 -->
     <PropertyGroup>
         <AssemblyTitle>PCL.Core.UI</AssemblyTitle>
         <AssemblyName>PCL.Core.UI</AssemblyName>
-        <Description>PCL.Core 的 UI 适配层</Description>
+        <Description>PCL CE 的 Avalonia UI 适配层</Description>
         <Company>PCL Community</Company>
         <Product>PCL.Core.UI</Product>
         <RootNamespace>PCL.Core.UI</RootNamespace>
@@ -23,7 +22,6 @@
         <ProjectReference Include="..\PCL.Core\PCL.Core.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <!-- 语言资源字典：由 WPF 语言 XAML 机械转换而来（仅命名空间差异），文件归属中立的 PCL.Localization，此处链接为界面资源 -->
         <AvaloniaResource Include="..\PCL.Localization\Languages\*.axaml">
             <Link>Localization\Languages\%(Filename)%(Extension)</Link>
         </AvaloniaResource>

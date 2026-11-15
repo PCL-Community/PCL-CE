@@ -46,6 +46,7 @@
     <ItemGroup>
         <ProjectReference Include="..\PCL.Core\PCL.Core.csproj" />
         <ProjectReference Include="..\PCL.Core.UI\PCL.Core.UI.csproj" />
+        <ProjectReference Include="..\PCL.Platform\PCL.Platform.csproj" />
         <ProjectReference Include="..\PCL.Launcher.Core\PCL.Launcher.Core.csproj" />
         <ProjectReference Include="..\PCL.Launcher\PCL.Launcher.csproj" />
     </ItemGroup>
