@@ -9,7 +9,10 @@ namespace PCL.Core.Test.IO;
 [TestClass]
 public class RecycleBinTest
 {
-    private readonly IRecycleBinService _bin = PlatformModuleFactory.Create().RecycleBin;
+    private readonly IRecycleBinService _bin = PlatformModuleFactory
+        .Create(PlatformDetector.Detect())
+        .RecycleBin;
+
     private string? _originalDataHome;
     private string _sandboxRoot = string.Empty;
     private string _trashRoot = string.Empty;
@@ -20,7 +23,7 @@ public class RecycleBinTest
         _originalDataHome = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
         _sandboxRoot = Path.Combine(
             AppContext.BaseDirectory,
-            "recycle-bin-test-" + Guid.NewGuid().ToString("N")[..8]);
+            $"recycle-bin-test-{Guid.NewGuid().ToString("N")[..8]}");
         _trashRoot = Path.Combine(_sandboxRoot, "xdg-data");
         Directory.CreateDirectory(_sandboxRoot);
         Environment.SetEnvironmentVariable("XDG_DATA_HOME", _trashRoot);

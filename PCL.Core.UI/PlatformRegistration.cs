@@ -4,12 +4,12 @@ using PCL.Core.Logging;
 
 namespace PCL.Core.UI;
 
-/// <summary>将当前平台模块注册到全局运行时。</summary>
+/// <summary>将指定平台的模块注册到全局运行时。</summary>
 public static class PlatformRegistration
 {
-    public static PlatformModule Register()
+    public static PlatformModule Register(PlatformKind kind)
     {
-        var module = PlatformModuleFactory.Create();
+        var module = PlatformModuleFactory.Create(kind);
         PlatformRuntime.Initialize(module);
 
         PlatformServices.UiDispatcher = new AvaloniaUiDispatcher();

@@ -8,14 +8,18 @@ using PCL.Core.Utils.Secret;
 
 namespace PCL.Core.UI;
 
-/// <summary>唯一的平台选择入口。只负责组装平台模块，不承载业务逻辑。</summary>
+/// <summary>根据已检测到的平台组装平台模块。只负责组装，不承载业务逻辑。</summary>
 public static class PlatformModuleFactory
 {
-    public static PlatformModule Create()
+    public static PlatformModule Create(PlatformKind kind)
     {
-        if (OperatingSystem.IsWindows()) return CreateWindows();
-        if (OperatingSystem.IsMacOS()) return CreateMacOs();
-        return CreateLinux();
+        return kind switch
+        {
+            PlatformKind.Windows => CreateWindows(),
+            PlatformKind.Linux => CreateLinux(),
+            PlatformKind.MacOs => CreateMacOs(),
+            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "不支持的平台")
+        };
     }
 
     private static PlatformModule CreateWindows()

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PCL.Core.Minecraft.Java;
 using PCL.Core.Minecraft.Java.Scanner;
+using PCL.Core.Platform;
 using PCL.Core.UI;
 
 namespace PCL.Core.Test;
@@ -16,7 +17,7 @@ public class JavaTest
     {
         // Java 搜索是否稳定
         var jas = new JavaManager(
-            PlatformModuleFactory.Create().Java.CreateParser(),
+            PlatformModuleFactory.Create(PlatformDetector.Detect()).Java.CreateParser(),
             new RegistryJavaScanner(),
             new DefaultPathsScanner(),
             new PathEnvironmentScanner(),
@@ -46,6 +47,7 @@ public class JavaTest
                 > 0));
         // Java 是否有重复
         Assert.DoesNotContain(
-            x => x.Count() > 1, secondScaned.GroupBy(x => x.Installation.JavaExePath));
+            x => x.Count() > 1,
+            secondScaned.GroupBy(x => x.Installation.JavaExePath));
     }
 }
