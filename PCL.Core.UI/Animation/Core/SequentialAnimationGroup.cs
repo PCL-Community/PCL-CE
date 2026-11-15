@@ -2,9 +2,7 @@ using PCL.Core.UI.Animation.Animatable;
 
 namespace PCL.Core.UI.Animation.Core;
 
-/// <summary>
-///     按顺序执行的动画集合。
-/// </summary>
+/// <summary>按顺序执行的动画集合。</summary>
 public sealed class SequentialAnimationGroup : AnimationGroup
 {
     private TaskCompletionSource? _cancelTcs;
@@ -65,7 +63,7 @@ public sealed class SequentialAnimationGroup : AnimationGroup
 
     public override IAnimation RunFireAndForget(IAnimatable target)
     {
-        _ = RunAsync(target);
+        AnimationTaskObserver.Observe(RunAsync(target), "执行串行动画组失败");
         return this;
     }
 }

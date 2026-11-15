@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using PCL.Core.Logging;
 using PCL.Core.UI.Animation.Animatable;
 using PCL.Core.UI.Animation.Easings;
 using PCL.Core.UI.Animation.ValueProcessor;
@@ -7,21 +8,18 @@ namespace PCL.Core.UI.Animation.Core;
 
 internal interface IClockSampledAnimation
 {
-    void ArmClock(long startStamp);
-
     bool IsClockFinished { get; }
+    void ArmClock(long startStamp);
 }
 
 public class FromToAnimationBase<T> : AnimationBase, IFromToAnimation, IClockSampledAnimation
 {
+    private bool _clockArmed;
+    private long _clockStartStamp;
     private int _currentFrame;
-
     private bool _hasPreviousValue;
     private T? _previousValue;
     private T? _startValue;
-    private bool _clockArmed;
-    private bool _clockFinished;
-    private long _clockStartStamp;
 
     public IEasing Easing { get; set; } = new LinearEasing();
     public T From { get; set; } = default!;
@@ -31,6 +29,15 @@ public class FromToAnimationBase<T> : AnimationBase, IFromToAnimation, IClockSam
     public TimeSpan Duration { get; set; }
     public TimeSpan Delay { get; set; }
     public T? CurrentValue { get; internal set; }
+
+    internal bool IsClockFinished { get; private set; }
+
+    void IClockSampledAnimation.ArmClock(long startStamp)
+    {
+        ArmClock(startStamp);
+    }
+
+    bool IClockSampledAnimation.IsClockFinished => IsClockFinished;
 
     object? IFromToAnimation.CurrentValue
     {
@@ -50,54 +57,6 @@ public class FromToAnimationBase<T> : AnimationBase, IFromToAnimation, IClockSam
         get => Interlocked.CompareExchange(ref _currentFrame, 0, 0);
         set => Interlocked.Exchange(ref _currentFrame, value);
     }
-    internal void ArmClock(long startStamp)
-    {
-        if (_clockArmed) return;
-
-        _clockArmed = true;
-        _clockStartStamp = startStamp;
-    }
-
-    internal bool IsClockFinished => _clockFinished;
-
-    void IClockSampledAnimation.ArmClock(long startStamp)
-    {
-        ArmClock(startStamp);
-    }
-
-    bool IClockSampledAnimation.IsClockFinished => _clockFinished;
-
-    /// <summary>
-    ///     帧回调驱动时按墙钟进度采样，使任意刷新率下时长不变且每帧都有新值。
-    ///     未武装时钟时仍按 <see cref="CurrentFrame" /> 逐帧采样，供测试和手动驱动使用。
-    /// </summary>
-    protected double SampleEasedProgress()
-    {
-        if (!_clockArmed)
-            return Easing.Ease(CurrentFrame, TotalFrames);
-
-        if (_clockFinished)
-            return Easing.Ease(1d);
-
-        var speed = AnimationService.Speed;
-        if (speed is <= 0d or >= 200d || Duration <= TimeSpan.Zero)
-        {
-            _clockFinished = true;
-            return Easing.Ease(1d);
-        }
-
-        // 与原逐帧公式一致：墙钟时长 = Duration * Speed。Speed 为 1 时等于设定时长。
-        var span = Duration.TotalSeconds * speed;
-        var elapsed = (Stopwatch.GetTimestamp() - _clockStartStamp)
-            / (double)Stopwatch.Frequency;
-        if (elapsed >= span)
-        {
-            _clockFinished = true;
-            return Easing.Ease(1d);
-        }
-
-        return Easing.Ease(elapsed / span);
-    }
 
 
     public override Task<IAnimation> RunAsync(IAnimatable target)
@@ -111,31 +70,41 @@ public class FromToAnimationBase<T> : AnimationBase, IFromToAnimation, IClockSam
 
     public override IAnimation RunFireAndForget(IAnimatable target)
     {
-        var actualTarget = Target ?? target;
-        var clone = Prepare(actualTarget);
-        if (clone.Status == AnimationStatus.Completed)
-            return clone;
-
-        var delay = AnimationService.ScaleDuration(clone.Delay);
-        if (delay <= TimeSpan.Zero)
+        try
         {
-            AnimationService.PushAnimationFireAndForget(clone, actualTarget);
+            var actualTarget = Target ?? target;
+            var clone = Prepare(actualTarget);
+            if (clone.Status == AnimationStatus.Completed)
+                return clone;
+
+            var delay = AnimationService.ScaleDuration(clone.Delay);
+            if (delay <= TimeSpan.Zero)
+            {
+                AnimationService.PushAnimationFireAndForget(clone, actualTarget);
+                return clone;
+            }
+
+            AnimationTaskObserver.Observe(
+                Task.Run(async () =>
+                {
+                    await Task.Delay(delay);
+                    if (clone.Status != AnimationStatus.Canceled)
+                        AnimationService.PushAnimationFireAndForget(clone, actualTarget);
+                }),
+                "延迟启动动画失败");
+
             return clone;
         }
-
-        _ = Task.Run(async () =>
+        catch (Exception ex)
         {
-            await Task.Delay(delay);
-            if (clone.Status != AnimationStatus.Canceled)
-                AnimationService.PushAnimationFireAndForget(clone, actualTarget);
-        });
-
-        return clone;
+            LogWrapper.Warn(ex, "Animation", $"启动动画失败：{Name}");
+            Status = AnimationStatus.Completed;
+            return this;
+        }
     }
 
     public override void Cancel()
     {
-        // 确保正常结束
         Interlocked.Exchange(ref _currentFrame, TotalFrames);
 
         Status = AnimationStatus.Canceled;
@@ -163,6 +132,45 @@ public class FromToAnimationBase<T> : AnimationBase, IFromToAnimation, IClockSam
 
         Status = AnimationStatus.Completed;
         return null;
+    }
+
+    internal void ArmClock(long startStamp)
+    {
+        if (_clockArmed) return;
+
+        _clockArmed = true;
+        _clockStartStamp = startStamp;
+    }
+
+    /// <summary>
+    /// 帧回调驱动时按墙钟进度采样，使任意刷新率下时长不变且每帧都有新值。 未武装时钟时仍按 <see cref="CurrentFrame" />
+    /// 逐帧采样，供测试和手动驱动使用。
+    /// </summary>
+    protected double SampleEasedProgress()
+    {
+        if (!_clockArmed)
+            return Easing.Ease(CurrentFrame, TotalFrames);
+
+        if (IsClockFinished)
+            return Easing.Ease(1d);
+
+        var speed = AnimationService.Speed;
+        if (speed is <= 0d or >= 200d || Duration <= TimeSpan.Zero)
+        {
+            IsClockFinished = true;
+            return Easing.Ease(1d);
+        }
+
+        var span = Duration.TotalSeconds * speed;
+        var elapsed = (Stopwatch.GetTimestamp() - _clockStartStamp)
+            / (double)Stopwatch.Frequency;
+        if (elapsed >= span)
+        {
+            IsClockFinished = true;
+            return Easing.Ease(1d);
+        }
+
+        return Easing.Ease(elapsed / span);
     }
 
     private static async Task<IAnimation> RunDelayedAsync(
@@ -215,21 +223,23 @@ public class FromToAnimationBase<T> : AnimationBase, IFromToAnimation, IClockSam
 
     private void _RunCore(IAnimatable target)
     {
-        // 重置当前帧与相对动画的上一帧状态
         _currentFrame = 0;
         _hasPreviousValue = false;
         _previousValue = default;
         _clockArmed = false;
-        _clockFinished = false;
+        IsClockFinished = false;
         _clockStartStamp = 0;
 
-        // 空值检查
+        ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(To);
 
-        // 记录初始值
-        _startValue = (T)target.GetValue()!;
+        var current = target.GetValue();
+        _startValue = current is T typed
+            ? typed
+            : HasFrom
+                ? From
+                : ValueProcessorManager.DefaultValue<T>();
 
-        // 未显式提供 From 时，绝对动画从当前值开始，相对动画从默认值开始。
         if (!HasFrom)
             From = ValueType == AnimationValueType.Relative
                 ? ValueProcessorManager.DefaultValue<T>()
@@ -239,7 +249,6 @@ public class FromToAnimationBase<T> : AnimationBase, IFromToAnimation, IClockSam
             1,
             (int)Math.Round(Duration.TotalSeconds * AnimationService.Fps * AnimationService.Speed));
 
-        // 设置状态
         Status = AnimationStatus.Running;
     }
 }

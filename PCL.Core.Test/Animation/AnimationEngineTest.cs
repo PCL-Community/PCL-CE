@@ -153,6 +153,55 @@ public sealed class AnimationEngineTest
     }
 
     [TestMethod]
+    public void NullInitialValueWithoutFromUsesDefault()
+    {
+        var animation = new DoubleFromToAnimation
+        {
+            To = 7d,
+            Duration = TimeSpan.FromSeconds(1),
+            Easing = new LinearEasing()
+        };
+
+        animation.PrepareForTest(EmptyAnimatable.Instance);
+
+        Assert.AreEqual(AnimationStatus.Running, animation.Status);
+        Assert.IsNotNull(animation.ComputeNextFrame(EmptyAnimatable.Instance));
+    }
+
+    [TestMethod]
+    public void FireAndForgetWithNullInitialValueDoesNotThrow()
+    {
+        AnimationService.Speed = 0d;
+        var animation = new DoubleFromToAnimation
+        {
+            To = 5d,
+            Duration = TimeSpan.FromSeconds(1),
+            Easing = new LinearEasing()
+        };
+
+        var result = animation.RunFireAndForget(EmptyAnimatable.Instance);
+        Assert.AreEqual(AnimationStatus.Completed, result.Status);
+    }
+
+    [TestMethod]
+    public void NullInitialColorUsesExplicitFrom()
+    {
+        var animation = new NColorFromToAnimation
+        {
+            From = new NColor(1d, 2d, 3d),
+            HasFrom = true,
+            To = new NColor(4d, 5d, 6d),
+            Duration = TimeSpan.FromSeconds(1),
+            Easing = new LinearEasing()
+        };
+
+        animation.PrepareForTest(EmptyAnimatable.Instance);
+
+        Assert.AreEqual(AnimationStatus.Running, animation.Status);
+        Assert.IsNotNull(animation.ComputeNextFrame(EmptyAnimatable.Instance));
+    }
+
+    [TestMethod]
     public void SuspensionScopeIsReentrant()
     {
         Assert.IsFalse(AnimationService.IsSuspended);
@@ -209,12 +258,11 @@ public sealed class AnimationEngineTest
             "test-order");
 
         Assert.AreSequenceEqual(
-            new[]
-            {
+            [
                 1,
                 2,
                 3
-            },
+            ],
             calls);
     }
 

@@ -1,10 +1,9 @@
+using PCL.Core.Logging;
 using PCL.Core.UI.Animation.Animatable;
 
 namespace PCL.Core.UI.Animation.Core;
 
-/// <summary>
-///     用于在动画系统中执行 Action。
-/// </summary>
+/// <summary>用于在动画系统中执行 Action。</summary>
 public class ActionAnimation : AnimationBase
 {
     private int _called;
@@ -71,26 +70,37 @@ public class ActionAnimation : AnimationBase
 
     public override IAnimation RunFireAndForget(IAnimatable target)
     {
-        var actualTarget = Target ?? target;
-        var clone = Prepare();
-        if (clone.Status == AnimationStatus.Completed)
-            return clone;
-
-        var delay = AnimationService.ScaleDuration(clone.Delay);
-        if (delay <= TimeSpan.Zero)
+        try
         {
-            AnimationService.PushAnimationFireAndForget(clone, actualTarget);
+            var actualTarget = Target ?? target;
+            var clone = Prepare();
+            if (clone.Status == AnimationStatus.Completed)
+                return clone;
+
+            var delay = AnimationService.ScaleDuration(clone.Delay);
+            if (delay <= TimeSpan.Zero)
+            {
+                AnimationService.PushAnimationFireAndForget(clone, actualTarget);
+                return clone;
+            }
+
+            AnimationTaskObserver.Observe(
+                Task.Run(async () =>
+                {
+                    await Task.Delay(delay);
+                    if (clone.Status != AnimationStatus.Canceled)
+                        AnimationService.PushAnimationFireAndForget(clone, actualTarget);
+                }),
+                "延迟启动动画失败");
+
             return clone;
         }
-
-        _ = Task.Run(async () =>
+        catch (Exception ex)
         {
-            await Task.Delay(delay);
-            if (clone.Status != AnimationStatus.Canceled)
-                AnimationService.PushAnimationFireAndForget(clone, actualTarget);
-        });
-
-        return clone;
+            LogWrapper.Warn(ex, "Animation", $"启动动画失败：{Name}");
+            Status = AnimationStatus.Completed;
+            return this;
+        }
     }
 
     private ActionAnimation Prepare()
@@ -105,19 +115,19 @@ public class ActionAnimation : AnimationBase
 
         if (!AnimationService.IsInstant) return clone;
 
-        void RunInstant()
-        {
-            clone.Action(clone._cts.Token);
-            clone.Status = AnimationStatus.Completed;
-            clone.RaiseCompleted();
-        }
-
         if (AnimationService.UiAccessProvider.CheckAccess())
             RunInstant();
         else
             AnimationService.UiAccessProvider.Invoke(RunInstant);
 
         return clone;
+
+        void RunInstant()
+        {
+            clone.Action(clone._cts.Token);
+            clone.Status = AnimationStatus.Completed;
+            clone.RaiseCompleted();
+        }
     }
 
     public override void Cancel()

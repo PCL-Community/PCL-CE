@@ -8,9 +8,9 @@ using PCL.Core.Logging;
 namespace PCL.UI.Controls.SvgIcon;
 
 /// <summary>
-///     按名称渲染 SVG 图标：先按 <see cref="Icon" /> 与 <see cref="DefaultPack" /> 加载模型，再按 <see cref="Stretch" />
-///     缩放绘制。
-///     图标资源位于 <c>avares://PCL.Launcher/Assets/IconPacks/{pack}/{name}.svg</c>。
+/// 按名称渲染 SVG 图标：先按 <see cref="Icon" /> 与 <see cref="DefaultPack" /> 加载模型，再按
+/// <see cref="Stretch" /> 缩放绘制。 图标资源位于
+/// <c>avares://PCL.Launcher/Assets/IconPacks/{pack}/{name}.svg</c>。
 /// </summary>
 public class SvgIcon : Control
 {
@@ -58,9 +58,6 @@ public class SvgIcon : Control
         set => SetValue(DefaultPackProperty, value);
     }
 
-    /// <summary>
-    ///     未显式设置时使用页面文本色（<c>ColorBrush1</c>），找不到资源时回退为黑色。
-    /// </summary>
     public IBrush? IconBrush
     {
         get => GetValue(IconBrushProperty);
@@ -85,11 +82,6 @@ public class SvgIcon : Control
         set => SetValue(StretchProperty, value);
     }
 
-    /// <summary>
-    ///     把图标颜色过渡到目标颜色，默认耗时 120 ms，缓动为 CubicEaseOut。
-    ///     同名动画开始前先经 <see cref="AnimationService.CancelAnimationByName" /> 取消旧动画，
-    ///     过渡结束会写一条带目标时长与实测时长的 Debug 日志。
-    /// </summary>
     public void AnimateIconBrushTo(
         NColor color,
         TimeSpan? duration = null,
@@ -106,9 +98,15 @@ public class SvgIcon : Control
         _colorAnimationTargetMilliseconds = targetDuration.TotalMilliseconds;
 
         IAnimation? running = null;
+        var startBrush = IconBrush ?? _GetFallbackIconBrush();
+        var startColor = startBrush is ISolidColorBrush solid
+            ? new NColor(solid.Color)
+            : new NColor(0f, 0f, 0f, 0f);
         var animation = new NColorFromToAnimation
         {
             Name = name,
+            From = startColor,
+            HasFrom = true,
             To = (Color)color,
             Duration = targetDuration,
             Easing = easing as IEasing ?? new CubicEaseOut()

@@ -15,10 +15,7 @@ using PCL.Core.UI.Animation.ValueProcessor;
 
 namespace PCL.Core.UI.Animation.Core;
 
-/// <summary>
-///     动画服务：在 UI 线程的渲染帧回调里同步计算并写回属性。
-///     没有活动动画时不订阅帧源，避免把合成节拍锁在 60Hz 定时器上。
-/// </summary>
+/// <summary>动画服务：在 UI 线程的渲染帧回调里同步计算并写回属性。 没有活动动画时不订阅帧源，避免把合成节拍锁在 60Hz 定时器上。</summary>
 [LifecycleService(LifecycleState.WindowCreating)]
 public sealed class AnimationService : GeneralService
 {
@@ -38,9 +35,8 @@ public sealed class AnimationService : GeneralService
     public static int Fps { get; set; } = 60;
 
     /// <summary>
-    ///     是否优先使用固定定时器而不是 RequestAnimationFrame 驱动动画。
-    ///     原生 Wayland 后端在持续动画期间会让 RAF 以远高于刷新率的频率回调，
-    ///     由平台层在确定使用原生 Wayland 时置为 true，避免 UI 线程从第一帧开始自旋。
+    /// 是否优先使用固定定时器而不是 RequestAnimationFrame 驱动动画。 原生 Wayland 后端在持续动画期间会让 RAF
+    /// 以远高于刷新率的频率回调， 由平台层在确定使用原生 Wayland 时置为 true，避免 UI 线程从第一帧开始自旋。
     /// </summary>
     public static bool PreferTimerClock { get; set; }
 
@@ -445,7 +441,9 @@ public sealed class AnimationService : GeneralService
         if (UiAccessProvider.CheckAccess())
             Activate(animation, target);
         else
-            _ = UiAccessProvider.InvokeAsync(() => Activate(animation, target));
+            AnimationTaskObserver.Observe(
+                UiAccessProvider.InvokeAsync(() => Activate(animation, target)),
+                "在 UI 线程激活动画失败");
     }
 
     private static void Activate(IAnimation animation, IAnimatable target)
@@ -479,9 +477,7 @@ public sealed class AnimationService : GeneralService
         if (NamedAnimations.TryRemove(name, out var animation)) animation.Cancel();
     }
 
-    /// <summary>
-    ///     惰性启动动画服务；重复调用无副作用。
-    /// </summary>
+    /// <summary>惰性启动动画服务；重复调用无副作用。</summary>
     public static void EnsureStarted()
     {
         if (_initialized) return;
@@ -494,9 +490,7 @@ public sealed class AnimationService : GeneralService
         }
     }
 
-    /// <summary>
-    ///     停止动画服务并释放帧循环资源。
-    /// </summary>
+    /// <summary>停止动画服务并释放帧循环资源。</summary>
     public static void StopService()
     {
         lock (InitLock)

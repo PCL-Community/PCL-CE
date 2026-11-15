@@ -2,9 +2,7 @@ using PCL.Core.UI.Animation.Animatable;
 
 namespace PCL.Core.UI.Animation.Core;
 
-/// <summary>
-///     同时执行的动画集合。
-/// </summary>
+/// <summary>同时执行的动画集合。</summary>
 public sealed class ParallelAnimationGroup : AnimationGroup
 {
     private TaskCompletionSource? _cancelTcs;
@@ -57,7 +55,7 @@ public sealed class ParallelAnimationGroup : AnimationGroup
 
     public override IAnimation RunFireAndForget(IAnimatable target)
     {
-        _ = RunAsync(target);
+        AnimationTaskObserver.Observe(RunAsync(target), "执行并行动画组失败");
         return this;
     }
 }
