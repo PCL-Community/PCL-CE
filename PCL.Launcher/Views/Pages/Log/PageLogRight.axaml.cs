@@ -10,10 +10,7 @@ using PCL.UI.Controls;
 
 namespace PCL.Views.Pages.Log;
 
-/// <summary>
-///     游戏实时日志页右栏：按级别着色渲染当前日志，并提供导出、清空、结束进程与线程快照操作。
-///     正文使用可选中文本与虚拟化列表，避免长日志一次性创建全部控件。
-/// </summary>
+/// <summary>游戏实时日志页右栏：按级别着色渲染当前日志，并提供导出、清空、结束进程与线程快照操作。 正文使用可选中文本与虚拟化列表，避免长日志一次性创建全部控件。</summary>
 public partial class PageLogRight : MyPageRight, IRefreshable
 {
     private bool _refreshed;
@@ -138,15 +135,22 @@ public partial class PageLogRight : MyPageRight, IRefreshable
         });
     }
 
-    private SelectableTextBlock CreateLogLine(PageLogLeft.LogLine line)
+    private SelectableTextBlock CreateLogLine(PageLogLeft.LogLine? line)
     {
-        return new SelectableTextBlock
+        return line switch
         {
-            Text = line.Text,
-            TextWrapping = TextWrapping.Wrap,
-            FontFamily = new FontFamily("Consolas,Menlo,DejaVu Sans Mono,monospace"),
-            FontSize = 14d,
-            Foreground = GetLevelBrush(line.Level)
+            null => new SelectableTextBlock
+            {
+                IsVisible = false
+            },
+            _ => new SelectableTextBlock
+            {
+                Text = line.Text,
+                TextWrapping = TextWrapping.Wrap,
+                FontFamily = new FontFamily("Consolas,Menlo,DejaVu Sans Mono,Liberation Mono,monospace"),
+                FontSize = 14d,
+                Foreground = GetLevelBrush(line.Level)
+            }
         };
     }
 
