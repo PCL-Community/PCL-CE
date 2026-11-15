@@ -54,17 +54,12 @@
                             </StackPanel>
                         </ui:MyCard>
 
+                        <!-- 与 WPF 相同：Minecraft 卡片不可折叠、没有箭头，IsSwapped 仅用于让点击触发 PreviewSwap -->
                         <ui:MyCard x:Name="CardMinecraft"
                                    Margin="0,15,0,0"
                                    Height="40"
-                                   UseAnimation="False"
                                    Title="{loc:Loc Common.Installation.Minecraft}"
-                                   IsSwapped="True"
-                                   CanSwap="True"
-                                   SwapLogoRight="True">
-                            <StackPanel x:Name="PanMinecraftBody"
-                                        Margin="20,40,18,15"
-                                        VerticalAlignment="Top" />
+                                   IsSwapped="True">
                             <Grid x:Name="PanMinecraftInfo"
                                   Height="18"
                                   Margin="132,11,15,0"
@@ -73,7 +68,7 @@
                                 <ui:MyImage x:Name="ImgMinecraft"
                                             Height="18"
                                             Margin="0,0,7,0"
-                                            Source="{Binding VersionIcon}"
+                                            Source="{Binding MinecraftIcon}"
                                             Stretch="Uniform" />
                                 <TextBlock x:Name="LabMinecraft"
                                            Grid.Column="1"

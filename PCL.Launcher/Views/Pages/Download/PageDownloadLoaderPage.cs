@@ -517,7 +517,7 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
         }
     }
 
-    private static void SaveLabyMod(bool isSnapshot)
+    internal static void SaveLabyMod(bool isSnapshot)
     {
         SaveInstaller(
             [
@@ -718,7 +718,7 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
         target.Children.Add(item);
     }
 
-    private static void SaveForgelike(GameDownload.DlForgeVersionEntry entry)
+    internal static void SaveForgelike(GameDownload.DlForgeVersionEntry entry)
     {
         var inherit = entry.Inherit.Replace("-", "_");
         var fileName =
@@ -902,7 +902,7 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
         target.Children.Add(item);
     }
 
-    private static string GetForgelikeChangelogUrl(GameDownload.DlForgelikeEntry entry)
+    internal static string GetForgelikeChangelogUrl(GameDownload.DlForgelikeEntry entry)
     {
         return entry switch
         {
@@ -912,7 +912,7 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
         };
     }
 
-    private static void SaveForgelikeEntry(GameDownload.DlForgelikeEntry entry)
+    internal static void SaveForgelikeEntry(GameDownload.DlForgelikeEntry entry)
     {
         switch (entry)
         {
@@ -1054,7 +1054,7 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
         target.Children.Add(item);
     }
 
-    private static void SaveOptiFine(GameDownload.DlOptiFineListEntry entry)
+    internal static void SaveOptiFine(GameDownload.DlOptiFineListEntry entry)
     {
         var inherit = entry.Inherit ?? string.Empty;
         var displayName = entry.DisplayName ?? string.Empty;
@@ -1175,7 +1175,7 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
         target.Children.Add(item);
     }
 
-    private static void SaveLiteLoader(GameDownload.DlLiteLoaderListEntry entry)
+    internal static void SaveLiteLoader(GameDownload.DlLiteLoaderListEntry entry)
     {
         SaveInstaller(
             GetLiteLoaderUrls(entry),

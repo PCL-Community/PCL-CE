@@ -46,8 +46,8 @@ public partial class PageInstanceInstall : MyPageRight, IRefreshable
         _selector = new InstallLoaderSelector(PanLoaderCards, OnSelectionChanged, _vm.Selection);
         _uiBuilt = true;
 
-        CardMinecraft.SwapControl = PanMinecraftBody;
-        CardMinecraft.IsSwapped = true;
+        // 与 WPF 的 LoaderInit 一致：开始按钮不参与页面切换动画，由选择/版本列表阶段自行控制显隐
+        disabledPageAnimControls.Add(BtnStart);
         CardMinecraft.PreviewSwap += (_, e) =>
         {
             ExitSelection();
@@ -332,6 +332,7 @@ public partial class PageInstanceInstall : MyPageRight, IRefreshable
         _vm.VersionName = selectedName;
         _vm.VersionUrl = versionUrl ?? _instance.JsonObject?["url"]?.ToString();
         _versionIcon = versionIcon ?? $"{LauncherPaths.ImageRoot}Blocks/Grass.png";
+        _vm.MinecraftIcon = _versionIcon;
 
         _selector.SetMinecraft(
             selectedName,
@@ -374,94 +375,125 @@ public partial class PageInstanceInstall : MyPageRight, IRefreshable
         UpdateActionAvailability();
     }
 
+    /// <summary>
+    ///     切换到加载器选择阶段，对应 WPF 的 EnterSelectPage。
+    /// </summary>
     private void ShowSelectStage()
     {
         _vm.IsSelecting = true;
+        disabledPageAnimControls.Remove(BtnStart);
         BtnStart.Show = true;
         ShowBackHint();
         if (PanSelect.IsVisible && !PanMinecraft.IsVisible)
             return;
+
+        var wasSelectVisible = PanSelect.IsVisible;
+        AnimationService.CancelAnimationByName(StageAnimationKey);
+        PanSelect.IsVisible = true;
+        PanBack?.ScrollToHome();
+        // 与 WPF 相同：进入选择页时折叠所有卡片
+        _selector.CollapseAll();
+        // 选择页的内容可能被刷新/切页动画隐藏过，但不会因加载结束而再次显示，这里手动恢复
+        ResetAnimControls(PanSelect);
+
         if (!CanAnimateStage)
         {
             PanMinecraft.IsVisible = false;
             PanMinecraft.Opacity = 1d;
-            PanMinecraft.RenderTransform = null;
-            PanSelect.IsVisible = true;
             PanSelect.Opacity = 1d;
-            PanSelect.RenderTransform = null;
-            PanBack?.ScrollToHome();
+            PanBack?.IsHitTestVisible = true;
             return;
         }
 
-        if (PanBack is not null)
-            PanBack.IsHitTestVisible = false;
-        AnimationService.CancelAnimationByName(StageAnimationKey);
-        PanMinecraft.Opacity = 1d;
-        PanMinecraft.RenderTransform = new TranslateTransform();
-        PanSelect.IsVisible = true;
-        PanSelect.Opacity = 0d;
-        PanSelect.RenderTransform = new TranslateTransform();
+        if (!wasSelectVisible)
+            PanSelect.Opacity = 0d;
+        PanBack?.IsHitTestVisible = false;
         AnimationService.Run(
             new List<IAnimation>
             {
-                new OpacityAnimation(PanMinecraft, 0d, 100, 10),
+                new OpacityAnimation(PanMinecraft, -PanMinecraft.Opacity, 100, 10),
+                new ActionAnimation(() => PanBack?.ScrollToHome(), true),
+                new OpacityAnimation(PanSelect, 1d - PanSelect.Opacity, 250, 150),
                 new ActionAnimation(
                     () =>
                     {
                         PanMinecraft.IsVisible = false;
-                        PanBack?.ScrollToHome();
+                        PanMinecraft.Opacity = 1d;
+                        PanBack?.IsHitTestVisible = true;
                     },
-                    true),
-                new OpacityAnimation(PanSelect, 1d, 250, 150),
-                new ActionAnimation(() =>
-                {
-                    if (PanBack is not null)
-                        PanBack.IsHitTestVisible = true;
-                }, true)
+                    true)
             },
             StageAnimationKey,
             true);
     }
 
+    /// <summary>
+    ///     切换到 Minecraft 版本列表阶段，对应 WPF 的 ExitSelectPage。
+    ///     与 WPF 一样每次都重新生成版本列表：页面创建前版本列表可能早已加载完成，
+    ///     此时不会再收到加载完成事件，若不在这里生成就会出现空白页。
+    /// </summary>
     private void ShowSummaryStage(bool animate = true)
     {
         _vm.IsSelecting = false;
+        if (!disabledPageAnimControls.Contains(BtnStart))
+            disabledPageAnimControls.Add(BtnStart);
         BtnStart.Show = false;
+        EnsureVersionListLoaded(false);
+        if (PanMinecraft.IsVisible && !PanSelect.IsVisible)
+            return;
+
+        var wasMinecraftVisible = PanMinecraft.IsVisible;
+        AnimationService.CancelAnimationByName(StageAnimationKey);
+        PanMinecraft.IsVisible = true;
+        PanBack?.ScrollToHome();
+        ResetAnimControls(PanMinecraft);
+
         if (!animate || !CanAnimateStage)
         {
             PanSelect.IsVisible = false;
             PanSelect.Opacity = 1d;
-            PanSelect.RenderTransform = null;
-            PanMinecraft.IsVisible = true;
             PanMinecraft.Opacity = 1d;
-            PanMinecraft.RenderTransform = null;
-            PanBack?.ScrollToHome();
+            PanBack?.IsHitTestVisible = true;
             return;
         }
 
-        if (PanBack is not null)
-            PanBack.IsHitTestVisible = false;
-        AnimationService.CancelAnimationByName(StageAnimationKey);
-        PanMinecraft.IsVisible = true;
-        PanMinecraft.Opacity = 0d;
-        PanMinecraft.RenderTransform = new TranslateTransform();
-        PanSelect.Opacity = 1d;
-        PanSelect.RenderTransform = new TranslateTransform();
+        if (!wasMinecraftVisible)
+            PanMinecraft.Opacity = 0d;
+        PanBack?.IsHitTestVisible = false;
         AnimationService.Run(
             new List<IAnimation>
             {
-                new OpacityAnimation(PanSelect, 0d, 90, 10),
-                new ActionAnimation(() => PanSelect.IsVisible = false, true),
-                new OpacityAnimation(PanMinecraft, 1d, 150, 100),
-                new ActionAnimation(() =>
-                {
-                    if (PanBack is not null)
-                        PanBack.IsHitTestVisible = true;
-                }, true)
+                new OpacityAnimation(PanSelect, -PanSelect.Opacity, 90, 10),
+                new ActionAnimation(() => PanBack?.ScrollToHome(), true),
+                new OpacityAnimation(PanMinecraft, 1d - PanMinecraft.Opacity, 150, 100),
+                new ActionAnimation(
+                    () =>
+                    {
+                        PanSelect.IsVisible = false;
+                        PanSelect.Opacity = 1d;
+                        PanBack?.IsHitTestVisible = true;
+                    },
+                    true)
             },
             StageAnimationKey,
             true);
-        PanBack?.ScrollToHome();
+    }
+
+    /// <summary>
+    ///     把面板内参与页面动画的控件恢复为完全显示（页面退出动画会把它们设为透明且不可点击）。
+    /// </summary>
+    private void ResetAnimControls(Control panel)
+    {
+        foreach (var control in GetAllAnimControls(panel))
+        {
+            if (control is MyExtraTextButton)
+                continue;
+            if (control is not MyListItem)
+                control.IsHitTestVisible = true;
+            control.Opacity = 1d;
+            if (control.RenderTransform is TranslateTransform)
+                control.RenderTransform = null;
+        }
     }
 
     private static void ShowBackHint()

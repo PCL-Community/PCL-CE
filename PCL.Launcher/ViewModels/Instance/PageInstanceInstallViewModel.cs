@@ -34,6 +34,11 @@ public partial class PageInstanceInstallViewModel : ViewModelBase
     public partial string VersionIcon { get; set; } =
         $"{LauncherPaths.ImageRoot}Icons/NoIcon.png";
 
+    /// <summary>Minecraft 卡片上的原版图标（与 WPF 的 _vanillaIcon 一致，不随加载器变化）。</summary>
+    [ObservableProperty]
+    public partial string MinecraftIcon { get; set; } =
+        $"{LauncherPaths.ImageRoot}Blocks/Grass.png";
+
     [ObservableProperty] public partial string VersionName { get; set; } = "";
 
     [ObservableProperty] public partial string? VersionUrl { get; set; }

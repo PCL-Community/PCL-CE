@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Text.Json.Nodes;
 using Avalonia;
 using Avalonia.Controls;
@@ -313,6 +312,13 @@ internal sealed class InstallLoaderSelector : IDisposable
         NotifyChanged();
     }
 
+    /// <summary>折叠所有加载器卡片（WPF 进入选择页时的行为）。</summary>
+    public void CollapseAll()
+    {
+        foreach (var card in _cards)
+            card.Card.IsSwapped = true;
+    }
+
     public void ClearAll()
     {
         Selection.Clear();
@@ -484,7 +490,7 @@ internal sealed class InstallLoaderSelector : IDisposable
                 TitleKey = titleKey,
                 Host = host
             };
-            host.ClearButton.Click += (_, _) =>
+            host.Clear += (_, _) =>
             {
                 if (_isInstalling)
                     return;
@@ -494,19 +500,18 @@ internal sealed class InstallLoaderSelector : IDisposable
             };
             host.Card.PreviewSwap += (_, args) =>
             {
-                var error = GetCardError(state);
-                if (error is null)
-                    return;
-                // 列表加载失败时允许展开，否则重试按钮永远无法点到。
-                if (GetListLoader(state.Kind)?.State != LoadState.Failed)
-                    args.handled = true;
-            };
-            host.Card.Swap += (_, _) =>
-            {
+                // 只拦截展开；折叠总是允许
                 if (!host.Card.IsSwapped)
-                    BuildBody(state);
+                    return;
+                if (!CanExpand(state))
+                {
+                    args.handled = true;
+                    return;
+                }
+
+                // 先生成版本行再展开，卡片的高度动画才能量到最终高度（WPF 的版本行也是提前生成的）
+                BuildBody(state);
             };
-            host.Card.InstallMethod = _ => BuildBody(state);
             _cards.Add(state);
         }
     }
@@ -543,21 +548,34 @@ internal sealed class InstallLoaderSelector : IDisposable
 
         var selected = GetSelectedText(card.Kind);
         var error = GetCardError(card);
-        if (error is not null
-            && GetListLoader(card.Kind)?.State != LoadState.Failed
-            && !card.Card.IsSwapped)
+        var canExpand = CanExpand(card);
+        if (!canExpand && !card.Card.IsSwapped)
             // 兼容性错误出现时强制折叠；列表加载失败时保留展开状态以显示重试按钮。
             card.Card.IsSwapped = true;
 
+        // 与 WPF 一致：不能展开时隐藏折叠箭头
+        card.Card.MainSwap?.IsVisible = canExpand;
         card.ClearButton.IsVisible = selected is not null;
         card.Host.Logo.IsVisible = selected is not null;
         card.Info.Text = selected
             ?? error
             ?? Lang.Text("Download.Install.State.CanAdd");
-        card.Info.Opacity = selected is null ? 0.7d : 1d;
+        card.Host.SetStatusSelected(selected is not null);
         card.Host.SyncCollapsedHeader(card.Card.IsSwapped);
         if (!card.Card.IsSwapped)
             BuildBody(card);
+    }
+
+    /// <summary>
+    ///     卡片能否展开
+    /// </summary>
+    private bool CanExpand(CardState card)
+    {
+        var error = GetCardError(card);
+        if (error is null)
+            return true;
+        return GetListLoader(card.Kind)?.State == LoadState.Failed
+            && string.Equals(error, GetListError(card.Kind), StringComparison.Ordinal);
     }
 
     private string? GetSelectedText(InstallLoaderKind kind)
@@ -1026,6 +1044,16 @@ internal sealed class InstallLoaderSelector : IDisposable
     {
         var body = card.Body;
         body.Children.Clear();
+        BuildBodyContent(card, body);
+        // WPF 中这三张卡通过 MyCard.StackInstall 生成版本行，末尾会多一个 18px 的下边距
+        if (card.Kind is InstallLoaderKind.Fabric
+            or InstallLoaderKind.LegacyFabric
+            or InstallLoaderKind.LabyMod)
+            body.Children.Add(new Border { Height = 18d });
+    }
+
+    private void BuildBodyContent(CardState card, StackPanel body)
+    {
         if (_isInstalling)
         {
             body.Children.Add(
@@ -1101,6 +1129,10 @@ internal sealed class InstallLoaderSelector : IDisposable
                 });
     }
 
+    /// <summary>
+    ///     生成卡片内的版本行，逐项对齐 WPF 的 DownloadUi.*DownloadListItem：
+    ///     标题、副文本、图标、右侧悬停按钮以及“推荐/最新 + 全部版本”预置行。
+    /// </summary>
     private bool AddVersionItems(InstallLoaderKind kind, StackPanel body)
     {
         switch (kind)
@@ -1110,30 +1142,28 @@ internal sealed class InstallLoaderSelector : IDisposable
                 var versions = GetForgeVersions();
                 if (versions.Count == 0)
                     return false;
-                var recommended = versions.LastOrDefault(version => version.IsRecommended);
-                var latest = versions.FirstOrDefault();
-                if (recommended is not null)
-                    body.Children.Add(
-                        CreateForgelikeItem(
-                            kind,
-                            recommended,
-                            $"{Lang.Text("Download.Version.Type.Recommended")}  |  {Lang.Text("Download.Version.Type.Stable")}",
-                            "Blocks/Anvil.png"));
-                if (latest is not null && !ReferenceEquals(latest, recommended))
-                    body.Children.Add(
-                        CreateForgelikeItem(
-                            kind,
-                            latest,
-                            $"{Lang.Text("Download.Version.Latest.Title")}  |  {Lang.Text("Download.Version.Type.Stable")}",
-                            "Blocks/Anvil.png"));
-                AddAllLabel(body, versions.Count);
+                // ForgeDownloadListItemPreload：只有一个版本时不显示推荐/最新与“全部版本”
+                if (versions.Count != 1)
+                {
+                    var recommended = versions.LastOrDefault(version => version.IsRecommended);
+                    GameDownload.DlForgeVersionEntry? fresh = versions[0];
+                    if (ReferenceEquals(fresh, recommended))
+                        fresh = null;
+                    if (recommended is not null)
+                        body.Children.Add(
+                            CreateForgeItem(
+                                recommended,
+                                $"{Lang.Text("Download.Version.Type.Recommended")}  |  {Lang.Text("Download.Version.Type.Stable")}"));
+                    if (fresh is not null)
+                        body.Children.Add(
+                            CreateForgeItem(
+                                fresh,
+                                $"{Lang.Text("Download.Version.Latest.Title")}  |  {Lang.Text("Download.Version.Type.Stable")}"));
+                    AddAllLabel(body, versions.Count);
+                }
+
                 foreach (var version in versions)
-                    body.Children.Add(
-                        CreateForgelikeItem(
-                            kind,
-                            version,
-                            GetForgelikeInfo(version),
-                            "Blocks/Anvil.png"));
+                    body.Children.Add(CreateForgeItem(version, GetForgeInfo(version)));
                 return true;
             }
             case InstallLoaderKind.NeoForge:
@@ -1141,32 +1171,47 @@ internal sealed class InstallLoaderSelector : IDisposable
                 var versions = GetNeoForgeVersions();
                 if (versions.Count == 0)
                     return false;
-                var stable = versions.FirstOrDefault(version => !version.IsBeta);
-                var beta = versions.FirstOrDefault(version => version.IsBeta);
-                if (stable is not null)
-                    body.Children.Add(
-                        CreateForgelikeItem(
-                            kind,
-                            stable,
-                            $"{Lang.Text("Download.Version.Fresh.Latest")}  |  {Lang.Text("Download.Version.Type.Stable")}",
-                            "Blocks/NeoForge.png"));
-                if (beta is not null)
-                    body.Children.Add(
-                        CreateForgelikeItem(
-                            kind,
-                            beta,
-                            $"{Lang.Text("Download.Version.Fresh.Latest")}  |  {Lang.Text("Download.Version.Type.Preview")}",
-                            "Blocks/NeoForge.png"));
-                AddAllLabel(body, versions.Count);
+                // NeoForgeDownloadListItemPreload：取第一个稳定版，以及排在它之前的第一个测试版
+                if (versions.Count != 1)
+                {
+                    GameDownload.DlNeoForgeListEntry? stable = null;
+                    GameDownload.DlNeoForgeListEntry? beta = null;
+                    foreach (var version in versions)
+                    {
+                        if (version.IsBeta)
+                        {
+                            beta ??= version;
+                            continue;
+                        }
+
+                        stable = version;
+                        break;
+                    }
+
+                    if (stable is not null)
+                        body.Children.Add(
+                            CreateForgelikeItem(
+                                kind,
+                                stable,
+                                $"{Lang.Text("Download.Version.Fresh.Latest")}  |  {Lang.Text("Download.Version.Type.Stable")}"));
+                    if (beta is not null)
+                        body.Children.Add(
+                            CreateForgelikeItem(
+                                kind,
+                                beta,
+                                $"{Lang.Text("Download.Version.Fresh.Latest")}  |  {Lang.Text("Download.Version.Type.Preview")}"));
+                    AddAllLabel(body, versions.Count);
+                }
+
                 foreach (var version in versions)
                     body.Children.Add(
                         CreateForgelikeItem(
                             kind,
                             version,
-                            version.IsBeta
-                                ? Lang.Text("Download.Version.Type.Preview")
-                                : Lang.Text("Download.Version.Type.Stable"),
-                            "Blocks/NeoForge.png"));
+                            Lang.Text(
+                                version.IsBeta
+                                    ? "Download.Version.Type.Preview"
+                                    : "Download.Version.Type.Stable")));
                 return true;
             }
             case InstallLoaderKind.Cleanroom:
@@ -1174,22 +1219,22 @@ internal sealed class InstallLoaderSelector : IDisposable
                 var versions = GetCleanroomVersions();
                 if (versions.Count == 0)
                     return false;
+                // CleanroomDownloadListItemPreload：总是显示最新版与“全部版本”
                 body.Children.Add(
                     CreateForgelikeItem(
                         kind,
                         versions[0],
-                        $"{Lang.Text("Download.Version.Fresh.Latest")}  |  {Lang.Text("Download.Version.Type.Preview")}",
-                        "Blocks/Cleanroom.png"));
+                        $"{Lang.Text("Download.Version.Fresh.Latest")}  |  {Lang.Text("Download.Version.Type.Preview")}"));
                 AddAllLabel(body, versions.Count);
                 foreach (var version in versions)
                     body.Children.Add(
                         CreateForgelikeItem(
                             kind,
                             version,
-                            version.IsBeta
-                                ? Lang.Text("Download.Version.Type.Preview")
-                                : Lang.Text("Download.Version.Type.Stable"),
-                            "Blocks/Cleanroom.png"));
+                            Lang.Text(
+                                version.IsBeta
+                                    ? "Download.Version.Type.Preview"
+                                    : "Download.Version.Type.Stable")));
                 return true;
             }
             case InstallLoaderKind.OptiFine:
@@ -1198,14 +1243,26 @@ internal sealed class InstallLoaderSelector : IDisposable
                 if (versions.Count == 0)
                     return false;
                 foreach (var version in versions)
-                    body.Children.Add(
-                        CreateItem(
-                            kind,
-                            version,
-                            version.DisplayName ?? version.NameVersion ?? "",
-                            GetOptiFineInfo(version),
-                            "Blocks/GrassPath.png",
-                            version.Inherit ?? ""));
+                {
+                    var item = CreateItem(
+                        kind,
+                        version,
+                        version.DisplayName ?? version.NameVersion ?? "",
+                        GetOptiFineInfo(version),
+                        "Blocks/GrassPath.png");
+                    var entry = version;
+                    item.Buttons =
+                    [
+                        CreateItemButton(
+                            "lucide/save",
+                            "Download.Version.SaveAs",
+                            () => PageDownloadLoaderPage.SaveOptiFine(entry)),
+                        CreateChangelogButton(() => OpenWebsite(
+                            $"https://optifine.net/changelog?f={entry.NameFile}"))
+                    ];
+                    body.Children.Add(item);
+                }
+
                 return true;
             }
             case InstallLoaderKind.LiteLoader:
@@ -1214,34 +1271,55 @@ internal sealed class InstallLoaderSelector : IDisposable
                 if (versions.Count == 0)
                     return false;
                 foreach (var version in versions)
-                    body.Children.Add(
-                        CreateItem(
-                            kind,
-                            version,
-                            version.Inherit ?? "",
-                            GetLiteLoaderInfo(version),
-                            "Blocks/Egg.png",
-                            version.ReleaseTime?.ToString("g", CultureInfo.CurrentCulture) ?? ""));
+                {
+                    var item = CreateItem(
+                        kind,
+                        version,
+                        version.Inherit ?? "",
+                        GetLiteLoaderInfo(version),
+                        "Blocks/Egg.png");
+                    var entry = version;
+                    var saveButton = CreateItemButton(
+                        "lucide/save",
+                        "Download.Version.SaveInstaller",
+                        () => PageDownloadLoaderPage.SaveLiteLoader(entry));
+                    item.Buttons = entry.IsLegacy
+                        ?
+                        [
+                            saveButton
+                        ]
+                        :
+                        [
+                            saveButton,
+                            CreateItemButton(
+                                "lucide/list",
+                                "Download.Version.ViewAllVersions",
+                                () => OpenWebsite(
+                                    $"https://jenkins.liteloader.com/view/{entry.Inherit}"))
+                        ];
+                    body.Children.Add(item);
+                }
+
                 return true;
             }
             case InstallLoaderKind.Fabric:
             {
                 foreach (var version in GetFabricLoaderVersions())
-                    body.Children.Add(
-                        CreateJsonLoaderItem(
-                            kind,
-                            version,
-                            "Blocks/Fabric.png"));
+                {
+                    var item = CreateJsonLoaderItem(kind, version, true);
+                    item.Buttons =
+                    [
+                        CreateChangelogButton(() => OpenWebsite("https://fabricmc.net/blog"))
+                    ];
+                    body.Children.Add(item);
+                }
+
                 return body.Children.Count > 0;
             }
             case InstallLoaderKind.LegacyFabric:
             {
                 foreach (var version in GetLegacyFabricLoaderVersions())
-                    body.Children.Add(
-                        CreateJsonLoaderItem(
-                            kind,
-                            version,
-                            "Blocks/Fabric.png"));
+                    body.Children.Add(CreateJsonLoaderItem(kind, version, false));
                 return body.Children.Count > 0;
             }
             case InstallLoaderKind.FabricApi:
@@ -1268,16 +1346,28 @@ internal sealed class InstallLoaderSelector : IDisposable
             case InstallLoaderKind.LabyMod:
             {
                 foreach (var choice in GetLabyModChoices())
-                    body.Children.Add(
-                        CreateItem(
-                            kind,
-                            choice,
-                            choice.DisplayName,
-                            choice.Channel == "snapshot"
-                                ? Lang.Text("Download.Version.Type.Snapshot")
-                                : Lang.Text("Download.Version.Type.Stable"),
-                            "Blocks/LabyMod.png",
-                            "LabyMod"));
+                {
+                    var item = CreateItem(
+                        kind,
+                        choice,
+                        choice.DisplayName,
+                        choice.Channel == "snapshot"
+                            ? Lang.Text("Download.Version.Type.Snapshot")
+                            : Lang.Text("Download.Version.Type.Stable"),
+                        "Blocks/LabyMod.png");
+                    var isSnapshot = choice.Channel == "snapshot";
+                    item.Buttons =
+                    [
+                        CreateItemButton(
+                            "lucide/save",
+                            "Download.Version.SaveAs",
+                            () => PageDownloadLoaderPage.SaveLabyMod(isSnapshot)),
+                        CreateChangelogButton(() => OpenWebsite(
+                            "https://www.labymod.net/zh_Hans/download"))
+                    ];
+                    body.Children.Add(item);
+                }
+
                 return body.Children.Count > 0;
             }
             default:
@@ -1350,12 +1440,15 @@ internal sealed class InstallLoaderSelector : IDisposable
         return string.Join("  |  ", parts);
     }
 
-    private static string GetForgelikeInfo(GameDownload.DlForgelikeEntry entry)
+    /// <summary>与 WPF ForgeDownloadListItem 相同：只显示发布时间，调试模式下附带分类。</summary>
+    private static string GetForgeInfo(GameDownload.DlForgeVersionEntry entry)
     {
-        return entry is GameDownload.DlForgeVersionEntry forge
-            && forge.ReleaseTime is { } releaseTime
-                ? Lang.Text("Download.Version.ReleaseDate", Lang.Date(releaseTime, "g"))
-                : Lang.Text("Download.Version.Type.Stable");
+        var parts = new List<string>();
+        if (entry.ReleaseTime is { } releaseTime)
+            parts.Add(Lang.Text("Download.Version.ReleaseDate", Lang.Date(releaseTime, "g")));
+        if (LauncherCommon.ModeDebug)
+            parts.Add(Lang.Text("Download.Version.Forge.Type", entry.Category));
+        return string.Join("  |  ", parts);
     }
 
     private static void AddAllLabel(StackPanel body, int count)
@@ -1364,26 +1457,66 @@ internal sealed class InstallLoaderSelector : IDisposable
             new TextBlock
             {
                 Text = Lang.Text("Download.Version.AllVersions", count),
-                Margin = new Thickness(6d, 13d, 0d, 4d),
-                Opacity = 0.7d
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Margin = new Thickness(6d, 13d, 0d, 4d)
             });
+    }
+
+    private MyListItem CreateForgeItem(GameDownload.DlForgeVersionEntry entry, string info)
+    {
+        var item = CreateItem(
+            InstallLoaderKind.Forge,
+            entry,
+            entry.VersionName,
+            info,
+            "Blocks/Anvil.png");
+        item.Buttons =
+        [
+            CreateItemButton(
+                "lucide/save",
+                "Download.Version.SaveAs",
+                () => PageDownloadLoaderPage.SaveForgelike(entry)),
+            CreateChangelogButton(() => OpenWebsite(
+                $"https://files.minecraftforge.net/maven/net/minecraftforge/forge/{entry.Inherit}-{entry.VersionName}/forge-{entry.Inherit}-{entry.VersionName}-changelog.txt"))
+        ];
+        return item;
     }
 
     private MyListItem CreateForgelikeItem(
         InstallLoaderKind kind,
         GameDownload.DlForgelikeEntry entry,
-        string info,
-        string logo)
+        string info)
     {
-        return CreateItem(kind, entry, entry.VersionName, info, logo, entry.VersionName);
+        var item = CreateItem(
+            kind,
+            entry,
+            entry.VersionName,
+            info,
+            kind == InstallLoaderKind.Cleanroom ? "Blocks/Cleanroom.png" : "Blocks/NeoForge.png");
+        item.Buttons =
+        [
+            CreateItemButton(
+                "lucide/save",
+                "Download.Version.SaveAs",
+                () => PageDownloadLoaderPage.SaveForgelikeEntry(entry)),
+            CreateChangelogButton(() =>
+            {
+                var url = PageDownloadLoaderPage.GetForgelikeChangelogUrl(entry);
+                if (!string.IsNullOrEmpty(url))
+                    OpenWebsite(url);
+            })
+        ];
+        return item;
     }
 
     private MyListItem CreateJsonLoaderItem(
         InstallLoaderKind kind,
         JsonObject entry,
-        string logo)
+        bool trimBuild)
     {
-        var version = (entry["version"]?.ToString() ?? "").Replace("+build", "");
+        var version = entry["version"]?.ToString() ?? "";
+        if (trimBuild)
+            version = version.Replace("+build", "");
         var stable = entry["stable"]?.GetValue<bool>() == true;
         return CreateItem(
             kind,
@@ -1392,8 +1525,7 @@ internal sealed class InstallLoaderSelector : IDisposable
             stable
                 ? Lang.Text("Download.Version.Type.Stable")
                 : Lang.Text("Download.Version.Type.Preview"),
-            logo,
-            "");
+            "Blocks/Fabric.png");
     }
 
     private MyListItem CreateCompItem(
@@ -1401,9 +1533,9 @@ internal sealed class InstallLoaderSelector : IDisposable
         Comp.CompFile file,
         string logo)
     {
-        var title = file.DisplayName;
+        var title = file.DisplayName ?? "";
         if (kind == InstallLoaderKind.FabricApi)
-            title = FormatFabricApiTitle(file);
+            title = StripGameVersionPrefix(FormatFabricApiTitle(file));
         else if (kind == InstallLoaderKind.LegacyFabricApi)
             title = title.Replace("Legacy Fabric API ", "");
         else
@@ -1415,8 +1547,8 @@ internal sealed class InstallLoaderSelector : IDisposable
                 .TrimStart('v');
         var info = file.ReleaseDate == default
             ? file.StatusDescription
-            : $"{file.StatusDescription}  |  {Lang.Date(file.ReleaseDate, "g")}";
-        return CreateItem(kind, file, title, info, logo, file.FileName);
+            : $"{file.StatusDescription}  |  {Lang.Text("Download.Version.ReleaseDate", Lang.Date(file.ReleaseDate, "g"))}";
+        return CreateItem(kind, file, title, info, logo);
     }
 
     private MyListItem CreateItem(
@@ -1424,8 +1556,7 @@ internal sealed class InstallLoaderSelector : IDisposable
         object entry,
         string title,
         string info,
-        string logo,
-        string _)
+        string logo)
     {
         var item = new MyListItem
         {
@@ -1433,7 +1564,6 @@ internal sealed class InstallLoaderSelector : IDisposable
             Height = 42d,
             Type = MyListItem.CheckType.Clickable,
             Logo = $"{LauncherPaths.ImageRoot}{logo}",
-            LogoScale = 1d,
             Info = info,
             Tag = entry
         };
@@ -1444,6 +1574,34 @@ internal sealed class InstallLoaderSelector : IDisposable
             SelectEntry(kind, entry);
         };
         return item;
+    }
+
+    /// <summary>列表项右侧的悬停按钮；对应 WPF 各 ContMenuBuild 中的 MyIconButton。</summary>
+    private static MyIconButton CreateItemButton(
+        string svgIcon,
+        string toolTipKey,
+        Action onClick,
+        double logoScale = 1d)
+    {
+        var button = new MyIconButton
+        {
+            SvgIcon = svgIcon,
+            LogoScale = logoScale
+        };
+        ToolTip.SetTip(button, Lang.Text(toolTipKey));
+        button.Click += (_, _) => onClick();
+        return button;
+    }
+
+    /// <summary>对应 WPF 的 CreateChangelogButton。</summary>
+    private static MyIconButton CreateChangelogButton(Action onClick)
+    {
+        return CreateItemButton("lucide/info", "Download.Version.Changelog", onClick, 1.05d);
+    }
+
+    private static void OpenWebsite(string url)
+    {
+        LauncherUi.Interaction?.OpenWebsite(url);
     }
 
     private void SelectEntry(InstallLoaderKind kind, object entry)
@@ -1705,7 +1863,7 @@ internal sealed class InstallLoaderSelector : IDisposable
 
         public StackPanel Body => Host.Body;
 
-        public MyIconButton ClearButton => Host.ClearButton;
+        public Control ClearButton => Host.ClearButton;
 
         public TextBlock Info => Host.Info;
     }

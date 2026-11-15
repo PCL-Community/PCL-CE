@@ -67,7 +67,7 @@ public partial class MyListItem : Grid, IMyRadio
             {
                 Source = this
             });
-        ContainerTheme.BindDynamic(LabInfoElement, TextBlock.ForegroundProperty, "ColorBrushGray2");
+        // 副文本与 WPF 一致：沿用全局 TextBlock 样式的 ColorBrush1，仅靠 0.6 透明度弱化
         FocusAdorner = null;
 
         SizeChanged += (_, _) => OnSizeChanged();
@@ -641,22 +641,17 @@ public partial class MyListItem : Grid, IMyRadio
 
         buttonStack.IsHitTestVisible = show;
         SetButtonTabStops(show);
-        var targetPadding = show
-            ? Math.Max(MinPaddingRight, 5d + (Buttons?.Count() ?? 0) * 25d)
-            : MinPaddingRight;
         animations.Add(
             new OpacityAnimation(
                 buttonStack,
                 (show ? 1d : 0d) - buttonStack.Opacity,
                 (int)Math.Round(time * (show ? 0.7d : 0.4d)),
                 show ? (int)Math.Round(time * 0.3d) : 0));
-        animations.Add(
-            new DoubleAnimation(
-                delta => _columnPaddingRight.Width =
-                    new GridLength(Math.Max(0d, _columnPaddingRight.Width.Value + delta)),
-                targetPadding - _columnPaddingRight.Width.Value,
-                (int)Math.Round(time * (show ? 0.3d : 0.4d)),
-                show ? (int)Math.Round(time * 0.7d) : 0));
+        // 与 WPF 一致：列宽变化会让整个 Grid 重新测量，因此不逐帧动画，状态切换时一次性设为终值
+        _columnPaddingRight.Width = new GridLength(
+            show
+                ? Math.Max(MinPaddingRight, 5d + (Buttons?.Count() ?? 0) * 25d)
+                : MinPaddingRight);
     }
 
     private void OnFocusChanged(NavigationMethod navigationMethod)
