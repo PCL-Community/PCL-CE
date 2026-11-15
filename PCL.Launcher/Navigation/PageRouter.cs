@@ -178,7 +178,7 @@ public static class PageRouter
                 if (PageStack.Contains(stack))
                     while (PageStack.Contains(stack))
                         PageStack.RemoveAt(0);
-                else
+                else if (!Current.Equals(stack))
                     PageStack.Insert(0, Current);
             }
             else
