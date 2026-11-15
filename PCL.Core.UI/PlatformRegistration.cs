@@ -4,44 +4,50 @@ using PCL.Core.Logging;
 
 namespace PCL.Core.UI;
 
-/// <summary>将指定平台的模块注册到全局运行时。</summary>
+/// <summary>组装指定平台的服务并初始化应用运行时。</summary>
 public static class PlatformRegistration
 {
-    public static PlatformModule Register(PlatformKind kind)
+    public static ApplicationServices Register(PlatformKind kind)
     {
-        var module = PlatformModuleFactory.Create(kind);
-        PlatformRuntime.Initialize(module);
+        var platform = PlatformModuleFactory.Create(kind);
+        var ui = UiModuleFactory.Create(kind);
+        var services = new ApplicationServices
+        {
+            Platform = platform,
+            Ui = ui
+        };
 
-        PlatformServices.UiDispatcher = new AvaloniaUiDispatcher();
-        PlatformServices.FileDialogs = module.FileDialogs;
-        PlatformServices.DialogService = module.FatalDialog;
-        PlatformServices.ResourceStore = new ResourceStore();
-        PlatformServices.WindowInterop = module.WindowInterop;
-        PlatformServices.Localization = new LocalizationBackend();
-        PlatformServices.Theme = new ThemeBackend();
-        PlatformServices.Clipboard = new ClipboardService();
-        PlatformServices.SystemProxy = module.SystemProxy;
-        PlatformServices.SystemTheme = module.SystemTheme;
-        PlatformServices.Notification = module.Notifications;
-
-        ValidateRequiredServices();
-        return module;
+        ValidateRequiredServices(services);
+        ApplicationRuntime.Initialize(services);
+        return services;
     }
 
-    public static void ValidateRequiredServices()
+    public static void ValidateRequiredServices(ApplicationServices services)
     {
+        ArgumentNullException.ThrowIfNull(services);
+
         var missing = new List<string>();
-        Check(nameof(PlatformServices.UiDispatcher), PlatformServices.UiDispatcher);
-        Check(nameof(PlatformServices.FileDialogs), PlatformServices.FileDialogs);
-        Check(nameof(PlatformServices.DialogService), PlatformServices.DialogService);
-        Check(nameof(PlatformServices.ResourceStore), PlatformServices.ResourceStore);
-        Check(nameof(PlatformServices.WindowInterop), PlatformServices.WindowInterop);
-        Check(nameof(PlatformServices.Localization), PlatformServices.Localization);
-        Check(nameof(PlatformServices.Theme), PlatformServices.Theme);
-        Check(nameof(PlatformServices.Clipboard), PlatformServices.Clipboard);
-        Check(nameof(PlatformServices.SystemProxy), PlatformServices.SystemProxy);
-        Check(nameof(PlatformServices.SystemTheme), PlatformServices.SystemTheme);
-        Check(nameof(PlatformServices.Notification), PlatformServices.Notification);
+        Check(nameof(services.Platform), services.Platform);
+        Check(nameof(services.Ui), services.Ui);
+
+        if (services.Platform is { } platform)
+        {
+            Check(nameof(platform.FatalDialog), platform.FatalDialog);
+            Check(nameof(platform.SystemProxy), platform.SystemProxy);
+            Check(nameof(platform.WindowInterop), platform.WindowInterop);
+        }
+
+        if (services.Ui is { } ui)
+        {
+            Check(nameof(ui.Dispatcher), ui.Dispatcher);
+            Check(nameof(ui.Clipboard), ui.Clipboard);
+            Check(nameof(ui.FileDialogs), ui.FileDialogs);
+            Check(nameof(ui.ResourceStore), ui.ResourceStore);
+            Check(nameof(ui.Localization), ui.Localization);
+            Check(nameof(ui.Theme), ui.Theme);
+            Check(nameof(ui.SystemTheme), ui.SystemTheme);
+            Check(nameof(ui.Notifications), ui.Notifications);
+        }
 
         if (missing.Count == 0) return;
         var message = $"平台服务未注册：{string.Join("、", missing)}";

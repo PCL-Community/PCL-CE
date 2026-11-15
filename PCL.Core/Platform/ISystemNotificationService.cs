@@ -1,8 +1,6 @@
 namespace PCL.Core.Platform;
 
-/// <summary>
-///     系统通知。具体实现由 UI 层注册到 <see cref="PlatformServices.Notification" />。
-/// </summary>
+/// <summary>系统通知。具体实现由组合根注册到 <see cref="ApplicationRuntime" />。</summary>
 public interface ISystemNotificationService
 {
     /// <summary>当前是否可以发送通知。</summary>

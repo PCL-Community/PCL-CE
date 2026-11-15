@@ -2,9 +2,7 @@ using System;
 
 namespace PCL.Core.Platform;
 
-/// <summary>
-///     系统深浅色查询。具体实现由 UI 层注册到 <see cref="PlatformServices.SystemTheme" />。
-/// </summary>
+/// <summary>系统深浅色查询。具体实现由组合根注册到 <see cref="ApplicationRuntime" />。</summary>
 public interface ISystemThemeProvider
 {
     /// <summary>当前是否可用（应用已初始化后才能读取系统主题）。</summary>

@@ -1,20 +1,9 @@
-using System;
-
 namespace PCL.Core.Platform;
 
-/// <summary>当前平台模块。必须在 UI 初始化前由组合根填充。</summary>
+/// <summary>旧版平台模块访问入口。仅作为迁移期的只读兼容门面； 新代码请使用 <see cref="ApplicationRuntime" />。</summary>
 public static class PlatformRuntime
 {
-    private static PlatformModule? _current;
+    public static PlatformModule Current => ApplicationRuntime.Current.Platform;
 
-    public static PlatformModule Current =>
-        _current ?? throw new InvalidOperationException("平台模块尚未初始化");
-
-    public static bool IsInitialized => _current is not null;
-
-    public static void Initialize(PlatformModule module)
-    {
-        ArgumentNullException.ThrowIfNull(module);
-        _current = module;
-    }
+    public static bool IsInitialized => ApplicationRuntime.IsInitialized;
 }

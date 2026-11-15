@@ -35,4 +35,17 @@ public sealed class ArchitectureTest
         Assert.DoesNotContain("PresentationCore", references);
         Assert.DoesNotContain("WindowsBase", references);
     }
+
+    [TestMethod]
+    public void Core_DoesNotReferenceUiOrAvalonia()
+    {
+        var references = typeof(Basics)
+            .Assembly
+            .GetReferencedAssemblies()
+            .Select(assembly => assembly.Name)
+            .ToList();
+
+        Assert.DoesNotContain("PCL.Core.UI", references);
+        Assert.DoesNotContain("Avalonia", references);
+    }
 }

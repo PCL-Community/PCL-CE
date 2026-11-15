@@ -1,8 +1,6 @@
 namespace PCL.Core.Platform;
 
-/// <summary>
-///     文件与文件夹对话框。具体实现由 UI 层注册到 <see cref="PlatformServices.FileDialogs" />。
-/// </summary>
+/// <summary>文件与文件夹对话框。具体实现由组合根注册到 <see cref="ApplicationRuntime" />。</summary>
 public interface IFileDialogService
 {
     /// <summary>当前平台是否有可用的文件对话框实现。</summary>

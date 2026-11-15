@@ -28,10 +28,7 @@ public static class PlatformModuleFactory
         {
             Kind = PlatformKind.Windows,
             Capabilities = PlatformCapabilities.Windows,
-            FileDialogs = new FileDialogService(),
             SystemProxy = new WindowsSystemProxyProvider(),
-            SystemTheme = new SystemThemeProvider(),
-            Notifications = new WindowsNotificationService(),
             WindowInterop = new WindowsWindowInterop(),
             Shortcuts = new WindowsShortcutService(),
             Java = new WindowsJavaPlatformInfo(),
@@ -53,10 +50,7 @@ public static class PlatformModuleFactory
         {
             Kind = PlatformKind.Linux,
             Capabilities = PlatformCapabilities.Linux,
-            FileDialogs = new LinuxFileDialogService(),
             SystemProxy = new LinuxSystemProxyProvider(),
-            SystemTheme = new LinuxSystemThemeProvider(),
-            Notifications = new LinuxNotificationService(),
             WindowInterop = new LinuxWindowInterop(),
             Shortcuts = new LinuxShortcutService(),
             Java = new LinuxJavaPlatformInfo(),
@@ -78,10 +72,7 @@ public static class PlatformModuleFactory
         {
             Kind = PlatformKind.MacOs,
             Capabilities = PlatformCapabilities.MacOs,
-            FileDialogs = new FileDialogService(),
             SystemProxy = new MacOsSystemProxyProvider(),
-            SystemTheme = new SystemThemeProvider(),
-            Notifications = new MacOsNotificationService(),
             WindowInterop = new MacOsWindowInterop(),
             Shortcuts = new MacOsShortcutService(),
             Java = new MacOsJavaPlatformInfo(),

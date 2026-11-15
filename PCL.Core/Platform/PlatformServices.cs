@@ -1,40 +1,41 @@
 namespace PCL.Core.Platform;
 
-/// <summary>
-///     由 UI 层在启动时填充的平台服务。PCL.Core 通过该入口保持对 WPF/Avalonia 的无引用。
-/// </summary>
+/// <summary>旧版平台服务访问入口。仅作为迁移期的只读兼容门面； 新代码请使用 <see cref="ApplicationRuntime" />。</summary>
 public static class PlatformServices
 {
+    private static ApplicationServices? Current =>
+        ApplicationRuntime.IsInitialized ? ApplicationRuntime.Current : null;
+
     /// <summary>UI 线程调度实现。</summary>
-    public static IUiDispatcher? UiDispatcher { get; set; }
+    public static IUiDispatcher? UiDispatcher => Current?.Ui.Dispatcher;
 
     /// <summary>文件/文件夹对话框实现。</summary>
-    public static IFileDialogService? FileDialogs { get; set; }
+    public static IFileDialogService? FileDialogs => Current?.Ui.FileDialogs;
 
     /// <summary>致命错误对话框实现。</summary>
-    public static IFatalDialogService? DialogService { get; set; }
+    public static IFatalDialogService? FatalDialog => Current?.Platform.FatalDialog;
 
     /// <summary>程序打包资源访问实现。</summary>
-    public static IResourceStore? ResourceStore { get; set; }
+    public static IResourceStore? ResourceStore => Current?.Ui.ResourceStore;
 
-    /// <summary>游戏窗口交互实现；非 Windows 平台不注册时业务层会跳过窗口相关操作。</summary>
-    public static IWindowInterop? WindowInterop { get; set; }
+    /// <summary>游戏窗口交互实现。</summary>
+    public static IWindowInterop? WindowInterop => Current?.Platform.WindowInterop;
 
     /// <summary>本地化 UI 后端实现。</summary>
-    public static ILocalizationBackend? Localization { get; set; }
+    public static ILocalizationBackend? Localization => Current?.Ui.Localization;
 
     /// <summary>主题资源后端实现。</summary>
-    public static IThemeBackend? Theme { get; set; }
+    public static IThemeBackend? Theme => Current?.Ui.Theme;
 
     /// <summary>剪贴板访问实现。</summary>
-    public static IClipboardService? Clipboard { get; set; }
+    public static IClipboardService? Clipboard => Current?.Ui.Clipboard;
 
-    /// <summary>系统代理查询实现；未注册时按无系统代理处理。</summary>
-    public static ISystemProxyProvider? SystemProxy { get; set; }
+    /// <summary>系统代理查询实现。</summary>
+    public static ISystemProxyProvider? SystemProxy => Current?.Platform.SystemProxy;
 
-    /// <summary>系统深浅色查询实现；未注册时非 Windows 平台按浅色处理。</summary>
-    public static ISystemThemeProvider? SystemTheme { get; set; }
+    /// <summary>系统深浅色查询实现。</summary>
+    public static ISystemThemeProvider? SystemTheme => Current?.Ui.SystemTheme;
 
-    /// <summary>系统通知实现；未注册时非 Windows 平台仅记录日志。</summary>
-    public static ISystemNotificationService? Notification { get; set; }
+    /// <summary>系统通知实现。</summary>
+    public static ISystemNotificationService? Notifications => Current?.Ui.Notifications;
 }

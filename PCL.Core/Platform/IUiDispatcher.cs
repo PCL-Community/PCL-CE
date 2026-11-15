@@ -3,9 +3,7 @@ using System.Threading.Tasks;
 
 namespace PCL.Core.Platform;
 
-/// <summary>
-///     UI 线程访问与调度。具体实现由 UI 层注册到 <see cref="PlatformServices.UiDispatcher" />。
-/// </summary>
+/// <summary>UI 线程访问与调度。具体实现由组合根注册到 <see cref="ApplicationRuntime" />。</summary>
 public interface IUiDispatcher
 {
     /// <summary>当前线程是否为 UI 线程。</summary>

@@ -3,9 +3,7 @@ using System.Collections.Generic;
 
 namespace PCL.Core.Platform;
 
-/// <summary>
-///     系统代理查询。具体实现由 UI 层注册到 <see cref="PlatformServices.SystemProxy" />。
-/// </summary>
+/// <summary>系统代理查询。具体实现由组合根注册到 <see cref="ApplicationRuntime" />。</summary>
 public interface ISystemProxyProvider
 {
     /// <summary>返回当前系统代理列表（协议名 + host:port）；未启用或不可用时返回空列表。</summary>

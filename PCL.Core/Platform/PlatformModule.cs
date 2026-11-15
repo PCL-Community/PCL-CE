@@ -3,15 +3,12 @@ using PCL.Core.Utils.Secret;
 
 namespace PCL.Core.Platform;
 
-/// <summary>一个平台的完整服务集合。由组合根在启动时构造一次。</summary>
+/// <summary>一个平台的 OS 原生服务集合。由组合根在启动时构造一次。</summary>
 public sealed class PlatformModule
 {
     public required PlatformKind Kind { get; init; }
     public required IPlatformCapabilities Capabilities { get; init; }
-    public required IFileDialogService FileDialogs { get; init; }
     public required ISystemProxyProvider SystemProxy { get; init; }
-    public required ISystemThemeProvider SystemTheme { get; init; }
-    public required ISystemNotificationService Notifications { get; init; }
     public required IWindowInterop WindowInterop { get; init; }
     public required IShortcutService Shortcuts { get; init; }
     public required IJavaPlatformInfo Java { get; init; }
