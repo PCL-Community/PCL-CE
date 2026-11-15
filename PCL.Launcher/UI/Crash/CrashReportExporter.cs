@@ -4,6 +4,7 @@ using System.Text;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
+using PCL.Core.Platform;
 using PCL.Core.Utils.Codecs;
 using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Secret;
@@ -13,14 +14,13 @@ namespace PCL;
 internal sealed class CrashReportExporter
 {
     private const string ReportFolderName = "Report";
-
     private const string LaunchScriptFileName = "启动脚本.bat";
     private const string RawOutputFileName = "游戏崩溃前的输出.log";
     private const string LauncherLogFileName = "PCL CE 启动器日志.log";
     private const string EnvironmentFileName = "环境与启动信息.txt";
     private const string ModInfoFileName = "模组列表.txt";
 
-    public void Export(
+    public static void Export(
         CrashAnalysisContext context,
         string targetZipPath,
         IEnumerable<string>? extraFiles)
@@ -60,11 +60,9 @@ internal sealed class CrashReportExporter
     {
         try
         {
-            long totalMiB;
-            long availableMiB;
-            var memory = PCL.Core.Platform.PlatformRuntime.Current.SystemFacts.GetMemoryBytes();
-            totalMiB = (long)memory.Total / 1024 / 1024;
-            availableMiB = (long)memory.Available / 1024 / 1024;
+            var memory = PlatformRuntime.Current.SystemFacts.GetMemoryInfo();
+            var totalMiB = (long)memory.TotalBytes / 1024 / 1024;
+            var availableMiB = (long)memory.AvailableBytes / 1024 / 1024;
 
             var dpiScale = Math.Round(LauncherCommon.Dpi / 96d, 2);
             LogWrapper.Info(

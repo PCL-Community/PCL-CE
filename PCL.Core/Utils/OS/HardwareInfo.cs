@@ -6,28 +6,20 @@ using PCL.Core.Platform;
 
 namespace PCL.Core.Utils.OS;
 
-/// <summary>
-///     系统硬件信息门面。具体采集由当前平台的 <see cref="IHardwareInfo" /> 实现完成。
-/// </summary>
+/// <summary>系统硬件信息门面。具体采集由当前平台的 <see cref="IHardwareInfo" /> 实现完成。</summary>
 public static class HardwareInfo
 {
     private static readonly Lock _Lock = new();
 
-    /// <summary>
-    ///     系统 CPU 信息。
-    /// </summary>
+    /// <summary>系统 CPU 信息。</summary>
     public static string CpuName = "Unknown";
 
     private static readonly Lazy<long> _SystemMemorySize = new(_GetSystemMemorySize);
 
-    /// <summary>
-    ///     系统 GPU 信息。
-    /// </summary>
+    /// <summary>系统 GPU 信息。</summary>
     public static IReadOnlyList<GpuInfo> Gpus { get; private set; } = [];
 
-    /// <summary>
-    ///     已安装物理内存大小，单位 MiB。
-    /// </summary>
+    /// <summary>已安装物理内存大小，单位 MiB。</summary>
     public static long SystemMemorySize => _SystemMemorySize.Value;
 
     private static IHardwareInfo? CurrentProvider =>
@@ -35,24 +27,22 @@ public static class HardwareInfo
 
     private static long _GetSystemMemorySize()
     {
-        if (CurrentProvider is { } provider)
+        if (PlatformRuntime.IsInitialized)
             try
             {
-                var size = provider.GetMemorySizeMiB();
-                if (size > 0) return size;
+                var totalBytes = PlatformRuntime.Current.SystemFacts.GetMemoryInfo().TotalBytes;
+                if (totalBytes > 0) return (long)(totalBytes / 1024 / 1024);
             }
             catch (Exception ex)
             {
                 LogWrapper.Warn(ex, "获取系统内存信息失败");
             }
 
-        var totalBytes = GC.GetGCMemoryInfo().TotalAvailableMemoryBytes;
-        return totalBytes > 0 ? totalBytes / 1024 / 1024 : 0;
+        var fallbackBytes = GC.GetGCMemoryInfo().TotalAvailableMemoryBytes;
+        return fallbackBytes > 0 ? fallbackBytes / 1024 / 1024 : 0;
     }
 
-    /// <summary>
-    ///     获取系统信息，例如 CPU 与 GPU，并存储到 <see cref="CpuName" /> 和 <see cref="Gpus" />。
-    /// </summary>
+    /// <summary>获取系统信息，例如 CPU 与 GPU，并存储到 <see cref="CpuName" /> 和 <see cref="Gpus" />。</summary>
     public static void GetHardwareInfo()
     {
         if (CurrentProvider is not { } provider)

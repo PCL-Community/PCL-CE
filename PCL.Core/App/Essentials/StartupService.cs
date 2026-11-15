@@ -14,14 +14,9 @@ using PCL.Core.Utils.Secret;
 
 namespace PCL.Core.App.Essentials;
 
-/// <summary>
-///     命令处理委托
-/// </summary>
+/// <summary>命令处理委托</summary>
 /// <param name="model">命令模型</param>
-/// <param name="isCallback">
-///     指示该委托是否由已注册的回调触发，若是，则代表可能由 RPC
-///     或用户后续操作而非当前进程的命令行参数触发，应注意鉴权问题
-/// </param>
+/// <param name="isCallback">指示该委托是否由已注册的回调触发，若是，则代表可能由 RPC 或用户后续操作而非当前进程的命令行参数触发，应注意鉴权问题</param>
 public delegate void CommandHandler(CommandLine model, bool isCallback);
 
 [LifecycleService(LifecycleState.BeforeLoading, Priority = int.MaxValue)]
@@ -31,9 +26,7 @@ public sealed partial class StartupService
     private static readonly Dictionary<string, CommandLine> _UnhandledCommandMap = [];
     private static readonly ConcurrentDictionary<string, CommandHandler> _HandleCallbackMap = [];
 
-    /// <summary>
-    ///     解析后的命令行模型实例
-    /// </summary>
+    /// <summary>解析后的命令行模型实例</summary>
     /// <exception cref="Exception">尚未初始化完成</exception>
     public static CommandLine CommandLine
     {
@@ -41,9 +34,7 @@ public sealed partial class StartupService
         private set;
     } = null!;
 
-    /// <summary>
-    ///     未处理的子命令
-    /// </summary>
+    /// <summary>未处理的子命令</summary>
     public static IReadOnlyDictionary<string, CommandLine> UnhandledCommands =>
         _UnhandledCommandMap.AsReadOnly();
 
@@ -52,9 +43,7 @@ public sealed partial class StartupService
         return new InvalidOperationException("Not initialized");
     }
 
-    /// <summary>
-    ///     处理一个子命令
-    /// </summary>
+    /// <summary>处理一个子命令</summary>
     /// <param name="command">子命令</param>
     /// <param name="handler">用于处理命令的委托，传入 <see langword="null" /> 则触发已注册的处理回调</param>
     /// <param name="registerCallback">指定是否注册该委托为处理回调</param>
@@ -120,12 +109,12 @@ public sealed partial class StartupService
             .Append(GetArchitectureName(RuntimeInformation.OSArchitecture))
             .Append(')');
         const int memoryDiv = 1024 * 1024;
-        var memory = PlatformRuntime.Current.SystemFacts.GetMemoryBytes();
+        var memory = PlatformRuntime.Current.SystemFacts.GetMemoryInfo();
         info
             .Append("\n可用内存: ")
-            .Append(memory.Available / memoryDiv)
+            .Append(memory.AvailableBytes / memoryDiv)
             .Append('/')
-            .Append(memory.Total / memoryDiv)
+            .Append(memory.TotalBytes / memoryDiv)
             .Append(" MiB");
 
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);

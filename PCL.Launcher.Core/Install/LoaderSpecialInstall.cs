@@ -4,7 +4,6 @@ using System.Text;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.IO.Net.Http;
-using PCL.Core.Minecraft;
 using PCL.Core.Minecraft.Java;
 using PCL.Core.Platform;
 using PCL.Core.Utils;
@@ -14,9 +13,9 @@ using PCL.Network.Loaders;
 namespace PCL;
 
 /// <summary>
-///     OptiFine / LiteLoader / LabyMod 的特殊安装链路。
-///     OptiFine 在存在模组加载器时作为模组放入 mods；否则运行官方安装器或生成 Legacy 版本 Json。
-///     LiteLoader 按官方版本元数据生成加载器 Json；LabyMod 下载官方 manifest 并在合并阶段注入支持库。
+/// OptiFine / LiteLoader / LabyMod 的特殊安装链路。 OptiFine 在存在模组加载器时作为模组放入
+/// mods；否则运行官方安装器或生成 Legacy 版本 Json。 LiteLoader 按官方版本元数据生成加载器 Json；LabyMod 下载官方 manifest
+/// 并在合并阶段注入支持库。
 /// </summary>
 internal static class LoaderSpecialInstall
 {
@@ -315,7 +314,7 @@ internal static class LoaderSpecialInstall
         string target,
         Version javaVersion)
     {
-        var useWrapper = PlatformRuntime.Current.Capabilities.SupportsJavaw
+        var useWrapper = PlatformRuntime.Current.Java.SupportsJavaw
             && LauncherCommon.IsUtf8CodePage()
             && !Config.Launch.DisableJlw;
         while (true)

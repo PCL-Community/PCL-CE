@@ -5,14 +5,10 @@ namespace PCL.Platform;
 
 public sealed class MacOsSystemFacts : ISystemFacts
 {
-    public ulong GetPhysicalMemoryBytes()
+    public SystemMemoryInfo GetMemoryInfo()
     {
-        return KernelInterop.GetPhysicalMemoryBytes().Total;
-    }
-
-    public (ulong Total, ulong Available) GetMemoryBytes()
-    {
-        return KernelInterop.GetPhysicalMemoryBytes();
+        var (total, available) = KernelInterop.GetPhysicalMemoryBytes();
+        return new SystemMemoryInfo(total, available);
     }
 
     public bool IsAdministrator => Environment.IsPrivilegedProcess;

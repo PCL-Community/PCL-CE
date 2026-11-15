@@ -30,7 +30,7 @@ public static partial class GameLaunch
 
     private static void _SetJavaGpuPreference(string javaExePath)
     {
-        if (!PlatformRuntime.Current.Capabilities.SupportsGpuPreference) return;
+        if (!PlatformRuntime.Current.GpuPreference.IsSupported) return;
 
         try
         {

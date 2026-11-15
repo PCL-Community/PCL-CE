@@ -7,9 +7,11 @@ public static class UiModuleFactory
 {
     public static UiModule Create(PlatformKind kind)
     {
+        var dispatcher = new AvaloniaUiDispatcher();
+
         return new UiModule
         {
-            Dispatcher = new AvaloniaUiDispatcher(),
+            Dispatcher = dispatcher,
             Clipboard = new ClipboardService(),
             FileDialogs = kind switch
             {
@@ -18,7 +20,7 @@ public static class UiModuleFactory
                 _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "不支持的平台")
             },
             ResourceStore = new ResourceStore(),
-            Localization = new LocalizationBackend(),
+            Localization = new LocalizationBackend(dispatcher),
             Theme = new ThemeBackend(),
             SystemTheme = kind switch
             {

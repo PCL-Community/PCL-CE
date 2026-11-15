@@ -32,4 +32,20 @@ public sealed class PlatformModuleShapeTest
         Assert.Contains(nameof(UiModule.SystemTheme), names);
         Assert.Contains(nameof(UiModule.Notifications), names);
     }
+
+    [TestMethod]
+    public void CapabilitiesDoNotDuplicateServiceAbilities()
+    {
+        var names = typeof(IPlatformCapabilities)
+            .GetProperties()
+            .Select(property => property.Name)
+            .ToArray();
+
+        Assert.DoesNotContain("JavaExecutableName", names);
+        Assert.DoesNotContain("SupportsJavaw", names);
+        Assert.DoesNotContain("SupportsGpuPreference", names);
+        Assert.DoesNotContain("SupportsNativeMenu", names);
+        Assert.DoesNotContain("SupportsTaskbarProgress", names);
+        Assert.DoesNotContain("SupportsInAppUpdate", names);
+    }
 }

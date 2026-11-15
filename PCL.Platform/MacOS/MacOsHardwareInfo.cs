@@ -26,11 +26,6 @@ public sealed class MacOsHardwareInfo : IHardwareInfo
         return _ReadMacOsGpus();
     }
 
-    public long GetMemorySizeMiB()
-    {
-        return (long)KernelInterop.GetPhysicalMemoryBytes().Total / 1024 / 1024;
-    }
-
     private static string _ReadMacHardwareName()
     {
         var output = _RunAndRead("system_profiler", "SPHardwareDataType");

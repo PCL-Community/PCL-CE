@@ -6,29 +6,22 @@ using System.Threading;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.IoC;
 using PCL.Core.Platform;
+using PCL.Core.UI.Threading;
 
 namespace PCL.Core.App.Localization;
 
-/// <summary>
-///     UI 本地化服务。
-/// </summary>
+/// <summary>UI 本地化服务。</summary>
 [LifecycleScope("localization", "本地化", false)]
 [LifecycleService(LifecycleState.Loaded, Priority = 114514)]
 public sealed partial class LocalizationService
 {
-    /// <summary>
-    ///     跟随系统设置的配置值。
-    /// </summary>
+    /// <summary>跟随系统设置的配置值。</summary>
     public const string Auto = "auto";
 
-    /// <summary>
-    ///     展示格式同步 UI 语言的配置值。
-    /// </summary>
+    /// <summary>展示格式同步 UI 语言的配置值。</summary>
     public const string FormatCultureFollowLanguage = "ui-language";
 
-    /// <summary>
-    ///     默认语言，也是语言资源的完整兜底。
-    /// </summary>
+    /// <summary>默认语言，也是语言资源的完整兜底。</summary>
     public const string DefaultLanguageCode = "zh-CN";
 
     private static readonly LocalizationLanguage _DefaultLanguage = new(
@@ -41,20 +34,14 @@ public sealed partial class LocalizationService
     private static CultureInfo _systemFormatCulture = CultureInfo.CurrentCulture;
     private static CultureInfo _systemUiCulture = CultureInfo.CurrentUICulture;
 
-    /// <summary>
-    ///     当前 UI 语言。
-    /// </summary>
+    /// <summary>当前 UI 语言。</summary>
     public static LocalizationLanguage CurrentLanguage { get; private set; } = _DefaultLanguage;
 
-    /// <summary>
-    ///     当前 UI 展示格式所使用的区域性。
-    /// </summary>
+    /// <summary>当前 UI 展示格式所使用的区域性。</summary>
     public static CultureInfo CurrentFormatCulture { get; private set; } =
         CultureInfo.CurrentCulture;
 
-    /// <summary>
-    ///     受支持的 UI 语言。
-    /// </summary>
+    /// <summary>受支持的 UI 语言。</summary>
     public static IReadOnlyList<LocalizationLanguage> SupportedLanguages { get; } =
     [
         _DefaultLanguage,
@@ -77,15 +64,10 @@ public sealed partial class LocalizationService
             handler: _ => ApplyFromConfig()
         );
 
-    /// <summary>
-    ///     界面文案修订号。<br />
-    ///     每次 UI 语言或展示格式生效后递增，供页面判断自己上一次渲染的文案是否已经过期。
-    /// </summary>
+    /// <summary>界面文案修订号。<br /> 每次 UI 语言或展示格式生效后递增，供页面判断自己上一次渲染的文案是否已经过期。</summary>
     public static int UiRevision { get; private set; }
 
-    /// <summary>
-    ///     语言或展示格式更改后触发。
-    /// </summary>
+    /// <summary>语言或展示格式更改后触发。</summary>
     public static event Action? LanguageChanged;
 
     [LifecycleStart]
@@ -96,9 +78,7 @@ public sealed partial class LocalizationService
         ApplyFromConfig();
     }
 
-    /// <summary>
-    ///     按当前配置应用 UI 语言与展示格式。
-    /// </summary>
+    /// <summary>按当前配置应用 UI 语言与展示格式。</summary>
     public static void ApplyFromConfig(bool save = false)
     {
         if (!ConfigService.IsInitialized)
@@ -113,9 +93,7 @@ public sealed partial class LocalizationService
             save);
     }
 
-    /// <summary>
-    ///     应用 UI 语言与展示格式。
-    /// </summary>
+    /// <summary>应用 UI 语言与展示格式。</summary>
     /// <param name="languageCode">UI 语言代码，auto 表示跟随系统语言。</param>
     /// <param name="formatCultureCode">展示格式区域性，auto 表示跟随系统区域格式。</param>
     /// <param name="save">是否写回配置。</param>
@@ -163,9 +141,7 @@ public sealed partial class LocalizationService
         LanguageChanged?.Invoke();
     }
 
-    /// <summary>
-    ///     判断语言代码是否受支持。
-    /// </summary>
+    /// <summary>判断语言代码是否受支持。</summary>
     public static bool IsLanguageSupported(string? languageCode)
     {
         if (string.IsNullOrWhiteSpace(languageCode)) return true;
@@ -175,9 +151,7 @@ public sealed partial class LocalizationService
             string.Equals(language.Code, normalizedCode, StringComparison.OrdinalIgnoreCase));
     }
 
-    /// <summary>
-    ///     按配置值解析语言。
-    /// </summary>
+    /// <summary>按配置值解析语言。</summary>
     public static LocalizationLanguage ResolveLanguage(string? languageCode)
     {
         if (string.IsNullOrWhiteSpace(languageCode)
@@ -294,8 +268,8 @@ public sealed partial class LocalizationService
             _isLanguageResourcesApplied = true;
         }
 
-        if (backend.CheckAccess()) Apply();
-        else backend.Invoke(Apply);
+        if (UiDispatcher.CheckAccess()) Apply();
+        else UiDispatcher.Invoke(Apply);
     }
 
     private static string _NormalizeConfigValue(string? value)

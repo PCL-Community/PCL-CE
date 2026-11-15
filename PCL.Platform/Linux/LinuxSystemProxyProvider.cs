@@ -11,10 +11,6 @@ namespace PCL.Platform;
 /// </summary>
 public sealed class LinuxSystemProxyProvider : ISystemProxyProvider, IDisposable
 {
-    private static readonly string[] _HttpProxyEnv = ["http_proxy", "HTTP_PROXY"];
-    private static readonly string[] _HttpsProxyEnv = ["https_proxy", "HTTPS_PROXY"];
-    private static readonly string[] _AllProxyEnv = ["all_proxy", "ALL_PROXY"];
-
     private readonly Lock _watchLock = new();
     private int _changeGeneration;
     private bool _disposed;
@@ -73,8 +69,9 @@ public sealed class LinuxSystemProxyProvider : ISystemProxyProvider, IDisposable
     public IReadOnlyList<SystemProxyEntry> GetSystemProxies()
     {
         var proxies = new List<SystemProxyEntry>();
-        var http = _ReadEnv(_HttpProxyEnv) ?? _ReadEnv(_AllProxyEnv);
-        var https = _ReadEnv(_HttpsProxyEnv) ?? _ReadEnv(_AllProxyEnv);
+        var env = EnvironmentProxyReader.ReadRaw();
+        var http = env.Http ?? env.All;
+        var https = env.Https ?? env.All;
 
         if (!string.IsNullOrWhiteSpace(http)) proxies.Add(new SystemProxyEntry("http", http));
         if (!string.IsNullOrWhiteSpace(https)) proxies.Add(new SystemProxyEntry("https", https));
@@ -226,16 +223,6 @@ public sealed class LinuxSystemProxyProvider : ISystemProxyProvider, IDisposable
         {
             return null;
         }
-    }
-
-    private static string? _ReadEnv(IEnumerable<string> names)
-    {
-        return (
-            from name in names
-            select Environment.GetEnvironmentVariable(name)
-            into value
-            where !string.IsNullOrWhiteSpace(value)
-            select value.Trim()).FirstOrDefault();
     }
 
     private static IReadOnlyList<SystemProxyEntry> _ReadGnomeProxies()

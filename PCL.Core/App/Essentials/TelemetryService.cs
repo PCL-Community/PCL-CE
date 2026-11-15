@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
@@ -9,7 +8,6 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using PCL.Core.App.IoC;
 using PCL.Core.IO.Net;
-using PCL.Core.IO.Net.Dns;
 using PCL.Core.Logging;
 using PCL.Core.Platform;
 using PCL.Core.Utils.OS;
@@ -114,7 +112,7 @@ public sealed partial class TelemetryService
 
     private static ulong _GetPhysicalMemoryBytes()
     {
-        return PlatformRuntime.Current.SystemFacts.GetPhysicalMemoryBytes();
+        return PlatformRuntime.Current.SystemFacts.GetMemoryInfo().TotalBytes;
     }
 
     // 设备环境上报

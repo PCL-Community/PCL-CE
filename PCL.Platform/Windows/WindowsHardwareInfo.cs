@@ -57,9 +57,4 @@ public sealed class WindowsHardwareInfo : IHardwareInfo
 
         return gpuList;
     }
-
-    public long GetMemorySizeMiB()
-    {
-        return (long)KernelInterop.GetPhysicalMemoryBytes().Total / 1024 / 1024;
-    }
 }

@@ -4,19 +4,15 @@ namespace PCL.Platform;
 
 public sealed class LinuxSystemFacts : ISystemFacts
 {
-    public ulong GetPhysicalMemoryBytes()
+    public SystemMemoryInfo GetMemoryInfo()
     {
-        return LinuxHardwareInfo.TryReadMemory(out var total, out _)
-            ? (ulong)total * 1024 * 1024
-            : (ulong)GC.GetGCMemoryInfo().TotalAvailableMemoryBytes;
-    }
+        if (LinuxHardwareInfo.TryReadMemory(out var totalMiB, out var availableMiB))
+            return new SystemMemoryInfo(
+                (ulong)totalMiB * 1024 * 1024,
+                (ulong)availableMiB * 1024 * 1024);
 
-    public (ulong Total, ulong Available) GetMemoryBytes()
-    {
-        return LinuxHardwareInfo.TryReadMemory(out var total, out var available)
-            ? ((ulong)total * 1024 * 1024, (ulong)available * 1024 * 1024)
-            : ((ulong)GC.GetGCMemoryInfo().TotalAvailableMemoryBytes,
-                (ulong)GC.GetGCMemoryInfo().TotalAvailableMemoryBytes);
+        var fallback = (ulong)GC.GetGCMemoryInfo().TotalAvailableMemoryBytes;
+        return new SystemMemoryInfo(fallback, fallback);
     }
 
     public bool IsAdministrator => Environment.IsPrivilegedProcess;

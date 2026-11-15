@@ -2,7 +2,6 @@ using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml.Styling;
-using Avalonia.Threading;
 using PCL.Core.App.IoC;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
@@ -14,7 +13,7 @@ namespace PCL.Core.UI;
 /// 基于 Avalonia 资源字典的本地化后端：语言资源由 WPF 语言字典按原结构转换而来， 以 <see cref="ResourceInclude" />
 /// 合并到应用资源，查找与语言切换均走 Avalonia 资源体系。 启动器 UI 字体由启动器层的 <c>LaunchFonts</c> 统一管理，本后端不重复设置字体。
 /// </summary>
-public sealed class LocalizationBackend : ILocalizationBackend
+public sealed class LocalizationBackend(IUiDispatcher dispatcher) : ILocalizationBackend
 {
     private const string ModuleName = "Localization";
     private const string ResourcePathFormat = "Localization/Languages/{0}.axaml";
@@ -22,22 +21,13 @@ public sealed class LocalizationBackend : ILocalizationBackend
     private static readonly string AssemblyName =
         typeof(LocalizationBackend).Assembly.GetName().Name!;
 
+    private readonly IUiDispatcher _dispatcher =
+        dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
+
     private readonly List<IResourceProvider> _languageProviders = [];
     private readonly Lock _stateLock = new();
-
     private string? _appliedBaseLanguage;
     private string? _appliedCurrentLanguage;
-
-    public bool CheckAccess()
-    {
-        return Dispatcher.UIThread.CheckAccess();
-    }
-
-    public void Invoke(Action action)
-    {
-        if (CheckAccess()) action();
-        else Dispatcher.UIThread.Invoke(action);
-    }
 
     public string? TryFindResource(string key)
     {
@@ -50,15 +40,15 @@ public sealed class LocalizationBackend : ILocalizationBackend
 
     public void ApplyLanguageResources(string baseLanguageCode, string? currentLanguageCode)
     {
-        Invoke(() => _ApplyLanguageResources(baseLanguageCode, currentLanguageCode));
+        _dispatcher.Invoke(() => _ApplyLanguageResources(baseLanguageCode, currentLanguageCode));
     }
 
     /// <summary>应用容器就绪后先加载基础语言。加载流程中较早的 <see cref="Lang.Text" /> 调用 早于本地化服务的 Loaded 阶段，需要基础语言先行就位。</summary>
     public void EnsureBaseLanguage()
     {
-        if (!CheckAccess())
+        if (!_dispatcher.CheckAccess())
         {
-            Invoke(EnsureBaseLanguage);
+            _dispatcher.Invoke(EnsureBaseLanguage);
             return;
         }
 

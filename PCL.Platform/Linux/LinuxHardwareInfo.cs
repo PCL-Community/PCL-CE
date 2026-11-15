@@ -82,11 +82,6 @@ public sealed class LinuxHardwareInfo : IHardwareInfo
         return gpuList;
     }
 
-    public long GetMemorySizeMiB()
-    {
-        return TryReadMemory(out var totalMiB, out _) ? totalMiB : 0;
-    }
-
     /// <summary>读取 Linux <c>/proc/meminfo</c> 的物理内存总量与可用量（MiB）。</summary>
     public static bool TryReadMemory(out long totalMiB, out long availableMiB)
     {

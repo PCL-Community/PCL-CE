@@ -155,7 +155,7 @@ internal static class CrashPresenter
             fileAddress = SelectReportSavePath();
             if (string.IsNullOrEmpty(fileAddress)) return;
 
-            Exporter.Export(context, fileAddress, extraFiles);
+            CrashReportExporter.Export(context, fileAddress, extraFiles);
             UiInteraction.Hint(
                 Lang.Text("Crash.Report.Export.Success"),
                 NotificationType.Success);
