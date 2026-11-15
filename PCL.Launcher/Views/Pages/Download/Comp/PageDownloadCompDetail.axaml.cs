@@ -2,7 +2,7 @@ using System.Text;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
-using Avalonia.Threading;
+using Avalonia.Media;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
@@ -12,7 +12,6 @@ using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
 using PCL.Core.Utils.Validate;
-using PCL.Navigation;
 using PCL.Network.Loaders;
 using PCL.UI.Controls;
 
@@ -20,15 +19,23 @@ namespace PCL.Views.Pages.Download;
 
 public partial class PageDownloadCompDetail : MyPageRight
 {
+    private const string FileListAnimationKey = "CompDetail FileList Refresh";
+
     private MyCompItem? _compItem;
-    private DispatcherTimer? _refreshTimer;
 
     public PageDownloadCompDetail()
     {
         InitializeComponent();
         PanScroll = PanBack;
-        Load.State = ViewModel.EnsureLoader();
-        ViewModel.StateChanged += ApplyLoadState;
+        ShowAlwaysWhileLoading = false;
+        PageLoaderInit(
+            Load,
+            PanLoad,
+            PanMain,
+            CardIntro,
+            ViewModel.EnsureLoader(),
+            inputInvoke: () => 0,
+            autoRun: false);
         ViewModel.FiltersChanged += BuildFilters;
         ViewModel.FileGroupsChanged += BuildFileList;
         ViewModel.IntroChanged += ApplyIntroState;
@@ -62,7 +69,6 @@ public partial class PageDownloadCompDetail : MyPageRight
             if (ViewModel.Project is { } project)
                 CompFavoritesMenu.Show(project, BtnFavorites, RefreshFavoriteButton);
         };
-        Load.Click += (_, _) => ViewModel.RetryCommand.Execute(null);
         Grid.SetIsSharedSizeScope(PanResults, true);
 
         LocalizationService.LanguageChanged += OnLanguageChanged;
@@ -75,12 +81,22 @@ public partial class PageDownloadCompDetail : MyPageRight
         if (ViewModel.Project is null) return;
         ApplyButtonLocalization();
         ViewModel.RefreshLocalization();
-        RefreshIntro();
+        RefreshIntro(true);
     }
 
     public override void OnNavigatedTo(object? parameter)
     {
         PanBack.ScrollToHome();
+        if (ViewModel.Project is not null)
+            RefreshFavoriteButton();
+    }
+
+    public override void OnNavigatedFrom()
+    {
+    }
+
+    internal void PrepareNavigation(object? parameter)
+    {
         var applied = parameter switch
         {
             Comp.CompProject project => ViewModel.ApplyContext(
@@ -101,48 +117,14 @@ public partial class PageDownloadCompDetail : MyPageRight
         };
         if (!applied) return;
 
-        _refreshTimer?.Stop();
-        _refreshTimer = new DispatcherTimer
-        {
-            Interval = TimeSpan.FromMilliseconds(180d)
-        };
-        _refreshTimer.Tick += (_, _) =>
-        {
-            _refreshTimer?.Stop();
-            _refreshTimer = null;
-            if (ReferenceEquals(PageRouter.CurrentPage, this))
-                Refresh();
-        };
-        _refreshTimer.Start();
-    }
-
-    public override void OnNavigatedFrom()
-    {
-        _refreshTimer?.Stop();
-        _refreshTimer = null;
-    }
-
-    private void Refresh()
-    {
-        if (ViewModel.Project is not { } project) return;
-
-        RefreshIntro();
-
-        BtnIntroWiki.IsVisible = Lang.IsChineseMainland && project.WikiId > 0;
-        BtnTranslate.IsVisible = Lang.IsChineseMainland;
         ApplyButtonLocalization();
         RefreshFavoriteButton();
+        PanBack.ScrollToHome();
 
-        PanResults.Children.Clear();
-        CardFilter.IsVisible = false;
-        PanLoad.IsVisible = true;
+        if (ViewModel.HasFreshResults)
+            return;
+
         ViewModel.StartLoad();
-    }
-
-    private void ApplyLoadState()
-    {
-        PanLoad.IsVisible = ViewModel.IsLoadingVisible || ViewModel.IsErrorVisible;
-        CardFilter.IsVisible = ViewModel.FilterVisible;
     }
 
     private void ApplyIntroState()
@@ -152,7 +134,7 @@ public partial class PageDownloadCompDetail : MyPageRight
         RefreshIntro();
     }
 
-    private void RefreshIntro()
+    private void RefreshIntro(bool force = false)
     {
         if (ViewModel.IntroItem is not { } introItem)
         {
@@ -164,6 +146,12 @@ public partial class PageDownloadCompDetail : MyPageRight
 
             return;
         }
+
+        if (!force
+            && _compItem is not null
+            && introItem.Project is { } project
+            && _compItem.Project.Id == project.Id)
+            return;
 
         if (_compItem is not null)
             PanIntro.Children.Remove(_compItem);
@@ -317,6 +305,10 @@ public partial class PageDownloadCompDetail : MyPageRight
     {
         try
         {
+            var hadContent = PanResults.Children.Count > 0;
+            AnimationService.CancelAnimationByName(FileListAnimationKey);
+            PanResults.Opacity = 1d;
+            PanResults.RenderTransform = null;
             PanResults.Children.Clear();
             if (ViewModel.FileGroups.Count == 0)
             {
@@ -368,6 +360,9 @@ public partial class PageDownloadCompDetail : MyPageRight
                 card.Swap += (_, _) =>
                     ViewModel.SetGroupExpanded(group.Title, !card.IsSwapped);
             }
+
+            if (hadContent && PageState == PageStates.ContentStay)
+                PlayFileListEnterAnimation();
         }
         catch (Exception ex)
         {
@@ -377,6 +372,27 @@ public partial class PageDownloadCompDetail : MyPageRight
                 LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Download.Comp.Error.OperationFailed"));
         }
+    }
+
+    /// <summary>筛选条件改变时让重建后的版本卡整体淡入，而不是瞬间替换。</summary>
+    private void PlayFileListEnterAnimation()
+    {
+        if (!ContainerAnimation.CanAnimatePage(this))
+        {
+            PanResults.Opacity = 1d;
+            PanResults.RenderTransform = null;
+            return;
+        }
+
+        PanResults.Opacity = 0d;
+        PanResults.RenderTransform = new TranslateTransform(0d, -8d);
+        AnimationService.Run(
+            new List<IAnimation>
+            {
+                new OpacityAnimation(PanResults, 1d, 120, ease: new FluentEaseOut(EasePower.Weak)),
+                new TranslateYAnimation(PanResults, 8d, 180, 0, new FluentEaseOut())
+            },
+            FileListAnimationKey);
     }
 
     private Control CreateFileRow(CompFileItemViewModel file)

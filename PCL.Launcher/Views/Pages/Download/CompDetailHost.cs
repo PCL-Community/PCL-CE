@@ -35,7 +35,9 @@ public sealed class CompDetailHost : IPageHost
 
     public Control GetRight(PageStackData stack)
     {
-        return _right ??= new PageDownloadCompDetail();
+        _right ??= new PageDownloadCompDetail();
+        _right.PrepareNavigation(stack.Parameter);
+        return _right;
     }
 
     private static string GetDetailTitle(Comp.CompProject project)

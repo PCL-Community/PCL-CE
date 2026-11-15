@@ -6,11 +6,10 @@ namespace PCL.Views.Pages.Download;
 internal sealed class PageDownloadCompPage : MyPageRight, IPageView, IRefreshable
 {
     private readonly PageComp _comp;
-    private readonly Comp.CompType _type;
+    private CompSearchContext? _appliedContext;
 
     public PageDownloadCompPage(Comp.CompType type)
     {
-        _type = type;
         _comp = new PageComp
         {
             PageType = type,
@@ -20,14 +19,22 @@ internal sealed class PageDownloadCompPage : MyPageRight, IPageView, IRefreshabl
         _comp.CompDetailRequested += OnCompDetailRequested;
         Child = _comp;
         PanScroll = _comp.ScrollViewer;
+        ShowAlwaysWhileLoading = false;
+
+        PageLoaderInit(
+            _comp.LoadingIndicator,
+            _comp.LoadingCard,
+            _comp.ContentPanel,
+            _comp.AlwaysPanel,
+            _comp.PageLoader,
+            inputInvoke: () => _comp.BuildLoaderInput(),
+            autoRun: false);
     }
 
     public override void OnNavigatedTo(object? parameter)
     {
         _comp.ScrollViewer.ScrollToHome();
         _comp.RefreshFavoriteStatuses();
-        if (parameter is CompSearchContext context)
-            _comp.ApplySearchContext(context.TargetGameVersion, context.TargetModLoader);
     }
 
     public override void OnNavigatedFrom()
@@ -39,6 +46,24 @@ internal sealed class PageDownloadCompPage : MyPageRight, IPageView, IRefreshabl
         _comp.ScrollViewer.ScrollToHome();
         _comp.RefreshFavoriteStatuses();
         _comp.RefreshSearch();
+    }
+
+    public void PrepareNavigation(object? parameter)
+    {
+        var context = parameter as CompSearchContext;
+        if (_comp.IsInitialized)
+        {
+            if (context is not null && context != _appliedContext)
+            {
+                _appliedContext = context;
+                _comp.ApplySearchContext(context.TargetGameVersion, context.TargetModLoader);
+            }
+
+            return;
+        }
+
+        _appliedContext = context;
+        _comp.InitializeForLoad(context);
     }
 
     private static void OnCompDetailRequested(CompDetailParameter context)

@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.Utils;
 using PCL.Core.ViewModel;
 
 namespace PCL;
@@ -15,6 +16,7 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
     private bool _autoRetried;
     private bool _groupedDrop;
     private bool _groupedOld;
+    private string? _loadedContextKey;
     private string? _loaderFilter;
     private string? _versionFilter;
 
@@ -78,6 +80,22 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
 
     public Loading.LoaderTask<int, List<Comp.CompFile>>? Loader { get; private set; }
 
+    /// <summary>当前加载结果是否仍属于同一导航上下文且未超过加载器缓存时限。</summary>
+    public bool HasFreshResults
+    {
+        get
+        {
+            if (Project is null
+                || Loader is not { State: LoadState.Finished }
+                || !string.Equals(_loadedContextKey, BuildContextKey(), StringComparison.Ordinal))
+                return false;
+
+            return Loader.reloadTimeout < 0
+                || Loader.lastFinishedTime == 0L
+                || TimeUtils.GetTimeTick() - Loader.lastFinishedTime < Loader.reloadTimeout;
+        }
+    }
+
     public event Action? StateChanged;
 
     public event Action? FiltersChanged;
@@ -113,12 +131,14 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
         string? targetGameVersion,
         Comp.CompLoaderType targetModLoader)
     {
+        var oldContextKey = BuildContextKey();
         var oldProjectId = Project?.Id;
         if (project is null)
         {
             Project = null;
             IntroItem = null;
             IntroChanged?.Invoke();
+            ClearResults();
             return false;
         }
 
@@ -129,7 +149,39 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
         if (project.Id != oldProjectId)
             _expandedTitles.Clear();
         ApplyProjectState(project);
+
+        var newContextKey = BuildContextKey();
+        if (!string.IsNullOrEmpty(oldContextKey)
+            && !string.Equals(oldContextKey, newContextKey, StringComparison.Ordinal))
+            ClearResults();
         return true;
+    }
+
+    private string BuildContextKey()
+    {
+        return string.Join(
+            '\u001f',
+            Project?.FromCurseForge == true ? "cf" : "mr",
+            Project?.Id ?? string.Empty,
+            ((int)TargetType).ToString(),
+            TargetGameVersion ?? string.Empty,
+            ((int)TargetModLoader).ToString());
+    }
+
+    private void ClearResults()
+    {
+        _allResults = [];
+        FileGroups = [];
+        FilterVisible = false;
+        IsLoadingVisible = true;
+        IsErrorVisible = false;
+        ErrorMessage = string.Empty;
+        InstanceFilterLabelChips.Clear();
+        ModLoaderFilterLabelChips.Clear();
+        InstanceFilterOptions.Clear();
+        ModLoaderFilterOptions.Clear();
+        FiltersChanged?.Invoke();
+        FileGroupsChanged?.Invoke();
     }
 
     public void ApplyProjectState(Comp.CompProject project)
@@ -157,6 +209,7 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
     {
         if (Project is null || Loader is null)
             return;
+        _loadedContextKey = null;
         _allResults = [];
         FileGroups = [];
         FilterVisible = false;
@@ -307,6 +360,7 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
             TargetType);
         BuildFilters();
         RebuildFileGroups();
+        _loadedContextKey = BuildContextKey();
     }
 
     #region 筛选器

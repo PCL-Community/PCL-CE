@@ -45,11 +45,21 @@ public sealed class PageDownloadHost : IPageHost
     {
         var sub = NormalizeSubPage(stack.SubType);
         if (_rightPages.TryGetValue(sub, out var cached))
+        {
+            PrepareNavigation(cached, stack.Parameter);
             return cached;
+        }
 
         var page = CreatePage(sub);
+        PrepareNavigation(page, stack.Parameter);
         _rightPages[sub] = page;
         return page;
+    }
+
+    private static void PrepareNavigation(Control page, object? parameter)
+    {
+        if (page is PageDownloadCompPage compPage)
+            compPage.PrepareNavigation(parameter);
     }
 
     private void RefreshPage(PageSubType sub)
@@ -93,16 +103,18 @@ public sealed class PageDownloadHost : IPageHost
             PageSubType.DownloadOptiFine => new PageDownloadLoaderPage(DownloadLoaderKind.OptiFine),
             PageSubType.DownloadForge => new PageDownloadLoaderPage(DownloadLoaderKind.Forge),
             PageSubType.DownloadNeoForge => new PageDownloadLoaderPage(DownloadLoaderKind.NeoForge),
-            PageSubType.DownloadCleanroom => new PageDownloadLoaderPage(
-                DownloadLoaderKind.Cleanroom),
+            PageSubType.DownloadCleanroom =>
+                new PageDownloadLoaderPage(DownloadLoaderKind.Cleanroom),
             PageSubType.DownloadFabric => new PageDownloadLoaderPage(DownloadLoaderKind.Fabric),
-            PageSubType.DownloadLegacyFabric => new PageDownloadLoaderPage(
-                DownloadLoaderKind.LegacyFabric),
+            PageSubType.DownloadLegacyFabric =>
+                new PageDownloadLoaderPage(DownloadLoaderKind.LegacyFabric),
             PageSubType.DownloadLabyMod => new PageDownloadLoaderPage(DownloadLoaderKind.LabyMod),
             PageSubType.DownloadLiteLoader => new PageDownloadLoaderPage(
                 DownloadLoaderKind.LiteLoader),
             _ => throw new Exception(
-                Lang.Text("Download.Left.Error.UnknownSubPageType", (int)sub))
+                Lang.Text(
+                    "Download.Left.Error.UnknownSubPageType",
+                    (int)sub))
         };
     }
 }

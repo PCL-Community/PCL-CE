@@ -16,8 +16,8 @@ public partial class PageCompViewModel : ViewModelBase
 
     public static readonly IReadOnlyList<string> CommonGameVersions =
     [
-        "1.21.11", "1.21.1", "1.20.6", "1.20.1", "1.19.4", "1.19.2",
-        "1.18.2", "1.16.5", "1.12.2", "1.10.2", "1.8.9", "1.7.10"
+        "26.1.2", "1.21.11", "1.21.1", "1.20.1", "1.19.2", "1.18.2",
+        "1.16.5", "1.12.2", "1.10.2", "1.8.9", "1.7.10"
     ];
 
     private static readonly Comp.CompLoaderType[] ModLoaderTypes =
@@ -400,7 +400,7 @@ public partial class PageCompViewModel : ViewModelBase
                     showMcVersionDesc,
                     showLoaderDesc,
                     showQuickDownload)));
-            Projects = new ObservableCollection<MyCompItemViewModel>(projects);
+            Projects = [with(projects)];
             ApplyPagerState();
             ApplyErrorState();
         }
@@ -437,7 +437,7 @@ public partial class PageCompViewModel : ViewModelBase
         ErrorMessage = _storage.errorMessage ?? string.Empty;
     }
 
-    private Comp.CompProjectRequest BuildRequest()
+    internal Comp.CompProjectRequest BuildRequest()
     {
         var request = new Comp.CompProjectRequest(PageType, _storage, (_page + 1) * PageSize)
         {

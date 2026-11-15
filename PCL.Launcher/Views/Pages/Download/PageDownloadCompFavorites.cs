@@ -30,13 +30,13 @@ public sealed partial class PageDownloadCompFavorites : MyPageRight, IPageView, 
         HintGetFail.Cursor = new Cursor(StandardCursorType.Hand);
         Btn_ManageTargetFav.Click += (_, _) => ShowManageMenu();
 
-        ViewModel.StateChanged += ApplyLoadState;
         ViewModel.FoldersChanged += RefreshGroupCombo;
         ViewModel.SelectionChanged += RefreshSelectionBar;
         ViewModel.SearchReset += () => PanSearchBox.Text = string.Empty;
 
         KeyDown += OnPageKeyDown;
         LocalizationService.LanguageChanged += OnLanguageChanged;
+        PageEnter += OnPageEnter;
         AttachedToVisualTree += (_, _) => EnsureInitialized();
     }
 
@@ -48,10 +48,6 @@ public sealed partial class PageDownloadCompFavorites : MyPageRight, IPageView, 
     {
         EnsureInitialized();
         ViewModel.RefreshFolders();
-        if (_refreshed)
-            return;
-        _refreshed = true;
-        ViewModel.Reload();
     }
 
     public override void OnNavigatedFrom()
@@ -62,6 +58,16 @@ public sealed partial class PageDownloadCompFavorites : MyPageRight, IPageView, 
     {
         EnsureInitialized();
         ViewModel.RefreshFolders();
+        _refreshed = true;
+        ViewModel.Reload();
+    }
+
+    private void OnPageEnter()
+    {
+        EnsureInitialized();
+        ViewModel.RefreshFolders();
+        if (_refreshed)
+            return;
         _refreshed = true;
         ViewModel.Reload();
     }
@@ -78,12 +84,8 @@ public sealed partial class PageDownloadCompFavorites : MyPageRight, IPageView, 
             PanContent,
             null,
             loader,
+            inputInvoke: () => 0,
             autoRun: false);
-        Load.Click += (_, _) =>
-        {
-            if (ViewModel.IsLoadFailed)
-                ViewModel.Reload();
-        };
         RefreshGroupCombo();
     }
 
@@ -141,13 +143,6 @@ public sealed partial class PageDownloadCompFavorites : MyPageRight, IPageView, 
             return;
         ViewModel.ShowGetFailedCommand.Execute(null);
         e.Handled = true;
-    }
-
-    private void ApplyLoadState()
-    {
-        var busy = ViewModel.IsLoading || ViewModel.IsLoadFailed;
-        PanLoad.IsVisible = busy;
-        PanContent.IsVisible = !busy;
     }
 
     private void OnLanguageChanged()

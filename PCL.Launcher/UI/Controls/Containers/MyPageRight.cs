@@ -70,6 +70,12 @@ public class MyPageRight : Decorator, IPageView
         }
     } = PageStates.Empty;
 
+    /// <summary>
+    ///     加载期间是否显示 <c>panAlways</c>。默认与 WPF 一致，在加载环出现时一并显示；
+    ///     资源搜索/详情页可关闭，避免未加载完成就露出搜索筛选框或详情简介。
+    /// </summary>
+    public bool ShowAlwaysWhileLoading { get; set; } = true;
+
     public virtual void OnNavigatedTo(object? parameter)
     {
     }
@@ -238,7 +244,7 @@ public class MyPageRight : Decorator, IPageView
                 else // PageLoader.State = LoadState.Failed
                 {
                     PageState = PageStates.LoaderEnter;
-                    TriggerEnterAnimation(_panAlways, _panLoader);
+                    TriggerLoaderEnterAnimation();
                 }
 
                 break;
@@ -543,7 +549,10 @@ public class MyPageRight : Decorator, IPageView
             case PageStates.LoaderExit:
             {
                 PageState = PageStates.ContentEnter;
-                TriggerEnterAnimation(_panContent);
+                if (_panAlways is not null && !_panAlways.IsVisible)
+                    TriggerEnterAnimation(_panAlways, _panContent);
+                else
+                    TriggerEnterAnimation(_panContent);
                 break;
             }
 
@@ -575,10 +584,7 @@ public class MyPageRight : Decorator, IPageView
             case PageStates.LoaderWait:
             {
                 PageState = PageStates.LoaderEnter;
-                if (_panAlways is not null && !_panAlways.IsVisible)
-                    TriggerEnterAnimation(_panAlways, _panLoader);
-                else
-                    TriggerEnterAnimation(_panLoader);
+                TriggerLoaderEnterAnimation();
 
                 break;
             }
@@ -598,6 +604,15 @@ public class MyPageRight : Decorator, IPageView
                     $"在状态为 {LauncherCommon.GetStringFromEnum(PageState)} 时触发了 PageOnLoaderWaitFinished 事件。");
             }
         }
+    }
+
+    /// <summary>播放加载环入场；按页面需要决定是否同时显示 always 区域。</summary>
+    private void TriggerLoaderEnterAnimation()
+    {
+        if (ShowAlwaysWhileLoading && _panAlways is not null && !_panAlways.IsVisible)
+            TriggerEnterAnimation(_panAlways, _panLoader);
+        else
+            TriggerEnterAnimation(_panLoader);
     }
 
     /// <summary>
@@ -772,6 +787,8 @@ public class MyPageRight : Decorator, IPageView
 
     #region 动画
 
+    private const int MaxStaggerDelay = 250;
+
     private string PageChangeAnimationKey => "PageRight PageChange " + pageUuid;
 
     public void TriggerEnterAnimation(params Control?[] elements)
@@ -848,7 +865,7 @@ public class MyPageRight : Decorator, IPageView
                             350,
                             delay,
                             new BackEaseWithPowerOut()));
-                    delay += 25;
+                    delay = Math.Min(delay + 25, MaxStaggerDelay);
                 }
         }
 

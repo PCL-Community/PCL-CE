@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Threading;
 using PCL.Core.App.Localization;
 using PCL.Navigation;
 using PCL.UI.Controls;
@@ -18,7 +17,6 @@ public partial class PageComp : UserControl
     public const int PageSize = PageCompViewModel.PageSize;
 
     private IReadOnlyList<CompCategoryTag> _categoryTags = [];
-    private bool _initialised;
 
     public PageComp()
     {
@@ -43,13 +41,6 @@ public partial class PageComp : UserControl
             SyncFiltersToViewModel();
             ViewModel.NextPageCommand.Execute(null);
         };
-        Load.Click += (_, _) =>
-        {
-            SyncFiltersToViewModel();
-            ViewModel.RetryCommand.Execute(null);
-        };
-
-        ViewModel.StateChanged += ApplyState;
         ViewModel.ProjectsChanged += RenderResults;
         ViewModel.CategoryOptionsChanged += ApplyCategoryTags;
         ViewModel.ScrollToTopRequested += () => PanBack.ScrollToHome();
@@ -64,10 +55,6 @@ public partial class PageComp : UserControl
         ComboSearchSort.SelectedIndex = 0;
         ComboSearchLoader.SelectedIndex = 0;
         ComboSearchShaderLoader.SelectedIndex = 0;
-
-        AttachedToVisualTree += (_, _) => Dispatcher.UIThread.Post(
-            InitOnce,
-            DispatcherPriority.Background);
     }
 
     public PageCompViewModel ViewModel { get; } = new();
@@ -79,7 +66,7 @@ public partial class PageComp : UserControl
         {
             if (ViewModel.PageType == value) return;
             ViewModel.PageType = value;
-            if (_initialised) ApplyPageTypeUi();
+            if (IsInitialized) ApplyPageTypeUi();
         }
     }
 
@@ -94,7 +81,7 @@ public partial class PageComp : UserControl
         {
             if (ViewModel.SupportCurseForge == value) return;
             ViewModel.SupportCurseForge = value;
-            if (_initialised) ApplySourceVisibility();
+            if (IsInitialized) ApplySourceVisibility();
         }
     }
 
@@ -105,11 +92,23 @@ public partial class PageComp : UserControl
         {
             if (ViewModel.SupportModrinth == value) return;
             ViewModel.SupportModrinth = value;
-            if (_initialised) ApplySourceVisibility();
+            if (IsInitialized) ApplySourceVisibility();
         }
     }
 
     public MyScrollViewer ScrollViewer => PanBack;
+
+    internal MyLoading LoadingIndicator => Load;
+
+    internal MyCard LoadingCard => PanLoad;
+
+    internal StackPanel ContentPanel => PanContent;
+
+    internal StackPanel AlwaysPanel => PanAlways;
+
+    internal Loading.LoaderBase PageLoader => ViewModel.Loader!;
+
+    internal bool IsInitialized { get; private set; }
 
     public string? SelectedGameVersion => ViewModel.SelectedGameVersion;
 
@@ -125,13 +124,13 @@ public partial class PageComp : UserControl
                 tag.TextKey,
                 tag.Tag,
                 tag.IsIndented)));
-        if (_initialised) ApplyCategoryTags();
+        if (IsInitialized) ApplyCategoryTags();
     }
 
     public void ApplySearchContext(string? gameVersion, Comp.CompLoaderType modLoader)
     {
         ViewModel.ApplySearchContext(gameVersion, modLoader);
-        if (!_initialised) return;
+        if (!IsInitialized) return;
         TextSearchVersion.Text = ViewModel.SearchVersionText;
         ComboSearchLoader.SelectedIndex = ViewModel.SearchLoaderIndex;
         ApplySourceVisibility();
@@ -143,6 +142,12 @@ public partial class PageComp : UserControl
         StartNewSearch();
     }
 
+    internal Comp.CompProjectRequest BuildLoaderInput()
+    {
+        SyncFiltersToViewModel();
+        return ViewModel.BuildRequest();
+    }
+
     public void RefreshFavoriteStatuses()
     {
         ViewModel.RefreshAllFavoriteStatus();
@@ -151,10 +156,13 @@ public partial class PageComp : UserControl
                 item.RefreshFavoriteStatus();
     }
 
-    private void InitOnce()
+    internal void InitializeForLoad(CompSearchContext? context = null)
     {
-        if (_initialised) return;
-        _initialised = true;
+        if (context is not null)
+            ApplySearchContext(context.TargetGameVersion, context.TargetModLoader);
+
+        if (IsInitialized) return;
+        IsInitialized = true;
 
         LocalizationService.LanguageChanged += OnLanguageChanged;
         ApplyPageTypeUi();
@@ -215,16 +223,9 @@ public partial class PageComp : UserControl
             ComboSearchSource.SelectedIndex = ViewModel.SupportModrinth ? 2 : 0;
     }
 
-    private void ApplyState()
-    {
-        PanAlways.IsVisible = ViewModel.IsFilterVisible;
-        PanContent.IsVisible = ViewModel.IsContentVisible;
-        PanLoad.IsVisible = ViewModel.IsLoadingVisible;
-    }
-
     private void OnLanguageChanged()
     {
-        if (!_initialised) return;
+        if (!IsInitialized) return;
         ViewModel.RefreshLocalization();
         ApplyPageTypeUi();
         ApplyCategoryTags();
