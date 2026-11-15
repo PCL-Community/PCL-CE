@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
+using Avalonia.Controls.Templates;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
@@ -538,6 +539,16 @@ public class MyComboBox : ComboBox
     }
 
     // 容器
+
+    private static readonly FuncTemplate<Panel?> InlineItemsPanel = new(() => new StackPanel());
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        if (ItemsSource is null && !IsSet(ItemsPanelProperty))
+            ItemsPanel = InlineItemsPanel;
+    }
 
     protected override Control CreateContainerForItemOverride(
         object? item,
