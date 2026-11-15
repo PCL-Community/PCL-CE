@@ -55,6 +55,19 @@ public class EncodingDetectorTest
     }
 
     [TestMethod]
+    public void TestBomWithContent()
+    {
+        byte[] utf8WithBadByte = [0xef, 0xbb, 0xbf, .. Encoding.UTF8.GetBytes("中文"), 0xff];
+        Assert.AreEqual(Encoding.UTF8, EncodingDetector.DetectEncoding(utf8WithBadByte));
+        byte[] utf16Le = [0xff, 0xfe, .. Encoding.Unicode.GetBytes("中文")];
+        Assert.AreEqual(Encoding.Unicode, EncodingDetector.DetectEncoding(utf16Le));
+        byte[] utf16Be = [0xfe, 0xff, .. Encoding.BigEndianUnicode.GetBytes("中文")];
+        Assert.AreEqual(Encoding.BigEndianUnicode, EncodingDetector.DetectEncoding(utf16Be));
+        byte[] utf32Le = [0xff, 0xfe, 0x00, 0x00, .. Encoding.UTF32.GetBytes("中文")];
+        Assert.AreEqual(Encoding.UTF32, EncodingDetector.DetectEncoding(utf32Le));
+    }
+
+    [TestMethod]
     public async Task TestReadStreamWithTruncatedUtf8Tail()
     {
         var utf8 = Encoding.UTF8.GetBytes("abc中文");
