@@ -9,39 +9,26 @@ namespace PCL.Core.App.IoC;
 partial class Lifecycle
 {
     private static DateTime? _countRunningStart;
-
     private static bool _isApplicationStarted;
     private static bool _isLoadingStarted;
     private static bool _isWindowCreated;
-
     private static bool _hasRequestedStopLoading;
-
     private static bool _hasRequestedRestart;
     private static string? _requestRestartArguments;
     private static ILifecycleService? _requestRestartService;
-
     private static readonly Lock _ExitLock = new();
-
     private static int _fatalExitStarted;
 
-    /// <summary>
-    ///     应用程序容器，在 <see cref="LifecycleState.BeforeLoading" /> 阶段为空值
-    /// </summary>
+    /// <summary>应用程序容器，在 <see cref="LifecycleState.BeforeLoading" /> 阶段为空值</summary>
     public static IApplicationHost CurrentApplication { get; set; } = null!;
 
-    /// <summary>
-    ///     是否正在关闭程序
-    /// </summary>
+    /// <summary>是否正在关闭程序</summary>
     public static bool HasShutdownStarted { get; private set; }
 
-    /// <summary>
-    ///     正在进行的关闭程序流程是否是强制关闭
-    /// </summary>
+    /// <summary>正在进行的关闭程序流程是否是强制关闭</summary>
     public static bool IsForceShutdown { get; private set; }
 
-    /// <summary>
-    ///     [请勿调用] 处理未捕获异常流程
-    /// </summary>
+    /// <summary>[请勿调用] 处理未捕获异常流程</summary>
     /// <param name="ex">异常对象</param>
     public static void OnException(object ex)
     {
@@ -59,9 +46,7 @@ partial class Lifecycle
         }
     }
 
-    /// <summary>
-    ///     [请勿调用] 程序初始化流程
-    /// </summary>
+    /// <summary>[请勿调用] 程序初始化流程</summary>
     public static void OnInitialize()
     {
         // 检测重复调用
@@ -96,9 +81,7 @@ partial class Lifecycle
         if (!HasShutdownStarted) _Exit(statusCode);
     }
 
-    /// <summary>
-    ///     [请勿调用] 组件加载流程
-    /// </summary>
+    /// <summary>[请勿调用] 组件加载流程</summary>
     public static void OnLoading()
     {
         // 检测重复调用
@@ -110,9 +93,7 @@ partial class Lifecycle
         CurrentApplication.MainWindow!.Show();
     }
 
-    /// <summary>
-    ///     [请勿调用] 窗口创建结束流程
-    /// </summary>
+    /// <summary>[请勿调用] 窗口创建结束流程</summary>
     public static void OnWindowCreated()
     {
         // 检测重复调用
@@ -124,9 +105,7 @@ partial class Lifecycle
         _StartWorker(LifecycleState.Running, LifecycleState.Exiting, false);
     }
 
-    /// <summary>
-    ///     请求以致命错误状态结束进程。供致命错误对话框或 UI 宿主在异常路径上兜底调用。
-    /// </summary>
+    /// <summary>请求以致命错误状态结束进程。供致命错误对话框或 UI 宿主在异常路径上兜底调用。</summary>
     public static void RequestFatalExit()
     {
         _FatalExit();
@@ -217,6 +196,8 @@ partial class Lifecycle
         }
 
         _WaitStoppingServiceTasks();
+        // ApplicationService 正常停止时会释放运行时，这里兜底处理它未启动或被跳过的情况。
+        ApplicationRuntime.Shutdown();
         if (logService is not null)
         {
             Context.Trace("退出过程已结束，正在停止日志服务");
@@ -245,12 +226,15 @@ partial class Lifecycle
     }
 
     /// <summary>
-    ///     发起关闭程序流程。<br />
-    ///     <see cref="LifecycleState.BeforeLoading" /> 状态请使用 <see cref="LifecycleContext.RequestExit" />。
+    /// 发起关闭程序流程。<br /> <see cref="LifecycleState.BeforeLoading" /> 状态请使用
+    /// <see cref="LifecycleContext.RequestExit" />。
     /// </summary>
     /// <param name="statusCode">退出状态码 (返回值)</param>
     /// <param name="force">指定是否强制关闭，即不执行 WPF 标准关闭流程</param>
-    /// <exception cref="InvalidOperationException">尝试在 <see cref="LifecycleState.BeforeLoading" /> 状态调用</exception>
+    /// <exception cref="InvalidOperationException">
+    /// 尝试在 <see cref="LifecycleState.BeforeLoading" />
+    /// 状态调用
+    /// </exception>
     public static void Shutdown(int statusCode = 0, bool force = false)
     {
         if (CurrentState == LifecycleState.BeforeLoading) throw new InvalidOperationException();
@@ -265,11 +249,12 @@ partial class Lifecycle
             }.Start();
     }
 
-    /// <summary>
-    ///     强制关闭程序，不执行 WPF 标准关闭流程。
-    /// </summary>
+    /// <summary>强制关闭程序，不执行 WPF 标准关闭流程。</summary>
     /// <param name="statusCode">退出状态码 (返回值)</param>
-    /// <exception cref="InvalidOperationException">尝试在 <see cref="LifecycleState.BeforeLoading" /> 时调用</exception>
+    /// <exception cref="InvalidOperationException">
+    /// 尝试在 <see cref="LifecycleState.BeforeLoading" />
+    /// 时调用
+    /// </exception>
     public static void ForceShutdown(int statusCode = 0)
     {
         Shutdown(statusCode, true);

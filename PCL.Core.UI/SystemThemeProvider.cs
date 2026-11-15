@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Avalonia;
 using Avalonia.Platform;
 using Avalonia.Threading;
@@ -8,6 +9,7 @@ namespace PCL.Core.UI;
 /// <summary>Avalonia 平台主题事件与缓存。</summary>
 public class SystemThemeProvider : ISystemThemeProvider, IDisposable
 {
+    private bool _disposed;
     private bool? _lastDark;
     private bool _subscribed;
     private bool _subscribing;
@@ -19,9 +21,22 @@ public class SystemThemeProvider : ISystemThemeProvider, IDisposable
 
     public virtual void Dispose()
     {
-        if (_subscribed && Application.Current?.PlatformSettings is { } settings)
-            settings.ColorValuesChanged -= OnColorValuesChanged;
-        _subscribed = false;
+        if (_disposed) return;
+        _disposed = true;
+
+        try
+        {
+            if (_subscribed && Application.Current?.PlatformSettings is { } settings)
+                settings.ColorValuesChanged -= OnColorValuesChanged;
+        }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"[PCL.Core.UI] 释放系统主题订阅失败：{ex.Message}");
+        }
+        finally
+        {
+            _subscribed = false;
+        }
     }
 
     public virtual bool IsAvailable
@@ -47,7 +62,7 @@ public class SystemThemeProvider : ISystemThemeProvider, IDisposable
 
     protected void TrySubscribe()
     {
-        if (_subscribed || _subscribing) return;
+        if (_disposed || _subscribed || _subscribing) return;
         var settings = Application.Current?.PlatformSettings;
         if (settings is null) return;
 
@@ -66,6 +81,8 @@ public class SystemThemeProvider : ISystemThemeProvider, IDisposable
 
     protected virtual void OnColorValuesChanged(object? sender, PlatformColorValues e)
     {
+        if (_disposed) return;
+
         var isDark = e.ThemeVariant == PlatformThemeVariant.Dark;
         if (_lastDark == isDark) return;
         _lastDark = isDark;
@@ -74,6 +91,8 @@ public class SystemThemeProvider : ISystemThemeProvider, IDisposable
 
     protected void RaiseThemeChanged()
     {
+        if (_disposed) return;
+
         Dispatcher.UIThread.Post(() => ThemeChanged?.Invoke(this, EventArgs.Empty));
     }
 }

@@ -3,9 +3,11 @@ using PCL.Core.Utils.Secret;
 
 namespace PCL.Core.Platform;
 
-/// <summary>一个平台的 OS 原生服务集合。由组合根在启动时构造一次。</summary>
-public sealed class PlatformModule
+/// <summary>一个平台的 OS 原生服务集合。由组合根在启动时构造一次，并在退出时释放。</summary>
+public sealed class PlatformModule : IDisposable
 {
+    private bool _disposed;
+
     public required PlatformKind Kind { get; init; }
     public required IPlatformCapabilities Capabilities { get; init; }
     public required ISystemProxyProvider SystemProxy { get; init; }
@@ -21,6 +23,14 @@ public sealed class PlatformModule
     public required IRecycleBinService RecycleBin { get; init; }
     public required IFatalDialogService FatalDialog { get; init; }
     public required Func<byte[], IKeyProtector> KeyProtectorFactory { get; init; }
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+
+        (SystemProxy as IDisposable)?.Dispose();
+    }
 
     public IKeyProtector CreateKeyProtector(byte[] key)
     {

@@ -9,6 +9,7 @@ public sealed class LinuxSystemThemeProvider : SystemThemeProvider
 {
     private readonly Lock _lock = new();
     private bool _dark;
+    private bool _disposed;
     private Process? _gnomeThemeMonitor;
     private bool _initialized;
     private FileSystemWatcher? _kdeThemeWatcher;
@@ -20,10 +21,12 @@ public sealed class LinuxSystemThemeProvider : SystemThemeProvider
         QueueRefresh();
     }
 
-    public override bool IsDarkMode => base.IsDarkMode || ReadDark();
+    public override bool IsDarkMode => !_disposed && (base.IsDarkMode || ReadDark());
 
     public override void Dispose()
     {
+        if (_disposed) return;
+        _disposed = true;
         base.Dispose();
         try
         {
@@ -53,6 +56,7 @@ public sealed class LinuxSystemThemeProvider : SystemThemeProvider
 
     private void QueueRefresh()
     {
+        if (_disposed) return;
         _refreshing = true;
         _ = Task.Run(async () =>
         {

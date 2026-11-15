@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using PCL.Core.Logging;
 
 namespace PCL.Core.Platform;
 
@@ -24,6 +25,31 @@ public static class ApplicationRuntime
         ArgumentNullException.ThrowIfNull(services);
         if (Interlocked.CompareExchange(ref _current, services, null) is not null)
             throw new InvalidOperationException("应用运行时只能初始化一次");
+    }
+
+    /// <summary>幂等释放应用运行时持有的平台与 UI 服务。</summary>
+    public static void Shutdown()
+    {
+        var services = Interlocked.Exchange(ref _current, null);
+        if (services is null) return;
+
+        try
+        {
+            services.Ui.Dispose();
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Warn(ex, "释放 UI 服务失败");
+        }
+
+        try
+        {
+            services.Platform.Dispose();
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Warn(ex, "释放平台服务失败");
+        }
     }
 
     /// <summary>仅供测试重置运行时状态。</summary>
