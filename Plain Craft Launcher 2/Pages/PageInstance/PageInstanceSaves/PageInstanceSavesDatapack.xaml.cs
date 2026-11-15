@@ -350,7 +350,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable, IPageView
         _UpdateSelectionMargin(_vm.SelectedDatapacks.Count > 0);
 
     private bool _IsUndoContextCurrent(string instanceDirectory, string saveDirectory) =>
-        IsLoaded && Launcher.frmMain?.pageCurrent == FormMain.PageType.InstanceSetup &&
+        IsLoaded && Launcher.frmMain?.pageCurrent?.page == FormMain.PageType.VersionSaves &&
         Launcher.frmMain?.PageCurrentSub == FormMain.PageSubType.VersionSavesDatapack &&
         string.Equals(instanceDirectory, PageInstanceLeft.McInstance?.PathInstance, StringComparison.OrdinalIgnoreCase) &&
         string.Equals(saveDirectory, PageInstanceSavesLeft.currentSave, StringComparison.OrdinalIgnoreCase);
