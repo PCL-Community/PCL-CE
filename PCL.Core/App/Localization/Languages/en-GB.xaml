@@ -1198,6 +1198,7 @@
 
     <sys:String x:Key="Instance.Resource.Update">Update</sys:String>
     <sys:String x:Key="Instance.Resource.Update.Aborted">Resource update aborted!</sys:String>
+    <sys:String x:Key="Instance.Resource.Update.BatchResult">Update completed: {0} succeeded, {1} failed. Failed resources: {2}</sys:String>
     <sys:String x:Key="Instance.Resource.Update.Failed">Resource update failed: {0}</sys:String>
     <sys:String x:Key="Instance.Resource.Update.SuccessMultiple">Successfully updated {0} resources!</sys:String>
     <sys:String x:Key="Instance.Resource.Update.SuccessSingle">Successfully updated {0}!</sys:String>
