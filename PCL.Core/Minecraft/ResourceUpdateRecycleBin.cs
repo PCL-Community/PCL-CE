@@ -15,6 +15,8 @@ namespace PCL.Core.Minecraft;
 public sealed class ResourceUpdateRecycleBin
 {
     private static readonly object _SyncRoot = new();
+    // 各行与多选栏共享当前游戏目录的撤回索引，只缓存候选记录路径。
+    private static RecordIndex? _CachedRecordIndex;
     private readonly string _GameDirectory;
     private readonly string _RecycleDirectory;
 
@@ -127,7 +129,7 @@ public sealed class ResourceUpdateRecycleBin
     {
         lock (_SyncRoot)
         {
-            return _TryReadRecord(updatedPath, out _, out _, out _, out _);
+            return _TryReadRecord(updatedPath, out _, out _, out _, out _, useCachedIndex: true);
         }
     }
 
@@ -141,7 +143,7 @@ public sealed class ResourceUpdateRecycleBin
             {
                 try
                 {
-                    if (!CanUndo(path))
+                    if (!_TryReadRecord(path, out _, out _, out _, out _))
                     {
                         result.SkippedPaths.Add(path);
                         continue;
@@ -246,7 +248,7 @@ public sealed class ResourceUpdateRecycleBin
     }
 
     private bool _TryReadRecord(string updatedPath, out UpdateRecord record, out string originalPath, out string backupPath,
-        out string recordPath)
+        out string recordPath, bool useCachedIndex = false)
     {
         record = null!;
         originalPath = backupPath = recordPath = "";
@@ -255,13 +257,10 @@ public sealed class ResourceUpdateRecycleBin
             updatedPath = _GetResourcePath(updatedPath);
             if (!File.Exists(updatedPath)) return false;
             var exactPath = _GetRecordPath(updatedPath);
+            var normalizedPath = _NormalizeResourcePath(updatedPath);
             var candidates = new List<(UpdateRecord Record, string Path, string Original, string Backup)>();
-            var recordsDirectory = _GetContainedPath(_RecycleDirectory, Path.GetDirectoryName(exactPath)!);
-            if (!Directory.Exists(recordsDirectory)) return false;
-            var paths = File.Exists(exactPath)
-                ? new[] { exactPath }.Concat(Directory.EnumerateFiles(recordsDirectory, "*.json").Where(path => !_SamePath(path, exactPath)))
-                : Directory.EnumerateFiles(recordsDirectory, "*.json");
-            foreach (var candidatePath in paths)
+            bool? hasSibling = null;
+            foreach (var candidatePath in _GetCandidatePaths(exactPath, normalizedPath, useCachedIndex))
             {
                 UpdateRecord? candidate;
                 string original, recordedUpdated, backup;
@@ -278,10 +277,11 @@ public sealed class ResourceUpdateRecycleBin
                 if (!_SamePath(updatedPath, recordedUpdated))
                 {
                     // 只有原记录的文件已消失且没有同名兄弟副本时，才将名称变化解释为启用/禁用切换。
-                    if (!_SamePath(_NormalizeResourcePath(updatedPath), _NormalizeResourcePath(recordedUpdated)) ||
-                        File.Exists(recordedUpdated) || Directory.EnumerateFiles(Path.GetDirectoryName(updatedPath)!)
-                            .Any(path => !_SamePath(path, updatedPath) &&
-                                _SamePath(_NormalizeResourcePath(path), _NormalizeResourcePath(updatedPath)))) continue;
+                    if (!_SamePath(normalizedPath, _NormalizeResourcePath(recordedUpdated)) || File.Exists(recordedUpdated))
+                        continue;
+                    hasSibling ??= Directory.EnumerateFiles(Path.GetDirectoryName(updatedPath)!)
+                        .Any(path => !_SamePath(path, updatedPath) && _SamePath(_NormalizeResourcePath(path), normalizedPath));
+                    if (hasSibling.Value) continue;
                 }
                 if (!File.Exists(backup)) continue;
                 if (_SamePath(candidatePath, exactPath) && _SamePath(updatedPath, recordedUpdated))
@@ -301,6 +301,50 @@ public sealed class ResourceUpdateRecycleBin
         {
             return false;
         }
+    }
+
+    private IEnumerable<string> _GetCandidatePaths(string exactPath, string normalizedPath, bool useCachedIndex)
+    {
+        if (File.Exists(exactPath)) yield return exactPath;
+
+        var directory = Path.GetDirectoryName(exactPath)!;
+        if (!Directory.Exists(directory)) yield break;
+        // 执行更新或撤回时重新读取磁盘上的记录，确保外部修改不会绕过歧义检查。
+        IEnumerable<string>? paths = useCachedIndex
+            ? _GetRecordIndex(directory).GetValueOrDefault(normalizedPath)
+            : Directory.EnumerateFiles(directory, "*.json");
+        if (paths is null) yield break;
+        foreach (var path in paths)
+            if (!_SamePath(path, exactPath)) yield return path;
+    }
+
+    private Dictionary<string, List<string>> _GetRecordIndex(string directory)
+    {
+        var lastWriteTime = Directory.GetLastWriteTimeUtc(directory);
+        if (_CachedRecordIndex is { } cached && _SamePath(cached.Directory, directory) && cached.LastWriteTime == lastWriteTime)
+            return cached.PathsByResource;
+
+        var pathsByResource = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var path in Directory.EnumerateFiles(directory, "*.json"))
+        {
+            string resource;
+            try
+            {
+                var record = JsonSerializer.Deserialize<UpdateRecord>(File.ReadAllText(_GetUnlinkedPath(path)));
+                if (record is null || string.IsNullOrWhiteSpace(record.UpdatedPath)) continue;
+                resource = _NormalizeResourcePath(Path.GetFullPath(Path.Combine(_GameDirectory, record.UpdatedPath)));
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException or ArgumentException)
+            {
+                continue;
+            }
+            if (!pathsByResource.TryGetValue(resource, out var paths))
+                pathsByResource.Add(resource, paths = new List<string>());
+            paths.Add(path);
+        }
+
+        _CachedRecordIndex = new RecordIndex(directory, lastWriteTime, pathsByResource);
+        return pathsByResource;
     }
 
     private string _GetResourcePath(string path)
@@ -415,6 +459,10 @@ public sealed class ResourceUpdateRecycleBin
     {
         lock (_SyncRoot)
         {
+            // 资源列表刷新及记录写入前都会进入这里，重建索引时重新读取记录内容。
+            if (_CachedRecordIndex is { } cached &&
+                _SamePath(cached.Directory, Path.Combine(_RecycleDirectory, ".records")))
+                _CachedRecordIndex = null;
             var directory = _GetContainedPath(_RecycleDirectory, Path.Combine(_RecycleDirectory, ".transactions"));
             if (!Directory.Exists(directory)) return;
             foreach (var path in Directory.EnumerateFiles(directory, "*.json"))
@@ -525,6 +573,9 @@ public sealed class ResourceUpdateRecycleBin
     }
 
     private static bool _Matches(string path, string hash) => File.Exists(_GetUnlinkedPath(path)) && _HashFile(path) == hash;
+
+    private sealed record RecordIndex(string Directory, DateTime LastWriteTime,
+        Dictionary<string, List<string>> PathsByResource);
 
     private sealed class PendingOperation
     {

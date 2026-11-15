@@ -563,6 +563,30 @@ public class ResourceUpdateRecycleBinTest
     }
 
     [TestMethod]
+    public void UndoRechecksAmbiguousRecordsAfterAvailabilityIndexWasBuilt()
+    {
+        var original = _Write("mods/original.jar", "old");
+        var updated = Path.Combine(_root, "mods/current.jar");
+        _bin.Replace(original, updated, _Write("download/new.jar", "new"));
+        var unrelated = _Write("mods/unrelated.jar", "unrelated old");
+        _bin.Replace(unrelated, unrelated, _Write("download/unrelated.jar", "new"));
+
+        var disabled = updated + ".disabled";
+        File.Move(updated, disabled);
+        Assert.IsTrue(_bin.CanUndo(disabled));
+
+        var recordPath = _GetRecordPath(unrelated);
+        var record = JsonNode.Parse(File.ReadAllText(recordPath))!;
+        record["UpdatedPath"] = Path.GetRelativePath(_root, updated + ".old");
+        File.WriteAllText(recordPath, record.ToJsonString());
+
+        Assert.ThrowsExactly<IOException>(() => _bin.Undo(disabled));
+        Assert.AreEqual("new", File.ReadAllText(disabled));
+        _bin.RecoverPendingOperations();
+        Assert.IsFalse(_bin.CanUndo(disabled));
+    }
+
+    [TestMethod]
     public void RecoveryPreservesConflictingFileAndJournal()
     {
         var old = _Write("mods/old.jar", "old");
