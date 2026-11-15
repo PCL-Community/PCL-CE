@@ -1,5 +1,8 @@
+using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using PCL.Core.IO;
 using PCL.Core.Utils.Codecs;
 
 namespace PCL.Core.Test;
@@ -49,5 +52,13 @@ public class EncodingDetectorTest
     {
         var utf8 = Encoding.UTF8.GetBytes("日志中文");
         Assert.AreEqual(Encoding.UTF8, EncodingDetector.DetectEncoding(utf8[..^1]));
+    }
+
+    [TestMethod]
+    public async Task TestReadStreamWithTruncatedUtf8Tail()
+    {
+        var utf8 = Encoding.UTF8.GetBytes("abc中文");
+        var text = await Files.ReadAllTextOrEmptyAsync(new MemoryStream(utf8[..^1]));
+        Assert.AreEqual("abc中\uFFFD", text);
     }
 }
