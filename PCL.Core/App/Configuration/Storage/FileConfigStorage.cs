@@ -13,9 +13,7 @@ using PCL.Core.UI.Dialogs;
 
 namespace PCL.Core.App.Configuration.Storage;
 
-/// <summary>
-///     文件存取仓库。
-/// </summary>
+/// <summary>文件存取仓库。</summary>
 public class FileConfigStorage : ConfigStorage
 {
     private readonly Channel<(string, Action)> _writeActionChannel;
@@ -78,7 +76,7 @@ public class FileConfigStorage : ConfigStorage
                 {
                     LogWrapper.Error(ex, "Config", "配置文件保存失败");
                     var summary = Lang.Text("Config.Error.SaveFailed.Message", File.FilePath);
-                    var message = ExceptionDetails.Compose(summary, ex);
+                    var message = ExceptionDetails.ComposeForDialog(summary, ex);
 
                     DialogService.Instance.Show(
                         new TextDialogRequest
@@ -92,9 +90,7 @@ public class FileConfigStorage : ConfigStorage
         });
     }
 
-    /// <summary>
-    ///     键值文件实例。
-    /// </summary>
+    /// <summary>键值文件实例。</summary>
     public IKeyValueFileProvider File { get; }
 
     protected override void OnStop()

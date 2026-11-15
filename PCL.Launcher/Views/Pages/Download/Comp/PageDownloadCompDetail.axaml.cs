@@ -655,10 +655,6 @@ public partial class PageDownloadCompDetail : MyPageRight
         return [.. loaders.Where(loader => loader != Comp.CompLoaderType.Any).Distinct()];
     }
 
-    /// <summary>
-    ///     判断文件是否适合指定实例。Mod/数据包需要版本与加载器都匹配；
-    ///     资源包、光影、原理图与世界只要求有可用实例，由用户自行决定是否安装。
-    /// </summary>
     private static bool IsFileSuitableForInstance(
         McInstance? instance,
         Comp.CompFile file,
@@ -868,9 +864,6 @@ public partial class PageDownloadCompDetail : MyPageRight
         LoadingUi.Current?.RefreshDownloadButton();
     }
 
-    /// <summary>
-    ///     解析并启动必需前置下载；返回 false 表示用户取消，调用方不得继续下载本体。
-    /// </summary>
     private static async Task<bool> ResolveAndStartDependenciesAsync(
         Comp.CompFile file,
         Comp.CompProject project,
@@ -942,7 +935,7 @@ public partial class PageDownloadCompDetail : MyPageRight
                 new TextDialogRequest
                 {
                     Title = Lang.Text("Download.Comp.Dependency.ResolveFailed.Title"),
-                    Content = ExceptionDetails.Compose(
+                    Content = ExceptionDetails.ComposeForDialog(
                         Lang.Text("Download.Comp.Dependency.ResolveFailed.Message"),
                         ex),
                     Buttons = DialogButtons.Create(

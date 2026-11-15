@@ -38,7 +38,7 @@ public static class PlatformModuleFactory
             Shell = new WindowsShellLauncher(),
             Region = new WindowsRegionSignalProvider(),
             RecycleBin = new WindowsRecycleBinService(),
-            FatalDialog = new FatalDialogService(WindowsNativeFatalDialog.Show),
+            FatalDialog = new WindowsFatalDialogService(),
             KeyProtectorFactory = key => new WindowsKeyProtector(key)
         };
     }
@@ -63,7 +63,7 @@ public static class PlatformModuleFactory
             Shell = new PosixShellLauncher("xdg-open"),
             Region = new PosixRegionSignalProvider(),
             RecycleBin = new LinuxRecycleBinService(),
-            FatalDialog = new FatalDialogService(LinuxNativeFatalDialog.Show),
+            FatalDialog = new LinuxFatalDialogService(),
             KeyProtectorFactory = key => new UnixKeyProtector(key)
         };
     }
@@ -88,7 +88,7 @@ public static class PlatformModuleFactory
             Shell = new PosixShellLauncher("open"),
             Region = new PosixRegionSignalProvider(),
             RecycleBin = new MacOsRecycleBinService(),
-            FatalDialog = new FatalDialogService(MacOsNativeFatalDialog.Show),
+            FatalDialog = new MacOsFatalDialogService(),
             KeyProtectorFactory = key => new UnixKeyProtector(key)
         };
     }

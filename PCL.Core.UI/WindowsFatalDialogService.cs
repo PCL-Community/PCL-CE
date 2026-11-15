@@ -2,14 +2,14 @@ using System.Runtime.InteropServices;
 
 namespace PCL.Core.UI;
 
-/// <summary>Windows 原生致命错误对话框。</summary>
-internal static class WindowsNativeFatalDialog
+/// <summary>Windows 原生致命错误对话框：使用 user32 MessageBoxW。</summary>
+public sealed class WindowsFatalDialogService : FatalDialogServiceBase
 {
     private const uint MbIconError = 0x00000010u;
     private const uint MbSetForeground = 0x00010000u;
     private const uint MbTopmost = 0x00040000u;
 
-    public static bool Show(string message, string caption)
+    protected override bool ShowFatalCore(string message, string caption)
     {
         return MessageBoxW(
                 IntPtr.Zero,

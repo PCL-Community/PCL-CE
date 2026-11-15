@@ -1,21 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Text.RegularExpressions;
 using PCL.Core.App.Localization;
+using PCL.Core.Utils.Diagnostics;
 
 namespace PCL.Core.Logging;
 
-/// <summary>
-///     将异常信息格式化为面向用户的消息，同时不改变原始的失败原因。
-/// </summary>
+/// <summary>将异常信息格式化为面向用户的消息，同时不改变原始的失败原因。</summary>
 public static partial class ExceptionDetails
 {
     private const int MaxSingleMessageLength = 4096;
     private const int MaxCombinedMessageLength = 8192;
+    private const int MaxDialogSummaryLength = 4096;
+    private const int MaxDialogDetailsLength = 8192;
+    private const int MaxDialogStackFrames = 20;
+    private const int MaxDialogStackContextFrames = 8;
 
-    /// <summary>
-    ///     返回异常链中去重后的消息，从最外层异常依次到内部异常。
-    /// </summary>
+    /// <summary>返回异常链中去重后的消息，从最外层异常依次到内部异常。</summary>
     public static string GetUserReason(Exception exception)
     {
         ArgumentNullException.ThrowIfNull(exception);
@@ -24,12 +26,15 @@ public static partial class ExceptionDetails
         var seenMessages = new HashSet<string>(StringComparer.Ordinal);
         var current = exception;
 
-        // 异常链通常很短。这里的深度限制也能避免格式异常的链破坏 UI 展示。
-        for (var depth = 0; current is not null && depth < 32; depth++, current = current.InnerException)
+        for (var depth = 0;
+             current is not null && depth < 32;
+             depth++, current = current.InnerException)
         {
             var message = current.Message?.Trim();
-            if (string.IsNullOrWhiteSpace(message) || string.Equals(message, "$$", StringComparison.Ordinal))
+            if (string.IsNullOrWhiteSpace(message)
+                || string.Equals(message, "$$", StringComparison.Ordinal))
                 continue;
+
             message = _TruncateForUser(_RedactSensitiveText(message));
             if (seenMessages.Add(message))
                 messages.Add(message);
@@ -64,33 +69,65 @@ public static partial class ExceptionDetails
 
     private static string _RedactSensitiveText(string text)
     {
-        // 在保留失败原因可见的前提下，避免在普通用户界面中直接暴露明显的凭据信息。
         text = _KeyValueCredentialPattern().Replace(text, "$1[redacted]");
         text = _QueryStringCredentialPattern().Replace(text, "$1[redacted]");
         text = _BearerTokenPattern().Replace(text, "Bearer [redacted]");
         return text;
     }
 
-    /// <summary>
-    ///     返回完整的异常文本，用于调试和日志记录。
-    /// </summary>
     public static string GetDebugDetails(Exception exception)
     {
         ArgumentNullException.ThrowIfNull(exception);
         return exception.ToString();
     }
 
-    /// <summary>
-    ///     将完整的原始异常文本附加到一个稳定的本地化摘要后面。
-    /// </summary>
     public static string Compose(string summary, Exception? exception = null)
     {
         return Compose(summary, exception is null ? null : GetDebugDetails(exception));
     }
 
-    /// <summary>
-    ///     将调用方提供的详细文本附加到稳定的本地化摘要后面，而不修改该详细文本。
-    /// </summary>
+    public static string ComposeForDialog(string summary, Exception? exception = null)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(summary);
+        return exception is null
+            ? summary
+            : Compose(summary, GetDialogDetails(exception));
+    }
+
+    internal static string GetDialogDetails(Exception exception)
+    {
+        ArgumentNullException.ThrowIfNull(exception);
+
+        try
+        {
+            var reason = _TruncateForUser(GetUserReason(exception), MaxDialogSummaryLength);
+            var builder = new StringBuilder();
+            builder.Append(exception.GetType().FullName ?? exception.GetType().Name);
+            if (!string.IsNullOrWhiteSpace(reason))
+                builder.Append(": ").Append(reason);
+
+            var frames = StackHelper.GetExceptionStack(
+                exception);
+
+            if (frames.Count > 0)
+            {
+                builder.AppendLine();
+                builder.AppendLine();
+                foreach (var frame in frames)
+                    builder.Append("   at ").AppendLine(frame);
+            }
+
+            return _TruncateForUser(builder.ToString().TrimEnd(), MaxDialogDetailsLength);
+        }
+        catch (Exception)
+        {
+            var fallback = exception.Message;
+            if (string.IsNullOrWhiteSpace(fallback))
+                fallback = exception.GetType().FullName ?? exception.GetType().Name;
+            return _TruncateForUser(fallback, MaxDialogDetailsLength);
+        }
+    }
+
     public static string Compose(string summary, string? details)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(summary);

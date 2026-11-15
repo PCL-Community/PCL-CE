@@ -10,10 +10,6 @@ using PCL.UI;
 
 namespace PCL;
 
-/// <summary>
-///     崩溃分析的一次执行：收集日志、整理、检测原因，并把结果交给弹窗呈现。
-///     内核（收集/整理/检测）位于 PCL.Launcher.Core，本类只负责流程编排与界面呈现。
-/// </summary>
 internal sealed class CrashRunner
 {
     private readonly CrashLogCollector _collector;
@@ -74,7 +70,6 @@ internal sealed class CrashRunner
     }
 }
 
-/// <summary>崩溃结果的弹窗呈现与报告导出。</summary>
 internal static class CrashPresenter
 {
     private static readonly CrashResultFormatter Formatter = new();
@@ -187,7 +182,7 @@ internal static class CrashPresenter
         var summary = string.IsNullOrWhiteSpace(targetZipPath)
             ? Lang.Text("Crash.Export.Failed.MessageWithoutPath")
             : Lang.Text("Crash.Export.Failed.Message", targetZipPath);
-        return ExceptionDetails.Compose(summary, exception);
+        return ExceptionDetails.ComposeForDialog(summary, exception);
     }
 
     private static string? SelectReportSavePath()

@@ -231,7 +231,7 @@ public class LogService : ILifecycleLogService
 
         return exception is null
             ? summary
-            : ExceptionDetails.Compose(summary, exception);
+            : ExceptionDetails.ComposeForDialog(summary, exception);
     }
 
     /// <summary>
