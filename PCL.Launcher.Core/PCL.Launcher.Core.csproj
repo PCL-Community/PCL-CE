@@ -16,9 +16,8 @@
         <NoWarn>$(NoWarn);CS9113</NoWarn>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Dapper" Version="2.1.79" />
-        <PackageReference Include="Downloader" Version="5.9.4" />
-        <PackageReference Include="protobuf-net" Version="3.2.56" />
+        <PackageReference Include="Dapper" Version="2.1.89" />
+        <PackageReference Include="protobuf-net" Version="3.4.40" />
     </ItemGroup>
     <ItemGroup>
         <Using Include="PCL.Text" />
