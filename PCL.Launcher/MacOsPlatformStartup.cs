@@ -19,8 +19,7 @@ internal sealed class MacOsPlatformStartup : IPlatformStartup
                 new MacOSPlatformOptions
                 {
                     ShowInDock = true,
-                    DisableDefaultApplicationMenuItems = true,
-                    DisableNativeMenus = false
+                    DisableNativeMenus = true
                 })
             .WithInterFont()
             .LogToTrace();

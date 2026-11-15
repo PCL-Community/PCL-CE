@@ -61,22 +61,8 @@
 
     <!-- Main.Menu -->
 
-    <sys:String x:Key="Main.Menu.File">檔案</sys:String>
-    <sys:String x:Key="Main.Menu.Edit">編輯</sys:String>
-    <sys:String x:Key="Main.Menu.Window">視窗</sys:String>
     <sys:String x:Key="Main.Menu.Help">說明</sys:String>
-    <sys:String x:Key="Main.Menu.About">關於 PCL CE</sys:String>
-    <sys:String x:Key="Main.Menu.Preferences">設定…</sys:String>
-    <sys:String x:Key="Main.Menu.Hide">隱藏 PCL CE</sys:String>
-    <sys:String x:Key="Main.Menu.Quit">結束 PCL CE</sys:String>
-    <sys:String x:Key="Main.Menu.CloseWindow">關閉視窗</sys:String>
     <sys:String x:Key="Main.Menu.Minimize">最小化</sys:String>
-    <sys:String x:Key="Main.Menu.Undo">復原</sys:String>
-    <sys:String x:Key="Main.Menu.Redo">重做</sys:String>
-    <sys:String x:Key="Main.Menu.Cut">剪下</sys:String>
-    <sys:String x:Key="Main.Menu.Copy">複製</sys:String>
-    <sys:String x:Key="Main.Menu.Paste">貼上</sys:String>
-    <sys:String x:Key="Main.Menu.SelectAll">全選</sys:String>
 
     <!-- Common.Action -->
 
