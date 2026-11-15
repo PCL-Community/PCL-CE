@@ -2,7 +2,6 @@ using System.Text.Json.Nodes;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
-using Avalonia.Media;
 using Avalonia.Threading;
 using PCL.Core.App.Localization;
 using PCL.Text;
@@ -169,7 +168,7 @@ internal sealed class InstallLoaderSelection
 
 /// <summary>
 ///     可复用的加载器选择器：为下载安装页与实例修改页生成 11 张加载器卡，
-///     负责版本过滤、兼容性提示、错误/重试、清空与 Fabric API / OptiFabric 的自动选择。
+///     负责版本过滤、兼容性提示、错误、清空与 Fabric API / OptiFabric 的自动选择。
 /// </summary>
 internal sealed class InstallLoaderSelector : IDisposable
 {
@@ -550,7 +549,6 @@ internal sealed class InstallLoaderSelector : IDisposable
         var error = GetCardError(card);
         var canExpand = CanExpand(card);
         if (!canExpand && !card.Card.IsSwapped)
-            // 兼容性错误出现时强制折叠；列表加载失败时保留展开状态以显示重试按钮。
             card.Card.IsSwapped = true;
 
         // 与 WPF 一致：不能展开时隐藏折叠箭头
@@ -569,14 +567,7 @@ internal sealed class InstallLoaderSelector : IDisposable
     /// <summary>
     ///     卡片能否展开
     /// </summary>
-    private bool CanExpand(CardState card)
-    {
-        var error = GetCardError(card);
-        if (error is null)
-            return true;
-        return GetListLoader(card.Kind)?.State == LoadState.Failed
-            && string.Equals(error, GetListError(card.Kind), StringComparison.Ordinal);
-    }
+    private bool CanExpand(CardState card) => GetCardError(card) is null;
 
     private string? GetSelectedText(InstallLoaderKind kind)
     {
@@ -1063,59 +1054,6 @@ internal sealed class InstallLoaderSelector : IDisposable
                     Opacity = 0.7d,
                     Margin = new Thickness(6d, 4d, 0d, 4d)
                 });
-            return;
-        }
-
-        var error = GetCardError(card);
-        var loader = GetListLoader(card.Kind);
-        if (loader?.State is LoadState.Waiting or LoadState.Loading)
-        {
-            body.Children.Add(
-                new MyLoading
-                {
-                    Margin = new Thickness(5d),
-                    Text = Lang.Text("Download.Install.State.Getting")
-                });
-            return;
-        }
-
-        if (error is not null)
-        {
-            body.Children.Add(
-                new TextBlock
-                {
-                    Text = error,
-                    TextWrapping = TextWrapping.Wrap,
-                    Margin = new Thickness(6d, 4d, 6d, 8d)
-                });
-            if (loader?.State == LoadState.Failed)
-            {
-                var retry = new MyButton
-                {
-                    Text = Lang.Text("Common.Action.Refresh"),
-                    HorizontalAlignment = HorizontalAlignment.Left,
-                    MinWidth = 90d,
-                    Padding = new Thickness(13d, 0d, 13d, 0d)
-                };
-                retry.Click += (_, _) =>
-                {
-                    if (card.Kind == InstallLoaderKind.Forge)
-                    {
-                        UnsubscribeForgeLoader();
-                        _forgeLoader = null;
-                        _forgeLoaderVersion = null;
-                        StartForgeLoader(true);
-                    }
-                    else
-                    {
-                        loader?.Start(null, true);
-                    }
-
-                    RefreshKind(card.Kind);
-                };
-                body.Children.Add(retry);
-            }
-
             return;
         }
 
