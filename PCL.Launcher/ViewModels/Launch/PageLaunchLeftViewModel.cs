@@ -249,9 +249,7 @@ public partial class PageLaunchLeftViewModel : ViewModelBase
         IsShowingLaunching = false;
     }
 
-    /// <summary>
-    ///     刷新启动进度、当前阶段、下载速度与提示状态；实际控件动画由页面根据结果执行。
-    /// </summary>
+    /// <summary>刷新启动进度、当前阶段、下载速度与提示状态；实际控件动画由页面根据结果执行。</summary>
     public bool RefreshLaunching(bool animationRunning)
     {
         if (!IsShowingLaunching)
@@ -482,7 +480,7 @@ public partial class PageLaunchLeftViewModel : ViewModelBase
 
     private static string? ResolveAutoModpackPath()
     {
-        var executableDirectory = LauncherPaths.ExecutableDirectory;
+        var executableDirectory = LauncherPaths.UserDataRoot;
         var zipPath = Path.Combine(executableDirectory, "modpack.zip");
         var mrpackPath = Path.Combine(executableDirectory, "modpack.mrpack");
         string? installPath = null;
@@ -498,7 +496,7 @@ public partial class PageLaunchLeftViewModel : ViewModelBase
     private static void PrepareAutoModpackFolder()
     {
         var separator = Path.DirectorySeparatorChar;
-        var folder = Path.Combine(LauncherPaths.ExecutableDirectory, ".minecraft") + separator;
+        var folder = LauncherPaths.DefaultMinecraftDirectory + separator;
         States.Game.SelectedFolder = "$.minecraft" + separator;
         if (!Directory.Exists(folder))
         {
@@ -565,7 +563,7 @@ public partial class PageLaunchLeftViewModel : ViewModelBase
         var selected = States.Game.SelectedFolder;
         var folderPath = string.IsNullOrEmpty(selected)
             ? ""
-            : selected.Replace("$", LauncherPaths.ExecutableDirectory);
+            : selected.Replace("$", LauncherPaths.UserDataRoot);
         if (!string.IsNullOrEmpty(folderPath) && Directory.Exists(folderPath))
         {
             GameFolders.mcFolderSelected = folderPath;
@@ -583,7 +581,7 @@ public partial class PageLaunchLeftViewModel : ViewModelBase
             return "";
 
         folderPath = GameFolders.mcFolderList[0].Location;
-        States.Game.SelectedFolder = folderPath.Replace(LauncherPaths.ExecutableDirectory, "$");
+        States.Game.SelectedFolder = folderPath.Replace(LauncherPaths.UserDataRoot, "$");
         GameFolders.mcFolderSelected = folderPath;
         return folderPath;
     }

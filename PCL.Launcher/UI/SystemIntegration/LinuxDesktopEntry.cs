@@ -1,12 +1,12 @@
 using System.Text;
+using PCL.Core.App;
 using PCL.Core.Logging;
 
 namespace PCL.UI.SystemIntegration;
 
 /// <summary>
-///     Wayland 没有传统的窗口图标协议，桌面环境通过 app_id 查找
-///     XDG desktop entry 及其 Icon。这里在原生 Wayland 启动前确保
-///     desktop entry 和图标文件存在，避免任务栏显示 Wayland 占位图标。
+/// Wayland 没有传统的窗口图标协议，桌面环境通过 app_id 查找 XDG desktop entry 及其 Icon。这里在原生 Wayland 启动前确保
+/// desktop entry 和图标文件存在，避免任务栏显示 Wayland 占位图标。
 /// </summary>
 public static class LinuxDesktopEntry
 {
@@ -16,6 +16,8 @@ public static class LinuxDesktopEntry
     {
         try
         {
+            if (Paths.PackageKind is "deb" or "rpm" or "appimage") return;
+
             var executable = Environment.ProcessPath;
             var iconPath = Path.Combine(
                 AppContext.BaseDirectory,

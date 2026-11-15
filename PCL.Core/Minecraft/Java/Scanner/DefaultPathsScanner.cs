@@ -20,10 +20,7 @@ public class DefaultPathsScanner : IJavaScanner
             LogWrapper.Info(
                 $"[Java] 对下列目录进行广度关键词搜索:{Environment.NewLine}{string.Join(Environment.NewLine, searchRoots)}");
 
-            foreach (var root in searchRoots)
-            {
-                _BfsSearch(root, results);
-            }
+            foreach (var root in searchRoots) _BfsSearch(root, results);
         }
         catch (Exception ex)
         {
@@ -41,7 +38,7 @@ public class DefaultPathsScanner : IJavaScanner
                 "runtime"),
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-            Path.Combine(Basics.ExecutableDirectory, "PCL")
+            Paths.Data
         };
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -58,10 +55,7 @@ public class DefaultPathsScanner : IJavaScanner
 
             foreach (var drive in drives)
             {
-                foreach (var folder in keyFolders)
-                {
-                    roots.Add(Path.Combine(drive, folder));
-                }
+                foreach (var folder in keyFolders) roots.Add(Path.Combine(drive, folder));
 
                 // 根目录关键词搜索
                 try
@@ -161,16 +155,9 @@ public class DefaultPathsScanner : IJavaScanner
 
         var hasDigit = false;
         foreach (var c in name)
-        {
             if (char.IsDigit(c))
-            {
                 hasDigit = true;
-            }
-            else if (c != '.' && c != '_' && c != '-')
-            {
-                return false;
-            }
-        }
+            else if (c != '.' && c != '_' && c != '-') return false;
 
         return hasDigit;
     }

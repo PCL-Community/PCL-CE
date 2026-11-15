@@ -34,8 +34,7 @@ public static partial class GameWatcher
                                 Path.Combine(version.PathInstance, $"{version.Name}.json"),
                                 LogWrapper.CurrentLogger.CurrentLogFiles.Last(),
                                 Path.Combine(
-                                    LauncherPaths.ExecutableDirectory,
-                                    "PCL",
+                                    Paths.Data,
                                     "LatestLaunch.bat")
                             ]);
                     },

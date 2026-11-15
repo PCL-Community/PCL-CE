@@ -16,7 +16,11 @@ case "$RID" in
   *) echo "unsupported RID: $RID" >&2; exit 2 ;;
 esac
 
-OUT="$ROOT/$OUT_ROOT/$RID"
+if [ "${OUT_ROOT#/}" != "$OUT_ROOT" ]; then
+  OUT="$OUT_ROOT/$RID"
+else
+  OUT="$ROOT/$OUT_ROOT/$RID"
+fi
 rm -rf "$OUT"
 mkdir -p "$OUT"
 

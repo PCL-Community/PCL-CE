@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=PCL Community Edition
+Comment=PCL Community Edition launcher
+Exec=pcl-ce %U
+Icon=pcl-community-edition
+Terminal=false
+Categories=Game;Utility;
+StartupWMClass=pcl-community-edition
+StartupNotify=true

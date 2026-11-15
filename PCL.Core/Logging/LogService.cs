@@ -15,15 +15,11 @@ using PCL.Core.UI.Dialogs;
 namespace PCL.Core.Logging;
 
 /// <summary>
-///     The single lifecycle log service. It owns the <see cref="Logger" /> instance, bridges both
-///     logging
-///     entry points (<c>LogWrapper</c> and <c>LifecycleContext</c>) into it, forwards unhandled
-///     exceptions to
-///     telemetry, and translates <see cref="ActionLevel" /> values into user-visible hints, message
-///     boxes and
-///     fatal exits. Level filtering is delegated to <see cref="Logger" /> so it can never suppress
-///     those
-///     side effects.
+/// The single lifecycle log service. It owns the <see cref="Logger" /> instance,
+/// bridges both logging entry points (<c>LogWrapper</c> and <c>LifecycleContext</c>) into it,
+/// forwards unhandled exceptions to telemetry, and translates <see cref="ActionLevel" />
+/// values into user-visible hints, message boxes and fatal exits. Level filtering is delegated
+/// to <see cref="Logger" /> so it can never suppress those side effects.
 /// </summary>
 [LifecycleService(LifecycleState.Loading, Priority = int.MaxValue)]
 public class LogService : ILifecycleLogService
@@ -56,16 +52,15 @@ public class LogService : ILifecycleLogService
     public bool SupportAsync => false;
 
     /// <summary>
-    ///     Creates the <see cref="Logger" /> and subscribes to <see cref="LogWrapper" />. Runs at the
-    ///     highest
-    ///     priority in the <see cref="LifecycleState.Loading" /> phase so that every later service is
-    ///     logged.
+    /// Creates the <see cref="Logger" /> and subscribes to <see cref="LogWrapper" />.
+    /// Runs at the highest priority in the <see cref="LifecycleState.Loading" /> phase so that
+    /// every later service is logged.
     /// </summary>
     public Task StartAsync()
     {
         Context.Trace("正在初始化 Logger 实例");
         var baseConfig =
-            new LoggerConfiguration(Path.Combine(Basics.ExecutableDirectory, "PCL", "Log"));
+            new LoggerConfiguration(Path.Combine(Paths.Data, "Log"));
         var initialLevel = _GetInitialMinLevel(baseConfig.MinLogLevel);
         if (_explicitMinLevel is null && ConfigService.IsInitialized && Config.Debug.Enabled)
             initialLevel = LogLevel.Trace;
@@ -83,9 +78,9 @@ public class LogService : ILifecycleLogService
     }
 
     /// <summary>
-    ///     Detaches from <see cref="LogWrapper" /> and flushes the pending queue. The logger swallows its
-    ///     own
-    ///     failures and bounds the wait, so this never blocks process shutdown indefinitely.
+    /// Detaches from <see cref="LogWrapper" /> and flushes the pending queue. The logger
+    /// swallows its own failures and bounds the wait, so this never blocks process shutdown
+    /// indefinitely.
     /// </summary>
     public async Task StopAsync()
     {
@@ -101,9 +96,7 @@ public class LogService : ILifecycleLogService
         _LogAction(item.ToLogEntry(), item.ActionLevel);
     }
 
-    /// <summary>
-    ///     读取启动参数和环境变量提供的日志级别。显式指定的级别优先于调试模式设置。
-    /// </summary>
+    /// <summary>读取启动参数和环境变量提供的日志级别。显式指定的级别优先于调试模式设置。</summary>
     private static LogLevel _GetInitialMinLevel(LogLevel fallback)
     {
         if (Basics.CommandLineArguments.Contains("--verbose"))
@@ -128,9 +121,7 @@ public class LogService : ILifecycleLogService
         return level;
     }
 
-    /// <summary>
-    ///     判断当前进程是否有可见的控制台。桌面快捷方式启动时标准输出不可见，此时只写文件。
-    /// </summary>
+    /// <summary>判断当前进程是否有可见的控制台。桌面快捷方式启动时标准输出不可见，此时只写文件。</summary>
     private static bool _ShouldWriteToConsole()
     {
         if (Debugger.IsAttached) return true;
@@ -152,9 +143,7 @@ public class LogService : ILifecycleLogService
         }
     }
 
-    /// <summary>
-    ///     调试模式开启时输出完整的 Debug/Trace 日志；显式指定的日志级别不会被覆盖。
-    /// </summary>
+    /// <summary>调试模式开启时输出完整的 Debug/Trace 日志；显式指定的日志级别不会被覆盖。</summary>
     private static void _ApplyDebugMode(bool enabled)
     {
         if (_explicitMinLevel is not null || _logger is null) return;
@@ -162,11 +151,11 @@ public class LogService : ILifecycleLogService
     }
 
     /// <summary>
-    ///     Handles one log item: reports the exception to telemetry, enqueues the entry for the file
-    ///     writer,
-    ///     then performs the action required by <paramref name="actionLevel" />. The three steps are
-    ///     independent, which is what keeps <see cref="LoggerConfiguration.MinLogLevel" /> from silencing
-    ///     hints, message boxes or fatal exits.
+    /// Handles one log item: reports the exception to telemetry, enqueues the entry for
+    /// the file writer, then performs the action required by <paramref name="actionLevel" />. The
+    /// three steps are independent, which is what keeps
+    /// <see cref="LoggerConfiguration.MinLogLevel" /> from silencing hints, message boxes or fatal
+    /// exits.
     /// </summary>
     private static void _LogAction(in LogEntry entry, ActionLevel actionLevel)
     {
@@ -230,9 +219,9 @@ public class LogService : ILifecycleLogService
     }
 
     /// <summary>
-    ///     Builds the user-facing error text: the plain message, with the exception details appended when
-    ///     one
-    ///     is present. Falls back to a localized generic message for an empty message.
+    /// Builds the user-facing error text: the plain message, with the exception details
+    /// appended when one is present. Falls back to a localized generic message for an empty
+    /// message.
     /// </summary>
     private static string _ComposeUserError(string plain, Exception? exception)
     {
@@ -246,8 +235,9 @@ public class LogService : ILifecycleLogService
     }
 
     /// <summary>
-    ///     Converts a <see cref="LogWrapper" /> callback into a <see cref="LogEntry" />. Only field reads
-    ///     happen here - the module prefix, thread label and timestamp are all produced by the consumer.
+    /// Converts a <see cref="LogWrapper" /> callback into a <see cref="LogEntry" />. Only
+    /// field reads happen here - the module prefix, thread label and timestamp are all produced by
+    /// the consumer.
     /// </summary>
     private static void _OnWrapperLog(
         LogLevel level,

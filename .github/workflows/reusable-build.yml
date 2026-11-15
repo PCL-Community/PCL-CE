@@ -67,12 +67,35 @@ jobs:
           PCL_LINK_SERVER_ROOT: ${{ secrets.LINK_SERVER_ROOTS }}
           PCL_LOBBY_DEFAULT_SECRET: ${{ secrets.LOBBY_DEFAULT_SECRET }}
           PCL_GITHUB_SHA: ${{ github.sha }}
+          CODESIGN_IDENTITY: ${{ secrets.APPLE_CODESIGN_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
         run: |
           if [ "${{ runner.os }}" = "macOS" ]; then
             scripts/package-macos.sh "$RID" "$CONFIGURATION" "$VERSION" dist
           else
             scripts/publish.sh "$RID" "$CONFIGURATION" dist
           fi
+
+      - name: Install Linux packaging tools
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.local/bin"
+          case "$(uname -m)" in
+            x86_64) NFPM_ARCH=x86_64; APPIMAGE_ARCH=x86_64 ;;
+            aarch64|arm64) NFPM_ARCH=arm64; APPIMAGE_ARCH=aarch64 ;;
+            *) echo "unsupported runner architecture: $(uname -m)" >&2; exit 2 ;;
+          esac
+          curl -sSfL \
+            "https://github.com/goreleaser/nfpm/releases/download/v2.49.0/nfpm_2.49.0_Linux_${NFPM_ARCH}.tar.gz" \
+            | tar -xz -C "$HOME/.local/bin" nfpm
+          curl -sSfL -o "$HOME/.local/bin/appimagetool" \
+            "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${APPIMAGE_ARCH}.AppImage"
+          chmod 0755 "$HOME/.local/bin/appimagetool"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Package Windows
         if: runner.os == 'Windows'
@@ -85,14 +108,21 @@ jobs:
       - name: Package Linux
         if: runner.os == 'Linux'
         shell: bash
-        run: |
-          tar -czf "dist/${ASSET_NAME}.tar.gz" -C "dist/${RID}" .
+        run: scripts/package-linux.sh "$RID" "$CONFIGURATION" "$VERSION" dist
 
       - name: Package macOS
         if: runner.os == 'macOS'
         shell: bash
         run: |
           ditto -c -k --sequesterRsrc --keepParent "dist/PCL CE.app" "dist/${ASSET_NAME}.zip"
+          DMG_ROOT="dist/.dmg-root-${RID}"
+          rm -rf "$DMG_ROOT"
+          mkdir -p "$DMG_ROOT"
+          cp -a "dist/PCL CE.app" "$DMG_ROOT/"
+          ln -s /Applications "$DMG_ROOT/Applications"
+          hdiutil create -volname "PCL CE" -srcfolder "$DMG_ROOT" \
+            -ov -format UDZO "dist/${ASSET_NAME}.dmg"
+          rm -rf "$DMG_ROOT"
 
       - name: Upload the Build Artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -100,5 +130,8 @@ jobs:
           name: PCL2_CE_${{ inputs.configuration }}_${{ inputs.target }}
           path: |
             dist/*.zip
-            dist/*.tar.gz
+            dist/*.dmg
+            dist/*.AppImage
+            dist/*.deb
+            dist/*.rpm
           if-no-files-found: error

@@ -9,19 +9,15 @@ namespace PCL;
 
 public class CustomEvent
 {
-    /// <summary>
-    ///     禁止自定义主页写入的高危设置黑名单
-    /// </summary>
+    /// <summary>禁止自定义主页写入的高危设置黑名单</summary>
     private static readonly HashSet<string> SecuritySensitiveSettingKeys =
-        new(StringComparer.OrdinalIgnoreCase)
-        {
-            "LaunchAdvanceRun",
-            "VersionAdvanceRun"
-        };
+    [
+        with(StringComparer.OrdinalIgnoreCase),
+        "LaunchAdvanceRun",
+        "VersionAdvanceRun"
+    ];
 
-    /// <summary>
-    ///     EventType → 执行逻辑 的字典映射，O(1) 分发。
-    /// </summary>
+    /// <summary>EventType → 执行逻辑 的字典映射，O(1) 分发。</summary>
     private static readonly Dictionary<EventType, Action<string, EventType>> ActionMap = new()
     {
         [EventType.OpenUrl] = _OpenUrl,
@@ -64,9 +60,7 @@ public class CustomEvent
         Raise(Type, Data);
     }
 
-    /// <summary>
-    ///     静态入口：根据 EventType 分发给对应的 action 执行。
-    /// </summary>
+    /// <summary>静态入口：根据 EventType 分发给对应的 action 执行。</summary>
     public static void Raise(EventType type, string arg)
     {
         if (type == EventType.None) return;
@@ -96,25 +90,19 @@ public class CustomEvent
         return States.CustomVariables.GetValueOrDefault(name, defaultValue);
     }
 
-    /// <summary>
-    ///     将 arg 按 '|' 分割为参数数组，空串统一返回 [""]。
-    /// </summary>
+    /// <summary>将 arg 按 '|' 分割为参数数组，空串统一返回 [""]。</summary>
     private static string[] SplitArgs(string arg)
     {
         return arg.Split('|');
     }
 
-    /// <summary>
-    ///     将 \\n 替换为 Windows 换行符 \r\n。
-    /// </summary>
+    /// <summary>将 \\n 替换为 Windows 换行符 \r\n。</summary>
     private static string FixNewlines(string s)
     {
         return s.Replace("\\n", "\r\n");
     }
 
-    /// <summary>
-    ///     打开网页。校验 https?:// 前缀，非 file 协议。
-    /// </summary>
+    /// <summary>打开网页。校验 https?:// 前缀，非 file 协议。</summary>
     private static void _OpenUrl(string arg, EventType type)
     {
         arg = arg.Replace('\\', '/');
@@ -130,9 +118,7 @@ public class CustomEvent
         LauncherCommon.RunInNewThread(() => LauncherUi.Interaction?.OpenWebsite(arg));
     }
 
-    /// <summary>
-    ///     打开文件 / 执行命令。复用 GetAbsoluteUrls 解析路径后 ProcessInterop.Start 启动。
-    /// </summary>
+    /// <summary>打开文件 / 执行命令。复用 GetAbsoluteUrls 解析路径后 ProcessInterop.Start 启动。</summary>
     private static void _OpenFileOrCommand(string arg, EventType type)
     {
         var args = SplitArgs(arg);
@@ -141,7 +127,7 @@ public class CustomEvent
             try
             {
                 var urls = GetAbsoluteUrls(args[0], type);
-                if (!EventSafetyConfirm($"{urls[0]}{(args.Length >= 2 ? " " + args[1] : "")}"))
+                if (!EventSafetyConfirm($"{urls[0]}{(args.Length >= 2 ? $" {args[1]}" : "")}"))
                     return;
                 ProcessInterop.Start(urls[0], args.Length >= 2 ? args[1] : "");
             }
@@ -156,9 +142,7 @@ public class CustomEvent
         });
     }
 
-    /// <summary>
-    ///     启动游戏。支持 \current 指代当前选中实例，可选 ServerIp。
-    /// </summary>
+    /// <summary>启动游戏。支持 \current 指代当前选中实例，可选 ServerIp。</summary>
     private static void _LaunchGame(string arg, EventType type)
     {
         var args = SplitArgs(arg);
@@ -181,17 +165,13 @@ public class CustomEvent
         });
     }
 
-    /// <summary>
-    ///     复制文本到剪贴板。
-    /// </summary>
+    /// <summary>复制文本到剪贴板。</summary>
     private static void _CopyText(string arg, EventType _)
     {
         PlatformServices.Clipboard?.SetText(arg);
     }
 
-    /// <summary>
-    ///     刷新主页 / 刷新当前页面。要求当前 pageRight 实现 IRefreshable。
-    /// </summary>
+    /// <summary>刷新主页 / 刷新当前页面。要求当前 pageRight 实现 IRefreshable。</summary>
     private static void _Refresh(string arg, EventType _)
     {
         if (!EventUi.RefreshPage())
@@ -208,25 +188,19 @@ public class CustomEvent
                 NotificationType.Success);
     }
 
-    /// <summary>
-    ///     今日人品。
-    /// </summary>
+    /// <summary>今日人品。</summary>
     private static void _DailyFortune(string _, EventType __)
     {
         EventUi.ShowDailyFortune();
     }
 
-    /// <summary>
-    ///     清理垃圾。异步执行 RubbishClear。
-    /// </summary>
+    /// <summary>清理垃圾。异步执行 RubbishClear。</summary>
     private static void _ClearTrash(string _, EventType __)
     {
         EventUi.ClearTrash();
     }
 
-    /// <summary>
-    ///     弹出消息框。参数：Title|Content[|ButtonText]。
-    /// </summary>
+    /// <summary>弹出消息框。参数：Title|Content[|ButtonText]。</summary>
     private static void _ShowDialog(string arg, EventType type)
     {
         var args = SplitArgs(arg);
@@ -240,7 +214,8 @@ public class CustomEvent
     }
 
     /// <summary>
-    ///     弹出提示条。参数：Message[|HintType]（HintType = Info / Success / Error，兼容旧版 Finish / Critical）。
+    /// 弹出提示条。参数：Message[|HintType]（HintType = Info / Success / Error，兼容旧版 Finish /
+    /// Critical）。
     /// </summary>
     private static void _ShowHint(string arg, EventType _)
     {
@@ -254,9 +229,7 @@ public class CustomEvent
         LauncherUi.Interaction?.ShowHint(FixNewlines(args[0]), hintType);
     }
 
-    /// <summary>
-    ///     将旧版 HintType 名称映射到当前名称，保持对旧主页的兼容。
-    /// </summary>
+    /// <summary>将旧版 HintType 名称映射到当前名称，保持对旧主页的兼容。</summary>
     private static string NormalizeHintTypeName(string name)
     {
         return name.ToLowerInvariant() switch
@@ -267,31 +240,26 @@ public class CustomEvent
         };
     }
 
-    /// <summary>
-    ///     切换页面。参数：PageType[|PageSubType]。
-    /// </summary>
+    /// <summary>切换页面。参数：PageType[|PageSubType]。</summary>
     private static void _SwitchPage(string arg, EventType _)
     {
         var args = SplitArgs(arg);
         EventUi.SwitchPage(args[0], args.Length > 1 ? args[1] : null);
     }
 
-    /// <summary>
-    ///     导入 / 安装整合包。触发 Modpack.ModpackInstall()。
-    /// </summary>
+    /// <summary>导入 / 安装整合包。触发 Modpack.ModpackInstall()。</summary>
     private static void _ModpackInstall(string _, EventType __)
     {
         EventUi.StartModpackInstall();
     }
 
-    /// <summary>
-    ///     下载文件。参数：Url[|SavePath[|FileName]]，校验 http/https 前缀并弹安全确认。
-    /// </summary>
+    /// <summary>下载文件。参数：Url[|SavePath[|FileName]]，校验 http/https 前缀并弹安全确认。</summary>
     private static void _DownloadFile(string arg, EventType _)
     {
         var args = SplitArgs(arg);
         args[0] = args[0].Replace('\\', '/');
-        if (!args[0].StartsWithF("http://", true) && !args[0].StartsWithF("https://", true))
+        if (!args[0].StartsWithF("http://", true)
+            && !args[0].StartsWithF("https://", true))
         {
             LaunchUi.ShowMessageBox(
                 Lang.Text("Event.Error.DownloadUrlRequired"),
@@ -315,9 +283,7 @@ public class CustomEvent
         }
     }
 
-    /// <summary>
-    ///     写入 / 修改设置。参数：SettingName|Value。
-    /// </summary>
+    /// <summary>写入 / 修改设置。参数：SettingName|Value。</summary>
     private static void _WriteSetting(string arg, EventType type)
     {
         var args = SplitArgs(arg);
@@ -349,9 +315,7 @@ public class CustomEvent
         return false;
     }
 
-    /// <summary>
-    ///     写入 / 修改自定义变量。参数：VariableName|Value。
-    /// </summary>
+    /// <summary>写入 / 修改自定义变量。参数：VariableName|Value。</summary>
     private static void _WriteVariable(string arg, EventType type)
     {
         var args = SplitArgs(arg);
@@ -366,9 +330,7 @@ public class CustomEvent
                 NotificationType.Success);
     }
 
-    /// <summary>
-    ///     打开帮助或自定义主页页面
-    /// </summary>
+    /// <summary>打开帮助或自定义主页页面</summary>
     private static void _OpenHelp(string arg, EventType type)
     {
         var args = SplitArgs(arg);
@@ -464,7 +426,7 @@ public class CustomEvent
 
         // 确认路径
         relativeUrl = relativeUrl.Replace('/', Path.DirectorySeparatorChar);
-        var pclDir = Path.Combine(Basics.ExecutableDirectory, "PCL");
+        var pclDir = Paths.Data;
 
         if (Path.IsPathFullyQualified(relativeUrl)) // 绝对路径
         {
@@ -494,9 +456,7 @@ public class CustomEvent
             relativeUrl);
     }
 
-    /// <summary>
-    ///     安全确认对话框。已由用户勾选"不再询问"时跳过。
-    /// </summary>
+    /// <summary>安全确认对话框。已由用户勾选"不再询问"时跳过。</summary>
     private static bool EventSafetyConfirm(string message)
     {
         if (States.Hint.HomepageCommand)

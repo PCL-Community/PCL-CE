@@ -5,7 +5,7 @@ permissions:
 
 on:
   push:
-    branches: [dev]
+    branches: [ dev ]
     paths-ignore: &ignored
       - '**/.editorconfig'
       - '**/.gitignore'
@@ -39,7 +39,7 @@ jobs:
             rid: linux-x64
             platform: x64
           - target: linux_ARM64
-            runner: ubuntu-latest
+            runner: ubuntu-24.04-arm
             rid: linux-arm64
             platform: ARM64
           - target: macos_ARM64

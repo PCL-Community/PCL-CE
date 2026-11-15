@@ -1,4 +1,5 @@
 using PCL.Core.App;
+using PCL.Core.Platform;
 
 namespace PCL;
 
@@ -17,6 +18,12 @@ public static class LauncherPaths
             ? Basics.ExecutableDirectory
             : Basics.ExecutableDirectory + Path.DirectorySeparatorChar;
 
+    /// <summary>启动器用户数据根目录，以路径分隔符结尾。</summary>
+    public static string UserDataRoot { get; } = _GetUserDataRoot();
+
+    /// <summary>默认 Minecraft 文件夹，不是以路径分隔符结尾的路径。</summary>
+    public static string DefaultMinecraftDirectory { get; } = _GetDefaultMinecraftDirectory();
+
     /// <summary>临时目录，以路径分隔符结尾。</summary>
     public static string Temp => Paths.Temp + Path.DirectorySeparatorChar;
 
@@ -25,8 +32,11 @@ public static class LauncherPaths
     {
         get
         {
-            if (ExecutableDirectory.All(c => c < 128))
-                return Path.Combine(ExecutableDirectory, "PCL") + Path.DirectorySeparatorChar;
+            var dataDirectory = Paths.Data;
+            if (dataDirectory.All(c => c < 128))
+                return dataDirectory.EndsWith(Path.DirectorySeparatorChar)
+                    ? dataDirectory
+                    : dataDirectory + Path.DirectorySeparatorChar;
 
             var temp = Path.GetTempPath();
             if (temp.All(c => c < 128))
@@ -34,7 +44,7 @@ public static class LauncherPaths
                     ? temp
                     : temp + Path.DirectorySeparatorChar;
 
-            return !PCL.Core.Platform.PlatformRuntime.Current.Capabilities.UsesWindowsPaths
+            return !PlatformRuntime.Current.Capabilities.UsesWindowsPaths
                 ? Path.Combine(temp, "PCL") + Path.DirectorySeparatorChar
                 : Path.Combine(
                     Path.GetPathRoot(Environment.SystemDirectory)
@@ -46,4 +56,50 @@ public static class LauncherPaths
 
     /// <summary>当前 Minecraft 文件夹路径，由 WPF 宿主同步设置。</summary>
     public static string? MinecraftFolder { get; set; }
+
+    private static string _GetUserDataRoot()
+    {
+        var dataDirectory = Environment.GetEnvironmentVariable("PCL_DATA_DIR");
+        if (!string.IsNullOrWhiteSpace(dataDirectory))
+            return _WithTrailingSeparator(Paths.ExpandUserPath(dataDirectory));
+
+        if (!string.IsNullOrWhiteSpace(Paths.PackageKind))
+            return _WithTrailingSeparator(
+                Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                    "PCLCE"));
+
+        return ExecutableDirectory;
+    }
+
+    private static string _GetDefaultMinecraftDirectory()
+    {
+        var minecraftDirectory = Environment.GetEnvironmentVariable("PCL_MINECRAFT_DIR");
+        if (!string.IsNullOrWhiteSpace(minecraftDirectory))
+            return Path.TrimEndingDirectorySeparator(
+                Path.GetFullPath(Paths.ExpandUserPath(minecraftDirectory)));
+
+        var dataDirectory = Environment.GetEnvironmentVariable("PCL_DATA_DIR");
+        if (!string.IsNullOrWhiteSpace(dataDirectory))
+            return Path.TrimEndingDirectorySeparator(
+                Path.Combine(
+                    Path.GetFullPath(Paths.ExpandUserPath(dataDirectory)),
+                    ".minecraft"));
+
+        if (!string.IsNullOrWhiteSpace(Paths.PackageKind))
+            return Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                "PCLCE",
+                ".minecraft");
+
+        return Path.TrimEndingDirectorySeparator(
+            Path.Combine(ExecutableDirectory, ".minecraft"));
+    }
+
+    private static string _WithTrailingSeparator(string path)
+    {
+        return path.EndsWith(Path.DirectorySeparatorChar)
+            ? path
+            : path + Path.DirectorySeparatorChar;
+    }
 }

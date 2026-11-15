@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.Platform;
 using PCL.Core.Utils;
 using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Secret;
@@ -29,7 +30,7 @@ public static partial class GameLaunch
 
     private static void _SetJavaGpuPreference(string javaExePath)
     {
-        if (!PCL.Core.Platform.PlatformRuntime.Current.Capabilities.SupportsGpuPreference) return;
+        if (!PlatformRuntime.Current.Capabilities.SupportsGpuPreference) return;
 
         try
         {
@@ -112,25 +113,27 @@ public static partial class GameLaunch
     {
         var userName = mcLoginLoader.output.Name;
         var clientToken = mcLoginLoader.output.ClientToken;
-        var replaceJsonString = $$"""
-                                  {
-                                    "authenticationDatabase": {
-                                      "00000111112222233333444445555566": {
-                                        "username": "{{userName.Replace("\"", "-")}}",
-                                        "profiles": {
-                                          "66666555554444433333222221111100": {
-                                              "displayName": "{{userName}}"
-                                          }
-                                        }
-                                      }
-                                    },
-                                    "clientToken": "{{clientToken}}",
-                                    "selectedUser": {
-                                      "account": "00000111112222233333444445555566",
-                                      "profile": "66666555554444433333222221111100"
-                                    }
-                                  }
-                                  """;
+        var replaceJsonString =
+            /* language=JSON */
+            $$"""
+              {
+                "authenticationDatabase": {
+                  "00000111112222233333444445555566": {
+                    "username": "{{userName.Replace("\"", "-")}}",
+                    "profiles": {
+                      "66666555554444433333222221111100": {
+                          "displayName": "{{userName}}"
+                      }
+                    }
+                  }
+                },
+                "clientToken": "{{clientToken}}",
+                "selectedUser": {
+                  "account": "00000111112222233333444445555566",
+                  "profile": "66666555554444433333222221111100"
+                }
+              }
+              """;
         return (JsonObject)LauncherCommon.GetJson(replaceJsonString);
     }
 
@@ -327,9 +330,10 @@ public static partial class GameLaunch
         {
             var scriptPath = currentLaunchOptions!.SaveBatch
                 ?? Path.Combine(
-                    LauncherPaths.ExecutableDirectory,
-                    "PCL",
-                    PCL.Core.Platform.PlatformRuntime.Current.Capabilities.UsesWindowsPaths ? "LatestLaunch.bat" : "LatestLaunch.sh");
+                    Paths.Data,
+                    PlatformRuntime.Current.Capabilities.UsesWindowsPaths
+                        ? "LatestLaunch.bat"
+                        : "LatestLaunch.sh");
             LauncherCommon.WriteFile(
                 scriptPath,
                 LogFilter.FilterAccessToken(
@@ -339,7 +343,7 @@ public static partial class GameLaunch
                 mcLaunchJavaSelected!.Installation.MajorVersion > 8
                     ? Encoding.UTF8
                     : Encoding.Default);
-            if (!PCL.Core.Platform.PlatformRuntime.Current.Capabilities.UsesWindowsPaths)
+            if (!PlatformRuntime.Current.Capabilities.UsesWindowsPaths)
                 File.SetUnixFileMode(
                     scriptPath,
                     UnixFileMode.UserRead
@@ -378,7 +382,7 @@ public static partial class GameLaunch
     {
         var instance = InstanceList.McMcInstanceSelected!;
         var javaInstallation = mcLaunchJavaSelected!.Installation;
-        if (PCL.Core.Platform.PlatformRuntime.Current.Capabilities.UsesWindowsPaths)
+        if (PlatformRuntime.Current.Capabilities.UsesWindowsPaths)
         {
             var chcpCommand = javaInstallation.MajorVersion > 8
                 ? "chcp 65001>nul" + "\r\n"
@@ -412,7 +416,7 @@ public static partial class GameLaunch
         var customProcess = new Process();
         try
         {
-            var isWindows = PCL.Core.Platform.PlatformRuntime.Current.Capabilities.UsesWindowsPaths;
+            var isWindows = PlatformRuntime.Current.Capabilities.UsesWindowsPaths;
             customProcess.StartInfo.FileName = isWindows ? "cmd.exe" : "/bin/sh";
             customProcess.StartInfo.Arguments =
                 isWindows ? $"/c \"{command}\"" : $"-c \"{command}\"";
@@ -492,8 +496,8 @@ public static partial class GameLaunch
     }
 
     /// <summary>
-    ///     将 Java 目录添加到游戏进程的 PATH 环境变量开头。
-    ///     Windows 使用 "Path" 与 ";"，其余平台使用 "PATH" 与 Path.PathSeparator。
+    /// 将 Java 目录添加到游戏进程的 PATH 环境变量开头。 Windows 使用 "Path" 与 ";"，其余平台使用 "PATH" 与
+    /// Path.PathSeparator。
     /// </summary>
     private static void _PrependJavaFolderToPathVariable(
         ProcessStartInfo startInfo,
@@ -501,7 +505,7 @@ public static partial class GameLaunch
     {
         var separator = Path.PathSeparator;
         var javaFolderPath = LauncherCommon.ShortenPath(javaFolder);
-        if (PCL.Core.Platform.PlatformRuntime.Current.Capabilities.UsesWindowsPaths)
+        if (PlatformRuntime.Current.Capabilities.UsesWindowsPaths)
         {
             var paths = new List<string>(
                 (startInfo.EnvironmentVariables["Path"] ?? "").Split(separator))
@@ -521,12 +525,10 @@ public static partial class GameLaunch
         startInfo.Environment["PATH"] = unixPaths.Distinct().ToList().Join(separator.ToString());
     }
 
-    /// <summary>
-    ///     非 Windows 平台通过 PRIME 相关环境变量请求游戏进程使用独立显卡；Windows 走注册表设置。
-    /// </summary>
+    /// <summary>非 Windows 平台通过 PRIME 相关环境变量请求游戏进程使用独立显卡；Windows 走注册表设置。</summary>
     private static void _ApplyGpuPreferenceEnvironment(ProcessStartInfo startInfo, bool enabled)
     {
-        if (PCL.Core.Platform.PlatformRuntime.Current.Kind != PCL.Core.Platform.PlatformKind.Linux || !enabled) return;
+        if (PlatformRuntime.Current.Kind != PlatformKind.Linux || !enabled) return;
 
         // Mesa（AMD/Intel）的 PRIME 渲染卸载；没有独立显卡时驱动会回退到默认设备
         startInfo.Environment["DRI_PRIME"] = "1";
@@ -539,12 +541,10 @@ public static partial class GameLaunch
         McLaunchLog("已通过环境变量请求使用独立显卡（NVIDIA PRIME Render Offload）");
     }
 
-    /// <summary>
-    ///     非 Windows 平台用 Mesa 环境变量实现渲染器选择；Windows 由 Mesa Loader javaagent 处理。
-    /// </summary>
+    /// <summary>非 Windows 平台用 Mesa 环境变量实现渲染器选择；Windows 由 Mesa Loader javaagent 处理。</summary>
     private static void _ApplyRendererEnvironment(ProcessStartInfo startInfo)
     {
-        if (PCL.Core.Platform.PlatformRuntime.Current.Kind != PCL.Core.Platform.PlatformKind.Linux) return;
+        if (PlatformRuntime.Current.Kind != PlatformKind.Linux) return;
 
         var instanceRenderer = Config.Instance.Renderer[
             InstanceList.McMcInstanceSelected!.PathInstance];
@@ -612,7 +612,7 @@ public static partial class GameLaunch
 
         var jStackPath = Path.Combine(
             mcLaunchJavaSelected!.Installation.JavaFolder,
-            PCL.Core.Platform.PlatformRuntime.Current.Capabilities.UsesWindowsPaths ? "jstack.exe" : "jstack");
+            PlatformRuntime.Current.Capabilities.UsesWindowsPaths ? "jstack.exe" : "jstack");
 
         var watcher = new GameWatcher.Watcher(
             loader,
@@ -733,9 +733,7 @@ public static partial class GameLaunch
         States.Instance.LaunchCount[instancePath] += 1;
     }
 
-    /// <summary>
-    ///     对替换标记进行处理。会对替换内容使用 EscapeHandler 进行转义。
-    /// </summary>
+    /// <summary>对替换标记进行处理。会对替换内容使用 EscapeHandler 进行转义。</summary>
     private static string? ArgumentReplace(
         string? text,
         bool replaceTime,

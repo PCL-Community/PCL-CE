@@ -39,7 +39,7 @@ jobs:
             rid: linux-x64
             platform: x64
           - target: linux_ARM64
-            runner: ubuntu-latest
+            runner: ubuntu-24.04-arm
             rid: linux-arm64
             platform: ARM64
           - target: macos_ARM64
@@ -113,7 +113,10 @@ jobs:
         with:
           inputs: |
             release/*.zip
-            release/*.tar.gz
+            release/*.dmg
+            release/*.AppImage
+            release/*.deb
+            release/*.rpm
           verify: true
           verify-cert-identity: https://github.com/${{ github.repository }}/.github/workflows/release-publish.yml@refs/heads/dev
           verify-oidc-issuer: https://token.actions.githubusercontent.com
