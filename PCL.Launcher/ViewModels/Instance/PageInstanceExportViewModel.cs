@@ -76,6 +76,10 @@ public partial class PageInstanceExportViewModel : ViewModelBase
 
     [ObservableProperty] public partial string PackVersion { get; set; } = string.Empty;
 
+    [ObservableProperty] public partial string PackNameHint { get; set; } = string.Empty;
+
+    [ObservableProperty] public partial string PackVersionHint { get; set; } = "1.0.0";
+
     [ObservableProperty] public partial bool BundleFiles { get; set; }
 
     [ObservableProperty] public partial bool Modrinth { get; set; }
@@ -141,6 +145,8 @@ public partial class PageInstanceExportViewModel : ViewModelBase
         _configPackPath = string.Empty;
         PackName = string.Empty;
         PackVersion = string.Empty;
+        PackNameHint = Instance.Name ?? string.Empty;
+        PackVersionHint = "1.0.0";
         IncludePcl = false;
         IncludePclCustom = true;
         HasOptiFine = Instance.Info.HasOptiFine;

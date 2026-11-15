@@ -39,6 +39,16 @@ public partial class PageInstanceExport : MyPageRight, IRefreshable
             if (!_syncing)
                 ViewModel.PackVersion = TextExportVersion.Text ?? string.Empty;
         };
+        TextExportName.GotFocus += (_, _) =>
+        {
+            if (!string.IsNullOrEmpty(TextExportName.Text))
+                return;
+            var hint = ViewModel.PackNameHint;
+            if (string.IsNullOrEmpty(hint))
+                return;
+            TextExportName.Text = hint;
+            TextExportName.CaretIndex = hint.Length;
+        };
         CheckAdvancedInclude.Change += (_, _) =>
         {
             if (_syncing)
@@ -106,6 +116,8 @@ public partial class PageInstanceExport : MyPageRight, IRefreshable
                 TextExportName.Text = ViewModel.PackName;
             if (TextExportVersion.Text != ViewModel.PackVersion)
                 TextExportVersion.Text = ViewModel.PackVersion;
+            TextExportName.HintText = ViewModel.PackNameHint;
+            TextExportVersion.HintText = ViewModel.PackVersionHint;
             HintOptiFine.IsVisible = ViewModel.HasOptiFine;
             HintBundle.IsVisible = ViewModel.ShowBundleHint;
             CheckAdvancedInclude.Checked = ViewModel.BundleFiles;
