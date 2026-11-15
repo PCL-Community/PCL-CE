@@ -38,6 +38,7 @@ PUBLISH="$OUT/$RID"
 ASSET_PREFIX="PCL2_CE_${CONFIG}_linux_${ASSET_ARCH}"
 NFPM="${NFPM:-nfpm}"
 APPIMAGETOOL="${APPIMAGETOOL:-}"
+APPIMAGE_RUNTIME="${APPIMAGE_RUNTIME:-}"
 
 fail() { echo "[linux-package] $*" >&2; exit 1; }
 
@@ -78,8 +79,12 @@ chmod 0755 "$APPDIR/AppRun"
 
 APPIMAGE_PATH="$OUT/${ASSET_PREFIX}.AppImage"
 rm -f "$APPIMAGE_PATH"
+APPIMAGE_ARGS=(--no-appstream)
+if [ -n "$APPIMAGE_RUNTIME" ]; then
+  APPIMAGE_ARGS+=(--runtime-file "$APPIMAGE_RUNTIME")
+fi
 ARCH="$APPIMAGE_ARCH" APPIMAGE_EXTRACT_AND_RUN=1 \
-  "$APPIMAGETOOL" --no-appstream "$APPDIR" "$APPIMAGE_PATH"
+  "$APPIMAGETOOL" "${APPIMAGE_ARGS[@]}" "$APPDIR" "$APPIMAGE_PATH"
 chmod 0755 "$APPIMAGE_PATH"
 rm -rf "$APPDIR"
 
