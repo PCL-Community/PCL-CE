@@ -22,34 +22,25 @@ public static partial class GameWatcher
         }
 
         private readonly int _pid;
-
         private readonly object _waitingLogLock = new();
         private readonly string _windowTitle;
 
+        private bool _exitHandled;
+        private bool _gameExitRaised;
         private bool _isWindowAppeared;
-        private long _lastWindowCheckTicks;
-
-        /// <summary>
-        ///     窗口检查是否已经完成。这不一定代表着找到了窗口（如果没有找到，IsWindowAppeared 仍为 False）。
-        /// </summary>
         private bool _isWindowFinished;
-
-        /// <summary>
-        ///     上一行日志级别。
-        /// </summary>
         private GameLogLevel _lastLevel = GameLogLevel.Info;
-
+        private long _lastWindowCheckTicks;
         private int _logProgress;
         private nint _windowHandle;
+
         public uint countDebug;
         public uint countError;
         public uint countFatal;
         public uint countInfo;
         public uint countWarn;
 
-        /// <summary>
-        ///     游戏的所有日志输出，只有处理实时日志的情况下才会记录。
-        /// </summary>
+        /// <summary>游戏的所有日志输出，只有处理实时日志的情况下才会记录。</summary>
         public List<string> fullLog = [];
 
         public Process gameProcess;
@@ -60,7 +51,7 @@ public static partial class GameWatcher
         public Loading.LoaderTask<Process, int> loader;
         public McInstance version;
 
-        public List<string> waitingLog = new(1000);
+        public List<string> waitingLog = [with(1000)];
 
         public Watcher(
             Loading.LoaderTask<Process, int> loader,
@@ -79,7 +70,7 @@ public static partial class GameWatcher
 
             WatcherLog(Lang.Text("Watcher.Start"));
             if (string.IsNullOrWhiteSpace(windowTitle))
-                WatcherLog("要求窗口标题：" + windowTitle);
+                WatcherLog($"要求窗口标题：{windowTitle}");
 
             _RegisterWatcher();
 
@@ -91,7 +82,7 @@ public static partial class GameWatcher
 
             LauncherCommon.RunInNewThread(
                 () => _MonitorLoop(loader),
-                "Minecraft Watcher PID " + _pid);
+                $"Minecraft Watcher PID {_pid}");
         }
 
         public MinecraftState State
@@ -106,9 +97,6 @@ public static partial class GameWatcher
             }
         } = MinecraftState.Loading;
 
-        /// <summary>
-        ///     是否处理实时日志。
-        /// </summary>
         public bool RealTimeLog { get; }
 
         private void _RegisterWatcher()
@@ -178,9 +166,6 @@ public static partial class GameWatcher
             }
         }
 
-        /// <summary>
-        ///     游戏退出时触发。
-        /// </summary>
         public event GameExitEventHandler? GameExit;
     }
 }

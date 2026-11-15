@@ -87,7 +87,7 @@ public static partial class GameWatcher
                             ref arglevel);
                     }
 
-                    GameExit?.Invoke();
+                    RaiseGameExit();
                 }
                 catch (Exception ex)
                 {
@@ -105,7 +105,7 @@ public static partial class GameWatcher
             var dump = new List<string>();
             for (var i = 1; i <= 3; i++)
             {
-                dump.Add(LauncherCommon.ShellAndGetOutput(jStackPath, "-l -e " + gameProcess.Id));
+                dump.Add(LauncherCommon.ShellAndGetOutput(jStackPath, $"-l -e {gameProcess.Id}"));
                 Thread.Sleep(3000);
             }
 
