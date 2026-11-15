@@ -1,5 +1,0 @@
-<Project>
-  <PropertyGroup Condition="'$(MSBuildProjectName)' != 'PCL.Core.SourceGenerators'">
-    <IsRidAgnostic>false</IsRidAgnostic>
-  </PropertyGroup>
-</Project>

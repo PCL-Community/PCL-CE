@@ -16,9 +16,6 @@ using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Secret;
 using Sentry;
 using Sentry.Extensibility;
-#if !X64_MACOS
-using STUN.Client;
-#endif
 
 namespace PCL.Core.App.Essentials;
 
@@ -153,29 +150,6 @@ public sealed partial class TelemetryService
 
         var appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
-#if !X64_MACOS
-        // stun test
-        StunClient5389UDP? natTest = null;
-        var miWifiIps =
-            await DnsQuery.Instance.QueryForIpAsync(STUN_SERVER_ADDR).ConfigureAwait(false);
-        try
-        {
-            miWifiIps ??= await Dns.GetHostAddressesAsync(STUN_SERVER_ADDR).ConfigureAwait(false);
-        }
-        catch (Exception)
-        {
-            /* Ignore dns error */
-        }
-
-        if (miWifiIps is not null && miWifiIps.Length != 0)
-        {
-            natTest = new StunClient5389UDP(
-                new IPEndPoint(miWifiIps.First(), 3478),
-                new IPEndPoint(IPAddress.Any, 0));
-            await natTest.QueryAsync().ConfigureAwait(false);
-        }
-#endif
-
         var telemetry = new TelemetryDeviceEnvironment
         {
             Tag = "Telemetry",
@@ -196,13 +170,6 @@ public sealed partial class TelemetryService
             UsedHmcl = Directory.Exists(Path.Combine(appDataFolder, ".hmcl")),
             UsedBakaXl = Directory.Exists(Path.Combine(appDataFolder, "BakaXL")),
             Memory = _GetPhysicalMemoryBytes(),
-#if !X64_MACOS
-            NatMapBehaviour = natTest?.State.MappingBehavior.ToString(),
-            NatFilterBehaviour = natTest?.State.FilteringBehavior.ToString(),
-#else
-            NatMapBehaviour = null,
-            NatFilterBehaviour = null,
-#endif
             Ipv6Status = NetworkInterfaceUtils.GetIPv6Status().ToString()
         };
 
@@ -247,8 +214,6 @@ public sealed partial class TelemetryService
         [JsonPropertyName("UsedHMCL")] public required bool UsedHmcl { get; set; }
         [JsonPropertyName("UsedBakaXL")] public required bool UsedBakaXl { get; set; }
         public required ulong Memory { get; set; }
-        public required string? NatMapBehaviour { get; set; }
-        public required string? NatFilterBehaviour { get; set; }
         [JsonPropertyName("IPv6Status")] public required string Ipv6Status { get; set; }
     }
 

@@ -44,10 +44,6 @@ case "$RID" in
       [ ! -e "$DIR/$name" ] || fail "Windows native library in macOS artifact: $name"
     done
     for name in "${mac_native[@]}"; do
-      if [ "$RID" = osx-x64 ] && [ "$name" = libdtls_native.dylib ]; then
-        [ ! -e "$DIR/$name" ] || fail "DTLS native library in osx-x64 artifact: $name"
-        continue
-      fi
       [ -e "$DIR/$name" ] || fail "missing macOS native library: $name"
     done
     ;;
