@@ -78,4 +78,4 @@ jobs:
           dotnet-version: 11.0.x
 
       - name: Run tests
-        run: dotnet test PCL.Core.Test/PCL.Core.Test.csproj -c Debug -p:Platform=AnyCPU --nologo
+        run: dotnet test PCL.Core.Test/PCL.Core.Test.csproj -c CI -p:Platform=AnyCPU --nologo
