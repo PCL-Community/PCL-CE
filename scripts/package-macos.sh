@@ -108,6 +108,17 @@ cat > "$APP/Contents/Info.plist" <<PLIST
     <string>public.app-category.utilities</string>
     <key>NSHumanReadableCopyright</key>
     <string>Copyright © PCL Community</string>
+    <key>CFBundleLocalizations</key>
+    <array>
+        <string>zh-Hans</string>
+        <string>zh-Hant</string>
+        <string>en</string>
+        <string>ja</string>
+        <string>fr</string>
+        <string>es</string>
+    </array>
+    <key>CFBundleAllowMixedLocalizations</key>
+    <true/>
 </dict>
 </plist>
 PLIST
