@@ -113,6 +113,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
         <string>zh-Hans</string>
         <string>zh-Hant</string>
         <string>en</string>
+        <string>en-GB</string>
         <string>ja</string>
         <string>fr</string>
         <string>es</string>
