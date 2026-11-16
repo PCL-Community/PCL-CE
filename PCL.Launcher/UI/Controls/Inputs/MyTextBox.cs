@@ -76,7 +76,7 @@ public class MyTextBox : TextBox
             MinHeight = 28d;
             CornerRadius = new CornerRadius(3d);
             VerticalContentAlignment = VerticalAlignment.Center;
-            SelectionBrush = InputTheme.Accent(this);
+            ContainerTheme.BindDynamic(this, SelectionBrushProperty, "ColorBrushSelection");
         }
 
         TextChanged += OnTextChanged;
@@ -450,7 +450,7 @@ public class MyTextBox : TextBox
                     BackgroundColorKey,
                     animate);
 
-            SelectionBrush = InputTheme.Accent(this);
+            ContainerTheme.BindDynamic(this, SelectionBrushProperty, "ColorBrushSelection");
         }
         catch (Exception ex)
         {

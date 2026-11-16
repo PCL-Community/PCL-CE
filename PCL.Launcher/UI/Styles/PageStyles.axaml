@@ -65,7 +65,7 @@
         <Setter Property="FontFamily"
                 Value="{DynamicResource LaunchFontFamily}" />
         <Setter Property="SelectionBrush"
-                Value="{DynamicResource ColorBrush7}" />
+                Value="{DynamicResource ColorBrushSelection}" />
         <Setter Property="SelectionForegroundBrush"
                 Value="{DynamicResource ColorBrush1}" />
     </Style>

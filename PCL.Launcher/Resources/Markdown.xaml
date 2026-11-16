@@ -144,7 +144,7 @@
                         Document="{TemplateBinding Document}"
                         ScrollViewer.VerticalScrollBarVisibility="Auto"
                         ContextMenu="{x:Null}"
-                        SelectionBrush="{DynamicResource ColorBrush6}" />
+                        SelectionBrush="{DynamicResource ColorBrushSelection}" />
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

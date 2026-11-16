@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Media;
 using PCL.Core.App.IoC;
 using PCL.Core.Platform;
+using PCL.Core.UI.Theme;
 
 namespace PCL.Core.UI;
 
@@ -33,7 +34,12 @@ public sealed class ThemeBackend : IThemeBackend
         float blue)
     {
         SetResource(key, new SolidColorBrush(_CreateColor(alpha, red, green, blue)));
+
+        if (key == "ColorBrush4")
+            SetResource("ColorBrushSelection", new SolidColorBrush(_CreateColor(SelectionAlpha, red, green, blue)));
     }
+
+    private static float SelectionAlpha => ThemeService.IsDarkMode ? 0.28f : 0.45f;
 
     private static Color _CreateColor(
         float alpha,
