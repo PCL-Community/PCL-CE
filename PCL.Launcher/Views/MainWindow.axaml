@@ -71,6 +71,7 @@
                                              Grid.Row="1" />
                     <Panel x:Name="PanDialogLayer"
                            Grid.RowSpan="2"
+                           ZIndex="2"
                            IsVisible="False"
                            Opacity="0">
                         <Border x:Name="BorDialogMask"
