@@ -3216,7 +3216,7 @@
     <sys:String x:Key="Setup.Ui.Homepage.Preset.DailyModpack">Daily Modpack Recommendation (Author: wkea)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.EchoCave">Echo Cave (removed)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.GitHub">PCL GitHub Dashboard (Author: Deep-Dark-Forest)</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.Magazine">Magazine Homepage (Author: CreeperIsASpy)</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.Magazine">Magazine Homepage (Author: Neclyon)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McNews">Minecraft News (Author: Nattiden)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McOfficialFeed">Minecraft Official Feed</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McSkin">Minecraft Skin Recommendation (Author: wkea)</sys:String>
