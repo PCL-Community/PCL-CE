@@ -550,21 +550,14 @@ public static partial class GameLaunch
         try
         {
             gameProcess.PriorityBoostEnabled = true;
-            switch (Config.Launch.ProcessPriority)
+            gameProcess.PriorityClass = Config.Launch.ProcessPriority switch
             {
-                case GameProcessPriority.RealTime:
-                    gameProcess.PriorityClass = ProcessPriorityClass.RealTime;
-                    break;
-                case GameProcessPriority.High:
-                    gameProcess.PriorityClass = ProcessPriorityClass.High;
-                    break;
-                case GameProcessPriority.AboveNormal:
-                    gameProcess.PriorityClass = ProcessPriorityClass.AboveNormal;
-                    break;
-                case GameProcessPriority.BelowNormal:
-                    gameProcess.PriorityClass = ProcessPriorityClass.BelowNormal;
-                    break;
-            }
+                GameProcessPriority.RealTime => ProcessPriorityClass.RealTime,
+                GameProcessPriority.High => ProcessPriorityClass.High,
+                GameProcessPriority.AboveNormal => ProcessPriorityClass.AboveNormal,
+                GameProcessPriority.BelowNormal => ProcessPriorityClass.BelowNormal,
+                _ => gameProcess.PriorityClass
+            };
         }
         catch (Exception ex)
         {

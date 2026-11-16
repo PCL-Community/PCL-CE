@@ -178,9 +178,9 @@ public static class EncryptHelper
     private static byte[]? _cachedKey;
 
     /// <summary>
-    ///     用户密钥。只在成功获取后缓存——失败不会被记住，下次访问会重新尝试。<br />
-    ///     注意：密钥文件的 version（1 = 旧版 CAPI DPAPI，2 = CNG DPAPI，3 = 非 Windows 平台机器绑定 AES-GCM）与
-    ///     <see cref="SecretEncrypt" /> 的数据算法 version（0/1/2）语义无关。
+    /// 用户密钥。只在成功获取后缓存——失败不会被记住，下次访问会重新尝试。<br /> 注意：密钥文件的 version（1 = 旧版 CAPI DPAPI，2 =
+    /// CNG DPAPI，3 = 非 Windows 平台机器绑定 AES-GCM）与 <see cref="SecretEncrypt" /> 的数据算法
+    /// version（0/1/2）语义无关。
     /// </summary>
     internal static byte[] EncryptionKey
     {

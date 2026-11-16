@@ -1,6 +1,4 @@
-using System;
 using System.Diagnostics;
-using System.IO;
 using PCL.Core.Platform;
 
 namespace PCL.Platform;
@@ -14,11 +12,9 @@ public sealed class LinuxLaunchEnvironmentService : ILaunchEnvironmentService
     {
         if (!enabled) return;
 
-        // Mesa（AMD/Intel）的 PRIME 渲染卸载；没有独立显卡时驱动会回退到默认设备
         startInfo.Environment["DRI_PRIME"] = "1";
         if (!File.Exists("/proc/driver/nvidia/version")) return;
 
-        // NVIDIA PRIME Render Offload；仅在 NVIDIA 驱动存在时注入，避免强制 GLX vendor 导致初始化失败
         startInfo.Environment["__NV_PRIME_RENDER_OFFLOAD"] = "1";
         startInfo.Environment["__GLX_VENDOR_LIBRARY_NAME"] = "nvidia";
         startInfo.Environment["__VK_LAYER_NV_optimus"] = "NVIDIA_only";
