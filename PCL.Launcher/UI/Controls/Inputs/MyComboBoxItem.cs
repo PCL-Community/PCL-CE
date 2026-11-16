@@ -94,22 +94,33 @@ public class MyComboBoxItem : ComboBoxItem
         _backColorName = newBackColorName;
         _fontOpacity = newFontOpacity;
 
-        var targetColor = string.IsNullOrEmpty(newBackColorName)
-            ? new NColor(0d, 0d, 0d, 0d)
-            : InputTheme.TryColor(this, newBackColorName, out var resolved)
-                ? resolved
-                : new NColor(0d, 0d, 0d, 0d);
-
         if (animate && InputAnimation.CanAnimate(this))
         {
+            var fromColor = InputAnimation.ReadColor(this, BackgroundProperty);
+            NColor targetColor;
+            if (!string.IsNullOrEmpty(newBackColorName)
+                && InputTheme.TryColor(this, newBackColorName, out var resolved))
+            {
+                targetColor = resolved;
+                if (fromColor.A <= 0f)
+                    fromColor = new NColor(0f, resolved);
+            }
+            else
+            {
+                targetColor = new NColor(0f, fromColor);
+            }
+
             AnimationService.Run(
                 new List<IAnimation>
                 {
-                    new ColorAnimation(
-                        this,
-                        BackgroundProperty,
-                        targetColor - InputAnimation.ReadColor(this, BackgroundProperty),
-                        time),
+                    new NColorFromToAnimation
+                    {
+                        Target = new AvaloniaAnimatable(this, BackgroundProperty),
+                        From = fromColor,
+                        HasFrom = true,
+                        To = targetColor,
+                        Duration = TimeSpan.FromMilliseconds(time)
+                    },
                     new OpacityAnimation(this, newFontOpacity - Opacity, time)
                 },
                 ColorKey);
