@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using PCL.Views.Shell;
 
@@ -20,6 +21,8 @@ public class MyScrollViewer : ScrollViewer
         AvaloniaProperty.Register<MyScrollViewer, Thickness>(nameof(ScrollBarMargin));
 
     private double _realOffset;
+    private WindowBase? _window;
+    private bool _isRestoringFocus;
 
     public MyScrollViewer()
     {
@@ -53,6 +56,9 @@ public class MyScrollViewer : ScrollViewer
     protected override void OnGotFocus(FocusChangedEventArgs e)
     {
         if (e.Source is Control source && !GetBringIntoViewOnFocusChange(source))
+            return;
+
+        if (_isRestoringFocus)
             return;
 
         base.OnGotFocus(e);
@@ -120,6 +126,28 @@ public class MyScrollViewer : ScrollViewer
         }
 
         return false;
+    }
+
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        _window = TopLevel.GetTopLevel(this) as WindowBase;
+        if (_window is not null)
+            _window.Activated += OnWindowActivated;
+    }
+
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        if (_window is not null)
+            _window.Activated -= OnWindowActivated;
+        _window = null;
+        base.OnDetachedFromVisualTree(e);
+    }
+
+    private void OnWindowActivated(object? sender, EventArgs e)
+    {
+        _isRestoringFocus = true;
+        Dispatcher.UIThread.Post(() => _isRestoringFocus = false);
     }
 
     private void OnScrollChanged(object? sender, ScrollChangedEventArgs e)
