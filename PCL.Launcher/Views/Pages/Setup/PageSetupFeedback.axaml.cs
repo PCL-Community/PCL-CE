@@ -7,8 +7,8 @@ using PCL.UI.Controls;
 namespace PCL.Views.Pages.Setup;
 
 /// <summary>
-///     反馈页：从 GitHub Issues 拉取社区反馈并按仓库标签状态分组展示；点击条目查看详情并可跳转原帖。
-///     数据分组与行内容由 <see cref="PageSetupFeedbackViewModel" /> 负责。
+/// 反馈页：从 GitHub Issues 拉取社区反馈并按仓库标签状态分组展示；点击条目查看详情并可跳转原帖。 数据分组与行内容由
+/// <see cref="PageSetupFeedbackViewModel" /> 负责。
 /// </summary>
 public partial class PageSetupFeedback : MyPageRight, IRefreshable
 {
@@ -95,8 +95,7 @@ public partial class PageSetupFeedback : MyPageRight, IRefreshable
                      """,
                 Buttons = DialogButtons.Create(
                     "Common.Action.Confirm",
-                    "Setup.Feedback.Item.ViewDetail"),
-                ForceWait = true
+                    "Setup.Feedback.Item.ViewDetail")
             });
         if (result.Button == 2)
             Basics.OpenPath(item.Url);

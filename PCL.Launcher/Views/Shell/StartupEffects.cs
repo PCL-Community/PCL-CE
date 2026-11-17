@@ -175,13 +175,13 @@ public sealed class StartupEffects(
         }
     }
 
-    private static void ShowStartupDialogs()
+    private static async void ShowStartupDialogs()
     {
         try
         {
             ShowSpecialVersionHint();
-            ShowEulaDialog();
-            ShowTelemetryDialog();
+            await ShowEulaDialogAsync();
+            await ShowTelemetryDialogAsync();
             HardwareInfo.GetHardwareInfo();
         }
         catch (Exception ex)
@@ -194,7 +194,7 @@ public sealed class StartupEffects(
     {
 #if DEBUG
         if (Environment.GetEnvironmentVariable("PCL_DISABLE_DEBUG_HINT") is not null) return;
-        _ = DialogService.Instance.Show(
+        DialogService.Instance.ShowNotification(
             new TextDialogRequest
             {
                 Title = Lang.Text("Main.SpecialVersion.Title"),
@@ -211,31 +211,27 @@ public sealed class StartupEffects(
                             OpenWebsite("https://github.com/PCL-Community/PCL2-CE/releases/latest");
                             UiInteraction.Shutdown();
                         })),
-                IsWarn = true,
-                ForceWait = true
+                IsWarn = true
             });
 #endif
     }
 
-    private static void ShowEulaDialog()
+    private static async Task ShowEulaDialogAsync()
     {
         if (States.System.LauncherEula) return;
 
-        var button = DialogService.Instance.Show(
-                    new TextDialogRequest
-                    {
-                        Title = Lang.Text("Main.Eula.Title"),
-                        Content = Lang.Text("Main.Eula.Message"),
-                        Buttons = DialogButtons.From(
-                            DialogButton.Create(Lang.Text("Common.Action.Agree")),
-                            DialogButton.Create(Lang.Text("Common.Action.Decline")),
-                            DialogButton.Create(
-                                Lang.Text("Main.Eula.View"),
-                                () => OpenWebsite("https://shimo.im/docs/rGrd8pY8xWkt6ryW"))),
-                        ForceWait = true
-                    })
-                .Result?.Button
-            ?? 0;
+        var button = (await DialogService.Instance.ShowAsync(
+            new TextDialogRequest
+            {
+                Title = Lang.Text("Main.Eula.Title"),
+                Content = Lang.Text("Main.Eula.Message"),
+                Buttons = DialogButtons.From(
+                    DialogButton.Create(Lang.Text("Common.Action.Agree")),
+                    DialogButton.Create(Lang.Text("Common.Action.Decline")),
+                    DialogButton.Create(
+                        Lang.Text("Main.Eula.View"),
+                        () => OpenWebsite("https://shimo.im/docs/rGrd8pY8xWkt6ryW")))
+            })).Button;
 
         switch (button)
         {
@@ -248,20 +244,17 @@ public sealed class StartupEffects(
         }
     }
 
-    private static void ShowTelemetryDialog()
+    private static async Task ShowTelemetryDialogAsync()
     {
         if (!Config.System.TelemetryConfig.IsDefault()) return;
 
-        var button = DialogService.Instance.Show(
-                    new TextDialogRequest
-                    {
-                        Title = Lang.Text("Main.Telemetry.Title"),
-                        Content = Lang.Text("Main.Telemetry.Message"),
-                        Buttons = DialogButtons.AgreeDecline,
-                        ForceWait = true
-                    })
-                .Result?.Button
-            ?? 0;
+        var button = (await DialogService.Instance.ShowAsync(
+            new TextDialogRequest
+            {
+                Title = Lang.Text("Main.Telemetry.Title"),
+                Content = Lang.Text("Main.Telemetry.Message"),
+                Buttons = DialogButtons.AgreeDecline
+            })).Button;
         Config.System.TelemetryConfig.SetValue(button == 1, forceNewValue: true);
     }
 

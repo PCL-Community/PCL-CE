@@ -101,11 +101,4 @@ public sealed class AvaloniaUiDispatcher : IUiDispatcher
             DispatcherPriority.Normal);
         return completion.Task;
     }
-
-    public IUiModalFrame CreateModalFrame()
-    {
-        if (Lifecycle.HasShutdownStarted || !Dispatcher.UIThread.CheckAccess())
-            return new NoopModalFrame();
-        return new ModalFrame();
-    }
 }

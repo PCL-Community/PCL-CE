@@ -522,8 +522,7 @@ public partial class PageDownloadCompFavoritesViewModel : ViewModelBase
                                 Hints.Success(
                                     Lang.Text("Download.Comp.Favorites.Hint.Removed")));
                             Reload();
-                        })),
-                ForceWait = true
+                        }))
             });
     }
 

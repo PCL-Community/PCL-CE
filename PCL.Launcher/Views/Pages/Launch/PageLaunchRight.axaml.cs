@@ -20,10 +20,9 @@ using PCL.Xaml;
 namespace PCL.Views.Pages.Launch;
 
 /// <summary>
-///     启动页右栏：按 <c>Preference.Homepage</c> 配置构建主页内容，另带社区版提示与启动日志卡片。
-///     主页来源分为空白、内置“你知道吗”、Minecraft 信息流与运行时 XAML 主页四类；
-///     运行时内容支持旧 WPF XAML 与 AXAML 两种格式，统一走预设、本地文件、URL、
-///     缓存与 CustomLive.json 实时补丁流程。
+/// 启动页右栏：按 <c>Preference.Homepage</c> 配置构建主页内容，另带社区版提示与启动日志卡片。
+/// 主页来源分为空白、内置“你知道吗”、Minecraft 信息流与运行时 XAML 主页四类； 运行时内容支持旧 WPF XAML 与 AXAML
+/// 两种格式，统一走预设、本地文件、URL、 缓存与 CustomLive.json 实时补丁流程。
 /// </summary>
 public partial class PageLaunchRight : MyPageRight, IRefreshable
 {
@@ -305,13 +304,12 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable
                 break;
 
             case HomepageSourceKind.Removed:
-                DialogService.Instance.Show(
+                DialogService.Instance.ShowNotification(
                     new TextDialogRequest
                     {
                         Title = Lang.Text("Common.Dialog.Title"),
                         Content = Lang.Text("Launch.Homepage.Preset.EchoCave.Removed"),
-                        Buttons = DialogButtons.Ok,
-                        ForceWait = true
+                        Buttons = DialogButtons.Ok
                     });
                 break;
 

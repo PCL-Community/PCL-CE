@@ -61,7 +61,7 @@ public partial class PageLoginAuthViewModel : ViewModelBase
     internal static bool IsListedOAuthServer(string? server)
     {
         return Uri.TryCreate(server, UriKind.Absolute, out var uri)
-               && YggdrasilConnectProvider.TryGetBuiltInClientId(uri.Host, out _);
+            && YggdrasilConnectProvider.TryGetBuiltInClientId(uri.Host, out _);
     }
 
     /// <summary>处理拖入或选中的认证服务器，并返回是否应直接进入 OAuth。</summary>
@@ -333,7 +333,7 @@ public partial class PageLoginAuthViewModel : ViewModelBase
                         ClientId = clientId,
                         DeviceCodeHandler = LoginProfile.ShowDeviceCodeLoginAsync,
                         ProfileSelector = (candidates, _) =>
-                            Task.FromResult(SelectYggdrasilProfile(candidates))
+                            SelectYggdrasilProfileAsync(candidates)
                     },
                     null,
                     true,
@@ -356,36 +356,29 @@ public partial class PageLoginAuthViewModel : ViewModelBase
         }
     }
 
-    private static AuthenticationCandidate? SelectYggdrasilProfile(
+    private static async Task<AuthenticationCandidate?> SelectYggdrasilProfileAsync(
         IReadOnlyList<AuthenticationCandidate> candidates)
     {
         if (candidates.Count == 0) return null;
         if (candidates.Count == 1) return candidates[0];
 
-        AuthenticationCandidate? selected = null;
-        LauncherCommon.RunInUiWait(() =>
-        {
-            var result = DialogService.Instance.Show(
-                new SelectDialogRequest
-                {
-                    Title = Lang.Text("Launch.Account.Auth.ChangeProfile"),
-                    Options =
-                    [
-                        .. candidates
-                            .Select(candidate => new DialogOption
-                            {
-                                Text = candidate.Name
-                            })
-                    ],
-                    Buttons = DialogButtons.Ok,
-                    HighLight = false,
-                    ForceWait = true
-                });
-            var index = result.Result?.SelectedIndex;
-            if (index is >= 0 && index < candidates.Count)
-                selected = candidates[index.Value];
-        });
-        return selected;
+        var result = await DialogService.Instance.ShowAsync(
+            new SelectDialogRequest
+            {
+                Title = Lang.Text("Launch.Account.Auth.ChangeProfile"),
+                Options =
+                [
+                    .. candidates
+                        .Select(candidate => new DialogOption
+                        {
+                            Text = candidate.Name
+                        })
+                ],
+                Buttons = DialogButtons.Ok,
+                HighLight = false
+            });
+        var index = result.SelectedIndex;
+        return index is >= 0 && index < candidates.Count ? candidates[index.Value] : null;
     }
 
     #endregion

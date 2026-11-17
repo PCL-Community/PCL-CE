@@ -897,7 +897,7 @@ public partial class PageDownloadCompDetail : MyPageRight
                 return true;
             }
 
-            var choice = CompDependency.ConfirmDependencyInstall(result);
+            var choice = await CompDependency.ConfirmDependencyInstallAsync(result);
             switch (choice)
             {
                 case Comp.CompDepsInstallTypes.WithDeps:
@@ -940,8 +940,7 @@ public partial class PageDownloadCompDetail : MyPageRight
                         ex),
                     Buttons = DialogButtons.Create(
                         "Download.Comp.Dependency.ResolveFailed.Continue"),
-                    IsWarn = true,
-                    ForceWait = true
+                    IsWarn = true
                 });
             return true;
         }

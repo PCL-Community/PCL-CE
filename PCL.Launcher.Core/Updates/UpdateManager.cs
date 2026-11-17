@@ -128,20 +128,17 @@ public static class UpdateManager
                     return;
                 if (type == UpdateEnums.UpdateType.PromptOnly)
                 {
-                    LauncherCommon.RunInUi(() =>
-                    {
-                        if ((UpdateUi.Current?.ShowMessageBox(
-                                    Lang.Text(
-                                        "Update.Available",
-                                        LauncherCommon.VersionBaseName,
-                                        version.VersionName),
-                                    Lang.Text("Update.Title"),
-                                    Lang.Text("Update.Action"),
-                                    Lang.Text("Common.Action.Cancel"))
-                                ?? 0)
-                            == 1)
-                            UpdateUi.Current?.NavigateSetupUpdate();
-                    });
+                    if ((UpdateUi.Current?.ShowMessageBox(
+                                Lang.Text(
+                                    "Update.Available",
+                                    LauncherCommon.VersionBaseName,
+                                    version.VersionName),
+                                Lang.Text("Update.Title"),
+                                Lang.Text("Update.Action"),
+                                Lang.Text("Common.Action.Cancel"))
+                            ?? 0)
+                        == 1)
+                        UpdateUi.Current?.NavigateSetupUpdate();
                     return;
                     // 构造步骤加载器
                 }
@@ -286,10 +283,7 @@ public static class UpdateManager
         }
     }
 
-    /// <summary>
-    ///     确保 PathTemp 下的 Latest.exe 是最新正式版的 PCL，它会被用于整合包打包。
-    ///     如果不是，则下载一个。
-    /// </summary>
+    /// <summary>确保 PathTemp 下的 Latest.exe 是最新正式版的 PCL，它会被用于整合包打包。 如果不是，则下载一个。</summary>
     internal static void DownloadLatestPcl(Loading.LoaderBase? loaderToSyncProgress = null)
     {
         // 注意：如果要自行实现这个功能，请换用另一个文件路径，以免与官方版本冲突
@@ -370,9 +364,7 @@ public static class UpdateManager
         }
     }
 
-    /// <summary>
-    ///     展示社区版提示
-    /// </summary>
+    /// <summary>展示社区版提示</summary>
     /// <param name="IsUpdate">是否为更新时启动</param>
     public static void ShowCeAnnounce()
     {

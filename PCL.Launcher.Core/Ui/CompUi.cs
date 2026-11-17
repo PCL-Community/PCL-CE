@@ -28,6 +28,14 @@ public interface ICompUi
         string? button2 = "",
         string? button3 = "",
         bool isWarn = false);
+
+    Task<int> ShowDialogAsync(
+        string caption,
+        string? title,
+        string? button1,
+        string? button2 = "",
+        string? button3 = "",
+        bool isWarn = false);
 }
 
 public static class CompUi

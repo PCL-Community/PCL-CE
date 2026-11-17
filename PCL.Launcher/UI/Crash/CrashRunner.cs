@@ -64,9 +64,16 @@ internal sealed class CrashRunner
         _context.LogAll = logs.All;
     }
 
-    public void Output(bool isHandAnalyze, List<string>? extraFiles)
+    public async void Output(bool isHandAnalyze, List<string>? extraFiles)
     {
-        CrashPresenter.Output(_context, isHandAnalyze, extraFiles);
+        try
+        {
+            await CrashPresenter.OutputAsync(_context, isHandAnalyze, extraFiles);
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Error(ex, "Crash", "展示崩溃报告失败");
+        }
     }
 }
 
@@ -75,7 +82,7 @@ internal static class CrashPresenter
     private static readonly CrashResultFormatter Formatter = new();
     private static readonly CrashReportExporter Exporter = new();
 
-    public static void Output(
+    public static async Task OutputAsync(
         CrashAnalysisContext context,
         bool isHandAnalyze,
         List<string>? extraFiles)
@@ -95,7 +102,7 @@ internal static class CrashPresenter
             ? ""
             : Lang.Text("Crash.Dialog.Button.ExportReport");
 
-        var selectedButton = UiInteraction.Message(
+        var selectedButton = await UiInteraction.MessageAsync(
             crashContent.Text,
             title,
             Lang.Text("Common.Action.Confirm"),
@@ -111,7 +118,7 @@ internal static class CrashPresenter
                     OpenDirectFile(directFile);
                 break;
             case 3:
-                ExportReport(context, extraFiles);
+                await ExportReportAsync(context, extraFiles);
                 break;
         }
     }
@@ -145,7 +152,7 @@ internal static class CrashPresenter
         Basics.OpenPath(filePath);
     }
 
-    private static void ExportReport(
+    private static async Task ExportReportAsync(
         CrashAnalysisContext context,
         List<string>? extraFiles)
     {
@@ -166,7 +173,7 @@ internal static class CrashPresenter
             LogWrapper.Error(ex, "Crash", "导出错误报告失败");
             var message = CreateExportFailureMessage(fileAddress, ex);
             var copyPressed = false;
-            UiInteraction.Message(
+            await UiInteraction.MessageAsync(
                 message,
                 Lang.Text("Crash.Export.Failed.Title"),
                 Lang.Text("Common.Action.Confirm"),

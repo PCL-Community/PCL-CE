@@ -13,8 +13,8 @@ using PCL.UI.Controls;
 namespace PCL.Views.Pages.Tools;
 
 /// <summary>
-///     联机大厅页：公告、协议、账号与 NAT/EasyTier 状态、世界发现及大厅生命周期。
-///     状态与后端交互由 <see cref="PageToolsGameLinkViewModel" /> 持有，本文件只负责控件事件与剪贴板。
+/// 联机大厅页：公告、协议、账号与 NAT/EasyTier 状态、世界发现及大厅生命周期。 状态与后端交互由
+/// <see cref="PageToolsGameLinkViewModel" /> 持有，本文件只负责控件事件与剪贴板。
 /// </summary>
 public partial class PageToolsGameLink : MyPageRight
 {
@@ -246,8 +246,7 @@ public partial class PageToolsGameLink : MyPageRight
                         DialogButton.Create(
                             Lang.Text("Common.Action.Copy"),
                             () => _ = _CopyTextAsync(ip)),
-                        DialogButton.Create(Lang.Text("Tools.GameLink.CopyIp.Back"))),
-                    ForceWait = true
+                        DialogButton.Create(Lang.Text("Tools.GameLink.CopyIp.Back")))
                 });
         }
         catch (Exception ex)

@@ -78,7 +78,7 @@ public class FileConfigStorage : ConfigStorage
                     var summary = Lang.Text("Config.Error.SaveFailed.Message", File.FilePath);
                     var message = ExceptionDetails.ComposeForDialog(summary, ex);
 
-                    DialogService.Instance.Show(
+                    DialogService.Instance.ShowNotification(
                         new TextDialogRequest
                         {
                             Title = Lang.Text("Config.Error.SaveFailed.Title"),

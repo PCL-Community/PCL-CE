@@ -304,7 +304,7 @@ public sealed class ProfileUiBridge : IProfileUi
                 if (result is Exception exception) completion.TrySetException(exception);
             }
         };
-        DialogService.Instance.Show(request);
+        DialogService.Instance.ShowNotification(request);
         return completion.Task;
     }
 
@@ -321,77 +321,75 @@ public sealed class ProfileUiBridge : IProfileUi
             or "xsts_2148916238"))
             return false;
 
-        LauncherCommon.RunInUiWait(() =>
+        switch (normalizedError)
         {
-            switch (normalizedError)
-            {
-                case "xsts_2148916227":
+            case "xsts_2148916227":
+                _ = DialogService.Instance.ShowAsync(
+                    new TextDialogRequest
+                    {
+                        Title = Lang.Text("Minecraft.Launch.Login.Failed"),
+                        Content = Lang.Text("Minecraft.Launch.Login.Microsoft.Banned"),
+                        Buttons = DialogButtons.From(
+                            DialogButton.Create(Lang.Text("Minecraft.Launch.Login.IKnow"))),
+                        IsWarn = true
+                    });
+                break;
+            case "xsts_2148916233":
+                if (UiInteraction.MessageBlockingOnWorkerThread(
+                        Lang.Text("Minecraft.Launch.Login.Microsoft.XboxNotRegistered"),
+                        Lang.Text("Minecraft.Launch.Login.Hint"),
+                        Lang.Text("Minecraft.Launch.Login.Register"),
+                        Lang.Text("Common.Action.Cancel"))
+                    == 1)
+                    UiInteraction.OpenWebsite("https://signup.live.com/signup");
+                break;
+            case "xsts_2148916235":
+                _ = DialogService.Instance.ShowAsync(
+                    new TextDialogRequest
+                    {
+                        Title = Lang.Text("Minecraft.Launch.Login.Failed"),
+                        Content = Lang.Text("Minecraft.Launch.Login.Microsoft.RegionBlocked"),
+                        Buttons = DialogButtons.From(
+                            DialogButton.Create(Lang.Text("Minecraft.Launch.Login.IKnow")))
+                    });
+                break;
+            case "xsts_2148916238":
+                if (UiInteraction.MessageBlockingOnWorkerThread(
+                        Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.Message"),
+                        Lang.Text("Minecraft.Launch.Login.Hint"),
+                        Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.AgeOver13"),
+                        Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.AgeUnder13"),
+                        Lang.Text("Common.Option.IDontKnow"))
+                    == 1)
+                {
+                    UiInteraction.OpenWebsite("https://account.live.com/editprof.aspx");
                     _ = DialogService.Instance.ShowAsync(
                         new TextDialogRequest
                         {
-                            Title = Lang.Text("Minecraft.Launch.Login.Failed"),
-                            Content = Lang.Text("Minecraft.Launch.Login.Microsoft.Banned"),
-                            Buttons = DialogButtons.From(
-                                DialogButton.Create(Lang.Text("Minecraft.Launch.Login.IKnow"))),
-                            IsWarn = true
+                            Title = Lang.Text("Minecraft.Launch.Login.Hint"),
+                            Content = Lang.Text(
+                                "Minecraft.Launch.Login.Microsoft.ChangeBirthDate.Message"),
+                            Buttons = DialogButtons.Ok
                         });
-                    break;
-                case "xsts_2148916233":
-                    if (UiInteraction.Message(
-                            Lang.Text("Minecraft.Launch.Login.Microsoft.XboxNotRegistered"),
-                            Lang.Text("Minecraft.Launch.Login.Hint"),
-                            Lang.Text("Minecraft.Launch.Login.Register"),
-                            Lang.Text("Common.Action.Cancel"))
-                        == 1)
-                        UiInteraction.OpenWebsite("https://signup.live.com/signup");
-                    break;
-                case "xsts_2148916235":
+                }
+                else
+                {
+                    UiInteraction.OpenWebsite(
+                        "https://support.microsoft.com/zh-cn/account-billing/"
+                        + "如何更改-microsoft-帐户上的出生日期-837badbc-999e-54d2-2617-d19206b9540a");
                     _ = DialogService.Instance.ShowAsync(
                         new TextDialogRequest
                         {
-                            Title = Lang.Text("Minecraft.Launch.Login.Failed"),
-                            Content = Lang.Text("Minecraft.Launch.Login.Microsoft.RegionBlocked"),
-                            Buttons = DialogButtons.From(
-                                DialogButton.Create(Lang.Text("Minecraft.Launch.Login.IKnow")))
+                            Title = Lang.Text("Minecraft.Launch.Login.Hint"),
+                            Content = Lang.Text(
+                                "Minecraft.Launch.Login.Microsoft.ChangeBirthDate.SupportMessage"),
+                            Buttons = DialogButtons.Ok
                         });
-                    break;
-                case "xsts_2148916238":
-                    if (UiInteraction.Message(
-                            Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.Message"),
-                            Lang.Text("Minecraft.Launch.Login.Hint"),
-                            Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.AgeOver13"),
-                            Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.AgeUnder13"),
-                            Lang.Text("Common.Option.IDontKnow"))
-                        == 1)
-                    {
-                        UiInteraction.OpenWebsite("https://account.live.com/editprof.aspx");
-                        _ = DialogService.Instance.ShowAsync(
-                            new TextDialogRequest
-                            {
-                                Title = Lang.Text("Minecraft.Launch.Login.Hint"),
-                                Content = Lang.Text(
-                                    "Minecraft.Launch.Login.Microsoft.ChangeBirthDate.Message"),
-                                Buttons = DialogButtons.Ok
-                            });
-                    }
-                    else
-                    {
-                        UiInteraction.OpenWebsite(
-                            "https://support.microsoft.com/zh-cn/account-billing/"
-                            + "如何更改-microsoft-帐户上的出生日期-837badbc-999e-54d2-2617-d19206b9540a");
-                        _ = DialogService.Instance.ShowAsync(
-                            new TextDialogRequest
-                            {
-                                Title = Lang.Text("Minecraft.Launch.Login.Hint"),
-                                Content = Lang.Text(
-                                    "Minecraft.Launch.Login.Microsoft.ChangeBirthDate.SupportMessage"),
-                                Buttons = DialogButtons.Ok
-                            });
-                    }
+                }
 
-                    break;
-            }
-        });
+                break;
+        }
+
         return true;
     }
 
@@ -403,18 +401,15 @@ public sealed class ProfileUiBridge : IProfileUi
                 StringComparison.OrdinalIgnoreCase))
             return false;
 
-        LauncherCommon.RunInUiWait(() =>
-        {
-            if (UiInteraction.Message(
-                    Lang.Text("Minecraft.Launch.Login.Microsoft.NotPurchased"),
-                    Lang.Text("Minecraft.Launch.Login.Failed"),
-                    Lang.Text("Minecraft.Launch.Login.Microsoft.PurchaseMinecraft"),
-                    Lang.Text("Common.Action.Cancel"))
-                == 1)
-                UiInteraction.OpenWebsite(
-                    "https://www.xbox.com/zh-cn/games/store/"
-                    + "minecraft-java-bedrock-edition-for-pc/9nxp44l49shj");
-        });
+        if (UiInteraction.MessageBlockingOnWorkerThread(
+                Lang.Text("Minecraft.Launch.Login.Microsoft.NotPurchased"),
+                Lang.Text("Minecraft.Launch.Login.Failed"),
+                Lang.Text("Minecraft.Launch.Login.Microsoft.PurchaseMinecraft"),
+                Lang.Text("Common.Action.Cancel"))
+            == 1)
+            UiInteraction.OpenWebsite(
+                "https://www.xbox.com/zh-cn/games/store/"
+                + "minecraft-java-bedrock-edition-for-pc/9nxp44l49shj");
         return true;
     }
 
@@ -427,17 +422,14 @@ public sealed class ProfileUiBridge : IProfileUi
                 StringComparison.OrdinalIgnoreCase))
             return false;
 
-        LauncherCommon.RunInUiWait(() =>
-        {
-            if (UiInteraction.Message(
-                    Lang.Text("Minecraft.Launch.Login.Microsoft.CreateProfile.Message"),
-                    Lang.Text("Minecraft.Launch.Login.Failed"),
-                    Lang.Text("Minecraft.Launch.Login.Microsoft.CreateProfile.Button"),
-                    Lang.Text("Common.Action.Cancel"))
-                == 1)
-                UiInteraction.OpenWebsite(
-                    "https://www.minecraft.net/zh-hans/msaprofile/mygames/editprofile");
-        });
+        if (UiInteraction.MessageBlockingOnWorkerThread(
+                Lang.Text("Minecraft.Launch.Login.Microsoft.CreateProfile.Message"),
+                Lang.Text("Minecraft.Launch.Login.Failed"),
+                Lang.Text("Minecraft.Launch.Login.Microsoft.CreateProfile.Button"),
+                Lang.Text("Common.Action.Cancel"))
+            == 1)
+            UiInteraction.OpenWebsite(
+                "https://www.minecraft.net/zh-hans/msaprofile/mygames/editprofile");
         return true;
     }
 }
@@ -907,7 +899,7 @@ public sealed class DownloadInteractionBridge : IDownloadUserInteraction
                     ? Lang.Text("Minecraft.Update.UpdateTime") + Lang.Date(time)
                     : Lang.Text("Minecraft.Update.UpdatedAt")
                     + Lang.TimeSpan(time - DateTime.Now));
-            var result = UiInteraction.Message(
+            var result = UiInteraction.MessageBlockingOnWorkerThread(
                 message,
                 Lang.Text("Minecraft.Update.Title"),
                 Lang.Text("Common.Action.Confirm"),

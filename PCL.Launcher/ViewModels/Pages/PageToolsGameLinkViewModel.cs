@@ -27,9 +27,8 @@ using PCL.Core.ViewModel;
 namespace PCL;
 
 /// <summary>
-///     联机大厅页的视图模型：公告轮询与轮播、账号状态、NAT/EasyTier 预检、世界发现、
-///     大厅创建/加入以及完成态的生命周期。
-///     所有静态服务事件在这里汇总，页面只负责控件绑定与剪贴板等界面交互。
+/// 联机大厅页的视图模型：公告轮询与轮播、账号状态、NAT/EasyTier 预检、世界发现、 大厅创建/加入以及完成态的生命周期。
+/// 所有静态服务事件在这里汇总，页面只负责控件绑定与剪贴板等界面交互。
 /// </summary>
 public partial class PageToolsGameLinkViewModel : ViewModelBase
 {
@@ -2190,8 +2189,7 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
                     {
                         Title = Lang.Text("Tools.GameLink.Exit.DisbandedTitle"),
                         Content = Lang.Text("Tools.GameLink.Exit.Disbanded"),
-                        Buttons = DialogButtons.Ok,
-                        ForceWait = true
+                        Buttons = DialogButtons.Ok
                     })
                 .ConfigureAwait(true);
             await LobbyService.LeaveLobbyAsync().ConfigureAwait(true);

@@ -12,8 +12,8 @@ using PCL.UI.Controls;
 namespace PCL.Views.Pages.Setup;
 
 /// <summary>
-///     启动器杂项设置页：公告显示、日志上限、网络代理与调试选项。
-///     配置状态由 <see cref="PageSetupLauncherMiscViewModel" /> 持有，页面处理系统级文件操作与重启。
+/// 启动器杂项设置页：公告显示、日志上限、网络代理与调试选项。 配置状态由 <see cref="PageSetupLauncherMiscViewModel" />
+/// 持有，页面处理系统级文件操作与重启。
 /// </summary>
 public partial class PageSetupLauncherMisc : MyPageRight, ISetupResetPage
 {
@@ -293,8 +293,7 @@ public partial class PageSetupLauncherMisc : MyPageRight, ISetupResetPage
                     Content = Lang.Text("Setup.Misc.System.ImportSettings.Success.Message"),
                     Buttons = DialogButtons.From(
                         DialogButton.Create(
-                            Lang.Text("Setup.Misc.System.ImportSettings.Success.Restart"))),
-                    ForceWait = true
+                            Lang.Text("Setup.Misc.System.ImportSettings.Success.Restart")))
                 });
             // 导入的配置需要重启后生效；与 WPF 一样立即重启启动器。
             UiInteraction.Restart();

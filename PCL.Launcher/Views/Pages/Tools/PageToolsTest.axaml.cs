@@ -6,6 +6,7 @@ using Avalonia.Media.Imaging;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
+using PCL.Core.Platform;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
@@ -19,9 +20,8 @@ using PCL.UI.Controls;
 namespace PCL.Views.Pages.Tools;
 
 /// <summary>
-///     测试工具页：常用工具（清理垃圾、今日人品、启动次数、创建快捷方式、手动崩溃）、
-///     自定义下载、正版玩家皮肤下载、服务器查询、自定义成就图片与皮肤头像生成器。
-///     自定义下载走统一的下载管线，皮肤与成就图片通过联网接口获取，头像在本地由皮肤贴图裁切生成。
+/// 测试工具页：常用工具（清理垃圾、今日人品、启动次数、创建快捷方式、手动崩溃）、 自定义下载、正版玩家皮肤下载、服务器查询、自定义成就图片与皮肤头像生成器。
+/// 自定义下载走统一的下载管线，皮肤与成就图片通过联网接口获取，头像在本地由皮肤贴图裁切生成。
 /// </summary>
 public partial class PageToolsTest : MyPageRight
 {
@@ -118,10 +118,7 @@ public partial class PageToolsTest : MyPageRight
         card.IsSwapped = true;
     }
 
-    /// <summary>
-    ///     WPF <c>PageToolsTest.RubbishClear</c> 的等价实现：运行中游戏、下载任务、清理确认、
-    ///     完整清理范围与重启行为都与原版一致。
-    /// </summary>
+    /// <summary>WPF <c>PageToolsTest.RubbishClear</c> 的等价实现：运行中游戏、下载任务、清理确认、 完整清理范围与重启行为都与原版一致。</summary>
     public static void ClearTrash()
     {
         LauncherCommon.RunInUi(() =>
@@ -131,7 +128,7 @@ public partial class PageToolsTest : MyPageRight
         });
 
         LauncherCommon.RunInNewThread(
-            () =>
+            async () =>
             {
                 try
                 {
@@ -153,16 +150,13 @@ public partial class PageToolsTest : MyPageRight
 
                     if (States.Hint.CleanJunkFile <= 2)
                     {
-                        if ((DialogService.Instance.Show(
-                                        new TextDialogRequest
-                                        {
-                                            Title = Lang.Text("Tools.Test.Clean.ConfirmTitle"),
-                                            Content = Lang.Text("Tools.Test.Clean.ConfirmMessage"),
-                                            Buttons = DialogButtons.OkCancel,
-                                            ForceWait = true
-                                        })
-                                    .Result?.Button
-                                ?? 0)
+                        if ((await DialogService.Instance.ShowAsync(
+                                new TextDialogRequest
+                                {
+                                    Title = Lang.Text("Tools.Test.Clean.ConfirmTitle"),
+                                    Content = Lang.Text("Tools.Test.Clean.ConfirmMessage"),
+                                    Buttons = DialogButtons.OkCancel
+                                })).Button
                             == 2)
                             return;
                         States.Hint.CleanJunkFile += 1;
@@ -205,18 +199,17 @@ public partial class PageToolsTest : MyPageRight
                     }
 
                     count += _DeleteDirectory(LauncherPaths.Temp);
-                    count += PCL.Core.Platform.PlatformRuntime.Current.ProcessCleanup
+                    count += PlatformRuntime.Current.ProcessCleanup
                         .CleanupAdditionalData();
 
                     if (count != 0)
                     {
-                        DialogService.Instance.Show(
+                        await DialogService.Instance.ShowAsync(
                             new TextDialogRequest
                             {
                                 Title = Lang.Text("Tools.Test.Clean.Cleared"),
                                 Content = Lang.Text("Tools.Test.Clean.ClearedMessage", count),
-                                Buttons = DialogButtons.Ok,
-                                ForceWait = true
+                                Buttons = DialogButtons.Ok
                             });
                         UiInteraction.Restart();
                     }
@@ -246,8 +239,8 @@ public partial class PageToolsTest : MyPageRight
     }
 
     /// <summary>
-    ///     删除目录并返回真正删除成功的文件数。与 WPF <c>Common.DeleteDirectory</c> 一样，
-    ///     只在单个文件删除成功后计数，删除失败的目录不计入清理数量。
+    /// 删除目录并返回真正删除成功的文件数。与 WPF <c>Common.DeleteDirectory</c> 一样，
+    /// 只在单个文件删除成功后计数，删除失败的目录不计入清理数量。
     /// </summary>
     private static int _DeleteDirectory(string path, bool ignoreIssue = true)
     {
@@ -364,8 +357,7 @@ public partial class PageToolsTest : MyPageRight
                     {
                         Title = title,
                         Content = Lang.Text("Tools.Test.Luck.MessageGood", luckValue, rating),
-                        Buttons = DialogButtons.Ok,
-                        ForceWait = false
+                        Buttons = DialogButtons.Ok
                     });
             else
                 await DialogService.Instance.ShowAsync(
@@ -374,8 +366,7 @@ public partial class PageToolsTest : MyPageRight
                         Title = title,
                         Content = Lang.Text("Tools.Test.Luck.MessageBad", luckValue, rating),
                         Buttons = DialogButtons.Ok,
-                        IsWarn = luckValue <= 30,
-                        ForceWait = false
+                        IsWarn = luckValue <= 30
                     });
         }
         catch (Exception ex)

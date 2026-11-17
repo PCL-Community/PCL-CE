@@ -2,6 +2,7 @@
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
 using PCL.Core.Platform;
+using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils.OS;
 using PCL.Network;
 
@@ -71,7 +72,7 @@ public class CustomEvent
             if (ActionMap.TryGetValue(type, out var action))
                 action(arg, type);
             else
-                LaunchUi.ShowMessageBox(
+                LauncherUi.Interaction?.ShowMessageBox(
                     Lang.Text("Event.Error.UnknownType", type.ToString()),
                     Lang.Text("Event.Error.Title"));
         }
@@ -108,7 +109,7 @@ public class CustomEvent
         arg = arg.Replace('\\', '/');
         if (!arg.Contains("://") || arg.StartsWithF("file", true))
         {
-            LaunchUi.ShowMessageBox(
+            LauncherUi.Interaction?.ShowMessageBox(
                 Lang.Text("Event.Error.UrlRequired"),
                 Lang.Text("Event.Error.Title"));
             return;
@@ -119,15 +120,16 @@ public class CustomEvent
     }
 
     /// <summary>打开文件 / 执行命令。复用 GetAbsoluteUrls 解析路径后 ProcessInterop.Start 启动。</summary>
-    private static void _OpenFileOrCommand(string arg, EventType type)
+    private static async void _OpenFileOrCommand(string arg, EventType type)
     {
         var args = SplitArgs(arg);
-        LauncherCommon.RunInNewThread(() =>
+        LauncherCommon.RunInNewThread(async () =>
         {
             try
             {
                 var urls = GetAbsoluteUrls(args[0], type);
-                if (!EventSafetyConfirm($"{urls[0]}{(args.Length >= 2 ? $" {args[1]}" : "")}"))
+                if (!await EventSafetyConfirmAsync(
+                        $"{urls[0]}{(args.Length >= 2 ? $" {args[1]}" : "")}"))
                     return;
                 ProcessInterop.Start(urls[0], args.Length >= 2 ? args[1] : "");
             }
@@ -207,7 +209,7 @@ public class CustomEvent
         if (args.Length == 1)
             throw new ArgumentException(
                 Lang.Text("Event.Error.MissingArgs", type.ToString(), "Title|Content"));
-        LaunchUi.ShowMessageBox(
+        LauncherUi.Interaction?.ShowMessageBox(
             FixNewlines(args[1]),
             FixNewlines(args[0]),
             args.Length > 2 ? args[2] : Lang.Text("Common.Action.Confirm"));
@@ -254,20 +256,20 @@ public class CustomEvent
     }
 
     /// <summary>下载文件。参数：Url[|SavePath[|FileName]]，校验 http/https 前缀并弹安全确认。</summary>
-    private static void _DownloadFile(string arg, EventType _)
+    private static async void _DownloadFile(string arg, EventType _)
     {
         var args = SplitArgs(arg);
         args[0] = args[0].Replace('\\', '/');
         if (!args[0].StartsWithF("http://", true)
             && !args[0].StartsWithF("https://", true))
         {
-            LaunchUi.ShowMessageBox(
+            LauncherUi.Interaction?.ShowMessageBox(
                 Lang.Text("Event.Error.DownloadUrlRequired"),
                 Lang.Text("Event.Error.Title"));
             return;
         }
 
-        if (!EventSafetyConfirm(Lang.Text("Event.Download.Confirm", args[0])))
+        if (!await EventSafetyConfirmAsync(Lang.Text("Event.Download.Confirm", args[0])))
             return;
 
         try
@@ -457,21 +459,26 @@ public class CustomEvent
     }
 
     /// <summary>安全确认对话框。已由用户勾选"不再询问"时跳过。</summary>
-    private static bool EventSafetyConfirm(string message)
+    private static async Task<bool> EventSafetyConfirmAsync(string message)
     {
         if (States.Hint.HomepageCommand)
             return true;
 
-        return LaunchUi.ShowMessageBox(
-                Lang.Text("Event.Safety.ConfirmMessage", message),
-                Lang.Text("Event.Safety.Title"),
-                Lang.Text("Common.Action.Continue"),
-                Lang.Text("Event.Safety.ContinueAlways"),
-                Lang.Text("Common.Action.Cancel")) switch
+        var result = await DialogService.Instance.ShowAsync(
+            new TextDialogRequest
             {
-                1 => true,
-                2 => States.Hint.HomepageCommand = true,
-                _ => false
-            };
+                Title = Lang.Text("Event.Safety.Title"),
+                Content = Lang.Text("Event.Safety.ConfirmMessage", message),
+                Buttons = DialogButtons.From(
+                    Lang.Text("Common.Action.Continue"),
+                    Lang.Text("Event.Safety.ContinueAlways"),
+                    Lang.Text("Common.Action.Cancel"))
+            });
+        return result.Button switch
+        {
+            1 => true,
+            2 => States.Hint.HomepageCommand = true,
+            _ => false
+        };
     }
 }

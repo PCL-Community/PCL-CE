@@ -27,7 +27,7 @@ public sealed class ExitFlow
 
     public bool IsExiting { get; private set; }
 
-    private void OnClosing(object? sender, WindowClosingEventArgs e)
+    private async void OnClosing(object? sender, WindowClosingEventArgs e)
     {
         if (IsExiting) return;
 
@@ -37,7 +37,7 @@ public sealed class ExitFlow
 
         try
         {
-            if (!ConfirmDownloadingTasks())
+            if (!await ConfirmDownloadingTasksAsync())
             {
                 _running = false;
                 return;
@@ -65,21 +65,18 @@ public sealed class ExitFlow
         }
     }
 
-    private static bool ConfirmDownloadingTasks()
+    private static async Task<bool> ConfirmDownloadingTasksAsync()
     {
         if (!NetFacade.HasDownloadingTask()) return true;
 
-        var button = DialogService.Instance.Show(
-                    new TextDialogRequest
-                    {
-                        Title = Lang.Text("Common.Dialog.Title"),
-                        Content = Lang.Text("Main.Exit.HasDownloadingTask"),
-                        Buttons = DialogButtons.OkCancel,
-                        ForceWait = true
-                    })
-                .Result?.Button
-            ?? 0;
-        if (button != 1) return false;
+        var result = await DialogService.Instance.ShowAsync(
+            new TextDialogRequest
+            {
+                Title = Lang.Text("Common.Dialog.Title"),
+                Content = Lang.Text("Main.Exit.HasDownloadingTask"),
+                Buttons = DialogButtons.OkCancel
+            });
+        if (result.Button != 1) return false;
 
         Basics.RunInNewThread(
             () =>

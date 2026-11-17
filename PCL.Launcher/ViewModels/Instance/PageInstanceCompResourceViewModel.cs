@@ -626,7 +626,7 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
                 LauncherCommon.GetFileMd5(target),
                 StringComparison.OrdinalIgnoreCase))
         {
-            DialogService.Instance.Show(
+            DialogService.Instance.ShowNotification(
                 new TextDialogRequest
                 {
                     Title = Lang.Text("Instance.Resource.Ed.FileConflict"),

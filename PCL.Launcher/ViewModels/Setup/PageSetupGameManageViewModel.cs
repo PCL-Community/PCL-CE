@@ -94,8 +94,7 @@ public partial class PageSetupGameManageViewModel : ViewModelBase
                 Buttons = DialogButtons.From(
                     DialogButton.Create(
                         Lang.Text("Setup.GameManage.Download.Threads.TooManyWarning.Confirm"))),
-                IsWarn = true,
-                ForceWait = true
+                IsWarn = true
             });
     }
 }

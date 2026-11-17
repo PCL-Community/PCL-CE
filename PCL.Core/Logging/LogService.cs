@@ -190,13 +190,12 @@ public class LogService : ILifecycleLogService
                         "SystemDialog.Error.Message.WithLogExportGuidance",
                         message);
 
-                DialogService.Instance.Show(
+                DialogService.Instance.ShowNotification(
                     new TextDialogRequest
                     {
                         Title = caption ?? Lang.Text("SystemDialog.Error.Unexpected.Title"),
                         Content = message,
-                        IsWarn = isWarn,
-                        ForceWait = false
+                        IsWarn = isWarn
                     });
 
                 break;

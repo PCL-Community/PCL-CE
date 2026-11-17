@@ -13,18 +13,33 @@ public interface ILaunchUi
         Action? button1Action = null);
 
     void SetGpuPreference(string javaExePath, bool preference);
+
     int? ShowSelect(string caption, IReadOnlyList<string> options);
+
+    Task<int?> ShowSelectAsync(string caption, IReadOnlyList<string> options);
+
     void OpenExplorer(string path);
+
     void PrepareLaunchNavigation();
+
     void RefreshLaunchButtons();
+
     void RefreshLaunchPage(bool show);
+
     void AppendLaunchLog(string text);
+
     void ClearLaunchLog();
+
     void ShowLoginPage();
+
     void ShowLaunchingPage();
+
     void RefreshLaunching();
+
     void AttachLogPage(GameWatcher.Watcher watcher);
+
     void SetMainWindowState(LaunchWindowState state);
+
     (double Width, double Height) GetMainPanSize();
 }
 
@@ -69,6 +84,11 @@ public static class LaunchUi
     public static int? ShowSelect(string caption, IReadOnlyList<string> options)
     {
         return Current?.ShowSelect(caption, options);
+    }
+
+    public static Task<int?> ShowSelectAsync(string caption, IReadOnlyList<string> options)
+    {
+        return Current?.ShowSelectAsync(caption, options) ?? Task.FromResult<int?>(null);
     }
 
     public static void OpenExplorer(string path)

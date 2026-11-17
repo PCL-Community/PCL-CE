@@ -50,7 +50,7 @@ public static partial class GameLaunch
         McLoginData? loginData = null;
         try
         {
-            loginData = (McLoginData?)LoginProfile.GetLoginData();
+            loginData = LoginProfile.GetLoginData();
         }
         catch (Exception ex)
         {
@@ -159,9 +159,7 @@ public static partial class GameLaunch
         };
     }
 
-    /// <summary>
-    ///     检查是否被中断
-    /// </summary>
+    /// <summary>检查是否被中断</summary>
     private static void ThrowIfAborted(Loading.LoaderTask<McLoginMs, McLoginResult> data)
     {
         if (data.IsAborted)
@@ -174,20 +172,13 @@ public static partial class GameLaunch
     {
         token.ThrowIfCancellationRequested();
         LogWrapper.Info("Profile", $"获取正版 OAuth Token 失败：{exception}");
-        var reuseCachedProfile = false;
-        LauncherCommon.RunInUiWait(() =>
-        {
-            if (!isLaunching)
-                return;
-            reuseCachedProfile =
-                LaunchUi.ShowMessageBox(
-                    Lang.Text("Minecraft.Launch.Login.RefreshAccountFailed.Message"),
-                    Lang.Text("Minecraft.Launch.Login.RefreshAccountFailed.Title"),
-                    Lang.Text("Minecraft.Launch.Login.Continue"),
-                    Lang.Text("Common.Action.Cancel")
-                )
-                == 1;
-        });
+        var reuseCachedProfile = isLaunching
+            && LaunchUi.ShowMessageBox(
+                Lang.Text("Minecraft.Launch.Login.RefreshAccountFailed.Message"),
+                Lang.Text("Minecraft.Launch.Login.RefreshAccountFailed.Title"),
+                Lang.Text("Minecraft.Launch.Login.Continue"),
+                Lang.Text("Common.Action.Cancel"))
+            == 1;
         return Task.FromResult(reuseCachedProfile);
     }
 
@@ -232,7 +223,7 @@ public static partial class GameLaunch
                 input.ProviderType == ProfileType.YggdrasilConnect
                     ? LoginProfile.ShowDeviceCodeLoginAsync
                     : null,
-            ProfileSelector = (candidates, _) => Task.FromResult(_SelectAuthProfile(candidates))
+            ProfileSelector = _SelectAuthProfileAsync
         };
     }
 
@@ -248,9 +239,11 @@ public static partial class GameLaunch
         };
     }
 
-    private static AuthenticationCandidate? _SelectAuthProfile(
-        IReadOnlyList<AuthenticationCandidate> candidates)
+    private static async Task<AuthenticationCandidate?> _SelectAuthProfileAsync(
+        IReadOnlyList<AuthenticationCandidate> candidates,
+        CancellationToken token)
     {
+        token.ThrowIfCancellationRequested();
         switch (candidates.Count)
         {
             case 0:
@@ -259,7 +252,7 @@ public static partial class GameLaunch
                 return candidates[0];
         }
 
-        var index = LaunchUi.ShowSelect(
+        var index = await LaunchUi.ShowSelectAsync(
             Lang.Text("Minecraft.Launch.Login.Auth.SelectProfile"),
             [.. candidates.Select(candidate => candidate.Name)]);
         return index is >= 0 and < 100000 ? candidates[index.Value] : null;
@@ -279,9 +272,7 @@ public static partial class GameLaunch
 
     public abstract class McLoginData
     {
-        /// <summary>
-        ///     登录方式。
-        /// </summary>
+        /// <summary>登录方式。</summary>
         public McLoginType LoginType;
 
         public override bool Equals(object? obj)
@@ -292,38 +283,26 @@ public static partial class GameLaunch
 
     public class McLoginServer : McLoginData
     {
-        /// <summary>
-        ///     登录服务器基础地址。
-        /// </summary>
+        /// <summary>登录服务器基础地址。</summary>
         public string? BaseUrl;
 
-        /// <summary>
-        ///     登录方式的描述字符串，如 “正版”、“统一通行证”。
-        /// </summary>
+        /// <summary>登录方式的描述字符串，如 “正版”、“统一通行证”。</summary>
         public string? Description;
 
         public string? DiscoveryAddress;
 
-        /// <summary>
-        ///     是否在本次登录中强制要求玩家重新选择角色，目前仅对 Authlib-Injector 生效。
-        /// </summary>
+        /// <summary>是否在本次登录中强制要求玩家重新选择角色，目前仅对 Authlib-Injector 生效。</summary>
         public bool ForceReselectProfile = false;
 
-        /// <summary>
-        ///     是否已经存在该验证信息，用于判断是否为新增档案。
-        /// </summary>
+        /// <summary>是否已经存在该验证信息，用于判断是否为新增档案。</summary>
         public bool IsExist = false;
 
-        /// <summary>
-        ///     登录密码。
-        /// </summary>
+        /// <summary>登录密码。</summary>
         public string? Password;
 
         public ProfileType ProviderType = ProfileType.Authlib;
 
-        /// <summary>
-        ///     登录用户名。
-        /// </summary>
+        /// <summary>登录用户名。</summary>
         public string? UserName;
 
         public McLoginServer(McLoginType type)
@@ -356,24 +335,16 @@ public static partial class GameLaunch
 
     public class McLoginLegacy : McLoginData
     {
-        /// <summary>
-        ///     若采用正版皮肤，则为该皮肤名。
-        /// </summary>
+        /// <summary>若采用正版皮肤，则为该皮肤名。</summary>
         public string? SkinName;
 
-        /// <summary>
-        ///     皮肤种类。
-        /// </summary>
+        /// <summary>皮肤种类。</summary>
         public int SkinType;
 
-        /// <summary>
-        ///     登录用户名。
-        /// </summary>
+        /// <summary>登录用户名。</summary>
         public string? UserName;
 
-        /// <summary>
-        ///     UUID。
-        /// </summary>
+        /// <summary>UUID。</summary>
         public string? Uuid;
 
         public McLoginLegacy()
@@ -398,9 +369,7 @@ public static partial class GameLaunch
         public string Type;
         public string ClientToken;
 
-        /// <summary>
-        ///     进行微软登录时返回的 profile 信息。
-        /// </summary>
+        /// <summary>进行微软登录时返回的 profile 信息。</summary>
         public string ProfileJson;
     }
 }
