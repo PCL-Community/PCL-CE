@@ -4,13 +4,14 @@ using Avalonia.Threading;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Utils.Validate;
+using PCL.Navigation;
 using PCL.UI.Controls;
 
 namespace PCL.Views.Pages.Instance;
 
 /// <summary>
-///     实例设置页：启动选项、内存、服务器与高级设置四张卡片，外加跳转全局设置的入口。
-///     所有设置读写实例独立配置（<c>Config.Instance.*</c> 与 <c>Config.InstanceAuth.*</c>），与全局设置页共用同一份配置。
+/// 实例设置页：启动选项、内存、服务器与高级设置四张卡片，外加跳转全局设置的入口。 所有设置读写实例独立配置（<c>Config.Instance.*</c> 与
+/// <c>Config.InstanceAuth.*</c>），与全局设置页共用同一份配置。
 /// </summary>
 public partial class PageInstanceSetup : MyPageRight
 {
@@ -79,7 +80,7 @@ public partial class PageInstanceSetup : MyPageRight
 
     public PageInstanceSetupViewModel ViewModel { get; } = new();
 
-    public override void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(PageParameter? parameter)
     {
         ViewModel.SetInstance(InstancePageHelper.ResolveInstance(parameter));
         PanBack.ScrollToHome();

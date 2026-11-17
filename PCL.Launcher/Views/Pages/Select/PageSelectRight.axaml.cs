@@ -4,15 +4,16 @@ using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Threading;
 using PCL.Core.App.Localization;
+using PCL.Navigation;
 using PCL.UI.Controls;
 using PCL.Views.Shell;
 
 namespace PCL.Views.Pages.Select;
 
 /// <summary>
-///     实例选择页右栏：按实例分类分组的实例卡片列表，支持搜索、收藏、删除与进入实例设置。
-///     数据来自 <see cref="InstanceList.mcInstanceListLoader" />；加载环状态由
-///     <see cref="MyPageRight.PageLoaderInit" /> 统一管理。
+/// 实例选择页右栏：按实例分类分组的实例卡片列表，支持搜索、收藏、删除与进入实例设置。 数据来自
+/// <see cref="InstanceList.mcInstanceListLoader" />；加载环状态由
+/// <see cref="MyPageRight.PageLoaderInit" /> 统一管理。
 /// </summary>
 public partial class PageSelectRight : MyPageRight, IRefreshable, IShellShortcutTarget
 {
@@ -84,8 +85,8 @@ public partial class PageSelectRight : MyPageRight, IRefreshable, IShellShortcut
     }
 
     /// <summary>
-    ///     PageOnEnter 会先触发 PageEnter，再根据加载器状态决定显示内容还是加载环。
-    ///     因此必须在这里完成加载器初始化与刷新，不能等到 OnNavigatedTo。
+    /// PageOnEnter 会先触发 PageEnter，再根据加载器状态决定显示内容还是加载环。 因此必须在这里完成加载器初始化与刷新，不能等到
+    /// OnNavigatedTo。
     /// </summary>
     private void OnPageEnter()
     {
@@ -93,7 +94,7 @@ public partial class PageSelectRight : MyPageRight, IRefreshable, IShellShortcut
         RefreshOnNavigate();
     }
 
-    public override void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(PageParameter? parameter)
     {
         EnsureLoaderInitialized();
         RefreshOnNavigate();

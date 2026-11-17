@@ -1,12 +1,13 @@
 using Avalonia.Threading;
 using PCL.Core.App;
+using PCL.Navigation;
 using PCL.UI.Controls;
 
 namespace PCL.Views.Pages.Setup;
 
 /// <summary>
-///     更新设置页：更新通道、自动更新行为、MirrorChyan CDK 与检查更新入口。
-///     检查更新、安装进度与更新日志由 <see cref="PageSetupUpdateViewModel" /> 负责。
+/// 更新设置页：更新通道、自动更新行为、MirrorChyan CDK 与检查更新入口。 检查更新、安装进度与更新日志由
+/// <see cref="PageSetupUpdateViewModel" /> 负责。
 /// </summary>
 public partial class PageSetupUpdate : MyPageRight
 {
@@ -57,7 +58,7 @@ public partial class PageSetupUpdate : MyPageRight
         ViewModel.UpdateButtonEnabled = enabled;
     }
 
-    public override void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(PageParameter? parameter)
     {
         PanBack.ScrollToHome();
         if (!_loaded) return;

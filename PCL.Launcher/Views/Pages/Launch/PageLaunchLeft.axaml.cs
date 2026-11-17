@@ -5,6 +5,7 @@ using Avalonia.Threading;
 using PCL.Core.App.Localization;
 using PCL.Core.Minecraft.Profile;
 using PCL.Core.UI.Theme;
+using PCL.Navigation;
 using PCL.UI.Controls;
 using PCL.Views.Shell;
 using Rectangle = Avalonia.Controls.Shapes.Rectangle;
@@ -13,9 +14,8 @@ using LaunchPageKind = PCL.PageLaunchLeftViewModel.LaunchPageKind;
 namespace PCL.Views.Pages.Launch;
 
 /// <summary>
-///     启动页左栏：实例状态、账号区与启动按钮。
-///     实例与账号状态、启动按钮状态机由 <see cref="PageLaunchLeftViewModel" /> 负责，
-///     页面保留控件构建、登录子页切换动画、进度条与提示动画以及拖放交互。
+/// 启动页左栏：实例状态、账号区与启动按钮。 实例与账号状态、启动按钮状态机由 <see cref="PageLaunchLeftViewModel" /> 负责，
+/// 页面保留控件构建、登录子页切换动画、进度条与提示动画以及拖放交互。
 /// </summary>
 public partial class PageLaunchLeft : MyPageLeft, IShellShortcutTarget
 {
@@ -98,7 +98,7 @@ public partial class PageLaunchLeft : MyPageLeft, IShellShortcutTarget
 
     public bool IsShowingLaunching => ViewModel.IsShowingLaunching;
 
-    public override void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(PageParameter? parameter)
     {
         InitializePage();
         RefreshButtonsUI();
@@ -166,9 +166,7 @@ public partial class PageLaunchLeft : MyPageLeft, IShellShortcutTarget
         return this.TryFindResource(key, out var value) && value is Color color ? color : fallback;
     }
 
-    /// <summary>
-    ///     让版本号跟随启动按钮内层控件的真实缩放，包含按下、松开与悬停动画。
-    /// </summary>
+    /// <summary>让版本号跟随启动按钮内层控件的真实缩放，包含按下、松开与悬停动画。</summary>
     private void AttachVersionScale()
     {
         if (_btnLaunch.RealRenderTransform is not ScaleTransform scale)

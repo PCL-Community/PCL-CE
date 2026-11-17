@@ -935,10 +935,14 @@ public sealed class DownloadInteractionBridge : IDownloadUserInteraction
                     : "",
                 button3Action: () => OpenUpdateLog(version));
             if (result == 2)
+            {
+                var parameter = version as JsonObject
+                    ?? (PageParameter)versionName;
                 PageRouter.Navigate(
                     PageIds.Download,
                     SubPageIds.DownloadInstall,
-                    version as JsonObject ?? (object)versionName);
+                    parameter);
+            }
         }
         catch (Exception ex)
         {

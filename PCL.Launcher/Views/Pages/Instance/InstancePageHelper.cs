@@ -6,6 +6,7 @@ using Avalonia.Media;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.UI.Hints;
+using PCL.Navigation;
 using PCL.UI.Controls;
 
 namespace PCL.Views.Pages.Instance;
@@ -13,18 +14,32 @@ namespace PCL.Views.Pages.Instance;
 /// <summary>实例设置各子页共用的取值、布局与提示辅助。</summary>
 internal static class InstancePageHelper
 {
-    public static McInstance? ResolveInstance(object? parameter)
+    public static McInstance? ResolveInstance(PageParameter? parameter)
     {
-        return parameter as McInstance ?? PageInstanceLeft.ResolveInstance();
+        return parameter is McInstance instance
+            ? instance
+            : PageInstanceLeft.ResolveInstance();
     }
 
-    public static string SavesPath(McInstance instance) => Path.Combine(instance.PathIndie, "saves");
+    public static string SavesPath(McInstance instance)
+    {
+        return Path.Combine(instance.PathIndie, "saves");
+    }
 
-    public static string ModsPath(McInstance instance) => Path.Combine(instance.PathIndie, "mods");
+    public static string ModsPath(McInstance instance)
+    {
+        return Path.Combine(instance.PathIndie, "mods");
+    }
 
-    public static string ScreenshotsPath(McInstance instance) => Path.Combine(instance.PathIndie, "screenshots");
+    public static string ScreenshotsPath(McInstance instance)
+    {
+        return Path.Combine(instance.PathIndie, "screenshots");
+    }
 
-    public static string DatapacksPath(string saveFolder) => Path.Combine(saveFolder, "datapacks");
+    public static string DatapacksPath(string saveFolder)
+    {
+        return Path.Combine(saveFolder, "datapacks");
+    }
 
     public static void EnsureDirectory(string path)
     {
@@ -46,7 +61,10 @@ internal static class InstancePageHelper
         }
         catch (Exception ex)
         {
-            LauncherCommon.Log(ex, "打开文件夹失败", LauncherLogLevel.Feedback,
+            LauncherCommon.Log(
+                ex,
+                "打开文件夹失败",
+                LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Instance.Error.OperationFailed"));
             HintService.Show(Hints.Error(Lang.Text("Instance.Error.OperationFailed")));
         }
@@ -106,12 +124,14 @@ internal static class InstancePageHelper
 
     public static Grid InfoRow(string labelText, string value)
     {
-        return Row(labelText, new TextBlock
-        {
-            Text = value,
-            TextWrapping = TextWrapping.Wrap,
-            VerticalAlignment = VerticalAlignment.Center
-        });
+        return Row(
+            labelText,
+            new TextBlock
+            {
+                Text = value,
+                TextWrapping = TextWrapping.Wrap,
+                VerticalAlignment = VerticalAlignment.Center
+            });
     }
 
     public static MyButton Button(
@@ -136,7 +156,11 @@ internal static class InstancePageHelper
 
     public static WrapPanel ButtonRow(params Control[] controls)
     {
-        var panel = new WrapPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0d, 2d, 0d, 2d) };
+        var panel = new WrapPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Margin = new Thickness(0d, 2d, 0d, 2d)
+        };
         foreach (var control in controls)
             panel.Children.Add(control);
         return panel;
@@ -158,12 +182,17 @@ internal static class InstancePageHelper
 
     public static string FormatTime(DateTime time)
     {
-        return time.Kind == DateTimeKind.Utc ? time.ToLocalTime().ToString("g") : time.ToString("g");
+        return time.Kind == DateTimeKind.Utc
+            ? time.ToLocalTime().ToString("g")
+            : time.ToString("g");
     }
 
     public static void ReportError(string titleKey, Exception ex)
     {
-        LauncherCommon.Log(ex, Lang.Text(titleKey), LauncherLogLevel.Feedback,
+        LauncherCommon.Log(
+            ex,
+            Lang.Text(titleKey),
+            LauncherLogLevel.Feedback,
             userSummary: Lang.Text("Instance.Error.OperationFailed"));
         HintService.Show(Hints.Error(Lang.Text("Instance.Error.OperationFailed")));
     }

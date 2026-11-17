@@ -67,7 +67,7 @@ public sealed class PageDownloadHost : IPageHost
         return page;
     }
 
-    private static void PrepareNavigation(Control page, object? parameter)
+    private static void PrepareNavigation(Control page, PageParameter? parameter)
     {
         if (page is PageDownloadCompPage compPage)
             compPage.PrepareNavigation(parameter);

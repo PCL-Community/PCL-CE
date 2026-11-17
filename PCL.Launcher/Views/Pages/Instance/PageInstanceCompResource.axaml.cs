@@ -161,7 +161,7 @@ public partial class PageInstanceCompResource
         }
     }
 
-    public override void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(PageParameter? parameter)
     {
         _currentFolderPath = string.Empty;
         ViewModel.ResetListViewState();

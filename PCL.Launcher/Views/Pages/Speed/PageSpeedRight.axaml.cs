@@ -55,7 +55,7 @@ public partial class PageSpeedRight : MyPageRight, IRefreshable
         RefreshNow();
     }
 
-    public override void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(PageParameter? parameter)
     {
         PanBack.ScrollToHome();
         SyncTasks();

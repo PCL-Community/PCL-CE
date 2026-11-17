@@ -31,7 +31,7 @@ internal sealed class PageDownloadCompPage : MyPageRight, IPageView, IRefreshabl
             autoRun: false);
     }
 
-    public override void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(PageParameter? parameter)
     {
         _comp.ScrollViewer.ScrollToHome();
         _comp.RefreshFavoriteStatuses();
@@ -48,9 +48,9 @@ internal sealed class PageDownloadCompPage : MyPageRight, IPageView, IRefreshabl
         _comp.RefreshSearch();
     }
 
-    public void PrepareNavigation(object? parameter)
+    public void PrepareNavigation(PageParameter? parameter)
     {
-        var context = parameter as CompSearchContext;
+        var context = parameter is CompSearchContext searchContext ? searchContext : null;
         if (_comp.IsInitialized)
         {
             if (context is not null && context != _appliedContext)

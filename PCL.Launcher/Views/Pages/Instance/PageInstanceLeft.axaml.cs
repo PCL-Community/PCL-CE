@@ -41,7 +41,7 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
         PageInstanceLeftViewModel.SetCurrentInstance(instance);
     }
 
-    public override void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(PageParameter? parameter)
     {
         if (ViewModel.NavigateTo(parameter))
             BuildItems();

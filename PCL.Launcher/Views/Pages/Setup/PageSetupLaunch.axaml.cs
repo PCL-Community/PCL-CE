@@ -110,7 +110,7 @@ public partial class PageSetupLaunch : MyPageRight, ISetupResetPage
         Reload();
     }
 
-    public override void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(PageParameter? parameter)
     {
         PanBack.ScrollToHome();
         _isActive = true;

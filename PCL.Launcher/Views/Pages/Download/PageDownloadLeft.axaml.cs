@@ -24,7 +24,7 @@ public partial class PageDownloadLeft : MyPageLeft, IPageView, IRefreshable
         BuildItems();
     }
 
-    public override void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(PageParameter? parameter)
     {
     }
 

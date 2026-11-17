@@ -2,6 +2,7 @@ using Avalonia.Input;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.UI.Dialogs;
+using PCL.Navigation;
 using PCL.UI.Controls;
 
 namespace PCL.Views.Pages.Setup;
@@ -43,7 +44,7 @@ public partial class PageSetupFeedback : MyPageRight, IRefreshable
         PageLoaderRestart();
     }
 
-    public override void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(PageParameter? parameter)
     {
         PanBack.ScrollToHome();
         if (!_loaded) return;

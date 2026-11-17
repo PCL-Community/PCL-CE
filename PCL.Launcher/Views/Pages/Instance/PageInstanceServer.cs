@@ -1,13 +1,14 @@
 using Avalonia.Controls;
 using PCL.Core.App.Localization;
 using PCL.Core.ViewModel;
+using PCL.Navigation;
 using PCL.UI.Controls;
 
 namespace PCL.Views.Pages.Instance;
 
 /// <summary>
-///     实例服务器页：读写实例 <c>servers.dat</c>（NBT）中的服务器列表。
-///     每张卡片按原始 NBT 下标绑定，空 IP 项不会被丢弃；刷新全部时会并发 Ping 服务器并回写图标。
+/// 实例服务器页：读写实例 <c>servers.dat</c>（NBT）中的服务器列表。 每张卡片按原始 NBT 下标绑定，空 IP 项不会被丢弃；刷新全部时会并发
+/// Ping 服务器并回写图标。
 /// </summary>
 public partial class PageInstanceServer : MyPageRight, IRefreshable
 {
@@ -31,7 +32,7 @@ public partial class PageInstanceServer : MyPageRight, IRefreshable
         Reload();
     }
 
-    public override void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(PageParameter? parameter)
     {
         ViewModel.SetInstance(InstancePageHelper.ResolveInstance(parameter));
         Reload();

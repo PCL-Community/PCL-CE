@@ -9,8 +9,8 @@ public class NavigationModelTest
     [TestMethod]
     public void PageRouteEqualityShouldComparePageAndParameter()
     {
-        var instanceA = new object();
-        var instanceB = new object();
+        const string parameterA = "instance-a";
+        const string parameterB = "instance-b";
 
         Assert.AreEqual(new PageRoute(PageIds.Launch), new PageRoute(PageIds.Launch));
         Assert.AreNotEqual(
@@ -20,15 +20,15 @@ public class NavigationModelTest
         var withParamA = new PageRoute(
             PageIds.InstanceSetup,
             SubPageIds.VersionOverall,
-            instanceA);
+            parameterA);
         var withParamASame = new PageRoute(
             PageIds.InstanceSetup,
             SubPageIds.VersionOverall,
-            instanceA);
+            parameterA);
         var withParamB = new PageRoute(
             PageIds.InstanceSetup,
             SubPageIds.VersionOverall,
-            instanceB);
+            parameterB);
         Assert.AreEqual(withParamA, withParamASame);
         Assert.AreNotEqual(withParamA, withParamB);
     }

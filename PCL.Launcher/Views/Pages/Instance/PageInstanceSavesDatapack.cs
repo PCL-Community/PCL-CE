@@ -156,9 +156,9 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable, ICom
         UpdateEmptyState();
     }
 
-    public override void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(PageParameter? parameter)
     {
-        var saveFolder = parameter as string;
+        var saveFolder = parameter is string routedSave ? routedSave : null;
         if (string.IsNullOrEmpty(saveFolder))
             saveFolder = PageInstanceSavesLeft.CurrentSave;
         ViewModel.SetInstance(PageInstanceLeft.ResolveInstance());

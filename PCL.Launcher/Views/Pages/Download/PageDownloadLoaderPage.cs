@@ -7,6 +7,7 @@ using Avalonia.Media;
 using PCL.Core.App.Localization;
 using PCL.Core.UI;
 using PCL.Core.UI.Hints;
+using PCL.Navigation;
 using PCL.Network;
 using PCL.Network.Loaders;
 using PCL.UI.Controls;
@@ -113,9 +114,8 @@ internal static class DownloadLoaderMeta
 }
 
 /// <summary>
-///     加载器下载子页：展示简介与官方版本列表，点击版本可保存对应的安装器 Jar。
-///     结构按 WPF 页面区分：Fabric / Legacy Fabric / LabyMod 使用单一版本卡片，
-///     Forge / NeoForge / Cleanroom / OptiFine / LiteLoader 使用按 MC 版本分组的可折叠卡片。
+/// 加载器下载子页：展示简介与官方版本列表，点击版本可保存对应的安装器 Jar。 结构按 WPF 页面区分：Fabric / Legacy Fabric /
+/// LabyMod 使用单一版本卡片， Forge / NeoForge / Cleanroom / OptiFine / LiteLoader 使用按 MC 版本分组的可折叠卡片。
 /// </summary>
 internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefreshable
 {
@@ -246,7 +246,7 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
             _ => OnLoadFinished());
     }
 
-    public override void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(PageParameter? parameter)
     {
         _panBack.Offset = default;
     }
@@ -399,7 +399,10 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
 
     #endregion
 
-    private static async Task SaveInstallerAsync(IEnumerable<string> urls, string fileName, string? filterKey)
+    private static async Task SaveInstallerAsync(
+        IEnumerable<string> urls,
+        string fileName,
+        string? filterKey)
     {
         try
         {

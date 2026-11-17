@@ -11,6 +11,7 @@ using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
+using PCL.Navigation;
 using PCL.UI.Controls;
 using PCL.UI.Xaml;
 using PCL.Views.Pages.Homepage;
@@ -139,7 +140,7 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable
             Dispatcher.UIThread.Post(() => _labLog.Text = "");
     }
 
-    public override void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(PageParameter? parameter)
     {
     }
 

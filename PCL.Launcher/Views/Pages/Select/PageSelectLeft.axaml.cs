@@ -4,15 +4,15 @@ using Avalonia.Input;
 using Avalonia.Threading;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Navigation;
 using PCL.UI.Controls;
 using PCL.UI.Controls.Common;
 
 namespace PCL.Views.Pages.Select;
 
 /// <summary>
-///     Minecraft 文件夹选择页左栏：文件夹的排序、拖拽、重命名、增删与切换。
-///     显示名不允许包含 <c>&gt;</c> 与 <c>|</c>（它们是 <see cref="States.Game" /> 中文件夹列表的分隔符），
-///     新增与重命名都走带校验规则的输入弹窗。
+/// Minecraft 文件夹选择页左栏：文件夹的排序、拖拽、重命名、增删与切换。 显示名不允许包含 <c>&gt;</c> 与 <c>|</c>（它们是
+/// <see cref="States.Game" /> 中文件夹列表的分隔符）， 新增与重命名都走带校验规则的输入弹窗。
 /// </summary>
 public partial class PageSelectLeft : MyPageLeft, IRefreshable
 {
@@ -48,7 +48,7 @@ public partial class PageSelectLeft : MyPageLeft, IRefreshable
         RefreshCurrent();
     }
 
-    public override void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(PageParameter? parameter)
     {
         RefreshOnNavigate();
     }
@@ -121,10 +121,7 @@ public partial class PageSelectLeft : MyPageLeft, IRefreshable
                     "Select.Folder.ImportModpack.Title",
                     "lucide/package-plus",
                     "Select.Folder.ImportModpack.ToolTip",
-                    () =>
-                    {
-                        _ = PageSelectLeftViewModel.InstallModpack();
-                    }));
+                    () => { _ = PageSelectLeftViewModel.InstallModpack(); }));
             PanList.Children.Add(
                 new Border
                 {

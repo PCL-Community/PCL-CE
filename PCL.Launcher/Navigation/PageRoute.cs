@@ -13,7 +13,7 @@ public readonly record struct PageLocation(PageId Page, SubPageId? SubPage)
 public sealed record PageRoute(
     PageId Page,
     SubPageId? SubPage = null,
-    object? Parameter = null,
+    PageParameter? Parameter = null,
     string? TitleOverride = null)
 {
     public PageLocation Location => new(Page, SubPage);

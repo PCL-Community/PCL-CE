@@ -76,7 +76,7 @@ public class MyPageRight : Decorator, IPageView, IPageRightContainer
     /// </summary>
     public bool ShowAlwaysWhileLoading { get; set; } = true;
 
-    public virtual void OnNavigatedTo(object? parameter)
+    public virtual void OnNavigatedTo(PageParameter? parameter)
     {
     }
 

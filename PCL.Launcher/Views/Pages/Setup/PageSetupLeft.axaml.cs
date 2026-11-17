@@ -41,7 +41,7 @@ public partial class PageSetupLeft : MyPageLeft
         ApplyHiddenState();
     }
 
-    public override void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(PageParameter? parameter)
     {
         ApplyHiddenState();
     }

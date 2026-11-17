@@ -2,13 +2,14 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Platform.Storage;
+using PCL.Navigation;
 using PCL.UI.Controls;
 
 namespace PCL.Views.Pages.Instance;
 
 /// <summary>
-///     实例导出页：包名/版本、按实例内容动态显隐的导出内容选项、高级选项与底部导出按钮。
-///     配置项树、动态子项与导出流程由 <see cref="PageInstanceExportViewModel" /> 维护。
+/// 实例导出页：包名/版本、按实例内容动态显隐的导出内容选项、高级选项与底部导出按钮。 配置项树、动态子项与导出流程由
+/// <see cref="PageInstanceExportViewModel" /> 维护。
 /// </summary>
 public partial class PageInstanceExport : MyPageRight, IRefreshable
 {
@@ -81,7 +82,7 @@ public partial class PageInstanceExport : MyPageRight, IRefreshable
         RefreshAll();
     }
 
-    public override void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(PageParameter? parameter)
     {
         var changed = ViewModel.AttachInstance(InstancePageHelper.ResolveInstance(parameter));
         if (changed)

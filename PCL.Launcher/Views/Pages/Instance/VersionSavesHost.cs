@@ -20,8 +20,9 @@ public sealed class VersionSavesHost(
 
     public string GetTitle(PageRoute stack)
     {
-        var saveFolder = stack.Parameter as string
-            ?? PageInstanceSavesLeft.CurrentSave;
+        var saveFolder = stack.Parameter is string routedSave
+            ? routedSave
+            : PageInstanceSavesLeft.CurrentSave;
         var name = GetSaveName(saveFolder);
         return string.IsNullOrEmpty(name)
             ? Lang.Text("Main.Title.SaveManagement", string.Empty)

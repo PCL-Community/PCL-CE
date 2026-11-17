@@ -12,6 +12,7 @@ using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
 using PCL.Core.Utils.Validate;
+using PCL.Navigation;
 using PCL.Network.Loaders;
 using PCL.UI.Controls;
 
@@ -86,7 +87,7 @@ public partial class PageDownloadCompDetail : MyPageRight
         RefreshIntro(true);
     }
 
-    public override void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(PageParameter? parameter)
     {
         PanBack.ScrollToHome();
         if (ViewModel.Project is not null)
@@ -97,7 +98,7 @@ public partial class PageDownloadCompDetail : MyPageRight
     {
     }
 
-    internal void PrepareNavigation(object? parameter)
+    internal void PrepareNavigation(PageParameter? parameter)
     {
         var applied = parameter switch
         {

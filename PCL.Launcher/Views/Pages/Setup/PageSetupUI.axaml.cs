@@ -9,6 +9,7 @@ using PCL.Core.App.Localization;
 using PCL.Core.UI;
 using PCL.Core.UI.Hints;
 using PCL.Core.Utils.Validate;
+using PCL.Navigation;
 using PCL.UI.Controls;
 using PCL.UI.Controls.Common;
 using PCL.Views.Pages.Launch;
@@ -17,8 +18,8 @@ using PCL.Views.Shell;
 namespace PCL.Views.Pages.Setup;
 
 /// <summary>
-///     外观设置页：窗口透明度、深浅色模式、配色主题、字体、标题栏类型、背景、背景音乐、自定义主页与功能隐藏。
-///     状态与配置写入由 <see cref="PageSetupUIViewModel" /> 承担；页面负责动态控件构建、文件选择与标题栏刷新。
+/// 外观设置页：窗口透明度、深浅色模式、配色主题、字体、标题栏类型、背景、背景音乐、自定义主页与功能隐藏。 状态与配置写入由
+/// <see cref="PageSetupUIViewModel" /> 承担；页面负责动态控件构建、文件选择与标题栏刷新。
 /// </summary>
 public partial class PageSetupUI : MyPageRight, ISetupResetPage
 {
@@ -202,7 +203,7 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         }
     }
 
-    public override void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(PageParameter? parameter)
     {
         PanBack.ScrollToHome();
         if (_loaded) Reload();

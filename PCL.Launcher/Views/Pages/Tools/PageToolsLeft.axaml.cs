@@ -35,7 +35,7 @@ public partial class PageToolsLeft : MyPageLeft
 
     public event Action<SubPageId>? PageSelected;
 
-    public override void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(PageParameter? parameter)
     {
         ApplyHiddenState();
     }

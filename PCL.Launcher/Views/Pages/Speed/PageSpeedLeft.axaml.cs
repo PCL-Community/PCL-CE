@@ -1,12 +1,13 @@
 using Avalonia.Controls;
 using Avalonia.Threading;
+using PCL.Navigation;
 using PCL.UI.Controls;
 
 namespace PCL.Views.Pages.Speed;
 
 /// <summary>
-///     任务管理页左栏：汇总当前任务列表的进度、下载速度、剩余文件数与连接数。
-///     每 300 ms 从 <see cref="Loading.loaderTaskbar" /> 与 <see cref="NetFacade.NetManager" /> 取值刷新。
+/// 任务管理页左栏：汇总当前任务列表的进度、下载速度、剩余文件数与连接数。 每 300 ms 从
+/// <see cref="Loading.loaderTaskbar" /> 与 <see cref="NetFacade.NetManager" /> 取值刷新。
 /// </summary>
 public partial class PageSpeedLeft : MyPageLeft, IRefreshable
 {
@@ -51,7 +52,7 @@ public partial class PageSpeedLeft : MyPageLeft, IRefreshable
         PageSpeedRight.Current?.RefreshNow();
     }
 
-    public override void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(PageParameter? parameter)
     {
         RefreshStatistics();
         _timer.Start();

@@ -60,7 +60,7 @@ public partial class PageInstanceSavesLeft : MyPageLeft, IRefreshable
         PageInstanceSavesLeftViewModel.Refresh();
     }
 
-    public override void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(PageParameter? parameter)
     {
         Current = this;
         ViewModel.Attach();

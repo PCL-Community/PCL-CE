@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.UI.Hints;
+using PCL.Navigation;
 using PCL.UI.Controls;
 
 namespace PCL.Views.Pages.Setup;
@@ -83,7 +84,7 @@ public partial class PageSetupGameManage : MyPageRight, ISetupResetPage
         Reload();
     }
 
-    public override void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(PageParameter? parameter)
     {
         PanBack.ScrollToHome();
         if (_loaded) Reload();

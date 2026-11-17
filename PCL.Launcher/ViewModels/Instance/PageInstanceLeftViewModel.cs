@@ -79,7 +79,7 @@ public partial class PageInstanceLeftViewModel : ViewModelBase
     }
 
     /// <summary>处理导航参数并决定是否需要重建左栏。</summary>
-    public bool NavigateTo(object? parameter)
+    public bool NavigateTo(PageParameter? parameter)
     {
         if (parameter is McInstance instance)
         {
@@ -233,7 +233,8 @@ public partial class PageInstanceLeftViewModel : ViewModelBase
             return;
         if (PageRouter.Current.Page == PageIds.InstanceSetup
             && PageRouter.Current.SubPage == subPage
-            && ReferenceEquals(PageRouter.Current.Parameter, instance))
+            && PageRouter.Current.Parameter is McInstance routed
+            && ReferenceEquals(routed, instance))
             return;
         PageRouter.Navigate(new PageRoute(PageIds.InstanceSetup, subPage, instance));
     }
@@ -267,11 +268,14 @@ public partial class PageInstanceLeftViewModel : ViewModelBase
             if (dialog.Button != 1)
                 return false;
 
+            var targetInstance = ResolveInstance();
             PageRouter.Navigate(
-                new PageRoute(
-                    PageIds.InstanceSetup,
-                    SubPageIds.VersionSetup,
-                    ResolveInstance()));
+                targetInstance is null
+                    ? new PageRoute(PageIds.InstanceSetup, SubPageIds.VersionSetup)
+                    : new PageRoute(
+                        PageIds.InstanceSetup,
+                        SubPageIds.VersionSetup,
+                        targetInstance));
             if (PageRouter.CurrentPage is PageInstanceSetup setup)
                 setup.Reset();
             return true;

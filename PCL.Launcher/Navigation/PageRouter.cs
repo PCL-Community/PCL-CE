@@ -109,14 +109,14 @@ public static class PageRouter
     public static void Navigate(
         PageId page,
         SubPageId? subPage = null,
-        object? parameter = null)
+        PageParameter? parameter = null)
     {
         Navigate(new PageRoute(page, subPage, parameter));
     }
 
     public static void Navigate(
         PageLocation location,
-        object? parameter = null)
+        PageParameter? parameter = null)
     {
         Navigate(new PageRoute(location.Page, location.SubPage, parameter));
     }

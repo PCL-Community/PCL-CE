@@ -116,7 +116,7 @@ public partial class PageInstanceInstall : MyPageRight, IRefreshable
         Refresh();
     }
 
-    public override void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(PageParameter? parameter)
     {
         ReloadInstance(InstancePageHelper.ResolveInstance(parameter));
         if (_instance is null)

@@ -6,14 +6,14 @@ using PCL.Core.App.Localization;
 using PCL.Core.IO;
 using PCL.Core.Platform;
 using PCL.Core.UI.Hints;
+using PCL.Navigation;
 using PCL.UI.Controls;
 
 namespace PCL.Views.Pages.Instance;
 
 /// <summary>
-///     实例存档列表页：扫描实例 <c>saves</c> 目录下的存档文件夹并显示名称、创建/修改时间与图标；
-///     支持搜索、按文件名/创建时间/修改时间排序、空态三按钮（打开文件夹/下载新存档/粘贴剪贴板文件），
-///     点击进入存档详情；删除优先移入系统回收站，不支持回收站时明确告知永久删除。
+/// 实例存档列表页：扫描实例 <c>saves</c> 目录下的存档文件夹并显示名称、创建/修改时间与图标；
+/// 支持搜索、按文件名/创建时间/修改时间排序、空态三按钮（打开文件夹/下载新存档/粘贴剪贴板文件）， 点击进入存档详情；删除优先移入系统回收站，不支持回收站时明确告知永久删除。
 /// </summary>
 public partial class PageInstanceSaves : MyPageRight, IRefreshable
 {
@@ -76,7 +76,7 @@ public partial class PageInstanceSaves : MyPageRight, IRefreshable
         HintService.Show(Hints.Info(Lang.Text("Instance.Saves.Status.Refreshing"), false));
     }
 
-    public override void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(PageParameter? parameter)
     {
         _isActive = true;
         ViewModel.StopWatcher();

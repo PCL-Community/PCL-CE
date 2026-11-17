@@ -5,14 +5,14 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using PCL.Core.App.Localization;
 using PCL.Core.UI.Hints;
+using PCL.Navigation;
 using PCL.UI.Controls;
 
 namespace PCL.Views.Pages.Instance;
 
 /// <summary>
-///     存档详情页：显示存档名称、版本、种子、游戏模式、难度、游玩时间与出生点，
-///     并允许修改作弊命令、难度与难度锁定（通过存档管理器原子写入 level.dat）。
-///     种子可点击复制，也可跳转 Chunkbase 预览；低版本存档会提示哪些字段无法获取。
+/// 存档详情页：显示存档名称、版本、种子、游戏模式、难度、游玩时间与出生点， 并允许修改作弊命令、难度与难度锁定（通过存档管理器原子写入 level.dat）。
+/// 种子可点击复制，也可跳转 Chunkbase 预览；低版本存档会提示哪些字段无法获取。
 /// </summary>
 public partial class PageInstanceSavesInfo : MyPageRight, IRefreshable
 {
@@ -48,10 +48,10 @@ public partial class PageInstanceSavesInfo : MyPageRight, IRefreshable
         Reload();
     }
 
-    public override void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(PageParameter? parameter)
     {
         PanBack.ScrollToHome();
-        _saveFolder = parameter as string;
+        _saveFolder = parameter is string routedSave ? routedSave : null;
         if (string.IsNullOrEmpty(_saveFolder))
             _saveFolder = PageInstanceSavesLeft.CurrentSave;
         Reload();

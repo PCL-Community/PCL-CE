@@ -1,11 +1,12 @@
 using PCL.Core.App.Localization;
+using PCL.Navigation;
 using PCL.UI.Controls;
 
 namespace PCL.Views.Pages.Setup;
 
 /// <summary>
-///     联机设置页：EasyTier 用户名、传输协议偏好与中继策略开关，全部写入 <c>Config.Link</c>。
-///     状态由 <see cref="PageSetupGameLinkViewModel" /> 持有；NAT/IPv6 测试卡按 WPF 默认折叠。
+/// 联机设置页：EasyTier 用户名、传输协议偏好与中继策略开关，全部写入 <c>Config.Link</c>。 状态由
+/// <see cref="PageSetupGameLinkViewModel" /> 持有；NAT/IPv6 测试卡按 WPF 默认折叠。
 /// </summary>
 public partial class PageSetupGameLink : MyPageRight, ISetupResetPage
 {
@@ -48,7 +49,7 @@ public partial class PageSetupGameLink : MyPageRight, ISetupResetPage
         ViewModel.Reset();
     }
 
-    public override void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(PageParameter? parameter)
     {
         PanBack.ScrollToHome();
         if (_loaded) Reload();

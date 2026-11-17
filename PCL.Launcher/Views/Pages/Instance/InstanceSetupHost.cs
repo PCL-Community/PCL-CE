@@ -20,7 +20,7 @@ public sealed class InstanceSetupHost(
 
     public string GetTitle(PageRoute stack)
     {
-        var name = (stack.Parameter as McInstance)?.Name
+        var name = (stack.Parameter is McInstance instance ? instance.Name : null)
             ?? PageInstanceLeft.ResolveInstance()?.Name
             ?? InstanceList.McMcInstanceSelected?.Name
             ?? string.Empty;

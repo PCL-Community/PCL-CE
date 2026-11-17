@@ -10,6 +10,8 @@ using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
 using PCL.UI.Controls;
 
+using PCL.Navigation;
+
 namespace PCL.Views.Pages.Setup;
 
 /// <summary>
@@ -52,7 +54,7 @@ public partial class PageSetupJava : MyPageRight, IRefreshable
         PageLoaderRestart();
     }
 
-    public override void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(PageParameter? parameter)
     {
         if (!_loaded) return;
         PageLoaderRestart(null, false);

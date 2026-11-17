@@ -204,7 +204,7 @@ public class MyPageLeft : Grid, IPageView, IPageLeftContainer
         AnimationService.Run(aniList, animationKey);
     }
 
-    public virtual void OnNavigatedTo(object? parameter)
+    public virtual void OnNavigatedTo(PageParameter? parameter)
     {
     }
 

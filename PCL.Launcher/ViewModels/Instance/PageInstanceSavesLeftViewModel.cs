@@ -43,7 +43,7 @@ public partial class PageInstanceSavesLeftViewModel : ViewModelBase
         Current = this;
     }
 
-    public static void UpdateNavigationParameter(object? parameter)
+    public static void UpdateNavigationParameter(PageParameter? parameter)
     {
         if (parameter is string path && !string.IsNullOrEmpty(path))
             CurrentSave = path;

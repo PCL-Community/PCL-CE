@@ -1,3 +1,4 @@
+using PCL.Navigation;
 using PCL.UI.Controls;
 
 namespace PCL.Views.Pages.Instance;
@@ -15,7 +16,7 @@ public partial class PageInstanceModDisabled : MyPageRight, IPageView
 
     public PageInstanceModDisabledViewModel ViewModel { get; } = new();
 
-    public override void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(PageParameter? parameter)
     {
         RefreshModDisabled();
     }

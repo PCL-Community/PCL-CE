@@ -10,7 +10,7 @@ public interface INavigationService
 
     event Action<PageLocation>? Navigated;
 
-    void GoTo(PageLocation route, object? parameter = null);
+    void GoTo(PageLocation route, PageParameter? parameter = null);
 
     void GoBack();
 }
@@ -31,7 +31,7 @@ public sealed class NavigationService : INavigationService
 
     public event Action<PageLocation>? Navigated;
 
-    public void GoTo(PageLocation route, object? parameter = null)
+    public void GoTo(PageLocation route, PageParameter? parameter = null)
     {
         PageRouter.Navigate(route, parameter);
     }

@@ -49,7 +49,7 @@ public partial class PageLogLeft : MyPageLeft, IRefreshable
         Reload();
     }
 
-    public override void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(PageParameter? parameter)
     {
         RefreshOnNavigate();
     }

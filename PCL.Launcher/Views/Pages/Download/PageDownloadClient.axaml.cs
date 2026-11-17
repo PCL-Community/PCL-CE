@@ -36,7 +36,7 @@ public partial class PageDownloadClient : MyPageRight, IPageView, IRefreshable
         LocalizationService.LanguageChanged += OnLanguageChanged;
     }
 
-    public override void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(PageParameter? parameter)
     {
         PanBack?.ScrollToHome();
     }

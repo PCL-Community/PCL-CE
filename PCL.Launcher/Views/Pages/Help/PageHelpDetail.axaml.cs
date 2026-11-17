@@ -6,6 +6,8 @@ using PCL.Core.App.Localization;
 using PCL.Core.UI.Hints;
 using PCL.UI.Controls;
 
+using PCL.Navigation;
+
 namespace PCL.Views.Pages;
 
 /// <summary>
@@ -31,7 +33,7 @@ public partial class PageHelpDetail : MyPageRight, IRefreshable
 
     public event Action<string>? TitleChanged;
 
-    public override void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(PageParameter? parameter)
     {
         switch (parameter)
         {

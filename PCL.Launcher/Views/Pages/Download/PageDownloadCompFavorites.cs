@@ -44,7 +44,7 @@ public sealed partial class PageDownloadCompFavorites : MyPageRight, IPageView, 
 
     private TranslateTransform SelectTransform => (TranslateTransform)CardSelect.RenderTransform!;
 
-    public override void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(PageParameter? parameter)
     {
         EnsureInitialized();
         ViewModel.RefreshFolders();
