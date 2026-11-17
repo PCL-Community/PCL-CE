@@ -9,8 +9,8 @@ using PCL.UI.Controls;
 namespace PCL.UI;
 
 /// <summary>
-///     把 Core 的提示显示到主窗口右下角的提示层。每条提示对应一个 <see cref="MyToast" />，
-///     显示时长、拖动关闭与出入场动画由控件自身负责；主窗口尚未创建时提示先排队，窗口就绪后按原顺序补显示。
+/// 把 Core 的提示显示到主窗口右下角的提示层。每条提示对应一个 <see cref="MyToast" />，
+/// 显示时长、拖动关闭与出入场动画由控件自身负责；主窗口尚未创建时提示先排队，窗口就绪后按原顺序补显示。
 /// </summary>
 public sealed class HintPresenter : IHintPresenter
 {
@@ -23,8 +23,6 @@ public sealed class HintPresenter : IHintPresenter
     private Panel? _layer;
 
     private Window? _window;
-
-    public static HintPresenter Instance { get; } = new();
 
     /// <summary>提示总会被接收：界面未就绪时进入排队，不丢弃。</summary>
     public bool IsAvailable => true;
@@ -87,11 +85,6 @@ public sealed class HintPresenter : IHintPresenter
         foreach (var hint in _pending)
             hint.Close();
         _pending.Clear();
-    }
-
-    public static void Install()
-    {
-        HintService.Instance.Presenter = Instance;
     }
 
     /// <summary>绑定主窗口及其提示层，由窗口构造时调用；已有排队提示会立即补显示。</summary>

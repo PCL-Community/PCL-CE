@@ -6,7 +6,7 @@ using PCL.Core.Platform;
 namespace PCL.Core.UI;
 
 /// <summary>Avalonia <see cref="Window" /> 的 <see cref="IWindowHost" /> 包装。</summary>
-public sealed class WindowHost : IWindowHost
+public sealed class WindowHost : IAvaloniaWindowHost
 {
     private bool _isLoadedRaised;
 
@@ -16,10 +16,10 @@ public sealed class WindowHost : IWindowHost
         Window.Opened += (_, _) => _RaiseLoaded();
     }
 
-    public Window Window { get; }
-
     private static IClassicDesktopStyleApplicationLifetime? DesktopLifetime =>
         Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
+
+    public Window Window { get; }
 
     public event Action? Loaded;
 

@@ -11,28 +11,18 @@ namespace PCL.Core.UI;
 /// Avalonia <see cref="Application" /> 的 <see cref="IApplicationHost" /> 包装。
 /// <see cref="Run" /> 由界面层传入，用于启动 Avalonia 的经典桌面消息循环。
 /// </summary>
-public sealed class ApplicationHost : IApplicationHost
+public sealed class ApplicationHost(Func<int> run) : IAvaloniaApplicationHost
 {
     private readonly Dictionary<object, object> _pendingResources = new();
-    private readonly Func<int> _run;
     private Application? _application;
     private IWindowHost? _mainWindow;
-
-    public ApplicationHost(Func<int> run)
-    {
-        _run = run;
-        Current = this;
-    }
-
-    /// <summary>当前使用的应用容器，供 Avalonia <c>App</c> 在初始化完成时回填。</summary>
-    public static ApplicationHost? Current { get; private set; }
 
     private IClassicDesktopStyleApplicationLifetime? DesktopLifetime =>
         _application?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
 
     public int Run()
     {
-        return _run();
+        return run();
     }
 
     public IWindowHost? MainWindow
@@ -85,10 +75,10 @@ public sealed class ApplicationHost : IApplicationHost
 
     public event Action<Exception>? DispatcherUnhandledException;
 
-    /// <summary>由 Avalonia <c>App.OnFrameworkInitializationCompleted</c> 调用，标记应用容器就绪。</summary>
-    public static void NotifyStartup(Application application)
+    /// <summary>由 Avalonia <c>App</c> 在初始化完成时调用，标记应用容器就绪。</summary>
+    public void Attach(Application application)
     {
-        Current?._OnApplicationInitialized(application);
+        _OnApplicationInitialized(application);
     }
 
     private void _OnApplicationInitialized(Application application)

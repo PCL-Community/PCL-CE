@@ -13,9 +13,8 @@ using PCL.UI.Dialogs;
 namespace PCL.UI;
 
 /// <summary>
-///     把 Core 的弹窗状态按类型渲染为对应弹窗控件，并在主窗口的遮罩层中呈现：
-///     遮罩与弹窗一起淡入，关闭时先淡出再移除视图并释放遮罩。
-///     主窗口或遮罩层尚未就绪时退回独立窗口，界面完全不可用时退回无主窗口的独立窗口。
+/// 把 Core 的弹窗状态按类型渲染为对应弹窗控件，并在主窗口的遮罩层中呈现： 遮罩与弹窗一起淡入，关闭时先淡出再移除视图并释放遮罩。
+/// 主窗口或遮罩层尚未就绪时退回独立窗口，界面完全不可用时退回无主窗口的独立窗口。
 /// </summary>
 public sealed class DialogPresenter : IDialogPresenter
 {
@@ -51,15 +50,13 @@ public sealed class DialogPresenter : IDialogPresenter
 
     private Window? _window;
 
-    public static DialogPresenter Instance { get; } = new();
-
     /// <summary>当前是否有弹窗正在显示或淡出。</summary>
     public bool HasOpenDialog =>
         _dialogs.Count > 0 || _windows.Count > 0 || _closing is not null || _releasing;
 
     /// <summary>
-    ///     主窗口可见、未被最小化，且没有弹窗正在显示或淡出时才可呈现；
-    ///     否则返回 <see langword="false" />，由 <see cref="DialogService" /> 排队重试或退回兜底。
+    /// 主窗口可见、未被最小化，且没有弹窗正在显示或淡出时才可呈现； 否则返回 <see langword="false" />，由
+    /// <see cref="DialogService" /> 排队重试或退回兜底。
     /// </summary>
     public bool IsAvailable
     {
@@ -152,11 +149,6 @@ public sealed class DialogPresenter : IDialogPresenter
             ReleaseWindow(window, dialog);
             dialog.Close(DialogResult.None);
         }
-    }
-
-    public static void Install()
-    {
-        DialogService.Instance.Presenter = Instance;
     }
 
     /// <summary>绑定主窗口及其遮罩层，由主窗口构造时调用；容器按名称在窗口内查找。</summary>

@@ -270,7 +270,7 @@ public sealed class ExtraButtonsPanel : StackPanel
     {
         var scroll = CurrentScroll;
         if (scroll is not { IsVisible: true }) return false;
-        var windowHeight = MainWindow.Current?.Bounds.Height ?? 500d;
+        var windowHeight = (TopLevel.GetTopLevel(Current) as Window)?.Bounds.Height ?? 500d;
         return scroll.Offset.Y > windowHeight + (Current?._backToTop.Show == true ? 0d : 700d);
     }
 

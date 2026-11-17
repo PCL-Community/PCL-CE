@@ -961,33 +961,3 @@ public sealed class DownloadInteractionBridge : IDownloadUserInteraction
         UiInteraction.OpenWebsite(wikiUrl);
     }
 }
-
-/// <summary>把全部业务层 UI 平台桥注册到界面实现。</summary>
-public static class UiBridgeRegistration
-{
-    public static void Register()
-    {
-        LoadingUi.Current = new LoadingUiBridge();
-        LauncherUi.Interaction = new UserInteractionBridge();
-        DownloadUserInteraction.Current = new DownloadInteractionBridge();
-        UpdateUi.Current = new UpdateUiBridge();
-        AnnouncementActions.Current = new AnnouncementActionsBridge();
-        WatcherUi.Current = new WatcherUiBridge();
-        var mediaBridge = new MediaServiceBridge();
-        MediaService.Current = mediaBridge;
-        ExtraButtonsPanel.MusicStateProvider = mediaBridge.GetMusicButtonState;
-        ExtraButtonsPanel.MusicToggleAction = mediaBridge.ToggleMusic;
-        ExtraButtonsPanel.MusicNextAction = mediaBridge.PlayNextMusic;
-        CrashAnalysisService.Current = new CrashAnalysisBridge();
-        CompNavigation.Current = new CompNavigationBridge();
-        CompUi.Current = new CompUiBridge();
-        CompLocalUi.Current = new CompLocalUiBridge();
-        MemorySettings.Current = new MemorySettingsBridge();
-        LaunchUi.Current = new LaunchUiBridge();
-        LoginProfile.Current = new ProfileUiBridge();
-        LogFilter.Current = new LogFilterBridge();
-        RestrictedFeatures.Current = new RestrictedFeaturesBridge();
-        ModpackUi.Current = new ModpackUiBridge();
-        EventUi.Current = new EventUiBridge();
-    }
-}

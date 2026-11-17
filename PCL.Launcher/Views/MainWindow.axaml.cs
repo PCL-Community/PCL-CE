@@ -32,7 +32,6 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        Current = this;
         ApplyWindowIcon();
         TransparencyLevelHint = [WindowTransparencyLevel.Transparent];
         Opacity = 0d;
@@ -84,10 +83,6 @@ public partial class MainWindow : Window
         _titleBar.MinimizeRequested += () => WindowState = WindowState.Minimized;
         _titleBar.CloseRequested += Close;
 
-        if (this.FindControl<Panel>("PanHint") is { } hintLayer)
-            HintPresenter.Instance.Attach(this, hintLayer);
-        if (this.FindControl<Panel>("PanDialogLayer") is { } dialogLayer)
-            DialogPresenter.Instance.Attach(this, dialogLayer);
 
         Closed += (_, _) => OnClosed();
 
@@ -112,7 +107,14 @@ public partial class MainWindow : Window
 #endif
     }
 
-    public static MainWindow? Current { get; private set; }
+    /// <summary>绑定窗口上下文及其弹窗、提示呈现器。</summary>
+    public void InitializeContext(IWindowContext context)
+    {
+        if (this.FindControl<Panel>("PanHint") is { } hintLayer)
+            context.HintPresenter.Attach(this, hintLayer);
+        if (this.FindControl<Panel>("PanDialogLayer") is { } dialogLayer)
+            context.DialogPresenter.Attach(this, dialogLayer);
+    }
 
     /// <summary>在窗口显示前预创建启动页，避免首屏导航时再同步实例化页面。</summary>
     private void PreloadLaunchPage()
@@ -292,7 +294,6 @@ public partial class MainWindow : Window
         LocalizationService.LanguageChanged -= OnLanguageChangedForLeftWidth;
         BackgroundHost.Detach(_background);
         _background.Remove();
-        if (ReferenceEquals(Current, this)) Current = null;
     }
 
     private void ApplyWindowIcon()

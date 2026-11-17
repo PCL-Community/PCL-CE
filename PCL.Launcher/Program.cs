@@ -1,12 +1,12 @@
 using Avalonia;
 using Microsoft.Extensions.DependencyInjection;
+using PCL.Composition;
 using PCL.Core.App.Essentials;
 using PCL.Core.App.IoC;
 using PCL.Core.Platform;
 using PCL.Core.UI;
 using PCL.Navigation;
 using PCL.UI;
-using PCL.UI.Bridges;
 using PCL.Views;
 
 namespace PCL;
@@ -31,13 +31,15 @@ internal static class Program
         ApplicationService.Loading = () =>
             new ApplicationHost(() => builder.StartWithClassicDesktopLifetime(args));
 
-        MainWindowService.Loading = () => new WindowHost(new MainWindow());
+        MainWindowService.Loading = () =>
+        {
+            var window = new MainWindow();
+            var context = new WindowContext(window);
+            window.InitializeContext(context);
+            return context.Host;
+        };
 
-        DialogPresenter.Install();
-
-        HintPresenter.Install();
-
-        UiBridgeRegistration.Register();
+        UiBridgeBootstrap.Initialize(serviceProvider);
 
         Lifecycle.OnInitialize();
     }

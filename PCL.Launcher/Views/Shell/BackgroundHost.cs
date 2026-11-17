@@ -9,8 +9,8 @@ using PCL.Core.UI.Theme;
 namespace PCL.Views.Shell;
 
 /// <summary>
-///     主窗口背景入口：供设置页“刷新背景”等外部调用方请求重新加载背景内容。
-///     背景层本身是 <see cref="BackgroundLayer" />，由主窗口创建并注册到这里。
+/// 主窗口背景入口：供设置页“刷新背景”等外部调用方请求重新加载背景内容。 背景层本身是 <see cref="BackgroundLayer" />
+/// ，由主窗口创建并注册到这里。
 /// </summary>
 public static class BackgroundHost
 {
@@ -32,10 +32,7 @@ public static class BackgroundHost
     }
 }
 
-/// <summary>
-///     主窗口背景层：按配置绘制颜色主题渐变或随机背景图片，并应用透明度、裁剪模式与真实模糊。
-///     图片使用 <see cref="ImageBrush" /> 支持平铺。
-/// </summary>
+/// <summary>主窗口背景层：按配置绘制颜色主题渐变或随机背景图片，并应用透明度、裁剪模式与真实模糊。 图片使用 <see cref="ImageBrush" /> 支持平铺。</summary>
 public sealed class BackgroundLayer
 {
     private static readonly string[] ImageExtensions =
@@ -274,9 +271,9 @@ public sealed class BackgroundLayer
         }
     }
 
-    private static bool IsImageSmall(Bitmap bitmap)
+    private bool IsImageSmall(Bitmap bitmap)
     {
-        var window = MainWindow.Current;
+        var window = TopLevel.GetTopLevel(_formPan) as Window;
         var width = window?.Bounds.Width ?? 850d;
         var height = window?.Bounds.Height ?? 500d;
         return bitmap.PixelSize.Width < width / 2d && bitmap.PixelSize.Height < height / 2d;

@@ -6,7 +6,6 @@ using PCL.Core.UI;
 using PCL.UI.Controls;
 using PCL.UI.Controls.Behaviors;
 using PCL.UI.Theming;
-using PCL.Views;
 
 namespace PCL;
 
@@ -21,8 +20,8 @@ public class App : Application
             LifecycleState.WindowCreated,
             () =>
             {
-                if (MainWindow.Current is { } window)
-                    PlatformStartup.Shell.OnWindowCreated(window);
+                if (Lifecycle.CurrentApplication?.MainWindow is IAvaloniaWindowHost window)
+                    PlatformStartup.Shell.OnWindowCreated(window.Window);
             });
     }
 
@@ -33,7 +32,8 @@ public class App : Application
         ClipboardInterceptor.Enable();
         PlatformStartup.Shell.OnFrameworkInitialized(this);
 
-        ApplicationHost.NotifyStartup(this);
+        if (Lifecycle.CurrentApplication is IAvaloniaApplicationHost host)
+            host.Attach(this);
         base.OnFrameworkInitializationCompleted();
     }
 }

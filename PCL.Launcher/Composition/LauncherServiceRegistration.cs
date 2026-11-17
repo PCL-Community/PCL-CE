@@ -1,6 +1,16 @@
 using Microsoft.Extensions.DependencyInjection;
+using PCL.Composition;
 using PCL.Core.Platform;
 using PCL.Navigation;
+using PCL.Views.Pages;
+using PCL.Views.Pages.Download;
+using PCL.Views.Pages.Instance;
+using PCL.Views.Pages.Launch;
+using PCL.Views.Pages.Log;
+using PCL.Views.Pages.Select;
+using PCL.Views.Pages.Setup;
+using PCL.Views.Pages.Speed;
+using PCL.Views.Pages.Tools;
 
 namespace PCL;
 
@@ -45,25 +55,26 @@ public static class LauncherServiceRegistration
         services.AddSingleton(_ => PageCatalog.Snapshot);
         services.AddSingleton<PageHostFactory>();
         services.AddSingleton<PageViewFactory>();
+        services.AddLauncherUi();
 
         // Host 的构造依赖。页面本身由 PageViewFactory 创建，不需要逐个注册。
-        services.AddTransient<PCL.Views.Pages.Launch.PageLaunchLeft>();
-        services.AddTransient<PCL.Views.Pages.Launch.PageLaunchRight>();
-        services.AddTransient<PCL.Views.Pages.Download.PageDownloadLeft>();
-        services.AddTransient<PCL.Views.Pages.Setup.PageSetupLeft>();
-        services.AddTransient<PCL.Views.Pages.Tools.PageToolsLeft>();
-        services.AddTransient<PCL.Views.Pages.Instance.PageInstanceLeft>();
-        services.AddTransient<PCL.Views.Pages.Instance.PageInstanceSavesLeft>();
-        services.AddTransient<PCL.Views.Pages.Select.PageSelectLeft>();
-        services.AddTransient<PCL.Views.Pages.Select.PageSelectRight>();
-        services.AddTransient<PCL.Views.Pages.Speed.PageSpeedLeft>();
-        services.AddTransient<PCL.Views.Pages.Speed.PageSpeedRight>();
-        services.AddTransient<PCL.Views.Pages.Log.PageLogLeft>();
-        services.AddTransient<PCL.Views.Pages.Log.PageLogRight>();
-        services.AddTransient<PCL.Views.Pages.PageHelpDetail>();
-        services.AddTransient<PCL.Views.Pages.Download.PageDownloadCompDetail>();
-        services.AddTransient<PCL.PageSetupLeftViewModel>();
-        services.AddTransient<PCL.PageSetupJavaViewModel>();
+        services.AddTransient<PageLaunchLeft>();
+        services.AddTransient<PageLaunchRight>();
+        services.AddTransient<PageDownloadLeft>();
+        services.AddTransient<PageSetupLeft>();
+        services.AddTransient<PageToolsLeft>();
+        services.AddTransient<PageInstanceLeft>();
+        services.AddTransient<PageInstanceSavesLeft>();
+        services.AddTransient<PageSelectLeft>();
+        services.AddTransient<PageSelectRight>();
+        services.AddTransient<PageSpeedLeft>();
+        services.AddTransient<PageSpeedRight>();
+        services.AddTransient<PageLogLeft>();
+        services.AddTransient<PageLogRight>();
+        services.AddTransient<PageHelpDetail>();
+        services.AddTransient<PageDownloadCompDetail>();
+        services.AddTransient<PageSetupLeftViewModel>();
+        services.AddTransient<PageSetupJavaViewModel>();
 
         return services.BuildServiceProvider(
             new ServiceProviderOptions
