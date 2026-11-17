@@ -6,6 +6,7 @@ using Avalonia.VisualTree;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
+using PCL.Core.Platform;
 using PCL.Core.UI.Dialogs;
 using PCL.Navigation;
 using PCL.UI;
@@ -35,10 +36,7 @@ public static class HiddenFeatureState
     }
 }
 
-/// <summary>
-///     主窗口级键盘与鼠标快捷键：
-///     Esc 返回、F11 切换隐藏实例、F12 切换功能隐藏、F5 刷新当前页、Enter 启动游戏、Alt 抑制系统菜单、鼠标侧键返回。
-/// </summary>
+/// <summary>主窗口级键盘与鼠标快捷键： Esc 返回、F11 切换隐藏实例、F12 切换功能隐藏、F5 刷新当前页、Enter 启动游戏、Alt 抑制系统菜单、鼠标侧键返回。</summary>
 public sealed class KeyboardHandler
 {
     private readonly ContentControl? _leftHost;
@@ -61,7 +59,7 @@ public sealed class KeyboardHandler
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
         // Alt 在 Windows 会激活系统菜单；macOS/Linux 的 Option/Alt 是正常输入修饰键。
-        if (PCL.Core.Platform.PlatformRuntime.Current.Capabilities.SuppressAltMenu
+        if (PlatformRuntime.Current.Capabilities.SuppressAltMenu
             && e.Key is Key.LeftAlt or Key.RightAlt)
         {
             e.Handled = true;
@@ -99,7 +97,7 @@ public sealed class KeyboardHandler
                 e.Handled = true;
                 break;
 
-            case Key.Enter when PageRouter.Current.Page == PageType.Launch:
+            case Key.Enter when PageRouter.Current.Page == PageIds.Launch:
                 if (HasInteractiveFocus()) return;
                 LaunchGame();
                 e.Handled = true;

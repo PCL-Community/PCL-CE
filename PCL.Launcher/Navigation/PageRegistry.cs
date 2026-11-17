@@ -1,15 +1,11 @@
-using System.Reflection;
 using PCL.Core.Logging;
 
 namespace PCL.Navigation;
 
-/// <summary>
-///     页面宿主注册表：在首次使用时扫描程序集中的 <see cref="IPageHost" /> 实现并实例化，
-///     新增页面只需在页面目录实现宿主，不需要修改此文件。
-/// </summary>
+/// <summary>页面宿主注册表：由 <see cref="PageCatalog" /> 的页面描述创建宿主， 不再反射扫描程序集，也不再依赖无参构造函数。</summary>
 public static class PageRegistry
 {
-    private static readonly Dictionary<PageType, IPageHost> Hosts = new();
+    private static readonly Dictionary<PageId, IPageHost> Hosts = new();
     private static readonly Lock Lock = new();
     private static bool _initialized;
 
@@ -20,7 +16,12 @@ public static class PageRegistry
             lock (Lock)
             {
                 EnsureInitializedCore();
-                return Hosts.OrderBy(pair => (int)pair.Key).Select(pair => pair.Value).ToList();
+                return
+                [
+                    .. Hosts
+                        .OrderBy(pair => pair.Key.Value, StringComparer.Ordinal)
+                        .Select(pair => pair.Value)
+                ];
             }
         }
     }
@@ -35,7 +36,7 @@ public static class PageRegistry
         }
     }
 
-    public static IPageHost? GetHost(PageType page)
+    public static IPageHost? GetHost(PageId page)
     {
         lock (Lock)
         {
@@ -44,33 +45,19 @@ public static class PageRegistry
         }
     }
 
-    public static bool IsRegistered(PageType page)
+    public static bool IsRegistered(PageId page)
     {
         return GetHost(page) is not null;
     }
 
-    public static PageType PageOfTab(MainTab tab)
+    public static PageId PageOfTab(MainTab tab)
     {
-        return tab switch
-        {
-            MainTab.Launch => PageType.Launch,
-            MainTab.Download => PageType.Download,
-            MainTab.Setup => PageType.Setup,
-            MainTab.Tools => PageType.Tools,
-            _ => PageType.Launch
-        };
+        return PageCatalog.PageOfTab(tab);
     }
 
-    public static MainTab? TabOfPage(PageType page)
+    public static MainTab? TabOfPage(PageId page)
     {
-        return page switch
-        {
-            PageType.Launch => MainTab.Launch,
-            PageType.Download => MainTab.Download,
-            PageType.Setup => MainTab.Setup,
-            PageType.Tools => MainTab.Tools,
-            _ => null
-        };
+        return PageCatalog.TabOfPage(page);
     }
 
     private static void EnsureInitializedCore()
@@ -78,35 +65,25 @@ public static class PageRegistry
         if (_initialized) return;
         _initialized = true;
 
-        var assembly = typeof(PageRegistry).Assembly;
-        Type[] types;
-        try
-        {
-            types = assembly.GetTypes();
-        }
-        catch (ReflectionTypeLoadException ex)
-        {
-            types = ex.Types.Where(type => type is not null).Cast<Type>().ToArray();
-        }
-
-        foreach (var type in types.OrderBy(type => type.FullName, StringComparer.Ordinal))
-        {
-            if (type.IsAbstract || type.IsInterface || !type.IsClass) continue;
-            if (!typeof(IPageHost).IsAssignableFrom(type)) continue;
-            if (type.GetConstructor(Type.EmptyTypes) is null) continue;
+        foreach (var descriptor in PageCatalog.Pages)
             try
             {
-                var host = (IPageHost)Activator.CreateInstance(type)!;
+                var host = descriptor.CreateHost?.Invoke(descriptor);
+                if (host is null)
+                {
+                    LogWrapper.Warn("UI", $"页面描述未提供宿主：{descriptor.Id}");
+                    continue;
+                }
+
                 if (!Hosts.TryAdd(host.Page, host))
-                    LogWrapper.Warn("UI", $"页面宿主重复注册：{host.Page}（{type.Name}）");
+                    LogWrapper.Warn("UI", $"页面宿主重复注册：{host.Page}");
             }
             catch (Exception ex)
             {
-                LogWrapper.Error(ex, "UI", $"创建页面宿主失败：{type.FullName}");
+                LogWrapper.Error(ex, "UI", $"创建页面宿主失败：{descriptor.Id}");
             }
-        }
 
         if (Hosts.Count == 0)
-            LogWrapper.Error("UI", "未发现任何页面宿主，界面将无法导航");
+            LogWrapper.Error("UI", "页面目录中没有可用的页面宿主");
     }
 }

@@ -386,7 +386,7 @@ public partial class PageInstanceServerViewModel : ViewModelBase
             {
                 HintService.Show(
                     Hints.Info(Lang.Text("Instance.Server.Card.ConnectingTo", card.Name)));
-                PageRouter.Navigate(PageType.Launch);
+                PageRouter.Navigate(PageIds.Launch);
             }
         }
         catch (Exception ex)

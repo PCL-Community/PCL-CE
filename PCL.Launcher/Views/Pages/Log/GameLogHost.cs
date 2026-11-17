@@ -10,23 +10,23 @@ public sealed class GameLogHost : IPageHost
     private readonly PageLogLeft _left = new();
     private PageLogRight? _right;
 
-    public PageType Page => PageType.GameLog;
+    public PageId Page => PageIds.GameLog;
 
     public MainTab? Tab => null;
 
     public double LeftWidth => 300d;
 
-    public string GetTitle(PageStackData stack)
+    public string GetTitle(PageRoute stack)
     {
         return Lang.Text("Main.Title.GameLog");
     }
 
-    public Control? GetLeft(PageStackData stack)
+    public Control? GetLeft(PageRoute stack)
     {
         return _left;
     }
 
-    public Control GetRight(PageStackData stack)
+    public Control GetRight(PageRoute stack)
     {
         return _right ??= new PageLogRight();
     }

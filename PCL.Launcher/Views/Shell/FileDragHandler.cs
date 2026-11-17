@@ -199,25 +199,25 @@ public sealed class FileDragHandler
         if (await TryInstallSchematics(paths))
             return;
 
-        if (extension == ".zip" && PageRouter.Current is { Page: PageType.InstanceSetup } current)
-            switch (current.SubType)
+        if (extension == ".zip" && PageRouter.Current.Page == PageIds.InstanceSetup)
+        {
+            var current = PageRouter.Current;
+            if (current.SubPage == SubPageIds.VersionWorld)
             {
-                case PageSubType.VersionWorld:
-                {
-                    ImportSave(paths[0]);
-                    return;
-                }
-
-                case PageSubType.VersionResourcePack or PageSubType.VersionShader:
-                {
-                    var type = current.SubType == PageSubType.VersionResourcePack
-                        ? Comp.CompType.ResourcePack
-                        : Comp.CompType.Shader;
-                    if (await TryInstallInstanceFiles(paths, type))
-                        return;
-                    break;
-                }
+                ImportSave(paths[0]);
+                return;
             }
+
+            if (current.SubPage == SubPageIds.VersionResourcePack
+                || current.SubPage == SubPageIds.VersionShader)
+            {
+                var type = current.SubPage == SubPageIds.VersionResourcePack
+                    ? Comp.CompType.ResourcePack
+                    : Comp.CompType.Shader;
+                if (await TryInstallInstanceFiles(paths, type))
+                    return;
+            }
+        }
 
         switch (extension)
         {
@@ -272,8 +272,8 @@ public sealed class FileDragHandler
             return true;
         }
 
-        var isModPage = PageRouter.Current is
-            { Page: PageType.InstanceSetup, SubType: PageSubType.VersionMod };
+        var isModPage = PageRouter.Current.Page == PageIds.InstanceSetup
+            && PageRouter.Current.SubPage == SubPageIds.VersionMod;
         if (!isModPage)
         {
             var confirmed = (await DialogService.Instance.ShowAsync(
@@ -320,8 +320,8 @@ public sealed class FileDragHandler
         var folder = Path.Combine(
             instance.PathIndie,
             LocalComp.GetPathNameByCompType(Comp.CompType.Schematic));
-        if (PageRouter.Current is
-                { Page: PageType.InstanceSetup, SubType: PageSubType.VersionSchematic }
+        if (PageRouter.Current.Page == PageIds.InstanceSetup
+            && PageRouter.Current.SubPage == SubPageIds.VersionSchematic
             && PageRouter.CurrentPage is ICompLocalPage
             {
                 CurrentFolderPath: { Length: > 0 } currentFolder

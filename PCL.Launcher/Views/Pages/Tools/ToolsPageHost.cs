@@ -4,63 +4,50 @@ using PCL.Navigation;
 
 namespace PCL.Views.Pages.Tools;
 
-/// <summary>
-///     联机与工具页宿主：左栏常驻一份，右栏按 <see cref="PageSubType" /> 缓存
-///     <see cref="PageSubType.ToolsGameLink" /> 与 <see cref="PageSubType.ToolsTest" /> 两个子页实例，
-///     往返切换不丢状态。默认定位为联机大厅。
-/// </summary>
+/// <summary>联机与工具页宿主：左栏常驻一份，右栏按子页描述缓存。</summary>
 public sealed class ToolsPageHost : IPageHost
 {
+    private readonly PageDescriptor _descriptor = PageCatalog.RequirePage(PageIds.Tools);
     private readonly PageToolsLeft _left;
-    private readonly Dictionary<PageSubType, Control> _rightPages = new();
+    private readonly Dictionary<SubPageId, Control> _rightPages = new();
 
     public ToolsPageHost()
     {
         _left = new PageToolsLeft();
-        _left.PageSelected += sub => PageRouter.Navigate(PageType.Tools, sub);
+        _left.PageSelected += sub => PageRouter.Navigate(PageIds.Tools, sub);
     }
 
-    public PageType Page => PageType.Tools;
+    public PageId Page => PageIds.Tools;
 
     public MainTab? Tab => MainTab.Tools;
 
-    public double LeftWidth => 150d;
+    public double LeftWidth => _descriptor.LeftWidth;
 
-    public string GetTitle(PageStackData stack)
+    public string GetTitle(PageRoute stack)
     {
-        return NormalizeSubPage(stack.SubType) == PageSubType.ToolsTest
-            ? Lang.Text("Tools.Left.Utilities.Title")
-            : Lang.Text("Tools.Left.Lobby");
+        var sub = _descriptor.NormalizeSubPage(stack.SubPage);
+        var descriptor = _descriptor.FindSubPage(sub);
+        return descriptor is null ? string.Empty : Lang.Text(descriptor.TitleKey);
     }
 
-    public Control? GetLeft(PageStackData stack)
+    public Control? GetLeft(PageRoute stack)
     {
-        var sub = NormalizeSubPage(stack.SubType);
+        var sub = _descriptor.NormalizeSubPage(stack.SubPage);
         _left.Select(sub);
         return _left;
     }
 
-    public Control GetRight(PageStackData stack)
+    public Control GetRight(PageRoute stack)
     {
-        var sub = NormalizeSubPage(stack.SubType);
+        var sub = _descriptor.NormalizeSubPage(stack.SubPage);
         if (_rightPages.TryGetValue(sub, out var cached))
             return cached;
 
-        Control page = sub switch
-        {
-            PageSubType.ToolsTest => new PageToolsTest(),
-            _ => new PageToolsGameLink()
-        };
+        var descriptor = _descriptor.FindSubPage(sub);
+        if (descriptor is null)
+            throw new InvalidOperationException($"未找到工具子页：{sub}");
+        var page = descriptor.CreateRight(stack);
         _rightPages[sub] = page;
         return page;
-    }
-
-    private static PageSubType NormalizeSubPage(PageSubType sub)
-    {
-        if (sub is not (PageSubType.ToolsGameLink or PageSubType.ToolsTest))
-            sub = PageSubType.ToolsGameLink;
-        return PageToolsLeft.IsSubPageHidden(sub)
-            ? PageToolsLeft.FirstVisible()
-            : sub;
     }
 }

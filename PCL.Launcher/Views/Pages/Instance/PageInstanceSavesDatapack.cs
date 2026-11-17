@@ -17,9 +17,8 @@ using Path = System.IO.Path;
 namespace PCL.Views.Pages.Instance;
 
 /// <summary>
-///     存档数据包页：列出存档 <c>datapacks</c> 目录下的数据包文件与目录。
-///     支持搜索、按启用状态/可读性筛选、排序、全选与批量启用/禁用/删除、从文件安装与下载新数据包；
-///     删除优先移入系统回收站，回收站不可用时明确提示永久删除。
+/// 存档数据包页：列出存档 <c>datapacks</c> 目录下的数据包文件与目录。
+/// 支持搜索、按启用状态/可读性筛选、排序、全选与批量启用/禁用/删除、从文件安装与下载新数据包； 删除优先移入系统回收站，回收站不可用时明确提示永久删除。
 /// </summary>
 public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable, ICompLocalPage
 {
@@ -482,8 +481,8 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable, ICom
         {
             var instance = PageInstanceLeft.ResolveInstance();
             PageRouter.Navigate(
-                PageType.CompDetail,
-                PageSubType.Default,
+                PageIds.CompDetail,
+                null,
                 new CompDetailParameter(
                     comp,
                     Comp.CompType.DataPack,

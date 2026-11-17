@@ -7,38 +7,38 @@ namespace PCL.Core.Test;
 public class NavigationModelTest
 {
     [TestMethod]
-    public void PageStackDataEqualityShouldComparePageAndParameter()
+    public void PageRouteEqualityShouldComparePageAndParameter()
     {
         var instanceA = new object();
         var instanceB = new object();
 
-        Assert.AreEqual(new PageStackData(PageType.Launch), new PageStackData(PageType.Launch));
+        Assert.AreEqual(new PageRoute(PageIds.Launch), new PageRoute(PageIds.Launch));
         Assert.AreNotEqual(
-            new PageStackData(PageType.Launch),
-            new PageStackData(PageType.Download));
+            new PageRoute(PageIds.Launch),
+            new PageRoute(PageIds.Download));
 
-        var withParamA = new PageStackData(
-            PageType.InstanceSetup,
-            PageSubType.VersionOverall,
+        var withParamA = new PageRoute(
+            PageIds.InstanceSetup,
+            SubPageIds.VersionOverall,
             instanceA);
-        var withParamASame = new PageStackData(
-            PageType.InstanceSetup,
-            PageSubType.VersionOverall,
+        var withParamASame = new PageRoute(
+            PageIds.InstanceSetup,
+            SubPageIds.VersionOverall,
             instanceA);
-        var withParamB = new PageStackData(
-            PageType.InstanceSetup,
-            PageSubType.VersionOverall,
+        var withParamB = new PageRoute(
+            PageIds.InstanceSetup,
+            SubPageIds.VersionOverall,
             instanceB);
         Assert.AreEqual(withParamA, withParamASame);
         Assert.AreNotEqual(withParamA, withParamB);
     }
 
     [TestMethod]
-    public void IsSameLocationShouldCompareSubType()
+    public void IsSameLocationShouldCompareSubPage()
     {
-        var a = new PageStackData(PageType.Download, PageSubType.DownloadInstall);
-        var b = new PageStackData(PageType.Download, PageSubType.DownloadInstall);
-        var c = new PageStackData(PageType.Download, PageSubType.DownloadClient);
+        var a = new PageRoute(PageIds.Download, SubPageIds.DownloadInstall);
+        var b = new PageRoute(PageIds.Download, SubPageIds.DownloadInstall);
+        var c = new PageRoute(PageIds.Download, SubPageIds.DownloadClient);
 
         Assert.IsTrue(a.IsSameLocation(b));
         Assert.IsFalse(a.IsSameLocation(c));
@@ -48,18 +48,18 @@ public class NavigationModelTest
     [TestMethod]
     public void TabPageMappingShouldMatchWpfBehaviour()
     {
-        Assert.AreEqual(PageType.Launch, PageRegistry.PageOfTab(MainTab.Launch));
-        Assert.AreEqual(PageType.Download, PageRegistry.PageOfTab(MainTab.Download));
-        Assert.AreEqual(PageType.Setup, PageRegistry.PageOfTab(MainTab.Setup));
-        Assert.AreEqual(PageType.Tools, PageRegistry.PageOfTab(MainTab.Tools));
+        Assert.AreEqual(PageIds.Launch, PageRegistry.PageOfTab(MainTab.Launch));
+        Assert.AreEqual(PageIds.Download, PageRegistry.PageOfTab(MainTab.Download));
+        Assert.AreEqual(PageIds.Setup, PageRegistry.PageOfTab(MainTab.Setup));
+        Assert.AreEqual(PageIds.Tools, PageRegistry.PageOfTab(MainTab.Tools));
 
-        Assert.AreEqual(MainTab.Launch, PageRegistry.TabOfPage(PageType.Launch));
-        Assert.AreEqual(MainTab.Download, PageRegistry.TabOfPage(PageType.Download));
-        Assert.AreEqual(MainTab.Setup, PageRegistry.TabOfPage(PageType.Setup));
-        Assert.AreEqual(MainTab.Tools, PageRegistry.TabOfPage(PageType.Tools));
+        Assert.AreEqual(MainTab.Launch, PageRegistry.TabOfPage(PageIds.Launch));
+        Assert.AreEqual(MainTab.Download, PageRegistry.TabOfPage(PageIds.Download));
+        Assert.AreEqual(MainTab.Setup, PageRegistry.TabOfPage(PageIds.Setup));
+        Assert.AreEqual(MainTab.Tools, PageRegistry.TabOfPage(PageIds.Tools));
 
-        Assert.IsNull(PageRegistry.TabOfPage(PageType.TaskManager));
-        Assert.IsNull(PageRegistry.TabOfPage(PageType.InstanceSelect));
-        Assert.IsNull(PageRegistry.TabOfPage(PageType.GameLog));
+        Assert.IsNull(PageRegistry.TabOfPage(PageIds.TaskManager));
+        Assert.IsNull(PageRegistry.TabOfPage(PageIds.InstanceSelect));
+        Assert.IsNull(PageRegistry.TabOfPage(PageIds.GameLog));
     }
 }

@@ -15,14 +15,15 @@ using PCL.Views.Pages.Download;
 namespace PCL.Views.Pages.Instance;
 
 /// <summary>
-///     实例安装/修改页：进入后直接展示当前实例的加载器选择，点击 Minecraft 卡片才回到版本列表。
-///     加载器选择复用 <see cref="InstallLoaderSelector" />。
+/// 实例安装/修改页：进入后直接展示当前实例的加载器选择，点击 Minecraft 卡片才回到版本列表。 加载器选择复用
+/// <see cref="InstallLoaderSelector" />。
 /// </summary>
 public partial class PageInstanceInstall : MyPageRight, IRefreshable
 {
     private readonly InstallLoaderSelector _selector = null!;
     private readonly bool _uiBuilt;
     private readonly PageInstanceInstallViewModel _vm = new();
+    private string _baselineInfo = "";
     private Comp.CompFile? _currentFabricApi;
     private LocalComp.LocalCompFile? _currentFabricApiLocal;
     private string? _currentFabricApiPath;
@@ -35,7 +36,6 @@ public partial class PageInstanceInstall : MyPageRight, IRefreshable
     private Loading.LoaderCombo<string>? _installCombo;
     private McInstance? _instance;
     private string _instanceFolder = "";
-    private string _baselineInfo = "";
     private string _versionIcon = $"{LauncherPaths.ImageRoot}Icons/NoIcon.png";
 
     public PageInstanceInstall()
@@ -375,9 +375,7 @@ public partial class PageInstanceInstall : MyPageRight, IRefreshable
         UpdateActionAvailability();
     }
 
-    /// <summary>
-    ///     切换到加载器选择阶段，对应 WPF 的 EnterSelectPage。
-    /// </summary>
+    /// <summary>切换到加载器选择阶段，对应 WPF 的 EnterSelectPage。</summary>
     private void ShowSelectStage()
     {
         _vm.IsSelecting = true;
@@ -428,9 +426,8 @@ public partial class PageInstanceInstall : MyPageRight, IRefreshable
     }
 
     /// <summary>
-    ///     切换到 Minecraft 版本列表阶段，对应 WPF 的 ExitSelectPage。
-    ///     与 WPF 一样每次都重新生成版本列表：页面创建前版本列表可能早已加载完成，
-    ///     此时不会再收到加载完成事件，若不在这里生成就会出现空白页。
+    /// 切换到 Minecraft 版本列表阶段，对应 WPF 的 ExitSelectPage。 与 WPF
+    /// 一样每次都重新生成版本列表：页面创建前版本列表可能早已加载完成， 此时不会再收到加载完成事件，若不在这里生成就会出现空白页。
     /// </summary>
     private void ShowSummaryStage(bool animate = true)
     {
@@ -479,9 +476,7 @@ public partial class PageInstanceInstall : MyPageRight, IRefreshable
             true);
     }
 
-    /// <summary>
-    ///     把面板内参与页面动画的控件恢复为完全显示（页面退出动画会把它们设为透明且不可点击）。
-    /// </summary>
+    /// <summary>把面板内参与页面动画的控件恢复为完全显示（页面退出动画会把它们设为透明且不可点击）。</summary>
     private void ResetAnimControls(Control panel)
     {
         foreach (var control in GetAllAnimControls(panel))
@@ -610,8 +605,14 @@ public partial class PageInstanceInstall : MyPageRight, IRefreshable
         InstallLoaderSelection selection,
         string? vanillaName)
     {
-        var parts = new List<string> { vanillaName ?? "" };
-        AddLoader(parts, "Common.Installation.Fabric", selection.FabricVersion?.Replace("+build", ""));
+        var parts = new List<string>
+        {
+            vanillaName ?? ""
+        };
+        AddLoader(
+            parts,
+            "Common.Installation.Fabric",
+            selection.FabricVersion?.Replace("+build", ""));
         AddLoader(parts, "Common.Installation.LegacyFabric", selection.LegacyFabricVersion);
         AddLoader(parts, "Common.Installation.Forge", selection.Forge?.VersionName);
         AddLoader(parts, "Common.Installation.NeoForge", selection.NeoForge?.VersionName);
@@ -1101,7 +1102,6 @@ public partial class PageInstanceInstall : MyPageRight, IRefreshable
         }
 
 
-
         if (string.IsNullOrEmpty(_vm.VersionName))
         {
             BeginSelection(false);
@@ -1142,6 +1142,7 @@ public partial class PageInstanceInstall : MyPageRight, IRefreshable
             if (reset.Button == 2)
                 return;
         }
+
         DeleteNonIsolatedLabyModFolder(instance);
         var request = new McInstallRequest
         {
@@ -1198,7 +1199,7 @@ public partial class PageInstanceInstall : MyPageRight, IRefreshable
         Loading.LoaderTaskbarAdd(_installCombo);
         DeleteReplacedApiFiles();
         LoadingUi.Current?.RefreshDownloadButton();
-        PageRouter.Navigate(PageType.Launch);
+        PageRouter.Navigate(PageIds.Launch);
     }
 
     private static void DeleteNonIsolatedLabyModFolder(McInstance instance)
@@ -1372,6 +1373,6 @@ public partial class PageInstanceInstall : MyPageRight, IRefreshable
 
     private void GoToDownloadPage()
     {
-        PageRouter.Navigate(PageType.Download, PageSubType.DownloadInstall);
+        PageRouter.Navigate(PageIds.Download, SubPageIds.DownloadInstall);
     }
 }

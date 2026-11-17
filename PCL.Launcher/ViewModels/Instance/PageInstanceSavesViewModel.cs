@@ -298,9 +298,9 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
             return;
         PageInstanceSavesLeft.CurrentSave = folder;
         PageRouter.Navigate(
-            new PageStackData(
-                PageType.VersionSaves,
-                PageSubType.VersionSavesInfo,
+            new PageRoute(
+                PageIds.VersionSaves,
+                SubPageIds.VersionSavesInfo,
                 folder));
     }
 
@@ -309,11 +309,11 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
     {
         if (Instance is not null)
             PageRouter.Navigate(
-                PageType.Download,
-                PageSubType.DownloadWorld,
+                PageIds.Download,
+                SubPageIds.DownloadWorld,
                 new CompSearchContext(Instance.Info.VanillaName, Comp.CompLoaderType.Any));
         else
-            PageRouter.Navigate(PageType.Download, PageSubType.DownloadWorld);
+            PageRouter.Navigate(PageIds.Download, SubPageIds.DownloadWorld);
     }
 
     [RelayCommand]
@@ -330,7 +330,7 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
                         instance = Instance
                     }))
                 return;
-            PageRouter.Navigate(PageType.Launch);
+            PageRouter.Navigate(PageIds.Launch);
         }
         catch (Exception ex)
         {

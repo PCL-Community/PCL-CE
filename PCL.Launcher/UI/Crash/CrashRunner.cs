@@ -136,7 +136,7 @@ internal static class CrashPresenter
 
     private static void OpenModLoaderInstallPage(McInstance instance)
     {
-        PageRouter.Navigate(PageType.InstanceSetup, PageSubType.VersionInstall, instance);
+        PageRouter.Navigate(PageIds.InstanceSetup, SubPageIds.VersionInstall, instance);
     }
 
     private static void OpenDirectFile(CrashLogEntry directFile)

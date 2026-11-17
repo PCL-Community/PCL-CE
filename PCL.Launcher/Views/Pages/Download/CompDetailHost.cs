@@ -5,20 +5,20 @@ using PCL.Navigation;
 namespace PCL.Views.Pages.Download;
 
 /// <summary>
-///     资源详情页宿主：二级页面，无左栏，右页复用同一份 <see cref="PageDownloadCompDetail" /> 实例。
-///     导航参数约定为 <see cref="Comp.CompProject" /> 或 <see cref="CompDetailParameter" />。
+/// 资源详情页宿主：二级页面，无左栏，右页复用同一份 <see cref="PageDownloadCompDetail" /> 实例。 导航参数约定为
+/// <see cref="Comp.CompProject" /> 或 <see cref="CompDetailParameter" />。
 /// </summary>
 public sealed class CompDetailHost : IPageHost
 {
     private PageDownloadCompDetail? _right;
 
-    public PageType Page => PageType.CompDetail;
+    public PageId Page => PageIds.CompDetail;
 
     public MainTab? Tab => null;
 
     public double LeftWidth => 0d;
 
-    public string GetTitle(PageStackData stack)
+    public string GetTitle(PageRoute stack)
     {
         return stack.Parameter switch
         {
@@ -28,12 +28,12 @@ public sealed class CompDetailHost : IPageHost
         };
     }
 
-    public Control? GetLeft(PageStackData stack)
+    public Control? GetLeft(PageRoute stack)
     {
         return null;
     }
 
-    public Control GetRight(PageStackData stack)
+    public Control GetRight(PageRoute stack)
     {
         _right ??= new PageDownloadCompDetail();
         _right.PrepareNavigation(stack.Parameter);

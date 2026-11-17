@@ -317,8 +317,8 @@ public sealed partial class PageDownloadCompFavorites : MyPageRight, IPageView, 
         try
         {
             PageRouter.Navigate(
-                PageType.CompDetail,
-                PageSubType.Default,
+                PageIds.CompDetail,
+                null,
                 new CompDetailParameter(
                     project,
                     project.Type,

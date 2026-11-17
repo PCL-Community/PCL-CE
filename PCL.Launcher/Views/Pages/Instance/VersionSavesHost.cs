@@ -4,22 +4,20 @@ using PCL.Navigation;
 
 namespace PCL.Views.Pages.Instance;
 
-/// <summary>
-///     存档管理页宿主（<see cref="PageType.VersionSaves" />）：左栏为存档信息/数据包切换，
-///     右栏按子页种类缓存；导航参数为存档文件夹绝对路径。
-/// </summary>
+/// <summary>存档管理页宿主：左栏为存档信息/数据包切换，右栏按子页描述缓存； 导航参数为存档文件夹绝对路径。</summary>
 public sealed class VersionSavesHost : IPageHost
 {
-    private readonly Dictionary<PageSubType, Control> _rightPages = [];
+    private readonly PageDescriptor _descriptor = PageCatalog.RequirePage(PageIds.VersionSaves);
+    private readonly Dictionary<SubPageId, Control> _rightPages = [];
     private PageInstanceSavesLeft? _left;
 
-    public PageType Page => PageType.VersionSaves;
+    public PageId Page => PageIds.VersionSaves;
 
     public MainTab? Tab => null;
 
-    public double LeftWidth => 210d;
+    public double LeftWidth => _descriptor.LeftWidth;
 
-    public string GetTitle(PageStackData stack)
+    public string GetTitle(PageRoute stack)
     {
         var saveFolder = stack.Parameter as string
             ?? PageInstanceSavesLeft.CurrentSave;
@@ -29,29 +27,28 @@ public sealed class VersionSavesHost : IPageHost
             : Lang.Text("Main.Title.SaveManagement", name);
     }
 
-    public Control? GetLeft(PageStackData stack)
+    public Control? GetLeft(PageRoute stack)
     {
         ApplySaveFolder(stack);
         return _left ??= new PageInstanceSavesLeft();
     }
 
-    public Control GetRight(PageStackData stack)
+    public Control GetRight(PageRoute stack)
     {
         ApplySaveFolder(stack);
-        var subType = stack.SubType;
+        var subType = _descriptor.NormalizeSubPage(stack.SubPage);
         if (_rightPages.TryGetValue(subType, out var cached))
             return cached;
 
-        Control page = subType switch
-        {
-            PageSubType.VersionSavesDatapack => new PageInstanceSavesDatapack(),
-            _ => new PageInstanceSavesInfo()
-        };
+        var descriptor = _descriptor.FindSubPage(subType);
+        if (descriptor is null)
+            throw new ArgumentOutOfRangeException(nameof(stack), subType, null);
+        var page = descriptor.CreateRight(stack);
         _rightPages[subType] = page;
         return page;
     }
 
-    private static void ApplySaveFolder(PageStackData stack)
+    private static void ApplySaveFolder(PageRoute stack)
     {
         if (stack.Parameter is string { Length: > 0 } saveFolder)
             PageInstanceSavesLeft.CurrentSave = saveFolder;

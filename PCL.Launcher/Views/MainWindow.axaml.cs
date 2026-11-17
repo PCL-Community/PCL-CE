@@ -17,8 +17,8 @@ using PCL.Views.Shell;
 namespace PCL.Views;
 
 /// <summary>
-///     主窗口：承载标题栏、左右页面宿主、背景层、提示与弹窗层，并接管窗口级交互与退出流程。
-///     页面由 <see cref="PageRouter" /> 按 <see cref="IPageHost" /> 宿主挂载，窗口本身不感知具体页面。
+/// 主窗口：承载标题栏、左右页面宿主、背景层、提示与弹窗层，并接管窗口级交互与退出流程。 页面由 <see cref="PageRouter" /> 按
+/// <see cref="IPageHost" /> 宿主挂载，窗口本身不感知具体页面。
 /// </summary>
 public partial class MainWindow : Window
 {
@@ -114,15 +114,13 @@ public partial class MainWindow : Window
 
     public static MainWindow? Current { get; private set; }
 
-    /// <summary>
-    ///     在窗口显示前预创建启动页，避免首屏导航时再同步实例化页面。
-    /// </summary>
+    /// <summary>在窗口显示前预创建启动页，避免首屏导航时再同步实例化页面。</summary>
     private void PreloadLaunchPage()
     {
         try
         {
-            if (PageRegistry.GetHost(PageType.Launch) is not { } host) return;
-            var stack = new PageStackData(PageType.Launch);
+            if (PageRegistry.GetHost(PageIds.Launch) is not { } host) return;
+            var stack = new PageRoute(PageIds.Launch);
             _ = host.GetLeft(stack);
             _ = host.GetRight(stack);
         }
@@ -168,10 +166,7 @@ public partial class MainWindow : Window
             DispatcherPriority.Loaded);
     }
 
-    /// <summary>
-    ///     仅用于截图/布局证据：PCL_DEBUG_WINDOW_SIZE=810x470 或 workarea。
-    ///     不实现真正的最大化；UI 设计中没有最大化场景。
-    /// </summary>
+    /// <summary>仅用于截图/布局证据：PCL_DEBUG_WINDOW_SIZE=810x470 或 workarea。 不实现真正的最大化；UI 设计中没有最大化场景。</summary>
     private void ApplyDebugWindowSize()
     {
         var value = Environment.GetEnvironmentVariable("PCL_DEBUG_WINDOW_SIZE");

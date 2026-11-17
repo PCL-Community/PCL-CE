@@ -135,7 +135,7 @@ public partial class PageSelectRightViewModel : ViewModelBase
     [RelayCommand]
     public static void DownloadPage()
     {
-        PageRouter.Navigate(PageType.Download, PageSubType.DownloadInstall);
+        PageRouter.Navigate(PageIds.Download, SubPageIds.DownloadInstall);
     }
 
     [RelayCommand]
@@ -169,7 +169,7 @@ public partial class PageSelectRightViewModel : ViewModelBase
     public static void OpenInstanceSettings(McInstance version)
     {
         PageRouter.Navigate(
-            new PageStackData(PageType.InstanceSetup, PageSubType.VersionOverall, version));
+            new PageRoute(PageIds.InstanceSetup, SubPageIds.VersionOverall, version));
     }
 
     public async Task DeleteVersionAsync(McInstance instance, bool permanent)

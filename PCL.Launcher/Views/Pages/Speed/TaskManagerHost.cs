@@ -15,23 +15,23 @@ public sealed class TaskManagerHost : IPageHost
         _left = new PageSpeedLeft();
     }
 
-    public PageType Page => PageType.TaskManager;
+    public PageId Page => PageIds.TaskManager;
 
     public MainTab? Tab => null;
 
     public double LeftWidth => 200d;
 
-    public string GetTitle(PageStackData stack)
+    public string GetTitle(PageRoute stack)
     {
         return Lang.Text("Main.Title.TaskManager");
     }
 
-    public Control? GetLeft(PageStackData stack)
+    public Control? GetLeft(PageRoute stack)
     {
         return _left;
     }
 
-    public Control GetRight(PageStackData stack)
+    public Control GetRight(PageRoute stack)
     {
         return _right ??= new PageSpeedRight();
     }

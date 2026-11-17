@@ -19,23 +19,19 @@ public partial class PageToolsLeftViewModel : ViewModelBase
     [ObservableProperty] public partial bool UtilitiesCategoryVisible { get; set; } = true;
 
     [ObservableProperty]
-    public partial PageSubType SelectedPage { get; set; } = PageSubType.ToolsGameLink;
+    public partial SubPageId SelectedPage { get; set; } = SubPageIds.ToolsGameLink;
 
     /// <summary>请求页面重新选中联机大厅并刷新其内容。</summary>
     public event Action? RefreshRequested;
 
-    public static bool IsSubPageHidden(PageSubType sub)
+    public static bool IsSubPageHidden(SubPageId subPage)
     {
         if (HiddenFeatureState.ForceShow)
             return false;
 
-        var hide = Config.Preference.Hide;
-        return sub switch
-        {
-            PageSubType.ToolsGameLink => hide.ToolsGameLink,
-            PageSubType.ToolsTest => hide.ToolsTest,
-            _ => false
-        };
+        var page = PageCatalog.RequirePage(PageIds.Tools);
+        return page.SubPages.FirstOrDefault(item => item.Id == subPage) is { } descriptor
+            && !PageDescriptor.IsVisible(descriptor);
     }
 
     public static bool IsHiddenPage(
@@ -49,16 +45,12 @@ public partial class PageToolsLeftViewModel : ViewModelBase
         return !isForceShow && isHidden;
     }
 
-    public static PageSubType FirstVisible()
+    public static SubPageId FirstVisible()
     {
-        return !IsSubPageHidden(PageSubType.ToolsGameLink)
-            ? PageSubType.ToolsGameLink
-            : !IsSubPageHidden(PageSubType.ToolsTest)
-                ? PageSubType.ToolsTest
-                : PageSubType.ToolsGameLink;
+        return PageCatalog.RequirePage(PageIds.Tools).FirstVisibleSubPage();
     }
 
-    public static PageSubType ResolveInitialPageId()
+    public static SubPageId ResolveInitialPageId()
     {
         return FirstVisible();
     }
@@ -66,21 +58,21 @@ public partial class PageToolsLeftViewModel : ViewModelBase
     /// <summary>按当前“功能隐藏”状态计算条目与分类标题的可见性。</summary>
     public void UpdateVisibility()
     {
-        GameLinkVisible = !IsSubPageHidden(PageSubType.ToolsGameLink);
-        TestVisible = !IsSubPageHidden(PageSubType.ToolsTest);
+        GameLinkVisible = !IsSubPageHidden(SubPageIds.ToolsGameLink);
+        TestVisible = !IsSubPageHidden(SubPageIds.ToolsTest);
         MultiplayerCategoryVisible = GameLinkVisible;
         UtilitiesCategoryVisible = TestVisible;
     }
 
-    public void Select(PageSubType sub)
+    public void Select(SubPageId subPage)
     {
-        SelectedPage = sub;
+        SelectedPage = subPage;
     }
 
     [RelayCommand]
     public void Refresh()
     {
-        Select(PageSubType.ToolsGameLink);
+        Select(SubPageIds.ToolsGameLink);
         RefreshRequested?.Invoke();
     }
 }

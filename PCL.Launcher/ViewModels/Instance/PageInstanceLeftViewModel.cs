@@ -13,6 +13,9 @@ namespace PCL;
 /// <summary>实例左侧栏页的视图模型：维护可见项、分类标题、刷新状态与当前实例。</summary>
 public partial class PageInstanceLeftViewModel : ViewModelBase
 {
+    private static readonly PageDescriptor InstancePage =
+        PageCatalog.RequirePage(PageIds.InstanceSetup);
+
     [ObservableProperty] public partial bool ItemModVisible { get; set; } = true;
 
     [ObservableProperty] public partial bool ItemModDisabledVisible { get; set; } = true;
@@ -45,10 +48,10 @@ public partial class PageInstanceLeftViewModel : ViewModelBase
 
     public bool IsResetting { get; private set; }
 
-    public static PageSubType CurrentSubType =>
-        PageRouter.Current.Page == PageType.InstanceSetup
-            ? PageRouter.Current.SubType
-            : PageSubType.VersionOverall;
+    public static SubPageId CurrentSubPage =>
+        PageRouter.Current.Page == PageIds.InstanceSetup
+            ? PageRouter.Current.SubPage ?? SubPageIds.VersionOverall
+            : SubPageIds.VersionOverall;
 
     public static void SetCurrentInstance(McInstance? instance)
     {
@@ -57,7 +60,7 @@ public partial class PageInstanceLeftViewModel : ViewModelBase
 
     public static McInstance? ResolveInstance()
     {
-        return PageRouter.Current.Page == PageType.InstanceSetup
+        return PageRouter.Current.Page == PageIds.InstanceSetup
             && PageRouter.Current.Parameter is McInstance routed
                 ? routed
                 : CurrentInstance ?? InstanceList.McMcInstanceSelected;
@@ -159,126 +162,88 @@ public partial class PageInstanceLeftViewModel : ViewModelBase
 
         var result = new List<PageInstanceLeftEntry>
         {
-            PageInstanceLeftEntry.CreateSection(Lang.Text("Instance.Left.Game")),
-            PageInstanceLeftEntry.CreateItem(
-                PageSubType.VersionOverall,
-                "Instance.Left.Overview",
-                "lucide/layout-dashboard",
-                0.95),
-            PageInstanceLeftEntry.CreateItem(
-                PageSubType.VersionSetup,
-                "Instance.Left.Settings",
-                "lucide/settings",
-                1.0,
-                true),
-            PageInstanceLeftEntry.CreateItem(
-                PageSubType.VersionInstall,
-                "Instance.Left.Install",
-                "lucide/wrench",
-                0.87,
-                isVisible: ItemInstallVisible,
-                refreshType: PageSubType.VersionInstall),
-            PageInstanceLeftEntry.CreateItem(
-                PageSubType.VersionExport,
-                "Instance.Left.Export",
-                "lucide/package",
-                isVisible: ItemExportVisible,
-                refreshType: PageSubType.VersionExport)
+            Section("game"),
+            Item(SubPageIds.VersionOverall),
+            Item(SubPageIds.VersionSetup, reset: true),
+            Item(SubPageIds.VersionInstall, ItemInstallVisible, refresh: true),
+            Item(SubPageIds.VersionExport, ItemExportVisible, refresh: true)
         };
 
         if (TextResourceVisible)
-            result.Add(PageInstanceLeftEntry.CreateSection(Lang.Text("Instance.Left.Resources")));
+            result.Add(Section("resources"));
 
         if (ItemWorldVisible)
-            result.Add(
-                PageInstanceLeftEntry.CreateItem(
-                    PageSubType.VersionWorld,
-                    "Instance.Left.Saves",
-                    "lucide/globe",
-                    0.95,
-                    refreshType: PageSubType.VersionWorld));
+            result.Add(Item(SubPageIds.VersionWorld, refresh: true));
         if (ItemScreenshotVisible)
-            result.Add(
-                PageInstanceLeftEntry.CreateItem(
-                    PageSubType.VersionScreenshot,
-                    "Instance.Left.Screenshots",
-                    "lucide/image",
-                    0.95,
-                    refreshType: PageSubType.VersionScreenshot));
+            result.Add(Item(SubPageIds.VersionScreenshot, refresh: true));
 
         if (ItemModVisible)
-            result.Add(
-                PageInstanceLeftEntry.CreateItem(
-                    PageSubType.VersionMod,
-                    "Instance.Left.Mod",
-                    "lucide/puzzle",
-                    refreshType: PageSubType.VersionMod));
+            result.Add(Item(SubPageIds.VersionMod, refresh: true));
         else if (ItemModDisabledVisible)
-            result.Add(
-                PageInstanceLeftEntry.CreateItem(
-                    PageSubType.VersionModDisabled,
-                    "Instance.Left.Mod",
-                    "lucide/puzzle"));
+            result.Add(Item(SubPageIds.VersionModDisabled));
 
         if (ItemResourcePackVisible)
-            result.Add(
-                PageInstanceLeftEntry.CreateItem(
-                    PageSubType.VersionResourcePack,
-                    "Instance.Left.ResourcePacks",
-                    "lucide/layers",
-                    0.85,
-                    refreshType: PageSubType.VersionResourcePack));
+            result.Add(Item(SubPageIds.VersionResourcePack, refresh: true));
         if (ItemShaderVisible)
-            result.Add(
-                PageInstanceLeftEntry.CreateItem(
-                    PageSubType.VersionShader,
-                    "Instance.Left.Shaders",
-                    "lucide/sparkles",
-                    1.15,
-                    refreshType: PageSubType.VersionShader));
+            result.Add(Item(SubPageIds.VersionShader, refresh: true));
         if (ItemSchematicVisible)
-            result.Add(
-                PageInstanceLeftEntry.CreateItem(
-                    PageSubType.VersionSchematic,
-                    "Instance.Left.Schematics",
-                    "lucide/file-box",
-                    0.85,
-                    refreshType: PageSubType.VersionSchematic));
+            result.Add(Item(SubPageIds.VersionSchematic, refresh: true));
         if (ItemServerVisible)
-            result.Add(
-                PageInstanceLeftEntry.CreateItem(
-                    PageSubType.VersionServer,
-                    "Instance.Left.Servers",
-                    "lucide/server",
-                    0.85,
-                    refreshType: PageSubType.VersionServer));
+            result.Add(Item(SubPageIds.VersionServer, refresh: true));
 
         return result;
     }
 
-    public static bool IsCurrentPage(PageSubType subType)
+    private static PageInstanceLeftEntry Section(string groupKey)
     {
-        return subType == CurrentSubType;
+        var group = InstancePage.Groups.FirstOrDefault(item => item.Key == groupKey);
+        return PageInstanceLeftEntry.CreateSection(
+            group is null ? string.Empty : Lang.Text(group.TitleKey));
     }
 
-    public static void ChangePage(PageSubType subType)
+    private static PageInstanceLeftEntry Item(
+        SubPageId subPage,
+        bool visible = true,
+        bool reset = false,
+        bool refresh = false)
+    {
+        var descriptor = InstancePage.FindSubPage(subPage);
+        if (descriptor is null)
+            throw new ArgumentOutOfRangeException(nameof(subPage), subPage, null);
+
+        return PageInstanceLeftEntry.CreateItem(
+            descriptor.Id,
+            descriptor.TitleKey,
+            descriptor.IconKey ?? string.Empty,
+            descriptor.LogoScale,
+            reset,
+            visible,
+            refresh ? descriptor.Id : null);
+    }
+
+    public static bool IsCurrentPage(SubPageId subPage)
+    {
+        return subPage == CurrentSubPage;
+    }
+
+    public static void ChangePage(SubPageId subPage)
     {
         var instance = ResolveInstance();
         if (instance is null)
             return;
-        if (PageRouter.Current.Page == PageType.InstanceSetup
-            && PageRouter.Current.SubType == subType
+        if (PageRouter.Current.Page == PageIds.InstanceSetup
+            && PageRouter.Current.SubPage == subPage
             && ReferenceEquals(PageRouter.Current.Parameter, instance))
             return;
-        PageRouter.Navigate(new PageStackData(PageType.InstanceSetup, subType, instance));
+        PageRouter.Navigate(new PageRoute(PageIds.InstanceSetup, subPage, instance));
     }
 
-    public static void RefreshSubPage(PageSubType subType)
+    public static void RefreshSubPage(SubPageId subPage)
     {
         var instance = ResolveInstance();
         if (instance is null)
             return;
-        PageRouter.Navigate(new PageStackData(PageType.InstanceSetup, subType, instance));
+        PageRouter.Navigate(new PageRoute(PageIds.InstanceSetup, subPage, instance));
         if (PageRouter.CurrentPage is IRefreshable refreshable)
             refreshable.Refresh();
     }
@@ -303,9 +268,9 @@ public partial class PageInstanceLeftViewModel : ViewModelBase
                 return false;
 
             PageRouter.Navigate(
-                new PageStackData(
-                    PageType.InstanceSetup,
-                    PageSubType.VersionSetup,
+                new PageRoute(
+                    PageIds.InstanceSetup,
+                    SubPageIds.VersionSetup,
                     ResolveInstance()));
             if (PageRouter.CurrentPage is PageInstanceSetup setup)
                 setup.Reset();
@@ -329,12 +294,12 @@ public partial class PageInstanceLeftViewModel : ViewModelBase
 
 /// <summary>实例左栏中的一条导航项。</summary>
 public sealed record PageInstanceLeftItem(
-    PageSubType SubType,
+    SubPageId SubPage,
     string TitleKey,
     string SvgIcon,
     double LogoScale,
     bool IsResetButton,
-    PageSubType? RefreshType,
+    SubPageId? RefreshType,
     bool IsVisible);
 
 /// <summary>实例左栏条目：分类标题或可点击条目。</summary>
@@ -350,18 +315,18 @@ public sealed record PageInstanceLeftEntry(
     }
 
     public static PageInstanceLeftEntry CreateItem(
-        PageSubType subType,
+        SubPageId subPage,
         string titleKey,
         string svgIcon,
         double logoScale = 1d,
         bool isResetButton = false,
         bool isVisible = true,
-        PageSubType? refreshType = null)
+        SubPageId? refreshType = null)
     {
         return new PageInstanceLeftEntry(
             null,
             new PageInstanceLeftItem(
-                subType,
+                subPage,
                 titleKey,
                 svgIcon,
                 logoScale,

@@ -117,7 +117,8 @@ public partial class PageInstanceExportViewModel : ViewModelBase
 
     public bool ModrinthEnabled => !BundleFiles;
 
-    public bool PclEnabled => !Modrinth && PlatformRuntime.Current.Capabilities.SupportsBundledLauncher;
+    public bool PclEnabled =>
+        !Modrinth && PlatformRuntime.Current.Capabilities.SupportsBundledLauncher;
 
     public bool OptionsVisible => !HasOverrides;
 
@@ -372,7 +373,7 @@ public partial class PageInstanceExportViewModel : ViewModelBase
             var loaderName = Lang.Text("Instance.Export.ExportTask.Prefix") + packName;
             if (Loading.loaderTaskbar.Any(loader => loader.name == loaderName))
             {
-                PageRouter.Navigate(PageType.TaskManager);
+                PageRouter.Navigate(PageIds.TaskManager);
                 return false;
             }
 
@@ -488,7 +489,7 @@ public partial class PageInstanceExportViewModel : ViewModelBase
             mainLoader.Start();
             Loading.LoaderTaskbarAdd(mainLoader);
             LoadingUi.Current?.RefreshDownloadButton();
-            PageRouter.Navigate(PageType.TaskManager);
+            PageRouter.Navigate(PageIds.TaskManager);
             return true;
         }
         catch (Exception ex)
@@ -982,7 +983,8 @@ public partial class PageInstanceExportViewModel : ViewModelBase
         if (launcher is null)
             return;
 
-        var canIncludeLauncher = !Modrinth && PlatformRuntime.Current.Capabilities.SupportsBundledLauncher;
+        var canIncludeLauncher =
+            !Modrinth && PlatformRuntime.Current.Capabilities.SupportsBundledLauncher;
         launcher.IsEnabled = canIncludeLauncher;
         if (!canIncludeLauncher && IncludePcl)
             IncludePcl = false;

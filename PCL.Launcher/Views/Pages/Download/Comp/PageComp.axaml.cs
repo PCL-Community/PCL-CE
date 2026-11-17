@@ -8,9 +8,9 @@ using PCL.UI.Controls;
 namespace PCL.Views.Pages.Download;
 
 /// <summary>
-///     资源工程搜索页：筛选 + 搜索结果列表 + 分页，点击条目进入资源详情页。
-///     供下载页的各资源子页（Mod/整合包/资源包/光影/数据包/世界）作为内容宿主复用，宿主通过
-///     <see cref="PageType" /> 指定资源种类，并通过 <see cref="SetCategoryTags" /> 注入分类筛选项。
+/// 资源工程搜索页：筛选 + 搜索结果列表 + 分页，点击条目进入资源详情页。
+/// 供下载页的各资源子页（Mod/整合包/资源包/光影/数据包/世界）作为内容宿主复用，宿主通过 <see cref="PageIds" /> 指定资源种类，并通过
+/// <see cref="SetCategoryTags" /> 注入分类筛选项。
 /// </summary>
 public partial class PageComp : UserControl
 {
@@ -59,14 +59,14 @@ public partial class PageComp : UserControl
 
     public PageCompViewModel ViewModel { get; } = new();
 
-    public Comp.CompType PageType
+    public Comp.CompType PageIds
     {
-        get => ViewModel.PageType;
+        get => ViewModel.PageIds;
         set
         {
-            if (ViewModel.PageType == value) return;
-            ViewModel.PageType = value;
-            if (IsInitialized) ApplyPageTypeUi();
+            if (ViewModel.PageIds == value) return;
+            ViewModel.PageIds = value;
+            if (IsInitialized) ApplyPageIdsUi();
         }
     }
 
@@ -165,14 +165,14 @@ public partial class PageComp : UserControl
         IsInitialized = true;
 
         LocalizationService.LanguageChanged += OnLanguageChanged;
-        ApplyPageTypeUi();
+        ApplyPageIdsUi();
         ApplyCategoryTags();
         InsertHighestDropVersion();
 
         if (!string.IsNullOrEmpty(ViewModel.TargetGameVersion))
             TextSearchVersion.Text = ViewModel.TargetGameVersion;
         if (ViewModel.TargetModLoader != Comp.CompLoaderType.Any
-            && PageType is Comp.CompType.Mod or Comp.CompType.ModPack)
+            && PageIds is Comp.CompType.Mod or Comp.CompType.ModPack)
             SelectComboLoader(ViewModel.TargetModLoader);
 
         StartNewSearch();
@@ -202,7 +202,7 @@ public partial class PageComp : UserControl
         e.Handled = true;
     }
 
-    private void ApplyPageTypeUi()
+    private void ApplyPageIdsUi()
     {
         PanSearchBox.HintText = ViewModel.SearchHintText;
         Load.Text = ViewModel.LoadText;
@@ -227,7 +227,7 @@ public partial class PageComp : UserControl
     {
         if (!IsInitialized) return;
         ViewModel.RefreshLocalization();
-        ApplyPageTypeUi();
+        ApplyPageIdsUi();
         ApplyCategoryTags();
         ApplyStaticToolTips();
         var versionIndex = TextSearchVersion.SelectedIndex;
@@ -294,7 +294,7 @@ public partial class PageComp : UserControl
         SyncFiltersToViewModel();
         var context = new CompDetailParameter(
             item.Project,
-            PageType,
+            PageIds,
             ViewModel.SelectedGameVersion,
             ViewModel.SelectedModLoader);
         var handler = CompDetailRequested;
@@ -305,8 +305,8 @@ public partial class PageComp : UserControl
         }
 
         PageRouter.Navigate(
-            Navigation.PageType.CompDetail,
-            PageSubType.Default,
+            Navigation.PageIds.CompDetail,
+            null,
             context);
     }
 

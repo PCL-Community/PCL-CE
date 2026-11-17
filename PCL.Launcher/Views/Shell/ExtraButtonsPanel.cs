@@ -13,8 +13,8 @@ using PCL.UI.Controls;
 namespace PCL.Views.Shell;
 
 /// <summary>
-///     主窗口右下角的快捷按钮组：更新重启、返回顶部、任务管理、愚人节、关闭游戏、游戏日志、背景音乐。
-///     每个按钮通过 <see cref="MyExtraButton.showCheck" /> 按实时状态显隐，状态在页面切换与定时轮询时刷新。
+/// 主窗口右下角的快捷按钮组：更新重启、返回顶部、任务管理、愚人节、关闭游戏、游戏日志、背景音乐。 每个按钮通过
+/// <see cref="MyExtraButton.showCheck" /> 按实时状态显隐，状态在页面切换与定时轮询时刷新。
 /// </summary>
 public sealed class ExtraButtonsPanel : StackPanel
 {
@@ -67,10 +67,10 @@ public sealed class ExtraButtonsPanel : StackPanel
         _updateRestart.showCheck = () => UpdateManager.isUpdateWaitingRestart;
         _backToTop.showCheck = CanScrollToTop;
         _download.showCheck = () => NetFacade.HasDownloadingTask()
-            && PageRouter.Current.Page != PageType.TaskManager;
+            && PageRouter.Current.Page != PageIds.TaskManager;
         _april.showCheck = () => Basics.IsAprilFool
             && !IsAprilGiveup
-            && PageRouter.Current.Page == PageType.Launch;
+            && PageRouter.Current.Page == PageIds.Launch;
         _shutdown.showCheck = () => GameWatcher.hasRunningMinecraft;
         _log.showCheck = ShowLogButton;
         _music.showCheck = () => MusicStateProvider?.Invoke() is { Visible: true }
@@ -262,7 +262,7 @@ public sealed class ExtraButtonsPanel : StackPanel
     private static bool ShowLogButton()
     {
         if (GameLogProvider is null) return false;
-        if (PageRouter.Current.Page == PageType.GameLog) return false;
+        if (PageRouter.Current.Page == PageIds.GameLog) return false;
         return GameLogProvider?.Invoke() ?? GameWatcher.mcWatcherList.Count > 0;
     }
 
@@ -288,12 +288,12 @@ public sealed class ExtraButtonsPanel : StackPanel
 
     private static void ShowTaskManager()
     {
-        PageRouter.Navigate(PageType.TaskManager);
+        PageRouter.Navigate(PageIds.TaskManager);
     }
 
     private static void ShowGameLog()
     {
-        PageRouter.Navigate(PageType.GameLog);
+        PageRouter.Navigate(PageIds.GameLog);
     }
 
     private static void UpdateRestart()

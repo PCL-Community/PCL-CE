@@ -243,7 +243,7 @@ public class CustomEvent
         };
     }
 
-    /// <summary>切换页面。参数：PageType[|PageSubType]。</summary>
+    /// <summary>切换页面。参数：string[|string]。</summary>
     private static void _SwitchPage(string arg, EventType _)
     {
         var args = SplitArgs(arg);

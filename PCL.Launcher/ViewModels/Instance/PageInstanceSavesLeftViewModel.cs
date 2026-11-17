@@ -11,6 +11,9 @@ namespace PCL;
 /// <summary>存档左侧栏页的视图模型。</summary>
 public partial class PageInstanceSavesLeftViewModel : ViewModelBase
 {
+    private static readonly PageDescriptor VersionSavesPage =
+        PageCatalog.RequirePage(PageIds.VersionSaves);
+
     public static PageInstanceSavesLeftViewModel? Current { get; private set; }
 
     /// <summary>当前存档文件夹；由路由参数与存档列表同步。</summary>
@@ -23,8 +26,10 @@ public partial class PageInstanceSavesLeftViewModel : ViewModelBase
 
     public IReadOnlyList<PageInstanceSavesLeftItem> Items { get; } =
     [
-        new(PageSubType.VersionSavesInfo, "Instance.Saves.Left.Info", "lucide/info"),
-        new(PageSubType.VersionSavesDatapack, "Instance.Saves.Left.Datapack", "lucide/file-archive")
+        .. VersionSavesPage.SubPages.Select(descriptor => new PageInstanceSavesLeftItem(
+            descriptor.Id,
+            descriptor.TitleKey,
+            descriptor.IconKey ?? string.Empty))
     ];
 
     public static string QuickActionsTitle => Lang.Text("Instance.Saves.Left.QuickActions");
@@ -44,18 +49,18 @@ public partial class PageInstanceSavesLeftViewModel : ViewModelBase
             CurrentSave = path;
     }
 
-    public static PageSubType ResolveCurrentSubPage()
+    public static SubPageId ResolveCurrentSubPage()
     {
-        return PageRouter.Current.Page == PageType.VersionSaves
-            ? PageRouter.Current.SubType
-            : PageSubType.VersionSavesInfo;
+        return PageRouter.Current.Page == PageIds.VersionSaves
+            ? PageRouter.Current.SubPage ?? SubPageIds.VersionSavesInfo
+            : VersionSavesPage.DefaultSubPage ?? SubPageIds.VersionSavesInfo;
     }
 
     [RelayCommand]
     public static void Refresh()
     {
         PageRouter.Navigate(
-            new PageStackData(PageType.VersionSaves, ResolveCurrentSubPage(), CurrentSave));
+            new PageRoute(PageIds.VersionSaves, ResolveCurrentSubPage(), CurrentSave));
         if (PageRouter.CurrentPage is IRefreshable refreshable)
             refreshable.Refresh();
         HintService.Show(
@@ -68,29 +73,29 @@ public partial class PageInstanceSavesLeftViewModel : ViewModelBase
         InstancePageHelper.OpenFolder(CurrentSave);
     }
 
-    public static void Navigate(PageSubType subType)
+    public static void Navigate(SubPageId subPage)
     {
-        PageRouter.Navigate(new PageStackData(PageType.VersionSaves, subType, CurrentSave));
+        PageRouter.Navigate(new PageRoute(PageIds.VersionSaves, subPage, CurrentSave));
     }
 
     /// <summary>数据包子页被隐藏时退回存档信息页。</summary>
     public static void ApplyDatapackVisibility()
     {
         if (ShowDatapackTab
-            || PageRouter.Current.Page != PageType.VersionSaves
-            || PageRouter.Current.SubType != PageSubType.VersionSavesDatapack)
+            || PageRouter.Current.Page != PageIds.VersionSaves
+            || PageRouter.Current.SubPage != SubPageIds.VersionSavesDatapack)
             return;
 
         PageRouter.Navigate(
-            new PageStackData(
-                PageType.VersionSaves,
-                PageSubType.VersionSavesInfo,
+            new PageRoute(
+                PageIds.VersionSaves,
+                SubPageIds.VersionSavesInfo,
                 CurrentSave));
     }
 }
 
 /// <summary>存档左栏中的一条导航项。</summary>
 public sealed record PageInstanceSavesLeftItem(
-    PageSubType SubType,
+    SubPageId SubPage,
     string TitleKey,
     string SvgIcon);

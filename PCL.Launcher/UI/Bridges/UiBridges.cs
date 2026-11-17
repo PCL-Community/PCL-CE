@@ -728,17 +728,17 @@ public sealed class CompNavigationBridge : ICompNavigationService
 {
     public void ShowCompDetail(Comp.CompProject project)
     {
-        PageRouter.Navigate(PageType.CompDetail, PageSubType.Default, project);
+        PageRouter.Navigate(PageIds.CompDetail, null, project);
     }
 
     public void ShowTaskManager()
     {
-        PageRouter.Navigate(PageType.TaskManager);
+        PageRouter.Navigate(PageIds.TaskManager);
     }
 
     public void ShowInstanceSelect()
     {
-        PageRouter.Navigate(PageType.InstanceSelect);
+        PageRouter.Navigate(PageIds.InstanceSelect);
     }
 }
 
@@ -769,15 +769,15 @@ public sealed class EventUiBridge : IEventUi
 
     public void SwitchPage(string pageType, string? subType)
     {
-        if (!Enum.TryParse<PageType>(pageType, true, out var page))
+        if (!PageCatalog.TryParsePage(pageType, out var page))
         {
             LogWrapper.Warn("UI", $"自定义事件切换页面失败：无法识别页面类型 {pageType}");
             return;
         }
 
-        var sub = PageSubType.Default;
+        SubPageId? sub = null;
         if (!string.IsNullOrEmpty(subType)
-            && !Enum.TryParse(subType, true, out sub))
+            && !PageCatalog.TryParseSubPage(page, subType, out sub))
         {
             LogWrapper.Warn("UI", $"自定义事件切换页面失败：无法识别子页面类型 {subType}");
             return;
@@ -809,9 +809,9 @@ public sealed class EventUiBridge : IEventUi
         {
             var title = PageHelpDetail.ReadTitle(location);
             PageRouter.Navigate(
-                new PageStackData(
-                    PageType.HelpDetail,
-                    PageSubType.Default,
+                new PageRoute(
+                    PageIds.HelpDetail,
+                    null,
                     location,
                     string.IsNullOrEmpty(title) ? null : title));
         }
@@ -936,8 +936,8 @@ public sealed class DownloadInteractionBridge : IDownloadUserInteraction
                 button3Action: () => OpenUpdateLog(version));
             if (result == 2)
                 PageRouter.Navigate(
-                    PageType.Download,
-                    PageSubType.DownloadInstall,
+                    PageIds.Download,
+                    SubPageIds.DownloadInstall,
                     version as JsonObject ?? (object)versionName);
         }
         catch (Exception ex)

@@ -7,21 +7,21 @@ namespace PCL.Core.Test;
 public sealed class NavigationServiceTest
 {
     [TestMethod]
-    public void RouteKeyComparesPageAndSubPage()
+    public void PageLocationComparesPageAndSubPage()
     {
         Assert.AreEqual(
-            new RouteKey(PageType.Setup, PageSubType.SetupLog),
-            new RouteKey(PageType.Setup, PageSubType.SetupLog));
+            new PageLocation(PageIds.Setup, SubPageIds.SetupLog),
+            new PageLocation(PageIds.Setup, SubPageIds.SetupLog));
         Assert.AreNotEqual(
-            new RouteKey(PageType.Setup, PageSubType.SetupLog),
-            new RouteKey(PageType.Setup, PageSubType.SetupUi));
+            new PageLocation(PageIds.Setup, SubPageIds.SetupLog),
+            new PageLocation(PageIds.Setup, SubPageIds.SetupUi));
     }
 
     [TestMethod]
     public void NavigationServiceCurrentMatchesRouterDefault()
     {
         Assert.AreEqual(
-            new RouteKey(PageType.Launch),
+            new PageLocation(PageIds.Launch, null),
             NavigationService.Instance.Current);
     }
 }

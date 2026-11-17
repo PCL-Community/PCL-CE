@@ -12,9 +12,8 @@ using PCL.Views.Shell;
 namespace PCL.Navigation;
 
 /// <summary>
-///     页面路由：维护左右页面宿主、当前定位与返回栈，并驱动页面生命周期与转场。
-///     顶级页面按 <see cref="PageType" /> 切换，二级页面按 <see cref="PageStackData" /> 返回；
-///     所有公共入口必须在 UI 线程调用。
+/// 页面路由：维护左右页面宿主、当前定位与返回栈，并驱动页面生命周期与转场。 顶级页面按 <see cref="PageId" /> 切换，二级页面按
+/// <see cref="PageRoute" /> 返回； 所有公共入口必须在 UI 线程调用。
 /// </summary>
 public static class PageRouter
 {
@@ -28,20 +27,19 @@ public static class PageRouter
     private static Control? _mountedLeft;
     private static Control? _mountedRight;
     private static int _transitionGeneration;
-    private static readonly List<PageStackData> PageStack = [];
-    private static readonly Dictionary<MainTab, PageStackData> TabStates = [];
+    private static readonly PageNavigationStateMachine NavigationState = new();
     private static bool _isNavigating;
     private static bool _hasNavigated;
     private static bool _languageHooked;
 
     public static Control? CurrentPage { get; private set; }
     public static INavigationService Navigation => NavigationService.Instance;
-    public static PageStackData Current { get; private set; } = new(PageType.Launch);
+    public static PageRoute Current => NavigationState.Current;
     public static PageNavigationState? CurrentState { get; private set; }
-    public static bool CanGoBack => PageStack.Count > 0;
+    public static bool CanGoBack => NavigationState.CanGoBack;
 
     public static event Action<PageNavigationState>? Navigated;
-    public static event Action<PageStackData>? PageChanged;
+    public static event Action<PageRoute>? PageChanged;
 
     /// <summary>页面宿主已经完成 110ms 换页；左栏背景按实际内容宽度重新测量。</summary>
     public static event Action? PageHostSwapped;
@@ -104,27 +102,39 @@ public static class PageRouter
     public static void Navigate(MainTab tab)
     {
         var page = PageRegistry.PageOfTab(tab);
-        var target = TabStates.GetValueOrDefault(tab) ?? new PageStackData(page);
+        var target = NavigationState.GetTabState(tab) ?? new PageRoute(page);
         Navigate(target);
     }
 
     public static void Navigate(
-        PageType page,
-        PageSubType subType = PageSubType.Default,
+        PageId page,
+        SubPageId? subPage = null,
         object? parameter = null)
     {
-        Navigate(new PageStackData(page, subType, parameter));
+        Navigate(new PageRoute(page, subPage, parameter));
     }
 
-    public static void Navigate(PageStackData stack)
+    public static void Navigate(
+        PageLocation location,
+        object? parameter = null)
     {
+        Navigate(new PageRoute(location.Page, location.SubPage, parameter));
+    }
+
+    public static void Navigate(PageRoute route)
+    {
+        if (route.SubPage is { } subPage && subPage.Parent != route.Page)
+            throw new ArgumentException(
+                $"子页面 {subPage} 不属于页面 {route.Page}",
+                nameof(route));
+
         if (!Dispatcher.UIThread.CheckAccess())
         {
-            Dispatcher.UIThread.Post(() => Navigate(stack));
+            Dispatcher.UIThread.Post(() => Navigate(route));
             return;
         }
 
-        NavigateCore(stack);
+        NavigateCore(route);
     }
 
     public static bool Back()
@@ -135,14 +145,9 @@ public static class PageRouter
             return false;
         }
 
-        if (PageStack.Count > 0)
-        {
-            NavigateCore(PageStack[0]);
-            return true;
-        }
-
-        NavigateCore(new PageStackData(PageType.Launch));
-        return false;
+        var canGoBack = NavigationState.Back(out var target);
+        NavigateCore(target);
+        return canGoBack;
     }
 
     public static void RefreshState()
@@ -156,38 +161,27 @@ public static class PageRouter
         PublishState();
     }
 
-    private static void NavigateCore(PageStackData stack)
+    private static void NavigateCore(PageRoute route)
     {
         if (_isNavigating || _rightHost is null) return;
 
-        var host = PageRegistry.GetHost(stack.Page);
+        var host = PageRegistry.GetHost(route.Page);
         if (host is null)
         {
-            LogWrapper.Warn("UI", $"页面未注册，无法导航：{stack.Page}");
+            LogWrapper.Warn("UI", $"页面未注册，无法导航：{route.Page}");
             return;
         }
 
-        if (_hasNavigated && Current.IsSameLocation(stack)) return;
+        if (_hasNavigated && Current.IsSameLocation(route)) return;
 
         _isNavigating = true;
         AnimationService.BeginControl();
         try
         {
-            if (host.IsSecondary)
-            {
-                if (PageStack.Contains(stack))
-                    while (PageStack.Contains(stack))
-                        PageStack.RemoveAt(0);
-                else if (!Current.Equals(stack))
-                    PageStack.Insert(0, Current);
-            }
-            else
-            {
-                PageStack.Clear();
-            }
+            NavigationState.Navigate(route, host.IsSecondary, host.Tab);
 
-            var left = host.GetLeft(stack);
-            var right = host.GetRight(stack);
+            var left = host.GetLeft(route);
+            var right = host.GetRight(route);
 
             if (left is null && _leftHost is not null)
             {
@@ -195,15 +189,12 @@ public static class PageRouter
                 _leftHost.IsVisible = false;
             }
 
-            _MountPages(left, right, stack);
+            _MountPages(left, right, route);
 
-            Current = stack;
             _hasNavigated = true;
-            if (host.Tab is { } tab)
-                TabStates[tab] = stack;
 
             PublishState();
-            PageChanged?.Invoke(stack);
+            PageChanged?.Invoke(route);
 
             try
             {
@@ -215,11 +206,11 @@ public static class PageRouter
                 LogWrapper.Warn("UI", $"刷新快捷按钮失败：{ex.Message}");
             }
 
-            LogWrapper.Debug("UI", $"切换页面：{stack.Page}/{stack.SubType}");
+            LogWrapper.Debug("UI", $"切换页面：{route.Page}/{route.SubPage}");
         }
         catch (Exception ex)
         {
-            LogWrapper.Error(ex, "UI", $"切换页面失败：{stack.Page}");
+            LogWrapper.Error(ex, "UI", $"切换页面失败：{route.Page}");
         }
         finally
         {
@@ -228,7 +219,7 @@ public static class PageRouter
         }
     }
 
-    private static void _MountPages(Control? left, Control right, PageStackData stack)
+    private static void _MountPages(Control? left, Control right, PageRoute route)
     {
         if (_rightHost is null) return;
 
@@ -242,9 +233,10 @@ public static class PageRouter
         CurrentPage = right;
 
         if (oldLeft is IPageView oldLeftView) oldLeftView.OnNavigatedFrom();
-        if (animateLeft && oldLeft is MyPageLeft oldLeftPage) oldLeftPage.TriggerHideAnimation();
+        if (animateLeft && oldLeft is IPageLeftContainer oldLeftPage)
+            oldLeftPage.TriggerHideAnimation();
         if (oldRight is IPageView oldRightView) oldRightView.OnNavigatedFrom();
-        if (oldRight is MyPageRight oldRightPage) oldRightPage.PageOnExit();
+        if (oldRight is IPageRightContainer oldRightPage) oldRightPage.PageOnExit();
 
         AnimationService.Run(
             new List<IAnimation>
@@ -256,9 +248,9 @@ public static class PageRouter
 
                         using (AnimationService.SuspendControl())
                         {
-                            if (oldRight is MyPageRight forceExitPage)
+                            if (oldRight is IPageRightContainer forceExitPage)
                                 forceExitPage.PageOnForceExit();
-                            SwapPageHosts(left, right, stack, animateLeft);
+                            SwapPageHosts(left, right, route, animateLeft);
                         }
 
                         PageHostSwapped?.Invoke();
@@ -274,7 +266,7 @@ public static class PageRouter
                             return;
                         }
 
-                        EnterPage(left, right, stack, animateLeft);
+                        EnterPage(left, right, route, animateLeft);
                     },
                     PageEnterDelayMilliseconds,
                     true)
@@ -285,12 +277,12 @@ public static class PageRouter
     private static void SwapPageHosts(
         Control? left,
         Control right,
-        PageStackData stack,
+        PageRoute route,
         bool animateLeft)
     {
         if (_leftHost is not null)
         {
-            if (animateLeft && left is MyPageLeft)
+            if (animateLeft && left is IPageLeftContainer)
                 left.Opacity = 0d;
             _leftHost.Content = left;
             _leftHost.IsVisible = left is not null;
@@ -306,28 +298,27 @@ public static class PageRouter
     private static void EnterPage(
         Control? left,
         Control right,
-        PageStackData stack,
+        PageRoute route,
         bool animateLeft)
     {
         try
         {
             right.Opacity = 1d;
-            // 与 WPF 一致：左页先挂载一帧，等布局完成后再播放进入动画。
-            if (animateLeft && left is MyPageLeft newLeftPage)
+            if (animateLeft && left is IPageLeftContainer newLeftPage)
             {
                 left.Opacity = 1d;
                 newLeftPage.TriggerShowAnimation();
             }
 
-            if (left is IPageView leftView) leftView.OnNavigatedTo(stack.Parameter);
-            if (right is MyPageRight newRightPage) newRightPage.PageOnEnter();
-            if (right is IPageView rightView) rightView.OnNavigatedTo(stack.Parameter);
-            LayoutProbe.CheckAfterLayout(right, $"{stack.Page}/{stack.SubType}");
+            if (left is IPageView leftView) leftView.OnNavigatedTo(route.Parameter);
+            if (right is IPageRightContainer newRightPage) newRightPage.PageOnEnter();
+            if (right is IPageView rightView) rightView.OnNavigatedTo(route.Parameter);
+            LayoutProbe.CheckAfterLayout(right, $"{route.Page}/{route.SubPage}");
             FocusFirst(right);
         }
         catch (Exception ex)
         {
-            LogWrapper.Error(ex, "UI", $"页面进入失败：{stack.Page}");
+            LogWrapper.Error(ex, "UI", $"页面进入失败：{route.Page}");
         }
     }
 
@@ -381,14 +372,15 @@ public static class PageRouter
             leftWidth);
         CurrentState = state;
         Navigated?.Invoke(state);
-        NavigationService.Instance.RaiseNavigated(new RouteKey(Current.Page, Current.SubType));
+        NavigationService.Instance.RaiseNavigated(new PageLocation(Current.Page, Current.SubPage));
     }
 
     private static MainTab GetActiveTab(IPageHost? host)
     {
         if (host?.Tab is { } tab) return tab;
-        return PageStack.Count > 0 && PageRegistry.TabOfPage(PageStack[0].Page) is { } stackTab
-            ? stackTab
-            : PageRegistry.TabOfPage(Current.Page) ?? MainTab.Launch;
+        return NavigationState.BackStack.Count > 0
+            && PageRegistry.TabOfPage(NavigationState.BackStack[0].Page) is { } stackTab
+                ? stackTab
+                : PageRegistry.TabOfPage(Current.Page) ?? MainTab.Launch;
     }
 }

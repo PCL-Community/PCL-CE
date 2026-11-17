@@ -29,13 +29,13 @@ public partial class PageInstanceModDisabledViewModel : ViewModelBase
     [RelayCommand]
     public static void GoDownload()
     {
-        PageRouter.Navigate(PageType.Download, PageSubType.DownloadInstall);
+        PageRouter.Navigate(PageIds.Download, SubPageIds.DownloadInstall);
     }
 
     [RelayCommand]
     public static void SelectInstance()
     {
-        PageRouter.Navigate(PageType.Launch);
-        PageRouter.Navigate(PageType.InstanceSelect);
+        PageRouter.Navigate(PageIds.Launch);
+        PageRouter.Navigate(PageIds.InstanceSelect);
     }
 }

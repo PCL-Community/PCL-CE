@@ -518,11 +518,11 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
         var instance = PageInstanceLeft.ResolveInstance();
         if (instance is not null)
             PageRouter.Navigate(
-                PageType.Download,
-                PageSubType.DownloadDataPack,
+                PageIds.Download,
+                SubPageIds.DownloadDataPack,
                 new CompSearchContext(instance.Info.VanillaName, Comp.CompLoaderType.Any));
         else
-            PageRouter.Navigate(PageType.Download, PageSubType.DownloadDataPack);
+            PageRouter.Navigate(PageIds.Download, SubPageIds.DownloadDataPack);
     }
 
     public async Task InstallFilesAsync(IReadOnlyList<string> files)

@@ -343,7 +343,7 @@ public partial class PageLaunchLeftViewModel : ViewModelBase
                 GameLaunch.McLaunchStart();
                 break;
             case LaunchButtonAction.Download:
-                PageRouter.Navigate(PageType.Download, PageSubType.DownloadInstall);
+                PageRouter.Navigate(PageIds.Download, SubPageIds.DownloadInstall);
                 break;
             case LaunchButtonAction.Loading:
             case LaunchButtonAction.Disabled:
@@ -358,7 +358,7 @@ public partial class PageLaunchLeftViewModel : ViewModelBase
     {
         if (GameLaunch.mcLaunchLoader.State == LoadState.Loading)
             return;
-        PageRouter.Navigate(PageType.InstanceSelect);
+        PageRouter.Navigate(PageIds.InstanceSelect);
     }
 
     [RelayCommand]
@@ -375,7 +375,7 @@ public partial class PageLaunchLeftViewModel : ViewModelBase
             return;
         }
 
-        PageRouter.Navigate(PageType.InstanceSetup, PageSubType.Default, instance);
+        PageRouter.Navigate(PageIds.InstanceSetup, null, instance);
     }
 
     [RelayCommand]

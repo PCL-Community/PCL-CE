@@ -8,10 +8,7 @@ using PCL.Views.Shell;
 
 namespace PCL.Views.Pages.Log;
 
-/// <summary>
-///     游戏实时日志页左栏：维护已打开的游戏监视器列表与各自的日志缓冲区。
-///     右栏通过 <see cref="Current" /> 读取当前选中的缓冲区并渲染正文。
-/// </summary>
+/// <summary>游戏实时日志页左栏：维护已打开的游戏监视器列表与各自的日志缓冲区。 右栏通过 <see cref="Current" /> 读取当前选中的缓冲区并渲染正文。</summary>
 public partial class PageLogLeft : MyPageLeft, IRefreshable
 {
     private bool _isBuilding;
@@ -204,7 +201,7 @@ public partial class PageLogLeft : MyPageLeft, IRefreshable
             _returnScheduled = false;
             if (ViewModel.HasLogs)
                 return;
-            if (PageRouter.Current.Page != PageType.GameLog)
+            if (PageRouter.Current.Page != PageIds.GameLog)
                 return;
             PageRouter.Back();
         });

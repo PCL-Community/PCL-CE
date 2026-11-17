@@ -1,74 +1,39 @@
-using Avalonia.Controls;
-using PCL.Core.App.Localization;
 using PCL.Navigation;
 using PCL.UI.Controls;
+using PCL.UI.Controls.Navigation;
 using PCL.Views.Shell;
 
 namespace PCL.Views.Pages.Tools;
 
-/// <summary>
-///     联机与工具页左栏：联机大厅 / 测试工具两项，选中项与当前路由同步。
-///     功能隐藏配置为真的行不显示；两项都被隐藏时分组标题一并隐藏。
-/// </summary>
+/// <summary>联机与工具页左栏：由页面描述生成联机大厅 / 测试工具导航项。</summary>
 public partial class PageToolsLeft : MyPageLeft
 {
-    private readonly MyIconButton _btnRefresh;
-    private readonly List<(PageSubType Sub, MyListItem Item)> _items = [];
-    private bool _hiddenStateSubscribed;
+    private static readonly PageDescriptor Page = PageCatalog.RequirePage(PageIds.Tools);
+    private readonly List<(SubPageId Sub, MyListItem Item)> _items = [];
     private bool _isSynchronizing;
 
     public PageToolsLeft()
     {
         InitializeComponent();
-        DataContext = ViewModel;
         AnimatedControl = PanItem;
-
-        _items.Add((PageSubType.ToolsGameLink, ItemGameLink));
-        _items.Add((PageSubType.ToolsTest, ItemTest));
-
-        foreach (var (sub, item) in _items)
-            item.Check += (_, _) => OnItemChecked(sub, item);
-
-        _btnRefresh = new MyIconButton
-        {
-            SvgIcon = "lucide/refresh-cw",
-            LogoScale = 0.85
-        };
-        ToolTip.SetTip(_btnRefresh, Lang.Text("Common.Action.Refresh"));
-        ToolTip.SetPlacement(_btnRefresh, PlacementMode.Right);
-        _btnRefresh.Click += (_, _) => ViewModel.Refresh();
-        ItemGameLink.Buttons = [_btnRefresh];
-
-        ViewModel.RefreshRequested += OnRefreshRequested;
-
+        BuildItems();
         AttachedToVisualTree += (_, _) =>
         {
-            if (!_hiddenStateSubscribed)
-            {
-                HiddenFeatureState.Changed += ApplyHiddenState;
-                _hiddenStateSubscribed = true;
-            }
-
+            HiddenFeatureState.Changed += OnHiddenStateChanged;
             ApplyHiddenState();
         };
-        DetachedFromVisualTree += (_, _) =>
-        {
-            if (!_hiddenStateSubscribed)
-                return;
-            HiddenFeatureState.Changed -= ApplyHiddenState;
-            _hiddenStateSubscribed = false;
-        };
+        DetachedFromVisualTree += (_, _) => HiddenFeatureState.Changed -= OnHiddenStateChanged;
     }
 
     public PageToolsLeftViewModel ViewModel { get; } = new();
 
     protected override void RefreshLocalization()
     {
-        ToolTip.SetTip(_btnRefresh, Lang.Text("Common.Action.Refresh"));
-        ApplyHiddenState();
+        BuildItems();
+        Select(ViewModel.SelectedPage);
     }
 
-    public event Action<PageSubType>? PageSelected;
+    public event Action<SubPageId>? PageSelected;
 
     public override void OnNavigatedTo(object? parameter)
     {
@@ -79,9 +44,9 @@ public partial class PageToolsLeft : MyPageLeft
     {
     }
 
-    public void Select(PageSubType sub)
+    public void Select(SubPageId subPage)
     {
-        ViewModel.Select(sub);
+        ViewModel.Select(Page.NormalizeSubPage(subPage));
         _isSynchronizing = true;
         try
         {
@@ -96,43 +61,52 @@ public partial class PageToolsLeft : MyPageLeft
         ApplyHiddenState();
     }
 
+    private void OnHiddenStateChanged()
+    {
+        BuildItems();
+        Select(ViewModel.SelectedPage);
+        ApplyHiddenState();
+    }
+
     public void ApplyHiddenState()
     {
-        try
-        {
-            ViewModel.UpdateVisibility();
-            ItemGameLink.IsVisible = ViewModel.GameLinkVisible;
-            ItemTest.IsVisible = ViewModel.TestVisible;
-            TextMultiplayerCategory.IsVisible = ViewModel.MultiplayerCategoryVisible;
-            TextUtilitiesCategory.IsVisible = ViewModel.UtilitiesCategoryVisible;
-        }
-        catch (Exception)
-        {
-        }
+        var visible = Page
+            .VisibleSubPages(HiddenFeatureState.ForceShow)
+            .Select(item => item.Id)
+            .ToHashSet();
+        foreach (var (sub, item) in _items)
+            item.IsVisible = visible.Contains(sub);
     }
 
-    public static PageSubType FirstVisible()
+    public static SubPageId FirstVisible()
     {
-        return PageToolsLeftViewModel.FirstVisible();
+        return Page.FirstVisibleSubPage();
     }
 
-    public static bool IsSubPageHidden(PageSubType sub)
+    public static bool IsSubPageHidden(SubPageId subPage)
     {
-        return PageToolsLeftViewModel.IsSubPageHidden(sub);
+        return !Page.VisibleSubPages().Any(item => item.Id == subPage);
     }
 
-    private void OnRefreshRequested()
+    private void BuildItems()
     {
-        Select(ViewModel.SelectedPage);
-        PageSelected?.Invoke(ViewModel.SelectedPage);
-        PageToolsGameLink.Current?.Reload();
-    }
-
-    private void OnItemChecked(PageSubType sub, MyListItem item)
-    {
-        if (_isSynchronizing || !item.Checked)
-            return;
-        ViewModel.Select(sub);
-        PageSelected?.Invoke(sub);
+        var result = PageNavigationListBuilder.Build(
+            Page,
+            PanItem,
+            HiddenFeatureState.ForceShow,
+            sub =>
+            {
+                if (_isSynchronizing) return;
+                ViewModel.Select(sub);
+                PageSelected?.Invoke(sub);
+            },
+            onRefresh: _ =>
+            {
+                Select(SubPageIds.ToolsGameLink);
+                PageSelected?.Invoke(SubPageIds.ToolsGameLink);
+                PageToolsGameLink.Current?.Reload();
+            });
+        _items.Clear();
+        _items.AddRange(result.Items);
     }
 }

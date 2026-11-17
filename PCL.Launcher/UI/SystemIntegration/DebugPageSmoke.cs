@@ -1,16 +1,11 @@
 #if DEBUG
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using Avalonia.Threading;
 using PCL.Core.Logging;
 using PCL.Navigation;
 
 namespace PCL.UI.SystemIntegration;
 
-/// <summary>
-///     调试构建的页面巡检工具：按 <c>PCL_DEBUG_SMOKE_PAGES</c> 导航并停留，供自动化截图逐页核对。
-/// </summary>
+/// <summary>调试构建的页面巡检工具：按 <c>PCL_DEBUG_SMOKE_PAGES</c> 导航并停留，供自动化截图逐页核对。</summary>
 internal static class DebugPageSmoke
 {
     private const int StartupDelayMilliseconds = 4000;
@@ -20,7 +15,9 @@ internal static class DebugPageSmoke
         var spec = Environment.GetEnvironmentVariable("PCL_DEBUG_SMOKE_PAGES");
         if (string.IsNullOrWhiteSpace(spec)) return;
 
-        var dwell = int.TryParse(Environment.GetEnvironmentVariable("PCL_DEBUG_SMOKE_DWELL"), out var parsed)
+        var dwell = int.TryParse(
+            Environment.GetEnvironmentVariable("PCL_DEBUG_SMOKE_DWELL"),
+            out var parsed)
             ? Math.Max(500, parsed)
             : 2500;
 
@@ -40,7 +37,9 @@ internal static class DebugPageSmoke
             Console.Out.Flush();
         };
 
-        var pages = spec.Split([','], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var pages = spec.Split(
+            [','],
+            StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         _ = RunAsync(pages, dwell);
     }
 
@@ -59,37 +58,50 @@ internal static class DebugPageSmoke
             try
             {
                 PageRouter.Navigate(stack!);
-                Console.Out.WriteLine($"[SMOKE] enter={raw}");
-                Console.Out.Flush();
+                await Console.Out.WriteLineAsync($"[SMOKE] enter={raw}");
+                await Console.Out.FlushAsync();
                 await Task.Delay(dwellMilliseconds);
                 var state = PageRouter.CurrentState;
-                var line = $"[SMOKE] page={raw} title={state?.Title} secondary={state?.IsSecondary} tab={state?.Tab} leftWidth={state?.LeftWidth}";
+                var line =
+                    $"[SMOKE] page={raw} "
+                    + $"title={state?.Title} "
+                    + $"secondary={state?.IsSecondary} "
+                    + $"tab={state?.Tab} "
+                    + $"leftWidth={state?.LeftWidth}";
                 LogWrapper.Info("UI", line);
-                Console.Out.WriteLine(line);
-                Console.Out.Flush();
+                await Console.Out.WriteLineAsync(line);
+                await Console.Out.FlushAsync();
             }
             catch (Exception ex)
             {
                 LogWrapper.Error(ex, "UI", $"[SMOKE] 导航失败：{raw}");
-                Console.Out.WriteLine($"[SMOKE] 导航失败 {raw}：{ex}");
-                Console.Out.Flush();
+                await Console.Out.WriteLineAsync($"[SMOKE] 导航失败 {raw}：{ex}");
+                await Console.Out.FlushAsync();
             }
         }
 
         LogWrapper.Info("UI", "[SMOKE] 巡检结束");
-        Console.Out.WriteLine("[SMOKE] done");
-        Console.Out.Flush();
+        await Console.Out.WriteLineAsync("[SMOKE] done");
+        await Console.Out.FlushAsync();
     }
 
-    private static bool TryParse(string raw, out PageStackData? stack)
+    private static bool TryParse(string raw, out PageRoute? stack)
     {
         stack = null;
-        var parts = raw.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        if (parts.Length == 0) return false;
-        if (!Enum.TryParse<PageType>(parts[0], ignoreCase: true, out var page)) return false;
-        var subType = PageSubType.Default;
-        if (parts.Length > 1 && !Enum.TryParse(parts[1], ignoreCase: true, out subType)) return false;
-        stack = new PageStackData(page, subType);
+        var parts = raw.Split(
+            '/',
+            StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (parts.Length == 0)
+            return false;
+
+        if (!PageCatalog.TryParsePage(parts[0], out var page))
+            return false;
+
+        SubPageId? subPage = null;
+        if (parts.Length > 1 && !PageCatalog.TryParseSubPage(page, parts[1], out subPage))
+            return false;
+
+        stack = new PageRoute(page, subPage);
         return true;
     }
 }

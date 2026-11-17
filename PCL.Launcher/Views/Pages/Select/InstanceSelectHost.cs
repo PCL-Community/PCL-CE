@@ -10,23 +10,23 @@ public sealed class InstanceSelectHost : IPageHost
     private PageSelectLeft? _left;
     private PageSelectRight? _right;
 
-    public PageType Page => PageType.InstanceSelect;
+    public PageId Page => PageIds.InstanceSelect;
 
     public MainTab? Tab => null;
 
     public double LeftWidth => 300d;
 
-    public string GetTitle(PageStackData stack)
+    public string GetTitle(PageRoute stack)
     {
         return Lang.Text("Main.Title.InstanceSelect");
     }
 
-    public Control? GetLeft(PageStackData stack)
+    public Control? GetLeft(PageRoute stack)
     {
         return _left ??= new PageSelectLeft();
     }
 
-    public Control GetRight(PageStackData stack)
+    public Control GetRight(PageRoute stack)
     {
         return _right ??= new PageSelectRight();
     }

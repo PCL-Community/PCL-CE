@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
-using PCL.Core.Minecraft;
 using PCL.Core.Minecraft.Java;
 using PCL.Core.Minecraft.Java.UserPreference;
 using PCL.Core.UI;
@@ -658,7 +657,7 @@ public partial class PageInstanceSetupViewModel : ViewModelBase
     [RelayCommand]
     private static void OpenGlobalSettings()
     {
-        PageRouter.Navigate(PageType.Setup);
+        PageRouter.Navigate(PageIds.Setup);
     }
 
     [RelayCommand]
@@ -667,7 +666,7 @@ public partial class PageInstanceSetupViewModel : ViewModelBase
         if (!CanCreateOtherProfile())
             return;
         PageLoginAuth.PendingAuthServer = AuthServerAddress;
-        PageRouter.Navigate(PageType.Launch);
+        PageRouter.Navigate(PageIds.Launch);
         LauncherCommon.RunInNewThread(
             () =>
             {

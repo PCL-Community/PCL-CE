@@ -14,9 +14,8 @@ using PCL.UI.Controls;
 namespace PCL.Views.Pages.Setup;
 
 /// <summary>
-///     启动设置页：实例隔离、窗口标题/大小/优先级、内存分配与 JVM/游戏参数。
-///     状态与配置写入由 <see cref="PageSetupLaunchViewModel" /> 负责，页面仅处理视图生命周期、
-///     用户选择确认、内存占用条动画与动态文本排布。
+/// 启动设置页：实例隔离、窗口标题/大小/优先级、内存分配与 JVM/游戏参数。 状态与配置写入由
+/// <see cref="PageSetupLaunchViewModel" /> 负责，页面仅处理视图生命周期、 用户选择确认、内存占用条动画与动态文本排布。
 /// </summary>
 public partial class PageSetupLaunch : MyPageRight, ISetupResetPage
 {
@@ -472,7 +471,7 @@ public partial class PageSetupLaunch : MyPageRight, ISetupResetPage
     {
         var instance = InstanceList.McMcInstanceSelected;
         if (instance is null) return;
-        PageRouter.Navigate(PageType.InstanceSetup, PageSubType.VersionSetup, instance);
+        PageRouter.Navigate(PageIds.InstanceSetup, SubPageIds.VersionSetup, instance);
     }
 
     #endregion

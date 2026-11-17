@@ -6,86 +6,54 @@ namespace PCL.Views.Pages.Setup;
 
 public sealed class PageSetupHost : IPageHost
 {
+    private readonly PageDescriptor _descriptor = PageCatalog.RequirePage(PageIds.Setup);
     private readonly PageSetupLeft _left;
-    private readonly Dictionary<PageSubType, Control> _rightPages = new();
+    private readonly Dictionary<SubPageId, Control> _rightPages = new();
 
     public PageSetupHost()
     {
         _left = new PageSetupLeft();
-        _left.PageSelected += sub => PageRouter.Navigate(PageType.Setup, sub);
+        _left.PageSelected += sub => PageRouter.Navigate(PageIds.Setup, sub);
         _left.AttachPageProvider(GetOrCreatePage);
     }
 
-    public PageType Page => PageType.Setup;
+    public PageId Page => PageIds.Setup;
 
     public MainTab? Tab => MainTab.Setup;
 
-    public double LeftWidth => 152d;
+    public double LeftWidth => _descriptor.LeftWidth;
 
-    public string GetTitle(PageStackData stack)
+    public string GetTitle(PageRoute stack)
     {
-        return NormalizeSubPage(stack.SubType) switch
-        {
-            PageSubType.SetupJava => Lang.Text("Setup.Left.Item.Java"),
-            PageSubType.SetupGameManage => Lang.Text("Setup.Left.Item.GameManage"),
-            PageSubType.SetupGameLink => Lang.Text("Setup.Left.Item.GameLink"),
-            PageSubType.SetupUi => Lang.Text("Setup.Left.Item.Ui"),
-            PageSubType.SetupLauncherLanguage => Lang.Text("Setup.Language.Title"),
-            PageSubType.SetupLauncherMisc => Lang.Text("Setup.Left.Item.Misc"),
-            PageSubType.SetupAbout => Lang.Text("Setup.Left.Item.About"),
-            PageSubType.SetupUpdate => Lang.Text("Setup.Left.Item.Update"),
-            PageSubType.SetupFeedback => Lang.Text("Setup.Left.Item.Feedback"),
-            PageSubType.SetupLog => Lang.Text("Setup.Left.Item.Log"),
-            _ => Lang.Text("Setup.Left.Item.Launch")
-        };
+        var subPage = _descriptor.NormalizeSubPage(stack.SubPage);
+        var descriptor = _descriptor.FindSubPage(subPage);
+        return descriptor is null ? string.Empty : Lang.Text(descriptor.TitleKey);
     }
 
-    public Control? GetLeft(PageStackData stack)
+    public Control? GetLeft(PageRoute stack)
     {
-        var sub = NormalizeSubPage(stack.SubType);
-        _left.Select(sub);
+        var subPage = _descriptor.NormalizeSubPage(stack.SubPage);
+        _left.Select(subPage);
         return _left;
     }
 
-    public Control GetRight(PageStackData stack)
+    public Control GetRight(PageRoute stack)
     {
-        var sub = NormalizeSubPage(stack.SubType);
-        return GetOrCreatePage(sub)!;
+        var subPage = _descriptor.NormalizeSubPage(stack.SubPage);
+        return GetOrCreatePage(subPage)!;
     }
 
-    private Control? GetOrCreatePage(PageSubType sub)
+    private Control? GetOrCreatePage(SubPageId subPage)
     {
-        sub = NormalizeSubPage(sub);
-        if (_rightPages.TryGetValue(sub, out var cached))
+        subPage = _descriptor.NormalizeSubPage(subPage);
+        if (_rightPages.TryGetValue(subPage, out var cached))
             return cached;
 
-        var page = CreatePage(sub);
-        _rightPages[sub] = page;
+        var descriptor = _descriptor.FindSubPage(subPage);
+        if (descriptor is null)
+            return null;
+        var page = descriptor.CreateRight(new PageRoute(PageIds.Setup, subPage));
+        _rightPages[subPage] = page;
         return page;
-    }
-
-    private static PageSubType NormalizeSubPage(PageSubType sub)
-    {
-        if (sub == PageSubType.Default)
-            sub = PageSubType.SetupLaunch;
-        return PageSetupLeft.IsSubPageHidden(sub) ? PageSetupLeft.FirstVisible() : sub;
-    }
-
-    private static Control CreatePage(PageSubType sub)
-    {
-        return sub switch
-        {
-            PageSubType.SetupUi => new PageSetupUI(),
-            PageSubType.SetupGameManage => new PageSetupGameManage(),
-            PageSubType.SetupAbout => new PageSetupAbout(),
-            PageSubType.SetupLog => new PageSetupLog(),
-            PageSubType.SetupFeedback => new PageSetupFeedback(),
-            PageSubType.SetupGameLink => new PageSetupGameLink(),
-            PageSubType.SetupUpdate => new PageSetupUpdate(),
-            PageSubType.SetupJava => new PageSetupJava(),
-            PageSubType.SetupLauncherMisc => new PageSetupLauncherMisc(),
-            PageSubType.SetupLauncherLanguage => new PageSetupLauncherLanguage(),
-            _ => new PageSetupLaunch()
-        };
     }
 }

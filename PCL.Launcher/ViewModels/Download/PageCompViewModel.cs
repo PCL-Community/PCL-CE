@@ -81,7 +81,7 @@ public partial class PageCompViewModel : ViewModelBase
 
     [ObservableProperty] public partial string PageText { get; set; } = "1";
 
-    [ObservableProperty] public partial Comp.CompType PageType { get; set; } = Comp.CompType.Mod;
+    [ObservableProperty] public partial Comp.CompType PageIds { get; set; } = Comp.CompType.Mod;
 
     [ObservableProperty]
     public partial ObservableCollection<MyCompItemViewModel> Projects { get; set; } = [];
@@ -133,9 +133,9 @@ public partial class PageCompViewModel : ViewModelBase
     /// <summary>请求页面把列表滚动回顶部。</summary>
     public event Action? ScrollToTopRequested;
 
-    partial void OnPageTypeChanged(Comp.CompType value)
+    partial void OnPageIdsChanged(Comp.CompType value)
     {
-        ApplyPageTypeUi();
+        ApplyPageIdsUi();
     }
 
     public void Initialize()
@@ -143,13 +143,13 @@ public partial class PageCompViewModel : ViewModelBase
         if (Loader is not null)
             return;
         Loader = new Loading.LoaderTask<Comp.CompProjectRequest, int>(
-            Lang.Text("Download.Comp.List.Source.ResourceFetch", Comp.GetCompTypeName(PageType)),
+            Lang.Text("Download.Comp.List.Source.ResourceFetch", Comp.GetCompTypeName(PageIds)),
             Comp.CompProjectsGet)
         {
             reloadTimeout = 60 * 1000
         };
         Loader.OnStateChangedUi += OnLoaderStateChanged;
-        ApplyPageTypeUi();
+        ApplyPageIdsUi();
     }
 
     public void SetCategoryTags(IEnumerable<CompCategoryFilterTag> tags)
@@ -180,20 +180,20 @@ public partial class PageCompViewModel : ViewModelBase
         CategoryOptionsChanged?.Invoke();
     }
 
-    public void ApplyPageTypeUi()
+    public void ApplyPageIdsUi()
     {
-        SearchHintText = Comp.GetCompSearchName(PageType);
-        LoadText = Comp.GetCompLoadingName(PageType);
+        SearchHintText = Comp.GetCompSearchName(PageIds);
+        LoadText = Comp.GetCompLoadingName(PageIds);
         LoadingText = LoadText;
-        IsInstallModPackVisible = PageType == Comp.CompType.ModPack;
-        var isModLike = PageType is Comp.CompType.Mod or Comp.CompType.ModPack;
-        var isShader = PageType == Comp.CompType.Shader;
+        IsInstallModPackVisible = PageIds == Comp.CompType.ModPack;
+        var isModLike = PageIds is Comp.CompType.Mod or Comp.CompType.ModPack;
+        var isShader = PageIds == Comp.CompType.Shader;
         IsLoaderLabelVisible = isModLike || isShader;
         IsLoaderComboVisible = isModLike;
         IsShaderLoaderComboVisible = isShader;
         Loader?.name = Lang.Text(
             "Download.Comp.List.Source.ResourceFetch",
-            Comp.GetCompTypeName(PageType));
+            Comp.GetCompTypeName(PageIds));
     }
 
     public void ApplySearchContext(string? gameVersion, Comp.CompLoaderType modLoader)
@@ -240,7 +240,7 @@ public partial class PageCompViewModel : ViewModelBase
 
     public void RefreshLocalization()
     {
-        ApplyPageTypeUi();
+        ApplyPageIdsUi();
         RefreshCategoryOptions();
         if (Loader is { State: LoadState.Finished })
         {
@@ -387,9 +387,9 @@ public partial class PageCompViewModel : ViewModelBase
             var pageResults = results.Skip(index).Take(PageSize).ToList();
             var showMcVersionDesc = GetGameVersionFilter() is null;
             var showLoaderDesc = GetSelectedModLoader() == Comp.CompLoaderType.Any
-                && PageType is Comp.CompType.Mod or Comp.CompType.ModPack;
+                && PageIds is Comp.CompType.Mod or Comp.CompType.ModPack;
             var showQuickDownload =
-                PageType is not (Comp.CompType.ModPack or Comp.CompType.DataPack);
+                PageIds is not (Comp.CompType.ModPack or Comp.CompType.DataPack);
             var projects = new List<MyCompItemViewModel>(pageResults.Count);
             projects.AddRange(
                 pageResults.Select(project => MyCompItemViewModel.Create(
@@ -436,7 +436,7 @@ public partial class PageCompViewModel : ViewModelBase
 
     internal Comp.CompProjectRequest BuildRequest()
     {
-        var request = new Comp.CompProjectRequest(PageType, _storage, (_page + 1) * PageSize)
+        var request = new Comp.CompProjectRequest(PageIds, _storage, (_page + 1) * PageSize)
         {
             searchText = NormalizeSearchText(SearchText),
             gameVersion = GetGameVersionFilter(),
@@ -447,7 +447,7 @@ public partial class PageCompViewModel : ViewModelBase
         var selectedTag = SearchTagIndex >= 0 && SearchTagIndex < CategoryOptions.Count
             ? CategoryOptions[SearchTagIndex].Tag
             : "";
-        if (PageType == Comp.CompType.Shader)
+        if (PageIds == Comp.CompType.Shader)
         {
             var loaderTag = SearchShaderLoaderIndex >= 0
                 && SearchShaderLoaderIndex < ShaderLoaderTags.Length
@@ -484,7 +484,7 @@ public partial class PageCompViewModel : ViewModelBase
 
     private Comp.CompLoaderType GetSelectedModLoader()
     {
-        if (PageType is not (Comp.CompType.Mod or Comp.CompType.ModPack))
+        if (PageIds is not (Comp.CompType.Mod or Comp.CompType.ModPack))
             return Comp.CompLoaderType.Any;
         var index = Math.Clamp(SearchLoaderIndex, 0, ModLoaderTypes.Length - 1);
         var loaderType = ModLoaderTypes[index];

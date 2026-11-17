@@ -404,7 +404,7 @@ public sealed class UpdateUiBridge : IUpdateUi
 
     public void NavigateSetupUpdate()
     {
-        PageRouter.Navigate(PageType.Setup, PageSubType.SetupUpdate);
+        PageRouter.Navigate(PageIds.Setup, SubPageIds.SetupUpdate);
     }
 
     public void ShowUpdateRestartButton(string tooltip)
@@ -518,7 +518,7 @@ public sealed class LaunchUiBridge : ILaunchUi
 
     public void PrepareLaunchNavigation()
     {
-        PageRouter.Navigate(PageType.Launch);
+        PageRouter.Navigate(PageIds.Launch);
     }
 
     public void RefreshLaunchButtons()
@@ -604,7 +604,7 @@ public sealed class LaunchUiBridge : ILaunchUi
         // 导航与页面创建必须同处 UI 线程；PageLogLeft.Current 在宿主创建左页时同步赋值。
         UiInteraction.RunOnUi(() =>
         {
-            PageRouter.Navigate(PageType.GameLog);
+            PageRouter.Navigate(PageIds.GameLog);
             if (PageLogLeft.Current is { } sink)
             {
                 sink.AttachWatcher(watcher);
@@ -752,7 +752,7 @@ public sealed class WatcherUiBridge : IWatcherUi
 
     public void ShowFeedback()
     {
-        PageRouter.Navigate(PageType.Setup, PageSubType.SetupFeedback);
+        PageRouter.Navigate(PageIds.Setup, SubPageIds.SetupFeedback);
     }
 
     public void ShowHint(string text, NotificationType type = NotificationType.Info)

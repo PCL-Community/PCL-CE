@@ -7,13 +7,10 @@ using PCL.UI.Controls;
 
 namespace PCL.Views.Pages.Instance;
 
-/// <summary>
-///     实例设置页左栏：按实例能力与隐藏开关列出设置子页，点击通过路由切换右栏；
-///     设置、安装、导出、存档、截图、资源与服务器项带有行内初始化/刷新按钮。
-/// </summary>
+/// <summary>实例设置页左栏：按实例能力与隐藏开关列出设置子页，点击通过路由切换右栏； 设置、安装、导出、存档、截图、资源与服务器项带有行内初始化/刷新按钮。</summary>
 public partial class PageInstanceLeft : MyPageLeft, IRefreshable
 {
-    private readonly List<(PageSubType SubType, MyListItem Item)> _items = [];
+    private readonly List<(SubPageId SubPage, MyListItem Item)> _items = [];
     private bool _isBuilding;
     private bool _resetting;
 
@@ -116,12 +113,12 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
             Title = Lang.Text(definition.TitleKey),
             SvgIcon = definition.SvgIcon,
             LogoScale = definition.LogoScale,
-            Tag = definition.SubType,
+            Tag = definition.SubPage,
             IsVisible = definition.IsVisible
         };
         item.Check += (sender, _) =>
         {
-            if (!_isBuilding && sender is MyListItem { Tag: PageSubType target })
+            if (!_isBuilding && sender is MyListItem { Tag: SubPageId target })
                 PageInstanceLeftViewModel.ChangePage(target);
         };
 
@@ -153,7 +150,7 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
         if (buttons.Count > 0)
             item.Buttons = [.. buttons];
 
-        _items.Add((definition.SubType, item));
+        _items.Add((definition.SubPage, item));
         PanItem.Children.Add(item);
         return item;
     }
@@ -175,7 +172,7 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
         _isBuilding = true;
         try
         {
-            var current = PageInstanceLeftViewModel.CurrentSubType;
+            var current = PageInstanceLeftViewModel.CurrentSubPage;
             foreach (var (subType, item) in _items)
                 if (item.IsVisible)
                     item.Checked = subType == current;

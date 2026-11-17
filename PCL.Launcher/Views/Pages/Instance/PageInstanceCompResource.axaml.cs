@@ -17,10 +17,9 @@ using PCL.Views.Shell;
 namespace PCL.Views.Pages.Instance;
 
 /// <summary>
-///     实例本地资源页：模组 / 资源包 / 光影 / 结构文件的列表与管理。
-///     支持搜索、按状态筛选、排序、全选与多选批量启用/禁用/更新/删除与导出资源信息。
-///     加载由 <see cref="LocalComp.CompResourceListLoader" /> 驱动，页面实现
-///     <see cref="ICompLocalPage" /> 以便业务层查询加载状态和当前目录。
+/// 实例本地资源页：模组 / 资源包 / 光影 / 结构文件的列表与管理。 支持搜索、按状态筛选、排序、全选与多选批量启用/禁用/更新/删除与导出资源信息。 加载由
+/// <see cref="LocalComp.CompResourceListLoader" /> 驱动，页面实现 <see cref="ICompLocalPage" />
+/// 以便业务层查询加载状态和当前目录。
 /// </summary>
 public partial class PageInstanceCompResource
     : MyPageRight, IPageView, IRefreshable, ICompLocalPage
@@ -89,8 +88,8 @@ public partial class PageInstanceCompResource
         BtnSchematicDownloadMod.Click += (_, _) => DownloadNewForSchematic();
         BtnSchematicVersionSelect.Click += (_, _) =>
         {
-            PageRouter.Navigate(PageType.Launch);
-            PageRouter.Navigate(PageType.InstanceSelect);
+            PageRouter.Navigate(PageIds.Launch);
+            PageRouter.Navigate(PageIds.InstanceSelect);
         };
 
         foreach (var button in new[]
@@ -324,13 +323,13 @@ public partial class PageInstanceCompResource
     {
         var subType = compType switch
         {
-            Comp.CompType.ResourcePack => PageSubType.VersionResourcePack,
-            Comp.CompType.Shader => PageSubType.VersionShader,
-            Comp.CompType.Schematic => PageSubType.VersionSchematic,
-            _ => PageSubType.VersionMod
+            Comp.CompType.ResourcePack => SubPageIds.VersionResourcePack,
+            Comp.CompType.Shader => SubPageIds.VersionShader,
+            Comp.CompType.Schematic => SubPageIds.VersionSchematic,
+            _ => SubPageIds.VersionMod
         };
-        if (PageRouter.Current.Page == PageType.InstanceSetup
-            && PageRouter.Current.SubType == subType
+        if (PageRouter.Current.Page == PageIds.InstanceSetup
+            && PageRouter.Current.SubPage == subType
             && PageRouter.CurrentPage is PageInstanceCompResource page)
         {
             Comp.compProjectCache.Clear();
@@ -744,8 +743,8 @@ public partial class PageInstanceCompResource
                 ? LocalComp.GetCurrentVersionModLoader().FirstOrDefault()
                 : Comp.CompLoaderType.Any;
             PageRouter.Navigate(
-                PageType.CompDetail,
-                PageSubType.Default,
+                PageIds.CompDetail,
+                null,
                 new CompDetailParameter(
                     entry.Comp,
                     _compType,
@@ -988,15 +987,15 @@ public partial class PageInstanceCompResource
                 LocalComp.GetPathNameByCompType(Comp.CompType.Mod));
             PageDownloadCompDetail.SetCachedFolder(Comp.CompType.Mod, folder);
             PageRouter.Navigate(
-                PageType.Download,
-                PageSubType.DownloadMod,
+                PageIds.Download,
+                SubPageIds.DownloadMod,
                 new CompSearchContext(
                     instance.Info.VanillaName,
                     LocalComp.GetCurrentVersionModLoader().FirstOrDefault()));
             return;
         }
 
-        PageRouter.Navigate(PageType.Download, PageSubType.DownloadMod);
+        PageRouter.Navigate(PageIds.Download, SubPageIds.DownloadMod);
     }
 
     #endregion
@@ -1085,14 +1084,14 @@ public partial class PageInstanceCompResource
 
         var subType = _compType switch
         {
-            Comp.CompType.ResourcePack => PageSubType.DownloadResourcePack,
-            Comp.CompType.Shader => PageSubType.DownloadShader,
-            Comp.CompType.Schematic => PageSubType.DownloadWorld,
-            _ => PageSubType.DownloadMod
+            Comp.CompType.ResourcePack => SubPageIds.DownloadResourcePack,
+            Comp.CompType.Shader => SubPageIds.DownloadShader,
+            Comp.CompType.Schematic => SubPageIds.DownloadWorld,
+            _ => SubPageIds.DownloadMod
         };
         if (instance is null)
         {
-            PageRouter.Navigate(PageType.Download, subType);
+            PageRouter.Navigate(PageIds.Download, subType);
             return;
         }
 
@@ -1100,7 +1099,7 @@ public partial class PageInstanceCompResource
             ? LocalComp.GetCurrentVersionModLoader().FirstOrDefault()
             : Comp.CompLoaderType.Any;
         PageRouter.Navigate(
-            PageType.Download,
+            PageIds.Download,
             subType,
             new CompSearchContext(instance.Info.VanillaName, loader));
     }

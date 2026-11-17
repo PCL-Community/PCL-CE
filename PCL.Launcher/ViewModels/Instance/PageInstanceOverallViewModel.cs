@@ -1,4 +1,3 @@
-using PCL.Core.Platform;
 using System.Text.Json.Nodes;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -6,10 +5,10 @@ using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Configuration.Storage;
 using PCL.Core.App.Localization;
-using PCL.Core.IO;
 using PCL.Core.Minecraft;
 using PCL.Core.Minecraft.Profile;
 using PCL.Core.Minecraft.Profile.Models;
+using PCL.Core.Platform;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
@@ -463,7 +462,7 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
 
             RefreshInstanceList();
             PageRouter.Navigate(
-                new PageStackData(PageType.InstanceSetup, PageSubType.VersionOverall, reloaded));
+                new PageRoute(PageIds.InstanceSetup, SubPageIds.VersionOverall, reloaded));
             InstanceChanged?.Invoke();
         }
         catch (Exception ex)
@@ -588,7 +587,7 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
                         instance = Instance,
                         IsTest = true
                     }))
-                PageRouter.Navigate(PageType.Launch);
+                PageRouter.Navigate(PageIds.Launch);
         }
         catch (Exception ex)
         {
@@ -807,7 +806,7 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
             combo.Start(instance.PathInstance);
             Loading.LoaderTaskbarAdd(combo);
             LoadingUi.Current?.RefreshDownloadButton();
-            PageRouter.Navigate(PageType.Launch);
+            PageRouter.Navigate(PageIds.Launch);
         }
         catch (CancelledException)
         {
@@ -839,7 +838,7 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
                     instance.PathIndie,
                     GameFolders.mcFolderSelected,
                     StringComparison.OrdinalIgnoreCase);
-            var recycleSupported = PCL.Core.Platform.PlatformRuntime.Current.RecycleBin.IsSupported(instancePath);
+            var recycleSupported = PlatformRuntime.Current.RecycleBin.IsSupported(instancePath);
             var effectivePermanent = permanent || !recycleSupported;
 
             var confirmMessageKey = (isIsolatedInstance, effectivePermanent) switch
@@ -882,7 +881,7 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
             }
             else
             {
-                var outcome = PCL.Core.Platform.PlatformRuntime.Current.RecycleBin.Move(instancePath, out var error);
+                var outcome = PlatformRuntime.Current.RecycleBin.Move(instancePath, out var error);
                 switch (outcome)
                 {
                     case RecycleBinOutcome.Moved:
