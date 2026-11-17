@@ -6,14 +6,22 @@ namespace PCL.Views.Pages.Download;
 
 public sealed class PageDownloadHost : IPageHost
 {
-    private readonly PageDescriptor _descriptor = PageCatalog.RequirePage(PageIds.Download);
+    private readonly PageDescriptor _descriptor;
     private readonly PageDownloadLeft _left;
+    private readonly PageViewFactory _pageViews;
     private readonly Dictionary<SubPageId, Control> _rightPages = new();
 
-    public PageDownloadHost()
+    public PageDownloadHost(
+        PageDescriptor descriptor,
+        PageDownloadLeft left,
+        INavigationService navigation,
+        PageViewFactory pageViews)
     {
-        _left = new PageDownloadLeft();
-        _left.PageSelected += sub => PageRouter.Navigate(PageIds.Download, sub);
+        _descriptor = descriptor;
+        _pageViews = pageViews;
+        _left = left;
+        _left.PageSelected += sub =>
+            navigation.GoTo(new PageLocation(PageIds.Download, sub));
         _left.RefreshRequested += RefreshPage;
         _left.InstallItemReselected += () =>
         {
@@ -53,7 +61,7 @@ public sealed class PageDownloadHost : IPageHost
         var subDescriptor = _descriptor.FindSubPage(sub);
         if (subDescriptor is null)
             throw new InvalidOperationException($"未找到下载子页：{sub}");
-        var page = subDescriptor.CreateRight(stack);
+        var page = _pageViews.Create(subDescriptor, stack);
         PrepareNavigation(page, stack.Parameter);
         _rightPages[sub] = page;
         return page;

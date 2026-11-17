@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using PCL.Views.Pages.Download;
 using PCL.Views.Pages.Help;
 using PCL.Views.Pages.Log;
@@ -18,7 +19,7 @@ public sealed class ShellPageModule : IPageModule
             null,
             [],
             [],
-            _ => new CompDetailHost()),
+            (sp, _) => ActivatorUtilities.CreateInstance<CompDetailHost>(sp)),
         new(
             PageIds.HelpDetail,
             "Main.Title.Help",
@@ -28,7 +29,7 @@ public sealed class ShellPageModule : IPageModule
             null,
             [],
             [],
-            _ => new HelpDetailHost()),
+            (sp, _) => ActivatorUtilities.CreateInstance<HelpDetailHost>(sp)),
         new(
             PageIds.TaskManager,
             "Main.Title.TaskManager",
@@ -38,7 +39,7 @@ public sealed class ShellPageModule : IPageModule
             null,
             [],
             [],
-            _ => new TaskManagerHost()),
+            (sp, _) => ActivatorUtilities.CreateInstance<TaskManagerHost>(sp)),
         new(
             PageIds.GameLog,
             "Main.Title.GameLog",
@@ -48,6 +49,6 @@ public sealed class ShellPageModule : IPageModule
             null,
             [],
             [],
-            _ => new GameLogHost())
+            (sp, _) => ActivatorUtilities.CreateInstance<GameLogHost>(sp))
     ];
 }

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using PCL.Core.App;
 using PCL.Views.Pages.Tools;
 using static PCL.Navigation.PageDescriptorFactory;
@@ -15,7 +16,7 @@ public sealed class ToolsPageModule : IPageModule
             "lucide/link-2",
             "multiplayer",
             0,
-            _ => new PageToolsGameLink(),
+            (sp, _) => ActivatorUtilities.CreateInstance<PageToolsGameLink>(sp),
             refresh: true,
             visible: () => !Config.Preference.Hide.ToolsGameLink),
         Sub(
@@ -25,7 +26,7 @@ public sealed class ToolsPageModule : IPageModule
             "lucide/tool-case",
             "utilities",
             1,
-            _ => new PageToolsTest(),
+            (sp, _) => ActivatorUtilities.CreateInstance<PageToolsTest>(sp),
             () => !Config.Preference.Hide.ToolsTest)
     ];
 
@@ -43,7 +44,7 @@ public sealed class ToolsPageModule : IPageModule
                 new PageGroupDescriptor("utilities", "Tools.Left.Utilities", 1)
             ],
             ToolsSubPages,
-            _ => new ToolsPageHost())
+            (sp, descriptor) => ActivatorUtilities.CreateInstance<ToolsPageHost>(sp, descriptor))
     ];
 
     public IReadOnlyList<MainTabDescriptor> MainTabs { get; } =

@@ -7,6 +7,7 @@ public static class PageRegistry
 {
     private static readonly Dictionary<PageId, IPageHost> Hosts = new();
     private static readonly Lock Lock = new();
+    private static PageHostFactory? _factory;
     private static bool _initialized;
 
     public static IReadOnlyList<IPageHost> All
@@ -23,6 +24,18 @@ public static class PageRegistry
                         .Select(pair => pair.Value)
                 ];
             }
+        }
+    }
+
+    /// <summary>由组合根注入页面宿主工厂。必须在首次页面导航之前调用。</summary>
+    public static void Initialize(PageHostFactory factory)
+    {
+        ArgumentNullException.ThrowIfNull(factory);
+        lock (Lock)
+        {
+            _factory = factory;
+            Hosts.Clear();
+            _initialized = false;
         }
     }
 
@@ -65,10 +78,12 @@ public static class PageRegistry
         if (_initialized) return;
         _initialized = true;
 
+        var factory = _factory
+            ?? throw new InvalidOperationException("页面宿主工厂尚未初始化");
         foreach (var descriptor in PageCatalog.Pages)
             try
             {
-                var host = descriptor.CreateHost?.Invoke(descriptor);
+                var host = factory.Create(descriptor);
                 if (host is null)
                 {
                     LogWrapper.Warn("UI", $"页面描述未提供宿主：{descriptor.Id}");

@@ -6,14 +6,22 @@ namespace PCL.Views.Pages.Setup;
 
 public sealed class PageSetupHost : IPageHost
 {
-    private readonly PageDescriptor _descriptor = PageCatalog.RequirePage(PageIds.Setup);
+    private readonly PageDescriptor _descriptor;
     private readonly PageSetupLeft _left;
+    private readonly PageViewFactory _pageViews;
     private readonly Dictionary<SubPageId, Control> _rightPages = new();
 
-    public PageSetupHost()
+    public PageSetupHost(
+        PageDescriptor descriptor,
+        PageSetupLeft left,
+        INavigationService navigation,
+        PageViewFactory pageViews)
     {
-        _left = new PageSetupLeft();
-        _left.PageSelected += sub => PageRouter.Navigate(PageIds.Setup, sub);
+        _descriptor = descriptor;
+        _pageViews = pageViews;
+        _left = left;
+        _left.PageSelected += sub =>
+            navigation.GoTo(new PageLocation(PageIds.Setup, sub));
         _left.AttachPageProvider(GetOrCreatePage);
     }
 
@@ -52,7 +60,7 @@ public sealed class PageSetupHost : IPageHost
         var descriptor = _descriptor.FindSubPage(subPage);
         if (descriptor is null)
             return null;
-        var page = descriptor.CreateRight(new PageRoute(PageIds.Setup, subPage));
+        var page = _pageViews.Create(descriptor, new PageRoute(PageIds.Setup, subPage));
         _rightPages[subPage] = page;
         return page;
     }

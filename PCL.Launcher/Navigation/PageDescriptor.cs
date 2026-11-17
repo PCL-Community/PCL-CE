@@ -15,7 +15,7 @@ public sealed record SubPageDescriptor(
     string? IconKey,
     string? GroupKey,
     int Order,
-    Func<PageRoute, Control> CreateRight,
+    Func<IServiceProvider, PageRoute, Control> CreateRight,
     Func<bool>? IsVisible = null,
     bool CanRefresh = false,
     string? ResetMessageKey = null,
@@ -31,7 +31,7 @@ public sealed record PageDescriptor(
     SubPageId? DefaultSubPage,
     IReadOnlyList<PageGroupDescriptor> Groups,
     IReadOnlyList<SubPageDescriptor> SubPages,
-    Func<PageDescriptor, IPageHost>? CreateHost = null)
+    Func<IServiceProvider, PageDescriptor, IPageHost>? CreateHost = null)
 {
     public SubPageDescriptor? FindSubPage(SubPageId id)
     {
@@ -43,18 +43,17 @@ public sealed record PageDescriptor(
     /// <summary>将空子页、未知子页或隐藏子页归一化到当前页面的第一个可见子页。</summary>
     public SubPageId NormalizeSubPage(SubPageId? sub)
     {
-        if (sub is { } requested
-            && FindSubPage(requested) is { } descriptor
-            && IsVisible(descriptor))
-            return requested;
-
-        if (sub is null
-            && DefaultSubPage is { } defaultSub
-            && FindSubPage(defaultSub) is { } defaultDescriptor
-            && IsVisible(defaultDescriptor))
-            return defaultSub;
-
-        return FirstVisibleSubPage();
+        return sub switch
+        {
+            { } requested
+                when FindSubPage(requested) is { } descriptor && IsVisible(descriptor) =>
+                requested,
+            null when DefaultSubPage is { } defaultSub
+                && FindSubPage(defaultSub) is { } defaultDescriptor
+                && IsVisible(defaultDescriptor) =>
+                defaultSub,
+            _ => FirstVisibleSubPage()
+        };
     }
 
     public SubPageId FirstVisibleSubPage()

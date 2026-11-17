@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using PCL.Views.Pages.Launch;
 
 namespace PCL.Navigation.Catalog;
@@ -15,7 +16,7 @@ public sealed class LaunchPageModule : IPageModule
             null,
             [],
             [],
-            _ => new PageLaunchHost())
+            (sp, _) => ActivatorUtilities.CreateInstance<PageLaunchHost>(sp))
     ];
 
     public IReadOnlyList<MainTabDescriptor> MainTabs { get; } =

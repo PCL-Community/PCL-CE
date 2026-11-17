@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using PCL.Views.Pages.Download;
 using static PCL.Navigation.PageDescriptorFactory;
 
@@ -14,7 +15,7 @@ public sealed class DownloadPageModule : IPageModule
             "lucide/boxes",
             "minecraft",
             0,
-            _ => new PageDownloadInstall()),
+            (sp, _) => ActivatorUtilities.CreateInstance<PageDownloadInstall>(sp)),
         Sub(
             PageIds.Download,
             SubPageIds.DownloadMod,
@@ -22,7 +23,8 @@ public sealed class DownloadPageModule : IPageModule
             "lucide/puzzle",
             "community",
             1,
-            _ => new PageDownloadCompPage(Comp.CompType.Mod),
+            (sp, _) =>
+                ActivatorUtilities.CreateInstance<PageDownloadCompPage>(sp, Comp.CompType.Mod),
             refresh: true),
         Sub(
             PageIds.Download,
@@ -31,7 +33,8 @@ public sealed class DownloadPageModule : IPageModule
             "lucide/package",
             "community",
             2,
-            _ => new PageDownloadCompPage(Comp.CompType.ModPack),
+            (sp, _) =>
+                ActivatorUtilities.CreateInstance<PageDownloadCompPage>(sp, Comp.CompType.ModPack),
             refresh: true),
         Sub(
             PageIds.Download,
@@ -40,7 +43,8 @@ public sealed class DownloadPageModule : IPageModule
             "lucide/file-archive",
             "community",
             3,
-            _ => new PageDownloadCompPage(Comp.CompType.DataPack),
+            (sp, _) =>
+                ActivatorUtilities.CreateInstance<PageDownloadCompPage>(sp, Comp.CompType.DataPack),
             refresh: true),
         Sub(
             PageIds.Download,
@@ -49,7 +53,10 @@ public sealed class DownloadPageModule : IPageModule
             "lucide/layers",
             "community",
             4,
-            _ => new PageDownloadCompPage(Comp.CompType.ResourcePack),
+            (sp, _) =>
+                ActivatorUtilities.CreateInstance<PageDownloadCompPage>(
+                    sp,
+                    Comp.CompType.ResourcePack),
             refresh: true),
         Sub(
             PageIds.Download,
@@ -58,7 +65,8 @@ public sealed class DownloadPageModule : IPageModule
             "lucide/sparkles",
             "community",
             5,
-            _ => new PageDownloadCompPage(Comp.CompType.Shader),
+            (sp, _) =>
+                ActivatorUtilities.CreateInstance<PageDownloadCompPage>(sp, Comp.CompType.Shader),
             refresh: true),
         Sub(
             PageIds.Download,
@@ -67,7 +75,8 @@ public sealed class DownloadPageModule : IPageModule
             "lucide/globe",
             "community",
             6,
-            _ => new PageDownloadCompPage(Comp.CompType.World),
+            (sp, _) =>
+                ActivatorUtilities.CreateInstance<PageDownloadCompPage>(sp, Comp.CompType.World),
             refresh: true),
         Sub(
             PageIds.Download,
@@ -76,7 +85,7 @@ public sealed class DownloadPageModule : IPageModule
             "lucide/heart",
             "community",
             7,
-            _ => new PageDownloadCompFavorites()),
+            (sp, _) => ActivatorUtilities.CreateInstance<PageDownloadCompFavorites>(sp)),
         Sub(
             PageIds.Download,
             SubPageIds.DownloadClient,
@@ -84,7 +93,7 @@ public sealed class DownloadPageModule : IPageModule
             "lucide/package",
             "install",
             8,
-            _ => new PageDownloadClient()),
+            (sp, _) => ActivatorUtilities.CreateInstance<PageDownloadClient>(sp)),
         Sub(
             PageIds.Download,
             SubPageIds.DownloadOptiFine,
@@ -92,7 +101,10 @@ public sealed class DownloadPageModule : IPageModule
             "lucide/gauge",
             "install",
             9,
-            _ => new PageDownloadLoaderPage(DownloadLoaderKind.OptiFine)),
+            (sp, _) =>
+                ActivatorUtilities.CreateInstance<PageDownloadLoaderPage>(
+                    sp,
+                    DownloadLoaderKind.OptiFine)),
         Sub(
             PageIds.Download,
             SubPageIds.DownloadForge,
@@ -100,7 +112,10 @@ public sealed class DownloadPageModule : IPageModule
             "lucide/anvil",
             "install",
             10,
-            _ => new PageDownloadLoaderPage(DownloadLoaderKind.Forge)),
+            (sp, _) =>
+                ActivatorUtilities.CreateInstance<PageDownloadLoaderPage>(
+                    sp,
+                    DownloadLoaderKind.Forge)),
         Sub(
             PageIds.Download,
             SubPageIds.DownloadNeoForge,
@@ -108,7 +123,10 @@ public sealed class DownloadPageModule : IPageModule
             "lucide/cat",
             "install",
             11,
-            _ => new PageDownloadLoaderPage(DownloadLoaderKind.NeoForge)),
+            (sp, _) =>
+                ActivatorUtilities.CreateInstance<PageDownloadLoaderPage>(
+                    sp,
+                    DownloadLoaderKind.NeoForge)),
         Sub(
             PageIds.Download,
             SubPageIds.DownloadCleanroom,
@@ -116,7 +134,10 @@ public sealed class DownloadPageModule : IPageModule
             "lucide/flask-conical",
             "install",
             12,
-            _ => new PageDownloadLoaderPage(DownloadLoaderKind.Cleanroom)),
+            (sp, _) =>
+                ActivatorUtilities.CreateInstance<PageDownloadLoaderPage>(
+                    sp,
+                    DownloadLoaderKind.Cleanroom)),
         Sub(
             PageIds.Download,
             SubPageIds.DownloadFabric,
@@ -124,7 +145,10 @@ public sealed class DownloadPageModule : IPageModule
             "lucide/scroll",
             "install",
             13,
-            _ => new PageDownloadLoaderPage(DownloadLoaderKind.Fabric)),
+            (sp, _) =>
+                ActivatorUtilities.CreateInstance<PageDownloadLoaderPage>(
+                    sp,
+                    DownloadLoaderKind.Fabric)),
         Sub(
             PageIds.Download,
             SubPageIds.DownloadLegacyFabric,
@@ -132,7 +156,10 @@ public sealed class DownloadPageModule : IPageModule
             "lucide/scroll",
             "install",
             14,
-            _ => new PageDownloadLoaderPage(DownloadLoaderKind.LegacyFabric)),
+            (sp, _) =>
+                ActivatorUtilities.CreateInstance<PageDownloadLoaderPage>(
+                    sp,
+                    DownloadLoaderKind.LegacyFabric)),
         Sub(
             PageIds.Download,
             SubPageIds.DownloadLabyMod,
@@ -140,7 +167,10 @@ public sealed class DownloadPageModule : IPageModule
             "lucide/box",
             "install",
             15,
-            _ => new PageDownloadLoaderPage(DownloadLoaderKind.LabyMod)),
+            (sp, _) =>
+                ActivatorUtilities.CreateInstance<PageDownloadLoaderPage>(
+                    sp,
+                    DownloadLoaderKind.LabyMod)),
         Sub(
             PageIds.Download,
             SubPageIds.DownloadLiteLoader,
@@ -148,7 +178,10 @@ public sealed class DownloadPageModule : IPageModule
             "lucide/egg",
             "install",
             16,
-            _ => new PageDownloadLoaderPage(DownloadLoaderKind.LiteLoader))
+            (sp, _) =>
+                ActivatorUtilities.CreateInstance<PageDownloadLoaderPage>(
+                    sp,
+                    DownloadLoaderKind.LiteLoader))
     ];
 
     public IReadOnlyList<PageDescriptor> Pages { get; } =
@@ -166,7 +199,7 @@ public sealed class DownloadPageModule : IPageModule
                 new PageGroupDescriptor("install", "Download.Left.Installation", 2)
             ],
             DownloadSubPages,
-            _ => new PageDownloadHost())
+            (sp, descriptor) => ActivatorUtilities.CreateInstance<PageDownloadHost>(sp, descriptor))
     ];
 
     public IReadOnlyList<MainTabDescriptor> MainTabs { get; } =

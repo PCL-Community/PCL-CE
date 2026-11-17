@@ -94,7 +94,7 @@ public sealed class PageCatalogBuilderTest
             defaultSubPage,
             [],
             subs,
-            _ => null!);
+            (_, _) => null!);
     }
 
     private static SubPageDescriptor CreateSubPage(SubPageId id)
@@ -105,7 +105,7 @@ public sealed class PageCatalogBuilderTest
             null,
             null,
             0,
-            _ => new Control());
+            (_, _) => new Control());
     }
 
     private sealed class TestPageModule(

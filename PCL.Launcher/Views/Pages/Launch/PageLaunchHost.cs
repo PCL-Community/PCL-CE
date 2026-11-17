@@ -4,11 +4,10 @@ using PCL.Navigation;
 namespace PCL.Views.Pages.Launch;
 
 /// <summary>启动页宿主：左侧为实例与账号操作区，右侧为主页内容区。 两个页面实例均由宿主缓存，主入口往返切换时不重建页面状态。</summary>
-public sealed class PageLaunchHost : IPageHost
+public sealed class PageLaunchHost(
+    PageLaunchLeft left,
+    PageLaunchRight right) : IPageHost
 {
-    private PageLaunchLeft? _left;
-    private PageLaunchRight? _right;
-
     public PageId Page => PageIds.Launch;
 
     public MainTab? Tab => MainTab.Launch;
@@ -22,11 +21,11 @@ public sealed class PageLaunchHost : IPageHost
 
     public Control? GetLeft(PageRoute stack)
     {
-        return _left ??= new PageLaunchLeft();
+        return left;
     }
 
     public Control GetRight(PageRoute stack)
     {
-        return _right ??= new PageLaunchRight();
+        return right;
     }
 }

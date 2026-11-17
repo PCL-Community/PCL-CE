@@ -5,17 +5,18 @@ using PCL.Navigation;
 namespace PCL.Views.Pages.Instance;
 
 /// <summary>存档管理页宿主：左栏为存档信息/数据包切换，右栏按子页描述缓存； 导航参数为存档文件夹绝对路径。</summary>
-public sealed class VersionSavesHost : IPageHost
+public sealed class VersionSavesHost(
+    PageDescriptor descriptor,
+    PageInstanceSavesLeft left,
+    PageViewFactory pageViews) : IPageHost
 {
-    private readonly PageDescriptor _descriptor = PageCatalog.RequirePage(PageIds.VersionSaves);
     private readonly Dictionary<SubPageId, Control> _rightPages = [];
-    private PageInstanceSavesLeft? _left;
 
     public PageId Page => PageIds.VersionSaves;
 
     public MainTab? Tab => null;
 
-    public double LeftWidth => _descriptor.LeftWidth;
+    public double LeftWidth => descriptor.LeftWidth;
 
     public string GetTitle(PageRoute stack)
     {
@@ -30,20 +31,20 @@ public sealed class VersionSavesHost : IPageHost
     public Control? GetLeft(PageRoute stack)
     {
         ApplySaveFolder(stack);
-        return _left ??= new PageInstanceSavesLeft();
+        return left;
     }
 
     public Control GetRight(PageRoute stack)
     {
         ApplySaveFolder(stack);
-        var subType = _descriptor.NormalizeSubPage(stack.SubPage);
+        var subType = descriptor.NormalizeSubPage(stack.SubPage);
         if (_rightPages.TryGetValue(subType, out var cached))
             return cached;
 
-        var descriptor = _descriptor.FindSubPage(subType);
-        if (descriptor is null)
+        var descriptor1 = descriptor.FindSubPage(subType);
+        if (descriptor1 is null)
             throw new ArgumentOutOfRangeException(nameof(stack), subType, null);
-        var page = descriptor.CreateRight(stack);
+        var page = pageViews.Create(descriptor1, stack);
         _rightPages[subType] = page;
         return page;
     }

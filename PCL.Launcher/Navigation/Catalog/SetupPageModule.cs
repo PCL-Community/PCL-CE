@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using PCL.Core.App;
 using PCL.Views.Pages.Setup;
 using static PCL.Navigation.PageDescriptorFactory;
@@ -15,7 +16,7 @@ public sealed class SetupPageModule : IPageModule
             "lucide/rocket",
             "game",
             0,
-            _ => new PageSetupLaunch(),
+            (sp, _) => ActivatorUtilities.CreateInstance<PageSetupLaunch>(sp),
             () => !Config.Preference.Hide.SetupLaunch,
             reset: "Setup.Left.Reset.Launch.Message"),
         Sub(
@@ -25,7 +26,7 @@ public sealed class SetupPageModule : IPageModule
             "lucide/coffee",
             "game",
             1,
-            _ => new PageSetupJava(),
+            (sp, _) => ActivatorUtilities.CreateInstance<PageSetupJava>(sp),
             () => !Config.Preference.Hide.SetupJava,
             true),
         Sub(
@@ -35,7 +36,7 @@ public sealed class SetupPageModule : IPageModule
             "lucide/book-marked",
             "game",
             2,
-            _ => new PageSetupGameManage(),
+            (sp, _) => ActivatorUtilities.CreateInstance<PageSetupGameManage>(sp),
             () => !Config.Preference.Hide.SetupGameManage,
             reset: "Setup.Left.Reset.GameManage.Message"),
         Sub(
@@ -45,7 +46,7 @@ public sealed class SetupPageModule : IPageModule
             "lucide/bubbles",
             "tools",
             3,
-            _ => new PageSetupGameLink(),
+            (sp, _) => ActivatorUtilities.CreateInstance<PageSetupGameLink>(sp),
             () => !Config.Preference.Hide.SetupGameLink,
             reset: "Setup.Left.Reset.GameLink.Message"),
         Sub(
@@ -55,7 +56,7 @@ public sealed class SetupPageModule : IPageModule
             "lucide/palette",
             "launcher",
             4,
-            _ => new PageSetupUI(),
+            (sp, _) => ActivatorUtilities.CreateInstance<PageSetupUI>(sp),
             () => !Config.Preference.Hide.SetupUi,
             reset: "Setup.Left.Reset.Ui.Message"),
         Sub(
@@ -65,7 +66,7 @@ public sealed class SetupPageModule : IPageModule
             "lucide/earth",
             "launcher",
             5,
-            _ => new PageSetupLauncherLanguage(),
+            (sp, _) => ActivatorUtilities.CreateInstance<PageSetupLauncherLanguage>(sp),
             () => !Config.Preference.Hide.SetupLauncherLanguage,
             reset: "Setup.Left.Reset.Language.Message"),
         Sub(
@@ -75,7 +76,7 @@ public sealed class SetupPageModule : IPageModule
             "lucide/monitor-cog",
             "launcher",
             6,
-            _ => new PageSetupLauncherMisc(),
+            (sp, _) => ActivatorUtilities.CreateInstance<PageSetupLauncherMisc>(sp),
             () => !Config.Preference.Hide.SetupLauncherMisc,
             reset: "Setup.Left.Reset.Misc.Message"),
         Sub(
@@ -85,7 +86,7 @@ public sealed class SetupPageModule : IPageModule
             "lucide/info",
             "about",
             7,
-            _ => new PageSetupAbout(),
+            (sp, _) => ActivatorUtilities.CreateInstance<PageSetupAbout>(sp),
             () => !Config.Preference.Hide.SetupAbout),
         Sub(
             PageIds.Setup,
@@ -94,7 +95,7 @@ public sealed class SetupPageModule : IPageModule
             "lucide/refresh-cw",
             "about",
             8,
-            _ => new PageSetupUpdate(),
+            (sp, _) => ActivatorUtilities.CreateInstance<PageSetupUpdate>(sp),
             () => !Config.Preference.Hide.SetupUpdate),
         Sub(
             PageIds.Setup,
@@ -103,7 +104,7 @@ public sealed class SetupPageModule : IPageModule
             "lucide/message-circle",
             "about",
             9,
-            _ => new PageSetupFeedback(),
+            (sp, _) => ActivatorUtilities.CreateInstance<PageSetupFeedback>(sp),
             () => !Config.Preference.Hide.SetupFeedback,
             true),
         Sub(
@@ -113,7 +114,7 @@ public sealed class SetupPageModule : IPageModule
             "lucide/scroll-text",
             "about",
             10,
-            _ => new PageSetupLog(),
+            (sp, _) => ActivatorUtilities.CreateInstance<PageSetupLog>(sp),
             () => !Config.Preference.Hide.SetupLog)
     ];
 
@@ -133,7 +134,7 @@ public sealed class SetupPageModule : IPageModule
                 new PageGroupDescriptor("about", "Setup.Left.Category.About", 3)
             ],
             SetupSubPages,
-            _ => new PageSetupHost())
+            (sp, descriptor) => ActivatorUtilities.CreateInstance<PageSetupHost>(sp, descriptor))
     ];
 
     public IReadOnlyList<MainTabDescriptor> MainTabs { get; } =

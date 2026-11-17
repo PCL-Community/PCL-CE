@@ -5,7 +5,7 @@ namespace PCL.Navigation;
 /// <summary>页面目录：聚合功能模块的页面描述，不包含具体页面列表或页面创建 switch。</summary>
 public static class PageCatalog
 {
-    private static readonly Lazy<PageCatalogSnapshot> Snapshot = new(() =>
+    private static readonly Lazy<PageCatalogSnapshot> _snapshot = new(() =>
         PageCatalogBuilder.Build(
         [
             new LaunchPageModule(),
@@ -16,9 +16,11 @@ public static class PageCatalog
             new ShellPageModule()
         ]));
 
-    public static IReadOnlyList<PageDescriptor> Pages => Snapshot.Value.Pages;
+    public static PageCatalogSnapshot Snapshot => _snapshot.Value;
 
-    public static IReadOnlyList<MainTabDescriptor> MainTabs => Snapshot.Value.MainTabs;
+    public static IReadOnlyList<PageDescriptor> Pages => Snapshot.Pages;
+
+    public static IReadOnlyList<MainTabDescriptor> MainTabs => Snapshot.MainTabs;
 
     public static PageDescriptor? GetPage(PageId page)
     {

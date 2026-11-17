@@ -4,7 +4,6 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
-using PCL.Core.Minecraft;
 using PCL.Core.Minecraft.Java;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
@@ -14,8 +13,8 @@ using PCL.UI.Controls;
 namespace PCL.Views.Pages.Setup;
 
 /// <summary>
-///     Java 设置页：列出本地 Java、启用/禁用、选择全局 Java 与手动添加。
-///     列表操作由 <see cref="PageSetupJavaViewModel" /> 负责，页面负责列表控件构建与滚动位置保持。
+/// Java 设置页：列出本地 Java、启用/禁用、选择全局 Java 与手动添加。 列表操作由
+/// <see cref="PageSetupJavaViewModel" /> 负责，页面负责列表控件构建与滚动位置保持。
 /// </summary>
 public partial class PageSetupJava : MyPageRight, IRefreshable
 {
@@ -23,8 +22,9 @@ public partial class PageSetupJava : MyPageRight, IRefreshable
     private bool _loaded;
     private bool _scanning;
 
-    public PageSetupJava()
+    public PageSetupJava(PageSetupJavaViewModel viewModel)
     {
+        ViewModel = viewModel;
         InitializeComponent();
         PanScroll = PanBack;
 
@@ -35,11 +35,17 @@ public partial class PageSetupJava : MyPageRight, IRefreshable
         {
             if (_loaded) return;
             _loaded = true;
-            PageLoaderInit(PanLoad, CardLoad, PanMain, null, _loader, _ => OnLoadFinished());
+            PageLoaderInit(
+                PanLoad,
+                CardLoad,
+                PanMain,
+                null,
+                _loader,
+                _ => OnLoadFinished());
         };
     }
 
-    public PageSetupJavaViewModel ViewModel { get; } = new();
+    public PageSetupJavaViewModel ViewModel { get; }
 
     public void Refresh()
     {

@@ -14,12 +14,13 @@ public partial class PageSetupLeft : MyPageLeft
     private static readonly PageDescriptor Page = PageCatalog.RequirePage(PageIds.Setup);
     private readonly List<(TextBlock Title, string GroupKey)> _groups = [];
     private readonly List<(SubPageId Sub, MyListItem Item)> _items = [];
-    private readonly PageSetupLeftViewModel _viewModel = new();
+    private readonly PageSetupLeftViewModel _viewModel;
     private bool _isSynchronizing;
     private Func<SubPageId, Control?>? _pageProvider;
 
-    public PageSetupLeft()
+    public PageSetupLeft(PageSetupLeftViewModel viewModel)
     {
+        _viewModel = viewModel;
         InitializeComponent();
         AnimatedControl = PanItem;
 

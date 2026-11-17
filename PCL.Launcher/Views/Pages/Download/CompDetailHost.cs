@@ -8,10 +8,8 @@ namespace PCL.Views.Pages.Download;
 /// 资源详情页宿主：二级页面，无左栏，右页复用同一份 <see cref="PageDownloadCompDetail" /> 实例。 导航参数约定为
 /// <see cref="Comp.CompProject" /> 或 <see cref="CompDetailParameter" />。
 /// </summary>
-public sealed class CompDetailHost : IPageHost
+public sealed class CompDetailHost(PageDownloadCompDetail right) : IPageHost
 {
-    private PageDownloadCompDetail? _right;
-
     public PageId Page => PageIds.CompDetail;
 
     public MainTab? Tab => null;
@@ -35,9 +33,8 @@ public sealed class CompDetailHost : IPageHost
 
     public Control GetRight(PageRoute stack)
     {
-        _right ??= new PageDownloadCompDetail();
-        _right.PrepareNavigation(stack.Parameter);
-        return _right;
+        right.PrepareNavigation(stack.Parameter);
+        return right;
     }
 
     private static string GetDetailTitle(Comp.CompProject project)

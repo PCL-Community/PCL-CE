@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using PCL.Views.Pages.Instance;
 using PCL.Views.Pages.Select;
 using static PCL.Navigation.PageDescriptorFactory;
@@ -15,7 +16,7 @@ public sealed class InstancePageModule : IPageModule
             "lucide/layout-dashboard",
             "game",
             0,
-            _ => new PageInstanceOverall(),
+            (sp, _) => ActivatorUtilities.CreateInstance<PageInstanceOverall>(sp),
             logoScale: 0.95d),
         Sub(
             PageIds.InstanceSetup,
@@ -24,7 +25,7 @@ public sealed class InstancePageModule : IPageModule
             "lucide/settings",
             "game",
             1,
-            _ => new PageInstanceSetup(),
+            (sp, _) => ActivatorUtilities.CreateInstance<PageInstanceSetup>(sp),
             reset: "Instance.Left.InitializeSettings.ConfirmTitle"),
         Sub(
             PageIds.InstanceSetup,
@@ -33,7 +34,7 @@ public sealed class InstancePageModule : IPageModule
             "lucide/wrench",
             "game",
             2,
-            _ => new PageInstanceInstall(),
+            (sp, _) => ActivatorUtilities.CreateInstance<PageInstanceInstall>(sp),
             refresh: true,
             logoScale: 0.87d),
         Sub(
@@ -43,7 +44,7 @@ public sealed class InstancePageModule : IPageModule
             "lucide/package",
             "game",
             3,
-            _ => new PageInstanceExport(),
+            (sp, _) => ActivatorUtilities.CreateInstance<PageInstanceExport>(sp),
             refresh: true),
         Sub(
             PageIds.InstanceSetup,
@@ -52,7 +53,7 @@ public sealed class InstancePageModule : IPageModule
             "lucide/globe",
             "resources",
             4,
-            _ => new PageInstanceSaves(),
+            (sp, _) => ActivatorUtilities.CreateInstance<PageInstanceSaves>(sp),
             refresh: true,
             logoScale: 0.95d),
         Sub(
@@ -62,7 +63,7 @@ public sealed class InstancePageModule : IPageModule
             "lucide/image",
             "resources",
             5,
-            _ => new PageInstanceScreenshot(),
+            (sp, _) => ActivatorUtilities.CreateInstance<PageInstanceScreenshot>(sp),
             refresh: true,
             logoScale: 0.95d),
         Sub(
@@ -72,7 +73,8 @@ public sealed class InstancePageModule : IPageModule
             "lucide/puzzle",
             "resources",
             6,
-            _ => new PageInstanceCompResource(Comp.CompType.Mod),
+            (sp, _) =>
+                ActivatorUtilities.CreateInstance<PageInstanceCompResource>(sp, Comp.CompType.Mod),
             refresh: true),
         Sub(
             PageIds.InstanceSetup,
@@ -81,7 +83,7 @@ public sealed class InstancePageModule : IPageModule
             "lucide/puzzle",
             "resources",
             7,
-            _ => new PageInstanceModDisabled()),
+            (sp, _) => ActivatorUtilities.CreateInstance<PageInstanceModDisabled>(sp)),
         Sub(
             PageIds.InstanceSetup,
             SubPageIds.VersionResourcePack,
@@ -89,7 +91,10 @@ public sealed class InstancePageModule : IPageModule
             "lucide/layers",
             "resources",
             8,
-            _ => new PageInstanceCompResource(Comp.CompType.ResourcePack),
+            (sp, _) =>
+                ActivatorUtilities.CreateInstance<PageInstanceCompResource>(
+                    sp,
+                    Comp.CompType.ResourcePack),
             refresh: true,
             logoScale: 0.85d),
         Sub(
@@ -99,7 +104,10 @@ public sealed class InstancePageModule : IPageModule
             "lucide/sparkles",
             "resources",
             9,
-            _ => new PageInstanceCompResource(Comp.CompType.Shader),
+            (sp, _) =>
+                ActivatorUtilities.CreateInstance<PageInstanceCompResource>(
+                    sp,
+                    Comp.CompType.Shader),
             refresh: true,
             logoScale: 1.15d),
         Sub(
@@ -109,7 +117,10 @@ public sealed class InstancePageModule : IPageModule
             "lucide/file-box",
             "resources",
             10,
-            _ => new PageInstanceCompResource(Comp.CompType.Schematic),
+            (sp, _) =>
+                ActivatorUtilities.CreateInstance<PageInstanceCompResource>(
+                    sp,
+                    Comp.CompType.Schematic),
             refresh: true,
             logoScale: 0.85d),
         Sub(
@@ -119,7 +130,7 @@ public sealed class InstancePageModule : IPageModule
             "lucide/server",
             "resources",
             11,
-            _ => new PageInstanceServer(),
+            (sp, _) => ActivatorUtilities.CreateInstance<PageInstanceServer>(sp),
             refresh: true,
             logoScale: 0.85d)
     ];
@@ -133,7 +144,7 @@ public sealed class InstancePageModule : IPageModule
             "lucide/info",
             null,
             0,
-            _ => new PageInstanceSavesInfo()),
+            (sp, _) => ActivatorUtilities.CreateInstance<PageInstanceSavesInfo>(sp)),
         Sub(
             PageIds.VersionSaves,
             SubPageIds.VersionSavesDatapack,
@@ -141,7 +152,7 @@ public sealed class InstancePageModule : IPageModule
             "lucide/file-archive",
             null,
             1,
-            _ => new PageInstanceSavesDatapack(),
+            (sp, _) => ActivatorUtilities.CreateInstance<PageInstanceSavesDatapack>(sp),
             () => PageInstanceSavesLeftViewModel.IsDatapackTabVisible,
             true)
     ];
@@ -157,7 +168,7 @@ public sealed class InstancePageModule : IPageModule
             null,
             [],
             [],
-            _ => new InstanceSelectHost()),
+            (sp, _) => ActivatorUtilities.CreateInstance<InstanceSelectHost>(sp)),
         new(
             PageIds.InstanceSetup,
             "Main.Title.InstanceSetup",
@@ -170,7 +181,8 @@ public sealed class InstancePageModule : IPageModule
                 new PageGroupDescriptor("resources", "Instance.Left.Resources", 1)
             ],
             InstanceSubPages,
-            _ => new InstanceSetupHost()),
+            (sp, descriptor) =>
+                ActivatorUtilities.CreateInstance<InstanceSetupHost>(sp, descriptor)),
         new(
             PageIds.VersionSaves,
             "Main.Title.SaveManagement",
@@ -180,6 +192,6 @@ public sealed class InstancePageModule : IPageModule
             SubPageIds.VersionSavesInfo,
             [],
             VersionSavesSubPages,
-            _ => new VersionSavesHost())
+            (sp, descriptor) => ActivatorUtilities.CreateInstance<VersionSavesHost>(sp, descriptor))
     ];
 }

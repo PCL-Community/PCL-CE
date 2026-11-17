@@ -12,7 +12,7 @@ public static class PageDescriptorFactory
         string? iconKey,
         string? groupKey,
         int order,
-        Func<PageRoute, Control> create,
+        Func<IServiceProvider, PageRoute, Control> create,
         Func<bool>? visible = null,
         bool refresh = false,
         string? reset = null,

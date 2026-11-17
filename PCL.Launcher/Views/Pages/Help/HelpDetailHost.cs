@@ -6,7 +6,13 @@ namespace PCL.Views.Pages.Help;
 /// <summary>帮助详情页宿主：二级页面，无固定左栏，标题取导航给出的标题覆盖或内容的标题。</summary>
 public sealed class HelpDetailHost : IPageHost
 {
-    private PageHelpDetail? _right;
+    private readonly PageHelpDetail _right;
+
+    public HelpDetailHost(PageHelpDetail right)
+    {
+        _right = right;
+        _right.TitleChanged += _ => PageRouter.RefreshState();
+    }
 
     public PageId Page => PageIds.HelpDetail;
 
@@ -30,11 +36,6 @@ public sealed class HelpDetailHost : IPageHost
 
     public Control GetRight(PageRoute stack)
     {
-        if (_right is not null)
-            return _right;
-
-        _right = new PageHelpDetail();
-        _right.TitleChanged += _ => PageRouter.RefreshState();
         return _right;
     }
 }
