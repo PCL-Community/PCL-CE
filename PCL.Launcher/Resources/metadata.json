@@ -122,6 +122,12 @@
       "license": "https://licenses.nuget.org/MIT"
     },
     {
+      "name": "Microsoft.Extensions.DependencyInjection",
+      "info": "Copyright © Microsoft\nLicensed under the MIT License.",
+      "website": "https://github.com/dotnet/runtime",
+      "license": "https://licenses.nuget.org/MIT"
+    },
+    {
       "name": "Microsoft.Extensions.Http / Logging",
       "info": "Copyright © Microsoft\nLicensed under the MIT License.",
       "website": "https://github.com/dotnet/runtime",
@@ -143,6 +149,12 @@
       "name": "PlainToolkit.CngProtectedData",
       "info": "Copyright © PCL Community\nLicensed under the MIT License.",
       "website": "https://github.com/PCL-Community/PlainToolkit.CngProtectedData",
+      "license": "https://licenses.nuget.org/MIT"
+    },
+    {
+      "name": "PlainToolkit.ObjectiveC",
+      "info": "Copyright © PCL Community\nLicensed under the MIT License.",
+      "website": "https://github.com/PCL-Community/PlainToolkit.ObjectiveC",
       "license": "https://licenses.nuget.org/MIT"
     },
     {

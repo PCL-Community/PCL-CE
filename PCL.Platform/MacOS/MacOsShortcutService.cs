@@ -1,12 +1,22 @@
-using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text;
 using PCL.Core.Logging;
 using PCL.Core.Platform;
+using PlainToolkit.ObjectiveC.Runtime;
 
 namespace PCL.Platform;
 
 public sealed class MacOsShortcutService : IShortcutService
 {
+    private static readonly ObjCSel DefaultManager =
+        ObjCSel.FromString("defaultManager");
+
+    private static readonly ObjCSel CreateSymbolicLink =
+        ObjCSel.FromString("createSymbolicLinkAtPath:withDestinationPath:error:");
+
+    private static readonly ObjCSel Release = ObjCSel.FromString("release");
+    private static bool _frameworksLoaded;
+
     public string GetPreferredExtension(string target)
     {
         return FindAppBundle(target) is not null ? ".app" : ".command";
@@ -47,46 +57,10 @@ public sealed class MacOsShortcutService : IShortcutService
                 ?? Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
             Directory.CreateDirectory(destinationDirectory);
 
-            var aliasName = Path.GetFileName(shortcutPath);
-            var script = "tell application \"Finder\"\n"
-                + $"  set theAlias to make alias file to POSIX file \"{_EscapeAppleScript(appBundle)}\" "
-                + $"at POSIX file \"{_EscapeAppleScript(destinationDirectory)}\"\n"
-                + $"  set name of theAlias to \"{_EscapeAppleScript(aliasName)}\"\n"
-                + "end tell";
-            var info = new ProcessStartInfo
-            {
-                FileName = "osascript",
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                RedirectStandardError = true,
-                RedirectStandardOutput = true
-            };
+            if (!TryCreateSymbolicLink(shortcutPath, appBundle))
+                throw new IOException($"创建 macOS 快捷方式失败：{shortcutPath}");
 
-            info.ArgumentList.Add("-e");
-            info.ArgumentList.Add(script);
-
-            using var process = Process.Start(info)
-                ?? throw new PlatformNotSupportedException("无法启动 osascript 创建 Finder alias");
-
-            if (!process.WaitForExit(10_000))
-            {
-                try
-                {
-                    process.Kill(true);
-                }
-                catch
-                {
-                    // ignored
-                }
-
-                throw new IOException("创建 Finder alias 超时");
-            }
-
-            if (process.ExitCode != 0)
-                throw new IOException(
-                    $"创建 Finder alias 失败：{process.StandardError.ReadToEnd().Trim()}");
-
-            LogWrapper.Info("Files", $"已创建 macOS Finder alias：{shortcutPath}");
+            LogWrapper.Info("Files", $"已创建 macOS 应用快捷方式：{shortcutPath}");
             return;
         }
 
@@ -144,11 +118,51 @@ public sealed class MacOsShortcutService : IShortcutService
         return null;
     }
 
-    private static string _EscapeAppleScript(string value)
+
+    private static bool TryCreateSymbolicLink(string linkPath, string destinationPath)
     {
-        return value
-            .Replace("\\", "\\\\", StringComparison.Ordinal)
-            .Replace("\"", "\\\"", StringComparison.Ordinal);
+        EnsureFrameworks();
+
+        ObjCString? linkString = null;
+        ObjCString? destinationString = null;
+        try
+        {
+            linkString = ObjCString.FromString(linkPath);
+            destinationString = ObjCString.FromString(destinationPath);
+
+            var fileManager = ObjCObject
+                .GetClass("NSFileManager")
+                .SendMessage<ObjCObject>(DefaultManager);
+            if (fileManager.IsNull) return false;
+
+            return fileManager.SendMessage<ObjCString, ObjCString, nint, bool>(
+                CreateSymbolicLink,
+                linkString.Value,
+                destinationString.Value,
+                0);
+        }
+        finally
+        {
+            if (linkString is { } linkValue) ReleaseString(linkValue);
+            if (destinationString is { } destinationValue) ReleaseString(destinationValue);
+        }
+    }
+
+    private static void EnsureFrameworks()
+    {
+        if (_frameworksLoaded) return;
+
+        NativeLibrary.Load(
+            "/System/Library/Frameworks/Foundation.framework/Foundation");
+        NativeLibrary.Load(
+            "/System/Library/Frameworks/AppKit.framework/AppKit");
+        _frameworksLoaded = true;
+    }
+
+    private static void ReleaseString(ObjCString value)
+    {
+        if (!value.IsNull)
+            new ObjCObject(value.Value).SendMessage(Release);
     }
 
     private static string _QuoteShell(string value)

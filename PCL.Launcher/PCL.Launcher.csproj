@@ -35,6 +35,7 @@
         </PackageReference>
         <PackageReference Include="JAJ.Packages.MiniAudioEx" Version="4.0.1" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="11.0.0" />
+        <PackageReference Include="PlainToolkit.ObjectiveC" Version="0.1.1" />
     </ItemGroup>
     <ItemGroup>
         <EmbeddedResource Include="Resources\metadata.json" Link="metadata.json">
