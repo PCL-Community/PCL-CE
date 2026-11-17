@@ -7,6 +7,8 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Threading;
+using Avalonia.VisualTree;
 using PCL.Core.Logging;
 
 namespace PCL.UI.Controls;
@@ -37,12 +39,16 @@ public sealed class Tooltip
     private static IDisposable? _releaseSubscription;
 
     private static InputElement? _pressedElement;
+    private static IDisposable? _cursorSubscription;
 
     private static Control? _target;
     private static Popup? _flyout;
     private static Border? _shell;
     private static ScaleTransform? _scaler;
     private static bool _closing;
+
+    private static InputElement? _cursorOwner;
+    private static Point _cursorPoint;
 
     public static readonly AttachedProperty<bool> IsEnabledProperty =
         AvaloniaProperty.RegisterAttached<Tooltip, Control, bool>("IsEnabled", true);
@@ -99,6 +105,14 @@ public sealed class Tooltip
             },
             RoutingStrategies.Tunnel | RoutingStrategies.Bubble,
             true);
+        _cursorSubscription = InputElement.PointerMovedEvent.AddClassHandler<InputElement>(
+            (sender, e) =>
+            {
+                _cursorOwner = sender;
+                _cursorPoint = e.GetPosition(sender);
+            },
+            RoutingStrategies.Tunnel | RoutingStrategies.Bubble,
+            true);
 
         if (Application.Current is { } application)
             application.ActualThemeVariantChanged += _OnThemeVariantChanged;
@@ -117,6 +131,8 @@ public sealed class Tooltip
         _pressSubscription = null;
         _releaseSubscription?.Dispose();
         _releaseSubscription = null;
+        _cursorSubscription?.Dispose();
+        _cursorSubscription = null;
         _pressedElement = null;
 
         if (Application.Current is { } application)
@@ -175,7 +191,7 @@ public sealed class Tooltip
         _flyout.VerticalOffset = ToolTip.GetVerticalOffset(target);
         _flyout.Placement = _GetPlacement(target);
         if (GetFollowCursor(target))
-            _ApplyFollowPlacement(default);
+            _ApplyFollowPlacement(_CursorFor(target));
 
         target.PointerMoved += _OnTargetPointerMoved;
         target.PointerExited += _OnTargetPointerExited;
@@ -197,6 +213,9 @@ public sealed class Tooltip
             _Hush();
             return false;
         }
+
+        if (GetFollowCursor(target))
+            _flyout.Opened += _OnFlyoutOpened;
 
         AnimationService.Run(
             new List<IAnimation>
@@ -363,6 +382,32 @@ public sealed class Tooltip
         _ApplyFollowPlacement(e.GetPosition(_target));
     }
 
+    private static void _OnFlyoutOpened(object? sender, EventArgs e)
+    {
+        if (_flyout is not null)
+            _flyout.Opened -= _OnFlyoutOpened;
+
+        if (_target is not { } opened || !GetFollowCursor(opened)) return;
+
+        Dispatcher.UIThread.Post(
+            () =>
+            {
+                if (_closing || _flyout is not { IsOpen: true }) return;
+                if (!ReferenceEquals(_target, opened)) return;
+                _ApplyFollowPlacement(_CursorFor(opened));
+            },
+            DispatcherPriority.Loaded);
+    }
+
+    private static Point _CursorFor(Control target)
+    {
+        if (_cursorOwner is Visual owner
+            && (ReferenceEquals(owner, target) || target.IsVisualAncestorOf(owner)))
+            return _cursorPoint;
+
+        return target.Bounds.Center;
+    }
+
     private static void _OnTargetPointerExited(object? sender, PointerEventArgs e)
     {
         _WindDown();
@@ -434,6 +479,7 @@ public sealed class Tooltip
         if (_flyout is not null)
             try
             {
+                _flyout.Opened -= _OnFlyoutOpened;
                 _flyout.IsOpen = false;
             }
             catch (Exception ex)
