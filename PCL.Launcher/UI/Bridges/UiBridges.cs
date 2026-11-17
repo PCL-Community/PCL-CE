@@ -267,17 +267,30 @@ public sealed class ProfileUiBridge : IProfileUi
     public string IsProfileValid()
     {
         var profile = ProfileService.Current;
-        if (profile is null) return Lang.Text("Minecraft.Launch.Precheck.NoProfile");
-        if (profile.ProfileType != ProfileType.Offline) return string.Empty;
-        if (string.IsNullOrWhiteSpace(profile.UserName))
-            return Lang.Text("Launch.Account.Profile.Validation.EmptyUsername");
-        if (profile.UserName.Contains('"'))
-            return Lang.Text("Launch.Account.Profile.Validation.QuoteInUsername");
-        if (InstanceList.McMcInstanceSelected is { } instance
-            && instance.Info.Drop >= 203
-            && profile.UserName.Trim().Length > 16)
-            return Lang.Text("Launch.Account.Profile.Validation.UsernameTooLong");
-        return string.Empty;
+        if (profile is null)
+            return Lang.Text("Minecraft.Launch.Precheck.NoProfile");
+
+        var userName = profile.UserName;
+        return profile.ProfileType switch
+        {
+            not ProfileType.Offline => string.Empty,
+
+            ProfileType.Offline when
+                string.IsNullOrWhiteSpace(userName) =>
+                Lang.Text("Launch.Account.Profile.Validation.EmptyUsername"),
+
+            ProfileType.Offline when
+                userName?.Contains('"') == true =>
+                Lang.Text("Launch.Account.Profile.Validation.QuoteInUsername"),
+
+            ProfileType.Offline when
+                InstanceList.McMcInstanceSelected is { Info.Drop: >= 203 }
+                && userName is not null
+                && userName.Trim().Length > 16 =>
+                Lang.Text("Launch.Account.Profile.Validation.UsernameTooLong"),
+
+            _ => string.Empty
+        };
     }
 
     public Task<AuthorizeResult?> ShowDeviceCodeLoginAsync(
@@ -291,7 +304,8 @@ public sealed class ProfileUiBridge : IProfileUi
         {
             Title = Lang.Text("Launch.Account.LoginDialog.MinecraftLogin"),
             Buttons = default,
-            Data = JsonSerializer.SerializeToNode(context.Data, JsonCompat.SerializerOptions)!
+            Data = JsonSerializer
+                .SerializeToNode(context.Data, JsonCompat.SerializerOptions)!
                 .AsObject(),
             DeviceCodePoll = (_, pollToken) => context.PollAsync(pollToken),
             LoginResultHandler = (oauth, _) =>
@@ -354,37 +368,38 @@ public sealed class ProfileUiBridge : IProfileUi
                     });
                 break;
             case "xsts_2148916238":
-                if (UiInteraction.MessageBlockingOnWorkerThread(
-                        Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.Message"),
-                        Lang.Text("Minecraft.Launch.Login.Hint"),
-                        Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.AgeOver13"),
-                        Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.AgeUnder13"),
-                        Lang.Text("Common.Option.IDontKnow"))
-                    == 1)
+                var result = UiInteraction.MessageBlockingOnWorkerThread(
+                    Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.Message"),
+                    Lang.Text("Minecraft.Launch.Login.Hint"),
+                    Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.AgeOver13"),
+                    Lang.Text("Minecraft.Launch.Login.Microsoft.Underage.AgeUnder13"),
+                    Lang.Text("Common.Option.IDontKnow"));
+                switch (result)
                 {
-                    UiInteraction.OpenWebsite("https://account.live.com/editprof.aspx");
-                    _ = DialogService.Instance.ShowAsync(
-                        new TextDialogRequest
-                        {
-                            Title = Lang.Text("Minecraft.Launch.Login.Hint"),
-                            Content = Lang.Text(
-                                "Minecraft.Launch.Login.Microsoft.ChangeBirthDate.Message"),
-                            Buttons = DialogButtons.Ok
-                        });
-                }
-                else
-                {
-                    UiInteraction.OpenWebsite(
-                        "https://support.microsoft.com/zh-cn/account-billing/"
-                        + "如何更改-microsoft-帐户上的出生日期-837badbc-999e-54d2-2617-d19206b9540a");
-                    _ = DialogService.Instance.ShowAsync(
-                        new TextDialogRequest
-                        {
-                            Title = Lang.Text("Minecraft.Launch.Login.Hint"),
-                            Content = Lang.Text(
-                                "Minecraft.Launch.Login.Microsoft.ChangeBirthDate.SupportMessage"),
-                            Buttons = DialogButtons.Ok
-                        });
+                    case 1:
+                        UiInteraction.OpenWebsite("https://account.live.com/editprof.aspx");
+                        _ = DialogService.Instance.ShowAsync(
+                            new TextDialogRequest
+                            {
+                                Title = Lang.Text("Minecraft.Launch.Login.Hint"),
+                                Content = Lang.Text(
+                                    "Minecraft.Launch.Login.Microsoft.ChangeBirthDate.Message"),
+                                Buttons = DialogButtons.Ok
+                            });
+                        break;
+                    default:
+                        UiInteraction.OpenWebsite(
+                            "https://support.microsoft.com/zh-cn/account-billing/"
+                            + "如何更改-microsoft-帐户上的出生日期-837badbc-999e-54d2-2617-d19206b9540a");
+                        _ = DialogService.Instance.ShowAsync(
+                            new TextDialogRequest
+                            {
+                                Title = Lang.Text("Minecraft.Launch.Login.Hint"),
+                                Content = Lang.Text(
+                                    "Minecraft.Launch.Login.Microsoft.ChangeBirthDate.SupportMessage"),
+                                Buttons = DialogButtons.Ok
+                            });
+                        break;
                 }
 
                 break;
@@ -401,12 +416,12 @@ public sealed class ProfileUiBridge : IProfileUi
                 StringComparison.OrdinalIgnoreCase))
             return false;
 
-        if (UiInteraction.MessageBlockingOnWorkerThread(
-                Lang.Text("Minecraft.Launch.Login.Microsoft.NotPurchased"),
-                Lang.Text("Minecraft.Launch.Login.Failed"),
-                Lang.Text("Minecraft.Launch.Login.Microsoft.PurchaseMinecraft"),
-                Lang.Text("Common.Action.Cancel"))
-            == 1)
+        var result = UiInteraction.MessageBlockingOnWorkerThread(
+            Lang.Text("Minecraft.Launch.Login.Microsoft.NotPurchased"),
+            Lang.Text("Minecraft.Launch.Login.Failed"),
+            Lang.Text("Minecraft.Launch.Login.Microsoft.PurchaseMinecraft"),
+            Lang.Text("Common.Action.Cancel"));
+        if (result == 1)
             UiInteraction.OpenWebsite(
                 "https://www.xbox.com/zh-cn/games/store/"
                 + "minecraft-java-bedrock-edition-for-pc/9nxp44l49shj");
@@ -422,12 +437,12 @@ public sealed class ProfileUiBridge : IProfileUi
                 StringComparison.OrdinalIgnoreCase))
             return false;
 
-        if (UiInteraction.MessageBlockingOnWorkerThread(
-                Lang.Text("Minecraft.Launch.Login.Microsoft.CreateProfile.Message"),
-                Lang.Text("Minecraft.Launch.Login.Failed"),
-                Lang.Text("Minecraft.Launch.Login.Microsoft.CreateProfile.Button"),
-                Lang.Text("Common.Action.Cancel"))
-            == 1)
+        var result = UiInteraction.MessageBlockingOnWorkerThread(
+            Lang.Text("Minecraft.Launch.Login.Microsoft.CreateProfile.Message"),
+            Lang.Text("Minecraft.Launch.Login.Failed"),
+            Lang.Text("Minecraft.Launch.Login.Microsoft.CreateProfile.Button"),
+            Lang.Text("Common.Action.Cancel"));
+        if (result == 1)
             UiInteraction.OpenWebsite(
                 "https://www.minecraft.net/zh-hans/msaprofile/mygames/editprofile");
         return true;
@@ -440,9 +455,13 @@ public sealed class LogFilterBridge : ILogFilter
     public string FilterUserName(string raw, char filterChar)
     {
         var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        if (string.IsNullOrEmpty(userProfile) || !raw.Contains(userProfile)) return raw;
+        if (string.IsNullOrEmpty(userProfile) || !raw.Contains(userProfile))
+            return raw;
+
         var userName = Path.GetFileName(userProfile);
-        if (string.IsNullOrEmpty(userName)) return raw;
+        if (string.IsNullOrEmpty(userName))
+            return raw;
+
         return raw.Replace(
             userProfile,
             userProfile.Replace(userName, new string(filterChar, userName.Length)));
@@ -767,14 +786,21 @@ public sealed class EventUiBridge : IEventUi
         PageRouter.Navigate(page, sub);
     }
 
-    public void StartModpackInstall()
+    public async void StartModpackInstall()
     {
-        Modpack.ModpackInstall();
+        try
+        {
+            await Modpack.ModpackInstall();
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Error(ex, "UI", "启动整合包安装失败");
+        }
     }
 
     public void StartCustomDownload(string url, string savePath, string? fileName)
     {
-        PageToolsTest.StartCustomDownload(url, fileName, savePath);
+        _ = PageToolsTest.StartCustomDownloadAsync(url, fileName, savePath);
     }
 
     public void OpenHelp(string location)

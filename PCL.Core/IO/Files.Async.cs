@@ -12,9 +12,7 @@ namespace PCL.Core.IO;
 
 public static partial class Files
 {
-    /// <summary>
-    ///     从剪切板粘贴文件或文件夹
-    /// </summary>
+    /// <summary>从剪切板粘贴文件或文件夹</summary>
     /// <param name="dest">目标文件夹</param>
     /// <param name="copyFile">是否粘贴文件</param>
     /// <param name="copyDir">是否粘贴文件夹</param>
@@ -32,7 +30,9 @@ public static partial class Files
 
         if (!Directory.Exists(dest)) Directory.CreateDirectory(dest);
 
-        var paths = PlatformServices.Clipboard?.GetFileDropList();
+        var clipboard = PlatformServices.Clipboard;
+        if (clipboard is null) return 0;
+        var paths = await clipboard.GetFileDropListAsync();
         if (paths is null || paths.Length == 0) return 0;
         return await PastePathsAsync(paths, dest, copyFile, copyDir, skipExisting);
     }
@@ -72,9 +72,7 @@ public static partial class Files
         return count;
     }
 
-    /// <summary>
-    ///     复制文件，自动创建目标目录并覆盖已有文件。
-    /// </summary>
+    /// <summary>复制文件，自动创建目标目录并覆盖已有文件。</summary>
     /// <param name="fromPath">源文件路径（完整或相对）</param>
     /// <param name="toPath">目标文件路径（完整或相对）</param>
     /// <param name="cancelToken">取消令牌</param>
@@ -158,9 +156,7 @@ public static partial class Files
             });
     }
 
-    /// <summary>
-    ///     读取文件为字节数组，支持读取被占用的文件。
-    /// </summary>
+    /// <summary>读取文件为字节数组，支持读取被占用的文件。</summary>
     /// <param name="filePath">文件路径（完整或相对）</param>
     /// <param name="cancelToken">取消令牌</param>
     /// <returns>文件内容的字节数组，失败时返回空数组</returns>
@@ -184,9 +180,7 @@ public static partial class Files
         }
     }
 
-    /// <summary>
-    ///     读取文件为字符串。
-    /// </summary>
+    /// <summary>读取文件为字符串。</summary>
     /// <param name="filePath">文件路径（完整或相对）</param>
     /// <param name="encoding">文件编码，默认为 UTF-8</param>
     /// <param name="cancelToken">取消令牌</param>
@@ -210,9 +204,7 @@ public static partial class Files
         }
     }
 
-    /// <summary>
-    ///     从流中读取所有文本。
-    /// </summary>
+    /// <summary>从流中读取所有文本。</summary>
     /// <param name="stream">要读取的流</param>
     /// <param name="encoding">文件编码（可选，若为 null 则动态检测）</param>
     /// <param name="cancelToken">取消令牌</param>
@@ -240,9 +232,7 @@ public static partial class Files
         }
     }
 
-    /// <summary>
-    ///     异步读取文件到流。
-    /// </summary>
+    /// <summary>异步读取文件到流。</summary>
     /// <param name="filePath">文件路径（完整或相对）</param>
     /// <param name="cancelToken">取消令牌</param>
     /// <returns>包含文件内容的 MemoryStream，失败时返回空的 MemoryStream</returns>
@@ -275,9 +265,7 @@ public static partial class Files
         }
     }
 
-    /// <summary>
-    ///     写入字符串到文件，支持追加或覆盖，自动创建目录。
-    /// </summary>
+    /// <summary>写入字符串到文件，支持追加或覆盖，自动创建目录。</summary>
     /// <param name="filePath">文件路径（完整或相对）</param>
     /// <param name="text">要写入的文本</param>
     /// <param name="append">追加到文件（true）或覆盖（false）</param>
@@ -318,9 +306,7 @@ public static partial class Files
         }
     }
 
-    /// <summary>
-    ///     写入字节数组到文件，自动创建目录。
-    /// </summary>
+    /// <summary>写入字节数组到文件，自动创建目录。</summary>
     /// <param name="filePath">文件路径（完整或相对）</param>
     /// <param name="content">要写入的字节数组</param>
     /// <param name="append">追加到文件（true）或覆盖（false），默认为 false</param>
@@ -347,9 +333,7 @@ public static partial class Files
         await fileStream.WriteAsync(content.AsMemory(), cancelToken);
     }
 
-    /// <summary>
-    ///     将流写入文件，自动创建目录。
-    /// </summary>
+    /// <summary>将流写入文件，自动创建目录。</summary>
     /// <param name="filePath">文件路径（完整或相对）</param>
     /// <param name="stream">要写入的流</param>
     /// <param name="cancelToken">取消令牌</param>

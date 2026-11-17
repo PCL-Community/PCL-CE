@@ -510,9 +510,9 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
 
     private static string LogoPath => Path.Combine(Paths.Data, "Logo.png");
 
-    private static void OnChangeLogo()
+    private static async void OnChangeLogo()
     {
-        var fileName = SystemDialogs.SelectFile(
+        var fileName = await SystemDialogs.SelectFileAsync(
             Lang.Text("Setup.Ui.ImageFile.Filter"),
             Lang.Text("Setup.Ui.ImageFile.SelectTitle"));
         if (string.IsNullOrEmpty(fileName)) return;
@@ -531,7 +531,7 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         }
     }
 
-    private void RadioLogoType3_PreviewCheck(object? sender, RouteEventArgs e)
+    private async void RadioLogoType3_PreviewCheck(object? sender, RouteEventArgs e)
     {
         if (_selectingLogo || !e.raiseByMouse || AnimationService.IsSuspended) return;
         if (File.Exists(LogoPath))
@@ -543,7 +543,7 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         _selectingLogo = true;
         try
         {
-            var fileName = SystemDialogs.SelectFile(
+            var fileName = await SystemDialogs.SelectFileAsync(
                 Lang.Text("Setup.Ui.ImageFile.Filter"),
                 Lang.Text("Setup.Ui.ImageFile.SelectTitle"));
             if (string.IsNullOrEmpty(fileName))

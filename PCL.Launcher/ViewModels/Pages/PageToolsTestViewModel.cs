@@ -265,9 +265,9 @@ public partial class PageToolsTestViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    public void SelectDownloadFolder()
+    public async Task SelectDownloadFolder()
     {
-        var folder = SystemDialogs.SelectFolder(
+        var folder = await SystemDialogs.SelectFolderAsync(
             Lang.Text("Tools.Test.CustomDownload.SaveTo"),
             DownloadFolder);
         if (!string.IsNullOrWhiteSpace(folder))
@@ -294,13 +294,13 @@ public partial class PageToolsTestViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    public void StartDownload()
+    public async Task StartDownload()
     {
         var url = DownloadUrl.Trim();
         var folder = DownloadFolder.Trim();
         var name = DownloadName.Trim();
         States.Tool.DownloadFolder = folder;
-        PageToolsTest.StartCustomDownload(url, name, folder);
+        await PageToolsTest.StartCustomDownloadAsync(url, name, folder);
         DownloadUrl = "";
         DownloadName = "";
         DownloadStartEnabled = false;
@@ -342,7 +342,7 @@ public partial class PageToolsTestViewModel : ViewModelBase
                 return;
             }
 
-            var savePath = SystemDialogs.SelectSaveFile(
+            var savePath = await SystemDialogs.SelectSaveFileAsync(
                 Lang.Text("Tools.Test.Skin.Save"),
                 $"{name}.png",
                 Lang.Text("Tools.Test.Skin.FileFilter"));
@@ -418,7 +418,7 @@ public partial class PageToolsTestViewModel : ViewModelBase
             if (string.IsNullOrEmpty(local))
                 throw new InvalidDataException("成就图片下载失败");
 
-            var savePath = SystemDialogs.SelectSaveFile(
+            var savePath = await SystemDialogs.SelectSaveFileAsync(
                 Lang.Text("Tools.Test.Achievement.Save"),
                 (AchievementTitle.Trim() is { Length: > 0 } title ? title : "Achievement") + ".png",
                 Lang.Text("Tools.Test.Achievement.FileFilter"));
@@ -441,9 +441,9 @@ public partial class PageToolsTestViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    public void SelectSkinFile()
+    public async Task SelectSkinFile()
     {
-        var path = SystemDialogs.SelectFile(
+        var path = await SystemDialogs.SelectFileAsync(
             Lang.Text("Tools.Test.Avatar.FileFilter"),
             Lang.Text("Tools.Test.Avatar.SelectSkinFile"));
         if (string.IsNullOrWhiteSpace(path))
@@ -477,7 +477,7 @@ public partial class PageToolsTestViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    public void SaveHead()
+    public async Task SaveHead()
     {
         if (GeneratedHead is null)
         {
@@ -485,7 +485,7 @@ public partial class PageToolsTestViewModel : ViewModelBase
             return;
         }
 
-        var savePath = SystemDialogs.SelectSaveFile(
+        var savePath = await SystemDialogs.SelectSaveFileAsync(
             Lang.Text("Tools.Test.Avatar.Save"),
             "Head.png");
         if (string.IsNullOrWhiteSpace(savePath))

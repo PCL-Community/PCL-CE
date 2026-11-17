@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.IO.Compression;
 using PCL.Core.App.Localization;
+using PCL.Core.Platform;
 using PCL.Core.UI;
 using static PCL.Loading;
 
@@ -36,7 +37,7 @@ public static partial class Modpack
             Lang.Text("Common.Action.Install"),
             Lang.Text("Common.Action.Continue"),
             forceWait: true);
-        var targetFolder = SystemDialogs.SelectFolder(
+        var targetFolder = SystemDialogs.SelectFolderBlockingOnWorkerThread(
             Lang.Text("Minecraft.Download.Modpack.SelectTargetFolder.Title"));
 
         if (string.IsNullOrEmpty(targetFolder))
@@ -60,7 +61,7 @@ public static partial class Modpack
         ExtractModpackFiles(targetFolder, fileAddress, task, 0.9d);
         Thread.Sleep(400);
         // 整合包附带的启动器只可能是 Windows 可执行文件
-        var launcher = PCL.Core.Platform.PlatformRuntime.Current.Capabilities.SupportsBundledLauncher
+        var launcher = PlatformRuntime.Current.Capabilities.SupportsBundledLauncher
             ? _FindBundledLauncher(targetFolder)
             : null;
 

@@ -309,7 +309,8 @@ public partial class PageDownloadCompFavoritesViewModel : ViewModelBase
                 .Select(item => item.Project.Id)
                 .ToHashSet();
             if (ids.Count == 0) return;
-            PlatformServices.Clipboard?.SetText(Comp.CompFavorites.GetShareCode(ids));
+            if (PlatformServices.Clipboard is { } clipboard)
+                await clipboard.SetTextAsync(Comp.CompFavorites.GetShareCode(ids));
             ClearSelection();
         }
         catch (Exception ex)
@@ -509,8 +510,12 @@ public partial class PageDownloadCompFavoritesViewModel : ViewModelBase
                     DialogButton.Create(Lang.Text("Common.Action.Confirm")),
                     DialogButton.Create(
                         Lang.Text("Download.Comp.Favorites.Dialog.GetFailed.CopyIds"),
-                        () => PlatformServices.Clipboard?.SetText(
-                            string.Join(Environment.NewLine, failedIds))),
+                        async () =>
+                        {
+                            if (PlatformServices.Clipboard is { } clipboard)
+                                await clipboard.SetTextAsync(
+                                    string.Join(Environment.NewLine, failedIds));
+                        }),
                     DialogButton.Create(
                         Lang.Text("Download.Comp.Favorites.Dialog.GetFailed.Remove"),
                         () =>
@@ -560,7 +565,7 @@ public partial class PageDownloadCompFavoritesViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void ShareCurrentFolder()
+    private async Task ShareCurrentFolder()
     {
         try
         {
@@ -572,7 +577,8 @@ public partial class PageDownloadCompFavoritesViewModel : ViewModelBase
                 return;
             }
 
-            PlatformServices.Clipboard?.SetText(Comp.CompFavorites.GetShareCode(group.Favs));
+            if (PlatformServices.Clipboard is { } clipboard)
+                await clipboard.SetTextAsync(Comp.CompFavorites.GetShareCode(group.Favs));
             HintService.Show(Hints.Success(Lang.Text("Common.Status.Success"), false));
         }
         catch (Exception ex)
@@ -885,24 +891,20 @@ public partial class PageDownloadCompFavoritesViewModel : ViewModelBase
             return [];
         }
 
-        var versionResult = LauncherCommon.RunInUiWait(() =>
-            DialogService
-                .Instance.ShowAsync(
-                    new SelectDialogRequest
+        var versionResult = DialogService.Instance.ShowBlockingOnWorkerThread(
+            new SelectDialogRequest
+            {
+                Title = Lang.Text("Download.Comp.Favorites.Dialog.SelectVersion.Title"),
+                Options =
+                [
+                    .. commonVersions.Select(version => new DialogOption
                     {
-                        Title = Lang.Text("Download.Comp.Favorites.Dialog.SelectVersion.Title"),
-                        Options =
-                        [
-                            .. commonVersions.Select(version => new DialogOption
-                            {
-                                Text = version
-                            })
-                        ],
-                        Buttons = DialogButtons.OkCancel,
-                        HighLight = false
+                        Text = version
                     })
-                .GetAwaiter()
-                .GetResult());
+                ],
+                Buttons = DialogButtons.OkCancel,
+                HighLight = false
+            });
         if (versionResult is null
             || !versionResult.IsConfirmed
             || versionResult.SelectedIndex is null)
@@ -912,7 +914,7 @@ public partial class PageDownloadCompFavoritesViewModel : ViewModelBase
         }
 
         var selectedVersion = commonVersions[versionResult.SelectedIndex.Value];
-        var saveFolder = LauncherCommon.RunInUiWait(() => SystemDialogs.SelectFolder());
+        var saveFolder = SystemDialogs.SelectFolderBlockingOnWorkerThread();
         if (string.IsNullOrWhiteSpace(saveFolder))
         {
             task.Abort();

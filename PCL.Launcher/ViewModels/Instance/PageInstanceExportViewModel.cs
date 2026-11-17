@@ -224,11 +224,11 @@ public partial class PageInstanceExportViewModel : ViewModelBase
         SyncLauncherOptions();
     }
 
-    public bool ExportConfig()
+    public async Task<bool> ExportConfig()
     {
         try
         {
-            var configPath = SystemDialogs.SelectSaveFile(
+            var configPath = await SystemDialogs.SelectSaveFileAsync(
                 Lang.Text("Instance.Export.SelectFileLocation"),
                 "export_config.txt",
                 Lang.Text("Instance.Export.Config.FileFilter"),
@@ -281,11 +281,11 @@ public partial class PageInstanceExportViewModel : ViewModelBase
         }
     }
 
-    public bool ImportConfig()
+    public async Task<bool> ImportConfig()
     {
         try
         {
-            var configPath = SystemDialogs.SelectFile(
+            var configPath = await SystemDialogs.SelectFileAsync(
                 Lang.Text("Instance.Export.Config.FileFilter"),
                 Lang.Text("Instance.Export.SelectConfigFile"),
                 _lastConfigPath);
@@ -398,7 +398,7 @@ public partial class PageInstanceExportViewModel : ViewModelBase
                     extensions.Add(Lang.Text("Instance.Export.ZipFilter"));
                 if (!IncludePcl)
                     extensions.Add(Lang.Text("Instance.Export.MrpackFilter"));
-                packPath = SystemDialogs.SelectSaveFile(
+                packPath = await SystemDialogs.SelectSaveFileAsync(
                     Lang.Text("Instance.Export.SelectSaveLocation"),
                     packName
                     + (string.IsNullOrWhiteSpace(PackVersion)

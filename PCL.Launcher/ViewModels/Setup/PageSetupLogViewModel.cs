@@ -87,7 +87,7 @@ public class PageSetupLogViewModel : ViewModelBase
             $"PCL_CE_Logs_{DateTime.Now.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture)}";
         var tempDirName = $"{baseName}.tmp";
         var fileName = $"{baseName}.zip";
-        var selectedPath = SystemDialogs.SelectSaveFile(
+        var selectedPath = await SystemDialogs.SelectSaveFileAsync(
             Lang.Text("Setup.Log.ExportSaveTitle"),
             fileName,
             filter,

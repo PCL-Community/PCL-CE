@@ -6,10 +6,7 @@ using PCL.Core.ViewModel;
 
 namespace PCL;
 
-/// <summary>
-///     资源工程搜索页的视图模型：持有筛选条件、分页、加载状态与当前页条目，
-///     页面只负责把这里的集合/状态映射到具体控件。
-/// </summary>
+/// <summary>资源工程搜索页的视图模型：持有筛选条件、分页、加载状态与当前页条目， 页面只负责把这里的集合/状态映射到具体控件。</summary>
 public partial class PageCompViewModel : ViewModelBase
 {
     public const int PageSize = 40;
@@ -325,9 +322,9 @@ public partial class PageCompViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    public static void InstallModPack()
+    public static async Task InstallModPack()
     {
-        Modpack.ModpackInstall();
+        await Modpack.ModpackInstall();
     }
 
     private void OnLoaderStateChanged(

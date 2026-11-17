@@ -21,7 +21,7 @@ internal static class DownloadVersionActions
     /// </summary>
     /// <param name="version">版本清单项。</param>
     /// <param name="title">列表中显示的标题；与原版 PCL 一致，用于实例文件夹名。</param>
-    public static void SaveVersion(JsonObject version, string title)
+    public static async Task SaveVersionAsync(JsonObject version, string title)
     {
         if (!RestrictedFeatures.Check("minecraft-client-save"))
             return;
@@ -38,7 +38,7 @@ internal static class DownloadVersionActions
                 return;
             }
 
-            var selectedFolder = SystemDialogs.SelectFolder();
+            var selectedFolder = await SystemDialogs.SelectFolderAsync();
             if (string.IsNullOrEmpty(selectedFolder))
                 return;
             var versionFolder = Path.Combine(selectedFolder, id);
@@ -93,7 +93,7 @@ internal static class DownloadVersionActions
         }
     }
 
-    public static void SaveServer(JsonObject version, string title)
+    public static async Task SaveServerAsync(JsonObject version, string title)
     {
         try
         {
@@ -108,7 +108,7 @@ internal static class DownloadVersionActions
                 return;
             }
 
-            var selectedFolder = SystemDialogs.SelectFolder();
+            var selectedFolder = await SystemDialogs.SelectFolderAsync();
             if (string.IsNullOrEmpty(selectedFolder))
                 return;
             var versionFolder = Path.Combine(selectedFolder, id);

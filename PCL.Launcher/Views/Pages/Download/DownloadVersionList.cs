@@ -241,13 +241,13 @@ internal static class DownloadVersionList
         };
         ConfigureVersionButtonTooltip(serverButton, "Download.Version.DownloadServer");
         serverButton.Click +=
-            (_, _) => DownloadVersionActions.SaveServer(version, formattedVersion);
+            (_, _) => _ = DownloadVersionActions.SaveServerAsync(version, formattedVersion);
 
         if (mode == DownloadVersionListMode.SaveOnly)
         {
             item.Buttons = [serverButton, changelogButton];
             item.Click += (_, _) =>
-                DownloadVersionActions.SaveVersion(version, formattedVersion);
+                _ = DownloadVersionActions.SaveVersionAsync(version, formattedVersion);
         }
         else
         {
@@ -258,7 +258,7 @@ internal static class DownloadVersionList
             };
             ConfigureVersionButtonTooltip(saveButton, "Download.Version.SaveAs");
             saveButton.Click += (_, _) =>
-                DownloadVersionActions.SaveVersion(version, formattedVersion);
+                _ = DownloadVersionActions.SaveVersionAsync(version, formattedVersion);
             item.Buttons = [saveButton, changelogButton, serverButton];
             item.Click += (_, _) => onSelect(version);
         }

@@ -206,7 +206,7 @@ public partial class PageSelectLeftViewModel : ViewModelBase
 
         try
         {
-            newFolder = SystemDialogs.SelectFolder();
+            newFolder = await SystemDialogs.SelectFolderAsync();
             if (string.IsNullOrEmpty(newFolder))
                 return;
             if (newFolder.Contains('!') || newFolder.Contains(';'))
@@ -258,9 +258,9 @@ public partial class PageSelectLeftViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    public static void InstallModpack()
+    public static async Task InstallModpack()
     {
-        Modpack.ModpackInstall();
+        await Modpack.ModpackInstall();
     }
 
     [RelayCommand]

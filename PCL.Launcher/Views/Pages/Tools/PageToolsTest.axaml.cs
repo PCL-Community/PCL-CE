@@ -421,7 +421,7 @@ public partial class PageToolsTest : MyPageRight
     }
 
     /// <summary>WPF <c>PageToolsTest.StartCustomDownload</c> 的等价实现。</summary>
-    public static void StartCustomDownload(
+    public static async Task StartCustomDownloadAsync(
         string url,
         string? fileName,
         string? folder,
@@ -434,7 +434,7 @@ public partial class PageToolsTest : MyPageRight
                 : fileName;
             if (string.IsNullOrWhiteSpace(folder))
             {
-                folder = SystemDialogs.SelectSaveFile(
+                folder = await SystemDialogs.SelectSaveFileAsync(
                     Lang.Text("Tools.Test.CustomDownload.SelectLocation"),
                     fileName);
                 if (string.IsNullOrEmpty(folder)) return;
@@ -499,7 +499,7 @@ public partial class PageToolsTest : MyPageRight
             };
             combo.Start();
             Loading.LoaderTaskbarAdd(combo);
-            UiInteraction.RefreshDownloadButton(nameof(StartCustomDownload));
+            UiInteraction.RefreshDownloadButton(nameof(StartCustomDownloadAsync));
         }
         catch (Exception ex)
         {

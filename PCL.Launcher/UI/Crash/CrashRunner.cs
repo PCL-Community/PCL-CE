@@ -159,7 +159,7 @@ internal static class CrashPresenter
         string? fileAddress = null;
         try
         {
-            fileAddress = SelectReportSavePath();
+            fileAddress = await SelectReportSavePathAsync();
             if (string.IsNullOrEmpty(fileAddress)) return;
 
             CrashReportExporter.Export(context, fileAddress, extraFiles);
@@ -179,8 +179,8 @@ internal static class CrashPresenter
                 Lang.Text("Common.Action.Confirm"),
                 Lang.Text("Crash.Export.Failed.CopyDetails"),
                 button2Action: () => copyPressed = true);
-            if (copyPressed)
-                PlatformServices.Clipboard?.SetText(message);
+            if (copyPressed && PlatformServices.Clipboard is { } clipboard)
+                await clipboard.SetTextAsync(message);
         }
     }
 
@@ -192,14 +192,12 @@ internal static class CrashPresenter
         return ExceptionDetails.ComposeForDialog(summary, exception);
     }
 
-    private static string? SelectReportSavePath()
+    private static Task<string> SelectReportSavePathAsync()
     {
-        string? fileAddress = null;
-        LauncherCommon.RunInUiWait(() => fileAddress = SystemDialogs.SelectSaveFile(
+        return SystemDialogs.SelectSaveFileAsync(
             Lang.Text("Crash.Report.SaveDialog.Title"),
             GetDefaultReportFileName(),
-            Lang.Text("Crash.Report.SaveDialog.Filter")));
-        return fileAddress;
+            Lang.Text("Crash.Report.SaveDialog.Filter"));
     }
 
     private static string GetDefaultReportFileName()

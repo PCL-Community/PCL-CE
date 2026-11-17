@@ -180,18 +180,18 @@ public partial class PageInstanceExport : MyPageRight, IRefreshable
         SyncOptionsAndAdvanced();
     }
 
-    private void ImportConfig()
+    private async void ImportConfig()
     {
-        if (ViewModel.ImportConfig())
+        if (await ViewModel.ImportConfig())
         {
             BuildOptionTree();
             SyncUiFromViewModel();
         }
     }
 
-    private void ExportConfig()
+    private async void ExportConfig()
     {
-        ViewModel.ExportConfig();
+        await ViewModel.ExportConfig();
     }
 
     private static string? GetSingleTxtFile(DragEventArgs e)

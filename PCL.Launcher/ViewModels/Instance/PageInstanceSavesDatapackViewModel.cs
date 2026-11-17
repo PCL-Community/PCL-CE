@@ -639,7 +639,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                 return;
 
             var isCsv = mode.Button == 2;
-            var savePath = SystemDialogs.SelectSaveFile(
+            var savePath = await SystemDialogs.SelectSaveFileAsync(
                 Lang.Text("Instance.Resource.Export.SelectSaveLocation"),
                 isCsv ? "datapacks.csv" : "datapacks.txt",
                 Lang.Text("Instance.Resource.Export.FilesFilter"));

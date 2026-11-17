@@ -9,14 +9,12 @@ namespace PCL;
 
 public static partial class Modpack
 {
-    /// <summary>
-    ///     弹窗要求选择一个整合包文件并进行安装。
-    /// </summary>
-    public static void ModpackInstall()
+    /// <summary>弹窗要求选择一个整合包文件并进行安装。</summary>
+    public static async Task ModpackInstall()
     {
         if (!RestrictedFeatures.Check("modpack-install"))
             return;
-        var file = SystemDialogs.SelectFile(
+        var file = await SystemDialogs.SelectFileAsync(
             Lang.Text("Minecraft.Download.Modpack.FileDialog.Filter"),
             Lang.Text("Minecraft.Download.Modpack.FileDialog.Title"));
         if (string.IsNullOrEmpty(file))
@@ -41,10 +39,7 @@ public static partial class Modpack
         });
     }
 
-    /// <summary>
-    ///     构建并启动安装给定的整合包文件的加载器，并返回该加载器。若失败则抛出异常。
-    ///     必须在工作线程执行。
-    /// </summary>
+    /// <summary>构建并启动安装给定的整合包文件的加载器，并返回该加载器。若失败则抛出异常。 必须在工作线程执行。</summary>
     /// <exception cref="CancelledException" />
     public static LoaderCombo<string> ModpackInstall(
         string file,
@@ -341,7 +336,7 @@ public static partial class Modpack
         var encode = Encoding.GetEncoding("GB18030");
         var initialProgress = loader.Progress;
 
-        while (retryCount <= 5)
+        while (true)
             try
             {
                 loader.Progress = initialProgress;
@@ -379,10 +374,7 @@ public static partial class Modpack
             }
     }
 
-    /// <summary>
-    ///     从整合包的 override 目录复制文件，同时设置 PCL 的配置文件与版本隔离。
-    ///     对路径末尾是否为路径分隔符没有要求。
-    /// </summary>
+    /// <summary>从整合包的 override 目录复制文件，同时设置 PCL 的配置文件与版本隔离。 对路径末尾是否为路径分隔符没有要求。</summary>
     private static void CopyOverrideDirectory(
         string overridesFolder,
         string versionFolder,

@@ -373,7 +373,7 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
                         ? "Download.Version.Type.Stable"
                         : "Download.Version.Type.Preview")
             };
-            item.Click += (_, _) => SaveInstaller(
+            item.Click += (_, _) => _ = SaveInstallerAsync(
                 [entry["url"]?.ToString() ?? ""],
                 LauncherCommon.GetFileNameFromPath(entry["url"]?.ToString() ?? title),
                 isLegacy
@@ -399,7 +399,7 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
 
     #endregion
 
-    private static void SaveInstaller(IEnumerable<string> urls, string fileName, string? filterKey)
+    private static async Task SaveInstallerAsync(IEnumerable<string> urls, string fileName, string? filterKey)
     {
         try
         {
@@ -410,7 +410,7 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
                 return;
             }
 
-            var target = SystemDialogs.SelectSaveFile(
+            var target = await SystemDialogs.SelectSaveFileAsync(
                 Lang.Text("Download.Version.SelectSaveLocation"),
                 fileName,
                 filterKey is null ? "*.jar|*.jar" : Lang.Text(filterKey));
@@ -519,7 +519,7 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
 
     internal static void SaveLabyMod(bool isSnapshot)
     {
-        SaveInstaller(
+        _ = SaveInstallerAsync(
             [
                 isSnapshot
                     ? "https://releases.labymod.net/api/v1/installer/snapshot/java"
@@ -723,7 +723,7 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
         var inherit = entry.Inherit.Replace("-", "_");
         var fileName =
             $"{inherit}-{entry.FileVersion}/forge-{inherit}-{entry.FileVersion}-{entry.Category}.{entry.FileExtension}";
-        SaveInstaller(
+        _ = SaveInstallerAsync(
             [
                 $"https://bmclapi2.bangbang93.com/maven/net/minecraftforge/forge/{fileName}",
                 $"https://files.minecraftforge.net/maven/net/minecraftforge/forge/{fileName}"
@@ -917,7 +917,7 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
         switch (entry)
         {
             case GameDownload.DlNeoForgeListEntry neo:
-                SaveInstaller(
+                _ = SaveInstallerAsync(
                     [
                         $"{neo.UrlBase.Replace(
                             "maven.neoforged.net/releases",
@@ -928,7 +928,7 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
                     null);
                 break;
             case GameDownload.DlCleanroomListEntry cleanroom:
-                SaveInstaller(
+                _ = SaveInstallerAsync(
                     [$"{cleanroom.UrlBase}-installer.jar"],
                     $"cleanroom-{cleanroom.ApiName}-installer.jar",
                     null);
@@ -1062,7 +1062,7 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
         var url = entry.IsPreview
             ? $"https://bmclapi2.bangbang93.com/optifine/{bmclapiInherit}/HD_U_{displayName.Replace($"{inherit} ", "").Replace(" ", "/")}"
             : $"https://bmclapi2.bangbang93.com/optifine/{bmclapiInherit}/HD_U/{displayName.Replace($"{inherit} ", "")}";
-        SaveInstaller(
+        _ = SaveInstallerAsync(
             [url, $"https://optifine.net/adloadx?f={entry.NameFile}"],
             entry.NameFile ?? $"OptiFine-{displayName}.jar",
             null);
@@ -1177,7 +1177,7 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
 
     internal static void SaveLiteLoader(GameDownload.DlLiteLoaderListEntry entry)
     {
-        SaveInstaller(
+        _ = SaveInstallerAsync(
             GetLiteLoaderUrls(entry),
             entry.FileName ?? "liteloader-installer.jar",
             null);

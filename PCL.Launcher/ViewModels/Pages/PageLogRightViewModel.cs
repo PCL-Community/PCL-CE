@@ -151,7 +151,7 @@ public partial class PageLogRightViewModel : ViewModelBase
         if (log is null)
             return;
 
-        var savePath = SystemDialogs.SelectSaveFile(
+        var savePath = await SystemDialogs.SelectSaveFileAsync(
             Lang.Text("LogPage.Export.SelectLocation"),
             Lang.Text("LogPage.Export.GameLog.FileName", log.version?.Name ?? ""),
             Lang.Text("LogPage.Export.GameLog.Filter"));
@@ -199,7 +199,7 @@ public partial class PageLogRightViewModel : ViewModelBase
             .Replace("/", "-")
             .Replace(":", ".")
             .Replace(" ", "_");
-        var savePath = SystemDialogs.SelectSaveFile(
+        var savePath = await SystemDialogs.SelectSaveFileAsync(
             Lang.Text("LogPage.Export.SelectLocation"),
             Lang.Text("LogPage.ExportStack.FileName", formattedDate),
             Lang.Text("LogPage.ExportStack.Filter"));

@@ -574,7 +574,7 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable, ICom
             var path = DatapacksPath;
             if (path is null)
                 return;
-            var files = SystemDialogs.SelectFiles(
+            var files = await SystemDialogs.SelectFilesAsync(
                 Lang.Text("Instance.Saves.Datapack.Install.FileDialog.Filter"),
                 Lang.Text("Instance.Saves.Datapack.Install.FileDialog.Title"));
             if (files.Length != 0)

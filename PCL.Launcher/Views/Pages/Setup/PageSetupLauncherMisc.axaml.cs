@@ -264,9 +264,9 @@ public partial class PageSetupLauncherMisc : MyPageRight, ISetupResetPage
         ViewModel.ActivityIndex = index;
     }
 
-    private static void ExportSettings()
+    private static async void ExportSettings()
     {
-        var savePath = SystemDialogs.SelectSaveFile(
+        var savePath = await SystemDialogs.SelectSaveFileAsync(
             Lang.Text("Setup.Misc.System.ExportSettings.SaveTitle"),
             "PCL 全局配置.json",
             Lang.Text("Setup.Misc.System.ExportSettings.Filter"),
@@ -279,7 +279,7 @@ public partial class PageSetupLauncherMisc : MyPageRight, ISetupResetPage
 
     private static async Task ImportSettingsAsync()
     {
-        var sourcePath = SystemDialogs.SelectFile(
+        var sourcePath = await SystemDialogs.SelectFileAsync(
             Lang.Text("Setup.Misc.System.ExportSettings.Filter"),
             Lang.Text("Setup.Misc.System.ImportSettings.SelectTitle"));
         if (string.IsNullOrWhiteSpace(sourcePath)) return;

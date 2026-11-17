@@ -440,7 +440,8 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
 
     public async Task DiscussPasteAsync()
     {
-        var paths = PlatformServices.Clipboard?.GetFileDropList();
+        var clipboard = PlatformServices.Clipboard;
+        var paths = clipboard is null ? null : await clipboard.GetFileDropListAsync();
         await PastePathsAsync(paths);
     }
 

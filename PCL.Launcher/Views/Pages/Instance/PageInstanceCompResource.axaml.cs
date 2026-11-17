@@ -1037,7 +1037,7 @@ public partial class PageInstanceCompResource
 
     #region 管理
 
-    private void InstallFromFiles()
+    private async void InstallFromFiles()
     {
         try
         {
@@ -1056,7 +1056,7 @@ public partial class PageInstanceCompResource
                     "Instance.Resource.Install.FileDialog.Mod.Filter",
                     "Instance.Resource.Install.FileDialog.Mod.Title")
             };
-            var files = SystemDialogs.SelectFiles(
+            var files = await SystemDialogs.SelectFilesAsync(
                 Lang.Text(filterKey),
                 Lang.Text(titleKey));
             if (files.Length != 0)

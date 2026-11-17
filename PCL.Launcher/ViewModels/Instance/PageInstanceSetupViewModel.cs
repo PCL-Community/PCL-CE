@@ -873,7 +873,7 @@ public partial class PageInstanceSetupViewModel : ViewModelBase
         {
             case UseRelativePath:
             {
-                var file = SystemDialogs.SelectFile(
+                var file = await SystemDialogs.SelectFileAsync(
                     Lang.Text(
                         "Setup.Java.SelectFile.Filter",
                         JavaExecutableLayout.JavaExecutableName),

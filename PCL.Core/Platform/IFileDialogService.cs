@@ -1,3 +1,6 @@
+using System.Threading;
+using System.Threading.Tasks;
+
 namespace PCL.Core.Platform;
 
 /// <summary>文件与文件夹对话框。具体实现由组合根注册到 <see cref="ApplicationRuntime" />。</summary>
@@ -7,25 +10,31 @@ public interface IFileDialogService
     bool IsAvailable { get; }
 
     /// <summary>显示保存文件对话框；取消时返回空字符串。</summary>
-    string SelectSaveFile(
+    Task<string> SelectSaveFileAsync(
         string? title,
         string fileName,
         string? fileFilter = null,
-        string? initialDirectory = null);
+        string? initialDirectory = null,
+        CancellationToken cancellationToken = default);
 
     /// <summary>显示打开文件对话框；取消时返回空字符串。</summary>
-    string SelectFile(
-        string? fileFilter = null,
-        string? title = null,
-        string? initialDirectory = null);
-
-    /// <summary>显示打开文件对话框；取消时返回空数组。</summary>
-    string[] SelectFiles(
+    Task<string> SelectFileAsync(
         string? fileFilter = null,
         string? title = null,
         string? initialDirectory = null,
-        bool allowMultiSelect = true);
+        CancellationToken cancellationToken = default);
+
+    /// <summary>显示打开文件对话框；取消时返回空数组。</summary>
+    Task<string[]> SelectFilesAsync(
+        string? fileFilter = null,
+        string? title = null,
+        string? initialDirectory = null,
+        bool allowMultiSelect = true,
+        CancellationToken cancellationToken = default);
 
     /// <summary>显示文件夹选择对话框；取消时返回空字符串。</summary>
-    string SelectFolder(string? title = null, string? initialDirectory = null);
+    Task<string> SelectFolderAsync(
+        string? title = null,
+        string? initialDirectory = null,
+        CancellationToken cancellationToken = default);
 }

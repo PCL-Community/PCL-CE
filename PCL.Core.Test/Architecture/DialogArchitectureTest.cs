@@ -21,7 +21,12 @@ public sealed class DialogArchitectureTest
         "DialogService.Instance.Show(",
         "ForceWait",
         "ModalFrame",
-        "IUiModalFrame"
+        "IUiModalFrame",
+        "SyncHelper",
+        "SystemDialogs.SelectSaveFile(",
+        "SystemDialogs.SelectFile(",
+        "SystemDialogs.SelectFiles(",
+        "SystemDialogs.SelectFolder("
     ];
 
     [TestMethod]

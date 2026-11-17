@@ -266,7 +266,8 @@ public partial class PageInstanceSaves : MyPageRight, IRefreshable
 
     private async Task PasteWithLoaderAsync()
     {
-        var paths = PlatformServices.Clipboard?.GetFileDropList();
+        var clipboard = PlatformServices.Clipboard;
+        var paths = clipboard is null ? null : await clipboard.GetFileDropListAsync();
         if (paths is null || paths.Length == 0)
         {
             HintService.Show(Hints.Warning(Lang.Text("Instance.Saves.Empty.Message")));

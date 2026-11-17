@@ -221,12 +221,12 @@ public partial class PageLoginProfileViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    public static void CopyUuid(ProfileItem item)
+    public static async Task CopyUuid(ProfileItem item)
     {
         var clipboard = PlatformServices.Clipboard;
         if (clipboard is null)
             return;
-        clipboard.SetText(item.Profile.Uuid);
+        await clipboard.SetTextAsync(item.Profile.Uuid);
         HintService.Show(Hints.Success(Lang.Text("Launch.Account.Profile.Uuid.Hint")));
     }
 

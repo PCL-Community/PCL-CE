@@ -9,9 +9,9 @@ namespace PCL;
 public static partial class Comp
 {
     /// <summary>
-    ///     资源卡片的快速下载入口：按 <see cref="Config.Download.Comp.QuickDownloadBehavior" /> 指定的行为，
-    ///     下载该资源最新（优先 Release、其次最新发布）的兼容版本到目标实例或文件夹。
-    ///     由 <see cref="MyCompItem" /> 上的快速下载按钮调用。快速下载不会自动安装前置。
+    /// 资源卡片的快速下载入口：按 <see cref="Config.Download.Comp.QuickDownloadBehavior" /> 指定的行为，
+    /// 下载该资源最新（优先 Release、其次最新发布）的兼容版本到目标实例或文件夹。 由 <see cref="MyCompItem" />
+    /// 上的快速下载按钮调用。快速下载不会自动安装前置。
     /// </summary>
     public static void QuickDownload(CompProject project)
     {
@@ -193,8 +193,8 @@ public static partial class Comp
             return;
         }
 
-        var saveFolder = LauncherCommon.RunInUiWait(() =>
-            SystemDialogs.SelectFolder(Lang.Text("Download.Comp.QuickDownload.Hint.SelectFolder")));
+        var saveFolder = SystemDialogs.SelectFolderBlockingOnWorkerThread(
+            Lang.Text("Download.Comp.QuickDownload.Hint.SelectFolder"));
         if (string.IsNullOrWhiteSpace(saveFolder)) return;
         var target = Path.Combine(saveFolder, CompFileNameGet(project, file));
         _StartQuickDownload(file, target);
@@ -280,8 +280,8 @@ public static partial class Comp
     }
 
     /// <summary>
-    ///     按资源类型筛选文件，与详情页 GetResults 一致：Modrinth 会返回 Mod / 服务端插件 / 数据包混合的列表，
-    ///     需过滤回当前类型，避免快速下载到另一种产物。光影与资源包不筛（原版光影以资源包格式发布）。
+    /// 按资源类型筛选文件，与详情页 GetResults 一致：Modrinth 会返回 Mod / 服务端插件 / 数据包混合的列表，
+    /// 需过滤回当前类型，避免快速下载到另一种产物。光影与资源包不筛（原版光影以资源包格式发布）。
     /// </summary>
     private static List<CompFile> FilterFilesByType(List<CompFile> files, CompType type)
     {

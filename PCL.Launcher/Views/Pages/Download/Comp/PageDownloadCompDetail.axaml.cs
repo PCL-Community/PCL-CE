@@ -50,17 +50,19 @@ public partial class PageDownloadCompDetail : MyPageRight
             if (ViewModel.Project is { WikiId: > 0 } project)
                 Basics.OpenPath($"https://www.mcmod.cn/class/{project.WikiId}.html");
         };
-        BtnCopyName.Click += (_, _) =>
+        BtnCopyName.Click += async (_, _) =>
         {
             if (ViewModel.Project is not { } project) return;
             var title = project.GetControlTitle(true);
-            PlatformServices.Clipboard?.SetText(title.Key + title.Value);
+            if (PlatformServices.Clipboard is { } clipboard)
+                await clipboard.SetTextAsync(title.Key + title.Value);
             HintService.Show(Hints.Success(Lang.Text("Common.Status.Success"), false));
         };
-        BtnCopyLink.Click += (_, _) =>
+        BtnCopyLink.Click += async (_, _) =>
         {
             if (ViewModel.Project is not { } project) return;
-            PlatformServices.Clipboard?.SetText(project.Website);
+            if (PlatformServices.Clipboard is { } clipboard)
+                await clipboard.SetTextAsync(project.Website);
             HintService.Show(Hints.Success(Lang.Text("Common.Status.Success"), false));
         };
         BtnTranslate.Click += async (_, _) => await TranslateDescriptionAsync();
@@ -477,7 +479,7 @@ public partial class PageDownloadCompDetail : MyPageRight
             var defaultFolder = isModpack
                 ? null
                 : GetDefaultSaveFolder(file, project, subFolder);
-            var target = SystemDialogs.SelectSaveFile(
+            var target = await SystemDialogs.SelectSaveFileAsync(
                 Lang.Text("Download.Comp.Detail.SelectSaveLocation"),
                 Comp.CompFileNameGet(project, file),
                 BuildSaveFilter(file, desc),
@@ -1242,7 +1244,7 @@ public partial class PageDownloadCompDetail : MyPageRight
         try
         {
             var defaultFolder = GetWorldDefaultFolder();
-            var target = SystemDialogs.SelectSaveFile(
+            var target = await SystemDialogs.SelectSaveFileAsync(
                 Lang.Text("Download.Comp.Detail.SelectWorldInstallLocation"),
                 file.FileName ?? "",
                 Lang.Text("Download.Comp.Detail.WorldFile.Filter"),

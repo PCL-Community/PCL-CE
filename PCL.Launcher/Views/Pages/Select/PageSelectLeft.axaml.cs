@@ -121,7 +121,10 @@ public partial class PageSelectLeft : MyPageLeft, IRefreshable
                     "Select.Folder.ImportModpack.Title",
                     "lucide/package-plus",
                     "Select.Folder.ImportModpack.ToolTip",
-                    PageSelectLeftViewModel.InstallModpack));
+                    () =>
+                    {
+                        _ = PageSelectLeftViewModel.InstallModpack();
+                    }));
             PanList.Children.Add(
                 new Border
                 {

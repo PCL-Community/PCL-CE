@@ -278,7 +278,7 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
         {
             if (isCustom)
             {
-                var fileName = SystemDialogs.SelectFile(
+                var fileName = await SystemDialogs.SelectFileAsync(
                     Lang.Text("Instance.Overall.Icon.SelectFile.Filter"),
                     Lang.Text("Instance.Overall.Icon.SelectFile.Title"));
                 if (string.IsNullOrEmpty(fileName))
@@ -537,13 +537,13 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    public void ExportLaunchScript()
+    public async Task ExportLaunchScript()
     {
         if (Instance is null)
             return;
         try
         {
-            var savePath = SystemDialogs.SelectSaveFile(
+            var savePath = await SystemDialogs.SelectSaveFileAsync(
                 Lang.Text("Instance.Overall.Script.SelectSaveTitle"),
                 $"启动 {Instance.Name}.bat",
                 Lang.Text("Instance.Overall.Script.FileFilter"));
@@ -947,7 +947,7 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
             if (!dialog.IsConfirmed)
                 return;
 
-            var jarPath = SystemDialogs.SelectFile(
+            var jarPath = await SystemDialogs.SelectFileAsync(
                 Lang.Text("Instance.Overall.Patch.SelectFile.Filter"),
                 Lang.Text("Instance.Overall.Patch.SelectFile.Title"));
             if (string.IsNullOrWhiteSpace(jarPath))

@@ -217,7 +217,7 @@ public partial class PageSetupJava : MyPageRight, IRefreshable
         BtnAdd.IsEnabled = false;
         try
         {
-            var path = SystemDialogs.SelectFile(
+            var path = await SystemDialogs.SelectFileAsync(
                 Lang.Text(
                     "Setup.Java.SelectFile.Filter",
                     JavaExecutableLayout.JavaExecutableName),

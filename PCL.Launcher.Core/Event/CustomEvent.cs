@@ -168,9 +168,10 @@ public class CustomEvent
     }
 
     /// <summary>复制文本到剪贴板。</summary>
-    private static void _CopyText(string arg, EventType _)
+    private static async void _CopyText(string arg, EventType _)
     {
-        PlatformServices.Clipboard?.SetText(arg);
+        if (PlatformServices.Clipboard is { } clipboard)
+            await clipboard.SetTextAsync(arg);
     }
 
     /// <summary>刷新主页 / 刷新当前页面。要求当前 pageRight 实现 IRefreshable。</summary>

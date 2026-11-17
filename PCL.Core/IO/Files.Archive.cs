@@ -26,11 +26,12 @@ public static partial class Files
         CancellationToken cancellationToken = default)
     {
         var tempDirName = $"{tempDirPrefix}.tmp";
-        var selectedPath = SystemDialogs.SelectSaveFile(
+        var selectedPath = await SystemDialogs.SelectSaveFileAsync(
             dialogTitle,
             defaultFileName,
             fileFilter,
-            defaultDirectory);
+            defaultDirectory,
+            cancellationToken);
 
         if (string.IsNullOrEmpty(selectedPath)) return false;
 
@@ -96,8 +97,8 @@ public static partial class Files
     }
 
     /// <summary>
-    ///     尝试根据文件后缀名判断文件种类并解压，支持 zip、gz、tar、tar.gz 和 bzip2。
-    ///     会尝试将 jar 文件以 zip 方式解压。不会清空目标目录，但会创建不存在的目录。
+    /// 尝试根据文件后缀名判断文件种类并解压，支持 zip、gz、tar、tar.gz 和 bzip2。 会尝试将 jar 文件以 zip
+    /// 方式解压。不会清空目标目录，但会创建不存在的目录。
     /// </summary>
     /// <param name="compressFilePath">压缩文件路径</param>
     /// <param name="destDirectory">目标解压目录</param>
@@ -105,8 +106,8 @@ public static partial class Files
     /// <param name="cancellationToken">取消操作的令牌</param>
     /// <returns>异步任务。</returns>
     /// <exception cref="ArgumentNullException">
-    ///     当 <paramref name="compressFilePath" /> 或
-    ///     <paramref name="destDirectory" /> 为 null 或空时抛出
+    /// 当 <paramref name="compressFilePath" /> 或
+    /// <paramref name="destDirectory" /> 为 null 或空时抛出
     /// </exception>
     /// <exception cref="NotSupportedException">当文件格式不受支持时抛出</exception>
     public static async Task ExtractFileAsync(
@@ -169,9 +170,7 @@ public static partial class Files
         }
     }
 
-    /// <summary>
-    ///     异步解压 GZip 文件（包括 .gz、.tgz 和 .tar.gz）。
-    /// </summary>
+    /// <summary>异步解压 GZip 文件（包括 .gz、.tgz 和 .tar.gz）。</summary>
     private static async Task _ExtractGZipAsync(
         string compressFilePath,
         string destDirectory,
@@ -224,9 +223,7 @@ public static partial class Files
         }
     }
 
-    /// <summary>
-    ///     异步解压 BZip2 文件。
-    /// </summary>
+    /// <summary>异步解压 BZip2 文件。</summary>
     private static async Task _ExtractBZip2Async(
         string compressFilePath,
         string destDirectory,
@@ -254,9 +251,7 @@ public static partial class Files
         progressIncrementHandler?.Invoke(1.0);
     }
 
-    /// <summary>
-    ///     异步解压 Tar 文件。
-    /// </summary>
+    /// <summary>异步解压 Tar 文件。</summary>
     private static async Task _ExtractTarAsync(
         string compressFilePath,
         string destDirectory,
@@ -277,9 +272,7 @@ public static partial class Files
             .ConfigureAwait(false);
     }
 
-    /// <summary>
-    ///     异步解压 Tar 流中的内容到指定目录。
-    /// </summary>
+    /// <summary>异步解压 Tar 流中的内容到指定目录。</summary>
     /// <param name="tarStream">要解压的 Tar 输入流。</param>
     /// <param name="destDirectory">目标解压目录。</param>
     /// <param name="progressIncrementHandler">进度更新回调，接收 0.0 到 1.0 的进度值（基于条目计数）。</param>
@@ -400,9 +393,7 @@ public static partial class Files
             .ConfigureAwait(false);
     }
 
-    /// <summary>
-    ///     异步解压 Zip 文件（包括 .zip 和 .jar）。
-    /// </summary>
+    /// <summary>异步解压 Zip 文件（包括 .zip 和 .jar）。</summary>
     private static async Task _ExtractZipAsync(
         string compressFilePath,
         string destDirectory,

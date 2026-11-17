@@ -36,14 +36,16 @@ public static partial class Modpack
         ZipArchive archive)
     {
         var match = archive
-            .Entries.Select(entry => CompressArchiveRegex().Match($"/{entry.FullName}"))
+            .Entries
+            .Select(entry => CompressArchiveRegex().Match($"/{entry.FullName}"))
             .FirstOrDefault(entryMatch => entryMatch.Success);
         return match is null
             ? throw new Exception(Lang.Text("Minecraft.Download.Modpack.UnknownArchiveStructure"))
             : (match
-                .Value
-                .Replace('/', Path.DirectorySeparatorChar)
-                .TrimStart(Path.DirectorySeparatorChar), match.Groups[1].Value);
+                    .Value
+                    .Replace('/', Path.DirectorySeparatorChar)
+                    .TrimStart(Path.DirectorySeparatorChar),
+                match.Groups[1].Value);
     }
 
     private static string _SelectCompressTargetFolder()
@@ -53,10 +55,11 @@ public static partial class Modpack
             Lang.Text("Common.Action.Install"),
             Lang.Text("Common.Action.Continue"),
             forceWait: true);
-        var targetFolder = SystemDialogs.SelectFolder(
+        var targetFolder = SystemDialogs.SelectFolderBlockingOnWorkerThread(
             Lang.Text("Minecraft.Download.Modpack.SelectTargetFolder.Title"));
         if (string.IsNullOrEmpty(targetFolder))
             throw new CancelledException();
+
         if (targetFolder.Contains('!') || targetFolder.Contains(';'))
         {
             LauncherUi.Interaction?.ShowHint(
