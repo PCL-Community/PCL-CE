@@ -32,7 +32,7 @@ public sealed class MyMsgInput : MyMsgDialogBase
         }
         else
         {
-            var caption = new TextBlock
+            var caption = new SelectableTextBlock
             {
                 Text = dialog.TextContent,
                 TextWrapping = TextWrapping.Wrap,

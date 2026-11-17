@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.LogicalTree;
 using Avalonia.Media;
@@ -204,6 +205,7 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable
                     {
                         // 新下载没有可复用的缓存：按 WPF 行为先清空旧页。
                         _panCustom.Children.Clear();
+                        _panHint.Margin = new Thickness(0d, 0d, 0d, 15d);
                         return;
                     }
 
@@ -302,6 +304,7 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable
             case HomepageSourceKind.Blank:
                 LogWrapper.Info("Launch", "[Page] 实例化：清空主页 UI，来源为空");
                 _panCustom.Children.Clear();
+                _panHint.Margin = new Thickness(0d, 0d, 0d, 15d);
                 break;
 
             case HomepageSourceKind.Removed:
