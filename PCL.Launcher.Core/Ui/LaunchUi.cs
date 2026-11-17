@@ -1,3 +1,5 @@
+using PCL.Core.Platform;
+
 namespace PCL;
 
 public interface ILaunchUi
@@ -52,7 +54,7 @@ public enum LaunchWindowState
 
 public static class LaunchUi
 {
-    public static ILaunchUi? Current { get; set; }
+    public static ILaunchUi? Current => ApplicationRuntime.GetService<ILaunchUi>();
 
     public static int ShowMessageBox(
         string text,

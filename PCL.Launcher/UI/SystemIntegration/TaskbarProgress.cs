@@ -13,13 +13,8 @@ public static class TaskbarProgress
     private static double _lastProgress;
 
     private static ITaskbarProgressBackend Backend =>
-        PlatformRuntime.Current.Kind switch
-        {
-            PlatformKind.Windows => WindowsTaskbarProgress.Instance,
-            PlatformKind.Linux => LinuxTaskbarProgress.Instance,
-            PlatformKind.MacOs => UnsupportedTaskbarProgressBackend.Instance,
-            _ => throw new ArgumentOutOfRangeException()
-        };
+        ApplicationRuntime.GetService<ITaskbarProgressBackend>()
+        ?? UnsupportedTaskbarProgressBackend.Instance;
 
     internal static Window? MainWindow =>
         (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)

@@ -1,16 +1,15 @@
 ﻿using System.IO.Compression;
 using PCL.Core.App.Localization;
+using PCL.Core.Platform;
 using PCL.Core.Utils.OS;
 
 namespace PCL;
 
 public static partial class GameLaunch
 {
-    /// <summary>
-    ///     各平台需要解压的 Natives 动态库后缀。Windows 仅解压 .dll，其余平台还需 .so 与 .dylib。
-    /// </summary>
+    /// <summary>各平台需要解压的 Natives 动态库后缀。Windows 仅解压 .dll，其余平台还需 .so 与 .dylib。</summary>
     private static IReadOnlyList<string> NativeLibraryExtensions =>
-        PCL.Core.Platform.PlatformRuntime.Current.Capabilities.NativeLibraryExtensions;
+        PlatformRuntime.Current.Capabilities.NativeLibraryExtensions;
 
     private static void McLaunchNatives(Loading.LoaderTask<List<Libraries.McLibToken>, int> loader)
     {
@@ -102,9 +101,7 @@ public static partial class GameLaunch
         }
     }
 
-    /// <summary>
-    ///     获取 Natives 文件夹路径，不以路径分隔符结尾。
-    /// </summary>
+    /// <summary>获取 Natives 文件夹路径，不以路径分隔符结尾。</summary>
     private static string GetNativesFolder()
     {
         var instance = InstanceList.McMcInstanceSelected!;
@@ -119,8 +116,9 @@ public static partial class GameLaunch
             "natives");
         return result.IsAscii()
             ? result
-            : PCL.Core.Platform.PlatformRuntime.Current.Capabilities.UsesWindowsPaths
-                ? Path.Combine(SystemPaths.DriveLetter, "ProgramData", "PCL", "natives")
-                : Path.Combine(Path.GetTempPath(), "PCLCE", "natives");
+            : ApplicationRuntime
+                .GetService<IPlatformPathService>()
+                ?.GetFallbackNativesDirectory()
+            ?? Path.Combine(Path.GetTempPath(), "PCLCE", "natives");
     }
 }

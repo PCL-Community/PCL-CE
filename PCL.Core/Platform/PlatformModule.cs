@@ -3,38 +3,39 @@ using PCL.Core.Utils.Secret;
 
 namespace PCL.Core.Platform;
 
-/// <summary>一个平台的 OS 原生服务集合。由组合根在启动时构造一次，并在退出时释放。</summary>
+/// <summary>平台服务门面。服务实例由组合根注册到 <see cref="ApplicationRuntime" />， 本类型不再保存服务袋数据，只保留平台元数据。</summary>
 public sealed class PlatformModule : IDisposable
 {
-    private bool _disposed;
-
     public required PlatformKind Kind { get; init; }
     public required IPlatformCapabilities Capabilities { get; init; }
-    public required ISystemProxyProvider SystemProxy { get; init; }
-    public required IWindowInterop WindowInterop { get; init; }
-    public required IShortcutService Shortcuts { get; init; }
-    public required IJavaPlatformInfo Java { get; init; }
-    public required IProcessCleanupService ProcessCleanup { get; init; }
-    public required IGpuPreferenceService GpuPreference { get; init; }
-    public required ILaunchEnvironmentService LaunchEnvironment { get; init; }
-    public required ISystemFacts SystemFacts { get; init; }
-    public required IHardwareInfo Hardware { get; init; }
-    public required IShellLauncher Shell { get; init; }
-    public required IRegionSignalProvider Region { get; init; }
-    public required IRecycleBinService RecycleBin { get; init; }
-    public required IFatalDialogService FatalDialog { get; init; }
-    public required Func<byte[], IKeyProtector> KeyProtectorFactory { get; init; }
+
+    public ISystemProxyProvider SystemProxy => _Get<ISystemProxyProvider>();
+    public IWindowInterop WindowInterop => _Get<IWindowInterop>();
+    public IShortcutService Shortcuts => _Get<IShortcutService>();
+    public IJavaPlatformInfo Java => _Get<IJavaPlatformInfo>();
+    public IProcessCleanupService ProcessCleanup => _Get<IProcessCleanupService>();
+    public IGpuPreferenceService GpuPreference => _Get<IGpuPreferenceService>();
+    public ILaunchEnvironmentService LaunchEnvironment => _Get<ILaunchEnvironmentService>();
+    public ISystemFacts SystemFacts => _Get<ISystemFacts>();
+    public IHardwareInfo Hardware => _Get<IHardwareInfo>();
+    public IShellLauncher Shell => _Get<IShellLauncher>();
+    public IRegionSignalProvider Region => _Get<IRegionSignalProvider>();
+    public IRecycleBinService RecycleBin => _Get<IRecycleBinService>();
+    public IFatalDialogService FatalDialog => _Get<IFatalDialogService>();
 
     public void Dispose()
     {
-        if (_disposed) return;
-        _disposed = true;
-
-        (SystemProxy as IDisposable)?.Dispose();
+        // 服务的释放由 DI 容器负责。
     }
 
     public IKeyProtector CreateKeyProtector(byte[] key)
     {
-        return KeyProtectorFactory(key);
+        return _Get<IKeyProtectorFactory>().Create(key);
+    }
+
+    private static T _Get<T>() where T : class
+    {
+        return ApplicationRuntime.GetService<T>()
+            ?? throw new InvalidOperationException($"平台服务尚未注册：{typeof(T).Name}");
     }
 }

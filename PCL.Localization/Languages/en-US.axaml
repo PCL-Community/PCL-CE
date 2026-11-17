@@ -2219,6 +2219,9 @@
     <sys:String x:Key="Minecraft.Launch.Donate.Title">{0} launches!</sys:String>
     <sys:String x:Key="Minecraft.Launch.ExportScript.Cancelled">Exporting launch script canceled!</sys:String>
     <sys:String x:Key="Minecraft.Launch.ExportScript.Success">Launch script exported successfully!</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Script.Title">Launch - {0}</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Script.Starting">The game is starting, please wait.</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Script.Exited">The game has exited.</sys:String>
     <sys:String x:Key="Minecraft.Launch.PurchaseHint.Later">Nah, maybe next time</sys:String>
     <sys:String x:Key="Minecraft.Launch.PurchaseHint.Message">It looks like you haven't purchased the game...&#xA;If you think Minecraft is good, consider purchasing it to support the developers... Don't keep freeloading.&#xA;&#xA;This prompt will no longer appear after you verify a valid Microsoft account!</sys:String>
     <sys:String x:Key="Minecraft.Launch.PurchaseHint.Purchase">Purchase!</sys:String>

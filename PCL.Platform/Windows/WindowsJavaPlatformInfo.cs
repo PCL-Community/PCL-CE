@@ -8,6 +8,7 @@ public sealed class WindowsJavaPlatformInfo : IJavaPlatformInfo
 {
     public string JavaExecutableName => "java.exe";
     public string? JavawExecutableName => "javaw.exe";
+    public string JstackExecutableName => "jstack.exe";
     public bool SupportsJavaw => true;
 
     public IJavaParser CreateParser()

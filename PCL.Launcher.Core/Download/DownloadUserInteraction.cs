@@ -1,3 +1,5 @@
+using PCL.Core.Platform;
+
 namespace PCL;
 
 /// <summary>下载业务需要 UI 层提供的交互。</summary>
@@ -10,5 +12,6 @@ public interface IDownloadUserInteraction
 /// <summary>UI 层注册的下载交互实现。</summary>
 public static class DownloadUserInteraction
 {
-    public static IDownloadUserInteraction? Current { get; set; }
+    public static IDownloadUserInteraction? Current =>
+        ApplicationRuntime.GetService<IDownloadUserInteraction>();
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PCL.Core.Minecraft.Java;
 using PCL.Core.Minecraft.Java.Scanner;
@@ -16,16 +17,20 @@ public class JavaTest
     public async Task TestJavaSearch()
     {
         // Java 搜索是否稳定
+        await using var provider = new ServiceCollection()
+            .AddPlatformServices(PlatformDetector.Detect())
+            .BuildServiceProvider();
+        var javaInfo = provider.GetRequiredService<IJavaPlatformInfo>();
         var jas = new JavaManager(
-            PlatformModuleFactory.Create(PlatformDetector.Detect()).Java.CreateParser(),
+            javaInfo.CreateParser(),
             new RegistryJavaScanner(),
             new DefaultPathsScanner(),
             new PathEnvironmentScanner(),
             new MicrosoftStoreJavaScanner(),
             new WindowsWhereCommandScanner());
         await jas.ScanJavaAsync();
-        var firstSacnned = jas.GetSortedJavaList();
-        foreach (var ja in firstSacnned)
+        var firstScanned = jas.GetSortedJavaList();
+        foreach (var ja in firstScanned)
         {
             Console.WriteLine(ja.ToString());
             Assert.IsGreaterThan(
@@ -36,18 +41,20 @@ public class JavaTest
         }
 
         await jas.ScanJavaAsync();
-        var secondScaned = jas.GetSortedJavaList();
-        Assert.HasCount(secondScaned.Count, firstSacnned);
+        var secondScanned = jas.GetSortedJavaList();
+        Assert.HasCount(secondScanned.Count, firstScanned);
         // Java 搜索是否能够正确选择
         Assert.IsTrue(
-            secondScaned.Count == 0
-            || (secondScaned.Count > 0
-                && (await jas.SelectSuitableJavaAsync(new Version(1, 8, 0), new Version(30, 0, 0)))
+            secondScanned.Count == 0
+            || (secondScanned.Count > 0
+                && (await jas.SelectSuitableJavaAsync(
+                    new Version(1, 8, 0),
+                    new Version(30, 0, 0)))
                 .Length
                 > 0));
         // Java 是否有重复
         Assert.DoesNotContain(
             x => x.Count() > 1,
-            secondScaned.GroupBy(x => x.Installation.JavaExePath));
+            secondScanned.GroupBy(x => x.Installation.JavaExePath));
     }
 }

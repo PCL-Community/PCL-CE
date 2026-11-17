@@ -2164,6 +2164,9 @@
     <sys:String x:Key="Minecraft.Launch.Donate.Title">{0} 次啟動！</sys:String>
     <sys:String x:Key="Minecraft.Launch.ExportScript.Cancelled">已取消匯出啟動指令碼！</sys:String>
     <sys:String x:Key="Minecraft.Launch.ExportScript.Success">匯出啟動指令碼成功！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Script.Title">啟動 - {0}</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Script.Starting">遊戲正在啟動，請稍候。</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Script.Exited">遊戲已退出。</sys:String>
     <sys:String x:Key="Minecraft.Launch.PurchaseHint.Later">下次一定</sys:String>
     <sys:String x:Key="Minecraft.Launch.PurchaseHint.Message">看起來你似乎沒買游戲...&#xA;如果覺得 Minecraft 還不錯，可以購買支援一下，畢竟開發遊戲也真的很不容易...不要一直接嫖啦。&#xA;&#xA;在驗證一個微軟帳戶後，就不會出現這個提示了！</sys:String>
     <sys:String x:Key="Minecraft.Launch.PurchaseHint.Purchase">支援！</sys:String>

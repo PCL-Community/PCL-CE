@@ -1,6 +1,5 @@
 using Avalonia;
 using Microsoft.Extensions.DependencyInjection;
-using PCL.Composition;
 using PCL.Core.App.Essentials;
 using PCL.Core.App.IoC;
 using PCL.Core.Platform;
@@ -39,7 +38,6 @@ internal static class Program
             return context.Host;
         };
 
-        UiBridgeBootstrap.Initialize(serviceProvider);
 
         Lifecycle.OnInitialize();
     }

@@ -41,69 +41,37 @@ public sealed class ApplicationRuntimeTest
     }
 
     [TestMethod]
-    public void ShutdownDisposesModulesOnce()
+    public void ShutdownDisposesServiceProviderOnce()
     {
-        var proxy = new DisposableProxy();
-        var theme = new DisposableTheme();
-        var services = CreateServices(proxy, theme);
+        var provider = new TestServiceProvider();
+        var services = CreateServices(provider);
 
         ApplicationRuntime.Initialize(services);
         ApplicationRuntime.Shutdown();
 
         Assert.IsFalse(ApplicationRuntime.IsInitialized);
-        Assert.AreEqual(1, proxy.DisposeCount);
-        Assert.AreEqual(1, theme.DisposeCount);
+        Assert.AreEqual(1, provider.DisposeCount);
 
         ApplicationRuntime.Shutdown();
-        Assert.AreEqual(1, proxy.DisposeCount);
-        Assert.AreEqual(1, theme.DisposeCount);
+        Assert.AreEqual(1, provider.DisposeCount);
     }
 
     private static ApplicationServices CreateServices()
     {
-        return new ApplicationServices
-        {
-            Platform = null!,
-            Ui = null!
-        };
+        return CreateServices(null);
     }
 
-    private static ApplicationServices CreateServices(
-        ISystemProxyProvider proxy,
-        ISystemThemeProvider theme)
+    private static ApplicationServices CreateServices(TestServiceProvider? provider)
     {
         return new ApplicationServices
         {
             Platform = new PlatformModule
             {
                 Kind = PlatformKind.Linux,
-                Capabilities = PlatformCapabilities.Linux,
-                SystemProxy = proxy,
-                WindowInterop = null!,
-                Shortcuts = null!,
-                Java = null!,
-                ProcessCleanup = null!,
-                GpuPreference = null!,
-                LaunchEnvironment = null!,
-                SystemFacts = null!,
-                Hardware = null!,
-                Shell = null!,
-                Region = null!,
-                RecycleBin = null!,
-                FatalDialog = null!,
-                KeyProtectorFactory = null!
+                Capabilities = PlatformCapabilities.Linux
             },
-            Ui = new UiModule
-            {
-                Dispatcher = null!,
-                Clipboard = null!,
-                FileDialogs = null!,
-                ResourceStore = null!,
-                Localization = null!,
-                Theme = null!,
-                SystemTheme = theme,
-                Notifications = null!
-            }
+            Ui = new UiModule(),
+            Services = provider
         };
     }
 

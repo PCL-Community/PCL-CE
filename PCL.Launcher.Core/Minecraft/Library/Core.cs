@@ -1,34 +1,22 @@
-﻿using PCL.Core.Platform;
-using PCL.Core.Utils.OS;
-using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
+﻿using System.Runtime.InteropServices;
+using PCL.Core.Platform;
 
 namespace PCL;
 
 public static partial class Libraries
 {
-    private static readonly string OsVersion = Environment.OSVersion.Version.ToString();
+    private static IMinecraftPlatformRules Rules =>
+        ApplicationRuntime.GetService<IMinecraftPlatformRules>()
+        ?? throw new InvalidOperationException("Minecraft 平台规则服务尚未初始化");
 
-    /// <summary>
-    ///     当前平台在 JSON 的 natives 对象中对应的系统键（macOS 写作 osx）。
-    /// </summary>
-    private static readonly string[] McNativesOsNames =
-        PlatformRuntime.Current.Kind switch
-        {
-            PlatformKind.Windows => ["windows"],
-            PlatformKind.MacOs => ["osx", "macos"],
-            _ => ["linux"]
-        };
+    /// <summary>当前平台在 JSON 的 natives 对象中对应的系统键（macOS 写作 osx）。</summary>
+    private static string[] McNativesOsNames => [.. Rules.NativeOsNames];
 
-    /// <summary>
-    ///     当前平台与架构对应的 Natives classifier 名称，按优先级排列。
-    ///     Windows 保持既有行为，仅识别 natives-windows。
-    /// </summary>
-    private static readonly string[] McNativeClassifierNames = _GetMcNativeClassifierNames();
+    /// <summary>当前平台与架构对应的 Natives classifier 名称，按优先级排列。</summary>
+    private static string[] McNativeClassifierNames =>
+        [.. Rules.GetNativeClassifierNames(RuntimeInformation.OSArchitecture)];
 
-    /// <summary>
-    ///     检查是否符合 JSON 中的 Rules。
-    /// </summary>
+    /// <summary>检查是否符合 JSON 中的 Rules。</summary>
     /// <param name="ruleToken">JSON 中的 "rules" 项目。</param>
     public static bool McJsonRuleCheck(JsonNode? ruleToken)
     {
@@ -68,93 +56,14 @@ public static partial class Libraries
         if (osNameNode is not null)
         {
             var osName = osNameNode.ToString();
-            switch (osName)
-            {
-                case "unknown":
-                    break;
-                case "windows":
-                    result = PlatformRuntime.Current.Kind == PlatformKind.Windows;
-                    if (!result)
-                        break;
-                    var osVersionNode = os["version"];
-                    if (osVersionNode is not null)
-                        result = OsVersion.RegexCheck(osVersionNode.ToString());
-                    break;
-                default:
-                    result = osName switch
-                    {
-                        "linux" => PlatformRuntime.Current.Kind == PlatformKind.Linux,
-                        "osx" or "macos" => PlatformRuntime.Current.Kind == PlatformKind.MacOs,
-                        _ => false
-                    };
-                    break;
-            }
+            result = osName == "unknown"
+                || Rules.MatchesOsRule(osName, os["version"]?.ToString());
         }
 
         var archNode = os["arch"];
         if (archNode is not null)
-            result = result && _IsRuleArchMatch(archNode.ToString());
+            result = result && Rules.MatchesArchRule(archNode.ToString());
         return result;
-    }
-
-    /// <summary>
-    ///     检查 value 是否符合当前平台架构（x86 / x86_64 / arm64）。
-    /// </summary>
-    private static bool _IsRuleArchMatch(string arch)
-    {
-        if (PlatformRuntime.Current.Kind == PlatformKind.Windows)
-            return arch == "x86" == SystemInfo.Is32BitSystem;
-
-        var osArch = RuntimeInformation.OSArchitecture;
-        return arch switch
-        {
-            "x86" => osArch is Architecture.X86,
-            "x86_64" or "amd64" or "x64" => osArch is Architecture.X64,
-            "arm64" or "aarch64" => osArch is Architecture.Arm64,
-            "arm" => osArch is Architecture.Arm or Architecture.Armv6,
-            _ => arch == "x86" == SystemInfo.Is32BitSystem
-        };
-    }
-
-    /// <summary>
-    ///     当前平台的 Natives classifier 优先级清单。
-    ///     
-    /// </summary>
-    private static string[] _GetMcNativeClassifierNames()
-    {
-        // ojang 神秘玩意
-        // natives-linux
-        // natives-osx
-        // natives-windows
-        // natives-macos
-        // linux-x86_64
-        // linux-aarch_64
-        // natives-windows-x86
-        // natives-macos-arm64
-        // natives-windows-arm64
-        // natives-macos-patch
-        // natives-windows-${arch}
-
-        return PlatformRuntime.Current.Kind switch
-        {
-            PlatformKind.Windows => RuntimeInformation.OSArchitecture switch
-            {
-                Architecture.Arm64 =>
-                    ["natives-windows", "natives-windows-arm64"],
-                Architecture.X64 => ["natives-windows", "natives-windows-64", "natives-windows-x86"],
-                _ => ["natives-windows", "natives-windows-x86", "natives-windows-32"]
-            },
-            PlatformKind.MacOs => RuntimeInformation.OSArchitecture is Architecture.Arm64
-                ? ["natives-macos-arm64", "natives-macos", "natives-osx", "natives-macos-patch"]
-                : ["natives-macos", "natives-osx", "natives-macos-patch"],
-            _ => RuntimeInformation.OSArchitecture switch
-            {
-                Architecture.Arm64 =>
-                    ["natives-linux", "linux-aarch_64"],
-                Architecture.X64 => ["natives-linux", "linux-x86_64"],
-                _ => ["natives-linux"]
-            }
-        };
     }
 
     private static bool _IsRuleFeaturesMatch(JsonNode? features)
@@ -168,9 +77,7 @@ public static partial class Libraries
         return result;
     }
 
-    /// <summary>
-    ///     递归获取 Minecraft 某一实例的完整支持库列表。
-    /// </summary>
+    /// <summary>递归获取 Minecraft 某一实例的完整支持库列表。</summary>
     public static List<McLibToken> McLibListGet(McInstance mcInstance, bool includeInstanceJar)
     {
         LauncherCommon.Log($"[Minecraft] 获取支持库列表：{mcInstance.Name}");
@@ -234,9 +141,7 @@ public static partial class Libraries
             });
     }
 
-    /// <summary>
-    ///     获取 Minecraft 某一实例忽视继承的支持库列表，即结果中没有继承项。
-    /// </summary>
+    /// <summary>获取 Minecraft 某一实例忽视继承的支持库列表，即结果中没有继承项。</summary>
     public static List<McLibToken> McLibListGetWithJson(
         JsonObject jsonObject,
         bool keepSameNameDifferentVersionResult = false,
@@ -376,9 +281,7 @@ public static partial class Libraries
         }
     }
 
-    /// <summary>
-    ///     按当前平台从 JSON 的 natives 对象中取 Natives 名称，例如 linux 对应 "natives-linux"。
-    /// </summary>
+    /// <summary>按当前平台从 JSON 的 natives 对象中取 Natives 名称，例如 linux 对应 "natives-linux"。</summary>
     private static JsonNode? _GetMcLibNativesValue(JsonObject library)
     {
         var natives = library["natives"];
@@ -391,9 +294,7 @@ public static partial class Libraries
         return null;
     }
 
-    /// <summary>
-    ///     按当前平台与架构从 JSON 的 downloads.classifiers 中选择 Natives 条目。
-    /// </summary>
+    /// <summary>按当前平台与架构从 JSON 的 downloads.classifiers 中选择 Natives 条目。</summary>
     private static JsonNode? _GetMcLibNativeClassifier(JsonObject library)
     {
         var classifiers = library["downloads"]?["classifiers"];
@@ -514,48 +415,32 @@ public static partial class Libraries
 
     public class McLibToken
     {
-        /// <summary>
-        ///     是否为纯本地文件，若是则不尝试联网下载。
-        /// </summary>
+        /// <summary>是否为纯本地文件，若是则不尝试联网下载。</summary>
         public bool IsLocal;
 
-        /// <summary>
-        ///     是否为 Natives 文件。
-        /// </summary>
+        /// <summary>是否为 Natives 文件。</summary>
         public bool IsNatives;
 
-        /// <summary>
-        ///     文件的完整本地路径。
-        /// </summary>
+        /// <summary>文件的完整本地路径。</summary>
         public string LocalPath = "";
 
-        /// <summary>
-        ///     原 JSON 中的 Name 项。
-        /// </summary>
+        /// <summary>原 JSON 中的 Name 项。</summary>
         public string OriginalName = "";
 
-        /// <summary>
-        ///     文件的 SHA1。
-        /// </summary>
+        /// <summary>文件的 SHA1。</summary>
         public string? Sha1;
 
-        /// <summary>
-        ///     文件大小。若无有效数据即为 0。
-        /// </summary>
+        /// <summary>文件大小。若无有效数据即为 0。</summary>
         public long size;
 
-        /// <summary>
-        ///     由 JSON 提供的 URL，若没有则为 Nothing。
-        /// </summary>
+        /// <summary>由 JSON 提供的 URL，若没有则为 Nothing。</summary>
         public string? Url
         {
             get;
             set => field = string.IsNullOrWhiteSpace(value) ? null : value;
         }
 
-        /// <summary>
-        ///     原 JSON 中 Name 项除去版本号部分的较前部分。可能为 Nothing。
-        /// </summary>
+        /// <summary>原 JSON 中 Name 项除去版本号部分的较前部分。可能为 Nothing。</summary>
         public string Name
         {
             get

@@ -1,3 +1,5 @@
+using PCL.Core.Platform;
+
 namespace PCL;
 
 /// <summary>更新业务向 UI 层发出的通知。</summary>
@@ -24,7 +26,7 @@ public interface IUpdateUi
 
 public static class UpdateUi
 {
-    public static IUpdateUi? Current { get; set; }
+    public static IUpdateUi? Current => ApplicationRuntime.GetService<IUpdateUi>();
 }
 
 /// <summary>公告按钮动作的处理者。</summary>
@@ -35,5 +37,5 @@ public interface IAnnouncementActionHandler
 
 public static class AnnouncementActions
 {
-    public static IAnnouncementActionHandler? Current { get; set; }
+    public static IAnnouncementActionHandler? Current => ApplicationRuntime.GetService<IAnnouncementActionHandler>();
 }

@@ -2,26 +2,26 @@ using System;
 
 namespace PCL.Core.Platform;
 
-/// <summary>一个平台的 Avalonia UI 服务集合。由组合根在启动时构造一次，并在退出时释放。</summary>
+/// <summary>Avalonia UI 服务门面。服务实例由组合根注册到 <see cref="ApplicationRuntime" />。</summary>
 public sealed class UiModule : IDisposable
 {
-    private bool _disposed;
-
-    public required IUiDispatcher Dispatcher { get; init; }
-    public required IClipboardService Clipboard { get; init; }
-    public required IFileDialogService FileDialogs { get; init; }
-    public required IResourceStore ResourceStore { get; init; }
-    public required ILocalizationBackend Localization { get; init; }
-    public required IThemeBackend Theme { get; init; }
-    public required ISystemThemeProvider SystemTheme { get; init; }
-    public required ISystemNotificationService Notifications { get; init; }
+    public IUiDispatcher Dispatcher => _Get<IUiDispatcher>();
+    public IClipboardService Clipboard => _Get<IClipboardService>();
+    public IFileDialogService FileDialogs => _Get<IFileDialogService>();
+    public IResourceStore ResourceStore => _Get<IResourceStore>();
+    public ILocalizationBackend Localization => _Get<ILocalizationBackend>();
+    public IThemeBackend Theme => _Get<IThemeBackend>();
+    public ISystemThemeProvider SystemTheme => _Get<ISystemThemeProvider>();
+    public ISystemNotificationService Notifications => _Get<ISystemNotificationService>();
 
     public void Dispose()
     {
-        if (_disposed) return;
-        _disposed = true;
+        // 服务的释放由 DI 容器负责。
+    }
 
-        (SystemTheme as IDisposable)?.Dispose();
-        (Notifications as IDisposable)?.Dispose();
+    private static T _Get<T>() where T : class
+    {
+        return ApplicationRuntime.GetService<T>()
+            ?? throw new InvalidOperationException($"UI 服务尚未注册：{typeof(T).Name}");
     }
 }

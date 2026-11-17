@@ -1,3 +1,5 @@
+using PCL.Core.Platform;
+
 namespace PCL;
 
 /// <summary>Comp 业务向 UI 层发出的交互。</summary>
@@ -40,5 +42,5 @@ public interface ICompUi
 
 public static class CompUi
 {
-    public static ICompUi? Current { get; set; }
+    public static ICompUi? Current => ApplicationRuntime.GetService<ICompUi>();
 }

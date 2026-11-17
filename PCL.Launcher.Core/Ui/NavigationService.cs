@@ -1,3 +1,5 @@
+using PCL.Core.Platform;
+
 namespace PCL;
 
 /// <summary>业务层页面导航。</summary>
@@ -12,7 +14,7 @@ public interface ICompNavigationService
 
 public static class CompNavigation
 {
-    public static ICompNavigationService? Current { get; set; }
+    public static ICompNavigationService? Current => ApplicationRuntime.GetService<ICompNavigationService>();
 
     public static void ShowTaskManager()
     {

@@ -19,21 +19,19 @@ public sealed class DialogServiceAsyncTest
     public void Initialize()
     {
         ApplicationRuntime.ResetForTests();
+        var provider = new TestServiceProvider()
+            .Add<IUiDispatcher>(new TestUiDispatcher())
+            .Add<ILocalizationBackend>(new TestLocalizationBackend());
         ApplicationRuntime.Initialize(
             new ApplicationServices
             {
-                Platform = null!,
-                Ui = new UiModule
+                Platform = new PlatformModule
                 {
-                    Dispatcher = new TestUiDispatcher(),
-                    Clipboard = null!,
-                    FileDialogs = null!,
-                    ResourceStore = null!,
-                    Localization = null!,
-                    Theme = null!,
-                    SystemTheme = null!,
-                    Notifications = null!
-                }
+                    Kind = PlatformKind.Linux,
+                    Capabilities = PlatformCapabilities.Linux
+                },
+                Ui = new UiModule(),
+                Services = provider
             });
 
         DialogService.Instance.ClearPending();
@@ -121,6 +119,18 @@ public sealed class DialogServiceAsyncTest
             Content = "Test",
             Buttons = DialogButtons.OkCancel
         };
+    }
+
+    private sealed class TestLocalizationBackend : ILocalizationBackend
+    {
+        public string? TryFindResource(string key)
+        {
+            return null;
+        }
+
+        public void ApplyLanguageResources(string baseLanguageCode, string? currentLanguageCode)
+        {
+        }
     }
 
     private sealed class TestUiDispatcher : IUiDispatcher

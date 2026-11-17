@@ -10,28 +10,18 @@ public interface IUpdatePolicy
 
 public static class UpdatePolicies
 {
-    private static IUpdatePolicy? _current;
-
-    public static IUpdatePolicy Current => _current ??= Create(PlatformRuntime.Current.Kind);
-
-    private static IUpdatePolicy Create(PlatformKind kind)
-    {
-        return kind switch
-        {
-            PlatformKind.Windows => new WindowsUpdatePolicy(),
-            PlatformKind.Linux or PlatformKind.MacOs => new ManualUpdatePolicy(),
-            _ => throw new ArgumentOutOfRangeException(nameof(kind))
-        };
-    }
+    public static IUpdatePolicy Current =>
+        ApplicationRuntime.GetService<IUpdatePolicy>()
+        ?? throw new InvalidOperationException("更新策略服务尚未初始化");
 }
 
-internal sealed class WindowsUpdatePolicy : IUpdatePolicy
+public sealed class WindowsUpdatePolicy : IUpdatePolicy
 {
     public bool SupportsInAppUpdate => true;
     public string InstallButtonKey => "Setup.Update.Install";
 }
 
-internal sealed class ManualUpdatePolicy : IUpdatePolicy
+public sealed class ManualUpdatePolicy : IUpdatePolicy
 {
     public bool SupportsInAppUpdate => false;
     public string InstallButtonKey => "Setup.Update.OpenDownload";

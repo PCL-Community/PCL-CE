@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.IO.Compression;
-using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using PCL.Core.App;
@@ -26,8 +25,8 @@ public enum LauncherLogLevel
 }
 
 /// <summary>
-///     业务层通用工具。UI 提示通过 <see cref="UiLogHandler" /> 交给外层，
-///     其余日志直接写入 <see cref="LogWrapper" />。
+/// 业务层通用工具。UI 提示通过 <see cref="UiLogHandler" /> 交给外层， 其余日志直接写入
+/// <see cref="LogWrapper" />。
 /// </summary>
 public static class LauncherCommon
 {
@@ -389,7 +388,7 @@ public static class LauncherCommon
 
     public static void ShellOnly(string fileName, string arguments)
     {
-        PCL.Core.Platform.PlatformRuntime.Current.Shell.OpenPath(fileName, arguments: arguments);
+        PlatformRuntime.Current.Shell.OpenPath(fileName, arguments: arguments);
     }
 
     public static void IniClearCache()
@@ -409,21 +408,9 @@ public static class LauncherCommon
 
     public static string ShortenPath(string longPath, int shortenThreshold = 247)
     {
-        // GetShortPathName 是 Windows 专有 API，其他平台长路径保持原样
-        if (!PCL.Core.Platform.PlatformRuntime.Current.Capabilities.UsesWindowsPaths) return longPath;
-        if (longPath.Length <= shortenThreshold) return longPath;
-
-        var shortPath = new StringBuilder(260);
-        _ = GetShortPathName(longPath, shortPath, shortPath.Capacity);
-        var result = shortPath.ToString();
-        return string.IsNullOrEmpty(result) ? longPath : result;
+        return ApplicationRuntime.GetService<IPlatformPathService>()?.ShortenPath(longPath)
+            ?? longPath;
     }
-
-    [DllImport("kernel32", EntryPoint = "GetShortPathNameA", CharSet = CharSet.Ansi)]
-    private static extern int GetShortPathName(
-        string lpszLongPath,
-        StringBuilder lpszShortPath,
-        int cchBuffer);
 
     public static string? GetStringFromEnum(Enum enumData)
     {

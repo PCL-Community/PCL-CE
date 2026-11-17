@@ -2,6 +2,8 @@ using PCL.Core.Minecraft.IdentityModel;
 using PCL.Core.Minecraft.IdentityModel.OAuth;
 using PCL.Core.Minecraft.Profile.Authentication;
 
+using PCL.Core.Platform;
+
 namespace PCL;
 
 /// <summary>登录档案 UI 交互。</summary>
@@ -21,7 +23,7 @@ public interface IProfileUi
 
 public static class LoginProfile
 {
-    public static IProfileUi? Current { get; set; }
+    public static IProfileUi? Current => ApplicationRuntime.GetService<IProfileUi>();
 
     public static GameLaunch.McLoginData? GetLoginData()
     {

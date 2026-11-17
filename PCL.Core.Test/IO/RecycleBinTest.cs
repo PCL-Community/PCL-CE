@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PCL.Core.Platform;
 using PCL.Platform;
@@ -10,9 +11,10 @@ namespace PCL.Core.Test.IO;
 [OSCondition(OperatingSystems.Linux)]
 public class RecycleBinTest
 {
-    private readonly IRecycleBinService _bin = PlatformModuleFactory
-        .Create(PlatformDetector.Detect())
-        .RecycleBin;
+    private readonly IRecycleBinService _bin = new ServiceCollection()
+        .AddPlatformServices(PlatformDetector.Detect())
+        .BuildServiceProvider()
+        .GetRequiredService<IRecycleBinService>();
 
     private string? _originalDataHome;
     private string _sandboxRoot = string.Empty;

@@ -19,21 +19,19 @@ public sealed class SystemDialogsAsyncTest
     public void Initialize()
     {
         ApplicationRuntime.ResetForTests();
+        var provider = new TestServiceProvider()
+            .Add<IFileDialogService>(_fileDialogs)
+            .Add<IUiDispatcher>(new TestUiDispatcher());
         ApplicationRuntime.Initialize(
             new ApplicationServices
             {
-                Platform = null!,
-                Ui = new UiModule
+                Platform = new PlatformModule
                 {
-                    Dispatcher = new TestUiDispatcher(),
-                    Clipboard = null!,
-                    FileDialogs = _fileDialogs,
-                    ResourceStore = null!,
-                    Localization = null!,
-                    Theme = null!,
-                    SystemTheme = null!,
-                    Notifications = null!
-                }
+                    Kind = PlatformKind.Linux,
+                    Capabilities = PlatformCapabilities.Linux
+                },
+                Ui = new UiModule(),
+                Services = provider
             });
     }
 

@@ -20,6 +20,13 @@ public static class ApplicationRuntime
 
     public static bool IsInitialized => Volatile.Read(ref _current) is not null;
 
+    /// <summary>从服务容器解析服务；运行时未初始化或服务未注册时返回 <see langword="null" />。</summary>
+    public static T? GetService<T>() where T : class
+    {
+        var current = Volatile.Read(ref _current);
+        return (T?)current?.Services?.GetService(typeof(T));
+    }
+
     public static void Initialize(ApplicationServices services)
     {
         ArgumentNullException.ThrowIfNull(services);
@@ -49,6 +56,15 @@ public static class ApplicationRuntime
         catch (Exception ex)
         {
             LogWrapper.Warn(ex, "释放平台服务失败");
+        }
+
+        try
+        {
+            (services.Services as IDisposable)?.Dispose();
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Warn(ex, "释放服务容器失败");
         }
     }
 

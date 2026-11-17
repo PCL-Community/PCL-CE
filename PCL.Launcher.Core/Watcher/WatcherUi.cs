@@ -1,3 +1,5 @@
+using PCL.Core.Platform;
+
 namespace PCL;
 
 /// <summary>游戏日志级别。</summary>
@@ -22,7 +24,7 @@ public interface IWatcherUi
 
 public static class WatcherUi
 {
-    public static IWatcherUi? Current { get; set; }
+    public static IWatcherUi? Current => ApplicationRuntime.GetService<IWatcherUi>();
 }
 
 /// <summary>背景音乐的播放状态，与 WPF 的 <c>Music.MusicStates</c> 一致。</summary>
@@ -100,5 +102,5 @@ public interface IMediaService
 
 public static class MediaService
 {
-    public static IMediaService? Current { get; set; }
+    public static IMediaService? Current => ApplicationRuntime.GetService<IMediaService>();
 }

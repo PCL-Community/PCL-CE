@@ -2219,6 +2219,9 @@
     <sys:String x:Key="Minecraft.Launch.Donate.Title">{0} 次启动！</sys:String>
     <sys:String x:Key="Minecraft.Launch.ExportScript.Cancelled">已取消导出启动脚本！</sys:String>
     <sys:String x:Key="Minecraft.Launch.ExportScript.Success">导出启动脚本成功！</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Script.Title">启动 - {0}</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Script.Starting">游戏正在启动，请稍候。</sys:String>
+    <sys:String x:Key="Minecraft.Launch.Script.Exited">游戏已退出。</sys:String>
     <sys:String x:Key="Minecraft.Launch.PurchaseHint.Later">下次一定</sys:String>
     <sys:String x:Key="Minecraft.Launch.PurchaseHint.Message">看起来你似乎没买正版...&#xA;如果觉得 Minecraft 还不错，可以购买正版支持一下，毕竟开发游戏也真的很不容易...不要一直白嫖啦。&#xA;&#xA;在验证一个正版账号之后，就不会出现这个提示了！</sys:String>
     <sys:String x:Key="Minecraft.Launch.PurchaseHint.Purchase">支持正版游戏！</sys:String>

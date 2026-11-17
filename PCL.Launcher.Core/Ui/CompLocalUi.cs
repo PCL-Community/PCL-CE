@@ -1,3 +1,5 @@
+using PCL.Core.Platform;
+
 namespace PCL;
 
 /// <summary>实例本地资源页向业务层公开的页面契约，不是 UI 平台桥。</summary>
@@ -28,5 +30,5 @@ public interface ICompLocalUi
 
 public static class CompLocalUi
 {
-    public static ICompLocalUi? Current { get; set; }
+    public static ICompLocalUi? Current => ApplicationRuntime.GetService<ICompLocalUi>();
 }

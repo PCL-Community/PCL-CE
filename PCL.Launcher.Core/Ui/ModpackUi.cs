@@ -1,3 +1,5 @@
+using PCL.Core.Platform;
+
 namespace PCL;
 
 /// <summary>整合包安装与 UI 的交互。</summary>
@@ -10,7 +12,7 @@ public interface IModpackUi
 
 public static class ModpackUi
 {
-    public static IModpackUi? Current { get; set; }
+    public static IModpackUi? Current => ApplicationRuntime.GetService<IModpackUi>();
 
     public static List<Loading.LoaderBase> CreateInstallLoader(McInstallRequest request)
     {

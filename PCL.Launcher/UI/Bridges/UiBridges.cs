@@ -831,6 +831,13 @@ public sealed class MediaServiceBridge : IMediaService
 {
     private readonly MediaPlaybackService _media = new();
 
+    public MediaServiceBridge()
+    {
+        ExtraButtonsPanel.MusicStateProvider = GetMusicButtonState;
+        ExtraButtonsPanel.MusicToggleAction = ToggleMusic;
+        ExtraButtonsPanel.MusicNextAction = PlayNextMusic;
+    }
+
     public bool IsAvailable => _media.IsAvailable;
 
     public bool IsMusicAvailable => _media.IsMusicAvailable;

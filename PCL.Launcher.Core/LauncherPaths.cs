@@ -44,36 +44,25 @@ public static class LauncherPaths
                     ? temp
                     : temp + Path.DirectorySeparatorChar;
 
-            return !PlatformRuntime.Current.Capabilities.UsesWindowsPaths
-                ? Path.Combine(temp, "PCL") + Path.DirectorySeparatorChar
-                : Path.Combine(
-                    Path.GetPathRoot(Environment.SystemDirectory)
-                    ?? Path.DirectorySeparatorChar.ToString(),
-                    "ProgramData",
-                    "PCL");
+            return ApplicationRuntime
+                    .GetService<IPlatformPathService>()
+                    ?.GetPureAsciiDirectory()
+                ?? Path.Combine(temp, "PCL") + Path.DirectorySeparatorChar;
         }
     }
 
     /// <summary>
-    ///     官方启动器的默认 Minecraft 文件夹，以路径分隔符结尾。
-    ///     Windows 为 <c>%APPDATA%\.minecraft</c>，macOS 为 <c>~/Library/Application Support/minecraft</c>，
-    ///     Linux 为 <c>~/.minecraft</c>。
+    /// 官方启动器的默认 Minecraft 文件夹，以路径分隔符结尾。 Windows 为 <c>%APPDATA%\.minecraft</c>，macOS 为
+    /// <c>~/Library/Application Support/minecraft</c>， Linux 为 <c>~/.minecraft</c>。
     /// </summary>
-    public static string OfficialMinecraftDirectory => _WithTrailingSeparator(
-        PlatformRuntime.Current.Kind switch
-        {
-            PlatformKind.Windows => Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                ".minecraft"),
-            PlatformKind.MacOs => Path.Combine(
+    public static string OfficialMinecraftDirectory =>
+        _WithTrailingSeparator(
+            ApplicationRuntime
+                .GetService<IPlatformPathService>()
+                ?.GetOfficialMinecraftDirectory()
+            ?? Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                "Library",
-                "Application Support",
-                "minecraft"),
-            _ => Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                ".minecraft")
-        });
+                ".minecraft"));
 
     /// <summary>当前 Minecraft 文件夹路径，由 WPF 宿主同步设置。</summary>
     public static string? MinecraftFolder { get; set; }

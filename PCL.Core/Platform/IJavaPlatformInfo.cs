@@ -8,6 +8,7 @@ public interface IJavaPlatformInfo
     string JavaExecutableName { get; }
     string? JavawExecutableName { get; }
     bool SupportsJavaw { get; }
+    string JstackExecutableName { get; }
     IJavaParser CreateParser();
     IJavaScanner[] CreateScanners();
 }

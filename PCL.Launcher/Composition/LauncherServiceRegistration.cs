@@ -1,7 +1,11 @@
 using Microsoft.Extensions.DependencyInjection;
 using PCL.Composition;
 using PCL.Core.Platform;
+using PCL.Core.UI;
 using PCL.Navigation;
+using PCL.Platform;
+using PCL.UI.Controls;
+using PCL.UI.SystemIntegration;
 using PCL.Views.Pages;
 using PCL.Views.Pages.Download;
 using PCL.Views.Pages.Instance;
@@ -26,36 +30,35 @@ public static class LauncherServiceRegistration
         services.AddSingleton(applicationServices.Platform);
         services.AddSingleton(applicationServices.Ui);
 
-        var platform = applicationServices.Platform;
-        services.AddSingleton(platform.SystemProxy);
-        services.AddSingleton(platform.WindowInterop);
-        services.AddSingleton(platform.Shortcuts);
-        services.AddSingleton(platform.Java);
-        services.AddSingleton(platform.ProcessCleanup);
-        services.AddSingleton(platform.GpuPreference);
-        services.AddSingleton(platform.LaunchEnvironment);
-        services.AddSingleton(platform.SystemFacts);
-        services.AddSingleton(platform.Hardware);
-        services.AddSingleton(platform.Shell);
-        services.AddSingleton(platform.Region);
-        services.AddSingleton(platform.RecycleBin);
-        services.AddSingleton(platform.FatalDialog);
+        var kind = applicationServices.Platform.Kind;
 
-        var ui = applicationServices.Ui;
-        services.AddSingleton(ui.Dispatcher);
-        services.AddSingleton(ui.Clipboard);
-        services.AddSingleton(ui.FileDialogs);
-        services.AddSingleton(ui.ResourceStore);
-        services.AddSingleton(ui.Localization);
-        services.AddSingleton(ui.Theme);
-        services.AddSingleton(ui.SystemTheme);
-        services.AddSingleton(ui.Notifications);
+        services.AddPlatformServices(kind);
+        services.AddAvaloniaUi(kind);
+        services.AddSingleton(applicationServices.Platform.Capabilities);
 
         services.AddSingleton<INavigationService>(_ => NavigationService.Instance);
         services.AddSingleton(_ => PageCatalog.Snapshot);
         services.AddSingleton<PageHostFactory>();
         services.AddSingleton<PageViewFactory>();
         services.AddLauncherUi();
+
+        services.AddSingleton<IUpdatePolicy>(_ => kind switch
+        {
+            PlatformKind.Windows => new WindowsUpdatePolicy(),
+            _ => new ManualUpdatePolicy()
+        });
+        services.AddSingleton<IPlatformFontProvider>(_ => kind switch
+        {
+            PlatformKind.Windows => new WindowsFontProvider(),
+            PlatformKind.MacOs => new MacOsFontProvider(),
+            _ => new LinuxFontProvider()
+        });
+        services.AddSingleton<ITaskbarProgressBackend>(_ => kind switch
+        {
+            PlatformKind.Windows => WindowsTaskbarProgress.Instance,
+            PlatformKind.Linux => LinuxTaskbarProgress.Instance,
+            _ => UnsupportedTaskbarProgressBackend.Instance
+        });
 
         // Host 的构造依赖。页面本身由 PageViewFactory 创建，不需要逐个注册。
         services.AddTransient<PageLaunchLeft>();
@@ -76,11 +79,13 @@ public static class LauncherServiceRegistration
         services.AddTransient<PageSetupLeftViewModel>();
         services.AddTransient<PageSetupJavaViewModel>();
 
-        return services.BuildServiceProvider(
+        var provider = services.BuildServiceProvider(
             new ServiceProviderOptions
             {
                 ValidateOnBuild = true,
                 ValidateScopes = true
             });
+        applicationServices.Services = provider;
+        return provider;
     }
 }

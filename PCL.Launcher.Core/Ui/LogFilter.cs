@@ -1,3 +1,5 @@
+using PCL.Core.Platform;
+
 namespace PCL;
 
 /// <summary>日志中敏感信息的打码。</summary>
@@ -9,7 +11,7 @@ public interface ILogFilter
 
 public static class LogFilter
 {
-    public static ILogFilter? Current { get; set; }
+    public static ILogFilter? Current => ApplicationRuntime.GetService<ILogFilter>();
 
     /// <summary>
     ///     当前登录结果（尚未登录时为 <c>null</c>）。只读，供 UI 层日志打码等场景使用。
@@ -37,7 +39,7 @@ public interface IRestrictedFeatures
 
 public static class RestrictedFeatures
 {
-    public static IRestrictedFeatures? Current { get; set; }
+    public static IRestrictedFeatures? Current => ApplicationRuntime.GetService<IRestrictedFeatures>();
     public static bool IsRestricted => Current?.IsRestricted ?? false;
 
     public static bool Check(string feature)

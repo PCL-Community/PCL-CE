@@ -9,7 +9,6 @@ public interface IPlatformCapabilities
     bool SupportsShortcutIcon { get; }
     IReadOnlyList<string> NativeLibraryExtensions { get; }
     bool SupportsWindowsStoreDependencies { get; }
-    bool UsesWindowsPaths { get; }
     bool SuppressAltMenu { get; }
     bool SupportsDisplayProtocolSelection { get; }
 }

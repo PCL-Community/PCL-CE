@@ -8,6 +8,7 @@ public sealed class LinuxJavaPlatformInfo : IJavaPlatformInfo
 {
     public string JavaExecutableName => "java";
     public string? JavawExecutableName => null;
+    public string JstackExecutableName => "jstack";
     public bool SupportsJavaw => false;
 
     public IJavaParser CreateParser()

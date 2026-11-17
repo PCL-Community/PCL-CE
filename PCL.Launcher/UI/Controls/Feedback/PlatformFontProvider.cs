@@ -5,26 +5,31 @@ namespace PCL.UI.Controls;
 
 internal static class PlatformFontProvider
 {
-    public static IPlatformFontProvider Current => PlatformRuntime.Current.Kind switch
-    {
-        PlatformKind.Windows => new WindowsFontProvider(),
-        PlatformKind.Linux => new LinuxFontProvider(),
-        PlatformKind.MacOs => new MacOsFontProvider(),
-        _ => throw new ArgumentOutOfRangeException()
-    };
+    public static IPlatformFontProvider Current =>
+        ApplicationRuntime.GetService<IPlatformFontProvider>()
+        ?? throw new InvalidOperationException("字体提供器尚未初始化");
 }
 
 internal sealed class WindowsFontProvider : IPlatformFontProvider
 {
-    public FontFamily CreateBannerFont() => LaunchFonts.Build("Bahnschrift");
+    public FontFamily CreateBannerFont()
+    {
+        return LaunchFonts.Build("Bahnschrift");
+    }
 }
 
 internal sealed class LinuxFontProvider : IPlatformFontProvider
 {
-    public FontFamily CreateBannerFont() => new(LaunchFonts.EmbeddedFontUri);
+    public FontFamily CreateBannerFont()
+    {
+        return new FontFamily(LaunchFonts.EmbeddedFontUri);
+    }
 }
 
 internal sealed class MacOsFontProvider : IPlatformFontProvider
 {
-    public FontFamily CreateBannerFont() => new(LaunchFonts.EmbeddedFontUri);
+    public FontFamily CreateBannerFont()
+    {
+        return new FontFamily(LaunchFonts.EmbeddedFontUri);
+    }
 }
