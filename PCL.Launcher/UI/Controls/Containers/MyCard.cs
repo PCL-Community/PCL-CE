@@ -164,7 +164,7 @@ public class MyCard : Grid
             {
                 HorizontalAlignment = HorizontalAlignment.Left,
                 VerticalAlignment = VerticalAlignment.Top,
-                Margin = new Thickness(15d, 12d, 0d, 0d),
+                Margin = new Thickness(15d, 10d, 0d, 0d),
                 FontWeight = FontWeight.Bold,
                 FontSize = 13d,
                 IsHitTestVisible = false,
