@@ -10,53 +10,21 @@ public partial class PageDownloadInstallViewModel : ViewModelBase
 {
     [ObservableProperty] public partial bool CanStartInstall { get; set; }
 
-    [ObservableProperty] public partial bool HasLoaderWarning { get; set; }
-
     [ObservableProperty] public partial bool HasNoFolder { get; set; }
-
-    [ObservableProperty] public partial bool ShowHintFabricApi { get; set; }
-
-    [ObservableProperty] public partial bool ShowHintLegacyFabricApi { get; set; }
-
-    [ObservableProperty] public partial bool ShowHintLegacyOptiFabric { get; set; }
-
-    [ObservableProperty] public partial bool ShowHintModOptiFine { get; set; }
-
-    [ObservableProperty] public partial bool ShowHintOptiFabric { get; set; }
-
-    [ObservableProperty] public partial bool ShowHintOptiFabricOld { get; set; }
 
     [ObservableProperty] public partial string InstanceName { get; set; } = "";
 
     [ObservableProperty] public partial bool IsConfigStageVisible { get; set; }
 
-    [ObservableProperty] public partial string LoaderWarning { get; set; } = "";
-
     [LocalizedProperty("Download.Install.StartDownload")]
     public partial string StartButtonText { get; }
 
     [ObservableProperty]
-    public partial string VersionIcon { get; set; } =
-        $"{LauncherPaths.ImageRoot}Icons/NoIcon.png";
+    public partial string VersionIcon { get; set; } = $"{LauncherPaths.ImageRoot}Icons/NoIcon.png";
 
     [ObservableProperty] public partial string VersionName { get; set; } = "";
 
     [ObservableProperty] public partial string? VersionUrl { get; set; }
 
     internal InstallLoaderSelection Selection { get; } = new();
-
-    public void ApplySelection(McInstallRequest request)
-    {
-        Selection.ApplyTo(request);
-    }
-
-    public string GetLoaderSuffix()
-    {
-        return Selection.GetSuffix();
-    }
-
-    public string GetSelectionInfo()
-    {
-        return Selection.GetInfo(VersionName);
-    }
 }

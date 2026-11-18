@@ -29,7 +29,7 @@ internal static class DownloadVersionList
     public static void Build(
         StackPanel panMain,
         JsonArray versions,
-        Action<JsonObject> onSelect,
+        Action<JsonObject>? onSelect,
         DownloadVersionListMode mode = DownloadVersionListMode.Install,
         IDictionary<string, MyListItem>? itemMap = null)
     {
@@ -128,7 +128,7 @@ internal static class DownloadVersionList
     /// <summary>版本行使用虚拟化面板承载，展开或滚动到可视区域时才创建对应的 <see cref="MyListItem" />。</summary>
     private static ItemsControl CreateVersionList(
         IReadOnlyList<JsonObject> versions,
-        Action<JsonObject> onSelect,
+        Action<JsonObject>? onSelect,
         IReadOnlySet<string> installed,
         DownloadVersionListMode mode,
         IDictionary<string, MyListItem>? itemMap)
@@ -201,7 +201,7 @@ internal static class DownloadVersionList
 
     private static MyListItem? CreateItem(
         JsonObject? version,
-        Action<JsonObject> onSelect,
+        Action<JsonObject>? onSelect,
         IReadOnlySet<string> installed,
         DownloadVersionListMode mode,
         IDictionary<string, MyListItem>? itemMap)
@@ -220,7 +220,7 @@ internal static class DownloadVersionList
             Title = formattedVersion,
             Tag = version,
             LogoScale = 0.9,
-            Logo = GetLogo(version),
+            Logo = GetVersionIcon(version),
             Type = MyListItem.CheckType.Clickable
         };
         LocalizedText.Bind(
@@ -265,7 +265,8 @@ internal static class DownloadVersionList
             saveButton.Click += (_, _) =>
                 _ = DownloadVersionActions.SaveVersionAsync(version, formattedVersion);
             item.Buttons = [saveButton, changelogButton, serverButton];
-            item.Click += (_, _) => onSelect(version);
+            if (onSelect is not null)
+                item.Click += (_, _) => onSelect(version);
         }
 
         itemMap?[versionId] = item;
@@ -314,7 +315,7 @@ internal static class DownloadVersionList
         ToolTip.SetHorizontalOffset(button, 2d);
     }
 
-    private static string GetLogo(JsonObject version)
+    public static string GetVersionIcon(JsonObject version)
     {
         var file = (version["type"]?.ToString() ?? "") switch
         {

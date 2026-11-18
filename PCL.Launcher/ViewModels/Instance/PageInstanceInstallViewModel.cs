@@ -20,17 +20,11 @@ public partial class PageInstanceInstallViewModel : ViewModelBase
 
     public string SelectedInfo => _selectedInfoProvider?.Invoke() ?? string.Empty;
 
-    [ObservableProperty] public partial bool HasWarning { get; set; }
-
     [ObservableProperty] public partial string InstanceName { get; set; } = "";
 
     [ObservableProperty] public partial bool IsInstalling { get; set; }
 
-    [ObservableProperty] public partial bool IsProgressVisible { get; set; }
-
     [ObservableProperty] public partial bool IsSelecting { get; set; }
-
-    [ObservableProperty] public partial string ProgressText { get; set; } = "";
 
     [ObservableProperty]
     public partial string VersionIcon { get; set; } =
@@ -44,8 +38,6 @@ public partial class PageInstanceInstallViewModel : ViewModelBase
     [ObservableProperty] public partial string VersionName { get; set; } = "";
 
     [ObservableProperty] public partial string? VersionUrl { get; set; }
-
-    [ObservableProperty] public partial string WarningText { get; set; } = "";
 
     internal InstallLoaderSelection Selection { get; } = new();
 

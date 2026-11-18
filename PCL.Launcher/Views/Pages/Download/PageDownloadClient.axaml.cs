@@ -1,6 +1,3 @@
-using System.Text.Json.Nodes;
-using Avalonia.Controls;
-using Avalonia.Threading;
 using PCL.Navigation;
 using PCL.UI.Controls;
 
@@ -12,96 +9,35 @@ namespace PCL.Views.Pages.Download;
 /// </summary>
 public partial class PageDownloadClient : MyPageRight, IPageView, IRefreshable
 {
-    private readonly Dictionary<string, MyListItem> _versionItems =
-        new(StringComparer.OrdinalIgnoreCase);
-
-    private JsonArray? _versions;
-
     public PageDownloadClient()
     {
         InitializeComponent();
         PanScroll = PanBack;
-        Grid.SetIsSharedSizeScope(PanMain, true);
+        VersionList.Initialize(DownloadVersionListMode.SaveOnly, null, false);
+        VersionList.Activate();
         PageLoaderInit(
             Load,
             PanLoad,
             PanBack,
             null,
-            GameDownload.dlClientListLoader,
-            _ => OnLoadFinished());
+            GameDownload.dlClientListLoader);
         Loaded += (_, _) => PanBack?.ScrollToHome();
-        GameFolders.McFolderListLoader.PreviewFinish +=
-            _ => Dispatcher.UIThread.Post(RefreshInstalledMarks);
     }
 
     public override void OnNavigatedTo(PageParameter? parameter)
     {
+        VersionList.Activate();
+        VersionList.Rebuild();
         PanBack?.ScrollToHome();
     }
 
     public override void OnNavigatedFrom()
     {
+        VersionList.Deactivate();
     }
 
     public void Refresh()
     {
-        GameDownload.dlClientListLoader.Start(null, true);
-    }
-
-    private void RefreshInstalledMarks()
-    {
-        if (_versions is null || _versionItems.Count == 0)
-            return;
-        try
-        {
-            var installed = DownloadVersionList.GetInstalledVersionNames();
-            foreach (var node in _versions)
-                if (node is JsonObject version
-                    && version["id"]?.ToString() is { } versionId
-                    && _versionItems.TryGetValue(versionId, out var item))
-                    DownloadVersionList.ApplyVersionTags(
-                        item,
-                        version,
-                        installed.Contains(versionId));
-        }
-        catch (Exception ex)
-        {
-            LauncherCommon.Log(ex, "刷新版本已安装标记失败");
-        }
-    }
-
-    private void OnLoadFinished()
-    {
-        try
-        {
-            if (PanMain is null)
-                return;
-            if (GameDownload.dlClientListLoader.output.Value?["versions"] is not JsonArray versions)
-                return;
-            _versions = versions;
-            _versionItems.Clear();
-            DownloadVersionList.Build(
-                PanMain,
-                versions,
-                SelectVersion,
-                DownloadVersionListMode.SaveOnly,
-                _versionItems);
-        }
-        catch (Exception ex)
-        {
-            LauncherCommon.Log(ex, "可视化 Minecraft 版本列表出错");
-        }
-    }
-
-    private static void SelectVersion(JsonObject version)
-    {
-        try
-        {
-            PageRouter.Navigate(PageIds.Download, SubPageIds.DownloadInstall, version);
-        }
-        catch (Exception ex)
-        {
-            LauncherCommon.Log(ex, "打开 Minecraft 安装页失败");
-        }
+        VersionList.Refresh();
     }
 }
