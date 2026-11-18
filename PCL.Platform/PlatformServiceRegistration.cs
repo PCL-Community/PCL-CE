@@ -63,6 +63,13 @@ public static class PlatformServiceRegistration
             PlatformKind.MacOs => new MacOsSystemFacts(),
             _ => throw _Throw(kind)
         });
+        services.AddSingleton<IRuntimeEnvironmentService>(_ => kind switch
+        {
+            PlatformKind.Windows => new WindowsRuntimeEnvironmentService(),
+            PlatformKind.Linux => new LinuxRuntimeEnvironmentService(),
+            PlatformKind.MacOs => new MacOsRuntimeEnvironmentService(),
+            _ => throw _Throw(kind)
+        });
         services.AddSingleton<IHardwareInfo>(_ => kind switch
         {
             PlatformKind.Windows => new WindowsHardwareInfo(),

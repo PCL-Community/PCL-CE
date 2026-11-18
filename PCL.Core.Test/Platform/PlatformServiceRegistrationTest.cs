@@ -24,6 +24,7 @@ public sealed class PlatformServiceRegistrationTest
         Assert.IsNotNull(provider.GetRequiredService<IMinecraftPlatformRules>());
         Assert.IsNotNull(provider.GetRequiredService<IJavaPlatformInfo>());
         Assert.IsNotNull(provider.GetRequiredService<IRecycleBinService>());
+        Assert.IsNotNull(provider.GetRequiredService<IRuntimeEnvironmentService>());
     }
 
     [TestMethod]

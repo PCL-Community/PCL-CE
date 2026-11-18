@@ -6,6 +6,7 @@ using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
+using PCL.Core.Platform;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils.OS;
 using PCL.UI;
@@ -180,6 +181,7 @@ public sealed class StartupEffects(
         try
         {
             ShowSpecialVersionHint();
+            await ShowEnvironmentWarningAsync();
             await ShowEulaDialogAsync();
             await ShowTelemetryDialogAsync();
             HardwareInfo.GetHardwareInfo();
@@ -214,6 +216,42 @@ public sealed class StartupEffects(
                 IsWarn = true
             });
 #endif
+    }
+
+    private static async Task ShowEnvironmentWarningAsync()
+    {
+        try
+        {
+            var service = ApplicationRuntime.GetService<IRuntimeEnvironmentService>()
+                ?? throw new InvalidOperationException("运行环境检查服务尚未初始化");
+            var issues = service.GetIssues(Basics.ExecutablePath);
+            if (issues.Count == 0) return;
+            LogWrapper.Info("UI", $"启动环境检查发现问题：{string.Join(", ", issues)}");
+
+            var problems = issues.Select(issue => Lang.Text(issue switch
+            {
+                RuntimeEnvironmentIssue.OutdatedSystem => "Application.EnvironmentWarning.WindowsVersion",
+                RuntimeEnvironmentIssue.System32Bit => "Application.EnvironmentWarning.System32Bit",
+                RuntimeEnvironmentIssue.TempFolder => "Application.EnvironmentWarning.TempFolder",
+                RuntimeEnvironmentIssue.SocialSoftwareFolder => "Application.EnvironmentWarning.SocialSoftwareFolder",
+                _ => throw new ArgumentOutOfRangeException(nameof(issue), issue, null)
+            }));
+
+            await DialogService.Instance.ShowAsync(
+                new TextDialogRequest
+                {
+                    Title = Lang.Text("Application.EnvironmentWarning.Title"),
+                    Content = Lang.Text(
+                        "Application.EnvironmentWarning.Message",
+                        string.Join(Environment.NewLine, problems)),
+                    Buttons = DialogButtons.Create("Application.EnvironmentWarning.IKnow"),
+                    IsWarn = true
+                });
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Warn(ex, "UI", "启动环境检查失败");
+        }
     }
 
     private static async Task ShowEulaDialogAsync()
