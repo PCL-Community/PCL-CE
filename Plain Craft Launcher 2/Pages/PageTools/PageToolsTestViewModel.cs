@@ -16,6 +16,8 @@ public partial class PageToolsTestViewModel : ViewModelBase
 
     [ObservableProperty] private bool _achievementImageVisible;
 
+    [ObservableProperty] private string _achievementLoadingText = "";
+
     [ObservableProperty] private bool _crashButtonVisible;
 
     [ObservableProperty] private bool _createShortcutEnabled = true;
