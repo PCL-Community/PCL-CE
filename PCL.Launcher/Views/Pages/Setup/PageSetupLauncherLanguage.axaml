@@ -1,9 +1,11 @@
 <ui:MyPageRight xmlns="https://github.com/avaloniaui"
                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:vm="using:PCL"
                 xmlns:ui="using:PCL.UI.Controls"
                 xmlns:svg="using:PCL.UI.Controls.SvgIcon"
                 xmlns:loc="using:PCL.Core.UI"
-                x:CompileBindings="False"
+                x:DataType="vm:PageSetupLauncherLanguageViewModel"
+                x:CompileBindings="True"
                 x:Class="PCL.Views.Pages.Setup.PageSetupLauncherLanguage">
     <ui:MyScrollViewer x:Name="PanBack"
                        HorizontalScrollBarVisibility="Disabled"

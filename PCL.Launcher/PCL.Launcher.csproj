@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
+        <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
         <AssemblyTitle>PCL</AssemblyTitle>
         <AssemblyName>PCL.Launcher</AssemblyName>
         <Description>PCL 的界面层</Description>

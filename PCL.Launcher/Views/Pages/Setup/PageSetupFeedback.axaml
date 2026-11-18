@@ -1,11 +1,14 @@
 <ui:MyPageRight xmlns="https://github.com/avaloniaui"
                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:vm="using:PCL"
                 xmlns:ui="using:PCL.UI.Controls"
                 xmlns:loc="using:PCL.Core.UI"
-                x:CompileBindings="False"
+                x:DataType="vm:PageSetupFeedbackViewModel"
+                x:CompileBindings="True"
                 x:Class="PCL.Views.Pages.Setup.PageSetupFeedback">
     <ui:MyPageRight.Resources>
-        <DataTemplate x:Key="FeedbackItemTemplate">
+        <DataTemplate x:Key="FeedbackItemTemplate"
+                      x:DataType="vm:SetupFeedbackItemRow">
             <ui:MyListItem Title="{Binding Title}"
                            Info="{Binding Info}"
                            Logo="{Binding Logo}"

@@ -2,7 +2,9 @@
                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                 xmlns:ui="using:PCL.UI.Controls"
                 xmlns:loc="using:PCL.Core.UI"
-                x:CompileBindings="False"
+                xmlns:vm="using:PCL"
+                x:DataType="vm:PageLogRightViewModel"
+                x:CompileBindings="True"
                 x:Class="PCL.Views.Pages.Log.PageLogRight">
     <Grid>
         <Grid x:Name="PanAllBack"

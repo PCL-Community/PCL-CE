@@ -3,7 +3,7 @@
            xmlns:ui="using:PCL.UI.Controls"
            xmlns:loc="using:PCL.Core.UI"
            x:Class="PCL.UI.Controls.MyResourceSelectBar"
-           x:CompileBindings="False"
+           x:CompileBindings="True"
            HorizontalAlignment="Center"
            VerticalAlignment="Bottom"
            Margin="25,25,25,0"

@@ -1,9 +1,11 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PCL"
              xmlns:ui="using:PCL.UI.Controls"
              xmlns:launch="using:PCL.Views.Pages.Launch"
              xmlns:loc="using:PCL.Core.UI"
-             x:CompileBindings="False"
+             x:DataType="vm:PageLoginProfileSkinViewModel"
+             x:CompileBindings="True"
              x:Class="PCL.Views.Pages.Launch.PageLoginProfileSkin">
     <Grid ColumnDefinitions="34,*,34">
         <Grid.RowDefinitions>

@@ -1,8 +1,10 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:PCL"
              xmlns:ui="using:PCL.UI.Controls"
              xmlns:loc="using:PCL.Core.UI"
-             x:CompileBindings="False"
+             x:DataType="vm:PageLoginProfileViewModel"
+             x:CompileBindings="True"
              x:Class="PCL.Views.Pages.Launch.PageLoginProfile">
     <Grid RowDefinitions="Auto,Auto,10,*,10,Auto,20">
         <ui:MyHint x:Name="HintSelect"

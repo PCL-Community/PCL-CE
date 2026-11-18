@@ -3,7 +3,7 @@
              xmlns:ui="using:PCL.UI.Controls"
              x:Class="PCL.Views.Pages.Download.InstallLoaderCard"
              x:Name="Root"
-             x:CompileBindings="False"
+             x:CompileBindings="True"
              HorizontalContentAlignment="Stretch">
     <ui:MyCard x:Name="CardRoot"
                Title="{Binding Title, ElementName=Root}"

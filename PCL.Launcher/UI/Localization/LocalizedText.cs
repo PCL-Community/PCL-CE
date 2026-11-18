@@ -7,16 +7,14 @@ using PCL.Core.App.Localization;
 
 namespace PCL;
 
-/// <summary>
-///     用委托按需生成本地化文本的绑定源；语言变更时通知绑定重新求值。
-/// </summary>
+/// <summary>用委托按需生成本地化文本的绑定源；语言变更时通知绑定重新求值。</summary>
 public sealed class LocalizedText : INotifyPropertyChanged
 {
     private static readonly ConditionalWeakTable<
         AvaloniaObject,
         Dictionary<AvaloniaProperty, LocalizedText>> Instances = new();
 
-    private static readonly List<LocalizedText> All = [];
+    private static readonly List<WeakReference<LocalizedText>> All = [];
 
     private Func<string> _factory = () => string.Empty;
 
@@ -47,7 +45,7 @@ public sealed class LocalizedText : INotifyPropertyChanged
         {
             source = new LocalizedText();
             sources[property] = source;
-            All.Add(source);
+            All.Add(new WeakReference<LocalizedText>(source));
         }
 
         source._factory = factory;
@@ -76,11 +74,20 @@ public sealed class LocalizedText : INotifyPropertyChanged
 
     private static void _OnLanguageChanged()
     {
-        foreach (var source in All.ToArray())
+        for (var i = All.Count - 1; i >= 0; i--)
+        {
+            var reference = All[i];
+            if (!reference.TryGetTarget(out var source))
+            {
+                All.RemoveAt(i);
+                continue;
+            }
+
             if (Dispatcher.UIThread.CheckAccess())
                 source._RaiseChanged();
             else
                 Dispatcher.UIThread.Post(source._RaiseChanged);
+        }
     }
 
     private void _RaiseChanged()
