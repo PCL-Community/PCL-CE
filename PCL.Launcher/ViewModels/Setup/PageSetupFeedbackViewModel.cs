@@ -101,7 +101,7 @@ public partial class PageSetupFeedbackViewModel : ViewModelBase
 
             var issueType = string.Empty;
             if (issue["type"] is JsonObject typeObject)
-                issueType = typeObject["name"]?.ToString().ToLowerInvariant() ?? string.Empty;
+                issueType = typeObject["name"]?.ToString() ?? string.Empty;
 
             var labels = new List<string>();
             if (issue["labels"] is JsonArray labelArray)
@@ -185,7 +185,7 @@ public sealed class SetupFeedbackItemRow(
     string user,
     DateTime createdAt,
     string logo,
-    string tags,
+    string issueType,
     FeedbackItem feedback) : LocalizedObservableObject
 {
     public string Title { get; } = title;
@@ -194,7 +194,7 @@ public sealed class SetupFeedbackItemRow(
 
     public string Logo { get; } = logo;
 
-    public string Tags { get; } = tags;
+    public string[] Tags { get; } = string.IsNullOrWhiteSpace(issueType) ? [] : [issueType];
 
     public FeedbackItem Feedback { get; } = feedback;
 }

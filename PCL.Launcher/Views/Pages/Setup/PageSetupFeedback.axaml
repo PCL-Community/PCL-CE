@@ -12,7 +12,7 @@
             <ui:MyListItem Title="{Binding Title}"
                            Info="{Binding Info}"
                            Logo="{Binding Logo}"
-                           Tags="{Binding Tags}"
+                           PlainTags="{Binding Tags}"
                            Type="Clickable"
                            Tag="{Binding}"
                            Click="FeedbackItem_Click" />

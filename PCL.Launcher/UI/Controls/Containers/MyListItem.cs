@@ -17,9 +17,8 @@ using SvgIconControl = PCL.UI.Controls.SvgIcon.SvgIcon;
 namespace PCL.UI.Controls;
 
 /// <summary>
-///     列表项：标题 + 副文本 + 标签 + 图标，可切换为单选、复选或纯点击三种交互。
-///     外层只承接页面转场，内层承载悬停/按下缩放，避免两套 RenderTransform 互相覆盖。
-///     颜色、背景、按钮和选中条动画均由状态机统一驱动。
+/// 列表项：标题 + 副文本 + 标签 + 图标，可切换为单选、复选或纯点击三种交互。 外层只承接页面转场，内层承载悬停/按下缩放，避免两套
+/// RenderTransform 互相覆盖。 颜色、背景、按钮和选中条动画均由状态机统一驱动。
 /// </summary>
 public partial class MyListItem : Grid, IMyRadio
 {
@@ -148,6 +147,9 @@ public partial class MyListItem : Grid, IMyRadio
     public static readonly StyledProperty<object?> TagsProperty =
         AvaloniaProperty.Register<MyListItem, object?>(nameof(Tags));
 
+    public static readonly StyledProperty<IEnumerable<string>?> PlainTagsProperty =
+        AvaloniaProperty.Register<MyListItem, IEnumerable<string>?>(nameof(PlainTags));
+
     public static readonly StyledProperty<IEnumerable<MyIconButton>?> ButtonsProperty =
         AvaloniaProperty.Register<MyListItem, IEnumerable<MyIconButton>?>(nameof(Buttons));
 
@@ -188,6 +190,8 @@ public partial class MyListItem : Grid, IMyRadio
         MinPaddingRightProperty.Changed.AddClassHandler<MyListItem>((item, _) =>
             item.OnMinPaddingRightChanged());
         TagsProperty.Changed.AddClassHandler<MyListItem>((item, e) => item.SetTags(e.NewValue));
+        PlainTagsProperty.Changed.AddClassHandler<MyListItem>((item, e) =>
+            TagPanelHelper.FillPlain(item.PanTagsElement, e.NewValue as IEnumerable<string>));
     }
 
     /// <summary>标题；换行会被移除。</summary>
@@ -331,7 +335,8 @@ public partial class MyListItem : Grid, IMyRadio
     /// <summary>直接写入的标签文本；不做本地化，语言切换不影响这些标签。</summary>
     public IEnumerable<string>? PlainTags
     {
-        set => TagPanelHelper.FillPlain(PanTagsElement, value);
+        get => GetValue(PlainTagsProperty);
+        set => SetValue(PlainTagsProperty, value);
     }
 
     private void SetTags(object? value)
