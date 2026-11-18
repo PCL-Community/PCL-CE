@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Platform.Storage;
 using PCL.Navigation;
@@ -22,6 +23,12 @@ public partial class PageInstanceExport : MyPageRight, IRefreshable
         InitializeComponent();
         DataContext = ViewModel;
         PanScroll = PanBack;
+        CardOptions.Bind(
+            MyCard.TitleProperty,
+            new Binding(nameof(PageInstanceExportViewModel.OptionsTitle))
+            {
+                Source = ViewModel
+            });
 
         BtnExport.Click += (_, _) => _ = StartExportAsync();
         BtnOverrideCancel.Click += (_, _) => ResetConfigOverrides();
@@ -93,13 +100,6 @@ public partial class PageInstanceExport : MyPageRight, IRefreshable
         SyncUiFromViewModel();
     }
 
-    protected override void RefreshLocalization()
-    {
-        ViewModel.RefreshAll();
-        BuildOptionTree();
-        SyncUiFromViewModel();
-    }
-
     public void RefreshAll()
     {
         ViewModel.RefreshAll();
@@ -127,7 +127,6 @@ public partial class PageInstanceExport : MyPageRight, IRefreshable
             CheckAdvancedModrinth.IsEnabled = ViewModel.ModrinthEnabled;
             BtnOverrideCancel.IsVisible = ViewModel.ResetOverridesVisible;
             PanOptions.IsVisible = ViewModel.OptionsVisible;
-            CardOptions.Title = ViewModel.OptionsTitle;
 
             foreach (var (option, box) in _optionBoxes)
             {
@@ -157,7 +156,6 @@ public partial class PageInstanceExport : MyPageRight, IRefreshable
             CheckAdvancedModrinth.IsEnabled = ViewModel.ModrinthEnabled;
             BtnOverrideCancel.IsVisible = ViewModel.ResetOverridesVisible;
             PanOptions.IsVisible = ViewModel.OptionsVisible;
-            CardOptions.Title = ViewModel.OptionsTitle;
 
             foreach (var (option, box) in _optionBoxes)
             {
@@ -255,7 +253,6 @@ public partial class PageInstanceExport : MyPageRight, IRefreshable
     {
         var box = new MyCheckBox
         {
-            Text = option.Title,
             Height = 26d,
             Tag = option,
             Checked = option.IsChecked,
@@ -265,7 +262,13 @@ public partial class PageInstanceExport : MyPageRight, IRefreshable
                 ? new Thickness(30d, 0d, 0d, 0d)
                 : new Thickness(0d)
         };
-        if (!string.IsNullOrEmpty(option.Description))
+        if (string.IsNullOrEmpty(option.TitleKey))
+            box.Text = option.Title;
+        else
+            box.SetLocalizedValue(MyCheckBox.TextProperty, option.TitleKey);
+        if (!string.IsNullOrEmpty(option.DescriptionKey))
+            box.SetLocalizedValue(ToolTip.TipProperty, option.DescriptionKey);
+        else if (!string.IsNullOrEmpty(option.Description))
             ToolTip.SetTip(box, option.Description);
         box.Change += (_, _) =>
         {

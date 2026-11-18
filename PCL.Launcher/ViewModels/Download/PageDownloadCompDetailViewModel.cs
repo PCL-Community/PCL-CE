@@ -11,6 +11,11 @@ namespace PCL;
 /// <summary>资源详情页的视图模型。</summary>
 public partial class PageDownloadCompDetailViewModel : ViewModelBase
 {
+    private const string OtherGroupKey = "\u0001other";
+    private const string SnapshotGroupKey = "\u0001snapshot";
+    private const string OldGroupKey = "\u0001old";
+    private const string TargetGroupKey = "\u0001target";
+
     private readonly HashSet<string> _expandedTitles = [];
     private List<Comp.CompFile> _allResults = [];
     private bool _autoRetried;
@@ -34,11 +39,17 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
 
     [ObservableProperty] public partial MyCompItemViewModel? IntroItem { get; set; }
 
-    [ObservableProperty] public partial string IntroWebText { get; set; } = "CurseForge";
+    /// <summary>资源详情页简介卡片的来源站点名称。</summary>
+    public string IntroWebText =>
+        Project is null
+            ? string.Empty
+            : Project.FromCurseForge
+                ? "CurseForge"
+                : "Modrinth";
 
-    [ObservableProperty] public partial bool IntroWikiVisible { get; set; }
+    public bool IntroWikiVisible => Lang.IsChineseMainland && Project is { WikiId: > 0 };
 
-    [ObservableProperty] public partial bool TranslateVisible { get; set; }
+    public bool TranslateVisible => Lang.IsChineseMainland;
 
     [ObservableProperty] public partial bool IsFavorite { get; set; }
 
@@ -50,9 +61,8 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
 
     [ObservableProperty] public partial string ErrorMessage { get; set; } = "";
 
-    [ObservableProperty]
-    public partial string LoadText { get; set; } =
-        Lang.Text("Download.Comp.Detail.FileList.VersionList");
+    [LocalizedProperty("Download.Comp.Detail.FileList.VersionList")]
+    public partial string LoadText { get; }
 
     public ObservableCollection<CompFilterChip> InstanceFilterLabelChips { get; } = [];
 
@@ -69,32 +79,25 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
         ModLoaderFilterOptions.FirstOrDefault(option => option.IsSelected);
 
     public string? InstanceFilterValue =>
-        SelectedInstanceFilter?.Text == Lang.Text("Common.Option.All")
+        SelectedInstanceFilter is null || SelectedInstanceFilter.IsAll
             ? null
-            : SelectedInstanceFilter?.Text;
+            : SelectedInstanceFilter.Text;
 
     public string? ModLoaderFilterValue =>
-        SelectedModLoaderFilter?.Text == Lang.Text("Common.Option.All")
+        SelectedModLoaderFilter is null || SelectedModLoaderFilter.IsAll
             ? null
-            : SelectedModLoaderFilter?.Text;
+            : SelectedModLoaderFilter.Text;
 
     public Loading.LoaderTask<int, List<Comp.CompFile>>? Loader { get; private set; }
 
     /// <summary>当前加载结果是否仍属于同一导航上下文且未超过加载器缓存时限。</summary>
-    public bool HasFreshResults
-    {
-        get
-        {
-            if (Project is null
-                || Loader is not { State: LoadState.Finished }
-                || !string.Equals(_loadedContextKey, BuildContextKey(), StringComparison.Ordinal))
-                return false;
-
-            return Loader.reloadTimeout < 0
-                || Loader.lastFinishedTime == 0L
-                || TimeUtils.GetTimeTick() - Loader.lastFinishedTime < Loader.reloadTimeout;
-        }
-    }
+    public bool HasFreshResults =>
+        Project is not null
+        && Loader is { State: LoadState.Finished }
+        && string.Equals(_loadedContextKey, BuildContextKey(), StringComparison.Ordinal)
+        && (Loader.reloadTimeout < 0
+            || Loader.lastFinishedTime == 0L
+            || TimeUtils.GetTimeTick() - Loader.lastFinishedTime < Loader.reloadTimeout);
 
     public event Action? StateChanged;
 
@@ -137,6 +140,9 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
         {
             Project = null;
             IntroItem = null;
+            OnPropertyChanged(nameof(IntroWebText));
+            OnPropertyChanged(nameof(IntroWikiVisible));
+            OnPropertyChanged(nameof(TranslateVisible));
             IntroChanged?.Invoke();
             ClearResults();
             return false;
@@ -186,9 +192,9 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
 
     public void ApplyProjectState(Comp.CompProject project)
     {
-        IntroWebText = project.FromCurseForge ? "CurseForge" : "Modrinth";
-        IntroWikiVisible = Lang.IsChineseMainland && project.WikiId > 0;
-        TranslateVisible = Lang.IsChineseMainland;
+        OnPropertyChanged(nameof(IntroWebText));
+        OnPropertyChanged(nameof(IntroWikiVisible));
+        OnPropertyChanged(nameof(TranslateVisible));
         IntroItem = MyCompItemViewModel.Create(project);
         RefreshFavorite();
         IntroChanged?.Invoke();
@@ -221,24 +227,19 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
         StateChanged?.Invoke();
     }
 
-    public void RefreshLocalization()
-    {
-        if (Project is not { } project)
-            return;
-        ApplyProjectState(project);
-        if (Loader?.State == LoadState.Finished)
-        {
-            BuildFilters();
-            RebuildFileGroups();
-        }
-    }
-
-    public void SetGroupExpanded(string title, bool expanded)
+    public void SetGroupExpanded(string key, bool expanded)
     {
         if (expanded)
-            _expandedTitles.Add(title);
+            _expandedTitles.Add(key);
         else
-            _expandedTitles.Remove(title);
+            _expandedTitles.Remove(key);
+    }
+
+    protected override void OnLanguageChanged()
+    {
+        base.OnLanguageChanged();
+        if (Loader is not null)
+            Loader.name = Lang.Text("Download.Comp.Detail.FileList.VersionList");
     }
 
     [RelayCommand]
@@ -270,7 +271,7 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
     {
         foreach (var item in InstanceFilterOptions)
             item.IsSelected = ReferenceEquals(item, option);
-        _versionFilter = option?.Text == Lang.Text("Common.Option.All") ? null : option?.Text;
+        _versionFilter = option is null || option.IsAll ? null : option.Value;
         OnPropertyChanged(nameof(SelectedInstanceFilter));
         OnPropertyChanged(nameof(InstanceFilterValue));
     }
@@ -279,14 +280,12 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
     {
         foreach (var item in ModLoaderFilterOptions)
             item.IsSelected = ReferenceEquals(item, option);
-        _loaderFilter = option?.Text == Lang.Text("Common.Option.All") ? null : option?.Text;
+        _loaderFilter = option is null || option.IsAll ? null : option.Value;
         OnPropertyChanged(nameof(SelectedModLoaderFilter));
         OnPropertyChanged(nameof(ModLoaderFilterValue));
     }
 
-    /// <summary>
-    ///     筛选类型相同的结果（Modrinth 会返回 Mod、服务端插件、数据包混合的列表）。
-    /// </summary>
+    /// <summary>筛选类型相同的结果（Modrinth 会返回 Mod、服务端插件、数据包混合的列表）。</summary>
     public static List<Comp.CompFile> FilterResults(
         List<Comp.CompFile> results,
         Comp.CompType pageType)
@@ -419,14 +418,17 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
         if (TargetType == Comp.CompType.Mod)
         {
             InstanceFilterLabelChips.Add(
-                new CompFilterChip(Lang.Text("Download.Comp.Detail.InstanceFilter")));
+                new CompFilterChip("Download.Comp.Detail.InstanceFilter"));
             ModLoaderFilterLabelChips.Add(
-                new CompFilterChip(Lang.Text("Download.Comp.Detail.LoaderFilter")));
+                new CompFilterChip("Download.Comp.Detail.LoaderFilter"));
         }
 
-        versionGroups.Insert(0, Lang.Text("Common.Option.All"));
+        InstanceFilterOptions.Add(new CompFilterOption("Common.Option.All", true));
         foreach (var version in versionGroups)
-            InstanceFilterOptions.Add(new CompFilterOption(version));
+            InstanceFilterOptions.Add(
+                new CompFilterOption(
+                    version,
+                    displayKey: GetVersionGroupDisplayKey(version)));
 
         var isMod = TargetType == Comp.CompType.Mod;
         if (isMod)
@@ -437,21 +439,23 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
             if (targetLoaderName is not null && !loaderGroups.Contains(targetLoaderName))
                 targetLoaderName = null;
             _loaderFilter = targetLoaderName;
-            loaderGroups.Insert(0, Lang.Text("Common.Option.All"));
+            ModLoaderFilterOptions.Add(new CompFilterOption("Common.Option.All", true));
             foreach (var loader in loaderGroups)
                 ModLoaderFilterOptions.Add(new CompFilterOption(loader));
         }
 
         var instanceToCheck = _versionFilter is null
             ? InstanceFilterOptions.FirstOrDefault()
-            : InstanceFilterOptions.FirstOrDefault(option => option.Text == _versionFilter);
+            : InstanceFilterOptions.FirstOrDefault(option =>
+                !option.IsAll && option.Value == _versionFilter);
         instanceToCheck ??= InstanceFilterOptions.FirstOrDefault();
         SetInstanceFilter(instanceToCheck);
         if (isMod)
         {
             var modLoaderToCheck = _loaderFilter is null
                 ? ModLoaderFilterOptions.FirstOrDefault()
-                : ModLoaderFilterOptions.FirstOrDefault(option => option.Text == _loaderFilter);
+                : ModLoaderFilterOptions.FirstOrDefault(option =>
+                    !option.IsAll && option.Value == _loaderFilter);
             modLoaderToCheck ??= ModLoaderFilterOptions.FirstOrDefault();
             SetModLoaderFilter(modLoaderToCheck);
         }
@@ -478,11 +482,11 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
     private static string GetGroupedVersionName(string? name, bool groupedByDrop, bool foldOld)
     {
         if (name is null)
-            return Lang.Text("Download.Comp.Detail.VersionGroup.Other");
+            return OtherGroupKey;
         if (name.Contains('w'))
-            return Lang.Text("Download.Comp.Detail.VersionGroup.Snapshot");
+            return SnapshotGroupKey;
         if (foldOld && McInstanceInfo.VersionToDrop(name, true) < 120)
-            return Lang.Text("Download.Comp.Detail.VersionGroup.Old");
+            return OldGroupKey;
         if (groupedByDrop)
         {
             var drop = McInstanceInfo.VersionToDrop(name, true);
@@ -491,6 +495,38 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
         }
 
         return name;
+    }
+
+    /// <summary>把稳定的分组键转换为当前语言下的显示文本。</summary>
+    private static string GetVersionGroupDisplayName(string key)
+    {
+        if (key.Contains(OtherGroupKey, StringComparison.Ordinal))
+            return key.Replace(
+                OtherGroupKey,
+                Lang.Text("Download.Comp.Detail.VersionGroup.Other"),
+                StringComparison.Ordinal);
+        if (key.Contains(SnapshotGroupKey, StringComparison.Ordinal))
+            return key.Replace(
+                SnapshotGroupKey,
+                Lang.Text("Download.Comp.Detail.VersionGroup.Snapshot"),
+                StringComparison.Ordinal);
+        if (key.Contains(OldGroupKey, StringComparison.Ordinal))
+            return key.Replace(
+                OldGroupKey,
+                Lang.Text("Download.Comp.Detail.VersionGroup.Old"),
+                StringComparison.Ordinal);
+        return key;
+    }
+
+    private static string? GetVersionGroupDisplayKey(string key)
+    {
+        return key switch
+        {
+            OtherGroupKey => "Download.Comp.Detail.VersionGroup.Other",
+            SnapshotGroupKey => "Download.Comp.Detail.VersionGroup.Snapshot",
+            OldGroupKey => "Download.Comp.Detail.VersionGroup.Old",
+            _ => null
+        };
     }
 
     /// <summary>卡片排序：所选版本卡置顶，其余按版本号倒序，「其他/快照」等特殊项排在后。</summary>
@@ -556,12 +592,12 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
     {
         try
         {
-            var targetCardName = GetTargetCardName();
+            var targetGroupKey = GetTargetGroupKey();
             var groups = new SortedDictionary<string, List<Comp.CompFile>>(
-                new CardSorter(targetCardName))
+                new CardSorter(targetGroupKey))
             {
                 {
-                    Lang.Text("Download.Comp.Detail.VersionGroup.Other"), []
+                    OtherGroupKey, []
                 }
             };
             var duplicates = new Dictionary<string, HashSet<Comp.CompFile>>();
@@ -605,7 +641,7 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
                             file);
                 }
 
-                if (string.IsNullOrEmpty(targetCardName)
+                if (string.IsNullOrEmpty(targetGroupKey)
                     || string.IsNullOrEmpty(TargetGameVersion)
                     || !file.GameVersions.Contains(TargetGameVersion)
                     || (TargetModLoader != Comp.CompLoaderType.Any
@@ -616,7 +652,7 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
                         GetGroupedVersionName(version, _groupedDrop, _groupedOld)
                         != _versionFilter))
                     continue;
-                AddFileToGroup(groups, duplicates, targetCardName, file);
+                AddFileToGroup(groups, duplicates, targetGroupKey, file);
             }
 
             var cardCount = groups.Count(pair => pair.Value.Count > 0);
@@ -626,13 +662,15 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
                 if (files.Count == 0)
                     continue;
 
-                var isTarget = key == targetCardName || _expandedTitles.Contains(key);
+                var isTarget = key == targetGroupKey || _expandedTitles.Contains(key);
                 var isSwapped = !(isTarget || cardCount == 1);
-                var showRecognitionHint =
-                    key == Lang.Text("Download.Comp.Detail.VersionGroup.Other");
+                var showRecognitionHint = key == OtherGroupKey;
                 result.Add(
                     CompFileGroupViewModel.Create(
                         key,
+                        key == targetGroupKey
+                            ? GetTargetCardTitle
+                            : () => GetVersionGroupDisplayName(key),
                         files,
                         Project?.Type ?? TargetType,
                         isSwapped,
@@ -669,11 +707,16 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
             list.Add(file);
     }
 
-    private string GetTargetCardName()
+    private string GetTargetGroupKey()
     {
         if (string.IsNullOrEmpty(TargetGameVersion)
             && TargetModLoader == Comp.CompLoaderType.Any)
             return string.Empty;
+        return TargetGroupKey;
+    }
+
+    private string GetTargetCardTitle()
+    {
         var loaderText = TargetModLoader != Comp.CompLoaderType.Any
             ? $"{TargetModLoader} "
             : string.Empty;
@@ -686,13 +729,26 @@ public partial class PageDownloadCompDetailViewModel : ViewModelBase
     #endregion
 }
 
-/// <summary>详情页筛选条标签的数据项。</summary>
-public sealed record CompFilterChip(string Text);
+/// <summary>详情页筛选条标签的数据项；文本按资源键实时求值。</summary>
+public sealed record CompFilterChip(string TextKey);
 
 /// <summary>资源详情页筛选器中的单个选项。</summary>
-public sealed partial class CompFilterOption(string text) : ObservableObject
+public sealed partial class CompFilterOption(
+    string value,
+    bool isAll = false,
+    string? displayKey = null) : ObservableObject
 {
-    public string Text { get; } = text;
+    /// <summary>筛选使用的稳定值，不随语言变化。</summary>
+    public string Value { get; } = value;
+
+    public bool IsAll { get; } = isAll;
+
+    public string Text =>
+        IsAll
+            ? Lang.Text("Common.Option.All")
+            : displayKey is not null
+                ? Lang.Text(displayKey)
+                : Value;
 
     [ObservableProperty] public partial bool IsSelected { get; set; }
 }
@@ -722,7 +778,7 @@ public sealed class CompFileItemViewModel(
             ? file.FileName
             : file.DisplayName;
 
-    public string InfoText { get; } = BuildInfo(file);
+    public string InfoText => BuildInfo(File);
 
     public string Logo { get; } = GetStatusLogo(file);
 
@@ -777,18 +833,25 @@ public sealed class CompFileItemViewModel(
 /// <summary>资源详情页中的一个版本分组，对应界面上的一个 MyCard。</summary>
 public sealed partial class CompFileGroupViewModel : ObservableObject
 {
+    private readonly Func<string> _titleFactory;
+
     private CompFileGroupViewModel(
-        string title,
+        string key,
+        Func<string> titleFactory,
         List<Comp.CompFile> files,
         ObservableCollection<CompFileItemViewModel> items)
     {
-        Title = title;
+        Key = key;
+        _titleFactory = titleFactory;
         Files = files;
         Items = items;
     }
 
-    /// <summary>卡片标题，即版本分组的名称。</summary>
-    public string Title { get; }
+    /// <summary>版本分组的稳定键，用于筛选与展开状态，不随语言变化。</summary>
+    public string Key { get; }
+
+    /// <summary>卡片标题，即版本分组的当前语言显示名称。</summary>
+    public string Title => _titleFactory();
 
     /// <summary>分组内的文件，已按发布时间倒序排列（供依赖栏使用）。</summary>
     public List<Comp.CompFile> Files { get; }
@@ -804,7 +867,8 @@ public sealed partial class CompFileGroupViewModel : ObservableObject
     public ObservableCollection<CompFileItemViewModel> Items { get; }
 
     public static CompFileGroupViewModel Create(
-        string title,
+        string key,
+        Func<string> titleFactory,
         List<Comp.CompFile> files,
         Comp.CompType type,
         bool isSwapped,
@@ -819,7 +883,7 @@ public sealed partial class CompFileGroupViewModel : ObservableObject
         var badDisplayName = distinctCount != files.Count;
         var items = new ObservableCollection<CompFileItemViewModel>(
             files.Select(file => new CompFileItemViewModel(file, type, badDisplayName)));
-        return new CompFileGroupViewModel(title, files, items)
+        return new CompFileGroupViewModel(key, titleFactory, files, items)
         {
             IsSwapped = isSwapped,
             ShowRecognitionHint = showRecognitionHint

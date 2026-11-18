@@ -21,17 +21,38 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
 
     private CancellationTokenSource? _cts;
 
+    private string? _versionHint13Key;
+    private string? _versionHint18Key;
+    private string? _versionHint19Key;
+
     [ObservableProperty] public partial string LevelName { get; set; } = string.Empty;
 
     [ObservableProperty] public partial int? VersionId { get; set; }
 
-    [ObservableProperty] public partial string VersionDisplay { get; set; } = string.Empty;
+    /// <summary>版本显示文本，随存档数据与语言变化。</summary>
+    public string VersionDisplay =>
+        Save is null
+            ? string.Empty
+            : Save.VersionName is null
+                ? Save.VersionId?.ToString() ?? Lang.Text("Instance.Saves.Info.GetFailed")
+                : $"{Save.VersionName} ({Save.VersionId?.ToString() ?? "?"})";
 
-    [ObservableProperty] public partial string PlayTimeText { get; set; } = string.Empty;
+    /// <summary>游玩时间文本，随存档数据与语言变化。</summary>
+    public string PlayTimeText =>
+        Save is null
+            ? string.Empty
+            : Lang.TimeSpan(Save.PlayTime, 3, false, TimeUnit.Day, TimeUnit.Second);
 
-    [ObservableProperty] public partial string GameModeText { get; set; } = string.Empty;
+    /// <summary>游戏模式文本，随存档数据与语言变化。</summary>
+    public string GameModeText => Save is null ? string.Empty : GameModeName(Save);
 
-    [ObservableProperty] public partial string DifficultyText { get; set; } = string.Empty;
+    /// <summary>难度文本，随存档数据与语言变化。</summary>
+    public string DifficultyText =>
+        Save is null
+            ? string.Empty
+            : Save.Difficulty is null
+                ? Lang.Text("Instance.Saves.Info.GetFailed")
+                : DifficultyName(Save.Difficulty.Value);
 
     [ObservableProperty] public partial bool IsHardcore { get; set; }
 
@@ -53,11 +74,17 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
 
     [ObservableProperty] public partial bool ShowVersionHint19 { get; set; }
 
-    [ObservableProperty] public partial string VersionHint13Text { get; set; } = string.Empty;
+    /// <summary>1.3 版本提示文本，随语言变化。</summary>
+    public string VersionHint13Text =>
+        _versionHint13Key is null ? string.Empty : Lang.Text(_versionHint13Key);
 
-    [ObservableProperty] public partial string VersionHint18Text { get; set; } = string.Empty;
+    /// <summary>1.8 版本提示文本，随语言变化。</summary>
+    public string VersionHint18Text =>
+        _versionHint18Key is null ? string.Empty : Lang.Text(_versionHint18Key);
 
-    [ObservableProperty] public partial string VersionHint19Text { get; set; } = string.Empty;
+    /// <summary>1.9 版本提示文本，随语言变化。</summary>
+    public string VersionHint19Text =>
+        _versionHint19Key is null ? string.Empty : Lang.Text(_versionHint19Key);
 
     [ObservableProperty] public partial int AllowCommandsIndex { get; set; }
 
@@ -69,19 +96,11 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
 
     public string? FolderPath { get; private set; }
 
-    public static IReadOnlyList<SaveComboOption> AllowCommandsOptions =>
-    [
-        new(0, Lang.Text("Instance.Saves.Info.AllowCommands.NotAllowed")),
-        new(1, Lang.Text("Instance.Saves.Info.AllowCommands.Allowed"))
-    ];
-
-    public static IReadOnlyList<SaveComboOption> DifficultyOptions =>
-    [
-        new(0, Lang.Text("Instance.Saves.Info.Difficulty.Peaceful")),
-        new(1, Lang.Text("Instance.Saves.Info.Difficulty.Easy")),
-        new(2, Lang.Text("Instance.Saves.Info.Difficulty.Normal")),
-        new(3, Lang.Text("Instance.Saves.Info.Difficulty.Hard"))
-    ];
+    /// <summary>页面标题：存档名或读取失败提示，随语言变化。</summary>
+    public string TitleDisplay =>
+        string.IsNullOrEmpty(LevelName)
+            ? Lang.Text("Instance.Saves.Info.GetFailed")
+            : LevelName;
 
     public SaveInfo? Save { get; private set; }
 
@@ -96,6 +115,11 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
             ? Save?.VersionId is not null
             : McVersionComparer.CompareVersion(Save.VersionName, "1.8") >= 0;
 
+    partial void OnLevelNameChanged(string value)
+    {
+        OnPropertyChanged(nameof(TitleDisplay));
+    }
+
     /// <summary>加载指定存档；为 null 或目录不存在时显示读取失败。</summary>
     public async Task LoadAsync(string? folder)
     {
@@ -109,7 +133,7 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
         Reset();
         if (string.IsNullOrEmpty(folder) || !Directory.Exists(folder))
         {
-            LevelName = Lang.Text("Instance.Saves.Info.GetFailed");
+            LevelName = string.Empty;
             ShowContent = false;
             return;
         }
@@ -133,7 +157,7 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
             Error = ex.Message;
             State = AsyncState.Failed;
             Reset();
-            LevelName = Lang.Text("Instance.Saves.Info.GetFailed");
+            LevelName = string.Empty;
             ShowContent = false;
             ShowSettings = false;
             LauncherCommon.Log(
@@ -215,10 +239,7 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
         };
     }
 
-    /// <summary>
-    ///     按 WPF 规则生成 Chunkbase 链接：1.21+ 保留补丁版本，其余只取主次版本；
-    ///     快照、预发布版与未知版本返回 null 并给出提示。
-    /// </summary>
+    /// <summary>按 WPF 规则生成 Chunkbase 链接：1.21+ 保留补丁版本，其余只取主次版本； 快照、预发布版与未知版本返回 null 并给出提示。</summary>
     public string? BuildChunkbaseUrl(long? seed)
     {
         if (seed is null || Save is null)
@@ -312,14 +333,6 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
         Save = save;
         LevelName = save.LevelName;
         VersionId = save.VersionId;
-        VersionDisplay = save.VersionName is null
-            ? save.VersionId?.ToString() ?? Lang.Text("Instance.Saves.Info.GetFailed")
-            : $"{save.VersionName} ({save.VersionId?.ToString() ?? "?"})";
-        PlayTimeText = Lang.TimeSpan(save.PlayTime, 3, false, TimeUnit.Day, TimeUnit.Second);
-        GameModeText = GameModeName(save);
-        DifficultyText = save.Difficulty is null
-            ? Lang.Text("Instance.Saves.Info.GetFailed")
-            : DifficultyName(save.Difficulty.Value);
         IsHardcore = save.IsHardcore;
         IsDifficultyLocked = save.IsDifficultyLocked;
         AllowCommandsIndex = save.AllowCommands ? 1 : 0;
@@ -332,6 +345,10 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
 
         PageInstanceSavesLeft.ShowDatapackTab =
             save.VersionId is not null && save.VersionId >= DataVersionBoundaries._17w47a;
+        OnPropertyChanged(nameof(VersionDisplay));
+        OnPropertyChanged(nameof(PlayTimeText));
+        OnPropertyChanged(nameof(GameModeText));
+        OnPropertyChanged(nameof(DifficultyText));
         BuildRows(save);
         BuildVersionHints(save);
     }
@@ -340,29 +357,29 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
     {
         Rows.Clear();
         if (save.VersionName is not null || save.VersionId is not null)
-            AddRow(Lang.Text("Instance.Saves.Info.Version"), VersionDisplay);
-        AddRow(Lang.Text("Instance.Saves.Info.LevelName"), save.LevelName);
+            AddRow("Instance.Saves.Info.Version", () => VersionDisplay);
+        AddRow("Instance.Saves.Info.LevelName", () => save.LevelName);
         AddRow(
-            Lang.Text("Instance.Saves.Info.Seed"),
-            save.Seed?.ToString() ?? Lang.Text("Instance.Saves.Info.GetFailed"),
+            "Instance.Saves.Info.Seed",
+            () => save.Seed?.ToString() ?? Lang.Text("Instance.Saves.Info.GetFailed"),
             save.Seed,
             true);
-        AddRow(Lang.Text("Instance.Saves.Info.GameMode"), GameModeText);
-        AddRow(Lang.Text("Instance.Saves.Info.Hardness"), DifficultyText);
+        AddRow("Instance.Saves.Info.GameMode", () => GameModeText);
+        AddRow("Instance.Saves.Info.Hardness", () => DifficultyText);
         if (save.Difficulty.HasValue)
             AddRow(
-                Lang.Text("Instance.Saves.Info.LockDifficulty"),
-                save.IsDifficultyLocked
+                "Instance.Saves.Info.LockDifficulty",
+                () => save.IsDifficultyLocked
                     ? Lang.Text("Common.Option.Yes")
                     : Lang.Text("Common.Option.No"));
-        AddRow(Lang.Text("Instance.Saves.Info.PlayTime"), PlayTimeText);
+        AddRow("Instance.Saves.Info.PlayTime", () => PlayTimeText);
         AddRow(
-            Lang.Text("Instance.Saves.Info.LastPlayed"),
-            Lang.Date(save.LastPlayedUtc.ToLocalTime(), "g"));
+            "Instance.Saves.Info.LastPlayed",
+            () => Lang.Date(save.LastPlayedUtc.ToLocalTime(), "g"));
         if (save.Spawn is { } spawn)
             AddRow(
-                Lang.Text("Instance.Saves.Info.SpawnPoint"),
-                $"{spawn.X:0}, {spawn.Y:0}, {spawn.Z:0}");
+                "Instance.Saves.Info.SpawnPoint",
+                () => $"{spawn.X:0}, {spawn.Y:0}, {spawn.Z:0}");
     }
 
     private void BuildVersionHints(SaveInfo save)
@@ -370,63 +387,76 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
         ShowVersionHint13 = false;
         ShowVersionHint18 = false;
         ShowVersionHint19 = false;
+        _versionHint13Key = null;
+        _versionHint18Key = null;
+        _versionHint19Key = null;
 
         if (save.VersionName is null)
         {
             if (save.VersionId is null)
             {
-                VersionHint13Text = Lang.Text("Instance.Saves.Info.VersionHint.1_3");
+                _versionHint13Key = "Instance.Saves.Info.VersionHint.1_3";
                 ShowVersionHint13 = true;
             }
             else if (save.Difficulty.HasValue)
             {
-                VersionHint19Text = Lang.Text("Instance.Saves.Info.VersionHint.1_9");
+                _versionHint19Key = "Instance.Saves.Info.VersionHint.1_9";
                 ShowVersionHint19 = true;
             }
             else if (save.AllowCommands)
             {
-                VersionHint18Text = Lang.Text("Instance.Saves.Info.VersionHint.1_8");
+                _versionHint18Key = "Instance.Saves.Info.VersionHint.1_8";
                 ShowVersionHint18 = true;
             }
             else
             {
-                VersionHint13Text = Lang.Text("Instance.Saves.Info.VersionHint.1_3");
+                _versionHint13Key = "Instance.Saves.Info.VersionHint.1_3";
                 ShowVersionHint13 = true;
             }
 
+            OnVersionHintTextsChanged();
             return;
         }
 
         if (McVersionComparer.CompareVersion(save.VersionName, "1.3") < 0)
         {
-            VersionHint13Text = Lang.Text("Instance.Saves.Info.VersionHint.1_3");
-            VersionHint18Text = Lang.Text("Instance.Saves.Info.VersionHint.1_8");
-            VersionHint19Text = Lang.Text("Instance.Saves.Info.VersionHint.1_9");
+            _versionHint13Key = "Instance.Saves.Info.VersionHint.1_3";
+            _versionHint18Key = "Instance.Saves.Info.VersionHint.1_8";
+            _versionHint19Key = "Instance.Saves.Info.VersionHint.1_9";
             ShowVersionHint13 = true;
             ShowVersionHint18 = true;
             ShowVersionHint19 = true;
         }
         else if (McVersionComparer.CompareVersion(save.VersionName, "1.8") < 0)
         {
-            VersionHint18Text = Lang.Text("Instance.Saves.Info.VersionHint.1_8");
-            VersionHint19Text = Lang.Text("Instance.Saves.Info.VersionHint.1_9");
+            _versionHint18Key = "Instance.Saves.Info.VersionHint.1_8";
+            _versionHint19Key = "Instance.Saves.Info.VersionHint.1_9";
             ShowVersionHint18 = true;
             ShowVersionHint19 = true;
         }
         else if (McVersionComparer.CompareVersion(save.VersionName, "1.9") < 0)
         {
-            VersionHint19Text = Lang.Text("Instance.Saves.Info.VersionHint.1_9");
+            _versionHint19Key = "Instance.Saves.Info.VersionHint.1_9";
             ShowVersionHint19 = true;
         }
+
+        OnVersionHintTextsChanged();
+    }
+
+    private void OnVersionHintTextsChanged()
+    {
+        OnPropertyChanged(nameof(VersionHint13Text));
+        OnPropertyChanged(nameof(VersionHint18Text));
+        OnPropertyChanged(nameof(VersionHint19Text));
     }
 
     private void AddRow(
-        string head,
-        string content,
+        string headKey,
+        Func<string> content,
         long? seed = null,
         bool isSeed = false)
     {
-        Rows.Add(new SaveInfoRow(head, content, seed, isSeed));
+        Rows.Add(new SaveInfoRow(headKey, content, seed, isSeed));
     }
 
     private void Reset()
@@ -435,10 +465,6 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
         Rows.Clear();
         LevelName = string.Empty;
         VersionId = null;
-        VersionDisplay = string.Empty;
-        PlayTimeText = string.Empty;
-        GameModeText = string.Empty;
-        DifficultyText = string.Empty;
         IsHardcore = false;
         IsDifficultyLocked = false;
         ShowLockDifficulty = true;
@@ -449,9 +475,14 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
         ShowVersionHint13 = false;
         ShowVersionHint18 = false;
         ShowVersionHint19 = false;
-        VersionHint13Text = string.Empty;
-        VersionHint18Text = string.Empty;
-        VersionHint19Text = string.Empty;
+        _versionHint13Key = null;
+        _versionHint18Key = null;
+        _versionHint19Key = null;
+        OnVersionHintTextsChanged();
+        OnPropertyChanged(nameof(VersionDisplay));
+        OnPropertyChanged(nameof(PlayTimeText));
+        OnPropertyChanged(nameof(GameModeText));
+        OnPropertyChanged(nameof(DifficultyText));
         AllowCommandsIndex = 0;
         DifficultyIndex = -1;
     }
@@ -459,27 +490,19 @@ public partial class PageInstanceSavesInfoViewModel : ViewModelBase
 
 /// <summary>存档信息表中的一行。</summary>
 public sealed class SaveInfoRow(
-    string head,
-    string content,
+    string headKey,
+    Func<string> content,
     long? seed,
     bool isSeed)
+    : LocalizedObservableObject
 {
-    public string Head { get; } = head;
+    public string Head => Lang.Text(headKey);
 
-    public string Content { get; } = content;
+    public string Content => content();
 
     public long? Seed { get; } = seed;
 
     public bool IsSeed { get; } = isSeed;
 
-    /// <summary>种子行是否显示可复制的种子按钮。</summary>
     public bool CanCopySeed { get; } = isSeed && seed is not null;
-}
-
-/// <summary>存档设置下拉框中的一个选项。</summary>
-public sealed class SaveComboOption(int value, string display)
-{
-    public int Value { get; } = value;
-
-    public string Display { get; } = display;
 }

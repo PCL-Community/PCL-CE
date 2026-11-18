@@ -30,8 +30,9 @@ public sealed class ExtraButtonsPanel : StackPanel
 
     private readonly MyExtraButton _updateRestart;
     private ScrollViewer? _hookedScroll;
+    private object?[]? _updateRestartTooltipArgs;
 
-    private string? _updateRestartTooltip;
+    private string? _updateRestartTooltipKey;
 
     public ExtraButtonsPanel()
     {
@@ -117,15 +118,16 @@ public sealed class ExtraButtonsPanel : StackPanel
         _download.Progress = Math.Clamp(Loading.loaderTaskbarProgress, 0d, 1d);
     }
 
-    public void ShowUpdateRestartButton(string tooltip)
+    public void ShowUpdateRestartButton(string tooltipKey, params object?[] args)
     {
         if (!Dispatcher.UIThread.CheckAccess())
         {
-            Dispatcher.UIThread.Post(() => ShowUpdateRestartButton(tooltip));
+            Dispatcher.UIThread.Post(() => ShowUpdateRestartButton(tooltipKey, args));
             return;
         }
 
-        _updateRestartTooltip = tooltip;
+        _updateRestartTooltipKey = tooltipKey;
+        _updateRestartTooltipArgs = args;
         _updateRestart.Show = true;
         ApplyUpdateRestartTooltip();
     }
@@ -209,7 +211,7 @@ public sealed class ExtraButtonsPanel : StackPanel
             SvgIcon = icon,
             Show = false
         };
-        if (!string.IsNullOrEmpty(tipKey)) ToolTip.SetTip(button, Lang.Text(tipKey));
+        if (!string.IsNullOrEmpty(tipKey)) button.SetLocalizedValue(ToolTip.TipProperty, tipKey);
         button.Click += (_, _) => action();
         Children.Add(button);
         return button;
@@ -217,21 +219,27 @@ public sealed class ExtraButtonsPanel : StackPanel
 
     private void RefreshUpdateRestartTooltip()
     {
-        if (_updateRestartTooltip is not null)
+        if (_updateRestartTooltipKey is not null)
         {
             ApplyUpdateRestartTooltip();
             return;
         }
 
-        var tip = Lang.Text("Main.Extra.UpdateRestart.ToolTip");
-        if (!string.Equals(ToolTip.GetTip(_updateRestart) as string, tip, StringComparison.Ordinal))
-            ToolTip.SetTip(_updateRestart, tip);
+        _updateRestart.SetLocalizedValue(
+            ToolTip.TipProperty,
+            "Main.Extra.UpdateRestart.ToolTip");
     }
 
     private void ApplyUpdateRestartTooltip()
     {
-        if (_updateRestartTooltip is not null)
-            ToolTip.SetTip(_updateRestart, _updateRestartTooltip);
+        if (_updateRestartTooltipKey is null) return;
+
+        var key = _updateRestartTooltipKey;
+        var args = _updateRestartTooltipArgs ?? [];
+        LocalizedText.Bind(
+            _updateRestart,
+            ToolTip.TipProperty,
+            () => Lang.Text(key, args));
     }
 
     private void RefreshMusicAppearance()

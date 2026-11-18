@@ -69,15 +69,6 @@ public partial class PageSetupAbout : MyPageRight
     {
     }
 
-    protected override void RefreshLocalization()
-    {
-        if (!_loaded) return;
-        ViewModel.Initialize();
-        ViewModel.RefreshVersionInfo();
-        RefreshMcmodRow();
-        ItemAboutPcl.Title = Basics.Metadata.Name;
-    }
-
     private void RefreshMcmodRow()
     {
         var show = ViewModel.ShowMcmod;

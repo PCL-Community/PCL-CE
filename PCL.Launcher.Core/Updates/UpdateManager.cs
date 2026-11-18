@@ -189,10 +189,9 @@ public static class UpdateManager
                                 {
                                     isUpdateWaitingRestart = true;
                                     UpdateUi.Current?.ShowUpdateRestartButton(
-                                        Lang.Text(
-                                            "Main.Extra.UpdateRestart.ToolTipWithVersion",
-                                            LauncherCommon.VersionBaseName,
-                                            version.VersionName));
+                                        "Main.Extra.UpdateRestart.ToolTipWithVersion",
+                                        LauncherCommon.VersionBaseName,
+                                        version.VersionName);
                                 })
                             {
                                 show = false
@@ -212,7 +211,7 @@ public static class UpdateManager
                         _ =>
                         {
                             UpdateUi.Current?.UpdateSetupButton(
-                                Lang.Text("Update.Task.RestartInstall"),
+                                "Update.Task.RestartInstall",
                                 true);
                         })
                     {

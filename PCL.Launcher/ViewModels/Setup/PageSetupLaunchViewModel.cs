@@ -64,15 +64,16 @@ public partial class PageSetupLaunchViewModel : ViewModelBase
 
     [ObservableProperty] private bool _ramCustomEnabled;
 
-    [ObservableProperty] private string _ramGameText = "2.5 GiB";
+    private double _ramGame = 2.5d;
+    private double _ramGameActual = 2.5d;
+    private double? _ramInitial;
 
     [ObservableProperty] private bool _ramInitialCustomEnabled;
+    private bool _ramLimited;
 
     [ObservableProperty] private bool _ramTooHighVisible;
-
-    [ObservableProperty] private string _ramTotalText = " / 7.9 GiB";
-
-    [ObservableProperty] private string _ramUsedText = "4.7 GiB";
+    private double _ramTotal = 7.9d;
+    private double _ramUsed = 4.7d;
 
     [ObservableProperty] private bool _ramWarnVisible;
 
@@ -102,6 +103,41 @@ public partial class PageSetupLaunchViewModel : ViewModelBase
         (int)Config.Launch.GameWindowMode);
 
     [ObservableProperty] private string _windowWidthText = Config.Launch.GameWindowWidth.ToString();
+
+    public string RamGameText
+    {
+        get
+        {
+            var suffix = RamSuffixText;
+            return $"{Lang.Number(_ramGame, "N1")} GiB"
+                + (suffix.Length > 0 ? $" ({suffix})" : string.Empty);
+        }
+    }
+
+    public string RamTotalText => $" / {Lang.Number(_ramTotal, "N1")} GiB";
+
+    public string RamUsedText => $"{Lang.Number(_ramUsed, "N1")} GiB";
+
+    private string RamSuffixText
+    {
+        get
+        {
+            if (_ramInitial is { } initial)
+                return _ramLimited
+                    ? Lang.Text(
+                        "Setup.Launch.Memory.SuffixBoth",
+                        Lang.Number(initial, "N1"),
+                        Lang.Number(_ramGameActual, "N1"))
+                    : Lang.Text(
+                        "Setup.Launch.Memory.SuffixInitial",
+                        Lang.Number(initial, "N1"));
+            return _ramLimited
+                ? Lang.Text(
+                    "Setup.Launch.Memory.SuffixAvailable",
+                    Lang.Number(_ramGameActual, "N1"))
+                : string.Empty;
+        }
+    }
 
     public void Reload()
     {
@@ -202,27 +238,16 @@ public partial class PageSetupLaunchViewModel : ViewModelBase
             };
 
             var ramInitial = MemorySettings.Current?.GetInitialRam(instance!);
-            string suffixText;
-            if (ramInitial.HasValue && ramGame != ramGameActual)
-                suffixText = Lang.Text(
-                    "Setup.Launch.Memory.SuffixBoth",
-                    Lang.Number(ramInitial.Value, "N1"),
-                    Lang.Number(ramGameActual, "N1"));
-            else if (ramInitial.HasValue)
-                suffixText = Lang.Text(
-                    "Setup.Launch.Memory.SuffixInitial",
-                    Lang.Number(ramInitial.Value, "N1"));
-            else if (ramGame != ramGameActual)
-                suffixText = Lang.Text(
-                    "Setup.Launch.Memory.SuffixAvailable",
-                    Lang.Number(ramGameActual, "N1"));
-            else
-                suffixText = string.Empty;
 
-            RamGameText =
-                $"{Lang.Number(ramGame, "N1")} GiB{(suffixText.Length > 0 ? $" ({suffixText})" : string.Empty)}";
-            RamUsedText = $"{Lang.Number(ramUsed, "N1")} GiB";
-            RamTotalText = $" / {Lang.Number(ramTotal, "N1")} GiB";
+            _ramGame = ramGame;
+            _ramGameActual = ramGameActual;
+            _ramInitial = ramInitial;
+            _ramLimited = ramGame != ramGameActual;
+            _ramTotal = ramTotal;
+            _ramUsed = ramUsed;
+            OnPropertyChanged(nameof(RamGameText));
+            OnPropertyChanged(nameof(RamUsedText));
+            OnPropertyChanged(nameof(RamTotalText));
             RamWarnVisible = ramGame == 1d
                 && !JavaRuntime.IsGameSet64BitJava(instance)
                 && !SystemInfo.Is32BitSystem

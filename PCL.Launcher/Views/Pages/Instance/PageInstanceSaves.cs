@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Data;
 using Avalonia.Input.Platform;
 using Avalonia.Threading;
 using PCL.Core.App.Localization;
@@ -94,12 +95,6 @@ public partial class PageInstanceSaves : MyPageRight, IRefreshable
         _fileSystemRefreshTimer?.Stop();
     }
 
-    protected override void RefreshLocalization()
-    {
-        ViewModel.RefreshLocalization();
-        BuildList();
-    }
-
     public async Task ReloadAsync()
     {
         ViewModel.HasError = false;
@@ -189,23 +184,23 @@ public partial class PageInstanceSaves : MyPageRight, IRefreshable
         {
             Type = MyListItem.CheckType.Clickable,
             Title = entry.Title,
-            Info = entry.Info,
             Logo = entry.Logo,
             LogoCornerRadius = new CornerRadius(6),
             Tag = folder
         };
-        entry.PropertyChanged += (_, args) =>
-        {
-            if (args.PropertyName == nameof(SaveEntry.Info))
-                item.Info = entry.Info;
-        };
+        item.Bind(
+            MyListItem.InfoProperty,
+            new Binding(nameof(SaveEntry.Info))
+            {
+                Source = entry
+            });
 
         var open = new MyIconButton
         {
             SvgIcon = "lucide/folder-open",
             LogoScale = 0.9d
         };
-        ToolTip.SetTip(open, Lang.Text("Instance.Saves.OpenFolder"));
+        open.SetLocalizedValue(ToolTip.TipProperty, "Instance.Saves.OpenFolder");
         open.Click += (_, _) => ViewModel.OpenSaveFolderCommand.Execute(folder);
 
         var detail = new MyIconButton
@@ -213,7 +208,7 @@ public partial class PageInstanceSaves : MyPageRight, IRefreshable
             SvgIcon = "lucide/info",
             LogoScale = 0.9d
         };
-        ToolTip.SetTip(detail, Lang.Text("Instance.Saves.Details"));
+        detail.SetLocalizedValue(ToolTip.TipProperty, "Instance.Saves.Details");
         detail.Click += (_, _) => ViewModel.OpenDetailsCommand.Execute(folder);
 
         var copy = new MyIconButton
@@ -221,7 +216,7 @@ public partial class PageInstanceSaves : MyPageRight, IRefreshable
             SvgIcon = "lucide/copy",
             LogoScale = 0.9d
         };
-        ToolTip.SetTip(copy, Lang.Text("Common.Action.Copy"));
+        copy.SetLocalizedValue(ToolTip.TipProperty, "Common.Action.Copy");
         copy.Click += (_, _) => _ = ViewModel.CopySaveAsync(folder);
 
         var delete = new MyIconButton
@@ -229,11 +224,10 @@ public partial class PageInstanceSaves : MyPageRight, IRefreshable
             SvgIcon = "lucide/trash-2",
             LogoScale = 0.9d
         };
-        ToolTip.SetTip(delete, Lang.Text("Common.Action.Delete"));
+        delete.SetLocalizedValue(ToolTip.TipProperty, "Common.Action.Delete");
         delete.Click += async (_, _) =>
         {
             item.IsEnabled = false;
-            entry.Info = Lang.Text("Instance.Saves.Deleting");
             if (await ViewModel.DeleteSaveAsync(folder))
                 return;
             item.IsEnabled = true;
@@ -254,7 +248,7 @@ public partial class PageInstanceSaves : MyPageRight, IRefreshable
                 SvgIcon = "lucide/play",
                 LogoScale = 0.9d
             };
-            ToolTip.SetTip(launch, Lang.Text("Instance.Saves.QuickPlay"));
+            launch.SetLocalizedValue(ToolTip.TipProperty, "Instance.Saves.QuickPlay");
             launch.Click += (_, _) => ViewModel.LaunchSaveCommand.Execute(folder);
             buttons.Add(launch);
         }

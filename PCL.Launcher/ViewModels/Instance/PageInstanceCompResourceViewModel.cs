@@ -31,6 +31,13 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
         new(StringComparer.OrdinalIgnoreCase);
 
     private readonly HashSet<string> _selected = new(StringComparer.OrdinalIgnoreCase);
+
+    private int _filterAllCount;
+    private int _filterDisabledCount;
+    private int _filterDuplicateCount;
+    private int _filterEnabledCount;
+    private int _filterErrorCount;
+    private int _filterUpdatableCount;
     private IReadOnlyList<LocalComp.LocalCompFile> _searchScope = [];
 
     [ObservableProperty] public partial Comp.CompType CompType { get; set; } = Comp.CompType.Mod;
@@ -49,17 +56,26 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
 
     [ObservableProperty] public partial bool HasError { get; set; }
 
-    [ObservableProperty] public partial string FilterAllText { get; set; } = string.Empty;
+    /// <summary>资源筛选按钮文本，随筛选计数与语言变化。</summary>
+    public string FilterAllText =>
+        string.IsNullOrWhiteSpace(SearchText)
+            ? Lang.Text("Instance.Resource.Filter.AllWithCount", _filterAllCount)
+            : Lang.Text("Instance.Resource.Filter.SearchResult");
 
-    [ObservableProperty] public partial string FilterEnabledText { get; set; } = string.Empty;
+    public string FilterEnabledText =>
+        Lang.Text("Instance.Resource.Filter.EnabledWithCount", _filterEnabledCount);
 
-    [ObservableProperty] public partial string FilterDisabledText { get; set; } = string.Empty;
+    public string FilterDisabledText =>
+        Lang.Text("Instance.Resource.Filter.DisabledWithCount", _filterDisabledCount);
 
-    [ObservableProperty] public partial string FilterUpdatableText { get; set; } = string.Empty;
+    public string FilterUpdatableText =>
+        Lang.Text("Instance.Resource.Filter.UpdatableWithCount", _filterUpdatableCount);
 
-    [ObservableProperty] public partial string FilterErrorText { get; set; } = string.Empty;
+    public string FilterErrorText =>
+        Lang.Text("Instance.Resource.Filter.ErrorWithCount", _filterErrorCount);
 
-    [ObservableProperty] public partial string FilterDuplicateText { get; set; } = string.Empty;
+    public string FilterDuplicateText =>
+        Lang.Text("Instance.Resource.Filter.DuplicateWithCount", _filterDuplicateCount);
 
     [ObservableProperty] public partial bool ShowFilterEnabled { get; set; }
 
@@ -71,9 +87,24 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
 
     [ObservableProperty] public partial bool ShowFilterDuplicate { get; set; }
 
-    [ObservableProperty] public partial string SortText { get; set; } = string.Empty;
+    public string SortText
+    {
+        get
+        {
+            var key = (SortMethod)SortIndex switch
+            {
+                SortMethod.CompName => "Instance.Resource.Sort.ResourceName",
+                SortMethod.TagNums => "Instance.Resource.Sort.TagCount",
+                SortMethod.CreateTime => "Instance.Resource.Sort.AddTime",
+                SortMethod.ModFileSize => "Instance.Resource.Sort.FileSize",
+                _ => "Instance.Resource.Sort.FileName"
+            };
+            return Lang.Text("Instance.Resource.Sort.Text", Lang.Text(key));
+        }
+    }
 
-    [ObservableProperty] public partial string SelectedText { get; set; } = string.Empty;
+    /// <summary>多选状态文本，随选中数量与语言变化。</summary>
+    public string SelectedText => Lang.Text("Instance.Resource.SelectedCount", _selected.Count);
 
     [ObservableProperty] public partial bool IsSelectionVisible { get; set; }
 
@@ -95,9 +126,19 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
 
     [ObservableProperty] public partial bool ShowSchematicEmpty { get; set; }
 
-    [ObservableProperty] public partial string EmptyTitle { get; set; } = string.Empty;
+    /// <summary>空状态标题，随当前目录与语言变化。</summary>
+    public string EmptyTitle =>
+        Lang.Text(
+            IsFolderView
+                ? "Instance.Resource.EmptyFolder.Title"
+                : "Instance.Resource.Empty.Title");
 
-    [ObservableProperty] public partial string EmptyDescription { get; set; } = string.Empty;
+    /// <summary>空状态说明，随当前目录与语言变化。</summary>
+    public string EmptyDescription =>
+        Lang.Text(
+            IsFolderView
+                ? "Instance.Resource.EmptyFolder.Description"
+                : "Instance.Resource.Empty.DescriptionWithDownload");
 
     [ObservableProperty] public partial bool ShowHintBack { get; set; }
 
@@ -136,7 +177,7 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
                 || !Config.Preference.Hide.PageDownload);
         ShowHintDownload = compType != Comp.CompType.Schematic;
         UpdateFilterState();
-        UpdateSortText();
+        OnPropertyChanged(nameof(SortText));
     }
 
     public void SetCurrentFolder(string path)
@@ -181,15 +222,11 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
     {
         ShowEmptyPanel();
         var inSubFolder = !string.IsNullOrEmpty(CurrentFolderPath);
-        EmptyTitle = Lang.Text(
-            inSubFolder ? "Instance.Resource.EmptyFolder.Title" : "Instance.Resource.Empty.Title");
-        EmptyDescription = Lang.Text(
-            inSubFolder
-                ? "Instance.Resource.EmptyFolder.Description"
-                : "Instance.Resource.Empty.DescriptionWithDownload");
         ShowHintBack = inSubFolder;
         ShowManageBack = inSubFolder;
         ShowHintDownload = CompType != Comp.CompType.Schematic;
+        OnPropertyChanged(nameof(EmptyTitle));
+        OnPropertyChanged(nameof(EmptyDescription));
     }
 
     public void ApplySchematicEmptyState()
@@ -204,7 +241,7 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
 
     partial void OnSortIndexChanged(int value)
     {
-        UpdateSortText();
+        OnPropertyChanged(nameof(SortText));
         RebuildVisibleEntries();
     }
 
@@ -230,7 +267,7 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
         FilterIndex = 0;
         _selected.Clear();
         _searchScope = [];
-        UpdateSortText();
+        OnPropertyChanged(nameof(SortText));
         UpdateSelectionState();
     }
 
@@ -244,8 +281,6 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
 
     public void RebuildVisibleEntries()
     {
-        // 非搜索状态只展示当前目录；搜索状态展示整个资源根目录的命中项，
-        // 这样根目录下不会因为模组放在子文件夹里而“消失”。
         var source = GetListSource();
         var available = Entries
             .Select(entry => entry.RawPath)
@@ -265,17 +300,15 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
         VisibleEntries.Clear();
         VisibleEntries.AddRange(filtered);
         UpdateFilterState(scope);
-        UpdateSortText();
+        OnPropertyChanged(nameof(SortText));
         UpdateSelectionState();
     }
 
-    /// <summary>当前列表的数据源：搜索时为全部条目，否则为当前目录条目。</summary>
     public IReadOnlyList<LocalComp.LocalCompFile> GetListSource()
     {
         return IsSearching ? [.. Entries] : [.. GetFolderEntries()];
     }
 
-    /// <summary>按当前搜索文本过滤资源；独立于筛选和文件状态，便于测试与复用。</summary>
     public IReadOnlyList<LocalComp.LocalCompFile> FilterBySearch(
         IReadOnlyList<LocalComp.LocalCompFile> entries)
     {
@@ -453,32 +486,23 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
             entry.State == LocalComp.LocalCompFile.LocalFileStatus.Unavailable);
         var duplicate = scope.Count(entry => IsDuplicate(entry, scope));
 
-        FilterAllText = string.IsNullOrWhiteSpace(SearchText)
-            ? Lang.Text("Instance.Resource.Filter.AllWithCount", all)
-            : Lang.Text("Instance.Resource.Filter.SearchResult");
-        FilterEnabledText = Lang.Text("Instance.Resource.Filter.EnabledWithCount", enabled);
-        FilterDisabledText = Lang.Text("Instance.Resource.Filter.DisabledWithCount", disabled);
-        FilterUpdatableText = Lang.Text("Instance.Resource.Filter.UpdatableWithCount", updatable);
-        FilterErrorText = Lang.Text("Instance.Resource.Filter.ErrorWithCount", error);
-        FilterDuplicateText = Lang.Text("Instance.Resource.Filter.DuplicateWithCount", duplicate);
+        _filterAllCount = all;
+        _filterEnabledCount = enabled;
+        _filterDisabledCount = disabled;
+        _filterUpdatableCount = updatable;
+        _filterErrorCount = error;
+        _filterDuplicateCount = duplicate;
+        OnPropertyChanged(nameof(FilterAllText));
+        OnPropertyChanged(nameof(FilterEnabledText));
+        OnPropertyChanged(nameof(FilterDisabledText));
+        OnPropertyChanged(nameof(FilterUpdatableText));
+        OnPropertyChanged(nameof(FilterErrorText));
+        OnPropertyChanged(nameof(FilterDuplicateText));
         ShowFilterEnabled = FilterIndex == 1 || (enabled > 0 && enabled < all);
         ShowFilterDisabled = FilterIndex == 2 || disabled > 0;
         ShowFilterUpdatable = FilterIndex == 3 || updatable > 0;
         ShowFilterError = FilterIndex == 4 || error > 0;
         ShowFilterDuplicate = FilterIndex == 5 || duplicate > 0;
-    }
-
-    private void UpdateSortText()
-    {
-        var key = (SortMethod)SortIndex switch
-        {
-            SortMethod.CompName => "Instance.Resource.Sort.ResourceName",
-            SortMethod.TagNums => "Instance.Resource.Sort.TagCount",
-            SortMethod.CreateTime => "Instance.Resource.Sort.AddTime",
-            SortMethod.ModFileSize => "Instance.Resource.Sort.FileSize",
-            _ => "Instance.Resource.Sort.FileName"
-        };
-        SortText = Lang.Text("Instance.Resource.Sort.Text", Lang.Text(key));
     }
 
     public static IReadOnlyList<string> GetSortNames()
@@ -799,7 +823,6 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
         }
     }
 
-    /// <summary>删除单个条目；返回 true 表示已移入回收站，false 表示已永久删除。</summary>
     private static bool DeleteEntryCore(
         LocalComp.LocalCompFile entry,
         bool permanentDelete = false)
@@ -1511,7 +1534,7 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
             return;
         }
 
-        SelectedText = Lang.Text("Instance.Resource.SelectedCount", count);
+        OnPropertyChanged(nameof(SelectedText));
         var selectedEntries = Entries.Where(entry => _selected.Contains(entry.RawPath)).ToList();
         CanUpdateSelected = selectedEntries.Any(entry => entry.CanUpdate);
         CanEnableSelected = selectedEntries.Any(entry =>

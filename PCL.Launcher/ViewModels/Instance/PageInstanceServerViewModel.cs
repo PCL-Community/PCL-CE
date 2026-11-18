@@ -34,6 +34,8 @@ public partial class PageInstanceServerViewModel : ViewModelBase
 
     public bool ShowEmpty => !ShowContent;
 
+    public string ListTitle => $"{Lang.Text("Instance.Server.FoundServers")} ({Servers.Count})";
+
     public string? ServersPath =>
         _instance is null ? null : Path.Combine(_instance.PathIndie, "servers.dat");
 
@@ -59,6 +61,7 @@ public partial class PageInstanceServerViewModel : ViewModelBase
         var path = ServersPath;
 
         Servers.Clear();
+        OnPropertyChanged(nameof(ListTitle));
         ShowContent = false;
         _loadedServersPath = path ?? string.Empty;
         if (path is null)
@@ -91,6 +94,7 @@ public partial class PageInstanceServerViewModel : ViewModelBase
                 }
 
             ShowContent = Servers.Count > 0;
+            OnPropertyChanged(nameof(ListTitle));
             State = AsyncState.Ready;
             return true;
         }
@@ -360,6 +364,7 @@ public partial class PageInstanceServerViewModel : ViewModelBase
             }
 
             Servers.Remove(card);
+            OnPropertyChanged(nameof(ListTitle));
             ShowContent = Servers.Count > 0;
             HintService.Show(Hints.Success(Lang.Text("Instance.Server.Removed")));
             return true;

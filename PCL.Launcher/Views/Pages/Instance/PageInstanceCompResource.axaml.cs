@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
@@ -43,9 +44,68 @@ public partial class PageInstanceCompResource
         InitializeComponent();
         DataContext = ViewModel;
         PanScroll = PanBack;
-        SearchBox.HintText = Lang.Text("Instance.Resource.Search.Hint");
+        SearchBox.SetLocalizedValue(MySearchBox.HintTextProperty, "Instance.Resource.Search.Hint");
+        BtnFilterAll.Bind(
+            MyRadioButton.TextProperty,
+            new Binding(nameof(PageInstanceCompResourceViewModel.FilterAllText))
+            {
+                Source = ViewModel
+            });
+        BtnFilterEnabled.Bind(
+            MyRadioButton.TextProperty,
+            new Binding(nameof(PageInstanceCompResourceViewModel.FilterEnabledText))
+            {
+                Source = ViewModel
+            });
+        BtnFilterDisabled.Bind(
+            MyRadioButton.TextProperty,
+            new Binding(nameof(PageInstanceCompResourceViewModel.FilterDisabledText))
+            {
+                Source = ViewModel
+            });
+        BtnFilterUpdatable.Bind(
+            MyRadioButton.TextProperty,
+            new Binding(nameof(PageInstanceCompResourceViewModel.FilterUpdatableText))
+            {
+                Source = ViewModel
+            });
+        BtnFilterError.Bind(
+            MyRadioButton.TextProperty,
+            new Binding(nameof(PageInstanceCompResourceViewModel.FilterErrorText))
+            {
+                Source = ViewModel
+            });
+        BtnFilterDuplicate.Bind(
+            MyRadioButton.TextProperty,
+            new Binding(nameof(PageInstanceCompResourceViewModel.FilterDuplicateText))
+            {
+                Source = ViewModel
+            });
+        BtnSort.Bind(
+            MyIconTextButton.TextProperty,
+            new Binding(nameof(PageInstanceCompResourceViewModel.SortText))
+            {
+                Source = ViewModel
+            });
+        TxtEmptyTitle.Bind(
+            TextBlock.TextProperty,
+            new Binding(nameof(PageInstanceCompResourceViewModel.EmptyTitle))
+            {
+                Source = ViewModel
+            });
+        TxtEmptyDescription.Bind(
+            TextBlock.TextProperty,
+            new Binding(nameof(PageInstanceCompResourceViewModel.EmptyDescription))
+            {
+                Source = ViewModel
+            });
         ViewModel.Configure(compType, CurrentLoaderFolder);
         ViewModel.ReloadRequested += ReloadList;
+        ViewModel.PropertyChanged += (_, args) =>
+        {
+            if (string.IsNullOrEmpty(args.PropertyName))
+                RefreshSelectBar();
+        };
         _swipeSelector = new ResourceSwipeSelector(
             PanList,
             PanSelect,
@@ -55,7 +115,6 @@ public partial class PageInstanceCompResource
                 && ViewModel.IsSelected(ViewModel.VisibleEntries[index]),
             SetSwipeSelected,
             RefreshSelectBar);
-        RefreshSortText();
         _searchTimer = new DispatcherTimer
         {
             Interval = TimeSpan.FromMilliseconds(300d)
@@ -211,22 +270,6 @@ public partial class PageInstanceCompResource
         {
             LauncherCommon.Log(ex, "显示原理图操作提示失败", LauncherLogLevel.Developer);
         }
-    }
-
-    protected override void RefreshLocalization()
-    {
-        SearchBox.HintText = Lang.Text("Instance.Resource.Search.Hint");
-        ViewModel.Configure(_compType, CurrentLoaderFolder);
-        BtnManageDownload.IsVisible =
-            (HiddenFeatureState.ForceShow || !Config.Preference.Hide.PageDownload)
-            && ViewModel.ShowManageDownload;
-        BtnHintDownload.IsVisible = ViewModel.ShowHintDownload;
-        RefreshSortText();
-        BuildList();
-        if (ViewModel.ShowSchematicEmpty)
-            ShowSchematicEmptyPanel();
-        else if (ViewModel.ShowEmpty)
-            ShowEmptyPanel();
     }
 
     #region 加载
@@ -393,8 +436,6 @@ public partial class PageInstanceCompResource
         PanLoad.IsVisible = false;
         PanSelect.UpdateSelection(false, 0, ViewModel.SelectedText);
         ViewModel.ApplyEmptyState();
-        TxtEmptyTitle.Text = ViewModel.EmptyTitle;
-        TxtEmptyDescription.Text = ViewModel.EmptyDescription;
         BtnHintBack.IsVisible = ViewModel.ShowHintBack;
         BtnManageBack.IsVisible = ViewModel.ShowManageBack;
         BtnHintDownload.IsVisible = ViewModel.ShowHintDownload;
@@ -428,7 +469,6 @@ public partial class PageInstanceCompResource
             PanListBack.Opacity = 1d;
             BtnManageBack.IsVisible = !string.IsNullOrEmpty(_currentFolderPath);
             RefreshFilterTexts();
-            RefreshSortText();
             RefreshSelectBar();
         }
         finally
@@ -439,22 +479,11 @@ public partial class PageInstanceCompResource
 
     private void RefreshFilterTexts()
     {
-        BtnFilterAll.Text = ViewModel.FilterAllText;
-        BtnFilterEnabled.Text = ViewModel.FilterEnabledText;
-        BtnFilterDisabled.Text = ViewModel.FilterDisabledText;
-        BtnFilterUpdatable.Text = ViewModel.FilterUpdatableText;
-        BtnFilterError.Text = ViewModel.FilterErrorText;
-        BtnFilterDuplicate.Text = ViewModel.FilterDuplicateText;
         BtnFilterEnabled.IsVisible = ViewModel.ShowFilterEnabled;
         BtnFilterDisabled.IsVisible = ViewModel.ShowFilterDisabled;
         BtnFilterUpdatable.IsVisible = ViewModel.ShowFilterUpdatable;
         BtnFilterError.IsVisible = ViewModel.ShowFilterError;
         BtnFilterDuplicate.IsVisible = ViewModel.ShowFilterDuplicate;
-    }
-
-    private void RefreshSortText()
-    {
-        BtnSort.Text = ViewModel.SortText;
     }
 
     private void ShowSortMenu()
@@ -534,7 +563,7 @@ public partial class PageInstanceCompResource
             SvgIcon = "lucide/info",
             LogoScale = 1d
         };
-        ToolTip.SetTip(btnInfo, Lang.Text("Instance.Saves.Details"));
+        btnInfo.SetLocalizedValue(ToolTip.TipProperty, "Instance.Saves.Details");
         btnInfo.Click += (_, _) => ShowEntryInfo(entry);
 
         var btnOpen = new MyIconButton
@@ -542,7 +571,7 @@ public partial class PageInstanceCompResource
             SvgIcon = "lucide/folder-open",
             LogoScale = 1.05d
         };
-        ToolTip.SetTip(btnOpen, Lang.Text("Instance.Saves.OpenFileLocation"));
+        btnOpen.SetLocalizedValue(ToolTip.TipProperty, "Instance.Saves.OpenFileLocation");
         btnOpen.Click += (_, _) =>
             Basics.OpenPath(
                 entry.IsFolder
@@ -564,9 +593,9 @@ public partial class PageInstanceCompResource
                 SvgIcon = fine ? "lucide/circle-minus" : "lucide/circle-check",
                 LogoScale = 1.0d
             };
-            ToolTip.SetTip(
-                btnEd,
-                Lang.Text(fine ? "Instance.Resource.Disable" : "Instance.Resource.Enable"));
+            btnEd.SetLocalizedValue(
+                ToolTip.TipProperty,
+                fine ? "Instance.Resource.Disable" : "Instance.Resource.Enable");
             btnEd.Click += (_, _) => ViewModel.ToggleEntry(entry);
             buttons.Add(btnEd);
         }
@@ -576,7 +605,7 @@ public partial class PageInstanceCompResource
             SvgIcon = "lucide/trash-2",
             LogoScale = 1.0d
         };
-        ToolTip.SetTip(btnDelete, Lang.Text("Common.Action.Delete"));
+        btnDelete.SetLocalizedValue(ToolTip.TipProperty, "Common.Action.Delete");
         btnDelete.Click += (_, _) => _ = ViewModel.DeleteEntryAsync(
             entry,
             btnDelete.LastClickKeyModifiers.HasFlag(KeyModifiers.Shift));
@@ -1133,7 +1162,7 @@ public partial class PageInstanceCompResource
 
     public void SetLoadText(string key)
     {
-        Load.Text = Lang.Text(key);
+        Load.SetLocalizedValue(MyLoading.TextProperty, key);
     }
 
     public void UpdateOnly()

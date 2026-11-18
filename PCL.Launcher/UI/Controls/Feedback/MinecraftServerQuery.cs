@@ -4,15 +4,14 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
-using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Core.Utils.Validate;
 
 namespace PCL.UI.Controls;
 
 /// <summary>
-///     服务器信息查询面板：地址输入框（禁止输入 <c>/</c>）、查询按钮，以及查询后显示的
-///     <see cref="MinecraftServer" /> 卡片；卡片背景为平铺的 <c>server_bg.png</c>。
+/// 服务器信息查询面板：地址输入框（禁止输入 <c>/</c>）、查询按钮，以及查询后显示的 <see cref="MinecraftServer" />
+/// 卡片；卡片背景为平铺的 <c>server_bg.png</c>。
 /// </summary>
 public class MinecraftServerQuery : Grid
 {
@@ -33,21 +32,25 @@ public class MinecraftServerQuery : Grid
         _labServerIp = new MyTextBox
         {
             Name = "LabServerIp",
-            HintText = Lang.Text("Tools.ServerQuery.Address.Hint"),
+            HintText = string.Empty,
             Margin = new Thickness(0d, 0d, 15d, 0d),
             VerticalAlignment = VerticalAlignment.Stretch
         };
+        _labServerIp.SetLocalizedValue(
+            MyTextBox.HintTextProperty,
+            "Tools.ServerQuery.Address.Hint");
         _labServerIp.ValidateRules.Add(new BlacklistValidator(["/"]));
 
         _btnServerQuery = new MyButton
         {
             Name = "BtnServerQuery",
-            Text = Lang.Text("Tools.ServerQuery.Action.Query"),
+            Text = string.Empty,
             Width = 60d,
             Height = double.NaN,
             MinHeight = 28d,
             VerticalAlignment = VerticalAlignment.Stretch
         };
+        _btnServerQuery.SetLocalizedValue(MyButton.TextProperty, "Tools.ServerQuery.Action.Query");
         _btnServerQuery.Click += (_, _) => _ = ServerQueryAsync();
 
         Server = new MinecraftServer

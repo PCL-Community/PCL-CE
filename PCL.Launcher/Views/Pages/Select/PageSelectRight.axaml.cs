@@ -33,8 +33,10 @@ public partial class PageSelectRight : MyPageRight, IRefreshable, IShellShortcut
         Current = this;
         PanScroll = PanBack;
         DataContext = ViewModel;
-        PanVerSearchBox.HintText = Lang.Text("Select.Instance.Search.Hint");
-        ToolTip.SetTip(PanVerSearchBox, Lang.Text("Select.Instance.Search.ToolTip"));
+        PanVerSearchBox.SetLocalizedValue(
+            MySearchBox.HintTextProperty,
+            "Select.Instance.Search.Hint");
+        PanVerSearchBox.SetLocalizedValue(ToolTip.TipProperty, "Select.Instance.Search.ToolTip");
         PanVerSearchBox.TextChanged += (_, _) => OnSearchTextChanged();
         DetachedFromVisualTree += (_, _) => StopReloadTimer();
         EnsureLoaderInitialized();
@@ -98,17 +100,6 @@ public partial class PageSelectRight : MyPageRight, IRefreshable, IShellShortcut
     {
         EnsureLoaderInitialized();
         RefreshOnNavigate();
-    }
-
-    protected override void RefreshLocalization()
-    {
-        PanVerSearchBox.HintText = Lang.Text("Select.Instance.Search.Hint");
-        ToolTip.SetTip(PanVerSearchBox, Lang.Text("Select.Instance.Search.ToolTip"));
-        if (InstanceList.mcInstanceListLoader.State != LoadState.Finished)
-            return;
-        var savedOffset = PanBack.Offset;
-        McInstanceListUi(InstanceList.mcInstanceListLoader);
-        Dispatcher.UIThread.Post(() => PanBack.Offset = savedOffset);
     }
 
     public override void OnNavigatedFrom()
@@ -204,10 +195,7 @@ public partial class PageSelectRight : MyPageRight, IRefreshable, IShellShortcut
                     Margin = new Thickness(0d, 0d, 0d, 15d),
                     Tag = (Key: group.NameKey, Type: cardType)
                 };
-                LocalizedText.TryBind(
-                    newCard,
-                    "Title",
-                    () => PageSelectRightViewModel.GetCardTitle(group));
+                LocalizedText.TryBind(newCard, "Title", () => group.Title);
 
                 var stack = new StackPanel
                 {
@@ -324,9 +312,9 @@ public partial class PageSelectRight : MyPageRight, IRefreshable, IShellShortcut
             LogoScale = 1.1d,
             SvgIcon = version.IsStar ? "lucide/heart-filled" : "lucide/heart"
         };
-        ToolTip.SetTip(
-            btnStar,
-            Lang.Text(version.IsStar ? "Select.Instance.Unfavorite" : "Select.Instance.Favorite"));
+        btnStar.SetLocalizedValue(
+            ToolTip.TipProperty,
+            version.IsStar ? "Select.Instance.Unfavorite" : "Select.Instance.Favorite");
         btnStar.Click += (_, _) => PageSelectRightViewModel.ToggleFavorite(version);
 
         var btnOpenFolder = new MyIconButton
@@ -334,7 +322,7 @@ public partial class PageSelectRight : MyPageRight, IRefreshable, IShellShortcut
             LogoScale = 1.1d,
             SvgIcon = "lucide/folder-open"
         };
-        ToolTip.SetTip(btnOpenFolder, Lang.Text("Select.Instance.OpenFolder"));
+        btnOpenFolder.SetLocalizedValue(ToolTip.TipProperty, "Select.Instance.OpenFolder");
         btnOpenFolder.Click += (_, _) => PageSelectRightViewModel.OpenVersionFolder(version);
 
         var btnDelete = new MyIconButton
@@ -342,7 +330,7 @@ public partial class PageSelectRight : MyPageRight, IRefreshable, IShellShortcut
             LogoScale = 1.1d,
             SvgIcon = "lucide/trash-2"
         };
-        ToolTip.SetTip(btnDelete, Lang.Text("Common.Action.Delete"));
+        btnDelete.SetLocalizedValue(ToolTip.TipProperty, "Common.Action.Delete");
         btnDelete.Click += (_, _) => _ = ViewModel.DeleteVersionAsync(
             version,
             btnDelete.LastClickKeyModifiers.HasFlag(KeyModifiers.Shift));
@@ -354,12 +342,11 @@ public partial class PageSelectRight : MyPageRight, IRefreshable, IShellShortcut
                 ? "lucide/folder-open"
                 : "lucide/settings"
         };
-        ToolTip.SetTip(
-            btnSettings,
-            Lang.Text(
-                version.state == McInstanceState.Error
-                    ? "Common.Action.OpenFolder"
-                    : "Select.Instance.Settings"));
+        btnSettings.SetLocalizedValue(
+            ToolTip.TipProperty,
+            version.state == McInstanceState.Error
+                ? "Common.Action.OpenFolder"
+                : "Select.Instance.Settings");
         if (version.state == McInstanceState.Error)
             btnSettings.Click += (_, _) => PageSelectRightViewModel.OpenVersionFolder(version);
         else

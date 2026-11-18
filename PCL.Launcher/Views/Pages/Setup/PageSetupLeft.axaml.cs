@@ -84,12 +84,6 @@ public partial class PageSetupLeft : MyPageLeft
         }
     }
 
-    protected override void RefreshLocalization()
-    {
-        BuildItems();
-        Select(_viewModel.PageId);
-    }
-
     public static SubPageId FirstVisible()
     {
         return Page.FirstVisibleSubPage();
@@ -126,6 +120,41 @@ public partial class PageSetupLeft : MyPageLeft
         _items.AddRange(result.Items);
         _groups.Clear();
         _groups.AddRange(result.Groups);
+        ApplyLocalizedText();
+    }
+
+    /// <summary>导航列表由公共构建器一次性生成文本；这里补充本地化绑定，使语言切换时无需重建列表。</summary>
+    private void ApplyLocalizedText()
+    {
+        foreach (var (title, groupKey) in _groups)
+        {
+            var group = Page.Groups.FirstOrDefault(item =>
+                string.Equals(item.Key, groupKey, StringComparison.Ordinal));
+            if (!string.IsNullOrEmpty(group?.TitleKey))
+                title.SetLocalizedValue(TextBlock.TextProperty, group.TitleKey);
+        }
+
+        foreach (var (subPage, item) in _items)
+        {
+            var descriptor = Page.FindSubPage(subPage);
+            if (descriptor is null) continue;
+            item.SetLocalizedValue(MyListItem.TitleProperty, descriptor.TitleKey);
+            if (item.Buttons is null) continue;
+            foreach (var button in item.Buttons)
+                switch (button.SvgIcon)
+                {
+                    case "lucide/rotate-ccw":
+                        button.SetLocalizedValue(
+                            ToolTip.TipProperty,
+                            "Common.Action.Initialize");
+                        break;
+                    case "lucide/refresh-cw":
+                        button.SetLocalizedValue(
+                            ToolTip.TipProperty,
+                            "Common.Action.Refresh");
+                        break;
+                }
+        }
     }
 
     private void OnHiddenStateChanged()

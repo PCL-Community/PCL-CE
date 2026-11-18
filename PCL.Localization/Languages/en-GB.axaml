@@ -1,9 +1,8 @@
 <!-- Formatted by xaml-lang-formatter at 2026-06-28T17:16:52. -->
-<ResourceDictionary
-    xmlns="https://github.com/avaloniaui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:sys="clr-namespace:System;assembly=System.Runtime"
-    xml:space="preserve">
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+                    xml:space="preserve">
 
     <!-- Meta -->
 
@@ -2949,6 +2948,7 @@
     <sys:String x:Key="Setup.Misc.Network.Proxy.Password">Password</sys:String>
     <sys:String x:Key="Setup.Misc.Network.Proxy.System">Use system proxy</sys:String>
     <sys:String x:Key="Setup.Misc.Network.Proxy.UntrustedWarning">Do not enter untrusted proxy addresses</sys:String>
+    <sys:String x:Key="Setup.Misc.Network.Proxy.CustomHint">e.g. http://127.0.0.1:1080/</sys:String>
     <sys:String x:Key="Setup.Misc.Network.Proxy.Username">Account</sys:String>
 
     <!-- Setup.Misc.System -->

@@ -9,8 +9,8 @@ using PCL.UI.Controls;
 namespace PCL.Views.Pages.Instance;
 
 /// <summary>
-///     实例资源列表项，对齐 WPF <c>MyLocalCompItem</c>：
-///     44px 单行、34px 图标与状态角标、可压缩的标题/副标题、标签、更新按钮、悬停操作按钮。
+/// 实例资源列表项，对齐 WPF <c>MyLocalCompItem</c>： 44px 单行、34px
+/// 图标与状态角标、可压缩的标题/副标题、标签、更新按钮、悬停操作按钮。
 /// </summary>
 public partial class MyLocalModItem : Grid
 {
@@ -56,6 +56,11 @@ public partial class MyLocalModItem : Grid
 
         Cursor = new Cursor(StandardCursorType.Hand);
         ViewModel.Initialize(entry, new ItemHost(this));
+        ViewModel.PropertyChanged += (_, args) =>
+        {
+            if (string.IsNullOrEmpty(args.PropertyName))
+                ApplyViewModel();
+        };
 
         BtnUpdate.Click += (_, _) => ViewModel.UpdateCommand.Execute(null);
         BtnUpdate.PointerPressed += (_, e) =>

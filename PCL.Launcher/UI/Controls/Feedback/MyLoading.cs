@@ -12,10 +12,9 @@ using Path = Avalonia.Controls.Shapes.Path;
 namespace PCL.UI.Controls;
 
 /// <summary>
-///     加载状态提示：镐子图标加一行状态文本，可叠加进度值或切换为错误态。
-///     状态由 <see cref="State" />、<see cref="ShowProgress" /> 与错误文本继承决定，
-///     鼠标左键点击会触发 <c>Click</c> 并调用 <see cref="Command" />；镐子挥舞循环与错误叉过渡
-///     由 新动画引擎 驱动。
+/// 加载状态提示：镐子图标加一行状态文本，可叠加进度值或切换为错误态。 状态由 <see cref="State" />、
+/// <see cref="ShowProgress" /> 与错误文本继承决定， 鼠标左键点击会触发 <c>Click</c> 并调用 <see cref="Command" />
+/// ；镐子挥舞循环与错误叉过渡 由 新动画引擎 驱动。
 /// </summary>
 public class MyLoading : Grid
 {
@@ -167,11 +166,6 @@ public class MyLoading : Grid
 
         FeedbackTheme.AttachStyles(this);
 
-        _suppressDefaultTracking = true;
-        SetCurrentValue(TextProperty, Lang.Text("Application.Control.Loading.Default"));
-        SetCurrentValue(TextErrorProperty, Lang.Text("Application.Control.Loading.Failed"));
-        _suppressDefaultTracking = false;
-
         IsErrorChanged += (_, _) => RefreshText();
         Loaded += (_, _) =>
         {
@@ -191,13 +185,11 @@ public class MyLoading : Grid
         {
             _unwatchTheme?.Invoke();
             _unwatchTheme = FeedbackTheme.WatchTheme(this, _ApplyThemeColors);
-            LocalizationService.LanguageChanged += _OnLanguageChanged;
         };
         DetachedFromVisualTree += (_, _) =>
         {
             _unwatchTheme?.Invoke();
             _unwatchTheme = null;
-            LocalizationService.LanguageChanged -= _OnLanguageChanged;
         };
 
         PointerReleased += _OnPointerReleased;
@@ -207,9 +199,7 @@ public class MyLoading : Grid
         _ApplyThemeColors();
     }
 
-    /// <summary>
-    ///     控件是否在加载完成后自动进入运行状态。
-    /// </summary>
+    /// <summary>控件是否在加载完成后自动进入运行状态。</summary>
     public bool AutoRun { get; set; } = true;
 
     #region 颜色
@@ -277,9 +267,7 @@ public class MyLoading : Grid
         set => SetValue(TextErrorProperty, value);
     }
 
-    /// <summary>
-    ///     是否在使用 Loader 时使用 Loader 的错误输出来替换默认的错误文本显示。
-    /// </summary>
+    /// <summary>是否在使用 Loader 时使用 Loader 的错误输出来替换默认的错误文本显示。</summary>
     public bool TextErrorInherit { get; set; } = true;
 
     private void RefreshText()
@@ -292,6 +280,11 @@ public class MyLoading : Grid
 
     private void RefreshTextCore()
     {
+        LocalizedText.Bind(_labText, TextBlock.TextProperty, BuildDisplayText);
+    }
+
+    private string BuildDisplayText()
+    {
         var state = State;
         if (InnerState == LoadingState.Error)
         {
@@ -299,55 +292,32 @@ public class MyLoading : Grid
             {
                 var ex = state.Error;
                 if (ex is null)
-                {
-                    _labText.Text = Lang.Text("Application.Control.Loading.UnknownError");
-                }
-                else
-                {
-                    while (ex.InnerException is not null) ex = ex.InnerException;
-                    var text = StrTrim(ex.Message);
-                    _labText.Text = text;
-                    if (NetworkUnstableKeywords.Any(text.Contains))
-                        _labText.Text = Lang.Text("Application.Control.Loading.NetworkUnstable");
-                }
+                    return Lang.Text("Application.Control.Loading.UnknownError");
+
+                while (ex.InnerException is not null) ex = ex.InnerException;
+                var text = StrTrim(ex.Message);
+                return NetworkUnstableKeywords.Any(text.Contains)
+                    ? Lang.Text("Application.Control.Loading.NetworkUnstable")
+                    : text;
             }
-            else
-            {
-                _labText.Text = TextError;
-            }
+
+            return _useDefaultTextError
+                ? Lang.Text("Application.Control.Loading.Failed")
+                : TextError;
         }
-        else if (ShowProgress && state.IsLoader)
-        {
-            _labText.Text = $"{Text} - {Lang.Number(state.Progress, "P0")}";
-        }
-        else
-        {
-            _labText.Text = Text;
-        }
+
+        if (ShowProgress && state.IsLoader)
+            return
+                $"{(_useDefaultText ? Lang.Text("Application.Control.Loading.Default") : Text)} - {Lang.Number(state.Progress, "P0")}";
+
+        return _useDefaultText ? Lang.Text("Application.Control.Loading.Default") : Text;
     }
 
-    /// <summary>
-    ///     移除字符串首尾的标点符号、回车，以及括号中、冒号后的补充说明内容，
-    ///     用于把异常信息压成一行状态标题。
-    /// </summary>
+    /// <summary>移除字符串首尾的标点符号、回车，以及括号中、冒号后的补充说明内容， 用于把异常信息压成一行状态标题。</summary>
     private static string StrTrim(string text)
     {
         text = text.Split("（")[0].Split("：")[0].Split('(')[0].Split(':')[0];
         return text.Trim('.', '。', '！', ' ', '!', '?', '？', '\r', '\n');
-    }
-
-    private void _OnLanguageChanged()
-    {
-        if (!_useDefaultText && !_useDefaultTextError)
-            return;
-
-        _suppressDefaultTracking = true;
-        if (_useDefaultText)
-            SetCurrentValue(TextProperty, Lang.Text("Application.Control.Loading.Default"));
-        if (_useDefaultTextError)
-            SetCurrentValue(TextErrorProperty, Lang.Text("Application.Control.Loading.Failed"));
-        _suppressDefaultTracking = false;
-        RefreshText();
     }
 
     #endregion
@@ -430,9 +400,7 @@ public class MyLoading : Grid
 
     private LoadingState _outerState = LoadingState.Unloaded;
 
-    /// <summary>
-    ///     用于引发外部事件的状态。
-    /// </summary>
+    /// <summary>用于引发外部事件的状态。</summary>
     private LoadingState OuterState
     {
         get => _outerState;
@@ -451,9 +419,7 @@ public class MyLoading : Grid
 
     private LoadingState _innerState = LoadingState.Unloaded;
 
-    /// <summary>
-    ///     用于引发内部动画事件的状态。
-    /// </summary>
+    /// <summary>用于引发内部动画事件的状态。</summary>
     private LoadingState InnerState
     {
         get => _innerState;
@@ -474,9 +440,7 @@ public class MyLoading : Grid
 
     #region 动画
 
-    /// <summary>
-    ///     是否需要动画。
-    /// </summary>
+    /// <summary>是否需要动画。</summary>
     public bool HasAnimation { get; set; } = true;
 
     private bool _isLooping;
@@ -489,8 +453,8 @@ public class MyLoading : Grid
     private string ErrorKey => FeedbackAnimation.Name("MyLoading Error", _uuid);
 
     /// <summary>
-    ///     镐子挥动循环：旋转镐子，挥舞结束后重置箭头位置并淡出，再在组末尾递归启动下一轮。
-    ///     动画关闭或速度过高（<see cref="AnimationService.Speed" /> &gt; 10）时保持静止。
+    /// 镐子挥动循环：旋转镐子，挥舞结束后重置箭头位置并淡出，再在组末尾递归启动下一轮。 动画关闭或速度过高（
+    /// <see cref="AnimationService.Speed" /> &gt; 10）时保持静止。
     /// </summary>
     private void AniLoop()
     {
@@ -572,9 +536,7 @@ public class MyLoading : Grid
             LoopKey);
     }
 
-    /// <summary>
-    ///     错误状态过渡：图标与文字底色渐变到错误色，错误叉淡入/缩放弹出；恢复时反向收起。
-    /// </summary>
+    /// <summary>错误状态过渡：图标与文字底色渐变到错误色，错误叉淡入/缩放弹出；恢复时反向收起。</summary>
     private void ErrorAnimation(bool isError)
     {
         if (!Dispatcher.UIThread.CheckAccess())

@@ -60,6 +60,7 @@
         <AvaloniaResource Include="Assets/Fonts/**" />
     </ItemGroup>
     <ItemGroup>
+        <ProjectReference Include="..\PCL.Core.SourceGenerators\PCL.Core.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
         <ProjectReference Include="..\PCL.Core.UI\PCL.Core.UI.csproj" />
         <ProjectReference Include="..\PCL.Launcher.Core\PCL.Launcher.Core.csproj" />
         <ProjectReference Include="..\PCL.Platform\PCL.Platform.csproj" />

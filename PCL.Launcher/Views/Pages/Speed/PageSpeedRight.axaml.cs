@@ -67,13 +67,6 @@ public partial class PageSpeedRight : MyPageRight, IRefreshable
         _timer.Stop();
     }
 
-    protected override void RefreshLocalization()
-    {
-        _cards.Clear();
-        PanMain.Children.Clear();
-        SyncTasks();
-    }
-
     /// <summary>立即同步任务卡片；可在任意线程调用。</summary>
     public void RefreshNow()
     {
@@ -162,9 +155,12 @@ public partial class PageSpeedRight : MyPageRight, IRefreshable
 
         var card = new MyCard
         {
-            Title = loader.name,
             Margin = new Thickness(0d, 0d, 0d, 15d)
         };
+        LocalizedText.Bind(
+            card,
+            MyCard.TitleProperty,
+            () => loader.DisplayNameFactory?.Invoke() ?? loader.name);
         var grid = new Grid
         {
             Margin = new Thickness(14d, 40d, 15d, 10d),
@@ -211,9 +207,12 @@ public partial class PageSpeedRight : MyPageRight, IRefreshable
             card.Grid.Children.Add(CreateStateIcon(subtask, row));
             var label = new TextBlock
             {
-                Text = subtask.name,
                 HorizontalAlignment = HorizontalAlignment.Left
             };
+            LocalizedText.Bind(
+                label,
+                TextBlock.TextProperty,
+                () => subtask.DisplayNameFactory?.Invoke() ?? subtask.name);
             Grid.SetColumn(label, 1);
             Grid.SetRow(label, row);
             card.Grid.Children.Add(label);
@@ -239,9 +238,6 @@ public partial class PageSpeedRight : MyPageRight, IRefreshable
             {
                 case LoadState.Waiting when icon.Tag as string != "Waiting":
                 case LoadState.Finished when icon.Tag as string != "Finished":
-                    ReplaceIcon(card, row, CreateStateIcon(subtask, row));
-                    break;
-
                 case LoadState.Loading when icon.Tag as string != "Loading":
                     ReplaceIcon(card, row, CreateStateIcon(subtask, row));
                     break;
@@ -269,7 +265,7 @@ public partial class PageSpeedRight : MyPageRight, IRefreshable
             HorizontalAlignment = HorizontalAlignment.Left,
             Margin = new Thickness(0d, 0d, 0d, 5d)
         };
-        ToolTip.SetTip(text, Lang.Text("Speed.Error.ClickToCopy"));
+        text.SetLocalizedValue(ToolTip.TipProperty, "Speed.Error.ClickToCopy");
         text.PointerPressed += (_, e) =>
         {
             if (!e.GetCurrentPoint(text).Properties.IsLeftButtonPressed)

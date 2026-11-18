@@ -28,7 +28,10 @@ public partial class PageDownloadCompFavoritesViewModel : ViewModelBase
     [ObservableProperty]
     public partial ObservableCollection<FavoriteGroupViewModel> Groups { get; set; } = [];
 
-    [ObservableProperty] public partial string SelectedText { get; set; } = "";
+    public string SelectedText =>
+        Lang.Text(
+            "Download.Comp.Favorites.Hint.SelectedCount",
+            _selectedItems.Count);
 
     [ObservableProperty] public partial string SearchText { get; set; } = "";
 
@@ -109,6 +112,12 @@ public partial class PageDownloadCompFavoritesViewModel : ViewModelBase
         };
         Loader.OnStateChangedUi += OnLoaderStateChanged;
         return Loader;
+    }
+
+    protected override void OnLanguageChanged()
+    {
+        base.OnLanguageChanged();
+        Loader?.name = Lang.Text("Download.Comp.Favorites.Loading");
     }
 
     public void RefreshFolders(string? preferredId = null)
@@ -236,7 +245,7 @@ public partial class PageDownloadCompFavoritesViewModel : ViewModelBase
                 groups.Add(group);
         }
 
-        Groups = new ObservableCollection<FavoriteGroupViewModel>(groups);
+        Groups = [.. groups];
         ShowSearchBox = _compItems.Count > 0 || isSearching;
         ShowContentList = _compItems.Count > 0;
         ShowNoContent = _compItems.Count == 0 && !isSearching;
@@ -834,8 +843,7 @@ public partial class PageDownloadCompFavoritesViewModel : ViewModelBase
         var count = _selectedItems.Count;
         HasSelection = count > 0;
         ContentListBottomInset = count > 0 ? 80d : 0d;
-        if (count > 0)
-            SelectedText = Lang.Text("Download.Comp.Favorites.Hint.SelectedCount", count);
+        OnPropertyChanged(nameof(SelectedText));
         SelectionChanged?.Invoke();
     }
 
@@ -941,20 +949,18 @@ public partial class PageDownloadCompFavoritesViewModel : ViewModelBase
 public sealed record FavoriteFolderOption(string Id, string Name);
 
 /// <summary>收藏夹列表中的一个分组（按工程类型划分）。</summary>
-public sealed partial class FavoriteGroupViewModel : ObservableObject
+public sealed partial class FavoriteGroupViewModel(int compType) : LocalizedObservableObject
 {
     private readonly List<FavoriteItemViewModel> _items = [];
 
-    public FavoriteGroupViewModel(int compType)
-    {
-        CompType = compType;
-        RefreshTitle();
-    }
-
     /// <summary>分组对应的工程类型；-1 表示搜索结果分组。</summary>
-    public int CompType { get; }
+    public int CompType { get; } = compType;
 
-    [ObservableProperty] public partial string Title { get; set; } = "";
+    /// <summary>分组标题按当前语言与条目数量实时求值。</summary>
+    public string Title =>
+        string.Format(
+            PageDownloadCompFavoritesViewModel.GetCategoryTitleFormat(CompType),
+            _items.Count);
 
     [ObservableProperty] public partial bool IsVisible { get; set; } = true;
 
@@ -965,14 +971,7 @@ public sealed partial class FavoriteGroupViewModel : ObservableObject
         _items.Clear();
         _items.AddRange(items);
         IsVisible = items.Count > 0;
-        RefreshTitle();
-    }
-
-    public void RefreshTitle()
-    {
-        Title = string.Format(
-            PageDownloadCompFavoritesViewModel.GetCategoryTitleFormat(CompType),
-            _items.Count);
+        OnPropertyChanged(nameof(Title));
     }
 }
 

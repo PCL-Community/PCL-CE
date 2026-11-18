@@ -12,6 +12,8 @@ namespace PCL;
 /// <summary>服务器卡片的视图模型：维护名称、地址、状态文本与最近一次 Ping 结果。</summary>
 public partial class ServerCardViewModel : ViewModelBase
 {
+    private string? _motdKey;
+
     public ServerCardViewModel(string name, string address, int rawIndex)
     {
         RawIndex = rawIndex;
@@ -36,7 +38,12 @@ public partial class ServerCardViewModel : ViewModelBase
 
     [ObservableProperty] public partial string PlayerText { get; set; } = string.Empty;
 
-    [ObservableProperty] public partial string MotdText { get; set; } = string.Empty;
+    public string MotdText =>
+        LastPingResult is { } result
+            ? result.Description
+            : _motdKey is null
+                ? string.Empty
+                : Lang.Text(_motdKey);
 
     [ObservableProperty] public partial string SignalIcon { get; set; } = "lucide/signal";
 
@@ -45,6 +52,11 @@ public partial class ServerCardViewModel : ViewModelBase
     [ObservableProperty] public partial bool HasPinged { get; set; }
 
     [ObservableProperty] public partial string IconBase64 { get; set; } = string.Empty;
+
+    partial void OnLastPingResultChanged(McPingResult? value)
+    {
+        OnPropertyChanged(nameof(MotdText));
+    }
 
     public void UpdateInfo(string name, string address)
     {
@@ -62,7 +74,8 @@ public partial class ServerCardViewModel : ViewModelBase
         LastPingResult = null;
         Latency = 0;
         PlayerText = string.Empty;
-        MotdText = string.Empty;
+        _motdKey = null;
+        OnPropertyChanged(nameof(MotdText));
         SignalIcon = "lucide/signal";
         SignalTooltip = string.Empty;
     }
@@ -102,7 +115,8 @@ public partial class ServerCardViewModel : ViewModelBase
             PlayerText = result.Players.Online != 0 || result.Players.Max != 0
                 ? $"{result.Players.Online} / {result.Players.Max}"
                 : "???";
-            MotdText = result.Description;
+            _motdKey = null;
+            OnPropertyChanged(nameof(MotdText));
         }
         catch (OperationCanceledException)
         {
@@ -123,7 +137,8 @@ public partial class ServerCardViewModel : ViewModelBase
         SignalIcon = "lucide/loader";
         SignalTooltip = string.Empty;
         PlayerText = string.Empty;
-        MotdText = Lang.Text("Instance.Server.Card.ConnectingDots");
+        _motdKey = "Instance.Server.Card.ConnectingDots";
+        OnPropertyChanged(nameof(MotdText));
     }
 
     private void ShowOffline()
@@ -136,7 +151,8 @@ public partial class ServerCardViewModel : ViewModelBase
         SignalIcon = "lucide/signal-zero";
         SignalTooltip = string.Empty;
         PlayerText = string.Empty;
-        MotdText = Lang.Text("Instance.Server.Card.ServerOffline");
+        _motdKey = "Instance.Server.Card.ServerOffline";
+        OnPropertyChanged(nameof(MotdText));
     }
 
     private static string GetSignalIcon(int ping)

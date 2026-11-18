@@ -13,6 +13,11 @@ public partial class PageSetupLauncherLanguageViewModel : ViewModelBase
 
     [ObservableProperty] private int _uiLanguageIndex = -1;
 
+    public string AutoLanguageText =>
+        Lang.Text(
+            "Setup.Language.UiLanguage.Auto",
+            LocalizationService.ResolveLanguage(LocalizationService.Auto).NativeName);
+
     public static IEnumerable<CultureInfo> GetBuiltInFormatCultures()
     {
         var used = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

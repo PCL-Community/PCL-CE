@@ -2,7 +2,6 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
-using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.UI.Controls;
 using PCL.UI.SystemIntegration;
@@ -30,7 +29,6 @@ public static class PageRouter
     private static readonly PageNavigationStateMachine NavigationState = new();
     private static bool _isNavigating;
     private static bool _hasNavigated;
-    private static bool _languageHooked;
 
     public static Control? CurrentPage { get; private set; }
     public static INavigationService Navigation => NavigationService.Instance;
@@ -49,30 +47,6 @@ public static class PageRouter
         _leftHost = leftHost;
         _rightHost = rightHost;
         _leftHost?.IsVisible = false;
-
-        if (_languageHooked) return;
-        _languageHooked = true;
-        LocalizationService.LanguageChanged += OnLanguageChanged;
-    }
-
-    private static void OnLanguageChanged()
-    {
-        if (!Dispatcher.UIThread.CheckAccess())
-        {
-            Dispatcher.UIThread.Post(OnLanguageChanged);
-            return;
-        }
-
-        try
-        {
-            RefreshState();
-            (_mountedLeft as MyPageLeft)?.ApplyLocalizationChanged();
-            (_mountedRight as MyPageRight)?.ApplyLocalizationChanged();
-        }
-        catch (Exception ex)
-        {
-            LogWrapper.Error(ex, "UI", "语言切换后刷新页面失败");
-        }
     }
 
     public static void ShowStandalone(Control page)

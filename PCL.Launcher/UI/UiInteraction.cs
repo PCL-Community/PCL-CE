@@ -407,12 +407,12 @@ public sealed class UpdateUiBridge : IUpdateUi
         PageRouter.Navigate(PageIds.Setup, SubPageIds.SetupUpdate);
     }
 
-    public void ShowUpdateRestartButton(string tooltip)
+    public void ShowUpdateRestartButton(string tooltipKey, params object?[] args)
     {
         UiInteraction.TryShellAction(
             nameof(ShowUpdateRestartButton),
             "SHELL",
-            shell => shell.ShowUpdateRestartButton(tooltip));
+            shell => shell.ShowUpdateRestartButton(tooltipKey, args));
     }
 
     public void RefreshDownloadButton()
@@ -420,7 +420,7 @@ public sealed class UpdateUiBridge : IUpdateUi
         UiInteraction.RefreshDownloadButton(nameof(RefreshDownloadButton));
     }
 
-    public void UpdateSetupButton(string text, bool enabled)
+    public void UpdateSetupButton(string textKey, bool enabled, params object?[] args)
     {
         var page = PageSetupUpdate.Current
             ?? PageRouter.CurrentPage as PageSetupUpdate;
@@ -430,7 +430,7 @@ public sealed class UpdateUiBridge : IUpdateUi
             return;
         }
 
-        UiInteraction.RunOnUi(() => page.SetUpdateButton(text, enabled));
+        UiInteraction.RunOnUi(() => page.SetUpdateButton(textKey, enabled, args));
     }
 
     public void ExitApplication(bool restart)

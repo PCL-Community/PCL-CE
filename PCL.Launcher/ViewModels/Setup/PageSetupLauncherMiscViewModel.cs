@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using PCL.Core.App;
 using PCL.Core.App.Essentials;
 using PCL.Core.App.Localization;
+using PCL.Core.Platform;
 using PCL.Core.UI.Hints;
 using PCL.Core.ViewModel;
 
@@ -26,6 +27,21 @@ public partial class PageSetupLauncherMiscViewModel : ViewModelBase
     [ObservableProperty] private bool _telemetryEnabled = !TelemetryService.IsBuildUntrusted;
 
     public bool IsBuildUntrusted => TelemetryService.IsBuildUntrusted;
+
+    public string LinuxProtocolAutoText =>
+        Lang.Text(
+            "Setup.Misc.Debug.LinuxProtocol.Auto",
+            LinuxProtocolName);
+
+    public string LinuxProtocolAutoToolTip =>
+        Lang.Text(
+            "Setup.Misc.Debug.LinuxProtocol.Auto.ToolTip",
+            LinuxProtocolName);
+
+    private static string LinuxProtocolName =>
+        LinuxDisplayProtocolResolver.ResolveAuto() == LinuxDisplayProtocol.Wayland
+            ? "Wayland"
+            : "X11";
 
     public void Reload()
     {

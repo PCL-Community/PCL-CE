@@ -18,17 +18,48 @@ namespace PCL;
 /// <summary>实例选择页右栏的视图模型：实例分组、搜索、隐藏、选择与实例操作。</summary>
 public partial class PageSelectRightViewModel : ViewModelBase
 {
-    [ObservableProperty]
-    public partial string EmptyContent { get; set; } = Lang.Text("Select.Instance.Empty.Message");
+    private string _emptySearchText = string.Empty;
+    private EmptyStateKind _emptyState;
 
-    [ObservableProperty] public partial string EmptySearchContent { get; set; } = string.Empty;
+    public string EmptyContent =>
+        _emptyState switch
+        {
+            EmptyStateKind.NoInstances when ShowHidden => Lang.Text(
+                "Select.Instance.Hidden.EmptyMessage"),
+            EmptyStateKind.NoInstances => Lang.Text("Select.Instance.Empty.Message"),
+            EmptyStateKind.AllHidden => Lang.Text("Select.Instance.AllHidden.Message"),
+            _ => string.Empty
+        };
 
-    [ObservableProperty]
-    public partial string EmptySearchTitle { get; set; } =
-        Lang.Text("Select.Instance.EmptySearch.Title");
+    public string EmptySearchContent =>
+        _emptyState switch
+        {
+            EmptyStateKind.HiddenSearch => string.IsNullOrWhiteSpace(_emptySearchText)
+                ? Lang.Text("Select.Instance.Search.EmptyInput")
+                : Lang.Text("Select.Instance.Search.NoHiddenResult", _emptySearchText),
+            EmptyStateKind.Search => string.IsNullOrWhiteSpace(_emptySearchText)
+                ? Lang.Text("Select.Instance.Search.EmptyInput")
+                : Lang.Text("Select.Instance.Search.NoResult", _emptySearchText),
+            _ => string.Empty
+        };
 
-    [ObservableProperty]
-    public partial string EmptyTitle { get; set; } = Lang.Text("Select.Instance.Empty.Title");
+    public string EmptySearchTitle =>
+        _emptyState switch
+        {
+            EmptyStateKind.HiddenSearch => Lang.Text("Select.Instance.Hidden.EmptySearchTitle"),
+            EmptyStateKind.Search => Lang.Text("Select.Instance.EmptySearch.Title"),
+            _ => string.Empty
+        };
+
+    public string EmptyTitle =>
+        _emptyState switch
+        {
+            EmptyStateKind.NoInstances when ShowHidden =>
+                Lang.Text("Select.Instance.Hidden.EmptyTitle"),
+            EmptyStateKind.NoInstances => Lang.Text("Select.Instance.Empty.Title"),
+            EmptyStateKind.AllHidden => Lang.Text("Select.Instance.AllHidden.Title"),
+            _ => string.Empty
+        };
 
     [ObservableProperty] public partial IReadOnlyList<InstanceCardGroup> Groups { get; set; } = [];
 
@@ -120,14 +151,17 @@ public partial class PageSelectRightViewModel : ViewModelBase
 
     public static bool MatchesSearch(McInstance instance, string searchText)
     {
-        if (string.IsNullOrEmpty(searchText))
-            return true;
-        return (instance.Name ?? "").ToLower().Contains(searchText)
-            || (instance.Desc ?? "").ToLower().Contains(searchText)
+        return string.IsNullOrEmpty(searchText)
+            || (instance.Name ?? "").Contains(
+                searchText,
+                StringComparison.InvariantCultureIgnoreCase)
+            || (instance.Desc ?? "").Contains(
+                searchText,
+                StringComparison.InvariantCultureIgnoreCase)
             || instance
                 .GetDefaultDescription()
                 .Replace(",", "")
-                .ToLower()
+                .ToLowerInvariant()
                 .Trim()
                 .Contains(searchText);
     }
@@ -402,30 +436,19 @@ public partial class PageSelectRightViewModel : ViewModelBase
             IsSearchBoxVisible = true;
             IsEmptyVisible = false;
             IsEmptySearchVisible = false;
+            SetEmptyState(EmptyStateKind.None, searchText);
             return;
         }
 
-        // 完全没有实例：显示空态；隐藏实例模式下提示无隐藏实例。
         if (!originalHasInstances)
         {
             IsBackVisible = false;
             IsSearchBoxVisible = false;
             IsEmptySearchVisible = false;
             IsEmptyVisible = true;
-            if (ShowHidden)
-            {
-                EmptyTitle = Lang.Text("Select.Instance.Hidden.EmptyTitle");
-                EmptyContent = Lang.Text("Select.Instance.Hidden.EmptyMessage");
-                IsDownloadVisible = false;
-            }
-            else
-            {
-                EmptyTitle = Lang.Text("Select.Instance.Empty.Title");
-                EmptyContent = Lang.Text("Select.Instance.Empty.Message");
-                IsDownloadVisible =
-                    HiddenFeatureState.ForceShow || !Config.Preference.Hide.PageDownload;
-            }
-
+            IsDownloadVisible = !ShowHidden
+                && (HiddenFeatureState.ForceShow || !Config.Preference.Hide.PageDownload);
+            SetEmptyState(EmptyStateKind.NoInstances, searchText);
             return;
         }
 
@@ -438,9 +461,8 @@ public partial class PageSelectRightViewModel : ViewModelBase
                 IsSearchBoxVisible = false;
                 IsEmptyVisible = true;
                 IsEmptySearchVisible = false;
-                EmptyTitle = Lang.Text("Select.Instance.AllHidden.Title");
-                EmptyContent = Lang.Text("Select.Instance.AllHidden.Message");
                 IsDownloadVisible = false;
+                SetEmptyState(EmptyStateKind.AllHidden, searchText);
                 return;
             }
 
@@ -454,10 +476,7 @@ public partial class PageSelectRightViewModel : ViewModelBase
                     IsSearchBoxVisible = true;
                     IsEmptyVisible = false;
                     IsEmptySearchVisible = true;
-                    EmptySearchTitle = Lang.Text("Select.Instance.Hidden.EmptySearchTitle");
-                    EmptySearchContent = string.IsNullOrWhiteSpace(searchText)
-                        ? Lang.Text("Select.Instance.Search.EmptyInput")
-                        : Lang.Text("Select.Instance.Search.NoHiddenResult", searchText);
+                    SetEmptyState(EmptyStateKind.HiddenSearch, searchText);
                 }
                 else
                 {
@@ -465,9 +484,8 @@ public partial class PageSelectRightViewModel : ViewModelBase
                     IsSearchBoxVisible = false;
                     IsEmptyVisible = true;
                     IsEmptySearchVisible = false;
-                    EmptyTitle = Lang.Text("Select.Instance.Hidden.EmptyTitle");
-                    EmptyContent = Lang.Text("Select.Instance.Hidden.EmptyMessage");
                     IsDownloadVisible = false;
+                    SetEmptyState(EmptyStateKind.NoInstances, searchText);
                 }
 
                 return;
@@ -478,10 +496,17 @@ public partial class PageSelectRightViewModel : ViewModelBase
         IsSearchBoxVisible = true;
         IsEmptyVisible = false;
         IsEmptySearchVisible = true;
-        EmptySearchTitle = Lang.Text("Select.Instance.EmptySearch.Title");
-        EmptySearchContent = string.IsNullOrWhiteSpace(searchText)
-            ? Lang.Text("Select.Instance.Search.EmptyInput")
-            : Lang.Text("Select.Instance.Search.NoResult", searchText);
+        SetEmptyState(EmptyStateKind.Search, searchText);
+    }
+
+    private void SetEmptyState(EmptyStateKind state, string searchText)
+    {
+        _emptyState = state;
+        _emptySearchText = searchText;
+        OnPropertyChanged(nameof(EmptyContent));
+        OnPropertyChanged(nameof(EmptySearchContent));
+        OnPropertyChanged(nameof(EmptySearchTitle));
+        OnPropertyChanged(nameof(EmptyTitle));
     }
 
     private static string GetCardNameKey(McInstanceCardType type, List<McInstance> instances)
@@ -554,10 +579,22 @@ public partial class PageSelectRightViewModel : ViewModelBase
     {
         LauncherCommon.Log($"[Minecraft] 删除实例 {instance.Name}");
     }
+
+    private enum EmptyStateKind
+    {
+        None,
+        NoInstances,
+        AllHidden,
+        HiddenSearch,
+        Search
+    }
 }
 
 /// <summary>实例选择页中的一个卡片分组。</summary>
 public sealed record InstanceCardGroup(
     McInstanceCardType Type,
     string NameKey,
-    IReadOnlyList<McInstance> Instances);
+    IReadOnlyList<McInstance> Instances)
+{
+    public string Title => PageSelectRightViewModel.GetCardTitle(this);
+}

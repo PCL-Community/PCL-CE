@@ -32,9 +32,8 @@ public partial class PageDownloadInstallViewModel : ViewModelBase
 
     [ObservableProperty] public partial string LoaderWarning { get; set; } = "";
 
-    [ObservableProperty]
-    public partial string StartButtonText { get; set; } =
-        Lang.Text("Download.Install.StartDownload");
+    [LocalizedProperty("Download.Install.StartDownload")]
+    public partial string StartButtonText { get; }
 
     [ObservableProperty]
     public partial string VersionIcon { get; set; } =

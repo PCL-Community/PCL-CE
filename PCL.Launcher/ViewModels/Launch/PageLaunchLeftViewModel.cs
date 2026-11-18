@@ -32,21 +32,12 @@ public partial class PageLaunchLeftViewModel : ViewModelBase
     private bool _isLoadFinished;
 
     private LaunchButtonAction _launchButtonAction = LaunchButtonAction.Loading;
-    private string? _launchButtonLanguage;
-    private int _launchButtonState = -1;
-
-    private McInstance? _launchButtonVersion;
 
     private Loading.LoaderBase? _launchingStageLoader;
-
-    [ObservableProperty]
-    private string _launchingTitleText = Lang.Text("Launch.Status.Title.Launching");
 
     [ObservableProperty] private bool _shouldShowHint;
 
     [ObservableProperty] private double _showProgress;
-
-    [ObservableProperty] private string _versionNameText = string.Empty;
 
     public PageLaunchLeftViewModel()
     {
@@ -69,22 +60,59 @@ public partial class PageLaunchLeftViewModel : ViewModelBase
 
     [ObservableProperty] public partial bool IsShowingLaunching { get; set; }
 
-    [ObservableProperty]
-    public partial string LaunchButtonText { get; set; } = Lang.Text("Launch.Home.Button.Loading");
+    public string LaunchButtonText =>
+        _launchButtonAction switch
+        {
+            LaunchButtonAction.Loading => Lang.Text("Launch.Home.Button.Loading"),
+            LaunchButtonAction.Download => Lang.Text("Launch.Home.Button.Download"),
+            _ => Lang.Text("Launch.Home.Button.Launch")
+        };
 
-    [ObservableProperty] public partial string LaunchingDownloadText { get; set; } = string.Empty;
+    public string LaunchingDownloadText =>
+        LauncherCommon.GetString(NetFacade.NetManager.Speed) + "/s";
 
     [ObservableProperty] public partial string LaunchingHintText { get; set; } = string.Empty;
 
-    [ObservableProperty] public partial string LaunchingMethodText { get; set; } = string.Empty;
+    public string LaunchingMethodText
+    {
+        get
+        {
+            var profile = ProfileService.Current;
+            return profile?.ProfileType switch
+            {
+                ProfileType.Offline => Lang.Text("Launch.Account.Type.Offline"),
+                ProfileType.Microsoft => Lang.Text("Launch.Account.Type.Microsoft"),
+                ProfileType.Authlib or ProfileType.YggdrasilConnect =>
+                    Lang.Text("Launch.Account.Type.ThirdParty")
+                    + (string.IsNullOrEmpty(profile.ServerName)
+                        ? ""
+                        : " / " + profile.ServerName),
+                _ => ""
+            };
+        }
+    }
 
-    [ObservableProperty] public partial string LaunchingNameText { get; set; } = string.Empty;
+    public string LaunchingNameText => InstanceList.McMcInstanceSelected?.Name ?? "";
 
-    [ObservableProperty]
-    public partial string LaunchingProgressText { get; set; } = Lang.Number(0d, "P2");
+    public string LaunchingProgressText => Lang.Number(ShowProgress, "P2");
 
-    [ObservableProperty]
-    public partial string LaunchingStageText { get; set; } = Lang.Text("Common.Action.Initialize");
+    public string LaunchingStageText =>
+        _launchingStageLoader?.DisplayName
+        ?? Lang.Text("Common.Action.Initialize");
+
+    public string LaunchingTitleText =>
+        IsShowingLaunching && ShowProgress >= 1d
+            ? Lang.Text("Launch.Status.Title.Launched")
+            : GameLaunch.currentLaunchOptions?.SaveBatch is null
+                ? Lang.Text("Launch.Status.Title.Launching")
+                : Lang.Text("Launch.Status.Title.ExportingScript");
+
+    public string VersionNameText =>
+        !_isLoadFinished
+            ? Lang.Text("Launch.Home.Instance.Loading")
+            : InstanceList.McMcInstanceSelected is null
+                ? Lang.Text("Launch.Home.Instance.NotFound")
+                : InstanceList.McMcInstanceSelected.Name;
 
     public bool IsFirstLoadStarted { get; private set; }
 
@@ -93,7 +121,7 @@ public partial class PageLaunchLeftViewModel : ViewModelBase
 
     partial void OnShowProgressChanged(double value)
     {
-        LaunchingProgressText = Lang.Number(value, "P2");
+        OnPropertyChanged(nameof(LaunchingProgressText));
         RefreshLaunchingTitle();
     }
 
@@ -142,38 +170,20 @@ public partial class PageLaunchLeftViewModel : ViewModelBase
         else
             currentState = 3;
 
-        var currentLanguage = LocalizationService.CurrentLanguage.Code;
-        var currentPath = InstanceList.McMcInstanceSelected?.PathInstance ?? "";
-        if (currentState != _launchButtonState
-            || currentLanguage != _launchButtonLanguage
-            || currentPath != (_launchButtonVersion?.PathInstance ?? ""))
-        {
-            _launchButtonState = currentState;
-            _launchButtonLanguage = currentLanguage;
-            _launchButtonVersion = InstanceList.McMcInstanceSelected;
-        }
-
-        _launchButtonAction = currentState switch
+        var action = currentState switch
         {
             0 => LaunchButtonAction.Loading,
             1 => LaunchButtonAction.Disabled,
             2 => LaunchButtonAction.Download,
             _ => LaunchButtonAction.Launch
         };
+        if (_launchButtonAction != action)
+        {
+            _launchButtonAction = action;
+            OnPropertyChanged(nameof(LaunchButtonText));
+        }
 
-        LaunchButtonText = _launchButtonAction switch
-        {
-            LaunchButtonAction.Loading => Lang.Text("Launch.Home.Button.Loading"),
-            LaunchButtonAction.Download => Lang.Text("Launch.Home.Button.Download"),
-            _ => Lang.Text("Launch.Home.Button.Launch")
-        };
-        VersionNameText = currentState switch
-        {
-            0 => Lang.Text("Launch.Home.Instance.Loading"),
-            1 or 2 => Lang.Text("Launch.Home.Instance.NotFound"),
-            3 => InstanceList.McMcInstanceSelected?.Name ?? "",
-            _ => ""
-        };
+        OnPropertyChanged(nameof(VersionNameText));
 
         IsInstanceButtonEnabled = currentState != 0;
         IsLaunchButtonEnabled = currentState switch
@@ -186,16 +196,6 @@ public partial class PageLaunchLeftViewModel : ViewModelBase
             !Config.Preference.Hide.FunctionSelect || HiddenFeatureState.ForceShow;
         IsInstanceButtonVisible = instanceButtonVisible;
         IsMoreButtonVisible = currentState == 3 && instanceButtonVisible;
-    }
-
-    /// <summary>刷新语言相关的按钮与启动中文本。</summary>
-    public void RefreshLocalization()
-    {
-        RefreshButtonState();
-        LaunchingStageText = _launchingStageLoader?.DisplayName
-            ?? Lang.Text("Common.Action.Initialize");
-        RefreshLaunchingMethod();
-        RefreshLaunchingTitle();
     }
 
     /// <summary>根据当前账号与目标登录类型决定登录子视图。</summary>
@@ -232,8 +232,8 @@ public partial class PageLaunchLeftViewModel : ViewModelBase
         ShouldShowHint = false;
         IsLaunchingProgressVisible = true;
         _launchingStageLoader = null;
-        LaunchingNameText = InstanceList.McMcInstanceSelected?.Name ?? "";
-        LaunchingStageText = Lang.Text("Common.Action.Initialize");
+        OnPropertyChanged(nameof(LaunchingNameText));
+        OnPropertyChanged(nameof(LaunchingStageText));
         LaunchingHintText = Config.Preference.ShowLaunchingHint
             ? HomepageHints.GetRandomHint(true, true)
             : "";
@@ -267,7 +267,7 @@ public partial class PageLaunchLeftViewModel : ViewModelBase
                     if (!ReferenceEquals(_launchingStageLoader, loader))
                     {
                         _launchingStageLoader = loader;
-                        LaunchingStageText = loader.DisplayName;
+                        OnPropertyChanged(nameof(LaunchingStageText));
                     }
 
                     isLaunched = loader.Identifier is
@@ -303,7 +303,7 @@ public partial class PageLaunchLeftViewModel : ViewModelBase
             }
 
             HasLaunchDownloader = hasLaunchDownloader;
-            LaunchingDownloadText = LauncherCommon.GetString(NetFacade.NetManager.Speed) + "/s";
+            OnPropertyChanged(nameof(LaunchingDownloadText));
 
             var shouldShowHint = isLaunched && Config.Preference.ShowLaunchingHint;
             if (shouldShowHint && !ShouldShowHint)
@@ -403,25 +403,12 @@ public partial class PageLaunchLeftViewModel : ViewModelBase
 
     private void RefreshLaunchingMethod()
     {
-        var profile = ProfileService.Current;
-        LaunchingMethodText = profile?.ProfileType switch
-        {
-            ProfileType.Offline => Lang.Text("Launch.Account.Type.Offline"),
-            ProfileType.Microsoft => Lang.Text("Launch.Account.Type.Microsoft"),
-            ProfileType.Authlib or ProfileType.YggdrasilConnect =>
-                Lang.Text("Launch.Account.Type.ThirdParty")
-                + (string.IsNullOrEmpty(profile.ServerName) ? "" : " / " + profile.ServerName),
-            _ => ""
-        };
+        OnPropertyChanged(nameof(LaunchingMethodText));
     }
 
     private void RefreshLaunchingTitle()
     {
-        LaunchingTitleText = IsShowingLaunching && ShowProgress >= 1d
-            ? Lang.Text("Launch.Status.Title.Launched")
-            : GameLaunch.currentLaunchOptions?.SaveBatch is null
-                ? Lang.Text("Launch.Status.Title.Launching")
-                : Lang.Text("Launch.Status.Title.ExportingScript");
+        OnPropertyChanged(nameof(LaunchingTitleText));
     }
 
     private enum LaunchButtonAction

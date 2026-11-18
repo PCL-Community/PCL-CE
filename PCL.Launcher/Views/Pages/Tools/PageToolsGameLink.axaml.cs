@@ -130,13 +130,17 @@ public partial class PageToolsGameLink : MyPageRight
         StackPlayerList.Children.Clear();
         foreach (var row in ViewModel.PlayerRows)
         {
-            var placeholder = new MyVirtualizingElement<MyListItem>(() => new MyListItem
+            var placeholder = new MyVirtualizingElement<MyListItem>(() =>
             {
-                Title = row.Name,
-                Info = row.Info,
-                SvgIcon = "lucide/user",
-                Type = MyListItem.CheckType.Clickable,
-                Command = row.ShowInfoCommand
+                var item = new MyListItem
+                {
+                    Title = row.Name,
+                    SvgIcon = "lucide/user",
+                    Type = MyListItem.CheckType.Clickable,
+                    Command = row.ShowInfoCommand
+                };
+                LocalizedText.Bind(item, MyListItem.InfoProperty, () => row.Info);
+                return item;
             })
             {
                 Height = 42d,
@@ -149,12 +153,6 @@ public partial class PageToolsGameLink : MyPageRight
     public void Reload()
     {
         ViewModel.Reload();
-    }
-
-    protected override void RefreshLocalization()
-    {
-        ViewModel.RefreshLocalization();
-        UpdateLoadState();
     }
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)

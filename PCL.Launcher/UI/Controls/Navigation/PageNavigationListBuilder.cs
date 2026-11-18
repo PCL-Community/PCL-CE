@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
-using PCL.Core.App.Localization;
 using PCL.Navigation;
 
 namespace PCL.UI.Controls.Navigation;
@@ -53,11 +52,11 @@ public static class PageNavigationListBuilder
             {
                 var title = new TextBlock
                 {
-                    Text = Lang.Text(group.TitleKey),
                     Opacity = 0.6d,
                     FontSize = 12d,
                     Margin = categoryMargin ?? new Thickness(13d, 5d, 5d, 3d)
                 };
+                title.SetLocalizedValue(TextBlock.TextProperty, group.TitleKey);
                 title.Classes.Add("SectionTitle");
                 panel.Children.Add(title);
                 groups.Add((title, group.Key));
@@ -72,12 +71,12 @@ public static class PageNavigationListBuilder
                     MinPaddingRight = 35,
                     Height = 36d,
                     VerticalAlignment = VerticalAlignment.Top,
-                    Title = Lang.Text(sub.TitleKey),
                     SvgIcon = sub.IconKey,
                     LogoScale = sub.LogoScale,
                     Tag = sub.Id,
                     IsVisible = true
                 };
+                item.SetLocalizedValue(MyListItem.TitleProperty, sub.TitleKey);
                 item.Check += (sender, _) =>
                 {
                     if (sender is MyListItem { Checked: true, Tag: SubPageId target })
@@ -94,7 +93,7 @@ public static class PageNavigationListBuilder
                         SvgIcon = "lucide/rotate-ccw",
                         LogoScale = 0.9d
                     };
-                    ToolTip.SetTip(reset, Lang.Text("Common.Action.Initialize"));
+                    reset.SetLocalizedValue(ToolTip.TipProperty, "Common.Action.Initialize");
                     reset.Click += (_, _) => onReset(sub.Id);
                     buttons.Add(reset);
                 }
@@ -106,7 +105,7 @@ public static class PageNavigationListBuilder
                         SvgIcon = "lucide/refresh-cw",
                         LogoScale = 0.85d
                     };
-                    ToolTip.SetTip(refresh, Lang.Text("Common.Action.Refresh"));
+                    refresh.SetLocalizedValue(ToolTip.TipProperty, "Common.Action.Refresh");
                     refresh.Click += (_, _) => onRefresh(sub.Id);
                     buttons.Add(refresh);
                 }

@@ -37,7 +37,10 @@ public partial class PageToolsTest : MyPageRight
         TextDownloadFolder.ValidateRules.Add(new FolderPathValidator());
         TextDownloadName.ValidateRules.Add(new FileNameValidator());
         TextAchievementItem.ValidateRules.Add(
-            new RegexValidator("^[a-z0-9_]+$", Lang.Text("Tools.Test.Achievement.InvalidId")));
+            new RegexValidator("^[a-z0-9_]+$")
+            {
+                ErrorKey = "Tools.Test.Achievement.InvalidId"
+            });
         TextAchievementTitle.ValidateRules.Add(new NullOrEmptyValidator());
         TextAchievementLine1.ValidateRules.Add(new NullOrEmptyValidator());
 
@@ -335,12 +338,6 @@ public partial class PageToolsTest : MyPageRight
         return deletedCount;
     }
 
-    /// <summary>WPF 名称兼容入口。</summary>
-    public static void RubbishClear()
-    {
-        ClearTrash();
-    }
-
     /// <summary>WPF <c>PageToolsTest.Jrrp</c> 的等价实现。</summary>
     public static async void ShowDailyFortune()
     {
@@ -379,14 +376,7 @@ public partial class PageToolsTest : MyPageRight
         }
     }
 
-    /// <summary>WPF 名称兼容入口。</summary>
-    public static void Jrrp()
-    {
-        ShowDailyFortune();
-    }
-
-    /// <summary>WPF <c>GenerateDailySeed</c> 的等价实现：日期 + 启动器识别码的 DJB2 哈希。</summary>
-    public static int GenerateDailySeed()
+    private static int GenerateDailySeed()
     {
         var datePart = DateTime.Today.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
         return _Djb2Hash(datePart + Identify.LauncherId);
@@ -402,8 +392,7 @@ public partial class PageToolsTest : MyPageRight
         return (int)(hash & 0x7FFFFFFFL);
     }
 
-    /// <summary>WPF <c>GetRating</c> 的等价实现。</summary>
-    public static string GetRating(int luckValue)
+    private static string GetRating(int luckValue)
     {
         var key = luckValue switch
         {
@@ -420,7 +409,6 @@ public partial class PageToolsTest : MyPageRight
         return Lang.Text(key);
     }
 
-    /// <summary>WPF <c>PageToolsTest.StartCustomDownload</c> 的等价实现。</summary>
     public static async Task StartCustomDownloadAsync(
         string url,
         string? fileName,
@@ -452,7 +440,7 @@ public partial class PageToolsTest : MyPageRight
             var uuid = LauncherCommon.GetUuid();
             var savePath = Path.Combine(folder, fileName);
             Loading.LoaderBase loader;
-            if (new HttpValidator().Validate(url).IsValid)
+            if ((await new HttpValidator().ValidateAsync(url)).IsValid)
                 loader = new LoaderDownload(
                     Lang.Text("Tools.Test.CustomDownload.LoaderName", fileName),
                     [new DownloadFile([url], savePath, null, true, userAgent)]);

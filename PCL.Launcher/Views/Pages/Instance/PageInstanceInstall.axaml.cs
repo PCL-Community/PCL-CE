@@ -44,6 +44,7 @@ public partial class PageInstanceInstall : MyPageRight, IRefreshable
         DataContext = _vm;
         PanScroll = PanBack;
         _selector = new InstallLoaderSelector(PanLoaderCards, OnSelectionChanged, _vm.Selection);
+        _vm.SetSelectedInfoProvider(BuildSelectedInfo);
         _uiBuilt = true;
 
         // 与 WPF 的 LoaderInit 一致：开始按钮不参与页面切换动画，由选择/版本列表阶段自行控制显隐
@@ -135,44 +136,17 @@ public partial class PageInstanceInstall : MyPageRight, IRefreshable
         EnterCurrentSelection(false);
     }
 
-    protected override void RefreshLocalization()
-    {
-        if (!_uiBuilt)
-            return;
-
-        RefreshStaticText();
-        if (_instance is null)
-        {
-            UpdateSummary(null);
-            _vm.ActionText = Lang.Text("Instance.Install.Action.StartModify");
-            _vm.HasWarning = false;
-            _vm.WarningText = "";
-        }
-        else
-        {
-            _vm.CurrentInfo = FormatLoaders(_instance);
-            UpdateSummary(_instance, !_vm.IsSelecting);
-            _selector.RefreshLocalization();
-            if (_vm.IsSelecting)
-            {
-                OnSelectionChanged();
-            }
-            else
-            {
-                _vm.ActionText = Lang.Text("Instance.Install.Action.StartModify");
-                _vm.HasWarning = false;
-                _vm.WarningText = "";
-            }
-        }
-
-        BuildVersionList();
-    }
-
     private void RefreshStaticText()
     {
-        CardMinecraft.Title = Lang.Text("Common.Installation.Minecraft");
-        BtnRetryVersions.Text = Lang.Text("Launch.Homepage.LoadFailed.Retry");
-        LoadVersionList.Text = Lang.Text("Download.Version.LoadingList");
+        CardMinecraft.SetLocalizedValue(
+            MyCard.TitleProperty,
+            "Common.Installation.Minecraft");
+        BtnRetryVersions.SetLocalizedValue(
+            MyButton.TextProperty,
+            "Launch.Homepage.LoadFailed.Retry");
+        LoadVersionList.SetLocalizedValue(
+            TextBlock.TextProperty,
+            "Download.Version.LoadingList");
     }
 
     private void UpdateSummary(McInstance? instance, bool resetVersion = true)
@@ -181,7 +155,7 @@ public partial class PageInstanceInstall : MyPageRight, IRefreshable
         {
             _vm.InstanceName = "";
             _vm.CurrentInfo = "";
-            _vm.SelectedInfo = "";
+            _vm.RefreshSelectedInfo();
             if (resetVersion)
                 _vm.VersionName = "";
             return;
@@ -197,7 +171,7 @@ public partial class PageInstanceInstall : MyPageRight, IRefreshable
 
         _vm.CurrentInfo = FormatLoaders(instance);
         if (!_vm.IsSelecting)
-            _vm.SelectedInfo = _vm.CurrentInfo;
+            _vm.RefreshSelectedInfo();
     }
 
     private static string FormatLoaders(McInstance instance)
@@ -352,7 +326,7 @@ public partial class PageInstanceInstall : MyPageRight, IRefreshable
             _vm.CurrentInfo = _baselineInfo;
         }
 
-        _vm.ActionText = Lang.Text(
+        _vm.SetAction(
             reset ? "Instance.Install.Action.StartReset" : "Instance.Install.Action.StartModify");
         OnSelectionChanged();
         ShowSelectStage();
@@ -367,8 +341,8 @@ public partial class PageInstanceInstall : MyPageRight, IRefreshable
         _vm.HasWarning = false;
         _vm.WarningText = "";
         PanWarnings.Children.Clear();
-        _vm.SelectedInfo = _vm.CurrentInfo;
-        _vm.ActionText = Lang.Text("Instance.Install.Action.StartModify");
+        _vm.RefreshSelectedInfo();
+        _vm.SetAction("Instance.Install.Action.StartModify");
         BtnStart.SvgIcon = "lucide/download";
         _vm.CanStartInstall = false;
         ShowSummaryStage();
@@ -515,12 +489,9 @@ public partial class PageInstanceInstall : MyPageRight, IRefreshable
         if (_selector is null || _instance is null || !_vm.IsSelecting)
             return;
 
-        var selectedInfo = FormatWpfSelectInfo(_selector.Selection, _vm.VersionName);
         var isReset = IsCurrentSelection();
-        _vm.SelectedInfo = isReset || string.IsNullOrEmpty(_baselineInfo)
-            ? selectedInfo
-            : $"{_baselineInfo} → {selectedInfo}";
-        _vm.ActionText = Lang.Text(
+        _vm.RefreshSelectedInfo();
+        _vm.SetAction(
             isReset
                 ? "Instance.Install.Action.StartReset"
                 : "Instance.Install.Action.StartModify");
@@ -582,13 +553,13 @@ public partial class PageInstanceInstall : MyPageRight, IRefreshable
     {
         if (!show)
             return;
-        PanWarnings.Children.Add(
-            new MyHint
-            {
-                Text = Lang.Text(key),
-                Theme = theme,
-                Margin = margin
-            });
+        var hint = new MyHint
+        {
+            Theme = theme,
+            Margin = margin
+        };
+        hint.SetLocalizedValue(MyHint.TextProperty, key);
+        PanWarnings.Children.Add(hint);
     }
 
     private bool IsCurrentSelection()
@@ -599,6 +570,19 @@ public partial class PageInstanceInstall : MyPageRight, IRefreshable
             FormatWpfSelectInfo(_selector.Selection, _vm.VersionName),
             _baselineInfo,
             StringComparison.Ordinal);
+    }
+
+    private string BuildSelectedInfo()
+    {
+        if (_instance is null)
+            return string.Empty;
+        if (!_vm.IsSelecting)
+            return _vm.CurrentInfo;
+
+        var selectedInfo = FormatWpfSelectInfo(_selector.Selection, _vm.VersionName);
+        return IsCurrentSelection() || string.IsNullOrEmpty(_baselineInfo)
+            ? selectedInfo
+            : $"{_baselineInfo} → {selectedInfo}";
     }
 
     private static string FormatWpfSelectInfo(
@@ -754,8 +738,10 @@ public partial class PageInstanceInstall : MyPageRight, IRefreshable
                 return;
             }
 
-            if (GameDownload.dlClientListLoader.output.Value?["versions"] is JsonArray versions
-                && versions.Count > 0)
+            if (GameDownload.dlClientListLoader.output.Value?["versions"] is JsonArray
+                {
+                    Count: > 0
+                } versions)
             {
                 PanVersions.Children.Clear();
                 DownloadVersionList.Build(PanVersions, versions, OnVersionSelected);
@@ -794,7 +780,9 @@ public partial class PageInstanceInstall : MyPageRight, IRefreshable
         BtnRetryVersions.IsVisible = hasError;
         if (loading)
         {
-            LoadVersionList.Text = Lang.Text("Download.Version.LoadingList");
+            LoadVersionList.SetLocalizedValue(
+                MyTextBox.TextProperty,
+                "Download.Version.LoadingList");
             LoadVersionList.TextError = "";
             LoadVersionList.ShowProgress = false;
             LoadVersionList.State = new MyLoadingStateSimulator
@@ -806,7 +794,9 @@ public partial class PageInstanceInstall : MyPageRight, IRefreshable
 
         if (hasError)
         {
-            LoadVersionList.Text = Lang.Text("Download.Version.VersionList");
+            LoadVersionList.SetLocalizedValue(
+                MyTextBox.TextProperty,
+                "Download.Version.VersionList");
             LoadVersionList.TextError = error!;
             LoadVersionList.ShowProgress = false;
             LoadVersionList.State = new MyLoadingStateSimulator
@@ -952,7 +942,7 @@ public partial class PageInstanceInstall : MyPageRight, IRefreshable
             }
         }
 
-        if (info.HasFabric && info.HasOptiFine && selection.FabricVersion is not null)
+        if (info is { HasFabric: true, HasOptiFine: true } && selection.FabricVersion is not null)
         {
             _currentOptiFabric ??= MatchCurrentApi(
                 _currentOptiFabricLocal,
@@ -988,11 +978,12 @@ public partial class PageInstanceInstall : MyPageRight, IRefreshable
         if (value is null)
             return;
 
-        foreach (var channel in new[]
-                 {
-                     "production",
-                     "snapshot"
-                 })
+        foreach (
+            var channel in new[]
+            {
+                "production",
+                "snapshot"
+            })
         {
             if (value[channel] is not JsonObject channelNode)
                 continue;
@@ -1023,7 +1014,9 @@ public partial class PageInstanceInstall : MyPageRight, IRefreshable
             if (string.IsNullOrEmpty(selection.LabyModVersion))
             {
                 selection.LabyModVersion =
-                    $"{version} {(channel == "snapshot" ? Lang.Text("Download.Version.Type.Snapshot") : Lang.Text("Download.Version.Type.Stable"))}";
+                    $"{version} {(channel == "snapshot"
+                        ? Lang.Text("Download.Version.Type.Snapshot")
+                        : Lang.Text("Download.Version.Type.Stable"))}";
                 _selector.RefreshAll();
             }
 

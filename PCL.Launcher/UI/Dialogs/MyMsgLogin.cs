@@ -6,7 +6,6 @@ using Avalonia.Input.Platform;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
-using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Core.UI.Dialogs;
 using PCL.UI.Controls;
@@ -14,8 +13,8 @@ using PCL.UI.Controls;
 namespace PCL.UI.Dialogs;
 
 /// <summary>
-///     微软设备码登录弹窗：展示授权码与网页地址，自动打开网页并复制代码，随后按设备码间隔轮询授权结果。
-///     关闭弹窗会取消轮询；结果通过 <see cref="DialogViewModel.CompletionHandler" /> 回传。
+/// 微软设备码登录弹窗：展示授权码与网页地址，自动打开网页并复制代码，随后按设备码间隔轮询授权结果。 关闭弹窗会取消轮询；结果通过
+/// <see cref="DialogViewModel.CompletionHandler" /> 回传。
 /// </summary>
 public sealed class MyMsgLogin : MyMsgDialogBase
 {
@@ -28,12 +27,23 @@ public sealed class MyMsgLogin : MyMsgDialogBase
         ViewModel.ClipboardWriter = CopyToClipboardAsync;
         ViewModel.Finished += BringMainWindowToFront;
 
-        SetButtonText(1, Lang.Text("Launch.Account.LoginDialog.ReopenWebpage"));
-        SetButtonText(2, Lang.Text("Launch.Account.LoginDialog.CopyCode"));
-        SetButtonText(3, Lang.Text("Common.Action.Cancel"));
+        Button(1)
+            .SetLocalizedValue(
+                MyButton.TextProperty,
+                "Launch.Account.LoginDialog.ReopenWebpage");
+        Button(2)
+            .SetLocalizedValue(
+                MyButton.TextProperty,
+                "Launch.Account.LoginDialog.CopyCode");
+        Button(3)
+            .SetLocalizedValue(
+                MyButton.TextProperty,
+                "Common.Action.Cancel");
         for (var number = 1; number <= 3; number++)
             Button(number).ColorType = MyButton.ColorState.Normal;
-        LabTitle.Text = Lang.Text("Launch.Account.LoginDialog.MinecraftLogin");
+        LabTitle.SetLocalizedValue(
+            TextBlock.TextProperty,
+            "Launch.Account.LoginDialog.MinecraftLogin");
 
         _caption = new SelectableTextBlock
         {
@@ -59,34 +69,15 @@ public sealed class MyMsgLogin : MyMsgDialogBase
             root.VerticalAlignment = VerticalAlignment.Center;
         }
 
-        LocalizationService.LanguageChanged += OnLanguageChanged;
         Loaded += (_, _) => ViewModel.Start();
     }
 
     public MyMsgLoginViewModel ViewModel { get; }
 
-    private void OnLanguageChanged()
-    {
-        if (!Dispatcher.UIThread.CheckAccess())
-        {
-            Dispatcher.UIThread.Post(OnLanguageChanged);
-            return;
-        }
-
-        SetButtonText(1, Lang.Text("Launch.Account.LoginDialog.ReopenWebpage"));
-        SetButtonText(2, Lang.Text("Launch.Account.LoginDialog.CopyCode"));
-        SetButtonText(3, Lang.Text("Common.Action.Cancel"));
-        for (var number = 1; number <= 3; number++)
-            Button(number).ColorType = MyButton.ColorState.Normal;
-        LabTitle.Text = Lang.Text("Launch.Account.LoginDialog.MinecraftLogin");
-        ViewModel.ReloadDeviceCode();
-    }
-
     /// <summary>控件离树即视为弹窗被关闭：停止轮询，并把未完成的结果以取消异常回报给调用方。</summary>
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnDetachedFromVisualTree(e);
-        LocalizationService.LanguageChanged -= OnLanguageChanged;
         ViewModel.Finished -= BringMainWindowToFront;
         ViewModel.Cancel();
         BringMainWindowToFront();
@@ -100,10 +91,7 @@ public sealed class MyMsgLogin : MyMsgDialogBase
         await clipboard.SetTextAsync(text);
     }
 
-    /// <summary>
-    ///     登录结束（成功、失败或取消）后把主窗口重新置前，避免弹窗退场后主窗口留在后台。
-    ///     等弹窗窗口真正关闭后再激活，立即激活会被随后的窗口关闭动作覆盖。
-    /// </summary>
+    /// <summary>登录结束（成功、失败或取消）后把主窗口重新置前，避免弹窗退场后主窗口留在后台。 等弹窗窗口真正关闭后再激活，立即激活会被随后的窗口关闭动作覆盖。</summary>
     private static void BringMainWindowToFront()
     {
         _ = BringMainWindowToFrontAsync();

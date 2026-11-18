@@ -130,7 +130,6 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
     private readonly MyCard _panLoad;
     private readonly StackPanel _panMain;
     private readonly StackPanel _panVersions;
-    private bool _finished;
 
     public PageDownloadLoaderPage(DownloadLoaderKind kind)
     {
@@ -138,19 +137,22 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
 
         _labIntro = new TextBlock
         {
-            Text = Lang.Text(DownloadLoaderMeta.GetDescriptionKey(kind)),
             TextWrapping = TextWrapping.Wrap,
             Margin = new Thickness(0d, 0d, 0d, 11d)
         };
+        LocalizedText.Bind(
+            _labIntro,
+            TextBlock.TextProperty,
+            () => Lang.Text(DownloadLoaderMeta.GetDescriptionKey(kind)));
         _btnWebsite = new MyButton
         {
             MinWidth = 140d,
             Padding = new Thickness(13d, 0d, 13d, 0d),
             Margin = new Thickness(0d, 0d, 20d, 0d),
             HorizontalAlignment = HorizontalAlignment.Left,
-            Text = Lang.Text("Download.Version.OpenWebsite"),
             ColorType = MyButton.ColorState.Highlight
         };
+        _btnWebsite.SetLocalizedValue(MyButton.TextProperty, "Download.Version.OpenWebsite");
         var website = DownloadLoaderMeta.GetWebsite(kind);
         _btnWebsite.Click += (_, _) => LauncherUi.Interaction?.OpenWebsite(website);
 
@@ -171,9 +173,11 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
 
         _cardTip = new MyCard
         {
-            Margin = new Thickness(20d, 20d, 20d, 0d),
-            Title = Lang.Text(DownloadLoaderMeta.GetTitleKey(kind))
+            Margin = new Thickness(20d, 20d, 20d, 0d)
         };
+        _cardTip.SetLocalizedValue(
+            MyCard.TitleProperty,
+            DownloadLoaderMeta.GetTitleKey(kind));
         _cardTip.Children.Add(tipStack);
         Grid.SetIsSharedSizeScope(_cardTip, true);
 
@@ -183,9 +187,9 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
         };
         _cardVersions = new MyCard
         {
-            Margin = new Thickness(20d, 15d, 20d, 20d),
-            Title = Lang.Text("Download.Version.VersionList")
+            Margin = new Thickness(20d, 15d, 20d, 20d)
         };
+        _cardVersions.SetLocalizedValue(MyCard.TitleProperty, "Download.Version.VersionList");
         _cardVersions.Children.Add(_panVersions);
 
         _panMain = new StackPanel
@@ -197,9 +201,11 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
         _load = new MyLoading
         {
             Margin = new Thickness(20d, 20d, 20d, 17d),
-            HorizontalAlignment = HorizontalAlignment.Center,
-            Text = Lang.Text(DownloadLoaderMeta.GetLoadingKey(kind))
+            HorizontalAlignment = HorizontalAlignment.Center
         };
+        _load.SetLocalizedValue(
+            MyLoading.TextProperty,
+            DownloadLoaderMeta.GetLoadingKey(kind));
         _panLoad = new MyCard
         {
             HorizontalAlignment = HorizontalAlignment.Center,
@@ -260,19 +266,8 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
         DownloadLoaderMeta.GetListLoader(_kind).Start(null, true);
     }
 
-    protected override void RefreshLocalization()
-    {
-        _load.Text = Lang.Text(DownloadLoaderMeta.GetLoadingKey(_kind));
-        _cardTip.Title = Lang.Text(DownloadLoaderMeta.GetTitleKey(_kind));
-        _labIntro.Text = Lang.Text(DownloadLoaderMeta.GetDescriptionKey(_kind));
-        _btnWebsite.Text = Lang.Text("Download.Version.OpenWebsite");
-        if (_finished)
-            OnLoadFinished();
-    }
-
     private void OnLoadFinished()
     {
-        _finished = true;
         try
         {
             if (DownloadLoaderMeta.UsesVersionCard(_kind))
@@ -352,9 +347,11 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
         if (result?["installer"] is not JsonArray installers)
             return;
 
-        _cardVersions.Title = Lang.Text(
-            "Download.Version.VersionListCount",
-            installers.Count);
+        var installerCount = installers.Count;
+        LocalizedText.Bind(
+            _cardVersions,
+            MyCard.TitleProperty,
+            () => Lang.Text("Download.Version.VersionListCount", installerCount));
         foreach (var node in installers)
         {
             if (node is not JsonObject entry)
@@ -367,12 +364,15 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
                 Title = title,
                 Height = 42d,
                 Type = MyListItem.CheckType.Clickable,
-                Logo = $"{LauncherPaths.ImageRoot}Blocks/Fabric.png",
-                Info = Lang.Text(
+                Logo = $"{LauncherPaths.ImageRoot}Blocks/Fabric.png"
+            };
+            LocalizedText.Bind(
+                item,
+                MyListItem.InfoProperty,
+                () => Lang.Text(
                     isStable
                         ? "Download.Version.Type.Stable"
-                        : "Download.Version.Type.Preview")
-            };
+                        : "Download.Version.Type.Preview"));
             item.Click += (_, _) => _ = SaveInstallerAsync(
                 [entry["url"]?.ToString() ?? ""],
                 LauncherCommon.GetFileNameFromPath(entry["url"]?.ToString() ?? title),
@@ -387,7 +387,9 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
                     LogoScale = 1.05d,
                     Theme = MyIconButton.Themes.Color
                 };
-                ToolTip.SetTip(infoButton, Lang.Text("Download.Version.Changelog"));
+                infoButton.SetLocalizedValue(
+                    ToolTip.TipProperty,
+                    "Download.Version.Changelog");
                 infoButton.Click += (_, _) =>
                     LauncherUi.Interaction?.OpenWebsite("https://fabricmc.net/blog");
                 item.Buttons = [infoButton];
@@ -471,7 +473,10 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
         if (value is null)
             return;
 
-        _cardVersions.Title = Lang.Text("Download.Version.VersionListCount", value.Count);
+        LocalizedText.Bind(
+            _cardVersions,
+            MyCard.TitleProperty,
+            () => Lang.Text("Download.Version.VersionListCount", value.Count));
         foreach (var channel in new[]
                  {
                      "production",
@@ -484,25 +489,31 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
             var isSnapshot = channel == "snapshot";
             var item = new MyListItem
             {
-                Title = $"{version} {Lang.Text(
-                    isSnapshot
-                        ? "Download.Version.Type.Snapshot"
-                        : "Download.Version.Type.Stable")}",
-                Info = Lang.Text(
-                    isSnapshot
-                        ? "Download.Version.Type.Snapshot"
-                        : "Download.Version.Type.Stable"),
                 Height = 42d,
                 Type = MyListItem.CheckType.Clickable,
                 Logo = $"{LauncherPaths.ImageRoot}Blocks/LabyMod.png"
             };
+            LocalizedText.Bind(
+                item,
+                MyListItem.TitleProperty,
+                () => $"{version} {Lang.Text(
+                    isSnapshot
+                        ? "Download.Version.Type.Snapshot"
+                        : "Download.Version.Type.Stable")}");
+            LocalizedText.Bind(
+                item,
+                MyListItem.InfoProperty,
+                () => Lang.Text(
+                    isSnapshot
+                        ? "Download.Version.Type.Snapshot"
+                        : "Download.Version.Type.Stable"));
 
             var saveButton = new MyIconButton
             {
                 SvgIcon = "lucide/save",
                 Theme = MyIconButton.Themes.Color
             };
-            ToolTip.SetTip(saveButton, Lang.Text("Download.Version.SaveAs"));
+            saveButton.SetLocalizedValue(ToolTip.TipProperty, "Download.Version.SaveAs");
             saveButton.Click += (_, _) => SaveLabyMod(isSnapshot);
 
             var changelogButton = new MyIconButton
@@ -511,7 +522,9 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
                 LogoScale = 1.05d,
                 Theme = MyIconButton.Themes.Color
             };
-            ToolTip.SetTip(changelogButton, Lang.Text("Download.Version.Changelog"));
+            changelogButton.SetLocalizedValue(
+                ToolTip.TipProperty,
+                "Download.Version.Changelog");
             changelogButton.Click += (_, _) =>
                 LauncherUi.Interaction?.OpenWebsite("https://www.labymod.net/zh_Hans/download");
             item.Buttons = [saveButton, changelogButton];
@@ -577,9 +590,11 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
 
         var loading = new MyLoading
         {
-            Margin = new Thickness(5d),
-            Text = Lang.Text("Download.Version.Forge.LoadingList")
+            Margin = new Thickness(5d)
         };
+        loading.SetLocalizedValue(
+            MyLoading.TextProperty,
+            "Download.Version.Forge.LoadingList");
         var task = new Loading.LoaderTask<string, List<GameDownload.DlForgeVersionEntry>>(
             $"DlForgeVersion {mcVersion}",
             GameDownload.DlForgeVersionMain);
@@ -621,31 +636,35 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
         var versions = entries
             .OrderByDescending(entry => entry.version)
             .ToList();
-        if (versions.Count == 0)
+        switch (versions.Count)
         {
-            target.Children.Add(
-                new TextBlock
+            case 0:
+            {
+                var empty = new TextBlock
                 {
-                    Text = Lang.Text("Download.Install.State.NoAvailableVersion"),
                     Margin = new Thickness(6d, 4d, 6d, 8d)
-                });
-            card.InstallMethod = stack => FillForgeVersionList(
-                card,
-                stack,
-                mcVersion,
-                _forgeCache.GetValueOrDefault(mcVersion, []));
-            return;
-        }
-
-        if (versions.Count == 1)
-        {
-            AddForgeVersionRow(target, versions[0], null);
-            card.InstallMethod = stack => FillForgeVersionList(
-                card,
-                stack,
-                mcVersion,
-                _forgeCache.GetValueOrDefault(mcVersion, []));
-            return;
+                };
+                empty.SetLocalizedValue(
+                    TextBlock.TextProperty,
+                    "Download.Install.State.NoAvailableVersion");
+                target.Children.Add(empty);
+                card.InstallMethod = stack => FillForgeVersionList(
+                    card,
+                    stack,
+                    mcVersion,
+                    _forgeCache.GetValueOrDefault(mcVersion, []));
+                return;
+            }
+            case 1:
+            {
+                AddForgeVersionRow(target, versions[0], null);
+                card.InstallMethod = stack => FillForgeVersionList(
+                    card,
+                    stack,
+                    mcVersion,
+                    _forgeCache.GetValueOrDefault(mcVersion, []));
+                return;
+            }
         }
 
         var latest = versions[0];
@@ -656,13 +675,7 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
                 recommended,
                 "Download.Version.Type.Recommended");
         AddForgeVersionRow(target, latest, "Download.Version.Latest.Title");
-        target.Children.Add(
-            new TextBlock
-            {
-                Text = Lang.Text("Download.Version.AllVersions", versions.Count),
-                HorizontalAlignment = HorizontalAlignment.Left,
-                Margin = new Thickness(6d, 13d, 0d, 4d)
-            });
+        AddAllVersionsLabel(target, versions.Count);
         foreach (var entry in versions)
             AddForgeVersionRow(target, entry, null);
 
@@ -681,31 +694,38 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
         if (entry is null)
             return;
 
-        var infoParts = new List<string>();
-        if (typeKey is not null)
-        {
-            infoParts.Add(
-                $"{Lang.Text(typeKey)}  |  {Lang.Text("Download.Version.Type.Stable")}");
-        }
-        else
-        {
-            if (entry.ReleaseTime is not null)
-                infoParts.Add(
-                    Lang.Text(
-                        "Download.Version.ReleaseDate",
-                        Lang.Date(entry.ReleaseTime.Value, "g")));
-            if (LauncherCommon.ModeDebug)
-                infoParts.Add(Lang.Text("Download.Version.Forge.Type", entry.Category));
-        }
-
         var item = new MyListItem
         {
             Title = entry.VersionName,
             Height = 42d,
             Type = MyListItem.CheckType.Clickable,
-            Logo = $"{LauncherPaths.ImageRoot}Blocks/Anvil.png",
-            Info = string.Join("  |  ", infoParts)
+            Logo = $"{LauncherPaths.ImageRoot}Blocks/Anvil.png"
         };
+        LocalizedText.Bind(
+            item,
+            MyListItem.InfoProperty,
+            () =>
+            {
+                var infoParts = new List<string>();
+                if (typeKey is not null)
+                {
+                    infoParts.Add(
+                        $"{Lang.Text(typeKey)}  |  {Lang.Text("Download.Version.Type.Stable")}");
+                }
+                else
+                {
+                    if (entry.ReleaseTime is not null)
+                        infoParts.Add(
+                            Lang.Text(
+                                "Download.Version.ReleaseDate",
+                                Lang.Date(entry.ReleaseTime.Value, "g")));
+                    if (LauncherCommon.ModeDebug)
+                        infoParts.Add(
+                            Lang.Text("Download.Version.Forge.Type", entry.Category));
+                }
+
+                return string.Join("  |  ", infoParts);
+            });
 
         var changelogButton = new MyIconButton
         {
@@ -713,7 +733,9 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
             LogoScale = 1.05d,
             Theme = MyIconButton.Themes.Color
         };
-        ToolTip.SetTip(changelogButton, Lang.Text("Download.Version.Changelog"));
+        changelogButton.SetLocalizedValue(
+            ToolTip.TipProperty,
+            "Download.Version.Changelog");
         changelogButton.Click += (_, _) => LauncherUi.Interaction?.OpenWebsite(
             $"https://files.minecraftforge.net/maven/net/minecraftforge/forge/{entry.Inherit}-{entry.VersionName}/forge-{entry.Inherit}-{entry.VersionName}-changelog.txt");
         item.Buttons = [changelogButton];
@@ -857,13 +879,16 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
 
     private static void AddAllVersionsLabel(StackPanel target, int count)
     {
-        target.Children.Add(
-            new TextBlock
-            {
-                Text = Lang.Text("Download.Version.AllVersions", count),
-                HorizontalAlignment = HorizontalAlignment.Left,
-                Margin = new Thickness(6d, 13d, 0d, 4d)
-            });
+        var label = new TextBlock
+        {
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Margin = new Thickness(6d, 13d, 0d, 4d)
+        };
+        LocalizedText.Bind(
+            label,
+            TextBlock.TextProperty,
+            () => Lang.Text("Download.Version.AllVersions", count));
+        target.Children.Add(label);
     }
 
     private static void AddForgelikeRow(
@@ -872,11 +897,6 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
         string? preloadKey,
         string typeKey)
     {
-        var infoParts = new List<string>();
-        if (preloadKey is not null)
-            infoParts.Add(Lang.Text(preloadKey));
-        infoParts.Add(Lang.Text(typeKey));
-
         var item = new MyListItem
         {
             Title = entry.VersionName,
@@ -884,16 +904,28 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
             Type = MyListItem.CheckType.Clickable,
             Logo = entry is GameDownload.DlCleanroomListEntry
                 ? $"{LauncherPaths.ImageRoot}Blocks/Cleanroom.png"
-                : $"{LauncherPaths.ImageRoot}Blocks/NeoForge.png",
-            Info = string.Join("  |  ", infoParts)
+                : $"{LauncherPaths.ImageRoot}Blocks/NeoForge.png"
         };
+        LocalizedText.Bind(
+            item,
+            MyListItem.InfoProperty,
+            () =>
+            {
+                var infoParts = new List<string>();
+                if (preloadKey is not null)
+                    infoParts.Add(Lang.Text(preloadKey));
+                infoParts.Add(Lang.Text(typeKey));
+                return string.Join("  |  ", infoParts);
+            });
         var changelogButton = new MyIconButton
         {
             SvgIcon = "lucide/info",
             LogoScale = 1.05d,
             Theme = MyIconButton.Themes.Color
         };
-        ToolTip.SetTip(changelogButton, Lang.Text("Download.Version.Changelog"));
+        changelogButton.SetLocalizedValue(
+            ToolTip.TipProperty,
+            "Download.Version.Changelog");
         changelogButton.Click += (_, _) =>
         {
             var url = GetForgelikeChangelogUrl(entry);
@@ -978,14 +1010,21 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
         {
             if (entries.Count == 0)
                 continue;
-            var title = key == snapshotKey
-                ? Lang.Text("Download.Version.Optifine.Snapshot")
-                : key;
             var card = new MyCard
             {
-                Margin = new Thickness(0d, 0d, 0d, 15d),
-                Title = $"{title} ({entries.Count})"
+                Margin = new Thickness(0d, 0d, 0d, 15d)
             };
+            var entryCount = entries.Count;
+            LocalizedText.Bind(
+                card,
+                MyCard.TitleProperty,
+                () =>
+                {
+                    var title = key == snapshotKey
+                        ? Lang.Text("Download.Version.Optifine.Snapshot")
+                        : key;
+                    return $"{title} ({entryCount})";
+                });
             var sorted = entries
                 .OrderByDescending(
                     entry => entry.DisplayName,
@@ -1015,41 +1054,48 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
         StackPanel target,
         GameDownload.DlOptiFineListEntry entry)
     {
-        var infoParts = new List<string>
-        {
-            Lang.Text(
-                entry.IsPreview
-                    ? "Download.Version.Type.Preview"
-                    : "Download.Version.Type.Release")
-        };
-        if (entry.ReleaseTime is not null)
-            infoParts.Add(
-                Lang.Text(
-                    "Download.Version.ReleaseDate",
-                    Lang.Date(entry.ReleaseTime.Value, "d")));
-        if (entry.RequiredForgeVersion is null)
-            infoParts.Add(Lang.Text("Download.Version.Optifine.IncompatibleForge"));
-        else if (!string.IsNullOrEmpty(entry.RequiredForgeVersion))
-            infoParts.Add(
-                Lang.Text(
-                    "Download.Version.Optifine.CompatibleForge",
-                    entry.RequiredForgeVersion));
-
         var item = new MyListItem
         {
             Title = entry.DisplayName ?? string.Empty,
             Height = 42d,
             Type = MyListItem.CheckType.Clickable,
-            Logo = $"{LauncherPaths.ImageRoot}Blocks/GrassPath.png",
-            Info = string.Join("  |  ", infoParts)
+            Logo = $"{LauncherPaths.ImageRoot}Blocks/GrassPath.png"
         };
+        LocalizedText.Bind(
+            item,
+            MyListItem.InfoProperty,
+            () =>
+            {
+                var infoParts = new List<string>
+                {
+                    Lang.Text(
+                        entry.IsPreview
+                            ? "Download.Version.Type.Preview"
+                            : "Download.Version.Type.Release")
+                };
+                if (entry.ReleaseTime is not null)
+                    infoParts.Add(
+                        Lang.Text(
+                            "Download.Version.ReleaseDate",
+                            Lang.Date(entry.ReleaseTime.Value, "d")));
+                if (entry.RequiredForgeVersion is null)
+                    infoParts.Add(Lang.Text("Download.Version.Optifine.IncompatibleForge"));
+                else if (!string.IsNullOrEmpty(entry.RequiredForgeVersion))
+                    infoParts.Add(
+                        Lang.Text(
+                            "Download.Version.Optifine.CompatibleForge",
+                            entry.RequiredForgeVersion));
+                return string.Join("  |  ", infoParts);
+            });
         var changelogButton = new MyIconButton
         {
             SvgIcon = "lucide/info",
             LogoScale = 1.05d,
             Theme = MyIconButton.Themes.Color
         };
-        ToolTip.SetTip(changelogButton, Lang.Text("Download.Version.Changelog"));
+        changelogButton.SetLocalizedValue(
+            ToolTip.TipProperty,
+            "Download.Version.Changelog");
         changelogButton.Click += (_, _) => LauncherUi.Interaction?.OpenWebsite(
             $"https://optifine.net/changelog?f={entry.NameFile}");
         item.Buttons = [changelogButton];
@@ -1098,14 +1144,21 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
         {
             if (entries.Count == 0)
                 continue;
-            var title = key == unknownKey
-                ? Lang.Text("Minecraft.Version.Unknown")
-                : key;
             var card = new MyCard
             {
-                Margin = new Thickness(0d, 0d, 0d, 15d),
-                Title = $"{title} ({entries.Count})"
+                Margin = new Thickness(0d, 0d, 0d, 15d)
             };
+            var entryCount = entries.Count;
+            LocalizedText.Bind(
+                card,
+                MyCard.TitleProperty,
+                () =>
+                {
+                    var title = key == unknownKey
+                        ? Lang.Text("Minecraft.Version.Unknown")
+                        : key;
+                    return $"{title} ({entryCount})";
+                });
             var sorted = entries
                 .OrderByDescending(
                     entry => entry.Inherit,
@@ -1135,27 +1188,32 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
         StackPanel target,
         GameDownload.DlLiteLoaderListEntry entry)
     {
-        var infoParts = new List<string>
-        {
-            Lang.Text(
-                entry.IsPreview
-                    ? "Download.Version.Type.Preview"
-                    : "Download.Version.Type.Stable")
-        };
-        if (entry.ReleaseTime is not null)
-            infoParts.Add(
-                Lang.Text(
-                    "Download.Version.ReleaseDate",
-                    Lang.Date(entry.ReleaseTime.Value, "g")));
-
         var item = new MyListItem
         {
             Title = entry.Inherit ?? string.Empty,
             Height = 42d,
             Type = MyListItem.CheckType.Clickable,
-            Logo = $"{LauncherPaths.ImageRoot}Blocks/Egg.png",
-            Info = string.Join("  |  ", infoParts)
+            Logo = $"{LauncherPaths.ImageRoot}Blocks/Egg.png"
         };
+        LocalizedText.Bind(
+            item,
+            MyListItem.InfoProperty,
+            () =>
+            {
+                var infoParts = new List<string>
+                {
+                    Lang.Text(
+                        entry.IsPreview
+                            ? "Download.Version.Type.Preview"
+                            : "Download.Version.Type.Stable")
+                };
+                if (entry.ReleaseTime is not null)
+                    infoParts.Add(
+                        Lang.Text(
+                            "Download.Version.ReleaseDate",
+                            Lang.Date(entry.ReleaseTime.Value, "g")));
+                return string.Join("  |  ", infoParts);
+            });
 
         if (entry.IsLegacy)
         {
@@ -1168,7 +1226,9 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
                 SvgIcon = "lucide/list",
                 Theme = MyIconButton.Themes.Color
             };
-            ToolTip.SetTip(listButton, Lang.Text("Download.Version.ViewAllVersions"));
+            listButton.SetLocalizedValue(
+                ToolTip.TipProperty,
+                "Download.Version.ViewAllVersions");
             listButton.Click += (_, _) => LauncherUi.Interaction?.OpenWebsite(
                 $"https://jenkins.liteloader.com/view/{entry.Inherit}");
             item.Buttons = [listButton];

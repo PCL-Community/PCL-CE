@@ -26,23 +26,23 @@ public partial class PageSetupFeedbackViewModel : ViewModelBase
     private Dictionary<string, (ObservableCollection<SetupFeedbackItemRow> Rows, string Icon)>?
         _groups;
 
-    [ObservableProperty] private bool _showCompleted;
+    [ObservableProperty] public partial bool ShowCompleted { get; set; }
 
-    [ObservableProperty] private bool _showDecline;
+    [ObservableProperty] public partial bool ShowDecline { get; set; }
 
-    [ObservableProperty] private bool _showDuplicate;
+    [ObservableProperty] public partial bool ShowDuplicate { get; set; }
 
-    [ObservableProperty] private bool _showIgnored;
+    [ObservableProperty] public partial bool ShowIgnored { get; set; }
 
-    [ObservableProperty] private bool _showPause;
+    [ObservableProperty] public partial bool ShowPause { get; set; }
 
-    [ObservableProperty] private bool _showProcessing;
+    [ObservableProperty] public partial bool ShowProcessing { get; set; }
 
-    [ObservableProperty] private bool _showUpnext;
+    [ObservableProperty] public partial bool ShowUpnext { get; set; }
 
-    [ObservableProperty] private bool _showWait;
+    [ObservableProperty] public partial bool ShowWait { get; set; }
 
-    [ObservableProperty] private bool _showWaitingProcess;
+    [ObservableProperty] public partial bool ShowWaitingProcess { get; set; }
 
     public IReadOnlyList<SetupFeedbackEntry> Items { get; private set; } = [];
 
@@ -145,7 +145,8 @@ public partial class PageSetupFeedbackViewModel : ViewModelBase
             rows.Rows.Add(
                 new SetupFeedbackItemRow(
                     $"#{item.Id} {item.Title}",
-                    $"{item.User} | {Lang.Date(item.CreatedAt)}",
+                    item.User,
+                    item.CreatedAt,
                     LauncherPaths.ImageRoot + rows.Icon,
                     item.Type,
                     item));
@@ -181,14 +182,15 @@ public sealed class SetupFeedbackEntry(string tag, FeedbackItem feedback)
 /// <summary>反馈列表中的一行显示数据。</summary>
 public sealed class SetupFeedbackItemRow(
     string title,
-    string info,
+    string user,
+    DateTime createdAt,
     string logo,
     string tags,
-    FeedbackItem feedback)
+    FeedbackItem feedback) : LocalizedObservableObject
 {
     public string Title { get; } = title;
 
-    public string Info { get; } = info;
+    public string Info => $"{user} | {Lang.Date(createdAt)}";
 
     public string Logo { get; } = logo;
 

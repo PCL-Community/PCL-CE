@@ -1,13 +1,7 @@
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
-using Avalonia.Layout;
-using Avalonia.Media;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.UI.Hints;
 using PCL.Navigation;
-using PCL.UI.Controls;
 
 namespace PCL.Views.Pages.Instance;
 
@@ -70,102 +64,6 @@ internal static class InstancePageHelper
         }
     }
 
-    public static (MyScrollViewer Scroll, StackPanel Panel) CreateScrollPage(double margin = 25d)
-    {
-        var panel = new StackPanel
-        {
-            Margin = new Thickness(margin),
-            Spacing = 15d
-        };
-        var scroll = new MyScrollViewer
-        {
-            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
-            Content = panel
-        };
-        return (scroll, panel);
-    }
-
-    public static MyCard CreateCard(string titleKey, out StackPanel body)
-    {
-        var card = new MyCard
-        {
-            Title = Lang.Text(titleKey),
-            Margin = new Thickness(0d, 0d, 0d, 15d)
-        };
-        body = new StackPanel
-        {
-            Margin = new Thickness(15d, 40d, 25d, 15d),
-            Spacing = 8d
-        };
-        card.BorderChild = body;
-        return card;
-    }
-
-    public static Grid Row(string labelText, Control content)
-    {
-        var grid = new Grid
-        {
-            ColumnDefinitions = new ColumnDefinitions("Auto,*"),
-            Height = 30d
-        };
-        var label = new TextBlock
-        {
-            Text = labelText,
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(0d, 0d, 25d, 0d)
-        };
-        grid.Children.Add(label);
-        Grid.SetColumn(content, 1);
-        content.VerticalAlignment = VerticalAlignment.Center;
-        grid.Children.Add(content);
-        return grid;
-    }
-
-    public static Grid InfoRow(string labelText, string value)
-    {
-        return Row(
-            labelText,
-            new TextBlock
-            {
-                Text = value,
-                TextWrapping = TextWrapping.Wrap,
-                VerticalAlignment = VerticalAlignment.Center
-            });
-    }
-
-    public static MyButton Button(
-        string textKey,
-        Action onClick,
-        bool enabled = true,
-        MyButton.ColorState color = MyButton.ColorState.Normal)
-    {
-        var button = new MyButton
-        {
-            Text = Lang.Text(textKey),
-            MinWidth = 140d,
-            Height = 35d,
-            Padding = new Thickness(13d, 0d),
-            Margin = new Thickness(0d, 0d, 12d, 0d),
-            IsEnabled = enabled,
-            ColorType = color
-        };
-        button.Click += (_, _) => onClick();
-        return button;
-    }
-
-    public static WrapPanel ButtonRow(params Control[] controls)
-    {
-        var panel = new WrapPanel
-        {
-            Orientation = Orientation.Horizontal,
-            Margin = new Thickness(0d, 2d, 0d, 2d)
-        };
-        foreach (var control in controls)
-            panel.Children.Add(control);
-        return panel;
-    }
-
     public static string FormatSize(long bytes)
     {
         string[] units = ["B", "KB", "MB", "GB", "TB"];
@@ -178,13 +76,6 @@ internal static class InstancePageHelper
         }
 
         return $"{size:0.##} {units[unit]}";
-    }
-
-    public static string FormatTime(DateTime time)
-    {
-        return time.Kind == DateTimeKind.Utc
-            ? time.ToLocalTime().ToString("g")
-            : time.ToString("g");
     }
 
     public static void ReportError(string titleKey, Exception ex)

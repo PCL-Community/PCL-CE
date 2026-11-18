@@ -94,11 +94,6 @@ public partial class PageSetupGameManage : MyPageRight, ISetupResetPage
     {
     }
 
-    protected override void RefreshLocalization()
-    {
-        if (_loaded) Reload();
-    }
-
     public void Reload()
     {
         _reloading = true;

@@ -7,7 +7,6 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using PCL.Core.App;
-using PCL.Core.App.Localization;
 using PCL.Core.UI.Theme;
 using PCL.Navigation;
 using PCL.UI.Controls;
@@ -43,12 +42,10 @@ public partial class TitleBar : UserControl
 
         ThemeService.ColorThemeChanged += _OnColorThemeChanged;
         ThemeService.ColorModeChanged += _OnColorModeChanged;
-        LocalizationService.LanguageChanged += OnLanguageChanged;
         Unloaded += (_, _) =>
         {
             ThemeService.ColorThemeChanged -= _OnColorThemeChanged;
             ThemeService.ColorModeChanged -= _OnColorModeChanged;
-            LocalizationService.LanguageChanged -= OnLanguageChanged;
         };
     }
 
@@ -262,7 +259,6 @@ public partial class TitleBar : UserControl
         {
             var button = new MyRadioButton
             {
-                Text = Lang.Text(descriptor.TitleKey),
                 SvgIcon = descriptor.IconKey,
                 LogoScale = descriptor.LogoScale,
                 ColorType = MyRadioButton.ColorState.White,
@@ -270,25 +266,13 @@ public partial class TitleBar : UserControl
                 Margin = new Thickness(5d, 0d),
                 CheckCommandParameter = descriptor.Id
             };
+            button.SetLocalizedValue(MyRadioButton.TextProperty, descriptor.TitleKey);
             button.Check += Tab_OnCheck;
             _tabButtons[descriptor.Id] = button;
             PanTitleSelect.Children.Add(button);
         }
 
         SetTabChecked(MainTab.Launch);
-    }
-
-    private void OnLanguageChanged()
-    {
-        if (!Dispatcher.UIThread.CheckAccess())
-        {
-            Dispatcher.UIThread.Post(OnLanguageChanged);
-            return;
-        }
-
-        foreach (var descriptor in PageCatalog.MainTabs)
-            if (_tabButtons.TryGetValue(descriptor.Id, out var button))
-                button.Text = Lang.Text(descriptor.TitleKey);
     }
 
     private void SetTabChecked(MainTab tab)

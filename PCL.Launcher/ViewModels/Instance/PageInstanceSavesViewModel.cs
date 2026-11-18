@@ -22,16 +22,7 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
 
     private FileSystemWatcher? _watcher;
 
-    public PageInstanceSavesViewModel()
-    {
-        SortText = Lang.Text("Instance.Saves.SortBy", GetSortName(SaveSortMethod.FileName));
-    }
-
-    [ObservableProperty] public partial string ListTitle { get; set; } = string.Empty;
-
     [ObservableProperty] public partial string SearchText { get; set; } = string.Empty;
-
-    [ObservableProperty] public partial string SortText { get; set; } = string.Empty;
 
     [ObservableProperty] public partial bool ShowContent { get; set; }
 
@@ -60,6 +51,13 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
 
     public SaveSortMethod SortMethod { get; private set; } = SaveSortMethod.FileName;
 
+    public string SortText => Lang.Text("Instance.Saves.SortBy", GetSortName(SortMethod));
+
+    public string ListTitle =>
+        IsSearching
+            ? Lang.Text("Instance.Saves.SearchResultTitle", Saves.Count)
+            : Lang.Text("Instance.Saves.SaveListTitle", _saveFolders.Count);
+
     /// <summary>由页面注入的文件拖放剪贴板写入器，避免 ViewModel 引用具体窗口。</summary>
     public Func<string, Task>? FileClipboardWriter { get; set; }
 
@@ -69,7 +67,6 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
     {
         Instance = instance;
         CheckQuickPlay();
-        SortText = Lang.Text("Instance.Saves.SortBy", GetSortName(SortMethod));
     }
 
     public void CheckQuickPlay()
@@ -146,16 +143,7 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
     public void SetSortMethod(SaveSortMethod method)
     {
         SortMethod = method;
-        SortText = Lang.Text("Instance.Saves.SortBy", GetSortName(method));
-        ApplySearchAndSort();
-    }
-
-    public void RefreshLocalization()
-    {
-        _allSaves.Clear();
-        foreach (var folder in _saveFolders)
-            _allSaves.Add(BuildEntry(folder));
-        SortText = Lang.Text("Instance.Saves.SortBy", GetSortName(SortMethod));
+        OnPropertyChanged(nameof(SortText));
         ApplySearchAndSort();
     }
 
@@ -213,9 +201,7 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
         foreach (var entry in filtered)
             Saves.Add(entry);
 
-        ListTitle = IsSearching
-            ? Lang.Text("Instance.Saves.SearchResultTitle", filtered.Count)
-            : Lang.Text("Instance.Saves.SaveListTitle", _saveFolders.Count);
+        OnPropertyChanged(nameof(ListTitle));
         UpdateEmptyState();
         Updated?.Invoke();
     }
@@ -244,11 +230,12 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
     private SaveEntry BuildEntry(string folder)
     {
         var logo = GetSaveLogo(folder);
-        var info = Lang.Text(
-            "Instance.Saves.CreationTime",
-            Lang.Date(SafeCreationTime(folder), "d"),
-            Lang.Date(SafeWriteTime(folder), "d"));
-        return new SaveEntry(folder, Path.GetFileName(folder), info, logo);
+        return new SaveEntry(
+            folder,
+            Path.GetFileName(folder),
+            SafeCreationTime(folder),
+            SafeWriteTime(folder),
+            logo);
     }
 
     private string GetSaveLogo(string folder)
@@ -395,10 +382,7 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
                 return false;
 
             if (entry is not null)
-            {
                 entry.IsDeleting = true;
-                entry.Info = Lang.Text("Instance.Saves.Deleting");
-            }
 
             var (outcome, error) = await Task.Run(() =>
             {
@@ -558,19 +542,31 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
 public partial class SaveEntry(
     string folderPath,
     string title,
-    string info,
+    DateTime creationTime,
+    DateTime writeTime,
     string logo)
-    : ObservableObject
+    : LocalizedObservableObject
 {
     public string FolderPath { get; } = folderPath;
 
     public string Title { get; } = title;
 
-    [ObservableProperty] public partial string Info { get; set; } = info;
+    public string Info =>
+        IsDeleting
+            ? Lang.Text("Instance.Saves.Deleting")
+            : Lang.Text(
+                "Instance.Saves.CreationTime",
+                Lang.Date(creationTime, "d"),
+                Lang.Date(writeTime, "d"));
 
     public string Logo { get; } = logo;
 
     [ObservableProperty] public partial bool IsDeleting { get; set; }
+
+    partial void OnIsDeletingChanged(bool value)
+    {
+        OnPropertyChanged(nameof(Info));
+    }
 }
 
 /// <summary>存档列表的排序方式。</summary>

@@ -75,7 +75,6 @@ public partial class PageLaunchLeft : MyPageLeft, IShellShortcutTarget
         _panLaunchingInfo.SizeChanged += OnLaunchingInfoSizeChanged;
 
         ViewModel.RefreshPageRequested += OnRefreshPageRequested;
-        LocalizationService.LanguageChanged += OnLanguageChanged;
 
         ExtraButtonsPanel.AprilGiveupResetAction = ResetAprilState;
         FileDragHandler.AuthlibServerDropped += OnAuthlibServerDropped;
@@ -121,12 +120,6 @@ public partial class PageLaunchLeft : MyPageLeft, IShellShortcutTarget
             RefreshPage(false);
         else
             Dispatcher.UIThread.Post(() => RefreshPage(false));
-    }
-
-    private void OnLanguageChanged()
-    {
-        ViewModel.RefreshLocalization();
-        RefreshButtonsUI();
     }
 
     #endregion

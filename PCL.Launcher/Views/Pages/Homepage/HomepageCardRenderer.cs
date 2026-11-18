@@ -31,7 +31,7 @@ public static class HomepageCardRenderer
             HorizontalAlignment = HorizontalAlignment.Right,
             VerticalAlignment = VerticalAlignment.Top
         };
-        ToolTip.SetTip(refreshButton, Lang.Text("Common.Action.Refresh"));
+        refreshButton.SetLocalizedValue(ToolTip.TipProperty, "Common.Action.Refresh");
 
         var body = new TextBlock
         {
@@ -48,5 +48,4 @@ public static class HomepageCardRenderer
         card.Children.Add(body);
         return card;
     }
-
 }

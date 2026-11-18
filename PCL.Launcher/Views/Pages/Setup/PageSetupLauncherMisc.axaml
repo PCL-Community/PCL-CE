@@ -126,7 +126,7 @@
                         <ui:MyTextBox x:Name="TextSystemHttpProxy"
                                       Grid.Row="2"
                                       Grid.ColumnSpan="5"
-                                      HintText="比如 http://127.0.0.1:1080/"
+                                      HintText="{loc:Loc Setup.Misc.Network.Proxy.CustomHint}"
                                       Text="{Binding HttpProxyText, Mode=TwoWay}"
                                       ToolTip.Tip="{loc:Loc Setup.Misc.Network.Proxy.InvalidWarning}" />
                         <TextBlock Grid.Row="4"

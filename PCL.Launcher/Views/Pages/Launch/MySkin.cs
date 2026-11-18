@@ -1,24 +1,22 @@
 using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Data;
 using Avalonia.Layout;
 using Avalonia.Markup.Xaml.MarkupExtensions;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using PCL.Core.App.Localization;
 using PCL.UI.Controls;
 
 namespace PCL.Views.Pages.Launch;
 
 /// <summary>
-///     皮肤头像控件：按皮肤文件裁出脸部（底层）与帽子层（顶层）并叠放显示，带随悬停加深的阴影。
-///     纹理地址、加载状态与菜单命令由 <see cref="MySkinViewModel" /> 负责；控件保留指针动画、
-///     右键菜单构建与图像源更新。
+/// 皮肤头像控件：按皮肤文件裁出脸部（底层）与帽子层（顶层）并叠放显示，带随悬停加深的阴影。 纹理地址、加载状态与菜单命令由
+/// <see cref="MySkinViewModel" /> 负责；控件保留指针动画、 右键菜单构建与图像源更新。
 /// </summary>
 public sealed class MySkin : Grid
 {
     private const double ShadowIdleOpacity = 0.2d;
-
     private const double ShadowHoverOpacity = 0.8d;
 
     private readonly Image _imgBack = new()
@@ -58,7 +56,13 @@ public sealed class MySkin : Grid
         Height = 64d;
         RenderTransformOrigin = new RelativePoint(0.5d, 0.5d, RelativeUnit.Relative);
         Bind(BackgroundProperty, new DynamicResourceExtension("ColorBrushSemiTransparent"));
-        ToolTip.SetTip(this, ViewModel.ToolTipText ?? string.Empty);
+        Bind(
+            ToolTip.TipProperty,
+            new Binding(nameof(MySkinViewModel.ToolTipText))
+            {
+                Source = ViewModel,
+                Mode = BindingMode.OneWay
+            });
 
         Effect = _shadow;
         ApplyShadowColor();
@@ -168,9 +172,6 @@ public sealed class MySkin : Grid
     {
         switch (e.PropertyName)
         {
-            case nameof(MySkinViewModel.ToolTipText):
-                ToolTip.SetTip(this, ViewModel.ToolTipText ?? string.Empty);
-                break;
             case nameof(MySkinViewModel.FaceImage):
                 _imgBack.Source = ViewModel.FaceImage;
                 break;
@@ -190,25 +191,25 @@ public sealed class MySkin : Grid
     {
         _menuSave = new MyMenuItem
         {
-            Header = Lang.Text("Launch.Skin.SaveAs"),
             SvgIcon = "lucide/download",
             IsEnabled = ViewModel.CanSave
         };
+        _menuSave.SetLocalizedValue(MenuItem.HeaderProperty, "Launch.Skin.SaveAs");
         _menuSave.Click += (_, _) => _ = SaveSkinAsync();
 
         var refreshItem = new MyMenuItem
         {
-            Header = Lang.Text("Common.Action.Refresh"),
             SvgIcon = "lucide/refresh-cw"
         };
+        refreshItem.SetLocalizedValue(MenuItem.HeaderProperty, "Common.Action.Refresh");
         refreshItem.Click += (_, _) => RefreshSource();
 
         _menuCape = new MyMenuItem
         {
-            Header = Lang.Text("Launch.Skin.ChangeCape"),
             SvgIcon = "lucide/shirt",
             IsVisible = ViewModel.HasCape
         };
+        _menuCape.SetLocalizedValue(MenuItem.HeaderProperty, "Launch.Skin.ChangeCape");
         _menuCape.Click += (_, _) => ViewModel.ChangeCapeCommand.Execute(null);
 
         ContextMenu = new ContextMenu

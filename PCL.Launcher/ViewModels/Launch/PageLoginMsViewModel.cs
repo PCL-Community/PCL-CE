@@ -12,14 +12,34 @@ namespace PCL;
 /// <summary>微软登录页面的视图模型：设备码登录状态与登录命令。</summary>
 public partial class PageLoginMsViewModel : ViewModelBase
 {
+    private bool _hasLoginProgress;
+    private string _idleLoginTextKey = "Launch.Account.Microsoft.Start";
+    private bool _isLoggingIn;
+    private double _loginProgress;
+
     [ObservableProperty] public partial bool IsLoginEnabled { get; set; } = true;
 
     [ObservableProperty] public partial bool IsBackVisible { get; set; } = true;
 
-    [ObservableProperty]
-    public partial string LoginText { get; set; } = Lang.Text("Launch.Account.Microsoft.Start");
+    public string LoginText =>
+        _isLoggingIn && _hasLoginProgress
+            ? Lang.Number(_loginProgress, "P0")
+            : Lang.Text(_idleLoginTextKey);
 
-    public bool IsLoggingIn { get; private set; }
+    public bool IsLoggingIn
+    {
+        get => _isLoggingIn;
+        private set
+        {
+            if (_isLoggingIn == value)
+                return;
+            _isLoggingIn = value;
+            if (!value)
+                _hasLoginProgress = false;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(LoginText));
+        }
+    }
 
     /// <summary>请求返回上一层登录页。</summary>
     public event Action? BackRequested;
@@ -33,7 +53,8 @@ public partial class PageLoginMsViewModel : ViewModelBase
             return;
         IsLoginEnabled = true;
         IsBackVisible = true;
-        LoginText = Lang.Text("Launch.Account.Microsoft.Start");
+        _idleLoginTextKey = "Launch.Account.Microsoft.Start";
+        OnPropertyChanged(nameof(LoginText));
     }
 
     [RelayCommand]
@@ -67,7 +88,7 @@ public partial class PageLoginMsViewModel : ViewModelBase
                     while (GameLaunch.mcLoginMsLoader.State == LoadState.Loading)
                     {
                         var progress = GameLaunch.mcLoginMsLoader.Progress;
-                        LauncherCommon.RunInUi(() => LoginText = Lang.Number(progress, "P0"));
+                        LauncherCommon.RunInUi(() => UpdateLoginProgress(progress));
                         Thread.Sleep(50);
                     }
 
@@ -133,11 +154,19 @@ public partial class PageLoginMsViewModel : ViewModelBase
             IsLoggingIn = false;
             IsLoginEnabled = true;
             IsBackVisible = true;
-            LoginText = Lang.Text("Launch.Account.Login");
+            _idleLoginTextKey = "Launch.Account.Login";
+            OnPropertyChanged(nameof(LoginText));
             if (loginSucceeded)
                 RefreshRequested?.Invoke();
             else
                 ResetLoginState();
         }
+    }
+
+    private void UpdateLoginProgress(double progress)
+    {
+        _loginProgress = progress;
+        _hasLoginProgress = true;
+        OnPropertyChanged(nameof(LoginText));
     }
 }

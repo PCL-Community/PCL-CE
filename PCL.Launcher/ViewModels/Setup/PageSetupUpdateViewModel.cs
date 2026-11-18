@@ -13,22 +13,26 @@ namespace PCL;
 /// <summary>设置页面中「更新」页的视图模型。</summary>
 public partial class PageSetupUpdateViewModel : ViewModelBase
 {
+    private string _changelogSummary = string.Empty;
+
     private bool _checking;
 
     private object?[] _descArgs = [];
     private string _descKey = "Setup.Update.Checking";
+    private object?[] _externalUpdateButtonArgs = [];
+    private string? _externalUpdateButtonKey;
+    private bool _hasStatusText;
 
     private VersionDataModel? _latestVersion;
+    private UpdateButtonState _updateButtonState = UpdateButtonState.Install;
+
+    private double _updateProgress;
 
     [ObservableProperty] public partial bool ChangelogDetailEnabled { get; set; } = true;
-
-    [ObservableProperty] public partial string ChangelogText { get; set; } = string.Empty;
 
     [ObservableProperty] public partial bool ChannelEnabled { get; set; } = true;
 
     [ObservableProperty] public partial bool CheckAgainEnabled { get; set; } = true;
-
-    [ObservableProperty] public partial string CurrentDescText { get; set; } = string.Empty;
 
     [ObservableProperty] public partial string CurrentVersionText { get; set; } = string.Empty;
 
@@ -42,9 +46,6 @@ public partial class PageSetupUpdateViewModel : ViewModelBase
     [ObservableProperty] public partial bool UpdateButtonEnabled { get; set; } = true;
 
     [ObservableProperty]
-    public partial string UpdateButtonText { get; set; } = Lang.Text("Setup.Update.Install");
-
-    [ObservableProperty]
     public partial int UpdateModeIndex { get; set; } = Math.Clamp(
         (int)Config.Update.UpdateMode,
         0,
@@ -52,22 +53,48 @@ public partial class PageSetupUpdateViewModel : ViewModelBase
 
     [ObservableProperty] public partial string UpdateNameText { get; set; } = string.Empty;
 
+    public string ChangelogText =>
+        !ShowUpdateCard
+            ? Lang.Text("Setup.Update.Changelog.Placeholder")
+            : string.IsNullOrWhiteSpace(_changelogSummary)
+                ? Lang.Text("Setup.Update.Changelog.Empty")
+                : _changelogSummary;
+
+    public string CurrentDescText => _hasStatusText ? Lang.Text(_descKey, _descArgs) : string.Empty;
+
     public string? LatestChangelog => _latestVersion?.Changelog;
+
+    public string UpdateButtonText =>
+        _externalUpdateButtonKey is { } externalKey
+            ? Lang.Text(externalKey, _externalUpdateButtonArgs)
+            : _updateButtonState switch
+            {
+                UpdateButtonState.Progress => Lang.Number(_updateProgress, "P2"),
+                UpdateButtonState.RestartInstall => Lang.Text("Setup.Update.RestartInstall"),
+                UpdateButtonState.Flatpak => Lang.Text("Setup.Update.Flatpak"),
+                UpdateButtonState.OpenDownload => Lang.Text("Setup.Update.OpenDownload"),
+                _ => Lang.Text("Setup.Update.Install")
+            };
 
     /// <summary>Flatpak 包由软件中心更新，不能展示假的安装入口。</summary>
     public static bool IsFlatpak =>
         !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("FLATPAK_ID"));
 
-    private static string InstallButtonText =>
+    private static UpdateButtonState InstallButtonState =>
         IsFlatpak
-            ? Lang.Text("Setup.Update.Flatpak")
+            ? UpdateButtonState.Flatpak
             : UpdateManager.SupportsInAppUpdate
-                ? Lang.Text("Setup.Update.Install")
-                : Lang.Text("Setup.Update.OpenDownload");
+                ? UpdateButtonState.Install
+                : UpdateButtonState.OpenDownload;
 
     partial void OnMirrorChyanKeyChanged(string value)
     {
         Config.Update.MirrorChyanKey = value ?? string.Empty;
+    }
+
+    partial void OnShowUpdateCardChanged(bool value)
+    {
+        OnPropertyChanged(nameof(ChangelogText));
     }
 
     partial void OnUpdateModeIndexChanged(int value)
@@ -78,11 +105,9 @@ public partial class PageSetupUpdateViewModel : ViewModelBase
     public void Reload()
     {
         CurrentVersionText = "PCL CE " + VersionNameFormat(LauncherCommon.VersionBaseName);
-        if (!ShowUpdateCard)
-            ChangelogText = Lang.Text("Setup.Update.Changelog.Placeholder");
         MirrorChyanKey = Config.Update.MirrorChyanKey;
         UpdateModeIndex = Math.Clamp((int)Config.Update.UpdateMode, 0, 3);
-        UpdateButtonText = InstallButtonText;
+        SetUpdateButtonState(InstallButtonState);
         UpdateButtonEnabled = !IsFlatpak;
     }
 
@@ -115,10 +140,8 @@ public partial class PageSetupUpdateViewModel : ViewModelBase
                 UpdateManager.remoteServer.GetLatestVersion(channel, arch));
             _latestVersion = version;
             UpdateNameText = "PCL CE " + VersionNameFormat(version.VersionName);
-            var summary = ExtractSummary(version.Changelog);
-            ChangelogText = string.IsNullOrWhiteSpace(summary)
-                ? Lang.Text("Setup.Update.Changelog.Empty")
-                : summary;
+            _changelogSummary = ExtractSummary(version.Changelog);
+            OnPropertyChanged(nameof(ChangelogText));
 
             if (UpdateManager.updateLoader is { State: LoadState.Loading })
             {
@@ -127,12 +150,12 @@ public partial class PageSetupUpdateViewModel : ViewModelBase
             }
             else if (UpdateManager.isUpdateWaitingRestart)
             {
-                UpdateButtonText = Lang.Text("Setup.Update.RestartInstall");
+                SetUpdateButtonState(UpdateButtonState.RestartInstall);
                 UpdateButtonEnabled = !IsFlatpak;
             }
             else
             {
-                UpdateButtonText = InstallButtonText;
+                SetUpdateButtonState(InstallButtonState);
                 UpdateButtonEnabled = !IsFlatpak;
             }
 
@@ -181,9 +204,10 @@ public partial class PageSetupUpdateViewModel : ViewModelBase
     private async Task MonitorAndRestoreAsync()
     {
         await MonitorUpdateProgressAsync();
-        UpdateButtonText = UpdateManager.isUpdateWaitingRestart
-            ? Lang.Text("Setup.Update.RestartInstall")
-            : InstallButtonText;
+        SetUpdateButtonState(
+            UpdateManager.isUpdateWaitingRestart
+                ? UpdateButtonState.RestartInstall
+                : InstallButtonState);
         UpdateButtonEnabled = !IsFlatpak;
     }
 
@@ -193,17 +217,17 @@ public partial class PageSetupUpdateViewModel : ViewModelBase
         if (UpdateManager.updateLoader is { State: LoadState.Loading })
         {
             UpdateButtonEnabled = false;
-            UpdateButtonText = InstallButtonText;
+            SetUpdateButtonState(InstallButtonState);
             await MonitorAndRestoreAsync();
         }
         else if (UpdateManager.isUpdateWaitingRestart)
         {
-            UpdateButtonText = Lang.Text("Setup.Update.RestartInstall");
+            SetUpdateButtonState(UpdateButtonState.RestartInstall);
             UpdateButtonEnabled = !IsFlatpak;
         }
         else
         {
-            UpdateButtonText = InstallButtonText;
+            SetUpdateButtonState(InstallButtonState);
             UpdateButtonEnabled = !IsFlatpak;
         }
     }
@@ -221,7 +245,7 @@ public partial class PageSetupUpdateViewModel : ViewModelBase
         while (UpdateManager.updateLoader is { State: LoadState.Loading } loader)
         {
             var progress = loader.Progress;
-            LauncherCommon.RunInUi(() => UpdateButtonText = Lang.Number(progress, "P2"));
+            LauncherCommon.RunInUi(() => SetUpdateProgress(progress));
             await Task.Delay(200);
         }
     }
@@ -363,12 +387,30 @@ public partial class PageSetupUpdateViewModel : ViewModelBase
     {
         _descKey = key;
         _descArgs = args;
-        CurrentDescText = Lang.Text(key, args);
+        _hasStatusText = true;
+        OnPropertyChanged(nameof(CurrentDescText));
     }
 
-    public void RefreshStatusText()
+    public void SetExternalUpdateButtonText(string textKey, params object?[] args)
     {
-        CurrentDescText = Lang.Text(_descKey, _descArgs);
+        _externalUpdateButtonKey = textKey;
+        _externalUpdateButtonArgs = args;
+        OnPropertyChanged(nameof(UpdateButtonText));
+    }
+
+    private void SetUpdateButtonState(UpdateButtonState state)
+    {
+        _externalUpdateButtonKey = null;
+        _updateButtonState = state;
+        OnPropertyChanged(nameof(UpdateButtonText));
+    }
+
+    private void SetUpdateProgress(double progress)
+    {
+        _externalUpdateButtonKey = null;
+        _updateButtonState = UpdateButtonState.Progress;
+        _updateProgress = progress;
+        OnPropertyChanged(nameof(UpdateButtonText));
     }
 
     public static string VersionNameFormat(string str)
@@ -391,5 +433,14 @@ public partial class PageSetupUpdateViewModel : ViewModelBase
         start += startTag.Length;
         var end = changelog.IndexOf(endTag, start, StringComparison.OrdinalIgnoreCase);
         return end < 0 ? string.Empty : changelog[start..end].Trim();
+    }
+
+    private enum UpdateButtonState
+    {
+        Install,
+        OpenDownload,
+        Flatpak,
+        RestartInstall,
+        Progress
     }
 }

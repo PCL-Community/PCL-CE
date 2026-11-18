@@ -55,11 +55,6 @@ public partial class PageInstanceScreenshot : MyPageRight, IRefreshable
         Reload();
     }
 
-    protected override void RefreshLocalization()
-    {
-        Reload();
-    }
-
     public void Reload()
     {
         ViewModel.Reload();
@@ -206,13 +201,14 @@ public partial class PageInstanceScreenshot : MyPageRight, IRefreshable
 
     private static MyIconTextButton CreateActionButton(string textKey, string icon)
     {
-        return new MyIconTextButton
+        var button = new MyIconTextButton
         {
-            Text = Lang.Text(textKey),
             SvgIcon = icon,
             LogoScale = 0.8d,
             Margin = new Thickness(2d, 0d)
         };
+        button.SetLocalizedValue(MyIconTextButton.TextProperty, textKey);
+        return button;
     }
 
     private Task CopyAsync(ScreenshotItemViewModel item)

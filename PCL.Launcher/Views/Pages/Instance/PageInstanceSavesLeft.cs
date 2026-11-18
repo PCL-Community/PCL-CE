@@ -73,14 +73,6 @@ public partial class PageInstanceSavesLeft : MyPageLeft, IRefreshable
     {
     }
 
-    protected override void RefreshLocalization()
-    {
-        if (_datapackRefresh is not null)
-            ToolTip.SetTip(_datapackRefresh, PageInstanceSavesLeftViewModel.RefreshToolTip);
-        ApplyDatapackVisibility();
-        RefreshChecked();
-    }
-
     private void AttachDatapackButton()
     {
         _datapackRefresh = new MyIconButton
@@ -88,7 +80,7 @@ public partial class PageInstanceSavesLeft : MyPageLeft, IRefreshable
             SvgIcon = "lucide/refresh-cw",
             LogoScale = 0.85d
         };
-        ToolTip.SetTip(_datapackRefresh, PageInstanceSavesLeftViewModel.RefreshToolTip);
+        _datapackRefresh.SetLocalizedValue(ToolTip.TipProperty, "Common.Action.Refresh");
         _datapackRefresh.Click += (_, _) => PageInstanceSavesLeftViewModel.Refresh();
         ItemDatapack.Buttons = [_datapackRefresh];
     }

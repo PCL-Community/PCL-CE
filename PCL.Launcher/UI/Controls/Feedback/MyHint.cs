@@ -7,15 +7,13 @@ using Avalonia.Media;
 using Avalonia.Metadata;
 using Avalonia.Threading;
 using PCL.Core.App.Configuration;
-using PCL.Core.App.Localization;
 using PCL.Core.UI.Theme;
 
 namespace PCL.UI.Controls;
 
 /// <summary>
-///     内联提示条：左侧色条按 <see cref="Theme" /> 取红/黄/蓝三档颜色，正文支持
-///     <see cref="Inlines" /> 富文本；可选的关闭按钮会写入 <see cref="RelativeSetup" />
-///     对应的配置项并收起提示条。
+/// 内联提示条：左侧色条按 <see cref="Theme" /> 取红/黄/蓝三档颜色，正文支持 <see cref="Inlines" />
+/// 富文本；可选的关闭按钮会写入 <see cref="RelativeSetup" /> 对应的配置项并收起提示条。
 /// </summary>
 public class MyHint : Border
 {
@@ -74,7 +72,7 @@ public class MyHint : Border
             Focusable = false,
             Cursor = new Cursor(StandardCursorType.Hand)
         };
-        ToolTip.SetTip(_btnClose, Lang.Text("Common.Hint.DoNotShowAgain"));
+        _btnClose.SetLocalizedValue(ToolTip.TipProperty, "Common.Hint.DoNotShowAgain");
         _btnClose.Click += (_, _) => _OnCloseClick();
 
         var grid = new Grid
@@ -182,9 +180,7 @@ public class MyHint : Border
 
     #region 文本
 
-    /// <summary>
-    ///     提示条正文的内联集合；XAML 中直接写在 <c>MyHint</c> 内的文本作为内联内容。
-    /// </summary>
+    /// <summary>提示条正文的内联集合；XAML 中直接写在 <c>MyHint</c> 内的文本作为内联内容。</summary>
     [Content]
     public InlineCollection Inlines => _labText.Inlines!;
 
@@ -204,9 +200,7 @@ public class MyHint : Border
         set => _btnClose.IsVisible = value;
     }
 
-    /// <summary>
-    ///     关联的配置项键；配置项已存在用户值时不再显示提示条，点击关闭按钮会写入该配置项。
-    /// </summary>
+    /// <summary>关联的配置项键；配置项已存在用户值时不再显示提示条，点击关闭按钮会写入该配置项。</summary>
     public string RelativeSetup { get; set; } = string.Empty;
 
     private string DisposeKey => FeedbackAnimation.Name("MyHint Dispose", Uuid);
@@ -229,9 +223,7 @@ public class MyHint : Border
         Close();
     }
 
-    /// <summary>
-    ///     关闭提示条：轻微缩小、淡出、高度收拢后隐藏；动画关闭或已不可交互时立即隐藏。
-    /// </summary>
+    /// <summary>关闭提示条：轻微缩小、淡出、高度收拢后隐藏；动画关闭或已不可交互时立即隐藏。</summary>
     /// <param name="callBack">收起完成后在 UI 线程执行的回调，参数为本提示条。</param>
     public void AniDispose(Action<MyHint>? callBack = null)
     {

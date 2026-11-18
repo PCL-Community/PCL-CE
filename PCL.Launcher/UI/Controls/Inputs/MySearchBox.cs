@@ -3,16 +3,14 @@ using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Layout;
-using PCL.Core.App.Localization;
 using SvgIconControl = PCL.UI.Controls.SvgIcon.SvgIcon;
 
 namespace PCL.UI.Controls;
 
 /// <summary>
-///     搜索框：卡片容器 + 输入框 + 搜索图标 + 清空/搜索按钮。
-///     保留 <see cref="HintText" />/<see cref="Text" />、清空按钮联动、可选搜索按钮、
-///     <see cref="TextChanged" />/<see cref="Search" /> 事件与加载后自动聚焦。
-///     清空按钮的显隐与按下回车时的自定义事件按输入状态触发。
+/// 搜索框：卡片容器 + 输入框 + 搜索图标 + 清空/搜索按钮。 保留 <see cref="HintText" />/<see cref="Text" />
+/// 、清空按钮联动、可选搜索按钮、 <see cref="TextChanged" />/<see cref="Search" /> 事件与加载后自动聚焦。
+/// 清空按钮的显隐与按下回车时的自定义事件按输入状态触发。
 /// </summary>
 public class MySearchBox : MyCard
 {
@@ -84,12 +82,13 @@ public class MySearchBox : MyCard
             Width = 60d,
             Height = 32d,
             Margin = new Thickness(0d, 4d, 4d, 4d),
-            Text = Lang.Text("Common.Action.Search"),
+            Text = string.Empty,
             ColorType = MyButton.ColorState.Highlight,
             IsVisible = false,
             Focusable = false,
             VerticalAlignment = VerticalAlignment.Center
         };
+        BtnSearch.SetLocalizedValue(MyButton.TextProperty, "Common.Action.Search");
         BtnSearch.Click += BtnSearch_Click;
 
         _rightPanel = new StackPanel
@@ -144,19 +143,13 @@ public class MySearchBox : MyCard
         }
     }
 
-    /// <summary>
-    ///     内部输入框。
-    /// </summary>
+    /// <summary>内部输入框。</summary>
     public MyTextBox TextBox { get; }
 
-    /// <summary>
-    ///     清空按钮。
-    /// </summary>
+    /// <summary>清空按钮。</summary>
     public MyIconButton BtnClear { get; }
 
-    /// <summary>
-    ///     搜索按钮。
-    /// </summary>
+    /// <summary>搜索按钮。</summary>
     public MyButton BtnSearch { get; }
 
     public event TextChangedEventHandler? TextChanged;
@@ -203,9 +196,7 @@ public class MySearchBox : MyCard
         InputAnimation.Opacity(BtnClear, hasText ? 1d : 0d, 90, ClearButtonKey);
     }
 
-    /// <summary>
-    ///     回车时触发自定义事件。
-    /// </summary>
+    /// <summary>回车时触发自定义事件。</summary>
     protected override void OnKeyUp(KeyEventArgs e)
     {
         if (e.Key == Key.Enter)

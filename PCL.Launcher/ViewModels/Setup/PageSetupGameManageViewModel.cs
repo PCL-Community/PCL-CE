@@ -13,8 +13,6 @@ public partial class PageSetupGameManageViewModel : ViewModelBase
         0,
         Config.Download.Comp.CompSourceSolution);
 
-    [ObservableProperty] private bool _fileFormatSettingsVisible = Lang.IsChineseMainland;
-
     [ObservableProperty] private int _fileSourceIndex = Math.Max(0, Config.Download.FileSource);
 
     [ObservableProperty] private int _httpModeIndex = Math.Max(0, (int)Config.Download.HttpMode);
@@ -33,6 +31,8 @@ public partial class PageSetupGameManageViewModel : ViewModelBase
     [ObservableProperty] private int _versionListIndex = Math.Max(
         0,
         Config.Download.VersionListSource);
+
+    public bool FileFormatSettingsVisible => Lang.IsChineseMainland;
 
     partial void OnHttpModeIndexChanged(int value)
     {
@@ -78,7 +78,6 @@ public partial class PageSetupGameManageViewModel : ViewModelBase
         CompSourceIndex = Math.Clamp(Config.Download.Comp.CompSourceSolution, 0, 2);
         LocalNameStyleIndex = Math.Clamp(Config.Download.Comp.UiCompNameSolution, 0, 1);
         QuickBehaviorIndex = Math.Clamp(Config.Download.Comp.QuickDownloadBehavior, 0, 3);
-        FileFormatSettingsVisible = Lang.IsChineseMainland;
     }
 
     /// <summary>首次把下载线程调到 64 及以上时给出警告。</summary>

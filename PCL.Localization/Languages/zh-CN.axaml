@@ -1,9 +1,8 @@
 <!-- Formatted by xaml-lang-formatter at 2026-10-28T23:23:04. -->
-<ResourceDictionary
-    xmlns="https://github.com/avaloniaui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:sys="clr-namespace:System;assembly=System.Runtime"
-    xml:space="preserve">
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+                    xml:space="preserve">
 
     <!-- Meta -->
 
@@ -3017,6 +3016,7 @@
     <sys:String x:Key="Setup.Misc.Network.Proxy.Password">密码</sys:String>
     <sys:String x:Key="Setup.Misc.Network.Proxy.System">使用系统代理</sys:String>
     <sys:String x:Key="Setup.Misc.Network.Proxy.UntrustedWarning">请勿填写不信任的代理地址</sys:String>
+    <sys:String x:Key="Setup.Misc.Network.Proxy.CustomHint">比如 http://127.0.0.1:1080/</sys:String>
     <sys:String x:Key="Setup.Misc.Network.Proxy.Username">账号</sys:String>
 
     <!-- Setup.Misc.System -->

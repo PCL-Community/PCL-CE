@@ -54,7 +54,6 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable
 
     private bool _communityHintDialogOpen;
 
-    private HomepageContent? _currentContent;
     private DispatcherTimer? _homepageLivePatchTimer;
     private FileSystemWatcher? _homepageLiveWatcher;
     private bool _initialContentPending;
@@ -80,14 +79,10 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable
         FileDragHandler.CustomHomepageDropped += _ => ForceRefresh();
 
         _panHint.IsVisible = States.Hint.CEMessage;
-        LocalizedText.TryBind(
-            _labHint1,
-            "Text",
-            () => Lang.Text("Launch.Right.CommunityHint.Message"));
-        LocalizedText.TryBind(
-            _labHint2,
-            "Text",
-            () => Lang.Text("Launch.Right.CommunityHint.HidePrompt"));
+        _labHint1.SetLocalizedValue(TextBlock.TextProperty, "Launch.Right.CommunityHint.Message");
+        _labHint2.SetLocalizedValue(
+            TextBlock.TextProperty,
+            "Launch.Right.CommunityHint.HidePrompt");
         this.FindControl<MyIconButton>("BtnHintClose")!.Click += (_, _) => HideCommunityHint();
 
         _panLog.IsVisible = LauncherCommon.ModeDebug;
@@ -298,7 +293,6 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable
 
     private void LoadContent(HomepageContent content)
     {
-        _currentContent = content;
         switch (content.Kind)
         {
             case HomepageSourceKind.Blank:
@@ -455,19 +449,6 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable
         {
             LogWrapper.Debug(ex, "Launch", "显示主页错误弹窗失败");
         }
-    }
-
-    /// <inheritdoc />
-    protected override void RefreshLocalization()
-    {
-        if (_currentContent is not { } content)
-            return;
-        if (content.Kind is not (HomepageSourceKind.CustomXaml or HomepageSourceKind.Trivia))
-            return;
-        if (content.Kind == HomepageSourceKind.CustomXaml
-            && string.IsNullOrWhiteSpace(content.Xaml))
-            return;
-        LoadContent(content);
     }
 
     private object? FindResource(string key)

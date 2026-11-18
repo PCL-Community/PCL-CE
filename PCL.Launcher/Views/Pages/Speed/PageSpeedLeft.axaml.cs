@@ -63,11 +63,6 @@ public partial class PageSpeedLeft : MyPageLeft, IRefreshable
         _timer.Stop();
     }
 
-    protected override void RefreshLocalization()
-    {
-        RefreshStatistics();
-    }
-
     /// <summary>刷新左栏统计数据；可在任意线程调用。</summary>
     public void RefreshStatistics()
     {

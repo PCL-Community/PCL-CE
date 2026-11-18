@@ -1,5 +1,4 @@
-using Avalonia;
-using Avalonia.Threading;
+using Avalonia.Data;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Navigation;
@@ -45,13 +44,6 @@ public partial class PageSetupLog : MyPageRight
     {
     }
 
-    protected override void RefreshLocalization()
-    {
-        var offset = PanBack.Offset.Y;
-        LoadList();
-        Dispatcher.UIThread.Post(() => PanBack.Offset = new Vector(PanBack.Offset.X, offset));
-    }
-
     private void Refresh()
     {
         if (_refreshed) return;
@@ -75,9 +67,14 @@ public partial class PageSetupLog : MyPageRight
                 var item = new MyListItem
                 {
                     Type = MyListItem.CheckType.Clickable,
-                    Title = entry.Title,
                     Info = entry.FilePath
                 };
+                item.Bind(
+                    MyListItem.TitleProperty,
+                    new Binding(nameof(SetupLogEntry.Title))
+                    {
+                        Source = entry
+                    });
                 var file = entry.FilePath;
                 item.Click += (_, _) => Basics.OpenPath(file);
                 PanList.Children.Add(item);

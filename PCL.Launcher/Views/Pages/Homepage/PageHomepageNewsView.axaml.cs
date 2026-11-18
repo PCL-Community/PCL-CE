@@ -12,8 +12,8 @@ using PCL.UI.Controls;
 namespace PCL.Views.Pages.Homepage;
 
 /// <summary>
-///     Minecraft 信息流视图：从官方新闻接口读取标题、作者、发布日期、配图与摘要，以卡片流展示。
-///     数据由 <see cref="NewsViewModel" /> 提供，点击“查看详情”打开对应网页（仅允许官方域名）。
+/// Minecraft 信息流视图：从官方新闻接口读取标题、作者、发布日期、配图与摘要，以卡片流展示。 数据由 <see cref="NewsViewModel" />
+/// 提供，点击“查看详情”打开对应网页（仅允许官方域名）。
 /// </summary>
 public partial class PageHomepageNewsView : UserControl
 {
@@ -23,7 +23,6 @@ public partial class PageHomepageNewsView : UserControl
     private readonly MyCard _panLoad;
     private readonly WaterfallPanel _panNews;
     private readonly NewsViewModel _viewModel;
-    private bool _isLocalizationHooked;
     private bool _rebuildPending;
     private bool _reloaded;
     private ScrollViewer? _scrollViewer;
@@ -48,12 +47,6 @@ public partial class PageHomepageNewsView : UserControl
 
         AttachedToVisualTree += (_, _) =>
         {
-            if (!_isLocalizationHooked)
-            {
-                _isLocalizationHooked = true;
-                LocalizationService.LanguageChanged += OnLanguageChanged;
-            }
-
             _scrollViewer = this.GetVisualAncestors().OfType<ScrollViewer>().FirstOrDefault();
             if (_scrollViewer is not null)
                 _scrollViewer.ScrollChanged += OnScrollChanged;
@@ -86,17 +79,6 @@ public partial class PageHomepageNewsView : UserControl
         }
 
         RefreshState();
-    }
-
-    private void OnLanguageChanged()
-    {
-        if (!Dispatcher.UIThread.CheckAccess())
-        {
-            Dispatcher.UIThread.Post(Rebuild);
-            return;
-        }
-
-        Rebuild();
     }
 
     private void RefreshState()
@@ -201,9 +183,12 @@ public partial class PageHomepageNewsView : UserControl
         };
         var date = new TextBlock
         {
-            Text = item.PublishDate.ToString("g", LocalizationService.CurrentFormatCulture),
             Foreground = FindBrush("ColorBrushGray2")
         };
+        LocalizedText.Bind(
+            date,
+            TextBlock.TextProperty,
+            () => item.PublishDate.ToString("g", LocalizationService.CurrentFormatCulture));
         Grid.SetColumn(date, 1);
         meta.Children.Add(author);
         meta.Children.Add(date);
@@ -222,11 +207,13 @@ public partial class PageHomepageNewsView : UserControl
 
         var readMore = new MyTextButton
         {
-            Text = Lang.Text("Launch.Homepage.News.ViewDetail"),
             Margin = new Thickness(0, 5, 5, 0),
             HorizontalAlignment = HorizontalAlignment.Right,
             Foreground = FindBrush("ColorBrushGray2")
         };
+        readMore.SetLocalizedValue(
+            MyTextButton.TextProperty,
+            "Launch.Homepage.News.ViewDetail");
         readMore.Click += (_, _) => _viewModel._OpenReadCommand.Execute(item.Url);
         Grid.SetRow(readMore, 4);
         grid.Children.Add(readMore);

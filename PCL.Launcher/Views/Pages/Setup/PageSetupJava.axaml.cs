@@ -1,16 +1,13 @@
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
-using Avalonia.Threading;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Minecraft.Java;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
-using PCL.UI.Controls;
-
 using PCL.Navigation;
+using PCL.UI.Controls;
 
 namespace PCL.Views.Pages.Setup;
 
@@ -64,14 +61,6 @@ public partial class PageSetupJava : MyPageRight, IRefreshable
     {
     }
 
-    protected override void RefreshLocalization()
-    {
-        if (!_loaded || _loader.State != LoadState.Finished) return;
-        var offset = PanBack.Offset.Y;
-        OnLoadFinished();
-        Dispatcher.UIThread.Post(() => PanBack.Offset = new Vector(PanBack.Offset.X, offset));
-    }
-
     private void LoadJavaList(Loading.LoaderTask<bool, List<JavaEntry>> task)
     {
         if ((task.input || task.isForceRestarting) && !_scanning)
@@ -102,10 +91,14 @@ public partial class PageSetupJava : MyPageRight, IRefreshable
 
         var autoItem = new MyListItem
         {
-            Type = MyListItem.CheckType.RadioBox,
-            Title = Lang.Text("Setup.Java.AutoSelect.Title"),
-            Info = Lang.Text("Setup.Java.AutoSelect.Info")
+            Type = MyListItem.CheckType.RadioBox
         };
+        autoItem.SetLocalizedValue(
+            MyListItem.TitleProperty,
+            "Setup.Java.AutoSelect.Title");
+        autoItem.SetLocalizedValue(
+            MyListItem.InfoProperty,
+            "Setup.Java.AutoSelect.Info");
         autoItem.Check += (_, _) =>
         {
             if (autoItem.Checked)
@@ -145,7 +138,7 @@ public partial class PageSetupJava : MyPageRight, IRefreshable
         {
             SvgIcon = "lucide/folder-open"
         };
-        ToolTip.SetTip(btnOpenFolder, Lang.Text("Common.Action.Open"));
+        btnOpenFolder.SetLocalizedValue(ToolTip.TipProperty, "Common.Action.Open");
         btnOpenFolder.Click += (_, _) =>
         {
             if (!PageSetupJavaViewModel.EnsureAvailable(entry)) return;
@@ -156,7 +149,7 @@ public partial class PageSetupJava : MyPageRight, IRefreshable
         {
             SvgIcon = "lucide/info"
         };
-        ToolTip.SetTip(btnInfo, Lang.Text("Setup.Java.Detail.ToolTip"));
+        btnInfo.SetLocalizedValue(ToolTip.TipProperty, "Setup.Java.Detail.ToolTip");
         btnInfo.Click += async (_, _) =>
         {
             // 防止重复点击打开多个详情弹窗。
@@ -208,15 +201,17 @@ public partial class PageSetupJava : MyPageRight, IRefreshable
             if (!entry.Installation.IsStillAvailable)
             {
                 btnEnableSwitch.SvgIcon = "lucide/circle-minus";
-                ToolTip.SetTip(btnEnableSwitch, Lang.Text("Setup.Java.Unavailable"));
+                btnEnableSwitch.SetLocalizedValue(
+                    ToolTip.TipProperty,
+                    "Setup.Java.Unavailable");
                 return;
             }
 
             item.LabTitle.TextDecorations = isEnabled ? null : TextDecorations.Strikethrough;
             btnEnableSwitch.SvgIcon = isEnabled ? "lucide/circle-minus" : "lucide/circle-check";
-            ToolTip.SetTip(
-                btnEnableSwitch,
-                Lang.Text(isEnabled ? "Setup.Java.Disable" : "Setup.Java.Enable"));
+            btnEnableSwitch.SetLocalizedValue(
+                ToolTip.TipProperty,
+                isEnabled ? "Setup.Java.Disable" : "Setup.Java.Enable");
         }
     }
 

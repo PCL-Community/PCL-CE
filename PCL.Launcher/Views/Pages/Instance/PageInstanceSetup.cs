@@ -1,8 +1,6 @@
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using PCL.Core.App;
-using PCL.Core.App.Localization;
 using PCL.Core.Utils.Validate;
 using PCL.Navigation;
 using PCL.UI.Controls;
@@ -85,18 +83,6 @@ public partial class PageInstanceSetup : MyPageRight
         ViewModel.SetInstance(InstancePageHelper.ResolveInstance(parameter));
         PanBack.ScrollToHome();
         Reload();
-    }
-
-    protected override void RefreshLocalization()
-    {
-        var offset = PanScroll?.Offset.Y ?? 0d;
-        Reload();
-        Dispatcher.UIThread.Post(() =>
-        {
-            if (PanScroll is not { } scroll)
-                return;
-            scroll.Offset = new Vector(scroll.Offset.X, offset);
-        });
     }
 
     public void Reload()
@@ -351,11 +337,11 @@ public partial class PageInstanceSetup : MyPageRight
         _checkIgnoreJava.Checked = ViewModel.IgnoreJavaCompatibility;
         _checkDisableJlw.Checked = ViewModel.DisableJlw;
         _checkDisableJlw.IsEnabled = !ViewModel.IsArm64System;
-        ToolTip.SetTip(
-            _checkDisableJlw,
+        _checkDisableJlw.SetLocalizedValue(
+            ToolTip.TipProperty,
             ViewModel.IsArm64System
-                ? Lang.Text("Setup.Launch.Advanced.DisableJlw.Arm64ToolTip")
-                : Lang.Text("Setup.Launch.Advanced.DisableJlw.ToolTip"));
+                ? "Setup.Launch.Advanced.DisableJlw.Arm64ToolTip"
+                : "Setup.Launch.Advanced.DisableJlw.ToolTip");
         _checkDebugLog4J.Checked = ViewModel.UseDebugLog4j;
         _checkDisableLf.Checked = ViewModel.DisableLf;
         RefreshRunWait();
@@ -442,7 +428,6 @@ public partial class PageInstanceSetup : MyPageRight
 
     private void RefreshTitleHint()
     {
-        _comboTitle.HintText = ViewModel.TitleHintText;
         _checkTitleDefault.IsVisible = ViewModel.TitleDefaultVisible;
     }
 
@@ -457,9 +442,11 @@ public partial class PageInstanceSetup : MyPageRight
         _comboJava.Items.Clear();
         var loading = new MyComboBoxItem
         {
-            Content = Lang.Text("Instance.Setup.Options.Java.Loading"),
             IsEnabled = false
         };
+        loading.SetLocalizedValue(
+            ContentControl.ContentProperty,
+            "Instance.Setup.Options.Java.Loading");
         _comboJava.Items.Add(loading);
         _comboJava.SelectedItem = loading;
         _syncing = wasSyncing;
@@ -493,9 +480,11 @@ public partial class PageInstanceSetup : MyPageRight
             {
                 var failed = new MyComboBoxItem
                 {
-                    Content = Lang.Text("Instance.Setup.Options.Java.LoadFailed"),
                     IsEnabled = false
                 };
+                failed.SetLocalizedValue(
+                    ContentControl.ContentProperty,
+                    "Instance.Setup.Options.Java.LoadFailed");
                 _comboJava.Items.Add(failed);
                 _comboJava.SelectedItem = failed;
                 return;

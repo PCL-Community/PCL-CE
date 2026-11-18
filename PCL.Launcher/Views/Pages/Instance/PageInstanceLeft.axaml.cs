@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
-using PCL.Core.App.Localization;
 using PCL.Navigation;
 using PCL.UI.Controls;
 
@@ -52,12 +51,6 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
     {
     }
 
-    protected override void RefreshLocalization()
-    {
-        ViewModel.RequestRefresh();
-        RefreshOnNavigate();
-    }
-
     /// <summary>实例分类或 Mod 可用性变化后重建左栏。</summary>
     public void RefreshForInstanceChange()
     {
@@ -87,7 +80,7 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
             {
                 if (entry.IsSection)
                 {
-                    PanItem.Children.Add(CreateSectionTitle(entry.SectionTitle!));
+                    PanItem.Children.Add(CreateSectionTitle(entry.SectionTitleKey!));
                     continue;
                 }
 
@@ -110,12 +103,12 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
             MinPaddingRight = 35,
             Height = 36,
             VerticalAlignment = VerticalAlignment.Top,
-            Title = Lang.Text(definition.TitleKey),
             SvgIcon = definition.SvgIcon,
             LogoScale = definition.LogoScale,
             Tag = definition.SubPage,
             IsVisible = definition.IsVisible
         };
+        item.SetLocalizedValue(MyListItem.TitleProperty, definition.TitleKey);
         item.Check += (sender, _) =>
         {
             if (!_isBuilding && sender is MyListItem { Tag: SubPageId target })
@@ -130,7 +123,7 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
                 SvgIcon = "lucide/rotate-ccw",
                 LogoScale = 0.9d
             };
-            ToolTip.SetTip(reset, Lang.Text("Common.Action.Initialize"));
+            reset.SetLocalizedValue(ToolTip.TipProperty, "Common.Action.Initialize");
             reset.Click += (_, _) => _ = ResetInstanceSettingsAsync();
             buttons.Add(reset);
         }
@@ -142,7 +135,7 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
                 SvgIcon = "lucide/refresh-cw",
                 LogoScale = 0.85d
             };
-            ToolTip.SetTip(refreshButton, Lang.Text("Common.Action.Refresh"));
+            refreshButton.SetLocalizedValue(ToolTip.TipProperty, "Common.Action.Refresh");
             refreshButton.Click += (_, _) => PageInstanceLeftViewModel.RefreshSubPage(refresh);
             buttons.Add(refreshButton);
         }
@@ -155,15 +148,16 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
         return item;
     }
 
-    private static TextBlock CreateSectionTitle(string text)
+    private static TextBlock CreateSectionTitle(string titleKey)
     {
         // WPF 实例左栏使用 13,6,5,4；共享 SectionTitle 的 18 上边距用于其它页面，这里局部覆盖。
         var title = new TextBlock
         {
-            Text = text,
             Margin = new Thickness(13d, 6d, 5d, 4d)
         };
         title.Classes.Add("SectionTitle");
+        if (!string.IsNullOrEmpty(titleKey))
+            title.SetLocalizedValue(TextBlock.TextProperty, titleKey);
         return title;
     }
 

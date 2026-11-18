@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
-using PCL.Core.App.Localization;
 using PCL.Navigation;
 using PCL.Views.Pages;
 
@@ -9,8 +8,7 @@ namespace PCL.UI.Controls;
 
 /// <summary>
 /// 页面左栏容器：为 <see cref="AnimatedControl" /> 中的按钮与列表项生成逐个进入/退出动画； 未设置
-/// <see cref="AnimatedControl" /> 时退化为整栏缩放淡入。 语言切换后 <see cref="RefreshLocalization" />
-/// 会在下次加载时重刷页面文本。
+/// <see cref="AnimatedControl" /> 时退化为整栏缩放淡入。
 /// </summary>
 public class MyPageLeft : Grid, IPageView, IPageLeftContainer
 {
@@ -20,12 +18,10 @@ public class MyPageLeft : Grid, IPageView, IPageLeftContainer
     private readonly int _uuid = LauncherCommon.GetUuid();
 
     private bool _animatedControlNullWarned;
-    private int _localizationRevision = LocalizationService.UiRevision;
 
     public MyPageLeft()
     {
         ContainerTheme.AttachStyles(this);
-        Loaded += (_, _) => RefreshLocalizationIfStale();
     }
 
     protected INavigationService Navigation => PageRouter.Navigation;
@@ -210,30 +206,6 @@ public class MyPageLeft : Grid, IPageView, IPageLeftContainer
 
     public virtual void OnNavigatedFrom()
     {
-    }
-
-    private void RefreshLocalizationIfStale()
-    {
-        if (_localizationRevision == LocalizationService.UiRevision)
-            return;
-        _localizationRevision = LocalizationService.UiRevision;
-        try
-        {
-            RefreshLocalization();
-        }
-        catch (Exception ex)
-        {
-            LauncherCommon.Log(ex, "刷新页面本地化文本失败");
-        }
-    }
-
-    protected virtual void RefreshLocalization()
-    {
-    }
-
-    public void ApplyLocalizationChanged()
-    {
-        RefreshLocalizationIfStale();
     }
 
     private static void RestoreListItemHover(IEnumerable<Control> controls)

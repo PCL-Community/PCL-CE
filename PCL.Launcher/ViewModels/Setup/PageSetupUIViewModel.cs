@@ -18,6 +18,8 @@ public partial class PageSetupUIViewModel : ViewModelBase
 
     [ObservableProperty] private bool _backgroundClearVisible;
 
+    private int _backgroundCount;
+
     [ObservableProperty] private int _backgroundOpacity =
         Config.Preference.Background.WallpaperOpacity;
 
@@ -26,9 +28,6 @@ public partial class PageSetupUIViewModel : ViewModelBase
     [ObservableProperty] private int _backgroundSuitSelectedIndex;
 
     [ObservableProperty] private bool _backgroundSuitVisible;
-
-    [ObservableProperty]
-    private string _backgroundTitle = Lang.Text("Setup.Ui.Background.TitleDefault");
 
     [ObservableProperty] private int _blurRadius = Config.Preference.Blur.Radius;
 
@@ -45,9 +44,11 @@ public partial class PageSetupUIViewModel : ViewModelBase
 
     [ObservableProperty] private int _darkModeSelectedIndex = -1;
 
-    [ObservableProperty] private string _featureHideTitle = Lang.Text("Setup.Ui.FeatureHide.Title");
-
     [ObservableProperty] private bool _featureHideVisible = true;
+
+    private bool _forceShowFeatureHide;
+    private bool _hasBackground;
+    private bool _hasMusic;
     [ObservableProperty] private bool _launcherHideVisible;
 
     [ObservableProperty] private int _launcherOpacity = Config.Preference.Theme.WindowOpacity;
@@ -60,15 +61,30 @@ public partial class PageSetupUIViewModel : ViewModelBase
 
     [ObservableProperty] private bool _musicClearVisible;
 
-    [ObservableProperty] private bool _musicDetailVisible;
+    private int _musicCount;
 
-    [ObservableProperty] private string _musicTitle = Lang.Text("Setup.Ui.Music.Title");
+    [ObservableProperty] private bool _musicDetailVisible;
 
     [ObservableProperty] private int _musicVolume = Config.Preference.Music.Volume;
 
     [ObservableProperty] private bool _musicVolumeVisible;
 
     private bool _reloading;
+
+    public string BackgroundTitle =>
+        _hasBackground
+            ? Lang.Text("Setup.Ui.Background.TitleWithCount", _backgroundCount)
+            : Lang.Text("Setup.Ui.Background.TitleDefault");
+
+    public string FeatureHideTitle =>
+        _forceShowFeatureHide
+            ? Lang.Text("Setup.Ui.FeatureHide.TitleTemporarilyDisabled")
+            : Lang.Text("Setup.Ui.FeatureHide.Title");
+
+    public string MusicTitle =>
+        _hasMusic
+            ? Lang.Text("Setup.Ui.Music.TitleWithCount", _musicCount)
+            : Lang.Text("Setup.Ui.Music.Title");
 
     partial void OnDarkModeSelectedIndexChanged(int value)
     {
@@ -194,9 +210,9 @@ public partial class PageSetupUIViewModel : ViewModelBase
         BackgroundBlurVisible = show;
         BackgroundSuitVisible = show;
         BackgroundClearVisible = show;
-        BackgroundTitle = show
-            ? Lang.Text("Setup.Ui.Background.TitleWithCount", count)
-            : Lang.Text("Setup.Ui.Background.TitleDefault");
+        _hasBackground = show;
+        _backgroundCount = count;
+        OnPropertyChanged(nameof(BackgroundTitle));
     }
 
     public void ApplyMusicState(bool hasMusic, int count)
@@ -204,17 +220,16 @@ public partial class PageSetupUIViewModel : ViewModelBase
         MusicVolumeVisible = hasMusic;
         MusicDetailVisible = hasMusic;
         MusicClearVisible = hasMusic;
-        MusicTitle = hasMusic
-            ? Lang.Text("Setup.Ui.Music.TitleWithCount", count)
-            : Lang.Text("Setup.Ui.Music.Title");
+        _hasMusic = hasMusic;
+        _musicCount = count;
+        OnPropertyChanged(nameof(MusicTitle));
     }
 
     public void ApplyFeatureHideState(bool forceShow, bool functionHidden)
     {
+        _forceShowFeatureHide = forceShow;
         FeatureHideVisible = forceShow || !functionHidden;
-        FeatureHideTitle = forceShow
-            ? Lang.Text("Setup.Ui.FeatureHide.TitleTemporarilyDisabled")
-            : Lang.Text("Setup.Ui.FeatureHide.Title");
+        OnPropertyChanged(nameof(FeatureHideTitle));
     }
 
     public async Task<bool> ConfirmBackgroundClearAsync()

@@ -16,7 +16,7 @@ public sealed partial class PageDownloadCompFavorites : MyPageRight, IPageView, 
     private const string SelectBarAnimationKey = "CompFavorites Sidebar";
 
     private int _bottomBarShownCount;
-    private bool _inited;
+    private bool _initialized;
     private bool _refreshed;
     private bool _updatingGroups;
 
@@ -35,7 +35,6 @@ public sealed partial class PageDownloadCompFavorites : MyPageRight, IPageView, 
         ViewModel.SearchReset += () => PanSearchBox.Text = string.Empty;
 
         KeyDown += OnPageKeyDown;
-        LocalizationService.LanguageChanged += OnLanguageChanged;
         PageEnter += OnPageEnter;
         AttachedToVisualTree += (_, _) => EnsureInitialized();
     }
@@ -74,9 +73,9 @@ public sealed partial class PageDownloadCompFavorites : MyPageRight, IPageView, 
 
     private void EnsureInitialized()
     {
-        if (_inited)
+        if (_initialized)
             return;
-        _inited = true;
+        _initialized = true;
         var loader = ViewModel.EnsureLoader();
         PageLoaderInit(
             Load,
@@ -91,7 +90,7 @@ public sealed partial class PageDownloadCompFavorites : MyPageRight, IPageView, 
 
     private void SearchRun(object? sender, EventArgs e)
     {
-        if (!_inited)
+        if (!_initialized)
             return;
         ViewModel.SearchText = PanSearchBox.Text;
         ViewModel.RebuildGroups();
@@ -145,13 +144,6 @@ public sealed partial class PageDownloadCompFavorites : MyPageRight, IPageView, 
         e.Handled = true;
     }
 
-    private void OnLanguageChanged()
-    {
-        if (!_inited)
-            return;
-        ViewModel.RebuildGroups();
-    }
-
     private void FavoriteItem_Loaded(object? sender, RoutedEventArgs e)
     {
         if (sender is not MyListItem { DataContext: FavoriteItemViewModel item } listItem)
@@ -176,16 +168,18 @@ public sealed partial class PageDownloadCompFavorites : MyPageRight, IPageView, 
         {
             SvgIcon = "lucide/pencil"
         };
-        ToolTip.SetTip(editNoteButton, Lang.Text("Download.Comp.Favorites.EditNote"));
+        editNoteButton.SetLocalizedValue(
+            ToolTip.TipProperty,
+            "Download.Comp.Favorites.EditNote");
         editNoteButton.Click += (_, _) => ViewModel.EditNoteCommand.Execute(item.Project);
 
         var unfavoriteButton = new MyIconButton
         {
             SvgIcon = "lucide/heart-filled"
         };
-        ToolTip.SetTip(
-            unfavoriteButton,
-            Lang.Text("Download.Comp.Favorites.Action.Unfavorite"));
+        unfavoriteButton.SetLocalizedValue(
+            ToolTip.TipProperty,
+            "Download.Comp.Favorites.Action.Unfavorite");
         unfavoriteButton.Click += (_, _) => ViewModel.RemoveFavorite(item);
         listItem.Buttons = [editNoteButton, unfavoriteButton];
 

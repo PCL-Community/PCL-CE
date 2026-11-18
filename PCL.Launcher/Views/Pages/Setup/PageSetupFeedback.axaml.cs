@@ -56,12 +56,6 @@ public partial class PageSetupFeedback : MyPageRight, IRefreshable
     {
     }
 
-    protected override void RefreshLocalization()
-    {
-        if (_loaded && _loader.State == LoadState.Finished)
-            RefreshList();
-    }
-
     private static void LoadFeedbackList(Loading.LoaderTask<bool, List<FeedbackItem>> task)
     {
         task.output = PageSetupFeedbackViewModel.FetchFeedbackList();

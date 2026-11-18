@@ -58,7 +58,7 @@
                                        HorizontalAlignment="Stretch"
                                        IsEditable="True"
                                        IsTextSearchEnabled="False"
-                                       HintText="{loc:Loc Instance.Setup.FollowGlobal}"
+                                       HintText="{Binding TitleHintText}"
                                        ToolTip.Tip="{loc:Loc Instance.Setup.Options.WindowTitle.ToolTip}">
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.Launch.Options.WindowTitle.SampleFormat}" />
                         </ui:MyComboBox>

@@ -8,9 +8,7 @@ using PCL.Views.Pages.Log;
 
 namespace PCL;
 
-/// <summary>
-///     游戏实时日志页左栏的视图模型：维护游戏监视器列表、各自的日志缓冲区与当前选中项。
-/// </summary>
+/// <summary>游戏实时日志页左栏的视图模型：维护游戏监视器列表、各自的日志缓冲区与当前选中项。</summary>
 public partial class PageLogLeftViewModel : ViewModelBase
 {
     private const int MaxLinesDefault = 500;
@@ -25,7 +23,8 @@ public partial class PageLogLeftViewModel : ViewModelBase
 
     [ObservableProperty] public partial bool HasLogs { get; set; }
 
-    public static string InstancesTitle => Lang.Text("LogPage.Left.InstancesTitle");
+    [LocalizedProperty("LogPage.Left.InstancesTitle")]
+    public partial string InstancesTitle { get; }
 
     /// <summary>监视器列表或当前选择发生变化；由页面负责重建列表并刷新右栏。</summary>
     public event Action? Changed;
@@ -160,8 +159,11 @@ public partial class PageLogLeftViewModel : ViewModelBase
     {
         var result = new List<PageLogLeftEntry>(ShownLogs.Count);
         foreach (var (uuid, watcher) in ShownLogs)
-            result.Add(
-                new PageLogLeftEntry(uuid, SafeGetVersionName(watcher), GetItemInfo(watcher)));
+        {
+            var (info, startTime) = GetItemInfo(watcher);
+            result.Add(new PageLogLeftEntry(uuid, SafeGetVersionName(watcher), info, startTime));
+        }
+
         return result;
     }
 
@@ -186,23 +188,32 @@ public partial class PageLogLeftViewModel : ViewModelBase
         }
     }
 
-    private static string GetItemInfo(GameWatcher.Watcher watcher)
+    private static (string Info, DateTime StartTime) GetItemInfo(GameWatcher.Watcher watcher)
     {
         try
         {
             var info = watcher.version?.Info?.ToString() ?? string.Empty;
             var startTime = watcher.gameProcess?.StartTime ?? DateTime.MinValue;
-            return $"{info} - {Lang.Date(startTime, "T")}";
+            return (info, startTime);
         }
         catch (Exception)
         {
-            return string.Empty;
+            return (string.Empty, DateTime.MinValue);
         }
     }
 }
 
 /// <summary>游戏实时日志左栏中的一条监视器条目。</summary>
-public sealed record PageLogLeftEntry(
-    int Uuid,
-    string Title,
-    string Info);
+public sealed class PageLogLeftEntry(
+    int uuid,
+    string title,
+    string info,
+    DateTime startTime)
+    : LocalizedObservableObject
+{
+    public int Uuid { get; } = uuid;
+
+    public string Title { get; } = title;
+
+    public string Info => $"{info} - {Lang.Date(startTime, "T")}";
+}

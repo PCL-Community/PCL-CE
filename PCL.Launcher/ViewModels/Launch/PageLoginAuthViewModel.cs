@@ -20,21 +20,28 @@ namespace PCL;
 public partial class PageLoginAuthViewModel : ViewModelBase
 {
     private string _authServerUrl = string.Empty;
+    private bool _hasLoginProgress;
     private bool _hasRegisterLink;
+    private bool _isLoggingIn;
     private bool _isRegisterMode = true;
+    private double _loginProgress;
 
     [ObservableProperty] public partial bool ControlsEnabled { get; set; } = true;
 
     [ObservableProperty] public partial bool IsOAuthMode { get; set; }
 
-    [ObservableProperty]
-    public partial string LoginButtonText { get; set; } = Lang.Text("Launch.Account.Auth.Login");
+    public string LoginButtonText =>
+        _isLoggingIn && _hasLoginProgress
+            ? Lang.Number(_loginProgress, "P0")
+            : Lang.Text("Launch.Account.Auth.Login");
 
     [ObservableProperty] public partial string Password { get; set; } = string.Empty;
 
-    [ObservableProperty]
-    public partial string RegisterLinkContent { get; set; } =
-        Lang.Text("Launch.Account.Auth.Register");
+    public string RegisterLinkContent =>
+        Lang.Text(
+            _isRegisterMode
+                ? "Launch.Account.Auth.Register"
+                : "Launch.Account.Auth.ForgotPassword");
 
     [ObservableProperty] public partial bool RegisterLinkVisible { get; set; }
 
@@ -42,7 +49,20 @@ public partial class PageLoginAuthViewModel : ViewModelBase
 
     [ObservableProperty] public partial string UserName { get; set; } = string.Empty;
 
-    public bool IsLoggingIn { get; private set; }
+    public bool IsLoggingIn
+    {
+        get => _isLoggingIn;
+        private set
+        {
+            if (_isLoggingIn == value)
+                return;
+            _isLoggingIn = value;
+            if (!value)
+                _hasLoginProgress = false;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(LoginButtonText));
+        }
+    }
 
     public bool IsLoginModeInitialized { get; private set; }
 
@@ -75,7 +95,6 @@ public partial class PageLoginAuthViewModel : ViewModelBase
             return IsOAuthMode;
 
         ControlsEnabled = true;
-        LoginButtonText = Lang.Text("Launch.Account.Auth.Login");
         RefreshRegisterState();
         return UseOAuthVisible;
     }
@@ -91,13 +110,6 @@ public partial class PageLoginAuthViewModel : ViewModelBase
         IsLoginModeInitialized = true;
         RefreshRegisterState();
         return wasInitialized;
-    }
-
-    public void RefreshLocalization()
-    {
-        RefreshRegisterState();
-        if (!IsLoggingIn)
-            LoginButtonText = Lang.Text("Launch.Account.Auth.Login");
     }
 
     [RelayCommand]
@@ -161,7 +173,7 @@ public partial class PageLoginAuthViewModel : ViewModelBase
                 while (GameLaunch.mcLoginAuthLoader.State == LoadState.Loading)
                 {
                     var progress = GameLaunch.mcLoginAuthLoader.Progress;
-                    LauncherCommon.RunInUi(() => LoginButtonText = Lang.Number(progress, "P0"));
+                    LauncherCommon.RunInUi(() => UpdateLoginProgress(progress));
                     Thread.Sleep(50);
                 }
 
@@ -247,7 +259,13 @@ public partial class PageLoginAuthViewModel : ViewModelBase
         ProfileService.IsCreatingProfile = false;
         IsLoggingIn = false;
         ControlsEnabled = true;
-        LoginButtonText = Lang.Text("Launch.Account.Auth.Login");
+    }
+
+    private void UpdateLoginProgress(double progress)
+    {
+        _loginProgress = progress;
+        _hasLoginProgress = true;
+        OnPropertyChanged(nameof(LoginButtonText));
     }
 
     private static void ReportLoginError(Exception ex)
@@ -406,10 +424,7 @@ public partial class PageLoginAuthViewModel : ViewModelBase
         _hasRegisterLink = Uri.TryCreate(address, UriKind.Absolute, out var uri)
             && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
         _isRegisterMode = string.IsNullOrEmpty(UserName);
-        RegisterLinkContent = Lang.Text(
-            _isRegisterMode
-                ? "Launch.Account.Auth.Register"
-                : "Launch.Account.Auth.ForgotPassword");
+        OnPropertyChanged(nameof(RegisterLinkContent));
         RegisterLinkVisible = !IsOAuthMode && _hasRegisterLink;
     }
 

@@ -18,9 +18,9 @@ public interface IUpdateUi
 
     void ShowHint(string text, NotificationType type = NotificationType.Info);
     void NavigateSetupUpdate();
-    void ShowUpdateRestartButton(string tooltip);
+    void ShowUpdateRestartButton(string tooltipKey, params object?[] args);
     void RefreshDownloadButton();
-    void UpdateSetupButton(string text, bool enabled);
+    void UpdateSetupButton(string textKey, bool enabled, params object?[] args);
     void ExitApplication(bool restart);
 }
 
@@ -37,5 +37,6 @@ public interface IAnnouncementActionHandler
 
 public static class AnnouncementActions
 {
-    public static IAnnouncementActionHandler? Current => ApplicationRuntime.GetService<IAnnouncementActionHandler>();
+    public static IAnnouncementActionHandler? Current =>
+        ApplicationRuntime.GetService<IAnnouncementActionHandler>();
 }

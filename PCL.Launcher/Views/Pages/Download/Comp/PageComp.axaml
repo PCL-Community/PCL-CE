@@ -90,6 +90,7 @@
                                            Grid.Row="2"
                                            Grid.Column="1"
                                            IsEditable="True"
+                                           HintText="{loc:Loc Download.Comp.Filter.Version.AllInputAvailable}"
                                            MaxDropDownHeight="320" />
                             <TextBlock x:Name="LabLoader"
                                        Grid.Row="2"

@@ -26,8 +26,10 @@ public partial class MySkinViewModel : ViewModelBase
 
     [ObservableProperty] public partial bool IsLoading { get; set; }
 
-    [ObservableProperty]
-    public partial string? ToolTipText { get; set; } = Lang.Text("Launch.Skin.Change.ToolTip");
+    public string ToolTipText =>
+        string.IsNullOrEmpty(Address)
+            ? Lang.Text("Common.State.Loading")
+            : Lang.Text("Launch.Skin.Change.ToolTip");
 
     [ObservableProperty] public partial CroppedBitmap? FaceImage { get; set; }
 
@@ -39,9 +41,7 @@ public partial class MySkinViewModel : ViewModelBase
     partial void OnAddressChanged(string value)
     {
         var address = value ?? string.Empty;
-        ToolTipText = string.IsNullOrEmpty(address)
-            ? Lang.Text("Common.State.Loading")
-            : Lang.Text("Launch.Skin.Change.ToolTip");
+        OnPropertyChanged(nameof(ToolTipText));
         CanSave = !string.IsNullOrWhiteSpace(address);
         _ = LoadAsync();
     }

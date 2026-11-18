@@ -59,11 +59,6 @@ public partial class PageSetupGameLink : MyPageRight, ISetupResetPage
     {
     }
 
-    protected override void RefreshLocalization()
-    {
-        if (_loaded) ViewModel.RefreshLocalization();
-    }
-
     public void Reload()
     {
         ViewModel.Reload();

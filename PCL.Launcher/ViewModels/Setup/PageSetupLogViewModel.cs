@@ -114,6 +114,9 @@ public class PageSetupLogViewModel : ViewModelBase
         {
             var fullPath = Path.GetFullPath(item);
             var title = Path.GetFileName(item);
+            DateTime? date = null;
+            var isCurrent = false;
+            string? pendingContent = null;
             if (title.StartsWith("Launch"))
             {
                 title = title.Substring(7, title.Length - 11);
@@ -123,19 +126,17 @@ public class PageSetupLogViewModel : ViewModelBase
                         CultureInfo.InvariantCulture,
                         DateTimeStyles.None,
                         out var dt))
-                    title = Lang.Date(dt);
-                if (current.Any(log => log.Equals(fullPath)))
-                    title = Lang.Text("Setup.Log.CurrentSuffix", title);
+                    date = dt;
+                isCurrent = current.Any(log => log.Equals(fullPath));
             }
             else if (title.StartsWith("LastPending"))
             {
-                title = title.Substring(11, title.Length - 15);
-                title = title.Length > 1
-                    ? Lang.Text("Setup.Log.TempStored", title.Substring(1))
-                    : Lang.Text("Setup.Log.TempUnoutput");
+                pendingContent = title.Substring(11, title.Length - 15);
+                title = pendingContent;
             }
 
-            result.Add(new SetupLogEntry(title, fullPath));
+            result.Add(
+                new SetupLogEntry(title, fullPath, date, isCurrent, pendingContent));
         }
 
         return result;
@@ -201,4 +202,30 @@ public class PageSetupLogViewModel : ViewModelBase
 }
 
 /// <summary>「日志」页列表中的一条日志文件。</summary>
-public sealed record SetupLogEntry(string Title, string FilePath);
+public sealed class SetupLogEntry(
+    string fallbackTitle,
+    string filePath,
+    DateTime? date,
+    bool isCurrent,
+    string? pendingContent) : LocalizedObservableObject
+{
+    public string FilePath { get; } = filePath;
+
+    public string Title
+    {
+        get
+        {
+            if (pendingContent is null)
+            {
+                var titleText = date is { } value ? Lang.Date(value) : fallbackTitle;
+                return isCurrent
+                    ? Lang.Text("Setup.Log.CurrentSuffix", titleText)
+                    : titleText;
+            }
+
+            return pendingContent.Length > 1
+                ? Lang.Text("Setup.Log.TempStored", pendingContent[1..])
+                : Lang.Text("Setup.Log.TempUnoutput");
+        }
+    }
+}

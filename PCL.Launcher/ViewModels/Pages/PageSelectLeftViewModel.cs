@@ -54,11 +54,6 @@ public partial class PageSelectLeftViewModel : ViewModelBase
         return true;
     }
 
-    public void InvalidateFolders()
-    {
-        _lastFolders = null;
-    }
-
     public static bool CanMoveUp(GameFolders.McFolder folder)
     {
         return GameFolders.mcFolderList.IndexOf(folder) > 0;

@@ -14,9 +14,8 @@ using PCL.Core.Minecraft;
 namespace PCL.UI.Controls;
 
 /// <summary>
-///     Minecraft 服务器信息卡片：按 <see cref="Address" /> 查询状态，展示服务器图标、
-///     MOTD、在线人数与延迟。服务器图标按 Base64 解码，缺省使用内置的
-///     <c>DefaultServer.png</c>；MOTD 用内联文本渲染，字体取配置的 MOTD 字体。
+/// Minecraft 服务器信息卡片：按 <see cref="Address" /> 查询状态，展示服务器图标、 MOTD、在线人数与延迟。服务器图标按
+/// Base64 解码，缺省使用内置的 <c>DefaultServer.png</c>；MOTD 用内联文本渲染，字体取配置的 MOTD 字体。
 /// </summary>
 public class MinecraftServer : Grid
 {
@@ -36,6 +35,8 @@ public class MinecraftServer : Grid
     private bool _hasLatencyColor;
 
     private bool _isErrorText;
+    private string? _lastError;
+    private ServerDescriptionState _serverDescriptionState = ServerDescriptionState.Querying;
     private Action? _unwatchTheme;
 
     public MinecraftServer()
@@ -98,6 +99,7 @@ public class MinecraftServer : Grid
 
         FeedbackTheme.AttachStyles(this);
         _ApplyTextColors();
+        RefreshServerDescription();
 
         Loaded += (_, _) =>
         {
@@ -137,8 +139,10 @@ public class MinecraftServer : Grid
         // 预先重置 UI 状态
         _isErrorText = false;
         _hasLatencyColor = false;
+        _serverDescriptionState = ServerDescriptionState.Querying;
+        _lastError = null;
         _ApplyTextColors();
-        _labServerDesc.Text = Lang.Text("Tools.ServerQuery.State.Querying");
+        RefreshServerDescription();
         _motdText.Inlines?.Clear();
         _labServerPlayer.Text = "-/-";
         ToolTip.SetTip(_labServerPlayer, null);
@@ -166,7 +170,9 @@ public class MinecraftServer : Grid
         catch (Exception ex)
         {
             LogWrapper.Warn(ex, "MinecraftServer", "[MinecraftServer] 信息查询失败");
-            _labServerDesc.Text = Lang.Text("Tools.ServerQuery.Error.UnableToConnect", ex.Message);
+            _serverDescriptionState = ServerDescriptionState.Error;
+            _lastError = ex.Message;
+            RefreshServerDescription();
             _isErrorText = true;
             _labServerDesc.Foreground = Brushes.Red;
             _imgServerLogo.Source = DefaultLogo;
@@ -179,7 +185,9 @@ public class MinecraftServer : Grid
         var latencyColor = result.Latency < 150 ? 'a' : result.Latency < 400 ? '6' : 'c';
 
         // 更新描述
-        _labServerDesc.Text = Lang.Text("Tools.ServerQuery.Title.MinecraftServer");
+        _serverDescriptionState = ServerDescriptionState.Ready;
+        _lastError = null;
+        RefreshServerDescription();
         MotdTextRenderer.Render(
             _motdText,
             result.Description,
@@ -204,6 +212,26 @@ public class MinecraftServer : Grid
                 string.Join("\r\n", samples.Select(sample => sample.Name)));
             ToolTip.SetPlacement(_labServerPlayer, PlacementMode.Pointer);
         }
+    }
+
+    private void RefreshServerDescription()
+    {
+        LocalizedText.Bind(
+            _labServerDesc,
+            TextBlock.TextProperty,
+            BuildServerDescription);
+    }
+
+    private string BuildServerDescription()
+    {
+        return _serverDescriptionState switch
+        {
+            ServerDescriptionState.Ready => Lang.Text("Tools.ServerQuery.Title.MinecraftServer"),
+            ServerDescriptionState.Error => Lang.Text(
+                "Tools.ServerQuery.Error.UnableToConnect",
+                _lastError ?? string.Empty),
+            _ => Lang.Text("Tools.ServerQuery.State.Querying")
+        };
     }
 
     private void _ApplyTextColors()
@@ -262,5 +290,12 @@ public class MinecraftServer : Grid
         var bytes = Convert.FromBase64String(data);
         using var stream = new MemoryStream(bytes);
         return new Bitmap(stream);
+    }
+
+    private enum ServerDescriptionState
+    {
+        Querying,
+        Ready,
+        Error
     }
 }

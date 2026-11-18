@@ -2,7 +2,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Threading;
-using PCL.Core.App.Localization;
 using PCL.Navigation;
 using PCL.Views.Pages;
 
@@ -154,32 +153,6 @@ public class MyPageRight : Decorator, IPageView, IPageRightContainer
         }; // 点击重试事件
     }
 
-    private void RefreshLocalizationIfStale()
-    {
-        if (_localizationRevision == LocalizationService.UiRevision)
-            return;
-        _localizationRevision = LocalizationService.UiRevision;
-        try
-        {
-            RefreshLocalization();
-        }
-        catch (Exception ex)
-        {
-            LauncherCommon.Log(ex, "刷新页面本地化文本失败");
-        }
-    }
-
-    protected virtual void RefreshLocalization()
-    {
-    }
-
-    public void ApplyLocalizationChanged()
-    {
-        RefreshLocalizationIfStale();
-    }
-
-    private int _localizationRevision = LocalizationService.UiRevision;
-
     // 重试
     public void PageLoaderRestart(object? input = null, bool isForceRestart = true) // 由外部调用的重试
     {
@@ -219,7 +192,6 @@ public class MyPageRight : Decorator, IPageView, IPageRightContainer
     {
         if (LauncherCommon.ModeDebug)
             LauncherCommon.Log("[UI] 已触发 PageOnEnter");
-        RefreshLocalizationIfStale();
         PageEnter?.Invoke();
         switch (PageState)
         {

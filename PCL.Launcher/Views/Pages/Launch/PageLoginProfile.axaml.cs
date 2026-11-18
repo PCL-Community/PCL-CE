@@ -1,14 +1,13 @@
 using Avalonia;
 using Avalonia.Controls;
-using PCL.Core.App.Localization;
 using PCL.Core.Minecraft.Profile.Models;
 using PCL.UI.Controls;
 
 namespace PCL.Views.Pages.Launch;
 
 /// <summary>
-///     登录档案列表：选择已有档案、删除或复制 UUID，并通过“新建档案”选择验证方式。
-///     档案集合与业务命令由 <see cref="PageLoginProfileViewModel" /> 负责，页面只构建列表项。
+/// 登录档案列表：选择已有档案、删除或复制 UUID，并通过“新建档案”选择验证方式。 档案集合与业务命令由
+/// <see cref="PageLoginProfileViewModel" /> 负责，页面只构建列表项。
 /// </summary>
 public partial class PageLoginProfile : LoginPageBase
 {
@@ -23,9 +22,6 @@ public partial class PageLoginProfile : LoginPageBase
         ViewModel.ProfilesUpdated += RebuildList;
         ViewModel.RefreshRequested += RequestRefresh;
         ViewModel.LoginTypeRequested += RequestLoginType;
-
-        AttachedToVisualTree += (_, _) => LocalizationService.LanguageChanged += Reload;
-        DetachedFromVisualTree += (_, _) => LocalizationService.LanguageChanged -= Reload;
     }
 
     public PageLoginProfileViewModel ViewModel { get; } = new();
@@ -48,13 +44,13 @@ public partial class PageLoginProfile : LoginPageBase
         var listItem = new MyListItem
         {
             Title = item.Username,
-            Info = item.Info,
             Type = MyListItem.CheckType.Clickable,
             Tag = profile,
             Margin = new Thickness(8, 2, 10, 2),
             Logo = item.Logo,
             SvgIcon = item.SvgIcon
         };
+        LocalizedText.TryBind(listItem, "Info", () => item.Info);
 
         var buttons = new List<MyIconButton>();
 
@@ -87,7 +83,7 @@ public partial class PageLoginProfile : LoginPageBase
                 SvgIcon = svgIcon,
                 Margin = new Thickness(4, 0, 0, 0)
             };
-            ToolTip.SetTip(button, Lang.Text(toolTipKey));
+            button.SetLocalizedValue(ToolTip.TipProperty, toolTipKey);
             button.Click += (_, _) => action();
             buttons.Add(button);
         }

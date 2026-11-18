@@ -15,32 +15,51 @@ public partial class PageSetupGameLinkViewModel : ViewModelBase
 
     [ObservableProperty] private bool _enableIPv6 = Config.Link.EnableIPv6;
 
-    [ObservableProperty] private string _ipv6StatusText = Lang.Text(
-        "Setup.GameLink.NetworkTest.Ipv6Status",
-        Lang.Text("Setup.GameLink.NetworkTest.NotTested"));
-
     private CliNetTest.NetStatus? _lastStatus;
 
     [ObservableProperty] private bool _latencyFirstMode = Config.Link.UseLatencyFirstMode;
 
     [ObservableProperty] private string _linkUsername = Config.Link.Username;
 
-    [ObservableProperty] private string _netTestButtonText =
-        Lang.Text("Setup.GameLink.NetworkTest.Start");
-
     [ObservableProperty] private bool _netTestEnabled = true;
 
     [ObservableProperty] private int _preferProtocolIndex = (int)Config.Link.ProtocolPreference;
 
-    [ObservableProperty] private string _tcpNatTypeText = Lang.Text(
-        "Setup.GameLink.NetworkTest.TcpNatType",
-        Lang.Text("Setup.GameLink.NetworkTest.NotTested"));
-
     [ObservableProperty] private bool _tryPunchSym = Config.Link.TryPunchSym;
 
-    [ObservableProperty] private string _udpNatTypeText = Lang.Text(
-        "Setup.GameLink.NetworkTest.UdpNatType",
-        Lang.Text("Setup.GameLink.NetworkTest.NotTested"));
+    public string Ipv6StatusText =>
+        Lang.Text(
+            "Setup.GameLink.NetworkTest.Ipv6Status",
+            _lastStatus is null
+                ? Lang.Text("Setup.GameLink.NetworkTest.NotTested")
+                : _lastStatus.SupportIPv6
+                    ? Lang.Text("Setup.GameLink.NetworkTest.Supported")
+                    : Lang.Text("Setup.GameLink.NetworkTest.Unsupported"));
+
+    public string NetTestButtonText =>
+        Lang.Text(
+            NetTestEnabled
+                ? "Setup.GameLink.NetworkTest.Start"
+                : "Setup.GameLink.NetworkTest.Testing");
+
+    public string TcpNatTypeText =>
+        Lang.Text(
+            "Setup.GameLink.NetworkTest.TcpNatType",
+            _lastStatus is null
+                ? Lang.Text("Setup.GameLink.NetworkTest.NotTested")
+                : CliNetTest.GetNatTypeString(_lastStatus.TcpNatType));
+
+    public string UdpNatTypeText =>
+        Lang.Text(
+            "Setup.GameLink.NetworkTest.UdpNatType",
+            _lastStatus is null
+                ? Lang.Text("Setup.GameLink.NetworkTest.NotTested")
+                : CliNetTest.GetNatTypeString(_lastStatus.UdpNatType));
+
+    partial void OnNetTestEnabledChanged(bool value)
+    {
+        OnPropertyChanged(nameof(NetTestButtonText));
+    }
 
     partial void OnLinkUsernameChanged(string value)
     {
@@ -72,42 +91,12 @@ public partial class PageSetupGameLinkViewModel : ViewModelBase
         if (value >= 0) SetProtocolPreference(value);
     }
 
-    public void RefreshLocalization()
-    {
-        NetTestButtonText = Lang.Text(
-            NetTestEnabled
-                ? "Setup.GameLink.NetworkTest.Start"
-                : "Setup.GameLink.NetworkTest.Testing");
-        if (_lastStatus is null)
-        {
-            UdpNatTypeText = Lang.Text(
-                "Setup.GameLink.NetworkTest.UdpNatType",
-                Lang.Text("Setup.GameLink.NetworkTest.NotTested"));
-            TcpNatTypeText = Lang.Text(
-                "Setup.GameLink.NetworkTest.TcpNatType",
-                Lang.Text("Setup.GameLink.NetworkTest.NotTested"));
-            Ipv6StatusText = Lang.Text(
-                "Setup.GameLink.NetworkTest.Ipv6Status",
-                Lang.Text("Setup.GameLink.NetworkTest.NotTested"));
-            return;
-        }
-
-        ApplyStatus(_lastStatus);
-    }
-
     private void ApplyStatus(CliNetTest.NetStatus status)
     {
-        UdpNatTypeText = Lang.Text(
-            "Setup.GameLink.NetworkTest.UdpNatType",
-            CliNetTest.GetNatTypeString(status.UdpNatType));
-        TcpNatTypeText = Lang.Text(
-            "Setup.GameLink.NetworkTest.TcpNatType",
-            CliNetTest.GetNatTypeString(status.TcpNatType));
-        Ipv6StatusText = Lang.Text(
-            "Setup.GameLink.NetworkTest.Ipv6Status",
-            status.SupportIPv6
-                ? Lang.Text("Setup.GameLink.NetworkTest.Supported")
-                : Lang.Text("Setup.GameLink.NetworkTest.Unsupported"));
+        _lastStatus = status;
+        OnPropertyChanged(nameof(UdpNatTypeText));
+        OnPropertyChanged(nameof(TcpNatTypeText));
+        OnPropertyChanged(nameof(Ipv6StatusText));
     }
 
     public void Reload()
@@ -164,13 +153,11 @@ public partial class PageSetupGameLinkViewModel : ViewModelBase
     public async Task RunNetworkTestAsync()
     {
         NetTestEnabled = false;
-        NetTestButtonText = Lang.Text("Setup.GameLink.NetworkTest.Testing");
         try
         {
             var status = await RunAsync(ct => Task.Run(() => CliNetTest.GetNetStatusAsync(ct), ct));
             if (status is null)
                 return;
-            _lastStatus = status;
             ApplyStatus(status);
         }
         catch (Exception ex)
@@ -184,7 +171,6 @@ public partial class PageSetupGameLinkViewModel : ViewModelBase
         finally
         {
             NetTestEnabled = true;
-            NetTestButtonText = Lang.Text("Setup.GameLink.NetworkTest.Start");
         }
     }
 }

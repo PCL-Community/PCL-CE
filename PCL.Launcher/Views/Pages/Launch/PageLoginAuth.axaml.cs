@@ -1,12 +1,11 @@
 using Avalonia.Controls;
-using PCL.Core.App.Localization;
 using PCL.UI.Controls;
 
 namespace PCL.Views.Pages.Launch;
 
 /// <summary>
-///     第三方（Authlib-Injector）登录视图：支持密码与 OAuth（Yggdrasil Connect 设备码）两种模式。
-///     内置清单中的服务器直接进入 OAuth，其余固定密码登录。页面只保留手动切换动画。
+/// 第三方（Authlib-Injector）登录视图：支持密码与 OAuth（Yggdrasil Connect 设备码）两种模式。 内置清单中的服务器直接进入
+/// OAuth，其余固定密码登录。页面只保留手动切换动画。
 /// </summary>
 public partial class PageLoginAuth : LoginPageBase
 {
@@ -54,23 +53,14 @@ public partial class PageLoginAuth : LoginPageBase
 
         AttachedToVisualTree += (_, _) =>
         {
-            LocalizationService.LanguageChanged += OnLanguageChanged;
             if (PendingAuthServer is not null)
                 ApplyListedMode(PendingAuthServer);
         };
-        DetachedFromVisualTree +=
-            (_, _) => LocalizationService.LanguageChanged -= OnLanguageChanged;
     }
 
     public static string? PendingAuthServer { get; set; }
 
     public PageLoginAuthViewModel ViewModel { get; } = new();
-
-    private void OnLanguageChanged()
-    {
-        ViewModel.RefreshLocalization();
-        ApplyModeVisibility(ViewModel.IsOAuthMode);
-    }
 
     public override void Reload()
     {
@@ -124,7 +114,8 @@ public partial class PageLoginAuth : LoginPageBase
             ? [_panOAuth, _btnUsePassword, _btnWebsite, _btnBackOAuth]
             :
             [
-                _textName, _textNameTitle, _panPasswordLinks, _btnLink, _btnLogin, _btnBack, _textPass,
+                _textName, _textNameTitle, _panPasswordLinks, _btnLink, _btnLogin, _btnBack,
+                _textPass,
                 _textPassTitle
             ];
     }

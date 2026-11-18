@@ -16,10 +16,8 @@ public partial class PageInstanceSavesLeftViewModel : ViewModelBase
 
     public static PageInstanceSavesLeftViewModel? Current { get; private set; }
 
-    /// <summary>当前存档文件夹；由路由参数与存档列表同步。</summary>
     public static string CurrentSave { get; set; } = string.Empty;
 
-    /// <summary>存档数据版本是否支持数据包子页。</summary>
     public static bool ShowDatapackTab { get; set; } = true;
 
     public static bool IsDatapackTabVisible => ShowDatapackTab;
@@ -31,12 +29,6 @@ public partial class PageInstanceSavesLeftViewModel : ViewModelBase
             descriptor.TitleKey,
             descriptor.IconKey ?? string.Empty))
     ];
-
-    public static string QuickActionsTitle => Lang.Text("Instance.Saves.Left.QuickActions");
-
-    public static string OpenFolderTitle => Lang.Text("Common.Action.OpenFolder");
-
-    public static string RefreshToolTip => Lang.Text("Common.Action.Refresh");
 
     public void Attach()
     {

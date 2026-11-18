@@ -1,3 +1,5 @@
+using Avalonia.Controls;
+using Avalonia.Data;
 using Avalonia.Threading;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
@@ -85,24 +87,22 @@ public partial class PageSetupLauncherLanguage : MyPageRight, ISetupResetPage
         }
     }
 
-    protected override void RefreshLocalization()
-    {
-        if (_loaded) Reload();
-    }
-
     private void ReloadLanguageCombo()
     {
         ComboUiLanguage.Items.Clear();
         var autoLanguage = LocalizationService.ResolveLanguage(LocalizationService.Auto);
-        ComboUiLanguage.Items.Add(
-            new MyComboBoxItem
+        var autoItem = new MyComboBoxItem
+        {
+            Tag = LocalizationService.Auto,
+            FontFamily = LaunchFonts.BuildRepresentativeFontFamily(autoLanguage)
+        };
+        autoItem.Bind(
+            ContentControl.ContentProperty,
+            new Binding(nameof(PageSetupLauncherLanguageViewModel.AutoLanguageText))
             {
-                Content = Lang.Text(
-                    "Setup.Language.UiLanguage.Auto",
-                    autoLanguage.NativeName),
-                Tag = LocalizationService.Auto,
-                FontFamily = LaunchFonts.BuildRepresentativeFontFamily(autoLanguage)
+                Source = ViewModel
             });
+        ComboUiLanguage.Items.Add(autoItem);
         foreach (var language in LocalizationService.SupportedLanguages)
             ComboUiLanguage.Items.Add(
                 new MyComboBoxItem
@@ -120,18 +120,22 @@ public partial class PageSetupLauncherLanguage : MyPageRight, ISetupResetPage
     private void ReloadFormatCultureCombo()
     {
         ComboUiFormatCulture.Items.Clear();
-        ComboUiFormatCulture.Items.Add(
-            new MyComboBoxItem
-            {
-                Content = Lang.Text("Setup.Language.FormatCulture.Auto"),
-                Tag = LocalizationService.Auto
-            });
-        ComboUiFormatCulture.Items.Add(
-            new MyComboBoxItem
-            {
-                Content = Lang.Text("Setup.Language.FormatCulture.FollowLanguage"),
-                Tag = LocalizationService.FormatCultureFollowLanguage
-            });
+        var autoItem = new MyComboBoxItem
+        {
+            Tag = LocalizationService.Auto
+        };
+        autoItem.SetLocalizedValue(
+            ContentControl.ContentProperty,
+            "Setup.Language.FormatCulture.Auto");
+        ComboUiFormatCulture.Items.Add(autoItem);
+        var followLanguageItem = new MyComboBoxItem
+        {
+            Tag = LocalizationService.FormatCultureFollowLanguage
+        };
+        followLanguageItem.SetLocalizedValue(
+            ContentControl.ContentProperty,
+            "Setup.Language.FormatCulture.FollowLanguage");
+        ComboUiFormatCulture.Items.Add(followLanguageItem);
 
         foreach (var culture in PageSetupLauncherLanguageViewModel.GetBuiltInFormatCultures())
             ComboUiFormatCulture.Items.Add(

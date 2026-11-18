@@ -123,23 +123,6 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
         });
     }
 
-    protected override void RefreshLocalization()
-    {
-        if (!_uiBuilt)
-            return;
-        _vm.StartButtonText = Lang.Text("Download.Install.StartDownload");
-        _selector.RefreshLocalization();
-        if (_version is not null)
-        {
-            UpdateWarnings();
-            OnSelectionChanged();
-        }
-
-        if (_versionListBuilt
-            && GameDownload.dlClientListLoader.output.Value?["versions"] is JsonArray)
-            OnVersionListFinished();
-    }
-
     /// <summary>退出安装配置阶段，回到版本选择。</summary>
     public void ExitSelectPage()
     {

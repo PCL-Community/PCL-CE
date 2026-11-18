@@ -8,13 +8,17 @@ namespace PCL;
 /// <summary>实例安装/修改页的视图模型。</summary>
 public partial class PageInstanceInstallViewModel : ViewModelBase
 {
-    [ObservableProperty]
-    public partial string ActionText { get; set; } =
-        Lang.Text("Instance.Install.Action.StartModify");
+    private string _actionKey = "Instance.Install.Action.StartModify";
+
+    private Func<string>? _selectedInfoProvider;
+
+    public string ActionText => Lang.Text(_actionKey);
 
     [ObservableProperty] public partial bool CanStartInstall { get; set; }
 
     [ObservableProperty] public partial string CurrentInfo { get; set; } = "";
+
+    public string SelectedInfo => _selectedInfoProvider?.Invoke() ?? string.Empty;
 
     [ObservableProperty] public partial bool HasWarning { get; set; }
 
@@ -27,8 +31,6 @@ public partial class PageInstanceInstallViewModel : ViewModelBase
     [ObservableProperty] public partial bool IsSelecting { get; set; }
 
     [ObservableProperty] public partial string ProgressText { get; set; } = "";
-
-    [ObservableProperty] public partial string SelectedInfo { get; set; } = "";
 
     [ObservableProperty]
     public partial string VersionIcon { get; set; } =
@@ -46,6 +48,25 @@ public partial class PageInstanceInstallViewModel : ViewModelBase
     [ObservableProperty] public partial string WarningText { get; set; } = "";
 
     internal InstallLoaderSelection Selection { get; } = new();
+
+    public void SetAction(string key)
+    {
+        if (_actionKey == key)
+            return;
+        _actionKey = key;
+        OnPropertyChanged(nameof(ActionText));
+    }
+
+    public void SetSelectedInfoProvider(Func<string>? provider)
+    {
+        _selectedInfoProvider = provider;
+        OnPropertyChanged(nameof(SelectedInfo));
+    }
+
+    public void RefreshSelectedInfo()
+    {
+        OnPropertyChanged(nameof(SelectedInfo));
+    }
 
     public void ApplySelection(McInstallRequest request)
     {

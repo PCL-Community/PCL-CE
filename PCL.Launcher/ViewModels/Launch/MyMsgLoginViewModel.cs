@@ -1,5 +1,4 @@
 using System.Text.Json.Nodes;
-using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
@@ -18,9 +17,27 @@ public partial class MyMsgLoginViewModel : ViewModelBase
 {
     private readonly CancellationTokenSource _cancellation = new();
 
+    private DeviceCodeData? _deviceCode;
     private DialogViewModel? _dialog;
 
-    [ObservableProperty] public partial string CaptionText { get; set; } = string.Empty;
+    public string CaptionText
+    {
+        get
+        {
+            var device = _deviceCode;
+            if (device is null)
+                return Lang.Text("Launch.Account.LoginDialog.Error.Init");
+            return device.VerificationUriComplete is not null
+                ? Lang.Text(
+                    "Launch.Account.LoginDialog.MicrosoftInstructions.WithAutoFill",
+                    UserCode,
+                    Website)
+                : Lang.Text(
+                    "Launch.Account.LoginDialog.MicrosoftInstructions",
+                    UserCode,
+                    Website);
+        }
+    }
 
     /// <summary>需要用户在网页上输入的设备代码。</summary>
     public string UserCode { get; private set; } = string.Empty;
@@ -53,13 +70,6 @@ public partial class MyMsgLoginViewModel : ViewModelBase
         _ = PollAsync();
     }
 
-    /// <summary>语言切换后重新生成说明文本；仅在实际开始登录后执行。</summary>
-    public void ReloadDeviceCode()
-    {
-        if (IsStarted)
-            LoadDeviceCode();
-    }
-
     public void LoadDeviceCode()
     {
         Load(_dialog?.LoginData);
@@ -68,29 +78,14 @@ public partial class MyMsgLoginViewModel : ViewModelBase
     public void Load(JsonObject? data)
     {
         var device = data?.ToObject<DeviceCodeData>();
-        if (device is null)
+        _deviceCode = device;
+        if (device is not null)
         {
-            CaptionText = Lang.Text("Launch.Account.LoginDialog.Error.Init");
-            return;
+            UserCode = device.UserCode ?? string.Empty;
+            Website = device.VerificationUriComplete ?? device.VerificationUri ?? string.Empty;
         }
 
-        UserCode = device.UserCode ?? string.Empty;
-        if (device.VerificationUriComplete is not null)
-        {
-            Website = device.VerificationUriComplete;
-            CaptionText = Lang.Text(
-                "Launch.Account.LoginDialog.MicrosoftInstructions.WithAutoFill",
-                UserCode,
-                Website);
-        }
-        else
-        {
-            Website = device.VerificationUri ?? string.Empty;
-            CaptionText = Lang.Text(
-                "Launch.Account.LoginDialog.MicrosoftInstructions",
-                UserCode,
-                Website);
-        }
+        OnPropertyChanged(nameof(CaptionText));
     }
 
     private async Task PollAsync()

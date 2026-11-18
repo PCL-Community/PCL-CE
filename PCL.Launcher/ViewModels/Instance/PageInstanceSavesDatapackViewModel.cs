@@ -38,12 +38,13 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
 
     private readonly HashSet<string> _selected = new(StringComparer.OrdinalIgnoreCase);
 
-    private IReadOnlyList<LocalComp.LocalCompFile> _searchScope = [];
+    private int _filterAllCount;
+    private int _filterDisabledCount;
+    private int _filterEnabledCount;
+    private int _filterErrorCount;
+    private int _filterUpdatableCount;
 
-    public PageInstanceSavesDatapackViewModel()
-    {
-        UpdateSortText();
-    }
+    private IReadOnlyList<LocalComp.LocalCompFile> _searchScope = [];
 
     [ObservableProperty]
     public partial DatapackFilterType Filter { get; set; } = DatapackFilterType.All;
@@ -51,7 +52,20 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
     [ObservableProperty]
     public partial DatapackSortMethod SortMethod { get; set; } = DatapackSortMethod.CompName;
 
-    [ObservableProperty] public partial string SortText { get; set; } = string.Empty;
+    public string SortText
+    {
+        get
+        {
+            var key = SortMethod switch
+            {
+                DatapackSortMethod.CompName => "Instance.Resource.Sort.ResourceName",
+                DatapackSortMethod.CreateTime => "Instance.Resource.Sort.AddTime",
+                DatapackSortMethod.DatapackFileSize => "Instance.Resource.Sort.FileSize",
+                _ => "Instance.Resource.Sort.FileName"
+            };
+            return Lang.Text("Instance.Resource.Sort.Text", Lang.Text(key));
+        }
+    }
 
     [ObservableProperty] public partial string SearchText { get; set; } = string.Empty;
 
@@ -75,17 +89,24 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
 
     [ObservableProperty] public partial bool ShowFilterError { get; set; }
 
-    [ObservableProperty] public partial string FilterAllText { get; set; } = string.Empty;
+    public string FilterAllText =>
+        IsSearching
+            ? Lang.Text("Instance.Resource.Filter.SearchResult")
+            : Lang.Text("Instance.Resource.Filter.AllWithCount", _filterAllCount);
 
-    [ObservableProperty] public partial string FilterEnabledText { get; set; } = string.Empty;
+    public string FilterEnabledText =>
+        Lang.Text("Instance.Resource.Filter.EnabledWithCount", _filterEnabledCount);
 
-    [ObservableProperty] public partial string FilterDisabledText { get; set; } = string.Empty;
+    public string FilterDisabledText =>
+        Lang.Text("Instance.Resource.Filter.DisabledWithCount", _filterDisabledCount);
 
-    [ObservableProperty] public partial string FilterCanUpdateText { get; set; } = string.Empty;
+    public string FilterCanUpdateText =>
+        Lang.Text("Instance.Resource.Filter.UpdatableWithCount", _filterUpdatableCount);
 
-    [ObservableProperty] public partial string FilterErrorText { get; set; } = string.Empty;
+    public string FilterErrorText =>
+        Lang.Text("Instance.Resource.Filter.ErrorWithCount", _filterErrorCount);
 
-    [ObservableProperty] public partial string SelectedText { get; set; } = string.Empty;
+    public string SelectedText => Lang.Text("Instance.Resource.SelectedCount", _selected.Count);
 
     [ObservableProperty] public partial bool CanEnable { get; set; }
 
@@ -135,7 +156,6 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
         SearchText = string.Empty;
         Filter = DatapackFilterType.All;
         SortMethod = DatapackSortMethod.CompName;
-        UpdateSortText();
         _selected.Clear();
         _searchScope = [];
         ShowSelection = false;
@@ -157,6 +177,11 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
         BuildList();
     }
 
+    partial void OnSortMethodChanged(DatapackSortMethod value)
+    {
+        OnPropertyChanged(nameof(SortText));
+    }
+
     public void SetFilter(int index)
     {
         Filter = (DatapackFilterType)Math.Clamp(index, 0, 4);
@@ -165,7 +190,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
     public void SetSortMethod(DatapackSortMethod method)
     {
         SortMethod = method;
-        UpdateSortText();
+        OnPropertyChanged(nameof(SortText));
         BuildList();
     }
 
@@ -178,18 +203,6 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
             Lang.Text("Instance.Resource.Sort.AddTime"),
             Lang.Text("Instance.Resource.Sort.FileSize")
         ];
-    }
-
-    private void UpdateSortText()
-    {
-        var key = SortMethod switch
-        {
-            DatapackSortMethod.CompName => "Instance.Resource.Sort.ResourceName",
-            DatapackSortMethod.CreateTime => "Instance.Resource.Sort.AddTime",
-            DatapackSortMethod.DatapackFileSize => "Instance.Resource.Sort.FileSize",
-            _ => "Instance.Resource.Sort.FileName"
-        };
-        SortText = Lang.Text("Instance.Resource.Sort.Text", Lang.Text(key));
     }
 
     [RelayCommand]
@@ -263,9 +276,9 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                     loaderInput: data,
                     waitForExit: true);
                 var output = LocalComp.CompResourceListLoader.output;
-                if (output is null)
-                    return LoadEntriesDirectory(path);
-                return [.. output.OrderBy(entry => entry.path, StringComparer.OrdinalIgnoreCase)];
+                return output is null
+                    ? LoadEntriesDirectory(path)
+                    : [.. output.OrderBy(entry => entry.path, StringComparer.OrdinalIgnoreCase)];
             }
             catch
             {
@@ -276,9 +289,10 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
 
     private static List<LocalComp.LocalCompFile> LoadEntriesDirectory(string path)
     {
-        var result = new List<LocalComp.LocalCompFile>();
-        foreach (var directory in Directory.EnumerateDirectories(path))
-            result.Add(new LocalComp.LocalCompFile(Path.Combine(directory, "__FOLDER__")));
+        var result = Directory
+            .EnumerateDirectories(path)
+            .Select(directory => new LocalComp.LocalCompFile(Path.Combine(directory, "__FOLDER__")))
+            .ToList();
         foreach (var file in Directory.EnumerateFiles(path))
             if (LocalComp.LocalCompFile.IsCompFile(file, Comp.CompType.DataPack))
                 try
@@ -295,7 +309,8 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                         LauncherLogLevel.Developer);
                 }
 
-        result.Sort((a, b) => string.Compare(a.path, b.path, StringComparison.OrdinalIgnoreCase));
+        result.Sort((a, b) =>
+            string.Compare(a.path, b.path, StringComparison.OrdinalIgnoreCase));
         return result;
     }
 
@@ -343,7 +358,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
         ShowEmpty = !IsLoading && Entries.Count == 0;
         ShowSelection = _selected.Count > 0;
         UpdateFilterState(scope);
-        UpdateSortText();
+        OnPropertyChanged(nameof(SortText));
         UpdateSelectionState();
     }
 
@@ -421,13 +436,16 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
             scope.Count(entry => entry.State == LocalComp.LocalCompFile.LocalFileStatus.Fine);
         var disabled = scope.Count(entry =>
             entry.State == LocalComp.LocalCompFile.LocalFileStatus.Disabled);
-        FilterAllText = IsSearching
-            ? Lang.Text("Instance.Resource.Filter.SearchResult")
-            : Lang.Text("Instance.Resource.Filter.AllWithCount", scope.Count);
-        FilterEnabledText = Lang.Text("Instance.Resource.Filter.EnabledWithCount", enabled);
-        FilterDisabledText = Lang.Text("Instance.Resource.Filter.DisabledWithCount", disabled);
-        FilterCanUpdateText = Lang.Text("Instance.Resource.Filter.UpdatableWithCount", updatable);
-        FilterErrorText = Lang.Text("Instance.Resource.Filter.ErrorWithCount", unavailable);
+        _filterAllCount = scope.Count;
+        _filterEnabledCount = enabled;
+        _filterDisabledCount = disabled;
+        _filterUpdatableCount = updatable;
+        _filterErrorCount = unavailable;
+        OnPropertyChanged(nameof(FilterAllText));
+        OnPropertyChanged(nameof(FilterEnabledText));
+        OnPropertyChanged(nameof(FilterDisabledText));
+        OnPropertyChanged(nameof(FilterCanUpdateText));
+        OnPropertyChanged(nameof(FilterErrorText));
         ShowFilterCanUpdate = Filter == DatapackFilterType.CanUpdate || updatable > 0;
         ShowFilterError = Filter == DatapackFilterType.Unavailable || unavailable > 0;
         ShowFilterEnabled = Filter == DatapackFilterType.Enabled
@@ -483,7 +501,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
             return;
         }
 
-        SelectedText = Lang.Text("Instance.Resource.SelectedCount", _selected.Count);
+        OnPropertyChanged(nameof(SelectedText));
         var selected = Entries.Where(entry => _selected.Contains(entry.path)).ToList();
         CanEnable = selected.Any(entry =>
             entry.State == LocalComp.LocalCompFile.LocalFileStatus.Disabled);

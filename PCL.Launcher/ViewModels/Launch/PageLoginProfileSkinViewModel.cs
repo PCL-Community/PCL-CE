@@ -16,7 +16,10 @@ public partial class PageLoginProfileSkinViewModel : ViewModelBase
 
     [ObservableProperty] public partial string ProfileName { get; set; } = string.Empty;
 
-    [ObservableProperty] public partial string ProfileTypeText { get; set; } = string.Empty;
+    public string ProfileTypeText =>
+        ProfileService.Current is { } profile
+            ? LaunchLoginHelper.GetProfileInfo(profile)
+            : string.Empty;
 
     [ObservableProperty] public partial bool EditVisible { get; set; }
 
@@ -48,16 +51,16 @@ public partial class PageLoginProfileSkinViewModel : ViewModelBase
         {
             HasProfile = false;
             ProfileName = "";
-            ProfileTypeText = "";
             EditVisible = false;
             IsSkinLoading = false;
             SkinAddress = "";
+            OnPropertyChanged(nameof(ProfileTypeText));
             return;
         }
 
         HasProfile = true;
         ProfileName = profile.UserName;
-        ProfileTypeText = LaunchLoginHelper.GetProfileInfo(profile);
+        OnPropertyChanged(nameof(ProfileTypeText));
         EditVisible = profile.ProfileType is not ProfileType.Offline;
         IsSkinLoading = true;
 

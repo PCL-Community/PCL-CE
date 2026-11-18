@@ -42,7 +42,11 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
 
     [ObservableProperty] public partial bool ModpackVisible { get; set; }
 
-    [ObservableProperty] public partial string StarText { get; set; } = string.Empty;
+    /// <summary>收藏按钮文本，随实例收藏状态与语言变化。</summary>
+    public string StarText =>
+        Instance?.IsStar == true
+            ? Lang.Text("Instance.Overall.Unfavorite")
+            : Lang.Text("Instance.Overall.Favorite");
 
     [ObservableProperty] public partial bool CardTypeComboEnabled { get; set; } = true;
 
@@ -73,9 +77,7 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
             return;
         var path = Instance.PathInstance;
         CardTypeIndex = Math.Clamp(States.Instance.CardType[path], 0, 5);
-        StarText = Instance.IsStar
-            ? Lang.Text("Instance.Overall.Unfavorite")
-            : Lang.Text("Instance.Overall.Favorite");
+        OnPropertyChanged(nameof(StarText));
         ModsFolderVisible = Instance.Modable;
         LogoTag = States.Instance.LogoPath[path] ?? string.Empty;
         IsCustomLogo = States.Instance.IsLogoCustom[path];
@@ -133,8 +135,8 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
         var launchCount = States.Instance.LaunchCount[instance.PathInstance];
         rows.Add(
             new InstanceInfoRow(
-                Lang.Text("Instance.Overall.Info.LaunchCount.Title"),
-                launchCount == 0
+                () => Lang.Text("Instance.Overall.Info.LaunchCount.Title"),
+                () => launchCount == 0
                     ? Lang.Text("Instance.Overall.Info.LaunchCount.Never")
                     : Lang.Text("Instance.Overall.Info.LaunchCount.Count", launchCount),
                 $"{LauncherPaths.ImageRoot}Blocks/{(launchCount == 0 ? "RedstoneLampOff" : "RedstoneLampOn")}.png"));
@@ -142,13 +144,13 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
         if (!string.IsNullOrWhiteSpace(States.Instance.ModpackVersion[instance.PathInstance]))
             rows.Add(
                 new InstanceInfoRow(
-                    Lang.Text("Instance.Overall.Info.ModpackVersion"),
-                    States.Instance.ModpackVersion[instance.PathInstance],
+                    () => Lang.Text("Instance.Overall.Info.ModpackVersion"),
+                    () => States.Instance.ModpackVersion[instance.PathInstance],
                     $"{LauncherPaths.ImageRoot}Blocks/CommandBlock.png"));
         rows.Add(
             new InstanceInfoRow(
-                "Minecraft",
-                McInstanceInfo.GetVanillaNameDisplay(instanceInfo.VanillaName),
+                () => "Minecraft",
+                () => McInstanceInfo.GetVanillaNameDisplay(instanceInfo.VanillaName),
                 $"{LauncherPaths.ImageRoot}Blocks/Grass.png"));
         if (instanceInfo.HasForge)
             rows.Add(CreateLoaderRow("Forge", instanceInfo.Forge, "Anvil"));
@@ -165,8 +167,8 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
         if (instanceInfo.HasLiteLoader)
             rows.Add(
                 new InstanceInfoRow(
-                    "LiteLoader",
-                    Lang.Text("Instance.Overall.Info.Installed"),
+                    () => "LiteLoader",
+                    () => Lang.Text("Instance.Overall.Info.Installed"),
                     $"{LauncherPaths.ImageRoot}Blocks/Egg.png"));
         if (instanceInfo.HasLegacyFabric)
             rows.Add(CreateLoaderRow("Legacy Fabric", instanceInfo.LegacyFabric, "Fabric"));
@@ -178,8 +180,10 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
     private static InstanceInfoRow CreateLoaderRow(string name, string? version, string logo)
     {
         return new InstanceInfoRow(
-            name,
-            string.IsNullOrEmpty(version) ? Lang.Text("Minecraft.Version.Unknown") : version,
+            () => name,
+            () => string.IsNullOrEmpty(version)
+                ? Lang.Text("Minecraft.Version.Unknown")
+                : version,
             $"{LauncherPaths.ImageRoot}Blocks/{logo}.png");
     }
 
@@ -1058,11 +1062,12 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
 
 /// <summary>实例信息表中的一行。</summary>
 public sealed class InstanceInfoRow(
-    string title,
-    string info,
+    Func<string> title,
+    Func<string> info,
     string logo)
+    : LocalizedObservableObject
 {
-    public string Title { get; } = title;
-    public string Info { get; } = info;
+    public string Title => title();
+    public string Info => info();
     public string Logo { get; } = logo;
 }

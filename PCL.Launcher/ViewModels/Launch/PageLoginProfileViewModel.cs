@@ -92,17 +92,20 @@ public partial class PageLoginProfileViewModel : ViewModelBase
             };
             if (includeOthers)
             {
-                options.Add(new DialogOption
-                {
-                    Text = Lang.Text("Launch.Account.Type.ThirdParty"),
-                    SvgIcon = "lucide/network"
-                });
-                options.Add(new DialogOption
-                {
-                    Text = Lang.Text("Launch.Account.Type.Offline"),
-                    SvgIcon = "lucide/link-2-off"
-                });
+                options.Add(
+                    new DialogOption
+                    {
+                        Text = Lang.Text("Launch.Account.Type.ThirdParty"),
+                        SvgIcon = "lucide/network"
+                    });
+                options.Add(
+                    new DialogOption
+                    {
+                        Text = Lang.Text("Launch.Account.Type.Offline"),
+                        SvgIcon = "lucide/link-2-off"
+                    });
             }
+
             var result = await Dialog.ShowAsync(
                 new SelectDialogRequest
                 {
@@ -250,7 +253,6 @@ public sealed class ProfileItem
     public ProfileItem(McProfile profile)
     {
         Profile = profile;
-        Info = LaunchLoginHelper.GetProfileInfo(profile);
         var logoPath = GetHeadCachePath(profile);
         if (logoPath is not null)
         {
@@ -268,7 +270,7 @@ public sealed class ProfileItem
 
     public string Username => Profile.UserName;
 
-    public string Info { get; }
+    public string Info => LaunchLoginHelper.GetProfileInfo(Profile);
 
     public string Logo { get; }
 

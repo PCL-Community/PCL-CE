@@ -60,9 +60,11 @@ internal static class DownloadVersionList
         {
             var latestCard = new MyCard
             {
-                Margin = new Thickness(0d, 0d, 0d, 15d),
-                Title = Lang.Text("Download.Version.Latest.Title")
+                Margin = new Thickness(0d, 0d, 0d, 15d)
             };
+            latestCard.SetLocalizedValue(
+                MyCard.TitleProperty,
+                "Download.Version.Latest.Title");
             var latestStack = new StackPanel
             {
                 Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
@@ -93,12 +95,16 @@ internal static class DownloadVersionList
             if (categoryVersions.Count == 0)
                 continue;
 
+            var categoryKey = McVersionClassifier.GetCategoryKey(category);
+            var categoryCount = categoryVersions.Count;
             var card = new MyCard
             {
-                Margin = new Thickness(0d, 0d, 0d, 15d),
-                Title =
-                    $"{Lang.Text(McVersionClassifier.GetCategoryKey(category))} ({categoryVersions.Count})"
+                Margin = new Thickness(0d, 0d, 0d, 15d)
             };
+            LocalizedText.Bind(
+                card,
+                MyCard.TitleProperty,
+                () => $"{Lang.Text(categoryKey)} ({categoryCount})");
             var stack = new StackPanel
             {
                 Margin = new Thickness(20d, MyCard.SwapedHeight, 18d, 0d),
@@ -119,9 +125,7 @@ internal static class DownloadVersionList
         }
     }
 
-    /// <summary>
-    ///     版本行使用虚拟化面板承载，展开或滚动到可视区域时才创建对应的 <see cref="MyListItem" />。
-    /// </summary>
+    /// <summary>版本行使用虚拟化面板承载，展开或滚动到可视区域时才创建对应的 <see cref="MyListItem" />。</summary>
     private static ItemsControl CreateVersionList(
         IReadOnlyList<JsonObject> versions,
         Action<JsonObject> onSelect,
@@ -210,20 +214,21 @@ internal static class DownloadVersionList
         var formattedVersion = McFormatter.FormatVersion(versionId).Replace("_", " ");
         var releaseTime = McVersionClassifier.GetReleaseTime(version);
 
-        var info = version["lore"] is { } loreNode
-            ? FormatLore(version, loreNode.ToString(), formattedVersion, versionId)
-            : $"{Lang.Date(releaseTime, "g")}{(formattedVersion != versionId ? $" | {versionId}" : "")}";
-
         var item = new MyListItem
         {
             Height = 42d,
             Title = formattedVersion,
-            Info = info,
             Tag = version,
             LogoScale = 0.9,
             Logo = GetLogo(version),
             Type = MyListItem.CheckType.Clickable
         };
+        LocalizedText.Bind(
+            item,
+            MyListItem.InfoProperty,
+            () => version["lore"] is { } loreNode
+                ? FormatLore(version, loreNode.ToString(), formattedVersion, versionId)
+                : $"{Lang.Date(releaseTime, "g")}{(formattedVersion != versionId ? $" | {versionId}" : "")}");
         ApplyVersionTags(item, version, installed.Contains(versionId));
 
         var changelogButton = new MyIconButton
@@ -303,7 +308,7 @@ internal static class DownloadVersionList
 
     private static void ConfigureVersionButtonTooltip(MyIconButton button, string textKey)
     {
-        ToolTip.SetTip(button, Lang.Text(textKey));
+        button.SetLocalizedValue(ToolTip.TipProperty, textKey);
         ToolTip.SetPlacement(button, PlacementMode.Center);
         ToolTip.SetVerticalOffset(button, 30d);
         ToolTip.SetHorizontalOffset(button, 2d);

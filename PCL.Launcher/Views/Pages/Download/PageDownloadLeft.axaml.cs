@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Controls;
 using PCL.Core.App.Localization;
 using PCL.Core.UI.Hints;
 using PCL.Navigation;
@@ -51,12 +52,6 @@ public partial class PageDownloadLeft : MyPageLeft, IPageView, IRefreshable
         Comp.compFilesCache.Clear();
     }
 
-    protected override void RefreshLocalization()
-    {
-        BuildItems();
-        Select(_current);
-    }
-
     public event Action<SubPageId>? PageSelected;
 
     public event Action<SubPageId>? RefreshRequested;
@@ -98,6 +93,7 @@ public partial class PageDownloadLeft : MyPageLeft, IPageView, IRefreshable
             categoryMargin: new Thickness(13d, 10d, 5d, 4d));
         _items.Clear();
         _items.AddRange(result.Items);
+        ApplyLocalizedTitles(result);
 
         if (result.Items.FirstOrDefault(pair => pair.Sub == SubPageIds.DownloadInstall).Item
             is { } install)
@@ -106,6 +102,17 @@ public partial class PageDownloadLeft : MyPageLeft, IPageView, IRefreshable
                 if (_current == SubPageIds.DownloadInstall && install.Checked)
                     InstallItemReselected?.Invoke();
             };
+    }
+
+    private static void ApplyLocalizedTitles(PageNavigationListResult result)
+    {
+        foreach (var (sub, item) in result.Items)
+            if (Page.FindSubPage(sub) is { } descriptor)
+                item.SetLocalizedValue(MyListItem.TitleProperty, descriptor.TitleKey);
+
+        foreach (var (title, groupKey) in result.Groups)
+            if (Page.Groups.FirstOrDefault(group => group.Key == groupKey) is { } group)
+                title.SetLocalizedValue(TextBlock.TextProperty, group.TitleKey);
     }
 
     private void OnRefreshClicked(SubPageId subPage)

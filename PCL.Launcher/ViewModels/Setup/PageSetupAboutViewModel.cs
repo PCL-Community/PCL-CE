@@ -18,22 +18,17 @@ public partial class PageSetupAboutViewModel : ViewModelBase
     private const string ContributorsApi =
         "https://api.github.com/repos/PCL-Community/PCL2-CE/contributors";
 
-    [ObservableProperty] private string _aboutInfo = FormatVersionInfo();
-
     private int _clickCount;
 
-    [ObservableProperty] private bool _isLogoClickEnabled = true;
+    [ObservableProperty] public partial bool IsLogoClickEnabled { get; set; } = true;
 
-    [ObservableProperty] private bool _showMcmod = true;
+    [ObservableProperty] public partial bool ShowMcmod { get; set; } = true;
+
+    public string AboutInfo => FormatVersionInfo();
 
     public ObservableCollection<GitHubContributor> Contributors { get; } = [];
 
     public IReadOnlyList<ThirdPartyLicenseModel> Licenses => Basics.Metadata.Licenses;
-
-    public void RefreshVersionInfo()
-    {
-        AboutInfo = FormatVersionInfo();
-    }
 
     public void Initialize()
     {

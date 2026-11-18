@@ -37,6 +37,11 @@ public partial class PageLogRight : MyPageRight, IRefreshable
         BtnOperationExportStackDump.Click += (_, _) => _ = ViewModel.ExportStackDumpAsync();
         SliderMaxLog.Change += (_, _) => ViewModel.MaxLogLines = SliderMaxLog.Value;
         SliderMaxLog.getHintText = PageLogRightViewModel.GetMaxLogHintText;
+        ViewModel.PropertyChanged += (_, args) =>
+        {
+            if (string.IsNullOrEmpty(args.PropertyName))
+                RefreshCounters();
+        };
         DetachedFromVisualTree += (_, _) =>
         {
             _refreshed = false;
@@ -70,11 +75,6 @@ public partial class PageLogRight : MyPageRight, IRefreshable
     public override void OnNavigatedFrom()
     {
         UnsubscribeCurrentLog();
-    }
-
-    protected override void RefreshLocalization()
-    {
-        ReloadContent();
     }
 
     #region 渲染

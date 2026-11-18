@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
@@ -31,6 +32,47 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable, ICom
         DataContext = ViewModel;
         PanScroll = PanBack;
         ViewModel.SetPage(this);
+        BtnFilterAll.Bind(
+            MyRadioButton.TextProperty,
+            new Binding(nameof(PageInstanceSavesDatapackViewModel.FilterAllText))
+            {
+                Source = ViewModel
+            });
+        BtnFilterEnabled.Bind(
+            MyRadioButton.TextProperty,
+            new Binding(nameof(PageInstanceSavesDatapackViewModel.FilterEnabledText))
+            {
+                Source = ViewModel
+            });
+        BtnFilterDisabled.Bind(
+            MyRadioButton.TextProperty,
+            new Binding(nameof(PageInstanceSavesDatapackViewModel.FilterDisabledText))
+            {
+                Source = ViewModel
+            });
+        BtnFilterUpdatable.Bind(
+            MyRadioButton.TextProperty,
+            new Binding(nameof(PageInstanceSavesDatapackViewModel.FilterCanUpdateText))
+            {
+                Source = ViewModel
+            });
+        BtnFilterError.Bind(
+            MyRadioButton.TextProperty,
+            new Binding(nameof(PageInstanceSavesDatapackViewModel.FilterErrorText))
+            {
+                Source = ViewModel
+            });
+        BtnSort.Bind(
+            MyIconTextButton.TextProperty,
+            new Binding(nameof(PageInstanceSavesDatapackViewModel.SortText))
+            {
+                Source = ViewModel
+            });
+        ViewModel.PropertyChanged += (_, args) =>
+        {
+            if (string.IsNullOrEmpty(args.PropertyName))
+                RefreshSelectBar();
+        };
         _swipeSelector = new ResourceSwipeSelector(
             PanList,
             PanSelect,
@@ -148,14 +190,6 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable, ICom
         Reload();
     }
 
-    protected override void RefreshLocalization()
-    {
-        BtnManageDownload.IsVisible =
-            HiddenFeatureState.ForceShow || !Config.Preference.Hide.PageDownload;
-        BuildList();
-        UpdateEmptyState();
-    }
-
     public override void OnNavigatedTo(PageParameter? parameter)
     {
         var saveFolder = parameter is string routedSave ? routedSave : null;
@@ -233,7 +267,6 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable, ICom
                 PanList.Children.Add(placeholder);
 
             RefreshFilterTexts();
-            RefreshSortText();
             RefreshSelectBar();
         }
         finally
@@ -244,20 +277,10 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable, ICom
 
     private void RefreshFilterTexts()
     {
-        BtnFilterAll.Text = ViewModel.FilterAllText;
-        BtnFilterEnabled.Text = ViewModel.FilterEnabledText;
-        BtnFilterDisabled.Text = ViewModel.FilterDisabledText;
-        BtnFilterUpdatable.Text = ViewModel.FilterCanUpdateText;
-        BtnFilterError.Text = ViewModel.FilterErrorText;
         BtnFilterUpdatable.IsVisible = ViewModel.ShowFilterCanUpdate;
         BtnFilterError.IsVisible = ViewModel.ShowFilterError;
         BtnFilterEnabled.IsVisible = ViewModel.ShowFilterEnabled;
         BtnFilterDisabled.IsVisible = ViewModel.ShowFilterDisabled;
-    }
-
-    private void RefreshSortText()
-    {
-        BtnSort.Text = ViewModel.SortText;
     }
 
     private void SetSwipeSelected(int index, bool selected, bool animate)
@@ -380,12 +403,11 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable, ICom
                 : "lucide/x",
             LogoScale = 0.9d
         };
-        ToolTip.SetTip(
-            toggle,
-            Lang.Text(
-                entry.State == LocalComp.LocalCompFile.LocalFileStatus.Disabled
-                    ? "Instance.Resource.Enable"
-                    : "Instance.Resource.Disable"));
+        toggle.SetLocalizedValue(
+            ToolTip.TipProperty,
+            entry.State == LocalComp.LocalCompFile.LocalFileStatus.Disabled
+                ? "Instance.Resource.Enable"
+                : "Instance.Resource.Disable");
         toggle.Click += (_, _) => ViewModel.Toggle(entry);
         toggle.IsVisible = !entry.IsFolder
             && entry.State != LocalComp.LocalCompFile.LocalFileStatus.Unavailable;
@@ -395,7 +417,7 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable, ICom
             SvgIcon = "lucide/info",
             LogoScale = 1d
         };
-        ToolTip.SetTip(info, Lang.Text("Instance.Saves.Details"));
+        info.SetLocalizedValue(ToolTip.TipProperty, "Instance.Saves.Details");
         info.Click += (_, _) => _ = ShowInfoAsync(entry);
 
         var open = new MyIconButton
@@ -403,7 +425,7 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable, ICom
             SvgIcon = "lucide/folder-open",
             LogoScale = 0.9d
         };
-        ToolTip.SetTip(open, Lang.Text("Instance.Saves.OpenFolder"));
+        open.SetLocalizedValue(ToolTip.TipProperty, "Instance.Saves.OpenFolder");
         open.Click += (_, _) =>
         {
             var path = PageInstanceSavesDatapackViewModel.GetEntryPath(entry);
@@ -416,7 +438,7 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable, ICom
             SvgIcon = "lucide/trash-2",
             LogoScale = 0.9d
         };
-        ToolTip.SetTip(delete, Lang.Text("Common.Action.Delete"));
+        delete.SetLocalizedValue(ToolTip.TipProperty, "Common.Action.Delete");
         delete.Click += (_, _) => _ = ViewModel.DeleteAsync(
             [entry],
             delete.LastClickKeyModifiers.HasFlag(KeyModifiers.Shift));

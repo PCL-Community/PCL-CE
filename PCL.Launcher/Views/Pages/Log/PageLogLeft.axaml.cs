@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using Avalonia.Controls;
+using Avalonia.Data;
 using Avalonia.Threading;
 using PCL.Core.App.Localization;
 using PCL.Navigation;
@@ -56,11 +57,6 @@ public partial class PageLogLeft : MyPageLeft, IRefreshable
 
     public override void OnNavigatedFrom()
     {
-    }
-
-    protected override void RefreshLocalization()
-    {
-        Reload();
     }
 
     private void RefreshOnNavigate()
@@ -135,10 +131,13 @@ public partial class PageLogLeft : MyPageLeft, IRefreshable
                 return;
             }
 
-            var title = new TextBlock
-            {
-                Text = PageLogLeftViewModel.InstancesTitle
-            };
+            var title = new TextBlock();
+            title.Bind(
+                TextBlock.TextProperty,
+                new Binding(nameof(PageLogLeftViewModel.InstancesTitle))
+                {
+                    Source = ViewModel
+                });
             title.Classes.Add("SectionTitle");
             PanList.Children.Add(title);
 
@@ -149,11 +148,21 @@ public partial class PageLogLeft : MyPageLeft, IRefreshable
                     Type = MyListItem.CheckType.RadioBox,
                     IsScaleAnimationEnabled = false,
                     MinPaddingRight = 30,
-                    Title = entry.Title,
-                    Info = entry.Info,
                     Height = 40d,
                     Tag = entry.Uuid
                 };
+                newItem.Bind(
+                    MyListItem.TitleProperty,
+                    new Binding(nameof(PageLogLeftEntry.Title))
+                    {
+                        Source = entry
+                    });
+                newItem.Bind(
+                    MyListItem.InfoProperty,
+                    new Binding(nameof(PageLogLeftEntry.Info))
+                    {
+                        Source = entry
+                    });
                 newItem.Changed += (sender, e) =>
                 {
                     if (e.raiseByMouse && ((MyListItem)sender).Checked)
@@ -165,7 +174,7 @@ public partial class PageLogLeft : MyPageLeft, IRefreshable
                     SvgIcon = "lucide/trash-2",
                     LogoScale = 1.1d
                 };
-                ToolTip.SetTip(removeButton, Lang.Text("Common.Action.Delete"));
+                removeButton.SetLocalizedValue(ToolTip.TipProperty, "Common.Action.Delete");
                 removeButton.Click += (_, _) => RemoveItem(entry.Uuid);
                 newItem.Buttons = [removeButton];
 

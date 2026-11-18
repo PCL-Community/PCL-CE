@@ -1,3 +1,4 @@
+using Avalonia.Controls;
 using PCL.Navigation;
 using PCL.UI.Controls;
 using PCL.UI.Controls.Navigation;
@@ -26,12 +27,6 @@ public partial class PageToolsLeft : MyPageLeft
     }
 
     public PageToolsLeftViewModel ViewModel { get; } = new();
-
-    protected override void RefreshLocalization()
-    {
-        BuildItems();
-        Select(ViewModel.SelectedPage);
-    }
 
     public event Action<SubPageId>? PageSelected;
 
@@ -108,5 +103,17 @@ public partial class PageToolsLeft : MyPageLeft
             });
         _items.Clear();
         _items.AddRange(result.Items);
+        ApplyLocalizedTitles(result);
+    }
+
+    private static void ApplyLocalizedTitles(PageNavigationListResult result)
+    {
+        foreach (var (sub, item) in result.Items)
+            if (Page.FindSubPage(sub) is { } descriptor)
+                item.SetLocalizedValue(MyListItem.TitleProperty, descriptor.TitleKey);
+
+        foreach (var (title, groupKey) in result.Groups)
+            if (Page.Groups.FirstOrDefault(group => group.Key == groupKey) is { } group)
+                title.SetLocalizedValue(TextBlock.TextProperty, group.TitleKey);
     }
 }

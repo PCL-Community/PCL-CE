@@ -1,7 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Data;
 using Avalonia.Input;
-using Avalonia.Threading;
 using PCL.Core.App;
 using PCL.Navigation;
 using PCL.UI.Controls;
@@ -47,16 +47,6 @@ public partial class PageInstanceOverall : MyPageRight
     {
         ViewModel.SetInstance(InstancePageHelper.ResolveInstance(parameter));
         RefreshOnNavigate();
-    }
-
-    protected override void RefreshLocalization()
-    {
-        var offset = PanScroll?.Offset.Y ?? 0d;
-        Reload();
-        Dispatcher.UIThread.Post(() =>
-        {
-            PanScroll?.Offset = new Vector(PanScroll.Offset.X, offset);
-        });
     }
 
     private void RefreshOnNavigate()
@@ -137,14 +127,27 @@ public partial class PageInstanceOverall : MyPageRight
             }
 
             foreach (var row in ViewModel.InfoRows)
-                PanInfo.Children.Add(
-                    new MyListItem
+            {
+                var item = new MyListItem
+                {
+                    Logo = row.Logo,
+                    Margin = new Thickness(0d, 0d, 2d, 0d)
+                };
+                item.Bind(
+                    MyListItem.TitleProperty,
+                    new Binding(nameof(InstanceInfoRow.Title))
                     {
-                        Title = row.Title,
-                        Info = row.Info,
-                        Logo = row.Logo,
-                        Margin = new Thickness(0d, 0d, 2d, 0d)
+                        Source = row
                     });
+                item.Bind(
+                    MyListItem.InfoProperty,
+                    new Binding(nameof(InstanceInfoRow.Info))
+                    {
+                        Source = row
+                    });
+                PanInfo.Children.Add(item);
+            }
+
             PanInfo.IsVisible = true;
         }
         catch (Exception ex)

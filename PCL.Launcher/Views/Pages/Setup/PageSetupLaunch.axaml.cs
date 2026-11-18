@@ -39,16 +39,14 @@ public partial class PageSetupLaunch : MyPageRight, ISetupResetPage
         var java = PlatformRuntime.Current.Java;
         CheckAdvanceNoJavaw.IsEnabled = java.SupportsJavaw;
         if (!java.SupportsJavaw)
-            ToolTip.SetTip(
-                CheckAdvanceNoJavaw,
-                Lang.Text("Setup.Launch.Advanced.UseJavaExe.Unsupported"));
+            CheckAdvanceNoJavaw.SetLocalizedValue(
+                ToolTip.TipProperty,
+                "Setup.Launch.Advanced.UseJavaExe.Unsupported");
 
         SliderRamCustom.getHintText = new Func<object, object>(value =>
-            Lang.Number(PageSetupLaunchViewModel.GetRamFromTick(Convert.ToInt32(value)), "N1")
-            + " GiB");
+            $"{Lang.Number(PageSetupLaunchViewModel.GetRamFromTick(Convert.ToInt32(value)), "N1")} GiB");
         SliderRamInitialCustom.getHintText = new Func<object, object>(value =>
-            Lang.Number(PageSetupLaunchViewModel.GetRamFromTick(Convert.ToInt32(value)), "N1")
-            + " GiB");
+            $"{Lang.Number(PageSetupLaunchViewModel.GetRamFromTick(Convert.ToInt32(value)), "N1")} GiB");
 
         TextArgumentInfo.ValidateRules.Add(new BlacklistValidator(["\"", "\u201c", "\u201d"]));
         TextArgumentInfo.ValidatedTextChanged += (_, _) =>
@@ -122,14 +120,6 @@ public partial class PageSetupLaunch : MyPageRight, ISetupResetPage
     public override void OnNavigatedFrom()
     {
         _isActive = false;
-    }
-
-    protected override void RefreshLocalization()
-    {
-        if (!_loaded) return;
-        RefreshDisableJlwToolTip();
-        Reload();
-        RefreshRamVisual(false);
     }
 
     public void Reload()
@@ -445,12 +435,11 @@ public partial class PageSetupLaunch : MyPageRight, ISetupResetPage
     private void RefreshDisableJlwToolTip()
     {
         if (!_loaded) return;
-        ToolTip.SetTip(
-            CheckAdvanceDisableJLW,
-            Lang.Text(
-                SystemInfo.IsArm64System
-                    ? "Setup.Launch.Advanced.DisableJlw.Arm64Notice"
-                    : "Setup.Launch.Advanced.DisableJlw.ToolTip"));
+        CheckAdvanceDisableJLW.SetLocalizedValue(
+            ToolTip.TipProperty,
+            SystemInfo.IsArm64System
+                ? "Setup.Launch.Advanced.DisableJlw.Arm64Notice"
+                : "Setup.Launch.Advanced.DisableJlw.ToolTip");
         ToolTip.SetShowOnDisabled(CheckAdvanceDisableJLW, true);
     }
 

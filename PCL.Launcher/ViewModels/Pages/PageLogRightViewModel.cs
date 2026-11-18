@@ -13,23 +13,26 @@ namespace PCL;
 /// <summary>游戏实时日志页右栏的视图模型：日志行、计数、自动滚动与最大行数。</summary>
 public partial class PageLogRightViewModel : ViewModelBase
 {
+    private uint _debugCount;
+    private uint _errorCount;
+    private uint _fatalCount;
+    private uint _infoCount;
     private PageLogLeft? _left;
+    private uint _warnCount;
 
     [ObservableProperty] public partial bool AutoScroll { get; set; } = true;
 
-    [ObservableProperty]
-    public partial string DebugCountText { get; set; } = $"0 {Lang.Text("LogPage.Level.Debug")}";
+    public string DebugCountText => $"{_debugCount} {Lang.Text("LogPage.Level.Debug")}";
 
-    [ObservableProperty]
-    public partial string ErrorCountText { get; set; } = $"0 {Lang.Text("LogPage.Level.Error")}";
+    public string ErrorCountText => $"{_errorCount} {Lang.Text("LogPage.Level.Error")}";
 
-    [ObservableProperty]
-    public partial string FatalCountText { get; set; } = $"0 {Lang.Text("LogPage.Level.Fatal")}";
+    public string FatalCountText => $"{_fatalCount} {Lang.Text("LogPage.Level.Fatal")}";
+
+    public string InfoCountText => $"{_infoCount} {Lang.Text("LogPage.Level.Info")}";
+
+    public string WarnCountText => $"{_warnCount} {Lang.Text("LogPage.Level.Warn")}";
 
     [ObservableProperty] public partial bool HasLog { get; set; }
-
-    [ObservableProperty]
-    public partial string InfoCountText { get; set; } = $"0 {Lang.Text("LogPage.Level.Info")}";
 
     [ObservableProperty] public partial bool IsExportStackDumpEnabled { get; set; }
 
@@ -40,9 +43,6 @@ public partial class PageLogRightViewModel : ViewModelBase
 
     [ObservableProperty]
     public partial int MaxLogLines { get; set; } = Math.Clamp(Config.System.MaxGameLog, 0, 29);
-
-    [ObservableProperty]
-    public partial string WarnCountText { get; set; } = $"0 {Lang.Text("LogPage.Level.Warn")}";
 
     partial void OnMaxLogLinesChanged(int value)
     {
@@ -106,11 +106,16 @@ public partial class PageLogRightViewModel : ViewModelBase
         var warn = log?.countWarn ?? 0u;
         var info = log?.countInfo ?? 0u;
         var debug = log?.countDebug ?? 0u;
-        FatalCountText = $"{fatal} {Lang.Text("LogPage.Level.Fatal")}";
-        ErrorCountText = $"{error} {Lang.Text("LogPage.Level.Error")}";
-        WarnCountText = $"{warn} {Lang.Text("LogPage.Level.Warn")}";
-        InfoCountText = $"{info} {Lang.Text("LogPage.Level.Info")}";
-        DebugCountText = $"{debug} {Lang.Text("LogPage.Level.Debug")}";
+        _fatalCount = fatal;
+        _errorCount = error;
+        _warnCount = warn;
+        _infoCount = info;
+        _debugCount = debug;
+        OnPropertyChanged(nameof(FatalCountText));
+        OnPropertyChanged(nameof(ErrorCountText));
+        OnPropertyChanged(nameof(WarnCountText));
+        OnPropertyChanged(nameof(InfoCountText));
+        OnPropertyChanged(nameof(DebugCountText));
     }
 
     public void OnGameExit()

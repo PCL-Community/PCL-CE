@@ -1,14 +1,12 @@
 using System.ComponentModel;
 using Avalonia.Controls;
-using PCL.Core.App.Localization;
 using PCL.UI.Controls;
 
 namespace PCL.Views.Pages.Launch;
 
 /// <summary>
-///     当前账号视图：皮肤头像、玩家名与验证方式，并提供皮肤与披风、修改信息、选择档案三个入口。
-///     档案信息与菜单命令由 <see cref="PageLoginProfileSkinViewModel" /> 负责，页面保留菜单、
-///     悬停动画与皮肤控件交互。
+/// 当前账号视图：皮肤头像、玩家名与验证方式，并提供皮肤与披风、修改信息、选择档案三个入口。 档案信息与菜单命令由
+/// <see cref="PageLoginProfileSkinViewModel" /> 负责，页面保留菜单、 悬停动画与皮肤控件交互。
 /// </summary>
 public partial class PageLoginProfileSkin : LoginPageBase
 {
@@ -53,9 +51,6 @@ public partial class PageLoginProfileSkin : LoginPageBase
                 return;
             HideButtons();
         };
-
-        AttachedToVisualTree += (_, _) => LocalizationService.LanguageChanged += Reload;
-        DetachedFromVisualTree += (_, _) => LocalizationService.LanguageChanged -= Reload;
     }
 
     public PageLoginProfileSkinViewModel ViewModel { get; } = new();
@@ -133,9 +128,9 @@ public partial class PageLoginProfileSkin : LoginPageBase
         {
             var item = new MyMenuItem
             {
-                Header = Lang.Text(headerKey),
                 SvgIcon = svgIcon
             };
+            item.SetLocalizedValue(MenuItem.HeaderProperty, headerKey);
             item.Click += (_, _) =>
             {
                 action();
@@ -175,9 +170,9 @@ public partial class PageLoginProfileSkin : LoginPageBase
         {
             var item = new MyMenuItem
             {
-                Header = Lang.Text(headerKey),
                 SvgIcon = svgIcon
             };
+            item.SetLocalizedValue(MenuItem.HeaderProperty, headerKey);
             item.Click += (_, _) =>
             {
                 action();

@@ -197,8 +197,7 @@ public partial class PageInstanceLeftViewModel : ViewModelBase
     private static PageInstanceLeftEntry Section(string groupKey)
     {
         var group = InstancePage.Groups.FirstOrDefault(item => item.Key == groupKey);
-        return PageInstanceLeftEntry.CreateSection(
-            group is null ? string.Empty : Lang.Text(group.TitleKey));
+        return PageInstanceLeftEntry.CreateSection(group?.TitleKey ?? string.Empty);
     }
 
     private static PageInstanceLeftEntry Item(
@@ -308,14 +307,14 @@ public sealed record PageInstanceLeftItem(
 
 /// <summary>实例左栏条目：分类标题或可点击条目。</summary>
 public sealed record PageInstanceLeftEntry(
-    string? SectionTitle,
+    string? SectionTitleKey,
     PageInstanceLeftItem? Item)
 {
-    public bool IsSection => SectionTitle is not null;
+    public bool IsSection => SectionTitleKey is not null;
 
-    public static PageInstanceLeftEntry CreateSection(string title)
+    public static PageInstanceLeftEntry CreateSection(string titleKey)
     {
-        return new PageInstanceLeftEntry(title, null);
+        return new PageInstanceLeftEntry(titleKey, null);
     }
 
     public static PageInstanceLeftEntry CreateItem(

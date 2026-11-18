@@ -215,25 +215,6 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
     {
     }
 
-    protected override void RefreshLocalization()
-    {
-        if (!_loaded) return;
-        _reloading = true;
-        try
-        {
-            BuildThemeColorItems();
-            BuildHideGrid();
-        }
-        finally
-        {
-            _reloading = false;
-        }
-
-        Reload();
-        RefreshBackgroundState();
-        RefreshMusicState();
-    }
-
     public void Reload()
     {
         _reloading = true;
@@ -313,11 +294,13 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         {
             combo.Items.Clear();
             for (var i = 0; i < count; i++)
-                combo.Items.Add(
-                    new MyComboBoxItem
-                    {
-                        Content = Lang.Text(ThemeColorKeys[i].Key)
-                    });
+            {
+                var item = new MyComboBoxItem();
+                item.SetLocalizedValue(
+                    ContentControl.ContentProperty,
+                    ThemeColorKeys[i].Key);
+                combo.Items.Add(item);
+            }
         }
     }
 
@@ -345,7 +328,8 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         HintCustomWarn.IsVisible = showHint && !States.Hint.UntrustedHomepage;
         if (showHint)
         {
-            HintCustom.Text = Lang.Text(
+            HintCustom.SetLocalizedValue(
+                MyHint.TextProperty,
                 type == 1
                     ? "Setup.Ui.Homepage.LocalFile.Hint"
                     : "Setup.Ui.Homepage.NetUpdate.Hint");
@@ -459,11 +443,11 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             var musicAvailable = !hasMusic || service?.IsMusicAvailable == true;
             ViewModel.ApplyMusicState(hasMusic, count);
             BtnMusicRefresh.IsEnabled = musicAvailable;
-            ToolTip.SetTip(
-                BtnMusicRefresh,
+            BtnMusicRefresh.SetLocalizedValue(
+                ToolTip.TipProperty,
                 musicAvailable
-                    ? Lang.Text("Setup.Ui.Music.Refresh.ToolTip")
-                    : Lang.Text("Tools.GameLink.Finish.Unavailable"));
+                    ? "Setup.Ui.Music.Refresh.ToolTip"
+                    : "Tools.GameLink.Finish.Unavailable");
             ToolTip.SetShowOnDisabled(BtnMusicRefresh, true);
         }
         catch (Exception ex)
@@ -737,14 +721,14 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         bool isFirst,
         IReadOnlyList<HideCheckDefinition> items)
     {
-        PanHidePanel.Children.Add(
-            new TextBlock
-            {
-                Text = Lang.Text(titleKey),
-                Margin = new Thickness(0d, isFirst ? 4d : 12d, 0d, 4d),
-                FontSize = 12d,
-                Opacity = 0.6d
-            });
+        var title = new TextBlock
+        {
+            Margin = new Thickness(0d, isFirst ? 4d : 12d, 0d, 4d),
+            FontSize = 12d,
+            Opacity = 0.6d
+        };
+        title.SetLocalizedValue(TextBlock.TextProperty, titleKey);
+        PanHidePanel.Children.Add(title);
 
         var wrap = new WrapPanel();
         foreach (var item in items)
@@ -759,11 +743,14 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             Height = 22d,
             Margin = new Thickness(0d, 0d, 12d, 4d),
             VerticalAlignment = VerticalAlignment.Center,
-            Text = definition.Literal ?? Lang.Text(definition.LangKey!),
             Tag = definition.ConfigKey
         };
+        if (definition.Literal is not null)
+            check.Text = definition.Literal;
+        else
+            check.SetLocalizedValue(MyCheckBox.TextProperty, definition.LangKey!);
         if (definition.TooltipKey is not null)
-            ToolTip.SetTip(check, Lang.Text(definition.TooltipKey));
+            check.SetLocalizedValue(ToolTip.TipProperty, definition.TooltipKey);
         check.Change += (_, _) =>
         {
             if (_reloading || check.Tag is not string tag) return;

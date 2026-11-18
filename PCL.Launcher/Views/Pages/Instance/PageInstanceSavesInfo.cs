@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Data;
 using Avalonia.Input.Platform;
 using Avalonia.Layout;
 using Avalonia.Media;
@@ -25,6 +26,12 @@ public partial class PageInstanceSavesInfo : MyPageRight, IRefreshable
         DataContext = ViewModel;
         PanScroll = PanBack;
         Grid.SetIsSharedSizeScope(PanMain, true);
+        TitleText.Bind(
+            TextBlock.TextProperty,
+            new Binding(nameof(PageInstanceSavesInfoViewModel.TitleDisplay))
+            {
+                Source = ViewModel
+            });
         BtnErrorRetry.Click += (_, _) => Reload();
 
         ComboAllowCommands.SelectionChanged += (_, _) =>
@@ -57,11 +64,6 @@ public partial class PageInstanceSavesInfo : MyPageRight, IRefreshable
         Reload();
     }
 
-    protected override void RefreshLocalization()
-    {
-        Reload();
-    }
-
     public void Reload()
     {
         _ = ReloadAsync();
@@ -90,9 +92,6 @@ public partial class PageInstanceSavesInfo : MyPageRight, IRefreshable
         _syncing = true;
         try
         {
-            TitleText.Text = string.IsNullOrEmpty(ViewModel.LevelName)
-                ? Lang.Text("Instance.Saves.Info.GetFailed")
-                : ViewModel.LevelName;
             PanInfo.Children.Clear();
 
             if (ViewModel.Save is null)
@@ -102,7 +101,7 @@ public partial class PageInstanceSavesInfo : MyPageRight, IRefreshable
                 if (row.IsSeed)
                     AddSeedRow(row);
                 else
-                    AddInfoRow(row.Head, row.Content);
+                    AddInfoRow(row);
 
             ComboAllowCommands.SelectedIndex = ViewModel.AllowCommandsIndex;
             ComboDifficulty.SelectedIndex = ViewModel.DifficultyIndex;
@@ -114,7 +113,7 @@ public partial class PageInstanceSavesInfo : MyPageRight, IRefreshable
         }
     }
 
-    private void AddInfoRow(string label, string value)
+    private void AddInfoRow(SaveInfoRow row)
     {
         var grid = new Grid();
         grid.ColumnDefinitions.Add(
@@ -133,21 +132,31 @@ public partial class PageInstanceSavesInfo : MyPageRight, IRefreshable
             {
                 Width = GridLength.Auto
             });
-        grid.Children.Add(
-            new TextBlock
+        var labelBlock = new TextBlock
+        {
+            Opacity = 0.7d,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0d, 3d, 0d, 3d)
+        };
+        labelBlock.Bind(
+            TextBlock.TextProperty,
+            new Binding(nameof(SaveInfoRow.Head))
             {
-                Text = label,
-                Opacity = 0.7d,
-                VerticalAlignment = VerticalAlignment.Center,
-                Margin = new Thickness(0d, 3d, 0d, 3d)
+                Source = row
             });
+        grid.Children.Add(labelBlock);
         var valueBlock = new TextBlock
         {
-            Text = value,
             VerticalAlignment = VerticalAlignment.Center,
             TextWrapping = TextWrapping.Wrap,
             Margin = new Thickness(0d, 3d, 0d, 3d)
         };
+        valueBlock.Bind(
+            TextBlock.TextProperty,
+            new Binding(nameof(SaveInfoRow.Content))
+            {
+                Source = row
+            });
         Grid.SetColumn(valueBlock, 2);
         grid.Children.Add(valueBlock);
         PanInfo.Children.Add(grid);
@@ -177,24 +186,34 @@ public partial class PageInstanceSavesInfo : MyPageRight, IRefreshable
             {
                 Width = GridLength.Auto
             });
-        grid.Children.Add(
-            new TextBlock
+        var labelBlock = new TextBlock
+        {
+            Opacity = 0.7d,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0d, 3d, 0d, 3d)
+        };
+        labelBlock.Bind(
+            TextBlock.TextProperty,
+            new Binding(nameof(SaveInfoRow.Head))
             {
-                Text = row.Head,
-                Opacity = 0.7d,
-                VerticalAlignment = VerticalAlignment.Center,
-                Margin = new Thickness(0d, 3d, 0d, 3d)
+                Source = row
             });
+        grid.Children.Add(labelBlock);
         // WPF 使用 MyTextButton 而不是带白色底框的 MyButton。
         var seedButton = new MyTextButton
         {
-            Text = row.Content,
             Margin = new Thickness(0d, 3d, 0d, 3d),
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Center,
             IsEnabled = row.CanCopySeed
         };
-        ToolTip.SetTip(seedButton, Lang.Text("Common.Action.Copy"));
+        seedButton.Bind(
+            MyTextButton.TextProperty,
+            new Binding(nameof(SaveInfoRow.Content))
+            {
+                Source = row
+            });
+        seedButton.SetLocalizedValue(ToolTip.TipProperty, "Common.Action.Copy");
         seedButton.Click += (_, _) => _ = CopySeedAsync(row.Seed);
         Grid.SetColumn(seedButton, 2);
         grid.Children.Add(seedButton);
@@ -208,7 +227,9 @@ public partial class PageInstanceSavesInfo : MyPageRight, IRefreshable
             VerticalAlignment = VerticalAlignment.Center,
             IsEnabled = row.CanCopySeed
         };
-        ToolTip.SetTip(chunkbase, Lang.Text("Instance.Saves.Info.Chunkbase.ToolTip"));
+        chunkbase.SetLocalizedValue(
+            ToolTip.TipProperty,
+            "Instance.Saves.Info.Chunkbase.ToolTip");
         chunkbase.Click += (_, _) => ViewModel.OpenChunkbase(row.Seed);
         Grid.SetColumn(chunkbase, 3);
         grid.Children.Add(chunkbase);

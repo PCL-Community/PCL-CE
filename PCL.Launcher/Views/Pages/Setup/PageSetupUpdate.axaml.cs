@@ -46,15 +46,15 @@ public partial class PageSetupUpdate : MyPageRight
 
     public PageSetupUpdateViewModel ViewModel { get; } = new();
 
-    public void SetUpdateButton(string text, bool enabled)
+    public void SetUpdateButton(string textKey, bool enabled, params object?[] args)
     {
         if (!Dispatcher.UIThread.CheckAccess())
         {
-            Dispatcher.UIThread.Post(() => SetUpdateButton(text, enabled));
+            Dispatcher.UIThread.Post(() => SetUpdateButton(textKey, enabled, args));
             return;
         }
 
-        ViewModel.UpdateButtonText = text;
+        ViewModel.SetExternalUpdateButtonText(textKey, args);
         ViewModel.UpdateButtonEnabled = enabled;
     }
 
@@ -68,14 +68,6 @@ public partial class PageSetupUpdate : MyPageRight
 
     public override void OnNavigatedFrom()
     {
-    }
-
-    protected override void RefreshLocalization()
-    {
-        if (!_loaded) return;
-        ViewModel.Reload();
-        ViewModel.RefreshStatusText();
-        _ = ViewModel.SyncUpdateButtonStateAsync();
     }
 
     private void Reload()

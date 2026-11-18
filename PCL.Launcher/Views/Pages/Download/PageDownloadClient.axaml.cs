@@ -1,7 +1,6 @@
 using System.Text.Json.Nodes;
 using Avalonia.Controls;
 using Avalonia.Threading;
-using PCL.Core.App.Localization;
 using PCL.Navigation;
 using PCL.UI.Controls;
 
@@ -33,7 +32,6 @@ public partial class PageDownloadClient : MyPageRight, IPageView, IRefreshable
         Loaded += (_, _) => PanBack?.ScrollToHome();
         GameFolders.McFolderListLoader.PreviewFinish +=
             _ => Dispatcher.UIThread.Post(RefreshInstalledMarks);
-        LocalizationService.LanguageChanged += OnLanguageChanged;
     }
 
     public override void OnNavigatedTo(PageParameter? parameter)
@@ -70,12 +68,6 @@ public partial class PageDownloadClient : MyPageRight, IPageView, IRefreshable
         {
             LauncherCommon.Log(ex, "刷新版本已安装标记失败");
         }
-    }
-
-    private void OnLanguageChanged()
-    {
-        if (GameDownload.dlClientListLoader.State == LoadState.Finished)
-            OnLoadFinished();
     }
 
     private void OnLoadFinished()

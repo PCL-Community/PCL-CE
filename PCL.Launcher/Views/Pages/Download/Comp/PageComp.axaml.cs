@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Data;
 using Avalonia.Input;
 using PCL.Core.App.Localization;
 using PCL.Navigation;
@@ -50,6 +51,19 @@ public partial class PageComp : UserControl
         BuildVersionCombo();
         ApplyStaticToolTips();
         Grid.SetIsSharedSizeScope(PanProjects, true);
+
+        PanSearchBox.Bind(
+            MySearchBox.HintTextProperty,
+            new Binding(nameof(PageCompViewModel.SearchHintText))
+            {
+                Source = ViewModel
+            });
+        Load.Bind(
+            MyLoading.TextProperty,
+            new Binding(nameof(PageCompViewModel.LoadText))
+            {
+                Source = ViewModel
+            });
 
         ComboSearchSource.SelectedIndex = 0;
         ComboSearchSort.SelectedIndex = 0;
@@ -132,6 +146,9 @@ public partial class PageComp : UserControl
         ViewModel.ApplySearchContext(gameVersion, modLoader);
         if (!IsInitialized) return;
         TextSearchVersion.Text = ViewModel.SearchVersionText;
+        TextSearchVersion.SelectedIndex = string.IsNullOrEmpty(ViewModel.SearchVersionText)
+            ? -1
+            : TextSearchVersion.SelectedIndex;
         ComboSearchLoader.SelectedIndex = ViewModel.SearchLoaderIndex;
         ApplySourceVisibility();
         StartNewSearch();
@@ -164,7 +181,6 @@ public partial class PageComp : UserControl
         if (IsInitialized) return;
         IsInitialized = true;
 
-        LocalizationService.LanguageChanged += OnLanguageChanged;
         ApplyPageIdsUi();
         ApplyCategoryTags();
         InsertHighestDropVersion();
@@ -204,8 +220,6 @@ public partial class PageComp : UserControl
 
     private void ApplyPageIdsUi()
     {
-        PanSearchBox.HintText = ViewModel.SearchHintText;
-        Load.Text = ViewModel.LoadText;
         LabLoader.IsVisible = ViewModel.IsLoaderLabelVisible;
         ComboSearchLoader.IsVisible = ViewModel.IsLoaderComboVisible;
         ComboSearchShaderLoader.IsVisible = ViewModel.IsShaderLoaderComboVisible;
@@ -221,24 +235,6 @@ public partial class PageComp : UserControl
             ComboSearchSource.SelectedIndex = ViewModel.SupportCurseForge ? 1 : 0;
         if (!ViewModel.SupportCurseForge && ComboSearchSource.SelectedIndex == 1)
             ComboSearchSource.SelectedIndex = ViewModel.SupportModrinth ? 2 : 0;
-    }
-
-    private void OnLanguageChanged()
-    {
-        if (!IsInitialized) return;
-        ViewModel.RefreshLocalization();
-        ApplyPageIdsUi();
-        ApplyCategoryTags();
-        ApplyStaticToolTips();
-        var versionIndex = TextSearchVersion.SelectedIndex;
-        var versionText = TextSearchVersion.Text;
-        BuildVersionCombo();
-        TextSearchVersion.SelectedIndex = versionIndex >= 0 ? versionIndex : 0;
-        TextSearchVersion.Text = versionIndex > 0
-            ? versionText ?? string.Empty
-            : Lang.Text("Download.Comp.Filter.Version.AllInputAvailable");
-        SyncFiltersToViewModel();
-        ApplySourceVisibility();
     }
 
     private void RenderResults()
@@ -261,12 +257,16 @@ public partial class PageComp : UserControl
             }
 
             if (ViewModel.Projects.Count == 0)
-                PanProjects.Children.Add(
-                    new TextBlock
-                    {
-                        Text = Lang.Text("Download.Comp.List.NoResults"),
-                        Margin = new Thickness(0, 6, 0, 6)
-                    });
+            {
+                var empty = new TextBlock
+                {
+                    Margin = new Thickness(0, 6, 0, 6)
+                };
+                empty.SetLocalizedValue(
+                    TextBlock.TextProperty,
+                    "Download.Comp.List.NoResults");
+                PanProjects.Children.Add(empty);
+            }
 
             HintError.IsVisible = ViewModel.IsErrorVisible;
             HintError.Text = ViewModel.ErrorMessage;
@@ -330,19 +330,19 @@ public partial class PageComp : UserControl
     private void BuildVersionCombo()
     {
         TextSearchVersion.Items.Clear();
-        TextSearchVersion.Items.Add(
-            new MyComboBoxItem
-            {
-                Content = Lang.Text("Download.Comp.Filter.Version.Any")
-            });
+        var anyItem = new MyComboBoxItem();
+        anyItem.SetLocalizedValue(
+            ContentProperty,
+            "Download.Comp.Filter.Version.Any");
+        TextSearchVersion.Items.Add(anyItem);
         foreach (var version in PageCompViewModel.CommonGameVersions)
             TextSearchVersion.Items.Add(
                 new MyComboBoxItem
                 {
                     Content = version
                 });
-        TextSearchVersion.SelectedIndex = 0;
-        TextSearchVersion.Text = Lang.Text("Download.Comp.Filter.Version.AllInputAvailable");
+        TextSearchVersion.SelectedIndex = -1;
+        TextSearchVersion.Text = string.Empty;
     }
 
     private void ApplyCategoryTags()
@@ -353,9 +353,12 @@ public partial class PageComp : UserControl
         {
             var item = new MyComboBoxItem
             {
-                Content = option.Text,
                 Tag = option.Tag
             };
+            LocalizedText.Bind(
+                item,
+                ContentProperty,
+                () => option.Text);
             if (!option.IsEnabled)
                 item.IsEnabled = false;
             else if (option.IsIndented)
@@ -371,10 +374,12 @@ public partial class PageComp : UserControl
 
     private void ApplyStaticToolTips()
     {
-        ToolTip.SetTip(BtnSearchReset, Lang.Text("Download.Comp.Filter.Reset"));
-        ToolTip.SetTip(
-            BtnSearchInstallModPack,
-            Lang.Text("Download.Comp.Filter.InstallModpack.ToolTip"));
+        BtnSearchReset.SetLocalizedValue(
+            ToolTip.TipProperty,
+            "Download.Comp.Filter.Reset");
+        BtnSearchInstallModPack.SetLocalizedValue(
+            ToolTip.TipProperty,
+            "Download.Comp.Filter.InstallModpack.ToolTip");
     }
 
     private void SelectComboLoader(Comp.CompLoaderType loaderType)
@@ -391,8 +396,8 @@ public partial class PageComp : UserControl
     private void ResetFilter()
     {
         PanSearchBox.Text = "";
-        TextSearchVersion.SelectedIndex = 0;
-        TextSearchVersion.Text = Lang.Text("Download.Comp.Filter.Version.AllInputAvailable");
+        TextSearchVersion.SelectedIndex = -1;
+        TextSearchVersion.Text = "";
         ComboSearchSource.SelectedIndex = 0;
         ComboSearchTag.SelectedIndex = 0;
         ComboSearchLoader.SelectedIndex = 0;

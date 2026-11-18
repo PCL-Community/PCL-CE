@@ -77,7 +77,10 @@ public partial class PageInstanceSetupViewModel : ViewModelBase
 
     [ObservableProperty] public partial bool DisableLf { get; set; }
 
-    [ObservableProperty] public partial string TitleHintText { get; set; } = string.Empty;
+    public string TitleHintText =>
+        UseGlobalTitle
+            ? Lang.Text("Common.Option.Default")
+            : Lang.Text("Instance.Setup.FollowGlobal");
 
     [ObservableProperty] public partial bool TitleDefaultVisible { get; set; }
 
@@ -446,9 +449,7 @@ public partial class PageInstanceSetupViewModel : ViewModelBase
 
     public void RefreshTitleHint()
     {
-        TitleHintText = UseGlobalTitle
-            ? Lang.Text("Common.Option.Default")
-            : Lang.Text("Instance.Setup.FollowGlobal");
+        OnPropertyChanged(nameof(TitleHintText));
         TitleDefaultVisible = string.IsNullOrEmpty(TitleText);
     }
 

@@ -55,6 +55,7 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
     private bool _eulaReadErrorShown;
     private bool _forceEulaPage;
     private volatile bool _initCancelRequested;
+    private string? _initErrorKey;
     private string? _initErrorText;
     private bool _initFailed;
     private bool _initialized;
@@ -82,7 +83,7 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
         LobbyService.Players.CollectionChanged += OnPlayersChanged;
 
         UpdateAccountDisplay();
-        UpdateNatText();
+        NotifyNatText();
     }
 
     #region 预检
@@ -214,65 +215,165 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
 
     #region 绑定状态
 
-    [ObservableProperty]
-    public partial string AnnouncementText { get; set; } =
-        Lang.Text("Tools.GameLink.Loading.ConnectingServer");
+    /// <summary>公告文本随公告状态、当前条目与语言实时求值。</summary>
+    public string AnnouncementText
+    {
+        get
+        {
+            switch (CurrentAnnouncementState)
+            {
+                case AnnouncementLoadState.Loading:
+                    return Lang.Text("Tools.GameLink.Loading.ConnectingServer");
 
-    [ObservableProperty] public partial int AnnouncementThemeIndex { get; set; }
+                case AnnouncementLoadState.Loaded:
+                {
+                    var items = Volatile.Read(ref _announcementItems);
+                    if (items.Length == 0)
+                        return string.Empty;
+                    var info = items[Math.Abs(_announcementIndex) % items.Length];
+                    var prefix = info.Type switch
+                    {
+                        LinkAnnounceType.Important => Lang.Text(
+                            "Tools.GameLink.Announcement.Important"),
+                        LinkAnnounceType.Warning => Lang.Text(
+                            "Tools.GameLink.Announcement.Warning"),
+                        _ => Lang.Text("Tools.GameLink.Announcement.Notice")
+                    };
+                    return Lang.Text(
+                        "Tools.GameLink.Announcement.Format",
+                        prefix,
+                        info.Content.Replace("\r\n", "\n").Replace("\r", "\n"));
+                }
 
-    [ObservableProperty] public partial bool AnnouncementVisible { get; set; } = true;
+                default:
+                    return CurrentAnnouncementFailure == AnnouncementFailureKind.UpdateRequired
+                        ? Lang.Text("Tools.GameLink.Error.UpdateRequired")
+                        : Lang.Text("Tools.GameLink.Error.ConnectFailed");
+            }
+        }
+    }
+
+    public int AnnouncementThemeIndex
+    {
+        get
+        {
+            if (CurrentAnnouncementState != AnnouncementLoadState.Loaded)
+                return CurrentAnnouncementState == AnnouncementLoadState.Loading ? 0 : 1;
+            var items = Volatile.Read(ref _announcementItems);
+            if (items.Length == 0)
+                return 0;
+            return items[Math.Abs(_announcementIndex) % items.Length].Type switch
+            {
+                LinkAnnounceType.Important => 1,
+                LinkAnnounceType.Warning => 2,
+                _ => 0
+            };
+        }
+    }
+
+    public bool AnnouncementVisible =>
+        CurrentAnnouncementState != AnnouncementLoadState.Loaded
+        || Volatile.Read(ref _announcementItems).Length > 0;
 
     [ObservableProperty] public partial bool AccountEnabled { get; set; } = true;
 
-    [ObservableProperty] public partial double AccountOpacity { get; set; } = 1d;
+    public double AccountOpacity => GetAccountPresentation().Opacity;
 
-    [ObservableProperty]
-    public partial string AccountText { get; set; } =
-        Lang.Text("Tools.GameLink.Natayark.Login");
+    public string AccountText => GetAccountPresentation().Text;
 
     [ObservableProperty] public partial bool CancelVisible { get; set; }
 
-    [ObservableProperty] public partial bool ConnectTypeVisible { get; set; }
+    public bool ConnectTypeVisible => IsConnected && !LobbyService.IsHost;
 
-    [ObservableProperty]
-    public partial string ConnectTypeText { get; set; } =
-        Lang.Text("Tools.GameLink.Finish.Unavailable");
+    public string ConnectTypeText
+    {
+        get
+        {
+            if (!IsConnected)
+                return Lang.Text("Tools.GameLink.Finish.Unavailable");
+            if (LobbyService.IsHost)
+                return Lang.Text("Link.Connection.Local");
+            var hostInfo = LobbyService.CurrentHostInfo;
+            if (hostInfo is null)
+                return Lang.Text("Tools.GameLink.Finish.Unavailable");
+            return hostInfo.Way switch
+            {
+                ConnectionWay.Local => Lang.Text("Link.Connection.Local"),
+                ConnectionWay.P2P => Lang.Text("Link.Connection.P2P"),
+                ConnectionWay.Relay => Lang.Text("Link.Connection.Relay"),
+                _ => Lang.Text("Link.Connection.Unknown")
+            };
+        }
+    }
 
-    [ObservableProperty] public partial string ConnectUserNameText { get; set; } = string.Empty;
+    public string ConnectUserNameText =>
+        IsConnected
+            ? string.IsNullOrWhiteSpace(LobbyService.CurrentUserName)
+                ? Lang.Text("Tools.GameLink.Finish.Guest")
+                : LobbyService.CurrentUserName!
+            : string.Empty;
 
-    [ObservableProperty] public partial string ConnectUserTypeText { get; set; } = string.Empty;
+    public string ConnectUserTypeText =>
+        IsConnected
+            ? LobbyService.IsHost
+                ? Lang.Text("Tools.GameLink.Finish.Host")
+                : Lang.Text("Tools.GameLink.Finish.Guest")
+            : string.Empty;
 
     [ObservableProperty] public partial bool CreateEnabled { get; set; }
 
-    [ObservableProperty] public partial bool EasyTierVersionWarningVisible { get; set; }
+    public bool EasyTierVersionWarningVisible =>
+        IsConnected && HasEasyTierVersionMismatch(LobbyService.IsHost);
 
     [ObservableProperty] public partial bool EulaStopEnabled { get; set; } = true;
 
-    [ObservableProperty] public partial bool FinishCopyIpVisible { get; set; }
+    public bool FinishCopyIpVisible =>
+        IsConnected
+        && !LobbyService.IsHost
+        && LobbyInfoProvider.McForward?.LocalEndPoint is not null;
 
     [ObservableProperty] public partial bool FinishCopyEnabled { get; set; }
 
     [ObservableProperty] public partial bool FinishExitEnabled { get; set; }
 
-    [ObservableProperty]
-    public partial string FinishExitText { get; set; } =
-        Lang.Text("Tools.GameLink.Finish.Exit");
+    public string FinishExitText =>
+        IsConnected && LobbyService.IsHost
+            ? Lang.Text("Tools.GameLink.Finish.CloseLobby")
+            : Lang.Text("Tools.GameLink.Finish.Exit");
 
-    [ObservableProperty] public partial string FinishIdText { get; set; } = "—";
+    public string FinishIdText =>
+        IsConnected && LobbyService.CurrentLobbyCode is { Length: > 0 } code
+            ? code
+            : "—";
 
-    [ObservableProperty]
-    public partial string FinishPingText { get; set; } =
-        Lang.Text("Tools.GameLink.Finish.Checking");
+    public string FinishPingText
+    {
+        get
+        {
+            if (!IsConnected)
+                return Lang.Text("Tools.GameLink.Finish.Checking");
+            if (LobbyService.IsHost)
+                return _lastPing > 0
+                    ? Lang.Text("Tools.GameLink.Finish.PingMs", _lastPing)
+                    : Lang.Text("Tools.GameLink.Finish.Unavailable");
+            var hostInfo = LobbyService.CurrentHostInfo;
+            if (hostInfo is null)
+                return _lastPing > 0
+                    ? Lang.Text("Tools.GameLink.Finish.PingMs", _lastPing)
+                    : Lang.Text("Tools.GameLink.Finish.Checking");
+            return _lastPing > 0
+                ? Lang.Text("Tools.GameLink.Finish.PingMs", _lastPing)
+                : hostInfo.Ping > 0
+                    ? Lang.Text("Tools.GameLink.Finish.PingMs", (long)hostInfo.Ping)
+                    : Lang.Text("Tools.GameLink.Finish.Checking");
+        }
+    }
 
-    [ObservableProperty] public partial bool FinishPingVisible { get; set; }
+    public bool FinishPingVisible => IsConnected && !LobbyService.IsHost;
 
-    [ObservableProperty]
-    public partial string FinishQualityText { get; set; } =
-        Lang.Text("Tools.GameLink.Finish.Checking");
+    public string FinishQualityText => GetQualityPresentation().Keyword;
 
-    [ObservableProperty]
-    public partial string FinishQualityToolTip { get; set; } =
-        Lang.Text("Tools.GameLink.Finish.ConnectionStatus");
+    public string FinishQualityToolTip => GetQualityPresentation().Description;
 
     [ObservableProperty] public partial bool InputPortEnabled { get; set; }
 
@@ -282,21 +383,48 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
 
     [ObservableProperty] public partial string JoinCode { get; set; } = string.Empty;
 
-    [ObservableProperty] public partial string LoadDescription { get; set; } = string.Empty;
+    public string LoadDescription
+    {
+        get
+        {
+            if (_initFailed)
+                return _initErrorKey is not null
+                    ? Lang.Text(_initErrorKey)
+                    : _initErrorText ?? string.Empty;
+            if (LobbyService.CurrentState == LobbyState.Creating)
+                return LobbyService.CurrentLobbyCode ?? string.Empty;
+            return LobbyService.CurrentState == LobbyState.Initializing || _initializing
+                ? Lang.Text("Tools.GameLink.Loading.DownloadingModule")
+                : string.Empty;
+        }
+    }
 
-    [ObservableProperty]
-    public partial string LoadTitle { get; set; } =
-        Lang.Text("Tools.GameLink.Loading.ConnectingServer");
+    public string LoadTitle =>
+        _initFailed
+            ? Lang.Text("Tools.GameLink.Error.ConnectFailed")
+            : LobbyService.CurrentState == LobbyState.Creating
+                ? Lang.Text("Tools.GameLink.Loading.Creating")
+                : Lang.Text("Tools.GameLink.Loading.ConnectingServer");
 
     [ObservableProperty] public partial bool NatTestEnabled { get; set; } = true;
 
-    [ObservableProperty]
-    public partial string NatTypeText { get; set; } =
-        Lang.Text("Tools.GameLink.Nat.Test");
+    public string NatTypeText =>
+        Volatile.Read(ref _natTestBusy) == 1
+            ? Lang.Text("Tools.GameLink.Nat.Testing")
+            : _natStatus is not null
+                ? Lang.Text(
+                    "Tools.GameLink.Nat.Result",
+                    CliNetTest.GetNatTypeString(_natStatus.UdpNatType),
+                    CliNetTest.GetNatTypeString(_natStatus.TcpNatType))
+                : Lang.Text(
+                    _natTestFailed
+                        ? "Tools.GameLink.Nat.Failed"
+                        : "Tools.GameLink.Nat.Test");
 
-    [ObservableProperty]
-    public partial string PlayerListTitle { get; set; } =
-        Lang.Text("Tools.GameLink.Member.ListLoading");
+    public string PlayerListTitle =>
+        IsConnected
+            ? Lang.Text("Tools.GameLink.Member.ListCount", PlayerRows.Count)
+            : Lang.Text("Tools.GameLink.Member.ListLoading");
 
     [ObservableProperty] public partial GameLinkWorldOption? SelectedWorld { get; set; }
 
@@ -315,6 +443,79 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
     public ObservableCollection<GameLinkPlayerRow> PlayerRows { get; } = [];
 
     public ObservableCollection<GameLinkWorldOption> Worlds { get; } = [];
+
+    private bool IsConnected => LobbyService.CurrentState == LobbyState.Connected;
+
+    private (string Text, double Opacity) GetAccountPresentation()
+    {
+        if (_accountLoginPending)
+            return (Lang.Text("Tools.GameLink.Natayark.BrowserContinue"), 0.6d);
+
+        if (string.IsNullOrWhiteSpace(States.Link.NaidRefreshToken))
+            return (Lang.Text("Tools.GameLink.Natayark.Login"), 1d);
+
+        var profile = NatayarkProfileManager.NaidProfile;
+        if (_accountBusy)
+            return (
+                string.IsNullOrWhiteSpace(profile.Username)
+                    ? Lang.Text("Tools.GameLink.Natayark.Loading")
+                    : profile.Username!,
+                0.6d);
+
+        if (_accountRefreshFailed)
+            return (Lang.Text("Tools.GameLink.Natayark.FetchFailed"), 0.6d);
+
+        if (string.IsNullOrWhiteSpace(profile.Username))
+            return (Lang.Text("Tools.GameLink.Natayark.Loading"), 0.6d);
+
+        if (profile.Status == 0)
+            return (profile.Username ?? string.Empty, 1d);
+
+        return ($"{profile.Username} {Lang.Text("Tools.GameLink.Natayark.Abnormal")}", 0.6d);
+    }
+
+    private (string Keyword, string Description) GetQualityPresentation()
+    {
+        if (!IsConnected)
+            return (
+                Lang.Text("Tools.GameLink.Finish.Checking"),
+                Lang.Text("Tools.GameLink.Finish.ConnectionStatus"));
+
+        if (LobbyService.IsHost)
+        {
+            var qualityIndex = _natStatus?.UdpNatType switch
+            {
+                CliNetTest.NatType.OpenInternet
+                    or CliNetTest.NatType.NoPat
+                    or CliNetTest.NatType.FullCone => 3,
+                CliNetTest.NatType.Symmetric
+                    or CliNetTest.NatType.SymmetricEasy
+                    or CliNetTest.NatType.SymmetricFirewall
+                    or CliNetTest.NatType.UdpBlocked => 1,
+                _ => _natStatus is null ? 3 : 2
+            };
+            return LobbyTextHandler.GetQualityDesc(qualityIndex);
+        }
+
+        var hostInfo = LobbyService.CurrentHostInfo;
+        if (hostInfo is null)
+            return (
+                Lang.Text("Tools.GameLink.Finish.Connected"),
+                Lang.Text("Tools.GameLink.Finish.ConnectionStatus"));
+
+        var quality = hostInfo.Way switch
+        {
+            ConnectionWay.Local or ConnectionWay.P2P => 3,
+            ConnectionWay.Relay => 2,
+            _ => 1
+        };
+        if (hostInfo.Ping > 300 || hostInfo.Loss > 5 || _lastPing > 300)
+            quality = 1;
+        else if (hostInfo.Loss > 2 || _lastPing > 150)
+            quality = Math.Min(quality, 2);
+
+        return LobbyTextHandler.GetQualityDesc(quality);
+    }
 
     partial void OnSelectedWorldChanged(GameLinkWorldOption? value)
     {
@@ -376,29 +577,57 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
         BeginAnnouncementReload();
         _initFailed = false;
         _initErrorText = null;
+        _initErrorKey = null;
         _initialized = false;
         SyncWorldsFromService();
         await EnsureInitializedAsync().ConfigureAwait(true);
     }
 
-    public void RefreshLocalization()
-    {
-        if (!Dispatcher.UIThread.CheckAccess())
-        {
-            Dispatcher.UIThread.Post(RefreshLocalization);
-            return;
-        }
-
-        RefreshLayout();
-        RefreshAnnouncementText();
-        ApplyNatText();
-        RebuildPlayerRows();
-        UpdateAccountDisplay();
-    }
-
     #endregion
 
     #region 状态刷新
+
+    private void NotifyAnnouncement()
+    {
+        OnPropertyChanged(nameof(AnnouncementText));
+        OnPropertyChanged(nameof(AnnouncementThemeIndex));
+        OnPropertyChanged(nameof(AnnouncementVisible));
+    }
+
+    private void NotifyAccountDisplay()
+    {
+        OnPropertyChanged(nameof(AccountText));
+        OnPropertyChanged(nameof(AccountOpacity));
+    }
+
+    private void NotifyFinishInfo()
+    {
+        OnPropertyChanged(nameof(ConnectTypeVisible));
+        OnPropertyChanged(nameof(ConnectTypeText));
+        OnPropertyChanged(nameof(ConnectUserNameText));
+        OnPropertyChanged(nameof(ConnectUserTypeText));
+        OnPropertyChanged(nameof(EasyTierVersionWarningVisible));
+        OnPropertyChanged(nameof(FinishCopyIpVisible));
+        OnPropertyChanged(nameof(FinishExitText));
+        OnPropertyChanged(nameof(FinishIdText));
+        OnPropertyChanged(nameof(FinishPingText));
+        OnPropertyChanged(nameof(FinishPingVisible));
+        OnPropertyChanged(nameof(FinishQualityText));
+        OnPropertyChanged(nameof(FinishQualityToolTip));
+        OnPropertyChanged(nameof(PlayerListTitle));
+    }
+
+    private void NotifyLayoutText()
+    {
+        OnPropertyChanged(nameof(LoadTitle));
+        OnPropertyChanged(nameof(LoadDescription));
+        OnPropertyChanged(nameof(PlayerListTitle));
+    }
+
+    private void NotifyNatText()
+    {
+        OnPropertyChanged(nameof(NatTypeText));
+    }
 
     private void OnLobbyStateChanged(LobbyState oldState, LobbyState newState)
     {
@@ -410,12 +639,14 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
                     _initialized = true;
                     _initFailed = false;
                     _initErrorText = null;
+                    _initErrorKey = null;
                     UpdateConnectedInfo();
                     break;
                 case LobbyState.Error:
                     _initialized = false;
                     _initFailed = true;
-                    _initErrorText = Lang.Text("Tools.GameLink.Error.ConnectFailed");
+                    _initErrorText = null;
+                    _initErrorKey = "Tools.GameLink.Error.ConnectFailed";
                     break;
                 case LobbyState.Idle:
                 case LobbyState.Initialized:
@@ -438,9 +669,7 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
     {
         RunOnUi(() =>
         {
-            FinishIdText = string.IsNullOrWhiteSpace(LobbyService.CurrentLobbyCode)
-                ? "—"
-                : LobbyService.CurrentLobbyCode!;
+            NotifyFinishInfo();
             RefreshLayout();
         });
     }
@@ -542,8 +771,6 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
 
         if (_initFailed)
         {
-            LoadTitle = Lang.Text("Tools.GameLink.Error.ConnectFailed");
-            LoadDescription = _initErrorText ?? string.Empty;
             ShowEula = false;
             ShowSelect = false;
             ShowFinish = false;
@@ -554,8 +781,9 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
             InputPortEnabled = false;
             FinishExitEnabled = false;
             FinishCopyEnabled = false;
-            PlayerListTitle = Lang.Text("Tools.GameLink.Member.ListLoading");
             PlayerRows.Clear();
+            NotifyLayoutText();
+            NotifyFinishInfo();
             EulaStopEnabled = Volatile.Read(ref _eulaBusy) == 0
                 && Volatile.Read(ref _operationBusy) == 0;
             AccountEnabled = !_accountBusy && Volatile.Read(ref _accountActionBusy) == 0;
@@ -563,20 +791,6 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
             UpdateAccountDisplay();
             return;
         }
-
-        LoadTitle = state switch
-        {
-            LobbyState.Creating => Lang.Text("Tools.GameLink.Loading.Creating"),
-            _ => Lang.Text("Tools.GameLink.Loading.ConnectingServer")
-        };
-        LoadDescription = state switch
-        {
-            LobbyState.Creating => LobbyService.CurrentLobbyCode ?? string.Empty,
-            LobbyState.Initializing => Lang.Text("Tools.GameLink.Loading.DownloadingModule"),
-            _ => _initializing
-                ? Lang.Text("Tools.GameLink.Loading.DownloadingModule")
-                : string.Empty
-        };
 
         var eulaAccepted = !_forceEulaPage && TryGetEulaAccepted();
         var connected = state == LobbyState.Connected;
@@ -616,6 +830,7 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
             Volatile.Read(ref _eulaBusy) == 0 && Volatile.Read(ref _operationBusy) == 0;
         AccountEnabled = !_accountBusy && Volatile.Read(ref _accountActionBusy) == 0;
         NatTestEnabled = Volatile.Read(ref _natTestBusy) == 0;
+        NotifyLayoutText();
         UpdateAccountDisplay();
     }
 
@@ -641,22 +856,10 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
     private void ClearFinishState()
     {
         _lastPing = 0;
-        FinishIdText = "—";
-        FinishPingText = Lang.Text("Tools.GameLink.Finish.Checking");
-        FinishPingVisible = false;
-        FinishQualityText = Lang.Text("Tools.GameLink.Finish.Checking");
-        FinishQualityToolTip = Lang.Text("Tools.GameLink.Finish.ConnectionStatus");
-        ConnectTypeVisible = false;
-        ConnectTypeText = Lang.Text("Tools.GameLink.Finish.Unavailable");
-        ConnectUserNameText = string.Empty;
-        ConnectUserTypeText = string.Empty;
-        FinishCopyIpVisible = false;
         FinishCopyEnabled = false;
         FinishExitEnabled = false;
-        FinishExitText = Lang.Text("Tools.GameLink.Finish.Exit");
-        EasyTierVersionWarningVisible = false;
         PlayerRows.Clear();
-        PlayerListTitle = Lang.Text("Tools.GameLink.Member.ListLoading");
+        NotifyFinishInfo();
     }
 
     private void UpdateConnectedInfo()
@@ -670,110 +873,26 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
         if (LobbyService.CurrentState != LobbyState.Connected)
             return;
 
-        var isHost = LobbyService.IsHost;
         var code = LobbyService.CurrentLobbyCode;
-        FinishIdText = string.IsNullOrWhiteSpace(code) ? "—" : code!;
         FinishCopyEnabled = !string.IsNullOrWhiteSpace(code);
-        ConnectUserNameText = string.IsNullOrWhiteSpace(LobbyService.CurrentUserName)
-            ? Lang.Text("Tools.GameLink.Finish.Guest")
-            : LobbyService.CurrentUserName!;
-        ConnectUserTypeText = isHost
-            ? Lang.Text("Tools.GameLink.Finish.Host")
-            : Lang.Text("Tools.GameLink.Finish.Guest");
-        FinishExitText = isHost
-            ? Lang.Text("Tools.GameLink.Finish.CloseLobby")
-            : Lang.Text("Tools.GameLink.Finish.Exit");
         FinishExitEnabled =
             Volatile.Read(ref _eulaBusy) == 0 && Volatile.Read(ref _operationBusy) == 0;
-        FinishCopyIpVisible = !isHost && LobbyInfoProvider.McForward?.LocalEndPoint is not null;
-        ConnectTypeVisible = !isHost;
-        FinishPingVisible = !isHost;
-
-        if (isHost)
-        {
-            var qualityIndex = _natStatus?.UdpNatType switch
-            {
-                CliNetTest.NatType.OpenInternet
-                    or CliNetTest.NatType.NoPat
-                    or CliNetTest.NatType.FullCone => 3,
-                CliNetTest.NatType.Symmetric
-                    or CliNetTest.NatType.SymmetricEasy
-                    or CliNetTest.NatType.SymmetricFirewall
-                    or CliNetTest.NatType.UdpBlocked => 1,
-                _ => _natStatus is null ? 3 : 2
-            };
-            var quality = LobbyTextHandler.GetQualityDesc(qualityIndex);
-            ConnectTypeText = Lang.Text("Link.Connection.Local");
-            FinishQualityText = quality.Keyword;
-            FinishQualityToolTip = quality.Desc;
-            FinishPingText = _lastPing > 0
-                ? Lang.Text("Tools.GameLink.Finish.PingMs", _lastPing)
-                : Lang.Text("Tools.GameLink.Finish.Unavailable");
-        }
-        else
-        {
-            var hostInfo = LobbyService.CurrentHostInfo;
-            if (hostInfo is null)
-            {
-                ConnectTypeText = Lang.Text("Tools.GameLink.Finish.Unavailable");
-                FinishQualityText = Lang.Text("Tools.GameLink.Finish.Connected");
-                FinishQualityToolTip = Lang.Text("Tools.GameLink.Finish.ConnectionStatus");
-                FinishPingText = _lastPing > 0
-                    ? Lang.Text("Tools.GameLink.Finish.PingMs", _lastPing)
-                    : Lang.Text("Tools.GameLink.Finish.Checking");
-            }
-            else
-            {
-                var quality = hostInfo.Way switch
-                {
-                    ConnectionWay.Local or ConnectionWay.P2P => 3,
-                    ConnectionWay.Relay => 2,
-                    _ => 1
-                };
-                if (hostInfo.Ping > 300 || hostInfo.Loss > 5 || _lastPing > 300)
-                    quality = 1;
-                else if (hostInfo.Loss > 2 || _lastPing > 150)
-                    quality = Math.Min(quality, 2);
-
-                var qualityDesc = LobbyTextHandler.GetQualityDesc(quality);
-                ConnectTypeText = hostInfo.Way switch
-                {
-                    ConnectionWay.Local => Lang.Text("Link.Connection.Local"),
-                    ConnectionWay.P2P => Lang.Text("Link.Connection.P2P"),
-                    ConnectionWay.Relay => Lang.Text("Link.Connection.Relay"),
-                    _ => Lang.Text("Link.Connection.Unknown")
-                };
-                FinishQualityText = qualityDesc.Keyword;
-                FinishQualityToolTip = qualityDesc.Desc;
-                FinishPingText = _lastPing > 0
-                    ? Lang.Text("Tools.GameLink.Finish.PingMs", _lastPing)
-                    : hostInfo.Ping > 0
-                        ? Lang.Text("Tools.GameLink.Finish.PingMs", (long)hostInfo.Ping)
-                        : Lang.Text("Tools.GameLink.Finish.Checking");
-            }
-        }
-
-        EasyTierVersionWarningVisible = HasEasyTierVersionMismatch(isHost);
+        NotifyFinishInfo();
     }
 
     private static bool HasEasyTierVersionMismatch(bool isHost)
     {
-        var current = EasyTierMetadata.CurrentEasyTierVer;
+        const string current = EasyTierMetadata.CurrentEasyTierVer;
         if (!isHost
             && LobbyService.CurrentHostInfo is { EasyTierVer: { Length: > 0 } hostVersion }
             && !VersionMatches(hostVersion, current))
             return true;
 
-        foreach (var player in LobbyService.Players)
-        {
-            if (string.IsNullOrWhiteSpace(player.Vendor))
-                continue;
-            if (!player.Vendor.Contains("EasyTier", StringComparison.OrdinalIgnoreCase)
-                || !player.Vendor.Contains(current, StringComparison.OrdinalIgnoreCase))
-                return true;
-        }
-
-        return false;
+        return LobbyService
+            .Players
+            .Where(player => !string.IsNullOrWhiteSpace(player.Vendor))
+            .Any(player => !player.Vendor.Contains("EasyTier", StringComparison.OrdinalIgnoreCase)
+                || !player.Vendor.Contains(current, StringComparison.OrdinalIgnoreCase));
     }
 
     private static bool VersionMatches(string actual, string expected)
@@ -793,29 +912,23 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
         }
 
         PlayerRows.Clear();
-        foreach (var player in LobbyService.Players.ToList())
+        foreach (
+            var row in LobbyService
+                .Players
+                .ToList()
+                .Select(player => new GameLinkPlayerRow
+                {
+                    Name = player.Name,
+                    IsHost = player.Kind == PlayerKind.HOST,
+                    Vendor = player.Vendor,
+                    MachineId = player.MachineId
+                }))
         {
-            var isHost = player.Kind == PlayerKind.HOST;
-            var info = isHost
-                ? Lang.Text(
-                    "Tools.GameLink.Player.Details",
-                    Lang.Text("Tools.GameLink.Player.Host"),
-                    player.Vendor)
-                : player.Vendor;
-            var row = new GameLinkPlayerRow
-            {
-                Name = player.Name,
-                Info = info,
-                Vendor = player.Vendor,
-                MachineId = player.MachineId
-            };
             row.ShowInfoCommand = new AsyncRelayCommand(() => ShowPlayerInfoAsync(row));
             PlayerRows.Add(row);
         }
 
-        PlayerListTitle = Lang.Text("Tools.GameLink.Member.ListCount", PlayerRows.Count);
-        if (LobbyService.CurrentState == LobbyState.Connected)
-            EasyTierVersionWarningVisible = HasEasyTierVersionMismatch(LobbyService.IsHost);
+        NotifyFinishInfo();
     }
 
     #endregion
@@ -831,9 +944,7 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
         _announcementIndex = 0;
         Volatile.Write(ref _announcementItems, Array.Empty<LinkAnnounceInfo>());
         SetAnnouncementState(AnnouncementLoadState.Loading, AnnouncementFailureKind.None);
-        AnnouncementThemeIndex = 0;
-        AnnouncementText = Lang.Text("Tools.GameLink.Loading.ConnectingServer");
-        AnnouncementVisible = true;
+        NotifyAnnouncement();
 
         _ = FetchAnnouncementAsync(requestId);
         _ = RunAnnouncementCarouselAsync(_announcementCarouselCts.Token);
@@ -900,7 +1011,7 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
                     RunOnUi(() =>
                     {
                         if (CurrentAnnouncementState == AnnouncementLoadState.Loaded)
-                            AnnouncementVisible = false;
+                            NotifyAnnouncement();
                     });
                     continue;
                 }
@@ -930,54 +1041,12 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
         var items = Volatile.Read(ref _announcementItems);
         if (items.Length == 0)
         {
-            AnnouncementVisible = false;
+            NotifyAnnouncement();
             return;
         }
 
         _announcementIndex = Math.Abs(index) % items.Length;
-        var info = items[_announcementIndex];
-        var (prefix, theme) = info.Type switch
-        {
-            LinkAnnounceType.Important => (
-                Lang.Text("Tools.GameLink.Announcement.Important"), 1),
-            LinkAnnounceType.Warning => (
-                Lang.Text("Tools.GameLink.Announcement.Warning"), 2),
-            _ => (
-                Lang.Text("Tools.GameLink.Announcement.Notice"), 0)
-        };
-
-        AnnouncementThemeIndex = theme;
-        AnnouncementText = Lang.Text(
-            "Tools.GameLink.Announcement.Format",
-            prefix,
-            info.Content.Replace("\r\n", "\n").Replace("\r", "\n"));
-        AnnouncementVisible = true;
-    }
-
-    private void RefreshAnnouncementText()
-    {
-        switch (CurrentAnnouncementState)
-        {
-            case AnnouncementLoadState.Loading:
-                AnnouncementThemeIndex = 0;
-                AnnouncementText = Lang.Text("Tools.GameLink.Loading.ConnectingServer");
-                AnnouncementVisible = true;
-                break;
-            case AnnouncementLoadState.Loaded:
-                if (Volatile.Read(ref _announcementItems).Length == 0)
-                    AnnouncementVisible = false;
-                else
-                    ShowAnnouncement(_announcementIndex);
-                break;
-            case AnnouncementLoadState.Failed:
-                AnnouncementThemeIndex = 1;
-                AnnouncementText =
-                    CurrentAnnouncementFailure == AnnouncementFailureKind.UpdateRequired
-                        ? Lang.Text("Tools.GameLink.Error.UpdateRequired")
-                        : Lang.Text("Tools.GameLink.Error.ConnectFailed");
-                AnnouncementVisible = true;
-                break;
-        }
+        NotifyAnnouncement();
     }
 
     private async Task FetchAnnouncementAsync(int requestId)
@@ -1009,9 +1078,7 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
                 {
                     if (!IsCurrentAnnouncementRequest(requestId))
                         return;
-                    AnnouncementThemeIndex = 1;
-                    AnnouncementText = Lang.Text("Tools.GameLink.Error.UpdateRequired");
-                    AnnouncementVisible = true;
+                    NotifyAnnouncement();
                 });
                 return;
             }
@@ -1036,10 +1103,10 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
                 if (!IsCurrentAnnouncementRequest(requestId))
                     return;
                 _announcementIndex = 0;
-                if (announcements.Count == 0)
-                    AnnouncementVisible = false;
-                else
+                if (announcements.Count > 0)
                     ShowAnnouncement(0);
+                else
+                    NotifyAnnouncement();
                 EnsureAccountState();
             });
         }
@@ -1059,9 +1126,7 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
             {
                 if (!IsCurrentAnnouncementRequest(requestId))
                     return;
-                AnnouncementThemeIndex = 1;
-                AnnouncementText = Lang.Text("Tools.GameLink.Error.ConnectFailed");
-                AnnouncementVisible = true;
+                NotifyAnnouncement();
             });
         }
     }
@@ -1180,10 +1245,13 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
                 _ => LinkAnnounceType.Notice
             };
 
-            foreach (var line in content.Split(
-                         '\n',
-                         StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-                result.Add(new LinkAnnounceInfo(type, line));
+            result
+                .AddRange(
+                    content
+                        .Split(
+                            '\n',
+                            StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                        .Select(line => new LinkAnnounceInfo(type, line)));
         }
 
         return result;
@@ -1269,6 +1337,7 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
         _initializing = true;
         _initFailed = false;
         _initErrorText = null;
+        _initErrorKey = null;
         RefreshLayout();
         try
         {
@@ -1294,6 +1363,7 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
             _initialized = false;
             _initFailed = true;
             _initErrorText = ex.Message;
+            _initErrorKey = null;
             HintService.Show(Hints.Error(Lang.Text("Tools.GameLink.Error.ConnectFailed")));
         }
         finally
@@ -1397,7 +1467,7 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
                 return;
             }
 
-            PrepareFinish(false, code, username);
+            PrepareFinish();
             var result = await LobbyService.JoinLobbyAsync(code, username).ConfigureAwait(true);
             if (!result)
             {
@@ -1504,7 +1574,7 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
             return;
         }
 
-        PrepareFinish(true, null, username);
+        PrepareFinish();
         var result = await LobbyService.CreateLobbyAsync(port, username).ConfigureAwait(true);
         if (!result)
         {
@@ -1516,28 +1586,13 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
         RefreshLayout();
     }
 
-    private void PrepareFinish(bool isHost, string? lobbyCode, string username)
+    private void PrepareFinish()
     {
         _lastPing = 0;
-        FinishIdText = string.IsNullOrWhiteSpace(lobbyCode) ? "—" : lobbyCode;
-        FinishPingVisible = !isHost;
-        FinishPingText = Lang.Text("Tools.GameLink.Finish.Checking");
-        FinishQualityText = Lang.Text("Tools.GameLink.Finish.Checking");
-        ConnectTypeVisible = !isHost;
-        ConnectTypeText = Lang.Text("Tools.GameLink.Finish.Connecting");
-        ConnectUserNameText = username;
-        ConnectUserTypeText = isHost
-            ? Lang.Text("Tools.GameLink.Finish.Host")
-            : Lang.Text("Tools.GameLink.Finish.Guest");
-        FinishCopyIpVisible = false;
         FinishCopyEnabled = false;
         FinishExitEnabled = false;
-        FinishExitText = isHost
-            ? Lang.Text("Tools.GameLink.Finish.CloseLobby")
-            : Lang.Text("Tools.GameLink.Finish.Exit");
-        EasyTierVersionWarningVisible = false;
         PlayerRows.Clear();
-        PlayerListTitle = Lang.Text("Tools.GameLink.Member.ListLoading");
+        NotifyFinishInfo();
     }
 
     public async Task LeaveLobbyAsync()
@@ -1773,53 +1828,7 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
             return;
         }
 
-        if (_accountLoginPending)
-        {
-            AccountText = Lang.Text("Tools.GameLink.Natayark.BrowserContinue");
-            AccountOpacity = 0.6d;
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(States.Link.NaidRefreshToken))
-        {
-            AccountText = Lang.Text("Tools.GameLink.Natayark.Login");
-            AccountOpacity = 1d;
-            return;
-        }
-
-        var profile = NatayarkProfileManager.NaidProfile;
-        if (_accountBusy)
-        {
-            AccountText = string.IsNullOrWhiteSpace(profile.Username)
-                ? Lang.Text("Tools.GameLink.Natayark.Loading")
-                : profile.Username!;
-            AccountOpacity = 0.6d;
-            return;
-        }
-
-        if (_accountRefreshFailed)
-        {
-            AccountText = Lang.Text("Tools.GameLink.Natayark.FetchFailed");
-            AccountOpacity = 0.6d;
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(profile.Username))
-        {
-            AccountText = Lang.Text("Tools.GameLink.Natayark.Loading");
-            AccountOpacity = 0.6d;
-            return;
-        }
-
-        if (profile.Status == 0)
-        {
-            AccountText = profile.Username ?? string.Empty;
-            AccountOpacity = 1d;
-            return;
-        }
-
-        AccountText = $"{profile.Username} {Lang.Text("Tools.GameLink.Natayark.Abnormal")}";
-        AccountOpacity = 0.6d;
+        NotifyAccountDisplay();
     }
 
     public async Task ToggleNatayarkAccountAsync()
@@ -1994,7 +2003,7 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
         _natStatus = null;
         _natTestFailed = false;
         NatTestEnabled = false;
-        NatTypeText = Lang.Text("Tools.GameLink.Nat.Testing");
+        NotifyNatText();
         RefreshLayout();
         try
         {
@@ -2029,37 +2038,9 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
         {
             Interlocked.Exchange(ref _natTestBusy, 0);
             NatTestEnabled = true;
-            ApplyNatText();
+            NotifyNatText();
             RefreshLayout();
         }
-    }
-
-    private void ApplyNatText()
-    {
-        if (Volatile.Read(ref _natTestBusy) == 1)
-        {
-            NatTypeText = Lang.Text("Tools.GameLink.Nat.Testing");
-            return;
-        }
-
-        if (_natStatus is not null)
-        {
-            NatTypeText = Lang.Text(
-                "Tools.GameLink.Nat.Result",
-                CliNetTest.GetNatTypeString(_natStatus.UdpNatType),
-                CliNetTest.GetNatTypeString(_natStatus.TcpNatType));
-            return;
-        }
-
-        NatTypeText = Lang.Text(
-            _natTestFailed
-                ? "Tools.GameLink.Nat.Failed"
-                : "Tools.GameLink.Nat.Test");
-    }
-
-    private void UpdateNatText()
-    {
-        ApplyNatText();
     }
 
     private void OnNeedDownloadEasyTier()
@@ -2306,11 +2287,20 @@ public sealed class GameLinkPlayerRow
 {
     public required string Name { get; init; }
 
-    public required string Info { get; init; }
+    public required bool IsHost { get; init; }
 
     public required string Vendor { get; init; }
 
     public required string MachineId { get; init; }
+
+    /// <summary>副文本按当前语言与主机身份实时求值。</summary>
+    public string Info =>
+        IsHost
+            ? Lang.Text(
+                "Tools.GameLink.Player.Details",
+                Lang.Text("Tools.GameLink.Player.Host"),
+                Vendor)
+            : Vendor;
 
     public ICommand ShowInfoCommand { get; set; } = null!;
 }
