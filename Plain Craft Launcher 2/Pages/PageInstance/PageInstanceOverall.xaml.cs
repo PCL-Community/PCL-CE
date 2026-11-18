@@ -498,7 +498,6 @@ public partial class PageInstanceOverall : IPageView
     // 重置
     private async void BtnManageRestore_Click(object sender, MouseButtonEventArgs e)
     {
-        if (!RestrictedFeaturePolicy.Check("minecraft-reset")) return;
         _vm.RestoreButtonEnabled = false;
         try
         {

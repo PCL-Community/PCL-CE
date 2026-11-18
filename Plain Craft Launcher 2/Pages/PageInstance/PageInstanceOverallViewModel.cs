@@ -180,7 +180,6 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
     [RelayCommand]
     private void CheckFiles()
     {
-        if (!RestrictedFeaturePolicy.Check("minecraft-repair")) return;
         try
         {
             // 忽略文件检查提示
