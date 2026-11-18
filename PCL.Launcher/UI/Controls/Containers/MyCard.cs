@@ -13,9 +13,9 @@ using Path = Avalonia.Controls.Shapes.Path;
 namespace PCL.UI.Controls;
 
 /// <summary>
-///     卡片容器：阴影层 + 圆角背景层 + 标题/折叠箭头层，用户内容直接加入 <see cref="Panel.Children" />。
-///     悬停阴影与标题变色、主题配色过渡、内容高度变化与折叠箭头旋转由 新动画引擎 驱动；
-///     高度动画带 <see cref="UseAnimation" /> 与 <c>_isHeightAnimating</c> 双重守卫，避免尺寸回调自激。
+/// 卡片容器：阴影层 + 圆角背景层 + 标题/折叠箭头层，用户内容直接加入 <see cref="Panel.Children" />。
+/// 悬停阴影与标题变色、主题配色过渡、内容高度变化与折叠箭头旋转由 新动画引擎 驱动； 高度动画带 <see cref="UseAnimation" /> 与
+/// <c>_isHeightAnimating</c> 双重守卫，避免尺寸回调自激。
 /// </summary>
 public class MyCard : Grid
 {
@@ -25,6 +25,9 @@ public class MyCard : Grid
     private const int TitleColorTime = 90;
     private const int ShadowColorTime = 90;
     private const int ThemeColorTime = 300;
+
+    /// <summary>展开距离超过该值时直接完成布局，不再逐帧播放高度动画。</summary>
+    private const double MaxAnimatedExpandDelta = 1200d;
 
     public static readonly StyledProperty<string> TitleProperty =
         AvaloniaProperty.Register<MyCard, string>(nameof(Title), string.Empty);
@@ -120,9 +123,7 @@ public class MyCard : Grid
         set => _mainSwap = value;
     }
 
-    /// <summary>
-    ///     标题文本的内联集合。
-    /// </summary>
+    /// <summary>标题文本的内联集合。</summary>
     public InlineCollection Inlines => MainTextBlock.Inlines!;
 
     public string Title
@@ -143,14 +144,10 @@ public class MyCard : Grid
         set => SetValue(BackgroundBrushProperty, value);
     }
 
-    /// <summary>
-    ///     是否启用鼠标悬停反馈（阴影浓度 90 ms 过渡）。
-    /// </summary>
+    /// <summary>是否启用鼠标悬停反馈（阴影浓度 90 ms 过渡）。</summary>
     public bool HasMouseAnimation { get; set; } = true;
 
-    /// <summary>
-    ///     是否启用内容高度改变动画。折叠栏开合期间会被临时关闭，避免与父卡片的高度动画互相干扰。
-    /// </summary>
+    /// <summary>是否启用内容高度改变动画。折叠栏开合期间会被临时关闭，避免与父卡片的高度动画互相干扰。</summary>
     public bool UseAnimation { get; set; } = true;
 
     private void Init()
@@ -246,9 +243,7 @@ public class MyCard : Grid
         stack.Tag = null;
     }
 
-    /// <summary>
-    ///     通知 MyCard，控件内容已改变，需要中断动画并瞬间更新高度。
-    /// </summary>
+    /// <summary>通知 MyCard，控件内容已改变，需要中断动画并瞬间更新高度。</summary>
     public void TriggerForceResize()
     {
         Height = IsSwapped ? SwapedHeight : double.NaN;
@@ -267,6 +262,10 @@ public class MyCard : Grid
         if (_isDisposing || !UseAnimation || !ContainerAnimation.IsEnabled)
             return;
 
+        // 窗口宽度变化会触发文本换行和卡片高度变化，不应播放内容高度动画。
+        if (Math.Abs(e.NewSize.Width - e.PreviousSize.Width) > 0.5d)
+            return;
+
         var deltaHeight = (IsSwapped ? SwapedHeight : e.NewSize.Height) - e.PreviousSize.Height;
         // 首次出现的高度变化由页面切换动画负责，这里只处理内容增减
         if (e.PreviousSize.Height == 0d
@@ -278,10 +277,7 @@ public class MyCard : Grid
         StartHeightAnimation(deltaHeight, e.PreviousSize.Height);
     }
 
-    /// <summary>
-    ///     启动卡片高度变化的动画效果。
-    ///     根据变化距离的大小采用不同策略：短距离用简单缓动，长距离拆成匀速段 + 减速段。
-    /// </summary>
+    /// <summary>启动卡片高度变化的动画效果。 根据变化距离的大小采用不同策略：短距离用简单缓动，长距离拆成匀速段 + 减速段。</summary>
     /// <param name="delta">高度变化量。</param>
     /// <param name="previousHeight">之前的高度。</param>
     private void StartHeightAnimation(double delta, double previousHeight, double? endHeight = null)
@@ -401,23 +397,17 @@ public class MyCard : Grid
     public Control? SwapControl;
     public bool CanSwap { get; set; }
 
-    /// <summary>
-    ///     数据转为列表项的转换方法。
-    /// </summary>
+    /// <summary>数据转为列表项的转换方法。</summary>
     public Action<StackPanel>? InstallMethod { get; set; }
 
-    /// <summary>
-    ///     是否已被折叠。
-    /// </summary>
+    /// <summary>是否已被折叠。</summary>
     public bool IsSwapped
     {
         get => GetValue(IsSwappedProperty);
         set => SetValue(IsSwappedProperty, value);
     }
 
-    /// <summary>
-    ///     是否已被折叠。(已过时，请使用 IsSwapped)
-    /// </summary>
+    /// <summary>是否已被折叠。(已过时，请使用 IsSwapped)</summary>
     [Obsolete("请使用 IsSwapped 属性，IsSwaped 存在拼写错误")]
     public bool IsSwaped
     {
@@ -519,7 +509,11 @@ public class MyCard : Grid
             else
             {
                 var full = MeasureExpandedHeight();
-                StartHeightAnimation(full - start, start, double.NaN);
+                // 长列表逐帧改变高度会触发整页重排，内容较多时直接展开。
+                if (full - start > MaxAnimatedExpandDelta)
+                    TriggerForceResize();
+                else
+                    StartHeightAnimation(full - start, start, double.NaN);
             }
         }
 
@@ -668,10 +662,7 @@ public class MyCard : Grid
 
     private bool _isDisposing;
 
-    /// <summary>
-    ///     收起卡片并移除或隐藏：缩放、淡出与高度收拢同时进行，结束后执行回调。
-    ///     页面在删除卡片时调用。重复调用会跳过动画，直接收尾。
-    /// </summary>
+    /// <summary>收起卡片并移除或隐藏：缩放、淡出与高度收拢同时进行，结束后执行回调。 页面在删除卡片时调用。重复调用会跳过动画，直接收尾。</summary>
     /// <param name="removeFromChildren">为 <see langword="true" /> 时从父面板移除，否则仅隐藏。</param>
     /// <param name="callBack">动画结束后在 UI 线程执行的回调，参数为本卡片。</param>
     public void AniDispose(bool removeFromChildren, Action<MyCard>? callBack = null)
@@ -740,10 +731,7 @@ public class MyCard : Grid
         AnimateBackground(animate);
     }
 
-    /// <summary>
-    ///     标题与折叠箭头的颜色：悬停时为强调色，其余情况跟随主题文本色。
-    ///     悬停与主题切换调用同一段逻辑，后发起的过渡会接管正在进行的过渡。
-    /// </summary>
+    /// <summary>标题与折叠箭头的颜色：悬停时为强调色，其余情况跟随主题文本色。 悬停与主题切换调用同一段逻辑，后发起的过渡会接管正在进行的过渡。</summary>
     private void AnimateTitleColors(bool animate)
     {
         var hover = IsPointerOver && HasMouseAnimation;
@@ -780,10 +768,7 @@ public class MyCard : Grid
             BackgroundColorKey);
     }
 
-    /// <summary>
-    ///     把画刷过渡到目标值；动画关闭、控件不可动画或画刷非纯色时直接赋终值。
-    ///     只影响颜色属性，不触碰高度与缩放，避免与卡片尺寸动画互相覆盖。
-    /// </summary>
+    /// <summary>把画刷过渡到目标值；动画关闭、控件不可动画或画刷非纯色时直接赋终值。 只影响颜色属性，不触碰高度与缩放，避免与卡片尺寸动画互相覆盖。</summary>
     private void AnimateBrush(
         Control? target,
         AvaloniaProperty property,

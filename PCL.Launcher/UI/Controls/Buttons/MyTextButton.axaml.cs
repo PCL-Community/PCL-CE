@@ -9,8 +9,8 @@ using PCL.Core.Logging;
 namespace PCL.UI.Controls;
 
 /// <summary>
-///     PCL 纯文字按钮：文字颜色随悬停/按下/禁用状态过渡，文本变更时淡出淡入。
-///     常态基线由 <c>UI/Styles/Controls/MyTextButton.axaml</c> 提供。
+/// PCL 纯文字按钮：文字颜色随悬停/按下/禁用状态过渡，文本变更时淡出淡入。 常态基线由
+/// <c>UI/Styles/Controls/MyTextButton.axaml</c> 提供。
 /// </summary>
 public partial class MyTextButton : Label
 {
@@ -25,6 +25,10 @@ public partial class MyTextButton : Label
     public static readonly StyledProperty<object?> CommandParameterProperty =
         AvaloniaProperty.Register<MyTextButton, object?>(nameof(CommandParameter));
 
+    /// <summary>次要文字按钮使用更柔和的常态色，供正文内的链接等场景使用。</summary>
+    public static readonly StyledProperty<bool> IsSecondaryProperty =
+        AvaloniaProperty.Register<MyTextButton, bool>(nameof(IsSecondary));
+
     private static int _uuidSeed;
 
     /// <summary>动画键使用的唯一编号。</summary>
@@ -33,6 +37,12 @@ public partial class MyTextButton : Label
     private bool _isCommandRunning;
 
     public bool isMouseDown;
+
+    static MyTextButton()
+    {
+        IsSecondaryProperty.Changed.AddClassHandler<MyTextButton>((button, _) =>
+            button.RefreshColor(false));
+    }
 
     public MyTextButton()
     {
@@ -79,6 +89,13 @@ public partial class MyTextButton : Label
         set => SetValue(CommandParameterProperty, value);
     }
 
+    /// <summary>是否使用次要文字颜色；默认使用主要文字颜色。</summary>
+    public bool IsSecondary
+    {
+        get => GetValue(IsSecondaryProperty);
+        set => SetValue(IsSecondaryProperty, value);
+    }
+
     public event ClickEventHandler? Click;
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -91,9 +108,7 @@ public partial class MyTextButton : Label
             RefreshColor(false);
     }
 
-    /// <summary>
-    ///     文本切换：先淡出，替换文本后再淡入；动画关闭时直接替换。
-    /// </summary>
+    /// <summary>文本切换：先淡出，替换文本后再淡入；动画关闭时直接替换。</summary>
     private void _UpdateText(string text)
     {
         if (!ButtonAnimation.CanAnimate(this))
@@ -112,22 +127,20 @@ public partial class MyTextButton : Label
             TextKey);
     }
 
-    /// <summary>
-    ///     按悬停/按下/禁用状态刷新文字颜色。
-    ///     颜色落在内部 TextBlock 上，与 Styles/Controls/MyTextButton.axaml 的基线一致。
-    /// </summary>
+    /// <summary>按悬停/按下/禁用状态刷新文字颜色。 颜色落在内部 TextBlock 上，与 Styles/Controls/MyTextButton.axaml 的基线一致。</summary>
     private void RefreshColor(bool animate)
     {
         if (!IsLoaded)
             return;
 
+        var normalKey = IsSecondary ? "ColorBrushGray2" : "ColorBrush1";
         var (key, time) = !IsEnabled
-            ? ("ColorBrush1", 200)
+            ? (normalKey, 200)
             : isMouseDown
                 ? ("ColorBrush4", 30)
                 : IsPointerOver
                     ? ("ColorBrush3", 100)
-                    : ("ColorBrush1", 200);
+                    : (normalKey, 200);
 
         ButtonAnimation.ApplyColor(
             LabText,

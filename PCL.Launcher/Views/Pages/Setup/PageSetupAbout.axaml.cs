@@ -174,16 +174,16 @@ public partial class PageSetupAbout : MyPageRight
 
     #region 开源许可
 
-    private void LicenseWebsite_Click(object? sender, PointerReleasedEventArgs e)
+    private void LicenseWebsite_Click(object? sender, EventArgs e)
     {
-        if (sender is MyButton { DataContext: ThirdPartyLicenseModel license }
+        if (sender is MyTextButton { DataContext: ThirdPartyLicenseModel license }
             && !string.IsNullOrEmpty(license.WebsiteUri))
             Basics.OpenPath(license.WebsiteUri);
     }
 
-    private void LicenseUri_Click(object? sender, PointerReleasedEventArgs e)
+    private void LicenseUri_Click(object? sender, EventArgs e)
     {
-        if (sender is MyButton { DataContext: ThirdPartyLicenseModel license }
+        if (sender is MyTextButton { DataContext: ThirdPartyLicenseModel license }
             && !string.IsNullOrEmpty(license.LicenseUri))
             Basics.OpenPath(license.LicenseUri);
     }

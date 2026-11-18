@@ -1,7 +1,7 @@
 <ui:MyPageRight xmlns="https://github.com/avaloniaui"
                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                 xmlns:vm="using:PCL"
-                xmlns:conv="using:Avalonia.Data.Converters"
+                xmlns:core="using:PCL.Core.App"
                 xmlns:ui="using:PCL.UI.Controls"
                 xmlns:loc="using:PCL.Core.UI"
                 x:DataType="vm:PageSetupAboutViewModel"
@@ -10,8 +10,7 @@
     <ui:MyScrollViewer x:Name="PanBack"
                        HorizontalScrollBarVisibility="Disabled"
                        VerticalScrollBarVisibility="Auto">
-        <StackPanel Margin="25,10"
-                    Grid.IsSharedSizeScope="True">
+        <StackPanel Margin="25,10">
             <ui:MyCard Margin="0,15"
                        Title="{loc:Loc Setup.About.Title}">
                 <Grid Margin="21,40,21,16"
@@ -256,24 +255,22 @@
                                LineHeight="17"
                                TextWrapping="Wrap"
                                Text="{loc:Loc Setup.About.Legal.CopyrightText}" />
-                    <StackPanel Height="35"
-                                Margin="0,12,0,0"
-                                HorizontalAlignment="Left"
-                                Orientation="Horizontal">
-                        <ui:MyButton x:Name="BtnCommunitySource"
-                                     Margin="0,0,20,0"
-                                     Padding="13,0"
-                                     ColorType="Highlight"
-                                     Text="{loc:Loc Setup.About.Legal.CommunitySource}" />
-                        <ui:MyButton x:Name="BtnCommunityLobbyPrivacy"
-                                     Margin="0,0,20,0"
-                                     Padding="13,0"
-                                     Text="{loc:Loc Setup.About.Legal.CommunityLobbyPrivacy}" />
-                        <ui:MyButton x:Name="BtnNatayarkTerms"
-                                     Margin="0,0,20,0"
-                                     Padding="13,0"
-                                     Text="{loc:Loc Setup.About.Legal.NatayarkTerms}" />
-                    </StackPanel>
+                    <WrapPanel Margin="0,12,0,0"
+                               HorizontalAlignment="Left"
+                               Orientation="Horizontal">
+                        <ui:MyTextButton x:Name="BtnCommunitySource"
+                                         Classes="link"
+                                         Margin="0,0,20,0"
+                                         Text="{loc:Loc Setup.About.Legal.CommunitySource}" />
+                        <ui:MyTextButton x:Name="BtnCommunityLobbyPrivacy"
+                                         Classes="link"
+                                         Margin="0,0,20,0"
+                                         Text="{loc:Loc Setup.About.Legal.CommunityLobbyPrivacy}" />
+                        <ui:MyTextButton x:Name="BtnNatayarkTerms"
+                                         Classes="link"
+                                         Margin="0,0,20,0"
+                                         Text="{loc:Loc Setup.About.Legal.NatayarkTerms}" />
+                    </WrapPanel>
                 </StackPanel>
             </ui:MyCard>
 
@@ -298,74 +295,56 @@
                                LineHeight="17"
                                TextWrapping="Wrap"
                                Text="{loc:Loc Setup.About.UpstreamLegal.CopyrightText}" />
-                    <StackPanel Height="35"
-                                Margin="0,12,0,0"
-                                HorizontalAlignment="Left"
-                                Orientation="Horizontal">
-                        <ui:MyButton x:Name="BtnUpstreamTerms"
-                                     Width="160"
-                                     Margin="0,0,20,0"
-                                     Padding="13,0"
-                                     ColorType="Highlight"
-                                     Text="{loc:Loc Setup.About.UpstreamLegal.TermsAndDisclaimer}" />
-                        <ui:MyButton x:Name="BtnUpstreamSource"
-                                     Width="120"
-                                     Margin="0,0,20,0"
-                                     Padding="13,0"
-                                     Text="{loc:Loc Setup.About.UpstreamLegal.OpenSource}" />
-                    </StackPanel>
+                    <WrapPanel Margin="0,12,0,0"
+                               HorizontalAlignment="Left"
+                               Orientation="Horizontal">
+                        <ui:MyTextButton x:Name="BtnUpstreamTerms"
+                                         Classes="link"
+                                         Margin="0,0,20,0"
+                                         Text="{loc:Loc Setup.About.UpstreamLegal.TermsAndDisclaimer}" />
+                        <ui:MyTextButton x:Name="BtnUpstreamSource"
+                                         Classes="link"
+                                         Margin="0,0,20,0"
+                                         Text="{loc:Loc Setup.About.UpstreamLegal.OpenSource}" />
+                    </WrapPanel>
                 </StackPanel>
             </ui:MyCard>
 
             <ui:MyCard Margin="0,0,0,15"
                        Title="{loc:Loc Setup.About.Licenses.Title}"
                        CanSwap="True"
-                       IsSwapped="True">
+                       IsSwapped="True"
+                       UseAnimation="False">
                 <ItemsControl x:Name="PanLicenses"
-                              Margin="25,42,23,4"
+                              Margin="25,42,23,10"
                               ItemsSource="{Binding Licenses}">
                     <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"
-                                                      SharedSizeGroup="LicenseName" />
-                                    <ColumnDefinition Width="20" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="60" />
-                                </Grid.RowDefinitions>
-                                <TextBlock Grid.Row="0"
-                                           Grid.Column="0"
+                        <DataTemplate x:DataType="core:ThirdPartyLicenseModel">
+                            <Grid ColumnDefinitions="210,16,*"
+                                  Margin="0,0,0,12">
+                                <TextBlock Grid.Column="0"
                                            FontWeight="Bold"
+                                           TextTrimming="None"
                                            TextWrapping="Wrap"
                                            Text="{Binding Name}" />
-                                <TextBlock Grid.Row="0"
-                                           Grid.Column="2"
-                                           Grid.ColumnSpan="2"
-                                           TextWrapping="Wrap"
-                                           Text="{Binding Information}" />
-                                <ui:MyButton Grid.Row="1"
-                                             Grid.Column="2"
-                                             MinWidth="140"
-                                             Margin="0,7,20,18"
-                                             HorizontalAlignment="Left"
-                                             Padding="13,0"
-                                             IsVisible="{Binding WebsiteUri, Converter={x:Static conv:ObjectConverters.IsNotNull}}"
-                                             Click="LicenseWebsite_Click"
-                                             Text="{loc:Loc Setup.About.Licenses.ViewWebsite}" />
-                                <ui:MyButton Grid.Row="1"
-                                             Grid.Column="3"
-                                             MinWidth="140"
-                                             Margin="0,7,20,18"
-                                             HorizontalAlignment="Left"
-                                             Padding="13,0"
-                                             IsVisible="{Binding LicenseUri, Converter={x:Static conv:ObjectConverters.IsNotNull}}"
-                                             Click="LicenseUri_Click"
-                                             Text="{loc:Loc Setup.About.Licenses.ViewLicense}" />
+                                <StackPanel Grid.Column="2"
+                                            Spacing="2">
+                                    <TextBlock LineHeight="17"
+                                               TextTrimming="None"
+                                               TextWrapping="Wrap"
+                                               Text="{Binding Information}" />
+                                    <StackPanel Orientation="Horizontal"
+                                                Spacing="14">
+                                        <ui:MyTextButton Classes="link"
+                                                         IsVisible="{Binding HasWebsite}"
+                                                         Click="LicenseWebsite_Click"
+                                                         Text="{loc:Loc Setup.About.Licenses.ViewWebsite}" />
+                                        <ui:MyTextButton Classes="link"
+                                                         IsVisible="{Binding HasLicense}"
+                                                         Click="LicenseUri_Click"
+                                                         Text="{loc:Loc Setup.About.Licenses.ViewLicense}" />
+                                    </StackPanel>
+                                </StackPanel>
                             </Grid>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
