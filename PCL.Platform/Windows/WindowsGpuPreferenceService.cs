@@ -11,9 +11,13 @@ public sealed class WindowsGpuPreferenceService : IGpuPreferenceService
 
     public void Set(string javaExecutablePath, bool preferHighPerformance)
     {
+        var executable = Path.GetFullPath(javaExecutablePath);
+        if (!File.Exists(executable))
+            throw new FileNotFoundException("Java executable does not exist.", executable);
+
         using var key = Registry.CurrentUser.CreateSubKey(KeyPath);
         key?.SetValue(
-            javaExecutablePath,
+            executable,
             preferHighPerformance ? "GpuPreference=2;" : "GpuPreference=0;",
             RegistryValueKind.String);
     }

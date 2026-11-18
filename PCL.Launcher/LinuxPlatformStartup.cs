@@ -17,6 +17,11 @@ internal sealed class LinuxPlatformStartup : IPlatformStartup
 
     public AppBuilder Configure()
     {
+        // 让 X11 的 WM_CLASS 与 desktop entry 的 StartupWMClass 使用同一个 app id，
+        // 这样任务栏可以正确归组，而不是退回到进程名。
+        if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RESOURCE_NAME")))
+            Environment.SetEnvironmentVariable("RESOURCE_NAME", LinuxDesktopEntry.AppId);
+
         var builder = AppBuilder
             .Configure<App>()
             .UsePlatformDetect()

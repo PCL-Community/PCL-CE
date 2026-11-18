@@ -38,7 +38,7 @@ public sealed class EasyTierInstallerTest
         Assert.IsFalse(info.UseShellExecute);
         Assert.IsTrue(info.RedirectStandardOutput);
         Assert.IsTrue(info.RedirectStandardError);
-        Assert.IsTrue(info.RedirectStandardInput);
+        Assert.IsFalse(info.RedirectStandardInput);
     }
 
     [TestMethod]

@@ -6,5 +6,6 @@ PACKAGE_KIND="$(cat /opt/pcl-ce/.package-kind 2>/dev/null || echo deb)"
 export PCL_PACKAGE_KIND="$PACKAGE_KIND"
 export PCL_DATA_DIR="${PCL_DATA_DIR:-$HOME/PCLCE}"
 export PCL_MINECRAFT_DIR="${PCL_MINECRAFT_DIR:-$HOME/PCLCE/.minecraft}"
+export RESOURCE_NAME="${RESOURCE_NAME:-pcl-community-edition}"
 
 exec /opt/pcl-ce/PCL.Launcher "$@"

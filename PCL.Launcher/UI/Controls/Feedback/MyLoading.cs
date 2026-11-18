@@ -261,6 +261,19 @@ public class MyLoading : Grid
         set => SetValue(TextProperty, value);
     }
 
+    /// <summary>是否在未显式设置文本时显示默认的「加载中」文本。</summary>
+    public bool UseDefaultText
+    {
+        get => _useDefaultText;
+        set
+        {
+            if (_useDefaultText == value)
+                return;
+            _useDefaultText = value;
+            RefreshText();
+        }
+    }
+
     public string TextError
     {
         get => GetValue(TextErrorProperty);

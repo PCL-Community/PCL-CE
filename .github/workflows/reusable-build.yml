@@ -25,6 +25,10 @@ on:
         required: false
         type: string
         default: '0.0.0'
+      include_secrets:
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build:
@@ -58,19 +62,19 @@ jobs:
       - name: Publish
         shell: bash
         env:
-          PCL_WRITE_SECRET: '1'
-          PCL_MS_CLIENT_ID: ${{ secrets.CLIENT_ID }}
-          PCL_CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
-          PCL_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-          PCL_NAID_CLIENT_ID: ${{ secrets.NAID_CLIENT_ID }}
-          PCL_NAID_CLIENT_SECRET: ${{ secrets.NAID_CLIENT_SECRET }}
-          PCL_LINK_SERVER_ROOT: ${{ secrets.LINK_SERVER_ROOTS }}
-          PCL_LOBBY_DEFAULT_SECRET: ${{ secrets.LOBBY_DEFAULT_SECRET }}
+          PCL_WRITE_SECRET: ${{ inputs.include_secrets && '1' || '' }}
+          PCL_MS_CLIENT_ID: ${{ inputs.include_secrets && secrets.CLIENT_ID || '' }}
+          PCL_CURSEFORGE_API_KEY: ${{ inputs.include_secrets && secrets.CURSEFORGE_API_KEY || '' }}
+          PCL_SENTRY_DSN: ${{ inputs.include_secrets && secrets.SENTRY_DSN || '' }}
+          PCL_NAID_CLIENT_ID: ${{ inputs.include_secrets && secrets.NAID_CLIENT_ID || '' }}
+          PCL_NAID_CLIENT_SECRET: ${{ inputs.include_secrets && secrets.NAID_CLIENT_SECRET || '' }}
+          PCL_LINK_SERVER_ROOT: ${{ inputs.include_secrets && secrets.LINK_SERVER_ROOTS || '' }}
+          PCL_LOBBY_DEFAULT_SECRET: ${{ inputs.include_secrets && secrets.LOBBY_DEFAULT_SECRET || '' }}
           PCL_GITHUB_SHA: ${{ github.sha }}
-          CODESIGN_IDENTITY: ${{ secrets.APPLE_CODESIGN_IDENTITY }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          CODESIGN_IDENTITY: ${{ inputs.include_secrets && runner.os == 'macOS' && secrets.APPLE_CODESIGN_IDENTITY || '' }}
+          APPLE_ID: ${{ inputs.include_secrets && runner.os == 'macOS' && secrets.APPLE_ID || '' }}
+          APPLE_TEAM_ID: ${{ inputs.include_secrets && runner.os == 'macOS' && secrets.APPLE_TEAM_ID || '' }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ inputs.include_secrets && runner.os == 'macOS' && secrets.APPLE_APP_SPECIFIC_PASSWORD || '' }}
         run: |
           if [ "${{ runner.os }}" = "macOS" ]; then
             scripts/package-macos.sh "$RID" "$CONFIGURATION" "$VERSION" dist

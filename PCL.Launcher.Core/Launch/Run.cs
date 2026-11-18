@@ -47,11 +47,21 @@ public static partial class GameLaunch
             LauncherCommon.Log(ex, "直接调整显卡设置失败，将以管理员权限重启 PCL 再次尝试");
             try
             {
-                if (ProcessInterop.StartAsAdmin($"--gpu \"{javaExePath}\"")?.ExitCode
-                    == (int)LauncherCommon.ProcessReturnValues.TaskDone)
+                using var process = ProcessInterop.StartAsAdmin(
+                    $"--gpu \"{javaExePath}\" {(Config.Launch.SetGpuPreference ? "1" : "0")}");
+                if (process is null)
+                    throw new InvalidOperationException("无法启动提权进程");
+
+                if (!process.WaitForExit(30_000))
+                {
+                    ProcessInterop.Kill(process, 0, true);
+                    throw new TimeoutException("提权调整显卡设置超时");
+                }
+
+                if (process.ExitCode == (int)LauncherCommon.ProcessReturnValues.TaskDone)
                     McLaunchLog("以管理员权限重启 PCL 并调整显卡设置成功");
                 else
-                    throw new Exception("调整过程中出现异常");
+                    throw new Exception($"提权调整显卡设置失败（退出码 {process.ExitCode}）");
             }
             catch (Exception exx)
             {

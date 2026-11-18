@@ -37,10 +37,8 @@ public static class EasyTierCli
             CreateNoWindow = true,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
-            RedirectStandardInput = true,
             StandardOutputEncoding = Encoding.UTF8,
-            StandardErrorEncoding = Encoding.UTF8,
-            StandardInputEncoding = Encoding.UTF8
+            StandardErrorEncoding = Encoding.UTF8
         };
 
         // WindowStyle 与 ErrorDialog 是 Windows 专属属性；Unix 上保持默认值。
@@ -71,8 +69,6 @@ public static class EasyTierCli
         {
             if (!process.Start())
                 throw new InvalidOperationException("无法启动 EasyTier CLI");
-
-            process.StandardInput.Close();
 
             var standardOutputTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
             var standardErrorTask = process.StandardError.ReadToEndAsync(cancellationToken);

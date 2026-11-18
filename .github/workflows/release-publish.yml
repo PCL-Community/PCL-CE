@@ -59,6 +59,7 @@ jobs:
       platform: ${{ matrix.platform }}
       runner: ${{ matrix.runner }}
       version: ${{ inputs.version }}
+      include_secrets: true
     secrets: inherit
 
   changelog:

@@ -19,10 +19,14 @@ internal static class Program
         var platform = PlatformDetector.Detect();
 
         PlatformStartup.Initialize(platform, args);
-        var builder = PlatformStartup.Configure(platform);
 
         var applicationServices = PlatformRegistration.Register(platform);
         var serviceProvider = LauncherServiceRegistration.Build(applicationServices);
+
+        if (StartupCommandHandler.TryHandle(args, serviceProvider))
+            return;
+
+        var builder = PlatformStartup.Configure(platform);
         PageRegistry.Initialize(serviceProvider.GetRequiredService<PageHostFactory>());
 
         AnimationRegistration.Register();
@@ -37,7 +41,6 @@ internal static class Program
             window.InitializeContext(context);
             return context.Host;
         };
-
 
         Lifecycle.OnInitialize();
     }

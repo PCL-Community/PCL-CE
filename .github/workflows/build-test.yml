@@ -59,7 +59,7 @@ jobs:
       platform: ${{ matrix.platform }}
       runner: ${{ matrix.runner }}
       version: 0.0.0-ci
-    secrets: inherit
+      include_secrets: false
 
   test:
     name: test (${{ matrix.os }})

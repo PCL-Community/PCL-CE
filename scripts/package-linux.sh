@@ -76,6 +76,8 @@ cp "$ROOT/PCL.Launcher/Assets/Images/icon.png" \
   "$APPDIR/pcl-community-edition.png"
 ln -sf pcl-community-edition.png "$APPDIR/.DirIcon"
 chmod 0755 "$APPDIR/AppRun"
+grep -q '^Exec=AppRun %U$' "$APPDIR/pcl-community-edition.desktop" \
+  || fail "AppImage desktop entry does not point to AppRun"
 
 APPIMAGE_PATH="$OUT/${ASSET_PREFIX}.AppImage"
 rm -f "$APPIMAGE_PATH"
@@ -86,6 +88,19 @@ fi
 ARCH="$APPIMAGE_ARCH" APPIMAGE_EXTRACT_AND_RUN=1 \
   "$APPIMAGETOOL" "${APPIMAGE_ARGS[@]}" "$APPDIR" "$APPIMAGE_PATH"
 chmod 0755 "$APPIMAGE_PATH"
+
+APPIMAGE_CHECK="$OUT/.AppImage-check-$RID"
+rm -rf "$APPIMAGE_CHECK"
+mkdir -p "$APPIMAGE_CHECK"
+if ! (cd "$APPIMAGE_CHECK" && "$APPIMAGE_PATH" --appimage-extract >/dev/null 2>&1); then
+  rm -rf "$APPIMAGE_CHECK"
+  fail "failed to extract AppImage for verification"
+fi
+grep -q '^Exec=AppRun %U$' "$APPIMAGE_CHECK/squashfs-root/pcl-community-edition.desktop" \
+  || { rm -rf "$APPIMAGE_CHECK"; fail "packaged desktop entry does not point to AppRun"; }
+[ -x "$APPIMAGE_CHECK/squashfs-root/AppRun" ] \
+  || { rm -rf "$APPIMAGE_CHECK"; fail "packaged AppRun is missing or not executable"; }
+rm -rf "$APPIMAGE_CHECK"
 rm -rf "$APPDIR"
 
 # ── deb / rpm ───────────────────────────────────────────────────────────────

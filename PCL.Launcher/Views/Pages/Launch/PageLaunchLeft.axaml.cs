@@ -56,6 +56,7 @@ public partial class PageLaunchLeft : MyPageLeft, IShellShortcutTarget
         _gridProgress = this.FindControl<Grid>("GridLaunchProgress")!;
         _loadLaunching = this.FindControl<MyLoading>("LoadLaunching")!;
         _loadLaunching.Text = string.Empty;
+        _loadLaunching.UseDefaultText = false;
 
         _progressFinished = this.FindControl<Rectangle>("ProgressFinished")!;
         RefreshProgressGradient();
