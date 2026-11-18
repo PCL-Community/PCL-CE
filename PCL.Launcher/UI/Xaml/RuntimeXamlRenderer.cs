@@ -33,37 +33,37 @@ public sealed class RuntimeXamlRenderResult
 }
 
 /// <summary>
-///     白名单运行时 XAML 渲染器：先用 <see cref="XamlSecurityValidator" /> 校验，
-///     再自行把受支持的 PCL/基础控件映射为 Avalonia 控件。不使用 Avalonia 运行时 XAML 加载器，
-///     因此不会实例化任意 CLR 类型，也不会执行事件处理器或加载外部资源字典。
+/// 白名单运行时 XAML 渲染器：先用 <see cref="XamlSecurityValidator" /> 校验， 再自行把受支持的 PCL/基础控件映射为
+/// Avalonia 控件。不使用 Avalonia 运行时 XAML 加载器， 因此不会实例化任意 CLR 类型，也不会执行事件处理器或加载外部资源字典。
 /// </summary>
 public static partial class RuntimeXamlRenderer
 {
     private static readonly HashSet<string> IgnoredElementNames =
-        new(StringComparer.OrdinalIgnoreCase)
-        {
-            "SolidColorBrush",
-            "LinearGradientBrush",
-            "RadialGradientBrush",
-            "ImageBrush",
-            "GradientStop",
-            "DropShadowEffect",
-            "BlurEffect",
-            "ScaleTransform",
-            "TranslateTransform",
-            "RotateTransform",
-            "SkewTransform",
-            "TransformGroup",
-            "MatrixTransform",
-            "Color",
-            "Thickness",
-            "Point",
-            "Vector",
-            "Rect",
-            "Size",
-            "String",
-            "ControlTemplate"
-        };
+    [
+        with(StringComparer.OrdinalIgnoreCase),
+        "SolidColorBrush",
+        "LinearGradientBrush",
+        "RadialGradientBrush",
+        "ImageBrush",
+        "GradientStop",
+        "DropShadowEffect",
+        "BlurEffect",
+        "ScaleTransform",
+        "TranslateTransform",
+        "RotateTransform",
+        "SkewTransform",
+        "TransformGroup",
+        "MatrixTransform",
+        "Color",
+        "Thickness",
+        "Point",
+        "Vector",
+        "Rect",
+        "Size",
+        "String",
+        "Geometry",
+        "ControlTemplate"
+    ];
 
     public static RuntimeXamlRenderResult RenderFragment(
         string? fragment,

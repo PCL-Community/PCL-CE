@@ -53,6 +53,9 @@ public static partial class RuntimeXamlRenderer
             {
                 if (!element.Name.LocalName.Equals(
                         "String",
+                        StringComparison.OrdinalIgnoreCase)
+                    && !element.Name.LocalName.Equals(
+                        "Geometry",
                         StringComparison.OrdinalIgnoreCase))
                     continue;
 

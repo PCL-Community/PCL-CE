@@ -19,32 +19,64 @@ public static partial class RuntimeXamlRenderer
                              || child.Name.LocalName.Equals(
                                  "Resources",
                                  StringComparison.OrdinalIgnoreCase)))
-            foreach (var style in EnumerateStyles(resources))
             {
-                var setters = ReadSetters(style);
-                if (setters.Count == 0)
-                    continue;
-
-                var key = FindAttribute(style, "Key");
-                if (!string.IsNullOrWhiteSpace(key))
+                foreach (var template in EnumerateTemplates(resources))
                 {
-                    scope.ByKey[key] = setters;
-                    continue;
+                    var templateKey = FindAttribute(template, "Key");
+                    if (!string.IsNullOrWhiteSpace(templateKey))
+                        scope.TemplatesByKey[templateKey] = template;
                 }
 
-                var targetType = FindAttribute(style, "TargetType");
-                if (!string.IsNullOrWhiteSpace(targetType))
+                foreach (var style in EnumerateStyles(resources))
                 {
-                    targetType = StripTypePrefix(targetType);
-                    if (scope.ByType.TryGetValue(targetType, out var existing))
-                        foreach (var pair in setters)
-                            existing[pair.Key] = pair.Value;
-                    else
-                        scope.ByType[targetType] = new Dictionary<string, string>(
-                            setters,
-                            StringComparer.OrdinalIgnoreCase);
+                    var setters = ReadSetters(style);
+                    var templates = ReadTemplates(style);
+                    if (setters.Count == 0 && templates.Count == 0)
+                        continue;
+
+                    var key = FindAttribute(style, "Key");
+                    if (!string.IsNullOrWhiteSpace(key))
+                    {
+                        scope.ByKey[key] = setters;
+                        if (templates.TryGetValue("Template", out var template))
+                            scope.TemplatesByKey[key] = template;
+                        continue;
+                    }
+
+                    var targetType = FindAttribute(style, "TargetType");
+                    if (!string.IsNullOrWhiteSpace(targetType))
+                    {
+                        targetType = StripTypePrefix(targetType);
+                        if (scope.ByType.TryGetValue(targetType, out var existing))
+                            foreach (var pair in setters)
+                                existing[pair.Key] = pair.Value;
+                        else
+                            scope.ByType[targetType] = new Dictionary<string, string>(
+                                setters,
+                                StringComparer.OrdinalIgnoreCase);
+                        if (templates.TryGetValue("Template", out var template))
+                            scope.TemplatesByType[targetType] = template;
+                    }
                 }
             }
+        }
+
+        private static IEnumerable<XElement> EnumerateTemplates(XElement container)
+        {
+            foreach (var child in container.Elements())
+                switch (child.Name.LocalName)
+                {
+                    case "ControlTemplate":
+                        yield return child;
+                        continue;
+
+                    case "ResourceDictionary":
+                    {
+                        foreach (var nested in EnumerateTemplates(child))
+                            yield return nested;
+                        break;
+                    }
+                }
         }
 
         private static IEnumerable<XElement> EnumerateStyles(XElement container)
@@ -68,17 +100,7 @@ public static partial class RuntimeXamlRenderer
         private static Dictionary<string, string> ReadSetters(XElement style)
         {
             var setters = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            var setterElements =
-                style.Elements().Where(child => child.Name.LocalName == "Setter").ToList();
-            foreach (var setterContainer in style
-                         .Elements()
-                         .Where(child => child.Name.LocalName == "Style.Setters"))
-                setterElements.AddRange(
-                    setterContainer
-                        .Elements()
-                        .Where(child => child.Name.LocalName == "Setter"));
-
-            foreach (var setter in setterElements)
+            foreach (var setter in EnumerateSetterElements(style))
             {
                 var property = FindAttribute(setter, "Property");
                 var value = FindAttribute(setter, "Value")
@@ -94,6 +116,44 @@ public static partial class RuntimeXamlRenderer
             }
 
             return setters;
+        }
+
+        private static Dictionary<string, XElement> ReadTemplates(XElement style)
+        {
+            var templates = new Dictionary<string, XElement>(StringComparer.OrdinalIgnoreCase);
+            foreach (var setter in EnumerateSetterElements(style))
+            {
+                var property = FindAttribute(setter, "Property");
+                if (!string.Equals(property, "Template", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                var value = setter
+                    .Elements()
+                    .FirstOrDefault(child => child.Name.LocalName == "Setter.Value");
+                var template = value
+                    ?
+                    .Elements()
+                    .FirstOrDefault(child => child.Name.LocalName == "ControlTemplate");
+                if (template is not null)
+                    templates[property] = template;
+            }
+
+            return templates;
+        }
+
+        private static IEnumerable<XElement> EnumerateSetterElements(XElement style)
+        {
+            foreach (var setter in
+                     style.Elements().Where(child => child.Name.LocalName == "Setter"))
+                yield return setter;
+
+            foreach (var container in style
+                         .Elements()
+                         .Where(child => child.Name.LocalName == "Style.Setters"))
+            foreach (var setter in container
+                         .Elements()
+                         .Where(child => child.Name.LocalName == "Setter"))
+                yield return setter;
         }
 
         private static string StripTypePrefix(string value)
@@ -114,11 +174,11 @@ public static partial class RuntimeXamlRenderer
             var match = MarkupExtensionPattern().Match(raw.Trim());
             if (!match.Success)
                 return raw;
-            
+
             var extension = match.Groups[1].Value;
             if (extension is not ("DynamicResource" or "StaticResource"))
                 return raw;
-            
+
             var key = match.Groups[2].Value.Trim();
             return _localResources.TryGetValue(key, out var localValue)
                 ? localValue
@@ -174,6 +234,12 @@ public static partial class RuntimeXamlRenderer
         public Dictionary<string, Dictionary<string, string>> ByType { get; } =
             new(StringComparer.OrdinalIgnoreCase);
 
+        public Dictionary<string, XElement> TemplatesByKey { get; } =
+            new(StringComparer.OrdinalIgnoreCase);
+
+        public Dictionary<string, XElement> TemplatesByType { get; } =
+            new(StringComparer.OrdinalIgnoreCase);
+
         private StyleScope? Parent { get; } = parent;
 
         public IReadOnlyDictionary<string, string> Resolve(string elementName, XElement element)
@@ -199,6 +265,21 @@ public static partial class RuntimeXamlRenderer
                     }
 
             return merged;
+        }
+
+        /// <summary>按样式键或元素类型解析内联 ControlTemplate。</summary>
+        public XElement? ResolveTemplate(string? styleKey, string elementName)
+        {
+            if (!string.IsNullOrWhiteSpace(styleKey))
+                for (var scope = this; scope is not null; scope = scope.Parent)
+                    if (scope.TemplatesByKey.TryGetValue(styleKey, out var template))
+                        return template;
+
+            for (var scope = this; scope is not null; scope = scope.Parent)
+                if (scope.TemplatesByType.TryGetValue(elementName, out var template))
+                    return template;
+
+            return null;
         }
 
         private static string? MarkupKey(string? raw)

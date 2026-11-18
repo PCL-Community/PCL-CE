@@ -57,6 +57,7 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable
     private DispatcherTimer? _homepageLivePatchTimer;
     private FileSystemWatcher? _homepageLiveWatcher;
     private bool _initialContentPending;
+    private string? _lastWpfToastSource;
     private HomepageContent? _pendingBackgroundContent;
     private int _refreshVersion;
 
@@ -293,6 +294,9 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable
 
     private void LoadContent(HomepageContent content)
     {
+        if (content.Kind != HomepageSourceKind.CustomXaml)
+            _lastWpfToastSource = null;
+
         switch (content.Kind)
         {
             case HomepageSourceKind.Blank:
@@ -349,9 +353,20 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable
         }
 
         var xaml = PageHelpDetailViewModel.ReplaceArguments(content.Xaml);
+        if (!HomepageXamlFormatDetector.IsXaml(xaml))
+        {
+            LogWrapper.Error(
+                new InvalidDataException("主页内容不是 XAML/AXAML"),
+                "Launch",
+                $"[Page] 主页内容格式无效：{content.SourceText}");
+            ShowHomepageError(Lang.Text("Launch.Homepage.InvalidXaml"));
+            return;
+        }
+
         var format = HomepageXamlFormatDetector.Detect(xaml);
         if (format == HomepageXamlFormat.Avalonia)
         {
+            _lastWpfToastSource = null;
             var avaloniaResult = HomepageAvaloniaRenderer.Render(xaml);
             if (avaloniaResult.Error is { Length: > 0 }
                 || avaloniaResult.Root is null)
@@ -397,6 +412,8 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable
             return;
         }
 
+        ShowWpfMigrationToast(content);
+
         _panCustom.Children.Clear();
         foreach (var control in rendered.Controls)
             _panCustom.Children.Add(control);
@@ -405,8 +422,24 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable
         ApplyHomepageLivePatchesFromFile();
     }
 
+    private void ShowWpfMigrationToast(HomepageContent content)
+    {
+        var source = content.SourceText ?? "wpf";
+        if (string.Equals(_lastWpfToastSource, source, StringComparison.Ordinal))
+            return;
+
+        _lastWpfToastSource = source;
+        HintService.Show(
+            Hints.Warning(Lang.Text("Launch.Homepage.WpfMigrationToast")));
+    }
+
     private static void ApplySanitizeHints(RuntimeXamlRenderResult result)
     {
+        foreach (var warning in result.Warnings.Distinct(StringComparer.Ordinal))
+            LauncherCommon.Log(
+                "[Page] 主页运行时 XAML 警告：" + warning,
+                LauncherLogLevel.Debug);
+
         foreach (var unsupported in result.UnsupportedEventTypes.Distinct(StringComparer.Ordinal))
             HintService.Show(
                 Hints.Error(Lang.Text("Event.Sanitize.UnsupportedTypeHint", unsupported)));

@@ -1641,6 +1641,8 @@
     <sys:String x:Key="Launch.Homepage.LoadFailed.Retry">Retry</sys:String>
     <sys:String x:Key="Launch.Homepage.LoadFailed.Title">Failed to load homepage</sys:String>
     <sys:String x:Key="Launch.Homepage.Loading">Loading homepage...</sys:String>
+    <sys:String x:Key="Launch.Homepage.InvalidXaml">The homepage content is not valid XAML or AXAML.</sys:String>
+    <sys:String x:Key="Launch.Homepage.WpfMigrationToast">You are using a WPF custom homepage, which may have display issues.</sys:String>
     <sys:String x:Key="Launch.Homepage.News.Loading">Loading...</sys:String>
     <sys:String x:Key="Launch.Homepage.News.ViewDetail">View details</sys:String>
     <sys:String x:Key="Launch.Homepage.Preset.EchoCave.Removed">The Echo Cave preset has been removed as it only had a shell. Please go to Settings and select another homepage preset.</sys:String>
@@ -3108,10 +3110,11 @@
     <sys:String x:Key="Setup.Ui.Homepage.GoToMarket">Homepage Market</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.HintReferToModSetup">See ModSetup</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.LocalFile">Local</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.LocalFile.Hint">Read the homepage from Custom.xaml in the PCL folder.&#xA;You can edit this file to add text, images, frequently used websites, quick launch actions, and more to the homepage.</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.LocalFile.Hint">Read the homepage from Custom.axaml or Custom.xaml in the PCL folder.&#xA;You can edit this file to add text, images, frequently used websites, quick launch actions, and more to the homepage.</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.NetUpdate">Online</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.NetUpdate.Hint">Get homepage content from the specified URL. Server owners can also use it to update server announcements dynamically.&#xA;If you have created a stable online homepage, click this hint to share it. Approved submissions may be added to the presets!</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.NetWarning">Please exercise caution when using homepages provided by strangers. Malicious homepages may cause harm!</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.MigrationWarning">PCL CE has fully migrated to Avalonia UI. Please use AXAML homepage files where possible. Legacy WPF XAML custom homepages have limited support and are not recommended. Homepage authors are also encouraged to switch to the new AXAML format.</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.PresetLabel">Homepage presets</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Refresh">Refresh</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Refresh.Success">Homepage refreshed!</sys:String>
@@ -3121,22 +3124,22 @@
     <!-- Setup.Ui.Homepage.Preset -->
 
     <sys:String x:Key="Setup.Ui.Homepage.Preset">Preset</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.DailyModpack">Daily Modpack Recommendation (Author: wkea)</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.DailyModpack">[WPF] Daily Modpack Recommendation (Author: wkea)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.EchoCave">Echo Cave (removed)</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.GitHub">PCL GitHub Dashboard (Author: Deep-Dark-Forest)</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.Magazine">Magazine Homepage (Author: CreeperIsASpy)</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.McNews">Minecraft News (Author: Nattiden)</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.GitHub">[WPF] PCL GitHub Dashboard (Author: Deep-Dark-Forest)</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.Magazine">[WPF] Magazine Homepage (Author: CreeperIsASpy)</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.McNews">[WPF] Minecraft News (Author: Nattiden)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McOfficialFeed">Minecraft Official Feed</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.McSkin">Minecraft Skin Recommendation (Author: wkea)</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.McUpdateSummary">Minecraft Update Summary (Author: pynickle, partially AI-generated)</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.NewsToday">News Today (Author: EYicheng)</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.MinecraftKnowledge">Minecraft Knowledge (Author: awaEric233)</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.ModpackRecommendation">Modpack Recommendation Engine (Author: CHMYGZ)</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.Bangumi">Bangumi Anime (Author: wzyaeu)</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.OpenBmclapi">OpenBMCLAPI Dashboard Lite (Authors: Silverteal, Mxmilu666)</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.McSkin">[WPF] Minecraft Skin Recommendation (Author: wkea)</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.McUpdateSummary">[WPF] Minecraft Update Summary (Author: pynickle, partially AI-generated)</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.NewsToday">[WPF] News Today (Author: EYicheng)</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.MinecraftKnowledge">[WPF] Minecraft Knowledge (Author: awaEric233)</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.ModpackRecommendation">[WPF] Modpack Recommendation Engine (Author: CHMYGZ)</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.Bangumi">[WPF] Bangumi Anime (Author: wzyaeu)</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.OpenBmclapi">[WPF] OpenBMCLAPI Dashboard Lite (Authors: Silverteal, Mxmilu666)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.OpenMcim">OpenMCIM Dashboard (Author: SALTWOOD)</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.PclAnnouncement">PCL CE Announcements</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.PclManual">PCL New Feature Manual (Author: WForst-Breeze)</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.PclAnnouncement">[WPF] PCL CE Announcements</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.PclManual">[WPF] PCL New Feature Manual (Author: WForst-Breeze)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.PclMarket">PCL Homepage Market (Author: MoYuan-CN)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.PclNews">PCL News Bulletin (Author: Joker2184)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.SimpleHomepage">Simple Homepage (Author: MFn233)</sys:String>

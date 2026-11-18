@@ -242,7 +242,19 @@ public static partial class RuntimeXamlRenderer
         {
             var contentControl = new ContentControl();
             ApplyCommon(contentControl, element, styles);
-            contentControl.Content = ConvertSingleChild(element, styleScope);
+
+            var contentAttribute = FindAttribute(element, "Content");
+            object? content = contentAttribute is null
+                ? ConvertSingleChild(element, styleScope)
+                : ResolveString(contentAttribute) ?? contentAttribute;
+
+            var templateKey = MarkupKey(FindAttribute(element, "Template"));
+            var template = styleScope.ResolveTemplate(templateKey, "ContentControl");
+            if (template is not null
+                && InstantiateTemplate(template, element, content, styleScope) is { } templated)
+                content = templated;
+
+            contentControl.Content = content;
             return contentControl;
         }
 

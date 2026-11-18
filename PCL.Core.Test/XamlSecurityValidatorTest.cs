@@ -102,6 +102,41 @@ public sealed class XamlSecurityValidatorTest
     }
 
     [TestMethod]
+    public void AllowsGeometryResourceAndPathData()
+    {
+        const string xaml = """
+                            <StackPanel.Resources>
+                                <Geometry x:Key="Icon">M0,0 L10,10 Z</Geometry>
+                            </StackPanel.Resources>
+                            <Path Data="{StaticResource Icon}" Fill="#112233" />
+                            <Path>
+                                <Path.Data>
+                                    <Geometry>M0,0 L5,5</Geometry>
+                                </Path.Data>
+                            </Path>
+                            """;
+
+        var result = XamlSecurityValidator.ValidateFragment(xaml);
+
+        Assert.IsTrue(result.IsValid, string.Join("；", result.Errors));
+    }
+
+    [TestMethod]
+    public void DetectsXamlContent()
+    {
+        Assert.IsTrue(HomepageXamlFormatDetector.IsXaml("<StackPanel />"));
+        Assert.IsTrue(
+            HomepageXamlFormatDetector.IsXaml(
+                "<TextBlock Text=\"a\" /><TextBlock Text=\"b\" />"));
+        Assert.IsTrue(
+            HomepageXamlFormatDetector.IsXaml(
+                "<StackPanel xmlns=\"https://github.com/avaloniaui\"><TextBlock /></StackPanel>"));
+        Assert.IsTrue(HomepageXamlFormatDetector.IsXaml("<pclcontrols:MyCard />"));
+        Assert.IsFalse(HomepageXamlFormatDetector.IsXaml("{\"name\":\"MKSS.Next\"}"));
+        Assert.IsFalse(HomepageXamlFormatDetector.IsXaml(""));
+    }
+
+    [TestMethod]
     public void DetectsHomepageXamlFormat()
     {
         Assert.AreEqual(
@@ -112,6 +147,9 @@ public sealed class XamlSecurityValidatorTest
             HomepageXamlFormat.Avalonia,
             HomepageXamlFormatDetector.Detect(
                 """<StackPanel xmlns:ui="using:PCL.UI.Controls" />"""));
+        Assert.AreEqual(
+            HomepageXamlFormat.Avalonia,
+            HomepageXamlFormatDetector.Detect("""<pclcontrols:MyCard />"""));
         Assert.AreEqual(
             HomepageXamlFormat.Wpf,
             HomepageXamlFormatDetector.Detect(
@@ -124,7 +162,8 @@ public sealed class XamlSecurityValidatorTest
         const string xaml = """
                             <StackPanel xmlns="https://github.com/avaloniaui"
                                         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                                        xmlns:ui="using:PCL.UI.Controls">
+                                        xmlns:ui="using:PCL.UI.Controls"
+                                        xmlns:pclcontrols="using:PCL.UI.Controls">
                                 <StackPanel.Styles>
                                     <Style Selector="ui|MyCard">
                                         <Setter Property="Margin" Value="0,0,0,15" />
@@ -133,6 +172,7 @@ public sealed class XamlSecurityValidatorTest
                                 <ui:MyCard Title="AXAML 主页">
                                     <ui:MyButton Text="打开" EventType="打开网页" EventData="https://example.com" />
                                 </ui:MyCard>
+                                <pclcontrols:MyTextButton Text="更多" EventType="打开网页" EventData="https://example.com" />
                             </StackPanel>
                             """;
 

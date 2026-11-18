@@ -114,14 +114,22 @@ public static partial class RuntimeXamlRenderer
             return panel;
         }
 
-        private MyTextBox ConvertWpfTextBox(
+        private Control ConvertWpfTextBox(
             XElement element,
             StyleScope styleScope,
             IReadOnlyDictionary<string, string> styles)
         {
+            var text = element.HasElements ? "" : element.Value.Trim();
+            var styleKey = MarkupKey(FindAttribute(element, "Style"));
+            var template = styleScope.ResolveTemplate(styleKey, "TextBox");
+            if (template is not null
+                && InstantiateTextBoxTemplate(template, text, styles, styleScope) is
+                    { } templated)
+                return templated;
+
             var textBox = new MyTextBox
             {
-                Text = element.HasElements ? "" : element.Value.Trim(),
+                Text = text,
                 IsReadOnly = true
             };
             ApplyCommon(textBox, element, styles);
@@ -162,15 +170,27 @@ public static partial class RuntimeXamlRenderer
             };
             ApplyCommon(panel, element, merged);
 
+            var markerStyle = ParseInt(GetProp(element, merged, "MarkerStyle")) ?? 0;
+            var index = 0;
             foreach (var child in element.Elements())
             {
                 if (IsSkippedElement(child))
                     continue;
 
-                panel.Children.Add(
-                    child.Name.LocalName.Equals("ListItem", StringComparison.OrdinalIgnoreCase)
-                        ? ConvertDocumentListItem(child, styleScope, merged)
-                        : ConvertDocumentBlock(child, styleScope, merged));
+                if (child.Name.LocalName.Equals("ListItem", StringComparison.OrdinalIgnoreCase))
+                {
+                    index++;
+                    panel.Children.Add(
+                        ConvertDocumentListItem(
+                            child,
+                            styleScope,
+                            merged,
+                            FormatListMarker(markerStyle, index)));
+                }
+                else
+                {
+                    panel.Children.Add(ConvertDocumentBlock(child, styleScope, merged));
+                }
             }
 
             return panel;
@@ -179,7 +199,8 @@ public static partial class RuntimeXamlRenderer
         private Control ConvertDocumentListItem(
             XElement element,
             StyleScope styleScope,
-            IReadOnlyDictionary<string, string> inheritedStyles)
+            IReadOnlyDictionary<string, string> inheritedStyles,
+            string marker = "• ")
         {
             var merged = MergeStyles(
                 inheritedStyles,
@@ -192,7 +213,7 @@ public static partial class RuntimeXamlRenderer
 
             var bullet = new TextBlock
             {
-                Text = "• ",
+                Text = marker,
                 Margin = new Thickness(0, 0, 4, 0),
                 VerticalAlignment = VerticalAlignment.Top
             };
@@ -313,6 +334,16 @@ public static partial class RuntimeXamlRenderer
         private Control CreateInlineCode(XElement element, StyleScope styleScope)
         {
             var styles = styleScope.Resolve("TextBox", element);
+            var styleKey = MarkupKey(FindAttribute(element, "Style"));
+            var template = styleScope.ResolveTemplate(styleKey, "TextBox");
+            if (template is not null
+                && InstantiateTextBoxTemplate(
+                    template,
+                    element.Value.Trim(),
+                    styles,
+                    styleScope) is { } templated)
+                return templated;
+
             var border = new Border
             {
                 Background = ParseBrush(GetProp(element, styles, "Background"))
@@ -333,6 +364,69 @@ public static partial class RuntimeXamlRenderer
             if (ParseDouble(GetProp(element, styles, "Height")) is { } height and > 0d)
                 border.Height = height;
             return border;
+        }
+
+        private static string FormatListMarker(int markerStyle, int index)
+        {
+            return markerStyle switch
+            {
+                1 => "• ",
+                2 => "○ ",
+                3 => "▪ ",
+                4 => "□ ",
+                5 => $"{ToRoman(index).ToLowerInvariant()}. ",
+                6 => $"{ToRoman(index)}. ",
+                7 => $"{ToAlpha(index).ToLowerInvariant()}. ",
+                8 => $"{ToAlpha(index)}. ",
+                9 => $"{index}. ",
+                _ => ""
+            };
+        }
+
+        private static string ToAlpha(int value)
+        {
+            if (value <= 0)
+                return "";
+            var result = "";
+            while (value > 0)
+            {
+                value--;
+                result = (char)('A' + value % 26) + result;
+                value /= 26;
+            }
+
+            return result;
+        }
+
+        private static string ToRoman(int value)
+        {
+            if (value <= 0)
+                return "";
+            var values = new[]
+            {
+                (1000, "M"),
+                (900, "CM"),
+                (500, "D"),
+                (400, "CD"),
+                (100, "C"),
+                (90, "XC"),
+                (50, "L"),
+                (40, "XL"),
+                (10, "X"),
+                (9, "IX"),
+                (5, "V"),
+                (4, "IV"),
+                (1, "I")
+            };
+            var result = "";
+            foreach (var (number, symbol) in values)
+                while (value >= number)
+                {
+                    result += symbol;
+                    value -= number;
+                }
+
+            return result;
         }
 
         private static FontFamily ParseFontFamily(string? value)

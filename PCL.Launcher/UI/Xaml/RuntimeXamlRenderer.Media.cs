@@ -46,6 +46,8 @@ public static partial class RuntimeXamlRenderer
                     StrokeThickness = strokeThickness ?? 1d
                 };
                 ApplyCommon(line, element, styles);
+                if (ParseEnum<Stretch>(GetProp(element, styles, "Stretch")) is { } lineStretch)
+                    line.Stretch = lineStretch;
                 return line;
             }
 

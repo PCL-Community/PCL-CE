@@ -6,10 +6,8 @@ using PCL.Network;
 namespace PCL.Views.Pages.Homepage;
 
 /// <summary>
-///     主页内容的解析结果：描述当前配置下主页应当展示什么，以及内容来自哪里。
-///     运行时 XAML 主页在 <see cref="Xaml" /> 中携带原始内容，由 WPF 兼容渲染器
-///     或 AXAML 运行时加载器转换；联网主页在没有缓存时返回 <see cref="IsLoading" />，
-///     由界面层清空旧页并等待后台下载。
+/// 主页内容的解析结果：描述当前配置下主页应当展示什么，以及内容来自哪里。 运行时 XAML 主页在 <see cref="Xaml" /> 中携带原始内容，由 WPF
+/// 兼容渲染器 或 AXAML 运行时加载器转换；联网主页在没有缓存时返回 <see cref="IsLoading" />， 由界面层清空旧页并等待后台下载。
 /// </summary>
 public sealed record HomepageContent
 {
@@ -33,11 +31,10 @@ public sealed record HomepageContent
 }
 
 /// <summary>
-///     主页来源解析：读取 <c>Preference.Homepage</c> 配置，把主页来源解释为 <see cref="HomepageContent" />。
-///     联网来源带本地缓存与版本校验，缓存地址为临时目录下的 <c>Cache/Custom.xaml</c>，
-///     下载后的地址与版本写入 <c>States.UI.SavedHomepageUrl</c> / <c>SavedHomepageVersion</c>。
-///     有缓存时先返回缓存并在后台检查新版本；没有缓存时返回加载态并后台下载。
-///     后台刷新失败时会保留缓存/旧页，只有全新下载且没有可回退内容时才显示错误。
+/// 主页来源解析：读取 <c>Preference.Homepage</c> 配置，把主页来源解释为 <see cref="HomepageContent" />。
+/// 联网来源带本地缓存与版本校验，缓存地址为临时目录下的 <c>Cache/Custom.xaml</c>， 下载后的地址与版本写入
+/// <c>States.UI.SavedHomepageUrl</c> / <c>SavedHomepageVersion</c>。
+/// 有缓存时先返回缓存并在后台检查新版本；没有缓存时返回加载态并后台下载。 后台刷新失败时会保留缓存/旧页，只有全新下载且没有可回退内容时才显示错误。
 /// </summary>
 public static class HomepageSource
 {
@@ -52,8 +49,8 @@ public static class HomepageSource
     public static string CachePath => Path.Combine(Paths.Temp, "Cache", CustomFileCacheName);
 
     /// <summary>
-    ///     重置主页的缓存状态。与 WPF 一致，这里不删除 <see cref="CachePath" />，
-    ///     只清除记住的 URL/版本；下次联网刷新会重新下载，失败时仍保留旧缓存文件。
+    /// 重置主页的缓存状态。与 WPF 一致，这里不删除 <see cref="CachePath" />， 只清除记住的
+    /// URL/版本；下次联网刷新会重新下载，失败时仍保留旧缓存文件。
     /// </summary>
     public static void ClearCache()
     {
@@ -75,8 +72,8 @@ public static class HomepageSource
     }
 
     /// <summary>
-    ///     解析当前配置对应的主页内容。该方法会读取本地文件并可能启动后台联网刷新，
-    ///     应在后台线程调用；<paramref name="onBackgroundUpdated" /> 在后台线程触发。
+    /// 解析当前配置对应的主页内容。该方法会读取本地文件并可能启动后台联网刷新， 应在后台线程调用；
+    /// <paramref name="onBackgroundUpdated" /> 在后台线程触发。
     /// </summary>
     /// <param name="onNetworkDownload">开始联网下载时触发，供界面层提示加载中；使用缓存刷新时不触发。</param>
     /// <param name="onBackgroundUpdated">后台刷新完成（成功或失败）时触发，供界面层替换或保留内容。</param>
@@ -107,7 +104,7 @@ public static class HomepageSource
     {
         var xamlPath = Path.Combine(Paths.Data, "Custom.xaml");
         var axamlPath = Path.Combine(Paths.Data, "Custom.axaml");
-        var path = File.Exists(xamlPath) || !File.Exists(axamlPath) ? xamlPath : axamlPath;
+        var path = File.Exists(axamlPath) ? axamlPath : xamlPath;
         LogWrapper.Info("Launch", "主页自定义数据来源：本地文件");
         if (!File.Exists(path))
             return new HomepageContent

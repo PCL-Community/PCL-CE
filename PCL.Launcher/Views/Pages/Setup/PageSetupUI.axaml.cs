@@ -323,6 +323,7 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         PanCustomNet.IsVisible = type == 2;
         PanCustomPreset.IsVisible = type == 3;
 
+        HintCustomMigrationWarn.IsVisible = type != 0;
         var showHint = type is 1 or 2;
         HintCustom.IsVisible = showHint;
         HintCustomWarn.IsVisible = showHint && !States.Hint.UntrustedHomepage;

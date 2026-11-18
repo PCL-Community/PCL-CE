@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
@@ -17,14 +18,15 @@ public sealed class HomepageAvaloniaRenderResult
 }
 
 /// <summary>
-///     AXAML 主页加载器。AXAML 使用 Avalonia 原生运行时加载器，
-///     以便 Style、Selector、ControlTemplate 和资源系统按 Avalonia 的规则工作。
-///     输入先经过受限校验和命名空间/事件属性归一化，避免任意 CLR 类型进入运行时加载器。
+/// AXAML 主页加载器。AXAML 使用 Avalonia 原生运行时加载器， 以便 Style、Selector、ControlTemplate 和资源系统按
+/// Avalonia 的规则工作。 输入先经过受限校验和命名空间/事件属性归一化，避免任意 CLR 类型进入运行时加载器。
 /// </summary>
 public static class HomepageAvaloniaRenderer
 {
     private const string PclNamespacePrefix = "pclhome";
     private const string PclNamespace = "using:PCL";
+    private const string PclControlsNamespacePrefix = "pclcontrols";
+    private const string PclControlsNamespace = "using:PCL.UI.Controls";
 
     public static HomepageAvaloniaRenderResult Render(string? xaml)
     {
@@ -35,7 +37,7 @@ public static class HomepageAvaloniaRenderer
                 Error = "AXAML 内容为空"
             };
 
-        var validation = AvaloniaXamlValidator.Validate(xaml);
+        var validation = AvaloniaXamlValidator.Validate(EnsurePclControlsNamespace(xaml));
         if (!validation.IsValid)
             return new HomepageAvaloniaRenderResult
             {
@@ -44,7 +46,7 @@ public static class HomepageAvaloniaRenderer
 
         try
         {
-            var normalized = Normalize(xaml);
+            var normalized = Normalize(EnsurePclControlsNamespace(xaml));
             var loaded = AvaloniaRuntimeXamlLoader.Load(
                 normalized,
                 typeof(MyCard).Assembly);
@@ -77,6 +79,9 @@ public static class HomepageAvaloniaRenderer
             ?? throw new InvalidDataException("AXAML 根节点为空");
 
         root.SetAttributeValue(XNamespace.Xmlns + PclNamespacePrefix, PclNamespace);
+        root.SetAttributeValue(
+            XNamespace.Xmlns + PclControlsNamespacePrefix,
+            PclControlsNamespace);
         NormalizeAttributes(root);
         return document.ToString(SaveOptions.DisableFormatting);
     }
@@ -134,6 +139,20 @@ public static class HomepageAvaloniaRenderer
                 PclNamespace),
             value);
         attribute.Remove();
+    }
+
+    private static string EnsurePclControlsNamespace(string xaml)
+    {
+        if (xaml.Contains("xmlns:pclcontrols", StringComparison.Ordinal)
+            || !xaml.Contains("pclcontrols:", StringComparison.Ordinal))
+            return xaml;
+
+        var match = Regex.Match(xaml, @"<([A-Za-z_][A-Za-z0-9_.:-]*)\b");
+        return !match.Success
+            ? xaml
+            : xaml.Insert(
+                match.Index + match.Length,
+                " xmlns:pclcontrols=\"using:PCL.UI.Controls\"");
     }
 
     private static string StripXmlDeclaration(string xaml)

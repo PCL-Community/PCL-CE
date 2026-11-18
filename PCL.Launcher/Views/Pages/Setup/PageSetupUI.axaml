@@ -487,6 +487,12 @@
                                        Height="22"
                                        Text="{loc:Loc Setup.Ui.Homepage.NetUpdate}" />
                     </Grid>
+                    <ui:MyHint x:Name="HintCustomMigrationWarn"
+                               Margin="0,15,0,-4"
+                               Theme="Yellow"
+                               CanClose="True"
+                               IsVisible="False"
+                               Text="{loc:Loc Setup.Ui.Homepage.MigrationWarning}" />
                     <ui:MyHint x:Name="HintCustom"
                                Margin="0,15,0,-4"
                                Theme="Blue"
