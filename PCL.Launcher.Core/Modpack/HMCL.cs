@@ -46,6 +46,9 @@ public static partial class Modpack
         var loader = new LoaderCombo<string>(loaderName, loaders)
         {
             OnStateChanged = ModpackUi.OnInstallStateChanged,
+            DisplayNameFactory = () => Lang.Text(
+                "Minecraft.Download.Modpack.Task.HmclInstall",
+                instanceName),
             Identifier = loaderIdentifier
         };
         loader.Start(request.targetInstanceFolder);

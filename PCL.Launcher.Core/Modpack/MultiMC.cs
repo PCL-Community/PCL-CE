@@ -64,12 +64,15 @@ public static partial class Modpack
         var loader = new LoaderCombo<string>(loaderName, loaders)
         {
             OnStateChanged = ModpackUi.OnInstallStateChanged,
+            DisplayNameFactory = () => Lang.Text(
+                "Minecraft.Download.Modpack.Task.MmcInstall",
+                instanceName),
             Identifier = loaderIdentifier
         };
         loader.Start(request.targetInstanceFolder);
         LoaderTaskbarAdd(loader);
         CompUi.Current?.RefreshDownloadButton();
-        LauncherCommon.RunInUi(() => CompNavigation.ShowTaskManager());
+        LauncherCommon.RunInUi(CompNavigation.ShowTaskManager);
         return loader;
     }
 

@@ -170,13 +170,13 @@ public static partial class Comp
             [
                 .. compatible
                     .OrderBy(v => v == current ? 0 : 1)
-                    .ThenBy(v => v.Name)
+                    .ThenBy(v => v.Name, StringComparer.InvariantCulture)
             ];
         var indices = LauncherCommon.RunInUiWait(() =>
             CompUi.Current?.ShowMultiSelect(
                 Lang.Text("Download.Comp.QuickDownload.ChooseInstance.Title"),
                 null,
-                compatible.Select(v => v.Name).ToList(),
+                [.. compatible.Select(v => v.Name)],
                 Lang.Text("Common.Action.Continue"),
                 Lang.Text("Common.Action.Cancel")));
         if (indices is null) return null;
@@ -206,18 +206,18 @@ public static partial class Comp
     /// <summary>构造并启动单文件下载任务（与详情页 Save_Click 末段一致）。</summary>
     private static void _StartQuickDownload(CompFile file, string target)
     {
-        var desc = file.Type switch
+        var descKey = file.Type switch
         {
-            CompType.Mod => Lang.Text("Download.Comp.Type.Mod"),
-            CompType.ResourcePack => Lang.Text("Download.Comp.Type.ResourcePack"),
-            CompType.Shader => Lang.Text("Download.Comp.Type.Shader"),
-            CompType.DataPack => Lang.Text("Download.Comp.Type.DataPack"),
-            CompType.World => Lang.Text("Download.Comp.Type.World"),
-            _ => Lang.Text("Download.Comp.Type.Mod")
+            CompType.Mod => "Download.Comp.Type.Mod",
+            CompType.ResourcePack => "Download.Comp.Type.ResourcePack",
+            CompType.Shader => "Download.Comp.Type.Shader",
+            CompType.DataPack => "Download.Comp.Type.DataPack",
+            CompType.World => "Download.Comp.Type.World",
+            _ => "Download.Comp.Type.Mod"
         };
         var loaderName = Lang.Text(
             "Download.Comp.Detail.DownloadResource",
-            desc,
+            Lang.Text(descKey),
             Path.GetFileNameWithoutExtension(target));
         var loaders = new List<Loading.LoaderBase>
         {
@@ -230,7 +230,9 @@ public static partial class Comp
                 ])
             {
                 ProgressWeight = 6,
-                block = true
+                block = true,
+                DisplayNameFactory = () =>
+                    Lang.Text("Download.Comp.Detail.DownloadFile")
             }
         };
         if (file.Type == CompType.World)
@@ -243,17 +245,25 @@ public static partial class Comp
                         _ => LauncherCommon.ExtractFile(target, extractDir, Encoding.UTF8))
                     {
                         ProgressWeight = 0.1d,
-                        block = true
+                        block = true,
+                        DisplayNameFactory = () => Lang.Text("Download.Comp.Detail.InstallWorld")
                     });
             loaders.Add(
                 new Loading.LoaderTask<int, int>(
                     Lang.Text("Download.Comp.Detail.CleanCache"),
-                    _ => File.Delete(target)));
+                    _ => File.Delete(target))
+                {
+                    DisplayNameFactory = () => Lang.Text("Download.Comp.Detail.CleanCache")
+                });
         }
 
         var loader = new Loading.LoaderCombo<int>(loaderName, loaders)
         {
-            OnStateChanged = loader => CompUi.Current?.LoaderStateChangedHintOnly(loader)
+            OnStateChanged = loader => CompUi.Current?.LoaderStateChangedHintOnly(loader),
+            DisplayNameFactory = () => Lang.Text(
+                "Download.Comp.Detail.DownloadResource",
+                Lang.Text(descKey),
+                Path.GetFileNameWithoutExtension(target))
         };
         loader.Start(1);
         Loading.LoaderTaskbarAdd(loader);

@@ -143,16 +143,16 @@ public static class UpdateManager
                     // 构造步骤加载器
                 }
 
-                var loaders = new List<Loading.LoaderBase>();
-                // 下载
-                loaders.AddRange(
-                    remoteServer.GetDownloadLoader(
+                List<Loading.LoaderBase> loaders =
+                [
+                    .. remoteServer.GetDownloadLoader(
                         IsCurrentVersionBeta
                             ? UpdateSourceChannel.Beta
                             : UpdateSourceChannel.Stable,
                         SystemInfo.IsArm64System ? UpdateArch.Arm64 : UpdateArch.X64,
-                        dlTargetPath));
-                loaders.Add(
+                        dlTargetPath),
+
+
                     new Loading.LoaderTask<int, int>(
                         Lang.Text("Update.Task.Check"),
                         _ =>
@@ -164,7 +164,9 @@ public static class UpdateManager
                                         "Update.Error.Sha256Mismatch",
                                         version.Sha256,
                                         curHash));
-                        }));
+                        })
+                ];
+                // 下载
                 switch (type)
                 {
                     case UpdateEnums.UpdateType.UpdateNow:
@@ -219,7 +221,10 @@ public static class UpdateManager
                     });
                 // 启动
                 updateLoader =
-                    new Loading.LoaderCombo<JsonObject>(Lang.Text("Update.Title"), loaders);
+                    new Loading.LoaderCombo<JsonObject>(Lang.Text("Update.Title"), loaders)
+                    {
+                        DisplayNameFactory = () => Lang.Text("Update.Title")
+                    };
                 updateLoader.Start();
                 if (type == UpdateEnums.UpdateType.UpdateNow)
                 {
@@ -254,7 +259,7 @@ public static class UpdateManager
 
             // id old new restart
             var text =
-                $"update {Process.GetCurrentProcess().Id} \"{Basics.ExecutablePath}\" \"{fileName}\" {(triggerRestart ? "true" : "false")}";
+                $"update {Environment.ProcessId} \"{Basics.ExecutablePath}\" \"{fileName}\" {(triggerRestart ? "true" : "false")}";
             LauncherCommon.Log("[System] 更新程序启动，参数：" + text);
             Process.Start(
                 new ProcessStartInfo(fileName)
@@ -311,7 +316,10 @@ public static class UpdateManager
             SystemInfo.IsArm64System ? UpdateArch.Arm64 : UpdateArch.X64,
             latestPclPath);
         var loader =
-            new Loading.LoaderCombo<int>(Lang.Text("Update.Task.DownloadLatestStable"), loaders);
+            new Loading.LoaderCombo<int>(Lang.Text("Update.Task.DownloadLatestStable"), loaders)
+            {
+                DisplayNameFactory = () => Lang.Text("Update.Task.DownloadLatestStable")
+            };
         loader.Start();
         loader.WaitForExit();
     }

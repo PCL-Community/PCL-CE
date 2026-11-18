@@ -91,6 +91,9 @@ public class UpdatesMirrorChyanModel : IUpdateSource // Mirror 酱的更新格�
                     ];
                 }),
             new LoaderDownload(Lang.Text("Update.Task.DownloadUpdateFile"), [])
+            {
+                DisplayNameFactory = () => Lang.Text("Update.Task.DownloadUpdateFile")
+            }
         };
         return loaders;
     }

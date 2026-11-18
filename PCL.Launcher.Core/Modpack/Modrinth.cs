@@ -79,13 +79,16 @@ public static partial class Modpack
         var loader = new LoaderCombo<string>(loaderName, loaders)
         {
             OnStateChanged = ModpackUi.OnInstallStateChanged,
+            DisplayNameFactory = () => Lang.Text(
+                "Minecraft.Download.Modpack.Task.ModrinthInstall",
+                instanceName),
             Identifier = loaderIdentifier
         };
         loader.Start(request.targetInstanceFolder);
         LoaderTaskbarAdd(loader);
         CompUi.Current?.RefreshDownloadButton();
         if (!isOnlineInstall)
-            LauncherCommon.RunInUi(() => CompNavigation.ShowTaskManager());
+            LauncherCommon.RunInUi(CompNavigation.ShowTaskManager);
         return loader;
     }
 
@@ -113,7 +116,7 @@ public static partial class Modpack
 
         var modLoader = Comp.CompLoaderType.Any;
         foreach (var entry in dependencies)
-            switch (entry.Key.ToLower() ?? "")
+            switch (entry.Key.ToLowerInvariant() ?? "")
             {
                 case "minecraft":
                     minecraftVersion = entry.Value?.ToObject<string>();

@@ -120,7 +120,11 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
                             [new DownloadFile(RandomUtils.Shuffle(deJsonData.Downloads), tempPath)];
                     }
                 }));
-        loaders.Add(new LoaderDownload(Lang.Text("Update.Task.DownloadFile"), []));
+        loaders.Add(
+            new LoaderDownload(Lang.Text("Update.Task.DownloadFile"), [])
+            {
+                DisplayNameFactory = () => Lang.Text("Update.Task.DownloadFile")
+            });
         loaders.Add(
             new Loading.LoaderTask<string, int>(
                 Lang.Text("Update.Task.ApplyFile"),
@@ -166,7 +170,10 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
                         // 解压到指定文件（覆盖已存在文件）
                         entry.ExtractToFile(output, true);
                     }
-                }));
+                })
+            {
+                DisplayNameFactory = () => Lang.Text("Update.Task.ApplyFile")
+            });
         return loaders;
     }
 
@@ -213,9 +220,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
         return jsonData;
     }
 
-    /// <summary>
-    ///     缓存是否有效
-    /// </summary>
+    /// <summary>缓存是否有效</summary>
     /// <param name="path"></param>
     /// <param name="hash"></param>
     /// <returns></returns>

@@ -73,6 +73,9 @@ public static partial class Modpack
         var loader = new LoaderCombo<string>(loaderName, loaders)
         {
             OnStateChanged = ModpackUi.OnInstallStateChanged,
+            DisplayNameFactory = () => Lang.Text(
+                "Minecraft.Download.Modpack.Task.CurseForgeInstall",
+                instanceName),
             Identifier = loaderIdentifier
         };
         loader.Start(request.targetInstanceFolder);
@@ -231,6 +234,8 @@ public static partial class Modpack
             },
             new LoaderDownload(Lang.Text("Minecraft.Download.Modpack.Stage.DownloadMods"), [])
             {
+                DisplayNameFactory = () => Lang.Text(
+                    "Minecraft.Download.Modpack.Stage.DownloadMods"),
                 ProgressWeight = modList.Count * 1.5d
             }
         };
@@ -238,6 +243,8 @@ public static partial class Modpack
             Lang.Text("Minecraft.Download.Modpack.Stage.DownloadMods.MainLoader"),
             modDownloadLoaders)
         {
+            DisplayNameFactory = () => Lang.Text(
+                "Minecraft.Download.Modpack.Stage.DownloadMods.MainLoader"),
             show = false,
             ProgressWeight = modDownloadLoaders.Sum(l => l.ProgressWeight)
         };
