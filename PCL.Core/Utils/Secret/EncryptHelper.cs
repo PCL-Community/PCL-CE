@@ -21,8 +21,8 @@ public static class EncryptHelper
 
     /// <summary>密钥文件的本地保护方案，由平台决定（Windows DPAPI / 其他平台机器绑定 AES-GCM）。</summary>
     private static readonly Lazy<IKeyProtector> _KeyProtectorFactory = new(() =>
-        PlatformRuntime.IsInitialized
-            ? PlatformRuntime.Current.CreateKeyProtector(_Key)
+        ApplicationRuntime.IsInitialized
+            ? ApplicationRuntime.Current.Platform.CreateKeyProtector(_Key)
             : OperatingSystem.IsWindows()
                 ? new WindowsKeyProtector(_Key)
                 : new UnixKeyProtector(_Key));

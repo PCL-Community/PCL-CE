@@ -709,7 +709,8 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
         {
             var canRecycle = !permanentDelete
                 && targets.All(entry =>
-                    PlatformRuntime.Current.RecycleBin.IsSupported(GetEntryPath(entry)));
+                    ApplicationRuntime.Current.Platform.RecycleBin
+                        .IsSupported(GetEntryPath(entry)));
             var content = Lang.Text(
                 "Event.Safety.ConfirmMessage",
                 $"{Lang.Text("Common.Action.Delete")} {targets.Count}");
@@ -763,7 +764,7 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
         try
         {
             var canRecycle = !permanentDelete
-                && PlatformRuntime.Current.RecycleBin.IsSupported(GetEntryPath(entry));
+                && ApplicationRuntime.Current.Platform.RecycleBin.IsSupported(GetEntryPath(entry));
             var content = Lang.Text(
                 "Event.Safety.ConfirmMessage",
                 $"{Lang.Text("Common.Action.Delete")} {GetEntryDisplayName(entry)}");
@@ -834,9 +835,11 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
         try
         {
             var isDirectory = entry.IsFolder || Directory.Exists(targetPath);
-            if (!permanentDelete && PlatformRuntime.Current.RecycleBin.IsSupported(targetPath))
+            if (!permanentDelete
+                && ApplicationRuntime.Current.Platform.RecycleBin.IsSupported(targetPath))
             {
-                var outcome = PlatformRuntime.Current.RecycleBin.Move(targetPath, out var error);
+                var outcome =
+                    ApplicationRuntime.Current.Platform.RecycleBin.Move(targetPath, out var error);
                 switch (outcome)
                 {
                     case RecycleBinOutcome.Moved:
@@ -1113,8 +1116,9 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
     {
         if (!File.Exists(path))
             return;
-        if (PlatformRuntime.Current.RecycleBin.IsSupported(path)
-            && PlatformRuntime.Current.RecycleBin.Move(path, out _) == RecycleBinOutcome.Moved)
+        if (ApplicationRuntime.Current.Platform.RecycleBin.IsSupported(path)
+            && ApplicationRuntime.Current.Platform.RecycleBin.Move(path, out _)
+            == RecycleBinOutcome.Moved)
             return;
         File.Delete(path);
     }

@@ -1,10 +1,13 @@
 using System.Runtime.InteropServices;
 using Avalonia.Threading;
+using PCL.Core.Platform;
 using PlainToolkit.ObjectiveC.Runtime;
 
 namespace PCL.Core.UI;
 
-public sealed class MacOsNotificationService : NotificationServiceBase
+public sealed class MacOsNotificationService(
+    IExternalCommandRunner commandRunner)
+    : NotificationServiceBase(commandRunner)
 {
     private static bool _frameworksLoaded;
 

@@ -365,7 +365,7 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
         {
             DeletingFolder = folder;
             var saveName = Path.GetFileName(folder.TrimEnd(Path.DirectorySeparatorChar));
-            var canRecycle = PlatformRuntime.Current.RecycleBin.IsSupported(folder);
+            var canRecycle = ApplicationRuntime.Current.Platform.RecycleBin.IsSupported(folder);
             var result = await DialogService.Instance.ShowAsync(
                 new TextDialogRequest
                 {
@@ -386,7 +386,7 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
 
             var (outcome, error) = await Task.Run(() =>
             {
-                var moved = PlatformRuntime.Current.RecycleBin.Move(folder, out var reason);
+                var moved = ApplicationRuntime.Current.Platform.RecycleBin.Move(folder, out var reason);
                 return (moved, reason);
             });
             switch (outcome)
@@ -424,7 +424,7 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
 
     public async Task DiscussPasteAsync()
     {
-        var clipboard = PlatformServices.Clipboard;
+        var clipboard = ApplicationRuntime.GetService<IClipboardService>();
         var paths = clipboard is null ? null : await clipboard.GetFileDropListAsync();
         await PastePathsAsync(paths);
     }

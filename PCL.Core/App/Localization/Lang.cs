@@ -69,7 +69,7 @@ public static class Lang
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
 
-        if (PlatformServices.Localization?.TryFindResource(key) is { } text)
+        if (ApplicationRuntime.GetService<ILocalizationBackend>()?.TryFindResource(key) is { } text)
             return text;
         if (_LifecycleSafeFindResource(key) is string fallbackText)
             return fallbackText;

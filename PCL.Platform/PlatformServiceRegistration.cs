@@ -10,6 +10,10 @@ public static class PlatformServiceRegistration
         this IServiceCollection services,
         PlatformKind kind)
     {
+        services.AddSingleton<IExternalCommandRunner, ExternalCommandRunner>();
+        services.AddSingleton<IElevationService, PlatformElevationService>();
+        services.AddSingleton<IProcessLauncher, PlatformProcessLauncher>();
+
         services.AddSingleton<ISystemProxyProvider>(_ => kind switch
         {
             PlatformKind.Windows => new WindowsSystemProxyProvider(),

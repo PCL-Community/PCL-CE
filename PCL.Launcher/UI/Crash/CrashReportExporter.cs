@@ -4,7 +4,6 @@ using System.Text;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
-using PCL.Core.Platform;
 using PCL.Core.Utils.Codecs;
 using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Secret;
@@ -60,7 +59,7 @@ internal sealed class CrashReportExporter
     {
         try
         {
-            var memory = PlatformRuntime.Current.SystemFacts.GetMemoryInfo();
+            var memory = LauncherCommon.GetMemoryInfo();
             var totalMiB = (long)memory.TotalBytes / 1024 / 1024;
             var availableMiB = (long)memory.AvailableBytes / 1024 / 1024;
 

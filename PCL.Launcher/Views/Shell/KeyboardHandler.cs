@@ -59,7 +59,7 @@ public sealed class KeyboardHandler
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
         // Alt 在 Windows 会激活系统菜单；macOS/Linux 的 Option/Alt 是正常输入修饰键。
-        if (PlatformRuntime.Current.Capabilities.SuppressAltMenu
+        if (ApplicationRuntime.Current.Platform.Capabilities.SuppressAltMenu
             && e.Key is Key.LeftAlt or Key.RightAlt)
         {
             e.Handled = true;

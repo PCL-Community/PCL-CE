@@ -5,7 +5,6 @@ using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Platform;
 using PCL.Core.Utils;
-using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Secret;
 
 namespace PCL;
@@ -30,7 +29,7 @@ public static partial class GameLaunch
 
     private static void _SetJavaGpuPreference(string javaExePath)
     {
-        if (!PlatformRuntime.Current.GpuPreference.IsSupported) return;
+        if (!ApplicationRuntime.Current.Platform.GpuPreference.IsSupported) return;
 
         try
         {
@@ -38,7 +37,8 @@ public static partial class GameLaunch
         }
         catch (Exception ex)
         {
-            if (ProcessInterop.IsAdmin() || !Config.Launch.SetGpuPreference)
+            var elevation = ApplicationRuntime.GetService<IElevationService>();
+            if (elevation is null || elevation.IsElevated || !Config.Launch.SetGpuPreference)
             {
                 LauncherCommon.Log(ex, "直接调整显卡设置失败");
                 return;
@@ -47,14 +47,14 @@ public static partial class GameLaunch
             LauncherCommon.Log(ex, "直接调整显卡设置失败，将以管理员权限重启 PCL 再次尝试");
             try
             {
-                using var process = ProcessInterop.StartAsAdmin(
+                using var process = elevation.StartElevated(
                     $"--gpu \"{javaExePath}\" {(Config.Launch.SetGpuPreference ? "1" : "0")}");
                 if (process is null)
                     throw new InvalidOperationException("无法启动提权进程");
 
                 if (!process.WaitForExit(30_000))
                 {
-                    ProcessInterop.Kill(process, 0, true);
+                    process.Kill(true);
                     throw new TimeoutException("提权调整显卡设置超时");
                 }
 
@@ -498,7 +498,7 @@ public static partial class GameLaunch
     /// <summary>通过平台服务准备独立显卡相关的启动环境。</summary>
     private static void _ApplyGpuPreferenceEnvironment(ProcessStartInfo startInfo, bool enabled)
     {
-        var environment = PlatformRuntime.Current.LaunchEnvironment;
+        var environment = ApplicationRuntime.Current.Platform.LaunchEnvironment;
         if (!environment.IsSupported) return;
         environment.ApplyGpuPreference(startInfo, enabled, McLaunchLog);
     }
@@ -506,7 +506,7 @@ public static partial class GameLaunch
     /// <summary>通过平台服务应用渲染器选择。</summary>
     private static void _ApplyRendererEnvironment(ProcessStartInfo startInfo)
     {
-        var environment = PlatformRuntime.Current.LaunchEnvironment;
+        var environment = ApplicationRuntime.Current.Platform.LaunchEnvironment;
         if (!environment.IsSupported) return;
 
         var instanceRenderer = Config.Instance.Renderer[
@@ -552,7 +552,7 @@ public static partial class GameLaunch
 
         var jStackPath = Path.Combine(
             mcLaunchJavaSelected!.Installation.JavaFolder,
-            PlatformRuntime.Current.Java.JstackExecutableName);
+            ApplicationRuntime.Current.Platform.Java.JstackExecutableName);
 
         var watcher = new GameWatcher.Watcher(
             loader,

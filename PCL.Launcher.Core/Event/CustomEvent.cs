@@ -3,7 +3,6 @@ using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
 using PCL.Core.Platform;
 using PCL.Core.UI.Dialogs;
-using PCL.Core.Utils.OS;
 using PCL.Network;
 
 namespace PCL;
@@ -119,7 +118,7 @@ public class CustomEvent
         LauncherCommon.RunInNewThread(() => LauncherUi.Interaction?.OpenWebsite(arg));
     }
 
-    /// <summary>打开文件 / 执行命令。复用 GetAbsoluteUrls 解析路径后 ProcessInterop.Start 启动。</summary>
+    /// <summary>打开文件 / 执行命令。复用 GetAbsoluteUrls 解析路径后通过平台进程服务启动。</summary>
     private static async void _OpenFileOrCommand(string arg, EventType type)
     {
         var args = SplitArgs(arg);
@@ -131,7 +130,9 @@ public class CustomEvent
                 if (!await EventSafetyConfirmAsync(
                         $"{urls[0]}{(args.Length >= 2 ? $" {args[1]}" : "")}"))
                     return;
-                ProcessInterop.Start(urls[0], args.Length >= 2 ? args[1] : "");
+                var launcher = ApplicationRuntime.GetService<IProcessLauncher>()
+                    ?? throw new InvalidOperationException("进程启动服务尚未初始化");
+                launcher.Start(urls[0], args.Length >= 2 ? args[1] : null);
             }
             catch (Exception ex)
             {
@@ -170,7 +171,7 @@ public class CustomEvent
     /// <summary>复制文本到剪贴板。</summary>
     private static async void _CopyText(string arg, EventType _)
     {
-        if (PlatformServices.Clipboard is { } clipboard)
+        if (ApplicationRuntime.GetService<IClipboardService>() is { } clipboard)
             await clipboard.SetTextAsync(arg);
     }
 

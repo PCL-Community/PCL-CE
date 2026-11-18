@@ -114,7 +114,9 @@ public static partial class GameWatcher
                     try
                     {
                         Thread.Sleep(2000);
-                        PlatformServices.WindowInterop?.MaximizeWindow(_windowHandle);
+                        ApplicationRuntime
+                            .GetService<IWindowInterop>()
+                            ?.MaximizeWindow(_windowHandle);
 
                         WatcherLog(
                             Lang.Text(
@@ -130,12 +132,14 @@ public static partial class GameWatcher
         }
 
         /// <summary>
-        ///     获取可能是当前进程对应的 Minecraft 窗口的句柄和标题。
-        ///     <c>null</c> 代表未找到；非 Windows 平台未注册窗口交互实现时始终返回 <c>null</c>。
+        /// 获取可能是当前进程对应的 Minecraft 窗口的句柄和标题。 <c>null</c> 代表未找到；非 Windows 平台未注册窗口交互实现时始终返回
+        /// <c>null</c>。
         /// </summary>
         private KeyValuePair<nint, string>? TryGetMinecraftWindow()
         {
-            return PlatformServices.WindowInterop?.TryFindGameWindow(gameProcess.Id) is { } window
+            return ApplicationRuntime
+                .GetService<IWindowInterop>()
+                ?.TryFindGameWindow(gameProcess.Id) is { } window
                 ? new KeyValuePair<nint, string>(window.Handle, window.Title)
                 : null;
         }

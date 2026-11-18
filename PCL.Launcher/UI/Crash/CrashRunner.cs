@@ -179,7 +179,7 @@ internal static class CrashPresenter
                 Lang.Text("Common.Action.Confirm"),
                 Lang.Text("Crash.Export.Failed.CopyDetails"),
                 button2Action: () => copyPressed = true);
-            if (copyPressed && PlatformServices.Clipboard is { } clipboard)
+            if (copyPressed && ApplicationRuntime.GetService<IClipboardService>() is { } clipboard)
                 await clipboard.SetTextAsync(message);
         }
     }

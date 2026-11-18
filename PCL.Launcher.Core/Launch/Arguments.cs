@@ -23,7 +23,7 @@ public static partial class GameLaunch
             string.IsNullOrEmpty(dataJvmCustom) ? Config.Launch.JvmArgs : dataJvmCustom);
         _ApplyPreferredIpStackArgs(dataList);
 
-        var availableBytes = PlatformRuntime.Current.SystemFacts
+        var availableBytes = ApplicationRuntime.Current.Platform.SystemFacts
             .GetMemoryInfo()
             .AvailableBytes;
         var availableGb = availableBytes / 1073741824.0;

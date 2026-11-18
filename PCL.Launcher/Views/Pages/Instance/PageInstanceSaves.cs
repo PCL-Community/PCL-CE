@@ -260,7 +260,7 @@ public partial class PageInstanceSaves : MyPageRight, IRefreshable
 
     private async Task PasteWithLoaderAsync()
     {
-        var clipboard = PlatformServices.Clipboard;
+        var clipboard = ApplicationRuntime.GetService<IClipboardService>();
         var paths = clipboard is null ? null : await clipboard.GetFileDropListAsync();
         if (paths is null || paths.Length == 0)
         {

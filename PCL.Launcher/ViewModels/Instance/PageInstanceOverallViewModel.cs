@@ -842,7 +842,7 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
                     instance.PathIndie,
                     GameFolders.mcFolderSelected,
                     StringComparison.OrdinalIgnoreCase);
-            var recycleSupported = PlatformRuntime.Current.RecycleBin.IsSupported(instancePath);
+            var recycleSupported = ApplicationRuntime.Current.Platform.RecycleBin.IsSupported(instancePath);
             var effectivePermanent = permanent || !recycleSupported;
 
             var confirmMessageKey = (isIsolatedInstance, effectivePermanent) switch
@@ -885,7 +885,7 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
             }
             else
             {
-                var outcome = PlatformRuntime.Current.RecycleBin.Move(instancePath, out var error);
+                var outcome = ApplicationRuntime.Current.Platform.RecycleBin.Move(instancePath, out var error);
                 switch (outcome)
                 {
                     case RecycleBinOutcome.Moved:

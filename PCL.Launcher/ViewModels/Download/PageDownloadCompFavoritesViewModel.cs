@@ -318,7 +318,7 @@ public partial class PageDownloadCompFavoritesViewModel : ViewModelBase
                 .Select(item => item.Project.Id)
                 .ToHashSet();
             if (ids.Count == 0) return;
-            if (PlatformServices.Clipboard is { } clipboard)
+            if (ApplicationRuntime.GetService<IClipboardService>() is { } clipboard)
                 await clipboard.SetTextAsync(Comp.CompFavorites.GetShareCode(ids));
             ClearSelection();
         }
@@ -521,7 +521,7 @@ public partial class PageDownloadCompFavoritesViewModel : ViewModelBase
                         Lang.Text("Download.Comp.Favorites.Dialog.GetFailed.CopyIds"),
                         async () =>
                         {
-                            if (PlatformServices.Clipboard is { } clipboard)
+                            if (ApplicationRuntime.GetService<IClipboardService>() is { } clipboard)
                                 await clipboard.SetTextAsync(
                                     string.Join(Environment.NewLine, failedIds));
                         }),
@@ -586,7 +586,7 @@ public partial class PageDownloadCompFavoritesViewModel : ViewModelBase
                 return;
             }
 
-            if (PlatformServices.Clipboard is { } clipboard)
+            if (ApplicationRuntime.GetService<IClipboardService>() is { } clipboard)
                 await clipboard.SetTextAsync(Comp.CompFavorites.GetShareCode(group.Favs));
             HintService.Show(Hints.Success(Lang.Text("Common.Status.Success"), false));
         }

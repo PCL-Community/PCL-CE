@@ -149,7 +149,7 @@ public static partial class GameWatcher
 
         private void _SetWindowTitleRepeatedly()
         {
-            var windowInterop = PlatformServices.WindowInterop;
+            var windowInterop = ApplicationRuntime.GetService<IWindowInterop>();
             if (windowInterop is null) return;
 
             for (var i = 1; i <= 3; i++)

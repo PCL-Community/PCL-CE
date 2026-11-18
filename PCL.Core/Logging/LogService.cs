@@ -208,9 +208,11 @@ public class LogService : ILifecycleLogService
                     "SystemDialog.Fatal.Message.WithFeedbackGuidance",
                     _ComposeUserError(plain, entry.Exception));
 
-                PlatformServices.FatalDialog?.ShowFatal(
-                    message,
-                    Lang.Text("SystemDialog.Fatal.Title"));
+                ApplicationRuntime
+                    .GetService<IFatalDialogService>()
+                    ?.ShowFatal(
+                        message,
+                        Lang.Text("SystemDialog.Fatal.Title"));
 
                 break;
             }

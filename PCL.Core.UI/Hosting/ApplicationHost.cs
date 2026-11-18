@@ -106,7 +106,8 @@ public sealed class ApplicationHost(Func<int> run) : IAvaloniaApplicationHost
             }
         };
 
-        if (PlatformServices.Localization is LocalizationBackend localization)
+        if (ApplicationRuntime.GetService<ILocalizationBackend>() is LocalizationBackend
+            localization)
             localization.EnsureBaseLanguage();
 
         Startup?.Invoke();

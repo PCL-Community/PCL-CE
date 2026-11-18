@@ -1041,7 +1041,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
             var names = string.Join(", ", targets.Select(entry => entry.Name));
             var canRecycle = !permanentDelete
                 && targets.All(entry =>
-                    PlatformRuntime.Current.RecycleBin.IsSupported(GetEntryPath(entry)));
+                    ApplicationRuntime.Current.Platform.RecycleBin.IsSupported(GetEntryPath(entry)));
             var result = await DialogService.Instance.ShowAsync(
                 new TextDialogRequest
                 {
@@ -1062,9 +1062,9 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
             foreach (var entry in targets)
             {
                 var useRecycle = !permanentDelete
-                    && PlatformRuntime.Current.RecycleBin.IsSupported(GetEntryPath(entry));
+                    && ApplicationRuntime.Current.Platform.RecycleBin.IsSupported(GetEntryPath(entry));
                 var outcome = useRecycle
-                    ? PlatformRuntime.Current.RecycleBin.Move(GetEntryPath(entry), out _)
+                    ? ApplicationRuntime.Current.Platform.RecycleBin.Move(GetEntryPath(entry), out _)
                     : RecycleBinOutcome.Unsupported;
                 switch (outcome)
                 {
@@ -1174,8 +1174,8 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
     {
         if (!File.Exists(path))
             return;
-        if (PlatformRuntime.Current.RecycleBin.IsSupported(path)
-            && PlatformRuntime.Current.RecycleBin.Move(path, out _) == RecycleBinOutcome.Moved)
+        if (ApplicationRuntime.Current.Platform.RecycleBin.IsSupported(path)
+            && ApplicationRuntime.Current.Platform.RecycleBin.Move(path, out _) == RecycleBinOutcome.Moved)
             return;
         File.Delete(path);
     }

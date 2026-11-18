@@ -209,7 +209,7 @@ public partial class PageToolsTestViewModel : ViewModelBase
                 return;
             }
 
-            var shortcuts = PCL.Core.Platform.PlatformRuntime.Current.Shortcuts;
+            var shortcuts = PCL.Core.Platform.ApplicationRuntime.Current.Platform.Shortcuts;
             var extension = shortcuts.GetPreferredExtension(target);
             var shortcutName = Lang.Text("Tools.Test.Shortcut.FileName", extension);
             var desktopPath = shortcuts.GetDesktopPath(shortcutName);
@@ -242,7 +242,7 @@ public partial class PageToolsTestViewModel : ViewModelBase
                 target,
                 workingDirectory: AppContext.BaseDirectory,
                 description: "PCL CE",
-                icon: PCL.Core.Platform.PlatformRuntime.Current.Capabilities.SupportsShortcutIcon
+                icon: PCL.Core.Platform.ApplicationRuntime.Current.Platform.Capabilities.SupportsShortcutIcon
                     ? EnsureShortcutIcon()
                     : null);
             HintService.Show(Hints.Success(Lang.Text("Tools.Test.Shortcut.Created", locationName)));

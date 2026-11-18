@@ -56,7 +56,7 @@ public abstract class LocalizedObservableObject : ObservableObject
             snapshot = [.. alive];
         }
 
-        var dispatcher = PlatformServices.UiDispatcher;
+        var dispatcher = ApplicationRuntime.GetService<IUiDispatcher>();
         var isUiThread = dispatcher is null || dispatcher.CheckAccess();
         foreach (var instance in snapshot)
             if (isUiThread)

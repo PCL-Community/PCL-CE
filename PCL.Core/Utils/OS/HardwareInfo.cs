@@ -23,14 +23,15 @@ public static class HardwareInfo
     public static long SystemMemorySize => _SystemMemorySize.Value;
 
     private static IHardwareInfo? CurrentProvider =>
-        PlatformRuntime.IsInitialized ? PlatformRuntime.Current.Hardware : null;
+        ApplicationRuntime.IsInitialized ? ApplicationRuntime.Current.Platform.Hardware : null;
 
     private static long _GetSystemMemorySize()
     {
-        if (PlatformRuntime.IsInitialized)
+        if (ApplicationRuntime.IsInitialized)
             try
             {
-                var totalBytes = PlatformRuntime.Current.SystemFacts.GetMemoryInfo().TotalBytes;
+                var totalBytes = ApplicationRuntime.Current.Platform.SystemFacts.GetMemoryInfo()
+                    .TotalBytes;
                 if (totalBytes > 0) return (long)(totalBytes / 1024 / 1024);
             }
             catch (Exception ex)

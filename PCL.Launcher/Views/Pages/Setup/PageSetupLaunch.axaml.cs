@@ -36,7 +36,7 @@ public partial class PageSetupLaunch : MyPageRight, ISetupResetPage
         PanScroll = PanBack;
         DataContext = ViewModel;
 
-        var java = PlatformRuntime.Current.Java;
+        var java = ApplicationRuntime.Current.Platform.Java;
         CheckAdvanceNoJavaw.IsEnabled = java.SupportsJavaw;
         if (!java.SupportsJavaw)
             CheckAdvanceNoJavaw.SetLocalizedValue(

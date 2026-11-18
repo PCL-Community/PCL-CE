@@ -246,7 +246,7 @@ public sealed partial class LocalizationService
         CultureInfo uiCulture,
         CultureInfo formatCulture)
     {
-        var backend = PlatformServices.Localization;
+        var backend = ApplicationRuntime.GetService<ILocalizationBackend>();
         if (backend is null)
         {
             _ApplyCultures(uiCulture, formatCulture);

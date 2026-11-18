@@ -66,7 +66,7 @@ public sealed class LocalizationTextSource : INotifyPropertyChanged
             snapshot = [.. _Cache.Values];
         }
 
-        var dispatcher = PlatformServices.UiDispatcher;
+        var dispatcher = ApplicationRuntime.GetService<IUiDispatcher>();
         var isUiThread = dispatcher is null || dispatcher.CheckAccess();
         foreach (var source in snapshot)
             if (isUiThread)

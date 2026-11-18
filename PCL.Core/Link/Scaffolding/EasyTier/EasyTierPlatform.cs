@@ -32,7 +32,9 @@ public static class EasyTierPlatform
 {
     /// <summary>当前宿主平台。仅本类允许根据操作系统选择平台。</summary>
     public static PlatformKind CurrentOs =>
-        PlatformRuntime.IsInitialized ? PlatformRuntime.Current.Kind : PlatformDetector.Detect();
+        ApplicationRuntime.IsInitialized
+            ? ApplicationRuntime.Current.Platform.Kind
+            : PlatformDetector.Detect();
 
     /// <summary>
     /// 当前宿主使用的 EasyTier 依赖包。 使用系统架构以保持与 WPF 旧下载逻辑一致：Windows ARM64 上即使启动器以 x64

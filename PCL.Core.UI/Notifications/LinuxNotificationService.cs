@@ -1,9 +1,12 @@
 using Avalonia;
 using PCL.Core.Logging;
+using PCL.Core.Platform;
 
 namespace PCL.Core.UI;
 
-public sealed class LinuxNotificationService : NotificationServiceBase
+public sealed class LinuxNotificationService(
+    IExternalCommandRunner commandRunner)
+    : NotificationServiceBase(commandRunner)
 {
     private const string AppName = "PCL Community Edition";
     private const int ExpireTimeMs = 5000;
@@ -31,19 +34,33 @@ public sealed class LinuxNotificationService : NotificationServiceBase
             return false;
         }
 
-        if (Run(
+        if (
+            Run(
                 "dbus-send",
                 [
-                    "--session", "--type=method_call", "--dest=org.freedesktop.Notifications",
-                    "/org/freedesktop/Notifications", "org.freedesktop.Notifications.Notify",
-                    $"string:{AppName}", "uint32:0", "string:", $"string:{title}",
-                    $"string:{message}", "array:string:", "dict:string:variant:",
+                    "--session",
+                    "--type=method_call",
+                    "--dest=org.freedesktop.Notifications",
+                    "/org/freedesktop/Notifications",
+                    "org.freedesktop.Notifications.Notify",
+                    $"string:{AppName}",
+                    "uint32:0",
+                    "string:",
+                    $"string:{title}",
+                    $"string:{message}",
+                    "array:string:",
+                    "dict:string:variant:",
                     $"int32:{ExpireTimeMs}"
                 ]))
             return true;
 
         return Run(
             "notify-send",
-            ["--app-name", AppName, "--expire-time", ExpireTimeMs.ToString(), title, message]);
+            [
+                "--app-name", AppName,
+                "--expire-time", ExpireTimeMs.ToString(),
+                title,
+                message
+            ]);
     }
 }

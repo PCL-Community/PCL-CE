@@ -9,6 +9,7 @@ using PCL.Core.Logging;
 using PCL.Core.Platform;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Codecs;
+using PCL.Core.Utils.OS;
 
 namespace PCL;
 
@@ -132,13 +133,13 @@ public static class LauncherCommon
 
     public static bool RunInUi()
     {
-        return PlatformServices.UiDispatcher?.CheckAccess() ?? false;
+        return ApplicationRuntime.GetService<IUiDispatcher>()?.CheckAccess() ?? false;
     }
 
     /// <summary>确保在 UI 线程中执行代码，不阻断当前线程。</summary>
     public static void RunInUi(Action action, bool forceWaitUntilLoaded = false)
     {
-        var dispatcher = PlatformServices.UiDispatcher;
+        var dispatcher = ApplicationRuntime.GetService<IUiDispatcher>();
         if (dispatcher is null) return;
         if (dispatcher.CheckAccess()) action();
         else dispatcher.Post(action);
@@ -147,7 +148,7 @@ public static class LauncherCommon
     /// <summary>确保在 UI 线程中执行代码并返回结果。</summary>
     public static T? RunInUiWait<T>(Func<T> func)
     {
-        var dispatcher = PlatformServices.UiDispatcher;
+        var dispatcher = ApplicationRuntime.GetService<IUiDispatcher>();
         if (dispatcher is null) return default;
         return dispatcher.CheckAccess() ? func() : dispatcher.Invoke(func);
     }
@@ -155,7 +156,7 @@ public static class LauncherCommon
     /// <summary>确保在 UI 线程中执行代码，必要时阻断当前线程直至执行完毕。</summary>
     public static void RunInUiWait(Action action)
     {
-        var dispatcher = PlatformServices.UiDispatcher;
+        var dispatcher = ApplicationRuntime.GetService<IUiDispatcher>();
         if (dispatcher is null) return;
         if (dispatcher.CheckAccess()) action();
         else dispatcher.Invoke(action);
@@ -201,7 +202,7 @@ public static class LauncherCommon
     /// <summary>获取打包资源流；资源不存在时返回 <c>null</c>。</summary>
     public static Stream? GetResourceStream(string path)
     {
-        return PlatformServices.ResourceStore?.GetResourceStream(path);
+        return ApplicationRuntime.GetService<IResourceStore>()?.GetResourceStream(path);
     }
 
     /// <summary>创建文件或目录符号链接。</summary>
@@ -388,7 +389,7 @@ public static class LauncherCommon
 
     public static void ShellOnly(string fileName, string arguments)
     {
-        PlatformRuntime.Current.Shell.OpenPath(fileName, arguments: arguments);
+        ApplicationRuntime.Current.Platform.Shell.OpenPath(fileName, arguments: arguments);
     }
 
     public static void IniClearCache()
@@ -410,6 +411,16 @@ public static class LauncherCommon
     {
         return ApplicationRuntime.GetService<IPlatformPathService>()?.ShortenPath(longPath)
             ?? longPath;
+    }
+
+    /// <summary>读取物理内存信息；优先使用平台服务，未初始化时回退底层实现。</summary>
+    public static SystemMemoryInfo GetMemoryInfo()
+    {
+        if (ApplicationRuntime.GetService<ISystemFacts>() is { } facts)
+            return facts.GetMemoryInfo();
+
+        var (total, available) = KernelInterop.GetPhysicalMemoryBytes();
+        return new SystemMemoryInfo(total, available);
     }
 
     public static string? GetStringFromEnum(Enum enumData)

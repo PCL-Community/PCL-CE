@@ -314,7 +314,7 @@ internal static class LoaderSpecialInstall
         string target,
         Version javaVersion)
     {
-        var useWrapper = PlatformRuntime.Current.Java.SupportsJavaw
+        var useWrapper = ApplicationRuntime.Current.Platform.Java.SupportsJavaw
             && LauncherCommon.IsUtf8CodePage()
             && !Config.Launch.DisableJlw;
         while (true)

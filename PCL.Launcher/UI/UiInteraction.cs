@@ -491,7 +491,7 @@ public sealed class LaunchUiBridge : ILaunchUi
 
     public void SetGpuPreference(string javaExePath, bool preference)
     {
-        var service = PlatformRuntime.Current.GpuPreference;
+        var service = ApplicationRuntime.Current.Platform.GpuPreference;
         if (!service.IsSupported)
         {
             LogWrapper.Debug("UI", "当前平台不提供 GPU 偏好服务");

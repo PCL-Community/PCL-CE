@@ -109,7 +109,7 @@ public sealed partial class StartupService
             .Append(GetArchitectureName(RuntimeInformation.OSArchitecture))
             .Append(')');
         const int memoryDiv = 1024 * 1024;
-        var memory = PlatformRuntime.Current.SystemFacts.GetMemoryInfo();
+        var memory = ApplicationRuntime.Current.Platform.SystemFacts.GetMemoryInfo();
         info
             .Append("\n可用内存: ")
             .Append(memory.AvailableBytes / memoryDiv)
@@ -127,7 +127,7 @@ public sealed partial class StartupService
             .Append(')');
         info
             .Append("\n管理员身份: ")
-            .Append(PlatformRuntime.Current.SystemFacts.IsAdministrator);
+            .Append(ApplicationRuntime.Current.Platform.SystemFacts.IsAdministrator);
         info.Append("\n识别码: ").Append(Identify.LauncherId);
         Context.Info(info.ToString());
         return;

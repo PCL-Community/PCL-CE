@@ -1,8 +1,11 @@
 using PCL.Core.Logging;
+using PCL.Core.Platform;
 
 namespace PCL.Core.UI;
 
-public sealed class WindowsNotificationService : NotificationServiceBase
+public sealed class WindowsNotificationService(
+    IExternalCommandRunner commandRunner)
+    : NotificationServiceBase(commandRunner)
 {
     protected override bool TrySend(string title, string message)
     {

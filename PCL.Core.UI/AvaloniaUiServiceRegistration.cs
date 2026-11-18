@@ -12,25 +12,30 @@ public static class AvaloniaUiServiceRegistration
     {
         services.AddSingleton<IUiDispatcher, AvaloniaUiDispatcher>();
         services.AddSingleton<IClipboardService, ClipboardService>();
-        services.AddSingleton<IFileDialogService>(_ => kind switch
+        services.AddSingleton<IFileDialogService>(provider => kind switch
         {
             PlatformKind.Windows or PlatformKind.MacOs => new FileDialogService(),
-            _ => new LinuxFileDialogService()
+            _ => new LinuxFileDialogService(
+                provider.GetRequiredService<IExternalCommandRunner>())
         });
         services.AddSingleton<IResourceStore, ResourceStore>();
         services.AddSingleton<ILocalizationBackend>(provider =>
             new LocalizationBackend(provider.GetRequiredService<IUiDispatcher>()));
         services.AddSingleton<IThemeBackend, ThemeBackend>();
-        services.AddSingleton<ISystemThemeProvider>(_ => kind switch
+        services.AddSingleton<ISystemThemeProvider>(provider => kind switch
         {
             PlatformKind.Windows or PlatformKind.MacOs => new SystemThemeProvider(),
-            _ => new LinuxSystemThemeProvider()
+            _ => new LinuxSystemThemeProvider(
+                provider.GetRequiredService<IExternalCommandRunner>())
         });
-        services.AddSingleton<ISystemNotificationService>(_ => kind switch
+        services.AddSingleton<ISystemNotificationService>(provider => kind switch
         {
-            PlatformKind.Windows => new WindowsNotificationService(),
-            PlatformKind.Linux => new LinuxNotificationService(),
-            _ => new MacOsNotificationService()
+            PlatformKind.Windows => new WindowsNotificationService(
+                provider.GetRequiredService<IExternalCommandRunner>()),
+            PlatformKind.Linux => new LinuxNotificationService(
+                provider.GetRequiredService<IExternalCommandRunner>()),
+            _ => new MacOsNotificationService(
+                provider.GetRequiredService<IExternalCommandRunner>())
         });
         return services;
     }

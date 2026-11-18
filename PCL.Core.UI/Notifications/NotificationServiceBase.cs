@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
@@ -8,8 +7,13 @@ using PCL.Core.Platform;
 namespace PCL.Core.UI;
 
 /// <summary>平台通知共享的后台发送与应用内 fallback。</summary>
-public abstract class NotificationServiceBase : ISystemNotificationService
+public abstract class NotificationServiceBase(
+    IExternalCommandRunner commandRunner)
+    : ISystemNotificationService
 {
+    private readonly IExternalCommandRunner _commandRunner =
+        commandRunner ?? throw new ArgumentNullException(nameof(commandRunner));
+
     public virtual bool IsAvailable => Application.Current is not null;
 
     public void Show(string title, string message)
@@ -24,24 +28,15 @@ public abstract class NotificationServiceBase : ISystemNotificationService
 
     protected abstract bool TrySend(string title, string message);
 
-    protected static bool Run(string fileName, IReadOnlyList<string> arguments)
+    protected bool Run(string fileName, IReadOnlyList<string> arguments)
     {
         try
         {
-            var info = new ProcessStartInfo
-            {
-                FileName = fileName,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-            foreach (var argument in arguments) info.ArgumentList.Add(argument);
-            using var process = Process.Start(info);
-            if (process is null) return false;
-            if (process.WaitForExit(3000)) return process.ExitCode == 0;
-            process.Kill(true);
-            return false;
+            return _commandRunner
+                .RunAsync(fileName, arguments, TimeSpan.FromSeconds(3))
+                .GetAwaiter()
+                .GetResult()
+                .Succeeded;
         }
         catch
         {

@@ -202,7 +202,7 @@ public partial class PageToolsTest : MyPageRight
                     }
 
                     count += _DeleteDirectory(LauncherPaths.Temp);
-                    count += PlatformRuntime.Current.ProcessCleanup
+                    count += ApplicationRuntime.Current.Platform.ProcessCleanup
                         .CleanupAdditionalData();
 
                     if (count != 0)

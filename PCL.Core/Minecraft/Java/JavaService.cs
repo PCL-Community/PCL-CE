@@ -21,7 +21,7 @@ public sealed partial class JavaService
         Context.Info("Initializing Java Manager...");
 
         _javaManager = new JavaManager(
-            PlatformRuntime.Current.Java.CreateParser(),
+            ApplicationRuntime.Current.Platform.Java.CreateParser(),
             _CreateScanners());
         _javaManager.ReadConfig();
 
@@ -34,7 +34,7 @@ public sealed partial class JavaService
 
     private static IJavaScanner[] _CreateScanners()
     {
-        return PlatformRuntime.Current.Java.CreateScanners();
+        return ApplicationRuntime.Current.Platform.Java.CreateScanners();
     }
 
     [LifecycleStop]

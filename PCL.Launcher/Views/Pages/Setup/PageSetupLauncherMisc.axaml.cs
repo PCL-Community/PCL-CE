@@ -49,7 +49,7 @@ public partial class PageSetupLauncherMisc : MyPageRight, ISetupResetPage
         SliderDebugAnim.Change += (_, _) =>
             WriteIfReady(() => Config.Debug.AnimationSpeed = SliderDebugAnim.Value);
 
-        var supportsProtocol = PlatformRuntime.Current.Capabilities
+        var supportsProtocol = ApplicationRuntime.Current.Platform.Capabilities
             .SupportsDisplayProtocolSelection;
         ComboDebugLinuxProtocol.IsEnabled = supportsProtocol;
         ComboDebugLinuxProtocol.SetLocalizedValue(
@@ -391,7 +391,7 @@ public partial class PageSetupLauncherMisc : MyPageRight, ISetupResetPage
             .Distinct()
             .ToArray();
 
-        PlatformRuntime.Current.ProcessCleanup.DeleteFoldersAndRestart(folders);
+        ApplicationRuntime.Current.Platform.ProcessCleanup.DeleteFoldersAndRestart(folders);
 
         UiInteraction.Shutdown();
         return;

@@ -56,14 +56,14 @@ public partial class PageDownloadCompDetail : MyPageRight
         {
             if (ViewModel.Project is not { } project) return;
             var title = project.GetControlTitle(true);
-            if (PlatformServices.Clipboard is { } clipboard)
+            if (ApplicationRuntime.GetService<IClipboardService>() is { } clipboard)
                 await clipboard.SetTextAsync(title.Key + title.Value);
             HintService.Show(Hints.Success(Lang.Text("Common.Status.Success"), false));
         };
         BtnCopyLink.Click += async (_, _) =>
         {
             if (ViewModel.Project is not { } project) return;
-            if (PlatformServices.Clipboard is { } clipboard)
+            if (ApplicationRuntime.GetService<IClipboardService>() is { } clipboard)
                 await clipboard.SetTextAsync(project.Website);
             HintService.Show(Hints.Success(Lang.Text("Common.Status.Success"), false));
         };

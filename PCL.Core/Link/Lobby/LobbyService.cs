@@ -20,9 +20,7 @@ using PCL.Core.Utils;
 
 namespace PCL.Core.Link.Lobby;
 
-/// <summary>
-///     Lobby server. For auto-management
-/// </summary>
+/// <summary>Lobby server. For auto-management</summary>
 [LifecycleService(LifecycleState.Loaded)]
 public class LobbyService() : GeneralService("lobby", "LobbyService")
 {
@@ -41,40 +39,26 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
     private static bool _isGameWatcherRunnable;
     private static int _isLeaving;
 
-    /// <summary>
-    ///     Current lobby state.
-    /// </summary>
+    /// <summary>Current lobby state.</summary>
     public static LobbyState CurrentState { get; private set; } = LobbyState.Idle;
 
 
-    /// <summary>
-    ///     Founded local Minecraft worlds.
-    /// </summary>
+    /// <summary>Founded local Minecraft worlds.</summary>
     public static ObservableCollection<FoundWorld> DiscoveredWorlds { get; } = [];
 
-    /// <summary>
-    ///     Current players in current lobby.
-    /// </summary>
+    /// <summary>Current players in current lobby.</summary>
     public static ObservableCollection<PlayerProfile> Players { get; } = [];
 
-    /// <summary>
-    ///     Demonstrate whether the current user is the host of the lobby.
-    /// </summary>
+    /// <summary>Demonstrate whether the current user is the host of the lobby.</summary>
     public static bool IsHost => _LobbyController.IsHost;
 
-    /// <summary>
-    ///     Current lobby full code.
-    /// </summary>
+    /// <summary>Current lobby full code.</summary>
     public static string? CurrentLobbyCode { get; private set; }
 
-    /// <summary>
-    ///     Current lobby username.
-    /// </summary>
+    /// <summary>Current lobby username.</summary>
     public static string? CurrentUserName { get; private set; }
 
-    /// <summary>
-    ///     当前加入者所连接主机的 EasyTier 信息；主机模式或尚未连接时为 <c>null</c>。
-    /// </summary>
+    /// <summary>当前加入者所连接主机的 EasyTier 信息；主机模式或尚未连接时为 <c>null</c>。</summary>
     public static EasyPlayerInfo? CurrentHostInfo => _LobbyController.ScfClientEntity?.HostInfo;
 
     /// <inheritdoc />
@@ -161,9 +145,7 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
         }
     }
 
-    /// <summary>
-    ///     Discover minecraft shared world.
-    /// </summary>
+    /// <summary>Discover minecraft shared world.</summary>
     public static async Task DiscoverWorldAsync()
     {
         if (_discoveringCts.IsCancellationRequested) return;
@@ -235,9 +217,7 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
             && string.IsNullOrWhiteSpace(NatayarkProfileManager.NaidProfile.AccessToken);
     }
 
-    /// <summary>
-    ///     Create a new lobby.
-    /// </summary>
+    /// <summary>Create a new lobby.</summary>
     /// <param name="port">Minecraft share port.</param>
     /// <param name="username">Player name.</param>
     public static async Task<bool> CreateLobbyAsync(int port, string username)
@@ -340,9 +320,7 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
         });
     }
 
-    /// <summary>
-    ///     Join an exist lobby.
-    /// </summary>
+    /// <summary>Join an exist lobby.</summary>
     /// <param name="lobbyCode">Lobby share code.</param>
     /// <param name="username">Current use name.</param>
     public static async Task<bool> JoinLobbyAsync(string lobbyCode, string username)
@@ -434,9 +412,7 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
     }
 
 
-    /// <summary>
-    ///     Leave from lobby.
-    /// </summary>
+    /// <summary>Leave from lobby.</summary>
     public static async Task LeaveLobbyAsync()
     {
         if (Interlocked.Exchange(ref _isLeaving, 1) == 1)
@@ -543,41 +519,32 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
 
     private static async Task _RunInUiAsync(Action action)
     {
-        if (PlatformServices.UiDispatcher is { } dispatcher)
+        if (ApplicationRuntime.GetService<IUiDispatcher>() is { } dispatcher)
             await dispatcher.InvokeAsync(action);
     }
 
     #region UI Events
 
     /// <summary>
-    ///     Invoked when lobby state changed. (first arg is the old state; second arg is the new state.)
+    /// Invoked when lobby state changed. (first arg is the old state; second arg is the
+    /// new state.)
     /// </summary>
     public static event Action<LobbyState, LobbyState>? StateChanged;
 
-    /// <summary>
-    ///     Invoked when need to download EasyTier core files.
-    /// </summary>
+    /// <summary>Invoked when need to download EasyTier core files.</summary>
     public static event Action? OnNeedDownloadEasyTier;
 
-    /// <summary>
-    ///     Invoked when user stop the game in server mode.
-    /// </summary>
+    /// <summary>Invoked when user stop the game in server mode.</summary>
     public static event Action? OnUserStopGame;
 
-    /// <summary>
-    ///     Invoked when client ping happened.
-    /// </summary>
+    /// <summary>Invoked when client ping happened.</summary>
     public static event Action<long>? OnClientPing;
 
-    /// <summary>
-    ///     Invoked when server shut down.
-    /// </summary>
+    /// <summary>Invoked when server shut down.</summary>
     public static event Action? OnServerShutDown;
 
 
-    /// <summary>
-    ///     Invoked when server started successfully.
-    /// </summary>
+    /// <summary>Invoked when server started successfully.</summary>
     public static event Action? OnServerStarted;
 
     public static event Action<Exception>? OnServerException;
@@ -585,9 +552,7 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
     #endregion
 }
 
-/// <summary>
-///     Founded minecraft world information.
-/// </summary>
+/// <summary>Founded minecraft world information.</summary>
 /// <param name="Name">World name.</param>
 /// <param name="Port">World share port.</param>
 public record FoundWorld(string Name, int Port);

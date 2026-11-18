@@ -175,7 +175,7 @@ public class HttpProxyManager : IWebProxy, IDisposable
 
     private void _EnsurePlatformProxySubscription()
     {
-        var provider = PlatformServices.SystemProxy;
+        var provider = ApplicationRuntime.GetService<ISystemProxyProvider>();
         if (ReferenceEquals(_subscribedProxyProvider, provider)) return;
 
         if (_subscribedProxyProvider is not null)
@@ -260,7 +260,10 @@ public class HttpProxyManager : IWebProxy, IDisposable
         {
             try
             {
-                var platformProxies = PlatformServices.SystemProxy?.GetSystemProxies() ?? [];
+                var platformProxies = ApplicationRuntime
+                        .GetService<ISystemProxyProvider>()
+                        ?.GetSystemProxies()
+                    ?? [];
                 ProxyItem? platformProxy = null;
                 foreach (var entry in platformProxies)
                 {

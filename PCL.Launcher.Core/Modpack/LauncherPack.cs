@@ -61,7 +61,7 @@ public static partial class Modpack
         ExtractModpackFiles(targetFolder, fileAddress, task, 0.9d);
         Thread.Sleep(400);
         // 整合包附带的启动器只可能是 Windows 可执行文件
-        var launcher = PlatformRuntime.Current.Capabilities.SupportsBundledLauncher
+        var launcher = ApplicationRuntime.Current.Platform.Capabilities.SupportsBundledLauncher
             ? _FindBundledLauncher(targetFolder)
             : null;
 

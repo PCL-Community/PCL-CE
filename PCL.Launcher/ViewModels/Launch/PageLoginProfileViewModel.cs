@@ -226,7 +226,7 @@ public partial class PageLoginProfileViewModel : ViewModelBase
     [RelayCommand]
     public static async Task CopyUuid(ProfileItem item)
     {
-        var clipboard = PlatformServices.Clipboard;
+        var clipboard = ApplicationRuntime.GetService<IClipboardService>();
         if (clipboard is null)
             return;
         await clipboard.SetTextAsync(item.Profile.Uuid);

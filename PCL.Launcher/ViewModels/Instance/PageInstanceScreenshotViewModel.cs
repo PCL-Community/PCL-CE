@@ -229,11 +229,11 @@ public partial class PageInstanceScreenshotViewModel : ViewModelBase
         try
         {
             // 与 WPF 一致：截图删除不再二次确认；优先送入回收站。
-            var canRecycle = PlatformRuntime.Current.RecycleBin.IsSupported(item.FilePath);
+            var canRecycle = ApplicationRuntime.Current.Platform.RecycleBin.IsSupported(item.FilePath);
             var movedToRecycle = false;
             if (canRecycle)
             {
-                var outcome = PlatformRuntime.Current.RecycleBin.Move(item.FilePath, out var error);
+                var outcome = ApplicationRuntime.Current.Platform.RecycleBin.Move(item.FilePath, out var error);
                 switch (outcome)
                 {
                     case RecycleBinOutcome.Failed:

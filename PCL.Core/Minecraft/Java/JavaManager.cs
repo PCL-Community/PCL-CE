@@ -179,7 +179,7 @@ public class JavaManager(
 
     private static bool _ShouldEnableByDefault(JavaInstallation inst)
     {
-        if (!PlatformRuntime.Current.Java.SupportsJavaw)
+        if (!ApplicationRuntime.Current.Platform.Java.SupportsJavaw)
             return !(inst.Is64Bit ^ Environment.Is64BitOperatingSystem || !inst.IsStillAvailable);
 
         var libDir = Path.Combine(Directory.GetParent(inst.JavaFolder)!.FullName, "lib");

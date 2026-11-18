@@ -112,7 +112,7 @@ public sealed partial class TelemetryService
 
     private static ulong _GetPhysicalMemoryBytes()
     {
-        return PlatformRuntime.Current.SystemFacts.GetMemoryInfo().TotalBytes;
+        return ApplicationRuntime.Current.Platform.SystemFacts.GetMemoryInfo().TotalBytes;
     }
 
     // 设备环境上报

@@ -497,10 +497,10 @@ public partial class PageInstanceSetupViewModel : ViewModelBase
 
         var instance = Instance;
         var ramGame = Math.Round(MemorySettings.GetRam(instance), 5);
-        var memory = KernelInterop.GetPhysicalMemoryBytes();
+        var memory = LauncherCommon.GetMemoryInfo();
         const double bytesPerGigabyte = 1024d * 1024d * 1024d;
-        var total = Math.Round(memory.Total / bytesPerGigabyte, 1);
-        var available = Math.Round(memory.Available / bytesPerGigabyte, 1);
+        var total = Math.Round(memory.TotalBytes / bytesPerGigabyte, 1);
+        var available = Math.Round(memory.AvailableBytes / bytesPerGigabyte, 1);
         var gameActual = Math.Round(Math.Min(ramGame, available), 5);
         var used = Math.Round(total - available, 5);
         var empty = Math.Round(Math.Clamp(total - used - ramGame, 0d, 1000d), 1);

@@ -6,8 +6,8 @@ namespace PCL.Core.Platform;
 public sealed class ApplicationServices
 {
     public required PlatformModule Platform { get; init; }
+
     public required UiModule Ui { get; init; }
 
-    /// <summary>由组合根构建的服务容器，供迁移期静态门面读取。</summary>
     public IServiceProvider? Services { get; set; }
 }

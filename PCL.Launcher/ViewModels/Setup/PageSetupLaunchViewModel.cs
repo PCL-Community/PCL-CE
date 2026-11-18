@@ -222,9 +222,9 @@ public partial class PageSetupLaunchViewModel : ViewModelBase
         {
             var instance = InstanceList.McMcInstanceSelected;
             var ramGame = Math.Round(MemorySettings.Current?.GetRam(instance!) ?? 0d, 5);
-            var phyRam = KernelInterop.GetPhysicalMemoryBytes();
-            var ramTotal = Math.Round(phyRam.Total / 1024d / 1024d / 1024d, 1);
-            var ramAvailable = Math.Round(phyRam.Available / 1024d / 1024d / 1024d, 1);
+            var phyRam = LauncherCommon.GetMemoryInfo();
+            var ramTotal = Math.Round(phyRam.TotalBytes / 1024d / 1024d / 1024d, 1);
+            var ramAvailable = Math.Round(phyRam.AvailableBytes / 1024d / 1024d / 1024d, 1);
             var ramGameActual = Math.Round(Math.Min(ramGame, ramAvailable), 5);
             var ramUsed = Math.Round(ramTotal - ramAvailable, 5);
             var ramEmpty = Math.Round(Math.Clamp(ramTotal - ramUsed - ramGame, 0d, 1000d), 1);

@@ -213,7 +213,7 @@ public partial class PageSelectRightViewModel : ViewModelBase
             var isHintIndie = instance.state != McInstanceState.Error
                 && (instance.PathIndie ?? "") != (GameFolders.mcFolderSelected ?? "");
             var canRecycle = !permanent
-                && PlatformRuntime.Current.RecycleBin.IsSupported(instance.PathInstance);
+                && ApplicationRuntime.Current.Platform.RecycleBin.IsSupported(instance.PathInstance);
             var confirmMsg = !permanent && !canRecycle
                 ? Lang.Text("Select.Instance.Delete.RecycleBinUnavailable", instance.Name)
                 : Lang.Text(
@@ -556,7 +556,7 @@ public partial class PageSelectRightViewModel : ViewModelBase
 
     private static bool TryRecycleInstance(McInstance instance)
     {
-        var outcome = PlatformRuntime.Current.RecycleBin.Move(instance.PathInstance, out var error);
+        var outcome = ApplicationRuntime.Current.Platform.RecycleBin.Move(instance.PathInstance, out var error);
         switch (outcome)
         {
             case RecycleBinOutcome.Moved:

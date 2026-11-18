@@ -1,22 +1,25 @@
-using System.Diagnostics;
 using System.Text.RegularExpressions;
 using PCL.Core.Logging;
+using PCL.Core.Platform;
 
 namespace PCL.Core.UI;
 
 /// <summary>Linux 主题：Avalonia 优先，KDE/GNOME 回退并监听设置变化。</summary>
 public sealed class LinuxSystemThemeProvider : SystemThemeProvider
 {
+    private readonly IExternalCommandRunner _commandRunner;
+
     private readonly Lock _lock = new();
     private bool _dark;
     private bool _disposed;
-    private Process? _gnomeThemeMonitor;
+    private IDisposable? _gnomeThemeMonitor;
     private bool _initialized;
     private FileSystemWatcher? _kdeThemeWatcher;
     private bool _refreshing;
 
-    public LinuxSystemThemeProvider()
+    public LinuxSystemThemeProvider(IExternalCommandRunner commandRunner)
     {
+        _commandRunner = commandRunner ?? throw new ArgumentNullException(nameof(commandRunner));
         StartWatchers();
         QueueRefresh();
     }
@@ -30,15 +33,13 @@ public sealed class LinuxSystemThemeProvider : SystemThemeProvider
         base.Dispose();
         try
         {
-            if (_gnomeThemeMonitor is { HasExited: false })
-                _gnomeThemeMonitor.Kill(true);
+            _gnomeThemeMonitor?.Dispose();
         }
         catch
         {
             // ignore
         }
 
-        _gnomeThemeMonitor?.Dispose();
         _gnomeThemeMonitor = null;
         _kdeThemeWatcher?.Dispose();
         _kdeThemeWatcher = null;
@@ -87,7 +88,7 @@ public sealed class LinuxSystemThemeProvider : SystemThemeProvider
         });
     }
 
-    private static bool DetectDark()
+    private bool DetectDark()
     {
         return ReadKdeTheme() ?? ReadGnomeTheme() ?? false;
     }
@@ -128,7 +129,7 @@ public sealed class LinuxSystemThemeProvider : SystemThemeProvider
         }
     }
 
-    private static bool? ReadGnomeTheme()
+    private bool? ReadGnomeTheme()
     {
         try
         {
@@ -150,25 +151,15 @@ public sealed class LinuxSystemThemeProvider : SystemThemeProvider
         }
     }
 
-    private static string? RunCommand(string fileName, IReadOnlyList<string> arguments)
+    private string? RunCommand(string fileName, IReadOnlyList<string> arguments)
     {
         try
         {
-            var info = new ProcessStartInfo
-            {
-                FileName = fileName,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            };
-            foreach (var argument in arguments) info.ArgumentList.Add(argument);
-            using var process = Process.Start(info);
-            if (process is null) return null;
-            if (process.WaitForExit(1500))
-                return process.ExitCode == 0 ? process.StandardOutput.ReadToEnd() : null;
-            process.Kill(true);
-            return null;
+            var result = _commandRunner
+                .RunAsync(fileName, arguments, TimeSpan.FromMilliseconds(1500))
+                .GetAwaiter()
+                .GetResult();
+            return result.Succeeded ? result.StandardOutput : null;
         }
         catch
         {
@@ -203,36 +194,10 @@ public sealed class LinuxSystemThemeProvider : SystemThemeProvider
 
         try
         {
-            var info = new ProcessStartInfo
-            {
-                FileName = "gsettings",
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            };
-            info.ArgumentList.Add("monitor");
-            info.ArgumentList.Add("org.gnome.desktop.interface");
-            var process = new Process
-            {
-                StartInfo = info,
-                EnableRaisingEvents = true
-            };
-            process.OutputDataReceived += (_, e) =>
-            {
-                if (e.Data is not null) Invalidate();
-            };
-            process.Exited += (_, _) =>
-            {
-                process.Dispose();
-                if (ReferenceEquals(_gnomeThemeMonitor, process)) _gnomeThemeMonitor = null;
-            };
-            if (process.Start())
-            {
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
-                _gnomeThemeMonitor = process;
-            }
+            _gnomeThemeMonitor = _commandRunner.Watch(
+                "gsettings",
+                ["monitor", "org.gnome.desktop.interface"],
+                _ => Invalidate());
         }
         catch (Exception ex)
         {

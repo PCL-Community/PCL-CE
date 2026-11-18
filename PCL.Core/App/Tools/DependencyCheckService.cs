@@ -21,7 +21,7 @@ public sealed partial class DependencyCheckService
     {
         Context.Info(Lang.Text("Tools.Test.Dependency.Checking"));
 
-        if (!PlatformRuntime.Current.Capabilities.SupportsWindowsStoreDependencies)
+        if (!ApplicationRuntime.Current.Platform.Capabilities.SupportsWindowsStoreDependencies)
         {
             Context.Debug("当前平台不支持应用商店依赖检查，已跳过");
             return;

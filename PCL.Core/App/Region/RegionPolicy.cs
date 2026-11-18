@@ -24,12 +24,13 @@ public sealed record RegionAssessment(RegionClassification Classification, strin
 
 public static class RegionPolicy
 {
-    private static readonly HashSet<string> _ChinaTimeZones = new(StringComparer.OrdinalIgnoreCase)
-    {
+    private static readonly HashSet<string> _ChinaTimeZones =
+    [
+        with(StringComparer.OrdinalIgnoreCase),
         "China Standard Time",
         "Asia/Shanghai",
         "PRC"
-    };
+    ];
 
     public static RegionAssessment Evaluate(RegionSignals signals)
     {
@@ -57,7 +58,7 @@ public static class RegionPolicy
 
     public static RegionSignals ReadWindowsSignals()
     {
-        return PlatformRuntime.Current.Region.ReadSignals();
+        return ApplicationRuntime.Current.Platform.Region.ReadSignals();
     }
 
     private static bool _IsChinaGeoName(string? name)

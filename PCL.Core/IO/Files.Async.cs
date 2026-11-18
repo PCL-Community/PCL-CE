@@ -30,7 +30,7 @@ public static partial class Files
 
         if (!Directory.Exists(dest)) Directory.CreateDirectory(dest);
 
-        var clipboard = PlatformServices.Clipboard;
+        var clipboard = ApplicationRuntime.GetService<IClipboardService>();
         if (clipboard is null) return 0;
         var paths = await clipboard.GetFileDropListAsync();
         if (paths is null || paths.Length == 0) return 0;
