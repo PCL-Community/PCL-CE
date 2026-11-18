@@ -67,7 +67,7 @@ public partial class AssetUsageTest
         return string.Empty;
     }
 
-    [GeneratedRegex("SvgIcon\\s*=\\s*\"lucide/([^\"]+)\"", RegexOptions.Compiled)]
+    [GeneratedRegex("\"lucide/([^\"]+)\"", RegexOptions.Compiled)]
     private static partial Regex SvgRegex();
 
     [GeneratedRegex("\"Blocks/([^\"]+)\"", RegexOptions.Compiled)]

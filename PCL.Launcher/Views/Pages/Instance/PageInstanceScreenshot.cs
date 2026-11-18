@@ -87,7 +87,7 @@ public partial class PageInstanceScreenshot : MyPageRight, IRefreshable
         {
             var placeholder = new MyVirtualizingElement<MyCard>(() => CreateScreenshotCard(item))
             {
-                Width = 150d,
+                Width = 214d,
                 Height = 170d,
                 RecycleOffscreen = true
             };
@@ -104,7 +104,7 @@ public partial class PageInstanceScreenshot : MyPageRight, IRefreshable
     {
         var card = new MyCard
         {
-            Width = 150d,
+            Width = 200d,
             Margin = new Thickness(7d),
             Tag = item.FilePath
         };
@@ -177,10 +177,6 @@ public partial class PageInstanceScreenshot : MyPageRight, IRefreshable
             }
 
             image.Source = bitmap;
-            var ratio = bitmap.PixelSize.Height <= 0
-                ? 1d
-                : (double)bitmap.PixelSize.Width / bitmap.PixelSize.Height;
-            card.Width = Math.Clamp(120d * ratio + 16d, 120d, 420d);
         }
         catch (Exception ex)
         {
@@ -199,15 +195,16 @@ public partial class PageInstanceScreenshot : MyPageRight, IRefreshable
         }
     }
 
-    private static MyIconTextButton CreateActionButton(string textKey, string icon)
+    private static MyIconButton CreateActionButton(string textKey, string icon)
     {
-        var button = new MyIconTextButton
+        var button = new MyIconButton
         {
             SvgIcon = icon,
-            LogoScale = 0.8d,
-            Margin = new Thickness(2d, 0d)
+            Width = 25d,
+            Height = 25d,
+            Margin = new Thickness(6d, 0d)
         };
-        button.SetLocalizedValue(MyIconTextButton.TextProperty, textKey);
+        button.SetLocalizedValue(ToolTip.TipProperty, textKey);
         return button;
     }
 
