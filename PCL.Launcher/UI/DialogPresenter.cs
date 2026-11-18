@@ -18,25 +18,17 @@ namespace PCL.UI;
 /// </summary>
 public sealed class DialogPresenter : IDialogPresenter
 {
-    /// <summary>遮罩层淡出的基准时长（毫秒），实际时长按动画速度折算。</summary>
     private const int FadeOutMilliseconds = 150;
-
-    /// <summary>遮罩层内承载弹窗视图的容器名称。</summary>
     private const string DialogHostName = "PanDialogHost";
-
+    private const string DialogScrollName = "SclDialogHost";
     private const string MaskAnimationKey = "Dialog Mask";
 
-    /// <summary>遮罩层内按显示顺序堆叠的弹窗，后加入的盖在之前的上面。</summary>
     private readonly List<OverlayDialog> _dialogs = [];
-
     private readonly List<DispatcherTimer> _exitTimers = [];
-
-    /// <summary>走独立窗口的弹窗，仅在主窗口或遮罩层不可用时使用。</summary>
     private readonly Dictionary<DialogViewModel, Window> _windows = [];
 
-    /// <summary>已关闭、等淡出结束后才从容器移除的弹窗。</summary>
     private OverlayDialog? _closing;
-
+    private ScrollViewer? _dialogScroll;
     private Panel? _host;
     private Panel? _layer;
     private Border? _mask;
@@ -167,6 +159,8 @@ public sealed class DialogPresenter : IDialogPresenter
         _layer = layer;
         _host = window.FindControl<Panel>(DialogHostName)
             ?? layer.FindControl<Panel>(DialogHostName);
+        _dialogScroll = window.FindControl<ScrollViewer>(DialogScrollName)
+            ?? layer.FindControl<ScrollViewer>(DialogScrollName);
         _mask = window.FindControl<Border>("BorDialogMask")
             ?? layer.FindControl<Border>("BorDialogMask");
         if (_mask is not null)
@@ -263,7 +257,6 @@ public sealed class DialogPresenter : IDialogPresenter
 
     #region 遮罩层
 
-    /// <summary>把新建的弹窗控件放到容器最上层，显示遮罩并淡入。</summary>
     private void _PresentInLayer(Panel layer, Panel host, DialogViewModel dialog)
     {
         if (_closing is not null) _FinishClosing();
@@ -277,6 +270,7 @@ public sealed class DialogPresenter : IDialogPresenter
         layer.Opacity = 1d;
         _releasing = false;
         host.Children.Add(view);
+        if (_dialogScroll is { } scroll) scroll.Offset = default;
 
         _AnimateMask(dialog.IsWarn, true);
     }
@@ -545,6 +539,7 @@ public sealed class DialogPresenter : IDialogPresenter
         _window = null;
         _layer = null;
         _host = null;
+        _dialogScroll = null;
         if (_mask is not null && _maskDragHandler is not null)
             _mask.PointerPressed -= _maskDragHandler;
         _mask = null;

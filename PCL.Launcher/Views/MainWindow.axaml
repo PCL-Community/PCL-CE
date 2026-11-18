@@ -76,10 +76,17 @@
                            Opacity="0">
                         <Border x:Name="BorDialogMask"
                                 Background="#00000000" />
-                        <Panel x:Name="PanDialogHost"
-                               MinWidth="400"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center" />
+                        <ScrollViewer x:Name="SclDialogHost"
+                                      MinWidth="400"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      HorizontalScrollBarVisibility="Disabled"
+                                      VerticalScrollBarVisibility="Auto"
+                                      BringIntoViewOnFocusChange="False">
+                            <Panel x:Name="PanDialogHost"
+                                   HorizontalAlignment="Stretch"
+                                   VerticalAlignment="Center" />
+                        </ScrollViewer>
                     </Panel>
                 </Grid>
             </Border>

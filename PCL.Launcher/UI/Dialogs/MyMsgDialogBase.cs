@@ -13,24 +13,15 @@ using PCL.UI.Controls;
 
 namespace PCL.UI.Dialogs;
 
-/// <summary>
-///     弹窗卡片：统一的标题、分隔线、正文滚动区、页脚与三按钮行。
-///     子类负责填入正文/页脚，并决定各按钮的确认语义。
-/// </summary>
+/// <summary>弹窗卡片：统一的标题、分隔线、正文滚动区、页脚与三按钮行。 子类负责填入正文/页脚，并决定各按钮的确认语义。</summary>
 public abstract class MyMsgDialogBase : UserControl
 {
     private const double EnterAngle = -4d;
-
     private const double EnterOffsetY = 40d;
-
     private const double ExitAngle = 6d;
-
     private const double ExitOffsetY = 20d;
-
     private const int EnterDuration = 300;
-
     private const int ExitDuration = 150;
-
     private const double BodyScrollBarOverlap = 3d;
 
     private readonly MyScrollViewer _bodyScroll;
@@ -121,7 +112,7 @@ public abstract class MyMsgDialogBase : UserControl
         {
             Margin = new Thickness(22d, 22d, 22d, 23d),
             VerticalAlignment = VerticalAlignment.Top,
-            RowDefinitions = new RowDefinitions("Auto,2,13,*,Auto,Auto,1*")
+            RowDefinitions = new RowDefinitions("Auto,2,13,*,Auto,Auto")
         };
         Grid.SetRow(LabTitle, 0);
         Grid.SetRow(shapeLine, 1);
