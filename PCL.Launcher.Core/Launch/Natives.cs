@@ -1,5 +1,6 @@
 ﻿using System.IO.Compression;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.Platform;
 using PCL.Core.Utils.OS;
 
@@ -75,7 +76,7 @@ public static partial class GameLaunch
                     }
                 }
 
-                LauncherCommon.WriteFile(filePath, entry.Open());
+                Files.WriteAllStream(filePath, entry.Open());
                 McLaunchLog($"已解压：{filePath}");
             }
         }

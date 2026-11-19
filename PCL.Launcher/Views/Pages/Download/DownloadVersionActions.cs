@@ -1,11 +1,11 @@
-using System.Text;
 using System.Text.Json.Nodes;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.Minecraft;
+using PCL.Core.Platform;
 using PCL.Core.UI;
 using PCL.Core.UI.Hints;
-using PCL.Core.Utils.Codecs;
 using PCL.Network;
 using PCL.Network.Loaders;
 
@@ -16,9 +16,7 @@ internal static class DownloadVersionActions
     private const string SaveIdentifierPrefix = "McDownloadSave:";
     private const string ServerIdentifierPrefix = "McDownloadServer:";
 
-    /// <summary>
-    ///     另存 Minecraft 版本。
-    /// </summary>
+    /// <summary>另存 Minecraft 版本。</summary>
     /// <param name="version">版本清单项。</param>
     /// <param name="title">列表中显示的标题；与原版 PCL 一致，用于实例文件夹名。</param>
     public static async Task SaveVersionAsync(JsonObject version, string title)
@@ -244,23 +242,26 @@ internal static class DownloadVersionActions
                 checker)
         };
 
-        var bat = $"""
-                   @echo off
-                   title {Lang.Text("Minecraft.Download.ServerBatch.Title", id)}
-                   echo {Lang.Text("Minecraft.Download.ServerBatch.InstructionJavaPath")}
-                   echo {Lang.Text("Minecraft.Download.ServerBatch.InstructionPclSettings")}
-                   echo ------------------------------
-                   echo {Lang.Text("Minecraft.Download.ServerBatch.InstructionEula")}
-                   echo ------------------------------
-                   "java" -server -XX:+UseG1GC -Xmx4096M -Xms1024M -XX:+UseCompressedOops -jar {id}-server.jar nogui
-                   echo ----------------------
-                   echo {Lang.Text("Minecraft.Download.ServerBatch.ServerStopped")}
-                   pause
-                   """;
-        LauncherCommon.WriteFile(
-            Path.Combine(versionFolder, "Launch Server.bat"),
-            bat.ReplaceLineEndings("\r\n"),
-            Encoding.Default.Equals(Encoding.UTF8) ? Encoding.UTF8 : Encodings.GB18030);
+        var scriptService = ApplicationRuntime.GetService<IServerLaunchScriptService>()
+            ?? throw new InvalidOperationException("服务端启动脚本服务尚未初始化");
+        var scriptPath = Path.Combine(
+            versionFolder,
+            "Launch Server" + scriptService.FileExtension);
+        Files.WriteAllText(
+            scriptPath,
+            scriptService.CreateScript(
+                new ServerLaunchScriptOptions(
+                    $"{id}-server.jar",
+                    Lang.Text("Minecraft.Download.ServerBatch.Title", id),
+                    [
+                        Lang.Text("Minecraft.Download.ServerBatch.InstructionJavaPath"),
+                        Lang.Text("Minecraft.Download.ServerBatch.InstructionPclSettings"),
+                        "------------------------------",
+                        Lang.Text("Minecraft.Download.ServerBatch.InstructionEula")
+                    ],
+                    Lang.Text("Minecraft.Download.ServerBatch.ServerStopped"))),
+            scriptService.ScriptEncoding);
+        scriptService.MakeExecutable(scriptPath);
         TryDeleteFile(jsonPath);
         return files;
     }

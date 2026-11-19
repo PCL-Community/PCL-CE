@@ -1,6 +1,7 @@
 ﻿using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.Platform;
 using PCL.Core.UI.Dialogs;
 using PCL.Network;
@@ -278,7 +279,7 @@ public class CustomEvent
         {
             EventUi.StartCustomDownload(
                 args[0],
-                args.Length >= 2 ? args[1] : LauncherCommon.GetFileNameFromPath(args[0]),
+                args.Length >= 2 ? args[1] : Files.GetFileNameFromPath(args[0]),
                 args.Length >= 3 ? args[2] : null);
         }
         catch

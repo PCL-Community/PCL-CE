@@ -1,6 +1,7 @@
 ﻿using System.IO.Compression;
 using System.Text.RegularExpressions;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.UI;
 using static PCL.Loading;
 
@@ -88,7 +89,7 @@ public static partial class Modpack
         ExtractModpackFiles(targetFolder, fileAddress, task, 0.95d);
         ModpackUi.AddFolder(
             Path.Combine(targetFolder, archiveBaseFolder),
-            LauncherCommon.GetFolderNameFromPath(targetFolder),
+            Files.GetFolderNameFromPath(targetFolder),
             false);
         Thread.Sleep(400);
         CompNavigation.ShowInstanceSelect();

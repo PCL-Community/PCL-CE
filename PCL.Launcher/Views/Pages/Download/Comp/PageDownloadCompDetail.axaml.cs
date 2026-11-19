@@ -6,6 +6,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.Logging;
 using PCL.Core.Minecraft.ResourceProject;
 using PCL.Core.Platform;
@@ -1290,7 +1291,7 @@ public partial class PageDownloadCompDetail : MyPageRight
                 },
                 new Loading.LoaderTask<int, int>(
                     Lang.Text("Download.Comp.Detail.InstallWorld"),
-                    _ => LauncherCommon.ExtractFile(tempPath, targetFolder, Encoding.UTF8))
+                    _ => Files.ExtractFile(tempPath, targetFolder, Encoding.UTF8))
                 {
                     ProgressWeight = 0.1d,
                     block = true

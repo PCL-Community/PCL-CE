@@ -2,13 +2,11 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
-using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
-using PCL.Core.UI.Hints;
 using PCL.Navigation;
 using PCL.UI.Controls;
 using PCL.Views.Pages.Download;
@@ -285,13 +283,13 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable, ICom
 
     private void SetSwipeSelected(int index, bool selected, bool animate)
     {
-        if (index < 0 || index >= ViewModel.VisibleEntries.Count)
-            return;
-
-        var entry = ViewModel.VisibleEntries[index];
-        ViewModel.SetSelected(entry, selected);
-        if (index < PanList.Children.Count && PanList.Children[index] is MyLocalModItem item)
-            item.SetChecked(selected, animate);
+        LocalCompPageSupport.SetSwipeSelected(
+            ViewModel.VisibleEntries,
+            index,
+            selected,
+            animate,
+            ViewModel.SetSelected,
+            PanList.Children);
     }
 
     private void RefreshSelectBar()
@@ -322,53 +320,31 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable, ICom
 
     private void ShowSortMenu()
     {
-        var menu = new ContextMenu();
-        var names = PageInstanceSavesDatapackViewModel.GetSortNames();
-        for (var i = 0; i < names.Count; i++)
-        {
-            var index = i;
-            var item = new MyMenuItem
-            {
-                Header = names[i]
-            };
-            item.Click += (_, _) =>
+        LocalCompPageSupport.ShowSortMenu(
+            BtnSort,
+            PageInstanceSavesDatapackViewModel.GetSortNames(),
+            index =>
             {
                 ViewModel.SetSortMethod(
                     (PageInstanceSavesDatapackViewModel.DatapackSortMethod)index);
                 BuildList();
-            };
-            menu.Items.Add(item);
-        }
-
-        menu.Open(BtnSort);
+            });
     }
 
     private void ShowFavoritesMenu()
     {
-        var projects = ViewModel.GetFavoriteProjects();
-        if (projects.Count > 0)
-            CompFavoritesMenu.Show(projects, PanSelect.FavoritesButton);
+        LocalCompPageSupport.ShowFavoritesMenu(
+            ViewModel.GetFavoriteProjects(),
+            PanSelect.FavoritesButton);
     }
 
     private void ShareSelected()
     {
-        try
-        {
-            var ids = ViewModel.GetShareIds();
-            if (ids.Count == 0)
-                return;
-            var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
-            if (clipboard is null)
-                return;
-            _ = clipboard.SetTextAsync(Comp.CompFavorites.GetShareCode(ids.ToHashSet()));
-            HintService.Show(Hints.Success(Lang.Text("Common.Hint.Copied")));
-            ViewModel.ClearSelection();
-            BuildList();
-        }
-        catch (Exception ex)
-        {
-            InstancePageHelper.ReportError("Instance.Resource.Error.OperationFailed", ex);
-        }
+        LocalCompPageSupport.ShareSelected(
+            this,
+            ViewModel.GetShareIds,
+            ViewModel.ClearSelection,
+            BuildList);
     }
 
     private void UpdateEmptyState()
@@ -428,7 +404,7 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable, ICom
         open.SetLocalizedValue(ToolTip.TipProperty, "Instance.Saves.OpenFolder");
         open.Click += (_, _) =>
         {
-            var path = PageInstanceSavesDatapackViewModel.GetEntryPath(entry);
+            var path = LocalCompFileOperations.GetEntryPath(entry);
             InstancePageHelper.OpenFolder(
                 entry.IsFolder ? path : Path.GetDirectoryName(path) ?? path);
         };
@@ -526,7 +502,7 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable, ICom
             lines.Add(
                 Lang.Text("Instance.Saves.Datapack.Info.File")
                 + entry.Name
-                + $"（{InstancePageHelper.FormatSize(PageInstanceSavesDatapackViewModel.GetSafeSize(entry))}）");
+                + $"（{InstancePageHelper.FormatSize(LocalCompFileOperations.GetSafeSize(entry))}）");
             if (!string.IsNullOrWhiteSpace(entry.Version))
                 lines.Add(Lang.Text("Instance.Saves.Datapack.Info.Version") + entry.Version);
             if (!string.IsNullOrWhiteSpace(entry.ModId))

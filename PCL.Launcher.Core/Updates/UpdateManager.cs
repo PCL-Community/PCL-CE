@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.Utils;
 using PCL.Core.Utils.OS;
 
@@ -120,7 +121,7 @@ public static class UpdateManager
                     SystemInfo.IsArm64System ? UpdateArch.Arm64 : UpdateArch.X64
                 );
 
-                LauncherCommon.WriteFile($"{LauncherPaths.Temp}CEUpdateLog.md", version.Changelog);
+                Files.WriteAllText($"{LauncherPaths.Temp}CEUpdateLog.md", version.Changelog);
                 LauncherCommon.Log(
                     $"[Update] 远程最新版本: {version.VersionName}, 当前版本: {LauncherCommon.VersionBaseName}");
                 if (!(SemVer.Parse(version.VersionName)
@@ -157,7 +158,7 @@ public static class UpdateManager
                         Lang.Text("Update.Task.Check"),
                         _ =>
                         {
-                            var curHash = LauncherCommon.GetFileSha256(dlTargetPath);
+                            var curHash = Files.GetFileSha256(dlTargetPath);
                             if ((curHash ?? "") != (version.Sha256 ?? ""))
                                 throw new Exception(
                                     Lang.Text(
@@ -298,16 +299,16 @@ public static class UpdateManager
         if (target is null)
             throw new Exception(Lang.Text("Update.Error.UnableToGetUpdate"));
         if (File.Exists(latestPclPath)
-            && (LauncherCommon.GetFileSha256(latestPclPath) ?? "") == (target.Sha256 ?? ""))
+            && (Files.GetFileSha256(latestPclPath) ?? "") == (target.Sha256 ?? ""))
         {
             LauncherCommon.Log("[System] 最新版 PCL 已存在，跳过下载");
             return;
         }
 
-        if ((LauncherCommon.GetFileSha256(Basics.ExecutablePath) ?? "")
+        if ((Files.GetFileSha256(Basics.ExecutablePath) ?? "")
             == (target.Sha256 ?? "")) // 正在使用的版本符合要求，直接拿来用
         {
-            LauncherCommon.CopyFile(Basics.ExecutablePath, latestPclPath);
+            Files.CopyFile(Basics.ExecutablePath, latestPclPath);
             return;
         }
 

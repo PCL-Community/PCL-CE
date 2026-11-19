@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.Utils;
 using PCL.Network;
 
@@ -7,9 +8,7 @@ namespace PCL;
 
 public static class GameAssets
 {
-    /// <summary>
-    ///     获取某实例资源文件索引的对应 Json 项，详见实例 Json 中的 assetIndex 项。失败会抛出异常。
-    /// </summary>
+    /// <summary>获取某实例资源文件索引的对应 Json 项，详见实例 Json 中的 assetIndex 项。失败会抛出异常。</summary>
     public static JsonNode McAssetsGetIndex(
         McInstance mcInstance,
         bool returnLegacyOnError = false,
@@ -63,9 +62,7 @@ public static class GameAssets
         throw new Exception(Lang.Text("Minecraft.Error.NoAssetIndexInfo"));
     }
 
-    /// <summary>
-    ///     获取某实例资源文件索引名，优先使用 assetIndex，其次使用 assets。失败会返回 legacy。
-    /// </summary>
+    /// <summary>获取某实例资源文件索引名，优先使用 assetIndex，其次使用 assets。失败会返回 legacy。</summary>
     public static string McAssetsGetIndexName(McInstance mcInstance)
     {
         try
@@ -109,9 +106,7 @@ public static class GameAssets
         return $"https://resources.download.minecraft.net/{McAssetsHashPrefix(hash)}/{hash}";
     }
 
-    /// <summary>
-    ///     获取 Minecraft 的资源文件列表。失败会抛出异常。
-    /// </summary>
+    /// <summary>获取 Minecraft 的资源文件列表。失败会抛出异常。</summary>
     internal static List<McAssetsToken> McAssetsListGet(McInstance mcInstance)
     {
         var indexName = McAssetsGetIndexName(mcInstance);
@@ -135,7 +130,7 @@ public static class GameAssets
                         $"{indexName}.json"));
             var result = new List<McAssetsToken>();
             var json = (JsonObject)LauncherCommon.GetJson(
-                LauncherCommon.ReadFile(
+                Files.ReadAllTextOrEmpty(
                     Path.Combine(
                         mcFolder,
                         "assets",
@@ -191,9 +186,7 @@ public static class GameAssets
         }
     }
 
-    /// <summary>
-    ///     获取实例缺失的资源文件所对应的 NetTaskFile。
-    /// </summary>
+    /// <summary>获取实例缺失的资源文件所对应的 NetTaskFile。</summary>
     public static List<DownloadFile> McAssetsFixList(
         McInstance mcInstance,
         bool checkHash,
@@ -251,24 +244,16 @@ public static class GameAssets
 
     public struct McAssetsToken
     {
-        /// <summary>
-        ///     文件的完整本地路径。
-        /// </summary>
+        /// <summary>文件的完整本地路径。</summary>
         public string localPath;
 
-        /// <summary>
-        ///     Json 中书写的源路径。例如 minecraft/sounds/mob/stray/death2.ogg 。
-        /// </summary>
+        /// <summary>Json 中书写的源路径。例如 minecraft/sounds/mob/stray/death2.ogg 。</summary>
         public string sourcePath;
 
-        /// <summary>
-        ///     文件大小。若无有效数据即为 0。
-        /// </summary>
+        /// <summary>文件大小。若无有效数据即为 0。</summary>
         public long size;
 
-        /// <summary>
-        ///     文件的 Hash 校验码。
-        /// </summary>
+        /// <summary>文件的 Hash 校验码。</summary>
         public string hash;
 
         public override string ToString()

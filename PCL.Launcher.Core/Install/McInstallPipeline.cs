@@ -1,4 +1,5 @@
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.UI.Hints;
 using PCL.Network;
 using PCL.Network.Loaders;
@@ -6,10 +7,9 @@ using PCL.Network.Loaders;
 namespace PCL;
 
 /// <summary>
-///     合并安装管线：下载原版客户端文件，按需追加加载器版本 Json 并合并为单个实例 Json，
-///     最后补全合并后实例缺失的支持库与资源文件。
-///     Forge / NeoForge / Cleanroom 使用官方安装器；Fabric / Legacy Fabric 使用 meta Json；
-///     OptiFine / LiteLoader / LabyMod 及 Fabric API / OptiFabric 等附属组件使用各自的官方链路。
+/// 合并安装管线：下载原版客户端文件，按需追加加载器版本 Json 并合并为单个实例 Json， 最后补全合并后实例缺失的支持库与资源文件。 Forge /
+/// NeoForge / Cleanroom 使用官方安装器；Fabric / Legacy Fabric 使用 meta Json； OptiFine / LiteLoader /
+/// LabyMod 及 Fabric API / OptiFabric 等附属组件使用各自的官方链路。
 /// </summary>
 public static class McInstallPipeline
 {
@@ -22,8 +22,8 @@ public static class McInstallPipeline
     }
 
     /// <summary>
-    ///     校验安装组合。返回本地化错误信息；返回 <see langword="null" /> 表示组合可安装。
-    ///     该方法不是“功能白名单”，只拒绝会互相破坏或物理上无法共存的组合。
+    /// 校验安装组合。返回本地化错误信息；返回 <see langword="null" /> 表示组合可安装。
+    /// 该方法不是“功能白名单”，只拒绝会互相破坏或物理上无法共存的组合。
     /// </summary>
     public static string? GetCombinationError(McInstallRequest request)
     {
@@ -94,8 +94,8 @@ public static class McInstallPipeline
     }
 
     /// <summary>
-    ///     构建合并安装的加载器列表。调用方负责创建外层 <see cref="Loading.LoaderCombo" />、绑定状态事件并启动。
-    ///     安装开始前会登记本次安装会话，失败或取消后由 <see cref="McInstallRecovery" /> 回滚。
+    /// 构建合并安装的加载器列表。调用方负责创建外层 <see cref="Loading.LoaderCombo" />、绑定状态事件并启动。
+    /// 安装开始前会登记本次安装会话，失败或取消后由 <see cref="McInstallRecovery" /> 回滚。
     /// </summary>
     /// <param name="request">安装请求。</param>
     /// <param name="ignoreDump">实例已存在时是否允许覆盖安装（覆盖前会备份实例核心文件）。</param>
@@ -144,7 +144,7 @@ public static class McInstallPipeline
         if (preserveCoreJar)
             try
             {
-                LauncherCommon.CopyFile(
+                Files.CopyFile(
                     McInstallRecovery.GetJarPath(instanceFolder, instanceName),
                     customCoreJarBackup);
                 LauncherCommon.Log("[Install] 已备份 MMC 修改后的原版核心 Jar");
@@ -229,7 +229,7 @@ public static class McInstallPipeline
                         foreach (var fixLoader in fixLoaders)
                             while (fixLoader.State is LoadState.Waiting or LoadState.Loading)
                                 Thread.Sleep(50);
-                        LauncherCommon.CopyFile(
+                        Files.CopyFile(
                             customCoreJarBackup,
                             McInstallRecovery.GetJarPath(instanceFolder, instanceName));
                     })
@@ -526,7 +526,7 @@ public static class McInstallPipeline
             _ =>
             {
                 Directory.CreateDirectory(instanceFolder);
-                LauncherCommon.WriteFile(
+                Files.WriteAllText(
                     Path.Combine(instanceFolder, IgnoreFlagFileName),
                     "用于临时地在 PCL 的实例列表中屏蔽此实例。");
             })

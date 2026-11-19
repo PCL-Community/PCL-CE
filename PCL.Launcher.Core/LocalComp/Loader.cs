@@ -1,3 +1,4 @@
+using PCL.Core.IO;
 using PCL.Core.Utils;
 using static PCL.Comp;
 using static PCL.Loading;
@@ -19,12 +20,15 @@ public static partial class LocalComp
 
     internal static string? GetPreferredLoader(McInstance? instance)
     {
-        if (instance?.Info is null) return null;
-        if (instance.Info.HasNeoForge) return "NeoForge";
-        if (instance.Info.HasForge || instance.Info.HasCleanroom) return "Forge";
-        if (instance.Info.HasFabric) return "Fabric";
-        if (instance.Info.HasQuilt) return "Quilt";
-        return null;
+        return instance?.Info switch
+        {
+            null => null,
+            { HasNeoForge: true } => "NeoForge",
+            { HasForge: true } or { HasCleanroom: true } => "Forge",
+            { HasFabric: true } => "Fabric",
+            { HasQuilt: true } => "Quilt",
+            _ => null
+        };
     }
 
     private static void _ResolveJijPendingBackground(
@@ -248,7 +252,7 @@ public static partial class LocalComp
                 ? new DirectoryInfo(data.compPath).EnumerateFiles(
                     "*",
                     SearchOption.TopDirectoryOnly)
-                : LauncherCommon.EnumerateFiles(data.compPath);
+                : Files.EnumerateFiles(data.compPath);
             foreach (var file in files)
                 try
                 {
@@ -283,7 +287,7 @@ public static partial class LocalComp
 
         try
         {
-            var cacheContent = LauncherCommon.ReadFile(cachePath);
+            var cacheContent = Files.ReadAllTextOrEmpty(cachePath);
             if (!string.IsNullOrWhiteSpace(cacheContent))
             {
                 cache = (JsonObject)LauncherCommon.GetJson(cacheContent);

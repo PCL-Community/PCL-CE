@@ -1,12 +1,13 @@
 using System.Text;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Network;
 
 namespace PCL;
 
 /// <summary>
-///     下载纯 Json 型加载器（Fabric / Legacy Fabric）的版本描述文件。
-///     这类加载器不需要运行外部安装器，版本 Json 与支持库列表即可完成安装。
+/// 下载纯 Json 型加载器（Fabric / Legacy Fabric）的版本描述文件。 这类加载器不需要运行外部安装器，版本 Json
+/// 与支持库列表即可完成安装。
 /// </summary>
 internal static class LoaderProfileInstall
 {
@@ -84,7 +85,7 @@ internal static class LoaderProfileInstall
 
                 Directory.CreateDirectory(versionFolder);
                 var jsonPath = Path.Combine(versionFolder, $"{loaderId}.json");
-                LauncherCommon.WriteFile(jsonPath, json, new UTF8Encoding(false));
+                Files.WriteAllText(jsonPath, json, new UTF8Encoding(false));
                 task.output = jsonPath;
                 LauncherCommon.Log($"[Install] 已获取 {loaderId} 版本 Json：{jsonPath}");
             })

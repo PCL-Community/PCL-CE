@@ -10,10 +10,7 @@ using PCL.Core.Logging;
 
 namespace PCL.UI.Controls;
 
-/// <summary>
-///     PCL 侧边栏文字按钮：图标可选，显示/隐藏以透明度与缩放过渡，
-///     按下/释放带弹性回弹，悬停与禁用切换底色。
-/// </summary>
+/// <summary>PCL 侧边栏文字按钮：图标可选，显示/隐藏以透明度与缩放过渡， 按下/释放带弹性回弹，悬停与禁用切换底色。</summary>
 public partial class MyExtraTextButton : Grid
 {
     public delegate void ClickEventHandler(object? sender, PointerReleasedEventArgs? e);
@@ -213,9 +210,7 @@ public partial class MyExtraTextButton : Grid
         PanColor.CornerRadius = radius;
     }
 
-    /// <summary>
-    ///     显示/隐藏过渡：显示时透明度与缩放一起回弹，隐藏时反向收起后折叠。
-    /// </summary>
+    /// <summary>显示/隐藏过渡：显示时透明度与缩放一起回弹，隐藏时反向收起后折叠。</summary>
     private void _ApplyShow(bool value)
     {
         if (!Dispatcher.UIThread.CheckAccess())
@@ -293,45 +288,19 @@ public partial class MyExtraTextButton : Grid
         double reboundScale,
         int reboundDuration = 60)
     {
-        if (!ButtonAnimation.CanAnimate(this))
-        {
-            ButtonAnimation.SetScale(PanScale, targetScale + reboundScale);
-            return;
-        }
-
-        AnimationService.Run(
-            new List<IAnimation>
-            {
-                new ScaleTransformAnimation(
-                    PanScale,
-                    targetScale - ButtonAnimation.CurrentScale(PanScale),
-                    800,
-                    ease: new FluentEaseOut(EasePower.Strong)),
-                new ScaleTransformAnimation(
-                    PanScale,
-                    reboundScale,
-                    reboundDuration,
-                    ease: new FluentEaseOut())
-            },
-            ScaleKey);
+        ExtraButtonInteraction.StartScale(
+            this,
+            PanScale,
+            ScaleKey,
+            targetScale,
+            reboundScale,
+            reboundDuration);
     }
 
     /// <summary>释放后回弹到原尺寸。</summary>
     private void _RefreshScaleAfterRelease()
     {
-        if (!ButtonAnimation.CanAnimate(this))
-        {
-            ButtonAnimation.SetScale(PanScale, 1d);
-            return;
-        }
-
-        AnimationService.Run(
-            new ScaleTransformAnimation(
-                PanScale,
-                1d - ButtonAnimation.CurrentScale(PanScale),
-                300,
-                ease: new BackEaseWithPowerOut()),
-            ScaleKey);
+        ExtraButtonInteraction.ReleaseScale(this, PanScale, ScaleKey);
     }
 
     /// <summary>按当前悬停/禁用状态刷新底色。</summary>
@@ -361,9 +330,11 @@ public partial class MyExtraTextButton : Grid
         if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
             return;
 
-        if (!_isLeftMouseHeld)
-            _StartScaleAnimation(0.85d, -0.05d);
-        _isLeftMouseHeld = true;
+        ExtraButtonInteraction.BeginLeftPress(
+            this,
+            PanScale,
+            ScaleKey,
+            ref _isLeftMouseHeld);
         Focus();
         RefreshColor();
     }
@@ -376,7 +347,7 @@ public partial class MyExtraTextButton : Grid
         _isLeftMouseHeld = false;
         PerformClick();
         e.Handled = true;
-        _RefreshScaleAfterRelease();
+        ExtraButtonInteraction.ReleaseScale(this, PanScale, ScaleKey);
     }
 
     /// <summary>执行点击语义；鼠标释放、键盘 Enter/Space 与自动化调用共用。</summary>
@@ -393,34 +364,15 @@ public partial class MyExtraTextButton : Grid
     private void _OnPointerExited(object? sender, PointerEventArgs e)
     {
         _isLeftMouseHeld = false;
-        if (ButtonAnimation.CanAnimate(this))
-            AnimationService.Run(
-                new ScaleTransformAnimation(
-                    PanScale,
-                    1d - ButtonAnimation.CurrentScale(PanScale),
-                    500,
-                    ease: new FluentEaseOut()),
-                ScaleKey);
-        else
-            ButtonAnimation.SetScale(PanScale, 1d);
-
-        RefreshColor();
+        ExtraButtonInteraction.OnPointerExited(this, PanScale, ScaleKey, () => RefreshColor());
     }
 
     private void ExecuteCommand()
     {
-        var command = Command;
-        if (_isCommandRunning || command is null || !command.CanExecute(CommandParameter))
-            return;
-        _isCommandRunning = true;
-        try
-        {
-            command.Execute(CommandParameter);
-        }
-        finally
-        {
-            _isCommandRunning = false;
-        }
+        ExtraButtonInteraction.ExecuteCommand(
+            Command,
+            CommandParameter,
+            ref _isCommandRunning);
     }
 
     protected override AutomationPeer OnCreateAutomationPeer()

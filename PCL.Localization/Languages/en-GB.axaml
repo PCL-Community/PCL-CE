@@ -1936,7 +1936,7 @@
 
     <sys:String x:Key="Minecraft.Download.Loader.NewForge">New Forge</sys:String>
     <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionEula">If prompted 'You need to agree to the EULA', edit eula.txt to agree!</sys:String>
-    <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionJavaPath">If the server stops immediately, right-click edit this script and replace %JAVA_HOME% with !JAVA_HOME!</sys:String>
+    <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionJavaPath">If the server stops immediately, edit the script and verify the Java path (you can use JAVA_HOME).</sys:String>
     <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionPclSettings">You can select this version as a suitable Java and enable it in PCL CE under [Settings → Launch options → Java path inside launcher]!</sys:String>
     <sys:String x:Key="Minecraft.Download.ServerBatch.ServerStopped">Server stopped.</sys:String>
     <sys:String x:Key="Minecraft.Download.ServerBatch.Title">{0} vanilla server</sys:String>

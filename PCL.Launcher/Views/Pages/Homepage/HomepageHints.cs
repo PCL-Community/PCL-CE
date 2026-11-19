@@ -4,10 +4,7 @@ using PCL.Core.Logging;
 
 namespace PCL.Views.Pages.Homepage;
 
-/// <summary>
-///     “你知道吗”提示文本的来源：优先外部 <c>PCL/hints.txt</c>，其次内嵌语言资源，
-///     两者都不可用时返回本地化占位文本。
-/// </summary>
+/// <summary>“你知道吗”提示文本的来源：优先外部 <c>PCL/hints.txt</c>，其次内嵌语言资源， 两者都不可用时返回本地化占位文本。</summary>
 public static class HomepageHints
 {
     public static string GetRandomHint(bool enableLengthLimit = false, bool raw = false)
@@ -59,7 +56,7 @@ public static class HomepageHints
         try
         {
             using var stream =
-                LauncherCommon.GetResourceStream($"Resources/hints/{languageCode}.txt");
+                Basics.GetResourceStream($"Resources/hints/{languageCode}.txt");
             if (stream is null)
                 return null;
             using var reader = new StreamReader(stream);

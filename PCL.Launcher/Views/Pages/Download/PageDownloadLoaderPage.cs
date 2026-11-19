@@ -5,6 +5,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Layout;
 using Avalonia.Media;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.UI;
 using PCL.Core.UI.Hints;
 using PCL.Navigation;
@@ -375,7 +376,7 @@ internal sealed class PageDownloadLoaderPage : MyPageRight, IPageView, IRefresha
                         : "Download.Version.Type.Preview"));
             item.Click += (_, _) => _ = SaveInstallerAsync(
                 [entry["url"]?.ToString() ?? ""],
-                LauncherCommon.GetFileNameFromPath(entry["url"]?.ToString() ?? title),
+                Files.GetFileNameFromPath(entry["url"]?.ToString() ?? title),
                 isLegacy
                     ? "Download.Version.Installer.LegacyFabric.Filter"
                     : "Download.Version.Installer.Fabric.Filter");

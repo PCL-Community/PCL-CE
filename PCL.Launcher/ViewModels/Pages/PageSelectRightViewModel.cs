@@ -5,6 +5,7 @@ using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Configuration.Storage;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.Platform;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
@@ -127,7 +128,7 @@ public partial class PageSelectRightViewModel : ViewModelBase
 
         if (force)
         {
-            LauncherCommon.WriteIni(Path.Combine(root, "PCL.ini"), "InstanceCache", "");
+            Ini.Write(Path.Combine(root, "PCL.ini"), "InstanceCache", "");
             InstanceList.mcInstanceListForceRefresh = true;
         }
 
@@ -213,7 +214,8 @@ public partial class PageSelectRightViewModel : ViewModelBase
             var isHintIndie = instance.state != McInstanceState.Error
                 && (instance.PathIndie ?? "") != (GameFolders.mcFolderSelected ?? "");
             var canRecycle = !permanent
-                && ApplicationRuntime.Current.Platform.RecycleBin.IsSupported(instance.PathInstance);
+                && ApplicationRuntime.Current.Platform.RecycleBin.IsSupported(
+                    instance.PathInstance);
             var confirmMsg = !permanent && !canRecycle
                 ? Lang.Text("Select.Instance.Delete.RecycleBinUnavailable", instance.Name)
                 : Lang.Text(
@@ -248,14 +250,13 @@ public partial class PageSelectRightViewModel : ViewModelBase
             }
 
             LaunchLogCache(instance);
-            LauncherCommon.IniClearCache(Path.Combine(instance.PathIndie ?? "", "options.txt"));
             LauncherCommon.RunInNewThread(
                 () =>
                 {
                     try
                     {
                         if (!permanent && TryRecycleInstance(instance)) return;
-                        LauncherCommon.DeleteDirectory(instance.PathInstance);
+                        Directories.DeleteDirectory(instance.PathInstance);
                         HintService.Show(
                             Hints.Success(
                                 Lang.Text(
@@ -326,7 +327,7 @@ public partial class PageSelectRightViewModel : ViewModelBase
             try
             {
                 var jsonPath = Path.Combine(oldPath, $"{oldName}.json");
-                jsonObject = JsonNode.Parse(LauncherCommon.ReadFile(jsonPath)) as JsonObject
+                jsonObject = JsonNode.Parse(Files.ReadAllTextOrEmpty(jsonPath)) as JsonObject
                     ?? (JsonObject)instance.JsonObject.DeepClone();
             }
             catch (Exception ex)
@@ -337,7 +338,6 @@ public partial class PageSelectRightViewModel : ViewModelBase
 
             Directory.Move(oldPath, tempPath);
             Directory.Move(tempPath, newPath);
-            LauncherCommon.IniClearCache(Path.Combine(instance.PathIndie, "options.txt"));
 
             var oldNatives = Path.Combine(newPath, $"{oldName}-natives");
             if (Directory.Exists(oldNatives))
@@ -377,18 +377,18 @@ public partial class PageSelectRightViewModel : ViewModelBase
 
             var setupIni = Path.Combine(newPath, "PCL", "Setup.ini");
             if (File.Exists(setupIni))
-                LauncherCommon.WriteFile(
+                Files.WriteAllText(
                     setupIni,
-                    LauncherCommon.ReadFile(setupIni).Replace(oldPath, newPath));
+                    Files.ReadAllTextOrEmpty(setupIni).Replace(oldPath, newPath));
 
             var instanceIni = Path.Combine(GameFolders.mcFolderSelected ?? string.Empty, "PCL.ini");
-            if ((LauncherCommon.ReadIni(instanceIni, "Version") ?? string.Empty) == oldName)
-                LauncherCommon.WriteIni(instanceIni, "Version", newName);
+            if ((Ini.Read(instanceIni, "Version") ?? string.Empty) == oldName)
+                Ini.Write(instanceIni, "Version", newName);
 
             try
             {
                 jsonObject["id"] = newName;
-                LauncherCommon.WriteFile(
+                Files.WriteAllText(
                     Path.Combine(newPath, $"{newName}.json"),
                     jsonObject.ToString());
                 if (!isCaseChangedOnly)
@@ -556,7 +556,9 @@ public partial class PageSelectRightViewModel : ViewModelBase
 
     private static bool TryRecycleInstance(McInstance instance)
     {
-        var outcome = ApplicationRuntime.Current.Platform.RecycleBin.Move(instance.PathInstance, out var error);
+        var outcome = ApplicationRuntime.Current.Platform.RecycleBin.Move(
+            instance.PathInstance,
+            out var error);
         switch (outcome)
         {
             case RecycleBinOutcome.Moved:

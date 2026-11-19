@@ -1,5 +1,6 @@
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
 using PCL.Views.Pages.Download;
@@ -69,8 +70,8 @@ internal static class McInstallFlow
                 return;
             var iniPath = Path.Combine(mcFolder, "PCL.ini");
             if (!string.IsNullOrEmpty(instanceName) && Config.Download.AutoSelectInstance)
-                LauncherCommon.WriteIni(iniPath, "Version", instanceName);
-            LauncherCommon.WriteIni(iniPath, "InstanceCache", "");
+                Ini.Write(iniPath, "Version", instanceName);
+            Ini.Write(iniPath, "InstanceCache", "");
             var root = mcFolder.EndsWith(Path.DirectorySeparatorChar)
                 ? mcFolder
                 : mcFolder + Path.DirectorySeparatorChar;

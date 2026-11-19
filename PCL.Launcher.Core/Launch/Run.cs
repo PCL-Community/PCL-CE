@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.Platform;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Secret;
@@ -111,9 +112,9 @@ public static partial class GameLaunch
         var replaceJson = _CreateLauncherProfilesJson();
         var profiles = (JsonObject)
             LauncherCommon.GetJson(
-                LauncherCommon.ReadFile($"{GameFolders.mcFolderSelected}launcher_profiles.json"));
+                Files.ReadAllTextOrEmpty($"{GameFolders.mcFolderSelected}launcher_profiles.json"));
         profiles.Merge(replaceJson);
-        LauncherCommon.WriteFile(
+        Files.WriteAllText(
             $"{GameFolders.mcFolderSelected}launcher_profiles.json",
             profiles.ToString(),
             Encoding.GetEncoding("GB18030"));
@@ -181,7 +182,7 @@ public static partial class GameLaunch
             return setupFileAddress;
 
         McLaunchLog("将修改 Yosbr Mod 中的 options.txt");
-        LauncherCommon.WriteIni(yosbrFileAddress, "lang", "none");
+        Ini.Write(yosbrFileAddress, "lang", "none");
         return yosbrFileAddress;
     }
 
@@ -189,7 +190,7 @@ public static partial class GameLaunch
     {
         // 1.1 ~ 5 ：zh_CN 时正常，zh_cn 时崩溃（最后两位字母必须大写，否则将会 NPE 崩溃）
         // 1.11 ~ 12：zh_cn 时正常，zh_CN 时虽然显示了中文但语言设置会错误地显示选择英文
-        var currentLang = LauncherCommon.ReadIni(setupFileAddress, "lang", "none");
+        var currentLang = Ini.Read(setupFileAddress, "lang", "none");
         var isLanguageUnconfigured = string.Equals(
             currentLang,
             "none",
@@ -208,14 +209,14 @@ public static partial class GameLaunch
         }
         else
         {
-            LauncherCommon.WriteIni(setupFileAddress, "lang", "-");
-            LauncherCommon.WriteIni(setupFileAddress, "lang", requiredLang);
+            Ini.Write(setupFileAddress, "lang", "-");
+            Ini.Write(setupFileAddress, "lang", requiredLang);
             McLaunchLog($"已将语言从 {currentLang} 修改为 {requiredLang}");
         }
 
         if (!shouldUseDefault || !_ShouldEnableForceUnicodeFont())
             return;
-        LauncherCommon.WriteIni(setupFileAddress, "forceUnicodeFont", "true");
+        Ini.Write(setupFileAddress, "forceUnicodeFont", "true");
         McLaunchLog("已开启 forceUnicodeFont，确保当前启动器语言字体正常显示");
     }
 
@@ -224,7 +225,7 @@ public static partial class GameLaunch
         switch (Config.Launch.GameWindowMode)
         {
             case GameWindowSizeMode.Fullscreen:
-                LauncherCommon.WriteIni(setupFileAddress, "fullscreen", "true");
+                Ini.Write(setupFileAddress, "fullscreen", "true");
                 break;
 
             case GameWindowSizeMode.Default:
@@ -234,7 +235,7 @@ public static partial class GameLaunch
             case GameWindowSizeMode.Custom:
             case GameWindowSizeMode.Maximized:
             default:
-                LauncherCommon.WriteIni(setupFileAddress, "fullscreen", "false");
+                Ini.Write(setupFileAddress, "fullscreen", "false");
                 break;
         }
     }
@@ -342,7 +343,7 @@ public static partial class GameLaunch
                 ?? throw new InvalidOperationException("启动脚本服务尚未初始化");
             var scriptPath = currentLaunchOptions!.SaveBatch
                 ?? Path.Combine(Paths.Data, "LatestLaunch" + scriptService.FileExtension);
-            LauncherCommon.WriteFile(
+            Files.WriteAllText(
                 scriptPath,
                 LogFilter.FilterAccessToken(
                     _CreateLaunchScript(customCommandGlobal, customCommandVersion),

@@ -1,5 +1,6 @@
 using System.Globalization;
 using PCL.Core.App;
+using PCL.Core.IO;
 using PCL.Core.Platform;
 
 namespace PCL;
@@ -115,10 +116,10 @@ public static partial class GameLaunch
 
         try
         {
-            LauncherCommon.WriteFile(
+            Files.WriteAllText(
                 Path.Combine(version.PathInstance, $"{version.Name}.json"),
-                LauncherCommon
-                    .ReadFile(Path.Combine(version.PathInstance, $"{version.Name}.json"))
+                Files
+                    .ReadAllTextOrEmpty(Path.Combine(version.PathInstance, $"{version.Name}.json"))
                     .Replace("optifine.OptiFineTweaker", "optifine.OptiFineForgeTweaker"));
         }
         catch (Exception ex)
@@ -265,9 +266,9 @@ public static partial class GameLaunch
             var legacyFixPath = Path.Combine(LauncherPaths.PureAsciiDirectory, "legacyfix.jar");
             try
             {
-                LauncherCommon.WriteFile(
+                Files.WriteAllStream(
                     legacyFixPath,
-                    LauncherCommon.GetResourceStream("Resources/legacyfix.jar")!);
+                    Basics.GetResourceStream("Resources/legacyfix.jar")!);
             }
             catch (Exception ex)
             {
@@ -282,9 +283,9 @@ public static partial class GameLaunch
                 "lwjgl-unsafe-agent.jar");
             try
             {
-                LauncherCommon.WriteFile(
+                Files.WriteAllStream(
                     agentPath,
-                    LauncherCommon.GetResourceStream("Resources/lwjgl-unsafe-agent.jar")!);
+                    Basics.GetResourceStream("Resources/lwjgl-unsafe-agent.jar")!);
                 cpStrings.Add(agentPath);
             }
             catch (Exception ex)

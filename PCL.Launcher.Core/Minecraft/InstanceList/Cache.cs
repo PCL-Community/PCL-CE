@@ -1,4 +1,5 @@
 using PCL.Core.App;
+using PCL.Core.IO;
 
 namespace PCL;
 
@@ -11,7 +12,7 @@ public static partial class InstanceList
         try
         {
             var cardCount = int.Parse(
-                LauncherCommon.ReadIni(
+                Ini.Read(
                     $"{path}PCL.ini",
                     "CardCount",
                     (-1).ToString()));
@@ -22,14 +23,14 @@ public static partial class InstanceList
             {
                 var cardType =
                     (McInstanceCardType)int.Parse(
-                        LauncherCommon.ReadIni(
+                        Ini.Read(
                             $"{path}PCL.ini",
                             $"CardKey{i + 1}",
                             "0"));
                 var instanceList = new List<McInstance>();
 
-                foreach (var folder in LauncherCommon
-                             .ReadIni(
+                foreach (var folder in Ini
+                             .Read(
                                  $"{path}PCL.ini",
                                  $"CardValue{i + 1}",
                                  ":")

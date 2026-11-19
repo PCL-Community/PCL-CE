@@ -5,6 +5,7 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.Logging;
 using PCL.Core.Platform;
 using PCL.Core.UI;
@@ -418,7 +419,7 @@ public partial class PageToolsTest : MyPageRight
         try
         {
             fileName = string.IsNullOrWhiteSpace(fileName)
-                ? LauncherCommon.GetFileNameFromPath(WebUtility.UrlDecode(url) ?? url)
+                ? Files.GetFileNameFromPath(WebUtility.UrlDecode(url) ?? url)
                 : fileName;
             if (string.IsNullOrWhiteSpace(folder))
             {
@@ -433,7 +434,7 @@ public partial class PageToolsTest : MyPageRight
 
             folder = Path.GetFullPath(folder);
             Directory.CreateDirectory(folder);
-            LauncherCommon.CheckPermissionWithException(folder);
+            Directories.EnsureWritable(folder);
 
             LauncherCommon.Log($"[Download] 自定义下载文件名：{fileName}");
             LauncherCommon.Log($"[Download] 自定义下载文件目标：{folder}");

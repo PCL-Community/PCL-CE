@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using PCL.Core.IO;
 using PCL.Core.Platform;
 
 namespace PCL;
@@ -409,8 +410,8 @@ public static partial class Libraries
 
     private static string _GetMcLibVersion(McLibToken token)
     {
-        return LauncherCommon.GetFolderNameFromPath(
-            LauncherCommon.GetPathFromFullPath(token.LocalPath));
+        return Files.GetFolderNameFromPath(
+            Files.GetPathFromFullPath(token.LocalPath));
     }
 
     public class McLibToken

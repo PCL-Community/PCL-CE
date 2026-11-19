@@ -5,6 +5,7 @@ using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Configuration.Storage;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.Minecraft;
 using PCL.Core.Minecraft.Profile;
 using PCL.Core.Minecraft.Profile.Models;
@@ -365,7 +366,7 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
             try
             {
                 var jsonPath = Path.Combine(oldPath, $"{oldName}.json");
-                jsonObject = JsonNode.Parse(LauncherCommon.ReadFile(jsonPath)) as JsonObject
+                jsonObject = JsonNode.Parse(Files.ReadAllTextOrEmpty(jsonPath)) as JsonObject
                     ?? (JsonObject)instance.JsonObject.DeepClone();
             }
             catch (Exception ex)
@@ -387,7 +388,6 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
 
             Directory.Move(oldPath, tempPath);
             Directory.Move(tempPath, newPath);
-            LauncherCommon.IniClearCache(Path.Combine(instance.PathIndie, "options.txt"));
 
             var oldNatives = Path.Combine(newPath, $"{oldName}-natives");
             if (Directory.Exists(oldNatives))
@@ -427,18 +427,18 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
 
             var setupIni = Path.Combine(newPath, "PCL", "Setup.ini");
             if (File.Exists(setupIni))
-                LauncherCommon.WriteFile(
+                Files.WriteAllText(
                     setupIni,
-                    LauncherCommon.ReadFile(setupIni).Replace(oldPath, newPath));
+                    (await Files.ReadAllTextOrEmptyAsync(setupIni)).Replace(oldPath, newPath));
 
             var instanceIni = Path.Combine(GameFolders.mcFolderSelected ?? string.Empty, "PCL.ini");
-            if ((LauncherCommon.ReadIni(instanceIni, "Version") ?? string.Empty) == oldName)
-                LauncherCommon.WriteIni(instanceIni, "Version", newName);
+            if ((Ini.Read(instanceIni, "Version") ?? string.Empty) == oldName)
+                Ini.Write(instanceIni, "Version", newName);
 
             try
             {
                 jsonObject["id"] = newName;
-                LauncherCommon.WriteFile(
+                Files.WriteAllText(
                     Path.Combine(newPath, $"{newName}.json"),
                     jsonObject.ToString());
                 if (!isCaseChangedOnly)
@@ -842,7 +842,8 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
                     instance.PathIndie,
                     GameFolders.mcFolderSelected,
                     StringComparison.OrdinalIgnoreCase);
-            var recycleSupported = ApplicationRuntime.Current.Platform.RecycleBin.IsSupported(instancePath);
+            var recycleSupported =
+                ApplicationRuntime.Current.Platform.RecycleBin.IsSupported(instancePath);
             var effectivePermanent = permanent || !recycleSupported;
 
             var confirmMessageKey = (isIsolatedInstance, effectivePermanent) switch
@@ -864,7 +865,6 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
             if (!dialog.IsConfirmed)
                 return;
 
-            LauncherCommon.IniClearCache(Path.Combine(instance.PathIndie, "options.txt"));
             try
             {
                 if (ConfigService.GetProvider(ConfigSource.GameInstance) is
@@ -878,14 +878,17 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
 
             if (effectivePermanent)
             {
-                LauncherCommon.DeleteDirectory(instancePath);
+                Directories.DeleteDirectory(instancePath);
                 HintService.Show(
                     Hints.Success(
                         Lang.Text("Instance.Overall.Delete.PermanentSuccess", instanceName)));
             }
             else
             {
-                var outcome = ApplicationRuntime.Current.Platform.RecycleBin.Move(instancePath, out var error);
+                var outcome =
+                    ApplicationRuntime.Current.Platform.RecycleBin.Move(
+                        instancePath,
+                        out var error);
                 switch (outcome)
                 {
                     case RecycleBinOutcome.Moved:
@@ -897,7 +900,7 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
                         break;
 
                     case RecycleBinOutcome.Unsupported:
-                        LauncherCommon.DeleteDirectory(instancePath);
+                        Directories.DeleteDirectory(instancePath);
                         HintService.Show(
                             Hints.Success(
                                 Lang.Text(
@@ -1040,7 +1043,7 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
         if (string.IsNullOrEmpty(folder))
             return;
         InstanceList.mcInstanceListForceRefresh = true;
-        LauncherCommon.WriteIni(Path.Combine(folder, "PCL.ini"), "InstanceCache", string.Empty);
+        Ini.Write(Path.Combine(folder, "PCL.ini"), "InstanceCache", string.Empty);
         Loading.LoaderFolderRun(
             InstanceList.mcInstanceListLoader,
             folder,

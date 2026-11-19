@@ -11,6 +11,7 @@ using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.IO;
 using PCL.Core.Logging;
+using PCL.Core.Platform;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
@@ -97,7 +98,7 @@ public partial class PageToolsTestViewModel : ViewModelBase
             return;
         try
         {
-            var fileName = LauncherCommon.GetFileNameFromPath(WebUtility.UrlDecode(value) ?? value);
+            var fileName = Files.GetFileNameFromPath(WebUtility.UrlDecode(value) ?? value);
             if (!string.IsNullOrWhiteSpace(fileName))
                 DownloadName = fileName;
         }
@@ -209,7 +210,7 @@ public partial class PageToolsTestViewModel : ViewModelBase
                 return;
             }
 
-            var shortcuts = PCL.Core.Platform.ApplicationRuntime.Current.Platform.Shortcuts;
+            var shortcuts = ApplicationRuntime.Current.Platform.Shortcuts;
             var extension = shortcuts.GetPreferredExtension(target);
             var shortcutName = Lang.Text("Tools.Test.Shortcut.FileName", extension);
             var desktopPath = shortcuts.GetDesktopPath(shortcutName);
@@ -242,7 +243,7 @@ public partial class PageToolsTestViewModel : ViewModelBase
                 target,
                 workingDirectory: AppContext.BaseDirectory,
                 description: "PCL CE",
-                icon: PCL.Core.Platform.ApplicationRuntime.Current.Platform.Capabilities.SupportsShortcutIcon
+                icon: ApplicationRuntime.Current.Platform.Capabilities.SupportsShortcutIcon
                     ? EnsureShortcutIcon()
                     : null);
             HintService.Show(Hints.Success(Lang.Text("Tools.Test.Shortcut.Created", locationName)));

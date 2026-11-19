@@ -2,6 +2,7 @@
 using System.Text;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using static PCL.Loading;
 
 namespace PCL;
@@ -117,7 +118,7 @@ public static partial class Modpack
                 ?? archive.GetEntry($"{archiveBaseFolder}manifest.json");
             using var stream = entry!.Open();
             return (JsonObject)LauncherCommon.GetJson(
-                LauncherCommon.ReadFile(stream, Encoding.UTF8));
+                Files.ReadAllTextOrEmpty(stream, Encoding.UTF8));
         }
         catch (Exception ex)
         {

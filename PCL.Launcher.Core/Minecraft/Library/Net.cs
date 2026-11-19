@@ -1,4 +1,5 @@
 ﻿using PCL.Core.App;
+using PCL.Core.IO;
 using PCL.Core.Utils.OS;
 using PCL.Network;
 
@@ -6,9 +7,7 @@ namespace PCL;
 
 public static partial class Libraries
 {
-    /// <summary>
-    ///     获取实例所需支持库文件的 NetFile。
-    /// </summary>
+    /// <summary>获取实例所需支持库文件的 NetFile。</summary>
     public static List<DownloadFile> McLibNetFilesFromInstance(McInstance mcInstance)
     {
         if (!mcInstance.IsLoaded)
@@ -179,7 +178,7 @@ public static partial class Libraries
         var labymodFolder = Path.Combine(mcInstance.PathInstance ?? "", "labymod-neo");
         if (Directory.Exists(labymodFolder))
             Directory.Delete(labymodFolder, true);
-        LauncherCommon.CreateSymbolicLink(
+        Files.CreateSymbolicLink(
             labymodFolder,
             Path.Combine(GameFolders.mcFolderSelected ?? "", "labymod-neo"));
     }
@@ -223,9 +222,7 @@ public static partial class Libraries
         ];
     }
 
-    /// <summary>
-    ///     将 McLibToken 列表转换为 NetFile。
-    /// </summary>
+    /// <summary>将 McLibToken 列表转换为 NetFile。</summary>
     public static List<DownloadFile> McLibNetFilesFromTokens(
         List<McLibToken> libs,
         string? customMcFolder = null)
@@ -280,9 +277,9 @@ public static partial class Libraries
 
     private static void _ReleaseTransformerDiscoveryService(McLibToken token)
     {
-        var transformerStream = LauncherCommon.GetResourceStream("Resources/transformer.jar");
+        var transformerStream = Basics.GetResourceStream("Resources/transformer.jar");
         if (!File.Exists(token.LocalPath) && transformerStream is not null)
-            LauncherCommon.WriteFile(token.LocalPath, transformerStream);
+            Files.WriteAllStream(token.LocalPath, transformerStream);
         LauncherCommon.Log(
             "[Download] 已自动释放 Transformer Discovery Service",
             LauncherLogLevel.Developer);
@@ -299,7 +296,7 @@ public static partial class Libraries
         var optiFineBase =
             token.LocalPath.Replace(optiFineFolder, "").Split("_")[0]
             + "/"
-            + LauncherCommon.GetFileNameFromPath(token.LocalPath).Replace("-", "_");
+            + Files.GetFileNameFromPath(token.LocalPath).Replace("-", "_");
         optiFineBase = $"/maven/com/optifine/{optiFineBase}";
         if (optiFineBase.Contains("_pre"))
             optiFineBase = optiFineBase.Replace("com/optifine/", "com/optifine/preview_");

@@ -1,3 +1,5 @@
+using PCL.Core.IO;
+
 namespace PCL.Network.Loaders;
 
 public class LoaderDownloadUnc : Loading.LoaderBase
@@ -39,7 +41,7 @@ public class LoaderDownloadUnc : Loading.LoaderBase
             cancellationToken.ThrowIfCancellationRequested();
             Directory.CreateDirectory(
                 Path.GetDirectoryName(savePath) ?? throw new IOException("下载路径无效"));
-            LauncherCommon.CopyFile(unc, savePath);
+            Files.CopyFile(unc, savePath);
             State = LoadState.Finished;
         }
         catch (OperationCanceledException)

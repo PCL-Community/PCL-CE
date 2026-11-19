@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using PCL.Core.IO;
 using PCL.Core.Utils.OS;
 using Special = System.Environment.SpecialFolder;
 
@@ -130,20 +131,7 @@ public static class Paths
 
     private static bool _CanWriteDirectory(string directory)
     {
-        try
-        {
-            var probe = Path.Combine(directory, $".pcl-write-{Guid.NewGuid():N}");
-            using (File.Create(probe))
-            {
-            }
-
-            File.Delete(probe);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
+        return Directories.CanWrite(directory);
     }
 
     private static string? _ReadPackageKind()

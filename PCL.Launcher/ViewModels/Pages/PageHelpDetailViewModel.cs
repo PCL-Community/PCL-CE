@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.UI.Hints;
 using PCL.Core.Utils.Secret;
 using PCL.Core.ViewModel;
@@ -82,7 +83,7 @@ public partial class PageHelpDetailViewModel : ViewModelBase
         try
         {
             if (!File.Exists(jsonPath)) return "";
-            var json = (JsonObject)LauncherCommon.GetJson(LauncherCommon.ReadFile(jsonPath));
+            var json = (JsonObject)LauncherCommon.GetJson(Files.ReadAllTextOrEmpty(jsonPath));
             return ReplaceArguments(json["Title"]?.ToString()?.Trim() ?? "");
         }
         catch (Exception ex)
@@ -97,7 +98,7 @@ public partial class PageHelpDetailViewModel : ViewModelBase
         if (!File.Exists(jsonPath))
             throw new FileNotFoundException("未找到帮助 JSON 文件", jsonPath);
 
-        var json = (JsonObject)LauncherCommon.GetJson(LauncherCommon.ReadFile(jsonPath));
+        var json = (JsonObject)LauncherCommon.GetJson(Files.ReadAllTextOrEmpty(jsonPath));
         var title = json["Title"]?.ToString();
         if (string.IsNullOrWhiteSpace(title))
             throw new ArgumentException("帮助 JSON 中未找到有效的 Title 项", nameof(jsonPath));
@@ -106,7 +107,7 @@ public partial class PageHelpDetailViewModel : ViewModelBase
         var xamlPath = Path.ChangeExtension(jsonPath, ".xaml");
         if (!File.Exists(xamlPath))
             throw new FileNotFoundException("未找到帮助 JSON 对应的 XAML 文件", xamlPath);
-        var xaml = LauncherCommon.ReadFile(xamlPath);
+        var xaml = Files.ReadAllTextOrEmpty(xamlPath);
         return string.IsNullOrWhiteSpace(xaml)
             ? throw new InvalidDataException("帮助 XAML 文件为空")
             : new PageHelpDetail.HelpContent(jsonPath, title, xaml);

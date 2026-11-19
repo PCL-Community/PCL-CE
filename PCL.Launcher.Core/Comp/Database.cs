@@ -1,6 +1,7 @@
 ﻿using System.IO.Compression;
 using Dapper;
 using Microsoft.Data.Sqlite;
+using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Utils.Hash;
 using ProtoBuf;
@@ -26,7 +27,7 @@ public static partial class Comp
     private static string InitializeModDbAndGetConnectionString()
     {
         LauncherCommon.Log("[DB] 解压 ModData (SQLite) 中");
-        using var compressedDbData = LauncherCommon.GetResourceStream("Resources/mcmod.buf")
+        using var compressedDbData = Basics.GetResourceStream("Resources/mcmod.buf")
             ?? throw new InvalidOperationException("无法加载内置的模组数据库资源。");
         using var trueDbFile = new GZipStream(compressedDbData, CompressionMode.Decompress);
         using var ms = new MemoryStream();
@@ -90,9 +91,7 @@ public static partial class Comp
         return $"Data Source=\"{dbPath}\"";
     }
 
-    /// <summary>
-    ///     验证 SQLite 数据库文件是否包含预期的表且非空
-    /// </summary>
+    /// <summary>验证 SQLite 数据库文件是否包含预期的表且非空</summary>
     private static bool IsDatabaseValid(string dbPath)
     {
         try
@@ -139,27 +138,19 @@ public static partial class Comp
     [ProtoContract]
     private class CompDatabaseEntry
     {
-        /// <summary>
-        ///     McMod 的对应 ID。
-        /// </summary>
+        /// <summary>McMod 的对应 ID。</summary>
         [ProtoMember(1)]
         public int WikiId { get; set; }
 
-        /// <summary>
-        ///     中文译名。空字符串代表没有翻译。
-        /// </summary>
+        /// <summary>中文译名。空字符串代表没有翻译。</summary>
         [ProtoMember(2)]
         public string ChineseName { get; set; } = "";
 
-        /// <summary>
-        ///     CurseForge Slug（例如 advanced-solar-panels）。
-        /// </summary>
+        /// <summary>CurseForge Slug（例如 advanced-solar-panels）。</summary>
         [ProtoMember(3)]
         public string? CurseForgeSlug { get; set; }
 
-        /// <summary>
-        ///     Modrinth Slug（例如 advanced-solar-panels）。
-        /// </summary>
+        /// <summary>Modrinth Slug（例如 advanced-solar-panels）。</summary>
         [ProtoMember(4)]
         public string? ModrinthSlug { get; set; }
 

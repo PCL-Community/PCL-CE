@@ -2,6 +2,7 @@
 using System.Text;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.UI;
 using static PCL.Loading;
 
@@ -166,7 +167,7 @@ public static partial class Modpack
         static int DetectManifestType(ZipArchiveEntry entry)
         {
             var json = (JsonObject)LauncherCommon.GetJson(
-                LauncherCommon.ReadFile(entry.Open(), Encoding.UTF8));
+                Files.ReadAllTextOrEmpty(entry.Open(), Encoding.UTF8));
 
             return json["addons"] is null ? 0 : 3;
         }
@@ -341,9 +342,9 @@ public static partial class Modpack
             {
                 loader.Progress = initialProgress;
 
-                LauncherCommon.DeleteDirectory(installTemp);
+                Directories.DeleteDirectory(installTemp);
 
-                LauncherCommon.ExtractFile(
+                Files.ExtractFile(
                     fileAddress,
                     installTemp,
                     encode,
@@ -388,7 +389,7 @@ public static partial class Modpack
         if (Directory.Exists(overridesFolder))
         {
             LauncherCommon.Log($"[ModPack] 处理整合包覆写文件夹：{overridesFolder} → {versionFolder}");
-            LauncherCommon.CopyDirectory(
+            Files.CopyDirectory(
                 overridesFolder,
                 versionFolder,
                 delta => loader.Progress += delta * progressIncrement);
@@ -403,16 +404,14 @@ public static partial class Modpack
         var versionIni = Path.Combine(versionFolder, "PCL", "Setup.ini");
         if (File.Exists(overridesIni))
         {
-            LauncherCommon.WriteIni(overridesIni, "VersionArgumentIndie", 1.ToString());
-            LauncherCommon.WriteIni(overridesIni, "VersionArgumentIndieV2", true.ToString());
-            LauncherCommon.CopyFile(overridesIni, versionIni);
+            Ini.Write(overridesIni, "VersionArgumentIndie", 1.ToString());
+            Ini.Write(overridesIni, "VersionArgumentIndieV2", true.ToString());
+            Files.CopyFile(overridesIni, versionIni);
         }
         else
         {
-            LauncherCommon.WriteIni(versionIni, "VersionArgumentIndie", 1.ToString());
-            LauncherCommon.WriteIni(versionIni, "VersionArgumentIndieV2", true.ToString());
+            Ini.Write(versionIni, "VersionArgumentIndie", 1.ToString());
+            Ini.Write(versionIni, "VersionArgumentIndieV2", true.ToString());
         }
-
-        LauncherCommon.IniClearCache(versionIni);
     }
 }

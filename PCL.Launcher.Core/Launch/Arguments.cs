@@ -1,6 +1,7 @@
 using System.Globalization;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.Platform;
 
 namespace PCL;
@@ -135,9 +136,9 @@ public static partial class GameLaunch
 
     private static void WriteJavaWrapper(string path)
     {
-        LauncherCommon.WriteFile(
+        Files.WriteAllStream(
             path,
-            LauncherCommon.GetResourceStream("Resources/java-wrapper.jar")!);
+            Basics.GetResourceStream("Resources/java-wrapper.jar")!);
     }
 
     /// <summary>释放 linkd 并返回完整文件路径。</summary>
@@ -180,7 +181,7 @@ public static partial class GameLaunch
 
     private static void WriteLinkD(string path)
     {
-        LauncherCommon.WriteFile(path, LauncherCommon.GetResourceStream("Resources/linkd.exe")!);
+        Files.WriteAllStream(path, Basics.GetResourceStream("Resources/linkd.exe")!);
     }
 
     /// <summary>判断是否使用 LegacyFix。</summary>

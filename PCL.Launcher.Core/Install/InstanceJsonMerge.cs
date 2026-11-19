@@ -1,5 +1,6 @@
 using System.Text;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.Utils;
 using PCL.Network;
 
@@ -46,10 +47,9 @@ internal sealed class InstallJsonSourceCollection
 }
 
 /// <summary>
-///     把加载器生成的版本 Json 合并进实例 Json。
-///     合并结果去掉 <c>inheritsFrom</c> 与 <c>jar</c>，并把 <c>id</c> 改回实例名，
-///     使实例不依赖外部原版版本文件夹；核心 Jar 保持实例目录内的同名文件。
-///     MMC 整合包的 overrides 会作为原版 Json 的补丁应用，被覆盖的加载器 Json 不再合并。
+/// 把加载器生成的版本 Json 合并进实例 Json。 合并结果去掉 <c>inheritsFrom</c> 与 <c>jar</c>，并把 <c>id</c>
+/// 改回实例名， 使实例不依赖外部原版版本文件夹；核心 Jar 保持实例目录内的同名文件。 MMC 整合包的 overrides 会作为原版 Json 的补丁应用，被覆盖的加载器
+/// Json 不再合并。
 /// </summary>
 internal static class InstanceJsonMerge
 {
@@ -88,8 +88,8 @@ internal static class InstanceJsonMerge
     }
 
     /// <summary>
-    ///     合并全部加载器 Json。顺序与 WPF MergeJson 一致：OptiFine → Forge → NeoForge →
-    ///     Cleanroom → LiteLoader → Fabric → Legacy Fabric → LabyMod。
+    /// 合并全部加载器 Json。顺序与 WPF MergeJson 一致：OptiFine → Forge → NeoForge → Cleanroom →
+    /// LiteLoader → Fabric → Legacy Fabric → LabyMod。
     /// </summary>
     public static void MergeInstall(
         string instanceFolder,
@@ -166,7 +166,7 @@ internal static class InstanceJsonMerge
         outputJson.Remove("jar");
         outputJson["id"] = instanceName;
 
-        LauncherCommon.WriteFile(jsonPath, outputJson.ToString(), new UTF8Encoding(false));
+        Files.WriteAllText(jsonPath, outputJson.ToString(), new UTF8Encoding(false));
         LauncherCommon.Log($"[Install] 已合并实例 Json：{jsonPath}");
         return;
 
@@ -333,7 +333,7 @@ internal static class InstanceJsonMerge
 
     private static JsonObject ReadJson(string path, string sourceName)
     {
-        var text = LauncherCommon.ReadFile(path).TrimStart('\uFEFF');
+        var text = Files.ReadAllTextOrEmpty(path).TrimStart('\uFEFF');
         if (!text.TrimStart().StartsWith('{'))
             throw new Exception(
                 Lang.Text(

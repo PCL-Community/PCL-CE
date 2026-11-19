@@ -3,6 +3,7 @@ using System.IO.Compression;
 using System.Text;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.Utils;
 using PCL.Network;
 using PCL.Network.Loaders;
@@ -43,8 +44,8 @@ internal sealed class ForgelikePlanHolder
 }
 
 /// <summary>
-///     通过官方安装器（Forge / NeoForge / Cleanroom）安装加载器，并合并安装器产出的版本 Json 与支持库。
-///     对旧版 Forge 的 universal / client 压缩包，按 WPF 的 Legacy 方式直接解包并生成版本 Json。
+/// 通过官方安装器（Forge / NeoForge / Cleanroom）安装加载器，并合并安装器产出的版本 Json 与支持库。 对旧版 Forge 的
+/// universal / client 压缩包，按 WPF 的 Legacy 方式直接解包并生成版本 Json。
 /// </summary>
 internal static class LoaderInstallerInstall
 {
@@ -429,7 +430,7 @@ internal static class LoaderInstallerInstall
         var entry = archive.GetEntry(entryName);
         return entry is null
             ? null
-            : (JsonObject)LauncherCommon.GetJson(LauncherCommon.ReadFile(entry.Open()));
+            : (JsonObject)LauncherCommon.GetJson(Files.ReadAllTextOrEmpty(entry.Open()));
     }
 
     private static string RunInstaller(
@@ -550,7 +551,7 @@ internal static class LoaderInstallerInstall
             var target = Path.Combine(
                 instanceFolder,
                 Path.GetRelativePath(generatedFolder, file));
-            LauncherCommon.CopyFile(file, target);
+            Files.CopyFile(file, target);
         }
     }
 
@@ -582,7 +583,7 @@ internal static class LoaderInstallerInstall
                                    ?? throw new InvalidOperationException("安装器缺少安装文件名"))
                                ?? throw new InvalidOperationException("安装器缺少安装文件")).Open())
                     {
-                        LauncherCommon.WriteFile(jarAddress, installStream);
+                        Files.WriteAllStream(jarAddress, installStream);
                     }
 
                     outputJson = (JsonObject)(installProfile["versionInfo"]?.DeepClone()
@@ -597,7 +598,7 @@ internal static class LoaderInstallerInstall
                     var entry = installer.GetEntry(entryName)
                         ?? throw new InvalidOperationException("安装器缺少版本 Json 文件");
                     outputJson = (JsonObject)LauncherCommon.GetJson(
-                        LauncherCommon.ReadFile(entry.Open()));
+                        Files.ReadAllTextOrEmpty(entry.Open()));
                 }
                 else if (versionJson is not null)
                 {
@@ -611,7 +612,7 @@ internal static class LoaderInstallerInstall
                                 StringComparison.OrdinalIgnoreCase))
                         ?? throw new InvalidOperationException("安装器缺少版本 Json 文件");
                     outputJson = (JsonObject)LauncherCommon.GetJson(
-                        LauncherCommon.ReadFile(entry.Open()));
+                        Files.ReadAllTextOrEmpty(entry.Open()));
                 }
 
                 ExtractLegacyLibraries(installer, instanceFolder);
@@ -624,7 +625,7 @@ internal static class LoaderInstallerInstall
                 var outputPath = Path.Combine(
                     outputFolder,
                     $"{plan.LoaderName}-{plan.LoaderVersion}.json");
-                LauncherCommon.WriteFile(
+                Files.WriteAllText(
                     outputPath,
                     outputJson.ToString(),
                     new UTF8Encoding(false));
@@ -657,7 +658,7 @@ internal static class LoaderInstallerInstall
                 entry.FullName["maven/".Length..].Replace('/', Path.DirectorySeparatorChar);
             var target = Path.Combine(mcFolder, "libraries", relative);
             using var stream = entry.Open();
-            LauncherCommon.WriteFile(target, stream);
+            Files.WriteAllStream(target, stream);
         }
     }
 
@@ -668,7 +669,7 @@ internal static class LoaderInstallerInstall
             return;
         try
         {
-            LauncherCommon.CopyDirectory(
+            Files.CopyDirectory(
                 tempLibraries,
                 Path.Combine(LoaderSpecialInstall.GetMcFolder(instanceFolder), "libraries"));
         }
@@ -681,7 +682,7 @@ internal static class LoaderInstallerInstall
     private static string ExtractWrapper(string runFolder)
     {
         var wrapperPath = Path.Combine(runFolder, "forge-installer.jar");
-        using var stream = LauncherCommon.GetResourceStream(WrapperResource)
+        using var stream = Basics.GetResourceStream(WrapperResource)
             ?? throw new Exception("缺少 Forge 安装器包装资源");
         using var file = File.Create(wrapperPath);
         stream.CopyTo(file);

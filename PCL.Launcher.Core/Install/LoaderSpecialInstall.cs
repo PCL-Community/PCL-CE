@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.IO.Net.Http;
 using PCL.Core.Minecraft.Java;
 using PCL.Core.Platform;
@@ -261,10 +262,10 @@ internal static class LoaderSpecialInstall
         var inheritedVersionFolder = Path.Combine(baseMcFolder, "versions", inherit);
         Directory.CreateDirectory(inheritedVersionFolder);
         GameFolders.McFolderLauncherProfilesJsonCreate(baseMcFolder);
-        LauncherCommon.CopyFile(
+        Files.CopyFile(
             Path.Combine(instanceFolder, $"{instanceName}.json"),
             Path.Combine(inheritedVersionFolder, $"{inherit}.json"));
-        LauncherCommon.CopyFile(
+        Files.CopyFile(
             Path.Combine(instanceFolder, $"{instanceName}.jar"),
             Path.Combine(inheritedVersionFolder, $"{inherit}.jar"));
 
@@ -296,14 +297,14 @@ internal static class LoaderSpecialInstall
 
         // 老版本安装器会把 OptiFine 的 jar 放进 libraries，复制到全局 libraries 后再合并 Json。
         if (Directory.Exists(Path.Combine(baseMcFolder, "libraries")))
-            LauncherCommon.CopyDirectory(
+            Files.CopyDirectory(
                 Path.Combine(baseMcFolder, "libraries"),
                 Path.Combine(GetMcFolder(instanceFolder), "libraries"));
 
         var outputFolder = Path.Combine(tempFolder, "optifine-generated");
         Directory.CreateDirectory(outputFolder);
         var outputPath = Path.Combine(outputFolder, $"{entry.NameVersion ?? "OptiFine"}.json");
-        LauncherCommon.CopyFile(generatedJson, outputPath);
+        Files.CopyFile(generatedJson, outputPath);
         LauncherCommon.Log($"[Install] OptiFine 安装器生成版本 Json：{generatedJson}");
         return outputPath;
     }
@@ -490,14 +491,14 @@ internal static class LoaderSpecialInstall
         var outputFolder = Path.Combine(tempFolder, "optifine-legacy");
         Directory.CreateDirectory(outputFolder);
         var outputPath = Path.Combine(outputFolder, $"{jsonId}.json");
-        LauncherCommon.WriteFile(outputPath, json.ToString(), new UTF8Encoding(false));
+        Files.WriteAllText(outputPath, json.ToString(), new UTF8Encoding(false));
         LauncherCommon.Log($"[Install] 已生成 Legacy OptiFine 版本 Json：{outputPath}");
         return outputPath;
     }
 
     private static JsonObject ReadJson(string path)
     {
-        var text = LauncherCommon.ReadFile(path).TrimStart('\uFEFF');
+        var text = Files.ReadAllTextOrEmpty(path).TrimStart('\uFEFF');
         if (!text.TrimStart().StartsWith('{'))
             throw new Exception($"版本 Json 无效：{path}");
         return (JsonObject)LauncherCommon.GetJson(text);
@@ -629,7 +630,7 @@ internal static class LoaderSpecialInstall
             ["jar"] = inherit
         };
         var jsonPath = Path.Combine(versionFolder, $"{versionName}.json");
-        LauncherCommon.WriteFile(jsonPath, json.ToString(), new UTF8Encoding(false));
+        Files.WriteAllText(jsonPath, json.ToString(), new UTF8Encoding(false));
         LauncherCommon.Log($"[Install] 已生成 LiteLoader 版本 Json：{jsonPath}");
         return jsonPath;
     }
@@ -758,7 +759,7 @@ internal static class LoaderSpecialInstall
         try
         {
             Directory.CreateDirectory(Path.GetDirectoryName(logPath) ?? ".");
-            LauncherCommon.WriteFile(
+            Files.WriteAllText(
                 logPath,
                 string.Join(Environment.NewLine, lines),
                 new UTF8Encoding(false));

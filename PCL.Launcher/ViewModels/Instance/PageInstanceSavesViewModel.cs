@@ -250,7 +250,7 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
                 return $"{LauncherPaths.ImageRoot}Icons/NoIcon.png";
             var cacheFolder = Path.Combine(instancePath, "PCL", "ImgCache");
             Directory.CreateDirectory(cacheFolder);
-            var target = Path.Combine(cacheFolder, $"{LauncherCommon.GetFileMd5(iconPath)}.png");
+            var target = Path.Combine(cacheFolder, $"{Files.GetFileMd5(iconPath)}.png");
             if (!File.Exists(target))
                 File.Copy(iconPath, target, true);
             return target;
@@ -386,7 +386,8 @@ public partial class PageInstanceSavesViewModel : ViewModelBase
 
             var (outcome, error) = await Task.Run(() =>
             {
-                var moved = ApplicationRuntime.Current.Platform.RecycleBin.Move(folder, out var reason);
+                var moved =
+                    ApplicationRuntime.Current.Platform.RecycleBin.Move(folder, out var reason);
                 return (moved, reason);
             });
             switch (outcome)

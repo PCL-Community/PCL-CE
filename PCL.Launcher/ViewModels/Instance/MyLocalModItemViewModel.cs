@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.UI.Hints;
 using PCL.Core.ViewModel;
 
@@ -146,7 +147,7 @@ public partial class MyLocalModItemViewModel : ViewModelBase
                         entry
                             .path.Replace(".disabled", string.Empty)
                             .Replace(".old", string.Empty)),
-                _ => LauncherCommon.GetFileNameFromPath(entry.path)
+                _ => Files.GetFileNameFromPath(entry.path)
             };
 
         string title;

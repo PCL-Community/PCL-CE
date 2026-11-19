@@ -18,6 +18,7 @@ public sealed class PlatformServiceRegistrationTest
 
         Assert.IsNotNull(provider.GetRequiredService<IPlatformPathService>());
         Assert.IsNotNull(provider.GetRequiredService<ILaunchScriptService>());
+        Assert.IsNotNull(provider.GetRequiredService<IServerLaunchScriptService>());
         Assert.IsNotNull(provider.GetRequiredService<IShellCommandService>());
         Assert.IsNotNull(provider.GetRequiredService<IProcessEnvironmentService>());
         Assert.IsNotNull(provider.GetRequiredService<IMinecraftPlatformRules>());
@@ -39,6 +40,7 @@ public sealed class PlatformServiceRegistrationTest
 
         Assert.IsNotNull(provider.GetRequiredService<IPlatformPathService>());
         Assert.IsNotNull(provider.GetRequiredService<ILaunchScriptService>());
+        Assert.IsNotNull(provider.GetRequiredService<IServerLaunchScriptService>());
         Assert.IsNotNull(provider.GetRequiredService<IShellCommandService>());
         Assert.IsNotNull(provider.GetRequiredService<IProcessEnvironmentService>());
         Assert.IsNotNull(provider.GetRequiredService<IMinecraftPlatformRules>());

@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.Utils;
 
 namespace PCL;
@@ -104,7 +105,7 @@ public static class GameFolders
             var path = folder.Split(">")[1];
             try
             {
-                LauncherCommon.CheckPermissionWithException(path);
+                Directories.EnsureWritable(path);
                 cacheMcFolderList.Add(
                     new McFolder
                     {
@@ -258,7 +259,7 @@ public static class GameFolders
                       "clientToken": "23323323323323323323323323323333"
                   }
                   """;
-            LauncherCommon.WriteFile(
+            Files.WriteAllText(
                 Path.Combine(folder, "launcher_profiles.json"),
                 resultJson,
                 Encoding.GetEncoding("GB18030"));

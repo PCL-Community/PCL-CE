@@ -10,9 +10,8 @@ using PCL.Core.Logging;
 namespace PCL.UI.Controls;
 
 /// <summary>
-///     PCL 侧边栏圆形附加按钮：显示时以缩放与高度动画展开，按下/释放带弹性回弹，
-///     悬停与禁用切换底色；<see cref="Progress" /> 用环形区域表示下载进度，
-///     <see cref="Ribble" /> 发出一圈扩散提示。
+/// PCL 侧边栏圆形附加按钮：显示时以缩放与高度动画展开，按下/释放带弹性回弹， 悬停与禁用切换底色；<see cref="Progress" />
+/// 用环形区域表示下载进度， <see cref="Ribble" /> 发出一圈扩散提示。
 /// </summary>
 public partial class MyExtraButton : Grid
 {
@@ -200,10 +199,7 @@ public partial class MyExtraButton : Grid
             ColorKey);
     }
 
-    /// <summary>
-    ///     发出一圈波浪效果提示：插入圆形 Border，放大并淡出后移除。
-    ///     动画关闭时不产生视觉效果。
-    /// </summary>
+    /// <summary>发出一圈波浪效果提示：插入圆形 Border，放大并淡出后移除。 动画关闭时不产生视觉效果。</summary>
     public void Ribble()
     {
         if (!Dispatcher.UIThread.CheckAccess())
@@ -297,9 +293,7 @@ public partial class MyExtraButton : Grid
         return double.IsNaN(Height) ? Bounds.Height : Height;
     }
 
-    /// <summary>
-    ///     显示/隐藏过渡：显示时先缩放再回弹并展开高度，隐藏时缩到 0、高度收拢后折叠。
-    /// </summary>
+    /// <summary>显示/隐藏过渡：显示时先缩放再回弹并展开高度，隐藏时缩到 0、高度收拢后折叠。</summary>
     private void _ApplyShow(bool value)
     {
         if (!Dispatcher.UIThread.CheckAccess())
@@ -385,70 +379,32 @@ public partial class MyExtraButton : Grid
         double reboundScale,
         int reboundDuration = 60)
     {
-        if (!ButtonAnimation.CanAnimate(this))
-        {
-            ButtonAnimation.SetScale(PanScale, targetScale + reboundScale);
-            return;
-        }
-
-        AnimationService.Run(
-            new List<IAnimation>
-            {
-                new ScaleTransformAnimation(
-                    PanScale,
-                    targetScale - ButtonAnimation.CurrentScale(PanScale),
-                    800,
-                    ease: new FluentEaseOut(EasePower.Strong)),
-                new ScaleTransformAnimation(
-                    PanScale,
-                    reboundScale,
-                    reboundDuration,
-                    ease: new FluentEaseOut())
-            },
-            ScaleKey);
+        ExtraButtonInteraction.StartScale(
+            this,
+            PanScale,
+            ScaleKey,
+            targetScale,
+            reboundScale,
+            reboundDuration);
     }
 
     /// <summary>释放后回弹到原尺寸。</summary>
     private void _RefreshScaleAfterRelease()
     {
-        if (!ButtonAnimation.CanAnimate(this))
-        {
-            ButtonAnimation.SetScale(PanScale, 1d);
-            return;
-        }
-
-        AnimationService.Run(
-            new ScaleTransformAnimation(
-                PanScale,
-                1d - ButtonAnimation.CurrentScale(PanScale),
-                300,
-                ease: new BackEaseWithPowerOut()),
-            ScaleKey);
+        ExtraButtonInteraction.ReleaseScale(this, PanScale, ScaleKey);
     }
 
     private void _ResetHeldState()
     {
         _isLeftMouseHeld = false;
         _isRightMouseHeld = false;
-        if (ButtonAnimation.CanAnimate(this))
-            AnimationService.Run(
-                new ScaleTransformAnimation(
-                    PanScale,
-                    1d - ButtonAnimation.CurrentScale(PanScale),
-                    500,
-                    ease: new FluentEaseOut()),
-                ScaleKey);
-        else
-            ButtonAnimation.SetScale(PanScale, 1d);
-
+        ExtraButtonInteraction.ResetScale(this, PanScale, ScaleKey);
         RefreshColor();
     }
 
     private void _StopAnimations()
     {
-        AnimationService.CancelAnimationByName(ScaleKey);
-        AnimationService.CancelAnimationByName(MainScaleKey);
-        AnimationService.CancelAnimationByName(ColorKey);
+        ExtraButtonInteraction.StopAnimations(ScaleKey, MainScaleKey, ColorKey);
     }
 
     private void _OnPointerPressed(object? sender, PointerPressedEventArgs e)
@@ -467,9 +423,12 @@ public partial class MyExtraButton : Grid
         if (!properties.IsLeftButtonPressed)
             return;
 
-        if (!_isLeftMouseHeld && !_isRightMouseHeld)
-            _StartScaleAnimation(0.85d, -0.05d);
-        _isLeftMouseHeld = true;
+        ExtraButtonInteraction.BeginLeftPress(
+            this,
+            PanScale,
+            ScaleKey,
+            ref _isLeftMouseHeld,
+            !_isRightMouseHeld);
         Focus();
     }
 
@@ -483,7 +442,7 @@ public partial class MyExtraButton : Grid
             PerformClick();
             e.Handled = true;
             if (!_isRightMouseHeld)
-                _RefreshScaleAfterRelease();
+                ExtraButtonInteraction.ReleaseScale(this, PanScale, ScaleKey);
             return;
         }
 
@@ -506,7 +465,9 @@ public partial class MyExtraButton : Grid
 
     private void _OnPointerExited(object? sender, PointerEventArgs e)
     {
-        _ResetHeldState();
+        _isLeftMouseHeld = false;
+        _isRightMouseHeld = false;
+        ExtraButtonInteraction.OnPointerExited(this, PanScale, ScaleKey, RefreshColor);
     }
 
     /// <summary>执行点击语义；鼠标释放、键盘 Enter/Space 与自动化调用共用。</summary>
@@ -524,34 +485,18 @@ public partial class MyExtraButton : Grid
 
     private void ExecuteCommand()
     {
-        var command = Command;
-        if (_isCommandRunning || command is null || !command.CanExecute(CommandParameter))
-            return;
-        _isCommandRunning = true;
-        try
-        {
-            command.Execute(CommandParameter);
-        }
-        finally
-        {
-            _isCommandRunning = false;
-        }
+        ExtraButtonInteraction.ExecuteCommand(
+            Command,
+            CommandParameter,
+            ref _isCommandRunning);
     }
 
     private void ExecuteRightClickCommand()
     {
-        var command = RightClickCommand;
-        if (_isRightClickCommandRunning || command is null || !command.CanExecute(CommandParameter))
-            return;
-        _isRightClickCommandRunning = true;
-        try
-        {
-            command.Execute(CommandParameter);
-        }
-        finally
-        {
-            _isRightClickCommandRunning = false;
-        }
+        ExtraButtonInteraction.ExecuteCommand(
+            RightClickCommand,
+            CommandParameter,
+            ref _isRightClickCommandRunning);
     }
 
     protected override AutomationPeer OnCreateAutomationPeer()

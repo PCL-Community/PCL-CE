@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using CommunityToolkit.Mvvm.ComponentModel;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.Platform;
 using PCL.Core.UI;
 using PCL.Core.UI.Hints;
@@ -286,7 +287,7 @@ public partial class PageInstanceExportViewModel : ViewModelBase
                 Separator,
                 .. GetExtraFileLines()
             ];
-            LauncherCommon.WriteFile(configPath, string.Join("\r\n", lines));
+            Files.WriteAllText(configPath, string.Join("\r\n", lines));
             ShowToast(Lang.Text("Instance.Export.SaveSuccess", configPath), false);
             InstancePageHelper.OpenFolder(configPath);
             return true;
@@ -321,7 +322,7 @@ public partial class PageInstanceExportViewModel : ViewModelBase
         {
             _lastConfigPath = configPath;
             States.System.ExportConfigPath = configPath;
-            var content = LauncherCommon.ReadFile(configPath);
+            var content = Files.ReadAllTextOrEmpty(configPath);
             var segments = content.Split(Separator);
             if (segments.Length < 2)
             {

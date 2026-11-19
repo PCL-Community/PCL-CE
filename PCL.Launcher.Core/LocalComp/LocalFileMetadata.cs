@@ -2,6 +2,7 @@ using System.Globalization;
 using System.IO.Compression;
 using System.Text;
 using System.Text.RegularExpressions;
+using PCL.Core.IO;
 using PCL.Core.Utils;
 
 namespace PCL;
@@ -55,7 +56,7 @@ public static partial class LocalComp
             if (infoEntry is null)
                 return null;
 
-            var infoString = LauncherCommon.ReadFile(infoEntry.Open());
+            var infoString = Files.ReadAllTextOrEmpty(infoEntry.Open());
             if (infoString.Length < 15)
                 return null;
 
@@ -177,7 +178,7 @@ public static partial class LocalComp
             if (fabricEntry is null)
                 return null;
 
-            var fabricText = LauncherCommon.ReadFile(fabricEntry.Open(), Encoding.UTF8);
+            var fabricText = Files.ReadAllTextOrEmpty(fabricEntry.Open(), Encoding.UTF8);
             return !fabricText.Contains("schemaVersion")
                 ? null
                 : LauncherCommon.GetJson(fabricText) as JsonObject;
@@ -265,7 +266,7 @@ public static partial class LocalComp
             if (quiltEntry is null)
                 return null;
 
-            var quiltText = LauncherCommon.ReadFile(quiltEntry.Open(), Encoding.UTF8);
+            var quiltText = Files.ReadAllTextOrEmpty(quiltEntry.Open(), Encoding.UTF8);
             return !quiltText.Contains("schema_version")
                 ? null
                 : (LauncherCommon.GetJson(quiltText) as JsonObject)?["quilt_loader"] as JsonObject;
@@ -668,7 +669,7 @@ public static partial class LocalComp
             if (fmlEntry is null)
                 return null;
 
-            var fmlText = LauncherCommon.ReadFile(fmlEntry.Open(), Encoding.UTF8);
+            var fmlText = Files.ReadAllTextOrEmpty(fmlEntry.Open(), Encoding.UTF8);
             if (!fmlText.Contains("Lnet/minecraftforge/fml/common/Mod;"))
                 return null;
 
@@ -777,7 +778,7 @@ public static partial class LocalComp
                 logoItem.Length + logoItem.CompressedLength + path);
             Logo = Path.Combine(LauncherPaths.Temp, "Cache", "Images", $"{md5}.png");
             using var entryStream = logoItem.Open();
-            LauncherCommon.WriteFile(Logo, entryStream);
+            Files.WriteAllStream(Logo, entryStream);
         }
 
         private void _NormalizeVersionFromManifest(ZipArchive jar)
@@ -798,8 +799,8 @@ public static partial class LocalComp
                 if (metaEntry is null)
                     return;
 
-                var metaString = LauncherCommon
-                    .ReadFile(metaEntry.Open())
+                var metaString = Files
+                    .ReadAllTextOrEmpty(metaEntry.Open())
                     .Replace(" :", ":")
                     .Replace(": ", ":");
                 const string versionHeader = "Implementation-Version:";

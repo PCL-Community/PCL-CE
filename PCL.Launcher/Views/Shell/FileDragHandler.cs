@@ -4,6 +4,7 @@ using Avalonia.Input;
 using Avalonia.Platform.Storage;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.Logging;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
@@ -435,7 +436,7 @@ public sealed class FileDragHandler
                         return;
                     }
 
-                    LauncherCommon.CopyDirectory(saveRoot, target);
+                    Files.CopyDirectory(saveRoot, target);
                     if (!File.Exists(Path.Combine(target, "level.dat")))
                     {
                         if (Directory.Exists(target))

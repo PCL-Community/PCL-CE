@@ -1936,7 +1936,7 @@
 
     <sys:String x:Key="Minecraft.Download.Loader.NewForge">新版 Forge</sys:String>
     <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionEula">如果提示 "You need to agree to the EULA"，請編輯 eula.txt 同意協議!</sys:String>
-    <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionJavaPath">如果服務端立即停止，請右鍵編輯該指令碼，使用!JAVA_HOME!取代%JAVA_HOME%</sys:String>
+    <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionJavaPath">如果服務端立即停止，請編輯指令碼並確認 Java 路徑（可使用 JAVA_HOME）。</sys:String>
     <sys:String x:Key="Minecraft.Download.ServerBatch.InstructionPclSettings">你可以在 PCL CE 的 [設定 → 啟動選項 → 啟動器內 Java 路徑] 中將此版本選為合適的 Java 並啟用!</sys:String>
     <sys:String x:Key="Minecraft.Download.ServerBatch.ServerStopped">服務端已停止。</sys:String>
     <sys:String x:Key="Minecraft.Download.ServerBatch.Title">{0} 原版服務端</sys:String>

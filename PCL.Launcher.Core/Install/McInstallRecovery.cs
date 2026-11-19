@@ -1,13 +1,12 @@
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Configuration.Storage;
+using PCL.Core.IO;
 
 namespace PCL;
 
 /// <summary>
-///     安装会话的目录状态记录与失败恢复。
-///     安装开始前记录实例目录中哪些路径是本次安装会创建或覆盖的，失败或取消后只回滚这些路径；
-///     安装前已存在的实例核心文件会先备份到 <c>PCLInstallBackups</c>，失败时还原、成功时清理。
-///     清理前会等待 1 秒，避免安装器/下载器尚未释放文件句柄。
+/// 安装会话的目录状态记录与失败恢复。 安装开始前记录实例目录中哪些路径是本次安装会创建或覆盖的，失败或取消后只回滚这些路径； 安装前已存在的实例核心文件会先备份到
+/// <c>PCLInstallBackups</c>，失败时还原、成功时清理。 清理前会等待 1 秒，避免安装器/下载器尚未释放文件句柄。
 /// </summary>
 public static class McInstallRecovery
 {
@@ -112,11 +111,11 @@ public static class McInstallRecovery
         {
             Directory.CreateDirectory(backupFolder);
             if (File.Exists(jsonPath))
-                LauncherCommon.CopyFile(
+                Files.CopyFile(
                     jsonPath,
                     Path.Combine(backupFolder, Path.GetFileName(jsonPath)));
             if (File.Exists(jarPath))
-                LauncherCommon.CopyFile(
+                Files.CopyFile(
                     jarPath,
                     Path.Combine(backupFolder, Path.GetFileName(jarPath)));
             LauncherCommon.Log($"[Install] 已备份实例核心文件：{backupFolder}");
@@ -136,10 +135,7 @@ public static class McInstallRecovery
         }
     }
 
-    /// <summary>
-    ///     安装加载器进入结束状态后调用：成功时删除备份，失败或取消时回滚到安装前状态。
-    ///     实例修改页与迁移前一致，成功后保留 <c>PCLInstallBackups</c>。
-    /// </summary>
+    /// <summary>安装加载器进入结束状态后调用：成功时删除备份，失败或取消时回滚到安装前状态。 实例修改页与迁移前一致，成功后保留 <c>PCLInstallBackups</c>。</summary>
     public static void HandleTerminalState(
         Loading.LoaderBase loader,
         string instanceFolder,
@@ -173,7 +169,7 @@ public static class McInstallRecovery
         if (Directory.Exists(backupFolder))
             try
             {
-                LauncherCommon.DeleteDirectory(backupFolder);
+                Directories.DeleteDirectory(backupFolder);
             }
             catch (Exception ex)
             {
@@ -210,7 +206,7 @@ public static class McInstallRecovery
                 return false;
             }
 
-            LauncherCommon.DeleteDirectory(folder);
+            Directories.DeleteDirectory(folder);
             return true;
         }
         catch (Exception ex)
@@ -232,10 +228,10 @@ public static class McInstallRecovery
         if (Directory.Exists(backupFolder))
             try
             {
-                LauncherCommon.CopyDirectory(backupFolder, folder);
+                Files.CopyDirectory(backupFolder, folder);
                 DeleteTrackedFiles(folder);
                 DeleteFileQuietly(Path.Combine(folder, ".pclignore"));
-                LauncherCommon.DeleteDirectory(backupFolder);
+                Directories.DeleteDirectory(backupFolder);
                 InvalidateInstanceCache(folder);
                 LauncherCommon.Log($"[Install] 已从备份还原实例目录：{folder}");
                 UnregisterSession(folder);
@@ -293,7 +289,7 @@ public static class McInstallRecovery
             return;
         try
         {
-            LauncherCommon.DeleteDirectory(backupFolder);
+            Directories.DeleteDirectory(backupFolder);
         }
         catch (Exception ex)
         {
@@ -336,7 +332,7 @@ public static class McInstallRecovery
         {
             if (!Directory.Exists(folder))
                 return;
-            LauncherCommon.DeleteDirectory(folder);
+            Directories.DeleteDirectory(folder);
         }
         catch (Exception ex)
         {

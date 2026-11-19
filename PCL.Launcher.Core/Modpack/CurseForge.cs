@@ -1,5 +1,6 @@
 ﻿using System.IO.Compression;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.Utils;
 using PCL.Network;
 using PCL.Network.Loaders;
@@ -92,7 +93,7 @@ public static partial class Modpack
         {
             return (JsonObject)
                 LauncherCommon.GetJson(
-                    LauncherCommon.ReadFile(
+                    Files.ReadAllTextOrEmpty(
                         archive.GetEntry($"{archiveBaseFolder}manifest.json")!.Open()));
         }
         catch (Exception ex)

@@ -2,6 +2,7 @@ using System.Diagnostics;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
+using PCL.Core.Platform;
 
 namespace PCL;
 
@@ -105,7 +106,26 @@ public static partial class GameWatcher
             var dump = new List<string>();
             for (var i = 1; i <= 3; i++)
             {
-                dump.Add(LauncherCommon.ShellAndGetOutput(jStackPath, $"-l -e {gameProcess.Id}"));
+                var output = "";
+                try
+                {
+                    var runner = ApplicationRuntime.GetService<IExternalCommandRunner>();
+                    if (runner is not null)
+                        output = runner
+                            .RunAsync(
+                                jStackPath,
+                                ["-l", "-e", gameProcess.Id.ToString()],
+                                TimeSpan.FromSeconds(30))
+                            .GetAwaiter()
+                            .GetResult()
+                            .StandardOutput;
+                }
+                catch
+                {
+                    // 堆栈导出失败不应影响崩溃报告。
+                }
+
+                dump.Add(output);
                 Thread.Sleep(3000);
             }
 

@@ -1,6 +1,7 @@
 using System.Text;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.UI;
 using PCL.Network.Loaders;
 
@@ -242,7 +243,7 @@ public static partial class Comp
                 loaders.Add(
                     new Loading.LoaderTask<int, int>(
                         Lang.Text("Download.Comp.Detail.InstallWorld"),
-                        _ => LauncherCommon.ExtractFile(target, extractDir, Encoding.UTF8))
+                        _ => Files.ExtractFile(target, extractDir, Encoding.UTF8))
                     {
                         ProgressWeight = 0.1d,
                         block = true,

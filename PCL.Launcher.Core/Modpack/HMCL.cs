@@ -1,6 +1,7 @@
 ﻿using System.IO.Compression;
 using System.Text;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using static PCL.Loading;
 
 namespace PCL;
@@ -64,7 +65,7 @@ public static partial class Modpack
         {
             return (JsonObject)
                 LauncherCommon.GetJson(
-                    LauncherCommon.ReadFile(
+                    Files.ReadAllTextOrEmpty(
                         archive.GetEntry($"{archiveBaseFolder}modpack.json")!.Open(),
                         Encoding.UTF8));
         }
