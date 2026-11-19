@@ -194,7 +194,7 @@ public static class McInstallRecovery
             string[] userDataNames =
             [
                 "mods", "saves", "resourcepacks", "shaderpacks", "config",
-                "PCL", "logs", "crash-reports", "options.txt", "servers.dat"
+                "PCL", "logs", "crash-reports", "screenshots", "options.txt", "servers.dat"
             ];
             if (userDataNames.Any(name =>
                     File.Exists(Path.Combine(folder, name))

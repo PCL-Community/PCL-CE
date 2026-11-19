@@ -138,6 +138,8 @@ public sealed partial class SingleInstanceService
                     FileMode.OpenOrCreate,
                     FileAccess.ReadWrite,
                     FileShare.Read);
+                stream.SetLength(0);
+                stream.Position = 0;
                 using (var writer = new StreamWriter(stream, Encoding.ASCII, 8, true))
                 {
                     writer.Write(Basics.CurrentProcessId);

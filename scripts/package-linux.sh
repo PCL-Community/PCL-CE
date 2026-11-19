@@ -151,7 +151,7 @@ license: MIT
 depends:
 $depends
 recommends:
-  - dotnet-runtime-11.0
+  - dotnet-runtime-10.0
 contents:
   - src: "$stage/"
     dst: /opt/pcl-ce

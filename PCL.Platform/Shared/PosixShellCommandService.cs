@@ -8,12 +8,14 @@ public sealed class PosixShellCommandService : IShellCommandService
 {
     public ProcessStartInfo CreateCommand(string command, string workingDirectory)
     {
-        return new ProcessStartInfo("/bin/sh")
+        var startInfo = new ProcessStartInfo("/bin/sh")
         {
-            Arguments = $"-c \"{command}\"",
             WorkingDirectory = workingDirectory,
             UseShellExecute = false,
             CreateNoWindow = true
         };
+        startInfo.ArgumentList.Add("-c");
+        startInfo.ArgumentList.Add(command);
+        return startInfo;
     }
 }

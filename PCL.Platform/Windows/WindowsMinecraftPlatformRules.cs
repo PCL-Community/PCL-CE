@@ -18,7 +18,7 @@ public sealed class WindowsMinecraftPlatformRules : IMinecraftPlatformRules
     {
         return architecture switch
         {
-            Architecture.Arm64 => ["natives-windows", "natives-windows-arm64"],
+            Architecture.Arm64 => ["natives-windows-arm64", "natives-windows"],
             Architecture.X64 => ["natives-windows", "natives-windows-64", "natives-windows-x86"],
             _ => ["natives-windows", "natives-windows-x86", "natives-windows-32"]
         };

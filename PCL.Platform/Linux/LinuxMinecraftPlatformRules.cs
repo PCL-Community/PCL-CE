@@ -14,7 +14,7 @@ public sealed class LinuxMinecraftPlatformRules : IMinecraftPlatformRules
     {
         return architecture switch
         {
-            Architecture.Arm64 => ["natives-linux", "linux-aarch_64"],
+            Architecture.Arm64 => ["natives-linux-arm64", "linux-aarch_64", "natives-linux"],
             Architecture.X64 => ["natives-linux", "linux-x86_64"],
             _ => ["natives-linux"]
         };
