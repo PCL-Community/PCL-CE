@@ -31,8 +31,8 @@ public sealed record JavaInstallation(
     public bool IsStillAvailable => File.Exists(JavaExePath);
 
     public override string ToString() =>
-        $"{(IsJre ? "JRE" : "JDK")} {MajorVersion} {Brand} {(Is64Bit ? "64 Bit" : "32 Bit")} | {JavaFolder}";
+        $"{(IsJre ? "JRE" : "JDK")} {MajorVersion} {Brand} {(Architecture == MachineType.ARM64 ? "ARM64" : (Is64Bit ? "64 Bit" : "32 Bit"))} | {JavaFolder}";
 
     public string ToDetailedString() =>
-        $"{(IsJre ? "JRE" : "JDK")} {Version} {Brand} {(Is64Bit ? "64 Bit" : "32 Bit")} | {JavaFolder}";
+        $"{(IsJre ? "JRE" : "JDK")} {Version} {Brand} {(Architecture == MachineType.ARM64 ? "ARM64" : (Is64Bit ? "64 Bit" : "32 Bit"))} | {JavaFolder}";
 }

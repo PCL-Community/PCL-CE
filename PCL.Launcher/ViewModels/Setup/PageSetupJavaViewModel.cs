@@ -4,6 +4,7 @@ using PCL.Core.Minecraft;
 using PCL.Core.UI.Hints;
 using PCL.Core.ViewModel;
 using PCL.Core.Minecraft.Java;
+using PCL.Core.Utils;
 
 namespace PCL;
 
@@ -24,7 +25,8 @@ public class PageSetupJavaViewModel : ViewModelBase
     {
         return
         [
-            entry.Installation.Is64Bit ? "64 Bit" : "32 Bit", entry.Installation.Brand.ToString()
+            entry.Installation.Architecture == MachineType.ARM64 ? "ARM64" : (entry.Installation.Is64Bit ? "64 Bit" : "32 Bit"), 
+            entry.Installation.Brand.ToString()
         ];
     }
 
