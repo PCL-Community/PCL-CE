@@ -176,7 +176,7 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable
             }
             catch (Exception ex)
             {
-                LogWrapper.Error(ex, "Launch", "加载 PCL 主页自定义信息失败");
+                LogWrapper.Error(ex, "Launch", "加载 PCL CE 主页自定义信息失败");
                 content = new HomepageContent
                 {
                     Kind = HomepageSourceKind.Blank,

@@ -301,7 +301,7 @@ public static class UpdateManager
         if (File.Exists(latestPclPath)
             && (Files.GetFileSha256(latestPclPath) ?? "") == (target.Sha256 ?? ""))
         {
-            LauncherCommon.Log("[System] 最新版 PCL 已存在，跳过下载");
+            LauncherCommon.Log("[System] 最新版 PCL CE 已存在，跳过下载");
             return;
         }
 

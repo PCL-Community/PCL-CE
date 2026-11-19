@@ -45,7 +45,7 @@ public static partial class GameLaunch
                 return;
             }
 
-            LauncherCommon.Log(ex, "直接调整显卡设置失败，将以管理员权限重启 PCL 再次尝试");
+            LauncherCommon.Log(ex, "直接调整显卡设置失败，将以管理员权限重启 PCL CE 再次尝试");
             try
             {
                 using var process = elevation.StartElevated(
@@ -60,7 +60,7 @@ public static partial class GameLaunch
                 }
 
                 if (process.ExitCode == (int)LauncherCommon.ProcessReturnValues.TaskDone)
-                    McLaunchLog("以管理员权限重启 PCL 并调整显卡设置成功");
+                    McLaunchLog("以管理员权限重启 PCL CE 并调整显卡设置成功");
                 else
                     throw new Exception($"提权调整显卡设置失败（退出码 {process.ExitCode}）");
             }
@@ -580,7 +580,7 @@ public static partial class GameLaunch
         var instance = InstanceList.McMcInstanceSelected!;
         McLaunchLog("");
         McLaunchLog("~ 基础参数 ~");
-        McLaunchLog($"PCL 版本：{LauncherCommon.VersionBaseName} ({LauncherCommon.VersionCode})");
+        McLaunchLog($"PCL CE 版本：{LauncherCommon.VersionBaseName} ({LauncherCommon.VersionCode})");
         McLaunchLog(
             $"游戏版本：{instance.Info.VanillaName}（{instance.Info.vanilla}，"
             + $"Drop {instance.Info.Drop}{(instance.Info.Reliable ? "" : "，无法完全确定")}）");

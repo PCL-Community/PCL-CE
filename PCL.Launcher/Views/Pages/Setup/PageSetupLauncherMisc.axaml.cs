@@ -261,7 +261,7 @@ public partial class PageSetupLauncherMisc : MyPageRight, ISetupResetPage
     {
         var savePath = await SystemDialogs.SelectSaveFileAsync(
             Lang.Text("Setup.Misc.System.ExportSettings.SaveTitle"),
-            "PCL 全局配置.json",
+            "PCL CE 全局配置.json",
             Lang.Text("Setup.Misc.System.ExportSettings.Filter"),
             Basics.ExecutableDirectory);
         if (string.IsNullOrWhiteSpace(savePath)) return;

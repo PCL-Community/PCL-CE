@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-        <AssemblyTitle>PCL</AssemblyTitle>
+        <AssemblyTitle>PCL CE</AssemblyTitle>
         <AssemblyName>PCL.Launcher</AssemblyName>
-        <Description>PCL 的界面层</Description>
+        <Description>PCL CE 的界面层</Description>
         <Company>PCL Community</Company>
-        <Product>PCL</Product>
+        <Product>PCL CE</Product>
         <RootNamespace>PCL</RootNamespace>
         <OutputType>WinExe</OutputType>
         <TargetFramework>net10.0</TargetFramework>

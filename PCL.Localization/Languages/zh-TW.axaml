@@ -1480,7 +1480,7 @@
     <sys:String x:Key="Launch.Error.Title">啟動失敗</sys:String>
     <sys:String x:Key="Launch.Right.CommunityHint.HidePrompt">若要永久隱藏此提示，請輸入正確的 PCL CE 開發組織名稱。</sys:String>
     <sys:String x:Key="Launch.Right.CommunityHint.InputTitle">輸入 PCL CE 開發組織名稱</sys:String>
-    <sys:String x:Key="Launch.Right.CommunityHint.Message">你正在使用 PCL CE（PCL 社群版）！此版本為獨立開發和維護，與原版維護路線不同，體驗有所出入。&#xA;&#xA;如果你是意外下載到了 PCL CE ，我們十分建議您下載原版 PCL 長期使用，此發行版本對新手使用者體驗可能不友好。&#xA;此外， PCL CE 的問題請向 PCL CE 的儲存庫提交 Issue，不要向官方儲存庫回饋 PCL CE 的問題哦！</sys:String>
+    <sys:String x:Key="Launch.Right.CommunityHint.Message">你正在使用 PCL CE（Plain Craft Launcher Community Edition）！此版本為獨立開發和維護，與原版維護路線不同，體驗有所出入。&#xA;&#xA;如果你是意外下載到了 PCL CE ，我們十分建議您下載原版 PCL 長期使用，此發行版本對新手使用者體驗可能不友好。&#xA;此外， PCL CE 的問題請向 PCL CE 的儲存庫提交 Issue，不要向官方儲存庫回饋 PCL CE 的問題哦！</sys:String>
     <sys:String x:Key="Launch.Right.CommunityHint.Title">PCL CE 提示</sys:String>
     <sys:String x:Key="Launch.Right.CommunityHint.WrongInput">不太對哦……</sys:String>
     <sys:String x:Key="Launch.Right.Log.Title">啟動日誌</sys:String>

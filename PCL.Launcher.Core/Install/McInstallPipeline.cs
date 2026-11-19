@@ -528,7 +528,7 @@ public static class McInstallPipeline
                 Directory.CreateDirectory(instanceFolder);
                 Files.WriteAllText(
                     Path.Combine(instanceFolder, IgnoreFlagFileName),
-                    "用于临时地在 PCL 的实例列表中屏蔽此实例。");
+                    "用于临时地在 PCL CE 的实例列表中屏蔽此实例。");
             })
         {
             show = false,

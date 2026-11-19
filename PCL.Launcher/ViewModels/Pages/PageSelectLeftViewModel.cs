@@ -544,7 +544,7 @@ public partial class PageSelectLeftViewModel : ViewModelBase
                 if (!CheckPermission(folderPath))
                 {
                     if (!showHint)
-                        throw new Exception("PCL 没有访问文件夹的权限：" + folderPath);
+                        throw new Exception($"PCL CE 没有访问文件夹的权限：{folderPath}");
                     HintService.Show(Hints.Error(Lang.Text("Select.Folder.AccessDenied")));
                     return;
                 }

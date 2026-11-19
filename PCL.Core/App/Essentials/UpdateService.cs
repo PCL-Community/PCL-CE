@@ -37,7 +37,7 @@ public sealed class UpdateService : GeneralService
                 {
                     var reason = args[1];
                     Context.Error(
-                        $"更新失败: {reason}\n你可以手动将 exe 文件替换为 PCL 目录中的新版本"
+                        $"更新失败: {reason}\n你可以手动将 exe 文件替换为 PCL CE 目录中的新版本"
                         + $"或再次尝试更新，若再次尝试仍然失败，请尽快反馈这个问题");
                     break;
                 }
