@@ -16,7 +16,10 @@ public static partial class Files
         try
         {
             var bytes = File.ReadAllBytes(filePath);
-            return (encoding ?? EncodingDetector.DetectEncoding(bytes)).GetString(bytes);
+            var targetEncoding = encoding ?? EncodingDetector.DetectEncoding(bytes);
+            var preamble = targetEncoding.GetPreamble();
+            var offset = preamble.Length > 0 && bytes.AsSpan().StartsWith(preamble) ? preamble.Length : 0;
+            return targetEncoding.GetString(bytes, offset, bytes.Length - offset);
         }
         catch
         {
