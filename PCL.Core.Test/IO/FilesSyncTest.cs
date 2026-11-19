@@ -51,6 +51,19 @@ public sealed class FilesSyncTest
     }
 
     [TestMethod]
+    public void ReadTextSkipsUtf8BomWhenEncodingHasNoBom()
+    {
+        var path = Path.Combine(_root, "bom-explicit.json");
+        Files.WriteAllText(path, "{\"Key\":2}", new UTF8Encoding(true));
+
+        var text = Files.ReadAllTextOrEmpty(path, new UTF8Encoding(false));
+
+        Assert.AreEqual('{', text[0]);
+        using var document = JsonDocument.Parse(text);
+        Assert.AreEqual(2, document.RootElement.GetProperty("Key").GetInt32());
+    }
+
+    [TestMethod]
     public void ReadTextWithoutBomKeepsContent()
     {
         var path = Path.Combine(_root, "plain.txt");

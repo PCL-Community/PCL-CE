@@ -17,7 +17,9 @@ public static partial class Files
         {
             var bytes = File.ReadAllBytes(filePath);
             var targetEncoding = encoding ?? EncodingDetector.DetectEncoding(bytes);
-            var preamble = targetEncoding.GetPreamble();
+            var preamble = targetEncoding is UTF8Encoding
+                ? Encoding.UTF8.GetPreamble()
+                : targetEncoding.GetPreamble();
             var offset = preamble.Length > 0 && bytes.AsSpan().StartsWith(preamble) ? preamble.Length : 0;
             return targetEncoding.GetString(bytes, offset, bytes.Length - offset);
         }
