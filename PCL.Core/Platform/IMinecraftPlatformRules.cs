@@ -13,4 +13,7 @@ public interface IMinecraftPlatformRules
     bool MatchesOsRule(string osName, string? versionPattern);
 
     bool MatchesArchRule(string arch);
+
+    /// <summary>游戏窗口尺寸参数是否按物理像素计算；为 <c>true</c> 时，按启动器窗口设置游戏窗口大小需要乘以显示缩放比。</summary>
+    bool GameWindowUsesPhysicalPixels { get; }
 }

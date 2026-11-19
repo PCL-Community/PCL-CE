@@ -352,11 +352,6 @@ public static class LauncherCommon
         TaskDone = 5
     }
 
-    public static double GetPixelSize(double wpfSize)
-    {
-        return wpfSize / 96d * Dpi;
-    }
-
     public static bool IsUtf8CodePage()
     {
         return Encoding.Default.CodePage == 65001;

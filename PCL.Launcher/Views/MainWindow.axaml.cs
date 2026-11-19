@@ -76,6 +76,8 @@ public partial class MainWindow : Window
             DispatcherPriority.Loaded);
         Opened += (_, _) => TaskbarProgress.SetThumbnailClip(new Thickness(10d));
         SizeChanged += (_, _) => TaskbarProgress.SetThumbnailClip(new Thickness(10d));
+        Opened += (_, _) => UpdateLauncherDpi();
+        ScalingChanged += (_, _) => UpdateLauncherDpi();
 
         _titleBar.TabSelected += PageRouter.Navigate;
         _titleBar.BackRequested += () => PageRouter.Back();
@@ -192,6 +194,11 @@ public partial class MainWindow : Window
 
         Width = Math.Max(MinWidth, width);
         Height = Math.Max(MinHeight, height);
+    }
+
+    private void UpdateLauncherDpi()
+    {
+        LauncherCommon.Dpi = (int)Math.Round(RenderScaling * 96d);
     }
 
     private void ApplyRoundedWindowClip()

@@ -12,6 +12,8 @@ public sealed class WindowsMinecraftPlatformRules : IMinecraftPlatformRules
 
     public IReadOnlyList<string> NativeOsNames => ["windows"];
 
+    public bool GameWindowUsesPhysicalPixels => true;
+
     public IReadOnlyList<string> GetNativeClassifierNames(Architecture architecture)
     {
         return architecture switch

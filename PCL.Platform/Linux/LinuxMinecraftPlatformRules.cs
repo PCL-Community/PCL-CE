@@ -8,6 +8,8 @@ public sealed class LinuxMinecraftPlatformRules : IMinecraftPlatformRules
 {
     public IReadOnlyList<string> NativeOsNames => ["linux"];
 
+    public bool GameWindowUsesPhysicalPixels => false;
+
     public IReadOnlyList<string> GetNativeClassifierNames(Architecture architecture)
     {
         return architecture switch

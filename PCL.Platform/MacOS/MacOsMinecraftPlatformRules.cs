@@ -8,6 +8,8 @@ public sealed class MacOsMinecraftPlatformRules : IMinecraftPlatformRules
 {
     public IReadOnlyList<string> NativeOsNames => ["osx", "macos"];
 
+    public bool GameWindowUsesPhysicalPixels => false;
+
     public IReadOnlyList<string> GetNativeClassifierNames(Architecture architecture)
     {
         return architecture is Architecture.Arm64

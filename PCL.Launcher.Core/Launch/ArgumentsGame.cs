@@ -1,10 +1,16 @@
 using System.Globalization;
 using PCL.Core.App;
+using PCL.Core.Platform;
 
 namespace PCL;
 
 public static partial class GameLaunch
 {
+    private static double GameWindowScale =>
+        ApplicationRuntime.GetService<IMinecraftPlatformRules>()?.GameWindowUsesPhysicalPixels == true
+            ? LauncherCommon.Dpi / 96d
+            : 1d;
+
     private static string McLaunchArgumentsGameOld(McInstance version)
     {
         var dataList = new List<string>();
@@ -143,8 +149,9 @@ public static partial class GameLaunch
         gameArguments.Add("${user_properties}", "{}");
         _AddAuthArgumentReplacements(gameArguments);
 
-        var gameSize = _GetGameWindowSize();
-        _ApplyLegacyWindowSizeFix(ref gameSize, instance);
+        var scale = GameWindowScale;
+        var gameSize = _GetGameWindowSize(scale);
+        _ApplyLegacyWindowSizeFix(ref gameSize, instance, scale);
         gameArguments.Add(
             "${resolution_width}",
             Math.Round(gameSize.Width).ToString(CultureInfo.InvariantCulture));
@@ -209,16 +216,14 @@ public static partial class GameLaunch
         gameArguments.Add("${user_type}", "msa");
     }
 
-    private static GameWindowSize _GetGameWindowSize()
+    private static GameWindowSize _GetGameWindowSize(double scale)
     {
         switch (Config.Launch.GameWindowMode)
         {
             case GameWindowSizeMode.Launcher:
             {
                 var pan = LaunchUi.GetMainPanSize();
-                return new GameWindowSize(
-                    LauncherCommon.GetPixelSize(pan.Width),
-                    LauncherCommon.GetPixelSize(pan.Height) - 29.5d * LauncherCommon.Dpi / 96d);
+                return new GameWindowSize(pan.Width * scale, (pan.Height - 29.5d) * scale);
             }
             case GameWindowSizeMode.Custom:
                 return new GameWindowSize(
@@ -232,7 +237,7 @@ public static partial class GameLaunch
         }
     }
 
-    private static void _ApplyLegacyWindowSizeFix(ref GameWindowSize gameSize, McInstance instance)
+    private static void _ApplyLegacyWindowSizeFix(ref GameWindowSize gameSize, McInstance instance, double scale)
     {
         if (instance.Info.Drop > 120
             || mcLaunchJavaSelected!.Installation
@@ -241,10 +246,13 @@ public static partial class GameLaunch
             || instance.Info.HasForge)
             return;
 
+        if (scale == 1d)
+            return;
+
         McLaunchLog(
             $"已应用窗口大小过大修复（{mcLaunchJavaSelected.Installation.Version.Revision}）");
-        gameSize.Width /= LauncherCommon.Dpi / 96d;
-        gameSize.Height /= LauncherCommon.Dpi / 96d;
+        gameSize.Width /= scale;
+        gameSize.Height /= scale;
     }
 
     private static string _BuildClassPath(McInstance instance, List<Libraries.McLibToken> libList)
