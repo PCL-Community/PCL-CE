@@ -57,6 +57,16 @@ public sealed class AnimationService : GeneralService
     public static IUiAccessProvider UiAccessProvider =>
         _uiAccessProvider ??= new AvaloniaUiAccessProvider();
 
+    internal static void SetUiAccessProviderForTest(IUiAccessProvider provider)
+    {
+        _uiAccessProvider = provider;
+    }
+
+    internal static void ResetUiAccessProviderForTest()
+    {
+        _uiAccessProvider = null;
+    }
+
     public static double MapSpeedValue(int value)
     {
         if (value <= 0) return 0d;

@@ -12,16 +12,20 @@ namespace PCL.Core.Test.UI;
 public sealed class SystemDialogsAsyncTest
 {
     private readonly TestFileDialogService _fileDialogs = new();
+    private int _uiThreadId;
 
     public TestContext TestContext { get; set; }
 
     [TestInitialize]
     public void Initialize()
     {
+        // MSTest may construct the test class on a different thread than the test method.
+        // Capture the actual test thread here so CheckAccess() has the right expectation.
+        _uiThreadId = Environment.CurrentManagedThreadId;
         ApplicationRuntime.ResetForTests();
         var provider = new TestServiceProvider()
             .Add<IFileDialogService>(_fileDialogs)
-            .Add<IUiDispatcher>(new TestUiDispatcher());
+            .Add<IUiDispatcher>(new TestUiDispatcher(_uiThreadId));
         ApplicationRuntime.Initialize(
             new ApplicationServices
             {
@@ -141,9 +145,9 @@ public sealed class SystemDialogsAsyncTest
         }
     }
 
-    private sealed class TestUiDispatcher : IUiDispatcher
+    private sealed class TestUiDispatcher(int uiThreadId) : IUiDispatcher
     {
-        private readonly int _uiThreadId = Environment.CurrentManagedThreadId;
+        private readonly int _uiThreadId = uiThreadId;
 
         public bool CheckAccess()
         {

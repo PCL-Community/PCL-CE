@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
@@ -10,6 +11,7 @@ using PCL.Core.UI.Animation;
 using PCL.Core.UI.Animation.Animatable;
 using PCL.Core.UI.Animation.Core;
 using PCL.Core.UI.Animation.Easings;
+using PCL.Core.UI.Animation.UIAccessProvider;
 
 namespace PCL.Core.Test.Animation;
 
@@ -20,6 +22,10 @@ public sealed class AnimationEngineTest
     public void Initialize()
     {
         AnimationService.RegisterValueProcessorsForTest();
+        // These tests drive frames manually and must not depend on an Avalonia
+        // dispatcher loop being active (the full test assembly may have initialized
+        // Avalonia from another test).
+        AnimationService.SetUiAccessProviderForTest(new SynchronousUiAccessProvider());
         AnimationService.Speed = 1d;
     }
 
@@ -27,6 +33,7 @@ public sealed class AnimationEngineTest
     public void Cleanup()
     {
         AnimationService.ResetSpeed();
+        AnimationService.ResetUiAccessProviderForTest();
     }
 
     [TestMethod]
@@ -411,6 +418,31 @@ public sealed class AnimationEngineTest
         finished.ComputeNextFrame(finishedTarget)!.GetAction()();
         Assert.IsTrue(finished.IsClockFinished);
         Assert.AreEqual(12d, finishedOwner.Value, 1e-6d);
+    }
+
+    private sealed class SynchronousUiAccessProvider : IUiAccessProvider
+    {
+        public bool CheckAccess() => true;
+
+        public void Invoke(Action action) => action();
+
+        public Task InvokeAsync(Action action)
+        {
+            action();
+            return Task.CompletedTask;
+        }
+
+        public Task<T> InvokeAsync<T>(Func<T> func) => Task.FromResult(func());
+
+        public Task InvokeAsync(Func<Task> func) => func();
+
+        public Task<T> InvokeAsync<T>(Func<Task<T>> func) => func();
+
+        public event EventHandler? FrameTick
+        {
+            add { }
+            remove { }
+        }
     }
 
     private sealed class NumberOwner
