@@ -27,6 +27,11 @@ public partial class InstallLoaderCard : UserControl
         InitializeComponent();
         CardRoot.SwapControl = BodyHost;
         CardRoot.IsSwapped = true;
+        CardRoot.PropertyChanged += (_, e) =>
+        {
+            if (e.Property == MyCard.IsSwappedProperty)
+                SyncCollapsedHeader(CardRoot.IsSwapped);
+        };
 
         BtnClear.PointerPressed += OnClearPointerPressed;
         BtnClear.PointerReleased += OnClearPointerReleased;
