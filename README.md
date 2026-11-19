@@ -40,18 +40,18 @@ PCL CE 是基于 PCL 开源代码二次开发的社区版本，包括了主线�
 
 | 版本 | 架构 | 支持情况 | 环境要求 |
 |---|---|---|---|
-| Windows 10 1809 (17763) 及以上，或 Windows 11 | x64、ARM64 | ✅ 完整支持 | [.NET 11 Runtime](https://get.dot.net/11) |
-| Windows 10 1607 (E) | x64 | ⚠️ 理论能跑，酌情提供社区支持 | [.NET 11 Runtime](https://get.dot.net/11) |
+| Windows 10 1809 (17763) 及以上，或 Windows 11 | x64、ARM64 | ✅ 完整支持 | [.NET 10 Runtime](https://get.dot.net/10) |
+| Windows 10 1607 (E) | x64 | ⚠️ 理论能跑，酌情提供社区支持 | [.NET 10 Runtime](https://get.dot.net/10) |
 | Windows 8.1、8、7 及更低版本 | / | ❌ 不支持 | / |
 
-<small>`(E)` 指 Enterprise 或 ESU 版本。.NET 11 对 Windows 10 1607 和 1809 的官方支持仅限这些版本。</small>
+<small>`(E)` 指 Enterprise 或 ESU 版本。.NET 10 对 Windows 10 1607 和 1809 的官方支持仅限这些版本。</small>
 
 ### Linux
 
 | 发行版 | 架构 | 支持情况 | 环境要求 |
 |---|---|---|---|
-| 常见 glibc 桌面发行版<br>（Ubuntu 22.04 及以上、Fedora 43 及以上、Arch Linux 等） | x64 | ✅ 支持 | [.NET 11 Runtime](https://get.dot.net/11)、X11、Wayland 实验 |
-| 同上 | ARM64 | ✅ 支持 | [.NET 11 Runtime](https://get.dot.net/11)、X11 |
+| 常见 glibc 桌面发行版<br>（Ubuntu 22.04 及以上、Fedora 43 及以上、Arch Linux 等） | x64 | ✅ 支持 | [.NET 10 Runtime](https://get.dot.net/10)、X11、Wayland 实验 |
+| 同上 | ARM64 | ✅ 支持 | [.NET 10 Runtime](https://get.dot.net/10)、X11 |
 | 其他 glibc 桌面发行版 | x64、ARM64 | ⚠️ 理论能跑，酌情提供社区支持 | 需要 glibc 2.27 及以上，并能使用 X11 桌面 |
 | Alpine 等 musl 发行版 | x64、ARM64 | ❌ 不支持 | 当前产物尚未在 musl 环境验证 |
 
@@ -61,7 +61,7 @@ PCL CE 是基于 PCL 开源代码二次开发的社区版本，包括了主线�
 
 | 版本 | 架构 | 支持情况 | 环境要求 |
 |---|---|---|---|
-| macOS 12 及以上 | Apple Silicon (ARM64)、Intel (x64) | ✅ 支持 | [.NET 11 Runtime](https://get.dot.net/11) |
+| macOS 12 及以上 | Apple Silicon (ARM64)、Intel (x64) | ✅ 支持 | [.NET 10 Runtime](https://get.dot.net/10) |
 
 **✅ 完整支持**：会尽量提供支持，但请先确保使用最新版本。
 

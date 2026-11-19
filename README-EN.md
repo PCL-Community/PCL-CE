@@ -40,18 +40,18 @@ Everyone is welcome to try it out!
 
 | Version | Architecture | Support | Requirements |
 |---|---|---|---|
-| Windows 10 1809 (17763) or later, or Windows 11 | x64, ARM64 | ✅ Fully supported | [.NET 11 Runtime](https://get.dot.net/11) |
-| Windows 10 1607 (E) | x64 | ⚠️ Expected to run; community support offered at discretion | [.NET 11 Runtime](https://get.dot.net/11) |
+| Windows 10 1809 (17763) or later, or Windows 11 | x64, ARM64 | ✅ Fully supported | [.NET 10 Runtime](https://get.dot.net/10) |
+| Windows 10 1607 (E) | x64 | ⚠️ Expected to run; community support offered at discretion | [.NET 10 Runtime](https://get.dot.net/10) |
 | Windows 8.1, 8, 7 or earlier | / | ❌ Not supported | / |
 
-<small>`(E)` means Enterprise or ESU editions. .NET 11 officially supports Windows 10 1607 and 1809 only on these editions.</small>
+<small>`(E)` means Enterprise or ESU editions. .NET 10 officially supports Windows 10 1607 and 1809 only on these editions.</small>
 
 ### Linux
 
 | Distribution | Architecture | Support | Requirements |
 |---|---|---|---|
-| Common glibc desktop distributions<br>(Ubuntu 22.04 or later, Fedora 43 or later, Arch Linux, etc.) | x64 | ✅ Supported | [.NET 11 Runtime](https://get.dot.net/11), X11, Wayland experimental |
-| Same as above | ARM64 | ✅ Supported | [.NET 11 Runtime](https://get.dot.net/11), X11 |
+| Common glibc desktop distributions<br>(Ubuntu 22.04 or later, Fedora 43 or later, Arch Linux, etc.) | x64 | ✅ Supported | [.NET 10 Runtime](https://get.dot.net/10), X11, Wayland experimental |
+| Same as above | ARM64 | ✅ Supported | [.NET 10 Runtime](https://get.dot.net/10), X11 |
 | Other glibc desktop distributions | x64, ARM64 | ⚠️ Expected to run; community support offered at discretion | Requires glibc 2.27 or later and a working X11 desktop |
 | Alpine and other musl distributions | x64, ARM64 | ❌ Not supported | Current artifacts have not been tested on musl |
 
@@ -61,7 +61,7 @@ Everyone is welcome to try it out!
 
 | Version | Architecture | Support | Requirements |
 |---|---|---|---|
-| macOS 12 or later | Apple Silicon (ARM64), Intel (x64) | ✅ Supported | [.NET 11 Runtime](https://get.dot.net/11) |
+| macOS 12 or later | Apple Silicon (ARM64), Intel (x64) | ✅ Supported | [.NET 10 Runtime](https://get.dot.net/10) |
 
 **✅ Fully supported**: We will provide as much support as possible. Please make sure you are using the latest version.
 

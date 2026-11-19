@@ -7,7 +7,7 @@
         <Product>PCL.Platform</Product>
         <Copyright>Copyright © PCL Community</Copyright>
         <RootNamespace>PCL.Platform</RootNamespace>
-        <TargetFramework>net11.0</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
         <LangVersion>15.0</LangVersion>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
