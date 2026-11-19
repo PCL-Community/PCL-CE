@@ -32,6 +32,7 @@ public sealed class StartupEffects(
 
         try
         {
+            UiLogBridge.Install();
             GameFolders.ApplySelectedFolder(States.Game.SelectedFolder);
             LauncherCommon.ModeDebug = Config.Debug.Enabled;
             PrepareWindowAnimation();
@@ -228,14 +229,19 @@ public sealed class StartupEffects(
             if (issues.Count == 0) return;
             LogWrapper.Info("UI", $"启动环境检查发现问题：{string.Join(", ", issues)}");
 
-            var problems = issues.Select(issue => Lang.Text(issue switch
-            {
-                RuntimeEnvironmentIssue.OutdatedSystem => "Application.EnvironmentWarning.WindowsVersion",
-                RuntimeEnvironmentIssue.System32Bit => "Application.EnvironmentWarning.System32Bit",
-                RuntimeEnvironmentIssue.TempFolder => "Application.EnvironmentWarning.TempFolder",
-                RuntimeEnvironmentIssue.SocialSoftwareFolder => "Application.EnvironmentWarning.SocialSoftwareFolder",
-                _ => throw new ArgumentOutOfRangeException(nameof(issue), issue, null)
-            }));
+            var problems = issues.Select(issue => Lang.Text(
+                issue switch
+                {
+                    RuntimeEnvironmentIssue.OutdatedSystem =>
+                        "Application.EnvironmentWarning.WindowsVersion",
+                    RuntimeEnvironmentIssue.System32Bit =>
+                        "Application.EnvironmentWarning.System32Bit",
+                    RuntimeEnvironmentIssue.TempFolder =>
+                        "Application.EnvironmentWarning.TempFolder",
+                    RuntimeEnvironmentIssue.SocialSoftwareFolder =>
+                        "Application.EnvironmentWarning.SocialSoftwareFolder",
+                    _ => throw new ArgumentOutOfRangeException(nameof(issue), issue, null)
+                }));
 
             await DialogService.Instance.ShowAsync(
                 new TextDialogRequest

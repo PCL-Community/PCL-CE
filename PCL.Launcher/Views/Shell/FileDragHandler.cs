@@ -360,6 +360,19 @@ public sealed class FileDragHandler
             foreach (var path in paths)
             {
                 var target = Path.Combine(folder, Path.GetFileName(path));
+                if (string.Equals(
+                        Path.GetFullPath(path),
+                        Path.GetFullPath(target),
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    HintService.Show(
+                        Hints.Info(
+                            Lang.Text(
+                                "Main.FileDrag.SameFileExists",
+                                Path.GetFileName(path))));
+                    continue;
+                }
+
                 if (File.Exists(target))
                 {
                     var overwrite = (await DialogService.Instance.ShowAsync(

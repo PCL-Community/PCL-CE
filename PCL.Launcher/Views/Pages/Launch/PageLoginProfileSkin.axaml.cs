@@ -68,6 +68,9 @@ public partial class PageLoginProfileSkin : LoginPageBase
             case nameof(PageLoginProfileSkinViewModel.CanSave):
                 _menuSave?.IsEnabled = ViewModel.CanSave;
                 break;
+            case nameof(PageLoginProfileSkinViewModel.HasCape):
+                _skin.HasCape = ViewModel.HasCape;
+                break;
         }
     }
 

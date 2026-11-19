@@ -70,7 +70,8 @@
                     <TextBlock Grid.Column="0"
                                HorizontalAlignment="Left"
                                Margin="0,0,25,0"
-                               Text="{loc:Loc LogPage.MaxLines.Title}" />
+                               Text="{loc:Loc LogPage.MaxLines.Title}"
+                               ToolTip.Tip="{loc:Loc LogPage.MaxLines.ToolTip}" />
                     <ui:MySlider x:Name="SliderMaxLog"
                                  Grid.Column="1"
                                  HorizontalAlignment="Stretch"

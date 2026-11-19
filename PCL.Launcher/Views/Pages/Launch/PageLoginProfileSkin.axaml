@@ -21,7 +21,6 @@
                            Margin="0,0,0,10"
                            HorizontalAlignment="Center"
                            VerticalAlignment="Top"
-                           HasCape="False"
                            IsHitTestVisible="False" />
             <TextBlock x:Name="TextName"
                        Margin="8,0"

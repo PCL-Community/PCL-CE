@@ -25,6 +25,8 @@ public partial class PageLoginProfileSkinViewModel : ViewModelBase
 
     [ObservableProperty] public partial bool HasProfile { get; set; }
 
+    [ObservableProperty] public partial bool HasCape { get; set; } = true;
+
     [ObservableProperty] public partial bool IsSkinLoading { get; set; }
 
     [ObservableProperty]
@@ -62,6 +64,7 @@ public partial class PageLoginProfileSkinViewModel : ViewModelBase
         ProfileName = profile.UserName;
         OnPropertyChanged(nameof(ProfileTypeText));
         EditVisible = profile.ProfileType is not ProfileType.Offline;
+        HasCape = profile.ProfileType is not ProfileType.Offline;
         IsSkinLoading = true;
 
         var address = "";
@@ -114,31 +117,44 @@ public partial class PageLoginProfileSkinViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private static void ChangeSkin()
+    private async Task ChangeSkinAsync()
     {
         var profile = ProfileService.Current;
         if (profile is null)
             return;
-        if (profile.ProfileType == ProfileType.Microsoft)
-            return;
 
-        if (profile.ProfileType is ProfileType.Authlib or ProfileType.YggdrasilConnect
-            && !string.IsNullOrWhiteSpace(profile.Server))
-            OpenProfilePage(profile.Server, "user/closet");
+        switch (profile.ProfileType)
+        {
+            case ProfileType.Microsoft:
+                await MicrosoftProfileUi.ChangeSkinAsync(profile);
+                await ReloadAsync();
+                return;
+
+            case ProfileType.Authlib or ProfileType.YggdrasilConnect
+                when !string.IsNullOrWhiteSpace(profile.Server):
+                OpenProfilePage(profile.Server, "user/closet");
+                break;
+        }
     }
 
     [RelayCommand]
-    private static void ChangeCape()
+    private async Task ChangeCapeAsync()
     {
         var profile = ProfileService.Current;
         if (profile is null)
             return;
-        if (profile.ProfileType == ProfileType.Microsoft)
-            return;
 
-        if (profile.ProfileType is ProfileType.Authlib or ProfileType.YggdrasilConnect
-            && !string.IsNullOrWhiteSpace(profile.Server))
-            OpenProfilePage(profile.Server, "user/closet");
+        switch (profile.ProfileType)
+        {
+            case ProfileType.Microsoft:
+                await MicrosoftProfileUi.ChangeCapeAsync(profile);
+                return;
+
+            case ProfileType.Authlib or ProfileType.YggdrasilConnect
+                when !string.IsNullOrWhiteSpace(profile.Server):
+                OpenProfilePage(profile.Server, "user/closet");
+                break;
+        }
     }
 
     [RelayCommand]
@@ -147,32 +163,41 @@ public partial class PageLoginProfileSkinViewModel : ViewModelBase
         var profile = ProfileService.Current;
         if (profile is null)
             return;
-        if (profile.ProfileType == ProfileType.Microsoft)
+        switch (profile.ProfileType)
         {
-            Basics.OpenPath("https://account.live.com/password/Change");
-            return;
-        }
+            case ProfileType.Microsoft:
+                Basics.OpenPath("https://account.live.com/password/Change");
+                return;
 
-        if (profile.ProfileType is ProfileType.Authlib or ProfileType.YggdrasilConnect
-            && !string.IsNullOrWhiteSpace(profile.Server))
-            OpenProfilePage(profile.Server, "user/profile");
+            case ProfileType.Authlib or ProfileType.YggdrasilConnect
+                when !string.IsNullOrWhiteSpace(profile.Server):
+                OpenProfilePage(profile.Server, "user/profile");
+                break;
+        }
     }
 
     [RelayCommand]
-    private static void EditUserName()
+    private async Task EditUserName()
     {
         var profile = ProfileService.Current;
         if (profile is null)
             return;
-        if (profile.ProfileType == ProfileType.Offline)
+        switch (profile.ProfileType)
         {
-            LaunchLoginHelper.EditOfflineUserName(profile);
-            return;
-        }
+            case ProfileType.Offline:
+                LaunchLoginHelper.EditOfflineUserName(profile);
+                return;
 
-        if (profile.ProfileType is ProfileType.Authlib or ProfileType.YggdrasilConnect
-            && !string.IsNullOrWhiteSpace(profile.Server))
-            OpenProfilePage(profile.Server, "user/profile");
+            case ProfileType.Microsoft:
+                await MicrosoftProfileUi.EditNameAsync(profile);
+                await ReloadAsync();
+                return;
+
+            case ProfileType.Authlib or ProfileType.YggdrasilConnect
+                when !string.IsNullOrWhiteSpace(profile.Server):
+                OpenProfilePage(profile.Server, "user/profile");
+                break;
+        }
     }
 
     private static void OpenProfilePage(string server, string subPath)

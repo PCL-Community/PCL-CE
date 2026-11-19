@@ -634,7 +634,7 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             false,
             [
                 new HideCheckDefinition("UiHiddenSetupLaunch", "Setup.Ui.FeatureHide.Item.Launch"),
-                new HideCheckDefinition("UiHiddenSetupJava", null, "Java"),
+                new HideCheckDefinition("UiHiddenSetupJava", "Setup.Ui.FeatureHide.Item.Java"),
                 new HideCheckDefinition(
                     "UiHiddenSetupGameManage",
                     "Setup.Ui.FeatureHide.Item.GameManage"),
