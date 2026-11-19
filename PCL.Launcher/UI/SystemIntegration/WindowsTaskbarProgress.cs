@@ -111,9 +111,20 @@ internal sealed class WindowsTaskbarProgress : ITaskbarProgressBackend
         void DeleteTab(IntPtr hwnd);
         void ActivateTab(IntPtr hwnd);
         void SetActiveAlt(IntPtr hwnd);
+
         void MarkFullscreenWindow(IntPtr hwnd, [MarshalAs(UnmanagedType.Bool)] bool fullscreen);
+
         void SetProgressValue(IntPtr hwnd, ulong completed, ulong total);
         void SetProgressState(IntPtr hwnd, TbpFlag flags);
+        void RegisterTab(IntPtr hwndTab, IntPtr hwndMdi);
+        void UnregisterTab(IntPtr hwndTab);
+        void SetTabOrder(IntPtr hwndTab, IntPtr hwndInsertBefore);
+        void SetTabActive(IntPtr hwndTab, IntPtr hwndMdi, uint reserved);
+        void ThumbBarAddButtons(IntPtr hwnd, uint count, IntPtr buttons);
+        void ThumbBarUpdateButtons(IntPtr hwnd, uint count, IntPtr buttons);
+        void ThumbBarSetImageList(IntPtr hwnd, IntPtr himl);
+        void SetOverlayIcon(IntPtr hwnd, IntPtr hIcon, [MarshalAs(UnmanagedType.LPWStr)] string description);
+        void SetThumbnailTooltip(IntPtr hwnd, [MarshalAs(UnmanagedType.LPWStr)] string tip);
         void SetThumbnailClip(IntPtr hwnd, ref NativeRect prcClip);
     }
 }
