@@ -86,10 +86,30 @@ public sealed class SystemDialogsAsyncTest
     }
 
     [TestMethod]
-    public async Task BlockingEntryWorksOnWorkerThread()
+    public void BlockingEntryWorksOnWorkerThread()
     {
-        var result = await Task.Run(() => SystemDialogs.SelectFolderBlockingOnWorkerThread());
+        string? result = null;
+        Exception? error = null;
 
+        // Task.Run may reuse the calling thread-pool thread when it is idle, making
+        // this test non-deterministic. Use a dedicated thread so the "worker thread"
+        // contract is always exercised.
+        var worker = new Thread(() =>
+        {
+            try
+            {
+                result = SystemDialogs.SelectFolderBlockingOnWorkerThread();
+            }
+            catch (Exception ex)
+            {
+                error = ex;
+            }
+        });
+
+        worker.Start();
+        Assert.IsTrue(worker.Join(TimeSpan.FromSeconds(5)), "worker thread did not finish");
+
+        Assert.IsNull(error);
         Assert.AreEqual(TestFileDialogService.FolderPath, result);
     }
 
