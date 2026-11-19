@@ -1,6 +1,5 @@
-name: "综合 Bug 反馈 / General Bug Report"
+name: "[旧版] 综合 Bug 反馈 / [Legacy] General Bug Report"
 description: "遇见了与启动器功能相关的 Bug / Report a bug related to launcher features"
-title: "[C#]: "
 type: "Bug"
 body:
   - type: checkboxes
