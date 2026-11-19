@@ -70,7 +70,7 @@ public static class HomepagePresetTable
             7,
             "Setup.Ui.Homepage.Preset.Magazine",
             HomepageSourceKind.CustomXaml,
-            "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/Ext1nguisher/Custom.xaml"),
+            "https://github.com/Neclyon/Magazine-Homepage-PCL/raw/main/output/Custom.xaml"),
         new(
             8,
             "Setup.Ui.Homepage.Preset.GitHub",

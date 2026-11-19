@@ -223,7 +223,8 @@ public static partial class Files
             // 注：内部 buffer 长度可能大于实际数据长度
             var buffer = memoryStream.GetBuffer();
             var len = (int)memoryStream.Length;
-            return (encoding ?? EncodingDetector.DetectEncoding(buffer)).GetString(buffer, 0, len);
+            memoryStream.Position = 0;
+            return (encoding ?? EncodingDetector.DetectEncoding(memoryStream)).GetString(buffer, 0, len);
         }
         catch (Exception ex)
         {

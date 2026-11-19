@@ -11,7 +11,7 @@ public static class EncodingDetector
     /// </summary>
     /// <param name="stream">输入流，必须支持 Seek</param>
     /// <param name="readFromBegin">是否将流重置到起始点</param>
-    /// <returns>检测到的编码，未识别时返回 UTF-8 或系统默认</returns>
+    /// <returns>检测到的编码，有BOM的时候返回BOM对应的编码，没有BOM但传入的内容是合法的UTF-8的时候，返回UTF-8，其余情况返回GB18030</returns>
     public static Encoding DetectEncoding(Stream stream, bool readFromBegin = false)
     {
         if (!stream.CanRead)
@@ -24,7 +24,7 @@ public static class EncodingDetector
 
         try
         {
-            return _DetectByBom(stream, originalPosition) ?? _DetectWithoutBOM(stream, originalPosition) ?? Encoding.Default;
+            return _DetectByBom(stream, originalPosition) ?? _DetectWithoutBOM(stream, originalPosition) ?? Encodings.GB18030;
         }
         finally
         {
@@ -82,24 +82,24 @@ public static class EncodingDetector
     }
 
     /// <summary>
-    /// 验证流内容是否为合法 UTF-8（通过 round-trip 验证）
+    /// 验证流内容是否为合法 UTF-8（严格解码，遇到非法字节则判定不是UTF-8）
     /// </summary>
     private static bool _IsValidUtf8(Stream stream, long originalPosition)
     {
         const int sampleSize = 1024;
         var buffer = new byte[sampleSize];
+        var chars = new char[Encoding.UTF8.GetMaxCharCount(sampleSize)];
+        var decoder = new UTF8Encoding(false, true).GetDecoder();
         stream.Position = originalPosition;
 
         try
         {
-            var read = stream.Read(buffer, 0, sampleSize);
-            if (read == 0) return true;
-            var sample = buffer.AsSpan(0, read);
-            var decoded = Encoding.UTF8.GetString(sample);
-            var roundTrip = Encoding.UTF8.GetBytes(decoded);
-            return roundTrip.AsSpan().SequenceEqual(sample);
+            int read;
+            while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+                decoder.GetChars(buffer, 0, read, chars, 0, false);
+            return true;
         }
-        catch
+        catch (DecoderFallbackException)
         {
             return false;
         }
