@@ -1,10 +1,12 @@
+using PCL.Core.Platform;
+
 namespace PCL;
 
 /// <summary>业务层页面导航。</summary>
 public interface ICompNavigationService
 {
-    /// <summary>跳转到 Comp 详情页。<paramref name="project" /> 由 UI 层转换为页面参数。</summary>
-    void ShowCompDetail(object project);
+    /// <summary>跳转到 Comp 详情页。</summary>
+    void ShowCompDetail(Comp.CompProject project);
 
     void ShowTaskManager();
     void ShowInstanceSelect();
@@ -12,7 +14,7 @@ public interface ICompNavigationService
 
 public static class CompNavigation
 {
-    public static ICompNavigationService? Current { get; set; }
+    public static ICompNavigationService? Current => ApplicationRuntime.GetService<ICompNavigationService>();
 
     public static void ShowTaskManager()
     {

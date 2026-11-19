@@ -17,6 +17,8 @@ namespace PCL.Core.Test;
 [TestClass]
 public class LoggerTest
 {
+    public TestContext TestContext { get; set; }
+
     [TestMethod]
     public async Task TestSimpleWrite()
     {
@@ -29,17 +31,17 @@ public class LoggerTest
         var files = logger.CurrentLogFiles;
         await logger.DisposeAsync();
 
-        var lines = _ReadAll(files).Split('\n', StringSplitOptions.RemoveEmptyEntries)
+        var lines = _ReadAll(files)
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries)
             .Select(static x => x.TrimEnd('\r'))
             .ToArray();
 
-        Assert.AreEqual(10, lines.Length);
+        Assert.HasCount(10, lines);
         for (var i = 0; i < lines.Length; i++)
-        {
-            StringAssert.Matches(
-                lines[i],
-                new Regex(@"^\[\d{2}:\d{2}:\d{2}\.\d{3}\] \[INFO\] \[[^\]]+\] Current we got " + i + "$"));
-        }
+            Assert.MatchesRegex(
+                new Regex(
+                    $@"^\[\d{{2}}:\d{{2}}:\d{{2}}\.\d{{3}}\] \[INFO\] \[[^\]]+\] Current we got {i}$"),
+                lines[i]);
     }
 
     [TestMethod]
@@ -55,11 +57,14 @@ public class LoggerTest
         for (var i = 0; i < threadCount; i++)
         {
             var current = i;
-            tasks.Add(Task.Run(() =>
-            {
-                for (var j = 0; j < perThread; j++)
-                    logger.Info($"Current we got {current}:{j}");
-            }, TestContext.CancellationToken));
+            tasks.Add(
+                Task.Run(
+                    () =>
+                    {
+                        for (var j = 0; j < perThread; j++)
+                            logger.Info($"Current we got {current}:{j}");
+                    },
+                    TestContext.CancellationToken));
         }
 
         await Task.WhenAll(tasks.ToArray());
@@ -86,9 +91,35 @@ public class LoggerTest
         await logger.DisposeAsync();
 
         var content = _ReadAll(files);
-        StringAssert.Contains(content, "error-line");
-        Assert.IsFalse(content.Contains("debug-line"), "Debug entries must not reach the file.");
-        Assert.IsFalse(content.Contains("info-line"), "Info entries must not reach the file.");
+        Assert.Contains("error-line", content);
+        Assert.DoesNotContain("debug-line", content, "Debug entries must not reach the file.");
+        Assert.DoesNotContain("info-line", content, "Info entries must not reach the file.");
+    }
+
+    [TestMethod]
+    public async Task TestSetMinLevelChangesFilterAtRuntime()
+    {
+        var folder = _CreateTempFolder();
+        var logger = new Logger(new LoggerConfiguration(folder, MinLogLevel: LogLevel.Info));
+
+        logger.Debug("before-upgrade");
+        logger.SetMinLevel(LogLevel.Trace);
+        logger.Debug("after-upgrade");
+        logger.SetMinLevel(LogLevel.Error);
+        logger.Info("after-downgrade-hidden");
+        logger.Error("after-downgrade-visible");
+
+        var files = logger.CurrentLogFiles;
+        await logger.DisposeAsync();
+
+        var content = _ReadAll(files);
+        Assert.DoesNotContain(
+            "before-upgrade",
+            content,
+            "Debug must stay hidden before the level changes.");
+        Assert.Contains("after-upgrade", content);
+        Assert.DoesNotContain("after-downgrade-hidden", content);
+        Assert.Contains("after-downgrade-visible", content);
     }
 
     [TestMethod]
@@ -112,11 +143,15 @@ public class LoggerTest
 
         using (adapter.BeginScope("A"))
         {
-            await Task.Run(() =>
-            {
-                using (adapter.BeginScope("B"))
-                    adapter.LogInformation("child-line");
-            }, TestContext.CancellationToken);
+            await Task.Run(
+                () =>
+                {
+                    using (adapter.BeginScope("B"))
+                    {
+                        adapter.LogInformation("child-line");
+                    }
+                },
+                TestContext.CancellationToken);
 
             adapter.LogInformation("parent-line");
         }
@@ -125,9 +160,12 @@ public class LoggerTest
         await logger.DisposeAsync();
 
         var content = _ReadAll(files);
-        StringAssert.Contains(content, "[TestCat] [A => B] child-line");
-        StringAssert.Contains(content, "[TestCat] [A] parent-line");
-        Assert.IsFalse(content.Contains("[TestCat] [A => B] parent-line"), "A child scope must not leak into the parent context.");
+        Assert.Contains("[TestCat] [A => B] child-line", content);
+        Assert.Contains("[TestCat] [A] parent-line", content);
+        Assert.DoesNotContain(
+            "[TestCat] [A => B] parent-line",
+            content,
+            "A child scope must not leak into the parent context.");
     }
 
     [TestMethod]
@@ -145,12 +183,20 @@ public class LoggerTest
         await logger.DisposeAsync();
 
         var content = _ReadAll(files);
-        Assert.AreEqual(1, _CountOccurrences(content, marker), "The exception text must be rendered exactly once.");
+        Assert.AreEqual(
+            1,
+            _CountOccurrences(content, marker),
+            "The exception text must be rendered exactly once.");
     }
 
     private static string _CreateTempFolder([CallerMemberName] string name = "")
     {
-        var path = Path.Combine(Path.GetTempPath(), "PCLTest", "Logger", name, Guid.NewGuid().ToString("N"));
+        var path = Path.Combine(
+            Path.GetTempPath(),
+            "PCLTest",
+            "Logger",
+            name,
+            Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(path);
         return path;
     }
@@ -173,8 +219,7 @@ public class LoggerTest
             count++;
             index += value.Length;
         }
+
         return count;
     }
-
-    public TestContext TestContext { get; set; }
 }

@@ -60,60 +60,70 @@ public static partial class CompDependency
         {
             if (!LocalCompFile.IsModFile(path)) continue;
 
-            var localFile = new LocalCompFile(path);
-            localFile.Load();
-
-            var source = localFile.Comp is null
-                ? null
-                : GetSource(localFile.Comp.FromCurseForge);
-            var gameVersions = localFile
-                    .CompFile?.GameVersions
-                    ?.Where(static version => !string.IsNullOrWhiteSpace(version))
-                    .Select(Comp.NormalizeGameVersion)
-                    .Where(static version => !string.IsNullOrWhiteSpace(version))
-                    .ToList()
-                ?? [];
-            var loaders = ToLoaderNames(localFile.CompFile?.ModLoaders);
-
-            if (!string.IsNullOrWhiteSpace(localFile.Comp?.Id)
-                && !string.IsNullOrWhiteSpace(source))
+            try
             {
-                result.Add(
-                    new InstalledModIdentity
-                    {
-                        SourceProjectId = localFile.Comp.Id,
-                        Source = source,
-                        ModId = localFile.ModId,
-                        GameVersions = gameVersions,
-                        Loaders = loaders
-                    });
-                continue;
-            }
+                var localFile = new LocalCompFile(path);
+                localFile.Load();
 
-            if (!string.IsNullOrWhiteSpace(localFile.CompFile?.ProjectId))
-            {
-                var fileSource = GetSource(localFile.CompFile.FromCurseForge);
-                result.Add(
-                    new InstalledModIdentity
-                    {
-                        SourceProjectId = localFile.CompFile.ProjectId,
-                        Source = fileSource,
-                        ModId = localFile.ModId,
-                        GameVersions = gameVersions,
-                        Loaders = loaders
-                    });
-                continue;
-            }
+                var source = localFile.Comp is null
+                    ? null
+                    : GetSource(localFile.Comp.FromCurseForge);
+                var gameVersions = localFile
+                        .CompFile?.GameVersions
+                        ?.Where(static version => !string.IsNullOrWhiteSpace(version))
+                        .Select(Comp.NormalizeGameVersion)
+                        .Where(static version => !string.IsNullOrWhiteSpace(version))
+                        .ToList()
+                    ?? [];
+                var loaders = ToLoaderNames(localFile.CompFile?.ModLoaders);
 
-            result.Add(
-                new InstalledModIdentity
+                if (!string.IsNullOrWhiteSpace(localFile.Comp?.Id)
+                    && !string.IsNullOrWhiteSpace(source))
                 {
-                    SourceProjectId = null,
-                    Source = null,
-                    ModId = localFile.ModId,
-                    GameVersions = gameVersions,
-                    Loaders = loaders
-                });
+                    result.Add(
+                        new InstalledModIdentity
+                        {
+                            SourceProjectId = localFile.Comp.Id,
+                            Source = source,
+                            ModId = localFile.ModId,
+                            GameVersions = gameVersions,
+                            Loaders = loaders
+                        });
+                    continue;
+                }
+
+                if (!string.IsNullOrWhiteSpace(localFile.CompFile?.ProjectId))
+                {
+                    var fileSource = GetSource(localFile.CompFile.FromCurseForge);
+                    result.Add(
+                        new InstalledModIdentity
+                        {
+                            SourceProjectId = localFile.CompFile.ProjectId,
+                            Source = fileSource,
+                            ModId = localFile.ModId,
+                            GameVersions = gameVersions,
+                            Loaders = loaders
+                        });
+                    continue;
+                }
+
+                result.Add(
+                    new InstalledModIdentity
+                    {
+                        SourceProjectId = null,
+                        Source = null,
+                        ModId = localFile.ModId,
+                        GameVersions = gameVersions,
+                        Loaders = loaders
+                    });
+            }
+            catch (Exception ex)
+            {
+                LauncherCommon.Log(
+                    ex,
+                    $"[CompDeps] 读取已安装 Mod 失败：{path}",
+                    LauncherLogLevel.Developer);
+            }
         }
 
         return result;

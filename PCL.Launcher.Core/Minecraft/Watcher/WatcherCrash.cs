@@ -2,6 +2,7 @@ using System.Diagnostics;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
+using PCL.Core.Platform;
 
 namespace PCL;
 
@@ -31,9 +32,11 @@ public static partial class GameWatcher
                             version.PathIndie,
                             [.. latestLog],
                             [
-                                version.PathInstance + version.Name + ".json",
+                                Path.Combine(version.PathInstance, $"{version.Name}.json"),
                                 LogWrapper.CurrentLogger.CurrentLogFiles.Last(),
-                                LauncherPaths.ExecutableDirectory + @"PCL\LatestLaunch.bat"
+                                Path.Combine(
+                                    Paths.Data,
+                                    "LatestLaunch.bat")
                             ]);
                     },
                     "Crash Analyzer");
@@ -67,16 +70,7 @@ public static partial class GameWatcher
                     if (CheckAlive(gameProcess))
                     {
                         WatcherLog(Lang.Text("Watcher.Kill.TaskkillAttempt"));
-                        var taskkillInfo = new ProcessStartInfo
-                        {
-                            FileName = "taskkill.exe",
-                            Arguments = $"/PID {gameProcess.Id} /F /T",
-                            RedirectStandardOutput = true,
-                            UseShellExecute = false
-                        };
-                        var taskkillProcess = Process.Start(taskkillInfo);
-                        var output = taskkillProcess?.StandardOutput.ReadToEnd() ?? string.Empty;
-                        WatcherLog(Lang.Text("Watcher.Kill.TaskkillResult", output));
+                        gameProcess.Kill(true);
                         gameProcess.WaitForExit(5000);
                         if (CheckAlive(gameProcess))
                         {
@@ -94,7 +88,7 @@ public static partial class GameWatcher
                             ref arglevel);
                     }
 
-                    GameExit?.Invoke();
+                    RaiseGameExit();
                 }
                 catch (Exception ex)
                 {
@@ -112,13 +106,30 @@ public static partial class GameWatcher
             var dump = new List<string>();
             for (var i = 1; i <= 3; i++)
             {
-                dump.Add(LauncherCommon.ShellAndGetOutput(jStackPath, "-l -e " + gameProcess.Id));
+                var output = "";
+                try
+                {
+                    var runner = ApplicationRuntime.GetService<IExternalCommandRunner>();
+                    if (runner is not null)
+                        output = runner
+                            .RunAsync(
+                                jStackPath,
+                                ["-l", "-e", gameProcess.Id.ToString()],
+                                TimeSpan.FromSeconds(30))
+                            .GetAwaiter()
+                            .GetResult()
+                            .StandardOutput;
+                }
+                catch
+                {
+                    // 堆栈导出失败不应影响崩溃报告。
+                }
+
+                dump.Add(output);
                 Thread.Sleep(3000);
             }
 
             return dump;
         }
-
-        private delegate bool EnumWindowsSub(nint hwnd, nint lParam);
     }
 }

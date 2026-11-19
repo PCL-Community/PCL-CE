@@ -1,6 +1,7 @@
 using System.Text;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.UI;
 using PCL.Network.Loaders;
 
@@ -9,9 +10,9 @@ namespace PCL;
 public static partial class Comp
 {
     /// <summary>
-    ///     资源卡片的快速下载入口：按 <see cref="Config.Download.Comp.QuickDownloadBehavior" /> 指定的行为，
-    ///     下载该资源最新（优先 Release、其次最新发布）的兼容版本到目标实例或文件夹。
-    ///     由 <see cref="MyCompItem" /> 上的快速下载按钮调用。快速下载不会自动安装前置。
+    /// 资源卡片的快速下载入口：按 <see cref="Config.Download.Comp.QuickDownloadBehavior" /> 指定的行为，
+    /// 下载该资源最新（优先 Release、其次最新发布）的兼容版本到目标实例或文件夹。 由 <see cref="MyCompItem" />
+    /// 上的快速下载按钮调用。快速下载不会自动安装前置。
     /// </summary>
     public static void QuickDownload(CompProject project)
     {
@@ -143,7 +144,7 @@ public static partial class Comp
                 GameFolders.mcFolderSelected,
                 Loading.LoaderFolderRunType.ForceRun,
                 1,
-                "versions\\",
+                $"versions{Path.DirectorySeparatorChar}",
                 true);
         }
 
@@ -170,13 +171,13 @@ public static partial class Comp
             [
                 .. compatible
                     .OrderBy(v => v == current ? 0 : 1)
-                    .ThenBy(v => v.Name)
+                    .ThenBy(v => v.Name, StringComparer.InvariantCulture)
             ];
         var indices = LauncherCommon.RunInUiWait(() =>
             CompUi.Current?.ShowMultiSelect(
                 Lang.Text("Download.Comp.QuickDownload.ChooseInstance.Title"),
                 null,
-                compatible.Select(v => v.Name).ToList(),
+                [.. compatible.Select(v => v.Name)],
                 Lang.Text("Common.Action.Continue"),
                 Lang.Text("Common.Action.Cancel")));
         if (indices is null) return null;
@@ -193,8 +194,8 @@ public static partial class Comp
             return;
         }
 
-        var saveFolder = LauncherCommon.RunInUiWait(() =>
-            SystemDialogs.SelectFolder(Lang.Text("Download.Comp.QuickDownload.Hint.SelectFolder")));
+        var saveFolder = SystemDialogs.SelectFolderBlockingOnWorkerThread(
+            Lang.Text("Download.Comp.QuickDownload.Hint.SelectFolder"));
         if (string.IsNullOrWhiteSpace(saveFolder)) return;
         var target = Path.Combine(saveFolder, CompFileNameGet(project, file));
         _StartQuickDownload(file, target);
@@ -206,18 +207,18 @@ public static partial class Comp
     /// <summary>构造并启动单文件下载任务（与详情页 Save_Click 末段一致）。</summary>
     private static void _StartQuickDownload(CompFile file, string target)
     {
-        var desc = file.Type switch
+        var descKey = file.Type switch
         {
-            CompType.Mod => Lang.Text("Download.Comp.Type.Mod"),
-            CompType.ResourcePack => Lang.Text("Download.Comp.Type.ResourcePack"),
-            CompType.Shader => Lang.Text("Download.Comp.Type.Shader"),
-            CompType.DataPack => Lang.Text("Download.Comp.Type.DataPack"),
-            CompType.World => Lang.Text("Download.Comp.Type.World"),
-            _ => Lang.Text("Download.Comp.Type.Mod")
+            CompType.Mod => "Download.Comp.Type.Mod",
+            CompType.ResourcePack => "Download.Comp.Type.ResourcePack",
+            CompType.Shader => "Download.Comp.Type.Shader",
+            CompType.DataPack => "Download.Comp.Type.DataPack",
+            CompType.World => "Download.Comp.Type.World",
+            _ => "Download.Comp.Type.Mod"
         };
         var loaderName = Lang.Text(
             "Download.Comp.Detail.DownloadResource",
-            desc,
+            Lang.Text(descKey),
             Path.GetFileNameWithoutExtension(target));
         var loaders = new List<Loading.LoaderBase>
         {
@@ -230,7 +231,9 @@ public static partial class Comp
                 ])
             {
                 ProgressWeight = 6,
-                block = true
+                block = true,
+                DisplayNameFactory = () =>
+                    Lang.Text("Download.Comp.Detail.DownloadFile")
             }
         };
         if (file.Type == CompType.World)
@@ -240,20 +243,28 @@ public static partial class Comp
                 loaders.Add(
                     new Loading.LoaderTask<int, int>(
                         Lang.Text("Download.Comp.Detail.InstallWorld"),
-                        _ => LauncherCommon.ExtractFile(target, extractDir, Encoding.UTF8))
+                        _ => Files.ExtractFile(target, extractDir, Encoding.UTF8))
                     {
                         ProgressWeight = 0.1d,
-                        block = true
+                        block = true,
+                        DisplayNameFactory = () => Lang.Text("Download.Comp.Detail.InstallWorld")
                     });
             loaders.Add(
                 new Loading.LoaderTask<int, int>(
                     Lang.Text("Download.Comp.Detail.CleanCache"),
-                    _ => File.Delete(target)));
+                    _ => File.Delete(target))
+                {
+                    DisplayNameFactory = () => Lang.Text("Download.Comp.Detail.CleanCache")
+                });
         }
 
         var loader = new Loading.LoaderCombo<int>(loaderName, loaders)
         {
-            OnStateChanged = loader => CompUi.Current?.LoaderStateChangedHintOnly(loader)
+            OnStateChanged = loader => CompUi.Current?.LoaderStateChangedHintOnly(loader),
+            DisplayNameFactory = () => Lang.Text(
+                "Download.Comp.Detail.DownloadResource",
+                Lang.Text(descKey),
+                Path.GetFileNameWithoutExtension(target))
         };
         loader.Start(1);
         Loading.LoaderTaskbarAdd(loader);
@@ -265,10 +276,10 @@ public static partial class Comp
     {
         return type switch
         {
-            CompType.Mod => "mods\\",
-            CompType.ResourcePack => "resourcepacks\\",
-            CompType.Shader => "shaderpacks\\",
-            CompType.World => "saves\\",
+            CompType.Mod => $"mods{Path.DirectorySeparatorChar}",
+            CompType.ResourcePack => $"resourcepacks{Path.DirectorySeparatorChar}",
+            CompType.Shader => $"shaderpacks{Path.DirectorySeparatorChar}",
+            CompType.World => $"saves{Path.DirectorySeparatorChar}",
             _ => ""
         };
     }
@@ -280,8 +291,8 @@ public static partial class Comp
     }
 
     /// <summary>
-    ///     按资源类型筛选文件，与详情页 GetResults 一致：Modrinth 会返回 Mod / 服务端插件 / 数据包混合的列表，
-    ///     需过滤回当前类型，避免快速下载到另一种产物。光影与资源包不筛（原版光影以资源包格式发布）。
+    /// 按资源类型筛选文件，与详情页 GetResults 一致：Modrinth 会返回 Mod / 服务端插件 / 数据包混合的列表，
+    /// 需过滤回当前类型，避免快速下载到另一种产物。光影与资源包不筛（原版光影以资源包格式发布）。
     /// </summary>
     private static List<CompFile> FilterFilesByType(List<CompFile> files, CompType type)
     {

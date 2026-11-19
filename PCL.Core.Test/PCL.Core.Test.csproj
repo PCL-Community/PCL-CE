@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>net10.0-windows</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
         <OutputType>Library</OutputType>
         <LangVersion>15.0</LangVersion>
         <Nullable>enable</Nullable>
@@ -13,8 +13,6 @@
         <Copyright>Copyright © PCL Community 2025</Copyright>
         <AssemblyVersion>1.0.0.0</AssemblyVersion>
         <FileVersion>1.0.0.0</FileVersion>
-        <EnableWindowsTargeting>true</EnableWindowsTargeting>
-        <UseWPF>true</UseWPF>
     </PropertyGroup>
     <PropertyGroup>
         <DebugSymbols>true</DebugSymbols>
@@ -39,20 +37,23 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="fNbt" Version="1.0.0" />
-        <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.7.0" />
-        <PackageReference Include="Microsoft.TestPlatform.AdapterUtilities" Version="18.7.0" />
-        <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="18.7.0" />
-        <PackageReference Include="MSTest.TestAdapter" Version="4.3.0" />
-        <PackageReference Include="MSTest.TestFramework" Version="4.3.0" />
-        <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.3" />
-        <PackageReference Include="System.Text.Json" Version="10.0.9" />
+        <PackageReference Include="fNbt" Version="2.1.0" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.12.0" />
+        <PackageReference Include="MSTest.TestAdapter" Version="4.5.3" />
+        <PackageReference Include="MSTest.TestFramework" Version="4.5.3" />
+        <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\PCL.Core\PCL.Core.csproj" />
+        <ProjectReference Include="..\PCL.Core.UI\PCL.Core.UI.csproj" />
+        <ProjectReference Include="..\PCL.Platform\PCL.Platform.csproj" />
         <ProjectReference Include="..\PCL.Launcher.Core\PCL.Launcher.Core.csproj" />
-        <ProjectReference Include="..\PCL.Core.Wpf\PCL.Core.Wpf.csproj" />
+        <ProjectReference Include="..\PCL.Launcher\PCL.Launcher.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <EmbeddedResource Include="..\PCL.Launcher\Resources\metadata.json" Link="metadata.json">
+            <LogicalName>PCL.metadata.json</LogicalName>
+        </EmbeddedResource>
     </ItemGroup>
     <ItemGroup>
         <Compile Remove="Net\**" />

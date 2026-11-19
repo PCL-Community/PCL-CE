@@ -1,5 +1,6 @@
 ﻿using System.IO.Compression;
 using System.Text;
+using PCL.Core.IO;
 
 namespace PCL;
 
@@ -13,7 +14,7 @@ public static partial class JarInJar
             if (entry is null)
                 return true;
 
-            var obj = (JsonObject)LauncherCommon.GetJson(LauncherCommon.ReadFile(entry.Open()));
+            var obj = (JsonObject)LauncherCommon.GetJson(Files.ReadAllTextOrEmpty(entry.Open()));
             if (!obj.TryGetPropertyValue("jars", out var jars) || jars is not JsonArray arr)
                 return true;
 
@@ -42,7 +43,7 @@ public static partial class JarInJar
         {
             var entry = jar.GetEntry("META-INF/jarjar/metadata.json");
             if (entry is null) return true;
-            var obj = (JsonObject)LauncherCommon.GetJson(LauncherCommon.ReadFile(entry.Open()));
+            var obj = (JsonObject)LauncherCommon.GetJson(Files.ReadAllTextOrEmpty(entry.Open()));
             if (!obj.TryGetPropertyValue("jars", out var jars) || jars is not JsonArray arr)
                 return true;
 
@@ -89,7 +90,7 @@ public static partial class JarInJar
             if (entry is null)
                 return true;
 
-            var obj = (JsonObject)LauncherCommon.GetJson(LauncherCommon.ReadFile(entry.Open()));
+            var obj = (JsonObject)LauncherCommon.GetJson(Files.ReadAllTextOrEmpty(entry.Open()));
             if (!obj.TryGetPropertyValue("quilt_loader", out var ql)
                 || ql is not JsonObject qlo
                 || !qlo.TryGetPropertyValue("jars", out var jars)
@@ -127,7 +128,7 @@ public static partial class JarInJar
                 return true;
 
             var sb = new StringBuilder();
-            foreach (var raw in LauncherCommon.ReadFile(entry.Open()).Split('\n'))
+            foreach (var raw in Files.ReadAllTextOrEmpty(entry.Open()).Split('\n'))
             {
                 var line = raw.TrimEnd('\r');
                 if (line.StartsWith(' '))

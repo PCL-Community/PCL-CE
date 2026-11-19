@@ -1,3 +1,5 @@
+using PCL.Core.Platform;
+
 namespace PCL;
 
 /// <summary>任务栏进度状态，与各 UI 框架的枚举解耦。</summary>
@@ -24,5 +26,5 @@ public interface ILoadingUi
 /// <summary>UI 层注册的加载通知实现。</summary>
 public static class LoadingUi
 {
-    public static ILoadingUi? Current { get; set; }
+    public static ILoadingUi? Current => ApplicationRuntime.GetService<ILoadingUi>();
 }

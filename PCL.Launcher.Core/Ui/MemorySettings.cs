@@ -1,3 +1,5 @@
+using PCL.Core.Platform;
+
 namespace PCL;
 
 /// <summary>实例内存设置读取。</summary>
@@ -9,15 +11,19 @@ public interface IMemorySettings
 
 public static class MemorySettings
 {
-    public static IMemorySettings? Current { get; set; }
+    public static IMemorySettings? Current => ApplicationRuntime.GetService<IMemorySettings>();
 
     public static double GetRam(McInstance version, bool? is32BitJava = null)
     {
-        return Current?.GetRam(version, is32BitJava) ?? 0;
+        return ApplicationRuntime
+            .GetRequiredService<IMemorySettings>()
+            .GetRam(version, is32BitJava);
     }
 
     public static double? GetInitialRam(McInstance version, bool? is32BitJava = null)
     {
-        return Current?.GetInitialRam(version, is32BitJava);
+        return ApplicationRuntime
+            .GetRequiredService<IMemorySettings>()
+            .GetInitialRam(version, is32BitJava);
     }
 }

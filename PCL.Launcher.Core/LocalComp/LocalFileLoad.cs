@@ -428,7 +428,7 @@ public static partial class LocalComp
             {
                 LauncherCommon.Log(ex, $"资源文件由于无权限无法打开（{path}）", LauncherLogLevel.Developer);
                 _fileUnavailableReason = new UnauthorizedAccessException(
-                    "没有读取此文件的权限，请尝试右键以管理员身份运行 PCL",
+                    "没有读取此文件的权限，请尝试右键以管理员身份运行 PCL CE",
                     ex);
             }
             catch (Exception ex)

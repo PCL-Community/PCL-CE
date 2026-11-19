@@ -1,7 +1,8 @@
-﻿using System.Globalization;
+using System.Globalization;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
-using PCL.Core.Utils.OS;
+using PCL.Core.IO;
+using PCL.Core.Platform;
 
 namespace PCL;
 
@@ -23,7 +24,10 @@ public static partial class GameLaunch
             string.IsNullOrEmpty(dataJvmCustom) ? Config.Launch.JvmArgs : dataJvmCustom);
         _ApplyPreferredIpStackArgs(dataList);
 
-        var availableGb = KernelInterop.GetAvailablePhysicalMemoryBytes() / 1073741824.0;
+        var availableBytes = ApplicationRuntime.Current.Platform.SystemFacts
+            .GetMemoryInfo()
+            .AvailableBytes;
+        var availableGb = availableBytes / 1073741824.0;
         McLaunchLog($"当前剩余内存：{availableGb.ToString("N1", CultureInfo.InvariantCulture)}G");
 
         _ApplyMemoryArgs(dataList);
@@ -76,9 +80,7 @@ public static partial class GameLaunch
                     .ToString(CultureInfo.InvariantCulture)}m");
     }
 
-    /// <summary>
-    ///     释放 Java Wrapper 并返回完整文件路径。
-    /// </summary>
+    /// <summary>释放 Java Wrapper 并返回完整文件路径。</summary>
     public static string ExtractJavaWrapper()
     {
         var wrapperPath = Path.Combine(LauncherPaths.PureAsciiDirectory, "JavaWrapper.jar");
@@ -134,14 +136,12 @@ public static partial class GameLaunch
 
     private static void WriteJavaWrapper(string path)
     {
-        LauncherCommon.WriteFile(
+        Files.WriteAllStream(
             path,
-            LauncherCommon.GetResourceStream("Resources/java-wrapper.jar")!);
+            Basics.GetResourceStream("Resources/java-wrapper.jar")!);
     }
 
-    /// <summary>
-    ///     释放 linkd 并返回完整文件路径。
-    /// </summary>
+    /// <summary>释放 linkd 并返回完整文件路径。</summary>
     public static string ExtractLinkD()
     {
         var linkDPath = Path.Combine(LauncherPaths.PureAsciiDirectory, "linkd.exe");
@@ -181,12 +181,10 @@ public static partial class GameLaunch
 
     private static void WriteLinkD(string path)
     {
-        LauncherCommon.WriteFile(path, LauncherCommon.GetResourceStream("Resources/linkd.exe")!);
+        Files.WriteAllStream(path, Basics.GetResourceStream("Resources/linkd.exe")!);
     }
 
-    /// <summary>
-    ///     判断是否使用 LegacyFix。
-    /// </summary>
+    /// <summary>判断是否使用 LegacyFix。</summary>
     private static bool McLaunchNeedsLegacyFix(McInstance mc)
     {
         if (!Config.Launch.DisableLF && !Config.Instance.DisableLF[mc.PathInstance])
@@ -197,9 +195,7 @@ public static partial class GameLaunch
         return false;
     }
 
-    /// <summary>
-    ///     获取实例所依赖的 LWJGL 版本
-    /// </summary>
+    /// <summary>获取实例所依赖的 LWJGL 版本</summary>
     private static string? McLaunchGetLwjglVersion(McInstance mc)
     {
         return (
@@ -215,9 +211,7 @@ public static partial class GameLaunch
         ).FirstOrDefault();
     }
 
-    /// <summary>
-    ///     判断是否启用了针对 Minecraft 26.1 的性能问题补丁
-    /// </summary>
+    /// <summary>判断是否启用了针对 Minecraft 26.1 的性能问题补丁</summary>
     private static bool McLaunchUsesLwjglUnsafeAgent(McInstance mc)
     {
         if (McLaunchGetLwjglVersion(mc) != "3.4.1")

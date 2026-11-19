@@ -1,41 +1,57 @@
 using System;
 using System.Management;
+using System.Runtime.InteropServices;
 using PCL.Core.App;
 using PCL.Core.Logging;
-using PCL.Core.Utils.Hash;
 using PCL.Core.Utils.Exts;
+using PCL.Core.Utils.Hash;
 
 namespace PCL.Core.Utils.Secret;
 
 [Obsolete("Use PCL.Core.Utils.Secret.Identify instead")]
 public static class IdentifyOld
 {
-    private const string DefaultRawCode = "B09675A9351CBD1FD568056781FE3966DD936CC9B94E51AB5CF67EEB7E74C075";
+    private const string DefaultRawCode =
+        "B09675A9351CBD1FD568056781FE3966DD936CC9B94E51AB5CF67EEB7E74C075";
+
     private static readonly Lazy<string?> _LazyCpuId = new(_GetCpuId);
 
     private static readonly Lazy<string> _LazyRawCode =
-        new(() => CpuId is null ? DefaultRawCode : SHA256Provider.Instance.ComputeHash(CpuId).ToHexString().ToUpper());
+        new(() => CpuId is null
+            ? DefaultRawCode
+            : SHA256Provider.Instance.ComputeHash(CpuId).ToHexString().ToUpper());
 
     private static readonly Lazy<string> _LaunchId = new(_GetLaunchId);
 
     private static readonly Lazy<string> _LazyEncryptKey =
-        new(() => SHA512Provider.Instance.ComputeHash(RawCode).ToHexString().Substring(4, 32).ToUpper());
+        new(() => SHA512Provider
+            .Instance.ComputeHash(RawCode)
+            .ToHexString()
+            .Substring(4, 32)
+            .ToUpper());
 
     public static string GetGuid() => Guid.NewGuid().ToString();
-    [Obsolete]
+
+    [Obsolete("Use Identify.LaunchId instead")]
     public static string? CpuId => _LazyCpuId.Value;
-    [Obsolete]
+
+    [Obsolete("Use Identify.RawCode instead")]
     public static string RawCode => _LazyRawCode.Value;
-    [Obsolete]
+
+    [Obsolete("Use Identify.LaunchId instead")]
     public static string LaunchId => _LaunchId.Value;
-    [Obsolete]
+
+    [Obsolete("Use Identify.EncryptKey instead")]
     public static string EncryptKey => _LazyEncryptKey.Value;
 
     private static string? _GetCpuId()
     {
+        if (!OperatingSystem.IsWindows()) return Identify.GetNonWindowsFingerprintMaterial();
+
         try
         {
-            using var searcher = new ManagementObjectSearcher("SELECT ProcessorId FROM Win32_Processor");
+            using var searcher =
+                new ManagementObjectSearcher("SELECT ProcessorId FROM Win32_Processor");
             using var collection = searcher.Get();
 
             foreach (var item in collection)
@@ -61,7 +77,7 @@ public static class IdentifyOld
         {
             LogWrapper.Error(ex, "Identify", $"WMI查询失败");
         }
-        catch (System.Runtime.InteropServices.COMException ex)
+        catch (COMException ex)
         {
             LogWrapper.Error(ex, "Identify", $"COM异常，请确保WMI服务正在运行");
         }
@@ -86,7 +102,8 @@ public static class IdentifyOld
     {
         try
         {
-            if (string.IsNullOrEmpty(States.System.LaunchUuid)) States.System.LaunchUuid = GetGuid();
+            if (string.IsNullOrEmpty(States.System.LaunchUuid))
+                States.System.LaunchUuid = GetGuid();
             var hashCode = GetMachineId(States.System.LaunchUuid)
                 .Substring(6, 16)
                 .Insert(4, "-")

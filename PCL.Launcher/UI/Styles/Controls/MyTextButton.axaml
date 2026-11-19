@@ -1,0 +1,22 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="using:PCL.UI.Controls">
+    <Style Selector="ui|MyTextButton">
+        <Setter Property="Background"
+                Value="{DynamicResource ColorBrushSemiTransparent}" />
+        <Setter Property="Padding"
+                Value="0" />
+    </Style>
+    <Style Selector="ui|MyTextButton TextBlock#LabText">
+        <Setter Property="Foreground"
+                Value="{DynamicResource ColorBrush1}" />
+    </Style>
+    <Style Selector="ui|MyTextButton.link TextBlock#LabText">
+        <Setter Property="TextDecorations"
+                Value="Underline" />
+    </Style>
+    <Style Selector="ui|MyTextButton.link">
+        <Setter Property="IsSecondary"
+                Value="True" />
+    </Style>
+</Styles>

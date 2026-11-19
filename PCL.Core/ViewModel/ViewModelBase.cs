@@ -4,17 +4,18 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using PCL.Core.Logging;
 using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
 
 namespace PCL.Core.ViewModel;
 
 /// <summary>统一的异步状态与异常处理基类。</summary>
-public abstract partial class ViewModelBase : ObservableObject
+public abstract partial class ViewModelBase : LocalizedObservableObject
 {
-    public IDialogService Dialog { get; set; } = PCL.Core.UI.Dialogs.DialogService.Instance;
+    [ObservableProperty] public partial string? Error { get; set; }
 
-    [ObservableProperty] private AsyncState _state = AsyncState.Idle;
+    [ObservableProperty] public partial AsyncState State { get; set; } = AsyncState.Idle;
 
-    [ObservableProperty] private string? _error;
+    public IDialogService Dialog { get; set; } = DialogService.Instance;
 
     public bool IsBusy => State == AsyncState.Loading;
 
@@ -23,7 +24,9 @@ public abstract partial class ViewModelBase : ObservableObject
         OnPropertyChanged(nameof(IsBusy));
     }
 
-    protected async Task RunAsync(Func<CancellationToken, Task> body, CancellationToken external = default)
+    protected async Task RunAsync(
+        Func<CancellationToken, Task> body,
+        CancellationToken external = default)
     {
         State = AsyncState.Loading;
         Error = null;
@@ -45,7 +48,9 @@ public abstract partial class ViewModelBase : ObservableObject
         }
     }
 
-    protected async Task<T?> RunAsync<T>(Func<CancellationToken, Task<T>> body, CancellationToken external = default)
+    protected async Task<T?> RunAsync<T>(
+        Func<CancellationToken, Task<T>> body,
+        CancellationToken external = default)
     {
         State = AsyncState.Loading;
         Error = null;

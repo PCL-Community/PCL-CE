@@ -1,0 +1,27 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="using:PCL.UI.Controls"
+             xmlns:loc="using:PCL.Core.UI"
+             x:Class="PCL.UI.Controls.Minecraft.MinecraftVersionListView"
+             x:CompileBindings="True">
+    <StackPanel>
+        <StackPanel x:Name="PanStatus"
+                    Margin="0,0,0,10"
+                    Spacing="8"
+                    IsVisible="False">
+            <ui:MyLoading x:Name="LoadVersions"
+                          AutoRun="False"
+                          HorizontalAlignment="Center"
+                          IsVisible="False"
+                          Text="{loc:Loc Download.Version.LoadingList}" />
+            <ui:MyButton x:Name="BtnRetry"
+                         MinWidth="120"
+                         Height="35"
+                         Padding="13,0"
+                         HorizontalAlignment="Left"
+                         IsVisible="False"
+                         Text="{loc:Loc Launch.Homepage.LoadFailed.Retry}" />
+        </StackPanel>
+        <StackPanel x:Name="PanVersions" />
+    </StackPanel>
+</UserControl>

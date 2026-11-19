@@ -20,7 +20,7 @@ public class UpdatesMirrorChyanModel : IUpdateSource // Mirror 酱的更新格�
         return !string.IsNullOrWhiteSpace(Config.Update.MirrorChyanKey);
     }
 
-    public VersionDataModel GetLatestVersion(UpdateChannel channel, UpdateArch arch)
+    public VersionDataModel GetLatestVersion(UpdateSourceChannel channel, UpdateArch arch)
     {
         using var response = HttpRequest
             .Create(GetUrl(channel, arch))
@@ -50,7 +50,7 @@ public class UpdatesMirrorChyanModel : IUpdateSource // Mirror 酱的更新格�
     }
 
     public bool IsLatest(
-        UpdateChannel channel,
+        UpdateSourceChannel channel,
         UpdateArch arch,
         SemVer currentVersion,
         int currentVersionCode)
@@ -65,7 +65,7 @@ public class UpdatesMirrorChyanModel : IUpdateSource // Mirror 酱的更新格�
     }
 
     public List<Loading.LoaderBase> GetDownloadLoader(
-        UpdateChannel channel,
+        UpdateSourceChannel channel,
         UpdateArch arch,
         string output)
     {
@@ -91,11 +91,14 @@ public class UpdatesMirrorChyanModel : IUpdateSource // Mirror 酱的更新格�
                     ];
                 }),
             new LoaderDownload(Lang.Text("Update.Task.DownloadUpdateFile"), [])
+            {
+                DisplayNameFactory = () => Lang.Text("Update.Task.DownloadUpdateFile")
+            }
         };
         return loaders;
     }
 
-    private static string GetUrl(UpdateChannel channel, UpdateArch arch)
+    private static string GetUrl(UpdateSourceChannel channel, UpdateArch arch)
     {
         var reqUrl = MirrorChyanBaseUrl;
         reqUrl = reqUrl.Replace("{cid}", MyCid);

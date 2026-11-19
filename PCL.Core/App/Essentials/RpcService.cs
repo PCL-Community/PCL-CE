@@ -13,8 +13,8 @@ using PCL.Core.Platform;
 namespace PCL.Core.App.Essentials;
 
 /// <summary>
-/// 用于终止 Pipe RPC 执行过程并返回错误信息的异常<br/>
-/// 当抛出该异常时 RPC 服务端将会返回内容为 <c>Reason</c> 的 <c>ERR</c> 响应
+/// 用于终止 Pipe RPC 执行过程并返回错误信息的异常<br /> 当抛出该异常时 RPC 服务端将会返回内容为 <c>Reason</c> 的
+/// <c>ERR</c> 响应
 /// </summary>
 public class RpcException(string reason) : Exception
 {
@@ -22,8 +22,8 @@ public class RpcException(string reason) : Exception
 }
 
 /// <summary>
-/// 标记一个方法或属性，使其成为 RPC 函数/属性。<br/>
-/// 方法签名需兼容 <see cref="RpcFunction"/> 委托，属性仅支持 <see langword="string"/> 类型。
+/// 标记一个方法或属性，使其成为 RPC 函数/属性。<br /> 方法签名需兼容 <see cref="RpcFunction" /> 委托，属性仅支持
+/// <see langword="string" /> 类型。
 /// </summary>
 /// <param name="name">该 RPC 函数/属性的名称</param>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Method)]
@@ -31,13 +31,16 @@ public class RpcException(string reason) : Exception
 [DependencyCollector<string>("rpc-property", AttributeTargets.Property)]
 public sealed class RegisterRpc(string name) : Attribute;
 
-/// <summary>
-/// RPC 服务项
-/// </summary>
+/// <summary>RPC 服务项</summary>
 [LifecycleService(LifecycleState.Loaded)]
 [LifecycleScope("rpc", "远程执行服务")]
 public sealed partial class RpcService
 {
+    public const string PipePrefix = "PCLCE_RPC";
+
+    private static readonly string _EchoPipeName = $"{PipePrefix}@{Basics.CurrentProcess.Id}";
+    private static readonly string[] _RequestTypeArray = ["GET", "SET", "REQ"];
+    private static readonly HashSet<string> _RequestType = [.. _RequestTypeArray];
     private NamedPipeServerStream? _pipe;
 
     [LifecycleStart]
@@ -53,120 +56,25 @@ public sealed partial class RpcService
     }
 
     [LifecycleDependencyInjection("rpc-function", AttributeTargets.Method)]
-    private static void _CollectRpcFunctionRegistry(ImmutableList<(RpcFunction func, string name)> items)
+    private static void _CollectRpcFunctionRegistry(
+        ImmutableList<(RpcFunction func, string name)> items)
     {
-        foreach (var (func, name) in items)
-        {
-            AddFunction(name, func);
-        }
+        foreach (var (func, name) in items) AddFunction(name, func);
     }
 
     [LifecycleDependencyInjection("rpc-property", AttributeTargets.Property)]
-    private static void _CollectRpcPropertyRegistry(ImmutableList<(PropertyAccessor<string> prop, string name)> items)
+    private static void _CollectRpcPropertyRegistry(
+        ImmutableList<(PropertyAccessor<string> prop, string name)> items)
     {
         foreach (var (prop, name) in items)
-        {
-            AddProperty(new RpcProperty(
-                name,
-                () => prop.Value,
-                value => prop.Value = value ?? "",
-                prop.CanSet
-            ));
-        }
+            AddProperty(
+                new RpcProperty(
+                    name,
+                    () => prop.Value,
+                    value => prop.Value = value ?? "",
+                    prop.CanSet
+                ));
     }
-
-    public const string PipePrefix = "PCLCE_RPC";
-    
-    private static readonly string _EchoPipeName = $"{PipePrefix}@{Basics.CurrentProcess.Id}";
-    private static readonly string[] _RequestTypeArray = ["GET", "SET", "REQ"];
-    private static readonly HashSet<string> _RequestType = [.._RequestTypeArray];
-
-    #region Property
-    
-    private static readonly Dictionary<string, RpcProperty> _PropertyMap = new();
-
-    /// <summary>
-    /// 添加一个新的 RPC 属性，若有多个使用 foreach 即可
-    /// </summary>
-    /// <param name="prop">要添加的属性</param>
-    /// <returns>是否成功添加（若已存在相同名称的属性则无法添加）</returns>
-    public static bool AddProperty(RpcProperty prop) => _PropertyMap.TryAdd(prop.Name, prop);
-
-    /// <summary>
-    /// 通过指定的名称删除已存在的 RPC 属性
-    /// </summary>
-    /// <param name="name">属性名称</param>
-    /// <returns>是否成功删除（若不存在该名称则无法删除）</returns>
-    public static bool RemoveProperty(string name)
-    {
-        return _PropertyMap.Remove(name);
-    }
-
-    /// <summary>
-    /// 删除已存在的 RPC 属性，实质上仍然是通过属性的名称删除，但会检查是否是同一个对象
-    /// </summary>
-    /// <param name="prop">要删除的属性</param>
-    /// <returns></returns>
-    public static bool RemoveProperty(RpcProperty prop)
-    {
-        var key = prop.Name;
-        var result = _PropertyMap.TryGetValue(key, out var value);
-        if (!result || value != prop) return false;
-        _PropertyMap.Remove(key);
-        return true;
-    }
-
-    #endregion
-
-    #region Function
-
-    private static readonly Dictionary<string, RpcFunction> _FunctionMap = new() {
-        ["ping"] = (_, _, _) => RpcResponse.EmptySuccess,
-        ["activate"] = (_, _, _) =>
-        {
-            if (Lifecycle.CurrentState >= LifecycleState.WindowCreated) ActivateMainWindow();
-            else Lifecycle.When(LifecycleState.WindowCreated, ActivateMainWindow);
-            return RpcResponse.EmptySuccess;
-
-            void ActivateMainWindow()
-            {
-                var app = Lifecycle.CurrentApplication;
-                PlatformServices.UiDispatcher?.Post(() =>
-                {
-                    var window = app.MainWindow;
-                    if (window is null) return;
-                    if (window.IsMinimized) window.Restore();
-                    if (!window.IsTopmost)
-                    {
-                        window.IsTopmost = true;
-                        window.IsTopmost = false;
-                    }
-
-                    window.Activate();
-                });
-            }
-        }
-    };
-
-    /// <summary>
-    /// 添加一个新的 RPC 函数，若有多个使用 foreach 即可
-    /// </summary>
-    /// <param name="name">函数名称</param>
-    /// <param name="func">函数过程</param>
-    /// <returns>是否成功添加（若已存在相同名称的函数则无法添加）</returns>
-    public static bool AddFunction(string name, RpcFunction func) => _FunctionMap.TryAdd(name, func);
-
-    /// <summary>
-    /// 通过指定的名称删除已存在的 RPC 函数
-    /// </summary>
-    /// <param name="name">函数名称</param>
-    /// <returns>是否成功删除（若不存在该名称则无法删除）</returns>
-    public static bool RemoveFunction(string name)
-    {
-        return _FunctionMap.Remove(name);
-    }
-    
-    #endregion
 
     private static bool _EchoPipeCallback(StreamReader reader, StreamWriter writer, Process? client)
     {
@@ -180,7 +88,8 @@ public sealed partial class RpcService
             var args = header?.Split([' '], 2) ?? []; // 分离请求类型和参数
             if (args.Length < 2 || args[1].Length == 0) throw new RpcException("请求参数过少");
             var type = args[0].ToUpperInvariant();
-            if (!_RequestType.Contains(type)) throw new RpcException($"请求类型必须为 {string.Join("/", _RequestTypeArray)} 其中之一");
+            if (!_RequestType.Contains(type))
+                throw new RpcException($"请求类型必须为 {string.Join("/", _RequestTypeArray)} 其中之一");
             var target = args[1];
 
             // 读入请求内容（可能没有）
@@ -191,11 +100,14 @@ public sealed partial class RpcService
                 buffer.Append((char)tmp);
                 tmp = reader.Read();
             }
+
             var content = buffer.Length == 0 ? null : buffer.ToString();
 
             switch (type)
             {
-                case "GET": case "SET": {
+                case "GET":
+                case "SET":
+                {
                     target = target.ToLowerInvariant();
                     var result = _PropertyMap.TryGetValue(target, out var prop);
                     if (!result) throw new RpcException($"不存在属性 {target}");
@@ -205,7 +117,11 @@ public sealed partial class RpcService
                         try
                         {
                             var value = prop!.Value;
-                            response = new RpcResponse(RpcResponseStatus.Success, RpcResponseType.Text, value, target);
+                            response = new RpcResponse(
+                                RpcResponseStatus.Success,
+                                RpcResponseType.Text,
+                                value,
+                                target);
                             Context.Trace($"返回值: {value}");
                         }
                         catch (RpcPropertyOperationFailedException)
@@ -233,11 +149,13 @@ public sealed partial class RpcService
                         response = RpcResponse.EmptyFailure;
                         Context.Debug("设置失败: 只读属性");
                     }
+
                     response.Response(writer);
                     break;
                 }
 
-                case "REQ": {
+                case "REQ":
+                {
                     var targetArgs = target.Split([' '], 2); // 分离函数名和参数
                     var name = targetArgs[0].ToLowerInvariant();
                     var indent = false; // 检测缩进指示
@@ -246,6 +164,7 @@ public sealed partial class RpcService
                         indent = true;
                         name = name[..^1];
                     }
+
                     var result = _FunctionMap.TryGetValue(name, out var func);
                     if (!result) throw new RpcException($"不存在函数 {name}");
                     string? argument = null;
@@ -273,6 +192,93 @@ public sealed partial class RpcService
                 Context.Error("处理请求时发生异常", ex);
             }
         }
+
         return true;
     }
+
+    #region Property
+
+    private static readonly Dictionary<string, RpcProperty> _PropertyMap = new();
+
+    /// <summary>添加一个新的 RPC 属性，若有多个使用 foreach 即可</summary>
+    /// <param name="prop">要添加的属性</param>
+    /// <returns>是否成功添加（若已存在相同名称的属性则无法添加）</returns>
+    public static bool AddProperty(RpcProperty prop)
+    {
+        return _PropertyMap.TryAdd(prop.Name, prop);
+    }
+
+    /// <summary>通过指定的名称删除已存在的 RPC 属性</summary>
+    /// <param name="name">属性名称</param>
+    /// <returns>是否成功删除（若不存在该名称则无法删除）</returns>
+    public static bool RemoveProperty(string name)
+    {
+        return _PropertyMap.Remove(name);
+    }
+
+    /// <summary>删除已存在的 RPC 属性，实质上仍然是通过属性的名称删除，但会检查是否是同一个对象</summary>
+    /// <param name="prop">要删除的属性</param>
+    /// <returns></returns>
+    public static bool RemoveProperty(RpcProperty prop)
+    {
+        var key = prop.Name;
+        var result = _PropertyMap.TryGetValue(key, out var value);
+        if (!result || value != prop) return false;
+        _PropertyMap.Remove(key);
+        return true;
+    }
+
+    #endregion
+
+    #region Function
+
+    private static readonly Dictionary<string, RpcFunction> _FunctionMap = new()
+    {
+        ["ping"] = (_, _, _) => RpcResponse.EmptySuccess,
+        ["activate"] = (_, _, _) =>
+        {
+            if (Lifecycle.CurrentState >= LifecycleState.WindowCreated) ActivateMainWindow();
+            else Lifecycle.When(LifecycleState.WindowCreated, ActivateMainWindow);
+            return RpcResponse.EmptySuccess;
+
+            void ActivateMainWindow()
+            {
+                var app = Lifecycle.CurrentApplication;
+                ApplicationRuntime
+                    .GetService<IUiDispatcher>()
+                    ?.Post(() =>
+                    {
+                        var window = app.MainWindow;
+                        if (window is null) return;
+                        if (window.IsMinimized) window.Restore();
+                        if (!window.IsTopmost)
+                        {
+                            window.IsTopmost = true;
+                            window.IsTopmost = false;
+                        }
+
+                        window.Activate();
+                    });
+            }
+        }
+    };
+
+    /// <summary>添加一个新的 RPC 函数，若有多个使用 foreach 即可</summary>
+    /// <param name="name">函数名称</param>
+    /// <param name="func">函数过程</param>
+    /// <returns>是否成功添加（若已存在相同名称的函数则无法添加）</returns>
+    public static bool AddFunction(string name, RpcFunction func)
+    {
+        return _FunctionMap.TryAdd(name, func);
+    }
+
+    /// <summary>通过指定的名称删除已存在的 RPC 函数</summary>
+    /// <param name="name">函数名称</param>
+    /// <returns>是否成功删除（若不存在该名称则无法删除）</returns>
+    public static bool RemoveFunction(string name)
+    {
+        return _FunctionMap.Remove(name);
+    }
+
+    #endregion
 }

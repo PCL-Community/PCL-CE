@@ -50,11 +50,12 @@ public static class McVersionComparer
         {
             if (lefts.Count - 1 < i && rights.Count - 1 < i)
             {
-                if (string.CompareOrdinal(left, right) > 0)
-                    return 1;
-                if (string.CompareOrdinal(left, right) < 0)
-                    return -1;
-                return 0;
+                return string.CompareOrdinal(left, right) switch
+                {
+                    > 0 => 1,
+                    < 0 => -1,
+                    _ => 0
+                };
             }
 
             // 确定两边的数值
@@ -104,8 +105,6 @@ public static class McVersionComparer
 
             i += 1;
         }
-
-        return 0;
     }
 
     /// <summary>

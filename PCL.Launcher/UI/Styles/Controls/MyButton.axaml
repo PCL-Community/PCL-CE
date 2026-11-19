@@ -1,0 +1,36 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="using:PCL.UI.Controls">
+    <Style Selector="ui|MyButton">
+        <Setter Property="Background"
+                Value="{DynamicResource ColorBrushSemiTransparent}" />
+        <Setter Property="BorderThickness"
+                Value="0" />
+        <Setter Property="Focusable"
+                Value="True" />
+        <Setter Property="UseLayoutRounding"
+                Value="True" />
+    </Style>
+    <Style Selector="ui|MyButton Border#PanFore">
+        <Setter Property="CornerRadius"
+                Value="3" />
+        <Setter Property="BorderThickness"
+                Value="1" />
+        <Setter Property="BorderBrush"
+                Value="{DynamicResource ColorBrush1}" />
+        <Setter Property="Background"
+                Value="{DynamicResource ColorBrushHalfWhite}" />
+    </Style>
+    <Style Selector="ui|MyButton.color-highlight Border#PanFore">
+        <Setter Property="Background"
+                Value="{DynamicResource ColorBrushHalfWhite}" />
+        <Setter Property="BorderBrush"
+                Value="{DynamicResource ColorBrush2}" />
+    </Style>
+    <Style Selector="ui|MyButton.color-red Border#PanFore">
+        <Setter Property="Background"
+                Value="{DynamicResource ColorBrushHalfWhite}" />
+        <Setter Property="BorderBrush"
+                Value="{DynamicResource ColorBrushRedDark}" />
+    </Style>
+</Styles>

@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.IO.Net.Http;
 
@@ -141,7 +142,7 @@ public static partial class WebServer
         {
             return HttpRouteResponse
                 .Input(
-                    LauncherCommon.GetResourceStream("Images/icon.ico")
+                    Basics.GetResourceStream("Images/icon.ico")
                     ?? throw new FileNotFoundException("无法找到内置图标资源"))
                 .AsTask();
         }
@@ -150,7 +151,7 @@ public static partial class WebServer
         {
             return HttpRouteResponse
                 .Input(
-                    LauncherCommon.GetResourceStream("Resources/oauth-complete.html")
+                    Basics.GetResourceStream("Resources/oauth-complete.html")
                     ?? throw new FileNotFoundException("无法找到内置回调页面资源"),
                     "text/html")
                 .AsTask();

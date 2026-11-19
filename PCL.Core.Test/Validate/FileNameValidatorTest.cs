@@ -1,3 +1,4 @@
+using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PCL.Core.Utils.Validate;
 
@@ -24,12 +25,9 @@ public class FileNameValidatorTest
         var validator = new FileNameValidator();
         var result = validator.Validate(fileName);
         if (!result.IsValid)
-        {
             foreach (var error in result.Errors)
-            {
                 TestContext.WriteLine(error.ErrorMessage);
-            }
-        }
+
         Assert.AreEqual(expected, result.IsValid);
     }
 
@@ -38,17 +36,15 @@ public class FileNameValidatorTest
     [DataRow("notepad.exe", false)]
     [DataRow("foobar.txt", true)]
     [DataRow("关注初音未来初音ミクHatsuneMiku0831谢谢喵!!!", true)]
+    [OSCondition(OperatingSystems.Windows)]
     public void TestFileNameValidateWithParentFolder(string fileName, bool expected)
     {
         var validator = new FileNameValidator("C:\\Windows");
         var result = validator.Validate(fileName);
         if (!result.IsValid)
-        {
             foreach (var error in result.Errors)
-            {
                 TestContext.WriteLine(error.ErrorMessage);
-            }
-        }
+
         Assert.AreEqual(expected, result.IsValid);
     }
 }

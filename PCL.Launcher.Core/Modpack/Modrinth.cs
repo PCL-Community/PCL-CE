@@ -1,5 +1,6 @@
 ﻿using System.IO.Compression;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.Utils;
 using PCL.Network;
 using PCL.Network.Loaders;
@@ -48,7 +49,9 @@ public static partial class Modpack
         var request = new McInstallRequest
         {
             targetInstanceName = instanceName,
-            targetInstanceFolder = $@"{GameFolders.mcFolderSelected}versions\{instanceName}\",
+            targetInstanceFolder =
+                Path.Combine(GameFolders.mcFolderSelected!, "versions", instanceName)
+                + Path.DirectorySeparatorChar,
             minecraftName = loaderVersions.MinecraftVersion,
             forgeVersion = loaderVersions.ForgeVersion,
             neoForgeVersion = loaderVersions.NeoForgeVersion,
@@ -77,13 +80,16 @@ public static partial class Modpack
         var loader = new LoaderCombo<string>(loaderName, loaders)
         {
             OnStateChanged = ModpackUi.OnInstallStateChanged,
+            DisplayNameFactory = () => Lang.Text(
+                "Minecraft.Download.Modpack.Task.ModrinthInstall",
+                instanceName),
             Identifier = loaderIdentifier
         };
         loader.Start(request.targetInstanceFolder);
         LoaderTaskbarAdd(loader);
         CompUi.Current?.RefreshDownloadButton();
         if (!isOnlineInstall)
-            LauncherCommon.RunInUi(() => CompNavigation.ShowTaskManager());
+            LauncherCommon.RunInUi(CompNavigation.ShowTaskManager);
         return loader;
     }
 
@@ -93,7 +99,7 @@ public static partial class Modpack
         {
             return (JsonObject)
                 LauncherCommon.GetJson(
-                    LauncherCommon.ReadFile(
+                    Files.ReadAllTextOrEmpty(
                         archive.GetEntry($"{archiveBaseFolder}modrinth.index.json")!.Open()));
         }
         catch (Exception ex)
@@ -111,7 +117,7 @@ public static partial class Modpack
 
         var modLoader = Comp.CompLoaderType.Any;
         foreach (var entry in dependencies)
-            switch (entry.Key.ToLower() ?? "")
+            switch (entry.Key.ToLowerInvariant() ?? "")
             {
                 case "minecraft":
                     minecraftVersion = entry.Value?.ToObject<string>();
@@ -203,11 +209,17 @@ public static partial class Modpack
                 .Select(x => Comp.CompFile.HandleCurseForgeDownloadUrls(x.ToString()))
                 .ToList();
             urls = [.. urls.SelectMany(GameDownload.DlSourceModDownloadGet)];
-            var targetPath =
-                $@"{GameFolders.mcFolderSelected}versions\{instanceName}\{file["path"]}";
+            var targetPath = Path.Combine(
+                GameFolders.mcFolderSelected!,
+                "versions",
+                instanceName,
+                $"{file["path"]}");
             if (!Path
                     .GetFullPath(targetPath)
-                    .StartsWithF($@"{GameFolders.mcFolderSelected}versions\{instanceName}\", true))
+                    .StartsWithF(
+                        Path.Combine(GameFolders.mcFolderSelected!, "versions", instanceName)
+                        + Path.DirectorySeparatorChar,
+                        true))
             {
                 LaunchUi.ShowMessageBox(
                     Lang.Text("Minecraft.Download.Modpack.PathOutsideInstance.Message", targetPath),
@@ -246,7 +258,7 @@ public static partial class Modpack
             "optional" => LaunchUi.ShowMessageBox(
                     Lang.Text(
                         "Minecraft.Download.Modpack.OptionalFile.Message",
-                        LauncherCommon.GetFileNameFromPath(file["path"]!.ToString())
+                        Files.GetFileNameFromPath(file["path"]!.ToString())
                     ),
                     Lang.Text("Minecraft.Download.Modpack.OptionalFile.Title"),
                     Lang.Text("Minecraft.Download.Modpack.OptionalFile.Download"),

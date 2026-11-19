@@ -11,10 +11,3 @@ public enum NetState
     Finished = 5,
     Interrupted = 6
 }
-
-public enum NetPreDownloadBehaviour
-{
-    HintWhileExists,
-    ExitWhileExistsOrDownloading,
-    IgnoreCheck
-}

@@ -1,4 +1,5 @@
 ﻿using System.IO.Compression;
+using PCL.Core.IO;
 
 namespace PCL;
 
@@ -12,8 +13,8 @@ public static partial class JarInJar
     private const long MaxScanBytes = 2L * 1024 * 1024 * 1024;
 
     /// <summary>
-    ///     带持久化缓存的解析：按文件指纹命中缓存则直接重建，否则解析并写入缓存（批量结束后需调用
-    ///     <see cref="JarInJarCache.Flush" /> 落盘）。
+    /// 带持久化缓存的解析：按文件指纹命中缓存则直接重建，否则解析并写入缓存（批量结束后需调用 <see cref="JarInJarCache.Flush" />
+    /// 落盘）。
     /// </summary>
     internal static List<LocalComp.LocalCompFile>? ResolveCached(
         string modFilePath,
@@ -226,7 +227,7 @@ public static partial class JarInJar
             if (entry is null) continue;
             try
             {
-                _ = LauncherCommon.GetFileNameFromPath(info.Path);
+                _ = Files.GetFileNameFromPath(info.Path);
             }
             catch (Exception ex)
             {

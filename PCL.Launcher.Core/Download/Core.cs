@@ -1,5 +1,6 @@
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.Utils;
 using PCL.Network;
 using PCL.Network.Loaders;
@@ -10,34 +11,23 @@ public static partial class GameDownload
 {
     public enum AssetsIndexExistsBehaviour
     {
-        /// <summary>
-        ///     如果文件存在，则不进行下载。
-        /// </summary>
+        /// <summary>如果文件存在，则不进行下载。</summary>
         DontDownload,
 
-        /// <summary>
-        ///     如果文件存在，则启动新的下载加载器进行独立的更新。
-        /// </summary>
+        /// <summary>如果文件存在，则启动新的下载加载器进行独立的更新。</summary>
         DownloadInBackground,
 
-        /// <summary>
-        ///     如果文件存在，也同样进行下载。
-        /// </summary>
+        /// <summary>如果文件存在，也同样进行下载。</summary>
         AlwaysDownload
     }
 
     private static readonly Lock AllDropsLock = new();
 
-    /// <summary>
-    ///     Minecraft 客户端 版本列表，主加载器。
-    ///     若要求镜像源必须包含某个版本，则将该版本 ID 作为输入。
-    /// </summary>
+    /// <summary>Minecraft 客户端 版本列表，主加载器。 若要求镜像源必须包含某个版本，则将该版本 ID 作为输入。</summary>
     public static Loading.LoaderTask<string, DlClientListResult> dlClientListLoader =
         new("DlClientList Main", DlClientListMain);
 
-    /// <summary>
-    ///     Minecraft 客户端 版本列表，Mojang 官方源加载器。
-    /// </summary>
+    /// <summary>Minecraft 客户端 版本列表，Mojang 官方源加载器。</summary>
     public static Loading.LoaderTask<string, DlClientListResult> dlClientListMojangLoader =
         new("DlClientList Mojang", DlClientListMojangMain);
 
@@ -45,16 +35,11 @@ public static partial class GameDownload
 
     private static bool _dlClientListMojangMainIsHinted;
 
-    /// <summary>
-    ///     Minecraft 客户端 版本列表，BMCLAPI 源加载器。
-    /// </summary>
+    /// <summary>Minecraft 客户端 版本列表，BMCLAPI 源加载器。</summary>
     public static Loading.LoaderTask<string, DlClientListResult> dlClientListBmclapiLoader =
         new("DlClientList Bmclapi", DlClientListBmclapiMain);
 
-    /// <summary>
-    ///     所有正式版的 Minecraft Drop 序数。
-    ///     若从未完成过获取，返回 Nothing；否则必定存在元素，且从高到低排列。
-    /// </summary>
+    /// <summary>所有正式版的 Minecraft Drop 序数。 若从未完成过获取，返回 Nothing；否则必定存在元素，且从高到低排列。</summary>
     public static List<int>? AllDrops
     {
         get
@@ -89,10 +74,7 @@ public static partial class GameDownload
         ];
     }
 
-    /// <summary>
-    ///     返回某 Minecraft 版本对应的原版主 Jar 文件的下载信息，要求对应依赖实例已存在。
-    ///     失败则抛出异常，不需要下载则返回 Nothing。
-    /// </summary>
+    /// <summary>返回某 Minecraft 版本对应的原版主 Jar 文件的下载信息，要求对应依赖实例已存在。 失败则抛出异常，不需要下载则返回 Nothing。</summary>
     public static DownloadFile? DlClientJarGet(McInstance version, bool returnNothingOnFileUseable)
     {
         version = _ResolveBaseInstance(version);
@@ -138,8 +120,8 @@ public static partial class GameDownload
     }
 
     /// <summary>
-    ///     返回某 Minecraft 版本对应的原版主 AssetIndex 文件的下载信息，要求对应依赖实例已存在。
-    ///     若未找到，则会返回 Legacy 资源文件或 Nothing。
+    /// 返回某 Minecraft 版本对应的原版主 AssetIndex 文件的下载信息，要求对应依赖实例已存在。 若未找到，则会返回 Legacy 资源文件或
+    /// Nothing。
     /// </summary>
     public static DownloadFile? DlClientAssetIndexGet(McInstance version)
     {
@@ -171,9 +153,7 @@ public static partial class GameDownload
             new FileChecker(actualSize: indexSize, canUseExistsFile: false));
     }
 
-    /// <summary>
-    ///     构造补全某 Minecraft 版本的所有文件的加载器列表。失败会抛出异常。
-    /// </summary>
+    /// <summary>构造补全某 Minecraft 版本的所有文件的加载器列表。失败会抛出异常。</summary>
     public static List<Loading.LoaderBase> DlClientFix(
         McInstance version,
         bool checkAssetsHash,
@@ -329,7 +309,10 @@ public static partial class GameDownload
                     var backAssetsFile = DlClientAssetIndexGet(version);
                     if (backAssetsFile is null) return;
                     realAddress = backAssetsFile.LocalPath;
-                    tempAddress = $@"{LauncherPaths.Temp}Cache\{backAssetsFile.LocalName}";
+                    tempAddress = Path.Combine(
+                        LauncherPaths.Temp,
+                        "Cache",
+                        backAssetsFile.LocalName);
                     backAssetsFile.LocalPath = tempAddress;
                     task.output = [backAssetsFile];
                     if (!_IsFileFromToday(realAddress))
@@ -349,7 +332,7 @@ public static partial class GameDownload
                 _ =>
                 {
                     if (tempAddress is null || realAddress is null) return;
-                    LauncherCommon.CopyFile(tempAddress, realAddress);
+                    Files.CopyFile(tempAddress, realAddress);
                     LauncherCommon.Log($"后台更新资源文件索引成功：{tempAddress}");
                 }));
 
@@ -366,9 +349,7 @@ public static partial class GameDownload
             && Math.Abs((File.GetLastWriteTime(path).Date - DateTime.Now.Date).TotalDays) < 1d;
     }
 
-    /// <summary>
-    ///     只读取本地文件，判断实例是否可以在不下载 Minecraft 文件的情况下启动。
-    /// </summary>
+    /// <summary>只读取本地文件，判断实例是否可以在不下载 Minecraft 文件的情况下启动。</summary>
     public static bool McClientFilesAvailableLocally(McInstance instance)
     {
         try
@@ -509,7 +490,8 @@ public static partial class GameDownload
 
     private static void _MergeUnlistedVersions(JsonArray versions, string sourceDescription)
     {
-        var cacheFilePath = $@"{LauncherPaths.Temp}Cache\uvmc-download.json";
+        var cacheFilePath =
+            Path.Combine(LauncherPaths.Temp, "Cache", "uvmc-download.json");
         if (!File.Exists(cacheFilePath))
             try
             {
@@ -525,7 +507,7 @@ public static partial class GameDownload
         try
         {
             var cachedJson =
-                (JsonObject)LauncherCommon.GetJson(LauncherCommon.ReadFile(cacheFilePath));
+                (JsonObject)LauncherCommon.GetJson(Files.ReadAllTextOrEmpty(cacheFilePath));
             versions.Merge(cachedJson["versions"]);
         }
         catch (Exception ex)
@@ -625,9 +607,7 @@ public static partial class GameDownload
                 Lang.Text("Minecraft.Download.Error.BmclapiMissingTargetVersion", id));
     }
 
-    /// <summary>
-    ///     获取某个版本的 Json 下载地址，若失败则返回 Nothing。必须在工作线程执行。
-    /// </summary>
+    /// <summary>获取某个版本的 Json 下载地址，若失败则返回 Nothing。必须在工作线程执行。</summary>
     public static object? DlClientListGet(string id)
     {
         try
@@ -694,19 +674,13 @@ public static partial class GameDownload
 
     public struct DlClientListResult
     {
-        /// <summary>
-        ///     数据来源名称，如“Mojang”，“BMCLAPI”。
-        /// </summary>
+        /// <summary>数据来源名称，如“Mojang”，“BMCLAPI”。</summary>
         public string SourceName;
 
-        /// <summary>
-        ///     是否为官方的实时数据。
-        /// </summary>
+        /// <summary>是否为官方的实时数据。</summary>
         public bool IsOfficial;
 
-        /// <summary>
-        ///     获取到的 Json 数据。
-        /// </summary>
+        /// <summary>获取到的 Json 数据。</summary>
         public JsonObject Value;
     }
 }

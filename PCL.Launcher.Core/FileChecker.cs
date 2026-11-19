@@ -1,10 +1,9 @@
-﻿using PCL.Core.Utils;
+﻿using PCL.Core.IO;
+using PCL.Core.Utils;
 
 namespace PCL;
 
-/// <summary>
-///     文件的校验规则。
-/// </summary>
+/// <summary>文件的校验规则。</summary>
 public class FileChecker(
     long minSize = -1,
     long actualSize = -1,
@@ -27,9 +26,7 @@ public class FileChecker(
     /// <summary>文件的最小大小。不检查则为 -1。</summary>
     public readonly long minSize = minSize;
 
-    /// <summary>
-    ///     检查文件。若成功则返回 <c>null</c>，失败则返回错误描述。不会抛出错误。
-    /// </summary>
+    /// <summary>检查文件。若成功则返回 <c>null</c>，失败则返回错误描述。不会抛出错误。</summary>
     public string? Check(string localPath)
     {
         try
@@ -47,21 +44,21 @@ public class FileChecker(
                 {
                     case < 35:
                     {
-                        var computedHash = LauncherCommon.GetFileMd5(localPath);
+                        var computedHash = Files.GetFileMd5(localPath);
                         if ((hash.ToLowerInvariant() ?? "") != (computedHash ?? ""))
                             errorMessage.Add($"文件 MD5 应为 {hash}，实际为 {computedHash}");
                         break;
                     }
                     case 64:
                     {
-                        var computedHash = LauncherCommon.GetFileSha256(localPath);
+                        var computedHash = Files.GetFileSha256(localPath);
                         if ((hash.ToLowerInvariant() ?? "") != (computedHash ?? ""))
                             errorMessage.Add($"文件 SHA256 应为 {hash}，实际为 {computedHash}");
                         break;
                     }
                     default:
                     {
-                        var computedHash = LauncherCommon.GetFileSha1(localPath);
+                        var computedHash = Files.GetFileSha1(localPath);
                         if ((hash.ToLowerInvariant() ?? "") != (computedHash ?? ""))
                             errorMessage.Add($"文件 SHA1 应为 {hash}，实际为 {computedHash}");
                         break;
@@ -77,7 +74,7 @@ public class FileChecker(
             if (sizeMismatch || sizeTooSmall)
             {
                 var contentSuffix = fileSize < 2000L
-                    ? $"，内容为：{LauncherCommon.ReadFile(localPath)}"
+                    ? $"，内容为：{Files.ReadAllTextOrEmpty(localPath)}"
                     : string.Empty;
 
                 if (sizeMismatch)
@@ -91,7 +88,7 @@ public class FileChecker(
 
             if (isJson)
             {
-                var content = LauncherCommon.ReadFile(localPath);
+                var content = Files.ReadAllTextOrEmpty(localPath);
                 if (string.IsNullOrEmpty(content))
                     throw new Exception("读取到的文件为空");
                 try

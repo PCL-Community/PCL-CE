@@ -5,7 +5,7 @@ permissions:
 
 on:
   push:
-    branches: [dev]
+    branches: [ dev ]
     paths-ignore: &ignored
       - '**/.editorconfig'
       - '**/.gitignore'
@@ -13,7 +13,6 @@ on:
       - '**/*.md'
       - '**/LICENSE'
       - '**/LICENCE'
-      - 'PCL.Core.Test/**'
       - '.github/ISSUE_TEMPLATE/**'
       - '.github/FUNDING.yml'
   pull_request:
@@ -22,17 +21,63 @@ on:
 
 jobs:
   build:
+    name: build (${{ matrix.rid }})
     strategy:
+      fail-fast: false
       matrix:
         include:
-          - configuration: CI
-            architecture: x64
-          - configuration: CI
-            architecture: ARM64
-      fail-fast: false
+          - target: windows_x64
+            runner: windows-latest
+            rid: win-x64
+            platform: x64
+          - target: windows_ARM64
+            runner: windows-latest
+            rid: win-arm64
+            platform: ARM64
+          - target: linux_x64
+            runner: ubuntu-latest
+            rid: linux-x64
+            platform: x64
+          - target: linux_ARM64
+            runner: ubuntu-24.04-arm
+            rid: linux-arm64
+            platform: ARM64
+          - target: macos_ARM64
+            runner: macos-latest
+            rid: osx-arm64
+            platform: ARM64
+          - target: macos_x64
+            runner: macos-latest
+            rid: osx-x64
+            platform: x64
 
     uses: ./.github/workflows/reusable-build.yml
     with:
-      configuration: ${{ matrix.configuration }}
-      architecture: ${{ matrix.architecture }}
-    secrets: inherit
+      configuration: CI
+      target: ${{ matrix.target }}
+      rid: ${{ matrix.rid }}
+      platform: ${{ matrix.platform }}
+      runner: ${{ matrix.runner }}
+      version: 0.0.0-ci
+      include_secrets: false
+
+  test:
+    name: test (${{ matrix.os }})
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 11.0.x
+
+      - name: Run tests
+        timeout-minutes: 15
+        run: dotnet test PCL.Core.Test/PCL.Core.Test.csproj -c CI -p:Platform=AnyCPU --nologo --blame-hang --blame-hang-timeout 120s

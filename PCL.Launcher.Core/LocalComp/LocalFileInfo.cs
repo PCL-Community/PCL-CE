@@ -1,6 +1,7 @@
 ﻿using System.Buffers;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using PCL.Core.IO;
 using PCL.Core.Utils;
 
 namespace PCL;
@@ -31,9 +32,7 @@ public static partial class LocalComp
         private readonly Dictionary<string, string> _providedVersions =
             new(StringComparer.OrdinalIgnoreCase);
 
-        /// <summary>
-        ///     资源的文件的地址。
-        /// </summary>
+        /// <summary>资源的文件的地址。</summary>
         public readonly string path = path;
 
         private string? _authors;
@@ -62,9 +61,7 @@ public static partial class LocalComp
 
         private string? _name;
 
-        /// <summary>
-        ///     NBT数据是否已加载（用于延迟加载优化）。
-        /// </summary>
+        /// <summary>NBT数据是否已加载（用于延迟加载优化）。</summary>
         private bool _nbtDataLoaded;
 
         private string? _schemOriginalName;
@@ -79,42 +76,31 @@ public static partial class LocalComp
 
         private string? _version;
 
-        /// <summary>
-        ///     其他可能的 ModID。
-        /// </summary>
+        /// <summary>其他可能的 ModID。</summary>
         public List<string> possibleModId = [];
 
-        /// <summary>
-        ///     是否为文件夹项。
-        /// </summary>
-        public bool IsFolder => path.EndsWithF(@"\__FOLDER__", true);
+        /// <summary>是否为文件夹项。</summary>
+        public bool IsFolder => path.EndsWithF($"{Path.DirectorySeparatorChar}__FOLDER__", true);
 
-        /// <summary>
-        ///     获取实际的文件夹路径（去除 __FOLDER__ 标记）。
-        /// </summary>
-        public string ActualPath => IsFolder ? path.Replace(@"\__FOLDER__", "") : path;
+        /// <summary>获取实际的文件夹路径（去除 __FOLDER__ 标记）。</summary>
+        public string ActualPath =>
+            IsFolder
+                ? path.Replace($"{Path.DirectorySeparatorChar}__FOLDER__", "")
+                : path;
 
-        /// <summary>
-        ///     Mod 资源的完整路径，去除最后的 .disabled 和 .old。
-        /// </summary>
-        public string RawPath => LauncherCommon.GetPathFromFullPath(path) + RawFileName;
+        /// <summary>Mod 资源的完整路径，去除最后的 .disabled 和 .old。</summary>
+        public string RawPath => Files.GetPathFromFullPath(path) + RawFileName;
 
-        /// <summary>
-        ///     资源的完整文件名。
-        /// </summary>
+        /// <summary>资源的完整文件名。</summary>
         public string FileName =>
             IsFolder && !string.IsNullOrEmpty(Name)
                 ? Name
-                : LauncherCommon.GetFileNameFromPath(path);
+                : Files.GetFileNameFromPath(path);
 
-        /// <summary>
-        ///     Mod 资源的完整文件名，去除最后的 .disabled 和 .old。
-        /// </summary>
+        /// <summary>Mod 资源的完整文件名，去除最后的 .disabled 和 .old。</summary>
         public string RawFileName => FileName.Replace(".disabled", "").Replace(".old", "");
 
-        /// <summary>
-        ///     资源的状态。对于 Mod 有 Disabled
-        /// </summary>
+        /// <summary>资源的状态。对于 Mod 有 Disabled</summary>
         public LocalFileStatus State
         {
             get
@@ -128,9 +114,7 @@ public static partial class LocalComp
             }
         }
 
-        /// <summary>
-        ///     Mod 的名称。若不可用则为 ModID 或无扩展的文件名。
-        /// </summary>
+        /// <summary>Mod 的名称。若不可用则为 ModID 或无扩展的文件名。</summary>
         public string Name
         {
             get
@@ -143,7 +127,7 @@ public static partial class LocalComp
                     return _name;
 
                 _name = IsFolder
-                    ? LauncherCommon.GetFolderNameFromPath(ActualPath)
+                    ? Files.GetFolderNameFromPath(ActualPath)
                     : Path.GetFileNameWithoutExtension(path);
                 return _name;
             }
@@ -158,9 +142,7 @@ public static partial class LocalComp
             }
         }
 
-        /// <summary>
-        ///     Mod 的描述信息。
-        /// </summary>
+        /// <summary>Mod 的描述信息。</summary>
         public string? Description
         {
             get
@@ -182,9 +164,7 @@ public static partial class LocalComp
             }
         }
 
-        /// <summary>
-        ///     文件类型标签。
-        /// </summary>
+        /// <summary>文件类型标签。</summary>
         public List<string> Tags
         {
             get
@@ -213,9 +193,7 @@ public static partial class LocalComp
             }
         }
 
-        /// <summary>
-        ///     Mod 的版本，不保证符合版本格式规范。
-        /// </summary>
+        /// <summary>Mod 的版本，不保证符合版本格式规范。</summary>
         public string? Version
         {
             get
@@ -234,9 +212,7 @@ public static partial class LocalComp
             }
         }
 
-        /// <summary>
-        ///     用于依赖检查的 ModID。
-        /// </summary>
+        /// <summary>用于依赖检查的 ModID。</summary>
         public string? ModId
         {
             get
@@ -263,9 +239,7 @@ public static partial class LocalComp
             }
         }
 
-        /// <summary>
-        ///     Mod 的主页。
-        /// </summary>
+        /// <summary>Mod 的主页。</summary>
         public string? Url
         {
             get
@@ -281,9 +255,7 @@ public static partial class LocalComp
             }
         }
 
-        /// <summary>
-        ///     Mod 的作者列表。
-        /// </summary>
+        /// <summary>Mod 的作者列表。</summary>
         public string? Authors
         {
             get
@@ -299,9 +271,7 @@ public static partial class LocalComp
             }
         }
 
-        /// <summary>
-        ///     Litematic 文件的创建时间戳。
-        /// </summary>
+        /// <summary>Litematic 文件的创建时间戳。</summary>
         public long? LitematicTimeCreated
         {
             get
@@ -311,9 +281,7 @@ public static partial class LocalComp
             }
         }
 
-        /// <summary>
-        ///     Litematic 文件的修改时间戳。
-        /// </summary>
+        /// <summary>Litematic 文件的修改时间戳。</summary>
         public long? LitematicTimeModified
         {
             get
@@ -323,9 +291,7 @@ public static partial class LocalComp
             }
         }
 
-        /// <summary>
-        ///     Schem 读取到的原始名称。
-        /// </summary>
+        /// <summary>Schem 读取到的原始名称。</summary>
         public string? SchemOriginalName
         {
             get
@@ -335,9 +301,7 @@ public static partial class LocalComp
             }
         }
 
-        /// <summary>
-        ///     Litematic 读取到的原始名称。
-        /// </summary>
+        /// <summary>Litematic 读取到的原始名称。</summary>
         public string? LitematicOriginalName
         {
             get
@@ -347,9 +311,7 @@ public static partial class LocalComp
             }
         }
 
-        /// <summary>
-        ///     Litematic 文件的版本。
-        /// </summary>
+        /// <summary>Litematic 文件的版本。</summary>
         public int? LitematicVersion
         {
             get
@@ -359,9 +321,7 @@ public static partial class LocalComp
             }
         }
 
-        /// <summary>
-        ///     Litematic 文件的包围盒大小。
-        /// </summary>
+        /// <summary>Litematic 文件的包围盒大小。</summary>
         public string? LitematicEnclosingSize
         {
             get
@@ -371,9 +331,7 @@ public static partial class LocalComp
             }
         }
 
-        /// <summary>
-        ///     Litematic 文件的区域数量。
-        /// </summary>
+        /// <summary>Litematic 文件的区域数量。</summary>
         public int? LitematicRegionCount
         {
             get
@@ -383,9 +341,7 @@ public static partial class LocalComp
             }
         }
 
-        /// <summary>
-        ///     Litematic 文件的总方块数。
-        /// </summary>
+        /// <summary>Litematic 文件的总方块数。</summary>
         public int? LitematicTotalBlocks
         {
             get
@@ -395,9 +351,7 @@ public static partial class LocalComp
             }
         }
 
-        /// <summary>
-        ///     Litematic 文件的总体积。
-        /// </summary>
+        /// <summary>Litematic 文件的总体积。</summary>
         public int? LitematicTotalVolume
         {
             get
@@ -407,9 +361,7 @@ public static partial class LocalComp
             }
         }
 
-        /// <summary>
-        ///     原版结构文件的游戏版本。
-        /// </summary>
+        /// <summary>原版结构文件的游戏版本。</summary>
         public string? StructureGameVersion
         {
             get
@@ -419,9 +371,7 @@ public static partial class LocalComp
             }
         }
 
-        /// <summary>
-        ///     原版结构文件的数据版本。
-        /// </summary>
+        /// <summary>原版结构文件的数据版本。</summary>
         public int? StructureDataVersion
         {
             get
@@ -431,9 +381,7 @@ public static partial class LocalComp
             }
         }
 
-        /// <summary>
-        ///     原版结构文件的作者。
-        /// </summary>
+        /// <summary>原版结构文件的作者。</summary>
         public string? StructureAuthor
         {
             get
@@ -443,9 +391,7 @@ public static partial class LocalComp
             }
         }
 
-        /// <summary>
-        ///     Sponge Schematic 文件的版本。
-        /// </summary>
+        /// <summary>Sponge Schematic 文件的版本。</summary>
         public int? SpongeVersion
         {
             get
@@ -455,14 +401,10 @@ public static partial class LocalComp
             }
         }
 
-        /// <summary>
-        ///     Mod 图标路径。
-        /// </summary>
+        /// <summary>Mod 图标路径。</summary>
         public string? Logo { get; set; }
 
-        /// <summary>
-        ///     依赖项，其中包括了 Minecraft 的版本要求。格式为 ModID - VersionRequirement，若无版本要求则为 Nothing。
-        /// </summary>
+        /// <summary>依赖项，其中包括了 Minecraft 的版本要求。格式为 ModID - VersionRequirement，若无版本要求则为 Nothing。</summary>
         public Dictionary<string, string?> Dependencies
         {
             get
@@ -473,9 +415,9 @@ public static partial class LocalComp
         }
 
         /// <summary>
-        ///     依赖的原始版本约束（未经 Maven 括号规整），保留 Fabric/Quilt semver 谓词原貌，供
-        ///     <see cref="McConstraintMatcher" /> 按加载器方言求值；key=ModId，无版本要求则为 null。
-        ///     <see cref="Dependencies" /> 仍存规整值以兼容既有消费方。
+        /// 依赖的原始版本约束（未经 Maven 括号规整），保留 Fabric/Quilt semver 谓词原貌，供
+        /// <see cref="McConstraintMatcher" /> 按加载器方言求值；key=ModId，无版本要求则为 null。
+        /// <see cref="Dependencies" /> 仍存规整值以兼容既有消费方。
         /// </summary>
         public Dictionary<string, string?> DependencyRaw
         {
@@ -486,9 +428,7 @@ public static partial class LocalComp
             }
         }
 
-        /// <summary>
-        ///     全部依赖声明。同一 ModId 的不同范围、声明方或可选性不会被字典合并，供 JIJ 关系分析使用。
-        /// </summary>
+        /// <summary>全部依赖声明。同一 ModId 的不同范围、声明方或可选性不会被字典合并，供 JIJ 关系分析使用。</summary>
         public IReadOnlyList<EmbeddedDependency> DependencyDeclarations
         {
             get
@@ -499,8 +439,8 @@ public static partial class LocalComp
         }
 
         /// <summary>
-        ///     本文件额外提供的 Mod id 别名：multi-mod jar 的兄弟 <c>[[mods]]</c> id 与 Fabric <c>provides</c>。
-        ///     依赖索引把它们当作与主 ModId 同源、同版本的 provider，避免依赖别名时误报缺失。
+        /// 本文件额外提供的 Mod id 别名：multi-mod jar 的兄弟 <c>[[mods]]</c> id 与 Fabric <c>provides</c>。
+        /// 依赖索引把它们当作与主 ModId 同源、同版本的 provider，避免依赖别名时误报缺失。
         /// </summary>
         public HashSet<string> ProvidedIds
         {

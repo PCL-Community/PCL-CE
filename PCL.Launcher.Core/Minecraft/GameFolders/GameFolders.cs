@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.Utils;
 
 namespace PCL;
@@ -11,23 +12,16 @@ public static class GameFolders
 {
     private static string? _mcFolderSelected;
 
-    /// <summary>
-    ///     当前的 Minecraft 文件夹列表。
-    /// </summary>
+    /// <summary>当前的 Minecraft 文件夹列表。</summary>
     public static List<McFolder> mcFolderList = [];
 
-    /// <summary>
-    ///     加载 Minecraft 文件夹列表。
-    /// </summary>
+    /// <summary>加载 Minecraft 文件夹列表。</summary>
     public static readonly Loading.LoaderTask<int, int> McFolderListLoader = new(
         "Minecraft Folder List",
         _ => McFolderListLoadSub(),
         priority: ThreadPriority.AboveNormal);
 
-    /// <summary>
-    ///     旧版本把内置文件夹的译文直接写进了配置，升级后需要把这些译文迁移回资源键，
-    ///     否则内置文件夹名称会永远停留在升级时的语言。
-    /// </summary>
+    /// <summary>旧版本把内置文件夹的译文直接写进了配置，升级后需要把这些译文迁移回资源键， 否则内置文件夹名称会永远停留在升级时的语言。</summary>
     private static readonly Dictionary<string, string> LegacyBuiltinFolderNames =
         new(StringComparer.OrdinalIgnoreCase)
         {
@@ -39,9 +33,7 @@ public static class GameFolders
             ["Official launcher folder"] = "Select.Folder.OfficialLauncherFolder"
         };
 
-    /// <summary>
-    ///     当前的 Minecraft 文件夹路径，以"\"结尾。
-    /// </summary>
+    /// <summary>当前的 Minecraft 文件夹路径，以路径分隔符结尾。</summary>
     public static string? mcFolderSelected
     {
         get => _mcFolderSelected;
@@ -50,6 +42,13 @@ public static class GameFolders
             _mcFolderSelected = value;
             LauncherPaths.MinecraftFolder = value;
         }
+    }
+
+    /// <summary>应用配置中保存的当前文件夹路径，将启动器目录占位符 <c>$</c> 展开为实际路径。</summary>
+    public static void ApplySelectedFolder(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return;
+        mcFolderSelected = value.Replace("$", LauncherPaths.UserDataRoot);
     }
 
     private static void McFolderListLoadSub()
@@ -93,7 +92,8 @@ public static class GameFolders
             if (string.IsNullOrEmpty(folder))
                 continue;
 
-            if (!folder.Contains('>') || !folder.EndsWithF(@"\"))
+            if (!folder.Contains('>')
+                || !folder.EndsWithF(Path.DirectorySeparatorChar.ToString()))
             {
                 LauncherUi.Interaction?.ShowHint(
                     Lang.Text("Select.Folder.Invalid", folder),
@@ -105,7 +105,7 @@ public static class GameFolders
             var path = folder.Split(">")[1];
             try
             {
-                LauncherCommon.CheckPermissionWithException(path);
+                Directories.EnsureWritable(path);
                 cacheMcFolderList.Add(
                     new McFolder
                     {
@@ -133,13 +133,14 @@ public static class GameFolders
         var originalMcFolderList = new List<McFolder>();
         try
         {
-            if (Directory.Exists($@"{LauncherPaths.ExecutableDirectory}versions\"))
+            if (Directory.Exists(
+                    Path.Combine(LauncherPaths.UserDataRoot, "versions")))
                 originalMcFolderList.Add(
                     McFolder.CreateBuiltin(
                         "Select.Folder.CurrentFolder",
-                        LauncherPaths.ExecutableDirectory,
+                        LauncherPaths.UserDataRoot,
                         McFolder.Types.Original));
-            foreach (var folder in new DirectoryInfo(LauncherPaths.ExecutableDirectory)
+            foreach (var folder in new DirectoryInfo(LauncherPaths.UserDataRoot)
                          .GetDirectories())
             {
                 if (!Directory.Exists(Path.Combine(folder.FullName, "versions"))
@@ -149,7 +150,7 @@ public static class GameFolders
                 var newCurrentFolder = new McFolder
                 {
                     Name = folder.Name,
-                    Location = $@"{folder.FullName}\",
+                    Location = folder.FullName + Path.DirectorySeparatorChar,
                     Type = McFolder.Types.Original
                 };
                 originalMcFolderList.Add(newCurrentFolder);
@@ -158,12 +159,10 @@ public static class GameFolders
         }
         catch (Exception ex)
         {
-            LauncherCommon.Log(ex, "扫描 PCL 所在文件夹中是否有 MC 文件夹失败");
+            LauncherCommon.Log(ex, "扫描 PCL CE 所在文件夹中是否有 MC 文件夹失败");
         }
 
-        var mojangPath = $@"{Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            ".minecraft")}\";
+        var mojangPath = LauncherPaths.OfficialMinecraftDirectory;
         if ((currentMcFolderList.Count == 0
                 || mojangPath != currentMcFolderList[0].Location)
             && Directory.Exists(Path.Combine(mojangPath, "versions")))
@@ -224,17 +223,17 @@ public static class GameFolders
         if (cacheMcFolderList.Count != 0)
             return;
 
-        Directory.CreateDirectory($@"{LauncherPaths.ExecutableDirectory}.minecraft\versions\");
+        Directory.CreateDirectory(
+            Path.Combine(LauncherPaths.DefaultMinecraftDirectory, "versions"));
         cacheMcFolderList.Add(
             McFolder.CreateBuiltin(
                 "Select.Folder.CurrentFolder",
-                $@"{LauncherPaths.ExecutableDirectory}.minecraft\",
+                LauncherPaths.DefaultMinecraftDirectory
+                + Path.DirectorySeparatorChar,
                 McFolder.Types.Original));
     }
 
-    /// <summary>
-    ///     为 Minecraft 文件夹创建 launcher_profiles.json 文件。
-    /// </summary>
+    /// <summary>为 Minecraft 文件夹创建 launcher_profiles.json 文件。</summary>
     public static void McFolderLauncherProfilesJsonCreate(string folder)
     {
         try
@@ -243,22 +242,24 @@ public static class GameFolders
                 return;
 
             var now = DateTime.Now;
-            var resultJson = $$"""
-                               {
-                                   "profiles":  {
-                                       "PCL": {
-                                           "icon": "Grass",
-                                           "name": "PCL",
-                                           "lastVersionId": "latest-release",
-                                           "type": "latest-release",
-                                           "lastUsed": "{{now.ToString("yyyy'-'MM'-'dd", CultureInfo.InvariantCulture)}}T{{now.ToString("HH':'mm':'ss", CultureInfo.InvariantCulture)}}.0000Z"
-                                       }
-                                   },
-                                   "selectedProfile": "PCL",
-                                   "clientToken": "23323323323323323323323323323333"
-                               }
-                               """;
-            LauncherCommon.WriteFile(
+            var resultJson =
+                /* language=JSON */
+                $$"""
+                  {
+                      "profiles":  {
+                          "PCL": {
+                              "icon": "Grass",
+                              "name": "PCL CE",
+                              "lastVersionId": "latest-release",
+                              "type": "latest-release",
+                              "lastUsed": "{{now.ToString("yyyy'-'MM'-'dd", CultureInfo.InvariantCulture)}}T{{now.ToString("HH':'mm':'ss", CultureInfo.InvariantCulture)}}.0000Z"
+                          }
+                      },
+                      "selectedProfile": "PCL",
+                      "clientToken": "23323323323323323323323323323333"
+                  }
+                  """;
+            Files.WriteAllText(
                 Path.Combine(folder, "launcher_profiles.json"),
                 resultJson,
                 Encoding.GetEncoding("GB18030"));
@@ -286,38 +287,28 @@ public static class GameFolders
             Custom
         }
 
-        /// <summary>
-        ///     内置文件夹名称的资源键前缀，用于区分「资源键」与「用户自定义名称」。
-        /// </summary>
+        /// <summary>内置文件夹名称的资源键前缀，用于区分「资源键」与「用户自定义名称」。</summary>
         public const string BuiltinNamePrefix = "$";
 
-        /// <summary>
-        ///     文件夹路径。
-        ///     以 \ 结尾，例如 "D:\Game\MC\.minecraft\"。
-        /// </summary>
+        /// <summary>文件夹路径。 以路径分隔符结尾，例如 Windows 上的 "D:\Game\MC\.minecraft\"。</summary>
         public string Location = location ?? "";
 
         /// <summary>
-        ///     文件夹的显示名称。<br />
-        ///     若是内置文件夹，该字段保存本地化资源键（以 <c>$</c> 开头），显示时请使用 <see cref="DisplayName" />。
+        /// 文件夹的显示名称。<br /> 若是内置文件夹，该字段保存本地化资源键（以 <c>$</c> 开头），显示时请使用
+        /// <see cref="DisplayName" />。
         /// </summary>
         public string Name = name ?? "";
 
         public Types Type = type;
 
-        /// <summary>
-        ///     当前语言下的显示名称。内置文件夹会按当前语言实时翻译。
-        /// </summary>
+        /// <summary>当前语言下的显示名称。内置文件夹会按当前语言实时翻译。</summary>
         public string DisplayName =>
             Name.Length > BuiltinNamePrefix.Length
             && Name.StartsWith(BuiltinNamePrefix, StringComparison.Ordinal)
                 ? Lang.Text(Name[BuiltinNamePrefix.Length..])
                 : Name;
 
-        /// <summary>
-        ///     创建一个使用内置名称的文件夹。<br />
-        ///     写入 <see cref="Name" /> 的是资源键（带前缀），因此可以安全持久化。
-        /// </summary>
+        /// <summary>创建一个使用内置名称的文件夹。<br /> 写入 <see cref="Name" /> 的是资源键（带前缀），因此可以安全持久化。</summary>
         /// <param name="nameKey">内置名称的本地化资源键。</param>
         /// <param name="location">文件夹路径。</param>
         /// <param name="type">文件夹类型。</param>

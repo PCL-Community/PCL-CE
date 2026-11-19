@@ -3,9 +3,11 @@ using System.IO;
 
 namespace PCL.Core.Utils.OS;
 
-public static class SystemPaths {
+public static class SystemPaths
+{
     /// <summary>
-    /// 系统盘符（含冒号和反斜杠），例如 "C:\"。
+    /// 系统盘符：Windows 上形如 "C:\"，其他平台为 "/"。
     /// </summary>
-    public static string DriveLetter { get; } = Path.GetPathRoot(Environment.SystemDirectory)!;
+    public static string DriveLetter { get; } =
+        OperatingSystem.IsWindows() ? Path.GetPathRoot(Environment.SystemDirectory)! : "/";
 }

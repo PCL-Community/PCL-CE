@@ -66,7 +66,7 @@ public static partial class LocalComp
                 return Logo;
 
             return IsFolder
-                ? "pack://application:,,,/images/Icons/Folder.png"
+                ? $"{LauncherPaths.ImageRoot}Icons/Folder.png"
                 : $"{LauncherPaths.ImageRoot}Icons/NoIcon.png";
         }
     }

@@ -2,6 +2,7 @@
 using System.Text;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using static PCL.Loading;
 
 namespace PCL;
@@ -35,7 +36,7 @@ public static partial class Modpack
         instanceName = _ResolveModpackInstanceName(instanceName, json["name"]?.ToString() ?? "");
 
         var installTemp = LauncherCommon.GetTempFolder("Modpack");
-        var versionFolder = $"{GameFolders.mcFolderSelected}versions\\{instanceName}";
+        var versionFolder = Path.Combine(GameFolders.mcFolderSelected!, "versions", instanceName);
         var installLoaders = new List<LoaderBase>
         {
             _CreateMcbbsExtractLoader(
@@ -67,7 +68,9 @@ public static partial class Modpack
         var request = new McInstallRequest
         {
             targetInstanceName = instanceName,
-            targetInstanceFolder = $@"{GameFolders.mcFolderSelected}versions\{instanceName}\",
+            targetInstanceFolder =
+                Path.Combine(GameFolders.mcFolderSelected!, "versions", instanceName)
+                + Path.DirectorySeparatorChar,
             minecraftName = minecraftVersion,
             optiFineVersion = addons.GetValueOrDefault("optifine"),
             forgeVersion = addons.GetValueOrDefault("forge"),
@@ -91,6 +94,9 @@ public static partial class Modpack
         var loader = new LoaderCombo<string>(loaderName, loaders)
         {
             OnStateChanged = ModpackUi.OnInstallStateChanged,
+            DisplayNameFactory = () => Lang.Text(
+                "Minecraft.Download.Modpack.Task.McbbsInstall",
+                instanceName),
             Identifier = loaderIdentifier
         };
 
@@ -112,7 +118,7 @@ public static partial class Modpack
                 ?? archive.GetEntry($"{archiveBaseFolder}manifest.json");
             using var stream = entry!.Open();
             return (JsonObject)LauncherCommon.GetJson(
-                LauncherCommon.ReadFile(stream, Encoding.UTF8));
+                Files.ReadAllTextOrEmpty(stream, Encoding.UTF8));
         }
         catch (Exception ex)
         {

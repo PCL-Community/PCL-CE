@@ -1,3 +1,4 @@
+using Microsoft.Data.Sqlite;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.Hash;
@@ -7,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace PCL.Core.Test.Hash;
@@ -26,8 +28,25 @@ public class HashCacheTest
     [TestCleanup]
     public void Cleanup()
     {
-        if (Directory.Exists(_tempDir))
-            Directory.Delete(_tempDir, true);
+        // HashCache connections use SQLite pooling. Clear the pool before deleting the
+        // temporary database, otherwise Windows keeps the .db/-wal/-shm files locked.
+        SqliteConnection.ClearAllPools();
+
+        if (!Directory.Exists(_tempDir))
+            return;
+
+        for (var attempt = 0; ; attempt++)
+        {
+            try
+            {
+                Directory.Delete(_tempDir, true);
+                return;
+            }
+            catch (IOException) when (attempt < 9)
+            {
+                Thread.Sleep(100);
+            }
+        }
     }
 
     private sealed record FileItem(string FilePath, string MD5, string SHA1, string SHA256, string SHA512, string MurmurHash2);

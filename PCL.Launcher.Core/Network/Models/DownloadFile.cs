@@ -1,3 +1,4 @@
+using PCL.Core.IO;
 using PCL.Network.Loaders;
 
 namespace PCL.Network;
@@ -21,7 +22,7 @@ public class DownloadFile
     {
         Urls = urls.Where(url => !string.IsNullOrWhiteSpace(url)).Distinct().ToList();
         LocalPath = localPath;
-        LocalName = LauncherCommon.GetFileNameFromPath(localPath);
+        LocalName = Files.GetFileNameFromPath(localPath);
         Check = checker;
         UseBrowserUserAgent = useBrowserUserAgent;
         CustomUserAgent = customUserAgent;

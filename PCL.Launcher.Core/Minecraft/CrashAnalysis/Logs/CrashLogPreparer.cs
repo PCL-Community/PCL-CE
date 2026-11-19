@@ -333,7 +333,7 @@ internal sealed class CrashLogPreparer(CrashAnalysisContext context)
             else if (line.Contains("以下为游戏输出的最后一段内容"))
             {
                 hasLauncherMark = true;
-                LogWrapper.Info("Crash", "找到 PCL 输出的游戏实时日志头");
+                LogWrapper.Info("Crash", "找到 PCL CE 输出的游戏实时日志头");
             }
 
         return hasLauncherMark

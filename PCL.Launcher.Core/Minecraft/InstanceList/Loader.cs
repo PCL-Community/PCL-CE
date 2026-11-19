@@ -1,25 +1,19 @@
 ﻿using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.Utils;
 
 namespace PCL;
 
 public static partial class InstanceList
 {
-    /// <summary>
-    ///     是否要求本次加载强制刷新实例列表。
-    /// </summary>
+    /// <summary>是否要求本次加载强制刷新实例列表。</summary>
     public static bool mcInstanceListForceRefresh;
 
-    /// <summary>
-    ///     是否为本次打开 PCL 后第一次加载实例列表。
-    ///     这会清理所有 .pclignore 文件，而非跳过这些对应实例。
-    /// </summary>
+    /// <summary>是否为本次打开 PCL 后第一次加载实例列表。 这会清理所有 .pclignore 文件，而非跳过这些对应实例。</summary>
     private static bool _isFirstMcInstanceListLoad = true;
 
-    /// <summary>
-    ///     加载 Minecraft 文件夹的实例列表。
-    /// </summary>
+    /// <summary>加载 Minecraft 文件夹的实例列表。</summary>
     public static Loading.LoaderTask<string, int> mcInstanceListLoader = new(
         "Minecraft Instance List",
         InitMcInstanceList)
@@ -33,10 +27,13 @@ public static partial class InstanceList
             ?? throw new InvalidOperationException("实例列表加载器输入为空");
         try
         {
-            mcInstanceList = new Dictionary<McInstanceCardType, List<McInstance>>();
             var folderList = _GetInstanceFolderNames(path);
             if (folderList.Count == 0)
             {
+                if (loader.IsAborted)
+                    return;
+
+                mcInstanceList = new Dictionary<McInstanceCardType, List<McInstance>>();
                 _ClearInstanceSelection(path);
                 return;
             }
@@ -44,35 +41,38 @@ public static partial class InstanceList
             var folderListCheck = _GetInstanceCacheCheck(folderList);
             var useCache = !mcInstanceListForceRefresh
                 && LauncherText.Val(
-                    LauncherCommon.ReadIni(
+                    Ini.Read(
                         Path.Combine(path, "PCL.ini"),
                         "InstanceCache"))
                 == folderListCheck;
 
+            Dictionary<McInstanceCardType, List<McInstance>>? result = null;
             if (useCache)
             {
-                var cachedResult = InitMcInstanceListWithCache(path);
-                if (cachedResult is not null)
-                    mcInstanceList = cachedResult;
-                else
+                result = InitMcInstanceListWithCache(path);
+                if (result is null || result.Count == 0)
+                {
+                    result = null;
                     useCache = false;
+                }
             }
 
             if (!useCache)
             {
                 mcInstanceListForceRefresh = false;
                 LauncherCommon.Log("[Minecraft] 文件夹列表变更或缓存无效，重载所有实例");
-                LauncherCommon.WriteIni(
+                result = InitMcInstanceListWithoutCache(path);
+                Ini.Write(
                     Path.Combine(path, "PCL.ini"),
                     "InstanceCache",
                     folderListCheck.ToString());
-                mcInstanceList = InitMcInstanceListWithoutCache(path);
             }
-
-            _isFirstMcInstanceListLoad = false;
 
             if (loader.IsAborted)
                 return;
+
+            mcInstanceList = result ?? new Dictionary<McInstanceCardType, List<McInstance>>();
+            _isFirstMcInstanceListLoad = false;
 
             _SelectInstanceAfterLoad(path);
 
@@ -84,7 +84,7 @@ public static partial class InstanceList
         }
         catch (Exception ex)
         {
-            LauncherCommon.WriteIni(
+            Ini.Write(
                 Path.Combine(path, "PCL.ini"),
                 "InstanceCache",
                 "");
@@ -104,10 +104,12 @@ public static partial class InstanceList
 
         try
         {
-            return new DirectoryInfo(versionsPath)
-                .GetDirectories()
-                .Select(folder => folder.Name)
-                .ToList();
+            return
+            [
+                .. new DirectoryInfo(versionsPath)
+                    .GetDirectories()
+                    .Select(folder => folder.Name)
+            ];
         }
         catch (Exception ex)
         {
@@ -119,7 +121,7 @@ public static partial class InstanceList
 
     private static void _ClearInstanceSelection(string path)
     {
-        LauncherCommon.WriteIni(Path.Combine(path, "PCL.ini"), "InstanceCache", "");
+        Ini.Write(Path.Combine(path, "PCL.ini"), "InstanceCache", "");
         McMcInstanceSelected = null;
         States.Game.SelectedInstance = "";
         LauncherCommon.Log("[Minecraft] 未找到可用 Minecraft 实例");
@@ -134,7 +136,7 @@ public static partial class InstanceList
 
     private static void _SelectInstanceAfterLoad(string path)
     {
-        var savedSelection = LauncherCommon.ReadIni(Path.Combine(path, "PCL.ini"), "Version");
+        var savedSelection = Ini.Read(Path.Combine(path, "PCL.ini"), "Version");
         if (!string.IsNullOrEmpty(savedSelection) && _TrySelectSavedInstance(savedSelection))
             return;
 

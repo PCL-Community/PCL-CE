@@ -1,9 +1,10 @@
-using PCL.Core.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using PCL.Core.Logging;
 
 namespace PCL.Core.Minecraft.Java.Scanner;
+
 public class MicrosoftStoreJavaScanner : IJavaScanner
 {
     private const string StorePackagePath =
@@ -22,7 +23,9 @@ public class MicrosoftStoreJavaScanner : IJavaScanner
             // 第一级：java-runtime* 目录
             foreach (var runtimeDir in Directory.EnumerateDirectories(basePath))
             {
-                if (!Path.GetFileName(runtimeDir).StartsWith("java-runtime", StringComparison.OrdinalIgnoreCase))
+                if (!Path
+                        .GetFileName(runtimeDir)
+                        .StartsWith("java-runtime", StringComparison.OrdinalIgnoreCase))
                     continue;
 
                 // 第二级：架构目录 (windows-x64等)
@@ -31,7 +34,8 @@ public class MicrosoftStoreJavaScanner : IJavaScanner
                     // 第三级：版本目录
                     foreach (var versionDir in Directory.EnumerateDirectories(archDir))
                     {
-                        var javaExe = Path.Combine(versionDir, "bin", "java.exe");
+                        var javaExe =
+                            JavaExecutableLayout.GetJavaExePath(Path.Combine(versionDir, "bin"));
                         if (File.Exists(javaExe))
                         {
                             LogWrapper.Info($"[Java] 检测到 Microsoft Store Java: {javaExe}");

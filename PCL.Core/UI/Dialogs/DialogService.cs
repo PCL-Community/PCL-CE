@@ -1,23 +1,22 @@
-using PCL.Core.Logging;
-using PCL.Core.UI.Threading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using PCL.Core.Logging;
+using PCL.Core.UI.Threading;
 
 namespace PCL.Core.UI.Dialogs;
 
-/// <summary>弹窗调度：负责排队、派发与结果回传，界面层只实现 <see cref="IDialogPresenter"/>。</summary>
+/// <summary>弹窗调度：负责排队、派发与结果回传，界面层只实现 <see cref="IDialogPresenter" />。</summary>
 public sealed class DialogService : IDialogService
 {
-    public static DialogService Instance { get; } = new();
+    private const int MaxPresentRetries = 40;
+    private readonly Lock _lock = new();
 
     private readonly Queue<DialogViewModel> _queue = [];
-    private readonly Lock _lock = new();
     private DialogViewModel? _current;
-
-    private const int MaxPresentRetries = 40;
+    public static DialogService Instance { get; } = new();
 
     /// <summary>界面层注册的呈现器。</summary>
     public IDialogPresenter? Presenter { get; set; }
@@ -28,7 +27,10 @@ public sealed class DialogService : IDialogService
     {
         get
         {
-            lock (_lock) return _current is not null || _queue.Count > 0;
+            lock (_lock)
+            {
+                return _current is not null || _queue.Count > 0;
+            }
         }
     }
 
@@ -36,45 +38,58 @@ public sealed class DialogService : IDialogService
     {
         get
         {
-            lock (_lock) return _queue.Count + (_current is null ? 0 : 1);
+            lock (_lock)
+            {
+                return _queue.Count + (_current is null ? 0 : 1);
+            }
         }
     }
 
-    /// <summary>提交弹窗请求并立即返回其状态对象。</summary>
-    public DialogViewModel Show(DialogRequest request)
+    /// <summary>异步显示弹窗，等待用户关闭后返回结果。</summary>
+    public async Task<DialogResult> ShowAsync(
+        DialogRequest request,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var dialog = _Enqueue(request);
+        await using var registration = cancellationToken.Register(() => _Cancel(dialog));
+        return await dialog.Completion.Task.ConfigureAwait(false);
+    }
 
-        // 单按钮弹窗没有可选分支，显示后立即返回，避免阻塞调用线程。
-        var waitable = request.Buttons.Length > 1;
-        if (!waitable) dialog.PresetResult(new DialogResult(1));
-
-        if (!waitable || !request.ForceWait || dialog.IsClosed) return dialog;
-
-        void PumpFrame()
+    /// <summary>显示不需要返回结果的通知弹窗，不阻塞调用线程。</summary>
+    public void ShowNotification(DialogRequest request)
+    {
+        try
         {
-            if (dialog.IsClosed) return;
-
-            var frame = UiDispatcher.CreateModalFrame();
-            if (frame is null) return;
-
-            dialog.WaitFrame = frame;
-            try
-            {
-                frame.Run();
-            }
-            finally
-            {
-                dialog.WaitFrame = null;
-            }
+            var dialog = _Enqueue(request);
+            _ = dialog.Completion.Task.ContinueWith(
+                static (task, _) =>
+                    LogWrapper.Error(
+                        task.Exception?.GetBaseException(),
+                        "UI.Dialogs",
+                        "通知弹窗显示失败"),
+                null,
+                CancellationToken.None,
+                TaskContinuationOptions.OnlyOnFaulted,
+                TaskScheduler.Default);
         }
+        catch (Exception ex)
+        {
+            LogWrapper.Error(ex, "UI.Dialogs", "通知弹窗创建失败");
+        }
+    }
 
-        // DispatcherFrame 只能由界面线程创建与驱动：
-        // 界面线程直接泵帧；后台线程改为等待 Completion，避免跨线程驱动消息泵。
-        if (UiDispatcher.CheckAccess()) PumpFrame();
-        else dialog.Completion.Task.GetAwaiter().GetResult();
-
-        return dialog;
+    /// <summary>
+    /// 仅供工作线程使用的兼容入口。界面线程不得调用，否则会抛出异常；新代码应使用 <see cref="ShowAsync" /> 或
+    /// <see cref="ShowNotification" />。<br /> 该入口用于尚未支持异步的 <c>LoaderTask</c>
+    /// 等同步回调，等待的是后台线程而不是界面线程。
+    /// </summary>
+    public DialogResult ShowBlockingOnWorkerThread(DialogRequest request)
+    {
+        return UiDispatcher.CheckAccess()
+            ? throw new InvalidOperationException(
+                "不能在界面线程同步等待弹窗，请改用 ShowAsync 或 ShowNotification。")
+            : ShowAsync(request).GetAwaiter().GetResult();
     }
 
     /// <summary>排队并交给呈现器，不等待结果。界面不可用时立即以 <see cref="DialogResult.None" /> 关闭。</summary>
@@ -89,17 +104,37 @@ public sealed class DialogService : IDialogService
             return dialog;
         }
 
-        lock (_lock) _queue.Enqueue(dialog);
+        lock (_lock)
+        {
+            _queue.Enqueue(dialog);
+        }
+
         // `Post` instead of `Invoke` to avoid potential dead lock
         UiDispatcher.Post(Pump);
 
         return dialog;
     }
 
-    public Task<DialogResult> ShowAsync(DialogRequest request)
+    private void _Cancel(DialogViewModel dialog)
     {
-        var dialog = _Enqueue(request);
-        return dialog.Completion.Task;
+        if (dialog.IsClosed) return;
+
+        var wasQueued = false;
+        lock (_lock)
+        {
+            if (_queue.Contains(dialog))
+            {
+                var pending = _queue
+                    .Where(item => !ReferenceEquals(item, dialog))
+                    .ToArray();
+                _queue.Clear();
+                foreach (var item in pending) _queue.Enqueue(item);
+                wasQueued = true;
+            }
+        }
+
+        if (wasQueued || !dialog.IsClosed)
+            dialog.Close(DialogResult.Cancel);
     }
 
     /// <summary>取出队首弹窗并交给呈现器。必须在 UI 线程调用。</summary>
@@ -176,7 +211,7 @@ public sealed class DialogService : IDialogService
         List<DialogViewModel> pending;
         lock (_lock)
         {
-            pending = _queue.ToList();
+            pending = [.. _queue];
             _queue.Clear();
         }
 
