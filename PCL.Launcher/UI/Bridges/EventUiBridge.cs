@@ -73,12 +73,12 @@ public sealed class EventUiBridge : IEventUi
         try
         {
             var title = PageHelpDetail.ReadTitle(location);
-            PageRouter.Navigate(
+            LauncherCommon.RunInUiWait(() => PageRouter.Navigate(
                 new PageRoute(
                     PageIds.HelpDetail,
                     null,
                     location,
-                    string.IsNullOrEmpty(title) ? null : title));
+                    string.IsNullOrEmpty(title) ? null : title)));
         }
         catch (Exception ex)
         {
