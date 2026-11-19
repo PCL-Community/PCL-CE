@@ -107,6 +107,9 @@ public sealed class PosixJavaParser : JavaParserBase
         if (ElfHeaderReader.TryRead(javaExePath) is { } elf)
             return elf;
 
+        if (MachOHeaderReader.TryRead(javaExePath) is { } machO)
+            return machO;
+
         var architecture = _ParseArchitecture(_GetReleaseValue(release, "OS_ARCH"));
         return architecture is null
             ? (MachineType.Unknown, false)

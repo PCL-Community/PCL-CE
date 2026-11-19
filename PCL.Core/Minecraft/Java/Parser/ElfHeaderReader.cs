@@ -6,7 +6,7 @@ using PCL.Core.Utils;
 namespace PCL.Core.Minecraft.Java.Parser;
 
 /// <summary>
-///     ELF 文件头读取器：Windows 以外的 Java 可执行文件是 ELF 格式，用 e_machine 判断架构。
+///     ELF 文件头读取器：Linux 等系统的 Java 可执行文件是 ELF 格式，用 e_machine 判断架构。
 /// </summary>
 internal static class ElfHeaderReader
 {
