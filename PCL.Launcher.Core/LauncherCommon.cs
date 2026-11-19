@@ -38,6 +38,7 @@ public static class LauncherCommon
 
     public static LauncherLogHandler? UiLogHandler { get; set; }
 
+    private static int _dispatcherMissingLogged;
     private static bool _modeDebug;
 
     /// <summary>是否处于调试模式，由宿主同步。</summary>
@@ -80,6 +81,14 @@ public static class LauncherCommon
                 UiLogHandler(null, text, level, title, userSummary);
                 break;
 
+            case >= LauncherLogLevel.Feedback:
+                LogWrapper.Error("Launcher", text);
+                break;
+
+            case >= LauncherLogLevel.Hint:
+                LogWrapper.Warn("Launcher", text);
+                break;
+
             case LauncherLogLevel.Debug or LauncherLogLevel.Developer:
                 LogWrapper.Debug("Launcher", text);
                 break;
@@ -109,7 +118,7 @@ public static class LauncherCommon
                 LogWrapper.Error(ex, "Launcher", desc);
                 break;
 
-            case LauncherLogLevel.Hint or LauncherLogLevel.Msgbox:
+            case >= LauncherLogLevel.Hint:
                 LogWrapper.Warn(ex, "Launcher", desc);
                 break;
 
@@ -129,14 +138,26 @@ public static class LauncherCommon
 
     public static bool RunInUi()
     {
-        return ApplicationRuntime.GetService<IUiDispatcher>()?.CheckAccess() ?? false;
+        var dispatcher = ApplicationRuntime.GetService<IUiDispatcher>();
+        if (dispatcher is null)
+        {
+            _WarnMissingDispatcher();
+            return false;
+        }
+
+        return dispatcher.CheckAccess();
     }
 
     /// <summary>确保在 UI 线程中执行代码，不阻断当前线程。</summary>
     public static void RunInUi(Action action, bool forceWaitUntilLoaded = false)
     {
         var dispatcher = ApplicationRuntime.GetService<IUiDispatcher>();
-        if (dispatcher is null) return;
+        if (dispatcher is null)
+        {
+            _WarnMissingDispatcher();
+            return;
+        }
+
         if (dispatcher.CheckAccess()) action();
         else dispatcher.Post(action);
     }
@@ -145,7 +166,12 @@ public static class LauncherCommon
     public static T? RunInUiWait<T>(Func<T> func)
     {
         var dispatcher = ApplicationRuntime.GetService<IUiDispatcher>();
-        if (dispatcher is null) return default;
+        if (dispatcher is null)
+        {
+            _WarnMissingDispatcher();
+            return default;
+        }
+
         return dispatcher.CheckAccess() ? func() : dispatcher.Invoke(func);
     }
 
@@ -153,9 +179,20 @@ public static class LauncherCommon
     public static void RunInUiWait(Action action)
     {
         var dispatcher = ApplicationRuntime.GetService<IUiDispatcher>();
-        if (dispatcher is null) return;
+        if (dispatcher is null)
+        {
+            _WarnMissingDispatcher();
+            return;
+        }
+
         if (dispatcher.CheckAccess()) action();
         else dispatcher.Invoke(action);
+    }
+
+    private static void _WarnMissingDispatcher()
+    {
+        if (Interlocked.Exchange(ref _dispatcherMissingLogged, 1) != 0) return;
+        LogWrapper.Warn("Launcher", "UI 调度器未注册，界面操作已跳过");
     }
 
     /// <summary>确保在工作线程中执行代码。</summary>

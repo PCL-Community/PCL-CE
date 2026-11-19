@@ -27,6 +27,12 @@ public static class ApplicationRuntime
         return (T?)current?.Services?.GetService(typeof(T));
     }
 
+    public static T GetRequiredService<T>() where T : class
+    {
+        return GetService<T>()
+            ?? throw new InvalidOperationException($"必需的服务未注册：{typeof(T).FullName}");
+    }
+
     public static void Initialize(ApplicationServices services)
     {
         ArgumentNullException.ThrowIfNull(services);

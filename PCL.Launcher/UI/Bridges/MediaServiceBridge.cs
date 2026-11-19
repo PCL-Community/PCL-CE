@@ -5,7 +5,7 @@ using PCL.Views.Shell;
 namespace PCL.UI.Bridges;
 
 /// <summary>游戏启动前后的音乐控制，以及设置页与右下角音乐按钮所需的媒体操作。</summary>
-public sealed class MediaServiceBridge : IMediaService
+public sealed class MediaServiceBridge : IMediaService, IDisposable
 {
     private readonly MediaPlaybackService _media = new();
 
@@ -14,6 +14,11 @@ public sealed class MediaServiceBridge : IMediaService
         ExtraButtonsPanel.MusicStateProvider = GetMusicButtonState;
         ExtraButtonsPanel.MusicToggleAction = ToggleMusic;
         ExtraButtonsPanel.MusicNextAction = PlayNextMusic;
+    }
+
+    public void Dispose()
+    {
+        _media.Dispose();
     }
 
     public bool IsAvailable => _media.IsAvailable;

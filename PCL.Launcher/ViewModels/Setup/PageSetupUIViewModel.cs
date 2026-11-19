@@ -29,13 +29,6 @@ public partial class PageSetupUIViewModel : ViewModelBase
 
     [ObservableProperty] private bool _backgroundSuitVisible;
 
-    [ObservableProperty] private int _blurRadius = Config.Preference.Blur.Radius;
-
-    [ObservableProperty] private int _blurSamplingRate =
-        Config.Preference.Blur.SamplingRate;
-
-    [ObservableProperty] private int _blurTypeSelectedIndex = -1;
-
     [ObservableProperty] private string _customNetText = string.Empty;
 
     [ObservableProperty] private int _customPresetSelectedIndex = -1;
@@ -104,12 +97,6 @@ public partial class PageSetupUIViewModel : ViewModelBase
             Config.Preference.Theme.DarkColor = (ColorTheme)value;
     }
 
-    partial void OnBlurTypeSelectedIndexChanged(int value)
-    {
-        if (!_reloading && value >= 0)
-            Config.Preference.Blur.KernelType = value;
-    }
-
     partial void OnBackgroundSuitSelectedIndexChanged(int value)
     {
         if (!_reloading && value >= 0)
@@ -143,16 +130,6 @@ public partial class PageSetupUIViewModel : ViewModelBase
         if (!_reloading) Config.Preference.Background.WallpaperBlurRadius = value;
     }
 
-    partial void OnBlurRadiusChanged(int value)
-    {
-        if (!_reloading) Config.Preference.Blur.Radius = value;
-    }
-
-    partial void OnBlurSamplingRateChanged(int value)
-    {
-        if (!_reloading) Config.Preference.Blur.SamplingRate = value;
-    }
-
     partial void OnMusicVolumeChanged(int value)
     {
         if (!_reloading) Config.Preference.Music.Volume = value;
@@ -169,13 +146,6 @@ public partial class PageSetupUIViewModel : ViewModelBase
             DarkModeSelectedIndex = Math.Clamp((int)theme.ColorMode, 0, 2);
             LightColorSelectedIndex = Math.Clamp((int)theme.LightColor, 0, colorMax);
             DarkColorSelectedIndex = Math.Clamp((int)theme.DarkColor, 0, colorMax);
-
-            BlurRadius = Config.Preference.Blur.Radius;
-            BlurSamplingRate = Config.Preference.Blur.SamplingRate;
-            BlurTypeSelectedIndex = Math.Clamp(
-                Config.Preference.Blur.KernelType,
-                0,
-                1);
 
             BackgroundOpacity = Config.Preference.Background.WallpaperOpacity;
             BackgroundBlur = Config.Preference.Background.WallpaperBlurRadius;
@@ -293,10 +263,5 @@ public partial class PageSetupUIViewModel : ViewModelBase
     public static object FormatPixelHint(object value)
     {
         return Lang.Text("Setup.Ui.Slider.Pixel", Lang.Number(Convert.ToDouble(value), "N0"));
-    }
-
-    public static object FormatSamplingRateHint(object value)
-    {
-        return Lang.Number(Convert.ToDouble(value) / 100d, "P0");
     }
 }

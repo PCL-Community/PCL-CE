@@ -25,14 +25,7 @@ public sealed partial class ApplicationService
     [LifecycleStop]
     private static void _Stop()
     {
-        ApplicationRuntime.Shutdown();
-
         if (Lifecycle.IsForceShutdown)
-        {
             Context.Warn("已指定强制关闭，跳过应用程序关闭流程");
-            return;
-        }
-
-        Lifecycle.CurrentApplication?.Shutdown();
     }
 }

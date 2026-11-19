@@ -10,11 +10,14 @@ namespace PCL;
 /// <summary>用委托按需生成本地化文本的绑定源；语言变更时通知绑定重新求值。</summary>
 public sealed class LocalizedText : INotifyPropertyChanged
 {
+    private const int PruneInterval = 64;
+
     private static readonly ConditionalWeakTable<
         AvaloniaObject,
         Dictionary<AvaloniaProperty, LocalizedText>> Instances = new();
 
     private static readonly List<WeakReference<LocalizedText>> All = [];
+    private static int _bindCount;
 
     private Func<string> _factory = () => string.Empty;
 
@@ -46,6 +49,7 @@ public sealed class LocalizedText : INotifyPropertyChanged
             source = new LocalizedText();
             sources[property] = source;
             All.Add(new WeakReference<LocalizedText>(source));
+            if (++_bindCount % PruneInterval == 0) PruneDeadSources();
         }
 
         source._factory = factory;
@@ -72,16 +76,20 @@ public sealed class LocalizedText : INotifyPropertyChanged
         return true;
     }
 
-    private static void _OnLanguageChanged()
+    private static void PruneDeadSources()
     {
         for (var i = All.Count - 1; i >= 0; i--)
-        {
-            var reference = All[i];
-            if (!reference.TryGetTarget(out var source))
-            {
+            if (!All[i].TryGetTarget(out _))
                 All.RemoveAt(i);
+    }
+
+    private static void _OnLanguageChanged()
+    {
+        PruneDeadSources();
+        for (var i = All.Count - 1; i >= 0; i--)
+        {
+            if (!All[i].TryGetTarget(out var source))
                 continue;
-            }
 
             if (Dispatcher.UIThread.CheckAccess())
                 source._RaiseChanged();

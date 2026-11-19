@@ -1,4 +1,3 @@
-using System.Text.Json.Nodes;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Core.App;
@@ -336,7 +335,6 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
         {
             var instance = Instance;
             var oldName = instance.Name;
-            var oldPath = instance.PathInstance;
             var versionsFolder = Path.Combine(
                 GameFolders.mcFolderSelected ?? string.Empty,
                 "versions");
@@ -355,118 +353,21 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
             if (string.IsNullOrWhiteSpace(newName) || newName == oldName)
                 return;
 
-            var newPath = Path.Combine(versionsFolder, newName);
-            var tempPath = Path.Combine(versionsFolder, $"{newName}_temp");
-            var isCaseChangedOnly = string.Equals(
-                newName.ToLowerInvariant(),
-                oldName.ToLowerInvariant(),
-                StringComparison.Ordinal);
-
-            JsonObject jsonObject;
-            try
-            {
-                var jsonPath = Path.Combine(oldPath, $"{oldName}.json");
-                jsonObject = JsonNode.Parse(Files.ReadAllTextOrEmpty(jsonPath)) as JsonObject
-                    ?? (JsonObject)instance.JsonObject.DeepClone();
-            }
-            catch (Exception ex)
-            {
-                LauncherCommon.Log(ex, "重命名读取 Json 时失败", LauncherLogLevel.Developer);
-                jsonObject = (JsonObject)instance.JsonObject.DeepClone();
-            }
-
-            try
-            {
-                if (ConfigService.GetProvider(ConfigSource.GameInstance) is
-                    DynamicCacheConfigStorage storage)
-                    storage.InvalidateCache(oldPath);
-            }
-            catch (Exception ex)
-            {
-                LauncherCommon.Log(ex, "清理重命名前的实例配置缓存失败", LauncherLogLevel.Developer);
-            }
-
-            Directory.Move(oldPath, tempPath);
-            Directory.Move(tempPath, newPath);
-
-            var oldNatives = Path.Combine(newPath, $"{oldName}-natives");
-            if (Directory.Exists(oldNatives))
-            {
-                var newNatives = Path.Combine(newPath, $"{newName}-natives");
-                if (isCaseChangedOnly)
-                {
-                    var middle = Path.Combine(newPath, $"{oldName}natives_temp");
-                    Directory.Move(oldNatives, middle);
-                    Directory.Move(middle, newNatives);
-                }
-                else
-                {
-                    if (Directory.Exists(newNatives))
-                        Directory.Delete(newNatives, true);
-                    Directory.Move(oldNatives, newNatives);
-                }
-            }
-
-            var oldJar = Path.Combine(newPath, $"{oldName}.jar");
-            if (File.Exists(oldJar))
-            {
-                var newJar = Path.Combine(newPath, $"{newName}.jar");
-                if (isCaseChangedOnly)
-                {
-                    var middle = Path.Combine(newPath, $"{oldName}_temp.jar");
-                    File.Move(oldJar, middle);
-                    File.Move(middle, newJar);
-                }
-                else
-                {
-                    if (File.Exists(newJar))
-                        File.Delete(newJar);
-                    File.Move(oldJar, newJar);
-                }
-            }
-
-            var setupIni = Path.Combine(newPath, "PCL", "Setup.ini");
-            if (File.Exists(setupIni))
-                Files.WriteAllText(
-                    setupIni,
-                    (await Files.ReadAllTextOrEmptyAsync(setupIni)).Replace(oldPath, newPath));
-
-            var instanceIni = Path.Combine(GameFolders.mcFolderSelected ?? string.Empty, "PCL.ini");
-            if ((Ini.Read(instanceIni, "Version") ?? string.Empty) == oldName)
-                Ini.Write(instanceIni, "Version", newName);
-
-            try
-            {
-                jsonObject["id"] = newName;
-                Files.WriteAllText(
-                    Path.Combine(newPath, $"{newName}.json"),
-                    jsonObject.ToString());
-                if (!isCaseChangedOnly)
-                {
-                    var oldJson = Path.Combine(newPath, $"{oldName}.json");
-                    if (File.Exists(oldJson))
-                        File.Delete(oldJson);
-                }
-            }
-            catch (Exception ex)
-            {
-                LauncherCommon.Log(ex, "重命名实例 Json 失败", LauncherLogLevel.Developer);
-            }
+            var result = InstanceRenameService.Rename(
+                instance,
+                newName,
+                GameFolders.mcFolderSelected ?? string.Empty);
 
             HintService.Show(Hints.Success(Lang.Text("Instance.Overall.Name.RenameSuccess")));
-            var reloaded = new McInstance(newName).Load();
-            Instance = reloaded;
-            PageInstanceLeft.SetCurrentInstance(reloaded);
-            if (InstanceList.McMcInstanceSelected is not null
-                && InstanceList.McMcInstanceSelected.PathInstance == oldPath)
-            {
-                InstanceList.McMcInstanceSelected = reloaded;
-                States.Game.SelectedInstance = newName;
-            }
+            Instance = result.Instance;
+            PageInstanceLeft.SetCurrentInstance(result.Instance);
 
             RefreshInstanceList();
             PageRouter.Navigate(
-                new PageRoute(PageIds.InstanceSetup, SubPageIds.VersionOverall, reloaded));
+                new PageRoute(
+                    PageIds.InstanceSetup,
+                    SubPageIds.VersionOverall,
+                    result.Instance));
             InstanceChanged?.Invoke();
         }
         catch (Exception ex)

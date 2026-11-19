@@ -35,7 +35,6 @@ public sealed class PlatformModule : IDisposable
 
     private static T _Get<T>() where T : class
     {
-        return ApplicationRuntime.GetService<T>()
-            ?? throw new InvalidOperationException($"平台服务尚未注册：{typeof(T).Name}");
+        return ApplicationRuntime.GetRequiredService<T>();
     }
 }

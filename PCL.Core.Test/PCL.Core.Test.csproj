@@ -56,7 +56,6 @@
         </EmbeddedResource>
     </ItemGroup>
     <ItemGroup>
-        <Compile Remove="BlurPerformanceTest.cs" />
         <Compile Remove="Net\**" />
     </ItemGroup>
     <ItemGroup>

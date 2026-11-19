@@ -111,6 +111,8 @@
     <sys:String x:Key="Config.Error.LoadFailed.Title">設定初始化失敗</sys:String>
     <sys:String x:Key="Config.Error.SaveFailed.Message">無法儲存設定檔。&#xA;&#xA;路徑：{0}</sys:String>
     <sys:String x:Key="Config.Error.SaveFailed.Title">儲存設定檔失敗</sys:String>
+    <sys:String x:Key="Config.Error.StorageFallback">無法存取設定儲存 {0}，本次工作階段將使用記憶體中的預設設定，修改不會儲存。&#xA;&#xA;{1}</sys:String>
+    <sys:String x:Key="Startup.SingleInstance.Unavailable">無法建立單例鎖定，啟動器將以多執行個體模式繼續執行。&#xA;&#xA;{0}</sys:String>
 
     <!-- Crash -->
 
@@ -3036,19 +3038,7 @@
 
     <!-- Setup.Ui.Basic -->
 
-    <sys:String x:Key="Setup.Ui.Basic.AdvancedMaterial">高階材質</sys:String>
-    <sys:String x:Key="Setup.Ui.Basic.AdvancedMaterial.ToolTip">啟用此功能後會在部分透明區域（例如卡片）實現模糊效果。&#xA;請注意，該功能會消耗大量 GPU 算力，並導致卡頓！</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.BlueHint">藍色，藍色，還是藍色！想要逃離藍色困境？請使用官方快照版！</sys:String>
-    <sys:String x:Key="Setup.Ui.Basic.BlurMethod">模糊方法</sys:String>
-    <sys:String x:Key="Setup.Ui.Basic.BlurMethod.Box">方框模糊</sys:String>
-    <sys:String x:Key="Setup.Ui.Basic.BlurMethod.Box.ToolTip">對每個畫素周圍較小範圍的畫素使用線性均值取樣，速度較快，但容易產生色塊。&#xA;該模糊容易造成細節資訊遺失，但效能較好，若裝置效能不佳可選擇使用。</sys:String>
-    <sys:String x:Key="Setup.Ui.Basic.BlurMethod.Gaussian">高斯模糊</sys:String>
-    <sys:String x:Key="Setup.Ui.Basic.BlurMethod.Gaussian.ToolTip">對每個畫素周圍較大範圍的畫素使用高斯卷積演算法的帶權重均值取樣，速度較慢。&#xA;該模糊品質較高，對細節的處理較為細緻，推薦效能較好的裝置使用。</sys:String>
-    <sys:String x:Key="Setup.Ui.Basic.BlurMethod.ToolTip">設定模糊方法。</sys:String>
-    <sys:String x:Key="Setup.Ui.Basic.BlurRadius">模糊半徑</sys:String>
-    <sys:String x:Key="Setup.Ui.Basic.BlurRadius.ToolTip">設定模糊效果的取樣半徑，值越大模糊效果越強。</sys:String>
-    <sys:String x:Key="Setup.Ui.Basic.BlurSamplingRate">取樣率</sys:String>
-    <sys:String x:Key="Setup.Ui.Basic.BlurSamplingRate.ToolTip">設定模糊效果的取樣率，值越大模糊效果越細緻。&#xA;若裝置效能不佳，可嘗試降低該值以獲得更好的效能。</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.GetSnapshot">取得官方快照版</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.LockWindow">鎖定啟動器大小</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.Opacity">不透明度</sys:String>

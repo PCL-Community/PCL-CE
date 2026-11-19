@@ -21,7 +21,6 @@ public sealed class UiModule : IDisposable
 
     private static T _Get<T>() where T : class
     {
-        return ApplicationRuntime.GetService<T>()
-            ?? throw new InvalidOperationException($"UI 服务尚未注册：{typeof(T).Name}");
+        return ApplicationRuntime.GetRequiredService<T>();
     }
 }

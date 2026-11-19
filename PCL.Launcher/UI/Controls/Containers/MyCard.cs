@@ -54,7 +54,7 @@ public class MyCard : Grid
 
     private static int _uuidSeed;
 
-    private readonly BlurBorder _mainBorder;
+    private readonly Border _mainBorder;
     private readonly Grid _mainGrid;
 
     public readonly int uuid = Interlocked.Increment(ref _uuidSeed);
@@ -77,7 +77,7 @@ public class MyCard : Grid
         };
         ContainerTheme.BindDynamic(MainChrome, CardShadow.ColorProperty, "ColorObject1");
         Children.Insert(0, MainChrome);
-        _mainBorder = new BlurBorder
+        _mainBorder = new Border
         {
             CornerRadius = new CornerRadius(5d),
             IsHitTestVisible = true

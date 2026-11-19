@@ -196,7 +196,16 @@ partial class Lifecycle
         }
 
         _WaitStoppingServiceTasks();
-        // ApplicationService 正常停止时会释放运行时，这里兜底处理它未启动或被跳过的情况。
+        if (!IsForceShutdown)
+            try
+            {
+                CurrentApplication?.Shutdown();
+            }
+            catch (Exception ex)
+            {
+                Context.Warn("关闭应用程序容器时出错", ex);
+            }
+
         ApplicationRuntime.Shutdown();
         if (logService is not null)
         {

@@ -334,32 +334,6 @@ public static partial class Config
         }
 
         /// <summary>
-        /// 高级材质。
-        /// </summary>
-        [ConfigGroup("Blur")] partial class BlurConfigGroup
-        {
-            /// <summary>
-            /// 是否启用。
-            /// </summary>
-            [ConfigItem<bool>("UiBlur", false, ConfigSource.Local)] public partial bool IsEnabled { get; set; }
-
-            /// <summary>
-            /// 模糊半径。
-            /// </summary>
-            [ConfigItem<int>("UiBlurValue", 16, ConfigSource.Local)] public partial int Radius { get; set; }
-
-            /// <summary>
-            /// 采样率。
-            /// </summary>
-            [ConfigItem<int>("UiBlurSamplingRate", 70, ConfigSource.Local)] public partial int SamplingRate { get; set; }
-
-            /// <summary>
-            /// 模糊方法。
-            /// </summary>
-            [ConfigItem<int>("UiBlurType", 0, ConfigSource.Local)] public partial int KernelType { get; set; }
-        }
-
-        /// <summary>
         /// 自定义主页。
         /// </summary>
         [ConfigGroup("Homepage")] partial class HomepageConfigGroup
