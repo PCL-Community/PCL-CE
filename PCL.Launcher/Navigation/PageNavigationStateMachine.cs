@@ -12,16 +12,14 @@ public sealed class PageNavigationStateMachine
 
     public bool CanGoBack => _backStack.Count > 0;
 
-    public PageRoute Navigate(PageRoute next, bool isSecondary, MainTab? tab)
+    public void Navigate(PageRoute next, bool isSecondary, MainTab? tab)
     {
-        ArgumentNullException.ThrowIfNull(next);
-
         if (isSecondary)
         {
             if (_backStack.Contains(next))
                 while (_backStack.Contains(next))
                     _backStack.RemoveAt(0);
-            else if (!Current.Equals(next))
+            else if (!Current.Equals(next) && Current.Page != next.Page)
                 _backStack.Insert(0, Current);
         }
         else
@@ -32,7 +30,6 @@ public sealed class PageNavigationStateMachine
         Current = next;
         if (tab is { } activeTab)
             _tabStates[activeTab] = next;
-        return Current;
     }
 
     public PageRoute? GetTabState(MainTab tab)
