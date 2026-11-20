@@ -139,7 +139,9 @@ public partial class TitleBar : UserControl
     private static int EffectiveTitleType()
     {
         if (ThemeService.CurrentTheme == ColorTheme.HmclBlue) return 4;
-        return (int)Config.Preference.WindowTitleType;
+        var type = Config.Preference.WindowTitleType;
+        if (OperatingSystem.IsMacOS() && type == LauncherTitleType.Default) return (int)LauncherTitleType.None;
+        return (int)type;
     }
 
     /// <summary>当窗口使用系统标题栏按钮（macOS 红绿灯）时，隐藏自绘的最小化与关闭按钮。</summary>
