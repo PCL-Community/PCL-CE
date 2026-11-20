@@ -246,10 +246,12 @@ public class MyScrollViewer : ScrollViewer
     private void _RebaseOverscroll()
     {
         var shown = _Overscroll.Shown;
-        if (shown <= 0d || _realOffset >= MaximumOffset) return;
+        if (shown < 0d || _realOffset <= 0d || _realOffset >= MaximumOffset) return;
+        if (shown == 0d && !_Overscroll.IsSpringRunning && !_momentumBounced) return;
 
+        _momentumBounced = false;
         _Overscroll.Reset();
-        _SetVerticalOffset(Math.Min(_realOffset + shown, MaximumOffset));
+        if (shown > 0d) _SetVerticalOffset(Math.Min(_realOffset + shown, MaximumOffset));
     }
 
     private void _SetVerticalOffset(double offset)
