@@ -13,7 +13,7 @@ using PCL.Views.Shell;
 namespace PCL.UI.Controls;
 
 /// <summary>
-///     PCL 滚动容器。滚轮按 300 ms 减速动画改变垂直偏移，<see cref="DeltaMult" /> 为倍率；
+///     PCL 滚动容器。滚轮按 300 ms 减速动画改变垂直偏移（macOS采取直接跟手触控板的形式），<see cref="DeltaMult" /> 为倍率；
 ///     模板见 <c>UI/Styles/Controls/ScrollBars.axaml</c>，垂直与水平滚动条均为 <see cref="MyScrollBar" />。
 /// </summary>
 public class MyScrollViewer : ScrollViewer
@@ -38,6 +38,7 @@ public class MyScrollViewer : ScrollViewer
     private readonly DispatcherTimer _GestureSafetyTimer;
     private bool _momentumBounced;
     private ulong _lastPreciseTimestamp;
+    private int _wheelAnimationGeneration;
 
     public MyScrollViewer()
     {
@@ -109,10 +110,12 @@ public class MyScrollViewer : ScrollViewer
         }
 
         // 不具名：连续滚轮事件各自独立叠加；越界由 Clamp 挡在 [0, 可滚动高度]
+        var generation = _wheelAnimationGeneration;
         AnimationService.Run(
             new DoubleAnimation(
                 animDelta =>
                 {
+                    if (generation != _wheelAnimationGeneration) return;
                     _realOffset = Math.Clamp(_realOffset + animDelta, 0d, MaximumOffset);
                     Offset = new Vector(Offset.X, _realOffset);
                 },
@@ -163,6 +166,7 @@ public class MyScrollViewer : ScrollViewer
     {
         var interval = Math.Clamp(timestamp - _lastPreciseTimestamp, 4d, 50d);
         _lastPreciseTimestamp = timestamp;
+        _wheelAnimationGeneration++;
         _activePreciseViewer = new WeakReference<MyScrollViewer>(this);
         _Overscroll.SetViewport(Viewport.Height);
         _GestureSafetyTimer.Stop();
@@ -209,7 +213,7 @@ public class MyScrollViewer : ScrollViewer
         }
     }
 
-    // 这边是因为手指按下、抬起是零增量事件，Avalonia 不会派发，只能从系统监视器得知
+    // 这边是因为手指抬起是零增量事件，Avalonia 不会派发，只能从系统监视器得知
     [SupportedOSPlatform("macos")]
     private static bool _EnsureScrollPhaseMonitor()
     {
@@ -228,16 +232,9 @@ public class MyScrollViewer : ScrollViewer
 
     private void _OnScrollPhaseChanged(MacOsScrollEventInfo info)
     {
-        if ((info.Phase & (MacOsScrollPhase.MayBegin | MacOsScrollPhase.Began)) != 0)
-        {
-            _momentumBounced = false;
-            _Overscroll.Grab();
-        }
-        else if ((info.Phase & (MacOsScrollPhase.Ended | MacOsScrollPhase.Cancelled)) != 0
-                 || (info.MomentumPhase & MacOsScrollPhase.Ended) != 0)
-        {
+        if ((info.Phase & (MacOsScrollPhase.Ended | MacOsScrollPhase.Cancelled)) != 0
+            || (info.MomentumPhase & MacOsScrollPhase.Ended) != 0)
             _Overscroll.Release();
-        }
     }
 
     private void _SetVerticalOffset(double offset)
