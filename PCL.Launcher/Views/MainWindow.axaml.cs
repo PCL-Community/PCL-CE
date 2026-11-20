@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Runtime.Versioning;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -29,6 +28,7 @@ public partial class MainWindow : Window
     private readonly ExtraButtonsPanel _extraButtons;
     private readonly TitleBar _titleBar;
     private bool _leftWidthUpdateQueued;
+    private bool _useSystemWindowChrome;
 
     public MainWindow()
     {
@@ -58,20 +58,13 @@ public partial class MainWindow : Window
         PageLeftHost.SizeChanged += (_, _) => ScheduleLeftWidthUpdate();
         LocalizationService.LanguageChanged += OnLanguageChangedForLeftWidth;
 
-        if (OperatingSystem.IsMacOS())
-        {
-            _ApplyMacOsWindowChrome();
-        }
-        else
-        {
-            ApplyRoundedWindowClip();
-            AddHandler(
-                PointerPressedEvent,
-                OnResizePointerPressed,
-                RoutingStrategies.Tunnel,
-                true);
-            PointerMoved += OnResizePointerMoved;
-        }
+        ApplyRoundedWindowClip();
+        AddHandler(
+            PointerPressedEvent,
+            OnResizePointerPressed,
+            RoutingStrategies.Tunnel,
+            true);
+        PointerMoved += OnResizePointerMoved;
 
         Topmost = true;
         Opened += (_, _) => Dispatcher.UIThread.Post(
@@ -210,9 +203,9 @@ public partial class MainWindow : Window
     }
 
     // macOS 改用系统标题栏，把圆角，阴影等交给系统处理，PCL因为窗口本身不支持最大化，因此绿灯保持禁用
-    [SupportedOSPlatform("macos")]
-    private void _ApplyMacOsWindowChrome()
+    public void UseSystemWindowChrome()
     {
+        _useSystemWindowChrome = true;
         WindowDecorations = WindowDecorations.Full;
         CanMaximize = false;
 
@@ -221,6 +214,8 @@ public partial class MainWindow : Window
         ShadowHost.CornerRadius = default;
         PanBack.Margin = default;
         PanBack.CornerRadius = default;
+        PanBack.Clip = null;
+        Cursor = null;
 
         _titleBar.UseSystemCaptionButtons();
     }
@@ -229,6 +224,7 @@ public partial class MainWindow : Window
     {
         PanBack.SizeChanged += (_, e) =>
         {
+            if (_useSystemWindowChrome) return;
             PanBack.Clip = new RectangleGeometry
             {
                 Rect = new Rect(e.NewSize),
@@ -240,7 +236,8 @@ public partial class MainWindow : Window
 
     private void OnResizePointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (!CanResize
+        if (_useSystemWindowChrome
+            || !CanResize
             || WindowState == WindowState.Maximized
             || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
             return;
@@ -252,6 +249,7 @@ public partial class MainWindow : Window
 
     private void OnResizePointerMoved(object? sender, PointerEventArgs e)
     {
+        if (_useSystemWindowChrome) return;
         Cursor = !CanResize || WindowState == WindowState.Maximized
             ? null
             : GetResizeEdge(e.GetPosition(this)) switch

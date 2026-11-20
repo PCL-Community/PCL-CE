@@ -26,6 +26,8 @@ public partial class TitleBar : UserControl
 
     private bool _updating;
 
+    private bool _useSystemCaptionButtons;
+
     public TitleBar()
     {
         InitializeComponent();
@@ -136,19 +138,22 @@ public partial class TitleBar : UserControl
         }
     }
 
-    private static int EffectiveTitleType()
+    private int EffectiveTitleType()
     {
         if (ThemeService.CurrentTheme == ColorTheme.HmclBlue) return 4;
         var type = Config.Preference.WindowTitleType;
-        if (OperatingSystem.IsMacOS() && type == LauncherTitleType.Default) return (int)LauncherTitleType.None;
-        return (int)type;
+        return _useSystemCaptionButtons && type == LauncherTitleType.Default
+            ? (int)LauncherTitleType.None
+            : (int)type;
     }
 
     /// <summary>当窗口使用系统标题栏按钮（macOS 红绿灯）时，隐藏自绘的最小化与关闭按钮。</summary>
     public void UseSystemCaptionButtons()
     {
+        _useSystemCaptionButtons = true;
         BtnTitleMin.IsVisible = false;
         BtnTitleClose.IsVisible = false;
+        RefreshTitleAppearance();
     }
 
     private void ApplyTitleLeftClamp()

@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Platform;
+using PCL.Views;
 using PlainToolkit.ObjectiveC.Runtime;
 
 namespace PCL;
@@ -59,6 +60,7 @@ internal sealed class MacOsShellIntegration : IPlatformShellIntegration
 
     public void OnWindowCreated(Window window)
     {
+        if (window is MainWindow mainWindow) mainWindow.UseSystemWindowChrome();
     }
 
     private static void ApplyDockIcon()
