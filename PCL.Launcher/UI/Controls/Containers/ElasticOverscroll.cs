@@ -29,6 +29,8 @@ internal sealed class ElasticOverscroll(Control owner)
 
     public bool IsSpringRunning => _springRunning;
 
+    public double Shown => _shown;
+
     public void Attach(ScrollContentPresenter? presenter, MyScrollBar? scrollBar)
     {
         Reset();

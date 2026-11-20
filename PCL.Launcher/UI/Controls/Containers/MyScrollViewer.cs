@@ -243,6 +243,15 @@ public class MyScrollViewer : ScrollViewer
         _Overscroll.Release();
     }
 
+    private void _RebaseOverscroll()
+    {
+        var shown = _Overscroll.Shown;
+        if (shown <= 0d || _realOffset >= MaximumOffset) return;
+
+        _Overscroll.Reset();
+        _SetVerticalOffset(Math.Min(_realOffset + shown, MaximumOffset));
+    }
+
     private void _SetVerticalOffset(double offset)
     {
         _realOffset = offset;
@@ -294,6 +303,8 @@ public class MyScrollViewer : ScrollViewer
     private void OnScrollChanged(object? sender, ScrollChangedEventArgs e)
     {
         _realOffset = Offset.Y;
+        if (e.ExtentDelta.Y != 0d || e.ViewportDelta.Y != 0d)
+            _RebaseOverscroll();
         if (e.OffsetDelta.Y != 0d || e.OffsetDelta.X != 0d)
         {
             if (e.OffsetDelta.Y != 0d) _verticalScrollBar?.NotifyScrolled();
