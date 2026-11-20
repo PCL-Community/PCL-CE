@@ -1,4 +1,5 @@
-﻿using PCL.Core.App;
+﻿using System.Collections.Concurrent;
+using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
 using PCL.Core.IO;
@@ -10,6 +11,8 @@ namespace PCL;
 
 public class CustomEvent
 {
+    private static readonly ConcurrentDictionary<string, byte> HelpOpening = new();
+
     /// <summary>禁止自定义主页写入的高危设置黑名单</summary>
     private static readonly HashSet<string> SecuritySensitiveSettingKeys =
     [
@@ -346,23 +349,37 @@ public class CustomEvent
             return;
         }
 
-        LauncherCommon.RunInNewThread(() =>
+        if (!HelpOpening.TryAdd(args[0], 0)) return;
+
+        try
         {
-            try
+            LauncherCommon.RunInNewThread(() =>
             {
-                var actualPaths = GetAbsoluteUrls(args[0], type);
-                var location = actualPaths[0];
-                EventUi.OpenHelp(location);
-            }
-            catch (Exception ex)
-            {
-                LauncherCommon.Log(
-                    ex,
-                    Lang.Text("Event.Error.ExecutionFailed", type, arg),
-                    LauncherLogLevel.Msgbox,
-                    userSummary: Lang.Text("Event.Error.ExecutionFailed", type, arg));
-            }
-        });
+                try
+                {
+                    var actualPaths = GetAbsoluteUrls(args[0], type);
+                    var location = actualPaths[0];
+                    EventUi.OpenHelp(location);
+                }
+                catch (Exception ex)
+                {
+                    LauncherCommon.Log(
+                        ex,
+                        Lang.Text("Event.Error.ExecutionFailed", type, arg),
+                        LauncherLogLevel.Msgbox,
+                        userSummary: Lang.Text("Event.Error.ExecutionFailed", type, arg));
+                }
+                finally
+                {
+                    HelpOpening.TryRemove(args[0], out _);
+                }
+            });
+        }
+        catch
+        {
+            HelpOpening.TryRemove(args[0], out _);
+            throw;
+        }
     }
 
     public static string[] GetAbsoluteUrls(string relativeUrl, EventType type)
