@@ -1,6 +1,5 @@
 name: "优化建议 / Improvement Suggestion"
 description: "对已有功能的小幅度优化或改进建议 / Suggest a minor improvement to an existing feature"
-title: ""
 type: "优化"
 body:
   - type: checkboxes
