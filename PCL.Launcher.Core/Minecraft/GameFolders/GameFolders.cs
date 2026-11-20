@@ -62,8 +62,8 @@ public static class GameFolders
                 $"{cacheMcFolderList.Count} 个自定义文件夹，{originalMcFolderList.Count} 个原始文件夹");
 
             _MergeOriginalFolders(cacheMcFolderList, originalMcFolderList);
-            _SaveFolderConfig(cacheMcFolderList);
             _EnsureMinecraftFolder(cacheMcFolderList);
+            _SaveFolderConfig(cacheMcFolderList);
 
             foreach (var folder in cacheMcFolderList)
                 McFolderLauncherProfilesJsonCreate(folder.Location);
