@@ -1,12 +1,12 @@
 using Avalonia;
 using Avalonia.Controls;
-using System.Runtime.Versioning;
 using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using PCL.Core.Platform;
 using PCL.Platform;
 using PCL.Views.Shell;
 
@@ -142,9 +142,7 @@ public class MyScrollViewer : ScrollViewer
             return;
 
         // macOS 触控板跟手滚动，保留系统惯性
-        if (OperatingSystem.IsMacOS()
-            && MacOsScrollEvents.TryGetCurrent(out var native)
-            && native.HasPreciseDeltas)
+        if (_ScrollGestures.TryGetCurrent(out var native) && native.HasPreciseDeltas)
         {
             e.Handled = true;
             _HandlePreciseScroll(-e.Delta.Y * PreciseDeltaScale * DeltaMult, native, e.Timestamp);
@@ -161,8 +159,7 @@ public class MyScrollViewer : ScrollViewer
         Tooltip.Dismiss();
     }
 
-    [SupportedOSPlatform("macos")]
-    private void _HandlePreciseScroll(double delta, MacOsScrollEventInfo native, ulong timestamp)
+    private void _HandlePreciseScroll(double delta, ScrollGestureInfo native, ulong timestamp)
     {
         var interval = Math.Clamp(timestamp - _lastPreciseTimestamp, 4d, 50d);
         _lastPreciseTimestamp = timestamp;
@@ -174,7 +171,7 @@ public class MyScrollViewer : ScrollViewer
 
         if (!ContainerAnimation.CanAnimate(this)
             || !_EnsureScrollPhaseMonitor()
-            || (native.Phase == MacOsScrollPhase.None && !native.IsMomentum))
+            || (native.Phase == ScrollGesturePhase.None && !native.IsMomentum))
         {
             _Overscroll.Reset();
             _SetVerticalOffset(Math.Clamp(_realOffset + delta, 0d, MaximumOffset));
@@ -217,14 +214,14 @@ public class MyScrollViewer : ScrollViewer
     }
 
     // 这边是因为手指抬起是零增量事件，Avalonia 不会派发，只能从系统监视器得知
-    [SupportedOSPlatform("macos")]
     private static bool _EnsureScrollPhaseMonitor()
     {
         if (_scrollPhaseMonitorReady is { } ready) return ready;
 
-        ready = MacOsScrollEvents.EnsurePhaseMonitor();
+        var gestures = _ScrollGestures;
+        ready = gestures.EnsurePhaseTracking();
         if (ready)
-            MacOsScrollEvents.PhaseChanged += info =>
+            gestures.PhaseChanged += info =>
             {
                 if (_activePreciseViewer?.TryGetTarget(out var viewer) == true)
                     viewer._OnScrollPhaseChanged(info);
@@ -233,10 +230,13 @@ public class MyScrollViewer : ScrollViewer
         return ready;
     }
 
-    private void _OnScrollPhaseChanged(MacOsScrollEventInfo info)
+    private static IScrollGestureService _ScrollGestures =>
+        ApplicationRuntime.GetService<IScrollGestureService>() ?? UnsupportedScrollGestureService.Instance;
+
+    private void _OnScrollPhaseChanged(ScrollGestureInfo info)
     {
-        if ((info.Phase & (MacOsScrollPhase.Ended | MacOsScrollPhase.Cancelled)) == 0
-            && (info.MomentumPhase & MacOsScrollPhase.Ended) == 0)
+        if ((info.Phase & (ScrollGesturePhase.Ended | ScrollGesturePhase.Cancelled)) == 0
+            && (info.MomentumPhase & ScrollGesturePhase.Ended) == 0)
             return;
 
         if (_Overscroll.IsStretched) _momentumBounced = true;
@@ -283,7 +283,7 @@ public class MyScrollViewer : ScrollViewer
         if (_window is not null)
             _window.Activated += OnWindowActivated;
         // 提前安装，否则第一次手势的按下事件会漏掉
-        if (OperatingSystem.IsMacOS()) _EnsureScrollPhaseMonitor();
+        _EnsureScrollPhaseMonitor();
     }
 
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
