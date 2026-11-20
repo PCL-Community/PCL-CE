@@ -1,6 +1,5 @@
 name: "Minecraft 崩溃 / Minecraft Crash"
 description: "PCL CE 提示 “Minecraft 出现错误”，或游戏崩溃 / PCL CE shows 'Minecraft encountered an error', or Minecraft crashes"
-title: ""
 type: "崩溃"
 body:
   - type: checkboxes
