@@ -172,7 +172,9 @@ public class MyScrollViewer : ScrollViewer
         _GestureSafetyTimer.Stop();
         _GestureSafetyTimer.Start();
 
-        if (!ContainerAnimation.CanAnimate(this) || !_EnsureScrollPhaseMonitor())
+        if (!ContainerAnimation.CanAnimate(this)
+            || !_EnsureScrollPhaseMonitor()
+            || (native.Phase == MacOsScrollPhase.None && !native.IsMomentum))
         {
             _Overscroll.Reset();
             _SetVerticalOffset(Math.Clamp(_realOffset + delta, 0d, MaximumOffset));
@@ -182,6 +184,7 @@ public class MyScrollViewer : ScrollViewer
         if (native.IsMomentum)
         {
             // 手指如果抬起时仍在拉伸则先回弹；回弹期间丢弃剩余惯性，避免内容被继续推出边界
+            if (_Overscroll.IsStretched) _momentumBounced = true;
             _Overscroll.Release();
             if (_momentumBounced || _Overscroll.IsSpringRunning) return;
         }
@@ -232,9 +235,12 @@ public class MyScrollViewer : ScrollViewer
 
     private void _OnScrollPhaseChanged(MacOsScrollEventInfo info)
     {
-        if ((info.Phase & (MacOsScrollPhase.Ended | MacOsScrollPhase.Cancelled)) != 0
-            || (info.MomentumPhase & MacOsScrollPhase.Ended) != 0)
-            _Overscroll.Release();
+        if ((info.Phase & (MacOsScrollPhase.Ended | MacOsScrollPhase.Cancelled)) == 0
+            && (info.MomentumPhase & MacOsScrollPhase.Ended) == 0)
+            return;
+
+        if (_Overscroll.IsStretched) _momentumBounced = true;
+        _Overscroll.Release();
     }
 
     private void _SetVerticalOffset(double offset)
