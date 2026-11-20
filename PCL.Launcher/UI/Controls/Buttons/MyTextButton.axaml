@@ -8,6 +8,11 @@
     <Grid>
         <TextBlock x:Name="LabText"
                    VerticalAlignment="Center" />
+		<Border x:Name="BorUnderline"
+                Height="0.5"
+                VerticalAlignment="Bottom"
+                Background="{Binding Foreground, ElementName=LabText}"
+                Opacity="{Binding Opacity, ElementName=LabText}"/>
         <Border x:Name="FocusRing"
                 Classes="FocusRing"
                 IsHitTestVisible="False" />
