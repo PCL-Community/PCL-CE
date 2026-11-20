@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
@@ -23,6 +24,8 @@ public class MyScrollViewer : ScrollViewer
     private double _realOffset;
     private WindowBase? _window;
     private bool _isRestoringFocus;
+    private MyScrollBar? _verticalScrollBar;
+    private MyScrollBar? _horizontalScrollBar;
 
     public MyScrollViewer()
     {
@@ -40,6 +43,13 @@ public class MyScrollViewer : ScrollViewer
     }
 
     public double DeltaMult { get; set; } = 1d;
+
+    protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
+    {
+        base.OnApplyTemplate(e);
+        _verticalScrollBar = e.NameScope.Find<MyScrollBar>("PART_VerticalScrollBar");
+        _horizontalScrollBar = e.NameScope.Find<MyScrollBar>("PART_HorizontalScrollBar");
+    }
 
     public Thickness ScrollBarMargin
     {
@@ -106,6 +116,9 @@ public class MyScrollViewer : ScrollViewer
         if (IsInnerScrollSource(e.Source))
             return;
 
+        if (_realOffset + -e.Delta.Y * WheelScrollStep * DeltaMult is var target
+            && Math.Clamp(target, 0d, MaximumOffset) != _realOffset)
+            _verticalScrollBar?.NotifyScrolled();
         e.Handled = true;
         PerformVerticalOffsetDelta(-e.Delta.Y * WheelScrollStep);
 
@@ -153,8 +166,12 @@ public class MyScrollViewer : ScrollViewer
     private void OnScrollChanged(object? sender, ScrollChangedEventArgs e)
     {
         _realOffset = Offset.Y;
-        if (e.OffsetDelta.Y != 0d || e.ViewportDelta.Y != 0d)
+        if (e.OffsetDelta.Y != 0d || e.OffsetDelta.X != 0d)
+        {
+            if (e.OffsetDelta.Y != 0d) _verticalScrollBar?.NotifyScrolled();
+            if (e.OffsetDelta.X != 0d) _horizontalScrollBar?.NotifyScrolled();
             NotifyBackButtonRefresh();
+        }
     }
 
     private static void NotifyBackButtonRefresh()

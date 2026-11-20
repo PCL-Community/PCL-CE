@@ -2,41 +2,51 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
-using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.Threading;
 
 namespace PCL.UI.Controls;
 
 /// <summary>
 ///     PCL 滚动条。模板见 <c>UI/Styles/Controls/ScrollBars.axaml</c>：滑块底色取自
-///     <see cref="TemplatedControl.Foreground" />，整体透明度与颜色在悬停（130 ms）、
-///     拖动（50 ms）、空闲（180 ms）、隐藏（20 ms）四种状态之间过渡。
+///     <see cref="TemplatedControl.Foreground" />。悬停时显示，按住时颜色加深。
+///     滚轮或拖动引起滚动后，会额外保持约 120 ms 的可见状态再淡出。
+///     透明状态下仍保持可命中，以便贴近边缘时直接唤出并抓取滑块。
 /// </summary>
 public class MyScrollBar : ScrollBar
 {
     private const string AccentKey = "ColorBrush3";
     private const string AccentHoverKey = "ColorBrush4";
     private const string ThumbPartName = "PART_Thumb";
+    private const int AnimationTime = 90;
+    private const double ActiveOpacity = 0.35d;
+    private const double PressedOpacity = 0.5d;
+    private static readonly TimeSpan ScrollIdleDelay = TimeSpan.FromMilliseconds(120);
 
     /// <summary>动画组名使用的唯一编号。</summary>
     public readonly int Uuid = LauncherCommon.GetUuid();
 
-    private string _colorKey = AccentHoverKey;
+    private bool _isCaptureWithin;
 
-    private bool _isCaptureWithin; // 指针在滚动条内按下或拖动滑块期间为 true
+    private bool _isScrolling;
+
+    private readonly DispatcherTimer _scrollIdleTimer = new() { Interval = ScrollIdleDelay };
 
     private Thumb? _thumb;
 
     public MyScrollBar()
     {
         ContainerTheme.AttachStyles(this);
+        IsHitTestVisible = true;
+        _scrollIdleTimer.Tick += (_, _) =>
+        {
+            _scrollIdleTimer.Stop();
+            _isScrolling = false;
+            RefreshColor();
+        };
 
         PointerEntered += (_, _) => RefreshColor();
         PointerExited += (_, _) => RefreshColor();
-
-        // 拖动滑块或点击轨道时事件会被子控件取走，这里连同已处理事件一起监听
-        AddHandler(PointerPressedEvent, OnPointerPressed, RoutingStrategies.Bubble, true);
-        AddHandler(PointerReleasedEvent, OnPointerReleased, RoutingStrategies.Bubble, true);
 
         PropertyChanged += OnPropertyChanged;
         ActualThemeVariantChanged += (_, _) => RefreshColor();
@@ -50,67 +60,41 @@ public class MyScrollBar : ScrollBar
     {
         try
         {
-            double newOpacity;
-            string newColorKey;
-            int time;
-
-            if (!IsVisible)
+            var opacity = !IsVisible ? 0d : _isCaptureWithin ? PressedOpacity : IsPointerOver || _isScrolling ? ActiveOpacity : 0d;
+            var colorKey = IsPointerOver ? AccentKey : AccentHoverKey;
+            var key = "MyScrollBar Color " + Uuid;
+            if (!ContainerAnimation.CanAnimate(this))
             {
-                newOpacity = 0d;
-                time = 20; // 防止错误的尺寸判断导致闪烁
-                newColorKey = AccentHoverKey;
-            }
-            else if (_isCaptureWithin)
-            {
-                newOpacity = 1d;
-                time = 50;
-                newColorKey = AccentHoverKey;
-            }
-            else if (IsPointerOver)
-            {
-                newOpacity = 0.9d;
-                time = 130;
-                newColorKey = AccentKey;
-            }
-            else
-            {
-                newOpacity = 0.5d;
-                time = 180;
-                newColorKey = AccentHoverKey;
+                AnimationService.CancelAnimationByName(key);
+                ContainerTheme.BindDynamic(this, ForegroundProperty, colorKey);
+                Opacity = opacity;
+                return;
             }
 
-            _colorKey = newColorKey;
-            var animationKey = "MyScrollBar Color " + Uuid;
-
-            if (ContainerAnimation.CanAnimate(this))
-            {
-                // ColorAnimation 的参数是增量而非目标值，必须传“目标 - 当前”，否则颜色会逐次漂移
-                var delta = ContainerAnimation.ColorOf(Resolve(newColorKey))
-                    - ContainerAnimation.ColorOf(Foreground);
-
-                AnimationService.Run(
-                    new List<IAnimation>
-                    {
-                        new ColorAnimation(this, ForegroundProperty, delta, time),
-                        new OpacityAnimation(this, newOpacity - Opacity, time),
-                        // 收尾恢复动态资源，主题切换后颜色继续跟随页面
-                        new ActionAnimation(
-                            () => ContainerTheme.BindDynamic(this, ForegroundProperty, _colorKey),
-                            true)
-                    },
-                    animationKey);
-            }
-            else
-            {
-                AnimationService.CancelAnimationByName(animationKey);
-                ContainerTheme.BindDynamic(this, ForegroundProperty, newColorKey);
-                Opacity = newOpacity;
-            }
+            var delta = ContainerAnimation.ColorOf(Resolve(colorKey)) - ContainerAnimation.ColorOf(Foreground);
+            if (_isScrolling)
+                Opacity = opacity;
+            AnimationService.Run(
+                new List<IAnimation>
+                {
+                    new ColorAnimation(this, ForegroundProperty, delta, AnimationTime),
+                    new OpacityAnimation(this, opacity - Opacity, _isScrolling ? 0 : AnimationTime),
+                    new ActionAnimation(() => ContainerTheme.BindDynamic(this, ForegroundProperty, colorKey), true)
+                },
+                key);
         }
         catch (Exception ex)
         {
             LauncherCommon.Log(ex, "滚动条颜色改变出错");
         }
+    }
+
+    public void NotifyScrolled()
+    {
+        _isScrolling = true;
+        _scrollIdleTimer.Stop();
+        _scrollIdleTimer.Start();
+        RefreshColor();
     }
 
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
@@ -137,7 +121,7 @@ public class MyScrollBar : ScrollBar
     private void OnThumbDragStarted(object? sender, VectorEventArgs e)
     {
         _isCaptureWithin = true;
-        RefreshColor();
+        SetPressedAppearance();
     }
 
     private void OnThumbDragCompleted(object? sender, VectorEventArgs e)
@@ -146,17 +130,6 @@ public class MyScrollBar : ScrollBar
     }
 
     private void OnThumbPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
-    {
-        EndCapture();
-    }
-
-    private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        _isCaptureWithin = true;
-        RefreshColor();
-    }
-
-    private void OnPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
         EndCapture();
     }
@@ -174,6 +147,12 @@ public class MyScrollBar : ScrollBar
 
         _isCaptureWithin = false;
         RefreshColor();
+    }
+
+    private void SetPressedAppearance()
+    {
+        AnimationService.CancelAnimationByName("MyScrollBar Color " + Uuid);
+        Opacity = IsVisible ? PressedOpacity : 0d;
     }
 
     private IBrush Resolve(string key)
