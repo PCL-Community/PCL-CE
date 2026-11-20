@@ -142,6 +142,13 @@ public partial class TitleBar : UserControl
         return (int)Config.Preference.WindowTitleType;
     }
 
+    /// <summary>当窗口使用系统标题栏按钮（macOS 红绿灯）时，隐藏自绘的最小化与关闭按钮。</summary>
+    public void UseSystemCaptionButtons()
+    {
+        BtnTitleMin.IsVisible = false;
+        BtnTitleClose.IsVisible = false;
+    }
+
     private void ApplyTitleLeftClamp()
     {
         var available = PanTitleMain.ColumnDefinitions[0].ActualWidth - 30d;

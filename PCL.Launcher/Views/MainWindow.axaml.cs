@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.Versioning;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -57,13 +58,20 @@ public partial class MainWindow : Window
         PageLeftHost.SizeChanged += (_, _) => ScheduleLeftWidthUpdate();
         LocalizationService.LanguageChanged += OnLanguageChangedForLeftWidth;
 
-        ApplyRoundedWindowClip();
-        AddHandler(
-            PointerPressedEvent,
-            OnResizePointerPressed,
-            RoutingStrategies.Tunnel,
-            true);
-        PointerMoved += OnResizePointerMoved;
+        if (OperatingSystem.IsMacOS())
+        {
+            _ApplyMacOsWindowChrome();
+        }
+        else
+        {
+            ApplyRoundedWindowClip();
+            AddHandler(
+                PointerPressedEvent,
+                OnResizePointerPressed,
+                RoutingStrategies.Tunnel,
+                true);
+            PointerMoved += OnResizePointerMoved;
+        }
 
         Topmost = true;
         Opened += (_, _) => Dispatcher.UIThread.Post(
@@ -199,6 +207,22 @@ public partial class MainWindow : Window
     private void UpdateLauncherDpi()
     {
         LauncherCommon.Dpi = (int)Math.Round(RenderScaling * 96d);
+    }
+
+    // macOS 改用系统标题栏，把圆角，阴影等交给系统处理，PCL因为窗口本身不支持最大化，因此绿灯保持禁用
+    [SupportedOSPlatform("macos")]
+    private void _ApplyMacOsWindowChrome()
+    {
+        WindowDecorations = WindowDecorations.Full;
+        CanMaximize = false;
+
+        ShadowHost.ShadowRadius = 0d;
+        ShadowHost.Color = Colors.Transparent;
+        ShadowHost.CornerRadius = default;
+        PanBack.Margin = default;
+        PanBack.CornerRadius = default;
+
+        _titleBar.UseSystemCaptionButtons();
     }
 
     private void ApplyRoundedWindowClip()
