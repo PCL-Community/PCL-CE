@@ -188,7 +188,6 @@ public class FontSelector : ContentControl
 
     private void LoadFontsCore()
     {
-        _comboFont.IsEnabled = false;
         _isInitializing = true;
         CustomFontCollection.Add(
             new CustomFontProperties
@@ -241,8 +240,6 @@ public class FontSelector : ContentControl
                     Font = font.Font,
                     Tag = font.Name
                 });
-
-        _comboFont.IsEnabled = IsEnabled;
 
         if (_pendingFontTag is not null)
         {
