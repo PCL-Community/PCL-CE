@@ -101,6 +101,27 @@ public sealed class PlatformArchitectureTest
             + string.Join(Environment.NewLine, violations));
     }
 
+    [TestMethod]
+    public void LauncherMediaShouldNotStartExternalProcessesDirectly()
+    {
+        var root = GetRepositoryRoot();
+        var projectRoot = Path.Combine(root, "PCL.Launcher", "Media");
+
+        var violations = (
+            from file in Directory.EnumerateFiles(projectRoot, "*.cs", SearchOption.AllDirectories)
+            where !IsBuildOutput(file)
+            let text = File.ReadAllText(file)
+            where text.Contains("Process.Start(", StringComparison.Ordinal)
+                || text.Contains("ProcessStartInfo", StringComparison.Ordinal)
+                || text.Contains("new Process(", StringComparison.Ordinal)
+            select ToRepositoryPath(root, file)).ToList();
+
+        Assert.IsEmpty(
+            violations,
+            "PCL.Launcher/Media 仍在直接创建外部进程，请使用 IExternalCommandRunner："
+            + Environment.NewLine
+            + string.Join(Environment.NewLine, violations));
+    }
 
     [TestMethod]
     public void LegacyPlatformFacadesShouldBeDeleted()

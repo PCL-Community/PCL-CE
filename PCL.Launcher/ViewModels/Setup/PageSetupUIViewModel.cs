@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.App.Tools;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.ViewModel;
 
@@ -27,6 +28,8 @@ public partial class PageSetupUIViewModel : ViewModelBase
 
     [ObservableProperty] private int _backgroundSuitSelectedIndex;
 
+    [ObservableProperty] private bool _backgroundPauseVideoVisible;
+
     [ObservableProperty] private bool _backgroundSuitVisible;
 
     [ObservableProperty] private string _customNetText = string.Empty;
@@ -38,6 +41,15 @@ public partial class PageSetupUIViewModel : ViewModelBase
     [ObservableProperty] private int _darkModeSelectedIndex = -1;
 
     [ObservableProperty] private bool _featureHideVisible = true;
+
+    [ObservableProperty] private string _ffmpegPath =
+        Config.Preference.Background.FfmpegPath;
+
+    [ObservableProperty] private string _ffmpegStatusText = string.Empty;
+
+    [ObservableProperty] private bool _ffmpegStatusVisible;
+
+    [ObservableProperty] private string _ffmpegToolTip = string.Empty;
 
     private bool _forceShowFeatureHide;
     private bool _hasBackground;
@@ -130,6 +142,11 @@ public partial class PageSetupUIViewModel : ViewModelBase
         if (!_reloading) Config.Preference.Background.WallpaperBlurRadius = value;
     }
 
+    partial void OnFfmpegPathChanged(string value)
+    {
+        if (!_reloading) Config.Preference.Background.FfmpegPath = value ?? string.Empty;
+    }
+
     partial void OnMusicVolumeChanged(int value)
     {
         if (!_reloading) Config.Preference.Music.Volume = value;
@@ -153,6 +170,8 @@ public partial class PageSetupUIViewModel : ViewModelBase
                 Config.Preference.Background.WallpaperSuitMode,
                 0,
                 8);
+            FfmpegPath = Config.Preference.Background.FfmpegPath;
+            FfmpegToolTip = Lang.Text("Setup.Ui.Background.Ffmpeg.ToolTip");
 
             LogoText = Config.Preference.WindowTitleCustomText;
             CustomNetText = Config.Preference.Homepage.CustomUrl;
@@ -180,9 +199,16 @@ public partial class PageSetupUIViewModel : ViewModelBase
         BackgroundBlurVisible = show;
         BackgroundSuitVisible = show;
         BackgroundClearVisible = show;
+        BackgroundPauseVideoVisible = show;
         _hasBackground = show;
         _backgroundCount = count;
         OnPropertyChanged(nameof(BackgroundTitle));
+    }
+
+    public void ApplyFfmpegStatus(string? text)
+    {
+        FfmpegStatusText = text ?? string.Empty;
+        FfmpegStatusVisible = !string.IsNullOrWhiteSpace(text);
     }
 
     public void ApplyMusicState(bool hasMusic, int count)
@@ -243,6 +269,11 @@ public partial class PageSetupUIViewModel : ViewModelBase
         {
             return 0;
         }
+    }
+
+    public static int CountBackgroundFiles(string directory)
+    {
+        return BackgroundContent.Count(directory);
     }
 
     public static object FormatMusicVolumeHint(object value)

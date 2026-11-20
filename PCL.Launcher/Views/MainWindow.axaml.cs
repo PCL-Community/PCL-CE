@@ -43,7 +43,7 @@ public partial class MainWindow : Window
 
         _titleBar = TitleBar;
         _extraButtons = PanExtraButtons;
-        _background = new BackgroundLayer(PanForm, ImgBackImage);
+        _background = new BackgroundLayer(this, PanForm, ImgBackImage);
         BackgroundHost.Attach(_background);
         _ = new FileDragHandler(this);
         _ = new KeyboardHandler(this, PageLeftHost);

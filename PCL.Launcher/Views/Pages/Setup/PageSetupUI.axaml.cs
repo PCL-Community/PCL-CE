@@ -9,6 +9,7 @@ using PCL.Core.App.Localization;
 using PCL.Core.UI;
 using PCL.Core.UI.Hints;
 using PCL.Core.Utils.Validate;
+using PCL.Media;
 using PCL.Navigation;
 using PCL.UI.Controls;
 using PCL.UI.Controls.Common;
@@ -34,6 +35,9 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
     private readonly List<MyCheckBox> _hideChecks = [];
     private readonly MyRadioBox[] _homepageRadios;
     private readonly MyRadioBox[] _logoTypeRadios;
+    private bool _backgroundStateSubscribed;
+    private int _backgroundStateGeneration;
+    private int _ffmpegStatusGeneration;
     private bool _loaded;
     private bool _reloading;
     private bool _selectingLogo;
@@ -74,6 +78,12 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         CheckBackgroundColorful.Change += (_, _) => WriteIfReady(() =>
             Config.Preference.Background.BackgroundColorful =
                 CheckBackgroundColorful.Checked == true);
+        CheckAutoPauseVideo.Change += (_, _) => WriteIfReady(() =>
+        {
+            Config.Preference.Background.AutoPauseVideo =
+                CheckAutoPauseVideo.Checked == true;
+            BackgroundHost.Current?.ApplyAutoPauseSetting();
+        });
         CheckLogoLeft.Change += (_, _) => WriteIfReady(() =>
             Config.Preference.TopBarLeftAlign = CheckLogoLeft.Checked == true);
 
@@ -131,13 +141,10 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         BtnLogoChange.Click += (_, _) => OnChangeLogo();
         BtnLogoDelete.Click += (_, _) => OnDeleteLogo();
         BtnBackgroundOpen.Click += (_, _) => OpenBackgroundFolder();
-        BtnBackgroundRefresh.Click += (_, _) =>
-        {
-            BackgroundHost.RequestRefresh();
-            RefreshBackgroundState();
-            HintService.Show(Hints.Info(Lang.Text("Setup.Ui.Background.Refresh"), false));
-        };
+        BtnBackgroundRefresh.Click += async (_, _) => await RefreshBackgroundAsync();
         BtnBackgroundClear.Click += async (_, _) => await ClearBackgroundAsync();
+        BtnBackgroundFfmpegBrowse.Click += async (_, _) => await BrowseFfmpegAsync();
+        BtnBackgroundFfmpegDetect.Click += async (_, _) => await DetectFfmpegAsync();
         BtnMusicOpen.Click += (_, _) => OpenFolder(MusicFolder);
         BtnMusicRefresh.Click += (_, _) =>
         {
@@ -171,7 +178,10 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             _loaded = true;
             Reload();
             ViewModel.ShowLauncherHint();
+            _ = RefreshFfmpegStatusAsync(false);
         };
+        Loaded += (_, _) => SubscribeBackgroundState();
+        Unloaded += (_, _) => UnsubscribeBackgroundState();
     }
 
     public PageSetupUIViewModel ViewModel { get; } = new();
@@ -194,12 +204,32 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         }
     }
 
+    private void SubscribeBackgroundState()
+    {
+        if (_backgroundStateSubscribed) return;
+        _backgroundStateSubscribed = true;
+        BackgroundHost.StateChanged += OnBackgroundStateChanged;
+    }
+
+    private void UnsubscribeBackgroundState()
+    {
+        if (!_backgroundStateSubscribed) return;
+        _backgroundStateSubscribed = false;
+        BackgroundHost.StateChanged -= OnBackgroundStateChanged;
+    }
+
+    private void OnBackgroundStateChanged()
+    {
+        _ = RefreshBackgroundStateAsync();
+    }
+
     public override void OnNavigatedTo(PageParameter? parameter)
     {
         PanBack.ScrollToHome();
         if (_loaded) Reload();
-        RefreshBackgroundState();
+        _ = RefreshBackgroundStateAsync();
         RefreshMusicState();
+        _ = RefreshFfmpegStatusAsync(false);
     }
 
     public override void OnNavigatedFrom()
@@ -219,6 +249,7 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             ComboUiMotdFont.SelectedFontTag = Config.Preference.MotdFont;
 
             CheckBackgroundColorful.Checked = Config.Preference.Background.BackgroundColorful;
+            CheckAutoPauseVideo.Checked = Config.Preference.Background.AutoPauseVideo;
 
             var titleType = (int)Config.Preference.WindowTitleType;
             if (titleType >= 0 && titleType < _logoTypeRadios.Length)
@@ -252,7 +283,7 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             _reloading = false;
         }
 
-        RefreshBackgroundState();
+        _ = RefreshBackgroundStateAsync();
         RefreshMusicState();
     }
 
@@ -358,17 +389,182 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
 
     private static string BackgroundFolder => Path.Combine(Paths.Data, "Pictures");
 
-    private void RefreshBackgroundState()
+    private async Task RefreshBackgroundStateAsync()
     {
+        var generation = Interlocked.Increment(ref _backgroundStateGeneration);
         try
         {
-            var count = PageSetupUIViewModel.CountContentFiles(BackgroundFolder);
+            var count = await Task.Run(() =>
+                PageSetupUIViewModel.CountBackgroundFiles(BackgroundFolder));
+            if (generation != Volatile.Read(ref _backgroundStateGeneration)) return;
+
             var show = count > 0;
             ViewModel.ApplyBackgroundState(show, count);
+
+            var disabled = BackgroundHost.Current?.IsGaming == true
+                && Config.Preference.Background.AutoPauseVideo;
+            BtnBackgroundRefresh.IsEnabled = !disabled;
+            BtnBackgroundRefresh.SetLocalizedValue(
+                ToolTip.TipProperty,
+                disabled
+                    ? "Setup.Ui.Background.PauseVideo.ToolTip"
+                    : "Setup.Ui.Background.Refresh.ToolTip");
+            ToolTip.SetShowOnDisabled(BtnBackgroundRefresh, true);
         }
         catch (Exception ex)
         {
+            if (generation != Volatile.Read(ref _backgroundStateGeneration)) return;
             LauncherCommon.Log(ex, "刷新背景状态失败");
+        }
+    }
+
+    private async Task RefreshBackgroundAsync()
+    {
+        try
+        {
+            var result = await BackgroundHost.RequestRefreshAsync();
+            await RefreshBackgroundStateAsync();
+            await RefreshFfmpegStatusAsync(false);
+
+            switch (result.Status)
+            {
+                case BackgroundRefreshStatus.Success:
+                    HintService.Show(
+                        Hints.Success(
+                            Lang.Text(
+                                "Setup.Ui.Background.Refresh.Success",
+                                result.Path is null
+                                    ? string.Empty
+                                    : Path.GetFileName(result.Path)),
+                            false));
+                    break;
+
+                case BackgroundRefreshStatus.NoContent:
+                    HintService.Show(
+                        Hints.Error(Lang.Text("Setup.Ui.Background.NoAvailableContent")));
+                    break;
+
+                case BackgroundRefreshStatus.FfmpegMissing:
+                {
+                    var probe = BackgroundHost.Current?.LastFfmpegProbe;
+                    HintService.Show(
+                        probe is { Availability: FfmpegAvailability.Invalid }
+                            ? Hints.Error(
+                                Lang.Text(
+                                    "Setup.Ui.Background.Ffmpeg.Invalid",
+                                    probe.Error ?? probe.ExecutablePath ?? string.Empty))
+                            : Hints.Warning(Lang.Text("Setup.Ui.Background.Ffmpeg.NotFound")));
+                    break;
+                }
+
+                case BackgroundRefreshStatus.Canceled:
+                    break;
+
+                default:
+                    if (!string.IsNullOrWhiteSpace(result.Detail))
+                        LauncherCommon.Log(
+                            $"刷新背景内容失败：{result.Detail}",
+                            LauncherLogLevel.Debug);
+                    HintService.Show(
+                        Hints.Error(Lang.Text("Setup.Ui.Background.Refresh.Failed")));
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            LauncherCommon.Log(
+                ex,
+                "刷新背景内容失败",
+                LauncherLogLevel.Feedback,
+                userSummary: Lang.Text("Setup.Ui.Background.Refresh.Failed"));
+        }
+    }
+
+    private async Task BrowseFfmpegAsync()
+    {
+        try
+        {
+            var path = await SystemDialogs.SelectFileAsync(
+                Lang.Text("Setup.Ui.Background.Ffmpeg.FileFilter"),
+                Lang.Text("Setup.Ui.Background.Ffmpeg.SelectTitle"));
+            if (string.IsNullOrEmpty(path)) return;
+
+            ViewModel.FfmpegPath = path;
+            await RefreshFfmpegStatusAsync(true);
+        }
+        catch (Exception ex)
+        {
+            LauncherCommon.Log(
+                ex,
+                "选择 FFmpeg 路径失败",
+                LauncherLogLevel.Feedback,
+                userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
+        }
+    }
+
+    private async Task DetectFfmpegAsync()
+    {
+        await RefreshFfmpegStatusAsync(true);
+    }
+
+    private async Task<FfmpegProbeResult?> RefreshFfmpegStatusAsync(bool force)
+    {
+        var generation = Interlocked.Increment(ref _ffmpegStatusGeneration);
+        try
+        {
+            if (BackgroundHost.Current is not { } background)
+            {
+                if (generation != Volatile.Read(ref _ffmpegStatusGeneration)) return null;
+                ViewModel.ApplyFfmpegStatus(null);
+                ViewModel.FfmpegToolTip = Lang.Text("Setup.Ui.Background.Ffmpeg.ToolTip");
+                return null;
+            }
+
+            var result = await background.ProbeFfmpegAsync(force);
+            if (generation != Volatile.Read(ref _ffmpegStatusGeneration)) return null;
+
+            var theme = result.Availability switch
+            {
+                FfmpegAvailability.Available => MyHint.Themes.Blue,
+                FfmpegAvailability.Invalid => MyHint.Themes.Red,
+                _ => MyHint.Themes.Yellow
+            };
+            var text = result.Availability switch
+            {
+                FfmpegAvailability.Available => Lang.Text(
+                    "Setup.Ui.Background.Ffmpeg.Available",
+                    result.Version ?? result.ExecutablePath ?? string.Empty),
+                FfmpegAvailability.Invalid => Lang.Text(
+                    "Setup.Ui.Background.Ffmpeg.Invalid",
+                    result.Error ?? result.ExecutablePath ?? string.Empty),
+                _ => Lang.Text("Setup.Ui.Background.Ffmpeg.NotFound")
+            };
+
+            var details = string.Join(
+                " · ",
+                new[]
+                    {
+                        result.Version,
+                        result.ExecutablePath
+                    }
+                    .Where(value => !string.IsNullOrWhiteSpace(value)));
+            ViewModel.ApplyFfmpegStatus(text);
+            ViewModel.FfmpegToolTip = result.IsAvailable
+                && !string.IsNullOrWhiteSpace(details)
+                    ? details
+                    : Lang.Text("Setup.Ui.Background.Ffmpeg.ToolTip");
+            HintBackgroundFfmpeg.Theme = theme;
+            return result;
+        }
+        catch (Exception ex)
+        {
+            LauncherCommon.Log(ex, "检测 FFmpeg 失败");
+            if (generation != Volatile.Read(ref _ffmpegStatusGeneration)) return null;
+            ViewModel.ApplyFfmpegStatus(
+                Lang.Text("Setup.Ui.Background.Ffmpeg.NotFound"));
+            ViewModel.FfmpegToolTip = Lang.Text("Setup.Ui.Background.Ffmpeg.ToolTip");
+            HintBackgroundFfmpeg.Theme = MyHint.Themes.Yellow;
+            return null;
         }
     }
 
@@ -389,16 +585,15 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         try
         {
             if (!await ViewModel.ConfirmBackgroundClearAsync()) return;
-            // 先释放当前图片句柄，避免 Windows 上文件仍被占用导致删除失败。
-            BackgroundHost.Current?.Clear();
+            if (BackgroundHost.Current is { } background) await background.ClearAsync();
             await Task.Run(() =>
             {
                 if (Directory.Exists(BackgroundFolder))
                     Directory.Delete(BackgroundFolder, true);
                 Directory.CreateDirectory(BackgroundFolder);
             });
-            BackgroundHost.RequestRefresh();
-            RefreshBackgroundState();
+            await BackgroundHost.RequestRefreshAsync();
+            await RefreshBackgroundStateAsync();
             HintService.Show(Hints.Success(Lang.Text("Setup.Ui.Background.Clear.Success")));
         }
         catch (Exception ex)

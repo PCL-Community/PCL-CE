@@ -2,23 +2,46 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.Threading;
 using PCL.Core.App;
+using PCL.Core.App.Tools;
 using PCL.Core.Logging;
 using PCL.Core.UI.Theme;
+using PCL.Media;
 
 namespace PCL.Views.Shell;
 
-/// <summary>
-/// 主窗口背景入口：供设置页“刷新背景”等外部调用方请求重新加载背景内容。 背景层本身是 <see cref="BackgroundLayer" />
-/// ，由主窗口创建并注册到这里。
-/// </summary>
+/// <summary>背景刷新结果状态。</summary>
+public enum BackgroundRefreshStatus
+{
+    Success,
+    NoContent,
+    FfmpegMissing,
+    Canceled,
+    Failed
+}
+
+/// <summary>背景刷新结果。</summary>
+public sealed record BackgroundRefreshResult(
+    BackgroundRefreshStatus Status,
+    string? Path = null,
+    string? Detail = null);
+
+/// <summary>主窗口背景入口：供设置页等外部调用方请求重新加载背景内容。</summary>
 public static class BackgroundHost
 {
+    /// <summary>当前主窗口的背景层。</summary>
     public static BackgroundLayer? Current { get; private set; }
 
-    public static void RequestRefresh()
+    /// <summary>背景播放状态变化时触发。</summary>
+    public static event Action? StateChanged;
+
+    /// <summary>请求重新加载背景内容。</summary>
+    public static Task<BackgroundRefreshResult> RequestRefreshAsync()
     {
-        Current?.Refresh();
+        return Current?.RefreshAsync()
+            ?? Task.FromResult(
+                new BackgroundRefreshResult(BackgroundRefreshStatus.NoContent));
     }
 
     internal static void Attach(BackgroundLayer layer)
@@ -30,31 +53,46 @@ public static class BackgroundHost
     {
         if (ReferenceEquals(Current, layer)) Current = null;
     }
+
+    internal static void NotifyStateChanged()
+    {
+        StateChanged?.Invoke();
+    }
 }
 
-/// <summary>主窗口背景层：按配置绘制颜色主题渐变或随机背景图片，并应用透明度、裁剪模式与真实模糊。 图片使用 <see cref="ImageBrush" /> 支持平铺。</summary>
+/// <summary>主窗口背景层：绘制主题背景、图片或 FFmpeg 视频，并应用透明度、裁剪模式与模糊。</summary>
 public sealed class BackgroundLayer
 {
-    private static readonly string[] ImageExtensions =
-        [".png", ".jpg", ".jpeg", ".bmp", ".gif"];
+    private const int MaxVideoWidth = 1280;
+    private const int MaxVideoHeight = 720;
+    private const int VideoFps = 30;
 
     private readonly Panel _formPan;
     private readonly Panel _host;
     private readonly Image _legacyImage;
     private readonly Border _surface;
+    private readonly Window _window;
 
     private Bitmap? _bitmap;
-    private string? _currentPath;
+    private FfmpegLocator? _ffmpegLocator;
     private ImageBrush? _imageBrush;
+    private bool _isMinimized;
+    private string? _lastError;
+    private TaskCompletionSource<bool>? _refreshCompletion;
+    private CancellationTokenSource? _refreshCts;
+    private int _refreshGeneration;
+    private bool _removed;
+    private FfmpegVideoPlayer? _videoPlayer;
 
-    public BackgroundLayer(Panel formPan, Image image)
+    public BackgroundLayer(Window window, Panel formPan, Image image)
     {
+        _window = window;
         _formPan = formPan;
         _legacyImage = image;
         _legacyImage.IsVisible = false;
         _host = image.Parent as Panel ?? formPan;
+        _isMinimized = window.WindowState == WindowState.Minimized;
 
-        // 原有 Image 只用于定位宿主；实际背景改用 Border + ImageBrush，以支持平铺与切换动画。
         _surface = new Border
         {
             IsVisible = false,
@@ -62,22 +100,392 @@ public sealed class BackgroundLayer
         };
         _host.Children.Add(_surface);
 
+        _window.PropertyChanged += OnWindowPropertyChanged;
         ThemeService.ColorModeChanged += _OnThemeChanged;
         ThemeService.ColorThemeChanged += _OnThemeChanged;
     }
 
+    public bool IsGaming { get; private set; }
+
+    public FfmpegProbeResult? LastFfmpegProbe { get; private set; }
+
     public void Refresh()
     {
-        RefreshColor();
-        RefreshImage();
-        ApplyPresentation();
-        AnimateContentIn();
+        _ = RefreshAsync();
     }
 
-    /// <summary>停止当前背景并释放图片句柄，供“清空背景内容”删除文件前调用。</summary>
+    /// <summary>重新加载背景内容。</summary>
+    public async Task<BackgroundRefreshResult> RefreshAsync()
+    {
+        if (_removed)
+            return new BackgroundRefreshResult(BackgroundRefreshStatus.Canceled);
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            var completion = new TaskCompletionSource<BackgroundRefreshResult>(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+            Dispatcher.UIThread.Post(async () =>
+            {
+                try
+                {
+                    completion.TrySetResult(await RefreshAsync());
+                }
+                catch (Exception ex)
+                {
+                    completion.TrySetException(ex);
+                }
+            });
+            return await completion.Task;
+        }
+
+        var generation = Interlocked.Increment(ref _refreshGeneration);
+        var previousCts = _refreshCts;
+        _refreshCts = null;
+        try
+        {
+            previousCts?.Cancel();
+        }
+        catch
+        {
+            // ignored
+        }
+
+        var cts = new CancellationTokenSource();
+        _refreshCts = cts;
+        var refreshCompletion = new TaskCompletionSource<bool>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        _refreshCompletion = refreshCompletion;
+
+        RefreshColor();
+
+        try
+        {
+            BackgroundRefreshResult result;
+            try
+            {
+                result = await LoadContentAsync(cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                return new BackgroundRefreshResult(BackgroundRefreshStatus.Canceled);
+            }
+            catch (Exception ex)
+            {
+                if (generation != Volatile.Read(ref _refreshGeneration))
+                    return new BackgroundRefreshResult(BackgroundRefreshStatus.Canceled);
+
+                _lastError = ex.Message;
+                LogWrapper.Debug(ex, "UI", "刷新背景内容失败");
+                ClearContent();
+                return new BackgroundRefreshResult(
+                    BackgroundRefreshStatus.Failed,
+                    Detail: ex.Message);
+            }
+
+            if (generation != Volatile.Read(ref _refreshGeneration))
+                return new BackgroundRefreshResult(BackgroundRefreshStatus.Canceled);
+
+            try
+            {
+                ApplyPresentation();
+                if (result.Status == BackgroundRefreshStatus.Success)
+                    AnimateContentIn();
+            }
+            catch (Exception ex)
+            {
+                LogWrapper.Debug(ex, "UI", "应用背景效果失败");
+                return new BackgroundRefreshResult(
+                    BackgroundRefreshStatus.Failed,
+                    Detail: ex.Message);
+            }
+
+            return result;
+        }
+        finally
+        {
+            if (ReferenceEquals(_refreshCts, cts)) _refreshCts = null;
+            if (ReferenceEquals(_refreshCompletion, refreshCompletion))
+                _refreshCompletion = null;
+            refreshCompletion.TrySetResult(true);
+            cts.Dispose();
+        }
+    }
+
+    /// <summary>检测 FFmpeg 是否可用。</summary>
+    public async Task<FfmpegProbeResult> ProbeFfmpegAsync(
+        bool force = false,
+        CancellationToken cancellationToken = default)
+    {
+        var locator = _ffmpegLocator ??= new FfmpegLocator();
+        var result = await locator.DetectAsync(
+            Config.Preference.Background.FfmpegPath,
+            force,
+            cancellationToken);
+        LastFfmpegProbe = result;
+        return result;
+    }
+
+    /// <summary>使 FFmpeg 检测缓存失效。</summary>
+    public void InvalidateFfmpeg()
+    {
+        _ffmpegLocator?.Invalidate();
+        LastFfmpegProbe = null;
+    }
+
+    /// <summary>设置游戏运行状态；自动暂停开启时暂停视频。</summary>
+    public void SetGaming(bool gaming)
+    {
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            Dispatcher.UIThread.Post(() => SetGaming(gaming));
+            return;
+        }
+
+        if (IsGaming == gaming) return;
+        IsGaming = gaming;
+        UpdatePlaybackState();
+        BackgroundHost.NotifyStateChanged();
+    }
+
+    /// <summary>应用自动暂停设置。</summary>
+    public void ApplyAutoPauseSetting()
+    {
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            Dispatcher.UIThread.Post(ApplyAutoPauseSetting);
+            return;
+        }
+
+        UpdatePlaybackState();
+        BackgroundHost.NotifyStateChanged();
+    }
+
+    private async Task<BackgroundRefreshResult> LoadContentAsync(
+        CancellationToken cancellationToken)
+    {
+        await StopVideoAsync();
+        ClearImage();
+        _lastError = null;
+
+        var pictures = Path.Combine(Paths.Data, "Pictures");
+        var files = await Task.Run(
+            () => BackgroundContent.Collect(pictures),
+            cancellationToken);
+        if (files.Count == 0)
+        {
+            ClearContent();
+            return new BackgroundRefreshResult(BackgroundRefreshStatus.NoContent);
+        }
+
+        FfmpegProbeResult? ffmpeg = null;
+        var hasVideoContent = false;
+        string? lastError = null;
+
+        foreach (var path in files)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (BackgroundContent.IsAnimatedImage(path))
+            {
+                hasVideoContent = true;
+                ffmpeg ??= await ProbeFfmpegAsync(false, cancellationToken);
+                if (ffmpeg.IsAvailable
+                    && await TryLoadVideoAsync(path, ffmpeg, cancellationToken))
+                    return new BackgroundRefreshResult(
+                        BackgroundRefreshStatus.Success,
+                        path);
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (TryLoadImage(path))
+                    return new BackgroundRefreshResult(
+                        BackgroundRefreshStatus.Success,
+                        path);
+            }
+            else if (BackgroundContent.IsImage(path))
+            {
+                if (TryLoadImage(path))
+                    return new BackgroundRefreshResult(
+                        BackgroundRefreshStatus.Success,
+                        path);
+
+                ffmpeg ??= await ProbeFfmpegAsync(false, cancellationToken);
+                if (ffmpeg.IsAvailable
+                    && await TryLoadVideoAsync(path, ffmpeg, cancellationToken))
+                    return new BackgroundRefreshResult(
+                        BackgroundRefreshStatus.Success,
+                        path);
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+            else if (BackgroundContent.IsVideo(path))
+            {
+                hasVideoContent = true;
+                ffmpeg ??= await ProbeFfmpegAsync(false, cancellationToken);
+                if (ffmpeg.IsAvailable
+                    && await TryLoadVideoAsync(path, ffmpeg, cancellationToken))
+                    return new BackgroundRefreshResult(
+                        BackgroundRefreshStatus.Success,
+                        path);
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (!ffmpeg.IsAvailable) lastError = ffmpeg.Error;
+            }
+
+            if (!string.IsNullOrWhiteSpace(_lastError))
+                lastError = _lastError;
+        }
+
+        ClearContent();
+        return hasVideoContent && ffmpeg is { IsAvailable: false }
+            ? new BackgroundRefreshResult(
+                BackgroundRefreshStatus.FfmpegMissing,
+                Detail: ffmpeg.Error ?? lastError)
+            : new BackgroundRefreshResult(
+                BackgroundRefreshStatus.Failed,
+                Detail: lastError);
+    }
+
+    private async Task<bool> TryLoadVideoAsync(
+        string path,
+        FfmpegProbeResult ffmpeg,
+        CancellationToken cancellationToken)
+    {
+        if (!ffmpeg.IsAvailable
+            || string.IsNullOrWhiteSpace(ffmpeg.ExecutablePath)
+            || _ffmpegLocator?.CommandRunner is not { } runner)
+            return false;
+
+        var (width, height) = GetVideoTargetSize();
+        var player = new FfmpegVideoPlayer(
+            runner,
+            ffmpeg.ExecutablePath,
+            path,
+            width,
+            height);
+        try
+        {
+            if (!await player.StartAsync(cancellationToken))
+            {
+                _lastError = player.LastError;
+                player.Dispose();
+                return false;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            player.Dispose();
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _lastError = ex.Message;
+            player.Dispose();
+            LogWrapper.Debug(ex, "UI", $"启动视频背景失败：{path}");
+            return false;
+        }
+
+        if (cancellationToken.IsCancellationRequested || _removed)
+        {
+            player.Dispose();
+            throw new OperationCanceledException(cancellationToken);
+        }
+
+        await StopVideoAsync();
+        if (cancellationToken.IsCancellationRequested || _removed)
+        {
+            player.Dispose();
+            throw new OperationCanceledException(cancellationToken);
+        }
+
+        ClearImage();
+
+        _videoPlayer = player;
+        _surface.Background = null;
+        _surface.Child = player.View;
+        _surface.IsVisible = true;
+        _lastError = null;
+        UpdatePlaybackState();
+        LogWrapper.Info("UI", $"已加载视频背景：{Path.GetFileName(path)}");
+        return true;
+    }
+
+    private bool TryLoadImage(string path)
+    {
+        if (_removed || !File.Exists(path)) return false;
+
+        Bitmap? bitmap = null;
+        try
+        {
+            bitmap = new Bitmap(path);
+            var brush = new ImageBrush(bitmap);
+            StopVideo();
+            _surface.Child = null;
+            _surface.Background = null;
+            _imageBrush = null;
+            _bitmap?.Dispose();
+            _bitmap = bitmap;
+            _imageBrush = brush;
+            _surface.Background = brush;
+            _surface.IsVisible = true;
+            _lastError = null;
+            ApplySuitMode(Config.Preference.Background.WallpaperSuitMode);
+            LogWrapper.Info("UI", $"已加载背景图片：{Path.GetFileName(path)}");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _surface.Background = null;
+            _imageBrush = null;
+            if (ReferenceEquals(_bitmap, bitmap)) _bitmap = null;
+            bitmap?.Dispose();
+            LogWrapper.Debug(ex, "UI", $"加载背景图片失败：{path}");
+            return false;
+        }
+    }
+
+    /// <summary>立即清除当前背景。</summary>
     public void Clear()
     {
+        Interlocked.Increment(ref _refreshGeneration);
+        var cts = _refreshCts;
+        _refreshCts = null;
+        try
+        {
+            cts?.Cancel();
+        }
+        catch
+        {
+            // ignored
+        }
+
         ClearContent();
+    }
+
+    /// <summary>清除当前背景并等待视频进程退出。</summary>
+    public async Task ClearAsync()
+    {
+        Interlocked.Increment(ref _refreshGeneration);
+        var cts = _refreshCts;
+        _refreshCts = null;
+        var refreshCompletion = _refreshCompletion;
+        try
+        {
+            cts?.Cancel();
+        }
+        catch
+        {
+            // ignored
+        }
+
+        if (refreshCompletion is not null)
+            try
+            {
+                await refreshCompletion.Task.WaitAsync(TimeSpan.FromSeconds(2));
+            }
+            catch
+            {
+                // ignored
+            }
+
+        await ClearContentAsync();
     }
 
     public void RefreshColor()
@@ -92,23 +500,6 @@ public sealed class BackgroundLayer
         {
             LogWrapper.Warn("UI", $"刷新背景颜色失败：{ex.Message}");
         }
-    }
-
-    public void RefreshImage()
-    {
-        var pictures = CollectPictures();
-        if (pictures.Count == 0)
-        {
-            ClearContent();
-            return;
-        }
-
-        foreach (var path in pictures.OrderBy(_ => Random.Shared.Next()))
-            if (TryLoadImage(path))
-                return;
-
-        ClearContent();
-        LogWrapper.Warn("UI", "背景内容目录中没有可用的图片");
     }
 
     public void ApplyPresentation()
@@ -136,8 +527,21 @@ public sealed class BackgroundLayer
 
     public void Remove()
     {
+        _removed = true;
+        _window.PropertyChanged -= OnWindowPropertyChanged;
         ThemeService.ColorModeChanged -= _OnThemeChanged;
         ThemeService.ColorThemeChanged -= _OnThemeChanged;
+
+        Interlocked.Increment(ref _refreshGeneration);
+        var cts = _refreshCts;
+        _refreshCts = null;
+        try
+        {
+            cts?.Cancel();
+        }
+        catch
+        {
+        }
 
         ClearContent();
         _host.Children.Remove(_surface);
@@ -145,45 +549,90 @@ public sealed class BackgroundLayer
         _legacyImage.Source = null;
     }
 
-    private bool TryLoadImage(string path)
+    private void StopVideo()
     {
-        if (!File.Exists(path)) return false;
+        var player = _videoPlayer;
+        _videoPlayer = null;
+        _surface.Child = null;
 
-        Bitmap? bitmap = null;
-        try
-        {
-            bitmap = new Bitmap(path);
-            _surface.Background = null;
-            _imageBrush = null;
-            _bitmap?.Dispose();
-            _bitmap = bitmap;
-            _imageBrush = new ImageBrush(bitmap);
-            _surface.Background = _imageBrush;
-            _surface.IsVisible = true;
-            _currentPath = path;
-            ApplySuitMode(Config.Preference.Background.WallpaperSuitMode);
-            LogWrapper.Info("UI", $"已加载背景图片：{Path.GetFileName(path)}");
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _surface.Background = null;
-            _imageBrush = null;
-            if (ReferenceEquals(_bitmap, bitmap)) _bitmap = null;
-            bitmap?.Dispose();
-            LogWrapper.Debug(ex, "UI", $"加载背景图片失败：{path}");
-            return false;
-        }
+        player?.Dispose();
+    }
+
+    private async Task StopVideoAsync()
+    {
+        var player = _videoPlayer;
+        _videoPlayer = null;
+        _surface.Child = null;
+
+        if (player is not null) await player.StopAsync();
+    }
+
+    private void ClearImage()
+    {
+        _surface.Background = null;
+        _imageBrush = null;
+        _bitmap?.Dispose();
+        _bitmap = null;
     }
 
     private void ClearContent()
     {
-        _surface.Background = null;
+        StopVideo();
+        ClearImage();
         _surface.IsVisible = false;
-        _imageBrush = null;
-        _bitmap?.Dispose();
-        _bitmap = null;
-        _currentPath = null;
+        _lastError = null;
+    }
+
+    private async Task ClearContentAsync()
+    {
+        await StopVideoAsync();
+        ClearImage();
+        _surface.IsVisible = false;
+        _lastError = null;
+    }
+
+    private void UpdatePlaybackState()
+    {
+        var shouldPause = _isMinimized
+            || (IsGaming
+                && Config.Preference.Background.AutoPauseVideo);
+        if (shouldPause)
+            _videoPlayer?.Pause();
+        else
+            _videoPlayer?.Resume();
+    }
+
+    private void OnWindowPropertyChanged(
+        object? sender,
+        AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property != Window.WindowStateProperty) return;
+        var minimized = _window.WindowState == WindowState.Minimized;
+        if (_isMinimized == minimized) return;
+        _isMinimized = minimized;
+        UpdatePlaybackState();
+    }
+
+    private (int Width, int Height) GetVideoTargetSize()
+    {
+        var width = _host.Bounds.Width > 0d ? _host.Bounds.Width : _window.Bounds.Width;
+        var height = _host.Bounds.Height > 0d ? _host.Bounds.Height : _window.Bounds.Height;
+        if (width <= 0d) width = 850d;
+        if (height <= 0d) height = 450d;
+
+        var scaling = _window.RenderScaling > 0d ? _window.RenderScaling : 1d;
+        var targetWidth = Math.Max(2, (int)Math.Round(width * scaling));
+        var targetHeight = Math.Max(2, (int)Math.Round(height * scaling));
+
+        var scale = Math.Min(
+            1d,
+            Math.Min(
+                MaxVideoWidth / (double)targetWidth,
+                MaxVideoHeight / (double)targetHeight));
+        targetWidth = Math.Max(2, (int)Math.Round(targetWidth * scale));
+        targetHeight = Math.Max(2, (int)Math.Round(targetHeight * scale));
+        return ((targetWidth & 1) == 0 ? targetWidth : targetWidth + 1,
+            (targetHeight & 1) == 0 ? targetHeight : targetHeight + 1);
     }
 
     private void AnimateContentIn()
@@ -214,7 +663,6 @@ public sealed class BackgroundLayer
         var brush = _imageBrush;
         var bitmap = _bitmap;
 
-        // 智能模式：小于窗口一半的图片平铺，其余按适应显示。
         if (suitMode == 0) suitMode = IsImageSmall(bitmap) ? 4 : 2;
 
         brush.TileMode = TileMode.None;
@@ -273,32 +721,10 @@ public sealed class BackgroundLayer
 
     private bool IsImageSmall(Bitmap bitmap)
     {
-        var window = TopLevel.GetTopLevel(_formPan) as Window;
-        var width = window?.Bounds.Width ?? 850d;
-        var height = window?.Bounds.Height ?? 500d;
-        return bitmap.PixelSize.Width < width / 2d && bitmap.PixelSize.Height < height / 2d;
-    }
-
-    private static List<string> CollectPictures()
-    {
-        var directory = Path.Combine(Paths.Data, "Pictures");
-        try
-        {
-            Directory.CreateDirectory(directory);
-            return
-            [
-                .. Directory
-                    .EnumerateFiles(directory)
-                    .Where(file => ImageExtensions.Contains(
-                        Path.GetExtension(file),
-                        StringComparer.OrdinalIgnoreCase))
-            ];
-        }
-        catch (Exception ex)
-        {
-            LogWrapper.Warn("UI", $"枚举背景内容目录失败：{ex.Message}");
-            return [];
-        }
+        var width = _window.Bounds.Width > 0d ? _window.Bounds.Width : 850d;
+        var height = _window.Bounds.Height > 0d ? _window.Bounds.Height : 500d;
+        return bitmap.PixelSize.Width < width / 2d
+            && bitmap.PixelSize.Height < height / 2d;
     }
 
     private static LinearGradientBrush CreateColorfulBrush()
@@ -340,8 +766,8 @@ public sealed class BackgroundLayer
 
     private static IBrush? FindThemeBrush(string key)
     {
-        if (Application.Current is { } app && app.TryFindResource(key, out var resource))
-            return resource as IBrush;
-        return null;
+        return Application.Current is { } app && app.TryFindResource(key, out var resource)
+            ? resource as IBrush
+            : null;
     }
 }

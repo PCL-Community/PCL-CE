@@ -1,3 +1,4 @@
+using Avalonia.Threading;
 using PCL.Core.App.Localization;
 using PCL.Media;
 using PCL.Views.Shell;
@@ -41,6 +42,11 @@ public sealed class MediaServiceBridge : IMediaService, IDisposable
     public void ResumeMusic()
     {
         _media.ResumeMusic();
+    }
+
+    public void SetVideoGaming(bool gaming)
+    {
+        Dispatcher.UIThread.Post(() => BackgroundHost.Current?.SetGaming(gaming));
     }
 
     public void ToggleMusic()

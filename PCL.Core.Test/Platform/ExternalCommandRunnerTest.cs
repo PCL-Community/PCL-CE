@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PCL.Platform;
@@ -35,6 +36,32 @@ public sealed class ExternalCommandRunnerTest
 
         Assert.IsTrue(result.Succeeded);
         Assert.Contains("pcl-command-test", result.StandardOutput);
+    }
+
+    [TestMethod]
+    public async Task StartCapturesStandardOutput()
+    {
+        var runner = new ExternalCommandRunner();
+        var (fileName, arguments) = OperatingSystem.IsWindows()
+            ? ("cmd.exe", new[]
+            {
+                "/c",
+                "echo",
+                "pcl-stream-test"
+            })
+            : ("sh", new[]
+            {
+                "-c",
+                "printf pcl-stream-test"
+            });
+
+        using var session = runner.Start(fileName, arguments);
+        using var reader = new StreamReader(session.StandardOutput);
+        var output = await reader.ReadToEndAsync(TestContext.CancellationToken);
+        await session.WaitForExitAsync(TestContext.CancellationToken);
+
+        Assert.AreEqual(0, session.ExitCode);
+        Assert.Contains("pcl-stream-test", output);
     }
 
     [TestMethod]
