@@ -13,7 +13,7 @@ using PCL.UI.Controls;
 
 namespace PCL.Views.Shell;
 
-/// <summary>自绘标题栏：左侧 Logo 与四个主入口，二级页面显示返回键与标题，右侧为窗口按钮。 Logo 模式、自定义文本与左右布局由配置与主题驱动，文本全部走本地化。</summary>
+/// <summary>自绘标题栏：左侧 Logo 与四个主入口，二级页面显示返回键与标题，右侧为窗口按钮。 (macOS下会被<see cref="UseSystemCaptionButtons" />隐藏自绘按钮，变成系统原生红绿灯) Logo 模式、自定义文本与左右布局由配置与主题驱动，文本全部走本地化。</summary>
 public partial class TitleBar : UserControl
 {
     private const string TitleLayerAnimationKey = "TitleBar Title Layer";
