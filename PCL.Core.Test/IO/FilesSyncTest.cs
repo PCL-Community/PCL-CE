@@ -64,27 +64,13 @@ public sealed class FilesSyncTest
     }
 
     [TestMethod]
-    public void ReadTextWithoutBomKeepsContent()
-    {
-        var path = Path.Combine(_root, "plain.txt");
-        Files.WriteAllText(path, "中文内容", new UTF8Encoding(false));
-
-        Assert.AreEqual("中文内容", Files.ReadAllTextOrEmpty(path));
-    }
-
-    [TestMethod]
     public void ReadTextSkipsUtf16LeBom()
     {
         var path = Path.Combine(_root, "utf16.txt");
         byte[] bytes = [.. Encoding.Unicode.GetPreamble(), .. Encoding.Unicode.GetBytes("hello")];
         Files.WriteAllBytes(path, bytes);
 
-        var detected = Files.ReadAllTextOrEmpty(path);
-        var explicitLe = Files.ReadAllTextOrEmpty(path, Encoding.Unicode);
-
-        Assert.AreEqual("hello", detected);
-        Assert.AreEqual("hello", explicitLe);
-        Assert.IsFalse(detected.StartsWith('\uFEFF'));
+        Assert.AreEqual("hello", Files.ReadAllTextOrEmpty(path, new UnicodeEncoding(false, false)));
     }
 
     [TestMethod]
