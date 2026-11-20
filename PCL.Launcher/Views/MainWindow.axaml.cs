@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.Versioning;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -10,6 +11,7 @@ using PCL.Core.App.IoC;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Navigation;
+using PCL.Platform;
 using PCL.UI;
 using PCL.UI.SystemIntegration;
 using PCL.Views.Shell;
@@ -57,13 +59,20 @@ public partial class MainWindow : Window
         PageLeftHost.SizeChanged += (_, _) => ScheduleLeftWidthUpdate();
         LocalizationService.LanguageChanged += OnLanguageChangedForLeftWidth;
 
-        ApplyRoundedWindowClip();
-        AddHandler(
-            PointerPressedEvent,
-            OnResizePointerPressed,
-            RoutingStrategies.Tunnel,
-            true);
-        PointerMoved += OnResizePointerMoved;
+        if (OperatingSystem.IsMacOS())
+        {
+            _ApplyMacOsWindowChrome();
+        }
+        else
+        {
+            ApplyRoundedWindowClip();
+            AddHandler(
+                PointerPressedEvent,
+                OnResizePointerPressed,
+                RoutingStrategies.Tunnel,
+                true);
+            PointerMoved += OnResizePointerMoved;
+        }
 
         Topmost = true;
         Opened += (_, _) => Dispatcher.UIThread.Post(
@@ -199,6 +208,36 @@ public partial class MainWindow : Window
     private void UpdateLauncherDpi()
     {
         LauncherCommon.Dpi = (int)Math.Round(RenderScaling * 96d);
+    }
+
+    // macOS 改用系统标题栏，把圆角，阴影等交给系统处理，PCL因为窗口本身不支持最大化，因此绿灯保持禁用
+    [SupportedOSPlatform("macos")]
+    private void _ApplyMacOsWindowChrome()
+    {
+        WindowDecorations = WindowDecorations.Full;
+        ExtendClientAreaToDecorationsHint = true;
+        CanMaximize = false;
+
+        ShadowHost.ShadowRadius = 0d;
+        ShadowHost.Color = Colors.Transparent;
+        ShadowHost.CornerRadius = default;
+        PanBack.Margin = default;
+        PanBack.CornerRadius = default;
+
+        _titleBar.UseSystemCaptionButtons();
+        _titleBar.ReserveLeadingSpace(MacOsTrafficLights.LeadingWidth(_titleBar.PanTitle.Height));
+
+        Opened += (_, _) => Dispatcher.UIThread.Post(_LayoutTrafficLights, DispatcherPriority.Loaded);
+        Activated += (_, _) => _LayoutTrafficLights();
+        Deactivated += (_, _) => _LayoutTrafficLights();
+        SizeChanged += (_, _) => _LayoutTrafficLights();
+    }
+
+    [SupportedOSPlatform("macos")]
+    private void _LayoutTrafficLights()
+    {
+        if (TryGetPlatformHandle() is { HandleDescriptor: "NSWindow", Handle: not 0 } handle)
+            MacOsTrafficLights.Layout(handle.Handle, _titleBar.PanTitle.Height);
     }
 
     private void ApplyRoundedWindowClip()

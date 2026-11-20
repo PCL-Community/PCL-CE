@@ -13,7 +13,7 @@ using PCL.UI.Controls;
 
 namespace PCL.Views.Shell;
 
-/// <summary>自绘标题栏：左侧 Logo 与四个主入口，二级页面显示返回键与标题，右侧为窗口按钮。 Logo 模式、自定义文本与左右布局由配置与主题驱动，文本全部走本地化。</summary>
+/// <summary>自绘标题栏：左侧 Logo 与四个主入口，二级页面显示返回键与标题，右侧为窗口按钮。 (macOS下会被<see cref="UseSystemCaptionButtons" />隐藏自绘按钮，变成系统原生红绿灯) Logo 模式、自定义文本与左右布局由配置与主题驱动，文本全部走本地化。</summary>
 public partial class TitleBar : UserControl
 {
     private const string TitleLayerAnimationKey = "TitleBar Title Layer";
@@ -25,6 +25,8 @@ public partial class TitleBar : UserControl
     private bool _isSecondary;
 
     private bool _updating;
+
+    private double _leadingSpace;
 
     public TitleBar()
     {
@@ -139,12 +141,38 @@ public partial class TitleBar : UserControl
     private static int EffectiveTitleType()
     {
         if (ThemeService.CurrentTheme == ColorTheme.HmclBlue) return 4;
-        return (int)Config.Preference.WindowTitleType;
+        var type = Config.Preference.WindowTitleType;
+        if (OperatingSystem.IsMacOS() && type == LauncherTitleType.Default) return (int)LauncherTitleType.None;
+        return (int)type;
+    }
+
+    /// <summary>当窗口使用系统标题栏按钮（macOS 红绿灯）时，隐藏自绘的最小化与关闭按钮。</summary>
+    public void UseSystemCaptionButtons()
+    {
+        BtnTitleMin.IsVisible = false;
+        BtnTitleClose.IsVisible = false;
+    }
+
+    public void ReserveLeadingSpace(double width)
+    {
+        _leadingSpace = width;
+        PanInnerTitle.Margin = new Thickness(width - 12d, 0d, 0d, 0d);
+        _ApplyLeadingSpace();
+        ApplyTitleLeftClamp();
+    }
+
+    private void _ApplyLeadingSpace()
+    {
+        if (_leadingSpace <= 0d) return;
+
+        var logoColumnHidden = PanTitleMain.ColumnDefinitions[0].Width.Value == 0d;
+        PanTitleMain.Margin = logoColumnHidden ? new Thickness(_leadingSpace - 13d, 0d, 0d, 0d) : default;
+        PanTitleLeft.Margin = logoColumnHidden ? default : new Thickness(_leadingSpace - 7d, 0d, 0d, 0d);
     }
 
     private void ApplyTitleLeftClamp()
     {
-        var available = PanTitleMain.ColumnDefinitions[0].ActualWidth - 30d;
+        var available = PanTitleMain.ColumnDefinitions[0].ActualWidth - 30d - PanTitleLeft.Margin.Left;
         PanTitleLeft.ColumnDefinitions[0].MaxWidth = available > 0d ? available : 0d;
     }
 
@@ -154,6 +182,7 @@ public partial class TitleBar : UserControl
             ? new GridLength(0d)
             : new GridLength(1d, GridUnitType.Star);
         PanTitleMain.ColumnDefinitions[0].Width = width;
+        _ApplyLeadingSpace();
         ApplyTitleLeftClamp();
     }
 
