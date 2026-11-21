@@ -1,6 +1,5 @@
 name: "综合 Bug 反馈 / General Bug Report"
 description: "遇见了与启动器功能相关的 Bug / Report a bug related to launcher features"
-title: "[C#]: "
 type: "Bug"
 body:
   - type: checkboxes
@@ -41,6 +40,22 @@ body:
         核实方式 / Verification：
     validations:
       required: true
+  - type: input
+    id: "yml-launcher-version"
+    attributes:
+      label: "启动器版本 / Launcher Version"
+      description: "请提供出现问题的启动器版本。 / Please provide the version of the launcher where the issue occurs."
+      placeholder: "例如：2.15.0 / 2.15.0-beta.1"
+    validations:
+      required: true
+  - type: input
+    id: "yml-os-version"
+    attributes:
+      label: "操作系统版本 / OS Version"
+      description: "请提供系统的版本信息。 / Please provide the version information of your operating system."
+      placeholder: "例如：Windows 11 26H2 26300.1145 / macOS 27.2.1 / Ubuntu 26.04.1"
+    validations:
+      required: true
   - type: textarea
     id: "yml-2"
     attributes:
@@ -78,3 +93,7 @@ body:
         If the required logs are missing, this issue may be closed directly.
     validations:
       required: true
+  - type: textarea
+    id: "yml-remarks"
+    attributes:
+      label: "备注 / Remarks"
