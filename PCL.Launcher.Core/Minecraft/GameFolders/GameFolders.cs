@@ -62,8 +62,8 @@ public static class GameFolders
                 $"{cacheMcFolderList.Count} 个自定义文件夹，{originalMcFolderList.Count} 个原始文件夹");
 
             _MergeOriginalFolders(cacheMcFolderList, originalMcFolderList);
-            _SaveFolderConfig(cacheMcFolderList);
-            _EnsureMinecraftFolder(cacheMcFolderList);
+            var fallbackFolder = _EnsureMinecraftFolder(cacheMcFolderList);
+            _SaveFolderConfig(cacheMcFolderList, fallbackFolder);
 
             foreach (var folder in cacheMcFolderList)
                 McFolderLauncherProfilesJsonCreate(folder.Location);
@@ -208,9 +208,12 @@ public static class GameFolders
         }
     }
 
-    private static void _SaveFolderConfig(List<McFolder> cacheMcFolderList)
+    private static void _SaveFolderConfig(
+        List<McFolder> cacheMcFolderList,
+        McFolder? fallbackFolder)
     {
         var config = cacheMcFolderList
+            .Where(folder => !ReferenceEquals(folder, fallbackFolder))
             .Select(folder => $"{folder.Name}>{folder.Location}")
             .ToList();
         if (config.Count == 0)
@@ -218,19 +221,20 @@ public static class GameFolders
         States.Game.Folders = string.Join("|", config);
     }
 
-    private static void _EnsureMinecraftFolder(List<McFolder> cacheMcFolderList)
+    private static McFolder? _EnsureMinecraftFolder(List<McFolder> cacheMcFolderList)
     {
         if (cacheMcFolderList.Count != 0)
-            return;
+            return null;
 
         Directory.CreateDirectory(
             Path.Combine(LauncherPaths.DefaultMinecraftDirectory, "versions"));
-        cacheMcFolderList.Add(
-            McFolder.CreateBuiltin(
-                "Select.Folder.CurrentFolder",
-                LauncherPaths.DefaultMinecraftDirectory
-                + Path.DirectorySeparatorChar,
-                McFolder.Types.Original));
+        var fallbackFolder = McFolder.CreateBuiltin(
+            "Select.Folder.CurrentFolder",
+            LauncherPaths.DefaultMinecraftDirectory
+            + Path.DirectorySeparatorChar,
+            McFolder.Types.Original);
+        cacheMcFolderList.Add(fallbackFolder);
+        return fallbackFolder;
     }
 
     /// <summary>为 Minecraft 文件夹创建 launcher_profiles.json 文件。</summary>
