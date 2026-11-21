@@ -787,6 +787,7 @@ public class MyPageRight : Decorator, IPageView, IPageRightContainer
                     control.IsHitTestVisible = true;
                 if (control.RenderTransform is TranslateTransform)
                     control.RenderTransform = null;
+                control.Opacity = 1d;
             }
 
             foreach (var control in GetAllAnimControls(element))
