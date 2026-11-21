@@ -19,7 +19,8 @@ public class MyComboBoxItem : ComboBoxItem
 
     public int Uuid = InputTheme.NewUuid();
 
-    private double _fontOpacity = 1d;
+    private string? _backColorName;
+    private NColor _backColor;
 
     public MyComboBoxItem()
     {
@@ -91,16 +92,18 @@ public class MyComboBoxItem : ComboBoxItem
         var hasBackColor = !string.IsNullOrEmpty(newBackColorName)
             && InputTheme.TryColor(this, newBackColorName, out backColor);
 
-        var currentBackColor = InputAnimation.ReadColor(this, BackgroundProperty);
         var newForeColor = IsEnabled ? InputTheme.Text(this) : InputTheme.TextSecondary(this);
-        var unchanged = hasBackColor
-            ? currentBackColor == backColor
-            : currentBackColor.A <= 0f;
 
-        if (unchanged && _fontOpacity == newFontOpacity && Foreground == newForeColor)
+        if (animate
+            && InputAnimation.CanAnimate(this)
+            && _backColorName == newBackColorName
+            && (!hasBackColor || _backColor == backColor)
+            && Math.Abs(Opacity - newFontOpacity) < 0.0001d
+            && Foreground == newForeColor)
             return;
 
-        _fontOpacity = newFontOpacity;
+        _backColorName = newBackColorName;
+        _backColor = hasBackColor ? backColor : default;
 
         if (animate && InputAnimation.CanAnimate(this))
         {
@@ -109,20 +112,26 @@ public class MyComboBoxItem : ComboBoxItem
             if (hasBackColor && fromColor.A <= 0f)
                 fromColor = new NColor(0f, backColor);
 
-            AnimationService.Run(
-                new List<IAnimation>
+            var animations = new List<IAnimation>();
+            if (fromColor != targetColor)
+            {
+                animations.Add(new NColorFromToAnimation
                 {
-                    new NColorFromToAnimation
-                    {
-                        Target = new AvaloniaAnimatable(this, BackgroundProperty),
-                        From = fromColor,
-                        HasFrom = true,
-                        To = targetColor,
-                        Duration = TimeSpan.FromMilliseconds(time)
-                    },
-                    new OpacityAnimation(this, newFontOpacity - Opacity, time)
-                },
-                ColorKey);
+                    Target = new AvaloniaAnimatable(this, BackgroundProperty),
+                    From = fromColor,
+                    HasFrom = true,
+                    To = targetColor,
+                    Duration = TimeSpan.FromMilliseconds(time)
+                });
+            }
+
+            if (Math.Abs(newFontOpacity - Opacity) >= 0.0001d)
+                animations.Add(new OpacityAnimation(this, newFontOpacity - Opacity, time));
+
+            if (animations.Count > 0)
+                AnimationService.Run(animations, ColorKey);
+            else
+                AnimationService.CancelAnimationByName(ColorKey);
         }
         else
         {
