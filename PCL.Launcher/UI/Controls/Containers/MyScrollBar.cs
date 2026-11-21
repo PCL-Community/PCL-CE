@@ -35,6 +35,8 @@ public class MyScrollBar : ScrollBar
 
     private Thumb? _thumb;
 
+    private double? _overscrollThumbSlot;
+
     public MyScrollBar()
     {
         ContainerTheme.AttachStyles(this);
@@ -98,11 +100,12 @@ public class MyScrollBar : ScrollBar
         if (overscroll == 0d || viewport <= 0d)
         {
             _thumb.Margin = default;
+            _overscrollThumbSlot = null;
             return;
         }
 
         // 越界期间内容偏移不变，Track 分配给滑块的总长度（含 Margin）也不变
-        var slot = _thumb.Bounds.Height + _thumb.Margin.Top + _thumb.Margin.Bottom;
+        var slot = _overscrollThumbSlot ??= _thumb.Bounds.Height + _thumb.Margin.Top + _thumb.Margin.Bottom;
         var shrink = Math.Min(
             slot * Math.Min(Math.Abs(overscroll) / viewport, 1d),
             Math.Max(0d, slot - MinOverscrollThumbLength));
