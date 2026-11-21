@@ -66,7 +66,9 @@ internal sealed class MacOsShellIntegration : IPlatformShellIntegration
     private static readonly ObjCSel _SetToolbarStyle = ObjCSel.FromString("setToolbarStyle:");
     private static readonly ObjCSel _SetTitlebarSeparatorStyle = ObjCSel.FromString("setTitlebarSeparatorStyle:");
 
+    private const nint AutomaticToolbarStyle = 0;
     private const nint UnifiedToolbarStyle = 3;
+    private const nint AutomaticTitlebarSeparator = 0;
     private const nint NoTitlebarSeparator = 1;
     private const double UnifiedTitleBarLeadingInset = 74d;
 
@@ -104,6 +106,10 @@ internal sealed class MacOsShellIntegration : IPlatformShellIntegration
             window.ExtendClientAreaTitleBarHeightHint = 0d;
             window.ExtendClientAreaTitleBarHeightHint = -1d;
         }
+        else
+        {
+            _ResetTitleBarStyles(window);
+        }
 
         window.Height = height;
         window.ApplyExtendedTitleBarLayout(unified ? UnifiedTitleBarLeadingInset : 0d);
@@ -132,6 +138,16 @@ internal sealed class MacOsShellIntegration : IPlatformShellIntegration
 
         nsWindow.SendMessage(_SetToolbarStyle, UnifiedToolbarStyle);
         nsWindow.SendMessage(_SetTitlebarSeparatorStyle, NoTitlebarSeparator);
+    }
+
+    private static void _ResetTitleBarStyles(Window window)
+    {
+        if (window.TryGetPlatformHandle()?.Handle is not { } handle || handle == 0) return;
+        EnsureFrameworks();
+
+        var nsWindow = new ObjCObject(handle);
+        nsWindow.SendMessage(_SetToolbarStyle, AutomaticToolbarStyle);
+        nsWindow.SendMessage(_SetTitlebarSeparatorStyle, AutomaticTitlebarSeparator);
     }
 
     private static void _AttachMenus(Window window)
