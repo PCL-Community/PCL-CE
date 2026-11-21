@@ -20,6 +20,8 @@ public partial class PageSetupUIViewModel : ViewModelBase
 
     private int _backgroundCount;
 
+    [ObservableProperty] private int _backgroundEffectSelectedIndex = -1;
+
     [ObservableProperty] private int _backgroundOpacity =
         Config.Preference.Background.WallpaperOpacity;
 
@@ -103,6 +105,12 @@ public partial class PageSetupUIViewModel : ViewModelBase
             Config.Preference.Background.WallpaperSuitMode = value;
     }
 
+    partial void OnBackgroundEffectSelectedIndexChanged(int value)
+    {
+        if (!_reloading && value >= 0)
+            Config.Preference.Background.BackdropEffect = (BackdropMode)value;
+    }
+
     partial void OnCustomPresetSelectedIndexChanged(int value)
     {
         if (!_reloading && value >= 0)
@@ -149,6 +157,10 @@ public partial class PageSetupUIViewModel : ViewModelBase
 
             BackgroundOpacity = Config.Preference.Background.WallpaperOpacity;
             BackgroundBlur = Config.Preference.Background.WallpaperBlurRadius;
+            BackgroundEffectSelectedIndex = Math.Clamp(
+                (int)Config.Preference.Background.BackdropEffect,
+                0,
+                3);
             BackgroundSuitSelectedIndex = Math.Clamp(
                 Config.Preference.Background.WallpaperSuitMode,
                 0,

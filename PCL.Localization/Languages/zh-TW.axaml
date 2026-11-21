@@ -3012,6 +3012,13 @@
     <sys:String x:Key="Setup.Ui.Background.Cleared">背景內容已清除！</sys:String>
     <sys:String x:Key="Setup.Ui.Background.ColorOverlay">疊加彩色背景</sys:String>
     <sys:String x:Key="Setup.Ui.Background.ContentAdapt">內容自適應方式</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Effect">背景效果</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Effect.Off">關閉</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Effect.Mica">雲母 (Mica Base)</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Effect.Mica.ToolTip">使用雲母材質作為啟動器背景，會取代背景圖片與彩色填充。&#xD;在不受支援的系統上將自動降級為模糊或關閉。</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Effect.MicaAlt">雲母 Alt (Mica Alt)</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Effect.MicaAlt.ToolTip">使用加重色調的雲母變體（Mica Alt）。&#xD;在不受支援的系統上將自動降級為模糊或關閉。</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Effect.Blur">模糊 (Blur)</sys:String>
     <sys:String x:Key="Setup.Ui.Background.NoAvailableContent">未偵測到可用背景內容！</sys:String>
     <sys:String x:Key="Setup.Ui.Background.OpenFolder.ToolTip">將背景圖片放到該資料夾，PCL CE 將會在每次開啟時隨機載入其中的一張圖片</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Refresh">重新整理背景內容</sys:String>

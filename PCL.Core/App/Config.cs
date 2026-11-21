@@ -303,6 +303,11 @@ public static partial class Config
         [ConfigGroup("Background")] partial class BackgroundConfigGroup
         {
             /// <summary>
+            /// 背景材质效果。
+            /// </summary>
+            [ConfigItem<BackdropMode>("UiBackgroundEffect", BackdropMode.Off, ConfigSource.Local)] public partial BackdropMode BackdropEffect { get; set; }
+
+            /// <summary>
             /// 彩色底部填充。
             /// </summary>
             [ConfigItem<bool>("UiBackgroundColorful", true, ConfigSource.Local)] public partial bool BackgroundColorful { get; set; }
