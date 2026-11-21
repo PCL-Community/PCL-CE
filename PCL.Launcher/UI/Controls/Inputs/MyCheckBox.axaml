@@ -4,11 +4,13 @@
              Background="Transparent"
              Focusable="True"
              MinWidth="20"
-             MinHeight="20">
+             MinHeight="20"
+             UseLayoutRounding="False">
     <!-- 文本 + 三态形状层；形状颜色跟随方框边框画刷，状态切换由代码驱动动画。 -->
     <Grid>
         <TextBlock x:Name="LabTextElement"
                    Margin="26,0,0,0"
+                   UseLayoutRounding="True"
                    FontSize="13"
                    HorizontalAlignment="Left"
                    VerticalAlignment="Center"

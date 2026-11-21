@@ -60,8 +60,16 @@
 
     <!-- Main.Menu -->
 
+    <sys:String x:Key="Main.Menu.About">About PCL CE</sys:String>
+    <sys:String x:Key="Main.Menu.CloseWindow">Close Window</sys:String>
     <sys:String x:Key="Main.Menu.Help">Help</sys:String>
+    <sys:String x:Key="Main.Menu.Hide">Hide PCL CE</sys:String>
+    <sys:String x:Key="Main.Menu.HideOthers">Hide Others</sys:String>
     <sys:String x:Key="Main.Menu.Minimize">Minimize</sys:String>
+    <sys:String x:Key="Main.Menu.Quit">Quit PCL CE</sys:String>
+    <sys:String x:Key="Main.Menu.Settings">Settings…</sys:String>
+    <sys:String x:Key="Main.Menu.ShowAll">Show All</sys:String>
+    <sys:String x:Key="Main.Menu.Window">Window</sys:String>
 
     <!-- Common.Action -->
 
