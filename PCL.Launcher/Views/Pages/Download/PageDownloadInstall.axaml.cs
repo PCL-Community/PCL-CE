@@ -26,6 +26,8 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
     private readonly bool _uiBuilt;
     private readonly PageDownloadInstallViewModel _vm = new();
     private bool _instanceNameEdited;
+    private bool _isSelectStage = true;
+    private bool _isEnteringPage;
     private bool _startingInstall;
     private bool _updatingInstanceName;
     private JsonObject? _version;
@@ -66,6 +68,7 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
             UpdateLocation();
         };
         TextInstanceName.KeyDown += OnInstanceNameKeyDown;
+        PageEnter += SyncStageBeforeEnterAnimation;
         BtnReselect.Click += (_, _) => ShowSelectStage();
         BtnStart.Click += (_, _) => _ = StartInstallAsync();
 
@@ -75,7 +78,40 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
         ShowSelectStage();
     }
 
+    private void SyncStageBeforeEnterAnimation()
+    {
+        if (_isSelectStage)
+        {
+            _isEnteringPage = true;
+            try
+            {
+                ShowSelectStage();
+            }
+            finally
+            {
+                _isEnteringPage = false;
+            }
+        }
+        else
+        {
+            ShowSelectStage();
+        }
+    }
+
     public override void OnNavigatedTo(PageParameter? parameter)
+    {
+        _isEnteringPage = true;
+        try
+        {
+            SyncOnNavigatedTo(parameter);
+        }
+        finally
+        {
+            _isEnteringPage = false;
+        }
+    }
+
+    private void SyncOnNavigatedTo(PageParameter? parameter)
     {
         PanBack?.ScrollToHome();
         _selector.Activate();
@@ -104,7 +140,6 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
             {
                 _waitingVersionName = null;
                 VersionList.Activate();
-                ShowSelectStage();
                 break;
             }
         }
@@ -179,7 +214,9 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
 
     private void ShowSelectStage()
     {
-        var animate = ContainerAnimation.CanAnimate(this)
+        _isSelectStage = true;
+        var animate = !_isEnteringPage
+            && ContainerAnimation.CanAnimate(this)
             && PanSelectStage?.IsLoaded == true
             && PanConfigStage?.IsLoaded == true;
         _vm.IsConfigStageVisible = false;
@@ -228,7 +265,9 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
 
     private void ShowConfigStage()
     {
-        var animate = ContainerAnimation.CanAnimate(this)
+        _isSelectStage = false;
+        var animate = !_isEnteringPage
+            && ContainerAnimation.CanAnimate(this)
             && PanSelectStage?.IsLoaded == true
             && PanConfigStage?.IsLoaded == true;
         PanSelectStage?.IsVisible = false;

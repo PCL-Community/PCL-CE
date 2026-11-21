@@ -14,6 +14,8 @@ internal sealed class MinecraftVersionCatalog(
 
     private bool _active;
 
+    private JsonArray? _builtVersions;
+
     public LoadState State => GameDownload.dlClientListLoader.State;
 
     public string? Error => GameDownload.dlClientListLoader.Error?.Message;
@@ -38,7 +40,15 @@ internal sealed class MinecraftVersionCatalog(
         GameDownload.dlClientListLoader.PreviewFinish += OnVersionListPreviewFinish;
         GameDownload.dlClientListLoader.OnStateChangedUi += OnVersionListStateChanged;
         GameFolders.McFolderListLoader.PreviewFinish += OnFolderListPreviewFinish;
-        Rebuild();
+        if (HasVersions && ReferenceEquals(CurrentVersions(), _builtVersions))
+            RaiseStateChanged();
+        else
+            Rebuild();
+    }
+
+    private static JsonArray? CurrentVersions()
+    {
+        return GameDownload.dlClientListLoader.output.Value?["versions"] as JsonArray;
     }
 
     public void Deactivate()
@@ -83,6 +93,7 @@ internal sealed class MinecraftVersionCatalog(
             && host.Children.Count > 0)
         {
             IsRebuildPending = false;
+            _builtVersions = CurrentVersions();
             RaiseStateChanged();
             return;
         }
@@ -107,6 +118,7 @@ internal sealed class MinecraftVersionCatalog(
             host.Children.Clear();
         }
 
+        _builtVersions = CurrentVersions();
         Rebuilt?.Invoke();
         RaiseStateChanged();
     }
