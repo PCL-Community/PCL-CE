@@ -40,7 +40,7 @@
                             </Canvas>
 
                             <StackPanel Grid.Row="0"
-                                        MinHeight="110"
+                                        VerticalAlignment="Center"
                                         Margin="0,0,150,0">
                                 <TextBlock FontSize="13"
                                            Opacity="0.7"
