@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Controls;
 
 namespace PCL;
 
@@ -19,8 +20,9 @@ internal sealed class MacOsPlatformStartup : IPlatformStartup
                 new MacOSPlatformOptions
                 {
                     ShowInDock = true,
-                    DisableNativeMenus = true
+                    DisableDefaultApplicationMenuItems = true
                 })
+            .AfterSetup(builder => NativeMenu.SetMenu(builder.Instance!, new NativeMenu()))
             .WithInterFont()
             .LogToTrace();
     }

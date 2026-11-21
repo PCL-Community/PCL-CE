@@ -60,8 +60,16 @@
 
     <!-- Main.Menu -->
 
+    <sys:String x:Key="Main.Menu.About">关于 PCL CE</sys:String>
+    <sys:String x:Key="Main.Menu.CloseWindow">关闭窗口</sys:String>
     <sys:String x:Key="Main.Menu.Help">帮助</sys:String>
+    <sys:String x:Key="Main.Menu.Hide">隐藏 PCL CE</sys:String>
+    <sys:String x:Key="Main.Menu.HideOthers">隐藏其他</sys:String>
     <sys:String x:Key="Main.Menu.Minimize">最小化</sys:String>
+    <sys:String x:Key="Main.Menu.Quit">退出 PCL CE</sys:String>
+    <sys:String x:Key="Main.Menu.Settings">设置…</sys:String>
+    <sys:String x:Key="Main.Menu.ShowAll">全部显示</sys:String>
+    <sys:String x:Key="Main.Menu.Window">窗口</sys:String>
 
     <!-- Common.Action -->
 
