@@ -184,7 +184,11 @@ public static class GameWatcherService
             active = _SessionList.Any(session =>
                 session.State is GameSessionState.Loading or GameSessionState.Running);
             allowLauncherExit = !_SessionList.Any(session =>
-                session.State is GameSessionState.Crashed or GameSessionState.Canceled);
+                session is
+                {
+                    HasExited: false,
+                    State: GameSessionState.Crashed or GameSessionState.Canceled
+                });
 
             if (active == _hasActiveSessions)
                 return;

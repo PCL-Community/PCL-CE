@@ -14,15 +14,10 @@ public sealed class GameLogViewModelTest
     [DataRow(13, 500UL)]
     [DataRow(14, 600UL)]
     [DataRow(28, 2000UL)]
+    [DataRow(29, ulong.MaxValue)]
     public void GetMaxLogCount_ReturnsConfiguredLimit(int configured, ulong expected)
     {
         Assert.AreEqual(expected, GameLogListViewModel.GetMaxLogCount(configured));
-    }
-
-    [TestMethod]
-    public void GetMaxLogCount_ReturnsUnlimitedForSliderMaximum()
-    {
-        Assert.AreEqual(ulong.MaxValue, GameLogListViewModel.GetMaxLogCount(29));
     }
 
     [TestMethod]

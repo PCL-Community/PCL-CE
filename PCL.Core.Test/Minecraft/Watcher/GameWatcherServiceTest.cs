@@ -76,6 +76,44 @@ public sealed class GameWatcherServiceTest
     }
 
     [TestMethod]
+    public async Task ExitedCrashedSessionDoesNotBlockLauncherExit()
+    {
+        var first = new FakeGameProcess();
+        var firstSession = GameWatcherService.StartSession(
+            first,
+            WatcherTestHelpers.CreateOptions(first));
+        first.Emit("[12:00:00] [Render thread/INFO]: Crash report saved to: crash.txt");
+        await WatcherTestHelpers.WaitUntilAsync(() =>
+            firstSession.State == GameSessionState.Crashed);
+
+        var second = new FakeGameProcess();
+        var secondSession = GameWatcherService.StartSession(
+            second,
+            WatcherTestHelpers.CreateOptions(second));
+        second.Emit("[12:00:00] [main/INFO]: Setting user: player");
+        second.Emit("[12:00:00] [main/INFO]: LWJGL Version: 3.3.3");
+        second.Emit("[12:00:00] [main/INFO]: OpenAL initialized");
+        await WatcherTestHelpers.WaitUntilAsync(() =>
+            secondSession.State == GameSessionState.Running);
+
+        var stop =
+            new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        GameWatcherService.AllSessionsStopped += allowExit => stop.TrySetResult(allowExit);
+
+        first.Complete(1);
+        await WatcherTestHelpers.WaitUntilAsync(() => firstSession.HasExited);
+
+        second.Complete(0);
+
+        var allowLauncherExit = await stop.Task.WaitAsync(
+            TimeSpan.FromSeconds(5),
+            TestContext.CancellationToken);
+        Assert.IsTrue(allowLauncherExit);
+        Assert.IsFalse(GameWatcherService.HasActiveSessions);
+        Assert.IsFalse(GameWatcherService.HasLiveSessions);
+    }
+
+    [TestMethod]
     public async Task NormalExitAllowsLauncherExit()
     {
         var process = new FakeGameProcess();

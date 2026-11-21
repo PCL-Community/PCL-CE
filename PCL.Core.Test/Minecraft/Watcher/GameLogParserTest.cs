@@ -20,7 +20,7 @@ public sealed class GameLogParserTest
     }
 
     [TestMethod]
-    public void ClassifyLevel_KeepsWarnForStackFrames()
+    public void ClassifyLevel_PreservesPreviousLevelForStackFrames()
     {
         Assert.AreEqual(
             GameLogLevel.Warn,
@@ -28,11 +28,6 @@ public sealed class GameLogParserTest
         Assert.AreEqual(
             GameLogLevel.Warn,
             GameLogParser.ClassifyLevel("Caused by: java.lang.Exception", GameLogLevel.Warn));
-    }
-
-    [TestMethod]
-    public void ClassifyLevel_DoesNotKeepInfoForStackFrames()
-    {
         Assert.AreEqual(
             GameLogLevel.Info,
             GameLogParser.ClassifyLevel("\tat example.Foo.bar(Foo.java:1)", GameLogLevel.Info));

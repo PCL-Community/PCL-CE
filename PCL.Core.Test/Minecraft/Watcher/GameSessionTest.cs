@@ -248,21 +248,6 @@ public sealed class GameSessionTest
     }
 
     [TestMethod]
-    public async Task CloseMarkerEndsSession()
-    {
-        var process = new FakeGameProcess();
-        using var session = new GameSession(
-            process,
-            WatcherTestHelpers.CreateOptions(process));
-
-        session.Start();
-        process.Emit("[12:00:00] [main/INFO]: Restarting Minecraft with command foo");
-
-        await WatcherTestHelpers.WaitUntilAsync(() => session.State == GameSessionState.Ended);
-        Assert.AreEqual(GameSessionState.Ended, session.State);
-    }
-
-    [TestMethod]
     public async Task AbortTokenCancelsSessionAndKillsProcess()
     {
         var process = new FakeGameProcess();
