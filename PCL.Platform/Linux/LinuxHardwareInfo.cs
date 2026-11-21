@@ -64,11 +64,15 @@ public sealed class LinuxHardwareInfo : IHardwareInfo
                 var deviceId = separatorIndex > 0
                     ? pciId[(separatorIndex + 1)..]
                     : string.Empty;
-                if (!seenDevices.Add($"{vendorId}:{deviceId}"))
-                    continue;
 
                 uevent.TryGetValue("PCI_SLOT_NAME", out var slot);
-                var nvidia = slot is null
+                var identity = string.IsNullOrWhiteSpace(slot)
+                    ? $"{vendorId}:{deviceId}"
+                    : slot;
+                if (!seenDevices.Add(identity))
+                    continue;
+
+                var nvidia = string.IsNullOrWhiteSpace(slot)
                     ? null
                     : nvidiaGpus.GetValueOrDefault(NormalizeBusId(slot));
 
@@ -168,8 +172,13 @@ public sealed class LinuxHardwareInfo : IHardwareInfo
             var cores = new HashSet<string>(StringComparer.Ordinal);
             const string cpuRoot = "/sys/devices/system/cpu";
             if (Directory.Exists(cpuRoot))
-                foreach (var cpuDir in Directory.EnumerateDirectories(cpuRoot, "cpu[0-9]*"))
+                foreach (var cpuDir in Directory.EnumerateDirectories(cpuRoot, "cpu*"))
                 {
+                    var name = Path.GetFileName(cpuDir);
+                    if (!name.StartsWith("cpu", StringComparison.Ordinal)
+                        || !int.TryParse(name[3..], out _))
+                        continue;
+
                     var topology = Path.Combine(cpuDir, "topology");
                     var package = _ReadTrimmedFile(Path.Combine(topology, "physical_package_id"));
                     var core = _ReadTrimmedFile(Path.Combine(topology, "core_id"));
