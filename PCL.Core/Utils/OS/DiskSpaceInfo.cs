@@ -27,9 +27,9 @@ public static class DiskSpaceInfo
                 .GetDrives()
                 .Where(candidate => candidate.IsReady)
                 .OrderByDescending(candidate => candidate.RootDirectory.FullName.Length)
-                .FirstOrDefault(candidate => fullPath.StartsWith(
-                    candidate.RootDirectory.FullName,
-                    StringComparison.OrdinalIgnoreCase));
+                .FirstOrDefault(candidate => _IsUnderRoot(
+                    fullPath,
+                    candidate.RootDirectory.FullName));
             if (drive is null)
             {
                 var root = Path.GetPathRoot(fullPath);
@@ -46,6 +46,14 @@ public static class DiskSpaceInfo
         {
             return null;
         }
+    }
+
+    private static bool _IsUnderRoot(string path, string root)
+    {
+        var relative = Path.GetRelativePath(root, path);
+        return relative != ".."
+            && !relative.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal)
+            && !Path.IsPathRooted(relative);
     }
 
     public sealed record Volume(
