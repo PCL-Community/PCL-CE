@@ -8,6 +8,7 @@ using PCL.Core.App.IoC;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Core.Platform;
+using PCL.Core.UI.Background;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
 using PCL.Navigation;
@@ -730,6 +731,7 @@ public sealed class WatcherUiBridge : IWatcherUi
 {
     public void RefreshShutdownButton()
     {
+        BackgroundHost.Current?.SetGaming(GameWatcher.hasRunningMinecraft);
         UiInteraction.TryShellAction(
             nameof(RefreshShutdownButton),
             "SHELL",
