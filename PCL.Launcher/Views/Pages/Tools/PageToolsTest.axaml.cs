@@ -7,6 +7,7 @@ using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.IO;
 using PCL.Core.Logging;
+using PCL.Core.Minecraft.Watcher;
 using PCL.Core.Platform;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
@@ -136,7 +137,7 @@ public partial class PageToolsTest : MyPageRight
             {
                 try
                 {
-                    if (GameWatcher.hasRunningMinecraft
+                    if (GameWatcherService.HasLiveSessions
                         || GameLaunch.mcLaunchLoader.State == LoadState.Loading)
                     {
                         HintService.Show(Hints.Info(Lang.Text("Tools.Test.Clean.CloseGameFirst")));

@@ -1,44 +1,11 @@
-using PCL.Core.Platform;
+using System.Collections.Generic;
 
-namespace PCL;
+namespace PCL.Core.App.Media;
 
-/// <summary>游戏日志级别。</summary>
-public enum GameLogLevel
-{
-    Debug,
-    Info,
-    Warn,
-    Error,
-    Fatal
-}
-
-/// <summary>游戏监视器向 UI 层发出的通知。</summary>
-public interface IWatcherUi
-{
-    void RefreshShutdownButton();
-    void ExitApplication();
-    void ShowApplication();
-    void ShowFeedback();
-    void ShowHint(string text, NotificationType type = NotificationType.Info);
-}
-
-public static class WatcherUi
-{
-    public static IWatcherUi? Current => ApplicationRuntime.GetService<IWatcherUi>();
-}
-
-/// <summary>背景音乐的播放状态，与 WPF 的 <c>Music.MusicStates</c> 一致。</summary>
-public enum MusicPlaybackState
-{
-    Stop,
-    Play,
-    Pause
-}
-
-/// <summary>游戏启动/结束时对媒体播放的控制，并提供设置页所需的背景音乐操作。</summary>
+/// <summary>启动器背景音乐服务。具体播放实现由界面程序集注册到 <see cref="MediaService" />。</summary>
 public interface IMediaService
 {
-    /// <summary>当前平台是否真正具备音乐播放能力。</summary>
+    /// <summary>当前平台是否具备音频播放能力。</summary>
     bool IsAvailable { get; }
 
     /// <summary>当前平台是否具备背景音乐播放能力。</summary>
@@ -50,7 +17,7 @@ public interface IMediaService
     /// <summary>播放列表中的音乐数量。</summary>
     int MusicCount => 0;
 
-    /// <summary>当前正在播放的音乐文件路径；尚未播放时为 <see langword="null" />。</summary>
+    /// <summary>当前正在播放的音乐文件路径；尚未开始时为 <see langword="null" />。</summary>
     string? CurrentMusicPath => null;
 
     /// <summary>当前播放列表快照。</summary>
@@ -59,7 +26,7 @@ public interface IMediaService
     /// <summary>暂停背景音乐。</summary>
     void PauseMusic();
 
-    /// <summary>恢复背景音乐。</summary>
+    /// <summary>恢复背景音乐；没有当前音乐时由实现决定是否重新开始播放。</summary>
     void ResumeMusic();
 
     /// <summary>左键点击音乐快捷按钮：暂停、恢复或重新开始。</summary>
@@ -73,9 +40,8 @@ public interface IMediaService
 
             case MusicPlaybackState.Play:
                 PauseMusic();
-                break
-                    ;
-            case MusicPlaybackState.Stop:
+                break;
+
             default:
                 RefreshMusic(false);
                 break;
@@ -87,7 +53,7 @@ public interface IMediaService
     {
     }
 
-    /// <summary>刷新播放列表并开始播放，对应 WPF 的 <c>MusicRefreshPlay</c>。</summary>
+    /// <summary>刷新播放列表并开始播放。</summary>
     void RefreshMusic(bool showHint, bool isFirstLoad = false)
     {
     }
@@ -101,9 +67,4 @@ public interface IMediaService
     void SetMusicVolume(int volume)
     {
     }
-}
-
-public static class MediaService
-{
-    public static IMediaService? Current => ApplicationRuntime.GetService<IMediaService>();
 }

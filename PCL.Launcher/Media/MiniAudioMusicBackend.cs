@@ -1,5 +1,6 @@
 using Avalonia.Threading;
 using MiniAudioEx.Core.StandardAPI;
+using PCL.Core.App.Media;
 
 namespace PCL.Media;
 

@@ -2,6 +2,7 @@ using System.Diagnostics;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Minecraft.Profile;
+using PCL.Core.Minecraft.Watcher;
 using PCL.Core.Minecraft.Profile.Models;
 using PCL.Core.Utils;
 
@@ -358,7 +359,7 @@ public static partial class GameLaunch
 
     public static Loading.LoaderCombo<object> mcLaunchLoaderReal = null!;
     public static Process? mcLaunchProcess;
-    public static GameWatcher.Watcher? mcLaunchWatcher;
+    public static GameSession? mcLaunchWatcher;
 
     private static void McLaunchState(Loading.LoaderTask<McLaunchOptions, object> loader)
     {

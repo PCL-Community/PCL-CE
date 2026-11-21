@@ -1,3 +1,4 @@
+using PCL.Core.Minecraft.Watcher;
 using PCL.Core.Platform;
 
 namespace PCL;
@@ -38,7 +39,7 @@ public interface ILaunchUi
 
     void RefreshLaunching();
 
-    void AttachLogPage(GameWatcher.Watcher watcher);
+    void AttachLogPage(GameSession session);
 
     void SetMainWindowState(LaunchWindowState state);
 
@@ -138,9 +139,9 @@ public static class LaunchUi
         Current?.RefreshLaunching();
     }
 
-    public static void AttachLogPage(GameWatcher.Watcher watcher)
+    public static void AttachLogPage(GameSession session)
     {
-        Current?.AttachLogPage(watcher);
+        Current?.AttachLogPage(session);
     }
 
     public static void SetMainWindowState(LaunchWindowState state)

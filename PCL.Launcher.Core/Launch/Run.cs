@@ -3,7 +3,10 @@ using System.Globalization;
 using System.Text;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.App.Media;
 using PCL.Core.IO;
+using PCL.Core.Logging;
+using PCL.Core.Minecraft.Watcher;
 using PCL.Core.Platform;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Secret;
@@ -555,24 +558,77 @@ public static partial class GameLaunch
             mcLaunchJavaSelected!.Installation.JavaFolder,
             ApplicationRuntime.Current.Platform.Java.JstackExecutableName);
 
-        var watcher = new GameWatcher.Watcher(
-            loader,
-            InstanceList.McMcInstanceSelected,
-            windowTitle,
-            File.Exists(jStackPath) ? jStackPath : "",
-            currentLaunchOptions!.IsTest);
-        mcLaunchWatcher = watcher;
+        var instance = InstanceList.McMcInstanceSelected!;
+        var session = GameWatcherService.StartSession(
+            loader.input ?? throw new InvalidOperationException("加载器输入为空"),
+            new GameSessionOptions
+            {
+                Metadata = new GameSessionMetadata(
+                    instance.Name,
+                    instance.Info?.ToString(),
+                    instance.releaseTime,
+                    instance.PathInstance,
+                    instance.PathIndie),
+                WindowTitleTemplate = windowTitle,
+                CaptureLiveLog = currentLaunchOptions!.IsTest,
+                StackDumpToolPath = File.Exists(jStackPath) ? jStackPath : null,
+                MaximizeWindow = Config.Launch.GameWindowMode == GameWindowSizeMode.Maximized,
+                ReportProgress = value => loader.Progress = value,
+                AbortToken = loader.AbortedToken
+            },
+            e => _StartCrashAnalysis(instance, e));
+
+        mcLaunchWatcher = session;
 
         if (currentLaunchOptions.IsTest)
         {
-            LaunchUi.AttachLogPage(watcher);
+            LaunchUi.AttachLogPage(session);
             McLaunchLog("已显示游戏实时日志");
         }
 
-        while (watcher.State == GameWatcher.Watcher.MinecraftState.Loading)
+        while (session.State == GameSessionState.Loading)
             Thread.Sleep(100);
-        if (watcher.State == GameWatcher.Watcher.MinecraftState.Crashed)
+        if (session.State == GameSessionState.Crashed)
             throw new Exception("$$");
+    }
+
+    private static void _StartCrashAnalysis(McInstance instance, GameSessionCrashedEventArgs e)
+    {
+        if (Config.Launch.DisableCrashAnalysis)
+            return;
+
+        LauncherCommon.RunInNewThread(
+            () =>
+            {
+                try
+                {
+                    var launcherLog = LogWrapper.CurrentLogger.CurrentLogFiles.LastOrDefault()
+                        ?? Path.Combine(Paths.Data, "Log", "latest.log");
+                    var outputPaths = new List<string>
+                    {
+                        Path.Combine(instance.PathInstance, $"{instance.Name}.json"),
+                        launcherLog,
+                        Path.Combine(Paths.Data, "LatestLaunch.bat")
+                    };
+
+                    LauncherCommon.Log(
+                        $"[{e.Session.ProcessId}] {Lang.Text("Watcher.Crash.AnalysisStart")}");
+                    CrashAnalysisService.Current?.Analyze(
+                        e.Session.ProcessId,
+                        instance,
+                        instance.PathIndie,
+                        [.. e.RecentLog],
+                        outputPaths);
+                }
+                catch (Exception ex)
+                {
+                    LauncherCommon.Log(
+                        ex,
+                        "启动 Minecraft 崩溃分析失败",
+                        LauncherLogLevel.Hint);
+                }
+            },
+            "Crash Analyzer");
     }
 
     private static void _LogLaunchBaseParameters()
