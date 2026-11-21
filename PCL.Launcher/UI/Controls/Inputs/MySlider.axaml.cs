@@ -392,18 +392,15 @@ public partial class MySlider : UserControl
             return;
         }
 
-        if (!_dragMoved
-            && Math.Abs(_lastPointerPosition.X - _dragStartPosition.X) < DragStartThreshold
-            && Math.Abs(_lastPointerPosition.Y - _dragStartPosition.Y) < DragStartThreshold)
-        {
-            return;
-        }
-
         if (!_dragMoved)
         {
+            var dx = _lastPointerPosition.X - _dragStartPosition.X;
+            var dy = _lastPointerPosition.Y - _dragStartPosition.Y;
+            if (dx * dx + dy * dy < DragStartThreshold * DragStartThreshold)
+                return;
+
             _dragMoved = true;
             AnimationService.CancelAnimationByName(ProgressKey);
-            // 取消动画后从当前位置重新布局，避免残留中间值
             RefreshLayout();
         }
 
