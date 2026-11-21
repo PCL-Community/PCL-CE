@@ -22,7 +22,11 @@ public partial class TitleBar : UserControl
 
     private readonly Dictionary<MainTab, MyRadioButton> _tabButtons = [];
 
+    private readonly double _defaultHeight;
+
     private bool _isSecondary;
+
+    private double _leadingInset;
 
     private bool _updating;
 
@@ -31,6 +35,7 @@ public partial class TitleBar : UserControl
     public TitleBar()
     {
         InitializeComponent();
+        _defaultHeight = PanTitle.Height;
         BuildMainTabs();
         AddHandler(
             PointerPressedEvent,
@@ -156,16 +161,26 @@ public partial class TitleBar : UserControl
         RefreshTitleAppearance();
     }
 
+    public void SetSystemTitleBarLayout(double? height, double leadingInset)
+    {
+        PanTitle.Height = height ?? _defaultHeight;
+        _leadingInset = leadingInset;
+        var margin = new Thickness(leadingInset, 0d, 0d, 0d);
+        PanTitleLeft.Margin = margin;
+        PanInnerTitle.Margin = margin;
+        RefreshTitleAppearance();
+    }
+
     private void ApplyTitleLeftClamp()
     {
-        var available = PanTitleMain.ColumnDefinitions[0].ActualWidth - 30d;
+        var available = PanTitleMain.ColumnDefinitions[0].ActualWidth - 30d - PanTitleLeft.Margin.Left;
         PanTitleLeft.ColumnDefinitions[0].MaxWidth = available > 0d ? available : 0d;
     }
 
     private void ApplyLeftAlign(bool leftAlign, int titleType)
     {
         var width = leftAlign && titleType == 0
-            ? new GridLength(0d)
+            ? new GridLength(_leadingInset)
             : new GridLength(1d, GridUnitType.Star);
         PanTitleMain.ColumnDefinitions[0].Width = width;
         ApplyTitleLeftClamp();

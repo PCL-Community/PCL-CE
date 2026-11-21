@@ -3224,6 +3224,13 @@
     <sys:String x:Key="Setup.Ui.Logo.TextLabel">Text</sys:String>
     <sys:String x:Key="Setup.Ui.Logo.Title">Title bar</sys:String>
 
+    <!-- Setup.Ui.MacOS -->
+
+    <sys:String x:Key="Setup.Ui.MacOS.Title">macOS</sys:String>
+    <sys:String x:Key="Setup.Ui.MacOS.TitleBarStyle">Title bar style</sys:String>
+    <sys:String x:Key="Setup.Ui.MacOS.TitleBarStyle.Separate">Separate</sys:String>
+    <sys:String x:Key="Setup.Ui.MacOS.TitleBarStyle.Unified">Unified</sys:String>
+
     <!-- Setup.Ui.Music -->
 
     <sys:String x:Key="Setup.Ui.Music.AutoStart">Play when the launcher starts</sys:String>

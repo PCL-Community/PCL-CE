@@ -3224,6 +3224,13 @@
     <sys:String x:Key="Setup.Ui.Logo.TextLabel">标题栏文本</sys:String>
     <sys:String x:Key="Setup.Ui.Logo.Title">标题栏</sys:String>
 
+    <!-- Setup.Ui.MacOS -->
+
+    <sys:String x:Key="Setup.Ui.MacOS.Title">macOS</sys:String>
+    <sys:String x:Key="Setup.Ui.MacOS.TitleBarStyle">标题栏样式</sys:String>
+    <sys:String x:Key="Setup.Ui.MacOS.TitleBarStyle.Separate">独立标题栏</sys:String>
+    <sys:String x:Key="Setup.Ui.MacOS.TitleBarStyle.Unified">融入标题栏</sys:String>
+
     <!-- Setup.Ui.Music -->
 
     <sys:String x:Key="Setup.Ui.Music.AutoStart">打开启动器自动开始播放</sys:String>

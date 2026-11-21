@@ -6,6 +6,7 @@ using Avalonia.VisualTree;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
+using PCL.Core.Platform;
 using PCL.Core.UI;
 using PCL.Core.UI.Hints;
 using PCL.Core.Utils.Validate;
@@ -34,6 +35,8 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
     private readonly List<MyCheckBox> _hideChecks = [];
     private readonly MyRadioBox[] _homepageRadios;
     private readonly MyRadioBox[] _logoTypeRadios;
+    private readonly Border[] _titleBarStylePreviews;
+    private readonly MyRadioBox[] _titleBarStyleRadios;
     private bool _loaded;
     private bool _reloading;
     private bool _selectingLogo;
@@ -46,6 +49,8 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
 
         _logoTypeRadios = [RadioLogoType0, RadioLogoType1, RadioLogoType2, RadioLogoType3];
         _homepageRadios = [RadioCustomType0, RadioCustomType3, RadioCustomType1, RadioCustomType2];
+        _titleBarStylePreviews = [BorderTitleBarStyle0, BorderTitleBarStyle1];
+        _titleBarStyleRadios = [RadioTitleBarStyle0, RadioTitleBarStyle1];
 
         SliderLauncherOpacity.getHintText =
             new Func<object, object>(PageSetupUIViewModel.FormatLauncherOpacityHint);
@@ -66,6 +71,36 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             Config.Preference.Homepage.CustomUrl = TextCustomNet.Text ?? string.Empty;
             ViewModel.CustomNetText = TextCustomNet.Text ?? string.Empty;
         });
+
+        CardMacOS.IsVisible = ApplicationRuntime.Current.Platform.Capabilities
+            .SupportsTitleBarStyleSelection;
+        foreach (var (index, radio) in _titleBarStyleRadios.Index())
+        {
+            var preview = _titleBarStylePreviews[index];
+            preview.PointerPressed += (_, _) => radio.SetChecked(true, true);
+            preview.PointerEntered += (_, _) => _ApplyTitleBarStylePreview(index, true);
+            preview.PointerExited += (_, _) => _ApplyTitleBarStylePreview(index, true);
+            radio.Check += (_, _) =>
+            {
+                _RefreshTitleBarStylePreviews(!_reloading);
+                if (!_reloading)
+                {
+                    ButtonAnimation.SetScale(preview, 0.96d);
+                    ButtonAnimation.AnimateScale(
+                        preview,
+                        1d,
+                        300,
+                        ButtonAnimation.Name("TitleBarStylePreview Scale", index),
+                        ease: new BackEaseWithPowerOut(EasePower.Weak));
+                }
+
+                WriteIfReady(() =>
+                {
+                    if (!radio.Checked) return;
+                    Config.Preference.MacTitleBarStyle = index;
+                });
+            };
+        }
 
         CheckLockWindowSize.Change += (_, _) => WriteIfReady(() =>
             Config.Preference.LockWindowSize = CheckLockWindowSize.Checked == true);
@@ -212,6 +247,8 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         try
         {
             ViewModel.Reload(Math.Max(1, ComboLightColor.ItemCount));
+            _titleBarStyleRadios[Math.Clamp(Config.Preference.MacTitleBarStyle, 0, 1)].SetChecked(true, false);
+            _RefreshTitleBarStylePreviews(false);
             CheckLockWindowSize.Checked = Config.Preference.LockWindowSize;
             CheckShowLaunchingHint.Checked = Config.Preference.ShowLaunchingHint;
 
@@ -254,6 +291,30 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
 
         RefreshBackgroundState();
         RefreshMusicState();
+    }
+
+    private void _RefreshTitleBarStylePreviews(bool animate)
+    {
+        for (var index = 0; index < _titleBarStylePreviews.Length; index++)
+            _ApplyTitleBarStylePreview(index, animate);
+    }
+
+    private void _ApplyTitleBarStylePreview(int index, bool animate)
+    {
+        var preview = _titleBarStylePreviews[index];
+        var key = _titleBarStyleRadios[index].Checked
+            ? "ColorBrush3"
+            : preview.IsPointerOver
+                ? "ColorBrush6"
+                : "ColorBrushGray5";
+        ButtonAnimation.ApplyColor(
+            preview,
+            Border.BorderBrushProperty,
+            key,
+            null,
+            200,
+            animate,
+            ButtonAnimation.Name("TitleBarStylePreview Color", index));
     }
 
     private void WriteIfReady(Action action)

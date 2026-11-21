@@ -11,4 +11,5 @@ public interface IPlatformCapabilities
     bool SupportsWindowsStoreDependencies { get; }
     bool SuppressAltMenu { get; }
     bool SupportsDisplayProtocolSelection { get; }
+    bool SupportsTitleBarStyleSelection { get; }
 }

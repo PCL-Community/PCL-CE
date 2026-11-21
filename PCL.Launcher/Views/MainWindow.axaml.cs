@@ -29,6 +29,7 @@ public partial class MainWindow : Window
     private readonly TitleBar _titleBar;
     private bool _leftWidthUpdateQueued;
     private bool _useSystemWindowChrome;
+    private double _titleBarLeadingInset;
 
     public MainWindow()
     {
@@ -218,6 +219,19 @@ public partial class MainWindow : Window
         Cursor = null;
 
         _titleBar.UseSystemCaptionButtons();
+        PropertyChanged += (_, e) =>
+        {
+            if (e.Property == WindowDecorationMarginProperty) ApplyExtendedTitleBarLayout(_titleBarLeadingInset);
+        };
+    }
+
+    public void ApplyExtendedTitleBarLayout(double leadingInset)
+    {
+        _titleBarLeadingInset = leadingInset;
+        var extended = ExtendClientAreaToDecorationsHint;
+        _titleBar.SetSystemTitleBarLayout(
+            extended ? WindowDecorationMargin.Top : null,
+            extended ? leadingInset : 0d);
     }
 
     private void ApplyRoundedWindowClip()

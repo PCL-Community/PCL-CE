@@ -110,6 +110,134 @@
                 </StackPanel>
             </ui:MyCard>
 
+            <ui:MyCard x:Name="CardMacOS"
+                       Margin="0,0,0,15"
+                       IsVisible="False"
+                       Title="{loc:Loc Setup.Ui.MacOS.Title}">
+                <StackPanel Margin="25,40,25,15">
+                    <TextBlock Margin="0,0,0,10"
+                               Text="{loc:Loc Setup.Ui.MacOS.TitleBarStyle}" />
+                    <Grid ColumnDefinitions="*,20,*"
+                          RowDefinitions="Auto,Auto">
+                        <Grid.Styles>
+                            <Style Selector="Border.titleBarPreview">
+                                <Setter Property="Height" Value="118" />
+                                <Setter Property="Padding" Value="8" />
+                                <Setter Property="CornerRadius" Value="8" />
+                                <Setter Property="BorderThickness" Value="2" />
+                                <Setter Property="BorderBrush" Value="{DynamicResource ColorBrushGray5}" />
+                                <Setter Property="Background" Value="Transparent" />
+                                <Setter Property="Cursor" Value="Hand" />
+                            </Style>
+                            <Style Selector="Border.previewWindow">
+                                <Setter Property="CornerRadius" Value="5" />
+                                <Setter Property="ClipToBounds" Value="True" />
+                                <Setter Property="BorderThickness" Value="1" />
+                                <Setter Property="BorderBrush" Value="{DynamicResource ColorBrushGray5}" />
+                                <Setter Property="Background" Value="{DynamicResource ColorBrush7}" />
+                            </Style>
+                            <Style Selector="StackPanel.previewLights">
+                                <Setter Property="Orientation" Value="Horizontal" />
+                                <Setter Property="Spacing" Value="4" />
+                                <Setter Property="HorizontalAlignment" Value="Left" />
+                                <Setter Property="VerticalAlignment" Value="Center" />
+                            </Style>
+                            <Style Selector="StackPanel.previewLights > Ellipse">
+                                <Setter Property="Width" Value="7" />
+                                <Setter Property="Height" Value="7" />
+                            </Style>
+                            <Style Selector="StackPanel.previewTabs">
+                                <Setter Property="Orientation" Value="Horizontal" />
+                                <Setter Property="Spacing" Value="6" />
+                                <Setter Property="HorizontalAlignment" Value="Center" />
+                                <Setter Property="VerticalAlignment" Value="Center" />
+                            </Style>
+                            <Style Selector="StackPanel.previewTabs > Border">
+                                <Setter Property="Width" Value="22" />
+                                <Setter Property="Height" Value="6" />
+                                <Setter Property="CornerRadius" Value="3" />
+                                <Setter Property="Background" Value="{DynamicResource ColorBrushHalfWhite}" />
+                            </Style>
+                        </Grid.Styles>
+
+                        <Border x:Name="BorderTitleBarStyle0"
+                                Grid.Column="0"
+                                Classes="titleBarPreview">
+                            <Border Classes="previewWindow">
+                                <Grid RowDefinitions="13,22,*"
+                                      ColumnDefinitions="0.3*,0.7*">
+                                    <Border Grid.ColumnSpan="2"
+                                            Background="{DynamicResource ColorBrushGray5}" />
+                                    <StackPanel Grid.ColumnSpan="2"
+                                                Margin="7,0,0,0"
+                                                Classes="previewLights">
+                                        <Ellipse Fill="#FF5F57" />
+                                        <Ellipse Fill="#FEBC2E" />
+                                        <Ellipse Fill="{DynamicResource ColorBrushGray4}" />
+                                    </StackPanel>
+                                    <Border Grid.Row="1"
+                                            Grid.ColumnSpan="2"
+                                            Background="{DynamicResource ColorBrush3}" />
+                                    <StackPanel Grid.Row="1"
+                                                Grid.ColumnSpan="2"
+                                                Classes="previewTabs">
+                                        <Border />
+                                        <Border />
+                                        <Border />
+                                        <Border />
+                                    </StackPanel>
+                                    <Border Grid.Row="2"
+                                            Background="{DynamicResource ColorBrushHalfWhite}" />
+                                </Grid>
+                            </Border>
+                        </Border>
+
+                        <Border x:Name="BorderTitleBarStyle1"
+                                Grid.Column="2"
+                                Classes="titleBarPreview">
+                            <Border Classes="previewWindow">
+                                <Grid RowDefinitions="24,*"
+                                      ColumnDefinitions="0.3*,0.7*">
+                                    <Border Grid.ColumnSpan="2"
+                                            Background="{DynamicResource ColorBrush3}" />
+                                    <StackPanel Grid.ColumnSpan="2"
+                                                Margin="8,0,0,0"
+                                                Classes="previewLights">
+                                        <Ellipse Fill="#FF5F57" />
+                                        <Ellipse Fill="#FEBC2E" />
+                                        <Ellipse Fill="{DynamicResource ColorBrushGray4}" />
+                                    </StackPanel>
+                                    <StackPanel Grid.ColumnSpan="2"
+                                                Classes="previewTabs">
+                                        <Border />
+                                        <Border />
+                                        <Border />
+                                        <Border />
+                                    </StackPanel>
+                                    <Border Grid.Row="1"
+                                            Background="{DynamicResource ColorBrushHalfWhite}" />
+                                </Grid>
+                            </Border>
+                        </Border>
+
+                        <ui:MyRadioBox x:Name="RadioTitleBarStyle0"
+                                       Grid.Row="1"
+                                       Grid.Column="0"
+                                       Height="22"
+                                       Margin="0,8,0,0"
+                                       HorizontalAlignment="Center"
+                                       Text="{loc:Loc Setup.Ui.MacOS.TitleBarStyle.Separate}" />
+                        <ui:MyRadioBox x:Name="RadioTitleBarStyle1"
+                                       Grid.Row="1"
+                                       Grid.Column="2"
+                                       Height="22"
+                                       Margin="0,8,0,0"
+                                       HorizontalAlignment="Center"
+                                       Text="{loc:Loc Setup.Ui.MacOS.TitleBarStyle.Unified}" />
+                    </Grid>
+                </StackPanel>
+            </ui:MyCard>
+
             <ui:MyCard x:Name="CardFont"
                        Margin="0,0,0,15"
                        Title="{loc:Loc Setup.Ui.Font.Title}">
