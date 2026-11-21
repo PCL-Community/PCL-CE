@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -8,8 +9,10 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using PCL.Core.App.Cli;
 using PCL.Core.App.IoC;
+using PCL.Core.IO.Net;
 using PCL.Core.Platform;
 using PCL.Core.Utils;
+using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Secret;
 
 namespace PCL.Core.App.Essentials;
@@ -86,58 +89,246 @@ public sealed partial class StartupService
         }
     }
 
+
     [LifecycleStart]
     private static void _LogBasicInfo()
     {
         var info = new StringBuilder();
-        info
-            .Append("\n版本: ")
-            .Append(Basics.Metadata.Version)
-            .Append(" (")
-            .Append(GetArchitectureName(RuntimeInformation.ProcessArchitecture))
-            .Append(')');
-        info.Append("\n路径: ").Append(Basics.ExecutablePath);
-        info.Append("\n命令行参数:");
-        if (Basics.CommandLineArguments.Length == 0) info.Append(" []");
+
+        AddLine(
+            $"版本: {Basics.Metadata.Version} ({GetArchitectureName(RuntimeInformation.ProcessArchitecture)})");
+        AddLine($"路径: {Basics.ExecutablePath}");
+
+        if (Basics.CommandLineArguments.Length == 0)
+        {
+            AddLine("命令行参数: []");
+        }
         else
-            foreach (var x in Basics.CommandLineArguments)
-                info.Append("\n - ").Append(x);
-        info
-            .Append("\n系统: ")
-            .Append($"{RuntimeInformation.OSDescription}")
-            .Append(" (")
-            .Append(GetArchitectureName(RuntimeInformation.OSArchitecture))
-            .Append(')');
-        const int memoryDiv = 1024 * 1024;
+        {
+            AddLine("命令行参数:");
+            foreach (var argument in Basics.CommandLineArguments)
+                AddLine($" - {argument}");
+        }
+
+        var systemFacts = ApplicationRuntime.Current.Platform.SystemFacts;
+        var osInfo = GetOperatingSystemInfo(systemFacts);
+
+        AddLine($"系统: {osInfo.Name}");
+        AddLineIfPresent("系统版本: ", osInfo.Version);
+        AddLineIfPresent("系统构建: ", osInfo.Build);
+
+        var kernel = $"{osInfo.KernelName} {osInfo.KernelVersion}".Trim();
+        AddLine($"内核: {kernel}");
+
+        AddLine($"平台: {GetPlatformName()}");
+        AddLine(
+            $"架构: {GetArchitectureName(RuntimeInformation.OSArchitecture)} "
+            + $"(进程: {GetArchitectureName(RuntimeInformation.ProcessArchitecture)})");
+        AddLine($"运行时: {RuntimeInformation.FrameworkDescription}");
+
+        AddLineIfPresent("设备型号: ", GetDeviceModel(systemFacts));
+        AddLineIfPresent("BIOS: ", GetBiosVersion(systemFacts));
+
+        HardwareInfo.GetCpuInfo();
+
+        AddLine($"处理器: {HardwareInfo.CpuName}");
+
+        if (HardwareInfo.PhysicalCoreCount is > 0)
+            AddLine($"物理核心: {HardwareInfo.PhysicalCoreCount.Value}");
+
+        AddLine($"逻辑处理器: {Environment.ProcessorCount}");
+
+        AddLine(
+            $"系统运行时长: {FormatUptime(TimeSpan.FromMilliseconds(Environment.TickCount64))}");
+        AddLine($"IPv6 支持: {GetIpv6StatusText()}");
+
+        const ulong miB = 1024UL * 1024UL;
+
         var memory = ApplicationRuntime.Current.Platform.SystemFacts.GetMemoryInfo();
-        info
-            .Append("\n可用内存: ")
-            .Append(memory.AvailableBytes / memoryDiv)
-            .Append('/')
-            .Append(memory.TotalBytes / memoryDiv)
-            .Append(" MiB");
+        var usedMemory = memory.TotalBytes > memory.AvailableBytes
+            ? memory.TotalBytes - memory.AvailableBytes
+            : 0UL;
+
+        var memoryUsage = memory.TotalBytes == 0UL
+            ? 0d
+            : usedMemory * 100d / memory.TotalBytes;
+
+        var formattedMemoryUsage = memoryUsage.ToString(
+            "N1",
+            CultureInfo.InvariantCulture);
+
+        AddLine(
+            $"可用内存: {memory.AvailableBytes / miB}/{memory.TotalBytes / miB} MiB "
+            + $"({formattedMemoryUsage}%)");
+
+        AddLine($"系统语言: {CultureInfo.CurrentUICulture.Name}");
+        AddLine($"区域格式: {CultureInfo.CurrentCulture.Name}");
+        AddLine($"时区: {GetTimeZone()}");
+
+        AddLineIfPresent(
+            "桌面环境: ",
+            Environment.GetEnvironmentVariable("XDG_CURRENT_DESKTOP"));
+
+        AddLineIfPresent("显示会话: ", GetDisplayProtocol());
 
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-        var cp = Encoding.GetEncoding(0);
-        info
-            .Append("\n默认代码页: ")
-            .Append(cp.EncodingName)
-            .Append(" (")
-            .Append(cp.CodePage)
-            .Append(')');
-        info
-            .Append("\n管理员身份: ")
-            .Append(ApplicationRuntime.Current.Platform.SystemFacts.IsAdministrator);
-        info.Append("\n识别码: ").Append(Identify.LauncherId);
+
+        var encoding = Encoding.GetEncoding(0);
+        AddLine($"默认代码页: {encoding.EncodingName} ({encoding.CodePage})");
+
+        AddLine(
+            $"管理员身份: {ApplicationRuntime.Current.Platform.SystemFacts.IsAdministrator}");
+
+        AddLine($"数据目录: {Paths.Data}");
+
+        var dataDisk = DiskSpaceInfo.Get(Paths.Data);
+        if (dataDisk is not null)
+            AddLine($"数据目录可用空间: {FormatDiskSpace(dataDisk)}");
+
+        AddLineIfPresent("安装形态: ", Paths.PackageKind);
+        AddLine($"识别码: {Identify.LauncherId}");
+
         Context.Info(info.ToString());
         return;
 
-        string GetArchitectureName(Architecture arch)
+        void AddLine(string value)
+        {
+            info.Append('\n').Append(value);
+        }
+
+        void AddLineIfPresent(string label, string? value)
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+                AddLine(label + value);
+        }
+
+        static OperatingSystemInfo GetOperatingSystemInfo(ISystemFacts facts)
+        {
+            try
+            {
+                return facts.GetOperatingSystemInfo();
+            }
+            catch (Exception ex)
+            {
+                Context.Warn("读取系统信息失败", ex);
+                return new OperatingSystemInfo(
+                    RuntimeInformation.OSDescription,
+                    null,
+                    null,
+                    "Unknown",
+                    Environment.OSVersion.Version.ToString());
+            }
+        }
+
+        static string? GetDeviceModel(ISystemFacts facts)
+        {
+            try
+            {
+                return facts.GetDeviceModel();
+            }
+            catch (Exception ex)
+            {
+                Context.Warn("读取设备型号失败", ex);
+                return null;
+            }
+        }
+
+        static string? GetBiosVersion(ISystemFacts facts)
+        {
+            try
+            {
+                return facts.GetBiosVersion();
+            }
+            catch (Exception ex)
+            {
+                Context.Warn("读取 BIOS 信息失败", ex);
+                return null;
+            }
+        }
+
+        static string GetIpv6StatusText()
+        {
+            try
+            {
+                return NetworkInterfaceUtils.GetIPv6Status() switch
+                {
+                    NetworkInterfaceUtils.IPv6Status.Public => "公网",
+                    NetworkInterfaceUtils.IPv6Status.RFC4193 => "唯一本地地址",
+                    NetworkInterfaceUtils.IPv6Status.Unavailable => "不可用",
+                    _ => "未知"
+                };
+            }
+            catch (Exception ex)
+            {
+                Context.Warn("读取 IPv6 状态失败", ex);
+                return "未知";
+            }
+        }
+
+        static string FormatUptime(TimeSpan uptime)
+        {
+            if (uptime < TimeSpan.Zero)
+                uptime = TimeSpan.Zero;
+
+            return uptime.TotalDays >= 1d
+                ? uptime.ToString(@"d\.hh\:mm\:ss", CultureInfo.InvariantCulture)
+                : uptime.ToString(@"hh\:mm\:ss", CultureInfo.InvariantCulture);
+        }
+
+        static string FormatDiskSpace(DiskSpaceInfo.Volume volume)
+        {
+            const double giB = 1024d * 1024d * 1024d;
+
+            return $"{volume.FreeBytes / giB:N1} / {volume.TotalBytes / giB:N1} GiB";
+        }
+
+        static string GetPlatformName()
+        {
+            var name = ApplicationRuntime.Current.Platform.Kind.ToString();
+            return name == "MacOs" ? "macOS" : name;
+        }
+
+        static string GetTimeZone()
+        {
+            var timeZone = TimeZoneInfo.Local;
+            var offset = timeZone.GetUtcOffset(DateTime.Now);
+
+            var sign = offset < TimeSpan.Zero ? "-" : "+";
+            var absolute = offset.Duration();
+
+            return $"{timeZone.Id} (UTC{sign}{absolute.Hours:00}:{absolute.Minutes:00})";
+        }
+
+        static string? GetDisplayProtocol()
+        {
+            var session = Environment.GetEnvironmentVariable("XDG_SESSION_TYPE");
+            return session switch
+            {
+                _ when string.Equals(session, "wayland", StringComparison.OrdinalIgnoreCase)
+                    => "Wayland",
+                _ when string.Equals(session, "x11", StringComparison.OrdinalIgnoreCase)
+                    => "X11",
+                _ when !string.IsNullOrWhiteSpace(session)
+                    => session,
+                _ when !string.IsNullOrWhiteSpace(
+                        Environment.GetEnvironmentVariable("WAYLAND_DISPLAY"))
+                    => "Wayland",
+                _ when !string.IsNullOrWhiteSpace(
+                        Environment.GetEnvironmentVariable("DISPLAY"))
+                    => "X11",
+                _ => null
+            };
+        }
+
+        static string GetArchitectureName(Architecture arch)
         {
             return arch switch
             {
+                Architecture.X86 => "x86",
                 Architecture.X64 => "x64",
+                Architecture.Arm => "ARM",
                 Architecture.Arm64 => "ARM64",
+                Architecture.Wasm => "Wasm",
                 _ => arch.ToString()
             };
         }
