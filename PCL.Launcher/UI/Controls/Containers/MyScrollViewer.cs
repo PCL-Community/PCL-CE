@@ -163,7 +163,6 @@ public class MyScrollViewer : ScrollViewer
     {
         var interval = Math.Clamp(timestamp - _lastPreciseTimestamp, 4d, 50d);
         _lastPreciseTimestamp = timestamp;
-        _wheelAnimationGeneration++;
         _activePreciseViewer = new WeakReference<MyScrollViewer>(this);
         _Overscroll.SetViewport(Viewport.Height);
         _GestureSafetyTimer.Stop();
@@ -173,6 +172,7 @@ public class MyScrollViewer : ScrollViewer
             || !_EnsureScrollPhaseMonitor()
             || (native.Phase == ScrollGesturePhase.None && !native.IsMomentum))
         {
+            _wheelAnimationGeneration++;
             _Overscroll.Reset();
             _SetVerticalOffset(Math.Clamp(_realOffset + delta, 0d, MaximumOffset));
             return;
@@ -191,6 +191,7 @@ public class MyScrollViewer : ScrollViewer
             _Overscroll.Grab();
         }
 
+        _wheelAnimationGeneration++;
         if (_Overscroll.IsStretched)
         {
             delta = _Overscroll.ContinueStretch(delta);
