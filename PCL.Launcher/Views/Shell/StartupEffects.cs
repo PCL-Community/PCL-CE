@@ -7,6 +7,7 @@ using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Core.Platform;
+using PCL.Core.UI.Background;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils.OS;
 using PCL.UI;
@@ -147,10 +148,6 @@ public sealed class StartupEffects(
             new ConfigObserver(ConfigEvent.Update, _ => background.ApplyPresentation()));
         Config.Preference.Background.WallpaperBlurRadiusConfig.Observe(
             new ConfigObserver(ConfigEvent.Update, _ => background.ApplyPresentation()));
-        Config.Preference.Background.AutoPauseVideoConfig.Observe(
-            new ConfigObserver(ConfigEvent.Update, _ => background.ApplyAutoPauseSetting()));
-        Config.Preference.Background.FfmpegPathConfig.Observe(
-            new ConfigObserver(ConfigEvent.Update, _ => background.InvalidateFfmpeg()));
     }
 
     private static void WarmupLoaders()

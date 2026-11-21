@@ -4,12 +4,15 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using PCL.Core.App;
+using PCL.Core.App.Configuration;
 using PCL.Core.App.Tools;
 using PCL.Core.Logging;
+using PCL.Core.Media;
+using PCL.Core.UI.Animation.Core;
+using PCL.Core.UI.Media;
 using PCL.Core.UI.Theme;
-using PCL.Media;
 
-namespace PCL.Views.Shell;
+namespace PCL.Core.UI.Background;
 
 /// <summary>背景刷新结果状态。</summary>
 public enum BackgroundRefreshStatus
@@ -44,12 +47,12 @@ public static class BackgroundHost
                 new BackgroundRefreshResult(BackgroundRefreshStatus.NoContent));
     }
 
-    internal static void Attach(BackgroundLayer layer)
+    public static void Attach(BackgroundLayer layer)
     {
         Current = layer;
     }
 
-    internal static void Detach(BackgroundLayer layer)
+    public static void Detach(BackgroundLayer layer)
     {
         if (ReferenceEquals(Current, layer)) Current = null;
     }
@@ -66,11 +69,10 @@ public sealed class BackgroundLayer
     private const int MaxVideoWidth = 1280;
     private const int MaxVideoHeight = 720;
 
-    private readonly Panel _formPan;
-    private readonly Panel _host;
-    private readonly Image _legacyImage;
-    private readonly Border _surface;
-    private readonly Window _window;
+    private readonly Panel _FormPan;
+    private readonly Panel _Host;
+    private readonly Image _LegacyImage;
+    private readonly Border _Surface;
 
     private Bitmap? _bitmap;
     private bool _clearing;
@@ -84,27 +86,35 @@ public sealed class BackgroundLayer
     private bool _removed;
     private FfmpegVideoPlayer? _videoPlayer;
     private FfmpegVideoProbe? _videoProbe;
+    private Window? _window;
+    private bool _windowHooked;
 
-    public BackgroundLayer(Window window, Panel formPan, Image image)
+    public BackgroundLayer(Panel formPan, Image image)
     {
-        _window = window;
-        _formPan = formPan;
-        _legacyImage = image;
-        _legacyImage.IsVisible = false;
-        _host = image.Parent as Panel ?? formPan;
-        _isMinimized = window.WindowState == WindowState.Minimized;
+        _FormPan = formPan;
+        _LegacyImage = image;
+        _LegacyImage.IsVisible = false;
+        _Host = image.Parent as Panel ?? formPan;
 
-        _surface = new Border
+        _Surface = new Border
         {
             IsVisible = false,
             IsHitTestVisible = false
         };
-        _host.Children.Add(_surface);
+        _Host.Children.Add(_Surface);
 
-        _window.PropertyChanged += OnWindowPropertyChanged;
+        AttachWindow();
+        _FormPan.AttachedToVisualTree += OnFormPanAttached;
+        _FormPan.DetachedFromVisualTree += OnFormPanDetached;
+        Config.Preference.Background.AutoPauseVideoConfig.Observe(
+            new ConfigObserver(ConfigEvent.Update, _ => ApplyAutoPauseSetting()));
+        Config.Preference.Background.FfmpegPathConfig.Observe(
+            new ConfigObserver(ConfigEvent.Update, _ => InvalidateFfmpeg()));
         ThemeService.ColorModeChanged += _OnThemeChanged;
         ThemeService.ColorThemeChanged += _OnThemeChanged;
     }
+
+    public bool HasContent { get; private set; }
 
     public bool IsGaming { get; private set; }
 
@@ -159,6 +169,7 @@ public sealed class BackgroundLayer
             TaskCreationOptions.RunContinuationsAsynchronously);
         _refreshCompletion = refreshCompletion;
 
+        HasContent = false;
         RefreshColor();
 
         try
@@ -190,6 +201,7 @@ public sealed class BackgroundLayer
 
             try
             {
+                HasContent = result.Status == BackgroundRefreshStatus.Success;
                 ApplyPresentation();
                 if (result.Status == BackgroundRefreshStatus.Success)
                     AnimateContentIn();
@@ -202,6 +214,7 @@ public sealed class BackgroundLayer
                     Detail: ex.Message);
             }
 
+            BackgroundHost.NotifyStateChanged();
             return result;
         }
         finally
@@ -435,9 +448,9 @@ public sealed class BackgroundLayer
         ClearImage();
 
         _videoPlayer = player;
-        _surface.Background = null;
-        _surface.Child = player.View;
-        _surface.IsVisible = true;
+        _Surface.Background = null;
+        _Surface.Child = player.View;
+        _Surface.IsVisible = true;
         _lastError = null;
         UpdatePlaybackState();
         LogWrapper.Info("UI", $"已加载视频背景：{Path.GetFileName(path)}");
@@ -479,14 +492,14 @@ public sealed class BackgroundLayer
             bitmap = new Bitmap(path);
             var brush = new ImageBrush(bitmap);
             StopVideo();
-            _surface.Child = null;
-            _surface.Background = null;
+            _Surface.Child = null;
+            _Surface.Background = null;
             _imageBrush = null;
             _bitmap?.Dispose();
             _bitmap = bitmap;
             _imageBrush = brush;
-            _surface.Background = brush;
-            _surface.IsVisible = true;
+            _Surface.Background = brush;
+            _Surface.IsVisible = true;
             _lastError = null;
             ApplySuitMode(Config.Preference.Background.WallpaperSuitMode);
             LogWrapper.Info("UI", $"已加载背景图片：{Path.GetFileName(path)}");
@@ -494,7 +507,7 @@ public sealed class BackgroundLayer
         }
         catch (Exception ex)
         {
-            _surface.Background = null;
+            _Surface.Background = null;
             _imageBrush = null;
             if (ReferenceEquals(_bitmap, bitmap)) _bitmap = null;
             bitmap?.Dispose();
@@ -564,7 +577,7 @@ public sealed class BackgroundLayer
     {
         try
         {
-            _formPan.Background = Config.Preference.Background.BackgroundColorful
+            _FormPan.Background = Config.Preference.Background.BackgroundColorful
                 ? CreateColorfulBrush()
                 : FindThemeBrush("ColorBrushBackground") ?? Brushes.Transparent;
         }
@@ -580,19 +593,19 @@ public sealed class BackgroundLayer
             Config.Preference.Background.WallpaperOpacity / 1000d,
             0d,
             1d);
-        _surface.Opacity = opacity;
+        _Surface.Opacity = opacity;
 
         ApplySuitMode(Config.Preference.Background.WallpaperSuitMode);
 
         var blur = Math.Max(Config.Preference.Background.WallpaperBlurRadius, 0);
         var effectRadius = blur > 0 ? blur + 1d : 0d;
-        _surface.Effect = effectRadius > 0
+        _Surface.Effect = effectRadius > 0
             ? new BlurEffect
             {
                 Radius = effectRadius
             }
             : null;
-        _surface.Margin = blur > 0
+        _Surface.Margin = blur > 0
             ? new Thickness(-(blur + 1d) / 1.8d)
             : new Thickness(0d);
     }
@@ -600,7 +613,9 @@ public sealed class BackgroundLayer
     public void Remove()
     {
         _removed = true;
-        _window.PropertyChanged -= OnWindowPropertyChanged;
+        _FormPan.AttachedToVisualTree -= OnFormPanAttached;
+        _FormPan.DetachedFromVisualTree -= OnFormPanDetached;
+        DetachWindow();
         ThemeService.ColorModeChanged -= _OnThemeChanged;
         ThemeService.ColorThemeChanged -= _OnThemeChanged;
 
@@ -616,16 +631,16 @@ public sealed class BackgroundLayer
         }
 
         ClearContent();
-        _host.Children.Remove(_surface);
-        _legacyImage.IsVisible = false;
-        _legacyImage.Source = null;
+        _Host.Children.Remove(_Surface);
+        _LegacyImage.IsVisible = false;
+        _LegacyImage.Source = null;
     }
 
     private void StopVideo()
     {
         var player = _videoPlayer;
         _videoPlayer = null;
-        _surface.Child = null;
+        _Surface.Child = null;
 
         player?.Dispose();
     }
@@ -634,14 +649,14 @@ public sealed class BackgroundLayer
     {
         var player = _videoPlayer;
         _videoPlayer = null;
-        _surface.Child = null;
+        _Surface.Child = null;
 
         if (player is not null) await player.StopAsync();
     }
 
     private void ClearImage()
     {
-        _surface.Background = null;
+        _Surface.Background = null;
         _imageBrush = null;
         _bitmap?.Dispose();
         _bitmap = null;
@@ -649,17 +664,19 @@ public sealed class BackgroundLayer
 
     private void ClearContent()
     {
+        HasContent = false;
         StopVideo();
         ClearImage();
-        _surface.IsVisible = false;
+        _Surface.IsVisible = false;
         _lastError = null;
     }
 
     private async Task ClearContentAsync()
     {
+        HasContent = false;
         await StopVideoAsync();
         ClearImage();
-        _surface.IsVisible = false;
+        _Surface.IsVisible = false;
         _lastError = null;
     }
 
@@ -674,12 +691,42 @@ public sealed class BackgroundLayer
             _videoPlayer?.Resume();
     }
 
+    private void OnFormPanAttached(object? sender, VisualTreeAttachmentEventArgs e)
+    {
+        AttachWindow();
+    }
+
+    private void OnFormPanDetached(object? sender, VisualTreeAttachmentEventArgs e)
+    {
+        DetachWindow();
+    }
+
+    private void AttachWindow()
+    {
+        if (_windowHooked) return;
+        if (TopLevel.GetTopLevel(_FormPan) is not Window window) return;
+        _window = window;
+        _windowHooked = true;
+        _isMinimized = window.WindowState == WindowState.Minimized;
+        window.PropertyChanged += OnWindowPropertyChanged;
+    }
+
+    private void DetachWindow()
+    {
+        if (!_windowHooked) return;
+        _windowHooked = false;
+        if (_window is not null) _window.PropertyChanged -= OnWindowPropertyChanged;
+        _window = null;
+        _isMinimized = false;
+    }
+
     private void OnWindowPropertyChanged(
         object? sender,
         AvaloniaPropertyChangedEventArgs e)
     {
         if (e.Property != Window.WindowStateProperty) return;
-        var minimized = _window.WindowState == WindowState.Minimized;
+        if (_window is not { } window) return;
+        var minimized = window.WindowState == WindowState.Minimized;
         if (_isMinimized == minimized) return;
         _isMinimized = minimized;
         UpdatePlaybackState();
@@ -687,12 +734,16 @@ public sealed class BackgroundLayer
 
     private (int Width, int Height) GetVideoTargetSize()
     {
-        var width = _host.Bounds.Width > 0d ? _host.Bounds.Width : _window.Bounds.Width;
-        var height = _host.Bounds.Height > 0d ? _host.Bounds.Height : _window.Bounds.Height;
+        var width = _Host.Bounds.Width > 0d
+            ? _Host.Bounds.Width
+            : _window?.Bounds.Width ?? 0d;
+        var height = _Host.Bounds.Height > 0d
+            ? _Host.Bounds.Height
+            : _window?.Bounds.Height ?? 0d;
         if (width <= 0d) width = 850d;
         if (height <= 0d) height = 450d;
 
-        var scaling = _window.RenderScaling > 0d ? _window.RenderScaling : 1d;
+        var scaling = _window is { RenderScaling: > 0d } window ? window.RenderScaling : 1d;
         var targetWidth = Math.Max(2, (int)Math.Round(width * scaling));
         var targetHeight = Math.Max(2, (int)Math.Round(height * scaling));
 
@@ -713,13 +764,13 @@ public sealed class BackgroundLayer
 
     private void AnimateContentIn()
     {
-        if (!_surface.IsVisible) return;
+        if (!_Surface.IsVisible) return;
 
         var opacity = Math.Clamp(
             Config.Preference.Background.WallpaperOpacity / 1000d,
             0d,
             1d);
-        _ = AnimationService.FadeAsync(_surface, 0d, opacity, 260);
+        _ = AnimationService.FadeAsync(_Surface, 0d, opacity, 260);
     }
 
     private void _OnThemeChanged(bool _, ColorTheme __)
@@ -799,8 +850,8 @@ public sealed class BackgroundLayer
 
     private bool IsImageSmall(Bitmap bitmap)
     {
-        var width = _window.Bounds.Width > 0d ? _window.Bounds.Width : 850d;
-        var height = _window.Bounds.Height > 0d ? _window.Bounds.Height : 500d;
+        var width = _window is { Bounds.Width: > 0d } window ? window.Bounds.Width : 850d;
+        var height = _window is { Bounds.Height: > 0d } window1 ? window1.Bounds.Height : 500d;
         return bitmap.PixelSize.Width < width / 2d
             && bitmap.PixelSize.Height < height / 2d;
     }

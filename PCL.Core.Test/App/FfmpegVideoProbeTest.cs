@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using PCL.Core.Media;
 using PCL.Core.Platform;
-using PCL.Media;
 
 namespace PCL.Core.Test.App;
 

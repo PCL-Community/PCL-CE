@@ -1,4 +1,7 @@
-namespace PCL.Media;
+using System;
+using System.Collections.Generic;
+
+namespace PCL.Core.Media;
 
 /// <summary>构建 FFmpeg 视频背景播放命令。</summary>
 public static class FfmpegCommandBuilder

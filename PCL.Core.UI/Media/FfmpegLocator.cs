@@ -2,33 +2,10 @@ using System.Text;
 using System.Text.RegularExpressions;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.Media;
 using PCL.Core.Platform;
 
-namespace PCL.Media;
-
-/// <summary>FFmpeg 的检测状态。</summary>
-public enum FfmpegAvailability
-{
-    /// <summary>未找到可用的 FFmpeg。</summary>
-    NotFound,
-
-    /// <summary>指定路径的 FFmpeg 无法运行。</summary>
-    Invalid,
-
-    /// <summary>FFmpeg 可用。</summary>
-    Available
-}
-
-/// <summary>FFmpeg 检测结果。</summary>
-public sealed record FfmpegProbeResult(
-    FfmpegAvailability Availability,
-    string? ExecutablePath = null,
-    string? Version = null,
-    string? Error = null)
-{
-    /// <summary>FFmpeg 是否可用。</summary>
-    public bool IsAvailable => Availability == FfmpegAvailability.Available;
-}
+namespace PCL.Core.UI.Media;
 
 /// <summary>按配置路径、应用目录、PATH 和常见安装位置查找 FFmpeg。</summary>
 public sealed partial class FfmpegLocator(IExternalCommandRunner? runner)

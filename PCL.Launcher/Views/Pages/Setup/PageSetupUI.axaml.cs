@@ -6,10 +6,12 @@ using Avalonia.VisualTree;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
+using PCL.Core.App.Tools;
+using PCL.Core.Media;
 using PCL.Core.UI;
+using PCL.Core.UI.Background;
 using PCL.Core.UI.Hints;
 using PCL.Core.Utils.Validate;
-using PCL.Media;
 using PCL.Navigation;
 using PCL.UI.Controls;
 using PCL.UI.Controls.Common;
@@ -32,13 +34,13 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         (nameof(ColorTheme.HmclBlue), "Setup.Ui.Theme.Color.Hmcl")
     ];
 
+    private readonly BackgroundFfmpegSettings _FfmpegSettings;
     private readonly List<MyCheckBox> _hideChecks = [];
     private readonly MyRadioBox[] _homepageRadios;
     private readonly MyRadioBox[] _logoTypeRadios;
-    private bool _backgroundStateSubscribed;
     private int _backgroundStateGeneration;
+    private bool _backgroundStateSubscribed;
     private bool _clearingBackground;
-    private int _ffmpegStatusGeneration;
     private bool _loaded;
     private bool _reloading;
     private bool _selectingLogo;
@@ -48,6 +50,15 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         InitializeComponent();
         PanScroll = PanBack;
         DataContext = ViewModel;
+        _FfmpegSettings = this.TryFindResource(
+                "BackgroundFfmpegSettings",
+                out var ffmpegSettingsResource)
+            && ffmpegSettingsResource is BackgroundFfmpegSettings ffmpegSettings
+                ? ffmpegSettings
+                : throw new InvalidOperationException(
+                    "BackgroundFfmpegSettings resource is missing.");
+        _FfmpegSettings.StatusThemeChanged += OnFfmpegStatusThemeChanged;
+        OnFfmpegStatusThemeChanged(_FfmpegSettings.FfmpegStatusTheme);
 
         _logoTypeRadios = [RadioLogoType0, RadioLogoType1, RadioLogoType2, RadioLogoType3];
         _homepageRadios = [RadioCustomType0, RadioCustomType3, RadioCustomType1, RadioCustomType2];
@@ -79,12 +90,6 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         CheckBackgroundColorful.Change += (_, _) => WriteIfReady(() =>
             Config.Preference.Background.BackgroundColorful =
                 CheckBackgroundColorful.Checked == true);
-        CheckAutoPauseVideo.Change += (_, _) => WriteIfReady(() =>
-        {
-            Config.Preference.Background.AutoPauseVideo =
-                CheckAutoPauseVideo.Checked == true;
-            BackgroundHost.Current?.ApplyAutoPauseSetting();
-        });
         CheckLogoLeft.Change += (_, _) => WriteIfReady(() =>
             Config.Preference.TopBarLeftAlign = CheckLogoLeft.Checked == true);
 
@@ -144,8 +149,6 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         BtnBackgroundOpen.Click += (_, _) => OpenBackgroundFolder();
         BtnBackgroundRefresh.Click += async (_, _) => await RefreshBackgroundAsync();
         BtnBackgroundClear.Click += async (_, _) => await ClearBackgroundAsync();
-        BtnBackgroundFfmpegBrowse.Click += async (_, _) => await BrowseFfmpegAsync();
-        BtnBackgroundFfmpegDetect.Click += async (_, _) => await DetectFfmpegAsync();
         BtnMusicOpen.Click += (_, _) => OpenFolder(MusicFolder);
         BtnMusicRefresh.Click += (_, _) =>
         {
@@ -179,7 +182,6 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             _loaded = true;
             Reload();
             ViewModel.ShowLauncherHint();
-            _ = RefreshFfmpegStatusAsync(false);
         };
         Loaded += (_, _) => SubscribeBackgroundState();
         Unloaded += (_, _) => UnsubscribeBackgroundState();
@@ -230,7 +232,6 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         if (_loaded) Reload();
         _ = RefreshBackgroundStateAsync();
         RefreshMusicState();
-        _ = RefreshFfmpegStatusAsync(false);
     }
 
     public override void OnNavigatedFrom()
@@ -250,7 +251,6 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             ComboUiMotdFont.SelectedFontTag = Config.Preference.MotdFont;
 
             CheckBackgroundColorful.Checked = Config.Preference.Background.BackgroundColorful;
-            CheckAutoPauseVideo.Checked = Config.Preference.Background.AutoPauseVideo;
 
             var titleType = (int)Config.Preference.WindowTitleType;
             if (titleType >= 0 && titleType < _logoTypeRadios.Length)
@@ -396,7 +396,7 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         try
         {
             var count = await Task.Run(() =>
-                PageSetupUIViewModel.CountBackgroundFiles(BackgroundFolder));
+                BackgroundContent.Count(BackgroundFolder));
             if (generation != Volatile.Read(ref _backgroundStateGeneration)) return;
 
             var show = count > 0;
@@ -425,7 +425,6 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         {
             var result = await BackgroundHost.RequestRefreshAsync();
             await RefreshBackgroundStateAsync();
-            await RefreshFfmpegStatusAsync(false);
 
             switch (result.Status)
             {
@@ -481,92 +480,14 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         }
     }
 
-    private async Task BrowseFfmpegAsync()
+    private void OnFfmpegStatusThemeChanged(BackgroundFfmpegStatusTheme theme)
     {
-        try
+        HintBackgroundFfmpeg.Theme = theme switch
         {
-            var path = await SystemDialogs.SelectFileAsync(
-                Lang.Text("Setup.Ui.Background.Ffmpeg.FileFilter"),
-                Lang.Text("Setup.Ui.Background.Ffmpeg.SelectTitle"));
-            if (string.IsNullOrEmpty(path)) return;
-
-            ViewModel.FfmpegPath = path;
-            await RefreshFfmpegStatusAsync(true);
-        }
-        catch (Exception ex)
-        {
-            LauncherCommon.Log(
-                ex,
-                "选择 FFmpeg 路径失败",
-                LauncherLogLevel.Feedback,
-                userSummary: Lang.Text("Setup.Ui.Error.OperationFailed"));
-        }
-    }
-
-    private async Task DetectFfmpegAsync()
-    {
-        await RefreshFfmpegStatusAsync(true);
-    }
-
-    private async Task<FfmpegProbeResult?> RefreshFfmpegStatusAsync(bool force)
-    {
-        var generation = Interlocked.Increment(ref _ffmpegStatusGeneration);
-        try
-        {
-            if (BackgroundHost.Current is not { } background)
-            {
-                if (generation != Volatile.Read(ref _ffmpegStatusGeneration)) return null;
-                ViewModel.ApplyFfmpegStatus(null);
-                ViewModel.FfmpegToolTip = Lang.Text("Setup.Ui.Background.Ffmpeg.ToolTip");
-                return null;
-            }
-
-            var result = await background.ProbeFfmpegAsync(force);
-            if (generation != Volatile.Read(ref _ffmpegStatusGeneration)) return null;
-
-            var theme = result.Availability switch
-            {
-                FfmpegAvailability.Available => MyHint.Themes.Blue,
-                FfmpegAvailability.Invalid => MyHint.Themes.Red,
-                _ => MyHint.Themes.Yellow
-            };
-            var text = result.Availability switch
-            {
-                FfmpegAvailability.Available => Lang.Text(
-                    "Setup.Ui.Background.Ffmpeg.Available",
-                    result.Version ?? result.ExecutablePath ?? string.Empty),
-                FfmpegAvailability.Invalid => Lang.Text(
-                    "Setup.Ui.Background.Ffmpeg.Invalid",
-                    result.Error ?? result.ExecutablePath ?? string.Empty),
-                _ => Lang.Text("Setup.Ui.Background.Ffmpeg.NotFound")
-            };
-
-            var details = string.Join(
-                " · ",
-                new[]
-                    {
-                        result.Version,
-                        result.ExecutablePath
-                    }
-                    .Where(value => !string.IsNullOrWhiteSpace(value)));
-            ViewModel.ApplyFfmpegStatus(text);
-            ViewModel.FfmpegToolTip = result.IsAvailable
-                && !string.IsNullOrWhiteSpace(details)
-                    ? details
-                    : Lang.Text("Setup.Ui.Background.Ffmpeg.ToolTip");
-            HintBackgroundFfmpeg.Theme = theme;
-            return result;
-        }
-        catch (Exception ex)
-        {
-            LauncherCommon.Log(ex, "检测 FFmpeg 失败");
-            if (generation != Volatile.Read(ref _ffmpegStatusGeneration)) return null;
-            ViewModel.ApplyFfmpegStatus(
-                Lang.Text("Setup.Ui.Background.Ffmpeg.NotFound"));
-            ViewModel.FfmpegToolTip = Lang.Text("Setup.Ui.Background.Ffmpeg.ToolTip");
-            HintBackgroundFfmpeg.Theme = MyHint.Themes.Yellow;
-            return null;
-        }
+            BackgroundFfmpegStatusTheme.Blue => MyHint.Themes.Blue,
+            BackgroundFfmpegStatusTheme.Red => MyHint.Themes.Red,
+            _ => MyHint.Themes.Yellow
+        };
     }
 
     private static void OpenFolder(string folder)

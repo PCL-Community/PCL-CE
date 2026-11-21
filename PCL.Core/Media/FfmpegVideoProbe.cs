@@ -1,8 +1,11 @@
+using System;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using PCL.Core.Logging;
 using PCL.Core.Platform;
 
-namespace PCL.Media;
+namespace PCL.Core.Media;
 
 /// <summary>视频的显示尺寸。</summary>
 public readonly record struct VideoSize(int Width, int Height);
@@ -10,7 +13,7 @@ public readonly record struct VideoSize(int Width, int Height);
 /// <summary>通过 FFmpeg 探测视频流的原始显示尺寸。</summary>
 public sealed partial class FfmpegVideoProbe(IExternalCommandRunner runner)
 {
-    private static readonly TimeSpan _probeTimeout = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan _ProbeTimeout = TimeSpan.FromSeconds(5);
 
     private readonly IExternalCommandRunner _runner =
         runner ?? throw new ArgumentNullException(nameof(runner));
@@ -32,7 +35,7 @@ public sealed partial class FfmpegVideoProbe(IExternalCommandRunner runner)
                         "-protocol_whitelist", "file,pipe",
                         "-i", videoPath
                     ],
-                    _probeTimeout,
+                    _ProbeTimeout,
                     cancellationToken)
                 .ConfigureAwait(false);
 

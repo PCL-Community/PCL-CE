@@ -1,9 +1,10 @@
 using System.Text;
 using Avalonia.Threading;
 using PCL.Core.Logging;
+using PCL.Core.Media;
 using PCL.Core.Platform;
 
-namespace PCL.Media;
+namespace PCL.Core.UI.Media;
 
 /// <summary>通过 FFmpeg 解码视频，并将原始帧写入背景视图。</summary>
 public sealed class FfmpegVideoPlayer : IDisposable

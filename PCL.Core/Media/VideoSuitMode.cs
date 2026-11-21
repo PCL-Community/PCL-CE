@@ -1,4 +1,4 @@
-namespace PCL.Media;
+namespace PCL.Core.Media;
 
 /// <summary>背景内容的适配模式，数值与 <c>UiBackgroundSuit</c> 配置项一致。</summary>
 public enum VideoSuitMode

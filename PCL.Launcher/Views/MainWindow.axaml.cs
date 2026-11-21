@@ -9,6 +9,7 @@ using Avalonia.Threading;
 using PCL.Core.App.IoC;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
+using PCL.Core.UI.Background;
 using PCL.Navigation;
 using PCL.UI;
 using PCL.UI.SystemIntegration;
@@ -43,7 +44,7 @@ public partial class MainWindow : Window
 
         _titleBar = TitleBar;
         _extraButtons = PanExtraButtons;
-        _background = new BackgroundLayer(this, PanForm, ImgBackImage);
+        _background = new BackgroundLayer(PanForm, ImgBackImage);
         BackgroundHost.Attach(_background);
         _ = new FileDragHandler(this);
         _ = new KeyboardHandler(this, PageLeftHost);

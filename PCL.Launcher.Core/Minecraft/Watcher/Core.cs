@@ -41,7 +41,6 @@ public static partial class GameWatcher
     {
         LauncherCommon.Log("[全局] 出现运行中的 Minecraft");
         hasRunningMinecraft = true;
-        MediaService.Current?.SetVideoGaming(true);
         WatcherUi.Current?.RefreshShutdownButton();
     }
 
@@ -63,8 +62,6 @@ public static partial class GameWatcher
                 MediaService.Current?.PauseMusic();
                 LauncherCommon.Log("[Music] 已根据设置，在结束后暂停音乐播放");
             });
-
-        MediaService.Current?.SetVideoGaming(false);
 
         switch (Config.Launch.LauncherVisibility)
         {

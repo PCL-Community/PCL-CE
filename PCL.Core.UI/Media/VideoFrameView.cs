@@ -4,8 +4,9 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using PCL.Core.Media;
 
-namespace PCL.Media;
+namespace PCL.Core.UI.Media;
 
 /// <summary>按配置的适配模式绘制视频原始帧的控件。</summary>
 public sealed class VideoFrameView : Control

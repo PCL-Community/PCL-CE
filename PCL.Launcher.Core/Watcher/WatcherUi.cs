@@ -62,12 +62,6 @@ public interface IMediaService
     /// <summary>恢复背景音乐。</summary>
     void ResumeMusic();
 
-    /// <summary>通知视频背景当前是否处于游戏运行状态。</summary>
-    /// <param name="gaming">是否正在运行游戏。</param>
-    void SetVideoGaming(bool gaming)
-    {
-    }
-
     /// <summary>左键点击音乐快捷按钮：暂停、恢复或重新开始。</summary>
     void ToggleMusic()
     {

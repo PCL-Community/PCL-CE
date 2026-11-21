@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PCL.Media;
+using PCL.Core.Media;
 
 namespace PCL.Core.Test.App;
 
