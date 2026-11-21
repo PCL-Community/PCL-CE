@@ -32,7 +32,7 @@ public static class FfmpegCommandBuilder
             "-sn",
             "-dn",
             "-vf",
-            $"fps={fps},scale={width}:{height}",
+            $"fps={fps},scale={width}:{height},setsar=1",
             "-f", "rawvideo",
             "-pix_fmt", "bgra",
             "pipe:1"

@@ -24,7 +24,7 @@ public class FfmpegCommandBuilderTest
         Assert.Contains(@"C:\videos\a b.mp4", arguments.ToList());
         Assert.Contains("file,pipe", arguments.ToList());
         Assert.Contains(
-            "fps=30,scale=1280:722",
+            "fps=30,scale=1280:722,setsar=1",
             arguments.ToList());
     }
 
@@ -37,7 +37,7 @@ public class FfmpegCommandBuilderTest
             683,
             24);
         Assert.AreEqual(
-            "fps=24,scale=1026:684",
+            "fps=24,scale=1026:684,setsar=1",
             arguments.Single(value => value.StartsWith("fps=", StringComparison.Ordinal)));
     }
 }
