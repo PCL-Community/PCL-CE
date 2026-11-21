@@ -8,7 +8,6 @@
              UseLayoutRounding="False">
     <!-- 文本 + 三态形状层；形状颜色跟随方框边框画刷，状态切换由代码驱动动画。 -->
     <Grid>
-        <!-- 形状的宽度脉冲动画需要亚像素布局；文本保持取整，避免高 DPI 下文字发虚（#3682） -->
         <TextBlock x:Name="LabTextElement"
                    Margin="26,0,0,0"
                    UseLayoutRounding="True"
