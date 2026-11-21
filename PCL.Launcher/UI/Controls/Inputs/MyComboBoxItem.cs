@@ -19,6 +19,7 @@ public class MyComboBoxItem : ComboBoxItem
 
     public int Uuid = InputTheme.NewUuid();
 
+    private string? _backColorName;
     private double _fontOpacity = 1d;
 
     public MyComboBoxItem()
@@ -87,27 +88,27 @@ public class MyComboBoxItem : ComboBoxItem
             time = AnimationTimeOut;
         }
 
-        var backColor = new NColor(0f, 0f, 0f, 0f);
-        var hasBackColor = !string.IsNullOrEmpty(newBackColorName)
-            && InputTheme.TryColor(this, newBackColorName, out backColor);
-
-        var currentBackColor = InputAnimation.ReadColor(this, BackgroundProperty);
-        var newForeColor = IsEnabled ? InputTheme.Text(this) : InputTheme.TextSecondary(this);
-        var unchanged = hasBackColor
-            ? currentBackColor == backColor
-            : currentBackColor.A <= 0f;
-
-        if (unchanged && _fontOpacity == newFontOpacity && Foreground == newForeColor)
+        if (_backColorName == newBackColorName && Math.Abs(_fontOpacity - newFontOpacity) < 0.0001d)
             return;
 
+        _backColorName = newBackColorName;
         _fontOpacity = newFontOpacity;
 
         if (animate && InputAnimation.CanAnimate(this))
         {
             var fromColor = InputAnimation.ReadColor(this, BackgroundProperty);
-            var targetColor = hasBackColor ? backColor : new NColor(0f, fromColor);
-            if (hasBackColor && fromColor.A <= 0f)
-                fromColor = new NColor(0f, backColor);
+            NColor targetColor;
+            if (!string.IsNullOrEmpty(newBackColorName)
+                && InputTheme.TryColor(this, newBackColorName, out var resolved))
+            {
+                targetColor = resolved;
+                if (fromColor.A <= 0f)
+                    fromColor = new NColor(0f, resolved);
+            }
+            else
+            {
+                targetColor = new NColor(0f, fromColor);
+            }
 
             AnimationService.Run(
                 new List<IAnimation>
@@ -127,11 +128,13 @@ public class MyComboBoxItem : ComboBoxItem
         else
         {
             AnimationService.CancelAnimationByName(ColorKey);
-            Background = hasBackColor ? backColor.ToBrush() : Brushes.Transparent;
+            Background = string.IsNullOrEmpty(newBackColorName)
+                ? Brushes.Transparent
+                : InputTheme.Brush(this, newBackColorName, Brushes.Transparent);
             Opacity = newFontOpacity;
         }
 
-        Foreground = newForeColor;
+        Foreground = IsEnabled ? InputTheme.Text(this) : InputTheme.TextSecondary(this);
     }
 
     private void OnPointerEntered(object? sender, PointerEventArgs e)
@@ -180,6 +183,7 @@ public class MyComboBoxItem : ComboBoxItem
 
     private void OnActualThemeVariantChanged(object? sender, EventArgs e)
     {
+        _backColorName = null;
         RefreshColor(false);
     }
 }
