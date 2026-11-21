@@ -20,13 +20,9 @@ public partial class GameLogContentViewModel : ViewModelBase
     [ObservableProperty] public partial bool AutoScroll { get; set; } = true;
 
     public string DebugCountText => $"{_statistics.Debug} {Lang.Text("LogPage.Level.Debug")}";
-
     public string ErrorCountText => $"{_statistics.Error} {Lang.Text("LogPage.Level.Error")}";
-
     public string FatalCountText => $"{_statistics.Fatal} {Lang.Text("LogPage.Level.Fatal")}";
-
     public string InfoCountText => $"{_statistics.Info} {Lang.Text("LogPage.Level.Info")}";
-
     public string WarnCountText => $"{_statistics.Warn} {Lang.Text("LogPage.Level.Warn")}";
 
     [ObservableProperty] public partial bool HasLog { get; set; }
@@ -42,8 +38,11 @@ public partial class GameLogContentViewModel : ViewModelBase
 
     partial void OnMaxLogLinesChanged(int value)
     {
-        if (value >= 0 && Config.System.MaxGameLog != value)
-            Config.System.MaxGameLog = value;
+        if (value < 0 || Config.System.MaxGameLog == value)
+            return;
+
+        Config.System.MaxGameLog = value;
+        _list?.TrimAllBuffers();
     }
 
     /// <summary>绑定左栏的会话列表，并切换到当前选中的日志缓冲区。</summary>
@@ -104,27 +103,19 @@ public partial class GameLogContentViewModel : ViewModelBase
         OnPropertyChanged(nameof(DebugCountText));
     }
 
-    public void OnGameExit()
+    public void OnGameExit(GameSessionExitedEventArgs args)
     {
         IsKillEnabled = false;
         IsExportStackDumpEnabled = false;
+
+        if (args.Reason == GameExitReason.Canceled)
+            HintService.Show(
+                HintPresets.Success(
+                    Lang.Text(
+                        "LogPage.Action.GameClosed",
+                        args.Session.Metadata.InstanceName)));
     }
 
-    /// <summary>按级别与最大行数过滤日志；当前页面未暴露级别筛选 UI，保留给命令/宿主复用。</summary>
-    public static IReadOnlyList<GameLogEntry> FilterByLevel(
-        IEnumerable<GameLogEntry> source,
-        GameLogLevel? level = null)
-    {
-        var filtered = level is null
-            ? source
-            : source.Where(line => line.Level == level);
-        var max = GameLogListViewModel.GetMaxLogCount();
-        return max == ulong.MaxValue
-            ? filtered.ToList()
-            : filtered.TakeLast((int)Math.Min(max, int.MaxValue)).ToList();
-    }
-
-    /// <summary>清空当前缓冲区；返回是否确实清空了内容。</summary>
     public bool ClearCurrentBuffer()
     {
         var list = _list;
@@ -146,15 +137,11 @@ public partial class GameLogContentViewModel : ViewModelBase
     public void TerminateCurrentSession()
     {
         var session = _list?.CurrentSession;
-        if (session is null)
-            return;
-        if ((int)session.State > (int)GameSessionState.Running)
+        if (session is null || !session.CanTerminate)
             return;
 
+        IsKillEnabled = false;
         session.Kill();
-        HintService.Show(
-            HintPresets.Success(
-                Lang.Text("LogPage.Action.GameClosed", session.Metadata.InstanceName)));
     }
 
     public async Task ExportStackDumpAsync()
@@ -176,15 +163,10 @@ public partial class GameLogContentViewModel : ViewModelBase
 
     public static object FormatMaxLogHint(object value)
     {
-        return value switch
-        {
-            _ when (int)value <= 5 => ((int)value * 10 + 50).ToString(
-                CultureInfo.CurrentCulture),
-            _ when (int)value <= 13 => ((int)value * 50 - 150).ToString(
-                CultureInfo.CurrentCulture),
-            _ when (int)value <= 28 => ((int)value * 100 - 800).ToString(
-                CultureInfo.CurrentCulture),
-            _ => Lang.Text("LogPage.MaxLines.Unlimited")
-        };
+        var configured = Convert.ToInt32(value, CultureInfo.InvariantCulture);
+        var max = GameLogLimits.GetMaxLineCount(configured);
+        return max == ulong.MaxValue
+            ? Lang.Text("LogPage.MaxLines.Unlimited")
+            : max.ToString(CultureInfo.CurrentCulture);
     }
 }

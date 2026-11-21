@@ -332,8 +332,8 @@ public sealed class ExtraButtonsPanel : StackPanel
     {
         try
         {
-            GameLaunch.mcLaunchLoaderReal?.Abort();
             GameWatcherService.KillAll();
+            GameLaunch.mcLaunchLoaderReal?.Abort();
             UiInteraction.Hint(
                 Lang.Text("Main.ShutdownMinecraft.Success"),
                 NotificationType.Success);

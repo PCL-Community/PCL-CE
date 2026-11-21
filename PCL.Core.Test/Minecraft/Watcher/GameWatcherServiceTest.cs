@@ -143,6 +143,7 @@ public sealed class GameWatcherServiceTest
 
         Assert.HasCount(1, GameWatcherService.Sessions);
         Assert.AreSame(secondSession, GameWatcherService.Sessions[0]);
+        Assert.IsTrue(first.Disposed);
         Assert.IsTrue(GameWatcherService.HasActiveSessions);
     }
 }

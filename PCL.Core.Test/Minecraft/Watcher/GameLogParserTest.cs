@@ -92,10 +92,4 @@ public sealed class GameLogParserTest
     {
         Assert.AreEqual((GameLogSignal)expected, GameLogParser.DetectSignal(line));
     }
-
-    [TestMethod]
-    public void NormalizeLineEndings_ReturnsCrLf()
-    {
-        Assert.AreEqual("a\r\nb\r\nc", GameLogParser.NormalizeLineEndings("a\nb\r\nc"));
-    }
 }

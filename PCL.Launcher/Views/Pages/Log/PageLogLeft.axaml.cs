@@ -81,9 +81,6 @@ public partial class PageLogLeft : MyPageLeft, IRefreshable
         PageLogRight.Current?.OnLogAppended(buffer);
     }
 
-    #region 日志接入
-
-    /// <summary>登记一个游戏会话并切换到它的日志。可在任意线程调用。</summary>
     public void AttachSession(GameSession session)
     {
         ViewModel.AttachSession(session);
@@ -103,10 +100,6 @@ public partial class PageLogLeft : MyPageLeft, IRefreshable
     {
         ViewModel.RemoveItem(uuid);
     }
-
-    #endregion
-
-    #region 列表 UI
 
     private void Reload()
     {
@@ -207,6 +200,4 @@ public partial class PageLogLeft : MyPageLeft, IRefreshable
             PageRouter.Back();
         });
     }
-
-    #endregion
 }

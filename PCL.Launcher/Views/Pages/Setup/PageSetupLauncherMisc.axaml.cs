@@ -6,6 +6,7 @@ using PCL.Core.App.Localization;
 using PCL.Core.Platform;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
+using PCL.Core.UI.Game.Log;
 using PCL.Core.UI.Hints;
 using PCL.Navigation;
 using PCL.UI;
@@ -303,14 +304,10 @@ public partial class PageSetupLauncherMisc : MyPageRight, ISetupResetPage
 
     private static object FormatMaxLogHint(object value)
     {
-        var tick = Convert.ToInt32(value);
-        return tick switch
-        {
-            <= 5 => tick * 10 + 50,
-            <= 13 => tick * 50 - 150,
-            <= 28 => tick * 100 - 800,
-            _ => Lang.Text("Setup.Misc.System.MaxLogLines.Unlimited")
-        };
+        var max = GameLogLimits.GetMaxLineCount(Convert.ToInt32(value));
+        return max == ulong.MaxValue
+            ? Lang.Text("Setup.Misc.System.MaxLogLines.Unlimited")
+            : max.ToString();
     }
 
     private static object FormatAnimationSpeedHint(object value)

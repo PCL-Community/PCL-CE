@@ -14,6 +14,10 @@ internal sealed class FakeGameProcess : IGameProcess
     private readonly TaskCompletionSource _exitSource =
         new(TaskCreationOptions.RunContinuationsAsynchronously);
 
+    public int KillCount { get; private set; }
+
+    public bool Disposed { get; private set; }
+
     public int Id { get; init; } = 4242;
 
     public bool HasExited { get; private set; }
@@ -25,8 +29,6 @@ internal sealed class FakeGameProcess : IGameProcess
     public event Action<string>? OutputLineReceived;
 
     public event Action<string>? ErrorLineReceived;
-
-    public event Action? Exited;
 
     public void StartReading()
     {
@@ -51,11 +53,13 @@ internal sealed class FakeGameProcess : IGameProcess
 
     public void Kill(bool entireProcessTree)
     {
+        KillCount++;
         Complete(-1);
     }
 
     public void Dispose()
     {
+        Disposed = true;
     }
 
     public void Emit(string line)
@@ -76,7 +80,6 @@ internal sealed class FakeGameProcess : IGameProcess
         HasExited = true;
         ExitCode = exitCode;
         _exitSource.TrySetResult();
-        Exited?.Invoke();
     }
 }
 
@@ -173,7 +176,8 @@ internal static class WatcherTestHelpers
         bool captureLiveLog = true,
         int recentLogCapacity = 500,
         bool maximizeWindow = false,
-        Action<double>? reportProgress = null)
+        Action<double>? reportProgress = null,
+        CancellationToken abortToken = default)
     {
         return new GameSessionOptions
         {
@@ -193,6 +197,7 @@ internal static class WatcherTestHelpers
             RecentLogCapacity = recentLogCapacity,
             MaximizeWindow = maximizeWindow,
             ReportProgress = reportProgress,
+            AbortToken = abortToken,
             WindowInterop = windowInterop,
             CommandRunner = commandRunner
         };

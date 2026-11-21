@@ -79,8 +79,6 @@ public partial class PageLogRight : MyPageRight, IRefreshable
         UnsubscribeCurrentSession();
     }
 
-    #region 渲染
-
     public void ReloadContent()
     {
         if (!Dispatcher.UIThread.CheckAccess())
@@ -206,6 +204,7 @@ public partial class PageLogRight : MyPageRight, IRefreshable
         UnsubscribeCurrentSession();
         _subscribedSession = session;
         session.Exited += OnGameExit;
+        session.StateChanged += OnSessionStateChanged;
     }
 
     private void UnsubscribeCurrentSession()
@@ -213,13 +212,17 @@ public partial class PageLogRight : MyPageRight, IRefreshable
         if (_subscribedSession is null)
             return;
         _subscribedSession.Exited -= OnGameExit;
+        _subscribedSession.StateChanged -= OnSessionStateChanged;
         _subscribedSession = null;
+    }
+
+    private void OnSessionStateChanged(object? sender, GameSessionStateChangedEventArgs e)
+    {
+        Dispatcher.UIThread.Post(() => ViewModel.RefreshActionAvailability());
     }
 
     private void OnGameExit(object? sender, GameSessionExitedEventArgs e)
     {
-        Dispatcher.UIThread.Post(() => ViewModel.OnGameExit());
+        Dispatcher.UIThread.Post(() => ViewModel.OnGameExit(e));
     }
-
-    #endregion
 }

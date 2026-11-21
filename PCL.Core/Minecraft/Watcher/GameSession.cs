@@ -9,7 +9,7 @@ using PCL.Core.Platform;
 
 namespace PCL.Core.Minecraft.Watcher;
 
-/// <summary>监视单个 Minecraft 进程。<br /> 负责日志采集、加载阶段估算、窗口发现、崩溃检测、kill 与运行栈导出。</summary>
+/// <summary>监视单个 Minecraft 进程，负责日志采集、加载进度、窗口发现、崩溃检测、强制结束与运行栈导出。</summary>
 public sealed class GameSession : IDisposable
 {
     private const string Module = "Watcher";
@@ -17,6 +17,7 @@ public sealed class GameSession : IDisposable
     private readonly IExternalCommandRunner? _commandRunner;
     private readonly CancellationTokenSource _disposeCts = new();
     private readonly List<string> _fullLog = [];
+    private readonly Queue<GameLogLineEventArgs> _history;
     private readonly Channel<string> _logChannel;
     private readonly GameSessionOptions _options;
     private readonly IGameProcess _process;
@@ -31,11 +32,15 @@ public sealed class GameSession : IDisposable
     private int _exitRaised;
     private int _killStarted;
     private GameLogLevel _lastLevel = GameLogLevel.Info;
+    private Task? _monitorWindowTask;
     private Task? _outputTask;
+    private Task? _refreshWindowTitleTask;
     private GameLogStage _stage;
     private int _started;
     private GameSessionState _state = GameSessionState.Loading;
+    private Task? _waitForExitTask;
     private nint _windowHandle;
+    private int _windowProbeFailures;
     private bool _windowResolved;
 
     internal GameSession(IGameProcess process, GameSessionOptions options)
@@ -44,6 +49,23 @@ public sealed class GameSession : IDisposable
             ?? throw new ArgumentNullException(nameof(process));
         _options = options
             ?? throw new ArgumentNullException(nameof(options));
+        if (options.WindowPollInterval <= TimeSpan.Zero)
+            throw new ArgumentOutOfRangeException(
+                nameof(options),
+                "WindowPollInterval must be greater than zero.");
+        if (options.WindowTitleRefreshInterval <= TimeSpan.Zero)
+            throw new ArgumentOutOfRangeException(
+                nameof(options),
+                "WindowTitleRefreshInterval must be greater than zero.");
+        if (options.MaximizeDelay < TimeSpan.Zero)
+            throw new ArgumentOutOfRangeException(
+                nameof(options),
+                "MaximizeDelay cannot be negative.");
+        if (options.StackDumpInterval < TimeSpan.Zero)
+            throw new ArgumentOutOfRangeException(
+                nameof(options),
+                "StackDumpInterval cannot be negative.");
+
         _windowInterop = options.WindowInterop
             ?? ApplicationRuntime.GetService<IWindowInterop>();
         _commandRunner = options.CommandRunner
@@ -51,6 +73,7 @@ public sealed class GameSession : IDisposable
         StartedAt = process.StartTime
             ?? DateTime.Now;
         _recentLog = new Queue<string>(Math.Max(1, options.RecentLogCapacity));
+        _history = new Queue<GameLogLineEventArgs>(Math.Max(1, options.RecentLogCapacity));
         _logChannel = Channel.CreateUnbounded<string>(
             new UnboundedChannelOptions
             {
@@ -63,13 +86,10 @@ public sealed class GameSession : IDisposable
             : default;
     }
 
-    /// <summary>游戏进程 ID。</summary>
     public int ProcessId => _process.Id;
 
-    /// <summary>会话创建时传入的实例元数据。</summary>
     public GameSessionMetadata Metadata => _options.Metadata;
 
-    /// <summary>当前状态。</summary>
     public GameSessionState State
     {
         get
@@ -81,16 +101,12 @@ public sealed class GameSession : IDisposable
         }
     }
 
-    /// <summary>游戏进程启动时间；无法读取时使用会话创建时间。</summary>
     public DateTime StartedAt { get; }
 
-    /// <summary>是否记录实时日志。</summary>
     public bool IsLiveLogEnabled => _options.CaptureLiveLog;
 
-    /// <summary>游戏进程是否已经退出。</summary>
     public bool HasExited => _process.HasExited;
 
-    /// <summary>当前是否允许请求结束进程。</summary>
     public bool CanTerminate
     {
         get
@@ -101,11 +117,9 @@ public sealed class GameSession : IDisposable
         }
     }
 
-    /// <summary>当前是否允许导出运行栈。</summary>
     public bool CanCaptureStackDump =>
         !string.IsNullOrWhiteSpace(_options.StackDumpToolPath) && !HasExited;
 
-    /// <summary>实时日志各级别计数快照。</summary>
     public GameLogCounters Counters
     {
         get
@@ -117,7 +131,6 @@ public sealed class GameSession : IDisposable
         }
     }
 
-    /// <summary>崩溃分析可用的最近日志快照，按时间顺序排列。</summary>
     public IReadOnlyList<string> RecentLog
     {
         get
@@ -129,7 +142,6 @@ public sealed class GameSession : IDisposable
         }
     }
 
-    /// <summary>实时日志完整内容快照；未开启实时日志时为空。</summary>
     public IReadOnlyList<string> FullLog
     {
         get
@@ -137,6 +149,17 @@ public sealed class GameSession : IDisposable
             lock (_sync)
             {
                 return [.. _fullLog];
+            }
+        }
+    }
+
+    public IReadOnlyList<GameLogLineEventArgs> History
+    {
+        get
+        {
+            lock (_sync)
+            {
+                return [.. _history];
             }
         }
     }
@@ -152,23 +175,36 @@ public sealed class GameSession : IDisposable
         _process.ErrorLineReceived -= OnOutputLine;
         _logChannel.Writer.TryComplete();
         _process.Dispose();
+
+        _ObserveTask(_outputTask);
+        _ObserveTask(_monitorWindowTask);
+        _ObserveTask(_refreshWindowTitleTask);
+        _ObserveTask(_waitForExitTask);
     }
 
-    /// <summary>一条实时日志产生。</summary>
+    private static void _ObserveTask(Task? task)
+    {
+        if (task is null)
+            return;
+
+        _ = task.ContinueWith(
+            static completed => _ = completed.Exception,
+            TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously);
+    }
+
     public event EventHandler<GameLogLineEventArgs>? LogLineReceived;
 
-    /// <summary>状态发生变化。</summary>
     public event EventHandler<GameSessionStateChangedEventArgs>? StateChanged;
 
-    /// <summary>检测到崩溃。</summary>
     public event EventHandler<GameSessionCrashedEventArgs>? Crashed;
 
-    /// <summary>游戏进程已经退出。</summary>
     public event EventHandler<GameSessionExitedEventArgs>? Exited;
 
     internal void Start()
     {
         if (Interlocked.Exchange(ref _started, 1) != 0)
+            return;
+        if (Volatile.Read(ref _disposed) != 0 || _IsTerminal(State))
             return;
 
         _process.OutputLineReceived += OnOutputLine;
@@ -190,12 +226,12 @@ public sealed class GameSession : IDisposable
         }
 
         _outputTask = Task.Run(_ConsumeLogsAsync);
-        _ = Task.Run(_MonitorWindowAsync);
-        _ = Task.Run(_RefreshWindowTitleAsync);
-        _ = Task.Run(_WaitForExitAsync);
+        _monitorWindowTask = Task.Run(_MonitorWindowAsync);
+        _refreshWindowTitleTask = Task.Run(_RefreshWindowTitleAsync);
+        _waitForExitTask = Task.Run(_WaitForExitAsync);
     }
 
-    /// <summary>请求终止游戏进程。状态会立即切换为 <see cref="GameSessionState.Canceled" />。</summary>
+    /// <summary>请求终止游戏进程。加载或运行中的会话会切换为 Canceled，已结束的会话保留原状态。</summary>
     public void Kill()
     {
         if (Interlocked.Exchange(ref _killStarted, 1) != 0)
@@ -262,7 +298,6 @@ public sealed class GameSession : IDisposable
         }
         catch (OperationCanceledException)
         {
-            // 会话释放。
         }
         catch (Exception ex)
         {
@@ -278,49 +313,61 @@ public sealed class GameSession : IDisposable
                 ? _lastLevel
                 : GameLogParser.ClassifyLevel(line, _lastLevel);
             _lastLevel = level;
+            var entry = new GameLogLineEventArgs(line, level);
 
             lock (_sync)
             {
                 _fullLog.Add(line);
+                _history.Enqueue(entry);
+                var capacity = Math.Max(1, _options.RecentLogCapacity);
+                while (_history.Count > capacity)
+                    _history.Dequeue();
                 _counters = _IncrementCounter(_counters, level);
             }
 
-            _Raise(LogLineReceived, this, new GameLogLineEventArgs(line, level));
+            _Raise(LogLineReceived, this, entry);
         }
 
-        if (_IsTerminal(State))
-            return;
-
-        var normalized = GameLogParser.NormalizeLineEndings(line);
         lock (_sync)
         {
-            _recentLog.Enqueue(normalized);
+            _recentLog.Enqueue(line);
             var capacity = Math.Max(1, _options.RecentLogCapacity);
             while (_recentLog.Count > capacity)
                 _recentLog.Dequeue();
         }
 
-        var stage = GameLogParser.DetectProgress(normalized, _stage);
-        if (stage != _stage)
+        if (_IsTerminal(State))
+            return;
+
+        GameLogStage stage;
+        bool stageChanged;
+        lock (_sync)
         {
-            _stage = stage;
+            stage = GameLogParser.DetectProgress(line, _stage);
+            stageChanged = stage != _stage;
+            if (stageChanged)
+                _stage = stage;
+        }
+
+        if (stageChanged)
+        {
             _LogStage(stage);
             _ReportProgress();
         }
 
-        switch (GameLogParser.DetectSignal(normalized))
+        switch (GameLogParser.DetectSignal(line))
         {
             case GameLogSignal.Close:
                 LogWrapper.Info(
                     Module,
-                    $"[{ProcessId}] {Lang.Text("Watcher.Log.CloseDetected", normalized)}");
+                    $"[{ProcessId}] {Lang.Text("Watcher.Log.CloseDetected", line)}");
                 _TransitionTo(GameSessionState.Ended);
                 break;
 
             case GameLogSignal.Crash:
                 LogWrapper.Info(
                     Module,
-                    $"[{ProcessId}] {Lang.Text("Watcher.Log.CrashDetected", normalized)}");
+                    $"[{ProcessId}] {Lang.Text("Watcher.Log.CrashDetected", line)}");
                 _TriggerCrash(GameCrashReason.CrashLogDetected, _process.ExitCode);
                 break;
         }
@@ -331,8 +378,16 @@ public sealed class GameSession : IDisposable
         if (State != GameSessionState.Loading)
             return;
 
+        GameLogStage stage;
+        bool anyWindowAppeared;
+        lock (_sync)
+        {
+            stage = _stage;
+            anyWindowAppeared = _anyWindowAppeared;
+        }
+
         double progress;
-        if (_anyWindowAppeared || (int)_stage >= (int)GameLogStage.Sound)
+        if (anyWindowAppeared || (int)stage >= (int)GameLogStage.Sound)
         {
             progress = 0.95d;
             if (_TransitionTo(GameSessionState.Running))
@@ -340,7 +395,7 @@ public sealed class GameSession : IDisposable
         }
         else
         {
-            progress = Math.Min((int)_stage, 3) / 3d * 0.9d;
+            progress = Math.Min((int)stage, 3) / 3d * 0.9d;
         }
 
         try
@@ -377,19 +432,34 @@ public sealed class GameSession : IDisposable
 
         try
         {
-            _TryProbeWindow(interop);
+            _TryProbeWindow(interop, out _);
             using var timer = new PeriodicTimer(_options.WindowPollInterval);
             while (await timer.WaitForNextTickAsync(_disposeCts.Token).ConfigureAwait(false))
             {
-                if (_windowResolved || _IsTerminal(State) || _process.HasExited)
+                if (Volatile.Read(ref _windowResolved)
+                    || _IsTerminal(State)
+                    || _process.HasExited)
                     break;
 
-                _TryProbeWindow(interop);
+                _TryProbeWindow(interop, out var failed);
+                if (!failed)
+                {
+                    _windowProbeFailures = 0;
+                    continue;
+                }
+
+                if (_windowProbeFailures < 3)
+                    continue;
+
+                LogWrapper.Warn(
+                    Module,
+                    $"[{ProcessId}] 连续检查 Minecraft 窗口失败，停止窗口检测");
+                Volatile.Write(ref _windowResolved, true);
+                break;
             }
         }
         catch (OperationCanceledException)
         {
-            // 会话释放或被取消。
         }
         catch (Exception ex)
         {
@@ -397,17 +467,21 @@ public sealed class GameSession : IDisposable
         }
     }
 
-    private void _TryProbeWindow(IWindowInterop interop)
+    private void _TryProbeWindow(IWindowInterop interop, out bool failed)
     {
         try
         {
             var window = interop.TryFindGameWindow(ProcessId);
             if (window is { } found)
                 _HandleWindow(found);
+            failed = false;
         }
         catch (Exception ex)
         {
-            LogWrapper.Warn(ex, Module, $"[{ProcessId}] 查找 Minecraft 窗口失败");
+            failed = true;
+            _windowProbeFailures++;
+            if (_windowProbeFailures == 1)
+                LogWrapper.Warn(ex, Module, $"[{ProcessId}] 查找 Minecraft 窗口失败");
         }
     }
 
@@ -415,7 +489,14 @@ public sealed class GameSession : IDisposable
     {
         if (_IsLoaderWindow(window.Title))
         {
-            if (!_anyWindowAppeared)
+            bool appeared;
+            lock (_sync)
+            {
+                appeared = _anyWindowAppeared;
+                _anyWindowAppeared = true;
+            }
+
+            if (!appeared)
                 LogWrapper.Info(
                     Module,
                     $"[{ProcessId}] {Lang.Text(
@@ -423,14 +504,17 @@ public sealed class GameSession : IDisposable
                         window.Title,
                         window.Handle.ToInt64())}");
 
-            _anyWindowAppeared = true;
             _ReportProgress();
             return;
         }
 
-        _windowHandle = window.Handle;
-        _windowResolved = true;
-        _anyWindowAppeared = true;
+        lock (_sync)
+        {
+            _windowHandle = window.Handle;
+            _anyWindowAppeared = true;
+        }
+
+        Volatile.Write(ref _windowResolved, true);
 
         LogWrapper.Info(
             Module,
@@ -454,16 +538,22 @@ public sealed class GameSession : IDisposable
             if (State != GameSessionState.Running || _process.HasExited)
                 return;
 
-            _windowInterop?.MaximizeWindow(_windowHandle);
+            nint handle;
+            lock (_sync)
+            {
+                handle = _windowHandle;
+            }
+
+            if (handle == 0)
+                return;
+
+            _windowInterop?.MaximizeWindow(handle);
             LogWrapper.Info(
                 Module,
-                $"[{ProcessId}] {Lang.Text(
-                    "Watcher.WindowMaximized",
-                    _windowHandle.ToInt64())}");
+                $"[{ProcessId}] {Lang.Text("Watcher.WindowMaximized", handle.ToInt64())}");
         }
         catch (OperationCanceledException)
         {
-            // 会话释放。
         }
         catch (Exception ex)
         {
@@ -490,13 +580,25 @@ public sealed class GameSession : IDisposable
         }
         catch (OperationCanceledException)
         {
-            // 会话释放。
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Warn(ex, Module, $"[{ProcessId}] 刷新 Minecraft 窗口标题失败");
         }
     }
 
     private void _UpdateWindowTitle()
     {
-        if (_windowHandle == 0 || string.IsNullOrWhiteSpace(_options.WindowTitleTemplate))
+        if (string.IsNullOrWhiteSpace(_options.WindowTitleTemplate))
+            return;
+
+        nint handle;
+        lock (_sync)
+        {
+            handle = _windowHandle;
+        }
+
+        if (handle == 0)
             return;
 
         var now = DateTime.Now;
@@ -505,7 +607,7 @@ public sealed class GameSession : IDisposable
             .Replace("{date}", Lang.Date(now, "d"), StringComparison.Ordinal)
             .Replace("{time}", Lang.Date(now, "T"), StringComparison.Ordinal);
 
-        _windowInterop?.SetWindowTitle(_windowHandle, title);
+        _windowInterop?.SetWindowTitle(handle, title);
     }
 
     private static bool _IsLoaderWindow(string title)
@@ -516,39 +618,66 @@ public sealed class GameSession : IDisposable
 
     private async Task _WaitForExitAsync()
     {
-        try
-        {
-            await _process.WaitForExitAsync(_disposeCts.Token).ConfigureAwait(false);
-        }
-        catch (OperationCanceledException)
-        {
-            return;
-        }
-        catch (Exception ex)
-        {
-            LogWrapper.Warn(ex, Module, $"[{ProcessId}] 等待 Minecraft 退出失败");
-        }
-
-        _logChannel.Writer.TryComplete();
-
-        if (_outputTask is not null)
+        while (true)
             try
             {
-                await Task
-                    .WhenAny(
-                        _outputTask,
-                        Task.Delay(TimeSpan.FromSeconds(1), _disposeCts.Token))
-                    .ConfigureAwait(false);
+                await _process.WaitForExitAsync(_disposeCts.Token).ConfigureAwait(false);
+                break;
             }
             catch (OperationCanceledException)
             {
-                // ignored
+                return;
             }
+            catch (Exception ex)
+            {
+                LogWrapper.Warn(ex, Module, $"[{ProcessId}] 等待 Minecraft 退出失败");
+                if (_process.HasExited)
+                    break;
+
+                try
+                {
+                    await Task
+                        .Delay(TimeSpan.FromSeconds(1), _disposeCts.Token)
+                        .ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
+            }
+
+        _logChannel.Writer.TryComplete();
+        await _DrainOutputAsync().ConfigureAwait(false);
 
         if (Volatile.Read(ref _disposed) != 0)
             return;
 
         _HandleProcessExit();
+    }
+
+    private async Task _DrainOutputAsync()
+    {
+        var outputTask = _outputTask;
+        if (outputTask is null)
+            return;
+
+        try
+        {
+            await outputTask
+                .WaitAsync(TimeSpan.FromSeconds(5), _disposeCts.Token)
+                .ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (TimeoutException)
+        {
+            LogWrapper.Warn(Module, $"[{ProcessId}] 等待日志消费超时");
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Warn(ex, Module, $"[{ProcessId}] 等待日志消费失败");
+        }
     }
 
     private void _HandleProcessExit()
@@ -589,18 +718,22 @@ public sealed class GameSession : IDisposable
                 if (state is not (GameSessionState.Crashed
                     or GameSessionState.Ended
                     or GameSessionState.Canceled))
-                {
                     _TransitionTo(GameSessionState.Ended);
-                }
 
                 break;
             }
         }
 
+        GameCrashReason? crashReason;
+        lock (_sync)
+        {
+            crashReason = _crashReason;
+        }
+
         var reason = State switch
         {
             GameSessionState.Canceled => GameExitReason.Canceled,
-            GameSessionState.Crashed => _crashReason switch
+            GameSessionState.Crashed => crashReason switch
             {
                 GameCrashReason.StartupFailure => GameExitReason.StartupFailure,
                 GameCrashReason.AbnormalExit => GameExitReason.AbnormalExit,
@@ -674,12 +807,17 @@ public sealed class GameSession : IDisposable
         if (!_options.CaptureLiveLog)
             return;
 
+        var entry = new GameLogLineEventArgs(text, level);
         lock (_sync)
         {
             _counters = _IncrementCounter(_counters, level);
+            _history.Enqueue(entry);
+            var capacity = Math.Max(1, _options.RecentLogCapacity);
+            while (_history.Count > capacity)
+                _history.Dequeue();
         }
 
-        _Raise(LogLineReceived, this, new GameLogLineEventArgs(text, level));
+        _Raise(LogLineReceived, this, entry);
     }
 
     private static GameLogCounters _IncrementCounter(GameLogCounters counters, GameLogLevel level)
@@ -720,11 +858,13 @@ public sealed class GameSession : IDisposable
 
     private void OnAbortRequested()
     {
-        if (_IsTerminal(State))
+        if (State is not (GameSessionState.Loading
+            or GameSessionState.Running
+            or GameSessionState.Crashed))
             return;
 
         LogWrapper.Info(Module, $"[{ProcessId}] 启动流程已取消，停止监视游戏");
-        _TransitionTo(GameSessionState.Canceled);
+        Kill();
     }
 
     private async Task _KillCoreAsync()
@@ -749,6 +889,12 @@ public sealed class GameSession : IDisposable
                     return;
                 }
             }
+
+            _logChannel.Writer.TryComplete();
+            await _DrainOutputAsync().ConfigureAwait(false);
+
+            if (Volatile.Read(ref _disposed) == 0)
+                _HandleProcessExit();
 
             LogWrapper.Info(Module, $"[{ProcessId}] {Lang.Text("Watcher.Kill.Success")}");
         }

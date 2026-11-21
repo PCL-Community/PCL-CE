@@ -71,11 +71,15 @@ public static class GameWatcherService
         if (onCrashed is not null)
             session.Crashed += (_, e) => onCrashed(e);
 
+        List<GameSession> pruned;
         lock (_Sync)
         {
-            _PruneFinishedSessionsLocked();
+            pruned = _TakeFinishedSessionsLocked();
             _SessionList.Add(session);
         }
+
+        foreach (var finished in pruned)
+            finished.Dispose();
 
         try
         {
@@ -102,9 +106,7 @@ public static class GameWatcherService
     public static void KillAll()
     {
         foreach (var session in Sessions)
-            if (session.State is GameSessionState.Loading
-                or GameSessionState.Running
-                or GameSessionState.Crashed)
+            if (!session.HasExited)
                 session.Kill();
     }
 
@@ -128,12 +130,22 @@ public static class GameWatcherService
         }
     }
 
-    private static void _PruneFinishedSessionsLocked()
+    private static List<GameSession> _TakeFinishedSessionsLocked()
     {
-        _SessionList.RemoveAll(session =>
-            session.State is GameSessionState.Crashed
+        var finished = _SessionList
+            .Where(session => session.State is GameSessionState.Crashed
                 or GameSessionState.Ended
-                or GameSessionState.Canceled);
+                or GameSessionState.Canceled)
+            .ToList();
+
+        foreach (var session in finished)
+        {
+            session.StateChanged -= OnSessionStateChanged;
+            session.Crashed -= OnSessionCrashed;
+            _SessionList.Remove(session);
+        }
+
+        return finished;
     }
 
     private static void OnSessionStateChanged(object? sender, GameSessionStateChangedEventArgs e)

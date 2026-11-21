@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using CommunityToolkit.Mvvm.ComponentModel;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
@@ -13,8 +14,14 @@ namespace PCL.Core.UI.Game.Log;
 public partial class GameLogListViewModel : ViewModelBase
 {
     private const int DefaultVisibleLines = 500;
+    private const int MaxBatchSize = 200;
 
     private static int _nextUuid;
+
+    private readonly ConcurrentQueue<(GameSession Session, GameLogLineEventArgs Args)>
+        _pendingLines = new();
+
+    private int _flushScheduled;
 
     public Dictionary<int, GameLogBuffer> Buffers { get; } = [];
 
@@ -42,8 +49,14 @@ public partial class GameLogListViewModel : ViewModelBase
 
         var uuid = Interlocked.Increment(ref _nextUuid);
         ShownSessions.Add(new KeyValuePair<int, GameSession>(uuid, session));
+
+        var buffer = new GameLogBuffer();
+        foreach (var entry in session.History)
+            buffer.Lines.Add(new GameLogEntry(entry.Text, entry.Level));
+        TrimBuffer(buffer);
+        Buffers[uuid] = buffer;
         session.LogLineReceived += OnLogLineReceived;
-        Buffers[uuid] = new GameLogBuffer();
+
         HasLogs = ShownSessions.Count > 0;
         SelectionChange(uuid);
     }
@@ -59,12 +72,42 @@ public partial class GameLogListViewModel : ViewModelBase
         if (sender is not GameSession session)
             return;
 
-        if (!UiDispatcher.CheckAccess())
+        _pendingLines.Enqueue((session, e));
+        if (Interlocked.Exchange(ref _flushScheduled, 1) == 0)
+            UiDispatcher.Post(FlushPendingLines);
+    }
+
+    private void FlushPendingLines()
+    {
+        var changed = new HashSet<GameLogBuffer>();
+        try
         {
-            UiDispatcher.Post(() => OnLogLineReceived(sender, e));
-            return;
+            var processed = 0;
+            while (processed < MaxBatchSize && _pendingLines.TryDequeue(out var item))
+            {
+                processed++;
+                AddPendingLine(item.Session, item.Args, changed);
+            }
+        }
+        finally
+        {
+            Interlocked.Exchange(ref _flushScheduled, 0);
+            if (!_pendingLines.IsEmpty
+                && Interlocked.Exchange(ref _flushScheduled, 1) == 0)
+                UiDispatcher.Post(FlushPendingLines);
         }
 
+        if (CurrentUuid > 0
+            && Buffers.TryGetValue(CurrentUuid, out var current)
+            && changed.Contains(current))
+            LogAppended?.Invoke(current);
+    }
+
+    private void AddPendingLine(
+        GameSession session,
+        GameLogLineEventArgs args,
+        HashSet<GameLogBuffer> changed)
+    {
         var uuid = -1;
         foreach (var item in ShownSessions.Where(item => ReferenceEquals(item.Value, session)))
         {
@@ -72,22 +115,34 @@ public partial class GameLogListViewModel : ViewModelBase
             break;
         }
 
-        if (uuid < 0)
+        if (uuid < 0 || !Buffers.TryGetValue(uuid, out var buffer))
             return;
 
-        if (!Buffers.TryGetValue(uuid, out var buffer))
-            return;
-
-        buffer.Lines.Add(new GameLogEntry(e.Text, e.Level));
+        buffer.Lines.Add(new GameLogEntry(args.Text, args.Level));
         TrimBuffer(buffer);
+        changed.Add(buffer);
+    }
 
-        if (uuid == CurrentUuid)
-            LogAppended?.Invoke(buffer);
+    public void TrimAllBuffers()
+    {
+        if (!UiDispatcher.CheckAccess())
+        {
+            UiDispatcher.Post(TrimAllBuffers);
+            return;
+        }
+
+        var max = GetMaxLogCount();
+        foreach (var buffer in Buffers.Values)
+            TrimBuffer(buffer, max);
     }
 
     private static void TrimBuffer(GameLogBuffer buffer)
     {
-        var max = GetMaxLogCount();
+        TrimBuffer(buffer, GetMaxLogCount());
+    }
+
+    private static void TrimBuffer(GameLogBuffer buffer, ulong max)
+    {
         while ((ulong)buffer.Lines.Count > max)
             buffer.Lines.RemoveAt(0);
     }
@@ -99,14 +154,7 @@ public partial class GameLogListViewModel : ViewModelBase
 
     internal static ulong GetMaxLogCount(int maxGameLog)
     {
-        var maxLog = (ulong)Math.Max(0, maxGameLog);
-        return maxLog switch
-        {
-            <= 5UL => (ulong)Math.Round(maxLog * 10m + 50m),
-            <= 13UL => (ulong)Math.Round(maxLog * 50m - 150m),
-            <= 28UL => (ulong)Math.Round(maxLog * 100m - 800m),
-            _ => ulong.MaxValue
-        };
+        return GameLogLimits.GetMaxLineCount(maxGameLog);
     }
 
     public void SelectionChange(int uuid)

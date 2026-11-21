@@ -33,6 +33,7 @@ public sealed class GameSessionTest
 
         Assert.AreEqual(3u, session.Counters.Info);
         Assert.HasCount(3, session.RecentLog);
+        Assert.HasCount(3, session.History);
         Assert.Contains(0.95d, progress);
         Assert.IsTrue(lines.All(line => line.Level == GameLogLevel.Info));
     }
@@ -77,6 +78,44 @@ public sealed class GameSessionTest
             TimeSpan.FromSeconds(5),
             TestContext.CancellationToken);
         Assert.AreEqual(GameSessionState.Crashed, session.State);
+        Assert.AreEqual(GameCrashReason.CrashLogDetected, args.Reason);
+        Assert.Contains(line => line.Contains("Crash report saved to"), args.RecentLog);
+    }
+
+    [TestMethod]
+    public async Task CrashMarkerIsProcessedBeforeExit()
+    {
+        var process = new FakeGameProcess();
+        using var session = new GameSession(
+            process,
+            WatcherTestHelpers.CreateOptions(process));
+        using var entered = new ManualResetEventSlim();
+        using var blocked = new ManualResetEventSlim();
+        var crashed = new TaskCompletionSource<GameSessionCrashedEventArgs>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+
+        session.LogLineReceived += (_, e) =>
+        {
+            if (!e.Text.Contains("block consumer"))
+                return;
+
+            entered.Set();
+            blocked.Wait(TestContext.CancellationToken);
+        };
+        session.Crashed += (_, e) => crashed.TrySetResult(e);
+
+        session.Start();
+        process.Emit("[12:00:00] [main/INFO]: block consumer");
+        await WatcherTestHelpers.WaitUntilAsync(() => entered.IsSet);
+        process.Emit("[12:00:00] [Render thread/INFO]: Crash report saved to: crash.txt");
+        process.Complete(1);
+
+        await Task.Delay(TimeSpan.FromMilliseconds(1200), TestContext.CancellationToken);
+        blocked.Set();
+
+        var args = await crashed.Task.WaitAsync(
+            TimeSpan.FromSeconds(5),
+            TestContext.CancellationToken);
         Assert.AreEqual(GameCrashReason.CrashLogDetected, args.Reason);
         Assert.Contains(line => line.Contains("Crash report saved to"), args.RecentLog);
     }
@@ -223,33 +262,37 @@ public sealed class GameSessionTest
     }
 
     [TestMethod]
-    public async Task AbortTokenCancelsSession()
+    public async Task AbortTokenCancelsSessionAndKillsProcess()
     {
         var process = new FakeGameProcess();
         using var cancellation = new CancellationTokenSource();
-        var options = WatcherTestHelpers.CreateOptions(process);
-        var abortOptions = new GameSessionOptions
-        {
-            Metadata = options.Metadata,
-            CaptureLiveLog = options.CaptureLiveLog,
-            WindowTitleTemplate = options.WindowTitleTemplate,
-            StackDumpToolPath = options.StackDumpToolPath,
-            WindowPollInterval = options.WindowPollInterval,
-            WindowTitleRefreshInterval = options.WindowTitleRefreshInterval,
-            MaximizeDelay = options.MaximizeDelay,
-            StackDumpInterval = options.StackDumpInterval,
-            RecentLogCapacity = options.RecentLogCapacity,
-            WindowInterop = options.WindowInterop,
-            CommandRunner = options.CommandRunner,
-            AbortToken = cancellation.Token
-        };
-        using var session = new GameSession(process, abortOptions);
+        using var session = new GameSession(
+            process,
+            WatcherTestHelpers.CreateOptions(process, abortToken: cancellation.Token));
 
         session.Start();
         await cancellation.CancelAsync();
 
         await WatcherTestHelpers.WaitUntilAsync(() => session.State == GameSessionState.Canceled);
+        await WatcherTestHelpers.WaitUntilAsync(() => process.KillCount > 0);
         Assert.AreEqual(GameSessionState.Canceled, session.State);
+    }
+
+    [TestMethod]
+    public async Task RecentLogKeepsLinesAfterTerminalState()
+    {
+        var process = new FakeGameProcess();
+        using var session = new GameSession(
+            process,
+            WatcherTestHelpers.CreateOptions(process));
+
+        session.Start();
+        process.Emit("[12:00:00] [main/INFO]: Restarting Minecraft with command foo");
+        await WatcherTestHelpers.WaitUntilAsync(() => session.State == GameSessionState.Ended);
+
+        process.Emit("[12:00:00] [main/INFO]: after terminal");
+        await WatcherTestHelpers.WaitUntilAsync(() =>
+            session.RecentLog.Any(line => line.Contains("after terminal")));
     }
 
     [TestMethod]

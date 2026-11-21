@@ -20,8 +20,6 @@ internal interface IGameProcess : IDisposable
 
     event Action<string>? ErrorLineReceived;
 
-    event Action? Exited;
-
     void StartReading();
 
     Task WaitForExitAsync(CancellationToken cancellationToken = default);
@@ -43,16 +41,6 @@ internal sealed class SystemGameProcess : IGameProcess
         _process = process ?? throw new ArgumentNullException(nameof(process));
         _process.OutputDataReceived += OnOutputDataReceived;
         _process.ErrorDataReceived += OnErrorDataReceived;
-
-        try
-        {
-            _process.EnableRaisingEvents = true;
-            _process.Exited += OnExited;
-        }
-        catch (Exception)
-        {
-            // 某些包装进程无法启用 Exited 事件，后续仍可通过 WaitForExitAsync 观察退出。
-        }
     }
 
     public int Id
@@ -80,7 +68,7 @@ internal sealed class SystemGameProcess : IGameProcess
             }
             catch (Exception)
             {
-                return true;
+                return false;
             }
         }
     }
@@ -119,8 +107,6 @@ internal sealed class SystemGameProcess : IGameProcess
 
     public event Action<string>? ErrorLineReceived;
 
-    public event Action? Exited;
-
     public void StartReading()
     {
         _process.BeginOutputReadLine();
@@ -152,7 +138,7 @@ internal sealed class SystemGameProcess : IGameProcess
         }
         catch (Exception)
         {
-            return HasExited;
+            return false;
         }
     }
 
@@ -176,14 +162,6 @@ internal sealed class SystemGameProcess : IGameProcess
 
         _process.OutputDataReceived -= OnOutputDataReceived;
         _process.ErrorDataReceived -= OnErrorDataReceived;
-        try
-        {
-            _process.Exited -= OnExited;
-        }
-        catch (Exception)
-        {
-            // ignored
-        }
     }
 
     private void OnOutputDataReceived(object sender, DataReceivedEventArgs e)
@@ -196,11 +174,5 @@ internal sealed class SystemGameProcess : IGameProcess
     {
         if (_disposed || e.Data is null) return;
         ErrorLineReceived?.Invoke(e.Data);
-    }
-
-    private void OnExited(object? sender, EventArgs e)
-    {
-        if (_disposed) return;
-        Exited?.Invoke();
     }
 }
