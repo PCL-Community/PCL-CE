@@ -26,7 +26,6 @@ public partial class MySlider : UserControl
     private const int PopupFadeInTime = 100;
     private const int PopupFadeOutTime = 80;
 
-    // 按下后指针位移超过该距离（像素）才视为拖拽，轻微抖动不影响点击动画。
     private const double DragStartThreshold = 4d;
 
     public static readonly StyledProperty<int> ValueProperty =
