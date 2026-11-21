@@ -13,7 +13,7 @@ using PCL.UI.Controls;
 
 namespace PCL.Views.Shell;
 
-/// <summary>自绘标题栏：左侧 Logo 与四个主入口，二级页面显示返回键与标题，右侧为窗口按钮。 Logo 模式、自定义文本与左右布局由配置与主题驱动，文本全部走本地化。</summary>
+/// <summary>自绘标题栏：左侧 Logo 与四个主入口，二级页面显示返回键与标题，右侧为窗口按钮。 (macOS下会被<see cref="UseSystemCaptionButtons" />隐藏自绘按钮，变成系统原生红绿灯) Logo 模式、自定义文本与左右布局由配置与主题驱动，文本全部走本地化。</summary>
 public partial class TitleBar : UserControl
 {
     private const string TitleLayerAnimationKey = "TitleBar Title Layer";
@@ -25,6 +25,8 @@ public partial class TitleBar : UserControl
     private bool _isSecondary;
 
     private bool _updating;
+
+    private bool _useSystemCaptionButtons;
 
     public TitleBar()
     {
@@ -136,10 +138,22 @@ public partial class TitleBar : UserControl
         }
     }
 
-    private static int EffectiveTitleType()
+    private int EffectiveTitleType()
     {
         if (ThemeService.CurrentTheme == ColorTheme.HmclBlue) return 4;
-        return (int)Config.Preference.WindowTitleType;
+        var type = Config.Preference.WindowTitleType;
+        return _useSystemCaptionButtons && type == LauncherTitleType.Default
+            ? (int)LauncherTitleType.None
+            : (int)type;
+    }
+
+    /// <summary>当窗口使用系统标题栏按钮（macOS 红绿灯）时，隐藏自绘的最小化与关闭按钮。</summary>
+    public void UseSystemCaptionButtons()
+    {
+        _useSystemCaptionButtons = true;
+        BtnTitleMin.IsVisible = false;
+        BtnTitleClose.IsVisible = false;
+        RefreshTitleAppearance();
     }
 
     private void ApplyTitleLeftClamp()

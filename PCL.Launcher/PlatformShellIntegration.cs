@@ -5,6 +5,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using Avalonia.Platform;
 using PCL.Navigation;
+using PCL.Views;
 using PlainToolkit.ObjectiveC.Runtime;
 
 namespace PCL;
@@ -66,6 +67,7 @@ internal sealed class MacOsShellIntegration : IPlatformShellIntegration
 
     public void OnWindowCreated(Window window)
     {
+        if (window is MainWindow mainWindow) mainWindow.UseSystemWindowChrome();
         _AttachMenus(window);
     }
 
