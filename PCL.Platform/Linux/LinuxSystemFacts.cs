@@ -50,12 +50,18 @@ public sealed class LinuxSystemFacts : ISystemFacts
 
         var productName = ReadTrimmedFile("/sys/class/dmi/id/product_name");
         var productVersion = ReadTrimmedFile("/sys/class/dmi/id/product_version");
-        var product = IsUsableDmiValue(productVersion)
-            ? productVersion
-            : productName;
+        var hasProductName = IsUsableDmiValue(productName);
+        var hasProductVersion = IsUsableDmiValue(productVersion);
+        var product = (hasProductName, hasProductVersion) switch
+        {
+            (true, true) => $"{productName!.Trim()} ({productVersion!.Trim()})",
+            (true, false) => productName!.Trim(),
+            (false, true) => productVersion!.Trim(),
+            (false, false) => null
+        };
         var deviceModel = CombineParts(
             ReadTrimmedFile("/sys/class/dmi/id/sys_vendor"),
-            IsUsableDmiValue(product) ? product : null);
+            product);
 
         var bios = ReadTrimmedFile("/sys/class/dmi/id/bios_version");
         var biosDate = ReadTrimmedFile("/sys/class/dmi/id/bios_date");
