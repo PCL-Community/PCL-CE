@@ -54,6 +54,12 @@ public static class PlatformServiceRegistration
             PlatformKind.Linux or PlatformKind.MacOs => new UnsupportedGpuPreferenceService(),
             _ => throw _Throw(kind)
         });
+        services.AddSingleton<IScrollGestureService>(_ => kind switch
+        {
+            PlatformKind.MacOs => new MacOsScrollGestureService(),
+            PlatformKind.Windows or PlatformKind.Linux => UnsupportedScrollGestureService.Instance,
+            _ => throw _Throw(kind)
+        });
         services.AddSingleton<ILaunchEnvironmentService>(_ => kind switch
         {
             PlatformKind.Linux => new LinuxLaunchEnvironmentService(),
