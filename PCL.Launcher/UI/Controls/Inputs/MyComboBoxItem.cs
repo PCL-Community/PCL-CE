@@ -20,7 +20,7 @@ public class MyComboBoxItem : ComboBoxItem
     public int Uuid = InputTheme.NewUuid();
 
     private string? _backColorName;
-    private double _fontOpacity = 1d;
+    private NColor _backColor;
 
     public MyComboBoxItem()
     {
@@ -88,53 +88,59 @@ public class MyComboBoxItem : ComboBoxItem
             time = AnimationTimeOut;
         }
 
-        if (_backColorName == newBackColorName && Math.Abs(_fontOpacity - newFontOpacity) < 0.0001d)
+        var backColor = new NColor(0f, 0f, 0f, 0f);
+        var hasBackColor = !string.IsNullOrEmpty(newBackColorName)
+            && InputTheme.TryColor(this, newBackColorName, out backColor);
+
+        var newForeColor = IsEnabled ? InputTheme.Text(this) : InputTheme.TextSecondary(this);
+
+        if (animate
+            && InputAnimation.CanAnimate(this)
+            && _backColorName == newBackColorName
+            && (!hasBackColor || _backColor == backColor)
+            && Math.Abs(Opacity - newFontOpacity) < 0.0001d
+            && Foreground == newForeColor)
             return;
 
         _backColorName = newBackColorName;
-        _fontOpacity = newFontOpacity;
+        _backColor = hasBackColor ? backColor : default;
 
         if (animate && InputAnimation.CanAnimate(this))
         {
             var fromColor = InputAnimation.ReadColor(this, BackgroundProperty);
-            NColor targetColor;
-            if (!string.IsNullOrEmpty(newBackColorName)
-                && InputTheme.TryColor(this, newBackColorName, out var resolved))
+            var targetColor = hasBackColor ? backColor : new NColor(0f, fromColor);
+            if (hasBackColor && fromColor.A <= 0f)
+                fromColor = new NColor(0f, backColor);
+
+            var animations = new List<IAnimation>();
+            if (fromColor != targetColor)
             {
-                targetColor = resolved;
-                if (fromColor.A <= 0f)
-                    fromColor = new NColor(0f, resolved);
-            }
-            else
-            {
-                targetColor = new NColor(0f, fromColor);
+                animations.Add(new NColorFromToAnimation
+                {
+                    Target = new AvaloniaAnimatable(this, BackgroundProperty),
+                    From = fromColor,
+                    HasFrom = true,
+                    To = targetColor,
+                    Duration = TimeSpan.FromMilliseconds(time)
+                });
             }
 
-            AnimationService.Run(
-                new List<IAnimation>
-                {
-                    new NColorFromToAnimation
-                    {
-                        Target = new AvaloniaAnimatable(this, BackgroundProperty),
-                        From = fromColor,
-                        HasFrom = true,
-                        To = targetColor,
-                        Duration = TimeSpan.FromMilliseconds(time)
-                    },
-                    new OpacityAnimation(this, newFontOpacity - Opacity, time)
-                },
-                ColorKey);
+            if (Math.Abs(newFontOpacity - Opacity) >= 0.0001d)
+                animations.Add(new OpacityAnimation(this, newFontOpacity - Opacity, time));
+
+            if (animations.Count > 0)
+                AnimationService.Run(animations, ColorKey);
+            else
+                AnimationService.CancelAnimationByName(ColorKey);
         }
         else
         {
             AnimationService.CancelAnimationByName(ColorKey);
-            Background = string.IsNullOrEmpty(newBackColorName)
-                ? Brushes.Transparent
-                : InputTheme.Brush(this, newBackColorName, Brushes.Transparent);
+            Background = hasBackColor ? backColor.ToBrush() : Brushes.Transparent;
             Opacity = newFontOpacity;
         }
 
-        Foreground = IsEnabled ? InputTheme.Text(this) : InputTheme.TextSecondary(this);
+        Foreground = newForeColor;
     }
 
     private void OnPointerEntered(object? sender, PointerEventArgs e)
@@ -183,7 +189,6 @@ public class MyComboBoxItem : ComboBoxItem
 
     private void OnActualThemeVariantChanged(object? sender, EventArgs e)
     {
-        _backColorName = null;
         RefreshColor(false);
     }
 }
