@@ -298,9 +298,8 @@ public sealed partial class PageDownloadCompFavorites : MyPageRight, IPageView, 
 
     private void OnPageKeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Key != Key.A)
-            return;
-        if (!e.KeyModifiers.HasFlag(KeyModifiers.Control))
+        if (Application.Current?.PlatformSettings?.HotkeyConfiguration.SelectAll
+                .Any(gesture => gesture.Matches(e)) != true)
             return;
         ViewModel.SelectAllItemsCommand.Execute(null);
         e.Handled = true;
