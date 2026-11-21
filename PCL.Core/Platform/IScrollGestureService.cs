@@ -24,6 +24,8 @@ public readonly record struct ScrollGestureInfo(
 
 public interface IScrollGestureService
 {
+    double PreciseDeltaScale { get; }
+
     event Action<ScrollGestureInfo>? PhaseChanged;
 
     bool TryGetCurrent(out ScrollGestureInfo info);

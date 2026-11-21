@@ -6,6 +6,8 @@ public sealed class UnsupportedScrollGestureService : IScrollGestureService
 {
     public static readonly UnsupportedScrollGestureService Instance = new();
 
+    public double PreciseDeltaScale => 1d;
+
     public event Action<ScrollGestureInfo>? PhaseChanged
     {
         add { }

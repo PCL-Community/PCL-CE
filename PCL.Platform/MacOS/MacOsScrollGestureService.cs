@@ -31,6 +31,8 @@ public sealed class MacOsScrollGestureService : IScrollGestureService
     private static bool _monitorInstalled;
     private static MacOsScrollGestureService? _phaseListener;
 
+    public double PreciseDeltaScale => 50d; // Avalonia.Native 会把精确滚动的像素增量除以 50
+
     /// <summary>精确滚动设备的手指按下、抬起、取消及惯性开始、结束。在 UI 线程上、事件派发给窗口之前触发。</summary>
     public event Action<ScrollGestureInfo>? PhaseChanged;
 

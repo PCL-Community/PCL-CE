@@ -20,7 +20,6 @@ public class MyScrollViewer : ScrollViewer
 {
     private const double WheelScrollStep = 120d; // 一个滚轮刻度对应的像素数
     private const int WheelAnimationTime = 300;
-    private const double PreciseDeltaScale = 50d; // Avalonia.Native 会把精确滚动的像素增量除以 50
     private const int GestureSafetyTime = 3000; // 漏收手指抬起事件时的兜底回弹时间（单位是ms）
 
     private static WeakReference<MyScrollViewer>? _activePreciseViewer;
@@ -142,10 +141,11 @@ public class MyScrollViewer : ScrollViewer
             return;
 
         // macOS 触控板跟手滚动，保留系统惯性
-        if (_ScrollGestures.TryGetCurrent(out var native) && native.HasPreciseDeltas)
+        var gestures = _ScrollGestures;
+        if (gestures.TryGetCurrent(out var native) && native.HasPreciseDeltas)
         {
             e.Handled = true;
-            _HandlePreciseScroll(-e.Delta.Y * PreciseDeltaScale * DeltaMult, native, e.Timestamp);
+            _HandlePreciseScroll(-e.Delta.Y * gestures.PreciseDeltaScale * DeltaMult, native, e.Timestamp);
             Tooltip.Dismiss();
             return;
         }
