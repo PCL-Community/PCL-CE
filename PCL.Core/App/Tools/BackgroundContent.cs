@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using PCL.Core.Utils;
 
 namespace PCL.Core.App.Tools;
@@ -58,62 +59,63 @@ public static class BackgroundContent
     ];
 
     /// <summary>判断路径是否为受支持的静态或动态图片。</summary>
-    public static bool IsImage(string path) =>
-        _ImageExtensions.Contains(Path.GetExtension(path));
+    public static bool IsImage(string path)
+    {
+        return _ImageExtensions.Contains(Path.GetExtension(path));
+    }
 
     /// <summary>判断路径是否为需要 FFmpeg 解码的动态图片。</summary>
-    public static bool IsAnimatedImage(string path) =>
-        _AnimatedImageExtensions.Contains(Path.GetExtension(path));
+    public static bool IsAnimatedImage(string path)
+    {
+        return _AnimatedImageExtensions.Contains(Path.GetExtension(path));
+    }
 
     /// <summary>判断路径是否为受支持的视频。</summary>
-    public static bool IsVideo(string path) =>
-        _VideoExtensions.Contains(Path.GetExtension(path));
+    public static bool IsVideo(string path)
+    {
+        return _VideoExtensions.Contains(Path.GetExtension(path));
+    }
 
     /// <summary>判断路径是否为受支持的背景内容。</summary>
-    public static bool IsSupported(string path) =>
-        IsImage(path) || IsVideo(path);
+    public static bool IsSupported(string path)
+    {
+        return IsImage(path) || IsVideo(path);
+    }
 
     /// <summary>递归枚举目录中的背景内容并随机打乱顺序。</summary>
-    public static List<string> Collect(string directory)
+    public static List<string> Collect(
+        string directory,
+        CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var files = _Enumerate(directory).ToList();
-            RandomUtils.ShuffleInPlace(files);
-            return files;
-        }
-        catch
-        {
-            return [];
-        }
+        var files = _Enumerate(directory, cancellationToken).ToList();
+        RandomUtils.ShuffleInPlace(files);
+        return files;
     }
 
     /// <summary>统计目录中的背景内容数量。</summary>
     public static int Count(string directory)
     {
-        try
-        {
-            return _Enumerate(directory).Count();
-        }
-        catch
-        {
-            return 0;
-        }
+        return _Enumerate(directory, CancellationToken.None).Count();
     }
 
-    private static IEnumerable<string> _Enumerate(string directory)
+    private static IEnumerable<string> _Enumerate(
+        string directory,
+        CancellationToken cancellationToken)
     {
         Directory.CreateDirectory(directory);
-        return Directory
-            .EnumerateFiles(
-                directory,
-                "*",
-                new EnumerationOptions
-                {
-                    IgnoreInaccessible = true,
-                    RecurseSubdirectories = true,
-                    AttributesToSkip = FileAttributes.ReparsePoint
-                })
-            .Where(IsSupported);
+        var files = Directory.EnumerateFiles(
+            directory,
+            "*",
+            new EnumerationOptions
+            {
+                IgnoreInaccessible = true,
+                RecurseSubdirectories = true,
+                AttributesToSkip = FileAttributes.ReparsePoint
+            });
+        foreach (var file in files)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (IsSupported(file)) yield return file;
+        }
     }
 }

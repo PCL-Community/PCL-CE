@@ -45,19 +45,18 @@ public sealed class FfmpegVideoPlayer : IDisposable
         string executablePath,
         string videoPath,
         int width,
-        int height)
+        int height,
+        VideoSuitMode suitMode)
     {
         _runner = runner ?? throw new ArgumentNullException(nameof(runner));
         _executablePath = executablePath;
         _videoPath = videoPath;
-        int value = Math.Max(2, width);
-        _width = (value & 1) == 0 ? value : value + 1;
-        int value1 = Math.Max(2, height);
-        _height = (value1 & 1) == 0 ? value1 : value1 + 1;
+        _width = _MakeEven(Math.Max(2, width));
+        _height = _MakeEven(Math.Max(2, height));
         _frameSize = _width * _height * 4;
         _readBuffer = new byte[_frameSize];
         _pendingBuffer = new byte[_frameSize];
-        View = new VideoFrameView(_width, _height);
+        View = new VideoFrameView(_width, _height, suitMode);
     }
 
     /// <summary>用于显示视频帧的视图。</summary>
@@ -509,5 +508,10 @@ public sealed class FfmpegVideoPlayer : IDisposable
         {
             return -1;
         }
+    }
+
+    private static int _MakeEven(int value)
+    {
+        return (value & 1) == 0 ? value : value + 1;
     }
 }

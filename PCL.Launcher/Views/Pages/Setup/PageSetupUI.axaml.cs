@@ -37,6 +37,7 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
     private readonly MyRadioBox[] _logoTypeRadios;
     private bool _backgroundStateSubscribed;
     private int _backgroundStateGeneration;
+    private bool _clearingBackground;
     private int _ffmpegStatusGeneration;
     private bool _loaded;
     private bool _reloading;
@@ -401,12 +402,12 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             var show = count > 0;
             ViewModel.ApplyBackgroundState(show, count);
 
-            var disabled = BackgroundHost.Current?.IsGaming == true
+            var paused = BackgroundHost.Current?.IsGaming == true
                 && Config.Preference.Background.AutoPauseVideo;
-            BtnBackgroundRefresh.IsEnabled = !disabled;
+            BtnBackgroundRefresh.IsEnabled = !paused && !_clearingBackground;
             BtnBackgroundRefresh.SetLocalizedValue(
                 ToolTip.TipProperty,
-                disabled
+                paused
                     ? "Setup.Ui.Background.PauseVideo.ToolTip"
                     : "Setup.Ui.Background.Refresh.ToolTip");
             ToolTip.SetShowOnDisabled(BtnBackgroundRefresh, true);
@@ -582,6 +583,8 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
     private async Task ClearBackgroundAsync()
     {
         ViewModel.BackgroundClearEnabled = false;
+        _clearingBackground = true;
+        BtnBackgroundRefresh.IsEnabled = false;
         try
         {
             if (!await ViewModel.ConfirmBackgroundClearAsync()) return;
@@ -607,6 +610,9 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         finally
         {
             ViewModel.BackgroundClearEnabled = true;
+            _clearingBackground = false;
+            BtnBackgroundRefresh.IsEnabled = true;
+            await RefreshBackgroundStateAsync();
         }
     }
 

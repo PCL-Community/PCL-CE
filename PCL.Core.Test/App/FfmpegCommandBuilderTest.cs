@@ -22,8 +22,9 @@ public class FfmpegCommandBuilderTest
         Assert.Contains("rawvideo", arguments.ToList());
         Assert.Contains("bgra", arguments.ToList());
         Assert.Contains(@"C:\videos\a b.mp4", arguments.ToList());
+        Assert.Contains("file,pipe", arguments.ToList());
         Assert.Contains(
-            "fps=30,scale=1280:722:force_original_aspect_ratio=increase,crop=1280:722",
+            "fps=30,scale=1280:722",
             arguments.ToList());
     }
 
@@ -36,7 +37,7 @@ public class FfmpegCommandBuilderTest
             683,
             24);
         Assert.AreEqual(
-            "fps=24,scale=1026:684:force_original_aspect_ratio=increase,crop=1026:684",
+            "fps=24,scale=1026:684",
             arguments.Single(value => value.StartsWith("fps=", StringComparison.Ordinal)));
     }
 }

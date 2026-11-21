@@ -12,13 +12,15 @@ namespace PCL.Core.Test.App;
 [TestClass]
 public sealed class FfmpegLocatorTest
 {
+    public TestContext TestContext { get; set; }
+
     [TestMethod]
     public async Task DetectsConfiguredPathWithSpaces()
     {
         var path = Path.Combine(
             Path.GetTempPath(),
             $"pcl ffmpeg {Guid.NewGuid():N}");
-        await File.WriteAllTextAsync(path, string.Empty);
+        await File.WriteAllTextAsync(path, string.Empty, TestContext.CancellationToken);
         try
         {
             var runner = new RecordingRunner();
@@ -34,6 +36,24 @@ public sealed class FfmpegLocatorTest
         {
             File.Delete(path);
         }
+    }
+
+    [TestMethod]
+    public async Task DoesNotReuseCachedPathAfterItDisappears()
+    {
+        var path = Path.Combine(
+            Path.GetTempPath(),
+            $"pcl cached ffmpeg {Guid.NewGuid():N}");
+        await File.WriteAllTextAsync(path, string.Empty, TestContext.CancellationToken);
+        var runner = new RecordingRunner();
+        var locator = new FfmpegLocator(runner);
+
+        var first = await locator.DetectAsync(path, true, CancellationToken.None);
+        Assert.IsTrue(first.IsAvailable);
+        File.Delete(path);
+
+        var second = await locator.DetectAsync(path, false, CancellationToken.None);
+        Assert.AreEqual(FfmpegAvailability.Invalid, second.Availability);
     }
 
     [TestMethod]

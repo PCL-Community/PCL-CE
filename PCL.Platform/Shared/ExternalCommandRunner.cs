@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using PCL.Core.Platform;
@@ -8,19 +7,21 @@ namespace PCL.Platform;
 /// <summary>跨平台外部命令执行器。只负责进程生命周期和标准输出采集，不携带业务参数。</summary>
 public sealed class ExternalCommandRunner : IExternalCommandRunner
 {
-    private static readonly ConcurrentDictionary<Process, byte> ActiveProcesses = new();
-    private static readonly PosixSignalRegistration? Sigterm;
-    private static readonly PosixSignalRegistration? Sigint;
+    private static readonly HashSet<Process> ActiveProcesses = [];
+    private static readonly Lock LifecycleLock = new();
+    private static readonly PosixSignalRegistration? _sigint;
+    private static readonly PosixSignalRegistration? _sigterm;
+    private static bool _shuttingDown;
 
     static ExternalCommandRunner()
     {
         AppDomain.CurrentDomain.ProcessExit += (_, _) => _KillActiveProcesses();
         if (OperatingSystem.IsWindows()) return;
 
-        Sigterm = PosixSignalRegistration.Create(
+        _sigterm = PosixSignalRegistration.Create(
             PosixSignal.SIGTERM,
             _ => _KillActiveProcesses());
-        Sigint = PosixSignalRegistration.Create(
+        _sigint = PosixSignalRegistration.Create(
             PosixSignal.SIGINT,
             _ => _KillActiveProcesses());
     }
@@ -126,7 +127,18 @@ public sealed class ExternalCommandRunner : IExternalCommandRunner
             throw new InvalidOperationException($"无法启动外部命令：{fileName}");
         }
 
-        ActiveProcesses.TryAdd(process, 0);
+        lock (LifecycleLock)
+        {
+            if (_shuttingDown)
+            {
+                TryKill(process);
+                process.Dispose();
+                throw new InvalidOperationException("启动器正在退出。");
+            }
+
+            ActiveProcesses.Add(process);
+        }
+
         return new ExternalCommandSession(process);
     }
 
@@ -187,7 +199,15 @@ public sealed class ExternalCommandRunner : IExternalCommandRunner
 
     private static void _KillActiveProcesses()
     {
-        foreach (var process in ActiveProcesses.Keys)
+        Process[] processes;
+        lock (LifecycleLock)
+        {
+            _shuttingDown = true;
+            processes = [.. ActiveProcesses];
+            ActiveProcesses.Clear();
+        }
+
+        foreach (var process in processes)
             TryKill(process);
     }
 
@@ -260,7 +280,11 @@ public sealed class ExternalCommandRunner : IExternalCommandRunner
         {
             if (_disposed) return;
             _disposed = true;
-            ActiveProcesses.TryRemove(process, out _);
+            lock (LifecycleLock)
+            {
+                ActiveProcesses.Remove(process);
+            }
+
             TryKill(process);
             process.Dispose();
         }

@@ -62,7 +62,8 @@ public sealed partial class FfmpegLocator(IExternalCommandRunner? runner)
             {
                 if (!force
                     && _cached is { IsAvailable: true }
-                    && _cachedInput == input)
+                    && _cachedInput == input
+                    && _Exists(_cached.ExecutablePath))
                     return _cached;
             }
 
@@ -232,7 +233,7 @@ public sealed partial class FfmpegLocator(IExternalCommandRunner? runner)
         }
     }
 
-    private bool _Exists(string executablePath)
+    private bool _Exists(string? executablePath)
     {
         if (string.IsNullOrWhiteSpace(executablePath)) return false;
         if (File.Exists(executablePath)) return true;

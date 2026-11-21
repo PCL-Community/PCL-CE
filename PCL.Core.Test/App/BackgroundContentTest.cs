@@ -1,3 +1,4 @@
+using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PCL.Core.App.Tools;
 
@@ -39,5 +40,19 @@ public class BackgroundContentTest
     {
         Assert.IsFalse(BackgroundContent.IsSupported("a.txt"));
         Assert.IsFalse(BackgroundContent.IsSupported("a.ini"));
+    }
+
+    [TestMethod]
+    public void ReportsDirectoryErrors()
+    {
+        var path = Path.GetTempFileName();
+        try
+        {
+            Assert.ThrowsExactly<IOException>(() => BackgroundContent.Collect(path));
+        }
+        finally
+        {
+            File.Delete(path);
+        }
     }
 }

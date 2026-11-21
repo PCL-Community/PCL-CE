@@ -619,7 +619,6 @@ public static partial class GameLaunch
     {
         McLaunchLog("开始启动结束处理");
         _ApplyMusicState();
-        MediaService.Current?.SetVideoGaming(true);
         McLaunchLog($"启动器可见性：{Config.Launch.LauncherVisibility}");
         _ApplyLauncherVisibility();
 

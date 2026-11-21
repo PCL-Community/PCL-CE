@@ -65,7 +65,6 @@ public sealed class BackgroundLayer
 {
     private const int MaxVideoWidth = 1280;
     private const int MaxVideoHeight = 720;
-    private const int VideoFps = 30;
 
     private readonly Panel _formPan;
     private readonly Panel _host;
@@ -74,6 +73,7 @@ public sealed class BackgroundLayer
     private readonly Window _window;
 
     private Bitmap? _bitmap;
+    private bool _clearing;
     private FfmpegLocator? _ffmpegLocator;
     private ImageBrush? _imageBrush;
     private bool _isMinimized;
@@ -83,6 +83,7 @@ public sealed class BackgroundLayer
     private int _refreshGeneration;
     private bool _removed;
     private FfmpegVideoPlayer? _videoPlayer;
+    private FfmpegVideoProbe? _videoProbe;
 
     public BackgroundLayer(Window window, Panel formPan, Image image)
     {
@@ -136,6 +137,9 @@ public sealed class BackgroundLayer
             });
             return await completion.Task;
         }
+
+        if (_clearing)
+            return new BackgroundRefreshResult(BackgroundRefreshStatus.Canceled);
 
         var generation = Interlocked.Increment(ref _refreshGeneration);
         var previousCts = _refreshCts;
@@ -263,21 +267,24 @@ public sealed class BackgroundLayer
         CancellationToken cancellationToken)
     {
         await StopVideoAsync();
+        cancellationToken.ThrowIfCancellationRequested();
         ClearImage();
         _lastError = null;
 
         var pictures = Path.Combine(Paths.Data, "Pictures");
         var files = await Task.Run(
-            () => BackgroundContent.Collect(pictures),
+            () => BackgroundContent.Collect(pictures, cancellationToken),
             cancellationToken);
         if (files.Count == 0)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             ClearContent();
             return new BackgroundRefreshResult(BackgroundRefreshStatus.NoContent);
         }
 
         FfmpegProbeResult? ffmpeg = null;
         var hasVideoContent = false;
+        var requiresFfmpeg = false;
         string? lastError = null;
 
         foreach (var path in files)
@@ -307,6 +314,7 @@ public sealed class BackgroundLayer
                         BackgroundRefreshStatus.Success,
                         path);
 
+                requiresFfmpeg = true;
                 ffmpeg ??= await ProbeFfmpegAsync(false, cancellationToken);
                 if (ffmpeg.IsAvailable
                     && await TryLoadVideoAsync(path, ffmpeg, cancellationToken))
@@ -333,8 +341,9 @@ public sealed class BackgroundLayer
                 lastError = _lastError;
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
         ClearContent();
-        return hasVideoContent && ffmpeg is { IsAvailable: false }
+        return (hasVideoContent || requiresFfmpeg) && ffmpeg is { IsAvailable: false }
             ? new BackgroundRefreshResult(
                 BackgroundRefreshStatus.FfmpegMissing,
                 Detail: ffmpeg.Error ?? lastError)
@@ -353,18 +362,45 @@ public sealed class BackgroundLayer
             || _ffmpegLocator?.CommandRunner is not { } runner)
             return false;
 
-        var (width, height) = GetVideoTargetSize();
+        var suitMode = (VideoSuitMode)Math.Clamp(
+            Config.Preference.Background.WallpaperSuitMode,
+            0,
+            8);
+        var (targetWidth, targetHeight) = GetVideoTargetSize();
+        VideoSize? sourceSize = null;
+        try
+        {
+            sourceSize = await ProbeVideoSizeAsync(
+                ffmpeg.ExecutablePath,
+                path,
+                cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Debug(ex, "UI", $"探测视频尺寸失败：{path}");
+        }
+
+        var effectiveMode = sourceSize is null ? VideoSuitMode.Fit : suitMode;
+        var (width, height) = sourceSize is { } size
+            ? GetVideoFrameSize(size)
+            : (targetWidth, targetHeight);
         var player = new FfmpegVideoPlayer(
             runner,
             ffmpeg.ExecutablePath,
             path,
             width,
-            height);
+            height,
+            effectiveMode);
         try
         {
             if (!await player.StartAsync(cancellationToken))
             {
                 _lastError = player.LastError;
+                InvalidateFfmpeg();
                 player.Dispose();
                 return false;
             }
@@ -377,6 +413,7 @@ public sealed class BackgroundLayer
         catch (Exception ex)
         {
             _lastError = ex.Message;
+            InvalidateFfmpeg();
             player.Dispose();
             LogWrapper.Debug(ex, "UI", $"启动视频背景失败：{path}");
             return false;
@@ -405,6 +442,31 @@ public sealed class BackgroundLayer
         UpdatePlaybackState();
         LogWrapper.Info("UI", $"已加载视频背景：{Path.GetFileName(path)}");
         return true;
+    }
+
+    private async Task<VideoSize?> ProbeVideoSizeAsync(
+        string executablePath,
+        string path,
+        CancellationToken cancellationToken)
+    {
+        if (_ffmpegLocator?.CommandRunner is not { } runner) return null;
+        _videoProbe ??= new FfmpegVideoProbe(runner);
+        return await _videoProbe.ProbeAsync(
+            executablePath,
+            path,
+            cancellationToken);
+    }
+
+    private static (int Width, int Height) GetVideoFrameSize(VideoSize source)
+    {
+        var scale = Math.Min(
+            1d,
+            Math.Min(
+                MaxVideoWidth / (double)source.Width,
+                MaxVideoHeight / (double)source.Height));
+        var width = Math.Max(2, (int)Math.Round(source.Width * scale));
+        var height = Math.Max(2, (int)Math.Round(source.Height * scale));
+        return (_MakeEven(width), _MakeEven(height));
     }
 
     private bool TryLoadImage(string path)
@@ -462,30 +524,40 @@ public sealed class BackgroundLayer
     /// <summary>清除当前背景并等待视频进程退出。</summary>
     public async Task ClearAsync()
     {
-        Interlocked.Increment(ref _refreshGeneration);
-        var cts = _refreshCts;
-        _refreshCts = null;
-        var refreshCompletion = _refreshCompletion;
+        if (_clearing) return;
+        _clearing = true;
         try
         {
-            cts?.Cancel();
-        }
-        catch
-        {
-            // ignored
-        }
-
-        if (refreshCompletion is not null)
+            var generation = Interlocked.Increment(ref _refreshGeneration);
+            var cts = _refreshCts;
+            _refreshCts = null;
+            var refreshCompletion = _refreshCompletion;
             try
             {
-                await refreshCompletion.Task.WaitAsync(TimeSpan.FromSeconds(2));
+                cts?.Cancel();
             }
             catch
             {
                 // ignored
             }
 
-        await ClearContentAsync();
+            if (refreshCompletion is not null)
+                try
+                {
+                    await refreshCompletion.Task.WaitAsync(TimeSpan.FromSeconds(2));
+                }
+                catch
+                {
+                    // ignored
+                }
+
+            if (generation != Volatile.Read(ref _refreshGeneration)) return;
+            await ClearContentAsync();
+        }
+        finally
+        {
+            _clearing = false;
+        }
     }
 
     public void RefreshColor()
@@ -631,8 +703,12 @@ public sealed class BackgroundLayer
                 MaxVideoHeight / (double)targetHeight));
         targetWidth = Math.Max(2, (int)Math.Round(targetWidth * scale));
         targetHeight = Math.Max(2, (int)Math.Round(targetHeight * scale));
-        return ((targetWidth & 1) == 0 ? targetWidth : targetWidth + 1,
-            (targetHeight & 1) == 0 ? targetHeight : targetHeight + 1);
+        return (_MakeEven(targetWidth), _MakeEven(targetHeight));
+    }
+
+    private static int _MakeEven(int value)
+    {
+        return (value & 1) == 0 ? value : value + 1;
     }
 
     private void AnimateContentIn()
@@ -658,6 +734,8 @@ public sealed class BackgroundLayer
 
     private void ApplySuitMode(int suitMode)
     {
+        var videoMode = (VideoSuitMode)Math.Clamp(suitMode, 0, 8);
+        _videoPlayer?.View.SuitMode = videoMode;
         if (_imageBrush is null || _bitmap is null) return;
 
         var brush = _imageBrush;

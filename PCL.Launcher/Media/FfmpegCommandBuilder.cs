@@ -4,22 +4,24 @@ namespace PCL.Media;
 public static class FfmpegCommandBuilder
 {
     /// <summary>构建循环输出 BGRA 原始帧的播放参数。</summary>
+    /// <remarks>输出尺寸由调用方按视频原始比例计算，适配模式由界面层处理。</remarks>
     public static IReadOnlyList<string> BuildPlaybackArguments(
         string videoPath,
         int width,
         int height,
         int fps)
     {
-        int value = Math.Max(2, width);
-        width = (value & 1) == 0 ? value : value + 1;
-        int value1 = Math.Max(2, height);
-        height = (value1 & 1) == 0 ? value1 : value1 + 1;
+        width = Math.Max(2, width);
+        if ((width & 1) != 0) width++;
+        height = Math.Max(2, height);
+        if ((height & 1) != 0) height++;
         fps = Math.Max(1, fps);
         return
         [
             "-hide_banner",
             "-loglevel", "error",
             "-nostdin",
+            "-protocol_whitelist", "file,pipe",
             "-stream_loop", "-1",
             "-re",
             "-i", videoPath,
@@ -27,7 +29,7 @@ public static class FfmpegCommandBuilder
             "-sn",
             "-dn",
             "-vf",
-            $"fps={fps},scale={width}:{height}:force_original_aspect_ratio=increase,crop={width}:{height}",
+            $"fps={fps},scale={width}:{height}",
             "-f", "rawvideo",
             "-pix_fmt", "bgra",
             "pipe:1"
