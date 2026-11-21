@@ -3187,7 +3187,7 @@
     <sys:String x:Key="Setup.Ui.Homepage.Preset.DailyModpack">[WPF] Daily Modpack Recommendation (Author: wkea)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.EchoCave">Echo Cave (removed)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.GitHub">[WPF] PCL GitHub Dashboard (Author: Deep-Dark-Forest)</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.Magazine">[WPF] Magazine Homepage (Author: Neclyon)</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.Magazine">Magazine Homepage (Author: Neclyon)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McNews">[WPF] Minecraft News (Author: Nattiden)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McOfficialFeed">Minecraft Official Feed</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McSkin">[WPF] Minecraft Skin Recommendation (Author: wkea)</sys:String>
