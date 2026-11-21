@@ -17,6 +17,7 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
     <ItemGroup>
+        <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="11.0.0" />
         <PackageReference Include="PlainToolkit.ObjectiveC" Version="0.1.1" />
         <PackageReference Include="Avalonia" Version="12.1.6" />

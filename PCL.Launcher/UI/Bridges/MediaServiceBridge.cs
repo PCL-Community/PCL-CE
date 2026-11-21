@@ -1,4 +1,5 @@
 using PCL.Core.App.Localization;
+using PCL.Core.App.Media;
 using PCL.Media;
 using PCL.Views.Shell;
 

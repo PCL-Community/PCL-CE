@@ -1,5 +1,6 @@
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
+using PCL.Core.App.Media;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Core.UI.Hints;

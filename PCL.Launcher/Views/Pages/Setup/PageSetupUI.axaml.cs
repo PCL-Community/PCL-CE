@@ -6,6 +6,7 @@ using Avalonia.VisualTree;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
+using PCL.Core.App.Media;
 using PCL.Core.App.Tools;
 using PCL.Core.Media;
 using PCL.Core.UI;

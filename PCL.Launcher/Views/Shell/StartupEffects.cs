@@ -5,11 +5,14 @@ using Avalonia.Media;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
+using PCL.Core.App.Media;
 using PCL.Core.Logging;
 using PCL.Core.Platform;
 using PCL.Core.UI.Background;
 using PCL.Core.UI.Dialogs;
+using PCL.Core.UI.Game;
 using PCL.Core.Utils.OS;
+using PCL.Navigation;
 using PCL.UI;
 using PCL.UI.Controls;
 
@@ -34,6 +37,9 @@ public sealed class StartupEffects(
         try
         {
             UiLogBridge.Install();
+            GameWatcherUiService.ShutdownButtonRefreshRequested +=
+                extraButtons.RefreshShutdownButton;
+            GameWatcherUiService.FeedbackRequested += ShowFeedbackPage;
             GameFolders.ApplySelectedFolder(States.Game.SelectedFolder);
             LauncherCommon.ModeDebug = Config.Debug.Enabled;
             PrepareWindowAnimation();
@@ -301,6 +307,11 @@ public sealed class StartupEffects(
                 Buttons = DialogButtons.AgreeDecline
             })).Button;
         Config.System.TelemetryConfig.SetValue(button == 1, forceNewValue: true);
+    }
+
+    private static void ShowFeedbackPage()
+    {
+        PageRouter.Navigate(PageIds.Setup, SubPageIds.SetupFeedback);
     }
 
     private static void OpenWebsite(string url)
