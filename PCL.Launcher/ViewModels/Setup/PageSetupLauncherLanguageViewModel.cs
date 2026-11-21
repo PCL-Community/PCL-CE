@@ -2,21 +2,63 @@ using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
 using PCL.Core.ViewModel;
 
 namespace PCL;
 
-/// <summary>设置页面中「启动器语言」页的视图模型。</summary>
 public partial class PageSetupLauncherLanguageViewModel : ViewModelBase
 {
     [ObservableProperty] private int _formatCultureIndex = -1;
 
     [ObservableProperty] private int _uiLanguageIndex = -1;
 
+    public bool IsSynchronizing { get; set; }
+
     public string AutoLanguageText =>
         Lang.Text(
             "Setup.Language.UiLanguage.Auto",
             LocalizationService.ResolveLanguage(LocalizationService.Auto).NativeName);
+
+    public event Action? ReloadRequested;
+
+    partial void OnUiLanguageIndexChanged(int value)
+    {
+        if (IsSynchronizing || value < 0) return;
+
+        var code = ResolveLanguageCode(value);
+        if (string.Equals(
+                Config.Preference.Localization.Language,
+                code,
+                StringComparison.OrdinalIgnoreCase))
+            return;
+
+        Config.Preference.Localization.Language = code;
+        HintService.Show(Hints.Success(Lang.Text("Setup.Language.Changed"), false));
+        ReloadRequested?.Invoke();
+    }
+
+    partial void OnFormatCultureIndexChanged(int value)
+    {
+        if (IsSynchronizing || value < 0) return;
+
+        var code = ResolveFormatCultureValue(value);
+        if (string.Equals(
+                Config.Preference.Localization.FormatCulture,
+                code,
+                StringComparison.OrdinalIgnoreCase))
+            return;
+
+        Config.Preference.Localization.FormatCulture = code;
+        HintService.Show(Hints.Success(Lang.Text("Setup.Language.Changed"), false));
+        ReloadRequested?.Invoke();
+    }
+
+    protected override void OnLanguageChanged()
+    {
+        Reload();
+        base.OnLanguageChanged();
+    }
 
     public static IEnumerable<CultureInfo> GetBuiltInFormatCultures()
     {
@@ -47,42 +89,15 @@ public partial class PageSetupLauncherLanguageViewModel : ViewModelBase
         }
     }
 
-    public void Reload()
+    public static int ResolveLanguageIndex(string? configValue)
     {
-        UiLanguageIndex = -1;
-        FormatCultureIndex = -1;
-        UiLanguageIndex = ResolveLanguageIndex();
-        FormatCultureIndex = ResolveFormatCultureIndex();
-    }
-
-    private static int ResolveFormatCultureIndex()
-    {
-        var configValue = NormalizeConfigValue(Config.Preference.Localization.FormatCulture);
+        var value = NormalizeConfigValue(configValue);
+        if (!LocalizationService.IsLanguageSupported(value)) return 0;
         if (string.Equals(
-                configValue,
-                LocalizationService.FormatCultureFollowLanguage,
-                StringComparison.OrdinalIgnoreCase))
-            return 1;
-        var index = 2;
-        foreach (var culture in GetBuiltInFormatCultures())
-        {
-            if (string.Equals(culture.Name, configValue, StringComparison.OrdinalIgnoreCase))
-                return index;
-            index++;
-        }
-
-        return TryGetCulture(configValue, out _) ? index : 0;
-    }
-
-    private static int ResolveLanguageIndex()
-    {
-        var configValue = NormalizeConfigValue(Config.Preference.Localization.Language);
-        if (!LocalizationService.IsLanguageSupported(configValue)) return 0;
-        if (string.Equals(
-                configValue,
+                value,
                 LocalizationService.Auto,
                 StringComparison.OrdinalIgnoreCase)) return 0;
-        var code = LocalizationService.ResolveLanguage(configValue).Code;
+        var code = LocalizationService.ResolveLanguage(value).Code;
         var index = 1;
         foreach (var language in LocalizationService.SupportedLanguages)
         {
@@ -92,5 +107,67 @@ public partial class PageSetupLauncherLanguageViewModel : ViewModelBase
         }
 
         return 0;
+    }
+
+    public static int ResolveFormatCultureIndex(string? configValue)
+    {
+        var value = NormalizeConfigValue(configValue);
+        if (string.Equals(
+                value,
+                LocalizationService.FormatCultureFollowLanguage,
+                StringComparison.OrdinalIgnoreCase))
+            return 1;
+        var index = 2;
+        foreach (var culture in GetBuiltInFormatCultures())
+        {
+            if (string.Equals(culture.Name, value, StringComparison.OrdinalIgnoreCase))
+                return index;
+            index++;
+        }
+
+        return TryGetCulture(value, out _) ? index : 0;
+    }
+
+    public void Reload()
+    {
+        var wasSynchronizing = IsSynchronizing;
+        IsSynchronizing = true;
+        try
+        {
+            UiLanguageIndex = ResolveLanguageIndex(
+                Config.Preference.Localization.Language);
+            FormatCultureIndex = ResolveFormatCultureIndex(
+                Config.Preference.Localization.FormatCulture);
+        }
+        finally
+        {
+            IsSynchronizing = wasSynchronizing;
+        }
+    }
+
+    private static string ResolveLanguageCode(int index)
+    {
+        if (index <= 0 || index > LocalizationService.SupportedLanguages.Count)
+            return LocalizationService.Auto;
+        return LocalizationService.SupportedLanguages[index - 1].Code;
+    }
+
+    private static string ResolveFormatCultureValue(int index)
+    {
+        switch (index)
+        {
+            case <= 0:
+                return LocalizationService.Auto;
+            case 1:
+                return LocalizationService.FormatCultureFollowLanguage;
+        }
+
+        var builtInIndex = index - 2;
+        foreach (var culture in GetBuiltInFormatCultures())
+            if (builtInIndex-- == 0)
+                return culture.Name;
+
+        var current = NormalizeConfigValue(Config.Preference.Localization.FormatCulture);
+        return TryGetCulture(current, out _) ? current : LocalizationService.Auto;
     }
 }
