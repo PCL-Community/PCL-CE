@@ -41,6 +41,17 @@ public enum ColorTheme
 }
 
 /// <summary>
+/// 窗口背景材质效果
+/// </summary>
+public enum BackdropMode
+{
+    Off = 0,
+    Mica = 1,
+    MicaAlt = 2,
+    Blur = 3
+}
+
+/// <summary>
 /// 更新通道
 /// </summary>
 public enum UpdateChannel

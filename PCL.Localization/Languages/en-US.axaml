@@ -3089,6 +3089,13 @@
     <sys:String x:Key="Setup.Ui.Background.Cleared">The background has been cleared!</sys:String>
     <sys:String x:Key="Setup.Ui.Background.ColorOverlay">Overlay colored background</sys:String>
     <sys:String x:Key="Setup.Ui.Background.ContentAdapt">Adaptive</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Effect">Background effect</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Effect.Off">Off</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Effect.Mica">Mica (Base)</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Effect.Mica.ToolTip">Use the Mica material as the launcher background, replacing background pictures and the colorful fill.&#xD;Automatically falls back to blur or off on unsupported systems.</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Effect.MicaAlt">Mica Alt</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Effect.MicaAlt.ToolTip">Use the stronger-tinted Mica variant (Mica Alt).&#xD;Automatically falls back to blur or off on unsupported systems.</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Effect.Blur">Blur</sys:String>
     <sys:String x:Key="Setup.Ui.Background.NoAvailableContent">No available background detected!</sys:String>
     <sys:String x:Key="Setup.Ui.Background.OpenFolder.ToolTip">Put background images in this folder. PCL CE will randomly load one each time it starts.</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Refresh">Refresh</sys:String>

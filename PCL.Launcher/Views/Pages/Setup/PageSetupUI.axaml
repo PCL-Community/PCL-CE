@@ -146,6 +146,28 @@
                        Margin="0,0,0,15"
                        Title="{Binding BackgroundTitle}">
                 <StackPanel Margin="25,40,25,20">
+                    <Grid Height="28"
+                          Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"
+                                              SharedSizeGroup="Name" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock VerticalAlignment="Center"
+                                   Margin="0,0,25,0"
+                                   Text="{loc:Loc Setup.Ui.Background.Effect}" />
+                        <ui:MyComboBox x:Name="ComboBackgroundEffect"
+                                       Grid.Column="1"
+                                       HorizontalAlignment="Stretch"
+                                       SelectedIndex="{Binding BackgroundEffectSelectedIndex, Mode=TwoWay}">
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Background.Effect.Off}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Background.Effect.Mica}"
+                                               ToolTip.Tip="{loc:Loc Setup.Ui.Background.Effect.Mica.ToolTip}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Background.Effect.MicaAlt}"
+                                               ToolTip.Tip="{loc:Loc Setup.Ui.Background.Effect.MicaAlt.ToolTip}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Background.Effect.Blur}" />
+                        </ui:MyComboBox>
+                    </Grid>
                     <Grid x:Name="PanBackgroundSuit"
                           Height="28"
                           Margin="0,0,0,10"

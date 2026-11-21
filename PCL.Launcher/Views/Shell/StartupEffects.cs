@@ -147,6 +147,8 @@ public sealed class StartupEffects(
             new ConfigObserver(ConfigEvent.Update, _ => background.ApplyPresentation()));
         Config.Preference.Background.WallpaperBlurRadiusConfig.Observe(
             new ConfigObserver(ConfigEvent.Update, _ => background.ApplyPresentation()));
+        Config.Preference.Background.BackdropEffectConfig.Observe(
+            new ConfigObserver(ConfigEvent.Update, _ => background.RefreshBackdrop()));
     }
 
     private static void WarmupLoaders()
