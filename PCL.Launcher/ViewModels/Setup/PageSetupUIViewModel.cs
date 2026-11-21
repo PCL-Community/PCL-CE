@@ -157,10 +157,10 @@ public partial class PageSetupUIViewModel : ViewModelBase
 
             BackgroundOpacity = Config.Preference.Background.WallpaperOpacity;
             BackgroundBlur = Config.Preference.Background.WallpaperBlurRadius;
-            BackgroundEffectSelectedIndex = Math.Clamp(
-                (int)Config.Preference.Background.BackdropEffect,
-                0,
-                3);
+            // 无效取值与运行时行为（视为关闭）保持一致，显示为“关闭”。
+            BackgroundEffectSelectedIndex = Enum.IsDefined(Config.Preference.Background.BackdropEffect)
+                ? (int)Config.Preference.Background.BackdropEffect
+                : (int)BackdropMode.Off;
             BackgroundSuitSelectedIndex = Math.Clamp(
                 Config.Preference.Background.WallpaperSuitMode,
                 0,

@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 
 namespace PCL.UI.Composition;
@@ -39,6 +40,7 @@ public class MaterialPresenter : Decorator
     private RectangleGeometry? _roundedClip;
     private int _attachAttempt;
     private bool _attachFramePending;
+    private DispatcherTimer? _attachTimer;
 
     static MaterialPresenter()
     {
@@ -102,6 +104,7 @@ public class MaterialPresenter : Decorator
     protected override void OnUnloaded(RoutedEventArgs e)
     {
         _attachFramePending = false;
+        _attachTimer?.Stop();
         _attachment?.Dispose();
         _attachment = null;
         SetRenderMode(MaterialRenderMode.Fallback);
@@ -113,6 +116,7 @@ public class MaterialPresenter : Decorator
         _attachment?.Dispose();
         _attachment = null;
         _attachFramePending = false;
+        _attachTimer?.Stop();
         Watch(null);
         SetRenderMode(MaterialRenderMode.Fallback);
         base.OnDetachedFromVisualTree(e);
@@ -132,9 +136,13 @@ public class MaterialPresenter : Decorator
             UpdateRoundedClip();
             _attachment?.GeometryChanged();
         }
-        else if (change.Property == IsVisibleProperty || change.Property == OpacityProperty ||
-                 change.Property == ClipToBoundsProperty)
+        else if (change.Property == IsVisibleProperty || change.Property == OpacityProperty)
         {
+            _attachment?.VisualStateChanged();
+        }
+        else if (change.Property == ClipToBoundsProperty)
+        {
+            UpdateRoundedClip();
             _attachment?.VisualStateChanged();
         }
     }
@@ -192,8 +200,22 @@ public class MaterialPresenter : Decorator
             return;
 
         _attachment = TopLevelMaterialScene.TryAttach(this);
-        if (_attachment is not null || ++_attachAttempt >= 12)
+        if (_attachment is not null)
+        {
+            _attachTimer?.Stop();
             return;
+        }
+
+        // 前 12 次逐帧重试以覆盖合成后端预热；此后改用低频定时器持续重试，
+        // 只要控件保持加载状态就不断尝试，直到附加成功或卸载。
+        if (++_attachAttempt >= 12)
+        {
+            if (_attachTimer is null)
+                _attachTimer = new DispatcherTimer(TimeSpan.FromSeconds(2), DispatcherPriority.Background,
+                    (_, _) => TryAttach());
+            _attachTimer.Start();
+            return;
+        }
 
         var topLevel = TopLevel.GetTopLevel(this);
         if (topLevel is null || _attachFramePending)
@@ -206,19 +228,28 @@ public class MaterialPresenter : Decorator
         });
     }
 
-    private sealed class MaterialWatcher(MaterialBase material, Action<AvaloniaObject?, AvaloniaProperty?> changed) : IDisposable
+    private sealed class MaterialWatcher : IDisposable
     {
+        private readonly MaterialBase _material;
+        private readonly Action<AvaloniaObject?, AvaloniaProperty?> _changed;
         private bool _disposed;
+
+        public MaterialWatcher(MaterialBase material, Action<AvaloniaObject?, AvaloniaProperty?> changed)
+        {
+            _material = material;
+            _changed = changed;
+            material.PropertyChanged += OnChanged;
+        }
 
         public void Dispose()
         {
             if (_disposed)
                 return;
             _disposed = true;
-            material.PropertyChanged -= OnChanged;
+            _material.PropertyChanged -= OnChanged;
         }
 
         private void OnChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
-            => changed(sender as AvaloniaObject, e.Property);
+            => _changed(sender as AvaloniaObject, e.Property);
     }
 }

@@ -114,7 +114,8 @@ public sealed class BackgroundLayer
     public void RefreshBackdrop()
     {
         var effect = Config.Preference.Background.BackdropEffect;
-        if (effect == BackdropMode.Off)
+        // Off 或无效的持久化取值（如损坏的配置）一律视为关闭，与设置页展示保持一致。
+        if (effect == BackdropMode.Off || !Enum.IsDefined(effect))
         {
             if (_material.Material is not null)
                 _material.Material = null;
@@ -127,7 +128,8 @@ public sealed class BackgroundLayer
         {
             BackdropMode.Mica => _micaMaterial,
             BackdropMode.MicaAlt => _micaAltMaterial,
-            _ => _blurMaterial,
+            BackdropMode.Blur => _blurMaterial,
+            _ => null,
         };
         RefreshColor();
         _surface.IsVisible = _bitmap is not null && !IsBackdropActive;

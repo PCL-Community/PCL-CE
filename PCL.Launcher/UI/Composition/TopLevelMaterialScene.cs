@@ -89,8 +89,17 @@ internal sealed class TopLevelMaterialScene : IDisposable
         var attachment = new Attachment(this, presenter, compositionVisual, serverVisual, _native.CreateSprite());
         lock (_attachments)
             _attachments.Add(attachment);
-        attachment.RefreshMaterial();
-        attachment.RefreshGeometry();
+        try
+        {
+            attachment.RefreshMaterial();
+            attachment.RefreshGeometry();
+        }
+        catch
+        {
+            // 初始化失败时回滚并释放，避免后续重试残留重复的原生视觉对象。
+            attachment.Dispose();
+            throw;
+        }
         Wake();
         return attachment;
     }

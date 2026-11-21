@@ -36,9 +36,10 @@ internal sealed class NativeMaterialSprite : IDisposable
 
     public bool Apply(MaterialBase? material)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
         lock (_owner.SyncRoot)
         {
+            if (_disposed)
+                return false;
             CompiledMaterial? compiled = null;
             try
             {
@@ -60,10 +61,10 @@ internal sealed class NativeMaterialSprite : IDisposable
 
     public void UpdateGeometry(Vector2 size, float radius)
     {
-        if (_disposed)
-            return;
         lock (_owner.SyncRoot)
         {
+            if (_disposed)
+                return;
             if (_lastSize != size)
             {
                 _setSize(_proxy, size);
@@ -97,11 +98,11 @@ internal sealed class NativeMaterialSprite : IDisposable
 
     public bool UpdateFrame(Matrix4x4 transform, float opacity, bool visible)
     {
-        if (_disposed)
-            return false;
         var changed = false;
         lock (_owner.SyncRoot)
         {
+            if (_disposed)
+                return false;
             if (!NearlyEqual(_lastTransform, transform))
             {
                 _setTransform(_proxy, transform);
@@ -135,13 +136,17 @@ internal sealed class NativeMaterialSprite : IDisposable
 
     internal void DisposeByOwner()
     {
-        if (_disposed)
-            return;
-        _disposed = true;
-        WindowCompositionContext.Release(_clip);
-        WindowCompositionContext.Release(_brush);
-        WindowCompositionContext.Release(_proxy);
-        WindowCompositionContext.Release(_raw);
+        // 与 SynchronizeOnServer 等合成器操作共用 SyncRoot 互斥，避免更新任务访问已释放的 COM 代理。
+        lock (_owner.SyncRoot)
+        {
+            if (_disposed)
+                return;
+            _disposed = true;
+            WindowCompositionContext.Release(_clip);
+            WindowCompositionContext.Release(_brush);
+            WindowCompositionContext.Release(_proxy);
+            WindowCompositionContext.Release(_raw);
+        }
     }
 
     private static bool NearlyEqual(in Matrix4x4 left, in Matrix4x4 right)
