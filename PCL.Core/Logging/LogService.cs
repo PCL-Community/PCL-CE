@@ -1,35 +1,75 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 using PCL.Core.App;
+using PCL.Core.App.Configuration;
 using PCL.Core.App.Essentials;
 using PCL.Core.App.IoC;
+using PCL.Core.App.Localization;
+using PCL.Core.Platform;
 using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
 
 namespace PCL.Core.Logging;
 
+/// <summary>
+/// The single lifecycle log service. It owns the <see cref="Logger" /> instance,
+/// bridges both logging entry points (<c>LogWrapper</c> and <c>LifecycleContext</c>) into it,
+/// forwards unhandled exceptions to telemetry, and translates <see cref="ActionLevel" />
+/// values into user-visible hints, message boxes and fatal exits. Level filtering is delegated
+/// to <see cref="Logger" /> so it can never suppress those side effects.
+/// </summary>
 [LifecycleService(LifecycleState.Loading, Priority = int.MaxValue)]
 public class LogService : ILifecycleLogService
 {
+    private static LifecycleContext? _context;
+
+    private static Logger? _logger;
+
+    private static bool _wrapperRegistered;
+
+    private static LogLevel? _explicitMinLevel;
+
+    private LogService()
+    {
+        _context = Lifecycle.GetContext(this);
+    }
+
+    private static LifecycleContext Context => _context!;
+    public static Logger Logger => _logger!;
+
+    [RegisterConfigEvent]
+    public static ConfigEventRegistry OnDebugModeChanged =>
+        new(
+            Config.Debug.EnabledConfig,
+            trigger: ConfigEvent.Init | ConfigEvent.Update,
+            handler: e => _ApplyDebugMode(e.NewValue is true));
+
     public string Identifier => "log";
     public string Name => "日志服务";
     public bool SupportAsync => false;
 
-    private static LifecycleContext? _context;
-    private static LifecycleContext Context => _context!;
-    private LogService() { _context = Lifecycle.GetContext(this); }
-
-    private static Logger? _logger;
-    public static Logger Logger => _logger!;
-
-    private static bool _wrapperRegistered = false;
-
+    /// <summary>
+    /// Creates the <see cref="Logger" /> and subscribes to <see cref="LogWrapper" />.
+    /// Runs at the highest priority in the <see cref="LifecycleState.Loading" /> phase so that
+    /// every later service is logged.
+    /// </summary>
     public Task StartAsync()
     {
         Context.Trace("正在初始化 Logger 实例");
-        var config = new LoggerConfiguration(Path.Combine(Basics.ExecutableDirectory, "PCL", "Log"));
+        var baseConfig =
+            new LoggerConfiguration(Path.Combine(Paths.Data, "Log"));
+        var initialLevel = _GetInitialMinLevel(baseConfig.MinLogLevel);
+        if (_explicitMinLevel is null && ConfigService.IsInitialized && Config.Debug.Enabled)
+            initialLevel = LogLevel.Trace;
+
+        var config = baseConfig with
+        {
+            MinLogLevel = initialLevel,
+            ConsoleOutput = _ShouldWriteToConsole()
+        };
         _logger = new Logger(config);
         Context.Trace("正在注册日志事件");
         LogWrapper.OnLog += _OnWrapperLog;
@@ -37,65 +77,187 @@ public class LogService : ILifecycleLogService
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// Detaches from <see cref="LogWrapper" /> and flushes the pending queue. The logger
+    /// swallows its own failures and bounds the wait, so this never blocks process shutdown
+    /// indefinitely.
+    /// </summary>
     public async Task StopAsync()
     {
-        if (_wrapperRegistered) LogWrapper.OnLog -= _OnWrapperLog;
+        if (_wrapperRegistered)
+            LogWrapper.OnLog -= _OnWrapperLog;
         if (_logger is not null)
             await _logger.DisposeAsync().ConfigureAwait(false);
     }
 
-    private static void _LogAction(LogLevel level, ActionLevel actionLevel, string formatted, string plain, Exception? ex)
+    /// <summary>Entry point for logs raised through a <see cref="LifecycleContext" />.</summary>
+    public void OnLog(LifecycleLogItem item)
     {
-        if (ex is not null) {
-            TelemetryService.ReportException(ex, plain, level);
-        }
-        
-        // log
-#if !TRACE
-        if (actionLevel != ActionLevel.TraceLog)
-#endif
-        Logger.Log(formatted);
+        _LogAction(item.ToLogEntry(), item.ActionLevel);
+    }
 
-        if (actionLevel <= ActionLevel.NormalLog) return;
-
-        // hint
-        if (actionLevel is ActionLevel.Hint or ActionLevel.HintErr)
+    /// <summary>读取启动参数和环境变量提供的日志级别。显式指定的级别优先于调试模式设置。</summary>
+    private static LogLevel _GetInitialMinLevel(LogLevel fallback)
+    {
+        if (Basics.CommandLineArguments.Contains("--verbose"))
         {
-            HintWrapper.Show(plain, (actionLevel == ActionLevel.Hint) ? HintTheme.Info : HintTheme.Error);
+            _explicitMinLevel = LogLevel.Trace;
+            return LogLevel.Trace;
         }
 
-        // message box
-        else if (actionLevel is ActionLevel.MsgBox or ActionLevel.MsgBoxErr)
+        var value = Environment.GetEnvironmentVariable("PCL_LOG_LEVEL");
+        if (string.IsNullOrWhiteSpace(value)) return fallback;
+
+        value = value.Trim();
+        if (value.Equals("warn", StringComparison.OrdinalIgnoreCase))
         {
-            var caption = (ex is null) ? null : "出现异常";
-            var theme = (actionLevel == ActionLevel.MsgBoxErr) ? MsgBoxTheme.Info : MsgBoxTheme.Error;
-            var message = plain;
-            if (ex is not null)
-                message += $"\n\n详细信息:\n{ex}";
-            if (actionLevel == ActionLevel.MsgBoxErr)
-                message += "\n\n若要寻求他人帮助，请勿关闭启动器并立即导出日志 (设置 → 查看日志 → 导出日志)，" +
-                           "然后发送导出的日志压缩包，只发送这个窗口的截图通常无助于解决问题。";
-            MsgBoxWrapper.Show(message, caption, theme, false);
+            _explicitMinLevel = LogLevel.Warning;
+            return LogLevel.Warning;
         }
 
-        // fatal message box
-        else if (actionLevel == ActionLevel.MsgBoxFatal)
+        if (!Enum.TryParse<LogLevel>(value, true, out var level)) return fallback;
+
+        _explicitMinLevel = level;
+        return level;
+    }
+
+    /// <summary>判断当前进程是否有可见的控制台。桌面快捷方式启动时标准输出不可见，此时只写文件。</summary>
+    private static bool _ShouldWriteToConsole()
+    {
+        if (Debugger.IsAttached) return true;
+
+        var forced = Environment.GetEnvironmentVariable("PCL_LOG_CONSOLE");
+        if (forced is not null
+            && (forced == "1" || forced.Equals("true", StringComparison.OrdinalIgnoreCase)))
+            return true;
+
+        if (Basics.CommandLineArguments.Contains("--console")) return true;
+
+        try
         {
-            var message = plain;
-            if (ex is not null) message += $"\n\n相关异常信息:\n{ex}";
-            message += "\n\n如果你认为这是启动器的问题，请提交反馈，否则它可能永远都不会被解决！\n导出日志: 设置 → 查看日志 → 导出全部日志";
-            MessageBox.Show(message, "锟斤拷烫烫烫", MessageBoxButton.OK, MessageBoxImage.Error);
+            return !Console.IsOutputRedirected;
+        }
+        catch (Exception)
+        {
+            return false;
         }
     }
 
-    private static void _OnWrapperLog(LogLevel level, string msg, string? module, Exception? ex)
+    /// <summary>调试模式开启时输出完整的 Debug/Trace 日志；显式指定的日志级别不会被覆盖。</summary>
+    private static void _ApplyDebugMode(bool enabled)
     {
-        var thread = Thread.CurrentThread.Name ?? $"#{Environment.CurrentManagedThreadId}";
-        if (module is not null) module = $"[{module}] ";
-        var result = $"[{DateTime.Now:HH:mm:ss.fff}] [{level.PrintName()}] [{thread}] {module}{msg}";
-        _LogAction(level, level.DefaultActionLevel(), (ex is null) ? result : $"{result}\n{ex}", msg, ex);
+        if (_explicitMinLevel is not null || _logger is null) return;
+        _logger.SetMinLevel(enabled ? LogLevel.Trace : _logger.Configuration.MinLogLevel);
     }
 
-    public void OnLog(LifecycleLogItem item) =>
-        _LogAction(item.Level, item.ActionLevel, item.ComposeMessage(), item.Message, item.Exception);
+    /// <summary>
+    /// Handles one log item: reports the exception to telemetry, enqueues the entry for
+    /// the file writer, then performs the action required by <paramref name="actionLevel" />. The
+    /// three steps are independent, which is what keeps
+    /// <see cref="LoggerConfiguration.MinLogLevel" /> from silencing hints, message boxes or fatal
+    /// exits.
+    /// </summary>
+    private static void _LogAction(in LogEntry entry, ActionLevel actionLevel)
+    {
+        if (entry.Exception is not null)
+            TelemetryService.ReportException(entry.Exception, entry.Message, entry.Level);
+
+        _logger?.Enqueue(entry);
+
+        var plain = entry.Message;
+        switch (actionLevel)
+        {
+            case <= ActionLevel.NormalLog:
+                return;
+
+            // hint
+            case ActionLevel.Hint or ActionLevel.HintErr:
+                HintWrapper.Show(
+                    plain,
+                    actionLevel == ActionLevel.Hint ? HintTheme.Info : HintTheme.Error);
+                break;
+
+            // message box
+            case ActionLevel.MsgBox or ActionLevel.MsgBoxErr:
+            {
+                var isWarn = actionLevel == ActionLevel.MsgBoxErr;
+                var caption = entry.Exception is null
+                    ? null
+                    : Lang.Text("SystemDialog.Error.Unexpected.Title");
+                var message = _ComposeUserError(plain, entry.Exception);
+                if (actionLevel == ActionLevel.MsgBoxErr)
+                    message = Lang.Text(
+                        "SystemDialog.Error.Message.WithLogExportGuidance",
+                        message);
+
+                DialogService.Instance.ShowNotification(
+                    new TextDialogRequest
+                    {
+                        Title = caption ?? Lang.Text("SystemDialog.Error.Unexpected.Title"),
+                        Content = message,
+                        IsWarn = isWarn
+                    });
+
+                break;
+            }
+
+            // fatal message box
+            case ActionLevel.MsgBoxFatal:
+            {
+                var message = Lang.Text(
+                    "SystemDialog.Fatal.Message.WithFeedbackGuidance",
+                    _ComposeUserError(plain, entry.Exception));
+
+                ApplicationRuntime
+                    .GetService<IFatalDialogService>()
+                    ?.ShowFatal(
+                        message,
+                        Lang.Text("SystemDialog.Fatal.Title"));
+
+                break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Builds the user-facing error text: the plain message, with the exception details
+    /// appended when one is present. Falls back to a localized generic message for an empty
+    /// message.
+    /// </summary>
+    private static string _ComposeUserError(string plain, Exception? exception)
+    {
+        var summary = string.IsNullOrWhiteSpace(plain)
+            ? Lang.Text("SystemDialog.Error.Unexpected.Message")
+            : plain;
+
+        return exception is null
+            ? summary
+            : ExceptionDetails.ComposeForDialog(summary, exception);
+    }
+
+    /// <summary>
+    /// Converts a <see cref="LogWrapper" /> callback into a <see cref="LogEntry" />. Only
+    /// field reads happen here - the module prefix, thread label and timestamp are all produced by
+    /// the consumer.
+    /// </summary>
+    private static void _OnWrapperLog(
+        LogLevel level,
+        string msg,
+        string? module,
+        Exception? ex)
+    {
+        _LogAction(
+            new LogEntry
+            {
+                Level = level,
+                Message = msg,
+                Time = DateTime.Now,
+                SourceName = module,
+                ThreadName = Thread.CurrentThread.Name,
+                ThreadId = Environment.CurrentManagedThreadId,
+                TaskId = Task.CurrentId ?? 0,
+                Exception = ex
+            },
+            level.DefaultActionLevel());
+    }
 }

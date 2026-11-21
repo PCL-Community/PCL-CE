@@ -1,0 +1,33 @@
+<!--
+    反馈与辅助控件的公共样式：控件通过 FeedbackTheme.AttachStyles 挂到自身样式表上。
+    颜色全部走 ThemeService 写入 Application.Resources 的核心 ColorBrush* 键；控件代码中已按主题解析的颜色（提示条主色、
+    Toast 背景等）不在这里重复设置，避免本地值覆盖样式。
+-->
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="using:PCL.UI.Controls">
+    <Style Selector="ui|MyHint">
+        <Setter Property="ClipToBounds"
+                Value="False" />
+        <Setter Property="MinHeight"
+                Value="32" />
+    </Style>
+    <Style Selector="ui|MyToast">
+        <Setter Property="ClipToBounds"
+                Value="False" />
+        <Setter Property="MinHeight"
+                Value="45" />
+    </Style>
+    <Style Selector="ui|MyLoading">
+        <Setter Property="ClipToBounds"
+                Value="False" />
+    </Style>
+    <Style Selector="ui|MyImage">
+        <Setter Property="Stretch"
+                Value="Uniform" />
+    </Style>
+    <Style Selector="ui|MinecraftServer">
+        <Setter Property="MinHeight"
+                Value="66" />
+    </Style>
+</Styles>

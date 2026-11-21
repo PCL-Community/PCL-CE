@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <LangVersion>15.0</LangVersion>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <AssemblyTitle>PCL.Localization</AssemblyTitle>
+        <AssemblyName>PCL.Localization</AssemblyName>
+        <Description>PCL 的中立本地化资源与目录访问</Description>
+        <Product>PCL.Localization</Product>
+        <RootNamespace>PCL.Localization</RootNamespace>
+    </PropertyGroup>
+    <ItemGroup>
+        <EmbeddedResource Include="Languages\*.axaml" />
+    </ItemGroup>
+</Project>

@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <AssemblyTitle>PCL.Platform</AssemblyTitle>
+        <AssemblyName>PCL.Platform</AssemblyName>
+        <Description>PCL CE 平台原生实现</Description>
+        <Company>PCL Community</Company>
+        <Product>PCL.Platform</Product>
+        <Copyright>Copyright © PCL Community</Copyright>
+        <RootNamespace>PCL.Platform</RootNamespace>
+        <TargetFramework>net10.0</TargetFramework>
+        <LangVersion>15.0</LangVersion>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Configurations>Debug;CI;Release;Beta</Configurations>
+        <Platforms>AnyCPU;x64;ARM64</Platforms>
+        <PlatformTarget>$(Platform)</PlatformTarget>
+        <EnableWindowsTargeting>true</EnableWindowsTargeting>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <NoWarn>$(NoWarn);CS9113</NoWarn>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="11.0.0" />
+        <PackageReference Include="PlainToolkit.ObjectiveC" Version="0.1.1" />
+        <ProjectReference Include="..\PCL.Core\PCL.Core.csproj" />
+    </ItemGroup>
+</Project>

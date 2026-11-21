@@ -1,66 +1,70 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net8.0-windows</TargetFramework>
-    <OutputType>Library</OutputType>
-    <LangVersion>14.0</LangVersion>
-    <Nullable>enable</Nullable>
-    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
-    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <Configurations>Debug;CI;Release;Beta</Configurations>
-    <Platforms>AnyCPU;x64;ARM64</Platforms>
-    <AssemblyTitle>PCL.Test</AssemblyTitle>
-    <Product>PCL.Test</Product>
-    <Copyright>Copyright © PCL Community 2025</Copyright>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
-    <EnableWindowsTargeting>true</EnableWindowsTargeting>
-    <UseWPF>true</UseWPF>
-  </PropertyGroup>
-  <PropertyGroup>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\</OutputPath>
-    <PlatformTarget>$(Platform)</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Beta' ">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'CI' ">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="fNbt" Version="1.0.0" />
-    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
-    <PackageReference Include="Microsoft.TestPlatform.AdapterUtilities" Version="18.0.1" />
-    <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="18.0.1" />
-    <PackageReference Include="MSTest.TestAdapter" Version="4.1.0" />
-    <PackageReference Include="MSTest.TestFramework" Version="4.1.0" />
-    <PackageReference Include="System.Text.Json" Version="10.0.3" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\PCL.Core\PCL.Core.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="Net\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Remove="Net\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <Page Remove="Net\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Remove="Net\**" />
-  </ItemGroup>
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <OutputType>Library</OutputType>
+        <LangVersion>15.0</LangVersion>
+        <Nullable>enable</Nullable>
+        <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+        <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+        <Configurations>Debug;CI;Release;Beta</Configurations>
+        <Platforms>AnyCPU;x64;ARM64</Platforms>
+        <AssemblyTitle>PCL.Test</AssemblyTitle>
+        <Product>PCL.Test</Product>
+        <Copyright>Copyright © PCL Community 2025</Copyright>
+        <AssemblyVersion>1.0.0.0</AssemblyVersion>
+        <FileVersion>1.0.0.0</FileVersion>
+    </PropertyGroup>
+    <PropertyGroup>
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>full</DebugType>
+        <Optimize>false</Optimize>
+        <OutputPath>bin\</OutputPath>
+        <PlatformTarget>$(Platform)</PlatformTarget>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Beta' ">
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'CI' ">
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="fNbt" Version="2.1.0" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.12.0" />
+        <PackageReference Include="MSTest.TestAdapter" Version="4.5.3" />
+        <PackageReference Include="MSTest.TestFramework" Version="4.5.3" />
+        <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\PCL.Core\PCL.Core.csproj" />
+        <ProjectReference Include="..\PCL.Core.UI\PCL.Core.UI.csproj" />
+        <ProjectReference Include="..\PCL.Platform\PCL.Platform.csproj" />
+        <ProjectReference Include="..\PCL.Launcher.Core\PCL.Launcher.Core.csproj" />
+        <ProjectReference Include="..\PCL.Launcher\PCL.Launcher.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <EmbeddedResource Include="..\PCL.Launcher\Resources\metadata.json" Link="metadata.json">
+            <LogicalName>PCL.metadata.json</LogicalName>
+        </EmbeddedResource>
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Remove="Net\**" />
+    </ItemGroup>
+    <ItemGroup>
+        <EmbeddedResource Remove="Net\**" />
+    </ItemGroup>
+    <ItemGroup>
+        <Page Remove="Net\**" />
+    </ItemGroup>
+    <ItemGroup>
+        <None Remove="Net\**" />
+    </ItemGroup>
 </Project>

@@ -1,0 +1,12 @@
+#!/bin/sh
+# AppImage 入口：注入打包运行路径，然后交给 apphost。
+set -eu
+
+HERE="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+
+export PCL_PACKAGE_KIND=appimage
+export PCL_DATA_DIR="${PCL_DATA_DIR:-$HOME/PCLCE}"
+export PCL_MINECRAFT_DIR="${PCL_MINECRAFT_DIR:-$HOME/PCLCE/.minecraft}"
+export RESOURCE_NAME="${RESOURCE_NAME:-pcl-community-edition}"
+
+exec "$HERE/usr/lib/pcl-ce/PCL.Launcher" "$@"

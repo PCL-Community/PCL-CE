@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PCL.Core.Utils.Validate;
 
 namespace PCL.Core.Test.Validate;

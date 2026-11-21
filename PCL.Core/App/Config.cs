@@ -33,10 +33,8 @@ public static partial class Config
         /// </summary>
         [ConfigItem<int>("SystemMaxLog", 13)] public partial int MaxGameLog { get; set; }
 
-        /// <summary>
-        /// 动画帧率上限。
-        /// </summary>
-        [ConfigItem<int>("UiAniFPS", 59)] public partial int AnimationFpsLimit { get; set; }
+        [ConfigItem<string>("Profile", "{\"lastUsed\":-1,\"profiles\":[]}", ConfigSource.SharedEncrypt)] public partial string Profiles { get; set; }
+
     }
 
     /// <summary>
@@ -62,6 +60,7 @@ public static partial class Config
     {
         [ConfigItem<bool>("SystemDebugMode", false)] public partial bool Enabled { get; set; }
         [ConfigItem<int>("SystemDebugAnim", 9)] public partial int AnimationSpeed { get; set; }
+        [ConfigItem<int>("SystemDebugLinuxProtocol", 0)] public partial int LinuxProtocol { get; set; }
         [ConfigItem<bool>("SystemDebugDelay", false)] public partial bool AddRandomDelay { get; set; }
         [ConfigItem<bool>("SystemDebugSkipCopy", false)] public partial bool DontCopy { get; set; }
         [ConfigItem<bool>("SystemDebugAllowRestrictedFeature", false)] public partial bool AllowRestrictedFeature { get; set; }
@@ -72,8 +71,11 @@ public static partial class Config
     /// </summary>
     [ConfigGroup("Download")] partial class DownloadConfigGroup
     {
+        // 保留原配置键，升级后仍沿用用户已设置的数值（值 + 1 为连接上限）。
         [ConfigItem<int>("ToolDownloadThread", 63)] public partial int ThreadLimit { get; set; }
+        [ConfigItem<int>("ToolDownloadFileConnection", 7)] public partial int FileConnectionLimit { get; set; }
         [ConfigItem<int>("ToolDownloadSpeed", 42)] public partial int SpeedLimit { get; set; }
+        [ConfigItem<DownloadHttpMode>("ToolDownloadHttpMode", DownloadHttpMode.Auto)] public partial DownloadHttpMode HttpMode { get; set; }
         [ConfigItem<int>("ToolDownloadSource", 1)] public partial int FileSource { get; set; }
         [ConfigItem<int>("ToolDownloadVersion", 1)] public partial int VersionListSource { get; set; }
         [ConfigItem<bool>("ToolDownloadAutoSelectVersion", true)] public partial bool AutoSelectInstance { get; set; }
@@ -86,10 +88,12 @@ public static partial class Config
         {
             [ConfigItem<int>("ToolDownloadTranslate", 0)] public partial int NameFormatV1 { get; set; }
             [ConfigItem<int>("ToolDownloadTranslateV2", 1)] public partial int NameFormatV2 { get; set; }
-            [ConfigItem<bool>("ToolDownloadIgnoreQuilt", false)] public partial bool IgnoreQuilt { get; set; }
+            [ConfigItem<bool>("ToolDownloadIgnoreQuilt", true)] public partial bool IgnoreQuilt { get; set; }
+            [ConfigItem<bool>("ToolDownloadAutoInstallDependencies", true)] public partial bool AutoInstallDependencies { get; set; }
             [ConfigItem<bool>("ToolDownloadClipboard", false)] public partial bool ReadClipboard { get; set; }
             [ConfigItem<int>("ToolDownloadMod", 1)] public partial int CompSourceSolution { get; set; }
             [ConfigItem<int>("ToolModLocalNameStyle", 0)] public partial int UiCompNameSolution { get; set; }
+            [ConfigItem<int>("ToolDownloadQuickBehavior", 0)] public partial int QuickDownloadBehavior { get; set; }
         }
     }
 
@@ -181,11 +185,6 @@ public static partial class Config
     /// </summary>
     [ConfigGroup("Preference")] partial class PreferenceConfigGroup
     {
-        /// <summary>
-        /// 启动时显示 Logo。
-        /// </summary>
-        [ConfigItem<bool>("UiLauncherLogo", true, ConfigSource.Local)] public partial bool ShowStartupLogo { get; set; }
-
         /// <summary>
         /// 锁定窗口大小。
         /// </summary>
@@ -335,32 +334,6 @@ public static partial class Config
         }
 
         /// <summary>
-        /// 高级材质。
-        /// </summary>
-        [ConfigGroup("Blur")] partial class BlurConfigGroup
-        {
-            /// <summary>
-            /// 是否启用。
-            /// </summary>
-            [ConfigItem<bool>("UiBlur", false, ConfigSource.Local)] public partial bool IsEnabled { get; set; }
-
-            /// <summary>
-            /// 模糊半径。
-            /// </summary>
-            [ConfigItem<int>("UiBlurValue", 16, ConfigSource.Local)] public partial int Radius { get; set; }
-
-            /// <summary>
-            /// 采样率。
-            /// </summary>
-            [ConfigItem<int>("UiBlurSamplingRate", 70, ConfigSource.Local)] public partial int SamplingRate { get; set; }
-
-            /// <summary>
-            /// 模糊方法。
-            /// </summary>
-            [ConfigItem<int>("UiBlurType", 0, ConfigSource.Local)] public partial int KernelType { get; set; }
-        }
-
-        /// <summary>
         /// 自定义主页。
         /// </summary>
         [ConfigGroup("Homepage")] partial class HomepageConfigGroup
@@ -373,7 +346,7 @@ public static partial class Config
             /// <summary>
             /// 预设选项。
             /// </summary>
-            [ConfigItem<int>("UiCustomPreset", 14, ConfigSource.Local)] public partial int SelectedPreset { get; set; }
+            [ConfigItem<int>("UiCustomPreset", 0, ConfigSource.Local)] public partial int SelectedPreset { get; set; }
 
             /// <summary>
             /// 自定义 URL。
@@ -443,7 +416,6 @@ public static partial class Config
 
             // 子页面 工具
             [ConfigItem<bool>("UiHiddenToolsGameLink", false, ConfigSource.Local)] public partial bool ToolsGameLink { get; set; } // 新增
-            [ConfigItem<bool>("UiHiddenToolsHelp", false, ConfigSource.Local)] public partial bool ToolsHelp { get; set; } // 新增
             [ConfigItem<bool>("UiHiddenToolsTest", false, ConfigSource.Local)] public partial bool ToolsTest { get; set; } // 新增
 
             // 子页面 实例设置
@@ -480,14 +452,19 @@ public static partial class Config
         [ConfigItem<int>("LaunchRamCustom", 15, ConfigSource.Local)] public partial int CustomMemorySize { get; set; }
 
         /// <summary>
+        /// 自定义初始堆大小（-Xms）的滑块刻度值，0 表示不主动设置。仅在手动分配模式下生效，且实际值不会超过最大堆。
+        /// </summary>
+        [ConfigItem<int>("LaunchRamCustomInitial", 0, ConfigSource.Local)] public partial int CustomInitialMemorySize { get; set; }
+
+        /// <summary>
+        /// 是否固定堆大小：启用后额外追加 -Xms 并使其等于 -Xmx，隐式禁用内存归还以降低延迟抖动、利于 ZGC。见 #3282。
+        /// </summary>
+        [ConfigItem<bool>("LaunchAdvanceLockMemory", false, ConfigSource.Local)] public partial bool LockMemory { get; set; }
+
+        /// <summary>
         /// 优先 IP 协议栈。
         /// </summary>
         [ConfigItem<JvmPreferredIpStack>("LaunchPreferredIpStack", JvmPreferredIpStack.Default)] public partial JvmPreferredIpStack PreferredIpStack { get; set; }
-
-        /// <summary>
-        /// 启动前优化内存。
-        /// </summary>
-        [ConfigItem<bool>("LaunchArgumentRam", false)] public partial bool OptimizeMemory { get; set; }
 
         /// <summary>
         /// 附加 JVM 参数。
@@ -515,9 +492,9 @@ public static partial class Config
         [ConfigItem<bool>("LaunchAdvanceDisableJLW", true, ConfigSource.Local)] public partial bool DisableJlw { get; set; }
 
         /// <summary>
-        /// 禁用 Retro Wrapper
+        /// 禁用 LegacyFix
         /// </summary>
-        [ConfigItem<bool>("LaunchAdvanceDisableRW", false, ConfigSource.Local)] public partial bool DisableRw { get; set; }
+        [ConfigItem<bool>("LaunchAdvanceDisableLF", false, ConfigSource.Local)] public partial bool DisableLF { get; set; }
 
         /// <summary>
         /// 强制使用高性能显卡。
@@ -533,7 +510,12 @@ public static partial class Config
         /// 禁用 LWJGL Unsafe Agent。
         /// </summary>
         [ConfigItem<bool>("LaunchAdvanceDisableLwjglUnsafeAgent", false)] public partial bool DisableLwjglUnsafeAgent { get; set; }
-        
+
+        /// <summary>
+        /// 禁用自动崩溃分析。
+        /// </summary>
+        [ConfigItem<bool>("LaunchAdvanceDisableCrashAnalysis", false, ConfigSource.Local)] public partial bool DisableCrashAnalysis { get; set; }
+
         /// <summary>
         /// 渲染器。
         /// </summary>
@@ -553,11 +535,6 @@ public static partial class Config
         /// 选择的默认 Java 实例。
         /// </summary>
         [ConfigItem<string>("LaunchArgumentJavaSelect", "")] public partial string SelectedJava { get; set; }
-
-        /// <summary>
-        /// 版本隔离 V1。
-        /// </summary>
-        [ConfigItem<int>("LaunchArgumentIndie", 0, ConfigSource.Local)] public partial int IndieSolutionV1 { get; set; }
 
         /// <summary>
         /// 版本隔离 V2。
@@ -614,10 +591,12 @@ public static partial class Config
         [ConfigItem<bool>("VersionAdvanceDisableJLW", false)] public partial ArgConfig<bool> DisableJlw { get; }
         [ConfigItem<bool>("VersionAdvanceDisableLwjglUnsafeAgent", false)] public partial ArgConfig<bool> DisableLwjglUnsafeAgent { get; }
         [ConfigItem<bool>("VersionAdvanceUseProxyV2", false)] public partial ArgConfig<bool> UseProxy { get; }
-        [ConfigItem<bool>("VersionAdvanceDisableRW", false)] public partial ArgConfig<bool> DisableRw { get; }
+        [ConfigItem<bool>("VersionAdvanceDisableLF", false)] public partial ArgConfig<bool> DisableLF { get; }
+        [ConfigItem<bool>("VersionAdvanceDisableModUpdate", false)] public partial ArgConfig<bool> DisableModUpdate { get; }
         [ConfigItem<bool>("VersionUseDebugLog4j2Config", false)] public partial ArgConfig<bool> UseDebugLof4j2Config { get; }
         [ConfigItem<int>("VersionRamType", 2)] public partial ArgConfig<int> MemorySolution { get; }
         [ConfigItem<int>("VersionRamCustom", 15)] public partial ArgConfig<int> CustomMemorySize { get; }
+        [ConfigItem<int>("VersionRamCustomInitial", 0)] public partial ArgConfig<int> CustomInitialMemorySize { get; }
         [ConfigItem<string>("VersionArgumentTitle", "")] public partial ArgConfig<string> Title { get; }
         [ConfigItem<bool>("VersionArgumentTitleEmpty", false)] public partial ArgConfig<bool> UseGlobalTitle { get; }
         [ConfigItem<string>("VersionArgumentInfo", "")] public partial ArgConfig<string> TypeInfo { get; }

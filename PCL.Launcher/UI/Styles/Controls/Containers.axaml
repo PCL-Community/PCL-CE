@@ -1,0 +1,33 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="using:PCL.UI.Controls">
+    <Style Selector="ui|MyCollapseBar TextBlock.CollapseTitle">
+        <Setter Property="Foreground"
+                Value="{DynamicResource ColorBrush1}" />
+    </Style>
+
+    <Style Selector="ui|MyCollapseBar Path.CollapseTriangle">
+        <Setter Property="Fill"
+                Value="{DynamicResource ColorBrush1}" />
+    </Style>
+
+    <Style Selector="ui|MyPageLeft">
+        <Setter Property="Background"
+                Value="Transparent" />
+    </Style>
+
+    <Style Selector="ui|MyPageRight">
+        <Setter Property="ClipToBounds"
+                Value="False" />
+    </Style>
+
+    <Style Selector="ui|MyScrollViewer">
+        <Setter Property="Background"
+                Value="Transparent" />
+    </Style>
+
+    <Style Selector="ui|MyScrollBar">
+        <Setter Property="MinWidth"
+                Value="8" />
+    </Style>
+</Styles>

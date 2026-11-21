@@ -1,0 +1,53 @@
+namespace PCL;
+
+/// <summary>
+///     Stable internal crash cause identifiers.
+/// </summary>
+internal enum CrashCause
+{
+    ExtractedModFile,
+    MissingMixinBootstrap,
+    OutOfMemory,
+    UsingJdk,
+    UnsupportedOpenGl,
+    UsingOpenJ9,
+    JavaTooNew,
+    JavaIncompatible,
+    InvalidModFileName,
+    PixelFormatNotSupported,
+    VeryShortOutput,
+    IntelDriverAccessViolation,
+    AmdDriverAccessViolation,
+    NvidiaDriverAccessViolation,
+    ManualDebugCrash,
+    OpenGl1282,
+    FileOrContentValidationFailed,
+    ConfirmedModCrash,
+    SuspectedModCrash,
+    ModConfigCrash,
+    ModMixinFailed,
+    ModLoaderError,
+    ModInitializationFailed,
+    StackKeywordFound,
+    StackModNameFound,
+    OptiFineWorldLoadCrash,
+    SpecificBlockCrash,
+    SpecificEntityCrash,
+    ResourcePackTooLarge,
+    NoAnalyzableFile,
+    X86JavaMemoryLimit,
+    DuplicateMods,
+    IncompatibleMods,
+    OptiFineForgeIncompatible,
+    FabricError,
+    FabricSolutionProvided,
+    ForgeError,
+    OldForgeNewJavaIncompatible,
+    MultipleForgeInInstanceJson,
+    TooManyModsIdLimit,
+    NightConfigBug,
+    ShadersModWithOptiFine,
+    IncompleteForgeInstallation,
+    ModRequiresJava11,
+    MissingDependencyOrWrongMcVersion
+}

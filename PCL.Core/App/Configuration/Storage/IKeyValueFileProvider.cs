@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.App.Configuration.Storage;
+namespace PCL.Core.App.Configuration.Storage;
 
 /// <summary>
 /// 键值文件模型。

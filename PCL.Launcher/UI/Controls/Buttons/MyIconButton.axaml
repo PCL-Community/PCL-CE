@@ -1,0 +1,31 @@
+<Border xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:svg="using:PCL.UI.Controls.SvgIcon"
+        x:Class="PCL.UI.Controls.MyIconButton">
+    <Border.Styles>
+        <StyleInclude Source="avares://PCL.Launcher/UI/Styles/Controls/MyIconButton.axaml" />
+    </Border.Styles>
+    <Grid>
+        <Border x:Name="PanBack"
+                CornerRadius="1000"
+                IsHitTestVisible="False">
+            <Grid x:Name="IconHost"
+                  Margin="5"
+                  RenderTransformOrigin="0.5,0.5">
+                <Grid.RenderTransform>
+                    <ScaleTransform />
+                </Grid.RenderTransform>
+                <Path x:Name="Path"
+                      Stretch="Uniform"
+                      RenderTransformOrigin="0.5,0.5" />
+                <svg:SvgIcon x:Name="ShapeSvgIcon"
+                             Stretch="Uniform"
+                             IsVisible="False"
+                             IconBrush="{Binding Fill, ElementName=Path}" />
+            </Grid>
+        </Border>
+        <Border x:Name="FocusRing"
+                Classes="FocusRing"
+                IsHitTestVisible="False" />
+    </Grid>
+</Border>

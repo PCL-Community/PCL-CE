@@ -1,0 +1,109 @@
+<ui:MyPageRight xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:vm="using:PCL"
+                xmlns:ui="using:PCL.UI.Controls"
+                xmlns:minecraft="using:PCL.UI.Controls.Minecraft"
+                xmlns:loc="using:PCL.Core.UI"
+                x:Class="PCL.Views.Pages.Instance.PageInstanceInstall"
+                x:DataType="vm:PageInstanceInstallViewModel"
+                x:CompileBindings="True">
+    <Grid>
+        <Grid x:Name="PanAllBack">
+            <ui:MyScrollViewer x:Name="PanBack"
+                               HorizontalScrollBarVisibility="Disabled"
+                               VerticalScrollBarVisibility="Auto">
+                <Grid x:Name="PanInner"
+                      Margin="25,10,25,75">
+                    <StackPanel x:Name="PanMinecraft"
+                                Margin="0,0,0,-10">
+                        <minecraft:MinecraftVersionListView x:Name="VersionList"
+                                                            Margin="0,15,0,0" />
+                    </StackPanel>
+
+                    <StackPanel x:Name="PanSelect"
+                                Margin="0,0,0,-10"
+                                IsVisible="False">
+                        <minecraft:MinecraftInstallWarningsView x:Name="WarningsView" />
+
+                        <ui:MyCard x:Name="CardSelect"
+                                   Margin="0,15,0,0"
+                                   UseAnimation="False">
+                            <StackPanel Margin="15,7,15,7">
+                                <ui:MyListItem x:Name="ItemSelect"
+                                               Height="42"
+                                               Margin="-7,0,0,0"
+                                               IsHitTestVisible="False"
+                                               Type="None"
+                                               Title="{Binding InstanceName}"
+                                               Info="{Binding SelectedInfo}"
+                                               Logo="{Binding VersionIcon}" />
+                            </StackPanel>
+                        </ui:MyCard>
+
+                        <!-- 与 WPF 相同：Minecraft 卡片不可折叠、没有箭头，IsSwapped 仅用于让点击触发 PreviewSwap -->
+                        <ui:MyCard x:Name="CardMinecraft"
+                                   Margin="0,15,0,0"
+                                   Height="40"
+                                   Title="{loc:Loc Common.Installation.Minecraft}"
+                                   IsSwapped="True">
+                            <Grid x:Name="PanMinecraftInfo"
+                                  Height="18"
+                                  Margin="132,11,15,0"
+                                  VerticalAlignment="Top"
+                                  ColumnDefinitions="Auto,*,Auto,Auto">
+                                <ui:MyImage x:Name="ImgMinecraft"
+                                            Height="18"
+                                            Margin="0,0,7,0"
+                                            Source="{Binding MinecraftIcon}"
+                                            Stretch="Uniform" />
+                                <TextBlock x:Name="LabMinecraft"
+                                           Grid.Column="1"
+                                           VerticalAlignment="Center"
+                                           Foreground="{DynamicResource ColorBrushGray1}"
+                                           Text="{Binding VersionName}"
+                                           TextTrimming="CharacterEllipsis" />
+                                <Path Grid.Column="2"
+                                      Width="12"
+                                      Height="12"
+                                      Margin="0,1,6,0"
+                                      VerticalAlignment="Center"
+                                      Data="M7.736 1.56a1.914 1.914 0 0 1 2.707 2.708l-.234.234l-2.707-2.707zm-.941.942L1.65 7.646a.5.5 0 0 0-.136.255l-.504 2.5a.5.5 0 0 0 .588.59l2.504-.5a.5.5 0 0 0 .255-.137l5.145-5.145z"
+                                      Fill="{DynamicResource ColorBrushGray4}"
+                                      Stretch="Uniform" />
+                                <TextBlock Grid.Column="3"
+                                           VerticalAlignment="Center"
+                                           Foreground="{DynamicResource ColorBrushGray4}"
+                                           Text="{loc:Loc Instance.Install.Action.ModifyLabel}" />
+                            </Grid>
+                        </ui:MyCard>
+
+                        <minecraft:MinecraftInstallLoaderCardsView x:Name="LoaderCardsView" />
+                    </StackPanel>
+                </Grid>
+            </ui:MyScrollViewer>
+
+            <ui:MyExtraTextButton x:Name="BtnStart"
+                                  Margin="0,0,0,25"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Bottom"
+                                  IsEnabled="{Binding CanStartInstall}"
+                                  LogoScale="0.95"
+                                  SvgIcon="lucide/download"
+                                  Text="{Binding ActionText}" />
+        </Grid>
+
+        <ui:MyCard x:Name="PanLoad"
+                   Margin="40,0"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   IsVisible="False"
+                   UseAnimation="False">
+            <ui:MyLoading x:Name="LoadMinecraft"
+                          Margin="20,20,20,17"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center"
+                          AutoRun="False"
+                          Text="{loc:Loc Download.Version.LoadingList}" />
+        </ui:MyCard>
+    </Grid>
+</ui:MyPageRight>

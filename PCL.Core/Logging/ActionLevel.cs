@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.Logging;
+namespace PCL.Core.Logging;
 
 /// <summary>
 /// 事件/意外行为等级。

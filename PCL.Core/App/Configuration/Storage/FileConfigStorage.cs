@@ -1,88 +1,160 @@
-﻿using System;
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using PCL.Core.App.IoC;
+using PCL.Core.App.Localization;
 using PCL.Core.Logging;
-using PCL.Core.UI;
+using PCL.Core.UI.Dialogs;
 
 namespace PCL.Core.App.Configuration.Storage;
 
-/// <summary>
-/// 文件存取仓库。
-/// </summary>
 public class FileConfigStorage : ConfigStorage
 {
-    /// <summary>
-    /// 键值文件实例。
-    /// </summary>
-    public IKeyValueFileProvider File { get; }
+    private const long SyncInterval = 10000;
 
-    private readonly Channel<(string, Action)> _writeActionChannel;
-    private readonly CancellationTokenSource _writeActionCts;
-    private readonly ManualResetEventSlim _writeStopEvent = new(true);
+    private readonly ConcurrentDictionary<string, Action> _pendingWrites = new();
+    private readonly TimeSpan _stopTimeout;
+    private readonly CancellationTokenSource _writeCts = new();
+    private readonly Channel<byte> _writeSignal;
+    private readonly Task _writerTask;
+    private long _lastSyncTick;
+    private int _saveFailureNotified;
+    private int _stopped;
 
     public FileConfigStorage(IKeyValueFileProvider file)
+        : this(file, TimeSpan.FromSeconds(5))
+    {
+    }
+
+    internal FileConfigStorage(IKeyValueFileProvider file, TimeSpan stopTimeout)
     {
         File = file;
-        _writeActionChannel = Channel.CreateUnbounded<(string, Action)>();
-        _writeActionCts = new CancellationTokenSource();
-        Task.Run(async () =>
+        _stopTimeout = stopTimeout;
+        _writeSignal = Channel.CreateBounded<byte>(
+            new BoundedChannelOptions(1)
+            {
+                FullMode = BoundedChannelFullMode.DropWrite,
+                SingleReader = true,
+                SingleWriter = false
+            });
+        _writerTask = Task.Run(_WriteLoopAsync);
+    }
+
+    public IKeyValueFileProvider File { get; }
+
+    private async Task _WriteLoopAsync()
+    {
+        var cancelToken = _writeCts.Token;
+        try
         {
-            _writeStopEvent.Reset();
-            const long syncInterval = 10000; // ms
-            var lastSyncTick = 0L;
-            var cancelToken = _writeActionCts.Token;
-            var writeActionMap = new Dictionary<string, Action>();
-            var reader = _writeActionChannel.Reader;
+            while (true)
+            {
+                await _writeSignal.Reader.ReadAsync(cancelToken).ConfigureAwait(false);
+                var elapsed = Environment.TickCount64 - _lastSyncTick;
+                if (elapsed < SyncInterval)
+                    await Task
+                        .Delay(
+                            TimeSpan.FromMilliseconds(SyncInterval - elapsed),
+                            cancelToken)
+                        .ConfigureAwait(false);
+                if (cancelToken.IsCancellationRequested) break;
+
+                _Flush();
+                _lastSyncTick = Environment.TickCount64;
+                if (!_pendingWrites.IsEmpty) _writeSignal.Writer.TryWrite(0);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        finally
+        {
+            _Flush();
+        }
+    }
+
+    private void _Flush()
+    {
+        var actions = new List<Action>();
+        foreach (var key in _pendingWrites.Keys)
+            if (_pendingWrites.TryRemove(key, out var action))
+                actions.Add(action);
+        if (actions.Count == 0) return;
+
+        foreach (var action in actions)
             try
             {
-                while (!cancelToken.IsCancellationRequested)
-                {
-                    // 读入并合并暂存操作
-                    var (key, action) = await reader.ReadAsync(cancelToken);
-                    writeActionMap[key] = action;
-                    if (Environment.TickCount64 - lastSyncTick < syncInterval || cancelToken.IsCancellationRequested) continue;
-                    // 同步文件
-                    Sync();
-                    lastSyncTick = Environment.TickCount64;
-                    writeActionMap.Clear();
-                }
+                action();
             }
-            catch (OperationCanceledException) { /* ignoring*/ }
-            finally
+            catch (Exception ex)
             {
-                // 结束时执行一次同步
-                Sync();
+                _ReportSaveFailure(ex);
             }
-            _writeStopEvent.Set();
-            return;
-            void Sync()
-            {
-                try
+
+        try
+        {
+            File.Sync();
+        }
+        catch (Exception ex)
+        {
+            _ReportSaveFailure(ex);
+        }
+    }
+
+    private void _ReportSaveFailure(Exception ex)
+    {
+        LogWrapper.Error(ex, "Config", $"配置文件保存失败：{File.FilePath}");
+        if (Interlocked.Exchange(ref _saveFailureNotified, 1) != 0) return;
+        if (_writeCts.IsCancellationRequested || Lifecycle.HasShutdownStarted) return;
+
+        try
+        {
+            var summary = Lang.Text("Config.Error.SaveFailed.Message", File.FilePath);
+            var message = ExceptionDetails.ComposeForDialog(summary, ex);
+            DialogService.Instance.ShowNotification(
+                new TextDialogRequest
                 {
-                    LogWrapper.Trace("Config", $"正在保存 {File.FilePath}");
-                    foreach (var action in writeActionMap.Values) action();
-                    File.Sync();
-                }
-                catch (Exception ex)
-                {
-                    LogWrapper.Error(ex, "Config", "配置文件保存失败");
-                    var hint = $"保存配置文件时出现问题，若该问题能够稳定复现，请尽快提交反馈。" +
-                               $"\n\n错误信息:\n{ex.GetType().FullName}: {ex.Message}";
-                    MsgBoxWrapper.Show(hint, "配置文件保存失败", MsgBoxTheme.Error);
-                }
-            }
-        });
+                    Title = Lang.Text("Config.Error.SaveFailed.Title"),
+                    Content = message,
+                    IsWarn = true
+                });
+        }
+        catch (Exception notifyEx)
+        {
+            LogWrapper.Warn(notifyEx, "Config", "显示配置保存失败提示时出错");
+        }
+    }
+
+    private void _QueueWrite(string key, Action action)
+    {
+        _pendingWrites[key] = action;
+        _writeSignal.Writer.TryWrite(0);
     }
 
     protected override void OnStop()
     {
-        _writeActionCts.Cancel();
-        _writeStopEvent.Wait();
-        _writeStopEvent.Dispose();
+        if (Interlocked.Exchange(ref _stopped, 1) != 0) return;
+
+        _writeCts.Cancel();
+        _writeSignal.Writer.TryWrite(0);
+        try
+        {
+            if (!_writerTask.Wait(_stopTimeout))
+                LogWrapper.Error("Config", $"停止配置写入超时：{File.FilePath}");
+            else
+                _writeCts.Dispose();
+        }
+        catch (AggregateException ex)
+        {
+            LogWrapper.Error(ex.GetBaseException(), "Config", $"停止配置写入失败：{File.FilePath}");
+        }
     }
 
     protected override bool OnAccess<TKey, TValue>(
@@ -91,30 +163,53 @@ public class FileConfigStorage : ConfigStorage
         [NotNullWhen(true)] ref TValue value,
         object? argument)
     {
-        if (key is not string strKey) throw new NotSupportedException($"Key '{key}' is not supported");
-#pragma warning disable CS8762 // Parameter must have a non-null value when exiting in some condition.
+        if (key is not string strKey)
+            throw new NotSupportedException($"Key '{key}' is not supported");
+#pragma warning disable CS8762
         switch (action)
         {
             case StorageAction.Get:
                 if (!File.Exists(strKey)) return false;
-                value = File.Get<TValue>(strKey);
+                try
+                {
+                    value = File.Get<TValue>(strKey);
+                }
+                catch (Exception ex) when (
+                    ex is JsonException
+                        or InvalidCastException
+                        or FormatException
+                        or OverflowException
+                        or ArgumentException
+                        or KeyNotFoundException
+                        or InvalidDataException)
+                {
+                    LogWrapper.Warn(ex, "Config", $"配置项 {strKey} 读取失败（可能已损坏），重置为默认值");
+                    _QueueWrite(strKey, () => File.Remove(strKey));
+                    return false;
+                }
+
                 return true;
             case StorageAction.Exists:
-                // 由于 Exists 的 value 类型一定是 bool，此处可 unsafe 直接赋值
-                if (typeof(TValue) == typeof(bool)) Unsafe.As<TValue, bool>(ref value) = File.Exists(strKey);
-                else throw new InvalidOperationException($"Storage action '{StorageAction.Exists}' must have a boolean value");
+                if (typeof(TValue) == typeof(bool))
+                    Unsafe.As<TValue, bool>(ref value) = File.Exists(strKey);
+                else
+                    throw new InvalidOperationException(
+                        $"Storage action '{StorageAction.Exists}' must have a boolean value");
                 return true;
             case StorageAction.Set:
                 var localValue = value;
-                _writeActionChannel.Writer.TryWrite((strKey, () => File.Set(strKey, localValue)));
+                _QueueWrite(strKey, () => File.Set(strKey, localValue));
                 return false;
             case StorageAction.Delete:
-                _writeActionChannel.Writer.TryWrite((strKey, () => File.Remove(strKey)));
+                _QueueWrite(strKey, () => File.Remove(strKey));
                 return false;
             default: throw new InvalidOperationException($"Invalid storage action: {action}");
         }
-#pragma warning restore CS8762 // Parameter must have a non-null value when exiting in some condition.
+#pragma warning restore CS8762
     }
 
-    public override string ToString() => $"{base.ToString()} ({File.FilePath})";
+    public override string ToString()
+    {
+        return $"{base.ToString()} ({File.FilePath})";
+    }
 }

@@ -1,4 +1,4 @@
-﻿namespace PCL.Core.Logging;
+namespace PCL.Core.Logging;
 
 public record LoggerConfiguration(
     string StoreFolder,
@@ -6,5 +6,13 @@ public record LoggerConfiguration(
     string? FileNameFormat = null,
     bool AutoDeleteOldFile = true,
     int MaxKeepOldFile = 16,
+#if TRACE
+    LogLevel MinLogLevel = LogLevel.Trace
+#else
     LogLevel MinLogLevel = LogLevel.Info
-);
+#endif
+)
+{
+    /// <summary>是否将写入文件的日志同时输出到当前进程的控制台。</summary>
+    public bool ConsoleOutput { get; init; }
+}

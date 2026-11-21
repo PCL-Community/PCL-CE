@@ -1,28 +1,26 @@
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
 using PCL.Core.App;
+using PCL.Core.App.IoC;
+using PCL.Core.App.Localization;
+using PCL.Core.Link.McPing;
 using PCL.Core.Link.Natayark;
 using PCL.Core.Link.Scaffolding;
 using PCL.Core.Link.Scaffolding.Client.Models;
 using PCL.Core.Link.Scaffolding.EasyTier;
 using PCL.Core.Logging;
-using PCL.Core.Utils;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows;
-using PCL.Core.App.IoC;
+using PCL.Core.Platform;
 using PCL.Core.UI;
-using PCL.Core.Link.McPing;
+using PCL.Core.Utils;
 
 namespace PCL.Core.Link.Lobby;
 
-/// <summary>
-/// Lobby server. For auto-management
-/// </summary>
+/// <summary>Lobby server. For auto-management</summary>
 [LifecycleService(LifecycleState.Loaded)]
 public class LobbyService() : GeneralService("lobby", "LobbyService")
 {
@@ -35,80 +33,39 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
     private static readonly Timer _ServerGameWatcher =
         new(_CheckGameState, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(15));
 
-    private static bool _isGameWatcherRunnable = false;
+    private static Action? _serverStoppedHandler;
+    private static Action<Exception?>? _serverExceptionHandler;
 
-    /// <summary>
-    /// Current lobby state.
-    /// </summary>
+    private static bool _isGameWatcherRunnable;
+    private static int _isLeaving;
+
+    /// <summary>Current lobby state.</summary>
     public static LobbyState CurrentState { get; private set; } = LobbyState.Idle;
 
 
-    /// <summary>
-    /// Founded local Minecraft worlds.
-    /// </summary>
+    /// <summary>Founded local Minecraft worlds.</summary>
     public static ObservableCollection<FoundWorld> DiscoveredWorlds { get; } = [];
 
-    /// <summary>
-    /// Current players in current lobby.
-    /// </summary>
-    public static ObservableCollection<PlayerProfile> Players { get; private set; } = [];
+    /// <summary>Current players in current lobby.</summary>
+    public static ObservableCollection<PlayerProfile> Players { get; } = [];
 
-    /// <summary>
-    /// Demonstrate whether the current user is the host of the lobby.
-    /// </summary>
+    /// <summary>Demonstrate whether the current user is the host of the lobby.</summary>
     public static bool IsHost => _LobbyController.IsHost;
 
-    /// <summary>
-    /// Current lobby full code.
-    /// </summary>
+    /// <summary>Current lobby full code.</summary>
     public static string? CurrentLobbyCode { get; private set; }
 
-    /// <summary>
-    /// Current lobby username.
-    /// </summary>
+    /// <summary>Current lobby username.</summary>
     public static string? CurrentUserName { get; private set; }
 
-    #region UI Events
-
-    /// <summary>
-    /// Invoked when lobby state changed. (first arg is the old state; second arg is the new state.)
-    /// </summary>
-    public static event Action<LobbyState, LobbyState>? StateChanged;
-
-    /// <summary>
-    /// Invoked when need to download EasyTier core files.
-    /// </summary>
-    public static event Action? OnNeedDownloadEasyTier;
-
-    /// <summary>
-    /// Invoked when user stop the game in server mode.
-    /// </summary>
-    public static event Action? OnUserStopGame;
-
-    /// <summary>
-    /// Invoked when client ping happened.
-    /// </summary>
-    public static event Action<long>? OnClientPing;
-
-    /// <summary>
-    /// Invoked when server shut down.
-    /// </summary>
-    public static event Action? OnServerShutDown;
-
-
-    /// <summary>
-    /// Invoked when server started successfully.
-    /// </summary>
-    public static event Action? OnServerStarted;
-
-    public static event Action<Exception>? OnServerException;
-
-    #endregion
+    /// <summary>当前加入者所连接主机的 EasyTier 信息；主机模式或尚未连接时为 <c>null</c>。</summary>
+    public static EasyPlayerInfo? CurrentHostInfo => _LobbyController.ScfClientEntity?.HostInfo;
 
     /// <inheritdoc />
     public override void Stop()
     {
-        _ = _LobbyController.CloseAsync();
+        _lobbyCts.Cancel();
+        _LobbyController.CloseAsync().GetAwaiter().GetResult();
         _ServerGameWatcher.Dispose();
         _lobbyCts.Dispose();
 
@@ -122,23 +79,20 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
         _discoveringCts.Dispose();
     }
 
-    private static bool _IsEasyTierCoreFileNotExist() =>
-        !File.Exists(Path.Combine(EasyTierMetadata.EasyTierFilePath, "easytier-core.exe")) &&
-        !File.Exists(Path.Combine(EasyTierMetadata.EasyTierFilePath, "Packet.dll")) &&
-        !File.Exists(Path.Combine(EasyTierMetadata.EasyTierFilePath, "easytier-cli.exe"));
+    private static bool _IsEasyTierMissing()
+    {
+        return !EasyTierMetadata.IsInstalled;
+    }
 
 
     public static async Task InitializeAsync()
     {
-        if (CurrentState is not LobbyState.Idle && CurrentState is not LobbyState.Error)
-        {
-            return;
-        }
+        if (CurrentState is not LobbyState.Idle && CurrentState is not LobbyState.Error) return;
 
         _SetState(LobbyState.Initializing);
         try
         {
-            if (_IsEasyTierCoreFileNotExist())
+            if (_IsEasyTierMissing())
             {
                 LogWrapper.Info("LobbyService", "EasyTier not found, starting download.");
                 OnNeedDownloadEasyTier?.Invoke();
@@ -153,15 +107,28 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
             if (!string.IsNullOrWhiteSpace(naidRefreshToken))
             {
                 var expTime = States.Link.NaidRefreshExpireTime;
-                if (!string.IsNullOrWhiteSpace(expTime) &&
-                    Convert.ToDateTime(expTime).CompareTo(DateTime.Now) < 0)
+                if (!string.IsNullOrWhiteSpace(expTime)
+                    && DateTime.TryParse(expTime, out var expireAt)
+                    && expireAt.CompareTo(DateTime.Now) < 0)
                 {
                     States.Link.NaidRefreshToken = string.Empty;
-                    HintWrapper.Show("Natayark ID 令牌已过期，请重新登录", HintTheme.Error);
+                    NatayarkProfileManager.ResetProfile();
+                    HintWrapper.Show(
+                        Lang.Text("Tools.GameLink.Natayark.TokenExpired"),
+                        HintTheme.Error);
                 }
                 else
                 {
-                    await NatayarkProfileManager.GetNaidDataAsync(naidRefreshToken, true).ConfigureAwait(false);
+                    try
+                    {
+                        await NatayarkProfileManager
+                            .GetNaidDataAsync(naidRefreshToken, true)
+                            .ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        LogWrapper.Warn(ex, "LobbyService", "刷新 Natayark 登录信息失败，需要重新登录");
+                    }
                 }
             }
 
@@ -173,83 +140,91 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
         catch (Exception ex)
         {
             LogWrapper.Error(ex, "LobbyService", "Lobby service initialization failed.");
-            HintWrapper.Show("大厅服务初始化失败，请检查网络连接。", HintTheme.Error);
+            HintWrapper.Show(Lang.Text("Link.Lobby.InitFailed"), HintTheme.Error);
             _SetState(LobbyState.Error);
         }
     }
 
-    /// <summary>
-    /// Discover minecraft shared world.
-    /// </summary>
+    /// <summary>Discover minecraft shared world.</summary>
     public static async Task DiscoverWorldAsync()
     {
-        if (_discoveringCts.IsCancellationRequested)
-        {
-            return;
-        }
+        if (_discoveringCts.IsCancellationRequested) return;
 
-        if (CurrentState is not LobbyState.Initialized && CurrentState is not LobbyState.Idle)
-        {
-            return;
-        }
+        if (_discoveringTask is { IsCompleted: false }) return;
+
+        if (CurrentState is not LobbyState.Initialized
+            && CurrentState is not LobbyState.Idle) return;
 
         _SetState(LobbyState.Discovering);
         await _RunInUiAsync(() => DiscoveredWorlds.Clear()).ConfigureAwait(false);
 
-        _discoveringTask = Task.Run(async () =>
-        {
-            var recordedPorts = new ConcurrentSet<int>();
-            using var listener = new BroadcastListener();
-
-            var handler = new Action<BroadcastRecord, IPEndPoint>((info, _) => Task.Run(async () =>
+        _discoveringTask = Task.Run(
+            async () =>
             {
-                if (!recordedPorts.TryAdd(info.Address.Port)) return;
+                var recordedPorts = new ConcurrentSet<int>();
+                using var listener = new BroadcastListener();
 
-                using var pinger = McPingServiceFactory.CreateService(new IPEndPoint(IPAddress.Loopback, info.Address.Port));
-                using var cts = new CancellationTokenSource(2000);
-
-                try
-                {
-                    var pingRes = await pinger.PingAsync(cts.Token).ConfigureAwait(false);
-
-                    if (pingRes is null)
+                var handler = new Action<BroadcastRecord, IPEndPoint>((info, _) =>
+                    Task.Run(async () =>
                     {
-                        throw new ArgumentNullException(nameof(pingRes), "Failed to ping minecraft entity.");
-                    }
+                        if (!recordedPorts.TryAdd(info.Address.Port)) return;
 
-                    var worldName = $"{pingRes.Description} / {pingRes.Version.Name} ({info.Address.Port})";
-                    await _RunInUiAsync(() => DiscoveredWorlds.Add(new FoundWorld(worldName, info.Address.Port)))
-                        .ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    LogWrapper.Error(ex, "LobbyService", $"Pinging port {info.Address.Port} failed.");
-                }
-            }));
+                        using var pinger = McPingServiceFactory.CreateService(
+                            new IPEndPoint(IPAddress.Loopback, info.Address.Port));
+                        using var cts = new CancellationTokenSource(2000);
 
-            listener.OnReceive += handler;
-            listener.Start();
-            await Task.Delay(TimeSpan.FromSeconds(3)).ConfigureAwait(false);
-            listener.OnReceive -= handler;
-        }, _discoveringCts.Token);
+                        try
+                        {
+                            var pingRes = await pinger.PingAsync(cts.Token).ConfigureAwait(false);
+
+                            if (pingRes is null)
+                                throw new ArgumentNullException(
+                                    nameof(pingRes),
+                                    "Failed to ping minecraft entity.");
+
+                            var worldName = Lang.Text(
+                                "Link.Lobby.WorldNameFormat",
+                                pingRes.Description,
+                                pingRes.Version.Name,
+                                info.Address.Port);
+                            await _RunInUiAsync(() =>
+                                    DiscoveredWorlds.Add(
+                                        new FoundWorld(worldName, info.Address.Port)))
+                                .ConfigureAwait(false);
+                        }
+                        catch (Exception ex)
+                        {
+                            LogWrapper.Error(
+                                ex,
+                                "LobbyService",
+                                $"Pinging port {info.Address.Port} failed.");
+                        }
+                    }));
+
+                listener.OnReceive += handler;
+                listener.Start();
+                await Task.Delay(TimeSpan.FromSeconds(3)).ConfigureAwait(false);
+                listener.OnReceive -= handler;
+            },
+            _discoveringCts.Token);
 
         _SetState(LobbyState.Initialized);
     }
 
-    private static bool _NotHaveNaid() =>
-        LobbyInfoProvider.RequiresLogin &&
-        string.IsNullOrWhiteSpace(NatayarkProfileManager.NaidProfile.AccessToken);
+    private static bool _NotHaveNaid()
+    {
+        return LobbyInfoProvider.RequiresLogin
+            && string.IsNullOrWhiteSpace(NatayarkProfileManager.NaidProfile.AccessToken);
+    }
 
-    /// <summary>
-    /// Create a new lobby.
-    /// </summary>
+    /// <summary>Create a new lobby.</summary>
     /// <param name="port">Minecraft share port.</param>
     /// <param name="username">Player name.</param>
     public static async Task<bool> CreateLobbyAsync(int port, string username)
     {
         if (_NotHaveNaid())
         {
-            HintWrapper.Show("请先登录 Natayark ID 再使用大厅！", HintTheme.Error);
+            HintWrapper.Show(Lang.Text("Link.Lobby.LoginRequired"), HintTheme.Error);
             return false;
         }
 
@@ -260,25 +235,25 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
         {
             CurrentUserName = username;
 
-            var serverEntity = await _LobbyController.LaunchServerAsync(username, port).ConfigureAwait(false);
+            var serverEntity = await _LobbyController
+                .LaunchServerAsync(username, port)
+                .ConfigureAwait(false);
             if (serverEntity is null)
             {
-                HintWrapper.Show("在创建房间的时候遇到了问题，请查看日志并将此问题反馈给开发者！", HintTheme.Error);
+                HintWrapper.Show(Lang.Text("Link.Lobby.CreateRoomFailed"), HintTheme.Error);
                 return false;
             }
 
             CurrentLobbyCode = serverEntity.EasyTier.Lobby.FullCode;
 
-            serverEntity.Server.ServerStopped += () => OnServerShutDown?.Invoke();
+            var stoppedHandler = () => OnServerShutDown?.Invoke();
+            var exceptionHandler = _ServerOnServerException;
+            _serverStoppedHandler = stoppedHandler;
+            _serverExceptionHandler = exceptionHandler;
+            serverEntity.Server.ServerStopped += stoppedHandler;
             serverEntity.Server.PlayerProfilePing += _ServerOnPlayerPing;
             serverEntity.Server.ServerStarted += _ServerOnServerStarted;
-            serverEntity.Server.ServerException += _ServerOnServerException;
-            //serverEntity.EasyTier.EasyTierProcessExisted += () =>
-            //{
-            //    OnHint?.Invoke("EasyTierCore异常退出", CoreHintType.Critical);
-            //    OnServerShutDown?.Invoke();
-            //}; this code will be invoked when EasyTier process successfully exited, not in failed state.
-
+            serverEntity.Server.ServerException += exceptionHandler;
             serverEntity.Server.Start();
 
             _SetState(LobbyState.Connected);
@@ -287,7 +262,7 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
         catch (Exception ex)
         {
             LogWrapper.Error(ex, "LobbyService", "Failed to create lobby.");
-            HintWrapper.Show("创建大厅失败，请检查日志或向开发者反馈。", HintTheme.Error);
+            HintWrapper.Show(Lang.Text("Link.Lobby.CreateLobbyFailed"), HintTheme.Error);
             await LeaveLobbyAsync().ConfigureAwait(false);
 
             return false;
@@ -298,10 +273,7 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
 
     private static void _ServerOnServerException(Exception? ex)
     {
-        if (ex is null)
-        {
-            return;
-        }
+        if (ex is null) return;
 
         OnServerException?.Invoke(ex);
     }
@@ -319,7 +291,7 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
         {
             var currentMachineIds = new HashSet<string>(Players.Select(p => p.MachineId));
             var newMachineIds = new HashSet<string>(players.Select(p => p.MachineId));
-            
+
             if (currentMachineIds.SetEquals(newMachineIds))
             {
                 LogWrapper.Debug("Player list has not changed");
@@ -331,30 +303,24 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
             var sortedNewPlayers = PlayerListHandler.Sort(players);
 
             var idsToRemove = currentMachineIds.Except(newMachineIds).ToList();
-            if (idsToRemove.Any())
+            if (idsToRemove.Count != 0)
             {
-                var playersToRemove = Players.Where(p => idsToRemove.Contains(p.MachineId)).ToList();
-                foreach (var player in playersToRemove)
-                {
-                    Players.Remove(player);
-                }
+                var playersToRemove =
+                    Players.Where(p => idsToRemove.Contains(p.MachineId)).ToList();
+                foreach (var player in playersToRemove) Players.Remove(player);
             }
 
             var idsToAdd = newMachineIds.Except(currentMachineIds).ToList();
-            if (idsToAdd.Any())
+            if (idsToAdd.Count != 0)
             {
-                var playersToAdd = sortedNewPlayers.Where(p => idsToAdd.Contains(p.MachineId)).ToList();
-                foreach (var player in playersToAdd)
-                {
-                    Players.Add(player);
-                }
+                var playersToAdd =
+                    sortedNewPlayers.Where(p => idsToAdd.Contains(p.MachineId)).ToList();
+                foreach (var player in playersToAdd) Players.Add(player);
             }
         });
     }
 
-    /// <summary>
-    /// Join an exist lobby.
-    /// </summary>
+    /// <summary>Join an exist lobby.</summary>
     /// <param name="lobbyCode">Lobby share code.</param>
     /// <param name="username">Current use name.</param>
     public static async Task<bool> JoinLobbyAsync(string lobbyCode, string username)
@@ -370,13 +336,13 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
             CurrentUserName = username;
             CurrentLobbyCode = lobbyCode;
 
-            var clientEntity = await _LobbyController.LaunchClientAsync(username, lobbyCode).ConfigureAwait(false);
+            var clientEntity = await _LobbyController
+                .LaunchClientAsync(username, lobbyCode, _lobbyCts.Token)
+                .ConfigureAwait(false);
 
             if (clientEntity is null)
-            {
                 throw new InvalidOperationException(
-                    "加入大厅失败，可能是大厅不存在或已被解散");
-            }
+                    Lang.Text("Link.Lobby.JoinFailed"));
 
             clientEntity.Client.Heartbeat += _ClientOnHeartbeat;
             clientEntity.Client.ServerShuttedDown += _ClientOnServerShutDown;
@@ -386,9 +352,13 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
         catch (ArgumentException codeEx)
         {
             LogWrapper.Error(codeEx, "LobbyService", $"Failed to join lobby {lobbyCode}.");
-            HintWrapper.Show("大厅编号格式不正确，请检查后再试！", HintTheme.Error);
+            HintWrapper.Show(Lang.Text("Link.Lobby.InvalidCodeFormat"), HintTheme.Error);
             await LeaveLobbyAsync().ConfigureAwait(false);
 
+            return false;
+        }
+        catch (OperationCanceledException)
+        {
             return false;
         }
         catch (Exception ex)
@@ -406,8 +376,6 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
     private static void _ClientOnServerShutDown()
     {
         OnServerShutDown?.Invoke();
-
-        _ = LeaveLobbyAsync();
     }
 
     private static void _ClientOnHeartbeat(IReadOnlyList<PlayerProfile> players, long latency)
@@ -417,33 +385,26 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
             var currentMachineIds = new HashSet<string>(Players.Select(p => p.MachineId));
             var newMachineIds = new HashSet<string>(players.Select(p => p.MachineId));
 
-            if (currentMachineIds.SetEquals(newMachineIds))
-            {
-                return; // nothing was changed
-            }
+            if (currentMachineIds.SetEquals(newMachineIds)) return; // nothing was changed
 
             LogWrapper.Debug("LobbyService", "Player list membership has changed, updating UI.");
 
             var sortedNewPlayers = PlayerListHandler.Sort(players);
 
             var idsToRemove = currentMachineIds.Except(newMachineIds).ToList();
-            if (idsToRemove.Any())
+            if (idsToRemove.Count != 0)
             {
-                var playersToRemove = Players.Where(p => idsToRemove.Contains(p.MachineId)).ToList();
-                foreach (var player in playersToRemove)
-                {
-                    Players.Remove(player);
-                }
+                var playersToRemove =
+                    Players.Where(p => idsToRemove.Contains(p.MachineId)).ToList();
+                foreach (var player in playersToRemove) Players.Remove(player);
             }
 
             var idsToAdd = newMachineIds.Except(currentMachineIds).ToList();
-            if (idsToAdd.Any())
+            if (idsToAdd.Count != 0)
             {
-                var playersToAdd = sortedNewPlayers.Where(p => idsToAdd.Contains(p.MachineId)).ToList();
-                foreach (var player in playersToAdd)
-                {
-                    Players.Add(player);
-                }
+                var playersToAdd =
+                    sortedNewPlayers.Where(p => idsToAdd.Contains(p.MachineId)).ToList();
+                foreach (var player in playersToAdd) Players.Add(player);
             }
 
             OnClientPing?.Invoke(latency);
@@ -451,15 +412,16 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
     }
 
 
-    /// <summary>
-    /// Leave from lobby.
-    /// </summary>
+    /// <summary>Leave from lobby.</summary>
     public static async Task LeaveLobbyAsync()
     {
-        _SetState(LobbyState.Leaving);
+        if (Interlocked.Exchange(ref _isLeaving, 1) == 1)
+            return;
 
         try
         {
+            _SetState(LobbyState.Leaving);
+
             await _lobbyCts.CancelAsync().ConfigureAwait(false);
 
             Players.Clear();
@@ -469,13 +431,24 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
             if (_LobbyController.ScfClientEntity?.Client is not null)
             {
                 _LobbyController.ScfClientEntity.Client.Heartbeat -= _ClientOnHeartbeat;
+                _LobbyController.ScfClientEntity.Client.ServerShuttedDown -=
+                    _ClientOnServerShutDown;
             }
 
-            if (_LobbyController.ScfServerEntity?.Server is not null)
+            if (_LobbyController.ScfServerEntity?.Server is { } server)
             {
-                _LobbyController.ScfServerEntity.Server.PlayerProfilePing -= _ServerOnPlayerPing;
-                _LobbyController.ScfServerEntity.Server.ServerStarted -= _ServerOnServerStarted;
+                server.PlayerProfilePing -= _ServerOnPlayerPing;
+                server.ServerStarted -= _ServerOnServerStarted;
+                var stoppedHandler = _serverStoppedHandler;
+                var exceptionHandler = _serverExceptionHandler;
+                if (stoppedHandler is not null)
+                    server.ServerStopped -= stoppedHandler;
+                if (exceptionHandler is not null)
+                    server.ServerException -= exceptionHandler;
             }
+
+            _serverStoppedHandler = null;
+            _serverExceptionHandler = null;
 
             await _LobbyController.CloseAsync().ConfigureAwait(false);
 
@@ -487,22 +460,36 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
 
             _isGameWatcherRunnable = false;
 
+            _discoveringTask = null;
             _discoveringCts = new CancellationTokenSource();
             _ = DiscoverWorldAsync();
         }
         catch (Exception ex)
         {
             LogWrapper.Error(ex, "LobbyService", "Failed when leave lobby.");
+
+            _lobbyCts = new CancellationTokenSource();
+            _discoveringTask = null;
+            _discoveringCts = new CancellationTokenSource();
+            _serverStoppedHandler = null;
+            _serverExceptionHandler = null;
+            _isGameWatcherRunnable = false;
+            Players.Clear();
+            CurrentLobbyCode = null;
+            CurrentUserName = null;
+            _SetState(LobbyState.Initialized);
+            throw;
+        }
+        finally
+        {
+            _isLeaving = 0;
         }
     }
 
     private static void _SetState(LobbyState newState)
     {
         var oldState = CurrentState;
-        if (oldState == newState)
-        {
-            return;
-        }
+        if (oldState == newState) return;
 
         CurrentState = newState;
 
@@ -513,18 +500,13 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
 
     private static void _CheckGameState(object? state)
     {
-        if (!_isGameWatcherRunnable)
-        {
-            return;
-        }
+        if (!_isGameWatcherRunnable) return;
 
-        if (_LobbyController.ScfServerEntity is null)
-        {
-            return;
-        }
+        if (_LobbyController.ScfServerEntity is null) return;
 
-        LobbyController.IsHostInstanceAvailableAsync(_LobbyController.ScfServerEntity.EasyTier.MinecraftPort)
-            .ContinueWith(async (task) =>
+        LobbyController
+            .IsHostInstanceAvailableAsync(_LobbyController.ScfServerEntity.EasyTier.MinecraftPort)
+            .ContinueWith(async task =>
             {
                 var isExist = await task.ConfigureAwait(false);
                 if (!isExist)
@@ -537,13 +519,40 @@ public class LobbyService() : GeneralService("lobby", "LobbyService")
 
     private static async Task _RunInUiAsync(Action action)
     {
-        await Application.Current.Dispatcher.InvokeAsync(action);
+        if (ApplicationRuntime.GetService<IUiDispatcher>() is { } dispatcher)
+            await dispatcher.InvokeAsync(action);
     }
+
+    #region UI Events
+
+    /// <summary>
+    /// Invoked when lobby state changed. (first arg is the old state; second arg is the
+    /// new state.)
+    /// </summary>
+    public static event Action<LobbyState, LobbyState>? StateChanged;
+
+    /// <summary>Invoked when need to download EasyTier core files.</summary>
+    public static event Action? OnNeedDownloadEasyTier;
+
+    /// <summary>Invoked when user stop the game in server mode.</summary>
+    public static event Action? OnUserStopGame;
+
+    /// <summary>Invoked when client ping happened.</summary>
+    public static event Action<long>? OnClientPing;
+
+    /// <summary>Invoked when server shut down.</summary>
+    public static event Action? OnServerShutDown;
+
+
+    /// <summary>Invoked when server started successfully.</summary>
+    public static event Action? OnServerStarted;
+
+    public static event Action<Exception>? OnServerException;
+
+    #endregion
 }
 
-/// <summary>
-/// Founded minecraft world information.
-/// </summary>
+/// <summary>Founded minecraft world information.</summary>
 /// <param name="Name">World name.</param>
 /// <param name="Port">World share port.</param>
 public record FoundWorld(string Name, int Port);

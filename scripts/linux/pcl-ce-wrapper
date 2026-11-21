@@ -1,0 +1,11 @@
+#!/bin/sh
+# PCL CE 系统包启动器：只负责注入打包运行路径，不重复实现 .NET 运行时检查。
+set -eu
+
+PACKAGE_KIND="$(cat /opt/pcl-ce/.package-kind 2>/dev/null || echo deb)"
+export PCL_PACKAGE_KIND="$PACKAGE_KIND"
+export PCL_DATA_DIR="${PCL_DATA_DIR:-$HOME/PCLCE}"
+export PCL_MINECRAFT_DIR="${PCL_MINECRAFT_DIR:-$HOME/PCLCE/.minecraft}"
+export RESOURCE_NAME="${RESOURCE_NAME:-pcl-community-edition}"
+
+exec /opt/pcl-ce/PCL.Launcher "$@"

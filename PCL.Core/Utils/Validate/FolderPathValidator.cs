@@ -1,66 +1,74 @@
-﻿using System;
+using System;
 using System.IO;
 using FluentValidation;
 using FluentValidation.Results;
+using PCL.Core.App.Localization;
 using PCL.Core.Utils.Exts;
 
 namespace PCL.Core.Utils.Validate;
 
 public class FolderPathValidator(bool useMinecraftCharCheck) : FileSystemValidator
 {
-    public bool UseMinecraftCharCheck { get; set; } = useMinecraftCharCheck;
-
     public FolderPathValidator() : this(true)
     {
     }
 
-    private void BuildRules()
+    public bool UseMinecraftCharCheck { get; set; } = useMinecraftCharCheck;
+
+    private void _BuildRules()
     {
         RuleFor(x => x)
-            .NotEmpty().WithMessage("输入内容不能为空！")
-            .Must(x => !x.EndsWith(' ')).WithMessage("文件夹名不能以空格结尾！")
-            .Must(x => !x.EndsWith('.')).WithMessage("文件夹名不能以小数点结尾！");
+            .NotEmpty()
+            .WithMessage(_ => Lang.Text("Common.Validate.Empty"))
+            .Must(x => !x.EndsWith(' '))
+            .WithMessage(_ => Lang.Text("Common.Validate.FolderName.EndsWithSpace"))
+            .Must(x => !x.EndsWith('.'))
+            .WithMessage(_ => Lang.Text("Common.Validate.FolderName.EndsWithDot"));
 
-        RuleForEach(x => GetSubPaths(x))
-            .Must(x => !string.IsNullOrWhiteSpace(x)).WithMessage("文件夹路径存在错误！")
-            .Must(x => !x.StartsWith(' ')).WithMessage("文件夹名不能以空格开头！")
-            .Must(x => !x.EndsWith(' ')).WithMessage("文件夹名不能以空格结尾！")
-            .Must(x => !x.EndsWith('.')).WithMessage("文件夹名不能以小数点结尾！")
-            .Custom((fileName, context) => 
+        RuleForEach(x => _GetSubPaths(x))
+            .Must(x => !string.IsNullOrWhiteSpace(x))
+            .WithMessage(_ => Lang.Text("Common.Validate.FolderPath.Malformed"))
+            .Must(x => !x.StartsWith(' '))
+            .WithMessage(_ => Lang.Text("Common.Validate.FolderName.StartsWithSpace"))
+            .Must(x => !x.EndsWith(' '))
+            .WithMessage(_ => Lang.Text("Common.Validate.FolderName.EndsWithSpace"))
+            .Must(x => !x.EndsWith('.'))
+            .WithMessage(_ => Lang.Text("Common.Validate.FolderName.EndsWithDot"))
+            .Custom((fileName, context) =>
             {
-                var invalidChar = CheckInvalidStrings(fileName, UseMinecraftCharCheck ? ["!;"] : []);
+                var invalidChar = CheckInvalidStrings(
+                    fileName,
+                    UseMinecraftCharCheck ? ["!;"] : []);
                 if (invalidChar is not null)
-                {
-                    context.AddFailure($"文件夹名不可包含 {invalidChar} 字符！");
-                }
+                    context.AddFailure(
+                        Lang.Text("Common.Validate.FolderName.InvalidChar", invalidChar));
             })
-            .Custom((fileName, context) => 
+            .Custom((fileName, context) =>
             {
                 var reservedWord = CheckReservedWord(fileName, []);
                 if (reservedWord is not null)
-                {
-                    context.AddFailure($"文件夹名不可为 {reservedWord}！");
-                }
+                    context.AddFailure(
+                        Lang.Text("Common.Validate.FolderName.ReservedWord", reservedWord));
             })
-            .Must(x => !x.IsMatch(RegexPatterns.Ntfs83FileName)).WithMessage("文件夹名不能包含这一特殊格式！")
+            .Must(x => !x.IsMatch(RegexPatterns.Ntfs83FileName))
+            .WithMessage(_ => Lang.Text("Common.Validate.FolderName.SpecialFormat"))
             .OverridePropertyName("PathSegments");
     }
-    
+
     protected override bool PreValidate(ValidationContext<string> context, ValidationResult result)
     {
-        BuildRules();
+        _BuildRules();
         return base.PreValidate(context, result);
     }
-    
-    private static string[] GetSubPaths(string path)
+
+    private static string[] _GetSubPaths(string path)
     {
-        if (string.IsNullOrWhiteSpace(path))
-        {
-            return [];
-        }
-        
-        var fullPath = new DirectoryInfo(path).FullName;
-        return fullPath[Path.GetPathRoot(fullPath)!.Length..]
+        if (string.IsNullOrWhiteSpace(path)) return [];
+
+        var normalized = path.Replace('\\', '/').Replace('/', Path.DirectorySeparatorChar);
+        if (normalized.Length >= 2 && char.IsLetter(normalized[0]) && normalized[1] == ':')
+            normalized = normalized[2..];
+        return normalized
             .TrimEnd(Path.DirectorySeparatorChar)
             .Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries);
     }

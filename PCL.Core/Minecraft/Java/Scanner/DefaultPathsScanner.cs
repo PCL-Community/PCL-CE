@@ -1,28 +1,26 @@
-﻿using PCL.Core.App;
-using PCL.Core.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using PCL.Core.App;
+using PCL.Core.Logging;
 
 namespace PCL.Core.Minecraft.Java.Scanner;
 
 public class DefaultPathsScanner : IJavaScanner
 {
-    private const int MaxSearchDepth = 8;
+    private const int MaxSearchDepth = 6;
 
     public void Scan(ICollection<string> results)
     {
         try
         {
             var searchRoots = _GetSearchRoots();
-            LogWrapper.Info($"[Java] 对下列目录进行广度关键词搜索:{Environment.NewLine}{string.Join(Environment.NewLine, searchRoots)}");
+            LogWrapper.Info(
+                $"[Java] 对下列目录进行广度关键词搜索:{Environment.NewLine}{string.Join(Environment.NewLine, searchRoots)}");
 
-            foreach (var root in searchRoots)
-            {
-                _BfsSearch(root, results);
-            }
+            foreach (var root in searchRoots) _BfsSearch(root, results);
         }
         catch (Exception ex)
         {
@@ -34,44 +32,57 @@ public class DefaultPathsScanner : IJavaScanner
     {
         var roots = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                ".minecraft",
+                "runtime"),
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-            Path.Combine(Basics.ExecutableDirectory, "PCL")
+            Paths.Data
         };
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            var keyFolders = new[] { "Program Files", "Program Files (x86)" };
-            var drives = DriveInfo.GetDrives()
+            var keyFolders = new[]
+            {
+                "Program Files",
+                "Program Files (x86)"
+            };
+            var drives = DriveInfo
+                .GetDrives()
                 .Where(d => d.DriveType.Equals(DriveType.Fixed) && d.IsReady)
                 .Select(d => d.Name);
 
             foreach (var drive in drives)
             {
-                foreach (var folder in keyFolders)
-                {
-                    roots.Add(Path.Combine(drive, folder));
-                }
+                foreach (var folder in keyFolders) roots.Add(Path.Combine(drive, folder));
 
                 // 根目录关键词搜索
                 try
                 {
-                    var rootDirs = Directory.EnumerateDirectories(drive)
+                    var rootDirs = Directory
+                        .EnumerateDirectories(drive)
                         .Where(dir => JavaConsts.MostPossibleKeywords.Any(k =>
                             Path.GetFileName(dir).Contains(k, StringComparison.OrdinalIgnoreCase)));
 
                     foreach (var dir in rootDirs)
                         roots.Add(dir);
                 }
-                catch (UnauthorizedAccessException) { /* 忽略无权限目录 */ }
-                catch (IOException) { /* 忽略IO错误 */ }
+                catch (UnauthorizedAccessException)
+                {
+                    /* 忽略无权限目录 */
+                }
+                catch (IOException)
+                {
+                    /* 忽略IO错误 */
+                }
             }
         }
         else
         {
             var programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-            var programFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+            var programFilesX86 =
+                Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
 
             if (!string.IsNullOrEmpty(programFiles) && Directory.Exists(programFiles))
                 roots.Add(programFiles);
@@ -96,26 +107,22 @@ public class DefaultPathsScanner : IJavaScanner
 
             try
             {
-                // 深度0时只遍历含关键词的目录
-                var dirsToScan = depth == 0
-                    ? Directory.EnumerateDirectories(current)
-                        .Where(dir => _ShouldScanDirectory(dir))
-                    : Directory.EnumerateDirectories(current);
-
-                foreach (var dir in dirsToScan)
+                foreach (var subDir in Directory.EnumerateDirectories(current))
                 {
-                    var javaExe = Path.Combine(dir, "java.exe");
+                    var javaExe = JavaExecutableLayout.GetJavaExePath(subDir);
                     if (File.Exists(javaExe))
                     {
                         results.Add(javaExe);
+                        continue;
                     }
-                    else
-                    {
-                        queue.Enqueue((dir, depth + 1));
-                    }
+
+                    if (_ShouldExploreDeeper(subDir))
+                        queue.Enqueue((subDir, depth + 1));
                 }
             }
-            catch (Exception ex) when (ex is UnauthorizedAccessException or IOException or DirectoryNotFoundException)
+            catch (Exception ex) when (ex is UnauthorizedAccessException
+                                           or IOException
+                                           or DirectoryNotFoundException)
             {
                 LogWrapper.Debug($"跳过目录 {current}: {ex.Message}");
             }
@@ -126,12 +133,32 @@ public class DefaultPathsScanner : IJavaScanner
         }
     }
 
-    private static bool _ShouldScanDirectory(string path)
+    private static bool _ShouldExploreDeeper(string path)
     {
-        var name = Path.GetFileName(path);
-        if (JavaConsts.ExcludeFolderNames.Any(ex => name.Contains(ex, StringComparison.OrdinalIgnoreCase)))
+        var name = Path.GetFileName(path).AsSpan();
+
+        foreach (var ex in JavaConsts.ExcludeFolderNames)
+            if (name.Contains(ex, StringComparison.OrdinalIgnoreCase))
+                return false;
+
+        foreach (var kw in JavaConsts.AllKeywords)
+            if (name.Contains(kw, StringComparison.OrdinalIgnoreCase))
+                return true;
+
+        return _IsVersionLikeDirectory(name);
+    }
+
+    private static bool _IsVersionLikeDirectory(ReadOnlySpan<char> name)
+    {
+        if (name.IsEmpty || name.Length > 20)
             return false;
 
-        return JavaConsts.AllKeyworkds.Any(k => name.Contains(k, StringComparison.OrdinalIgnoreCase));
+        var hasDigit = false;
+        foreach (var c in name)
+            if (char.IsDigit(c))
+                hasDigit = true;
+            else if (c != '.' && c != '_' && c != '-') return false;
+
+        return hasDigit;
     }
 }

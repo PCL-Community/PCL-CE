@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 namespace PCL.Core.App.IoC;
 
@@ -15,6 +15,12 @@ public sealed partial class Lifecycle : ILifecycleService
     private static LifecycleContext? _context;
     private Lifecycle() { _context = GetContext(this); }
     private static LifecycleContext Context => _context ?? SystemContext;
+
+    /// <summary>请求在正常退出流程结束后以指定参数重启当前程序。</summary>
+    public static void RequestRestartOnExit(string? arguments = null)
+    {
+        Context.RequestRestartOnExit(arguments);
+    }
 
     public Task StartAsync() => Task.CompletedTask;
 

@@ -1,11 +1,14 @@
 blank_issues_enabled: false
 contact_links:
-  - name: 主页预设反馈
-    url: https://github.com/Meloong-Git/PCL2/discussions/categories/自定义主页
-    about: 提交与预设的主页（设置 → 个性化 → 主页预设）中的具体内容相关的反馈
-  - name: 帮助文档反馈
-    url: https://github.com/PCL-Community/PCL2CEHelp/issues
-    about: 提交与 PCL CE 帮助文档（更多 → 帮助）中的具体内容相关的反馈
-  - name: 提问 / 讨论
-    url: https://github.com/PCL-Community/PCL2-CE/discussions/new
-    about: 想问问或谈谈关于社区版的事情...
+  - name: "不再受理新功能请求 / Feature Requests Are No Longer Accepted"
+    url: "https://github.com/PCL-Community/PCL-CE/issues/new/choose"
+    about: "随着 2.15.x 发布，PCL CE 即将进入维护阶段，不再新增大型功能，后续更新集中在优化与 Bug 修复。/ With 2.15.x, PCL CE is entering maintenance and will no longer add large features; updates will focus on improvements and bug fixes."
+  - name: "主页预设反馈 / Homepage Preset Feedback"
+    url: https://github.com/Meloong-Git/PCL/discussions/categories/自定义主页
+    about: "提交与预设的主页（设置 → 个性化 → 主页预设）中的具体内容相关的反馈 / Submit feedback about specific content in homepage presets (Settings → Personalization → Homepage Presets)."
+  - name: "帮助文档反馈 / Help Documentation Feedback"
+    url: https://github.com/PCL-Community/docs.pclc.cc/issues
+    about: "提交与 PCL CE 帮助文档（独立文档站）中的具体内容相关的反馈 / Submit feedback about specific content in the PCL CE help documentation on the standalone documentation site."
+  - name: "提问 / 讨论 / Questions / Discussions"
+    url: https://github.com/PCL-Community/PCL-CE/discussions/new
+    about: "想问问或谈谈关于社区版的事情 / Ask questions or discuss topics about the Community Edition."

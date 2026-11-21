@@ -1,0 +1,90 @@
+<Grid xmlns="https://github.com/avaloniaui"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      x:Class="PCL.UI.Controls.MyListItem"
+      Height="42"
+      Background="{DynamicResource ColorBrushSemiTransparent}"
+      ClipToBounds="False"
+      RenderTransformOrigin="0.5,0.5">
+    <Grid x:Name="PanBackElement"
+          Background="Transparent"
+          RenderTransformOrigin="0.5,0.5">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2" />
+            <ColumnDefinition Width="0" />
+            <ColumnDefinition Width="4" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="4" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Border x:Name="RectBackElement"
+                Grid.ColumnSpan="99"
+                Grid.RowSpan="99"
+                Background="{DynamicResource ColorBrush7}"
+                BorderBrush="{DynamicResource ColorBrush6}"
+                BorderThickness="1"
+                Classes="ListItemBack"
+                CornerRadius="6"
+                IsHitTestVisible="False"
+                Opacity="0" />
+
+        <Border x:Name="RectCheckElement"
+                Grid.Column="0"
+                Grid.RowSpan="4"
+                Width="5"
+                Height="0"
+                Margin="-1,0,0,0"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                Background="{DynamicResource ColorBrush3}"
+                Classes="ListItemCheck"
+                CornerRadius="2"
+                IsHitTestVisible="False"
+                IsVisible="False"
+                Opacity="0" />
+
+        <TextBlock x:Name="LabTitleElement"
+                   Grid.Row="1"
+                   Grid.Column="3"
+                   Grid.ColumnSpan="2"
+                   Margin="4,0,0,0"
+                   Classes="ListItemTitle"
+                   FontSize="14"
+                   HorizontalAlignment="Left"
+                   IsHitTestVisible="False"
+                   TextTrimming="CharacterEllipsis" />
+
+        <StackPanel x:Name="PanTagsElement"
+                    Grid.Row="2"
+                    Grid.Column="3"
+                    Margin="3.5,0,-3,0"
+                    HorizontalAlignment="Left"
+                    IsHitTestVisible="False"
+                    IsVisible="False"
+                    Orientation="Horizontal"
+                    VerticalAlignment="Bottom" />
+
+        <TextBlock x:Name="LabInfoElement"
+                   Grid.Row="2"
+                   Grid.Column="4"
+                   Margin="4,0,0,0"
+                   FontSize="12"
+                   HorizontalAlignment="Left"
+                   IsHitTestVisible="False"
+                   IsVisible="False"
+                   Opacity="0.6"
+                   TextTrimming="CharacterEllipsis" />
+    </Grid>
+
+    <Border x:Name="FocusRingElement"
+            Margin="-2"
+            Classes="FocusRing"
+            IsHitTestVisible="False"
+            ZIndex="1000" />
+</Grid>
