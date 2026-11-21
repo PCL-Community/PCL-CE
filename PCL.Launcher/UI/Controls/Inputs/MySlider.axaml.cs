@@ -191,10 +191,6 @@ public partial class MySlider : UserControl
         return percent * trackWidth;
     }
 
-    /// <summary>
-    ///     数值提示气泡的横向偏移：Popup 实际以 Bottom 模式锚定在控件底部中心，
-    ///     因此按"控件左边缘"坐标系算出的拖点位置要减去半个控件宽度。
-    /// </summary>
     private double GetPopupHorizontalOffset()
     {
         return GetDotPosition() + DotWidth / 2d - Bounds.Width / 2d;
