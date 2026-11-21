@@ -94,7 +94,7 @@ internal sealed class MacOsShellIntegration : IPlatformShellIntegration
 
     private static void _ApplyTitleBarStyle(MainWindow window)
     {
-        var unified = Config.Preference.MacTitleBarStyle == 1;
+        var unified = Config.Preference.MacTitleBarStyle >= 1;
         var height = window.Height;
         window.ExtendClientAreaToDecorationsHint = unified;
         if (unified)
