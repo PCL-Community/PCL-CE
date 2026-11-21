@@ -79,6 +79,7 @@ public sealed class GameSessionTest
             TestContext.CancellationToken);
         Assert.AreEqual(GameSessionState.Crashed, session.State);
         Assert.AreEqual(GameCrashReason.CrashLogDetected, args.Reason);
+        Assert.IsTrue(session.CanTerminate);
         Assert.Contains(line => line.Contains("Crash report saved to"), args.RecentLog);
     }
 

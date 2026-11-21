@@ -137,7 +137,7 @@ public partial class PageToolsTest : MyPageRight
             {
                 try
                 {
-                    if (GameWatcherService.HasActiveSessions
+                    if (GameWatcherService.HasLiveSessions
                         || GameLaunch.mcLaunchLoader.State == LoadState.Loading)
                     {
                         HintService.Show(Hints.Info(Lang.Text("Tools.Test.Clean.CloseGameFirst")));

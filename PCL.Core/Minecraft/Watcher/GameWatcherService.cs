@@ -38,6 +38,18 @@ public static class GameWatcherService
         }
     }
 
+    /// <summary>是否存在尚未退出的游戏进程。</summary>
+    public static bool HasLiveSessions
+    {
+        get
+        {
+            lock (_Sync)
+            {
+                return _SessionList.Any(session => !session.HasExited);
+            }
+        }
+    }
+
     /// <summary>活动会话数量发生变化。</summary>
     public static event Action? ActiveSessionsChanged;
 

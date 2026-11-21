@@ -50,7 +50,28 @@ public sealed class GameWatcherServiceTest
 
         Assert.IsFalse(allowLauncherExit);
         Assert.IsFalse(GameWatcherService.HasActiveSessions);
+        Assert.IsTrue(GameWatcherService.HasLiveSessions);
         Assert.AreEqual(2, activeChanges);
+    }
+
+    [TestMethod]
+    public async Task CrashedLiveSessionCanStillBeTerminated()
+    {
+        var process = new FakeGameProcess();
+        var session = GameWatcherService.StartSession(
+            process,
+            WatcherTestHelpers.CreateOptions(process));
+
+        process.Emit("[12:00:00] [Render thread/INFO]: Crash report saved to: crash.txt");
+        await WatcherTestHelpers.WaitUntilAsync(() => session.State == GameSessionState.Crashed);
+
+        Assert.IsTrue(session.CanTerminate);
+        Assert.IsTrue(GameWatcherService.HasLiveSessions);
+
+        GameWatcherService.KillAll();
+
+        await WatcherTestHelpers.WaitUntilAsync(() => process.HasExited);
+        await WatcherTestHelpers.WaitUntilAsync(() => !GameWatcherService.HasLiveSessions);
     }
 
     [TestMethod]

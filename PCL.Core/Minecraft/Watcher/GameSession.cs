@@ -107,15 +107,7 @@ public sealed class GameSession : IDisposable
 
     public bool HasExited => _process.HasExited;
 
-    public bool CanTerminate
-    {
-        get
-        {
-            var state = State;
-            return state is GameSessionState.Loading or GameSessionState.Running
-                && !HasExited;
-        }
-    }
+    public bool CanTerminate => !HasExited;
 
     public bool CanCaptureStackDump =>
         !string.IsNullOrWhiteSpace(_options.StackDumpToolPath) && !HasExited;

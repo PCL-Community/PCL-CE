@@ -74,7 +74,7 @@ public sealed class ExtraButtonsPanel : StackPanel
         _april.showCheck = () => Basics.IsAprilFool
             && !IsAprilGiveup
             && PageRouter.Current.Page == PageIds.Launch;
-        _shutdown.showCheck = () => GameWatcherService.HasActiveSessions;
+        _shutdown.showCheck = () => GameWatcherService.HasLiveSessions;
         _log.showCheck = ShowLogButton;
         _music.showCheck = () => MusicStateProvider?.Invoke() is { Visible: true }
             && MediaService.Current?.IsAvailable == true;
