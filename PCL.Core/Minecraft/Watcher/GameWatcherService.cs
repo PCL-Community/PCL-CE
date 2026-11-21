@@ -145,9 +145,13 @@ public static class GameWatcherService
     private static List<GameSession> _TakeFinishedSessionsLocked()
     {
         var finished = _SessionList
-            .Where(session => session.State is GameSessionState.Crashed
+            .Where(session => session is
+            {
+                HasExited: true,
+                State: GameSessionState.Crashed
                 or GameSessionState.Ended
-                or GameSessionState.Canceled)
+                or GameSessionState.Canceled
+            })
             .ToList();
 
         foreach (var session in finished)

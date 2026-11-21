@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -156,6 +157,8 @@ public sealed class GameWatcherServiceTest
         first.Emit("[12:00:00] [main/INFO]: Crash report saved to: crash.txt");
         await WatcherTestHelpers.WaitUntilAsync(() =>
             firstSession.State == GameSessionState.Crashed);
+        first.Complete(1);
+        await WatcherTestHelpers.WaitUntilAsync(() => firstSession.HasExited);
 
         var second = new FakeGameProcess();
         var secondSession = GameWatcherService.StartSession(
@@ -166,5 +169,42 @@ public sealed class GameWatcherServiceTest
         Assert.AreSame(secondSession, GameWatcherService.Sessions[0]);
         Assert.IsTrue(first.Disposed);
         Assert.IsTrue(GameWatcherService.HasActiveSessions);
+    }
+
+    [TestMethod]
+    public async Task StartingNewSessionKeepsCrashedLiveSession()
+    {
+        var first = new FakeGameProcess();
+        var firstSession = GameWatcherService.StartSession(
+            first,
+            WatcherTestHelpers.CreateOptions(first));
+        first.Emit("[12:00:00] [main/INFO]: Crash report saved to: crash.txt");
+        await WatcherTestHelpers.WaitUntilAsync(() =>
+            firstSession.State == GameSessionState.Crashed);
+
+        Assert.IsFalse(first.HasExited);
+        Assert.IsTrue(GameWatcherService.HasLiveSessions);
+
+        var second = new FakeGameProcess();
+        GameWatcherService.StartSession(
+            second,
+            WatcherTestHelpers.CreateOptions(second));
+
+        Assert.HasCount(2, GameWatcherService.Sessions);
+        Assert.IsFalse(first.Disposed);
+        Assert.IsTrue(GameWatcherService.HasLiveSessions);
+
+        first.Complete(0);
+        await WatcherTestHelpers.WaitUntilAsync(() => firstSession.HasExited);
+
+        var third = new FakeGameProcess();
+        GameWatcherService.StartSession(
+            third,
+            WatcherTestHelpers.CreateOptions(third));
+
+        Assert.HasCount(2, GameWatcherService.Sessions);
+        Assert.IsFalse(
+            GameWatcherService.Sessions.Any(item => ReferenceEquals(item, firstSession)));
+        Assert.IsTrue(first.Disposed);
     }
 }
