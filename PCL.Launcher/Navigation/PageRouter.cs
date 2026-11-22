@@ -147,7 +147,6 @@ public static class PageRouter
             return;
         }
 
-        // 同页不同参数（如两个资源详情页之间跳转）也要导航。
         if (_hasNavigated && Current.Equals(route)) return;
 
         _isNavigating = true;
