@@ -306,7 +306,11 @@ public partial class TitleBar : UserControl
         var destination = point.Value.X;
         var delta = destination - transform.X;
         if (Math.Abs(delta) < 0.1d)
+        {
+            AnimationService.CancelAnimationByName("TitleBar Tab Indicator");
+            transform.X = destination;
             return;
+        }
 
         if (!animate || !CanAnimateShell || AnimationService.IsSuspended)
         {

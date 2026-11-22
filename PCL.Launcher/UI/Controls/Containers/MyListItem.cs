@@ -1066,11 +1066,10 @@ public partial class MyListItem : Grid, IMyRadio
         const double customHeight = 20d;
         var animationKey = "MyListItem Checked " + Uuid;
         var check = RectCheckElement;
-        var source = _checkedSource;
-        _checkedSource = null;
 
         if (Type is CheckType.None or CheckType.Clickable)
         {
+            _checkedSource = null;
             check.IsVisible = false;
             check.Height = 0d;
             check.Opacity = 0d;
@@ -1079,11 +1078,15 @@ public partial class MyListItem : Grid, IMyRadio
         }
 
         check.IsVisible = true;
-        if (value && anime && source is not null)
+        var source = _checkedSource is { } pendingSource && value && anime
+            ? pendingSource
+            : null;
+        if (source is not null)
         {
             var sourcePoint = source.TranslatePoint(default, this);
             if (sourcePoint is not null && ContainerAnimation.CanAnimate(this))
             {
+                _checkedSource = null;
                 check.Height = customHeight;
                 check.VerticalAlignment = VerticalAlignment.Center;
                 check.Margin = new Thickness(-1d, 0d, 0d, 0d);
@@ -1158,6 +1161,7 @@ public partial class MyListItem : Grid, IMyRadio
         }
 
         AnimationService.CancelAnimationByName(animationKey);
+        _checkedSource = null;
         check.Height = value ? customHeight : 0d;
         check.Margin = new Thickness(-1d, 0d, 0d, 0d);
         check.Opacity = value ? 1d : 0d;
