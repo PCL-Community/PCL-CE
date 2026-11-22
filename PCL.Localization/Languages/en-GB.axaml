@@ -3150,6 +3150,10 @@
     <sys:String x:Key="Setup.Ui.Logo.ClearImage">Clear the icon</sys:String>
     <sys:String x:Key="Setup.Ui.Logo.Image">Icon</sys:String>
     <sys:String x:Key="Setup.Ui.Logo.LeftAlign">Align left</sys:String>
+    <sys:String x:Key="Setup.Ui.Logo.MacTitleBarStyle">macOS title bar style</sys:String>
+    <sys:String x:Key="Setup.Ui.Logo.MacTitleBarStyle.OnlyMacOS">This option is only available on macOS.</sys:String>
+    <sys:String x:Key="Setup.Ui.Logo.MacTitleBarStyle.Separate">Separate</sys:String>
+    <sys:String x:Key="Setup.Ui.Logo.MacTitleBarStyle.Unified">Unified</sys:String>
     <sys:String x:Key="Setup.Ui.Logo.None">None</sys:String>
     <sys:String x:Key="Setup.Ui.Logo.Text">Text</sys:String>
     <sys:String x:Key="Setup.Ui.Logo.TextLabel">Text</sys:String>

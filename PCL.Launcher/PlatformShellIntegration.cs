@@ -4,7 +4,11 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using Avalonia.Platform;
+using Avalonia.Threading;
+using PCL.Core.App;
+using PCL.Core.App.Configuration;
 using PCL.Navigation;
+using PCL.Views;
 using PlainToolkit.ObjectiveC.Runtime;
 
 namespace PCL;
@@ -57,6 +61,17 @@ internal sealed class MacOsShellIntegration : IPlatformShellIntegration
     private static readonly ObjCSel _HideOtherApplications = ObjCSel.FromString("hideOtherApplications:");
     private static readonly ObjCSel _UnhideAllApplications = ObjCSel.FromString("unhideAllApplications:");
 
+    private static readonly ObjCSel _InitWithIdentifier = ObjCSel.FromString("initWithIdentifier:");
+    private static readonly ObjCSel _SetToolbar = ObjCSel.FromString("setToolbar:");
+    private static readonly ObjCSel _SetToolbarStyle = ObjCSel.FromString("setToolbarStyle:");
+    private static readonly ObjCSel _SetTitlebarSeparatorStyle = ObjCSel.FromString("setTitlebarSeparatorStyle:");
+
+    private const nint AutomaticToolbarStyle = 0;
+    private const nint UnifiedToolbarStyle = 3;
+    private const nint AutomaticTitlebarSeparator = 0;
+    private const nint NoTitlebarSeparator = 1;
+    private const double UnifiedTitleBarLeadingInset = 74d;
+
     private static bool _frameworksLoaded;
 
     public void OnFrameworkInitialized(Application application)
@@ -66,7 +81,73 @@ internal sealed class MacOsShellIntegration : IPlatformShellIntegration
 
     public void OnWindowCreated(Window window)
     {
+        if (window is MainWindow mainWindow)
+        {
+            mainWindow.UseSystemWindowChrome();
+            _ApplyTitleBarStyle(mainWindow);
+            Config.Preference.MacTitleBarStyleConfig.Observe(
+                new ConfigObserver(
+                    ConfigEvent.Update,
+                    _ => Dispatcher.UIThread.Post(() => _ApplyTitleBarStyle(mainWindow))));
+        }
+
         _AttachMenus(window);
+    }
+
+    private static void _ApplyTitleBarStyle(MainWindow window)
+    {
+        var unified = Config.Preference.MacTitleBarStyle >= 1;
+        var height = window.Height;
+        window.ExtendClientAreaToDecorationsHint = unified;
+        if (unified)
+        {
+            _AttachUnifiedToolbar(window);
+            // 先设为 0 再设回 -1，是为了让 Avalonia 重新读取系统标题栏的高度
+            window.ExtendClientAreaTitleBarHeightHint = 0d;
+            window.ExtendClientAreaTitleBarHeightHint = -1d;
+        }
+        else
+        {
+            _ResetTitleBarStyles(window);
+        }
+
+        window.Height = height;
+        window.ApplyExtendedTitleBarLayout(unified ? UnifiedTitleBarLeadingInset : 0d);
+    }
+
+    private static void _AttachUnifiedToolbar(Window window)
+    {
+        if (window.TryGetPlatformHandle()?.Handle is not { } handle || handle == 0) return;
+        EnsureFrameworks();
+
+        var nsWindow = new ObjCObject(handle);
+        var identifier = ObjCString.FromString("PCL.TitleBar");
+        try
+        {
+            var toolbar = ObjCObject
+                .GetClass("NSToolbar")
+                .SendMessage<ObjCObject>(Alloc)
+                .SendMessage<nint, ObjCObject>(_InitWithIdentifier, identifier.Value);
+            nsWindow.SendMessage(_SetToolbar, toolbar);
+            toolbar.SendMessage(Release);
+        }
+        finally
+        {
+            if (!identifier.IsNull) new ObjCObject(identifier.Value).SendMessage(Release);
+        }
+
+        nsWindow.SendMessage(_SetToolbarStyle, UnifiedToolbarStyle);
+        nsWindow.SendMessage(_SetTitlebarSeparatorStyle, NoTitlebarSeparator);
+    }
+
+    private static void _ResetTitleBarStyles(Window window)
+    {
+        if (window.TryGetPlatformHandle()?.Handle is not { } handle || handle == 0) return;
+        EnsureFrameworks();
+
+        var nsWindow = new ObjCObject(handle);
+        nsWindow.SendMessage(_SetToolbarStyle, AutomaticToolbarStyle);
+        nsWindow.SendMessage(_SetTitlebarSeparatorStyle, AutomaticTitlebarSeparator);
     }
 
     private static void _AttachMenus(Window window)

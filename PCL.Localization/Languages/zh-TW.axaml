@@ -3150,6 +3150,10 @@
     <sys:String x:Key="Setup.Ui.Logo.ClearImage">清除圖片</sys:String>
     <sys:String x:Key="Setup.Ui.Logo.Image">圖片</sys:String>
     <sys:String x:Key="Setup.Ui.Logo.LeftAlign">標題列置左</sys:String>
+    <sys:String x:Key="Setup.Ui.Logo.MacTitleBarStyle">macOS 標題列樣式</sys:String>
+    <sys:String x:Key="Setup.Ui.Logo.MacTitleBarStyle.OnlyMacOS">此選項僅在 macOS 上生效。</sys:String>
+    <sys:String x:Key="Setup.Ui.Logo.MacTitleBarStyle.Separate">獨立標題列</sys:String>
+    <sys:String x:Key="Setup.Ui.Logo.MacTitleBarStyle.Unified">融入標題列</sys:String>
     <sys:String x:Key="Setup.Ui.Logo.None">無</sys:String>
     <sys:String x:Key="Setup.Ui.Logo.Text">文字</sys:String>
     <sys:String x:Key="Setup.Ui.Logo.TextLabel">標題列文字</sys:String>
