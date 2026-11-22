@@ -147,16 +147,18 @@ public static class PageRouter
             return;
         }
 
-        if (_hasNavigated && Current.IsSameLocation(route)) return;
+        // 同页不同参数（如两个资源详情页之间跳转）也要导航。
+        if (_hasNavigated && Current.Equals(route)) return;
 
         _isNavigating = true;
         AnimationService.BeginControl();
         try
         {
-            NavigationState.Navigate(route, host.IsSecondary, host.Tab);
-
+            // 先准备好目标页面再改导航状态，页面准备失败时不会留下错误的历史记录。
             var left = host.GetLeft(route);
             var right = host.GetRight(route);
+
+            NavigationState.Navigate(route, host.IsSecondary, host.Tab);
 
             if (left is null && _leftHost is not null)
             {
@@ -264,6 +266,9 @@ public static class PageRouter
             _leftHost.Width = double.NaN;
         }
 
+        // 复用同一实例时先摘除再挂回，重新触发 Loaded 并重播进入动画。
+        if (ReferenceEquals(_rightHost?.Content, right))
+            _rightHost!.Content = null;
         _rightHost?.Content = right;
         right.Opacity = 0d;
         _mountedLeft = left;
