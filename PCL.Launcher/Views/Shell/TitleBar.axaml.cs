@@ -30,6 +30,9 @@ public partial class TitleBar : UserControl
     {
         InitializeComponent();
         BuildMainTabs();
+        PanTitleTabs.SizeChanged += (_, _) => UpdateTabSelectionIndicator(false);
+        Loaded += (_, _) => Dispatcher.UIThread.Post(() =>
+            UpdateTabSelectionIndicator(false));
         AddHandler(
             PointerPressedEvent,
             Root_OnPointerPressed,
@@ -252,7 +255,7 @@ public partial class TitleBar : UserControl
 
     private void BuildMainTabs()
     {
-        PanTitleSelect.Children.Clear();
+        PanTitleTabs.Children.Clear();
         _tabButtons.Clear();
 
         foreach (var descriptor in PageCatalog.MainTabs.OrderBy(tab => tab.Order))
@@ -262,6 +265,7 @@ public partial class TitleBar : UserControl
                 SvgIcon = descriptor.IconKey,
                 LogoScale = descriptor.LogoScale,
                 ColorType = MyRadioButton.ColorState.White,
+                UseExternalSelectionIndicator = true,
                 Padding = new Thickness(2d, 0d),
                 Margin = new Thickness(5d, 0d),
                 CheckCommandParameter = descriptor.Id
@@ -269,7 +273,7 @@ public partial class TitleBar : UserControl
             button.SetLocalizedValue(MyRadioButton.TextProperty, descriptor.TitleKey);
             button.Check += Tab_OnCheck;
             _tabButtons[descriptor.Id] = button;
-            PanTitleSelect.Children.Add(button);
+            PanTitleTabs.Children.Add(button);
         }
 
         SetTabChecked(MainTab.Launch);
@@ -279,6 +283,46 @@ public partial class TitleBar : UserControl
     {
         foreach (var (id, button) in _tabButtons)
             button.Checked = id == tab;
+        Dispatcher.UIThread.Post(() => UpdateTabSelectionIndicator(true));
+    }
+
+    private void UpdateTabSelectionIndicator(bool animate)
+    {
+        var target = _tabButtons.FirstOrDefault(pair => pair.Value.Checked).Value;
+        if (target is null || target.Bounds.Width <= 0d)
+            return;
+
+        var point = target.TranslatePoint(default, PanTitleSelect);
+        if (point is null)
+            return;
+
+        TabSelectionIndicator.Width = target.Bounds.Width;
+        if (TabSelectionIndicator.RenderTransform is not TranslateTransform transform)
+        {
+            transform = new TranslateTransform();
+            TabSelectionIndicator.RenderTransform = transform;
+        }
+
+        var destination = point.Value.X;
+        var delta = destination - transform.X;
+        if (Math.Abs(delta) < 0.1d)
+            return;
+
+        if (!animate || !CanAnimateShell || AnimationService.IsSuspended)
+        {
+            AnimationService.CancelAnimationByName("TitleBar Tab Indicator");
+            transform.X = destination;
+            return;
+        }
+
+        AnimationService.CancelAnimationByName("TitleBar Tab Indicator");
+        AnimationService.Run(
+            new TranslateXAnimation(
+                TabSelectionIndicator,
+                delta,
+                240,
+                ease: new FluentEaseOut(EasePower.Weak)),
+            "TitleBar Tab Indicator");
     }
 
     private void Tab_OnCheck(MyRadioButton sender, bool raiseByMouse)

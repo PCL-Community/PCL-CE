@@ -40,6 +40,7 @@ public partial class MyListItem : Grid, IMyRadio
     private bool _isSettingChecked;
     private bool _isSyncingGroup;
     private bool _isUserInteraction;
+    private MyListItem? _checkedSource;
     private bool _showButtonsOnKeyboardFocus;
 
     private string? _stateLast;
@@ -917,6 +918,13 @@ public partial class MyListItem : Grid, IMyRadio
             _isUserInteraction = user;
             if (Type == CheckType.RadioBox)
             {
+                if (value && anime && _checkedSource is null && Parent is Panel panel)
+                    _checkedSource = panel.Children.OfType<MyListItem>().FirstOrDefault(item =>
+                        item.Type == CheckType.RadioBox
+                        && item.IsVisible
+                        && item.Checked
+                        && !ReferenceEquals(item, this));
+
                 if (IsInitialized && value != Checked)
                 {
                     SetCheckedValue(value);
@@ -981,6 +989,7 @@ public partial class MyListItem : Grid, IMyRadio
 
     private void RevertChecked(bool rawValue)
     {
+        _checkedSource = null;
         SetCheckedValue(rawValue);
         RefreshCheckedVisual(rawValue, false);
     }
@@ -1057,6 +1066,8 @@ public partial class MyListItem : Grid, IMyRadio
         const double customHeight = 20d;
         var animationKey = "MyListItem Checked " + Uuid;
         var check = RectCheckElement;
+        var source = _checkedSource;
+        _checkedSource = null;
 
         if (Type is CheckType.None or CheckType.Clickable)
         {
@@ -1068,6 +1079,39 @@ public partial class MyListItem : Grid, IMyRadio
         }
 
         check.IsVisible = true;
+        if (value && anime && source is not null)
+        {
+            var sourcePoint = source.TranslatePoint(default, this);
+            if (sourcePoint is not null && ContainerAnimation.CanAnimate(this))
+            {
+                check.Height = customHeight;
+                check.VerticalAlignment = VerticalAlignment.Center;
+                check.Margin = new Thickness(-1d, 0d, 0d, 0d);
+                check.Opacity = 1d;
+                var offset = sourcePoint.Value.Y
+                    + (source.Bounds.Height - Bounds.Height) * 0.5d;
+                check.RenderTransform = new TranslateTransform(0d, offset);
+                AnimationService.CancelAnimationByName(animationKey);
+                AnimationService.Run(
+                    new List<IAnimation>
+                    {
+                        new TranslateYAnimation(
+                            check,
+                            -offset,
+                            160,
+                            ease: new FluentEaseOut(EasePower.Weak)),
+                        new ColorAnimation(
+                            this,
+                            ForegroundProperty,
+                            CheckedForegroundKey,
+                            200)
+                    },
+                    animationKey);
+                ApplyCheckedForeground();
+                return;
+            }
+        }
+
         if (anime && ContainerAnimation.CanAnimate(this))
         {
             var animations = new List<IAnimation>();
