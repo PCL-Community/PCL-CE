@@ -3219,6 +3219,10 @@
     <sys:String x:Key="Setup.Ui.Logo.ClearImage">清空图片</sys:String>
     <sys:String x:Key="Setup.Ui.Logo.Image">图片</sys:String>
     <sys:String x:Key="Setup.Ui.Logo.LeftAlign">标题栏居左</sys:String>
+    <sys:String x:Key="Setup.Ui.Logo.MacTitleBarStyle">macOS 标题栏样式</sys:String>
+    <sys:String x:Key="Setup.Ui.Logo.MacTitleBarStyle.OnlyMacOS">此选项仅在 macOS 上生效。</sys:String>
+    <sys:String x:Key="Setup.Ui.Logo.MacTitleBarStyle.Separate">独立标题栏</sys:String>
+    <sys:String x:Key="Setup.Ui.Logo.MacTitleBarStyle.Unified">融入标题栏</sys:String>
     <sys:String x:Key="Setup.Ui.Logo.None">无</sys:String>
     <sys:String x:Key="Setup.Ui.Logo.Text">文本</sys:String>
     <sys:String x:Key="Setup.Ui.Logo.TextLabel">标题栏文本</sys:String>
