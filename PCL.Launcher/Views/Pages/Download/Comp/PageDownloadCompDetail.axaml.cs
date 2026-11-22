@@ -448,7 +448,6 @@ public partial class PageDownloadCompDetail : MyPageRight
             () => $"{Lang.Text(titleKey)} ({count})");
         foreach (var dependency in projects)
         {
-            // 折叠或离屏时不实例化，避免一次性建出所有前置条目。
             bar.ContentPanel.Children.Add(
                 new MyVirtualizingElement<MyCompItem>(() =>
                 {
