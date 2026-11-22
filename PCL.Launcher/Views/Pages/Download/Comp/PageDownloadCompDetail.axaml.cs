@@ -388,7 +388,7 @@ public partial class PageDownloadCompDetail : MyPageRight
     }
 
     /// <summary>
-    ///     在版本列表上方补充必需与可选前置折叠栏，以及「版本列表」标题；
+    ///     在版本列表上方补充必需与可选前置折叠栏，以及“版本列表”标题。
     ///     模组包与世界没有前置概念，直接跳过。
     /// </summary>
     private void AddDependencyBars(Panel target, IReadOnlyList<Comp.CompFile> files)
