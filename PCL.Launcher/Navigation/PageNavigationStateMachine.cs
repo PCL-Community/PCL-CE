@@ -20,7 +20,6 @@ public sealed class PageNavigationStateMachine
                 while (_backStack.Contains(next))
                     _backStack.RemoveAt(0);
             else if (!Current.Equals(next))
-                // 同页不同参数也要入栈，否则返回会跳过上一级详情页。
                 _backStack.Insert(0, Current);
         }
         else
