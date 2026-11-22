@@ -2,10 +2,12 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Layout;
+using Avalonia.Markup.Xaml.MarkupExtensions;
 using Avalonia.VisualTree;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
+using PCL.Core.Platform;
 using PCL.Core.UI;
 using PCL.Core.UI.Hints;
 using PCL.Core.Utils.Validate;
@@ -34,6 +36,7 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
     private readonly List<MyCheckBox> _hideChecks = [];
     private readonly MyRadioBox[] _homepageRadios;
     private readonly MyRadioBox[] _logoTypeRadios;
+    private readonly MyRadioBox[] _macTitleBarStyleRadios;
     private bool _loaded;
     private bool _reloading;
     private bool _selectingLogo;
@@ -46,6 +49,7 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
 
         _logoTypeRadios = [RadioLogoType0, RadioLogoType1, RadioLogoType2, RadioLogoType3];
         _homepageRadios = [RadioCustomType0, RadioCustomType3, RadioCustomType1, RadioCustomType2];
+        _macTitleBarStyleRadios = [RadioMacTitleBarStyle0, RadioMacTitleBarStyle1];
 
         SliderLauncherOpacity.getHintText =
             new Func<object, object>(PageSetupUIViewModel.FormatLauncherOpacityHint);
@@ -67,6 +71,29 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             ViewModel.CustomNetText = TextCustomNet.Text ?? string.Empty;
         });
 
+        var supportsTitleBarStyle = ApplicationRuntime.Current.Platform.Capabilities
+            .SupportsTitleBarStyleSelection;
+        PanMacTitleBarStyle.IsEnabled = supportsTitleBarStyle;
+        if (!supportsTitleBarStyle)
+        {
+            foreach (var radio in _macTitleBarStyleRadios)
+                radio.IsEnabled = false;
+            LabMacTitleBarStyle.Bind(
+                TextBlock.ForegroundProperty,
+                new DynamicResourceExtension(InputTheme.DisabledTextKey));
+            PanMacTitleBarStyle.SetLocalizedValue(
+                ToolTip.TipProperty,
+                "Setup.Ui.Logo.MacTitleBarStyle.OnlyMacOS");
+            ToolTip.SetShowOnDisabled(PanMacTitleBarStyle, true);
+        }
+
+        foreach (var (index, radio) in _macTitleBarStyleRadios.Index())
+            radio.Check += (_, _) => WriteIfReady(() =>
+            {
+                if (!radio.Checked) return;
+                Config.Preference.MacTitleBarStyle = index;
+                _RefreshLogoTypeLock();
+            });
         CheckLockWindowSize.Change += (_, _) => WriteIfReady(() =>
             Config.Preference.LockWindowSize = CheckLockWindowSize.Checked == true);
         CheckShowLaunchingHint.Change += (_, _) => WriteIfReady(() =>
@@ -212,6 +239,7 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         try
         {
             ViewModel.Reload(Math.Max(1, ComboLightColor.ItemCount));
+            _macTitleBarStyleRadios[Math.Clamp(Config.Preference.MacTitleBarStyle, 0, 1)].SetChecked(true, false);
             CheckLockWindowSize.Checked = Config.Preference.LockWindowSize;
             CheckShowLaunchingHint.Checked = Config.Preference.ShowLaunchingHint;
 
@@ -220,11 +248,8 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
 
             CheckBackgroundColorful.Checked = Config.Preference.Background.BackgroundColorful;
 
-            var titleType = (int)Config.Preference.WindowTitleType;
-            if (titleType >= 0 && titleType < _logoTypeRadios.Length)
-                _logoTypeRadios[titleType].SetChecked(true, false);
             CheckLogoLeft.Checked = Config.Preference.TopBarLeftAlign;
-            RefreshLogoPanels();
+            _RefreshLogoTypeLock();
 
             CheckMusicRandom.Checked = Config.Preference.Music.ShufflePlayback;
             CheckMusicAuto.Checked = Config.Preference.Music.StartOnStartup;
@@ -298,10 +323,37 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
 
     private void RefreshLogoPanels()
     {
-        var type = Config.Preference.WindowTitleType;
+        var type = _IsLogoTypeLocked() ? LauncherTitleType.None : Config.Preference.WindowTitleType;
         CheckLogoLeft.IsVisible = type == LauncherTitleType.None;
         PanLogoText.IsVisible = type == LauncherTitleType.Text;
         PanLogoChange.IsVisible = type == LauncherTitleType.Image;
+    }
+
+    private static bool _IsLogoTypeLocked()
+    {
+        return ApplicationRuntime.Current.Platform.Capabilities.SupportsTitleBarStyleSelection
+            && Config.Preference.MacTitleBarStyle >= 1;
+    }
+
+    private void _RefreshLogoTypeLock()
+    {
+        var locked = _IsLogoTypeLocked();
+        var type = locked ? 0 : (int)Config.Preference.WindowTitleType;
+        var reloading = _reloading;
+        _reloading = true;
+        try
+        {
+            if (type >= 0 && type < _logoTypeRadios.Length)
+                _logoTypeRadios[type].SetChecked(true, false);
+        }
+        finally
+        {
+            _reloading = reloading;
+        }
+
+        foreach (var radio in _logoTypeRadios)
+            radio.IsEnabled = !locked;
+        RefreshLogoPanels();
     }
 
     private void RefreshHomepagePanels()

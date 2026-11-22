@@ -358,6 +358,23 @@
                                        Text="{loc:Loc Setup.Ui.Logo.Image}"
                                        PreviewCheck="RadioLogoType3_PreviewCheck" />
                     </Grid>
+                    <Grid x:Name="PanMacTitleBarStyle"
+                          Margin="-1,8,0,0"
+                          ColumnDefinitions="*,*,*,*,0.2*">
+                        <TextBlock x:Name="LabMacTitleBarStyle"
+                                   Grid.Column="0"
+                                   Margin="1,0,0,0"
+                                   VerticalAlignment="Center"
+                                   Text="{loc:Loc Setup.Ui.Logo.MacTitleBarStyle}" />
+                        <ui:MyRadioBox x:Name="RadioMacTitleBarStyle0"
+                                       Grid.Column="1"
+                                       Height="22"
+                                       Text="{loc:Loc Setup.Ui.Logo.MacTitleBarStyle.Separate}" />
+                        <ui:MyRadioBox x:Name="RadioMacTitleBarStyle1"
+                                       Grid.Column="2"
+                                       Height="22"
+                                       Text="{loc:Loc Setup.Ui.Logo.MacTitleBarStyle.Unified}" />
+                    </Grid>
                     <ui:MyCheckBox x:Name="CheckLogoLeft"
                                    Height="22"
                                    Margin="-1,8,0,3"
