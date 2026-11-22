@@ -36,7 +36,7 @@
                                        Grid.Column="1"
                                        Grid.ColumnSpan="2"
                                        HorizontalAlignment="Stretch"
-                                       SelectedIndex="{Binding UiLanguageIndex, Mode=OneWay}" />
+                                       SelectedIndex="{Binding UiLanguageIndex, Mode=TwoWay}" />
                         <TextBlock Grid.Row="2"
                                    VerticalAlignment="Center"
                                    HorizontalAlignment="Left"
@@ -47,7 +47,7 @@
                                        Grid.Column="1"
                                        Grid.ColumnSpan="2"
                                        HorizontalAlignment="Stretch"
-                                       SelectedIndex="{Binding FormatCultureIndex, Mode=OneWay}" />
+                                       SelectedIndex="{Binding FormatCultureIndex, Mode=TwoWay}" />
                     </Grid>
 
                     <Border x:Name="BannerInternationalization"

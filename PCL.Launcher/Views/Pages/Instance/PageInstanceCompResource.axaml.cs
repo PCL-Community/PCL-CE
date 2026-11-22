@@ -183,7 +183,8 @@ public partial class PageInstanceCompResource
             KeyDownEvent,
             (_, e) =>
             {
-                if (e.Key != Key.A || !e.KeyModifiers.HasFlag(KeyModifiers.Control))
+                if (Application.Current?.PlatformSettings?.HotkeyConfiguration.SelectAll
+                        .Any(gesture => gesture.Matches(e)) != true)
                     return;
                 if (SearchBox.IsKeyboardFocusWithin && !string.IsNullOrEmpty(SearchBox.Text))
                     return;

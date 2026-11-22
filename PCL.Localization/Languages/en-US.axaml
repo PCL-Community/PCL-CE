@@ -60,8 +60,16 @@
 
     <!-- Main.Menu -->
 
+    <sys:String x:Key="Main.Menu.About">About PCL CE</sys:String>
+    <sys:String x:Key="Main.Menu.CloseWindow">Close Window</sys:String>
     <sys:String x:Key="Main.Menu.Help">Help</sys:String>
+    <sys:String x:Key="Main.Menu.Hide">Hide PCL CE</sys:String>
+    <sys:String x:Key="Main.Menu.HideOthers">Hide Others</sys:String>
     <sys:String x:Key="Main.Menu.Minimize">Minimize</sys:String>
+    <sys:String x:Key="Main.Menu.Quit">Quit PCL CE</sys:String>
+    <sys:String x:Key="Main.Menu.Settings">Settings…</sys:String>
+    <sys:String x:Key="Main.Menu.ShowAll">Show All</sys:String>
+    <sys:String x:Key="Main.Menu.Window">Window</sys:String>
 
     <!-- Common.Action -->
 
@@ -3199,7 +3207,7 @@
     <sys:String x:Key="Setup.Ui.Homepage.Preset.DailyModpack">[WPF] Daily Modpack Recommendation (Author: wkea)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.EchoCave">Echo Cave (removed)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.GitHub">[WPF] PCL GitHub Dashboard (Author: Deep-Dark-Forest)</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.Magazine">[WPF] Magazine Homepage (Author: Neclyon)</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.Magazine">Magazine Homepage (Author: Neclyon)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McNews">[WPF] Minecraft News (Author: Nattiden)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McOfficialFeed">Minecraft Official Feed</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McSkin">[WPF] Minecraft Skin Recommendation (Author: wkea)</sys:String>
@@ -3223,6 +3231,10 @@
     <sys:String x:Key="Setup.Ui.Logo.ClearImage">Clear the icon</sys:String>
     <sys:String x:Key="Setup.Ui.Logo.Image">Icon</sys:String>
     <sys:String x:Key="Setup.Ui.Logo.LeftAlign">Align left</sys:String>
+    <sys:String x:Key="Setup.Ui.Logo.MacTitleBarStyle">macOS title bar style</sys:String>
+    <sys:String x:Key="Setup.Ui.Logo.MacTitleBarStyle.OnlyMacOS">This option is only available on macOS.</sys:String>
+    <sys:String x:Key="Setup.Ui.Logo.MacTitleBarStyle.Separate">Separate</sys:String>
+    <sys:String x:Key="Setup.Ui.Logo.MacTitleBarStyle.Unified">Unified</sys:String>
     <sys:String x:Key="Setup.Ui.Logo.None">None</sys:String>
     <sys:String x:Key="Setup.Ui.Logo.Text">Text</sys:String>
     <sys:String x:Key="Setup.Ui.Logo.TextLabel">Text</sys:String>

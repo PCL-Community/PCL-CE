@@ -60,8 +60,16 @@
 
     <!-- Main.Menu -->
 
+    <sys:String x:Key="Main.Menu.About">關於 PCL CE</sys:String>
+    <sys:String x:Key="Main.Menu.CloseWindow">關閉視窗</sys:String>
     <sys:String x:Key="Main.Menu.Help">說明</sys:String>
+    <sys:String x:Key="Main.Menu.Hide">隱藏 PCL CE</sys:String>
+    <sys:String x:Key="Main.Menu.HideOthers">隱藏其他</sys:String>
     <sys:String x:Key="Main.Menu.Minimize">最小化</sys:String>
+    <sys:String x:Key="Main.Menu.Quit">結束 PCL CE</sys:String>
+    <sys:String x:Key="Main.Menu.Settings">設定⋯</sys:String>
+    <sys:String x:Key="Main.Menu.ShowAll">顯示全部</sys:String>
+    <sys:String x:Key="Main.Menu.Window">視窗</sys:String>
 
     <!-- Common.Action -->
 
@@ -3129,7 +3137,7 @@
     <sys:String x:Key="Setup.Ui.Homepage.Preset.DailyModpack">[WPF] 每日模組包推薦（作者：wkea）</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.EchoCave">回聲洞 (已移除)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.GitHub">[WPF] PCL GitHub 儀錶板（作者：Deep-Dark-Forest）</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.Magazine">[WPF] 雜誌首頁（作者：正源 Neclyon）</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.Magazine">雜誌首頁（作者：正源 Neclyon）</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McNews">[WPF] Minecraft 新聞（作者：Nattiden）</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McOfficialFeed">Minecraft 官方資訊流</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McSkin">[WPF] Minecraft 外觀推薦（作者：wkea）</sys:String>
@@ -3154,6 +3162,10 @@
     <sys:String x:Key="Setup.Ui.Logo.ClearImage">清除圖片</sys:String>
     <sys:String x:Key="Setup.Ui.Logo.Image">圖片</sys:String>
     <sys:String x:Key="Setup.Ui.Logo.LeftAlign">標題列置左</sys:String>
+    <sys:String x:Key="Setup.Ui.Logo.MacTitleBarStyle">macOS 標題列樣式</sys:String>
+    <sys:String x:Key="Setup.Ui.Logo.MacTitleBarStyle.OnlyMacOS">此選項僅在 macOS 上生效。</sys:String>
+    <sys:String x:Key="Setup.Ui.Logo.MacTitleBarStyle.Separate">獨立標題列</sys:String>
+    <sys:String x:Key="Setup.Ui.Logo.MacTitleBarStyle.Unified">融入標題列</sys:String>
     <sys:String x:Key="Setup.Ui.Logo.None">無</sys:String>
     <sys:String x:Key="Setup.Ui.Logo.Text">文字</sys:String>
     <sys:String x:Key="Setup.Ui.Logo.TextLabel">標題列文字</sys:String>
