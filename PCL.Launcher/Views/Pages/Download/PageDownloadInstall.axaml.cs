@@ -27,6 +27,8 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
     private readonly PageDownloadInstallViewModel _vm = new();
     private bool _instanceNameEdited;
     private bool _isSelectStage = true;
+    private bool _versionPreselected;
+    private JsonObject? _appliedNavigationVersion;
     private bool _isEnteringPage;
     private bool _startingInstall;
     private bool _updatingInstanceName;
@@ -80,21 +82,36 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
 
     private void SyncStageBeforeEnterAnimation()
     {
-        if (_isSelectStage)
+        if (PageRouter.Current.Parameter is JsonObject version)
         {
-            _isEnteringPage = true;
-            try
+            if (PageState == PageStates.Empty
+                && !ReferenceEquals(_appliedNavigationVersion, version))
             {
-                ShowSelectStage();
+                _isEnteringPage = true;
+                try
+                {
+                    SelectVersion(version);
+                }
+                finally
+                {
+                    _isEnteringPage = false;
+                }
+
+                _appliedNavigationVersion = version;
+                _versionPreselected = true;
             }
-            finally
-            {
-                _isEnteringPage = false;
-            }
+
+            return;
         }
-        else
+
+        _isEnteringPage = true;
+        try
         {
             ShowSelectStage();
+        }
+        finally
+        {
+            _isEnteringPage = false;
         }
     }
 
@@ -113,6 +130,9 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
 
     private void SyncOnNavigatedTo(PageParameter? parameter)
     {
+        if (parameter is not JsonObject)
+            _versionPreselected = false;
+
         PanBack?.ScrollToHome();
         _selector.Activate();
         GameFolders.McFolderListLoader.PreviewFinish -= _folderLoaderHandler;
@@ -123,7 +143,14 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
             {
                 _waitingVersionName = null;
                 VersionList.Activate();
-                SelectVersion(version);
+                if (!_versionPreselected
+                    && !ReferenceEquals(_appliedNavigationVersion, version))
+                {
+                    SelectVersion(version);
+                }
+
+                _appliedNavigationVersion ??= version;
+                _versionPreselected = false;
                 break;
             }
 
