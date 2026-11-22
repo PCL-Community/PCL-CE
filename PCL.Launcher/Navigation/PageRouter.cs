@@ -153,7 +153,6 @@ public static class PageRouter
         AnimationService.BeginControl();
         try
         {
-            // 先准备好目标页面再改导航状态，页面准备失败时不会留下错误的历史记录。
             var left = host.GetLeft(route);
             var right = host.GetRight(route);
 
