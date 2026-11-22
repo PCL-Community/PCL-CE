@@ -3,6 +3,7 @@
              x:Class="PCL.UI.Controls.MyCheckBox"
              Background="Transparent"
              Focusable="True"
+             HorizontalAlignment="Left"
              MinWidth="20"
              MinHeight="20"
              UseLayoutRounding="False">
