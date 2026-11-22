@@ -28,6 +28,8 @@ public partial class MainWindow : Window
     private readonly ExtraButtonsPanel _extraButtons;
     private readonly TitleBar _titleBar;
     private bool _leftWidthUpdateQueued;
+    private bool _useSystemWindowChrome;
+    private double _titleBarLeadingInset;
 
     public MainWindow()
     {
@@ -201,10 +203,42 @@ public partial class MainWindow : Window
         LauncherCommon.Dpi = (int)Math.Round(RenderScaling * 96d);
     }
 
+    // macOS 改用系统标题栏，把圆角，阴影等交给系统处理，PCL因为窗口本身不支持最大化，因此绿灯保持禁用
+    public void UseSystemWindowChrome()
+    {
+        _useSystemWindowChrome = true;
+        WindowDecorations = WindowDecorations.Full;
+        CanMaximize = false;
+
+        ShadowHost.ShadowRadius = 0d;
+        ShadowHost.Color = Colors.Transparent;
+        ShadowHost.CornerRadius = default;
+        PanBack.Margin = default;
+        PanBack.CornerRadius = default;
+        PanBack.Clip = null;
+        Cursor = null;
+
+        _titleBar.UseSystemCaptionButtons();
+        PropertyChanged += (_, e) =>
+        {
+            if (e.Property == WindowDecorationMarginProperty) ApplyExtendedTitleBarLayout(_titleBarLeadingInset);
+        };
+    }
+
+    public void ApplyExtendedTitleBarLayout(double leadingInset)
+    {
+        _titleBarLeadingInset = leadingInset;
+        var extended = ExtendClientAreaToDecorationsHint;
+        _titleBar.SetSystemTitleBarLayout(
+            extended ? WindowDecorationMargin.Top : null,
+            extended ? leadingInset : 0d);
+    }
+
     private void ApplyRoundedWindowClip()
     {
         PanBack.SizeChanged += (_, e) =>
         {
+            if (_useSystemWindowChrome) return;
             PanBack.Clip = new RectangleGeometry
             {
                 Rect = new Rect(e.NewSize),
@@ -216,7 +250,8 @@ public partial class MainWindow : Window
 
     private void OnResizePointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (!CanResize
+        if (_useSystemWindowChrome
+            || !CanResize
             || WindowState == WindowState.Maximized
             || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
             return;
@@ -228,6 +263,7 @@ public partial class MainWindow : Window
 
     private void OnResizePointerMoved(object? sender, PointerEventArgs e)
     {
+        if (_useSystemWindowChrome) return;
         Cursor = !CanResize || WindowState == WindowState.Maximized
             ? null
             : GetResizeEdge(e.GetPosition(this)) switch
