@@ -3248,6 +3248,11 @@
     <sys:String x:Key="Setup.Ui.Theme.Color.CatBlue">龙猫蓝</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.Color.CrashBlue">死机蓝</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.Color.Hmcl">HMCL</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Color.Custom">自定义</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.Hue">色相</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.Saturation">饱和度</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.Lightness">明度</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.HueDelta">色相渐变</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.Color.SkyBlue">天空蓝</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.Dark">深色</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.DarkColor">深色配色</sys:String>

@@ -33,6 +33,16 @@ public partial class PageSetupUIViewModel : ViewModelBase
 
     [ObservableProperty] private int _customPresetSelectedIndex = -1;
 
+    [ObservableProperty] private int _customThemeHue = Config.Preference.Theme.WindowHue;
+
+    [ObservableProperty] private int _customThemeSaturation = Config.Preference.Theme.WindowSat;
+
+    [ObservableProperty] private int _customThemeLightness = Config.Preference.Theme.WindowLight;
+
+    [ObservableProperty] private int _customThemeHueDelta = Config.Preference.Theme.WindowDelta;
+
+    [ObservableProperty] private bool _customThemeVisible;
+
     [ObservableProperty] private int _darkColorSelectedIndex = -1;
 
     [ObservableProperty] private int _darkModeSelectedIndex = -1;
@@ -60,6 +70,7 @@ public partial class PageSetupUIViewModel : ViewModelBase
 
     [ObservableProperty] private int _musicVolume = Config.Preference.Music.Volume;
 
+    private IReadOnlyList<ColorTheme> _themeColorOptions = [];
     [ObservableProperty] private bool _musicVolumeVisible;
 
     private bool _reloading;
@@ -88,13 +99,35 @@ public partial class PageSetupUIViewModel : ViewModelBase
     partial void OnLightColorSelectedIndexChanged(int value)
     {
         if (!_reloading && value >= 0)
-            Config.Preference.Theme.LightColor = (ColorTheme)value;
+            Config.Preference.Theme.LightColor = GetThemeAt(value);
+        RefreshCustomThemeVisibility();
     }
 
     partial void OnDarkColorSelectedIndexChanged(int value)
     {
         if (!_reloading && value >= 0)
-            Config.Preference.Theme.DarkColor = (ColorTheme)value;
+            Config.Preference.Theme.DarkColor = GetThemeAt(value);
+        RefreshCustomThemeVisibility();
+    }
+
+    partial void OnCustomThemeHueChanged(int value)
+    {
+        if (!_reloading) Config.Preference.Theme.WindowHue = Math.Clamp(value, 0, 359);
+    }
+
+    partial void OnCustomThemeSaturationChanged(int value)
+    {
+        if (!_reloading) Config.Preference.Theme.WindowSat = Math.Clamp(value, 0, 100);
+    }
+
+    partial void OnCustomThemeLightnessChanged(int value)
+    {
+        if (!_reloading) Config.Preference.Theme.WindowLight = Math.Clamp(value, 0, 40);
+    }
+
+    partial void OnCustomThemeHueDeltaChanged(int value)
+    {
+        if (!_reloading) Config.Preference.Theme.WindowDelta = Math.Clamp(value, 0, 180);
     }
 
     partial void OnBackgroundSuitSelectedIndexChanged(int value)
@@ -135,17 +168,23 @@ public partial class PageSetupUIViewModel : ViewModelBase
         if (!_reloading) Config.Preference.Music.Volume = value;
     }
 
-    public void Reload(int themeColorCount = 4)
+    public void Reload(IReadOnlyList<ColorTheme>? themeColorOptions = null)
     {
         _reloading = true;
         try
         {
+            if (themeColorOptions is not null)
+                _themeColorOptions = themeColorOptions;
+
             var theme = Config.Preference.Theme;
-            var colorMax = Math.Max(0, themeColorCount - 1);
             LauncherOpacity = theme.WindowOpacity;
             DarkModeSelectedIndex = Math.Clamp((int)theme.ColorMode, 0, 2);
-            LightColorSelectedIndex = Math.Clamp((int)theme.LightColor, 0, colorMax);
-            DarkColorSelectedIndex = Math.Clamp((int)theme.DarkColor, 0, colorMax);
+            LightColorSelectedIndex = FindThemeIndex(theme.LightColor);
+            DarkColorSelectedIndex = FindThemeIndex(theme.DarkColor);
+            CustomThemeHue = Math.Clamp(theme.WindowHue, 0, 359);
+            CustomThemeSaturation = Math.Clamp(theme.WindowSat, 0, 100);
+            CustomThemeLightness = Math.Clamp(theme.WindowLight, 0, 40);
+            CustomThemeHueDelta = Math.Clamp(theme.WindowDelta, 0, 180);
 
             BackgroundOpacity = Config.Preference.Background.WallpaperOpacity;
             BackgroundBlur = Config.Preference.Background.WallpaperBlurRadius;
@@ -167,11 +206,38 @@ public partial class PageSetupUIViewModel : ViewModelBase
         {
             _reloading = false;
         }
+
+        RefreshCustomThemeVisibility();
+    }
+
+    private ColorTheme GetThemeAt(int index)
+    {
+        if ((uint)index < (uint)_themeColorOptions.Count)
+            return _themeColorOptions[index];
+        return ColorTheme.CatBlue;
+    }
+
+    private int FindThemeIndex(ColorTheme theme)
+    {
+        for (var i = 0; i < _themeColorOptions.Count; i++)
+            if (_themeColorOptions[i] == theme)
+                return i;
+        for (var i = 0; i < _themeColorOptions.Count; i++)
+            if (_themeColorOptions[i] == ColorTheme.CatBlue)
+                return i;
+        return 0;
+    }
+
+    private void RefreshCustomThemeVisibility()
+    {
+        CustomThemeVisible = !OperatingSystem.IsWindows()
+            && (Config.Preference.Theme.LightColor == ColorTheme.Custom
+                || Config.Preference.Theme.DarkColor == ColorTheme.Custom);
     }
 
     public void ShowLauncherHint()
     {
-        LauncherHideVisible = true;
+        LauncherHideVisible = OperatingSystem.IsWindows();
     }
 
     public void ApplyBackgroundState(bool show, int count)

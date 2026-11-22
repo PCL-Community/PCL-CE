@@ -32,6 +32,7 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
     ];
 
     private readonly List<MyCheckBox> _hideChecks = [];
+    private readonly List<ColorTheme> _themeColorOptions = [];
     private readonly MyRadioBox[] _homepageRadios;
     private readonly MyRadioBox[] _logoTypeRadios;
     private bool _loaded;
@@ -128,6 +129,7 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             WriteIfReady(() => Config.Preference.MotdFont = ComboUiMotdFont.SelectedFontTag);
 
         BtnLauncherDonate.Click += (_, _) => Basics.OpenPath("https://afdian.com/a/LTCat");
+        BtnThemeSnapshot.Click += (_, _) => Basics.OpenPath("https://afdian.com/a/LTCat");
         BtnLogoChange.Click += (_, _) => OnChangeLogo();
         BtnLogoDelete.Click += (_, _) => OnDeleteLogo();
         BtnBackgroundOpen.Click += (_, _) => OpenBackgroundFolder();
@@ -162,6 +164,7 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
 
         BuildHideGrid();
         BuildThemeColorItems();
+        RefreshThemeColorPlatformState();
 
         HiddenFeatureState.Changed += OnHiddenFeatureStateChanged;
 
@@ -211,7 +214,7 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         _reloading = true;
         try
         {
-            ViewModel.Reload(Math.Max(1, ComboLightColor.ItemCount));
+            ViewModel.Reload(_themeColorOptions);
             CheckLockWindowSize.Checked = Config.Preference.LockWindowSize;
             CheckShowLaunchingHint.Checked = Config.Preference.ShowLaunchingHint;
 
@@ -273,7 +276,13 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
 
     private void BuildThemeColorItems()
     {
+        _themeColorOptions.Clear();
         var count = Basics.IsAprilFool ? ThemeColorKeys.Length : ThemeColorKeys.Length - 1;
+        for (var i = 0; i < count; i++)
+            _themeColorOptions.Add(Enum.Parse<ColorTheme>(ThemeColorKeys[i].Tag));
+        if (!OperatingSystem.IsWindows())
+            _themeColorOptions.Add(ColorTheme.Custom);
+
         foreach (var combo in new[]
                  {
                      ComboLightColor,
@@ -289,7 +298,21 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
                     ThemeColorKeys[i].Key);
                 combo.Items.Add(item);
             }
+
+            if (!OperatingSystem.IsWindows())
+            {
+                var item = new MyComboBoxItem();
+                item.SetLocalizedValue(
+                    ContentControl.ContentProperty,
+                    "Setup.Ui.Theme.Color.Custom");
+                combo.Items.Add(item);
+            }
         }
+    }
+
+    private void RefreshThemeColorPlatformState()
+    {
+        PanThemeColorMask.IsVisible = OperatingSystem.IsWindows();
     }
 
     #endregion

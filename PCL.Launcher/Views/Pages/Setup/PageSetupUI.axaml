@@ -57,46 +57,126 @@
                         </StackPanel>
                     </Border>
 
-                    <Grid Height="28"
-                          Margin="0,0,0,7">
+                    <Grid Margin="0,0,0,7">
+                        <Grid Height="28">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"
+                                                  SharedSizeGroup="Name1" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="92"
+                                                  SharedSizeGroup="SubName" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*"
+                                                  SharedSizeGroup="SubName" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"
+                                       VerticalAlignment="Center"
+                                       Text="{loc:Loc Setup.Ui.Theme.Title}" />
+                            <ui:MyComboBox x:Name="ComboDarkMode"
+                                           Grid.Column="1"
+                                           HorizontalAlignment="Stretch"
+                                           SelectedIndex="{Binding DarkModeSelectedIndex, Mode=TwoWay}">
+                                <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Theme.Light}" />
+                                <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Theme.Dark}" />
+                                <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Theme.FollowSystem}" />
+                            </ui:MyComboBox>
+                            <TextBlock Grid.Column="2"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Center"
+                                       Text="{loc:Loc Setup.Ui.Theme.LightColor}" />
+                            <ui:MyComboBox x:Name="ComboLightColor"
+                                           Grid.Column="3"
+                                           HorizontalAlignment="Stretch"
+                                           SelectedIndex="{Binding LightColorSelectedIndex, Mode=TwoWay}" />
+                            <TextBlock Grid.Column="4"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Center"
+                                       Text="{loc:Loc Setup.Ui.Theme.DarkColor}" />
+                            <ui:MyComboBox x:Name="ComboDarkColor"
+                                           Grid.Column="5"
+                                           HorizontalAlignment="Stretch"
+                                           SelectedIndex="{Binding DarkColorSelectedIndex, Mode=TwoWay}" />
+                        </Grid>
+
+                        <Border x:Name="PanThemeColorMask"
+                                MinHeight="28"
+                                CornerRadius="4"
+                                Background="{DynamicResource ColorBrushToolTip}"
+                                IsVisible="False">
+                            <Grid Margin="12,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock VerticalAlignment="Center"
+                                           FontSize="12"
+                                           TextWrapping="Wrap"
+                                           Text="{loc:Loc Setup.Ui.Basic.BlueHint}" />
+                                <ui:MyButton x:Name="BtnThemeSnapshot"
+                                             Grid.Column="1"
+                                             Height="28"
+                                             MinWidth="140"
+                                             Margin="12,0,0,0"
+                                             Padding="13,0"
+                                             ColorType="Highlight"
+                                             Text="{loc:Loc Setup.Ui.Basic.GetSnapshot}" />
+                            </Grid>
+                        </Border>
+                    </Grid>
+
+                    <Grid x:Name="PanCustomTheme"
+                          Margin="0,0,0,7"
+                          IsVisible="{Binding CustomThemeVisible}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"
                                               SharedSizeGroup="Name1" />
                             <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="92"
-                                              SharedSizeGroup="SubName" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*"
+                            <ColumnDefinition Width="Auto"
                                               SharedSizeGroup="SubName" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0"
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="22" />
+                            <RowDefinition Height="22" />
+                        </Grid.RowDefinitions>
+                        <TextBlock VerticalAlignment="Center"
+                                   Text="{loc:Loc Setup.Ui.Theme.Custom.Hue}" />
+                        <ui:MySlider x:Name="SliderCustomThemeHue"
+                                     Grid.Column="1"
+                                     Margin="0,0,4,0"
+                                     MaxValue="359"
+                                     ValueByKey="5"
+                                     Value="{Binding CustomThemeHue, Mode=TwoWay}" />
+                        <TextBlock Grid.Column="2" Margin="4,0,0,0"
                                    VerticalAlignment="Center"
-                                   Text="{loc:Loc Setup.Ui.Theme.Title}" />
-                        <ui:MyComboBox x:Name="ComboDarkMode"
-                                       Grid.Column="1"
-                                       HorizontalAlignment="Stretch"
-                                       SelectedIndex="{Binding DarkModeSelectedIndex, Mode=TwoWay}">
-                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Theme.Light}" />
-                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Theme.Dark}" />
-                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Theme.FollowSystem}" />
-                        </ui:MyComboBox>
-                        <TextBlock Grid.Column="2"
+                                   Text="{loc:Loc Setup.Ui.Theme.Custom.Saturation}" />
+                        <ui:MySlider x:Name="SliderCustomThemeSaturation"
+                                     Grid.Column="3"
+                                     MaxValue="100"
+                                     ValueByKey="5"
+                                     Value="{Binding CustomThemeSaturation, Mode=TwoWay}" />
+                        <TextBlock Grid.Row="1"
                                    VerticalAlignment="Center"
-                                   HorizontalAlignment="Center"
-                                   Text="{loc:Loc Setup.Ui.Theme.LightColor}" />
-                        <ui:MyComboBox x:Name="ComboLightColor"
-                                       Grid.Column="3"
-                                       HorizontalAlignment="Stretch"
-                                       SelectedIndex="{Binding LightColorSelectedIndex, Mode=TwoWay}" />
-                        <TextBlock Grid.Column="4"
+                                   Text="{loc:Loc Setup.Ui.Theme.Custom.Lightness}" />
+                        <ui:MySlider x:Name="SliderCustomThemeLightness"
+                                     Grid.Row="1"
+                                     Grid.Column="1"
+                                     Margin="0,0,4,0"
+                                     MaxValue="40"
+                                     ValueByKey="5"
+                                     Value="{Binding CustomThemeLightness, Mode=TwoWay}" />
+                        <TextBlock Grid.Row="1"
+                                   Margin="4,0,0,0"
+                                   Grid.Column="2"
                                    VerticalAlignment="Center"
-                                   HorizontalAlignment="Center"
-                                   Text="{loc:Loc Setup.Ui.Theme.DarkColor}" />
-                        <ui:MyComboBox x:Name="ComboDarkColor"
-                                       Grid.Column="5"
-                                       HorizontalAlignment="Stretch"
-                                       SelectedIndex="{Binding DarkColorSelectedIndex, Mode=TwoWay}" />
+                                   Text="{loc:Loc Setup.Ui.Theme.Custom.HueDelta}" />
+                        <ui:MySlider x:Name="SliderCustomThemeHueDelta"
+                                     Grid.Row="1"
+                                     Grid.Column="3"
+                                     MaxValue="180"
+                                     ValueByKey="5"
+                                     Value="{Binding CustomThemeHueDelta, Mode=TwoWay}" />
                     </Grid>
 
                     <ui:MyCheckBox x:Name="CheckLockWindowSize"

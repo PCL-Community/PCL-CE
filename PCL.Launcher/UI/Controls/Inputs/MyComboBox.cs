@@ -81,6 +81,7 @@ public class MyComboBox : ComboBox
         };
         GotFocus += (_, _) => RefreshColor();
         LostFocus += (_, _) => RefreshColor();
+        ThemeRefreshWatcher.Watch(this, () => RefreshColor(false));
         Unloaded += (_, _) => StopAnimations();
     }
 

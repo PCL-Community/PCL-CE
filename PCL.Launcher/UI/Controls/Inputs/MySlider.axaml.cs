@@ -61,6 +61,7 @@ public partial class MySlider : UserControl
 
         SizeChanged += (_, _) => RefreshLayout();
         Loaded += (_, _) => RefreshLayout();
+        ThemeRefreshWatcher.Watch(this, () => RefreshColor(false));
         Unloaded += (_, _) => StopAnimations();
     }
 

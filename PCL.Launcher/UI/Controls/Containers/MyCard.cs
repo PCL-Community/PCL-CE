@@ -68,6 +68,7 @@ public class MyCard : Grid
 
     public MyCard()
     {
+        ThemeRefreshWatcher.Watch(this, _OnColorThemeChanged);
         MainChrome = new CardShadow
         {
             CornerRadius = new CornerRadius(5d),
@@ -723,6 +724,11 @@ public class MyCard : Grid
     private void _OnActualThemeVariantChanged(object? sender, EventArgs e)
     {
         _ApplyThemeBrushes(true);
+    }
+
+    private void _OnColorThemeChanged()
+    {
+        _ApplyThemeBrushes();
     }
 
     private void _ApplyThemeBrushes(bool animate = false)

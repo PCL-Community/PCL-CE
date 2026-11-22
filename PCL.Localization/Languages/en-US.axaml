@@ -3248,6 +3248,11 @@
     <sys:String x:Key="Setup.Ui.Theme.Color.CatBlue">LTCat Blue</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.Color.CrashBlue">Crash Blue</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.Color.Hmcl">HMCL</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Color.Custom">Custom</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.Hue">Hue</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.Saturation">Saturation</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.Lightness">Lightness</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.HueDelta">Hue gradient</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.Color.SkyBlue">Sky Blue</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.Dark">Dark</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.DarkColor">Dark theme color</sys:String>

@@ -304,7 +304,7 @@ public sealed class BackgroundLayer
     private static LinearGradientBrush CreateColorfulBrush()
     {
         var tone = ThemeService.CurrentTone;
-        var (hue, _, _) = ThemeService.GetCurrentThemeArgs();
+        var (hue, _, _, _) = ThemeService.GetCurrentThemeArgs();
         var darkLight = ThemeService.IsDarkMode ? 0.2d : 1d;
         var brush = new LinearGradientBrush
         {

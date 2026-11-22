@@ -4,6 +4,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using PCL.Core.Logging;
+using PCL.UI.Controls;
 
 namespace PCL.UI.Controls.SvgIcon;
 
@@ -45,6 +46,11 @@ public class SvgIcon : Control
 
     private SvgIconModel? _model;
     private bool _modelLoaded;
+
+    public SvgIcon()
+    {
+        ThemeRefreshWatcher.Watch(this, InvalidateVisual);
+    }
 
     public string Icon
     {
