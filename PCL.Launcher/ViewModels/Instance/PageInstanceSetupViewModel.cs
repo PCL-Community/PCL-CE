@@ -72,6 +72,8 @@ public partial class PageInstanceSetupViewModel : ViewModelBase
     [ObservableProperty] public partial bool IgnoreJavaCompatibility { get; set; }
 
     [ObservableProperty] public partial bool DisableJlw { get; set; }
+    
+    [ObservableProperty] public partial bool DisableJlwEnabled { get; set; }
 
     [ObservableProperty] public partial bool UseDebugLog4j { get; set; }
 
@@ -197,7 +199,8 @@ public partial class PageInstanceSetupViewModel : ViewModelBase
             UseProxy = Config.Instance.UseProxy[path];
             IgnoreJavaCompatibility = Config.Instance.IgnoreJavaCompatibility[path];
             IsArm64System = SystemInfo.IsArm64System;
-            DisableJlw = IsArm64System || Config.Instance.DisableJlw[path];
+            DisableJlwEnabled = OperatingSystem.IsWindows() && !SystemInfo.IsArm64System;
+            DisableJlw = !DisableJlwEnabled || Config.Instance.DisableJlw[path];
             UseDebugLog4j = Config.Instance.UseDebugLof4j2Config[path];
             DisableLf = Config.Instance.DisableLF[path];
             RefreshRunWait();

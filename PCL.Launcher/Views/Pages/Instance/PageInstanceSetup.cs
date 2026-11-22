@@ -112,6 +112,7 @@ public partial class PageInstanceSetup : MyPageRight
         _checkDebugLog4J = CheckUseDebugLog4j2Config;
         _checkDisableAssets = CheckAdvanceAssetsV2;
         _checkDisableJlw = CheckAdvanceDisableJLW;
+        _checkDisableJlw.IsEnabled = ViewModel.DisableJlwEnabled;
         _checkDisableLf = CheckAdvanceDisableLF;
         _checkDisableLwjglAgent = CheckAdvanceDisableLwjglUnsafeAgent;
         _checkDisableModUpdate = CheckAdvanceDisableModUpdate;
@@ -340,7 +341,7 @@ public partial class PageInstanceSetup : MyPageRight
         _checkDisableJlw.SetLocalizedValue(
             ToolTip.TipProperty,
             ViewModel.IsArm64System
-                ? "Setup.Launch.Advanced.DisableJlw.Arm64ToolTip"
+                ? "Setup.Launch.Advanced.DisableJlw.UnsupportedNoticeToolTip"
                 : "Setup.Launch.Advanced.DisableJlw.ToolTip");
         _checkDebugLog4J.Checked = ViewModel.UseDebugLog4j;
         _checkDisableLf.Checked = ViewModel.DisableLf;

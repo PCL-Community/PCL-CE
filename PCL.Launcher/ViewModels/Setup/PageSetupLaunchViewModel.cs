@@ -21,9 +21,9 @@ public partial class PageSetupLaunchViewModel : ViewModelBase
     [ObservableProperty] private bool _disableCrashAnalysis = Config.Launch.DisableCrashAnalysis;
 
     [ObservableProperty]
-    private bool _disableJlw = SystemInfo.IsArm64System || Config.Launch.DisableJlw;
+    private bool _disableJlw = !OperatingSystem.IsWindows() || SystemInfo.IsArm64System || Config.Launch.DisableJlw;
 
-    [ObservableProperty] private bool _disableJlwEnabled = !SystemInfo.IsArm64System;
+    [ObservableProperty] private bool _disableJlwEnabled = OperatingSystem.IsWindows() && !SystemInfo.IsArm64System;
 
     [ObservableProperty] private bool _disableLF = Config.Launch.DisableLF;
 
@@ -169,7 +169,7 @@ public partial class PageSetupLaunchViewModel : ViewModelBase
             NoJavaw = Config.Launch.NoJavaw;
             DisableLwjglUnsafeAgent = Config.Launch.DisableLwjglUnsafeAgent;
             DisableCrashAnalysis = Config.Launch.DisableCrashAnalysis;
-            DisableJlwEnabled = !SystemInfo.IsArm64System;
+            DisableJlwEnabled = OperatingSystem.IsWindows() && !SystemInfo.IsArm64System;
             ShowWindowSize = (int)Config.Launch.GameWindowMode == 3;
             CheckAdvanceRunWaitVisible = !string.IsNullOrEmpty(PreLaunchText);
             RamType(MemoryAllocationMode);
