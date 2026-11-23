@@ -147,16 +147,16 @@ public static class PageRouter
             return;
         }
 
-        if (_hasNavigated && Current.IsSameLocation(route)) return;
+        if (_hasNavigated && Current.Equals(route)) return;
 
         _isNavigating = true;
         AnimationService.BeginControl();
         try
         {
-            NavigationState.Navigate(route, host.IsSecondary, host.Tab);
-
             var left = host.GetLeft(route);
             var right = host.GetRight(route);
+
+            NavigationState.Navigate(route, host.IsSecondary, host.Tab);
 
             if (left is null && _leftHost is not null)
             {
@@ -264,6 +264,8 @@ public static class PageRouter
             _leftHost.Width = double.NaN;
         }
 
+        if (ReferenceEquals(_rightHost?.Content, right))
+            _rightHost!.Content = null;
         _rightHost?.Content = right;
         right.Opacity = 0d;
         _mountedLeft = left;
