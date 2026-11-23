@@ -19,7 +19,7 @@ public sealed class PageNavigationStateMachine
             if (_backStack.Contains(next))
                 while (_backStack.Contains(next))
                     _backStack.RemoveAt(0);
-            else if (ShouldPushCurrent(Current, next))
+            else if (!Current.Equals(next) && (Current.Page != next.Page || !Equals(Current.Parameter, next.Parameter)))
                 _backStack.Insert(0, Current);
         }
         else
@@ -47,17 +47,5 @@ public sealed class PageNavigationStateMachine
 
         target = new PageRoute(PageIds.Launch);
         return false;
-    }
-
-    /// <summary>
-    /// 同一页面、同一参数下只切换子页时合并为一条历史。
-    /// 参数不同的详情路由（例如从一个资源工程进入另一个）必须分别入栈，否则返回会跳过上一层详情。
-    /// </summary>
-    private static bool ShouldPushCurrent(PageRoute current, PageRoute next)
-    {
-        if (current.Equals(next))
-            return false;
-
-        return current.Page != next.Page || !Equals(current.Parameter, next.Parameter);
     }
 }
