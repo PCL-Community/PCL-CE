@@ -41,6 +41,9 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp -a "$TEMP"/. "$APP/Contents/MacOS/"
 find "$APP/Contents/MacOS" -name '*.pdb' -delete
 chmod +x "$APP/Contents/MacOS/PCL.Launcher"
+bash "$ROOT/scripts/macos/update-apphost-sdk.sh" \
+  "$APP/Contents/MacOS/PCL.Launcher" \
+  "$APP/Contents/MacOS/libAvaloniaNative.dylib"
 "$ROOT/scripts/verify-artifact.sh" "$RID" "$APP/Contents/MacOS"
 
 cp "$ROOT/PCL.Launcher/Assets/Images/icon.icns" "$APP/Contents/Resources/icon.icns"

@@ -67,7 +67,7 @@ internal sealed class MacOsShellIntegration : IPlatformShellIntegration
     private static readonly ObjCSel _SetTitlebarSeparatorStyle = ObjCSel.FromString("setTitlebarSeparatorStyle:");
 
     private const nint AutomaticToolbarStyle = 0;
-    private const nint UnifiedToolbarStyle = 3;
+    private const nint UnifiedToolbarStyle = 4;
     private const nint AutomaticTitlebarSeparator = 0;
     private const nint NoTitlebarSeparator = 1;
     private const double UnifiedTitleBarLeadingInset = 74d;
