@@ -132,12 +132,8 @@ public static class GameFolders
     {
         var normalized = Path.GetFullPath(path);
         var isOwned =
-            normalized.TrimEnd(Path.DirectorySeparatorChar)
-                == Path.GetFullPath(LauncherPaths.DefaultMinecraftDirectory)
-                    .TrimEnd(Path.DirectorySeparatorChar)
-            || normalized.TrimEnd(Path.DirectorySeparatorChar)
-                == Path.GetFullPath(LauncherPaths.UserDataRoot)
-                    .TrimEnd(Path.DirectorySeparatorChar);
+            Files.ArePathsEqual(normalized, LauncherPaths.DefaultMinecraftDirectory)
+            || Files.ArePathsEqual(normalized, LauncherPaths.UserDataRoot);
         if (isOwned)
             Directory.CreateDirectory(normalized);
     }
