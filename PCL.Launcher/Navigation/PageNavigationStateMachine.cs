@@ -19,7 +19,7 @@ public sealed class PageNavigationStateMachine
             if (_backStack.Contains(next))
                 while (_backStack.Contains(next))
                     _backStack.RemoveAt(0);
-            else if (!Current.Equals(next) && Current.Page != next.Page)
+            else if (!Current.Equals(next))
                 _backStack.Insert(0, Current);
         }
         else
