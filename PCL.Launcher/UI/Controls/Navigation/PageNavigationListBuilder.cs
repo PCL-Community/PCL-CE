@@ -13,7 +13,7 @@ public sealed record PageNavigationListResult(
 public static class PageNavigationListBuilder
 {
     /// <summary>
-    /// 同步导航列表的单选状态。先只取消其他项再选中目标项，让目标项仍能取到旧的选中项作为滑动起点；
+    /// 同步导航列表的单选状态。先选中目标项，让它在取消其他项之前仍能取到旧的选中项作为滑动起点；
     /// 目标项不存在时取消全部，避免保留过期选中。调用方负责在同步期间抑制选中回调。
     /// </summary>
     public static void Select(
@@ -25,17 +25,22 @@ public static class PageNavigationListBuilder
         foreach (var (sub, item) in items)
         {
             if (sub != selected)
-            {
-                if (item.Checked)
-                    item.SetChecked(false, false, false);
                 continue;
-            }
 
             target = item;
+            break;
         }
 
         if (target is not null && !target.Checked)
             target.SetChecked(true, false, animate);
+
+        foreach (var (sub, item) in items)
+        {
+            if (sub == selected || !item.Checked)
+                continue;
+
+            item.SetChecked(false, false, false);
+        }
     }
 
     public static PageNavigationListResult Build(
