@@ -288,8 +288,8 @@ public static class PageRouter
             }
 
             if (left is IPageView leftView) leftView.OnNavigatedTo(route.Parameter);
-            if (right is IPageRightContainer newRightPage) newRightPage.PageOnEnter();
             if (right is IPageView rightView) rightView.OnNavigatedTo(route.Parameter);
+            if (right is IPageRightContainer newRightPage) newRightPage.PageOnEnter();
             LayoutProbe.CheckAfterLayout(right, $"{route.Page}/{route.SubPage}");
             FocusFirst(right);
         }
