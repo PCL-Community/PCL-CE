@@ -315,7 +315,9 @@ internal static class LoaderSpecialInstall
         string target,
         Version javaVersion)
     {
-        var useWrapper = ApplicationRuntime.Current.Platform.Java.SupportsJavaw
+        var supportsWrapper =
+            ApplicationRuntime.Current.Platform.Java.SupportsJavaLaunchWrapper;
+        var useWrapper = supportsWrapper
             && LauncherCommon.IsUtf8CodePage()
             && !Config.Launch.DisableJlw;
         while (true)
@@ -326,7 +328,7 @@ internal static class LoaderSpecialInstall
             }
             catch (Exception ex) when (ex is not CancelledException)
             {
-                if (useWrapper)
+                if (useWrapper || !supportsWrapper)
                     throw new Exception(
                         Lang.Text("Minecraft.Download.Error.OptiFineInstallerRunFailed"),
                         ex);

@@ -112,7 +112,6 @@ public partial class PageInstanceSetup : MyPageRight
         _checkDebugLog4J = CheckUseDebugLog4j2Config;
         _checkDisableAssets = CheckAdvanceAssetsV2;
         _checkDisableJlw = CheckAdvanceDisableJLW;
-        _checkDisableJlw.IsEnabled = ViewModel.DisableJlwEnabled;
         _checkDisableLf = CheckAdvanceDisableLF;
         _checkDisableLwjglAgent = CheckAdvanceDisableLwjglUnsafeAgent;
         _checkDisableModUpdate = CheckAdvanceDisableModUpdate;
@@ -337,12 +336,11 @@ public partial class PageInstanceSetup : MyPageRight
         _checkUseProxy.Checked = ViewModel.UseProxy;
         _checkIgnoreJava.Checked = ViewModel.IgnoreJavaCompatibility;
         _checkDisableJlw.Checked = ViewModel.DisableJlw;
-        _checkDisableJlw.IsEnabled = !ViewModel.IsArm64System;
         _checkDisableJlw.SetLocalizedValue(
             ToolTip.TipProperty,
-            ViewModel.IsArm64System
-                ? "Setup.Launch.Advanced.DisableJlw.UnsupportedNoticeToolTip"
-                : "Setup.Launch.Advanced.DisableJlw.ToolTip");
+            ViewModel.DisableJlwEnabled
+                ? "Setup.Launch.Advanced.DisableJlw.ToolTip"
+                : "Setup.Launch.Advanced.DisableJlw.UnsupportedNoticeToolTip");
         _checkDebugLog4J.Checked = ViewModel.UseDebugLog4j;
         _checkDisableLf.Checked = ViewModel.DisableLf;
         RefreshRunWait();
