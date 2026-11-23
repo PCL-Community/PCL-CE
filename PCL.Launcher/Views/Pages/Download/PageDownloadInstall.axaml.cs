@@ -104,6 +104,9 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
             return;
         }
 
+        if (PageState != PageStates.Empty)
+            return;
+
         _isEnteringPage = true;
         try
         {
