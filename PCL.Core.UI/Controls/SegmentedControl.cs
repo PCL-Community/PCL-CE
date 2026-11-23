@@ -55,7 +55,7 @@ public sealed class SegmentedControl : UserControl
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Stretch,
             BorderThickness = new Thickness(1d),
-            CornerRadius = new CornerRadius(7d),
+            CornerRadius = new CornerRadius(5d),
             IsHitTestVisible = false
         };
         _panSelect.RenderTransform = _indicatorTransform;
@@ -70,7 +70,7 @@ public sealed class SegmentedControl : UserControl
         {
             Height = 28d,
             Padding = new Thickness(2d),
-            CornerRadius = new CornerRadius(8d),
+            CornerRadius = new CornerRadius(6d),
             ClipToBounds = true
         };
         _panBack.Bind(
