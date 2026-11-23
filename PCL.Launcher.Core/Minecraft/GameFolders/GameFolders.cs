@@ -105,6 +105,7 @@ public static class GameFolders
             var path = folder.Split(">")[1];
             try
             {
+                _EnsureLauncherOwnedFolder(path);
                 Directories.EnsureWritable(path);
                 cacheMcFolderList.Add(
                     new McFolder
@@ -125,6 +126,20 @@ public static class GameFolders
         }
 
         return cacheMcFolderList;
+    }
+
+    private static void _EnsureLauncherOwnedFolder(string path)
+    {
+        var normalized = Path.GetFullPath(path);
+        var isOwned =
+            normalized.TrimEnd(Path.DirectorySeparatorChar)
+                == Path.GetFullPath(LauncherPaths.DefaultMinecraftDirectory)
+                    .TrimEnd(Path.DirectorySeparatorChar)
+            || normalized.TrimEnd(Path.DirectorySeparatorChar)
+                == Path.GetFullPath(LauncherPaths.UserDataRoot)
+                    .TrimEnd(Path.DirectorySeparatorChar);
+        if (isOwned)
+            Directory.CreateDirectory(normalized);
     }
 
     private static List<McFolder> _ScanOriginalFolders()
