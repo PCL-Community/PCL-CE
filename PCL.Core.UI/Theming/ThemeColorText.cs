@@ -17,10 +17,11 @@ public static class ThemeColorText
     public static bool TryParseNumber(string? text, out double value)
     {
         return double.TryParse(
-            text?.Trim(),
-            NumberStyles.Float,
-            CultureInfo.InvariantCulture,
-            out value);
+                text?.Trim(),
+                NumberStyles.Float,
+                CultureInfo.InvariantCulture,
+                out value)
+            && double.IsFinite(value);
     }
 
     public static bool TryParseHex(string text, out Color color)

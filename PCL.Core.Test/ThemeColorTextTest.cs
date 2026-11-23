@@ -20,6 +20,22 @@ public class ThemeColorTextTest
     }
 
     [TestMethod]
+    public void NonFiniteNumbersShouldBeRejected()
+    {
+        Assert.IsFalse(ThemeColorText.TryParseNumber("NaN", out _));
+        Assert.IsFalse(ThemeColorText.TryParseNumber("Infinity", out _));
+        Assert.IsFalse(ThemeColorText.TryParseNumber("-Infinity", out _));
+        Assert.IsFalse(ThemeColorText.TryParseNumber("1e309", out _));
+    }
+
+    [TestMethod]
+    public void NonFiniteFieldsShouldBeRejected()
+    {
+        Assert.IsFalse(ThemeColorText.TryParseHsvFields("NaN", "50", "50", out _, out _));
+        Assert.IsFalse(ThemeColorText.TryParseRgbFields("NaN", "50", "50", out _));
+    }
+
+    [TestMethod]
     public void HsvShouldNormalizeHueAndClampComponents()
     {
         Assert.IsTrue(ThemeColorText.TryParseHsvFields("400", "150", "-5", out _, out var hue));
