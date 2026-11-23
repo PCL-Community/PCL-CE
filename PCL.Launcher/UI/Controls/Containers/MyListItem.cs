@@ -1084,7 +1084,7 @@ public partial class MyListItem : Grid, IMyRadio
         if (source is not null)
         {
             var sourcePoint = source.TranslatePoint(default, this);
-            if (sourcePoint is not null && ContainerAnimation.CanAnimate(this))
+            if (sourcePoint is not null && ContainerAnimation.CanAnimatePage(this))
             {
                 _checkedSource = null;
                 check.Height = customHeight;
@@ -1115,7 +1115,7 @@ public partial class MyListItem : Grid, IMyRadio
             }
         }
 
-        if (anime && ContainerAnimation.CanAnimate(this))
+        if (anime && ContainerAnimation.CanAnimatePage(this))
         {
             var animations = new List<IAnimation>();
             if (value)
