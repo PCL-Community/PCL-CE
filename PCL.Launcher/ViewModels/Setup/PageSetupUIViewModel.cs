@@ -1,79 +1,93 @@
+using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.UI.Dialogs;
+using PCL.Core.UI.Theme;
 using PCL.Core.ViewModel;
+using PCL.Core.UI.Theming;
 
 namespace PCL;
 
 /// <summary>界面个性化设置页的视图模型。</summary>
 public partial class PageSetupUIViewModel : ViewModelBase
 {
-    [ObservableProperty] private int _backgroundBlur =
-        Config.Preference.Background.WallpaperBlurRadius;
-
-    [ObservableProperty] private bool _backgroundBlurVisible;
-
-    [ObservableProperty] private bool _backgroundClearEnabled = true;
-
-    [ObservableProperty] private bool _backgroundClearVisible;
-
     private int _backgroundCount;
 
-    [ObservableProperty] private int _backgroundOpacity =
-        Config.Preference.Background.WallpaperOpacity;
-
-    [ObservableProperty] private bool _backgroundOpacityVisible;
-
-    [ObservableProperty] private int _backgroundSuitSelectedIndex;
-
-    [ObservableProperty] private bool _backgroundSuitVisible;
-
-    [ObservableProperty] private string _customNetText = string.Empty;
-
-    [ObservableProperty] private int _customPresetSelectedIndex = -1;
-
-    [ObservableProperty] private int _customThemeHue = Config.Preference.Theme.WindowHue;
-
-    [ObservableProperty] private int _customThemeSaturation = Config.Preference.Theme.WindowSat;
-
-    [ObservableProperty] private int _customThemeLightness = Config.Preference.Theme.WindowLight;
-
-    [ObservableProperty] private int _customThemeHueDelta = Config.Preference.Theme.WindowDelta;
-
-    [ObservableProperty] private bool _customThemeVisible;
-
-    [ObservableProperty] private int _darkColorSelectedIndex = -1;
-
-    [ObservableProperty] private int _darkModeSelectedIndex = -1;
-
-    [ObservableProperty] private bool _featureHideVisible = true;
+    [ObservableProperty] private bool _darkCustomVisible;
 
     private bool _forceShowFeatureHide;
     private bool _hasBackground;
     private bool _hasMusic;
-    [ObservableProperty] private bool _launcherHideVisible;
 
-    [ObservableProperty] private int _launcherOpacity = Config.Preference.Theme.WindowOpacity;
-
-    [ObservableProperty] private int _lightColorSelectedIndex = -1;
-
-    [ObservableProperty] private string _logoText = string.Empty;
-
-    [ObservableProperty] private bool _musicClearEnabled = true;
-
-    [ObservableProperty] private bool _musicClearVisible;
+    [ObservableProperty] private bool _lightCustomVisible;
 
     private int _musicCount;
 
-    [ObservableProperty] private bool _musicDetailVisible;
-
-    [ObservableProperty] private int _musicVolume = Config.Preference.Music.Volume;
+    private bool _reloading;
 
     private IReadOnlyList<ColorTheme> _themeColorOptions = [];
-    [ObservableProperty] private bool _musicVolumeVisible;
 
-    private bool _reloading;
+    [ObservableProperty]
+    public partial int BackgroundBlur { get; set; } =
+        Config.Preference.Background.WallpaperBlurRadius;
+
+    [ObservableProperty] public partial bool BackgroundBlurVisible { get; set; }
+
+    [ObservableProperty] public partial bool BackgroundClearEnabled { get; set; } = true;
+
+    [ObservableProperty] public partial bool BackgroundClearVisible { get; set; }
+
+    [ObservableProperty]
+    public partial int BackgroundOpacity { get; set; } =
+        Config.Preference.Background.WallpaperOpacity;
+
+    [ObservableProperty] public partial bool BackgroundOpacityVisible { get; set; }
+
+    [ObservableProperty] public partial int BackgroundSuitSelectedIndex { get; set; }
+
+    [ObservableProperty] public partial bool BackgroundSuitVisible { get; set; }
+
+    [ObservableProperty] public partial string CustomNetText { get; set; } = string.Empty;
+
+    [ObservableProperty] public partial int CustomPresetSelectedIndex { get; set; } = -1;
+
+    [ObservableProperty] public partial int DarkColorSelectedIndex { get; set; } = -1;
+
+    [ObservableProperty] public partial Color DarkCustomColor { get; set; } = Colors.DodgerBlue;
+
+    [ObservableProperty] public partial ThemePalette DarkPalette { get; set; } = ThemePalette.Empty;
+
+    [ObservableProperty] public partial bool FeatureHideVisible { get; set; } = true;
+
+    [ObservableProperty] public partial bool LauncherHideVisible { get; set; }
+
+    [ObservableProperty]
+    public partial int LauncherOpacity { get; set; } = Config.Preference.Theme.WindowOpacity;
+
+    [ObservableProperty] public partial int LightColorSelectedIndex { get; set; } = -1;
+
+    [ObservableProperty] public partial Color LightCustomColor { get; set; } = Colors.DodgerBlue;
+
+    [ObservableProperty]
+    public partial ThemePalette LightPalette { get; set; } = ThemePalette.Empty;
+
+    [ObservableProperty] public partial string LogoText { get; set; } = string.Empty;
+
+    [ObservableProperty] public partial bool MusicClearEnabled { get; set; } = true;
+
+    [ObservableProperty] public partial bool MusicClearVisible { get; set; }
+
+    [ObservableProperty] public partial bool MusicDetailVisible { get; set; }
+
+    [ObservableProperty]
+    public partial int MusicVolume { get; set; } = Config.Preference.Music.Volume;
+
+    [ObservableProperty] public partial bool MusicVolumeVisible { get; set; }
+
+    [ObservableProperty] public partial bool ShowDarkMode { get; set; }
+
+    [ObservableProperty] public partial bool ShowLightMode { get; set; } = true;
 
     public string BackgroundTitle =>
         _hasBackground
@@ -90,44 +104,56 @@ public partial class PageSetupUIViewModel : ViewModelBase
             ? Lang.Text("Setup.Ui.Music.TitleWithCount", _musicCount)
             : Lang.Text("Setup.Ui.Music.Title");
 
-    partial void OnDarkModeSelectedIndexChanged(int value)
-    {
-        if (!_reloading && value >= 0)
-            Config.Preference.Theme.ColorMode = (ColorMode)value;
-    }
-
     partial void OnLightColorSelectedIndexChanged(int value)
     {
-        if (!_reloading && value >= 0)
+        if (_reloading)
+            return;
+        if (value >= 0)
             Config.Preference.Theme.LightColor = GetThemeAt(value);
-        RefreshCustomThemeVisibility();
+        RefreshLightCustomVisibility();
+        if (GetThemeAt(value) == ColorTheme.Custom)
+            LoadLightCustom();
+        RefreshLightPalette();
     }
 
     partial void OnDarkColorSelectedIndexChanged(int value)
     {
-        if (!_reloading && value >= 0)
+        if (_reloading)
+            return;
+        if (value >= 0)
             Config.Preference.Theme.DarkColor = GetThemeAt(value);
-        RefreshCustomThemeVisibility();
+        RefreshDarkCustomVisibility();
+        if (GetThemeAt(value) == ColorTheme.Custom)
+            LoadDarkCustom();
+        RefreshDarkPalette();
     }
 
-    partial void OnCustomThemeHueChanged(int value)
+    public void ApplyLightCustomColor(Color value)
     {
-        if (!_reloading) Config.Preference.Theme.WindowHue = Math.Clamp(value, 0, 359);
+        var current = ThemeService.GetCustomColor(false);
+        var updated = ThemeCustomColor.FromSrgb(
+            value.R,
+            value.G,
+            value.B,
+            ThemeService.ToneProfiles.Light,
+            0,
+            current.Hue);
+        ThemeService.SetCustomColor(false, updated);
+        RefreshLightPalette();
     }
 
-    partial void OnCustomThemeSaturationChanged(int value)
+    public void ApplyDarkCustomColor(Color value)
     {
-        if (!_reloading) Config.Preference.Theme.WindowSat = Math.Clamp(value, 0, 100);
-    }
-
-    partial void OnCustomThemeLightnessChanged(int value)
-    {
-        if (!_reloading) Config.Preference.Theme.WindowLight = Math.Clamp(value, 0, 40);
-    }
-
-    partial void OnCustomThemeHueDeltaChanged(int value)
-    {
-        if (!_reloading) Config.Preference.Theme.WindowDelta = Math.Clamp(value, 0, 180);
+        var current = ThemeService.GetCustomColor(true);
+        var updated = ThemeCustomColor.FromSrgb(
+            value.R,
+            value.G,
+            value.B,
+            ThemeService.ToneProfiles.Dark,
+            0,
+            current.Hue);
+        ThemeService.SetCustomColor(true, updated);
+        RefreshDarkPalette();
     }
 
     partial void OnBackgroundSuitSelectedIndexChanged(int value)
@@ -178,13 +204,10 @@ public partial class PageSetupUIViewModel : ViewModelBase
 
             var theme = Config.Preference.Theme;
             LauncherOpacity = theme.WindowOpacity;
-            DarkModeSelectedIndex = Math.Clamp((int)theme.ColorMode, 0, 2);
             LightColorSelectedIndex = FindThemeIndex(theme.LightColor);
             DarkColorSelectedIndex = FindThemeIndex(theme.DarkColor);
-            CustomThemeHue = Math.Clamp(theme.WindowHue, 0, 359);
-            CustomThemeSaturation = Math.Clamp(theme.WindowSat, 0, 100);
-            CustomThemeLightness = Math.Clamp(theme.WindowLight, 0, 40);
-            CustomThemeHueDelta = Math.Clamp(theme.WindowDelta, 0, 180);
+            LoadLightCustom();
+            LoadDarkCustom();
 
             BackgroundOpacity = Config.Preference.Background.WallpaperOpacity;
             BackgroundBlur = Config.Preference.Background.WallpaperBlurRadius;
@@ -207,7 +230,11 @@ public partial class PageSetupUIViewModel : ViewModelBase
             _reloading = false;
         }
 
-        RefreshCustomThemeVisibility();
+        RefreshLightCustomVisibility();
+        RefreshDarkCustomVisibility();
+        RefreshLightPalette();
+        RefreshDarkPalette();
+        RefreshVisibleMode();
     }
 
     private ColorTheme GetThemeAt(int index)
@@ -228,11 +255,62 @@ public partial class PageSetupUIViewModel : ViewModelBase
         return 0;
     }
 
-    private void RefreshCustomThemeVisibility()
+    private void RefreshLightCustomVisibility()
     {
-        CustomThemeVisible = !OperatingSystem.IsWindows()
-            && (Config.Preference.Theme.LightColor == ColorTheme.Custom
-                || Config.Preference.Theme.DarkColor == ColorTheme.Custom);
+        LightCustomVisible = ThemeService.SupportsCustomThemes
+            && GetThemeAt(LightColorSelectedIndex) == ColorTheme.Custom;
+    }
+
+    private void RefreshDarkCustomVisibility()
+    {
+        DarkCustomVisible = ThemeService.SupportsCustomThemes
+            && GetThemeAt(DarkColorSelectedIndex) == ColorTheme.Custom;
+    }
+
+    private void LoadLightCustom()
+    {
+        var custom = ThemeService.GetCustomColor(false);
+        LightCustomColor = custom.ToReferenceColor(ThemeService.ToneProfiles.Light)
+            .ToAvaloniaColor();
+    }
+
+    private void LoadDarkCustom()
+    {
+        var custom = ThemeService.GetCustomColor(true);
+        DarkCustomColor = custom.ToReferenceColor(ThemeService.ToneProfiles.Dark)
+            .ToAvaloniaColor();
+    }
+
+    private void RefreshLightPalette()
+    {
+        LightPalette = ThemePaletteBuilder.Build(false, GetThemeAt(LightColorSelectedIndex));
+    }
+
+    private void RefreshDarkPalette()
+    {
+        DarkPalette = ThemePaletteBuilder.Build(true, GetThemeAt(DarkColorSelectedIndex));
+    }
+
+    public void RefreshVisibleMode()
+    {
+        var mode = Config.Preference.Theme.ColorMode;
+        var dark = mode switch
+        {
+            ColorMode.Dark => true,
+            ColorMode.System => ThemeService.SystemIsDarkMode,
+            _ => false
+        };
+
+        if (dark)
+        {
+            ShowLightMode = false;
+            ShowDarkMode = true;
+        }
+        else
+        {
+            ShowDarkMode = false;
+            ShowLightMode = true;
+        }
     }
 
     public void ShowLauncherHint()

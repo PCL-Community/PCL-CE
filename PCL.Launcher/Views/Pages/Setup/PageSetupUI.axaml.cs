@@ -10,6 +10,7 @@ using PCL.Core.App.Localization;
 using PCL.Core.Platform;
 using PCL.Core.UI;
 using PCL.Core.UI.Hints;
+using PCL.Core.UI.Theme;
 using PCL.Core.Utils.Validate;
 using PCL.Navigation;
 using PCL.UI.Controls;
@@ -34,10 +35,10 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
     ];
 
     private readonly List<MyCheckBox> _hideChecks = [];
-    private readonly List<ColorTheme> _themeColorOptions = [];
     private readonly MyRadioBox[] _homepageRadios;
     private readonly MyRadioBox[] _logoTypeRadios;
     private readonly MyRadioBox[] _macTitleBarStyleRadios;
+    private readonly List<ColorTheme> _themeColorOptions = [];
     private bool _loaded;
     private bool _reloading;
     private bool _selectingLogo;
@@ -46,7 +47,6 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
     {
         InitializeComponent();
         PanScroll = PanBack;
-        DataContext = ViewModel;
 
         _logoTypeRadios = [RadioLogoType0, RadioLogoType1, RadioLogoType2, RadioLogoType3];
         _homepageRadios = [RadioCustomType0, RadioCustomType3, RadioCustomType1, RadioCustomType2];
@@ -60,6 +60,26 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             new Func<object, object>(PageSetupUIViewModel.FormatPixelHint);
         SliderMusicVolume.getHintText =
             new Func<object, object>(PageSetupUIViewModel.FormatMusicVolumeHint);
+
+        SelectorColorMode.SelectionChanged += (_, index, raiseByMouse) =>
+        {
+            if (!raiseByMouse) return;
+            WriteIfReady(() =>
+            {
+                Config.Preference.Theme.ColorMode = index switch
+                {
+                    1 => ColorMode.Light,
+                    2 => ColorMode.Dark,
+                    _ => ColorMode.System
+                };
+                ViewModel.RefreshVisibleMode();
+            });
+        };
+
+        PickerLightColor.ColorPicked += (_, color) =>
+            WriteIfReady(() => ViewModel.ApplyLightCustomColor(color));
+        PickerDarkColor.ColorPicked += (_, color) =>
+            WriteIfReady(() => ViewModel.ApplyDarkCustomColor(color));
 
         TextCustomNet.ValidateRules.Add(
             new HttpValidator
@@ -156,7 +176,6 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             WriteIfReady(() => Config.Preference.MotdFont = ComboUiMotdFont.SelectedFontTag);
 
         BtnLauncherDonate.Click += (_, _) => Basics.OpenPath("https://afdian.com/a/LTCat");
-        BtnThemeSnapshot.Click += (_, _) => Basics.OpenPath("https://afdian.com/a/LTCat");
         BtnLogoChange.Click += (_, _) => OnChangeLogo();
         BtnLogoDelete.Click += (_, _) => OnDeleteLogo();
         BtnBackgroundOpen.Click += (_, _) => OpenBackgroundFolder();
@@ -191,17 +210,20 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
 
         BuildHideGrid();
         BuildThemeColorItems();
-        RefreshThemeColorPlatformState();
+        DataContext = ViewModel;
 
         HiddenFeatureState.Changed += OnHiddenFeatureStateChanged;
 
         Loaded += (_, _) =>
         {
+            ThemeService.ColorModeChanged -= OnThemeColorModeChanged;
+            ThemeService.ColorModeChanged += OnThemeColorModeChanged;
             if (_loaded) return;
             _loaded = true;
             Reload();
             ViewModel.ShowLauncherHint();
         };
+        Unloaded += (_, _) => ThemeService.ColorModeChanged -= OnThemeColorModeChanged;
     }
 
     public PageSetupUIViewModel ViewModel { get; } = new();
@@ -224,8 +246,15 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         }
     }
 
+    private void OnThemeColorModeChanged(bool isDarkMode, ColorTheme theme)
+    {
+        ViewModel.RefreshVisibleMode();
+    }
+
     public override void OnNavigatedTo(PageParameter? parameter)
     {
+        ThemeService.ColorModeChanged -= OnThemeColorModeChanged;
+        ThemeService.ColorModeChanged += OnThemeColorModeChanged;
         PanBack.ScrollToHome();
         if (_loaded) Reload();
         RefreshBackgroundState();
@@ -242,7 +271,17 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         try
         {
             ViewModel.Reload(_themeColorOptions);
-            _macTitleBarStyleRadios[Math.Clamp(Config.Preference.MacTitleBarStyle, 0, 1)].SetChecked(true, false);
+            var colorMode = Config.Preference.Theme.ColorMode;
+            SelectorColorMode.Select(
+                colorMode switch
+                {
+                    ColorMode.Light => 1,
+                    ColorMode.Dark => 2,
+                    _ => 0
+                },
+                false);
+            _macTitleBarStyleRadios[Math.Clamp(Config.Preference.MacTitleBarStyle, 0, 1)]
+                .SetChecked(true, false);
             CheckLockWindowSize.Checked = Config.Preference.LockWindowSize;
             CheckShowLaunchingHint.Checked = Config.Preference.ShowLaunchingHint;
 
@@ -301,11 +340,12 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
 
     private void BuildThemeColorItems()
     {
+        var supportsCustomThemes = ThemeService.SupportsCustomThemes;
         _themeColorOptions.Clear();
         var count = Basics.IsAprilFool ? ThemeColorKeys.Length : ThemeColorKeys.Length - 1;
         for (var i = 0; i < count; i++)
             _themeColorOptions.Add(Enum.Parse<ColorTheme>(ThemeColorKeys[i].Tag));
-        if (!OperatingSystem.IsWindows())
+        if (supportsCustomThemes)
             _themeColorOptions.Add(ColorTheme.Custom);
 
         foreach (var combo in new[]
@@ -324,7 +364,7 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
                 combo.Items.Add(item);
             }
 
-            if (!OperatingSystem.IsWindows())
+            if (supportsCustomThemes)
             {
                 var item = new MyComboBoxItem();
                 item.SetLocalizedValue(
@@ -333,11 +373,6 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
                 combo.Items.Add(item);
             }
         }
-    }
-
-    private void RefreshThemeColorPlatformState()
-    {
-        PanThemeColorMask.IsVisible = OperatingSystem.IsWindows();
     }
 
     #endregion

@@ -3264,7 +3264,14 @@
     <sys:String x:Key="Setup.Ui.Theme.FollowSystem">Follow system</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.Light">Light</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.LightColor">Light theme color</sys:String>
-    <sys:String x:Key="Setup.Ui.Theme.Title">Theme</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Title">Theme &amp; colors</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Appearance.Title">Appearance</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Theme">Theme</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Mode.Light">Light mode</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Mode.Dark">Dark mode</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Palette">Theme palette</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.Title">Custom colors</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.InvalidColor">Invalid color format</sys:String>
 
     <!-- Setup.Update -->
 

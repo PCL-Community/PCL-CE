@@ -3195,7 +3195,14 @@
     <sys:String x:Key="Setup.Ui.Theme.FollowSystem">跟隨系統</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.Light">淺色</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.LightColor">淺色配色</sys:String>
-    <sys:String x:Key="Setup.Ui.Theme.Title">主題</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Title">主題與配色</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Appearance.Title">外觀模式</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Theme">主題</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Mode.Light">淺色模式</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Mode.Dark">深色模式</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Palette">主題色階</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.Title">自訂配色</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.InvalidColor">顏色格式無效</sys:String>
 
     <!-- Setup.Update -->
 
