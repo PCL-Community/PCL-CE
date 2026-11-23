@@ -29,6 +29,7 @@ public partial class PageSetupLog : MyPageRight
     public PageSetupLog()
     {
         InitializeComponent();
+        SetDeviceInfoActionsEnabled(false);
         PanScroll = PanBack;
         DataContext = ViewModel;
         Grid.SetIsSharedSizeScope(PanDeviceSections, true);
@@ -118,6 +119,7 @@ public partial class PageSetupLog : MyPageRight
             return;
 
         _deviceInfoLoading = true;
+        SetDeviceInfoActionsEnabled(false);
         LabDeviceOs.Text = Lang.Text("Setup.Log.Device.Collecting");
         LabDeviceLine1.Text = string.Empty;
         LabDeviceLine2.Text = string.Empty;
@@ -144,7 +146,14 @@ public partial class PageSetupLog : MyPageRight
         finally
         {
             _deviceInfoLoading = false;
+            SetDeviceInfoActionsEnabled(true);
         }
+    }
+
+    private void SetDeviceInfoActionsEnabled(bool enabled)
+    {
+        BtnExportDeviceInfo.IsEnabled = enabled;
+        BtnCopyDeviceInfo.IsEnabled = enabled;
     }
 
     private void RefreshDeviceInfoDisplay()
