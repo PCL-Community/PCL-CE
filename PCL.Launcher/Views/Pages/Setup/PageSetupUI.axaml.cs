@@ -80,6 +80,10 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             WriteIfReady(() => ViewModel.ApplyLightCustomColor(color));
         PickerDarkColor.ColorPicked += (_, color) =>
             WriteIfReady(() => ViewModel.ApplyDarkCustomColor(color));
+        PickerLightColor.HueSpreadPicked += (_, hueSpread) =>
+            WriteIfReady(() => ViewModel.ApplyLightHueSpread(hueSpread));
+        PickerDarkColor.HueSpreadPicked += (_, hueSpread) =>
+            WriteIfReady(() => ViewModel.ApplyDarkHueSpread(hueSpread));
 
         TextCustomNet.ValidateRules.Add(
             new HttpValidator

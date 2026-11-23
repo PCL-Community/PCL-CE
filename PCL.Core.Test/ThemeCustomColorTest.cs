@@ -65,6 +65,63 @@ public class ThemeCustomColorTest
     }
 
     [TestMethod]
+    public void ReferenceColorShouldIgnoreHueSpread()
+    {
+        var withoutSpread = new ThemeCustomColor
+        {
+            Hue = 210,
+            ChromaScale = -0.2d,
+            HueSpread = 0
+        };
+        var withSpread = withoutSpread with
+        {
+            HueSpread = 45
+        };
+
+        var expected = withoutSpread.ToReferenceColor(ToneProfileConfig.DefaultLight).ScRgb;
+        var actual = withSpread.ToReferenceColor(ToneProfileConfig.DefaultLight).ScRgb;
+
+        Assert.AreEqual(expected.Red, actual.Red, 0.0001f);
+        Assert.AreEqual(expected.Green, actual.Green, 0.0001f);
+        Assert.AreEqual(expected.Blue, actual.Blue, 0.0001f);
+    }
+
+    [TestMethod]
+    public void TitleBarGradientShouldUseSpreadOnlyForEndpoints()
+    {
+        var custom = new ThemeCustomColor
+        {
+            Hue = 210,
+            ChromaScale = -0.2d,
+            HueSpread = 30
+        };
+
+        var (start, middle, end) = custom.ToTitleBarColors(ToneProfileConfig.DefaultLight);
+
+        Assert.AreEqual(180d, start.Hue, 0.5d);
+        Assert.AreEqual(210d, middle.Hue, 0.5d);
+        Assert.AreEqual(240d, end.Hue, 0.5d);
+    }
+
+    [TestMethod]
+    public void PaletteShouldIgnoreHueSpread()
+    {
+        var withoutSpread = ThemeService.CalculateColorResources(
+            ToneProfileConfig.DefaultLight,
+            (210, 0, -0.2, 0));
+        var withSpread = ThemeService.CalculateColorResources(
+            ToneProfileConfig.DefaultLight,
+            (210, 0, -0.2, 45));
+
+        for (var i = 0; i < withoutSpread.Length; i++)
+        {
+            Assert.AreEqual(withoutSpread[i].Red, withSpread[i].Red, 0.0001f);
+            Assert.AreEqual(withoutSpread[i].Green, withSpread[i].Green, 0.0001f);
+            Assert.AreEqual(withoutSpread[i].Blue, withSpread[i].Blue, 0.0001f);
+        }
+    }
+
+    [TestMethod]
     public void GrayscaleShouldUseFallbackHue()
     {
         var custom = ThemeCustomColor.FromSrgb(
@@ -137,13 +194,13 @@ public class ThemeCustomColorTest
     }
 
     private static void AssertArgs(
-        (int Hue, double LightAdjust, double ChromaAdjust, int HueDelta) expected,
+        (int Hue, double LightAdjust, double ChromaAdjust, int HueSpread) expected,
         ColorTheme theme)
     {
         var actual = ThemeService.GetThemeArgs(theme, false);
         Assert.AreEqual(expected.Hue, actual.Hue);
         Assert.AreEqual(expected.LightAdjust, actual.LightAdjust, 0.0001d);
         Assert.AreEqual(expected.ChromaAdjust, actual.ChromaAdjust, 0.0001d);
-        Assert.AreEqual(expected.HueDelta, actual.HueDelta);
+        Assert.AreEqual(expected.HueSpread, actual.HueSpread);
     }
 }

@@ -45,8 +45,12 @@
                        Margin="0,15"
                        Title="{loc:Loc Setup.Ui.Theme.Title}">
                 <StackPanel Margin="25,40,25,20">
-                    <Grid ColumnDefinitions="Auto,*"
-                          ColumnSpacing="25">
+                    <Grid ColumnSpacing="25">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"
+                                              SharedSizeGroup="ThemeLabel" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
                         <TextBlock VerticalAlignment="Center"
                                    Text="{loc:Loc Setup.Ui.Theme.Appearance.Title}" />
                         <coreui:SegmentedControl x:Name="SelectorColorMode"
@@ -98,8 +102,12 @@
 
                     <StackPanel Margin="0,14,0,0"
                                 IsVisible="{Binding ShowLightMode}">
-                        <Grid ColumnDefinitions="Auto,*"
-                              ColumnSpacing="25">
+                        <Grid ColumnSpacing="25">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"
+                                                  SharedSizeGroup="ThemeLabel" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
                             <TextBlock VerticalAlignment="Center"
                                        Text="{loc:Loc Setup.Ui.Theme.Theme}" />
                             <ui:MyComboBox x:Name="ComboLightColor"
@@ -107,7 +115,8 @@
                                            Height="28"
                                            VerticalAlignment="Center"
                                            HorizontalAlignment="Stretch"
-                                           SelectedIndex="{Binding LightColorSelectedIndex, Mode=TwoWay}" />
+                                           SelectedIndex="{Binding LightColorSelectedIndex, Mode=TwoWay}"
+                                           ToolTip.Tip="{loc:Loc Setup.Ui.Theme.Theme.ToolTip}" />
                         </Grid>
 
                         <Border Margin="0,12,0,0"
@@ -120,7 +129,8 @@
                                            FontWeight="Bold"
                                            Text="{loc:Loc Setup.Ui.Theme.Custom.Title}" />
                                 <ui:ThemeColorPicker x:Name="PickerLightColor"
-                                                     Color="{Binding LightCustomColor, Mode=OneWay}" />
+                                                     Color="{Binding LightCustomColor, Mode=OneWay}"
+                                                     HueSpread="{Binding LightHueSpread, Mode=OneWay}" />
                             </StackPanel>
                         </Border>
 
@@ -145,8 +155,12 @@
 
                     <StackPanel Margin="0,14,0,0"
                                 IsVisible="{Binding ShowDarkMode}">
-                        <Grid ColumnDefinitions="Auto,*"
-                              ColumnSpacing="25">
+                        <Grid ColumnSpacing="25">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"
+                                                  SharedSizeGroup="ThemeLabel" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
                             <TextBlock VerticalAlignment="Center"
                                        Text="{loc:Loc Setup.Ui.Theme.Theme}" />
                             <ui:MyComboBox x:Name="ComboDarkColor"
@@ -154,7 +168,8 @@
                                            Height="28"
                                            VerticalAlignment="Center"
                                            HorizontalAlignment="Stretch"
-                                           SelectedIndex="{Binding DarkColorSelectedIndex, Mode=TwoWay}" />
+                                           SelectedIndex="{Binding DarkColorSelectedIndex, Mode=TwoWay}"
+                                           ToolTip.Tip="{loc:Loc Setup.Ui.Theme.Theme.ToolTip}" />
                         </Grid>
 
                         <Border Margin="0,12,0,0"
@@ -167,7 +182,8 @@
                                            FontWeight="Bold"
                                            Text="{loc:Loc Setup.Ui.Theme.Custom.Title}" />
                                 <ui:ThemeColorPicker x:Name="PickerDarkColor"
-                                                     Color="{Binding DarkCustomColor, Mode=OneWay}" />
+                                                     Color="{Binding DarkCustomColor, Mode=OneWay}"
+                                                     HueSpread="{Binding DarkHueSpread, Mode=OneWay}" />
                             </StackPanel>
                         </Border>
 

@@ -4,8 +4,8 @@ using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Theme;
-using PCL.Core.ViewModel;
 using PCL.Core.UI.Theming;
+using PCL.Core.ViewModel;
 
 namespace PCL;
 
@@ -56,6 +56,8 @@ public partial class PageSetupUIViewModel : ViewModelBase
 
     [ObservableProperty] public partial Color DarkCustomColor { get; set; } = Colors.DodgerBlue;
 
+    [ObservableProperty] public partial int DarkHueSpread { get; set; }
+
     [ObservableProperty] public partial ThemePalette DarkPalette { get; set; } = ThemePalette.Empty;
 
     [ObservableProperty] public partial bool FeatureHideVisible { get; set; } = true;
@@ -68,6 +70,8 @@ public partial class PageSetupUIViewModel : ViewModelBase
     [ObservableProperty] public partial int LightColorSelectedIndex { get; set; } = -1;
 
     [ObservableProperty] public partial Color LightCustomColor { get; set; } = Colors.DodgerBlue;
+
+    [ObservableProperty] public partial int LightHueSpread { get; set; }
 
     [ObservableProperty]
     public partial ThemePalette LightPalette { get; set; } = ThemePalette.Empty;
@@ -136,7 +140,7 @@ public partial class PageSetupUIViewModel : ViewModelBase
             value.G,
             value.B,
             ThemeService.ToneProfiles.Light,
-            0,
+            current.HueSpread,
             current.Hue);
         ThemeService.SetCustomColor(false, updated);
         RefreshLightPalette();
@@ -150,10 +154,30 @@ public partial class PageSetupUIViewModel : ViewModelBase
             value.G,
             value.B,
             ThemeService.ToneProfiles.Dark,
-            0,
+            current.HueSpread,
             current.Hue);
         ThemeService.SetCustomColor(true, updated);
         RefreshDarkPalette();
+    }
+
+    public void ApplyLightHueSpread(int value)
+    {
+        var updated = (ThemeService.GetCustomColor(false) with
+        {
+            HueSpread = Math.Clamp(value, -90, 90)
+        }).Normalize();
+        ThemeService.SetCustomColor(false, updated);
+        LightHueSpread = updated.HueSpread;
+    }
+
+    public void ApplyDarkHueSpread(int value)
+    {
+        var updated = (ThemeService.GetCustomColor(true) with
+        {
+            HueSpread = Math.Clamp(value, -90, 90)
+        }).Normalize();
+        ThemeService.SetCustomColor(true, updated);
+        DarkHueSpread = updated.HueSpread;
     }
 
     partial void OnBackgroundSuitSelectedIndexChanged(int value)
@@ -270,14 +294,18 @@ public partial class PageSetupUIViewModel : ViewModelBase
     private void LoadLightCustom()
     {
         var custom = ThemeService.GetCustomColor(false);
-        LightCustomColor = custom.ToReferenceColor(ThemeService.ToneProfiles.Light)
+        LightHueSpread = custom.HueSpread;
+        LightCustomColor = custom
+            .ToReferenceColor(ThemeService.ToneProfiles.Light)
             .ToAvaloniaColor();
     }
 
     private void LoadDarkCustom()
     {
         var custom = ThemeService.GetCustomColor(true);
-        DarkCustomColor = custom.ToReferenceColor(ThemeService.ToneProfiles.Dark)
+        DarkHueSpread = custom.HueSpread;
+        DarkCustomColor = custom
+            .ToReferenceColor(ThemeService.ToneProfiles.Dark)
             .ToAvaloniaColor();
     }
 

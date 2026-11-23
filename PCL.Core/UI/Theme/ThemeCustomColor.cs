@@ -14,7 +14,7 @@ public sealed record ThemeCustomColor
     /// <summary>明度偏移，-1 到 1；0 表示保持 <see cref="ToneProfile" /> 的原始明度。</summary>
     public double LightnessBias { get; init; }
 
-    /// <summary>色相变化幅度，-90 到 90；0 表示不产生色相偏移。</summary>
+    /// <summary>顶部标题栏渐变的色相幅度，-90 到 90；0 表示不产生渐变色相变化。</summary>
     public int HueSpread { get; init; }
 
     /// <summary>把旧版四个独立参数转换为当前记录。</summary>
@@ -45,7 +45,7 @@ public sealed record ThemeCustomColor
         var color = OklabColor.FromRgb(red, green, blue);
         var hue = color.Chroma < 0.0001d
             ? fallbackHue
-            : (int)Math.Round(color.Hue - hueSpread * 2d / 10d);
+            : (int)Math.Round(color.Hue);
 
         return new ThemeCustomColor
         {
@@ -60,11 +60,23 @@ public sealed record ThemeCustomColor
     public OklabColor ToReferenceColor(ToneProfile tone)
     {
         var normalized = Normalize();
-        var hue = normalized.Hue + normalized.HueSpread * 2d / 10d;
         return OklabColor.FromLch(
             ThemeColorMath.AdjustLinear(tone.L3, normalized.LightnessBias),
             ThemeColorMath.AdjustLinear(tone.C3, normalized.ChromaScale),
-            hue);
+            normalized.Hue);
+    }
+
+    /// <summary>生成顶部标题栏渐变的三段颜色。</summary>
+    public (OklabColor Start, OklabColor Middle, OklabColor End) ToTitleBarColors(
+        ToneProfile tone)
+    {
+        var normalized = Normalize();
+        var lightness = ThemeColorMath.AdjustLinear(tone.L3, normalized.LightnessBias);
+        var chroma = ThemeColorMath.AdjustLinear(tone.C3, normalized.ChromaScale);
+        return (
+            OklabColor.FromLch(lightness, chroma, normalized.Hue - normalized.HueSpread),
+            OklabColor.FromLch(lightness, chroma, normalized.Hue),
+            OklabColor.FromLch(lightness, chroma, normalized.Hue + normalized.HueSpread));
     }
 
     /// <summary>把各字段限制在有效范围内。</summary>

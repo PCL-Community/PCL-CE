@@ -293,7 +293,7 @@ public static partial class Config
             [ConfigItem<int>("UiLauncherLight", 20, ConfigSource.Local)] public partial int WindowLight { get; set; }
 
             /// <summary>
-            /// 自定义主题：色相渐变。旧版全局自定义参数，仅在新配置缺失时作为回退。
+            /// 自定义主题：顶栏渐变幅度。旧版全局自定义参数，仅在新配置缺失时作为回退。
             /// </summary>
             [ConfigItem<int>("UiLauncherDelta", 90, ConfigSource.Local)] public partial int WindowDelta { get; set; }
 

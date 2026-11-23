@@ -235,14 +235,14 @@ public sealed partial class ThemeService
     }
 
     /// <summary>获取当前色彩主题对应的各种参数。</summary>
-    public static (int Hue, double LightAdjust, double ChromaAdjust, int HueDelta)
+    public static (int Hue, double LightAdjust, double ChromaAdjust, int HueSpread)
         GetCurrentThemeArgs()
     {
         return GetThemeArgs(CurrentTheme, IsDarkMode);
     }
 
-    /// <summary>获取指定模式与主题对应的各种参数，不改变当前主题状态。</summary>
-    public static (int Hue, double LightAdjust, double ChromaAdjust, int HueDelta) GetThemeArgs(
+    /// <summary>获取指定模式与主题对应的各种参数，不改变当前主题状态。HueSpread 仅用于顶部标题栏渐变。</summary>
+    public static (int Hue, double LightAdjust, double ChromaAdjust, int HueSpread) GetThemeArgs(
         ColorTheme theme,
         bool isDarkMode)
     {
@@ -269,14 +269,13 @@ public sealed partial class ThemeService
     {
         var theme = Config.Preference.Theme;
         var config = isDarkMode ? theme.DarkCustomConfig : theme.LightCustomConfig;
-        if (!config.IsDefault())
-            return (isDarkMode ? theme.DarkCustom : theme.LightCustom).Normalize();
-
-        return ThemeCustomColor.FromLegacy(
-            theme.WindowHue,
-            theme.WindowSat,
-            theme.WindowLight,
-            theme.WindowDelta);
+        return !config.IsDefault()
+            ? (isDarkMode ? theme.DarkCustom : theme.LightCustom).Normalize()
+            : ThemeCustomColor.FromLegacy(
+                theme.WindowHue,
+                theme.WindowSat,
+                theme.WindowLight,
+                theme.WindowDelta);
     }
 
     /// <summary>写入指定模式的自定义主题参数。</summary>
@@ -289,7 +288,7 @@ public sealed partial class ThemeService
             Config.Preference.Theme.LightCustom = normalized;
     }
 
-    private static (int Hue, double LightAdjust, double ChromaAdjust, int HueDelta)
+    private static (int Hue, double LightAdjust, double ChromaAdjust, int HueSpread)
         _CustomThemeArgs(
             ThemeCustomColor custom)
     {
@@ -360,12 +359,11 @@ public sealed partial class ThemeService
         ];
     }
 
-    /// <summary>按指定色阶与参数计算彩色资源，不读取配置，也不写入应用资源。</summary>
+    /// <summary>按指定色阶与参数计算彩色资源，不读取配置，也不写入应用资源。色阶只使用基色，色相渐变仅用于顶部标题栏。</summary>
     public static CatColorResource[] CalculateColorResources(
         ToneProfile tone,
-        (int hue, double lightAdj, double chromaAdj, int hueDelta) args)
+        (int hue, double lightAdj, double chromaAdj, int hueSpread) args)
     {
-        var hueIndex = 0;
         return
         [
             OklabColor
@@ -440,7 +438,7 @@ public sealed partial class ThemeService
 
         int Hue()
         {
-            return (int)Math.Round(args.hue + args.hueDelta * Math.Clamp(hueIndex++, 0, 10) / 10d);
+            return args.hue;
         }
     }
 
