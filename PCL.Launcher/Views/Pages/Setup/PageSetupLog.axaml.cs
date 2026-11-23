@@ -12,6 +12,7 @@ using PCL.Core.Platform;
 using PCL.Core.UI;
 using PCL.Core.UI.Hints;
 using PCL.Core.Utils.OS;
+using PCL.Core.Utils.OS.DeviceInfo;
 using PCL.Navigation;
 using PCL.UI.Controls;
 
@@ -348,67 +349,10 @@ public partial class PageSetupLog : MyPageRight
 
     private DeviceInfoSnapshot BuildCurrentSnapshot()
     {
-        var snapshot = DeviceInfoCollector.Collect();
-        var sections = snapshot.Sections.ToList();
-        var display = BuildDisplaySection();
-        if (display is not null)
-            sections.Add(display);
-        var storage = BuildStorageSection();
-        if (storage is not null)
-            sections.Add(storage);
-        sections.Sort((left, right) => left.Kind.CompareTo(right.Kind));
-        return snapshot with
-        {
-            Sections = sections
-        };
-    }
-
-    private static DeviceInfoSection BuildStorageSection()
-    {
-        var rows = new List<DeviceInfoRow>
-        {
-            new("Setup.Log.Device.Field.DataDisk", FormatDiskSpace(Paths.Data))
-        };
-
-        var gameFolder = GameFolders.mcFolderSelected;
-        if (string.IsNullOrWhiteSpace(gameFolder))
-        {
-            rows.Add(
-                new DeviceInfoRow(
-                    "Setup.Log.Device.Field.GameDirectory",
-                    Lang.Text("Common.State.Unknown")));
-            return new DeviceInfoSection(
-                DeviceInfoSectionKind.Storage,
-                "Setup.Log.Device.Section.Storage",
-                rows);
-        }
-
-        rows.Add(
-            new DeviceInfoRow(
-                "Setup.Log.Device.Field.GameDirectory",
-                gameFolder));
-        rows.Add(
-            new DeviceInfoRow(
-                "Setup.Log.Device.Field.GameDisk",
-                FormatDiskSpace(gameFolder)));
-        return new DeviceInfoSection(
-            DeviceInfoSectionKind.Storage,
-            "Setup.Log.Device.Section.Storage",
-            rows);
-    }
-
-    private static string FormatDiskSpace(string? path)
-    {
-        var volume = DiskSpaceInfo.Get(path);
-        if (volume is null)
-            return Lang.Text("Common.State.Unknown");
-
-        var free = volume.FreeBytes / 1024d / 1024d / 1024d;
-        var total = volume.TotalBytes / 1024d / 1024d / 1024d;
-        return Lang.Text(
-            "Setup.Log.Device.Value.DiskFree",
-            Lang.Number(free, "N1"),
-            Lang.Number(total, "N1"));
+        var facts = DeviceInfoFactsCollector.Collect(
+            Paths.Data,
+            GameFolders.mcFolderSelected);
+        return DeviceInfoSectionBuilder.Build(facts, BuildDisplaySection());
     }
 
     private async Task ExportDeviceInfoAsync()

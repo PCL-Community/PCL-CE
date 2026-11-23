@@ -1,81 +1,81 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Runtime.InteropServices;
 using System.Text;
 using PCL.Core.App.Localization;
 using PCL.Core.IO.Net;
 using PCL.Core.Logging;
-using PCL.Core.Platform;
 using PCL.Core.Utils.OS;
+using PCL.Core.Utils.OS.DeviceInfo;
 using PCL.Core.Utils.Secret;
 
 namespace PCL.Core.App.DeviceInfo;
 
-public static class DeviceInfoCollector
+public static class DeviceInfoSectionBuilder
 {
     private const string UnknownKey = "Common.State.Unknown";
     private const string NoneKey = "Setup.Log.Device.Value.None";
 
-    public static DeviceInfoSnapshot Collect()
+    public static DeviceInfoSnapshot Build(
+        DeviceInfoFacts facts,
+        DeviceInfoSection? displaySection = null)
     {
-        var osInfo = _GetOperatingSystemInfo();
-        var machineName = _SafeGet("MachineName", () => Environment.MachineName);
-        var architecture = _FormatArchitecture(RuntimeInformation.OSArchitecture);
-        var cpuName = _GetCpuName();
-        var memory = _GetMemoryInfo();
-        var memoryText = _FormatMemory(
-            memory.TotalBytes > 0
-                ? memory.TotalBytes
-                : _ToBytes(HardwareInfo.SystemMemorySize));
-        var gpuText = _GetGpuSummary();
+        ArgumentNullException.ThrowIfNull(facts);
+
         var launcherVersion = _GetLauncherVersion();
+        var cpuName = _Text(facts.CpuName, UnknownKey);
+        var gpuText = _GetGpuSummary(facts.Gpus);
 
         var sections = new List<DeviceInfoSection>
         {
-            _BuildOperatingSystemSection(osInfo),
-            _BuildDeviceSection(),
-            _BuildProcessorSection(cpuName),
-            _BuildMemorySection(memory),
-            _BuildGraphicsSection(),
+            _BuildOperatingSystemSection(facts),
+            _BuildDeviceSection(facts),
+            _BuildProcessorSection(facts, cpuName),
+            _BuildMemorySection(facts),
+            _BuildGraphicsSection(facts.Gpus),
+            _BuildStorageSection(facts),
             _BuildLauncherSection(launcherVersion),
-            _BuildRuntimeSection()
+            _BuildRuntimeSection(facts)
         };
+
+        if (displaySection is not null)
+            sections.Add(displaySection);
+
+        sections.Sort((left, right) => left.Kind.CompareTo(right.Kind));
 
         var summaryLines = new List<string>
         {
             Lang.Text(
                 "Setup.Log.Device.Summary.DeviceLine",
                 _SafeGet("LauncherVersion", () => Basics.VersionName),
-                machineName),
+                _Text(facts.MachineName, UnknownKey)),
             Lang.Text(
                 "Setup.Log.Device.Summary.HardwareLine",
                 cpuName,
-                architecture),
-            memoryText,
+                DeviceInfoFormat.FormatArchitecture(facts.OsArchitecture)),
+            _FormatMemory(facts.TotalMemoryBytes),
             gpuText
         };
 
         return new DeviceInfoSnapshot(
-            osInfo.Name,
+            _Text(facts.OperatingSystem.Name, UnknownKey),
             summaryLines,
             launcherVersion,
             sections,
-            DateTimeOffset.Now);
+            facts.CapturedAt);
     }
 
-    private static DeviceInfoSection _BuildOperatingSystemSection(OperatingSystemInfo osInfo)
+    private static DeviceInfoSection _BuildOperatingSystemSection(DeviceInfoFacts facts)
     {
+        var osInfo = facts.OperatingSystem;
         var rows = new List<DeviceInfoRow>
         {
             _Row(
                 "Setup.Log.Device.Field.OperatingSystem",
-                osInfo.Name),
+                _Text(osInfo.Name, UnknownKey)),
             _Row(
                 "Setup.Log.Device.Field.OsVersion",
-                string.IsNullOrWhiteSpace(osInfo.Version)
-                    ? Lang.Text(UnknownKey)
-                    : osInfo.Version),
+                _Text(osInfo.Version, UnknownKey)),
             _Row(
                 "Setup.Log.Device.Field.Kernel",
                 string.IsNullOrWhiteSpace(osInfo.KernelVersion)
@@ -83,34 +83,34 @@ public static class DeviceInfoCollector
                     : $"{osInfo.KernelName} {osInfo.KernelVersion}".Trim()),
             _Row(
                 "Setup.Log.Device.Field.OsDescription",
-                _SafeGet("OsDescription", () => RuntimeInformation.OSDescription)),
+                _Text(facts.OsDescription, UnknownKey)),
             _Row(
                 "Setup.Log.Device.Field.Architecture",
-                _FormatArchitecture(RuntimeInformation.OSArchitecture)),
+                DeviceInfoFormat.FormatArchitecture(facts.OsArchitecture)),
             _Row(
                 "Setup.Log.Device.Field.Is64Bit",
-                _BoolText(Environment.Is64BitOperatingSystem)),
+                _BoolText(facts.Is64BitOperatingSystem)),
             _Row(
                 "Setup.Log.Device.Field.MachineName",
-                _SafeGet("MachineName", () => Environment.MachineName)),
+                _Text(facts.MachineName, UnknownKey)),
             _Row(
                 "Setup.Log.Device.Field.SystemUptime",
-                _FormatUptime(TimeSpan.FromMilliseconds(Environment.TickCount64))),
+                DeviceInfoFormat.FormatUptime(facts.SystemUptime)),
             _Row(
                 "Setup.Log.Device.Field.Culture",
-                _SafeGet("Culture", _GetCultureName)),
+                _Text(facts.CultureName, UnknownKey)),
             _Row(
                 "Setup.Log.Device.Field.UiLanguage",
                 _SafeGet("UiLanguage", _GetUiLanguage)),
             _Row(
                 "Setup.Log.Device.Field.TimeZone",
-                _SafeGet("TimeZone", _GetTimeZone)),
+                DeviceInfoFormat.FormatTimeZone(facts.TimeZoneId, facts.UtcOffset)),
             _Row(
                 "Setup.Log.Device.Field.Administrator",
-                _SafeGet("Administrator", _GetAdministratorText)),
+                _BoolText(facts.IsAdministrator)),
             _Row(
                 "Setup.Log.Device.Field.IPv6",
-                _SafeGet("IPv6", _GetIpv6StatusText))
+                _GetIpv6StatusText(facts.IPv6Status))
         };
 
         if (!string.IsNullOrWhiteSpace(osInfo.Build))
@@ -124,16 +124,16 @@ public static class DeviceInfoCollector
             rows);
     }
 
-    private static DeviceInfoSection _BuildDeviceSection()
+    private static DeviceInfoSection _BuildDeviceSection(DeviceInfoFacts facts)
     {
         var rows = new List<DeviceInfoRow>
         {
             _Row(
                 "Setup.Log.Device.Field.DeviceModel",
-                _SafeGet("DeviceModel", _GetDeviceModel)),
+                _Text(facts.DeviceModel, UnknownKey)),
             _Row(
                 "Setup.Log.Device.Field.BiosVersion",
-                _SafeGet("BiosVersion", _GetBiosVersion))
+                _Text(facts.BiosVersion, UnknownKey))
         };
 
         return new DeviceInfoSection(
@@ -142,7 +142,9 @@ public static class DeviceInfoCollector
             rows);
     }
 
-    private static DeviceInfoSection _BuildProcessorSection(string cpuName)
+    private static DeviceInfoSection _BuildProcessorSection(
+        DeviceInfoFacts facts,
+        string cpuName)
     {
         var rows = new List<DeviceInfoRow>
         {
@@ -151,14 +153,14 @@ public static class DeviceInfoCollector
                 cpuName),
             _Row(
                 "Setup.Log.Device.Field.PhysicalCores",
-                HardwareInfo.PhysicalCoreCount is > 0
-                    ? Lang.Number(HardwareInfo.PhysicalCoreCount.Value, "N0")
+                facts.PhysicalCoreCount is > 0
+                    ? Lang.Number(facts.PhysicalCoreCount.Value, "N0")
                     : Lang.Text(UnknownKey)),
             _Row(
                 "Setup.Log.Device.Field.LogicalProcessors",
-                _SafeGet(
-                    "LogicalProcessors",
-                    () => Environment.ProcessorCount.ToString(CultureInfo.CurrentCulture)))
+                facts.LogicalProcessorCount > 0
+                    ? facts.LogicalProcessorCount.ToString(CultureInfo.CurrentCulture)
+                    : Lang.Text(UnknownKey))
         };
 
         return new DeviceInfoSection(
@@ -167,22 +169,21 @@ public static class DeviceInfoCollector
             rows);
     }
 
-    private static DeviceInfoSection _BuildMemorySection(SystemMemoryInfo memory)
+    private static DeviceInfoSection _BuildMemorySection(DeviceInfoFacts facts)
     {
-        var total = memory.TotalBytes > 0
-            ? memory.TotalBytes
-            : _ToBytes(HardwareInfo.SystemMemorySize);
         var rows = new List<DeviceInfoRow>
         {
             _Row(
                 "Setup.Log.Device.Field.TotalMemory",
-                _FormatMemory(total)),
+                _FormatMemory(facts.TotalMemoryBytes)),
             _Row(
                 "Setup.Log.Device.Field.AvailableMemory",
-                _FormatMemory(memory.AvailableBytes)),
+                _FormatMemory(facts.AvailableMemoryBytes)),
             _Row(
                 "Setup.Log.Device.Field.MemoryUsage",
-                _FormatMemoryUsage(total, memory.AvailableBytes))
+                _FormatMemoryUsage(
+                    facts.TotalMemoryBytes,
+                    facts.AvailableMemoryBytes))
         };
 
         return new DeviceInfoSection(
@@ -191,19 +192,10 @@ public static class DeviceInfoCollector
             rows);
     }
 
-    private static DeviceInfoSection _BuildGraphicsSection()
+    private static DeviceInfoSection _BuildGraphicsSection(
+        IReadOnlyList<HardwareInfo.GpuInfo> gpus)
     {
         var rows = new List<DeviceInfoRow>();
-        IReadOnlyList<HardwareInfo.GpuInfo> gpus;
-        try
-        {
-            gpus = HardwareInfo.Gpus;
-        }
-        catch (Exception ex)
-        {
-            LogWrapper.Warn(ex, "DeviceInfo", "读取图形设备信息失败");
-            gpus = [];
-        }
 
         if (gpus.Count == 0)
             rows.Add(
@@ -214,12 +206,8 @@ public static class DeviceInfoCollector
             for (var i = 0; i < gpus.Count; i++)
             {
                 var gpu = gpus[i];
-                var name = string.IsNullOrWhiteSpace(gpu.Name)
-                    ? Lang.Text(UnknownKey)
-                    : gpu.Name.Trim();
-                var driver = string.IsNullOrWhiteSpace(gpu.DriverVersion)
-                    ? Lang.Text(UnknownKey)
-                    : gpu.DriverVersion.Trim();
+                var name = _Text(gpu.Name, UnknownKey);
+                var driver = _Text(gpu.DriverVersion, UnknownKey);
                 var value = new StringBuilder(name);
                 if (!string.IsNullOrWhiteSpace(gpu.Codename))
                     value
@@ -246,6 +234,40 @@ public static class DeviceInfoCollector
         return new DeviceInfoSection(
             DeviceInfoSectionKind.Graphics,
             "Setup.Log.Device.Section.Graphics",
+            rows);
+    }
+
+    private static DeviceInfoSection _BuildStorageSection(DeviceInfoFacts facts)
+    {
+        var rows = new List<DeviceInfoRow>
+        {
+            new(
+                "Setup.Log.Device.Field.DataDisk",
+                _FormatDiskSpace(facts.DataVolume))
+        };
+
+        if (string.IsNullOrWhiteSpace(facts.GamePath))
+        {
+            rows.Add(
+                new DeviceInfoRow(
+                    "Setup.Log.Device.Field.GameDirectory",
+                    Lang.Text(UnknownKey)));
+        }
+        else
+        {
+            rows.Add(
+                new DeviceInfoRow(
+                    "Setup.Log.Device.Field.GameDirectory",
+                    facts.GamePath));
+            rows.Add(
+                new DeviceInfoRow(
+                    "Setup.Log.Device.Field.GameDisk",
+                    _FormatDiskSpace(facts.GameVolume)));
+        }
+
+        return new DeviceInfoSection(
+            DeviceInfoSectionKind.Storage,
+            "Setup.Log.Device.Section.Storage",
             rows);
     }
 
@@ -288,19 +310,19 @@ public static class DeviceInfoCollector
             rows);
     }
 
-    private static DeviceInfoSection _BuildRuntimeSection()
+    private static DeviceInfoSection _BuildRuntimeSection(DeviceInfoFacts facts)
     {
         var rows = new List<DeviceInfoRow>
         {
             _Row(
                 "Setup.Log.Device.Field.DotNetRuntime",
-                _SafeGet("DotNetRuntime", () => RuntimeInformation.FrameworkDescription)),
+                _Text(facts.FrameworkDescription, UnknownKey)),
             _Row(
                 "Setup.Log.Device.Field.ClrVersion",
-                _SafeGet("ClrVersion", () => Environment.Version.ToString())),
+                _Text(facts.ClrVersion, UnknownKey)),
             _Row(
                 "Setup.Log.Device.Field.ProcessArchitecture",
-                _FormatArchitecture(RuntimeInformation.ProcessArchitecture)),
+                DeviceInfoFormat.FormatArchitecture(facts.ProcessArchitecture)),
             _Row(
                 "Setup.Log.Device.Field.CodePage",
                 _SafeGet("CodePage", _GetCodePage))
@@ -317,6 +339,11 @@ public static class DeviceInfoCollector
         return new DeviceInfoRow(labelKey, value, args.Length == 0 ? null : args);
     }
 
+    private static string _Text(string? value, string fallbackKey)
+    {
+        return string.IsNullOrWhiteSpace(value) ? Lang.Text(fallbackKey) : value.Trim();
+    }
+
     private static string _SafeGet(string name, Func<string?> getter)
     {
         try
@@ -331,80 +358,12 @@ public static class DeviceInfoCollector
         }
     }
 
-    private static OperatingSystemInfo _GetOperatingSystemInfo()
+    private static string _GetGpuSummary(IReadOnlyList<HardwareInfo.GpuInfo> gpus)
     {
-        try
-        {
-            return ApplicationRuntime.Current.Platform.SystemFacts.GetOperatingSystemInfo();
-        }
-        catch (Exception ex)
-        {
-            LogWrapper.Warn(ex, "DeviceInfo", "读取系统信息失败");
-            return new OperatingSystemInfo(
-                _RuntimeExceptionFallback(),
-                null,
-                null,
-                "Unknown",
-                Environment.OSVersion.Version.ToString());
-        }
-    }
-
-    private static string _RuntimeExceptionFallback()
-    {
-        return RuntimeInformation.OSDescription;
-    }
-
-    private static string? _GetDeviceModel()
-    {
-        return ApplicationRuntime.Current.Platform.SystemFacts.GetDeviceModel();
-    }
-
-    private static string? _GetBiosVersion()
-    {
-        return ApplicationRuntime.Current.Platform.SystemFacts.GetBiosVersion();
-    }
-
-    private static string _GetCpuName()
-    {
-        var name = HardwareInfo.CpuName;
-        return string.IsNullOrWhiteSpace(name)
-            || string.Equals(name, "Unknown", StringComparison.OrdinalIgnoreCase)
-                ? Lang.Text(UnknownKey)
-                : name.Trim();
-    }
-
-    private static SystemMemoryInfo _GetMemoryInfo()
-    {
-        try
-        {
-            return ApplicationRuntime.Current.Platform.SystemFacts.GetMemoryInfo();
-        }
-        catch (Exception ex)
-        {
-            LogWrapper.Warn(ex, "DeviceInfo", "读取内存信息失败");
-            return default;
-        }
-    }
-
-    private static string _GetGpuSummary()
-    {
-        IReadOnlyList<HardwareInfo.GpuInfo> gpus;
-        try
-        {
-            gpus = HardwareInfo.Gpus;
-        }
-        catch (Exception ex)
-        {
-            LogWrapper.Warn(ex, "DeviceInfo", "读取图形设备信息失败");
-            return Lang.Text("Setup.Log.Device.Field.GpuNone");
-        }
-
         if (gpus.Count == 0)
             return Lang.Text("Setup.Log.Device.Field.GpuNone");
 
-        var name = string.IsNullOrWhiteSpace(gpus[0].Name)
-            ? Lang.Text(UnknownKey)
-            : gpus[0].Name.Trim();
+        var name = _Text(gpus[0].Name, UnknownKey);
         return gpus.Count == 1 ? name : $"{name} +{gpus.Count - 1}";
     }
 
@@ -421,34 +380,15 @@ public static class DeviceInfoCollector
         }
     }
 
-    private static string _GetCultureName()
-    {
-        return CultureInfo.CurrentCulture.Name;
-    }
-
     private static string _GetUiLanguage()
     {
         var language = LocalizationService.CurrentLanguage;
         return $"{language.NativeName} ({language.Code})";
     }
 
-    private static string _GetTimeZone()
+    private static string _GetIpv6StatusText(NetworkInterfaceUtils.IPv6Status status)
     {
-        var timeZone = TimeZoneInfo.Local;
-        var offset = timeZone.GetUtcOffset(DateTime.Now);
-        var sign = offset < TimeSpan.Zero ? "-" : "+";
-        var absolute = offset.Duration();
-        return $"{timeZone.Id} (UTC{sign}{absolute.Hours:00}:{absolute.Minutes:00})";
-    }
-
-    private static string _GetAdministratorText()
-    {
-        return _BoolText(ApplicationRuntime.Current.Platform.SystemFacts.IsAdministrator);
-    }
-
-    private static string _GetIpv6StatusText()
-    {
-        return NetworkInterfaceUtils.GetIPv6Status() switch
+        return status switch
         {
             NetworkInterfaceUtils.IPv6Status.Public => Lang.Text(
                 "Setup.Log.Device.Value.IPv6.Public"),
@@ -469,7 +409,7 @@ public static class DeviceInfoCollector
 
     private static string _GetUptime()
     {
-        return _FormatUptime(DateTime.Now - Basics.CurrentProcess.StartTime);
+        return DeviceInfoFormat.FormatUptime(DateTime.Now - Basics.CurrentProcess.StartTime);
     }
 
     private static string _GetProcessMemory()
@@ -497,19 +437,6 @@ public static class DeviceInfoCollector
     private static string _BoolText(bool value)
     {
         return Lang.Text(value ? "Common.Option.Yes" : "Common.Option.No");
-    }
-
-    private static string _FormatArchitecture(Architecture architecture)
-    {
-        return architecture switch
-        {
-            Architecture.X86 => "x86",
-            Architecture.X64 => "x64",
-            Architecture.Arm => "ARM",
-            Architecture.Arm64 => "ARM64",
-            Architecture.Wasm => "Wasm",
-            _ => architecture.ToString()
-        };
     }
 
     private static string _FormatMemory(ulong bytes)
@@ -543,16 +470,16 @@ public static class DeviceInfoCollector
         return isLowerBound ? $">= {text}" : text;
     }
 
-    private static string _FormatUptime(TimeSpan uptime)
+    private static string _FormatDiskSpace(DiskSpaceInfo.Volume? volume)
     {
-        if (uptime < TimeSpan.Zero) uptime = TimeSpan.Zero;
-        return uptime.TotalDays >= 1d
-            ? uptime.ToString(@"d\.hh\:mm\:ss", CultureInfo.InvariantCulture)
-            : uptime.ToString(@"hh\:mm\:ss", CultureInfo.InvariantCulture);
-    }
+        if (volume is null)
+            return Lang.Text(UnknownKey);
 
-    private static ulong _ToBytes(long mib)
-    {
-        return mib <= 0L ? 0UL : (ulong)mib * 1024UL * 1024UL;
+        var free = volume.FreeBytes / 1024d / 1024d / 1024d;
+        var total = volume.TotalBytes / 1024d / 1024d / 1024d;
+        return Lang.Text(
+            "Setup.Log.Device.Value.DiskFree",
+            Lang.Number(free, "N1"),
+            Lang.Number(total, "N1"));
     }
 }
