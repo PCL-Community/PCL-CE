@@ -14,7 +14,7 @@ public sealed class GameFoldersTest
         {
             GameFolders.ApplySelectedFolder("$.minecraft" + Path.DirectorySeparatorChar);
             Assert.AreEqual(
-                Path.Combine(LauncherPaths.ExecutableDirectory, ".minecraft")
+                Path.Combine(LauncherPaths.UserDataRoot, ".minecraft")
                 + Path.DirectorySeparatorChar,
                 GameFolders.mcFolderSelected);
 

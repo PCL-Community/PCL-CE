@@ -14,49 +14,62 @@ namespace PCL.Core.App;
 /// </summary>
 public static class Paths
 {
-    private static string _data;
-    private static string _sharedData;
-    private static string _sharedLocalData;
-    private static string _temp;
-
     static Paths()
     {
 #if DEBUG
         const string name = "PCLCE_Debug";
         const string oldName = ".PCLCEDebug";
+        const string linuxName = "pcl-ce-debug";
 #else
         const string name = "PCLCE";
         const string oldName = ".PCLCE";
+        const string linuxName = "pcl-ce";
 #endif
         PackageKind = _ReadPackageKind();
 
+        var isLinux = XdgPaths.IsLinux;
+        var appName = isLinux ? linuxName : name;
+
         // fill paths
-        _data = Path.Combine(DefaultDirectory, "PCL");
-        _sharedData = GetSpecialPath(Special.ApplicationData, name);
-        _sharedLocalData = GetSpecialPath(Special.LocalApplicationData, name);
-        _temp = Path.Combine(Path.GetTempPath(), name);
-        OldSharedData = GetSpecialPath(Special.ApplicationData, oldName);
+        Data = Path.Combine(DefaultDirectory, "PCL");
+        SharedData = isLinux
+            ? Path.Combine(XdgPaths.ConfigHome, appName)
+            : GetSpecialPath(Special.ApplicationData, name);
+        SharedLocalData = isLinux
+            ? Path.Combine(XdgPaths.CacheHome, appName)
+            : GetSpecialPath(Special.LocalApplicationData, name);
+        Temp = Path.Combine(Path.GetTempPath(), appName);
+        OldSharedData = isLinux
+            ? Path.Combine(XdgPaths.ConfigHome, oldName)
+            : GetSpecialPath(Special.ApplicationData, oldName);
 
         var dataOverride = Environment.GetEnvironmentVariable("PCL_DATA_DIR");
         if (!string.IsNullOrWhiteSpace(dataOverride))
-            _data = Path.GetFullPath(ExpandUserPath(dataOverride));
+            Data = Path.GetFullPath(ExpandUserPath(dataOverride));
         else if (!string.IsNullOrWhiteSpace(PackageKind) || !_CanWriteDirectory(DefaultDirectory))
-            _data = Path.Combine(
-                Environment.GetFolderPath(Special.UserProfile),
-                "PCLCE");
+            Data = isLinux
+                ? Path.Combine(XdgPaths.DataHome, appName)
+                : Path.Combine(
+                    Environment.GetFolderPath(Special.UserProfile),
+                    "PCLCE");
 
 #if DEBUG
         // read environment variables
-        EnvironmentInterop.ReadVariable("PCL_PATH", ref _data);
-        EnvironmentInterop.ReadVariable("PCL_PATH_SHARED", ref _sharedData);
-        EnvironmentInterop.ReadVariable("PCL_PATH_LOCAL", ref _sharedLocalData);
-        EnvironmentInterop.ReadVariable("PCL_PATH_TEMP", ref _temp);
+        var data = Data;
+        if (EnvironmentInterop.ReadVariable("PCL_PATH", ref data)) Data = data;
+        var sharedData = SharedData;
+        if (EnvironmentInterop.ReadVariable("PCL_PATH_SHARED", ref sharedData)) SharedData = sharedData;
+        var sharedLocalData = SharedLocalData;
+        if (EnvironmentInterop.ReadVariable("PCL_PATH_LOCAL", ref sharedLocalData))
+            SharedLocalData = sharedLocalData;
+        var temp = Temp;
+        if (EnvironmentInterop.ReadVariable("PCL_PATH_TEMP", ref temp)) Temp = temp;
 #endif
         // create directories
-        Directory.CreateDirectory(_data);
-        Directory.CreateDirectory(_sharedData);
-        Directory.CreateDirectory(_sharedLocalData);
-        Directory.CreateDirectory(_temp);
+        Directory.CreateDirectory(Data);
+        Directory.CreateDirectory(SharedData);
+        Directory.CreateDirectory(SharedLocalData);
+        Directory.CreateDirectory(Temp);
     }
 
     /// <summary>The default directory used for relative path combining.</summary>
@@ -66,18 +79,10 @@ public static class Paths
     public static string? PackageKind { get; }
 
     /// <summary>Per-instance data directory.</summary>
-    public static string Data
-    {
-        get => _data;
-        set => _data = value;
-    }
+    public static string Data { get; set; }
 
     /// <summary>Shared synchronized data directory.</summary>
-    public static string SharedData
-    {
-        get => _sharedData;
-        set => _sharedData = value;
-    }
+    public static string SharedData { get; set; }
 
     /// <summary>
     /// Shared synchronized data directory of old versions.<br /> Keep the value just for
@@ -89,21 +94,13 @@ public static class Paths
     /// Shared local data directory, used to put some large files that can be released or
     /// downloaded back anytime.
     /// </summary>
-    public static string SharedLocalData
-    {
-        get => _sharedLocalData;
-        set => _sharedLocalData = value;
-    }
+    public static string SharedLocalData { get; set; }
 
     /// <summary>
     /// Temporary files directory (can be deleted anytime, except when the program is
     /// running).
     /// </summary>
-    public static string Temp
-    {
-        get => _temp;
-        set => _temp = value;
-    }
+    public static string Temp { get; set; }
 
     /// <summary>Get path string relative to a special folder.</summary>
     /// <param name="folder">the special folder</param>
