@@ -112,7 +112,7 @@ internal sealed class CrashLogCollector(CrashAnalysisContext context)
             context.RawFiles.Add(
                 new CrashLogEntry(
                     filePath,
-                    CrashFileIo.ReadText(filePath).Split("\r\n".ToCharArray())));
+                    CrashLogEntry.SplitLines(CrashFileIo.ReadText(filePath))));
         }
         catch (Exception ex)
         {
