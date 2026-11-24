@@ -527,6 +527,7 @@
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.Bangumi}" />
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.PclAnnouncement}" />
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.McOfficialFeed}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.Dogpiwang}" />
                         </ui:MyComboBox>
                     </Grid>
                 </StackPanel>
