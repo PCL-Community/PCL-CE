@@ -1,6 +1,5 @@
 name: "优化建议 / Improvement Suggestion"
 description: "对已有功能的小幅度优化或改进建议 / Suggest a minor improvement to an existing feature"
-title: "[C#]: "
 type: "优化"
 body:
   - type: checkboxes
@@ -59,3 +58,7 @@ body:
         如果没有这项优化，我每次都必须 xxxx，让操作变得很麻烦 / Without this improvement, I have to xxxx every time, making the process cumbersome.
     validations:
       required: false
+  - type: textarea
+    id: "yml-remarks"
+    attributes:
+      label: "备注 / Remarks"

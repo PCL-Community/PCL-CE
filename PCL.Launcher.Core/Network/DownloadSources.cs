@@ -1,3 +1,5 @@
+using PCL.Core.IO;
+
 namespace PCL;
 
 /// <summary>下载源排序与镜像地址生成，供业务模块共享。</summary>
@@ -22,7 +24,7 @@ public static class DownloadSources
         {
             if (mcInstance is null)
                 return null;
-            var list = LauncherCommon.ReadFile(
+            var list = Files.ReadAllTextOrEmpty(
                 Path.Combine(LauncherPaths.Temp, "Cache", "ForgeRecommendedList.json"));
             if (string.IsNullOrEmpty(list))
             {

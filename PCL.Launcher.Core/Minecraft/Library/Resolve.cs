@@ -8,7 +8,9 @@ public static partial class Libraries
     ///     获取对应的支持库文件地址。
     /// </summary>
     /// <param name="original">原始地址，如 com.mumfrey:liteloader:1.12.2-SNAPSHOT。</param>
-    /// <param name="withHead">是否包含 Lib 文件夹头部，若不包含，则会类似以 com\xxx\ 开头。</param>
+    /// <param name="withHead">
+    ///     是否包含 Lib 文件夹头部，若不包含，则以包名片段开头（如 com/xxx/，分隔符随平台）。
+    /// </param>
     public static string McLibGet(
         string original,
         bool withHead = true,
@@ -19,21 +21,24 @@ public static partial class Libraries
 
         var splited = original.Split(":");
         var versionParts = splited[2].Split('.');
+        var packageFolder = splited[0].Replace('.', Path.DirectorySeparatorChar);
         var mcLibGetRet = withHead
             ? Path.Combine(
                 customMcFolder,
                 "libraries",
-                splited[0].Replace(".", @"\"),
+                packageFolder,
                 splited[1],
                 splited[2],
                 $"{splited[1]}-{splited[2]}.jar")
             : Path.Combine(
-                splited[0].Replace(".", @"\"),
+                packageFolder,
                 splited[1],
                 splited[2],
                 $"{splited[1]}-{splited[2]}.jar");
 
-        if (!mcLibGetRet.Contains(@"optifine\OptiFine\1.") || versionParts.Length <= 1)
+        if (!mcLibGetRet.Contains(
+                $"optifine{Path.DirectorySeparatorChar}OptiFine{Path.DirectorySeparatorChar}1.")
+            || versionParts.Length <= 1)
             return mcLibGetRet;
 
         var majorVersion = (int)Math.Round(LauncherText.Val(versionParts[1].BeforeFirst("_")));
@@ -41,9 +46,13 @@ public static partial class Libraries
             Math.Round(
                 versionParts.Length > 2 ? LauncherText.Val(versionParts[2].BeforeFirst("_")) : 0d);
 
-        var installerPath =
-            $@"{customMcFolder}libraries\{splited[0].Replace(".", @"\")}\"
-            + $@"{splited[1]}\{splited[2]}\{splited[1]}-{splited[2]}-installer.jar";
+        var installerPath = Path.Combine(
+            customMcFolder,
+            "libraries",
+            packageFolder,
+            splited[1],
+            splited[2],
+            $"{splited[1]}-{splited[2]}-installer.jar");
         if ((majorVersion != 12 && (majorVersion != 20 || minorVersion < 4) && majorVersion < 21)
             || !File.Exists(installerPath))
             return mcLibGetRet;

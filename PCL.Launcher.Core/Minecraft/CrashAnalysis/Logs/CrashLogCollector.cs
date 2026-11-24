@@ -22,7 +22,7 @@ internal sealed class CrashLogCollector(CrashAnalysisContext context)
 
         AddCapturedOutput(latestLog);
 
-        LogWrapper.Info("Crash", "步骤 1：收集日志文件完成，收集到 " + context.RawFiles.Count + " 个文件");
+        LogWrapper.Info("Crash", $"步骤 1：收集日志文件完成，收集到 {context.RawFiles.Count} 个文件");
     }
 
     private static IEnumerable<string> _FindPossibleLogFiles(string versionPathIndie)
@@ -72,7 +72,7 @@ internal sealed class CrashLogCollector(CrashAnalysisContext context)
 
         possibleLogs.Add(Path.Combine(versionPathIndie, "logs", "latest.log"));
         var launchScript = CrashFileIo.ReadText(
-            Path.Combine(Basics.ExecutableDirectory, "PCL", "LatestLaunch.bat"));
+            Path.Combine(Paths.Data, "LatestLaunch.bat"));
         if (launchScript.Contains(
                 "-Dlog4j2.formatMsgNoLookups=false",
                 StringComparison.OrdinalIgnoreCase))
@@ -95,12 +95,12 @@ internal sealed class CrashLogCollector(CrashAnalysisContext context)
 
             LogWrapper.Info(
                 "Crash",
-                "可能可用的日志文件：" + filePath + "（" + Math.Round(ageMinutes, 1) + " 分钟）");
+                $"可能可用的日志文件：{filePath}（{Math.Round(ageMinutes, 1)} 分钟）");
             return true;
         }
         catch (Exception ex)
         {
-            LogWrapper.Warn(ex, "Crash", "确认崩溃日志时间失败（" + filePath + "）");
+            LogWrapper.Warn(ex, "Crash", $"确认崩溃日志时间失败（{filePath}）");
             return false;
         }
     }
@@ -116,7 +116,7 @@ internal sealed class CrashLogCollector(CrashAnalysisContext context)
         }
         catch (Exception ex)
         {
-            LogWrapper.Warn(ex, "Crash", errorMessage + "（" + filePath + "）");
+            LogWrapper.Warn(ex, "Crash", $"{errorMessage}（{filePath}）");
         }
     }
 
@@ -126,7 +126,7 @@ internal sealed class CrashLogCollector(CrashAnalysisContext context)
             return;
 
         var rawOutput = string.Join("\r\n", latestLog);
-        LogWrapper.Info("Crash", "以下为游戏输出的最后一段内容：" + "\r\n" + rawOutput);
+        LogWrapper.Info("Crash", $"以下为游戏输出的最后一段内容：\r\n{rawOutput}");
         var rawOutputPath = Path.Combine(context.TempFolder, "RawOutput.log");
         CrashFileIo.WriteText(rawOutputPath, rawOutput);
         context.RawFiles.Add(new CrashLogEntry(rawOutputPath, latestLog.ToArray()));

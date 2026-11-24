@@ -10,14 +10,18 @@ namespace PCL.Core.App.Essentials;
 public sealed class UpdateService : GeneralService
 {
     private static LifecycleContext? _context;
-    private static LifecycleContext Context => _context!;
 
-    private UpdateService() : base("update", "更新", false) { _context = ServiceContext; }
+    private UpdateService() : base("update", "更新", false)
+    {
+        _context = ServiceContext;
+    }
+
+    private static LifecycleContext Context => _context!;
 
     public override void Start()
     {
         var args = Basics.CommandLineArguments;
-        
+
         if (args is not ["update", _, _, _, _])
         {
             switch (args)
@@ -33,12 +37,13 @@ public sealed class UpdateService : GeneralService
                 {
                     var reason = args[1];
                     Context.Error(
-                        $"更新失败: {reason}\n你可以手动将 exe 文件替换为 PCL 目录中的新版本" +
-                        $"或再次尝试更新，若再次尝试仍然失败，请尽快反馈这个问题");
+                        $"更新失败: {reason}\n你可以手动将 exe 文件替换为 PCL CE 目录中的新版本"
+                        + $"或再次尝试更新，若再次尝试仍然失败，请尽快反馈这个问题");
                     break;
                 }
                 default: Context.Debug("无更新任务"); break;
             }
+
             Context.DeclareStopped();
             return;
         }
@@ -46,7 +51,7 @@ public sealed class UpdateService : GeneralService
         try
         {
             Context.Info("开始更新");
-            Lifecycle.PendingLogDirectory = Path.Combine(Basics.ExecutableDirectory, "Log");
+            Lifecycle.PendingLogDirectory = Path.Combine(Paths.Data, "Log");
             Lifecycle.PendingLogFileName = "LastPending_Update.log";
 
             var oldProcessId = args[1].Convert<int>();
@@ -75,7 +80,9 @@ public sealed class UpdateService : GeneralService
             var restart = args[4].Convert<bool>();
             if (restart)
             {
-                var restartArgs = (ex is null) ? $"finished \"{source}\"" : $"failed \"{ex.Message}\"";
+                var restartArgs = ex is null
+                    ? $"finished \"{source}\""
+                    : $"failed \"{ex.Message}\"";
                 restartArgs = $"update_{restartArgs}";
                 Context.Debug($"重启中，使用参数: {restartArgs}");
                 Process.Start(target, restartArgs);
@@ -85,7 +92,7 @@ public sealed class UpdateService : GeneralService
         {
             Context.Error("更新过程出错", ex);
         }
-        
+
         Context.RequestExit();
     }
 }

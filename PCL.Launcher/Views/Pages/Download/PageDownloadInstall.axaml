@@ -1,0 +1,93 @@
+<ui:MyPageRight xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:vm="using:PCL"
+                xmlns:ui="using:PCL.UI.Controls"
+                xmlns:loc="using:PCL.Core.UI"
+                xmlns:minecraft="using:PCL.UI.Controls.Minecraft"
+                x:Class="PCL.Views.Pages.Download.PageDownloadInstall"
+                x:DataType="vm:PageDownloadInstallViewModel"
+                x:CompileBindings="True">
+    <Grid>
+        <ui:MyScrollViewer x:Name="PanBack"
+                           HorizontalScrollBarVisibility="Disabled"
+                           VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="5">
+                <Grid x:Name="PanContent"
+                      Margin="25,20,25,25">
+                    <StackPanel x:Name="PanSelectStage">
+                        <minecraft:MinecraftVersionListView x:Name="VersionList"
+                                                            Margin="0,15,0,0" />
+                    </StackPanel>
+
+                    <StackPanel x:Name="PanConfigStage"
+                                Margin="0,0,0,45"
+                                IsVisible="{Binding IsConfigStageVisible}">
+                        <ui:MyCard x:Name="CardVersion"
+                                   Height="62"
+                                   Margin="0,15,0,3"
+                                   UseAnimation="False">
+                            <Grid>
+                                <ui:MyIconButton x:Name="BtnReselect"
+                                                 Width="26"
+                                                 Height="26"
+                                                 Margin="13,0,0,0"
+                                                 HorizontalAlignment="Left"
+                                                 VerticalAlignment="Center"
+                                                 LogoScale="0.87"
+                                                 Opacity="0.6"
+                                                 SvgIcon="lucide/arrow-left"
+                                                 Theme="Black" />
+                                <ui:MyImage x:Name="ImgLogo"
+                                            Height="32"
+                                            Margin="52,0,0,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Center"
+                                            Stretch="Uniform" />
+                                <ui:MyTextBox x:Name="TextInstanceName"
+                                              Margin="93,0,16,0"
+                                              Padding="-1,0"
+                                              MinHeight="30"
+                                              VerticalAlignment="Center"
+                                              FontSize="15"
+                                              MaxLength="70"
+                                              HasBackground="False"
+                                              Text="{Binding InstanceName, Mode=TwoWay}" />
+                            </Grid>
+                        </ui:MyCard>
+
+                        <minecraft:MinecraftInstallWarningsView x:Name="WarningsView" />
+
+                        <minecraft:MinecraftInstallLoaderCardsView x:Name="LoaderCardsView" />
+
+                        <ui:MyHint x:Name="HintNoFolder"
+                                   Margin="0,12,0,0"
+                                   Theme="Red"
+                                   IsVisible="{Binding HasNoFolder}"
+                                   Text="{loc:Loc Download.Install.NoFolder}" />
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </ui:MyScrollViewer>
+
+        <ui:MyExtraTextButton x:Name="BtnStart"
+                              Margin="0,0,0,25"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Bottom"
+                              IsEnabled="{Binding CanStartInstall}"
+                              SvgIcon="lucide/download"
+                              Text="{Binding StartButtonText}" />
+
+        <ui:MyCard x:Name="PanLoad"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Margin="40,0"
+                   IsVisible="False"
+                   UseAnimation="False">
+            <ui:MyLoading x:Name="LoadMinecraft"
+                          Margin="20,20,20,17"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center"
+                          Text="{loc:Loc Download.Version.LoadingList}" />
+        </ui:MyCard>
+    </Grid>
+</ui:MyPageRight>

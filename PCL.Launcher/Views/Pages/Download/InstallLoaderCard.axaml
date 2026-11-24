@@ -1,0 +1,52 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="using:PCL.UI.Controls"
+             x:Class="PCL.Views.Pages.Download.InstallLoaderCard"
+             x:Name="Root"
+             x:CompileBindings="True"
+             HorizontalContentAlignment="Stretch">
+    <ui:MyCard x:Name="CardRoot"
+               Title="{Binding Title, ElementName=Root}"
+               Height="40"
+               Margin="0,12,0,0"
+               CanSwap="True"
+               SwapLogoRight="True">
+        <StackPanel x:Name="BodyHost"
+                    Margin="20,40,18,15"
+                    VerticalAlignment="Top" />
+        <Grid x:Name="HeaderGrid"
+              Height="18"
+              Margin="132,11,15,0"
+              VerticalAlignment="Top"
+              ColumnDefinitions="Auto,*">
+            <ui:MyImage x:Name="HeaderLogo"
+                        Height="18"
+                        Margin="0,0,7,0"
+                        Stretch="Uniform"
+                        IsHitTestVisible="False" />
+            <TextBlock x:Name="StatusText"
+                       Grid.Column="1"
+                       VerticalAlignment="Center"
+                       Foreground="{DynamicResource ColorBrushGray4}"
+                       TextTrimming="CharacterEllipsis"
+                       IsHitTestVisible="False" />
+        </Grid>
+        <Grid x:Name="BtnClear"
+              Width="30"
+              Height="30"
+              Margin="0,5,32,0"
+              HorizontalAlignment="Right"
+              VerticalAlignment="Top"
+              Background="{DynamicResource ColorBrushSemiTransparent}"
+              IsVisible="False">
+            <Path x:Name="BtnClearInner"
+                  Width="10"
+                  Height="10"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center"
+                  Stretch="Uniform"
+                  Fill="{DynamicResource ColorBrushGray1}"
+                  Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
+        </Grid>
+    </ui:MyCard>
+</UserControl>

@@ -48,7 +48,14 @@ internal static class CrashFileIo
 
     public static void DeleteDirectory(string directoryPath)
     {
-        Directories.DeleteDirectoryAsync(directoryPath, true).GetAwaiter().GetResult();
+        try
+        {
+            Directories.DeleteDirectory(directoryPath);
+        }
+        catch
+        {
+            // 崩溃报告清理失败不应影响报告导出。
+        }
     }
 
     public static bool CanExtractArchive(string archivePath)

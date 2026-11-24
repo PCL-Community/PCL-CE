@@ -1,3 +1,5 @@
+using PCL.Core.Platform;
+
 namespace PCL;
 
 /// <summary>业务层提示类型。</summary>
@@ -32,5 +34,5 @@ public interface IUserInteraction
 /// <summary>UI 层注册的交互实现。</summary>
 public static class LauncherUi
 {
-    public static IUserInteraction? Interaction { get; set; }
+    public static IUserInteraction? Interaction => ApplicationRuntime.GetService<IUserInteraction>();
 }

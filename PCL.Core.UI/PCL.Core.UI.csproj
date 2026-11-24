@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <AssemblyTitle>PCL.Core.UI</AssemblyTitle>
+        <AssemblyName>PCL.Core.UI</AssemblyName>
+        <Description>PCL CE 的 Avalonia UI 适配层</Description>
+        <Company>PCL Community</Company>
+        <Product>PCL.Core.UI</Product>
+        <RootNamespace>PCL.Core.UI</RootNamespace>
+        <TargetFramework>net10.0</TargetFramework>
+        <LangVersion>15.0</LangVersion>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Configurations>Debug;CI;Release;Beta</Configurations>
+        <Platforms>AnyCPU;x64;ARM64</Platforms>
+        <PlatformTarget>$(Platform)</PlatformTarget>
+        <NoWarn>$(NoWarn);CS9113</NoWarn>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="11.0.0" />
+        <PackageReference Include="PlainToolkit.ObjectiveC" Version="0.1.1" />
+        <PackageReference Include="Avalonia" Version="12.1.6" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\PCL.Core\PCL.Core.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <AvaloniaResource Include="..\PCL.Localization\Languages\*.axaml">
+            <Link>Localization\Languages\%(Filename)%(Extension)</Link>
+        </AvaloniaResource>
+    </ItemGroup>
+</Project>

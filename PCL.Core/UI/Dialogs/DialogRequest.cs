@@ -29,9 +29,6 @@ public abstract record DialogRequest
 
     public bool HighLight { get; init; } = true;
 
-    /// <summary>即使只有一个按钮也强制显示并等待。</summary>
-    public bool ForceWait { get; init; }
-
     public abstract DialogKind Kind { get; }
 }
 
@@ -62,7 +59,7 @@ public sealed record InputDialogRequest : DialogRequest
     public override DialogKind Kind => DialogKind.Input;
 }
 
-/// <summary>可选项。多选模式下 <see cref="IsChecked"/> 表示默认勾选。</summary>
+/// <summary>可选项。多选模式下 <see cref="IsChecked" /> 表示默认勾选。</summary>
 public sealed record DialogOption
 {
     public required string Text { get; init; }
@@ -102,7 +99,11 @@ public sealed record LoginDialogRequest : DialogRequest
 {
     public required JsonObject Data { get; init; }
 
-    public Func<JsonObject, CancellationToken, Task<AuthorizeResult?>>? DeviceCodePoll { get; init; }
+    public Func<JsonObject, CancellationToken, Task<AuthorizeResult?>>? DeviceCodePoll
+    {
+        get;
+        init;
+    }
 
     public Func<AuthorizeResult, CancellationToken, Task>? LoginResultHandler { get; init; }
 

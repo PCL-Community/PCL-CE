@@ -5,21 +5,19 @@ using PCL.Core.Platform;
 
 namespace PCL.Core.UI.Threading;
 
-/// <summary>
-///     UI 线程访问与调度。具体实现由 UI 层注册到 <see cref="PlatformServices.UiDispatcher" />。
-///     未注册实现时保持与旧 WPF 实现一致的安全降级行为。
-/// </summary>
+/// <summary>UI 线程访问与调度。具体实现由组合根注册到 <see cref="ApplicationRuntime" />。 运行时未初始化时保持安全降级行为。</summary>
 public static class UiDispatcher
 {
-    private static IUiDispatcher? Dispatcher => PlatformServices.UiDispatcher;
+    private static IUiDispatcher? Dispatcher =>
+        ApplicationRuntime.IsInitialized ? ApplicationRuntime.Current.Ui.Dispatcher : null;
+
+    /// <summary>界面是否仍可交互（应用已创建且未开始关闭）。</summary>
+    public static bool IsAvailable => Dispatcher is not null && !Lifecycle.HasShutdownStarted;
 
     public static bool CheckAccess()
     {
         return Dispatcher?.CheckAccess() ?? false;
     }
-
-    /// <summary>界面是否仍可交互（应用已创建且未开始关闭）。</summary>
-    public static bool IsAvailable => Dispatcher is not null && !Lifecycle.HasShutdownStarted;
 
     public static void Post(Action action)
     {
@@ -46,11 +44,5 @@ public static class UiDispatcher
     public static Task<T> InvokeAsync<T>(Func<T> func)
     {
         return Dispatcher?.InvokeAsync(func) ?? Task.FromResult(default(T)!);
-    }
-
-    /// <summary>创建模态消息泵；UI 不可用时返回 null。</summary>
-    public static IUiModalFrame? CreateModalFrame()
-    {
-        return Dispatcher?.CreateModalFrame();
     }
 }

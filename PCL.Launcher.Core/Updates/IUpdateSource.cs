@@ -18,10 +18,10 @@ public interface IUpdateSource
     /// <returns>True 表示更新成功，False 表示没有数据更新</returns>
     bool RefreshCache();
 
-    VersionDataModel GetLatestVersion(UpdateChannel channel, UpdateArch arch);
+    VersionDataModel GetLatestVersion(UpdateSourceChannel channel, UpdateArch arch);
 
     bool IsLatest(
-        UpdateChannel channel,
+        UpdateSourceChannel channel,
         UpdateArch arch,
         SemVer currentVersion,
         int currentVersionCode);
@@ -29,7 +29,7 @@ public interface IUpdateSource
     VersionAnnouncementDataModel GetAnnouncementList();
 
     List<Loading.LoaderBase> GetDownloadLoader(
-        UpdateChannel channel,
+        UpdateSourceChannel channel,
         UpdateArch arch,
         string output);
 }

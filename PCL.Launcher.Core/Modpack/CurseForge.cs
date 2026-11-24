@@ -1,5 +1,6 @@
 ﻿using System.IO.Compression;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.Utils;
 using PCL.Network;
 using PCL.Network.Loaders;
@@ -73,6 +74,9 @@ public static partial class Modpack
         var loader = new LoaderCombo<string>(loaderName, loaders)
         {
             OnStateChanged = ModpackUi.OnInstallStateChanged,
+            DisplayNameFactory = () => Lang.Text(
+                "Minecraft.Download.Modpack.Task.CurseForgeInstall",
+                instanceName),
             Identifier = loaderIdentifier
         };
         loader.Start(request.targetInstanceFolder);
@@ -89,7 +93,7 @@ public static partial class Modpack
         {
             return (JsonObject)
                 LauncherCommon.GetJson(
-                    LauncherCommon.ReadFile(
+                    Files.ReadAllTextOrEmpty(
                         archive.GetEntry($"{archiveBaseFolder}manifest.json")!.Open()));
         }
         catch (Exception ex)
@@ -166,7 +170,7 @@ public static partial class Modpack
                         archiveBaseFolder,
                         overrideHome is "." or "./" ? "" : overrideHome
                     ),
-                    $@"{GameFolders.mcFolderSelected}versions\{instanceName}",
+                    Path.Combine(GameFolders.mcFolderSelected!, "versions", instanceName),
                     task,
                     0.4d);
             })
@@ -231,6 +235,8 @@ public static partial class Modpack
             },
             new LoaderDownload(Lang.Text("Minecraft.Download.Modpack.Stage.DownloadMods"), [])
             {
+                DisplayNameFactory = () => Lang.Text(
+                    "Minecraft.Download.Modpack.Stage.DownloadMods"),
                 ProgressWeight = modList.Count * 1.5d
             }
         };
@@ -238,6 +244,8 @@ public static partial class Modpack
             Lang.Text("Minecraft.Download.Modpack.Stage.DownloadMods.MainLoader"),
             modDownloadLoaders)
         {
+            DisplayNameFactory = () => Lang.Text(
+                "Minecraft.Download.Modpack.Stage.DownloadMods.MainLoader"),
             show = false,
             ProgressWeight = modDownloadLoaders.Sum(l => l.ProgressWeight)
         };
@@ -311,7 +319,12 @@ public static partial class Modpack
             fileList.Add(
                 id,
                 file.ToNetFile(
-                    $@"{GameFolders.mcFolderSelected}versions\{instanceName}\{targetFolder}\",
+                    Path.Combine(
+                        GameFolders.mcFolderSelected!,
+                        "versions",
+                        instanceName,
+                        targetFolder)
+                    + Path.DirectorySeparatorChar,
                     Comp.DownloadReason.ModPack,
                     json["minecraft"]!["version"]!.ToString(),
                     modLoader));
@@ -350,7 +363,9 @@ public static partial class Modpack
         return new McInstallRequest
         {
             targetInstanceName = instanceName,
-            targetInstanceFolder = $@"{GameFolders.mcFolderSelected}versions\{instanceName}\",
+            targetInstanceFolder =
+                Path.Combine(GameFolders.mcFolderSelected!, "versions", instanceName)
+                + Path.DirectorySeparatorChar,
             minecraftName = json["minecraft"]!["version"]!.ToString(),
             forgeVersion = loaderVersions.ForgeVersion,
             neoForgeVersion = loaderVersions.NeoForgeVersion,

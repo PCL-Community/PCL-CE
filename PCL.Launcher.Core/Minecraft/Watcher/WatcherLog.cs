@@ -25,9 +25,6 @@ public static partial class GameWatcher
             fullLog.Add(line);
         }
 
-        /// <summary>
-        ///     触发日志改变事件，并统计日志行数。
-        /// </summary>
         private void LogRealTime(string? line, ref GameLogLevel level)
         {
             if (line is null)
@@ -71,9 +68,6 @@ public static partial class GameWatcher
             }
         }
 
-        /// <summary>
-        ///     有新的日志输出，日志计数器发生改变时触发。
-        /// </summary>
         public event LogOutputEventHandler? LogOutput;
 
         private void TimerLog()
@@ -81,14 +75,14 @@ public static partial class GameWatcher
             try
             {
                 var pendingLogs = TakePendingLogs();
-                if (pendingLogs is null)
-                    return;
+                if (pendingLogs is not null)
+                {
+                    foreach (var line in pendingLogs)
+                        GameLog(line);
 
-                foreach (var line in pendingLogs)
-                    GameLog(line);
-
-                if (State == MinecraftState.Loading)
-                    ProgressUpdate();
+                    if (State == MinecraftState.Loading)
+                        ProgressUpdate();
+                }
 
                 if (!gameProcess.HasExited)
                     return;
@@ -113,40 +107,74 @@ public static partial class GameWatcher
                     return null;
 
                 var pendingLogs = waitingLog;
-                waitingLog = new List<string>(1000);
+                waitingLog = [with(1000)];
                 return pendingLogs;
             }
         }
 
         private void HandleMinecraftProcessExit()
         {
-            WatcherLog(Lang.Text("Watcher.ProcessExited", gameProcess.ExitCode));
+            if (_exitHandled)
+                return;
+
+            _exitHandled = true;
+
+            int exitCode;
+            try
+            {
+                exitCode = gameProcess.ExitCode;
+            }
+            catch
+            {
+                exitCode = -1;
+            }
+
+            var exitText = Lang.Text("Watcher.ProcessExited", exitCode);
+            WatcherLog(exitText);
 
             if (RealTimeLog)
             {
                 var level = GameLogLevel.Info;
-                LogRealTime(
-                    Lang.Text("Watcher.ProcessExited", gameProcess.ExitCode),
-                    ref level);
+                LogRealTime(exitText, ref level);
             }
-
-            GameExit?.Invoke();
 
             if (State == MinecraftState.Loading)
             {
                 WatcherLog(Lang.Text("Watcher.Crash.Suspected"));
                 Crashed();
             }
-            else if (gameProcess.ExitCode != 0
+            else if (exitCode != 0
                      && State == MinecraftState.Running
                      && version.releaseTime.Year >= 2012)
             {
                 WatcherLog(Lang.Text("Watcher.Crash.AbnormalExit"));
                 Crashed();
             }
-            else if (State != MinecraftState.Crashed)
+            else if (State is not (MinecraftState.Crashed
+                     or MinecraftState.Canceled
+                     or MinecraftState.Ended))
             {
                 State = MinecraftState.Ended;
+            }
+
+            RaiseGameExit();
+        }
+
+        private void RaiseGameExit()
+        {
+            if (_gameExitRaised)
+                return;
+
+            _gameExitRaised = true;
+            try
+            {
+                GameExit?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                LauncherCommon.Log(
+                    ex,
+                    "触发 Minecraft 退出事件失败");
             }
         }
 

@@ -47,7 +47,7 @@ public class UpdatesWrapperModel : IUpdateSource
         return _versionSource is not null;
     }
 
-    public VersionDataModel GetLatestVersion(UpdateChannel channel, UpdateArch arch)
+    public VersionDataModel GetLatestVersion(UpdateSourceChannel channel, UpdateArch arch)
     {
         foreach (var item in _sources)
             try
@@ -76,7 +76,7 @@ public class UpdatesWrapperModel : IUpdateSource
     }
 
     public bool IsLatest(
-        UpdateChannel channel,
+        UpdateSourceChannel channel,
         UpdateArch arch,
         SemVer currentVersion,
         int currentVersionCode)
@@ -142,7 +142,7 @@ public class UpdatesWrapperModel : IUpdateSource
     }
 
     public List<Loading.LoaderBase> GetDownloadLoader(
-        UpdateChannel channel,
+        UpdateSourceChannel channel,
         UpdateArch arch,
         string output)
     {
@@ -173,7 +173,7 @@ public class UpdatesWrapperModel : IUpdateSource
     }
 
     public async Task<bool> IsLatestAsync(
-        UpdateChannel channel,
+        UpdateSourceChannel channel,
         UpdateArch arch,
         SemVer currentVersion,
         int currentVersionCode)

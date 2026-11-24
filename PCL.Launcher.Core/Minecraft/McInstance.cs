@@ -3,81 +3,61 @@ using System.IO.Compression;
 using System.Text.RegularExpressions;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.Utils;
 
 namespace PCL;
 
 public class McInstance
 {
-    /// <summary>
-    ///     用户自定义的实例描述（或整合包导入时写入的简介）。为空表示使用默认描述。
-    ///     该字段会被持久化，且不参与本地化。
-    /// </summary>
+    /// <summary>用户自定义的实例描述（或整合包导入时写入的简介）。为空表示使用默认描述。 该字段会被持久化，且不参与本地化。</summary>
     public string? CustomDesc;
 
     public bool IsLoaded;
 
-    /// <summary>
-    ///     是否为收藏的实例。
-    /// </summary>
+    /// <summary>是否为收藏的实例。</summary>
     public bool IsStar;
 
-    /// <summary>
-    ///     显示的实例图标。
-    /// </summary>
+    /// <summary>显示的实例图标。</summary>
     public string Logo;
 
-    /// <summary>
-    ///     是否尚未加载。此时还没有可用的描述信息。
-    /// </summary>
+    /// <summary>是否尚未加载。此时还没有可用的描述信息。</summary>
     private bool _descNotLoaded = true;
 
-    /// <summary>
-    ///     是否已初始化从 JAR 中读取 version.json。
-    /// </summary>
+    /// <summary>是否已初始化从 JAR 中读取 version.json。</summary>
     private bool _jsonVersionInited;
 
-    /// <summary>
-    ///     运行时描述文本的生成逻辑。每次访问时按当前语言求值。
-    /// </summary>
+    /// <summary>运行时描述文本的生成逻辑。每次访问时按当前语言求值。</summary>
     private Func<string>? _runtimeDescFactory;
 
-    /// <summary>
-    ///     强制实例分类，0 为未启用，1 为隐藏，2 及以上为其他普通分类。
-    /// </summary>
+    /// <summary>强制实例分类，0 为未启用，1 为隐藏，2 及以上为其他普通分类。</summary>
     public McInstanceCardType displayType = McInstanceCardType.Auto;
 
-    /// <summary>
-    ///     实例的发布时间。
-    /// </summary>
+    /// <summary>实例的发布时间。</summary>
     public DateTime releaseTime = new(1970, 1, 1, 15, 0, 0);
 
-    /// <summary>
-    ///     该实例的列表检查原始结果，不受自定义影响。
-    /// </summary>
+    /// <summary>该实例的列表检查原始结果，不受自定义影响。</summary>
     public McInstanceState state = McInstanceState.Error;
 
     /// <summary></summary>
-    /// <param name="name">实例名，或实例文件夹的完整路径（不规定是否以 \ 结尾）。</param>
+    /// <param name="name">实例名，或实例文件夹的完整路径（不规定是否以路径分隔符结尾）。</param>
     public McInstance(string name)
     {
         PathInstance =
-            (name.Contains(":")
+            (Path.IsPathRooted(name)
                 ? name
                 : Path.Combine(LauncherPaths.MinecraftFolder, "versions", name))
-            + (name.EndsWithF(@"\") ? "" : @"\");
+            + (name.EndsWithF(Path.DirectorySeparatorChar.ToString())
+                ? ""
+                : Path.DirectorySeparatorChar.ToString());
     }
 
-    /// <summary>
-    ///     运行时产生的描述文本，例如加载失败、版本无法识别等错误信息。
-    ///     该字段不会被持久化，且每次访问都会按当前语言重新生成。
-    /// </summary>
+    /// <summary>运行时产生的描述文本，例如加载失败、版本无法识别等错误信息。 该字段不会被持久化，且每次访问都会按当前语言重新生成。</summary>
     public string? RuntimeDesc => _runtimeDescFactory?.Invoke();
 
     /// <summary>
-    ///     显示的描述文本。<br />
-    ///     优先使用运行时描述（错误信息），其次是用户自定义描述，最后回退到按当前语言生成的默认描述。
-    ///     该属性每次访问都会重新求值，因此切换语言后会立即反映新语言。
+    /// 显示的描述文本。<br /> 优先使用运行时描述（错误信息），其次是用户自定义描述，最后回退到按当前语言生成的默认描述。
+    /// 该属性每次访问都会重新求值，因此切换语言后会立即反映新语言。
     /// </summary>
     public string Desc
     {
@@ -91,14 +71,10 @@ public class McInstance
         }
     }
 
-    /// <summary>
-    ///     该实例的实例文件夹，以“\”结尾。
-    /// </summary>
+    /// <summary>该实例的实例文件夹，以路径分隔符结尾。</summary>
     public string PathInstance { get; }
 
-    /// <summary>
-    ///     应用版本隔离后，该实例所对应的 Minecraft 根文件夹，以“\”结尾。
-    /// </summary>
+    /// <summary>应用版本隔离后，该实例所对应的 Minecraft 根文件夹，以路径分隔符结尾。</summary>
     public string PathIndie
     {
         get
@@ -120,8 +96,8 @@ public class McInstance
                     }
 
                     // 若实例文件夹下包含 mods 或 saves 文件夹，则自动开启版本隔离
-                    var modFolder = new DirectoryInfo(PathInstance + @"mods\");
-                    var saveFolder = new DirectoryInfo(PathInstance + @"saves\");
+                    var modFolder = new DirectoryInfo(Path.Combine(PathInstance, "mods"));
+                    var saveFolder = new DirectoryInfo(Path.Combine(PathInstance, "saves"));
                     if ((modFolder.Exists && modFolder.EnumerateFiles().Any())
                         || (saveFolder.Exists && saveFolder.EnumerateDirectories().Any()))
                     {
@@ -156,22 +132,18 @@ public class McInstance
         }
     }
 
-    /// <summary>
-    ///     该实例的实例文件夹名称。
-    /// </summary>
+    /// <summary>该实例的实例文件夹名称。</summary>
     public string Name
     {
         get
         {
             if (field is null && !string.IsNullOrEmpty(PathInstance))
-                field = LauncherCommon.GetFolderNameFromPath(PathInstance);
+                field = Files.GetFolderNameFromPath(PathInstance);
             return field;
         }
     }
 
-    /// <summary>
-    ///     该实例是否可以安装 Mod。
-    /// </summary>
+    /// <summary>该实例是否可以安装 Mod。</summary>
     public bool Modable
     {
         get
@@ -189,9 +161,7 @@ public class McInstance
         }
     }
 
-    /// <summary>
-    ///     实例信息。
-    /// </summary>
+    /// <summary>实例信息。</summary>
     public McInstanceInfo Info
     {
         get
@@ -426,9 +396,7 @@ public class McInstance
         set { field = value; }
     }
 
-    /// <summary>
-    ///     该实例的 JSON 文本。
-    /// </summary>
+    /// <summary>该实例的 JSON 文本。</summary>
     public string JsonText
     {
         get
@@ -443,7 +411,7 @@ public class McInstance
             ;
             if (field is null)
             {
-                var jsonPath = PathInstance + Name + ".json";
+                var jsonPath = Path.Combine(PathInstance, $"{Name}.json");
                 if (!File.Exists(jsonPath))
                 {
                     // 如果文件夹下只有一个 JSON 文件，则将其作为实例 JSON
@@ -464,7 +432,7 @@ public class McInstance
                     }
                 }
 
-                field = LauncherCommon.ReadFile(jsonPath);
+                field = Files.ReadAllTextOrEmpty(jsonPath);
                 // 如果 ReadFile 失败会返回空字符串；这可能是由于文件被临时占用，故延时后重试
                 if (!FastJsonCheck(field))
                 {
@@ -474,7 +442,7 @@ public class McInstance
                             $"[Minecraft] 实例 JSON 文件为空或有误，将进行短暂重试（{jsonPath}）",
                             LauncherLogLevel.Debug);
                         Thread.Sleep(200);
-                        field = LauncherCommon.ReadFile(jsonPath);
+                        field = Files.ReadAllTextOrEmpty(jsonPath);
                     }
                     else
                     {
@@ -482,7 +450,7 @@ public class McInstance
                             $"[Minecraft] 实例 JSON 文件为空或有误，将在 2s 后重试读取（{jsonPath}）",
                             LauncherLogLevel.Debug);
                         Thread.Sleep(2000);
-                        field = LauncherCommon.ReadFile(jsonPath);
+                        field = Files.ReadAllTextOrEmpty(jsonPath);
                     }
 
                     if (!FastJsonCheck(field))
@@ -495,10 +463,7 @@ public class McInstance
         set => field = value;
     }
 
-    /// <summary>
-    ///     该实例的 JSON 对象。
-    ///     若 JSON 存在问题，在获取该属性时即会抛出异常。
-    /// </summary>
+    /// <summary>该实例的 JSON 对象。 若 JSON 存在问题，在获取该属性时即会抛出异常。</summary>
     public JsonObject JsonObject
     {
         get
@@ -610,22 +575,15 @@ public class McInstance
         set => field = value;
     }
 
-    /// <summary>
-    ///     是否为旧版 JSON 格式。
-    /// </summary>
+    /// <summary>是否为旧版 JSON 格式。</summary>
     public bool IsOldJson =>
         JsonObject["minecraftArguments"] is not null
         && (string)JsonObject["minecraftArguments"] != "";
 
-    /// <summary>
-    ///     JSON 是否为 HMCL 格式。
-    /// </summary>
+    /// <summary>JSON 是否为 HMCL 格式。</summary>
     public bool IsHmclFormatJson { get; set; }
 
-    /// <summary>
-    ///     实例 JAR 中的 version.json 文件对象。
-    ///     若没有则返回 Nothing。
-    /// </summary>
+    /// <summary>实例 JAR 中的 version.json 文件对象。 若没有则返回 Nothing。</summary>
     public JsonObject JsonVersion
     {
         get
@@ -670,9 +628,7 @@ public class McInstance
         }
     }
 
-    /// <summary>
-    ///     该实例的依赖实例。若无依赖实例则为空字符串。
-    /// </summary>
+    /// <summary>该实例的依赖实例。若无依赖实例则为空字符串。</summary>
     public string InheritInstanceName
     {
         get
@@ -698,49 +654,37 @@ public class McInstance
         }
     }
 
-    /// <summary>
-    ///     设置按资源键生成的运行时描述。
-    /// </summary>
+    /// <summary>设置按资源键生成的运行时描述。</summary>
     private void SetRuntimeDesc(string key, params object?[] args)
     {
         _runtimeDescFactory = () => Lang.Text(key, args);
     }
 
-    /// <summary>
-    ///     设置一段不参与本地化的运行时描述（例如异常消息）。
-    /// </summary>
+    /// <summary>设置一段不参与本地化的运行时描述（例如异常消息）。</summary>
     private void SetRuntimeDescRaw(string text)
     {
         _runtimeDescFactory = () => text;
     }
 
-    /// <summary>
-    ///     设置需要按当前语言重新计算的运行时描述。
-    /// </summary>
+    /// <summary>设置需要按当前语言重新计算的运行时描述。</summary>
     private void SetRuntimeDescFactory(Func<string> factory)
     {
         _runtimeDescFactory = factory;
     }
 
-    /// <summary>
-    ///     清除运行时描述。
-    /// </summary>
+    /// <summary>清除运行时描述。</summary>
     private void ClearRuntimeDesc()
     {
         _runtimeDescFactory = null;
     }
 
-    /// <summary>
-    ///     标记实例描述已具备可用的数据来源。
-    /// </summary>
+    /// <summary>标记实例描述已具备可用的数据来源。</summary>
     public void MarkDescriptionLoaded()
     {
         _descNotLoaded = false;
     }
 
-    /// <summary>
-    ///     检查 Minecraft 版本，若检查通过 State 则为 Original 且返回 True。
-    /// </summary>
+    /// <summary>检查 Minecraft 版本，若检查通过 State 则为 Original 且返回 True。</summary>
     public bool Check()
     {
         // 检查文件夹
@@ -754,8 +698,8 @@ public class McInstance
         // 检查权限
         try
         {
-            Directory.CreateDirectory(PathInstance + @"PCL\");
-            LauncherCommon.CheckPermissionWithException(PathInstance + @"PCL\");
+            Directory.CreateDirectory(Path.Combine(PathInstance, "PCL"));
+            Directories.EnsureWritable(Path.Combine(PathInstance, "PCL"));
         }
         catch (Exception ex)
         {
@@ -800,7 +744,7 @@ public class McInstance
             if (!string.IsNullOrEmpty(InheritInstanceName))
                 if (!File.Exists(
                         Path.Combine(
-                            LauncherCommon.GetPathFromFullPath(PathInstance),
+                            Files.GetPathFromFullPath(PathInstance),
                             InheritInstanceName,
                             InheritInstanceName + ".json")))
                 {
@@ -825,9 +769,7 @@ public class McInstance
         return true;
     }
 
-    /// <summary>
-    ///     加载 Minecraft 实例的详细信息。不使用其缓存，且会更新缓存。
-    /// </summary>
+    /// <summary>加载 Minecraft 实例的详细信息。不使用其缓存，且会更新缓存。</summary>
     public McInstance Load()
     {
         try
@@ -945,17 +887,19 @@ public class McInstance
 
             // 确定实例图标
             Logo = States.Instance.LogoPath[PathInstance];
-            // 实例目录中实际存在的自带图标文件（整合包安装或用户设置时复制的 PCL\Logo.png）是最高优先级的依据：
+            // 实例目录中实际存在的自带图标文件（整合包安装或用户设置时复制到 PCL 文件夹的 Logo.png）是最高优先级的依据：
             // 即使配置中的 Logo / LogoCustom 丢失或被默认图标覆盖，也能恢复自定义图标并修正配置
             var hasCustomLogoFile = File.Exists(Path.Combine(PathInstance, "PCL", "Logo.png"));
             if (hasCustomLogoFile)
             {
-                Logo = @"PCL\Logo.png";
+                Logo = Path.Combine("PCL", "Logo.png");
                 if (!States.Instance.IsLogoCustom[PathInstance])
                     States.Instance.IsLogoCustom[PathInstance] = true;
             }
             else if (States.Instance.IsLogoCustom[PathInstance]
-                     && Logo?.EndsWith(@"PCL\Logo.png", StringComparison.OrdinalIgnoreCase) == true)
+                     && Logo.EndsWith(
+                         Path.Combine("PCL", "Logo.png"),
+                         StringComparison.OrdinalIgnoreCase))
             {
                 // 自定义图标文件已不存在，清理失效的自定义标记并回退到默认图标
                 States.Instance.IsLogoCustom[PathInstance] = false;
@@ -1116,9 +1060,7 @@ public class McInstance
         return type is "snapshot" or "pending";
     }
 
-    /// <summary>
-    ///     获取实例的默认描述。
-    /// </summary>
+    /// <summary>获取实例的默认描述。</summary>
     public string GetDefaultDescription()
     {
         // Mod Loader 信息

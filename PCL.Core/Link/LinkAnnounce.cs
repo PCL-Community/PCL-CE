@@ -10,10 +10,6 @@ public enum LinkAnnounceType
 }
 
 public record LinkAnnounceInfo(
-    [property:JsonPropertyName("type")] LinkAnnounceType Type,
-    [property:JsonPropertyName("content")] string Content
-);
-
-public record LinkAnnounce(
-    [property:JsonPropertyName("notices")] LinkAnnounceInfo[] Announces
+    [property: JsonPropertyName("type")] LinkAnnounceType Type,
+    [property: JsonPropertyName("content")] string Content
 );

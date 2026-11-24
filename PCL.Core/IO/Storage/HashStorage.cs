@@ -38,6 +38,8 @@ public class HashStorage(string folder, IHashProvider hashProvider, bool compres
         if (input.CanSeek) input.Position = 0;
 
         var fileHash = hash ?? (await hashProvider.ComputeHashAsync(input).ConfigureAwait(false)).ToHexString();
+        // 计算哈希会把可定位流读到末尾，写回前必须复位，否则会写入空文件
+        if (input.CanSeek) input.Position = 0;
         var destPath = _GetDestPath(fileHash);
         //纠正: 由于之前错误设计导致的文件访问效率低下的文件结构
         if (correctMisplacedFile && _CorrectMisplacedFile(fileHash)) LogWrapper.Info("HashStorage", "Move misplaced file into correct folder");

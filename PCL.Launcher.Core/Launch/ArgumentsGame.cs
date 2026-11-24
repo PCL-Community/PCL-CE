@@ -1,10 +1,17 @@
 using System.Globalization;
 using PCL.Core.App;
+using PCL.Core.IO;
+using PCL.Core.Platform;
 
 namespace PCL;
 
 public static partial class GameLaunch
 {
+    private static double GameWindowScale =>
+        ApplicationRuntime.GetService<IMinecraftPlatformRules>()?.GameWindowUsesPhysicalPixels == true
+            ? LauncherCommon.Dpi / 96d
+            : 1d;
+
     private static string McLaunchArgumentsGameOld(McInstance version)
     {
         var dataList = new List<string>();
@@ -109,10 +116,10 @@ public static partial class GameLaunch
 
         try
         {
-            LauncherCommon.WriteFile(
+            Files.WriteAllText(
                 Path.Combine(version.PathInstance, $"{version.Name}.json"),
-                LauncherCommon
-                    .ReadFile(Path.Combine(version.PathInstance, $"{version.Name}.json"))
+                Files
+                    .ReadAllTextOrEmpty(Path.Combine(version.PathInstance, $"{version.Name}.json"))
                     .Replace("optifine.OptiFineTweaker", "optifine.OptiFineForgeTweaker"));
         }
         catch (Exception ex)
@@ -139,12 +146,13 @@ public static partial class GameLaunch
             LauncherCommon.ShortenPath(InstanceList.McMcInstanceSelected.PathIndie[..^1]));
         gameArguments.Add(
             "${assets_root}",
-            LauncherCommon.ShortenPath($"{GameFolders.mcFolderSelected}assets"));
+            LauncherCommon.ShortenPath(Path.Combine(GameFolders.mcFolderSelected!, "assets")));
         gameArguments.Add("${user_properties}", "{}");
         _AddAuthArgumentReplacements(gameArguments);
 
-        var gameSize = _GetGameWindowSize();
-        _ApplyLegacyWindowSizeFix(ref gameSize, instance);
+        var scale = GameWindowScale;
+        var gameSize = _GetGameWindowSize(scale);
+        _ApplyLegacyWindowSizeFix(ref gameSize, instance, scale);
         gameArguments.Add(
             "${resolution_width}",
             Math.Round(gameSize.Width).ToString(CultureInfo.InvariantCulture));
@@ -154,7 +162,12 @@ public static partial class GameLaunch
 
         gameArguments.Add(
             "${game_assets}",
-            LauncherCommon.ShortenPath($@"{GameFolders.mcFolderSelected}assets\virtual\legacy"));
+            LauncherCommon.ShortenPath(
+                Path.Combine(
+                    GameFolders.mcFolderSelected!,
+                    "assets",
+                    "virtual",
+                    "legacy")));
         gameArguments.Add("${assets_index_name}", GameAssets.McAssetsGetIndexName(instance));
 
         var libList = Libraries.McLibListGet(instance, true);
@@ -169,18 +182,18 @@ public static partial class GameLaunch
         return new Dictionary<string, string>
         {
             {
-                "${classpath_separator}", ";"
+                "${classpath_separator}", Path.PathSeparator.ToString()
             },
             {
                 "${natives_directory}", LauncherCommon.ShortenPath(GetNativesFolder())
             },
             {
-                "${library_directory}",
-                LauncherCommon.ShortenPath($"{GameFolders.mcFolderSelected}libraries")
+                "${library_directory}", LauncherCommon.ShortenPath(
+                    Path.Combine(GameFolders.mcFolderSelected!, "libraries"))
             },
             {
-                "${libraries_directory}",
-                LauncherCommon.ShortenPath($"{GameFolders.mcFolderSelected}libraries")
+                "${libraries_directory}", LauncherCommon.ShortenPath(
+                    Path.Combine(GameFolders.mcFolderSelected!, "libraries"))
             },
             {
                 "${launcher_name}", "PCLCE"
@@ -204,16 +217,14 @@ public static partial class GameLaunch
         gameArguments.Add("${user_type}", "msa");
     }
 
-    private static GameWindowSize _GetGameWindowSize()
+    private static GameWindowSize _GetGameWindowSize(double scale)
     {
         switch (Config.Launch.GameWindowMode)
         {
             case GameWindowSizeMode.Launcher:
             {
                 var pan = LaunchUi.GetMainPanSize();
-                return new GameWindowSize(
-                    LauncherCommon.GetPixelSize(pan.Width),
-                    LauncherCommon.GetPixelSize(pan.Height) - 29.5d * LauncherCommon.Dpi / 96d);
+                return new GameWindowSize(pan.Width * scale, (pan.Height - 29.5d) * scale);
             }
             case GameWindowSizeMode.Custom:
                 return new GameWindowSize(
@@ -227,7 +238,7 @@ public static partial class GameLaunch
         }
     }
 
-    private static void _ApplyLegacyWindowSizeFix(ref GameWindowSize gameSize, McInstance instance)
+    private static void _ApplyLegacyWindowSizeFix(ref GameWindowSize gameSize, McInstance instance, double scale)
     {
         if (instance.Info.Drop > 120
             || mcLaunchJavaSelected!.Installation
@@ -236,10 +247,13 @@ public static partial class GameLaunch
             || instance.Info.HasForge)
             return;
 
+        if (scale == 1d)
+            return;
+
         McLaunchLog(
             $"已应用窗口大小过大修复（{mcLaunchJavaSelected.Installation.Version.Revision}）");
-        gameSize.Width /= LauncherCommon.Dpi / 96d;
-        gameSize.Height /= LauncherCommon.Dpi / 96d;
+        gameSize.Width /= scale;
+        gameSize.Height /= scale;
     }
 
     private static string _BuildClassPath(McInstance instance, List<Libraries.McLibToken> libList)
@@ -252,9 +266,9 @@ public static partial class GameLaunch
             var legacyFixPath = Path.Combine(LauncherPaths.PureAsciiDirectory, "legacyfix.jar");
             try
             {
-                LauncherCommon.WriteFile(
+                Files.WriteAllStream(
                     legacyFixPath,
-                    LauncherCommon.GetResourceStream("Resources/legacyfix.jar")!);
+                    Basics.GetResourceStream("Resources/legacyfix.jar")!);
             }
             catch (Exception ex)
             {
@@ -269,9 +283,9 @@ public static partial class GameLaunch
                 "lwjgl-unsafe-agent.jar");
             try
             {
-                LauncherCommon.WriteFile(
+                Files.WriteAllStream(
                     agentPath,
-                    LauncherCommon.GetResourceStream("Resources/lwjgl-unsafe-agent.jar")!);
+                    Basics.GetResourceStream("Resources/lwjgl-unsafe-agent.jar")!);
                 cpStrings.Add(agentPath);
             }
             catch (Exception ex)
@@ -295,7 +309,9 @@ public static partial class GameLaunch
             else
                 cpStrings.Add(library.LocalPath);
 
-        foreach (var library in Config.Instance.ClasspathHead[instance.PathInstance].Split(";"))
+        foreach (var library in Config
+                     .Instance.ClasspathHead[instance.PathInstance]
+                     .Split(Path.PathSeparator))
         {
             if (string.IsNullOrWhiteSpace(library))
                 continue;
@@ -305,7 +321,9 @@ public static partial class GameLaunch
         if (optiFineCp is not null)
             cpStrings.Insert(cpStrings.Count - 2, optiFineCp);
 
-        return cpStrings.Select(c => LauncherCommon.ShortenPath(c)).Join(";");
+        return cpStrings
+            .Select(c => LauncherCommon.ShortenPath(c))
+            .Join(Path.PathSeparator.ToString());
     }
 
     public struct GameWindowSize(double width, double height)

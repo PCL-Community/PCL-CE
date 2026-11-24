@@ -1,6 +1,7 @@
 ﻿using System.IO.Compression;
 using System.Text;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using static PCL.Loading;
 
 namespace PCL;
@@ -25,7 +26,9 @@ public static partial class Modpack
         var request = new McInstallRequest
         {
             targetInstanceName = instanceName,
-            targetInstanceFolder = $@"{GameFolders.mcFolderSelected}versions\{instanceName}\",
+            targetInstanceFolder =
+                Path.Combine(GameFolders.mcFolderSelected!, "versions", instanceName)
+                + Path.DirectorySeparatorChar,
             minecraftName = json["gameVersion"]!.ToString()
         };
         var mergeLoaders = ModpackUi.CreateInstallLoader(request);
@@ -44,6 +47,9 @@ public static partial class Modpack
         var loader = new LoaderCombo<string>(loaderName, loaders)
         {
             OnStateChanged = ModpackUi.OnInstallStateChanged,
+            DisplayNameFactory = () => Lang.Text(
+                "Minecraft.Download.Modpack.Task.HmclInstall",
+                instanceName),
             Identifier = loaderIdentifier
         };
         loader.Start(request.targetInstanceFolder);
@@ -59,7 +65,7 @@ public static partial class Modpack
         {
             return (JsonObject)
                 LauncherCommon.GetJson(
-                    LauncherCommon.ReadFile(
+                    Files.ReadAllTextOrEmpty(
                         archive.GetEntry($"{archiveBaseFolder}modpack.json")!.Open(),
                         Encoding.UTF8));
         }

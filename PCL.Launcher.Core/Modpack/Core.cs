@@ -2,6 +2,7 @@
 using System.Text;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.UI;
 using static PCL.Loading;
 
@@ -9,14 +10,12 @@ namespace PCL;
 
 public static partial class Modpack
 {
-    /// <summary>
-    ///     弹窗要求选择一个整合包文件并进行安装。
-    /// </summary>
-    public static void ModpackInstall()
+    /// <summary>弹窗要求选择一个整合包文件并进行安装。</summary>
+    public static async Task ModpackInstall()
     {
         if (!RestrictedFeatures.Check("modpack-install"))
             return;
-        var file = SystemDialogs.SelectFile(
+        var file = await SystemDialogs.SelectFileAsync(
             Lang.Text("Minecraft.Download.Modpack.FileDialog.Filter"),
             Lang.Text("Minecraft.Download.Modpack.FileDialog.Title"));
         if (string.IsNullOrEmpty(file))
@@ -41,10 +40,7 @@ public static partial class Modpack
         });
     }
 
-    /// <summary>
-    ///     构建并启动安装给定的整合包文件的加载器，并返回该加载器。若失败则抛出异常。
-    ///     必须在工作线程执行。
-    /// </summary>
+    /// <summary>构建并启动安装给定的整合包文件的加载器，并返回该加载器。若失败则抛出异常。 必须在工作线程执行。</summary>
     /// <exception cref="CancelledException" />
     public static LoaderCombo<string> ModpackInstall(
         string file,
@@ -78,7 +74,9 @@ public static partial class Modpack
 
     private static void _ValidateModpackTargetPath(string? instanceName)
     {
-        var targetFolder = $@"{GameFolders.mcFolderSelected}versions\{instanceName}\";
+        var targetFolder =
+            Path.Combine(GameFolders.mcFolderSelected!, "versions", instanceName ?? "")
+            + Path.DirectorySeparatorChar;
         if (!targetFolder.Contains('!') && !targetFolder.Contains(';'))
             return;
 
@@ -169,7 +167,7 @@ public static partial class Modpack
         static int DetectManifestType(ZipArchiveEntry entry)
         {
             var json = (JsonObject)LauncherCommon.GetJson(
-                LauncherCommon.ReadFile(entry.Open(), Encoding.UTF8));
+                Files.ReadAllTextOrEmpty(entry.Open(), Encoding.UTF8));
 
             return json["addons"] is null ? 0 : 3;
         }
@@ -281,14 +279,16 @@ public static partial class Modpack
         string source,
         string? modpackVersion)
     {
-        var versionFolder = $@"{GameFolders.mcFolderSelected}versions\{instanceName}\";
+        var versionFolder =
+            Path.Combine(GameFolders.mcFolderSelected!, "versions", instanceName)
+            + Path.DirectorySeparatorChar;
         if (logo is not null && File.Exists(logo))
         {
             File.Copy(
                 logo,
                 Path.Combine(versionFolder, "PCL", "Logo.png"),
                 true);
-            States.Instance.LogoPath[versionFolder] = @"PCL\Logo.png";
+            States.Instance.LogoPath[versionFolder] = Path.Combine("PCL", "Logo.png");
             States.Instance.IsLogoCustom[versionFolder] = true;
             LauncherCommon.Log($"[ModPack] 已设置整合包 Logo：{logo}");
         }
@@ -337,14 +337,14 @@ public static partial class Modpack
         var encode = Encoding.GetEncoding("GB18030");
         var initialProgress = loader.Progress;
 
-        while (retryCount <= 5)
+        while (true)
             try
             {
                 loader.Progress = initialProgress;
 
-                LauncherCommon.DeleteDirectory(installTemp);
+                Directories.DeleteDirectory(installTemp);
 
-                LauncherCommon.ExtractFile(
+                Files.ExtractFile(
                     fileAddress,
                     installTemp,
                     encode,
@@ -375,24 +375,21 @@ public static partial class Modpack
             }
     }
 
-    /// <summary>
-    ///     从整合包的 override 目录复制文件，同时设置 PCL 的配置文件与版本隔离。
-    ///     对路径末尾是否为 \ 没有要求。
-    /// </summary>
+    /// <summary>从整合包的 override 目录复制文件，同时设置 PCL 的配置文件与版本隔离。 对路径末尾是否为路径分隔符没有要求。</summary>
     private static void CopyOverrideDirectory(
         string overridesFolder,
         string versionFolder,
         LoaderBase loader,
         double progressIncrement)
     {
-        if (!overridesFolder.EndsWithF(@"\"))
-            overridesFolder += @"\";
-        if (!versionFolder.EndsWithF(@"\"))
-            versionFolder += @"\";
+        if (!overridesFolder.EndsWithF(Path.DirectorySeparatorChar.ToString()))
+            overridesFolder += Path.DirectorySeparatorChar;
+        if (!versionFolder.EndsWithF(Path.DirectorySeparatorChar.ToString()))
+            versionFolder += Path.DirectorySeparatorChar;
         if (Directory.Exists(overridesFolder))
         {
             LauncherCommon.Log($"[ModPack] 处理整合包覆写文件夹：{overridesFolder} → {versionFolder}");
-            LauncherCommon.CopyDirectory(
+            Files.CopyDirectory(
                 overridesFolder,
                 versionFolder,
                 delta => loader.Progress += delta * progressIncrement);
@@ -403,20 +400,18 @@ public static partial class Modpack
             loader.Progress += progressIncrement;
         }
 
-        var overridesIni = $@"{overridesFolder}PCL\Setup.ini";
-        var versionIni = $@"{versionFolder}PCL\Setup.ini";
+        var overridesIni = Path.Combine(overridesFolder, "PCL", "Setup.ini");
+        var versionIni = Path.Combine(versionFolder, "PCL", "Setup.ini");
         if (File.Exists(overridesIni))
         {
-            LauncherCommon.WriteIni(overridesIni, "VersionArgumentIndie", 1.ToString());
-            LauncherCommon.WriteIni(overridesIni, "VersionArgumentIndieV2", true.ToString());
-            LauncherCommon.CopyFile(overridesIni, versionIni);
+            Ini.Write(overridesIni, "VersionArgumentIndie", 1.ToString());
+            Ini.Write(overridesIni, "VersionArgumentIndieV2", true.ToString());
+            Files.CopyFile(overridesIni, versionIni);
         }
         else
         {
-            LauncherCommon.WriteIni(versionIni, "VersionArgumentIndie", 1.ToString());
-            LauncherCommon.WriteIni(versionIni, "VersionArgumentIndieV2", true.ToString());
+            Ini.Write(versionIni, "VersionArgumentIndie", 1.ToString());
+            Ini.Write(versionIni, "VersionArgumentIndieV2", true.ToString());
         }
-
-        LauncherCommon.IniClearCache(versionIni);
     }
 }

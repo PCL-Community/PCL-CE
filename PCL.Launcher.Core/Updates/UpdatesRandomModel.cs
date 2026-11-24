@@ -31,13 +31,13 @@ public class UpdatesRandomModel : IUpdateSource // 社区自己的更新系统�
         return _sources.ElementAt(_randIndex).RefreshCache();
     }
 
-    public VersionDataModel GetLatestVersion(UpdateChannel channel, UpdateArch arch)
+    public VersionDataModel GetLatestVersion(UpdateSourceChannel channel, UpdateArch arch)
     {
         return _sources.ElementAt(_randIndex).GetLatestVersion(channel, arch);
     }
 
     public bool IsLatest(
-        UpdateChannel channel,
+        UpdateSourceChannel channel,
         UpdateArch arch,
         SemVer currentVersion,
         int currentVersionCode)
@@ -53,7 +53,7 @@ public class UpdatesRandomModel : IUpdateSource // 社区自己的更新系统�
     }
 
     public List<Loading.LoaderBase> GetDownloadLoader(
-        UpdateChannel channel,
+        UpdateSourceChannel channel,
         UpdateArch arch,
         string output)
     {

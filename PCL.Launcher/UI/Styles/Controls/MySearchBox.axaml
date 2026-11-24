@@ -1,0 +1,13 @@
+<!--
+    MySearchBox 的样式覆盖：搜索框高度与内嵌输入框对齐。
+    控件内部组合 MyTextBox、MyIconButton 与 MyButton，配色由各控件自身资源驱动。
+-->
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="using:PCL.UI.Controls">
+
+    <Style Selector="ui|MySearchBox">
+        <Setter Property="Height"
+                Value="40" />
+    </Style>
+</Styles>

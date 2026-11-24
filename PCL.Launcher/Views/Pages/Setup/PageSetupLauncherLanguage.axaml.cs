@@ -1,0 +1,180 @@
+using Avalonia.Controls;
+using Avalonia.Data;
+using Avalonia.Threading;
+using PCL.Core.App;
+using PCL.Core.App.Localization;
+using PCL.Core.UI.Hints;
+using PCL.Navigation;
+using PCL.UI.Controls;
+
+namespace PCL.Views.Pages.Setup;
+
+public partial class PageSetupLauncherLanguage : MyPageRight, ISetupResetPage
+{
+    private bool _loaded;
+
+    public PageSetupLauncherLanguage()
+    {
+        InitializeComponent();
+        PanScroll = PanBack;
+        DataContext = ViewModel;
+        LabBannerTitle.FontFamily = LaunchFonts.BannerFont;
+
+        ViewModel.ReloadRequested += OnReloadRequested;
+        BtnTranslateWebsite.Click += (_, _) =>
+            Basics.OpenPath("https://translate.pclc.cc/projects/pcl-ce/");
+        BtnSubmitPullRequest.Click += (_, _) =>
+            Basics.OpenPath("https://github.com/PCL-Community/PCL-CE/pulls");
+
+        Loaded += (_, _) =>
+        {
+            if (_loaded) return;
+            _loaded = true;
+            Reload();
+        };
+    }
+
+    public PageSetupLauncherLanguageViewModel ViewModel { get; } = new();
+
+    public void Reset()
+    {
+        var wasSynchronizing = ViewModel.IsSynchronizing;
+        ViewModel.IsSynchronizing = true;
+        try
+        {
+            Config.Preference.Localization.LanguageConfig.SetDefaultValue();
+            Config.Preference.Localization.FormatCultureConfig.SetDefaultValue();
+            LocalizationService.ApplyFromConfig();
+            HintService.Show(Hints.Success(Lang.Text("Setup.Language.Reset.Success"), false));
+            Reload();
+        }
+        catch (Exception ex)
+        {
+            LauncherCommon.Log(
+                ex,
+                "重置语言设置失败",
+                LauncherLogLevel.Msgbox,
+                userSummary: Lang.Text("Setup.Error.OperationFailed"));
+        }
+        finally
+        {
+            ViewModel.IsSynchronizing = wasSynchronizing;
+        }
+    }
+
+    public override void OnNavigatedTo(PageParameter? parameter)
+    {
+        PanBack.ScrollToHome();
+        if (_loaded) Reload();
+    }
+
+    public override void OnNavigatedFrom()
+    {
+    }
+
+    public void Reload()
+    {
+        var wasSynchronizing = ViewModel.IsSynchronizing;
+        ViewModel.IsSynchronizing = true;
+        try
+        {
+            ReloadLanguageCombo();
+            ReloadFormatCultureCombo();
+            ViewModel.Reload();
+        }
+        finally
+        {
+            ViewModel.IsSynchronizing = wasSynchronizing;
+        }
+    }
+
+    private void OnReloadRequested()
+    {
+        if (_loaded)
+            Dispatcher.UIThread.Post(Reload);
+    }
+
+    private void ReloadLanguageCombo()
+    {
+        ComboUiLanguage.Items.Clear();
+        var autoLanguage = LocalizationService.ResolveLanguage(LocalizationService.Auto);
+        var autoItem = new MyComboBoxItem
+        {
+            Tag = LocalizationService.Auto,
+            FontFamily = LaunchFonts.BuildRepresentativeFontFamily(autoLanguage)
+        };
+        autoItem.Bind(
+            ContentControl.ContentProperty,
+            new Binding(nameof(PageSetupLauncherLanguageViewModel.AutoLanguageText))
+            {
+                Source = ViewModel
+            });
+        ComboUiLanguage.Items.Add(autoItem);
+        foreach (var language in LocalizationService.SupportedLanguages)
+            ComboUiLanguage.Items.Add(
+                new MyComboBoxItem
+                {
+                    Content = language.NativeName,
+                    Tag = language.Code,
+                    FontFamily = LaunchFonts.BuildRepresentativeFontFamily(language)
+                });
+
+        var configValue = PageSetupLauncherLanguageViewModel.NormalizeConfigValue(
+            Config.Preference.Localization.Language);
+        ComboUiLanguage.SelectedIndex =
+            PageSetupLauncherLanguageViewModel.ResolveLanguageIndex(configValue);
+    }
+
+    private void ReloadFormatCultureCombo()
+    {
+        ComboUiFormatCulture.Items.Clear();
+        var autoItem = new MyComboBoxItem
+        {
+            Tag = LocalizationService.Auto
+        };
+        autoItem.SetLocalizedValue(
+            ContentControl.ContentProperty,
+            "Setup.Language.FormatCulture.Auto");
+        ComboUiFormatCulture.Items.Add(autoItem);
+        var followLanguageItem = new MyComboBoxItem
+        {
+            Tag = LocalizationService.FormatCultureFollowLanguage
+        };
+        followLanguageItem.SetLocalizedValue(
+            ContentControl.ContentProperty,
+            "Setup.Language.FormatCulture.FollowLanguage");
+        ComboUiFormatCulture.Items.Add(followLanguageItem);
+
+        foreach (var culture in PageSetupLauncherLanguageViewModel.GetBuiltInFormatCultures())
+            ComboUiFormatCulture.Items.Add(
+                new MyComboBoxItem
+                {
+                    Content = culture.NativeName,
+                    Tag = culture.Name
+                });
+
+        var configValue = PageSetupLauncherLanguageViewModel.NormalizeConfigValue(
+            Config.Preference.Localization.FormatCulture);
+        if (!IsFormatCultureItemExisting(configValue)
+            && PageSetupLauncherLanguageViewModel.TryGetCulture(configValue, out var customCulture))
+            ComboUiFormatCulture.Items.Add(
+                new MyComboBoxItem
+                {
+                    Content = customCulture.NativeName,
+                    Tag = customCulture.Name
+                });
+
+        ComboUiFormatCulture.SelectedIndex =
+            PageSetupLauncherLanguageViewModel.ResolveFormatCultureIndex(configValue);
+    }
+
+    private bool IsFormatCultureItemExisting(string tag)
+    {
+        return ComboUiFormatCulture
+            .Items.OfType<MyComboBoxItem>()
+            .Any(item => string.Equals(
+                item.Tag?.ToString(),
+                tag,
+                StringComparison.OrdinalIgnoreCase));
+    }
+}

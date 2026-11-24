@@ -18,9 +18,7 @@ public static partial class JavaRuntime
         "84d2102ad171863db04e7ee22a259d1f6c5de4a5"
     ];
 
-    /// <summary>
-    ///     提示 Java 缺失，并弹窗确认是否自动下载。返回玩家选择是否下载。
-    /// </summary>
+    /// <summary>提示 Java 缺失，并弹窗确认是否自动下载。返回玩家选择是否下载。</summary>
     public static bool JavaDownloadConfirm(
         string versionDescription,
         bool forcedManualDownload = false)
@@ -40,9 +38,7 @@ public static partial class JavaRuntime
         return false;
     }
 
-    /// <summary>
-    ///     获取下载 Java 的加载器。需要开启 IsForceRestart 以正常刷新 Java 列表。
-    /// </summary>
+    /// <summary>获取下载 Java 的加载器。需要开启 IsForceRestart 以正常刷新 Java 列表。</summary>
     public static Loading.LoaderCombo<string> GetJavaDownloadLoader()
     {
         var javaDownloadLoader = new LoaderDownload(
@@ -73,7 +69,7 @@ public static partial class JavaRuntime
                     LauncherCommon.Log(
                         $"[Java] 由于下载未完成，清理未下载完成的 Java 文件：{_lastJavaBaseDir}",
                         LauncherLogLevel.Debug);
-                    LauncherCommon.DeleteDirectory(_lastJavaBaseDir);
+                    Directories.DeleteDirectory(_lastJavaBaseDir);
                     break;
 
                 case LoadState.Finished:

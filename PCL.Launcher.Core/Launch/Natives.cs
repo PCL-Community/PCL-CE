@@ -1,14 +1,20 @@
 ﻿using System.IO.Compression;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
+using PCL.Core.Platform;
 using PCL.Core.Utils.OS;
 
 namespace PCL;
 
 public static partial class GameLaunch
 {
+    /// <summary>各平台需要解压的 Natives 动态库后缀。Windows 仅解压 .dll，其余平台还需 .so 与 .dylib。</summary>
+    private static IReadOnlyList<string> NativeLibraryExtensions =>
+        ApplicationRuntime.Current.Platform.Capabilities.NativeLibraryExtensions;
+
     private static void McLaunchNatives(Loading.LoaderTask<List<Libraries.McLibToken>, int> loader)
     {
-        var target = $@"{GetNativesFolder()}\";
+        var target = $"{GetNativesFolder()}{Path.DirectorySeparatorChar}";
         Directory.CreateDirectory(target);
 
         McLaunchLog("正在解压 Natives 文件");
@@ -42,7 +48,7 @@ public static partial class GameLaunch
             foreach (var entry in zip.Entries)
             {
                 var fileName = entry.FullName;
-                if (!fileName.EndsWithF(".dll", true))
+                if (!NativeLibraryExtensions.Any(extension => fileName.EndsWithF(extension, true)))
                     continue;
 
                 var filePath = target + fileName;
@@ -70,7 +76,7 @@ public static partial class GameLaunch
                     }
                 }
 
-                LauncherCommon.WriteFile(filePath, entry.Open());
+                Files.WriteAllStream(filePath, entry.Open());
                 McLaunchLog($"已解压：{filePath}");
             }
         }
@@ -96,9 +102,7 @@ public static partial class GameLaunch
         }
     }
 
-    /// <summary>
-    ///     获取 Natives 文件夹路径，不以 \ 结尾。
-    /// </summary>
+    /// <summary>获取 Natives 文件夹路径，不以路径分隔符结尾。</summary>
     private static string GetNativesFolder()
     {
         var instance = InstanceList.McMcInstanceSelected!;
@@ -113,6 +117,9 @@ public static partial class GameLaunch
             "natives");
         return result.IsAscii()
             ? result
-            : Path.Combine(SystemPaths.DriveLetter, "ProgramData", "PCL", "natives");
+            : ApplicationRuntime
+                .GetService<IPlatformPathService>()
+                ?.GetFallbackNativesDirectory()
+            ?? Path.Combine(Path.GetTempPath(), "PCLCE", "natives");
     }
 }

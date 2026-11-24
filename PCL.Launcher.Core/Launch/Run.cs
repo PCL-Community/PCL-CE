@@ -3,8 +3,9 @@ using System.Globalization;
 using System.Text;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
+using PCL.Core.Platform;
 using PCL.Core.Utils;
-using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Secret;
 
 namespace PCL;
@@ -29,26 +30,39 @@ public static partial class GameLaunch
 
     private static void _SetJavaGpuPreference(string javaExePath)
     {
+        if (!ApplicationRuntime.Current.Platform.GpuPreference.IsSupported) return;
+
         try
         {
             LaunchUi.SetGpuPreference(javaExePath, Config.Launch.SetGpuPreference);
         }
         catch (Exception ex)
         {
-            if (ProcessInterop.IsAdmin() || !Config.Launch.SetGpuPreference)
+            var elevation = ApplicationRuntime.GetService<IElevationService>();
+            if (elevation is null || elevation.IsElevated || !Config.Launch.SetGpuPreference)
             {
                 LauncherCommon.Log(ex, "直接调整显卡设置失败");
                 return;
             }
 
-            LauncherCommon.Log(ex, "直接调整显卡设置失败，将以管理员权限重启 PCL 再次尝试");
+            LauncherCommon.Log(ex, "直接调整显卡设置失败，将以管理员权限重启 PCL CE 再次尝试");
             try
             {
-                if (ProcessInterop.StartAsAdmin($"--gpu \"{javaExePath}\"")?.ExitCode
-                    == (int)LauncherCommon.ProcessReturnValues.TaskDone)
-                    McLaunchLog("以管理员权限重启 PCL 并调整显卡设置成功");
+                using var process = elevation.StartElevated(
+                    $"--gpu \"{javaExePath}\" {(Config.Launch.SetGpuPreference ? "1" : "0")}");
+                if (process is null)
+                    throw new InvalidOperationException("无法启动提权进程");
+
+                if (!process.WaitForExit(30_000))
+                {
+                    process.Kill(true);
+                    throw new TimeoutException("提权调整显卡设置超时");
+                }
+
+                if (process.ExitCode == (int)LauncherCommon.ProcessReturnValues.TaskDone)
+                    McLaunchLog("以管理员权限重启 PCL CE 并调整显卡设置成功");
                 else
-                    throw new Exception("调整过程中出现异常");
+                    throw new Exception($"提权调整显卡设置失败（退出码 {process.ExitCode}）");
             }
             catch (Exception exx)
             {
@@ -98,9 +112,9 @@ public static partial class GameLaunch
         var replaceJson = _CreateLauncherProfilesJson();
         var profiles = (JsonObject)
             LauncherCommon.GetJson(
-                LauncherCommon.ReadFile($"{GameFolders.mcFolderSelected}launcher_profiles.json"));
+                Files.ReadAllTextOrEmpty($"{GameFolders.mcFolderSelected}launcher_profiles.json"));
         profiles.Merge(replaceJson);
-        LauncherCommon.WriteFile(
+        Files.WriteAllText(
             $"{GameFolders.mcFolderSelected}launcher_profiles.json",
             profiles.ToString(),
             Encoding.GetEncoding("GB18030"));
@@ -110,25 +124,27 @@ public static partial class GameLaunch
     {
         var userName = mcLoginLoader.output.Name;
         var clientToken = mcLoginLoader.output.ClientToken;
-        var replaceJsonString = $$"""
-                                  {
-                                    "authenticationDatabase": {
-                                      "00000111112222233333444445555566": {
-                                        "username": "{{userName.Replace("\"", "-")}}",
-                                        "profiles": {
-                                          "66666555554444433333222221111100": {
-                                              "displayName": "{{userName}}"
-                                          }
-                                        }
-                                      }
-                                    },
-                                    "clientToken": "{{clientToken}}",
-                                    "selectedUser": {
-                                      "account": "00000111112222233333444445555566",
-                                      "profile": "66666555554444433333222221111100"
-                                    }
-                                  }
-                                  """;
+        var replaceJsonString =
+            /* language=JSON */
+            $$"""
+              {
+                "authenticationDatabase": {
+                  "00000111112222233333444445555566": {
+                    "username": "{{userName.Replace("\"", "-")}}",
+                    "profiles": {
+                      "66666555554444433333222221111100": {
+                          "displayName": "{{userName}}"
+                      }
+                    }
+                  }
+                },
+                "clientToken": "{{clientToken}}",
+                "selectedUser": {
+                  "account": "00000111112222233333444445555566",
+                  "profile": "66666555554444433333222221111100"
+                }
+              }
+              """;
         return (JsonObject)LauncherCommon.GetJson(replaceJsonString);
     }
 
@@ -166,7 +182,7 @@ public static partial class GameLaunch
             return setupFileAddress;
 
         McLaunchLog("将修改 Yosbr Mod 中的 options.txt");
-        LauncherCommon.WriteIni(yosbrFileAddress, "lang", "none");
+        Ini.Write(yosbrFileAddress, "lang", "none");
         return yosbrFileAddress;
     }
 
@@ -174,7 +190,7 @@ public static partial class GameLaunch
     {
         // 1.1 ~ 5 ：zh_CN 时正常，zh_cn 时崩溃（最后两位字母必须大写，否则将会 NPE 崩溃）
         // 1.11 ~ 12：zh_cn 时正常，zh_CN 时虽然显示了中文但语言设置会错误地显示选择英文
-        var currentLang = LauncherCommon.ReadIni(setupFileAddress, "lang", "none");
+        var currentLang = Ini.Read(setupFileAddress, "lang", "none");
         var isLanguageUnconfigured = string.Equals(
             currentLang,
             "none",
@@ -193,14 +209,14 @@ public static partial class GameLaunch
         }
         else
         {
-            LauncherCommon.WriteIni(setupFileAddress, "lang", "-");
-            LauncherCommon.WriteIni(setupFileAddress, "lang", requiredLang);
+            Ini.Write(setupFileAddress, "lang", "-");
+            Ini.Write(setupFileAddress, "lang", requiredLang);
             McLaunchLog($"已将语言从 {currentLang} 修改为 {requiredLang}");
         }
 
         if (!shouldUseDefault || !_ShouldEnableForceUnicodeFont())
             return;
-        LauncherCommon.WriteIni(setupFileAddress, "forceUnicodeFont", "true");
+        Ini.Write(setupFileAddress, "forceUnicodeFont", "true");
         McLaunchLog("已开启 forceUnicodeFont，确保当前启动器语言字体正常显示");
     }
 
@@ -209,7 +225,7 @@ public static partial class GameLaunch
         switch (Config.Launch.GameWindowMode)
         {
             case GameWindowSizeMode.Fullscreen:
-                LauncherCommon.WriteIni(setupFileAddress, "fullscreen", "true");
+                Ini.Write(setupFileAddress, "fullscreen", "true");
                 break;
 
             case GameWindowSizeMode.Default:
@@ -219,7 +235,7 @@ public static partial class GameLaunch
             case GameWindowSizeMode.Custom:
             case GameWindowSizeMode.Maximized:
             default:
-                LauncherCommon.WriteIni(setupFileAddress, "fullscreen", "false");
+                Ini.Write(setupFileAddress, "fullscreen", "false");
                 break;
         }
     }
@@ -323,9 +339,12 @@ public static partial class GameLaunch
     {
         try
         {
-            LauncherCommon.WriteFile(
-                currentLaunchOptions!.SaveBatch
-                ?? $@"{LauncherPaths.ExecutableDirectory}PCL\LatestLaunch.bat",
+            var scriptService = ApplicationRuntime.GetService<ILaunchScriptService>()
+                ?? throw new InvalidOperationException("启动脚本服务尚未初始化");
+            var scriptPath = currentLaunchOptions!.SaveBatch
+                ?? Path.Combine(Paths.Data, "LatestLaunch" + scriptService.FileExtension);
+            Files.WriteAllText(
+                scriptPath,
                 LogFilter.FilterAccessToken(
                     _CreateLaunchScript(customCommandGlobal, customCommandVersion),
                     'F'
@@ -333,6 +352,7 @@ public static partial class GameLaunch
                 mcLaunchJavaSelected!.Installation.MajorVersion > 8
                     ? Encoding.UTF8
                     : Encoding.Default);
+            scriptService.MakeExecutable(scriptPath);
             if (currentLaunchOptions.SaveBatch is null)
                 return false;
 
@@ -362,16 +382,19 @@ public static partial class GameLaunch
     {
         var instance = InstanceList.McMcInstanceSelected!;
         var javaInstallation = mcLaunchJavaSelected!.Installation;
-        var chcpCommand = javaInstallation.MajorVersion > 8 ? "chcp 65001>nul" + "\r\n" : "";
-        return $"{chcpCommand}@echo off\r\n"
-            + $"title 启动 - {instance.Name}\r\n"
-            + "echo 游戏正在启动，请稍候。\r\n"
-            + $"cd /D \"{LauncherCommon.ShortenPath(instance.PathIndie)}\"\r\n"
-            + $"{customCommandGlobal}\r\n"
-            + $"{customCommandVersion}\r\n"
-            + $"\"{javaInstallation.JavaExePath}\" {_mcLaunchArgument}\r\n"
-            + "echo 游戏已退出。\r\n"
-            + "pause";
+        var service = ApplicationRuntime.GetService<ILaunchScriptService>()
+            ?? throw new InvalidOperationException("启动脚本服务尚未初始化");
+        return service.CreateScript(
+            new LaunchScriptOptions(
+                LauncherCommon.ShortenPath(instance.PathIndie),
+                javaInstallation.JavaExePath,
+                _mcLaunchArgument,
+                customCommandGlobal,
+                customCommandVersion,
+                javaInstallation.MajorVersion,
+                Lang.Text("Minecraft.Launch.Script.Title", instance.Name),
+                Lang.Text("Minecraft.Launch.Script.Starting"),
+                Lang.Text("Minecraft.Launch.Script.Exited")));
     }
 
     private static void _RunCustomCommand(
@@ -384,12 +407,11 @@ public static partial class GameLaunch
         var customProcess = new Process();
         try
         {
-            customProcess.StartInfo.FileName = "cmd.exe";
-            customProcess.StartInfo.Arguments = $"/c \"{command}\"";
-            customProcess.StartInfo.WorkingDirectory =
-                LauncherCommon.ShortenPath(GameFolders.mcFolderSelected!);
-            customProcess.StartInfo.UseShellExecute = false;
-            customProcess.StartInfo.CreateNoWindow = true;
+            var shell = ApplicationRuntime.GetService<IShellCommandService>()
+                ?? throw new InvalidOperationException("Shell 命令服务尚未初始化");
+            customProcess.StartInfo = shell.CreateCommand(
+                command,
+                LauncherCommon.ShortenPath(GameFolders.mcFolderSelected!));
             customProcess.Start();
 
             if (!waitForExit()) return;
@@ -445,11 +467,9 @@ public static partial class GameLaunch
             (noJavaw ? installation.JavaExePath : installation.JavawExePath)
             ?? installation.JavaExePath);
 
-        var paths = new List<string>((startInfo.EnvironmentVariables["Path"] ?? "").Split(";"))
-        {
-            LauncherCommon.ShortenPath(installation.JavaFolder)
-        };
-        startInfo.EnvironmentVariables["Path"] = paths.Distinct().ToList().Join(";");
+        _PrependJavaFolderToPathVariable(startInfo, installation.JavaFolder);
+        _ApplyGpuPreferenceEnvironment(startInfo, Config.Launch.SetGpuPreference);
+        _ApplyRendererEnvironment(startInfo);
         startInfo.EnvironmentVariables["appdata"] = LauncherCommon.ShortenPath(
             GameFolders.mcFolderSelected!);
 
@@ -463,26 +483,52 @@ public static partial class GameLaunch
         return startInfo;
     }
 
+    /// <summary>
+    /// 将 Java 目录添加到游戏进程的 PATH 环境变量开头。 Windows 使用 "Path" 与 ";"，其余平台使用 "PATH" 与
+    /// Path.PathSeparator。
+    /// </summary>
+    private static void _PrependJavaFolderToPathVariable(
+        ProcessStartInfo startInfo,
+        string javaFolder)
+    {
+        var service = ApplicationRuntime.GetService<IProcessEnvironmentService>()
+            ?? throw new InvalidOperationException("进程环境服务尚未初始化");
+        service.PrependPathVariable(startInfo, LauncherCommon.ShortenPath(javaFolder));
+    }
+
+    /// <summary>通过平台服务准备独立显卡相关的启动环境。</summary>
+    private static void _ApplyGpuPreferenceEnvironment(ProcessStartInfo startInfo, bool enabled)
+    {
+        var environment = ApplicationRuntime.Current.Platform.LaunchEnvironment;
+        if (!environment.IsSupported) return;
+        environment.ApplyGpuPreference(startInfo, enabled, McLaunchLog);
+    }
+
+    /// <summary>通过平台服务应用渲染器选择。</summary>
+    private static void _ApplyRendererEnvironment(ProcessStartInfo startInfo)
+    {
+        var environment = ApplicationRuntime.Current.Platform.LaunchEnvironment;
+        if (!environment.IsSupported) return;
+
+        var instanceRenderer = Config.Instance.Renderer[
+            InstanceList.McMcInstanceSelected!.PathInstance];
+        var renderer = instanceRenderer != 0 ? instanceRenderer - 1 : Config.Launch.Renderer;
+        environment.ApplyRenderer(startInfo, renderer, McLaunchLog);
+    }
+
     private static void _ApplyProcessPriority(Process gameProcess)
     {
         try
         {
             gameProcess.PriorityBoostEnabled = true;
-            switch (Config.Launch.ProcessPriority)
+            gameProcess.PriorityClass = Config.Launch.ProcessPriority switch
             {
-                case GameProcessPriority.RealTime:
-                    gameProcess.PriorityClass = ProcessPriorityClass.RealTime;
-                    break;
-                case GameProcessPriority.High:
-                    gameProcess.PriorityClass = ProcessPriorityClass.High;
-                    break;
-                case GameProcessPriority.AboveNormal:
-                    gameProcess.PriorityClass = ProcessPriorityClass.AboveNormal;
-                    break;
-                case GameProcessPriority.BelowNormal:
-                    gameProcess.PriorityClass = ProcessPriorityClass.BelowNormal;
-                    break;
-            }
+                GameProcessPriority.RealTime => ProcessPriorityClass.RealTime,
+                GameProcessPriority.High => ProcessPriorityClass.High,
+                GameProcessPriority.AboveNormal => ProcessPriorityClass.AboveNormal,
+                GameProcessPriority.BelowNormal => ProcessPriorityClass.BelowNormal,
+                _ => gameProcess.PriorityClass
+            };
         }
         catch (Exception ex)
         {
@@ -505,7 +551,9 @@ public static partial class GameLaunch
             windowTitle = Config.Launch.Title;
         windowTitle = ArgumentReplace(windowTitle, false) ?? "";
 
-        var jStackPath = Path.Combine(mcLaunchJavaSelected!.Installation.JavaFolder, "jstack.exe");
+        var jStackPath = Path.Combine(
+            mcLaunchJavaSelected!.Installation.JavaFolder,
+            ApplicationRuntime.Current.Platform.Java.JstackExecutableName);
 
         var watcher = new GameWatcher.Watcher(
             loader,
@@ -532,7 +580,7 @@ public static partial class GameLaunch
         var instance = InstanceList.McMcInstanceSelected!;
         McLaunchLog("");
         McLaunchLog("~ 基础参数 ~");
-        McLaunchLog($"PCL 版本：{LauncherCommon.VersionBaseName} ({LauncherCommon.VersionCode})");
+        McLaunchLog($"PCL CE 版本：{LauncherCommon.VersionBaseName} ({LauncherCommon.VersionCode})");
         McLaunchLog(
             $"游戏版本：{instance.Info.VanillaName}（{instance.Info.vanilla}，"
             + $"Drop {instance.Info.Drop}{(instance.Info.Reliable ? "" : "，无法完全确定")}）");
@@ -571,7 +619,6 @@ public static partial class GameLaunch
     {
         McLaunchLog("开始启动结束处理");
         _ApplyMusicState();
-        MediaService.Current?.SetVideoGaming(true);
         McLaunchLog($"启动器可见性：{Config.Launch.LauncherVisibility}");
         _ApplyLauncherVisibility();
 
@@ -627,9 +674,7 @@ public static partial class GameLaunch
         States.Instance.LaunchCount[instancePath] += 1;
     }
 
-    /// <summary>
-    ///     对替换标记进行处理。会对替换内容使用 EscapeHandler 进行转义。
-    /// </summary>
+    /// <summary>对替换标记进行处理。会对替换内容使用 EscapeHandler 进行转义。</summary>
     private static string? ArgumentReplace(
         string? text,
         bool replaceTime,

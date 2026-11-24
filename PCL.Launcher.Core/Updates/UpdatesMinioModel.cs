@@ -2,6 +2,7 @@ using System.IO.Compression;
 using System.Text.Json.Serialization;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Core.IO.Net.Http;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Diff;
@@ -41,7 +42,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
         return true;
     }
 
-    public VersionDataModel GetLatestVersion(UpdateChannel channel, UpdateArch arch)
+    public VersionDataModel GetLatestVersion(UpdateSourceChannel channel, UpdateArch arch)
     {
         if (_remoteCache is null)
             RefreshCache();
@@ -50,7 +51,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
     }
 
     public bool IsLatest(
-        UpdateChannel channel,
+        UpdateSourceChannel channel,
         UpdateArch arch,
         SemVer currentVersion,
         int currentVersionCode)
@@ -67,13 +68,12 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
             RefreshCache();
         var deJsonData = GetRemoteInfoByName("announcement")
             ?.ToObject<VersionAnnouncementDataModel>();
-        if (deJsonData is null)
-            throw new NullReferenceException("Can not get remote announcement info!");
-        return deJsonData;
+        return deJsonData
+            ?? throw new NullReferenceException("Can not get remote announcement info!");
     }
 
     public List<Loading.LoaderBase> GetDownloadLoader(
-        UpdateChannel channel,
+        UpdateSourceChannel channel,
         UpdateArch arch,
         string output)
     {
@@ -81,7 +81,9 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
             RefreshCache();
         var loaders = new List<Loading.LoaderBase>();
         var patchUpdate = true;
-        var tempPath = $@"{LauncherPaths.Temp}Cache\Update\Download\";
+        var tempPath =
+            Path.Combine(LauncherPaths.Temp, "Cache", "Update", "Download")
+            + Path.DirectorySeparatorChar;
         loaders.Add(
             new Loading.LoaderTask<int, List<DownloadFile>>(
                 Lang.Text("Update.Task.GetVersionInfo"),
@@ -94,7 +96,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
                         ?.FirstOrDefault();
                     if (deJsonData is null)
                         throw new Exception("No assets can download!");
-                    var selfSha256 = LauncherCommon.GetFileSha256(Basics.ExecutablePath);
+                    var selfSha256 = Files.GetFileSha256(Basics.ExecutablePath);
                     var remoteUpdSha256 = deJsonData.Sha256;
                     var patchFileName = $"{selfSha256}_{remoteUpdSha256}.patch";
                     if (deJsonData.Patches.Contains(patchFileName))
@@ -119,7 +121,11 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
                             [new DownloadFile(RandomUtils.Shuffle(deJsonData.Downloads), tempPath)];
                     }
                 }));
-        loaders.Add(new LoaderDownload(Lang.Text("Update.Task.DownloadFile"), []));
+        loaders.Add(
+            new LoaderDownload(Lang.Text("Update.Task.DownloadFile"), [])
+            {
+                DisplayNameFactory = () => Lang.Text("Update.Task.DownloadFile")
+            });
         loaders.Add(
             new Loading.LoaderTask<string, int>(
                 Lang.Text("Update.Task.ApplyFile"),
@@ -130,11 +136,11 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
                         var diff = new BsDiff();
                         var newFile = diff
                             .ApplyAsync(
-                                LauncherCommon.ReadFileBytes(Basics.ExecutablePath),
-                                LauncherCommon.ReadFileBytes(tempPath))
+                                Files.ReadAllBytesOrEmpty(Basics.ExecutablePath),
+                                Files.ReadAllBytesOrEmpty(tempPath))
                             .GetAwaiter()
                             .GetResult();
-                        LauncherCommon.WriteFile(output, newFile);
+                        Files.WriteAllBytes(output, newFile);
                     }
                     else
                     {
@@ -165,11 +171,14 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
                         // 解压到指定文件（覆盖已存在文件）
                         entry.ExtractToFile(output, true);
                     }
-                }));
+                })
+            {
+                DisplayNameFactory = () => Lang.Text("Update.Task.ApplyFile")
+            });
         return loaders;
     }
 
-    private VersionDataModel GetChannelInfo(UpdateChannel channel, UpdateArch arch)
+    private VersionDataModel GetChannelInfo(UpdateSourceChannel channel, UpdateArch arch)
     {
         var channelName = GetChannelName(channel, arch);
         var deJsonData = GetRemoteInfoByName($"updates-{channelName}", "updates/")
@@ -194,7 +203,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
         JsonNode jsonData;
         if (IsCacheValid($"{name}.json", _remoteCache[name]))
         {
-            jsonData = LauncherCommon.GetJson(LauncherCommon.ReadFile(localInfoFile));
+            jsonData = LauncherCommon.GetJson(Files.ReadAllTextOrEmpty(localInfoFile));
         }
         else
         {
@@ -206,69 +215,41 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
 
             var content = response.AsString();
             jsonData = LauncherCommon.GetJson(content);
-            LauncherCommon.WriteFile(localInfoFile, content);
+            Files.WriteAllText(localInfoFile, content);
         }
 
         return jsonData;
     }
 
-    /// <summary>
-    ///     缓存是否有效
-    /// </summary>
+    /// <summary>缓存是否有效</summary>
     /// <param name="path"></param>
     /// <param name="hash"></param>
     /// <returns></returns>
-    private bool IsCacheValid(string path, string hash)
+    private static bool IsCacheValid(string path, string hash)
     {
         var cacheFile = Path.Combine(LauncherPaths.Temp, "Cache", "Update", path);
         var fileInfo = new FileInfo(cacheFile);
         return fileInfo.Exists
             && (DateTime.Now - fileInfo.LastWriteTime).TotalHours < 1
-            && (LauncherCommon.GetFileMd5(cacheFile) ?? "") == (hash ?? "");
+            && (Files.GetFileMd5(cacheFile) ?? "") == (hash ?? "");
     }
 
-    private string GetChannelName(UpdateChannel channel, UpdateArch arch)
+    private static string GetChannelName(UpdateSourceChannel channel, UpdateArch arch)
     {
         var channelName = string.Empty;
-        switch (channel)
+        channelName += channel switch
         {
-            case UpdateChannel.Stable:
-            {
-                channelName += "sr";
-                break;
-            }
-            case UpdateChannel.Beta:
-            {
-                channelName += "fr";
-                break;
-            }
+            UpdateSourceChannel.Stable => "sr",
+            UpdateSourceChannel.Beta => "fr",
+            _ => "sr"
+        };
 
-            default:
-            {
-                channelName += "sr";
-                break;
-            }
-        }
-
-        switch (arch)
+        channelName += arch switch
         {
-            case UpdateArch.X64:
-            {
-                channelName += "x64";
-                break;
-            }
-            case UpdateArch.Arm64:
-            {
-                channelName += "arm64";
-                break;
-            }
-
-            default:
-            {
-                channelName += "x64";
-                break;
-            }
-        }
+            UpdateArch.X64 => "x64",
+            UpdateArch.Arm64 => "arm64",
+            _ => "x64"
+        };
 
         return channelName;
     }

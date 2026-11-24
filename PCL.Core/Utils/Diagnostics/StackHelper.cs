@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -21,7 +22,7 @@ public static class StackHelper
         bool includeParameters = false,
         int skipAppFrames = 0)
     {
-        var st = new StackTrace(skipFrames: 1, fNeedFileInfo: false);
+        var st = new StackTrace(1, false);
         var frame = st.GetFrame(skipAppFrames);
         var method = frame?.GetMethod();
         if (method is null) return Unknown;
@@ -41,8 +42,8 @@ public static class StackHelper
     {
         if (maxFrames <= 0) return [];
 
-        var st = new StackTrace(skipFrames: 1, fNeedFileInfo: needFileInfo);
-        var list = new List<string>(capacity: Math.Min(maxFrames, st.FrameCount));
+        var st = new StackTrace(1, needFileInfo);
+        var list = new List<string>(Math.Min(maxFrames, st.FrameCount));
 
         for (int i = 0, added = 0; i < st.FrameCount && added < maxFrames; i++)
         {
@@ -58,9 +59,7 @@ public static class StackHelper
                 var file = f?.GetFileName();
                 var line = f?.GetFileLineNumber() ?? 0;
                 if (!string.IsNullOrEmpty(file) && line > 0)
-                {
-                    sig = $"{sig} ({System.IO.Path.GetFileName(file)}:{line})";
-                }
+                    sig = $"{sig} ({Path.GetFileName(file)}:{line})";
             }
 
             list.Add(sig);
@@ -68,6 +67,72 @@ public static class StackHelper
         }
 
         return list;
+    }
+
+    /// <summary>获取指定异常对应的调用栈，优先保留应用层帧，并限制输出的帧数。</summary>
+    /// <param name="exception">要格式化的异常。</param>
+    /// <param name="maxFrames">最多返回的帧数。</param>
+    /// <param name="contextFrames">无论是否属于应用层，始终保留的前若干帧。</param>
+    /// <param name="includeNamespace">是否在方法名中包含命名空间。</param>
+    /// <param name="includeParameters">是否包含参数类型列表。</param>
+    /// <param name="needFileInfo">是否解析文件名与行号。</param>
+    public static IReadOnlyList<string> GetExceptionStack(
+        Exception exception,
+        int maxFrames = 20,
+        int contextFrames = 8,
+        bool includeNamespace = true,
+        bool includeParameters = false,
+        bool needFileInfo = true)
+    {
+        ArgumentNullException.ThrowIfNull(exception);
+        if (maxFrames <= 0) return [];
+
+        var st = new StackTrace(exception, needFileInfo);
+        var frames = st.GetFrames();
+        if (frames is null || frames.Length == 0) return [];
+
+        contextFrames = Math.Clamp(contextFrames, 0, maxFrames);
+
+        var hasAppFrames = false;
+        foreach (var frame in frames)
+            if (frame.GetMethod() is { } method && _IsAppFrame(method))
+            {
+                hasAppFrames = true;
+                break;
+            }
+
+        var list = new List<string>(Math.Min(maxFrames, frames.Length));
+        for (var i = 0; i < frames.Length && list.Count < maxFrames; i++)
+        {
+            var frame = frames[i];
+            var method = frame.GetMethod();
+            if (method is null) continue;
+
+            if (hasAppFrames && i >= contextFrames && !_IsAppFrame(method))
+                continue;
+
+            method = _TryMapAsyncOrIterator(method);
+            var sig = _FormatMethod(method, includeNamespace, includeParameters);
+
+            if (needFileInfo)
+            {
+                var file = frame.GetFileName();
+                var line = frame.GetFileLineNumber();
+                if (!string.IsNullOrEmpty(file) && line > 0)
+                    sig = $"{sig} ({Path.GetFileName(file)}:{line})";
+            }
+
+            list.Add(sig);
+        }
+
+        return list;
+    }
+
+    private static bool _IsAppFrame(MethodBase method)
+    {
+        var ns = method.DeclaringType?.Namespace;
+        return ns is not null
+            && (ns == "PCL" || ns.StartsWith("PCL.", StringComparison.Ordinal));
     }
 
     // 将 async/iterator 的 MoveNext 映射回原始方法名（尽力而为的启发式）
@@ -87,17 +152,23 @@ public static class StackHelper
             var originalName = name.Substring(lt + 1, gt - lt - 1);
             // 在声明类型的外层类型里查找同名方法（可能存在重载，选第一个匹配）
             var parent = dt.DeclaringType ?? dt; // 迭代器常为嵌套到原类型里
-            foreach (var m in parent.GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
-            {
+            foreach (var m in parent.GetMethods(
+                         BindingFlags.Instance
+                         | BindingFlags.Static
+                         | BindingFlags.Public
+                         | BindingFlags.NonPublic))
                 if (string.Equals(m.Name, originalName, StringComparison.Ordinal))
                     return m;
-            }
         }
 
         return method;
     }
 
-    private static string _FormatMethod(MethodBase method, bool includeNamespace, bool includeParameters, bool includeParameterNamespace = false)
+    private static string _FormatMethod(
+        MethodBase method,
+        bool includeNamespace,
+        bool includeParameters,
+        bool includeParameterNamespace = false)
     {
         var sb = new StringBuilder();
         var type = method.DeclaringType;
@@ -118,6 +189,7 @@ public static class StackHelper
                 if (i > 0) sb.Append(", ");
                 sb.Append(_FormatTypeName(args[i], false));
             }
+
             sb.Append(']');
         }
 
@@ -129,11 +201,9 @@ public static class StackHelper
             {
                 if (i > 0) sb.Append(", ");
                 sb.Append(_FormatTypeName(ps[i].ParameterType, includeParameterNamespace));
-                if (!string.IsNullOrEmpty(ps[i].Name))
-                {
-                    sb.Append(' ').Append(ps[i].Name);
-                }
+                if (!string.IsNullOrEmpty(ps[i].Name)) sb.Append(' ').Append(ps[i].Name);
             }
+
             sb.Append(')');
         }
 
@@ -149,7 +219,7 @@ public static class StackHelper
             var tick = name.IndexOf('`');
             if (tick >= 0) name = name[..tick];
 
-            var ns = includeNamespace ? (def.Namespace is null ? "" : def.Namespace + ".") : "";
+            var ns = includeNamespace ? def.Namespace is null ? "" : $"{def.Namespace}." : "";
             var sb = new StringBuilder(ns).Append(name).Append('[');
             var args = t.GetGenericArguments();
             for (var i = 0; i < args.Length; i++)
@@ -157,12 +227,13 @@ public static class StackHelper
                 if (i > 0) sb.Append(", ");
                 sb.Append(_FormatTypeName(args[i], false));
             }
+
             sb.Append(']');
             return sb.ToString();
         }
 
         return includeNamespace && t.Namespace is not null
-            ? t.Namespace + "." + t.Name
+            ? $"{t.Namespace}.{t.Name}"
             : t.Name;
     }
 }

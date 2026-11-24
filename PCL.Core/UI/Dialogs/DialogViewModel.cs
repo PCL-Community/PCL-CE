@@ -1,19 +1,20 @@
-using CommunityToolkit.Mvvm.ComponentModel;
-using FluentValidation;
-using PCL.Core.Minecraft.IdentityModel.OAuth;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
-using PCL.Core.Platform;
+using CommunityToolkit.Mvvm.ComponentModel;
+using FluentValidation;
+using PCL.Core.Minecraft.IdentityModel.OAuth;
 
 namespace PCL.Core.UI.Dialogs;
 
 /// <summary>可勾选选项的响应式状态。</summary>
 public sealed partial class DialogOptionState(DialogOption option, int index) : ObservableObject
 {
+    [ObservableProperty] public partial bool IsChecked { get; set; } = option.IsChecked;
+
     public DialogOption Option { get; } = option;
 
     public int Index { get; } = index;
@@ -27,21 +28,33 @@ public sealed partial class DialogOptionState(DialogOption option, int index) : 
     public double ImageScale => Option.ImageScale;
 
     public string? SvgIcon => Option.SvgIcon;
-
-    [ObservableProperty] private bool _isChecked = option.IsChecked;
 }
 
 /// <summary>弹窗的响应式状态，供 UI 绑定与 Core 派发结果。</summary>
 public sealed partial class DialogViewModel : ObservableObject
 {
+    internal int PresentAttempts;
+
     public DialogViewModel(DialogRequest request)
     {
         Request = request;
-        _inputText = (request as InputDialogRequest)?.DefaultValue ?? "";
+        InputText = (request as InputDialogRequest)?.DefaultValue ?? "";
         Options = request is SelectDialogRequest select
-            ? select.Options.Select((option, index) => new DialogOptionState(option, index)).ToList()
+            ? select
+                .Options.Select((option, index) => new DialogOptionState(option, index))
+                .ToList()
             : [];
     }
+
+    /// <summary>输入模式下的文本。</summary>
+    [ObservableProperty]
+    public partial string InputText { get; set; }
+
+    [ObservableProperty] public partial bool IsClosed { get; set; }
+
+    /// <summary>单选模式下的选中项索引，-1 表示未选中。</summary>
+    [ObservableProperty]
+    public partial int SelectedIndex { get; set; } = -1;
 
     public DialogRequest Request { get; }
 
@@ -60,14 +73,6 @@ public sealed partial class DialogViewModel : ObservableObject
 
     public bool MultiSelect => (Request as SelectDialogRequest)?.MultiSelect ?? false;
 
-    /// <summary>输入模式下的文本。</summary>
-    [ObservableProperty] private string _inputText;
-
-    /// <summary>单选模式下的选中项索引，-1 表示未选中。</summary>
-    [ObservableProperty] private int _selectedIndex = -1;
-
-    [ObservableProperty] private bool _isClosed;
-
     public DialogResult? Result { get; private set; }
 
     public bool IsExited => IsClosed;
@@ -75,25 +80,15 @@ public sealed partial class DialogViewModel : ObservableObject
     internal TaskCompletionSource<DialogResult> Completion { get; } =
         new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-    /// <summary>同步入口用于等待弹窗关闭的模态消息泵。</summary>
-    internal IUiModalFrame? WaitFrame { get; set; }
-
-    internal int PresentAttempts;
-
-    /// <summary>为无分支弹窗（单按钮）预先填入结果，使调用方可立即读取而无需等待。</summary>
-    internal void PresetResult(DialogResult result)
-    {
-        Result = result;
-    }
-
     /// <summary>已勾选的项索引（多选模式）。</summary>
-    public string TextContent => Request switch
-    {
-        TextDialogRequest text => text.Content,
-        MarkdownDialogRequest markdown => markdown.Content,
-        InputDialogRequest input => input.Content,
-        _ => ""
-    };
+    public string TextContent =>
+        Request switch
+        {
+            TextDialogRequest text => text.Content,
+            MarkdownDialogRequest markdown => markdown.Content,
+            InputDialogRequest input => input.Content,
+            _ => ""
+        };
 
     public string InputDefaultValue => (Request as InputDialogRequest)?.DefaultValue ?? "";
 
@@ -117,16 +112,25 @@ public sealed partial class DialogViewModel : ObservableObject
 
     public Action<object?>? CompletionHandler => (Request as LoginDialogRequest)?.CompletionHandler;
 
-    public string ButtonText(int button) =>
-        button >= 1 && button <= Buttons.Length ? Buttons[button - 1].Text ?? "" : "";
+    public string ButtonText(int button)
+    {
+        return button >= 1 && button <= Buttons.Length ? Buttons[button - 1].Text ?? "" : "";
+    }
 
-    public Action? ButtonAction(int button) =>
-        button >= 1 && button <= Buttons.Length ? Buttons[button - 1].OnClick : null;
+    public Action? ButtonAction(int button)
+    {
+        return button >= 1 && button <= Buttons.Length ? Buttons[button - 1].OnClick : null;
+    }
 
     public IReadOnlyList<int> GetCheckedIndices()
-        => Options.Where(option => option.IsChecked).Select(option => option.Index).ToList();
+    {
+        return [.. Options.Where(option => option.IsChecked).Select(option => option.Index)];
+    }
 
-    public void Select(int index) => SelectedIndex = index;
+    public void Select(int index)
+    {
+        SelectedIndex = index;
+    }
 
     public void Toggle(int index)
     {
@@ -141,7 +145,6 @@ public sealed partial class DialogViewModel : ObservableObject
 
         Result = result;
         IsClosed = true;
-        WaitFrame?.Exit();
         Completion.TrySetResult(result);
         DialogService.Instance.OnDialogClosed(this);
     }
@@ -149,8 +152,7 @@ public sealed partial class DialogViewModel : ObservableObject
     /// <summary>按当前状态构建结果：输入模式取文本，选择模式取索引。</summary>
     public void CloseByButton(int button)
     {
-        var request = Request;
-        var result = request switch
+        var result = Request switch
         {
             InputDialogRequest when button == 1 => new DialogResult(button, InputText),
             SelectDialogRequest { MultiSelect: true } when button == 1
@@ -158,7 +160,6 @@ public sealed partial class DialogViewModel : ObservableObject
             SelectDialogRequest when button == 1
                 => new DialogResult(button, SelectedIndex: SelectedIndex),
             AuthServerDialogRequest when button == 1 => new DialogResult(button, InputText),
-            LoginDialogRequest => new DialogResult(button),
             _ => new DialogResult(button)
         };
 

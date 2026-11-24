@@ -1,3 +1,5 @@
+using PCL.Core.Platform;
+
 namespace PCL;
 
 /// <summary>自定义事件涉及页面/工具的操作。</summary>
@@ -14,7 +16,7 @@ public interface IEventUi
 
 public static class EventUi
 {
-    public static IEventUi? Current { get; set; }
+    public static IEventUi? Current => ApplicationRuntime.GetService<IEventUi>();
 
     public static bool RefreshPage()
     {

@@ -1,5 +1,6 @@
 ﻿using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.IO;
 using PCL.Network;
 
 namespace PCL;
@@ -8,9 +9,7 @@ public static partial class Comp
 {
     public partial class CompProject
     {
-        /// <summary>
-        ///     关联的数据库条目。若为 Nothing 则没有。
-        /// </summary>
+        /// <summary>关联的数据库条目。若为 Nothing 则没有。</summary>
         private CompDatabaseEntry? DatabaseEntry
         {
             get
@@ -31,22 +30,16 @@ public static partial class Comp
             }
         }
 
-        /// <summary>
-        ///     MC 百科的页面 ID。若为 0 则没有。
-        /// </summary>
+        /// <summary>MC 百科的页面 ID。若为 0 则没有。</summary>
         public int WikiId => DatabaseEntry?.WikiId ?? 0;
 
-        /// <summary>
-        ///     翻译后的中文名。若数据库没有则等同于 RawName。
-        /// </summary>
+        /// <summary>翻译后的中文名。若数据库没有则等同于 RawName。</summary>
         public string TranslatedName =>
             Lang.IsChineseMainland && DatabaseEntry?.ChineseName is { Length: > 0 } cn
                 ? cn
                 : RawName;
 
-        /// <summary>
-        ///     中文描述。若为 Nothing 则没有。
-        /// </summary>
+        /// <summary>中文描述。若为 Nothing 则没有。</summary>
         public Task<string?> ChineseDescription => GetChineseDescriptionAsync();
 
         private async Task<string?> GetChineseDescriptionAsync()
@@ -57,8 +50,9 @@ public static partial class Comp
             string? result = null;
 
             var descHash = $"{Id}{LauncherCommon.GetStringMd5(Description)}";
-            var cacheFilePath = $@"{LauncherPaths.Temp}Cache\CompTranslation.ini";
-            var cacheTranslation = LauncherCommon.ReadIni(cacheFilePath, descHash);
+            var cacheFilePath =
+                Path.Combine(LauncherPaths.Temp, "Cache", "CompTranslation.ini");
+            var cacheTranslation = Ini.Read(cacheFilePath, descHash);
             if (!string.IsNullOrWhiteSpace(cacheTranslation))
             {
                 result = LauncherCommon.Base64Decode(cacheTranslation);
@@ -72,7 +66,7 @@ public static partial class Comp
                 if (jsonObject.ContainsKey("translated"))
                 {
                     result = jsonObject["translated"]?.ToString() ?? string.Empty;
-                    LauncherCommon.WriteIni(
+                    Ini.Write(
                         cacheFilePath,
                         descHash,
                         LauncherCommon.Base64Encode(result));
@@ -107,9 +101,7 @@ public static partial class Comp
             return result;
         }
 
-        /// <summary>
-        ///     将当前实例转为可用于保存缓存的 Json。
-        /// </summary>
+        /// <summary>将当前实例转为可用于保存缓存的 Json。</summary>
         public JsonObject ToJson()
         {
             var json = new JsonObject
@@ -152,9 +144,7 @@ public static partial class Comp
             return json;
         }
 
-        /// <summary>
-        ///     按当前界面语言生成卡片下边栏的版本描述文本。
-        /// </summary>
+        /// <summary>按当前界面语言生成卡片下边栏的版本描述文本。</summary>
         /// <param name="showMcVersionDesc">是否显示 Minecraft 版本范围（也会显示加载器全名）。</param>
         /// <param name="showLoaderDesc">是否显示加载器描述。</param>
         /// <returns>应当显示的版本描述；两者都为 <see langword="false" /> 时返回空字符串。</returns>
@@ -190,9 +180,7 @@ public static partial class Comp
             };
         }
 
-        /// <summary>
-        ///     将当前工程信息实例化为控件。
-        /// </summary>
+        /// <summary>将当前工程信息实例化为控件。</summary>
         /// <param name="showQuickDownload">是否在卡片右侧显示快速下载按钮（仅搜索结果页应传 true）。</param>
         /// <exception cref="ArgumentNullException"></exception>
         private string _BuildGameVersionDescription()

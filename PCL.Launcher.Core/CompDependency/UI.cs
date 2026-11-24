@@ -7,7 +7,7 @@ namespace PCL;
 
 public static partial class CompDependency
 {
-    public static Comp.CompDepsInstallTypes ConfirmDependencyInstall(
+    public static async Task<Comp.CompDepsInstallTypes> ConfirmDependencyInstallAsync(
         ModDependencyResolutionResult result)
     {
         ArgumentNullException.ThrowIfNull(result);
@@ -23,13 +23,14 @@ public static partial class CompDependency
                     dep.ProjectId,
                     dep.Reason)));
             var message = Lang.Text("Download.Comp.Dependency.Unresolved.Message", dependencies);
-            var selectedButton = CompUi.Current?.ShowDialog(
+            var selectedButton = CompUi.Current is null
+                ? 0
+                : await CompUi.Current.ShowDialogAsync(
                     message,
                     Lang.Text("Download.Comp.Dependency.Unresolved.Title"),
                     Lang.Text("Download.Comp.Dependency.Unresolved.ContinueWithoutDependencies"),
                     Lang.Text("Common.Action.Cancel"),
-                    isWarn: true)
-                ?? 0;
+                    isWarn: true);
 
             return selectedButton == 1
                 ? Comp.CompDepsInstallTypes.Unresolved
@@ -47,13 +48,14 @@ public static partial class CompDependency
                     install.File.DisplayName,
                     install.File.Version)));
             var message = Lang.Text("Download.Comp.Dependency.Install.Message", dependencies);
-            var dialogResult = CompUi.Current?.ShowDialog(
+            var dialogResult = CompUi.Current is null
+                ? 0
+                : await CompUi.Current.ShowDialogAsync(
                     message,
                     Lang.Text("Download.Comp.Dependency.Install.Title"),
                     Lang.Text("Download.Comp.Dependency.Install.WithDependencies"),
                     Lang.Text("Download.Comp.Dependency.Install.WithoutDependencies"),
-                    Lang.Text("Download.Comp.Dependency.Install.Cancel"))
-                ?? 0;
+                    Lang.Text("Download.Comp.Dependency.Install.Cancel"));
 
             return dialogResult switch
             {

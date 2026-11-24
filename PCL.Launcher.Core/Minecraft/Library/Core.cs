@@ -1,14 +1,23 @@
-﻿using PCL.Core.Utils.OS;
+﻿using System.Runtime.InteropServices;
+using PCL.Core.IO;
+using PCL.Core.Platform;
 
 namespace PCL;
 
 public static partial class Libraries
 {
-    private static readonly string OsVersion = Environment.OSVersion.Version.ToString();
+    private static IMinecraftPlatformRules Rules =>
+        ApplicationRuntime.GetService<IMinecraftPlatformRules>()
+        ?? throw new InvalidOperationException("Minecraft 平台规则服务尚未初始化");
 
-    /// <summary>
-    ///     检查是否符合 JSON 中的 Rules。
-    /// </summary>
+    /// <summary>当前平台在 JSON 的 natives 对象中对应的系统键（macOS 写作 osx）。</summary>
+    private static string[] McNativesOsNames => [.. Rules.NativeOsNames];
+
+    /// <summary>当前平台与架构对应的 Natives classifier 名称，按优先级排列。</summary>
+    private static string[] McNativeClassifierNames =>
+        [.. Rules.GetNativeClassifierNames(RuntimeInformation.OSArchitecture)];
+
+    /// <summary>检查是否符合 JSON 中的 Rules。</summary>
     /// <param name="ruleToken">JSON 中的 "rules" 项目。</param>
     public static bool McJsonRuleCheck(JsonNode? ruleToken)
     {
@@ -48,24 +57,13 @@ public static partial class Libraries
         if (osNameNode is not null)
         {
             var osName = osNameNode.ToString();
-            switch (osName)
-            {
-                case "unknown":
-                    break;
-                case "windows":
-                    var osVersionNode = os["version"];
-                    if (osVersionNode is not null)
-                        result = OsVersion.RegexCheck(osVersionNode.ToString());
-                    break;
-                default:
-                    result = false;
-                    break;
-            }
+            result = osName == "unknown"
+                || Rules.MatchesOsRule(osName, os["version"]?.ToString());
         }
 
         var archNode = os["arch"];
         if (archNode is not null)
-            result = result && archNode.ToString() == "x86" == SystemInfo.Is32BitSystem;
+            result = result && Rules.MatchesArchRule(archNode.ToString());
         return result;
     }
 
@@ -80,9 +78,7 @@ public static partial class Libraries
         return result;
     }
 
-    /// <summary>
-    ///     递归获取 Minecraft 某一实例的完整支持库列表。
-    /// </summary>
+    /// <summary>递归获取 Minecraft 某一实例的完整支持库列表。</summary>
     public static List<McLibToken> McLibListGet(McInstance mcInstance, bool includeInstanceJar)
     {
         LauncherCommon.Log($"[Minecraft] 获取支持库列表：{mcInstance.Name}");
@@ -146,9 +142,7 @@ public static partial class Libraries
             });
     }
 
-    /// <summary>
-    ///     获取 Minecraft 某一实例忽视继承的支持库列表，即结果中没有继承项。
-    /// </summary>
+    /// <summary>获取 Minecraft 某一实例忽视继承的支持库列表，即结果中没有继承项。</summary>
     public static List<McLibToken> McLibListGetWithJson(
         JsonObject jsonObject,
         bool keepSameNameDifferentVersionResult = false,
@@ -176,7 +170,7 @@ public static partial class Libraries
                         false,
                         true,
                         customMcFolder)
-                    .Replace(@"\", "/");
+                    .Replace(Path.DirectorySeparatorChar, '/');
 
             var hint = library["hint"]?.ToString();
             var isLocal = hint is not null && hint == "local";
@@ -193,7 +187,7 @@ public static partial class Libraries
                 if (token is not null)
                     basicArray.Add(token);
             }
-            else if (library["natives"]?["windows"] is { } windows)
+            else if (_GetMcLibNativesValue(library) is { } nativeName)
             {
                 var token = _BuildMcLibNativeToken(
                     library,
@@ -201,7 +195,7 @@ public static partial class Libraries
                     rootUrl,
                     isLocal,
                     customMcFolder,
-                    windows.ToString());
+                    nativeName.ToString());
                 if (token is not null)
                     basicArray.Add(token);
             }
@@ -230,8 +224,10 @@ public static partial class Libraries
     {
         string localPath;
         if (isLocal && targetMcInstance is not null)
-            localPath =
-                $@"{targetMcInstance.PathInstance}libraries\{name.AfterFirst(":").Replace(":", "-")}.jar";
+            localPath = Path.Combine(
+                targetMcInstance.PathInstance,
+                "libraries",
+                $"{name.AfterFirst(":").Replace(":", "-")}.jar");
         else
             localPath = McLibGet(name, customMcFolder: customMcFolder);
 
@@ -286,6 +282,32 @@ public static partial class Libraries
         }
     }
 
+    /// <summary>按当前平台从 JSON 的 natives 对象中取 Natives 名称，例如 linux 对应 "natives-linux"。</summary>
+    private static JsonNode? _GetMcLibNativesValue(JsonObject library)
+    {
+        var natives = library["natives"];
+        if (natives is null)
+            return null;
+
+        foreach (var osName in McNativesOsNames)
+            if (natives[osName] is { } nativeName)
+                return nativeName;
+        return null;
+    }
+
+    /// <summary>按当前平台与架构从 JSON 的 downloads.classifiers 中选择 Natives 条目。</summary>
+    private static JsonNode? _GetMcLibNativeClassifier(JsonObject library)
+    {
+        var classifiers = library["downloads"]?["classifiers"];
+        if (classifiers is null)
+            return null;
+
+        foreach (var classifierName in McNativeClassifierNames)
+            if (classifiers[classifierName] is { } classifier)
+                return classifier;
+        return null;
+    }
+
     private static McLibToken? _BuildMcLibNativeToken(
         JsonObject library,
         string name,
@@ -294,26 +316,25 @@ public static partial class Libraries
         string customMcFolder,
         string nativeName)
     {
-        var classifiers = library["downloads"]?["classifiers"];
-        var nativesWindows = classifiers?["natives-windows"];
-        var nativePath = nativesWindows?["path"];
+        var nativeArtifact = _GetMcLibNativeClassifier(library);
+        var nativePath = nativeArtifact?["path"];
         var fallbackPath = McLibGet(name, customMcFolder: customMcFolder)
             .Replace(".jar", $"-{nativeName}.jar")
             .Replace("${arch}", Environment.Is64BitOperatingSystem ? "64" : "32");
         try
         {
-            if (nativesWindows is not null)
+            if (nativeArtifact is not null)
                 return new McLibToken
                 {
                     OriginalName = name,
-                    Url = rootUrl ?? (string?)nativesWindows["url"],
+                    Url = rootUrl ?? (string?)nativeArtifact["url"],
                     LocalPath = nativePath is null
                         ? fallbackPath
                         : McLibGetByArtifactPath(nativePath.ToString(), customMcFolder),
                     size = (long)Math.Round(
-                        LauncherText.Val(nativesWindows["size"]?.ToString() ?? "0")),
+                        LauncherText.Val(nativeArtifact["size"]?.ToString() ?? "0")),
                     IsNatives = true,
-                    Sha1 = nativesWindows["sha1"]?.ToString(),
+                    Sha1 = nativeArtifact["sha1"]?.ToString(),
                     IsLocal = isLocal
                 };
 
@@ -389,54 +410,38 @@ public static partial class Libraries
 
     private static string _GetMcLibVersion(McLibToken token)
     {
-        return LauncherCommon.GetFolderNameFromPath(
-            LauncherCommon.GetPathFromFullPath(token.LocalPath));
+        return Files.GetFolderNameFromPath(
+            Files.GetPathFromFullPath(token.LocalPath));
     }
 
     public class McLibToken
     {
-        /// <summary>
-        ///     是否为纯本地文件，若是则不尝试联网下载。
-        /// </summary>
+        /// <summary>是否为纯本地文件，若是则不尝试联网下载。</summary>
         public bool IsLocal;
 
-        /// <summary>
-        ///     是否为 Natives 文件。
-        /// </summary>
+        /// <summary>是否为 Natives 文件。</summary>
         public bool IsNatives;
 
-        /// <summary>
-        ///     文件的完整本地路径。
-        /// </summary>
+        /// <summary>文件的完整本地路径。</summary>
         public string LocalPath = "";
 
-        /// <summary>
-        ///     原 JSON 中的 Name 项。
-        /// </summary>
+        /// <summary>原 JSON 中的 Name 项。</summary>
         public string OriginalName = "";
 
-        /// <summary>
-        ///     文件的 SHA1。
-        /// </summary>
+        /// <summary>文件的 SHA1。</summary>
         public string? Sha1;
 
-        /// <summary>
-        ///     文件大小。若无有效数据即为 0。
-        /// </summary>
+        /// <summary>文件大小。若无有效数据即为 0。</summary>
         public long size;
 
-        /// <summary>
-        ///     由 JSON 提供的 URL，若没有则为 Nothing。
-        /// </summary>
+        /// <summary>由 JSON 提供的 URL，若没有则为 Nothing。</summary>
         public string? Url
         {
             get;
             set => field = string.IsNullOrWhiteSpace(value) ? null : value;
         }
 
-        /// <summary>
-        ///     原 JSON 中 Name 项除去版本号部分的较前部分。可能为 Nothing。
-        /// </summary>
+        /// <summary>原 JSON 中 Name 项除去版本号部分的较前部分。可能为 Nothing。</summary>
         public string Name
         {
             get

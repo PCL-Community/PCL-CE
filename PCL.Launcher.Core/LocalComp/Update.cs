@@ -1,4 +1,5 @@
-﻿using PCL.Core.Utils;
+﻿using PCL.Core.IO;
+using PCL.Core.Utils;
 using static PCL.Comp;
 using static PCL.Loading;
 
@@ -99,7 +100,7 @@ public static partial class LocalComp
             cache[entry.ModrinthHash + mcInstance + string.Join("", modLoaders)] = entry.ToJson();
         }
 
-        LauncherCommon.WriteFile(
+        Files.WriteAllText(
             Path.Combine(LauncherPaths.Temp, "Cache", "LocalComp.json"),
             cache.ToJsonString(
                 LauncherCommon.ModeDebug

@@ -1,6 +1,6 @@
-using PCL.Core.Utils;
 using System;
 using System.IO;
+using PCL.Core.Utils;
 
 namespace PCL.Core.Minecraft.Java;
 
@@ -12,15 +12,12 @@ public sealed record JavaInstallation(
     bool Is64Bit,
     bool IsJre)
 {
-    public string JavaExePath => Path.Combine(JavaFolder, "java.exe");
-    public string? JavawExePath
-    {
-        get
-        {
-            var javaw = Path.Combine(JavaFolder, "javaw.exe");
-            return File.Exists(javaw) ? javaw : null;
-        }
-    }
+    public string JavaExePath => JavaExecutableLayout.GetJavaExePath(JavaFolder);
+
+    public string? JavawExePath =>
+        JavaExecutableLayout.GetJavawExePath(JavaFolder) is { } javaw && File.Exists(javaw)
+            ? javaw
+            : null;
 
     /// <summary>
     /// Java 主版本号
@@ -34,8 +31,8 @@ public sealed record JavaInstallation(
     public bool IsStillAvailable => File.Exists(JavaExePath);
 
     public override string ToString() =>
-        $"{(IsJre ? "JRE" : "JDK")} {MajorVersion} {Brand} {(Is64Bit ? "64 Bit" : "32 Bit")} | {JavaFolder}";
+        $"{(IsJre ? "JRE" : "JDK")} {MajorVersion} {Brand} {(Architecture == MachineType.ARM64 ? "ARM64" : (Is64Bit ? "64 Bit" : "32 Bit"))} | {JavaFolder}";
 
     public string ToDetailedString() =>
-        $"{(IsJre ? "JRE" : "JDK")} {Version} {Brand} {(Is64Bit ? "64 Bit" : "32 Bit")} | {JavaFolder}";
+        $"{(IsJre ? "JRE" : "JDK")} {Version} {Brand} {(Architecture == MachineType.ARM64 ? "ARM64" : (Is64Bit ? "64 Bit" : "32 Bit"))} | {JavaFolder}";
 }

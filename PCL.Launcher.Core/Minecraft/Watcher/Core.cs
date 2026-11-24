@@ -63,7 +63,6 @@ public static partial class GameWatcher
                 LauncherCommon.Log("[Music] 已根据设置，在结束后暂停音乐播放");
             });
 
-        MediaService.Current?.SetVideoGaming(false);
 
         switch (Config.Launch.LauncherVisibility)
         {

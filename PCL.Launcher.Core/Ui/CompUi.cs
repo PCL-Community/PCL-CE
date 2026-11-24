@@ -1,3 +1,5 @@
+using PCL.Core.Platform;
+
 namespace PCL;
 
 /// <summary>Comp 业务向 UI 层发出的交互。</summary>
@@ -28,9 +30,17 @@ public interface ICompUi
         string? button2 = "",
         string? button3 = "",
         bool isWarn = false);
+
+    Task<int> ShowDialogAsync(
+        string caption,
+        string? title,
+        string? button1,
+        string? button2 = "",
+        string? button3 = "",
+        bool isWarn = false);
 }
 
 public static class CompUi
 {
-    public static ICompUi? Current { get; set; }
+    public static ICompUi? Current => ApplicationRuntime.GetService<ICompUi>();
 }
