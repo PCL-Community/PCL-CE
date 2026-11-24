@@ -159,7 +159,7 @@ public partial class PageSetupUIViewModel : ViewModelBase
             CustomPresetSelectedIndex = Math.Clamp(
                 Config.Preference.Homepage.SelectedPreset,
                 0,
-                15);
+                16);
 
             MusicVolume = Config.Preference.Music.Volume;
         }
