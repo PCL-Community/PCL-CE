@@ -3123,6 +3123,7 @@
 
     <sys:String x:Key="Setup.Ui.Homepage.Preset">預設</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.DailyModpack">[WPF] 每日模組包推薦（作者：wkea）</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.Dogpiwang">[AXAML] 新一代狗屁王大雜燴主頁（作者：llsgllsg）</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.EchoCave">回聲洞 (已移除)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.GitHub">[WPF] PCL GitHub 儀錶板（作者：Deep-Dark-Forest）</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.Magazine">雜誌首頁（作者：正源 Neclyon）</sys:String>

@@ -3123,6 +3123,7 @@
 
     <sys:String x:Key="Setup.Ui.Homepage.Preset">Preset</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.DailyModpack">[WPF] Daily Modpack Recommendation (Author: wkea)</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.Preset.Dogpiwang">[AXAML] New Generation Dogpiwang Mega Homepage (Author: llsgllsg)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.EchoCave">Echo Cave (removed)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.GitHub">[WPF] PCL GitHub Dashboard (Author: Deep-Dark-Forest)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.Magazine">Magazine Homepage (Author: Neclyon)</sys:String>
