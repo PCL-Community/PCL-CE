@@ -26,6 +26,10 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
     private readonly bool _uiBuilt;
     private readonly PageDownloadInstallViewModel _vm = new();
     private bool _instanceNameEdited;
+    private bool _isSelectStage = true;
+    private bool _versionPreselected;
+    private JsonObject? _appliedNavigationVersion;
+    private bool _isEnteringPage;
     private bool _startingInstall;
     private bool _updatingInstanceName;
     private JsonObject? _version;
@@ -66,6 +70,7 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
             UpdateLocation();
         };
         TextInstanceName.KeyDown += OnInstanceNameKeyDown;
+        PageEnter += SyncStageBeforeEnterAnimation;
         BtnReselect.Click += (_, _) => ShowSelectStage();
         BtnStart.Click += (_, _) => _ = StartInstallAsync();
 
@@ -75,8 +80,62 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
         ShowSelectStage();
     }
 
+    private void SyncStageBeforeEnterAnimation()
+    {
+        if (PageRouter.Current.Parameter is JsonObject version)
+        {
+            if (PageState == PageStates.Empty
+                && !ReferenceEquals(_appliedNavigationVersion, version))
+            {
+                _isEnteringPage = true;
+                try
+                {
+                    SelectVersion(version);
+                }
+                finally
+                {
+                    _isEnteringPage = false;
+                }
+
+                _appliedNavigationVersion = version;
+                _versionPreselected = true;
+            }
+
+            return;
+        }
+
+        if (PageState != PageStates.Empty)
+            return;
+
+        _isEnteringPage = true;
+        try
+        {
+            ShowSelectStage();
+        }
+        finally
+        {
+            _isEnteringPage = false;
+        }
+    }
+
     public override void OnNavigatedTo(PageParameter? parameter)
     {
+        _isEnteringPage = true;
+        try
+        {
+            SyncOnNavigatedTo(parameter);
+        }
+        finally
+        {
+            _isEnteringPage = false;
+        }
+    }
+
+    private void SyncOnNavigatedTo(PageParameter? parameter)
+    {
+        if (parameter is not JsonObject)
+            _versionPreselected = false;
+
         PanBack?.ScrollToHome();
         _selector.Activate();
         GameFolders.McFolderListLoader.PreviewFinish -= _folderLoaderHandler;
@@ -87,7 +146,14 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
             {
                 _waitingVersionName = null;
                 VersionList.Activate();
-                SelectVersion(version);
+                if (!_versionPreselected
+                    && !ReferenceEquals(_appliedNavigationVersion, version))
+                {
+                    SelectVersion(version);
+                }
+
+                _appliedNavigationVersion ??= version;
+                _versionPreselected = false;
                 break;
             }
 
@@ -104,7 +170,6 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
             {
                 _waitingVersionName = null;
                 VersionList.Activate();
-                ShowSelectStage();
                 break;
             }
         }
@@ -179,7 +244,9 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
 
     private void ShowSelectStage()
     {
-        var animate = ContainerAnimation.CanAnimate(this)
+        _isSelectStage = true;
+        var animate = !_isEnteringPage
+            && ContainerAnimation.CanAnimate(this)
             && PanSelectStage?.IsLoaded == true
             && PanConfigStage?.IsLoaded == true;
         _vm.IsConfigStageVisible = false;
@@ -228,7 +295,9 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
 
     private void ShowConfigStage()
     {
-        var animate = ContainerAnimation.CanAnimate(this)
+        _isSelectStage = false;
+        var animate = !_isEnteringPage
+            && ContainerAnimation.CanAnimate(this)
             && PanSelectStage?.IsLoaded == true
             && PanConfigStage?.IsLoaded == true;
         PanSelectStage?.IsVisible = false;
