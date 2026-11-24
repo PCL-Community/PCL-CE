@@ -337,6 +337,22 @@ public static partial class Config
             /// </summary>
             [ConfigItem<bool>("UiAutoPauseVideo", true, ConfigSource.Local)] public partial bool AutoPauseVideo { get; set; }
         }
+        
+        /// <summary>
+        /// 高级材质。
+        /// </summary>
+        [ConfigGroup("Blur")] partial class BlurConfigGroup
+        {
+            /// <summary>
+            /// 是否启用。
+            /// </summary>
+            [ConfigItem<bool>("UiBlur", false, ConfigSource.Local)] public partial bool IsEnabled { get; set; }
+
+            /// <summary>
+            /// 模糊半径。
+            /// </summary>
+            [ConfigItem<int>("UiBlurValue", 16, ConfigSource.Local)] public partial int Radius { get; set; }
+        }
 
         /// <summary>
         /// 自定义主页。

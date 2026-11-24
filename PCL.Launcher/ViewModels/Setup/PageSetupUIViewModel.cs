@@ -28,6 +28,8 @@ public partial class PageSetupUIViewModel : ViewModelBase
     [ObservableProperty] private int _backgroundSuitSelectedIndex;
 
     [ObservableProperty] private bool _backgroundSuitVisible;
+    
+    [ObservableProperty] private int _blurRadius = Config.Preference.Blur.Radius;
 
     [ObservableProperty] private string _customNetText = string.Empty;
 
@@ -128,6 +130,11 @@ public partial class PageSetupUIViewModel : ViewModelBase
     partial void OnBackgroundBlurChanged(int value)
     {
         if (!_reloading) Config.Preference.Background.WallpaperBlurRadius = value;
+    }
+    
+    partial void OnBlurRadiusChanged(int value)
+    {
+        if (!_reloading) Config.Preference.Blur.Radius = value;
     }
 
     partial void OnMusicVolumeChanged(int value)
