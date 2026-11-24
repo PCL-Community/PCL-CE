@@ -106,7 +106,12 @@ public static class HomepagePresetTable
             "Setup.Ui.Homepage.Preset.PclAnnouncement",
             HomepageSourceKind.CustomXaml,
             "https://s3.pysio.online/pcl2-ce/apiv2/pages/announce.xaml"),
-        new(15, "Setup.Ui.Homepage.Preset.McOfficialFeed", HomepageSourceKind.NewsFeed, null)
+        new(15, "Setup.Ui.Homepage.Preset.McOfficialFeed", HomepageSourceKind.NewsFeed, null),
+        new(
+            16,
+            "Setup.Ui.Homepage.Preset.Dogpiwang",
+            HomepageSourceKind.CustomXaml,
+            "https://end.g-fish.dpdns.org/Custom-CE.xaml"),
     ];
 
     public static IReadOnlyList<HomepagePreset> All => Presets;
