@@ -38,6 +38,7 @@ public class DefaultPathsScanner : IJavaScanner
                 "runtime"),
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+            Path.Combine(Paths.SharedData, "java"),
             Paths.Data
         };
 

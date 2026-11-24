@@ -3,6 +3,7 @@ using Avalonia.Media;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Minecraft.Java;
+using PCL.Core.Minecraft.Java.Models;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
@@ -29,6 +30,7 @@ public partial class PageSetupJava : MyPageRight, IRefreshable
 
         _loader = new Loading.LoaderTask<bool, List<JavaEntry>>("JavaPageLoader", LoadJavaList);
         BtnAdd.Click += async (_, _) => await AddJavaAsync();
+        BtnDownload.Click += async (_, _) => await DownloadJavaAsync();
 
         Loaded += (_, _) =>
         {
@@ -254,5 +256,173 @@ public partial class PageSetupJava : MyPageRight, IRefreshable
         {
             BtnAdd.IsEnabled = true;
         }
+    }
+
+    private async Task DownloadJavaAsync()
+    {
+        BtnDownload.IsEnabled = false;
+        var loaderStarted = false;
+        try
+        {
+            var distributions = await Task.Run(JavaRuntime.GetFoojayDistributions);
+
+            var sources = distributions
+                .Select(distribution => new DialogOption
+                {
+                    Text = distribution.Name,
+                    Tag = distribution
+                })
+                .ToList();
+            sources.Add(new DialogOption
+            {
+                Text = Lang.Text("Setup.Java.Download.Mojang"),
+                Tag = "mojang"
+            });
+
+            var sourceResult = await DialogService.Instance.ShowAsync(new SelectDialogRequest
+            {
+                Title = Lang.Text("Setup.Java.Download.SelectSource"),
+                Options = sources,
+                Buttons = CreateContinueCancelButtons(),
+                HighLight = false
+            });
+            if (!sourceResult.IsConfirmed
+                || sourceResult.SelectedIndex is not { } sourceIndex
+                || sourceIndex < 0
+                || sourceIndex >= sources.Count)
+                return;
+
+            JavaDownloadSelection selection;
+            if (sources[sourceIndex].Tag is FoojayDistributionModel distribution)
+            {
+                var packages = await Task.Run(
+                    () => JavaRuntime.GetFoojayLtsPackages(distribution.ApiParameter));
+                if (packages.Count == 0)
+                {
+                    HintService.Show(Hints.Info(Lang.Text("Setup.Java.Download.NoVersions")));
+                    return;
+                }
+
+                var versions = packages
+                    .Select(package => new DialogOption
+                    {
+                        Text = $"Java {package.MajorVersion}",
+                        Description = package.JavaVersion,
+                        Tag = package
+                    })
+                    .ToList();
+                var versionResult = await DialogService.Instance.ShowAsync(new SelectDialogRequest
+                {
+                    Title = Lang.Text("Setup.Java.Download.SelectVersion"),
+                    Options = versions,
+                    Buttons = CreateContinueCancelButtons(),
+                    HighLight = false
+                });
+                if (!versionResult.IsConfirmed
+                    || versionResult.SelectedIndex is not { } versionIndex
+                    || versionIndex < 0
+                    || versionIndex >= versions.Count
+                    || versions[versionIndex].Tag is not FoojayVersionModel package)
+                    return;
+
+                selection = new JavaDownloadSelection(
+                    JavaDownloadSource.Foojay,
+                    distribution.ApiParameter,
+                    FoojayPackage: package,
+                    DistributionName: distribution.Name);
+            }
+            else
+            {
+                var runtimeOptions = await Task.Run(JavaRuntime.GetMojangJavaVersions);
+                if (runtimeOptions.Count == 0)
+                {
+                    HintService.Show(Hints.Info(Lang.Text("Setup.Java.Download.NoVersions")));
+                    return;
+                }
+
+                var versions = runtimeOptions
+                    .Select(version => new DialogOption
+                    {
+                        Text = $"Java {version.MajorVersion}",
+                        Description = version.VersionName,
+                        Tag = version
+                    })
+                    .ToList();
+                var versionResult = await DialogService.Instance.ShowAsync(new SelectDialogRequest
+                {
+                    Title = Lang.Text("Setup.Java.Download.SelectVersion"),
+                    Options = versions,
+                    Buttons = CreateContinueCancelButtons(),
+                    HighLight = false
+                });
+                if (!versionResult.IsConfirmed
+                    || versionResult.SelectedIndex is not { } versionIndex
+                    || versionIndex < 0
+                    || versionIndex >= versions.Count
+                    || versions[versionIndex].Tag is not MojangJavaVersionOption version)
+                    return;
+
+                selection = new JavaDownloadSelection(
+                    JavaDownloadSource.Mojang,
+                    MojangVersion: version,
+                    DistributionName: Lang.Text("Setup.Java.Download.Mojang"));
+            }
+
+            var loader = JavaRuntime.GetJavaInstallLoader(selection);
+            loader.OnStateChangedThread += (_, state, _) =>
+            {
+                if (state is not (LoadState.Finished or LoadState.Failed or LoadState.Aborted))
+                    return;
+
+                var error = loader.Error;
+                LauncherCommon.RunInUi(() =>
+                {
+                    BtnDownload.IsEnabled = true;
+                    switch (state)
+                    {
+                        case LoadState.Finished:
+                            HintService.Show(Hints.Success(Lang.Text("Setup.Java.Download.Success")));
+                            _loader.Start(true, true);
+                            break;
+                        case LoadState.Failed:
+                            LauncherCommon.Log(
+                                error ?? new Exception("Java download failed"),
+                                Lang.Text("Setup.Java.Download.Failed"),
+                                LauncherLogLevel.Hint,
+                                userSummary: Lang.Text("Setup.Java.Download.Failed"));
+                            HintService.Show(Hints.Error(Lang.Text("Setup.Java.Download.Failed")));
+                            break;
+                        case LoadState.Aborted:
+                            HintService.Show(Hints.Info(Lang.Text("Setup.Java.Download.Cancelled")));
+                            break;
+                    }
+                });
+            };
+            loader.hasOnStateChangedThread = true;
+            Loading.LoaderTaskbarAdd(loader);
+            loader.Start(selection, true);
+            loaderStarted = true;
+        }
+        catch (Exception ex)
+        {
+            LauncherCommon.Log(
+                ex,
+                Lang.Text("Setup.Java.Download.Failed"),
+                LauncherLogLevel.Hint,
+                userSummary: Lang.Text("Setup.Java.Download.Failed"));
+            HintService.Show(Hints.Error(Lang.Text("Setup.Java.Download.Failed")));
+        }
+        finally
+        {
+            if (!loaderStarted)
+                BtnDownload.IsEnabled = true;
+        }
+    }
+
+    private static DialogButtons CreateContinueCancelButtons()
+    {
+        return DialogButtons.From(
+            DialogButton.Create(Lang.Text("Common.Action.Continue")),
+            DialogButton.Create(Lang.Text("Common.Action.Cancel")));
     }
 }

@@ -16,6 +16,11 @@
                                              LogoScale="0.9"
                                              SvgIcon="lucide/circle-plus"
                                              Text="{loc:Loc Setup.Java.Add}" />
+                        <ui:MyIconTextButton x:Name="BtnDownload"
+                                             Margin="8,0,0,0"
+                                             LogoScale="0.9"
+                                             SvgIcon="lucide/download"
+                                             Text="{loc:Loc Setup.Java.Download}" />
                     </StackPanel>
                 </ui:MyCard>
                 <ui:MyCard Margin="0,0,0,15">
