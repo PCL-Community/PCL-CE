@@ -158,12 +158,6 @@ public static class PageRouter
 
             NavigationState.Navigate(route, host.IsSecondary, host.Tab);
 
-            if (left is null && _leftHost is not null)
-            {
-                _leftHost.Content = null;
-                _leftHost.IsVisible = false;
-            }
-
             _MountPages(left, right, route);
 
             _hasNavigated = true;
