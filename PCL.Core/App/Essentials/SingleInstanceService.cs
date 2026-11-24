@@ -17,13 +17,18 @@ namespace PCL.Core.App.Essentials;
 public sealed partial class SingleInstanceService
 {
     private static FileStream? _lockStream;
-    private static string? _lockFilePath;
 
     private static readonly string _PrimaryLockFilePath =
-        Path.Combine(Paths.SharedLocalData, "instance.lock");
+        Path.Combine(Paths.State, "instance.lock");
+
+    private static readonly string _PrimaryProcessIdFilePath =
+        Path.Combine(Paths.State, "instance.pid");
 
     private static readonly string _FallbackLockFilePath =
         Path.Combine(Paths.Temp, "instance.lock");
+
+    private static readonly string _FallbackProcessIdFilePath =
+        Path.Combine(Paths.Temp, "instance.pid");
 
     private static void _TryRpc(string processId, string content)
     {
@@ -39,7 +44,7 @@ public sealed partial class SingleInstanceService
     [LifecycleStart]
     private static void _Start()
     {
-        var primary = _TryAcquire(_PrimaryLockFilePath);
+        var primary = _TryAcquire(_PrimaryLockFilePath, _PrimaryProcessIdFilePath);
         switch (primary.Status)
         {
             case LockStatus.Duplicate:
@@ -51,7 +56,6 @@ public sealed partial class SingleInstanceService
             case LockStatus.Acquired:
             {
                 _lockStream = primary.Stream;
-                _lockFilePath = _PrimaryLockFilePath;
                 return;
             }
 
@@ -66,7 +70,7 @@ public sealed partial class SingleInstanceService
             }
         }
 
-        var fallback = _TryAcquire(_FallbackLockFilePath);
+        var fallback = _TryAcquire(_FallbackLockFilePath, _FallbackProcessIdFilePath);
         switch (fallback.Status)
         {
             case LockStatus.Duplicate:
@@ -79,7 +83,6 @@ public sealed partial class SingleInstanceService
             {
                 Context.Warn("主单例锁不可用，已切换到临时目录锁");
                 _lockStream = fallback.Stream;
-                _lockFilePath = _FallbackLockFilePath;
                 return;
             }
 
@@ -123,27 +126,33 @@ public sealed partial class SingleInstanceService
         Context.RequestExit(1);
     }
 
-    private static LockResult _TryAcquire(string path)
+    private static LockResult _TryAcquire(string lockFilePath, string processIdFilePath)
     {
         Exception? lastError = null;
-        for (var attempt = 0; attempt < 3; attempt++)
+        for (var attempt = 0; attempt < 5; attempt++)
         {
             FileStream? stream = null;
             try
             {
-                var directory = Path.GetDirectoryName(path);
+                var directory = Path.GetDirectoryName(lockFilePath);
                 if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
+                var processIdDirectory = Path.GetDirectoryName(processIdFilePath);
+                if (!string.IsNullOrEmpty(processIdDirectory))
+                    Directory.CreateDirectory(processIdDirectory);
+
                 stream = new FileStream(
-                    path,
+                    lockFilePath,
                     FileMode.OpenOrCreate,
                     FileAccess.ReadWrite,
-                    FileShare.Read);
-                stream.SetLength(0);
-                stream.Position = 0;
-                using (var writer = new StreamWriter(stream, Encoding.ASCII, 8, true))
+                    FileShare.None);
+                try
                 {
-                    writer.Write(Basics.CurrentProcessId);
-                    writer.Flush();
+                    _WriteProcessId(processIdFilePath);
+                }
+                catch
+                {
+                    stream.Dispose();
+                    throw;
                 }
 
                 return new LockResult(LockStatus.Acquired, stream, null, null);
@@ -152,31 +161,48 @@ public sealed partial class SingleInstanceService
             {
                 stream?.Dispose();
                 lastError = ex;
-                var processId = _TryReadProcessId(path);
+                var processId = _TryReadProcessId(processIdFilePath);
+
                 if (!string.IsNullOrWhiteSpace(processId) && _IsSameProcess(processId))
                     return new LockResult(LockStatus.Duplicate, null, processId, ex);
 
                 if (!string.IsNullOrWhiteSpace(processId) && _IsProcessAlive(processId))
-                    return new LockResult(LockStatus.Unavailable, null, processId, ex);
-
-                if (ex is IOException or UnauthorizedAccessException)
-                    if (_TryDelete(path))
-                    {
-                        Thread.Sleep(50);
-                        continue;
-                    }
+                    return new LockResult(LockStatus.Duplicate, null, null, ex);
 
                 if (ex is UnauthorizedAccessException
-                        or DirectoryNotFoundException
-                        or DriveNotFoundException
-                    || attempt == 2)
+                    or DirectoryNotFoundException
+                    or DriveNotFoundException
+                    or PathTooLongException
+                    or NotSupportedException)
                     return new LockResult(LockStatus.Unavailable, null, processId, ex);
 
-                Thread.Sleep(50);
+                if (attempt < 4)
+                {
+                    Thread.Sleep(50);
+                    continue;
+                }
+
+                var lockDirectory = Path.GetDirectoryName(lockFilePath);
+                if (!string.IsNullOrEmpty(lockDirectory) && Directories.CanWrite(lockDirectory))
+                    return new LockResult(LockStatus.Duplicate, null, null, ex);
+
+                return new LockResult(LockStatus.Unavailable, null, processId, ex);
             }
         }
 
         return new LockResult(LockStatus.Unavailable, null, null, lastError);
+    }
+
+    private static void _WriteProcessId(string path)
+    {
+        using var stream = new FileStream(
+            path,
+            FileMode.Create,
+            FileAccess.Write,
+            FileShare.Read);
+        using var writer = new StreamWriter(stream, Encoding.ASCII, 8, false);
+        writer.Write(Basics.CurrentProcessId);
+        writer.Flush();
     }
 
     private static string? _TryReadProcessId(string path)
@@ -198,7 +224,7 @@ public sealed partial class SingleInstanceService
         }
     }
 
-    private static bool _IsProcessAlive(string processId)
+    private static bool _IsProcessAlive(string? processId)
     {
         if (!int.TryParse(processId, out var pid) || pid <= 0) return false;
         if (pid == Basics.CurrentProcessId) return true;
@@ -214,10 +240,13 @@ public sealed partial class SingleInstanceService
         }
     }
 
-    private static bool _IsSameProcess(string processId)
+    private static bool _IsSameProcess(string? processId)
     {
-        if (!int.TryParse(processId, out var pid) || pid <= 0) return false;
-        if (pid == Basics.CurrentProcessId) return true;
+        if (!int.TryParse(processId, out var pid) || pid <= 0)
+            return false;
+
+        if (pid == Basics.CurrentProcessId)
+            return true;
 
         try
         {
@@ -227,19 +256,6 @@ public sealed partial class SingleInstanceService
                     process.ProcessName,
                     Basics.CurrentProcess.ProcessName,
                     StringComparison.OrdinalIgnoreCase);
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    private static bool _TryDelete(string path)
-    {
-        try
-        {
-            if (File.Exists(path)) File.Delete(path);
-            return true;
         }
         catch
         {
@@ -262,19 +278,6 @@ public sealed partial class SingleInstanceService
         finally
         {
             _lockStream = null;
-        }
-
-        var path = _lockFilePath;
-        _lockFilePath = null;
-        if (path is null) return;
-
-        try
-        {
-            if (File.Exists(path)) File.Delete(path);
-        }
-        catch (Exception ex)
-        {
-            Context.Warn("删除单例锁文件失败", ex);
         }
     }
 

@@ -38,6 +38,9 @@ public static class Paths
         SharedLocalData = isLinux
             ? Path.Combine(XdgPaths.CacheHome, appName)
             : GetSpecialPath(Special.LocalApplicationData, name);
+        State = isLinux
+            ? Path.Combine(XdgPaths.StateHome, appName)
+            : SharedLocalData;
         Temp = Path.Combine(Path.GetTempPath(), appName);
         OldSharedData = isLinux
             ? Path.Combine(XdgPaths.ConfigHome, oldName)
@@ -58,7 +61,8 @@ public static class Paths
         var data = Data;
         if (EnvironmentInterop.ReadVariable("PCL_PATH", ref data)) Data = data;
         var sharedData = SharedData;
-        if (EnvironmentInterop.ReadVariable("PCL_PATH_SHARED", ref sharedData)) SharedData = sharedData;
+        if (EnvironmentInterop.ReadVariable("PCL_PATH_SHARED", ref sharedData)) SharedData =
+ sharedData;
         var sharedLocalData = SharedLocalData;
         if (EnvironmentInterop.ReadVariable("PCL_PATH_LOCAL", ref sharedLocalData))
             SharedLocalData = sharedLocalData;
@@ -69,6 +73,7 @@ public static class Paths
         Directory.CreateDirectory(Data);
         Directory.CreateDirectory(SharedData);
         Directory.CreateDirectory(SharedLocalData);
+        Directory.CreateDirectory(State);
         Directory.CreateDirectory(Temp);
     }
 
@@ -97,6 +102,12 @@ public static class Paths
     public static string SharedLocalData { get; set; }
 
     /// <summary>
+    /// State data directory. It must persist while the program is running and must not be
+    /// treated as disposable cache.
+    /// </summary>
+    public static string State { get; set; }
+
+    /// <summary>
     /// Temporary files directory (can be deleted anytime, except when the program is
     /// running).
     /// </summary>
@@ -115,15 +126,19 @@ public static class Paths
     /// <summary>展开以 <c>~</c> 开头的用户目录路径；其他路径原样返回。</summary>
     public static string ExpandUserPath(string path)
     {
-        if (string.IsNullOrWhiteSpace(path)) return path;
+        if (string.IsNullOrWhiteSpace(path))
+            return path;
         path = path.Trim();
-        if (path == "~") return Environment.GetFolderPath(Special.UserProfile);
-        if (path.StartsWith("~/", StringComparison.Ordinal)
-            || path.StartsWith("~\\", StringComparison.Ordinal))
-            return Path.Combine(
-                Environment.GetFolderPath(Special.UserProfile),
-                path[2..]);
-        return path;
+        return path switch
+        {
+            "~" => Environment.GetFolderPath(Special.UserProfile),
+            _ when path.StartsWith("~/", StringComparison.Ordinal)
+                || path.StartsWith("~\\", StringComparison.Ordinal)
+                => Path.Combine(
+                    Environment.GetFolderPath(Special.UserProfile),
+                    path[2..]),
+            _ => path
+        };
     }
 
     private static bool _CanWriteDirectory(string directory)

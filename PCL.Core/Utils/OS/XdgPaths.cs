@@ -12,6 +12,7 @@ public static class XdgPaths
     public static string DataHome => _GetBaseDirectory("XDG_DATA_HOME", ".local/share");
     public static string ConfigHome => _GetBaseDirectory("XDG_CONFIG_HOME", ".config");
     public static string CacheHome => _GetBaseDirectory("XDG_CACHE_HOME", ".cache");
+    public static string StateHome => _GetBaseDirectory("XDG_STATE_HOME", ".local/state");
 
     public static string DesktopDirectory
     {
