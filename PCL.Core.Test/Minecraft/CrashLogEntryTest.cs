@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -10,14 +11,27 @@ namespace PCL.Core.Test.Minecraft;
 public class CrashLogEntryTest
 {
     [TestMethod]
-    public void TestCollectorReadsLfLogLineByLine()
+    [DataRow("line1\r\nline2\r\nline3")]
+    [DataRow("line1\nline2\nline3")]
+    [DataRow("line1\rline2\rline3")]
+    [DataRow("line1\r\nline2\nline3\rline4")]
+    public void TestCollectorSplitsEveryLineEnding(string content)
     {
-        var folder = Path.Combine(Path.GetTempPath(), "PCLTest", Path.GetRandomFileName());
-        Directory.CreateDirectory(folder);
-        File.WriteAllText(Path.Combine(folder, "latest.log"), "line1\nline2\nline3", new UTF8Encoding(false));
-        var context = new CrashAnalysisContext(0, folder);
-        new CrashLogCollector(context).Collect(folder, null);
-        Directory.Delete(folder, true);
-        CollectionAssert.AreEqual(new[] { "line1", "line2", "line3" }, context.RawFiles.Single().Lines.ToArray());
+        var root = Path.Combine(Path.GetTempPath(), "PCLTest", Path.GetRandomFileName());
+        var instanceDir = Path.Combine(root, "versions", "1.20.1");
+        Directory.CreateDirectory(instanceDir);
+        try
+        {
+            File.WriteAllText(Path.Combine(instanceDir, "latest.log"), content, new UTF8Encoding(false));
+            var context = new CrashAnalysisContext(0, root);
+            new CrashLogCollector(context).Collect(instanceDir, null);
+
+            var expected = content.Split(["\r\n", "\r", "\n"], StringSplitOptions.None);
+            CollectionAssert.AreEqual(expected, context.RawFiles.Single().Lines.ToArray());
+        }
+        finally
+        {
+            Directory.Delete(root, true);
+        }
     }
 }
