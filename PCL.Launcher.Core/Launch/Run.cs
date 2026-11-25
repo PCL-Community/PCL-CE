@@ -12,8 +12,10 @@ namespace PCL;
 
 public static partial class GameLaunch
 {
+    private static string? _launchScriptExtension;
+
     public static string LaunchScriptExtension =>
-        (ApplicationRuntime.GetService<ILaunchScriptService>()
+        _launchScriptExtension ??= (ApplicationRuntime.GetService<ILaunchScriptService>()
             ?? throw new InvalidOperationException("启动脚本服务尚未初始化")).FileExtension;
 
     public static string LatestLaunchScriptPath =>
