@@ -26,6 +26,8 @@ public partial class MySlider : UserControl
     private const int PopupFadeInTime = 100;
     private const int PopupFadeOutTime = 80;
 
+    private const double DragStartThreshold = 4d;
+
     public static readonly StyledProperty<int> ValueProperty =
         AvaloniaProperty.Register<MySlider, int>(
             nameof(Value),
@@ -37,6 +39,9 @@ public partial class MySlider : UserControl
 
     private bool _changeByKey;
     private bool _isDragging;
+    private Point _dragStartPosition;
+
+    private bool _dragMoved;
 
     // 提示 Popup
 
@@ -162,7 +167,10 @@ public partial class MySlider : UserControl
                 }
             }
 
-            AnimateProgress();
+            if (_isDragging && _dragMoved)
+                RefreshLayout();
+            else
+                AnimateProgress();
 
             if (!AnimationService.IsSuspended)
                 Change?.Invoke(this, false);
@@ -181,6 +189,11 @@ public partial class MySlider : UserControl
 
         var percent = MathHelper.MathClamp(Value / (double)MaxValue, 0d, 1d);
         return percent * trackWidth;
+    }
+
+    private double GetPopupHorizontalOffset()
+    {
+        return GetDotPosition() + DotWidth / 2d - Bounds.Width / 2d;
     }
 
     /// <summary>
@@ -203,7 +216,7 @@ public partial class MySlider : UserControl
         LineForeElement.Width = Math.Max(0d, dotPosition + (dotPosition < 0.5d ? 0d : 0.5d));
         LineBackElement.Width = backWidth + (backWidth < 0.5d ? 0d : 0.5d);
         ShapeDotElement.Margin = new Thickness(dotPosition, 0d, 0d, 0d);
-        PopupElement.HorizontalOffset = dotPosition + 5d;
+        PopupElement.HorizontalOffset = GetPopupHorizontalOffset();
     }
 
     /// <summary>
@@ -257,7 +270,7 @@ public partial class MySlider : UserControl
             },
             ProgressKey);
 
-        PopupElement.HorizontalOffset = newWidth + 5d;
+        PopupElement.HorizontalOffset = GetPopupHorizontalOffset();
     }
 
     /// <summary>
@@ -339,7 +352,9 @@ public partial class MySlider : UserControl
             return;
 
         _isDragging = true;
-        _lastPointerPosition = e.GetPosition(PanMainElement);
+        _dragMoved = false;
+        _dragStartPosition = e.GetPosition(PanMainElement);
+        _lastPointerPosition = _dragStartPosition;
         e.Pointer.Capture(this);
         e.Handled = true;
 
@@ -370,6 +385,18 @@ public partial class MySlider : UserControl
         {
             DragStop();
             return;
+        }
+
+        if (!_dragMoved)
+        {
+            var dx = _lastPointerPosition.X - _dragStartPosition.X;
+            var dy = _lastPointerPosition.Y - _dragStartPosition.Y;
+            if (dx * dx + dy * dy < DragStartThreshold * DragStartThreshold)
+                return;
+
+            _dragMoved = true;
+            AnimationService.CancelAnimationByName(ProgressKey);
+            RefreshLayout();
         }
 
         UpdateValueFromPosition(_lastPointerPosition);
@@ -405,6 +432,13 @@ public partial class MySlider : UserControl
             return;
         }
 
+        if (!_dragMoved)
+        {
+            _dragMoved = true;
+            AnimationService.CancelAnimationByName(ProgressKey);
+            RefreshLayout();
+        }
+
         UpdateValueFromPosition(_lastPointerPosition);
         RefreshPopup();
     }
@@ -415,6 +449,7 @@ public partial class MySlider : UserControl
     public void DragStop()
     {
         _isDragging = false;
+        _dragMoved = false;
         RefreshColor();
         InputAnimation.Scale(
             ShapeDotElement,

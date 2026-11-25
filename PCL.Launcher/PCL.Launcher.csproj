@@ -65,6 +65,24 @@
         <ProjectReference Include="..\PCL.Launcher.Core\PCL.Launcher.Core.csproj" />
         <ProjectReference Include="..\PCL.Platform\PCL.Platform.csproj" />
     </ItemGroup>
+    <Target Name="UpdateMacOsAppHostSdk"
+            AfterTargets="CopyFilesToOutputDirectory"
+            Condition="$([MSBuild]::IsOSPlatform('OSX')) and '$(DesignTimeBuild)' != 'true' and '$(UseAppHost)' == 'true' and Exists('$(TargetDir)$(AssemblyName)') and ('$(RuntimeIdentifier)' == '' or $(RuntimeIdentifier.StartsWith('osx-')))">
+        <PropertyGroup>
+            <_AvaloniaNativePath>$(TargetDir)libAvaloniaNative.dylib</_AvaloniaNativePath>
+            <_AvaloniaNativePath Condition="!Exists('$(_AvaloniaNativePath)')">$(TargetDir)runtimes/osx/native/libAvaloniaNative.dylib</_AvaloniaNativePath>
+        </PropertyGroup>
+        <Exec Command="bash &quot;$(MSBuildProjectDirectory)/../scripts/macos/update-apphost-sdk.sh&quot; &quot;$(TargetDir)$(AssemblyName)&quot; &quot;$(_AvaloniaNativePath)&quot;" />
+    </Target>
+    <Target Name="UpdatePublishedMacOsAppHostSdk"
+            AfterTargets="Publish"
+            Condition="$([MSBuild]::IsOSPlatform('OSX')) and '$(DesignTimeBuild)' != 'true' and '$(UseAppHost)' == 'true' and Exists('$(PublishDir)$(AssemblyName)') and ('$(RuntimeIdentifier)' == '' or $(RuntimeIdentifier.StartsWith('osx-')))">
+        <PropertyGroup>
+            <_PublishedAvaloniaNativePath>$(PublishDir)libAvaloniaNative.dylib</_PublishedAvaloniaNativePath>
+            <_PublishedAvaloniaNativePath Condition="!Exists('$(_PublishedAvaloniaNativePath)')">$(PublishDir)runtimes/osx/native/libAvaloniaNative.dylib</_PublishedAvaloniaNativePath>
+        </PropertyGroup>
+        <Exec Command="bash &quot;$(MSBuildProjectDirectory)/../scripts/macos/update-apphost-sdk.sh&quot; &quot;$(PublishDir)$(AssemblyName)&quot; &quot;$(_PublishedAvaloniaNativePath)&quot;" />
+    </Target>
     <Target Name="RemovePublishPdbs" AfterTargets="Publish" Condition="'$(Configuration)' != 'Debug'">
         <ItemGroup>
             <_PublishPdb Include="$(PublishDir)**/*.pdb" />

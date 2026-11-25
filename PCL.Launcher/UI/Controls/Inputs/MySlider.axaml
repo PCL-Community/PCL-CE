@@ -35,8 +35,8 @@
             </Ellipse.RenderTransform>
         </Ellipse>
         <Popup x:Name="PopupElement"
-               Placement="Center"
-               VerticalOffset="38"
+               Placement="Bottom"
+               VerticalOffset="8"
                IsLightDismissEnabled="False"
                IsOpen="False">
             <Border x:Name="HintBorderElement"
