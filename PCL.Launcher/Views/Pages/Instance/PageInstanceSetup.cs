@@ -345,6 +345,7 @@ public partial class PageInstanceSetup : MyPageRight
         _checkDebugLog4J.Checked = ViewModel.UseDebugLog4j;
         _checkDisableLf.Checked = ViewModel.DisableLf;
         RefreshRunWait();
+        RefreshPreLaunchToolTip();
     }
 
     public void Reset()
@@ -695,6 +696,14 @@ public partial class PageInstanceSetup : MyPageRight
     {
         ViewModel.RefreshRunWait();
         _checkRunWait.IsVisible = ViewModel.RunWaitVisible;
+    }
+
+    private void RefreshPreLaunchToolTip()
+    {
+        if (OperatingSystem.IsWindows()) return;
+        _textPreLaunch.SetLocalizedValue(
+            ToolTip.TipProperty,
+            "Instance.Setup.Advanced.PreLaunchCommand.ToolTip.Posix");
     }
 
     #endregion
