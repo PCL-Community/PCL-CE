@@ -19,7 +19,7 @@ public static partial class GameLaunch
             ?? throw new InvalidOperationException("启动脚本服务尚未初始化")).FileExtension;
 
     public static string LatestLaunchScriptPath =>
-        Path.Combine(Paths.Data, "LatestLaunch" + LaunchScriptExtension);
+        Path.Combine(Paths.Data, $"LatestLaunch{LaunchScriptExtension}");
 
     private static void McLaunchPrerun()
     {
