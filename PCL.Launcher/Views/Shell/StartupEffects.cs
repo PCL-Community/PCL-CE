@@ -69,7 +69,7 @@ public sealed class StartupEffects(
         }
 
         root.Opacity = 1d;
-        if (!AnimationService.IsEnabled)
+        if (!AnimationService.IsEnabled || PlatformStartup.Shell.UsesNativeWindowAnimation)
         {
             window.Opacity = target;
             return;
