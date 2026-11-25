@@ -379,7 +379,7 @@ public static partial class Files
 
         var fullPath = Path.GetFullPath(Path.Combine(destinationRoot, entryName));
 
-        return fullPath.StartsWith(destinationRoot, StringComparison.OrdinalIgnoreCase)
+        return IsPathWithinDirectory(fullPath, destinationRoot)
             ? fullPath
             : throw new InvalidOperationException($"Invalid path detected: {entryName}");
     }
