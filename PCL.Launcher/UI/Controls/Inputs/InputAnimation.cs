@@ -102,6 +102,7 @@ internal static class InputAnimation
         string name,
         IEasing? ease)
     {
+        AnimationService.CancelAnimationByName(name);
         var delta = targetColor - ReadColor(target, property);
         if (Math.Abs(delta.A) < 0.001d
             && Math.Abs(delta.R) < 0.001d
