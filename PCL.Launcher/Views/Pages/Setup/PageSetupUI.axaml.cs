@@ -2,7 +2,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Layout;
-using Avalonia.Markup.Xaml.MarkupExtensions;
 using Avalonia.VisualTree;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
@@ -71,21 +70,8 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             ViewModel.CustomNetText = TextCustomNet.Text ?? string.Empty;
         });
 
-        var supportsTitleBarStyle = ApplicationRuntime.Current.Platform.Capabilities
+        PanMacTitleBarStyle.IsVisible = ApplicationRuntime.Current.Platform.Capabilities
             .SupportsTitleBarStyleSelection;
-        PanMacTitleBarStyle.IsEnabled = supportsTitleBarStyle;
-        if (!supportsTitleBarStyle)
-        {
-            foreach (var radio in _macTitleBarStyleRadios)
-                radio.IsEnabled = false;
-            LabMacTitleBarStyle.Bind(
-                TextBlock.ForegroundProperty,
-                new DynamicResourceExtension(InputTheme.DisabledTextKey));
-            PanMacTitleBarStyle.SetLocalizedValue(
-                ToolTip.TipProperty,
-                "Setup.Ui.Logo.MacTitleBarStyle.OnlyMacOS");
-            ToolTip.SetShowOnDisabled(PanMacTitleBarStyle, true);
-        }
 
         foreach (var (index, radio) in _macTitleBarStyleRadios.Index())
             radio.Check += (_, _) => WriteIfReady(() =>
