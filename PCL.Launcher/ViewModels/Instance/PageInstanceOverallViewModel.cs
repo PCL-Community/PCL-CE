@@ -449,8 +449,8 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
         {
             var savePath = await SystemDialogs.SelectSaveFileAsync(
                 Lang.Text("Instance.Overall.Script.SelectSaveTitle"),
-                $"启动 {Instance.Name}.bat",
-                Lang.Text("Instance.Overall.Script.FileFilter"));
+                $"启动 {Instance.Name}{GameLaunch.LaunchScriptExtension}",
+                Lang.Text("Instance.Overall.Script.FileFilter", GameLaunch.LaunchScriptExtension));
             if (string.IsNullOrEmpty(savePath))
                 return;
             if (GameLaunch.mcLaunchLoader.State == LoadState.Loading)
