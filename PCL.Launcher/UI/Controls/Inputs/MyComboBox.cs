@@ -6,6 +6,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.VisualTree;
 using FluentValidation;
@@ -52,6 +53,17 @@ public class MyComboBox : ComboBox
     private TopLevel? _popupOpacitySource;
     private double _realWidth = double.NaN;
     private Collection<IValidator<string>> _validateRules = [];
+
+    // 下拉浮层与启动器窗口边缘至少保留的间距。
+    private const double DropDownWindowMargin = 4d;
+
+    // 下拉浮层在主窗口内至少保留的高度，低于此值时宁可贴着窗口边缘展开。
+    private const double MinDropDownVisibleHeight = 72d;
+
+    // 展开前 Popup 上的配置，关闭时还原，避免影响下一次展开。
+    private double _dropDownConfiguredHeight = double.NaN;
+    private PlacementMode _dropDownConfiguredPlacement = PlacementMode.Bottom;
+    private bool _isDropDownBoundsAdjusted;
 
     public MyComboBox()
     {
@@ -352,15 +364,69 @@ public class MyComboBox : ComboBox
         SetKeyboardNavigation(_lastInputFromKeyboard);
 
         AttachPopupOpacity();
+        UpdateDropDownBounds();
         RefreshColor();
     }
 
     private void MyComboBox_DropDownClosed(object? sender, EventArgs e)
     {
         Width = _realWidth;
+        RestoreDropDownBounds();
         SetKeyboardNavigation(false);
         DetachPopupOpacity();
         RefreshColor();
+    }
+
+    /// <summary>
+    ///     把下拉列表限制在主窗口内。
+    ///     Popup 在桌面平台是独立顶层窗口，超出主窗口的部分收不到鼠标按下，
+    ///     会出现“看得到但点不动”的选项；因此展开时按窗口内剩余空间限制浮层高度，
+    ///     下方放不下时改为向上展开，仍然放不下则交给列表自身滚动。
+    /// </summary>
+    private void UpdateDropDownBounds()
+    {
+        if (_popup is null || _isDropDownBoundsAdjusted)
+            return;
+
+        var topLevel = TopLevel.GetTopLevel(this);
+        if (topLevel is null)
+            return;
+
+        var origin = this.TranslatePoint(new Point(0d, 0d), topLevel);
+        if (origin is null)
+            return;
+
+        var desiredHeight = double.IsNaN(MaxDropDownHeight) || MaxDropDownHeight <= 0d
+            ? 160d
+            : MaxDropDownHeight;
+
+        var availableBelow = topLevel.Bounds.Height - (origin.Value.Y + Bounds.Height) - DropDownWindowMargin;
+        var availableAbove = origin.Value.Y - DropDownWindowMargin;
+
+        // 下方已经放不下最小高度、且上方更宽裕时改为向上展开。
+        var openUpwards = availableBelow < Math.Min(desiredHeight, MinDropDownVisibleHeight) &&
+                          availableAbove > availableBelow;
+        var available = openUpwards ? availableAbove : availableBelow;
+
+        _dropDownConfiguredHeight = _popup.MaxHeight;
+        _dropDownConfiguredPlacement = _popup.Placement;
+        _isDropDownBoundsAdjusted = true;
+
+        _popup.SetCurrentValue(Layoutable.MaxHeightProperty,
+            Math.Max(Math.Min(desiredHeight, available), MinDropDownVisibleHeight));
+
+        if (openUpwards)
+            _popup.SetCurrentValue(Popup.PlacementProperty, PlacementMode.Top);
+    }
+
+    private void RestoreDropDownBounds()
+    {
+        if (_popup is null || !_isDropDownBoundsAdjusted)
+            return;
+
+        _isDropDownBoundsAdjusted = false;
+        _popup.SetCurrentValue(Layoutable.MaxHeightProperty, _dropDownConfiguredHeight);
+        _popup.SetCurrentValue(Popup.PlacementProperty, _dropDownConfiguredPlacement);
     }
 
     private void MyComboBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
