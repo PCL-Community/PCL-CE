@@ -54,13 +54,9 @@ public class MyComboBox : ComboBox
     private double _realWidth = double.NaN;
     private Collection<IValidator<string>> _validateRules = [];
 
-    // 下拉浮层与启动器窗口边缘至少保留的间距。
     private const double DropDownWindowMargin = 4d;
-
-    // 判定下拉方向时使用的最小可用高度：低于此值视为该方向放不下列表。
     private const double MinUsableDropDownHeight = 72d;
 
-    // 展开前 Popup 上的配置，关闭时还原，避免影响下一次展开。
     private double _dropDownConfiguredHeight = double.NaN;
     private PlacementMode _dropDownConfiguredPlacement = PlacementMode.Bottom;
     private bool _isDropDownBoundsAdjusted;
@@ -93,7 +89,6 @@ public class MyComboBox : ComboBox
         };
         GotFocus += (_, _) => RefreshColor();
         LostFocus += (_, _) => RefreshColor();
-        // 展开期间控件尺寸变化时重新限制浮层，避免越界。
         SizeChanged += (_, _) => UpdateDropDownBounds();
         Unloaded += (_, _) => StopAnimations();
     }
@@ -379,13 +374,6 @@ public class MyComboBox : ComboBox
         RefreshColor();
     }
 
-    /// <summary>
-    ///     把下拉列表限制在主窗口内。
-    ///     Popup 在桌面平台是独立顶层窗口，超出主窗口的部分收不到鼠标按下，
-    ///     会出现“看得到但点不动”的选项；因此展开时按窗口内剩余空间限制浮层高度，
-    ///     下方空间不足时改为向上展开，仍然放不下则由列表自身滚动承载。
-    ///     窗口或控件尺寸变化时重新计算，避免浮层在布局变化后再次越界。
-    /// </summary>
     private void UpdateDropDownBounds()
     {
         if (_popup is null || !IsDropDownOpen)
@@ -399,7 +387,6 @@ public class MyComboBox : ComboBox
         if (origin is null)
             return;
 
-        // 首次展开时记录原始配置，关闭后还原；尺寸变化时只重算，不覆盖记录值。
         if (!_isDropDownBoundsAdjusted)
         {
             _dropDownConfiguredHeight = _popup.MaxHeight;
@@ -407,7 +394,6 @@ public class MyComboBox : ComboBox
             _isDropDownBoundsAdjusted = true;
         }
 
-        // NaN 视为未配置，0 表示调用方明确不展开列表，需要保留。
         var desiredHeight = double.IsNaN(MaxDropDownHeight)
             ? double.PositiveInfinity
             : Math.Max(MaxDropDownHeight, 0d);
@@ -415,12 +401,10 @@ public class MyComboBox : ComboBox
         var availableBelow = topLevel.Bounds.Height - (origin.Value.Y + Bounds.Height) - DropDownWindowMargin;
         var availableAbove = origin.Value.Y - DropDownWindowMargin;
 
-        // 下方已经放不下可用的列表、且上方更宽裕时改为向上展开。
         var openUpwards = availableBelow < Math.Min(desiredHeight, MinUsableDropDownHeight) &&
                           availableAbove > availableBelow;
         var available = Math.Max(openUpwards ? availableAbove : availableBelow, 0d);
 
-        // 高度严格不超过可用空间，否则越界部分依然无法点击。
         _popup.SetCurrentValue(Layoutable.MaxHeightProperty, Math.Min(desiredHeight, available));
         _popup.SetCurrentValue(Popup.PlacementProperty,
             openUpwards ? PlacementMode.Top : _dropDownConfiguredPlacement);
