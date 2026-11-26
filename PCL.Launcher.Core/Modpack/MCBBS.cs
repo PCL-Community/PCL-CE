@@ -100,7 +100,7 @@ public static partial class Modpack
             Identifier = loaderIdentifier
         };
 
-        loader.Start(request.targetInstanceFolder);
+        McInstallRecovery.Start(loader, request, request.targetInstanceFolder, modpackFile: fileAddress);
         LoaderTaskbarAdd(loader);
 
         CompUi.Current?.RefreshDownloadButton();

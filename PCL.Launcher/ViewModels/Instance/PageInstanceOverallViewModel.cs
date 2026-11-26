@@ -612,22 +612,6 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
             if (!dialog.IsConfirmed)
                 return;
 
-            try
-            {
-                var backupFolder = Path.Combine(instance.PathInstance, "PCLInstallBackups");
-                InstancePageHelper.EnsureDirectory(backupFolder);
-                var json = Path.Combine(instance.PathInstance, $"{instance.Name}.json");
-                var jar = Path.Combine(instance.PathInstance, $"{instance.Name}.jar");
-                if (File.Exists(json))
-                    File.Copy(json, Path.Combine(backupFolder, $"{instance.Name}.json"), true);
-                if (File.Exists(jar))
-                    File.Copy(jar, Path.Combine(backupFolder, $"{instance.Name}.jar"), true);
-            }
-            catch (Exception ex)
-            {
-                LauncherCommon.Log(ex, "备份实例核心文件失败", LauncherLogLevel.Developer);
-            }
-
             var request = new McInstallRequest
             {
                 targetInstanceName = instance.Name,
@@ -708,7 +692,7 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
                 Identifier = identifier,
                 OnStateChanged = OnInstallLoaderStateChanged(instance)
             };
-            combo.Start(instance.PathInstance);
+            McInstallRecovery.Start(combo, request, instance.PathInstance, overwrite: true);
             Loading.LoaderTaskbarAdd(combo);
             LoadingUi.Current?.RefreshDownloadButton();
             PageRouter.Navigate(PageIds.Launch);
@@ -906,10 +890,10 @@ public partial class PageInstanceOverallViewModel : ViewModelBase
 
     private static Action<Loading.LoaderBase> OnInstallLoaderStateChanged(McInstance instance)
     {
-        return loader =>
+        return async loader =>
         {
             if (loader.State is LoadState.Finished or LoadState.Failed or LoadState.Aborted)
-                McInstallRecovery.HandleTerminalState(loader, instance.PathInstance);
+                await McInstallRecovery.HandleTerminalStateAsync(loader, instance.PathInstance);
             switch (loader.State)
             {
                 case LoadState.Finished:

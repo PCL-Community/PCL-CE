@@ -13,8 +13,6 @@ namespace PCL;
 /// </summary>
 public static class McInstallPipeline
 {
-    private const string IgnoreFlagFileName = ".pclignore";
-
     /// <summary>获取安装任务的稳定标识，供任务栏去重使用。</summary>
     public static string GetIdentifier(string instanceFolder)
     {
@@ -121,45 +119,17 @@ public static class McInstallPipeline
         if (string.IsNullOrEmpty(instanceFolder))
             throw new Exception(Lang.Text("Download.Install.NameInvalid"));
 
-        var instanceJsonPath = McInstallRecovery.GetJsonPath(instanceFolder, instanceName);
-        McInstallRecovery.RegisterSession(instanceFolder, instanceName);
-        if (File.Exists(instanceJsonPath) && !ignoreDump)
+        if (!ignoreDump && McInstallRecovery.RequiresOverwrite(instanceFolder, instanceName))
         {
-            McInstallRecovery.UnregisterSession(instanceFolder);
             HintService.Show(
                 Hints.Error(
                     Lang.Text("Minecraft.Download.Error.InstanceAlreadyExists", instanceName, "")));
             throw new CancelledException();
         }
 
-        if (!File.Exists(instanceJsonPath))
-            McInstallRecovery.TryClearIncompleteInstanceFolder(instanceFolder, instanceName);
-        McInstallRecovery.PrepareBackup(instanceFolder, instanceName);
-
         var tempFolder = LauncherCommon.GetTempFolder("Install");
-        var preserveCoreJar = request.mmcPackInfo?.isMinecraftOverrided == true
-            && File.Exists(instanceJsonPath)
-            && File.Exists(McInstallRecovery.GetJarPath(instanceFolder, instanceName));
-        var customCoreJarBackup = Path.Combine(tempFolder, "mmc-core.jar");
-        if (preserveCoreJar)
-            try
-            {
-                Files.CopyFile(
-                    McInstallRecovery.GetJarPath(instanceFolder, instanceName),
-                    customCoreJarBackup);
-                LauncherCommon.Log("[Install] 已备份 MMC 修改后的原版核心 Jar");
-            }
-            catch (Exception ex)
-            {
-                preserveCoreJar = false;
-                LauncherCommon.Log(ex, "备份 MMC 修改后的原版核心 Jar 失败");
-            }
-
         var sources = new InstallJsonSourceCollection();
-        var loaders = new List<Loading.LoaderBase>
-        {
-            CreateIgnoreFlagLoader(instanceFolder)
-        };
+        var loaders = new List<Loading.LoaderBase>();
 
         AddVanillaLoaders(loaders, request, instanceFolder, instanceName, minecraftName);
         AddForgelikeLoaders(
@@ -200,7 +170,7 @@ public static class McInstallPipeline
         loaders.Add(
             new Loading.LoaderTask<int, int>(
                 Lang.Text("Minecraft.Download.Stage.InstallGame"),
-                _ =>
+                task =>
                 {
                     InstanceJsonMerge.MergeInstall(
                         instanceFolder,
@@ -209,7 +179,7 @@ public static class McInstallPipeline
                         request.mmcPackInfo,
                         request.labyModChannel ?? "production",
                         minecraftName);
-                    CreateInstanceFolders(instanceFolder, request);
+                    CreateInstanceFolders(instanceFolder, request, task);
                 })
             {
                 ProgressWeight = 2d,
@@ -220,12 +190,13 @@ public static class McInstallPipeline
             false,
             GameDownload.AssetsIndexExistsBehaviour.DontDownload);
         loaders.AddRange(fixLoaders);
-        if (preserveCoreJar)
+        if (request.mmcPackInfo?.isMinecraftOverrided == true)
             loaders.Add(
                 new Loading.LoaderTask<int, int>(
                     Lang.Text("Minecraft.Download.Stage.DownloadCoreJar"),
                     _ =>
                     {
+                        if (request.OriginalMmcCoreJar is not { } customCoreJarBackup) return;
                         foreach (var fixLoader in fixLoaders)
                             while (fixLoader.State is LoadState.Waiting or LoadState.Loading)
                                 Thread.Sleep(50);
@@ -237,14 +208,6 @@ public static class McInstallPipeline
                     ProgressWeight = 0.1d,
                     show = false
                 });
-        loaders.Add(
-            new Loading.LoaderTask<int, int>(
-                Lang.Text("Minecraft.Download.Stage.DeleteIgnoreFlag"),
-                _ => DeleteIgnoreFlag(instanceFolder))
-            {
-                ProgressWeight = 0.5d
-            });
-
         LauncherCommon.Log(
             $"[Install] 已创建 {instanceName} 的安装管线，原版版本：{minecraftName}，加载器 Json {sources.Snapshot().Count} 个",
             LauncherLogLevel.Developer);
@@ -321,39 +284,16 @@ public static class McInstallPipeline
         string minecraftName)
     {
         var instanceJsonPath = McInstallRecovery.GetJsonPath(instanceFolder, instanceName);
-        var instanceJarPath = McInstallRecovery.GetJarPath(instanceFolder, instanceName);
-        var useExistingCore = request.mmcPackInfo?.isMinecraftOverrided == true
-            && File.Exists(instanceJsonPath)
-            && File.Exists(instanceJarPath);
-        if (useExistingCore)
-        {
-            LauncherCommon.Log(
-                $"[Install] 检测到 MMC 修改过原版核心，使用实例现有 Json/Jar 作为合并基准：{instanceFolder}");
-            loaders.Add(
-                new Loading.LoaderTask<int, int>(
-                    Lang.Text("Minecraft.Download.Stage.VanillaJsonDownload"),
-                    _ =>
-                    {
-                        if (!File.Exists(instanceJsonPath) || !File.Exists(instanceJarPath))
-                            throw new Exception(
-                                Lang.Text(
-                                    "Minecraft.Download.Error.JsonInvalid",
-                                    instanceName,
-                                    instanceJsonPath,
-                                    "MMC 修改后的实例核心文件缺失"));
-                    })
-                {
-                    ProgressWeight = 4d,
-                    show = false
-                });
-            return;
-        }
-
         loaders.Add(
             new Loading.LoaderTask<int, List<DownloadFile>>(
                 Lang.Text("Minecraft.Download.Stage.ObtainVanillaJsonUrl"),
                 task =>
                 {
+                    if (request.OriginalMmcCoreJar is not null)
+                    {
+                        task.output = [];
+                        return;
+                    }
                     var jsonUrl = request.minecraftJson;
                     if (string.IsNullOrEmpty(jsonUrl))
                         jsonUrl = GameDownload.DlClientListGet(minecraftName)?.ToString();
@@ -383,7 +323,8 @@ public static class McInstallPipeline
             new Loading.LoaderTask<int, List<DownloadFile>>(
                 Lang.Text("Minecraft.Download.Stage.AnalyzeCoreJarUrl"),
                 task => task.output =
-                    GameDownload.DlClientJarGet(new McInstance(instanceFolder), false) is { } jar
+                    request.OriginalMmcCoreJar is null
+                    && GameDownload.DlClientJarGet(new McInstance(instanceFolder), false) is { } jar
                         ? [jar]
                         : [])
             {
@@ -519,34 +460,11 @@ public static class McInstallPipeline
             LauncherLogLevel.Developer);
     }
 
-    private static Loading.LoaderBase CreateIgnoreFlagLoader(string instanceFolder)
-    {
-        return new Loading.LoaderTask<int, int>(
-            Lang.Text("Minecraft.Download.Stage.AddIgnoreFlag"),
-            _ =>
-            {
-                Directory.CreateDirectory(instanceFolder);
-                Files.WriteAllText(
-                    Path.Combine(instanceFolder, IgnoreFlagFileName),
-                    "用于临时地在 PCL CE 的实例列表中屏蔽此实例。");
-            })
-        {
-            show = false,
-            block = false
-        };
-    }
-
-    private static void DeleteIgnoreFlag(string instanceFolder)
-    {
-        var path = Path.Combine(instanceFolder, IgnoreFlagFileName);
-        if (File.Exists(path))
-            File.Delete(path);
-    }
-
-    private static void CreateInstanceFolders(string instanceFolder, McInstallRequest request)
+    private static void CreateInstanceFolders(string instanceFolder, McInstallRequest request, Loading.LoaderBase loader)
     {
         var instance = new McInstance(instanceFolder);
         var resourcepacksFolder = Path.Combine(instance.PathIndie, "resourcepacks");
+        McInstallRecovery.TrackOutputs(loader, [resourcepacksFolder + Path.DirectorySeparatorChar]);
         Directory.CreateDirectory(resourcepacksFolder);
         LauncherCommon.Log($"[Install] 已创建资源包文件夹：{resourcepacksFolder}");
 
@@ -561,6 +479,7 @@ public static class McInstallPipeline
         if (!modable)
             return;
         var modsFolder = Path.Combine(instance.PathIndie, "mods");
+        McInstallRecovery.TrackOutputs(loader, [modsFolder + Path.DirectorySeparatorChar]);
         Directory.CreateDirectory(modsFolder);
         LauncherCommon.Log($"[Install] 已创建模组文件夹：{modsFolder}");
     }
@@ -614,14 +533,11 @@ public static class McInstallPipeline
                 {
                     var modsFolder = Path.Combine(new McInstance(instanceFolder).PathIndie, "mods")
                         + Path.DirectorySeparatorChar;
-                    Directory.CreateDirectory(modsFolder);
                     var downloadFile = file.ToNetFile(
                         modsFolder,
                         Comp.DownloadReason.Dependency,
                         minecraftName,
                         loaderType);
-                    if (!File.Exists(downloadFile.LocalPath))
-                        McInstallRecovery.RegisterCreatedFile(downloadFile.LocalPath);
                     task.output = [downloadFile];
                 })
             {

@@ -25,10 +25,25 @@ internal static class McInstallFlow
             return null;
         }
 
-        List<Loading.LoaderBase> loaders;
+        Loading.LoaderCombo<string> combo;
         try
         {
-            loaders = McInstallPipeline.CreateInstallLoader(request, overwrite);
+            var loaders = McInstallPipeline.CreateInstallLoader(request, overwrite);
+            combo = new Loading.LoaderCombo<string>(displayName, loaders)
+            {
+                Identifier = identifier
+            };
+            Loading.LoaderBase.OnStateChangedUiEventHandler? handler = null;
+            handler = (loader, newState, _) =>
+            {
+                if (newState is LoadState.Waiting or LoadState.Loading)
+                    return;
+                if (handler is not null)
+                    loader.OnStateChangedUi -= handler;
+                onTerminal(loader, newState);
+            };
+            combo.OnStateChangedUi += handler;
+            McInstallRecovery.Start(combo, request, input, overwrite);
         }
         catch (CancelledException)
         {
@@ -41,21 +56,6 @@ internal static class McInstallFlow
             return null;
         }
 
-        var combo = new Loading.LoaderCombo<string>(displayName, loaders)
-        {
-            Identifier = identifier
-        };
-        Loading.LoaderBase.OnStateChangedUiEventHandler? handler = null;
-        handler = (loader, newState, _) =>
-        {
-            if (newState is LoadState.Waiting or LoadState.Loading)
-                return;
-            if (handler is not null)
-                loader.OnStateChangedUi -= handler;
-            onTerminal(loader, newState);
-        };
-        combo.OnStateChangedUi += handler;
-        combo.Start(input);
         Loading.LoaderTaskbarAdd(combo);
         LoadingUi.Current?.RefreshDownloadButton();
         return combo;

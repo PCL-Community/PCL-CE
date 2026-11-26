@@ -76,6 +76,9 @@ public class McInstallRequest
     /// </summary>
     public MmcPackInfo? mmcPackInfo = null;
 
+    // 在安装会话恢复完成后确定，供 MMC 原版核心下载和最终还原共用。
+    internal string? OriginalMmcCoreJar { get; set; }
+
     /// <summary>
     ///     欲下载的 NeoForge。
     /// </summary>

@@ -170,6 +170,7 @@ public static partial class Loading
                 {
                     try
                     {
+                        using var worker = (RealParent ?? this).Workers?.Enter();
                         isForceRestarting = isForceRestart;
                         if (LauncherCommon.ModeDebug)
                             LauncherCommon.Log(

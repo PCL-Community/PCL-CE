@@ -56,6 +56,10 @@ public class LoaderDownload : Loading.LoaderBase
     {
         try
         {
+            using var worker = (RealParent ?? this).Workers?.Enter();
+            if (worker is not null)
+                McInstallRecovery.TrackOutputs(this, files.SelectMany(file => new[]
+                    { file.LocalPath, file.LocalPath + NetFacade.NetDownloadEnd }));
             if (!files.Any())
             {
                 OnFinish();
@@ -161,6 +165,8 @@ public class LoaderDownload : Loading.LoaderBase
             }
         }
 
+        if ((RealParent ?? this).Workers is not null)
+            McInstallRecovery.TrackOutputs(this, [file.LocalPath, file.LocalPath + NetFacade.NetDownloadEnd], backUpExisting: true);
         file.State = NetState.Connecting;
         // 批量任务中未知大小的文件直接下载，避免小文件逐个产生一次 Range 探测。
         var expectedSize = file.Check?.actualSize ?? -1;

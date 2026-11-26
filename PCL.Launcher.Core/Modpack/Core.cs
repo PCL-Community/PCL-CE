@@ -272,7 +272,6 @@ public static partial class Modpack
     }
 
     private static void _FinalizeModpackInstance(
-        string fileAddress,
         string instanceName,
         string? logo,
         string? resourceId,
@@ -291,23 +290,6 @@ public static partial class Modpack
             States.Instance.LogoPath[versionFolder] = Path.Combine("PCL", "Logo.png");
             States.Instance.IsLogoCustom[versionFolder] = true;
             LauncherCommon.Log($"[ModPack] 已设置整合包 Logo：{logo}");
-        }
-
-        foreach (var target in new[]
-                 {
-                     Path.Combine(versionFolder, "原始整合包.zip"),
-                     Path.Combine(versionFolder, "原始整合包.mrpack")
-                 })
-            if (File.Exists(target))
-            {
-                LauncherCommon.Log($"[ModPack] 删除原始整合包文件：{target}");
-                File.Delete(target);
-            }
-
-        if (File.Exists(fileAddress) && Path.GetFileNameWithoutExtension(fileAddress) == "modpack")
-        {
-            LauncherCommon.Log($"[ModPack] 删除安装整合包文件：{fileAddress}");
-            File.Delete(fileAddress);
         }
 
         if (modpackVersion is not null)
@@ -389,6 +371,9 @@ public static partial class Modpack
         if (Directory.Exists(overridesFolder))
         {
             LauncherCommon.Log($"[ModPack] 处理整合包覆写文件夹：{overridesFolder} → {versionFolder}");
+            var targets = Directory.EnumerateFiles(overridesFolder, "*", SearchOption.AllDirectories)
+                .Select(file => Path.Combine(versionFolder, Path.GetRelativePath(overridesFolder, file)));
+            McInstallRecovery.TrackOutputs(loader, targets, backUpExisting: true);
             Files.CopyDirectory(
                 overridesFolder,
                 versionFolder,
@@ -402,6 +387,7 @@ public static partial class Modpack
 
         var overridesIni = Path.Combine(overridesFolder, "PCL", "Setup.ini");
         var versionIni = Path.Combine(versionFolder, "PCL", "Setup.ini");
+        McInstallRecovery.TrackOutputs(loader, [versionIni], backUpExisting: true);
         if (File.Exists(overridesIni))
         {
             Ini.Write(overridesIni, "VersionArgumentIndie", 1.ToString());

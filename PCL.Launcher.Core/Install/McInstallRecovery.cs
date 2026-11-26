@@ -1,12 +1,12 @@
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Configuration.Storage;
+using PCL.Core.App.Localization;
 using PCL.Core.IO;
 
 namespace PCL;
 
 /// <summary>
-/// 安装会话的目录状态记录与失败恢复。 安装开始前记录实例目录中哪些路径是本次安装会创建或覆盖的，失败或取消后只回滚这些路径； 安装前已存在的实例核心文件会先备份到
-/// <c>PCLInstallBackups</c>，失败时还原、成功时清理。 清理前会等待 1 秒，避免安装器/下载器尚未释放文件句柄。
+/// 同一实例的安装与回滚共用一把跨进程锁。覆盖前保存核心文件和安装输出，工作线程退出后提交或还原。
 /// </summary>
 public static class McInstallRecovery
 {
@@ -15,7 +15,7 @@ public static class McInstallRecovery
     private static readonly Lock SyncRoot = new();
 
     private static readonly Dictionary<string, InstallSession> Sessions =
-        new(StringComparer.OrdinalIgnoreCase);
+        new(OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
 
     public static string NormalizeFolder(string folder)
     {
@@ -42,258 +42,165 @@ public static class McInstallRecovery
         return Path.Combine(instanceFolder, $"{instanceName}.jar");
     }
 
-    /// <summary>安装开始前调用：记录目录与实例文件的原始状态，供失败清理判断回滚范围。</summary>
-    public static void RegisterSession(string instanceFolder, string instanceName)
+    /// <summary>在外层加载器组装完毕后占用目标目录；同一目录的回滚结束前不能开始下一次安装。</summary>
+    public static void Start(
+        Loading.LoaderBase loader,
+        McInstallRequest request,
+        string input,
+        bool overwrite = false,
+        bool requireNewFolder = false,
+        string? modpackFile = null)
     {
-        var folder = NormalizeFolder(instanceFolder);
-        if (string.IsNullOrEmpty(folder) || string.IsNullOrEmpty(instanceName))
-            return;
-
-        var session = new InstallSession
-        {
-            InstanceFolder = folder,
-            InstanceName = instanceName,
-            FolderExisted = Directory.Exists(folder),
-            JsonExisted = File.Exists(GetJsonPath(folder, instanceName)),
-            JarExisted = File.Exists(GetJarPath(folder, instanceName))
-        };
+        var folder = NormalizeFolder(request.targetInstanceFolder);
+        var name = request.targetInstanceName;
+        var session = new InstallSession(loader, folder, name);
         lock (SyncRoot)
         {
-            Sessions[folder] = session;
+            if (!Sessions.TryAdd(folder, session))
+                throw new Exception(Lang.Text("Minecraft.Download.Error.InstanceDownloading"));
         }
-
-        LauncherCommon.Log(
-            $"[Install] 记录安装会话：{folder}（目录已存在：{session.FolderExisted}，Json 已存在：{session.JsonExisted}）",
-            LauncherLogLevel.Developer);
-    }
-
-    /// <summary>登记一个由本次安装创建的路径，失败或取消时会被删除。</summary>
-    public static void RegisterCreatedFile(string path)
-    {
-        if (string.IsNullOrWhiteSpace(path))
-            return;
-        var folder = FindSessionFolder(path);
-        if (folder is null)
-            return;
-        lock (SyncRoot)
-        {
-            if (Sessions.TryGetValue(folder, out var session))
-                session.CreatedPaths.Add(Path.GetFullPath(path));
-        }
-    }
-
-    private static string? FindSessionFolder(string path)
-    {
-        var fullPath = Path.GetFullPath(path);
-        lock (SyncRoot)
-        {
-            return Sessions
-                .Keys
-                .Where(folder => fullPath.StartsWith(
-                    folder + Path.DirectorySeparatorChar,
-                    StringComparison.OrdinalIgnoreCase))
-                .OrderByDescending(folder => folder.Length)
-                .FirstOrDefault();
-        }
-    }
-
-    /// <summary>安装开始前调用：把已存在的实例核心文件备份到 <c>PCLInstallBackups</c>。</summary>
-    public static void PrepareBackup(string instanceFolder, string instanceName)
-    {
-        var folder = NormalizeFolder(instanceFolder);
-        var jsonPath = GetJsonPath(folder, instanceName);
-        var jarPath = GetJarPath(folder, instanceName);
-        if (!File.Exists(jsonPath) && !File.Exists(jarPath))
-            return;
-
-        var backupFolder = Path.Combine(folder, BackupFolderName);
         try
         {
-            Directory.CreateDirectory(backupFolder);
-            if (File.Exists(jsonPath))
-                Files.CopyFile(
-                    jsonPath,
-                    Path.Combine(backupFolder, Path.GetFileName(jsonPath)));
-            if (File.Exists(jarPath))
-                Files.CopyFile(
-                    jarPath,
-                    Path.Combine(backupFolder, Path.GetFileName(jarPath)));
-            LauncherCommon.Log($"[Install] 已备份实例核心文件：{backupFolder}");
+            session.Lease = InstallOutputs.AcquireLock(folder);
+            var folderExisted = Directory.Exists(folder);
+            var json = GetJsonPath(folder, name);
+            var interrupted = session.Outputs.ReadInterruptedOrigin(recoverPending: true);
+            var retry = interrupted?.HadJson == false;
+            var hadJson = interrupted?.HadJson ?? File.Exists(json);
+            session.CreatedFolder = interrupted?.CreatedFolder ?? !folderExisted;
+            if (!overwrite && hadJson)
+                throw new Exception(Lang.Text("Minecraft.Download.Error.InstanceAlreadyExists", name, ""));
+
+            if (folderExisted && requireNewFolder && !retry)
+                throw new Exception(Lang.Text("Minecraft.Download.Modpack.TargetFolderMustBeEmpty"));
+
+            // 旧版本没有输出清单。无法区分上次解压的文件和用户数据时，避免将两个整合包叠加。
+            if (modpackFile is not null && folderExisted && interrupted is null
+                && HasUntrackedModpackOutputs(folder, name, modpackFile))
+                throw new Exception(Lang.Text("Minecraft.Download.Modpack.TargetFolderMustBeEmpty"));
+
+            session.Outputs.Begin(hadJson, session.CreatedFolder);
+            session.Outputs.Register(session.CoreFiles, backUpExisting: true);
+            if (modpackFile is not null)
+            {
+                var settings = Path.Combine(folder, "PCL");
+                session.Outputs.Register(new[] { "Logo.png", "config.v1.yml", "config.v1.yml.bak" }
+                    .Select(file => Path.Combine(settings, file)), backUpExisting: true);
+            }
+            var jar = GetJarPath(folder, name);
+            request.OriginalMmcCoreJar = request.mmcPackInfo?.isMinecraftOverrided == true && hadJson
+                ? session.Outputs.OriginalFile(jar) : null;
+            if (!hadJson && File.Exists(jar))
+                File.Delete(jar);
+            loader.Workers = new Loading.LoaderWorkers();
+            loader.Start(input);
         }
-        catch (Exception ex)
+        catch
         {
-            LauncherCommon.Log(ex, "备份实例核心文件失败");
+            try
+            {
+                var rolledBack = session.Outputs.Finish(true);
+                if (session.CreatedFolder)
+                {
+                    if (rolledBack) DeleteFolderQuietly(folder);
+                    else TryDeleteEmptyFolder(folder);
+                }
+            }
+            finally
+            {
+                Release(session);
+            }
+            throw;
         }
     }
 
-    public static void UnregisterSession(string instanceFolder)
+    public static bool CanRetry(string folder) => TryReadInterruptedOrigin(folder) == false;
+
+    // 下载器可能已移走原 JSON；覆盖确认应与 Start 使用同一份安装前状态。
+    public static bool RequiresOverwrite(string folder, string name) =>
+        TryReadInterruptedOrigin(folder) ?? File.Exists(GetJsonPath(folder, name));
+
+    private static bool? TryReadInterruptedOrigin(string folder)
     {
-        var folder = NormalizeFolder(instanceFolder);
+        folder = NormalizeFolder(folder);
         lock (SyncRoot)
         {
-            Sessions.Remove(folder);
+            if (Sessions.ContainsKey(folder)) return null;
+        }
+        return InstallOutputs.TryReadInterruptedOrigin(folder);
+    }
+
+    private static bool HasUntrackedModpackOutputs(string folder, string name, string source)
+    {
+        var zip = Path.Combine(folder, "原始整合包.zip");
+        var mrpack = Path.Combine(folder, "原始整合包.mrpack");
+        var marker = Path.Combine(folder, ".pclignore");
+        if (!File.Exists(zip) && !File.Exists(mrpack) && !File.Exists(marker)) return false;
+        var known = new HashSet<string>(Sessions.Comparer)
+        {
+            zip, mrpack, marker, GetJarPath(folder, name), Path.GetFullPath(source)
+        };
+        return Directory.EnumerateFileSystemEntries(folder).Any(path => !known.Contains(path));
+    }
+
+    private static void Release(InstallSession session)
+    {
+        session.Outputs.Dispose();
+        session.Lease?.Dispose();
+        lock (SyncRoot)
+        {
+            if (Sessions.GetValueOrDefault(session.Folder) == session)
+                Sessions.Remove(session.Folder);
         }
     }
 
-    /// <summary>安装加载器进入结束状态后调用：成功时删除备份，失败或取消时回滚到安装前状态。 实例修改页与迁移前一致，成功后保留 <c>PCLInstallBackups</c>。</summary>
-    public static void HandleTerminalState(
+    /// <summary>登记当前加载器的实例内输出；即将覆写用户文件时先保存原件。</summary>
+    public static void TrackOutputs(Loading.LoaderBase loader, IEnumerable<string> paths, bool backUpExisting = false)
+    {
+        var owner = loader.RealParent ?? loader;
+        InstallSession? session;
+        lock (SyncRoot) session = Sessions.Values.FirstOrDefault(candidate => candidate.Owner == owner);
+        if (session is null) return;
+        lock (session.Outputs) session.Outputs.Register(paths, backUpExisting);
+    }
+
+    public static async Task HandleTerminalStateAsync(
         Loading.LoaderBase loader,
         string instanceFolder,
         bool keepBackupOnSuccess = false)
     {
-        if (loader.State == LoadState.Finished)
-        {
-            var folder = NormalizeFolder(instanceFolder);
-            if (!keepBackupOnSuccess)
-                DeleteBackupQuietly(folder);
-            UnregisterSession(folder);
+        var state = loader.State;
+        if (state is not (LoadState.Finished or LoadState.Failed or LoadState.Aborted))
             return;
-        }
-
-        if (loader.State is not (LoadState.Failed or LoadState.Aborted))
-            return;
-
-        RestoreOrCleanup(instanceFolder);
-    }
-
-    public static bool TryClearIncompleteInstanceFolder(string instanceFolder, string instanceName)
-    {
         var folder = NormalizeFolder(instanceFolder);
-        if (!Directory.Exists(folder))
-            return true;
-        if (File.Exists(GetJsonPath(folder, instanceName)))
-            return false;
-
-        Thread.Sleep(1000);
-        var backupFolder = Path.Combine(folder, BackupFolderName);
-        if (Directory.Exists(backupFolder))
-            try
-            {
-                Directories.DeleteDirectory(backupFolder);
-            }
-            catch (Exception ex)
-            {
-                LauncherCommon.Log(ex, "清理安装备份目录失败");
-            }
-
-        DeleteFileQuietly(GetJarPath(folder, instanceName));
-        DeleteFileQuietly(Path.Combine(folder, ".pclignore"));
-        if (!TryDeleteInstallArtifacts(folder, instanceName))
-            TryDeleteEmptyFolder(folder);
-        InvalidateInstanceCache(folder);
-        LauncherCommon.Log($"[Install] 已清理未完成的实例目录：{folder}", LauncherLogLevel.Developer);
-        return true;
-    }
-
-    private static bool TryDeleteInstallArtifacts(string folder, string instanceName)
-    {
-        try
+        InstallSession? session;
+        lock (SyncRoot)
         {
-            if (!Directory.Exists(folder))
-                return true;
-            string[] userDataNames =
-            [
-                "mods", "saves", "resourcepacks", "shaderpacks", "config",
-                "PCL", "logs", "crash-reports", "screenshots", "options.txt", "servers.dat"
-            ];
-            if (userDataNames.Any(name =>
-                    File.Exists(Path.Combine(folder, name))
-                    || Directory.Exists(Path.Combine(folder, name))))
-            {
-                LauncherCommon.Log(
-                    $"[Install] 未完成目录中存在用户数据，保留目录并只清理安装残留：{folder}",
-                    LauncherLogLevel.Developer);
-                return false;
-            }
-
-            Directories.DeleteDirectory(folder);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            LauncherCommon.Log(ex, $"删除未完成实例目录失败：{folder}");
-            return false;
-        }
-    }
-
-    private static void RestoreOrCleanup(string instanceFolder)
-    {
-        var folder = NormalizeFolder(instanceFolder);
-        if (string.IsNullOrEmpty(folder))
-            return;
-
-        Thread.Sleep(1000);
-
-        var backupFolder = Path.Combine(folder, BackupFolderName);
-        if (Directory.Exists(backupFolder))
-            try
-            {
-                Files.CopyDirectory(backupFolder, folder);
-                DeleteTrackedFiles(folder);
-                DeleteFileQuietly(Path.Combine(folder, ".pclignore"));
-                Directories.DeleteDirectory(backupFolder);
-                InvalidateInstanceCache(folder);
-                LauncherCommon.Log($"[Install] 已从备份还原实例目录：{folder}");
-                UnregisterSession(folder);
+            if (!Sessions.TryGetValue(folder, out session) || session.Owner != loader || session.Finishing)
                 return;
-            }
-            catch (Exception ex)
-            {
-                LauncherCommon.Log(ex, "还原实例备份失败");
-            }
-
-        InstallSession? session;
-        lock (SyncRoot)
-        {
-            Sessions.TryGetValue(folder, out session);
+            session.Finishing = true;
         }
-
-        var instanceName = session?.InstanceName ?? Path.GetFileName(folder);
-        LauncherCommon.Log(
-            $"[Install] 由于安装失败或取消，清理本次安装创建的路径：{folder}",
-            LauncherLogLevel.Developer);
-
-        DeleteTrackedFiles(folder);
-        DeleteFileQuietly(Path.Combine(folder, ".pclignore"));
-        DeleteFileQuietly(GetJsonPath(folder, instanceName));
-        DeleteFileQuietly(GetJarPath(folder, instanceName));
-
-        var folderExistedBefore = session?.FolderExisted ?? false;
-        if (!folderExistedBefore)
-            DeleteFolderQuietly(folder);
-        else
-            TryDeleteEmptyFolder(folder);
-
-        InvalidateInstanceCache(folder);
-        UnregisterSession(folder);
-    }
-
-    private static void DeleteTrackedFiles(string folder)
-    {
-        InstallSession? session;
-        lock (SyncRoot)
-        {
-            Sessions.TryGetValue(folder, out session);
-        }
-
-        if (session is null)
-            return;
-        foreach (var path in session.CreatedPaths.ToArray())
-            DeleteFileQuietly(path);
-    }
-
-    private static void DeleteBackupQuietly(string folder)
-    {
-        var backupFolder = Path.Combine(folder, BackupFolderName);
-        if (!Directory.Exists(backupFolder))
-            return;
         try
         {
-            Directories.DeleteDirectory(backupFolder);
+            if (loader.Workers is { } workers) await workers.FinishAsync().ConfigureAwait(false);
+            var rollback = state != LoadState.Finished;
+            session.Outputs.Finish(rollback, keepBackupOnSuccess ? session.CoreFiles : null);
+            if (rollback)
+            {
+                if (session.CreatedFolder)
+                    DeleteFolderQuietly(folder);
+                else
+                    TryDeleteEmptyFolder(folder);
+            }
         }
         catch (Exception ex)
         {
-            LauncherCommon.Log(ex, "清理安装备份目录失败");
+            LauncherCommon.Log(ex, $"恢复实例目录失败：{folder}");
+        }
+        finally
+        {
+            InvalidateInstanceCache(folder);
+            Release(session);
         }
     }
 
@@ -308,21 +215,6 @@ public static class McInstallRecovery
         catch (Exception ex)
         {
             LauncherCommon.Log(ex, "刷新实例配置缓存失败");
-        }
-    }
-
-    private static void DeleteFileQuietly(string path)
-    {
-        try
-        {
-            if (!File.Exists(path))
-                return;
-            File.SetAttributes(path, FileAttributes.Normal);
-            File.Delete(path);
-        }
-        catch (Exception ex)
-        {
-            LauncherCommon.Log(ex, $"删除安装残留文件失败：{path}");
         }
     }
 
@@ -353,18 +245,15 @@ public static class McInstallRecovery
         }
     }
 
-    private sealed class InstallSession
+    private sealed class InstallSession(Loading.LoaderBase owner, string folder, string name)
     {
-        public readonly HashSet<string> CreatedPaths = new(StringComparer.OrdinalIgnoreCase);
+        public Loading.LoaderBase Owner => owner;
+        public string Folder => folder;
+        public bool CreatedFolder;
+        public bool Finishing;
 
-        public bool FolderExisted;
-        public required string InstanceFolder;
-        public required string InstanceName;
-
-        /// <summary>安装开始前实例核心 Jar 是否已存在（需要备份）。</summary>
-        public bool JarExisted;
-
-        /// <summary>安装开始前实例核心 Json 是否已存在（需要备份）。</summary>
-        public bool JsonExisted;
+        public FileStream? Lease;
+        public string[] CoreFiles { get; } = [GetJsonPath(folder, name), GetJarPath(folder, name)];
+        public InstallOutputs Outputs { get; } = new(folder);
     }
 }

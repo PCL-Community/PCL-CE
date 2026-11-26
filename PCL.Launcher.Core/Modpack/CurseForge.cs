@@ -53,7 +53,6 @@ public static partial class Modpack
         var loaders = _CreateCurseForgeLoaderList(
             installLoaders,
             mergeLoaders,
-            fileAddress,
             json,
             instanceName,
             logo,
@@ -79,7 +78,7 @@ public static partial class Modpack
                 instanceName),
             Identifier = loaderIdentifier
         };
-        loader.Start(request.targetInstanceFolder);
+        McInstallRecovery.Start(loader, request, request.targetInstanceFolder, requireNewFolder: isOnlineInstall, modpackFile: fileAddress);
         LoaderTaskbarAdd(loader);
         CompUi.Current?.RefreshDownloadButton();
         if (!isOnlineInstall)
@@ -376,7 +375,6 @@ public static partial class Modpack
     private static List<LoaderBase> _CreateCurseForgeLoaderList(
         List<LoaderBase> installLoaders,
         List<LoaderBase> mergeLoaders,
-        string fileAddress,
         JsonObject json,
         string instanceName,
         string? logo,
@@ -387,7 +385,6 @@ public static partial class Modpack
             new LoaderTask<string, string>(
                 Lang.Text("Minecraft.Download.Modpack.Stage.FinalizeFiles"),
                 _ => _FinalizeModpackInstance(
-                    fileAddress,
                     instanceName,
                     logo,
                     resourceId,

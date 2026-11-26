@@ -200,7 +200,6 @@ internal static class LoaderSpecialInstall
                 Lang.Text("Minecraft.Download.Stage.ObtainOptiFineDownloadUrl"),
                 task =>
                 {
-                    var existed = File.Exists(target);
                     task.output =
                     [
                         new DownloadFile(
@@ -208,8 +207,6 @@ internal static class LoaderSpecialInstall
                             target,
                             new FileChecker(64 * 1024))
                     ];
-                    if (!existed)
-                        McInstallRecovery.RegisterCreatedFile(target);
                     task.Progress = 0.9d;
                 })
             {

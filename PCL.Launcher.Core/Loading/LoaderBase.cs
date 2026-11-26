@@ -6,6 +6,45 @@ namespace PCL;
 
 public static partial class Loading
 {
+    // 取消加载器只会发出停止信号。安装回滚和暂存文件清理需要等到实际的读写操作结束。
+    internal sealed class LoaderWorkers
+    {
+        private int _count;
+        private bool _finishing;
+        private readonly TaskCompletionSource _finished = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public IDisposable Enter()
+        {
+            lock (this)
+            {
+                if (_finishing) throw new CancelledException();
+                _count++;
+                return new Worker(this);
+            }
+        }
+
+        public Task FinishAsync()
+        {
+            lock (this)
+            {
+                _finishing = true;
+                if (_count == 0) _finished.TrySetResult();
+                return _finished.Task;
+            }
+        }
+
+        private sealed class Worker(LoaderWorkers group) : IDisposable
+        {
+            public void Dispose()
+            {
+                lock (group)
+                {
+                    if (--group._count == 0 && group._finishing) group._finished.TrySetResult();
+                }
+            }
+        }
+    }
+
     /// <summary>
     ///     加载器的统一基类。
     /// </summary>
@@ -29,6 +68,8 @@ public static partial class Loading
         ///     用于状态改变检测的同步锁。
         /// </summary>
         public readonly object lockState = new();
+
+        internal LoaderWorkers? Workers { get; set; }
 
         /// <summary>
         ///     按当前语言生成显示名称的委托。为空时使用 <see cref="name" />。
@@ -350,6 +391,13 @@ public static partial class Loading
             }
 
             return waiter;
+        }
+
+        /// <summary>等待已启动的加载器进入终态，不会重启已结束的任务。</summary>
+        public async Task WaitForExitStateAsync()
+        {
+            await RegisterExitWaiter().Task.ConfigureAwait(false);
+            if (Workers is not null) await Workers.FinishAsync().ConfigureAwait(false);
         }
 
         private void UnregisterExitWaiter(TaskCompletionSource waiter)

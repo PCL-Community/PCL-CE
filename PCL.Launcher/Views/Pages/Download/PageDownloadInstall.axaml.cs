@@ -456,9 +456,8 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
 
             var instanceFolder = Path.Combine(folder, "versions", name)
                 + Path.DirectorySeparatorChar;
-            var instanceJsonPath = Path.Combine(instanceFolder, $"{name}.json");
             var overwrite = false;
-            if (File.Exists(instanceJsonPath))
+            if (McInstallRecovery.RequiresOverwrite(instanceFolder, name))
             {
                 var exists = await DialogService.Instance.ShowAsync(
                     new TextDialogRequest
@@ -502,14 +501,14 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
         }
     }
 
-    private void OnInstallFinished(
+    private async void OnInstallFinished(
         Loading.LoaderBase loader,
         LoadState newState,
         string instanceName,
         string instanceFolder)
     {
         // 失败或取消时回滚本次安装创建的路径；成功时清理备份
-        McInstallRecovery.HandleTerminalState(loader, instanceFolder);
+        await McInstallRecovery.HandleTerminalStateAsync(loader, instanceFolder);
         if (newState == LoadState.Finished)
         {
             McInstallFlow.ApplyFinished(instanceName);

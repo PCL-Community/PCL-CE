@@ -24,6 +24,7 @@ public static partial class Modpack
                 )
             ])
         {
+            Workers = new LoaderWorkers(),
             OnStateChanged = ModpackUi.OnInstallStateChanged
         };
         loader.Start(targetFolder);

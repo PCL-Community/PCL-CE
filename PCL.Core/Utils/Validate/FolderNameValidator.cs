@@ -22,6 +22,7 @@ public class FolderNameValidator(
     public bool UseMinecraftCharCheck { get; set; } = useMinecraftCharCheck;
     public bool IgnoreCase { get; set; } = ignoreCase;
     public bool IgnoreSameNameInParentFolder { get; set; } = ignoreSameNameInParentFolder;
+    public Func<string, bool>? AllowExistingFolder { get; init; }
     public string? ParentFolder { get; set; } = parentFolder;
 
     private void _BuildRules()
@@ -61,12 +62,10 @@ public class FolderNameValidator(
                 if (!dirInfo.Exists) return true;
                 if (IgnoreSameNameInParentFolder) return true;
 
-                return !dirInfo
-                    .EnumerateDirectories()
-                    .Select(f => f.Name)
-                    .Contains(
-                        x,
-                        IgnoreCase ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
+                var comparison = IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+                if (!dirInfo.EnumerateDirectories().Any(f => string.Equals(f.Name, x, comparison))) return true;
+                var target = Path.Combine(dirInfo.FullName, x);
+                return AllowExistingFolder is not null && Directory.Exists(target) && AllowExistingFolder(target);
             })
             .WithMessage(_ => Lang.Text("Common.Validate.FolderName.Duplicate"));
     }

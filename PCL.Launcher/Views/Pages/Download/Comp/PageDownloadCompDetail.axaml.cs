@@ -1175,11 +1175,14 @@ public partial class PageDownloadCompDetail : MyPageRight
 
         if (!_installingFiles.Add(file.FileName))
             return;
-        var loaderStarted = false;
+        string? packPath = null;
         try
         {
             var versionsFolder = Path.Combine(folder, "versions");
-            var validator = new FolderNameValidator(versionsFolder);
+            var validator = new FolderNameValidator(versionsFolder)
+            {
+                AllowExistingFolder = McInstallRecovery.CanRetry
+            };
             var defaultName = SanitizeInstanceName(project.TranslatedName);
             if (!(await validator.ValidateAsync(defaultName)).IsValid)
                 defaultName = "";
@@ -1196,81 +1199,39 @@ public partial class PageDownloadCompDetail : MyPageRight
             if (string.IsNullOrEmpty(instanceName))
                 return;
 
-            var instanceFolder = Path.Combine(versionsFolder, instanceName);
-            if (File.Exists(Path.Combine(instanceFolder, $"{instanceName}.json")))
-            {
-                HintService.Show(
-                    Hints.Error(
-                        Lang.Text(
-                            "Minecraft.Download.Error.InstanceAlreadyExists",
-                            instanceName,
-                            "")));
-                return;
-            }
-
-            // 上次失败留下的半成品目录：先按安装恢复服务清理可重试
-            if (!McInstallRecovery.TryClearIncompleteInstanceFolder(instanceFolder, instanceName))
-            {
-                HintService.Show(
-                    Hints.Error(
-                        Lang.Text(
-                            "Minecraft.Download.Error.InstanceAlreadyExists",
-                            instanceName,
-                            "")));
-                return;
-            }
-
-            Directory.CreateDirectory(instanceFolder);
-            var packPath = Path.Combine(
-                instanceFolder,
-                $"原始整合包.{(project.FromCurseForge ? "zip" : "mrpack")}");
-            var fileName = file.FileName;
-            var loaders = new List<Loading.LoaderBase>
-            {
-                new LoaderDownload(
-                    Lang.Text("Download.Comp.Detail.DownloadModpackFile"),
-                    [file.ToNetFile(packPath, Comp.DownloadReason.ModPack)])
-                {
-                    ProgressWeight = 10d,
-                    block = true
-                },
-                new Loading.LoaderTask<int, int>(
-                    Lang.Text("Download.Comp.Detail.PrepareModpackInstall"),
-                    _ =>
-                    {
-                        var modpackLoader =
-                            Modpack.ModpackInstall(packPath, instanceName, null, project.Id, true);
-                        // 整合包安装继续在任务栏执行，安装结束前保持去重标记，避免同名实例被并发安装。
-                        modpackLoader.OnStateChangedUi += (_, innerState, _) =>
-                        {
-                            if (innerState is not (LoadState.Waiting or LoadState.Loading))
-                                _installingFiles.Remove(fileName);
-                        };
-                    })
-                {
-                    ProgressWeight = 0.1d
-                }
-            };
-
             var identifier = $"CompDetail:Modpack:{instanceName}";
             if (Loading.loaderTaskbar.Any(task => task.Identifier == identifier))
             {
-                HintService.Show(
-                    Hints.Error(Lang.Text("Minecraft.Download.Error.InstanceDownloading")));
+                HintService.Show(Hints.Error(Lang.Text("Minecraft.Download.Error.InstanceDownloading")));
                 return;
             }
 
-            var loaderName =
-                $"{Lang.Text("Download.Comp.Detail.ModpackDownload")}：{project.TranslatedName}";
-            var loader = new Loading.LoaderCombo<int>(loaderName, loaders)
+            var cache = Path.Combine(LauncherPaths.Temp, "DownloadedModpacks");
+            Directory.CreateDirectory(cache);
+            packPath = Path.Combine(cache, $"{Guid.NewGuid():N}.{(project.FromCurseForge ? "zip" : "mrpack")}");
+            var download = new Loading.LoaderCombo<int>(
+                $"{Lang.Text("Download.Comp.Detail.ModpackDownload")}：{project.TranslatedName}",
+                [new LoaderDownload(Lang.Text("Download.Comp.Detail.DownloadModpackFile"),
+                    [file.ToNetFile(packPath, Comp.DownloadReason.ModPack)])])
             {
-                Identifier = identifier
+                Identifier = identifier,
+                Workers = new Loading.LoaderWorkers()
             };
-            loader.OnStateChangedUi += (sender, newState, _) =>
-                OnModpackInstallTerminal(sender, newState, fileName, instanceFolder, packPath);
-            loader.Start();
-            Loading.LoaderTaskbarAdd(loader);
-            loaderStarted = true;
+            download.Start();
+            Loading.LoaderTaskbarAdd(download);
+            await download.WaitForExitStateAsync();
+            if (download.State == LoadState.Aborted) throw new OperationCanceledException();
+            if (download.State == LoadState.Failed) throw download.Error;
+
+            var install = await Task.Run(() => Modpack.ModpackInstall(packPath, instanceName, null, project.Id, true));
+            await install.WaitForExitStateAsync();
+        }
+        catch (OperationCanceledException)
+        {
+            HintService.Show(Hints.Info(Lang.Text("Download.Comp.Detail.Task.Cancelled", file.FileName)));
+        }
+        catch (CancelledException)
+        {
         }
         catch (Exception ex)
         {
@@ -1282,57 +1243,12 @@ public partial class PageDownloadCompDetail : MyPageRight
         }
         finally
         {
-            // 未真正启动安装（用户取消、输入不合法等）时立即解除去重标记，允许再次点击。
-            if (!loaderStarted)
-                _installingFiles.Remove(file.FileName);
-        }
-    }
-
-    private void OnModpackInstallTerminal(
-        Loading.LoaderBase loader,
-        LoadState newState,
-        string fileName,
-        string instanceFolder,
-        string packPath)
-    {
-        switch (newState)
-        {
-            case LoadState.Waiting or LoadState.Loading:
-                return;
-            case LoadState.Finished:
-                LauncherCommon.Log(
-                    $"[Comp] 已开始安装整合包：{Path.GetFileName(instanceFolder)}",
-                    LauncherLogLevel.Developer);
-                return;
-        }
-
-        _installingFiles.Remove(fileName);
-        HintService.Show(
-            newState == LoadState.Aborted
-                ? Hints.Info(Lang.Text("Download.Comp.Detail.Task.Cancelled", loader.name))
-                : Hints.Error(
-                    Lang.Text(
-                        "Download.Comp.Detail.Task.Failed",
-                        loader.name,
-                        loader.Error?.Message
-                        ?? Lang.Text("Download.Comp.Error.OperationFailed"))));
-        CleanupModpackDownload(instanceFolder, packPath);
-    }
-
-    private static void CleanupModpackDownload(string instanceFolder, string packPath)
-    {
-        try
-        {
-            McInstallRecovery.UnregisterSession(instanceFolder);
-            if (File.Exists(packPath))
-                File.Delete(packPath);
-            if (Directory.Exists(instanceFolder)
-                && !Directory.EnumerateFileSystemEntries(instanceFolder).Any())
-                Directory.Delete(instanceFolder);
-        }
-        catch (Exception ex)
-        {
-            LauncherCommon.Log(ex, "清理整合包下载残留失败");
+            _installingFiles.Remove(file.FileName);
+            if (packPath is not null)
+            {
+                TryDeleteFile(packPath);
+                TryDeleteFile(packPath + ".PCLDownloading");
+            }
         }
     }
 

@@ -13,10 +13,13 @@ public sealed class ModpackUiBridge : IModpackUi
         return McInstallPipeline.CreateInstallLoader(request);
     }
 
-    public void OnInstallStateChanged(Loading.LoaderBase loader)
+    public async void OnInstallStateChanged(Loading.LoaderBase loader)
     {
+        var state = loader.State;
+        if (state is LoadState.Loading or LoadState.Waiting) return;
         var combo = loader as Loading.LoaderCombo;
-        switch (loader.State)
+        await McInstallRecovery.HandleTerminalStateAsync(loader, combo?.input?.ToString() ?? "");
+        switch (state)
         {
             case LoadState.Finished:
                 HandleInstallFinished(loader, combo);
@@ -37,17 +40,10 @@ public sealed class ModpackUiBridge : IModpackUi
                     NotificationType.Info);
                 break;
 
-            case LoadState.Loading:
-                return;
-
-            case LoadState.Waiting:
-                break;
-
             default:
                 throw new ArgumentOutOfRangeException(nameof(loader));
         }
 
-        McInstallRecovery.HandleTerminalState(loader, combo?.input?.ToString() ?? "");
         var folder = GameFolders.mcFolderSelected;
         if (string.IsNullOrWhiteSpace(folder))
             return;

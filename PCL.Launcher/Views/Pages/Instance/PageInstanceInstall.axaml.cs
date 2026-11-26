@@ -868,7 +868,7 @@ public partial class PageInstanceInstall : MyPageRight, IRefreshable
             $"{instance.Name} {_vm.ActionText}",
             instance.PathInstance,
             "开始实例修改失败",
-            OnInstallStateChanged);
+            (loader, state) => OnInstallStateChanged(loader, state, request.targetInstanceFolder));
         if (_installCombo is null)
             return;
         _vm.IsInstalling = true;
@@ -899,16 +899,17 @@ public partial class PageInstanceInstall : MyPageRight, IRefreshable
         }
     }
 
-    private void OnInstallStateChanged(
+    private async void OnInstallStateChanged(
         Loading.LoaderBase loader,
-        LoadState newState)
+        LoadState newState,
+        string instanceFolder)
     {
         if (newState is LoadState.Waiting or LoadState.Loading)
             return;
 
+        await McInstallRecovery.HandleTerminalStateAsync(loader, instanceFolder, true);
         _vm.IsInstalling = false;
         _selector.SetInstalling(false);
-        McInstallRecovery.HandleTerminalState(loader, _instanceFolder, true);
         _installCombo = null;
 
         var finishedName = _instance?.Name ?? "";

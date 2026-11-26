@@ -52,7 +52,7 @@ public static partial class Modpack
                 instanceName),
             Identifier = loaderIdentifier
         };
-        loader.Start(request.targetInstanceFolder);
+        McInstallRecovery.Start(loader, request, request.targetInstanceFolder, modpackFile: fileAddress);
         LoaderTaskbarAdd(loader);
         CompUi.Current?.RefreshDownloadButton();
         LauncherCommon.RunInUi(() => CompNavigation.ShowTaskManager());

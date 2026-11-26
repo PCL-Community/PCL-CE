@@ -23,7 +23,7 @@ public static partial class Modpack
                     Lang.Text("Minecraft.Download.Modpack.Stage.ExtractArchive"),
                     task => _ExtractLauncherPack(targetFolder, fileAddress, archiveBaseFolder, task)
                 )
-            ]);
+            ]) { Workers = new LoaderWorkers() };
         loader.Start(targetFolder);
         LoaderTaskbarAdd(loader);
         CompUi.Current?.RefreshDownloadButton();
@@ -91,7 +91,7 @@ public static partial class Modpack
         }
 
         LaunchUi.OpenExplorer(targetFolder);
-        _RegisterLauncherPackInstance(targetFolder, archiveBaseFolder);
+        _RegisterLauncherPackInstance(targetFolder, archiveBaseFolder, task.AbortedToken);
         return false;
     }
 
@@ -128,7 +128,7 @@ public static partial class Modpack
         return launcher;
     }
 
-    private static void _RegisterLauncherPackInstance(string targetFolder, string archiveBaseFolder)
+    private static void _RegisterLauncherPackInstance(string targetFolder, string archiveBaseFolder, CancellationToken cancellationToken)
     {
         var instanceName = Files.GetFolderNameFromPath(targetFolder);
         Directory.CreateDirectory(Path.Combine(targetFolder, ".minecraft"));
@@ -146,6 +146,12 @@ public static partial class Modpack
             .GetFiles(targetFolder, "modpack.*", SearchOption.AllDirectories)
             .First();
         LauncherCommon.Log($"[Modpack] 调用 modpack 文件继续安装：{modpackFile}");
-        ModpackInstall(modpackFile);
+        cancellationToken.ThrowIfCancellationRequested();
+        var install = ModpackInstall(modpackFile);
+        using var cancellation = cancellationToken.Register(install.Abort);
+        install.WaitForExitStateAsync().GetAwaiter().GetResult();
+        if (install.State == LoadState.Aborted) throw new CancelledException();
+        if (install.State == LoadState.Failed) throw install.Error;
+        File.Delete(modpackFile);
     }
 }
