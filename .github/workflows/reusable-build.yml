@@ -29,6 +29,33 @@ on:
         required: false
         type: boolean
         default: false
+      include_microsoft_oauth:
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      CLIENT_ID:
+        required: false
+      CURSEFORGE_API_KEY:
+        required: false
+      SENTRY_DSN:
+        required: false
+      NAID_CLIENT_ID:
+        required: false
+      NAID_CLIENT_SECRET:
+        required: false
+      LINK_SERVER_ROOTS:
+        required: false
+      LOBBY_DEFAULT_SECRET:
+        required: false
+      APPLE_CODESIGN_IDENTITY:
+        required: false
+      APPLE_ID:
+        required: false
+      APPLE_TEAM_ID:
+        required: false
+      APPLE_APP_SPECIFIC_PASSWORD:
+        required: false
 
 jobs:
   build:
@@ -62,8 +89,8 @@ jobs:
       - name: Publish
         shell: bash
         env:
-          PCL_WRITE_SECRET: ${{ inputs.include_secrets && '1' || '' }}
-          PCL_MS_CLIENT_ID: ${{ inputs.include_secrets && secrets.CLIENT_ID || '' }}
+          PCL_WRITE_SECRET: ${{ (inputs.include_secrets || inputs.include_microsoft_oauth) && '1' || '' }}
+          PCL_MS_CLIENT_ID: ${{ (inputs.include_secrets || inputs.include_microsoft_oauth) && secrets.CLIENT_ID || '' }}
           PCL_CURSEFORGE_API_KEY: ${{ inputs.include_secrets && secrets.CURSEFORGE_API_KEY || '' }}
           PCL_SENTRY_DSN: ${{ inputs.include_secrets && secrets.SENTRY_DSN || '' }}
           PCL_NAID_CLIENT_ID: ${{ inputs.include_secrets && secrets.NAID_CLIENT_ID || '' }}
@@ -76,7 +103,7 @@ jobs:
           APPLE_TEAM_ID: ${{ inputs.include_secrets && runner.os == 'macOS' && secrets.APPLE_TEAM_ID || '' }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ inputs.include_secrets && runner.os == 'macOS' && secrets.APPLE_APP_SPECIFIC_PASSWORD || '' }}
         run: |
-          if [ "$PCL_WRITE_SECRET" = "1" ] && [ -z "$PCL_MS_CLIENT_ID" ]; then
+          if [[ "$PCL_WRITE_SECRET" == "1" && "$PCL_MS_CLIENT_ID" =~ ^[[:space:]]*$ ]]; then
             echo "Microsoft OAuth client id is required for credentialed builds." >&2
             exit 1
           fi

@@ -22,7 +22,7 @@ on:
 jobs:
   build:
     name: build (${{ matrix.rid }})
-    if: github.event_name != 'pull_request'
+    if: github.repository == 'PCL-Community/PCL-CE' && github.event_name != 'pull_request' && github.ref == 'refs/heads/dev'
     strategy:
       fail-fast: false
       matrix:
@@ -60,12 +60,13 @@ jobs:
       platform: ${{ matrix.platform }}
       runner: ${{ matrix.runner }}
       version: 0.0.0-ci
-      include_secrets: true
-    secrets: inherit
+      include_microsoft_oauth: true
+    secrets:
+      CLIENT_ID: ${{ secrets.CLIENT_ID }}
 
-  build_pr:
-    name: build (${{ matrix.rid }})
-    if: github.event_name == 'pull_request'
+  build_without_secrets:
+    name: build (${{ matrix.rid }}, no secrets)
+    if: github.repository != 'PCL-Community/PCL-CE' || github.event_name == 'pull_request' || github.ref != 'refs/heads/dev'
     strategy:
       fail-fast: false
       matrix:
@@ -103,7 +104,7 @@ jobs:
       platform: ${{ matrix.platform }}
       runner: ${{ matrix.runner }}
       version: 0.0.0-ci
-      include_secrets: false
+      include_microsoft_oauth: false
 
   test:
     name: test (${{ matrix.os }})
