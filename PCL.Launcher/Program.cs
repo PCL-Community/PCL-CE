@@ -37,6 +37,7 @@ internal static class Program
         MainWindowService.Loading = () =>
         {
             var window = new MainWindow();
+            PlatformStartup.Shell.OnWindowCreating(window);
             var context = new WindowContext(window);
             window.InitializeContext(context);
             return context.Host;
