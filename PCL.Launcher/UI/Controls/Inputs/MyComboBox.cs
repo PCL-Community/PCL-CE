@@ -430,7 +430,11 @@ public class MyComboBox : ComboBox
     internal void NotifyPointerActivity()
     {
         _lastInputFromKeyboard = false;
-        SetKeyboardNavigation(false);
+
+        if (IsKeyboardNavigation)
+            SetKeyboardNavigation(false);
+        else
+            RefreshItemHighlights();
     }
 
     private void SetKeyboardNavigation(bool value)
@@ -445,7 +449,7 @@ public class MyComboBox : ComboBox
     private void RefreshItemHighlights()
     {
         foreach (var item in GetRealizedContainers().OfType<MyComboBoxItem>())
-            item.RefreshColor();
+            item.RefreshColor(false, true);
     }
 
     // Popup 透明度

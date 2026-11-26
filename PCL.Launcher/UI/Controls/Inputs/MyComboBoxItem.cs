@@ -48,8 +48,8 @@ public class MyComboBoxItem : ComboBoxItem
     /// <summary>
     ///     重新计算当前项的背景色与透明度。
     /// </summary>
-    /// <param name="animate">是否播放配色过渡；首次挂载或主题切换时传 <c>false</c>。</param>
-    public void RefreshColor(bool animate = true)
+    /// <param name="animate">是否播放配色过渡；首次挂载、主题切换与高亮刷新时传 <c>false</c>。</param>
+    public void RefreshColor(bool animate = true, bool force = false)
     {
         // Avalonia 的 ComboBoxItem 没有 WPF 的 IsHighlighted：键盘模式下用焦点近似键盘高亮，
         // 指针模式下用悬停近似指针高亮；两种来源由 MyComboBox.IsKeyboardNavigation 区分。
@@ -88,7 +88,9 @@ public class MyComboBoxItem : ComboBoxItem
             time = AnimationTimeOut;
         }
 
-        if (_backColorName == newBackColorName && Math.Abs(_fontOpacity - newFontOpacity) < 0.0001d)
+        if (!force
+            && _backColorName == newBackColorName
+            && Math.Abs(_fontOpacity - newFontOpacity) < 0.0001d)
             return;
 
         _backColorName = newBackColorName;
@@ -183,7 +185,6 @@ public class MyComboBoxItem : ComboBoxItem
 
     private void OnActualThemeVariantChanged(object? sender, EventArgs e)
     {
-        _backColorName = null;
-        RefreshColor(false);
+        RefreshColor(false, true);
     }
 }
