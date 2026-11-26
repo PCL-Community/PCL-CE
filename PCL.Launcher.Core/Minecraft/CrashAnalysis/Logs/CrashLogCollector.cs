@@ -71,8 +71,7 @@ internal sealed class CrashLogCollector(CrashAnalysisContext context)
         }
 
         possibleLogs.Add(Path.Combine(versionPathIndie, "logs", "latest.log"));
-        var launchScript = CrashFileIo.ReadText(
-            Path.Combine(Paths.Data, "LatestLaunch.bat"));
+        var launchScript = CrashFileIo.ReadText(GameLaunch.LatestLaunchScriptPath);
         if (launchScript.Contains(
                 "-Dlog4j2.formatMsgNoLookups=false",
                 StringComparison.OrdinalIgnoreCase))

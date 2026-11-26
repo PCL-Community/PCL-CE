@@ -141,7 +141,8 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
     /// <summary>退出安装配置阶段，回到版本选择。</summary>
     public void ExitSelectPage()
     {
-        ShowSelectStage();
+        if (_vm.IsConfigStageVisible)
+            ShowSelectStage();
     }
 
     #region 版本选择阶段
@@ -179,9 +180,12 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
 
     private void ShowSelectStage()
     {
-        var animate = ContainerAnimation.CanAnimate(this)
+        var animate = _vm.IsConfigStageVisible
+            && PageState is PageStates.ContentEnter or PageStates.ContentStay
+            && ContainerAnimation.CanAnimate(this)
             && PanSelectStage?.IsLoaded == true
             && PanConfigStage?.IsLoaded == true;
+        AnimationService.CancelAnimationByName("Install Stage Switch");
         _vm.IsConfigStageVisible = false;
         PanConfigStage?.IsVisible = false;
         if (PanSelectStage is not null)
@@ -228,9 +232,12 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
 
     private void ShowConfigStage()
     {
-        var animate = ContainerAnimation.CanAnimate(this)
+        var animate = !_vm.IsConfigStageVisible
+            && PageState is PageStates.ContentEnter or PageStates.ContentStay
+            && ContainerAnimation.CanAnimate(this)
             && PanSelectStage?.IsLoaded == true
             && PanConfigStage?.IsLoaded == true;
+        AnimationService.CancelAnimationByName("Install Stage Switch");
         PanSelectStage?.IsVisible = false;
         _vm.IsConfigStageVisible = true;
         if (PanConfigStage is not null)

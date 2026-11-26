@@ -223,7 +223,7 @@ public static partial class Files
             if (total > 0) progressIncrementHandler?.Invoke(1d / total);
 
             var path = Path.GetFullPath(Path.Combine(fullDestDirectory, entry.FullName));
-            if (!path.StartsWith(fullDestDirectory, StringComparison.OrdinalIgnoreCase))
+            if (!IsPathWithinDirectory(path, fullDestDirectory))
                 throw new Exception(
                     $"解压文件 {entry.FullName} 错误：解压路径 {path} 不在目标目录 {fullDestDirectory} 内");
 

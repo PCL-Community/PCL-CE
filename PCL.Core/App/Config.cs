@@ -201,6 +201,11 @@ public static partial class Config
         [ConfigItem<LauncherTitleType>("UiLogoType", LauncherTitleType.Default, ConfigSource.Local)] public partial LauncherTitleType WindowTitleType { get; set; }
 
         /// <summary>
+        /// macOS 标题栏样式。
+        /// </summary>
+        [ConfigItem<int>("UiMacTitleBarStyle", 0, ConfigSource.Local)] public partial int MacTitleBarStyle { get; set; }
+
+        /// <summary>
         /// 窗口标题文本。
         /// </summary>
         [ConfigItem<string>("UiLogoText", "", ConfigSource.Local)] public partial string WindowTitleCustomText { get; set; }

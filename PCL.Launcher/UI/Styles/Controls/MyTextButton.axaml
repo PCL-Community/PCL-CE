@@ -11,9 +11,13 @@
         <Setter Property="Foreground"
                 Value="{DynamicResource ColorBrush1}" />
     </Style>
-    <Style Selector="ui|MyTextButton.link TextBlock#LabText">
-        <Setter Property="TextDecorations"
-                Value="Underline" />
+	<Style Selector="ui|MyTextButton Border#BorUnderline">
+		<Setter Property="IsVisible"
+                Value="False" />
+	</Style>
+    <Style Selector="ui|MyTextButton.link Border#BorUnderline">
+		<Setter Property="IsVisible"
+                Value="True" />
     </Style>
     <Style Selector="ui|MyTextButton.link">
         <Setter Property="IsSecondary"

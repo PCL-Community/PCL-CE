@@ -360,10 +360,7 @@ public sealed class FileDragHandler
             foreach (var path in paths)
             {
                 var target = Path.Combine(folder, Path.GetFileName(path));
-                if (string.Equals(
-                        Path.GetFullPath(path),
-                        Path.GetFullPath(target),
-                        StringComparison.OrdinalIgnoreCase))
+                if (Files.ArePathsEqual(path, target))
                 {
                     HintService.Show(
                         Hints.Info(

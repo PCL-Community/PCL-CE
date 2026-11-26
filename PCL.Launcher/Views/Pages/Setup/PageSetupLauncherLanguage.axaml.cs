@@ -9,14 +9,9 @@ using PCL.UI.Controls;
 
 namespace PCL.Views.Pages.Setup;
 
-/// <summary>
-/// 语言设置页：界面语言、区域格式与多语言横幅。 选择状态由 <see cref="PageSetupLauncherLanguageViewModel" />
-/// 负责，页面构建带本地化名称的下拉项。
-/// </summary>
 public partial class PageSetupLauncherLanguage : MyPageRight, ISetupResetPage
 {
     private bool _loaded;
-    private bool _reloading;
 
     public PageSetupLauncherLanguage()
     {
@@ -25,8 +20,7 @@ public partial class PageSetupLauncherLanguage : MyPageRight, ISetupResetPage
         DataContext = ViewModel;
         LabBannerTitle.FontFamily = LaunchFonts.BannerFont;
 
-        ComboUiLanguage.SelectionChanged += (_, _) => OnLanguageChanged();
-        ComboUiFormatCulture.SelectionChanged += (_, _) => OnFormatCultureChanged();
+        ViewModel.ReloadRequested += OnReloadRequested;
         BtnTranslateWebsite.Click += (_, _) =>
             Basics.OpenPath("https://translate.pclc.cc/projects/pcl-ce/");
         BtnSubmitPullRequest.Click += (_, _) =>
@@ -44,6 +38,8 @@ public partial class PageSetupLauncherLanguage : MyPageRight, ISetupResetPage
 
     public void Reset()
     {
+        var wasSynchronizing = ViewModel.IsSynchronizing;
+        ViewModel.IsSynchronizing = true;
         try
         {
             Config.Preference.Localization.LanguageConfig.SetDefaultValue();
@@ -60,6 +56,10 @@ public partial class PageSetupLauncherLanguage : MyPageRight, ISetupResetPage
                 LauncherLogLevel.Msgbox,
                 userSummary: Lang.Text("Setup.Error.OperationFailed"));
         }
+        finally
+        {
+            ViewModel.IsSynchronizing = wasSynchronizing;
+        }
     }
 
     public override void OnNavigatedTo(PageParameter? parameter)
@@ -74,7 +74,8 @@ public partial class PageSetupLauncherLanguage : MyPageRight, ISetupResetPage
 
     public void Reload()
     {
-        _reloading = true;
+        var wasSynchronizing = ViewModel.IsSynchronizing;
+        ViewModel.IsSynchronizing = true;
         try
         {
             ReloadLanguageCombo();
@@ -83,8 +84,14 @@ public partial class PageSetupLauncherLanguage : MyPageRight, ISetupResetPage
         }
         finally
         {
-            _reloading = false;
+            ViewModel.IsSynchronizing = wasSynchronizing;
         }
+    }
+
+    private void OnReloadRequested()
+    {
+        if (_loaded)
+            Dispatcher.UIThread.Post(Reload);
     }
 
     private void ReloadLanguageCombo()
@@ -114,7 +121,8 @@ public partial class PageSetupLauncherLanguage : MyPageRight, ISetupResetPage
 
         var configValue = PageSetupLauncherLanguageViewModel.NormalizeConfigValue(
             Config.Preference.Localization.Language);
-        ComboUiLanguage.SelectedIndex = ResolveLanguageIndex(configValue);
+        ComboUiLanguage.SelectedIndex =
+            PageSetupLauncherLanguageViewModel.ResolveLanguageIndex(configValue);
     }
 
     private void ReloadFormatCultureCombo()
@@ -156,74 +164,8 @@ public partial class PageSetupLauncherLanguage : MyPageRight, ISetupResetPage
                     Tag = customCulture.Name
                 });
 
-        ComboUiFormatCulture.SelectedIndex = ResolveFormatCultureIndex(configValue);
-    }
-
-    private void OnLanguageChanged()
-    {
-        if (_reloading || ComboUiLanguage.SelectedItem is not MyComboBoxItem item)
-            return;
-        var value = item.Tag?.ToString() ?? LocalizationService.Auto;
-        if (string.Equals(
-                Config.Preference.Localization.Language,
-                value,
-                StringComparison.OrdinalIgnoreCase))
-            return;
-        Config.Preference.Localization.Language = value;
-        HintService.Show(Hints.Success(Lang.Text("Setup.Language.Changed"), false));
-        Dispatcher.UIThread.Post(Reload);
-    }
-
-    private void OnFormatCultureChanged()
-    {
-        if (_reloading || ComboUiFormatCulture.SelectedItem is not MyComboBoxItem item)
-            return;
-        var value = item.Tag?.ToString() ?? LocalizationService.Auto;
-        if (string.Equals(
-                Config.Preference.Localization.FormatCulture,
-                value,
-                StringComparison.OrdinalIgnoreCase))
-            return;
-        Config.Preference.Localization.FormatCulture = value;
-        HintService.Show(Hints.Success(Lang.Text("Setup.Language.Changed"), false));
-        Dispatcher.UIThread.Post(Reload);
-    }
-
-    private static int ResolveLanguageIndex(string configValue)
-    {
-        if (!LocalizationService.IsLanguageSupported(configValue)) return 0;
-        if (string.Equals(
-                configValue,
-                LocalizationService.Auto,
-                StringComparison.OrdinalIgnoreCase)) return 0;
-        var code = LocalizationService.ResolveLanguage(configValue).Code;
-        var index = 1;
-        foreach (var language in LocalizationService.SupportedLanguages)
-        {
-            if (string.Equals(language.Code, code, StringComparison.OrdinalIgnoreCase))
-                return index;
-            index++;
-        }
-
-        return 0;
-    }
-
-    private static int ResolveFormatCultureIndex(string configValue)
-    {
-        if (string.Equals(
-                configValue,
-                LocalizationService.FormatCultureFollowLanguage,
-                StringComparison.OrdinalIgnoreCase))
-            return 1;
-        var index = 2;
-        foreach (var culture in PageSetupLauncherLanguageViewModel.GetBuiltInFormatCultures())
-        {
-            if (string.Equals(culture.Name, configValue, StringComparison.OrdinalIgnoreCase))
-                return index;
-            index++;
-        }
-
-        return PageSetupLauncherLanguageViewModel.TryGetCulture(configValue, out _) ? index : 0;
+        ComboUiFormatCulture.SelectedIndex =
+            PageSetupLauncherLanguageViewModel.ResolveFormatCultureIndex(configValue);
     }
 
     private bool IsFormatCultureItemExisting(string tag)

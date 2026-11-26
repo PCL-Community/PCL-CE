@@ -24,6 +24,28 @@ public sealed class FfmpegVideoProbeTest
     }
 
     [TestMethod]
+    public void UsesSampleAspectRatioForDisplaySize()
+    {
+        var size = FfmpegVideoProbe.Parse(
+            "Stream #0:0: Video: h264, yuv420p, 320x240 [SAR 2:1 DAR 8:3], 34 kb/s");
+
+        Assert.AreEqual(640, size?.Width);
+        Assert.AreEqual(240, size?.Height);
+    }
+
+    [TestMethod]
+    public void SwapsDimensionsForQuarterTurnRotation()
+    {
+        var size = FfmpegVideoProbe.Parse(
+            "Stream #0:0: Video: h264, yuv420p, 320x240 [SAR 1:1 DAR 4:3]\n"
+            + "  Side data:\n"
+            + "    Display Matrix: rotation of 90.00 degrees");
+
+        Assert.AreEqual(240, size?.Width);
+        Assert.AreEqual(320, size?.Height);
+    }
+
+    [TestMethod]
     public async Task ProbesFirstVideoStream()
     {
         var runner = new RecordingRunner();

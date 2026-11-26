@@ -3,6 +3,7 @@
              xmlns:ui="using:PCL.UI.Controls"
              xmlns:loc="using:PCL.Core.UI"
              x:Class="PCL.UI.Controls.Minecraft.MinecraftVersionListView"
+             ClipToBounds="False"
              x:CompileBindings="True">
     <StackPanel>
         <StackPanel x:Name="PanStatus"
