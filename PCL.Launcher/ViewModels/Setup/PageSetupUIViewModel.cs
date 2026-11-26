@@ -153,6 +153,8 @@ public partial class PageSetupUIViewModel : ViewModelBase
             DarkModeSelectedIndex = Math.Clamp((int)theme.ColorMode, 0, 2);
             LightColorSelectedIndex = Math.Clamp((int)theme.LightColor, 0, colorMax);
             DarkColorSelectedIndex = Math.Clamp((int)theme.DarkColor, 0, colorMax);
+            
+            BlurRadius = Config.Preference.Blur.Radius;
 
             BackgroundOpacity = Config.Preference.Background.WallpaperOpacity;
             BackgroundBlur = Config.Preference.Background.WallpaperBlurRadius;
