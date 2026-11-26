@@ -610,10 +610,10 @@ public sealed class ColorAnimation : NColorFromToAnimation
         bool after = false)
     {
         Target = new AvaloniaAnimatable(target, property);
-        From = new NColor(0f, 0f, 0f, 0f);
+        From = AnimationTargets.ReadColor(target, property);
         HasFrom = true;
-        To = value;
-        ValueType = AnimationValueType.Relative;
+        To = From + value;
+        ValueType = AnimationValueType.Absolute;
         Duration = TimeSpan.FromMilliseconds(Math.Max(0, time));
         Delay = TimeSpan.FromMilliseconds(Math.Max(0, delay));
         Easing = ease ?? new LinearEasing();
@@ -632,10 +632,10 @@ public sealed class ColorAnimation : NColorFromToAnimation
         var targetColor = AnimationTargets.ResolveColor(target, resource);
         var current = AnimationTargets.ReadColor(target, property);
         Target = new AvaloniaAnimatable(target, property);
-        From = new NColor(0f, 0f, 0f, 0f);
+        From = current;
         HasFrom = true;
-        To = targetColor - current;
-        ValueType = AnimationValueType.Relative;
+        To = targetColor;
+        ValueType = AnimationValueType.Absolute;
         Duration = TimeSpan.FromMilliseconds(Math.Max(0, time));
         Delay = TimeSpan.FromMilliseconds(Math.Max(0, delay));
         Easing = ease ?? new LinearEasing();

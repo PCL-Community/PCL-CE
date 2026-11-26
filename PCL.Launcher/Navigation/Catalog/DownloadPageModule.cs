@@ -15,7 +15,8 @@ public sealed class DownloadPageModule : IPageModule
             "lucide/boxes",
             "minecraft",
             0,
-            (sp, _) => ActivatorUtilities.CreateInstance<PageDownloadInstall>(sp)),
+            (sp, _) => ActivatorUtilities.CreateInstance<PageDownloadInstall>(sp),
+            refresh: true),
         Sub(
             PageIds.Download,
             SubPageIds.DownloadMod,
@@ -93,7 +94,8 @@ public sealed class DownloadPageModule : IPageModule
             "lucide/package",
             "install",
             8,
-            (sp, _) => ActivatorUtilities.CreateInstance<PageDownloadClient>(sp)),
+            (sp, _) => ActivatorUtilities.CreateInstance<PageDownloadClient>(sp),
+            refresh: true),
         Sub(
             PageIds.Download,
             SubPageIds.DownloadOptiFine,
@@ -104,7 +106,8 @@ public sealed class DownloadPageModule : IPageModule
             (sp, _) =>
                 ActivatorUtilities.CreateInstance<PageDownloadLoaderPage>(
                     sp,
-                    DownloadLoaderKind.OptiFine)),
+                    DownloadLoaderKind.OptiFine),
+            refresh: true),
         Sub(
             PageIds.Download,
             SubPageIds.DownloadForge,
@@ -115,7 +118,8 @@ public sealed class DownloadPageModule : IPageModule
             (sp, _) =>
                 ActivatorUtilities.CreateInstance<PageDownloadLoaderPage>(
                     sp,
-                    DownloadLoaderKind.Forge)),
+                    DownloadLoaderKind.Forge),
+            refresh: true),
         Sub(
             PageIds.Download,
             SubPageIds.DownloadNeoForge,
@@ -126,7 +130,8 @@ public sealed class DownloadPageModule : IPageModule
             (sp, _) =>
                 ActivatorUtilities.CreateInstance<PageDownloadLoaderPage>(
                     sp,
-                    DownloadLoaderKind.NeoForge)),
+                    DownloadLoaderKind.NeoForge),
+            refresh: true),
         Sub(
             PageIds.Download,
             SubPageIds.DownloadCleanroom,
@@ -137,7 +142,8 @@ public sealed class DownloadPageModule : IPageModule
             (sp, _) =>
                 ActivatorUtilities.CreateInstance<PageDownloadLoaderPage>(
                     sp,
-                    DownloadLoaderKind.Cleanroom)),
+                    DownloadLoaderKind.Cleanroom),
+            refresh: true),
         Sub(
             PageIds.Download,
             SubPageIds.DownloadFabric,
@@ -148,7 +154,8 @@ public sealed class DownloadPageModule : IPageModule
             (sp, _) =>
                 ActivatorUtilities.CreateInstance<PageDownloadLoaderPage>(
                     sp,
-                    DownloadLoaderKind.Fabric)),
+                    DownloadLoaderKind.Fabric),
+            refresh: true),
         Sub(
             PageIds.Download,
             SubPageIds.DownloadLegacyFabric,
@@ -159,7 +166,8 @@ public sealed class DownloadPageModule : IPageModule
             (sp, _) =>
                 ActivatorUtilities.CreateInstance<PageDownloadLoaderPage>(
                     sp,
-                    DownloadLoaderKind.LegacyFabric)),
+                    DownloadLoaderKind.LegacyFabric),
+            refresh: true),
         Sub(
             PageIds.Download,
             SubPageIds.DownloadLabyMod,
@@ -170,7 +178,8 @@ public sealed class DownloadPageModule : IPageModule
             (sp, _) =>
                 ActivatorUtilities.CreateInstance<PageDownloadLoaderPage>(
                     sp,
-                    DownloadLoaderKind.LabyMod)),
+                    DownloadLoaderKind.LabyMod),
+            refresh: true),
         Sub(
             PageIds.Download,
             SubPageIds.DownloadLiteLoader,
@@ -181,7 +190,8 @@ public sealed class DownloadPageModule : IPageModule
             (sp, _) =>
                 ActivatorUtilities.CreateInstance<PageDownloadLoaderPage>(
                     sp,
-                    DownloadLoaderKind.LiteLoader))
+                    DownloadLoaderKind.LiteLoader),
+            refresh: true)
     ];
 
     public IReadOnlyList<PageDescriptor> Pages { get; } =

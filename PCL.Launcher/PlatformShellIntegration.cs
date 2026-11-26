@@ -15,7 +15,11 @@ namespace PCL;
 
 internal interface IPlatformShellIntegration
 {
+    /// <summary>主窗口的打开 / 关闭动画是否由系统原生播放。</summary>
+    bool UsesNativeWindowAnimation => false;
+
     void OnFrameworkInitialized(Application application);
+    void OnWindowCreating(Window window) { }
     void OnWindowCreated(Window window);
 }
 
@@ -62,10 +66,12 @@ internal sealed class MacOsShellIntegration : IPlatformShellIntegration
     private static readonly ObjCSel _UnhideAllApplications = ObjCSel.FromString("unhideAllApplications:");
 
     private static readonly ObjCSel _InitWithIdentifier = ObjCSel.FromString("initWithIdentifier:");
+    private static readonly ObjCSel _SetAnimationBehavior = ObjCSel.FromString("setAnimationBehavior:");
     private static readonly ObjCSel _SetToolbar = ObjCSel.FromString("setToolbar:");
     private static readonly ObjCSel _SetToolbarStyle = ObjCSel.FromString("setToolbarStyle:");
     private static readonly ObjCSel _SetTitlebarSeparatorStyle = ObjCSel.FromString("setTitlebarSeparatorStyle:");
 
+    private const nint DocumentWindowAnimationBehavior = 3;
     private const nint AutomaticToolbarStyle = 0;
     private const nint UnifiedToolbarStyle = 4;
     private const nint AutomaticTitlebarSeparator = 0;
@@ -74,9 +80,17 @@ internal sealed class MacOsShellIntegration : IPlatformShellIntegration
 
     private static bool _frameworksLoaded;
 
+    public bool UsesNativeWindowAnimation => true;
+
     public void OnFrameworkInitialized(Application application)
     {
         ApplyDockIcon();
+    }
+
+    public void OnWindowCreating(Window window)
+    {
+        if (window.TryGetPlatformHandle()?.Handle is { } handle && handle != 0)
+            new ObjCObject(handle).SendMessage(_SetAnimationBehavior, DocumentWindowAnimationBehavior);
     }
 
     public void OnWindowCreated(Window window)

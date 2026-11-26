@@ -56,7 +56,10 @@ public interface IMediaService
     /// <summary>当前播放列表快照。</summary>
     IReadOnlyList<string> MusicList => [];
 
+    /// <summary>暂停背景音乐。</summary>
     void PauseMusic();
+
+    /// <summary>恢复背景音乐。</summary>
     void ResumeMusic();
 
     /// <summary>左键点击音乐快捷按钮：暂停、恢复或重新开始。</summary>

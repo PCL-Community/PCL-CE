@@ -1,4 +1,5 @@
 ﻿using PCL.Core.App;
+using PCL.Core.IO;
 
 namespace PCL;
 
@@ -77,11 +78,8 @@ public static partial class Libraries
             throw new IOException($"支持库下载路径不能为绝对路径: {artifactPath}");
 
         var localPath = Path.GetFullPath(Path.Combine(librariesRoot, normalizedArtifactPath));
-        var librariesRootWithSeparator =
-            librariesRoot.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
-            + Path.DirectorySeparatorChar;
 
-        return !localPath.StartsWith(librariesRootWithSeparator, StringComparison.OrdinalIgnoreCase)
+        return !Files.IsPathWithinDirectory(localPath, librariesRoot)
             ? throw new IOException($"支持库下载路径不能位于 libraries 文件夹外: {artifactPath}")
             : localPath;
     }
