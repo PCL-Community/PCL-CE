@@ -102,10 +102,8 @@ public sealed record MainTabDescriptor(
 {
     public Func<bool>? IsVisible { get; init; }
 
-    public static MainTab Normalize(MainTab tab)
-    {
-        return PageCatalog.MainTabs.FirstOrDefault(item => item.Id == tab)?.IsVisible?.Invoke() == false
+    public static MainTab Normalize(MainTab tab) =>
+        PageCatalog.MainTabs.FirstOrDefault(item => item.Id == tab)?.IsVisible?.Invoke() == false
             ? MainTab.Launch
             : tab;
-    }
 }

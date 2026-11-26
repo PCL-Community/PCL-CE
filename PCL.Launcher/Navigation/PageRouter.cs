@@ -141,12 +141,9 @@ public static class PageRouter
     {
         if (_isNavigating || _rightHost is null) return;
 
-        var pageTab = PageRegistry.TabOfPage(route.Page);
-        if (pageTab is { } tab && MainTabDescriptor.Normalize(tab) != tab)
-        {
+        if (PageRegistry.TabOfPage(route.Page) is { } pageTab
+            && MainTabDescriptor.Normalize(pageTab) != pageTab)
             route = new PageRoute(PageIds.Launch);
-            if (_hasNavigated && Current.Equals(route)) return;
-        }
 
         var host = PageRegistry.GetHost(route.Page);
         if (host is null)

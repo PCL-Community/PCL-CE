@@ -70,20 +70,14 @@ public partial class TitleBar : UserControl
         }
 
         var previous = _tabButtons.FirstOrDefault(pair => pair.Value.Checked).Key;
-        _updating = true;
         BuildMainTabs();
-        _updating = false;
-
-        SetTabChecked(previous);
-
-        var hidden = MainTabDescriptor.Normalize(previous) != previous;
-        if (!hidden) return;
-        Dispatcher.UIThread.Post(() =>
+        if (MainTabDescriptor.Normalize(previous) == previous)
         {
-            if (_tabButtons.FirstOrDefault(p => p.Value.Checked).Key == previous
-                && MainTabDescriptor.Normalize(previous) != previous)
-                PageRouter.Navigate(MainTab.Launch);
-        });
+            SetTabChecked(previous);
+            return;
+        }
+
+        PageRouter.Navigate(MainTab.Launch);
     }
 
     private bool CanAnimateShell =>
