@@ -28,6 +28,7 @@ public sealed class GameSession : IDisposable
     private GameLogCounters _counters;
     private GameCrashReason? _crashReason;
     private int _disposed;
+    private int _exitCompleted;
     private int _exitHandled;
     private int _exitRaised;
     private int _killStarted;
@@ -106,6 +107,8 @@ public sealed class GameSession : IDisposable
     public bool IsLiveLogEnabled => _options.CaptureLiveLog;
 
     public bool HasExited => _process.HasExited;
+
+    public bool IsExitCompleted => Volatile.Read(ref _exitCompleted) != 0;
 
     public bool CanTerminate => !HasExited;
 
@@ -736,6 +739,7 @@ public sealed class GameSession : IDisposable
         };
 
         _RaiseExited(exitCode, reason);
+        Volatile.Write(ref _exitCompleted, 1);
     }
 
     private void _TriggerCrash(GameCrashReason reason, int? exitCode)

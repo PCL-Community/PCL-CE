@@ -147,7 +147,7 @@ public static class GameWatcherService
         var finished = _SessionList
             .Where(session => session is
             {
-                HasExited: true,
+                IsExitCompleted: true,
                 State: GameSessionState.Crashed
                 or GameSessionState.Ended
                 or GameSessionState.Canceled

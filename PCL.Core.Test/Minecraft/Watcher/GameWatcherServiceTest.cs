@@ -196,7 +196,7 @@ public sealed class GameWatcherServiceTest
         await WatcherTestHelpers.WaitUntilAsync(() =>
             firstSession.State == GameSessionState.Crashed);
         first.Complete(1);
-        await WatcherTestHelpers.WaitUntilAsync(() => firstSession.HasExited);
+        await WatcherTestHelpers.WaitUntilAsync(() => firstSession.IsExitCompleted);
 
         var second = new FakeGameProcess();
         var secondSession = GameWatcherService.StartSession(
@@ -210,12 +210,27 @@ public sealed class GameWatcherServiceTest
     }
 
     [TestMethod]
-    public async Task StartingNewSessionKeepsCrashedLiveSession()
+    public async Task StartingNewSessionKeepsCrashedSessionUntilExitHandled()
     {
         var first = new FakeGameProcess();
         var firstSession = GameWatcherService.StartSession(
             first,
             WatcherTestHelpers.CreateOptions(first));
+        using var entered = new ManualResetEventSlim();
+        using var release = new ManualResetEventSlim();
+        var exited = new TaskCompletionSource<GameSessionExitedEventArgs>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+
+        firstSession.LogLineReceived += (_, e) =>
+        {
+            if (!e.Text.Contains("hold exit"))
+                return;
+
+            entered.Set();
+            release.Wait(TestContext.CancellationToken);
+        };
+        firstSession.Exited += (_, e) => exited.TrySetResult(e);
+
         first.Emit("[12:00:00] [main/INFO]: Crash report saved to: crash.txt");
         await WatcherTestHelpers.WaitUntilAsync(() =>
             firstSession.State == GameSessionState.Crashed);
@@ -232,17 +247,36 @@ public sealed class GameWatcherServiceTest
         Assert.IsFalse(first.Disposed);
         Assert.IsTrue(GameWatcherService.HasLiveSessions);
 
-        first.Complete(0);
+        first.Emit("[12:00:00] [main/INFO]: hold exit");
+        await WatcherTestHelpers.WaitUntilAsync(() => entered.IsSet);
+
+        first.Complete(1);
         await WatcherTestHelpers.WaitUntilAsync(() => firstSession.HasExited);
+        Assert.IsFalse(firstSession.IsExitCompleted);
 
         var third = new FakeGameProcess();
         GameWatcherService.StartSession(
             third,
             WatcherTestHelpers.CreateOptions(third));
 
-        Assert.HasCount(2, GameWatcherService.Sessions);
-        Assert.IsFalse(
-            GameWatcherService.Sessions.Any(item => ReferenceEquals(item, firstSession)));
+        Assert.HasCount(3, GameWatcherService.Sessions);
+        Assert.IsFalse(first.Disposed);
+
+        release.Set();
+        await WatcherTestHelpers.WaitUntilAsync(() => firstSession.IsExitCompleted);
+        await exited.Task.WaitAsync(
+            TimeSpan.FromSeconds(5),
+            TestContext.CancellationToken);
+        Assert.Contains(line => line.Contains("hold exit"), firstSession.RecentLog);
+
+        var fourth = new FakeGameProcess();
+        GameWatcherService.StartSession(
+            fourth,
+            WatcherTestHelpers.CreateOptions(fourth));
+
+        Assert.HasCount(3, GameWatcherService.Sessions);
+        Assert.DoesNotContain(
+            item => ReferenceEquals(item, firstSession), GameWatcherService.Sessions);
         Assert.IsTrue(first.Disposed);
     }
 }
