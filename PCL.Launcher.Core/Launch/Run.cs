@@ -616,7 +616,7 @@ public static partial class GameLaunch
                     {
                         Path.Combine(instance.PathInstance, $"{instance.Name}.json"),
                         launcherLog,
-                        Path.Combine(Paths.Data, "LatestLaunch.bat")
+                        LatestLaunchScriptPath
                     };
 
                     LauncherCommon.Log(

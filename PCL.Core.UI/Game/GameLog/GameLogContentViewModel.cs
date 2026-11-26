@@ -105,6 +105,12 @@ public partial class GameLogContentViewModel : ViewModelBase
 
     public void OnGameExit(GameSessionExitedEventArgs args)
     {
+        if (!ReferenceEquals(_list?.CurrentSession, args.Session))
+        {
+            RefreshActionAvailability();
+            return;
+        }
+
         IsKillEnabled = false;
         IsExportStackDumpEnabled = false;
 
