@@ -126,17 +126,13 @@ internal static class LoaderInstallerInstall
     }
 
     public static Loading.LoaderTask<List<DownloadFile>, string> CreateInstallerRunLoader(
+        McInstallRequest request,
         ForgelikePlanHolder holder,
         string instanceFolder,
         string instanceName)
     {
-        var loaderName = holder.Plan?.LoaderName ?? "Forgelike";
         return new Loading.LoaderTask<List<DownloadFile>, string>(
-            Lang.Text(
-                holder.Plan?.IsInstaller == true
-                    ? "Minecraft.Download.Stage.InstallForgeType"
-                    : "Minecraft.Download.Stage.InstallForge.MethodB",
-                loaderName),
+            GetInstallerTaskName(request),
             task => task.output = RunInstaller(
                 task,
                 holder.Plan ?? throw new InvalidOperationException("未获取到加载器安装信息"),
@@ -145,6 +141,27 @@ internal static class LoaderInstallerInstall
         {
             ProgressWeight = 12d
         };
+    }
+
+    private static string GetInstallerTaskName(McInstallRequest request)
+    {
+        var loaderName = GetLoaderName(request);
+        if (loaderName != "Forge")
+            return Lang.Text("Minecraft.Download.Stage.InstallForgeType", loaderName);
+
+        var forgeVersion = request.forgeEntry?.version;
+        if (forgeVersion is null)
+        {
+            var (versionName, _) = NormalizeForgeVersion(
+                request.forgeVersion ?? request.forgeEntry?.VersionName ?? "",
+                request.forgeEntry?.Inherit ?? request.minecraftName ?? "");
+            Version.TryParse(versionName, out forgeVersion);
+        }
+
+        return Lang.Text(
+            forgeVersion?.Major >= 20
+                ? "Minecraft.Download.Stage.InstallForge.MethodA"
+                : "Minecraft.Download.Stage.InstallForge.MethodB");
     }
 
     private static string GetLoaderName(McInstallRequest request)
