@@ -76,6 +76,10 @@ jobs:
           APPLE_TEAM_ID: ${{ inputs.include_secrets && runner.os == 'macOS' && secrets.APPLE_TEAM_ID || '' }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ inputs.include_secrets && runner.os == 'macOS' && secrets.APPLE_APP_SPECIFIC_PASSWORD || '' }}
         run: |
+          if [ "$PCL_WRITE_SECRET" = "1" ] && [ -z "$PCL_MS_CLIENT_ID" ]; then
+            echo "Microsoft OAuth client id is required for credentialed builds." >&2
+            exit 1
+          fi
           if [ "${{ runner.os }}" = "macOS" ]; then
             scripts/package-macos.sh "$RID" "$CONFIGURATION" "$VERSION" dist
           else

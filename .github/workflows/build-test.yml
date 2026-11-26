@@ -22,6 +22,50 @@ on:
 jobs:
   build:
     name: build (${{ matrix.rid }})
+    if: github.event_name != 'pull_request'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: windows_x64
+            runner: windows-latest
+            rid: win-x64
+            platform: x64
+          - target: windows_ARM64
+            runner: windows-latest
+            rid: win-arm64
+            platform: ARM64
+          - target: linux_x64
+            runner: ubuntu-latest
+            rid: linux-x64
+            platform: x64
+          - target: linux_ARM64
+            runner: ubuntu-24.04-arm
+            rid: linux-arm64
+            platform: ARM64
+          - target: macos_ARM64
+            runner: macos-latest
+            rid: osx-arm64
+            platform: ARM64
+          - target: macos_x64
+            runner: macos-latest
+            rid: osx-x64
+            platform: x64
+
+    uses: ./.github/workflows/reusable-build.yml
+    with:
+      configuration: CI
+      target: ${{ matrix.target }}
+      rid: ${{ matrix.rid }}
+      platform: ${{ matrix.platform }}
+      runner: ${{ matrix.runner }}
+      version: 0.0.0-ci
+      include_secrets: true
+    secrets: inherit
+
+  build_pr:
+    name: build (${{ matrix.rid }})
+    if: github.event_name == 'pull_request'
     strategy:
       fail-fast: false
       matrix:
