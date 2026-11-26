@@ -14,10 +14,11 @@ public static partial class Modpack
         string fileAddress,
         ZipArchive archive,
         string archiveBaseFolder,
-        string? instanceName = null,
-        string? logo = null,
-        string? resourceId = null,
-        bool isOnlineInstall = false)
+        string? instanceName,
+        string? logo,
+        string? resourceId,
+        bool isOnlineInstall,
+        string? ownedArchive)
     {
         var json = _ReadCurseForgeManifest(archive, archiveBaseFolder);
         if (json["minecraft"] is null || json["minecraft"]!["version"] is null)
@@ -49,11 +50,12 @@ public static partial class Modpack
                     loaderVersions.ModLoader));
 
         var request = _CreateCurseForgeInstallRequest(instanceName, json, loaderVersions);
+        request.ModpackArchivePath = fileAddress;
         var mergeLoaders = ModpackUi.CreateInstallLoader(request);
         var loaders = _CreateCurseForgeLoaderList(
             installLoaders,
             mergeLoaders,
-            fileAddress,
+            ownedArchive,
             json,
             instanceName,
             logo,
@@ -376,7 +378,7 @@ public static partial class Modpack
     private static List<LoaderBase> _CreateCurseForgeLoaderList(
         List<LoaderBase> installLoaders,
         List<LoaderBase> mergeLoaders,
-        string fileAddress,
+        string? ownedArchive,
         JsonObject json,
         string instanceName,
         string? logo,
@@ -387,7 +389,7 @@ public static partial class Modpack
             new LoaderTask<string, string>(
                 Lang.Text("Minecraft.Download.Modpack.Stage.FinalizeFiles"),
                 _ => _FinalizeModpackInstance(
-                    fileAddress,
+                    ownedArchive,
                     instanceName,
                     logo,
                     resourceId,

@@ -156,16 +156,26 @@ public static class McInstallRecovery
         RestoreOrCleanup(instanceFolder);
     }
 
-    public static bool TryClearIncompleteInstanceFolder(string instanceFolder, string instanceName)
+    public static bool TryClearIncompleteInstanceFolder(string instanceFolder, string instanceName) =>
+        TryClearIncompleteInstanceFolder(instanceFolder, instanceName, null);
+
+    public static bool TryClearIncompleteInstanceFolder(string instanceFolder, string instanceName, string? modpackArchive)
     {
         var folder = NormalizeFolder(instanceFolder);
         if (!Directory.Exists(folder))
             return true;
-        if (File.Exists(GetJsonPath(folder, instanceName)))
+        var backupFolder = Path.Combine(folder, BackupFolderName);
+        var jarPath = GetJarPath(folder, instanceName);
+        var jsonPath = GetJsonPath(folder, instanceName);
+        var ignoreFlag = Path.Combine(folder, ".pclignore");
+        if (modpackArchive is not null && (ContainsSourceArchive(backupFolder, modpackArchive)
+            || Files.ArePathsEqual(modpackArchive, jarPath) || Files.ArePathsEqual(modpackArchive, jsonPath)
+            || Files.ArePathsEqual(modpackArchive, ignoreFlag)))
+            throw new IOException($"整合包位于安装器需要写入或清理的位置，请先将它移出：{modpackArchive}");
+        if (File.Exists(jsonPath))
             return false;
 
         Thread.Sleep(1000);
-        var backupFolder = Path.Combine(folder, BackupFolderName);
         if (Directory.Exists(backupFolder))
             try
             {
@@ -176,16 +186,24 @@ public static class McInstallRecovery
                 LauncherCommon.Log(ex, "清理安装备份目录失败");
             }
 
-        DeleteFileQuietly(GetJarPath(folder, instanceName));
-        DeleteFileQuietly(Path.Combine(folder, ".pclignore"));
-        if (!TryDeleteInstallArtifacts(folder, instanceName))
+        DeleteFileQuietly(jarPath);
+        DeleteFileQuietly(ignoreFlag);
+        if (ContainsSourceArchive(folder, modpackArchive) || !TryDeleteInstallArtifacts(folder))
             TryDeleteEmptyFolder(folder);
         InvalidateInstanceCache(folder);
         LauncherCommon.Log($"[Install] 已清理未完成的实例目录：{folder}", LauncherLogLevel.Developer);
         return true;
     }
 
-    private static bool TryDeleteInstallArtifacts(string folder, string instanceName)
+    private static bool ContainsSourceArchive(string folder, string? archive)
+    {
+        for (var parent = archive is null ? null : new FileInfo(archive).Directory;
+             parent is not null; parent = parent.Parent)
+            if (Files.ArePathsEqual(parent.FullName, folder)) return true;
+        return false;
+    }
+
+    private static bool TryDeleteInstallArtifacts(string folder)
     {
         try
         {
@@ -194,7 +212,8 @@ public static class McInstallRecovery
             string[] userDataNames =
             [
                 "mods", "saves", "resourcepacks", "shaderpacks", "config",
-                "PCL", "logs", "crash-reports", "screenshots", "options.txt", "servers.dat"
+                "PCL", "logs", "crash-reports", "screenshots", "options.txt", "servers.dat",
+                "原始整合包.zip", "原始整合包.mrpack"
             ];
             if (userDataNames.Any(name =>
                     File.Exists(Path.Combine(folder, name))

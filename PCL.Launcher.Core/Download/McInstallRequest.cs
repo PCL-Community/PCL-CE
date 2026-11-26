@@ -106,6 +106,9 @@ public class McInstallRequest
     /// </summary>
     public required string targetInstanceFolder;
 
+    /// <summary>安装时仍需读取的整合包原件。</summary>
+    public string? ModpackArchivePath;
+
     /// <summary>
     ///     必填。安装目标实例名称。
     /// </summary>

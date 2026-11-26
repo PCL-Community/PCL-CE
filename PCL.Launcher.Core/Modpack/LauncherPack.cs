@@ -142,10 +142,10 @@ public static partial class Modpack
             ),
             instanceName,
             false);
-        var modpackFile = Directory
-            .GetFiles(targetFolder, "modpack.*", SearchOption.AllDirectories)
-            .First();
+        var packFolder = Path.Combine(targetFolder, archiveBaseFolder);
+        var modpackFile = Directory.EnumerateFiles(targetFolder, "modpack.*", SearchOption.AllDirectories)
+            .First(path => Path.GetRelativePath(packFolder, path) is "modpack.zip" or "modpack.mrpack");
         LauncherCommon.Log($"[Modpack] 调用 modpack 文件继续安装：{modpackFile}");
-        ModpackInstall(modpackFile);
+        InstallModpackArchive(modpackFile, ownsArchive: true);
     }
 }

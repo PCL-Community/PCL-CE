@@ -122,18 +122,24 @@ public static class McInstallPipeline
             throw new Exception(Lang.Text("Download.Install.NameInvalid"));
 
         var instanceJsonPath = McInstallRecovery.GetJsonPath(instanceFolder, instanceName);
-        McInstallRecovery.RegisterSession(instanceFolder, instanceName);
         if (File.Exists(instanceJsonPath) && !ignoreDump)
         {
-            McInstallRecovery.UnregisterSession(instanceFolder);
             HintService.Show(
                 Hints.Error(
                     Lang.Text("Minecraft.Download.Error.InstanceAlreadyExists", instanceName, "")));
             throw new CancelledException();
         }
 
-        if (!File.Exists(instanceJsonPath))
-            McInstallRecovery.TryClearIncompleteInstanceFolder(instanceFolder, instanceName);
+        McInstallRecovery.RegisterSession(instanceFolder, instanceName);
+        try
+        {
+            McInstallRecovery.TryClearIncompleteInstanceFolder(instanceFolder, instanceName, request.ModpackArchivePath);
+        }
+        catch
+        {
+            McInstallRecovery.UnregisterSession(instanceFolder);
+            throw;
+        }
         McInstallRecovery.PrepareBackup(instanceFolder, instanceName);
 
         var tempFolder = LauncherCommon.GetTempFolder("Install");

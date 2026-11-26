@@ -31,6 +31,7 @@ public static partial class Modpack
                 + Path.DirectorySeparatorChar,
             minecraftName = json["gameVersion"]!.ToString()
         };
+        request.ModpackArchivePath = fileAddress;
         var mergeLoaders = ModpackUi.CreateInstallLoader(request);
         var loaders = _CreateModpackInstallLoaderList(installLoaders, mergeLoaders);
 

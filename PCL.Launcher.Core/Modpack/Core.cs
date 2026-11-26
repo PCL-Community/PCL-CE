@@ -47,7 +47,12 @@ public static partial class Modpack
         string? instanceName = null,
         string? logo = null,
         string? resourceId = null,
-        bool isOnlineInstall = false)
+        bool isOnlineInstall = false) =>
+        InstallModpackArchive(file, ownsArchive: false, instanceName, logo, resourceId, isOnlineInstall);
+
+    internal static LoaderCombo<string> InstallModpackArchive(
+        string file, bool ownsArchive, string? instanceName = null, string? logo = null,
+        string? resourceId = null, bool isOnlineInstall = false)
     {
         RestrictedFeatures.ThrowIfRestricted("modpack-install");
         LauncherCommon.Log($"[ModPack] 整合包安装请求：{file}");
@@ -64,7 +69,8 @@ public static partial class Modpack
                 instanceName,
                 logo,
                 resourceId,
-                isOnlineInstall);
+                isOnlineInstall,
+                ownsArchive ? file : null);
         }
         finally
         {
@@ -181,7 +187,8 @@ public static partial class Modpack
         string? instanceName,
         string? logo,
         string? resourceId,
-        bool isOnlineInstall)
+        bool isOnlineInstall,
+        string? ownedArchive)
     {
         switch (packType)
         {
@@ -194,7 +201,8 @@ public static partial class Modpack
                     instanceName,
                     logo,
                     resourceId,
-                    isOnlineInstall);
+                    isOnlineInstall,
+                    ownedArchive);
 
             case 1:
                 LauncherCommon.Log("[ModPack] 整合包种类：HMCL");
@@ -217,7 +225,8 @@ public static partial class Modpack
                     instanceName,
                     logo,
                     resourceId,
-                    isOnlineInstall);
+                    isOnlineInstall,
+                    ownedArchive);
 
             case 9:
                 LauncherCommon.Log("[ModPack] 整合包种类：带启动器的压缩包");
@@ -272,7 +281,7 @@ public static partial class Modpack
     }
 
     private static void _FinalizeModpackInstance(
-        string fileAddress,
+        string? ownedArchive,
         string instanceName,
         string? logo,
         string? resourceId,
@@ -293,21 +302,10 @@ public static partial class Modpack
             LauncherCommon.Log($"[ModPack] 已设置整合包 Logo：{logo}");
         }
 
-        foreach (var target in new[]
-                 {
-                     Path.Combine(versionFolder, "原始整合包.zip"),
-                     Path.Combine(versionFolder, "原始整合包.mrpack")
-                 })
-            if (File.Exists(target))
-            {
-                LauncherCommon.Log($"[ModPack] 删除原始整合包文件：{target}");
-                File.Delete(target);
-            }
-
-        if (File.Exists(fileAddress) && Path.GetFileNameWithoutExtension(fileAddress) == "modpack")
+        if (ownedArchive is not null)
         {
-            LauncherCommon.Log($"[ModPack] 删除安装整合包文件：{fileAddress}");
-            File.Delete(fileAddress);
+            LauncherCommon.Log($"[ModPack] 清理本次安装的整合包副本：{ownedArchive}");
+            File.Delete(ownedArchive);
         }
 
         if (modpackVersion is not null)

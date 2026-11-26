@@ -1221,9 +1221,9 @@ public partial class PageDownloadCompDetail : MyPageRight
             }
 
             Directory.CreateDirectory(instanceFolder);
-            var packPath = Path.Combine(
-                instanceFolder,
-                $"原始整合包.{(project.FromCurseForge ? "zip" : "mrpack")}");
+            var downloadFolder = Path.Combine(LauncherPaths.Temp, "DownloadedModpack");
+            Directory.CreateDirectory(downloadFolder);
+            var packPath = Path.Combine(downloadFolder, $"{Guid.NewGuid():N}.{(project.FromCurseForge ? "zip" : "mrpack")}");
             var fileName = file.FileName;
             var loaders = new List<Loading.LoaderBase>
             {
@@ -1238,8 +1238,8 @@ public partial class PageDownloadCompDetail : MyPageRight
                     Lang.Text("Download.Comp.Detail.PrepareModpackInstall"),
                     _ =>
                     {
-                        var modpackLoader =
-                            Modpack.ModpackInstall(packPath, instanceName, null, project.Id, true);
+                        var modpackLoader = Modpack.InstallModpackArchive(
+                            packPath, ownsArchive: true, instanceName, resourceId: project.Id, isOnlineInstall: true);
                         // 整合包安装继续在任务栏执行，安装结束前保持去重标记，避免同名实例被并发安装。
                         modpackLoader.OnStateChangedUi += (_, innerState, _) =>
                         {

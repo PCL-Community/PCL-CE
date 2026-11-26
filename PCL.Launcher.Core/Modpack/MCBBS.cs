@@ -78,6 +78,7 @@ public static partial class Modpack
             fabricVersion = addons.GetValueOrDefault("fabric")
         };
 
+        request.ModpackArchivePath = fileAddress;
         var mergeLoaders = ModpackUi.CreateInstallLoader(request);
         var loaders = _CreateModpackInstallLoaderList(installLoaders, mergeLoaders);
 

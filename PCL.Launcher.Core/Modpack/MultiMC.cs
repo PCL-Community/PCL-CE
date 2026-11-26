@@ -50,6 +50,7 @@ public static partial class Modpack
         if (packInfo is not null)
             request.mmcPackInfo = packInfo;
 
+        request.ModpackArchivePath = fileAddress;
         var mergeLoaders = ModpackUi.CreateInstallLoader(request);
         var loaders = _CreateModpackInstallLoaderList(installLoaders, mergeLoaders);
         var loaderName = Lang.Text("Minecraft.Download.Modpack.Task.MmcInstall", instanceName);
