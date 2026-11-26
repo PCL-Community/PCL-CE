@@ -5,6 +5,7 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.Minecraft.Profile.Models;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
 using PCL.Core.Utils.Validate;
@@ -422,6 +423,12 @@ public partial class PageDownloadInstall : MyPageRight, IPageView, IRefreshable
         {
             if (!RestrictedFeatures.Check("minecraft-install"))
                 return;
+
+            if (!Core.Minecraft.Profile.ProfileService.HasMicrosoftProfile)
+            {
+                HintService.Show(Hints.Error(Lang.Text("Download.Install.NoMicrosoftProfile")));
+                return;
+            }
 
             if (_version is null || string.IsNullOrEmpty(_vm.VersionName))
             {

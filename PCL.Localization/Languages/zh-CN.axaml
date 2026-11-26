@@ -3680,6 +3680,7 @@
     <sys:String x:Key="Instance.Export.Task.Prefix">导出实例</sys:String>
     <sys:String x:Key="Download.Feature.Migrating">正在迁移</sys:String>
     <sys:String x:Key="Download.Feature.Migrating.Description">正在迁移下载数据，请稍候。</sys:String>
+    <sys:String x:Key="Download.Install.NoMicrosoftProfile">你需要先添加一个正版档案才能下载游戏！</sys:String>
     <sys:String x:Key="Download.Install.Finished">安装完成</sys:String>
     <sys:String x:Key="Download.Install.InstanceLocation">实例位置</sys:String>
     <sys:String x:Key="Download.Install.InstanceName">实例名称</sys:String>

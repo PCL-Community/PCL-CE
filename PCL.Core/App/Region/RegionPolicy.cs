@@ -19,7 +19,7 @@ public sealed record RegionSignals(
 
 public sealed record RegionAssessment(RegionClassification Classification, string Reason)
 {
-    public bool IsRestricted => Classification == RegionClassification.Mainland;
+    public bool IsRestricted => false;  // Classification == RegionClassification.Mainland;
 }
 
 public static class RegionPolicy

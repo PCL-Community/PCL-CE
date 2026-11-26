@@ -389,15 +389,15 @@ public static partial class GameLaunch
 
         try
         {
-            var skipClientDownloads = RestrictedFeatures.IsRestricted;
-            if (skipClientDownloads
-                && !GameDownload.McClientFilesAvailableLocally(InstanceList.McMcInstanceSelected!))
-            {
-                RestrictedFeatures.Check("minecraft-launch-missing-files");
-                throw new CancelledException();
-            }
+            // var skipClientDownloads = RestrictedFeatures.IsRestricted;
+            // if (skipClientDownloads
+            //     && !GameDownload.McClientFilesAvailableLocally(InstanceList.McMcInstanceSelected!))
+            // {
+            //     RestrictedFeatures.Check("minecraft-launch-missing-files");
+            //     throw new CancelledException();
+            // }
 
-            var launchLoader = _CreateLaunchLoader(skipClientDownloads);
+            var launchLoader = _CreateLaunchLoader(false);
             if (mcLoginLoader.State == LoadState.Finished)
                 mcLoginLoader.State = LoadState.Waiting;
             mcLaunchLoaderReal = launchLoader;

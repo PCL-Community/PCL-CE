@@ -3609,6 +3609,7 @@
     <sys:String x:Key="Instance.Export.Task.Prefix">Export instance</sys:String>
     <sys:String x:Key="Download.Feature.Migrating">正在遷移</sys:String>
     <sys:String x:Key="Download.Feature.Migrating.Description">正在遷移下載資料，請稍候。</sys:String>
+    <sys:String x:Key="Download.Install.NoMicrosoftProfile">You have to add a Microsoft profile before downloading the game!</sys:String>
     <sys:String x:Key="Download.Install.Finished">安裝完成</sys:String>
     <sys:String x:Key="Download.Install.InstanceLocation">實例位置</sys:String>
     <sys:String x:Key="Download.Install.InstanceName">實例名稱</sys:String>

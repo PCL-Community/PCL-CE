@@ -23,6 +23,11 @@ internal static class DownloadVersionActions
     {
         if (!RestrictedFeatures.Check("minecraft-client-save"))
             return;
+        if (!Core.Minecraft.Profile.ProfileService.HasMicrosoftProfile)
+        {
+            HintService.Show(Hints.Error(Lang.Text("Download.Install.NoMicrosoftProfile")));
+            return;
+        }
         try
         {
             var id = string.IsNullOrEmpty(title) ? version["id"]?.ToString() ?? "" : title;
