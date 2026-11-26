@@ -50,13 +50,31 @@ public partial class TitleBar : UserControl
         PanTitleMain.SizeChanged += (_, _) => ApplyTitleLeftClamp();
         RefreshTitleAppearance();
 
+        HiddenFeatureState.Changed += OnHiddenFeatureStateChanged;
         ThemeService.ColorThemeChanged += _OnColorThemeChanged;
         ThemeService.ColorModeChanged += _OnColorModeChanged;
         Unloaded += (_, _) =>
         {
+            HiddenFeatureState.Changed -= OnHiddenFeatureStateChanged;
             ThemeService.ColorThemeChanged -= _OnColorThemeChanged;
             ThemeService.ColorModeChanged -= _OnColorModeChanged;
         };
+    }
+
+    private void OnHiddenFeatureStateChanged()
+    {
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            Dispatcher.UIThread.Post(OnHiddenFeatureStateChanged);
+            return;
+        }
+
+        var previous = _tabButtons.FirstOrDefault(pair => pair.Value.Checked).Key;
+        _updating = true;
+        BuildMainTabs();
+        _updating = false;
+
+        SetTabChecked(previous);
     }
 
     private bool CanAnimateShell =>
@@ -283,7 +301,10 @@ public partial class TitleBar : UserControl
         PanTitleTabs.Children.Clear();
         _tabButtons.Clear();
 
-        foreach (var descriptor in PageCatalog.MainTabs.OrderBy(tab => tab.Order))
+        var tabs = PageCatalog.MainTabs
+            .Where(tab => tab.IsVisible?.Invoke() ?? true)
+            .OrderBy(tab => tab.Order);
+        foreach (var descriptor in tabs)
         {
             var button = new MyRadioButton
             {
@@ -300,15 +321,17 @@ public partial class TitleBar : UserControl
             _tabButtons[descriptor.Id] = button;
             PanTitleTabs.Children.Add(button);
         }
-
-        SetTabChecked(MainTab.Launch);
     }
 
     private void SetTabChecked(MainTab tab)
     {
+        var target = MainTabDescriptor.Normalize(tab);
         foreach (var (id, button) in _tabButtons)
-            button.Checked = id == tab;
+            button.Checked = id == target;
         Dispatcher.UIThread.Post(() => UpdateTabSelectionIndicator(true));
+
+        // 当前入口被隐藏后需要真正切走，否则右栏仍停留在已隐藏的页面。
+        if (target != tab) PageRouter.Navigate(target);
     }
 
     private void UpdateTabSelectionIndicator(bool animate)

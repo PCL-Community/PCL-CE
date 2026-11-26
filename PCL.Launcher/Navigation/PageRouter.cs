@@ -76,6 +76,7 @@ public static class PageRouter
 
     public static void Navigate(MainTab tab)
     {
+        tab = MainTabDescriptor.Normalize(tab);
         var page = PageRegistry.PageOfTab(tab);
         var target = NavigationState.GetTabState(tab) ?? new PageRoute(page);
         Navigate(target);

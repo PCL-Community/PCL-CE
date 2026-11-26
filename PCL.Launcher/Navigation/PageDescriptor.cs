@@ -98,4 +98,13 @@ public sealed record MainTabDescriptor(
     string TitleKey,
     string IconKey,
     int Order,
-    double LogoScale = 1d);
+    double LogoScale = 1d,
+    Func<bool>? IsVisible = null)
+{
+    public static MainTab Normalize(MainTab tab)
+    {
+        return PageCatalog.MainTabs.FirstOrDefault(item => item.Id == tab)?.IsVisible?.Invoke() == false
+            ? MainTab.Launch
+            : tab;
+    }
+}

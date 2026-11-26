@@ -921,6 +921,8 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             PageSetupLeft.NotifyHiddenSettingChanged();
             if (tag == "UiHiddenFunctionHidden")
                 RefreshFeatureHideState();
+            else
+                HiddenFeatureState.Notify();
         };
         _hideChecks.Add(check);
         return check;
