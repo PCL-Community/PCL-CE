@@ -55,8 +55,10 @@ public sealed class ToolsPageModule : IPageModule
             PageIds.Tools,
             "Main.Tab.Tools",
             "lucide/wrench",
-            3,
-            IsVisible: () => HiddenFeatureState.ForceShow
-                || !Config.Preference.Hide.PageTools)
+            3)
+        {
+            IsVisible = () => HiddenFeatureState.ForceShow
+                || !Config.Preference.Hide.PageTools
+        }
     ];
 }

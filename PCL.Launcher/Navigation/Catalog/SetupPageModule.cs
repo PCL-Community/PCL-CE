@@ -146,8 +146,10 @@ public sealed class SetupPageModule : IPageModule
             "Main.Tab.Settings",
             "lucide/settings",
             2,
-            1.1d,
-            IsVisible: () => HiddenFeatureState.ForceShow
-                || !Config.Preference.Hide.PageSetup)
+            1.1d)
+        {
+            IsVisible = () => HiddenFeatureState.ForceShow
+                || !Config.Preference.Hide.PageSetup
+        }
     ];
 }

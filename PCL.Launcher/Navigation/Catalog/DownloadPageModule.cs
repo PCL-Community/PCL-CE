@@ -222,8 +222,10 @@ public sealed class DownloadPageModule : IPageModule
             "Main.Tab.Download",
             "lucide/download",
             1,
-            0.9d,
-            IsVisible: () => HiddenFeatureState.ForceShow
-                || !Config.Preference.Hide.PageDownload)
+            0.9d)
+        {
+            IsVisible = () => HiddenFeatureState.ForceShow
+                || !Config.Preference.Hide.PageDownload
+        }
     ];
 }

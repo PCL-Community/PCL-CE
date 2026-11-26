@@ -50,9 +50,9 @@ public partial class TitleBar : UserControl
         PanTitleMain.SizeChanged += (_, _) => ApplyTitleLeftClamp();
         RefreshTitleAppearance();
 
-        HiddenFeatureState.Changed += OnHiddenFeatureStateChanged;
         ThemeService.ColorThemeChanged += _OnColorThemeChanged;
         ThemeService.ColorModeChanged += _OnColorModeChanged;
+        HiddenFeatureState.Changed += OnHiddenFeatureStateChanged;
         Unloaded += (_, _) =>
         {
             HiddenFeatureState.Changed -= OnHiddenFeatureStateChanged;
@@ -75,6 +75,10 @@ public partial class TitleBar : UserControl
         _updating = false;
 
         SetTabChecked(previous);
+
+        // 等本次导航结束再切换，避免 NavigateCore 把嵌套请求当作重入而丢弃。
+        var target = MainTabDescriptor.Normalize(previous);
+        if (target != previous) Dispatcher.UIThread.Post(() => PageRouter.Navigate(target));
     }
 
     private bool CanAnimateShell =>
@@ -329,9 +333,6 @@ public partial class TitleBar : UserControl
         foreach (var (id, button) in _tabButtons)
             button.Checked = id == target;
         Dispatcher.UIThread.Post(() => UpdateTabSelectionIndicator(true));
-
-        // 当前入口被隐藏后需要真正切走，否则右栏仍停留在已隐藏的页面。
-        if (target != tab) PageRouter.Navigate(target);
     }
 
     private void UpdateTabSelectionIndicator(bool animate)

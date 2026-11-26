@@ -98,9 +98,11 @@ public sealed record MainTabDescriptor(
     string TitleKey,
     string IconKey,
     int Order,
-    double LogoScale = 1d,
-    Func<bool>? IsVisible = null)
+    double LogoScale = 1d)
 {
+    /// <summary>主入口可见性判断，未设置表示始终可见。</summary>
+    public Func<bool>? IsVisible { get; init; }
+
     public static MainTab Normalize(MainTab tab)
     {
         return PageCatalog.MainTabs.FirstOrDefault(item => item.Id == tab)?.IsVisible?.Invoke() == false
