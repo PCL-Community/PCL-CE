@@ -141,7 +141,6 @@ public static class PageRouter
     {
         if (_isNavigating || _rightHost is null) return;
 
-        // 允许导航到主入口已隐藏的页面会让隐藏失效，统一改道到启动页。
         var pageTab = PageRegistry.TabOfPage(route.Page);
         if (pageTab is { } tab && MainTabDescriptor.Normalize(tab) != tab)
         {

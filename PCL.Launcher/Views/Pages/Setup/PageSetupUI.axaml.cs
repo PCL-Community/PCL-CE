@@ -222,7 +222,6 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         {
             Config.Preference.Reset();
             Reload();
-            // 重置会写回隐藏配置，但勾选回调被抑制，需要主动通知主入口重建。
             HiddenFeatureState.Notify();
             HintService.Show(Hints.Success(Lang.Text("Setup.Ui.Initialized"), false));
         }

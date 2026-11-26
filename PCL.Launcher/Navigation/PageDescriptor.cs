@@ -100,7 +100,6 @@ public sealed record MainTabDescriptor(
     int Order,
     double LogoScale = 1d)
 {
-    /// <summary>主入口可见性判断，未设置表示始终可见。</summary>
     public Func<bool>? IsVisible { get; init; }
 
     public static MainTab Normalize(MainTab tab)

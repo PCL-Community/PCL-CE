@@ -76,9 +76,14 @@ public partial class TitleBar : UserControl
 
         SetTabChecked(previous);
 
-        // 等本次导航结束再切换，避免 NavigateCore 把嵌套请求当作重入而丢弃。
-        var target = MainTabDescriptor.Normalize(previous);
-        if (target != previous) Dispatcher.UIThread.Post(() => PageRouter.Navigate(target));
+        var hidden = MainTabDescriptor.Normalize(previous) != previous;
+        if (!hidden) return;
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (_tabButtons.FirstOrDefault(p => p.Value.Checked).Key == previous
+                && MainTabDescriptor.Normalize(previous) != previous)
+                PageRouter.Navigate(MainTab.Launch);
+        });
     }
 
     private bool CanAnimateShell =>
