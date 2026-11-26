@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -128,5 +129,36 @@ public sealed class FilesSyncTest
                 3
             },
             File.ReadAllBytes(target));
+    }
+
+    [TestMethod]
+    public void PathWithinDirectoryRejectsSiblingAndParent()
+    {
+        var baseDir = Path.Combine(_root, "base");
+
+        Assert.IsTrue(Files.IsPathWithinDirectory(Path.Combine(baseDir, "a", "b.txt"), baseDir));
+        Assert.IsFalse(Files.IsPathWithinDirectory(Path.Combine(_root, "base2", "b.txt"), baseDir));
+        Assert.IsFalse(Files.IsPathWithinDirectory(Path.Combine(baseDir, "..", "b.txt"), baseDir));
+    }
+
+    [TestMethod]
+    public void PathWithinDirectoryFollowsPlatformCaseRule()
+    {
+        var baseDir = Path.Combine(_root, "base");
+        var child = Path.Combine(_root, "BASE", "b.txt");
+
+        Assert.AreEqual(OperatingSystem.IsWindows(), Files.IsPathWithinDirectory(child, baseDir));
+    }
+
+    [TestMethod]
+    public void ExtractZipRejectsEntryOutsideDestination()
+    {
+        var zipPath = Path.Combine(_root, "evil.zip");
+        using (var archive = ZipFile.Open(zipPath, ZipArchiveMode.Create))
+            archive.CreateEntry("../dest2/evil.txt");
+        var dest = Path.Combine(_root, "dest");
+
+        Assert.ThrowsExactly<Exception>(() => Files.ExtractFile(zipPath, dest, Encoding.UTF8));
+        Assert.IsFalse(File.Exists(Path.Combine(_root, "dest2", "evil.txt")));
     }
 }
