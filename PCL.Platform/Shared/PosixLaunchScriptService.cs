@@ -3,9 +3,9 @@ using PCL.Core.Platform;
 namespace PCL.Platform;
 
 /// <summary>Unix 启动脚本：POSIX shell 文件。</summary>
-public sealed class PosixLaunchScriptService : ILaunchScriptService
+public sealed class PosixLaunchScriptService(string fileExtension) : ILaunchScriptService
 {
-    public string FileExtension => ".sh";
+    public string FileExtension { get; } = fileExtension;
 
     public string CreateScript(LaunchScriptOptions options)
     {

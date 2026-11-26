@@ -214,12 +214,9 @@ public static partial class Modpack
                 "versions",
                 instanceName,
                 $"{file["path"]}");
-            if (!Path
-                    .GetFullPath(targetPath)
-                    .StartsWithF(
-                        Path.Combine(GameFolders.mcFolderSelected!, "versions", instanceName)
-                        + Path.DirectorySeparatorChar,
-                        true))
+            if (!Files.IsPathWithinDirectory(
+                    targetPath,
+                    Path.Combine(GameFolders.mcFolderSelected!, "versions", instanceName)))
             {
                 LaunchUi.ShowMessageBox(
                     Lang.Text("Minecraft.Download.Modpack.PathOutsideInstance.Message", targetPath),

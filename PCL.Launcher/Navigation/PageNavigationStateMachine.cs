@@ -19,7 +19,8 @@ public sealed class PageNavigationStateMachine
             if (_backStack.Contains(next))
                 while (_backStack.Contains(next))
                     _backStack.RemoveAt(0);
-            else if (!Current.Equals(next))
+            // 同页同参的子页切换不入栈，参数不同的仍然保留
+            else if (!Current.Equals(next) && (Current.Page != next.Page || !Equals(Current.Parameter, next.Parameter)))
                 _backStack.Insert(0, Current);
         }
         else
