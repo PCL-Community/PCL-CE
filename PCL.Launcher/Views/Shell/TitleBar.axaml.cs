@@ -71,13 +71,15 @@ public partial class TitleBar : UserControl
 
         var previous = _tabButtons.FirstOrDefault(pair => pair.Value.Checked).Key;
         BuildMainTabs();
-        if (MainTabDescriptor.Normalize(previous) == previous)
+        if (MainTabDescriptor.Normalize(previous) != previous)
+        {
+            SetTabChecked(MainTab.Launch);
+            PageRouter.Navigate(MainTab.Launch);
+        }
+        else
         {
             SetTabChecked(previous);
-            return;
         }
-
-        PageRouter.Navigate(MainTab.Launch);
     }
 
     private bool CanAnimateShell =>
