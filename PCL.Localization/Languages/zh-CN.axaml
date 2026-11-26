@@ -3092,13 +3092,25 @@
     <sys:String x:Key="Setup.Ui.Background.ColorOverlay">叠加彩色背景</sys:String>
     <sys:String x:Key="Setup.Ui.Background.ContentAdapt">内容自适应方式</sys:String>
     <sys:String x:Key="Setup.Ui.Background.NoAvailableContent">未检测到可用背景内容！</sys:String>
-    <sys:String x:Key="Setup.Ui.Background.OpenFolder.ToolTip">将背景图片放到该文件夹，PCL CE 将会在每次打开时随机加载其中的一张图片</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.OpenFolder.ToolTip">将背景图片或视频放到该文件夹，PCL CE 将会在每次打开时随机加载其中的一个</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Refresh">刷新背景内容</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Refresh.Success">背景内容已刷新：{0}</sys:String>
-    <sys:String x:Key="Setup.Ui.Background.Refresh.ToolTip">随机加载文件夹内的一张背景图片</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Refresh.ToolTip">随机加载文件夹内的一个背景图片或视频</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Title">背景内容</sys:String>
-    <sys:String x:Key="Setup.Ui.Background.TitleDefault">背景图片</sys:String>
-    <sys:String x:Key="Setup.Ui.Background.TitleWithCount">背景图片（{0} 张）</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.TitleDefault">背景内容</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.TitleWithCount">背景内容（{0} 个）</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Ffmpeg">FFmpeg 路径</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Ffmpeg.Hint">自动检测</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Ffmpeg.ToolTip">留空时自动检测 PATH、PCL/ffmpeg 和常见安装位置</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Ffmpeg.Browse">浏览...</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Ffmpeg.Detect">检测</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Ffmpeg.Available">已检测到 FFmpeg：{0}</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Ffmpeg.NotFound">未检测到 FFmpeg，无法播放视频背景。请安装 FFmpeg，或将 ffmpeg 加入 PATH，或指定其路径。</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Ffmpeg.Invalid">无法运行指定的 FFmpeg：{0}</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Ffmpeg.ServiceUnavailable">外部命令服务未初始化，无法检测 FFmpeg</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Ffmpeg.FileFilter">FFmpeg 可执行文件|ffmpeg*|所有文件|*</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Ffmpeg.SelectTitle">选择 FFmpeg 可执行文件</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Refresh.Failed">刷新背景内容失败，请查看日志了解详情</sys:String>
 
     <!-- Setup.Ui.Background.Suit -->
 
@@ -3705,7 +3717,7 @@
     <sys:String x:Key="PageLaunch.Login.SkinUpload.Unavailable">当前账户不支持更换皮肤</sys:String>
     <sys:String x:Key="Select.Instance.Delete.RecycleBinUnavailable">回收站不可用，将永久删除</sys:String>
     <sys:String x:Key="Tools.GameLink.Unavailable.NatTest">NAT 检测不可用</sys:String>
-    <sys:String x:Key="Setup.Ui.Error.BackgroundVideoUnsupported">刷新背景内容失败。该视频文件可能并非 H.264（AVC）格式。请使用视频转码工具将其转码为 H.264（AVC）后再试。</sys:String>
+    <sys:String x:Key="Setup.Ui.Error.BackgroundVideoUnsupported">刷新背景内容失败。无法解码该视频，请确认文件完整，或使用转码工具转换为常见格式后再试。</sys:String>
     <sys:String x:Key="Setup.Ui.Background.ImageLoadFailed">图片加载失败，尝试将文件作为视频播放：{0}</sys:String>
     <sys:String x:Key="Setup.Ui.Background.PauseVideo">游戏启动后暂停视频背景，游戏退出后重新播放</sys:String>
     <sys:String x:Key="Setup.Ui.Background.PauseVideo.ToolTip">若启用此项设置，游戏时将无法刷新背景</sys:String>

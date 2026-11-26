@@ -3023,13 +3023,25 @@
     <sys:String x:Key="Setup.Ui.Background.ColorOverlay">Overlay coloured background</sys:String>
     <sys:String x:Key="Setup.Ui.Background.ContentAdapt">Adaptive</sys:String>
     <sys:String x:Key="Setup.Ui.Background.NoAvailableContent">No available background detected!</sys:String>
-    <sys:String x:Key="Setup.Ui.Background.OpenFolder.ToolTip">Put background images in this folder. PCL CE will randomly load one each time it starts.</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.OpenFolder.ToolTip">Put background images or videos in this folder. PCL CE will randomly load one each time it starts.</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Refresh">Refresh</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Refresh.Success">The background has been refreshed: {0}</sys:String>
-    <sys:String x:Key="Setup.Ui.Background.Refresh.ToolTip">Randomly load a background image from this folder</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Refresh.ToolTip">Randomly load a background image or video from this folder</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Title">Backgrounds</sys:String>
-    <sys:String x:Key="Setup.Ui.Background.TitleDefault">Background image</sys:String>
-    <sys:String x:Key="Setup.Ui.Background.TitleWithCount">Background images ({0})</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.TitleDefault">Background content</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.TitleWithCount">Background content ({0})</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Ffmpeg">FFmpeg path</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Ffmpeg.Hint">Auto-detect</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Ffmpeg.ToolTip">Leave empty to detect PATH, PCL/ffmpeg and common installation locations automatically</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Ffmpeg.Browse">Browse...</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Ffmpeg.Detect">Detect</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Ffmpeg.Available">FFmpeg detected: {0}</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Ffmpeg.NotFound">FFmpeg was not found, so video backgrounds cannot be played. Install FFmpeg, add it to PATH, or specify its path.</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Ffmpeg.Invalid">The specified FFmpeg cannot be run: {0}</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Ffmpeg.ServiceUnavailable">The external command service is unavailable, so FFmpeg cannot be detected.</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Ffmpeg.FileFilter">FFmpeg executable|ffmpeg*|All files|*</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Ffmpeg.SelectTitle">Select FFmpeg executable</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Refresh.Failed">Failed to refresh the background content. See the log for details.</sys:String>
 
     <!-- Setup.Ui.Background.Suit -->
 
@@ -3696,7 +3708,7 @@
     <sys:String x:Key="Setup.Misc.System.Telemetry.Unavailable">This version has been modified or is an unofficial build, so Sentry reporting is unavailable</sys:String>
     <sys:String x:Key="Tools.Test.Dependency.Package.D3DMappingLayers">OpenGL compatibility pack</sys:String>
     <sys:String x:Key="Tools.Test.Dependency.Package.WebpImageExtension">WebP component</sys:String>
-    <sys:String x:Key="Setup.Ui.Error.BackgroundVideoUnsupported">Failed to refresh the background. The video may not be encoded as H.264 (AVC). Re-encode it as H.264 (AVC) and try again.</sys:String>
+    <sys:String x:Key="Setup.Ui.Error.BackgroundVideoUnsupported">Failed to refresh the background. The video cannot be decoded. Make sure the file is intact, or re-encode it to a common format and try again.</sys:String>
     <sys:String x:Key="Setup.Ui.Background.ImageLoadFailed">Failed to load the image, trying to play the file as a video: {0}</sys:String>
     <sys:String x:Key="Setup.Ui.Background.PauseVideo">Pause video backgrounds whilst an instance is running</sys:String>
     <sys:String x:Key="Setup.Ui.Background.PauseVideo.ToolTip">If enabled, the background cannot be refreshed whilst the game is running</sys:String>

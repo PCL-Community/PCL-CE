@@ -3023,13 +3023,25 @@
     <sys:String x:Key="Setup.Ui.Background.ColorOverlay">疊加彩色背景</sys:String>
     <sys:String x:Key="Setup.Ui.Background.ContentAdapt">內容自適應方式</sys:String>
     <sys:String x:Key="Setup.Ui.Background.NoAvailableContent">未偵測到可用背景內容！</sys:String>
-    <sys:String x:Key="Setup.Ui.Background.OpenFolder.ToolTip">將背景圖片放到該資料夾，PCL CE 將會在每次開啟時隨機載入其中的一張圖片</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.OpenFolder.ToolTip">將背景圖片或影片放到該資料夾，PCL CE 將會在每次開啟時隨機載入其中的一個</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Refresh">重新整理背景內容</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Refresh.Success">背景內容已重新整理：{0}</sys:String>
-    <sys:String x:Key="Setup.Ui.Background.Refresh.ToolTip">隨機載入資料夾內的一張背景圖片</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Refresh.ToolTip">隨機載入資料夾內的一個背景圖片或影片</sys:String>
     <sys:String x:Key="Setup.Ui.Background.Title">背景內容</sys:String>
-    <sys:String x:Key="Setup.Ui.Background.TitleDefault">背景圖片</sys:String>
-    <sys:String x:Key="Setup.Ui.Background.TitleWithCount">背景圖片（{0} 張）</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.TitleDefault">背景內容</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.TitleWithCount">背景內容（{0} 個）</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Ffmpeg">FFmpeg 路徑</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Ffmpeg.Hint">自動偵測</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Ffmpeg.ToolTip">留空時自動偵測 PATH、PCL/ffmpeg 和常見安裝位置</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Ffmpeg.Browse">瀏覽...</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Ffmpeg.Detect">偵測</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Ffmpeg.Available">已偵測到 FFmpeg：{0}</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Ffmpeg.NotFound">未偵測到 FFmpeg，無法播放影片背景。請安裝 FFmpeg，或將 ffmpeg 加入 PATH，或指定其路徑。</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Ffmpeg.Invalid">無法執行指定的 FFmpeg：{0}</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Ffmpeg.ServiceUnavailable">外部命令服務未初始化，無法偵測 FFmpeg</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Ffmpeg.FileFilter">FFmpeg 執行檔|ffmpeg*|所有檔案|*</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Ffmpeg.SelectTitle">選擇 FFmpeg 執行檔</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.Refresh.Failed">重新整理背景內容失敗，請查看記錄以了解詳情</sys:String>
 
     <!-- Setup.Ui.Background.Suit -->
 
@@ -3696,7 +3708,7 @@
     <sys:String x:Key="Setup.Misc.System.Telemetry.Unavailable">此版本受到修改或非官方构建，Sentry 回报不可用</sys:String>
     <sys:String x:Key="Tools.Test.Dependency.Package.D3DMappingLayers">OpenGL 兼容包</sys:String>
     <sys:String x:Key="Tools.Test.Dependency.Package.WebpImageExtension">WebP 组件包</sys:String>
-    <sys:String x:Key="Setup.Ui.Error.BackgroundVideoUnsupported">重新整理背景內容失敗。該影片檔案可能並非 H.264（AVC）格式。請使用影片轉檔工具將其轉檔為 H.264（AVC）後再試。</sys:String>
+    <sys:String x:Key="Setup.Ui.Error.BackgroundVideoUnsupported">重新整理背景內容失敗。無法解碼該影片，請確認檔案完整，或使用轉檔工具轉換為常見格式後再試。</sys:String>
     <sys:String x:Key="Setup.Ui.Background.ImageLoadFailed">圖片載入失敗，嘗試將檔案作為影片播放：{0}</sys:String>
     <sys:String x:Key="Setup.Ui.Background.PauseVideo">遊戲啟動後暫停影片背景，遊戲退出後重新播放</sys:String>
     <sys:String x:Key="Setup.Ui.Background.PauseVideo.ToolTip">若啟用此項設定，遊戲時將無法重新整理背景</sys:String>

@@ -336,6 +336,11 @@ public static partial class Config
             /// 视频自动暂停。
             /// </summary>
             [ConfigItem<bool>("UiAutoPauseVideo", true, ConfigSource.Local)] public partial bool AutoPauseVideo { get; set; }
+
+            /// <summary>
+            /// FFmpeg 可执行文件路径；留空时自动检测。
+            /// </summary>
+            [ConfigItem<string>("UiBackgroundFfmpegPath", "", ConfigSource.Local)] public partial string FfmpegPath { get; set; }
         }
 
         /// <summary>
