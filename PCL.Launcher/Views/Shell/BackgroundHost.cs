@@ -5,6 +5,7 @@ using Avalonia.Media.Imaging;
 using PCL.Core.App;
 using PCL.Core.Logging;
 using PCL.Core.UI.Theme;
+using PCL.UI.Composition;
 
 namespace PCL.Views.Shell;
 
@@ -32,7 +33,8 @@ public static class BackgroundHost
     }
 }
 
-/// <summary>主窗口背景层：按配置绘制颜色主题渐变或随机背景图片，并应用透明度、裁剪模式与真实模糊。 图片使用 <see cref="ImageBrush" /> 支持平铺。</summary>
+/// <summary>主窗口背景层：按配置绘制颜色主题渐变或随机背景图片，并应用透明度、裁剪模式与真实模糊。 图片使用 <see cref="ImageBrush" /> 支持平铺。
+/// 启用背景材质（云母/模糊）时，材质由 <see cref="MaterialPresenter" /> 的原生合成视觉绘制，彩色填充变透明、壁纸隐藏。</summary>
 public sealed class BackgroundLayer
 {
     private static readonly string[] ImageExtensions =
@@ -42,17 +44,22 @@ public sealed class BackgroundLayer
     private readonly Panel _host;
     private readonly Image _legacyImage;
     private readonly Border _surface;
+    private readonly MaterialPresenter _material;
+    private readonly MicaMaterial _micaMaterial = new() { Mode = MaterialThemeMode.Auto };
+    private readonly MicaMaterial _micaAltMaterial = new() { Mode = MaterialThemeMode.Auto, Variant = MicaVariant.Alt };
+    private readonly BlurMaterial _blurMaterial = new();
 
     private Bitmap? _bitmap;
     private string? _currentPath;
     private ImageBrush? _imageBrush;
 
-    public BackgroundLayer(Panel formPan, Image image)
+    public BackgroundLayer(Panel formPan, Image image, MaterialPresenter material)
     {
         _formPan = formPan;
         _legacyImage = image;
         _legacyImage.IsVisible = false;
         _host = image.Parent as Panel ?? formPan;
+        _material = material;
 
         // 原有 Image 只用于定位宿主；实际背景改用 Border + ImageBrush，以支持平铺与切换动画。
         _surface = new Border
@@ -62,15 +69,21 @@ public sealed class BackgroundLayer
         };
         _host.Children.Add(_surface);
 
+        UpdateBlurTint();
+        _material.NativeMaterialActiveChanged += RefreshBackdropHandler;
         ThemeService.ColorModeChanged += _OnThemeChanged;
         ThemeService.ColorThemeChanged += _OnThemeChanged;
     }
+
+    private bool IsBackdropActive =>
+        Config.Preference.Background.BackdropEffect != BackdropMode.Off && _material.IsNativeMaterialActive;
 
     public void Refresh()
     {
         RefreshColor();
         RefreshImage();
         ApplyPresentation();
+        RefreshBackdrop();
         AnimateContentIn();
     }
 
@@ -84,14 +97,42 @@ public sealed class BackgroundLayer
     {
         try
         {
-            _formPan.Background = Config.Preference.Background.BackgroundColorful
-                ? CreateColorfulBrush()
-                : FindThemeBrush("ColorBrushBackground") ?? Brushes.Transparent;
+            _formPan.Background = IsBackdropActive
+                ? Brushes.Transparent
+                : Config.Preference.Background.BackgroundColorful
+                    ? CreateColorfulBrush()
+                    : FindThemeBrush("ColorBrushBackground") ?? Brushes.Transparent;
         }
         catch (Exception ex)
         {
             LogWrapper.Warn("UI", $"刷新背景颜色失败：{ex.Message}");
         }
+    }
+
+    /// <summary>按配置应用背景材质效果：云母（Base/Alt）与模糊都由原生合成层绘制（裁剪在卡片内），
+    /// 关闭或合成后端不可用时恢复彩色填充与壁纸。</summary>
+    public void RefreshBackdrop()
+    {
+        var effect = Config.Preference.Background.BackdropEffect;
+        // Off 或无效的持久化取值（如损坏的配置）一律视为关闭，与设置页展示保持一致。
+        if (effect == BackdropMode.Off || !Enum.IsDefined(effect))
+        {
+            if (_material.Material is not null)
+                _material.Material = null;
+            RefreshColor();
+            _surface.IsVisible = _bitmap is not null;
+            return;
+        }
+
+        _material.Material = effect switch
+        {
+            BackdropMode.Mica => _micaMaterial,
+            BackdropMode.MicaAlt => _micaAltMaterial,
+            BackdropMode.Blur => _blurMaterial,
+            _ => null,
+        };
+        RefreshColor();
+        _surface.IsVisible = _bitmap is not null && !IsBackdropActive;
     }
 
     public void RefreshImage()
@@ -136,6 +177,7 @@ public sealed class BackgroundLayer
 
     public void Remove()
     {
+        _material.NativeMaterialActiveChanged -= RefreshBackdropHandler;
         ThemeService.ColorModeChanged -= _OnThemeChanged;
         ThemeService.ColorThemeChanged -= _OnThemeChanged;
 
@@ -199,12 +241,25 @@ public sealed class BackgroundLayer
 
     private void _OnThemeChanged(bool _, ColorTheme __)
     {
-        RefreshColor();
+        UpdateBlurTint();
+        RefreshBackdrop();
     }
 
     private void _OnThemeChanged(ColorTheme _)
     {
-        RefreshColor();
+        UpdateBlurTint();
+        RefreshBackdrop();
+    }
+
+    private void UpdateBlurTint()
+    {
+        _blurMaterial.Tint = ThemeService.IsDarkMode ? Color.FromRgb(32, 32, 32) : Color.FromRgb(243, 243, 243);
+        _blurMaterial.TintOpacity = ThemeService.IsDarkMode ? 0.72 : 0.55;
+    }
+
+    private void RefreshBackdropHandler(object? sender, EventArgs e)
+    {
+        RefreshBackdrop();
     }
 
     private void ApplySuitMode(int suitMode)

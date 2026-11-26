@@ -4,6 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:shell="using:PCL.Views.Shell"
         xmlns:ui="using:PCL.UI.Controls"
+        xmlns:composition="using:PCL.UI.Composition"
         mc:Ignorable="d"
         d:DesignWidth="850"
         d:DesignHeight="500"
@@ -29,67 +30,70 @@
                     Margin="10"
                     CornerRadius="6"
                     ClipToBounds="True">
-                <Grid x:Name="PanForm"
-                      RowDefinitions="Auto,*">
-                    <Grid x:Name="ImgBack"
-                          Grid.Row="1"
-                          ClipToBounds="True"
-                          IsHitTestVisible="False">
-                        <Image x:Name="ImgBackImage"
-                               Stretch="UniformToFill"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center" />
-                    </Grid>
-                    <shell:TitleBar x:Name="TitleBar"
-                                    Grid.Row="0" />
-                    <Border x:Name="RectLeftBackground"
-                            Grid.Row="1"
-                            Width="0"
-                            HorizontalAlignment="Left"
-                            Background="{DynamicResource ColorBrushTransparentBackground}"
-                            IsHitTestVisible="False"
-                            BoxShadow="4 0 6 0 #0A000000" />
-                    <Grid x:Name="PanMain"
-                          Grid.Row="1"
-                          ColumnDefinitions="Auto,*">
-                        <ContentControl x:Name="PageLeftHost"
-                                        Grid.Column="0"
-                                        HorizontalAlignment="Left"
-                                        IsVisible="False" />
-                        <ContentControl x:Name="PageRightHost"
-                                        Grid.Column="1" />
-                    </Grid>
-                    <Grid x:Name="PanHintAnchor"
-                          Grid.RowSpan="2"
-                          ZIndex="1"
-                          HorizontalAlignment="Right"
-                          VerticalAlignment="Bottom">
-                        <StackPanel x:Name="PanHint"
-                                    HorizontalAlignment="Right"
-                                    VerticalAlignment="Bottom" />
-                    </Grid>
-                    <shell:ExtraButtonsPanel x:Name="PanExtraButtons"
-                                             Grid.Row="1" />
-                    <Panel x:Name="PanDialogLayer"
-                           Grid.RowSpan="2"
-                           ZIndex="2"
-                           IsVisible="False"
-                           Opacity="0">
-                        <Border x:Name="BorDialogMask"
-                                Background="#00000000" />
-                        <ScrollViewer x:Name="SclDialogHost"
-                                      MinWidth="400"
-                                      HorizontalAlignment="Center"
-                                      VerticalAlignment="Center"
-                                      HorizontalScrollBarVisibility="Disabled"
-                                      VerticalScrollBarVisibility="Auto"
-                                      BringIntoViewOnFocusChange="False">
-                            <Panel x:Name="PanDialogHost"
-                                   HorizontalAlignment="Stretch"
+                <composition:MaterialPresenter x:Name="PanMaterial"
+                                               CornerRadius="6">
+                    <Grid x:Name="PanForm"
+                          RowDefinitions="Auto,*">
+                        <Grid x:Name="ImgBack"
+                              Grid.Row="1"
+                              ClipToBounds="True"
+                              IsHitTestVisible="False">
+                            <Image x:Name="ImgBackImage"
+                                   Stretch="UniformToFill"
+                                   HorizontalAlignment="Center"
                                    VerticalAlignment="Center" />
-                        </ScrollViewer>
-                    </Panel>
-                </Grid>
+                        </Grid>
+                        <shell:TitleBar x:Name="TitleBar"
+                                        Grid.Row="0" />
+                        <Border x:Name="RectLeftBackground"
+                                Grid.Row="1"
+                                Width="0"
+                                HorizontalAlignment="Left"
+                                Background="{DynamicResource ColorBrushTransparentBackground}"
+                                IsHitTestVisible="False"
+                                BoxShadow="4 0 6 0 #0A000000" />
+                        <Grid x:Name="PanMain"
+                              Grid.Row="1"
+                              ColumnDefinitions="Auto,*">
+                            <ContentControl x:Name="PageLeftHost"
+                                            Grid.Column="0"
+                                            HorizontalAlignment="Left"
+                                            IsVisible="False" />
+                            <ContentControl x:Name="PageRightHost"
+                                            Grid.Column="1" />
+                        </Grid>
+                        <Grid x:Name="PanHintAnchor"
+                              Grid.RowSpan="2"
+                              ZIndex="1"
+                              HorizontalAlignment="Right"
+                              VerticalAlignment="Bottom">
+                            <StackPanel x:Name="PanHint"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Bottom" />
+                        </Grid>
+                        <shell:ExtraButtonsPanel x:Name="PanExtraButtons"
+                                                 Grid.Row="1" />
+                        <Panel x:Name="PanDialogLayer"
+                               Grid.RowSpan="2"
+                               ZIndex="2"
+                               IsVisible="False"
+                               Opacity="0">
+                            <Border x:Name="BorDialogMask"
+                                    Background="#00000000" />
+                            <ScrollViewer x:Name="SclDialogHost"
+                                          MinWidth="400"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          HorizontalScrollBarVisibility="Disabled"
+                                          VerticalScrollBarVisibility="Auto"
+                                          BringIntoViewOnFocusChange="False">
+                                <Panel x:Name="PanDialogHost"
+                                       HorizontalAlignment="Stretch"
+                                       VerticalAlignment="Center" />
+                            </ScrollViewer>
+                        </Panel>
+                    </Grid>
+                </composition:MaterialPresenter>
             </Border>
         </ui:MyDropShadow>
     </Grid>
