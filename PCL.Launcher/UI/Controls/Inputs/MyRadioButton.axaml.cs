@@ -54,6 +54,10 @@ public partial class MyRadioButton : UserControl
             nameof(Checked),
             defaultBindingMode: BindingMode.TwoWay);
 
+    public static readonly StyledProperty<bool> UseExternalSelectionIndicatorProperty =
+        AvaloniaProperty.Register<MyRadioButton, bool>(
+            nameof(UseExternalSelectionIndicator));
+
     public static readonly StyledProperty<string?> GroupNameProperty =
         AvaloniaProperty.Register<MyRadioButton, string?>(nameof(GroupName));
 
@@ -165,6 +169,12 @@ public partial class MyRadioButton : UserControl
     {
         get => GetValue(CheckedProperty);
         set => SetChecked(value, false, true);
+    }
+
+    public bool UseExternalSelectionIndicator
+    {
+        get => GetValue(UseExternalSelectionIndicatorProperty);
+        set => SetValue(UseExternalSelectionIndicatorProperty, value);
     }
 
     public string? GroupName
@@ -546,7 +556,9 @@ public partial class MyRadioButton : UserControl
                 foreground = Colors.White;
                 if (Checked)
                 {
-                    background = Colors.White;
+                    background = UseExternalSelectionIndicator
+                        ? Colors.Transparent
+                        : Colors.White;
                     foreground = accent;
                     time = AnimationTimeOfCheck;
                 }
@@ -562,7 +574,9 @@ public partial class MyRadioButton : UserControl
                 }
                 else
                 {
-                    background = semiTransparent;
+                    background = UseExternalSelectionIndicator
+                        ? Colors.Transparent
+                        : semiTransparent;
                     time = AnimationTimeOfMouseOut;
                 }
             }
@@ -675,6 +689,10 @@ public partial class MyRadioButton : UserControl
         {
             if (PanBackElement is not null && change.NewValue is Thickness padding)
                 PanBackElement.Padding = padding;
+        }
+        else if (change.Property == UseExternalSelectionIndicatorProperty)
+        {
+            RefreshColor();
         }
     }
 

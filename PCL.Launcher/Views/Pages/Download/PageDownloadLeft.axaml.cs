@@ -64,8 +64,7 @@ public partial class PageDownloadLeft : MyPageLeft, IPageView, IRefreshable
         _isSynchronizing = true;
         try
         {
-            foreach (var (itemSub, item) in _items)
-                item.SetChecked(itemSub == _current, false, false);
+            PageNavigationListBuilder.Select(_items, _current);
         }
         finally
         {

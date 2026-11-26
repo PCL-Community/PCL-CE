@@ -9,6 +9,7 @@ using Avalonia.Threading;
 using PCL.Core.App.IoC;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
+using PCL.Core.UI.Background;
 using PCL.Navigation;
 using PCL.UI;
 using PCL.UI.SystemIntegration;

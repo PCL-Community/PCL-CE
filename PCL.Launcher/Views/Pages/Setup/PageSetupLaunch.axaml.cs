@@ -43,6 +43,11 @@ public partial class PageSetupLaunch : MyPageRight, ISetupResetPage
                 ToolTip.TipProperty,
                 "Setup.Launch.Advanced.UseJavaExe.Unsupported");
 
+        if (!OperatingSystem.IsWindows())
+            TextAdvanceRun.SetLocalizedValue(
+                ToolTip.TipProperty,
+                "Setup.Launch.Advanced.PreLaunchCommand.ToolTip.Posix");
+
         SliderRamCustom.getHintText = new Func<object, object>(value =>
             $"{Lang.Number(PageSetupLaunchViewModel.GetRamFromTick(Convert.ToInt32(value)), "N1")} GiB");
         SliderRamInitialCustom.getHintText = new Func<object, object>(value =>

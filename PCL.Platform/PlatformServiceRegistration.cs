@@ -124,7 +124,8 @@ public static class PlatformServiceRegistration
         services.AddSingleton<ILaunchScriptService>(_ => kind switch
         {
             PlatformKind.Windows => new WindowsLaunchScriptService(),
-            PlatformKind.Linux or PlatformKind.MacOs => new PosixLaunchScriptService(),
+            PlatformKind.Linux => new PosixLaunchScriptService(".sh"),
+            PlatformKind.MacOs => new PosixLaunchScriptService(".command"),
             _ => throw _Throw(kind)
         });
         services.AddSingleton<IServerLaunchScriptService>(_ => kind switch

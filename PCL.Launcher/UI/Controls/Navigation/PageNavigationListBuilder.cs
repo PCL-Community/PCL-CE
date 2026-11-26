@@ -12,6 +12,37 @@ public sealed record PageNavigationListResult(
 /// <summary>根据页面描述构建左栏分组与导航项。</summary>
 public static class PageNavigationListBuilder
 {
+    /// <summary>
+    /// 同步导航列表的单选状态。先选中目标项，让它在取消其他项之前仍能取到旧的选中项作为滑动起点；
+    /// 目标项不存在时取消全部，避免保留过期选中。调用方负责在同步期间抑制选中回调。
+    /// </summary>
+    public static void Select(
+        IReadOnlyList<(SubPageId Sub, MyListItem Item)> items,
+        SubPageId selected,
+        bool animate = true)
+    {
+        MyListItem? target = null;
+        foreach (var (sub, item) in items)
+        {
+            if (sub != selected)
+                continue;
+
+            target = item;
+            break;
+        }
+
+        if (target is not null && !target.Checked)
+            target.SetChecked(true, false, animate);
+
+        foreach (var (sub, item) in items)
+        {
+            if (sub == selected || !item.Checked)
+                continue;
+
+            item.SetChecked(false, false, false);
+        }
+    }
+
     public static PageNavigationListResult Build(
         PageDescriptor page,
         StackPanel panel,

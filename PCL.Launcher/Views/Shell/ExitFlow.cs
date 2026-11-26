@@ -15,6 +15,8 @@ public sealed class ExitFlow
 {
     private const string ExitAnimationKey = "MainWindow Exit";
 
+    private const int NativeCloseAnimationMilliseconds = 400;
+
     private readonly Window _window;
 
     private bool _running;
@@ -90,6 +92,19 @@ public sealed class ExitFlow
 
     private void PlayExitAnimation()
     {
+        if (PlatformStartup.Shell.UsesNativeWindowAnimation)
+        {
+            (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
+                ?.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            _window.Closed += async (_, _) =>
+            {
+                await Task.Delay(NativeCloseAnimationMilliseconds);
+                ShutdownApplication();
+            };
+            _window.Close();
+            return;
+        }
+
         _window.IsHitTestVisible = false;
         if (_window.Content is not Control root || !AnimationService.IsEnabled || !root.IsLoaded)
         {

@@ -12,6 +12,15 @@ namespace PCL;
 
 public static partial class GameLaunch
 {
+    private static string? _launchScriptExtension;
+
+    public static string LaunchScriptExtension =>
+        _launchScriptExtension ??= (ApplicationRuntime.GetService<ILaunchScriptService>()
+            ?? throw new InvalidOperationException("启动脚本服务尚未初始化")).FileExtension;
+
+    public static string LatestLaunchScriptPath =>
+        Path.Combine(Paths.Data, $"LatestLaunch{LaunchScriptExtension}");
+
     private static void McLaunchPrerun()
     {
         var javaExePath =
@@ -341,8 +350,7 @@ public static partial class GameLaunch
         {
             var scriptService = ApplicationRuntime.GetService<ILaunchScriptService>()
                 ?? throw new InvalidOperationException("启动脚本服务尚未初始化");
-            var scriptPath = currentLaunchOptions!.SaveBatch
-                ?? Path.Combine(Paths.Data, "LatestLaunch" + scriptService.FileExtension);
+            var scriptPath = currentLaunchOptions!.SaveBatch ?? LatestLaunchScriptPath;
             Files.WriteAllText(
                 scriptPath,
                 LogFilter.FilterAccessToken(

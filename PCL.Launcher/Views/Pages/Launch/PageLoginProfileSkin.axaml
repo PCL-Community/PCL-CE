@@ -40,8 +40,9 @@
         <ui:MyCard x:Name="PanButtons"
                    Grid.Row="2"
                    Grid.Column="1"
-                   Margin="0,8,0,0"
+                   Margin="0,8,0,2"
                    HorizontalAlignment="Center"
+                   VerticalAlignment="Top"
                    CornerRadius="5"
                    Opacity="0">
             <StackPanel Margin="10,3,9,3"

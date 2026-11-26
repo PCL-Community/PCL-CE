@@ -101,7 +101,6 @@ public sealed class PlatformArchitectureTest
             + string.Join(Environment.NewLine, violations));
     }
 
-
     [TestMethod]
     public void LegacyPlatformFacadesShouldBeDeleted()
     {

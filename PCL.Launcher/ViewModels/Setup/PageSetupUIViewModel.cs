@@ -239,7 +239,6 @@ public partial class PageSetupUIViewModel : ViewModelBase
                 Config.Preference.Background.WallpaperSuitMode,
                 0,
                 8);
-
             LogoText = Config.Preference.WindowTitleCustomText;
             CustomNetText = Config.Preference.Homepage.CustomUrl;
             CustomPresetSelectedIndex = Math.Clamp(
