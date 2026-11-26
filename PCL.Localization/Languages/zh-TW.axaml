@@ -983,7 +983,7 @@
     <sys:String x:Key="Instance.Overall.Script.ExportFailed">匯出啟動指令碼失敗</sys:String>
     <sys:String x:Key="Instance.Overall.Script.Exporting">正在匯出啟動指令碼……</sys:String>
     <sys:String x:Key="Instance.Overall.Script.ExportingWarning">正在匯出啟動指令碼……（注意，使用指令碼啟動可能會導致登入失效！）</sys:String>
-    <sys:String x:Key="Instance.Overall.Script.FileFilter">批次檔(*.bat)|*.bat</sys:String>
+    <sys:String x:Key="Instance.Overall.Script.FileFilter">啟動指令碼(*{0})|*{0}</sys:String>
     <sys:String x:Key="Instance.Overall.Script.SelectSaveTitle">選擇指令碼儲存位置</sys:String>
     <sys:String x:Key="Instance.Overall.Script.WaitForLaunchTask">請在目前啟動工作結束後再試！</sys:String>
     <sys:String x:Key="Instance.Overall.Shortcuts.InstanceFolder">實例資料夾</sys:String>

@@ -1022,7 +1022,7 @@
     <sys:String x:Key="Instance.Overall.Script.ExportFailed">导出启动脚本失败</sys:String>
     <sys:String x:Key="Instance.Overall.Script.Exporting">正在导出启动脚本……</sys:String>
     <sys:String x:Key="Instance.Overall.Script.ExportingWarning">正在导出启动脚本……（注意，使用脚本启动可能会导致登录失效！）</sys:String>
-    <sys:String x:Key="Instance.Overall.Script.FileFilter">批处理文件(*.bat)|*.bat</sys:String>
+    <sys:String x:Key="Instance.Overall.Script.FileFilter">启动脚本(*{0})|*{0}</sys:String>
     <sys:String x:Key="Instance.Overall.Script.SelectSaveTitle">选择脚本保存位置</sys:String>
     <sys:String x:Key="Instance.Overall.Script.WaitForLaunchTask">请在当前启动任务结束后再试！</sys:String>
     <sys:String x:Key="Instance.Overall.Shortcuts.InstanceFolder">实例文件夹</sys:String>

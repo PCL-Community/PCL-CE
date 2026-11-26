@@ -13,7 +13,7 @@ namespace PCL;
 internal sealed class CrashReportExporter
 {
     private const string ReportFolderName = "Report";
-    private const string LaunchScriptFileName = "启动脚本.bat";
+    private static string LaunchScriptFileName => $"启动脚本{GameLaunch.LaunchScriptExtension}";
     private const string RawOutputFileName = "游戏崩溃前的输出.log";
     private const string LauncherLogFileName = "PCL CE 启动器日志.log";
     private const string EnvironmentFileName = "环境与启动信息.txt";
@@ -113,7 +113,7 @@ internal sealed class CrashReportExporter
 
         switch (fileName)
         {
-            case "LatestLaunch.bat":
+            case var _ when fileName == Path.GetFileName(GameLaunch.LatestLaunchScriptPath):
                 return LaunchScriptFileName;
 
             case "RawOutput.log":

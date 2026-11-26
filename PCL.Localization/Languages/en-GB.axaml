@@ -983,7 +983,7 @@
     <sys:String x:Key="Instance.Overall.Script.ExportFailed">Export launch script failed</sys:String>
     <sys:String x:Key="Instance.Overall.Script.Exporting">Exporting launch script...</sys:String>
     <sys:String x:Key="Instance.Overall.Script.ExportingWarning">Exporting launch script... (Note: using the script to launch may cause your login session to expire!)</sys:String>
-    <sys:String x:Key="Instance.Overall.Script.FileFilter">Batch file (*.bat)|*.bat</sys:String>
+    <sys:String x:Key="Instance.Overall.Script.FileFilter">Launch script (*{0})|*{0}</sys:String>
     <sys:String x:Key="Instance.Overall.Script.SelectSaveTitle">Select where to save the script</sys:String>
     <sys:String x:Key="Instance.Overall.Script.WaitForLaunchTask">Please wait for the current launch task to finish first!</sys:String>
     <sys:String x:Key="Instance.Overall.Shortcuts.InstanceFolder">Instance folder</sys:String>
