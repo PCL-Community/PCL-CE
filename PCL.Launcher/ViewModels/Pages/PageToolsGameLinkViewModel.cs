@@ -2217,6 +2217,14 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
         if (Interlocked.Exchange(ref _eulaBusy, 1) == 1)
             return;
 
+        if (!_forceEulaPage && !TryGetEulaAccepted())
+        {
+            HintService.Show(Hints.Info(Lang.Text("Tools.GameLink.Eula.NotAccepted")));
+            Interlocked.Exchange(ref _eulaBusy, 0);
+            RunOnUi(RefreshLayout);
+            return;
+        }
+
         try
         {
             RefreshLayout();

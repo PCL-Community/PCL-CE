@@ -3332,6 +3332,7 @@
     <sys:String x:Key="Tools.GameLink.Error.ServerMessage">與大廳伺服器的連線出現錯誤。&#xA;&#xA;原始錯誤資訊：&#xA;{0}</sys:String>
     <sys:String x:Key="Tools.GameLink.Error.UpdateRequired">請更新到最新版 PCL CE 以使用大廳</sys:String>
     <sys:String x:Key="Tools.GameLink.Eula.Disabled">連線功能已停用！</sys:String>
+    <sys:String x:Key="Tools.GameLink.Eula.NotAccepted">你尚未同意連線大廳說明與條款</sys:String>
     <sys:String x:Key="Tools.GameLink.Eula.RevokeConfirm">你確認要復原連線協議授權嗎？</sys:String>
     <sys:String x:Key="Tools.GameLink.Eula.RevokeTitle">復原授權確認</sys:String>
     <sys:String x:Key="Tools.GameLink.Exit.ConfirmMessage">你確認要退出大廳嗎？</sys:String>
