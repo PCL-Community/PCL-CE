@@ -31,7 +31,8 @@ internal static class DownloadVersionList
         JsonArray versions,
         Action<JsonObject>? onSelect,
         DownloadVersionListMode mode = DownloadVersionListMode.Install,
-        IDictionary<string, MyListItem>? itemMap = null)
+        IDictionary<string, MyListItem>? itemMap = null,
+        IReadOnlySet<string>? installedSet = null)
     {
         var dictionary = CategoryOrder.ToDictionary(
             category => category,
@@ -52,7 +53,7 @@ internal static class DownloadVersionList
                     .OrderByDescending(McVersionClassifier.GetReleaseTime)
             ];
 
-        var installed = GetInstalledVersionNames();
+        var installed = installedSet ?? GetInstalledVersionNames();
         panMain.Children.Clear();
 
         var latestVersions = GetLatestVersions(dictionary);
