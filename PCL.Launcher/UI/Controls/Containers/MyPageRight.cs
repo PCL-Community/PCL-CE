@@ -753,7 +753,8 @@ public class MyPageRight : Decorator, IPageView, IPageRightContainer
             {
                 foreach (var control in GetAllAnimControls(element, true))
                 {
-                    control.Opacity = 1d;
+                    if (control is not MyExtraTextButton)
+                        control.Opacity = 1d;
                     if (control is not MyListItem)
                         control.IsHitTestVisible = true;
                     if (control.RenderTransform is TranslateTransform)
@@ -784,7 +785,8 @@ public class MyPageRight : Decorator, IPageView, IPageRightContainer
         {
             foreach (var control in GetAllAnimControls(element, true))
             {
-                control.Opacity = 1d;
+                if (control is not MyExtraTextButton)
+                    control.Opacity = 1d;
                 if (control is not MyListItem)
                     control.IsHitTestVisible = true;
                 if (control.RenderTransform is TranslateTransform)
