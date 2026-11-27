@@ -1704,7 +1704,7 @@
     <sys:String x:Key="Launch.Homepage.WpfMigrationToast">当前正在使用 WPF 自定义主页，显示可能存在问题。</sys:String>
     <sys:String x:Key="Launch.Homepage.News.Loading">加载中……</sys:String>
     <sys:String x:Key="Launch.Homepage.News.ViewDetail">查看详情</sys:String>
-    <sys:String x:Key="Launch.Homepage.Preset.EchoCave.Removed">回声洞 因为只有空壳因此已被移除，请前往设置选择其他预设主页</sys:String>
+    <sys:String x:Key="Launch.Homepage.Preset.Removed">正在使用的主页预设已被移除，请前往设置选择其他预设主页</sys:String>
     <sys:String x:Key="Launch.Homepage.SlowWarning">主页加载过于缓慢（花费了 {0} 秒），请向主页作者反馈此问题，或暂时停止使用该主页</sys:String>
     <sys:String x:Key="Launch.Homepage.Task.Download">下载主页</sys:String>
 

@@ -27,7 +27,7 @@ public sealed record HomepagePreset(
 
 /// <summary>
 ///     主页预设表：把配置中的预设索引解释为可展示的内容来源。
-///     索引顺序与设置页“主页预设”下拉的选项顺序一致，包含被隐藏的“回声洞”占位项。
+///     索引顺序与设置页“主页预设”下拉的选项顺序一致，包含被隐藏的“回声洞”与“Bangumi”占位项。
 /// </summary>
 public static class HomepagePresetTable
 {
@@ -96,11 +96,7 @@ public static class HomepagePresetTable
             "Setup.Ui.Homepage.Preset.ModpackRecommendation",
             HomepageSourceKind.CustomXaml,
             "https://qawsedrftgyhujiko.fun/pcl2/Custom.xaml"),
-        new(
-            13,
-            "Setup.Ui.Homepage.Preset.Bangumi",
-            HomepageSourceKind.CustomXaml,
-            "https://bangumi.p.kaphia.qzz.io"),
+        new(13, "Setup.Ui.Homepage.Preset.Bangumi", HomepageSourceKind.Removed, null),
         new(
             14,
             "Setup.Ui.Homepage.Preset.PclAnnouncement",

@@ -577,7 +577,8 @@
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.NewsToday}" />
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.MinecraftKnowledge}" />
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.ModpackRecommendation}" />
-                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.Bangumi}" />
+                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.Bangumi}"
+                                               IsVisible="False" />
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.PclAnnouncement}" />
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.McOfficialFeed}" />
                         </ui:MyComboBox>

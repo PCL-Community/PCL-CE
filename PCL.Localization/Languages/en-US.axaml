@@ -1704,7 +1704,7 @@
     <sys:String x:Key="Launch.Homepage.WpfMigrationToast">You are using a WPF custom homepage, which may have display issues.</sys:String>
     <sys:String x:Key="Launch.Homepage.News.Loading">Loading...</sys:String>
     <sys:String x:Key="Launch.Homepage.News.ViewDetail">View details</sys:String>
-    <sys:String x:Key="Launch.Homepage.Preset.EchoCave.Removed">The Echo Cave preset has been removed as it only had a shell. Please go to Settings and select another homepage preset.</sys:String>
+    <sys:String x:Key="Launch.Homepage.Preset.Removed">The homepage preset in use has been removed. Please go to Settings and select another homepage preset.</sys:String>
     <sys:String x:Key="Launch.Homepage.SlowWarning">The homepage is loading too slowly ({0} seconds). Please report this issue to the homepage author, or temporarily stop using this homepage.</sys:String>
     <sys:String x:Key="Launch.Homepage.Task.Download">Download homepage</sys:String>
 
