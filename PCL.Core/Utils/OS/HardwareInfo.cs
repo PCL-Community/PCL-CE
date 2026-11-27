@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using PCL.Core.Logging;
 using PCL.Core.Platform;
@@ -14,10 +15,18 @@ public static class HardwareInfo
     /// <summary>系统 CPU 信息。</summary>
     public static string CpuName = "Unknown";
 
+    private static bool _cpuInfoLoaded;
+
     private static readonly Lazy<long> _SystemMemorySize = new(_GetSystemMemorySize);
+
+    /// <summary>系统物理核心数；无法获取时为 <see langword="null" />。</summary>
+    public static int? PhysicalCoreCount { get; private set; }
 
     /// <summary>系统 GPU 信息。</summary>
     public static IReadOnlyList<GpuInfo> Gpus { get; private set; } = [];
+
+    /// <summary>是否已经完成过一次 GPU 信息采集。即使没有检测到 GPU，成功采集后也为 <see langword="true" />。</summary>
+    public static bool HasCollectedHardware { get; private set; }
 
     /// <summary>已安装物理内存大小，单位 MiB。</summary>
     public static long SystemMemorySize => _SystemMemorySize.Value;
@@ -43,6 +52,54 @@ public static class HardwareInfo
         return fallbackBytes > 0 ? fallbackBytes / 1024 / 1024 : 0;
     }
 
+    /// <summary>
+    /// 仅获取 CPU 信息并写入 <see cref="CpuName" /> 和 <see cref="PhysicalCoreCount" />
+    /// 。启动日志只调用此方法，避免过早触发可能较慢的 GPU 采集。
+    /// </summary>
+    public static void GetCpuInfo()
+    {
+        if (CurrentProvider is not { } provider)
+        {
+            LogWrapper.Debug("Hardware", "平台模块尚未初始化，跳过 CPU 信息采集");
+            return;
+        }
+
+        lock (_Lock)
+        {
+            if (_cpuInfoLoaded)
+                return;
+        }
+
+        try
+        {
+            var cpuName = provider.GetCpuName();
+            int? physicalCoreCount = null;
+            try
+            {
+                physicalCoreCount = provider.GetPhysicalCoreCount();
+            }
+            catch (Exception ex)
+            {
+                LogWrapper.Warn(ex, "获取物理核心数失败");
+            }
+
+            lock (_Lock)
+            {
+                if (!string.IsNullOrWhiteSpace(cpuName))
+                    CpuName = cpuName.Trim();
+                if (physicalCoreCount is > 0)
+                    PhysicalCoreCount = physicalCoreCount;
+                _cpuInfoLoaded = true;
+            }
+
+            LogWrapper.Info("已获取 CPU 信息");
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Warn(ex, "获取 CPU 信息失败");
+        }
+    }
+
     /// <summary>获取系统信息，例如 CPU 与 GPU，并存储到 <see cref="CpuName" /> 和 <see cref="Gpus" />。</summary>
     public static void GetHardwareInfo()
     {
@@ -52,19 +109,27 @@ public static class HardwareInfo
             return;
         }
 
+        GetCpuInfo();
+
         try
         {
-            var cpuName = provider.GetCpuName();
             var gpuList = provider.GetGpus();
 
             lock (_Lock)
             {
-                if (!string.IsNullOrWhiteSpace(cpuName))
-                    CpuName = cpuName;
                 if (gpuList.Count > 0)
                     Gpus = gpuList;
+                HasCollectedHardware = true;
             }
 
+            LogWrapper.Info(
+                "Hardware",
+                gpuList.Count == 0
+                    ? "未检测到图形设备"
+                    : string.Join(
+                        "; ",
+                        gpuList.Select(gpu =>
+                            $"{gpu.Name} ({gpu.DriverVersion}, {gpu.Memory} MiB)")));
             LogWrapper.Info("已获取系统硬件信息");
         }
         catch (Exception ex)
@@ -76,5 +141,7 @@ public static class HardwareInfo
     public readonly record struct GpuInfo(
         string Name,
         string DriverVersion,
-        long Memory);
+        long Memory,
+        string? Codename = null,
+        bool MemoryIsLowerBound = false);
 }

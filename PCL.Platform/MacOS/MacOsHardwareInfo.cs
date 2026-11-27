@@ -21,6 +21,14 @@ public sealed class MacOsHardwareInfo : IHardwareInfo
         return string.IsNullOrWhiteSpace(cpuName) ? null : cpuName;
     }
 
+    public int? GetPhysicalCoreCount()
+    {
+        var value = _RunAndRead("sysctl", "-n hw.physicalcpu").Trim();
+        return int.TryParse(value, out var count) && count > 0
+            ? count
+            : null;
+    }
+
     public IReadOnlyList<HardwareInfo.GpuInfo> GetGpus()
     {
         return _ReadMacOsGpus();
@@ -149,6 +157,8 @@ public sealed class MacOsHardwareInfo : IHardwareInfo
     private static string _GetCpuInfoValue(string line)
     {
         var colonIndex = line.IndexOf(':');
-        return colonIndex < 0 ? string.Empty : line[(colonIndex + 1)..].Trim();
+        return colonIndex < 0
+            ? string.Empty
+            : line[(colonIndex + 1)..].Trim();
     }
 }
