@@ -21,6 +21,8 @@ internal sealed class MacOsCaptionButtonLayout : IDisposable
     private static readonly ObjCSel LayoutSubtreeIfNeeded = ObjCSel.FromString("layoutSubtreeIfNeeded");
 
     private const double ContentSpacing = 12d;
+    private const int MaximumRetries = 20;
+    private static readonly TimeSpan RetryInterval = TimeSpan.FromMilliseconds(50);
 
     private readonly MainWindow _window;
     private readonly double _left;
@@ -29,6 +31,9 @@ internal sealed class MacOsCaptionButtonLayout : IDisposable
     private readonly Dictionary<nuint, OriginalPosition> _originalPositions = [];
     private bool _unified;
     private bool _updateQueued;
+    private DispatcherTimer? _retryTimer;
+    private int _retryCount;
+    private int _updateVersion;
 
     public MacOsCaptionButtonLayout(
         MainWindow window,
@@ -53,6 +58,8 @@ internal sealed class MacOsCaptionButtonLayout : IDisposable
     public void PrepareForStyleChange(bool unified)
     {
         if (IsDisposed) return;
+        CancelPendingUpdate();
+        _unified = unified;
         var nsWindow = GetNativeWindow();
         if (!nsWindow.IsNull)
         {
@@ -72,41 +79,77 @@ internal sealed class MacOsCaptionButtonLayout : IDisposable
         {
             _originalPositions.Clear();
         }
-
-        _unified = unified;
     }
 
     public void ScheduleUpdate()
     {
         if (IsDisposed || !_unified || _updateQueued) return;
+        CancelPendingUpdate();
         _updateQueued = true;
+        var version = _updateVersion;
         Dispatcher.UIThread.Post(
             () =>
             {
+                // 样式切换后，旧回调不能清除新一轮更新的排队标记。
+                if (version != _updateVersion) return;
                 _updateQueued = false;
-                if (IsDisposed || !_unified || !_window.ExtendClientAreaToDecorationsHint) return;
-                Apply();
+                Update(version);
             },
             DispatcherPriority.Loaded);
     }
 
-    private void Apply()
+    private void Update(int version)
+    {
+        if (version != _updateVersion) return;
+        if (IsDisposed || !_unified || !_window.ExtendClientAreaToDecorationsHint)
+        {
+            CancelPendingUpdate();
+            return;
+        }
+
+        var applied = TryApply();
+        if (version != _updateVersion || applied || _retryCount >= MaximumRetries) return;
+
+        // 原生视图可能晚于 Avalonia 的窗口事件就绪；有限延迟重试，避免持续占用 UI 线程。
+        _retryCount++;
+        var timer = new DispatcherTimer { Interval = RetryInterval };
+        timer.Tick += (_, _) =>
+        {
+            timer.Stop();
+            if (version != _updateVersion) return;
+            _retryTimer = null;
+            Update(version);
+        };
+        _retryTimer = timer;
+        timer.Start();
+    }
+
+    private void CancelPendingUpdate()
+    {
+        _updateVersion++;
+        _updateQueued = false;
+        _retryCount = 0;
+        _retryTimer?.Stop();
+        _retryTimer = null;
+    }
+
+    private bool TryApply()
     {
         var titleBarHeight = _window.WindowDecorationMargin.Top;
-        if (titleBarHeight <= 0d) return;
+        if (titleBarHeight <= 0d) return false;
         var nsWindow = GetNativeWindow();
-        if (nsWindow.IsNull) return;
+        if (nsWindow.IsNull) return false;
         var contentView = nsWindow.SendMessage<ObjCObject>(ContentView);
-        if (contentView.IsNull) return;
+        if (contentView.IsNull) return false;
         var root = contentView.SendMessage<ObjCObject>(Superview);
-        if (root.IsNull) return;
+        if (root.IsNull) return false;
         // 先完成 AppKit 工具栏的延迟布局，否则后续原生重排会覆盖自定义位置。
         root.SendMessage(LayoutSubtreeIfNeeded);
 
         var buttons = GetButtons(nsWindow);
-        if (buttons.Count == 0 || buttons[0].Kind != 0) return;
+        if (buttons.Count == 0 || buttons[0].Kind != 0) return false;
         var rootBounds = ReadRect(root, Bounds);
-        if (rootBounds.Size.Width <= 0d || rootBounds.Size.Height <= 0d) return;
+        if (rootBounds.Size.Width <= 0d || rootBounds.Size.Height <= 0d) return false;
         RememberOriginalPositions(buttons);
 
         var close = buttons[0];
@@ -137,6 +180,7 @@ internal sealed class MacOsCaptionButtonLayout : IDisposable
         }
 
         _window.ApplyExtendedTitleBarLayout(Math.Max(_minimumLeadingInset, right + ContentSpacing));
+        return true;
     }
 
     private ObjCObject GetNativeWindow()
@@ -200,6 +244,7 @@ internal sealed class MacOsCaptionButtonLayout : IDisposable
     {
         if (IsDisposed) return;
         IsDisposed = true;
+        CancelPendingUpdate();
         _originalPositions.Clear();
         _window.Opened -= OnOpened;
         _window.SizeChanged -= OnSizeChanged;
