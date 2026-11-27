@@ -3401,6 +3401,7 @@
     <sys:String x:Key="Tools.GameLink.Error.ServerMessage">A lobby server error occurred.&#xA;&#xA;Original error:&#xA;{0}</sys:String>
     <sys:String x:Key="Tools.GameLink.Error.UpdateRequired">Please update to the latest PCL CE to use lobby features.</sys:String>
     <sys:String x:Key="Tools.GameLink.Eula.Disabled">Lobby feature disabled!</sys:String>
+    <sys:String x:Key="Tools.GameLink.Eula.NotAccepted">You haven't accepted the lobby terms yet</sys:String>
     <sys:String x:Key="Tools.GameLink.Eula.RevokeConfirm">Are you sure you want to revoke the lobby agreement authorization?</sys:String>
     <sys:String x:Key="Tools.GameLink.Eula.RevokeTitle">Revoke authorization</sys:String>
     <sys:String x:Key="Tools.GameLink.Exit.ConfirmMessage">Are you sure you want to exit the lobby?</sys:String>
