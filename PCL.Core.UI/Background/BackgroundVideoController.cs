@@ -153,7 +153,7 @@ public sealed class BackgroundVideoController : IDisposable
         var (width, height) = sourceSize is { } size
             ? GetVideoFrameSize(size)
             : GetVideoTargetSize(viewport);
-        var pixelFormat = _yuvUnavailable
+        var pixelFormat = _yuvUnavailable || RequiresBgraOutput(videoInfo)
             ? FfmpegPixelFormat.Bgra8888
             : FfmpegPixelFormat.Yuv420p;
         var profiles = FfmpegPlaybackProfiles.Create(
@@ -538,6 +538,14 @@ public sealed class BackgroundVideoController : IDisposable
             _hardwareDecodeFailures.Add(GetVideoKey(currentPath));
         LogWrapper.Warn("UI", "视频背景恢复失败，尝试重新加载");
         await ReloadAsync().ConfigureAwait(false);
+    }
+
+    internal static bool RequiresBgraOutput(VideoInfo? videoInfo)
+    {
+        return string.Equals(
+            videoInfo?.ColorSpace,
+            "bt2020c",
+            StringComparison.OrdinalIgnoreCase);
     }
 
     internal static VideoInfo? NormalizeVideoInfoForOutput(VideoInfo? videoInfo)

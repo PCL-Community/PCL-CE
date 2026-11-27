@@ -7,15 +7,6 @@ namespace PCL.Core.Test.App;
 public sealed class YuvColorConversionTest
 {
     [TestMethod]
-    public void RecognizesBt2020NonConstantLuminanceAlias()
-    {
-        var conversion = YuvColorConversion.Create("tv", "bt2020nc");
-
-        Assert.AreEqual(1.67867411f, conversion.RowR[2], 0.000001f);
-        Assert.AreEqual(-0.65042432f, conversion.RowG[2], 0.000001f);
-    }
-
-    [TestMethod]
     public void DefaultsUnknownColorSpaceToBt601()
     {
         var limited = YuvColorConversion.Create("tv", null);

@@ -49,6 +49,26 @@ public sealed class FfmpegVideoProbeTest
     }
 
     [TestMethod]
+    public void NormalizesBt2020NonConstantLuminanceColorSpace()
+    {
+        var info = FfmpegVideoProbe.ParseInfo(
+            "Stream #0:0: Video: h264, yuv420p(tv, bt2020nc, progressive), 3840x2160, 24 fps");
+
+        Assert.AreEqual("tv", info?.ColorRange);
+        Assert.AreEqual("bt2020", info?.ColorSpace);
+    }
+
+    [TestMethod]
+    public void PreservesBt2020ConstantLuminanceColorSpace()
+    {
+        var info = FfmpegVideoProbe.ParseInfo(
+            "Stream #0:0: Video: h264, yuv420p(tv, bt2020c, progressive), 3840x2160, 24 fps");
+
+        Assert.AreEqual("tv", info?.ColorRange);
+        Assert.AreEqual("bt2020c", info?.ColorSpace);
+    }
+
+    [TestMethod]
     public void UsesSampleAspectRatioForDisplaySize()
     {
         var size = FfmpegVideoProbe.Parse(
