@@ -10,6 +10,7 @@ public sealed class MacOsJavaPlatformInfo : IJavaPlatformInfo
     public string? JavawExecutableName => null;
     public string JstackExecutableName => "jstack";
     public bool SupportsJavaw => false;
+    public bool SupportsJavaLaunchWrapper => false;
 
     public IJavaParser CreateParser()
     {

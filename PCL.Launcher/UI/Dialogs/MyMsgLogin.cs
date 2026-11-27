@@ -40,7 +40,10 @@ public sealed class MyMsgLogin : MyMsgDialogBase
                 MyButton.TextProperty,
                 "Common.Action.Cancel");
         for (var number = 1; number <= 3; number++)
+        {
+            Button(number).IsVisible = true;
             Button(number).ColorType = MyButton.ColorState.Normal;
+        }
         LabTitle.SetLocalizedValue(
             TextBlock.TextProperty,
             "Launch.Account.LoginDialog.MinecraftLogin");

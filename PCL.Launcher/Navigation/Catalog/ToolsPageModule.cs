@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using PCL.Core.App;
 using PCL.Views.Pages.Tools;
+using PCL.Views.Shell;
 using static PCL.Navigation.PageDescriptorFactory;
 
 namespace PCL.Navigation.Catalog;
@@ -55,5 +56,9 @@ public sealed class ToolsPageModule : IPageModule
             "Main.Tab.Tools",
             "lucide/wrench",
             3)
+        {
+            IsVisible = () => HiddenFeatureState.ForceShow
+                || !Config.Preference.Hide.PageTools
+        }
     ];
 }

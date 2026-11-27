@@ -432,7 +432,8 @@
                                        Text="{loc:Loc Setup.Launch.Advanced.DisableJlw}"
                                        IsEnabled="{Binding DisableJlwEnabled}"
                                        Checked="{Binding DisableJlw, Mode=TwoWay}"
-                                       ToolTip.Tip="{loc:Loc Setup.Launch.Advanced.DisableJlw.ToolTip}" />
+                                       ToolTip.Tip="{loc:Loc Setup.Launch.Advanced.DisableJlw.ToolTip}"
+                                       ToolTip.ShowOnDisabled="True" />
                         <ui:MyCheckBox x:Name="CheckAdvanceDisableLF"
                                        Height="28"
                                        Text="{loc:Loc Setup.Launch.Advanced.DisableLF}"

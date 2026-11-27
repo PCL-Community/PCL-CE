@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using PCL.Core.Platform;
 
 namespace PCL.Platform;
@@ -6,6 +7,25 @@ namespace PCL.Platform;
 /// <summary>跨平台外部命令执行器。只负责进程生命周期和标准输出采集，不携带业务参数。</summary>
 public sealed class ExternalCommandRunner : IExternalCommandRunner
 {
+    private static readonly HashSet<Process> ActiveProcesses = [];
+    private static readonly Lock LifecycleLock = new();
+    private static readonly PosixSignalRegistration? _sigint;
+    private static readonly PosixSignalRegistration? _sigterm;
+    private static bool _shuttingDown;
+
+    static ExternalCommandRunner()
+    {
+        AppDomain.CurrentDomain.ProcessExit += (_, _) => _KillActiveProcesses();
+        if (OperatingSystem.IsWindows()) return;
+
+        _sigterm = PosixSignalRegistration.Create(
+            PosixSignal.SIGTERM,
+            _ => _KillActiveProcesses());
+        _sigint = PosixSignalRegistration.Create(
+            PosixSignal.SIGINT,
+            _ => _KillActiveProcesses());
+    }
+
     public bool ExistsOnPath(string command)
     {
         if (string.IsNullOrWhiteSpace(command))
@@ -89,6 +109,39 @@ public sealed class ExternalCommandRunner : IExternalCommandRunner
         return new ExternalCommandResult(process.ExitCode, output, error);
     }
 
+    public IExternalCommandSession Start(
+        string fileName,
+        IReadOnlyList<string> arguments)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
+        ArgumentNullException.ThrowIfNull(arguments);
+
+        var process = new Process
+        {
+            StartInfo = CreateStartInfo(fileName, arguments)
+        };
+
+        if (!process.Start())
+        {
+            process.Dispose();
+            throw new InvalidOperationException($"无法启动外部命令：{fileName}");
+        }
+
+        lock (LifecycleLock)
+        {
+            if (_shuttingDown)
+            {
+                TryKill(process);
+                process.Dispose();
+                throw new InvalidOperationException("启动器正在退出。");
+            }
+
+            ActiveProcesses.Add(process);
+        }
+
+        return new ExternalCommandSession(process);
+    }
+
     public IDisposable Watch(
         string fileName,
         IReadOnlyList<string> arguments,
@@ -144,6 +197,20 @@ public sealed class ExternalCommandRunner : IExternalCommandRunner
         return info;
     }
 
+    private static void _KillActiveProcesses()
+    {
+        Process[] processes;
+        lock (LifecycleLock)
+        {
+            _shuttingDown = true;
+            processes = [.. ActiveProcesses];
+            ActiveProcesses.Clear();
+        }
+
+        foreach (var process in processes)
+            TryKill(process);
+    }
+
     private static void TryKill(Process process)
     {
         try
@@ -154,6 +221,72 @@ public sealed class ExternalCommandRunner : IExternalCommandRunner
         catch
         {
             // 进程可能恰好在超时和终止之间退出。
+        }
+    }
+
+    private sealed class ExternalCommandSession(Process process) : IExternalCommandSession
+    {
+        private bool _disposed;
+
+        public Stream StandardOutput => process.StandardOutput.BaseStream;
+
+        public Stream StandardError => process.StandardError.BaseStream;
+
+        public bool HasExited
+        {
+            get
+            {
+                if (_disposed) return true;
+                try
+                {
+                    return process.HasExited;
+                }
+                catch
+                {
+                    return true;
+                }
+            }
+        }
+
+        public int ExitCode
+        {
+            get
+            {
+                if (_disposed) return -1;
+                try
+                {
+                    return process.ExitCode;
+                }
+                catch
+                {
+                    return -1;
+                }
+            }
+        }
+
+        public Task WaitForExitAsync(CancellationToken cancellationToken = default)
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            return process.WaitForExitAsync(cancellationToken);
+        }
+
+        public void Kill()
+        {
+            if (_disposed) return;
+            TryKill(process);
+        }
+
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
+            lock (LifecycleLock)
+            {
+                ActiveProcesses.Remove(process);
+            }
+
+            TryKill(process);
+            process.Dispose();
         }
     }
 

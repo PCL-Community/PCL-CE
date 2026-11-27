@@ -15,7 +15,11 @@ namespace PCL;
 
 internal interface IPlatformShellIntegration
 {
+    /// <summary>主窗口的打开 / 关闭动画是否由系统原生播放。</summary>
+    bool UsesNativeWindowAnimation => false;
+
     void OnFrameworkInitialized(Application application);
+    void OnWindowCreating(Window window) { }
     void OnWindowCreated(Window window);
 }
 
@@ -62,21 +66,35 @@ internal sealed class MacOsShellIntegration : IPlatformShellIntegration
     private static readonly ObjCSel _UnhideAllApplications = ObjCSel.FromString("unhideAllApplications:");
 
     private static readonly ObjCSel _InitWithIdentifier = ObjCSel.FromString("initWithIdentifier:");
+    private static readonly ObjCSel _SetAnimationBehavior = ObjCSel.FromString("setAnimationBehavior:");
     private static readonly ObjCSel _SetToolbar = ObjCSel.FromString("setToolbar:");
     private static readonly ObjCSel _SetToolbarStyle = ObjCSel.FromString("setToolbarStyle:");
     private static readonly ObjCSel _SetTitlebarSeparatorStyle = ObjCSel.FromString("setTitlebarSeparatorStyle:");
 
+    private const nint DocumentWindowAnimationBehavior = 3;
     private const nint AutomaticToolbarStyle = 0;
     private const nint UnifiedToolbarStyle = 4;
     private const nint AutomaticTitlebarSeparator = 0;
     private const nint NoTitlebarSeparator = 1;
+    private const double UnifiedTitleBarHeight = 50d;
     private const double UnifiedTitleBarLeadingInset = 74d;
+    // 单位为逻辑点：关闭按钮的左边距，以及按钮组相对标题栏垂直居中的偏移（向下为正）。
+    private const double UnifiedCaptionButtonsLeft = 18d;
+    private const double UnifiedCaptionButtonsVerticalOffset = 0d;
 
     private static bool _frameworksLoaded;
+
+    public bool UsesNativeWindowAnimation => true;
 
     public void OnFrameworkInitialized(Application application)
     {
         ApplyDockIcon();
+    }
+
+    public void OnWindowCreating(Window window)
+    {
+        if (window.TryGetPlatformHandle()?.Handle is { } handle && handle != 0)
+            new ObjCObject(handle).SendMessage(_SetAnimationBehavior, DocumentWindowAnimationBehavior);
     }
 
     public void OnWindowCreated(Window window)
@@ -84,27 +102,35 @@ internal sealed class MacOsShellIntegration : IPlatformShellIntegration
         if (window is MainWindow mainWindow)
         {
             mainWindow.UseSystemWindowChrome();
-            _ApplyTitleBarStyle(mainWindow);
-            Config.Preference.MacTitleBarStyleConfig.Observe(
-                new ConfigObserver(
-                    ConfigEvent.Update,
-                    _ => Dispatcher.UIThread.Post(() => _ApplyTitleBarStyle(mainWindow))));
+            var captionButtons = new MacOsCaptionButtonLayout(
+                mainWindow,
+                UnifiedCaptionButtonsLeft,
+                UnifiedCaptionButtonsVerticalOffset,
+                UnifiedTitleBarLeadingInset);
+            _ApplyTitleBarStyle(mainWindow, captionButtons);
+            var observer = new ConfigObserver(
+                ConfigEvent.Update,
+                _ => Dispatcher.UIThread.Post(() => _ApplyTitleBarStyle(mainWindow, captionButtons)));
+            Config.Preference.MacTitleBarStyleConfig.Observe(observer);
+            mainWindow.Closed += (_, _) => Config.Preference.MacTitleBarStyleConfig.Unobserve(observer);
         }
 
         _AttachMenus(window);
     }
 
-    private static void _ApplyTitleBarStyle(MainWindow window)
+    private static void _ApplyTitleBarStyle(MainWindow window, MacOsCaptionButtonLayout captionButtons)
     {
+        if (captionButtons.IsDisposed) return;
         var unified = Config.Preference.MacTitleBarStyle >= 1;
+        captionButtons.PrepareForStyleChange(unified);
         var height = window.Height;
         window.ExtendClientAreaToDecorationsHint = unified;
         if (unified)
         {
             _AttachUnifiedToolbar(window);
-            // 先设为 0 再设回 -1，是为了让 Avalonia 重新读取系统标题栏的高度
+            // 先设为 0 再应用目标高度，让 Avalonia 在挂载工具栏后重新计算标题栏布局。
             window.ExtendClientAreaTitleBarHeightHint = 0d;
-            window.ExtendClientAreaTitleBarHeightHint = -1d;
+            window.ExtendClientAreaTitleBarHeightHint = UnifiedTitleBarHeight;
         }
         else
         {
@@ -113,6 +139,7 @@ internal sealed class MacOsShellIntegration : IPlatformShellIntegration
 
         window.Height = height;
         window.ApplyExtendedTitleBarLayout(unified ? UnifiedTitleBarLeadingInset : 0d);
+        captionButtons.ScheduleUpdate();
     }
 
     private static void _AttachUnifiedToolbar(Window window)
