@@ -21,6 +21,7 @@ public class MyScrollBar : ScrollBar
     private const int AnimationTime = 90;
     private const double ActiveOpacity = 0.35d;
     private const double PressedOpacity = 0.5d;
+    private const double MinOverscrollThumbLength = 12d; // 越界缩短后滑块的最短长度（含模板 2px 边距）
     private static readonly TimeSpan ScrollIdleDelay = TimeSpan.FromMilliseconds(120);
 
     /// <summary>动画组名使用的唯一编号。</summary>
@@ -33,6 +34,8 @@ public class MyScrollBar : ScrollBar
     private readonly DispatcherTimer _scrollIdleTimer = new() { Interval = ScrollIdleDelay };
 
     private Thumb? _thumb;
+
+    private double? _overscrollThumbSlot;
 
     public MyScrollBar()
     {
@@ -87,6 +90,40 @@ public class MyScrollBar : ScrollBar
         {
             LauncherCommon.Log(ex, "滚动条颜色改变出错");
         }
+    }
+
+    /// <summary>内容越界时按越界比例缩短滑块，滑块贴住所在一端；越界量为正表示底部越界，为 0 时恢复原长。</summary>
+    public void SetOverscroll(double overscroll, double viewport)
+    {
+        if (_thumb is null || Orientation != Avalonia.Layout.Orientation.Vertical) return;
+
+        if (overscroll == 0d || viewport <= 0d)
+        {
+            _thumb.Margin = default;
+            _overscrollThumbSlot = null;
+            return;
+        }
+
+        // 越界期间内容偏移不变，Track 分配给滑块的总长度（含 Margin）也不变
+        var slot = _overscrollThumbSlot ??= _thumb.Bounds.Height + _thumb.Margin.Top + _thumb.Margin.Bottom;
+        var shrink = Math.Min(
+            slot * Math.Min(Math.Abs(overscroll) / viewport, 1d),
+            Math.Max(0d, slot - MinOverscrollThumbLength));
+        _thumb.Margin = overscroll > 0d
+            ? new Thickness(0d, shrink, 0d, 0d)
+            : new Thickness(0d, 0d, 0d, shrink);
+        _KeepVisibleWhileScrolling();
+    }
+
+    // 回弹时逐帧调用，只续期可见状态，不重复触发颜色动画
+    private void _KeepVisibleWhileScrolling()
+    {
+        _scrollIdleTimer.Stop();
+        _scrollIdleTimer.Start();
+        if (_isScrolling) return;
+
+        _isScrolling = true;
+        RefreshColor();
     }
 
     public void NotifyScrolled()
