@@ -73,7 +73,12 @@ public abstract class VideoSurface : Control, IDisposable
     /// <summary>当前渲染后端无法绘制 YUV 帧时触发。</summary>
     public event Action? RendererUnavailable;
 
-    public abstract void Present(byte[] frame);
+    public static VideoFrameBuffer RentFrameBuffer(int length)
+    {
+        return VideoFrameBuffer.Rent(length);
+    }
+
+    public abstract void Present(VideoFrameBuffer frame);
 
     protected abstract void DisposeCore();
 

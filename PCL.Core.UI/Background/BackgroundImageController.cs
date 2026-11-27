@@ -37,9 +37,6 @@ public sealed class BackgroundImageController(
             DisposeContent();
             _bitmap = bitmap;
             Brush = brush;
-            Changed?.Invoke();
-            LogWrapper.Info("UI", $"已加载背景图片：{Path.GetFileName(path)}");
-            return true;
         }
         catch (Exception ex)
         {
@@ -47,13 +44,32 @@ public sealed class BackgroundImageController(
             LogWrapper.Debug(ex, "UI", $"加载背景图片失败：{path}");
             return false;
         }
+
+        try
+        {
+            Changed?.Invoke();
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Warn(ex, "UI", "应用背景图片状态失败");
+        }
+
+        LogWrapper.Info("UI", $"已加载背景图片：{Path.GetFileName(path)}");
+        return true;
     }
 
     public void Clear()
     {
         if (_disposed) return;
         DisposeContent();
-        Changed?.Invoke();
+        try
+        {
+            Changed?.Invoke();
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Warn(ex, "UI", "清除背景图片状态失败");
+        }
     }
 
     public void ApplySuitMode(int suitMode)

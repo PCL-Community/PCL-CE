@@ -28,23 +28,30 @@ public sealed class VideoFrameView : VideoSurface
     public override FfmpegPixelFormat PixelFormat => FfmpegPixelFormat.Bgra8888;
 
     /// <summary>将一帧 BGRA 数据写入位图并请求重绘。</summary>
-    public override void Present(byte[] frame)
+    public override void Present(VideoFrameBuffer frame)
     {
-        if (IsDisposed || frame.Length < _rowBytes * FrameHeight) return;
+        try
+        {
+            if (IsDisposed || frame.Length < _rowBytes * FrameHeight) return;
 
-        using var buffer = _bitmap.Lock();
-        if (buffer.RowBytes == _rowBytes)
-            Marshal.Copy(frame, 0, buffer.Address, _rowBytes * FrameHeight);
-        else
-            for (var y = 0; y < FrameHeight; y++)
-                Marshal.Copy(
-                    frame,
-                    y * _rowBytes,
-                    IntPtr.Add(buffer.Address, y * buffer.RowBytes),
-                    _rowBytes);
+            using var buffer = _bitmap.Lock();
+            if (buffer.RowBytes == _rowBytes)
+                Marshal.Copy(frame.Data, 0, buffer.Address, _rowBytes * FrameHeight);
+            else
+                for (var y = 0; y < FrameHeight; y++)
+                    Marshal.Copy(
+                        frame.Data,
+                        y * _rowBytes,
+                        IntPtr.Add(buffer.Address, y * buffer.RowBytes),
+                        _rowBytes);
 
-        _hasFrame = true;
-        InvalidateVisual();
+            _hasFrame = true;
+            InvalidateVisual();
+        }
+        finally
+        {
+            frame.Dispose();
+        }
     }
 
     public override void Render(DrawingContext context)

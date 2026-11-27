@@ -396,6 +396,18 @@ public sealed class BackgroundLayer
 
     public void Remove()
     {
+        _ = RemoveAsync();
+    }
+
+    public async Task RemoveAsync()
+    {
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            Dispatcher.UIThread.Post(() => _ = RemoveAsync());
+            return;
+        }
+
+        if (_removed) return;
         _removed = true;
         _formPan.AttachedToVisualTree -= OnFormPanAttached;
         _formPan.DetachedFromVisualTree -= OnFormPanDetached;
@@ -418,7 +430,7 @@ public sealed class BackgroundLayer
 
         _surface.Clear();
         _video.ViewChanged -= OnVideoViewChanged;
-        _video.Dispose();
+        await _video.DisposeAsync();
         _image.Changed -= OnImageChanged;
         _image.Dispose();
         _surface.Remove();
@@ -426,10 +438,22 @@ public sealed class BackgroundLayer
 
     private void ClearContent()
     {
-        _video.Reset();
+        _ = ResetVideoForClearAsync();
         _image.Clear();
         _surface.Clear();
         _lastError = null;
+    }
+
+    private async Task ResetVideoForClearAsync()
+    {
+        try
+        {
+            await _video.ResetAsync();
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Debug(ex, "UI", "释放视频背景失败");
+        }
     }
 
     private async Task ClearContentAsync()

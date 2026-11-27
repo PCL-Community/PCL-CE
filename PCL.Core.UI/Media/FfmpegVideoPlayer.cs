@@ -1,4 +1,3 @@
-using System.Buffers;
 using System.Text;
 using Avalonia.Threading;
 using PCL.Core.Logging;
@@ -26,8 +25,7 @@ public sealed class FfmpegVideoPlayer : IDisposable
     private string _lastError = string.Empty;
     private TaskCompletionSource<bool>? _pauseGate;
     private bool _paused;
-    private byte[] _pendingBuffer;
-    private byte[] _readBuffer;
+    private VideoFrameBuffer? _pendingFrame;
     private int _renderQueued;
     private Task? _runTask;
     private IExternalCommandSession? _session;
@@ -54,8 +52,6 @@ public sealed class FfmpegVideoPlayer : IDisposable
         _frameSize = profile.Options.PixelFormat == FfmpegPixelFormat.Yuv420p
             ? _width * _height * 3 / 2
             : _width * _height * 4;
-        _readBuffer = ArrayPool<byte>.Shared.Rent(_frameSize);
-        _pendingBuffer = ArrayPool<byte>.Shared.Rent(_frameSize);
         View = profile.Options.PixelFormat == FfmpegPixelFormat.Yuv420p
             ? new YuvVideoFrameView(
                 _width,
@@ -131,21 +127,29 @@ public sealed class FfmpegVideoPlayer : IDisposable
 
     public void Dispose()
     {
-        DisposeAsync().GetAwaiter().GetResult();
+        if (_disposed) return;
+        _disposed = true;
+        StopSessionAsync(false).GetAwaiter().GetResult();
+        ClearPendingFrame();
+
+        if (Dispatcher.UIThread.CheckAccess())
+            View.Dispose();
+        else
+            Dispatcher.UIThread.Post(() => View.Dispose());
+        GC.SuppressFinalize(this);
     }
 
     public async Task DisposeAsync()
     {
         if (_disposed) return;
         _disposed = true;
-        var stopped = await StopSessionAsync(false).ConfigureAwait(false);
-        if (stopped)
-        {
-            ArrayPool<byte>.Shared.Return(_readBuffer);
-            ArrayPool<byte>.Shared.Return(_pendingBuffer);
-        }
+        await StopSessionAsync(false).ConfigureAwait(false);
+        ClearPendingFrame();
 
-        View.Dispose();
+        if (Dispatcher.UIThread.CheckAccess())
+            View.Dispose();
+        else
+            await Dispatcher.UIThread.InvokeAsync(() => View.Dispose());
         GC.SuppressFinalize(this);
     }
 
@@ -163,7 +167,6 @@ public sealed class FfmpegVideoPlayer : IDisposable
         if (_disposed) return false;
         if (IsSuspended) return await ResumeAsync(firstFrameTimeout, cancellationToken);
         if (IsStarted) return true;
-
         return await StartSessionAsync(firstFrameTimeout, cancellationToken);
     }
 
@@ -489,45 +492,51 @@ public sealed class FfmpegVideoPlayer : IDisposable
                 break;
             }
 
-            var total = 0;
+            var frame = VideoSurface.RentFrameBuffer(_frameSize);
+            var transferred = false;
             try
             {
+                var total = 0;
                 while (total < _frameSize)
                 {
                     var read = await stream
                         .ReadAsync(
-                            _readBuffer.AsMemory(total, _frameSize - total),
+                            frame.Data.AsMemory(total, _frameSize - total),
                             cancellationToken)
                         .ConfigureAwait(false);
                     if (read == 0) break;
                     total += read;
                 }
+
+                if (total < _frameSize) break;
+
+                lock (_sync)
+                {
+                    if (_disposed || _stopRequested) break;
+
+                    var previous = _pendingFrame;
+                    _pendingFrame = frame;
+                    _hasPending = true;
+                    transferred = true;
+                    previous?.Dispose();
+                }
+
+                frames++;
+                _firstFrame?.TrySetResult(true);
+                _QueueRender();
             }
-            catch (OperationCanceledException)
+            catch (Exception ex) when (
+                ex is OperationCanceledException
+                    or IOException
+                    or ObjectDisposedException)
             {
                 break;
             }
-            catch (IOException)
+            finally
             {
-                break;
+                if (!transferred)
+                    frame.Dispose();
             }
-            catch (ObjectDisposedException)
-            {
-                break;
-            }
-
-            if (total == 0) break;
-            if (total < _frameSize) break;
-
-            lock (_sync)
-            {
-                (_pendingBuffer, _readBuffer) = (_readBuffer, _pendingBuffer);
-                _hasPending = true;
-            }
-
-            frames++;
-            _firstFrame?.TrySetResult(true);
-            _QueueRender();
         }
 
         return frames;
@@ -538,8 +547,12 @@ public sealed class FfmpegVideoPlayer : IDisposable
         Task? waitTask;
         lock (_sync)
         {
-            if (!_paused) return;
-            if (_firstFrame is { Task.IsCompleted: false }) return;
+            if (!_paused)
+                return;
+
+            if (_firstFrame is { Task.IsCompleted: false })
+                return;
+
             waitTask = _pauseGate?.Task;
         }
 
@@ -584,18 +597,24 @@ public sealed class FfmpegVideoPlayer : IDisposable
 
     private void _RenderLatest()
     {
+        VideoFrameBuffer? frame = null;
         try
         {
             if (_disposed) return;
             lock (_sync)
             {
-                if (_disposed || !_hasPending) return;
+                if (_disposed || _stopRequested || !_hasPending) return;
                 _hasPending = false;
-                View.Present(_pendingBuffer);
+                frame = _pendingFrame;
+                _pendingFrame = null;
             }
+
+            if (frame is not null)
+                View.Present(frame);
         }
         catch (Exception ex)
         {
+            frame?.Dispose();
             _SetError(ex.Message);
         }
         finally
@@ -609,6 +628,19 @@ public sealed class FfmpegVideoPlayer : IDisposable
 
             if (again) _QueueRender();
         }
+    }
+
+    private void ClearPendingFrame()
+    {
+        VideoFrameBuffer? frame;
+        lock (_sync)
+        {
+            frame = _pendingFrame;
+            _pendingFrame = null;
+            _hasPending = false;
+        }
+
+        frame?.Dispose();
     }
 
     private void _SetError(string? message)

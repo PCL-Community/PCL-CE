@@ -45,8 +45,9 @@ public sealed class BackgroundFfmpegSettings : ObservableObject, IDisposable
         Config.Preference.Background.VideoHardwareAccelerationConfig.Observe(
             _hardwareAccelerationObserver);
         BackgroundHost.StateChanged += OnBackgroundStateChanged;
+        LocalizationService.LanguageChanged += OnLanguageChanged;
 
-        UpdatePauseVisibility();
+        UpdateBackgroundContentVisibility();
         _ = RefreshStatusAsync(false);
     }
 
@@ -107,7 +108,7 @@ public sealed class BackgroundFfmpegSettings : ObservableObject, IDisposable
         }
     }
 
-    public bool IsPauseVisible => BackgroundHost.Current?.HasContent == true;
+    public bool HasBackgroundContent => BackgroundHost.Current?.HasContent == true;
 
     public void Dispose()
     {
@@ -116,6 +117,7 @@ public sealed class BackgroundFfmpegSettings : ObservableObject, IDisposable
         Config.Preference.Background.VideoHardwareAccelerationConfig.Unobserve(
             _hardwareAccelerationObserver);
         BackgroundHost.StateChanged -= OnBackgroundStateChanged;
+        LocalizationService.LanguageChanged -= OnLanguageChanged;
     }
 
     public async Task RefreshStatusAsync(bool force)
@@ -195,9 +197,23 @@ public sealed class BackgroundFfmpegSettings : ObservableObject, IDisposable
                     result.Version
                 }
                 .Where(value => !string.IsNullOrWhiteSpace(value)));
-        FfmpegToolTip = result.IsAvailable && !string.IsNullOrWhiteSpace(details)
-            ? details
-            : Lang.Text("Setup.Ui.Background.Ffmpeg.ToolTip");
+        FfmpegToolTip = result.IsAvailable
+            ? !string.IsNullOrWhiteSpace(details)
+                ? details
+                : Lang.Text("Setup.Ui.Background.Ffmpeg.ToolTip")
+            : FfmpegStatusText;
+    }
+
+    private void OnLanguageChanged()
+    {
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            Dispatcher.UIThread.Post(OnLanguageChanged);
+            return;
+        }
+
+        OnPropertyChanged(nameof(FfmpegPathHint));
+        _ = RefreshStatusAsync(false);
     }
 
     private void SyncAutoPauseVideo()
@@ -259,11 +275,11 @@ public sealed class BackgroundFfmpegSettings : ObservableObject, IDisposable
 
     private void OnBackgroundStateChanged()
     {
-        UpdatePauseVisibility();
+        UpdateBackgroundContentVisibility();
     }
 
-    private void UpdatePauseVisibility()
+    private void UpdateBackgroundContentVisibility()
     {
-        OnPropertyChanged(nameof(IsPauseVisible));
+        OnPropertyChanged(nameof(HasBackgroundContent));
     }
 }

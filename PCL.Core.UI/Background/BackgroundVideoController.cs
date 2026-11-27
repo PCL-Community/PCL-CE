@@ -70,7 +70,21 @@ public sealed class BackgroundVideoController : IDisposable
 
     public void Dispose()
     {
-        DisposeAsync().GetAwaiter().GetResult();
+        if (_disposed) return;
+        _disposed = true;
+        Interlocked.Increment(ref _generation);
+        Config.Preference.Background.FfmpegPathConfig.Unobserve(_ffmpegPathObserver);
+        Config.Preference.Background.VideoHardwareAccelerationConfig.Unobserve(
+            _hardwareAccelerationObserver);
+        CancelReload();
+        CancelSuspend();
+
+        var player = _player;
+        _player = null;
+        _currentPath = null;
+        if (player is null) return;
+        player.View.RendererUnavailable -= OnRendererUnavailable;
+        player.Dispose();
     }
 
     public event Action? ViewChanged;
@@ -94,13 +108,24 @@ public sealed class BackgroundVideoController : IDisposable
         FfmpegProbeResult ffmpeg,
         CancellationToken cancellationToken)
     {
+        return await LoadAsync(path, ffmpeg, cancellationToken, null);
+    }
+
+    internal async Task<bool> LoadAsync(
+        string path,
+        FfmpegProbeResult ffmpeg,
+        CancellationToken cancellationToken,
+        int? expectedGeneration)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
         if (_disposed
             || !ffmpeg.IsAvailable
             || string.IsNullOrWhiteSpace(ffmpeg.ExecutablePath)
             || _locator?.CommandRunner is not { } runner)
             return false;
 
-        var generation = Volatile.Read(ref _generation);
+        var generation = expectedGeneration
+            ?? Volatile.Read(ref _generation);
         var viewport = _viewportProvider();
         var suitMode = _suitModeProvider();
         LastFfmpegProbe = ffmpeg;
@@ -122,6 +147,7 @@ public sealed class BackgroundVideoController : IDisposable
             LogWrapper.Debug(ex, "UI", $"探测视频信息失败：{path}");
         }
 
+        videoInfo = NormalizeVideoInfoForOutput(videoInfo);
         var sourceSize = videoInfo?.Size;
         var effectiveMode = sourceSize is null ? VideoSuitMode.Fit : suitMode;
         var (width, height) = sourceSize is { } size
@@ -252,7 +278,19 @@ public sealed class BackgroundVideoController : IDisposable
 
     public void Reset()
     {
-        ResetAsync().GetAwaiter().GetResult();
+        if (_disposed) return;
+        Interlocked.Increment(ref _generation);
+        CancelReload();
+        CancelSuspend();
+        var player = _player;
+        _player = null;
+        _currentPath = null;
+        LastError = string.Empty;
+        ViewChanged?.Invoke();
+
+        if (player is null) return;
+        player.View.RendererUnavailable -= OnRendererUnavailable;
+        player.Dispose();
     }
 
     public void SetPaused(bool paused)
@@ -295,7 +333,7 @@ public sealed class BackgroundVideoController : IDisposable
             return;
         }
 
-        Interlocked.Increment(ref _generation);
+        var generation = Interlocked.Increment(ref _generation);
         var previousCts = _reloadCts;
         var cts = new CancellationTokenSource();
         _reloadCts = cts;
@@ -315,7 +353,7 @@ public sealed class BackgroundVideoController : IDisposable
                 || string.IsNullOrWhiteSpace(ffmpeg.ExecutablePath))
                 return;
 
-            await LoadAsync(path, ffmpeg, cts.Token);
+            await LoadAsync(path, ffmpeg, cts.Token, generation);
         }
         catch (OperationCanceledException)
         {
@@ -502,7 +540,38 @@ public sealed class BackgroundVideoController : IDisposable
         await ReloadAsync().ConfigureAwait(false);
     }
 
-    private (int Width, int Height) GetVideoTargetSize(BackgroundViewport viewport)
+    internal static VideoInfo? NormalizeVideoInfoForOutput(VideoInfo? videoInfo)
+    {
+        return videoInfo?.PixelFormat is not { } pixelFormat
+            || !IsRgbPixelFormat(pixelFormat)
+            || !string.Equals(videoInfo.ColorRange, "pc", StringComparison.OrdinalIgnoreCase)
+                ? videoInfo
+                : videoInfo with
+                {
+                    ColorRange = "tv",
+                    ColorSpace = "bt601"
+                };
+    }
+
+    private static bool IsRgbPixelFormat(string pixelFormat)
+    {
+        return StartsWith("rgb")
+            || StartsWith("bgr")
+            || StartsWith("gbr")
+            || StartsWith("argb")
+            || StartsWith("abgr")
+            || StartsWith("rgba")
+            || StartsWith("bgra")
+            || StartsWith("0rgb")
+            || StartsWith("0bgr");
+
+        bool StartsWith(string prefix)
+        {
+            return pixelFormat.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
+    private static (int Width, int Height) GetVideoTargetSize(BackgroundViewport viewport)
     {
         var width = viewport.Width > 0d ? viewport.Width : 850d;
         var height = viewport.Height > 0d ? viewport.Height : 450d;

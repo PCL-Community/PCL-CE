@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Media;
 using Avalonia.Rendering.SceneGraph;
@@ -37,15 +38,27 @@ public sealed class YuvVideoFrameView : VideoSurface
 
     private static readonly SKRuntimeEffect? RuntimeEffect = _CreateEffect(out _);
 
+    private static readonly SKSamplingOptions Sampling = new(
+        SKFilterMode.Linear,
+        SKMipmapMode.None);
+
+    private readonly SKPaint? _blurPaint;
+    private readonly SKRuntimeEffectChildren? _children;
     private readonly string? _colorRange;
     private readonly string? _colorSpace;
-    private readonly byte[] _frame;
     private readonly Lock _frameLock = new();
     private readonly int _frameSize;
+    private readonly SKPaint? _paint;
+    private readonly SKRuntimeEffectUniforms? _uniforms;
+
     private GRContext? _blurContext;
+    private SKImageFilter? _blurFilter;
+    private float _blurSigma;
     private SKSurface? _blurSurface;
     private int _blurSurfaceHeight;
     private int _blurSurfaceWidth;
+    private VideoFrameBuffer? _frame;
+    private GCHandle _frameHandle;
     private bool _hasFrame;
 
     public YuvVideoFrameView(
@@ -59,38 +72,106 @@ public sealed class YuvVideoFrameView : VideoSurface
         _colorRange = colorRange;
         _colorSpace = colorSpace;
         _frameSize = FrameWidth * FrameHeight * 3 / 2;
-        _frame = new byte[_frameSize];
+
+        if (RuntimeEffect is null) return;
+
+        _uniforms = new SKRuntimeEffectUniforms(RuntimeEffect);
+        var color = YuvColorConversion.Create(_colorRange, _colorSpace);
+        _uniforms["rowR"] = color.RowR;
+        _uniforms["rowG"] = color.RowG;
+        _uniforms["rowB"] = color.RowB;
+        _uniforms["offset"] = color.Offset;
+
+        _children = new SKRuntimeEffectChildren(RuntimeEffect);
+        _paint = new SKPaint
+        {
+            IsAntialias = false
+        };
+        _blurPaint = new SKPaint
+        {
+            IsAntialias = false
+        };
     }
 
     public override FfmpegPixelFormat PixelFormat => FfmpegPixelFormat.Yuv420p;
 
     public override bool SupportsShaderBlur => true;
 
-    public override void Present(byte[] frame)
+    public override void Present(VideoFrameBuffer frame)
     {
-        if (IsDisposed || frame.Length < _frameSize) return;
+        if (frame.Length < _frameSize)
+        {
+            frame.Dispose();
+            return;
+        }
 
         lock (_frameLock)
         {
-            Buffer.BlockCopy(frame, 0, _frame, 0, _frameSize);
+            if (IsDisposed)
+            {
+                frame.Dispose();
+                return;
+            }
+
+            ReleaseFrameLocked();
+            _frame = frame;
+            try
+            {
+                _frameHandle = GCHandle.Alloc(frame.Data, GCHandleType.Pinned);
+            }
+            catch
+            {
+                _frame = null;
+                frame.Dispose();
+                throw;
+            }
+
             _hasFrame = true;
         }
 
-        InvalidateVisual();
+        try
+        {
+            InvalidateVisual();
+        }
+        catch
+        {
+            lock (_frameLock)
+            {
+                ReleaseFrameLocked();
+            }
+
+            throw;
+        }
     }
 
     public override void Render(DrawingContext context)
     {
         base.Render(context);
-        if (IsDisposed || !_hasFrame) return;
+        if (IsDisposed) return;
+
+        lock (_frameLock)
+        {
+            if (!_hasFrame) return;
+        }
 
         context.Custom(new DrawOperation(this, new Rect(Bounds.Size)));
     }
 
     protected override void DisposeCore()
     {
-        _blurSurface?.Dispose();
-        _blurSurface = null;
+        lock (_frameLock)
+        {
+            ReleaseFrameLocked();
+
+            _blurSurface?.Dispose();
+            _blurSurface = null;
+            _blurFilter?.Dispose();
+            _blurFilter = null;
+            _blurPaint?.Dispose();
+            _paint?.Dispose();
+            _children?.Dispose();
+            _uniforms?.Dispose();
+        }
     }
 
     private static SKRuntimeEffect? _CreateEffect(out string? error)
@@ -109,7 +190,16 @@ public sealed class YuvVideoFrameView : VideoSurface
 
     private void Draw(ISkiaSharpApiLease lease, Rect bounds)
     {
-        if (RuntimeEffect is null)
+        if (IsDisposed) return;
+        var uniforms = _uniforms;
+        var children = _children;
+        var paint = _paint;
+        var blurPaint = _blurPaint;
+        if (RuntimeEffect is null
+            || uniforms is null
+            || children is null
+            || paint is null
+            || blurPaint is null)
         {
             NotifyRendererUnavailable();
             return;
@@ -127,108 +217,127 @@ public sealed class YuvVideoFrameView : VideoSurface
         {
             lock (_frameLock)
             {
-                if (!_hasFrame) return;
-                yImage = SKImage.FromPixelCopy(
-                    new SKImageInfo(FrameWidth, FrameHeight, SKColorType.Gray8, SKAlphaType.Opaque),
-                    new ReadOnlySpan<byte>(_frame, 0, ySize));
-                uImage = SKImage.FromPixelCopy(
-                    new SKImageInfo(uvWidth, uvHeight, SKColorType.Gray8, SKAlphaType.Opaque),
-                    new ReadOnlySpan<byte>(_frame, ySize, uvSize));
-                vImage = SKImage.FromPixelCopy(
-                    new SKImageInfo(uvWidth, uvHeight, SKColorType.Gray8, SKAlphaType.Opaque),
-                    new ReadOnlySpan<byte>(_frame, ySize + uvSize, uvSize));
-            }
+                try
+                {
+                    if (IsDisposed
+                        || !_hasFrame
+                        || _frame is null
+                        || !_frameHandle.IsAllocated)
+                        return;
 
-            var sampling = new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.None);
-            using var yShader = SKShader.CreateImage(
-                yImage!,
-                SKShaderTileMode.Clamp,
-                SKShaderTileMode.Clamp,
-                sampling);
-            using var uShader = SKShader.CreateImage(
-                uImage!,
-                SKShaderTileMode.Clamp,
-                SKShaderTileMode.Clamp,
-                sampling);
-            using var vShader = SKShader.CreateImage(
-                vImage!,
-                SKShaderTileMode.Clamp,
-                SKShaderTileMode.Clamp,
-                sampling);
+                    var baseAddress = _frameHandle.AddrOfPinnedObject();
+                    yImage = SKImage.FromPixels(
+                        new SKImageInfo(
+                            FrameWidth,
+                            FrameHeight,
+                            SKColorType.Gray8,
+                            SKAlphaType.Opaque),
+                        baseAddress);
+                    uImage = SKImage.FromPixels(
+                        new SKImageInfo(
+                            uvWidth,
+                            uvHeight,
+                            SKColorType.Gray8,
+                            SKAlphaType.Opaque),
+                        IntPtr.Add(baseAddress, ySize));
+                    vImage = SKImage.FromPixels(
+                        new SKImageInfo(
+                            uvWidth,
+                            uvHeight,
+                            SKColorType.Gray8,
+                            SKAlphaType.Opaque),
+                        IntPtr.Add(baseAddress, ySize + uvSize));
 
-            using var uniforms = new SKRuntimeEffectUniforms(RuntimeEffect);
-            var color = YuvColorConversion.Create(_colorRange, _colorSpace);
-            uniforms["rowR"] = color.RowR;
-            uniforms["rowG"] = color.RowG;
-            uniforms["rowB"] = color.RowB;
-            uniforms["offset"] = color.Offset;
+                    using var yShader = SKShader.CreateImage(
+                        yImage,
+                        SKShaderTileMode.Clamp,
+                        SKShaderTileMode.Clamp,
+                        Sampling);
+                    using var uShader = SKShader.CreateImage(
+                        uImage,
+                        SKShaderTileMode.Clamp,
+                        SKShaderTileMode.Clamp,
+                        Sampling);
+                    using var vShader = SKShader.CreateImage(
+                        vImage,
+                        SKShaderTileMode.Clamp,
+                        SKShaderTileMode.Clamp,
+                        Sampling);
 
-            using var children = new SKRuntimeEffectChildren(RuntimeEffect);
-            children["yPlane"] = yShader;
-            children["uPlane"] = uShader;
-            children["vPlane"] = vShader;
+                    children["yPlane"] = yShader;
+                    children["uPlane"] = uShader;
+                    children["vPlane"] = vShader;
 
-            using var shader = RuntimeEffect.ToShader(uniforms, children);
-            using var paint = new SKPaint();
-            paint.Shader = shader;
-            paint.IsAntialias = false;
+                    using var shader = RuntimeEffect.ToShader(uniforms, children);
+                    paint.Shader = shader;
 
-            var operations = GetDrawOperations(bounds);
-            if (operations.Count == 0) return;
+                    var operations = GetDrawOperations(bounds);
+                    if (operations.Count == 0) return;
 
-            if (BlurRadius <= 0d)
-            {
-                foreach (var operation in operations)
-                    _DrawShader(lease.SkCanvas, paint, operation.Destination);
-                return;
-            }
+                    if (BlurRadius <= 0d)
+                    {
+                        foreach (var operation in operations)
+                            _DrawShader(lease.SkCanvas, paint, operation.Destination);
+                        return;
+                    }
 
-            var surface = _GetBlurSurface(lease.GrContext);
-            if (surface is null)
-            {
-                foreach (var operation in operations)
-                    _DrawShader(lease.SkCanvas, paint, operation.Destination);
-                return;
-            }
+                    var surface = _GetBlurSurface(lease.GrContext);
+                    if (surface is null)
+                    {
+                        foreach (var operation in operations)
+                            _DrawShader(lease.SkCanvas, paint, operation.Destination);
+                        return;
+                    }
 
-            var scaleX = _blurSurfaceWidth / (float)FrameWidth;
-            var scaleY = _blurSurfaceHeight / (float)FrameHeight;
-            surface.Canvas.Clear(SKColors.Transparent);
-            surface.Canvas.Save();
-            surface.Canvas.Scale(scaleX, scaleY);
-            surface.Canvas.DrawRect(0f, 0f, FrameWidth, FrameHeight, paint);
-            surface.Canvas.Restore();
+                    var scaleX = _blurSurfaceWidth / (float)FrameWidth;
+                    var scaleY = _blurSurfaceHeight / (float)FrameHeight;
+                    surface.Canvas.Clear(SKColors.Transparent);
+                    surface.Canvas.Save();
+                    surface.Canvas.Scale(scaleX, scaleY);
+                    surface.Canvas.DrawRect(0f, 0f, FrameWidth, FrameHeight, paint);
+                    surface.Canvas.Restore();
 
-            using var snapshot = surface.Snapshot();
-            var sigma = (float)(0.288675d * (BlurRadius + 1d) * 0.5d);
-            using var filter = SKImageFilter.CreateBlur(sigma, sigma);
-            using var blurPaint = new SKPaint();
-            blurPaint.ImageFilter = filter;
-            blurPaint.IsAntialias = false;
-            foreach (var (_, destination) in operations)
-            {
-                if (destination.Width <= 0d || destination.Height <= 0d)
-                    continue;
+                    using var snapshot = surface.Snapshot();
+                    var sigma = (float)(0.288675d * (BlurRadius + 1d) * 0.5d);
+                    if (_blurFilter is null
+                        || Math.Abs(_blurSigma - sigma) > 0.01f)
+                    {
+                        _blurFilter?.Dispose();
+                        _blurFilter = SKImageFilter.CreateBlur(sigma, sigma);
+                        _blurSigma = sigma;
+                        blurPaint.ImageFilter = _blurFilter;
+                    }
 
-                var overscan = destination.Inflate(sigma);
-                lease.SkCanvas.Save();
-                lease.SkCanvas.ClipRect(destination.ToSKRect());
-                lease.SkCanvas.DrawImage(
-                    snapshot,
-                    overscan.ToSKRect(),
-                    blurPaint);
-                lease.SkCanvas.Restore();
+                    foreach (var (_, destination) in operations)
+                    {
+                        if (destination.Width <= 0d || destination.Height <= 0d)
+                            continue;
+
+                        var overscan = destination.Inflate(sigma);
+                        lease.SkCanvas.Save();
+                        lease.SkCanvas.ClipRect(destination.ToSKRect());
+                        lease.SkCanvas.DrawImage(
+                            snapshot,
+                            overscan.ToSKRect(),
+                            blurPaint);
+                        lease.SkCanvas.Restore();
+                    }
+                }
+                finally
+                {
+                    yImage?.Dispose();
+                    uImage?.Dispose();
+                    vImage?.Dispose();
+                    paint.Shader = null;
+                    children["yPlane"] = null;
+                    children["uPlane"] = null;
+                    children["vPlane"] = null;
+                }
             }
         }
         catch (Exception)
         {
             NotifyRendererUnavailable();
-        }
-        finally
-        {
-            yImage?.Dispose();
-            uImage?.Dispose();
-            vImage?.Dispose();
         }
     }
 
@@ -284,6 +393,14 @@ public sealed class YuvVideoFrameView : VideoSurface
         return _blurSurface;
     }
 
+    private void ReleaseFrameLocked()
+    {
+        if (_frameHandle.IsAllocated) _frameHandle.Free();
+        _frame?.Dispose();
+        _frame = null;
+        _hasFrame = false;
+    }
+
     private sealed class DrawOperation(
         YuvVideoFrameView owner,
         Rect bounds)
@@ -303,6 +420,8 @@ public sealed class YuvVideoFrameView : VideoSurface
 
         public void Render(ImmediateDrawingContext context)
         {
+            if (owner.IsDisposed) return;
+
             var feature = context.TryGetFeature<ISkiaSharpApiLeaseFeature>();
             if (feature is null)
             {
@@ -369,16 +488,19 @@ internal readonly record struct YuvColorConversion(
         var normalizedSpace = space?.ToLowerInvariant();
         var isBt601 = normalizedSpace is "bt601" or "smpte170m" or "bt470bg";
         var isBt2020 = normalizedSpace is "bt2020" or "bt2020nc";
+        var isBt709 = normalizedSpace is "bt709";
 
         if (limited)
         {
             if (isBt601) return _bt601Limited;
             if (isBt2020) return _bt2020Limited;
-            return _bt709Limited;
+            if (isBt709) return _bt709Limited;
+            return _bt601Limited;
         }
 
         if (isBt601) return _bt601Full;
         if (isBt2020) return _bt2020Full;
-        return _bt709Full;
+        if (isBt709) return _bt709Full;
+        return _bt601Full;
     }
 }
