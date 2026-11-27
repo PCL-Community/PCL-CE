@@ -34,6 +34,11 @@ public static class HiddenFeatureState
         ForceShow = !ForceShow;
         Changed?.Invoke();
     }
+
+    public static void Notify()
+    {
+        Changed?.Invoke();
+    }
 }
 
 /// <summary>主窗口级键盘与鼠标快捷键： Esc 返回、F11 切换隐藏实例、F12 切换功能隐藏、F5 刷新当前页、Enter 启动游戏、Alt 抑制系统菜单、鼠标侧键返回。</summary>

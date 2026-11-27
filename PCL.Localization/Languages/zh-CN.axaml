@@ -3401,6 +3401,7 @@
     <sys:String x:Key="Tools.GameLink.Error.ServerMessage">与大厅服务器的连接出现错误。&#xA;&#xA;原始错误信息：&#xA;{0}</sys:String>
     <sys:String x:Key="Tools.GameLink.Error.UpdateRequired">请更新到最新版 PCL CE 以使用大厅</sys:String>
     <sys:String x:Key="Tools.GameLink.Eula.Disabled">联机功能已停用！</sys:String>
+    <sys:String x:Key="Tools.GameLink.Eula.NotAccepted">你还未同意联机大厅说明与条款</sys:String>
     <sys:String x:Key="Tools.GameLink.Eula.RevokeConfirm">你确定要撤销联机协议授权吗？</sys:String>
     <sys:String x:Key="Tools.GameLink.Eula.RevokeTitle">撤销授权确认</sys:String>
     <sys:String x:Key="Tools.GameLink.Exit.ConfirmMessage">你确定要退出大厅吗？</sys:String>

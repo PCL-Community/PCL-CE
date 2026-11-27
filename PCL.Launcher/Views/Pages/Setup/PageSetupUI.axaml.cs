@@ -89,18 +89,16 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
 
         var supportsTitleBarStyle = ApplicationRuntime.Current.Platform.Capabilities
             .SupportsTitleBarStyleSelection;
-        PanMacTitleBarStyle.IsEnabled = supportsTitleBarStyle;
+        foreach (var radio in _macTitleBarStyleRadios)
+            radio.IsEnabled = supportsTitleBarStyle;
         if (!supportsTitleBarStyle)
         {
-            foreach (var radio in _macTitleBarStyleRadios)
-                radio.IsEnabled = false;
             LabMacTitleBarStyle.Bind(
                 TextBlock.ForegroundProperty,
                 new DynamicResourceExtension(InputTheme.DisabledTextKey));
             PanMacTitleBarStyle.SetLocalizedValue(
                 ToolTip.TipProperty,
                 "Setup.Ui.Logo.MacTitleBarStyle.OnlyMacOS");
-            ToolTip.SetShowOnDisabled(PanMacTitleBarStyle, true);
         }
 
         foreach (var (index, radio) in _macTitleBarStyleRadios.Index())
@@ -222,6 +220,7 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         {
             Config.Preference.Reset();
             Reload();
+            HiddenFeatureState.Notify();
             HintService.Show(Hints.Success(Lang.Text("Setup.Ui.Initialized"), false));
         }
         catch (Exception ex)
@@ -921,6 +920,8 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             PageSetupLeft.NotifyHiddenSettingChanged();
             if (tag == "UiHiddenFunctionHidden")
                 RefreshFeatureHideState();
+            else
+                HiddenFeatureState.Notify();
         };
         _hideChecks.Add(check);
         return check;

@@ -834,7 +834,9 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
         UpdateAccountDisplay();
     }
 
-    private bool TryGetEulaAccepted()
+    private bool TryGetEulaAccepted() => ReadEulaAccepted() ?? false;
+
+    private bool? ReadEulaAccepted()
     {
         try
         {
@@ -849,7 +851,7 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
                 HintService.Show(Hints.Error(ex.Message));
             }
 
-            return false;
+            return null;
         }
     }
 
@@ -2217,8 +2219,16 @@ public partial class PageToolsGameLinkViewModel : ViewModelBase
         if (Interlocked.Exchange(ref _eulaBusy, 1) == 1)
             return;
 
+        var eulaAccepted = ReadEulaAccepted() ?? true;
+
         try
         {
+            if (!eulaAccepted)
+            {
+                HintService.Show(Hints.Info(Lang.Text("Tools.GameLink.Eula.NotAccepted")));
+                return;
+            }
+
             RefreshLayout();
             var result = await Dialog
                 .ShowAsync(
