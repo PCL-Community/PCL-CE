@@ -1,15 +1,17 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using PCL.Core.App.Cli;
 using PCL.Core.App.IoC;
+using PCL.Core.IO.Net;
 using PCL.Core.Platform;
 using PCL.Core.Utils;
+using PCL.Core.Utils.OS.DeviceInfo;
 using PCL.Core.Utils.Secret;
 
 namespace PCL.Core.App.Essentials;
@@ -86,59 +88,153 @@ public sealed partial class StartupService
         }
     }
 
+
     [LifecycleStart]
     private static void _LogBasicInfo()
     {
         var info = new StringBuilder();
-        info
-            .Append("\n版本: ")
-            .Append(Basics.Metadata.Version)
-            .Append(" (")
-            .Append(GetArchitectureName(RuntimeInformation.ProcessArchitecture))
-            .Append(')');
-        info.Append("\n路径: ").Append(Basics.ExecutablePath);
-        info.Append("\n命令行参数:");
-        if (Basics.CommandLineArguments.Length == 0) info.Append(" []");
+        var (_, osInfo, _, osArchitecture, processArchitecture, _, _, deviceModel, biosVersion, s,
+                physicalCoreCount, logicalProcessorCount, totalMemoryBytes, availableMemoryBytes, _,
+                timeZoneId, utcOffset, systemUptime, cultureName, uiCultureName, pv6Status,
+                isAdministrator, frameworkDescription, _, _, dataVolume, _, _) =
+            DeviceInfoFactsCollector.Collect(Paths.Data, includeGpu: false);
+
+        AddLine(
+            $"版本: {Basics.Metadata.Version} ({DeviceInfoFormat.FormatArchitecture(processArchitecture)})");
+        AddLine($"路径: {Basics.ExecutablePath}");
+
+        if (Basics.CommandLineArguments.Length == 0)
+        {
+            AddLine("命令行参数: []");
+        }
         else
-            foreach (var x in Basics.CommandLineArguments)
-                info.Append("\n - ").Append(x);
-        info
-            .Append("\n系统: ")
-            .Append($"{RuntimeInformation.OSDescription}")
-            .Append(" (")
-            .Append(GetArchitectureName(RuntimeInformation.OSArchitecture))
-            .Append(')');
-        const int memoryDiv = 1024 * 1024;
-        var memory = ApplicationRuntime.Current.Platform.SystemFacts.GetMemoryInfo();
-        info
-            .Append("\n可用内存: ")
-            .Append(memory.AvailableBytes / memoryDiv)
-            .Append('/')
-            .Append(memory.TotalBytes / memoryDiv)
-            .Append(" MiB");
+        {
+            AddLine("命令行参数:");
+            foreach (var argument in Basics.CommandLineArguments)
+                AddLine($" - {argument}");
+        }
+
+        var cpuName = string.IsNullOrWhiteSpace(s) ? "Unknown" : s;
+
+        AddLine($"系统: {osInfo.Name}");
+        AddLineIfPresent("系统版本: ", osInfo.Version);
+        AddLineIfPresent("系统构建: ", osInfo.Build);
+
+        var kernel = $"{osInfo.KernelName} {osInfo.KernelVersion}".Trim();
+        AddLine($"内核: {kernel}");
+
+        AddLine($"平台: {GetPlatformName()}");
+        AddLine(
+            $"架构: {DeviceInfoFormat.FormatArchitecture(osArchitecture)} "
+            + $"(进程: {DeviceInfoFormat.FormatArchitecture(processArchitecture)})");
+        AddLine($"运行时: {frameworkDescription}");
+
+        AddLineIfPresent("设备型号: ", deviceModel);
+        AddLineIfPresent("BIOS: ", biosVersion);
+
+        AddLine($"处理器: {cpuName}");
+
+        if (physicalCoreCount is > 0)
+            AddLine($"物理核心: {physicalCoreCount.Value}");
+
+        AddLine($"逻辑处理器: {logicalProcessorCount}");
+
+        AddLine(
+            $"系统运行时长: {DeviceInfoFormat.FormatUptime(systemUptime)}");
+        AddLine($"IPv6 支持: {GetIpv6StatusText(pv6Status)}");
+
+        const ulong miB = 1024UL * 1024UL;
+
+        var usedMemory = totalMemoryBytes > availableMemoryBytes
+            ? totalMemoryBytes - availableMemoryBytes
+            : 0UL;
+
+        var memoryUsage = totalMemoryBytes == 0UL
+            ? 0d
+            : usedMemory * 100d / totalMemoryBytes;
+
+        var formattedMemoryUsage = memoryUsage.ToString(
+            "N1",
+            CultureInfo.InvariantCulture);
+
+        AddLine(
+            $"可用内存: {availableMemoryBytes / miB}/{totalMemoryBytes / miB} MiB "
+            + $"({formattedMemoryUsage}%)");
+
+        AddLine($"系统语言: {uiCultureName}");
+        AddLine($"区域格式: {cultureName}");
+        AddLine($"时区: {DeviceInfoFormat.FormatTimeZone(timeZoneId, utcOffset)}");
+
+        AddLineIfPresent(
+            "桌面环境: ",
+            Environment.GetEnvironmentVariable("XDG_CURRENT_DESKTOP"));
+
+        AddLineIfPresent("显示会话: ", GetDisplayProtocol());
 
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-        var cp = Encoding.GetEncoding(0);
-        info
-            .Append("\n默认代码页: ")
-            .Append(cp.EncodingName)
-            .Append(" (")
-            .Append(cp.CodePage)
-            .Append(')');
-        info
-            .Append("\n管理员身份: ")
-            .Append(ApplicationRuntime.Current.Platform.SystemFacts.IsAdministrator);
-        info.Append("\n识别码: ").Append(Identify.LauncherId);
+
+        var encoding = Encoding.GetEncoding(0);
+        AddLine($"默认代码页: {encoding.EncodingName} ({encoding.CodePage})");
+
+        AddLine($"管理员身份: {isAdministrator}");
+
+        AddLine($"数据目录: {Paths.Data}");
+
+        if (dataVolume is not null)
+            AddLine($"数据目录可用空间: {DeviceInfoFormat.FormatDiskSpace(dataVolume)}");
+
+        AddLineIfPresent("安装形态: ", Paths.PackageKind);
+        AddLine($"识别码: {Identify.LauncherId}");
+
         Context.Info(info.ToString());
         return;
 
-        string GetArchitectureName(Architecture arch)
+        void AddLine(string value)
         {
-            return arch switch
+            info.Append('\n').Append(value);
+        }
+
+        void AddLineIfPresent(string label, string? value)
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+                AddLine(label + value);
+        }
+
+        static string GetIpv6StatusText(NetworkInterfaceUtils.IPv6Status status)
+        {
+            return status switch
             {
-                Architecture.X64 => "x64",
-                Architecture.Arm64 => "ARM64",
-                _ => arch.ToString()
+                NetworkInterfaceUtils.IPv6Status.Public => "公网",
+                NetworkInterfaceUtils.IPv6Status.RFC4193 => "唯一本地地址",
+                NetworkInterfaceUtils.IPv6Status.Unavailable => "不可用",
+                _ => "未知"
+            };
+        }
+
+        static string GetPlatformName()
+        {
+            var name = ApplicationRuntime.Current.Platform.Kind.ToString();
+            return name == "MacOs" ? "macOS" : name;
+        }
+
+        static string? GetDisplayProtocol()
+        {
+            var session = Environment.GetEnvironmentVariable("XDG_SESSION_TYPE");
+            return session switch
+            {
+                _ when string.Equals(session, "wayland", StringComparison.OrdinalIgnoreCase)
+                    => "Wayland",
+                _ when string.Equals(session, "x11", StringComparison.OrdinalIgnoreCase)
+                    => "X11",
+                _ when !string.IsNullOrWhiteSpace(session)
+                    => session,
+                _ when !string.IsNullOrWhiteSpace(
+                        Environment.GetEnvironmentVariable("WAYLAND_DISPLAY"))
+                    => "Wayland",
+                _ when !string.IsNullOrWhiteSpace(
+                        Environment.GetEnvironmentVariable("DISPLAY"))
+                    => "X11",
+                _ => null
             };
         }
     }

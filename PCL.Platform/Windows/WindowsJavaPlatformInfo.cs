@@ -1,6 +1,7 @@
 using PCL.Core.Minecraft.Java.Parser;
 using PCL.Core.Minecraft.Java.Scanner;
 using PCL.Core.Platform;
+using PCL.Core.Utils.OS;
 
 namespace PCL.Platform;
 
@@ -10,6 +11,7 @@ public sealed class WindowsJavaPlatformInfo : IJavaPlatformInfo
     public string? JavawExecutableName => "javaw.exe";
     public string JstackExecutableName => "jstack.exe";
     public bool SupportsJavaw => true;
+    public bool SupportsJavaLaunchWrapper => !SystemInfo.IsArm64System;
 
     public IJavaParser CreateParser()
     {
