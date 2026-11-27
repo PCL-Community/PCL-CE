@@ -2760,8 +2760,7 @@
     <sys:String x:Key="Setup.Launch.Advanced.DisableCrashAnalysis">Disable automatic crash analysis</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableCrashAnalysis.ToolTip">When enabled, the crash analysis page will no longer automatically appear when the game crashes.</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableJlw">Disable Java Launch Wrapper</sys:String>
-    <sys:String x:Key="Setup.Launch.Advanced.DisableJlw.Arm64Notice">Do not wrap with Java Wrapper when launching the game.&#xA;Java Wrapper has been forcibly disabled because the system is ARM64 architecture.</sys:String>
-    <sys:String x:Key="Setup.Launch.Advanced.DisableJlw.Arm64ToolTip">Do not use Java Wrapper when launching the game.&#xA;Java Wrapper is disabled because this system uses ARM64 architecture.</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableJlw.UnsupportedNoticeToolTip">Do not wrap with Java Launch Wrapper when launching the game.&#xA;Java Launch Wrapper is only available on Windows x86/x64, so it has been forcibly disabled.</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableJlw.ToolTip">PCL CE uses Java Launch Wrapper to fix issues where older Java versions cannot launch from paths containing Chinese characters.&#xA;If it is blocked by anti-cheat or causes other issues, you can disable it.</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableLF">Disable LegacyFix</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableLF.ToolTip">PCL CE uses LegacyFix when launching version 1.5.x and below to improve legacy version gameplay experience and fix compatibility issues.</sys:String>

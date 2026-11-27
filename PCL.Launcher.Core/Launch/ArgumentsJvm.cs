@@ -195,7 +195,8 @@ public static partial class GameLaunch
 
     private static void _AddJavaWrapperJvmArgs(List<string> dataList)
     {
-        if (!LauncherCommon.IsUtf8CodePage()
+        if (!ApplicationRuntime.Current.Platform.Java.SupportsJavaLaunchWrapper
+            || !LauncherCommon.IsUtf8CodePage()
             || Config.Launch.DisableJlw
             || Config.Instance.DisableJlw[InstanceList.McMcInstanceSelected!.PathInstance])
             return;

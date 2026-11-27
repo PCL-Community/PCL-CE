@@ -2760,8 +2760,7 @@
     <sys:String x:Key="Setup.Launch.Advanced.DisableCrashAnalysis">停用自動崩潰分析</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableCrashAnalysis.ToolTip">啟用後，遊戲崩潰時將不再自動彈出崩潰分析頁面。</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableJlw">停用 Java Launch Wrapper</sys:String>
-    <sys:String x:Key="Setup.Launch.Advanced.DisableJlw.Arm64Notice">在啟動遊戲時不使用 Java Wrapper 進行包裝。&#xA;由於系統為 ARM64 架構，Java Wrapper 已被強制停用。</sys:String>
-    <sys:String x:Key="Setup.Launch.Advanced.DisableJlw.Arm64ToolTip">在啟動遊戲時不使用 Java Wrapper 進行包裝。&#xA;由於系統為 ARM64 架構，Java Wrapper 已被強制停用。</sys:String>
+    <sys:String x:Key="Setup.Launch.Advanced.DisableJlw.UnsupportedNoticeToolTip">在啟動遊戲時不使用 Java Launch Wrapper 進行包裝。&#xA;JLW 僅支援 Windows x86/x64 平台，因此已被強制停用。</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableJlw.ToolTip">PCL CE 會使用 Java Launch Wrapper 來修復舊版本 Java 在中文路徑下無法啟動的問題。&#xA;如果這被反作弊攔截，或遇到其他問題，也可以將其關閉。</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableLF">停用 LegacyFix</sys:String>
     <sys:String x:Key="Setup.Launch.Advanced.DisableLF.ToolTip">PCL CE 會在啟動 1.5.x 及以下版本時使用 LegacyFix 來改善舊版本遊戲體驗和修復相容性問題。</sys:String>
