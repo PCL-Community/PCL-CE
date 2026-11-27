@@ -111,6 +111,43 @@
                                    Height="22"
                                    Margin="-1,0,0,7"
                                    Text="{loc:Loc Setup.Ui.Basic.ShowTriviaHint}" />
+                    
+                    <StackPanel x:Name="PanelBlur"
+                                Margin="0,0,0,10">
+                        <ui:MyCheckBox x:Name="CheckBlur"
+                                       Height="22"
+                                       Margin="-1,0,0,0"
+                                       Text="{loc:Loc Setup.Ui.Basic.AdvancedMaterial}"
+                                       ToolTip.Tip="{loc:Loc Setup.Ui.Basic.AdvancedMaterial.ToolTip}" />
+                        <Grid x:Name="PanBlurValue"
+                              Margin="0,10,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"
+                                                  SharedSizeGroup="Name1" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto"
+                                                  SharedSizeGroup="SubName" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition />
+                                <RowDefinition Height="10" />
+                                <RowDefinition />
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0"
+                                       Grid.Column="0"
+                                       VerticalAlignment="Center"
+                                       Text="{loc:Loc Setup.Ui.Basic.BlurRadius}" />
+                            <ui:MySlider x:Name="SliderBlurValue"
+                                         Grid.Row="0"
+                                         Grid.Column="1"
+                                         Grid.ColumnSpan="3"
+                                         MaxValue="40"
+                                         ValueByKey="10"
+                                         Value="{Binding BlurRadius, Mode=TwoWay}"
+                                         ToolTip.Tip="{loc:Loc Setup.Ui.Basic.BlurRadius.ToolTip}" />
+                        </Grid>
+                    </StackPanel>
                 </StackPanel>
             </ui:MyCard>
 

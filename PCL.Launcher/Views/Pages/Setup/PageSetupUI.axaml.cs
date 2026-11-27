@@ -73,6 +73,8 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             new Func<object, object>(PageSetupUIViewModel.FormatBackgroundOpacityHint);
         SliderBackgroundBlur.getHintText =
             new Func<object, object>(PageSetupUIViewModel.FormatPixelHint);
+        SliderBlurValue.getHintText =
+            new Func<object, object>(PageSetupUIViewModel.FormatPixelHint);
         SliderMusicVolume.getHintText =
             new Func<object, object>(PageSetupUIViewModel.FormatMusicVolumeHint);
 
@@ -117,6 +119,11 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
                 CheckBackgroundColorful.Checked == true);
         CheckLogoLeft.Change += (_, _) => WriteIfReady(() =>
             Config.Preference.TopBarLeftAlign = CheckLogoLeft.Checked == true);
+        CheckBlur.Change += (_, _) => WriteIfReady(() =>
+        {
+            Config.Preference.Blur.IsEnabled = CheckBlur.Checked == true;
+            PanBlurValue.IsVisible = CheckBlur.Checked == true;
+        });
 
         CheckMusicRandom.Change += (_, _) => WriteIfReady(() =>
             Config.Preference.Music.ShufflePlayback = CheckMusicRandom.Checked == true);
@@ -273,6 +280,9 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             _macTitleBarStyleRadios[Math.Clamp(Config.Preference.MacTitleBarStyle, 0, 1)].SetChecked(true, false);
             CheckLockWindowSize.Checked = Config.Preference.LockWindowSize;
             CheckShowLaunchingHint.Checked = Config.Preference.ShowLaunchingHint;
+            
+            CheckBlur.Checked = Config.Preference.Blur.IsEnabled;
+            PanBlurValue.IsVisible = Config.Preference.Blur.IsEnabled;
 
             ComboUiFont.SelectedFontTag = Config.Preference.Font;
             ComboUiMotdFont.SelectedFontTag = Config.Preference.MotdFont;
