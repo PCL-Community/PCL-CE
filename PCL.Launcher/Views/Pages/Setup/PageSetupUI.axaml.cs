@@ -220,6 +220,7 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         {
             Config.Preference.Reset();
             Reload();
+            HiddenFeatureState.Notify();
             HintService.Show(Hints.Success(Lang.Text("Setup.Ui.Initialized"), false));
         }
         catch (Exception ex)
@@ -919,6 +920,8 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             PageSetupLeft.NotifyHiddenSettingChanged();
             if (tag == "UiHiddenFunctionHidden")
                 RefreshFeatureHideState();
+            else
+                HiddenFeatureState.Notify();
         };
         _hideChecks.Add(check);
         return check;

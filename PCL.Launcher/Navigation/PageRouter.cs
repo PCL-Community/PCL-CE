@@ -76,6 +76,7 @@ public static class PageRouter
 
     public static void Navigate(MainTab tab)
     {
+        tab = MainTabDescriptor.Normalize(tab);
         var page = PageRegistry.PageOfTab(tab);
         var target = NavigationState.GetTabState(tab) ?? new PageRoute(page);
         Navigate(target);
@@ -139,6 +140,10 @@ public static class PageRouter
     private static void NavigateCore(PageRoute route)
     {
         if (_isNavigating || _rightHost is null) return;
+
+        if (PageRegistry.TabOfPage(route.Page) is { } pageTab
+            && MainTabDescriptor.Normalize(pageTab) != pageTab)
+            route = new PageRoute(PageIds.Launch);
 
         var host = PageRegistry.GetHost(route.Page);
         if (host is null)
