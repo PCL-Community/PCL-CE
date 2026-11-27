@@ -154,6 +154,9 @@ public sealed partial class FfmpegVideoProbe(IExternalCommandRunner runner)
                 case "tv" or "pc":
                     colorRange = part;
                     break;
+                case "bt2020nc":
+                    colorSpace = "bt2020";
+                    break;
                 case "bt709" or "bt601" or "bt2020" or "smpte170m" or "bt470bg":
                     colorSpace = part;
                     break;

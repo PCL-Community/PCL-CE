@@ -368,7 +368,7 @@ internal readonly record struct YuvColorConversion(
         var limited = !string.Equals(range, "pc", StringComparison.OrdinalIgnoreCase);
         var normalizedSpace = space?.ToLowerInvariant();
         var isBt601 = normalizedSpace is "bt601" or "smpte170m" or "bt470bg";
-        var isBt2020 = normalizedSpace is "bt2020";
+        var isBt2020 = normalizedSpace is "bt2020" or "bt2020nc";
 
         if (limited)
         {
