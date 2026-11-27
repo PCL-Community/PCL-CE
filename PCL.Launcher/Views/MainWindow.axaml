@@ -16,6 +16,7 @@
         WindowDecorations="None"
         Background="Transparent"
         CanResize="True"
+        CanMaximize="False"
         TransparencyBackgroundFallback="{DynamicResource ColorBrushBackground}"
         Title="Plain Craft Launcher Community Edition ">
     <Grid x:Name="PanRoot"

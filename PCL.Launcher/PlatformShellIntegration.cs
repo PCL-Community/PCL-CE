@@ -5,8 +5,6 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using Avalonia.Platform;
 using Avalonia.Threading;
-using PCL.Core.App;
-using PCL.Core.App.Configuration;
 using PCL.Navigation;
 using PCL.Views;
 using PlainToolkit.ObjectiveC.Runtime;
@@ -65,22 +63,11 @@ internal sealed class MacOsShellIntegration : IPlatformShellIntegration
     private static readonly ObjCSel _HideOtherApplications = ObjCSel.FromString("hideOtherApplications:");
     private static readonly ObjCSel _UnhideAllApplications = ObjCSel.FromString("unhideAllApplications:");
 
-    private static readonly ObjCSel _InitWithIdentifier = ObjCSel.FromString("initWithIdentifier:");
     private static readonly ObjCSel _SetAnimationBehavior = ObjCSel.FromString("setAnimationBehavior:");
-    private static readonly ObjCSel _SetToolbar = ObjCSel.FromString("setToolbar:");
-    private static readonly ObjCSel _SetToolbarStyle = ObjCSel.FromString("setToolbarStyle:");
-    private static readonly ObjCSel _SetTitlebarSeparatorStyle = ObjCSel.FromString("setTitlebarSeparatorStyle:");
+    private static readonly ObjCSel StandardWindowButton = ObjCSel.FromString("standardWindowButton:");
+    private static readonly ObjCSel SetHidden = ObjCSel.FromString("setHidden:");
 
     private const nint DocumentWindowAnimationBehavior = 3;
-    private const nint AutomaticToolbarStyle = 0;
-    private const nint UnifiedToolbarStyle = 4;
-    private const nint AutomaticTitlebarSeparator = 0;
-    private const nint NoTitlebarSeparator = 1;
-    private const double UnifiedTitleBarHeight = 50d;
-    private const double UnifiedTitleBarLeadingInset = 74d;
-    // 单位为逻辑点：关闭按钮的左边距，以及按钮组相对标题栏垂直居中的偏移（向下为正）。
-    private const double UnifiedCaptionButtonsLeft = 18d;
-    private const double UnifiedCaptionButtonsVerticalOffset = 0d;
 
     private static bool _frameworksLoaded;
 
@@ -101,80 +88,32 @@ internal sealed class MacOsShellIntegration : IPlatformShellIntegration
     {
         if (window is MainWindow mainWindow)
         {
-            mainWindow.UseSystemWindowChrome();
-            var captionButtons = new MacOsCaptionButtonLayout(
-                mainWindow,
-                UnifiedCaptionButtonsLeft,
-                UnifiedCaptionButtonsVerticalOffset,
-                UnifiedTitleBarLeadingInset);
-            _ApplyTitleBarStyle(mainWindow, captionButtons);
-            var observer = new ConfigObserver(
-                ConfigEvent.Update,
-                _ => Dispatcher.UIThread.Post(() => _ApplyTitleBarStyle(mainWindow, captionButtons)));
-            Config.Preference.MacTitleBarStyleConfig.Observe(observer);
-            mainWindow.Closed += (_, _) => Config.Preference.MacTitleBarStyleConfig.Unobserve(observer);
+            // 系统标题栏（含红绿灯）整体禁用，使用自绘标题栏右上角的最小化/关闭按钮。
+            mainWindow.UseCustomWindowChrome();
+            _HideNativeCaptionButtons(mainWindow);
         }
 
         _AttachMenus(window);
     }
 
-    private static void _ApplyTitleBarStyle(MainWindow window, MacOsCaptionButtonLayout captionButtons)
+    /// <summary>兜底隐藏 macOS 原生红绿灯，避免系统在某些窗口样式下重新显示它们。</summary>
+    private static void _HideNativeCaptionButtons(Window window)
     {
-        if (captionButtons.IsDisposed) return;
-        var unified = Config.Preference.MacTitleBarStyle >= 1;
-        captionButtons.PrepareForStyleChange(unified);
-        var height = window.Height;
-        window.ExtendClientAreaToDecorationsHint = unified;
-        if (unified)
+        void Hide()
         {
-            _AttachUnifiedToolbar(window);
-            // 先设为 0 再应用目标高度，让 Avalonia 在挂载工具栏后重新计算标题栏布局。
-            window.ExtendClientAreaTitleBarHeightHint = 0d;
-            window.ExtendClientAreaTitleBarHeightHint = UnifiedTitleBarHeight;
-        }
-        else
-        {
-            _ResetTitleBarStyles(window);
+            if (window.TryGetPlatformHandle()?.Handle is not { } handle || handle == 0) return;
+            var nsWindow = new ObjCObject(handle);
+            // NSWindowButton：0=关闭，1=最小化，2=缩放（最大化）。
+            for (nuint kind = 0; kind < 3; kind++)
+            {
+                var button = nsWindow.SendMessage<nuint, ObjCObject>(StandardWindowButton, kind);
+                if (!button.IsNull) button.SendMessage(SetHidden, 1);
+            }
         }
 
-        window.Height = height;
-        window.ApplyExtendedTitleBarLayout(unified ? UnifiedTitleBarLeadingInset : 0d);
-        captionButtons.ScheduleUpdate();
-    }
-
-    private static void _AttachUnifiedToolbar(Window window)
-    {
-        if (window.TryGetPlatformHandle()?.Handle is not { } handle || handle == 0) return;
-        EnsureFrameworks();
-
-        var nsWindow = new ObjCObject(handle);
-        var identifier = ObjCString.FromString("PCL.TitleBar");
-        try
-        {
-            var toolbar = ObjCObject
-                .GetClass("NSToolbar")
-                .SendMessage<ObjCObject>(Alloc)
-                .SendMessage<nint, ObjCObject>(_InitWithIdentifier, identifier.Value);
-            nsWindow.SendMessage(_SetToolbar, toolbar);
-            toolbar.SendMessage(Release);
-        }
-        finally
-        {
-            if (!identifier.IsNull) new ObjCObject(identifier.Value).SendMessage(Release);
-        }
-
-        nsWindow.SendMessage(_SetToolbarStyle, UnifiedToolbarStyle);
-        nsWindow.SendMessage(_SetTitlebarSeparatorStyle, NoTitlebarSeparator);
-    }
-
-    private static void _ResetTitleBarStyles(Window window)
-    {
-        if (window.TryGetPlatformHandle()?.Handle is not { } handle || handle == 0) return;
-        EnsureFrameworks();
-
-        var nsWindow = new ObjCObject(handle);
-        nsWindow.SendMessage(_SetToolbarStyle, AutomaticToolbarStyle);
-        nsWindow.SendMessage(_SetTitlebarSeparatorStyle, AutomaticTitlebarSeparator);
+        Hide();
+        window.Opened += (_, _) => Hide();
+        Dispatcher.UIThread.Post(Hide, DispatcherPriority.Loaded);
     }
 
     private static void _AttachMenus(Window window)

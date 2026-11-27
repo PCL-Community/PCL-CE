@@ -87,6 +87,9 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             ViewModel.CustomNetText = TextCustomNet.Text ?? string.Empty;
         });
 
+        // 标题栏现统一使用自绘按钮，原生标题栏样式选项已不再生效。
+        PanMacTitleBarStyle.IsVisible = false;
+
         var supportsTitleBarStyle = ApplicationRuntime.Current.Platform.Capabilities
             .SupportsTitleBarStyleSelection;
         foreach (var radio in _macTitleBarStyleRadios)

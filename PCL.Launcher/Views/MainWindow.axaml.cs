@@ -204,6 +204,15 @@ public partial class MainWindow : Window
         LauncherCommon.Dpi = (int)Math.Round(RenderScaling * 96d);
     }
 
+    /// <summary>全平台统一使用自绘标题栏：不显示系统按钮，也不提供最大化。</summary>
+    public void UseCustomWindowChrome()
+    {
+        _useSystemWindowChrome = false;
+        WindowDecorations = WindowDecorations.None;
+        CanMaximize = false;
+        ExtendClientAreaToDecorationsHint = false;
+    }
+
     // macOS 改用系统标题栏，把圆角，阴影等交给系统处理，PCL因为窗口本身不支持最大化，因此绿灯保持禁用
     public void UseSystemWindowChrome()
     {

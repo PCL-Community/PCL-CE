@@ -1,3 +1,4 @@
+using System;
 using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.OS;
 
@@ -6,10 +7,23 @@ namespace PCL.Core.App;
 // ReSharper disable InconsistentNaming
 public static class Secrets
 {
+    // 官方发布包使用的 OAuth 客户端 ID。Client ID 是公开的应用标识，不是密钥；
+    // 本地构建默认没有 CI 注入的密钥，缺少它会导致微软正版登录直接失败。
+    private const string OfficialMsOAuthClientId = "c14b0370-8d75-42f8-b329-5b60d39e319f";
+
     /// <summary>
     /// 微软 OAuth 的 Client ID
     /// </summary>
-    public static string MSOAuthClientId { get; } = EnvironmentInterop.GetSecret("MS_CLIENT_ID", readEnvDebugOnly: true).ReplaceNullOrEmpty();
+    public static string MSOAuthClientId { get; } = ResolveMsOAuthClientId();
+
+    private static string ResolveMsOAuthClientId()
+    {
+        var clientId = EnvironmentInterop.GetSecret("MS_CLIENT_ID", readEnvDebugOnly: true);
+        // 允许运行时用自己的 Azure 应用覆盖（例如 PCL_MS_CLIENT_ID=<你的 ID> ./PCL.Launcher）。
+        if (string.IsNullOrWhiteSpace(clientId))
+            clientId = Environment.GetEnvironmentVariable("PCL_MS_CLIENT_ID");
+        return string.IsNullOrWhiteSpace(clientId) ? OfficialMsOAuthClientId : clientId;
+    }
 
     /// <summary>
     /// CurseForge API 的 Client ID
