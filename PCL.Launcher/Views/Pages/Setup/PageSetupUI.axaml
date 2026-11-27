@@ -262,6 +262,15 @@
                                    x:DataType="bg:BackgroundFfmpegSettings"
                                    Checked="{Binding AutoPauseVideo, Mode=TwoWay}"
                                    IsVisible="{Binding IsPauseVisible}" />
+                    <ui:MyCheckBox x:Name="CheckHardwareAcceleration"
+                                   Height="22"
+                                   Margin="-1,0,0,8"
+                                   Text="{loc:Loc Setup.Ui.Background.HardwareAcceleration}"
+                                   ToolTip.Tip="{loc:Loc Setup.Ui.Background.HardwareAcceleration.ToolTip}"
+                                   DataContext="{StaticResource BackgroundFfmpegSettings}"
+                                   x:DataType="bg:BackgroundFfmpegSettings"
+                                   Checked="{Binding HardwareAcceleration, Mode=TwoWay}"
+                                   IsVisible="{Binding IsPauseVisible}" />
                     <ui:MyCheckBox x:Name="CheckBackgroundColorful"
                                    Height="22"
                                    Margin="-1,0,0,8"

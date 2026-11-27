@@ -338,6 +338,12 @@ public static partial class Config
             [ConfigItem<bool>("UiAutoPauseVideo", true, ConfigSource.Local)] public partial bool AutoPauseVideo { get; set; }
 
             /// <summary>
+            /// 视频背景是否优先使用 FFmpeg 硬件解码；不可用时自动回退软件解码。
+            /// </summary>
+            [ConfigItem<bool>("UiBackgroundHardwareAcceleration", true, ConfigSource.Local)]
+            public partial bool VideoHardwareAcceleration { get; set; }
+
+            /// <summary>
             /// FFmpeg 可执行文件路径；留空时自动检测。
             /// </summary>
             [ConfigItem<string>("UiBackgroundFfmpegPath", "", ConfigSource.Local)] public partial string FfmpegPath { get; set; }

@@ -3799,4 +3799,6 @@
     <sys:String x:Key="Setup.Ui.Background.ImageLoadFailed">圖片載入失敗，嘗試將檔案作為影片播放：{0}</sys:String>
     <sys:String x:Key="Setup.Ui.Background.PauseVideo">遊戲啟動後暫停影片背景，遊戲退出後重新播放</sys:String>
     <sys:String x:Key="Setup.Ui.Background.PauseVideo.ToolTip">若啟用此項設定，遊戲時將無法重新整理背景</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.HardwareAcceleration">影片背景使用硬體加速解碼</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.HardwareAcceleration.ToolTip">優先使用 FFmpeg 硬體解碼以降低 CPU 使用率；硬體不可用時自動回退到軟體解碼。硬體解碼可能增加顯示記憶體使用量。</sys:String>
 </ResourceDictionary>

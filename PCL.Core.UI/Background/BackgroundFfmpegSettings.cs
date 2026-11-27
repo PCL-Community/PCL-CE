@@ -23,12 +23,14 @@ public sealed class BackgroundFfmpegSettings : ObservableObject, IDisposable
 {
     private readonly ConfigObserver _autoPauseObserver;
     private readonly ConfigObserver _ffmpegPathObserver;
+    private readonly ConfigObserver _hardwareAccelerationObserver;
 
     private bool _autoPauseVideo;
     private string _ffmpegPath;
     private string _ffmpegStatusText = string.Empty;
     private BackgroundFfmpegStatusTheme _ffmpegStatusTheme;
     private string _ffmpegToolTip;
+    private bool _hardwareAcceleration;
     private int _statusGeneration;
     private bool _syncing;
 
@@ -36,6 +38,7 @@ public sealed class BackgroundFfmpegSettings : ObservableObject, IDisposable
     {
         _ffmpegPath = Config.Preference.Background.FfmpegPath;
         _autoPauseVideo = Config.Preference.Background.AutoPauseVideo;
+        _hardwareAcceleration = Config.Preference.Background.VideoHardwareAcceleration;
         _ffmpegToolTip = Lang.Text("Setup.Ui.Background.Ffmpeg.ToolTip");
 
         BrowseCommand = new AsyncRelayCommand(BrowseAsync);
@@ -43,8 +46,13 @@ public sealed class BackgroundFfmpegSettings : ObservableObject, IDisposable
 
         _autoPauseObserver = new ConfigObserver(ConfigEvent.Update, _ => SyncAutoPauseVideo());
         _ffmpegPathObserver = new ConfigObserver(ConfigEvent.Update, _ => SyncFfmpegPath());
+        _hardwareAccelerationObserver = new ConfigObserver(
+            ConfigEvent.Update,
+            _ => SyncHardwareAcceleration());
         Config.Preference.Background.AutoPauseVideoConfig.Observe(_autoPauseObserver);
         Config.Preference.Background.FfmpegPathConfig.Observe(_ffmpegPathObserver);
+        Config.Preference.Background.VideoHardwareAccelerationConfig.Observe(
+            _hardwareAccelerationObserver);
         BackgroundHost.StateChanged += OnBackgroundStateChanged;
 
         UpdatePauseVisibility();
@@ -97,12 +105,24 @@ public sealed class BackgroundFfmpegSettings : ObservableObject, IDisposable
         }
     }
 
+    public bool HardwareAcceleration
+    {
+        get => _hardwareAcceleration;
+        set
+        {
+            if (!SetProperty(ref _hardwareAcceleration, value) || _syncing) return;
+            Config.Preference.Background.VideoHardwareAcceleration = value;
+        }
+    }
+
     public bool IsPauseVisible => BackgroundHost.Current?.HasContent == true;
 
     public void Dispose()
     {
         Config.Preference.Background.AutoPauseVideoConfig.Unobserve(_autoPauseObserver);
         Config.Preference.Background.FfmpegPathConfig.Unobserve(_ffmpegPathObserver);
+        Config.Preference.Background.VideoHardwareAccelerationConfig.Unobserve(
+            _hardwareAccelerationObserver);
         BackgroundHost.StateChanged -= OnBackgroundStateChanged;
     }
 
@@ -213,6 +233,25 @@ public sealed class BackgroundFfmpegSettings : ObservableObject, IDisposable
         try
         {
             AutoPauseVideo = Config.Preference.Background.AutoPauseVideo;
+        }
+        finally
+        {
+            _syncing = false;
+        }
+    }
+
+    private void SyncHardwareAcceleration()
+    {
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            Dispatcher.UIThread.Post(SyncHardwareAcceleration);
+            return;
+        }
+
+        _syncing = true;
+        try
+        {
+            HardwareAcceleration = Config.Preference.Background.VideoHardwareAcceleration;
         }
         finally
         {

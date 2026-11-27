@@ -3808,4 +3808,6 @@
     <sys:String x:Key="Setup.Ui.Background.ImageLoadFailed">Failed to load the image, trying to play the file as a video: {0}</sys:String>
     <sys:String x:Key="Setup.Ui.Background.PauseVideo">Pause video backgrounds while an instance is running</sys:String>
     <sys:String x:Key="Setup.Ui.Background.PauseVideo.ToolTip">If enabled, the background cannot be refreshed while the game is running</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.HardwareAcceleration">Use hardware-accelerated decoding for video backgrounds</sys:String>
+    <sys:String x:Key="Setup.Ui.Background.HardwareAcceleration.ToolTip">Prefer FFmpeg hardware decoding to reduce CPU usage. Falls back to software decoding when unavailable. Hardware decoding may increase VRAM usage.</sys:String>
 </ResourceDictionary>

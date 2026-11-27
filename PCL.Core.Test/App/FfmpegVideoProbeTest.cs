@@ -24,6 +24,31 @@ public sealed class FfmpegVideoProbeTest
     }
 
     [TestMethod]
+    public void ParsesFrameRateAndColorInfo()
+    {
+        var info = FfmpegVideoProbe.ParseInfo(
+            "Stream #0:0: Video: h264, yuv420p(tv, bt709, progressive), 1920x1080, 24 fps, 24 tbr, 15360 tbn");
+
+        Assert.AreEqual(1920, info?.Size.Width);
+        Assert.AreEqual(1080, info?.Size.Height);
+        Assert.AreEqual(24d, info?.FrameRate);
+        Assert.AreEqual("yuv420p", info?.PixelFormat);
+        Assert.AreEqual("tv", info?.ColorRange);
+        Assert.AreEqual("bt709", info?.ColorSpace);
+    }
+
+    [TestMethod]
+    public void ParsesFullRangeAndBt601ColorInfo()
+    {
+        var info = FfmpegVideoProbe.ParseInfo(
+            "Stream #0:0: Video: h264, yuv420p(pc, smpte170m), 720x480, 29.97 fps");
+
+        Assert.AreEqual(29.97d, info?.FrameRate);
+        Assert.AreEqual("pc", info?.ColorRange);
+        Assert.AreEqual("smpte170m", info?.ColorSpace);
+    }
+
+    [TestMethod]
     public void UsesSampleAspectRatioForDisplaySize()
     {
         var size = FfmpegVideoProbe.Parse(
