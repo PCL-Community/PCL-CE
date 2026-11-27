@@ -42,13 +42,13 @@
                     </Grid>
                     <shell:TitleBar x:Name="TitleBar"
                                     Grid.Row="0" />
-                    <Border x:Name="RectLeftBackground"
-                            Grid.Row="1"
-                            Width="0"
-                            HorizontalAlignment="Left"
-                            Background="{DynamicResource ColorBrushTransparentBackground}"
-                            IsHitTestVisible="False"
-                            BoxShadow="4 0 6 0 #0A000000" />
+                    <ui:BlurBorder x:Name="RectLeftBackground"
+                                   Grid.Row="1"
+                                   Width="0"
+                                   HorizontalAlignment="Left"
+                                   Background="{DynamicResource ColorBrushTransparentBackground}"
+                                   IsHitTestVisible="False"
+                                   BoxShadow="4 0 6 0 #0A000000" />
                     <Grid x:Name="PanMain"
                           Grid.Row="1"
                           ColumnDefinitions="Auto,*">
@@ -75,7 +75,7 @@
                            ZIndex="2"
                            IsVisible="False"
                            Opacity="0">
-                        <Border x:Name="BorDialogMask"
+                        <ui:BlurBorder x:Name="BorDialogMask"
                                 Background="#00000000" />
                         <ScrollViewer x:Name="SclDialogHost"
                                       MinWidth="400"

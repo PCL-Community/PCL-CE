@@ -28,6 +28,7 @@ public sealed class PlatformServiceRegistrationTest
         Assert.IsNotNull(provider.GetRequiredService<IExternalCommandRunner>());
         Assert.IsNotNull(provider.GetRequiredService<IElevationService>());
         Assert.IsNotNull(provider.GetRequiredService<IProcessLauncher>());
+        Assert.IsNotNull(provider.GetRequiredService<IScrollGestureService>());
     }
 
     [TestMethod]
@@ -50,6 +51,7 @@ public sealed class PlatformServiceRegistrationTest
         Assert.IsNotNull(provider.GetRequiredService<IExternalCommandRunner>());
         Assert.IsNotNull(provider.GetRequiredService<IElevationService>());
         Assert.IsNotNull(provider.GetRequiredService<IProcessLauncher>());
+        Assert.IsNotNull(provider.GetRequiredService<IScrollGestureService>());
     }
 
     [TestMethod]

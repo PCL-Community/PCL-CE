@@ -74,6 +74,8 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             new Func<object, object>(PageSetupUIViewModel.FormatBackgroundOpacityHint);
         SliderBackgroundBlur.getHintText =
             new Func<object, object>(PageSetupUIViewModel.FormatPixelHint);
+        SliderBlurValue.getHintText =
+            new Func<object, object>(PageSetupUIViewModel.FormatPixelHint);
         SliderMusicVolume.getHintText =
             new Func<object, object>(PageSetupUIViewModel.FormatMusicVolumeHint);
 
@@ -114,18 +116,16 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
 
         var supportsTitleBarStyle = ApplicationRuntime.Current.Platform.Capabilities
             .SupportsTitleBarStyleSelection;
-        PanMacTitleBarStyle.IsEnabled = supportsTitleBarStyle;
+        foreach (var radio in _macTitleBarStyleRadios)
+            radio.IsEnabled = supportsTitleBarStyle;
         if (!supportsTitleBarStyle)
         {
-            foreach (var radio in _macTitleBarStyleRadios)
-                radio.IsEnabled = false;
             LabMacTitleBarStyle.Bind(
                 TextBlock.ForegroundProperty,
                 new DynamicResourceExtension(InputTheme.DisabledTextKey));
             PanMacTitleBarStyle.SetLocalizedValue(
                 ToolTip.TipProperty,
                 "Setup.Ui.Logo.MacTitleBarStyle.OnlyMacOS");
-            ToolTip.SetShowOnDisabled(PanMacTitleBarStyle, true);
         }
 
         foreach (var (index, radio) in _macTitleBarStyleRadios.Index())
@@ -144,6 +144,11 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
                 CheckBackgroundColorful.Checked == true);
         CheckLogoLeft.Change += (_, _) => WriteIfReady(() =>
             Config.Preference.TopBarLeftAlign = CheckLogoLeft.Checked == true);
+        CheckBlur.Change += (_, _) => WriteIfReady(() =>
+        {
+            Config.Preference.Blur.IsEnabled = CheckBlur.Checked == true;
+            PanBlurValue.IsVisible = CheckBlur.Checked == true;
+        });
 
         CheckMusicRandom.Change += (_, _) => WriteIfReady(() =>
             Config.Preference.Music.ShufflePlayback = CheckMusicRandom.Checked == true);
@@ -254,6 +259,7 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         {
             Config.Preference.Reset();
             Reload();
+            HiddenFeatureState.Notify();
             HintService.Show(Hints.Success(Lang.Text("Setup.Ui.Initialized"), false));
         }
         catch (Exception ex)
@@ -323,6 +329,9 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
                 .SetChecked(true, false);
             CheckLockWindowSize.Checked = Config.Preference.LockWindowSize;
             CheckShowLaunchingHint.Checked = Config.Preference.ShowLaunchingHint;
+
+            CheckBlur.Checked = Config.Preference.Blur.IsEnabled;
+            PanBlurValue.IsVisible = Config.Preference.Blur.IsEnabled;
 
             ComboUiFont.SelectedFontTag = Config.Preference.Font;
             ComboUiMotdFont.SelectedFontTag = Config.Preference.MotdFont;
@@ -986,6 +995,8 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             PageSetupLeft.NotifyHiddenSettingChanged();
             if (tag == "UiHiddenFunctionHidden")
                 RefreshFeatureHideState();
+            else
+                HiddenFeatureState.Notify();
         };
         _hideChecks.Add(check);
         return check;

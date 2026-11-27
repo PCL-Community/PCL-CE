@@ -50,7 +50,7 @@
                                        SelectedIndex="{Binding FormatCultureIndex, Mode=TwoWay}" />
                     </Grid>
 
-                    <Border x:Name="BannerInternationalization"
+                    <ui:BlurBorder x:Name="BannerInternationalization"
                             MinHeight="230"
                             Margin="0,10,0,0"
                             Padding="25"
@@ -125,7 +125,7 @@
                                 </StackPanel>
                             </Grid>
                         </Grid>
-                    </Border>
+                    </ui:BlurBorder>
 
                     <StackPanel Margin="0,10,0,0"
                                 HorizontalAlignment="Right"

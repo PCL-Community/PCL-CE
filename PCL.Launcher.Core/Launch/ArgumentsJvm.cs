@@ -167,9 +167,11 @@ public static partial class GameLaunch
         try
         {
             var proxyAddress = new Uri(Config.Network.HttpProxy.CustomAddress);
-            var proxyScheme = proxyAddress.Scheme.StartsWithF("https:") ? "https" : "http";
-            dataList.Add($"-D{proxyScheme}.proxyHost={proxyAddress.AbsoluteUri}");
-            dataList.Add($"-D{proxyScheme}.proxyPort={proxyAddress.Port}");
+            var defaultPort = proxyAddress.Scheme == "https" ? 443 : 80;
+            dataList.Add($"-Dhttp.proxyHost={proxyAddress.Host}");
+            dataList.Add($"-Dhttps.proxyHost={proxyAddress.Host}");
+            dataList.Add($"-Dhttp.proxyPort={(proxyAddress.Port == -1? defaultPort:proxyAddress.Port)}");
+            dataList.Add($"-Dhttps.proxyPort={(proxyAddress.Port == -1? defaultPort:proxyAddress.Port)}");
         }
         catch (Exception ex)
         {
@@ -195,7 +197,8 @@ public static partial class GameLaunch
 
     private static void _AddJavaWrapperJvmArgs(List<string> dataList)
     {
-        if (!LauncherCommon.IsUtf8CodePage()
+        if (!ApplicationRuntime.Current.Platform.Java.SupportsJavaLaunchWrapper
+            || !LauncherCommon.IsUtf8CodePage()
             || Config.Launch.DisableJlw
             || Config.Instance.DisableJlw[InstanceList.McMcInstanceSelected!.PathInstance])
             return;

@@ -33,7 +33,7 @@ internal sealed class CrashLogImporter(CrashAnalysisContext context)
                     context.RawFiles.Add(
                         new CrashLogEntry(
                             targetFile.FullName,
-                            CrashFileIo.ReadText(targetFile.FullName).Split("\r\n".ToCharArray())));
+                            CrashLogEntry.SplitLines(CrashFileIo.ReadText(targetFile.FullName))));
                 else
                     File.Delete(targetFile.FullName);
             }

@@ -5,6 +5,10 @@ namespace PCL;
 
 internal sealed class CrashLogCollector(CrashAnalysisContext context)
 {
+    internal Func<bool> CollectDebugLog { get; set; } = static () =>
+        CrashFileIo.ReadText(GameLaunch.LatestLaunchScriptPath)
+            .Contains("-Dlog4j2.formatMsgNoLookups=false", StringComparison.OrdinalIgnoreCase);
+
     public void Collect(string versionPathIndie, IList<string>? latestLog)
     {
         LogWrapper.Info("Crash", "步骤 1：收集日志文件");
@@ -25,7 +29,7 @@ internal sealed class CrashLogCollector(CrashAnalysisContext context)
         LogWrapper.Info("Crash", $"步骤 1：收集日志文件完成，收集到 {context.RawFiles.Count} 个文件");
     }
 
-    private static IEnumerable<string> _FindPossibleLogFiles(string versionPathIndie)
+    private IEnumerable<string> _FindPossibleLogFiles(string versionPathIndie)
     {
         var possibleLogs = new List<string>();
 
@@ -71,10 +75,7 @@ internal sealed class CrashLogCollector(CrashAnalysisContext context)
         }
 
         possibleLogs.Add(Path.Combine(versionPathIndie, "logs", "latest.log"));
-        var launchScript = CrashFileIo.ReadText(GameLaunch.LatestLaunchScriptPath);
-        if (launchScript.Contains(
-                "-Dlog4j2.formatMsgNoLookups=false",
-                StringComparison.OrdinalIgnoreCase))
+        if (CollectDebugLog())
             possibleLogs.Add(Path.Combine(versionPathIndie, "logs", "debug.log"));
 
         return possibleLogs;
@@ -111,7 +112,7 @@ internal sealed class CrashLogCollector(CrashAnalysisContext context)
             context.RawFiles.Add(
                 new CrashLogEntry(
                     filePath,
-                    CrashFileIo.ReadText(filePath).Split("\r\n".ToCharArray())));
+                    CrashLogEntry.SplitLines(CrashFileIo.ReadText(filePath))));
         }
         catch (Exception ex)
         {

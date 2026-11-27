@@ -48,6 +48,9 @@ public partial class PageSetupUIViewModel : ViewModelBase
 
     [ObservableProperty] public partial bool BackgroundSuitVisible { get; set; }
 
+    [ObservableProperty]
+    public partial int BlurRadius { get; set; } = Config.Preference.Blur.Radius;
+
     [ObservableProperty] public partial string CustomNetText { get; set; } = string.Empty;
 
     [ObservableProperty] public partial int CustomPresetSelectedIndex { get; set; } = -1;
@@ -213,6 +216,11 @@ public partial class PageSetupUIViewModel : ViewModelBase
         if (!_reloading) Config.Preference.Background.WallpaperBlurRadius = value;
     }
 
+    partial void OnBlurRadiusChanged(int value)
+    {
+        if (!_reloading) Config.Preference.Blur.Radius = value;
+    }
+
     partial void OnMusicVolumeChanged(int value)
     {
         if (!_reloading) Config.Preference.Music.Volume = value;
@@ -232,6 +240,7 @@ public partial class PageSetupUIViewModel : ViewModelBase
             DarkColorSelectedIndex = FindThemeIndex(theme.DarkColor);
             LoadLightCustom();
             LoadDarkCustom();
+            BlurRadius = Config.Preference.Blur.Radius;
 
             BackgroundOpacity = Config.Preference.Background.WallpaperOpacity;
             BackgroundBlur = Config.Preference.Background.WallpaperBlurRadius;
