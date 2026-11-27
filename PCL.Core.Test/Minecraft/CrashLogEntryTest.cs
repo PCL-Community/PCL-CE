@@ -22,11 +22,12 @@ public class CrashLogEntryTest
         Directory.CreateDirectory(instanceDir);
         try
         {
-            var logPath = Path.Combine(instanceDir, "latest.log");
-            File.WriteAllText(logPath, content, new UTF8Encoding(false));
+            File.WriteAllText(Path.Combine(instanceDir, "latest.log"), content, new UTF8Encoding(false));
+            var context = new CrashAnalysisContext(0, root);
+            new CrashLogCollector(context) { CollectDebugLog = static () => false }.Collect(instanceDir, null);
 
             var expected = content.Split(["\r\n", "\r", "\n"], StringSplitOptions.None);
-            CollectionAssert.AreEqual(expected, CrashLogEntry.SplitLines(CrashFileIo.ReadText(logPath)));
+            CollectionAssert.AreEqual(expected, context.RawFiles.Single().Lines.ToArray());
         }
         finally
         {
