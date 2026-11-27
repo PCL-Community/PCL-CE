@@ -10,14 +10,6 @@ using PCL.Core.Platform;
 
 namespace PCL.Core.UI.Background;
 
-/// <summary>FFmpeg 状态提示使用的颜色。</summary>
-public enum BackgroundFfmpegStatusTheme
-{
-    Blue,
-    Yellow,
-    Red
-}
-
 /// <summary>设置页的 FFmpeg 路径、检测状态与视频自动暂停选项。</summary>
 public sealed class BackgroundFfmpegSettings : ObservableObject, IDisposable
 {
@@ -28,7 +20,6 @@ public sealed class BackgroundFfmpegSettings : ObservableObject, IDisposable
     private bool _autoPauseVideo;
     private string _ffmpegPath;
     private string _ffmpegStatusText = string.Empty;
-    private BackgroundFfmpegStatusTheme _ffmpegStatusTheme;
     private string _ffmpegToolTip;
     private bool _hardwareAcceleration;
     private int _statusGeneration;
@@ -77,16 +68,17 @@ public sealed class BackgroundFfmpegSettings : ObservableObject, IDisposable
     public string FfmpegStatusText
     {
         get => _ffmpegStatusText;
-        private set => SetProperty(ref _ffmpegStatusText, value);
+        private set
+        {
+            if (!SetProperty(ref _ffmpegStatusText, value)) return;
+            OnPropertyChanged(nameof(FfmpegPathHint));
+        }
     }
 
-    public bool FfmpegStatusVisible => !string.IsNullOrWhiteSpace(FfmpegStatusText);
-
-    public BackgroundFfmpegStatusTheme FfmpegStatusTheme
-    {
-        get => _ffmpegStatusTheme;
-        private set => SetProperty(ref _ffmpegStatusTheme, value);
-    }
+    public string FfmpegPathHint =>
+        string.IsNullOrWhiteSpace(FfmpegStatusText)
+            ? Lang.Text("Setup.Ui.Background.Ffmpeg.Hint")
+            : FfmpegStatusText;
 
     public string FfmpegToolTip
     {
@@ -125,8 +117,6 @@ public sealed class BackgroundFfmpegSettings : ObservableObject, IDisposable
             _hardwareAccelerationObserver);
         BackgroundHost.StateChanged -= OnBackgroundStateChanged;
     }
-
-    public event Action<BackgroundFfmpegStatusTheme>? StatusThemeChanged;
 
     public async Task RefreshStatusAsync(bool force)
     {
@@ -182,19 +172,10 @@ public sealed class BackgroundFfmpegSettings : ObservableObject, IDisposable
         if (result is null)
         {
             FfmpegStatusText = string.Empty;
-            FfmpegStatusTheme = BackgroundFfmpegStatusTheme.Yellow;
             FfmpegToolTip = Lang.Text("Setup.Ui.Background.Ffmpeg.ToolTip");
-            OnPropertyChanged(nameof(FfmpegStatusVisible));
-            StatusThemeChanged?.Invoke(FfmpegStatusTheme);
             return;
         }
 
-        FfmpegStatusTheme = result.Availability switch
-        {
-            FfmpegAvailability.Available => BackgroundFfmpegStatusTheme.Blue,
-            FfmpegAvailability.Invalid => BackgroundFfmpegStatusTheme.Red,
-            _ => BackgroundFfmpegStatusTheme.Yellow
-        };
         FfmpegStatusText = result.Availability switch
         {
             FfmpegAvailability.Available => Lang.Text(
@@ -207,18 +188,16 @@ public sealed class BackgroundFfmpegSettings : ObservableObject, IDisposable
         };
 
         var details = string.Join(
-            " · ",
+            " - ",
             new[]
                 {
-                    result.Version,
-                    result.ExecutablePath
+                    result.ExecutablePath,
+                    result.Version
                 }
                 .Where(value => !string.IsNullOrWhiteSpace(value)));
         FfmpegToolTip = result.IsAvailable && !string.IsNullOrWhiteSpace(details)
             ? details
             : Lang.Text("Setup.Ui.Background.Ffmpeg.ToolTip");
-        OnPropertyChanged(nameof(FfmpegStatusVisible));
-        StatusThemeChanged?.Invoke(FfmpegStatusTheme);
     }
 
     private void SyncAutoPauseVideo()
