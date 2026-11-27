@@ -1,5 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
+using PCL.Core.App;
 using PCL.Views.Pages.Download;
+using PCL.Views.Shell;
 using static PCL.Navigation.PageDescriptorFactory;
 
 namespace PCL.Navigation.Catalog;
@@ -221,5 +223,9 @@ public sealed class DownloadPageModule : IPageModule
             "lucide/download",
             1,
             0.9d)
+        {
+            IsVisible = () => HiddenFeatureState.ForceShow
+                || !Config.Preference.Hide.PageDownload
+        }
     ];
 }

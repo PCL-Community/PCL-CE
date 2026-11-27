@@ -338,12 +338,11 @@ public partial class PageInstanceSetup : MyPageRight
         _checkUseProxy.Checked = ViewModel.UseProxy;
         _checkIgnoreJava.Checked = ViewModel.IgnoreJavaCompatibility;
         _checkDisableJlw.Checked = ViewModel.DisableJlw;
-        _checkDisableJlw.IsEnabled = !ViewModel.IsArm64System;
         _checkDisableJlw.SetLocalizedValue(
             ToolTip.TipProperty,
-            ViewModel.IsArm64System
-                ? "Setup.Launch.Advanced.DisableJlw.Arm64ToolTip"
-                : "Setup.Launch.Advanced.DisableJlw.ToolTip");
+            ViewModel.DisableJlwEnabled
+                ? "Setup.Launch.Advanced.DisableJlw.ToolTip"
+                : "Setup.Launch.Advanced.DisableJlw.UnsupportedNoticeToolTip");
         _checkDebugLog4J.Checked = ViewModel.UseDebugLog4j;
         _checkDisableLf.Checked = ViewModel.DisableLf;
         RefreshRunWait();

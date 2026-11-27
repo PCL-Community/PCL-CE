@@ -5,6 +5,7 @@ using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Minecraft.Java;
 using PCL.Core.Minecraft.Java.UserPreference;
+using PCL.Core.Platform;
 using PCL.Core.UI;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
@@ -72,6 +73,10 @@ public partial class PageInstanceSetupViewModel : ViewModelBase
     [ObservableProperty] public partial bool IgnoreJavaCompatibility { get; set; }
 
     [ObservableProperty] public partial bool DisableJlw { get; set; }
+    
+    [ObservableProperty]
+    public partial bool DisableJlwEnabled { get; set; } =
+        ApplicationRuntime.Current.Platform.Java.SupportsJavaLaunchWrapper;
 
     [ObservableProperty] public partial bool UseDebugLog4j { get; set; }
 
@@ -123,8 +128,6 @@ public partial class PageInstanceSetupViewModel : ViewModelBase
     [ObservableProperty] public partial bool HttpWarningVisible { get; set; }
 
     [ObservableProperty] public partial bool RunWaitVisible { get; set; }
-
-    [ObservableProperty] public partial bool IsArm64System { get; set; }
 
     [ObservableProperty] public partial bool IsJavaLoading { get; set; }
 
@@ -196,8 +199,9 @@ public partial class PageInstanceSetupViewModel : ViewModelBase
             DisableAssetVerify = Config.Instance.DisableAssetVerifyV2[path];
             UseProxy = Config.Instance.UseProxy[path];
             IgnoreJavaCompatibility = Config.Instance.IgnoreJavaCompatibility[path];
-            IsArm64System = SystemInfo.IsArm64System;
-            DisableJlw = IsArm64System || Config.Instance.DisableJlw[path];
+            DisableJlwEnabled =
+                ApplicationRuntime.Current.Platform.Java.SupportsJavaLaunchWrapper;
+            DisableJlw = !DisableJlwEnabled || Config.Instance.DisableJlw[path];
             UseDebugLog4j = Config.Instance.UseDebugLof4j2Config[path];
             DisableLf = Config.Instance.DisableLF[path];
             RefreshRunWait();
@@ -428,7 +432,7 @@ public partial class PageInstanceSetupViewModel : ViewModelBase
 
     public void SetDisableJlw(bool value)
     {
-        if (Instance is null || IsArm64System)
+        if (Instance is null || !DisableJlwEnabled)
             return;
         DisableJlw = value;
         Config.Instance.DisableJlw[Instance.PathInstance] = value;

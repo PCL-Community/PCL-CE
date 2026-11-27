@@ -8,5 +8,7 @@ public interface IHardwareInfo
 {
     string? GetCpuName();
 
+    int? GetPhysicalCoreCount();
+
     IReadOnlyList<HardwareInfo.GpuInfo> GetGpus();
 }

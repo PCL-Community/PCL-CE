@@ -446,6 +446,7 @@ public static class McInstallPipeline
         }
 
         var runLoader = LoaderInstallerInstall.CreateInstallerRunLoader(
+            request,
             holder,
             instanceFolder,
             instanceName);

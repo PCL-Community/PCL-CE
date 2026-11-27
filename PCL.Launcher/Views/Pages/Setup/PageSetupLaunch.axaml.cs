@@ -77,7 +77,7 @@ public partial class PageSetupLaunch : MyPageRight, ISetupResetPage
         LabRamUsed.SizeChanged += (_, _) => RefreshRamText();
         LabRamTotal.SizeChanged += (_, _) => RefreshRamText();
         LabRamUsedTitle.SizeChanged += (_, _) => RefreshRamText();
-
+        
         Loaded += (_, _) =>
         {
             _loaded = true;
@@ -135,7 +135,6 @@ public partial class PageSetupLaunch : MyPageRight, ISetupResetPage
             ViewModel.Reload();
             var ramType = Math.Clamp(ViewModel.MemoryAllocationMode, 0, 1);
             (ramType == 0 ? RadioRamType0 : RadioRamType1).SetChecked(true, false);
-            RefreshDisableJlwToolTip();
             RefreshRamVisual(false);
         }
         catch (NullReferenceException ex)
@@ -160,6 +159,8 @@ public partial class PageSetupLaunch : MyPageRight, ISetupResetPage
         {
             _syncing = false;
         }
+
+        RefreshDisableJlwToolTip();
     }
 
     private void WriteRamType(int type)
@@ -439,13 +440,11 @@ public partial class PageSetupLaunch : MyPageRight, ISetupResetPage
 
     private void RefreshDisableJlwToolTip()
     {
-        if (!_loaded) return;
         CheckAdvanceDisableJLW.SetLocalizedValue(
             ToolTip.TipProperty,
-            SystemInfo.IsArm64System
-                ? "Setup.Launch.Advanced.DisableJlw.Arm64Notice"
-                : "Setup.Launch.Advanced.DisableJlw.ToolTip");
-        ToolTip.SetShowOnDisabled(CheckAdvanceDisableJLW, true);
+            ViewModel.DisableJlwEnabled
+                ? "Setup.Launch.Advanced.DisableJlw.ToolTip"
+                : "Setup.Launch.Advanced.DisableJlw.UnsupportedNoticeToolTip");
     }
 
     private void ResetJvmArgs()
