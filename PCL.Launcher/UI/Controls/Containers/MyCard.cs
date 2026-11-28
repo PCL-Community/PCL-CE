@@ -253,6 +253,11 @@ public class MyCard : Grid
         ApplyLayoutClip();
     }
 
+    protected override Size MeasureOverride(Size availableSize) =>
+        base.MeasureOverride(_isHeightAnimating && SwapControl is { IsVisible: true }
+            ? new Size(availableSize.Width, double.PositiveInfinity)
+            : availableSize);
+
     #region 高度改变动画
 
     private bool _isHeightAnimating;
@@ -271,7 +276,7 @@ public class MyCard : Grid
         // 首次出现的高度变化由页面切换动画负责，这里只处理内容增减
         if (e.PreviousSize.Height == 0d
             || _isHeightAnimating
-            || Math.Abs(deltaHeight) < 1d
+            || Math.Abs(deltaHeight) <= 1d
             || Bounds.Height == 0d)
             return;
 
@@ -372,7 +377,7 @@ public class MyCard : Grid
 
     private double MeasureExpandedHeight()
     {
-        var width = Bounds.Width > 0d ? Bounds.Width : double.PositiveInfinity;
+        var width = Bounds.Width > 0d ? Bounds.Width + Margin.Left + Margin.Right : double.PositiveInfinity;
         var savedHeight = Height;
         var savedAnimating = _isHeightAnimating;
         _isHeightAnimating = true;
@@ -380,7 +385,7 @@ public class MyCard : Grid
         {
             Height = double.NaN;
             Measure(new Size(width, double.PositiveInfinity));
-            return Math.Max(DesiredSize.Height, SwapedHeight);
+            return Math.Max(DesiredSize.Height - Margin.Top - Margin.Bottom, SwapedHeight);
         }
         finally
         {
