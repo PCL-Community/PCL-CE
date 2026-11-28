@@ -29,7 +29,10 @@ internal sealed class MacOsCaptionButtonLayout : IDisposable
     private readonly double _verticalOffset;
     private readonly double _minimumLeadingInset;
     private readonly Dictionary<nuint, OriginalPosition> _originalPositions = [];
+    private MacOsNativeResizeObserver? _nativeResizeObserver;
     private bool _unified;
+    private bool _applying;
+    private double? _leadingInset;
     private bool _updateQueued;
     private DispatcherTimer? _retryTimer;
     private int _retryCount;
@@ -46,7 +49,6 @@ internal sealed class MacOsCaptionButtonLayout : IDisposable
         _verticalOffset = verticalOffset;
         _minimumLeadingInset = minimumLeadingInset;
         window.Opened += OnOpened;
-        window.SizeChanged += OnSizeChanged;
         window.ScalingChanged += OnScalingChanged;
         window.PropertyChanged += OnPropertyChanged;
         window.Closed += OnClosed;
@@ -59,7 +61,12 @@ internal sealed class MacOsCaptionButtonLayout : IDisposable
     {
         if (IsDisposed) return;
         CancelPendingUpdate();
+        // 切换期间不监听缩放，待原有异步更新在属性就绪后重新挂载。
+        var observer = _nativeResizeObserver;
+        _nativeResizeObserver = null;
+        observer?.Dispose();
         _unified = unified;
+        _leadingInset = null;
         var nsWindow = GetNativeWindow();
         if (!nsWindow.IsNull)
         {
@@ -100,14 +107,24 @@ internal sealed class MacOsCaptionButtonLayout : IDisposable
 
     private void Update(int version)
     {
-        if (version != _updateVersion) return;
+        if (version != _updateVersion || _applying) return;
         if (IsDisposed || !_unified || !_window.ExtendClientAreaToDecorationsHint)
         {
             CancelPendingUpdate();
             return;
         }
 
-        var applied = TryApply();
+        bool applied;
+        _applying = true;
+        try
+        {
+            applied = TryApply();
+        }
+        finally
+        {
+            _applying = false;
+        }
+
         if (version != _updateVersion || applied || _retryCount >= MaximumRetries) return;
 
         // 原生视图可能晚于 Avalonia 的窗口事件就绪；有限延迟重试，避免持续占用 UI 线程。
@@ -139,6 +156,8 @@ internal sealed class MacOsCaptionButtonLayout : IDisposable
         if (titleBarHeight <= 0d) return false;
         var nsWindow = GetNativeWindow();
         if (nsWindow.IsNull) return false;
+        _nativeResizeObserver ??= new MacOsNativeResizeObserver(nsWindow, UpdateSynchronously);
+
         var contentView = nsWindow.SendMessage<ObjCObject>(ContentView);
         if (contentView.IsNull) return false;
         var root = contentView.SendMessage<ObjCObject>(Superview);
@@ -179,7 +198,13 @@ internal sealed class MacOsCaptionButtonLayout : IDisposable
             right = Math.Max(right, target.X + button.Frame.Size.Width / 2d - rootBounds.Origin.X);
         }
 
-        _window.ApplyExtendedTitleBarLayout(Math.Max(_minimumLeadingInset, right + ContentSpacing));
+        var leadingInset = Math.Max(_minimumLeadingInset, right + ContentSpacing);
+        if (_leadingInset != leadingInset)
+        {
+            _window.ApplyExtendedTitleBarLayout(leadingInset);
+            _leadingInset = leadingInset;
+        }
+
         return true;
     }
 
@@ -229,8 +254,15 @@ internal sealed class MacOsCaptionButtonLayout : IDisposable
     }
 
     private void OnOpened(object? sender, EventArgs e) => ScheduleUpdate();
-    private void OnSizeChanged(object? sender, SizeChangedEventArgs e) => ScheduleUpdate();
     private void OnScalingChanged(object? sender, EventArgs e) => ScheduleUpdate();
+
+    private void UpdateSynchronously()
+    {
+        if (IsDisposed || !_unified || _applying) return;
+        // AppKit 完成标题栏重排后立即定位，不把系统默认位置留到下一轮 Dispatcher。
+        CancelPendingUpdate();
+        Update(_updateVersion);
+    }
 
     private void OnPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
@@ -247,10 +279,12 @@ internal sealed class MacOsCaptionButtonLayout : IDisposable
         CancelPendingUpdate();
         _originalPositions.Clear();
         _window.Opened -= OnOpened;
-        _window.SizeChanged -= OnSizeChanged;
         _window.ScalingChanged -= OnScalingChanged;
         _window.PropertyChanged -= OnPropertyChanged;
         _window.Closed -= OnClosed;
+        var observer = _nativeResizeObserver;
+        _nativeResizeObserver = null;
+        observer?.Dispose();
     }
 
     private static NativeRect ReadRect(ObjCObject view, ObjCSel selector)
