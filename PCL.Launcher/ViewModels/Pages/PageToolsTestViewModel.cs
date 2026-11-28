@@ -17,6 +17,7 @@ using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
 using PCL.Core.ViewModel;
 using PCL.Network;
+using PCL.UI.Achievement;
 using PCL.UI.Controls;
 using PCL.Views.Pages.Tools;
 
@@ -25,8 +26,8 @@ namespace PCL;
 /// <summary>测试工具页的视图模型：工具命令、下载输入、皮肤与成就图片状态。</summary>
 public partial class PageToolsTestViewModel : ViewModelBase
 {
-    private bool _achievementBusy;
     private bool _achievementInputValid = true;
+    private static readonly Dictionary<string, FontFamily> _AchievementFontCache = new();
     private Bitmap? _currentSkin;
     private string? _skinPath;
 
@@ -51,6 +52,12 @@ public partial class PageToolsTestViewModel : ViewModelBase
     }
 
     [ObservableProperty] public partial bool AchievementButtonsEnabled { get; set; } = true;
+
+    [ObservableProperty] public partial bool AchievementBusy { get; set; }
+
+    [ObservableProperty] public partial string AchievementFontTag { get; set; } = string.Empty;
+
+    [ObservableProperty] public partial string AchievementLoadingText { get; set; } = string.Empty;
 
     [ObservableProperty] public partial string AchievementImagePath { get; set; } = string.Empty;
 
@@ -127,7 +134,7 @@ public partial class PageToolsTestViewModel : ViewModelBase
 
     private void UpdateAchievementButtons()
     {
-        AchievementButtonsEnabled = _achievementInputValid && !_achievementBusy;
+        AchievementButtonsEnabled = _achievementInputValid && !AchievementBusy;
     }
 
     [RelayCommand]
@@ -377,25 +384,23 @@ public partial class PageToolsTestViewModel : ViewModelBase
         }
 
         AchievementButtonsEnabled = false;
-        _achievementBusy = true;
+        AchievementBusy = true;
         UpdateAchievementButtons();
         try
         {
-            var url = BuildAchievementUrl();
-            var local = await Task.Run(() => MyImage.DownloadImageAsync(url));
-            if (string.IsNullOrEmpty(local))
-                throw new InvalidDataException("成就图片下载失败");
-            AchievementImagePath = local;
+            AchievementLoadingText = Lang.Text("Tools.Test.Achievement.Loading");
+            AchievementImagePath = await _RenderAchievementToFileAsync(
+                AchievementItem.Trim(), AchievementTitle, AchievementLine1, AchievementLine2);
             AchievementImageVisible = true;
         }
         catch (Exception ex)
         {
-            LogWrapper.Error(ex, "Tools", "获取成就图片失败");
+            LogWrapper.Error(ex, "Tools", "渲染成就图片失败");
             HintService.Show(Hints.Error(Lang.Text("Tools.Test.Achievement.FetchFailed")));
         }
         finally
         {
-            _achievementBusy = false;
+            AchievementBusy = false;
             UpdateAchievementButtons();
         }
     }
@@ -410,18 +415,17 @@ public partial class PageToolsTestViewModel : ViewModelBase
         }
 
         AchievementButtonsEnabled = false;
-        _achievementBusy = true;
+        AchievementBusy = true;
         UpdateAchievementButtons();
         try
         {
-            var url = BuildAchievementUrl();
-            var local = await Task.Run(() => MyImage.DownloadImageAsync(url));
-            if (string.IsNullOrEmpty(local))
-                throw new InvalidDataException("成就图片下载失败");
+            AchievementLoadingText = Lang.Text("Tools.Test.Achievement.Saving");
+            var local = await _RenderAchievementToFileAsync(
+                AchievementItem.Trim(), AchievementTitle, AchievementLine1, AchievementLine2);
 
             var savePath = await SystemDialogs.SelectSaveFileAsync(
                 Lang.Text("Tools.Test.Achievement.Save"),
-                (AchievementTitle.Trim() is { Length: > 0 } title ? title : "Achievement") + ".png",
+                AchievementImageRenderer.SanitizeFileName(AchievementTitle) + ".png",
                 Lang.Text("Tools.Test.Achievement.FileFilter"));
             if (string.IsNullOrWhiteSpace(savePath))
                 return;
@@ -431,12 +435,12 @@ public partial class PageToolsTestViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            LogWrapper.Error(ex, "Tools", "获取成就图片失败");
+            LogWrapper.Error(ex, "Tools", "保存成就图片失败");
             HintService.Show(Hints.Error(Lang.Text("Tools.Test.Achievement.FetchFailed")));
         }
         finally
         {
-            _achievementBusy = false;
+            AchievementBusy = false;
             UpdateAchievementButtons();
         }
     }
@@ -546,23 +550,119 @@ public partial class PageToolsTestViewModel : ViewModelBase
         };
     }
 
-    private string BuildAchievementUrl()
+    /// <summary>渲染成就卡片并写入临时文件，返回可供界面显示的路径。</summary>
+    private async Task<string> _RenderAchievementToFileAsync(string itemId, string title, string line1,
+        string line2)
     {
-        var url = "https://minecraft-api.com/api/achivements/"
-            + Escape(AchievementItem)
-            + "/"
-            + Escape(AchievementTitle)
-            + "/"
-            + Escape(AchievementLine1);
-        var line2 = Escape(AchievementLine2);
-        if (!string.IsNullOrEmpty(line2))
-            url += "/" + line2;
-        return url;
+        var (icon, notFound) = await AchievementImageRenderer.LoadIconAsync(itemId);
+        if (notFound && !string.IsNullOrWhiteSpace(itemId))
+            HintService.Show(Hints.Info(Lang.Text("Tools.Test.Achievement.IconNotFound", itemId)));
 
-        static string Escape(string? text)
+        var font = _ResolveAchievementFont();
+        return await Task.Run(() =>
         {
-            return (text ?? "").Trim().Replace(" ", "..");
+            // 物品 ID 为空时是「无图标」而非「找不到」，画占位立方体更合适
+            var iconMissing = notFound && !string.IsNullOrWhiteSpace(itemId);
+            using var bitmap = AchievementImageRenderer.Render(icon, iconMissing, itemId, title, line1, line2, font);
+
+            var folder = Path.Combine(Paths.Temp, "Achievement");
+            Directory.CreateDirectory(folder);
+            var file = Path.Combine(folder, $"preview_{DateTime.Now:yyyyMMddHHmmssfff}.png");
+            bitmap.Save(file);
+            return file;
+        });
+    }
+
+    /// <summary>取成就渲染字体：按族名解析，失败则回退启动器默认字体。</summary>
+    private FontFamily _ResolveAchievementFont()
+    {
+        if (string.IsNullOrWhiteSpace(AchievementFontTag))
+            return LaunchFonts.ForCurrentLanguage();
+        if (_AchievementFontCache.TryGetValue(AchievementFontTag, out var cached))
+            return cached;
+
+        var family = _FindAchievementFont(AchievementFontTag, out var detail);
+        if (family is null)
+        {
+            LogWrapper.Warn("Tools", $"成就字体回退：{AchievementFontTag}（{detail}）");
+            family = LaunchFonts.ForCurrentLanguage();
         }
+
+        _AchievementFontCache[AchievementFontTag] = family;
+        return family;
+    }
+
+    /// <summary>按族名与系统字体族对象两种途径找字体，族名必须真的命中。</summary>
+    private static FontFamily? _FindAchievementFont(string tag, out string detail)
+    {
+        // 不能串回退链：族名写错时回退字体会顶上，看起来「解析成功」其实用的是默认字体
+        foreach (var candidate in new[] { tag, _ResolveFamilyName(tag) }.Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            var family = new FontFamily(candidate);
+            if (!_IsSameFamily(family, candidate)) continue;
+            detail = "按名解析";
+            return family;
+        }
+
+        // 系统字体族对象自带集合信息，有时比重新构造名字更能命中
+        foreach (var installed in FontManager.Current.SystemFonts)
+        {
+            if (!string.Equals(installed.Name, tag, StringComparison.OrdinalIgnoreCase)) continue;
+            if (!_IsSameFamily(installed, installed.Name)) continue;
+            detail = "系统字体族对象";
+            return installed;
+        }
+
+        detail = "未找到同名族";
+        return null;
+    }
+
+    /// <summary>校验字体是否真的落到目标族，避免回退字体被误判成解析成功。</summary>
+    /// <remarks>
+    ///     不能要求族名与候选字符串完全相等：下拉里给的是全名（Minecraft AE Pixel），
+    ///     而 <see cref="GlyphTypeface.FamilyName" /> 回读的是短名（Minecraft AE），两者互为前缀即为同一族；
+    ///     而写法错误时回读到的会是 Segoe UI 之类的默认字体，前缀对不上，正好被排除。
+    /// </remarks>
+    private static bool _IsSameFamily(FontFamily family, string expected)
+    {
+        try
+        {
+            if (!FontManager.Current.TryGetGlyphTypeface(new Typeface(family), out var glyph)) return false;
+
+            var resolved = glyph.FamilyName.Replace(" ", "").ToLowerInvariant();
+            var candidate = expected.Replace(" ", "").ToLowerInvariant();
+            return resolved.Length > 0 && candidate.Length > 0
+                && (resolved == candidate
+                    || resolved.StartsWith(candidate, StringComparison.Ordinal)
+                    || candidate.StartsWith(resolved, StringComparison.Ordinal));
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    ///     把字体下拉里的名字映射回系统字体族的 family 名。
+    /// </summary>
+    /// <param name="tag">字体选择器给出的名字。</param>
+    /// <returns>能用于构造 FontFamily 的 family 名；找不到时原样返回。</returns>
+    /// <remarks>
+    ///     先按 FontFamily.Name 精确匹配，再退到 FamilyNames 里各语言的本地化名，
+    ///     两者都命中不了就认为这个名字本身不可解析，交由上层回退。
+    /// </remarks>
+    private static string _ResolveFamilyName(string tag)
+    {
+        foreach (var family in FontManager.Current.SystemFonts)
+        {
+            if (string.Equals(family.Name, tag, StringComparison.OrdinalIgnoreCase))
+                return family.FamilyNames.FirstOrDefault() ?? family.Name;
+
+            if (family.FamilyNames.Any(name => string.Equals(name, tag, StringComparison.OrdinalIgnoreCase)))
+                return family.FamilyNames.FirstOrDefault() ?? family.Name;
+        }
+
+        return tag;
     }
 
     private static RenderTargetBitmap CreateHeadBitmap(Bitmap skin, int headSize)

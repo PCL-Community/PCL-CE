@@ -98,8 +98,9 @@
 
                             <Popup Name="PART_Popup"
                                    VerticalOffset="-1.5"
-                                   Placement="Bottom"
+                                   Placement="{TemplateBinding Placement}"
                                    PlacementTarget="Background"
+                                   PlacementConstraintAdjustment="FlipY,SlideY,SlideX"
                                    WindowManagerAddShadowHint="False"
                                    IsOpen="{TemplateBinding IsDropDownOpen, Mode=TwoWay}"
                                    MinWidth="{Binding Bounds.Width, RelativeSource={RelativeSource TemplatedParent}}"

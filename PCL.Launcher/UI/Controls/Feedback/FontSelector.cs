@@ -27,6 +27,10 @@ public class FontSelector : ContentControl
     public static readonly StyledProperty<string?> TooltipProperty =
         AvaloniaProperty.Register<FontSelector, string?>(nameof(Tooltip));
 
+    /// <summary>下拉列表的最大高度，页面靠近窗口底部时调小可以保证列表完整显示。</summary>
+    public static readonly StyledProperty<double> MaxDropDownHeightProperty =
+        AvaloniaProperty.Register<FontSelector, double>(nameof(MaxDropDownHeight), 300d);
+
     private readonly MyComboBox _comboFont;
     private bool _isInitializing;
     private bool _isListeningLanguageChanged;
@@ -38,7 +42,7 @@ public class FontSelector : ContentControl
         {
             Name = "ComboFont",
             ItemTemplate = BuildItemTemplate(),
-            MaxDropDownHeight = 300d,
+            MaxDropDownHeight = GetValue(MaxDropDownHeightProperty),
             ItemsSource = CustomFontCollection,
             HorizontalAlignment = HorizontalAlignment.Stretch,
             HorizontalContentAlignment = HorizontalAlignment.Center
@@ -58,6 +62,12 @@ public class FontSelector : ContentControl
     {
         get => GetValue(TooltipProperty);
         set => SetValue(TooltipProperty, value);
+    }
+
+    public double MaxDropDownHeight
+    {
+        get => GetValue(MaxDropDownHeightProperty);
+        set => SetValue(MaxDropDownHeightProperty, value);
     }
 
     public ObservableCollection<CustomFontProperties> CustomFontCollection { get; } = [];
@@ -104,6 +114,8 @@ public class FontSelector : ContentControl
             ToolTip.SetTip(_comboFont, change.NewValue as string);
         else if (change.Property == IsEnabledProperty && change.NewValue is bool isEnabled)
             _comboFont.IsEnabled = isEnabled;
+        else if (change.Property == MaxDropDownHeightProperty && change.NewValue is double height)
+            _comboFont.MaxDropDownHeight = height;
     }
 
     private static IDataTemplate BuildItemTemplate()

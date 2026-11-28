@@ -38,7 +38,8 @@ public partial class PageToolsTest : MyPageRight
         TextDownloadFolder.ValidateRules.Add(new FolderPathValidator());
         TextDownloadName.ValidateRules.Add(new FileNameValidator());
         TextAchievementItem.ValidateRules.Add(
-            new RegexValidator("^[a-z0-9_]+$")
+            // 允许带命名空间前缀（如 minecraft:diamond_sword），只拦非法字符，大小写在取图标时统一转小写
+            new RegexValidator("^[a-zA-Z0-9_]+(:[a-zA-Z0-9_]+)?$")
             {
                 ErrorKey = "Tools.Test.Achievement.InvalidId"
             });
@@ -80,6 +81,23 @@ public partial class PageToolsTest : MyPageRight
         TextAchievementTitle.Validate();
         TextAchievementLine1.Validate();
         RefreshAchievementButtons();
+
+        // 字体选择器只有 SelectedFontTag 这个普通属性，无法直接绑定，改为事件同步到 ViewModel
+        ComboAchievementFont.SelectionChanged += (_, _) =>
+            ViewModel.AchievementFontTag = ComboAchievementFont.SelectedFontTag;
+
+        // 字体列表异步填充后会清空选中项，这里显式选回「默认」，否则外部看起来是空的
+        ComboAchievementFont.SelectedFontTag = ViewModel.AchievementFontTag;
+
+        // 本机装了 Minecraft 主题字体时默认选它，省得每次手动切
+        var preferredFont = FontManager.Current.SystemFonts
+            .Select(family => family.Name)
+            .FirstOrDefault(name => name.Contains("Minecraft", StringComparison.OrdinalIgnoreCase));
+        if (!string.IsNullOrWhiteSpace(preferredFont))
+        {
+            ViewModel.AchievementFontTag = preferredFont;
+            ComboAchievementFont.SelectedFontTag = preferredFont;
+        }
 
         CmbHeadSize.ItemsSource = new List<string>
         {
