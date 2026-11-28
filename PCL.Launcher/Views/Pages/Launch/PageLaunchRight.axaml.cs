@@ -310,7 +310,7 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable
                     new TextDialogRequest
                     {
                         Title = Lang.Text("Common.Dialog.Title"),
-                        Content = Lang.Text("Launch.Homepage.Preset.EchoCave.Removed"),
+                        Content = Lang.Text("Launch.Homepage.Preset.Removed"),
                         Buttons = DialogButtons.Ok
                     });
                 break;
