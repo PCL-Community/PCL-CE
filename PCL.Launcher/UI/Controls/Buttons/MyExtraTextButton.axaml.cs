@@ -344,7 +344,7 @@ public partial class MyExtraTextButton : Grid
     /// <summary>执行点击语义；鼠标释放、键盘 Enter/Space 与自动化调用共用。</summary>
     public void PerformClick()
     {
-        if (!IsEnabled) return;
+        if (!Show || !IsEnabled) return;
         LogWrapper.Debug("[Control] 按下附加图标按钮：" + Text);
         Click?.Invoke(this, null!);
         CustomEventService.Raise(this);
