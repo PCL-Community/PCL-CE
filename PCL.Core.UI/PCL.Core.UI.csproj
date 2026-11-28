@@ -19,7 +19,7 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="11.0.0" />
         <PackageReference Include="PlainToolkit.ObjectiveC" Version="0.1.1" />
-        <PackageReference Include="Avalonia" Version="12.1.6" />
+        <PackageReference Include="Avalonia" Version="12.2.0" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\PCL.Core\PCL.Core.csproj" />
