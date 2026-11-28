@@ -85,7 +85,7 @@ public partial class PageInstanceSaves : MyPageRight, IRefreshable
         PanBack.ScrollToHome();
         var instance = InstancePageHelper.ResolveInstance(parameter);
         ViewModel.SetInstance(instance);
-        _ = ReloadAsync();
+        PageEnterTask = ReloadAsync();
     }
 
     public override void OnNavigatedFrom()

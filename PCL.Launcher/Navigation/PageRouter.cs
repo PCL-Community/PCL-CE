@@ -298,12 +298,12 @@ public static class PageRouter
         }
     }
 
-    private static void FocusFirst(Control page)
+    internal static void FocusFirst(Control page)
     {
         Dispatcher.UIThread.Post(
             () =>
             {
-                if (!page.IsEffectivelyVisible) return;
+                if (!ReferenceEquals(CurrentPage, page) || !page.IsEffectivelyVisible) return;
 
                 if (DialogService.Instance.HasPending
                     || TopLevel.GetTopLevel(page)?.FindControl<Panel>("PanDialogLayer")

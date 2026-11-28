@@ -41,7 +41,7 @@ public partial class PageInstanceServer : MyPageRight, IRefreshable
     public override void OnNavigatedTo(PageParameter? parameter)
     {
         ViewModel.SetInstance(InstancePageHelper.ResolveInstance(parameter));
-        Reload();
+        PageEnterTask = ReloadAsync();
     }
 
     public override void OnNavigatedFrom()
