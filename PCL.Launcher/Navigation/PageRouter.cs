@@ -76,6 +76,7 @@ public static class PageRouter
 
     public static void Navigate(MainTab tab)
     {
+        tab = MainTabDescriptor.Normalize(tab);
         var page = PageRegistry.PageOfTab(tab);
         var target = NavigationState.GetTabState(tab) ?? new PageRoute(page);
         Navigate(target);
@@ -140,6 +141,10 @@ public static class PageRouter
     {
         if (_isNavigating || _rightHost is null) return;
 
+        if (PageRegistry.TabOfPage(route.Page) is { } pageTab
+            && MainTabDescriptor.Normalize(pageTab) != pageTab)
+            route = new PageRoute(PageIds.Launch);
+
         var host = PageRegistry.GetHost(route.Page);
         if (host is null)
         {
@@ -147,22 +152,16 @@ public static class PageRouter
             return;
         }
 
-        if (_hasNavigated && Current.IsSameLocation(route)) return;
+        if (_hasNavigated && Current.Equals(route)) return;
 
         _isNavigating = true;
         AnimationService.BeginControl();
         try
         {
-            NavigationState.Navigate(route, host.IsSecondary, host.Tab);
-
             var left = host.GetLeft(route);
             var right = host.GetRight(route);
 
-            if (left is null && _leftHost is not null)
-            {
-                _leftHost.Content = null;
-                _leftHost.IsVisible = false;
-            }
+            NavigationState.Navigate(route, host.IsSecondary, host.Tab);
 
             _MountPages(left, right, route);
 
@@ -264,6 +263,8 @@ public static class PageRouter
             _leftHost.Width = double.NaN;
         }
 
+        if (ReferenceEquals(_rightHost?.Content, right))
+            _rightHost!.Content = null;
         _rightHost?.Content = right;
         right.Opacity = 0d;
         _mountedLeft = left;
@@ -286,8 +287,8 @@ public static class PageRouter
             }
 
             if (left is IPageView leftView) leftView.OnNavigatedTo(route.Parameter);
-            if (right is IPageRightContainer newRightPage) newRightPage.PageOnEnter();
             if (right is IPageView rightView) rightView.OnNavigatedTo(route.Parameter);
+            if (right is IPageRightContainer newRightPage) newRightPage.PageOnEnter();
             LayoutProbe.CheckAfterLayout(right, $"{route.Page}/{route.SubPage}");
             FocusFirst(right);
         }

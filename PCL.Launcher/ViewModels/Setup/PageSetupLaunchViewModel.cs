@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
+using PCL.Core.Platform;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils.OS;
 using PCL.Core.ViewModel;
@@ -21,9 +22,10 @@ public partial class PageSetupLaunchViewModel : ViewModelBase
     [ObservableProperty] private bool _disableCrashAnalysis = Config.Launch.DisableCrashAnalysis;
 
     [ObservableProperty]
-    private bool _disableJlw = SystemInfo.IsArm64System || Config.Launch.DisableJlw;
+    private bool _disableJlwEnabled = SupportsJlw;
 
-    [ObservableProperty] private bool _disableJlwEnabled = !SystemInfo.IsArm64System;
+    [ObservableProperty]
+    private bool _disableJlw = !SupportsJlw || Config.Launch.DisableJlw;
 
     [ObservableProperty] private bool _disableLF = Config.Launch.DisableLF;
 
@@ -78,6 +80,9 @@ public partial class PageSetupLaunchViewModel : ViewModelBase
     [ObservableProperty] private bool _ramWarnVisible;
 
     private bool _reloading;
+
+    private static bool SupportsJlw =>
+        ApplicationRuntime.Current.Platform.Java.SupportsJavaLaunchWrapper;
 
     [ObservableProperty] private int _rendererIndex = Math.Max(0, Config.Launch.Renderer);
 
@@ -163,13 +168,13 @@ public partial class PageSetupLaunchViewModel : ViewModelBase
             CustomMemorySize = Config.Launch.CustomMemorySize;
             CustomInitialMemorySize = Config.Launch.CustomInitialMemorySize;
             LockMemory = Config.Launch.LockMemory;
-            DisableJlw = SystemInfo.IsArm64System || Config.Launch.DisableJlw;
+            DisableJlwEnabled = SupportsJlw;
+            DisableJlw = !DisableJlwEnabled || Config.Launch.DisableJlw;
             DisableLF = Config.Launch.DisableLF;
             SetGpuPreference = Config.Launch.SetGpuPreference;
             NoJavaw = Config.Launch.NoJavaw;
             DisableLwjglUnsafeAgent = Config.Launch.DisableLwjglUnsafeAgent;
             DisableCrashAnalysis = Config.Launch.DisableCrashAnalysis;
-            DisableJlwEnabled = !SystemInfo.IsArm64System;
             ShowWindowSize = (int)Config.Launch.GameWindowMode == 3;
             CheckAdvanceRunWaitVisible = !string.IsNullOrEmpty(PreLaunchText);
             RamType(MemoryAllocationMode);

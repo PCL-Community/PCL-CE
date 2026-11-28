@@ -201,6 +201,11 @@ public static partial class Config
         [ConfigItem<LauncherTitleType>("UiLogoType", LauncherTitleType.Default, ConfigSource.Local)] public partial LauncherTitleType WindowTitleType { get; set; }
 
         /// <summary>
+        /// macOS 标题栏样式。
+        /// </summary>
+        [ConfigItem<int>("UiMacTitleBarStyle", 0, ConfigSource.Local)] public partial int MacTitleBarStyle { get; set; }
+
+        /// <summary>
         /// 窗口标题文本。
         /// </summary>
         [ConfigItem<string>("UiLogoText", "", ConfigSource.Local)] public partial string WindowTitleCustomText { get; set; }
@@ -331,6 +336,27 @@ public static partial class Config
             /// 视频自动暂停。
             /// </summary>
             [ConfigItem<bool>("UiAutoPauseVideo", true, ConfigSource.Local)] public partial bool AutoPauseVideo { get; set; }
+
+            /// <summary>
+            /// FFmpeg 可执行文件路径；留空时自动检测。
+            /// </summary>
+            [ConfigItem<string>("UiBackgroundFfmpegPath", "", ConfigSource.Local)] public partial string FfmpegPath { get; set; }
+        }
+        
+        /// <summary>
+        /// 高级材质。
+        /// </summary>
+        [ConfigGroup("Blur")] partial class BlurConfigGroup
+        {
+            /// <summary>
+            /// 是否启用。
+            /// </summary>
+            [ConfigItem<bool>("UiBlur", false, ConfigSource.Local)] public partial bool IsEnabled { get; set; }
+
+            /// <summary>
+            /// 模糊半径。
+            /// </summary>
+            [ConfigItem<int>("UiBlurValue", 16, ConfigSource.Local)] public partial int Radius { get; set; }
         }
 
         /// <summary>

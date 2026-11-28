@@ -1,6 +1,5 @@
 name: "Minecraft 崩溃 / Minecraft Crash"
 description: "PCL CE 提示 “Minecraft 出现错误”，或游戏崩溃 / PCL CE shows 'Minecraft encountered an error', or Minecraft crashes"
-title: "[C#]: "
 type: "崩溃"
 body:
   - type: checkboxes
@@ -43,6 +42,22 @@ body:
         核实方式 / Verification：
     validations:
       required: true
+  - type: input
+    id: "yml-launcher-version"
+    attributes:
+      label: "启动器版本 / Launcher Version"
+      description: "请提供出现问题的启动器版本。 / Please provide the version of the launcher where the issue occurs."
+      placeholder: "例如：2.15.0 / 2.15.0-beta.1"
+    validations:
+      required: true
+  - type: input
+    id: "yml-os-version"
+    attributes:
+      label: "操作系统版本 / OS Version"
+      description: "请提供系统的版本信息。 / Please provide the version information of your operating system."
+      placeholder: "例如：Windows 11 26H2 26300.1145 / macOS 27.2.1 / Ubuntu 26.04.1"
+    validations:
+      required: true
   - type: textarea
     id: "yml-2"
     attributes:
@@ -70,3 +85,7 @@ body:
       placeholder: "先点击这个文本框，然后再将文件直接拖拽到文本框中以上传 / Click this text box first, then drag and drop the file here to upload."
     validations:
       required: false
+  - type: textarea
+    id: "yml-remarks"
+    attributes:
+      label: "备注 / Remarks"

@@ -44,8 +44,7 @@ public partial class PageToolsLeft : MyPageLeft
         _isSynchronizing = true;
         try
         {
-            foreach (var (itemSub, item) in _items)
-                item.SetChecked(itemSub == ViewModel.SelectedPage, false, false);
+            PageNavigationListBuilder.Select(_items, ViewModel.SelectedPage);
         }
         finally
         {

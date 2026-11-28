@@ -7,7 +7,9 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Threading;
+using PCL.Core.App;
 using PCL.Core.UI.Dialogs;
+using PCL.UI.Controls;
 using PCL.UI.Dialogs;
 
 namespace PCL.UI;
@@ -461,18 +463,31 @@ public sealed class DialogPresenter : IDialogPresenter
             return;
         }
 
-        var current = new NColor(mask.Background);
-        AnimationService.Run(
-            new List<IAnimation>
+        List<IAnimation> animations = [
+            new ColorAnimation(
+                mask,
+                Border.BackgroundProperty,
+                target - new NColor(mask.Background),
+                duration,
+                ease: new FluentEaseOut())
+        ];
+
+        if (Config.Preference.Blur.IsEnabled)
+        {
+            var ani = new DoubleFromToAnimation
             {
-                new ColorAnimation(
-                    mask,
-                    Border.BackgroundProperty,
-                    target - current,
-                    duration,
-                    ease: new FluentEaseOut())
-            },
-            MaskAnimationKey);
+                From = show ? 0d : Config.Preference.Blur.Radius,
+                To = show ? Config.Preference.Blur.Radius : 0d,
+                Duration = TimeSpan.FromMilliseconds(duration),
+                Easing = new FluentEaseOut()
+            };
+            AnimationExtensions.SetTarget(ani, mask);
+            AnimationExtensions.SetTargetProperty(ani, BlurBorder.BlurRadiusProperty);
+            animations.Add(ani);
+        }
+        
+        var current = new NColor(mask.Background);
+        AnimationService.Run(animations, MaskAnimationKey);
     }
 
     private void _SetMaskColor(

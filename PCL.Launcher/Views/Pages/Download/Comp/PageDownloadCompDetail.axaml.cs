@@ -348,6 +348,7 @@ public partial class PageDownloadCompDetail : MyPageRight
                 card.InstallMethod = target =>
                 {
                     target.Children.Clear();
+                    AddDependencyBars(target, group.Files);
                     foreach (var file in group.Items)
                         target.Children.Add(CreateFileRow(file));
                     if (group.ShowRecognitionHint)
@@ -384,6 +385,89 @@ public partial class PageDownloadCompDetail : MyPageRight
                 LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Download.Comp.Error.OperationFailed"));
         }
+    }
+
+    /// <summary>
+    ///     在版本列表上方补充必需与可选前置折叠栏，以及“版本列表”标题。
+    ///     模组包与世界没有前置概念，直接跳过。
+    /// </summary>
+    private void AddDependencyBars(Panel target, IReadOnlyList<Comp.CompFile> files)
+    {
+        if (ViewModel.Project?.Type is Comp.CompType.ModPack or Comp.CompType.World)
+            return;
+
+        var required = files.SelectMany(file => file.Dependencies).Distinct().ToList();
+        var optional = files.SelectMany(file => file.OptionalDependencies)
+            .Distinct()
+            .Except(required)
+            .ToList();
+        if (required.Count == 0 && optional.Count == 0)
+            return;
+
+        AddDependencyBar(target, required, "Download.Comp.Detail.FileList.RequiredDependencies", false);
+        AddDependencyBar(target, optional, "Download.Comp.Detail.FileList.OptionalDependencies", true);
+
+        var versionListTitle = new TextBlock
+        {
+            FontSize = 14d,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Margin = new Thickness(6d, 12d, 0d, 5d)
+        };
+        versionListTitle.SetLocalizedValue(
+            TextBlock.TextProperty,
+            "Download.Comp.Detail.FileList.VersionList");
+        target.Children.Add(versionListTitle);
+    }
+
+    /// <summary>把一组前置 ID 渲染为可折叠栏，仅保留缓存中已有信息的工程。</summary>
+    private void AddDependencyBar(
+        Panel target,
+        List<string> dependencyIds,
+        string titleKey,
+        bool collapsed)
+    {
+        if (dependencyIds.Count == 0)
+            return;
+
+        dependencyIds.Sort();
+        var projects = new List<Comp.CompProject>();
+        foreach (var id in dependencyIds)
+            if (Comp.compProjectCache.TryGetValue(id, out var project))
+                projects.Add(project);
+        if (projects.Count == 0)
+            return;
+
+        var bar = new MyCollapseBar
+        {
+            IsCollapsed = collapsed
+        };
+        var count = projects.Count;
+        LocalizedText.Bind(
+            bar,
+            MyCollapseBar.TitleProperty,
+            () => $"{Lang.Text(titleKey)} ({count})");
+        foreach (var dependency in projects)
+        {
+            bar.ContentPanel.Children.Add(
+                new MyVirtualizingElement<MyCompItem>(() =>
+                {
+                    var item = new MyCompItem(dependency, false, false);
+                    item.Click += dependencyItem => PageRouter.Navigate(
+                        PageIds.CompDetail,
+                        null,
+                        new CompDetailParameter(
+                            dependencyItem.Project,
+                            Comp.CompType.Any,
+                            ViewModel.TargetGameVersion,
+                            ViewModel.TargetModLoader));
+                    return item;
+                })
+                {
+                    Height = 64d
+                });
+        }
+
+        target.Children.Add(bar);
     }
 
     /// <summary>筛选条件改变时让重建后的版本卡整体淡入，而不是瞬间替换。</summary>

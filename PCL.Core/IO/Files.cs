@@ -15,7 +15,11 @@ public static partial class Files
         var fullPath2 = Path
             .GetFullPath(path2)
             .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-        return string.Equals(fullPath1, fullPath2, StringComparison.OrdinalIgnoreCase);
+        var comparison = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            || RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+                ? StringComparison.OrdinalIgnoreCase
+                : StringComparison.Ordinal;
+        return string.Equals(fullPath1, fullPath2, comparison);
     }
 
     /// <summary>

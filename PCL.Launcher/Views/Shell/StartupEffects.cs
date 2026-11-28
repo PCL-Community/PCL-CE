@@ -7,6 +7,7 @@ using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Core.Platform;
+using PCL.Core.UI.Background;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.Utils.OS;
 using PCL.UI;
@@ -69,7 +70,7 @@ public sealed class StartupEffects(
         }
 
         root.Opacity = 1d;
-        if (!AnimationService.IsEnabled)
+        if (!AnimationService.IsEnabled || PlatformStartup.Shell.UsesNativeWindowAnimation)
         {
             window.Opacity = target;
             return;

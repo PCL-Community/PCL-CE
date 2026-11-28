@@ -167,9 +167,12 @@ public partial class PageInstanceLeft : MyPageLeft, IRefreshable
         try
         {
             var current = PageInstanceLeftViewModel.CurrentSubPage;
+            var target = _items.FirstOrDefault(entry => entry.SubPage == current).Item;
+            if (target is { IsVisible: true })
+                target.Checked = true;
             foreach (var (subType, item) in _items)
-                if (item.IsVisible)
-                    item.Checked = subType == current;
+                if (item.IsVisible && item != target)
+                    item.Checked = false;
         }
         finally
         {

@@ -56,8 +56,7 @@ public partial class PageSetupLeft : MyPageLeft
         _isSynchronizing = true;
         try
         {
-            foreach (var (itemSub, item) in _items)
-                item.SetChecked(itemSub == subPage, false, false);
+            PageNavigationListBuilder.Select(_items, subPage);
         }
         finally
         {

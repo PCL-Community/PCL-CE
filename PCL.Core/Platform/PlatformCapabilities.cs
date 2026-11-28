@@ -12,7 +12,8 @@ public sealed record PlatformCapabilities : IPlatformCapabilities
         NativeLibraryExtensions = [".dll"],
         SupportsWindowsStoreDependencies = true,
         SuppressAltMenu = true,
-        SupportsDisplayProtocolSelection = false
+        SupportsDisplayProtocolSelection = false,
+        SupportsTitleBarStyleSelection = false
     };
 
     public static PlatformCapabilities Linux { get; } = new()
@@ -22,7 +23,8 @@ public sealed record PlatformCapabilities : IPlatformCapabilities
         NativeLibraryExtensions = [".dll", ".so", ".dylib"],
         SupportsWindowsStoreDependencies = false,
         SuppressAltMenu = false,
-        SupportsDisplayProtocolSelection = true
+        SupportsDisplayProtocolSelection = true,
+        SupportsTitleBarStyleSelection = false
     };
 
     public static PlatformCapabilities MacOs { get; } = new()
@@ -32,7 +34,8 @@ public sealed record PlatformCapabilities : IPlatformCapabilities
         NativeLibraryExtensions = [".dll", ".so", ".dylib"],
         SupportsWindowsStoreDependencies = false,
         SuppressAltMenu = false,
-        SupportsDisplayProtocolSelection = false
+        SupportsDisplayProtocolSelection = false,
+        SupportsTitleBarStyleSelection = true
     };
 
     public required bool SupportsBundledLauncher { get; init; }
@@ -41,4 +44,5 @@ public sealed record PlatformCapabilities : IPlatformCapabilities
     public required bool SupportsWindowsStoreDependencies { get; init; }
     public required bool SuppressAltMenu { get; init; }
     public required bool SupportsDisplayProtocolSelection { get; init; }
+    public required bool SupportsTitleBarStyleSelection { get; init; }
 }

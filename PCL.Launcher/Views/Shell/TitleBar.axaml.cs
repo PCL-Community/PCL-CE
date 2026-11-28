@@ -13,7 +13,7 @@ using PCL.UI.Controls;
 
 namespace PCL.Views.Shell;
 
-/// <summary>自绘标题栏：左侧 Logo 与四个主入口，二级页面显示返回键与标题，右侧为窗口按钮。 Logo 模式、自定义文本与左右布局由配置与主题驱动，文本全部走本地化。</summary>
+/// <summary>自绘标题栏：左侧 Logo 与四个主入口，二级页面显示返回键与标题，右侧为窗口按钮。 (macOS下会被<see cref="UseSystemCaptionButtons" />隐藏自绘按钮，变成系统原生红绿灯) Logo 模式、自定义文本与左右布局由配置与主题驱动，文本全部走本地化。</summary>
 public partial class TitleBar : UserControl
 {
     private const string TitleLayerAnimationKey = "TitleBar Title Layer";
@@ -22,14 +22,24 @@ public partial class TitleBar : UserControl
 
     private readonly Dictionary<MainTab, MyRadioButton> _tabButtons = [];
 
+    private readonly double _defaultHeight;
+
+    private bool _isExtended;
+
     private bool _isSecondary;
+
+    private double _leadingInset;
 
     private bool _updating;
 
     public TitleBar()
     {
         InitializeComponent();
+        _defaultHeight = PanTitle.Height;
         BuildMainTabs();
+        PanTitleTabs.SizeChanged += (_, _) => UpdateTabSelectionIndicator(false);
+        Loaded += (_, _) => Dispatcher.UIThread.Post(() =>
+            UpdateTabSelectionIndicator(false));
         AddHandler(
             PointerPressedEvent,
             Root_OnPointerPressed,
@@ -42,11 +52,34 @@ public partial class TitleBar : UserControl
 
         ThemeService.ColorThemeChanged += _OnColorThemeChanged;
         ThemeService.ColorModeChanged += _OnColorModeChanged;
+        HiddenFeatureState.Changed += OnHiddenFeatureStateChanged;
         Unloaded += (_, _) =>
         {
+            HiddenFeatureState.Changed -= OnHiddenFeatureStateChanged;
             ThemeService.ColorThemeChanged -= _OnColorThemeChanged;
             ThemeService.ColorModeChanged -= _OnColorModeChanged;
         };
+    }
+
+    private void OnHiddenFeatureStateChanged()
+    {
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            Dispatcher.UIThread.Post(OnHiddenFeatureStateChanged);
+            return;
+        }
+
+        var previous = _tabButtons.FirstOrDefault(pair => pair.Value.Checked).Key;
+        BuildMainTabs();
+        if (MainTabDescriptor.Normalize(previous) != previous)
+        {
+            SetTabChecked(MainTab.Launch);
+            PageRouter.Navigate(MainTab.Launch);
+        }
+        else
+        {
+            SetTabChecked(previous);
+        }
     }
 
     private bool CanAnimateShell =>
@@ -136,22 +169,40 @@ public partial class TitleBar : UserControl
         }
     }
 
-    private static int EffectiveTitleType()
+    private int EffectiveTitleType()
     {
         if (ThemeService.CurrentTheme == ColorTheme.HmclBlue) return 4;
-        return (int)Config.Preference.WindowTitleType;
+        return _isExtended ? (int)LauncherTitleType.None : (int)Config.Preference.WindowTitleType;
+    }
+
+    /// <summary>当窗口使用系统标题栏按钮（macOS 红绿灯）时，隐藏自绘的最小化与关闭按钮。</summary>
+    public void UseSystemCaptionButtons()
+    {
+        BtnTitleMin.IsVisible = false;
+        BtnTitleClose.IsVisible = false;
+    }
+
+    public void SetSystemTitleBarLayout(double? height, double leadingInset)
+    {
+        _isExtended = height is not null;
+        PanTitle.Height = height ?? _defaultHeight;
+        _leadingInset = leadingInset;
+        var margin = new Thickness(leadingInset, 0d, 0d, 0d);
+        PanTitleLeft.Margin = margin;
+        PanInnerTitle.Margin = margin;
+        RefreshTitleAppearance();
     }
 
     private void ApplyTitleLeftClamp()
     {
-        var available = PanTitleMain.ColumnDefinitions[0].ActualWidth - 30d;
+        var available = PanTitleMain.ColumnDefinitions[0].ActualWidth - 30d - PanTitleLeft.Margin.Left;
         PanTitleLeft.ColumnDefinitions[0].MaxWidth = available > 0d ? available : 0d;
     }
 
     private void ApplyLeftAlign(bool leftAlign, int titleType)
     {
         var width = leftAlign && titleType == 0
-            ? new GridLength(0d)
+            ? new GridLength(_leadingInset)
             : new GridLength(1d, GridUnitType.Star);
         PanTitleMain.ColumnDefinitions[0].Width = width;
         ApplyTitleLeftClamp();
@@ -252,16 +303,20 @@ public partial class TitleBar : UserControl
 
     private void BuildMainTabs()
     {
-        PanTitleSelect.Children.Clear();
+        PanTitleTabs.Children.Clear();
         _tabButtons.Clear();
 
-        foreach (var descriptor in PageCatalog.MainTabs.OrderBy(tab => tab.Order))
+        var tabs = PageCatalog.MainTabs
+            .Where(tab => tab.IsVisible?.Invoke() ?? true)
+            .OrderBy(tab => tab.Order);
+        foreach (var descriptor in tabs)
         {
             var button = new MyRadioButton
             {
                 SvgIcon = descriptor.IconKey,
                 LogoScale = descriptor.LogoScale,
                 ColorType = MyRadioButton.ColorState.White,
+                UseExternalSelectionIndicator = true,
                 Padding = new Thickness(2d, 0d),
                 Margin = new Thickness(5d, 0d),
                 CheckCommandParameter = descriptor.Id
@@ -269,16 +324,59 @@ public partial class TitleBar : UserControl
             button.SetLocalizedValue(MyRadioButton.TextProperty, descriptor.TitleKey);
             button.Check += Tab_OnCheck;
             _tabButtons[descriptor.Id] = button;
-            PanTitleSelect.Children.Add(button);
+            PanTitleTabs.Children.Add(button);
         }
-
-        SetTabChecked(MainTab.Launch);
     }
 
     private void SetTabChecked(MainTab tab)
     {
+        var target = MainTabDescriptor.Normalize(tab);
         foreach (var (id, button) in _tabButtons)
-            button.Checked = id == tab;
+            button.Checked = id == target;
+        Dispatcher.UIThread.Post(() => UpdateTabSelectionIndicator(true));
+    }
+
+    private void UpdateTabSelectionIndicator(bool animate)
+    {
+        var target = _tabButtons.FirstOrDefault(pair => pair.Value.Checked).Value;
+        if (target is null || target.Bounds.Width <= 0d)
+            return;
+
+        var point = target.TranslatePoint(default, PanTitleSelect);
+        if (point is null)
+            return;
+
+        TabSelectionIndicator.Width = target.Bounds.Width;
+        if (TabSelectionIndicator.RenderTransform is not TranslateTransform transform)
+        {
+            transform = new TranslateTransform();
+            TabSelectionIndicator.RenderTransform = transform;
+        }
+
+        var destination = point.Value.X;
+        var delta = destination - transform.X;
+        if (Math.Abs(delta) < 0.1d)
+        {
+            AnimationService.CancelAnimationByName("TitleBar Tab Indicator");
+            transform.X = destination;
+            return;
+        }
+
+        if (!animate || !CanAnimateShell || AnimationService.IsSuspended)
+        {
+            AnimationService.CancelAnimationByName("TitleBar Tab Indicator");
+            transform.X = destination;
+            return;
+        }
+
+        AnimationService.CancelAnimationByName("TitleBar Tab Indicator");
+        AnimationService.Run(
+            new TranslateXAnimation(
+                TabSelectionIndicator,
+                delta,
+                240,
+                ease: new FluentEaseOut(EasePower.Weak)),
+            "TitleBar Tab Indicator");
     }
 
     private void Tab_OnCheck(MyRadioButton sender, bool raiseByMouse)
