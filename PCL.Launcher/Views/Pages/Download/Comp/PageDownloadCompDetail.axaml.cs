@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Threading;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.IO;
@@ -24,11 +25,17 @@ public partial class PageDownloadCompDetail : MyPageRight
 {
     private const string FileListAnimationKey = "CompDetail FileList Refresh";
 
+    private readonly RadioButtonSelectionIndicator _instanceFilterIndicator;
+    private readonly RadioButtonSelectionIndicator _modLoaderFilterIndicator;
     private MyCompItem? _compItem;
 
     public PageDownloadCompDetail()
     {
         InitializeComponent();
+        _instanceFilterIndicator = new RadioButtonSelectionIndicator(
+            PanInstanceFilter, InstanceFilterIndicator, PanInstanceFilterSelect);
+        _modLoaderFilterIndicator = new RadioButtonSelectionIndicator(
+            PanModLoaderFilter, ModLoaderFilterIndicator, PanModLoaderFilterSelect);
         PanScroll = PanBack;
         ShowAlwaysWhileLoading = false;
         PageLoaderInit(
@@ -233,7 +240,7 @@ public partial class PageDownloadCompDetail : MyPageRight
             CardFilter.IsVisible = ViewModel.FilterVisible;
             PanInstanceFilter.Children.Clear();
             PanModLoaderFilter.Children.Clear();
-            PanModLoaderFilter.IsVisible = false;
+            PanModLoaderFilterSelect.IsVisible = false;
             if (!ViewModel.FilterVisible)
                 return;
 
@@ -244,14 +251,15 @@ public partial class PageDownloadCompDetail : MyPageRight
                     CreateFilterChip(
                         "InstanceFilter",
                         option,
-                        selected => ViewModel.SelectInstanceFilterCommand.Execute(selected)));
+                        selected => ViewModel.SelectInstanceFilterCommand.Execute(selected),
+                        _instanceFilterIndicator));
 
-            PanModLoaderFilter.IsVisible = ViewModel is
+            PanModLoaderFilterSelect.IsVisible = ViewModel is
             {
                 TargetType: Comp.CompType.Mod,
                 ModLoaderFilterOptions.Count: > 0
             };
-            if (!PanModLoaderFilter.IsVisible)
+            if (!PanModLoaderFilterSelect.IsVisible)
                 return;
 
             foreach (var chip in ViewModel.ModLoaderFilterLabelChips)
@@ -261,7 +269,8 @@ public partial class PageDownloadCompDetail : MyPageRight
                     CreateFilterChip(
                         "ModLoaderFilter",
                         option,
-                        selected => ViewModel.SelectModLoaderFilterCommand.Execute(selected)));
+                        selected => ViewModel.SelectModLoaderFilterCommand.Execute(selected),
+                        _modLoaderFilterIndicator));
         }
         catch (Exception ex)
         {
@@ -287,12 +296,14 @@ public partial class PageDownloadCompDetail : MyPageRight
     private static MyRadioButton CreateFilterChip(
         string groupName,
         CompFilterOption option,
-        Action<CompFilterOption> onChecked)
+        Action<CompFilterOption> onChecked,
+        RadioButtonSelectionIndicator indicator)
     {
         var chip = new MyRadioButton
         {
             GroupName = groupName,
             ColorType = MyRadioButton.ColorState.Highlight,
+            UseExternalSelectionIndicator = true,
             Checked = option.IsSelected,
             Margin = new Thickness(2d, 0d, 2d, 4d)
         };
@@ -300,7 +311,11 @@ public partial class PageDownloadCompDetail : MyPageRight
             chip,
             MyRadioButton.TextProperty,
             () => option.Text);
-        chip.Check += (_, _) => onChecked(option);
+        chip.Check += (_, _) =>
+        {
+            onChecked(option);
+            Dispatcher.UIThread.Post(indicator.Update, DispatcherPriority.Loaded);
+        };
         return chip;
     }
 

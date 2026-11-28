@@ -64,9 +64,29 @@
                                IsVisible="False">
                         <StackPanel Margin="10,10,10,6"
                                     Spacing="6">
-                            <WrapPanel x:Name="PanInstanceFilter" />
-                            <WrapPanel x:Name="PanModLoaderFilter"
-                                       IsVisible="False" />
+                            <Grid x:Name="PanInstanceFilterSelect">
+                                <Border x:Name="InstanceFilterIndicator"
+                                        Height="27"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        CornerRadius="13.5"
+                                        Background="{DynamicResource ColorBrush3}"
+                                        IsHitTestVisible="False" />
+                                <WrapPanel x:Name="PanInstanceFilter"
+                                           ZIndex="1" />
+                            </Grid>
+                            <Grid x:Name="PanModLoaderFilterSelect"
+                                  IsVisible="False">
+                                <Border x:Name="ModLoaderFilterIndicator"
+                                        Height="27"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Top"
+                                        CornerRadius="13.5"
+                                        Background="{DynamicResource ColorBrush3}"
+                                        IsHitTestVisible="False" />
+                                <WrapPanel x:Name="PanModLoaderFilter"
+                                           ZIndex="1" />
+                            </Grid>
                         </StackPanel>
                     </ui:MyCard>
 

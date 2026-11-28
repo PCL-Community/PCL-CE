@@ -1,7 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Layout;
 using Avalonia.Media;
-using Avalonia.VisualTree;
 
 namespace PCL.UI.Controls;
 
@@ -22,6 +22,7 @@ internal sealed class RadioButtonSelectionIndicator
         _indicator = indicator;
         _coordinateHost = coordinateHost;
         _indicator.RenderTransform = _transform;
+        _indicator.VerticalAlignment = VerticalAlignment.Top;
         _indicator.IsVisible = false;
         _buttons.Loaded += (_, _) => Update();
         _buttons.LayoutUpdated += (_, _) => Update();
@@ -52,13 +53,21 @@ internal sealed class RadioButtonSelectionIndicator
         _indicator.IsVisible = true;
 
         AnimationService.CancelAnimationByName(_animationKey);
-        var delta = bounds.X - _transform.X;
-        if (animate && Math.Abs(delta) >= 0.1d)
+        var deltaX = bounds.X - _transform.X;
+        var deltaY = bounds.Y - _transform.Y;
+        if (animate && (Math.Abs(deltaX) >= 0.1d || Math.Abs(deltaY) >= 0.1d))
             AnimationService.Run(
-                new TranslateXAnimation(_indicator, delta, 240, ease: new FluentEaseOut(EasePower.Weak)),
+                new List<IAnimation>
+                {
+                    new TranslateXAnimation(_indicator, deltaX, 240, ease: new FluentEaseOut(EasePower.Weak)),
+                    new TranslateYAnimation(_indicator, deltaY, 240, ease: new FluentEaseOut(EasePower.Weak))
+                },
                 _animationKey);
         else
+        {
             _transform.X = bounds.X;
+            _transform.Y = bounds.Y;
+        }
     }
 
     private void Reset()
