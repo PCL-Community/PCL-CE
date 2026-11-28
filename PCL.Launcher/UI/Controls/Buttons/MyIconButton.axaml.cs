@@ -82,6 +82,7 @@ public partial class MyIconButton : Border
             RefreshAnim(false);
         };
         ActualThemeVariantChanged += (_, _) => RefreshAnim(false);
+        ThemeRefreshWatcher.Watch(this, () => RefreshAnim(false));
         Unloaded += (_, _) =>
         {
             AnimationService.CancelAnimationByName(ScaleKey);

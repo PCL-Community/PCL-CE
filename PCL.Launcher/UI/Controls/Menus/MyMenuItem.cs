@@ -44,6 +44,7 @@ public class MyMenuItem : MenuItem
         PointerExited += (_, _) => RefreshColor();
         Click += (_, _) => CustomEventService.Raise(this);
         Loaded += _OnLoaded;
+        ThemeRefreshWatcher.Watch(this, _OnColorThemeChanged);
     }
 
     public int Uuid { get; } = Guid.NewGuid().GetHashCode();
@@ -122,13 +123,14 @@ public class MyMenuItem : MenuItem
         return path;
     }
 
-    private void RefreshColor()
+    private void RefreshColor(bool animateTheme = true)
     {
         var (backKey, foreKey, time) = GetVisualState();
         if (_colorKey == backKey) return;
         _colorKey = backKey;
 
-        var animate = IsLoaded
+        var animate = animateTheme
+            && IsLoaded
             && !AnimationService.IsSuspended
             && AnimationService.Speed > 0d
             && ResourceExists(backKey)
@@ -149,6 +151,12 @@ public class MyMenuItem : MenuItem
         AnimationService.CancelAnimationByName(ColorAnimationKey);
         SetDynamicResource(BackgroundProperty, backKey);
         SetDynamicResource(ForegroundProperty, foreKey);
+    }
+
+    private void _OnColorThemeChanged()
+    {
+        _colorKey = null;
+        RefreshColor(false);
     }
 
     private (string Background, string Foreground, int Time) GetVisualState()

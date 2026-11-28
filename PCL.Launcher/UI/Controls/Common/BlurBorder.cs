@@ -10,42 +10,42 @@ namespace PCL.UI.Controls;
 public class BlurBorder : Border
 {
     private const string Module = "UI";
-    
+
     public static readonly StyledProperty<double> BlurRadiusProperty =
         AvaloniaProperty.Register<BlurBorder, double>(nameof(BlurRadius), 16d);
-    
+
     public double BlurRadius
     {
         get => GetValue(BlurRadiusProperty);
         set => SetValue(BlurRadiusProperty, value);
     }
-    
+
     private bool _configSubscribed;
     private ConfigObserver? _enabledObserver;
     private ConfigObserver? _radiusObserver;
-    
+
     public BlurBorder()
     {
         _UpdateBlurEffect();
     }
-    
+
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnAttachedToVisualTree(e);
         _SubscribeConfig();
         _ApplyBlurSettings();
     }
-    
+
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
         _UnsubscribeConfig();
         base.OnDetachedFromVisualTree(e);
     }
-    
+
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
-        
+
         if (change.Property == BlurRadiusProperty)
             _UpdateBlurEffect();
     }
@@ -63,7 +63,7 @@ public class BlurBorder : Border
             LogWrapper.Debug(ex, Module, "[BlurBorder] 应用背景模糊配置失败");
         }
     }
-    
+
     private void _UpdateBlurEffect()
     {
         BackdropEffect = BlurRadius > 0 ? new BlurEffect { Radius = BlurRadius } : null;
@@ -97,7 +97,7 @@ public class BlurBorder : Border
     {
         try
         {
-            if (_enabledObserver is not null) 
+            if (_enabledObserver is not null)
                 Config.Preference.Blur.IsEnabledConfig.Unobserve(_enabledObserver);
         }
         catch (Exception ex)

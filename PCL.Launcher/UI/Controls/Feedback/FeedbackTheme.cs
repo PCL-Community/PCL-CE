@@ -4,7 +4,9 @@ using Avalonia.Markup.Xaml.MarkupExtensions;
 using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Media;
 using Avalonia.Styling;
+using PCL.Core.App;
 using PCL.Core.Logging;
+using PCL.Core.UI.Theme;
 using PCL.UI.Controls.Common;
 
 namespace PCL.UI.Controls;
@@ -102,10 +104,20 @@ internal static class FeedbackTheme
     public static Action WatchTheme(StyledElement element, Action handler)
     {
         element.ActualThemeVariantChanged += OnThemeChanged;
+        ThemeService.ColorThemeChanged += OnColorThemeChanged;
         handler();
-        return () => element.ActualThemeVariantChanged -= OnThemeChanged;
+        return () =>
+        {
+            element.ActualThemeVariantChanged -= OnThemeChanged;
+            ThemeService.ColorThemeChanged -= OnColorThemeChanged;
+        };
 
         void OnThemeChanged(object? sender, EventArgs e)
+        {
+            handler();
+        }
+
+        void OnColorThemeChanged(ColorTheme theme)
         {
             handler();
         }

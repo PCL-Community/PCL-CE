@@ -3352,6 +3352,13 @@
     <sys:String x:Key="Setup.Ui.Theme.Color.CatBlue">LTCat Blue</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.Color.CrashBlue">Crash Blue</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.Color.Hmcl">HMCL</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Color.Custom">Custom</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.Hue">Hue</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.Sv">Saturation &amp; value</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.Saturation">Saturation</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.Lightness">Lightness</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.HueDelta">Hue gradient</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.TitleBarGradient">Title bar gradient</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.Color.SkyBlue">Sky Blue</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.Dark">Dark</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.DarkColor">Dark theme color</sys:String>
@@ -3359,7 +3366,15 @@
     <sys:String x:Key="Setup.Ui.Theme.FollowSystem">Follow system</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.Light">Light</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.LightColor">Light theme color</sys:String>
-    <sys:String x:Key="Setup.Ui.Theme.Title">Theme</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Title">Theme &amp; colors</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Appearance.Title">Appearance</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Theme">Theme</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Theme.ToolTip">The launcher's theme color. Each appearance mode can have its own theme.</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Mode.Light">Light mode</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Mode.Dark">Dark mode</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Palette">Theme palette</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.Title">Custom colors</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.InvalidColor">Invalid color format</sys:String>
 
     <!-- Setup.Update -->
 

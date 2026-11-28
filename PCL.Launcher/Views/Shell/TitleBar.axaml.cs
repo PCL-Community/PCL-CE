@@ -10,19 +10,24 @@ using PCL.Core.App;
 using PCL.Core.UI.Theme;
 using PCL.Navigation;
 using PCL.UI.Controls;
+using PCL.UI.Theming;
 
 namespace PCL.Views.Shell;
 
-/// <summary>自绘标题栏：左侧 Logo 与四个主入口，二级页面显示返回键与标题，右侧为窗口按钮。 (macOS下会被<see cref="UseSystemCaptionButtons" />隐藏自绘按钮，变成系统原生红绿灯) Logo 模式、自定义文本与左右布局由配置与主题驱动，文本全部走本地化。</summary>
+/// <summary>
+/// 自绘标题栏：左侧 Logo 与四个主入口，二级页面显示返回键与标题，右侧为窗口按钮。 (macOS下会被
+/// <see cref="UseSystemCaptionButtons" />隐藏自绘按钮，变成系统原生红绿灯) Logo
+/// 模式、自定义文本与左右布局由配置与主题驱动，文本全部走本地化。
+/// </summary>
 public partial class TitleBar : UserControl
 {
     private const string TitleLayerAnimationKey = "TitleBar Title Layer";
 
     private const string InnerTitleAnimationKey = "TitleBar Inner Title";
 
-    private readonly Dictionary<MainTab, MyRadioButton> _tabButtons = [];
-
     private readonly double _defaultHeight;
+
+    private readonly Dictionary<MainTab, MyRadioButton> _tabButtons = [];
 
     private bool _isExtended;
 
@@ -138,6 +143,7 @@ public partial class TitleBar : UserControl
             }
 
         ApplyLeftAlign(Config.Preference.TopBarLeftAlign, type);
+        TitleThemeGradient.Background = ThemeTitleBarBrushBuilder.Build();
     }
 
     public void UpdateState(PageNavigationState state)
@@ -195,7 +201,9 @@ public partial class TitleBar : UserControl
 
     private void ApplyTitleLeftClamp()
     {
-        var available = PanTitleMain.ColumnDefinitions[0].ActualWidth - 30d - PanTitleLeft.Margin.Left;
+        var available = PanTitleMain.ColumnDefinitions[0].ActualWidth
+            - 30d
+            - PanTitleLeft.Margin.Left;
         PanTitleLeft.ColumnDefinitions[0].MaxWidth = available > 0d ? available : 0d;
     }
 

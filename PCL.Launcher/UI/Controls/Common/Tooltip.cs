@@ -9,7 +9,9 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using PCL.Core.App;
 using PCL.Core.Logging;
+using PCL.Core.UI.Theme;
 
 namespace PCL.UI.Controls;
 
@@ -116,6 +118,7 @@ public sealed class Tooltip
 
         if (Application.Current is { } application)
             application.ActualThemeVariantChanged += _OnThemeVariantChanged;
+        ThemeService.ColorThemeChanged += _OnColorThemeChanged;
 
         LogWrapper.Debug(Module, "[Tooltip] 全局提示服务已启用，接管 ToolTip.Tip");
     }
@@ -137,6 +140,7 @@ public sealed class Tooltip
 
         if (Application.Current is { } application)
             application.ActualThemeVariantChanged -= _OnThemeVariantChanged;
+        ThemeService.ColorThemeChanged -= _OnColorThemeChanged;
 
         _Hush();
         LogWrapper.Debug(Module, "[Tooltip] 全局提示服务已停用");
@@ -425,6 +429,11 @@ public sealed class Tooltip
     }
 
     private static void _OnThemeVariantChanged(object? sender, EventArgs e)
+    {
+        _ApplyThemeBrushes();
+    }
+
+    private static void _OnColorThemeChanged(ColorTheme theme)
     {
         _ApplyThemeBrushes();
     }

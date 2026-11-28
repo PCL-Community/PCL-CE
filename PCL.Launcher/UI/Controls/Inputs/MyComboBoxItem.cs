@@ -33,6 +33,7 @@ public class MyComboBoxItem : ComboBoxItem
         PointerExited += (_, _) => RefreshColor();
         PointerMoved += OnMouseMove;
         Loaded += (_, _) => RefreshColor(false);
+        ThemeRefreshWatcher.Watch(this, OnThemeColorChanged);
     }
 
     private string ColorKey => InputAnimation.Key("MyComboBoxItem Color", Uuid);
@@ -199,6 +200,12 @@ public class MyComboBoxItem : ComboBoxItem
 
     private void OnColorThemeChanged(ColorTheme theme)
     {
+        RefreshColor(false);
+    }
+
+    private void OnThemeColorChanged()
+    {
+        _backColorName = null;
         RefreshColor(false);
     }
 }

@@ -109,6 +109,7 @@ public class MySearchBox : MyCard
         Children.Add(layout);
 
         Loaded += (_, _) => TextBox.Focus();
+        ThemeRefreshWatcher.Watch(this, ApplyIconBrush);
     }
 
     private string ClearButtonKey => InputAnimation.Key("MySearchBox ClearBtn", uuid);

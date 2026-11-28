@@ -11,6 +11,7 @@ using PCL.Core.Media;
 using PCL.Core.UI.Animation.Core;
 using PCL.Core.UI.Media;
 using PCL.Core.UI.Theme;
+using PCL.Core.UI.Theming;
 
 namespace PCL.Core.UI.Background;
 
@@ -859,7 +860,7 @@ public sealed class BackgroundLayer
     private static LinearGradientBrush CreateColorfulBrush()
     {
         var tone = ThemeService.CurrentTone;
-        var (hue, _, _) = ThemeService.GetCurrentThemeArgs();
+        var (hue, _, _, _) = ThemeService.GetCurrentThemeArgs();
         var darkLight = ThemeService.IsDarkMode ? 0.2d : 1d;
         var brush = new LinearGradientBrush
         {
@@ -868,29 +869,17 @@ public sealed class BackgroundLayer
         };
         brush.GradientStops.Add(
             new GradientStop(
-                ToColor(LabColor.FromLch(0.84d * darkLight, tone.C5, hue - 15d)),
+                OklabColor.FromLch(0.84d * darkLight, tone.C5, hue - 15d).ToAvaloniaColor(),
                 -0.1d));
         brush.GradientStops.Add(
-            new GradientStop(ToColor(LabColor.FromLch(0.96d * darkLight, tone.C7, hue)), 0.4d));
+            new GradientStop(
+                OklabColor.FromLch(0.96d * darkLight, tone.C7, hue).ToAvaloniaColor(),
+                0.4d));
         brush.GradientStops.Add(
             new GradientStop(
-                ToColor(LabColor.FromLch(0.84d * darkLight, tone.C5, hue + 15d)),
+                OklabColor.FromLch(0.84d * darkLight, tone.C5, hue + 15d).ToAvaloniaColor(),
                 1.1d));
         return brush;
-    }
-
-    private static Color ToColor(LabColor lab)
-    {
-        var (alpha, red, green, blue) = lab.ToScRgb();
-        return Color.FromArgb(SrgbByte(alpha), SrgbByte(red), SrgbByte(green), SrgbByte(blue));
-    }
-
-    private static byte SrgbByte(double linear)
-    {
-        var encoded = linear <= 0.0031308d
-            ? 12.92d * linear
-            : 1.055d * Math.Pow(linear, 1d / 2.4d) - 0.055d;
-        return (byte)Math.Clamp(Math.Round(encoded * 255d), 0d, 255d);
     }
 
     private static IBrush? FindThemeBrush(string key)

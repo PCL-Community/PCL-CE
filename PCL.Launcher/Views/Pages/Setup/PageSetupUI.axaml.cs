@@ -13,6 +13,7 @@ using PCL.Core.Platform;
 using PCL.Core.UI;
 using PCL.Core.UI.Background;
 using PCL.Core.UI.Hints;
+using PCL.Core.UI.Theme;
 using PCL.Core.Utils.Validate;
 using PCL.Navigation;
 using PCL.UI.Controls;
@@ -41,6 +42,7 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
     private readonly MyRadioBox[] _homepageRadios;
     private readonly MyRadioBox[] _logoTypeRadios;
     private readonly MyRadioBox[] _macTitleBarStyleRadios;
+    private readonly List<ColorTheme> _themeColorOptions = [];
     private int _backgroundStateGeneration;
     private bool _backgroundStateSubscribed;
     private bool _clearingBackground;
@@ -52,7 +54,6 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
     {
         InitializeComponent();
         PanScroll = PanBack;
-        DataContext = ViewModel;
         _FfmpegSettings = this.TryFindResource(
                 "BackgroundFfmpegSettings",
                 out var ffmpegSettingsResource)
@@ -77,6 +78,30 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
             new Func<object, object>(PageSetupUIViewModel.FormatPixelHint);
         SliderMusicVolume.getHintText =
             new Func<object, object>(PageSetupUIViewModel.FormatMusicVolumeHint);
+
+        SelectorColorMode.SelectionChanged += (_, index, raiseByMouse) =>
+        {
+            if (!raiseByMouse) return;
+            WriteIfReady(() =>
+            {
+                Config.Preference.Theme.ColorMode = index switch
+                {
+                    1 => ColorMode.Light,
+                    2 => ColorMode.Dark,
+                    _ => ColorMode.System
+                };
+                ViewModel.RefreshVisibleMode();
+            });
+        };
+
+        PickerLightColor.ColorPicked += (_, color) =>
+            WriteIfReady(() => ViewModel.ApplyLightCustomColor(color));
+        PickerDarkColor.ColorPicked += (_, color) =>
+            WriteIfReady(() => ViewModel.ApplyDarkCustomColor(color));
+        PickerLightColor.HueSpreadPicked += (_, hueSpread) =>
+            WriteIfReady(() => ViewModel.ApplyLightHueSpread(hueSpread));
+        PickerDarkColor.HueSpreadPicked += (_, hueSpread) =>
+            WriteIfReady(() => ViewModel.ApplyDarkHueSpread(hueSpread));
 
         TextCustomNet.ValidateRules.Add(
             new HttpValidator
@@ -205,18 +230,25 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
 
         BuildHideGrid();
         BuildThemeColorItems();
+        DataContext = ViewModel;
 
         HiddenFeatureState.Changed += OnHiddenFeatureStateChanged;
 
         Loaded += (_, _) =>
         {
+            ThemeService.ColorModeChanged -= OnThemeColorModeChanged;
+            ThemeService.ColorModeChanged += OnThemeColorModeChanged;
             if (_loaded) return;
             _loaded = true;
             Reload();
             ViewModel.ShowLauncherHint();
         };
         Loaded += (_, _) => SubscribeBackgroundState();
-        Unloaded += (_, _) => UnsubscribeBackgroundState();
+        Unloaded += (_, _) =>
+        {
+            ThemeService.ColorModeChanged -= OnThemeColorModeChanged;
+            UnsubscribeBackgroundState();
+        };
     }
 
     public PageSetupUIViewModel ViewModel { get; } = new();
@@ -240,6 +272,11 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         }
     }
 
+    private void OnThemeColorModeChanged(bool isDarkMode, ColorTheme theme)
+    {
+        ViewModel.RefreshVisibleMode();
+    }
+
     private void SubscribeBackgroundState()
     {
         if (_backgroundStateSubscribed) return;
@@ -261,6 +298,8 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
 
     public override void OnNavigatedTo(PageParameter? parameter)
     {
+        ThemeService.ColorModeChanged -= OnThemeColorModeChanged;
+        ThemeService.ColorModeChanged += OnThemeColorModeChanged;
         PanBack.ScrollToHome();
         if (_loaded) Reload();
         _ = RefreshBackgroundStateAsync();
@@ -276,11 +315,21 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         _reloading = true;
         try
         {
-            ViewModel.Reload(Math.Max(1, ComboLightColor.ItemCount));
-            _macTitleBarStyleRadios[Math.Clamp(Config.Preference.MacTitleBarStyle, 0, 1)].SetChecked(true, false);
+            ViewModel.Reload(_themeColorOptions);
+            var colorMode = Config.Preference.Theme.ColorMode;
+            SelectorColorMode.Select(
+                colorMode switch
+                {
+                    ColorMode.Light => 1,
+                    ColorMode.Dark => 2,
+                    _ => 0
+                },
+                false);
+            _macTitleBarStyleRadios[Math.Clamp(Config.Preference.MacTitleBarStyle, 0, 1)]
+                .SetChecked(true, false);
             CheckLockWindowSize.Checked = Config.Preference.LockWindowSize;
             CheckShowLaunchingHint.Checked = Config.Preference.ShowLaunchingHint;
-            
+
             CheckBlur.Checked = Config.Preference.Blur.IsEnabled;
             PanBlurValue.IsVisible = Config.Preference.Blur.IsEnabled;
 
@@ -339,7 +388,14 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
 
     private void BuildThemeColorItems()
     {
+        var supportsCustomThemes = ThemeService.SupportsCustomThemes;
+        _themeColorOptions.Clear();
         var count = Basics.IsAprilFool ? ThemeColorKeys.Length : ThemeColorKeys.Length - 1;
+        for (var i = 0; i < count; i++)
+            _themeColorOptions.Add(Enum.Parse<ColorTheme>(ThemeColorKeys[i].Tag));
+        if (supportsCustomThemes)
+            _themeColorOptions.Add(ColorTheme.Custom);
+
         foreach (var combo in new[]
                  {
                      ComboLightColor,
@@ -353,6 +409,15 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
                 item.SetLocalizedValue(
                     ContentControl.ContentProperty,
                     ThemeColorKeys[i].Key);
+                combo.Items.Add(item);
+            }
+
+            if (supportsCustomThemes)
+            {
+                var item = new MyComboBoxItem();
+                item.SetLocalizedValue(
+                    ContentControl.ContentProperty,
+                    "Setup.Ui.Theme.Color.Custom");
                 combo.Items.Add(item);
             }
         }

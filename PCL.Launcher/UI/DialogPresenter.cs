@@ -485,7 +485,7 @@ public sealed class DialogPresenter : IDialogPresenter
             AnimationExtensions.SetTargetProperty(ani, BlurBorder.BlurRadiusProperty);
             animations.Add(ani);
         }
-        
+
         var current = new NColor(mask.Background);
         AnimationService.Run(animations, MaskAnimationKey);
     }

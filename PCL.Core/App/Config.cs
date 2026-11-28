@@ -1,4 +1,5 @@
 using PCL.Core.App.Configuration;
+using PCL.Core.UI.Theme;
 
 namespace PCL.Core.App;
 
@@ -277,24 +278,36 @@ public static partial class Config
             [ConfigItem<int>("UiLauncherTransparent", 600, ConfigSource.Local)] public partial int WindowOpacity { get; set; }
 
             /// <summary>
-            /// 自定义主题：色相 (H)。
+            /// 自定义主题：色相 (H)。旧版全局自定义参数，仅在新配置缺失时作为回退。
             /// </summary>
             [ConfigItem<int>("UiLauncherHue", 180, ConfigSource.Local)] public partial int WindowHue { get; set; }
 
             /// <summary>
-            /// 自定义主题：饱和度 (S)。
+            /// 自定义主题：饱和度 (S)。旧版全局自定义参数，仅在新配置缺失时作为回退。
             /// </summary>
             [ConfigItem<int>("UiLauncherSat", 80, ConfigSource.Local)] public partial int WindowSat { get; set; }
 
             /// <summary>
-            /// 自定义主题：明度 (L)。
+            /// 自定义主题：明度 (L)。旧版全局自定义参数，仅在新配置缺失时作为回退。
             /// </summary>
             [ConfigItem<int>("UiLauncherLight", 20, ConfigSource.Local)] public partial int WindowLight { get; set; }
 
             /// <summary>
-            /// 自定义主题：色相渐变。
+            /// 自定义主题：顶栏渐变幅度。旧版全局自定义参数，仅在新配置缺失时作为回退。
             /// </summary>
             [ConfigItem<int>("UiLauncherDelta", 90, ConfigSource.Local)] public partial int WindowDelta { get; set; }
+
+            /// <summary>
+            /// 浅色模式的自定义主题颜色。
+            /// </summary>
+            [AnyConfigItem<ThemeCustomColor>("UiLightThemeCustom", ConfigSource.Local)]
+            public partial ThemeCustomColor LightCustom { get; set; }
+
+            /// <summary>
+            /// 深色模式的自定义主题颜色。
+            /// </summary>
+            [AnyConfigItem<ThemeCustomColor>("UiDarkThemeCustom", ConfigSource.Local)]
+            public partial ThemeCustomColor DarkCustom { get; set; }
 
             /// <summary>
             /// 传说中的主题选择，但是没卵用。
@@ -342,7 +355,7 @@ public static partial class Config
             /// </summary>
             [ConfigItem<string>("UiBackgroundFfmpegPath", "", ConfigSource.Local)] public partial string FfmpegPath { get; set; }
         }
-        
+
         /// <summary>
         /// 高级材质。
         /// </summary>

@@ -54,6 +54,7 @@ public class MyScrollBar : ScrollBar
         PropertyChanged += OnPropertyChanged;
         ActualThemeVariantChanged += (_, _) => RefreshColor();
         AttachedToVisualTree += (_, _) => RefreshColor();
+        ThemeRefreshWatcher.Watch(this, () => RefreshColor(false));
 
         RefreshColor();
     }
@@ -61,12 +62,17 @@ public class MyScrollBar : ScrollBar
     /// <summary>按当前指针、拖动与可见状态刷新颜色和透明度。</summary>
     public void RefreshColor()
     {
+        RefreshColor(true);
+    }
+
+    private void RefreshColor(bool animate)
+    {
         try
         {
             var opacity = !IsVisible ? 0d : _isCaptureWithin ? PressedOpacity : IsPointerOver || _isScrolling ? ActiveOpacity : 0d;
             var colorKey = IsPointerOver ? AccentKey : AccentHoverKey;
             var key = "MyScrollBar Color " + Uuid;
-            if (!ContainerAnimation.CanAnimate(this))
+            if (!animate || !ContainerAnimation.CanAnimate(this))
             {
                 AnimationService.CancelAnimationByName(key);
                 ContainerTheme.BindDynamic(this, ForegroundProperty, colorKey);
