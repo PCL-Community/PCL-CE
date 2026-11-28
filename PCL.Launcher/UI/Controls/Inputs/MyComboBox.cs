@@ -9,6 +9,8 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.VisualTree;
 using FluentValidation;
+using PCL.Core.App;
+using PCL.Core.UI.Theme;
 using Path = Avalonia.Controls.Shapes.Path;
 
 namespace PCL.UI.Controls;
@@ -606,18 +608,26 @@ public class MyComboBox : ComboBox
     {
         base.OnAttachedToVisualTree(e);
         ActualThemeVariantChanged += OnActualThemeVariantChanged;
+        // 仅切换主题色（不改深浅模式）时不会触发 ActualThemeVariantChanged，需监听 ColorThemeChanged
+        ThemeService.ColorThemeChanged += OnColorThemeChanged;
         RefreshColor(false);
     }
 
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
         ActualThemeVariantChanged -= OnActualThemeVariantChanged;
+        ThemeService.ColorThemeChanged -= OnColorThemeChanged;
         DetachPopupOpacity();
         StopAnimations();
         base.OnDetachedFromVisualTree(e);
     }
 
     private void OnActualThemeVariantChanged(object? sender, EventArgs e)
+    {
+        RefreshColor(false);
+    }
+
+    private void OnColorThemeChanged(ColorTheme theme)
     {
         RefreshColor(false);
     }
