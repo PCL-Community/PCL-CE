@@ -78,6 +78,7 @@ public partial class MyExtraButton : Grid
         KeyboardActivation.Attach(this, PerformClick);
         Loaded += (_, _) => RefreshColor();
         ActualThemeVariantChanged += (_, _) => RefreshColor();
+        ThemeRefreshWatcher.Watch(this, () => RefreshColor(false));
         Unloaded += (_, _) => _StopAnimations();
         ApplyLogoScale();
     }
@@ -180,6 +181,11 @@ public partial class MyExtraButton : Grid
     /// <summary>按当前悬停/禁用状态刷新底色。</summary>
     public void RefreshColor()
     {
+        RefreshColor(true);
+    }
+
+    public void RefreshColor(bool animate)
+    {
         if (!IsLoaded)
             return;
 
@@ -195,7 +201,7 @@ public partial class MyExtraButton : Grid
             key,
             null,
             !IsEnabled || IsPointerOver ? AnimationColorIn : AnimationColorOut,
-            true,
+            animate,
             ColorKey);
     }
 

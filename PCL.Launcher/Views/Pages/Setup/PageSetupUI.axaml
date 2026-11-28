@@ -1,6 +1,9 @@
 <ui:MyPageRight xmlns="https://github.com/avaloniaui"
                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                 xmlns:ui="using:PCL.UI.Controls"
+                xmlns:coreui="using:PCL.Core.UI.Controls"
+                xmlns:svg="using:PCL.UI.Controls.SvgIcon"
+                xmlns:primitives="using:Avalonia.Controls.Primitives"
                 xmlns:loc="using:PCL.Core.UI"
                 xmlns:vm="using:PCL"
                 xmlns:bg="using:PCL.Core.UI.Background"
@@ -10,13 +13,206 @@
     <ui:MyPageRight.Resources>
         <bg:BackgroundFfmpegSettings x:Key="BackgroundFfmpegSettings" />
     </ui:MyPageRight.Resources>
+    <ui:MyPageRight.Styles>
+        <Style Selector="coreui|SegmentedItem TextBlock">
+            <Setter Property="Foreground"
+                    Value="{DynamicResource ColorBrush3}" />
+        </Style>
+        <Style Selector="coreui|SegmentedItem svg|SvgIcon">
+            <Setter Property="IconBrush"
+                    Value="{DynamicResource ColorBrush3}" />
+        </Style>
+        <Style Selector="coreui|SegmentedItem:pointerover TextBlock">
+            <Setter Property="Foreground"
+                    Value="{DynamicResource ColorBrush2}" />
+        </Style>
+        <Style Selector="coreui|SegmentedItem:pointerover svg|SvgIcon">
+            <Setter Property="IconBrush"
+                    Value="{DynamicResource ColorBrush2}" />
+        </Style>
+        <Style Selector="coreui|SegmentedItem.selected TextBlock">
+            <Setter Property="Foreground"
+                    Value="{DynamicResource ColorBrush1}" />
+        </Style>
+        <Style Selector="coreui|SegmentedItem.selected svg|SvgIcon">
+            <Setter Property="IconBrush"
+                    Value="{DynamicResource ColorBrush1}" />
+        </Style>
+    </ui:MyPageRight.Styles>
     <ui:MyScrollViewer x:Name="PanBack"
                        HorizontalScrollBarVisibility="Disabled"
                        VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="25,10"
                     Grid.IsSharedSizeScope="True">
-            <ui:MyCard x:Name="CardLauncher"
+            <ui:MyCard x:Name="CardTheme"
                        Margin="0,15"
+                       Title="{loc:Loc Setup.Ui.Theme.Title}">
+                <StackPanel Margin="25,40,25,20">
+                    <Grid ColumnSpacing="25">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"
+                                              SharedSizeGroup="ThemeLabel" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock VerticalAlignment="Center"
+                                   Text="{loc:Loc Setup.Ui.Theme.Appearance.Title}" />
+                        <coreui:SegmentedControl x:Name="SelectorColorMode"
+                                                 Grid.Column="1"
+                                                 VerticalAlignment="Center">
+                            <coreui:SegmentedControl.Items>
+                                <coreui:SegmentedItem>
+                                    <StackPanel HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                Orientation="Horizontal"
+                                                Spacing="6">
+                                        <svg:SvgIcon Width="14"
+                                                     Height="14"
+                                                     Icon="lucide/monitor" />
+                                        <TextBlock VerticalAlignment="Center"
+                                                   FontSize="12"
+                                                   Text="{loc:Loc Setup.Ui.Theme.FollowSystem}" />
+                                    </StackPanel>
+                                </coreui:SegmentedItem>
+                                <coreui:SegmentedItem>
+                                    <StackPanel HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                Orientation="Horizontal"
+                                                Spacing="6">
+                                        <svg:SvgIcon Width="14"
+                                                     Height="14"
+                                                     Icon="lucide/sun" />
+                                        <TextBlock VerticalAlignment="Center"
+                                                   FontSize="12"
+                                                   Text="{loc:Loc Setup.Ui.Theme.Light}" />
+                                    </StackPanel>
+                                </coreui:SegmentedItem>
+                                <coreui:SegmentedItem>
+                                    <StackPanel HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                Orientation="Horizontal"
+                                                Spacing="6">
+                                        <svg:SvgIcon Width="14"
+                                                     Height="14"
+                                                     Icon="lucide/moon" />
+                                        <TextBlock VerticalAlignment="Center"
+                                                   FontSize="12"
+                                                   Text="{loc:Loc Setup.Ui.Theme.Dark}" />
+                                    </StackPanel>
+                                </coreui:SegmentedItem>
+                            </coreui:SegmentedControl.Items>
+                        </coreui:SegmentedControl>
+                    </Grid>
+
+                    <StackPanel Margin="0,14,0,0"
+                                IsVisible="{Binding ShowLightMode}">
+                        <Grid ColumnSpacing="25">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"
+                                                  SharedSizeGroup="ThemeLabel" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock VerticalAlignment="Center"
+                                       Text="{loc:Loc Setup.Ui.Theme.Theme}" />
+                            <ui:MyComboBox x:Name="ComboLightColor"
+                                           Grid.Column="1"
+                                           Height="28"
+                                           VerticalAlignment="Center"
+                                           HorizontalAlignment="Stretch"
+                                           SelectedIndex="{Binding LightColorSelectedIndex, Mode=TwoWay}"
+                                           ToolTip.Tip="{loc:Loc Setup.Ui.Theme.Theme.ToolTip}" />
+                        </Grid>
+
+                        <Border Margin="0,12,0,0"
+                                Padding="12"
+                                Background="{DynamicResource ColorBrush8}"
+                                CornerRadius="5"
+                                IsVisible="{Binding LightCustomVisible}">
+                            <StackPanel Spacing="10">
+                                <TextBlock FontSize="12"
+                                           FontWeight="Bold"
+                                           Text="{loc:Loc Setup.Ui.Theme.Custom.Title}" />
+                                <ui:ThemeColorPicker x:Name="PickerLightColor"
+                                                     Color="{Binding LightCustomColor, Mode=OneWay}"
+                                                     HueSpread="{Binding LightHueSpread, Mode=OneWay}" />
+                            </StackPanel>
+                        </Border>
+
+                        <ItemsControl Margin="0,12,0,0"
+                                      ItemsSource="{Binding LightPalette.Ladder}"
+                                      ToolTip.Tip="{loc:Loc Setup.Ui.Theme.Palette}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <primitives:UniformGrid Columns="8" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Height="20"
+                                            Margin="0,0,2,0"
+                                            Background="{Binding}"
+                                            CornerRadius="2" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <StackPanel Margin="0,14,0,0"
+                                IsVisible="{Binding ShowDarkMode}">
+                        <Grid ColumnSpacing="25">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"
+                                                  SharedSizeGroup="ThemeLabel" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock VerticalAlignment="Center"
+                                       Text="{loc:Loc Setup.Ui.Theme.Theme}" />
+                            <ui:MyComboBox x:Name="ComboDarkColor"
+                                           Grid.Column="1"
+                                           Height="28"
+                                           VerticalAlignment="Center"
+                                           HorizontalAlignment="Stretch"
+                                           SelectedIndex="{Binding DarkColorSelectedIndex, Mode=TwoWay}"
+                                           ToolTip.Tip="{loc:Loc Setup.Ui.Theme.Theme.ToolTip}" />
+                        </Grid>
+
+                        <Border Margin="0,12,0,0"
+                                Padding="12"
+                                Background="{DynamicResource ColorBrush8}"
+                                CornerRadius="5"
+                                IsVisible="{Binding DarkCustomVisible}">
+                            <StackPanel Spacing="10">
+                                <TextBlock FontSize="12"
+                                           FontWeight="Bold"
+                                           Text="{loc:Loc Setup.Ui.Theme.Custom.Title}" />
+                                <ui:ThemeColorPicker x:Name="PickerDarkColor"
+                                                     Color="{Binding DarkCustomColor, Mode=OneWay}"
+                                                     HueSpread="{Binding DarkHueSpread, Mode=OneWay}" />
+                            </StackPanel>
+                        </Border>
+
+                        <ItemsControl Margin="0,12,0,0"
+                                      ItemsSource="{Binding DarkPalette.Ladder}"
+                                      ToolTip.Tip="{loc:Loc Setup.Ui.Theme.Palette}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <primitives:UniformGrid Columns="8" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Height="20"
+                                            Margin="0,0,2,0"
+                                            Background="{Binding}"
+                                            CornerRadius="2" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </StackPanel>
+            </ui:MyCard>
+
+            <ui:MyCard x:Name="CardLauncher"
+                       Margin="0,0,0,15"
                        Title="{loc:Loc Setup.Ui.Basic.Title}">
                 <StackPanel Margin="25,40,25,10">
                     <Grid Margin="0,0,0,6">
@@ -61,48 +257,6 @@
                         </StackPanel>
                     </Border>
 
-                    <Grid Height="28"
-                          Margin="0,0,0,7">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"
-                                              SharedSizeGroup="Name1" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="92"
-                                              SharedSizeGroup="SubName" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*"
-                                              SharedSizeGroup="SubName" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0"
-                                   VerticalAlignment="Center"
-                                   Text="{loc:Loc Setup.Ui.Theme.Title}" />
-                        <ui:MyComboBox x:Name="ComboDarkMode"
-                                       Grid.Column="1"
-                                       HorizontalAlignment="Stretch"
-                                       SelectedIndex="{Binding DarkModeSelectedIndex, Mode=TwoWay}">
-                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Theme.Light}" />
-                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Theme.Dark}" />
-                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Theme.FollowSystem}" />
-                        </ui:MyComboBox>
-                        <TextBlock Grid.Column="2"
-                                   VerticalAlignment="Center"
-                                   HorizontalAlignment="Center"
-                                   Text="{loc:Loc Setup.Ui.Theme.LightColor}" />
-                        <ui:MyComboBox x:Name="ComboLightColor"
-                                       Grid.Column="3"
-                                       HorizontalAlignment="Stretch"
-                                       SelectedIndex="{Binding LightColorSelectedIndex, Mode=TwoWay}" />
-                        <TextBlock Grid.Column="4"
-                                   VerticalAlignment="Center"
-                                   HorizontalAlignment="Center"
-                                   Text="{loc:Loc Setup.Ui.Theme.DarkColor}" />
-                        <ui:MyComboBox x:Name="ComboDarkColor"
-                                       Grid.Column="5"
-                                       HorizontalAlignment="Stretch"
-                                       SelectedIndex="{Binding DarkColorSelectedIndex, Mode=TwoWay}" />
-                    </Grid>
-
                     <ui:MyCheckBox x:Name="CheckLockWindowSize"
                                    Height="22"
                                    Margin="-1,0,0,7"
@@ -111,7 +265,7 @@
                                    Height="22"
                                    Margin="-1,0,0,7"
                                    Text="{loc:Loc Setup.Ui.Basic.ShowTriviaHint}" />
-                    
+
                     <StackPanel x:Name="PanelBlur"
                                 Margin="0,0,0,10">
                         <ui:MyCheckBox x:Name="CheckBlur"

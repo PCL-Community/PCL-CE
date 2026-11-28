@@ -77,7 +77,7 @@ public partial class PageSetupLaunch : MyPageRight, ISetupResetPage
         LabRamUsed.SizeChanged += (_, _) => RefreshRamText();
         LabRamTotal.SizeChanged += (_, _) => RefreshRamText();
         LabRamUsedTitle.SizeChanged += (_, _) => RefreshRamText();
-        
+
         Loaded += (_, _) =>
         {
             _loaded = true;

@@ -3352,6 +3352,13 @@
     <sys:String x:Key="Setup.Ui.Theme.Color.CatBlue">龙猫蓝</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.Color.CrashBlue">死机蓝</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.Color.Hmcl">HMCL</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Color.Custom">自定义</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.Hue">色相</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.Sv">饱和度与明度</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.Saturation">饱和度</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.Lightness">明度</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.HueDelta">色相渐变</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.TitleBarGradient">标题栏渐变</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.Color.SkyBlue">天空蓝</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.Dark">深色</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.DarkColor">深色配色</sys:String>
@@ -3359,7 +3366,15 @@
     <sys:String x:Key="Setup.Ui.Theme.FollowSystem">跟随系统</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.Light">浅色</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.LightColor">浅色配色</sys:String>
-    <sys:String x:Key="Setup.Ui.Theme.Title">主题</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Title">主题与配色</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Appearance.Title">外观模式</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Theme">主题</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Theme.ToolTip">启动器的主题颜色，支持为每个外观模式单独设置主题。</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Mode.Light">浅色模式</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Mode.Dark">深色模式</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Palette">主题色阶</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.Title">自定义配色</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.InvalidColor">颜色格式无效</sys:String>
 
     <!-- Setup.Update -->
 

@@ -70,40 +70,26 @@ public static class LauncherPaths
     private static string _GetUserDataRoot()
     {
         var dataDirectory = Environment.GetEnvironmentVariable("PCL_DATA_DIR");
-        if (!string.IsNullOrWhiteSpace(dataDirectory))
-            return _WithTrailingSeparator(Paths.ExpandUserPath(dataDirectory));
+        if (!string.IsNullOrWhiteSpace(dataDirectory)
+            || !string.IsNullOrWhiteSpace(Paths.PackageKind))
+            return _WithTrailingSeparator(Paths.Data);
 
-        if (!string.IsNullOrWhiteSpace(Paths.PackageKind))
-            return _WithTrailingSeparator(
-                Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                    "PCLCE"));
-
-        return ExecutableDirectory;
+        var portableData = Path.Combine(ExecutableDirectory, "PCL");
+        return !string.Equals(
+            Path.TrimEndingDirectorySeparator(Path.GetFullPath(Paths.Data)),
+            Path.TrimEndingDirectorySeparator(Path.GetFullPath(portableData)),
+            StringComparison.OrdinalIgnoreCase)
+            ? _WithTrailingSeparator(Paths.Data)
+            : ExecutableDirectory;
     }
 
     private static string _GetDefaultMinecraftDirectory()
     {
         var minecraftDirectory = Environment.GetEnvironmentVariable("PCL_MINECRAFT_DIR");
-        if (!string.IsNullOrWhiteSpace(minecraftDirectory))
-            return Path.TrimEndingDirectorySeparator(
-                Path.GetFullPath(Paths.ExpandUserPath(minecraftDirectory)));
-
-        var dataDirectory = Environment.GetEnvironmentVariable("PCL_DATA_DIR");
-        if (!string.IsNullOrWhiteSpace(dataDirectory))
-            return Path.TrimEndingDirectorySeparator(
-                Path.Combine(
-                    Path.GetFullPath(Paths.ExpandUserPath(dataDirectory)),
-                    ".minecraft"));
-
-        if (!string.IsNullOrWhiteSpace(Paths.PackageKind))
-            return Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                "PCLCE",
-                ".minecraft");
-
         return Path.TrimEndingDirectorySeparator(
-            Path.Combine(ExecutableDirectory, ".minecraft"));
+            !string.IsNullOrWhiteSpace(minecraftDirectory)
+                ? Path.GetFullPath(Paths.ExpandUserPath(minecraftDirectory))
+                : Path.Combine(UserDataRoot, ".minecraft"));
     }
 
     private static string _WithTrailingSeparator(string path)

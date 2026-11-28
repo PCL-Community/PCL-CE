@@ -74,6 +74,7 @@ public partial class MyCheckBox : UserControl
             _previousState = GetFinalState(Checked, IsThreeState);
             SyncUI(false);
         };
+        ThemeRefreshWatcher.Watch(this, () => SyncUI(false));
         Unloaded += (_, _) => StopAnimations();
     }
 

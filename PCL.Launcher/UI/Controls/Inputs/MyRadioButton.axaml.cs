@@ -89,6 +89,7 @@ public partial class MyRadioButton : UserControl
         InitializeComponent();
         PanBackElement.Padding = Padding;
         RefreshLogoHostVisibility();
+        ThemeRefreshWatcher.Watch(this, () => RefreshColor(false));
 
         Loaded += (_, _) =>
         {

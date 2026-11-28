@@ -12,4 +12,5 @@ public interface IPlatformCapabilities
     bool SuppressAltMenu { get; }
     bool SupportsDisplayProtocolSelection { get; }
     bool SupportsTitleBarStyleSelection { get; }
+    bool SupportsCustomThemes { get; }
 }
