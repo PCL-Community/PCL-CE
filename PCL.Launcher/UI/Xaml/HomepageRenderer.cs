@@ -7,67 +7,83 @@ using PCL.Xaml;
 
 namespace PCL.UI.Xaml;
 
-/// <summary>AXAML 主页的渲染结果。</summary>
-public sealed class HomepageAvaloniaRenderResult
+/// <summary>主页 AXAML 的渲染结果。</summary>
+public sealed class HomepageRenderResult
 {
     public Control? Root { get; init; }
 
     public string? Error { get; init; }
-
-    public List<string> Warnings { get; } = [];
 }
 
 /// <summary>
-/// AXAML 主页加载器。AXAML 使用 Avalonia 原生运行时加载器， 以便 Style、Selector、ControlTemplate 和资源系统按
-/// Avalonia 的规则工作。 输入先经过受限校验和命名空间/事件属性归一化，避免任意 CLR 类型进入运行时加载器。
+/// 主页加载器。主页只接受 AXAML，使用 Avalonia 原生运行时加载器，以便 Style、Selector、ControlTemplate 和资源系统按
+/// Avalonia 的规则工作。输入先经过受限校验和命名空间/事件属性归一化，避免任意 CLR 类型进入运行时加载器。
 /// </summary>
-public static class HomepageAvaloniaRenderer
+public static class HomepageRenderer
 {
+    private const string AvaloniaNamespace = "https://github.com/avaloniaui";
     private const string PclNamespacePrefix = "pclhome";
     private const string PclNamespace = "using:PCL";
     private const string PclControlsNamespacePrefix = "pclcontrols";
     private const string PclControlsNamespace = "using:PCL.UI.Controls";
 
-    public static HomepageAvaloniaRenderResult Render(string? xaml)
+    public static HomepageRenderResult Render(string? xaml)
     {
-        _ = new HomepageAvaloniaRenderResult();
         if (string.IsNullOrWhiteSpace(xaml))
-            return new HomepageAvaloniaRenderResult
+            return new HomepageRenderResult
             {
                 Error = "AXAML 内容为空"
             };
 
-        var validation = AvaloniaXamlValidator.Validate(EnsurePclControlsNamespace(xaml));
+        var fragment = EnsurePclControlsNamespace(xaml);
+        var validation = AvaloniaXamlValidator.Validate(fragment);
         if (!validation.IsValid)
-            return new HomepageAvaloniaRenderResult
+            return new HomepageRenderResult
             {
                 Error = string.Join("\n", validation.Errors)
             };
 
         try
         {
-            var normalized = Normalize(EnsurePclControlsNamespace(xaml));
+            var normalized = Normalize(fragment);
             var loaded = AvaloniaRuntimeXamlLoader.Load(
                 normalized,
                 typeof(MyCard).Assembly);
             if (loaded is not Control root)
-                return new HomepageAvaloniaRenderResult
+                return new HomepageRenderResult
                 {
                     Error = "AXAML 根节点不是可显示的控件"
                 };
 
-            return new HomepageAvaloniaRenderResult
+            return new HomepageRenderResult
             {
                 Root = root
             };
         }
         catch (Exception ex)
         {
-            return new HomepageAvaloniaRenderResult
+            return new HomepageRenderResult
             {
                 Error = ex.Message
             };
         }
+    }
+
+    /// <summary>渲染一段 AXAML 片段；片段会被包进一个 <see cref="StackPanel" />，用于替换面板子内容。</summary>
+    public static HomepageRenderResult RenderFragment(string? fragment)
+    {
+        if (string.IsNullOrWhiteSpace(fragment))
+            return new HomepageRenderResult
+            {
+                Root = new StackPanel()
+            };
+
+        return Render(
+            "<StackPanel xmlns=\""
+            + AvaloniaNamespace
+            + "\">"
+            + StripXmlDeclaration(fragment)
+            + "</StackPanel>");
     }
 
     private static string Normalize(string xaml)
@@ -77,6 +93,15 @@ public static class HomepageAvaloniaRenderer
             LoadOptions.PreserveWhitespace);
         var root = document.Root
             ?? throw new InvalidDataException("AXAML 根节点为空");
+
+        if (root.GetDefaultNamespace() == XNamespace.None)
+        {
+            var avaloniaNamespace = XNamespace.Get(AvaloniaNamespace);
+            foreach (var element in root.DescendantsAndSelf())
+                if (element.Name.Namespace == XNamespace.None)
+                    element.Name = avaloniaNamespace + element.Name.LocalName;
+            root.SetAttributeValue("xmlns", AvaloniaNamespace);
+        }
 
         root.SetAttributeValue(XNamespace.Xmlns + PclNamespacePrefix, PclNamespace);
         root.SetAttributeValue(

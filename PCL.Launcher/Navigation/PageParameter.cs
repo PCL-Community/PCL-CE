@@ -1,5 +1,4 @@
 using System.Text.Json.Nodes;
-using PCL.Views.Pages;
 using PCL.Views.Pages.Download;
 
 namespace PCL.Navigation;
@@ -10,6 +9,5 @@ public union PageParameter(
     Comp.CompProject,
     CompDetailParameter,
     CompSearchContext,
-    PageHelpDetail.HelpContent,
     JsonObject,
     string);

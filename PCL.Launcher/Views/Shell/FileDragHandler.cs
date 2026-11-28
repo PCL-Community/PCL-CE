@@ -174,7 +174,7 @@ public sealed class FileDragHandler
         }
 
         var extension = Path.GetExtension(paths[0]).ToLowerInvariant();
-        if (extension is ".xaml" or ".axaml")
+        if (extension == ".axaml")
         {
             await LoadCustomHomepage(paths[0]);
             return;
@@ -531,7 +531,7 @@ public sealed class FileDragHandler
 
     private static async Task LoadCustomHomepage(string path)
     {
-        var target = Path.Combine(Paths.Data, "Custom.xaml");
+        var target = Path.Combine(Paths.Data, "Custom.axaml");
         if (File.Exists(target))
         {
             var overwrite = (await DialogService.Instance.ShowAsync(

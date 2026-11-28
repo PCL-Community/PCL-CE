@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using PCL.Views.Pages.Download;
-using PCL.Views.Pages.Help;
 using PCL.Views.Pages.Log;
 using PCL.Views.Pages.Speed;
 
@@ -20,16 +19,6 @@ public sealed class ShellPageModule : IPageModule
             [],
             [],
             (sp, _) => ActivatorUtilities.CreateInstance<CompDetailHost>(sp)),
-        new(
-            PageIds.HelpDetail,
-            "Main.Title.Help",
-            null,
-            null,
-            0d,
-            null,
-            [],
-            [],
-            (sp, _) => ActivatorUtilities.CreateInstance<HelpDetailHost>(sp)),
         new(
             PageIds.TaskManager,
             "Main.Title.TaskManager",

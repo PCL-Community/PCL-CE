@@ -1294,7 +1294,7 @@ public partial class PageInstanceExportViewModel : ViewModelBase
 
                     foreach (var name in new[]
                              {
-                                 "Custom.xaml",
+                                 "Custom.axaml",
                                  "Setup.ini",
                                  "hints.txt",
                                  "Logo.png"

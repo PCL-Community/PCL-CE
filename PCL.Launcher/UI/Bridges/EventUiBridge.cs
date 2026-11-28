@@ -1,8 +1,6 @@
-using PCL.Core.App.Localization;
 using PCL.Core.Logging;
 using PCL.Navigation;
 using PCL.UI.Controls;
-using PCL.Views.Pages;
 using PCL.Views.Pages.Tools;
 
 namespace PCL.UI.Bridges;
@@ -66,27 +64,5 @@ public sealed class EventUiBridge : IEventUi
     public void StartCustomDownload(string url, string savePath, string? fileName)
     {
         _ = PageToolsTest.StartCustomDownloadAsync(url, fileName, savePath);
-    }
-
-    public void OpenHelp(string location)
-    {
-        try
-        {
-            var title = PageHelpDetail.ReadTitle(location);
-            LauncherCommon.RunInUiWait(() => PageRouter.Navigate(
-                new PageRoute(
-                    PageIds.HelpDetail,
-                    null,
-                    location,
-                    string.IsNullOrEmpty(title) ? null : title)));
-        }
-        catch (Exception ex)
-        {
-            LauncherCommon.Log(
-                ex,
-                Lang.Text("Event.Error.ExecutionFailed", "OpenHelp", location),
-                LauncherLogLevel.Msgbox,
-                userSummary: Lang.Text("Event.Error.ExecutionFailed", "OpenHelp", location));
-        }
     }
 }

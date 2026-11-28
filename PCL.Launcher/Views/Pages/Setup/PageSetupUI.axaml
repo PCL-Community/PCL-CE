@@ -684,12 +684,6 @@
                                        Height="22"
                                        Text="{loc:Loc Setup.Ui.Homepage.NetUpdate}" />
                     </Grid>
-                    <ui:MyHint x:Name="HintCustomMigrationWarn"
-                               Margin="0,15,0,-4"
-                               Theme="Yellow"
-                               CanClose="True"
-                               IsVisible="False"
-                               Text="{loc:Loc Setup.Ui.Homepage.MigrationWarning}" />
                     <ui:MyHint x:Name="HintCustom"
                                Margin="0,15,0,-4"
                                Theme="Blue"
@@ -755,21 +749,7 @@
                                        HorizontalAlignment="Stretch"
                                        SelectedIndex="{Binding CustomPresetSelectedIndex, Mode=TwoWay}">
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.Trivia}" />
-                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.EchoCave}"
-                                               IsVisible="False" />
-                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.McNews}" />
-                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.DailyModpack}" />
-                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.McSkin}" />
-                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.OpenBmclapi}" />
-                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.PclManual}" />
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.Magazine}" />
-                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.GitHub}" />
-                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.McUpdateSummary}" />
-                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.NewsToday}" />
-                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.MinecraftKnowledge}" />
-                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.ModpackRecommendation}" />
-                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.Bangumi}" />
-                            <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.PclAnnouncement}" />
                             <ui:MyComboBoxItem Content="{loc:Loc Setup.Ui.Homepage.Preset.McOfficialFeed}" />
                         </ui:MyComboBox>
                     </Grid>

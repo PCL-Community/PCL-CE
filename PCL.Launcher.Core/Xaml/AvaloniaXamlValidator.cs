@@ -5,10 +5,13 @@ namespace PCL.Xaml;
 
 /// <summary>
 ///     AXAML 主页的受限校验器。AXAML 通过 Avalonia 运行时加载器实例化控件，
-///     因此命名空间、类型与标记扩展必须比 WPF 兼容渲染器更严格。
+///     因此命名空间、类型与标记扩展必须严格限制。
 /// </summary>
 public static partial class AvaloniaXamlValidator
 {
+    public const string AvaloniaNamespace = "https://github.com/avaloniaui";
+    public const string XamlNamespace = "http://schemas.microsoft.com/winfx/2006/xaml";
+
     private const int MaxLength = 2 * 1024 * 1024;
 
     private static readonly HashSet<string> ForbiddenElementNames =
@@ -52,9 +55,9 @@ public static partial class AvaloniaXamlValidator
             "DataContextChanged"
         };
 
-    public static XamlSecurityResult Validate(string? fragment)
+    public static AxamlValidationResult Validate(string? fragment)
     {
-        var result = new XamlSecurityResult();
+        var result = new AxamlValidationResult();
         if (string.IsNullOrWhiteSpace(fragment))
             return result;
 
@@ -75,10 +78,10 @@ public static partial class AvaloniaXamlValidator
         try
         {
             var wrapped = "<Root xmlns=\""
-                + XamlSecurityValidator.AvaloniaNamespace
+                + AvaloniaNamespace
                 + "\""
                 + " xmlns:x=\""
-                + XamlSecurityValidator.XamlNamespace
+                + XamlNamespace
                 + "\""
                 + " xmlns:pclhome=\"using:PCL\">"
                 + StripXmlDeclaration(fragment)
@@ -104,9 +107,9 @@ public static partial class AvaloniaXamlValidator
         return result;
     }
 
-    private static void ValidateElement(XElement element, XamlSecurityResult result)
+    private static void ValidateElement(XElement element, AxamlValidationResult result)
     {
-        if (element.Name == XName.Get("Root", XamlSecurityValidator.AvaloniaNamespace))
+        if (element.Name == XName.Get("Root", AvaloniaNamespace))
             return;
 
         var localName = element.Name.LocalName;
@@ -118,7 +121,7 @@ public static partial class AvaloniaXamlValidator
             return;
         }
 
-        if (namespaceName == XamlSecurityValidator.XamlNamespace)
+        if (namespaceName == XamlNamespace)
         {
             if (!localName.Equals("Array", StringComparison.Ordinal))
                 result.Fail($"不允许的 XAML 类型：x:{localName}");
@@ -156,7 +159,7 @@ public static partial class AvaloniaXamlValidator
         ValidateAttributes(element, result);
     }
 
-    private static void ValidateAttributes(XElement element, XamlSecurityResult result)
+    private static void ValidateAttributes(XElement element, AxamlValidationResult result)
     {
         foreach (var attribute in element.Attributes())
         {
@@ -166,7 +169,7 @@ public static partial class AvaloniaXamlValidator
             var attributeNamespace = attribute.Name.NamespaceName;
             var localName = attribute.Name.LocalName;
 
-            if (attributeNamespace == XamlSecurityValidator.XamlNamespace)
+            if (attributeNamespace == XamlNamespace)
             {
                 if (localName is "Class" or "Static" or "DataType")
                     result.Fail($"不允许的 XAML 属性：x:{localName}");
@@ -174,7 +177,7 @@ public static partial class AvaloniaXamlValidator
             }
 
             if (attributeNamespace.Length > 0
-                && attributeNamespace != XamlSecurityValidator.AvaloniaNamespace)
+                && attributeNamespace != AvaloniaNamespace)
             {
                 if (IsCustomEventAttribute(localName)
                     && attributeNamespace.StartsWith("using:PCL", StringComparison.Ordinal))
@@ -207,7 +210,7 @@ public static partial class AvaloniaXamlValidator
     private static void ValidateMarkupExtension(
         string value,
         string attributeName,
-        XamlSecurityResult result)
+        AxamlValidationResult result)
     {
         var trimmed = value.Trim();
         if (!trimmed.StartsWith('{'))
@@ -228,14 +231,14 @@ public static partial class AvaloniaXamlValidator
     private static void ValidateSource(
         string value,
         string attributeName,
-        XamlSecurityResult result)
+        AxamlValidationResult result)
     {
         var trimmed = value.Trim();
         if (trimmed.StartsWith("{DynamicResource", StringComparison.Ordinal)
             || trimmed.StartsWith("{StaticResource", StringComparison.Ordinal))
             return;
 
-        if (XamlSecurityValidator.IsSafeSource(value))
+        if (IsSafeSource(value))
             return;
 
         result.Fail(
@@ -246,11 +249,27 @@ public static partial class AvaloniaXamlValidator
 
     private static bool IsAllowedNamespace(string namespaceName)
     {
-        return namespaceName is "" or XamlSecurityValidator.AvaloniaNamespace
+        return namespaceName is "" or AvaloniaNamespace
             || namespaceName.StartsWith("using:PCL", StringComparison.Ordinal)
             || namespaceName.StartsWith("using:Avalonia", StringComparison.Ordinal)
             || namespaceName.StartsWith("clr-namespace:PCL", StringComparison.Ordinal)
             || namespaceName.StartsWith("clr-namespace:Avalonia", StringComparison.Ordinal);
+    }
+
+    /// <summary>判断一个图片/资源地址是否允许在运行时主页中使用。</summary>
+    public static bool IsSafeSource(string? source)
+    {
+        if (string.IsNullOrWhiteSpace(source))
+            return true;
+
+        var value = source.Trim();
+        return value.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
+            || (!value.Contains("..", StringComparison.Ordinal)
+                && (value.StartsWith("/images/", StringComparison.Ordinal)
+                    || value.StartsWith(
+                        "avares://PCL.Launcher/Assets/",
+                        StringComparison.Ordinal)));
     }
 
     private static bool IsSystemString(string namespaceName, string localName)

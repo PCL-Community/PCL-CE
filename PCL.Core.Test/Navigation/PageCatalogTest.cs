@@ -10,7 +10,7 @@ public sealed class PageCatalogTest
     [TestMethod]
     public void CatalogShouldContainAllFeaturePages()
     {
-        Assert.HasCount(11, PageCatalog.Pages);
+        Assert.HasCount(10, PageCatalog.Pages);
         Assert.AreEqual(44, PageCatalog.Pages.Sum(page => page.SubPages.Count));
     }
 

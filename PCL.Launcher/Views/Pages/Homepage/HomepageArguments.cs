@@ -1,119 +1,15 @@
 using System.Globalization;
-using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
-using CommunityToolkit.Mvvm.ComponentModel;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
-using PCL.Core.IO;
-using PCL.Core.UI.Hints;
 using PCL.Core.Utils.Secret;
-using PCL.Core.ViewModel;
-using PCL.Views.Pages;
 
-namespace PCL;
+namespace PCL.Views.Pages.Homepage;
 
-/// <summary>帮助详情页的视图模型：负责内容加载、参数替换、标题与错误状态。</summary>
-public partial class PageHelpDetailViewModel : ViewModelBase
+/// <summary>替换主页 AXAML 中的启动器参数标记。</summary>
+public static class HomepageArguments
 {
-    [ObservableProperty] public partial PageHelpDetail.HelpContent? Content { get; set; }
-
-    [ObservableProperty] public partial bool HasError { get; set; }
-
-    [ObservableProperty] public partial string PlainText { get; set; } = string.Empty;
-
-    public string Title => Content?.Title ?? string.Empty;
-
-    partial void OnContentChanged(PageHelpDetail.HelpContent? value)
-    {
-        OnPropertyChanged(nameof(Title));
-        HasError = false;
-        PlainText = string.Empty;
-    }
-
-    public void ApplyContent(PageHelpDetail.HelpContent content)
-    {
-        Content = content;
-    }
-
-    /// <summary>重新加载当前内容对应的 JSON；未加载过内容时返回 <c>false</c>。</summary>
-    public Task<bool> RefreshAsync()
-    {
-        return Content?.SourcePath is { } sourcePath
-            ? LoadFromPathAsync(sourcePath)
-            : Task.FromResult(false);
-    }
-
-    /// <summary>从 JSON 路径加载帮助内容；失败时写入错误与纯文本回退状态。</summary>
-    public async Task<bool> LoadFromPathAsync(string sourcePath)
-    {
-        var summary = Lang.Text("Event.Error.ExecutionFailed", "OpenHelp", sourcePath);
-        var content = await RunAsync(ct => Task.Run(
-            () =>
-            {
-                try
-                {
-                    return LoadContent(sourcePath);
-                }
-                catch (Exception ex)
-                {
-                    LauncherCommon.Log(
-                        ex,
-                        "刷新帮助详情页失败",
-                        LauncherLogLevel.Msgbox,
-                        userSummary: summary);
-                    throw;
-                }
-            },
-            ct));
-        if (content is null)
-        {
-            HasError = true;
-            PlainText = Error ?? string.Empty;
-            HintService.Show(Hints.Error(summary));
-            return false;
-        }
-
-        Content = content;
-        return true;
-    }
-
-    public static string ReadTitle(string jsonPath)
-    {
-        try
-        {
-            if (!File.Exists(jsonPath)) return "";
-            var json = (JsonObject)LauncherCommon.GetJson(Files.ReadAllTextOrEmpty(jsonPath));
-            return ReplaceArguments(json["Title"]?.ToString()?.Trim() ?? "");
-        }
-        catch (Exception ex)
-        {
-            LauncherCommon.Log(ex, "读取帮助标题失败");
-            return "";
-        }
-    }
-
-    public static PageHelpDetail.HelpContent LoadContent(string jsonPath)
-    {
-        if (!File.Exists(jsonPath))
-            throw new FileNotFoundException("未找到帮助 JSON 文件", jsonPath);
-
-        var json = (JsonObject)LauncherCommon.GetJson(Files.ReadAllTextOrEmpty(jsonPath));
-        var title = json["Title"]?.ToString();
-        if (string.IsNullOrWhiteSpace(title))
-            throw new ArgumentException("帮助 JSON 中未找到有效的 Title 项", nameof(jsonPath));
-        title = ReplaceArguments(title);
-
-        var xamlPath = Path.ChangeExtension(jsonPath, ".xaml");
-        if (!File.Exists(xamlPath))
-            throw new FileNotFoundException("未找到帮助 JSON 对应的 XAML 文件", xamlPath);
-        var xaml = Files.ReadAllTextOrEmpty(xamlPath);
-        return string.IsNullOrWhiteSpace(xaml)
-            ? throw new InvalidDataException("帮助 XAML 文件为空")
-            : new PageHelpDetail.HelpContent(jsonPath, title, xaml);
-    }
-
-    /// <summary>替换帮助文本中的启动器参数标记，与 WPF 的 ArgumentReplace 保持一致。</summary>
     public static string ReplaceArguments(string text)
     {
         text = text
