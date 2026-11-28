@@ -18,7 +18,6 @@ public interface IWatcherUi
     void RefreshShutdownButton();
     void ExitApplication();
     void ShowApplication();
-    void ShowFeedback();
     void ShowHint(string text, NotificationType type = NotificationType.Info);
 }
 
