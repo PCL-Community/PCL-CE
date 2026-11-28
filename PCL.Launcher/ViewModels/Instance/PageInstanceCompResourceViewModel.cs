@@ -551,7 +551,7 @@ public partial class PageInstanceCompResourceViewModel : ViewModelBase
                 _selection.Add(entry.RawPath);
             else
                 _selection.Remove(entry.RawPath);
-        RebuildVisibleEntries();
+        UpdateSelectionState();
     }
 
     public void SetSelectedEnabled(bool enabled)

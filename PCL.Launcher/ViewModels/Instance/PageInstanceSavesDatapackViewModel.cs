@@ -487,7 +487,7 @@ public partial class PageInstanceSavesDatapackViewModel : ViewModelBase
                 _selection.Remove(entry.path);
             else
                 _selection.Add(entry.path);
-        BuildList();
+        UpdateSelectionState();
     }
 
     private void UpdateSelectionState()
