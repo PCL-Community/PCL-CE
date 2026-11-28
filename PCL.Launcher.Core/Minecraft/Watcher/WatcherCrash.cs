@@ -21,7 +21,6 @@ public static partial class GameWatcher
                 WatcherLog(Lang.Text("Watcher.Crash.Detected"));
                 WatcherUi.Current?.ShowHint(Lang.Text("Watcher.Crash.Hint"));
 
-                WatcherUi.Current?.ShowFeedback();
                 LauncherCommon.RunInNewThread(
                     () =>
                     {

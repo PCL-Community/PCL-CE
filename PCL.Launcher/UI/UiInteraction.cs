@@ -752,11 +752,6 @@ public sealed class WatcherUiBridge : IWatcherUi
         window.Activate();
     }
 
-    public void ShowFeedback()
-    {
-        PageRouter.Navigate(PageIds.Setup, SubPageIds.SetupFeedback);
-    }
-
     public void ShowHint(string text, NotificationType type = NotificationType.Info)
     {
         UiInteraction.Hint(text, type);
