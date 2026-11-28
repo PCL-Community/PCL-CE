@@ -1,6 +1,8 @@
+using System.Diagnostics;
 using System.Text;
 using PCL.Core.Logging;
 using PCL.Core.Platform;
+using PCL.Core.Utils.OS;
 
 namespace PCL.Platform;
 
@@ -13,20 +15,12 @@ public sealed class LinuxShortcutService : IShortcutService
 
     public string GetDesktopPath(string fileName)
     {
-        return Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
-            fileName);
+        return Path.Combine(XdgPaths.DesktopDirectory, fileName);
     }
 
     public string GetStartMenuPath(string fileName)
     {
-        var dataHome = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
-        if (string.IsNullOrWhiteSpace(dataHome))
-            dataHome = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                ".local",
-                "share");
-        return Path.Combine(dataHome, "applications", fileName);
+        return Path.Combine(XdgPaths.DataHome, "applications", fileName);
     }
 
     public void Create(
@@ -52,26 +46,18 @@ public sealed class LinuxShortcutService : IShortcutService
             ? Path.GetDirectoryName(target)
             ?? Path.GetPathRoot(target) ?? Environment.CurrentDirectory
             : workingDirectory;
-        var name = string.IsNullOrWhiteSpace(description)
-            ? Path.GetFileNameWithoutExtension(shortcutPath)
-            : description;
+        var name = Path.GetFileNameWithoutExtension(shortcutPath);
+        if (string.IsNullOrWhiteSpace(name)) name = "PCL CE";
 
-        var builder = new StringBuilder();
-        builder.AppendLine("[Desktop Entry]");
-        builder.AppendLine("Type=Application");
-        builder.Append("Name=").AppendLine(_EscapeValue(name));
-        if (!string.IsNullOrWhiteSpace(description))
-            builder.Append("Comment=").AppendLine(_EscapeValue(description));
-        builder.Append("Exec=").AppendLine(_BuildExec(target, arguments));
-        builder.Append("Path=").AppendLine(_EscapeValue(workingDir));
-        if (!string.IsNullOrWhiteSpace(icon))
-        {
-            var iconPath = icon.Split(',')[0].Trim();
-            if (iconPath.Length > 0) builder.Append("Icon=").AppendLine(_EscapeValue(iconPath));
-        }
-
-        builder.AppendLine("Terminal=false");
-        File.WriteAllText(desktopFile, builder.ToString());
+        var content = LinuxDesktopEntryFile.Build(
+            name,
+            description,
+            target,
+            arguments,
+            workingDir,
+            string.IsNullOrWhiteSpace(icon) ? null : icon.Trim(),
+            LinuxDesktopEntryFile.PclCeAppId);
+        File.WriteAllText(desktopFile, content, new UTF8Encoding(false));
         File.SetUnixFileMode(
             desktopFile,
             UnixFileMode.UserRead
@@ -81,23 +67,70 @@ public sealed class LinuxShortcutService : IShortcutService
             | UnixFileMode.GroupExecute
             | UnixFileMode.OtherRead
             | UnixFileMode.OtherExecute);
+        TryMarkTrusted(desktopFile);
         LogWrapper.Info("Files", $"已创建桌面快捷方式：{desktopFile}");
     }
 
-    private static string _EscapeValue(string value)
+    private static void TryMarkTrusted(string desktopFile)
     {
-        return value.Replace('\n', ' ').Replace('\r', ' ').Trim();
+        try
+        {
+            if (!_IsGnomeDesktop() || !CommandLocator.ExistsOnPath("gio")) return;
+            var desktopDir = Path.TrimEndingDirectorySeparator(XdgPaths.DesktopDirectory);
+            var fileDir = Path.GetDirectoryName(Path.GetFullPath(desktopFile));
+            if (!string.Equals(desktopDir, fileDir, StringComparison.Ordinal)) return;
+
+            var info = new ProcessStartInfo("gio")
+            {
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+            info.ArgumentList.Add("set");
+            info.ArgumentList.Add(desktopFile);
+            info.ArgumentList.Add("metadata::trusted");
+            info.ArgumentList.Add("true");
+
+            using var process = Process.Start(info);
+            if (process is null) return;
+
+            var outputTask = process.StandardOutput.ReadToEndAsync();
+            var errorTask = process.StandardError.ReadToEndAsync();
+            if (!process.WaitForExit(3000))
+            {
+                try
+                {
+                    process.Kill(true);
+                }
+                catch
+                {
+                    // 进程可能刚好退出。
+                }
+
+                return;
+            }
+
+            _ = outputTask.GetAwaiter().GetResult();
+            if (process.ExitCode == 0) return;
+            var error = errorTask.GetAwaiter().GetResult().Trim();
+            if (error.Length > 0)
+                LogWrapper.Debug("Files", $"设置桌面快捷方式信任状态失败：{error}");
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Debug("Files", $"设置桌面快捷方式信任状态失败：{ex.Message}");
+        }
     }
 
-    private static string _BuildExec(string target, string? arguments)
+    private static bool _IsGnomeDesktop()
     {
-        var escaped = target
-            .Replace("\\", "\\\\")
-            .Replace("\"", "\\\"")
-            .Replace("$", "\\$")
-            .Replace("`", "\\`");
-        return string.IsNullOrWhiteSpace(arguments)
-            ? $"\"{escaped}\""
-            : $"\"{escaped}\" {arguments}";
+        var desktop = Environment.GetEnvironmentVariable("XDG_CURRENT_DESKTOP");
+        if (string.IsNullOrWhiteSpace(desktop))
+            desktop = Environment.GetEnvironmentVariable("DESKTOP_SESSION");
+        return !string.IsNullOrWhiteSpace(desktop)
+            && (desktop.Contains("GNOME", StringComparison.OrdinalIgnoreCase)
+                || desktop.Contains("Unity", StringComparison.OrdinalIgnoreCase)
+                || desktop.Contains("Cinnamon", StringComparison.OrdinalIgnoreCase));
     }
 }

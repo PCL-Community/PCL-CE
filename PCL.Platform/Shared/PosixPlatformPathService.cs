@@ -18,10 +18,9 @@ public class PosixPlatformPathService(string officialMinecraftDirectory) : IPlat
             return EnsureTrailingSeparator(dataDirectory);
 
         var temp = Path.GetTempPath();
-        if (temp.All(c => c < 128))
-            return EnsureTrailingSeparator(temp);
-
-        return EnsureTrailingSeparator(Path.Combine(temp, "PCL"));
+        return EnsureTrailingSeparator(temp.All(c => c < 128)
+            ? temp
+            : Path.Combine(temp, "PCL"));
     }
 
     public string ShortenPath(string path)
@@ -31,7 +30,7 @@ public class PosixPlatformPathService(string officialMinecraftDirectory) : IPlat
 
     public string GetFallbackNativesDirectory()
     {
-        return Path.Combine(Path.GetTempPath(), "PCLCE", "natives");
+        return Path.Combine(Paths.Temp, "natives");
     }
 
     private static string EnsureTrailingSeparator(string path)
