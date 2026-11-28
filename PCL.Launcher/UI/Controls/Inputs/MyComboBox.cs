@@ -30,6 +30,20 @@ public class MyComboBox : ComboBox
     public static readonly StyledProperty<string> HintTextProperty =
         AvaloniaProperty.Register<MyComboBox, string>(nameof(HintText), string.Empty);
 
+    /// <summary>下拉弹层的相对位置，展开时会按窗口剩余空间自动切换方向。</summary>
+    public static readonly StyledProperty<PlacementMode> PlacementProperty =
+        AvaloniaProperty.Register<MyComboBox, PlacementMode>(nameof(Placement), PlacementMode.Bottom);
+
+    public PlacementMode Placement
+    {
+        get => GetValue(PlacementProperty);
+        set => SetValue(PlacementProperty, value);
+    }
+
+    // 调用方想要的列表高度；展开前会按窗口剩余空间再收窄
+    private double _desiredMaxDropDownHeight = 300d;
+    private bool _adjustingDropDown;
+
     // 基础
 
     public int Uuid = InputTheme.NewUuid();
@@ -566,11 +580,39 @@ public class MyComboBox : ComboBox
         return NeedsContainer<ComboBoxItem>(item, out recycleKey);
     }
 
+    /// <summary>展开前按窗口剩余空间决定弹出方向与列表高度，避免列表越出窗口后点不到。</summary>
+    private void _UpdateDropDownPlacement()
+    {
+        if (TopLevel.GetTopLevel(this) is not { } topLevel) return;
+        if (this.TranslatePoint(new Point(0, 0), topLevel) is not { } origin) return;
+
+        // 8 是弹层与窗口边缘的安全距离
+        var below = topLevel.Bounds.Height - (origin.Y + Bounds.Height) - 8;
+        var above = origin.Y - 8;
+        var openUp = below < Math.Min(_desiredMaxDropDownHeight, 120d) && above > below;
+
+        _adjustingDropDown = true;
+        SetCurrentValue(PlacementProperty,
+            openUp ? PlacementMode.TopEdgeAlignedLeft : PlacementMode.BottomEdgeAlignedLeft);
+        SetCurrentValue(MaxDropDownHeightProperty,
+            Math.Max(80d, Math.Min(_desiredMaxDropDownHeight, openUp ? above : below)));
+        _adjustingDropDown = false;
+    }
+
     // 属性变更处理
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
+
+        // 记录调用方设定的高度，展开时在此基础上按剩余空间收窄
+        if (!_adjustingDropDown && change.Property == MaxDropDownHeightProperty
+            && change.NewValue is double desired && desired > 0)
+            _desiredMaxDropDownHeight = desired;
+
+        // 展开前先算好方向与高度：此时 Popup 还没按旧值布局
+        if (change.Property == IsDropDownOpenProperty && change.NewValue is true)
+            _UpdateDropDownPlacement();
 
         if (change.Property == TextProperty && IsEditable && !_isTextChanging)
         {
