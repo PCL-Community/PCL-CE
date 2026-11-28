@@ -363,9 +363,11 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
         PanLogoChange.IsVisible = type == LauncherTitleType.Image;
     }
 
-    private static bool _IsLogoTypeLocked()
+    private bool _IsLogoTypeLocked()
     {
-        return ApplicationRuntime.Current.Platform.Capabilities.SupportsTitleBarStyleSelection
+        // 标题栏样式选项已退役并隐藏，不再让旧配置中的值锁定徽标选择。
+        return PanMacTitleBarStyle.IsVisible
+            && ApplicationRuntime.Current.Platform.Capabilities.SupportsTitleBarStyleSelection
             && Config.Preference.MacTitleBarStyle >= 1;
     }
 

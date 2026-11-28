@@ -18,10 +18,10 @@ public static class Secrets
 
     private static string ResolveMsOAuthClientId()
     {
-        var clientId = EnvironmentInterop.GetSecret("MS_CLIENT_ID", readEnvDebugOnly: true);
-        // 允许运行时用自己的 Azure 应用覆盖（例如 PCL_MS_CLIENT_ID=<你的 ID> ./PCL.Launcher）。
+        // 运行时变量优先：即使发布版本嵌入了 MS_CLIENT_ID，也要允许用户切换到自己的 Azure 应用。
+        var clientId = Environment.GetEnvironmentVariable("PCL_MS_CLIENT_ID");
         if (string.IsNullOrWhiteSpace(clientId))
-            clientId = Environment.GetEnvironmentVariable("PCL_MS_CLIENT_ID");
+            clientId = EnvironmentInterop.GetSecret("MS_CLIENT_ID", readEnvDebugOnly: true);
         return string.IsNullOrWhiteSpace(clientId) ? OfficialMsOAuthClientId : clientId;
     }
 
