@@ -385,6 +385,7 @@ public partial class PageSetupLauncherMisc : MyPageRight, ISetupResetPage
                 Paths.OldSharedData,
                 Paths.SharedData,
                 Paths.SharedLocalData,
+                Paths.State,
                 Paths.Temp
             }
             .Where(folder => !string.IsNullOrWhiteSpace(folder))

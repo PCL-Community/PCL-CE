@@ -54,6 +54,7 @@ public sealed class PlatformArchitectureTest
             "Utils/OS/ProcessInterop.cs",
             "Utils/OS/SystemInfo.cs",
             "Utils/OS/SystemPaths.cs",
+            "Utils/OS/XdgPaths.cs",
             "Utils/Secret/EncryptHelper.cs",
             "Utils/Secret/Identify.cs",
             "Utils/Secret/IdentifyOld.cs"

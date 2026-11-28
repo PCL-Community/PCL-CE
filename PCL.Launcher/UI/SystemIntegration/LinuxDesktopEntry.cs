@@ -1,6 +1,8 @@
 using System.Text;
 using PCL.Core.App;
 using PCL.Core.Logging;
+using PCL.Core.Utils.OS;
+using PCL.Platform;
 
 namespace PCL.UI.SystemIntegration;
 
@@ -10,7 +12,7 @@ namespace PCL.UI.SystemIntegration;
 /// </summary>
 public static class LinuxDesktopEntry
 {
-    public const string AppId = "pcl-community-edition";
+    public const string AppId = LinuxDesktopEntryFile.PclCeAppId;
 
     public static void Ensure()
     {
@@ -27,29 +29,17 @@ public static class LinuxDesktopEntry
             if (string.IsNullOrWhiteSpace(executable) || !File.Exists(iconPath))
                 return;
 
-            var dataHome = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
-            if (string.IsNullOrWhiteSpace(dataHome))
-            {
-                var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-                dataHome = Path.Combine(home, ".local", "share");
-            }
-
-            var applications = Path.Combine(dataHome, "applications");
+            var applications = Path.Combine(XdgPaths.DataHome, "applications");
             Directory.CreateDirectory(applications);
 
             var desktopPath = Path.Combine(applications, $"{AppId}.desktop");
-            var content = new StringBuilder()
-                .AppendLine("[Desktop Entry]")
-                .AppendLine("Type=Application")
-                .AppendLine("Name=PCL Community Edition")
-                .AppendLine("Comment=Plain Craft Launcher Community Edition")
-                .AppendLine($"Exec={QuoteDesktopArg(executable)}")
-                .AppendLine($"Icon={EscapeDesktopValue(iconPath)}")
-                .AppendLine($"StartupWMClass={AppId}")
-                .AppendLine("Terminal=false")
-                .AppendLine("Categories=Game;Utility;")
-                .AppendLine("StartupNotify=true")
-                .ToString();
+            var content = LinuxDesktopEntryFile.Build(
+                "PCL Community Edition",
+                "Plain Craft Launcher Community Edition",
+                executable,
+                workingDirectory: AppContext.BaseDirectory,
+                icon: iconPath,
+                startupWmClass: AppId);
 
             File.WriteAllText(desktopPath, content, new UTF8Encoding(false));
             LogWrapper.Debug("UI", $"Wayland desktop entry 已更新：{desktopPath}");
@@ -58,22 +48,5 @@ public static class LinuxDesktopEntry
         {
             LogWrapper.Warn(ex, "UI", "创建 Wayland desktop entry 失败");
         }
-    }
-
-    private static string QuoteDesktopArg(string value)
-    {
-        return "\""
-            + value
-                .Replace("\\", "\\\\", StringComparison.Ordinal)
-                .Replace("\"", "\\\"", StringComparison.Ordinal)
-            + "\"";
-    }
-
-    private static string EscapeDesktopValue(string value)
-    {
-        return value
-            .Replace("\\", "\\\\", StringComparison.Ordinal)
-            .Replace("\n", "\\n", StringComparison.Ordinal)
-            .Replace("\r", string.Empty, StringComparison.Ordinal);
     }
 }
