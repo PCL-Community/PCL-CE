@@ -199,7 +199,7 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable, ICom
         ViewModel.ResetListViewState();
         SearchBox.Text = string.Empty;
         PanBack.ScrollToHome();
-        Reload();
+        PageEnterTask = ReloadAsync();
     }
 
     public override void OnNavigatedFrom()
@@ -207,7 +207,9 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable, ICom
         _swipeSelector.Cancel();
     }
 
-    public void Reload()
+    public void Reload() => _ = ReloadAsync();
+
+    private Task ReloadAsync()
     {
         ViewModel.ResetListViewState();
         SearchBox.Text = string.Empty;
@@ -216,7 +218,7 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable, ICom
         if (path is null)
         {
             UpdateEmptyState();
-            return;
+            return Task.CompletedTask;
         }
 
         PanLoad.IsVisible = true;
@@ -227,7 +229,7 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable, ICom
         {
             LoadingState = LoadingState.Run
         };
-        _ = LoadAsync();
+        return LoadAsync();
     }
 
     private async Task LoadAsync()

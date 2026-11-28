@@ -38,7 +38,7 @@ public partial class PageHelpDetail : MyPageRight, IRefreshable
                 ApplyContent(content);
                 break;
             case string sourcePath when File.Exists(sourcePath):
-                _ = LoadFromPathAsync(sourcePath);
+                PageEnterTask = LoadFromPathAsync(sourcePath);
                 break;
         }
 

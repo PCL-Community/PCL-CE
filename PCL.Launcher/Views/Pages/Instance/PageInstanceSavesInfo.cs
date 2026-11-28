@@ -61,7 +61,7 @@ public partial class PageInstanceSavesInfo : MyPageRight, IRefreshable
         _saveFolder = parameter is string routedSave ? routedSave : null;
         if (string.IsNullOrEmpty(_saveFolder))
             _saveFolder = PageInstanceSavesLeft.CurrentSave;
-        Reload();
+        PageEnterTask = ReloadAsync();
     }
 
     public void Reload()

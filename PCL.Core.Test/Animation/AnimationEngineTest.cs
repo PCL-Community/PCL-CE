@@ -12,6 +12,7 @@ using PCL.Core.UI.Animation.Animatable;
 using PCL.Core.UI.Animation.Core;
 using PCL.Core.UI.Animation.Easings;
 using PCL.Core.UI.Animation.UIAccessProvider;
+using PCL.UI.Controls;
 
 namespace PCL.Core.Test.Animation;
 
@@ -418,6 +419,73 @@ public sealed class AnimationEngineTest
         finished.ComputeNextFrame(finishedTarget)!.GetAction()();
         Assert.IsTrue(finished.IsClockFinished);
         Assert.AreEqual(12d, finishedOwner.Value, 1e-6d);
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public void PageEntryWaitsForContent(bool failed)
+    {
+        var content = new TaskCompletionSource();
+        var page = new ContentLoadingPage(content.Task) { Child = new MyCard() };
+        var enterCount = 0;
+        page.PageEnter += () => enterCount++;
+
+        page.PageOnEnter();
+        page.PageOnEnter();
+        Assert.IsFalse(page.Child.IsVisible);
+        Assert.AreEqual(0, enterCount);
+        Assert.AreEqual(MyPageRight.PageStates.Empty, page.PageState);
+
+        if (failed)
+            content.SetException(new InvalidOperationException("Test load failure"));
+        else
+            content.SetResult();
+
+        Assert.IsTrue(page.Child.IsVisible);
+        Assert.AreEqual(1, enterCount);
+        Assert.AreEqual(MyPageRight.PageStates.ContentStay, page.PageState);
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public void PageExitInvalidatesPendingContent(bool forceExit)
+    {
+        var oldContent = new TaskCompletionSource();
+        var newContent = new TaskCompletionSource();
+        var page = new ContentLoadingPage(oldContent.Task) { Child = new MyCard() };
+        page.PageOnEnter();
+        if (forceExit)
+            page.PageOnForceExit();
+        else
+            page.PageOnExit();
+
+        oldContent.SetResult();
+        Assert.IsFalse(page.Child.IsVisible);
+        Assert.AreEqual(MyPageRight.PageStates.Empty, page.PageState);
+
+        page.WaitForContent(newContent.Task);
+        page.PageOnEnter();
+        newContent.SetResult();
+        Assert.IsTrue(page.Child.IsVisible);
+        Assert.AreEqual(MyPageRight.PageStates.ContentStay, page.PageState);
+    }
+
+    [TestMethod]
+    public void PageEntryDoesNotWaitForCompletedContent()
+    {
+        var page = new ContentLoadingPage(Task.CompletedTask) { Child = new MyCard() };
+        page.PageOnEnter();
+        Assert.IsTrue(page.Child.IsVisible);
+        Assert.AreEqual(MyPageRight.PageStates.ContentStay, page.PageState);
+    }
+
+    private sealed class ContentLoadingPage : MyPageRight
+    {
+        public ContentLoadingPage(Task content) => WaitForContent(content);
+
+        public void WaitForContent(Task content) => PageEnterTask = content;
     }
 
     private sealed class SynchronousUiAccessProvider : IUiAccessProvider

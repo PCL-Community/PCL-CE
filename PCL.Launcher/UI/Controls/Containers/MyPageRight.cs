@@ -75,6 +75,9 @@ public class MyPageRight : Decorator, IPageView, IPageRightContainer
     /// </summary>
     public bool ShowAlwaysWhileLoading { get; set; } = true;
 
+    /// <summary>本次导航需要在入场前完成的内容初始化任务，不用于普通刷新。</summary>
+    protected Task? PageEnterTask { get; set; }
+
     public virtual void OnNavigatedTo(PageParameter? parameter)
     {
     }
@@ -190,6 +193,14 @@ public class MyPageRight : Decorator, IPageView, IPageRightContainer
     /// </summary>
     public void PageOnEnter()
     {
+        if (PageEnterTask is { IsCompleted: false } task)
+        {
+            Child?.IsVisible = false;
+            _ = EnterAfterContentReadyAsync(task);
+            return;
+        }
+
+        PageEnterTask = null;
         if (LauncherCommon.ModeDebug)
             LauncherCommon.Log("[UI] 已触发 PageOnEnter");
         PageEnter?.Invoke();
@@ -265,6 +276,22 @@ public class MyPageRight : Decorator, IPageView, IPageRightContainer
         }
     }
 
+    private async Task EnterAfterContentReadyAsync(Task task)
+    {
+        try
+        {
+            await task;
+        }
+        catch (Exception ex)
+        {
+            LauncherCommon.Log(ex, "等待页面内容加载失败", LauncherLogLevel.Developer);
+        }
+
+        if (!ReferenceEquals(PageEnterTask, task))
+            return;
+        PageOnEnter();
+    }
+
     public event PageEnterEventHandler? PageEnter;
 
     public delegate void PageEnterEventHandler();
@@ -272,6 +299,7 @@ public class MyPageRight : Decorator, IPageView, IPageRightContainer
     /// <summary>需要切换到其他页面。 需要立即切换至 PageExit 或 Empty。</summary>
     public void PageOnExit()
     {
+        PageEnterTask = null;
         if (LauncherCommon.ModeDebug)
             LauncherCommon.Log("[UI] 已触发 PageOnExit");
         PageExit?.Invoke();
@@ -328,6 +356,7 @@ public class MyPageRight : Decorator, IPageView, IPageRightContainer
     /// <summary>即将切换到其他页面，需要强制完成页面状态清理。 需要立即切换至 Empty。</summary>
     public void PageOnForceExit()
     {
+        PageEnterTask = null;
         if (PageState == PageStates.Empty)
             return;
         if (LauncherCommon.ModeDebug)
