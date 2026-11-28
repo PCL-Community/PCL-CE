@@ -43,6 +43,7 @@ public class MyComboBox : ComboBox
     // 调用方想要的列表高度；展开前会按窗口剩余空间再收窄
     private double _desiredMaxDropDownHeight = 300d;
     private bool _adjustingDropDown;
+    private TopLevel? _placementTopLevel;
 
     // 基础
 
@@ -580,22 +581,25 @@ public class MyComboBox : ComboBox
         return NeedsContainer<ComboBoxItem>(item, out recycleKey);
     }
 
-    /// <summary>展开前按窗口剩余空间决定弹出方向与列表高度，避免列表越出窗口后点不到。</summary>
+    /// <summary>按窗口剩余空间决定弹出方向与列表高度，避免列表越出窗口后点不到。</summary>
     private void _UpdateDropDownPlacement()
     {
         if (TopLevel.GetTopLevel(this) is not { } topLevel) return;
         if (this.TranslatePoint(new Point(0, 0), topLevel) is not { } origin) return;
 
         // 8 是弹层与窗口边缘的安全距离
-        var below = topLevel.Bounds.Height - (origin.Y + Bounds.Height) - 8;
-        var above = origin.Y - 8;
-        var openUp = below < Math.Min(_desiredMaxDropDownHeight, 120d) && above > below;
+        var below = Math.Max(0, topLevel.Bounds.Height - (origin.Y + Bounds.Height) - 8);
+        var above = Math.Max(0, origin.Y - 8);
+        var desired = _desiredMaxDropDownHeight;
+
+        // 下方放得下就朝下，否则挑空间更大的一侧；高度不超过该侧可用空间，否则仍会越界
+        var openUp = below < desired && above > below;
+        var available = openUp ? above : below;
 
         _adjustingDropDown = true;
         SetCurrentValue(PlacementProperty,
             openUp ? PlacementMode.TopEdgeAlignedLeft : PlacementMode.BottomEdgeAlignedLeft);
-        SetCurrentValue(MaxDropDownHeightProperty,
-            Math.Max(80d, Math.Min(_desiredMaxDropDownHeight, openUp ? above : below)));
+        SetCurrentValue(MaxDropDownHeightProperty, Math.Min(desired, available));
         _adjustingDropDown = false;
     }
 
@@ -654,15 +658,28 @@ public class MyComboBox : ComboBox
         // 仅切换主题色（不改深浅模式）时不会触发 ActualThemeVariantChanged，需监听 ColorThemeChanged
         ThemeService.ColorThemeChanged += OnColorThemeChanged;
         RefreshColor(false);
+
+        // 附加到窗口后才拿得到 TopLevel：此时若下拉已打开，补算一次方向与高度
+        _placementTopLevel = TopLevel.GetTopLevel(this);
+        if (_placementTopLevel is not null) _placementTopLevel.SizeChanged += OnTopLevelSizeChanged;
+        if (IsDropDownOpen) _UpdateDropDownPlacement();
     }
 
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
         ActualThemeVariantChanged -= OnActualThemeVariantChanged;
         ThemeService.ColorThemeChanged -= OnColorThemeChanged;
+        if (_placementTopLevel is not null) _placementTopLevel.SizeChanged -= OnTopLevelSizeChanged;
+        _placementTopLevel = null;
         DetachPopupOpacity();
         StopAnimations();
         base.OnDetachedFromVisualTree(e);
+    }
+
+    // 窗口缩放时列表尺寸会过期，打开状态下重新计算
+    private void OnTopLevelSizeChanged(object? sender, SizeChangedEventArgs e)
+    {
+        if (IsDropDownOpen) _UpdateDropDownPlacement();
     }
 
     private void OnActualThemeVariantChanged(object? sender, EventArgs e)
